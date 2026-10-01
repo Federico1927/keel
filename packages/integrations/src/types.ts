@@ -86,9 +86,23 @@ export interface NormalizedOrder {
 
 export interface OrderDetailsPatch {
   shippingAddress?: Address | null;
+  /** Not every platform can change it after checkout (Shopify's orderUpdate cannot): adapters that can't ignore it and Keel keeps it locally. */
+  billingAddress?: Address | null;
   email?: string | null;
   phone?: string | null;
   note?: string | null;
+}
+
+/** Discount added to an existing, unfulfilled order. */
+export interface OrderDiscountPatch {
+  type: "percentage" | "fixed_amount";
+  /** Basis points for a percentage, minor units for a fixed amount. */
+  value: number;
+  /** Amount in minor units as Keel computed it (the adapter may spread it across lines). */
+  amountMinor: number;
+  currency: string;
+  code: string;
+  reason?: string | null;
 }
 
 export interface CreateOrderInput {
@@ -106,6 +120,11 @@ export interface CreateOrderInput {
   noteAttributes: { name: string; value: string }[];
   /** Lineage, for the platform note / attributes: the order this one replaces. */
   replacesOrderName: string | null;
+  /**
+   * Payment state carried over from the replaced order. `paid` marks the new order paid (the money
+   * stays with the cancelled one, which is not refunded); omitted = payment pending (cash on delivery).
+   */
+  payment?: { method: PaymentMethod; status: "pending" | "paid"; gateways: string[] };
 }
 
 export interface NormalizedFulfillment {
@@ -244,10 +263,12 @@ export interface CommercePlatform {
   cancelOrder(externalId: string, opts: { reason?: string; restock: boolean; refund: boolean }): Promise<void>;
   /** Contact and note changes on an open order (address, phone, email, note). Line changes go through `createOrder` + `cancelOrder`. */
   updateOrderDetails(externalId: string, patch: OrderDetailsPatch): Promise<void>;
-  /** Creates an unpaid order (payment pending, e.g. cash on delivery) and returns it normalized, as a sync would. */
+  /** Creates an order (payment pending unless `input.payment.status` is `paid`) and returns it normalized, as a sync would. Used by cancel-and-recreate edits. */
   createOrder(input: CreateOrderInput): Promise<NormalizedOrder>;
   /** Draft order the customer pays through the platform's invoice (exchange with a difference to pay); the order arrives by webhook once paid. */
   createInvoiceOrder(input: CreateOrderInput): Promise<{ draftExternalId: string; invoiceUrl: string | null }>;
+  /** Adds a manual discount to an open, unfulfilled order (order edit on the platform). */
+  applyOrderDiscount(externalId: string, discount: OrderDiscountPatch): Promise<void>;
   addOrderNote(externalId: string, note: string): Promise<void>;
   updateOrderTags(externalId: string, add: string[], remove: string[]): Promise<void>;
   updateVariant(variantExternalId: string, patch: { priceMinor?: number }): Promise<void>;
@@ -345,6 +366,28 @@ export class IntegrationError extends Error {
     super(message);
     this.name = "IntegrationError";
   }
+}
+
+/**
+ * Address provider slot: autocomplete and validation for the order-edit dialog. Live providers
+ * (Google Places, Loqate, a national postal service) plug in here per account; only the mock exists.
+ */
+export interface AddressSuggestion {
+  id: string;
+  label: string;
+  address: Address;
+}
+export interface AddressValidation {
+  valid: boolean;
+  issues: { field: "name" | "address1" | "city" | "zip" | "country" | "province"; code: "required" | "invalid_zip" | "invalid_country" | "not_found" }[];
+  /** Cleaned version (trimmed, upper-case country and postal code), when the provider returns one. */
+  normalized: Address | null;
+}
+export interface AddressProvider {
+  readonly provider: string;
+  testConnection(): Promise<ConnectionTest>;
+  autocomplete(query: string, opts: { country: string | null; limit?: number }): Promise<AddressSuggestion[]>;
+  validate(address: Address): Promise<AddressValidation>;
 }
 
 /**

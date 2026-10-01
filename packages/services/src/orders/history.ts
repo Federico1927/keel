@@ -1,4 +1,4 @@
-import { and, eq, inArray, ne, or, schema, sql } from "@keel/db";
+import { and, eq, inArray, isNotNull, ne, or, schema, sql } from "@keel/db";
 import type { ServiceContext } from "../context";
 
 export interface HistoryOrder {
@@ -77,6 +77,10 @@ export async function customerOrderHistory(ctx: ServiceContext, orderId: string)
       .limit(20);
     for (const r of weak) if (!found.has(r.id)) found.set(r.id, { ...r, matchedVia: "name" });
   }
+  // orders replaced by an edit are lineage of the replacement, not separate purchases or cancellations
+  const foundIds = [...found.keys()];
+  const replaced = foundIds.length ? await ctx.tx.select({ id: schema.orders.id }).from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenantId), inArray(schema.orders.id, foundIds), isNotNull(schema.orders.replacedByOrderId))) : [];
+  for (const r of replaced) found.delete(r.id);
   const orders = [...found.values()].sort((a, b) => b.placedAt.getTime() - a.placedAt.getTime());
   const stats = { total: orders.length, delivered: 0, inProgress: 0, returned: 0, cancelled: 0, totalSpentMinor: 0 };
   for (const o of orders) {

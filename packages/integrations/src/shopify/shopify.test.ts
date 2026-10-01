@@ -119,6 +119,27 @@ describe("shopify adapter", () => {
     expect(sent.variables).toMatchObject({ orderId: "gid://shopify/Order/5678901234567", reason: "CUSTOMER", restock: true, refund: false });
     await expect(p.updateProductStatus("8100001", "draft")).rejects.toMatchObject({ code: "invalid_request" });
   });
+
+  it("applies a discount to an existing order through the order editing API", async () => {
+    const begin = { data: { orderEditBegin: { calculatedOrder: { id: "gid://shopify/CalculatedOrder/1", lineItems: { nodes: [{ id: "gid://shopify/CalculatedLineItem/1", quantity: 1, originalUnitPriceSet: { shopMoney: { amount: "20.00" } } }, { id: "gid://shopify/CalculatedLineItem/2", quantity: 2, originalUnitPriceSet: { shopMoney: { amount: "30.00" } } }] } }, userErrors: [] } } };
+    const routes = [
+      { match: (_u: string, i?: { body?: string }) => bodyOf(i).query.includes("orderEditBegin"), body: begin },
+      { match: (_u: string, i?: { body?: string }) => bodyOf(i).query.includes("orderEditAddLineItemDiscount"), body: { data: { orderEditAddLineItemDiscount: { calculatedOrder: { id: "gid://shopify/CalculatedOrder/1" }, userErrors: [] } } } },
+      { match: (_u: string, i?: { body?: string }) => bodyOf(i).query.includes("orderEditCommit"), body: { data: { orderEditCommit: { order: { id: "gid://shopify/Order/5678901234567" }, userErrors: [] } } } },
+    ];
+    const pct = platform(routes);
+    await pct.applyOrderDiscount("5678901234567", { type: "percentage", value: 1000, amountMinor: 800, currency: "USD", code: "KEEL-10%" });
+    const pctCalls = pct.http.calls.map((c) => bodyOf({ body: c.body! }));
+    expect(pctCalls.filter((c) => c.query.includes("orderEditAddLineItemDiscount"))).toHaveLength(2);
+    expect(pctCalls[1]!.variables).toMatchObject({ discount: { percentValue: 10, description: "KEEL-10%" } });
+    const fixed = platform(routes);
+    await fixed.applyOrderDiscount("5678901234567", { type: "fixed_amount", value: 500, amountMinor: 500, currency: "USD", code: "KEEL-5.00" });
+    const fixedCalls = fixed.http.calls.map((c) => bodyOf({ body: c.body! }));
+    const adds = fixedCalls.filter((c) => c.query.includes("orderEditAddLineItemDiscount"));
+    expect(adds).toHaveLength(1);
+    expect(adds[0]!.variables).toMatchObject({ lineItemId: "gid://shopify/CalculatedLineItem/2", discount: { fixedValue: { amount: "5.00", currencyCode: "USD" } } });
+    expect(fixedCalls.at(-1)!.query).toContain("orderEditCommit");
+  });
 });
 
 describe("shopify returns write-back", () => {

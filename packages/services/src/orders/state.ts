@@ -20,6 +20,7 @@ export function stateInputFromOrder(o: typeof schema.orders.$inferSelect, shipme
     shipmentStatus,
     returnedFraction: o.returnedFraction / 10000,
     manualStatus: (o.manualStatus as OrderStatus | null) ?? null,
+    replacedByOrderId: o.replacedByOrderId,
     now,
   };
 }

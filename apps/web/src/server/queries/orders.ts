@@ -1,6 +1,8 @@
 import { and, asc, desc, eq, gte, inArray, lte, schema, sql, type SQL } from "@keel/db";
 import { ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES } from "@keel/core";
-import { PAGE_SIZE } from "@keel/config";
+import { PAGE_SIZE, isPageEnabled } from "@keel/config";
+import { orderLineage, orderMergeCandidates } from "@keel/services";
+import { OPEN_QUEUE_STATUSES } from "@keel/addon-cod";
 import type { TenantContext } from "@/server/tenant";
 
 export interface OrderFilters {
@@ -128,5 +130,25 @@ export async function adjacentOrders(ctx: TenantContext, placedAt: Date, id: str
     const [prev] = await tx.select({ id: schema.orders.id, name: schema.orders.name }).from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenant.id), sql`(${schema.orders.placedAt}, ${schema.orders.id}) > (${placedAt}, ${id}::uuid)`)).orderBy(asc(schema.orders.placedAt), asc(schema.orders.id)).limit(1);
     const [next] = await tx.select({ id: schema.orders.id, name: schema.orders.name }).from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenant.id), sql`(${schema.orders.placedAt}, ${schema.orders.id}) < (${placedAt}, ${id}::uuid)`)).orderBy(desc(schema.orders.placedAt), desc(schema.orders.id)).limit(1);
     return { newer: prev ?? null, older: next ?? null };
+  });
+}
+
+/**
+ * What the order page needs to offer editing: lineage (always), and when the order is editable the
+ * catalog for added lines, merge candidates, and whether the COD card owns the edit (an open
+ * confirmation-queue item, so the call attempt and queue hand-over happen in the add-on).
+ */
+export async function getOrderEditData(ctx: TenantContext, order: { id: string; paymentMethod: string }, opts: { editable: boolean }) {
+  return ctx.run(async (tx) => {
+    const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
+    const lineage = await orderLineage(s, order.id);
+    if (!opts.editable) return { lineage, catalog: [], candidates: [], codOwnsEdit: false };
+    const [catalog, candidates, queue] = await Promise.all([
+      tx.select({ id: schema.productVariants.id, sku: schema.productVariants.sku, title: schema.productVariants.title, product: schema.products.title, priceMinor: schema.productVariants.priceMinor }).from(schema.productVariants).innerJoin(schema.products, eq(schema.products.id, schema.productVariants.productId)).where(and(eq(schema.productVariants.tenantId, ctx.tenant.id), eq(schema.productVariants.isActive, true), eq(schema.products.status, "active"))).orderBy(schema.products.title).limit(600),
+      orderMergeCandidates(s, order.id),
+      order.paymentMethod === "cod" && isPageEnabled("cod_queue", ctx.activeAddons) ? tx.select({ status: schema.codQueueItems.status }).from(schema.codQueueItems).where(and(eq(schema.codQueueItems.tenantId, ctx.tenant.id), eq(schema.codQueueItems.orderId, order.id))).limit(1) : Promise.resolve([]),
+    ]);
+    const codOwnsEdit = queue.some((q) => (OPEN_QUEUE_STATUSES as readonly string[]).includes(q.status));
+    return { lineage, catalog, candidates, codOwnsEdit };
   });
 }

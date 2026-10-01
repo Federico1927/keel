@@ -55,6 +55,7 @@ export const ACTIONS = [
   "receive_purchase_order",
   "approve_return",
   "create_discount",
+  "edit_order",
 ] as const;
 export type ActionKey = (typeof ACTIONS)[number];
 
@@ -175,6 +176,8 @@ const ACTION_PAGE: Record<ActionKey, PageKey> = {
   receive_purchase_order: "purchasing",
   approve_return: "returns",
   create_discount: "discounts",
+  /** Contact, address, lines, merge and discount on an open order (core, any payment method). */
+  edit_order: "orders",
 };
 
 /** Actions restricted to owner/admin regardless of page level. */
