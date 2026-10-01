@@ -35,6 +35,7 @@ export const PAGES = [
   // add-on pages
   "cod_queue",
   "cod_settings",
+  "customer_campaigns",
 ] as const;
 export type PageKey = (typeof PAGES)[number];
 
@@ -83,6 +84,7 @@ const MATRIX: Record<Exclude<TenantRole, "owner" | "admin">, Partial<Record<Page
     notifications: "write",
     cod_queue: "write",
     cod_settings: "none",
+    customer_campaigns: "none",
   },
   customer_care: {
     dashboard: "read",
@@ -104,6 +106,7 @@ const MATRIX: Record<Exclude<TenantRole, "owner" | "admin">, Partial<Record<Page
     notifications: "write",
     cod_queue: "write",
     cod_settings: "none",
+    customer_campaigns: "none",
   },
   marketing: {
     dashboard: "read",
@@ -125,6 +128,7 @@ const MATRIX: Record<Exclude<TenantRole, "owner" | "admin">, Partial<Record<Page
     notifications: "write",
     cod_queue: "none",
     cod_settings: "none",
+    customer_campaigns: "write",
   },
   viewer: {
     dashboard: "read",
@@ -146,6 +150,7 @@ const MATRIX: Record<Exclude<TenantRole, "owner" | "admin">, Partial<Record<Page
     notifications: "read",
     cod_queue: "read",
     cod_settings: "none",
+    customer_campaigns: "read",
   },
 };
 

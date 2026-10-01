@@ -1,5 +1,5 @@
 import { and, eq, schema } from "@keel/db";
-import { GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, MockCommercePlatform, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
+import { GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, MockAudienceDestination, MockCommercePlatform, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type AudienceDestination, type AudienceProvider, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 
 export interface PlatformTenant {
@@ -152,4 +152,22 @@ export function getMessagingChannelFor(tenantId: string): MessagingChannel {
 }
 export function mockMessagingFor(tenantId: string): MockMessagingChannel | undefined {
   return messaging.get(tenantId);
+}
+
+const audiences = new Map<string, MockAudienceDestination>();
+/**
+ * Audience destination for segment sync. Only mocks: Meta Custom Audiences, Google Customer Match
+ * and email tools need the account's own credentials and permissions (external block, issue #7).
+ */
+export function getAudienceDestinationFor(tenantId: string, provider: AudienceProvider): AudienceDestination {
+  const key = `${tenantId}:${provider}`;
+  let d = audiences.get(key);
+  if (!d) {
+    d = new MockAudienceDestination(provider);
+    audiences.set(key, d);
+  }
+  return d;
+}
+export function mockAudienceFor(tenantId: string, provider: AudienceProvider): MockAudienceDestination | undefined {
+  return audiences.get(`${tenantId}:${provider}`);
 }

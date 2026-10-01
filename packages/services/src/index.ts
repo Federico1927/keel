@@ -20,3 +20,4 @@ export * from "./billing";
 export * from "./planning";
 export * from "./crm/predictions";
 export * from "./crm/campaigns";
+export * from "./crm/destinations";

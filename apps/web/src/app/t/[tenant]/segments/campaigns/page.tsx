@@ -10,18 +10,18 @@ import { UpliftBadge } from "./uplift-badge";
 
 export default async function RetentionCampaignsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
-  const ctx = await requirePage(tenant, "segments");
+  const ctx = await requirePage(tenant, "customer_campaigns");
   const t = await getTranslations("retention");
   const ts = await getTranslations("segments");
   const at = { id: ctx.tenant.id, country: ctx.tenant.country, currency: ctx.tenant.currency, timezone: ctx.tenant.timezone, settings: ctx.settings };
   const rows = await ctx.run((tx) => listRetentionCampaigns({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, at));
-  const canWrite = canWritePage(ctx.role, "segments");
+  const canWrite = canWritePage(ctx.role, "customer_campaigns");
   const base = `/t/${tenant}/segments/campaigns`;
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   return (
     <>
       <PageHeader eyebrow={ctx.tenant.name} title={ts("title")} description={t("description")} actions={canWrite ? <Button asChild><Link href={`${base}/new`}>{t("new")}</Link></Button> : undefined} />
-      <SegmentTabs tenant={tenant} active="campaigns" />
+      <SegmentTabs tenant={tenant} active="campaigns" activeAddons={ctx.activeAddons} />
       {rows.length === 0 ? (
         <EmptyState title={t("empty_title")} description={t("empty_description")} />
       ) : (

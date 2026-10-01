@@ -42,7 +42,7 @@ function defaultValue(field: string, op: SegmentOp): unknown {
   }
 }
 
-export function SegmentBuilder({ slug, segment, options, currency, locale, canWrite }: { slug: string; segment: BuilderSegment; options: BuilderOptions; currency: string; locale: string; canWrite: boolean }) {
+export function SegmentBuilder({ slug, segment, options, currency, locale, canWrite, holdoutEnabled }: { slug: string; segment: BuilderSegment; options: BuilderOptions; currency: string; locale: string; canWrite: boolean; holdoutEnabled: boolean }) {
   const t = useTranslations("segment_builder");
   const tc = useTranslations("common");
   const router = useRouter();
@@ -88,20 +88,22 @@ export function SegmentBuilder({ slug, segment, options, currency, locale, canWr
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <div className="space-y-4">
         <Card>
-          <CardContent className="grid gap-3 pt-6 sm:grid-cols-[1fr_8rem]">
+          <CardContent className={cn("grid gap-3 pt-6", holdoutEnabled && "sm:grid-cols-[1fr_8rem]")}>
             <div className="space-y-1">
               <Label htmlFor="seg-name">{t("name")}</Label>
               <Input id="seg-name" value={name} onChange={(e) => setName(e.target.value)} disabled={!canWrite} maxLength={120} />
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="seg-holdout">{t("holdout")}</Label>
-              <Input id="seg-holdout" type="number" min={0} max={50} value={holdout} onChange={(e) => setHoldout(Math.max(0, Math.min(50, Number(e.target.value) || 0)))} disabled={!canWrite} />
-            </div>
+            {holdoutEnabled && (
+              <div className="space-y-1">
+                <Label htmlFor="seg-holdout">{t("holdout")}</Label>
+                <Input id="seg-holdout" type="number" min={0} max={50} value={holdout} onChange={(e) => setHoldout(Math.max(0, Math.min(50, Number(e.target.value) || 0)))} disabled={!canWrite} />
+              </div>
+            )}
             <div className="space-y-1 sm:col-span-2">
               <Label htmlFor="seg-desc">{t("description")}</Label>
               <Textarea id="seg-desc" value={description} onChange={(e) => setDescription(e.target.value)} disabled={!canWrite} rows={2} maxLength={500} />
             </div>
-            <p className="text-xs text-muted-foreground sm:col-span-2">{t("holdout_help")}</p>
+            {holdoutEnabled && <p className="text-xs text-muted-foreground sm:col-span-2">{t("holdout_help")}</p>}
           </CardContent>
         </Card>
         <Card>
@@ -147,7 +149,7 @@ export function SegmentBuilder({ slug, segment, options, currency, locale, canWr
                   <div className="text-2xl font-semibold tabular">{formatNumber(preview.contactable, locale)}</div>
                 </div>
               </div>
-              {holdout > 0 && <p className="text-xs text-muted-foreground">{t("holdout_estimate", { n: formatNumber(Math.round((preview.count * holdout) / 100), locale), pct: holdout })}</p>}
+              {holdoutEnabled && holdout > 0 && <p className="text-xs text-muted-foreground">{t("holdout_estimate", { n: formatNumber(Math.round((preview.count * holdout) / 100), locale), pct: holdout })}</p>}
               <ul className="divide-y text-sm">
                 {preview.sample.slice(0, 8).map((s) => (
                   <li key={s.customerId} className="flex items-center justify-between gap-2 py-1.5">

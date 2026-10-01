@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { isPageEnabled } from "@keel/config";
 import { cn } from "@keel/ui";
 
-export async function SegmentTabs({ tenant, active }: { tenant: string; active: "segments" | "campaigns" }) {
+/** Segments | Campaigns. Without the customer-campaigns add-on there is a single page and no tabs. */
+export async function SegmentTabs({ tenant, active, activeAddons }: { tenant: string; active: "segments" | "campaigns"; activeAddons: readonly string[] }) {
+  if (!isPageEnabled("customer_campaigns", activeAddons)) return null;
   const t = await getTranslations("retention");
   const base = `/t/${tenant}/segments`;
   return (

@@ -452,3 +452,39 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 **Decision.** For the demo's measured win-back campaign, about 12% of the treated customers get one extra order within the window. Each one is a copy of the customer's own last delivered order (lines included, generated columns recomputed) and uses the campaign code. The P/L, the customer history and the campaign results therefore all see the same orders, and the effect on the page is computed, not typed in. Harbor's campaign has no injected effect, so the demo shows a "no clear effect" verdict too. The seeded repeat-customer segments now hold out 20% instead of 10%. With 10% the control group had about 150 customers, a standard error of about 2.6 points, and the seeded effect was not significant on one reseed in two.
 
 **Alternatives.** Hard-coding result numbers (rejected: the results page would disagree with the orders it links to). Raising purchase rates inside the lifecycle generator (rejected: segment membership is only known after the orders exist).
+
+## 2026-10-01 · Control groups and customer campaigns are an add-on (`addon.customer_campaigns`)
+
+**Decision.** The client's ruling is that treated and control groups only matter to a store that sends campaigns through WhatsApp or email. Campaigns, the holdout setting, group badges and uplift measurement are now the add-on `addon.customer_campaigns` (page key `customer_campaigns`, 99 USD a month as a placeholder price).
+
+Without the add-on:
+- the segment builder has no holdout field, and the server forces 0% on save;
+- lists, member tables and the customer page show no groups;
+- the CSV export has no group column;
+- audience destinations include every consenting member;
+- the campaign pages and actions return 404 or are forbidden, server side included.
+
+The `holdout_percentage` and `group_name` columns stay in the data model, as §7.3 of the brief asks. If the add-on is switched off later, existing groups are kept but ignored. Spoki and other WhatsApp providers become channels of this add-on. The landing does not list it yet.
+
+**Alternatives.** Keeping control groups in the core with an "advanced" toggle (rejected: the client decided). Dropping the columns (rejected: the brief keeps them in the data model, and the add-on needs them).
+
+## 2026-10-01 · Live segments: incremental every 10 minutes, full every night
+
+**Decision.**
+- A segment marked live is re-checked every 10 minutes (job `segments`) for the customers whose orders or profile changed since its last evaluation. The profile query is restricted to those customers in every branch, so the cost does not depend on the store's size.
+- Each night after the predictions (job `crm`), live segments are fully re-evaluated, because conditions on elapsed time and predicted values change without any event.
+- The incremental and full results agree; the service test checks it. Existing members never change group.
+
+**Alternatives.** Re-evaluating on every webhook inside the order transaction (rejected: it couples order ingestion to every segment rule, and a ten-minute delay is fine for audiences). Database triggers (rejected: the segment rules compile in the service, not in SQL functions).
+
+## 2026-10-01 · Audience destinations sync by diff, with hashed identifiers
+
+**Decision.**
+- `AudienceDestination` (Meta Custom Audience, Google Customer Match, email tool) receives the segment's consenting members. With the campaigns add-on it receives only the treated group, so a control customer never sees the audience's ads either.
+- Ad platforms receive SHA-256 hashes of the normalised email and phone, never the values themselves. Meta's phone format is digits without "+"; Google's keeps "+". Both are to be verified against the current API docs when going live. Email tools receive the plain email and names.
+- Keel records what it pushed per destination and computes the additions and removals.
+- The record is written only after the destination accepted the change, so a failed run leaves an error on the destination and the next run repeats it safely.
+- Removing a destination stops the sync but leaves the audience on the platform.
+- Pushing requires both segment write access and the export permission.
+
+**Alternatives.** Full replace on every sync (rejected: platforms rate-limit and reprocess large lists). Pushing plain emails to ad platforms (rejected: both platforms expect hashed identifiers, and it is personal data leaving the store).

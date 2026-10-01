@@ -1,6 +1,6 @@
 import { parseTenantSettings } from "@keel/core";
 import { adminDb, and, eq, inArray, schema, withTenant } from "@keel/db";
-import { recomputePredictions, applySuspensions, captureOverdueGuarantees, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
+import { getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue } from "@keel/addon-cod";
 import { adsWindow, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
 
@@ -68,12 +68,23 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
     }
     return;
   }
-  if (job.kind === "crm") {
-    // nightly, after the reconciliation: refit customer predictions on the day's orders
+  if (job.kind === "crm" || job.kind === "segments") {
+    // crm (nightly, after the reconciliation): refit predictions, then fully re-evaluate live segments,
+    // since time-based conditions and predictions change without events.
+    // segments (every 10 min): live segments re-checked for customers whose orders changed.
+    // Either way, destinations of segments whose membership changed are synced.
+    const full = job.kind === "crm";
     const tenants = await adminDb().select({ id: schema.tenants.id, status: schema.tenants.status, settings: schema.tenants.settings }).from(schema.tenants);
+    const campaigns = new Set((await adminDb().select({ tenantId: schema.tenantAddons.tenantId }).from(schema.tenantAddons).where(and(eq(schema.tenantAddons.moduleKey, "addon.customer_campaigns"), eq(schema.tenantAddons.isActive, true)))).map((a) => a.tenantId));
     for (const t of tenants) {
       if (t.status !== "active") continue;
-      await withTenant(t.id, (tx) => recomputePredictions(sys(t.id)(tx), parseTenantSettings(t.settings)));
+      await withTenant(t.id, async (tx) => {
+        const ctx = sys(t.id)(tx);
+        if (full) await recomputePredictions(ctx, parseTenantSettings(t.settings));
+        const deltas = await refreshLiveSegments(ctx, { full });
+        const changed = deltas.filter((d) => full || d.added + d.removed > 0).map((d) => d.segmentId);
+        await syncAutoDestinations(ctx, changed, (provider) => getAudienceDestinationFor(t.id, provider), { excludeHoldout: campaigns.has(t.id) });
+      });
     }
     return;
   }

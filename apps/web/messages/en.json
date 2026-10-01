@@ -128,6 +128,10 @@
       "carrier_tracking": {
         "name": "Carrier tracking",
         "description": "Second source for shipment status"
+      },
+      "customer_campaigns": {
+        "name": "Customer campaigns",
+        "description": "Email, SMS and WhatsApp campaigns to segments with a control group: holdout on segments and measured incremental margin."
       }
     }
   },
@@ -3379,6 +3383,43 @@
       "already_sent": "The campaign was already sent.",
       "no_segment": "Choose a segment.",
       "empty_segment": "Nobody in the segment accepts marketing.",
+      "invalid_input": "Check the fields."
+    }
+  },
+  "destinations": {
+    "title": "Live updates and destinations",
+    "description": "Push this segment to ad platforms and email tools. Only customers who accept marketing are sent; ad platforms receive hashed identifiers only.",
+    "description_holdout": "Push this segment to ad platforms and email tools. Only customers who accept marketing are sent, never the control group; ad platforms receive hashed identifiers only.",
+    "live": "Live updates",
+    "live_help": "Re-checked within 10 minutes of any order change, and fully every night (time-based conditions and predictions). Destinations with auto-sync follow.",
+    "mock": "mock",
+    "columns": {
+      "destination": "Destination",
+      "members": "Members",
+      "last_sync": "Last sync",
+      "auto": "Auto-sync"
+    },
+    "providers": {
+      "meta_custom_audience": "Meta Custom Audience",
+      "google_customer_match": "Google Customer Match",
+      "email_tool": "Email tool list"
+    },
+    "status": {
+      "never": "never synced",
+      "ok": "synced",
+      "error": "error"
+    },
+    "last_sync": "{at} · +{added} −{removed}",
+    "sync": "Sync now",
+    "add": "Add destination",
+    "fields": {
+      "provider": "Destination",
+      "audience_name": "Audience name",
+      "auto_sync": "Auto-sync"
+    },
+    "privacy_note": "Until the account is connected (Integrations), destinations run in mock mode: Keel computes and records exactly what would be sent.",
+    "errors": {
+      "not_found": "Destination not found.",
       "invalid_input": "Check the fields."
     }
   }

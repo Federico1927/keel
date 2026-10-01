@@ -61,9 +61,9 @@ The table is updated at the end of every area: rows that moved from ABSENT/PARTI
 
 | # | Feature | Status | What is missing | Effort | External |
 | --- | --- | --- | --- | --- | --- |
-| 4.1 | Dynamic segments in real time, synced to Meta Custom Audiences and Google Customer Match | PARTIAL | Segments are evaluated on demand and memberships stored. No incremental re-evaluation on order events, no audience sync. | M | **EXTERNAL**: ads accounts with audience permissions (adapter + mock) |
+| 4.1 | Dynamic segments in real time, synced to Meta Custom Audiences and Google Customer Match | DONE (mock adapters) | Live segments re-checked every 10 minutes for customers whose orders or profile changed, fully every night; destinations (Meta Custom Audience, Google Customer Match, email tool) synced by diff with hashed identifiers, auto-sync after each change. | M | Live adapters need the ads/email accounts (issue #7) |
 | 4.2 | Per-customer predictions: repurchase probability, next order date, expected LTV, churn risk | DONE | MBG/NBD + Gamma-Gamma fitted per tenant (`packages/core/src/predictions.ts`), back-tested on the last 180 days, stored per customer, nightly and on demand; four segment fields; Predictions tab, customer card. | M | — |
-| 4.3 | Export of segments to email tools through an adapter | PARTIAL | CSV export and a `MessagingChannel` interface. No `AudienceDestination` adapter, no push. | S | Email tool API keys (mock) |
+| 4.3 | Export of segments to email tools through an adapter | DONE (mock adapter) | `AudienceDestination` interface with an email-tool destination (plain email and names) next to the CSV export. | S | Email tool API keys (issue #7) |
 | 4.4 | Campaigns with control group and incremental margin | DONE | Customer campaigns on a segment (email, SMS, WhatsApp through `MessagingChannel`, or "sent from another tool"), control group = the segment's holdout, exposure log, intention-to-treat results: conversion uplift with p-value, incremental orders, revenue and margin with 95% interval, net of sending cost, minimum detectable effect before sending. | M | Live messaging providers (issue #7) |
 
 ## Add-on COD — what the Control Room has and Keel does not (read-only scan of the reference)

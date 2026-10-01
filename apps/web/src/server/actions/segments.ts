@@ -2,7 +2,7 @@
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { canWritePage } from "@keel/config";
+import { canWritePage, isPageEnabled } from "@keel/config";
 import { recordAudit } from "@keel/db";
 import { deleteSegment, evaluateSegment, previewSegment, saveSegment, SegmentRuleError, type SegmentPreview } from "@keel/services";
 import { ForbiddenError, requirePage } from "@/server/tenant";
@@ -33,6 +33,8 @@ export async function saveSegmentAction(slug: string, input: unknown, segmentId?
     const ctx = await requireSegmentsWrite(slug);
     const parsed = inputSchema.safeParse(input);
     if (!parsed.success) return fail("invalid_input");
+    // control groups belong to the customer-campaigns add-on: without it a segment never holds anyone out
+    if (!isPageEnabled("customer_campaigns", ctx.activeAddons)) parsed.data.holdoutPercentage = 0;
     const id = await ctx.run(async (tx) => {
       const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
       const id = await saveSegment(s, { name: parsed.data.name, description: parsed.data.description ?? null, rules: parsed.data.rules, holdoutPercentage: parsed.data.holdoutPercentage }, segmentId);

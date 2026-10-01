@@ -24,7 +24,7 @@ export const DEMO_TENANTS = {
     defaultLocale: "it",
     orderNumberPrefix: "NW-",
     planKey: "growth",
-    addons: ["addon.cod"],
+    addons: ["addon.cod", "addon.customer_campaigns"],
     taxRates: [
       { country: "IT", rateBps: 2200 },
       { country: "DE", rateBps: 1900 },
@@ -134,7 +134,7 @@ async function seedBilling(db: ReturnType<typeof drizzle<typeof schema>>, tenant
   const now = new Date();
   const month = (n: number) => new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - n, 1));
   const plans: Record<keyof typeof DEMO_TENANTS, { planKey: string; monthly: number; setup: number; currency: string; months: number; lastPaid: boolean }> = {
-    northwind: { planKey: "growth", monthly: PLANS.growth.monthlyPriceMinor + MODULES["addon.cod"].monthlyPriceMinor!, setup: PLANS.growth.setupFeeMinor, currency: PLATFORM_CURRENCY, months: 6, lastPaid: true },
+    northwind: { planKey: "growth", monthly: PLANS.growth.monthlyPriceMinor + MODULES["addon.cod"].monthlyPriceMinor! + MODULES["addon.customer_campaigns"].monthlyPriceMinor!, setup: PLANS.growth.setupFeeMinor, currency: PLATFORM_CURRENCY, months: 6, lastPaid: true },
     harbor: { planKey: "starter", monthly: PLANS.starter.monthlyPriceMinor, setup: PLANS.starter.setupFeeMinor, currency: PLATFORM_CURRENCY, months: 3, lastPaid: false },
   };
   for (const key of Object.keys(plans) as (keyof typeof DEMO_TENANTS)[]) {
@@ -169,13 +169,13 @@ export function tenantSeedConfigs(ctx: SeedContext, opts: SeedOptions = {}): Ten
     DEMO_USERS.filter((u) => u.memberships.some((m) => m.tenant === key)).map((u) => ctx.userIds[u.email]!).filter(Boolean);
   return [
     {
-      key: "northwind", tenantId: ctx.tenantIds.northwind, seed: 20261001, currency: "EUR", country: "IT", timezone: "Europe/Rome", locale: "it", orderNumberPrefix: "NW-",
+      key: "northwind", tenantId: ctx.tenantIds.northwind, addons: DEMO_TENANTS.northwind.addons, seed: 20261001, currency: "EUR", country: "IT", timezone: "Europe/Rome", locale: "it", orderNumberPrefix: "NW-",
       orderCount: Math.max(40, Math.round(15000 * scale)), productCount: Math.max(6, Math.round(120 * Math.min(1, scale * 4))), locationNames: ["Magazzino Milano", "Magazzino Bologna", "3PL Berlin"],
       supplierNames: ["Tessitura Lombarda", "Maglificio Dolomiti", "Confezioni Adriatica", "Pellami Toscani"], metaCampaigns: Math.max(3, Math.round(25 * Math.min(1, scale * 4))), googleCampaigns: Math.max(1, Math.round(6 * Math.min(1, scale * 4))),
       codShare: 0.1, returnRate: 0.12, cancelRate: 0.06, userIds: members("northwind"), now,
     },
     {
-      key: "harbor", tenantId: ctx.tenantIds.harbor, seed: 20261002, currency: "USD", country: "US", timezone: "America/New_York", locale: "en", orderNumberPrefix: "HH-",
+      key: "harbor", tenantId: ctx.tenantIds.harbor, addons: DEMO_TENANTS.harbor.addons, seed: 20261002, currency: "USD", country: "US", timezone: "America/New_York", locale: "en", orderNumberPrefix: "HH-",
       orderCount: Math.max(40, Math.round(6000 * scale)), productCount: Math.max(6, Math.round(60 * Math.min(1, scale * 4))), locationNames: ["Newark Warehouse", "LA Showroom"],
       supplierNames: ["Harbor Workshop", "Coastal Textiles"], metaCampaigns: Math.max(2, Math.round(8 * Math.min(1, scale * 4))), googleCampaigns: Math.max(1, Math.round(3 * Math.min(1, scale * 4))),
       codShare: 0, returnRate: 0.07, cancelRate: 0.045, userIds: members("harbor"), now,
@@ -188,7 +188,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
   const log = opts.log ?? (() => {});
   for (const cfg of tenantSeedConfigs(ctx, opts)) {
     // Wipe previous domain rows of this tenant (cascade from the parent tables).
-    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels]) {
+    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels, schema.segmentDestinations]) {
       await db.delete(table).where(eq(table.tenantId, cfg.tenantId));
     }
     const started = Date.now();
@@ -203,19 +203,22 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("returns", () => seedReturnsExtras(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("campaigns", () => seedRetentionCampaigns(db, ctx, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("predictions", () => seedPredictions(db, cfg.tenantId, opts.now ?? new Date()));
+    await step("destinations", () => seedDestinations(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
   }
 }
 
 /**
- * Customer campaigns measured against the segment's control group. Northwind's win-back went
+ * Customer campaigns (add-on `addon.customer_campaigns`, active on Northwind only) measured against
+ * the segment's control group. Northwind's win-back went
  * out 35 days ago with a 10% code; about 12% of the treated customers answered with an order that
- * reuses one of their past baskets, so the results page shows a real, significant uplift. Harbor's
- * campaign was sent from another tool (manual channel) and had no effect, which the control
- * group shows too. A draft on a segment without control group shows the warning.
+ * reuses one of their past baskets, so the results page shows a real, significant uplift. An
+ * earlier newsletter was sent from another tool (manual channel) and had no effect, which the
+ * control group shows too. A draft on a segment without control group shows the warning.
  */
 async function seedRetentionCampaigns(db: ReturnType<typeof drizzle<typeof schema>>, ctx: SeedContext, key: keyof typeof DEMO_TENANTS, tenantId: string, now: Date) {
   const it = key === "northwind";
+  if (!DEMO_TENANTS[key].addons.includes("addon.customer_campaigns")) return;
   const sender = ctx.userIds[it ? "marketing@northwind.demo" : "marketing@harborhome.demo"] ?? null;
   const segmentId = async (name: string) => (await db.select({ id: schema.segments.id }).from(schema.segments).where(and(eq(schema.segments.tenantId, tenantId), eq(schema.segments.name, name))).limit(1))[0]?.id ?? null;
   const send = async (name: string, segment: string, channel: string, message: string, code: string | null, cost: number, daysAgo: number) => {
@@ -270,9 +273,32 @@ async function seedRetentionCampaigns(db: ReturnType<typeof drizzle<typeof schem
     }
     const segId = await segmentId("Nuovi con consenso marketing");
     if (segId) await db.insert(schema.retentionCampaigns).values({ tenantId, name: "Benvenuto, secondo acquisto", segmentId: segId, channel: "email", message: "Ciao {first_name}, grazie per il primo ordine! Il codice {code} vale per il secondo.", discountCode: "SECONDO15", costPerMessageMinor: 2, attributionDays: 21, status: "draft", createdBy: sender });
-  } else {
-    await send("Spring newsletter (sent from the email tool)", "Repeat customers", "manual", "", null, 0, 25);
+    // an earlier newsletter sent from the email tool, with no measurable effect: the control group shows that too
+    await send("Newsletter di primavera (inviata dallo strumento email)", "Clienti ricorrenti", "manual", "", null, 0, 75);
   }
+}
+
+/**
+ * The repeat-customer segment is live and pushed to one destination per store (mock adapters):
+ * Northwind to a Meta Custom Audience without its control group (it has the customer-campaigns
+ * add-on), Harbor to its email tool with every consenting member.
+ */
+async function seedDestinations(db: ReturnType<typeof drizzle<typeof schema>>, key: keyof typeof DEMO_TENANTS, tenantId: string, now: Date) {
+  const it = key === "northwind";
+  const [segment] = await db.select({ id: schema.segments.id }).from(schema.segments).where(and(eq(schema.segments.tenantId, tenantId), eq(schema.segments.name, it ? "Clienti ricorrenti" : "Repeat customers"))).limit(1);
+  if (!segment) return;
+  await db.update(schema.segments).set({ liveUpdates: true }).where(eq(schema.segments.id, segment.id));
+  const provider = it ? "meta_custom_audience" : "email_tool";
+  const excludeHoldout = DEMO_TENANTS[key].addons.includes("addon.customer_campaigns");
+  const [d] = await db.insert(schema.segmentDestinations).values({ tenantId, segmentId: segment.id, provider, audienceName: it ? "Keel · Clienti ricorrenti" : "Keel · Repeat customers", externalAudienceId: "mock-aud-1", autoSync: true, status: "ok", lastSyncAt: new Date(now.getTime() - 2 * 36e5), createdAt: new Date(now.getTime() - 20 * 864e5) }).returning({ id: schema.segmentDestinations.id });
+  const matchable = provider === "email_tool" ? sql`c.email is not null` : sql`(c.email is not null or c.phone_e164 is not null)`;
+  await db.execute(sql`
+    insert into segment_destination_members (tenant_id, destination_id, customer_id, synced_at)
+    select ${tenantId}, ${d!.id}, m.customer_id, ${new Date(now.getTime() - 2 * 36e5)}
+    from segment_memberships m join customers c on c.id = m.customer_id
+    where m.segment_id = ${segment.id} and c.accepts_marketing and ${matchable} ${excludeHoldout ? sql`and m.group_name = 'treated'` : sql``}`);
+  const [n] = (await db.execute<{ n: number }>(sql`select count(*)::int as n from segment_destination_members where destination_id = ${d!.id}`)).rows;
+  await db.update(schema.segmentDestinations).set({ memberCount: n!.n, lastAdded: n!.n }).where(eq(schema.segmentDestinations.id, d!.id));
 }
 
 /** Customer predictions as the nightly job would compute them (same core run as the service). */

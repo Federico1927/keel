@@ -368,3 +368,33 @@ export interface ReturnLabelProvider {
   readonly provider: string;
   createLabel(input: { reference: string; from: Address | null; to: string; weightGrams: number | null }): Promise<{ carrier: string; trackingCode: string; labelUrl: string | null; qrCode: string | null }>;
 }
+
+/* ---------- audience destinations (segment sync) ---------- */
+
+/** Where a segment can be pushed. Live adapters need the account's own credentials (external block); only mocks exist. */
+export const AUDIENCE_PROVIDERS = ["meta_custom_audience", "google_customer_match", "email_tool"] as const;
+export type AudienceProvider = (typeof AUDIENCE_PROVIDERS)[number];
+
+export interface AudienceMember {
+  customerId: string;
+  email: string | null;
+  phoneE164: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  country: string | null;
+}
+
+/** What a destination receives for one customer: hashed identifiers for ad platforms, plain profile fields for email tools. */
+export interface AudienceMatchKeys {
+  customerId: string;
+  keys: Record<string, string>;
+}
+
+export interface AudienceDestination {
+  readonly provider: AudienceProvider;
+  testConnection(): Promise<ConnectionTest>;
+  /** Creates the audience (or list) when `existingId` is null; returns its id. */
+  ensureAudience(name: string, existingId: string | null): Promise<{ audienceId: string }>;
+  addMembers(audienceId: string, members: AudienceMatchKeys[]): Promise<{ accepted: number }>;
+  removeMembers(audienceId: string, members: AudienceMatchKeys[]): Promise<{ removed: number }>;
+}

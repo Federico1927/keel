@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { isPageEnabled } from "@keel/config";
 import { formatDate, formatMoney, formatNumber, formatPercent } from "@keel/core";
 import { customerDetail } from "@keel/services";
 import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
@@ -20,6 +21,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
   const detail = await ctx.run((tx) => customerDetail({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, id));
   if (!detail) notFound();
   const { customer: c, orders, segments, prediction: p } = detail;
+  const groups = isPageEnabled("customer_campaigns", ctx.activeAddons);
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   const name = [c.firstName, c.lastName].filter(Boolean).join(" ") || c.email || "—";
   return (
@@ -74,7 +76,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                   {segments.map((s) => (
                     <li key={s.id} className="flex items-center justify-between gap-2">
                       <Link href={`/t/${tenant}/segments/${s.id}`} className="hover:underline">{s.name}</Link>
-                      <Badge variant={s.groupName === "holdout" ? "warning" : "muted"}>{t(`group.${s.groupName}`)}</Badge>
+                      {groups && <Badge variant={s.groupName === "holdout" ? "warning" : "muted"}>{t(`group.${s.groupName}`)}</Badge>}
                     </li>
                   ))}
                 </ul>

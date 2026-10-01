@@ -10,8 +10,8 @@ import { CampaignForm } from "../campaign-form";
 export default async function NewRetentionCampaignPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ segment?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
-  const ctx = await requirePage(tenant, "segments");
-  if (!canWritePage(ctx.role, "segments")) notFound();
+  const ctx = await requirePage(tenant, "customer_campaigns");
+  if (!canWritePage(ctx.role, "customer_campaigns")) notFound();
   const t = await getTranslations("retention");
   const segments = await ctx.run((tx) => listSegments({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }));
   const options = segments.map((s) => ({ id: s.id, name: s.name, holdoutPercentage: s.holdoutPercentage, lastCount: s.lastCount }));

@@ -27,7 +27,7 @@ function handle(e: unknown) {
 /** Create or update a draft campaign (form action). */
 export async function saveRetentionCampaignAction(slug: string, campaignId: string | null, _prev: ActionResult<{ id: string }> | null, formData: FormData): Promise<ActionResult<{ id: string }>> {
   try {
-    const ctx = await requireWrite(slug, "segments");
+    const ctx = await requireWrite(slug, "customer_campaigns");
     const parsed = schema.safeParse({ name: formData.get("name"), segmentId: formData.get("segmentId"), channel: formData.get("channel"), message: formData.get("message") ?? "", discountCode: formData.get("discountCode") ?? undefined, costPerMessage: formData.get("costPerMessage") || 0, attributionDays: formData.get("attributionDays") });
     if (!parsed.success) return fail("invalid_input", Object.fromEntries(parsed.error.issues.map((i) => [i.path.join("."), i.message])));
     const d = parsed.data;
@@ -46,7 +46,7 @@ export async function saveRetentionCampaignAction(slug: string, campaignId: stri
 
 export async function deleteRetentionCampaignAction(slug: string, campaignId: string): Promise<ActionResult> {
   try {
-    const ctx = await requireWrite(slug, "segments");
+    const ctx = await requireWrite(slug, "customer_campaigns");
     await ctx.run(async (tx) => {
       await deleteRetentionCampaign({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, campaignId);
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "retention_campaign.deleted", entityType: "retention_campaign", entityId: campaignId, diff: {} });
@@ -60,7 +60,7 @@ export async function deleteRetentionCampaignAction(slug: string, campaignId: st
 
 export async function previewRetentionSendAction(slug: string, campaignId: string): Promise<ActionResult<SendPreview>> {
   try {
-    const ctx = await requireWrite(slug, "segments");
+    const ctx = await requireWrite(slug, "customer_campaigns");
     return ok(await ctx.run((tx) => previewRetentionSend({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, campaignId)));
   } catch (e) {
     return handle(e);
@@ -70,7 +70,7 @@ export async function previewRetentionSendAction(slug: string, campaignId: strin
 /** Sends after the user confirmed the preview. Messages go through the tenant's messaging channel (mock until a provider is connected). */
 export async function sendRetentionCampaignAction(slug: string, campaignId: string): Promise<ActionResult<SendResult>> {
   try {
-    const ctx = await requireWrite(slug, "segments");
+    const ctx = await requireWrite(slug, "customer_campaigns");
     const result = await ctx.run(async (tx) => {
       const r = await sendRetentionCampaign({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, campaignId, getMessagingChannelFor(ctx.tenant.id));
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "retention_campaign.sent", entityType: "retention_campaign", entityId: campaignId, diff: { treated: { from: null, to: r.treated }, holdout: { from: null, to: r.holdout }, delivered: { from: null, to: r.delivered } } });
