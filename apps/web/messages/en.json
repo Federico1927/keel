@@ -30,7 +30,8 @@
       "already_cancelled": "The order is already cancelled.",
       "platform_error": "The commerce platform rejected the request.",
       "ads_read_only": "This ads platform is read-only in this version.",
-      "ads_platform_error": "The ads platform rejected the request."
+      "ads_platform_error": "The ads platform rejected the request.",
+      "invalid_rules": "The segment rules are not valid."
     },
     "edit": "Edit"
   },
@@ -970,5 +971,234 @@
     "campaign": "Campaign",
     "platform": "Platform",
     "empty": "No rows in this period."
+  },
+  "customers": {
+    "title": "Customers",
+    "description": "Profiles computed from Keel's canonical orders: value, frequency, recency and RFM tier.",
+    "tabs": {
+      "list": "Customers",
+      "rfm": "RFM matrix"
+    },
+    "search": "Search",
+    "search_placeholder": "Name, email or phone",
+    "all_countries": "All countries",
+    "all_tiers": "All tiers",
+    "sort": "Sort",
+    "sorts": {
+      "last_order": "Most recent order",
+      "total_spent": "Highest value",
+      "orders": "Most orders",
+      "name": "Name"
+    },
+    "only_marketing": "Only customers who accept marketing",
+    "empty_title": "No customers",
+    "empty_description": "Customers arrive with the first synced orders.",
+    "yes": "Yes",
+    "no": "No",
+    "pagination": "{from}–{to} of {total}",
+    "columns": {
+      "customer": "Customer",
+      "customers": "Customers",
+      "country": "Country",
+      "orders": "Orders",
+      "total_spent": "Total spent",
+      "aov": "AOV",
+      "last_order": "Last order",
+      "tier": "RFM tier",
+      "marketing": "Marketing"
+    }
+  },
+  "customer_detail": {
+    "contact": "Contact",
+    "customer_since": "Customer since {date}",
+    "segments": "Segments",
+    "no_segments": "Not in any segment.",
+    "accepts_marketing": "Accepts marketing",
+    "group": {
+      "treated": "treated",
+      "holdout": "holdout"
+    },
+    "kpi": {
+      "orders": "Sale orders",
+      "orders_hint": "{cancelled} cancelled · {returned} returned",
+      "total_spent": "Total spent",
+      "aov": "Average order",
+      "last_order": "Last order"
+    },
+    "days_ago": "{n} days ago",
+    "orders_title": "Orders",
+    "order": "Order",
+    "date": "Date",
+    "status": "Status",
+    "payment": "Payment",
+    "total": "Total"
+  },
+  "rfm": {
+    "description": "Recency × frequency matrix and tiers computed on sale orders. Click a cell to create a segment from it.",
+    "matrix_title": "Recency × frequency",
+    "matrix_description": "{total} customers with at least one sale order.",
+    "recency_axis": "Last order",
+    "contactable_short": "{n} contactable",
+    "tiers_title": "Tiers",
+    "tiers_description": "Rules are evaluated top-down; the first match wins.",
+    "tier_col": "Tier",
+    "tier_rule": "Rule",
+    "contactable": "Contactable",
+    "revenue": "Revenue",
+    "share": "Share",
+    "make_segment": "Create segment",
+    "tier": {
+      "champions": "Champions",
+      "loyal": "Loyal",
+      "promising": "Promising",
+      "at_risk": "At risk",
+      "new": "New",
+      "one_time": "One-time",
+      "dormant": "Dormant",
+      "lost": "Lost"
+    },
+    "tier_rules": {
+      "champions": "5+ orders, last within 6 months",
+      "loyal": "5+ orders within a year, or 3–4 within 6 months",
+      "promising": "2–4 orders, last within 6 months",
+      "at_risk": "2–4 orders, last 6–12 months ago",
+      "new": "1 order in the last 90 days",
+      "one_time": "1 order, 90 days to a year ago",
+      "dormant": "Last order 1–2 years ago",
+      "lost": "Last order over 2 years ago"
+    },
+    "recency": {
+      "r0_90": "0–90 days",
+      "r91_180": "91–180 days",
+      "r181_365": "181–365 days",
+      "r366_730": "1–2 years",
+      "r730_plus": "Over 2 years"
+    },
+    "frequency": {
+      "f1": "1 order",
+      "f2": "2 orders",
+      "f3_4": "3–4 orders",
+      "f5_plus": "5+ orders"
+    }
+  },
+  "segments": {
+    "title": "Segments",
+    "description": "Nested AND/OR rules over the customer profile, a stable control group per segment, CSV export.",
+    "new": "New segment",
+    "new_description": "Preview updates as you edit; saving evaluates the segment and assigns the control group.",
+    "empty_title": "No segments yet",
+    "empty_description": "Create one from the RFM matrix or from scratch.",
+    "conditions_n": "{n} conditions",
+    "export_csv": "Export CSV",
+    "evaluate": "Re-evaluate",
+    "delete_title": "Delete this segment?",
+    "delete_description": "Memberships are removed. Customers are not affected.",
+    "evaluated_at": "Evaluated {at}",
+    "never_evaluated": "Never evaluated",
+    "holdout_n": "{n} customers held out",
+    "treated": "Treated",
+    "members_title": "Members",
+    "members_description": "Top 50 by value. The group never changes once assigned.",
+    "group": "Group",
+    "groups": {
+      "treated": "treated",
+      "holdout": "holdout"
+    },
+    "columns": {
+      "name": "Segment",
+      "rules": "Rules",
+      "members": "Members",
+      "holdout": "Holdout",
+      "evaluated": "Last evaluated"
+    }
+  },
+  "segment_builder": {
+    "name": "Name",
+    "description": "Description",
+    "holdout": "Holdout %",
+    "holdout_help": "The holdout is a stable share of the segment that never receives a campaign, so the effect can be measured. Max 50%.",
+    "rules": "Rules",
+    "limits": "{leaves}/{maxLeaves} conditions · depth {depth}/{maxDepth}",
+    "match_prefix": "Match",
+    "match_suffix": "of the following",
+    "match_label": "Match mode",
+    "match": {
+      "all": "all",
+      "any": "any"
+    },
+    "add_condition": "Condition",
+    "add_group": "Group",
+    "remove_group": "Remove group",
+    "remove_condition": "Remove condition",
+    "field": "Field",
+    "operator": "Operator",
+    "value": "Value",
+    "from": "From",
+    "to": "To",
+    "days": "days",
+    "true": "yes",
+    "false": "no",
+    "add_value": "Add value…",
+    "remove_value": "Remove",
+    "create": "Create segment",
+    "preview": "Preview",
+    "preview_description": "Live count on current data and a stable sample.",
+    "matching": "Matching",
+    "contactable": "Accept marketing",
+    "holdout_estimate": "≈ {n} customers ({pct}%) would be held out.",
+    "groups": {
+      "orders": "Orders",
+      "value": "Value",
+      "recency": "Recency",
+      "profile": "Profile",
+      "products": "Products",
+      "rfm": "RFM",
+      "sampling": "Sampling"
+    },
+    "fields": {
+      "orders_count": "Orders",
+      "cancelled_count": "Cancelled orders",
+      "returns_count": "Returned orders",
+      "total_spent": "Total spent",
+      "aov": "Average order value",
+      "days_since_last_order": "Days since last order",
+      "days_since_first_order": "Days since first order",
+      "accepts_marketing": "Accepts marketing",
+      "country": "Country",
+      "tags": "Customer tags",
+      "payment_methods": "Payment methods used",
+      "bought_product": "Bought product",
+      "bought_product_type": "Bought product type",
+      "rfm_recency": "RFM recency",
+      "rfm_frequency": "RFM frequency",
+      "rfm_tier": "RFM tier",
+      "random_pct": "Random sample (0–99)"
+    },
+    "ops": {
+      "gte": "is at least",
+      "lte": "is at most",
+      "gt": "is more than",
+      "lt": "is less than",
+      "eq": "is",
+      "between": "is between",
+      "is_null": "is empty",
+      "not_null": "is set",
+      "in": "is one of",
+      "not_in": "is none of",
+      "any": "includes any of",
+      "none": "includes none of",
+      "all": "includes all of"
+    },
+    "errors": {
+      "unknown_field": "Unknown field.",
+      "bad_op": "Operator not valid for this field.",
+      "bad_value": "Choose a value.",
+      "empty_group": "A group needs at least one condition.",
+      "too_deep": "Too many nested levels.",
+      "too_many": "Too many conditions.",
+      "invalid_shape": "Rules are malformed.",
+      "invalid_rules": "Rules are not valid.",
+      "forbidden": "You are not allowed to do this."
+    }
   }
 }

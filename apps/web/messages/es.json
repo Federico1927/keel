@@ -30,7 +30,8 @@
       "already_cancelled": "El pedido ya está cancelado.",
       "platform_error": "La plataforma de comercio rechazó la solicitud.",
       "ads_read_only": "Esta plataforma publicitaria es de solo lectura en esta versión.",
-      "ads_platform_error": "La plataforma publicitaria rechazó la solicitud."
+      "ads_platform_error": "La plataforma publicitaria rechazó la solicitud.",
+      "invalid_rules": "Las reglas del segmento no son válidas."
     },
     "edit": "Editar"
   },
@@ -970,5 +971,234 @@
     "campaign": "Campaña",
     "platform": "Plataforma",
     "empty": "Sin filas en este periodo."
+  },
+  "customers": {
+    "title": "Clientes",
+    "description": "Perfiles calculados a partir de los pedidos canónicos de Keel: valor, frecuencia, recencia y nivel RFM.",
+    "tabs": {
+      "list": "Clientes",
+      "rfm": "Matriz RFM"
+    },
+    "search": "Buscar",
+    "search_placeholder": "Nombre, email o teléfono",
+    "all_countries": "Todos los países",
+    "all_tiers": "Todos los niveles",
+    "sort": "Ordenar",
+    "sorts": {
+      "last_order": "Pedido más reciente",
+      "total_spent": "Mayor valor",
+      "orders": "Más pedidos",
+      "name": "Nombre"
+    },
+    "only_marketing": "Solo clientes que aceptan marketing",
+    "empty_title": "Sin clientes",
+    "empty_description": "Los clientes llegan con los primeros pedidos sincronizados.",
+    "yes": "Sí",
+    "no": "No",
+    "pagination": "{from}–{to} de {total}",
+    "columns": {
+      "customer": "Cliente",
+      "customers": "Clientes",
+      "country": "País",
+      "orders": "Pedidos",
+      "total_spent": "Gasto total",
+      "aov": "AOV",
+      "last_order": "Último pedido",
+      "tier": "Nivel RFM",
+      "marketing": "Marketing"
+    }
+  },
+  "customer_detail": {
+    "contact": "Contacto",
+    "customer_since": "Cliente desde {date}",
+    "segments": "Segmentos",
+    "no_segments": "En ningún segmento.",
+    "accepts_marketing": "Acepta marketing",
+    "group": {
+      "treated": "tratado",
+      "holdout": "grupo de control"
+    },
+    "kpi": {
+      "orders": "Pedidos de venta",
+      "orders_hint": "{cancelled} cancelados · {returned} devueltos",
+      "total_spent": "Gasto total",
+      "aov": "Pedido medio",
+      "last_order": "Último pedido"
+    },
+    "days_ago": "hace {n} días",
+    "orders_title": "Pedidos",
+    "order": "Pedido",
+    "date": "Fecha",
+    "status": "Estado",
+    "payment": "Pago",
+    "total": "Total"
+  },
+  "rfm": {
+    "description": "Matriz recencia × frecuencia y niveles calculados sobre pedidos de venta. Haz clic en una celda para crear un segmento.",
+    "matrix_title": "Recencia × frecuencia",
+    "matrix_description": "{total} clientes con al menos un pedido de venta.",
+    "recency_axis": "Último pedido",
+    "contactable_short": "{n} contactables",
+    "tiers_title": "Niveles",
+    "tiers_description": "Las reglas se evalúan de arriba abajo; gana la primera que coincide.",
+    "tier_col": "Nivel",
+    "tier_rule": "Regla",
+    "contactable": "Contactables",
+    "revenue": "Ingresos",
+    "share": "Cuota",
+    "make_segment": "Crear segmento",
+    "tier": {
+      "champions": "Campeones",
+      "loyal": "Leales",
+      "promising": "Prometedores",
+      "at_risk": "En riesgo",
+      "new": "Nuevos",
+      "one_time": "Un solo pedido",
+      "dormant": "Inactivos",
+      "lost": "Perdidos"
+    },
+    "tier_rules": {
+      "champions": "5+ pedidos, último en 6 meses",
+      "loyal": "5+ pedidos en un año, o 3–4 en 6 meses",
+      "promising": "2–4 pedidos, último en 6 meses",
+      "at_risk": "2–4 pedidos, último hace 6–12 meses",
+      "new": "1 pedido en los últimos 90 días",
+      "one_time": "1 pedido, hace entre 90 días y un año",
+      "dormant": "Último pedido hace 1–2 años",
+      "lost": "Último pedido hace más de 2 años"
+    },
+    "recency": {
+      "r0_90": "0–90 días",
+      "r91_180": "91–180 días",
+      "r181_365": "181–365 días",
+      "r366_730": "1–2 años",
+      "r730_plus": "Más de 2 años"
+    },
+    "frequency": {
+      "f1": "1 pedido",
+      "f2": "2 pedidos",
+      "f3_4": "3–4 pedidos",
+      "f5_plus": "5+ pedidos"
+    }
+  },
+  "segments": {
+    "title": "Segmentos",
+    "description": "Reglas Y/O anidadas sobre el perfil del cliente, grupo de control estable por segmento, exportación CSV.",
+    "new": "Nuevo segmento",
+    "new_description": "La vista previa se actualiza mientras editas; al guardar se evalúa el segmento y se asigna el grupo de control.",
+    "empty_title": "Sin segmentos",
+    "empty_description": "Crea uno desde la matriz RFM o desde cero.",
+    "conditions_n": "{n} condiciones",
+    "export_csv": "Exportar CSV",
+    "evaluate": "Reevaluar",
+    "delete_title": "¿Eliminar este segmento?",
+    "delete_description": "Se eliminan las pertenencias. Los clientes no se ven afectados.",
+    "evaluated_at": "Evaluado {at}",
+    "never_evaluated": "Nunca evaluado",
+    "holdout_n": "{n} clientes en el grupo de control",
+    "treated": "Tratados",
+    "members_title": "Miembros",
+    "members_description": "Los 50 primeros por valor. El grupo no cambia una vez asignado.",
+    "group": "Grupo",
+    "groups": {
+      "treated": "tratado",
+      "holdout": "control"
+    },
+    "columns": {
+      "name": "Segmento",
+      "rules": "Reglas",
+      "members": "Miembros",
+      "holdout": "Grupo de control",
+      "evaluated": "Última evaluación"
+    }
+  },
+  "segment_builder": {
+    "name": "Nombre",
+    "description": "Descripción",
+    "holdout": "Control %",
+    "holdout_help": "El grupo de control es una parte estable del segmento que nunca recibe la campaña, para medir su efecto. Máximo 50%.",
+    "rules": "Reglas",
+    "limits": "{leaves}/{maxLeaves} condiciones · profundidad {depth}/{maxDepth}",
+    "match_prefix": "Cumple",
+    "match_suffix": "de las siguientes",
+    "match_label": "Modo",
+    "match": {
+      "all": "todas",
+      "any": "alguna"
+    },
+    "add_condition": "Condición",
+    "add_group": "Grupo",
+    "remove_group": "Quitar grupo",
+    "remove_condition": "Quitar condición",
+    "field": "Campo",
+    "operator": "Operador",
+    "value": "Valor",
+    "from": "Desde",
+    "to": "Hasta",
+    "days": "días",
+    "true": "sí",
+    "false": "no",
+    "add_value": "Añadir valor…",
+    "remove_value": "Quitar",
+    "create": "Crear segmento",
+    "preview": "Vista previa",
+    "preview_description": "Recuento en vivo sobre los datos actuales y una muestra estable.",
+    "matching": "Coincidentes",
+    "contactable": "Aceptan marketing",
+    "holdout_estimate": "≈ {n} clientes ({pct}%) en el grupo de control.",
+    "groups": {
+      "orders": "Pedidos",
+      "value": "Valor",
+      "recency": "Recencia",
+      "profile": "Perfil",
+      "products": "Productos",
+      "rfm": "RFM",
+      "sampling": "Muestreo"
+    },
+    "fields": {
+      "orders_count": "Pedidos",
+      "cancelled_count": "Pedidos cancelados",
+      "returns_count": "Pedidos devueltos",
+      "total_spent": "Gasto total",
+      "aov": "Valor medio del pedido",
+      "days_since_last_order": "Días desde el último pedido",
+      "days_since_first_order": "Días desde el primer pedido",
+      "accepts_marketing": "Acepta marketing",
+      "country": "País",
+      "tags": "Etiquetas del cliente",
+      "payment_methods": "Métodos de pago usados",
+      "bought_product": "Producto comprado",
+      "bought_product_type": "Tipo de producto comprado",
+      "rfm_recency": "Recencia RFM",
+      "rfm_frequency": "Frecuencia RFM",
+      "rfm_tier": "Nivel RFM",
+      "random_pct": "Muestra aleatoria (0–99)"
+    },
+    "ops": {
+      "gte": "es al menos",
+      "lte": "es como máximo",
+      "gt": "es más de",
+      "lt": "es menos de",
+      "eq": "es",
+      "between": "está entre",
+      "is_null": "está vacío",
+      "not_null": "tiene valor",
+      "in": "es uno de",
+      "not_in": "no es ninguno de",
+      "any": "incluye alguno de",
+      "none": "no incluye ninguno de",
+      "all": "incluye todos"
+    },
+    "errors": {
+      "unknown_field": "Campo desconocido.",
+      "bad_op": "Operador no válido para este campo.",
+      "bad_value": "Elige un valor.",
+      "empty_group": "Un grupo necesita al menos una condición.",
+      "too_deep": "Demasiados niveles anidados.",
+      "too_many": "Demasiadas condiciones.",
+      "invalid_shape": "Reglas mal formadas.",
+      "invalid_rules": "Reglas no válidas.",
+      "forbidden": "No tienes permiso."
+    }
   }
 }

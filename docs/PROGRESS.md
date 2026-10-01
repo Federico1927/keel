@@ -12,7 +12,7 @@ Stato aggiornato da Claude Code a ogni fase (CLAUDE.md §1). Alla ripresa di una
 | 4 | fatta | Catalogo con opzioni dinamiche, stock per location, velocità/copertura/rischio/riordino, grafico vendite 90 giorni, prezzo e stato scritti verso l'adapter; fornitori con saldi; ordini d'acquisto con transizioni, creazione precompilata dai suggerimenti, ricevimento parziale/completo che aggiorna stock, costo e backorder |
 | 5 | fatta | `orderEconomics` + P/L di periodo in core con test a mano su 3 ordini (A 51,05 / B annullato / C 68,12 → risultato operativo 79,17), servizi analytics (KPI con confronto, dashboard con finestre "running", serie giornaliere, performance prodotti, coorti), dashboard reale e pagina Analisi con tab e drill-through verso gli ordini |
 | 6 | fatta | `campaignMetrics`/`trafficLight`/`recommendAction`/`suggestProductsForCampaign` in core (test), servizi campagne (economia per campagna sugli ordini attribuiti e in scope, registro giornaliero data × campagna con flag dati mancanti, suggerimenti e auto-link solo ≥ 0,95), pagine `/campaigns` (periodo, filtri, semaforo, raccomandazione con stock), dettaglio (KPI, registro, prodotti collegati con rischio e riordino, pausa/riattiva via adapter con conferma, Google in sola lettura), `/campaigns/ledger` con CSV; 3 e2e |
-| 7 | da fare | |
+| 7 | fatta | Catalogo campi + regole annidate E/O (zod, profondità ≤ 3, ≤ 30 condizioni) con valutatore in memoria e compilatore SQL parametrizzato che coincidono (test di parità), profilo cliente da ordini canonici, RFM (fasce, 8 fasce di valore, matrice), holdout deterministico per (segmento, cliente, salt), libreria statistica (z-test a due proporzioni); pagine clienti (lista, dettaglio, matrice RFM → segmento precompilato), costruttore segmenti con anteprima live, valutazione, membri, esportazione CSV; 3 e2e |
 | 8 | da fare | |
 | 9 | da fare | |
 | 10 | da fare | |
@@ -91,6 +91,14 @@ Fatto:
 - e2e: lista/dettaglio/pausa/riattiva/collega/scollega come marketing, Google read-only + CSV come owner, viewer senza controlli di scrittura + drill-through.
 
 Nota sui test e2e: il test di ricevimento ordini d'acquisto consuma un PO confermato o in transito a ogni esecuzione; dopo molte esecuzioni sullo stesso database rilanciare `pnpm db:seed`.
+
+## Fase 7 — dettaglio
+
+Fatto:
+- `packages/core/segments`: catalogo campi (`SEGMENT_FIELDS`, con hook `registerSegmentFields` per gli add-on), schema zod delle regole `{match, conditions[]}` con gruppi annidati, `validateSegmentRules` (campo, operatore per tipo, valore, gruppo vuoto, profondità ≤ `MAX_SEGMENT_DEPTH`, foglie ≤ `MAX_SEGMENT_CONDITIONS`), `evaluateRules` in memoria, `rfmRecencyBand`/`rfmFrequencyBand`/`rfmTier`/`buildRfmMatrix`/`rulesForRfmCell`/`rulesForRfmTier`, `assignHoldout` (FNV-1a, stabile per segmento+cliente+salt), `normCdf` e `twoProportionTest`. 7 test.
+- `packages/services/crm`: CTE `profileCte` (ordini in scope di vendita → conteggi, spesa, AOV, recenza, metodi di pagamento, prodotti e tipi acquistati, campione casuale stabile), `compileSegmentRules` (espressioni SQL solo dalla whitelist, valori solo come parametri, array come parametro unico), `listCustomers` (ricerca nome/email/telefono, paese, fascia RFM, consenso, segmento, ordinamenti, paginazione), `customerProfiles`, `previewSegment` (conteggio + contattabili + campione stabile), `saveSegment`, `evaluateSegment` (inserisce i nuovi con gruppo stabile, rimuove chi non corrisponde più, non sposta mai nessuno), `segmentMembers`, `customerDetail`. Criterio di uscita verificato: su un segmento annidato a 3 livelli il compilatore SQL e il valutatore puro restituiscono lo stesso insieme di clienti.
+- Web: `/customers` (filtri, ordinamenti, tab), `/customers/rfm` (matrice recenza × frequenza con intensità, fasce con regola leggibile, click → `/segments/new?rules=…`), `/customers/[id]` (KPI, contatto, segmenti e gruppo, ordini con drill-through `?customer=`), `/segments` (lista con membri, holdout, ultima valutazione, azioni rivaluta/esporta/elimina), costruttore (`builder.tsx`: gruppi annidati, campi per gruppo, operatori per tipo, valori con chip, anteprima live con debounce, limiti visibili, holdout), `/segments/[id]` (stat, costruttore in modifica, membri top 50 con gruppo), `/segments/[id]/export` CSV (azione `export`, ora legata alla pagina segmenti).
+- `MessagingChannel` resta interfaccia + mock: il modello dati ha già `holdout_percentage` e `segment_memberships.group_name` per le campagne future.
 
 ## Blocchi
 

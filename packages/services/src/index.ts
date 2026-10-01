@@ -8,3 +8,4 @@ export * from "./purchasing";
 export * from "./inventory";
 export * from "./analytics";
 export * from "./campaigns";
+export * from "./crm";

@@ -14,6 +14,7 @@ export interface OrderFilters {
   to?: string;
   assigned?: string;
   campaign?: string;
+  customer?: string;
   sort?: "placed_desc" | "placed_asc" | "total_desc";
   page?: number;
 }
@@ -33,6 +34,7 @@ export function parseOrderFilters(sp: Record<string, string | string[] | undefin
     to: one(sp.to) || undefined,
     assigned: one(sp.assigned) || undefined,
     campaign: /^[0-9a-f-]{36}$/i.test(one(sp.campaign) ?? "") ? one(sp.campaign) : undefined,
+    customer: /^[0-9a-f-]{36}$/i.test(one(sp.customer) ?? "") ? one(sp.customer) : undefined,
     sort: sort === "placed_asc" || sort === "total_desc" ? sort : "placed_desc",
     page: Math.max(1, Number(one(sp.page) ?? 1) || 1),
   };
@@ -55,6 +57,7 @@ function buildWhere(ctx: TenantContext, f: OrderFilters): SQL {
   if (f.assigned === "me") conds.push(eq(schema.orders.assignedTo, ctx.user.id));
   else if (f.assigned === "none") conds.push(sql`${schema.orders.assignedTo} is null`);
   else if (f.assigned) conds.push(eq(schema.orders.assignedTo, f.assigned));
+  if (f.customer) conds.push(eq(schema.orders.customerId, f.customer));
   if (f.campaign) conds.push(sql`exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.campaign_id = ${f.campaign})`);
   return and(...conds)!;
 }

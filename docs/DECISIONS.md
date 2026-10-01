@@ -135,3 +135,19 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · Product links: one primary, auto-link only on near-certain matches
 
 **Decision.** `campaign_product_links` allows many products per campaign with a single primary (enforced in the service, not with a partial index, to keep the seed simple). Suggestions rank URL matches from attributed landing pages above exact title matches, then prefix, contains and token overlap; the "link all" action only applies suggestions with confidence ≥ 0.95 and never overrides a manual link. Weaker suggestions are shown with their kind and confidence for a human to accept.
+
+## 2026-10-01 · Customer profile computed from canonical orders, not from platform counters
+
+**Decision.** Segment fields, RFM and the customer list read a profile CTE built from Keel's orders in sale scope (the same rule as the P/L), not from Shopify's `orders_count`/`total_spent`. The platform counters stay on the customer row as imported data. Reason: the platform counts cancelled and test orders differently per store, while Keel's scope is one rule everywhere. The CTE is computed on the fly (≈6k customers per demo tenant in well under a second); a materialised `customer_profiles` table is the obvious next step when a tenant passes ~100k customers.
+
+## 2026-10-01 · One field catalog, two evaluators that must agree
+
+**Decision.** `SEGMENT_FIELDS` in core is the only definition of what a segment field means; the SQL compiler in services maps each field to a whitelisted expression and passes every value as a bind parameter (arrays as a single parameter), so no user input is ever interpolated. The in-memory `evaluateRules` exists for tests and for the parity test that runs both against the seed. Add-ons extend the catalog through `registerSegmentFields` without touching core.
+
+## 2026-10-01 · Holdout assignment with a dependency-free hash
+
+**Decision.** `assignHoldout(segmentId, customerId, pct, salt)` uses FNV-1a 32-bit over `segment:customer:salt` into 10 000 buckets. The reference used Postgres `md5`; a pure function keeps core free of `node:crypto` (which would break client bundles that import core) and is identical wherever it runs. Re-evaluating a segment never moves an existing member between groups: new matches are inserted with their bucket, stale ones are deleted, the rest are untouched.
+
+## 2026-10-01 · RFM bands and tiers are fixed in this version
+
+**Decision.** Recency bands 0–90 / 91–180 / 181–365 / ≤ 2 years / > 2 years and frequency bands 1 / 2 / 3–4 / 5+ are constants, and the eight tiers follow the top-down rule set documented in the RFM page. Making them tenant settings is a later step; the functions already take plain numbers so nothing else changes.

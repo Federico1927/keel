@@ -11,3 +11,4 @@ export * from "./mentions";
 export * from "./inventory";
 export * from "./finance";
 export * from "./campaigns";
+export * from "./segments";

@@ -157,7 +157,7 @@ const ACTION_PAGE: Record<ActionKey, PageKey> = {
   change_order_state: "orders",
   add_note: "orders",
   assign: "orders",
-  export: "customers",
+  export: "segments",
   manage_integrations: "integrations",
   manage_users: "users",
   manage_settings: "settings",
