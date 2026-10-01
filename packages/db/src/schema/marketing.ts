@@ -116,6 +116,10 @@ export const notifications = pgTable(
     link: text("link"),
     metadata: jsonb("metadata").notNull().default(sql`'{}'::jsonb`),
     readAt: timestamp("read_at", { withTimezone: true }),
+    /** False when the user switched the in-app channel off for this type: the row only records the other deliveries. */
+    inApp: boolean("in_app").notNull().default(true),
+    /** Outcome per outbound channel: { email: "sent" | "mock" | "suppressed" | "error", slack: … }. */
+    delivered: jsonb("delivered").$type<Record<string, string>>().notNull().default(sql`'{}'::jsonb`),
     createdAt: createdAt(),
   },
   (t) => [index("notifications_user_idx").on(t.tenantId, t.userId, t.readAt, t.createdAt), tenantIsolation("notifications")],

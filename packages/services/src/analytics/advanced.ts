@@ -335,7 +335,7 @@ export async function alertSeries(ctx: ServiceContext, tenant: AnalyticsTenant, 
     select to_char((placed_at at time zone ${tenant.timezone})::date, 'YYYY-MM-DD') as day, count(*)::int as placed,
            count(*) filter (where status in ${sql.raw(SALE)})::int as sales, count(*) filter (where status = 'cancelled')::int as cancelled,
            coalesce(sum(total_minor - refunded_minor) filter (where status in ${sql.raw(SALE)}), 0)::int as gross
-    from orders where tenant_id = ${ctx.tenantId} and placed_at >= ${new Date(from)} and cancel_reason is distinct from 'replaced' group by 1`);
+    from orders where tenant_id = ${ctx.tenantId} and placed_at >= ${new Date(from)} and replaced_by_order_id is null group by 1`);
   const spendConds = [eq(schema.adMetricsDaily.tenantId, ctx.tenantId), gte(schema.adMetricsDaily.date, dayKeys[0]!)];
   if (opts.campaignId) spendConds.push(eq(schema.adMetricsDaily.campaignId, opts.campaignId));
   const spendRows = await ctx.tx.select({ day: schema.adMetricsDaily.date, spend: sql<number>`coalesce(sum(${schema.adMetricsDaily.spendMinor}),0)::int`, value: sql<number>`coalesce(sum(${schema.adMetricsDaily.purchaseValueMinor}),0)::int` }).from(schema.adMetricsDaily).where(and(...spendConds)).groupBy(schema.adMetricsDaily.date);

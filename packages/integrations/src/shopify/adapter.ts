@@ -1,5 +1,5 @@
 import { HttpClient, type HttpOptions } from "../http";
-import { IntegrationError, type CommercePlatform, type ConnectionTest, type CreateOrderInput, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type OrderDetailsPatch, type Page, type PlatformReturnLineInput, type SyncQuery, type VerifiedWebhook, type WebhookRegistration } from "../types";
+import { IntegrationError, type CommercePlatform, type ConnectionTest, type CreateOrderInput, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type OrderDetailsPatch, type OrderDiscountPatch, type Page, type PlatformReturnLineInput, type SyncQuery, type VerifiedWebhook, type WebhookRegistration } from "../types";
 import { ORDER_FIELDS, PRODUCT_FIELDS, gidToId, idToGid, mapGraphqlCustomer, mapGraphqlDiscount, mapGraphqlInventoryLevel, mapGraphqlLocation, mapGraphqlOrder, mapGraphqlProduct, mapRestCustomer, mapRestInventoryLevel, mapRestOrder, mapRestProduct } from "./mappers";
 import { SHOPIFY_ALL_SCOPES, SHOPIFY_API_VERSION, verifyWebhookHmac } from "./oauth";
 
@@ -219,11 +219,28 @@ export class ShopifyCommercePlatform implements CommercePlatform {
     const draft = this.draftInput(input);
     const created = await this.mutate("draftOrderCreate", `mutation($input: DraftOrderInput!) { draftOrderCreate(input: $input) { draftOrder { id } userErrors { field message } } }`, { input: draft });
     const draftId = String((created.draftOrder as Rec).id);
-    const completed = await this.mutate("draftOrderComplete", `mutation($id: ID!) { draftOrderComplete(id: $id, paymentPending: true) { draftOrder { order { id legacyResourceId } } userErrors { field message } } }`, { id: draftId });
+    // a paid original keeps its payment on the cancelled order: the replacement is marked paid (to verify: gateway shown as "manual")
+    const paymentPending = input.payment?.status !== "paid";
+    const completed = await this.mutate("draftOrderComplete", `mutation($id: ID!, $paymentPending: Boolean) { draftOrderComplete(id: $id, paymentPending: $paymentPending) { draftOrder { order { id legacyResourceId } } userErrors { field message } } }`, { id: draftId, paymentPending });
     const orderId = String(((completed.draftOrder as Rec).order as Rec).legacyResourceId ?? String(((completed.draftOrder as Rec).order as Rec).id).split("/").pop());
     const order = await this.fetchOrder(orderId);
     if (!order) throw new IntegrationError("not_found", "Created order not readable");
     return order;
+  }
+  /**
+   * Order editing API: begin → line discounts → commit. A percentage goes on every line; a fixed
+   * amount goes on the line with the largest total (capped there). To verify on a real account:
+   * whether `fixedValue` applies per unit or per line, and the customer notification setting.
+   */
+  async applyOrderDiscount(externalId: string, discount: OrderDiscountPatch): Promise<void> {
+    const begun = await this.mutate("orderEditBegin", `mutation($id: ID!) { orderEditBegin(id: $id) { calculatedOrder { id lineItems(first: 100) { nodes { id quantity originalUnitPriceSet { shopMoney { amount } } } } } userErrors { field message } } }`, { id: idToGid("Order", externalId) });
+    const calc = begun.calculatedOrder as { id: string; lineItems: { nodes: { id: string; quantity: number; originalUnitPriceSet: { shopMoney: { amount: string } } }[] } };
+    const lines = calc.lineItems.nodes.filter((l) => l.quantity > 0);
+    if (!lines.length) throw new IntegrationError("invalid_request", "No editable lines");
+    const description = discount.reason ? `${discount.code} · ${discount.reason}` : discount.code;
+    const targets = discount.type === "percentage" ? lines.map((l) => ({ id: l.id, value: { percentValue: discount.value / 100 } })) : [{ id: [...lines].sort((a, b) => Number(b.originalUnitPriceSet.shopMoney.amount) * b.quantity - Number(a.originalUnitPriceSet.shopMoney.amount) * a.quantity)[0]!.id, value: { fixedValue: { amount: (discount.amountMinor / 100).toFixed(2), currencyCode: discount.currency } } }];
+    for (const t of targets) await this.mutate("orderEditAddLineItemDiscount", `mutation($id: ID!, $lineItemId: ID!, $discount: OrderEditAppliedDiscountInput!) { orderEditAddLineItemDiscount(id: $id, lineItemId: $lineItemId, discount: $discount) { calculatedOrder { id } userErrors { field message } } }`, { id: calc.id, lineItemId: t.id, discount: { description, ...t.value } });
+    await this.mutate("orderEditCommit", `mutation($id: ID!, $staffNote: String) { orderEditCommit(id: $id, notifyCustomer: false, staffNote: $staffNote) { order { id } userErrors { field message } } }`, { id: calc.id, staffNote: description });
   }
   async addOrderNote(externalId: string, note: string): Promise<void> {
     await this.mutate("orderUpdate", `mutation($input: OrderInput!) { orderUpdate(input: $input) { userErrors { field message } } }`, { input: { id: idToGid("Order", externalId), note } });
@@ -237,6 +254,16 @@ export class ShopifyCommercePlatform implements CommercePlatform {
     const data = await this.graphql<{ productVariant: { product: { id: string } } | null }>(`query($id: ID!) { productVariant(id: $id) { product { id } } }`, { id: idToGid("ProductVariant", variantExternalId) });
     if (!data.productVariant) throw new IntegrationError("not_found", "Variant not found");
     await this.mutate("productVariantsBulkUpdate", `mutation($productId: ID!, $variants: [ProductVariantsBulkInput!]!) { productVariantsBulkUpdate(productId: $productId, variants: $variants) { userErrors { field message } } }`, { productId: data.productVariant.product.id, variants: [{ id: idToGid("ProductVariant", variantExternalId), ...(patch.priceMinor !== undefined ? { price: (patch.priceMinor / 100).toFixed(2) } : {}) }] });
+  }
+  /** `inventoryItemUpdate` with `cost`: needs write_inventory. To verify on a real account: multi-currency shops store the cost in the shop currency. */
+  async updateVariantCost(variant: { variantExternalId: string; inventoryItemExternalId: string | null }, costMinor: number): Promise<void> {
+    let itemId = variant.inventoryItemExternalId ? idToGid("InventoryItem", variant.inventoryItemExternalId) : null;
+    if (!itemId) {
+      const data = await this.graphql<{ productVariant: { inventoryItem: { id: string } } | null }>(`query($id: ID!) { productVariant(id: $id) { inventoryItem { id } } }`, { id: idToGid("ProductVariant", variant.variantExternalId) });
+      if (!data.productVariant) throw new IntegrationError("not_found", "Variant not found");
+      itemId = data.productVariant.inventoryItem.id;
+    }
+    await this.mutate("inventoryItemUpdate", `mutation($id: ID!, $input: InventoryItemInput!) { inventoryItemUpdate(id: $id, input: $input) { inventoryItem { id unitCost { amount } } userErrors { field message } } }`, { id: itemId, input: { cost: (costMinor / 100).toFixed(2) } });
   }
   async updateProductStatus(productExternalId: string, status: "active" | "draft" | "archived"): Promise<void> {
     await this.mutate("productUpdate", `mutation($input: ProductInput!) { productUpdate(input: $input) { userErrors { field message } } }`, { input: { id: idToGid("Product", productExternalId), status: status.toUpperCase() } });

@@ -157,7 +157,18 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
                     ))}
                   </TableBody>
                 </Table>
-                {pnl.cogsIncompleteOrders > 0 && <p className="border-t p-3 text-xs text-warning">{t("pnl.cogs_incomplete", { n: pnl.cogsIncompleteOrders })}</p>}
+                {pnl.cogsIncompleteOrders > 0 && (
+                  <p className="border-t p-3 text-xs text-warning" data-testid="cogs-incomplete">
+                    <Link href={ordersLink("&status=confirmed,fulfilling,shipped,delivered,returned_partial&missingCost=1")} className="underline-offset-4 hover:underline">{t("pnl.cogs_incomplete", { n: pnl.cogsIncompleteOrders, share: formatPercent(pnl.netRevenueMinor ? pnl.cogsIncompleteRevenueMinor / pnl.netRevenueMinor : null, ctx.locale) })}</Link>{" "}
+                    <Link href={`/t/${tenant}/products/quality?issue=missing_cost`} className="font-medium underline-offset-4 hover:underline">{t("pnl.fix_costs")}</Link>
+                  </p>
+                )}
+                {pnl.costCoverage.totalMinor > 0 && (
+                  <p className="border-t p-3 text-xs text-muted-foreground" data-testid="cost-reliability">
+                    {t("pnl.cost_reliability", { share: formatPercent(pnl.costCoverage.coveredShare, ctx.locale) })}{" "}
+                    {(["po_receipt", "platform", "import", "manual", "unknown", "missing"] as const).filter((k) => pnl.costCoverage.byKey[k] > 0).map((k) => `${t(`pnl.cost_origin.${k}`)} ${formatPercent(pnl.costCoverage.byKey[k] / pnl.costCoverage.totalMinor, ctx.locale)}`).join(" · ")}
+                  </p>
+                )}
                 <p className="border-t p-3 text-xs text-muted-foreground" data-testid="cost-sources">
                   {t("pnl.cost_sources", { shipping: t(`pnl.source.${pnl.costSources.shipping}`), fixed: t(`pnl.source.${pnl.costSources.fixed}`) })} <Link href={`${base}/costs`} className="underline-offset-4 hover:underline">{t("pnl.edit_costs")}</Link>
                 </p>

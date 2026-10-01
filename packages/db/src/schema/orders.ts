@@ -63,8 +63,10 @@ export const orders = pgTable(
     closedAt: timestamp("closed_at", { withTimezone: true }),
     assignedTo: uuid("assigned_to").references(() => users.id, { onDelete: "set null" }),
     holdReason: text("hold_reason"),
+    /** Lineage of cancel-and-recreate edits: the order this one replaces, the one that replaced it, and the first order of the chain. */
     replacesOrderId: uuid("replaces_order_id"),
     replacedByOrderId: uuid("replaced_by_order_id"),
+    lineageRootOrderId: uuid("lineage_root_order_id"),
     platformUpdatedAt: timestamp("platform_updated_at", { withTimezone: true }),
     syncedAt: timestamp("synced_at", { withTimezone: true }),
     searchBlob: text("search_blob")

@@ -16,7 +16,7 @@ export async function duplicateSiblings(ctx: ServiceContext, orderId: string, wi
   const candidates = await ctx.tx
     .select()
     .from(schema.orders)
-    .where(and(eq(schema.orders.tenantId, ctx.tenantId), ne(schema.orders.id, target.id), or(...identity), gte(schema.orders.placedAt, from), lte(schema.orders.placedAt, to), isNull(schema.orders.cancelledAt)))
+    .where(and(eq(schema.orders.tenantId, ctx.tenantId), ne(schema.orders.id, target.id), or(...identity), gte(schema.orders.placedAt, from), lte(schema.orders.placedAt, to), isNull(schema.orders.cancelledAt), isNull(schema.orders.replacedByOrderId)))
     .limit(50);
   const ids = [target.id, ...candidates.map((c) => c.id)];
   const lines = await ctx.tx.select().from(schema.orderLines).where(and(eq(schema.orderLines.tenantId, ctx.tenantId), inArray(schema.orderLines.orderId, ids)));
