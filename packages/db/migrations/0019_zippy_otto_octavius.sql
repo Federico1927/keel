@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ADD COLUMN "lineage_root_order_id" uuid;

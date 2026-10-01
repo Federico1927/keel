@@ -17,7 +17,7 @@ import {
   type SyncQuery,
   type VerifiedWebhook,
   type WebhookRegistration,
- type CreateOrderInput, type OrderDetailsPatch } from "../types";
+ type CreateOrderInput, type OrderDetailsPatch, type OrderDiscountPatch } from "../types";
 import { FailureScript } from "./failures";
 
 export interface MockCatalogVariant {
@@ -29,6 +29,10 @@ export interface MockCatalogVariant {
   productTitle: string;
   optionValues: Record<string, string>;
   priceMinor: number;
+  /** Unit cost the simulated store reports (`inventoryItem.unitCost`); null or absent = never entered. */
+  unitCostMinor?: number | null;
+  barcode?: string | null;
+  productImageUrl?: string | null;
 }
 
 export interface MockCommerceOptions {
@@ -180,10 +184,10 @@ export class MockCommercePlatform implements CommercePlatform {
     for (const v of this.opts.variants) {
       let p = byProduct.get(v.productExternalId);
       if (!p) {
-        p = { externalId: v.productExternalId, title: v.productTitle, handle: v.productTitle.toLowerCase().replace(/\s+/g, "-"), vendor: "Mock", productType: null, status: "active", tags: [], options: [], imageUrl: null, platformCreatedAt: null, variants: [] };
+        p = { externalId: v.productExternalId, title: v.productTitle, handle: v.productTitle.toLowerCase().replace(/\s+/g, "-"), vendor: "Mock", productType: null, status: "active", tags: [], options: [], imageUrl: v.productImageUrl ?? null, platformCreatedAt: null, variants: [] };
         byProduct.set(v.productExternalId, p);
       }
-      p.variants.push({ externalId: v.externalId, inventoryItemExternalId: v.inventoryItemExternalId, sku: v.sku, barcode: null, title: v.title, optionValues: v.optionValues, priceMinor: v.priceMinor, compareAtMinor: null, weightGrams: null });
+      p.variants.push({ externalId: v.externalId, inventoryItemExternalId: v.inventoryItemExternalId, sku: v.sku, barcode: v.barcode ?? null, title: v.title, optionValues: v.optionValues, priceMinor: v.priceMinor, compareAtMinor: null, weightGrams: null, costMinor: v.unitCostMinor ?? null });
     }
     return { items: [...byProduct.values()], nextCursor: null };
   }
@@ -275,11 +279,21 @@ export class MockCommercePlatform implements CommercePlatform {
     if (patch.phone !== undefined) o.phone = patch.phone;
     if (patch.note !== undefined) o.note = patch.note;
     if (patch.shippingAddress !== undefined) o.shippingAddress = patch.shippingAddress;
+    if (patch.billingAddress !== undefined) o.billingAddress = patch.billingAddress;
+    o.platformUpdatedAt = new Date();
+  }
+  async applyOrderDiscount(externalId: string, discount: OrderDiscountPatch) {
+    this.record("applyOrderDiscount", { externalId, ...discount });
+    const o = this.orders.get(externalId);
+    if (!o) return;
+    o.discountMinor += discount.amountMinor;
+    o.totalMinor = Math.max(0, o.totalMinor - discount.amountMinor);
+    o.discounts = [...o.discounts, { code: discount.code, type: discount.type, amountMinor: discount.amountMinor }];
     o.platformUpdatedAt = new Date();
   }
   async createOrder(input: CreateOrderInput): Promise<NormalizedOrder> {
     this.failures.check();
-    this.record("createOrder", { lines: input.lines.length, replaces: input.replacesOrderName });
+    this.record("createOrder", { lines: input.lines.length, replaces: input.replacesOrderName, payment: input.payment ?? null });
     const number = this.nextNumber++;
     const now = new Date();
     const lines = input.lines.map((l, i) => {
@@ -304,10 +318,10 @@ export class MockCommercePlatform implements CommercePlatform {
       taxMinor: 0,
       totalMinor: subtotal - input.discountMinor + input.shippingMinor,
       refundedMinor: 0,
-      paymentGateways: ["cash_on_delivery"],
-      paymentMethod: "cod",
-      paymentStatus: "pending",
-      financialStatusRaw: "pending",
+      paymentGateways: input.payment?.gateways.length ? [...input.payment.gateways] : ["cash_on_delivery"],
+      paymentMethod: input.payment?.method ?? "cod",
+      paymentStatus: input.payment?.status ?? "pending",
+      financialStatusRaw: input.payment?.status ?? "pending",
       fulfillmentStatusRaw: null,
       tags: [...input.tags],
       shippingAddress: input.shippingAddress,
@@ -342,6 +356,11 @@ export class MockCommercePlatform implements CommercePlatform {
   }
   async updateVariant(variantExternalId: string, patch: { priceMinor?: number }) {
     this.record("updateVariant", { variantExternalId, patch });
+  }
+  async updateVariantCost(variant: { variantExternalId: string; inventoryItemExternalId: string | null }, costMinor: number) {
+    this.record("updateVariantCost", { ...variant, costMinor });
+    const v = this.opts.variants.find((x) => x.externalId === variant.variantExternalId);
+    if (v) v.unitCostMinor = costMinor;
   }
   async updateProductStatus(productExternalId: string, status: "active" | "draft" | "archived") {
     this.record("updateProductStatus", { productExternalId, status });

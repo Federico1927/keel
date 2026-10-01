@@ -134,6 +134,20 @@
       "when": 1790884623986,
       "tag": "0018_familiar_sersi",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790888527467,
+      "tag": "0019_zippy_otto_octavius",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1790890455678,
+      "tag": "0020_normal_xorn",
+      "breakpoints": true
     }
   ]
 }

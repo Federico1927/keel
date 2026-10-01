@@ -44,7 +44,11 @@
       "closed": "This order can no longer be changed.",
       "attachment_too_large": "The file is larger than 1.5 MB.",
       "attachment_type": "This file type is not accepted.",
-      "invalid_type": "Unknown notification type."
+      "invalid_type": "Unknown notification type.",
+      "not_editable": "This order can no longer be edited: it is fulfilled, cancelled or replaced.",
+      "invalid_address": "The address is not valid: check the highlighted fields.",
+      "merge_invalid": "These orders cannot be merged: different customer or payment, or already fulfilled.",
+      "nothing_to_change": "Nothing to change."
     },
     "edit": "Edit"
   },
@@ -226,7 +230,8 @@
       "stuck_shipments": "Stuck shipments",
       "returns_requested": "Return requests",
       "critical_variants": "Variants at low stock",
-      "failed_webhooks": "Failed webhooks"
+      "failed_webhooks": "Failed webhooks",
+      "catalog_quality": "Variants without cost or SKU"
     },
     "forecast": {
       "title": "Forecast {month}",
@@ -707,7 +712,8 @@
       "sort": "Sort",
       "from": "From",
       "to": "To",
-      "tag": "Tag"
+      "tag": "Tag",
+      "missing_cost": "Products without cost"
     },
     "sort": {
       "placed_desc": "Newest first",
@@ -800,7 +806,24 @@
     },
     "restock": "Restock items",
     "refund": "Refund captured payment",
-    "request_return": "Request return"
+    "request_return": "Request return",
+    "lineage": {
+      "title": "Edited order",
+      "replaced_by": "This order was replaced by <link>{order}</link> and no longer counts in reports.",
+      "not_cancelled": "The store did not cancel it: cancel it by hand.",
+      "replaces": "Created as replacement of",
+      "replaces_hint": "It keeps their creation day and attribution.",
+      "chain": "Lineage"
+    },
+    "timeline_meta": {
+      "replaces": "Replaces {orders}",
+      "replaced_by": "Replaced by {order}",
+      "not_cancelled": "(not cancelled on the store)",
+      "discount": "{code}: −{amount}",
+      "balance_due": "Customer owes {amount}",
+      "balance_refund": "Refund {amount} to the customer",
+      "written_to": "Written to {platform}"
+    }
   },
   "order_events": {
     "imported": "Imported",
@@ -822,7 +845,8 @@
     "tags_updated": "Tags updated",
     "modified": "Order modified",
     "replaces": "Created as replacement",
-    "replaced": "Replaced by a new order"
+    "replaced": "Replaced by a new order",
+    "discount_applied": "Discount applied"
   },
   "shipments": {
     "title": "Shipments",
@@ -901,7 +925,9 @@
       "incoming": "Incoming",
       "sold": "Sold ({days}d)",
       "risk": "Risk"
-    }
+    },
+    "quality_link": "Data quality",
+    "import_costs_link": "Import costs"
   },
   "product_detail": {
     "back": "Products",
@@ -1183,7 +1209,7 @@
       "cancelled": "Cancelled",
       "returned": "Returned",
       "pending": "Pending",
-      "cogs_incomplete": "{n} orders have lines without a purchase cost: COGS is understated.",
+      "cogs_incomplete": "{n} orders contain products without cost ({share} of net revenue): cost of goods is understated.",
       "by_month": "By month",
       "month": "Month",
       "open_orders": "Open orders",
@@ -1196,7 +1222,17 @@
         "none": "no cost entered",
         "mixed": "actual where available, estimate elsewhere"
       },
-      "return_costs": "Return costs"
+      "return_costs": "Return costs",
+      "fix_costs": "Fix product costs",
+      "cost_reliability": "Known cost on {share} of sale revenue:",
+      "cost_origin": {
+        "po_receipt": "purchase orders",
+        "platform": "Shopify",
+        "import": "CSV import",
+        "manual": "entered by hand",
+        "unknown": "not recorded",
+        "missing": "missing"
+      }
     },
     "products": {
       "title": "Product performance",
@@ -3123,39 +3159,7 @@
       "tags_event_replaced": "Replaced by a new order"
     },
     "filter_by_tag": "Tag:",
-    "all_tags": "All",
-    "modify": {
-      "button": "Modify order",
-      "title": "Modify {order}",
-      "description": "Changes agreed with the customer before confirmation. Contact and address are edited in place. Changing lines or merging orders creates a new order and cancels this one, so the warehouse never ships a removed line.",
-      "contact": "Contact and address",
-      "customer_name": "Name",
-      "phone": "Phone",
-      "email": "Email",
-      "address": {
-        "name": "Recipient",
-        "address1": "Address",
-        "address2": "Address line 2",
-        "city": "City",
-        "province": "Province",
-        "zip": "Postal code",
-        "country": "Country (ISO code)"
-      },
-      "note_append": "Add to the order note",
-      "lines": "Lines",
-      "quantity": "Quantity",
-      "add_product": "Search product by SKU or name",
-      "add": "Add",
-      "new_total": "New total {total}",
-      "merge": "Merge other open orders of this customer",
-      "merge_help": "Their lines are added to the new order and they are cancelled as replaced.",
-      "attempt_note": "Call note (optional)",
-      "replace_warning": "This order will be cancelled on the platform and replaced by a new one with the same operator. Attempts restart.",
-      "replaced_done": "Replaced by {order}.",
-      "warning_not_cancelled": "The old order could not be cancelled on the platform: cancel it by hand.",
-      "save": "Save changes",
-      "save_replace": "Replace order"
-    }
+    "all_tags": "All"
   },
   "po_pdf": {
     "title": "Purchase order",
@@ -3483,7 +3487,8 @@
     "tracking_page": "Public order tracking page",
     "label_enabled": "Give the customer a prepaid return label",
     "label_destination": "Return address on the label",
-    "label_hint": "The label is issued at submission and its tracking code is stored on the return. In this version the label provider is simulated."
+    "label_hint": "The label is issued at submission and its tracking code is stored on the return. In this version the label provider is simulated.",
+    "off_notice": "The portal is off: customers who open {url} get a \"page not found\". Turn on \"Portal active\" below and save."
   },
   "return_portal": {
     "default_title": "Return an item",
@@ -4153,5 +4158,159 @@
       "ask_owner": "Ask an owner or admin to connect the Anthropic key in Integrations.",
       "guide": "How to get a key"
     }
+  },
+  "product_costs": {
+    "card_title": "Product cost",
+    "card_description": "Unit cost per variant: it is copied onto the orders that sell it and feeds margins, the P/L and campaign profit. A received purchase order updates it too.",
+    "bulk_label": "Same cost for all variants",
+    "bulk_apply": "Use for all variants",
+    "variant": "Variant",
+    "sku": "SKU",
+    "cost": "Cost",
+    "cost_of": "Cost of {variant}",
+    "source_label": "Source",
+    "source": {
+      "platform": "From Shopify",
+      "manual": "Entered by hand",
+      "import": "CSV import",
+      "po_receipt": "Purchase order",
+      "unknown": "Not recorded"
+    },
+    "missing": "Missing",
+    "apply_to": "Past orders",
+    "apply_missing": "Fill only orders without a cost",
+    "apply_all": "Restate all past orders",
+    "write_back_on": "Costs are also written to Shopify.",
+    "saved": "{changed, plural, =0 {Nothing changed.} one {# cost saved, {lines} order lines updated.} other {# costs saved, {lines} order lines updated.}}"
+  },
+  "catalog_quality": {
+    "back": "Products",
+    "title": "Catalog data quality",
+    "description": "{affected} of {total} active variants need attention. A missing cost makes every margin look better than it is.",
+    "import_costs": "Import costs from CSV",
+    "issue": {
+      "missing_cost": "Missing cost",
+      "missing_sku": "Missing SKU",
+      "duplicate_sku": "Duplicate SKU",
+      "missing_barcode": "Missing barcode",
+      "missing_image": "Missing image"
+    },
+    "empty_title": "Nothing to fix",
+    "empty_description": "Every active variant has a cost, a unique SKU, a barcode and an image.",
+    "columns": {
+      "product": "Product",
+      "sku": "SKU",
+      "barcode": "Barcode",
+      "cost": "Cost",
+      "issues": "Issues"
+    },
+    "pagination": "{from}–{to} of {total} variants"
+  },
+  "cost_import": {
+    "back": "Catalog data quality",
+    "title": "Import product costs",
+    "description": "Upload a CSV with SKU and cost (and optionally the supplier SKU). You see what matches before anything is written.",
+    "file_title": "Cost file",
+    "file_hint": "Columns: sku, cost, supplier_sku (optional). Comma, semicolon or tab separated; decimals with a dot or a comma. Shopify's \"Cost per item\" export works as is.",
+    "file": "CSV file",
+    "apply_to": "Past orders",
+    "apply_missing": "Fill only orders without a cost",
+    "apply_all": "Restate all past orders",
+    "preview": "Preview",
+    "template": "Download a template",
+    "preview_title": "Preview",
+    "preview_hint": "Nothing has been written yet. Only matched rows are imported; the others are listed so you can fix the file.",
+    "status": {
+      "matched": "Will update",
+      "unchanged": "Same cost",
+      "unmatched": "SKU not found",
+      "ambiguous": "SKU on several variants",
+      "invalid": "Invalid row"
+    },
+    "columns": {
+      "line": "Line",
+      "sku": "SKU",
+      "variant": "Variant",
+      "cost": "Cost",
+      "status": "Result"
+    },
+    "row_error": {
+      "missing_sku": "No SKU",
+      "invalid_cost": "Cost is not a valid amount",
+      "duplicate_row": "Repeated in the file"
+    },
+    "file_error": {
+      "empty": "The file has no rows.",
+      "missing_columns": "The file needs a cost column and a sku (or supplier_sku) column.",
+      "too_many_rows": "The file has too many rows (maximum 20,000)."
+    },
+    "confirm": "Import {n, plural, one {# cost} other {# costs}}",
+    "done": "{written, plural, one {# cost imported} other {# costs imported}}, {lines} order lines updated.",
+    "write_back": "Write costs to Shopify",
+    "write_back_hint": "When on, costs edited or imported here also update the unit cost on Shopify. Only owners and admins can change this."
+  },
+  "order_edit": {
+    "button": "Edit order",
+    "cod_button": "Modify order",
+    "merge_button": "Merge orders",
+    "title": "Edit {order}",
+    "description": "Contact, address and note are changed in place on the store. Changing lines or merging orders creates a new linked order and cancels this one, so the warehouse never ships a removed line.",
+    "cod_description": "Changes agreed with the customer before confirmation. Contact and address are edited in place. Changing lines or merging orders creates a new order and cancels this one, so the warehouse never ships a removed line.",
+    "contact": "Contact and address",
+    "customer_name": "Name",
+    "phone": "Phone",
+    "email": "Email",
+    "shipping_address": "Shipping address",
+    "edit_billing": "Change the billing address too",
+    "address": {
+      "name": "Recipient",
+      "address1": "Address",
+      "address2": "Address line 2",
+      "city": "City",
+      "province": "Province / state",
+      "zip": "Postal code",
+      "country": "Country (ISO code)"
+    },
+    "address_suggestions": "Suggestions",
+    "check_address": "Check address",
+    "address_ok": "The address looks valid.",
+    "address_issues": {
+      "required": "Required.",
+      "invalid_zip": "Not a valid postal code for this country.",
+      "invalid_country": "Use the two-letter country code.",
+      "not_found": "Address not found."
+    },
+    "note": "Order note",
+    "note_append": "Add to the order note",
+    "lines": "Lines",
+    "quantity": "Quantity",
+    "add_product": "Search product by SKU or name",
+    "add": "Add",
+    "new_total": "New total {total}",
+    "merge": "Merge other open orders of this customer",
+    "merge_help": "Their lines are added to the new order and they are cancelled as replaced. Only open orders with the same payment method and status can be merged.",
+    "attempt_note": "Call note (optional)",
+    "replace_warning": "This order will be cancelled on the store and replaced by a new linked order that keeps its creation day and attribution. Reports count one order.",
+    "cod_replace_warning": "This order will be cancelled on the platform and replaced by a new one with the same operator. Attempts restart.",
+    "paid_warning": "The payment stays with the original order and the new one is marked paid: collect or refund any difference from the store.",
+    "replaced_done": "Replaced by {order}.",
+    "warning_not_cancelled": "The old order could not be cancelled on the platform: cancel it by hand.",
+    "save": "Save changes",
+    "save_replace": "Replace order"
+  },
+  "order_discount": {
+    "button": "Apply discount",
+    "title": "Discount on {order}",
+    "description": "The discount is added to the order on the store and the total is reduced.",
+    "presets": "Quick discounts",
+    "type": "Type",
+    "type_percentage": "Percent",
+    "type_fixed_amount": "Amount ({currency})",
+    "value": "Value",
+    "code": "Code (optional)",
+    "reason": "Reason (optional)",
+    "preview": "Discount {amount} · new total {total}",
+    "refund_due": "This order is paid: refund {amount} to the customer from the store.",
+    "apply": "Apply discount"
   }
 }

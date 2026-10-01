@@ -41,6 +41,8 @@ export const tenantSettingsSchema = z.object({
   churnMediumPct: z.number().int().min(0).max(100).default(40),
   /** Write returns to the commerce platform (return request, approval, restock, refund, close). */
   returnsWriteBack: z.boolean().default(true),
+  /** Write product costs edited or imported in Keel to the commerce platform (Shopify `inventoryItem.unitCost`). */
+  costWriteBack: z.boolean().default(false),
   /** Order tags written on the platform when a return reaches a status (e.g. refunded → "REFUNDED"). */
   returnPlatformTags: z.record(z.string(), z.array(z.string().max(40)).max(5)).default({}),
   paymentFeeBps: feeMap.default({ ...TENANT_SETTING_DEFAULTS.paymentFeeBps }),

@@ -27,7 +27,7 @@ export function findDuplicateOrders(target: DuplicateCandidateOrder, candidates:
   const targetLines = target.lines.filter((l) => !l.isAncillary);
   for (const c of candidates) {
     if (c.id === target.id) continue;
-    if (c.id === target.replacesOrderId || c.id === target.replacedByOrderId) continue;
+    if (c.id === target.replacesOrderId || c.id === target.replacedByOrderId || c.replacedByOrderId) continue;
     if (Math.abs(c.placedAt.getTime() - target.placedAt.getTime()) > windowMs) continue;
     if (c.cancelledAt || ["cancelled", "refunded", "returned"].includes(c.status)) continue;
     const identityVia: DuplicateMatch["identityVia"] = [];

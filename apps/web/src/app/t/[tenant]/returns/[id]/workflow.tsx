@@ -116,12 +116,12 @@ export function ReturnWorkflow({ slug, returnId, status, resolution, lines, loca
                 {lines.map((l) => (
                   <div key={l.id} className="grid grid-cols-[1fr_8rem_7rem] items-center gap-2 text-sm">
                     <span className="min-w-0 truncate">{l.title}{l.variantTitle ? ` · ${l.variantTitle}` : ""} × {l.quantity}</span>
-                    <Select value={inspection[l.id]!.outcome} onChange={(e) => setInspection({ ...inspection, [l.id]: { ...inspection[l.id]!, outcome: e.target.value as "intact" | "damaged" | "missing" } })} className="h-8">
+                    <Select size="sm" value={inspection[l.id]!.outcome} onChange={(e) => setInspection({ ...inspection, [l.id]: { ...inspection[l.id]!, outcome: e.target.value as "intact" | "damaged" | "missing" } })} >
                       {(["intact", "damaged", "missing"] as const).map((o) => (
                         <option key={o} value={o}>{t(`outcome.${o}`)}</option>
                       ))}
                     </Select>
-                    <Input type="number" step="0.01" min={0} className="h-8" value={inspection[l.id]!.amount} onChange={(e) => setInspection({ ...inspection, [l.id]: { ...inspection[l.id]!, amount: Number(e.target.value) } })} aria-label={t("accepted_amount")} />
+                    <Input size="sm" type="number" step="0.01" min={0} value={inspection[l.id]!.amount} onChange={(e) => setInspection({ ...inspection, [l.id]: { ...inspection[l.id]!, amount: Number(e.target.value) } })} aria-label={t("accepted_amount")} />
                   </div>
                 ))}
                 <div className="space-y-1">

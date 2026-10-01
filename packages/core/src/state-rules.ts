@@ -48,6 +48,8 @@ export interface StateInput {
   returnedFraction?: number;
   /** Operator-set status (status_source = manual). */
   manualStatus?: OrderStatus | null;
+  /** Set when the order was cancelled and recreated (line change or merge): a final state. */
+  replacedByOrderId?: string | null;
   now?: Date;
 }
 
@@ -87,7 +89,9 @@ export function defaultStatus(input: StateInput): OrderStatus {
 }
 
 export function deriveOrderStatus(input: StateInput, rules: readonly StateRule[]): StateDerivation {
-  // 1. Hard facts beat everything, including manual statuses.
+  // 1. Hard facts beat everything, including manual statuses. A replaced order stays cancelled
+  // even when the platform cancel failed or a later sync reopens it: the replacement is the live one.
+  if (input.replacedByOrderId) return { status: "cancelled", reason: "override:replaced" };
   if (input.cancelledAt) return { status: "cancelled", reason: "override:cancelled" };
   if (input.paymentStatus === "voided") return { status: "cancelled", reason: "override:voided" };
   if ((input.returnedFraction ?? 0) >= 0.999) return { status: "returned", reason: "override:returned" };

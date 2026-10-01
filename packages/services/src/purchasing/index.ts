@@ -2,6 +2,7 @@ import { and, eq, inArray, schema, sql } from "@keel/db";
 import { backorderStatus, canTransitionPo, movingAverageCost, type PurchaseOrderStatus } from "@keel/core";
 import type { ServiceContext } from "../context";
 import { notifyUsers } from "../notifications";
+import { applyCostToOrderLines } from "../catalog/costs";
 import { syncRecordTasks } from "../tasks";
 
 export class PurchasingError extends Error {
@@ -104,7 +105,9 @@ export async function receivePurchaseOrder(ctx: ServiceContext, input: ReceiveIn
     // landed cost (unit cost + allocated duties/freight/fees) when the PO carries charges
     const unitCost = line.landedUnitCostMinor ?? line.unitCostMinor;
     const newAverage = movingAverageCost(variant?.averageCostMinor ?? variant?.costMinor ?? null, Math.max(0, onHandTotal - qty), qty, unitCost);
-    await ctx.tx.update(schema.productVariants).set({ costMinor: unitCost, averageCostMinor: newAverage }).where(eq(schema.productVariants.id, line.variantId));
+    await ctx.tx.update(schema.productVariants).set({ costMinor: unitCost, averageCostMinor: newAverage, costSource: "po_receipt", costUpdatedAt: now }).where(eq(schema.productVariants.id, line.variantId));
+    // orders sold while the variant had no cost take the received one; costs already on lines stay as sold
+    await applyCostToOrderLines(ctx, [line.variantId], "missing");
     received.push({ variantId: line.variantId, quantity: qty, newAvailable, newCostMinor: unitCost, newAverageMinor: newAverage });
     if (input.pushToPlatform) await input.pushToPlatform(line.variantId, locationId, newAvailable);
   }

@@ -20,9 +20,10 @@ Keel è un MVP completo in tutte le dodici fasi previste: dieci moduli core, con
 | Campagne ↔ stock: metriche, profitto solo su ordini validi, semaforo, raccomandazioni con stock, pausa via adapter con conferma, registro giornaliero con CSV | Funziona | Test core, e2e campagne |
 | CRM: profili, costruttore segmenti annidato, RFM, holdout stabile, export CSV | Funziona | Test di parità valutatore in memoria vs SQL compilato; e2e |
 | Resi configurabili con rientro a stock e propagazione all'ordine; sconti singoli e pool | Funziona | e2e resi e sconti |
+| Modifica ordini nel core, per ogni metodo di pagamento: contatti, indirizzi (con controllo di formato e suggerimenti), nota, cambio righe e unione come sostituzione collegata (i report contano un solo ordine), sconto su ordine esistente | Funziona | Test servizi, e2e su Harbor Home senza add-on |
 | Integrazioni: stato, salute, esecuzioni, registro webhook, test connessione, risincronizzazione, guide in 3 lingue | Funziona | e2e integrazioni |
 | Console `/admin`: tenant, creazione con checklist, add-on con nota, fatturazione mensile, sospensione per insoluto, impersonificazione con banner e audit | Funziona | e2e console: add-on spento → pagina irraggiungibile |
-| Add-on contrassegno: coda con esiti, assegnazione pesata, delivery score spiegato, destinatari a rischio; tag Shopify letti e scritti secondo il vocabolario del tenant; modifica pre-conferma (contatti sul posto, righe e unioni per sostituzione), annullo sulla piattaforma | Funziona sul tenant demo | 20 test, e2e coda e modifica |
+| Add-on contrassegno: coda con esiti, assegnazione pesata, delivery score spiegato, destinatari a rischio; tag Shopify letti e scritti secondo il vocabolario del tenant; modifica pre-conferma tramite i servizi del core con tentativo di chiamata e passaggio della coda, annullo sulla piattaforma | Funziona sul tenant demo | 20 test, e2e coda e modifica |
 | Assistente AI nel core: domande in linguaggio naturale, risposte con numeri, periodo, filtri e link ai report; solo lettura e strumenti filtrati per ruolo; gira sulla chiave Anthropic del negozio (quarta scheda in Integrazioni) | Funziona (modello simulato nella demo) | Test servizi sul ciclo con risposte registrate; e2e assistente |
 | Tre lingue (en, it, es), formati `Intl` per tenant | Funziona | Test di parità delle chiavi fallisce se manca una traduzione |
 
@@ -47,7 +48,7 @@ Alcune caratteristiche "interessanti" del seed sono garantite strutturalmente (p
 Richiesto dal brief ma non completo:
 
 - **GA4 (`AnalyticsPlatform`)**: solo interfaccia, nessun adapter.
-- **Scrittura verso Shopify** limitata a: annullo ordine, prezzo e stato prodotto, stock al ricevimento (facoltativo), creazione sconti e pool. Non si crea un ordine, non si modifica un indirizzo, non si evade.
+- **Scrittura verso Shopify** limitata a: annullo ordine, modifica di contatti, indirizzo e nota, ordine sostitutivo (cambio righe e unioni), sconto su ordine esistente, prezzo e stato prodotto, stock al ricevimento (facoltativo), creazione sconti e pool. Non si evade. L'indirizzo di fatturazione non è modificabile via API su Shopify e resta solo in Keel.
 - **Connettore MCP** citato nell'analisi di partenza: non implementato.
 - **Resi Shopify**: il webhook `returns/*` è parsato e registrato, ma il flusso resi nasce in Keel; non si crea un reso su Shopify.
 - **Vista mobile**: le pagine sono fluide e usabili su tablet; su telefono le tabelle larghe (ordini, registro campagne) scorrono in orizzontale, non sono riprogettate.
