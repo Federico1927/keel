@@ -207,6 +207,12 @@ export function PortalApp(p: PortalProps) {
               <CardContent className="space-y-5 p-6">
                 <section className="space-y-2">
                   <h2 className="text-sm font-semibold">{t("form.items")}</h2>
+                  {view.blocked.map((l) => (
+                    <div key={l.id} className="flex items-center justify-between gap-3 rounded-md border border-dashed p-3 text-sm opacity-70" data-testid="portal-blocked-line">
+                      <div className="min-w-0"><p className="font-medium">{l.title}</p><p className="text-xs text-muted-foreground">{l.variantTitle}</p></div>
+                      <span className="text-xs">{t(`blocks.${l.block}`)}</span>
+                    </div>
+                  ))}
                   {view.lines.map((l) => (
                     <div key={l.id} className="flex items-center justify-between gap-3 rounded-md border p-3 text-sm" data-testid="portal-line">
                       <div className="min-w-0">

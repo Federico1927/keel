@@ -117,6 +117,8 @@ export interface PortalOrderView {
   deadline: Date | null;
   needsBankDetailsFor: string[];
   lines: { id: string; title: string; variantTitle: string | null; returnable: number; unitNetMinor: number }[];
+  /** Lines the customer cannot return, with the reason (final sale, excluded, window closed). */
+  blocked: { id: string; title: string; variantTitle: string | null; block: string }[];
   returns: { number: number; status: string; requestedAt: Date; resolution: string }[];
 }
 
@@ -160,6 +162,7 @@ export async function portalOrderView(ctx: ServiceContext, settings: TenantSetti
     deadline: rc.eligibility.deadline,
     needsBankDetailsFor: config.resolutions.filter((r) => needsBankDetails(config, rc.order.paymentMethod, r)),
     lines,
+    blocked: rc.lines.filter((l) => l.block && l.maxQuantity > 0).map((l) => ({ id: l.id, title: l.title, variantTitle: l.variantTitle, block: l.block! })),
     returns,
   };
 }

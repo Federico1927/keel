@@ -7,7 +7,7 @@ import { SHOPIFY_RETURN_REASONS } from "@keel/integrations";
 import { adminDb, and, eq, recordAudit, schema } from "@keel/db";
 import { RETURN_STATUSES, diffRecords, tenantSettingsSchema } from "@keel/core";
 import { decryptJson } from "@keel/integrations";
-import { createReturn, getPortalConfig, ReturnError, savePortalConfig, saveReturnReason, setReturnReasonActive, syncReturnToPlatform, transitionReturn } from "@keel/services";
+import { createReturn, getPortalConfig, getReturnPolicy, saveReturnPolicy, setReturnReview, ReturnError, savePortalConfig, saveReturnReason, setReturnReasonActive, syncReturnToPlatform, transitionReturn } from "@keel/services";
 import { getCommercePlatform } from "@/server/integrations";
 import { ForbiddenError, requireAction, requirePage, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
@@ -192,6 +192,41 @@ export async function toggleReturnReasonAction(slug: string, reasonId: string, i
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "return_reason.toggled", entityType: "return_reason", entityId: reasonId, diff: { isActive: { from: !isActive, to: isActive } } });
     });
     revalidatePath(`/t/${slug}/returns/reasons`);
+    return ok();
+  } catch (e) {
+    if (e instanceof ForbiddenError) return fail("forbidden");
+    throw e;
+  }
+}
+
+/** Saves the return policy (windows, exclusions, final sale, customer limit, risk, automations). */
+export async function saveReturnPolicyAction(slug: string, policy: unknown): Promise<ActionResult> {
+  try {
+    const ctx = await requireReturnsWrite(slug);
+    await ctx.run(async (tx) => {
+      const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
+      const before = await getReturnPolicy(s);
+      const after = await saveReturnPolicy(s, policy);
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "return_policy.updated", entityType: "tenant", entityId: ctx.tenant.id, diff: diffRecords(before as unknown as Record<string, unknown>, after as unknown as Record<string, unknown>) });
+    });
+    revalidatePath(`/t/${slug}/returns/policy`);
+    return ok();
+  } catch (e) {
+    if (e instanceof ForbiddenError) return fail("forbidden");
+    if (e instanceof ReturnError) return fail("invalid_input");
+    throw e;
+  }
+}
+
+export async function setReturnReviewAction(slug: string, returnId: string, needsReview: boolean): Promise<ActionResult> {
+  try {
+    const ctx = await requireReturnsWrite(slug);
+    await ctx.run(async (tx) => {
+      await setReturnReview({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, z.string().uuid().parse(returnId), needsReview);
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: needsReview ? "return.flagged" : "return.reviewed", entityType: "return", entityId: returnId, diff: { needsReview: { from: !needsReview, to: needsReview } } });
+    });
+    revalidatePath(`/t/${slug}/returns/${returnId}`);
+    revalidatePath(`/t/${slug}/returns`);
     return ok();
   } catch (e) {
     if (e instanceof ForbiddenError) return fail("forbidden");

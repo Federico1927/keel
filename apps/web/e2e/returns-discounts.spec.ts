@@ -8,20 +8,21 @@ test.describe("returns and discounts", () => {
     // find a recent delivered order with no return yet: open the first few until the request link is visible
     const rows = page.locator("table tbody tr");
     await expect(rows.first()).toBeVisible();
+    // earlier runs on the same database may have returned some orders already: take the first with something left to return
     let opened = false;
-    for (let i = 0; i < 6 && !opened; i++) {
-      await rows.nth(i).getByRole("link").first().click();
-      await expect(page).toHaveURL(/\/orders\/[0-9a-f-]{36}/);
+    const orderUrls = await rows.locator("td:first-child a").evaluateAll((els) => els.slice(0, 12).map((e) => (e as HTMLAnchorElement).href));
+    for (const url of orderUrls) {
+      await page.goto(url);
       const link = page.getByRole("link", { name: /Request return|Apri reso/ });
-      if ((await link.count()) > 0) {
-        await link.click();
+      if ((await link.count()) === 0) continue;
+      await link.click();
+      await expect(page).toHaveURL(/\/returns\/new\?order=/);
+      if ((await page.locator('input[type="number"]:not([disabled])').count()) > 0) {
         opened = true;
-      } else {
-        await page.goBack();
+        break;
       }
     }
     expect(opened).toBe(true);
-    await expect(page).toHaveURL(/\/returns\/new\?order=/);
     const qty = page.locator('input[type="number"]:not([disabled])').first();
     await qty.fill("1");
     await page.getByRole("button", { name: /Open return|Apri reso/ }).click();

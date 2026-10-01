@@ -3,7 +3,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle } from "@keel/ui";
-import { retryReturnSyncAction, revealBankDetailsAction } from "@/server/actions/returns";
+import { retryReturnSyncAction, revealBankDetailsAction, setReturnReviewAction } from "@/server/actions/returns";
 
 /** Where the return stands on the commerce platform, with a retry when the last write failed. */
 export function PlatformSyncCard({ slug, returnId, syncStatus, platformStatus, externalId, refundId, error, syncedAt, canAct }: { slug: string; returnId: string; syncStatus: string; platformStatus: string | null; externalId: string | null; refundId: string | null; error: string | null; syncedAt: string | null; canAct: boolean }) {
@@ -44,5 +44,17 @@ export function BankDetails({ slug, returnId }: { slug: string; returnId: string
       const r = await revealBankDetailsAction(slug, returnId);
       if (r.ok) setDetails(r.data!);
     })}>{t("reveal_bank")}</button>
+  );
+}
+
+/** Flag a return for review (or clear the flag set by a person or an automation). */
+export function ReviewToggle({ slug, returnId, needsReview }: { slug: string; returnId: string; needsReview: boolean }) {
+  const t = useTranslations("return_detail");
+  const [pending, start] = useTransition();
+  const router = useRouter();
+  return (
+    <Button size="sm" variant="outline" disabled={pending} data-testid="return-review-toggle" onClick={() => start(async () => { await setReturnReviewAction(slug, returnId, !needsReview); router.refresh(); })}>
+      {needsReview ? t("mark_reviewed") : t("flag_review")}
+    </Button>
   );
 }

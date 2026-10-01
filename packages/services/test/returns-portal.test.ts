@@ -4,7 +4,7 @@ import { testPools } from "@keel/db/test-utils";
 import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
 import { parsePortalConfig, parseTenantSettings, type TenantSettings } from "@keel/core";
 import { MockCommercePlatform, decryptJson } from "@keel/integrations";
-import { PortalError, getPortalConfig, portalLookup, portalSubmit, returnEvidenceList, returnsToSync, savePortalConfig, savePortalPhoto, syncReturnToPlatform, transitionReturn, verifyPortalSession, type ServiceContext } from "../src";
+import { PortalError, getPortalConfig, saveReturnPolicy, portalLookup, portalSubmit, returnEvidenceList, returnsToSync, savePortalConfig, savePortalPhoto, syncReturnToPlatform, transitionReturn, verifyPortalSession, type ServiceContext } from "../src";
 
 process.env.AUTH_SECRET ??= "test-secret";
 process.env.APP_ENCRYPTION_KEY ??= Buffer.alloc(32, 7).toString("base64");
@@ -18,6 +18,8 @@ beforeAll(async () => {
   await seedDomain(pools.admin, ctx, { scale: 0.01 });
   tenantId = ctx.tenantIds.northwind;
   settings = parseTenantSettings({ returnWindowDays: 3650, returnShippingCostMinor: 590, returnPlatformTags: { refunded: ["REFUNDED"] } });
+  // the seeded automations would approve or refund some returns on creation; this suite tests the portal and the write-back alone
+  await withTenant(tenantId, (tx) => saveReturnPolicy({ tenantId, tx, actor: { type: "system", userId: null } }, {}), pools.app);
 });
 afterAll(() => pools.close());
 const run = <T>(fn: (s: ServiceContext) => Promise<T>) => withTenant(tenantId, (tx) => fn({ tenantId, tx, actor: { type: "system", userId: null } }), pools.app);
@@ -99,7 +101,7 @@ describe("return portal", () => {
 
 describe("return write-back to the platform", () => {
   it("requests, approves, restocks, refunds, closes and tags; resumes after a failure", async () => {
-    const r = await run(async (s) => (await s.tx.select().from(schema.returnRequests).where(and(eq(schema.returnRequests.tenantId, tenantId), eq(schema.returnRequests.source, "portal"))).limit(1))[0]!);
+    const r = await run(async (s) => (await s.tx.select().from(schema.returnRequests).where(and(eq(schema.returnRequests.tenantId, tenantId), sql`${schema.returnRequests.idempotencyKey} like 'test-%'`)).limit(1))[0]!);
     const p = mock();
     const first = await run((s) => syncReturnToPlatform(s, p, settings, r.id));
     expect(first).toMatchObject({ status: "synced", steps: ["requested"] });

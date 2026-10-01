@@ -24,3 +24,4 @@ export * from "./attribution";
 export * from "./billing";
 export * from "./pdf";
 export * from "./return-portal";
+export * from "./returns-policy";

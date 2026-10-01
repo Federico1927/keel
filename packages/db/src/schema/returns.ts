@@ -67,6 +67,15 @@ export const returnRequests = pgTable(
     platformError: text("platform_error"),
     platformSyncedAt: timestamp("platform_synced_at", { withTimezone: true }),
     platformRefundId: text("platform_refund_id"),
+    /** Customer return risk at creation (none | watch | high) and why. */
+    riskLevel: text("risk_level"),
+    riskReasons: jsonb("risk_reasons").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    /** Set by an automation or by hand: someone should look before deciding. */
+    needsReview: boolean("needs_review").notNull().default(false),
+    /** Automations applied: [{ id, name, action }]. */
+    automations: jsonb("automations").$type<{ id: string; name: string; action: string }[]>().notNull().default(sql`'[]'::jsonb`),
+    /** Refunded or credited without the goods coming back. */
+    returnless: boolean("returnless").notNull().default(false),
     requestedAt: timestamp("requested_at", { withTimezone: true }).notNull().defaultNow(),
     approvedAt: timestamp("approved_at", { withTimezone: true }),
     receivedAt: timestamp("received_at", { withTimezone: true }),
@@ -148,4 +157,16 @@ export const publicRateLimits = pgTable(
     count: integer("count").notNull().default(0),
   },
   (t) => [uniqueIndex("public_rate_limits_uq").on(t.tenantId, t.key), tenantIsolation("public_rate_limits")],
+).enableRLS();
+
+/** Return policy of the tenant: windows, exclusions, final sale, customer limit, risk, automations (core schema). */
+export const returnPolicies = pgTable(
+  "return_policies",
+  {
+    ...tenantColumns(),
+    policy: jsonb("policy").$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    updatedBy: uuid("updated_by").references(() => users.id, { onDelete: "set null" }),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("return_policies_tenant_uq").on(t.tenantId), tenantIsolation("return_policies")],
 ).enableRLS();
