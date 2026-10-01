@@ -33,3 +33,6 @@ export * from "./assistant";
 export * from "./product-costs";
 export * from "./order-edit";
 export * from "./address";
+export * from "./pnl-periods";
+export * from "./product-profit";
+export * from "./utm-report";

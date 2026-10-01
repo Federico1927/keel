@@ -1236,6 +1236,186 @@
       }
     }
   },
+  "analytics_depth": {
+    "tabs": {
+      "orders_pnl": "P/L por pedido",
+      "utm": "UTM"
+    },
+    "total": "Total",
+    "export": "CSV",
+    "apply": "Aplicar",
+    "clear": "Limpiar",
+    "sort": "Ordenar",
+    "granularity": {
+      "day": "Día",
+      "week": "Semana",
+      "month": "Mes",
+      "quarter": "Trimestre",
+      "year": "Año"
+    },
+    "periods": {
+      "title": "P/L en el tiempo",
+      "series": {
+        "cogs": "Coste de la mercancía",
+        "shipping": "Envíos",
+        "fees": "Comisiones de pago",
+        "returns": "Costes de devoluciones",
+        "ads": "Publicidad",
+        "fixed": "Costes fijos"
+      },
+      "partial": "parcial",
+      "partial_hint": "Este periodo está cubierto solo en parte: recortado por las fechas elegidas o aún en curso.",
+      "chart_hint": "Barras: costes apilados por tipo. Línea: resultado operativo. Las barras claras son periodos parciales. La suma de los periodos es el P/L de arriba.",
+      "pages": "{n} periodos"
+    },
+    "quality": {
+      "title": "Calidad de los datos",
+      "description": "Qué tan completos son los números detrás del P/L.",
+      "incomplete_orders": "Pedidos de venta con costes faltantes",
+      "incomplete_share": "{share} de los ingresos netos: coste de la mercancía subestimado",
+      "variants_missing_cost": "Variantes sin coste",
+      "fix_link": "Corregir costes de producto →",
+      "cost_known": "Ingresos con coste conocido",
+      "cost_known_hint": "Parte de los ingresos de venta con coste de producto conocido."
+    },
+    "orders_pnl": {
+      "title": "P/L por pedido",
+      "description": "Cada pedido de venta del periodo con su propio P/L; la suma lleva al P/L del periodo de abajo. {out} pedidos del periodo no son ventas (cancelados, pendientes, devueltos) y quedan fuera.",
+      "search": "Número de pedido",
+      "payment": "Método de pago",
+      "channel": "Canal",
+      "sort": {
+        "placed_desc": "Más recientes",
+        "placed_asc": "Más antiguos",
+        "contribution_asc": "Menor contribución",
+        "contribution_desc": "Mayor contribución",
+        "net_desc": "Mayores ingresos netos"
+      },
+      "missing_cost": "Coste faltante",
+      "loss": "Con pérdidas",
+      "empty": "Ningún pedido de venta coincide con los filtros.",
+      "order": "Pedido",
+      "fee_estimated": "Comisión (est.)",
+      "no_cost": "sin coste",
+      "total": "Total · {n} pedidos",
+      "summary": "{n} pedidos",
+      "reconciliation": "De los pedidos al P/L del periodo",
+      "reconciliation_description": "Las filas de pedidos suman el P/L; los costes conocidos solo para todo el periodo van en su propia línea.",
+      "reconciliation_filtered": "Calculado sobre todos los pedidos de venta del periodo, no solo los filtrados.",
+      "recon": {
+        "orders_contribution": "Suma de las contribuciones de los pedidos",
+        "shipping_adjustment": "Factura del transportista vs estimación por pedido",
+        "return_timing": "Costes de devoluciones por fecha de recepción vs por pedido",
+        "contribution": "Margen de contribución (P/L)",
+        "ads": "Publicidad",
+        "fixed": "Costes fijos",
+        "operating": "Resultado operativo (P/L)"
+      },
+      "shipping_adjustment_hint": "Los meses con factura real del transportista la usan en lugar de la estimación por pedido.",
+      "return_timing_hint": "El P/L cuenta los costes de devoluciones cuando vuelve la mercancía; la tabla los cuenta en el pedido al que pertenecen.",
+      "matches": "Coincide al céntimo con el P/L del periodo.",
+      "mismatch": "No coincide con el P/L del periodo: por favor, notifícalo."
+    },
+    "channels": {
+      "direct": "Directo",
+      "paid_social": "Social de pago",
+      "paid_search": "Búsqueda de pago",
+      "organic_search": "Búsqueda orgánica",
+      "email": "Email",
+      "social": "Social",
+      "referral": "Referido",
+      "unknown": "Desconocido",
+      "other": "Otro"
+    },
+    "products": {
+      "description": "Ventas del periodo con el gasto de las campañas vinculadas a cada producto (repartido por ingresos netos cuando una campaña anuncia varios), beneficio, ROAS/ROI, stock, cobertura y qué hacer. El gasto de campañas sin producto vinculado va en su propia fila, así el gasto total es igual al del periodo.",
+      "search": "Producto",
+      "action": "Acción de stock",
+      "all_actions": "Todas las acciones",
+      "actions": {
+        "pause_ads": "Pausar anuncios",
+        "reorder": "Reponer",
+        "last_units": "Últimas unidades",
+        "clear_excess": "Liquidar exceso",
+        "scale_ads": "Escalar anuncios",
+        "ok": "OK",
+        "no_data": "Sin stock"
+      },
+      "sort": {
+        "net_desc": "Mayores ingresos netos",
+        "units_desc": "Más unidades",
+        "profit_desc": "Mayor beneficio",
+        "profit_asc": "Menor beneficio",
+        "ad_spend_desc": "Mayor gasto en anuncios",
+        "roas_asc": "Menor ROAS",
+        "cover_asc": "Menor cobertura"
+      },
+      "net": "Ingresos netos",
+      "ad_spend": "Gasto en anuncios",
+      "profit": "Beneficio",
+      "light": "Anuncios",
+      "stock": "Stock + entrante",
+      "cover": "Cobertura",
+      "days": "{n} d",
+      "reorder_units": "{n} uds.",
+      "unattributed": "Gasto no atribuido: {n} campañas sin producto vinculado",
+      "link_campaigns": "Vincular campañas →",
+      "spend_matches": "Gasto total en anuncios {spend}, igual al P/L del periodo.",
+      "campaigns": "{n} campañas vinculadas",
+      "summary": "{n} productos"
+    },
+    "utm": {
+      "title": "Análisis UTM",
+      "description": "Pedidos de venta por parámetro UTM; haz clic en un valor para abrir el siguiente nivel. {n} pedidos de venta no tienen datos de atribución.",
+      "dims": {
+        "source": "Fuente",
+        "medium": "Medio",
+        "campaign": "Campaña",
+        "content": "Contenido",
+        "term": "Término"
+      },
+      "none": "(ninguno)",
+      "empty": "Ningún pedido de venta en este periodo.",
+      "orders": "Pedidos",
+      "revenue": "Ingresos",
+      "net": "Ingresos netos",
+      "aov": "Ticket medio",
+      "share": "Cuota",
+      "summary": "{n} valores",
+      "trend_title": "Canales en el tiempo",
+      "trend_description": "Ingresos netos de los pedidos de venta por canal de atribución."
+    },
+    "economics": {
+      "title": "Economía del pedido",
+      "description": "El P/L de este pedido, calculado como el P/L del periodo.",
+      "replaced": "Sustituido por una edición: la economía está en el pedido de reemplazo.",
+      "not_sale": "No es una venta (cancelado, pendiente o devuelto): no cuenta en el P/L.",
+      "incomplete": "incompleto",
+      "estimated": "estimado",
+      "fee_source": {
+        "estimated": "estimada"
+      },
+      "lines": {
+        "gross": "Ventas brutas",
+        "refunds": "Reembolsos",
+        "tax": "Impuestos",
+        "net": "Ingresos netos",
+        "cogs": "Coste de la mercancía",
+        "shipping": "Coste de envío",
+        "fee": "Comisión de pago",
+        "margin": "Margen del pedido",
+        "returns": "Costes de devoluciones",
+        "contribution": "Contribución"
+      },
+      "margin_rate": "Contribución {rate} de los ingresos netos",
+      "open_table": "Abrir en P/L por pedido →"
+    },
+    "order_filters": {
+      "product": "Contiene el producto",
+      "channel": "Canal: {value}",
+      "utm": "utm {dim}: {value}"
+    }
+  },
   "campaigns": {
     "title": "Campañas y stock",
     "description": "Inversión de las plataformas de anuncios, beneficio solo sobre pedidos no cancelados ni devueltos, y una recomendación que mira el stock de los productos vinculados.",

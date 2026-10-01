@@ -16,6 +16,7 @@ import { NotesPanel } from "./notes";
 import { CodCard } from "./cod-card";
 import { EditOrderDialog, type AddressForm } from "./edit-order";
 import { DiscountOrderDialog } from "./discount-order";
+import { EconomicsCard } from "./economics-card";
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
@@ -181,6 +182,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
               )}
             </CardContent>
           </Card>
+          <EconomicsCard ctx={ctx} orderId={order.id} />
           {attribution && (
             <Card>
               <CardHeader>

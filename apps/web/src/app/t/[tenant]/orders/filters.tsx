@@ -7,18 +7,21 @@ import { Button, Input, Select, cn } from "@keel/ui";
 import { ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES } from "@keel/core";
 import type { OrderFilters } from "@/server/queries/orders";
 
+const utmKey = (d: string) => `utm${d[0]!.toUpperCase()}${d.slice(1)}`;
+
 export function OrderFiltersBar({ basePath, filters, counts, members }: { basePath: string; filters: OrderFilters; counts: Record<string, number>; members: { id: string; name: string }[] }) {
   const t = useTranslations("orders");
   const ts = useTranslations("order_status");
   const tp = useTranslations("payment_methods");
   const tps = useTranslations("payment_status");
+  const ta = useTranslations("analytics_depth.order_filters");
   const router = useRouter();
   const [pending, start] = useTransition();
   const [q, setQ] = useState(filters.q ?? "");
 
   const apply = (patch: Partial<Record<string, string | string[] | undefined>>) => {
     const u = new URLSearchParams();
-    const current: Record<string, string | string[] | undefined> = { q: filters.q, status: filters.status, payment: filters.payment, paymentStatus: filters.paymentStatus, channel: filters.channel, tag: filters.tag, from: filters.from, to: filters.to, assigned: filters.assigned, missingCost: filters.missingCost ? "1" : undefined, sort: filters.sort };
+    const current: Record<string, string | string[] | undefined> = { q: filters.q, status: filters.status, payment: filters.payment, paymentStatus: filters.paymentStatus, channel: filters.channel, tag: filters.tag, from: filters.from, to: filters.to, assigned: filters.assigned, missingCost: filters.missingCost ? "1" : undefined, product: filters.product, attrChannel: filters.attrChannel, ...Object.fromEntries(Object.entries(filters.utm ?? {}).map(([d, v]) => [utmKey(d), v])), sort: filters.sort };
     const merged = { ...current, ...patch };
     for (const [k, v] of Object.entries(merged)) {
       if (!v || (Array.isArray(v) && v.length === 0)) continue;
@@ -32,7 +35,13 @@ export function OrderFiltersBar({ basePath, filters, counts, members }: { basePa
     apply({ status: cur.includes(s) ? cur.filter((x) => x !== s) : [...cur, s] });
   };
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
-  const hasFilters = Boolean(filters.q || filters.status?.length || filters.payment?.length || filters.paymentStatus?.length || filters.channel?.length || filters.tag || filters.from || filters.to || filters.assigned || filters.missingCost);
+  const hasFilters = Boolean(filters.q || filters.status?.length || filters.payment?.length || filters.paymentStatus?.length || filters.channel?.length || filters.tag || filters.from || filters.to || filters.assigned || filters.missingCost || filters.product || filters.attrChannel || Object.keys(filters.utm ?? {}).length);
+  // drill-down filters set by analytics links: one removable chip each
+  const drill: { key: string; label: string; patch: Record<string, undefined> }[] = [
+    ...(filters.product ? [{ key: "product", label: ta("product"), patch: { product: undefined } }] : []),
+    ...(filters.attrChannel ? [{ key: "attrChannel", label: ta("channel", { value: filters.attrChannel }), patch: { attrChannel: undefined } }] : []),
+    ...Object.entries(filters.utm ?? {}).map(([d, v]) => ({ key: utmKey(d), label: ta("utm", { dim: d, value: v ?? "" }), patch: { [utmKey(d)]: undefined } })),
+  ];
 
   return (
     <div className={cn("space-y-3", pending && "opacity-70")}>
@@ -50,6 +59,11 @@ export function OrderFiltersBar({ basePath, filters, counts, members }: { basePa
             {t("filters.missing_cost")} <X className="h-3 w-3" />
           </button>
         )}
+        {drill.map((c) => (
+          <button key={c.key} type="button" onClick={() => apply(c.patch)} className="inline-flex items-center gap-1 rounded-full border border-info/60 bg-info/10 px-3 py-1 text-xs" data-testid={`filter-${c.key}`}>
+            {c.label} <X className="h-3 w-3" />
+          </button>
+        ))}
       </div>
       <form
         className="grid gap-2 sm:grid-cols-2 lg:grid-cols-6"
