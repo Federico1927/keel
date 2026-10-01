@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { canDo } from "@keel/config";
 import { formatDate, formatDateTime, formatMoney } from "@keel/core";
-import { getPortalConfig, returnDetail, returnEvidenceList } from "@keel/services";
+import { getPortalConfig, returnDetail, returnEvidenceList, signReturnLink } from "@keel/services";
 import { pickLocalized } from "@keel/core";
 import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
@@ -69,11 +69,12 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ t
               {r.deductionMinor > 0 && <p className="text-muted-foreground">{t("deduction", { amount: money(r.deductionMinor) })}</p>}
             </CardContent>
           </Card>
-          {(r.source === "portal" || r.trackingCode || r.exchangeNote || r.bankDetailsEnc || evidence.length > 0 || Object.keys(r.customFields).length > 0) && (
+          {(r.source === "portal" || r.trackingCode || r.labelProvider || r.exchangeNote || r.bankDetailsEnc || evidence.length > 0 || Object.keys(r.customFields).length > 0) && (
             <Card data-testid="return-portal-card">
               <CardHeader><CardTitle className="text-base">{t("portal.title")}</CardTitle></CardHeader>
               <CardContent className="space-y-2 text-sm">
                 {r.trackingCode && <p><span className="text-muted-foreground">{t("portal.tracking")}:</span> <code>{r.trackingCode}</code>{r.trackingCarrier ? ` · ${r.trackingCarrier}` : ""}</p>}
+                {r.labelProvider && <p><a href={`/r/${tenant}/label/${r.id}?sig=${signReturnLink(ctx.tenant.id, r.id)}`} target="_blank" rel="noreferrer" className="text-primary underline" data-testid="return-label-link">{t("portal.label")}</a></p>}
                 {r.exchangeNote && <p><span className="text-muted-foreground">{t("portal.exchange")}:</span> {r.exchangeNote}</p>}
                 {Object.entries(r.customFields).map(([k, v]) => {
                   const field = portal.fields.find((f) => f.key === k);

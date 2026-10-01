@@ -43,4 +43,13 @@ test.describe("return policy and automations", () => {
     await page.getByTestId("return-review-toggle").click();
     await expect(page.getByTestId("return-review-badge")).toHaveCount(0);
   });
+
+  test("returns analytics show value kept, costs and the rate per option; the P/L has a return costs line", async ({ page }) => {
+    await login(page, "owner@northwind.demo");
+    await page.goto(`${T}/returns/analytics?preset=90d`);
+    await expect(page.getByTestId("returns-value")).toBeVisible();
+    await expect(page.getByTestId("returns-by-option").locator("tbody tr").first()).toBeVisible();
+    await page.goto(`${T}/analytics?tab=pnl&preset=90d`);
+    await expect(page.getByRole("link", { name: /Return costs|Costi dei resi/ })).toBeVisible();
+  });
 });

@@ -33,6 +33,9 @@ export const tenantSettingsSchema = z.object({
   returnExcludedProductTypes: z.array(z.string().max(80)).max(50).default([]),
   /** Return shipping cost deducted from the refund when the reason puts the fault on the customer (0 = never). */
   returnShippingCostMinor: z.number().int().min(0).default(0),
+  /** Cost of a return label and of handling one return (inspection, repacking), for the P/L. */
+  returnLabelCostMinor: z.number().int().min(0).default(0),
+  returnHandlingCostMinor: z.number().int().min(0).default(0),
   /** Write returns to the commerce platform (return request, approval, restock, refund, close). */
   returnsWriteBack: z.boolean().default(true),
   /** Order tags written on the platform when a return reaches a status (e.g. refunded → "REFUNDED"). */

@@ -914,7 +914,8 @@
         "legacy": "flat monthly setting",
         "none": "no cost entered",
         "mixed": "actual where available, estimate elsewhere"
-      }
+      },
+      "return_costs": "Return costs"
     },
     "products": {
       "title": "Product performance",
@@ -1732,7 +1733,8 @@
       "reveal_bank": "Show bank details",
       "bank_hidden": "Bank details provided",
       "language": "Customer language: {locale}",
-      "photo": "Customer photo"
+      "photo": "Customer photo",
+      "label": "Return label (PDF)"
     },
     "platform": {
       "title": "Store (Shopify)",
@@ -1851,7 +1853,16 @@
       "rate": "Return rate",
       "of_orders": "on {n} orders",
       "refunded": "Refunded",
-      "merchant_fault": "Merchant fault"
+      "merchant_fault": "Merchant fault",
+      "kept": "Kept in the store",
+      "kept_hint": "Returns resolved by exchange or credit instead of a refund",
+      "credit": "Credit issued",
+      "bonus": "of which bonus {amount}",
+      "exchanges": "Exchange orders",
+      "upsell": "+{amount} paid by customers",
+      "costs": "Cost of returns",
+      "costs_hint": "Labels {labels} + handling {handling} − charged {recovered}",
+      "costs_unset": "Set label and handling costs to see it"
     },
     "by_reason": "By reason",
     "by_fault_resolution": "By fault and resolution",
@@ -1862,7 +1873,12 @@
     "product": "Product",
     "returned_qty": "Returned",
     "sold_qty": "Sold",
-    "rate": "Rate"
+    "rate": "Rate",
+    "by_option": "Return rate by option",
+    "option": "Option",
+    "sold": "Sold",
+    "returned": "Returned",
+    "no_options": "No variant options in this period."
   },
   "return_reasons": {
     "title": "Return reasons",
@@ -2974,8 +2990,15 @@
       "write_back": "Write returns to the store",
       "write_back_hint": "Return request, approval, restock, refund and closing are written to Shopify after each step; failures are retried.",
       "tags": "Order tags per status",
-      "tags_hint": "Tags added to the order on the store when a return reaches that status (comma separated)."
-    }
+      "tags_hint": "Tags added to the order on the store when a return reaches that status (comma separated).",
+      "label_cost": "Return label cost ({currency})",
+      "handling_cost": "Handling cost per return ({currency})",
+      "costs_hint": "Each return whose goods come back costs a label and handling; the P/L shows it as return costs, net of the shipping charged to customers."
+    },
+    "tracking_page": "Public order tracking page",
+    "label_enabled": "Give the customer a prepaid return label",
+    "label_destination": "Return address on the label",
+    "label_hint": "The label is issued at submission and its tracking code is stored on the return. In this version the label provider is simulated."
   },
   "return_portal": {
     "default_title": "Return an item",
@@ -3045,7 +3068,8 @@
     "contact_support": "Questions? Write to",
     "done": {
       "title": "Request {number} sent",
-      "another": "Return other items"
+      "another": "Return other items",
+      "label": "Download your return label"
     },
     "errors": {
       "generic": "Something went wrong. Please try again.",
@@ -3076,6 +3100,29 @@
       "excluded_tag": "not returnable (collection)",
       "final_sale": "final sale",
       "expired": "return window closed"
+    },
+    "track": {
+      "link": "Track an order",
+      "title": "Track your order",
+      "submit": "Track",
+      "status": "Status",
+      "placed": "Placed on {date}",
+      "no_shipments": "Not shipped yet.",
+      "carrier_link": "carrier page",
+      "delivered": "Delivered on {date}",
+      "expected": "Expected on {date}",
+      "shipped": "Shipped on {date}",
+      "returns": "Your returns",
+      "start_return": "Return or exchange an item"
+    },
+    "label": {
+      "title": "Return label",
+      "from": "From",
+      "to": "Ship to",
+      "reference": "Return",
+      "carrier": "Carrier",
+      "tracking": "Tracking",
+      "instructions": "Print this page and stick it on the parcel, covering any old label.\nDrop the parcel at the carrier's nearest point."
     }
   },
   "return_policy": {

@@ -271,12 +271,16 @@ async function seedReturnsExtras(db: ReturnType<typeof drizzle<typeof schema>>, 
       tracking: it ? { mode: "optional", carriers: ["Poste Italiane", "DHL", "UPS"] } : { mode: "optional", carriers: ["UPS", "USPS", "FedEx"] },
       photos: { mode: "optional", max: 3 },
       supportEmail: it ? "assistenza@northwind.example" : "help@harborhome.example",
+      trackingPage: true,
+      returnLabel: it ? { enabled: true, destination: "Northwind Apparel - Resi\nVia dell'Industria 12\n40100 Bologna BO\nItalia" } : { enabled: false, destination: "Harbor Home Returns\n400 Dock St\nNewark NJ 07105" },
       fields: it
         ? [{ key: "worn", type: "checkbox", label: { it: "Ho provato il capo solo in casa", en: "I only tried the item on at home" }, required: false, options: [], optionLabels: {} }]
         : [{ key: "packaging", type: "select", label: { en: "Original packaging", es: "Embalaje original" }, required: true, options: ["yes", "partial", "no"], optionLabels: { yes: { en: "Yes, complete" }, partial: { en: "Partly" }, no: { en: "No" } } }],
     },
   });
   await db.insert(schema.publicRateLimits).values({ tenantId, key: "lookup:ip:demo", windowStart: now, count: 1 });
+  // what a return costs the store (label and handling), for the P/L; merged into existing settings
+  await db.execute(sql`update tenants set settings = coalesce(settings, '{}'::jsonb) || ${JSON.stringify(it ? { returnLabelCostMinor: 650, returnHandlingCostMinor: 250, returnShippingCostMinor: 590 } : { returnLabelCostMinor: 900, returnHandlingCostMinor: 300 })}::jsonb where id = ${tenantId}`);
   // recent returns: a share from the portal, with the store write-back state
   const recent = await db.execute<{ id: string; status: string; resolution: string; payment_method: string; external_id: string | null; created: Date }>(sql`
     select r.id, r.status, r.resolution, o.payment_method, o.external_id, r.requested_at as created

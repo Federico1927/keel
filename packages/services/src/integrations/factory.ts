@@ -1,5 +1,5 @@
 import { and, eq, schema } from "@keel/db";
-import { GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, MockCommercePlatform, MockNotificationSink, MockPaymentGuarantee, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type NotificationSink, type PaymentGuarantee, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
+import { GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, MockCommercePlatform, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 
 export interface PlatformTenant {
@@ -130,4 +130,9 @@ export function getPaymentGuaranteeFor(tenantId: string): PaymentGuarantee {
     guarantees.set(tenantId, g);
   }
   return g;
+}
+
+/** Return label provider: the mock, until a carrier or EasyPost/Shippo account is connected (external block). */
+export function getReturnLabelProviderFor(_tenantId: string): ReturnLabelProvider {
+  return new MockReturnLabelProvider();
 }

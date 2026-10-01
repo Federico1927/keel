@@ -228,6 +228,18 @@ Fatto (issue #5, seconda parte):
 
 Resta per la issue #5: analisi per opzione e costo dei resi nel P/L (3.9), pagina di tracking per il cliente (3.10), interfaccia del fornitore di etichette (3.7), fornitore reale per il blocco sulla carta.
 
+## Programma di profondità — Area 3, quarto blocco (analisi, tracking, etichette)
+
+Fatto (issue #5, chiusa):
+- Analisi resi: tasso per valore di opzione (taglia, colore); valore trattenuto con cambi e buoni; buoni emessi con bonus; ordini di cambio e importo extra pagato; costo dei resi.
+- Il costo dei resi è anche una riga del P/L dentro il margine di contribuzione: etichetta e gestione per ogni reso rientrato, al netto della spedizione addebitata al cliente. I costi si configurano per negozio.
+- Pagina pubblica di tracking accanto al portale: stato dell'ordine, pacchi, link del corriere, eventi e resi, con lo stesso accesso e limite di tentativi del portale.
+- Etichetta di reso prepagata: emessa all'invio tramite l'interfaccia `ReturnLabelProvider` (mock), con tracking salvato sul reso e PDF dietro link firmato, per il cliente e per lo staff.
+- Seed: costi dei resi, etichetta attiva su Northwind, pagina di tracking attiva per entrambi.
+- Migrazione 0012 (colonne additive); test core 123, integrazioni 28, servizi 58, db 420, e2e 55.
+
+Spostato nella issue #7 (esterni): fornitore reale per il blocco su carta, fornitore di etichette, email di stato al cliente.
+
 ## Landing page (`apps/landing`) · 2026-10-01
 
 Fatto: nuova app statica `apps/landing` (Next.js export, Tailwind 4, next-intl) con le nove sezioni richieste in inglese (`/`) e italiano (`/it/`), hreflang, sitemap, robots, immagine Open Graph generata; prezzi e offerta fondatori in `apps/landing/src/config/pricing.ts`; screenshot reali del tenant demo Harbor Home in WebP con cornice da browser; form di contatto con webhook pubblico o `mailto:`; CTA "Book a demo" da `NEXT_PUBLIC_DEMO_URL` con fallback `mailto:`. Screenshot della landing in `docs/landing/`, istruzioni in `docs/landing/README.md`. Gate: lint, typecheck, test e build verdi. Piani del prodotto (`packages/config`) allineati ai prezzi della landing (USD, utenti illimitati, eccedenza, add-on contrassegno 199 $), con test di parità.

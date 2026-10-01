@@ -97,6 +97,8 @@ export interface PnlTotals {
   grossMarginMinor: number;
   shippingCostMinor: number;
   paymentFeeMinor: number;
+  /** Return labels and handling of the returns received in the period, net of deductions charged to customers. */
+  returnCostsMinor: number;
   contributionMinor: number;
   adSpendMinor: number;
   fixedCostsMinor: number;
@@ -106,8 +108,8 @@ export interface PnlTotals {
   contributionRate: number | null;
 }
 
-export function sumEconomics(rows: readonly OrderEconomics[], adSpendMinor: number, fixedCostsMinor: number): PnlTotals {
-  const t: PnlTotals = { orders: 0, grossRevenueMinor: 0, taxMinor: 0, netRevenueMinor: 0, refundedMinor: 0, cogsMinor: 0, cogsIncompleteOrders: 0, grossMarginMinor: 0, shippingCostMinor: 0, paymentFeeMinor: 0, contributionMinor: 0, adSpendMinor, fixedCostsMinor, operatingProfitMinor: 0, aovMinor: null, grossMarginRate: null, contributionRate: null };
+export function sumEconomics(rows: readonly OrderEconomics[], adSpendMinor: number, fixedCostsMinor: number, returnCostsMinor = 0): PnlTotals {
+  const t: PnlTotals = { orders: 0, grossRevenueMinor: 0, taxMinor: 0, netRevenueMinor: 0, refundedMinor: 0, cogsMinor: 0, cogsIncompleteOrders: 0, grossMarginMinor: 0, shippingCostMinor: 0, paymentFeeMinor: 0, returnCostsMinor, contributionMinor: 0, adSpendMinor, fixedCostsMinor, operatingProfitMinor: 0, aovMinor: null, grossMarginRate: null, contributionRate: null };
   for (const r of rows) {
     if (!r.inScope) continue;
     t.orders++;
@@ -121,7 +123,7 @@ export function sumEconomics(rows: readonly OrderEconomics[], adSpendMinor: numb
     t.paymentFeeMinor += r.paymentFeeMinor;
   }
   t.grossMarginMinor = t.netRevenueMinor - t.cogsMinor;
-  t.contributionMinor = t.grossMarginMinor - t.shippingCostMinor - t.paymentFeeMinor;
+  t.contributionMinor = t.grossMarginMinor - t.shippingCostMinor - t.paymentFeeMinor - t.returnCostsMinor;
   t.operatingProfitMinor = t.contributionMinor - adSpendMinor - fixedCostsMinor;
   t.aovMinor = t.orders ? Math.round(t.grossRevenueMinor / t.orders) : null;
   t.grossMarginRate = safeDiv(t.grossMarginMinor, t.netRevenueMinor);
@@ -164,4 +166,35 @@ export function runningWindows(now: Date, timeZone: string): { today: Period; ye
   const midnight = new Date(midnightLocal.getTime() - offsetMs);
   const today = { from: midnight, to: now };
   return { today, yesterday: { from: new Date(midnight.getTime() - 864e5), to: new Date(now.getTime() - 864e5) }, lastWeek: { from: new Date(midnight.getTime() - 7 * 864e5), to: new Date(now.getTime() - 7 * 864e5) } };
+}
+
+/**
+ * Cost of handling returns in a period: a label and handling for every return whose goods came
+ * back (returnless ones cost neither), minus the return shipping charged to customers at fault.
+ */
+export function returnCostsOfPeriod(returns: readonly { goodsBack: boolean; returnless: boolean; deductionMinor: number }[], labelMinor: number, handlingMinor: number): { labelsMinor: number; handlingMinor: number; recoveredMinor: number; totalMinor: number } {
+  const handled = returns.filter((r) => r.goodsBack && !r.returnless);
+  const labels = handled.length * Math.max(0, labelMinor);
+  const handling = handled.length * Math.max(0, handlingMinor);
+  const recovered = handled.reduce((s, r) => s + Math.max(0, r.deductionMinor), 0);
+  return { labelsMinor: labels, handlingMinor: handling, recoveredMinor: recovered, totalMinor: Math.max(0, labels + handling - recovered) };
+}
+
+/** Return rate per option value ("Size: M"), from units sold and returned with their variant options. */
+export function optionReturnRates(sold: readonly { options: Record<string, string>; quantity: number }[], returned: readonly { options: Record<string, string>; quantity: number }[], minSold = 1): { option: string; value: string; sold: number; returned: number; rate: number }[] {
+  const acc = new Map<string, { option: string; value: string; sold: number; returned: number }>();
+  const add = (rows: readonly { options: Record<string, string>; quantity: number }[], field: "sold" | "returned") => {
+    for (const r of rows) {
+      for (const [option, value] of Object.entries(r.options ?? {})) {
+        if (!value) continue;
+        const k = `${option}\u0000${value}`;
+        const cur = acc.get(k) ?? { option, value, sold: 0, returned: 0 };
+        cur[field] += r.quantity;
+        acc.set(k, cur);
+      }
+    }
+  };
+  add(sold, "sold");
+  add(returned, "returned");
+  return [...acc.values()].filter((x) => x.sold >= minSold).map((x) => ({ ...x, rate: x.sold ? x.returned / x.sold : 0 })).sort((a, b) => a.option.localeCompare(b.option) || b.rate - a.rate);
 }

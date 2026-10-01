@@ -61,7 +61,8 @@ export default async function ReturnPortalPage({ params, searchParams }: { param
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {config.logoUrl ? <img src={config.logoUrl} alt={tenant.name} className="h-8 w-auto" /> : <span className="font-serif text-lg">{tenant.name}</span>}
           </div>
-          <nav className="flex gap-2 text-xs" aria-label="Language">
+          <nav className="flex items-center gap-3 text-xs" aria-label="Language">
+            {config.trackingPage && <Link href={`/r/${slug}/track?lang=${locale}`} className="text-muted-foreground hover:underline" data-testid="portal-track-link">{(messages.return_portal as { track: { link: string } }).track.link}</Link>}
             {SUPPORTED_LOCALES.map((l) => (
               <Link key={l} href={`?lang=${l}`} className={l === locale ? "font-semibold" : "text-muted-foreground hover:underline"}>{l.toUpperCase()}</Link>
             ))}

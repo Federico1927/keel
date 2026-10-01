@@ -51,6 +51,9 @@ export const returnRequests = pgTable(
     /** Return shipping deducted because the fault is the customer's. */
     deductionMinor: integer("deduction_minor").notNull().default(0),
     trackingCode: text("tracking_code"),
+    /** Provider that issued the return label (null = the customer ships on their own). */
+    labelProvider: text("label_provider"),
+    labelCreatedAt: timestamp("label_created_at", { withTimezone: true }),
     trackingCarrier: text("tracking_carrier"),
     /** What the customer wants in exchange (size, colour, product). */
     exchangeNote: text("exchange_note"),
