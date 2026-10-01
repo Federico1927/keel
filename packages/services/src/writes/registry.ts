@@ -1,4 +1,4 @@
-import type { AdsPlatform, CommercePlatform, CreateOrderInput, NormalizedOrder, OrderDetailsPatch, PlatformReturnLineInput } from "@keel/integrations";
+import type { AdsPlatform, CommercePlatform, CreateOrderInput, NormalizedOrder, OrderDetailsPatch, OrderDiscountPatch, PlatformReturnLineInput } from "@keel/integrations";
 import type { schema } from "@keel/db";
 import type { ServiceContext } from "../context";
 
@@ -25,11 +25,13 @@ export interface DiscountCodePayload {
  */
 export interface PlatformWriteKinds {
   "variant.update": { payload: { variantExternalId: string; priceMinor: number }; result: void };
+  "variant.cost": { payload: { variantExternalId: string; inventoryItemExternalId: string | null; costMinor: number }; result: void };
   "product.status": { payload: { productExternalId: string; status: "active" | "draft" | "archived" }; result: void };
   "inventory.set": { payload: { inventoryItemExternalId: string; locationExternalId: string; available: number }; result: void };
   "inventory.restock": { payload: { lines: { inventoryItemExternalId: string; locationExternalId: string; quantity: number }[] }; result: void };
   "order.cancel": { payload: { orderExternalId: string; reason?: string; restock: boolean; refund: boolean }; result: void };
   "order.update_details": { payload: { orderExternalId: string; patch: OrderDetailsPatch }; result: void };
+  "order.discount": { payload: { orderExternalId: string; discount: OrderDiscountPatch }; result: void };
   "order.tags": { payload: { orderExternalId: string; add: string[]; remove: string[] }; result: void };
   "order.create": { payload: { input: CreateOrderInput }; result: NormalizedOrder };
   "order.create_invoice": { payload: { input: CreateOrderInput }; result: { draftExternalId: string; invoiceUrl: string | null } };

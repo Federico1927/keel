@@ -63,8 +63,11 @@ export const productVariants = pgTable(
     optionValues: jsonb("option_values").notNull().default(sql`'{}'::jsonb`),
     priceMinor: integer("price_minor").notNull().default(0),
     compareAtMinor: integer("compare_at_minor"),
-    /** Last purchase cost; feeds P/L. */
+    /** Latest unit cost; snapshotted on order lines and feeds the P/L. */
     costMinor: integer("cost_minor"),
+    /** Where `cost_minor` came from: platform | manual | import | po_receipt (null: written before this column). */
+    costSource: text("cost_source"),
+    costUpdatedAt: timestamp("cost_updated_at", { withTimezone: true }),
     averageCostMinor: integer("average_cost_minor"),
     weightGrams: integer("weight_grams"),
     packSize: integer("pack_size"),

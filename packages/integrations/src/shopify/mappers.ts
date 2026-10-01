@@ -273,14 +273,16 @@ export const PRODUCT_FIELDS = `
   id legacyResourceId title handle vendor productType status tags createdAt
   options { name values }
   featuredMedia { preview { image { url } } }
-  variants(first: 100) { nodes { id legacyResourceId sku barcode title price compareAtPrice selectedOptions { name value } inventoryItem { id legacyResourceId measurement { weight { value unit } } } } }
+  variants(first: 100) { nodes { id legacyResourceId sku barcode title price compareAtPrice selectedOptions { name value } inventoryItem { id legacyResourceId unitCost { amount currencyCode } measurement { weight { value unit } } } } }
 `;
 
 export function mapGraphqlProduct(n: Rec): NormalizedProduct {
   const variants: NormalizedVariant[] = (((n.variants as Rec | undefined)?.nodes as Rec[] | undefined) ?? []).map((v) => {
     const w = (((v.inventoryItem as Rec | undefined)?.measurement as Rec | undefined)?.weight as Rec | undefined) ?? null;
     const grams = w ? Math.round(Number(w.value) * (w.unit === "KILOGRAMS" ? 1000 : w.unit === "POUNDS" ? 453.592 : w.unit === "OUNCES" ? 28.3495 : 1)) : null;
-    return { externalId: String(v.legacyResourceId ?? gidToId(v.id as string)), inventoryItemExternalId: str((v.inventoryItem as Rec | undefined)?.legacyResourceId) ?? gidToId((v.inventoryItem as Rec | undefined)?.id as string), sku: str(v.sku), barcode: str(v.barcode), title: String(v.title ?? ""), optionValues: Object.fromEntries(((v.selectedOptions as Rec[] | undefined) ?? []).map((o) => [String(o.name), String(o.value)])), priceMinor: moneyToMinor(v.price as string), compareAtMinor: v.compareAtPrice ? moneyToMinor(v.compareAtPrice as string) : null, weightGrams: grams };
+    // unitCost is in the shop currency; null when the merchant never entered a cost
+    const unitCost = ((v.inventoryItem as Rec | undefined)?.unitCost as Rec | null | undefined)?.amount;
+    return { externalId: String(v.legacyResourceId ?? gidToId(v.id as string)), inventoryItemExternalId: str((v.inventoryItem as Rec | undefined)?.legacyResourceId) ?? gidToId((v.inventoryItem as Rec | undefined)?.id as string), sku: str(v.sku), barcode: str(v.barcode), title: String(v.title ?? ""), optionValues: Object.fromEntries(((v.selectedOptions as Rec[] | undefined) ?? []).map((o) => [String(o.name), String(o.value)])), priceMinor: moneyToMinor(v.price as string), compareAtMinor: v.compareAtPrice ? moneyToMinor(v.compareAtPrice as string) : null, weightGrams: grams, costMinor: unitCost === null || unitCost === undefined || unitCost === "" ? null : moneyToMinor(String(unitCost)) };
   });
   return { externalId: String(n.legacyResourceId ?? gidToId(n.id as string)), title: String(n.title ?? ""), handle: str(n.handle), vendor: str(n.vendor), productType: str(n.productType), status: String(n.status ?? "ACTIVE").toLowerCase() as "active" | "draft" | "archived", tags: tags(n.tags), options: ((n.options as Rec[] | undefined) ?? []).map((o) => ({ name: String(o.name), values: ((o.values as string[] | undefined) ?? []).map(String) })), imageUrl: str((((n.featuredMedia as Rec | undefined)?.preview as Rec | undefined)?.image as Rec | undefined)?.url), platformCreatedAt: date(n.createdAt as string), variants };
 }

@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { canWritePage } from "@keel/config";
 import { formatDateTime, formatMoney, formatNumber } from "@keel/core";
 import { recentInventoryDrift } from "@keel/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Pagination, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Pagination, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { SyncInventoryButton } from "./sync-now";
 import { listInventory, parseInventoryFilters } from "@/server/queries/catalog";
@@ -39,17 +39,17 @@ export default async function InventoryPage({ params, searchParams }: { params: 
       <form className="mb-3 flex flex-wrap items-center gap-2" method="get">
         <input name="q" defaultValue={f.q ?? ""} placeholder={t("search_placeholder")} className="h-9 w-64 rounded-md border border-input bg-card px-3 text-sm" aria-label={t("search")} />
         {f.risk && <input type="hidden" name="risk" value={f.risk} />}
-        <select name="location" defaultValue={f.location ?? ""} className="h-9 rounded-md border border-input bg-card px-2 text-sm" aria-label={t("location")}>
+        <Select size="sm" name="location" defaultValue={f.location ?? ""} className="w-auto" aria-label={t("location")}>
           <option value="">{t("all_locations")}</option>
           {locations.map((l) => (
             <option key={l.id} value={l.id}>{l.name}</option>
           ))}
-        </select>
-        <select name="lookback" defaultValue={String(lookback)} className="h-9 rounded-md border border-input bg-card px-2 text-sm" aria-label={t("lookback")}>
+        </Select>
+        <Select size="sm" name="lookback" defaultValue={String(lookback)} className="w-auto" aria-label={t("lookback")}>
           {[7, 14, 30, 60, 90].map((d) => (
             <option key={d} value={d}>{t("lookback_days", { days: d })}</option>
           ))}
-        </select>
+        </Select>
         <button type="submit" className="h-9 rounded-md border bg-secondary px-3 text-sm">{t("apply")}</button>
         <div className="ml-auto flex gap-1">
           {(["critical", "warning", "ok", "no_sales"] as const).map((r) => (

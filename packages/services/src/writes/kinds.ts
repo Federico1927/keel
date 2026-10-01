@@ -19,6 +19,12 @@ defineCommerceWrite("variant.update", {
   execute: (platform, p) => platform.updateVariant(p.variantExternalId, { priceMinor: p.priceMinor }),
 });
 
+defineCommerceWrite("variant.cost", {
+  target: (p) => `variant:${p.variantExternalId}:cost`,
+  supersedes: true,
+  execute: (platform, p) => platform.updateVariantCost({ variantExternalId: p.variantExternalId, inventoryItemExternalId: p.inventoryItemExternalId }, p.costMinor),
+});
+
 defineCommerceWrite("product.status", {
   target: (p) => `product:${p.productExternalId}:status`,
   supersedes: true,
@@ -44,6 +50,11 @@ defineCommerceWrite("order.cancel", {
 defineCommerceWrite("order.update_details", {
   target: (p) => `order:${p.orderExternalId}:details`,
   execute: (platform, p) => platform.updateOrderDetails(p.orderExternalId, p.patch),
+});
+
+defineCommerceWrite("order.discount", {
+  target: (p) => `order:${p.orderExternalId}:discount:${p.discount.code}`,
+  execute: (platform, p) => platform.applyOrderDiscount(p.orderExternalId, p.discount),
 });
 
 defineCommerceWrite("order.tags", {

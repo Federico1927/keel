@@ -4,7 +4,7 @@ import { mergeCandidates, queueItemDetail, scoreQueueItem, type ScoreFactor } fr
 import { and, eq, schema } from "@keel/db";
 import { formatMoney } from "@keel/core";
 import type { Address } from "@keel/integrations";
-import { ModifyOrderDialog } from "./cod-modify";
+import { EditOrderDialog } from "./edit-order";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@keel/ui";
 import type { TenantContext } from "@/server/tenant";
 import { OutcomeDialog, ScoreBadge } from "../../cod/queue-controls";
@@ -69,7 +69,8 @@ export async function CodCard({ ctx, orderId, orderName, canWrite }: { ctx: Tena
           <div className="flex flex-wrap gap-2">
             <OutcomeDialog slug={ctx.tenant.slug} orderId={orderId} orderName={orderName} />
             {modify && (
-              <ModifyOrderDialog
+              <EditOrderDialog
+                variant="cod"
                 slug={ctx.tenant.slug}
                 orderId={orderId}
                 orderName={orderName}
@@ -79,6 +80,7 @@ export async function CodCard({ ctx, orderId, orderName, canWrite }: { ctx: Tena
                 lines={modify.lines.filter((l) => l.currentQuantity > 0).map((l) => ({ id: l.id, title: l.title, variantTitle: l.variantTitle, sku: l.sku, quantity: l.currentQuantity, unitPriceMinor: l.unitPriceMinor }))}
                 catalog={modify.catalog.map((v) => ({ id: v.id, label: `${v.sku ? `${v.sku} · ` : ""}${v.product} ${v.title}`.trim(), priceMinor: v.priceMinor }))}
                 mergeCandidates={modify.candidates.map((m) => ({ id: m.id, name: m.name, total: money(m.totalMinor, m.currency), lines: m.lines.map((l) => `${l.quantity}× ${l.title}${l.variantTitle ? ` ${l.variantTitle}` : ""}`).join(", ") }))}
+                paid={false}
                 currency={modify.order.currency}
                 locale={ctx.locale}
               />

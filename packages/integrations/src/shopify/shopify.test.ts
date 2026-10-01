@@ -5,7 +5,7 @@ import { IntegrationError } from "../types";
 import { ShopifyCommercePlatform } from "./adapter";
 import { mapRestOrder } from "./mappers";
 import { buildInstallUrl, verifyOAuthCallback, verifyWebhookHmac } from "./oauth";
-import { graphqlCancel, graphqlDiscounts, graphqlInventory, graphqlOrdersPage, graphqlProductsPage, graphqlShop, graphqlThrottled, graphqlWebhookCreate, graphqlWebhooks, restOrderWebhook } from "./__fixtures__";
+import { graphqlCancel, graphqlDiscounts, graphqlInventory, graphqlInventoryItemUpdate, graphqlOrdersPage, graphqlProductsPage, graphqlShop, graphqlThrottled, graphqlVariantInventoryItem, graphqlWebhookCreate, graphqlWebhooks, restOrderWebhook } from "./__fixtures__";
 
 const creds = { shop: "northwind-demo.myshopify.com", accessToken: "shpat_test", apiSecret: "shhh" };
 const bodyOf = (init?: { body?: string }) => (init?.body ? (JSON.parse(init.body) as { query: string; variables: Record<string, unknown> }) : { query: "", variables: {} });
@@ -68,7 +68,10 @@ describe("shopify adapter", () => {
     ]);
     const products = await p.fetchProducts({});
     expect(products.items[0]).toMatchObject({ externalId: "8100001", productType: "Outerwear", status: "active" });
-    expect(products.items[0]!.variants[0]).toMatchObject({ sku: "GIA-M-BLU", priceMinor: 12900, compareAtMinor: 15900, weightGrams: 800, inventoryItemExternalId: "4500001", optionValues: { Size: "M", Color: "Blu" } });
+    expect(products.items[0]!.variants[0]).toMatchObject({ sku: "GIA-M-BLU", priceMinor: 12900, compareAtMinor: 15900, weightGrams: 800, inventoryItemExternalId: "4500001", optionValues: { Size: "M", Color: "Blu" }, costMinor: 4850 });
+    // a variant without a cost on Shopify maps to null, never to zero
+    expect(products.items[0]!.variants[1]).toMatchObject({ sku: "GIA-L-BLU", barcode: null, costMinor: null, weightGrams: 800 });
+    expect(bodyOf({ body: p.http.calls[0]!.body! }).query).toContain("unitCost { amount");
     const discounts = await p.fetchDiscounts({});
     expect(discounts.items[0]).toMatchObject({ code: "WELCOME10", type: "percentage", value: 1000, usedCount: 412 });
     expect(discounts.items[1]).toMatchObject({ code: "FREESHIP", type: "free_shipping", usageLimit: 1000 });
@@ -118,6 +121,43 @@ describe("shopify adapter", () => {
     const sent = bodyOf({ body: p.http.calls[0]!.body! });
     expect(sent.variables).toMatchObject({ orderId: "gid://shopify/Order/5678901234567", reason: "CUSTOMER", restock: true, refund: false });
     await expect(p.updateProductStatus("8100001", "draft")).rejects.toMatchObject({ code: "invalid_request" });
+  });
+
+  it("applies a discount to an existing order through the order editing API", async () => {
+    const begin = { data: { orderEditBegin: { calculatedOrder: { id: "gid://shopify/CalculatedOrder/1", lineItems: { nodes: [{ id: "gid://shopify/CalculatedLineItem/1", quantity: 1, originalUnitPriceSet: { shopMoney: { amount: "20.00" } } }, { id: "gid://shopify/CalculatedLineItem/2", quantity: 2, originalUnitPriceSet: { shopMoney: { amount: "30.00" } } }] } }, userErrors: [] } } };
+    const routes = [
+      { match: (_u: string, i?: { body?: string }) => bodyOf(i).query.includes("orderEditBegin"), body: begin },
+      { match: (_u: string, i?: { body?: string }) => bodyOf(i).query.includes("orderEditAddLineItemDiscount"), body: { data: { orderEditAddLineItemDiscount: { calculatedOrder: { id: "gid://shopify/CalculatedOrder/1" }, userErrors: [] } } } },
+      { match: (_u: string, i?: { body?: string }) => bodyOf(i).query.includes("orderEditCommit"), body: { data: { orderEditCommit: { order: { id: "gid://shopify/Order/5678901234567" }, userErrors: [] } } } },
+    ];
+    const pct = platform(routes);
+    await pct.applyOrderDiscount("5678901234567", { type: "percentage", value: 1000, amountMinor: 800, currency: "USD", code: "KEEL-10%" });
+    const pctCalls = pct.http.calls.map((c) => bodyOf({ body: c.body! }));
+    expect(pctCalls.filter((c) => c.query.includes("orderEditAddLineItemDiscount"))).toHaveLength(2);
+    expect(pctCalls[1]!.variables).toMatchObject({ discount: { percentValue: 10, description: "KEEL-10%" } });
+    const fixed = platform(routes);
+    await fixed.applyOrderDiscount("5678901234567", { type: "fixed_amount", value: 500, amountMinor: 500, currency: "USD", code: "KEEL-5.00" });
+    const fixedCalls = fixed.http.calls.map((c) => bodyOf({ body: c.body! }));
+    const adds = fixedCalls.filter((c) => c.query.includes("orderEditAddLineItemDiscount"));
+    expect(adds).toHaveLength(1);
+    expect(adds[0]!.variables).toMatchObject({ lineItemId: "gid://shopify/CalculatedLineItem/2", discount: { fixedValue: { amount: "5.00", currencyCode: "USD" } } });
+    expect(fixedCalls.at(-1)!.query).toContain("orderEditCommit");
+  });
+});
+
+describe("shopify product cost write", () => {
+  it("updates the inventory item cost, looking the item up when only the variant is known", async () => {
+    const p = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("productVariant(id"), body: graphqlVariantInventoryItem },
+      { match: (_u, i) => bodyOf(i).query.includes("inventoryItemUpdate"), body: graphqlInventoryItemUpdate },
+    ]);
+    await p.updateVariantCost({ variantExternalId: "4100001", inventoryItemExternalId: "4500001" }, 5200);
+    expect(bodyOf({ body: p.http.calls[0]!.body! }).variables).toEqual({ id: "gid://shopify/InventoryItem/4500001", input: { cost: "52.00" } });
+    await p.updateVariantCost({ variantExternalId: "4100004", inventoryItemExternalId: null }, 1999);
+    expect(p.http.calls).toHaveLength(3);
+    expect(bodyOf({ body: p.http.calls[2]!.body! }).variables).toEqual({ id: "gid://shopify/InventoryItem/4500004", input: { cost: "19.99" } });
+    const rejected = platform([{ match: () => true, body: { data: { inventoryItemUpdate: { inventoryItem: null, userErrors: [{ field: ["input", "cost"], message: "Cost must be positive" }] } } } }]);
+    await expect(rejected.updateVariantCost({ variantExternalId: "1", inventoryItemExternalId: "2" }, 1)).rejects.toMatchObject({ code: "invalid_request" });
   });
 });
 

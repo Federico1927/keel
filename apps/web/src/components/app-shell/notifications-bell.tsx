@@ -6,8 +6,9 @@ import { Bell } from "lucide-react";
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@keel/ui";
 import { formatRelative } from "@keel/core";
 import { markNotificationsRead } from "@/server/actions/notifications";
+import { notificationText } from "@/components/notification-text";
 
-export interface BellItem { id: string; title: string; body: string | null; link: string | null; severity: string; readAt: string | null; createdAt: string }
+export interface BellItem { id: string; type: string; title: string; body: string | null; link: string | null; severity: string; readAt: string | null; createdAt: string }
 
 export function NotificationsBell({ slug, unread, items, locale }: { slug: string; unread: number; items: BellItem[]; locale: string }) {
   const t = useTranslations("notifications");
@@ -25,13 +26,20 @@ export function NotificationsBell({ slug, unread, items, locale }: { slug: strin
         <DropdownMenuLabel>{t("title")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {items.length === 0 && <p className="px-2 py-4 text-center text-sm text-muted-foreground">{t("empty")}</p>}
-        {items.map((n) => (
-          <DropdownMenuItem key={n.id} className={`flex-col items-start gap-0.5 ${n.readAt ? "opacity-70" : ""}`} onSelect={() => n.link && router.push(n.link.startsWith("/t/") ? n.link : `/t/${slug}${n.link}`)}>
-            <span className="text-sm font-medium">{n.title}</span>
-            {n.body && <span className="line-clamp-2 text-xs text-muted-foreground">{n.body}</span>}
-            <span className="text-[10px] text-muted-foreground">{formatRelative(n.createdAt, locale)}</span>
-          </DropdownMenuItem>
-        ))}
+        {items.map((n) => {
+          const text = notificationText(t, n);
+          return (
+            <DropdownMenuItem key={n.id} className={`flex-col items-start gap-0.5 ${n.readAt ? "opacity-70" : ""}`} onSelect={() => n.link && router.push(n.link.startsWith("/t/") ? n.link : `/t/${slug}${n.link}`)}>
+              <span className="text-sm font-medium">{text.title}</span>
+              {text.body && <span className="line-clamp-2 text-xs text-muted-foreground">{text.body}</span>}
+              <span className="text-[10px] text-muted-foreground">{formatRelative(n.createdAt, locale)}</span>
+            </DropdownMenuItem>
+          );
+        })}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => router.push(`/t/${slug}/notifications`)} className="justify-center text-sm font-medium" data-testid="bell-view-all">
+          {t("view_all")}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

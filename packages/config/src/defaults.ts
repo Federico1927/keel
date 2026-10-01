@@ -25,6 +25,8 @@ export const TENANT_SETTING_DEFAULTS = {
 export const PAGE_SIZE = 50;
 export const MAX_SEGMENT_DEPTH = 3;
 export const MAX_SEGMENT_CONDITIONS = 30;
+/** One-click discounts offered on an existing order (basis points); custom % or amounts are always possible. */
+export const ORDER_DISCOUNT_PRESETS_BPS = [500, 1000, 1500, 2000] as const;
 
 /** Days processed webhook events, finished platform writes, sync runs and job rows are kept (platform-wide, not per tenant). */
 export const PLATFORM_RETENTION_DAYS_DEFAULT = 14;

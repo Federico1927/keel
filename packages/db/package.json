@@ -16,6 +16,7 @@
     "generate": "dotenv -e ../../.env -- drizzle-kit generate",
     "migrate": "dotenv -e ../../.env -- tsx src/scripts/migrate.ts",
     "seed": "dotenv -e ../../.env -- tsx src/scripts/seed.ts",
+    "seed:settings": "dotenv -e ../../.env -- tsx src/scripts/seed-settings.ts",
     "reset": "dotenv -e ../../.env -- tsx src/scripts/reset.ts",
     "studio": "dotenv -e ../../.env -- drizzle-kit studio",
     "lint": "eslint src",

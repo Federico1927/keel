@@ -39,6 +39,8 @@ describe("purchase order receiving", () => {
     expect(after - before).toBe(20);
     const v = await run(async (s) => (await s.tx.select().from(schema.productVariants).where(eq(schema.productVariants.id, variant.id)))[0]!);
     expect(v.costMinor).toBe(1234);
+    expect(v.costSource).toBe("po_receipt");
+    expect(v.costUpdatedAt).toBeInstanceOf(Date);
     expect(v.averageCostMinor).toBeGreaterThan(0);
     const movements = await run((s) => s.tx.select().from(schema.inventoryMovements).where(and(eq(schema.inventoryMovements.variantId, variant.id), eq(schema.inventoryMovements.referenceId, poId))));
     expect(movements.map((m) => m.delta).sort()).toEqual([15, 5]);

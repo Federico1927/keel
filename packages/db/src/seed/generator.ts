@@ -775,6 +775,8 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
   ds.auditLogs.push(t({ actorUserId: null, actorType: "system", action: "tenant.seeded", entityType: "tenant", entityId: tenantId, diff: {}, metadata: { orders: ds.orders.length } }));
   ds.auditLogs.push(t({ actorUserId: userIds[0] ?? null, actorType: "user", action: "integration.connected", entityType: "integration", entityId: "shopify", diff: { status: { from: "not_connected", to: "connected" } }, metadata: {}, createdAt: addDays(now, -200) }));
 
+  applyCatalogQualityGaps(ds, now);
+
   /* ---------- platform writes (outbox), nightly reconcile runs, stock drift ---------- */
   // Last in the generator so the rows above keep their deterministic ids.
   const nightly = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 3, 0, 0) - (now.getUTCHours() < 3 ? DAY : 0));
@@ -800,4 +802,48 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
   ds.inventoryDrift.push(drift({ variantId: v1.id, locationId: loc1.id, kind: "not_reported", localBefore: 6, expected: 6, observed: 0, applied: 0, dedupeKey: `seed:not_reported:${v1.id}` }));
 
   return ds;
+}
+
+/**
+ * Where each cost came from, and a few gaps for the catalog data-quality page and the P/L cost
+ * warning. No rng draws, so the rest of the dataset is unchanged: a product never bought on a
+ * purchase order (but sold) has no cost, nor do the lines it sold on; a few variants have no
+ * barcode and a few products no image. The duplicate SKU is written after the planning extras
+ * (`seedCatalogDuplicate`), which order variants by SKU.
+ */
+function applyCatalogQualityGaps(ds: TenantDataset, now: Date): void {
+  const receivedAt = new Map<string, Date>();
+  const poReceived = new Map(ds.purchaseOrders.map((p) => [p.id as string, (p.receivedAt as Date | null) ?? now]));
+  const onPo = new Set<string>();
+  for (const l of ds.purchaseOrderLines) {
+    onPo.add(l.variantId as string);
+    if ((l.receivedQuantity as number) <= 0) continue;
+    const at = poReceived.get(l.purchaseOrderId as string) ?? now;
+    const prev = receivedAt.get(l.variantId as string);
+    if (!prev || prev < at) receivedAt.set(l.variantId as string, at);
+  }
+  const sold = new Set(ds.orderLines.map((l) => l.variantId as string));
+  const variantsOf = new Map<string, Row[]>();
+  for (const v of ds.productVariants) variantsOf.set(v.productId as string, [...(variantsOf.get(v.productId as string) ?? []), v]);
+  const products = ds.products;
+  const half = Math.floor(products.length / 2);
+  const uncosted = [...products.slice(half), ...products.slice(0, half)].find((p) => {
+    const vs = variantsOf.get(p.id as string) ?? [];
+    return vs.length > 0 && vs.every((v) => !onPo.has(v.id as string)) && vs.some((v) => sold.has(v.id as string));
+  });
+  const noCost = new Set((uncosted ? variantsOf.get(uncosted.id as string) ?? [] : []).map((v) => v.id as string));
+  products.forEach((p, i) => {
+    p.imageUrl = i % 37 === 36 ? null : `https://cdn.keel.example/demo/${String(p.handle)}.jpg`;
+    if (i % 29 === 7) {
+      const last = (variantsOf.get(p.id as string) ?? []).at(-1);
+      if (last) last.barcode = null;
+    }
+  });
+  for (const v of ds.productVariants) {
+    const id = v.id as string;
+    if (noCost.has(id)) Object.assign(v, { costMinor: null, averageCostMinor: null, costSource: null, costUpdatedAt: null });
+    else if (receivedAt.has(id)) Object.assign(v, { costSource: "po_receipt", costUpdatedAt: receivedAt.get(id) });
+    else Object.assign(v, { costSource: "platform", costUpdatedAt: v.syncedAt ?? now });
+  }
+  for (const l of ds.orderLines) if (noCost.has(l.variantId as string)) l.unitCostMinor = null;
 }

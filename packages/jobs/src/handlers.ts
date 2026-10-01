@@ -1,7 +1,7 @@
 import { platformRetentionDays } from "@keel/config";
 import { parseTenantSettings } from "@keel/core";
 import { adminDb, and, eq, inArray, lte, schema, withTenant } from "@keel/db";
-import { enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
+import { checkCriticalStock, checkLateToShip, checkSyncDelays, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue } from "@keel/addon-cod";
 import { adsWindow, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
 
@@ -165,6 +165,27 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
     // platform-wide window (KEEL_RETENTION_DAYS, default 14): finished history goes, failures stay until resolved
     const days = platformRetentionDays();
     for (const t of await adminDb().select({ id: schema.tenants.id }).from(schema.tenants)) await withTenant(t.id, (tx) => purgeExpiredPlatformRows(sys(t.id)(tx), { days }));
+    return;
+  }
+  if (job.kind === "tasks" || job.kind === "notify" || job.kind === "digest") {
+    // tasks (every 10 min): task rules (time-based ones, orders, closing what moved on) and overdue reminders;
+    // notify (hourly): sync delays, critical stock without incoming PO, late to ship; digest (daily): opt-in summary email
+    const tenants = await adminDb().select({ id: schema.tenants.id, status: schema.tenants.status, settings: schema.tenants.settings }).from(schema.tenants);
+    for (const t of tenants) {
+      if (t.status !== "active") continue;
+      await withTenant(t.id, async (tx) => {
+        const ctx = sys(t.id)(tx);
+        const settings = parseTenantSettings(t.settings);
+        if (job.kind === "tasks") {
+          await sweepTaskRules(ctx);
+          await remindOverdueTasks(ctx);
+        } else if (job.kind === "notify") {
+          await checkSyncDelays(ctx, settings);
+          await checkCriticalStock(ctx, settings);
+          await checkLateToShip(ctx, settings);
+        } else await sendDigests(ctx);
+      });
+    }
     return;
   }
   if (job.kind === "billing") {

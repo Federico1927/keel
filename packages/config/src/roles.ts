@@ -32,6 +32,8 @@ export const PAGES = [
   "users",
   "audit",
   "notifications",
+  "tasks",
+  "support",
   // add-on pages
   "cod_queue",
   "cod_settings",
@@ -55,6 +57,7 @@ export const ACTIONS = [
   "receive_purchase_order",
   "approve_return",
   "create_discount",
+  "edit_order",
 ] as const;
 export type ActionKey = (typeof ACTIONS)[number];
 
@@ -83,6 +86,8 @@ const MATRIX: Record<Exclude<TenantRole, "owner" | "admin">, Partial<Record<Page
     users: "none",
     audit: "none",
     notifications: "write",
+    tasks: "write",
+    support: "write",
     cod_queue: "write",
     cod_settings: "none",
     customer_campaigns: "none",
@@ -106,6 +111,8 @@ const MATRIX: Record<Exclude<TenantRole, "owner" | "admin">, Partial<Record<Page
     users: "none",
     audit: "none",
     notifications: "write",
+    tasks: "write",
+    support: "write",
     cod_queue: "write",
     cod_settings: "none",
     customer_campaigns: "none",
@@ -129,6 +136,8 @@ const MATRIX: Record<Exclude<TenantRole, "owner" | "admin">, Partial<Record<Page
     users: "none",
     audit: "none",
     notifications: "write",
+    tasks: "write",
+    support: "write",
     cod_queue: "none",
     cod_settings: "none",
     customer_campaigns: "write",
@@ -152,6 +161,8 @@ const MATRIX: Record<Exclude<TenantRole, "owner" | "admin">, Partial<Record<Page
     users: "none",
     audit: "none",
     notifications: "read",
+    tasks: "read",
+    support: "read",
     cod_queue: "read",
     cod_settings: "none",
     customer_campaigns: "read",
@@ -175,6 +186,8 @@ const ACTION_PAGE: Record<ActionKey, PageKey> = {
   receive_purchase_order: "purchasing",
   approve_return: "returns",
   create_discount: "discounts",
+  /** Contact, address, lines, merge and discount on an open order (core, any payment method). */
+  edit_order: "orders",
 };
 
 /** Actions restricted to owner/admin regardless of page level. */
