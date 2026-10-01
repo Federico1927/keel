@@ -19,6 +19,7 @@ export type CoreModule = (typeof CORE_MODULES)[number];
 export const ADDON_MODULES = [
   "addon.cod",
   "addon.customer_campaigns",
+  "addon.ai_studio",
   "addon.warehouse_3pl",
   "addon.whatsapp",
   "addon.carrier_tracking",
@@ -54,6 +55,8 @@ export const MODULES: Record<ModuleKey, ModuleDefinition> = {
   "addon.cod": { key: "addon.cod", nameKey: "modules.addon.cod.name", descriptionKey: "modules.addon.cod.description", availability: "implemented", pages: ["cod_queue", "cod_settings"], monthlyPriceMinor: 19900 },
   /** Messages to segments with a control group: holdout on segments, treated/control groups, uplift. WhatsApp providers (e.g. Spoki) plug in as its channel. */
   "addon.customer_campaigns": { key: "addon.customer_campaigns", nameKey: "modules.addon.customer_campaigns.name", descriptionKey: "modules.addon.customer_campaigns.description", availability: "implemented", pages: ["customer_campaigns"], monthlyPriceMinor: 9900 },
+  /** AI assistant on the store's own data. No monthly fee: billed on the tokens used (AI_STUDIO_PRICING). */
+  "addon.ai_studio": { key: "addon.ai_studio", nameKey: "modules.addon.ai_studio.name", descriptionKey: "modules.addon.ai_studio.description", availability: "implemented", pages: ["assistant"], monthlyPriceMinor: null },
   "addon.warehouse_3pl": { key: "addon.warehouse_3pl", nameKey: "modules.addon.warehouse_3pl.name", descriptionKey: "modules.addon.warehouse_3pl.description", availability: "on_request", pages: [], monthlyPriceMinor: null },
   "addon.whatsapp": { key: "addon.whatsapp", nameKey: "modules.addon.whatsapp.name", descriptionKey: "modules.addon.whatsapp.description", availability: "on_request", pages: [], monthlyPriceMinor: null },
   "addon.carrier_tracking": { key: "addon.carrier_tracking", nameKey: "modules.addon.carrier_tracking.name", descriptionKey: "modules.addon.carrier_tracking.description", availability: "on_request", pages: [], monthlyPriceMinor: null },
@@ -78,3 +81,17 @@ export function isPageEnabled(page: string, activeAddons: readonly string[]): bo
   if (!isAddonModule(mod)) return true;
   return activeAddons.includes(mod);
 }
+
+/**
+ * Usage pricing of `addon.ai_studio`, in minor units of the plan currency per million tokens
+ * (placeholder values to confirm commercially). The monthly invoice adds one usage line for the
+ * tokens of the previous period; the budget stops new questions once a tenant has used it up.
+ */
+export const AI_STUDIO_PRICING = {
+  inputPerMillionMinor: 900,
+  outputPerMillionMinor: 4500,
+  /** Tokens included every month before usage is billed. */
+  includedTokens: 200_000,
+  /** Default monthly token budget per tenant; the super-admin can raise it per tenant. */
+  defaultMonthlyTokenBudget: 5_000_000,
+} as const;

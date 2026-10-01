@@ -29,3 +29,4 @@ export * from "./predictions";
 export * from "./retention";
 export * from "./pixel";
 export * from "./survey";
+export * from "./assistant";

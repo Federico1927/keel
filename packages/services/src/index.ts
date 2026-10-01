@@ -24,3 +24,4 @@ export * from "./crm/destinations";
 export * from "./tracking/pixel";
 export * from "./tracking/conversions";
 export * from "./tracking/survey";
+export * from "./assistant";

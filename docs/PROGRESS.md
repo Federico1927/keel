@@ -303,6 +303,18 @@ Fatto:
 - Guida all'attivazione in tre lingue. Seed: sondaggio attivo su entrambi i negozi con risposte sul 30% degli ordini degli ultimi 120 giorni.
 - Migrazione 0017 (2 tabelle con RLS); test core 149, servizi 78, db 498, e2e 65.
 
+## Esterni (issue #7), terzo blocco: assistente AI
+
+Fatto:
+- Add-on `addon.ai_studio` (a consumo, come sulla landing): pagina Assistente con conversazioni private per utente, domande suggerite, misuratore di consumo del mese e budget mensile di token.
+- L'assistente risponde solo leggendo: sette strumenti sopra i servizi di analisi (KPI, conto economico, prodotti, campagne, resi, previsioni clienti, stock da riordinare), offerti solo se il ruolo dell'utente vede la pagina corrispondente. Sotto ogni risposta le citazioni: numeri, periodo, filtri e link alla pagina da cui vengono.
+- Interfaccia `LlmProvider` con adapter Anthropic (SDK ufficiale, testato su risposte registrate, nessuna chiamata di rete) e modello simulato deterministico di default: nella demo il testo è essenziale ma i numeri e i link sono reali.
+- Ogni turno salvato con i token; la fattura mensile aggiunge una riga a consumo per i token del periodo chiuso, oltre una franchigia (prezzi segnaposto da confermare in `AI_STUDIO_PRICING`).
+- Seed: una conversazione di esempio su Northwind (prodotti più venduti degli ultimi 30 giorni). Harbor non ha l'add-on.
+- Migrazione 0018 (2 tabelle con RLS); test core 155, integrazioni 42, servizi 87, db 510, e2e E2E_COUNT.
+
+Resta per la issue #7: email di stato ai clienti, validazione indirizzi, pagine guida mancanti.
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

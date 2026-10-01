@@ -125,6 +125,10 @@ Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every
 5. Add a guide page under `apps/web/src/app/t/[tenant]/integrations/guide/[provider]` and its translations; mark provider-UI-dependent steps with the "To verify" badge.
 6. For a per-account connector (3PL, WhatsApp), keep the module entry in `packages/config/src/modules.ts` as `availability: "on_request"` until a customer pays for it.
 
+### AI assistant
+
+`askAssistant` (packages/services/src/assistant) runs a manual tool loop over the `LlmProvider` interface (packages/integrations/src/llm.ts). The tools are read-only wrappers of the analytics services (KPIs, P/L, products, campaigns, returns, predictions, stock to reorder), offered only when the user's role can view the page they read. All tool results of a model turn go back in one user message; the loop stops on an answer, a refusal, the output limit or 6 steps. Every turn is stored in `assistant_messages` with its tokens; the model's own blocks (thinking included) are kept in `provider_content` and sent back verbatim. The loop opens a short tenant transaction per read or write and never holds one across a model call. The Anthropic adapter uses the official SDK with adaptive thinking, `effort: medium`, prompt caching on the system prompt and server-side fallbacks on refusals; it is tested on recorded responses through an injected `fetch`.
+
 ## Adding an add-on
 
 1. Create `packages/addon-<name>` depending on `@keel/config`, `@keel/core`, `@keel/db`, `@keel/services`. Pure logic in the package root with tests, services under `src/services`.

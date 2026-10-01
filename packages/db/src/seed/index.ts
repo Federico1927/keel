@@ -24,7 +24,7 @@ export const DEMO_TENANTS = {
     defaultLocale: "it",
     orderNumberPrefix: "NW-",
     planKey: "growth",
-    addons: ["addon.cod", "addon.customer_campaigns"],
+    addons: ["addon.cod", "addon.customer_campaigns", "addon.ai_studio"],
     taxRates: [
       { country: "IT", rateBps: 2200 },
       { country: "DE", rateBps: 1900 },
@@ -188,7 +188,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
   const log = opts.log ?? (() => {});
   for (const cfg of tenantSeedConfigs(ctx, opts)) {
     // Wipe previous domain rows of this tenant (cascade from the parent tables).
-    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels, schema.segmentDestinations, schema.pixelSettings, schema.pixelEvents, schema.pixelIdentities, schema.conversionSettings, schema.surveySettings]) {
+    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels, schema.segmentDestinations, schema.pixelSettings, schema.pixelEvents, schema.pixelIdentities, schema.conversionSettings, schema.surveySettings, schema.assistantThreads]) {
       await db.delete(table).where(eq(table.tenantId, cfg.tenantId));
     }
     const started = Date.now();
@@ -206,6 +206,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("destinations", () => seedDestinations(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("tracking", () => seedTracking(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("survey", () => seedSurvey(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
+    await step("assistant", () => seedAssistant(db, ctx, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
   }
 }
@@ -402,6 +403,59 @@ async function seedDestinations(db: ReturnType<typeof drizzle<typeof schema>>, k
 }
 
 /** Customer predictions as the nightly job would compute them (same core run as the service). */
+/**
+ * One past conversation with the AI assistant (add-on `addon.ai_studio`, Northwind only), stored as
+ * the assistant loop stores it: the question, the model's tool call, the tool result and the answer
+ * with its citation. The figures are the top products of the last 30 days, computed like the
+ * analytics service does, so the citation agrees with the page it links to.
+ */
+async function seedAssistant(db: ReturnType<typeof drizzle<typeof schema>>, ctx: SeedContext, key: keyof typeof DEMO_TENANTS, tenantId: string, now: Date) {
+  const t = DEMO_TENANTS[key];
+  if (!t.addons.includes("addon.ai_studio")) return;
+  const userId = ctx.userIds[`owner@${key === "northwind" ? "northwind" : "harborhome"}.demo`];
+  if (!userId) return;
+  const toDay = now.toISOString().slice(0, 10);
+  const fromDay = new Date(now.getTime() - 29 * 864e5).toISOString().slice(0, 10);
+  const from = new Date(`${fromDay}T00:00:00Z`);
+  const to = new Date(new Date(`${toDay}T00:00:00Z`).getTime() + 864e5);
+  const res = await db.execute<{ product_id: string; title: string; units: number; orders: number; gross: number; cogs: number; returned: number }>(sql`
+    select ol.product_id, max(ol.title) as title, coalesce(sum(ol.current_quantity), 0)::int as units, count(distinct ol.order_id)::int as orders,
+           coalesce(sum(ol.total_minor - ol.discount_minor), 0)::int as gross, coalesce(sum(ol.current_quantity * coalesce(ol.unit_cost_minor, 0)), 0)::int as cogs,
+           coalesce((select sum(rl.quantity) from return_lines rl join return_requests rr on rr.id = rl.return_id where rl.order_line_id = any(array_agg(ol.id)) and rr.status in ('refunded','exchanged','voucher_issued')), 0)::int as returned
+    from order_lines ol join orders o on o.id = ol.order_id
+    where ol.tenant_id = ${tenantId} and o.placed_at >= ${from} and o.placed_at < ${to} and o.status in ('confirmed','fulfilling','shipped','delivered','returned_partial') and ol.product_id is not null
+    group by ol.product_id order by gross desc`);
+  const all = res.rows;
+  if (!all.length) return;
+  const top = all.slice(0, 5);
+  const major = (m: number) => m / 100;
+  const money = (m: number) => new Intl.NumberFormat(t.defaultLocale, { style: "currency", currency: t.currency }).format(major(m));
+  const rate = (r: (typeof top)[number]) => (r.units ? r.returned / r.units : 0);
+  const total = all.reduce((s, r) => s + r.gross, 0);
+  const share = total ? top.reduce((s, r) => s + r.gross, 0) / total : 0;
+  const question = "Quali prodotti hanno venduto di più negli ultimi 30 giorni?";
+  const [thread] = await db.insert(schema.assistantThreads).values({ tenantId, userId, title: question, inputTokens: 5400, outputTokens: 310, createdAt: new Date(now.getTime() - 2 * 3600e3), updatedAt: new Date(now.getTime() - 2 * 3600e3) }).returning({ id: schema.assistantThreads.id });
+  const at = (min: number) => new Date(now.getTime() - 2 * 3600e3 + min * 1000);
+  const input = { from: fromDay, to: toDay, sort: "revenue", limit: 5 };
+  const data = { period: { from: fromDay, to: toDay }, currency: t.currency, sort: "revenue", productsWithSales: all.length, products: top.map((r) => ({ title: r.title, units: r.units, orders: r.orders, revenue: major(r.gross), grossMargin: major(r.gross - r.cogs), returnedUnits: r.returned, returnRate: Math.round(rate(r) * 1e4) / 1e4 })) };
+  const best = top[0]!;
+  const answer = `Negli ultimi 30 giorni (${fromDay} – ${toDay}) il prodotto con più ricavi è «${best.title}»: ${best.units} pezzi venduti in ${best.orders} ordini, ${money(best.gross)} di ricavi e ${money(best.gross - best.cogs)} di margine lordo. I primi cinque prodotti fanno il ${Math.round(share * 100)}% dei ricavi dei ${all.length} prodotti venduti nel periodo.\n\nPrima di spingerli in pubblicità, controlla lo stock: chiedimi pure quali varianti sono da riordinare.`;
+  const citation = {
+    tool: "get_top_products",
+    period: { from: fromDay, to: toDay },
+    filters: { sort: "revenue" },
+    figures: [{ key: "products_with_sales", value: all.length, format: "number" }],
+    rows: top.map((r) => ({ label: r.title, href: `/t/${t.slug}/products/${r.product_id}`, figures: [{ key: "units", value: r.units, format: "number" }, { key: "revenue", value: r.gross, format: "money" }, { key: "gross_margin", value: r.gross - r.cogs, format: "money" }, { key: "return_rate", value: rate(r), format: "percent" }] })),
+    href: `/t/${t.slug}/analytics?tab=products&from=${fromDay}&to=${toDay}`,
+  };
+  await db.insert(schema.assistantMessages).values([
+    { tenantId, threadId: thread!.id, seq: 1, role: "user", content: [{ type: "text", text: question }], createdAt: at(0) },
+    { tenantId, threadId: thread!.id, seq: 2, role: "assistant", content: [{ type: "tool_use", id: "seed_tool_1", name: "get_top_products", input }], stopReason: "tool_use", provider: "mock", model: "mock-assistant", inputTokens: 2600, outputTokens: 70, createdAt: at(2) },
+    { tenantId, threadId: thread!.id, seq: 3, role: "user", content: [{ type: "tool_result", toolUseId: "seed_tool_1", content: JSON.stringify(data) }], createdAt: at(3) },
+    { tenantId, threadId: thread!.id, seq: 4, role: "assistant", content: [{ type: "text", text: answer }], citations: [citation], stopReason: "end_turn", provider: "mock", model: "mock-assistant", inputTokens: 2800, outputTokens: 240, createdAt: at(9) },
+  ]);
+}
+
 async function seedPredictions(db: ReturnType<typeof drizzle<typeof schema>>, tenantId: string, now: Date) {
   const started = Date.now();
   const res = await db.execute<{ customer_id: string; placed_at: string | Date; total_minor: number }>(sql`select customer_id, placed_at, total_minor from orders where tenant_id = ${tenantId} and customer_id is not null and status in ${SALE_STATUSES as string[]} order by customer_id, placed_at`);

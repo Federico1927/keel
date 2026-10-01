@@ -14,6 +14,7 @@ import {
   RotateCcw,
   ScrollText,
   Settings,
+  Sparkles,
   ShoppingBag,
   Tag,
   Truck,
@@ -56,6 +57,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     labelKey: "nav.sections.growth",
     items: [
+      { page: "assistant", href: "/assistant", labelKey: "nav.assistant", icon: Sparkles },
       { page: "analytics", href: "/analytics", labelKey: "nav.analytics", icon: BarChart3 },
       { page: "campaigns", href: "/campaigns", labelKey: "nav.campaigns", icon: Megaphone },
       { page: "customers", href: "/customers", labelKey: "nav.customers", icon: Contact },

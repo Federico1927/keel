@@ -1,5 +1,5 @@
 import { and, eq, schema } from "@keel/db";
-import { GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, GoogleConversionsSink, MetaConversionsSink, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
+import { AnthropicLlmProvider, MockLlmProvider, type LlmProvider, GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, GoogleConversionsSink, MetaConversionsSink, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 
 export interface PlatformTenant {
@@ -193,4 +193,24 @@ export function mockConversionSinkFor(tenantId: string, provider: ConversionProv
     conversionMocks.set(key, m);
   }
   return m;
+}
+
+/* ---------- language model (AI assistant) ---------- */
+
+let mockLlm: MockLlmProvider | null = null;
+let liveLlm: { key: string; provider: AnthropicLlmProvider } | null = null;
+
+/**
+ * The assistant's model is a platform-level service: one Anthropic key (`ANTHROPIC_API_KEY`) for
+ * every tenant, whose usage is metered per tenant and billed with the `addon.ai_studio` usage line.
+ * Live only with `KEEL_INTEGRATION_MODE=live` and a key; the deterministic mock otherwise.
+ */
+export function getLlmProvider(): LlmProvider {
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (integrationMode() === "live" && key) {
+    const model = process.env.KEEL_LLM_MODEL || undefined;
+    if (!liveLlm || liveLlm.key !== `${key}:${model ?? ""}`) liveLlm = { key: `${key}:${model ?? ""}`, provider: new AnthropicLlmProvider({ apiKey: key, model }) };
+    return liveLlm.provider;
+  }
+  return (mockLlm ??= new MockLlmProvider());
 }

@@ -132,6 +132,10 @@
       "customer_campaigns": {
         "name": "Campagne clienti",
         "description": "Campagne email, SMS e WhatsApp ai segmenti con gruppo di controllo: controllo sui segmenti e margine incrementale misurato."
+      },
+      "ai_studio": {
+        "name": "AI Studio",
+        "description": "Assistente AI sui tuoi dati: risposte con numeri, periodi e link ai report. Fatturato a consumo."
       }
     }
   },
@@ -165,7 +169,8 @@
     "settings": "Impostazioni",
     "audit": "Registro attività",
     "cod_settings": "Impostazioni contrassegno",
-    "planning": "Pianificazione"
+    "planning": "Pianificazione",
+    "assistant": "Assistente"
   },
   "shell": {
     "open_menu": "Apri menu",
@@ -2511,7 +2516,8 @@
       "billing": "Abbonamento e fatture",
       "subscription_line": "Stato {status} · provider {provider} · periodo corrente fino al {end}",
       "no_subscription": "Nessun abbonamento.",
-      "recent_audit": "Attività recente su questo tenant"
+      "recent_audit": "Attività recente su questo tenant",
+      "usage_billed": "A consumo"
     },
     "billing": {
       "title": "Fatturazione",
@@ -3661,5 +3667,140 @@
       "invalid_config": "Ogni opzione ha bisogno di una chiave unica e la domanda di un testo.",
       "invalid_input": "Controlla i campi."
     }
+  },
+  "assistant": {
+    "title": "Assistente",
+    "description": "Fai domande sui dati del negozio. Ogni numero viene dai report di Keel, con il periodo e il link alla pagina.",
+    "new_thread": "Nuova conversazione",
+    "threads": "Conversazioni",
+    "no_threads": "Ancora nessuna conversazione.",
+    "usage": {
+      "title": "Consumo del mese",
+      "description": "Fatturato a consumo con l'add-on AI Studio.",
+      "questions": "Domande",
+      "tokens": "Token",
+      "budget": "{used} del budget mensile ({budget} token)"
+    },
+    "mock_note": "Modalità demo: il modello linguistico è simulato, quindi il testo delle risposte è essenziale. I numeri e i link sotto ogni risposta sono reali, calcolati sui tuoi dati.",
+    "thread_not_found": "Questa conversazione non esiste o appartiene a un altro utente.",
+    "errors": {
+      "auth": "Il servizio AI ha rifiutato le credenziali della piattaforma. L'amministratore trova il dettaglio nei log.",
+      "rate_limited": "Il servizio AI è occupato. Riprova tra un minuto.",
+      "overloaded": "Il servizio AI è momentaneamente sovraccarico. Riprova a breve.",
+      "bad_request": "Il servizio AI non è riuscito a elaborare questa conversazione. Iniziane una nuova.",
+      "network": "Il servizio AI non è raggiungibile. Riprova.",
+      "unknown": "La risposta non è riuscita. Riprova.",
+      "empty_question": "Scrivi prima una domanda.",
+      "question_too_long": "La domanda è troppo lunga (al massimo 2.000 caratteri).",
+      "thread_not_found": "Questa conversazione non esiste o appartiene a un altro utente.",
+      "budget_exceeded": "Il budget AI di questo mese è esaurito. Contatta l'amministratore della piattaforma per aumentarlo."
+    },
+    "refused": "L'assistente ha rifiutato questa richiesta. Riformulala come una domanda sui dati del negozio.",
+    "truncated": "La risposta si è interrotta. Fai una domanda più circoscritta o continua la conversazione.",
+    "sources": "Fonti",
+    "tools": {
+      "get_kpis": "KPI di vendita",
+      "get_profit_and_loss": "Conto economico",
+      "get_top_products": "Andamento prodotti",
+      "get_campaigns": "Campagne pubblicitarie",
+      "get_returns_summary": "Resi",
+      "get_customer_predictions": "Previsioni clienti",
+      "get_stock_risk": "Stock da riordinare"
+    },
+    "period": "{from} – {to}",
+    "current_data": "Dati attuali",
+    "filters": {
+      "sort": "Ordinati per",
+      "platform": "Piattaforma",
+      "list": "Elenco"
+    },
+    "values": {
+      "revenue": "ricavi",
+      "units": "pezzi",
+      "margin": "margine",
+      "return_rate": "tasso di reso",
+      "profit": "più redditizie",
+      "loss": "meno redditizie",
+      "spend": "spesa",
+      "roas": "ROAS",
+      "meta": "Meta",
+      "google": "Google",
+      "slipping": "clienti di valore a rischio",
+      "due_soon": "prossimi al riacquisto",
+      "top": "valore previsto più alto",
+      "ok": "Mantieni",
+      "pause": "Metti in pausa",
+      "resume": "Riattiva",
+      "consider_pause": "Valuta la pausa",
+      "consider_resume": "Valuta la riattivazione",
+      "pause_stock": "Pausa: stock basso",
+      "consider_stock": "Controlla lo stock"
+    },
+    "open_source": "Apri la pagina",
+    "figures": {
+      "net_revenue": "Ricavi netti",
+      "orders": "Ordini",
+      "aov": "Scontrino medio",
+      "contribution": "Margine di contribuzione",
+      "cancel_rate": "Tasso di annullamento",
+      "return_rate": "Tasso di reso",
+      "new_customers": "Nuovi clienti",
+      "returning_customers": "Clienti di ritorno",
+      "gross_revenue": "Ricavi lordi",
+      "tax": "Tasse",
+      "cogs": "Costo del venduto",
+      "gross_margin": "Margine lordo",
+      "shipping": "Spedizioni",
+      "payment_fees": "Commissioni di pagamento",
+      "return_costs": "Costi dei resi",
+      "ad_spend": "Spesa pubblicitaria",
+      "fixed_costs": "Costi fissi",
+      "operating_profit": "Utile operativo",
+      "contribution_rate": "Incidenza del margine",
+      "products_with_sales": "Prodotti venduti",
+      "units": "Pezzi",
+      "revenue": "Ricavi",
+      "campaign_profit": "Profitto",
+      "losing_campaigns": "Campagne in perdita",
+      "roas": "ROAS",
+      "action": "Azione consigliata",
+      "returns": "Resi",
+      "refunded": "Rimborsato",
+      "kept": "Trattenuto (cambi, buoni)",
+      "share": "Quota",
+      "churn_high": "Rischio abbandono alto",
+      "churn_medium": "Rischio abbandono medio",
+      "churn_low": "Rischio abbandono basso",
+      "predicted_value_365": "Valore previsto (12 mesi)",
+      "total_spent": "Speso finora",
+      "p_alive": "Probabilità di essere attivo",
+      "variants_to_reorder": "Varianti da riordinare",
+      "reorder_cost": "Costo del riordino",
+      "available": "Disponibili",
+      "days_of_cover": "Copertura",
+      "reorder_quantity": "Quantità suggerita"
+    },
+    "days": "{n, plural, one {# giorno} other {# giorni}}",
+    "empty_title": "Chiedi qualcosa sul negozio",
+    "empty_description": "L'assistente legge gli stessi report che vedi in Keel e risponde con i numeri, il periodo a cui si riferiscono e i link alle pagine. Può solo leggere i dati, mai modificarli.",
+    "scope": "Con il tuo ruolo può leggere: {tools}.",
+    "read_only": "Il tuo ruolo può leggere le conversazioni ma non fare domande.",
+    "suggestions": {
+      "revenue": "Come sono andati i ricavi negli ultimi 30 giorni rispetto ai 30 precedenti?",
+      "profit": "Qual è stato l'utile operativo del mese scorso e cosa ha pesato di più?",
+      "campaigns": "Quali campagne hanno perso soldi negli ultimi 30 giorni?",
+      "products": "Quali prodotti hanno venduto di più negli ultimi 30 giorni?",
+      "returns": "Perché i clienti rendono gli articoli in questo trimestre?",
+      "churn": "Quali clienti di valore rischiano di abbandonarci?",
+      "stock": "Quali varianti devo riordinare per prime?"
+    },
+    "thinking": "Sto leggendo i dati…",
+    "ask_label": "La tua domanda",
+    "placeholder": "Chiedi di vendite, profitto, campagne, prodotti, resi, clienti o magazzino…",
+    "follow_up_placeholder": "Fai un'altra domanda…",
+    "hint": "Ctrl/⌘ + Invio per inviare. Le risposte possono sbagliare: verifica i numeri nelle pagine collegate prima di agire.",
+    "ask": "Chiedi",
+    "delete": "Elimina",
+    "delete_confirm": "Eliminare questa conversazione?"
   }
 }
