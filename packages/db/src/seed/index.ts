@@ -24,7 +24,7 @@ export const DEMO_TENANTS = {
     defaultLocale: "it",
     orderNumberPrefix: "NW-",
     planKey: "growth",
-    addons: ["addon.cod", "addon.customer_campaigns", "addon.ai_studio"],
+    addons: ["addon.cod", "addon.customer_campaigns"],
     taxRates: [
       { country: "IT", rateBps: 2200 },
       { country: "DE", rateBps: 1900 },
@@ -404,15 +404,15 @@ async function seedDestinations(db: ReturnType<typeof drizzle<typeof schema>>, k
 
 /** Customer predictions as the nightly job would compute them (same core run as the service). */
 /**
- * One past conversation with the AI assistant (add-on `addon.ai_studio`, Northwind only), stored as
- * the assistant loop stores it: the question, the model's tool call, the tool result and the answer
- * with its citation. The figures are the top products of the last 30 days, computed like the
- * analytics service does, so the citation agrees with the page it links to.
+ * One past conversation with the AI assistant per store, stored as the assistant loop stores it:
+ * the question, the model's tool call, the tool result and the answer with its citation. The
+ * figures are the top products of the last 30 days, computed like the analytics service does, so
+ * the citation agrees with the page it links to.
  */
 async function seedAssistant(db: ReturnType<typeof drizzle<typeof schema>>, ctx: SeedContext, key: keyof typeof DEMO_TENANTS, tenantId: string, now: Date) {
   const t = DEMO_TENANTS[key];
-  if (!t.addons.includes("addon.ai_studio")) return;
-  const userId = ctx.userIds[`owner@${key === "northwind" ? "northwind" : "harborhome"}.demo`];
+  const it = key === "northwind";
+  const userId = ctx.userIds[`owner@${it ? "northwind" : "harborhome"}.demo`];
   if (!userId) return;
   const toDay = now.toISOString().slice(0, 10);
   const fromDay = new Date(now.getTime() - 29 * 864e5).toISOString().slice(0, 10);
@@ -433,13 +433,15 @@ async function seedAssistant(db: ReturnType<typeof drizzle<typeof schema>>, ctx:
   const rate = (r: (typeof top)[number]) => (r.units ? r.returned / r.units : 0);
   const total = all.reduce((s, r) => s + r.gross, 0);
   const share = total ? top.reduce((s, r) => s + r.gross, 0) / total : 0;
-  const question = "Quali prodotti hanno venduto di più negli ultimi 30 giorni?";
+  const question = it ? "Quali prodotti hanno venduto di più negli ultimi 30 giorni?" : "Which products sold the most in the last 30 days?";
   const [thread] = await db.insert(schema.assistantThreads).values({ tenantId, userId, title: question, inputTokens: 5400, outputTokens: 310, createdAt: new Date(now.getTime() - 2 * 3600e3), updatedAt: new Date(now.getTime() - 2 * 3600e3) }).returning({ id: schema.assistantThreads.id });
   const at = (min: number) => new Date(now.getTime() - 2 * 3600e3 + min * 1000);
   const input = { from: fromDay, to: toDay, sort: "revenue", limit: 5 };
   const data = { period: { from: fromDay, to: toDay }, currency: t.currency, sort: "revenue", productsWithSales: all.length, products: top.map((r) => ({ title: r.title, units: r.units, orders: r.orders, revenue: major(r.gross), grossMargin: major(r.gross - r.cogs), returnedUnits: r.returned, returnRate: Math.round(rate(r) * 1e4) / 1e4 })) };
   const best = top[0]!;
-  const answer = `Negli ultimi 30 giorni (${fromDay} – ${toDay}) il prodotto con più ricavi è «${best.title}»: ${best.units} pezzi venduti in ${best.orders} ordini, ${money(best.gross)} di ricavi e ${money(best.gross - best.cogs)} di margine lordo. I primi cinque prodotti fanno il ${Math.round(share * 100)}% dei ricavi dei ${all.length} prodotti venduti nel periodo.\n\nPrima di spingerli in pubblicità, controlla lo stock: chiedimi pure quali varianti sono da riordinare.`;
+  const answer = it
+    ? `Negli ultimi 30 giorni (${fromDay} – ${toDay}) il prodotto con più ricavi è «${best.title}»: ${best.units} pezzi venduti in ${best.orders} ordini, ${money(best.gross)} di ricavi e ${money(best.gross - best.cogs)} di margine lordo. I primi cinque prodotti fanno il ${Math.round(share * 100)}% dei ricavi dei ${all.length} prodotti venduti nel periodo.\n\nPrima di spingerli in pubblicità, controlla lo stock: chiedimi pure quali varianti sono da riordinare.`
+    : `In the last 30 days (${fromDay} – ${toDay}) the product with the most revenue was "${best.title}": ${best.units} units in ${best.orders} orders, ${money(best.gross)} of revenue and ${money(best.gross - best.cogs)} of gross margin. The top five products make ${Math.round(share * 100)}% of the revenue of the ${all.length} products sold in the period.\n\nBefore pushing them in ads, check their stock: ask me which variants need reordering.`;
   const citation = {
     tool: "get_top_products",
     period: { from: fromDay, to: toDay },

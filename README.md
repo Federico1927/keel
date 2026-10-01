@@ -37,7 +37,7 @@ Password for every demo user: `keel-demo-2026`. Live: 'keel-e364f19155'
 | Email | Role | Tenant |
 | --- | --- | --- |
 | `superadmin@keel.demo` | Platform super-admin | `/admin` console, can open any tenant as support |
-| `owner@northwind.demo` | owner | Northwind Apparel (IT, EUR, Italian, `addon.cod`, `addon.customer_campaigns` and `addon.ai_studio` active) |
+| `owner@northwind.demo` | owner | Northwind Apparel (IT, EUR, Italian, `addon.cod` and `addon.customer_campaigns` active) |
 | `admin@northwind.demo` | admin | Northwind Apparel |
 | `ops@northwind.demo` | operations | Northwind Apparel |
 | `care@northwind.demo`, `care2@northwind.demo` | customer_care | Northwind Apparel |

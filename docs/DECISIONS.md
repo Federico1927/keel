@@ -526,22 +526,24 @@ The `holdout_percentage` and `group_name` columns stay in the data model, as §7
 
 **Alternatives.** A thank-you-page block (deferred: it needs a checkout UI extension, which means a Shopify app; the email link works for every store today). Letting answers override click attribution entirely (rejected: self-reports are noisy, and the blend keeps both signals).
 
-## 2026-10-01 · AI assistant: an add-on billed on usage, read-only tools, figures cited
+## 2026-10-01 · AI assistant: core feature on the store's own Anthropic key, read-only tools, cited figures
 
-**Decision.**
-- The assistant is the add-on `addon.ai_studio`, as the landing sells "AI Studio" billed on usage. It has no monthly fee. The monthly invoice adds a usage line for the tokens of the period that just ended, beyond an allowance (`AI_STUDIO_PRICING` in packages/config: placeholder prices to confirm). A monthly token budget per tenant stops new questions once used up.
-- The model is a platform service: one `ANTHROPIC_API_KEY` for every tenant, used only in live mode. Otherwise a deterministic mock answers. The mock calls the tools matching the question's keywords, so the figures shown in the demo are real; only the wording is simulated.
+**Decision (client's ruling).**
+- The assistant is part of the core, not an add-on. Each store connects its own Anthropic API key in Integrations (provider `anthropic`, credentials `{ apiKey }` encrypted like every other credential). Anthropic bills the usage to the store directly; Keel neither resells tokens nor invoices them.
+- Without a connected key the Assistant page explains how to get one and links to Integrations and to the activation guide. In mock mode the connection is simulated: the demo stores have a mock `anthropic` row, and a deterministic mock answers. The mock calls the tools matching the question's keywords, so the figures shown in the demo are real; only the wording is simulated.
+- "Test connection" reads the configured model's details, which checks the key without spending tokens. A key rejected while answering marks the integration in error, where the owner sees it.
+- The page shows the month's questions and tokens, so the store can relate them to its Anthropic bill.
 - The model never sees SQL or raw tables. It calls seven read-only tools over the existing analytics services: KPIs, P/L, products, campaigns, returns, customer predictions and stock to reorder.
-  - A tool is offered only when the user's role can view the page it reads and the page's module is on. Customer care gets returns, predictions and stock.
+  - A tool is offered only when the user's role can view the page it reads. Customer care gets returns, predictions and stock.
   - Every tool returns compact data for the model, with amounts in major units of the store currency, and a citation for the user: figures, period, filters and a link to the page they come from. Citations are rendered under the answer in the user's language, so a wrong sentence can always be checked against the source.
-- The Anthropic adapter uses the official TypeScript SDK (`@anthropic-ai/sdk`), with these settings: `claude-opus-5-5` by default, adaptive thinking, `effort: medium`, a cached system prompt, and server-side fallbacks (`fallbacks: "default"`) so a declined request is retried on the recommended model. A refusal never runs a half-written tool call. Tests replay recorded responses through an injected `fetch`.
+- The Anthropic adapter uses the official TypeScript SDK (`@anthropic-ai/sdk`), with these settings: `claude-opus-5-5`, adaptive thinking, `effort: medium`, a cached system prompt, and server-side fallbacks (`fallbacks: "default"`) so a declined request is retried on the recommended model. A refusal never runs a half-written tool call. Tests replay recorded responses through an injected `fetch`.
 - Requests are non-streaming with 8,000 output tokens. The answers are short, and the page shows a pending state.
 - The loop is manual, not the SDK tool runner, because every turn must be stored with its tokens and the provider stays swappable.
 - Threads are private to the user who started them. Failed or refused turns stay visible but are left out of what the model sees next. Unanswered tool calls get an error result, so a thread can always continue.
-- Every role, viewer included, can ask questions. Asking only reads data the role already sees; cost is bounded by the budget.
+- Every role, viewer included, can ask questions: asking only reads data the role already sees, and the store pays for its own usage.
 
 **Alternatives.**
+- An add-on billed on usage on a platform key (built first, then replaced by the client's ruling): it carried cost risk for the platform owner and made Keel a processor of the store's data towards Anthropic.
+- A platform key as a fallback for stores without an account. Rejected by the client: own key only.
 - Letting the model write SQL. Rejected: it would bypass the canonical economics (in-scope orders, tax, return costs), and a wrong join would produce confident wrong numbers.
-- Including the assistant in a plan. Deferred: the landing lists it in Scale. When plans start carrying add-ons, Scale can activate it without a usage allowance change.
 - Streaming answers token by token. Deferred: it needs a route handler with server-sent events. The tool rounds dominate the wait anyway.
-- A per-tenant API key. Rejected for now: the platform owner resells the usage; a tenant's own key can be added to the factory if a customer asks.

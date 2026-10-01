@@ -132,10 +132,6 @@
       "customer_campaigns": {
         "name": "Customer campaigns",
         "description": "Email, SMS and WhatsApp campaigns to segments with a control group: holdout on segments and measured incremental margin."
-      },
-      "ai_studio": {
-        "name": "AI Studio",
-        "description": "AI assistant on your own data: questions answered with figures, periods and links to the reports. Billed on usage."
       }
     }
   },
@@ -2037,7 +2033,8 @@
       "meta": "Meta Ads",
       "google": "Google Ads",
       "tracking": "Pixel & conversions",
-      "survey": "Post-purchase survey"
+      "survey": "Post-purchase survey",
+      "anthropic": "AI (Anthropic)"
     },
     "status": {
       "not_connected": "Not connected",
@@ -2083,12 +2080,14 @@
     "connect_title": {
       "shopify": "Custom app (Admin API token)",
       "meta": "System user token",
-      "google": "Google Ads API credentials"
+      "google": "Google Ads API credentials",
+      "anthropic": "Anthropic API key"
     },
     "connect_description": {
       "shopify": "Create a custom app in the store admin, grant the scopes listed in the guide, paste the Admin API access token and the API secret key used to sign webhooks.",
       "meta": "A long-lived system user token from Business Manager with ads_read and ads_management on the ad account.",
-      "google": "Developer token, OAuth client and a refresh token authorised for the Google Ads scope; read-only in this version."
+      "google": "Developer token, OAuth client and a refresh token authorised for the Google Ads scope; read-only in this version.",
+      "anthropic": "The store's own key from console.anthropic.com. Anthropic bills the assistant's usage to that account; Keel stores the key encrypted."
     },
     "fields": {
       "shop": "Shop domain",
@@ -2100,7 +2099,8 @@
       "developer_token": "Developer token",
       "client_id": "OAuth client id",
       "client_secret": "OAuth client secret",
-      "refresh_token": "Refresh token"
+      "refresh_token": "Refresh token",
+      "api_key": "API key"
     },
     "slots_title": "Per-account integrations",
     "slots_description": "Slots for ad hoc connectors sold per account. Interfaces and mocks exist; a specific provider is implemented on request.",
@@ -2289,6 +2289,63 @@
         {
           "symptom": "invalid_grant on token refresh",
           "fix": "The refresh token was revoked; authorise again and reconnect."
+        }
+      ]
+    },
+    "anthropic": {
+      "title": "Connect the AI assistant (Anthropic)",
+      "intro": "The assistant runs on your own Anthropic API key: Anthropic bills the usage to your account, and Keel only stores the key, encrypted. Without a key the Assistant page asks to connect one.",
+      "scopes": "No permission scopes: one API key from the store's own Anthropic account.\nWhat is sent to the model: the question, and the figures of the reports the assistant reads to answer (totals, product and campaign names; for customer predictions, customer names and amounts). The assistant can never change data.",
+      "steps": [
+        {
+          "title": "Create the Anthropic account",
+          "body": "Go to console.anthropic.com and sign up with a company email. Create the organization in the store's name, so the invoices go to the store.",
+          "verify": true
+        },
+        {
+          "title": "Add credits and a spend limit",
+          "body": "Settings → Billing: add a payment method and buy credits. Settings → Limits: set a monthly spend limit, so the cost can never surprise you.",
+          "verify": true
+        },
+        {
+          "title": "Optional: a workspace for Keel",
+          "body": "Settings → Workspaces → Create workspace \"Keel\". Usage then shows separately in the console, and the workspace can have its own spend limit.",
+          "verify": true
+        },
+        {
+          "title": "Create the API key",
+          "body": "Settings → API keys → Create key, in the Keel workspace if you made one, named \"Keel\". Copy it now: the console shows it only once.",
+          "verify": true
+        },
+        {
+          "title": "Paste it in Keel",
+          "body": "Integrations → AI (Anthropic) → Connect, paste the key, Connect. Keel checks the key by reading the model's details (no tokens spent) and stores it encrypted. \"Test connection\" repeats the check at any time."
+        },
+        {
+          "title": "Try it",
+          "body": "Open Assistant and click a suggested question. Under each answer you see the figures with their period and a link to the report. The side panel shows this month's tokens; the same usage appears in the Anthropic console → Usage."
+        },
+        {
+          "title": "Who can use it",
+          "body": "Every role can ask questions. The assistant only reads the reports the user's role can open, and each user's conversations are private."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Test connection: \"auth\"",
+          "fix": "The key was copied incompletely, revoked, or belongs to a disabled workspace. Create a new key and connect again."
+        },
+        {
+          "symptom": "\"The AI service is busy\"",
+          "fix": "New Anthropic accounts start with low rate limits, which rise with usage and credits purchased. Wait a minute; if it happens daily, check the limits in the console."
+        },
+        {
+          "symptom": "\"Credit balance is too low\" in the console, answers failing",
+          "fix": "Add credits in Settings → Billing, or turn on auto-reload."
+        },
+        {
+          "symptom": "\"Could not process this conversation\"",
+          "fix": "Start a new conversation. If it repeats, the model may not be available on the account: check the console."
         }
       ]
     },
@@ -2516,8 +2573,7 @@
       "billing": "Subscription and invoices",
       "subscription_line": "Status {status} · provider {provider} · current period ends {end}",
       "no_subscription": "No subscription yet.",
-      "recent_audit": "Recent activity on this tenant",
-      "usage_billed": "Billed on usage"
+      "recent_audit": "Recent activity on this tenant"
     },
     "billing": {
       "title": "Billing",
@@ -3676,12 +3732,12 @@
     "no_threads": "No conversations yet.",
     "usage": {
       "title": "Usage this month",
-      "description": "Billed on usage with the AI Studio add-on.",
+      "description": "Billed by Anthropic on your own key.",
       "questions": "Questions",
-      "tokens": "Tokens",
-      "budget": "{used} of the monthly budget ({budget} tokens)"
+      "input_tokens": "Input tokens",
+      "output_tokens": "Output tokens"
     },
-    "mock_note": "Demo mode: the language model is simulated, so the wording of the answers is basic. The figures and links under each answer are real, computed on your data.",
+    "mock_note": "Mock connection: the language model is simulated, so the wording of the answers is basic. The figures and links under each answer are real, computed on your data.",
     "thread_not_found": "This conversation does not exist or belongs to another user.",
     "errors": {
       "auth": "The AI service rejected the platform credentials. The platform administrator has been notified in the logs.",
@@ -3693,7 +3749,7 @@
       "empty_question": "Write a question first.",
       "question_too_long": "The question is too long (at most 2,000 characters).",
       "thread_not_found": "This conversation does not exist or belongs to another user.",
-      "budget_exceeded": "This month's AI budget is used up. Contact the platform administrator to raise it."
+      "not_connected": "The AI key is not connected. Connect it in Integrations."
     },
     "refused": "The assistant declined this request. Rephrase it as a question on your store's data.",
     "truncated": "The answer was cut short. Ask a narrower question or continue the conversation.",
@@ -3801,6 +3857,13 @@
     "hint": "Ctrl/⌘ + Enter to send. Answers can be wrong: check the figures on the linked pages before acting.",
     "ask": "Ask",
     "delete": "Delete",
-    "delete_confirm": "Delete this conversation?"
+    "delete_confirm": "Delete this conversation?",
+    "not_connected": {
+      "title": "Connect your AI key",
+      "description": "The assistant runs on your own Anthropic API key: Anthropic bills the usage directly to you. Connect the key in Integrations; the guide shows how to create it in a few minutes.",
+      "connect": "Connect in Integrations",
+      "ask_owner": "Ask an owner or admin to connect the Anthropic key in Integrations.",
+      "guide": "How to get a key"
+    }
   }
 }

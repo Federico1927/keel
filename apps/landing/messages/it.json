@@ -216,7 +216,7 @@
       "multi_store": "Più negozi",
       "advanced_roles": "Ruoli e permessi avanzati",
       "api": "Accesso API",
-      "ai_assistant": "Assistente AI",
+      "ai_assistant": "Assistente AI sui tuoi dati (con la tua chiave Anthropic)",
       "priority_support": "Supporto prioritario",
       "enterprise_volume": "Prezzi a volume",
       "enterprise_sla": "SLA contrattuale",
@@ -228,7 +228,6 @@
     "lead": "Attivati per singolo account dal nostro team. Il core funziona con qualsiasi metodo di pagamento; quello che è specifico della tua operatività vive in un add-on.",
     "per_month": "{price}/mese",
     "from_per_month": "da {price}/mese",
-    "usage": "A consumo",
     "quote": "Su preventivo",
     "items": {
       "cod": {
@@ -238,10 +237,6 @@
       "custom_integration": {
         "title": "Integrazioni su misura",
         "body": "Un magazzino 3PL, un provider di messaggistica locale, un corriere: costruiti dietro le stesse interfacce e attivati solo per il tuo account."
-      },
-      "ai_studio": {
-        "title": "AI Studio",
-        "body": "Fai domande sui tuoi dati e automatizza le analisi ricorrenti. Fatturato a consumo."
       },
       "custom_development": {
         "title": "Sviluppi custom",

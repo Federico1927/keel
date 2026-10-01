@@ -178,6 +178,9 @@ Per ogni modulo: lista con filtri e ricerca lato server, paginazione, dettaglio,
 10. **Piattaforma**
     Notifiche in-app, pagina "salute integrazioni", impostazioni del tenant, gestione utenti e ruoli, audit log consultabile dagli owner.
 
+11. **Assistente AI** (decisione del committente, 2026-10-01, issue #7)
+    Nel core, non un add-on: ogni negozio collega la **propria chiave API Anthropic** in Integrazioni e paga il consumo direttamente ad Anthropic; senza chiave la pagina chiede di collegarla. Solo lettura, tramite strumenti sopra i servizi di analisi filtrati per ruolo; ogni risposta cita numeri, periodo, filtri e link. Interfaccia `LlmProvider` in `packages/integrations` con adapter Anthropic (SDK ufficiale) e mock deterministico.
+
 ---
 
 ## 8. Moduli add-on e console super-admin
@@ -192,7 +195,6 @@ Per ogni modulo: lista con filtri e ricerca lato server, paginazione, dettaglio,
   - **delivery score 0–100** spiegato fattore per fattore (storico cliente, ordini simili, qualità indirizzo, tentativi, valore anomalo, duplicati), pesi configurabili;
   - classificazione dei destinatari a rischio (blacklist suggerita, mai azioni automatiche).
 - **`addon.customer_campaigns`** (decisione del committente, 2026-10-01, issue #38): le campagne email, SMS e WhatsApp ai segmenti e tutto ciò che riguarda il gruppo di controllo (percentuale di controllo sui segmenti, gruppi trattati/controllo, misura dell'effetto) sono un add-on. Senza l'add-on i segmenti sono semplici: nessun campo di controllo, nessun gruppo, esportazione e audience con tutti i membri. Le colonne del modello dati restano (§7.3). I provider WhatsApp (es. Spoki) sono canali di questo add-on.
-- **`addon.ai_studio`** (issue #7, 2026-10-01): assistente AI sui dati del negozio, venduto a consumo come sulla landing. Solo lettura tramite strumenti sopra i servizi di analisi, filtrati per ruolo; ogni risposta cita numeri, periodo, filtri e link. Interfaccia `LlmProvider` in `packages/integrations` con adapter Anthropic (SDK ufficiale) e mock deterministico di default.
 - Gli altri add-on (connettori 3PL, provider WhatsApp locali) compaiono nel catalogo come "Disponibile su richiesta" senza implementazione.
 
 ### 8.2 Console super-admin (`/admin`)

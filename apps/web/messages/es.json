@@ -132,10 +132,6 @@
       "customer_campaigns": {
         "name": "Campañas a clientes",
         "description": "Campañas por email, SMS y WhatsApp a segmentos con grupo de control: control en los segmentos y margen incremental medido."
-      },
-      "ai_studio": {
-        "name": "AI Studio",
-        "description": "Asistente de IA sobre tus datos: respuestas con cifras, periodos y enlaces a los informes. Facturado por uso."
       }
     }
   },
@@ -2037,7 +2033,8 @@
       "meta": "Meta Ads",
       "google": "Google Ads",
       "tracking": "Píxel y conversiones",
-      "survey": "Encuesta poscompra"
+      "survey": "Encuesta poscompra",
+      "anthropic": "IA (Anthropic)"
     },
     "status": {
       "not_connected": "No conectada",
@@ -2083,12 +2080,14 @@
     "connect_title": {
       "shopify": "App personalizada (token Admin API)",
       "meta": "Token de usuario del sistema",
-      "google": "Credenciales de Google Ads API"
+      "google": "Credenciales de Google Ads API",
+      "anthropic": "Clave API de Anthropic"
     },
     "connect_description": {
       "shopify": "Crea una app personalizada en el admin de la tienda, concede los permisos de la guía, pega el token de Admin API y la clave secreta usada para firmar webhooks.",
       "meta": "Un token de usuario del sistema de larga duración de Business Manager con ads_read y ads_management sobre la cuenta publicitaria.",
-      "google": "Developer token, cliente OAuth y un refresh token autorizado para el ámbito de Google Ads; solo lectura en esta versión."
+      "google": "Developer token, cliente OAuth y un refresh token autorizado para el ámbito de Google Ads; solo lectura en esta versión.",
+      "anthropic": "La clave de la tienda desde console.anthropic.com. Anthropic factura el uso del asistente a esa cuenta; Keel guarda la clave cifrada."
     },
     "fields": {
       "shop": "Dominio de la tienda",
@@ -2100,7 +2099,8 @@
       "developer_token": "Developer token",
       "client_id": "OAuth client id",
       "client_secret": "OAuth client secret",
-      "refresh_token": "Refresh token"
+      "refresh_token": "Refresh token",
+      "api_key": "Clave API"
     },
     "slots_title": "Integraciones por cuenta",
     "slots_description": "Espacios para conectores a medida vendidos por cuenta. Existen interfaces y mocks; el proveedor concreto se implementa bajo pedido.",
@@ -2289,6 +2289,63 @@
         {
           "symptom": "invalid_grant al refrescar el token",
           "fix": "El refresh token fue revocado; autoriza de nuevo y reconecta."
+        }
+      ]
+    },
+    "anthropic": {
+      "title": "Conecta el asistente de IA (Anthropic)",
+      "intro": "El asistente usa tu propia clave API de Anthropic: Anthropic factura el uso a tu cuenta y Keel solo guarda la clave, cifrada. Sin clave, la página Asistente pide conectar una.",
+      "scopes": "Ningún permiso que conceder: una clave API de la cuenta Anthropic de la tienda.\nQué se envía al modelo: la pregunta y las cifras de los informes que el asistente lee para responder (totales, nombres de productos y campañas; en las predicciones de clientes, nombres e importes de clientes). El asistente nunca puede modificar datos.",
+      "steps": [
+        {
+          "title": "Crea la cuenta de Anthropic",
+          "body": "Ve a console.anthropic.com y regístrate con un email de empresa. Crea la organización a nombre de la tienda, para que las facturas lleguen a la tienda.",
+          "verify": true
+        },
+        {
+          "title": "Añade crédito y un límite de gasto",
+          "body": "Settings → Billing: añade un método de pago y compra crédito. Settings → Limits: fija un límite de gasto mensual, para que el coste nunca sorprenda.",
+          "verify": true
+        },
+        {
+          "title": "Opcional: un espacio de trabajo para Keel",
+          "body": "Settings → Workspaces → Create workspace \"Keel\". El uso se ve aparte en la consola y el espacio puede tener su propio límite de gasto.",
+          "verify": true
+        },
+        {
+          "title": "Crea la clave API",
+          "body": "Settings → API keys → Create key, en el espacio Keel si lo creaste, con nombre \"Keel\". Cópiala ahora: la consola la muestra una sola vez.",
+          "verify": true
+        },
+        {
+          "title": "Pégala en Keel",
+          "body": "Integraciones → IA (Anthropic) → Conectar, pega la clave, Conectar. Keel verifica la clave leyendo los datos del modelo (sin gastar tokens) y la guarda cifrada. \"Probar conexión\" repite la verificación cuando quieras."
+        },
+        {
+          "title": "Pruébala",
+          "body": "Abre Asistente y pulsa una pregunta sugerida. Bajo cada respuesta ves las cifras con su periodo y el enlace al informe. El panel lateral muestra los tokens del mes; el mismo uso aparece en la consola de Anthropic → Usage."
+        },
+        {
+          "title": "Quién puede usarlo",
+          "body": "Todos los roles pueden preguntar. El asistente solo lee los informes que el rol del usuario puede abrir, y las conversaciones de cada usuario son privadas."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Probar conexión: \"auth\"",
+          "fix": "La clave se copió incompleta, fue revocada o pertenece a un espacio desactivado. Crea una nueva clave y vuelve a conectar."
+        },
+        {
+          "symptom": "\"El servicio de IA está ocupado\"",
+          "fix": "Las cuentas nuevas de Anthropic empiezan con límites de frecuencia bajos, que suben con el uso y el crédito comprado. Espera un minuto; si pasa a diario, revisa los límites en la consola."
+        },
+        {
+          "symptom": "\"Credit balance is too low\" en la consola, respuestas que fallan",
+          "fix": "Añade crédito en Settings → Billing o activa la recarga automática."
+        },
+        {
+          "symptom": "\"No pudo procesar esta conversación\"",
+          "fix": "Empieza una nueva conversación. Si se repite, puede que el modelo no esté disponible en la cuenta: revisa la consola."
         }
       ]
     },
@@ -2516,8 +2573,7 @@
       "billing": "Suscripción y facturas",
       "subscription_line": "Estado {status} · proveedor {provider} · periodo actual hasta {end}",
       "no_subscription": "Sin suscripción.",
-      "recent_audit": "Actividad reciente en este tenant",
-      "usage_billed": "Por uso"
+      "recent_audit": "Actividad reciente en este tenant"
     },
     "billing": {
       "title": "Facturación",
@@ -3676,12 +3732,12 @@
     "no_threads": "Todavía no hay conversaciones.",
     "usage": {
       "title": "Consumo del mes",
-      "description": "Facturado por uso con el complemento AI Studio.",
+      "description": "Facturado por Anthropic en tu propia clave.",
       "questions": "Preguntas",
-      "tokens": "Tokens",
-      "budget": "{used} del presupuesto mensual ({budget} tokens)"
+      "input_tokens": "Tokens de entrada",
+      "output_tokens": "Tokens de salida"
     },
-    "mock_note": "Modo demo: el modelo de lenguaje está simulado, así que el texto de las respuestas es básico. Las cifras y los enlaces bajo cada respuesta son reales, calculados sobre tus datos.",
+    "mock_note": "Conexión simulada: el modelo de lenguaje está simulado, así que el texto de las respuestas es básico. Las cifras y los enlaces bajo cada respuesta son reales, calculados sobre tus datos.",
     "thread_not_found": "Esta conversación no existe o pertenece a otro usuario.",
     "errors": {
       "auth": "El servicio de IA rechazó las credenciales de la plataforma. El administrador tiene el detalle en los registros.",
@@ -3693,7 +3749,7 @@
       "empty_question": "Escribe primero una pregunta.",
       "question_too_long": "La pregunta es demasiado larga (máximo 2.000 caracteres).",
       "thread_not_found": "Esta conversación no existe o pertenece a otro usuario.",
-      "budget_exceeded": "El presupuesto de IA de este mes se ha agotado. Contacta con el administrador de la plataforma para ampliarlo."
+      "not_connected": "La clave de IA no está conectada. Conéctala en Integraciones."
     },
     "refused": "El asistente rechazó esta solicitud. Reformúlala como una pregunta sobre los datos de tu tienda.",
     "truncated": "La respuesta se cortó. Haz una pregunta más concreta o continúa la conversación.",
@@ -3801,6 +3857,13 @@
     "hint": "Ctrl/⌘ + Intro para enviar. Las respuestas pueden equivocarse: comprueba las cifras en las páginas enlazadas antes de actuar.",
     "ask": "Preguntar",
     "delete": "Eliminar",
-    "delete_confirm": "¿Eliminar esta conversación?"
+    "delete_confirm": "¿Eliminar esta conversación?",
+    "not_connected": {
+      "title": "Conecta tu clave de IA",
+      "description": "El asistente usa tu propia clave API de Anthropic: Anthropic te factura el uso directamente. Conecta la clave en Integraciones; la guía muestra cómo crearla en pocos minutos.",
+      "connect": "Conectar en Integraciones",
+      "ask_owner": "Pide a un owner o admin que conecte la clave de Anthropic en Integraciones.",
+      "guide": "Cómo obtener una clave"
+    }
   }
 }

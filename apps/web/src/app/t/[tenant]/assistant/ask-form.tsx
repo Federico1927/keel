@@ -8,7 +8,7 @@ import { askAssistantAction, deleteAssistantThreadAction } from "@/server/action
 
 const MAX_CHARS = 2000;
 
-export function AskForm({ slug, threadId, suggestions, disabled }: { slug: string; threadId: string | null; suggestions: string[]; disabled: boolean }) {
+export function AskForm({ slug, threadId, suggestions }: { slug: string; threadId: string | null; suggestions: string[] }) {
   const t = useTranslations("assistant");
   const tc = useTranslations("common");
   const router = useRouter();
@@ -46,7 +46,7 @@ export function AskForm({ slug, threadId, suggestions, disabled }: { slug: strin
       {suggestions.length > 0 && !pending && (
         <div className="flex flex-wrap gap-2" data-testid="assistant-suggestions">
           {suggestions.map((s) => (
-            <button key={s} type="button" disabled={disabled} onClick={() => ask(s)} className="rounded-full border bg-card px-3 py-1 text-left text-xs hover:bg-muted disabled:opacity-50">{s}</button>
+            <button key={s} type="button" onClick={() => ask(s)} className="rounded-full border bg-card px-3 py-1 text-left text-xs hover:bg-muted disabled:opacity-50">{s}</button>
           ))}
         </div>
       )}
@@ -64,7 +64,7 @@ export function AskForm({ slug, threadId, suggestions, disabled }: { slug: strin
           value={question}
           maxLength={MAX_CHARS}
           rows={3}
-          disabled={disabled || pending}
+          disabled={pending}
           placeholder={threadId ? t("follow_up_placeholder") : t("placeholder")}
           onChange={(e) => setQuestion(e.target.value)}
           onKeyDown={(e) => {
@@ -75,8 +75,8 @@ export function AskForm({ slug, threadId, suggestions, disabled }: { slug: strin
           }}
         />
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs text-muted-foreground">{disabled ? t("errors.budget_exceeded") : t("hint")}</p>
-          <Button type="submit" size="sm" disabled={disabled || pending || !question.trim()} data-testid="assistant-ask">
+          <p className="text-xs text-muted-foreground">{t("hint")}</p>
+          <Button type="submit" size="sm" disabled={pending || !question.trim()} data-testid="assistant-ask">
             {pending ? <Loader2 className="animate-spin" /> : <Send />} {t("ask")}
           </Button>
         </div>

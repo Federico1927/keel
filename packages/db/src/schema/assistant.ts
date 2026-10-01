@@ -4,7 +4,7 @@ import { createdAt, tenantIsolation, updatedAt } from "./_common";
 import { tenantColumns } from "./_tenant";
 import { users } from "./auth";
 
-/** A conversation with the AI assistant (add-on `addon.ai_studio`); private to the user who started it. */
+/** A conversation with the AI assistant; private to the user who started it. */
 export const assistantThreads = pgTable(
   "assistant_threads",
   {

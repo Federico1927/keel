@@ -3,9 +3,9 @@ import { and, eq, schema, withTenant } from "@keel/db";
 import { testPools } from "@keel/db/test-utils";
 import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
 import { parseTenantSettings, type AssistantCitation } from "@keel/core";
-import { AnthropicLlmProvider, LlmError, MockLlmProvider, type LlmProvider, type LlmRequest, type LlmTurn } from "@keel/integrations";
+import { AnthropicLlmProvider, LlmError, MockLlmProvider, encryptJson, type ConnectionTest, type LlmProvider, type LlmRequest, type LlmTurn } from "@keel/integrations";
 import type { TenantRole } from "@keel/config";
-import { AssistantError, askAssistant, assistantThread, assistantToolsFor, assistantUsage, deleteAssistantThread, issueDueInvoices, kpisForPeriod, listAssistantThreads, MockBillingProvider, repairHistory, type AssistantScope, type ServiceContext, type TenantRunner } from "../src";
+import { AssistantError, askAssistant, assistantThread, assistantToolsFor, assistantUsage, deleteAssistantThread, getLlmProviderFor, kpisForPeriod, listAssistantThreads, repairHistory, type AssistantScope, type ServiceContext, type TenantRunner } from "../src";
 
 const pools = testPools();
 let ctx: SeedContext;
@@ -21,7 +21,7 @@ afterAll(() => pools.close());
 const runnerFor = (userId: string): TenantRunner => (fn) => withTenant(tenantId, (tx) => fn({ tenantId, tx, actor: { type: "user", userId } } as ServiceContext), pools.app);
 const userId = (email: string) => ctx.userIds[email]!;
 function scopeFor(email: string, role: TenantRole): AssistantScope {
-  return { tenant: { id: tenantId, name: "Northwind Apparel", slug: "northwind-apparel", country: "IT", currency: "EUR", timezone: "Europe/Rome", settings: parseTenantSettings({}) }, userId: userId(email), role, activeAddons: ["addon.cod", "addon.ai_studio"], locale: "it", now };
+  return { tenant: { id: tenantId, name: "Northwind Apparel", slug: "northwind-apparel", country: "IT", currency: "EUR", timezone: "Europe/Rome", settings: parseTenantSettings({}) }, userId: userId(email), role, activeAddons: ["addon.cod"], locale: "it", now };
 }
 
 /** A provider that replays a fixed script of turns and records what it was sent. */
@@ -30,6 +30,9 @@ class ScriptedLlm implements LlmProvider {
   readonly model = "scripted";
   readonly requests: LlmRequest[] = [];
   constructor(private readonly turns: (LlmTurn | Error)[]) {}
+  async testConnection(): Promise<ConnectionTest> {
+    return { ok: true };
+  }
   async complete(req: LlmRequest): Promise<LlmTurn> {
     this.requests.push(structuredClone(req));
     const t = this.turns.shift();
@@ -98,9 +101,9 @@ describe("AI assistant", () => {
   });
 
   it("only offers the tools the role can see", async () => {
-    const care = assistantToolsFor("customer_care", ["addon.ai_studio"]).map((t) => t.name);
+    const care = assistantToolsFor("customer_care", []).map((t) => t.name);
     expect(care).toEqual(["get_returns_summary", "get_customer_predictions", "get_stock_risk"]);
-    const marketing = assistantToolsFor("marketing", ["addon.ai_studio"]).map((t) => t.name);
+    const marketing = assistantToolsFor("marketing", []).map((t) => t.name);
     expect(marketing).toContain("get_campaigns");
     const scope = scopeFor("care@northwind.demo", "customer_care");
     const llm = new MockLlmProvider({ today: now });
@@ -178,7 +181,7 @@ describe("AI assistant", () => {
     expect(t).toMatchObject({ inputTokens: 4400, outputTokens: 150 });
   });
 
-  it("threads are private to their user, and the monthly budget stops new questions", async () => {
+  it("threads are private to their user", async () => {
     const owner = scopeFor("owner@northwind.demo", "owner");
     const viewer = scopeFor("viewer@northwind.demo", "viewer");
     const mine = await askAssistant(runnerFor(owner.userId), owner, new MockLlmProvider({ today: now }), { question: "Stock?" });
@@ -186,24 +189,33 @@ describe("AI assistant", () => {
     await expect(askAssistant(runnerFor(viewer.userId), viewer, new MockLlmProvider({ today: now }), { threadId: mine.threadId, question: "hi" })).rejects.toMatchObject({ code: "thread_not_found" });
     expect(await runnerFor(viewer.userId)((s) => deleteAssistantThread(s, viewer.userId, mine.threadId))).toBe(false);
     await expect(askAssistant(runnerFor(owner.userId), owner, new MockLlmProvider(), { question: "   " })).rejects.toBeInstanceOf(AssistantError);
-
-    // a month far in the future with the budget already used
-    const later = { ...owner, now: new Date("2031-05-10T10:00:00Z") };
-    const t = await askAssistant(runnerFor(owner.userId), later, new ScriptedLlm([{ ...text("x"), usage: { inputTokens: 6_000_000, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 } }]), { question: "big" });
-    await pools.admin.update(schema.assistantMessages).set({ createdAt: new Date("2031-05-10T09:00:00Z") }).where(eq(schema.assistantMessages.threadId, t.threadId));
-    await expect(askAssistant(runnerFor(owner.userId), later, new MockLlmProvider(), { question: "more" })).rejects.toMatchObject({ code: "budget_exceeded" });
-    expect(await runnerFor(owner.userId)((s) => deleteAssistantThread(s, owner.userId, t.threadId))).toBe(true);
+    expect(await runnerFor(owner.userId)((s) => deleteAssistantThread(s, owner.userId, mine.threadId))).toBe(true);
   });
 
-  it("bills the tokens of the period that ended as a usage line", async () => {
-    const owner = scopeFor("owner@northwind.demo", "owner");
-    const t = await askAssistant(runnerFor(owner.userId), owner, new ScriptedLlm([{ ...text("x"), usage: { inputTokens: 2_000_000, outputTokens: 200_000, cacheReadTokens: 0, cacheWriteTokens: 0 } }]), { question: "usage" });
-    await pools.admin.update(schema.assistantMessages).set({ createdAt: new Date("2020-01-15T00:00:00Z") }).where(eq(schema.assistantMessages.threadId, t.threadId));
-    await pools.admin.update(schema.subscriptions).set({ currentPeriodStart: new Date("2020-01-01T00:00:00Z"), currentPeriodEnd: new Date("2020-02-01T00:00:00Z") }).where(eq(schema.subscriptions.tenantId, tenantId));
-    await issueDueInvoices(pools.admin, { now: new Date("2020-02-02T00:00:00Z"), provider: new MockBillingProvider() });
-    const [inv] = await pools.admin.select().from(schema.invoices).where(and(eq(schema.invoices.tenantId, tenantId), eq(schema.invoices.periodStart, new Date("2020-02-01T00:00:00Z"))));
-    const line = (inv!.lines as { kind: string; key: string; amountMinor: number }[]).find((l) => l.kind === "usage");
-    expect(line).toMatchObject({ key: "addon.ai_studio" });
-    expect(line!.amountMinor).toBeGreaterThan(0);
+  it("runs on the store's own key: none without the integration, the mock in mock mode, Anthropic with the key in live mode", async () => {
+    const run = runnerFor(userId("owner@northwind.demo"));
+    const setRow = (values: Partial<typeof schema.integrations.$inferInsert> | null) =>
+      values === null
+        ? pools.admin.delete(schema.integrations).where(and(eq(schema.integrations.tenantId, tenantId), eq(schema.integrations.provider, "anthropic")))
+        : pools.admin.insert(schema.integrations).values({ tenantId, provider: "anthropic", status: "connected", mode: "mock", ...values }).onConflictDoUpdate({ target: [schema.integrations.tenantId, schema.integrations.provider], set: { status: "connected", mode: "mock", credentialsEncrypted: null, ...values } });
+    await setRow(null);
+    expect(await run((s) => getLlmProviderFor(s))).toBeNull();
+    await setRow({ status: "not_connected" });
+    expect(await run((s) => getLlmProviderFor(s))).toBeNull();
+    await setRow({});
+    expect((await run((s) => getLlmProviderFor(s)))?.provider).toBe("mock");
+    const env = { mode: process.env.KEEL_INTEGRATION_MODE, key: process.env.APP_ENCRYPTION_KEY };
+    process.env.APP_ENCRYPTION_KEY ||= Buffer.alloc(32, 7).toString("base64");
+    process.env.KEEL_INTEGRATION_MODE = "live";
+    try {
+      await setRow({ mode: "live", credentialsEncrypted: encryptJson({ apiKey: "sk-ant-test" }) });
+      const live = await run((s) => getLlmProviderFor(s));
+      expect(live).toBeInstanceOf(AnthropicLlmProvider);
+    } finally {
+      if (env.mode === undefined) delete process.env.KEEL_INTEGRATION_MODE;
+      else process.env.KEEL_INTEGRATION_MODE = env.mode;
+      if (env.key === undefined) delete process.env.APP_ENCRYPTION_KEY;
+      await setRow({});
+    }
   });
 });

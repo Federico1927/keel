@@ -1,9 +1,7 @@
-import { AI_STUDIO_PRICING } from "@keel/config";
 import type { Period } from "./finance";
 
 /**
- * Pure rules of the AI assistant (add-on `addon.ai_studio`): the period a tool reads, the
- * citations attached to an answer, the monthly token budget and the usage charge.
+ * Pure rules of the AI assistant: the period a tool reads and the citations attached to an answer.
  */
 
 export const ASSISTANT_DEFAULT_DAYS = 30;
@@ -71,41 +69,4 @@ export function assistantPeriod(input: { from?: string | null; to?: string | nul
 export function threadTitle(question: string): string {
   const line = question.replace(/\s+/g, " ").trim();
   return line.length <= 80 ? line : `${line.slice(0, 79).trimEnd()}…`;
-}
-
-export interface TokenBudget {
-  usedTokens: number;
-  budgetTokens: number;
-  remainingTokens: number;
-  usedShare: number;
-  exceeded: boolean;
-}
-
-export function tokenBudget(usedTokens: number, budgetTokens: number = AI_STUDIO_PRICING.defaultMonthlyTokenBudget): TokenBudget {
-  const used = Math.max(0, usedTokens);
-  return { usedTokens: used, budgetTokens, remainingTokens: Math.max(0, budgetTokens - used), usedShare: budgetTokens > 0 ? used / budgetTokens : 1, exceeded: used >= budgetTokens };
-}
-
-export interface UsageCharge {
-  inputTokens: number;
-  outputTokens: number;
-  includedTokens: number;
-  billableInputTokens: number;
-  billableOutputTokens: number;
-  amountMinor: number;
-}
-
-/**
- * Charge for a month of tokens. The included allowance is consumed in proportion across input and
- * output, so the split of what remains billable matches the split of what was used.
- */
-export function aiUsageCharge(usage: { inputTokens: number; outputTokens: number }, pricing: { inputPerMillionMinor: number; outputPerMillionMinor: number; includedTokens: number } = AI_STUDIO_PRICING): UsageCharge {
-  const input = Math.max(0, usage.inputTokens);
-  const output = Math.max(0, usage.outputTokens);
-  const total = input + output;
-  const billableShare = total > 0 ? Math.max(0, total - pricing.includedTokens) / total : 0;
-  const billableInputTokens = Math.round(input * billableShare);
-  const billableOutputTokens = Math.round(output * billableShare);
-  const amountMinor = Math.round((billableInputTokens * pricing.inputPerMillionMinor + billableOutputTokens * pricing.outputPerMillionMinor) / 1_000_000);
-  return { inputTokens: input, outputTokens: output, includedTokens: Math.min(total, pricing.includedTokens), billableInputTokens, billableOutputTokens, amountMinor };
 }

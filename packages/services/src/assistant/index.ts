@@ -1,6 +1,6 @@
-import { and, asc, desc, eq, gte, lt, schema, sql } from "@keel/db";
+import { and, asc, desc, eq, gte, schema, sql } from "@keel/db";
 import type { TenantRole } from "@keel/config";
-import { ASSISTANT_MAX_QUESTION_CHARS, ASSISTANT_MAX_STEPS, AssistantInputError, aiUsageCharge, threadTitle, tokenBudget, type AssistantCitation, type TokenBudget, type UsageCharge } from "@keel/core";
+import { ASSISTANT_MAX_QUESTION_CHARS, ASSISTANT_MAX_STEPS, AssistantInputError, threadTitle, type AssistantCitation } from "@keel/core";
 import { LlmError, type LlmBlock, type LlmMessage, type LlmProvider, type LlmStopReason } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 import type { AnalyticsTenant } from "../analytics";
@@ -28,10 +28,10 @@ export interface AssistantScope {
   now?: Date;
 }
 
-export type AssistantOutcome = "answered" | "refused" | "truncated" | "error" | "budget_exceeded";
+export type AssistantOutcome = "answered" | "refused" | "truncated" | "error";
 
 export class AssistantError extends Error {
-  constructor(readonly code: "empty_question" | "question_too_long" | "thread_not_found" | "budget_exceeded") {
+  constructor(readonly code: "empty_question" | "question_too_long" | "thread_not_found") {
     super(code);
     this.name = "AssistantError";
   }
@@ -71,11 +71,12 @@ export interface AssistantUsage {
   questions: number;
   inputTokens: number;
   outputTokens: number;
-  budget: TokenBudget;
-  charge: UsageCharge;
 }
 
-/** Tokens used by the tenant this calendar month (UTC), the budget left and what they will be billed. */
+/**
+ * Questions and tokens of the tenant this calendar month (UTC). The store pays its model provider
+ * directly; the meter lets it see what the assistant costs it.
+ */
 export async function assistantUsage(ctx: ServiceContext, now = ctx.now ?? new Date()): Promise<AssistantUsage> {
   const from = monthStart(now);
   const [row] = await ctx.tx
@@ -86,18 +87,7 @@ export async function assistantUsage(ctx: ServiceContext, now = ctx.now ?? new D
     })
     .from(schema.assistantMessages)
     .where(and(eq(schema.assistantMessages.tenantId, ctx.tenantId), gte(schema.assistantMessages.createdAt, from)));
-  const input = row?.input ?? 0;
-  const output = row?.output ?? 0;
-  return { month: from.toISOString().slice(0, 7), questions: row?.questions ?? 0, inputTokens: input, outputTokens: output, budget: tokenBudget(input + output), charge: aiUsageCharge({ inputTokens: input, outputTokens: output }) };
-}
-
-/** Tokens of a tenant over a billing period, read with the admin connection by the invoice run. */
-export async function assistantTokensBetween(ctx: Pick<ServiceContext, "tx">, tenantId: string, from: Date, to: Date): Promise<{ inputTokens: number; outputTokens: number }> {
-  const [row] = await ctx.tx
-    .select({ input: sql<number>`coalesce(sum(${schema.assistantMessages.inputTokens}), 0)::int`, output: sql<number>`coalesce(sum(${schema.assistantMessages.outputTokens}), 0)::int` })
-    .from(schema.assistantMessages)
-    .where(and(eq(schema.assistantMessages.tenantId, tenantId), gte(schema.assistantMessages.createdAt, from), lt(schema.assistantMessages.createdAt, to)));
-  return { inputTokens: row?.input ?? 0, outputTokens: row?.output ?? 0 };
+  return { month: from.toISOString().slice(0, 7), questions: row?.questions ?? 0, inputTokens: row?.input ?? 0, outputTokens: row?.output ?? 0 };
 }
 
 /* ---------- threads ---------- */
@@ -279,8 +269,6 @@ export async function askAssistant(run: TenantRunner, scope: AssistantScope, llm
   if (!question) throw new AssistantError("empty_question");
   if (question.length > ASSISTANT_MAX_QUESTION_CHARS) throw new AssistantError("question_too_long");
   const now = scope.now ?? new Date();
-  const usage = await run((ctx) => assistantUsage(ctx, now));
-  if (usage.budget.exceeded) throw new AssistantError("budget_exceeded");
 
   const tools = assistantToolsFor(scope.role, scope.activeAddons);
   const definitions = tools.map(toolDefinition);

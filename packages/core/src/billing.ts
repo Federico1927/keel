@@ -1,7 +1,7 @@
 import { MODULES, PLANS, type PlanKey } from "@keel/config";
 
 export interface InvoiceLine {
-  kind: "plan" | "addon" | "setup" | "usage";
+  kind: "plan" | "addon" | "setup";
   key: string;
   amountMinor: number;
 }

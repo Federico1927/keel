@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ExternalLink, Plus } from "lucide-react";
-import { canWritePage } from "@keel/config";
+import { canDo, canWritePage } from "@keel/config";
 import { formatDate, formatDateTime, formatMoney, formatNumber, formatPercent, type AssistantCitation, type CitationFigure } from "@keel/core";
-import { assistantThread, assistantToolsFor, assistantUsage, getLlmProvider, listAssistantThreads } from "@keel/services";
+import { assistantThread, assistantToolsFor, assistantUsage, getLlmProviderFor, listAssistantThreads } from "@keel/services";
 import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { AskForm, DeleteThreadButton } from "./ask-form";
@@ -17,15 +17,17 @@ export default async function AssistantPage({ params, searchParams }: { params: 
   const ctx = await requirePage(tenant, "assistant");
   const t = await getTranslations("assistant");
   const s = (tx: Parameters<Parameters<typeof ctx.run>[0]>[0]) => ({ tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } });
-  const { threads, thread, usage } = await ctx.run(async (tx) => ({
+  const { threads, thread, usage, llm } = await ctx.run(async (tx) => ({
     threads: await listAssistantThreads(s(tx), ctx.user.id),
     thread: sp.thread ? await assistantThread(s(tx), ctx.user.id, sp.thread) : null,
     usage: await assistantUsage(s(tx)),
+    llm: await getLlmProviderFor(s(tx)),
   }));
   const canAsk = canWritePage(ctx.role, "assistant");
   const tools = new Set(assistantToolsFor(ctx.role, ctx.activeAddons).map((x) => x.name));
   const suggestions = SUGGESTIONS.filter((k) => tools.has(TOOL_FOR_SUGGESTION[k])).map((k) => t(`suggestions.${k}`));
-  const isMock = getLlmProvider().provider === "mock";
+  const connected = !!llm;
+  const isMock = llm?.provider === "mock";
   const base = `/t/${tenant}/assistant`;
   const num = (n: number) => formatNumber(n, ctx.locale);
 
@@ -113,14 +115,29 @@ export default async function AssistantPage({ params, searchParams }: { params: 
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">{t("usage.questions")}</span><span className="tabular-nums">{num(usage.questions)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">{t("usage.tokens")}</span><span className="tabular-nums">{num(usage.inputTokens + usage.outputTokens)}</span></div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className={cn("h-full", usage.budget.usedShare > 0.9 ? "bg-destructive" : "bg-primary")} style={{ width: `${Math.min(100, usage.budget.usedShare * 100)}%` }} /></div>
-              <p className="text-xs text-muted-foreground">{t("usage.budget", { used: formatPercent(usage.budget.usedShare, ctx.locale), budget: num(usage.budget.budgetTokens) })}</p>
+              <div className="flex justify-between"><span className="text-muted-foreground">{t("usage.input_tokens")}</span><span className="tabular-nums">{num(usage.inputTokens)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">{t("usage.output_tokens")}</span><span className="tabular-nums">{num(usage.outputTokens)}</span></div>
             </CardContent>
           </Card>
         </aside>
 
         <section className="min-w-0 space-y-4">
+          {!connected && (
+            <Card data-testid="assistant-not-connected">
+              <CardHeader>
+                <CardTitle className="text-base">{t("not_connected.title")}</CardTitle>
+                <CardDescription>{t("not_connected.description")}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-3 text-sm">
+                {canDo(ctx.role, "manage_integrations") ? (
+                  <Link href={`/t/${tenant}/integrations`} className="rounded-md bg-primary px-3 py-1.5 text-primary-foreground hover:bg-primary/90" data-testid="assistant-connect-link">{t("not_connected.connect")}</Link>
+                ) : (
+                  <span className="text-muted-foreground">{t("not_connected.ask_owner")}</span>
+                )}
+                <Link href={`/t/${tenant}/integrations/guide/anthropic`} className="px-1 py-1.5 underline-offset-4 hover:underline">{t("not_connected.guide")}</Link>
+              </CardContent>
+            </Card>
+          )}
           {isMock && (
             <Alert data-testid="assistant-mock-note"><AlertDescription>{t("mock_note")}</AlertDescription></Alert>
           )}
@@ -150,7 +167,7 @@ export default async function AssistantPage({ params, searchParams }: { params: 
                 ),
               )}
             </div>
-          ) : (
+          ) : connected && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">{t("empty_title")}</CardTitle>
@@ -161,11 +178,7 @@ export default async function AssistantPage({ params, searchParams }: { params: 
               </CardContent>
             </Card>
           )}
-          {canAsk ? (
-            <AskForm slug={tenant} threadId={thread?.id ?? null} suggestions={thread ? [] : suggestions} disabled={usage.budget.exceeded} />
-          ) : (
-            <p className="text-sm text-muted-foreground">{t("read_only")}</p>
-          )}
+          {connected && (canAsk ? <AskForm slug={tenant} threadId={thread?.id ?? null} suggestions={thread ? [] : suggestions} /> : <p className="text-sm text-muted-foreground">{t("read_only")}</p>)}
         </section>
       </div>
     </>

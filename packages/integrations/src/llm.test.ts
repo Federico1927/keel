@@ -28,7 +28,7 @@ const FINAL_TURN = {
 function recorder(responses: { status: number; body: unknown }[]) {
   const calls: { url: string; headers: Headers; body: Record<string, unknown> }[] = [];
   const fetchImpl = (async (url: string | URL | Request, init?: RequestInit) => {
-    calls.push({ url: String(url), headers: new Headers(init?.headers), body: JSON.parse(String(init?.body)) as Record<string, unknown> });
+    calls.push({ url: String(url), headers: new Headers(init?.headers), body: init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : {} });
     const r = responses.shift()!;
     return new Response(JSON.stringify(r.body), { status: r.status, headers: { "content-type": "application/json", "request-id": "req_test" } });
   }) as typeof fetch;
@@ -84,6 +84,22 @@ describe("Anthropic LLM provider (recorded responses)", () => {
       await expect(p).rejects.toBeInstanceOf(LlmError);
       await expect(p).rejects.toMatchObject({ code });
     }
+  });
+});
+
+describe("Anthropic connection test", () => {
+  it("checks the key by reading the model, without spending tokens", async () => {
+    const { calls, fetchImpl } = recorder([{ status: 200, body: { type: "model", id: "claude-opus-5-5", display_name: "Claude Opus 5.5", created_at: "2026-08-01T00:00:00Z" } }]);
+    const r = await new AnthropicLlmProvider({ apiKey: "k", fetch: fetchImpl, maxRetries: 0 }).testConnection();
+    expect(r).toEqual({ ok: true, accountName: "Claude Opus 5.5", accountId: "claude-opus-5-5" });
+    expect(calls[0]!.url).toContain("/v1/models/claude-opus-5-5");
+  });
+
+  it("reports an invalid key readably", async () => {
+    const { fetchImpl } = recorder([{ status: 401, body: { type: "error", error: { type: "authentication_error", message: "invalid x-api-key" } } }]);
+    const r = await new AnthropicLlmProvider({ apiKey: "bad", fetch: fetchImpl, maxRetries: 0 }).testConnection();
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/^auth: .*invalid x-api-key/);
   });
 });
 

@@ -1,8 +1,8 @@
 import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
-import { and, desc, eq, gte, inArray, lt, recordAudit, schema, sql, type Database } from "@keel/db";
+import { and, desc, eq, inArray, recordAudit, schema, sql, type Database } from "@keel/db";
 import { DEFAULT_SUSPEND_AFTER_DAYS, MODULES, PLANS, type PlanKey, isAddonModule } from "@keel/config";
-import { addMonths, aiUsageCharge, defaultStateRules, monthlyInvoiceLines, mrr, paymentHealth, setupInvoiceLines, type PaymentHealth } from "@keel/core";
+import { addMonths, defaultStateRules, monthlyInvoiceLines, mrr, paymentHealth, setupInvoiceLines, type PaymentHealth } from "@keel/core";
 import { getBillingProvider, type BillingProvider } from "./provider";
 
 export * from "./provider";
@@ -64,13 +64,6 @@ export async function issueDueInvoices(db: AdminDb, opts: { now?: Date; provider
     if (tenant.status === "churned") continue;
     const addons = await activeAddonKeys(db, tenant.id);
     const lines = monthlyInvoiceLines(sub.planKey as PlanKey, addons);
-    // AI assistant usage is billed in arrears: the tokens of the period that just ended
-    const [used] = await db
-      .select({ input: sql<number>`coalesce(sum(${schema.assistantMessages.inputTokens}), 0)::int`, output: sql<number>`coalesce(sum(${schema.assistantMessages.outputTokens}), 0)::int` })
-      .from(schema.assistantMessages)
-      .where(and(eq(schema.assistantMessages.tenantId, tenant.id), gte(schema.assistantMessages.createdAt, sub.currentPeriodStart), lt(schema.assistantMessages.createdAt, sub.currentPeriodEnd)));
-    const usage = aiUsageCharge({ inputTokens: used?.input ?? 0, outputTokens: used?.output ?? 0 });
-    if (usage.amountMinor > 0) lines.push({ kind: "usage", key: "addon.ai_studio", amountMinor: usage.amountMinor });
     const periodStart = sub.currentPeriodEnd;
     const periodEnd = addMonths(periodStart, 1);
     await createInvoice(db, provider, { id: tenant.id, name: tenant.name, currency: sub.currency }, sub, { kind: "subscription", lines, dueAt: new Date(periodStart.getTime() + 7 * 864e5), periodStart, periodEnd, now });

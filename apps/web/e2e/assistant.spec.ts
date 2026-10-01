@@ -3,7 +3,7 @@ import { login } from "./helpers";
 
 const T = "/t/northwind-apparel";
 
-test.describe("AI assistant (addon.ai_studio)", () => {
+test.describe("AI assistant (core, on the store's own Anthropic key)", () => {
   test("the owner reads the seeded conversation, its citation and its links", async ({ page }) => {
     await login(page, "owner@northwind.demo");
     await page.getByRole("link", { name: /^Assistant$|^Assistente$/ }).first().click();
@@ -56,10 +56,39 @@ test.describe("AI assistant (addon.ai_studio)", () => {
     await expect(page.getByTestId("assistant-answer").last().getByTestId("assistant-citation").first()).toBeVisible();
   });
 
-  test("without the add-on the page is unreachable", async ({ page }) => {
+  test("Harbor reads its English conversation; the Anthropic key is an integration with its guide", async ({ page }) => {
     await login(page, "owner@harborhome.demo");
-    await expect(page.getByRole("link", { name: /^Assistant$/ })).toHaveCount(0);
-    const res = await page.goto("/t/harbor-home/assistant");
-    expect(res?.status()).toBe(404);
+    await page.goto("/t/harbor-home/assistant");
+    await page.getByTestId("assistant-threads").getByRole("link", { name: /Which products sold the most/ }).click();
+    await expect(page.getByTestId("assistant-answer")).toContainText(/the product with the most revenue was/);
+    await page.goto("/t/harbor-home/integrations");
+    const card = page.getByTestId("provider-anthropic");
+    await expect(card).toContainText("AI (Anthropic)");
+    await expect(card.getByRole("button", { name: "Resync" })).toHaveCount(0);
+    await card.getByRole("button", { name: "Test connection" }).click();
+    await expect(page.getByTestId("msg-anthropic")).toContainText(/Mock model/);
+    await card.getByRole("link", { name: "How to connect" }).click();
+    await expect(page).toHaveURL(/\/integrations\/guide\/anthropic$/);
+    await expect(page.getByTestId("guide-step")).toHaveCount(7);
+  });
+
+  test("a store without a key is asked to connect one", async ({ page }) => {
+    await login(page, "superadmin@keel.demo");
+    await page.goto("/admin/tenants/new");
+    const stamp = Date.now().toString().slice(-6);
+    await page.getByLabel(/Company name|Nome azienda/).fill(`AI Shop ${stamp}`);
+    await page.getByLabel(/Country/).fill("IT");
+    await page.getByLabel(/Currency|Valuta/).fill("EUR");
+    await page.getByLabel(/Timezone|Fuso/).fill("Europe/Rome");
+    await page.getByLabel(/Owner email|Email owner/).fill(`owner-ai-${stamp}@e2e.test`);
+    await page.getByLabel(/Owner name|Nome owner/).fill("AI Owner");
+    await page.getByRole("button", { name: /Create tenant|Crea tenant/ }).click();
+    await expect(page.getByTestId("temp-password")).toBeVisible();
+    // the super-admin opens the new store (impersonation, owner rights)
+    await page.goto(`/t/ai-shop-${stamp}/assistant`);
+    await expect(page.getByTestId("assistant-not-connected")).toBeVisible();
+    await expect(page.getByTestId("assistant-input")).toHaveCount(0);
+    await page.getByTestId("assistant-connect-link").click();
+    await expect(page).toHaveURL(new RegExp(`/t/ai-shop-${stamp}/integrations$`));
   });
 });

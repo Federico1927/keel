@@ -216,7 +216,7 @@
       "multi_store": "Several stores",
       "advanced_roles": "Advanced roles and permissions",
       "api": "API access",
-      "ai_assistant": "AI assistant",
+      "ai_assistant": "AI assistant on your data (your own Anthropic key)",
       "priority_support": "Priority support",
       "enterprise_volume": "Volume pricing",
       "enterprise_sla": "Contractual SLA",
@@ -228,7 +228,6 @@
     "lead": "Activated per account by our team. The core works for any payment method; what is specific to your operation lives in an add-on.",
     "per_month": "{price}/month",
     "from_per_month": "from {price}/month",
-    "usage": "Pay per use",
     "quote": "On quote",
     "items": {
       "cod": {
@@ -238,10 +237,6 @@
       "custom_integration": {
         "title": "Tailored integrations",
         "body": "A 3PL warehouse, a local messaging provider, a carrier: built behind the same interfaces and switched on for your account only."
-      },
-      "ai_studio": {
-        "title": "AI Studio",
-        "body": "Ask questions on your own data and automate recurring analyses. Billed on usage."
       },
       "custom_development": {
         "title": "Custom development",

@@ -171,11 +171,6 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
                         {t("tenant.on_request")}
                       </Badge>
                     )}
-                    {key === "addon.ai_studio" && (
-                      <Badge variant="outline" className="ml-2">
-                        {t("tenant.usage_billed")}
-                      </Badge>
-                    )}
                     {def.monthlyPriceMinor && (
                       <Badge variant="outline" className="ml-2">
                         {money(def.monthlyPriceMinor, PLATFORM_CURRENCY)}/m

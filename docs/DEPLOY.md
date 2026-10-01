@@ -47,8 +47,6 @@ A static site (Next.js export) served by its own small Node server; a third serv
 | `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` | the project DSN from sentry.io | Optional; errors only, no personal data. The public one is read at build time |
 | `SENTRY_ENVIRONMENT` | e.g. `demo`, `production` | Optional |
 | `STRIPE_SECRET_KEY`, `SHOPIFY_API_KEY`, `SHOPIFY_API_SECRET` | empty for the demo | |
-| `ANTHROPIC_API_KEY` | empty for the demo | AI assistant (`addon.ai_studio`). One platform key for every tenant, read only with `KEEL_INTEGRATION_MODE=live`; without it the assistant uses the simulated model and says so on the page. Usage is metered per tenant and billed as a usage line on the monthly invoice |
-| `KEEL_LLM_MODEL` | optional | Model of the assistant; default `claude-opus-5-5` |
 
 If the Railway Postgres URL requires TLS, append `?sslmode=require` to the three database URLs.
 

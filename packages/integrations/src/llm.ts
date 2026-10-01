@@ -1,11 +1,13 @@
 import Anthropic from "@anthropic-ai/sdk";
+import type { ConnectionTest } from "./types";
 import type { BetaContentBlockParam, BetaMessage, BetaMessageParam, BetaToolUnion } from "@anthropic-ai/sdk/resources/beta/messages/messages";
 
 /**
- * Language model behind the AI assistant (add-on `addon.ai_studio`). The assistant loop in
- * the services package talks to this provider-neutral interface; the Anthropic adapter maps it
- * to the Messages API through the official SDK, the mock answers deterministically from the
- * tool results so tests, the demo and every development process run without a network call.
+ * Language model behind the AI assistant. Each store connects its own Anthropic API key in
+ * Integrations (provider `anthropic`), so the store pays the model provider directly. The
+ * assistant loop in the services package talks to this provider-neutral interface; the Anthropic
+ * adapter maps it to the Messages API through the official SDK, the mock answers deterministically
+ * from the tool results so tests, the demo and every development process run without a network call.
  */
 export const LLM_PROVIDERS = ["anthropic", "mock"] as const;
 export type LlmProviderKey = (typeof LLM_PROVIDERS)[number];
@@ -64,6 +66,13 @@ export interface LlmProvider {
   readonly provider: LlmProviderKey;
   readonly model: string;
   complete(req: LlmRequest): Promise<LlmTurn>;
+  /** Checks the key without spending tokens (reads the configured model's details). */
+  testConnection(): Promise<ConnectionTest>;
+}
+
+/** Credentials stored (encrypted) on the tenant's `anthropic` integration row. */
+export interface AnthropicCredentials {
+  apiKey: string;
 }
 
 /** A readable, stable error code for the UI; the message keeps the provider's detail for the logs. */
@@ -155,6 +164,16 @@ export class AnthropicLlmProvider implements LlmProvider {
     this.client = new Anthropic({ apiKey: opts.apiKey, fetch: opts.fetch, baseURL: opts.baseURL, maxRetries: opts.maxRetries ?? 2 });
   }
 
+  async testConnection(): Promise<ConnectionTest> {
+    try {
+      const m = await this.client.models.retrieve(this.model);
+      return { ok: true, accountName: m.display_name, accountId: m.id };
+    } catch (err) {
+      const e = mapAnthropicError(err);
+      return { ok: false, error: `${e.code}: ${e.message}` };
+    }
+  }
+
   async complete(req: LlmRequest): Promise<LlmTurn> {
     const tools: BetaToolUnion[] = req.tools.map((t) => ({ name: t.name, description: t.description, input_schema: t.inputSchema as { type: "object"; properties?: Record<string, unknown>; required?: string[] } }));
     try {
@@ -223,6 +242,10 @@ export class MockLlmProvider implements LlmProvider {
   private seq = 0;
 
   constructor(private readonly opts: { refuseWhen?: RegExp; today?: Date } = {}) {}
+
+  async testConnection(): Promise<ConnectionTest> {
+    return { ok: true, accountName: "Mock model", accountId: this.model };
+  }
 
   async complete(req: LlmRequest): Promise<LlmTurn> {
     this.requests.push(req);
