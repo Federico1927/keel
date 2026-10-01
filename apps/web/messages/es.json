@@ -804,7 +804,21 @@
       "expected": "Prevista / recibida",
       "units": "Unidades",
       "total": "Total",
-      "covers": "Pendientes"
+      "covers": "Pendientes",
+      "destination": "Destino"
+    },
+    "packs": "Cajas",
+    "export_csv": "Exportar CSV",
+    "filters": {
+      "search": "Buscar",
+      "search_placeholder": "Número, proveedor, SKU, nota",
+      "all_suppliers": "Todos los proveedores",
+      "destination": "Destino",
+      "all_destinations": "Todos los destinos",
+      "from": "Desde",
+      "to": "Hasta",
+      "apply": "Aplicar",
+      "clear": "Limpiar"
     }
   },
   "po_detail": {
@@ -878,6 +892,55 @@
       "send": "Enviar al proveedor",
       "resend": "Enviar de nuevo",
       "link_hint": "Enlace de confirmación (en modo demo no sale ningún email de la plataforma: reenvíalo al proveedor):"
+    },
+    "free_text_line": "Línea de texto libre",
+    "inspection": {
+      "damaged": "Dañados",
+      "rejected": "Rechazados",
+      "short": "{damaged} dañados · {rejected} rechazados",
+      "hint": "\"Recibir ahora\" cuenta todas las unidades llegadas; las dañadas y rechazadas forman parte de ellas y no entran en stock ni en el coste."
+    },
+    "manage": {
+      "duplicate": "Duplicar",
+      "delete_title": "¿Eliminar {number}?",
+      "delete_hint": "Solo se pueden eliminar borradores y pedidos cancelados. Se eliminan líneas, cargos y enlaces del proveedor; el registro de auditoría conserva la traza."
+    },
+    "links": {
+      "title": "Enlaces del proveedor",
+      "state": {
+        "active": "Activo",
+        "expired": "Caducado",
+        "revoked": "Revocado"
+      },
+      "issued": "Emitido el {at} a {to}",
+      "expires": "Caduca el {at}",
+      "expired_on": "Caducó el {at}",
+      "revoked": "Revocado: el proveedor ve una página neutra.",
+      "views": "{n, plural, one {# apertura} other {# aperturas}}, última {at}",
+      "no_views": "Nunca abierto",
+      "revoke": "Revocar enlace",
+      "revoked_ok": "Enlace revocado."
+    },
+    "history": {
+      "title": "Historial",
+      "actions": {
+        "purchase_order": {
+          "created": "Creado",
+          "updated": "Editado",
+          "duplicated": "Creado como copia",
+          "deleted": "Eliminado",
+          "transition": "Estado cambiado",
+          "received": "Mercancía recibida",
+          "sent_to_supplier": "Enviado al proveedor",
+          "supplier_confirmed": "Confirmado por el proveedor",
+          "supplier_problem": "Problema señalado por el proveedor",
+          "supplier_link_revoked": "Enlace del proveedor revocado",
+          "supplier_link_blocked": "Abierto un enlace caducado o revocado",
+          "auto_draft": "Borrador del plan de reposición",
+          "charge_added": "Cargo añadido",
+          "charge_deleted": "Cargo eliminado"
+        }
+      }
     }
   },
   "po_new": {
@@ -898,6 +961,26 @@
       "quantity": "Cantidad",
       "unit_cost": "Coste unitario ({currency})"
     }
+  },
+  "po_editor": {
+    "lines": "Líneas",
+    "search_placeholder": "Añadir variante: SKU, código o título",
+    "no_results": "No se encontró ninguna variante.",
+    "available_n": "{n} disponibles",
+    "suggested_n": "sugerido {n}",
+    "add_free_text": "Línea de texto libre",
+    "free_text_placeholder": "Descripción (embalaje, muestras, servicio…)",
+    "free_text": "Fuera de catálogo",
+    "line_total": "Total línea",
+    "empty": "Aún no hay líneas: busca una variante, añade una sugerencia o una línea libre.",
+    "total": "Total",
+    "suggestions": "Sugerencias de reposición",
+    "add_all": "Añadir todas las sugeridas",
+    "add": "Añadir",
+    "save": "Guardar cambios",
+    "edit_title": "Editar {number}",
+    "edit_hint": "Las líneas se sustituyen en bloque; cada cambio queda en el historial del pedido.",
+    "edit_sent_hint": "El pedido ya está con el proveedor: el proveedor no cambia y su enlace muestra las nuevas líneas."
   },
   "suppliers": {
     "back": "Compras",
@@ -934,6 +1017,102 @@
     "terms_hint": "El planificador usa el plazo de entrega y su variabilidad para el stock de seguridad, el mínimo y los múltiplos para redondear cantidades, y el anticipo y los días de pago para el plan de caja.",
     "terms_summary": "Anticipo {deposit}% · saldo a {days} días de la recepción",
     "moq_summary": "Mínimo {moq}"
+  },
+  "supplier_terms": {
+    "title": "Proveedores y cajas",
+    "hint": "Proveedor predeterminado de cada variante: la planificación y los borradores automáticos usan su coste, MOQ y plazo.",
+    "missing": "{n, plural, one {# variante no tiene} other {# variantes no tienen}} proveedor predeterminado: los borradores automáticos las omiten.",
+    "option_mix": "Mix de opciones",
+    "columns": {
+      "variant": "Variante",
+      "supplier": "Proveedor",
+      "supplier_sku": "SKU del proveedor",
+      "cost": "Coste",
+      "moq": "MOQ",
+      "multiple": "Múltiplo de pedido",
+      "lead_time": "Plazo (días)"
+    },
+    "edit": "Editar",
+    "none": "Ninguno",
+    "days": "{n} d",
+    "packs": "Cajas",
+    "no_packs": "Ninguna caja se ajusta a este producto.",
+    "manage_packs": "Gestionar cajas",
+    "units_per_pack": "{n} unidades por caja",
+    "edit_variant": "Condiciones del proveedor · {variant}",
+    "keep": "sin cambios",
+    "set_all": "Aplicar a todas las variantes",
+    "set_all_hint": "Mismo proveedor predeterminado para todas las variantes del producto. Los campos vacíos mantienen el valor actual.",
+    "updated": "{n, plural, one {# variante actualizada} other {# variantes actualizadas}}.",
+    "bulk_title": "Proveedor predeterminado en bloque",
+    "bulk_hint": "Elige las variantes por tipo de producto, marca o prefijo de SKU. {n} variantes activas aún no tienen proveedor predeterminado.",
+    "bulk_apply": "Aplicar",
+    "bulk_done": "{n} de {matched} variantes actualizadas.",
+    "filter": {
+      "product_type": "Tipo de producto",
+      "vendor": "Marca",
+      "sku_prefix": "Prefijo de SKU",
+      "any": "Cualquiera",
+      "only_without": "Solo variantes sin proveedor",
+      "required": "Elige al menos un filtro y un proveedor."
+    }
+  },
+  "case_packs": {
+    "back": "Compras",
+    "title": "Cajas",
+    "description": "Cajas con una proporción fija entre los valores de una opción (cualquiera: talla, material, aroma…). La reposición sugiere cuántas cajas por grupo de opciones; la página de mix las convierte en líneas de pedido.",
+    "empty_title": "Aún no hay cajas",
+    "empty_description": "Crea una con las unidades por valor de opción que tu proveedor envía en una caja.",
+    "for_product": "Solo para {product}",
+    "for_all": "Todo producto con la opción {option}",
+    "inactive": "Inactiva",
+    "units_per_pack": "{n} unidades por caja",
+    "add_title": "Nueva caja",
+    "no_options": "El catálogo aún no tiene opciones de producto.",
+    "name": "Nombre",
+    "option": "Opción",
+    "product": "Producto",
+    "all_products": "Todos los productos con esta opción",
+    "units": "Unidades por valor",
+    "units_for": "Unidades de {value}",
+    "custom_value": "Otro valor",
+    "add_value": "Añadir valor",
+    "active": "Activa"
+  },
+  "option_mix": {
+    "title": "Mix de opciones · {product}",
+    "description": "Cuota de ventas por combinación de opciones y un planificador que convierte una cantidad o cajas en un borrador de pedido de compra.",
+    "window": "Periodo de ventas",
+    "days": "{n} días",
+    "units_sold": "{n} unidades vendidas",
+    "share_by": "Cuota por {option}",
+    "combinations": "Combinaciones",
+    "sku": "SKU",
+    "sold": "Vendidas",
+    "share": "Cuota",
+    "suggested": "Sugeridas",
+    "planner": {
+      "title": "Planificar una compra",
+      "hint": "Reparte una cantidad por cuota de ventas o compra cajas por grupo de opciones (rellenadas con la sugerencia de reposición).",
+      "mode": {
+        "units": "Por cuota de ventas",
+        "packs": "Por caja"
+      },
+      "total_units": "Unidades a comprar",
+      "multiple": "Redondear a múltiplos de",
+      "suggested_total": "La reposición sugiere {n} unidades.",
+      "pack": "Caja",
+      "packs_for": "Cajas para {group}",
+      "cartons": "cajas",
+      "single_group": "Todas las variantes",
+      "variant": "Variante",
+      "quantity": "Cantidad",
+      "cost": "Coste",
+      "total": "Total",
+      "supplier": "Proveedor",
+      "destination": "Destino",
+      "create_po": "Crear borrador de pedido"
+    }
   },
   "analytics": {
     "title": "Analítica",
@@ -2971,7 +3150,9 @@
     "submit": {
       "confirm": "Confirmar",
       "problem": "Enviar"
-    }
+    },
+    "inactive_title": "Este enlace ya no es válido",
+    "inactive_body": "El enlace ha caducado o fue sustituido por uno más reciente. Pide un enlace nuevo a la empresa que te lo envió."
   },
   "planning": {
     "back": "Inventario",

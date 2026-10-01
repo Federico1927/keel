@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, createTranslator } from "next-intl";
 import { DEFAULT_LOCALE, PRODUCT_NAME, SUPPORTED_LOCALES, isLocale, type Locale } from "@keel/config";
 import { formatDate, formatMoney } from "@keel/core";
 import { adminDb, eq, schema, withTenant } from "@keel/db";
-import { supplierPoView, tenantForSupplierToken } from "@keel/services";
+import { recordSupplierLinkAccess, supplierPoView, tenantForSupplierToken } from "@keel/services";
 import { Badge, Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { loadMessages } from "@/i18n/messages";
 import { SupplierAckForm } from "./form";
@@ -24,11 +25,26 @@ export default async function SupplierPoPage({ params, searchParams }: { params:
   if (!found) notFound();
   const [tenant] = await adminDb().select({ defaultLocale: schema.tenants.defaultLocale, timezone: schema.tenants.timezone }).from(schema.tenants).where(eq(schema.tenants.id, found.tenantId)).limit(1);
   const locale: Locale = isLocale(lang) ? lang : isLocale(tenant?.defaultLocale) ? (tenant!.defaultLocale as Locale) : DEFAULT_LOCALE;
-  const view = await withTenant(found.tenantId, (tx) => supplierPoView({ tenantId: found.tenantId, tx, actor: { type: "system", userId: null } }, found.poId));
-  if (!view) notFound();
+  const h = await headers();
+  const sys = (tx: Parameters<Parameters<typeof withTenant>[1]>[0]) => ({ tenantId: found.tenantId, tx, actor: { type: "system" as const, userId: null } });
+  // every view is logged, blocked ones included; an expired or revoked link shows nothing of the order
+  const view = await withTenant(found.tenantId, async (tx) => {
+    await recordSupplierLinkAccess(sys(tx), found, { token, kind: "view", ip: h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null, userAgent: h.get("user-agent") });
+    return found.state === "active" ? supplierPoView(sys(tx), found.poId) : null;
+  });
   const messages = await loadMessages(locale);
   // messages are loaded at runtime for the chosen language, so keys are not statically typed here
   const t = createTranslator({ locale, messages, namespace: "supplier_portal" as never }) as unknown as (key: string, values?: Record<string, string | number>) => string;
+  if (found.state !== "active") {
+    return (
+      <main className="mx-auto flex min-h-[60vh] max-w-md flex-col justify-center space-y-3 px-4 py-8 text-center" lang={locale} data-testid="supplier-link-inactive">
+        <h1 className="text-xl font-semibold">{t("inactive_title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("inactive_body")}</p>
+        <footer className="pt-6 text-xs text-muted-foreground">{t("powered_by", { product: PRODUCT_NAME })}</footer>
+      </main>
+    );
+  }
+  if (!view) notFound();
   const money = (m: number) => formatMoney(m, view.currency, locale);
   const tz = tenant?.timezone ?? "UTC";
   const open = ["sent", "confirmed"].includes(view.status);

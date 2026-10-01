@@ -27,3 +27,5 @@ export const MAX_SEGMENT_DEPTH = 3;
 export const MAX_SEGMENT_CONDITIONS = 30;
 /** One-click discounts offered on an existing order (basis points); custom % or amounts are always possible. */
 export const ORDER_DISCOUNT_PRESETS_BPS = [500, 1000, 1500, 2000] as const;
+/** Days a supplier purchase order link stays valid after it is issued (resend issues a new one). */
+export const SUPPLIER_LINK_TTL_DAYS = 30;

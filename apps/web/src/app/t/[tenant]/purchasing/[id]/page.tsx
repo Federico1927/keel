@@ -3,21 +3,23 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
 import { canDo } from "@keel/config";
-import { PO_TRANSITIONS, formatDate, formatDateTime, formatMoney } from "@keel/core";
+import { PO_TRANSITIONS, canDeletePo, canEditPo, formatDate, formatDateTime, formatMoney } from "@keel/core";
 import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { getPurchaseOrder } from "@/server/queries/purchasing";
 import { StatusBadge } from "@/components/status-badge";
 import { PoActions, ReceiveForm } from "./actions";
 import { LandedCostCard, SupplierCard } from "./planning-cards";
+import { PoManageActions, SupplierLinks } from "./po-manage";
 
 export default async function PurchaseOrderPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
   const ctx = await requirePage(tenant, "purchasing");
   const detail = await getPurchaseOrder(ctx, id);
   if (!detail) notFound();
-  const { po, supplier, lines, backorders, payments, locations, charges } = detail;
+  const { po, supplier, lines, backorders, payments, locations, charges, links, history } = detail;
   const t = await getTranslations("po_detail");
+  const ta = await getTranslations("audit");
   const fmt = (m: number) => formatMoney(m, po.currency, ctx.locale);
   const canWrite = canDo(ctx.role, "receive_purchase_order");
   const receivable = ["confirmed", "in_transit", "partially_received"].includes(po.status);
@@ -42,7 +44,14 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
           {backorders.length > 0 && <Badge variant="info">{t("covers_orders", { n: new Set(backorders.map((b) => b.orderId)).size })}</Badge>}
         </>
       }
-      actions={canWrite ? <PoActions slug={tenant} poId={po.id} status={po.status} transitions={PO_TRANSITIONS[po.status] ?? []} supplierId={supplier.id} balanceMinor={po.totalMinor - paid} /> : undefined}
+      actions={
+        canWrite ? (
+          <div className="flex flex-wrap gap-2">
+            <PoActions slug={tenant} poId={po.id} status={po.status} transitions={PO_TRANSITIONS[po.status] ?? []} supplierId={supplier.id} balanceMinor={po.totalMinor - paid} />
+            <PoManageActions slug={tenant} poId={po.id} number={po.number} canEdit={canEditPo(po.status)} canDelete={canDeletePo(po.status)} />
+          </div>
+        ) : undefined
+      }
       aside={
         <>
           <Card>
@@ -59,7 +68,9 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
               {po.notes && <p className="pt-2 text-muted-foreground">{po.notes}</p>}
             </CardContent>
           </Card>
-          <SupplierCard slug={tenant} poId={po.id} status={po.status} defaultEmail={po.sentToEmail ?? supplier.email} sentTo={po.sentToEmail} sentAt={dt(po.sentAt)} ackAt={dt(po.supplierAckAt)} ackNote={po.supplierAckNote} pdfHref={`/t/${tenant}/purchasing/${po.id}/pdf`} canWrite={canWrite} />
+          <SupplierCard slug={tenant} poId={po.id} status={po.status} defaultEmail={po.sentToEmail ?? supplier.email} sentTo={po.sentToEmail} sentAt={dt(po.sentAt)} ackAt={dt(po.supplierAckAt)} ackNote={po.supplierAckNote} pdfHref={`/t/${tenant}/purchasing/${po.id}/pdf`} canWrite={canWrite}>
+            <SupplierLinks slug={tenant} poId={po.id} canWrite={canWrite} links={links.map((l) => ({ id: l.id, hint: l.tokenHint, to: l.sentToEmail, createdAt: formatDate(l.createdAt, ctx.locale, ctx.tenant.timezone), expiresAt: formatDate(l.expiresAt, ctx.locale, ctx.tenant.timezone), lastViewedAt: l.lastViewedAt ? formatDateTime(l.lastViewedAt, ctx.locale, ctx.tenant.timezone) : null, viewCount: l.viewCount, state: l.state }))} />
+          </SupplierCard>
           <LandedCostCard slug={tenant} poId={po.id} canWrite={canWrite && po.status !== "received" && po.status !== "cancelled"} total={fmt(chargesTotal)} charges={charges.map((c) => ({ id: c.id, kind: c.kind, basis: c.basis, amount: fmt(c.amountMinor), note: c.note }))} />
           {backorders.length > 0 && (
             <Card>
@@ -72,6 +83,24 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
                     <span>{b.orderName}</span>
                     <span className="text-muted-foreground">×{b.quantity} · {b.status}</span>
                   </Link>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+          {history.length > 0 && (
+            <Card data-testid="po-history">
+              <CardHeader>
+                <CardTitle className="text-base">{t("history.title")}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-xs">
+                {history.map((h) => (
+                  <div key={h.id} className="border-l-2 pl-2">
+                    <p className="font-medium">{t.has(`history.actions.${h.action}`) ? t(`history.actions.${h.action}` as never) : h.action}</p>
+                    <p className="text-muted-foreground">
+                      {formatDateTime(h.createdAt, ctx.locale, ctx.tenant.timezone)} · {h.actorType === "system" ? ta("system") : (h.actorName ?? h.actorEmail ?? "—")}
+                    </p>
+                    {Object.keys(h.diff as object).length > 0 && <p className="text-muted-foreground">{Object.keys(h.diff as object).join(", ")}</p>}
+                  </div>
                 ))}
               </CardContent>
             </Card>
@@ -100,7 +129,7 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
         </CardHeader>
         <CardContent className="p-0">
           {canWrite && receivable ? (
-            <ReceiveForm slug={tenant} poId={po.id} locations={locations.map((l) => ({ id: l.id, name: l.name, isDefault: l.isDefault }))} defaultLocationId={po.destinationLocationId} lines={lines.map((l) => ({ id: l.id, label: `${l.productTitle ?? l.description ?? ""} · ${l.variantTitle ?? ""}`, sku: l.sku, quantity: l.quantity, receivedQuantity: l.receivedQuantity, unitCost: l.landedUnitCostMinor !== null ? `${fmt(l.unitCostMinor)} → ${fmt(l.landedUnitCostMinor)}` : fmt(l.unitCostMinor) }))} />
+            <ReceiveForm slug={tenant} poId={po.id} locations={locations.map((l) => ({ id: l.id, name: l.name, isDefault: l.isDefault }))} defaultLocationId={po.destinationLocationId} lines={lines.map((l) => ({ id: l.id, label: l.productTitle ? `${l.productTitle} · ${l.variantTitle ?? ""}` : (l.description ?? ""), sku: l.sku ?? (l.variantId ? null : t("free_text_line")), quantity: l.quantity, receivedQuantity: l.receivedQuantity, damagedQuantity: l.damagedQuantity, rejectedQuantity: l.rejectedQuantity, unitCost: l.landedUnitCostMinor !== null ? `${fmt(l.unitCostMinor)} → ${fmt(l.landedUnitCostMinor)}` : fmt(l.unitCostMinor) }))} />
           ) : (
             <Table>
               <TableHeader>
@@ -118,10 +147,13 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
                   <TableRow key={l.id}>
                     <TableCell>
                       {l.productId ? <Link href={`/t/${tenant}/products/${l.productId}`} className="font-medium hover:underline">{l.productTitle}</Link> : <span className="font-medium">{l.description}</span>}
-                      <p className="text-xs text-muted-foreground">{l.variantTitle} {l.sku ? `· ${l.sku}` : ""}</p>
+                      <p className="text-xs text-muted-foreground">{l.variantId ? `${l.variantTitle ?? ""} ${l.sku ? `· ${l.sku}` : ""}` : t("free_text_line")}</p>
                     </TableCell>
                     <TableCell className="text-right tabular">{l.quantity}</TableCell>
-                    <TableCell className="text-right tabular">{l.receivedQuantity}</TableCell>
+                    <TableCell className="text-right tabular">
+                      {l.receivedQuantity}
+                      {l.damagedQuantity + l.rejectedQuantity > 0 && <span className="block text-xs text-destructive">{t("inspection.short", { damaged: l.damagedQuantity, rejected: l.rejectedQuantity })}</span>}
+                    </TableCell>
                     <TableCell className="text-right tabular">{fmt(l.unitCostMinor)}</TableCell>
                     {hasLanded && <TableCell className="text-right tabular">{l.landedUnitCostMinor !== null ? fmt(l.landedUnitCostMinor) : "—"}</TableCell>}
                     <TableCell className="text-right tabular">{fmt(l.unitCostMinor * l.quantity)}</TableCell>

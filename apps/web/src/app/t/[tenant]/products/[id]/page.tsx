@@ -10,6 +10,7 @@ import { getProductDetail } from "@/server/queries/catalog";
 import { RiskBadge } from "@/components/risk-badge";
 import { SalesChart } from "@/components/charts/sales-chart";
 import { ProductActions, VariantPriceForm } from "./actions";
+import { SupplierPacksSection } from "./supplier-section";
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
@@ -166,6 +167,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </Table>
         </CardContent>
       </Card>
+      <SupplierPacksSection ctx={ctx} slug={tenant} productId={product.id} />
     </DetailShell>
   );
 }

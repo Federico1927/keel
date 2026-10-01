@@ -4,10 +4,12 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, eq, recordAudit, schema } from "@keel/db";
 import { PURCHASE_ORDER_STATUSES, type PurchaseOrderStatus } from "@keel/core";
-import { PurchasingError, createPurchaseOrder, receivePurchaseOrder, recordSupplierPayment, transitionPurchaseOrder } from "@keel/services";
+import { PurchasingError, createPurchaseOrder, deletePurchaseOrder, duplicatePurchaseOrder, poVariantOptions, receivePurchaseOrder, recordSupplierPayment, revokeSupplierLinks, searchPoVariants, transitionPurchaseOrder, updatePurchaseOrder, type PoVariantOption, type ServiceContext } from "@keel/services";
 import { getCommercePlatform } from "@/server/integrations";
-import { ForbiddenError, requireAction } from "@/server/tenant";
+import { ForbiddenError, requireAction, requirePage, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
+
+const svc = (ctx: TenantContext, tx: ServiceContext["tx"]): ServiceContext => ({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } });
 
 function mapError(e: unknown): ActionResult {
   if (e instanceof ForbiddenError) return fail("forbidden");
@@ -31,13 +33,14 @@ export async function transitionPo(slug: string, poId: string, to: string): Prom
   }
 }
 
-const receiveSchema = z.object({ locationId: z.string().uuid().nullable(), pushToPlatform: z.boolean(), lines: z.array(z.object({ lineId: z.string().uuid(), quantity: z.coerce.number().int().min(0) })) });
+const receiveSchema = z.object({ locationId: z.string().uuid().nullable(), pushToPlatform: z.boolean(), lines: z.array(z.object({ lineId: z.string().uuid(), quantity: z.coerce.number().int().min(0), damaged: z.coerce.number().int().min(0), rejected: z.coerce.number().int().min(0) })) });
 
 export async function receivePo(slug: string, poId: string, _prev: ActionResult<{ status: string; released: number }> | null, formData: FormData): Promise<ActionResult<{ status: string; released: number }>> {
   try {
     const ctx = await requireAction(slug, "receive_purchase_order", "purchasing");
-    const lines: { lineId: string; quantity: number }[] = [];
-    for (const [k, v] of formData.entries()) if (k.startsWith("qty_")) lines.push({ lineId: k.slice(4), quantity: Number(v) });
+    // received now per line, of which damaged and rejected (inspection); only good units go to stock
+    const lines: { lineId: string; quantity: number; damaged: number; rejected: number }[] = [];
+    for (const [k, v] of formData.entries()) if (k.startsWith("qty_")) lines.push({ lineId: k.slice(4), quantity: Number(v), damaged: Number(formData.get(`dmg_${k.slice(4)}`) || 0), rejected: Number(formData.get(`rej_${k.slice(4)}`) || 0) });
     const parsed = receiveSchema.safeParse({ locationId: formData.get("locationId") || null, pushToPlatform: formData.get("pushToPlatform") === "on", lines });
     if (!parsed.success || parsed.data.lines.every((l) => l.quantity === 0)) return fail("invalid_input");
     const platform = parsed.data.pushToPlatform ? await getCommercePlatform(ctx) : null;
@@ -54,7 +57,7 @@ export async function receivePo(slug: string, poId: string, _prev: ActionResult<
             }
           : undefined,
       });
-      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "purchase_order.received", entityType: "purchase_order", entityId: poId, metadata: { status: r.status, received: r.received.map((x) => ({ variantId: x.variantId, quantity: x.quantity, cost: x.newCostMinor })), releasedOrders: r.releasedOrders, pushToPlatform: Boolean(platform) } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "purchase_order.received", entityType: "purchase_order", entityId: poId, metadata: { status: r.status, received: r.received.map((x) => ({ variantId: x.variantId, quantity: x.quantity, cost: x.newCostMinor })), inspection: r.inspected.map((x) => ({ lineId: x.lineId, variantId: x.variantId, description: x.description, received: x.received, good: x.good, damaged: x.damaged, rejected: x.rejected })), releasedOrders: r.releasedOrders, pushToPlatform: Boolean(platform) } });
       return r;
     });
     revalidatePath(`/t/${slug}/purchasing/${poId}`);
@@ -65,30 +68,116 @@ export async function receivePo(slug: string, poId: string, _prev: ActionResult<
   }
 }
 
-const createSchema = z.object({ supplierId: z.string().uuid(), destinationLocationId: z.string().uuid().nullable(), expectedAt: z.string().optional(), notes: z.string().max(2000).optional(), lines: z.array(z.object({ variantId: z.string().uuid(), quantity: z.coerce.number().int().min(1), unitCostMinor: z.coerce.number().int().min(0) })).min(1) });
+const lineSchema = z.object({ variantId: z.string().uuid().nullable(), description: z.string().trim().max(300).nullable().optional(), quantity: z.coerce.number().int().min(1).max(1_000_000), unitCost: z.coerce.number().min(0).max(10_000_000) });
+const poFormSchema = z.object({ supplierId: z.string().uuid(), destinationLocationId: z.string().uuid().nullable(), expectedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), notes: z.string().max(2000).optional(), lines: z.array(lineSchema).min(1).max(500) });
+
+/** The PO editor posts its lines as JSON (catalogue lines with a variant, free-text lines with a description). */
+function parsePoForm(formData: FormData) {
+  let lines: unknown = [];
+  try {
+    lines = JSON.parse(String(formData.get("lines") ?? "[]"));
+  } catch {
+    return null;
+  }
+  const parsed = poFormSchema.safeParse({ supplierId: formData.get("supplierId"), destinationLocationId: formData.get("destinationLocationId") || null, expectedAt: formData.get("expectedAt") || undefined, notes: formData.get("notes") || undefined, lines });
+  if (!parsed.success || parsed.data.lines.some((l) => !l.variantId && !l.description)) return null;
+  const d = parsed.data;
+  return { supplierId: d.supplierId, destinationLocationId: d.destinationLocationId, expectedAt: d.expectedAt ? new Date(`${d.expectedAt}T12:00:00Z`) : null, notes: d.notes?.trim() || null, lines: d.lines.map((l) => ({ variantId: l.variantId, description: l.variantId ? null : (l.description ?? null), quantity: l.quantity, unitCostMinor: Math.round(l.unitCost * 100) })) };
+}
 
 export async function createPo(slug: string, _prev: ActionResult<{ id: string }> | null, formData: FormData): Promise<ActionResult<{ id: string }>> {
   try {
     const ctx = await requireAction(slug, "receive_purchase_order", "purchasing");
-    const lines: { variantId: string; quantity: unknown; unitCostMinor: unknown }[] = [];
-    for (const [k, v] of formData.entries()) {
-      if (!k.startsWith("qty_")) continue;
-      const variantId = k.slice(4);
-      const qty = Number(v);
-      if (!qty) continue;
-      lines.push({ variantId, quantity: qty, unitCostMinor: Math.round(Number(formData.get(`cost_${variantId}`) ?? 0) * 100) });
-    }
-    const parsed = createSchema.safeParse({ supplierId: formData.get("supplierId"), destinationLocationId: formData.get("destinationLocationId") || null, expectedAt: formData.get("expectedAt") || undefined, notes: formData.get("notes") || undefined, lines });
-    if (!parsed.success) return fail("invalid_input");
+    const input = parsePoForm(formData);
+    if (!input) return fail("invalid_input");
     const id = await ctx.run(async (tx) => {
-      const poId = await createPurchaseOrder({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { supplierId: parsed.data.supplierId, destinationLocationId: parsed.data.destinationLocationId, currency: ctx.tenant.currency, expectedAt: parsed.data.expectedAt ? new Date(parsed.data.expectedAt) : null, notes: parsed.data.notes ?? null, lines: parsed.data.lines });
-      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "purchase_order.created", entityType: "purchase_order", entityId: poId, metadata: { lines: parsed.data.lines.length } });
+      const poId = await createPurchaseOrder(svc(ctx, tx), { ...input, currency: ctx.tenant.currency });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "purchase_order.created", entityType: "purchase_order", entityId: poId, metadata: { lines: input.lines.length, freeTextLines: input.lines.filter((l) => !l.variantId).length } });
       return poId;
     });
     revalidatePath(`/t/${slug}/purchasing`);
     return ok({ id });
   } catch (e) {
     return mapError(e) as ActionResult<{ id: string }>;
+  }
+}
+
+/** Edits a draft or sent PO: header and lines replaced, audited with the field and line diff. */
+export async function updatePo(slug: string, poId: string, _prev: ActionResult<{ id: string }> | null, formData: FormData): Promise<ActionResult<{ id: string }>> {
+  try {
+    const ctx = await requireAction(slug, "receive_purchase_order", "purchasing");
+    const input = parsePoForm(formData);
+    if (!input) return fail("invalid_input");
+    await ctx.run(async (tx) => {
+      const r = await updatePurchaseOrder(svc(ctx, tx), poId, input);
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "purchase_order.updated", entityType: "purchase_order", entityId: poId, diff: r.diff, metadata: { lines: r.lines } });
+    });
+    revalidatePath(`/t/${slug}/purchasing/${poId}`);
+    revalidatePath(`/t/${slug}/purchasing`);
+    return ok({ id: poId });
+  } catch (e) {
+    return mapError(e) as ActionResult<{ id: string }>;
+  }
+}
+
+export async function duplicatePo(slug: string, poId: string): Promise<ActionResult<{ id: string }>> {
+  try {
+    const ctx = await requireAction(slug, "receive_purchase_order", "purchasing");
+    const copy = await ctx.run(async (tx) => {
+      const r = await duplicatePurchaseOrder(svc(ctx, tx), poId);
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "purchase_order.duplicated", entityType: "purchase_order", entityId: r.id, metadata: { from: poId, number: r.number } });
+      return r;
+    });
+    revalidatePath(`/t/${slug}/purchasing`);
+    return ok({ id: copy.id });
+  } catch (e) {
+    return mapError(e) as ActionResult<{ id: string }>;
+  }
+}
+
+export async function deletePo(slug: string, poId: string): Promise<ActionResult> {
+  try {
+    const ctx = await requireAction(slug, "receive_purchase_order", "purchasing");
+    await ctx.run(async (tx) => {
+      const r = await deletePurchaseOrder(svc(ctx, tx), poId);
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "purchase_order.deleted", entityType: "purchase_order", entityId: poId, diff: { status: { from: r.status, to: null } }, metadata: r });
+    });
+    revalidatePath(`/t/${slug}/purchasing`);
+    return ok();
+  } catch (e) {
+    return mapError(e);
+  }
+}
+
+/** Variant search for the PO editor (any variant by SKU, barcode or title), with stock and supplier cost. */
+export async function searchPoVariantsAction(slug: string, q: string): Promise<PoVariantOption[]> {
+  const ctx = await requirePage(slug, "purchasing");
+  return ctx.run((tx) => searchPoVariants(svc(ctx, tx), ctx.settings, String(q ?? "")));
+}
+
+/** Facts of known variants (pre-filled lines of an existing PO). */
+export async function poVariantOptionsAction(slug: string, variantIds: string[]): Promise<PoVariantOption[]> {
+  const ctx = await requirePage(slug, "purchasing");
+  const ids = z.array(z.string().uuid()).max(500).safeParse(variantIds);
+  if (!ids.success) return [];
+  return ctx.run((tx) => poVariantOptions(svc(ctx, tx), ctx.settings, ids.data));
+}
+
+/** Revokes the supplier links of a PO (the supplier then sees the neutral page). */
+export async function revokeSupplierLinksAction(slug: string, poId: string): Promise<ActionResult<{ revoked: number }>> {
+  try {
+    const ctx = await requireAction(slug, "receive_purchase_order", "purchasing");
+    const n = await ctx.run(async (tx) => {
+      const [po] = await tx.select({ id: schema.purchaseOrders.id }).from(schema.purchaseOrders).where(and(eq(schema.purchaseOrders.tenantId, ctx.tenant.id), eq(schema.purchaseOrders.id, poId))).limit(1);
+      if (!po) throw new PurchasingError("not_found");
+      const revoked = await revokeSupplierLinks(svc(ctx, tx), poId);
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "purchase_order.supplier_link_revoked", entityType: "purchase_order", entityId: poId, metadata: { revoked } });
+      return revoked;
+    });
+    revalidatePath(`/t/${slug}/purchasing/${poId}`);
+    return ok({ revoked: n });
+  } catch (e) {
+    return mapError(e) as ActionResult<{ revoked: number }>;
   }
 }
 

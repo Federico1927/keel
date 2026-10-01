@@ -1,4 +1,3 @@
-import { randomBytes } from "node:crypto";
 import { and, eq, gte, inArray, schema, sql } from "@keel/db";
 import {
   addMonthsKey,
@@ -26,6 +25,7 @@ import {
 import type { CommercePlatform } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 import { createPurchaseOrder, nextPoNumber } from "../purchasing";
+import { issueSupplierLink } from "../purchasing/links";
 
 const SALE = "('confirmed','fulfilling','shipped','delivered','returned_partial')";
 const monthKey = (d: Date) => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
@@ -340,12 +340,12 @@ export async function deletePoCharge(ctx: ServiceContext, poId: string, chargeId
 
 /* ---------- supplier send & confirmation ---------- */
 
-/** Marks the PO as sent to the supplier with a fresh confirmation token; returns the token. */
+/**
+ * Marks the PO as sent to the supplier with a fresh confirmation link (the previous one is
+ * revoked); returns the token, which is shown once and stored only as a hash.
+ */
 export async function issueSupplierToken(ctx: ServiceContext, poId: string, email: string | null): Promise<string> {
-  const token = randomBytes(24).toString("base64url");
-  const now = ctx.now ?? new Date();
-  await ctx.tx.update(schema.purchaseOrders).set({ supplierToken: token, sentToEmail: email, sentAt: now, orderedAt: sql`coalesce(${schema.purchaseOrders.orderedAt}, ${now})`, status: sql`case when ${schema.purchaseOrders.status} = 'draft' then 'sent' else ${schema.purchaseOrders.status} end` }).where(and(eq(schema.purchaseOrders.tenantId, ctx.tenantId), eq(schema.purchaseOrders.id, poId)));
-  return token;
+  return (await issueSupplierLink(ctx, poId, email)).token;
 }
 
 /* ---------- cash flow ---------- */

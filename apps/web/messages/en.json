@@ -804,7 +804,21 @@
       "expected": "Expected / received",
       "units": "Units",
       "total": "Total",
-      "covers": "Backorders"
+      "covers": "Backorders",
+      "destination": "Destination"
+    },
+    "packs": "Case packs",
+    "export_csv": "Export CSV",
+    "filters": {
+      "search": "Search",
+      "search_placeholder": "Number, supplier, SKU, note",
+      "all_suppliers": "All suppliers",
+      "destination": "Destination",
+      "all_destinations": "All destinations",
+      "from": "From",
+      "to": "To",
+      "apply": "Apply",
+      "clear": "Clear"
     }
   },
   "po_detail": {
@@ -878,6 +892,55 @@
       "send": "Send to supplier",
       "resend": "Send again",
       "link_hint": "Confirmation link (in demo mode no email leaves the platform: copy it to the supplier):"
+    },
+    "free_text_line": "Free-text line",
+    "inspection": {
+      "damaged": "Damaged",
+      "rejected": "Rejected",
+      "short": "{damaged} damaged · {rejected} rejected",
+      "hint": "\"Receive now\" counts every unit that arrived; damaged and rejected units are part of it and never go to stock or into the cost."
+    },
+    "manage": {
+      "duplicate": "Duplicate",
+      "delete_title": "Delete {number}?",
+      "delete_hint": "Only drafts and cancelled orders can be deleted. Lines, charges and supplier links go with it; the audit log keeps the record."
+    },
+    "links": {
+      "title": "Supplier links",
+      "state": {
+        "active": "Active",
+        "expired": "Expired",
+        "revoked": "Revoked"
+      },
+      "issued": "Issued {at} to {to}",
+      "expires": "Expires {at}",
+      "expired_on": "Expired on {at}",
+      "revoked": "Revoked: the supplier sees a neutral page.",
+      "views": "{n, plural, one {# view} other {# views}}, last {at}",
+      "no_views": "Never opened",
+      "revoke": "Revoke link",
+      "revoked_ok": "Link revoked."
+    },
+    "history": {
+      "title": "History",
+      "actions": {
+        "purchase_order": {
+          "created": "Created",
+          "updated": "Edited",
+          "duplicated": "Created as a copy",
+          "deleted": "Deleted",
+          "transition": "Status changed",
+          "received": "Goods received",
+          "sent_to_supplier": "Sent to the supplier",
+          "supplier_confirmed": "Confirmed by the supplier",
+          "supplier_problem": "Problem reported by the supplier",
+          "supplier_link_revoked": "Supplier link revoked",
+          "supplier_link_blocked": "Expired or revoked link opened",
+          "auto_draft": "Drafted from the replenishment plan",
+          "charge_added": "Charge added",
+          "charge_deleted": "Charge removed"
+        }
+      }
     }
   },
   "po_new": {
@@ -898,6 +961,26 @@
       "quantity": "Quantity",
       "unit_cost": "Unit cost ({currency})"
     }
+  },
+  "po_editor": {
+    "lines": "Lines",
+    "search_placeholder": "Add a variant: SKU, barcode or title",
+    "no_results": "No variant found.",
+    "available_n": "{n} available",
+    "suggested_n": "suggested {n}",
+    "add_free_text": "Free-text line",
+    "free_text_placeholder": "Description (packaging, samples, service…)",
+    "free_text": "Not in catalogue",
+    "line_total": "Line total",
+    "empty": "No lines yet: search a variant, add a suggestion or a free-text line.",
+    "total": "Total",
+    "suggestions": "Reorder suggestions",
+    "add_all": "Add all suggested",
+    "add": "Add",
+    "save": "Save changes",
+    "edit_title": "Edit {number}",
+    "edit_hint": "Lines are replaced as a whole; every change is in the order history.",
+    "edit_sent_hint": "The order is already with the supplier: the supplier stays the same and the supplier link shows the new lines."
   },
   "suppliers": {
     "back": "Purchasing",
@@ -934,6 +1017,102 @@
     "terms_hint": "The planner uses lead time and its variability for safety stock, MOQ and multiples to round quantities, deposit and balance days for the cash-flow plan.",
     "terms_summary": "{deposit}% deposit · balance {days} days after receipt",
     "moq_summary": "MOQ {moq}"
+  },
+  "supplier_terms": {
+    "title": "Suppliers & packs",
+    "hint": "Default supplier of each variant: planning and auto-drafted purchase orders use its cost, MOQ and lead time.",
+    "missing": "{n, plural, one {# variant has} other {# variants have}} no default supplier: auto-drafts skip them.",
+    "option_mix": "Option mix",
+    "columns": {
+      "variant": "Variant",
+      "supplier": "Supplier",
+      "supplier_sku": "Supplier SKU",
+      "cost": "Cost",
+      "moq": "MOQ",
+      "multiple": "Order multiple",
+      "lead_time": "Lead time (days)"
+    },
+    "edit": "Edit",
+    "none": "None",
+    "days": "{n} d",
+    "packs": "Case packs",
+    "no_packs": "No case pack fits this product.",
+    "manage_packs": "Manage packs",
+    "units_per_pack": "{n} units per pack",
+    "edit_variant": "Supplier terms · {variant}",
+    "keep": "unchanged",
+    "set_all": "Set for all variants",
+    "set_all_hint": "Same default supplier for every variant of the product. Empty fields keep the current value.",
+    "updated": "{n, plural, one {# variant} other {# variants}} updated.",
+    "bulk_title": "Default supplier in bulk",
+    "bulk_hint": "Pick the variants by product type, vendor or SKU prefix. {n} active variants have no default supplier yet.",
+    "bulk_apply": "Apply",
+    "bulk_done": "{n} of {matched} variants updated.",
+    "filter": {
+      "product_type": "Product type",
+      "vendor": "Vendor",
+      "sku_prefix": "SKU prefix",
+      "any": "Any",
+      "only_without": "Only variants without a supplier",
+      "required": "Choose at least one filter and a supplier."
+    }
+  },
+  "case_packs": {
+    "back": "Purchasing",
+    "title": "Case packs",
+    "description": "Cartons with a fixed ratio across the values of one option (any option: size, material, scent…). Replenishment suggests how many cartons per option group; the option-mix page turns them into PO lines.",
+    "empty_title": "No case packs yet",
+    "empty_description": "Create one with the units per option value your supplier ships in a carton.",
+    "for_product": "Only for {product}",
+    "for_all": "Every product with the option {option}",
+    "inactive": "Inactive",
+    "units_per_pack": "{n} units per pack",
+    "add_title": "New case pack",
+    "no_options": "The catalogue has no product options yet.",
+    "name": "Name",
+    "option": "Option",
+    "product": "Product",
+    "all_products": "All products with this option",
+    "units": "Units per value",
+    "units_for": "Units of {value}",
+    "custom_value": "Another value",
+    "add_value": "Add value",
+    "active": "Active"
+  },
+  "option_mix": {
+    "title": "Option mix · {product}",
+    "description": "Sales share per option combination, and a planner that turns a quantity or case packs into a draft purchase order.",
+    "window": "Sales window",
+    "days": "{n} days",
+    "units_sold": "{n} units sold",
+    "share_by": "Share by {option}",
+    "combinations": "Combinations",
+    "sku": "SKU",
+    "sold": "Sold",
+    "share": "Share",
+    "suggested": "Suggested",
+    "planner": {
+      "title": "Plan a purchase",
+      "hint": "Split a quantity by sales share, or buy cartons per option group (pre-filled with the replenishment suggestion).",
+      "mode": {
+        "units": "By sales share",
+        "packs": "By case pack"
+      },
+      "total_units": "Units to buy",
+      "multiple": "Round to multiples of",
+      "suggested_total": "Replenishment suggests {n} units.",
+      "pack": "Case pack",
+      "packs_for": "Cartons for {group}",
+      "cartons": "cartons",
+      "single_group": "All variants",
+      "variant": "Variant",
+      "quantity": "Quantity",
+      "cost": "Cost",
+      "total": "Total",
+      "supplier": "Supplier",
+      "destination": "Destination",
+      "create_po": "Create draft PO"
+    }
   },
   "analytics": {
     "title": "Analytics",
@@ -2971,7 +3150,9 @@
     "submit": {
       "confirm": "Confirm",
       "problem": "Send"
-    }
+    },
+    "inactive_title": "This link is no longer valid",
+    "inactive_body": "The link has expired or was replaced by a newer one. Ask the company that sent it for a new link."
   },
   "planning": {
     "back": "Inventory",

@@ -80,7 +80,7 @@ export function LandedCostCard({ slug, poId, charges, total, canWrite }: { slug:
 }
 
 /** Send to the supplier (PDF + confirmation link) and see what the supplier answered. */
-export function SupplierCard({ slug, poId, status, defaultEmail, sentTo, sentAt, ackAt, ackNote, pdfHref, canWrite }: { slug: string; poId: string; status: string; defaultEmail: string | null; sentTo: string | null; sentAt: string | null; ackAt: string | null; ackNote: string | null; pdfHref: string; canWrite: boolean }) {
+export function SupplierCard({ slug, poId, status, defaultEmail, sentTo, sentAt, ackAt, ackNote, pdfHref, canWrite, children }: { slug: string; poId: string; status: string; defaultEmail: string | null; sentTo: string | null; sentAt: string | null; ackAt: string | null; ackNote: string | null; pdfHref: string; canWrite: boolean; children?: React.ReactNode }) {
   const t = useTranslations("po_detail.supplier");
   const tc = useTranslations("common");
   const [state, action, pending] = useActionState(sendPoToSupplierAction.bind(null, slug, poId), null);
@@ -112,6 +112,7 @@ export function SupplierCard({ slug, poId, status, defaultEmail, sentTo, sentAt,
             {state && !state.ok && <Alert variant="destructive"><AlertDescription>{tc(`errors.${state.error}`)}</AlertDescription></Alert>}
           </form>
         )}
+        {children}
       </CardContent>
     </Card>
   );
