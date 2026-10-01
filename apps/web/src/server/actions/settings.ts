@@ -66,6 +66,8 @@ export async function updateOperationalSettings(slug: string, _prev: ActionResul
       duplicateOrderWindowDays: num(formData.get("duplicateOrderWindowDays")) ?? current.duplicateOrderWindowDays,
       shipmentStuckDays: num(formData.get("shipmentStuckDays")) ?? current.shipmentStuckDays,
       returnWindowDays: num(formData.get("returnWindowDays")) ?? current.returnWindowDays,
+      returnShippingFallbackDays: num(formData.get("returnShippingFallbackDays")) ?? current.returnShippingFallbackDays,
+      returnExcludedProductTypes: formData.has("returnExcludedProductTypes") ? String(formData.get("returnExcludedProductTypes")).split(",").map((x) => x.trim()).filter(Boolean) : current.returnExcludedProductTypes,
       shippingCostMinor: num(formData.get("shippingCostMinor")) ?? current.shippingCostMinor,
       paymentFeeBps: { ...current.paymentFeeBps },
       paymentFeeFixedMinor: { ...current.paymentFeeFixedMinor },

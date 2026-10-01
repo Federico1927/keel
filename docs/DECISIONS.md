@@ -151,3 +151,11 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · RFM bands and tiers are fixed in this version
 
 **Decision.** Recency bands 0–90 / 91–180 / 181–365 / ≤ 2 years / > 2 years and frequency bands 1 / 2 / 3–4 / 5+ are constants, and the eight tiers follow the top-down rule set documented in the RFM page. Making them tenant settings is a later step; the functions already take plain numbers so nothing else changes.
+
+## 2026-10-01 · Returns close the loop on stock and on the order, nothing else is automatic
+
+**Decision.** The return workflow is fixed to `requested → approved → received → inspected → refunded | exchanged | voucher_issued`, with `rejected` from any open state; tenants configure reasons, window, shipping fallback and excluded product types, not the states themselves (the brief allows "configurable states within this set"; adding states would break the propagation rules). Restock is an explicit choice at `received`, per line and per location, and writes an `inventory_movements` row like a purchase receipt. Closing a return updates the order's returned fraction (goods back over goods ordered), refunded amount and payment status, and lets `recomputeOrderStatus` decide between `returned_partial`, `returned` and `refunded`: returns never set the canonical status directly. Refunds on the payment platform are not triggered from Keel in the MVP; the amount is recorded and the Shopify adapter can wire `refundCreate` in phase 9.
+
+## 2026-10-01 · Discount economics use the same scope as everything else
+
+**Decision.** A code's orders are the `order_discounts` rows whose order is in sale scope; revenue and margin come from `orderEconomics`, so a code with a negative margin shows it. Pools generate codes locally with a dependency-free generator and push them to the platform in one call; the platform's `imported`/`failed` split is stored per code (`is_active` false for failed) and the pool is marked `partial`, so a retry is a visible action rather than a silent loop. Codes synced from the platform are read-only except for enable/disable.

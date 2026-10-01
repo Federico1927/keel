@@ -29,6 +29,8 @@ export const tenantSettingsSchema = z.object({
   shipmentStickyExceptionDays: z.number().int().min(0).default(TENANT_SETTING_DEFAULTS.shipmentStickyExceptionDays),
   returnWindowDays: z.number().int().min(0).default(TENANT_SETTING_DEFAULTS.returnWindowDays),
   returnShippingFallbackDays: z.number().int().min(0).default(TENANT_SETTING_DEFAULTS.returnShippingFallbackDays),
+  /** Product types that can never be returned (e.g. gift cards); matched case-insensitively. */
+  returnExcludedProductTypes: z.array(z.string().max(80)).max(50).default([]),
   paymentFeeBps: feeMap.default({ ...TENANT_SETTING_DEFAULTS.paymentFeeBps }),
   paymentFeeFixedMinor: feeMap.default({ ...TENANT_SETTING_DEFAULTS.paymentFeeFixedMinor }),
   shippingCostMinor: z.number().int().min(0).default(TENANT_SETTING_DEFAULTS.shippingCostMinor),

@@ -12,3 +12,5 @@ export * from "./inventory";
 export * from "./finance";
 export * from "./campaigns";
 export * from "./segments";
+export * from "./returns";
+export * from "./discounts";

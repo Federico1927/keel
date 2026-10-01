@@ -243,7 +243,10 @@
         "duplicateOrderWindowDays": "Finestra ordini duplicati (giorni)",
         "shipmentStuckDays": "Spedizione ferma dopo (giorni)",
         "returnWindowDays": "Finestra resi (giorni)",
-        "shippingCostMinor": "Costo spedizione predefinito (centesimi)"
+        "shippingCostMinor": "Costo spedizione predefinito (centesimi)",
+        "returnShippingFallbackDays": "Giorni dalla spedizione alla consegna presunta",
+        "returnExcludedProductTypes": "Tipi di prodotto esclusi dai resi",
+        "returnExcludedProductTypes_placeholder": "Gift card, Intimo"
       }
     },
     "taxes": {
@@ -495,7 +498,8 @@
       "other": "Altro"
     },
     "restock": "Reintegra la merce",
-    "refund": "Rimborsa il pagamento incassato"
+    "refund": "Rimborsa il pagamento incassato",
+    "request_return": "Apri reso"
   },
   "order_events": {
     "imported": "Importato",
@@ -1200,5 +1204,304 @@
       "invalid_rules": "Regole non valide.",
       "forbidden": "Non hai i permessi."
     }
+  },
+  "return_status": {
+    "requested": "Richiesto",
+    "approved": "Approvato",
+    "received": "Ricevuto",
+    "inspected": "Ispezionato",
+    "refunded": "Rimborsato",
+    "exchanged": "Cambiato",
+    "voucher_issued": "Buono emesso",
+    "rejected": "Rifiutato"
+  },
+  "returns": {
+    "title": "Resi",
+    "description": "Richieste di reso con flusso configurabile, rientro a stock facoltativo per location e analisi per motivo e prodotto.",
+    "analytics": "Analisi",
+    "reasons": "Motivi",
+    "open": "Aperti",
+    "search": "Cerca",
+    "search_placeholder": "Numero reso, ordine, cliente",
+    "all_reasons": "Tutti i motivi",
+    "empty_title": "Nessun reso",
+    "empty_description": "I resi si aprono dal dettaglio di un ordine.",
+    "out_of_window": "Fuori finestra",
+    "items_n": "{n} articoli",
+    "pagination": "{from}–{to} di {total}",
+    "resolution": {
+      "refund": "Rimborso",
+      "exchange": "Cambio",
+      "voucher": "Buono"
+    },
+    "columns": {
+      "return": "Reso",
+      "order": "Ordine",
+      "reason": "Motivo",
+      "resolution": "Esito",
+      "amount": "Importo",
+      "status": "Stato",
+      "requested": "Richiesto il"
+    }
+  },
+  "return_detail": {
+    "order": "Ordine",
+    "placed": "Effettuato il {date}",
+    "notes": "Dettagli",
+    "reason": "Motivo",
+    "customer_note": "Nota del cliente",
+    "staff_note": "Note interne",
+    "voucher_code": "Codice buono",
+    "restocked_at": "Rientrato a stock in {location}",
+    "closing": "Chiuso",
+    "proposed_amount": "Proposto",
+    "accepted_amount": "Accettato",
+    "refunded_amount": "Rimborsato",
+    "lines": "Articoli",
+    "item": "Articolo",
+    "qty": "Q.tà",
+    "unit": "Valore unitario",
+    "inspection": "Ispezione",
+    "accepted": "Accettato",
+    "restocked": "A stock",
+    "yes": "Sì",
+    "history": "Storico",
+    "event_requested": "Reso richiesto",
+    "event_status": "{from} → {to}",
+    "event_updated": "Reso aggiornato",
+    "faults": {
+      "merchant": "Colpa del venditore",
+      "customer": "Scelta del cliente",
+      "undetermined": "Da stabilire"
+    },
+    "outcome": {
+      "intact": "Integro",
+      "damaged": "Danneggiato",
+      "missing": "Mancante"
+    },
+    "actions": {
+      "approved": "Approva",
+      "received": "Segna ricevuto",
+      "inspected": "Registra ispezione",
+      "refunded": "Rimborsa",
+      "exchanged": "Segna cambiato",
+      "voucher_issued": "Emetti buono",
+      "rejected": "Rifiuta"
+    },
+    "dialog": {
+      "approved": {
+        "title": "Approvare questo reso?",
+        "description": "Il cliente può rispedire gli articoli."
+      },
+      "received": {
+        "title": "Articoli ricevuti",
+        "description": "Scegli se rimettere gli articoli a stock e dove."
+      },
+      "inspected": {
+        "title": "Ispezione",
+        "description": "Registra lo stato di ogni articolo e l'importo che accetti di rimborsare."
+      },
+      "refunded": {
+        "title": "Rimborso",
+        "description": "Chiude il reso e aggiorna importo rimborsato e stato dell'ordine."
+      },
+      "exchanged": {
+        "title": "Cambio",
+        "description": "Chiude il reso come cambio."
+      },
+      "voucher_issued": {
+        "title": "Emetti buono",
+        "description": "Chiude il reso con un buono."
+      },
+      "rejected": {
+        "title": "Rifiutare questo reso?",
+        "description": "Serve una nota."
+      }
+    },
+    "restock_label": "Rimetti gli articoli a stock",
+    "restock_location": "Location",
+    "already_restocked": "già a stock",
+    "push_platform": "Rientro anche sulla piattaforma e-commerce",
+    "fault": "Responsabilità",
+    "fault_keep": "Mantieni",
+    "refund_amount": "Importo da rimborsare",
+    "voucher_amount": "Importo del buono",
+    "proposed": "Proposto: {amount}",
+    "voucher_auto": "Vuoto per generarlo",
+    "reject_note": "Motivo del rifiuto",
+    "note_optional": "Nota (facoltativa)",
+    "errors": {
+      "return_bad_transition": "Passaggio non consentito dallo stato attuale.",
+      "return_location_required": "Scegli una location.",
+      "return_return_not_found": "Reso non trovato.",
+      "return_invalid_input": "Dati non validi."
+    }
+  },
+  "return_new": {
+    "title": "Reso per {order}",
+    "description": "Scegli articoli e quantità in rientro.",
+    "deadline": "Finestra di reso fino al {date} ({days} giorni rimasti)",
+    "lines_title": "Articoli",
+    "lines_description": "I valori unitari sono al netto dello sconto ordine, ripartito pro quota.",
+    "ordered": "ordinati {n}",
+    "already": "{n} già resi",
+    "excluded": "non restituibile",
+    "qty_for": "Quantità per {title}",
+    "customer_note": "Nota del cliente",
+    "staff_note": "Nota interna",
+    "staff_note_required": "Nota interna (obbligatoria per forzare la finestra)",
+    "summary": "Riepilogo",
+    "items": "Articoli",
+    "proposed": "Rimborso proposto",
+    "submit": "Apri reso",
+    "override_hint": "Lo staff può comunque aprirlo con una nota interna.",
+    "not_eligible": {
+      "cancelled": "L'ordine è annullato o già rimborsato.",
+      "not_delivered": "L'ordine non è ancora stato consegnato.",
+      "expired": "La finestra di reso è scaduta."
+    },
+    "errors": {
+      "return_not_eligible": "L'ordine non è idoneo al reso.",
+      "return_no_lines": "Scegli almeno un articolo.",
+      "return_quantity_exceeds": "Quantità superiore al restituibile.",
+      "return_bad_reason": "Scegli un motivo valido.",
+      "return_order_not_found": "Ordine non trovato."
+    }
+  },
+  "returns_analytics": {
+    "title": "Analisi resi",
+    "description": "Resi richiesti nel periodo (esclusi i rifiutati) per motivo, responsabilità, esito e prodotto.",
+    "kpi": {
+      "returns": "Resi",
+      "closed": "{n} chiusi",
+      "rate": "Tasso di reso",
+      "of_orders": "su {n} ordini",
+      "refunded": "Rimborsato",
+      "merchant_fault": "Colpa del venditore"
+    },
+    "by_reason": "Per motivo",
+    "by_fault_resolution": "Per responsabilità ed esito",
+    "by_product": "Per prodotto",
+    "count": "Resi",
+    "share": "Quota",
+    "amount": "Importo",
+    "product": "Prodotto",
+    "returned_qty": "Resi",
+    "sold_qty": "Venduti",
+    "rate": "Tasso"
+  },
+  "return_reasons": {
+    "title": "Motivi di reso",
+    "description": "Motivi proposti all'apertura di un reso. Finestra: {window} giorni; {excluded} tipi di prodotto esclusi (impostazioni).",
+    "add_title": "Aggiungi un motivo",
+    "code": "Codice",
+    "label": "Etichetta",
+    "default_fault": "Responsabilità predefinita",
+    "active": "Attivo",
+    "settings_hint": "Finestra, giorni di consegna presunta e tipi esclusi sono in",
+    "settings_link": "impostazioni operative."
+  },
+  "discounts": {
+    "title": "Sconti",
+    "description": "Codici sincronizzati dalla piattaforma più codici e pool creati qui, con ordini, ricavi e margine per codice.",
+    "new": "Nuovo sconto",
+    "search": "Cerca",
+    "search_placeholder": "Codice o titolo",
+    "empty_title": "Nessuno sconto",
+    "empty_description": "Crea un codice o collega la piattaforma per importarli.",
+    "free_shipping": "Spedizione gratuita",
+    "pagination": "{from}–{to} di {total}",
+    "pool_summary": "{codes} codici, {used} usati · {value}",
+    "all_codes": "Tutti gli sconti",
+    "pools_title": "Pool di codici",
+    "pools_description": "Blocchi di codici unici monouso.",
+    "state": {
+      "all": "Tutti",
+      "active": "Attivo",
+      "scheduled": "Programmato",
+      "expired": "Scaduto",
+      "exhausted": "Esaurito",
+      "disabled": "Disattivato"
+    },
+    "pool_status": {
+      "ready": "Pronto",
+      "partial": "Parziale"
+    },
+    "columns": {
+      "code": "Codice",
+      "value": "Valore",
+      "state": "Stato",
+      "uses": "Utilizzi",
+      "orders": "Ordini",
+      "given": "Sconto erogato",
+      "revenue": "Ricavo netto",
+      "margin": "Margine",
+      "validity": "Validità",
+      "pool": "Pool",
+      "codes": "Codici",
+      "used": "Usati"
+    }
+  },
+  "discount_new": {
+    "title": "Nuovo sconto",
+    "description": "Creato prima sulla piattaforma e-commerce, poi registrato qui.",
+    "tabs": {
+      "single": "Codice singolo",
+      "pool": "Pool in blocco"
+    },
+    "single_title": "Codice singolo",
+    "single_description": "Un codice condiviso con limiti facoltativi.",
+    "pool_title": "Pool di codici unici",
+    "pool_description": "Genera N codici monouso con prefisso, inviati alla piattaforma in una chiamata.",
+    "code": "Codice",
+    "title_field": "Titolo",
+    "type": "Tipo",
+    "types": {
+      "percentage": "Percentuale",
+      "fixed_amount": "Importo fisso",
+      "free_shipping": "Spedizione gratuita"
+    },
+    "value_pct": "Valore (%)",
+    "value_amount": "Valore ({currency})",
+    "value_na": "Valore",
+    "starts_at": "Inizio",
+    "ends_at": "Fine",
+    "usage_limit": "Limite utilizzi",
+    "minimum": "Ordine minimo ({currency})",
+    "create_code": "Crea codice",
+    "prefix": "Prefisso",
+    "size": "Numero di codici",
+    "create_pool": "Crea pool",
+    "errors": {
+      "discount_code_exists": "Questo codice esiste già.",
+      "discount_invalid_input": "Dati non validi.",
+      "discount_platform_error": "La piattaforma ha rifiutato lo sconto.",
+      "discount_not_found": "Non trovato."
+    }
+  },
+  "discount_detail": {
+    "platform": "Piattaforma",
+    "in_pool": "Pool: {title}",
+    "rules": "Regole",
+    "validity": "Validità",
+    "usage": "Utilizzi",
+    "minimum": "Ordine minimo",
+    "external_id": "Id piattaforma",
+    "disable": "Disattiva",
+    "enable": "Attiva",
+    "kpi": {
+      "orders": "Ordini di vendita",
+      "orders_hint": "non annullati né resi",
+      "given": "Sconto erogato",
+      "revenue": "Ricavo netto",
+      "margin": "Margine"
+    },
+    "orders_title": "Ordini con questo codice",
+    "order": "Ordine",
+    "date": "Data",
+    "customer": "Cliente",
+    "status": "Stato",
+    "discount": "Sconto",
+    "total": "Totale"
   }
 }

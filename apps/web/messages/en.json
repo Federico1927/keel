@@ -243,7 +243,10 @@
         "duplicateOrderWindowDays": "Duplicate order window (days)",
         "shipmentStuckDays": "Shipment stuck after (days)",
         "returnWindowDays": "Return window (days)",
-        "shippingCostMinor": "Default shipping cost (minor units)"
+        "shippingCostMinor": "Default shipping cost (minor units)",
+        "returnShippingFallbackDays": "Days from shipping to assumed delivery",
+        "returnExcludedProductTypes": "Product types excluded from returns",
+        "returnExcludedProductTypes_placeholder": "Gift card, Underwear"
       }
     },
     "taxes": {
@@ -495,7 +498,8 @@
       "other": "Other"
     },
     "restock": "Restock items",
-    "refund": "Refund captured payment"
+    "refund": "Refund captured payment",
+    "request_return": "Request return"
   },
   "order_events": {
     "imported": "Imported",
@@ -1200,5 +1204,304 @@
       "invalid_rules": "Rules are not valid.",
       "forbidden": "You are not allowed to do this."
     }
+  },
+  "return_status": {
+    "requested": "Requested",
+    "approved": "Approved",
+    "received": "Received",
+    "inspected": "Inspected",
+    "refunded": "Refunded",
+    "exchanged": "Exchanged",
+    "voucher_issued": "Voucher issued",
+    "rejected": "Rejected"
+  },
+  "returns": {
+    "title": "Returns",
+    "description": "Return requests with a configurable workflow, optional restock per location and analysis by reason and product.",
+    "analytics": "Analysis",
+    "reasons": "Reasons",
+    "open": "Open",
+    "search": "Search",
+    "search_placeholder": "Return number, order, customer",
+    "all_reasons": "All reasons",
+    "empty_title": "No returns",
+    "empty_description": "Returns can be opened from an order detail.",
+    "out_of_window": "Out of window",
+    "items_n": "{n} items",
+    "pagination": "{from}–{to} of {total}",
+    "resolution": {
+      "refund": "Refund",
+      "exchange": "Exchange",
+      "voucher": "Voucher"
+    },
+    "columns": {
+      "return": "Return",
+      "order": "Order",
+      "reason": "Reason",
+      "resolution": "Resolution",
+      "amount": "Amount",
+      "status": "Status",
+      "requested": "Requested"
+    }
+  },
+  "return_detail": {
+    "order": "Order",
+    "placed": "Placed {date}",
+    "notes": "Details",
+    "reason": "Reason",
+    "customer_note": "Customer note",
+    "staff_note": "Staff notes",
+    "voucher_code": "Voucher code",
+    "restocked_at": "Restocked at {location}",
+    "closing": "Closed",
+    "proposed_amount": "Proposed",
+    "accepted_amount": "Accepted",
+    "refunded_amount": "Refunded",
+    "lines": "Items",
+    "item": "Item",
+    "qty": "Qty",
+    "unit": "Unit value",
+    "inspection": "Inspection",
+    "accepted": "Accepted",
+    "restocked": "Restocked",
+    "yes": "Yes",
+    "history": "History",
+    "event_requested": "Return requested",
+    "event_status": "{from} → {to}",
+    "event_updated": "Return updated",
+    "faults": {
+      "merchant": "Merchant fault",
+      "customer": "Customer choice",
+      "undetermined": "Undetermined"
+    },
+    "outcome": {
+      "intact": "Intact",
+      "damaged": "Damaged",
+      "missing": "Missing"
+    },
+    "actions": {
+      "approved": "Approve",
+      "received": "Mark received",
+      "inspected": "Record inspection",
+      "refunded": "Refund",
+      "exchanged": "Mark exchanged",
+      "voucher_issued": "Issue voucher",
+      "rejected": "Reject"
+    },
+    "dialog": {
+      "approved": {
+        "title": "Approve this return?",
+        "description": "The customer can ship the items back."
+      },
+      "received": {
+        "title": "Items received",
+        "description": "Choose whether to put the items back to stock and where."
+      },
+      "inspected": {
+        "title": "Inspection",
+        "description": "Record the condition of each item and the amount you accept to refund."
+      },
+      "refunded": {
+        "title": "Refund",
+        "description": "Closes the return and updates the order's refunded amount and status."
+      },
+      "exchanged": {
+        "title": "Exchange",
+        "description": "Closes the return as an exchange."
+      },
+      "voucher_issued": {
+        "title": "Issue voucher",
+        "description": "Closes the return with a store credit."
+      },
+      "rejected": {
+        "title": "Reject this return?",
+        "description": "A note is required."
+      }
+    },
+    "restock_label": "Put items back to stock",
+    "restock_location": "Location",
+    "already_restocked": "already restocked",
+    "push_platform": "Also restock on the commerce platform",
+    "fault": "Fault",
+    "fault_keep": "Keep current",
+    "refund_amount": "Refund amount",
+    "voucher_amount": "Voucher amount",
+    "proposed": "Proposed: {amount}",
+    "voucher_auto": "Leave empty to generate",
+    "reject_note": "Reason for rejection",
+    "note_optional": "Note (optional)",
+    "errors": {
+      "return_bad_transition": "This step is not allowed from the current status.",
+      "return_location_required": "Choose a location.",
+      "return_return_not_found": "Return not found.",
+      "return_invalid_input": "Invalid data."
+    }
+  },
+  "return_new": {
+    "title": "Return for {order}",
+    "description": "Pick the items and quantities coming back.",
+    "deadline": "Return window until {date} ({days} days left)",
+    "lines_title": "Items",
+    "lines_description": "Unit values are net of the order discount, allocated pro rata.",
+    "ordered": "ordered {n}",
+    "already": "{n} already returned",
+    "excluded": "not returnable",
+    "qty_for": "Quantity for {title}",
+    "customer_note": "Customer note",
+    "staff_note": "Internal note",
+    "staff_note_required": "Internal note (required to override the window)",
+    "summary": "Summary",
+    "items": "Items",
+    "proposed": "Proposed refund",
+    "submit": "Open return",
+    "override_hint": "Staff can still open it with an internal note.",
+    "not_eligible": {
+      "cancelled": "The order is cancelled or fully refunded.",
+      "not_delivered": "The order has not been delivered yet.",
+      "expired": "The return window has expired."
+    },
+    "errors": {
+      "return_not_eligible": "The order is not eligible for a return.",
+      "return_no_lines": "Choose at least one item.",
+      "return_quantity_exceeds": "Quantity exceeds what can be returned.",
+      "return_bad_reason": "Choose a valid reason.",
+      "return_order_not_found": "Order not found."
+    }
+  },
+  "returns_analytics": {
+    "title": "Returns analysis",
+    "description": "Returns requested in the period (rejected excluded) by reason, fault, resolution and product.",
+    "kpi": {
+      "returns": "Returns",
+      "closed": "{n} closed",
+      "rate": "Return rate",
+      "of_orders": "on {n} orders",
+      "refunded": "Refunded",
+      "merchant_fault": "Merchant fault"
+    },
+    "by_reason": "By reason",
+    "by_fault_resolution": "By fault and resolution",
+    "by_product": "By product",
+    "count": "Returns",
+    "share": "Share",
+    "amount": "Amount",
+    "product": "Product",
+    "returned_qty": "Returned",
+    "sold_qty": "Sold",
+    "rate": "Rate"
+  },
+  "return_reasons": {
+    "title": "Return reasons",
+    "description": "Reasons offered when opening a return. Window: {window} days; {excluded} excluded product types (settings).",
+    "add_title": "Add a reason",
+    "code": "Code",
+    "label": "Label",
+    "default_fault": "Default fault",
+    "active": "Active",
+    "settings_hint": "Window, shipping fallback and excluded product types live in",
+    "settings_link": "operational settings."
+  },
+  "discounts": {
+    "title": "Discounts",
+    "description": "Codes synced from the platform plus codes and bulk pools created here, with orders, revenue and margin per code.",
+    "new": "New discount",
+    "search": "Search",
+    "search_placeholder": "Code or title",
+    "empty_title": "No discounts",
+    "empty_description": "Create a code or connect the platform to import them.",
+    "free_shipping": "Free shipping",
+    "pagination": "{from}–{to} of {total}",
+    "pool_summary": "{codes} codes, {used} used · {value}",
+    "all_codes": "All discounts",
+    "pools_title": "Code pools",
+    "pools_description": "Bulk sets of unique single-use codes.",
+    "state": {
+      "all": "All",
+      "active": "Active",
+      "scheduled": "Scheduled",
+      "expired": "Expired",
+      "exhausted": "Exhausted",
+      "disabled": "Disabled"
+    },
+    "pool_status": {
+      "ready": "Ready",
+      "partial": "Partial"
+    },
+    "columns": {
+      "code": "Code",
+      "value": "Value",
+      "state": "State",
+      "uses": "Uses",
+      "orders": "Orders",
+      "given": "Discount given",
+      "revenue": "Net revenue",
+      "margin": "Margin",
+      "validity": "Validity",
+      "pool": "Pool",
+      "codes": "Codes",
+      "used": "Used"
+    }
+  },
+  "discount_new": {
+    "title": "New discount",
+    "description": "Created on the commerce platform first, then recorded here.",
+    "tabs": {
+      "single": "Single code",
+      "pool": "Bulk pool"
+    },
+    "single_title": "Single code",
+    "single_description": "One shared code with optional limits.",
+    "pool_title": "Pool of unique codes",
+    "pool_description": "Generates N single-use codes with a prefix, pushed to the platform in one call.",
+    "code": "Code",
+    "title_field": "Title",
+    "type": "Type",
+    "types": {
+      "percentage": "Percentage",
+      "fixed_amount": "Fixed amount",
+      "free_shipping": "Free shipping"
+    },
+    "value_pct": "Value (%)",
+    "value_amount": "Value ({currency})",
+    "value_na": "Value",
+    "starts_at": "Starts",
+    "ends_at": "Ends",
+    "usage_limit": "Usage limit",
+    "minimum": "Minimum order ({currency})",
+    "create_code": "Create code",
+    "prefix": "Prefix",
+    "size": "Number of codes",
+    "create_pool": "Create pool",
+    "errors": {
+      "discount_code_exists": "This code already exists.",
+      "discount_invalid_input": "Invalid data.",
+      "discount_platform_error": "The commerce platform rejected the discount.",
+      "discount_not_found": "Not found."
+    }
+  },
+  "discount_detail": {
+    "platform": "Platform",
+    "in_pool": "Pool: {title}",
+    "rules": "Rules",
+    "validity": "Validity",
+    "usage": "Usage",
+    "minimum": "Minimum order",
+    "external_id": "Platform id",
+    "disable": "Disable",
+    "enable": "Enable",
+    "kpi": {
+      "orders": "Sale orders",
+      "orders_hint": "not cancelled or returned",
+      "given": "Discount given",
+      "revenue": "Net revenue",
+      "margin": "Margin"
+    },
+    "orders_title": "Orders using this code",
+    "order": "Order",
+    "date": "Date",
+    "customer": "Customer",
+    "status": "Status",
+    "discount": "Discount",
+    "total": "Total"
   }
 }

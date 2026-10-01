@@ -88,6 +88,7 @@ const numericFields: (keyof TenantSettings)[] = [
   "duplicateOrderWindowDays",
   "shipmentStuckDays",
   "returnWindowDays",
+  "returnShippingFallbackDays",
   "shippingCostMinor",
 ];
 
@@ -110,6 +111,10 @@ export function OperationalSettingsForm({ slug, settings, currency }: { slug: st
               <Input id={f} name={f} type="number" step="any" defaultValue={String(settings[f])} />
             </div>
           ))}
+          <div className="space-y-2 sm:col-span-2 lg:col-span-3">
+            <Label htmlFor="returnExcludedProductTypes">{t("fields.returnExcludedProductTypes")}</Label>
+            <Input id="returnExcludedProductTypes" name="returnExcludedProductTypes" defaultValue={settings.returnExcludedProductTypes.join(", ")} placeholder={t("fields.returnExcludedProductTypes_placeholder")} />
+          </div>
         </CardContent>
       </Card>
       <Card>

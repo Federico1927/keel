@@ -243,7 +243,10 @@
         "duplicateOrderWindowDays": "Ventana de pedidos duplicados (días)",
         "shipmentStuckDays": "Envío detenido tras (días)",
         "returnWindowDays": "Plazo de devolución (días)",
-        "shippingCostMinor": "Coste de envío predeterminado (céntimos)"
+        "shippingCostMinor": "Coste de envío predeterminado (céntimos)",
+        "returnShippingFallbackDays": "Días desde el envío hasta la entrega presunta",
+        "returnExcludedProductTypes": "Tipos de producto excluidos de devoluciones",
+        "returnExcludedProductTypes_placeholder": "Tarjeta regalo, Ropa interior"
       }
     },
     "taxes": {
@@ -495,7 +498,8 @@
       "other": "Otro"
     },
     "restock": "Reponer artículos",
-    "refund": "Reembolsar el pago cobrado"
+    "refund": "Reembolsar el pago cobrado",
+    "request_return": "Abrir devolución"
   },
   "order_events": {
     "imported": "Importado",
@@ -1200,5 +1204,304 @@
       "invalid_rules": "Reglas no válidas.",
       "forbidden": "No tienes permiso."
     }
+  },
+  "return_status": {
+    "requested": "Solicitado",
+    "approved": "Aprobado",
+    "received": "Recibido",
+    "inspected": "Inspeccionado",
+    "refunded": "Reembolsado",
+    "exchanged": "Cambiado",
+    "voucher_issued": "Vale emitido",
+    "rejected": "Rechazado"
+  },
+  "returns": {
+    "title": "Devoluciones",
+    "description": "Solicitudes de devolución con flujo configurable, reposición opcional por ubicación y análisis por motivo y producto.",
+    "analytics": "Análisis",
+    "reasons": "Motivos",
+    "open": "Abiertas",
+    "search": "Buscar",
+    "search_placeholder": "Número de devolución, pedido, cliente",
+    "all_reasons": "Todos los motivos",
+    "empty_title": "Sin devoluciones",
+    "empty_description": "Las devoluciones se abren desde el detalle de un pedido.",
+    "out_of_window": "Fuera de plazo",
+    "items_n": "{n} artículos",
+    "pagination": "{from}–{to} de {total}",
+    "resolution": {
+      "refund": "Reembolso",
+      "exchange": "Cambio",
+      "voucher": "Vale"
+    },
+    "columns": {
+      "return": "Devolución",
+      "order": "Pedido",
+      "reason": "Motivo",
+      "resolution": "Resolución",
+      "amount": "Importe",
+      "status": "Estado",
+      "requested": "Solicitado"
+    }
+  },
+  "return_detail": {
+    "order": "Pedido",
+    "placed": "Realizado el {date}",
+    "notes": "Detalles",
+    "reason": "Motivo",
+    "customer_note": "Nota del cliente",
+    "staff_note": "Notas internas",
+    "voucher_code": "Código del vale",
+    "restocked_at": "Repuesto en {location}",
+    "closing": "Cerrado",
+    "proposed_amount": "Propuesto",
+    "accepted_amount": "Aceptado",
+    "refunded_amount": "Reembolsado",
+    "lines": "Artículos",
+    "item": "Artículo",
+    "qty": "Cant.",
+    "unit": "Valor unitario",
+    "inspection": "Inspección",
+    "accepted": "Aceptado",
+    "restocked": "Repuesto",
+    "yes": "Sí",
+    "history": "Historial",
+    "event_requested": "Devolución solicitada",
+    "event_status": "{from} → {to}",
+    "event_updated": "Devolución actualizada",
+    "faults": {
+      "merchant": "Culpa del vendedor",
+      "customer": "Elección del cliente",
+      "undetermined": "Por determinar"
+    },
+    "outcome": {
+      "intact": "Intacto",
+      "damaged": "Dañado",
+      "missing": "Faltante"
+    },
+    "actions": {
+      "approved": "Aprobar",
+      "received": "Marcar recibido",
+      "inspected": "Registrar inspección",
+      "refunded": "Reembolsar",
+      "exchanged": "Marcar cambiado",
+      "voucher_issued": "Emitir vale",
+      "rejected": "Rechazar"
+    },
+    "dialog": {
+      "approved": {
+        "title": "¿Aprobar esta devolución?",
+        "description": "El cliente puede enviar los artículos."
+      },
+      "received": {
+        "title": "Artículos recibidos",
+        "description": "Elige si reponer los artículos y dónde."
+      },
+      "inspected": {
+        "title": "Inspección",
+        "description": "Registra el estado de cada artículo y el importe que aceptas reembolsar."
+      },
+      "refunded": {
+        "title": "Reembolso",
+        "description": "Cierra la devolución y actualiza el importe reembolsado y el estado del pedido."
+      },
+      "exchanged": {
+        "title": "Cambio",
+        "description": "Cierra la devolución como cambio."
+      },
+      "voucher_issued": {
+        "title": "Emitir vale",
+        "description": "Cierra la devolución con un vale."
+      },
+      "rejected": {
+        "title": "¿Rechazar esta devolución?",
+        "description": "Se requiere una nota."
+      }
+    },
+    "restock_label": "Reponer los artículos",
+    "restock_location": "Ubicación",
+    "already_restocked": "ya repuesto",
+    "push_platform": "Reponer también en la plataforma",
+    "fault": "Responsabilidad",
+    "fault_keep": "Mantener",
+    "refund_amount": "Importe a reembolsar",
+    "voucher_amount": "Importe del vale",
+    "proposed": "Propuesto: {amount}",
+    "voucher_auto": "Vacío para generarlo",
+    "reject_note": "Motivo del rechazo",
+    "note_optional": "Nota (opcional)",
+    "errors": {
+      "return_bad_transition": "Este paso no está permitido desde el estado actual.",
+      "return_location_required": "Elige una ubicación.",
+      "return_return_not_found": "Devolución no encontrada.",
+      "return_invalid_input": "Datos no válidos."
+    }
+  },
+  "return_new": {
+    "title": "Devolución de {order}",
+    "description": "Elige los artículos y cantidades que vuelven.",
+    "deadline": "Plazo de devolución hasta el {date} ({days} días restantes)",
+    "lines_title": "Artículos",
+    "lines_description": "Los valores unitarios son netos del descuento del pedido, repartido a prorrata.",
+    "ordered": "pedidos {n}",
+    "already": "{n} ya devueltos",
+    "excluded": "no retornable",
+    "qty_for": "Cantidad para {title}",
+    "customer_note": "Nota del cliente",
+    "staff_note": "Nota interna",
+    "staff_note_required": "Nota interna (obligatoria para forzar el plazo)",
+    "summary": "Resumen",
+    "items": "Artículos",
+    "proposed": "Reembolso propuesto",
+    "submit": "Abrir devolución",
+    "override_hint": "El personal puede abrirla igualmente con una nota interna.",
+    "not_eligible": {
+      "cancelled": "El pedido está cancelado o reembolsado.",
+      "not_delivered": "El pedido aún no se ha entregado.",
+      "expired": "El plazo de devolución ha vencido."
+    },
+    "errors": {
+      "return_not_eligible": "El pedido no es apto para devolución.",
+      "return_no_lines": "Elige al menos un artículo.",
+      "return_quantity_exceeds": "La cantidad supera lo retornable.",
+      "return_bad_reason": "Elige un motivo válido.",
+      "return_order_not_found": "Pedido no encontrado."
+    }
+  },
+  "returns_analytics": {
+    "title": "Análisis de devoluciones",
+    "description": "Devoluciones solicitadas en el periodo (excluidas las rechazadas) por motivo, responsabilidad, resolución y producto.",
+    "kpi": {
+      "returns": "Devoluciones",
+      "closed": "{n} cerradas",
+      "rate": "Tasa de devolución",
+      "of_orders": "sobre {n} pedidos",
+      "refunded": "Reembolsado",
+      "merchant_fault": "Culpa del vendedor"
+    },
+    "by_reason": "Por motivo",
+    "by_fault_resolution": "Por responsabilidad y resolución",
+    "by_product": "Por producto",
+    "count": "Devoluciones",
+    "share": "Cuota",
+    "amount": "Importe",
+    "product": "Producto",
+    "returned_qty": "Devueltos",
+    "sold_qty": "Vendidos",
+    "rate": "Tasa"
+  },
+  "return_reasons": {
+    "title": "Motivos de devolución",
+    "description": "Motivos ofrecidos al abrir una devolución. Plazo: {window} días; {excluded} tipos de producto excluidos (ajustes).",
+    "add_title": "Añadir un motivo",
+    "code": "Código",
+    "label": "Etiqueta",
+    "default_fault": "Responsabilidad predeterminada",
+    "active": "Activo",
+    "settings_hint": "Plazo, días de entrega presunta y tipos excluidos están en",
+    "settings_link": "ajustes operativos."
+  },
+  "discounts": {
+    "title": "Descuentos",
+    "description": "Códigos sincronizados de la plataforma más códigos y lotes creados aquí, con pedidos, ingresos y margen por código.",
+    "new": "Nuevo descuento",
+    "search": "Buscar",
+    "search_placeholder": "Código o título",
+    "empty_title": "Sin descuentos",
+    "empty_description": "Crea un código o conecta la plataforma para importarlos.",
+    "free_shipping": "Envío gratis",
+    "pagination": "{from}–{to} de {total}",
+    "pool_summary": "{codes} códigos, {used} usados · {value}",
+    "all_codes": "Todos los descuentos",
+    "pools_title": "Lotes de códigos",
+    "pools_description": "Conjuntos de códigos únicos de un solo uso.",
+    "state": {
+      "all": "Todos",
+      "active": "Activo",
+      "scheduled": "Programado",
+      "expired": "Caducado",
+      "exhausted": "Agotado",
+      "disabled": "Desactivado"
+    },
+    "pool_status": {
+      "ready": "Listo",
+      "partial": "Parcial"
+    },
+    "columns": {
+      "code": "Código",
+      "value": "Valor",
+      "state": "Estado",
+      "uses": "Usos",
+      "orders": "Pedidos",
+      "given": "Descuento otorgado",
+      "revenue": "Ingresos netos",
+      "margin": "Margen",
+      "validity": "Validez",
+      "pool": "Lote",
+      "codes": "Códigos",
+      "used": "Usados"
+    }
+  },
+  "discount_new": {
+    "title": "Nuevo descuento",
+    "description": "Se crea primero en la plataforma y luego se registra aquí.",
+    "tabs": {
+      "single": "Código único",
+      "pool": "Lote masivo"
+    },
+    "single_title": "Código único",
+    "single_description": "Un código compartido con límites opcionales.",
+    "pool_title": "Lote de códigos únicos",
+    "pool_description": "Genera N códigos de un solo uso con prefijo, enviados a la plataforma en una llamada.",
+    "code": "Código",
+    "title_field": "Título",
+    "type": "Tipo",
+    "types": {
+      "percentage": "Porcentaje",
+      "fixed_amount": "Importe fijo",
+      "free_shipping": "Envío gratis"
+    },
+    "value_pct": "Valor (%)",
+    "value_amount": "Valor ({currency})",
+    "value_na": "Valor",
+    "starts_at": "Inicio",
+    "ends_at": "Fin",
+    "usage_limit": "Límite de usos",
+    "minimum": "Pedido mínimo ({currency})",
+    "create_code": "Crear código",
+    "prefix": "Prefijo",
+    "size": "Número de códigos",
+    "create_pool": "Crear lote",
+    "errors": {
+      "discount_code_exists": "Este código ya existe.",
+      "discount_invalid_input": "Datos no válidos.",
+      "discount_platform_error": "La plataforma rechazó el descuento.",
+      "discount_not_found": "No encontrado."
+    }
+  },
+  "discount_detail": {
+    "platform": "Plataforma",
+    "in_pool": "Lote: {title}",
+    "rules": "Reglas",
+    "validity": "Validez",
+    "usage": "Usos",
+    "minimum": "Pedido mínimo",
+    "external_id": "Id de plataforma",
+    "disable": "Desactivar",
+    "enable": "Activar",
+    "kpi": {
+      "orders": "Pedidos de venta",
+      "orders_hint": "no cancelados ni devueltos",
+      "given": "Descuento otorgado",
+      "revenue": "Ingresos netos",
+      "margin": "Margen"
+    },
+    "orders_title": "Pedidos con este código",
+    "order": "Pedido",
+    "date": "Fecha",
+    "customer": "Cliente",
+    "status": "Estado",
+    "discount": "Descuento",
+    "total": "Total"
   }
 }

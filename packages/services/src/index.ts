@@ -9,3 +9,5 @@ export * from "./inventory";
 export * from "./analytics";
 export * from "./campaigns";
 export * from "./crm";
+export * from "./returns";
+export * from "./discounts";

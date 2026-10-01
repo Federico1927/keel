@@ -5,7 +5,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { adminDb, eq, inArray, schema } from "@keel/db";
 import { formatDateTime, formatMoney, daysInTransit } from "@keel/core";
 import { customerOrderHistory, duplicateSiblings } from "@keel/services";
-import { canDo } from "@keel/config";
+import { canDo, canWritePage, isPageEnabled } from "@keel/config";
 import { Alert, AlertDescription, AlertTitle, Badge, Button, Card, CardContent, CardHeader, CardTitle, DetailShell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { adjacentOrders, getOrderDetail } from "@/server/queries/orders";
@@ -20,6 +20,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
   const detail = await getOrderDetail(ctx, id);
   if (!detail) notFound();
   const { order, lines, events, notes, shipments, sourceStates, shipmentEvents, attribution, campaign, discounts, returns } = detail;
+  const canRequestReturn = canWritePage(ctx.role, "returns") && isPageEnabled("returns", ctx.activeAddons) && ["shipped", "delivered", "returned_partial"].includes(order.status);
   const t = await getTranslations("order_detail");
   const tp = await getTranslations("payment_methods");
   const [history, duplicates, adjacent] = await Promise.all([
@@ -294,10 +295,11 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
         </Card>
       )}
 
-      {returns.length > 0 && (
+      {(returns.length > 0 || canRequestReturn) && (
         <Card>
-          <CardHeader>
+          <CardHeader className="flex-row items-center justify-between space-y-0">
             <CardTitle className="text-base">{t("returns")}</CardTitle>
+            {canRequestReturn && <Link href={`/t/${tenant}/returns/new?order=${order.id}`} className="text-sm underline-offset-4 hover:underline">{t("request_return")}</Link>}
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {returns.map((r) => (
