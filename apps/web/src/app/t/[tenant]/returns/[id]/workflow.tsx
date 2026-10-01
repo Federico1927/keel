@@ -27,14 +27,13 @@ export function ReturnWorkflow({ slug, returnId, status, resolution, lines, loca
   const [target, setTarget] = useState<ReturnStatus | null>(null);
   const [note, setNote] = useState("");
   const [restock, setRestock] = useState(true);
-  const [pushToPlatform, setPushToPlatform] = useState(true);
   const [locationId, setLocationId] = useState(locations.find((l) => l.isDefault)?.id ?? locations[0]?.id ?? "");
   const [selected, setSelected] = useState<string[]>(lines.filter((l) => !l.restocked && l.hasVariant).map((l) => l.id));
   const [inspection, setInspection] = useState<Record<string, { outcome: "intact" | "damaged" | "missing"; amount: number }>>(Object.fromEntries(lines.map((l) => [l.id, { outcome: "intact", amount: (l.inspectionAmountMinor ?? l.quantity * l.unitAmountMinor) / 100 }])));
   const [refund, setRefund] = useState(lines.reduce((s, l) => s + (l.inspectionAmountMinor ?? l.quantity * l.unitAmountMinor), 0) / 100);
   const [voucher, setVoucher] = useState("");
   const [fault, setFault] = useState("");
-  const [result, setResult] = useState<ActionResult<{ next: string }> | null>(null);
+  const [result, setResult] = useState<ActionResult<{ next: string; sync: string }> | null>(null);
   if (!canAct) return null;
   const next = RETURN_TRANSITIONS[status as ReturnStatus] ?? [];
   const closers: ReturnStatus[] = ["refunded", "exchanged", "voucher_issued"];
@@ -48,7 +47,6 @@ export function ReturnWorkflow({ slug, returnId, status, resolution, lines, loca
         note: note || null,
         fault: fault || undefined,
         restock: target === "received" && restock ? { locationId, lineIds: selected } : null,
-        pushToPlatform: target === "received" && restock && pushToPlatform,
         inspection: target === "inspected" ? lines.map((l) => ({ lineId: l.id, outcome: inspection[l.id]!.outcome, amountMinor: Math.round(inspection[l.id]!.amount * 100) })) : undefined,
         refundAmountMinor: target === "refunded" || target === "voucher_issued" ? Math.round(refund * 100) : null,
         voucherCode: target === "voucher_issued" ? voucher || null : null,
@@ -62,6 +60,11 @@ export function ReturnWorkflow({ slug, returnId, status, resolution, lines, loca
     });
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {result?.ok && result.data?.sync === "error" && (
+        <Alert variant="warning" className="w-full" data-testid="return-sync-warning">
+          <AlertDescription>{t("sync_failed")}</AlertDescription>
+        </Alert>
+      )}
       {result && !result.ok && (
         <Alert variant="destructive" className="w-full">
           <AlertDescription>{tc.has(`errors.${result.error}`) ? tc(`errors.${result.error}`) : t(`errors.${result.error}`)}</AlertDescription>
@@ -104,9 +107,6 @@ export function ReturnWorkflow({ slug, returnId, status, resolution, lines, loca
                         </li>
                       ))}
                     </ul>
-                    <label className="flex items-center gap-2 text-sm">
-                      <input type="checkbox" checked={pushToPlatform} onChange={(e) => setPushToPlatform(e.target.checked)} /> {t("push_platform")}
-                    </label>
                   </>
                 )}
               </>

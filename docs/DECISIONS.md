@@ -308,6 +308,22 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 
 **Alternatives.** `railway.json` (written first, then removed: Railway's Config as Code is deprecated, new services do not read it, and it stops being read on 2026-12-01); `.railway/railway.ts` Infrastructure as Code (deferred: it is applied with the Railway CLI or a GitHub Action with a project token, neither set up yet).
 
+## 2026-10-01 · Return portal: public page per store, signed session, no customer account
+
+**Decision.** The portal lives at `/r/<store slug>` and needs no login. The customer proves the order with its number and the email (or phone, when the store allows it); a successful lookup returns an HMAC-signed token valid one hour that carries tenant, order and a random nonce. Failed lookups are counted per hashed IP and per order number in `public_rate_limits` (5 in 15 minutes); the lookup returns "not found" instead of throwing so the counter is not rolled back with the transaction. Submissions carry an idempotency key. Everything the customer reads comes from `return_portal_settings` (zod schema in core): texts per language with fallback to the store language, logo, colour, offered resolutions and reasons, tracking and photo requirements, custom fields, which payment methods need an IBAN.
+
+**Alternatives.** A customer account (rejected: friction for a one-off return); magic link by email (rejected for now: needs the email provider of the external block); order number alone (rejected: enumerable).
+
+## 2026-10-01 · Return photos in Postgres, compressed in the browser
+
+**Decision.** Photos are resized to 1600 px JPEG in the browser and stored as `bytea` (max 1.5 MB, 5 per request) in `return_evidence`, bound to the session nonce until submission and served to staff through an authenticated route. Railway has no object storage in the current setup, and one database keeps RLS and backups in one place. Orphans are purged nightly. Moving to an object store is a change behind the same three service functions.
+
+## 2026-10-01 · Return write-back to the store: idempotent steps after the commit
+
+**Decision.** A return change is committed first; `syncReturnToPlatform` then brings the store in line one step at a time (request → approve or decline → restock → refund → close → tags), saving each step as it succeeds. A failure is stored on the return (`platform_sync_status = error`, readable message) and resumed by the retry button or the job every 10 minutes without repeating completed steps. The refund goes on the original capture and is capped to what is still refundable; orders with nothing captured (paid on delivery) get a refund record without money movement. Shopify reasons are configured per return reason. The Control Room only tagged the order "RIMBORSATO"; tags per status keep that behaviour available to any store.
+
+**Alternatives.** Writing to the store inside the transaction (rejected: a store outage would block the team and roll back their work); Shopify as the source of truth for returns (rejected: stores without Shopify returns, and portal requests must exist before the store knows them).
+
 ## 2026-10-01 · Landing page as a separate static app (`apps/landing`)
 
 **Decision.** The marketing site is a second Next.js app in the monorepo with `output: "export"`: plain HTML, CSS and pre-optimised WebP, deployable on Vercel with root directory `apps/landing` or on any static host. It shares the workspace (`@keel/config` for `PRODUCT_NAME`, the ESLint config, Tailwind 4, next-intl) but not `@keel/ui`: the design tokens are copied into `apps/landing/src/app/globals.css` so the landing has a marketing look (large serif headings, generous spacing, browser-frame screenshots) rather than the dashboard chrome, and so the app deploys without the Radix dependency tree.

@@ -10,7 +10,7 @@
 /** Values shipped in `.env.example`; a live deployment must not run with them. */
 export const DEV_DEFAULT_SECRETS = {
   AUTH_SECRET: "dev-only-change-me-please-32-bytes-min",
-  APP_ENCRYPTION_KEY: "ZGV2LW9ubHktZW5jcnlwdGlvbi1rZXktMzItYnl0ZXMhIQ==",
+  APP_ENCRYPTION_KEY: "ZGV2LW9ubHktZW5jcnlwdGlvbi1rZXktMzJieXRlcyE=",
 };
 
 export type RuntimeProcess = "web" | "worker";

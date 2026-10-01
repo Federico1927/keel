@@ -253,7 +253,24 @@ export interface CommercePlatform {
   setInventory(inventoryItemExternalId: string, locationExternalId: string, available: number): Promise<void>;
   createDiscountCode(input: { code: string; title: string; type: "percentage" | "fixed_amount" | "free_shipping"; value: number; startsAt?: Date | null; endsAt?: Date | null; usageLimit?: number | null; minimumAmountMinor?: number | null }): Promise<{ externalId: string }>;
   createDiscountPool(input: { title: string; codes: string[]; type: "percentage" | "fixed_amount"; value: number; startsAt?: Date | null; endsAt?: Date | null }): Promise<{ externalId: string; imported: string[]; failed: string[] }>;
-  restockReturn(orderExternalId: string, lines: { orderLineExternalId: string; quantity: number; locationExternalId: string }[]): Promise<void>;
+  /** Adds returned units back to stock at a location (inventory item ids, not order lines). */
+  restockInventory(lines: { inventoryItemExternalId: string; locationExternalId: string; quantity: number }[]): Promise<void>;
+  // Returns write-back: request → approve or decline → (restock) → refund → close.
+  /** Opens a return request on the order; the order must be fulfilled on the platform. */
+  requestReturn(orderExternalId: string, input: { lines: PlatformReturnLineInput[]; note?: string | null }): Promise<{ externalId: string; lines: { orderLineExternalId: string; externalId: string }[] }>;
+  approveReturn(returnExternalId: string): Promise<void>;
+  declineReturn(returnExternalId: string, note: string | null): Promise<void>;
+  /** Refunds returned lines; the amount is capped by what was actually captured. Unpaid orders get a refund without money movement. */
+  refundReturn(orderExternalId: string, input: { lines: { orderLineExternalId: string; quantity: number }[]; amountMinor: number; currency: string; note?: string | null; notify: boolean }): Promise<{ externalId: string; amountMinor: number }>;
+  closeReturn(returnExternalId: string): Promise<void>;
+}
+
+export interface PlatformReturnLineInput {
+  orderLineExternalId: string;
+  quantity: number;
+  /** Platform reason code (Shopify ReturnReason: SIZE_TOO_SMALL, DEFECTIVE, …); null = OTHER. */
+  reason: string | null;
+  note?: string | null;
 }
 
 export interface NormalizedCampaign {

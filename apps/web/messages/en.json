@@ -1616,6 +1616,15 @@
       "amount": "Amount",
       "status": "Status",
       "requested": "Requested"
+    },
+    "portal_settings": "Customer portal",
+    "from_portal": "From the portal",
+    "sync_errors": "Not written to the store",
+    "sync_error": "store sync failed",
+    "source": {
+      "staff": "Staff",
+      "portal": "Portal",
+      "platform": "Store"
     }
   },
   "return_detail": {
@@ -1695,7 +1704,6 @@
     "restock_label": "Put items back to stock",
     "restock_location": "Location",
     "already_restocked": "already restocked",
-    "push_platform": "Also restock on the commerce platform",
     "fault": "Fault",
     "fault_keep": "Keep current",
     "refund_amount": "Refund amount",
@@ -1709,6 +1717,39 @@
       "return_location_required": "Choose a location.",
       "return_return_not_found": "Return not found.",
       "return_invalid_input": "Invalid data."
+    },
+    "no": "No",
+    "deduction": "Return shipping deducted: {amount}",
+    "sync_failed": "Saved. Writing to the store failed: see the store card to retry.",
+    "portal": {
+      "title": "Customer request",
+      "tracking": "Return tracking",
+      "exchange": "Wants in exchange",
+      "bank": "Refund to",
+      "reveal_bank": "Show bank details",
+      "bank_hidden": "Bank details provided",
+      "language": "Customer language: {locale}",
+      "photo": "Customer photo"
+    },
+    "platform": {
+      "title": "Store (Shopify)",
+      "status": "Status",
+      "on_platform": "On the store",
+      "refund": "Refund",
+      "synced_at": "Last written {at}",
+      "retry": "Retry now",
+      "sync": {
+        "not_required": "Not needed (no store order or write-back off)",
+        "pending": "Waiting to be written",
+        "synced": "Up to date",
+        "error": "Failed"
+      },
+      "platform_status": {
+        "requested": "Return requested",
+        "approved": "Return open",
+        "declined": "Return declined",
+        "closed": "Return closed"
+      }
     }
   },
   "return_new": {
@@ -1773,7 +1814,11 @@
     "default_fault": "Default fault",
     "active": "Active",
     "settings_hint": "Window, shipping fallback and excluded product types live in",
-    "settings_link": "operational settings."
+    "settings_link": "operational settings.",
+    "edit_title": "Edit {code}",
+    "portal_label": "Portal label ({lang})",
+    "platform_reason": "Store reason",
+    "platform_reason_other": "OTHER"
   },
   "discounts": {
     "title": "Discounts",
@@ -2793,6 +2838,170 @@
       "quantity": "Quantity per unit",
       "kind": "Type",
       "add": "Save"
+    }
+  },
+  "return_portal_settings": {
+    "back": "Returns",
+    "title": "Customer return portal",
+    "description": "A public page where customers request a return by themselves. Requests land in Returns and are written to the store.",
+    "link_title": "Link for customers",
+    "link_hint": "Put it in the order confirmation email, the footer of the store or the support replies.",
+    "enabled": "Portal active",
+    "open": "Open",
+    "brand": "Brand",
+    "logo": "Logo URL",
+    "color": "Main colour",
+    "support_email": "Support email",
+    "policy_url": "Return policy URL",
+    "texts": "Texts",
+    "texts_hint": "Write each text in every language you serve; a missing language falls back to the store language.",
+    "text": {
+      "title": "Title",
+      "intro": "Introduction",
+      "instructions": "Shipping instructions (address, how to pack)",
+      "successMessage": "Message after sending",
+      "confirmText": "Confirmation checkbox (empty = none)"
+    },
+    "rules": "Rules",
+    "resolutions": "Customers can ask for",
+    "reasons": "Reasons offered",
+    "reasons_hint": "None selected = all active reasons.",
+    "bank_for": "Ask bank details for refunds of orders paid by",
+    "bank_for_hint": "Orders without an online payment need an IBAN to refund.",
+    "methods": {
+      "card": "Card",
+      "wallet": "Wallet",
+      "bank_transfer": "Bank transfer",
+      "cod": "Cash on delivery",
+      "bnpl": "Buy now, pay later",
+      "other": "Other"
+    },
+    "lookup_by": "Customers identify the order with",
+    "lookup": {
+      "email": "Order number + email",
+      "email_or_phone": "Order number + email or phone"
+    },
+    "tracking": "Return tracking code",
+    "modes": {
+      "off": "Not asked",
+      "optional": "Optional",
+      "required": "Required"
+    },
+    "carriers": "Carriers offered (comma separated)",
+    "photos": "Product photos",
+    "photos_max": "Maximum photos",
+    "ask_shipped": "Ask first whether the parcel was already shipped",
+    "exchange_note": "Exchanges must say what the customer wants instead",
+    "fields": "Extra fields",
+    "fields_hint": "Labels are edited in the language selected above ({lang}).",
+    "field_key": "Key",
+    "field_type": "Type",
+    "field_label": "Label",
+    "field_options": "Options (comma separated)",
+    "types": {
+      "text": "Text",
+      "textarea": "Long text",
+      "select": "Choice",
+      "checkbox": "Checkbox"
+    },
+    "required": "Required",
+    "add_field": "Add field",
+    "behaviour": {
+      "title": "Refunds and the store",
+      "hint": "Applies to every return, from the portal or from the team.",
+      "read_only": "Only owners and admins can change these.",
+      "shipping_cost": "Return shipping deducted ({currency})",
+      "shipping_cost_hint": "Taken off the refund when the reason puts the fault on the customer. 0 = never.",
+      "write_back": "Write returns to the store",
+      "write_back_hint": "Return request, approval, restock, refund and closing are written to Shopify after each step; failures are retried.",
+      "tags": "Order tags per status",
+      "tags_hint": "Tags added to the order on the store when a return reaches that status (comma separated)."
+    }
+  },
+  "return_portal": {
+    "default_title": "Return an item",
+    "policy": "Read the return policy",
+    "start": {
+      "shipped": "I have already shipped it",
+      "not_yet": "I have not shipped it yet"
+    },
+    "instructions_title": "How to send it back",
+    "instructions_default": "Pack the items in their original packaging and keep the receipt of the shipment.",
+    "continue": "Continue",
+    "lookup": {
+      "title": "Find your order",
+      "order": "Order number",
+      "email": "Email used for the order",
+      "email_or_phone": "Email or phone used for the order",
+      "submit": "Find order"
+    },
+    "form": {
+      "hello": "Hello {name}",
+      "order": "Order {order}",
+      "deadline": "returns accepted until {date}",
+      "items": "What are you returning?",
+      "quantity_for": "Quantity of {item}",
+      "reason": "Reason",
+      "resolution": "You would like",
+      "exchange": "What would you like instead?",
+      "exchange_placeholder": "Size, colour or product",
+      "carrier": "Carrier",
+      "other_carrier": "Other",
+      "tracking": "Tracking code of the return",
+      "photos": "Photos of the items (up to {max})",
+      "remove_photo": "Remove photo",
+      "bank_hint": "Your order was not paid online: tell us where to send the refund.",
+      "holder": "Account holder",
+      "note": "Anything to add?",
+      "submit": "Send request"
+    },
+    "resolutions": {
+      "refund": "A refund",
+      "exchange": "An exchange",
+      "voucher": "Store credit"
+    },
+    "status": {
+      "requested": "Received",
+      "approved": "Approved",
+      "received": "Items arrived",
+      "inspected": "Checked",
+      "refunded": "Refunded",
+      "exchanged": "Exchanged",
+      "voucher_issued": "Credit issued",
+      "rejected": "Declined"
+    },
+    "ineligible": {
+      "cancelled": "This order was cancelled, so there is nothing to return.",
+      "not_delivered": "This order has not been delivered yet: come back once it arrives.",
+      "expired": "The return window for this order has closed.",
+      "nothing_returnable": "Every item of this order is already in a return."
+    },
+    "contact_support": "Questions? Write to",
+    "done": {
+      "title": "Request {number} sent",
+      "another": "Return other items"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "disabled": "Returns cannot be requested online for this store.",
+      "rate_limited": "Too many attempts. Try again in {minutes} minutes.",
+      "not_found": "We could not find an order with these details. Check the number and the email or phone.",
+      "not_eligible": "This order cannot be returned.",
+      "session_expired": "The page expired. Please look up your order again.",
+      "invalid_input": "Some details are missing or not valid.",
+      "resolution_not_allowed": "This option is not available.",
+      "reason_not_allowed": "Choose one of the reasons in the list.",
+      "tracking_required": "Enter the tracking code of the return.",
+      "tracking_invalid": "The tracking code is not valid: use letters and numbers only.",
+      "exchange_note_required": "Tell us what you would like instead.",
+      "bank_details_required": "Enter the account holder and the IBAN.",
+      "iban_invalid": "The IBAN is not valid.",
+      "photos_required": "Add at least one photo.",
+      "too_many_photos": "You reached the maximum number of photos.",
+      "photo_too_large": "The photo is too large.",
+      "photo_type": "This file is not a supported image.",
+      "confirm_required": "Tick the confirmation box.",
+      "fields_invalid": "Fill in the required fields."
     }
   }
 }

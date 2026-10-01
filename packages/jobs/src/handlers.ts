@@ -1,6 +1,6 @@
 import { parseTenantSettings } from "@keel/core";
 import { adminDb, and, eq, inArray, schema, withTenant } from "@keel/db";
-import { applySuspensions, evaluateAlertRules, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
+import { applySuspensions, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue } from "@keel/addon-cod";
 import { adsWindow, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
 
@@ -65,6 +65,21 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
       await withTenant(t.id, async (tx) => {
         await evaluateAlertRules(sys(t.id)(tx), { id: t.id, country: t.country, currency: t.currency, timezone: t.timezone, settings: parseTenantSettings(t.settings) }, { appUrl: process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/t/${t.slug}` : undefined });
       });
+    }
+    return;
+  }
+  if (job.kind === "returns") {
+    // returns not yet written to the commerce platform, or that failed: retry; photos of abandoned portal sessions: purge
+    const pending = await adminDb().selectDistinct({ tenantId: schema.returnRequests.tenantId }).from(schema.returnRequests).where(inArray(schema.returnRequests.platformSyncStatus, ["pending", "error"]));
+    for (const p of pending) {
+      const [t] = await adminDb().select({ id: schema.tenants.id, status: schema.tenants.status, currency: schema.tenants.currency, country: schema.tenants.country, orderNumberPrefix: schema.tenants.orderNumberPrefix, settings: schema.tenants.settings }).from(schema.tenants).where(eq(schema.tenants.id, p.tenantId)).limit(1);
+      if (!t || t.status !== "active") continue;
+      const settings = parseTenantSettings(t.settings);
+      const ids = await withTenant(t.id, (tx) => returnsToSync(sys(t.id)(tx)));
+      for (const id of ids) await withTenant(t.id, async (tx) => syncReturnToPlatform(sys(t.id)(tx), await getCommercePlatformFor(sys(t.id)(tx), t), settings, id));
+    }
+    if (new Date().getUTCHours() === 3 && new Date().getUTCMinutes() < 10) {
+      for (const t of await adminDb().select({ id: schema.tenants.id }).from(schema.tenants)) await withTenant(t.id, (tx) => purgeOrphanEvidence(sys(t.id)(tx)));
     }
     return;
   }
