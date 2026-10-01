@@ -9,8 +9,8 @@ import { createRng } from "@keel/integrations";
 import { allocateLandedCost, normalizePhone } from "@keel/core";
 import { sql } from "drizzle-orm";
 
-/** Password of every demo user; override with KEEL_DEMO_PASSWORD on a hosted demo. */
-export const DEMO_PASSWORD = process.env.KEEL_DEMO_PASSWORD ?? "keel-demo-2026";
+/** Password of every demo user; override with KEEL_DEMO_PASSWORD on a hosted demo (an empty value keeps the default). */
+export const DEMO_PASSWORD = process.env.KEEL_DEMO_PASSWORD || "keel-demo-2026";
 
 export const DEMO_TENANTS = {
   northwind: {

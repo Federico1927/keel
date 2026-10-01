@@ -295,3 +295,15 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · Purchase order numbers continue from the highest of the month
 
 **Decision.** The next number was "count of the month + 1", which collides as soon as numbers are not contiguous (imports, the seed, deleted drafts). It is now the highest numeric suffix of the month + 1, still guarded by the unique index.
+
+## 2026-10-01 · Live mode refuses to start without the worker; Sentry errors-only, no personal data
+
+**Decision.** `checkRuntimeConfig` (packages/config) runs when the web server (Next.js `instrumentation.ts`) and the worker start. With `KEEL_INTEGRATION_MODE=live` the process exits if `KEEL_JOBS_QUEUE` is not `1`, if a database URL is missing, or if `AUTH_SECRET` / `APP_ENCRYPTION_KEY` are missing or still the `.env.example` values; a missing `SENTRY_DSN` is a warning. In `mock` mode the same problems are warnings only, because demos and the e2e suite run the production build with the development defaults. Sentry (`@sentry/nextjs`, `@sentry/node`) is enabled only when a DSN is set, errors only (`tracesSampleRate: 0`), with one shared `SENTRY_DATA_COLLECTION` that turns off every category Sentry 11 collects by default (bodies, cookies, headers, query params, DB parameters, queue payloads, stack-frame variables): tenants' orders carry their customers' personal data. Source-map upload (`withSentryConfig`) is not wired yet: stack traces point at compiled code until it is.
+
+**Alternatives.** Failing on `NODE_ENV=production` (rejected: it would break the e2e suite and every mock demo); keeping inline processing as a silent fallback in live mode (rejected: it is the failure mode the evaluation flagged).
+
+## 2026-10-01 · Railway settings in the dashboard, not in `railway.json`
+
+**Decision.** The Railway service is configured through its settings (build `pnpm install --frozen-lockfile --prod=false && pnpm build`, pre-deploy `pnpm db:deploy` — idempotent bootstrap of roles and database, migrations, and the demo seed only when `KEEL_SEED_ON_DEPLOY=1` — healthcheck `/api/health`, watch paths `/**`), documented in `docs/DEPLOY.md`. `next start` listens on `$PORT` (default 3000); `.node-version` pins Node 22. Empty variables copied from `.env.example` now fall back to the defaults in `db:bootstrap` and the seed (before, an empty `KEEL_DEMO_PASSWORD` or `KEEL_ADMIN_PASSWORD` became an empty password). The database handles no longer require their URL at import time: without it they return a client whose queries fail, so `next build` (which imports route modules to collect page data) needs no database variables.
+
+**Alternatives.** `railway.json` (written first, then removed: Railway's Config as Code is deprecated, new services do not read it, and it stops being read on 2026-12-01); `.railway/railway.ts` Infrastructure as Code (deferred: it is applied with the Railway CLI or a GitHub Action with a project token, neither set up yet).

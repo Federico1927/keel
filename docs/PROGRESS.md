@@ -187,6 +187,12 @@ Fatto:
 
 Resta per l'Area 2: domanda per sede (le vendite non portano ancora la sede di evasione), vendite dei bundle esplose sulla velocità dei componenti, consumo dei materiali in produzione, invio reale dell'email al fornitore (serve il provider email).
 
+## Deploy e produzione (2026-10-01)
+
+Fatto: servizio Railway configurato dalle impostazioni (documentate in `docs/DEPLOY.md`; `railway.json` è deprecato e non viene letto dai servizi nuovi), `pnpm db:deploy` come pre-deploy, build senza variabili del database, porta da `$PORT`, Node 22 fissato; controllo di avvio (`checkRuntimeConfig`): in modalità `live` web e worker non partono senza `KEEL_JOBS_QUEUE=1`, URL del database e segreti non di sviluppo; Sentry facoltativo (solo errori, nessun dato personale) su server, browser e worker; variabili vuote di `.env.example` non diventano più password vuote in bootstrap e seed; `docs/DEPLOY.md` aggiornato.
+
+Manca: upload delle source map a Sentry; worker su Railway (non serve in modalità mock); migrazione a `.railway/railway.ts` quando ci sarà la CLI o la GitHub Action.
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

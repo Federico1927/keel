@@ -15,6 +15,7 @@
     "db:migrate": "pnpm --filter @keel/db migrate",
     "db:seed": "pnpm --filter @keel/db seed",
     "db:reset": "pnpm --filter @keel/db reset",
+    "db:deploy": "pnpm db:bootstrap && pnpm db:migrate && if [ \"$KEEL_SEED_ON_DEPLOY\" = 1 ]; then pnpm db:seed; fi",
     "format": "prettier --write \"**/*.{ts,tsx,json,md,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md,css}\""
   },
