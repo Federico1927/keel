@@ -7,6 +7,7 @@ import { withTenant } from "@keel/db";
 import { publicSurveyView, SurveyError, surveyTenantForSlug } from "@keel/services";
 import { loadMessages } from "@/i18n/messages";
 import { SurveyForm } from "./survey-form";
+import { brandStyle, loadBrand, publicBrand } from "@/server/branding";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { robots: { index: false, follow: false } };
@@ -33,9 +34,11 @@ export default async function SurveyPage({ params, searchParams }: { params: Pro
     if (e.code === "disabled") notFound();
     error = e.code;
   }
+  const brand = publicBrand(await loadBrand(tenant.id, slug));
   return (
-    <div className="min-h-screen bg-muted/30">
-      <header className="border-b bg-card"><div className="mx-auto max-w-xl px-4 py-4 font-serif text-lg">{tenant.name}</div></header>
+    <div className="light min-h-screen bg-background text-foreground" style={brandStyle(brand)}>
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+      <header className="border-b bg-card"><div className="mx-auto max-w-xl px-4 py-4 text-lg font-semibold">{brand.logoUrl ? <img src={brand.logoUrl} alt={tenant.name} className="h-8 w-auto" /> : tenant.name}</div></header>
       <main className="mx-auto max-w-xl px-4 py-8">
         {view ? (
           <NextIntlClientProvider locale={locale} messages={{ survey_public: (messages as Record<string, unknown>).survey_public } as never}>

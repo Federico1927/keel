@@ -1,5 +1,5 @@
 import { and, eq, schema } from "@keel/db";
-import { AnthropicLlmProvider, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
+import { AnthropicLlmProvider, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type OutboundMessage, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 
 export interface PlatformTenant {
@@ -119,6 +119,25 @@ export async function getNotificationSinks(ctx: ServiceContext): Promise<{ slack
 
 export function mockSinkFor(tenantId: string, kind: "slack" | "email"): MockNotificationSink | undefined {
   return sinkMocks.get(`${tenantId}:${kind}`);
+}
+
+/** Mock that also prints, like the magic link in development: the person needs the link to go on. */
+class ConsoleEmailSink extends MockNotificationSink {
+  constructor() {
+    super("email");
+  }
+  override async send(to: string[], message: OutboundMessage) {
+    console.info(`\n[email] to ${to.join(", ")}: ${message.subject}${message.url ? `\n${message.url}` : ""}\n`);
+    return super.send(to, message);
+  }
+}
+let platformEmail: MockNotificationSink | null = null;
+
+/** Platform emails that belong to no tenant (account security): live provider, else the printing mock. */
+export function getPlatformEmailSink(): NotificationSink {
+  if (integrationMode() === "live" && process.env.KEEL_EMAIL_API_KEY) return new HttpEmailSink({ apiKey: process.env.KEEL_EMAIL_API_KEY, from: process.env.KEEL_EMAIL_FROM ?? "no-reply@keel.app" });
+  platformEmail ??= new ConsoleEmailSink();
+  return platformEmail;
 }
 
 const guarantees = new Map<string, MockPaymentGuarantee>();

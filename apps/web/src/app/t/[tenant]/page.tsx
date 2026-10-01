@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, PageHeader, Stat } from "@kee
 import { requirePage } from "@/server/tenant";
 import { RevenueChart } from "@/components/charts/revenue-chart";
 import { StatusBadge } from "@/components/status-badge";
+import { Greeting } from "@/components/greeting";
 
 export default async function DashboardPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
@@ -31,6 +32,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ tena
   ];
   return (
     <>
+      <Greeting user={ctx.user} tenantTimeZone={ctx.tenant.timezone} locale={ctx.locale} line={t("greeting_line", { count: summary.today.placed })} />
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label={t("kpi.revenue")} value={money(summary.today.grossRevenueMinor)} trend={pctChange(summary.today.grossRevenueMinor, summary.yesterday.grossRevenueMinor)} hint={`${t("vs_yesterday")} · ${money(summary.yesterday.grossRevenueMinor)}`} href={`${base}/orders?from=${todayIso}`} />

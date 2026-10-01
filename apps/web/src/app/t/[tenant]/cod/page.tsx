@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { canWritePage } from "@keel/config";
-import { formatDateTime, formatMoney, formatNumber } from "@keel/core";
+import { formatDateTime, formatMoney, formatNumber, displayName } from "@keel/core";
 import { adminDb, eq, inArray, schema } from "@keel/db";
 import { getCodSettings, operatorKpis, queueItems, syncQueue } from "@keel/addon-cod";
 import { getCommercePlatform } from "@/server/integrations";
@@ -31,7 +31,7 @@ export default async function CodQueuePage({ params, searchParams }: { params: P
   const userIds = [...new Set(rows.map((r) => r.item.assignedTo).filter((x): x is string => Boolean(x)))];
   const users = userIds.length ? await adminDb().select({ id: schema.users.id, name: schema.users.name, email: schema.users.email }).from(schema.users).where(inArray(schema.users.id, userIds)) : [];
   void eq;
-  const who = (id: string | null) => (id ? (users.find((u) => u.id === id)?.name ?? users.find((u) => u.id === id)?.email ?? "—") : null);
+  const who = (id: string | null) => (id ? (users.some((u) => u.id === id) ? displayName(users.find((u) => u.id === id)) : "—") : null);
   const base = `/t/${tenant}/cod`;
   const now = new Date();
   return (
@@ -75,7 +75,7 @@ export default async function CodQueuePage({ params, searchParams }: { params: P
                 {rows.map(({ item, order }) => {
                   const overdue = item.callBackAt && item.callBackAt <= now;
                   return (
-                    <TableRow key={item.id} data-testid="queue-row" className={overdue ? "bg-amber-50/60 dark:bg-amber-950/20" : undefined}>
+                    <TableRow key={item.id} data-testid="queue-row" className={overdue ? "bg-warning/10" : undefined}>
                       <TableCell>
                         <Link href={`/t/${tenant}/orders/${order.id}`} className="font-medium hover:underline">{order.name}</Link>
                         <div className="text-xs text-muted-foreground">{formatDateTime(order.placedAt, ctx.locale, ctx.tenant.timezone)}</div>
@@ -124,7 +124,7 @@ export default async function CodQueuePage({ params, searchParams }: { params: P
             <TableBody>
               {kpis.map((k) => (
                 <TableRow key={k.operatorId ?? "none"}>
-                  <TableCell>{k.name ?? k.email ?? t("unassigned")}</TableCell>
+                  <TableCell>{k.name || k.email ? displayName(k) : t("unassigned")}</TableCell>
                   <TableCell className="text-right tabular">{formatNumber(k.attempts, ctx.locale)}</TableCell>
                   <TableCell className="text-right tabular">{k.confirmed}</TableCell>
                   <TableCell className="text-right tabular">{k.noAnswer}</TableCell>

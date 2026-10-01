@@ -5,7 +5,7 @@ export function Stat({ label, value, hint, trend, className, href }: { label: st
   const body = (
     <>
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="mt-1 font-serif text-2xl tabular">{value}</p>
+      <p className="mt-1 text-2xl font-semibold tracking-tight tabular">{value}</p>
       {(hint || trend) && (
         <p className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
           {trend && (
@@ -19,7 +19,7 @@ export function Stat({ label, value, hint, trend, className, href }: { label: st
       )}
     </>
   );
-  const cls = cn("block rounded-lg border bg-card p-4", href && "transition-colors hover:bg-muted/40", className);
+  const cls = cn("block rounded-lg border bg-card p-(--density-stat) shadow-sm", href && "transition-colors hover:bg-muted/40", className);
   return href ? (
     <a href={href} className={cls}>
       {body}

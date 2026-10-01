@@ -30,7 +30,7 @@ export function demoPortalConfig(key: DemoKey) {
   const it = key === "northwind";
   return {
   enabled: true,
-  primaryColor: it ? "#1f3a5f" : "#3d5a40",
+  // no primaryColor/logoUrl: the portal follows the tenant branding (Settings → Branding)
   title: it ? { it: "Reso o cambio", en: "Return or exchange", es: "Devolución o cambio" } : { en: "Start a return", es: "Iniciar una devolución", it: "Avvia un reso" },
   intro: it ? { it: "Hai 30 giorni dalla consegna. Ti servono il numero d'ordine e l'email usata per l'acquisto.", en: "You have 30 days from delivery. You need the order number and the email used for the purchase." } : { en: "You have 30 days from delivery to send items back. Have your order number and email at hand." },
   instructions: it ? { it: "Spedisci a: Northwind Apparel, Magazzino resi, Via dell'Industria 12, 40100 Bologna.\nImballa gli articoli nella confezione originale con il numero di reso all'esterno.", en: "Ship to: Northwind Apparel, Returns, Via dell'Industria 12, 40100 Bologna, Italy.\nPack the items in the original box with the return number on the outside." } : { en: "Ship to: Harbor Home Returns, 400 Dock St, Newark NJ 07105.\nUse a sturdy box and write the return number on the label." },
@@ -137,6 +137,10 @@ export async function ensureDemoSettings(db: Db, now = new Date()): Promise<Sett
       const r = await db.execute<{ n: number }>(sql`select count(*)::int as n from ${sql.identifier(table)} where tenant_id = ${tenantId} and ${extra}`);
       return Number(r.rows[0]?.n ?? 0) === 0;
     };
+    if (await missing("tenant_branding")) {
+      await db.insert(schema.tenantBranding).values({ tenantId, brandColor: key === "harbor" ? "#3d5a40" : null }).onConflictDoNothing();
+      created.push("tenant_branding");
+    }
     if (await missing("return_portal_settings")) {
       await db.insert(schema.returnPortalSettings).values({ tenantId, config: demoPortalConfig(key) }).onConflictDoNothing();
       created.push("return_portal_settings");

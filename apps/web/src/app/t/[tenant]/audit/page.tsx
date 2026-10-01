@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { adminDb, desc, eq, inArray, schema, sql } from "@keel/db";
 import { Badge, Button, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
-import { formatDateTime } from "@keel/core";
+import { formatDateTime, displayName } from "@keel/core";
 import { PAGE_SIZE } from "@keel/config";
 import { requirePage } from "@/server/tenant";
 
@@ -20,7 +20,7 @@ export default async function AuditPage({ params, searchParams }: { params: Prom
   });
   const actorIds = [...new Set(rows.flatMap((r) => [r.actorUserId, r.impersonatedBy]).filter((x): x is string => Boolean(x)))];
   const actors = actorIds.length ? await adminDb().select({ id: schema.users.id, name: schema.users.name, email: schema.users.email }).from(schema.users).where(inArray(schema.users.id, actorIds)) : [];
-  const actorName = (id: string | null) => (id ? (actors.find((a) => a.id === id)?.name ?? actors.find((a) => a.id === id)?.email ?? id.slice(0, 8)) : null);
+  const actorName = (id: string | null) => (id ? (actors.some((a) => a.id === id) ? displayName(actors.find((a) => a.id === id)) : id.slice(0, 8)) : null);
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   return (
     <>

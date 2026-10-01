@@ -90,6 +90,8 @@ test.describe("core order editing (addon.cod off)", () => {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByTestId("edit-order")).toHaveCount(0);
     await expect(page.getByTestId("apply-discount")).toHaveCount(0);
+    // let link prefetches finish first: each response re-issues the session cookie
+    await page.waitForLoadState("networkidle");
     await page.context().clearCookies();
     await login(page, "viewer@northwind.demo");
     await page.goto("/t/northwind-apparel/orders?status=confirmed&payment=card");

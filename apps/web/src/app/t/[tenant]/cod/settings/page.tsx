@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDate } from "@keel/core";
+import { formatDate, displayName } from "@keel/core";
 import { adminDb, eq, schema } from "@keel/db";
 import { SCORE_FACTORS, TAG_WRITE_EVENTS, getCodSettings, listCapacity, listRiskyRecipients } from "@keel/addon-cod";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
@@ -17,7 +17,7 @@ export default async function CodSettingsPage({ params }: { params: Promise<{ te
     return { settings: await getCodSettings(s), capacity: await listCapacity(s), risky: await listRiskyRecipients(s, { tiers: ["watch", "high_risk", "blacklisted"], limit: 100 }) };
   });
   const members = await adminDb().select({ id: schema.users.id, name: schema.users.name, email: schema.users.email, role: schema.tenantMemberships.role }).from(schema.tenantMemberships).innerJoin(schema.users, eq(schema.users.id, schema.tenantMemberships.userId)).where(eq(schema.tenantMemberships.tenantId, ctx.tenant.id));
-  const operators = members.filter((m) => ["operations", "customer_care", "admin", "owner"].includes(m.role)).map((m) => ({ id: m.id, label: m.name ?? m.email }));
+  const operators = members.filter((m) => ["operations", "customer_care", "admin", "owner"].includes(m.role)).map((m) => ({ id: m.id, label: displayName(m) }));
   const mask = (k: string) => (k.startsWith("email:") ? k.replace(/^email:(.{2}).*(@.*)$/, "email:$1***$2") : k.replace(/\d(?=\d{3})/g, "•"));
   return (
     <>

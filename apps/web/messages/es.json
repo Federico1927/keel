@@ -241,7 +241,8 @@
       "spend": "Inversión",
       "hint": "Día {elapsed} de {days}, ritmo por día de la semana.",
       "more": "Detalles"
-    }
+    },
+    "greeting_line": "{count, plural, =0 {Todavía no hay pedidos hoy} one {# pedido hasta ahora hoy} other {# pedidos hasta ahora hoy}}"
   },
   "settings": {
     "title": "Ajustes",
@@ -297,7 +298,8 @@
       "prices_include_tax": "Precios con impuestos incluidos",
       "add": "Añadir o actualizar"
     },
-    "order_states_link": "Reglas de estado de pedido"
+    "order_states_link": "Reglas de estado de pedido",
+    "branding_link": "Marca"
   },
   "users": {
     "title": "Usuarios y roles",
@@ -316,6 +318,183 @@
     "email": "Correo",
     "invite": "Invitar",
     "invited": "Invitación creada. En desarrollo el enlace de acceso se imprime en la consola del servidor."
+  },
+  "theme": {
+    "label": "Tema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Sistema"
+  },
+  "greeting": {
+    "morning": "Buenos días, {name}",
+    "afternoon": "Buenas tardes, {name}",
+    "evening": "Buenas noches, {name}"
+  },
+  "profile": {
+    "menu": "Tu perfil",
+    "title": "Tu perfil",
+    "description": "Cómo te ve tu equipo, cómo se ve la app para ti y cómo inicias sesión.",
+    "identity": "Identidad",
+    "identity_description": "Tu nombre lo ve tu equipo; el nombre preferido es el que usa la app para saludarte.",
+    "name": "Nombre completo",
+    "preferred_name": "Nombre preferido",
+    "preferred_name_hint": "Opcional. Se usa en los saludos, por ejemplo “Giulia”.",
+    "job_title": "Cargo",
+    "save": "Guardar",
+    "saved": "Guardado.",
+    "photo_upload": "Subir foto",
+    "photo_change": "Cambiar foto",
+    "photo_remove": "Quitar",
+    "uploading": "Subiendo…",
+    "image_hint": "PNG, JPEG, WebP o GIF. Las imágenes grandes se reducen automáticamente.",
+    "preferences": "Preferencias",
+    "preferences_description": "Solo para ti, en todos tus dispositivos.",
+    "locale_default": "Idioma del espacio de trabajo",
+    "locale_default_named": "Idioma del espacio de trabajo ({language})",
+    "time_zone": "Zona horaria",
+    "time_zone_default": "Zona horaria del espacio de trabajo",
+    "time_zone_default_named": "Zona del espacio de trabajo ({zone})",
+    "density": "Densidad",
+    "density_comfortable": "Cómoda",
+    "density_compact": "Compacta",
+    "density_hint": "Compacta muestra más filas: tablas y tarjetas más ajustadas.",
+    "format_hint": "Las fechas y los números siguen el idioma. La zona horaria se usa para el saludo y tu lista de accesos; los informes mantienen la zona del espacio de trabajo para que todo el equipo vea los mismos días.",
+    "security": "Acceso y seguridad",
+    "security_description": "Email, contraseña y sesiones activas.",
+    "email": "Email",
+    "email_current": "Email actual:",
+    "email_pending": "Esperando la confirmación de {email}. No cambia nada hasta que se abra el enlace en ese buzón.",
+    "email_cancel": "Cancelar solicitud",
+    "email_new": "Nuevo email",
+    "email_submit": "Enviar confirmación",
+    "email_hint": "Enviamos un enlace a la nueva dirección y un aviso a la actual.",
+    "email_sent": "Revisa el nuevo buzón: ahí está el enlace de confirmación.",
+    "password": "Contraseña",
+    "password_current": "Contraseña actual",
+    "password_new": "Nueva contraseña",
+    "password_confirm": "Repite la nueva contraseña",
+    "password_hint": "Al menos 10 caracteres con letras, números y símbolos, o una frase larga. Al cambiarla se cierran todas las demás sesiones.",
+    "password_submit": "Cambiar contraseña",
+    "password_changed": "Contraseña cambiada. Se han cerrado las demás sesiones.",
+    "sessions": "Accesos recientes",
+    "sessions_description": "Las últimas veces que se usó tu cuenta para iniciar sesión.",
+    "sign_in_when": "Cuándo",
+    "sign_in_method": "Método",
+    "sign_in_device": "Dispositivo",
+    "sign_in_methods": {
+      "credentials": "Contraseña",
+      "email": "Enlace por email",
+      "other": "Otro"
+    },
+    "sessions_sign_out_others": "Cerrar todas las demás sesiones",
+    "sessions_signed_out": "Se han cerrado todas las demás sesiones.",
+    "workspaces": "Espacios de trabajo",
+    "workspaces_description": "Dónde tienes acceso y con qué rol. Los roles los gestionan owners y admins.",
+    "workspaces_super_admin": "Super-admin de la plataforma: abres cualquier espacio desde la consola.",
+    "errors": {
+      "invalid_input": "Algunos campos no son válidos.",
+      "rate_limited": "Demasiados intentos. Vuelve a intentarlo en una hora.",
+      "wrong_password": "La contraseña actual no es correcta.",
+      "weak_password": "La nueva contraseña es demasiado débil:",
+      "email_taken": "Este email ya lo usa otra cuenta.",
+      "same_email": "Ya es tu email.",
+      "invalid_token": "Este enlace no es válido.",
+      "expired_token": "El enlace ha caducado. Pide uno nuevo desde tu perfil.",
+      "not_found": "Cuenta no encontrada.",
+      "password_mismatch": "Las dos contraseñas nuevas no coinciden.",
+      "invalid_image": "El archivo no es una imagen compatible.",
+      "image_too_large": "La imagen es demasiado grande (máx. 1,5 MB tras la reducción).",
+      "forbidden": "No tienes permiso para hacerlo.",
+      "unknown": "Algo ha ido mal."
+    },
+    "password_issues": {
+      "too_short": "al menos 10 caracteres",
+      "too_long": "como máximo 200 caracteres",
+      "too_common": "no una contraseña común o repetitiva",
+      "personal": "no basada en tu nombre o tu email",
+      "low_variety": "mezcla mayúsculas, minúsculas, números y símbolos (o usa 16+ caracteres)"
+    }
+  },
+  "welcome": {
+    "title": "Completa tu perfil",
+    "description": "Has iniciado sesión como {email}. Antes de empezar, dile a tu equipo quién eres.",
+    "submit": "Continuar"
+  },
+  "email_change": {
+    "title": "Confirma tu nuevo email",
+    "description": "Confirma para usar esta dirección para iniciar sesión a partir de ahora.",
+    "confirm": "Confirmar el cambio de email",
+    "done": "Hecho: ahora inicias sesión con {email}.",
+    "continue": "Continuar",
+    "errors": {
+      "invalid_token": "El enlace no es válido o ya se ha usado.",
+      "expired_token": "El enlace ha caducado. Pide uno nuevo desde tu perfil.",
+      "email_taken": "Este email ya lo usa otra cuenta."
+    },
+    "mail_new_subject": "Confirma tu nueva dirección de email",
+    "mail_new_body": "Abre este enlace para confirmar el cambio del email con el que inicias sesión: {url}\n\nSi no lo has pedido, ignora este mensaje.",
+    "mail_old_subject": "Tu email de acceso va a cambiar",
+    "mail_old_body": "Se ha pedido cambiar el email de acceso de tu cuenta a {email}. Solo cambiará cuando esa dirección lo confirme. Si no has sido tú, cambia la contraseña ahora."
+  },
+  "branding": {
+    "title": "Marca",
+    "description": "Logo y color de marca del espacio de trabajo: se usan en la app y por defecto en el portal de devoluciones, el seguimiento, la página de proveedores y la encuesta.",
+    "back": "Todos los ajustes",
+    "color": "Color de marca",
+    "color_description": "Sustituye el color principal para todos en este espacio de trabajo. Se ajusta automáticamente para que textos y botones sigan siendo legibles (WCAG AA) en el tema claro y en el oscuro.",
+    "color_hex": "Color (#rrggbb)",
+    "color_picker": "Elegir un color",
+    "save": "Guardar color",
+    "reset": "Usar el predeterminado",
+    "invalid_color": "Usa el formato #rrggbb.",
+    "adjusted": "Ajustado para la legibilidad: {light} en el tema claro, {dark} en el tema oscuro.",
+    "sample_button": "Guardar",
+    "sample_link": "Ver pedidos",
+    "saved": "Guardado.",
+    "errors": {
+      "invalid_color": "Usa el formato #rrggbb.",
+      "generic": "No se pudo guardar la marca."
+    },
+    "logos": "Logos",
+    "logos_description": "Un logo para fondos claros y, si quieres, otro para fondos oscuros.",
+    "logo_light": "Sobre fondo claro",
+    "logo_dark": "Sobre fondo oscuro",
+    "logo_dark_fallback": "Usa el logo para fondo claro",
+    "logo_none": "Sin logo: se muestra el nombre",
+    "logo_upload": "Subir logo",
+    "logo_remove": "Quitar",
+    "used_by": "Las páginas públicas (devoluciones, seguimiento, proveedores, encuesta) usan esta marca salvo que sus propios ajustes la sustituyan."
+  },
+  "styleguide": {
+    "title": "Guía de estilo",
+    "description": "Dirección A, Modern SaaS (decidida el 2026-10-01): tokens, componentes en ambos temas, variantes del color de marca y densidades.",
+    "tokens": "Tokens",
+    "type_note": "Geist para textos y títulos, Geist Mono para códigos; esquinas de 8px, badges en forma de píldora.",
+    "components": "Componentes",
+    "primary": "Principal",
+    "secondary": "Secundario",
+    "ghost": "Discreto",
+    "danger": "Peligro",
+    "link": "Enlace",
+    "success": "Éxito",
+    "warning": "Aviso",
+    "info": "Info",
+    "input": "Campo",
+    "placeholder": "Escribe aquí",
+    "select": "Selección",
+    "option": "Opción",
+    "empty_title": "Aún no hay nada",
+    "empty_description": "Los estados vacíos explican qué aparecerá y cómo conseguirlo.",
+    "brand": "Color de marca del tenant",
+    "brand_description": "Cada espacio de trabajo puede tener su color; se ajusta hasta que textos y controles superan AA en ambos temas.",
+    "brand_card": "Claro y oscuro, tras el ajuste",
+    "adjusted": "ajustado",
+    "density": "Densidad",
+    "density_comfortable": "Cómoda",
+    "density_compact": "Compacta",
+    "col_order": "Pedido",
+    "col_status": "Estado",
+    "col_total": "Total"
   },
   "audit": {
     "title": "Registro de auditoría",
@@ -1429,186 +1608,6 @@
         "roas": "ROAS declarado",
         "conversion_rate": "Tasa de conversión"
       }
-    }
-  },
-  "analytics_depth": {
-    "tabs": {
-      "orders_pnl": "P/L por pedido",
-      "utm": "UTM"
-    },
-    "total": "Total",
-    "export": "CSV",
-    "apply": "Aplicar",
-    "clear": "Limpiar",
-    "sort": "Ordenar",
-    "granularity": {
-      "day": "Día",
-      "week": "Semana",
-      "month": "Mes",
-      "quarter": "Trimestre",
-      "year": "Año"
-    },
-    "periods": {
-      "title": "P/L en el tiempo",
-      "series": {
-        "cogs": "Coste de la mercancía",
-        "shipping": "Envíos",
-        "fees": "Comisiones de pago",
-        "returns": "Costes de devoluciones",
-        "ads": "Publicidad",
-        "fixed": "Costes fijos"
-      },
-      "partial": "parcial",
-      "partial_hint": "Este periodo está cubierto solo en parte: recortado por las fechas elegidas o aún en curso.",
-      "chart_hint": "Barras: costes apilados por tipo. Línea: resultado operativo. Las barras claras son periodos parciales. La suma de los periodos es el P/L de arriba.",
-      "pages": "{n} periodos"
-    },
-    "quality": {
-      "title": "Calidad de los datos",
-      "description": "Qué tan completos son los números detrás del P/L.",
-      "incomplete_orders": "Pedidos de venta con costes faltantes",
-      "incomplete_share": "{share} de los ingresos netos: coste de la mercancía subestimado",
-      "variants_missing_cost": "Variantes sin coste",
-      "fix_link": "Corregir costes de producto →",
-      "cost_known": "Ingresos con coste conocido",
-      "cost_known_hint": "Parte de los ingresos de venta con coste de producto conocido."
-    },
-    "orders_pnl": {
-      "title": "P/L por pedido",
-      "description": "Cada pedido de venta del periodo con su propio P/L; la suma lleva al P/L del periodo de abajo. {out} pedidos del periodo no son ventas (cancelados, pendientes, devueltos) y quedan fuera.",
-      "search": "Número de pedido",
-      "payment": "Método de pago",
-      "channel": "Canal",
-      "sort": {
-        "placed_desc": "Más recientes",
-        "placed_asc": "Más antiguos",
-        "contribution_asc": "Menor contribución",
-        "contribution_desc": "Mayor contribución",
-        "net_desc": "Mayores ingresos netos"
-      },
-      "missing_cost": "Coste faltante",
-      "loss": "Con pérdidas",
-      "empty": "Ningún pedido de venta coincide con los filtros.",
-      "order": "Pedido",
-      "fee_estimated": "Comisión (est.)",
-      "no_cost": "sin coste",
-      "total": "Total · {n} pedidos",
-      "summary": "{n} pedidos",
-      "reconciliation": "De los pedidos al P/L del periodo",
-      "reconciliation_description": "Las filas de pedidos suman el P/L; los costes conocidos solo para todo el periodo van en su propia línea.",
-      "reconciliation_filtered": "Calculado sobre todos los pedidos de venta del periodo, no solo los filtrados.",
-      "recon": {
-        "orders_contribution": "Suma de las contribuciones de los pedidos",
-        "shipping_adjustment": "Factura del transportista vs estimación por pedido",
-        "return_timing": "Costes de devoluciones por fecha de recepción vs por pedido",
-        "contribution": "Margen de contribución (P/L)",
-        "ads": "Publicidad",
-        "fixed": "Costes fijos",
-        "operating": "Resultado operativo (P/L)"
-      },
-      "shipping_adjustment_hint": "Los meses con factura real del transportista la usan en lugar de la estimación por pedido.",
-      "return_timing_hint": "El P/L cuenta los costes de devoluciones cuando vuelve la mercancía; la tabla los cuenta en el pedido al que pertenecen.",
-      "matches": "Coincide al céntimo con el P/L del periodo.",
-      "mismatch": "No coincide con el P/L del periodo: por favor, notifícalo."
-    },
-    "channels": {
-      "direct": "Directo",
-      "paid_social": "Social de pago",
-      "paid_search": "Búsqueda de pago",
-      "organic_search": "Búsqueda orgánica",
-      "email": "Email",
-      "social": "Social",
-      "referral": "Referido",
-      "unknown": "Desconocido",
-      "other": "Otro"
-    },
-    "products": {
-      "description": "Ventas del periodo con el gasto de las campañas vinculadas a cada producto (repartido por ingresos netos cuando una campaña anuncia varios), beneficio, ROAS/ROI, stock, cobertura y qué hacer. El gasto de campañas sin producto vinculado va en su propia fila, así el gasto total es igual al del periodo.",
-      "search": "Producto",
-      "action": "Acción de stock",
-      "all_actions": "Todas las acciones",
-      "actions": {
-        "pause_ads": "Pausar anuncios",
-        "reorder": "Reponer",
-        "last_units": "Últimas unidades",
-        "clear_excess": "Liquidar exceso",
-        "scale_ads": "Escalar anuncios",
-        "ok": "OK",
-        "no_data": "Sin stock"
-      },
-      "sort": {
-        "net_desc": "Mayores ingresos netos",
-        "units_desc": "Más unidades",
-        "profit_desc": "Mayor beneficio",
-        "profit_asc": "Menor beneficio",
-        "ad_spend_desc": "Mayor gasto en anuncios",
-        "roas_asc": "Menor ROAS",
-        "cover_asc": "Menor cobertura"
-      },
-      "net": "Ingresos netos",
-      "ad_spend": "Gasto en anuncios",
-      "profit": "Beneficio",
-      "light": "Anuncios",
-      "stock": "Stock + entrante",
-      "cover": "Cobertura",
-      "days": "{n} d",
-      "reorder_units": "{n} uds.",
-      "unattributed": "Gasto no atribuido: {n} campañas sin producto vinculado",
-      "link_campaigns": "Vincular campañas →",
-      "spend_matches": "Gasto total en anuncios {spend}, igual al P/L del periodo.",
-      "campaigns": "{n} campañas vinculadas",
-      "summary": "{n} productos"
-    },
-    "utm": {
-      "title": "Análisis UTM",
-      "description": "Pedidos de venta por parámetro UTM; haz clic en un valor para abrir el siguiente nivel. {n} pedidos de venta no tienen datos de atribución.",
-      "dims": {
-        "source": "Fuente",
-        "medium": "Medio",
-        "campaign": "Campaña",
-        "content": "Contenido",
-        "term": "Término"
-      },
-      "none": "(ninguno)",
-      "empty": "Ningún pedido de venta en este periodo.",
-      "orders": "Pedidos",
-      "revenue": "Ingresos",
-      "net": "Ingresos netos",
-      "aov": "Ticket medio",
-      "share": "Cuota",
-      "summary": "{n} valores",
-      "trend_title": "Canales en el tiempo",
-      "trend_description": "Ingresos netos de los pedidos de venta por canal de atribución."
-    },
-    "economics": {
-      "title": "Economía del pedido",
-      "description": "El P/L de este pedido, calculado como el P/L del periodo.",
-      "replaced": "Sustituido por una edición: la economía está en el pedido de reemplazo.",
-      "not_sale": "No es una venta (cancelado, pendiente o devuelto): no cuenta en el P/L.",
-      "incomplete": "incompleto",
-      "estimated": "estimado",
-      "fee_source": {
-        "estimated": "estimada"
-      },
-      "lines": {
-        "gross": "Ventas brutas",
-        "refunds": "Reembolsos",
-        "tax": "Impuestos",
-        "net": "Ingresos netos",
-        "cogs": "Coste de la mercancía",
-        "shipping": "Coste de envío",
-        "fee": "Comisión de pago",
-        "margin": "Margen del pedido",
-        "returns": "Costes de devoluciones",
-        "contribution": "Contribución"
-      },
-      "margin_rate": "Contribución {rate} de los ingresos netos",
-      "open_table": "Abrir en P/L por pedido →"
-    },
-    "order_filters": {
-      "product": "Contiene el producto",
-      "channel": "Canal: {value}",
-      "utm": "utm {dim}: {value}"
     }
   },
   "campaigns": {
@@ -2890,6 +2889,7 @@
       "tenants": "Tenants",
       "billing": "Facturación",
       "audit": "Registro de auditoría",
+      "styleguide": "Guía de estilo",
       "support": "Soporte"
     },
     "plans": {
@@ -3604,7 +3604,9 @@
     "label_enabled": "Dar al cliente una etiqueta de devolución prepagada",
     "label_destination": "Dirección de devolución en la etiqueta",
     "label_hint": "La etiqueta se emite al enviar la solicitud y su seguimiento se guarda en la devolución. En esta versión el proveedor de etiquetas es simulado.",
-    "off_notice": "El portal está desactivado: quien abre {url} ve \"página no encontrada\". Activa \"Portal activo\" abajo y guarda."
+    "off_notice": "El portal está desactivado: quien abre {url} ve \"página no encontrada\". Activa \"Portal activo\" abajo y guarda.",
+    "use_branding": "Usar la marca del espacio de trabajo",
+    "logo_branding_hint": "Vacío: el logo de Ajustes → Marca."
   },
   "return_portal": {
     "default_title": "Devolver un artículo",
@@ -4273,6 +4275,186 @@
       "connect": "Conectar en Integraciones",
       "ask_owner": "Pide a un owner o admin que conecte la clave de Anthropic en Integraciones.",
       "guide": "Cómo obtener una clave"
+    }
+  },
+  "analytics_depth": {
+    "tabs": {
+      "orders_pnl": "P/L por pedido",
+      "utm": "UTM"
+    },
+    "total": "Total",
+    "export": "CSV",
+    "apply": "Aplicar",
+    "clear": "Limpiar",
+    "sort": "Ordenar",
+    "granularity": {
+      "day": "Día",
+      "week": "Semana",
+      "month": "Mes",
+      "quarter": "Trimestre",
+      "year": "Año"
+    },
+    "periods": {
+      "title": "P/L en el tiempo",
+      "series": {
+        "cogs": "Coste de la mercancía",
+        "shipping": "Envíos",
+        "fees": "Comisiones de pago",
+        "returns": "Costes de devoluciones",
+        "ads": "Publicidad",
+        "fixed": "Costes fijos"
+      },
+      "partial": "parcial",
+      "partial_hint": "Este periodo está cubierto solo en parte: recortado por las fechas elegidas o aún en curso.",
+      "chart_hint": "Barras: costes apilados por tipo. Línea: resultado operativo. Las barras claras son periodos parciales. La suma de los periodos es el P/L de arriba.",
+      "pages": "{n} periodos"
+    },
+    "quality": {
+      "title": "Calidad de los datos",
+      "description": "Qué tan completos son los números detrás del P/L.",
+      "incomplete_orders": "Pedidos de venta con costes faltantes",
+      "incomplete_share": "{share} de los ingresos netos: coste de la mercancía subestimado",
+      "variants_missing_cost": "Variantes sin coste",
+      "fix_link": "Corregir costes de producto →",
+      "cost_known": "Ingresos con coste conocido",
+      "cost_known_hint": "Parte de los ingresos de venta con coste de producto conocido."
+    },
+    "orders_pnl": {
+      "title": "P/L por pedido",
+      "description": "Cada pedido de venta del periodo con su propio P/L; la suma lleva al P/L del periodo de abajo. {out} pedidos del periodo no son ventas (cancelados, pendientes, devueltos) y quedan fuera.",
+      "search": "Número de pedido",
+      "payment": "Método de pago",
+      "channel": "Canal",
+      "sort": {
+        "placed_desc": "Más recientes",
+        "placed_asc": "Más antiguos",
+        "contribution_asc": "Menor contribución",
+        "contribution_desc": "Mayor contribución",
+        "net_desc": "Mayores ingresos netos"
+      },
+      "missing_cost": "Coste faltante",
+      "loss": "Con pérdidas",
+      "empty": "Ningún pedido de venta coincide con los filtros.",
+      "order": "Pedido",
+      "fee_estimated": "Comisión (est.)",
+      "no_cost": "sin coste",
+      "total": "Total · {n} pedidos",
+      "summary": "{n} pedidos",
+      "reconciliation": "De los pedidos al P/L del periodo",
+      "reconciliation_description": "Las filas de pedidos suman el P/L; los costes conocidos solo para todo el periodo van en su propia línea.",
+      "reconciliation_filtered": "Calculado sobre todos los pedidos de venta del periodo, no solo los filtrados.",
+      "recon": {
+        "orders_contribution": "Suma de las contribuciones de los pedidos",
+        "shipping_adjustment": "Factura del transportista vs estimación por pedido",
+        "return_timing": "Costes de devoluciones por fecha de recepción vs por pedido",
+        "contribution": "Margen de contribución (P/L)",
+        "ads": "Publicidad",
+        "fixed": "Costes fijos",
+        "operating": "Resultado operativo (P/L)"
+      },
+      "shipping_adjustment_hint": "Los meses con factura real del transportista la usan en lugar de la estimación por pedido.",
+      "return_timing_hint": "El P/L cuenta los costes de devoluciones cuando vuelve la mercancía; la tabla los cuenta en el pedido al que pertenecen.",
+      "matches": "Coincide al céntimo con el P/L del periodo.",
+      "mismatch": "No coincide con el P/L del periodo: por favor, notifícalo."
+    },
+    "channels": {
+      "direct": "Directo",
+      "paid_social": "Social de pago",
+      "paid_search": "Búsqueda de pago",
+      "organic_search": "Búsqueda orgánica",
+      "email": "Email",
+      "social": "Social",
+      "referral": "Referido",
+      "unknown": "Desconocido",
+      "other": "Otro"
+    },
+    "products": {
+      "description": "Ventas del periodo con el gasto de las campañas vinculadas a cada producto (repartido por ingresos netos cuando una campaña anuncia varios), beneficio, ROAS/ROI, stock, cobertura y qué hacer. El gasto de campañas sin producto vinculado va en su propia fila, así el gasto total es igual al del periodo.",
+      "search": "Producto",
+      "action": "Acción de stock",
+      "all_actions": "Todas las acciones",
+      "actions": {
+        "pause_ads": "Pausar anuncios",
+        "reorder": "Reponer",
+        "last_units": "Últimas unidades",
+        "clear_excess": "Liquidar exceso",
+        "scale_ads": "Escalar anuncios",
+        "ok": "OK",
+        "no_data": "Sin stock"
+      },
+      "sort": {
+        "net_desc": "Mayores ingresos netos",
+        "units_desc": "Más unidades",
+        "profit_desc": "Mayor beneficio",
+        "profit_asc": "Menor beneficio",
+        "ad_spend_desc": "Mayor gasto en anuncios",
+        "roas_asc": "Menor ROAS",
+        "cover_asc": "Menor cobertura"
+      },
+      "net": "Ingresos netos",
+      "ad_spend": "Gasto en anuncios",
+      "profit": "Beneficio",
+      "light": "Anuncios",
+      "stock": "Stock + entrante",
+      "cover": "Cobertura",
+      "days": "{n} d",
+      "reorder_units": "{n} uds.",
+      "unattributed": "Gasto no atribuido: {n} campañas sin producto vinculado",
+      "link_campaigns": "Vincular campañas →",
+      "spend_matches": "Gasto total en anuncios {spend}, igual al P/L del periodo.",
+      "campaigns": "{n} campañas vinculadas",
+      "summary": "{n} productos"
+    },
+    "utm": {
+      "title": "Análisis UTM",
+      "description": "Pedidos de venta por parámetro UTM; haz clic en un valor para abrir el siguiente nivel. {n} pedidos de venta no tienen datos de atribución.",
+      "dims": {
+        "source": "Fuente",
+        "medium": "Medio",
+        "campaign": "Campaña",
+        "content": "Contenido",
+        "term": "Término"
+      },
+      "none": "(ninguno)",
+      "empty": "Ningún pedido de venta en este periodo.",
+      "orders": "Pedidos",
+      "revenue": "Ingresos",
+      "net": "Ingresos netos",
+      "aov": "Ticket medio",
+      "share": "Cuota",
+      "summary": "{n} valores",
+      "trend_title": "Canales en el tiempo",
+      "trend_description": "Ingresos netos de los pedidos de venta por canal de atribución."
+    },
+    "economics": {
+      "title": "Economía del pedido",
+      "description": "El P/L de este pedido, calculado como el P/L del periodo.",
+      "replaced": "Sustituido por una edición: la economía está en el pedido de reemplazo.",
+      "not_sale": "No es una venta (cancelado, pendiente o devuelto): no cuenta en el P/L.",
+      "incomplete": "incompleto",
+      "estimated": "estimado",
+      "fee_source": {
+        "estimated": "estimada"
+      },
+      "lines": {
+        "gross": "Ventas brutas",
+        "refunds": "Reembolsos",
+        "tax": "Impuestos",
+        "net": "Ingresos netos",
+        "cogs": "Coste de la mercancía",
+        "shipping": "Coste de envío",
+        "fee": "Comisión de pago",
+        "margin": "Margen del pedido",
+        "returns": "Costes de devoluciones",
+        "contribution": "Contribución"
+      },
+      "margin_rate": "Contribución {rate} de los ingresos netos",
+      "open_table": "Abrir en P/L por pedido →"
+    },
+    "order_filters": {
+      "product": "Contiene el producto",
+      "channel": "Canal: {value}",
+      "utm": "utm {dim}: {value}"
     }
   },
   "product_costs": {

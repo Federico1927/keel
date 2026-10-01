@@ -3,7 +3,7 @@ import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { adminDb, and, eq, recordAudit, schema } from "@keel/db";
-import { ORDER_STATUSES, type OrderStatus } from "@keel/core";
+import { ORDER_STATUSES, type OrderStatus, displayName } from "@keel/core";
 import { OrderEditError, addOrderNote, applyCancellation, applyOrderDiscount, clearManualStatus, deleteOrderNote, editOrder, enqueuePlatformWrite, getAddressProviderFor, setManualStatus } from "@keel/services";
 import type { AddressSuggestion, AddressValidation } from "@keel/integrations";
 import { getCommercePlatform } from "@/server/integrations";
@@ -94,7 +94,7 @@ export async function addNote(slug: string, orderId: string, body: string): Prom
     const result = await ctx.run(async (tx) => {
       const [o] = await tx.select({ name: schema.orders.name }).from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenant.id), eq(schema.orders.id, orderId))).limit(1);
       if (!o) throw new ForbiddenError("not_found");
-      return addOrderNote({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { orderId, body, allowedMentionIds: members.map((m) => m.id), link: `/t/${slug}/orders/${orderId}`, orderName: o.name, authorName: ctx.user.name ?? ctx.user.email });
+      return addOrderNote({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { orderId, body, allowedMentionIds: members.map((m) => m.id), link: `/t/${slug}/orders/${orderId}`, orderName: o.name, authorName: displayName(ctx.user) });
     });
     revalidatePath(`/t/${slug}/orders/${orderId}`);
     return ok({ mentions: result.mentions.length });

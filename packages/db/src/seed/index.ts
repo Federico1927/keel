@@ -114,8 +114,11 @@ export async function seedPlatform(db: ReturnType<typeof drizzle<typeof schema>>
         passwordHash,
         isSuperAdmin: "superAdmin" in u ? Boolean(u.superAdmin) : false,
         emailVerified: new Date(),
+        preferredName: demoPreferredName(u),
+        // explicit English: an empty language now means "the tenant's language" at sign-in (Northwind is Italian)
+        locale: "en",
       })
-      .onConflictDoUpdate({ target: schema.users.email, set: { name: u.name, passwordHash } })
+      .onConflictDoUpdate({ target: schema.users.email, set: { name: u.name, passwordHash, preferredName: demoPreferredName(u), locale: "en" } })
       .returning({ id: schema.users.id });
     userIds[u.email] = row!.id;
     for (const m of u.memberships) {
@@ -129,8 +132,19 @@ export async function seedPlatform(db: ReturnType<typeof drizzle<typeof schema>>
         .returning();
     }
   }
+  for (const [key, id] of Object.entries(tenantIds) as [keyof typeof DEMO_TENANTS, string][]) {
+    await db.insert(schema.tenantBranding).values({ tenantId: id, brandColor: DEMO_BRAND_COLORS[key] }).onConflictDoNothing();
+  }
   await seedBilling(db, tenantIds);
   return { tenantIds, userIds };
+}
+
+/** Demo branding: Northwind keeps the product blue, Harbor Home shows a brand colour of its own. */
+export const DEMO_BRAND_COLORS: Record<keyof typeof DEMO_TENANTS, string | null> = { northwind: null, harbor: "#3d5a40" };
+
+/** The first name, as a person would fill "preferred name"; the platform admin has none. */
+function demoPreferredName(u: (typeof DEMO_USERS)[number]): string | null {
+  return "superAdmin" in u ? null : u.name.split(" ")[0]!;
 }
 
 /** Demo billing: Northwind active on Growth with COD add-on and a paid history; Harbor Home past due on Starter. */

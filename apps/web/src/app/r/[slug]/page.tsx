@@ -7,6 +7,7 @@ import { pickLocalized } from "@keel/core";
 import { adminDb, eq, schema, withTenant } from "@keel/db";
 import { getPortalConfig, listReturnReasons } from "@keel/services";
 import { loadMessages } from "@/i18n/messages";
+import { brandStyle, loadBrand, publicBrand } from "@/server/branding";
 import { PortalApp, type PortalProps } from "./portal";
 
 export const dynamic = "force-dynamic";
@@ -29,13 +30,16 @@ export default async function ReturnPortalPage({ params, searchParams }: { param
   const fallback: Locale = isLocale(tenant.defaultLocale) ? tenant.defaultLocale : DEFAULT_LOCALE;
   const locale: Locale = isLocale(sp.lang) ? sp.lang : fallback;
   const L = (m: Record<string, string>) => pickLocalized(m, locale, fallback);
+  // the portal's own colour and logo override the tenant branding (Settings → Branding)
+  const brand = publicBrand(await loadBrand(tenant.id, slug), { color: config.primaryColor, logoUrl: config.logoUrl });
   const messages = await loadMessages(locale);
   const props: PortalProps = {
     slug,
     locale,
     storeName: tenant.name,
-    logoUrl: config.logoUrl,
-    primaryColor: config.primaryColor,
+    logoUrl: brand.logoUrl,
+    primaryColor: brand.primary,
+    onPrimary: brand.onPrimary,
     title: L(config.title),
     intro: L(config.intro),
     successMessage: L(config.successMessage),
@@ -54,12 +58,12 @@ export default async function ReturnPortalPage({ params, searchParams }: { param
     initialOrder: sp.order?.slice(0, 40) ?? "",
   };
   return (
-    <main className="min-h-screen bg-muted/30" style={{ ["--portal" as string]: config.primaryColor }} lang={locale}>
+    <main className="light min-h-screen bg-background text-foreground" style={brandStyle(brand)} lang={locale}>
       <header className="border-b bg-card">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-4">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            {config.logoUrl ? <img src={config.logoUrl} alt={tenant.name} className="h-8 w-auto" /> : <span className="font-serif text-lg">{tenant.name}</span>}
+            {brand.logoUrl ? <img src={brand.logoUrl} alt={tenant.name} className="h-8 w-auto" /> : <span className="text-lg font-semibold">{tenant.name}</span>}
           </div>
           <nav className="flex items-center gap-3 text-xs" aria-label="Language">
             {config.trackingPage && <Link href={`/r/${slug}/track?lang=${locale}`} className="text-muted-foreground hover:underline" data-testid="portal-track-link">{(messages.return_portal as { track: { link: string } }).track.link}</Link>}

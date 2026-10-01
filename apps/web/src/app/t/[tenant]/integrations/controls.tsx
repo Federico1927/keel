@@ -77,7 +77,7 @@ function ConnectForm({ slug, provider, mock, onDone }: { slug: string; provider:
         ? [{ name: "adAccountId", label: t("fields.ad_account"), placeholder: "act_123456789" }, { name: "accessToken", label: t("fields.access_token"), type: "password" }]
         : [{ name: "customerId", label: t("fields.customer_id"), placeholder: "123-456-7890" }, { name: "loginCustomerId", label: t("fields.login_customer_id"), placeholder: "optional" }, { name: "developerToken", label: t("fields.developer_token"), type: "password" }, { name: "clientId", label: t("fields.client_id") }, { name: "clientSecret", label: t("fields.client_secret"), type: "password" }, { name: "refreshToken", label: t("fields.refresh_token"), type: "password" }];
   return (
-    <Card className={cn("mt-2", state?.ok && "border-green-600")}>
+    <Card className={cn("mt-2", state?.ok && "border-success")}>
       <CardHeader>
         <CardTitle className="text-sm">{t(`connect_title.${provider}`)}</CardTitle>
         <CardDescription>{mock ? t("mock_notice") : t(`connect_description.${provider}`)}</CardDescription>
@@ -100,7 +100,7 @@ function ConnectForm({ slug, provider, mock, onDone }: { slug: string; provider:
               <AlertDescription>{t.has(`errors.${state.error}`) ? t(`errors.${state.error}`) : tc(`errors.${state.error}`)}{state.fieldErrors?.platform ? ` (${state.fieldErrors.platform})` : ""}</AlertDescription>
             </Alert>
           )}
-          {state?.ok && <p className="text-sm text-green-700 sm:col-span-2">{t("connected_ok")}</p>}
+          {state?.ok && <p className="text-sm text-success sm:col-span-2">{t("connected_ok")}</p>}
           <div className="flex gap-2 sm:col-span-2">
             <Button type="submit" size="sm" disabled={pending}>{t("connect")}</Button>
             <Button type="button" size="sm" variant="ghost" onClick={onDone}>{tc("cancel")}</Button>
