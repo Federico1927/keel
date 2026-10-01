@@ -103,3 +103,11 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · Test suites that share the test database run serially
 
 **Decision.** `packages/db` and `packages/services` both reset and migrate `keel_test`. The turbo `test` task depends on `^test`, so a package's dependencies are tested first and the two suites never run at the same time.
+
+## 2026-10-01 · Receiving is the only event that moves purchased stock and cost
+
+**Decision.** `receivePurchaseOrder` writes an `inventory_movements` row and increments `inventory_levels` at the destination location, sets the variant's last cost and moving-average cost, moves the purchase order to `partially_received` or `received`, and recomputes backorders (`fulfilled` when stock covers them, `covered` when an open PO does). The optional Shopify write-back is a callback the action supplies, so the service stays I/O-free with respect to adapters. The reference platform wrote the product cost from the frontend on save; here cost changes only on physical receipt.
+
+## 2026-10-01 · Inventory risk formulas and their parameters
+
+**Decision.** `velocity = units sold in lookback / lookback days` (non-cancelled orders), `cover = (available + incoming) / velocity`, risk `critical` when effective stock is zero or cover ≤ critical days, `warning` when ≤ warning days, `no_sales` when nothing sold. Reorder suggestion `ceil(velocity × target days − effective stock)` rounded up to the variant pack size. Lookback, thresholds and target days are tenant settings; incoming counts purchase orders in `confirmed`, `in_transit` or `partially_received` (one set, used everywhere).

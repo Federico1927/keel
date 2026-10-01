@@ -9,7 +9,7 @@ Stato aggiornato da Claude Code a ogni fase (CLAUDE.md §1). Alla ripresa di una
 | 1 | fatta | Contesto tenant da slug + appartenenza, guardie pagina/azione (ruolo × modulo), shell applicativa con navigazione filtrata, impostazioni tenant, utenti e ruoli, registro attività, audit diff-only, suite generica di isolamento RLS su ogni tabella con `tenant_id` (29 test verdi), e2e permessi |
 | 2 | fatta | Enum canonici e motore `state_rules` in core (test), schema di dominio completo (35 tabelle, tutte con RLS), interfacce adapter + mock con simulazione webhook/errori, seed deterministico (15k + 6k ordini in ~40 s), pagina regole di stato con anteprima su 50 ordini |
 | 3 | fatta | Lista ordini con ricerca server-side (numero esatto o trigram), filtri, conteggi per stato, paginazione; dettaglio con timeline (autore + diff), note interne con @menzioni e notifiche, storico cliente a 3 hop, duplicati, attribuzione, spedizioni; azioni cambia stato / annulla (via adapter) / assegna; pagina spedizioni con KPI, viste ferme/eccezioni, resolver multi-fonte |
-| 4 | da fare | |
+| 4 | fatta | Catalogo con opzioni dinamiche, stock per location, velocità/copertura/rischio/riordino, grafico vendite 90 giorni, prezzo e stato scritti verso l'adapter; fornitori con saldi; ordini d'acquisto con transizioni, creazione precompilata dai suggerimenti, ricevimento parziale/completo che aggiorna stock, costo e backorder |
 | 5 | da fare | |
 | 6 | da fare | |
 | 7 | da fare | |
@@ -67,6 +67,13 @@ Fatto:
 - `packages/core`: `findDuplicateOrders`, `resolveShipmentStatus` (finale batte non finale, precedenza per fonte con finestra di freschezza, eccezioni appiccicose, mai retrocessione dallo stato terminale), helper menzioni `@[Nome](uuid)`.
 - Web: `/orders` (filtri in URL, chip per stato con conteggi, vista mobile), `/orders/[id]` (DetailShell, prev/next, banner duplicati, azioni con conferma), `/shipments` (tile KPI cliccabili, viste, giorni in viaggio, fonte vincente), campanella notifiche.
 - Adapter factory `getCommercePlatform` / `getAdsPlatform` in modalità mock, costruiti dal catalogo del tenant.
+
+## Fase 4 — dettaglio
+
+Fatto:
+- `packages/core/inventory`: `stockVelocity`, `reorderSuggestion` (arrotondato al pack), `variantCapacity`, `movingAverageCost`, `backorderStatus`, transizioni PO.
+- `packages/services`: `variantStock` (livelli, in arrivo, venduti, velocità, rischio per variante), `receivePurchaseOrder`, `transitionPurchaseOrder`, `createPurchaseOrder`, `refreshBackorders` con notifica, `supplierBalances`, `recordSupplierPayment`. Test: ricevimento parziale poi completo verifica stock +20, costo aggiornato, movimenti registrati.
+- Web: `/products` (filtri per rischio/tipo/stato), `/products/[id]` (KPI, grafico Recharts, varianti × location, PO in arrivo, movimenti, campagne collegate, modifica prezzo e stato via adapter), `/inventory` (tile, finestra 7–90 giorni, filtro location), `/purchasing` (tab per stato, badge "copre N ordini"), `/purchasing/[id]` (ricevimento con quantità per riga, location, write-back opzionale, pagamenti), `/purchasing/new` (precompilato dai suggerimenti), `/purchasing/suppliers` (saldi).
 
 ## Blocchi
 

@@ -8,3 +8,4 @@ export * from "./identity";
 export * from "./duplicates";
 export * from "./shipment-resolver";
 export * from "./mentions";
+export * from "./inventory";

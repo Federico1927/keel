@@ -532,5 +532,217 @@
       "status": "Stato",
       "carrier": "Corriere"
     }
+  },
+  "stock_risk": {
+    "critical": "Critico",
+    "warning": "Basso",
+    "ok": "Sano",
+    "no_sales": "Senza vendite"
+  },
+  "po_status": {
+    "draft": "Bozza",
+    "sent": "Inviato",
+    "confirmed": "Confermato",
+    "in_transit": "In transito",
+    "partially_received": "Ricevuto in parte",
+    "received": "Ricevuto",
+    "cancelled": "Annullato"
+  },
+  "products": {
+    "title": "Prodotti",
+    "description": "Catalogo sincronizzato dalla piattaforma e-commerce, con giacenza, velocità di vendita e rischio per prodotto.",
+    "search": "Cerca",
+    "search_placeholder": "Titolo o SKU",
+    "clear": "Pulisci",
+    "all_types": "Tutti i tipi",
+    "all_statuses": "Tutti gli stati",
+    "empty_title": "Nessun prodotto trovato",
+    "empty_description": "Prova un'altra ricerca o pulisci i filtri.",
+    "pagination": "{from}–{to} di {total} prodotti",
+    "status": {
+      "active": "Attivo",
+      "draft": "Bozza",
+      "archived": "Archiviato"
+    },
+    "columns": {
+      "product": "Prodotto",
+      "type": "Tipo",
+      "status": "Stato",
+      "variants": "Varianti",
+      "available": "Disponibili",
+      "incoming": "In arrivo",
+      "sold": "Venduti ({days}g)",
+      "risk": "Rischio"
+    }
+  },
+  "product_detail": {
+    "back": "Prodotti",
+    "not_repurchasable": "non riacquistabile",
+    "repurchasable": "Riacquistabile",
+    "platform_status": "Stato sulla piattaforma",
+    "incoming": "Ordini d'acquisto in arrivo",
+    "campaigns": "Campagne collegate",
+    "movements": "Movimenti di magazzino",
+    "no_movements": "Nessun movimento registrato.",
+    "sales_90d": "Pezzi venduti, ultimi 90 giorni",
+    "variants": "Varianti e giacenze",
+    "create_po": "Crea ordine d'acquisto",
+    "save_price": "Salva",
+    "kpi": {
+      "available": "Disponibili",
+      "incoming": "In arrivo",
+      "sold": "Venduti ({days}g)",
+      "cover": "Giorni di copertura",
+      "reorder": "Riordino suggerito"
+    },
+    "variant": {
+      "title": "Variante",
+      "sku": "SKU",
+      "price": "Prezzo",
+      "cost": "Costo",
+      "available": "Disponibili",
+      "incoming": "In arrivo",
+      "velocity": "Pezzi/giorno",
+      "risk": "Rischio",
+      "reorder": "Riordino"
+    },
+    "movement": {
+      "receipt": "Ricevimento",
+      "return_restock": "Rientro da reso",
+      "adjustment": "Rettifica",
+      "sync": "Sync",
+      "sale": "Vendita"
+    }
+  },
+  "inventory": {
+    "title": "Magazzino",
+    "description": "Giacenza per variante con velocità su {days} giorni, giorni di copertura e riordini suggeriti per arrivare a {target} giorni.",
+    "search": "Cerca",
+    "search_placeholder": "Prodotto, variante o SKU",
+    "location": "Location",
+    "all_locations": "Tutte le location",
+    "lookback": "Finestra",
+    "lookback_days": "Ultimi {days} giorni",
+    "apply": "Applica",
+    "create_po": "Crea ordine d'acquisto",
+    "empty_title": "Niente da mostrare",
+    "empty_description": "Cambia i filtri o sincronizza il catalogo.",
+    "pagination": "{from}–{to} di {total} varianti",
+    "kpi": {
+      "units": "Pezzi a stock",
+      "value": "Valore di magazzino",
+      "value_hint": "all'ultimo costo d'acquisto",
+      "reorder": "Pezzi da riordinare"
+    },
+    "columns": {
+      "variant": "Variante",
+      "available": "Disponibili",
+      "incoming": "In arrivo",
+      "sold": "Venduti",
+      "velocity": "Pezzi/giorno",
+      "cover": "Copertura",
+      "reorder": "Riordino"
+    }
+  },
+  "purchasing": {
+    "title": "Acquisti",
+    "description": "Ordini d'acquisto dalla bozza al ricevimento; il ricevimento aggiorna stock e costo prodotto.",
+    "suppliers": "Fornitori",
+    "new_po": "Nuovo ordine d'acquisto",
+    "all": "Tutti",
+    "lines_count": "{n} righe",
+    "covers_orders": "copre {n} ordini",
+    "empty_title": "Nessun ordine d'acquisto",
+    "empty_description": "Creane uno dai suggerimenti del magazzino.",
+    "pagination": "{from}–{to} di {total} ordini d'acquisto",
+    "columns": {
+      "number": "Numero",
+      "supplier": "Fornitore",
+      "status": "Stato",
+      "expected": "Atteso / ricevuto",
+      "units": "Pezzi",
+      "total": "Totale",
+      "covers": "Backorder"
+    }
+  },
+  "po_detail": {
+    "back": "Acquisti",
+    "expected": "atteso il {date}",
+    "covers_orders": "copre {n} ordini in attesa",
+    "summary": "Riepilogo",
+    "total": "Totale",
+    "paid": "Pagato",
+    "balance": "Saldo",
+    "ordered": "Ordinato",
+    "received": "Ricevuto",
+    "destination": "Destinazione",
+    "waiting_orders": "Ordini in attesa di questa merce",
+    "payments": "Pagamenti",
+    "lines": "Righe",
+    "mark_as": "Segna come {status}",
+    "record_payment": "Registra pagamento",
+    "amount": "Importo",
+    "paid_on": "Pagato il",
+    "method": "Metodo",
+    "methods": {
+      "bank_transfer": "Bonifico",
+      "card": "Carta",
+      "other": "Altro"
+    },
+    "receive_into": "Ricevi in",
+    "push_to_platform": "Aggiorna anche lo stock sulla piattaforma e-commerce",
+    "receive": "Ricevi",
+    "received_ok": "Ricevuto. {released} ordini in attesa sbloccati.",
+    "audit_hint": "Ultimo aggiornamento {at}. Ogni transizione e ricevimento è nel registro attività.",
+    "line": {
+      "item": "Articolo",
+      "ordered": "Ordinati",
+      "received": "Ricevuti",
+      "unit_cost": "Costo unitario",
+      "total": "Totale",
+      "receive_now": "Ricevi ora"
+    }
+  },
+  "po_new": {
+    "back": "Acquisti",
+    "title": "Nuovo ordine d'acquisto",
+    "description": "Le quantità sono precompilate con il suggerimento per arrivare a {target} giorni di copertura; i costi con l'ultimo costo d'acquisto.",
+    "supplier": "Fornitore",
+    "destination": "Destinazione",
+    "expected": "Atteso il",
+    "notes": "Note",
+    "create": "Crea bozza",
+    "no_candidates": "Nessuna variante da riordinare al momento.",
+    "line": {
+      "variant": "Variante",
+      "available": "Disponibili",
+      "incoming": "In arrivo",
+      "cover": "Copertura",
+      "quantity": "Quantità",
+      "unit_cost": "Costo unitario ({currency})"
+    }
+  },
+  "suppliers": {
+    "back": "Acquisti",
+    "title": "Fornitori",
+    "description": "Anagrafica e saldi: dovuto sugli ordini confermati meno i pagamenti registrati.",
+    "add_title": "Aggiungi fornitore",
+    "add": "Aggiungi",
+    "fields": {
+      "name": "Nome",
+      "payeeName": "Intestatario",
+      "email": "Email",
+      "phone": "Telefono",
+      "country": "Paese (ISO 2)",
+      "leadTimeDays": "Lead time (giorni)"
+    },
+    "columns": {
+      "supplier": "Fornitore",
+      "contact": "Contatto",
+      "lead_time": "Lead time",
+      "owed": "Dovuto",
+      "paid": "Pagato",
+      "balance": "Saldo"
+    }
   }
 }

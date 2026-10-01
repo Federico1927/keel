@@ -532,5 +532,217 @@
       "status": "Status",
       "carrier": "Carrier"
     }
+  },
+  "stock_risk": {
+    "critical": "Critical",
+    "warning": "Low",
+    "ok": "Healthy",
+    "no_sales": "No sales"
+  },
+  "po_status": {
+    "draft": "Draft",
+    "sent": "Sent",
+    "confirmed": "Confirmed",
+    "in_transit": "In transit",
+    "partially_received": "Partially received",
+    "received": "Received",
+    "cancelled": "Cancelled"
+  },
+  "products": {
+    "title": "Products",
+    "description": "Catalog synced from the commerce platform, with stock, sales velocity and risk per product.",
+    "search": "Search",
+    "search_placeholder": "Title or SKU",
+    "clear": "Clear",
+    "all_types": "All types",
+    "all_statuses": "All statuses",
+    "empty_title": "No products match",
+    "empty_description": "Try another search or clear the filters.",
+    "pagination": "{from}–{to} of {total} products",
+    "status": {
+      "active": "Active",
+      "draft": "Draft",
+      "archived": "Archived"
+    },
+    "columns": {
+      "product": "Product",
+      "type": "Type",
+      "status": "Status",
+      "variants": "Variants",
+      "available": "Available",
+      "incoming": "Incoming",
+      "sold": "Sold ({days}d)",
+      "risk": "Risk"
+    }
+  },
+  "product_detail": {
+    "back": "Products",
+    "not_repurchasable": "not repurchasable",
+    "repurchasable": "Repurchasable",
+    "platform_status": "Status on platform",
+    "incoming": "Incoming purchase orders",
+    "campaigns": "Linked campaigns",
+    "movements": "Stock movements",
+    "no_movements": "No movements recorded.",
+    "sales_90d": "Units sold, last 90 days",
+    "variants": "Variants and stock",
+    "create_po": "Create purchase order",
+    "save_price": "Save",
+    "kpi": {
+      "available": "Available",
+      "incoming": "Incoming",
+      "sold": "Sold ({days}d)",
+      "cover": "Days of cover",
+      "reorder": "Suggested reorder"
+    },
+    "variant": {
+      "title": "Variant",
+      "sku": "SKU",
+      "price": "Price",
+      "cost": "Cost",
+      "available": "Available",
+      "incoming": "Incoming",
+      "velocity": "Units/day",
+      "risk": "Risk",
+      "reorder": "Reorder"
+    },
+    "movement": {
+      "receipt": "Receipt",
+      "return_restock": "Return restocked",
+      "adjustment": "Adjustment",
+      "sync": "Sync",
+      "sale": "Sale"
+    }
+  },
+  "inventory": {
+    "title": "Inventory",
+    "description": "Stock per variant with velocity over {days} days, days of cover and reorder suggestions to reach {target} days.",
+    "search": "Search",
+    "search_placeholder": "Product, variant or SKU",
+    "location": "Location",
+    "all_locations": "All locations",
+    "lookback": "Lookback",
+    "lookback_days": "Last {days} days",
+    "apply": "Apply",
+    "create_po": "Create purchase order",
+    "empty_title": "Nothing to show",
+    "empty_description": "Change the filters or sync the catalog.",
+    "pagination": "{from}–{to} of {total} variants",
+    "kpi": {
+      "units": "Units in stock",
+      "value": "Stock value",
+      "value_hint": "at last purchase cost",
+      "reorder": "Units to reorder"
+    },
+    "columns": {
+      "variant": "Variant",
+      "available": "Available",
+      "incoming": "Incoming",
+      "sold": "Sold",
+      "velocity": "Units/day",
+      "cover": "Cover",
+      "reorder": "Reorder"
+    }
+  },
+  "purchasing": {
+    "title": "Purchasing",
+    "description": "Purchase orders from draft to receipt; receiving updates stock and product cost.",
+    "suppliers": "Suppliers",
+    "new_po": "New purchase order",
+    "all": "All",
+    "lines_count": "{n} lines",
+    "covers_orders": "covers {n} orders",
+    "empty_title": "No purchase orders",
+    "empty_description": "Create one from the inventory suggestions.",
+    "pagination": "{from}–{to} of {total} purchase orders",
+    "columns": {
+      "number": "Number",
+      "supplier": "Supplier",
+      "status": "Status",
+      "expected": "Expected / received",
+      "units": "Units",
+      "total": "Total",
+      "covers": "Backorders"
+    }
+  },
+  "po_detail": {
+    "back": "Purchasing",
+    "expected": "expected {date}",
+    "covers_orders": "covers {n} waiting orders",
+    "summary": "Summary",
+    "total": "Total",
+    "paid": "Paid",
+    "balance": "Balance",
+    "ordered": "Ordered",
+    "received": "Received",
+    "destination": "Destination",
+    "waiting_orders": "Orders waiting for this stock",
+    "payments": "Payments",
+    "lines": "Lines",
+    "mark_as": "Mark as {status}",
+    "record_payment": "Record payment",
+    "amount": "Amount",
+    "paid_on": "Paid on",
+    "method": "Method",
+    "methods": {
+      "bank_transfer": "Bank transfer",
+      "card": "Card",
+      "other": "Other"
+    },
+    "receive_into": "Receive into",
+    "push_to_platform": "Also update stock on the commerce platform",
+    "receive": "Receive",
+    "received_ok": "Received. {released} waiting orders released.",
+    "audit_hint": "Last update {at}. Every transition and receipt is in the audit log.",
+    "line": {
+      "item": "Item",
+      "ordered": "Ordered",
+      "received": "Received",
+      "unit_cost": "Unit cost",
+      "total": "Total",
+      "receive_now": "Receive now"
+    }
+  },
+  "po_new": {
+    "back": "Purchasing",
+    "title": "New purchase order",
+    "description": "Quantities are pre-filled with the suggestion to reach {target} days of cover; costs with the last purchase cost.",
+    "supplier": "Supplier",
+    "destination": "Destination",
+    "expected": "Expected on",
+    "notes": "Notes",
+    "create": "Create draft",
+    "no_candidates": "No variant needs reordering right now.",
+    "line": {
+      "variant": "Variant",
+      "available": "Available",
+      "incoming": "Incoming",
+      "cover": "Cover",
+      "quantity": "Quantity",
+      "unit_cost": "Unit cost ({currency})"
+    }
+  },
+  "suppliers": {
+    "back": "Purchasing",
+    "title": "Suppliers",
+    "description": "Master data and balances: owed on confirmed orders minus recorded payments.",
+    "add_title": "Add supplier",
+    "add": "Add",
+    "fields": {
+      "name": "Name",
+      "payeeName": "Payee name",
+      "email": "Email",
+      "phone": "Phone",
+      "country": "Country (ISO 2)",
+      "leadTimeDays": "Lead time (days)"
+    },
+    "columns": {
+      "supplier": "Supplier",
+      "contact": "Contact",
+      "lead_time": "Lead time",
+      "owed": "Owed",
+      "paid": "Paid",
+      "balance": "Balance"
+    }
   }
 }
