@@ -386,3 +386,18 @@ Fatto:
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).
+
+## Acquisti in profondità (issue #29)
+
+Fatto:
+- Fornitore predefinito per variante (SKU fornitore, costo, MOQ, multiplo, tempo di consegna) dalla nuova sezione "Fornitori e confezioni" della scheda prodotto, per singola variante o per tutte le varianti del prodotto, e in blocco dalla pagina fornitori (tipo di prodotto, marca, prefisso SKU, solo varianti senza fornitore). Pianificazione e bozze automatiche usano subito fornitore e costo scelti.
+- Nuovo ordine d'acquisto con editor di righe: ricerca di qualsiasi variante per SKU, barcode o titolo, righe libere (descrizione, quantità, costo), suggerimenti di riordino aggiungibili uno a uno o tutti insieme. Lo stesso editor modifica gli ordini in bozza e inviati (righe sostituite, diff nell'audit); ogni ordine si può duplicare in bozza; bozze e annullati si possono eliminare. Scheda "Storico" nel dettaglio con le voci dell'audit.
+- Lista ordini d'acquisto: ricerca (numero, fornitore, SKU, descrizione, note), periodo, destinazione, fornitore, stato ed esportazione CSV con gli stessi filtri.
+- Confezioni (case pack) definite dal negozio su un'opzione qualsiasi con pezzi per valore, per tutti i prodotti con quell'opzione o per uno solo; pagina "Mix opzioni" per prodotto con quota di vendite per combinazione e per valore, suggerimento di cartoni per gruppo di opzioni e pianificatore che crea la bozza d'ordine (per quota di vendite o per confezioni). Calcoli puri in `packages/core/src/packs.ts`.
+- Ispezione al ricevimento: per riga arrivati, danneggiati e scartati; solo le unità buone vanno a magazzino e aggiornano il costo; i valori restano sulla riga e nell'audit. Le righe libere si ricevono senza toccare lo stock.
+- Link del fornitore più sicuri: token salvato solo come hash, scadenza a 30 giorni (costante in config), revoca, reinvio con nuovo token e revoca del precedente, pagina neutra per link scaduti o revocati (nessun dato dell'ordine), registro di ogni apertura e tentativo di risposta; stato dei link nel dettaglio ordine.
+- Seed: fornitore predefinito su gran parte delle varianti (un prodotto su otto senza, per la funzione in blocco), una confezione per negozio (Northwind: taglie per tutti i prodotti con l'opzione; Harbor: cartone misto su un prodotto), una bozza con una riga libera e un link fornitore scaduto con la sua apertura bloccata.
+- L'avviso giornaliero "variante critica senza ordine in arrivo" arriva dal tick delle notifiche (#33), non da questa issue.
+- Migrazione 0020 (3 tabelle con RLS: `case_packs`, `supplier_links`, `supplier_link_views`; 2 colonne con default su `purchase_order_lines`); test core 176, servizi `purchasing-depth` 7 (più `planning` e `purchasing` aggiornati), db 529; e2e `purchasing-depth` (6) più `inventory` e `planning` verdi sulla build di produzione.
+
+Resta: invio reale dell'email al fornitore (oggi il link si copia a mano in modalità demo); resi al fornitore per la merce danneggiata.

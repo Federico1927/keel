@@ -42,13 +42,13 @@
       "cod_platform_error": "The commerce platform rejected the tag or cancellation write; nothing was recorded.",
       "invalid_formula": "The formula is not valid.",
       "closed": "This order can no longer be changed.",
-      "attachment_too_large": "The file is larger than 1.5 MB.",
-      "attachment_type": "This file type is not accepted.",
-      "invalid_type": "Unknown notification type.",
       "not_editable": "This order can no longer be edited: it is fulfilled, cancelled or replaced.",
       "invalid_address": "The address is not valid: check the highlighted fields.",
       "merge_invalid": "These orders cannot be merged: different customer or payment, or already fulfilled.",
-      "nothing_to_change": "Nothing to change."
+      "nothing_to_change": "Nothing to change.",
+      "attachment_too_large": "The file is larger than 1.5 MB.",
+      "attachment_type": "This file type is not accepted.",
+      "invalid_type": "Unknown notification type."
     },
     "edit": "Edit"
   },
@@ -684,6 +684,70 @@
     "replaced": "Replaced by a new order",
     "discount_applied": "Discount applied"
   },
+  "order_edit": {
+    "button": "Edit order",
+    "cod_button": "Modify order",
+    "merge_button": "Merge orders",
+    "title": "Edit {order}",
+    "description": "Contact, address and note are changed in place on the store. Changing lines or merging orders creates a new linked order and cancels this one, so the warehouse never ships a removed line.",
+    "cod_description": "Changes agreed with the customer before confirmation. Contact and address are edited in place. Changing lines or merging orders creates a new order and cancels this one, so the warehouse never ships a removed line.",
+    "contact": "Contact and address",
+    "customer_name": "Name",
+    "phone": "Phone",
+    "email": "Email",
+    "shipping_address": "Shipping address",
+    "edit_billing": "Change the billing address too",
+    "address": {
+      "name": "Recipient",
+      "address1": "Address",
+      "address2": "Address line 2",
+      "city": "City",
+      "province": "Province / state",
+      "zip": "Postal code",
+      "country": "Country (ISO code)"
+    },
+    "address_suggestions": "Suggestions",
+    "check_address": "Check address",
+    "address_ok": "The address looks valid.",
+    "address_issues": {
+      "required": "Required.",
+      "invalid_zip": "Not a valid postal code for this country.",
+      "invalid_country": "Use the two-letter country code.",
+      "not_found": "Address not found."
+    },
+    "note": "Order note",
+    "note_append": "Add to the order note",
+    "lines": "Lines",
+    "quantity": "Quantity",
+    "add_product": "Search product by SKU or name",
+    "add": "Add",
+    "new_total": "New total {total}",
+    "merge": "Merge other open orders of this customer",
+    "merge_help": "Their lines are added to the new order and they are cancelled as replaced. Only open orders with the same payment method and status can be merged.",
+    "attempt_note": "Call note (optional)",
+    "replace_warning": "This order will be cancelled on the store and replaced by a new linked order that keeps its creation day and attribution. Reports count one order.",
+    "cod_replace_warning": "This order will be cancelled on the platform and replaced by a new one with the same operator. Attempts restart.",
+    "paid_warning": "The payment stays with the original order and the new one is marked paid: collect or refund any difference from the store.",
+    "replaced_done": "Replaced by {order}.",
+    "warning_not_cancelled": "The old order could not be cancelled on the platform: cancel it by hand.",
+    "save": "Save changes",
+    "save_replace": "Replace order"
+  },
+  "order_discount": {
+    "button": "Apply discount",
+    "title": "Discount on {order}",
+    "description": "The discount is added to the order on the store and the total is reduced.",
+    "presets": "Quick discounts",
+    "type": "Type",
+    "type_percentage": "Percent",
+    "type_fixed_amount": "Amount ({currency})",
+    "value": "Value",
+    "code": "Code (optional)",
+    "reason": "Reason (optional)",
+    "preview": "Discount {amount} · new total {total}",
+    "refund_due": "This order is paid: refund {amount} to the customer from the store.",
+    "apply": "Apply discount"
+  },
   "shipments": {
     "title": "Shipments",
     "description": "Fulfilments from the commerce platform; status resolved from every source. Stuck means moving for more than {days} days.",
@@ -876,7 +940,21 @@
       "expected": "Expected / received",
       "units": "Units",
       "total": "Total",
-      "covers": "Backorders"
+      "covers": "Backorders",
+      "destination": "Destination"
+    },
+    "packs": "Case packs",
+    "export_csv": "Export CSV",
+    "filters": {
+      "search": "Search",
+      "search_placeholder": "Number, supplier, SKU, note",
+      "all_suppliers": "All suppliers",
+      "destination": "Destination",
+      "all_destinations": "All destinations",
+      "from": "From",
+      "to": "To",
+      "apply": "Apply",
+      "clear": "Clear"
     }
   },
   "po_detail": {
@@ -950,6 +1028,55 @@
       "send": "Send to supplier",
       "resend": "Send again",
       "link_hint": "Confirmation link (in demo mode no email leaves the platform: copy it to the supplier):"
+    },
+    "free_text_line": "Free-text line",
+    "inspection": {
+      "damaged": "Damaged",
+      "rejected": "Rejected",
+      "short": "{damaged} damaged · {rejected} rejected",
+      "hint": "\"Receive now\" counts every unit that arrived; damaged and rejected units are part of it and never go to stock or into the cost."
+    },
+    "manage": {
+      "duplicate": "Duplicate",
+      "delete_title": "Delete {number}?",
+      "delete_hint": "Only drafts and cancelled orders can be deleted. Lines, charges and supplier links go with it; the audit log keeps the record."
+    },
+    "links": {
+      "title": "Supplier links",
+      "state": {
+        "active": "Active",
+        "expired": "Expired",
+        "revoked": "Revoked"
+      },
+      "issued": "Issued {at} to {to}",
+      "expires": "Expires {at}",
+      "expired_on": "Expired on {at}",
+      "revoked": "Revoked: the supplier sees a neutral page.",
+      "views": "{n, plural, one {# view} other {# views}}, last {at}",
+      "no_views": "Never opened",
+      "revoke": "Revoke link",
+      "revoked_ok": "Link revoked."
+    },
+    "history": {
+      "title": "History",
+      "actions": {
+        "purchase_order": {
+          "created": "Created",
+          "updated": "Edited",
+          "duplicated": "Created as a copy",
+          "deleted": "Deleted",
+          "transition": "Status changed",
+          "received": "Goods received",
+          "sent_to_supplier": "Sent to the supplier",
+          "supplier_confirmed": "Confirmed by the supplier",
+          "supplier_problem": "Problem reported by the supplier",
+          "supplier_link_revoked": "Supplier link revoked",
+          "supplier_link_blocked": "Expired or revoked link opened",
+          "auto_draft": "Drafted from the replenishment plan",
+          "charge_added": "Charge added",
+          "charge_deleted": "Charge removed"
+        }
+      }
     }
   },
   "po_new": {
@@ -970,6 +1097,26 @@
       "quantity": "Quantity",
       "unit_cost": "Unit cost ({currency})"
     }
+  },
+  "po_editor": {
+    "lines": "Lines",
+    "search_placeholder": "Add a variant: SKU, barcode or title",
+    "no_results": "No variant found.",
+    "available_n": "{n} available",
+    "suggested_n": "suggested {n}",
+    "add_free_text": "Free-text line",
+    "free_text_placeholder": "Description (packaging, samples, service…)",
+    "free_text": "Not in catalogue",
+    "line_total": "Line total",
+    "empty": "No lines yet: search a variant, add a suggestion or a free-text line.",
+    "total": "Total",
+    "suggestions": "Reorder suggestions",
+    "add_all": "Add all suggested",
+    "add": "Add",
+    "save": "Save changes",
+    "edit_title": "Edit {number}",
+    "edit_hint": "Lines are replaced as a whole; every change is in the order history.",
+    "edit_sent_hint": "The order is already with the supplier: the supplier stays the same and the supplier link shows the new lines."
   },
   "suppliers": {
     "back": "Purchasing",
@@ -1006,6 +1153,102 @@
     "terms_hint": "The planner uses lead time and its variability for safety stock, MOQ and multiples to round quantities, deposit and balance days for the cash-flow plan.",
     "terms_summary": "{deposit}% deposit · balance {days} days after receipt",
     "moq_summary": "MOQ {moq}"
+  },
+  "supplier_terms": {
+    "title": "Suppliers & packs",
+    "hint": "Default supplier of each variant: planning and auto-drafted purchase orders use its cost, MOQ and lead time.",
+    "missing": "{n, plural, one {# variant has} other {# variants have}} no default supplier: auto-drafts skip them.",
+    "option_mix": "Option mix",
+    "columns": {
+      "variant": "Variant",
+      "supplier": "Supplier",
+      "supplier_sku": "Supplier SKU",
+      "cost": "Cost",
+      "moq": "MOQ",
+      "multiple": "Order multiple",
+      "lead_time": "Lead time (days)"
+    },
+    "edit": "Edit",
+    "none": "None",
+    "days": "{n} d",
+    "packs": "Case packs",
+    "no_packs": "No case pack fits this product.",
+    "manage_packs": "Manage packs",
+    "units_per_pack": "{n} units per pack",
+    "edit_variant": "Supplier terms · {variant}",
+    "keep": "unchanged",
+    "set_all": "Set for all variants",
+    "set_all_hint": "Same default supplier for every variant of the product. Empty fields keep the current value.",
+    "updated": "{n, plural, one {# variant} other {# variants}} updated.",
+    "bulk_title": "Default supplier in bulk",
+    "bulk_hint": "Pick the variants by product type, vendor or SKU prefix. {n} active variants have no default supplier yet.",
+    "bulk_apply": "Apply",
+    "bulk_done": "{n} of {matched} variants updated.",
+    "filter": {
+      "product_type": "Product type",
+      "vendor": "Vendor",
+      "sku_prefix": "SKU prefix",
+      "any": "Any",
+      "only_without": "Only variants without a supplier",
+      "required": "Choose at least one filter and a supplier."
+    }
+  },
+  "case_packs": {
+    "back": "Purchasing",
+    "title": "Case packs",
+    "description": "Cartons with a fixed ratio across the values of one option (any option: size, material, scent…). Replenishment suggests how many cartons per option group; the option-mix page turns them into PO lines.",
+    "empty_title": "No case packs yet",
+    "empty_description": "Create one with the units per option value your supplier ships in a carton.",
+    "for_product": "Only for {product}",
+    "for_all": "Every product with the option {option}",
+    "inactive": "Inactive",
+    "units_per_pack": "{n} units per pack",
+    "add_title": "New case pack",
+    "no_options": "The catalogue has no product options yet.",
+    "name": "Name",
+    "option": "Option",
+    "product": "Product",
+    "all_products": "All products with this option",
+    "units": "Units per value",
+    "units_for": "Units of {value}",
+    "custom_value": "Another value",
+    "add_value": "Add value",
+    "active": "Active"
+  },
+  "option_mix": {
+    "title": "Option mix · {product}",
+    "description": "Sales share per option combination, and a planner that turns a quantity or case packs into a draft purchase order.",
+    "window": "Sales window",
+    "days": "{n} days",
+    "units_sold": "{n} units sold",
+    "share_by": "Share by {option}",
+    "combinations": "Combinations",
+    "sku": "SKU",
+    "sold": "Sold",
+    "share": "Share",
+    "suggested": "Suggested",
+    "planner": {
+      "title": "Plan a purchase",
+      "hint": "Split a quantity by sales share, or buy cartons per option group (pre-filled with the replenishment suggestion).",
+      "mode": {
+        "units": "By sales share",
+        "packs": "By case pack"
+      },
+      "total_units": "Units to buy",
+      "multiple": "Round to multiples of",
+      "suggested_total": "Replenishment suggests {n} units.",
+      "pack": "Case pack",
+      "packs_for": "Cartons for {group}",
+      "cartons": "cartons",
+      "single_group": "All variants",
+      "variant": "Variant",
+      "quantity": "Quantity",
+      "cost": "Cost",
+      "total": "Total",
+      "supplier": "Supplier",
+      "destination": "Destination",
+      "create_po": "Create draft PO"
+    }
   },
   "analytics": {
     "title": "Analytics",
@@ -3080,7 +3323,9 @@
     "submit": {
       "confirm": "Confirm",
       "problem": "Send"
-    }
+    },
+    "inactive_title": "This link is no longer valid",
+    "inactive_body": "The link has expired or was replaced by a newer one. Ask the company that sent it for a new link."
   },
   "planning": {
     "back": "Inventory",
@@ -4030,49 +4275,6 @@
       "guide": "How to get a key"
     }
   },
-  "platform_writes": {
-    "status": {
-      "pending": "Pending sync",
-      "running": "Syncing",
-      "succeeded": "Synced",
-      "failed": "Sync failed",
-      "superseded": "Replaced"
-    },
-    "retry": "Retry",
-    "retry_failed": "Could not retry",
-    "title": "Platform writes",
-    "description": "Changes Keel sends to Shopify, Meta and Google: {pending} waiting, {failed} failed, {succeeded} synced in the last 24 hours.",
-    "empty": "No platform writes yet.",
-    "immediate": "immediate",
-    "attempts": "{n, plural, one {# attempt} other {# attempts}}",
-    "next_attempt": "next attempt {when}",
-    "columns": {
-      "when": "When",
-      "write": "Write",
-      "status": "Status"
-    },
-    "kinds": {
-      "variant_update": "Variant price",
-      "product_status": "Product status",
-      "inventory_set": "Stock level",
-      "inventory_restock": "Restock",
-      "order_cancel": "Order cancellation",
-      "order_update_details": "Order details",
-      "order_tags": "Order tags",
-      "order_create": "New order",
-      "order_create_invoice": "Invoice order",
-      "discount_create": "Discount code",
-      "discount_pool": "Discount pool",
-      "return_request": "Return request",
-      "return_approve": "Return approval",
-      "return_decline": "Return decline",
-      "return_refund": "Refund",
-      "return_close": "Return closing",
-      "campaign_status": "Campaign status",
-      "variant_cost": "Variant cost",
-      "order_discount": "Order discount"
-    }
-  },
   "tasks": {
     "title": "Tasks",
     "description": "Work linked to orders, returns, purchase orders and products. Rules open tasks on events and close them when the record moves on.",
@@ -4327,68 +4529,47 @@
     "write_back": "Write costs to Shopify",
     "write_back_hint": "When on, costs edited or imported here also update the unit cost on Shopify. Only owners and admins can change this."
   },
-  "order_edit": {
-    "button": "Edit order",
-    "cod_button": "Modify order",
-    "merge_button": "Merge orders",
-    "title": "Edit {order}",
-    "description": "Contact, address and note are changed in place on the store. Changing lines or merging orders creates a new linked order and cancels this one, so the warehouse never ships a removed line.",
-    "cod_description": "Changes agreed with the customer before confirmation. Contact and address are edited in place. Changing lines or merging orders creates a new order and cancels this one, so the warehouse never ships a removed line.",
-    "contact": "Contact and address",
-    "customer_name": "Name",
-    "phone": "Phone",
-    "email": "Email",
-    "shipping_address": "Shipping address",
-    "edit_billing": "Change the billing address too",
-    "address": {
-      "name": "Recipient",
-      "address1": "Address",
-      "address2": "Address line 2",
-      "city": "City",
-      "province": "Province / state",
-      "zip": "Postal code",
-      "country": "Country (ISO code)"
+  "platform_writes": {
+    "status": {
+      "pending": "Pending sync",
+      "running": "Syncing",
+      "succeeded": "Synced",
+      "failed": "Sync failed",
+      "superseded": "Replaced"
     },
-    "address_suggestions": "Suggestions",
-    "check_address": "Check address",
-    "address_ok": "The address looks valid.",
-    "address_issues": {
-      "required": "Required.",
-      "invalid_zip": "Not a valid postal code for this country.",
-      "invalid_country": "Use the two-letter country code.",
-      "not_found": "Address not found."
+    "retry": "Retry",
+    "retry_failed": "Could not retry",
+    "title": "Platform writes",
+    "description": "Changes Keel sends to Shopify, Meta and Google: {pending} waiting, {failed} failed, {succeeded} synced in the last 24 hours.",
+    "empty": "No platform writes yet.",
+    "immediate": "immediate",
+    "attempts": "{n, plural, one {# attempt} other {# attempts}}",
+    "next_attempt": "next attempt {when}",
+    "columns": {
+      "when": "When",
+      "write": "Write",
+      "status": "Status"
     },
-    "note": "Order note",
-    "note_append": "Add to the order note",
-    "lines": "Lines",
-    "quantity": "Quantity",
-    "add_product": "Search product by SKU or name",
-    "add": "Add",
-    "new_total": "New total {total}",
-    "merge": "Merge other open orders of this customer",
-    "merge_help": "Their lines are added to the new order and they are cancelled as replaced. Only open orders with the same payment method and status can be merged.",
-    "attempt_note": "Call note (optional)",
-    "replace_warning": "This order will be cancelled on the store and replaced by a new linked order that keeps its creation day and attribution. Reports count one order.",
-    "cod_replace_warning": "This order will be cancelled on the platform and replaced by a new one with the same operator. Attempts restart.",
-    "paid_warning": "The payment stays with the original order and the new one is marked paid: collect or refund any difference from the store.",
-    "replaced_done": "Replaced by {order}.",
-    "warning_not_cancelled": "The old order could not be cancelled on the platform: cancel it by hand.",
-    "save": "Save changes",
-    "save_replace": "Replace order"
-  },
-  "order_discount": {
-    "button": "Apply discount",
-    "title": "Discount on {order}",
-    "description": "The discount is added to the order on the store and the total is reduced.",
-    "presets": "Quick discounts",
-    "type": "Type",
-    "type_percentage": "Percent",
-    "type_fixed_amount": "Amount ({currency})",
-    "value": "Value",
-    "code": "Code (optional)",
-    "reason": "Reason (optional)",
-    "preview": "Discount {amount} · new total {total}",
-    "refund_due": "This order is paid: refund {amount} to the customer from the store.",
-    "apply": "Apply discount"
+    "kinds": {
+      "variant_update": "Variant price",
+      "product_status": "Product status",
+      "inventory_set": "Stock level",
+      "inventory_restock": "Restock",
+      "order_cancel": "Order cancellation",
+      "order_update_details": "Order details",
+      "order_tags": "Order tags",
+      "order_create": "New order",
+      "order_create_invoice": "Invoice order",
+      "discount_create": "Discount code",
+      "discount_pool": "Discount pool",
+      "return_request": "Return request",
+      "return_approve": "Return approval",
+      "return_decline": "Return decline",
+      "return_refund": "Refund",
+      "return_close": "Return closing",
+      "campaign_status": "Campaign status",
+      "variant_cost": "Variant cost",
+      "order_discount": "Order discount"
+    }
   }
 }

@@ -42,13 +42,13 @@
       "cod_platform_error": "La plataforma rechazó la escritura de la etiqueta o la cancelación; no se registró nada.",
       "invalid_formula": "La fórmula no es válida.",
       "closed": "Este pedido ya no se puede modificar.",
-      "attachment_too_large": "El archivo supera 1,5 MB.",
-      "attachment_type": "Este tipo de archivo no se acepta.",
-      "invalid_type": "Tipo de notificación desconocido.",
       "not_editable": "Este pedido ya no se puede editar: está preparado, cancelado o sustituido.",
       "invalid_address": "La dirección no es válida: revisa los campos marcados.",
       "merge_invalid": "Estos pedidos no se pueden fusionar: cliente o pago distintos, o ya preparados.",
-      "nothing_to_change": "Nada que cambiar."
+      "nothing_to_change": "Nada que cambiar.",
+      "attachment_too_large": "El archivo supera 1,5 MB.",
+      "attachment_type": "Este tipo de archivo no se acepta.",
+      "invalid_type": "Tipo de notificación desconocido."
     },
     "edit": "Editar"
   },
@@ -684,6 +684,70 @@
     "replaced": "Sustituido por un pedido nuevo",
     "discount_applied": "Descuento aplicado"
   },
+  "order_edit": {
+    "button": "Editar pedido",
+    "cod_button": "Modificar pedido",
+    "merge_button": "Fusionar pedidos",
+    "title": "Editar {order}",
+    "description": "Contacto, dirección y nota se cambian en el sitio en la tienda. Cambiar líneas o fusionar pedidos crea un pedido nuevo vinculado y cancela este, así el almacén nunca envía una línea eliminada.",
+    "cod_description": "Cambios acordados con el cliente antes de la confirmación. Contacto y dirección se editan en el sitio. Cambiar líneas o fusionar pedidos crea un pedido nuevo y cancela este, así el almacén nunca envía una línea eliminada.",
+    "contact": "Contacto y dirección",
+    "customer_name": "Nombre",
+    "phone": "Teléfono",
+    "email": "Email",
+    "shipping_address": "Dirección de envío",
+    "edit_billing": "Cambiar también la dirección de facturación",
+    "address": {
+      "name": "Destinatario",
+      "address1": "Dirección",
+      "address2": "Dirección línea 2",
+      "city": "Ciudad",
+      "province": "Provincia / estado",
+      "zip": "Código postal",
+      "country": "País (código ISO)"
+    },
+    "address_suggestions": "Sugerencias",
+    "check_address": "Comprobar dirección",
+    "address_ok": "La dirección parece válida.",
+    "address_issues": {
+      "required": "Obligatorio.",
+      "invalid_zip": "Código postal no válido para este país.",
+      "invalid_country": "Usa el código de país de dos letras.",
+      "not_found": "Dirección no encontrada."
+    },
+    "note": "Nota del pedido",
+    "note_append": "Añadir a la nota del pedido",
+    "lines": "Líneas",
+    "quantity": "Cantidad",
+    "add_product": "Buscar producto por SKU o nombre",
+    "add": "Añadir",
+    "new_total": "Nuevo total {total}",
+    "merge": "Fusionar otros pedidos abiertos de este cliente",
+    "merge_help": "Sus líneas se añaden al pedido nuevo y se cancelan como sustituidos. Solo se pueden fusionar pedidos abiertos con el mismo método y estado de pago.",
+    "attempt_note": "Nota de la llamada (opcional)",
+    "replace_warning": "Este pedido se cancelará en la tienda y será sustituido por un pedido nuevo vinculado que conserva el día de creación y la atribución. Los informes cuentan un solo pedido.",
+    "cod_replace_warning": "Este pedido se cancelará en la plataforma y será sustituido por uno nuevo con el mismo operador. Los intentos empiezan de nuevo.",
+    "paid_warning": "El pago se queda en el pedido original y el nuevo figura como pagado: cobra o reembolsa la diferencia desde la tienda.",
+    "replaced_done": "Sustituido por {order}.",
+    "warning_not_cancelled": "No se pudo cancelar el pedido antiguo en la plataforma: cancélalo a mano.",
+    "save": "Guardar cambios",
+    "save_replace": "Sustituir pedido"
+  },
+  "order_discount": {
+    "button": "Aplicar descuento",
+    "title": "Descuento en {order}",
+    "description": "El descuento se añade al pedido en la tienda y el total se reduce.",
+    "presets": "Descuentos rápidos",
+    "type": "Tipo",
+    "type_percentage": "Porcentaje",
+    "type_fixed_amount": "Importe ({currency})",
+    "value": "Valor",
+    "code": "Código (opcional)",
+    "reason": "Motivo (opcional)",
+    "preview": "Descuento {amount} · nuevo total {total}",
+    "refund_due": "El pedido está pagado: reembolsa {amount} al cliente desde la tienda.",
+    "apply": "Aplicar descuento"
+  },
   "shipments": {
     "title": "Envíos",
     "description": "Preparaciones de la plataforma; estado resuelto a partir de todas las fuentes. Detenido significa más de {days} días en movimiento.",
@@ -876,7 +940,21 @@
       "expected": "Prevista / recibida",
       "units": "Unidades",
       "total": "Total",
-      "covers": "Pendientes"
+      "covers": "Pendientes",
+      "destination": "Destino"
+    },
+    "packs": "Cajas",
+    "export_csv": "Exportar CSV",
+    "filters": {
+      "search": "Buscar",
+      "search_placeholder": "Número, proveedor, SKU, nota",
+      "all_suppliers": "Todos los proveedores",
+      "destination": "Destino",
+      "all_destinations": "Todos los destinos",
+      "from": "Desde",
+      "to": "Hasta",
+      "apply": "Aplicar",
+      "clear": "Limpiar"
     }
   },
   "po_detail": {
@@ -950,6 +1028,55 @@
       "send": "Enviar al proveedor",
       "resend": "Enviar de nuevo",
       "link_hint": "Enlace de confirmación (en modo demo no sale ningún email de la plataforma: reenvíalo al proveedor):"
+    },
+    "free_text_line": "Línea de texto libre",
+    "inspection": {
+      "damaged": "Dañados",
+      "rejected": "Rechazados",
+      "short": "{damaged} dañados · {rejected} rechazados",
+      "hint": "\"Recibir ahora\" cuenta todas las unidades llegadas; las dañadas y rechazadas forman parte de ellas y no entran en stock ni en el coste."
+    },
+    "manage": {
+      "duplicate": "Duplicar",
+      "delete_title": "¿Eliminar {number}?",
+      "delete_hint": "Solo se pueden eliminar borradores y pedidos cancelados. Se eliminan líneas, cargos y enlaces del proveedor; el registro de auditoría conserva la traza."
+    },
+    "links": {
+      "title": "Enlaces del proveedor",
+      "state": {
+        "active": "Activo",
+        "expired": "Caducado",
+        "revoked": "Revocado"
+      },
+      "issued": "Emitido el {at} a {to}",
+      "expires": "Caduca el {at}",
+      "expired_on": "Caducó el {at}",
+      "revoked": "Revocado: el proveedor ve una página neutra.",
+      "views": "{n, plural, one {# apertura} other {# aperturas}}, última {at}",
+      "no_views": "Nunca abierto",
+      "revoke": "Revocar enlace",
+      "revoked_ok": "Enlace revocado."
+    },
+    "history": {
+      "title": "Historial",
+      "actions": {
+        "purchase_order": {
+          "created": "Creado",
+          "updated": "Editado",
+          "duplicated": "Creado como copia",
+          "deleted": "Eliminado",
+          "transition": "Estado cambiado",
+          "received": "Mercancía recibida",
+          "sent_to_supplier": "Enviado al proveedor",
+          "supplier_confirmed": "Confirmado por el proveedor",
+          "supplier_problem": "Problema señalado por el proveedor",
+          "supplier_link_revoked": "Enlace del proveedor revocado",
+          "supplier_link_blocked": "Abierto un enlace caducado o revocado",
+          "auto_draft": "Borrador del plan de reposición",
+          "charge_added": "Cargo añadido",
+          "charge_deleted": "Cargo eliminado"
+        }
+      }
     }
   },
   "po_new": {
@@ -970,6 +1097,26 @@
       "quantity": "Cantidad",
       "unit_cost": "Coste unitario ({currency})"
     }
+  },
+  "po_editor": {
+    "lines": "Líneas",
+    "search_placeholder": "Añadir variante: SKU, código o título",
+    "no_results": "No se encontró ninguna variante.",
+    "available_n": "{n} disponibles",
+    "suggested_n": "sugerido {n}",
+    "add_free_text": "Línea de texto libre",
+    "free_text_placeholder": "Descripción (embalaje, muestras, servicio…)",
+    "free_text": "Fuera de catálogo",
+    "line_total": "Total línea",
+    "empty": "Aún no hay líneas: busca una variante, añade una sugerencia o una línea libre.",
+    "total": "Total",
+    "suggestions": "Sugerencias de reposición",
+    "add_all": "Añadir todas las sugeridas",
+    "add": "Añadir",
+    "save": "Guardar cambios",
+    "edit_title": "Editar {number}",
+    "edit_hint": "Las líneas se sustituyen en bloque; cada cambio queda en el historial del pedido.",
+    "edit_sent_hint": "El pedido ya está con el proveedor: el proveedor no cambia y su enlace muestra las nuevas líneas."
   },
   "suppliers": {
     "back": "Compras",
@@ -1006,6 +1153,102 @@
     "terms_hint": "El planificador usa el plazo de entrega y su variabilidad para el stock de seguridad, el mínimo y los múltiplos para redondear cantidades, y el anticipo y los días de pago para el plan de caja.",
     "terms_summary": "Anticipo {deposit}% · saldo a {days} días de la recepción",
     "moq_summary": "Mínimo {moq}"
+  },
+  "supplier_terms": {
+    "title": "Proveedores y cajas",
+    "hint": "Proveedor predeterminado de cada variante: la planificación y los borradores automáticos usan su coste, MOQ y plazo.",
+    "missing": "{n, plural, one {# variante no tiene} other {# variantes no tienen}} proveedor predeterminado: los borradores automáticos las omiten.",
+    "option_mix": "Mix de opciones",
+    "columns": {
+      "variant": "Variante",
+      "supplier": "Proveedor",
+      "supplier_sku": "SKU del proveedor",
+      "cost": "Coste",
+      "moq": "MOQ",
+      "multiple": "Múltiplo de pedido",
+      "lead_time": "Plazo (días)"
+    },
+    "edit": "Editar",
+    "none": "Ninguno",
+    "days": "{n} d",
+    "packs": "Cajas",
+    "no_packs": "Ninguna caja se ajusta a este producto.",
+    "manage_packs": "Gestionar cajas",
+    "units_per_pack": "{n} unidades por caja",
+    "edit_variant": "Condiciones del proveedor · {variant}",
+    "keep": "sin cambios",
+    "set_all": "Aplicar a todas las variantes",
+    "set_all_hint": "Mismo proveedor predeterminado para todas las variantes del producto. Los campos vacíos mantienen el valor actual.",
+    "updated": "{n, plural, one {# variante actualizada} other {# variantes actualizadas}}.",
+    "bulk_title": "Proveedor predeterminado en bloque",
+    "bulk_hint": "Elige las variantes por tipo de producto, marca o prefijo de SKU. {n} variantes activas aún no tienen proveedor predeterminado.",
+    "bulk_apply": "Aplicar",
+    "bulk_done": "{n} de {matched} variantes actualizadas.",
+    "filter": {
+      "product_type": "Tipo de producto",
+      "vendor": "Marca",
+      "sku_prefix": "Prefijo de SKU",
+      "any": "Cualquiera",
+      "only_without": "Solo variantes sin proveedor",
+      "required": "Elige al menos un filtro y un proveedor."
+    }
+  },
+  "case_packs": {
+    "back": "Compras",
+    "title": "Cajas",
+    "description": "Cajas con una proporción fija entre los valores de una opción (cualquiera: talla, material, aroma…). La reposición sugiere cuántas cajas por grupo de opciones; la página de mix las convierte en líneas de pedido.",
+    "empty_title": "Aún no hay cajas",
+    "empty_description": "Crea una con las unidades por valor de opción que tu proveedor envía en una caja.",
+    "for_product": "Solo para {product}",
+    "for_all": "Todo producto con la opción {option}",
+    "inactive": "Inactiva",
+    "units_per_pack": "{n} unidades por caja",
+    "add_title": "Nueva caja",
+    "no_options": "El catálogo aún no tiene opciones de producto.",
+    "name": "Nombre",
+    "option": "Opción",
+    "product": "Producto",
+    "all_products": "Todos los productos con esta opción",
+    "units": "Unidades por valor",
+    "units_for": "Unidades de {value}",
+    "custom_value": "Otro valor",
+    "add_value": "Añadir valor",
+    "active": "Activa"
+  },
+  "option_mix": {
+    "title": "Mix de opciones · {product}",
+    "description": "Cuota de ventas por combinación de opciones y un planificador que convierte una cantidad o cajas en un borrador de pedido de compra.",
+    "window": "Periodo de ventas",
+    "days": "{n} días",
+    "units_sold": "{n} unidades vendidas",
+    "share_by": "Cuota por {option}",
+    "combinations": "Combinaciones",
+    "sku": "SKU",
+    "sold": "Vendidas",
+    "share": "Cuota",
+    "suggested": "Sugeridas",
+    "planner": {
+      "title": "Planificar una compra",
+      "hint": "Reparte una cantidad por cuota de ventas o compra cajas por grupo de opciones (rellenadas con la sugerencia de reposición).",
+      "mode": {
+        "units": "Por cuota de ventas",
+        "packs": "Por caja"
+      },
+      "total_units": "Unidades a comprar",
+      "multiple": "Redondear a múltiplos de",
+      "suggested_total": "La reposición sugiere {n} unidades.",
+      "pack": "Caja",
+      "packs_for": "Cajas para {group}",
+      "cartons": "cajas",
+      "single_group": "Todas las variantes",
+      "variant": "Variante",
+      "quantity": "Cantidad",
+      "cost": "Coste",
+      "total": "Total",
+      "supplier": "Proveedor",
+      "destination": "Destino",
+      "create_po": "Crear borrador de pedido"
+    }
   },
   "analytics": {
     "title": "Analítica",
@@ -3080,7 +3323,9 @@
     "submit": {
       "confirm": "Confirmar",
       "problem": "Enviar"
-    }
+    },
+    "inactive_title": "Este enlace ya no es válido",
+    "inactive_body": "El enlace ha caducado o fue sustituido por uno más reciente. Pide un enlace nuevo a la empresa que te lo envió."
   },
   "planning": {
     "back": "Inventario",
@@ -4030,49 +4275,6 @@
       "guide": "Cómo obtener una clave"
     }
   },
-  "platform_writes": {
-    "status": {
-      "pending": "Pendiente de sincronizar",
-      "running": "Sincronizando",
-      "succeeded": "Sincronizado",
-      "failed": "Error de sincronización",
-      "superseded": "Reemplazado"
-    },
-    "retry": "Reintentar",
-    "retry_failed": "No se pudo reintentar",
-    "title": "Escrituras a las plataformas",
-    "description": "Cambios que Keel envía a Shopify, Meta y Google: {pending} en espera, {failed} con error, {succeeded} sincronizados en las últimas 24 horas.",
-    "empty": "Aún no hay escrituras a las plataformas.",
-    "immediate": "inmediata",
-    "attempts": "{n, plural, one {# intento} other {# intentos}}",
-    "next_attempt": "próximo intento {when}",
-    "columns": {
-      "when": "Cuándo",
-      "write": "Escritura",
-      "status": "Estado"
-    },
-    "kinds": {
-      "variant_update": "Precio de variante",
-      "product_status": "Estado del producto",
-      "inventory_set": "Nivel de stock",
-      "inventory_restock": "Reposición",
-      "order_cancel": "Cancelación de pedido",
-      "order_update_details": "Datos del pedido",
-      "order_tags": "Etiquetas del pedido",
-      "order_create": "Nuevo pedido",
-      "order_create_invoice": "Pedido con factura",
-      "discount_create": "Código de descuento",
-      "discount_pool": "Lote de códigos",
-      "return_request": "Solicitud de devolución",
-      "return_approve": "Aprobación de devolución",
-      "return_decline": "Rechazo de devolución",
-      "return_refund": "Reembolso",
-      "return_close": "Cierre de devolución",
-      "campaign_status": "Estado de campaña",
-      "variant_cost": "Coste de variante",
-      "order_discount": "Descuento del pedido"
-    }
-  },
   "tasks": {
     "title": "Tareas",
     "description": "Trabajo vinculado a pedidos, devoluciones, órdenes de compra y productos. Las reglas abren tareas con los eventos y las cierran cuando el registro avanza.",
@@ -4327,68 +4529,47 @@
     "write_back": "Escribir los costes en Shopify",
     "write_back_hint": "Si está activo, los costes editados o importados aquí también actualizan el coste unitario en Shopify. Solo owners y admins pueden cambiarlo."
   },
-  "order_edit": {
-    "button": "Editar pedido",
-    "cod_button": "Modificar pedido",
-    "merge_button": "Fusionar pedidos",
-    "title": "Editar {order}",
-    "description": "Contacto, dirección y nota se cambian en el sitio en la tienda. Cambiar líneas o fusionar pedidos crea un pedido nuevo vinculado y cancela este, así el almacén nunca envía una línea eliminada.",
-    "cod_description": "Cambios acordados con el cliente antes de la confirmación. Contacto y dirección se editan en el sitio. Cambiar líneas o fusionar pedidos crea un pedido nuevo y cancela este, así el almacén nunca envía una línea eliminada.",
-    "contact": "Contacto y dirección",
-    "customer_name": "Nombre",
-    "phone": "Teléfono",
-    "email": "Email",
-    "shipping_address": "Dirección de envío",
-    "edit_billing": "Cambiar también la dirección de facturación",
-    "address": {
-      "name": "Destinatario",
-      "address1": "Dirección",
-      "address2": "Dirección línea 2",
-      "city": "Ciudad",
-      "province": "Provincia / estado",
-      "zip": "Código postal",
-      "country": "País (código ISO)"
+  "platform_writes": {
+    "status": {
+      "pending": "Pendiente de sincronizar",
+      "running": "Sincronizando",
+      "succeeded": "Sincronizado",
+      "failed": "Error de sincronización",
+      "superseded": "Reemplazado"
     },
-    "address_suggestions": "Sugerencias",
-    "check_address": "Comprobar dirección",
-    "address_ok": "La dirección parece válida.",
-    "address_issues": {
-      "required": "Obligatorio.",
-      "invalid_zip": "Código postal no válido para este país.",
-      "invalid_country": "Usa el código de país de dos letras.",
-      "not_found": "Dirección no encontrada."
+    "retry": "Reintentar",
+    "retry_failed": "No se pudo reintentar",
+    "title": "Escrituras a las plataformas",
+    "description": "Cambios que Keel envía a Shopify, Meta y Google: {pending} en espera, {failed} con error, {succeeded} sincronizados en las últimas 24 horas.",
+    "empty": "Aún no hay escrituras a las plataformas.",
+    "immediate": "inmediata",
+    "attempts": "{n, plural, one {# intento} other {# intentos}}",
+    "next_attempt": "próximo intento {when}",
+    "columns": {
+      "when": "Cuándo",
+      "write": "Escritura",
+      "status": "Estado"
     },
-    "note": "Nota del pedido",
-    "note_append": "Añadir a la nota del pedido",
-    "lines": "Líneas",
-    "quantity": "Cantidad",
-    "add_product": "Buscar producto por SKU o nombre",
-    "add": "Añadir",
-    "new_total": "Nuevo total {total}",
-    "merge": "Fusionar otros pedidos abiertos de este cliente",
-    "merge_help": "Sus líneas se añaden al pedido nuevo y se cancelan como sustituidos. Solo se pueden fusionar pedidos abiertos con el mismo método y estado de pago.",
-    "attempt_note": "Nota de la llamada (opcional)",
-    "replace_warning": "Este pedido se cancelará en la tienda y será sustituido por un pedido nuevo vinculado que conserva el día de creación y la atribución. Los informes cuentan un solo pedido.",
-    "cod_replace_warning": "Este pedido se cancelará en la plataforma y será sustituido por uno nuevo con el mismo operador. Los intentos empiezan de nuevo.",
-    "paid_warning": "El pago se queda en el pedido original y el nuevo figura como pagado: cobra o reembolsa la diferencia desde la tienda.",
-    "replaced_done": "Sustituido por {order}.",
-    "warning_not_cancelled": "No se pudo cancelar el pedido antiguo en la plataforma: cancélalo a mano.",
-    "save": "Guardar cambios",
-    "save_replace": "Sustituir pedido"
-  },
-  "order_discount": {
-    "button": "Aplicar descuento",
-    "title": "Descuento en {order}",
-    "description": "El descuento se añade al pedido en la tienda y el total se reduce.",
-    "presets": "Descuentos rápidos",
-    "type": "Tipo",
-    "type_percentage": "Porcentaje",
-    "type_fixed_amount": "Importe ({currency})",
-    "value": "Valor",
-    "code": "Código (opcional)",
-    "reason": "Motivo (opcional)",
-    "preview": "Descuento {amount} · nuevo total {total}",
-    "refund_due": "El pedido está pagado: reembolsa {amount} al cliente desde la tienda.",
-    "apply": "Aplicar descuento"
+    "kinds": {
+      "variant_update": "Precio de variante",
+      "product_status": "Estado del producto",
+      "inventory_set": "Nivel de stock",
+      "inventory_restock": "Reposición",
+      "order_cancel": "Cancelación de pedido",
+      "order_update_details": "Datos del pedido",
+      "order_tags": "Etiquetas del pedido",
+      "order_create": "Nuevo pedido",
+      "order_create_invoice": "Pedido con factura",
+      "discount_create": "Código de descuento",
+      "discount_pool": "Lote de códigos",
+      "return_request": "Solicitud de devolución",
+      "return_approve": "Aprobación de devolución",
+      "return_decline": "Rechazo de devolución",
+      "return_refund": "Reembolso",
+      "return_close": "Cierre de devolución",
+      "campaign_status": "Estado de campaña",
+      "variant_cost": "Coste de variante",
+      "order_discount": "Descuento del pedido"
+    }
   }
 }

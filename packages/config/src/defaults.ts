@@ -36,3 +36,6 @@ export function platformRetentionDays(env: Record<string, string | undefined> = 
   const n = Number(env.KEEL_RETENTION_DAYS);
   return Number.isInteger(n) && n >= 1 && n <= 365 ? n : PLATFORM_RETENTION_DAYS_DEFAULT;
 }
+
+/** Days a supplier purchase order link stays valid after it is issued (resend issues a new one). */
+export const SUPPLIER_LINK_TTL_DAYS = 30;

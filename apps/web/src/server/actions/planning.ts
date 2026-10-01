@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, eq, recordAudit, schema, withTenant } from "@keel/db";
-import { addPoCharge, applyTransfer, deleteBundleComponent, deleteDemandEvent, deletePoCharge, generateDraftPurchaseOrders, issueSupplierToken, saveBundleComponent, saveDemandEvent, sendSupplierPoEmail, setForecastOverride, SupplierAckError, supplierAcknowledge, tenantForSupplierToken, type ServiceContext } from "@keel/services";
+import { addPoCharge, applyTransfer, deleteBundleComponent, deleteDemandEvent, deletePoCharge, generateDraftPurchaseOrders, issueSupplierLink, recordSupplierLinkAccess, saveBundleComponent, saveDemandEvent, sendSupplierPoEmail, setForecastOverride, SupplierAckError, supplierAcknowledge, tenantForSupplierToken, type ServiceContext } from "@keel/services";
 import { dispatchPlatformWrites } from "@/server/platform-writes";
 import { ForbiddenError, requireAction, requireWrite, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
@@ -127,7 +127,7 @@ export async function deletePoChargeAction(slug: string, poId: string, chargeId:
  * with the PDF goes through the tenant's mail sink when one is configured; in mock mode the link
  * is shown to the user to forward it.
  */
-export async function sendPoToSupplierAction(slug: string, poId: string, _prev: ActionResult<{ url: string }> | null, formData: FormData): Promise<ActionResult<{ url: string }>> {
+export async function sendPoToSupplierAction(slug: string, poId: string, _prev: ActionResult<{ url: string; expiresAt: string }> | null, formData: FormData): Promise<ActionResult<{ url: string; expiresAt: string }>> {
   try {
     const ctx = await requireAction(slug, "receive_purchase_order", "purchasing");
     const email = z.string().email().or(z.literal("")).safeParse(formData.get("email") ?? "");
@@ -138,16 +138,16 @@ export async function sendPoToSupplierAction(slug: string, poId: string, _prev: 
       const [po] = await tx.select({ status: schema.purchaseOrders.status }).from(schema.purchaseOrders).where(and(eq(schema.purchaseOrders.tenantId, ctx.tenant.id), eq(schema.purchaseOrders.id, poId))).limit(1);
       if (!po) throw new Error("not_found");
       if (!["draft", "sent", "confirmed"].includes(po.status)) throw new Error("invalid_input");
-      const tk = await issueSupplierToken(svc(ctx, tx), poId, email.data || null);
+      const link = await issueSupplierLink(svc(ctx, tx), poId, email.data || null);
       // the PO email (template supplier_po, tenant language) goes out when an address is given; mock sink in mock mode
-      const delivery = email.data ? await sendSupplierPoEmail(svc(ctx, tx), { poId, to: email.data, url: `${origin}/supplier/po/${tk}` }) : "none";
-      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "purchase_order.sent_to_supplier", entityType: "purchase_order", entityId: poId, diff: { status: { from: po.status, to: po.status === "draft" ? "sent" : po.status } }, metadata: { email: email.data || null, delivery } });
-      return tk;
+      const delivery = email.data ? await sendSupplierPoEmail(svc(ctx, tx), { poId, to: email.data, url: `${origin}/supplier/po/${link.token}` }) : "none";
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "purchase_order.sent_to_supplier", entityType: "purchase_order", entityId: poId, diff: { status: { from: po.status, to: po.status === "draft" ? "sent" : po.status } }, metadata: { email: email.data || null, delivery, linkId: link.linkId, expiresAt: link.expiresAt.toISOString(), revokedLinks: link.revoked } });
+      return link;
     });
     revalidatePath(`/t/${slug}/purchasing/${poId}`);
-    return ok({ url: `${origin}/supplier/po/${token}` });
+    return ok({ url: `${origin}/supplier/po/${token.token}`, expiresAt: token.expiresAt.toISOString() });
   } catch (e) {
-    return mapError(e) as ActionResult<{ url: string }>;
+    return mapError(e) as ActionResult<{ url: string; expiresAt: string }>;
   }
 }
 
@@ -216,6 +216,10 @@ export async function supplierAckAction(token: string, _prev: ActionResult<{ sta
   if (!parsed.success) return fail("invalid_input");
   const found = await tenantForSupplierToken(token);
   if (!found) return fail("not_found");
+  const h = await headers();
+  // every answer attempt is logged; an expired or revoked link cannot answer
+  await withTenant(found.tenantId, (tx) => recordSupplierLinkAccess({ tenantId: found.tenantId, tx, actor: { type: "system", userId: null } }, found, { token, kind: "answer", ip: h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null, userAgent: h.get("user-agent") }));
+  if (found.state !== "active") return fail("link_expired");
   try {
     const r = await withTenant(found.tenantId, (tx) => supplierAcknowledge({ tenantId: found.tenantId, tx, actor: { type: "system", userId: null } }, found.poId, { decision: parsed.data.decision, expectedAt: parsed.data.expectedAt ? new Date(`${parsed.data.expectedAt}T12:00:00Z`) : null, note: parsed.data.note ?? null }));
     return ok(r);

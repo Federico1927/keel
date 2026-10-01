@@ -14,6 +14,7 @@ import { SalesChart } from "@/components/charts/sales-chart";
 import { ProductActions, VariantPriceForm } from "./actions";
 import { VariantCostsForm } from "./costs-form";
 import { RecordTasks } from "@/components/record-tasks";
+import { SupplierPacksSection } from "./supplier-section";
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
@@ -179,6 +180,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         </CardContent>
       </Card>
       <VariantCostsForm slug={tenant} productId={product.id} canEdit={canWritePage(ctx.role, "products")} writeBack={ctx.settings.costWriteBack} variants={variants.map((v) => ({ id: v.id, title: v.title, sku: v.sku, cost: v.costMinor !== null ? (v.costMinor / 100).toFixed(2) : "", source: v.costSource, updated: v.costUpdatedAt ? formatDate(v.costUpdatedAt, ctx.locale, ctx.tenant.timezone) : null }))} />
+      <SupplierPacksSection ctx={ctx} slug={tenant} productId={product.id} />
     </DetailShell>
   );
 }
