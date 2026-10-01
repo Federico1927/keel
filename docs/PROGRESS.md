@@ -236,7 +236,7 @@ Fatto (issue #5, chiusa):
 - Pagina pubblica di tracking accanto al portale: stato dell'ordine, pacchi, link del corriere, eventi e resi, con lo stesso accesso e limite di tentativi del portale.
 - Etichetta di reso prepagata: emessa all'invio tramite l'interfaccia `ReturnLabelProvider` (mock), con tracking salvato sul reso e PDF dietro link firmato, per il cliente e per lo staff.
 - Seed: costi dei resi, etichetta attiva su Northwind, pagina di tracking attiva per entrambi.
-- Migrazione 0012 (colonne additive); test core 120, integrazioni 28, servizi 58, db 420, e2e 55.
+- Migrazione 0012 (colonne additive); test core 123, integrazioni 28, servizi 58, db 420, e2e 55.
 
 Spostato nella issue #7 (esterni): fornitore reale per il blocco su carta, fornitore di etichette, email di stato al cliente.
 
