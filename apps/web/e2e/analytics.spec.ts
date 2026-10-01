@@ -18,7 +18,7 @@ test.describe("dashboard and analytics", () => {
     await expect(page.getByText(/Net revenue|Ricavo netto/).first()).toBeVisible();
     await page.getByRole("link", { name: /^P\/L$/ }).click();
     await expect(page.getByText(/Operating profit|Risultato operativo/).first()).toBeVisible();
-    await expect(page.getByText(/By month|Per mese/)).toBeVisible();
+    await expect(page.getByTestId("pnl-periods")).toBeVisible();
     await page.getByRole("link", { name: /Products|Prodotti/ }).first().click();
     await expect(page.locator("table tbody tr").first()).toBeVisible();
     await page.getByRole("link", { name: /Cohorts|Coorti/ }).click();

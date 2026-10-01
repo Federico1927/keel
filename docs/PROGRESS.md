@@ -383,6 +383,21 @@ Fatto:
 - #15: `Select` e `Input` hanno due altezze condivise (`sm`, `default`) e il testo centrato; niente più `<select>` grezzi né altezze impostate a mano (un test lo impedisce); controllo Playwright che il testo stia nel riquadro.
 - Lingua: date e numeri seguono la lingua mostrata a schermo; il selettore salva la lingua sul profilo e l'accesso la ripristina.
 
+## Analisi approfondita: P/L per ordine, P/L nel tempo, prodotti con ads e stock, UTM (issue #31)
+
+Fatto:
+- Dettaglio ordine: scheda "Economia dell'ordine" (vendite lorde, rimborsi, imposte, ricavo netto, costo del venduto, spedizione, commissione di pagamento stimata, margine, costi dei resi, contribuzione), uguale a `orderEconomics` dell'ordine; visibile solo ai ruoli che vedono l'analisi.
+- Nuova scheda Analisi → "P/L per ordine": ogni ordine di vendita del periodo con il suo P/L, filtri (numero, metodo di pagamento, canale, costo mancante, in perdita), ordinamento, paginazione lato server, totali dei filtrati, esportazione CSV e riconciliazione al centesimo col P/L del periodo (fattura del corriere vs stima, costi dei resi per data di rientro, pubblicità, costi fissi).
+- Conto economico per giorno, settimana, mese, trimestre, anno con periodi parziali segnati, grafico con costi impilati e linea del risultato operativo, tabella paginata e CSV; la somma dei periodi è il P/L del periodo al centesimo.
+- Scheda Prodotti: unità, ricavo netto, costo del venduto, spesa delle campagne collegate, profitto, ROAS/ROI, semaforo, stock + in arrivo, copertura, azione di stock consigliata con pezzi da riordinare, riga "spesa non attribuita" (totale = spesa del periodo), filtri, ordinamento, paginazione, CSV.
+- Scheda UTM: drill-down sorgente → mezzo → campagna → contenuto → termine con ordini, ricavi, ricavo netto, scontrino medio e quota; trend dei canali nel tempo con la stessa suddivisione per periodi; CSV.
+- Widget "Qualità dei dati" nella panoramica: ordini di vendita con costi mancanti (link alla lista filtrata di #23), varianti senza costo (link a Prodotti → Qualità dati), quota di ricavo con costo noto.
+- Lista ordini: nuovi filtri `product`, `attrChannel`, `utmSource`…`utmTerm` con chip rimovibili, così ogni numero porta agli ordini che lo compongono.
+- Calcoli puri in `packages/core` (`pnl-periods.ts`, `product-profit.ts`, `utm-report.ts`) con test; servizi in `packages/services/src/analytics/pnl-depth.ts` con test di riconciliazione sui dati demo.
+- Nessuna migrazione, nessuna modifica al seed. Test core +25, servizi +6, e2e `analytics-pnl.spec.ts` (5 scenari) più `analytics.spec.ts` aggiornato.
+
+Resta: commissioni di pagamento effettive per ordine (#27); suddivisione per periodi nel fuso del negozio (oggi UTC come costi di periodo e spesa ads); il seed non ha `utm_term`, quindi l'ultimo livello UTM è "(nessuno)" sui dati demo.
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

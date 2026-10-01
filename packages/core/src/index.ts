@@ -37,3 +37,6 @@ export * from "./tasks";
 export * from "./notifications";
 export * from "./packs";
 export * from "./purchasing";
+export * from "./pnl-periods";
+export * from "./product-profit";
+export * from "./utm-report";
