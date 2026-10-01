@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, schema, sql } from "@keel/db";
+import { and, desc, eq, inArray, isNull, schema, sql } from "@keel/db";
 import { DEFAULT_PRECEDENCE, addressKey, deriveChannel, diffRecords, extractAttribution, hasChanges, matchCampaign, nameZipKey, normalizeEmail, normalizePhone, resolveShipmentStatus, type CampaignRef, type ShipmentStatus } from "@keel/core";
 import { IntegrationError, type AdsPlatform, type CommercePlatform, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct } from "@keel/integrations";
 import type { ServiceContext } from "../context";
@@ -136,6 +136,9 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
   // fulfillments → shipments with per-source state and resolver
   for (const f of o.fulfillments) await importFulfillment(ctx, orderId, f, now);
   await recomputeOrderStatus(ctx, orderId, { eventMetadata: { source: opts.source } });
+  // an exchange order paid through the invoice links back to its return
+  const exchangeFor = o.noteAttributes?.find((a) => a.name === "keel_return_id")?.value;
+  if (exchangeFor && /^[0-9a-f-]{36}$/i.test(exchangeFor)) await ctx.tx.update(schema.returnRequests).set({ exchangeOrderId: orderId }).where(and(eq(schema.returnRequests.tenantId, ctx.tenantId), eq(schema.returnRequests.id, exchangeFor), isNull(schema.returnRequests.exchangeOrderId)));
   return { id: orderId, outcome };
 }
 

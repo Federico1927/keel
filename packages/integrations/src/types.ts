@@ -246,6 +246,8 @@ export interface CommercePlatform {
   updateOrderDetails(externalId: string, patch: OrderDetailsPatch): Promise<void>;
   /** Creates an unpaid order (payment pending, e.g. cash on delivery) and returns it normalized, as a sync would. */
   createOrder(input: CreateOrderInput): Promise<NormalizedOrder>;
+  /** Draft order the customer pays through the platform's invoice (exchange with a difference to pay); the order arrives by webhook once paid. */
+  createInvoiceOrder(input: CreateOrderInput): Promise<{ draftExternalId: string; invoiceUrl: string | null }>;
   addOrderNote(externalId: string, note: string): Promise<void>;
   updateOrderTags(externalId: string, add: string[], remove: string[]): Promise<void>;
   updateVariant(variantExternalId: string, patch: { priceMinor?: number }): Promise<void>;
@@ -343,4 +345,16 @@ export class IntegrationError extends Error {
     super(message);
     this.name = "IntegrationError";
   }
+}
+
+/**
+ * Payment guarantee for instant exchanges: a hold on the customer's card for the value of the
+ * items still to come back. Voided when they arrive, captured when they do not. Live providers
+ * (Stripe manual capture, Shopify Payments vaulted card) plug in here; the mock records calls.
+ */
+export interface PaymentGuarantee {
+  readonly provider: string;
+  authorize(input: { amountMinor: number; currency: string; customerEmail: string | null; reference: string }): Promise<{ authId: string; status: "authorized" | "requires_action" | "failed"; actionUrl: string | null }>;
+  capture(authId: string, amountMinor?: number): Promise<void>;
+  void(authId: string): Promise<void>;
 }

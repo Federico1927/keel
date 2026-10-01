@@ -102,6 +102,7 @@ const submitSchema = z.object({
   confirmed: z.boolean().optional(),
   locale: z.enum(SUPPORTED_LOCALES).optional(),
   idempotencyKey: z.string().min(8).max(80),
+  exchangeLines: z.array(z.object({ orderLineId: z.string().uuid(), variantId: z.string().uuid(), quantity: z.number().int().min(1).max(1000) })).max(100).optional(),
 });
 
 export async function portalSubmitAction(slug: string, token: string, input: unknown): Promise<ActionResult<{ number: number; view: PortalView }>> {
@@ -124,7 +125,7 @@ export async function portalSubmitAction(slug: string, token: string, input: unk
       after(async () => {
         await withTenant(tenant.id, async (tx) => {
           const ctx = sys(tenant.id, tx);
-          await syncReturnToPlatform(ctx, await getCommercePlatformFor(ctx, tenant), settings, created.id);
+          await syncReturnToPlatform(ctx, await getCommercePlatformFor(ctx, tenant), settings, created.id, { country: tenant.country });
         }).catch((e) => console.error("[portal] platform sync failed", e));
       });
     }

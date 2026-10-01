@@ -3,7 +3,7 @@ import { boolean, customType, index, integer, jsonb, pgTable, text, timestamp, u
 import { createdAt, tenantIsolation, updatedAt } from "./_common";
 import { tenantColumns } from "./_tenant";
 import { orderLines, orders } from "./orders";
-import { locations } from "./catalog";
+import { locations, productVariants } from "./catalog";
 import { users } from "./auth";
 
 export const returnReasons = pgTable(
@@ -76,6 +76,19 @@ export const returnRequests = pgTable(
     automations: jsonb("automations").$type<{ id: string; name: string; action: string }[]>().notNull().default(sql`'[]'::jsonb`),
     /** Refunded or credited without the goods coming back. */
     returnless: boolean("returnless").notNull().default(false),
+    /** Bonus added to a voucher (policy credit bonus). */
+    creditBonusMinor: integer("credit_bonus_minor").notNull().default(0),
+    /** Exchange: new items minus credit (> 0 customer pays, < 0 refunded); draft invoice when the customer pays. */
+    exchangeDifferenceMinor: integer("exchange_difference_minor"),
+    exchangeDraftId: text("exchange_draft_id"),
+    exchangeInvoiceUrl: text("exchange_invoice_url"),
+    /** Discount code created on the store for a voucher. */
+    voucherPlatformId: text("voucher_platform_id"),
+    /** Instant exchange guarantee: authorized | voided | captured | failed. */
+    guaranteeAuthId: text("guarantee_auth_id"),
+    guaranteeStatus: text("guarantee_status"),
+    guaranteeAmountMinor: integer("guarantee_amount_minor"),
+    guaranteeExpiresAt: timestamp("guarantee_expires_at", { withTimezone: true }),
     requestedAt: timestamp("requested_at", { withTimezone: true }).notNull().defaultNow(),
     approvedAt: timestamp("approved_at", { withTimezone: true }),
     receivedAt: timestamp("received_at", { withTimezone: true }),
@@ -157,6 +170,26 @@ export const publicRateLimits = pgTable(
     count: integer("count").notNull().default(0),
   },
   (t) => [uniqueIndex("public_rate_limits_uq").on(t.tenantId, t.key), tenantIsolation("public_rate_limits")],
+).enableRLS();
+
+/** What the customer wants instead of the returned line in an exchange. */
+export const returnExchangeLines = pgTable(
+  "return_exchange_lines",
+  {
+    ...tenantColumns(),
+    returnId: uuid("return_id")
+      .notNull()
+      .references(() => returnRequests.id, { onDelete: "cascade" }),
+    returnLineId: uuid("return_line_id").references(() => returnLines.id, { onDelete: "set null" }),
+    variantId: uuid("variant_id")
+      .notNull()
+      .references(() => productVariants.id, { onDelete: "restrict" }),
+    title: text("title").notNull(),
+    quantity: integer("quantity").notNull(),
+    unitPriceMinor: integer("unit_price_minor").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("return_exchange_lines_return_idx").on(t.tenantId, t.returnId), tenantIsolation("return_exchange_lines")],
 ).enableRLS();
 
 /** Return policy of the tenant: windows, exclusions, final sale, customer limit, risk, automations (core schema). */

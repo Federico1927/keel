@@ -80,6 +80,15 @@ export const returnPolicySchema = z.object({
       highValueMinor: z.number().int().min(0).default(50000),
     })
     .default({ days: 365, watchRateBps: 3000, highRateBps: 5000, minReturns: 3, quickReturnDays: 3, highValueMinor: 50000 }),
+  /** Extra credit when the customer picks a voucher instead of a refund (basis points of the accepted value). */
+  creditBonusBps: z.number().int().min(0).max(5000).default(0),
+  /** Exchange for another variant of the same product, with the price difference paid or refunded. */
+  exchanges: z.object({ enabled: z.boolean().default(true), refundDifference: z.boolean().default(true) }).default({ enabled: true, refundDifference: true }),
+  /**
+   * Instant exchange: the replacement ships at approval, before the goods come back, against a
+   * payment guarantee for the value of the returned items; voided on receipt, captured after `days`.
+   */
+  instantExchange: z.object({ enabled: z.boolean().default(false), days: z.number().int().min(3).max(60).default(21) }).default({ enabled: false, days: 21 }),
   automations: z
     .array(returnAutomationSchema)
     .max(30)
@@ -221,4 +230,22 @@ export function selectAutomations(rules: readonly ReturnAutomation[], f: ReturnF
     if (r.action === "approve" || r.action === "reject" || r.action === "returnless") break;
   }
   return out;
+}
+
+/* ---------- exchanges and credit ---------- */
+
+/** Store credit for a voucher: the accepted value plus the bonus. */
+export function creditWithBonus(acceptedMinor: number, bonusBps: number): { bonusMinor: number; creditMinor: number } {
+  const bonus = Math.max(0, Math.round((Math.max(0, acceptedMinor) * Math.max(0, bonusBps)) / 10000));
+  return { bonusMinor: bonus, creditMinor: Math.max(0, acceptedMinor) + bonus };
+}
+
+/**
+ * Exchange quote: the credit from the returned units against the new items.
+ * `differenceMinor` > 0: the customer pays it; < 0: it is refunded (when the policy says so).
+ */
+export function exchangeQuote(returned: readonly { quantity: number; unitNetMinor: number }[], wanted: readonly { quantity: number; unitPriceMinor: number }[]): { creditMinor: number; newItemsMinor: number; differenceMinor: number } {
+  const credit = returned.reduce((s, l) => s + l.quantity * l.unitNetMinor, 0);
+  const items = wanted.reduce((s, l) => s + l.quantity * l.unitPriceMinor, 0);
+  return { creditMinor: credit, newItemsMinor: items, differenceMinor: items - credit };
 }

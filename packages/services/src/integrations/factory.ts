@@ -1,5 +1,5 @@
 import { and, eq, schema } from "@keel/db";
-import { GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, MockCommercePlatform, MockNotificationSink, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type NotificationSink, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
+import { GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, MockCommercePlatform, MockNotificationSink, MockPaymentGuarantee, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type NotificationSink, type PaymentGuarantee, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 
 export interface PlatformTenant {
@@ -116,4 +116,18 @@ export async function getNotificationSinks(ctx: ServiceContext): Promise<{ slack
 
 export function mockSinkFor(tenantId: string, kind: "slack" | "email"): MockNotificationSink | undefined {
   return sinkMocks.get(`${tenantId}:${kind}`);
+}
+
+const guarantees = new Map<string, MockPaymentGuarantee>();
+/**
+ * Payment guarantee for instant exchanges. Only the mock exists: a live provider (Stripe manual
+ * capture, Shopify Payments vaulted cards) needs an account and is part of the external block.
+ */
+export function getPaymentGuaranteeFor(tenantId: string): PaymentGuarantee {
+  let g = guarantees.get(tenantId);
+  if (!g) {
+    g = new MockPaymentGuarantee();
+    guarantees.set(tenantId, g);
+  }
+  return g;
 }
