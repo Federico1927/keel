@@ -21,6 +21,8 @@ test.describe("addon.cod", () => {
     const orderName = (await target.getByRole("link").first().textContent())!.trim();
     if ((await target.getByTestId("claim").count()) > 0) {
       await target.getByTestId("claim").click();
+      // the claim is a server action: wait for the refreshed row before navigating, or the request can be cut off
+      await expect(page.getByTestId("queue-row").filter({ hasText: orderName }).getByTestId("claim")).toHaveCount(0);
       await page.goto("/t/northwind-apparel/cod?view=mine");
       await expect(page.getByTestId("queue-row").filter({ hasText: orderName })).toHaveCount(1);
       await page.goto("/t/northwind-apparel/cod?view=all");

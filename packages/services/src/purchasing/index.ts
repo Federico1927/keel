@@ -16,7 +16,8 @@ async function recomputePoTotal(ctx: ServiceContext, poId: string) {
 
 export async function nextPoNumber(ctx: ServiceContext, now = ctx.now ?? new Date()): Promise<string> {
   const prefix = `PO-${now.getUTCFullYear()}${String(now.getUTCMonth() + 1).padStart(2, "0")}-`;
-  const [row] = await ctx.tx.select({ n: sql<number>`count(*)::int` }).from(schema.purchaseOrders).where(and(eq(schema.purchaseOrders.tenantId, ctx.tenantId), sql`${schema.purchaseOrders.number} like ${prefix + "%"}`));
+  // highest suffix + 1, not count + 1: numbers can be sparse (imports, deleted drafts) and count would collide
+  const [row] = await ctx.tx.select({ n: sql<number>`coalesce(max(nullif(regexp_replace(substr(${schema.purchaseOrders.number}, ${prefix.length + 1}), '[^0-9]', '', 'g'), '')::int), 0)::int` }).from(schema.purchaseOrders).where(and(eq(schema.purchaseOrders.tenantId, ctx.tenantId), sql`${schema.purchaseOrders.number} like ${prefix + "%"}`));
   return `${prefix}${String((row?.n ?? 0) + 1).padStart(3, "0")}`;
 }
 
@@ -98,9 +99,11 @@ export async function receivePurchaseOrder(ctx: ServiceContext, input: ReceiveIn
     // cost
     const [variant] = await ctx.tx.select({ costMinor: schema.productVariants.costMinor, averageCostMinor: schema.productVariants.averageCostMinor }).from(schema.productVariants).where(eq(schema.productVariants.id, line.variantId)).limit(1);
     const [{ onHandTotal }] = (await ctx.tx.select({ onHandTotal: sql<number>`coalesce(sum(${schema.inventoryLevels.available}), 0)::int` }).from(schema.inventoryLevels).where(eq(schema.inventoryLevels.variantId, line.variantId))) as [{ onHandTotal: number }];
-    const newAverage = movingAverageCost(variant?.averageCostMinor ?? variant?.costMinor ?? null, Math.max(0, onHandTotal - qty), qty, line.unitCostMinor);
-    await ctx.tx.update(schema.productVariants).set({ costMinor: line.unitCostMinor, averageCostMinor: newAverage }).where(eq(schema.productVariants.id, line.variantId));
-    received.push({ variantId: line.variantId, quantity: qty, newAvailable, newCostMinor: line.unitCostMinor, newAverageMinor: newAverage });
+    // landed cost (unit cost + allocated duties/freight/fees) when the PO carries charges
+    const unitCost = line.landedUnitCostMinor ?? line.unitCostMinor;
+    const newAverage = movingAverageCost(variant?.averageCostMinor ?? variant?.costMinor ?? null, Math.max(0, onHandTotal - qty), qty, unitCost);
+    await ctx.tx.update(schema.productVariants).set({ costMinor: unitCost, averageCostMinor: newAverage }).where(eq(schema.productVariants.id, line.variantId));
+    received.push({ variantId: line.variantId, quantity: qty, newAvailable, newCostMinor: unitCost, newAverageMinor: newAverage });
     if (input.pushToPlatform) await input.pushToPlatform(line.variantId, locationId, newAvailable);
   }
   // status

@@ -40,7 +40,8 @@
       "cod_not_found": "Not found.",
       "cod_invalid_input": "Invalid data.",
       "cod_platform_error": "The commerce platform rejected the tag or cancellation write; nothing was recorded.",
-      "invalid_formula": "The formula is not valid."
+      "invalid_formula": "The formula is not valid.",
+      "closed": "This order can no longer be changed."
     },
     "edit": "Edit"
   },
@@ -159,7 +160,8 @@
     "users": "Users",
     "settings": "Settings",
     "audit": "Audit log",
-    "cod_settings": "COD settings"
+    "cod_settings": "COD settings",
+    "planning": "Planning"
   },
   "shell": {
     "open_menu": "Open menu",
@@ -688,7 +690,8 @@
       "velocity": "Units/day",
       "cover": "Cover",
       "reorder": "Reorder"
-    }
+    },
+    "planning_link": "Planning"
   },
   "purchasing": {
     "title": "Purchasing",
@@ -746,7 +749,42 @@
       "received": "Received",
       "unit_cost": "Unit cost",
       "total": "Total",
-      "receive_now": "Receive now"
+      "receive_now": "Receive now",
+      "landed": "Landed unit cost"
+    },
+    "auto_draft": "Auto draft",
+    "landed": {
+      "title": "Landed cost",
+      "hint": "Duties, freight and fees are spread over the lines; the landed unit cost becomes the product cost when goods are received.",
+      "empty": "No charges yet.",
+      "total": "Total charges",
+      "kind": "Type",
+      "basis": "Allocate by",
+      "amount": "Amount",
+      "note": "Note",
+      "add": "Add charge",
+      "kinds": {
+        "duty": "Duty",
+        "freight": "Freight",
+        "fee": "Fee",
+        "other": "Other"
+      },
+      "bases": {
+        "value": "Value",
+        "quantity": "Quantity",
+        "weight": "Weight"
+      }
+    },
+    "supplier": {
+      "title": "Supplier",
+      "download_pdf": "Download PDF",
+      "sent": "Sent {at} to {to}",
+      "acknowledged": "Answered by the supplier {at}",
+      "waiting": "Waiting for the supplier to confirm.",
+      "email": "Supplier email",
+      "send": "Send to supplier",
+      "resend": "Send again",
+      "link_hint": "Confirmation link (in demo mode no email leaves the platform: copy it to the supplier):"
     }
   },
   "po_new": {
@@ -780,7 +818,13 @@
       "email": "Email",
       "phone": "Phone",
       "country": "Country (ISO 2)",
-      "leadTimeDays": "Lead time (days)"
+      "leadTimeDays": "Lead time (days)",
+      "contactName": "Contact person",
+      "leadTimeSdDays": "Lead time variability (± days)",
+      "depositPct": "Deposit (%)",
+      "balanceDays": "Balance due (days after receipt)",
+      "moqDefault": "Minimum order (units)",
+      "orderMultipleDefault": "Order multiple"
     },
     "columns": {
       "supplier": "Supplier",
@@ -788,8 +832,15 @@
       "lead_time": "Lead time",
       "owed": "Owed",
       "paid": "Paid",
-      "balance": "Balance"
-    }
+      "balance": "Balance",
+      "terms": "Terms"
+    },
+    "edit_title": "Edit {name}",
+    "edit": "Edit terms",
+    "terms": "Purchasing terms",
+    "terms_hint": "The planner uses lead time and its variability for safety stock, MOQ and multiples to round quantities, deposit and balance days for the cash-flow plan.",
+    "terms_summary": "{deposit}% deposit · balance {days} days after receipt",
+    "moq_summary": "MOQ {moq}"
   },
   "analytics": {
     "title": "Analytics",
@@ -2499,6 +2550,249 @@
       "warning_not_cancelled": "The old order could not be cancelled on the platform: cancel it by hand.",
       "save": "Save changes",
       "save_replace": "Replace order"
+    }
+  },
+  "po_pdf": {
+    "title": "Purchase order",
+    "supplier": "Supplier",
+    "expected": "Requested delivery",
+    "sku": "SKU",
+    "item": "Item",
+    "quantity": "Qty",
+    "unit_price": "Unit price",
+    "total": "Total",
+    "confirm_at": "Confirm this order at",
+    "notes": "Notes"
+  },
+  "supplier_portal": {
+    "title": "Purchase order {number}",
+    "for_supplier": "For {supplier}",
+    "language": "Language",
+    "status": {
+      "draft": "Draft",
+      "sent": "Waiting for your confirmation",
+      "confirmed": "Confirmed",
+      "in_transit": "In transit",
+      "partially_received": "Partially received",
+      "received": "Received",
+      "cancelled": "Cancelled"
+    },
+    "expected": "Requested delivery: {date}",
+    "answered": "Answered on {date}",
+    "columns": {
+      "sku": "SKU",
+      "item": "Item",
+      "quantity": "Qty",
+      "unit_price": "Unit price",
+      "total": "Total"
+    },
+    "answer_title": "Your answer",
+    "closed": "This order is closed: no answer is needed.",
+    "powered_by": "Sent with {product}",
+    "thanks": "Thank you, your answer has been recorded.",
+    "decision": {
+      "confirm": "Confirm the order",
+      "problem": "Report a problem"
+    },
+    "delivery_date": "Delivery date",
+    "note": "Note (optional)",
+    "problem_note": "What is the problem?",
+    "submit": {
+      "confirm": "Confirm",
+      "problem": "Send"
+    }
+  },
+  "planning": {
+    "back": "Inventory",
+    "title": "Inventory planning",
+    "description": "Forecast, reorder with lead time and safety stock (service level {level}), stock analysis, transfers and purchase cash flow. Review period {review} days.",
+    "apply": "Apply",
+    "tabs": {
+      "replenishment": "Reorder",
+      "forecast": "Forecast",
+      "analysis": "Stock analysis",
+      "transfers": "Transfers",
+      "cashflow": "Cash flow",
+      "target": "Revenue target",
+      "bundles": "Bundles & BOM"
+    },
+    "replenishment": {
+      "kpi": {
+        "to_order": "Variants to order",
+        "urgent": "Stock-out before delivery",
+        "urgent_hint": "Runs out before the supplier lead time",
+        "cost": "Purchase value",
+        "suppliers": "Suppliers"
+      },
+      "only_to_order": "To order",
+      "all_variants": "All variants",
+      "empty_title": "Nothing to reorder",
+      "empty_description": "Every variant is above its reorder point.",
+      "generate": "Create draft POs ({n})",
+      "select_all": "Select all",
+      "select_none": "Clear selection",
+      "created": "{n, plural, one {# draft PO created:} other {# draft POs created:}}",
+      "none_created": "No new draft: the selected variants are already in a draft or have no supplier.",
+      "no_supplier": "No supplier",
+      "in_draft": "{n} in draft",
+      "cover_days": "{n} days of cover · lead time {lead} d",
+      "moq": "MOQ {n}",
+      "multiple": "× {n}",
+      "position_hint": "{available} available + {incoming} incoming − {backordered} backordered",
+      "columns": {
+        "variant": "Variant",
+        "supplier": "Supplier",
+        "position": "Position",
+        "daily": "Units/day",
+        "stockout": "Stock-out",
+        "safety": "Safety",
+        "rop": "Reorder point",
+        "order": "Order",
+        "cost": "Cost"
+      },
+      "method": "Demand = the higher of the last 90 days' pace and the next two months of forecast. Safety stock = z × √(lead time × σ²demand + demand² × σ²lead time). Order when available + incoming − backorders ≤ reorder point; the quantity covers lead time + review period + safety stock, rounded to MOQ and multiples."
+    },
+    "forecast": {
+      "product": "Product",
+      "history": "Sold",
+      "forecast": "Forecast",
+      "chart_hint": "Last 24 months ({history} units) and next 12",
+      "accuracy": "error on the last 3 months {wape}",
+      "by_variant": "By variant, next 6 months",
+      "override_hint": "Click a number to correct it; an empty value removes the correction.",
+      "variant": "Variant",
+      "wape": "Error",
+      "overridden": "Manual correction",
+      "click_to_override": "Click to correct",
+      "override_for": "Correction for {month}",
+      "ok": "OK",
+      "uplift": "Event uplift {pct}",
+      "method": "Seasonality is learnt on the product type over 24 months, level and trend on the variant (trend capped). Events add their uplift in their month; manual corrections replace the model. Error = WAPE of a forecast made 3 months ago against actual sales."
+    },
+    "events": {
+      "title": "Demand events",
+      "hint": "Promotions and peaks that move demand in a month.",
+      "empty": "No events.",
+      "name": "Name",
+      "month": "Month",
+      "uplift": "Uplift (%)",
+      "scope": "Applies to",
+      "scopes": {
+        "all": "All products",
+        "product_type": "Product type"
+      },
+      "add": "Add event"
+    },
+    "analysis": {
+      "kpi": {
+        "value": "Stock value",
+        "excess": "Excess stock",
+        "excess_hint": "Beyond {days} days of cover",
+        "slow": "Slow movers",
+        "slow_hint": "Cover above {days} days or no sales",
+        "variants": "Variants"
+      },
+      "matrix": "ABC × XYZ",
+      "matrix_hint": "Count and stock value per class. Click a cell to list it.",
+      "abc": {
+        "A": "Top 80% of revenue",
+        "B": "Next 15%",
+        "C": "Last 5%"
+      },
+      "xyz": {
+        "X": "Steady demand",
+        "Y": "Variable demand",
+        "Z": "Erratic demand"
+      },
+      "legend": "ABC ranks by 12-month revenue (80/15/5). XYZ measures demand variability on 4-week buckets (coefficient of variation ≤ 0.5, ≤ 1, > 1).",
+      "attention": "Excess and slow stock",
+      "cell_title": "Class {cell}",
+      "slow": "slow",
+      "days": "{n} d",
+      "empty": "Nothing here.",
+      "columns": {
+        "variant": "Variant",
+        "class": "Class",
+        "on_hand": "On hand",
+        "value": "Value",
+        "cover": "Cover",
+        "turnover": "Turns/yr",
+        "excess": "Excess units"
+      }
+    },
+    "transfers": {
+      "empty_title": "No transfer needed",
+      "empty_description": "No location is short while another has surplus.",
+      "hint": "Move stock from locations with more than {surplus} days of cover to those with less than {short}. The quantities are written to the commerce platform for both locations.",
+      "apply": "Transfer",
+      "done": "Transferred",
+      "columns": {
+        "variant": "Variant",
+        "from": "From",
+        "to": "To",
+        "units": "Units"
+      }
+    },
+    "cashflow": {
+      "committed": "Committed",
+      "committed_hint": "Open purchase orders, net of payments",
+      "planned": "Planned",
+      "planned_hint": "Drafts and current reorder suggestions",
+      "total": "Total outflow",
+      "by_month": "Purchase payments by month",
+      "month": "Month",
+      "cumulative": "Cumulative",
+      "payments": "Upcoming payments",
+      "plan_ref": "Reorder plan · {supplier}",
+      "kinds": {
+        "deposit": "Deposit",
+        "balance": "Balance"
+      },
+      "method": "Each purchase pays the supplier's deposit when ordered and the balance the agreed days after the expected receipt. Received orders not yet paid fall due from the receipt date."
+    },
+    "target": {
+      "revenue": "Revenue target",
+      "months": "Months",
+      "compute": "Compute plan",
+      "empty_title": "Set a revenue target",
+      "empty_description": "The plan scales the forecast mix to the target and shows the stock to buy per variant.",
+      "forecast_revenue": "Forecast revenue",
+      "forecast_hint": "Next {months} months at current prices",
+      "target": "Target",
+      "vs_forecast": "{pct} vs forecast",
+      "gap_cost": "Stock to buy",
+      "gap_hint": "At cost, after current stock and incoming",
+      "columns": {
+        "variant": "Variant",
+        "forecast": "Forecast units",
+        "planned": "Units for target",
+        "stock": "Stock + incoming",
+        "gap": "To buy",
+        "gap_cost": "Cost"
+      }
+    },
+    "bundles": {
+      "empty_title": "No bundles yet",
+      "empty_description": "Define a bundle (sold as one, stock derived from its components) or a bill of materials.",
+      "kinds": {
+        "bundle": "Bundle",
+        "bom": "Bill of materials"
+      },
+      "available": "{n} sellable from component stock",
+      "buildable": "{n} can be built from material stock",
+      "in_stock": "{n} in stock",
+      "mrp_title": "Material requirements (3 months)",
+      "mrp_hint": "Forecast of the finished goods exploded through their bills of materials.",
+      "component": "Component",
+      "required": "Required",
+      "stock": "In stock",
+      "shortfall": "Shortfall",
+      "add_title": "Add a component",
+      "add_hint": "Adding a component to an existing parent updates its quantity.",
+      "parent": "Parent variant",
+      "quantity": "Quantity per unit",
+      "kind": "Type",
+      "add": "Save"
     }
   }
 }

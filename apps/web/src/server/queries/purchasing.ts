@@ -31,7 +31,7 @@ export async function getPurchaseOrder(ctx: TenantContext, id: string) {
     if (!po) return null;
     const [supplier] = await tx.select().from(schema.suppliers).where(eq(schema.suppliers.id, po.supplierId)).limit(1);
     const lines = await tx
-      .select({ id: schema.purchaseOrderLines.id, variantId: schema.purchaseOrderLines.variantId, quantity: schema.purchaseOrderLines.quantity, receivedQuantity: schema.purchaseOrderLines.receivedQuantity, unitCostMinor: schema.purchaseOrderLines.unitCostMinor, description: schema.purchaseOrderLines.description, sku: schema.productVariants.sku, variantTitle: schema.productVariants.title, productTitle: schema.products.title, productId: schema.products.id })
+      .select({ id: schema.purchaseOrderLines.id, variantId: schema.purchaseOrderLines.variantId, quantity: schema.purchaseOrderLines.quantity, receivedQuantity: schema.purchaseOrderLines.receivedQuantity, unitCostMinor: schema.purchaseOrderLines.unitCostMinor, landedUnitCostMinor: schema.purchaseOrderLines.landedUnitCostMinor, description: schema.purchaseOrderLines.description, sku: schema.productVariants.sku, variantTitle: schema.productVariants.title, productTitle: schema.products.title, productId: schema.products.id })
       .from(schema.purchaseOrderLines)
       .leftJoin(schema.productVariants, eq(schema.productVariants.id, schema.purchaseOrderLines.variantId))
       .leftJoin(schema.products, eq(schema.products.id, schema.productVariants.productId))
@@ -44,7 +44,8 @@ export async function getPurchaseOrder(ctx: TenantContext, id: string) {
       .where(and(eq(schema.backorders.tenantId, ctx.tenant.id), inArray(schema.backorders.purchaseOrderLineId, lines.map((l) => l.id))));
     const payments = await tx.select().from(schema.supplierPayments).where(eq(schema.supplierPayments.purchaseOrderId, id)).orderBy(desc(schema.supplierPayments.paidAt));
     const locations = await tx.select().from(schema.locations).where(eq(schema.locations.tenantId, ctx.tenant.id)).orderBy(desc(schema.locations.isDefault));
-    return { po, supplier: supplier!, lines, backorders, payments, locations };
+    const charges = await tx.select().from(schema.purchaseOrderCharges).where(and(eq(schema.purchaseOrderCharges.tenantId, ctx.tenant.id), eq(schema.purchaseOrderCharges.purchaseOrderId, id))).orderBy(asc(schema.purchaseOrderCharges.createdAt));
+    return { po, supplier: supplier!, lines, backorders, payments, locations, charges };
   });
 }
 

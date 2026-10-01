@@ -112,20 +112,24 @@ export async function addSupplierPayment(slug: string, _prev: ActionResult | nul
   }
 }
 
-const supplierSchema = z.object({ id: z.string().uuid().optional(), name: z.string().trim().min(2).max(80), payeeName: z.string().trim().max(120).optional(), email: z.string().email().optional().or(z.literal("")), phone: z.string().max(40).optional(), country: z.string().trim().max(2).optional(), leadTimeDays: z.coerce.number().int().min(0).max(365).optional(), notes: z.string().max(1000).optional() });
+const supplierSchema = z.object({ id: z.string().uuid().optional(), name: z.string().trim().min(2).max(80), payeeName: z.string().trim().max(120).optional(), email: z.string().email().optional().or(z.literal("")), phone: z.string().max(40).optional(), country: z.string().trim().max(2).optional(), leadTimeDays: z.coerce.number().int().min(0).max(365).optional(), notes: z.string().max(1000).optional(), contactName: z.string().trim().max(80).optional(), leadTimeSdDays: z.coerce.number().int().min(0).max(120).optional(), depositPct: z.coerce.number().min(0).max(100).optional(), balanceDays: z.coerce.number().int().min(0).max(365).optional(), moqDefault: z.coerce.number().int().min(1).max(1_000_000).optional(), orderMultipleDefault: z.coerce.number().int().min(1).max(10_000).optional() });
 
 export async function saveSupplier(slug: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   try {
     const ctx = await requireAction(slug, "receive_purchase_order", "purchasing");
     const raw = Object.fromEntries(formData) as Record<string, string>;
-    const parsed = supplierSchema.safeParse({ ...raw, id: raw.id || undefined, leadTimeDays: raw.leadTimeDays || undefined });
+    const blank = (k: string) => raw[k] === "" || raw[k] === undefined ? undefined : raw[k];
+    const parsed = supplierSchema.safeParse({ ...raw, id: raw.id || undefined, leadTimeDays: blank("leadTimeDays"), leadTimeSdDays: blank("leadTimeSdDays"), depositPct: blank("depositPct"), balanceDays: blank("balanceDays"), moqDefault: blank("moqDefault"), orderMultipleDefault: blank("orderMultipleDefault") });
     if (!parsed.success) return fail("invalid_input");
     const d = parsed.data;
-    const values = { name: d.name, payeeName: d.payeeName || null, email: d.email || null, phone: d.phone || null, country: d.country?.toUpperCase() || null, leadTimeDays: d.leadTimeDays ?? null, notes: d.notes || null };
+    const values = { name: d.name, payeeName: d.payeeName || null, email: d.email || null, phone: d.phone || null, country: d.country?.toUpperCase() || null, leadTimeDays: d.leadTimeDays ?? null, notes: d.notes || null, contactName: d.contactName || null, leadTimeSdDays: d.leadTimeSdDays ?? null, depositBps: d.depositPct !== undefined ? Math.round(d.depositPct * 100) : 0, balanceDays: d.balanceDays ?? 30, moqDefault: d.moqDefault ?? null, orderMultipleDefault: d.orderMultipleDefault ?? null };
     await ctx.run(async (tx) => {
       if (d.id) {
-        await tx.update(schema.suppliers).set(values).where(and(eq(schema.suppliers.tenantId, ctx.tenant.id), eq(schema.suppliers.id, d.id)));
-        await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "supplier.updated", entityType: "supplier", entityId: d.id, diff: { name: { from: null, to: d.name } } });
+        const [prev] = await tx.select().from(schema.suppliers).where(and(eq(schema.suppliers.tenantId, ctx.tenant.id), eq(schema.suppliers.id, d.id))).limit(1);
+        if (!prev) throw new PurchasingError("not_found");
+        await tx.update(schema.suppliers).set(values).where(eq(schema.suppliers.id, d.id));
+        const diff = Object.fromEntries(Object.entries(values).filter(([k, v]) => prev[k as keyof typeof prev] !== v).map(([k, v]) => [k, { from: prev[k as keyof typeof prev], to: v }]));
+        await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "supplier.updated", entityType: "supplier", entityId: d.id, diff });
       } else {
         const [row] = await tx.insert(schema.suppliers).values({ tenantId: ctx.tenant.id, currency: ctx.tenant.currency, ...values }).returning({ id: schema.suppliers.id });
         await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "supplier.created", entityType: "supplier", entityId: row!.id });

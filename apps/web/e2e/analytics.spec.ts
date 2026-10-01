@@ -82,14 +82,15 @@ test.describe("analytics depth", () => {
     // alerts: create a rule that fires, run now, see it in recent alerts
     await page.goto("/t/northwind-apparel/analytics/alerts");
     await expect(page.getByTestId("alert-rule").first()).toBeVisible();
-    await page.getByLabel(/^Name$|^Nome$/).fill("E2E orders above zero");
+    const ruleName = `E2E orders above zero ${Date.now()}`;
+    await page.getByLabel(/^Name$|^Nome$/).fill(ruleName);
     await page.getByLabel(/^Metric$|^Metrica$/).selectOption("orders");
     await page.getByLabel(/^Kind$|^Tipo$/).selectOption("threshold");
     await page.getByLabel(/^Condition$|^Condizione$/).selectOption("gt");
     await page.getByLabel(/^Value$|^Valore$/).fill("-1");
     await page.getByTestId("save-alert").click();
-    await expect(page.getByTestId("alert-rule").filter({ hasText: "E2E orders above zero" })).toHaveCount(1);
+    await expect(page.getByTestId("alert-rule").filter({ hasText: ruleName })).toHaveCount(1);
     await page.getByTestId("run-alerts").click();
-    await expect(page.getByTestId("alert-events")).toContainText("E2E orders above zero");
+    await expect(page.getByTestId("alert-events")).toContainText(ruleName);
   });
 });

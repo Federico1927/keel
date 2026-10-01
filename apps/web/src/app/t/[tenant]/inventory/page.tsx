@@ -23,7 +23,7 @@ export default async function InventoryPage({ params, searchParams }: { params: 
   const lookback = f.lookback ?? ctx.settings.salesVelocityLookbackDays;
   return (
     <>
-      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description", { days: lookback, target: ctx.settings.reorderTargetDays })} />
+      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description", { days: lookback, target: ctx.settings.reorderTargetDays })} actions={<Link href={`/t/${tenant}/inventory/planning`} className="inline-flex h-9 items-center rounded-md border bg-card px-3 text-sm hover:bg-muted" data-testid="planning-link">{t("planning_link")}</Link>} />
       <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Stat label={t("kpi.units")} value={formatNumber(totalUnits, ctx.locale)} />
         <Stat label={t("kpi.value")} value={formatMoney(stockValue, ctx.tenant.currency, ctx.locale)} hint={t("kpi.value_hint")} />

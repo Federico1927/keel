@@ -3,6 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
   Boxes,
+  CalendarRange,
   ClipboardList,
   Contact,
   Gauge,
@@ -48,6 +49,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { page: "products", href: "/products", labelKey: "nav.products", icon: Package },
       { page: "inventory", href: "/inventory", labelKey: "nav.inventory", icon: Boxes },
+      { page: "inventory", href: "/inventory/planning", labelKey: "nav.planning", icon: CalendarRange },
       { page: "purchasing", href: "/purchasing", labelKey: "nav.purchasing", icon: ClipboardList },
     ],
   },
