@@ -46,6 +46,8 @@ export interface MockCommerceOptions {
   customers: NormalizedCustomer[];
   startOrderNumber: number;
   webhookSecret?: string;
+  /** Starting stock per inventory item and location (the tenant's levels); unknown pairs get a random level on first read. */
+  inventory?: { inventoryItemExternalId: string; locationExternalId: string; available: number }[];
 }
 
 /**
@@ -61,11 +63,36 @@ export class MockCommercePlatform implements CommercePlatform {
   private nextNumber: number;
   private webhookSecret: string;
   private writes: { op: string; args: unknown }[] = [];
+  /** Stock the store holds, per `item@location`: orders take from it, writes set or add to it. */
+  private stock = new Map<string, number>();
 
   constructor(private readonly opts: MockCommerceOptions) {
     this.rng = createRng(opts.seed ?? 42);
     this.nextNumber = opts.startOrderNumber;
     this.webhookSecret = opts.webhookSecret ?? "mock-webhook-secret";
+    for (const l of opts.inventory ?? []) this.stock.set(`${l.inventoryItemExternalId}@${l.locationExternalId}`, l.available);
+  }
+
+  /** Current stock of an item at a location (tests). */
+  stockOf(inventoryItemExternalId: string, locationExternalId: string): number | undefined {
+    return this.stock.get(`${inventoryItemExternalId}@${locationExternalId}`);
+  }
+  /** Changes stock behind Keel's back, as a manual edit in the store admin would (tests, drift). */
+  adjustStock(inventoryItemExternalId: string, locationExternalId: string, delta: number): void {
+    const key = `${inventoryItemExternalId}@${locationExternalId}`;
+    this.stock.set(key, (this.stock.get(key) ?? 0) + delta);
+  }
+  private defaultLocation(): string | null {
+    return (this.opts.locations.find((l) => l.isDefault && l.isActive) ?? this.opts.locations.find((l) => l.isActive))?.externalId ?? null;
+  }
+  /** Units leave (or come back to) the default location, like a sale or a restocked cancellation. */
+  private moveStock(lines: { variantExternalId: string | null; quantity: number }[], sign: 1 | -1): void {
+    const loc = this.defaultLocation();
+    if (!loc) return;
+    for (const l of lines) {
+      const inv = this.opts.variants.find((v) => v.externalId === l.variantExternalId)?.inventoryItemExternalId;
+      if (inv && this.stock.has(`${inv}@${loc}`)) this.adjustStock(inv, loc, sign * l.quantity);
+    }
   }
 
   /** Audit of write calls, for tests and the integrations page. */
@@ -146,6 +173,7 @@ export class MockCommercePlatform implements CommercePlatform {
       fulfillments: [],
     };
     this.orders.set(order.externalId, order);
+    this.moveStock(order.lines, -1);
     return order;
   }
 
@@ -200,7 +228,13 @@ export class MockCommercePlatform implements CommercePlatform {
   async fetchInventoryLevels(ids: string[]): Promise<NormalizedInventoryLevel[]> {
     this.failures.check();
     const out: NormalizedInventoryLevel[] = [];
-    for (const id of ids) for (const loc of this.opts.locations) out.push({ inventoryItemExternalId: id, locationExternalId: loc.externalId, available: this.rng.int(0, 60), onHand: null, committed: null, updatedAt: new Date() });
+    for (const id of ids)
+      for (const loc of this.opts.locations) {
+        if (!loc.isActive) continue;
+        const key = `${id}@${loc.externalId}`;
+        if (!this.stock.has(key)) this.stock.set(key, this.rng.int(0, 60));
+        out.push({ inventoryItemExternalId: id, locationExternalId: loc.externalId, available: this.stock.get(key)!, onHand: null, committed: null, updatedAt: new Date() });
+      }
     return out;
   }
 
@@ -260,6 +294,7 @@ export class MockCommercePlatform implements CommercePlatform {
   async cancelOrder(externalId: string, opts: { reason?: string; restock: boolean; refund: boolean }) {
     this.record("cancelOrder", { externalId, ...opts });
     const o = this.orders.get(externalId);
+    if (o && !o.cancelledAt && opts.restock) this.moveStock(o.lines.map((l) => ({ variantExternalId: l.variantExternalId, quantity: l.currentQuantity })), 1);
     if (o) {
       o.cancelledAt = new Date();
       o.financialStatusRaw = opts.refund && o.paymentStatus === "paid" ? "refunded" : o.paymentStatus === "pending" ? "voided" : o.financialStatusRaw;
@@ -341,6 +376,7 @@ export class MockCommercePlatform implements CommercePlatform {
       fulfillments: [],
     };
     this.orders.set(order.externalId, order);
+    this.moveStock(order.lines, -1);
     return order;
   }
   async updateOrderTags(externalId: string, add: string[], remove: string[]) {
@@ -367,6 +403,7 @@ export class MockCommercePlatform implements CommercePlatform {
   }
   async setInventory(inventoryItemExternalId: string, locationExternalId: string, available: number) {
     this.record("setInventory", { inventoryItemExternalId, locationExternalId, available });
+    this.stock.set(`${inventoryItemExternalId}@${locationExternalId}`, available);
   }
   async createDiscountCode(input: { code: string }) {
     this.record("createDiscountCode", input);
@@ -384,6 +421,7 @@ export class MockCommercePlatform implements CommercePlatform {
   }
   async restockInventory(lines: { inventoryItemExternalId: string; locationExternalId: string; quantity: number }[]) {
     this.record("restockInventory", { lines });
+    for (const l of lines) this.adjustStock(l.inventoryItemExternalId, l.locationExternalId, l.quantity);
   }
   private returnSeq = 0;
   private returns = new Map<string, { orderExternalId: string; status: "requested" | "approved" | "declined" | "closed" }>();

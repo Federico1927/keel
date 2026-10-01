@@ -897,7 +897,30 @@
       "cover": "Copertura",
       "reorder": "Riordino"
     },
-    "planning_link": "Pianificazione"
+    "planning_link": "Pianificazione",
+    "sync_now": "Sincronizza ora",
+    "sync_done": "Stock letto: {changed} livelli modificati, {drift} scostamenti, {conflicts} conflitti, {zeroed} livelli non più riportati azzerati.",
+    "sync_paused": "Sincronizzazione dello stock sospesa al limite di tempo; riprende alla prossima esecuzione.",
+    "sync_queued": "Sincronizzazione dello stock in coda.",
+    "sync_failed": "Sincronizzazione dello stock non riuscita: {error}",
+    "drift_title": "Scostamenti di stock",
+    "drift_description": "Variazioni trovate dalle sincronizzazioni che nessuna vendita, reso, ricevimento o rettifica spiega, valori negativi riportati a zero e livelli che la piattaforma non riporta più.",
+    "drift_empty": "Nessuno scostamento registrato.",
+    "drift_kind": {
+      "unexplained": "Variazione non spiegata",
+      "negative": "Negativo, azzerato",
+      "not_reported": "Non più riportato"
+    },
+    "drift_columns": {
+      "seen": "Visto",
+      "variant": "Variante",
+      "location": "Location",
+      "kind": "Tipo",
+      "expected": "Atteso",
+      "observed": "Piattaforma"
+    },
+    "drift_all_locations": "Tutte le location",
+    "drift_times": "×{n}"
   },
   "purchasing": {
     "title": "Acquisti",
@@ -2525,14 +2548,26 @@
       "run": "Esecuzione",
       "status": "Stato",
       "rows": "Righe",
-      "topic": "Topic"
+      "topic": "Topic",
+      "scanned": "Letti",
+      "changed": "Modificati",
+      "conflicts": "Conflitti",
+      "errors": "Errori",
+      "duration": "Durata"
     },
     "errors": {
       "connection_failed": "La piattaforma ha rifiutato le credenziali.",
       "mock_mode": "Questo ambiente è in modalità mock: imposta KEEL_INTEGRATION_MODE=live per collegare un account reale.",
       "live_mode": "La simulazione è disponibile solo per le integrazioni mock."
     },
-    "tracking": "Pixel e conversioni"
+    "tracking": "Pixel e conversioni",
+    "duration_s": "{s} s",
+    "run_kind": {
+      "initial": "storico",
+      "delta": "delta",
+      "reconcile": "riconciliazione notturna",
+      "manual": "manuale"
+    }
   },
   "integration_guide": {
     "verify_legend": "I passi segnati “Da verificare” dipendono da console dei fornitori che cambiano spesso: controllali sulla documentazione del fornitore prima della prima installazione.",
@@ -4493,5 +4528,48 @@
     "done": "{written, plural, one {# costo importato} other {# costi importati}}, {lines} righe d'ordine aggiornate.",
     "write_back": "Scrivi i costi su Shopify",
     "write_back_hint": "Se attivo, i costi modificati o importati qui aggiornano anche il costo unitario su Shopify. Solo owner e admin possono cambiarlo."
+  },
+  "platform_writes": {
+    "status": {
+      "pending": "In attesa di sync",
+      "running": "In sincronizzazione",
+      "succeeded": "Sincronizzato",
+      "failed": "Sync non riuscito",
+      "superseded": "Sostituito"
+    },
+    "retry": "Riprova",
+    "retry_failed": "Impossibile riprovare",
+    "title": "Scritture verso le piattaforme",
+    "description": "Modifiche che Keel invia a Shopify, Meta e Google: {pending} in attesa, {failed} non riuscite, {succeeded} sincronizzate nelle ultime 24 ore.",
+    "empty": "Nessuna scrittura verso le piattaforme.",
+    "immediate": "immediata",
+    "attempts": "{n, plural, one {# tentativo} other {# tentativi}}",
+    "next_attempt": "prossimo tentativo {when}",
+    "columns": {
+      "when": "Quando",
+      "write": "Scrittura",
+      "status": "Stato"
+    },
+    "kinds": {
+      "variant_update": "Prezzo variante",
+      "product_status": "Stato prodotto",
+      "inventory_set": "Livello di stock",
+      "inventory_restock": "Rientro a stock",
+      "order_cancel": "Annullamento ordine",
+      "order_update_details": "Dati ordine",
+      "order_tags": "Tag ordine",
+      "order_create": "Nuovo ordine",
+      "order_create_invoice": "Ordine con fattura",
+      "discount_create": "Codice sconto",
+      "discount_pool": "Pool di codici",
+      "return_request": "Richiesta di reso",
+      "return_approve": "Approvazione reso",
+      "return_decline": "Rifiuto reso",
+      "return_refund": "Rimborso",
+      "return_close": "Chiusura reso",
+      "campaign_status": "Stato campagna",
+      "variant_cost": "Costo variante",
+      "order_discount": "Sconto sull'ordine"
+    }
   }
 }

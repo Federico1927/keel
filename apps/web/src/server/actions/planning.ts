@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, eq, recordAudit, schema, withTenant } from "@keel/db";
 import { addPoCharge, applyTransfer, deleteBundleComponent, deleteDemandEvent, deletePoCharge, generateDraftPurchaseOrders, issueSupplierLink, recordSupplierLinkAccess, saveBundleComponent, saveDemandEvent, sendSupplierPoEmail, setForecastOverride, SupplierAckError, supplierAcknowledge, tenantForSupplierToken, type ServiceContext } from "@keel/services";
-import { getCommercePlatform } from "@/server/integrations";
+import { dispatchPlatformWrites } from "@/server/platform-writes";
 import { ForbiddenError, requireAction, requireWrite, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 
@@ -158,11 +158,12 @@ export async function applyTransferAction(slug: string, input: { variantId: stri
     const ctx = await requireWrite(slug, "inventory");
     const parsed = transferSchema.safeParse(input);
     if (!parsed.success) return fail("invalid_input");
-    const platform = await getCommercePlatform(ctx);
-    await ctx.run(async (tx) => {
-      await applyTransfer(svc(ctx, tx), platform, parsed.data);
+    const r = await ctx.run(async (tx) => {
+      const moved = await applyTransfer(svc(ctx, tx), parsed.data, { pushToPlatform: true });
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "inventory.transfer", entityType: "variant", entityId: parsed.data.variantId, metadata: parsed.data });
+      return moved;
     });
+    await dispatchPlatformWrites(ctx, r.writes);
     revalidatePath(`/t/${slug}/inventory/planning`);
     revalidatePath(`/t/${slug}/inventory`);
     return ok();

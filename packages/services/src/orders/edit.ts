@@ -4,6 +4,7 @@ import type { Address, CommercePlatform, CreateOrderInput } from "@keel/integrat
 import type { ServiceContext } from "../context";
 import { importOrder } from "../sync";
 import { applyCancellation, recomputeOrderStatus } from "./state";
+import { runPlatformWriteNow } from "../writes";
 
 /**
  * Core order editing (issue #22), for every payment method:
@@ -172,7 +173,8 @@ export async function editOrderDetails(ctx: ServiceContext, platform: CommercePl
   const c = contactChanges(order, input.contact, opts.country);
   if (!c.changed.length) return { orderId: order.id, changed: [], writtenToPlatform: false };
   const writes = Object.keys(c.platform).length > 0 && Boolean(platform && order.externalId);
-  if (writes) await platformCall(() => platform!.updateOrderDetails(order.externalId!, c.platform));
+  // synchronous (recorded in the outbox): the operator is told at once when the platform refuses the change
+  if (writes) await platformCall(() => runPlatformWriteNow(ctx, platform!, { kind: "order.update_details", entityType: "order", entityId: order.id, payload: { orderExternalId: order.externalId!, patch: c.platform } }));
   await ctx.tx.update(schema.orders).set({ ...c.patch, updatedAt: now }).where(eq(schema.orders.id, order.id));
   const diff = Object.fromEntries(c.changed.map((k) => [k, { from: (order as Record<string, unknown>)[k] ?? null, to: (c.patch as Record<string, unknown>)[k] ?? null }]));
   await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: order.id, type: "modified", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff, metadata: { source: opts.source ?? "core", platform: writes ? platform!.provider : null }, createdAt: now });
@@ -272,7 +274,8 @@ export async function replaceOrder(ctx: ServiceContext, platform: CommercePlatfo
     replacesOrderName: order.name,
     payment: { method: order.paymentMethod as NonNullable<CreateOrderInput["payment"]>["method"], status: paid ? "paid" : "pending", gateways: order.paymentGateways },
   };
-  const created = await platformCall(() => platform.createOrder(createInput));
+  // synchronous: the replacement's number and lines are needed right away; keyed so a repeated request reuses the order already created
+  const created = await platformCall(() => runPlatformWriteNow(ctx, platform, { kind: "order.create", entityType: "order", entityId: order.id, payload: { input: createInput }, idempotencyKey: `order:replace:${[order.id, ...sources.map((x) => x.order.id).sort()].join(",")}` }));
   const imported = await importOrder(ctx, created, { country: opts.country, source: "sync" });
   const allOld = [target, ...sources];
   const rootId = order.lineageRootOrderId ?? order.id;
@@ -293,7 +296,7 @@ export async function replaceOrder(ctx: ServiceContext, platform: CommercePlatfo
     let cancelledOnPlatform = !o.order.externalId;
     if (o.order.externalId) {
       try {
-        await platform.cancelOrder(o.order.externalId, { reason: "customer", restock: true, refund: false });
+        await runPlatformWriteNow(ctx, platform, { kind: "order.cancel", entityType: "order", entityId: o.order.id, payload: { orderExternalId: o.order.externalId, reason: "customer", restock: true, refund: false } });
         cancelledOnPlatform = true;
       } catch {
         warning = "old_order_not_cancelled";
@@ -373,7 +376,7 @@ export async function applyOrderDiscount(ctx: ServiceContext, platform: Commerce
   if (amountMinor <= 0) throw new OrderEditError("invalid_input", "discount amount", { field: "value" });
   const code = orderDiscountCode(input, input.code);
   const writes = Boolean(platform && order.externalId);
-  if (writes) await platformCall(() => platform!.applyOrderDiscount(order.externalId!, { type: input.type, value: input.value, amountMinor, currency: order.currency, code, reason: input.reason ?? null }));
+  if (writes) await platformCall(() => runPlatformWriteNow(ctx, platform!, { kind: "order.discount", entityType: "order", entityId: order.id, payload: { orderExternalId: order.externalId!, discount: { type: input.type, value: input.value, amountMinor, currency: order.currency, code, reason: input.reason ?? null } } }));
   const next = applyDiscountToAmounts(order, amountMinor);
   await ctx.tx.update(schema.orders).set({ discountMinor: next.discountMinor, totalMinor: next.totalMinor, updatedAt: now }).where(eq(schema.orders.id, order.id));
   await ctx.tx.insert(schema.orderDiscounts).values({ tenantId: ctx.tenantId, orderId: order.id, code, type: input.type, amountMinor });

@@ -3,6 +3,7 @@ import { and, desc, eq, inArray, schema, sql, type SQL } from "@keel/db";
 import { SALE_STATUSES, discountState, generateUniqueCodes, type DiscountState, type DiscountType } from "@keel/core";
 import type { ServiceContext } from "../context";
 import { orderEconomicsForPeriod, type AnalyticsTenant } from "../analytics";
+import { enqueuePlatformWrite } from "../writes";
 
 export class DiscountError extends Error {
   constructor(public readonly code: "code_exists" | "invalid_input" | "platform_error" | "not_found") {
@@ -93,18 +94,26 @@ export interface CreateCodeInput {
 }
 
 /** Platform first (callback), then the local row with the external id; the unique index guards duplicates. */
-export async function createDiscountCode(ctx: ServiceContext, input: CreateCodeInput, push: (input: CreateCodeInput) => Promise<{ externalId: string }>): Promise<string> {
+/**
+ * Single code. With `push` the platform is called first (synchronous: the caller needs the answer);
+ * without it the code is created locally and its platform write is enqueued in the outbox (the
+ * external id is filled in when the write succeeds).
+ */
+export async function createDiscountCode(ctx: ServiceContext, input: CreateCodeInput, push?: (input: CreateCodeInput) => Promise<{ externalId: string }>): Promise<string> {
   const code = input.code.trim().toUpperCase();
   if (!code || !input.title.trim() || input.value < 0) throw new DiscountError("invalid_input");
   const [existing] = await ctx.tx.select({ id: schema.discounts.id }).from(schema.discounts).where(and(eq(schema.discounts.tenantId, ctx.tenantId), eq(schema.discounts.code, code))).limit(1);
   if (existing) throw new DiscountError("code_exists");
-  let externalId: string;
-  try {
-    externalId = (await push({ ...input, code })).externalId;
-  } catch {
-    throw new DiscountError("platform_error");
+  let externalId: string | null = null;
+  if (push) {
+    try {
+      externalId = (await push({ ...input, code })).externalId;
+    } catch {
+      throw new DiscountError("platform_error");
+    }
   }
-  const [row] = await ctx.tx.insert(schema.discounts).values({ tenantId: ctx.tenantId, externalId, code, title: input.title.trim(), type: input.type, value: Math.round(input.value), minimumAmountMinor: input.minimumAmountMinor ?? null, usageLimit: input.usageLimit ?? null, startsAt: input.startsAt ?? null, endsAt: input.endsAt ?? null, isActive: true, source: "keel", syncedAt: ctx.now ?? new Date() }).returning({ id: schema.discounts.id });
+  const [row] = await ctx.tx.insert(schema.discounts).values({ tenantId: ctx.tenantId, externalId, code, title: input.title.trim(), type: input.type, value: Math.round(input.value), minimumAmountMinor: input.minimumAmountMinor ?? null, usageLimit: input.usageLimit ?? null, startsAt: input.startsAt ?? null, endsAt: input.endsAt ?? null, isActive: true, source: "keel", syncedAt: push ? (ctx.now ?? new Date()) : null }).returning({ id: schema.discounts.id });
+  if (!push) await enqueuePlatformWrite(ctx, { kind: "discount.create", entityType: "discount", entityId: row!.id, payload: { code, title: input.title.trim(), type: input.type, value: Math.round(input.value), startsAt: input.startsAt?.toISOString() ?? null, endsAt: input.endsAt?.toISOString() ?? null, usageLimit: input.usageLimit ?? null, minimumAmountMinor: input.minimumAmountMinor ?? null } });
   return row!.id;
 }
 
