@@ -358,3 +358,13 @@ export interface PaymentGuarantee {
   capture(authId: string, amountMinor?: number): Promise<void>;
   void(authId: string): Promise<void>;
 }
+
+/**
+ * Return labels (prepaid shipping label or QR code for drop-off). Live providers (EasyPost,
+ * Shippo, a carrier's own API) plug in here; the mock returns a tracking code and lets Keel
+ * render the label itself.
+ */
+export interface ReturnLabelProvider {
+  readonly provider: string;
+  createLabel(input: { reference: string; from: Address | null; to: string; weightGrams: number | null }): Promise<{ carrier: string; trackingCode: string; labelUrl: string | null; qrCode: string | null }>;
+}

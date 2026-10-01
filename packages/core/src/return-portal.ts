@@ -56,6 +56,10 @@ export const returnPortalConfigSchema = z.object({
   /** Final confirmation checkbox text; empty = no checkbox. */
   confirmText: localized,
   supportEmail: z.string().email().max(200).nullable().default(null),
+  /** Prepaid return label generated at submission, shipped to this address (one line per row). */
+  returnLabel: z.object({ enabled: z.boolean().default(false), destination: z.string().max(500).default("") }).default({ enabled: false, destination: "" }),
+  /** Public order tracking page next to the return portal. */
+  trackingPage: z.boolean().default(true),
 });
 export type ReturnPortalConfig = z.infer<typeof returnPortalConfigSchema>;
 

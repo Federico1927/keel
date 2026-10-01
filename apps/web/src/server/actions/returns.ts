@@ -143,7 +143,7 @@ export async function savePortalConfigAction(slug: string, config: unknown): Pro
   }
 }
 
-const behaviourSchema = z.object({ returnShippingCostMinor: z.number().int().min(0).max(100_000), returnsWriteBack: z.boolean(), returnPlatformTags: z.record(z.string(), z.array(z.string().trim().min(1).max(40)).max(5)) });
+const behaviourSchema = z.object({ returnShippingCostMinor: z.number().int().min(0).max(100_000), returnLabelCostMinor: z.number().int().min(0).max(100_000).default(0), returnHandlingCostMinor: z.number().int().min(0).max(100_000).default(0), returnsWriteBack: z.boolean(), returnPlatformTags: z.record(z.string(), z.array(z.string().trim().min(1).max(40)).max(5)) });
 
 /** Return shipping deduction, write-back switch and order tags per status (owner and admin). */
 export async function saveReturnBehaviourAction(slug: string, input: unknown): Promise<ActionResult> {

@@ -133,6 +133,13 @@ export function PortalConfigForm({ slug, url, config: initial, locales, defaultL
               <Input id="pc-photos-max" type="number" min={1} max={5} value={c.photos.max} onChange={(e) => set("photos", { ...c.photos, max: Math.min(5, Math.max(1, Number(e.target.value) || 1)) })} />
             </div>
           </div>
+          <label className="flex items-center gap-2"><input type="checkbox" checked={c.trackingPage} onChange={(e) => set("trackingPage", e.target.checked)} /> {t("tracking_page")}</label>
+          <div className="space-y-1.5 rounded-md border p-3">
+            <label className="flex items-center gap-2"><input type="checkbox" checked={c.returnLabel.enabled} onChange={(e) => set("returnLabel", { ...c.returnLabel, enabled: e.target.checked })} data-testid="portal-label-enabled" /> {t("label_enabled")}</label>
+            <Label htmlFor="pc-label-dest" className="text-xs">{t("label_destination")}</Label>
+            <Textarea id="pc-label-dest" rows={3} value={c.returnLabel.destination} onChange={(e) => set("returnLabel", { ...c.returnLabel, destination: e.target.value })} />
+            <p className="text-xs text-muted-foreground">{t("label_hint")}</p>
+          </div>
           <label className="flex items-center gap-2"><input type="checkbox" checked={c.askShippedFirst} onChange={(e) => set("askShippedFirst", e.target.checked)} /> {t("ask_shipped")}</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={c.exchangeNoteRequired} onChange={(e) => set("exchangeNoteRequired", e.target.checked)} /> {t("exchange_note")}</label>
         </CardContent>
@@ -167,18 +174,20 @@ export function PortalConfigForm({ slug, url, config: initial, locales, defaultL
 }
 
 /** Return shipping deduction, write-back switch and order tags per status. */
-export function BehaviourForm({ slug, canEdit, currency, statuses, initial }: { slug: string; canEdit: boolean; currency: string; statuses: string[]; initial: { returnShippingCostMinor: number; returnsWriteBack: boolean; returnPlatformTags: Record<string, string[]> } }) {
+export function BehaviourForm({ slug, canEdit, currency, statuses, initial }: { slug: string; canEdit: boolean; currency: string; statuses: string[]; initial: { returnShippingCostMinor: number; returnsWriteBack: boolean; returnPlatformTags: Record<string, string[]>; returnLabelCostMinor: number; returnHandlingCostMinor: number } }) {
   const t = useTranslations("return_portal_settings.behaviour");
   const tc = useTranslations("common");
   const ts = useTranslations("return_status");
   const [cost, setCost] = useState((initial.returnShippingCostMinor / 100).toFixed(2));
   const [writeBack, setWriteBack] = useState(initial.returnsWriteBack);
+  const [label, setLabel] = useState((initial.returnLabelCostMinor / 100).toFixed(2));
+  const [handling, setHandling] = useState((initial.returnHandlingCostMinor / 100).toFixed(2));
   const [tags, setTags] = useState<Record<string, string>>(Object.fromEntries(statuses.map((s) => [s, (initial.returnPlatformTags[s] ?? []).join(", ")])));
   const [pending, start] = useTransition();
   const [result, setResult] = useState<{ ok: boolean; error?: string } | null>(null);
   const save = () =>
     start(async () => {
-      const r = await saveReturnBehaviourAction(slug, { returnShippingCostMinor: Math.round(Number(cost.replace(",", ".")) * 100) || 0, returnsWriteBack: writeBack, returnPlatformTags: Object.fromEntries(Object.entries(tags).map(([k, v]) => [k, v.split(",").map((x) => x.trim()).filter(Boolean).slice(0, 5)])) });
+      const r = await saveReturnBehaviourAction(slug, { returnShippingCostMinor: Math.round(Number(cost.replace(",", ".")) * 100) || 0, returnsWriteBack: writeBack, returnLabelCostMinor: Math.round(Number(label.replace(",", ".")) * 100) || 0, returnHandlingCostMinor: Math.round(Number(handling.replace(",", ".")) * 100) || 0, returnPlatformTags: Object.fromEntries(Object.entries(tags).map(([k, v]) => [k, v.split(",").map((x) => x.trim()).filter(Boolean).slice(0, 5)])) });
       setResult(r.ok ? { ok: true } : { ok: false, error: r.error });
     });
   return (
@@ -193,6 +202,11 @@ export function BehaviourForm({ slug, canEdit, currency, statuses, initial }: { 
           <Input id="rb-cost" type="number" step="0.01" min={0} value={cost} onChange={(e) => setCost(e.target.value)} disabled={!canEdit} />
           <p className="text-xs text-muted-foreground">{t("shipping_cost_hint")}</p>
         </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1.5"><Label htmlFor="rb-label">{t("label_cost", { currency })}</Label><Input id="rb-label" type="number" step="0.01" min={0} value={label} onChange={(e) => setLabel(e.target.value)} disabled={!canEdit} /></div>
+          <div className="space-y-1.5"><Label htmlFor="rb-handling">{t("handling_cost", { currency })}</Label><Input id="rb-handling" type="number" step="0.01" min={0} value={handling} onChange={(e) => setHandling(e.target.value)} disabled={!canEdit} /></div>
+        </div>
+        <p className="text-xs text-muted-foreground">{t("costs_hint")}</p>
         <label className="flex items-center gap-2"><input type="checkbox" checked={writeBack} onChange={(e) => setWriteBack(e.target.checked)} disabled={!canEdit} /> {t("write_back")}</label>
         <p className="text-xs text-muted-foreground">{t("write_back_hint")}</p>
         <div className="space-y-2 border-t pt-3">

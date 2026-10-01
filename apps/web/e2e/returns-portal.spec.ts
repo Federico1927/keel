@@ -45,6 +45,11 @@ test.describe("customer return portal", () => {
       await c.getByTestId("portal-submit").click();
       await expect(c.getByTestId("portal-done")).toBeVisible();
       submitted = (await c.getByTestId("portal-done").innerText()).match(/R-\d+/)![0];
+      // the store gives a prepaid label: a signed PDF link
+      const href = await c.getByTestId("portal-label").getAttribute("href");
+      const pdf = await c.request.get(href!);
+      expect(pdf.headers()["content-type"]).toBe("application/pdf");
+      expect((await c.request.get(href!.replace(/sig=[^&]+/, "sig=forged"))).status()).toBe(404);
       break;
     }
     await customer.close();
@@ -54,7 +59,9 @@ test.describe("customer return portal", () => {
     await page.getByTestId("filter-portal").click();
     await page.getByRole("link", { name: submitted! }).click();
     await expect(page.getByTestId("return-source")).toHaveText(/Portal|Portale/);
-    await expect(page.getByTestId("return-portal-card")).toContainText("RR123456789IT");
+    // the prepaid label's tracking replaces the code the customer typed
+    await expect(page.getByTestId("return-portal-card")).toContainText(/MR\d{12}/);
+    await expect(page.getByTestId("return-label-link")).toBeVisible();
     await expect(page.getByTestId("return-portal-card")).toContainText(/I only tried|Ho provato/);
     // written to the (mock) store right after the submission; reload until the background write lands
     await expect(async () => {
@@ -96,6 +103,23 @@ test.describe("customer return portal", () => {
     await page.getByRole("link", { name: submitted! }).click();
     await expect(page.getByTestId("return-exchange-card")).toBeVisible();
     await expect(page.getByTestId("exchange-difference")).toBeVisible();
+  });
+
+  test("a customer tracks an order from the public tracking page", async ({ page, browser }) => {
+    await login(page, "owner@northwind.demo");
+    const [o] = await deliveredOrders(page);
+    const customer = await browser.newContext();
+    const c = await customer.newPage();
+    await c.goto("/r/northwind-apparel?lang=en");
+    await c.getByTestId("portal-track-link").click();
+    await expect(c.getByTestId("track-title")).toHaveText("Track your order");
+    await c.getByLabel("Order number").fill(o!.name);
+    await c.getByLabel(/Email or phone/).fill(o!.email);
+    await c.getByTestId("track-submit").click();
+    await expect(c.getByTestId("track-order")).toHaveText(o!.name);
+    await expect(c.getByTestId("track-status")).toHaveText(/Delivered/);
+    await expect(c.getByTestId("track-shipment").first()).toBeVisible();
+    await customer.close();
   });
 
   test("an unknown order is refused without revealing anything, and a disabled store has no portal", async ({ page }) => {

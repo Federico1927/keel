@@ -124,6 +124,7 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
           { key: "gross_margin", value: pnl.grossMarginMinor, bold: true },
           { key: "shipping", value: -pnl.shippingCostMinor, neg: true, href: `${base}/costs` },
           { key: "fees", value: -pnl.paymentFeeMinor, neg: true },
+          ...(pnl.returnCostsMinor ? [{ key: "return_costs", value: -pnl.returnCostsMinor, neg: true, href: `/t/${tenant}/returns/analytics` }] : []),
           { key: "contribution", value: pnl.contributionMinor, bold: true },
           { key: "ads", value: -pnl.adSpendMinor, neg: true, href: `/t/${tenant}/campaigns` },
           { key: "fixed", value: -pnl.fixedCostsMinor, neg: true, href: `${base}/costs` },

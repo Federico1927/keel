@@ -1,5 +1,5 @@
 import { and, eq, gte, inArray, lt, lte, schema, sql } from "@keel/db";
-import { change, monthKey, orderEconomics, previousPeriod, resolveFixedCosts, resolveShippingCosts, runningWindows, sumEconomics, type CostSource, type MonthCostUse, type OrderEconomics, type Period, type PeriodCostEntry, type PnlTotals, type TenantSettings } from "@keel/core";
+import { change, monthKey, orderEconomics, returnCostsOfPeriod, previousPeriod, resolveFixedCosts, resolveShippingCosts, runningWindows, sumEconomics, type CostSource, type MonthCostUse, type OrderEconomics, type Period, type PeriodCostEntry, type PnlTotals, type TenantSettings } from "@keel/core";
 import type { ServiceContext } from "../context";
 
 export interface AnalyticsTenant {
@@ -107,6 +107,7 @@ export interface PnlReport extends PnlTotals {
   /** Which figure the P/L used for fixed and shipping costs: actual, estimate, legacy setting, none, or mixed across months. */
   costSources: { fixed: CostSource; shipping: CostSource };
   costByMonth: { fixed: MonthCostUse[]; shipping: MonthCostUse[] };
+  returnCosts: { labelsMinor: number; handlingMinor: number; recoveredMinor: number; totalMinor: number };
 }
 
 export async function pnlForPeriod(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period): Promise<PnlReport> {
@@ -117,15 +118,19 @@ export async function pnlForPeriod(ctx: ServiceContext, tenant: AnalyticsTenant,
   const shipEstimateByMonth: Record<string, number> = {};
   for (const r of rows) if (r.inScope) shipEstimateByMonth[monthKey(r.placedAt)] = (shipEstimateByMonth[monthKey(r.placedAt)] ?? 0) + r.shippingCostMinor;
   const shipping = resolveShippingCosts(shipEstimateByMonth, entries, period.from, period.to);
-  const totals = sumEconomics(rows, adSpend, fixed.totalMinor);
+  // returns whose goods came back in the period: labels and handling, net of deductions charged to customers
+  const received = await ctx.tx.select({ returnless: schema.returnRequests.returnless, deductionMinor: schema.returnRequests.deductionMinor }).from(schema.returnRequests).where(and(eq(schema.returnRequests.tenantId, ctx.tenantId), gte(schema.returnRequests.receivedAt, period.from), lt(schema.returnRequests.receivedAt, period.to)));
+  const returnCosts = returnCostsOfPeriod(received.map((r) => ({ goodsBack: true, returnless: r.returnless, deductionMinor: r.deductionMinor })), tenant.settings.returnLabelCostMinor, tenant.settings.returnHandlingCostMinor);
+  const totals = sumEconomics(rows, adSpend, fixed.totalMinor, returnCosts.totalMinor);
   // the carrier invoice, when entered, replaces the per-order estimate month by month
   totals.shippingCostMinor = shipping.totalMinor;
-  totals.contributionMinor = totals.grossMarginMinor - totals.shippingCostMinor - totals.paymentFeeMinor;
+  totals.contributionMinor = totals.grossMarginMinor - totals.shippingCostMinor - totals.paymentFeeMinor - totals.returnCostsMinor;
   totals.operatingProfitMinor = totals.contributionMinor - adSpend - fixed.totalMinor;
   totals.contributionRate = totals.netRevenueMinor ? totals.contributionMinor / totals.netRevenueMinor : null;
   return {
     ...totals,
     costSources: { fixed: fixed.source, shipping: shipping.source },
+    returnCosts,
     costByMonth: { fixed: fixed.byMonth, shipping: shipping.byMonth },
     period,
     placedOrders: rows.length,

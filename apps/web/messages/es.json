@@ -914,7 +914,8 @@
         "legacy": "importe mensual fijo de ajustes",
         "none": "ningún coste introducido",
         "mixed": "real donde existe, estimación en el resto"
-      }
+      },
+      "return_costs": "Costes de devolución"
     },
     "products": {
       "title": "Rendimiento de productos",
@@ -1732,7 +1733,8 @@
       "reveal_bank": "Mostrar datos bancarios",
       "bank_hidden": "Datos bancarios facilitados",
       "language": "Idioma del cliente: {locale}",
-      "photo": "Foto del cliente"
+      "photo": "Foto del cliente",
+      "label": "Etiqueta de devolución (PDF)"
     },
     "platform": {
       "title": "Tienda (Shopify)",
@@ -1851,7 +1853,16 @@
       "rate": "Tasa de devolución",
       "of_orders": "sobre {n} pedidos",
       "refunded": "Reembolsado",
-      "merchant_fault": "Culpa del vendedor"
+      "merchant_fault": "Culpa del vendedor",
+      "kept": "Retenido en la tienda",
+      "kept_hint": "Devoluciones cerradas con cambio o vale en lugar de reembolso",
+      "credit": "Vales emitidos",
+      "bonus": "de los que bono {amount}",
+      "exchanges": "Pedidos de cambio",
+      "upsell": "+{amount} pagados por los clientes",
+      "costs": "Coste de las devoluciones",
+      "costs_hint": "Etiquetas {labels} + gestión {handling} − cobrado {recovered}",
+      "costs_unset": "Configura los costes de etiqueta y gestión para verlo"
     },
     "by_reason": "Por motivo",
     "by_fault_resolution": "Por responsabilidad y resolución",
@@ -1862,7 +1873,12 @@
     "product": "Producto",
     "returned_qty": "Devueltos",
     "sold_qty": "Vendidos",
-    "rate": "Tasa"
+    "rate": "Tasa",
+    "by_option": "Tasa de devolución por opción",
+    "option": "Opción",
+    "sold": "Vendidos",
+    "returned": "Devueltos",
+    "no_options": "Sin opciones de variante en el periodo."
   },
   "return_reasons": {
     "title": "Motivos de devolución",
@@ -2974,8 +2990,15 @@
       "write_back": "Escribir las devoluciones en la tienda",
       "write_back_hint": "Solicitud, aprobación, reposición, reembolso y cierre se escriben en Shopify tras cada paso; los fallos se reintentan.",
       "tags": "Etiquetas del pedido por estado",
-      "tags_hint": "Etiquetas añadidas al pedido en la tienda cuando la devolución llega a ese estado (separadas por comas)."
-    }
+      "tags_hint": "Etiquetas añadidas al pedido en la tienda cuando la devolución llega a ese estado (separadas por comas).",
+      "label_cost": "Coste de la etiqueta de devolución ({currency})",
+      "handling_cost": "Coste de gestión por devolución ({currency})",
+      "costs_hint": "Cada devolución con mercancía recibida cuesta una etiqueta y su gestión; el P/L lo muestra como costes de devolución, neto del envío cobrado a los clientes."
+    },
+    "tracking_page": "Página pública de seguimiento de pedidos",
+    "label_enabled": "Dar al cliente una etiqueta de devolución prepagada",
+    "label_destination": "Dirección de devolución en la etiqueta",
+    "label_hint": "La etiqueta se emite al enviar la solicitud y su seguimiento se guarda en la devolución. En esta versión el proveedor de etiquetas es simulado."
   },
   "return_portal": {
     "default_title": "Devolver un artículo",
@@ -3045,7 +3068,8 @@
     "contact_support": "¿Dudas? Escribe a",
     "done": {
       "title": "Solicitud {number} enviada",
-      "another": "Devolver otros artículos"
+      "another": "Devolver otros artículos",
+      "label": "Descarga tu etiqueta de devolución"
     },
     "errors": {
       "generic": "Algo ha fallado. Inténtalo de nuevo.",
@@ -3076,6 +3100,29 @@
       "excluded_tag": "no admite devolución (colección)",
       "final_sale": "venta final",
       "expired": "plazo de devolución cerrado"
+    },
+    "track": {
+      "link": "Seguir un pedido",
+      "title": "Sigue tu pedido",
+      "submit": "Seguir",
+      "status": "Estado",
+      "placed": "Realizado el {date}",
+      "no_shipments": "Aún no enviado.",
+      "carrier_link": "página del transportista",
+      "delivered": "Entregado el {date}",
+      "expected": "Previsto el {date}",
+      "shipped": "Enviado el {date}",
+      "returns": "Tus devoluciones",
+      "start_return": "Devolver o cambiar un artículo"
+    },
+    "label": {
+      "title": "Etiqueta de devolución",
+      "from": "Remitente",
+      "to": "Enviar a",
+      "reference": "Devolución",
+      "carrier": "Transportista",
+      "tracking": "Seguimiento",
+      "instructions": "Imprime esta página y pégala en el paquete, tapando etiquetas antiguas.\nEntrega el paquete en el punto del transportista más cercano."
     }
   },
   "return_policy": {

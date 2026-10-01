@@ -63,6 +63,7 @@ export function PortalApp(p: PortalProps) {
   const [exchangeFor, setExchangeFor] = useState<Record<string, string>>({});
   const [photos, setPhotos] = useState<{ id: string; url: string }[]>([]);
   const [done, setDone] = useState<number | null>(null);
+  const [labelPath, setLabelPath] = useState<string | null>(null);
   const newKey = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
   const [idempotencyKey, setIdempotencyKey] = useState(newKey);
   const accent = { backgroundColor: p.primaryColor, color: "#fff" };
@@ -131,6 +132,7 @@ export function PortalApp(p: PortalProps) {
       });
       if (!r.ok) return showError(r.error, r.fieldErrors);
       setDone(r.data!.number);
+      setLabelPath(r.data!.labelPath);
       setView(r.data!.view);
       setStep("done");
     });
@@ -366,6 +368,7 @@ export function PortalApp(p: PortalProps) {
           <CardContent className="space-y-3 p-6 text-sm">
             <p className="text-lg font-semibold" data-testid="portal-done">{t("done.title", { number: `R-${done}` })}</p>
             {p.successMessage && <p className="whitespace-pre-line">{p.successMessage}</p>}
+            {labelPath && <a href={`${labelPath}&lang=${p.locale}`} target="_blank" rel="noreferrer" className="inline-block rounded-md px-3 py-2 text-sm font-medium" style={accent} data-testid="portal-label">{t("done.label")}</a>}
             {p.instructions && (
               <div>
                 <p className="font-medium">{t("instructions_title")}</p>

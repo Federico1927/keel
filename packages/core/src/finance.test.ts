@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { change, orderEconomics, previousPeriod, prorateMonthlyCost, runningWindows, sumEconomics } from "./finance";
+import { change, optionReturnRates, orderEconomics, returnCostsOfPeriod, previousPeriod, prorateMonthlyCost, runningWindows, sumEconomics } from "./finance";
 
 /**
  * Hand-calculated check (CLAUDE.md phase 5 exit criterion): three orders of a month.
@@ -64,5 +64,26 @@ describe("period helpers", () => {
     expect(w.today.from.toISOString()).toBe("2026-06-14T22:00:00.000Z");
     expect(w.yesterday.to.toISOString()).toBe("2026-06-14T10:30:00.000Z");
     expect(w.lastWeek.from.toISOString()).toBe("2026-06-07T22:00:00.000Z");
+  });
+});
+
+describe("return costs and option rates", () => {
+  it("charges label and handling for returns whose goods came back, net of deductions", () => {
+    const r = returnCostsOfPeriod([{ goodsBack: true, returnless: false, deductionMinor: 590 }, { goodsBack: true, returnless: true, deductionMinor: 0 }, { goodsBack: false, returnless: false, deductionMinor: 0 }], 650, 200);
+    expect(r).toEqual({ labelsMinor: 650, handlingMinor: 200, recoveredMinor: 590, totalMinor: 260 });
+  });
+  it("feeds the contribution margin", () => {
+    const base = sumEconomics([], 0, 0);
+    const withCosts = sumEconomics([], 0, 0, 1000);
+    expect(withCosts.contributionMinor).toBe(base.contributionMinor - 1000);
+    expect(withCosts.operatingProfitMinor).toBe(base.operatingProfitMinor - 1000);
+  });
+  it("computes the return rate per option value", () => {
+    const rows = optionReturnRates([{ options: { Size: "M", Color: "Blue" }, quantity: 10 }, { options: { Size: "L", Color: "Blue" }, quantity: 5 }], [{ options: { Size: "M", Color: "Blue" }, quantity: 4 }]);
+    expect(rows).toEqual([
+      { option: "Color", value: "Blue", sold: 15, returned: 4, rate: 4 / 15 },
+      { option: "Size", value: "M", sold: 10, returned: 4, rate: 0.4 },
+      { option: "Size", value: "L", sold: 5, returned: 0, rate: 0 },
+    ]);
   });
 });

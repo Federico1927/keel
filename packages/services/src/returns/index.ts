@@ -1,5 +1,5 @@
 import { and, desc, eq, gte, inArray, lt, schema, sql, type SQL } from "@keel/db";
-import { RETURN_GOODS_BACK_STATUSES, SALE_STATUSES, canTransitionReturn, isReturnStatus, creditWithBonus, customerLimitReached, exchangeQuote, lineBlock, lineWindowDays, proposedReturnAmount, returnEligibility, returnableLines, returnedFractionBps, type LineBlock, type Eligibility, type Period, type ReturnStatus, type ReturnableLine, type TenantSettings } from "@keel/core";
+import { RETURN_GOODS_BACK_STATUSES, SALE_STATUSES, canTransitionReturn, isReturnStatus, creditWithBonus, customerLimitReached, exchangeQuote, lineBlock, optionReturnRates, returnCostsOfPeriod, lineWindowDays, proposedReturnAmount, returnEligibility, returnableLines, returnedFractionBps, type LineBlock, type Eligibility, type Period, type ReturnStatus, type ReturnableLine, type TenantSettings } from "@keel/core";
 import type { ServiceContext } from "../context";
 import { recomputeOrderStatus } from "../orders/state";
 
@@ -365,9 +365,20 @@ export interface ReturnsAnalytics {
   byFault: { fault: string; count: number; amountMinor: number }[];
   byProduct: { productId: string | null; title: string; returnedQty: number; soldQty: number; rate: number | null; amountMinor: number }[];
   byResolution: { resolution: string; count: number }[];
+  /** Return rate per option value of the variants (size, colour…). */
+  byOption: { option: string; value: string; sold: number; returned: number; rate: number }[];
+  /** Value kept in the store: returns resolved by exchange or store credit instead of a refund. */
+  keptMinor: number;
+  creditIssuedMinor: number;
+  bonusMinor: number;
+  /** Exchange orders created and the extra revenue paid by customers on them. */
+  exchanges: number;
+  upsellMinor: number;
+  /** Labels and handling of the returns received in the period, net of deductions. */
+  costs: { labelsMinor: number; handlingMinor: number; recoveredMinor: number; totalMinor: number };
 }
 
-export async function returnsAnalytics(ctx: ServiceContext, period: Period): Promise<ReturnsAnalytics> {
+export async function returnsAnalytics(ctx: ServiceContext, period: Period, costs: { labelMinor: number; handlingMinor: number } = { labelMinor: 0, handlingMinor: 0 }): Promise<ReturnsAnalytics> {
   const t = ctx.tenantId;
   const inPeriod = and(eq(schema.returnRequests.tenantId, t), gte(schema.returnRequests.requestedAt, period.from), lt(schema.returnRequests.requestedAt, period.to), sql`${schema.returnRequests.status} <> 'rejected'`);
   const [totals] = await ctx.tx.select({ total: sql<number>`count(*)::int`, closed: sql<number>`count(*) filter (where ${schema.returnRequests.closedAt} is not null)::int`, refunded: sql<number>`coalesce(sum(${schema.returnRequests.refundedAmountMinor}), 0)::int` }).from(schema.returnRequests).where(inPeriod);
@@ -390,8 +401,32 @@ export async function returnsAnalytics(ctx: ServiceContext, period: Period): Pro
     select r.product_id, r.title, r.returned_qty, coalesce(s.sold_qty, 0) as sold_qty, r.amount_minor
     from ret r left join sold s on s.product_id is not distinct from r.product_id
     order by r.returned_qty desc limit 50`);
+  const soldOpts = await ctx.tx.execute<{ options: Record<string, string>; quantity: number }>(sql`
+    select v.option_values as options, sum(ol.quantity)::int as quantity from order_lines ol join orders o on o.id = ol.order_id join product_variants v on v.id = ol.variant_id
+    where o.tenant_id = ${t} and o.placed_at >= ${period.from} and o.placed_at < ${period.to} and o.status <> 'cancelled' and ol.is_ancillary = false group by 1`);
+  const returnedOpts = await ctx.tx.execute<{ options: Record<string, string>; quantity: number }>(sql`
+    select v.option_values as options, sum(rl.quantity)::int as quantity from return_lines rl join return_requests rr on rr.id = rl.return_id join order_lines ol on ol.id = rl.order_line_id join product_variants v on v.id = ol.variant_id
+    where rr.tenant_id = ${t} and rr.requested_at >= ${period.from} and rr.requested_at < ${period.to} and rr.status <> 'rejected' group by 1`);
+  const [kept] = await ctx.tx.execute<{ kept: number; credit: number; bonus: number; exchanges: number; upsell: number }>(sql`
+    select coalesce(sum(proposed_amount_minor) filter (where resolution in ('exchange','voucher') and status <> 'rejected'), 0)::int as kept,
+      coalesce(sum(refunded_amount_minor) filter (where status = 'voucher_issued'), 0)::int as credit,
+      coalesce(sum(credit_bonus_minor) filter (where status = 'voucher_issued'), 0)::int as bonus,
+      count(*) filter (where exchange_order_id is not null or exchange_draft_id is not null)::int as exchanges,
+      coalesce(sum(greatest(exchange_difference_minor, 0)) filter (where exchange_order_id is not null or exchange_draft_id is not null), 0)::int as upsell
+    from return_requests where tenant_id = ${t} and requested_at >= ${period.from} and requested_at < ${period.to}`).then((r) => r.rows);
   const total = totals?.total ?? 0;
   return {
+    costs: returnCostsOfPeriod(
+      (await ctx.tx.select({ returnless: schema.returnRequests.returnless, deductionMinor: schema.returnRequests.deductionMinor }).from(schema.returnRequests).where(and(eq(schema.returnRequests.tenantId, t), gte(schema.returnRequests.receivedAt, period.from), lt(schema.returnRequests.receivedAt, period.to)))).map((r) => ({ goodsBack: true, returnless: r.returnless, deductionMinor: r.deductionMinor })),
+      costs.labelMinor,
+      costs.handlingMinor,
+    ),
+    byOption: optionReturnRates(soldOpts.rows.map((r) => ({ options: r.options ?? {}, quantity: Number(r.quantity) })), returnedOpts.rows.map((r) => ({ options: r.options ?? {}, quantity: Number(r.quantity) })), 5),
+    keptMinor: Number(kept?.kept ?? 0),
+    creditIssuedMinor: Number(kept?.credit ?? 0),
+    bonusMinor: Number(kept?.bonus ?? 0),
+    exchanges: Number(kept?.exchanges ?? 0),
+    upsellMinor: Number(kept?.upsell ?? 0),
     total,
     closed: totals?.closed ?? 0,
     refundedMinor: totals?.refunded ?? 0,
@@ -408,3 +443,4 @@ export * from "./platform";
 export * from "./portal";
 export * from "./policy";
 export * from "./errors";
+export * from "./customer";

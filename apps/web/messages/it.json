@@ -914,7 +914,8 @@
         "legacy": "importo mensile fisso delle impostazioni",
         "none": "nessun costo inserito",
         "mixed": "consuntivo dove c'è, stima altrove"
-      }
+      },
+      "return_costs": "Costi dei resi"
     },
     "products": {
       "title": "Performance prodotti",
@@ -1732,7 +1733,8 @@
       "reveal_bank": "Mostra coordinate bancarie",
       "bank_hidden": "Coordinate bancarie fornite",
       "language": "Lingua del cliente: {locale}",
-      "photo": "Foto del cliente"
+      "photo": "Foto del cliente",
+      "label": "Etichetta di reso (PDF)"
     },
     "platform": {
       "title": "Negozio (Shopify)",
@@ -1851,7 +1853,16 @@
       "rate": "Tasso di reso",
       "of_orders": "su {n} ordini",
       "refunded": "Rimborsato",
-      "merchant_fault": "Colpa del venditore"
+      "merchant_fault": "Colpa del venditore",
+      "kept": "Trattenuto nel negozio",
+      "kept_hint": "Resi chiusi con cambio o buono invece del rimborso",
+      "credit": "Buoni emessi",
+      "bonus": "di cui bonus {amount}",
+      "exchanges": "Ordini di cambio",
+      "upsell": "+{amount} pagati dai clienti",
+      "costs": "Costo dei resi",
+      "costs_hint": "Etichette {labels} + gestione {handling} − addebitato {recovered}",
+      "costs_unset": "Imposta i costi di etichetta e gestione per vederlo"
     },
     "by_reason": "Per motivo",
     "by_fault_resolution": "Per responsabilità ed esito",
@@ -1862,7 +1873,12 @@
     "product": "Prodotto",
     "returned_qty": "Resi",
     "sold_qty": "Venduti",
-    "rate": "Tasso"
+    "rate": "Tasso",
+    "by_option": "Tasso di reso per opzione",
+    "option": "Opzione",
+    "sold": "Venduti",
+    "returned": "Resi",
+    "no_options": "Nessuna opzione di variante nel periodo."
   },
   "return_reasons": {
     "title": "Motivi di reso",
@@ -2974,8 +2990,15 @@
       "write_back": "Scrivi i resi sul negozio",
       "write_back_hint": "Richiesta, approvazione, rientro a stock, rimborso e chiusura vengono scritti su Shopify dopo ogni passaggio; gli errori vengono ritentati.",
       "tags": "Tag dell'ordine per stato",
-      "tags_hint": "Tag aggiunti all'ordine sul negozio quando il reso raggiunge quello stato (separati da virgola)."
-    }
+      "tags_hint": "Tag aggiunti all'ordine sul negozio quando il reso raggiunge quello stato (separati da virgola).",
+      "label_cost": "Costo etichetta di reso ({currency})",
+      "handling_cost": "Costo di gestione per reso ({currency})",
+      "costs_hint": "Ogni reso con merce rientrata costa un'etichetta e la gestione; il P/L lo mostra come costi dei resi, al netto della spedizione addebitata ai clienti."
+    },
+    "tracking_page": "Pagina pubblica di tracking degli ordini",
+    "label_enabled": "Fornisci al cliente un'etichetta di reso prepagata",
+    "label_destination": "Indirizzo di reso sull'etichetta",
+    "label_hint": "L'etichetta viene emessa all'invio e il suo tracking viene salvato sul reso. In questa versione il fornitore delle etichette è simulato."
   },
   "return_portal": {
     "default_title": "Richiedi un reso",
@@ -3045,7 +3068,8 @@
     "contact_support": "Domande? Scrivi a",
     "done": {
       "title": "Richiesta {number} inviata",
-      "another": "Rendi altri articoli"
+      "another": "Rendi altri articoli",
+      "label": "Scarica l'etichetta di reso"
     },
     "errors": {
       "generic": "Qualcosa è andato storto. Riprova.",
@@ -3076,6 +3100,29 @@
       "excluded_tag": "non restituibile (collezione)",
       "final_sale": "vendita finale",
       "expired": "finestra di reso chiusa"
+    },
+    "track": {
+      "link": "Traccia un ordine",
+      "title": "Traccia il tuo ordine",
+      "submit": "Traccia",
+      "status": "Stato",
+      "placed": "Effettuato il {date}",
+      "no_shipments": "Non ancora spedito.",
+      "carrier_link": "pagina del corriere",
+      "delivered": "Consegnato il {date}",
+      "expected": "Previsto il {date}",
+      "shipped": "Spedito il {date}",
+      "returns": "I tuoi resi",
+      "start_return": "Rendi o cambia un articolo"
+    },
+    "label": {
+      "title": "Etichetta di reso",
+      "from": "Mittente",
+      "to": "Spedire a",
+      "reference": "Reso",
+      "carrier": "Corriere",
+      "tracking": "Tracking",
+      "instructions": "Stampa questa pagina e incollala sul pacco, coprendo eventuali etichette vecchie.\nConsegna il pacco al punto del corriere più vicino."
     }
   },
   "return_policy": {

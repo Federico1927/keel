@@ -15,7 +15,7 @@ export default async function ReturnsAnalyticsPage({ params, searchParams }: { p
   const tr = await getTranslations("returns");
   const td = await getTranslations("return_detail");
   const period = resolvePeriod(sp, ctx.tenant.timezone, "90d");
-  const a = await ctx.run((tx) => returnsAnalytics({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, period));
+  const a = await ctx.run((tx) => returnsAnalytics({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, period, { labelMinor: ctx.settings.returnLabelCostMinor, handlingMinor: ctx.settings.returnHandlingCostMinor }));
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   const base = `/t/${tenant}/returns`;
   const qs = new URLSearchParams(Object.entries(periodParams(period, sp)).filter((e): e is [string, string] => Boolean(e[1]))).toString();
@@ -28,6 +28,12 @@ export default async function ReturnsAnalyticsPage({ params, searchParams }: { p
         <Stat label={t("kpi.rate")} value={a.returnRate === null ? "—" : formatPercent(a.returnRate, ctx.locale)} hint={t("kpi.of_orders", { n: formatNumber(a.soldOrders, ctx.locale) })} />
         <Stat label={t("kpi.refunded")} value={money(a.refundedMinor)} />
         <Stat label={t("kpi.merchant_fault")} value={a.total ? formatPercent((a.byFault.find((f) => f.fault === "merchant")?.count ?? 0) / a.total, ctx.locale) : "—"} />
+      </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-testid="returns-value">
+        <Stat label={t("kpi.kept")} value={money(a.keptMinor)} hint={t("kpi.kept_hint")} />
+        <Stat label={t("kpi.credit")} value={money(a.creditIssuedMinor)} hint={a.bonusMinor ? t("kpi.bonus", { amount: money(a.bonusMinor) }) : undefined} />
+        <Stat label={t("kpi.exchanges")} value={formatNumber(a.exchanges, ctx.locale)} hint={a.upsellMinor ? t("kpi.upsell", { amount: money(a.upsellMinor) }) : undefined} />
+        <Stat label={t("kpi.costs")} value={money(a.costs.totalMinor)} hint={ctx.settings.returnLabelCostMinor || ctx.settings.returnHandlingCostMinor ? t("kpi.costs_hint", { labels: money(a.costs.labelsMinor), handling: money(a.costs.handlingMinor), recovered: money(a.costs.recoveredMinor) }) : t("kpi.costs_unset")} href={`${base}/portal`} />
       </div>
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card>
@@ -94,6 +100,32 @@ export default async function ReturnsAnalyticsPage({ params, searchParams }: { p
                   <TableCell className="hidden text-right tabular md:table-cell">{money(p.amountMinor)}</TableCell>
                 </TableRow>
               ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+      <Card className="mt-6" data-testid="returns-by-option">
+        <CardHeader><CardTitle className="text-base">{t("by_option")}</CardTitle></CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("option")}</TableHead>
+                <TableHead className="text-right">{t("sold")}</TableHead>
+                <TableHead className="text-right">{t("returned")}</TableHead>
+                <TableHead className="text-right">{t("rate")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {a.byOption.slice(0, 40).map((o) => (
+                <TableRow key={`${o.option}-${o.value}`}>
+                  <TableCell><span className="text-muted-foreground">{o.option}:</span> {o.value}</TableCell>
+                  <TableCell className="text-right tabular">{formatNumber(o.sold, ctx.locale)}</TableCell>
+                  <TableCell className="text-right tabular">{formatNumber(o.returned, ctx.locale)}</TableCell>
+                  <TableCell className={`text-right tabular ${a.byOption.length && o.rate >= 2 * (a.byOption.reduce((s, x) => s + x.returned, 0) / Math.max(1, a.byOption.reduce((s, x) => s + x.sold, 0))) ? "font-medium text-destructive" : ""}`}>{formatPercent(o.rate, ctx.locale)}</TableCell>
+                </TableRow>
+              ))}
+              {a.byOption.length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">{t("no_options")}</TableCell></TableRow>}
             </TableBody>
           </Table>
         </CardContent>

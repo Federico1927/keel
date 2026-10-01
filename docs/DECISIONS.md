@@ -347,3 +347,11 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · Instant exchange behind a payment-guarantee interface
 
 **Decision.** With instant exchange on, an approved exchange gets a hold of the returned items' value through `PaymentGuarantee`, and the replacement ships immediately. The hold is voided when the goods arrive and captured by the returns job after the configured days, with the return flagged for review. A failed hold flags the return and ships nothing early. Only the mock exists: a live hold needs Stripe manual capture or Shopify Payments vaulted cards, which is part of the external block.
+
+## 2026-10-01 · Return costs are a contribution line, from settings
+
+**Decision.** Each return whose goods come back costs a label and some handling. Both are tenant settings, zero by default. The P/L adds "return costs" for the returns received in the period, minus the return shipping charged to customers at fault. It sits inside the contribution margin, as a variable cost, next to shipping and payment fees. Returns refunded without the goods coming back cost neither. With the settings at zero, every existing figure is unchanged.
+
+## 2026-10-01 · Customer tracking page and return labels reuse the portal access
+
+**Decision.** The tracking page lives at `/r/<store>/track` and uses the same lookup, rate limit and branding as the return portal. It shows the canonical order status, parcels, carrier events and returns, and never prices or internal notes. Return labels come from a `ReturnLabelProvider` at submission; the tracking code replaces any code the customer typed. Keel renders the label PDF on demand behind an HMAC-signed link, so nothing is stored. Only the mock provider exists until a carrier account is connected.
