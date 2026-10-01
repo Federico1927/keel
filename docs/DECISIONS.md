@@ -336,6 +336,18 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 
 **Decision.** Risk comes from the customer's history over a configurable window. It considers the return rate in items (watch and high thresholds, a minimum number of returns), customer-fault returns opened within a few days of delivery ("wear and return"), and a high returned value. It is stored on the return with its reasons, shown to the team, and usable as an automation condition. On its own it never rejects or blocks: the decision stays with the store, as for recipient risk in the COD add-on.
 
+## 2026-10-01 · Exchanges: same-product variants, difference through a store payment link
+
+**Decision.** An exchange line names a variant of the same product as the returned line, with the variant's current price. The return's credit is the net value of the returned units; the difference is stored on the return. When the store sync reaches an exchanged return, it creates the new order on the store. With nothing to pay, the order is created with the credit as a fixed discount and imported, and a negative difference is refunded when the policy says so. With something to pay, a draft order is created and its invoice sent; the order is linked back to the return when it arrives, through the `keel_return_id` attribute read by the importer. Exchanging for a different product is left out: store credit with a bonus covers "shop later" without a public catalogue in the portal.
+
+## 2026-10-01 · Vouchers are created on the store
+
+**Decision.** Before, an issued voucher was a code that existed only in Keel. The store sync now creates it as a one-use fixed-amount discount code for the credit, bonus included. The credit bonus applies to the accepted value; an amount typed by hand gets no bonus.
+
+## 2026-10-01 · Instant exchange behind a payment-guarantee interface
+
+**Decision.** With instant exchange on, an approved exchange gets a hold of the returned items' value through `PaymentGuarantee`, and the replacement ships immediately. The hold is voided when the goods arrive and captured by the returns job after the configured days, with the return flagged for review. A failed hold flags the return and ships nothing early. Only the mock exists: a live hold needs Stripe manual capture or Shopify Payments vaulted cards, which is part of the external block.
+
 ## 2026-10-01 · Landing page as a separate static app (`apps/landing`)
 
 **Decision.** The marketing site is a second Next.js app in the monorepo with `output: "export"`: plain HTML, CSS and pre-optimised WebP, deployable on Vercel with root directory `apps/landing` or on any static host. It shares the workspace (`@keel/config` for `PRODUCT_NAME`, the ESLint config, Tailwind 4, next-intl) but not `@keel/ui`: the design tokens are copied into `apps/landing/src/app/globals.css` so the landing has a marketing look (large serif headings, generous spacing, browser-frame screenshots) rather than the dashboard chrome, and so the app deploys without the Radix dependency tree.

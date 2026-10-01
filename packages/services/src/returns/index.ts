@@ -1,5 +1,5 @@
 import { and, desc, eq, gte, inArray, lt, schema, sql, type SQL } from "@keel/db";
-import { RETURN_GOODS_BACK_STATUSES, SALE_STATUSES, canTransitionReturn, isReturnStatus, customerLimitReached, lineBlock, lineWindowDays, proposedReturnAmount, returnEligibility, returnableLines, returnedFractionBps, type LineBlock, type Eligibility, type Period, type ReturnStatus, type ReturnableLine, type TenantSettings } from "@keel/core";
+import { RETURN_GOODS_BACK_STATUSES, SALE_STATUSES, canTransitionReturn, isReturnStatus, creditWithBonus, customerLimitReached, exchangeQuote, lineBlock, lineWindowDays, proposedReturnAmount, returnEligibility, returnableLines, returnedFractionBps, type LineBlock, type Eligibility, type Period, type ReturnStatus, type ReturnableLine, type TenantSettings } from "@keel/core";
 import type { ServiceContext } from "../context";
 import { recomputeOrderStatus } from "../orders/state";
 
@@ -118,6 +118,49 @@ export interface CreateReturnInput {
   bankDetailsEnc?: string | null;
   customerLocale?: string | null;
   idempotencyKey?: string | null;
+  /** Exchange: per returned line, the variant (same product) and quantity wanted instead. */
+  exchangeLines?: { orderLineId: string; variantId: string; quantity: number }[];
+}
+
+/**
+ * Exchange lines: each wanted variant must belong to the same product as the returned line and
+ * not exceed the returned quantity; the price is the variant's current price. Stores the
+ * difference against the credit of the returned units.
+ */
+async function saveExchangeLines(ctx: ServiceContext, returnId: string, wantedLines: { orderLineId: string; variantId: string; quantity: number }[], inserted: { id: string; orderLineId: string }[], returned: { orderLineId: string; quantity: number }[], context: OrderReturnContext): Promise<void> {
+  const policy = await getReturnPolicy(ctx);
+  if (!policy.exchanges.enabled) throw new ReturnError("invalid_input");
+  const orderLines = await ctx.tx.select({ id: schema.orderLines.id, productId: schema.orderLines.productId }).from(schema.orderLines).where(inArray(schema.orderLines.id, returned.map((r) => r.orderLineId)));
+  const variants = await ctx.tx.select({ id: schema.productVariants.id, productId: schema.productVariants.productId, title: schema.productVariants.title, productTitle: schema.products.title, priceMinor: schema.productVariants.priceMinor, isActive: schema.productVariants.isActive }).from(schema.productVariants).innerJoin(schema.products, eq(schema.products.id, schema.productVariants.productId)).where(and(eq(schema.productVariants.tenantId, ctx.tenantId), inArray(schema.productVariants.id, wantedLines.map((w) => w.variantId))));
+  const rows: (typeof schema.returnExchangeLines.$inferInsert)[] = [];
+  for (const w of wantedLines.filter((x) => x.quantity > 0)) {
+    const back = returned.find((r) => r.orderLineId === w.orderLineId);
+    const ol = orderLines.find((o) => o.id === w.orderLineId);
+    const v = variants.find((x) => x.id === w.variantId);
+    if (!back || !ol || !v || !v.isActive || v.productId !== ol.productId || w.quantity > back.quantity) throw new ReturnError("invalid_input");
+    rows.push({ tenantId: ctx.tenantId, returnId, returnLineId: inserted.find((i) => i.orderLineId === w.orderLineId)?.id ?? null, variantId: v.id, title: `${v.productTitle} ${v.title}`.trim(), quantity: w.quantity, unitPriceMinor: v.priceMinor });
+  }
+  if (!rows.length) return;
+  await ctx.tx.insert(schema.returnExchangeLines).values(rows);
+  const quote = exchangeQuote(returned.map((r) => ({ quantity: r.quantity, unitNetMinor: context.lines.find((l) => l.id === r.orderLineId)!.unitNetMinor })), rows.map((r) => ({ quantity: r.quantity, unitPriceMinor: r.unitPriceMinor })));
+  await ctx.tx.update(schema.returnRequests).set({ exchangeDifferenceMinor: quote.differenceMinor }).where(eq(schema.returnRequests.id, returnId));
+}
+
+/** Variants of the same product a customer can exchange each line for: active, in stock, any price. */
+export async function exchangeOptions(ctx: ServiceContext, orderLineIds: string[]): Promise<Record<string, { variantId: string; title: string; priceMinor: number; available: number }[]>> {
+  if (!orderLineIds.length) return {};
+  const rows = await ctx.tx.execute<{ order_line_id: string; variant_id: string; title: string; price_minor: number; available: number }>(sql`
+    select ol.id as order_line_id, v.id as variant_id, v.title, v.price_minor, coalesce(sum(il.available), 0)::int as available
+    from order_lines ol
+    join product_variants v on v.product_id = ol.product_id and v.is_active and v.tenant_id = ${ctx.tenantId}
+    left join inventory_levels il on il.variant_id = v.id
+    where ol.tenant_id = ${ctx.tenantId} and ol.id = any(${sql.param(orderLineIds)}::uuid[])
+    group by 1, 2, 3, 4
+    having coalesce(sum(il.available), 0) > 0
+    order by 1, 3`);
+  const out: Record<string, { variantId: string; title: string; priceMinor: number; available: number }[]> = {};
+  for (const r of rows.rows) (out[r.order_line_id] ??= []).push({ variantId: r.variant_id, title: r.title, priceMinor: Number(r.price_minor), available: Number(r.available) });
+  return out;
 }
 
 export async function createReturn(ctx: ServiceContext, settings: TenantSettings, input: CreateReturnInput): Promise<{ id: string; number: number }> {
@@ -172,7 +215,13 @@ export async function createReturn(ctx: ServiceContext, settings: TenantSettings
       platformSyncStatus: input.source === "platform" ? "synced" : "pending",
     })
     .returning({ id: schema.returnRequests.id });
-  await ctx.tx.insert(schema.returnLines).values(wanted.map((w) => ({ tenantId: ctx.tenantId, returnId: row!.id, orderLineId: w.orderLineId, quantity: w.quantity, unitAmountMinor: context.lines.find((l) => l.id === w.orderLineId)!.unitNetMinor })));
+  const insertedLines = await ctx.tx.insert(schema.returnLines).values(wanted.map((w) => ({ tenantId: ctx.tenantId, returnId: row!.id, orderLineId: w.orderLineId, quantity: w.quantity, unitAmountMinor: context.lines.find((l) => l.id === w.orderLineId)!.unitNetMinor }))).returning({ id: schema.returnLines.id, orderLineId: schema.returnLines.orderLineId });
+  if (input.resolution === "exchange" && input.exchangeLines?.length) await saveExchangeLines(ctx, row!.id, input.exchangeLines, insertedLines, wanted, context);
+  else if (input.resolution === "voucher") {
+    const policy = await getReturnPolicy(ctx);
+    const { bonusMinor } = creditWithBonus(amounts.proposedMinor, policy.creditBonusBps);
+    if (bonusMinor) await ctx.tx.update(schema.returnRequests).set({ creditBonusMinor: bonusMinor }).where(eq(schema.returnRequests.id, row!.id));
+  }
   await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: input.orderId, type: "return_requested", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: {}, metadata: { returnId: row!.id, number, reason: reason.code, resolution: input.resolution, outOfWindow: outOfPolicy, source: input.source ?? "staff" }, createdAt: now });
   if (input.source !== "platform") await applyReturnAutomations(ctx, settings, row!.id, (to, note) => transitionReturn({ ...ctx, actor: { type: "system", userId: null } }, { returnId: row!.id, to, note: `auto: ${note}` }));
   return { id: row!.id, number };
@@ -232,7 +281,11 @@ export async function transitionReturn(ctx: ServiceContext, input: TransitionInp
   }
   if (input.to === "voucher_issued") {
     patch.voucherCode = input.voucherCode?.trim() || `V-${req.number}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
-    patch.refundedAmountMinor = Math.max(0, Math.round(input.refundAmountMinor ?? inspectedAmount));
+    // the credit bonus applies to the accepted value, not to an amount typed by hand
+    const base = Math.max(0, Math.round(input.refundAmountMinor ?? inspectedAmount));
+    const bonus = input.refundAmountMinor == null ? creditWithBonus(base, (await getReturnPolicy(ctx)).creditBonusBps).bonusMinor : 0;
+    patch.creditBonusMinor = bonus;
+    patch.refundedAmountMinor = base + bonus;
     patch.closedAt = now;
   }
   if (input.to === "exchanged" || input.to === "rejected") patch.closedAt = now;
@@ -297,7 +350,9 @@ export async function returnDetail(ctx: ServiceContext, returnId: string) {
   const [reason] = await ctx.tx.select().from(schema.returnReasons).where(and(eq(schema.returnReasons.tenantId, ctx.tenantId), eq(schema.returnReasons.code, req.reasonCode))).limit(1);
   const events = await ctx.tx.select().from(schema.orderEvents).where(and(eq(schema.orderEvents.orderId, req.orderId), sql`${schema.orderEvents.metadata}->>'returnId' = ${req.id}`)).orderBy(desc(schema.orderEvents.createdAt));
   const locations = await ctx.tx.select({ id: schema.locations.id, name: schema.locations.name, isDefault: schema.locations.isDefault }).from(schema.locations).where(and(eq(schema.locations.tenantId, ctx.tenantId), eq(schema.locations.isActive, true))).orderBy(desc(schema.locations.isDefault), schema.locations.name);
-  return { request: req, order: order!, lines, reason: reason ?? null, events, locations };
+  const exchangeLines = await ctx.tx.select().from(schema.returnExchangeLines).where(and(eq(schema.returnExchangeLines.tenantId, ctx.tenantId), eq(schema.returnExchangeLines.returnId, req.id)));
+  const [exchangeOrder] = req.exchangeOrderId ? await ctx.tx.select({ id: schema.orders.id, name: schema.orders.name }).from(schema.orders).where(eq(schema.orders.id, req.exchangeOrderId)).limit(1) : [];
+  return { request: req, order: order!, lines, reason: reason ?? null, events, locations, exchangeLines, exchangeOrder: exchangeOrder ?? null };
 }
 
 export interface ReturnsAnalytics {

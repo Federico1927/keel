@@ -326,6 +326,9 @@ async function seedReturnsExtras(db: ReturnType<typeof drizzle<typeof schema>>, 
         : [{ countries: [], productTypes: types.slice(0, 1), tags: [], days: 60 }, { countries: ["CA"], productTypes: [], tags: [], days: 45 }],
       exclusions: { productTypes: it ? [] : types.slice(-1), skuPrefixes: it ? ["GIFT-"] : [], titleContains: it ? ["gift card", "buono regalo"] : ["gift card"], tags: [] },
       finalSaleDiscountBps: it ? 5000 : 6000,
+      creditBonusBps: it ? 1000 : 500,
+      exchanges: { enabled: true, refundDifference: true },
+      instantExchange: { enabled: false, days: 21 },
       customerLimit: it ? { count: 4, days: 90 } : null,
       risk: { days: 365, watchRateBps: 3000, highRateBps: 5000, minReturns: 3, quickReturnDays: 3, highValueMinor: it ? 40000 : 80000 },
       automations: [
@@ -385,6 +388,32 @@ async function seedReturnsExtras(db: ReturnType<typeof drizzle<typeof schema>>, 
     await db.update(schema.returnRequests).set({ returnless: true, automations: [{ id: "keep-cheap", name: it ? "Tieni gli articoli economici danneggiati" : "Keep cheap damaged items", action: "returnless" }] }).where(eq(schema.returnRequests.id, r.id));
     await db.update(schema.returnLines).set({ restocked: false }).where(eq(schema.returnLines.returnId, r.id));
   }
+  // exchanges: the wanted variant (another of the same product) and the price difference
+  const exchanges = await db.execute<{ id: string; return_line_id: string; quantity: number; unit_amount_minor: number; variant_id: string; title: string; price_minor: number }>(sql`
+    select distinct on (r.id) r.id, rl.id as return_line_id, rl.quantity, rl.unit_amount_minor, v.id as variant_id, p.title || ' ' || v.title as title, v.price_minor
+    from return_requests r join return_lines rl on rl.return_id = r.id join order_lines ol on ol.id = rl.order_line_id
+    join product_variants v on v.product_id = ol.product_id and v.id <> ol.variant_id and v.is_active
+    join products p on p.id = v.product_id
+    where r.tenant_id = ${tenantId} and r.resolution = 'exchange'
+    order by r.id, v.price_minor desc limit 60`);
+  let exchangeRows = exchanges.rows;
+  if (!exchangeRows.length) {
+    // tiny scales may have no exchange: turn the newest return into one so every table has rows
+    const any = await db.execute<{ id: string; return_line_id: string; quantity: number; unit_amount_minor: number; variant_id: string; title: string; price_minor: number }>(sql`
+      select r.id, rl.id as return_line_id, rl.quantity, rl.unit_amount_minor, v.id as variant_id, p.title || ' ' || v.title as title, v.price_minor
+      from return_requests r join return_lines rl on rl.return_id = r.id join order_lines ol on ol.id = rl.order_line_id
+      join product_variants v on v.product_id = ol.product_id join products p on p.id = v.product_id
+      where r.tenant_id = ${tenantId} order by r.requested_at desc limit 1`);
+    exchangeRows = any.rows;
+    if (exchangeRows[0]) await db.update(schema.returnRequests).set({ resolution: "exchange" }).where(eq(schema.returnRequests.id, exchangeRows[0].id));
+  }
+  for (const x of exchangeRows) {
+    await db.insert(schema.returnExchangeLines).values({ tenantId, returnId: x.id, returnLineId: x.return_line_id, variantId: x.variant_id, title: x.title, quantity: Number(x.quantity), unitPriceMinor: Number(x.price_minor) });
+    await db.update(schema.returnRequests).set({ exchangeDifferenceMinor: Number(x.quantity) * (Number(x.price_minor) - Number(x.unit_amount_minor)) }).where(eq(schema.returnRequests.id, x.id));
+  }
+  // vouchers: the credit bonus on issued vouchers
+  await db.execute(sql`update return_requests set credit_bonus_minor = (coalesce(refunded_amount_minor, proposed_amount_minor) * ${it ? 1000 : 500} / 10000)::int
+    where tenant_id = ${tenantId} and resolution = 'voucher' and status = 'voucher_issued'`);
   // the isolation suite needs at least one photo per tenant even at tiny scales
   if (!photos && recent.rows[0]) await db.insert(schema.returnEvidence).values({ tenantId, returnId: recent.rows[0].id, sessionNonce: "seed-0", contentType: "image/png", sizeBytes: DEMO_PHOTO.length, data: DEMO_PHOTO });
 }

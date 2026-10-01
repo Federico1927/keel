@@ -357,6 +357,12 @@ export class MockCommercePlatform implements CommercePlatform {
     this.record("createDiscountPool", { title: input.title, count: input.codes.length });
     return { externalId: `mock-pool-${Date.now()}`, imported: input.codes, failed: [] };
   }
+  private draftSeq = 0;
+  async createInvoiceOrder(input: CreateOrderInput) {
+    this.record("createInvoiceOrder", { lines: input.lines.length, discountMinor: input.discountMinor });
+    const id = `mock-draft-${++this.draftSeq}`;
+    return { draftExternalId: id, invoiceUrl: `https://mock-shop.myshopify.com/invoices/${id}` };
+  }
   async restockInventory(lines: { inventoryItemExternalId: string; locationExternalId: string; quantity: number }[]) {
     this.record("restockInventory", { lines });
   }

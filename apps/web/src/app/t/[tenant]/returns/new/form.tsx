@@ -21,6 +21,7 @@ export interface NewReturnLine {
   block: string | null;
   maxQuantity: number;
   deadline: string | null;
+  exchangeOptions: { variantId: string; title: string; priceMinor: number }[];
 }
 
 export function NewReturnForm({ slug, orderId, lines, reasons, eligible, eligibilityReason, currency, locale }: { slug: string; orderId: string; lines: NewReturnLine[]; reasons: { code: string; label: string }[]; eligible: boolean; eligibilityReason: string | null; currency: string; locale: string }) {
@@ -40,6 +41,7 @@ export function NewReturnForm({ slug, orderId, lines, reasons, eligible, eligibi
   const anyBlocked = lines.some((l) => l.block !== null && l.maxQuantity > 0) || eligibilityReason === "customer_limit";
   const blocked = !eligible && (eligibilityReason === "cancelled" || eligibilityReason === "not_delivered");
   const [override, setOverride] = useState(false);
+  const [exchangeFor, setExchangeFor] = useState<Record<string, string>>({});
   const canOverride = override && anyBlocked;
   const maxFor = (l: NewReturnLine) => (canOverride ? l.maxQuantity : l.returnable);
   return (
@@ -48,7 +50,7 @@ export function NewReturnForm({ slug, orderId, lines, reasons, eligible, eligibi
       onSubmit={(e) => {
         e.preventDefault();
         start(async () => {
-          const r = await createReturnAction(slug, { orderId, reasonCode: reason, resolution, lines: lines.map((l) => ({ orderLineId: l.id, quantity: qty[l.id] ?? 0 })), customerNote: customerNote || null, staffNote: staffNote || null, overrideWindow: canOverride });
+          const r = await createReturnAction(slug, { orderId, reasonCode: reason, resolution, lines: lines.map((l) => ({ orderLineId: l.id, quantity: qty[l.id] ?? 0 })), customerNote: customerNote || null, staffNote: staffNote || null, overrideWindow: canOverride, exchangeLines: resolution === "exchange" ? lines.filter((l) => (qty[l.id] ?? 0) > 0 && exchangeFor[l.id]).map((l) => ({ orderLineId: l.id, variantId: exchangeFor[l.id]!, quantity: qty[l.id]! })) : undefined });
           setResult(r);
           if (r.ok && r.data) router.push(`/t/${slug}/returns/${r.data.id}`);
         });
@@ -78,6 +80,12 @@ export function NewReturnForm({ slug, orderId, lines, reasons, eligible, eligibi
                   <div className="truncate text-xs text-muted-foreground">{[l.variantTitle, l.sku].filter(Boolean).join(" · ")} · {t("ordered", { n: l.quantity })}{l.alreadyReturned ? ` · ${t("already", { n: l.alreadyReturned })}` : ""}{l.block ? <span className="text-warning"> · {t(`blocks.${l.block}`)}</span> : ""}</div>
                 </div>
                 <div className="text-right tabular">{formatMoney(l.unitNetMinor, currency, locale)}</div>
+                {resolution === "exchange" && (qty[l.id] ?? 0) > 0 && l.exchangeOptions.length > 0 && (
+                  <select aria-label={t("exchange_for", { title: l.title })} className="col-span-3 h-8 rounded-md border border-input bg-card px-2 text-sm" value={exchangeFor[l.id] ?? ""} onChange={(e) => setExchangeFor({ ...exchangeFor, [l.id]: e.target.value })} data-testid="exchange-variant">
+                    <option value="">{t("exchange_none")}</option>
+                    {l.exchangeOptions.map((o) => <option key={o.variantId} value={o.variantId}>{o.title} · {formatMoney(o.priceMinor, currency, locale)}</option>)}
+                  </select>
+                )}
                 <Input type="number" min={0} max={maxFor(l)} value={qty[l.id] ?? 0} disabled={maxFor(l) === 0 || blocked} onChange={(e) => setQty({ ...qty, [l.id]: Math.max(0, Math.min(maxFor(l), Number(e.target.value) || 0)) })} aria-label={t("qty_for", { title: l.title })} className="h-8" />
               </div>
             ))}

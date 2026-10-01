@@ -24,7 +24,7 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ t
   const detail = await ctx.run((tx) => returnDetail(svc(tx), id));
   if (!detail) notFound();
   const [evidence, portal] = await ctx.run(async (tx) => [await returnEvidenceList(svc(tx), id), await getPortalConfig(svc(tx))] as const);
-  const { request: r, order, lines, reason, events, locations } = detail;
+  const { request: r, order, lines, reason, events, locations, exchangeLines, exchangeOrder } = detail;
   const money = (m: number) => formatMoney(m, order.currency, ctx.locale);
   const canAct = canDo(ctx.role, "approve_return");
   const stepIndex = STEPS.indexOf(r.status as (typeof STEPS)[number]);
@@ -93,6 +93,22 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ t
                     ))}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          )}
+          {(exchangeLines.length > 0 || r.creditBonusMinor > 0 || r.guaranteeStatus) && (
+            <Card data-testid="return-exchange-card">
+              <CardHeader><CardTitle className="text-base">{exchangeLines.length ? t("exchange.title") : t("exchange.credit_title")}</CardTitle></CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                {exchangeLines.map((x) => <p key={x.id}>{x.quantity} × {x.title} <span className="text-muted-foreground">· {money(x.unitPriceMinor)}</span></p>)}
+                {r.exchangeDifferenceMinor !== null && exchangeLines.length > 0 && (
+                  <p data-testid="exchange-difference">{r.exchangeDifferenceMinor > 0 ? t("exchange.customer_pays", { amount: money(r.exchangeDifferenceMinor) }) : r.exchangeDifferenceMinor < 0 ? t("exchange.we_refund", { amount: money(-r.exchangeDifferenceMinor) }) : t("exchange.even")}</p>
+                )}
+                {r.exchangeInvoiceUrl && <p><a href={r.exchangeInvoiceUrl} target="_blank" rel="noreferrer" className="text-primary underline">{t("exchange.invoice")}</a></p>}
+                {exchangeOrder && <p>{t("exchange.order")}: <Link href={`/t/${tenant}/orders/${exchangeOrder.id}`} className="font-medium hover:underline">{exchangeOrder.name}</Link></p>}
+                {r.creditBonusMinor > 0 && <p>{t("exchange.bonus", { amount: money(r.creditBonusMinor) })}</p>}
+                {r.voucherPlatformId && <p className="text-xs text-muted-foreground">{t("exchange.voucher_on_store")}</p>}
+                {r.guaranteeStatus && <p data-testid="guarantee-status">{t(`exchange.guarantee.${r.guaranteeStatus}`, { amount: money(r.guaranteeAmountMinor ?? 0), date: r.guaranteeExpiresAt ? formatDate(r.guaranteeExpiresAt, ctx.locale, ctx.tenant.timezone) : "—" })}</p>}
               </CardContent>
             </Card>
           )}
