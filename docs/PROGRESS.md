@@ -270,7 +270,7 @@ Fatto (issue #6, seconda parte):
 - Risultati per intenzione di trattamento sulla finestra di attribuzione: conversione trattati e controllo con p-value, ordini, ricavi e margine incrementali con intervallo al 95%, costo di invio, margine netto e ROI, utilizzi del codice. Margine con la stessa economia del P/L.
 - Pagine Segmenti → Campagne (lista con verdetto ed effetto netto, nuova, bozza, dettaglio) e collegamento "Nuova campagna" dalla scheda segmento.
 - Seed: Northwind ha una campagna di riconquista con codice, inviata 35 giorni fa, con effetto reale e significativo (circa 21% contro 13% di conversione, p = 0,002), più una bozza su un segmento senza controllo; Harbor ha una campagna inviata da un altro strumento senza effetto chiaro.
-- Migrazione 0014 (2 tabelle con RLS); test core 142, servizi 67, db 444, e2e E2E2.
+- Migrazione 0014 (2 tabelle con RLS); test core 142, servizi 67, db 444, e2e 59.
 
 Resta per la issue #6: esportazione dei segmenti verso strumenti esterni tramite adapter (4.3), segmenti aggiornati in tempo reale e sincronizzazione delle audience (4.1).
 
