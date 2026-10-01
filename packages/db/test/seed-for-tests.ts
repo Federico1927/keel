@@ -4,7 +4,7 @@ import { seedDomain, type SeedContext } from "../src/seed";
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;
 
-/** The real demo seed at a small scale, so every tenant table is covered by the isolation suite. */
+/** The real demo seed at a small scale, so every tenant table is covered by the isolation suite (3% keeps both tenants above the customer minimum of the prediction model). */
 export async function seedDomainForTests(db: Db, ctx: SeedContext): Promise<void> {
-  await seedDomain(db, ctx, { scale: 0.01 });
+  await seedDomain(db, ctx, { scale: 0.03 });
 }

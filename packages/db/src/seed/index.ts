@@ -6,7 +6,7 @@ import * as schema from "../schema";
 import { generateTenantDataset, type TenantSeedConfig } from "./generator";
 import { writeDataset } from "./writer";
 import { createRng } from "@keel/integrations";
-import { allocateLandedCost, normalizePhone } from "@keel/core";
+import { SALE_STATUSES, allocateLandedCost, normalizePhone, runPredictionModel, type CustomerHistory } from "@keel/core";
 import { MODULES, PLANS, PLATFORM_CURRENCY } from "@keel/config";
 import { encryptJson } from "@keel/integrations";
 import { sql } from "drizzle-orm";
@@ -194,13 +194,44 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     const started = Date.now();
     const ds = generateTenantDataset(cfg);
     const genMs = Date.now() - started;
-    const counts = await writeDataset(db, ds);
-    if (cfg.key === "northwind") await seedCod(db, ctx, cfg.tenantId, opts.now ?? new Date());
-    await seedAnalyticsExtras(db, ctx, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date());
-    await seedPlanningExtras(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date());
-    await seedReturnsExtras(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date());
+    const step = async (name: string, fn: () => Promise<unknown>) => { const t0 = Date.now(); await fn(); if (process.env.SEED_TIMING) log(`[db:seed]   ${name} ${Date.now() - t0}ms`); };
+    let counts: Record<string, number> = {};
+    await step("write", async () => { counts = await writeDataset(db, ds); });
+    if (cfg.key === "northwind") await step("cod", () => seedCod(db, ctx, cfg.tenantId, opts.now ?? new Date()));
+    await step("analytics", () => seedAnalyticsExtras(db, ctx, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
+    await step("planning", () => seedPlanningExtras(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
+    await step("returns", () => seedReturnsExtras(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
+    await step("predictions", () => seedPredictions(db, cfg.tenantId, opts.now ?? new Date()));
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
   }
+}
+
+/** Customer predictions as the nightly job would compute them (same core run as the service). */
+async function seedPredictions(db: ReturnType<typeof drizzle<typeof schema>>, tenantId: string, now: Date) {
+  const started = Date.now();
+  const res = await db.execute<{ customer_id: string; placed_at: string | Date; total_minor: number }>(sql`select customer_id, placed_at, total_minor from orders where tenant_id = ${tenantId} and customer_id is not null and status in ${SALE_STATUSES as string[]} order by customer_id, placed_at`);
+  const map = new Map<string, CustomerHistory>();
+  for (const r of res.rows) {
+    const h = map.get(r.customer_id) ?? { customerId: r.customer_id, orders: [] };
+    h.orders.push({ at: new Date(r.placed_at), valueMinor: Number(r.total_minor) });
+    map.set(r.customer_id, h);
+  }
+  const run = runPredictionModel([...map.values()], now);
+  await db.delete(schema.customerPredictions).where(eq(schema.customerPredictions.tenantId, tenantId));
+  const rows = run.predictions.map((p) => ({ tenantId, customerId: p.customerId, pAlive: p.pAlive, expectedOrders90: p.expectedOrders90, expectedOrders365: p.expectedOrders365, expectedOrderValueMinor: p.expectedOrderValueMinor, predictedValue365Minor: p.predictedValue365Minor, churnRisk: p.churnRisk, nextOrderAt: p.nextOrderAt, computedAt: now }));
+  for (let i = 0; i < rows.length; i += 1000) await db.insert(schema.customerPredictions).values(rows.slice(i, i + 1000));
+  const c = run.calibration;
+  const model = {
+    tenantId,
+    status: run.model ? "ok" : "insufficient_data",
+    params: run.model ? { mbg: run.model.mbg, gammaGamma: run.model.gammaGamma, meanOrderValueMinor: run.model.meanOrderValueMinor, medianDaysToSecond: run.model.medianDaysToSecond } : null,
+    customers: run.model?.customers ?? map.size,
+    logLikelihood: run.model?.logLikelihood ?? null,
+    calibration: c ? { ...c, cutoff: c.cutoff.toISOString(), end: c.end.toISOString() } : null,
+    durationMs: Date.now() - started,
+    fittedAt: now,
+  };
+  await db.insert(schema.customerPredictionModels).values(model).onConflictDoUpdate({ target: schema.customerPredictionModels.tenantId, set: { ...model } });
 }
 
 /** Alert rules with a few past firings, two custom metrics and the owner's dashboard, per tenant. */

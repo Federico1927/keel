@@ -137,6 +137,62 @@ function buildPhone(rng: Rng, country: string): string {
 }
 
 /** Samples a timestamp in the last 365 days with month, weekday and hour seasonality. */
+/** Gamma(shape k, scale 1) by Marsaglia–Tsang; Box–Muller for the normal draw. */
+function gammaSample(next: () => number, k: number): number {
+  if (k < 1) return gammaSample(next, k + 1) * Math.pow(next(), 1 / k);
+  const d = k - 1 / 3;
+  const c = 1 / Math.sqrt(9 * d);
+  for (;;) {
+    let x: number;
+    let v: number;
+    do {
+      x = Math.sqrt(-2 * Math.log(1 - next())) * Math.cos(2 * Math.PI * next());
+      v = 1 + c * x;
+    } while (v <= 0);
+    v = v * v * v;
+    if (Math.log(1 - next()) < 0.5 * x * x + d - d * v + d * Math.log(v)) return d * v;
+  }
+}
+
+/**
+ * Who places each order, in time order, from a customer lifecycle: every customer is acquired at
+ * some point (a third before the data window opens), buys at a personal rate and may drop out
+ * after each purchase (rates Gamma-distributed, drop-out Beta-distributed: the textbook
+ * buy-till-you-die story). The event sequence is mapped by rank onto the seasonal order dates, so
+ * volume, seasonality and growth stay those of `samplePlacedAt`, while repeat buying, gaps and
+ * churn look like a real store's. Deterministic for a seed.
+ */
+export function lifecycleCustomerSequence(seed: number, customerCount: number, orderCount: number, windowDays = 365): number[] {
+  const simulate = (meanRatePerDay: number) => {
+    const rng = createRng(seed);
+    const events: { t: number; c: number }[] = [];
+    for (let c = 0; c < customerCount; c++) {
+      const lambda = (gammaSample(rng.next, 0.9) / 0.9) * meanRatePerDay;
+      const g1 = gammaSample(rng.next, 1.6);
+      const dropOut = g1 / (g1 + gammaSample(rng.next, 4.5));
+      let t = windowDays * (rng.next() * 1.5 - 0.5);
+      for (;;) {
+        if (t >= 0 && t <= windowDays) events.push({ t, c });
+        if (rng.next() < dropOut) break;
+        t += -Math.log(1 - rng.next()) / lambda;
+        if (t > windowDays) break;
+      }
+    }
+    return events;
+  };
+  // the purchase rate that yields the requested number of orders (drop-out makes it non-linear)
+  let rate = orderCount / (customerCount * windowDays);
+  let events = simulate(rate);
+  for (let i = 0; i < 6 && Math.abs(events.length - orderCount) > orderCount * 0.02; i++) {
+    rate *= Math.pow(orderCount / Math.max(events.length, 1), 1.5);
+    events = simulate(rate);
+  }
+  const rng = createRng(seed + 1);
+  if (events.length > orderCount) events = rng.shuffle(events).slice(0, orderCount);
+  while (events.length < orderCount) events.push({ t: rng.next() * windowDays, c: rng.int(0, customerCount - 1) });
+  return events.sort((x, y) => x.t - y.t).map((e) => e.c);
+}
+
 function samplePlacedAt(rng: Rng, now: Date, seasonality: number[]): Date {
   for (;;) {
     const daysAgo = rng.next() * 365;
@@ -348,11 +404,12 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
   const reasons = isApparel ? RETURN_REASONS_IT : RETURN_REASONS_EN;
   ds.returnReasons.push(...reasons.map((r, i) => t({ code: r.code, label: r.label, defaultFault: r.fault, sortOrder: i, isActive: true })));
   let lastDuplicateSource: { customer: C; variant: V; placedAt: Date } | null = null;
+  const buyerSequence = lifecycleCustomerSequence(cfg.seed + 7, customers.length, cfg.orderCount);
 
   for (let i = 0; i < cfg.orderCount; i++) {
     const placedAt = placedAts[i]!;
     const ageDays = (now.getTime() - placedAt.getTime()) / DAY;
-    // customer: skewed so some customers repeat often; occasionally a deliberate duplicate
+    // customer: from the lifecycle simulation; occasionally a deliberate duplicate
     let customer: C;
     let dupOf: typeof lastDuplicateSource = null;
     if (lastDuplicateSource && placedAt.getTime() - lastDuplicateSource.placedAt.getTime() < 2 * DAY && rng.chance(0.5)) {
@@ -360,7 +417,7 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
       dupOf = lastDuplicateSource;
       lastDuplicateSource = null;
     } else {
-      customer = customers[Math.floor(Math.pow(rng.next(), 1.7) * customers.length)]!;
+      customer = customers[buyerSequence[i]!]!;
     }
     const orderId = rng.uuid();
     orderNumber += rng.int(1, 2);

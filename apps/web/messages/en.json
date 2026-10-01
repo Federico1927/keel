@@ -267,7 +267,9 @@
         "shippingCostMinor": "Default shipping cost (minor units)",
         "returnShippingFallbackDays": "Days from shipping to assumed delivery",
         "returnExcludedProductTypes": "Product types excluded from returns",
-        "returnExcludedProductTypes_placeholder": "Gift card, Underwear"
+        "returnExcludedProductTypes_placeholder": "Gift card, Underwear",
+        "churnLowPct": "Churn risk low from (% probability active)",
+        "churnMediumPct": "Churn risk medium from (% probability active)"
       }
     },
     "taxes": {
@@ -1356,7 +1358,8 @@
     "description": "Profiles computed from Keel's canonical orders: value, frequency, recency and RFM tier.",
     "tabs": {
       "list": "Customers",
-      "rfm": "RFM matrix"
+      "rfm": "RFM matrix",
+      "predictions": "Predictions"
     },
     "search": "Search",
     "search_placeholder": "Name, email or phone",
@@ -1367,7 +1370,8 @@
       "last_order": "Most recent order",
       "total_spent": "Highest value",
       "orders": "Most orders",
-      "name": "Name"
+      "name": "Name",
+      "predicted_value": "Highest predicted value"
     },
     "only_marketing": "Only customers who accept marketing",
     "empty_title": "No customers",
@@ -1384,8 +1388,10 @@
       "aov": "AOV",
       "last_order": "Last order",
       "tier": "RFM tier",
-      "marketing": "Marketing"
-    }
+      "marketing": "Marketing",
+      "churn": "Churn risk"
+    },
+    "all_churn": "All churn risks"
   },
   "customer_detail": {
     "contact": "Contact",
@@ -1532,7 +1538,8 @@
       "profile": "Profile",
       "products": "Products",
       "rfm": "RFM",
-      "sampling": "Sampling"
+      "sampling": "Sampling",
+      "predictions": "Predictions"
     },
     "fields": {
       "orders_count": "Orders",
@@ -1551,7 +1558,11 @@
       "rfm_recency": "RFM recency",
       "rfm_frequency": "RFM frequency",
       "rfm_tier": "RFM tier",
-      "random_pct": "Random sample (0–99)"
+      "random_pct": "Random sample (0–99)",
+      "churn_risk": "Churn risk",
+      "p_alive": "Probability still active (%)",
+      "predicted_value": "Predicted value, next 12 months",
+      "days_to_next_order": "Days to expected next order"
     },
     "ops": {
       "gte": "is at least",
@@ -3205,5 +3216,63 @@
     "instant_on": "Instant exchange: ship the replacement at approval, with a card hold",
     "instant_days": "Days to send the goods back",
     "instant_hint": "The hold is released when the goods arrive and charged after the deadline. It needs a card payment provider: in this version the hold is simulated."
+  },
+  "predictions": {
+    "description": "Who will buy again, when, and for how much: a statistical model fitted on this store's own order history, refreshed every night.",
+    "recompute": "Recompute now",
+    "recomputing": "Recomputing…",
+    "risk": {
+      "low": "Low risk",
+      "medium": "Medium risk",
+      "high": "High risk"
+    },
+    "empty_title": "No predictions yet",
+    "empty_description": "Predictions are computed every night once orders are synced. Recompute to run the model now.",
+    "insufficient_data": "Not enough customers to fit the model yet ({n} found, at least 50 needed).",
+    "kpi": {
+      "expected_orders_90": "Expected orders, 90 days",
+      "expected_orders_365": "Expected orders, 12 months",
+      "predicted_value": "Predicted revenue",
+      "at_risk": "High churn risk",
+      "from_existing": "From existing customers only",
+      "next_12_months": "Existing customers, next 12 months",
+      "at_risk_hint": "{pct} of buying customers"
+    },
+    "risk_title": "Churn risk",
+    "risk_description": "Customers by probability of still being active. Thresholds are in Settings.",
+    "columns": {
+      "risk": "Churn risk",
+      "historical": "Spent so far",
+      "predicted_value": "Predicted value, 12 months",
+      "p_alive": "Probability active",
+      "next_order": "Expected next order",
+      "repeat": "Repeat purchases",
+      "predicted": "Predicted",
+      "actual": "Actual"
+    },
+    "segment_short": "Segment",
+    "create_segment": "Create segment",
+    "list_empty": "Nobody here right now.",
+    "orders_n": "{n, plural, one {# order} other {# orders}}",
+    "model_title": "Model and back-test",
+    "model_description": "The model is refitted on all history, then checked by predicting a past period it did not see.",
+    "fitted_at": "Fitted {at}",
+    "fitted_on": "{n} customers",
+    "backtest_summary": "Fitted on orders up to {from}, the model predicted {predicted} purchases until {to}; customers made {actual}.",
+    "backtest_error": "error {pct}",
+    "backtest_unavailable": "Not enough history before the back-test period yet.",
+    "repeat_plus": "{n} or more",
+    "method_note": "MBG/NBD for purchase frequency and drop-out, Gamma-Gamma for order value. Purchases on the same day count once. Only confirmed, non-cancelled orders are used.",
+    "slipping_title": "Valuable customers slipping away",
+    "slipping_description": "Repeat customers with medium or high churn risk, by value spent. The win-back list.",
+    "due_title": "Due to order",
+    "due_description": "Customers whose expected next order falls between a week ago and two weeks from now.",
+    "top_title": "Highest predicted value",
+    "top_description": "Expected revenue over the next 12 months.",
+    "card_title": "Predictions",
+    "card_none": "No prediction yet: it is computed after the first confirmed order.",
+    "card_expected_orders": "Expected orders, 90 days · 12 months",
+    "card_order_value": "Expected order value",
+    "card_computed": "Computed {at}"
   }
 }

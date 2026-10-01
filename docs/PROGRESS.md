@@ -246,6 +246,22 @@ Fatto: nuova app statica `apps/landing` (Next.js export, Tailwind 4, next-intl) 
 
 Manca: link di prenotazione reale e webhook del form (variabili d'ambiente da impostare in produzione); testimonianze e loghi (segnaposto commentato, niente di inventato); verifica degli scope su Vercel al primo deploy.
 
+## Programma di profondità — Area 4, primo blocco (previsioni per cliente)
+
+Fatto (issue #6, prima parte):
+- Modello statistico per cliente, stimato sullo storico ordini di ogni negozio: MBG/NBD per frequenza di acquisto e abbandono, Gamma-Gamma per il valore degli ordini. Per ogni cliente: probabilità di essere ancora attivo, ordini attesi a 90 giorni e a 12 mesi, valore atteso per ordine, valore previsto a 12 mesi, data attesa del prossimo ordine, rischio abbandono (basso, medio, alto, con soglie nelle impostazioni).
+- Verifica del modello sui dati del negozio: stima sugli ordini fino a 180 giorni fa e confronto tra acquisti previsti ed effettivi, in totale e per numero di acquisti ripetuti. Sul seed l'errore è dello 0,8% su Northwind e del −12,5% su Harbor.
+- Pagina Clienti → Previsioni: ordini e ricavi attesi dai clienti esistenti, distribuzione per rischio con link alla lista e al segmento, verifica del modello, liste "clienti di valore che si stanno perdendo", "in attesa di ordine" e "valore previsto più alto", pulsante di ricalcolo.
+- Quattro campi nuovi nel costruttore di segmenti (rischio abbandono, probabilità attivo, valore previsto, giorni al prossimo ordine), con la stessa semantica in SQL e in memoria.
+- Lista clienti con filtro per rischio, colonna e ordinamento per valore previsto; scheda cliente con il riquadro previsioni.
+- Ricalcolo ogni notte alle 03:40 UTC (job `crm`) e su richiesta, con audit.
+- Seed: il generatore ora simula il ciclo di vita dei clienti (acquisizione, ritmo d'acquisto personale, abbandono) sulle stesse date d'ordine stagionali; prima nessun cliente abbandonava mai e il modello dava tutti "attivi". Il seed scrive le previsioni con lo stesso codice del job.
+- Migrazione 0013 (2 tabelle con RLS); test core 137, integrazioni 28, servizi 63, db 432, e2e E2E_COUNT.
+
+Aperto: il seed completo impiega circa 2 minuti e 5 secondi su questo ambiente, oltre il limite di 2 minuti. Le fasi nuove pesano circa 1,5 secondi per negozio; il resto è scrittura e cancellazione dei dati precedenti, già prima di questo blocco.
+
+Resta per la issue #6: campagne con gruppo di controllo e margine incrementale (4.4), esportazione dei segmenti verso strumenti esterni tramite adapter (4.3), segmenti aggiornati in tempo reale e sincronizzazione delle audience (4.1).
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

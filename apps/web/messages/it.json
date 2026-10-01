@@ -267,7 +267,9 @@
         "shippingCostMinor": "Costo spedizione predefinito (centesimi)",
         "returnShippingFallbackDays": "Giorni dalla spedizione alla consegna presunta",
         "returnExcludedProductTypes": "Tipi di prodotto esclusi dai resi",
-        "returnExcludedProductTypes_placeholder": "Gift card, Intimo"
+        "returnExcludedProductTypes_placeholder": "Gift card, Intimo",
+        "churnLowPct": "Rischio abbandono basso da (% probabilità attivo)",
+        "churnMediumPct": "Rischio abbandono medio da (% probabilità attivo)"
       }
     },
     "taxes": {
@@ -1356,7 +1358,8 @@
     "description": "Profili calcolati dagli ordini canonici di Keel: valore, frequenza, recenza e fascia RFM.",
     "tabs": {
       "list": "Clienti",
-      "rfm": "Matrice RFM"
+      "rfm": "Matrice RFM",
+      "predictions": "Previsioni"
     },
     "search": "Cerca",
     "search_placeholder": "Nome, email o telefono",
@@ -1367,7 +1370,8 @@
       "last_order": "Ordine più recente",
       "total_spent": "Valore più alto",
       "orders": "Più ordini",
-      "name": "Nome"
+      "name": "Nome",
+      "predicted_value": "Valore previsto più alto"
     },
     "only_marketing": "Solo clienti con consenso marketing",
     "empty_title": "Nessun cliente",
@@ -1384,8 +1388,10 @@
       "aov": "AOV",
       "last_order": "Ultimo ordine",
       "tier": "Fascia RFM",
-      "marketing": "Marketing"
-    }
+      "marketing": "Marketing",
+      "churn": "Rischio abbandono"
+    },
+    "all_churn": "Tutti i rischi"
   },
   "customer_detail": {
     "contact": "Contatto",
@@ -1532,7 +1538,8 @@
       "profile": "Profilo",
       "products": "Prodotti",
       "rfm": "RFM",
-      "sampling": "Campionamento"
+      "sampling": "Campionamento",
+      "predictions": "Previsioni"
     },
     "fields": {
       "orders_count": "Ordini",
@@ -1551,7 +1558,11 @@
       "rfm_recency": "Recenza RFM",
       "rfm_frequency": "Frequenza RFM",
       "rfm_tier": "Fascia RFM",
-      "random_pct": "Campione casuale (0–99)"
+      "random_pct": "Campione casuale (0–99)",
+      "churn_risk": "Rischio abbandono",
+      "p_alive": "Probabilità ancora attivo (%)",
+      "predicted_value": "Valore previsto, prossimi 12 mesi",
+      "days_to_next_order": "Giorni al prossimo ordine atteso"
     },
     "ops": {
       "gte": "è almeno",
@@ -3205,5 +3216,63 @@
     "instant_on": "Cambio immediato: spedisci il sostituto all'approvazione, con un blocco sulla carta",
     "instant_days": "Giorni per rispedire la merce",
     "instant_hint": "Il blocco si rilascia all'arrivo della merce e si addebita dopo la scadenza. Serve un fornitore di pagamenti con carta: in questa versione il blocco è simulato."
+  },
+  "predictions": {
+    "description": "Chi comprerà di nuovo, quando e per quanto: un modello statistico stimato sullo storico ordini del negozio, aggiornato ogni notte.",
+    "recompute": "Ricalcola ora",
+    "recomputing": "Ricalcolo…",
+    "risk": {
+      "low": "Rischio basso",
+      "medium": "Rischio medio",
+      "high": "Rischio alto"
+    },
+    "empty_title": "Nessuna previsione",
+    "empty_description": "Le previsioni si calcolano ogni notte dopo la sincronizzazione degli ordini. Ricalcola per eseguire il modello adesso.",
+    "insufficient_data": "Clienti insufficienti per stimare il modello ({n} trovati, ne servono almeno 50).",
+    "kpi": {
+      "expected_orders_90": "Ordini attesi, 90 giorni",
+      "expected_orders_365": "Ordini attesi, 12 mesi",
+      "predicted_value": "Ricavi previsti",
+      "at_risk": "Rischio abbandono alto",
+      "from_existing": "Solo dai clienti esistenti",
+      "next_12_months": "Clienti esistenti, prossimi 12 mesi",
+      "at_risk_hint": "{pct} dei clienti acquirenti"
+    },
+    "risk_title": "Rischio abbandono",
+    "risk_description": "Clienti per probabilità di essere ancora attivi. Le soglie sono nelle Impostazioni.",
+    "columns": {
+      "risk": "Rischio abbandono",
+      "historical": "Speso finora",
+      "predicted_value": "Valore previsto, 12 mesi",
+      "p_alive": "Probabilità attivo",
+      "next_order": "Prossimo ordine atteso",
+      "repeat": "Acquisti ripetuti",
+      "predicted": "Previsti",
+      "actual": "Effettivi"
+    },
+    "segment_short": "Segmento",
+    "create_segment": "Crea segmento",
+    "list_empty": "Nessuno al momento.",
+    "orders_n": "{n, plural, one {# ordine} other {# ordini}}",
+    "model_title": "Modello e verifica",
+    "model_description": "Il modello si stima su tutto lo storico, poi si verifica prevedendo un periodo passato che non ha visto.",
+    "fitted_at": "Stimato {at}",
+    "fitted_on": "{n} clienti",
+    "backtest_summary": "Stimato sugli ordini fino al {from}, il modello prevedeva {predicted} acquisti fino al {to}; i clienti ne hanno fatti {actual}.",
+    "backtest_error": "errore {pct}",
+    "backtest_unavailable": "Storico insufficiente prima del periodo di verifica.",
+    "repeat_plus": "{n} o più",
+    "method_note": "MBG/NBD per frequenza di acquisto e abbandono, Gamma-Gamma per il valore degli ordini. Gli acquisti nello stesso giorno contano una volta. Si usano solo ordini confermati e non annullati.",
+    "slipping_title": "Clienti di valore che si stanno perdendo",
+    "slipping_description": "Clienti ricorrenti con rischio medio o alto, per valore speso. La lista da riconquistare.",
+    "due_title": "In attesa di ordine",
+    "due_description": "Clienti con il prossimo ordine atteso tra una settimana fa e due settimane da oggi.",
+    "top_title": "Valore previsto più alto",
+    "top_description": "Ricavi attesi nei prossimi 12 mesi.",
+    "card_title": "Previsioni",
+    "card_none": "Nessuna previsione: si calcola dopo il primo ordine confermato.",
+    "card_expected_orders": "Ordini attesi, 90 giorni · 12 mesi",
+    "card_order_value": "Valore atteso per ordine",
+    "card_computed": "Calcolata il {at}"
   }
 }

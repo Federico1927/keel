@@ -18,3 +18,4 @@ export * from "./sync";
 export * from "./integrations/factory";
 export * from "./billing";
 export * from "./planning";
+export * from "./crm/predictions";

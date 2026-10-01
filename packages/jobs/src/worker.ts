@@ -4,7 +4,7 @@ import { createBoss } from "./boss";
 import { handleSyncAds, handleSyncCatalog, handleSyncOrders, handleTick, handleWebhook, type Enqueue } from "./handlers";
 import { QUEUES, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
 
-/** Nightly reconciliation at 03:00, delta every 15 min, ads daily at 06:00, webhook retry every 10 min (UTC). */
+/** Nightly reconciliation at 03:00 and customer predictions at 03:40, delta every 15 min, ads daily at 06:00, webhook retry every 10 min (UTC). */
 const SCHEDULES: { cron: string; data: TickJob }[] = [
   { cron: "*/15 * * * *", data: { kind: "delta" } },
   { cron: "*/10 * * * *", data: { kind: "retry" } },
@@ -14,6 +14,7 @@ const SCHEDULES: { cron: string; data: TickJob }[] = [
   { cron: "5,15,25,35,45,55 * * * *", data: { kind: "cod" } },
   { cron: "20 * * * *", data: { kind: "alerts" } },
   { cron: "*/10 * * * *", data: { kind: "returns" } },
+  { cron: "40 3 * * *", data: { kind: "crm" } },
 ];
 
 /** Same startup rules as the web process; Sentry (errors only, no PII) when `SENTRY_DSN` is set. */

@@ -90,6 +90,8 @@ const numericFields: (keyof TenantSettings)[] = [
   "returnWindowDays",
   "returnShippingFallbackDays",
   "shippingCostMinor",
+  "churnLowPct",
+  "churnMediumPct",
 ];
 
 export function OperationalSettingsForm({ slug, settings, currency }: { slug: string; settings: TenantSettings; currency: string }) {

@@ -1,21 +1,23 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDate, formatMoney, formatNumber } from "@keel/core";
+import { CHURN_RISKS, formatDate, formatMoney, formatNumber } from "@keel/core";
 import { listCustomers } from "@keel/services";
-import { Card, CardContent, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { Card, CardContent, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
+import { CustomerTabs } from "./customer-tabs";
 import { CustomerFiltersBar } from "./filters";
 import { TierBadge } from "./tier-badge";
+import { ChurnBadge } from "./churn-badge";
 
 export default async function CustomersPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "customers");
   const t = await getTranslations("customers");
-  const filters = { q: sp.q?.trim() || undefined, country: sp.country || undefined, tier: sp.tier || undefined, sort: sp.sort || undefined, marketing: sp.marketing || undefined, segment: sp.segment || undefined };
+  const filters = { q: sp.q?.trim() || undefined, country: sp.country || undefined, tier: sp.tier || undefined, sort: sp.sort || undefined, marketing: sp.marketing || undefined, segment: sp.segment || undefined, churn: (CHURN_RISKS as readonly string[]).includes(sp.churn ?? "") ? sp.churn : undefined };
   const page = Math.max(1, Number(sp.page ?? 1) || 1);
   const { rows, total, pageSize, countries } = await ctx.run((tx) =>
-    listCustomers({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { q: filters.q, country: filters.country, tier: filters.tier, acceptsMarketing: filters.marketing === "1" ? true : undefined, segmentId: /^[0-9a-f-]{36}$/i.test(filters.segment ?? "") ? filters.segment : undefined, sort: (["last_order", "total_spent", "orders", "name"] as const).find((s) => s === filters.sort) ?? "last_order", page }),
+    listCustomers({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { q: filters.q, country: filters.country, tier: filters.tier, acceptsMarketing: filters.marketing === "1" ? true : undefined, segmentId: /^[0-9a-f-]{36}$/i.test(filters.segment ?? "") ? filters.segment : undefined, churnRisk: filters.churn, sort: (["last_order", "total_spent", "orders", "name", "predicted_value"] as const).find((s) => s === filters.sort) ?? "last_order", page }),
   );
   const base = `/t/${tenant}/customers`;
   const hrefFor = (p: number) => {
@@ -28,10 +30,7 @@ export default async function CustomersPage({ params, searchParams }: { params: 
   return (
     <>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} />
-      <div className="mb-4 flex gap-1 rounded-md bg-muted p-1 text-sm">
-        <Link href={base} className={cn("flex-1 rounded-sm px-3 py-1.5 text-center", "bg-card shadow-sm")}>{t("tabs.list")}</Link>
-        <Link href={`${base}/rfm`} className="flex-1 rounded-sm px-3 py-1.5 text-center text-muted-foreground">{t("tabs.rfm")}</Link>
-      </div>
+      <CustomerTabs tenant={tenant} active="list" />
       <CustomerFiltersBar basePath={base} filters={filters} countries={countries} />
       {rows.length === 0 ? (
         <EmptyState title={t("empty_title")} description={t("empty_description")} className="mt-4" />
@@ -48,6 +47,7 @@ export default async function CustomersPage({ params, searchParams }: { params: 
                   <TableHead className="hidden text-right lg:table-cell">{t("columns.aov")}</TableHead>
                   <TableHead className="hidden md:table-cell">{t("columns.last_order")}</TableHead>
                   <TableHead>{t("columns.tier")}</TableHead>
+                  <TableHead className="hidden md:table-cell">{t("columns.churn")}</TableHead>
                   <TableHead className="hidden lg:table-cell">{t("columns.marketing")}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -64,6 +64,7 @@ export default async function CustomersPage({ params, searchParams }: { params: 
                     <TableCell className="hidden text-right tabular lg:table-cell">{r.aovMinor === null ? "—" : money(r.aovMinor)}</TableCell>
                     <TableCell className="hidden md:table-cell">{r.lastOrderAt ? formatDate(r.lastOrderAt, ctx.locale, ctx.tenant.timezone) : "—"}</TableCell>
                     <TableCell><TierBadge tier={r.tier} /></TableCell>
+                    <TableCell className="hidden md:table-cell"><ChurnBadge risk={r.churnRisk} /></TableCell>
                     <TableCell className="hidden lg:table-cell">{r.acceptsMarketing ? t("yes") : t("no")}</TableCell>
                   </TableRow>
                 ))}

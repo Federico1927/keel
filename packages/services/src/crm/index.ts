@@ -1,6 +1,7 @@
 import { and, desc, eq, inArray, schema, sql, type SQL } from "@keel/db";
 import { SALE_STATUSES, assignHoldout, isGroup, rfmTier, segmentFieldCatalog, validateSegmentRules, type CustomerProfile, type RfmTier, type SegmentGroup, type SegmentLeaf } from "@keel/core";
 import type { ServiceContext } from "../context";
+import { customerPrediction, type CustomerPredictionView } from "./predictions";
 
 const SALE = SALE_STATUSES as readonly string[];
 const RETURNED = ["returned", "returned_partial", "refunded"];
@@ -25,8 +26,13 @@ function profileCte(ctx: ServiceContext, now: Date): SQL {
       coalesce(a.payment_methods, '{}'::text[]) as payment_methods,
       coalesce(pr.product_ids, '{}'::uuid[]) as product_ids,
       coalesce(pr.product_types, '{}'::text[]) as product_types,
-      (abs(hashtext(c.id::text)) % 100)::int as random_pct
+      (abs(hashtext(c.id::text)) % 100)::int as random_pct,
+      cp.churn_risk,
+      (cp.p_alive * 100)::float8 as p_alive_pct,
+      cp.predicted_value_365_minor as predicted_value,
+      case when cp.next_order_at is null then null else floor(extract(epoch from (cp.next_order_at - ${now}::timestamptz)) / 86400)::int end as days_to_next_order
     from customers c
+    left join customer_predictions cp on cp.customer_id = c.id and cp.tenant_id = ${t}
     left join (
       select o.customer_id,
         count(*) filter (where o.status in ${SALE}) as orders_count,
@@ -80,6 +86,10 @@ const FIELD_SQL: Record<string, SQL> = {
   rfm_recency: RFM_RECENCY_SQL,
   rfm_frequency: RFM_FREQUENCY_SQL,
   rfm_tier: RFM_TIER_SQL,
+  churn_risk: sql`p.churn_risk`,
+  p_alive: sql`p.p_alive_pct`,
+  predicted_value: sql`p.predicted_value`,
+  days_to_next_order: sql`p.days_to_next_order`,
   random_pct: sql`p.random_pct`,
 };
 
@@ -156,6 +166,10 @@ type ProfileRow = {
   product_ids: string[];
   product_types: string[];
   random_pct: number;
+  churn_risk: string | null;
+  p_alive_pct: number | null;
+  predicted_value: number | null;
+  days_to_next_order: number | null;
 };
 
 export interface CustomerRow extends CustomerProfile {
@@ -182,6 +196,7 @@ function toRow(r: ProfileRow): CustomerRow {
     daysSinceLastOrder: r.days_since_last_order, daysSinceFirstOrder: r.days_since_first_order, lastOrderAt: toDate(r.last_order_at), firstOrderAt: toDate(r.first_order_at),
     platformCreatedAt: toDate(r.platform_created_at), acceptsMarketing: r.accepts_marketing, tags: r.tags ?? [], paymentMethods: r.payment_methods ?? [],
     productIds: r.product_ids ?? [], productTypes: r.product_types ?? [], randomPct: r.random_pct, tier: rfmTier(r.orders_count, r.days_since_last_order),
+    churnRisk: r.churn_risk, pAlivePct: r.p_alive_pct === null ? null : Number(r.p_alive_pct), predictedValueMinor: r.predicted_value, daysToNextOrder: r.days_to_next_order,
   };
 }
 
@@ -192,7 +207,8 @@ export interface CustomerFilters {
   tier?: string;
   minOrders?: number;
   segmentId?: string;
-  sort?: "last_order" | "total_spent" | "orders" | "name";
+  churnRisk?: string;
+  sort?: "last_order" | "total_spent" | "orders" | "name" | "predicted_value";
   page?: number;
   pageSize?: number;
 }
@@ -211,9 +227,10 @@ export async function listCustomers(ctx: ServiceContext, f: CustomerFilters = {}
   if (f.acceptsMarketing !== undefined) conds.push(sql`p.accepts_marketing = ${f.acceptsMarketing}`);
   if (f.tier) conds.push(sql`${RFM_TIER_SQL} = ${f.tier}`);
   if (f.minOrders) conds.push(sql`p.orders_count >= ${f.minOrders}`);
+  if (f.churnRisk) conds.push(sql`p.churn_risk = ${f.churnRisk}`);
   if (f.segmentId) conds.push(sql`exists (select 1 from segment_memberships m where m.segment_id = ${f.segmentId} and m.customer_id = p.customer_id)`);
   const where = sql.join(conds, sql` and `);
-  const order = f.sort === "total_spent" ? sql`p.total_spent desc` : f.sort === "orders" ? sql`p.orders_count desc, p.total_spent desc` : f.sort === "name" ? sql`p.last_name nulls last, p.first_name` : sql`p.last_order_at desc nulls last`;
+  const order = f.sort === "total_spent" ? sql`p.total_spent desc` : f.sort === "orders" ? sql`p.orders_count desc, p.total_spent desc` : f.sort === "name" ? sql`p.last_name nulls last, p.first_name` : f.sort === "predicted_value" ? sql`p.predicted_value desc nulls last` : sql`p.last_order_at desc nulls last`;
   const rows = await ctx.tx.execute<ProfileRow>(sql`with p as (${profileCte(ctx, now)}) select p.* from p where ${where} order by ${order}, p.customer_id limit ${pageSize} offset ${(page - 1) * pageSize}`);
   const count = await ctx.tx.execute<{ n: number }>(sql`with p as (${profileCte(ctx, now)}) select count(*)::int as n from p where ${where}`);
   const countries = await ctx.tx.execute<{ country: string }>(sql`select distinct country from customers where tenant_id = ${ctx.tenantId} and country is not null order by 1`);
@@ -319,6 +336,7 @@ export interface CustomerDetail {
   orders: { id: string; name: string; placedAt: Date; status: string; paymentMethod: string; totalMinor: number; currency: string }[];
   segments: { id: string; name: string; groupName: string }[];
   returns: number;
+  prediction: CustomerPredictionView | null;
 }
 
 export async function customerDetail(ctx: ServiceContext, customerId: string): Promise<CustomerDetail | null> {
@@ -326,5 +344,5 @@ export async function customerDetail(ctx: ServiceContext, customerId: string): P
   if (!customer) return null;
   const orders = await ctx.tx.select({ id: schema.orders.id, name: schema.orders.name, placedAt: schema.orders.placedAt, status: schema.orders.status, paymentMethod: schema.orders.paymentMethod, totalMinor: schema.orders.totalMinor, currency: schema.orders.currency }).from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenantId), eq(schema.orders.customerId, customerId))).orderBy(desc(schema.orders.placedAt)).limit(100);
   const memberships = await ctx.tx.select({ id: schema.segments.id, name: schema.segments.name, groupName: schema.segmentMemberships.groupName }).from(schema.segmentMemberships).innerJoin(schema.segments, eq(schema.segments.id, schema.segmentMemberships.segmentId)).where(eq(schema.segmentMemberships.customerId, customerId));
-  return { customer, orders, segments: memberships, returns: customer.returnsCount };
+  return { customer, orders, segments: memberships, returns: customer.returnsCount, prediction: await customerPrediction(ctx, customerId) };
 }

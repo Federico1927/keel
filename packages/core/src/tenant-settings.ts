@@ -36,6 +36,9 @@ export const tenantSettingsSchema = z.object({
   /** Cost of a return label and of handling one return (inspection, repacking), for the P/L. */
   returnLabelCostMinor: z.number().int().min(0).default(0),
   returnHandlingCostMinor: z.number().int().min(0).default(0),
+  /** Customer predictions: P(active) in percent at or above which churn risk is low, and medium. */
+  churnLowPct: z.number().int().min(1).max(100).default(70),
+  churnMediumPct: z.number().int().min(0).max(100).default(40),
   /** Write returns to the commerce platform (return request, approval, restock, refund, close). */
   returnsWriteBack: z.boolean().default(true),
   /** Order tags written on the platform when a return reaches a status (e.g. refunded → "REFUNDED"). */

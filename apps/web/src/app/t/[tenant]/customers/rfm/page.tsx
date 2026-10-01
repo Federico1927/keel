@@ -5,6 +5,7 @@ import { RFM_FREQUENCY_BANDS, RFM_RECENCY_BANDS, buildRfmMatrix, formatMoney, fo
 import { customerProfiles } from "@keel/services";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
+import { CustomerTabs } from "../customer-tabs";
 import { encodeRulesParam } from "@/server/queries/crm";
 import { TierBadge } from "../tier-badge";
 
@@ -24,10 +25,7 @@ export default async function RfmPage({ params }: { params: Promise<{ tenant: st
   return (
     <>
       <PageHeader eyebrow={ctx.tenant.name} title={tc("title")} description={t("description")} />
-      <div className="mb-4 flex gap-1 rounded-md bg-muted p-1 text-sm">
-        <Link href={base} className="flex-1 rounded-sm px-3 py-1.5 text-center text-muted-foreground">{tc("tabs.list")}</Link>
-        <Link href={`${base}/rfm`} className="flex-1 rounded-sm bg-card px-3 py-1.5 text-center shadow-sm">{tc("tabs.rfm")}</Link>
-      </div>
+      <CustomerTabs tenant={tenant} active="rfm" />
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{t("matrix_title")}</CardTitle>

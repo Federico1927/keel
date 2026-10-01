@@ -70,6 +70,8 @@ export async function updateOperationalSettings(slug: string, _prev: ActionResul
       returnShippingFallbackDays: num(formData.get("returnShippingFallbackDays")) ?? current.returnShippingFallbackDays,
       returnExcludedProductTypes: formData.has("returnExcludedProductTypes") ? String(formData.get("returnExcludedProductTypes")).split(",").map((x) => x.trim()).filter(Boolean) : current.returnExcludedProductTypes,
       shippingCostMinor: num(formData.get("shippingCostMinor")) ?? current.shippingCostMinor,
+      churnLowPct: num(formData.get("churnLowPct")) ?? current.churnLowPct,
+      churnMediumPct: num(formData.get("churnMediumPct")) ?? current.churnMediumPct,
       paymentFeeBps: { ...current.paymentFeeBps },
       paymentFeeFixedMinor: { ...current.paymentFeeFixedMinor },
     };

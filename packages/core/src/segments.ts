@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { MAX_SEGMENT_CONDITIONS, MAX_SEGMENT_DEPTH } from "@keel/config";
+import { CHURN_RISKS } from "./predictions";
 
 /**
  * Segment rules: nested AND/OR groups of typed conditions over a customer profile.
@@ -24,7 +25,7 @@ export interface SegmentFieldDef {
   values?: readonly string[] | "dynamic";
   /** Money fields are entered in major units in the UI and stored in minor units. */
   money?: boolean;
-  group: "orders" | "value" | "recency" | "profile" | "products" | "rfm" | "sampling";
+  group: "orders" | "value" | "recency" | "profile" | "products" | "rfm" | "predictions" | "sampling";
 }
 
 export const RFM_RECENCY_BANDS = ["r0_90", "r91_180", "r181_365", "r366_730", "r730_plus"] as const;
@@ -52,6 +53,10 @@ export const SEGMENT_FIELDS: Record<string, SegmentFieldDef> = {
   rfm_recency: { type: "enum", values: RFM_RECENCY_BANDS, group: "rfm" },
   rfm_frequency: { type: "enum", values: RFM_FREQUENCY_BANDS, group: "rfm" },
   rfm_tier: { type: "enum", values: RFM_TIERS, group: "rfm" },
+  churn_risk: { type: "enum", values: CHURN_RISKS, group: "predictions" },
+  p_alive: { type: "number", group: "predictions" },
+  predicted_value: { type: "number", money: true, group: "predictions" },
+  days_to_next_order: { type: "days", group: "predictions" },
   random_pct: { type: "number", group: "sampling" },
 };
 
@@ -156,6 +161,12 @@ export interface CustomerProfile {
   productIds: string[];
   productTypes: string[];
   randomPct: number;
+  /** Predictions (null until the model has run for this customer). P(active) in percent, 0–100. */
+  churnRisk?: string | null;
+  pAlivePct?: number | null;
+  predictedValueMinor?: number | null;
+  /** Days until the expected next order; negative when overdue. */
+  daysToNextOrder?: number | null;
 }
 
 export function profileValue(p: CustomerProfile, field: string, now: Date): unknown {
@@ -176,6 +187,10 @@ export function profileValue(p: CustomerProfile, field: string, now: Date): unkn
     case "rfm_recency": return rfmRecencyBand(p.daysSinceLastOrder);
     case "rfm_frequency": return rfmFrequencyBand(p.ordersCount);
     case "rfm_tier": return rfmTier(p.ordersCount, p.daysSinceLastOrder);
+    case "churn_risk": return p.churnRisk ?? null;
+    case "p_alive": return p.pAlivePct ?? null;
+    case "predicted_value": return p.predictedValueMinor ?? null;
+    case "days_to_next_order": return p.daysToNextOrder ?? null;
     case "random_pct": return p.randomPct;
     default: { void now; return undefined; }
   }

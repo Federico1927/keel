@@ -246,6 +246,7 @@ function ValueEditor({ leaf, options, currency, disabled, onChange }: { leaf: Se
   const t = useTranslations("segment_builder");
   const tr = useTranslations("rfm");
   const tp = useTranslations("payment_methods");
+  const tpr = useTranslations("predictions");
   const def = SEGMENT_FIELDS[leaf.field]!;
   if (leaf.op === "is_null" || leaf.op === "not_null") return null;
   const num = (v: unknown) => (typeof v === "number" ? v : 0);
@@ -288,6 +289,7 @@ function ValueEditor({ leaf, options, currency, disabled, onChange }: { leaf: Se
       case "rfm_recency": return (def.values as readonly string[]).map((v) => ({ value: v, label: tr(`recency.${v}`) }));
       case "rfm_frequency": return (def.values as readonly string[]).map((v) => ({ value: v, label: tr(`frequency.${v}`) }));
       case "rfm_tier": return (def.values as readonly string[]).map((v) => ({ value: v, label: tr(`tier.${v}`) }));
+      case "churn_risk": return (def.values as readonly string[]).map((v) => ({ value: v, label: tpr(`risk.${v}`) }));
       default: return [];
     }
   })();

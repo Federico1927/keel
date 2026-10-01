@@ -1,6 +1,6 @@
 import { parseTenantSettings } from "@keel/core";
 import { adminDb, and, eq, inArray, schema, withTenant } from "@keel/db";
-import { applySuspensions, captureOverdueGuarantees, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
+import { recomputePredictions, applySuspensions, captureOverdueGuarantees, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue } from "@keel/addon-cod";
 import { adsWindow, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
 
@@ -65,6 +65,15 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
       await withTenant(t.id, async (tx) => {
         await evaluateAlertRules(sys(t.id)(tx), { id: t.id, country: t.country, currency: t.currency, timezone: t.timezone, settings: parseTenantSettings(t.settings) }, { appUrl: process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/t/${t.slug}` : undefined });
       });
+    }
+    return;
+  }
+  if (job.kind === "crm") {
+    // nightly, after the reconciliation: refit customer predictions on the day's orders
+    const tenants = await adminDb().select({ id: schema.tenants.id, status: schema.tenants.status, settings: schema.tenants.settings }).from(schema.tenants);
+    for (const t of tenants) {
+      if (t.status !== "active") continue;
+      await withTenant(t.id, (tx) => recomputePredictions(sys(t.id)(tx), parseTenantSettings(t.settings)));
     }
     return;
   }
