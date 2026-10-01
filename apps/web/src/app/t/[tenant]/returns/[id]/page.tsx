@@ -9,7 +9,7 @@ import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Tab
 import { requirePage } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
 import { ReturnWorkflow } from "./workflow";
-import { BankDetails, PlatformSyncCard } from "./platform-card";
+import { BankDetails, PlatformSyncCard, ReviewToggle } from "./platform-card";
 
 const STEPS = ["requested", "approved", "received", "inspected"] as const;
 
@@ -41,6 +41,9 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ t
           <Badge variant={r.fault === "merchant" ? "warning" : "muted"}>{t(`faults.${r.fault}`)}</Badge>
           {r.outOfWindow && <Badge variant="warning">{tr("out_of_window")}</Badge>}
           <Badge variant={r.source === "portal" ? "info" : "outline"} data-testid="return-source">{tr(`source.${r.source}`)}</Badge>
+          {r.riskLevel && r.riskLevel !== "none" && <Badge variant={r.riskLevel === "high" ? "destructive" : "warning"} data-testid="return-risk">{t(`risk.${r.riskLevel}`)}</Badge>}
+          {r.needsReview && <Badge variant="warning" data-testid="return-review-badge">{t("needs_review")}</Badge>}
+          {r.returnless && <Badge variant="outline">{t("returnless")}</Badge>}
         </>
       }
       actions={<ReturnWorkflow slug={tenant} returnId={r.id} status={r.status} resolution={r.resolution} lines={lines.map((l) => ({ id: l.id, title: l.title, variantTitle: l.variantTitle, quantity: l.quantity, unitAmountMinor: l.unitAmountMinor, restocked: l.restocked, inspectionAmountMinor: l.inspectionAmountMinor, hasVariant: Boolean(l.variantId) }))} locations={locations} proposedAmountMinor={r.proposedAmountMinor} currency={order.currency} locale={ctx.locale} canAct={canAct} />}
@@ -93,6 +96,21 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ t
               </CardContent>
             </Card>
           )}
+          {(r.riskLevel || r.automations.length > 0) && (
+            <Card data-testid="return-rules-card">
+              <CardHeader><CardTitle className="text-base">{t("rules_title")}</CardTitle></CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                {r.riskLevel && <p><span className="text-muted-foreground">{t("risk_label")}:</span> {t(`risk.${r.riskLevel}`)}{r.riskReasons.length ? ` · ${r.riskReasons.map((x) => t(`risk_reasons.${x}`)).join(", ")}` : ""}</p>}
+                {r.automations.length > 0 && (
+                  <ul className="space-y-0.5" data-testid="return-automations">
+                    {r.automations.map((a) => <li key={a.id}>{a.name} <span className="text-xs text-muted-foreground">· {t(`automation_actions.${a.action}`)}</span></li>)}
+                  </ul>
+                )}
+                {canAct && <ReviewToggle slug={tenant} returnId={r.id} needsReview={r.needsReview} />}
+              </CardContent>
+            </Card>
+          )}
+          {!r.riskLevel && r.automations.length === 0 && canAct && <ReviewToggle slug={tenant} returnId={r.id} needsReview={r.needsReview} />}
           <PlatformSyncCard slug={tenant} returnId={r.id} syncStatus={r.platformSyncStatus} platformStatus={r.platformStatus} externalId={r.externalId} refundId={r.platformRefundId} error={r.platformError} syncedAt={r.platformSyncedAt ? formatDateTime(r.platformSyncedAt, ctx.locale, ctx.tenant.timezone) : null} canAct={canAct} />
         </div>
       }

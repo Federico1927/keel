@@ -1625,7 +1625,10 @@
       "staff": "Equipo",
       "portal": "Portal",
       "platform": "Tienda"
-    }
+    },
+    "policy": "Política y automatizaciones",
+    "needs_review": "Por revisar",
+    "risk_high": "riesgo alto"
   },
   "return_detail": {
     "order": "Pedido",
@@ -1750,7 +1753,31 @@
         "declined": "Devolución rechazada",
         "closed": "Devolución cerrada"
       }
-    }
+    },
+    "risk": {
+      "none": "Cliente normal",
+      "watch": "Cliente a vigilar",
+      "high": "Cliente de alto riesgo"
+    },
+    "needs_review": "Por revisar",
+    "returnless": "Se lo queda el cliente",
+    "rules_title": "Reglas",
+    "risk_label": "Riesgo del cliente",
+    "risk_reasons": {
+      "serial_returner": "devuelve la mayor parte de lo que compra",
+      "frequent_returner": "devuelve a menudo",
+      "wear_and_return": "devuelve justo tras la entrega, por su culpa",
+      "high_returned_value": "valor devuelto elevado"
+    },
+    "automation_actions": {
+      "approve": "aprobada automáticamente",
+      "reject": "rechazada automáticamente",
+      "flag": "marcada para revisión",
+      "set_fault": "culpa fijada",
+      "returnless": "reembolsada sin devolución"
+    },
+    "mark_reviewed": "Marcar como revisada",
+    "flag_review": "Marcar para revisión"
   },
   "return_new": {
     "title": "Devolución de {order}",
@@ -1764,7 +1791,7 @@
     "qty_for": "Cantidad para {title}",
     "customer_note": "Nota del cliente",
     "staff_note": "Nota interna",
-    "staff_note_required": "Nota interna (obligatoria para forzar el plazo)",
+    "staff_note_required": "Nota interna (obligatoria para saltar la política)",
     "summary": "Resumen",
     "items": "Artículos",
     "proposed": "Reembolso propuesto",
@@ -1773,14 +1800,27 @@
     "not_eligible": {
       "cancelled": "El pedido está cancelado o reembolsado.",
       "not_delivered": "El pedido aún no se ha entregado.",
-      "expired": "El plazo de devolución ha vencido."
+      "expired": "El plazo de devolución ha vencido.",
+      "customer_limit": "El cliente alcanzó el límite de devoluciones de la política.",
+      "nothing_returnable": "Ningún artículo de este pedido admite devolución según la política."
     },
     "errors": {
       "return_not_eligible": "El pedido no es apto para devolución.",
       "return_no_lines": "Elige al menos un artículo.",
       "return_quantity_exceeds": "La cantidad supera lo retornable.",
       "return_bad_reason": "Elige un motivo válido.",
-      "return_order_not_found": "Pedido no encontrado."
+      "return_order_not_found": "Pedido no encontrado.",
+      "return_customer_limit": "El cliente alcanzó el límite de devoluciones.",
+      "return_line_blocked": "Un artículo está excluido por la política de devoluciones."
+    },
+    "override_label": "Saltar la política (nota interna obligatoria)",
+    "blocks": {
+      "excluded_type": "no admite devolución (tipo de producto)",
+      "excluded_sku": "no admite devolución (artículo excluido)",
+      "excluded_title": "no admite devolución (artículo excluido)",
+      "excluded_tag": "no admite devolución (colección)",
+      "final_sale": "venta final",
+      "expired": "plazo de devolución cerrado"
     }
   },
   "returns_analytics": {
@@ -2974,7 +3014,8 @@
       "cancelled": "Este pedido se canceló, así que no hay nada que devolver.",
       "not_delivered": "Este pedido aún no se ha entregado: vuelve cuando llegue.",
       "expired": "El plazo de devolución de este pedido ha terminado.",
-      "nothing_returnable": "Todos los artículos de este pedido ya están en una devolución."
+      "nothing_returnable": "Todos los artículos de este pedido ya están en una devolución.",
+      "customer_limit": "Has alcanzado el máximo de devoluciones permitidas: contáctanos."
     },
     "contact_support": "¿Dudas? Escribe a",
     "done": {
@@ -3002,6 +3043,86 @@
       "photo_type": "Este archivo no es una imagen compatible.",
       "confirm_required": "Marca la casilla de confirmación.",
       "fields_invalid": "Rellena los campos obligatorios."
+    },
+    "blocks": {
+      "excluded_type": "no admite devolución (tipo de producto)",
+      "excluded_sku": "no admite devolución (artículo excluido)",
+      "excluded_title": "no admite devolución (artículo excluido)",
+      "excluded_tag": "no admite devolución (colección)",
+      "final_sale": "venta final",
+      "expired": "plazo de devolución cerrado"
+    }
+  },
+  "return_policy": {
+    "back": "Devoluciones",
+    "title": "Política de devoluciones y automatizaciones",
+    "description": "Reglas además del plazo por defecto de {days} días. Se aplican al portal y al equipo; el equipo puede saltarlas con una nota.",
+    "windows": "Plazos de devolución",
+    "windows_hint": "Un plazo se aplica a los artículos enviados a esos países, de esos tipos de producto o con esas etiquetas (vacío = cualquiera). Si coinciden varios gana el más largo; una coincidencia sustituye al plazo por defecto, también si es más corto.",
+    "countries": "Países (IT, DE…)",
+    "product_types": "Tipos de producto",
+    "tags": "Etiquetas de producto",
+    "days": "Días",
+    "add_window": "Añadir plazo",
+    "exclusions": "Nunca admiten devolución",
+    "exclusions_hint": "Separados por comas. Los artículos que coinciden con una lista no se pueden devolver.",
+    "ex": {
+      "productTypes": "Tipos de producto",
+      "skuPrefixes": "Prefijos de SKU",
+      "titleContains": "El título contiene",
+      "tags": "Etiquetas de producto"
+    },
+    "final_sale": "Venta final desde descuento (%)",
+    "final_sale_hint": "Los artículos comprados con al menos este descuento, en la línea o frente al precio tachado, son venta final. Vacío = sin regla.",
+    "customers": "Clientes",
+    "customers_hint": "Limita la frecuencia de devoluciones por cliente y cuándo marcarlo como de riesgo.",
+    "limit_on": "Limitar devoluciones por cliente",
+    "limit_count": "Devoluciones",
+    "limit_days": "En días",
+    "risk_watch": "A vigilar desde tasa de devolución (%)",
+    "risk_high": "Riesgo alto desde tasa de devolución (%)",
+    "risk_min_returns": "Devoluciones mínimas para juzgar",
+    "risk_quick": "Devolución rápida en (días)",
+    "risk_value": "Valor devuelto elevado ({currency})",
+    "risk_hint": "El riesgo se muestra en cada devolución y puede guiar las automatizaciones. Por sí solo nunca bloquea a un cliente.",
+    "automations": "Automatizaciones",
+    "automations_hint": "Se ejecutan en orden al crear una devolución. Las marcas y la culpa se suman; la primera decisión (aprobar, rechazar, reembolsar sin devolución) detiene la lista. Rechazar y reembolsar sin devolución necesitan al menos una condición.",
+    "auto_name": "Nombre",
+    "auto_action": "Acción",
+    "auto_fault": "Culpa",
+    "auto_note": "Nota escrita en la devolución",
+    "active": "Activa",
+    "up": "Subir",
+    "down": "Bajar",
+    "new_automation": "Nueva automatización",
+    "add_automation": "Añadir automatización",
+    "actions": {
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "flag": "Marcar para revisión",
+      "set_fault": "Fijar culpa",
+      "returnless": "Reembolsar sin devolución"
+    },
+    "faults": {
+      "merchant": "Nuestra",
+      "customer": "Del cliente",
+      "undetermined": "Por valorar"
+    },
+    "cond": {
+      "max_amount": "Hasta ({currency})",
+      "min_amount": "Desde ({currency})",
+      "product_types": "Tipos de producto",
+      "max_risk": "Riesgo del cliente como máximo",
+      "min_risk": "Riesgo del cliente al menos",
+      "first_only": "Solo la primera devolución del cliente",
+      "reasons": "Motivos",
+      "resolutions": "Resoluciones",
+      "sources": "Desde"
+    },
+    "risk": {
+      "none": "Normal",
+      "watch": "A vigilar",
+      "high": "Alto"
     }
   }
 }

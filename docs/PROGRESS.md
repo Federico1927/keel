@@ -205,6 +205,18 @@ Fatto (issue #4):
 
 Resta per l'Area 3 (issue #5): regole di idoneità avanzate, cambi con differenza da pagare, bonus sul buono, workflow automatici, segnali di frode, analisi per opzione, pagina di tracking per il cliente.
 
+## Programma di profondità — Area 3, secondo blocco (politica, automazioni, rischio)
+
+Fatto (issue #5, prima parte):
+- Politica dei resi per negozio: finestre per paese, tipo di prodotto e tag; esclusioni per tipo, prefisso SKU, titolo e tag; vendita finale da soglia di sconto; limite di resi per cliente. Ogni riga dice perché non è restituibile, sia nel portale sia per lo staff, che può derogare con una nota.
+- Rischio del cliente spiegato (tasso di reso, resi rapidi per colpa del cliente, valore reso alto), mostrato su ogni reso, con segnalazione "da rivedere" e filtro.
+- Automazioni ordinate alla creazione del reso: approva, rifiuta, segnala, imposta colpa, rimborsa senza reso. Passano dal workflow normale; rifiuta e rimborsa senza reso richiedono almeno una condizione.
+- Seed: politica e tre automazioni per entrambi i negozi, alcuni clienti con storico di resi reale e un reso aperto da rivedere, resi "tenuti dal cliente".
+- Due test e2e resi ripetibili sullo stesso database.
+- Migrazione 0010 (1 tabella con RLS, colonne additive); test core 119, servizi 50, db 414, e2e 52.
+
+Resta per la issue #5: cambi con differenza da pagare e bonus sul buono (3.3, 3.5), analisi per opzione e costo dei resi nel P/L (3.9), pagina di tracking per il cliente (3.10), interfacce esterne per cambio immediato ed etichette (3.4, 3.7).
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

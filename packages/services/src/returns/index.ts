@@ -1,13 +1,12 @@
 import { and, desc, eq, gte, inArray, lt, schema, sql, type SQL } from "@keel/db";
-import { RETURN_GOODS_BACK_STATUSES, SALE_STATUSES, canTransitionReturn, isReturnStatus, proposedReturnAmount, returnEligibility, returnableLines, returnedFractionBps, type Eligibility, type Period, type ReturnStatus, type ReturnableLine, type TenantSettings } from "@keel/core";
+import { RETURN_GOODS_BACK_STATUSES, SALE_STATUSES, canTransitionReturn, isReturnStatus, customerLimitReached, lineBlock, lineWindowDays, proposedReturnAmount, returnEligibility, returnableLines, returnedFractionBps, type LineBlock, type Eligibility, type Period, type ReturnStatus, type ReturnableLine, type TenantSettings } from "@keel/core";
 import type { ServiceContext } from "../context";
 import { recomputeOrderStatus } from "../orders/state";
 
-export class ReturnError extends Error {
-  constructor(public readonly code: "order_not_found" | "return_not_found" | "not_eligible" | "no_lines" | "quantity_exceeds" | "bad_transition" | "bad_reason" | "location_required" | "invalid_input") {
-    super(code);
-  }
-}
+import { ReturnError } from "./errors";
+import { applyReturnAutomations, customerReturnStats, getReturnPolicy } from "./policy";
+
+export { ReturnError };
 
 /* ---------- reasons ---------- */
 
@@ -34,26 +33,72 @@ export async function setReturnReasonActive(ctx: ServiceContext, reasonId: strin
 
 /* ---------- eligibility and creation ---------- */
 
+export type LineReturnBlock = LineBlock | "expired";
+
 export interface OrderReturnContext {
   order: typeof schema.orders.$inferSelect;
-  eligibility: Eligibility;
-  lines: (ReturnableLine & { title: string; variantTitle: string | null; sku: string | null; variantId: string | null })[];
+  /** Order-level view: eligible when at least one line can be returned now. */
+  eligibility: Omit<Eligibility, "reason"> & { reason: Eligibility["reason"] | "customer_limit" | "nothing_returnable" };
+  lines: (ReturnableLine & { title: string; variantTitle: string | null; sku: string | null; variantId: string | null; block: LineReturnBlock | null; deadline: Date | null; windowDays: number; maxQuantity: number })[];
   openReturns: number;
+  customerLimitReached: boolean;
 }
 
-/** What a staff member sees before opening a return: eligibility, returnable lines, previous returns. */
+/**
+ * What a staff member or the customer sees before opening a return. Each line gets its own
+ * window (policy rules by country, product type, tag) and its own block (exclusions, final
+ * sale, expired). `returnable` is what can be returned now; `maxQuantity` ignores the policy
+ * and is what staff may still return with an override and a note.
+ */
 export async function orderReturnContext(ctx: ServiceContext, settings: TenantSettings, orderId: string): Promise<OrderReturnContext> {
   const now = ctx.now ?? new Date();
   const [order] = await ctx.tx.select().from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenantId), eq(schema.orders.id, orderId))).limit(1);
   if (!order) throw new ReturnError("order_not_found");
+  const policy = await getReturnPolicy(ctx);
   const [shipment] = await ctx.tx.select({ deliveredAt: schema.shipments.deliveredAt, shippedAt: schema.shipments.shippedAt }).from(schema.shipments).where(and(eq(schema.shipments.tenantId, ctx.tenantId), eq(schema.shipments.orderId, orderId))).orderBy(desc(schema.shipments.createdAt)).limit(1);
-  const eligibility = returnEligibility({ orderStatus: order.status, deliveredAt: shipment?.deliveredAt ?? null, shippedAt: shipment?.shippedAt ?? null, now, windowDays: settings.returnWindowDays, shippingFallbackDays: settings.returnShippingFallbackDays });
-  const lines = await ctx.tx.select({ id: schema.orderLines.id, quantity: schema.orderLines.quantity, unitPriceMinor: schema.orderLines.unitPriceMinor, totalMinor: schema.orderLines.totalMinor, isAncillary: schema.orderLines.isAncillary, title: schema.orderLines.title, variantTitle: schema.orderLines.variantTitle, sku: schema.orderLines.sku, variantId: schema.orderLines.variantId, productType: schema.products.productType }).from(schema.orderLines).leftJoin(schema.products, eq(schema.products.id, schema.orderLines.productId)).where(eq(schema.orderLines.orderId, orderId));
+  const lines = await ctx.tx
+    .select({ id: schema.orderLines.id, quantity: schema.orderLines.quantity, unitPriceMinor: schema.orderLines.unitPriceMinor, totalMinor: schema.orderLines.totalMinor, discountMinor: schema.orderLines.discountMinor, isAncillary: schema.orderLines.isAncillary, title: schema.orderLines.title, variantTitle: schema.orderLines.variantTitle, sku: schema.orderLines.sku, variantId: schema.orderLines.variantId, productType: schema.products.productType, tags: schema.products.tags, compareAtMinor: schema.productVariants.compareAtMinor })
+    .from(schema.orderLines)
+    .leftJoin(schema.products, eq(schema.products.id, schema.orderLines.productId))
+    .leftJoin(schema.productVariants, eq(schema.productVariants.id, schema.orderLines.variantId))
+    .where(eq(schema.orderLines.orderId, orderId));
   const previous = await ctx.tx.select({ orderLineId: schema.returnLines.orderLineId, qty: sql<number>`sum(${schema.returnLines.quantity})::int` }).from(schema.returnLines).innerJoin(schema.returnRequests, eq(schema.returnRequests.id, schema.returnLines.returnId)).where(and(eq(schema.returnRequests.orderId, orderId), sql`${schema.returnRequests.status} <> 'rejected'`)).groupBy(schema.returnLines.orderLineId);
   const previouslyReturned = Object.fromEntries(previous.map((p) => [p.orderLineId, p.qty]));
-  const computed = returnableLines(lines.map((l) => ({ id: l.id, quantity: l.quantity, unitPriceMinor: l.unitPriceMinor, totalMinor: l.totalMinor, productType: l.productType, isAncillary: l.isAncillary })), order.discountMinor, previouslyReturned, settings.returnExcludedProductTypes);
+  const base = returnableLines(lines.map((l) => ({ id: l.id, quantity: l.quantity, unitPriceMinor: l.unitPriceMinor, totalMinor: l.totalMinor, productType: l.productType, isAncillary: l.isAncillary })), order.discountMinor, previouslyReturned, []);
+  // order-level state with the longest line window: cancelled / not delivered apply to every line
+  const windows = lines.map((l) => lineWindowDays({ productType: l.productType, tags: l.tags ?? [] }, order.shippingCountry, policy, settings.returnWindowDays));
+  const orderLevel = returnEligibility({ orderStatus: order.status, deliveredAt: shipment?.deliveredAt ?? null, shippedAt: shipment?.shippedAt ?? null, now, windowDays: Math.max(settings.returnWindowDays, ...windows), shippingFallbackDays: settings.returnShippingFallbackDays });
+  const delivery = orderLevel.deliveryDate;
+  const computed = base.map((c, i) => {
+    const l = lines[i]!;
+    const listMinor = l.unitPriceMinor * l.quantity;
+    const lineDiscountBps = listMinor > 0 ? Math.round((l.discountMinor / listMinor) * 10000) : 0;
+    const compareBps = l.compareAtMinor && l.compareAtMinor > l.unitPriceMinor ? Math.round(((l.compareAtMinor - l.unitPriceMinor) / l.compareAtMinor) * 10000) : 0;
+    const policyBlock = l.isAncillary ? null : lineBlock({ id: l.id, productType: l.productType, sku: l.sku, title: l.title, tags: l.tags ?? [], discountBps: Math.max(lineDiscountBps, compareBps) }, policy, settings.returnExcludedProductTypes);
+    const windowDays = windows[i]!;
+    const deadline = delivery ? new Date(delivery.getTime() + windowDays * 864e5) : null;
+    const expired = Boolean(deadline && deadline.getTime() < now.getTime());
+    const block: LineReturnBlock | null = policyBlock ?? (orderLevel.reason === null || orderLevel.reason === "expired" ? (expired ? "expired" : null) : null);
+    const maxQuantity = l.isAncillary ? 0 : Math.max(0, l.quantity - c.alreadyReturned);
+    const open = orderLevel.reason === null || orderLevel.reason === "expired";
+    return { ...c, excluded: c.excluded || policyBlock !== null, returnable: open && !block ? maxQuantity : 0, title: l.title, variantTitle: l.variantTitle, sku: l.sku, variantId: l.variantId, block, deadline, windowDays, maxQuantity };
+  });
+  const stats = policy.customerLimit ? await customerReturnStats(ctx, policy, orderId) : null;
+  const limitReached = stats ? customerLimitReached(policy, stats.returnDates, now) : false;
+  const anyReturnable = computed.some((l) => l.returnable > 0);
+  const lastDeadline = computed.filter((l) => !l.block || l.block === "expired").reduce<Date | null>((m, l) => (l.deadline && (!m || l.deadline > m) ? l.deadline : m), null);
+  const eligibility: OrderReturnContext["eligibility"] =
+    orderLevel.reason === "cancelled" || orderLevel.reason === "not_delivered"
+      ? orderLevel
+      : limitReached
+        ? { ...orderLevel, eligible: false, reason: "customer_limit" }
+        : anyReturnable
+          ? { eligible: true, reason: null, deliveryDate: delivery, deadline: lastDeadline, daysLeft: lastDeadline ? Math.floor((lastDeadline.getTime() - now.getTime()) / 864e5) : null }
+          : computed.some((l) => l.block === "expired")
+            ? { eligible: false, reason: "expired", deliveryDate: delivery, deadline: lastDeadline, daysLeft: lastDeadline ? Math.floor((lastDeadline.getTime() - now.getTime()) / 864e5) : null }
+            : { ...orderLevel, eligible: false, reason: "nothing_returnable" };
   const [open] = await ctx.tx.select({ n: sql<number>`count(*)::int` }).from(schema.returnRequests).where(and(eq(schema.returnRequests.orderId, orderId), sql`${schema.returnRequests.status} not in ('refunded','exchanged','voucher_issued','rejected')`));
-  return { order, eligibility, lines: computed.map((c, i) => ({ ...c, title: lines[i]!.title, variantTitle: lines[i]!.variantTitle, sku: lines[i]!.sku, variantId: lines[i]!.variantId })), openReturns: open?.n ?? 0 };
+  return { order, eligibility, lines: computed, openReturns: open?.n ?? 0, customerLimitReached: limitReached };
 }
 
 export interface CreateReturnInput {
@@ -80,16 +125,22 @@ export async function createReturn(ctx: ServiceContext, settings: TenantSettings
   const context = await orderReturnContext(ctx, settings, input.orderId);
   const reason = (await listReturnReasons(ctx, true)).find((r) => r.code === input.reasonCode);
   if (!reason) throw new ReturnError("bad_reason");
-  if (!context.eligibility.eligible) {
-    if (!input.overrideWindow || !input.staffNote?.trim()) throw new ReturnError("not_eligible");
-    if (context.eligibility.reason !== "expired") throw new ReturnError("not_eligible");
-  }
+  // staff may override the window, exclusions and the customer limit with a note; never a cancelled or undelivered order, never the portal
+  const override = input.source !== "portal" && input.overrideWindow === true && Boolean(input.staffNote?.trim());
+  if (context.eligibility.reason === "cancelled" || context.eligibility.reason === "not_delivered") throw new ReturnError("not_eligible");
+  if (context.customerLimitReached && !override) throw new ReturnError("customer_limit");
   const wanted = input.lines.filter((l) => l.quantity > 0);
   if (!wanted.length) throw new ReturnError("no_lines");
+  let outOfPolicy = false;
   for (const w of wanted) {
     const line = context.lines.find((l) => l.id === w.orderLineId);
-    if (!line || w.quantity > line.returnable) throw new ReturnError("quantity_exceeds");
+    if (!line || w.quantity > line.maxQuantity) throw new ReturnError("quantity_exceeds");
+    if (line.block) {
+      if (!override) throw new ReturnError(line.block === "expired" ? "not_eligible" : "line_blocked");
+      outOfPolicy = true;
+    }
   }
+  if (context.customerLimitReached) outOfPolicy = true;
   const [maxRow] = await ctx.tx.select({ n: sql<number>`coalesce(max(${schema.returnRequests.number}), 0)::int` }).from(schema.returnRequests).where(eq(schema.returnRequests.tenantId, ctx.tenantId));
   const number = (maxRow?.n ?? 0) + 1;
   const amounts = proposedReturnAmount(wanted.map((w) => ({ quantity: w.quantity, unitNetMinor: context.lines.find((l) => l.id === w.orderLineId)!.unitNetMinor })), reason.defaultFault, settings.returnShippingCostMinor);
@@ -107,7 +158,7 @@ export async function createReturn(ctx: ServiceContext, settings: TenantSettings
       staffNote: input.staffNote ?? null,
       proposedAmountMinor: amounts.proposedMinor,
       deductionMinor: amounts.deductionMinor,
-      outOfWindow: !context.eligibility.eligible,
+      outOfWindow: outOfPolicy,
       requestedAt: now,
       createdBy: ctx.actor.userId,
       source: input.source ?? "staff",
@@ -122,7 +173,8 @@ export async function createReturn(ctx: ServiceContext, settings: TenantSettings
     })
     .returning({ id: schema.returnRequests.id });
   await ctx.tx.insert(schema.returnLines).values(wanted.map((w) => ({ tenantId: ctx.tenantId, returnId: row!.id, orderLineId: w.orderLineId, quantity: w.quantity, unitAmountMinor: context.lines.find((l) => l.id === w.orderLineId)!.unitNetMinor })));
-  await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: input.orderId, type: "return_requested", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: {}, metadata: { returnId: row!.id, number, reason: reason.code, resolution: input.resolution, outOfWindow: !context.eligibility.eligible, source: input.source ?? "staff" }, createdAt: now });
+  await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: input.orderId, type: "return_requested", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: {}, metadata: { returnId: row!.id, number, reason: reason.code, resolution: input.resolution, outOfWindow: outOfPolicy, source: input.source ?? "staff" }, createdAt: now });
+  if (input.source !== "platform") await applyReturnAutomations(ctx, settings, row!.id, (to, note) => transitionReturn({ ...ctx, actor: { type: "system", userId: null } }, { returnId: row!.id, to, note: `auto: ${note}` }));
   return { id: row!.id, number };
 }
 
@@ -210,6 +262,8 @@ export interface ReturnFilters {
   source?: string;
   /** "error": write to the platform failed. */
   sync?: string;
+  /** "1": flagged for review. */
+  review?: string;
   reason?: string;
   q?: string;
   page?: number;
@@ -225,13 +279,14 @@ export async function listReturns(ctx: ServiceContext, f: ReturnFilters = {}) {
   if (f.reason) conds.push(eq(schema.returnRequests.reasonCode, f.reason));
   if (f.source) conds.push(eq(schema.returnRequests.source, f.source));
   if (f.sync === "error") conds.push(eq(schema.returnRequests.platformSyncStatus, "error"));
+  if (f.review === "1") conds.push(eq(schema.returnRequests.needsReview, true));
   if (f.q) conds.push(sql`(${schema.orders.name} ilike ${"%" + f.q + "%"} or ${schema.orders.customerName} ilike ${"%" + f.q + "%"} or ${schema.orders.email} ilike ${"%" + f.q + "%"} or cast(${schema.returnRequests.number} as text) = ${f.q.replace(/^R-/i, "")})`);
   const where = and(...conds);
-  const rows = await ctx.tx.select({ id: schema.returnRequests.id, number: schema.returnRequests.number, status: schema.returnRequests.status, reasonCode: schema.returnRequests.reasonCode, resolution: schema.returnRequests.resolution, fault: schema.returnRequests.fault, proposedAmountMinor: schema.returnRequests.proposedAmountMinor, refundedAmountMinor: schema.returnRequests.refundedAmountMinor, requestedAt: schema.returnRequests.requestedAt, closedAt: schema.returnRequests.closedAt, outOfWindow: schema.returnRequests.outOfWindow, source: schema.returnRequests.source, platformSyncStatus: schema.returnRequests.platformSyncStatus, orderId: schema.orders.id, orderName: schema.orders.name, customerName: schema.orders.customerName, currency: schema.orders.currency, items: sql<number>`(select coalesce(sum(l.quantity),0) from return_lines l where l.return_id = ${schema.returnRequests.id})::int` }).from(schema.returnRequests).innerJoin(schema.orders, eq(schema.orders.id, schema.returnRequests.orderId)).where(where).orderBy(desc(schema.returnRequests.requestedAt)).limit(pageSize).offset((page - 1) * pageSize);
+  const rows = await ctx.tx.select({ id: schema.returnRequests.id, number: schema.returnRequests.number, status: schema.returnRequests.status, reasonCode: schema.returnRequests.reasonCode, resolution: schema.returnRequests.resolution, fault: schema.returnRequests.fault, proposedAmountMinor: schema.returnRequests.proposedAmountMinor, refundedAmountMinor: schema.returnRequests.refundedAmountMinor, requestedAt: schema.returnRequests.requestedAt, closedAt: schema.returnRequests.closedAt, outOfWindow: schema.returnRequests.outOfWindow, source: schema.returnRequests.source, platformSyncStatus: schema.returnRequests.platformSyncStatus, needsReview: schema.returnRequests.needsReview, riskLevel: schema.returnRequests.riskLevel, returnless: schema.returnRequests.returnless, orderId: schema.orders.id, orderName: schema.orders.name, customerName: schema.orders.customerName, currency: schema.orders.currency, items: sql<number>`(select coalesce(sum(l.quantity),0) from return_lines l where l.return_id = ${schema.returnRequests.id})::int` }).from(schema.returnRequests).innerJoin(schema.orders, eq(schema.orders.id, schema.returnRequests.orderId)).where(where).orderBy(desc(schema.returnRequests.requestedAt)).limit(pageSize).offset((page - 1) * pageSize);
   const [count] = await ctx.tx.select({ n: sql<number>`count(*)::int` }).from(schema.returnRequests).innerJoin(schema.orders, eq(schema.orders.id, schema.returnRequests.orderId)).where(where);
   const counts = await ctx.tx.select({ status: schema.returnRequests.status, n: sql<number>`count(*)::int` }).from(schema.returnRequests).where(eq(schema.returnRequests.tenantId, ctx.tenantId)).groupBy(schema.returnRequests.status);
-  const [extra] = await ctx.tx.select({ syncErrors: sql<number>`count(*) filter (where ${schema.returnRequests.platformSyncStatus} = 'error')::int`, portal: sql<number>`count(*) filter (where ${schema.returnRequests.source} = 'portal')::int` }).from(schema.returnRequests).where(eq(schema.returnRequests.tenantId, ctx.tenantId));
-  return { rows, total: count?.n ?? 0, page, pageSize, counts: Object.fromEntries(counts.map((c) => [c.status, c.n])) as Record<string, number>, syncErrors: extra?.syncErrors ?? 0, portalCount: extra?.portal ?? 0 };
+  const [extra] = await ctx.tx.select({ syncErrors: sql<number>`count(*) filter (where ${schema.returnRequests.platformSyncStatus} = 'error')::int`, portal: sql<number>`count(*) filter (where ${schema.returnRequests.source} = 'portal')::int`, review: sql<number>`count(*) filter (where ${schema.returnRequests.needsReview} and ${schema.returnRequests.status} not in ('refunded','exchanged','voucher_issued','rejected'))::int` }).from(schema.returnRequests).where(eq(schema.returnRequests.tenantId, ctx.tenantId));
+  return { rows, total: count?.n ?? 0, page, pageSize, counts: Object.fromEntries(counts.map((c) => [c.status, c.n])) as Record<string, number>, syncErrors: extra?.syncErrors ?? 0, portalCount: extra?.portal ?? 0, reviewCount: extra?.review ?? 0 };
 }
 
 export async function returnDetail(ctx: ServiceContext, returnId: string) {
@@ -296,3 +351,5 @@ export async function returnsAnalytics(ctx: ServiceContext, period: Period): Pro
 
 export * from "./platform";
 export * from "./portal";
+export * from "./policy";
+export * from "./errors";
