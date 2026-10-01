@@ -37,6 +37,7 @@ export async function listSegmentDestinations(ctx: ServiceContext, segmentId: st
 }
 
 export interface DestinationSyncResult {
+  destinationId: string;
   status: "ok" | "error";
   added: number;
   removed: number;
@@ -88,11 +89,11 @@ export async function syncSegmentDestination(ctx: ServiceContext, destinationId:
     for (let i = 0; i < toAdd.length; i += 1000) await ctx.tx.insert(schema.segmentDestinationMembers).values(toAdd.slice(i, i + 1000).map((customerId) => ({ tenantId: ctx.tenantId, destinationId, customerId, syncedAt: now }))).onConflictDoNothing();
     if (toRemoveIds.length) await ctx.tx.delete(schema.segmentDestinationMembers).where(and(eq(schema.segmentDestinationMembers.destinationId, destinationId), inArray(schema.segmentDestinationMembers.customerId, toRemoveIds)));
     await ctx.tx.update(schema.segmentDestinations).set({ externalAudienceId: audienceId, status: "ok", memberCount: desired.size, lastSyncAt: now, lastAdded: toAdd.length, lastRemoved: toRemoveIds.length, lastError: null }).where(eq(schema.segmentDestinations.id, destinationId));
-    return { status: "ok", added: toAdd.length, removed: toRemoveIds.length, members: desired.size, unmatched };
+    return { destinationId, status: "ok", added: toAdd.length, removed: toRemoveIds.length, members: desired.size, unmatched };
   } catch (e) {
     const message = e instanceof IntegrationError ? `${e.code}: ${e.message}` : e instanceof Error ? e.message : "error";
     await ctx.tx.update(schema.segmentDestinations).set({ status: "error", lastSyncAt: now, lastError: message.slice(0, 300) }).where(eq(schema.segmentDestinations.id, destinationId));
-    return { status: "error", added: 0, removed: 0, members: current.size, unmatched, error: message };
+    return { destinationId, status: "error", added: 0, removed: 0, members: current.size, unmatched, error: message };
   }
 }
 

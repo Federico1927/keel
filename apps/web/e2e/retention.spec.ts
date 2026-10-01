@@ -42,7 +42,7 @@ test.describe("crm: control groups belong to the customer-campaigns add-on", () 
     await login(page, "owner@harborhome.demo");
     await page.goto("/t/harbor-home/segments");
     await expect(page.getByTestId("segment-row").first()).toBeVisible();
-    await expect(page.getByRole("link", { name: /^Campaigns$/ })).toHaveCount(0);
+    await expect(page.locator('a[href$="/segments/campaigns"]')).toHaveCount(0);
     await page.getByTestId("segment-row").first().getByRole("link").first().click();
     await expect(page.getByTestId("member-row").first()).toBeVisible();
     await expect(page.getByLabel(/Holdout %/)).toHaveCount(0);

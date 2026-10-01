@@ -38,17 +38,17 @@ describe("live segments", () => {
     const changed = await run((s) => customersChangedSince(s, seg!.lastEvaluatedAt!));
     expect(changed).toContain(candidate);
     expect(changed.length).toBeLessThan(10);
-    const [delta] = await run((s) => refreshLiveSegments(s));
+    const delta = (await run((s) => refreshLiveSegments(s))).find((d) => d.segmentId === id);
     expect(delta!.added).toBe(1);
     expect(delta!.count).toBe(first.count + 1);
     const after = new Map((await run((s) => segmentMembers(s, id))).map((m) => [m.customerId, m.groupName]));
     for (const [cid, g] of groups) expect(after.get(cid)).toBe(g);
     // cancelling the order takes the customer out again
     await run((s) => s.tx.update(schema.orders).set({ status: "cancelled", updatedAt: new Date(Date.now() + 1000) }).where(and(eq(schema.orders.tenantId, tenantId), eq(schema.orders.name, "#LV-1"))));
-    const [delta2] = await run((s) => refreshLiveSegments(s), new Date(Date.now() + 2000));
+    const delta2 = (await run((s) => refreshLiveSegments(s), new Date(Date.now() + 2000))).find((d) => d.segmentId === id);
     expect(delta2!.removed).toBe(1);
     // a full refresh agrees with the incremental state
-    const [full] = await run((s) => refreshLiveSegments(s, { full: true }));
+    const full = (await run((s) => refreshLiveSegments(s, { full: true }))).find((d) => d.segmentId === id);
     expect(full!.added + full!.removed).toBe(0);
   });
 });
@@ -82,10 +82,10 @@ describe("audience destinations", () => {
     dest.failures.failNext("rate_limited");
     const r4 = await run((s) => syncSegmentDestination(s, id, dest, { excludeHoldout: false }));
     expect(r4.status).toBe("error");
-    const [row] = await run((s) => listSegmentDestinations(s, segment!.id));
+    const row = (await run((s) => listSegmentDestinations(s, segment!.id))).find((d) => d.id === id);
     expect(row!.status).toBe("error");
     expect(row!.lastError).toMatch(/rate_limited/);
-    const r5 = (await run((s) => syncAutoDestinations(s, [segment!.id], () => dest, { excludeHoldout: false })))[0]!;
+    const r5 = (await run((s) => syncAutoDestinations(s, [segment!.id], () => dest, { excludeHoldout: false }))).find((r) => r.destinationId === id)!;
     expect(r5.status).toBe("ok");
     expect(r5.removed).toBe(1);
   });
