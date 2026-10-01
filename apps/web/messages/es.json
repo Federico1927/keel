@@ -1616,6 +1616,15 @@
       "amount": "Importe",
       "status": "Estado",
       "requested": "Solicitado"
+    },
+    "portal_settings": "Portal de clientes",
+    "from_portal": "Desde el portal",
+    "sync_errors": "No escritas en la tienda",
+    "sync_error": "falló la escritura en la tienda",
+    "source": {
+      "staff": "Equipo",
+      "portal": "Portal",
+      "platform": "Tienda"
     }
   },
   "return_detail": {
@@ -1695,7 +1704,6 @@
     "restock_label": "Reponer los artículos",
     "restock_location": "Ubicación",
     "already_restocked": "ya repuesto",
-    "push_platform": "Reponer también en la plataforma",
     "fault": "Responsabilidad",
     "fault_keep": "Mantener",
     "refund_amount": "Importe a reembolsar",
@@ -1709,6 +1717,39 @@
       "return_location_required": "Elige una ubicación.",
       "return_return_not_found": "Devolución no encontrada.",
       "return_invalid_input": "Datos no válidos."
+    },
+    "no": "No",
+    "deduction": "Envío de devolución descontado: {amount}",
+    "sync_failed": "Guardado. La escritura en la tienda falló: reinténtalo desde la tarjeta de la tienda.",
+    "portal": {
+      "title": "Solicitud del cliente",
+      "tracking": "Seguimiento de la devolución",
+      "exchange": "Quiere a cambio",
+      "bank": "Reembolso a",
+      "reveal_bank": "Mostrar datos bancarios",
+      "bank_hidden": "Datos bancarios facilitados",
+      "language": "Idioma del cliente: {locale}",
+      "photo": "Foto del cliente"
+    },
+    "platform": {
+      "title": "Tienda (Shopify)",
+      "status": "Estado",
+      "on_platform": "En la tienda",
+      "refund": "Reembolso",
+      "synced_at": "Última escritura {at}",
+      "retry": "Reintentar ahora",
+      "sync": {
+        "not_required": "No hace falta (pedido no en la tienda o escritura desactivada)",
+        "pending": "Pendiente de escribir",
+        "synced": "Al día",
+        "error": "Fallida"
+      },
+      "platform_status": {
+        "requested": "Devolución solicitada",
+        "approved": "Devolución abierta",
+        "declined": "Devolución rechazada",
+        "closed": "Devolución cerrada"
+      }
     }
   },
   "return_new": {
@@ -1773,7 +1814,11 @@
     "default_fault": "Responsabilidad predeterminada",
     "active": "Activo",
     "settings_hint": "Plazo, días de entrega presunta y tipos excluidos están en",
-    "settings_link": "ajustes operativos."
+    "settings_link": "ajustes operativos.",
+    "edit_title": "Editar {code}",
+    "portal_label": "Etiqueta del portal ({lang})",
+    "platform_reason": "Motivo en la tienda",
+    "platform_reason_other": "OTHER"
   },
   "discounts": {
     "title": "Descuentos",
@@ -2793,6 +2838,170 @@
       "quantity": "Cantidad por unidad",
       "kind": "Tipo",
       "add": "Guardar"
+    }
+  },
+  "return_portal_settings": {
+    "back": "Devoluciones",
+    "title": "Portal de devoluciones",
+    "description": "Una página pública donde los clientes piden la devolución por su cuenta. Las solicitudes llegan a Devoluciones y se escriben en la tienda.",
+    "link_title": "Enlace para clientes",
+    "link_hint": "Ponlo en el email de confirmación, en el pie de la tienda o en las respuestas de soporte.",
+    "enabled": "Portal activo",
+    "open": "Abrir",
+    "brand": "Marca",
+    "logo": "URL del logo",
+    "color": "Color principal",
+    "support_email": "Email de soporte",
+    "policy_url": "URL de la política de devoluciones",
+    "texts": "Textos",
+    "texts_hint": "Escribe cada texto en todos los idiomas que atiendes; si falta uno se usa el de la tienda.",
+    "text": {
+      "title": "Título",
+      "intro": "Introducción",
+      "instructions": "Instrucciones de envío (dirección, cómo embalar)",
+      "successMessage": "Mensaje tras el envío",
+      "confirmText": "Casilla de confirmación (vacío = ninguna)"
+    },
+    "rules": "Reglas",
+    "resolutions": "El cliente puede pedir",
+    "reasons": "Motivos ofrecidos",
+    "reasons_hint": "Ninguno seleccionado = todos los motivos activos.",
+    "bank_for": "Pedir datos bancarios para reembolsos de pedidos pagados con",
+    "bank_for_hint": "Los pedidos sin pago online necesitan un IBAN para el reembolso.",
+    "methods": {
+      "card": "Tarjeta",
+      "wallet": "Wallet",
+      "bank_transfer": "Transferencia",
+      "cod": "Contra reembolso",
+      "bnpl": "Pago a plazos",
+      "other": "Otro"
+    },
+    "lookup_by": "El cliente identifica el pedido con",
+    "lookup": {
+      "email": "Número de pedido + email",
+      "email_or_phone": "Número de pedido + email o teléfono"
+    },
+    "tracking": "Código de seguimiento de la devolución",
+    "modes": {
+      "off": "No se pide",
+      "optional": "Opcional",
+      "required": "Obligatorio"
+    },
+    "carriers": "Transportistas ofrecidos (separados por comas)",
+    "photos": "Fotos del producto",
+    "photos_max": "Máximo de fotos",
+    "ask_shipped": "Preguntar primero si el paquete ya se envió",
+    "exchange_note": "En los cambios el cliente debe indicar qué quiere",
+    "fields": "Campos adicionales",
+    "fields_hint": "Las etiquetas se editan en el idioma elegido arriba ({lang}).",
+    "field_key": "Clave",
+    "field_type": "Tipo",
+    "field_label": "Etiqueta",
+    "field_options": "Opciones (separadas por comas)",
+    "types": {
+      "text": "Texto",
+      "textarea": "Texto largo",
+      "select": "Elección",
+      "checkbox": "Casilla"
+    },
+    "required": "Obligatorio",
+    "add_field": "Añadir campo",
+    "behaviour": {
+      "title": "Reembolsos y tienda",
+      "hint": "Se aplica a todas las devoluciones, del portal o del equipo.",
+      "read_only": "Solo owners y admins pueden cambiarlo.",
+      "shipping_cost": "Envío de devolución descontado ({currency})",
+      "shipping_cost_hint": "Se resta del reembolso cuando el motivo atribuye la culpa al cliente. 0 = nunca.",
+      "write_back": "Escribir las devoluciones en la tienda",
+      "write_back_hint": "Solicitud, aprobación, reposición, reembolso y cierre se escriben en Shopify tras cada paso; los fallos se reintentan.",
+      "tags": "Etiquetas del pedido por estado",
+      "tags_hint": "Etiquetas añadidas al pedido en la tienda cuando la devolución llega a ese estado (separadas por comas)."
+    }
+  },
+  "return_portal": {
+    "default_title": "Devolver un artículo",
+    "policy": "Lee la política de devoluciones",
+    "start": {
+      "shipped": "Ya lo he enviado",
+      "not_yet": "Todavía no lo he enviado"
+    },
+    "instructions_title": "Cómo devolverlo",
+    "instructions_default": "Embala los artículos en su embalaje original y guarda el justificante del envío.",
+    "continue": "Continuar",
+    "lookup": {
+      "title": "Encuentra tu pedido",
+      "order": "Número de pedido",
+      "email": "Email usado en el pedido",
+      "email_or_phone": "Email o teléfono usados en el pedido",
+      "submit": "Buscar pedido"
+    },
+    "form": {
+      "hello": "Hola {name}",
+      "order": "Pedido {order}",
+      "deadline": "devoluciones aceptadas hasta el {date}",
+      "items": "¿Qué quieres devolver?",
+      "quantity_for": "Cantidad de {item}",
+      "reason": "Motivo",
+      "resolution": "Prefieres",
+      "exchange": "¿Qué te gustaría a cambio?",
+      "exchange_placeholder": "Talla, color o producto",
+      "carrier": "Transportista",
+      "other_carrier": "Otro",
+      "tracking": "Código de seguimiento de la devolución",
+      "photos": "Fotos de los artículos (hasta {max})",
+      "remove_photo": "Quitar foto",
+      "bank_hint": "Tu pedido no se pagó online: dinos dónde enviar el reembolso.",
+      "holder": "Titular de la cuenta",
+      "note": "¿Algo que añadir?",
+      "submit": "Enviar solicitud"
+    },
+    "resolutions": {
+      "refund": "Un reembolso",
+      "exchange": "Un cambio",
+      "voucher": "Un vale"
+    },
+    "status": {
+      "requested": "Recibida",
+      "approved": "Aprobada",
+      "received": "Artículos recibidos",
+      "inspected": "Revisados",
+      "refunded": "Reembolsado",
+      "exchanged": "Cambiado",
+      "voucher_issued": "Vale emitido",
+      "rejected": "Rechazada"
+    },
+    "ineligible": {
+      "cancelled": "Este pedido se canceló, así que no hay nada que devolver.",
+      "not_delivered": "Este pedido aún no se ha entregado: vuelve cuando llegue.",
+      "expired": "El plazo de devolución de este pedido ha terminado.",
+      "nothing_returnable": "Todos los artículos de este pedido ya están en una devolución."
+    },
+    "contact_support": "¿Dudas? Escribe a",
+    "done": {
+      "title": "Solicitud {number} enviada",
+      "another": "Devolver otros artículos"
+    },
+    "errors": {
+      "generic": "Algo ha fallado. Inténtalo de nuevo.",
+      "disabled": "Esta tienda no admite devoluciones online.",
+      "rate_limited": "Demasiados intentos. Inténtalo de nuevo en {minutes} minutos.",
+      "not_found": "No encontramos un pedido con estos datos. Revisa el número y el email o teléfono.",
+      "not_eligible": "Este pedido no se puede devolver.",
+      "session_expired": "La página ha caducado. Busca tu pedido de nuevo.",
+      "invalid_input": "Faltan datos o no son válidos.",
+      "resolution_not_allowed": "Esta opción no está disponible.",
+      "reason_not_allowed": "Elige uno de los motivos de la lista.",
+      "tracking_required": "Introduce el código de seguimiento de la devolución.",
+      "tracking_invalid": "El código de seguimiento no es válido: usa solo letras y números.",
+      "exchange_note_required": "Dinos qué te gustaría a cambio.",
+      "bank_details_required": "Introduce el titular y el IBAN.",
+      "iban_invalid": "El IBAN no es válido.",
+      "photos_required": "Añade al menos una foto.",
+      "too_many_photos": "Has alcanzado el máximo de fotos.",
+      "photo_too_large": "La foto es demasiado grande.",
+      "photo_type": "Este archivo no es una imagen compatible.",
+      "confirm_required": "Marca la casilla de confirmación.",
+      "fields_invalid": "Rellena los campos obligatorios."
     }
   }
 }

@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { canWritePage } from "@keel/config";
+import { SUPPORTED_LOCALES, canWritePage } from "@keel/config";
+import { SHOPIFY_RETURN_REASONS } from "@keel/integrations";
 import { listReturnReasons } from "@keel/services";
 import { Badge, Card, CardContent, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { ReasonForm, ReasonToggle } from "./reason-form";
 
-export default async function ReturnReasonsPage({ params }: { params: Promise<{ tenant: string }> }) {
+export default async function ReturnReasonsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ edit?: string }> }) {
   const { tenant } = await params;
+  const { edit } = await searchParams;
   const ctx = await requirePage(tenant, "returns");
   if (!canWritePage(ctx.role, "returns")) notFound();
   const t = await getTranslations("return_reasons");
@@ -20,7 +22,7 @@ export default async function ReturnReasonsPage({ params }: { params: Promise<{ 
       <p className="mb-2 text-sm text-muted-foreground"><Link href={`/t/${tenant}/returns`} className="hover:underline">← {tr("title")}</Link></p>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description", { window: ctx.settings.returnWindowDays, excluded: ctx.settings.returnExcludedProductTypes.length })} />
       <div className="space-y-6">
-        <ReasonForm slug={tenant} />
+        <ReasonForm slug={tenant} reason={reasons.find((r) => r.code === edit)} locales={[...SUPPORTED_LOCALES]} platformReasons={SHOPIFY_RETURN_REASONS} />
         <Card>
           <CardContent className="p-0">
             <Table>
@@ -35,7 +37,7 @@ export default async function ReturnReasonsPage({ params }: { params: Promise<{ 
               <TableBody>
                 {reasons.map((r) => (
                   <TableRow key={r.id}>
-                    <TableCell><code className="text-xs">{r.code}</code></TableCell>
+                    <TableCell><Link href={`/t/${tenant}/returns/reasons?edit=${r.code}`} className="hover:underline"><code className="text-xs">{r.code}</code></Link>{r.platformReason && <span className="ml-2 text-xs text-muted-foreground">{r.platformReason}</span>}</TableCell>
                     <TableCell>{r.label}</TableCell>
                     <TableCell><Badge variant={r.defaultFault === "merchant" ? "warning" : "muted"}>{td(`faults.${r.defaultFault}`)}</Badge></TableCell>
                     <TableCell className="text-right"><ReasonToggle slug={tenant} reasonId={r.id} isActive={r.isActive} /></TableCell>

@@ -45,7 +45,7 @@ The table is updated at the end of every area: rows that moved from ABSENT/PARTI
 
 | # | Feature | Status | What is missing | Effort | External |
 | --- | --- | --- | --- | --- | --- |
-| 3.1 | Branded customer return portal, multilingual, order number + email | ABSENT | Public route per tenant, lookup, line/quantity/reason selection, custom fields, texts/colours/logo per tenant, submission into `return_requests`, notifications. | L | — |
+| 3.1 | Branded customer return portal, multilingual, order number + email | PRESENT | Public `/r/<store>`: lookup by number + email or phone (5 failed attempts per 15 min per IP and per order), signed one-hour session, lines and quantities, reason, refund / exchange / credit, tracking with carriers, photos, custom fields, IBAN for orders not paid online (encrypted, reveal audited), confirmation, status of earlier returns. Texts per language, logo, colour, rules and fields configured per store. Customer emails are not sent (provider in the external block). | L | — |
 | 3.2 | Eligibility rules by product, collection, country; exclusions; conditions; per-customer limits | PARTIAL | Window, excluded product types, shipping fallback days. No per-collection/country windows, no conditions, no per-customer limits. | M | — |
 | 3.3 | Exchanges: variants of the same product, "shop now" credit with difference to pay | PARTIAL | `resolution = exchange` and `exchange_order_id` exist; no variant picker, no credit flow, no difference payment. | M | Difference payment via Shopify draft order invoice |
 | 3.4 | Instant exchange before the return arrives, with guarantee authorisation | ABSENT | Replacement order creation exists (`createOrder`); the guarantee needs a card authorisation. | M | **EXTERNAL**: payment authorisation (Shopify) |
@@ -55,7 +55,7 @@ The table is updated at the end of every area: rows that moved from ABSENT/PARTI
 | 3.8 | Return fraud: serial returners, wear-and-return, flags | ABSENT | Generic customer return profile (count, rate, value) with thresholds and flags; the COD add-on has a similar model for recipients. | M | — |
 | 3.9 | Returns analytics: rate by product, size/option and reason; revenue saved by exchanges; return cost in P/L | PARTIAL | By reason, fault, outcome, product. No per-option breakdown, no revenue saved, return cost in P/L is the refunded amount only. | S | — |
 | 3.10 | Branded tracking page and status emails for the end customer | ABSENT | Public tracking route, shipment events timeline, email templates per status (adapter + mock). | M | Carrier events beyond Shopify are **EXTERNAL** |
-| 3.11 | Write returns back to Shopify: mark as returned, refund, restock (requested by Federico) | ABSENT | `createReturn`/`refund` on `CommercePlatform`, calls on the workflow transitions, financial status sync. | M | — |
+| 3.11 | Write returns back to Shopify: mark as returned, refund, restock (requested by Federico) | PRESENT | Return request, approve or decline, restock on inventory items, refund on the original capture (capped to what is refundable, no money movement when nothing was captured), close, order tags per status. Idempotent steps saved one by one, retry button and job every 10 minutes. The Shopify calls are tested on recorded payloads, not yet on a real store (marked to verify). | M | — |
 
 ## Area 4 — CRM and retention
 

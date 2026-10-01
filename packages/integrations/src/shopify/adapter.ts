@@ -1,6 +1,6 @@
 import { HttpClient, type HttpOptions } from "../http";
-import { IntegrationError, type CommercePlatform, type ConnectionTest, type CreateOrderInput, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type OrderDetailsPatch, type Page, type SyncQuery, type VerifiedWebhook, type WebhookRegistration } from "../types";
-import { ORDER_FIELDS, PRODUCT_FIELDS, idToGid, mapGraphqlCustomer, mapGraphqlDiscount, mapGraphqlInventoryLevel, mapGraphqlLocation, mapGraphqlOrder, mapGraphqlProduct, mapRestCustomer, mapRestInventoryLevel, mapRestOrder, mapRestProduct } from "./mappers";
+import { IntegrationError, type CommercePlatform, type ConnectionTest, type CreateOrderInput, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type OrderDetailsPatch, type Page, type PlatformReturnLineInput, type SyncQuery, type VerifiedWebhook, type WebhookRegistration } from "../types";
+import { ORDER_FIELDS, PRODUCT_FIELDS, gidToId, idToGid, mapGraphqlCustomer, mapGraphqlDiscount, mapGraphqlInventoryLevel, mapGraphqlLocation, mapGraphqlOrder, mapGraphqlProduct, mapRestCustomer, mapRestInventoryLevel, mapRestOrder, mapRestProduct } from "./mappers";
 import { SHOPIFY_ALL_SCOPES, SHOPIFY_API_VERSION, verifyWebhookHmac } from "./oauth";
 
 export interface ShopifyCredentials {
@@ -262,8 +262,71 @@ export class ShopifyCommercePlatform implements CommercePlatform {
     }
     return { externalId, imported, failed };
   }
-  async restockReturn(_orderExternalId: string, lines: { orderLineExternalId: string; quantity: number; locationExternalId: string }[]): Promise<void> {
-    // Restock through inventory adjustments keyed by the variant's inventory item; the caller passes inventory item ids as orderLineExternalId when known.
-    await this.mutate("inventoryAdjustQuantities", `mutation($input: InventoryAdjustQuantitiesInput!) { inventoryAdjustQuantities(input: $input) { userErrors { field message } } }`, { input: { name: "available", reason: "restock", changes: lines.map((l) => ({ inventoryItemId: idToGid("InventoryItem", l.orderLineExternalId), locationId: idToGid("Location", l.locationExternalId), delta: l.quantity })) } });
+  async restockInventory(lines: { inventoryItemExternalId: string; locationExternalId: string; quantity: number }[]): Promise<void> {
+    if (!lines.length) return;
+    await this.mutate("inventoryAdjustQuantities", `mutation($input: InventoryAdjustQuantitiesInput!) { inventoryAdjustQuantities(input: $input) { userErrors { field message } } }`, { input: { name: "available", reason: "restock", changes: lines.map((l) => ({ inventoryItemId: idToGid("InventoryItem", l.inventoryItemExternalId), locationId: idToGid("Location", l.locationExternalId), delta: l.quantity })) } });
+  }
+
+  /** Order line → fulfillment line items (a return is opened on fulfilled units). */
+  private async fulfillmentLines(orderExternalId: string): Promise<{ id: string; lineItemId: string; quantity: number }[]> {
+    const data = await this.graphql<{ order: { fulfillments: { fulfillmentLineItems: { nodes: { id: string; quantity: number; lineItem: { id: string } }[] } }[] } | null }>(`query($id: ID!) { order(id: $id) { fulfillments(first: 20) { fulfillmentLineItems(first: 100) { nodes { id quantity lineItem { id } } } } } }`, { id: idToGid("Order", orderExternalId) });
+    if (!data.order) throw new IntegrationError("not_found", `Order ${orderExternalId} not found`);
+    return data.order.fulfillments.flatMap((f) => f.fulfillmentLineItems.nodes.map((n) => ({ id: n.id, lineItemId: gidToId(n.lineItem.id) ?? n.lineItem.id, quantity: n.quantity })));
+  }
+
+  async requestReturn(orderExternalId: string, input: { lines: PlatformReturnLineInput[]; note?: string | null }): Promise<{ externalId: string; lines: { orderLineExternalId: string; externalId: string }[] }> {
+    const fls = await this.fulfillmentLines(orderExternalId);
+    const items: Rec[] = [];
+    for (const l of input.lines) {
+      let left = l.quantity;
+      for (const f of fls.filter((x) => x.lineItemId === l.orderLineExternalId)) {
+        if (left <= 0) break;
+        const q = Math.min(left, f.quantity);
+        items.push({ fulfillmentLineItemId: f.id, quantity: q, returnReason: l.reason ?? "OTHER", customerNote: l.note ?? input.note ?? undefined });
+        left -= q;
+      }
+      if (left > 0) throw new IntegrationError("invalid_request", `Line ${l.orderLineExternalId} is not fulfilled on Shopify for ${l.quantity} units`);
+    }
+    const res = await this.mutate("returnRequest", `mutation($input: ReturnRequestInput!) { returnRequest(input: $input) { return { id returnLineItems(first: 100) { nodes { id ... on ReturnLineItem { fulfillmentLineItem { lineItem { id } } } } } } userErrors { field message } } }`, { input: { orderId: idToGid("Order", orderExternalId), returnLineItems: items } });
+    const ret = res.return as { id: string; returnLineItems: { nodes: { id: string; fulfillmentLineItem?: { lineItem: { id: string } } }[] } } | undefined;
+    if (!ret) throw new IntegrationError("unknown", "returnRequest returned no return");
+    return { externalId: gidToId(ret.id) ?? ret.id, lines: ret.returnLineItems.nodes.map((n) => ({ orderLineExternalId: gidToId(n.fulfillmentLineItem?.lineItem.id) ?? "", externalId: gidToId(n.id) ?? n.id })) };
+  }
+
+  async approveReturn(returnExternalId: string): Promise<void> {
+    await this.mutate("returnApproveRequest", `mutation($input: ReturnApproveRequestInput!) { returnApproveRequest(input: $input) { return { id status } userErrors { field message } } }`, { input: { id: idToGid("Return", returnExternalId) } });
+  }
+
+  async declineReturn(returnExternalId: string, note: string | null): Promise<void> {
+    await this.mutate("returnDeclineRequest", `mutation($input: ReturnDeclineRequestInput!) { returnDeclineRequest(input: $input) { return { id status } userErrors { field message } } }`, { input: { id: idToGid("Return", returnExternalId), declineReason: "OTHER", declineNote: note ?? undefined } });
+  }
+
+  async refundReturn(orderExternalId: string, input: { lines: { orderLineExternalId: string; quantity: number }[]; amountMinor: number; currency: string; note?: string | null; notify: boolean }): Promise<{ externalId: string; amountMinor: number }> {
+    const orderId = idToGid("Order", orderExternalId);
+    // Money goes back on the original capture: refundable = captured − already refunded; nothing captured (e.g. paid on delivery) → no transaction.
+    const data = await this.graphql<{ order: { transactions: { id: string; kind: string; status: string; gateway: string; amountSet: { shopMoney: { amount: string } } }[] } | null }>(`query($id: ID!) { order(id: $id) { transactions(first: 50) { id kind status gateway amountSet { shopMoney { amount } } } } }`, { id: orderId });
+    if (!data.order) throw new IntegrationError("not_found", `Order ${orderExternalId} not found`);
+    const ok = data.order.transactions.filter((t) => t.status === "SUCCESS");
+    const minor = (a: string) => Math.round(Number(a) * 100);
+    const parent = ok.find((t) => t.kind === "SALE" || t.kind === "CAPTURE");
+    const captured = ok.filter((t) => t.kind === "SALE" || t.kind === "CAPTURE").reduce((s, t) => s + minor(t.amountSet.shopMoney.amount), 0);
+    const refunded = ok.filter((t) => t.kind === "REFUND").reduce((s, t) => s + minor(t.amountSet.shopMoney.amount), 0);
+    const amount = parent ? Math.max(0, Math.min(input.amountMinor, captured - refunded)) : 0;
+    const res = await this.mutate("refundCreate", `mutation($input: RefundInput!) { refundCreate(input: $input) { refund { id totalRefundedSet { shopMoney { amount } } } userErrors { field message } } }`, {
+      input: {
+        orderId,
+        note: input.note ?? undefined,
+        notify: input.notify,
+        refundLineItems: input.lines.map((l) => ({ lineItemId: idToGid("LineItem", l.orderLineExternalId), quantity: l.quantity, restockType: "NO_RESTOCK" })),
+        transactions: amount > 0 && parent ? [{ orderId, parentId: parent.id, gateway: parent.gateway, kind: "REFUND", amount: (amount / 100).toFixed(2) }] : [],
+      },
+    });
+    const refund = res.refund as { id: string; totalRefundedSet: { shopMoney: { amount: string } } } | undefined;
+    if (!refund) throw new IntegrationError("unknown", "refundCreate returned no refund");
+    return { externalId: gidToId(refund.id) ?? refund.id, amountMinor: minor(refund.totalRefundedSet.shopMoney.amount) };
+  }
+
+  async closeReturn(returnExternalId: string): Promise<void> {
+    await this.mutate("returnClose", `mutation($id: ID!) { returnClose(id: $id) { return { id status } userErrors { field message } } }`, { id: idToGid("Return", returnExternalId) });
   }
 }

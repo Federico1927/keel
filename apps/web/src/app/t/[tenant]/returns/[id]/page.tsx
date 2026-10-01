@@ -3,11 +3,13 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { canDo } from "@keel/config";
 import { formatDate, formatDateTime, formatMoney } from "@keel/core";
-import { returnDetail } from "@keel/services";
+import { getPortalConfig, returnDetail, returnEvidenceList } from "@keel/services";
+import { pickLocalized } from "@keel/core";
 import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
 import { ReturnWorkflow } from "./workflow";
+import { BankDetails, PlatformSyncCard } from "./platform-card";
 
 const STEPS = ["requested", "approved", "received", "inspected"] as const;
 
@@ -18,8 +20,10 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ t
   const tr = await getTranslations("returns");
   const ts = await getTranslations("return_status");
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const detail = await ctx.run((tx) => returnDetail({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, id));
+  const svc = (tx: Parameters<Parameters<typeof ctx.run>[0]>[0]) => ({ tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } });
+  const detail = await ctx.run((tx) => returnDetail(svc(tx), id));
   if (!detail) notFound();
+  const [evidence, portal] = await ctx.run(async (tx) => [await returnEvidenceList(svc(tx), id), await getPortalConfig(svc(tx))] as const);
   const { request: r, order, lines, reason, events, locations } = detail;
   const money = (m: number) => formatMoney(m, order.currency, ctx.locale);
   const canAct = canDo(ctx.role, "approve_return");
@@ -36,6 +40,7 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ t
           <Badge variant="outline">{tr(`resolution.${r.resolution}`)}</Badge>
           <Badge variant={r.fault === "merchant" ? "warning" : "muted"}>{t(`faults.${r.fault}`)}</Badge>
           {r.outOfWindow && <Badge variant="warning">{tr("out_of_window")}</Badge>}
+          <Badge variant={r.source === "portal" ? "info" : "outline"} data-testid="return-source">{tr(`source.${r.source}`)}</Badge>
         </>
       }
       actions={<ReturnWorkflow slug={tenant} returnId={r.id} status={r.status} resolution={r.resolution} lines={lines.map((l) => ({ id: l.id, title: l.title, variantTitle: l.variantTitle, quantity: l.quantity, unitAmountMinor: l.unitAmountMinor, restocked: l.restocked, inspectionAmountMinor: l.inspectionAmountMinor, hasVariant: Boolean(l.variantId) }))} locations={locations} proposedAmountMinor={r.proposedAmountMinor} currency={order.currency} locale={ctx.locale} canAct={canAct} />}
@@ -58,8 +63,37 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ t
               {r.staffNote && <p className="whitespace-pre-line"><span className="text-muted-foreground">{t("staff_note")}:</span> {r.staffNote}</p>}
               {r.voucherCode && <p><span className="text-muted-foreground">{t("voucher_code")}:</span> <code>{r.voucherCode}</code></p>}
               {r.restockLocationId && <p className="text-muted-foreground">{t("restocked_at", { location: locations.find((l) => l.id === r.restockLocationId)?.name ?? "—" })}</p>}
+              {r.deductionMinor > 0 && <p className="text-muted-foreground">{t("deduction", { amount: money(r.deductionMinor) })}</p>}
             </CardContent>
           </Card>
+          {(r.source === "portal" || r.trackingCode || r.exchangeNote || r.bankDetailsEnc || evidence.length > 0 || Object.keys(r.customFields).length > 0) && (
+            <Card data-testid="return-portal-card">
+              <CardHeader><CardTitle className="text-base">{t("portal.title")}</CardTitle></CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                {r.trackingCode && <p><span className="text-muted-foreground">{t("portal.tracking")}:</span> <code>{r.trackingCode}</code>{r.trackingCarrier ? ` · ${r.trackingCarrier}` : ""}</p>}
+                {r.exchangeNote && <p><span className="text-muted-foreground">{t("portal.exchange")}:</span> {r.exchangeNote}</p>}
+                {Object.entries(r.customFields).map(([k, v]) => {
+                  const field = portal.fields.find((f) => f.key === k);
+                  const label = field ? pickLocalized(field.label, ctx.locale, ctx.tenant.defaultLocale) || k : k;
+                  const value = typeof v === "boolean" ? (v ? t("yes") : t("no")) : field?.type === "select" ? pickLocalized(field.optionLabels[v], ctx.locale, ctx.tenant.defaultLocale) || v : v;
+                  return <p key={k}><span className="text-muted-foreground">{label}:</span> {value}</p>;
+                })}
+                {r.bankDetailsEnc && (canAct ? <BankDetails slug={tenant} returnId={r.id} /> : <p className="text-muted-foreground">{t("portal.bank_hidden")}</p>)}
+                {r.customerLocale && <p className="text-xs text-muted-foreground">{t("portal.language", { locale: r.customerLocale.toUpperCase() })}</p>}
+                {evidence.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1" data-testid="return-evidence">
+                    {evidence.map((e) => (
+                      <a key={e.id} href={`/t/${tenant}/returns/${r.id}/evidence/${e.id}`} target="_blank" rel="noreferrer" className="block h-20 w-20 overflow-hidden rounded border bg-muted">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={`/t/${tenant}/returns/${r.id}/evidence/${e.id}`} alt={t("portal.photo")} className="h-full w-full object-cover" />
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+          <PlatformSyncCard slug={tenant} returnId={r.id} syncStatus={r.platformSyncStatus} platformStatus={r.platformStatus} externalId={r.externalId} refundId={r.platformRefundId} error={r.platformError} syncedAt={r.platformSyncedAt ? formatDateTime(r.platformSyncedAt, ctx.locale, ctx.tenant.timezone) : null} canAct={canAct} />
         </div>
       }
     >

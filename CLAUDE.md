@@ -58,6 +58,7 @@ Hai accesso in sola lettura a due piattaforme che Federico ha costruito per sing
    - le migrazioni devono essere additive e compatibili con il codice già in produzione (colonne nuove nullable o con default, niente rinomina o cancellazione nello stesso merge);
    - dopo il merge, riparti dal nuovo `main` sullo stesso branch per la funzionalità successiva;
    - una funzionalità a metà non si unisce: si unisce quando è completa e verificata.
+10. **Ogni richiesta del committente diventa una issue GitHub** (richiesta del 2026-10-01). Apri la issue appena arriva la richiesta, con perimetro e stato; la PR che la completa la chiude (`Closes #N` nel corpo). Le issue sono il backlog durevole: alla ripresa di una sessione, oltre a `PROGRESS.md`, leggi le issue aperte.
 
 ---
 
