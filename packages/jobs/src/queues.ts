@@ -27,7 +27,7 @@ export interface SyncAdsJob {
 }
 export interface TickJob {
   /** delta (every 15 min) | ads (daily) | reconcile (nightly) | retry (every 10 min) | billing (daily) */
-  kind: "delta" | "ads" | "reconcile" | "retry" | "billing" | "cod" | "alerts" | "returns" | "crm" | "segments" | "tracking";
+  kind: "delta" | "ads" | "reconcile" | "retry" | "billing" | "cod" | "alerts" | "returns" | "crm" | "segments" | "tracking" | "tasks" | "notify" | "digest";
 }
 
 /** Yesterday → today as ISO dates, the window a daily ads pull refreshes (platforms restate recent days). */

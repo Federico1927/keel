@@ -255,6 +255,16 @@ export class ShopifyCommercePlatform implements CommercePlatform {
     if (!data.productVariant) throw new IntegrationError("not_found", "Variant not found");
     await this.mutate("productVariantsBulkUpdate", `mutation($productId: ID!, $variants: [ProductVariantsBulkInput!]!) { productVariantsBulkUpdate(productId: $productId, variants: $variants) { userErrors { field message } } }`, { productId: data.productVariant.product.id, variants: [{ id: idToGid("ProductVariant", variantExternalId), ...(patch.priceMinor !== undefined ? { price: (patch.priceMinor / 100).toFixed(2) } : {}) }] });
   }
+  /** `inventoryItemUpdate` with `cost`: needs write_inventory. To verify on a real account: multi-currency shops store the cost in the shop currency. */
+  async updateVariantCost(variant: { variantExternalId: string; inventoryItemExternalId: string | null }, costMinor: number): Promise<void> {
+    let itemId = variant.inventoryItemExternalId ? idToGid("InventoryItem", variant.inventoryItemExternalId) : null;
+    if (!itemId) {
+      const data = await this.graphql<{ productVariant: { inventoryItem: { id: string } } | null }>(`query($id: ID!) { productVariant(id: $id) { inventoryItem { id } } }`, { id: idToGid("ProductVariant", variant.variantExternalId) });
+      if (!data.productVariant) throw new IntegrationError("not_found", "Variant not found");
+      itemId = data.productVariant.inventoryItem.id;
+    }
+    await this.mutate("inventoryItemUpdate", `mutation($id: ID!, $input: InventoryItemInput!) { inventoryItemUpdate(id: $id, input: $input) { inventoryItem { id unitCost { amount } } userErrors { field message } } }`, { id: itemId, input: { cost: (costMinor / 100).toFixed(2) } });
+  }
   async updateProductStatus(productExternalId: string, status: "active" | "draft" | "archived"): Promise<void> {
     await this.mutate("productUpdate", `mutation($input: ProductInput!) { productUpdate(input: $input) { userErrors { field message } } }`, { input: { id: idToGid("Product", productExternalId), status: status.toUpperCase() } });
   }

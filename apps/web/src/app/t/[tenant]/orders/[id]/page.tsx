@@ -16,6 +16,7 @@ import { NotesPanel } from "./notes";
 import { CodCard } from "./cod-card";
 import { EditOrderDialog, type AddressForm } from "./edit-order";
 import { DiscountOrderDialog } from "./discount-order";
+import { RecordTasks } from "@/components/record-tasks";
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
@@ -121,6 +122,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
       }
       aside={
         <>
+          <RecordTasks slug={tenant} type="order" id={order.id} label={order.name} />
           <Card>
             <CardHeader>
               <CardTitle className="text-base">{t("customer")}</CardTitle>

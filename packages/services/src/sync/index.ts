@@ -1,8 +1,9 @@
 import { and, desc, eq, inArray, isNull, schema, sql } from "@keel/db";
-import { DEFAULT_PRECEDENCE, addressKey, deriveChannel, diffRecords, extractAttribution, hasChanges, matchCampaign, nameZipKey, normalizeEmail, normalizePhone, resolveShipmentStatus, type CampaignRef, type ShipmentStatus } from "@keel/core";
+import { DEFAULT_PRECEDENCE, addressKey, deriveChannel, diffRecords, extractAttribution, hasChanges, matchCampaign, nameZipKey, normalizeEmail, normalizePhone, resolveShipmentStatus, shouldTakePlatformCost, type CampaignRef, type ShipmentStatus } from "@keel/core";
 import { IntegrationError, type AdsPlatform, type CommercePlatform, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 import { recomputeOrderStatus } from "../orders/state";
+import { applyCostToOrderLines } from "../catalog/costs";
 
 export type ImportSource = "webhook" | "sync" | "backfill" | "reconcile";
 export interface ImportOutcome {
@@ -178,12 +179,20 @@ export async function importProduct(ctx: ServiceContext, p: NormalizedProduct): 
   const [row] = await ctx.tx.insert(schema.products).values({ tenantId: ctx.tenantId, externalId: p.externalId, ...values }).onConflictDoUpdate({ target: [schema.products.tenantId, schema.products.externalId], set: values }).returning({ id: schema.products.id });
   const productId = row!.id;
   const keep: string[] = [];
+  const costed: string[] = [];
+  const known = p.variants.length ? await ctx.tx.select({ externalId: schema.productVariants.externalId, costMinor: schema.productVariants.costMinor, costSource: schema.productVariants.costSource }).from(schema.productVariants).where(and(eq(schema.productVariants.tenantId, ctx.tenantId), inArray(schema.productVariants.externalId, p.variants.map((v) => v.externalId)))) : [];
   for (const v of p.variants) {
-    const vv = { productId, inventoryItemExternalId: v.inventoryItemExternalId, sku: v.sku, barcode: v.barcode, title: v.title, optionValues: v.optionValues, priceMinor: v.priceMinor, compareAtMinor: v.compareAtMinor, weightGrams: v.weightGrams, isActive: true, syncedAt: now, updatedAt: now };
+    const cur = known.find((k) => k.externalId === v.externalId) ?? { costMinor: null, costSource: null };
+    // the platform cost fills a missing cost (or follows itself); a manual, imported or PO cost is never overwritten
+    const cost = shouldTakePlatformCost(cur, v.costMinor) ? { costMinor: v.costMinor!, costSource: "platform", costUpdatedAt: now } : {};
+    const vv = { productId, inventoryItemExternalId: v.inventoryItemExternalId, sku: v.sku, barcode: v.barcode, title: v.title, optionValues: v.optionValues, priceMinor: v.priceMinor, compareAtMinor: v.compareAtMinor, weightGrams: v.weightGrams, isActive: true, syncedAt: now, updatedAt: now, ...cost };
     const [vr] = await ctx.tx.insert(schema.productVariants).values({ tenantId: ctx.tenantId, externalId: v.externalId, ...vv }).onConflictDoUpdate({ target: [schema.productVariants.tenantId, schema.productVariants.externalId], set: vv }).returning({ id: schema.productVariants.id });
     keep.push(vr!.id);
+    if (cur.costMinor === null && "costMinor" in cost) costed.push(vr!.id);
   }
   if (keep.length) await ctx.tx.update(schema.productVariants).set({ isActive: false, updatedAt: now }).where(and(eq(schema.productVariants.productId, productId), sql`${schema.productVariants.id} <> all(${sql.param(keep)}::uuid[])`));
+  // orders sold before the cost was known get it now
+  await applyCostToOrderLines(ctx, costed, "missing");
   return { id: productId, outcome: existing ? "updated" : "created" };
 }
 

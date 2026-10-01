@@ -2,6 +2,8 @@ import { and, eq, inArray, schema, sql } from "@keel/db";
 import { backorderStatus, canTransitionPo, inspectReceipt, movingAverageCost, type PurchaseOrderStatus } from "@keel/core";
 import type { ServiceContext } from "../context";
 import { notifyUsers } from "../notifications";
+import { applyCostToOrderLines } from "../catalog/costs";
+import { syncRecordTasks } from "../tasks";
 
 export class PurchasingError extends Error {
   constructor(public readonly code: "not_found" | "invalid_transition" | "invalid_quantity" | "no_location") {
@@ -86,6 +88,7 @@ export async function transitionPurchaseOrder(ctx: ServiceContext, poId: string,
   await ctx.tx.update(schema.purchaseOrders).set(stamps).where(eq(schema.purchaseOrders.id, poId));
   // Incoming stock changed: refresh backorder coverage for the variants of this PO.
   if (to === "confirmed" || to === "cancelled") await refreshBackorders(ctx, (await ctx.tx.select({ v: schema.purchaseOrderLines.variantId }).from(schema.purchaseOrderLines).where(eq(schema.purchaseOrderLines.purchaseOrderId, poId))).map((r) => r.v).filter((v): v is string => Boolean(v)));
+  await syncRecordTasks(ctx, "purchase_order", [poId]);
   return { from: po.status, to };
 }
 
@@ -149,7 +152,9 @@ export async function receivePurchaseOrder(ctx: ServiceContext, input: ReceiveIn
     // landed cost (unit cost + allocated duties/freight/fees) when the PO carries charges
     const unitCost = line.landedUnitCostMinor ?? line.unitCostMinor;
     const newAverage = movingAverageCost(variant?.averageCostMinor ?? variant?.costMinor ?? null, Math.max(0, onHandTotal - qty), qty, unitCost);
-    await ctx.tx.update(schema.productVariants).set({ costMinor: unitCost, averageCostMinor: newAverage }).where(eq(schema.productVariants.id, line.variantId));
+    await ctx.tx.update(schema.productVariants).set({ costMinor: unitCost, averageCostMinor: newAverage, costSource: "po_receipt", costUpdatedAt: now }).where(eq(schema.productVariants.id, line.variantId));
+    // orders sold while the variant had no cost take the received one; costs already on lines stay as sold
+    await applyCostToOrderLines(ctx, [line.variantId], "missing");
     received.push({ variantId: line.variantId, quantity: qty, newAvailable, newCostMinor: unitCost, newAverageMinor: newAverage });
     if (input.pushToPlatform) await input.pushToPlatform(line.variantId, locationId, newAvailable);
   }
@@ -159,6 +164,7 @@ export async function receivePurchaseOrder(ctx: ServiceContext, input: ReceiveIn
   const status: PurchaseOrderStatus = complete ? "received" : "partially_received";
   await ctx.tx.update(schema.purchaseOrders).set({ status, receivedAt: complete ? now : po.receivedAt }).where(eq(schema.purchaseOrders.id, po.id));
   const releasedOrders = await refreshBackorders(ctx, received.map((r) => r.variantId));
+  await syncRecordTasks(ctx, "purchase_order", [po.id]);
   return { status, received, inspected, releasedOrders };
 }
 

@@ -18,7 +18,7 @@ export function OrderFiltersBar({ basePath, filters, counts, members }: { basePa
 
   const apply = (patch: Partial<Record<string, string | string[] | undefined>>) => {
     const u = new URLSearchParams();
-    const current: Record<string, string | string[] | undefined> = { q: filters.q, status: filters.status, payment: filters.payment, paymentStatus: filters.paymentStatus, channel: filters.channel, tag: filters.tag, from: filters.from, to: filters.to, assigned: filters.assigned, sort: filters.sort };
+    const current: Record<string, string | string[] | undefined> = { q: filters.q, status: filters.status, payment: filters.payment, paymentStatus: filters.paymentStatus, channel: filters.channel, tag: filters.tag, from: filters.from, to: filters.to, assigned: filters.assigned, missingCost: filters.missingCost ? "1" : undefined, sort: filters.sort };
     const merged = { ...current, ...patch };
     for (const [k, v] of Object.entries(merged)) {
       if (!v || (Array.isArray(v) && v.length === 0)) continue;
@@ -32,7 +32,7 @@ export function OrderFiltersBar({ basePath, filters, counts, members }: { basePa
     apply({ status: cur.includes(s) ? cur.filter((x) => x !== s) : [...cur, s] });
   };
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
-  const hasFilters = Boolean(filters.q || filters.status?.length || filters.payment?.length || filters.paymentStatus?.length || filters.channel?.length || filters.tag || filters.from || filters.to || filters.assigned);
+  const hasFilters = Boolean(filters.q || filters.status?.length || filters.payment?.length || filters.paymentStatus?.length || filters.channel?.length || filters.tag || filters.from || filters.to || filters.assigned || filters.missingCost);
 
   return (
     <div className={cn("space-y-3", pending && "opacity-70")}>
@@ -45,6 +45,11 @@ export function OrderFiltersBar({ basePath, filters, counts, members }: { basePa
             {ts(s)} <span className="tabular opacity-70">{counts[s]}</span>
           </button>
         ))}
+        {filters.missingCost && (
+          <button type="button" onClick={() => apply({ missingCost: undefined })} className="inline-flex items-center gap-1 rounded-full border border-warning/60 bg-warning/10 px-3 py-1 text-xs" data-testid="filter-missing-cost">
+            {t("filters.missing_cost")} <X className="h-3 w-3" />
+          </button>
+        )}
       </div>
       <form
         className="grid gap-2 sm:grid-cols-2 lg:grid-cols-6"

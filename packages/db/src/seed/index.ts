@@ -8,6 +8,7 @@ import { generateTenantDataset, type TenantSeedConfig } from "./generator";
 import { writeDataset } from "./writer";
 import { DEMO_COD_SETTINGS, DEMO_RETURN_COSTS, REASON_LABELS, REASON_PLATFORM, demoConversionSettings, demoPixelSettings, demoPortalConfig, demoReturnPolicy, demoSurveySettings } from "./settings";
 export { ensureDemoSettings } from "./settings";
+import { seedCollab } from "./collab";
 import { createRng } from "@keel/integrations";
 import { SALE_STATUSES, allocateLandedCost, normalizePhone, runPredictionModel, type CustomerHistory } from "@keel/core";
 import { MODULES, PLANS, PLATFORM_CURRENCY } from "@keel/config";
@@ -210,6 +211,8 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("tracking", () => seedTracking(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("survey", () => seedSurvey(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("assistant", () => seedAssistant(db, ctx, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
+    await step("catalog", () => seedCatalogDuplicate(db, cfg.tenantId));
+    await step("collab", () => seedCollab(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, cfg.locale, opts.now ?? new Date()));
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
   }
 }
@@ -801,6 +804,21 @@ async function seedPurchasingDepth(db: ReturnType<typeof drizzle<typeof schema>>
  * queue items for the open COD orders with a few attempts, and recipient profiles with risk tiers.
  * The live queue sync, scoring and risk recompute take over from here.
  */
+/**
+ * One SKU reused by a second product, as happens when a merchant copies a product on the platform:
+ * the catalog data-quality page lists both and the cost import refuses to guess between them.
+ * Written last because the planning extras order variants by SKU.
+ */
+async function seedCatalogDuplicate(db: ReturnType<typeof drizzle<typeof schema>>, tenantId: string) {
+  const firsts = await db.execute<{ id: string; sku: string }>(sql`
+    select distinct on (p.title) v.id, v.sku from product_variants v join products p on p.id = v.product_id
+    where v.tenant_id = ${tenantId} and v.sku is not null and p.status = 'active' order by p.title, v.sku, v.id`);
+  const rows = firsts.rows;
+  if (rows.length < 4) return;
+  const [source, target] = [rows[Math.floor(rows.length / 3)]!, rows[Math.floor(rows.length / 3) + 1]!];
+  await db.update(schema.productVariants).set({ sku: source.sku }).where(eq(schema.productVariants.id, target.id));
+}
+
 async function seedCod(db: ReturnType<typeof drizzle<typeof schema>>, ctx: SeedContext, tenantId: string, now: Date) {
   const rng = createRng(2026);
   const operators = ["ops@northwind.demo", "care@northwind.demo", "care2@northwind.demo"].map((e) => ctx.userIds[e]).filter((x): x is string => Boolean(x));

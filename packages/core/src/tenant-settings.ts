@@ -41,6 +41,8 @@ export const tenantSettingsSchema = z.object({
   churnMediumPct: z.number().int().min(0).max(100).default(40),
   /** Write returns to the commerce platform (return request, approval, restock, refund, close). */
   returnsWriteBack: z.boolean().default(true),
+  /** Write product costs edited or imported in Keel to the commerce platform (Shopify `inventoryItem.unitCost`). */
+  costWriteBack: z.boolean().default(false),
   /** Order tags written on the platform when a return reaches a status (e.g. refunded → "REFUNDED"). */
   returnPlatformTags: z.record(z.string(), z.array(z.string().max(40)).max(5)).default({}),
   paymentFeeBps: feeMap.default({ ...TENANT_SETTING_DEFAULTS.paymentFeeBps }),
@@ -61,6 +63,9 @@ export const tenantSettingsSchema = z.object({
   slowCoverDays: z.number().int().min(30).max(720).default(180),
   transferShortDays: z.number().int().min(1).max(90).default(14),
   transferSurplusDays: z.number().int().min(7).max(365).default(45),
+  /** Notifications: a paid order still unshipped after this many hours is late to ship; a sync is late after its freshness window plus this grace. */
+  lateToShipHours: z.number().int().min(1).max(720).default(48),
+  syncDelayGraceMinutes: z.number().int().min(0).max(10_080).default(60),
 });
 export type TenantSettings = z.infer<typeof tenantSettingsSchema>;
 
