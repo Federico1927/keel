@@ -2,6 +2,7 @@ import { normalizePaymentMethod } from "@keel/core";
 import { createHmac } from "node:crypto";
 import { createRng, type Rng } from "../rng";
 import {
+  type PlatformReturnLineInput,
   IntegrationError,
   type CommercePlatform,
   type ConnectionTest,
@@ -356,7 +357,36 @@ export class MockCommercePlatform implements CommercePlatform {
     this.record("createDiscountPool", { title: input.title, count: input.codes.length });
     return { externalId: `mock-pool-${Date.now()}`, imported: input.codes, failed: [] };
   }
-  async restockReturn(orderExternalId: string, lines: { orderLineExternalId: string; quantity: number; locationExternalId: string }[]) {
-    this.record("restockReturn", { orderExternalId, lines });
+  async restockInventory(lines: { inventoryItemExternalId: string; locationExternalId: string; quantity: number }[]) {
+    this.record("restockInventory", { lines });
+  }
+  private returnSeq = 0;
+  private returns = new Map<string, { orderExternalId: string; status: "requested" | "approved" | "declined" | "closed" }>();
+  async requestReturn(orderExternalId: string, input: { lines: PlatformReturnLineInput[]; note?: string | null }) {
+    this.record("requestReturn", { orderExternalId, lines: input.lines });
+    const externalId = `mock-r-${++this.returnSeq}`;
+    this.returns.set(externalId, { orderExternalId, status: "requested" });
+    return { externalId, lines: input.lines.map((l, i) => ({ orderLineExternalId: l.orderLineExternalId, externalId: `${externalId}-l${i + 1}` })) };
+  }
+  private setReturn(id: string, status: "approved" | "declined" | "closed") {
+    const r = this.returns.get(id);
+    if (r) r.status = status;
+    else this.returns.set(id, { orderExternalId: "", status });
+  }
+  async approveReturn(returnExternalId: string) {
+    this.record("approveReturn", { returnExternalId });
+    this.setReturn(returnExternalId, "approved");
+  }
+  async declineReturn(returnExternalId: string, note: string | null) {
+    this.record("declineReturn", { returnExternalId, note });
+    this.setReturn(returnExternalId, "declined");
+  }
+  async refundReturn(orderExternalId: string, input: { lines: { orderLineExternalId: string; quantity: number }[]; amountMinor: number; currency: string; note?: string | null; notify: boolean }) {
+    this.record("refundReturn", { orderExternalId, ...input });
+    return { externalId: `mock-refund-${++this.returnSeq}`, amountMinor: input.amountMinor };
+  }
+  async closeReturn(returnExternalId: string) {
+    this.record("closeReturn", { returnExternalId });
+    this.setReturn(returnExternalId, "closed");
   }
 }

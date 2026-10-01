@@ -1616,6 +1616,15 @@
       "amount": "Importo",
       "status": "Stato",
       "requested": "Richiesto il"
+    },
+    "portal_settings": "Portale clienti",
+    "from_portal": "Dal portale",
+    "sync_errors": "Non scritti sul negozio",
+    "sync_error": "scrittura sul negozio fallita",
+    "source": {
+      "staff": "Staff",
+      "portal": "Portale",
+      "platform": "Negozio"
     }
   },
   "return_detail": {
@@ -1695,7 +1704,6 @@
     "restock_label": "Rimetti gli articoli a stock",
     "restock_location": "Location",
     "already_restocked": "già a stock",
-    "push_platform": "Rientro anche sulla piattaforma e-commerce",
     "fault": "Responsabilità",
     "fault_keep": "Mantieni",
     "refund_amount": "Importo da rimborsare",
@@ -1709,6 +1717,39 @@
       "return_location_required": "Scegli una location.",
       "return_return_not_found": "Reso non trovato.",
       "return_invalid_input": "Dati non validi."
+    },
+    "no": "No",
+    "deduction": "Spedizione di reso trattenuta: {amount}",
+    "sync_failed": "Salvato. La scrittura sul negozio non è riuscita: riprova dalla scheda del negozio.",
+    "portal": {
+      "title": "Richiesta del cliente",
+      "tracking": "Tracking del reso",
+      "exchange": "Vorrebbe in cambio",
+      "bank": "Rimborso a",
+      "reveal_bank": "Mostra coordinate bancarie",
+      "bank_hidden": "Coordinate bancarie fornite",
+      "language": "Lingua del cliente: {locale}",
+      "photo": "Foto del cliente"
+    },
+    "platform": {
+      "title": "Negozio (Shopify)",
+      "status": "Stato",
+      "on_platform": "Sul negozio",
+      "refund": "Rimborso",
+      "synced_at": "Ultima scrittura {at}",
+      "retry": "Riprova ora",
+      "sync": {
+        "not_required": "Non serve (ordine non sul negozio o scrittura disattivata)",
+        "pending": "In attesa di scrittura",
+        "synced": "Allineato",
+        "error": "Fallito"
+      },
+      "platform_status": {
+        "requested": "Reso richiesto",
+        "approved": "Reso aperto",
+        "declined": "Reso rifiutato",
+        "closed": "Reso chiuso"
+      }
     }
   },
   "return_new": {
@@ -1773,7 +1814,11 @@
     "default_fault": "Responsabilità predefinita",
     "active": "Attivo",
     "settings_hint": "Finestra, giorni di consegna presunta e tipi esclusi sono in",
-    "settings_link": "impostazioni operative."
+    "settings_link": "impostazioni operative.",
+    "edit_title": "Modifica {code}",
+    "portal_label": "Etichetta portale ({lang})",
+    "platform_reason": "Motivo sul negozio",
+    "platform_reason_other": "OTHER"
   },
   "discounts": {
     "title": "Sconti",
@@ -2793,6 +2838,170 @@
       "quantity": "Quantità per unità",
       "kind": "Tipo",
       "add": "Salva"
+    }
+  },
+  "return_portal_settings": {
+    "back": "Resi",
+    "title": "Portale resi per i clienti",
+    "description": "Una pagina pubblica dove i clienti chiedono il reso da soli. Le richieste arrivano in Resi e vengono scritte sul negozio.",
+    "link_title": "Link per i clienti",
+    "link_hint": "Inseriscilo nell'email di conferma ordine, nel footer del negozio o nelle risposte dell'assistenza.",
+    "enabled": "Portale attivo",
+    "open": "Apri",
+    "brand": "Marchio",
+    "logo": "URL del logo",
+    "color": "Colore principale",
+    "support_email": "Email dell'assistenza",
+    "policy_url": "URL della politica resi",
+    "texts": "Testi",
+    "texts_hint": "Scrivi ogni testo in tutte le lingue servite; se manca una lingua si usa quella del negozio.",
+    "text": {
+      "title": "Titolo",
+      "intro": "Introduzione",
+      "instructions": "Istruzioni di spedizione (indirizzo, come imballare)",
+      "successMessage": "Messaggio dopo l'invio",
+      "confirmText": "Casella di conferma (vuoto = nessuna)"
+    },
+    "rules": "Regole",
+    "resolutions": "Il cliente può chiedere",
+    "reasons": "Motivi proposti",
+    "reasons_hint": "Nessuno selezionato = tutti i motivi attivi.",
+    "bank_for": "Chiedi le coordinate bancarie per i rimborsi di ordini pagati con",
+    "bank_for_hint": "Gli ordini senza pagamento online richiedono un IBAN per il rimborso.",
+    "methods": {
+      "card": "Carta",
+      "wallet": "Wallet",
+      "bank_transfer": "Bonifico",
+      "cod": "Contrassegno",
+      "bnpl": "Pagamento a rate",
+      "other": "Altro"
+    },
+    "lookup_by": "Il cliente identifica l'ordine con",
+    "lookup": {
+      "email": "Numero ordine + email",
+      "email_or_phone": "Numero ordine + email o telefono"
+    },
+    "tracking": "Codice di tracking del reso",
+    "modes": {
+      "off": "Non richiesto",
+      "optional": "Facoltativo",
+      "required": "Obbligatorio"
+    },
+    "carriers": "Corrieri proposti (separati da virgola)",
+    "photos": "Foto del prodotto",
+    "photos_max": "Numero massimo di foto",
+    "ask_shipped": "Chiedi prima se il pacco è già stato spedito",
+    "exchange_note": "Per i cambi il cliente deve indicare cosa vuole",
+    "fields": "Campi aggiuntivi",
+    "fields_hint": "Le etichette si modificano nella lingua scelta sopra ({lang}).",
+    "field_key": "Chiave",
+    "field_type": "Tipo",
+    "field_label": "Etichetta",
+    "field_options": "Opzioni (separate da virgola)",
+    "types": {
+      "text": "Testo",
+      "textarea": "Testo lungo",
+      "select": "Scelta",
+      "checkbox": "Casella"
+    },
+    "required": "Obbligatorio",
+    "add_field": "Aggiungi campo",
+    "behaviour": {
+      "title": "Rimborsi e negozio",
+      "hint": "Vale per tutti i resi, dal portale o dal team.",
+      "read_only": "Solo owner e admin possono modificarle.",
+      "shipping_cost": "Spedizione di reso trattenuta ({currency})",
+      "shipping_cost_hint": "Tolta dal rimborso quando il motivo attribuisce la colpa al cliente. 0 = mai.",
+      "write_back": "Scrivi i resi sul negozio",
+      "write_back_hint": "Richiesta, approvazione, rientro a stock, rimborso e chiusura vengono scritti su Shopify dopo ogni passaggio; gli errori vengono ritentati.",
+      "tags": "Tag dell'ordine per stato",
+      "tags_hint": "Tag aggiunti all'ordine sul negozio quando il reso raggiunge quello stato (separati da virgola)."
+    }
+  },
+  "return_portal": {
+    "default_title": "Richiedi un reso",
+    "policy": "Leggi la politica dei resi",
+    "start": {
+      "shipped": "L'ho già spedito",
+      "not_yet": "Non l'ho ancora spedito"
+    },
+    "instructions_title": "Come rispedirlo",
+    "instructions_default": "Imballa gli articoli nella confezione originale e conserva la ricevuta di spedizione.",
+    "continue": "Continua",
+    "lookup": {
+      "title": "Trova il tuo ordine",
+      "order": "Numero d'ordine",
+      "email": "Email usata per l'ordine",
+      "email_or_phone": "Email o telefono usati per l'ordine",
+      "submit": "Trova ordine"
+    },
+    "form": {
+      "hello": "Ciao {name}",
+      "order": "Ordine {order}",
+      "deadline": "resi accettati fino al {date}",
+      "items": "Cosa vuoi rendere?",
+      "quantity_for": "Quantità di {item}",
+      "reason": "Motivo",
+      "resolution": "Vorresti",
+      "exchange": "Cosa vorresti al suo posto?",
+      "exchange_placeholder": "Taglia, colore o prodotto",
+      "carrier": "Corriere",
+      "other_carrier": "Altro",
+      "tracking": "Codice di tracking del reso",
+      "photos": "Foto degli articoli (fino a {max})",
+      "remove_photo": "Rimuovi foto",
+      "bank_hint": "Il tuo ordine non è stato pagato online: indicaci dove inviare il rimborso.",
+      "holder": "Intestatario del conto",
+      "note": "Vuoi aggiungere qualcosa?",
+      "submit": "Invia richiesta"
+    },
+    "resolutions": {
+      "refund": "Un rimborso",
+      "exchange": "Un cambio",
+      "voucher": "Un buono"
+    },
+    "status": {
+      "requested": "Ricevuta",
+      "approved": "Approvata",
+      "received": "Articoli arrivati",
+      "inspected": "Controllati",
+      "refunded": "Rimborsato",
+      "exchanged": "Cambiato",
+      "voucher_issued": "Buono emesso",
+      "rejected": "Rifiutata"
+    },
+    "ineligible": {
+      "cancelled": "Questo ordine è stato annullato, quindi non c'è nulla da rendere.",
+      "not_delivered": "Questo ordine non è ancora stato consegnato: torna quando arriva.",
+      "expired": "La finestra per il reso di questo ordine è chiusa.",
+      "nothing_returnable": "Tutti gli articoli di questo ordine sono già in un reso."
+    },
+    "contact_support": "Domande? Scrivi a",
+    "done": {
+      "title": "Richiesta {number} inviata",
+      "another": "Rendi altri articoli"
+    },
+    "errors": {
+      "generic": "Qualcosa è andato storto. Riprova.",
+      "disabled": "Per questo negozio i resi non si chiedono online.",
+      "rate_limited": "Troppi tentativi. Riprova tra {minutes} minuti.",
+      "not_found": "Non troviamo un ordine con questi dati. Controlla il numero e l'email o il telefono.",
+      "not_eligible": "Questo ordine non può essere reso.",
+      "session_expired": "La pagina è scaduta. Cerca di nuovo il tuo ordine.",
+      "invalid_input": "Alcuni dati mancano o non sono validi.",
+      "resolution_not_allowed": "Questa opzione non è disponibile.",
+      "reason_not_allowed": "Scegli uno dei motivi in elenco.",
+      "tracking_required": "Inserisci il codice di tracking del reso.",
+      "tracking_invalid": "Il codice di tracking non è valido: usa solo lettere e numeri.",
+      "exchange_note_required": "Indicaci cosa vorresti al suo posto.",
+      "bank_details_required": "Inserisci intestatario e IBAN.",
+      "iban_invalid": "L'IBAN non è valido.",
+      "photos_required": "Aggiungi almeno una foto.",
+      "too_many_photos": "Hai raggiunto il numero massimo di foto.",
+      "photo_too_large": "La foto è troppo grande.",
+      "photo_type": "Questo file non è un'immagine supportata.",
+      "confirm_required": "Spunta la casella di conferma.",
+      "fields_invalid": "Compila i campi obbligatori."
     }
   }
 }

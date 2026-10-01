@@ -121,6 +121,49 @@ describe("shopify adapter", () => {
   });
 });
 
+describe("shopify returns write-back", () => {
+  const fulfillments = { data: { order: { fulfillments: [{ fulfillmentLineItems: { nodes: [{ id: "gid://shopify/FulfillmentLineItem/91", quantity: 1, lineItem: { id: "gid://shopify/LineItem/11" } }, { id: "gid://shopify/FulfillmentLineItem/92", quantity: 2, lineItem: { id: "gid://shopify/LineItem/12" } }] } }] } } };
+  it("opens a return on fulfilled units, approves and closes it", async () => {
+    const p = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("fulfillments(first"), body: fulfillments },
+      { match: (_u, i) => bodyOf(i).query.includes("returnRequest("), body: { data: { returnRequest: { return: { id: "gid://shopify/Return/501", returnLineItems: { nodes: [{ id: "gid://shopify/ReturnLineItem/601", fulfillmentLineItem: { lineItem: { id: "gid://shopify/LineItem/12" } } }] } }, userErrors: [] } } } },
+      { match: (_u, i) => bodyOf(i).query.includes("returnApproveRequest"), body: { data: { returnApproveRequest: { return: { id: "gid://shopify/Return/501", status: "OPEN" }, userErrors: [] } } } },
+      { match: (_u, i) => bodyOf(i).query.includes("returnClose"), body: { data: { returnClose: { return: { id: "gid://shopify/Return/501", status: "CLOSED" }, userErrors: [] } } } },
+    ]);
+    const r = await p.requestReturn("5678901234567", { lines: [{ orderLineExternalId: "12", quantity: 2, reason: "SIZE_TOO_SMALL", note: "Too tight" }] });
+    expect(r).toEqual({ externalId: "501", lines: [{ orderLineExternalId: "12", externalId: "601" }] });
+    const sent = bodyOf({ body: p.http.calls[1]!.body! });
+    expect(sent.variables).toMatchObject({ input: { orderId: "gid://shopify/Order/5678901234567", returnLineItems: [{ fulfillmentLineItemId: "gid://shopify/FulfillmentLineItem/92", quantity: 2, returnReason: "SIZE_TOO_SMALL", customerNote: "Too tight" }] } });
+    await p.approveReturn("501");
+    await p.closeReturn("501");
+    expect(bodyOf({ body: p.http.calls[3]!.body! }).variables).toEqual({ id: "gid://shopify/Return/501" });
+  });
+  it("refuses a return on units that are not fulfilled", async () => {
+    const p = platform([{ match: (_u, i) => bodyOf(i).query.includes("fulfillments(first"), body: fulfillments }]);
+    await expect(p.requestReturn("5678901234567", { lines: [{ orderLineExternalId: "11", quantity: 3, reason: null }] })).rejects.toMatchObject({ code: "invalid_request" });
+  });
+  it("refunds on the original capture, capped by what is still refundable", async () => {
+    const p = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("transactions(first"), body: { data: { order: { transactions: [{ id: "gid://shopify/OrderTransaction/1", kind: "SALE", status: "SUCCESS", gateway: "shopify_payments", amountSet: { shopMoney: { amount: "100.00" } } }, { id: "gid://shopify/OrderTransaction/2", kind: "REFUND", status: "SUCCESS", gateway: "shopify_payments", amountSet: { shopMoney: { amount: "70.00" } } }] } } } },
+      { match: (_u, i) => bodyOf(i).query.includes("refundCreate"), body: { data: { refundCreate: { refund: { id: "gid://shopify/Refund/77", totalRefundedSet: { shopMoney: { amount: "30.00" } } }, userErrors: [] } } } },
+    ]);
+    const r = await p.refundReturn("5678901234567", { lines: [{ orderLineExternalId: "12", quantity: 1 }], amountMinor: 4500, currency: "EUR", notify: true });
+    expect(r).toEqual({ externalId: "77", amountMinor: 3000 });
+    const sent = bodyOf({ body: p.http.calls[1]!.body! }).variables as { input: { transactions: { amount: string; parentId: string }[]; refundLineItems: { lineItemId: string; restockType: string }[] } };
+    expect(sent.input.transactions).toEqual([{ orderId: "gid://shopify/Order/5678901234567", parentId: "gid://shopify/OrderTransaction/1", gateway: "shopify_payments", kind: "REFUND", amount: "30.00" }]);
+    expect(sent.input.refundLineItems[0]).toEqual({ lineItemId: "gid://shopify/LineItem/12", quantity: 1, restockType: "NO_RESTOCK" });
+  });
+  it("records a refund without money movement when nothing was captured", async () => {
+    const p = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("transactions(first"), body: { data: { order: { transactions: [] } } } },
+      { match: (_u, i) => bodyOf(i).query.includes("refundCreate"), body: { data: { refundCreate: { refund: { id: "gid://shopify/Refund/78", totalRefundedSet: { shopMoney: { amount: "0.00" } } }, userErrors: [] } } } },
+    ]);
+    const r = await p.refundReturn("5678901234567", { lines: [{ orderLineExternalId: "12", quantity: 1 }], amountMinor: 4500, currency: "EUR", notify: false });
+    expect(r.amountMinor).toBe(0);
+    expect((bodyOf({ body: p.http.calls[1]!.body! }).variables as { input: { transactions: unknown[] } }).input.transactions).toEqual([]);
+  });
+});
+
 describe("shopify oauth", () => {
   it("builds the install url and verifies the callback hmac", () => {
     const url = buildInstallUrl("northwind-demo.myshopify.com", "key", ["read_orders"], "https://keel.example/cb", "st");

@@ -13,6 +13,7 @@ const SCHEDULES: { cron: string; data: TickJob }[] = [
   { cron: "30 4 * * *", data: { kind: "billing" } },
   { cron: "5,15,25,35,45,55 * * * *", data: { kind: "cod" } },
   { cron: "20 * * * *", data: { kind: "alerts" } },
+  { cron: "*/10 * * * *", data: { kind: "returns" } },
 ];
 
 /** Same startup rules as the web process; Sentry (errors only, no PII) when `SENTRY_DSN` is set. */

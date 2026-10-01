@@ -193,6 +193,18 @@ Fatto: servizio Railway configurato dalle impostazioni (documentate in `docs/DEP
 
 Manca: upload delle source map a Sentry; worker su Railway (non serve in modalità mock); migrazione a `.railway/railway.ts` quando ci sarà la CLI o la GitHub Action.
 
+## Programma di profondità — Area 3, primo blocco (portale resi e scrittura su Shopify)
+
+Fatto (issue #4):
+- Portale pubblico dei resi `/r/<negozio>` in en/it/es: ricerca dell'ordine per numero ed email o telefono con limite di 5 tentativi falliti ogni 15 minuti, sessione firmata di un'ora, scelta di righe e quantità, motivo, rimborso / cambio / buono, tracking con corrieri, foto compresse nel browser, campi aggiuntivi, IBAN per gli ordini non pagati online (cifrato, visualizzazione registrata), casella di conferma, stato dei resi precedenti, chiave di idempotenza.
+- Configurazione completa per negozio (testi per lingua, logo, colore, regole, motivi offerti, campi) e motivi con etichette per lingua e codice motivo Shopify.
+- Scrittura su Shopify a passi idempotenti dopo ogni cambio: richiesta, approvazione o rifiuto, rientro a stock, rimborso sulla transazione originale, chiusura, tag dell'ordine per stato; errori visibili con pulsante "Riprova" e job ogni 10 minuti. Corretto il rientro a stock che passava l'id della riga d'ordine al posto dell'articolo di magazzino.
+- Spedizione di reso trattenuta quando la colpa è del cliente (configurabile).
+- Corretta la chiave di cifratura di esempio in `.env.example` (34 byte invece di 32: la cifratura falliva in locale).
+- Migrazione 0009 (3 tabelle nuove con RLS, colonne additive); test core 112, integrazioni 27, servizi 46, db 408, e2e 50.
+
+Resta per l'Area 3 (issue #5): regole di idoneità avanzate, cambi con differenza da pagare, bonus sul buono, workflow automatici, segnali di frode, analisi per opzione, pagina di tracking per il cliente.
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

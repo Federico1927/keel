@@ -1,5 +1,5 @@
 import { and, desc, eq, gte, inArray, lt, schema, sql, type SQL } from "@keel/db";
-import { RETURN_GOODS_BACK_STATUSES, SALE_STATUSES, canTransitionReturn, isReturnStatus, returnEligibility, returnableLines, returnedFractionBps, type Eligibility, type Period, type ReturnStatus, type ReturnableLine, type TenantSettings } from "@keel/core";
+import { RETURN_GOODS_BACK_STATUSES, SALE_STATUSES, canTransitionReturn, isReturnStatus, proposedReturnAmount, returnEligibility, returnableLines, returnedFractionBps, type Eligibility, type Period, type ReturnStatus, type ReturnableLine, type TenantSettings } from "@keel/core";
 import type { ServiceContext } from "../context";
 import { recomputeOrderStatus } from "../orders/state";
 
@@ -17,14 +17,14 @@ export async function listReturnReasons(ctx: ServiceContext, onlyActive = false)
   return ctx.tx.select().from(schema.returnReasons).where(and(...conds)).orderBy(schema.returnReasons.sortOrder, schema.returnReasons.label);
 }
 
-export async function saveReturnReason(ctx: ServiceContext, input: { code: string; label: string; defaultFault: "merchant" | "customer" | "undetermined"; sortOrder?: number }, reasonId?: string): Promise<string> {
+export async function saveReturnReason(ctx: ServiceContext, input: { code: string; label: string; defaultFault: "merchant" | "customer" | "undetermined"; sortOrder?: number; platformReason?: string | null; labels?: Record<string, string> }, reasonId?: string): Promise<string> {
   const code = input.code.trim().toLowerCase().replace(/[^a-z0-9_]+/g, "_").slice(0, 40);
   if (!code || !input.label.trim()) throw new ReturnError("invalid_input");
   if (reasonId) {
-    await ctx.tx.update(schema.returnReasons).set({ label: input.label.trim(), defaultFault: input.defaultFault, sortOrder: input.sortOrder ?? 0 }).where(and(eq(schema.returnReasons.tenantId, ctx.tenantId), eq(schema.returnReasons.id, reasonId)));
+    await ctx.tx.update(schema.returnReasons).set({ label: input.label.trim(), defaultFault: input.defaultFault, sortOrder: input.sortOrder ?? 0, ...(input.platformReason !== undefined ? { platformReason: input.platformReason } : {}), ...(input.labels ? { labels: input.labels } : {}) }).where(and(eq(schema.returnReasons.tenantId, ctx.tenantId), eq(schema.returnReasons.id, reasonId)));
     return reasonId;
   }
-  const [row] = await ctx.tx.insert(schema.returnReasons).values({ tenantId: ctx.tenantId, code, label: input.label.trim(), defaultFault: input.defaultFault, sortOrder: input.sortOrder ?? 0 }).onConflictDoUpdate({ target: [schema.returnReasons.tenantId, schema.returnReasons.code], set: { label: input.label.trim(), defaultFault: input.defaultFault, isActive: true } }).returning({ id: schema.returnReasons.id });
+  const [row] = await ctx.tx.insert(schema.returnReasons).values({ tenantId: ctx.tenantId, code, label: input.label.trim(), defaultFault: input.defaultFault, sortOrder: input.sortOrder ?? 0, platformReason: input.platformReason ?? null, labels: input.labels ?? {} }).onConflictDoUpdate({ target: [schema.returnReasons.tenantId, schema.returnReasons.code], set: { label: input.label.trim(), defaultFault: input.defaultFault, isActive: true, platformReason: input.platformReason ?? null, labels: input.labels ?? {} } }).returning({ id: schema.returnReasons.id });
   return row!.id;
 }
 
@@ -65,6 +65,14 @@ export interface CreateReturnInput {
   staffNote?: string | null;
   /** Staff can open a return outside the window; a note is then mandatory. */
   overrideWindow?: boolean;
+  source?: "staff" | "portal" | "platform";
+  trackingCode?: string | null;
+  trackingCarrier?: string | null;
+  exchangeNote?: string | null;
+  customFields?: Record<string, string | boolean>;
+  bankDetailsEnc?: string | null;
+  customerLocale?: string | null;
+  idempotencyKey?: string | null;
 }
 
 export async function createReturn(ctx: ServiceContext, settings: TenantSettings, input: CreateReturnInput): Promise<{ id: string; number: number }> {
@@ -84,10 +92,37 @@ export async function createReturn(ctx: ServiceContext, settings: TenantSettings
   }
   const [maxRow] = await ctx.tx.select({ n: sql<number>`coalesce(max(${schema.returnRequests.number}), 0)::int` }).from(schema.returnRequests).where(eq(schema.returnRequests.tenantId, ctx.tenantId));
   const number = (maxRow?.n ?? 0) + 1;
-  const proposed = wanted.reduce((s, w) => s + w.quantity * context.lines.find((l) => l.id === w.orderLineId)!.unitNetMinor, 0);
-  const [row] = await ctx.tx.insert(schema.returnRequests).values({ tenantId: ctx.tenantId, orderId: input.orderId, number, status: "requested", reasonCode: reason.code, resolution: input.resolution, fault: reason.defaultFault, customerNote: input.customerNote ?? null, staffNote: input.staffNote ?? null, proposedAmountMinor: proposed, outOfWindow: !context.eligibility.eligible, requestedAt: now, createdBy: ctx.actor.userId }).returning({ id: schema.returnRequests.id });
+  const amounts = proposedReturnAmount(wanted.map((w) => ({ quantity: w.quantity, unitNetMinor: context.lines.find((l) => l.id === w.orderLineId)!.unitNetMinor })), reason.defaultFault, settings.returnShippingCostMinor);
+  const [row] = await ctx.tx
+    .insert(schema.returnRequests)
+    .values({
+      tenantId: ctx.tenantId,
+      orderId: input.orderId,
+      number,
+      status: "requested",
+      reasonCode: reason.code,
+      resolution: input.resolution,
+      fault: reason.defaultFault,
+      customerNote: input.customerNote ?? null,
+      staffNote: input.staffNote ?? null,
+      proposedAmountMinor: amounts.proposedMinor,
+      deductionMinor: amounts.deductionMinor,
+      outOfWindow: !context.eligibility.eligible,
+      requestedAt: now,
+      createdBy: ctx.actor.userId,
+      source: input.source ?? "staff",
+      trackingCode: input.trackingCode ?? null,
+      trackingCarrier: input.trackingCarrier ?? null,
+      exchangeNote: input.exchangeNote ?? null,
+      customFields: input.customFields ?? {},
+      bankDetailsEnc: input.bankDetailsEnc ?? null,
+      customerLocale: input.customerLocale ?? null,
+      idempotencyKey: input.idempotencyKey ?? null,
+      platformSyncStatus: input.source === "platform" ? "synced" : "pending",
+    })
+    .returning({ id: schema.returnRequests.id });
   await ctx.tx.insert(schema.returnLines).values(wanted.map((w) => ({ tenantId: ctx.tenantId, returnId: row!.id, orderLineId: w.orderLineId, quantity: w.quantity, unitAmountMinor: context.lines.find((l) => l.id === w.orderLineId)!.unitNetMinor })));
-  await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: input.orderId, type: "return_requested", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: {}, metadata: { returnId: row!.id, number, reason: reason.code, resolution: input.resolution, outOfWindow: !context.eligibility.eligible }, createdAt: now });
+  await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: input.orderId, type: "return_requested", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: {}, metadata: { returnId: row!.id, number, reason: reason.code, resolution: input.resolution, outOfWindow: !context.eligibility.eligible, source: input.source ?? "staff" }, createdAt: now });
   return { id: row!.id, number };
 }
 
@@ -105,8 +140,6 @@ export interface TransitionInput {
   refundAmountMinor?: number | null;
   voucherCode?: string | null;
   fault?: "merchant" | "customer" | "undetermined";
-  /** Optional platform write-back for restocked lines; receives external ids resolved here. */
-  pushRestock?: (lines: { variantId: string; locationId: string; quantity: number }[]) => Promise<void>;
 }
 
 export async function transitionReturn(ctx: ServiceContext, input: TransitionInput): Promise<{ previous: string; next: string }> {
@@ -115,7 +148,8 @@ export async function transitionReturn(ctx: ServiceContext, input: TransitionInp
   if (!req) throw new ReturnError("return_not_found");
   if (!isReturnStatus(input.to) || !canTransitionReturn(req.status, input.to)) throw new ReturnError("bad_transition");
   const lines = await ctx.tx.select({ id: schema.returnLines.id, orderLineId: schema.returnLines.orderLineId, quantity: schema.returnLines.quantity, unitAmountMinor: schema.returnLines.unitAmountMinor, restocked: schema.returnLines.restocked, inspectionAmountMinor: schema.returnLines.inspectionAmountMinor, variantId: schema.orderLines.variantId }).from(schema.returnLines).innerJoin(schema.orderLines, eq(schema.orderLines.id, schema.returnLines.orderLineId)).where(eq(schema.returnLines.returnId, req.id));
-  const patch: Partial<typeof schema.returnRequests.$inferInsert> = { status: input.to, updatedAt: now };
+  // every change is written to the commerce platform afterwards (`syncReturnToPlatform`), never inside this transaction
+  const patch: Partial<typeof schema.returnRequests.$inferInsert> = { status: input.to, updatedAt: now, platformSyncStatus: "pending" };
   if (input.note?.trim()) patch.staffNote = [req.staffNote, input.note.trim()].filter(Boolean).join("\n");
   if (input.fault) patch.fault = input.fault;
   if (input.to === "approved") patch.approvedAt = now;
@@ -130,7 +164,6 @@ export async function transitionReturn(ctx: ServiceContext, input: TransitionInp
         await ctx.tx.insert(schema.inventoryLevels).values({ tenantId: ctx.tenantId, variantId: l.variantId!, locationId: input.restock.locationId, available: l.quantity, updatedAt: now }).onConflictDoUpdate({ target: [schema.inventoryLevels.variantId, schema.inventoryLevels.locationId], set: { available: sql`${schema.inventoryLevels.available} + ${l.quantity}`, updatedAt: now } });
         await ctx.tx.update(schema.returnLines).set({ restocked: true }).where(eq(schema.returnLines.id, l.id));
       }
-      if (input.pushRestock && toRestock.length) await input.pushRestock(toRestock.map((l) => ({ variantId: l.variantId!, locationId: input.restock!.locationId, quantity: l.quantity })));
     }
   }
   if (input.to === "inspected" && input.inspection) {
@@ -174,6 +207,9 @@ export async function transitionReturn(ctx: ServiceContext, input: TransitionInp
 
 export interface ReturnFilters {
   status?: string;
+  source?: string;
+  /** "error": write to the platform failed. */
+  sync?: string;
   reason?: string;
   q?: string;
   page?: number;
@@ -187,12 +223,15 @@ export async function listReturns(ctx: ServiceContext, f: ReturnFilters = {}) {
   if (f.status === "open") conds.push(sql`${schema.returnRequests.status} not in ('refunded','exchanged','voucher_issued','rejected')`);
   else if (f.status) conds.push(eq(schema.returnRequests.status, f.status));
   if (f.reason) conds.push(eq(schema.returnRequests.reasonCode, f.reason));
+  if (f.source) conds.push(eq(schema.returnRequests.source, f.source));
+  if (f.sync === "error") conds.push(eq(schema.returnRequests.platformSyncStatus, "error"));
   if (f.q) conds.push(sql`(${schema.orders.name} ilike ${"%" + f.q + "%"} or ${schema.orders.customerName} ilike ${"%" + f.q + "%"} or ${schema.orders.email} ilike ${"%" + f.q + "%"} or cast(${schema.returnRequests.number} as text) = ${f.q.replace(/^R-/i, "")})`);
   const where = and(...conds);
-  const rows = await ctx.tx.select({ id: schema.returnRequests.id, number: schema.returnRequests.number, status: schema.returnRequests.status, reasonCode: schema.returnRequests.reasonCode, resolution: schema.returnRequests.resolution, fault: schema.returnRequests.fault, proposedAmountMinor: schema.returnRequests.proposedAmountMinor, refundedAmountMinor: schema.returnRequests.refundedAmountMinor, requestedAt: schema.returnRequests.requestedAt, closedAt: schema.returnRequests.closedAt, outOfWindow: schema.returnRequests.outOfWindow, orderId: schema.orders.id, orderName: schema.orders.name, customerName: schema.orders.customerName, currency: schema.orders.currency, items: sql<number>`(select coalesce(sum(l.quantity),0) from return_lines l where l.return_id = ${schema.returnRequests.id})::int` }).from(schema.returnRequests).innerJoin(schema.orders, eq(schema.orders.id, schema.returnRequests.orderId)).where(where).orderBy(desc(schema.returnRequests.requestedAt)).limit(pageSize).offset((page - 1) * pageSize);
+  const rows = await ctx.tx.select({ id: schema.returnRequests.id, number: schema.returnRequests.number, status: schema.returnRequests.status, reasonCode: schema.returnRequests.reasonCode, resolution: schema.returnRequests.resolution, fault: schema.returnRequests.fault, proposedAmountMinor: schema.returnRequests.proposedAmountMinor, refundedAmountMinor: schema.returnRequests.refundedAmountMinor, requestedAt: schema.returnRequests.requestedAt, closedAt: schema.returnRequests.closedAt, outOfWindow: schema.returnRequests.outOfWindow, source: schema.returnRequests.source, platformSyncStatus: schema.returnRequests.platformSyncStatus, orderId: schema.orders.id, orderName: schema.orders.name, customerName: schema.orders.customerName, currency: schema.orders.currency, items: sql<number>`(select coalesce(sum(l.quantity),0) from return_lines l where l.return_id = ${schema.returnRequests.id})::int` }).from(schema.returnRequests).innerJoin(schema.orders, eq(schema.orders.id, schema.returnRequests.orderId)).where(where).orderBy(desc(schema.returnRequests.requestedAt)).limit(pageSize).offset((page - 1) * pageSize);
   const [count] = await ctx.tx.select({ n: sql<number>`count(*)::int` }).from(schema.returnRequests).innerJoin(schema.orders, eq(schema.orders.id, schema.returnRequests.orderId)).where(where);
   const counts = await ctx.tx.select({ status: schema.returnRequests.status, n: sql<number>`count(*)::int` }).from(schema.returnRequests).where(eq(schema.returnRequests.tenantId, ctx.tenantId)).groupBy(schema.returnRequests.status);
-  return { rows, total: count?.n ?? 0, page, pageSize, counts: Object.fromEntries(counts.map((c) => [c.status, c.n])) as Record<string, number> };
+  const [extra] = await ctx.tx.select({ syncErrors: sql<number>`count(*) filter (where ${schema.returnRequests.platformSyncStatus} = 'error')::int`, portal: sql<number>`count(*) filter (where ${schema.returnRequests.source} = 'portal')::int` }).from(schema.returnRequests).where(eq(schema.returnRequests.tenantId, ctx.tenantId));
+  return { rows, total: count?.n ?? 0, page, pageSize, counts: Object.fromEntries(counts.map((c) => [c.status, c.n])) as Record<string, number>, syncErrors: extra?.syncErrors ?? 0, portalCount: extra?.portal ?? 0 };
 }
 
 export async function returnDetail(ctx: ServiceContext, returnId: string) {
@@ -254,3 +293,6 @@ export async function returnsAnalytics(ctx: ServiceContext, period: Period): Pro
     byProduct: byProduct.rows.map((r) => ({ productId: r.product_id, title: r.title, returnedQty: r.returned_qty, soldQty: r.sold_qty, rate: r.sold_qty ? r.returned_qty / r.sold_qty : null, amountMinor: r.amount_minor })),
   };
 }
+
+export * from "./platform";
+export * from "./portal";

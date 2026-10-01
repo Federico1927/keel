@@ -7,6 +7,7 @@ import { generateTenantDataset, type TenantSeedConfig } from "./generator";
 import { writeDataset } from "./writer";
 import { createRng } from "@keel/integrations";
 import { allocateLandedCost, normalizePhone } from "@keel/core";
+import { encryptJson } from "@keel/integrations";
 import { sql } from "drizzle-orm";
 
 /** Password of every demo user; override with KEEL_DEMO_PASSWORD on a hosted demo (an empty value keeps the default). */
@@ -186,7 +187,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
   const log = opts.log ?? (() => {});
   for (const cfg of tenantSeedConfigs(ctx, opts)) {
     // Wipe previous domain rows of this tenant (cascade from the parent tables).
-    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents]) {
+    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits]) {
       await db.delete(table).where(eq(table.tenantId, cfg.tenantId));
     }
     const started = Date.now();
@@ -196,6 +197,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     if (cfg.key === "northwind") await seedCod(db, ctx, cfg.tenantId, opts.now ?? new Date());
     await seedAnalyticsExtras(db, ctx, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date());
     await seedPlanningExtras(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date());
+    await seedReturnsExtras(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date());
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
   }
 }
@@ -228,6 +230,93 @@ async function seedAnalyticsExtras(db: ReturnType<typeof drizzle<typeof schema>>
     { tenantId, key: "contribution_after_ads", label: it ? "Contribuzione dopo ads" : "Contribution after ads", formula: "contribution - ad_spend", format: "money", createdBy: owner },
   ]);
   if (owner) await db.insert(schema.dashboards).values({ tenantId, userId: owner, name: it ? "La mia dashboard" : "My dashboard", isDefault: true, widgets: [{ metric: "net_revenue" }, { metric: "orders" }, { metric: "mer" }, { metric: "poas" }, { metric: "custom:profit_per_order" }, { metric: "custom:ads_share" }, { metric: "new_customers" }, { metric: "operating_profit" }] });
+}
+
+const REASON_LABELS: Record<string, Record<string, string>> = {
+  wrong_size: { en: "Wrong size or fit", it: "Taglia sbagliata", es: "Talla incorrecta" },
+  changed_mind: { en: "Changed my mind", it: "Ho cambiato idea", es: "He cambiado de opinión" },
+  defective: { en: "Defective", it: "Difettoso", es: "Defectuoso" },
+  damaged: { en: "Damaged in transit", it: "Danneggiato nel trasporto", es: "Dañado en el transporte" },
+  not_as_described: { en: "Not as described", it: "Non conforme alla descrizione", es: "No coincide con la descripción" },
+  wrong_item: { en: "Wrong item received", it: "Articolo sbagliato", es: "Artículo equivocado" },
+  other: { en: "Other", it: "Altro", es: "Otro" },
+};
+const REASON_PLATFORM: Record<string, string> = { wrong_size: "SIZE_TOO_SMALL", changed_mind: "UNWANTED", defective: "DEFECTIVE", damaged: "DEFECTIVE", not_as_described: "NOT_AS_DESCRIBED", wrong_item: "WRONG_ITEM" };
+/** 1×1 PNG used as a stand-in for customer photos in the demo. */
+const DEMO_PHOTO = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64");
+
+/**
+ * Return portal demo: configuration in the tenant's languages, translated reasons with the store
+ * reason code, a share of recent returns coming from the portal (tracking, answers, photos, bank
+ * details for orders paid on delivery) and the write-back state to the store, including one failure.
+ */
+async function seedReturnsExtras(db: ReturnType<typeof drizzle<typeof schema>>, key: keyof typeof DEMO_TENANTS, tenantId: string, now: Date) {
+  const it = key === "northwind";
+  const rng = createRng(it ? 5151 : 5252);
+  for (const [code, labels] of Object.entries(REASON_LABELS)) await db.update(schema.returnReasons).set({ labels, platformReason: REASON_PLATFORM[code] ?? null }).where(sql`${schema.returnReasons.tenantId} = ${tenantId} and ${schema.returnReasons.code} = ${code}`);
+  await db.insert(schema.returnPortalSettings).values({
+    tenantId,
+    config: {
+      enabled: true,
+      primaryColor: it ? "#1f3a5f" : "#3d5a40",
+      title: it ? { it: "Reso o cambio", en: "Return or exchange", es: "Devolución o cambio" } : { en: "Start a return", es: "Iniciar una devolución", it: "Avvia un reso" },
+      intro: it ? { it: "Hai 30 giorni dalla consegna. Ti servono il numero d'ordine e l'email usata per l'acquisto.", en: "You have 30 days from delivery. You need the order number and the email used for the purchase." } : { en: "You have 30 days from delivery to send items back. Have your order number and email at hand." },
+      instructions: it ? { it: "Spedisci a: Northwind Apparel, Magazzino resi, Via dell'Industria 12, 40100 Bologna.\nImballa gli articoli nella confezione originale con il numero di reso all'esterno.", en: "Ship to: Northwind Apparel, Returns, Via dell'Industria 12, 40100 Bologna, Italy.\nPack the items in the original box with the return number on the outside." } : { en: "Ship to: Harbor Home Returns, 400 Dock St, Newark NJ 07105.\nUse a sturdy box and write the return number on the label." },
+      successMessage: it ? { it: "Ti scriveremo appena il pacco arriva in magazzino.", en: "We will write to you as soon as the parcel reaches our warehouse." } : { en: "We will email you when your return arrives and is checked." },
+      confirmText: it ? { it: "Confermo che gli articoli sono integri e con le etichette.", en: "I confirm the items are unworn and with their tags." } : {},
+      resolutions: it ? ["refund", "exchange", "voucher"] : ["refund", "voucher"],
+      bankDetailsFor: it ? ["cod", "bank_transfer"] : ["bank_transfer"],
+      lookupBy: it ? "email_or_phone" : "email",
+      tracking: it ? { mode: "optional", carriers: ["Poste Italiane", "DHL", "UPS"] } : { mode: "optional", carriers: ["UPS", "USPS", "FedEx"] },
+      photos: { mode: "optional", max: 3 },
+      supportEmail: it ? "assistenza@northwind.example" : "help@harborhome.example",
+      fields: it
+        ? [{ key: "worn", type: "checkbox", label: { it: "Ho provato il capo solo in casa", en: "I only tried the item on at home" }, required: false, options: [], optionLabels: {} }]
+        : [{ key: "packaging", type: "select", label: { en: "Original packaging", es: "Embalaje original" }, required: true, options: ["yes", "partial", "no"], optionLabels: { yes: { en: "Yes, complete" }, partial: { en: "Partly" }, no: { en: "No" } } }],
+    },
+  });
+  await db.insert(schema.publicRateLimits).values({ tenantId, key: "lookup:ip:demo", windowStart: now, count: 1 });
+  // recent returns: a share from the portal, with the store write-back state
+  const recent = await db.execute<{ id: string; status: string; resolution: string; payment_method: string; external_id: string | null; created: Date }>(sql`
+    select r.id, r.status, r.resolution, o.payment_method, o.external_id, r.requested_at as created
+    from return_requests r join orders o on o.id = r.order_id
+    where r.tenant_id = ${tenantId} order by r.requested_at desc limit 400`);
+  const canEncrypt = Boolean(process.env.APP_ENCRYPTION_KEY);
+  const carriers = it ? ["Poste Italiane", "DHL", "UPS"] : ["UPS", "USPS", "FedEx"];
+  let photos = 0;
+  let errorDone = false;
+  for (const [i, r] of recent.rows.entries()) {
+    const portal = i % 3 !== 2;
+    const closed = ["refunded", "exchanged", "voucher_issued"].includes(r.status);
+    const patch: Partial<typeof schema.returnRequests.$inferInsert> = {};
+    if (portal) {
+      patch.source = "portal";
+      patch.customerLocale = it ? (rng.chance(0.85) ? "it" : "en") : "en";
+      if (rng.chance(0.7)) {
+        patch.trackingCarrier = rng.pick(carriers);
+        patch.trackingCode = `${rng.pick(["RR", "1Z", "LX"])}${rng.int(100000000, 999999999)}`;
+      }
+      patch.customFields = it ? { worn: rng.chance(0.4) } : { packaging: rng.pick(["yes", "yes", "partial", "no"]) };
+      if (r.resolution === "exchange") patch.exchangeNote = it ? rng.pick(["Taglia M", "Taglia più grande", "Stesso modello in blu"]) : rng.pick(["Size L", "Same item in sand"]);
+      if (canEncrypt && r.resolution === "refund" && (r.payment_method === "cod" || r.payment_method === "bank_transfer")) patch.bankDetailsEnc = encryptJson({ holder: it ? "Cliente Demo" : "Demo Customer", iban: "IT60X0542811101000000123456" });
+    }
+    if (r.external_id) {
+      if (r.status === "rejected") Object.assign(patch, { platformSyncStatus: "synced", platformStatus: "declined", externalId: `mock-r-${1000 + i}`, platformSyncedAt: new Date(r.created) });
+      else if (closed) Object.assign(patch, { platformSyncStatus: "synced", platformStatus: "closed", externalId: `mock-r-${1000 + i}`, platformRefundId: r.status === "refunded" ? `mock-refund-${1000 + i}` : null, platformSyncedAt: new Date(r.created) });
+      else if (!errorDone && r.status === "requested") {
+        Object.assign(patch, { platformSyncStatus: "error", platformError: "returnRequest: Line is not fulfilled on Shopify for 1 units" });
+        errorDone = true;
+      } else if (i < 6 && r.status === "requested") patch.platformSyncStatus = "pending";
+      else Object.assign(patch, { platformSyncStatus: "synced", platformStatus: r.status === "requested" ? "requested" : "approved", externalId: `mock-r-${1000 + i}`, platformSyncedAt: new Date(r.created) });
+    }
+    if (Object.keys(patch).length) await db.update(schema.returnRequests).set(patch).where(eq(schema.returnRequests.id, r.id));
+    if (portal && photos < 12 && i % 4 === 0) {
+      await db.insert(schema.returnEvidence).values([1, 2].map((n) => ({ tenantId, returnId: r.id, sessionNonce: `seed-${i}-${n}`, contentType: "image/png", sizeBytes: DEMO_PHOTO.length, data: DEMO_PHOTO })));
+      photos += 2;
+    }
+  }
+  // the isolation suite needs at least one photo per tenant even at tiny scales
+  if (!photos && recent.rows[0]) await db.insert(schema.returnEvidence).values({ tenantId, returnId: recent.rows[0].id, sessionNonce: "seed-0", contentType: "image/png", sizeBytes: DEMO_PHOTO.length, data: DEMO_PHOTO });
 }
 
 /**

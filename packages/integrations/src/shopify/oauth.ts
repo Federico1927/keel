@@ -59,3 +59,6 @@ export async function exchangeOAuthCode(shop: string, apiKey: string, apiSecret:
   const json = JSON.parse(text) as { access_token: string; scope: string };
   return { accessToken: json.access_token, scopes: json.scope.split(",").map((s) => s.trim()).filter(Boolean) };
 }
+
+/** Values of Shopify's ReturnReason enum, chosen per return reason in Keel (empty = OTHER). */
+export const SHOPIFY_RETURN_REASONS = ["COLOR", "DEFECTIVE", "NOT_AS_DESCRIBED", "OTHER", "SIZE_TOO_LARGE", "SIZE_TOO_SMALL", "STYLE", "UNKNOWN", "UNWANTED", "WRONG_ITEM"] as const;
