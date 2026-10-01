@@ -61,7 +61,7 @@ export function PoActions({ slug, poId, status, transitions, supplierId, balance
   );
 }
 
-export function ReceiveForm({ slug, poId, locations, defaultLocationId, lines }: { slug: string; poId: string; locations: { id: string; name: string; isDefault: boolean }[]; defaultLocationId: string | null; lines: { id: string; label: string; sku: string | null; quantity: number; receivedQuantity: number; unitCost: string }[] }) {
+export function ReceiveForm({ slug, poId, locations, defaultLocationId, lines }: { slug: string; poId: string; locations: { id: string; name: string; isDefault: boolean }[]; defaultLocationId: string | null; lines: { id: string; label: string; sku: string | null; quantity: number; receivedQuantity: number; damagedQuantity: number; rejectedQuantity: number; unitCost: string }[] }) {
   const t = useTranslations("po_detail");
   const tc = useTranslations("common");
   const [state, action, pending] = useActionState(receivePo.bind(null, slug, poId), null);
@@ -75,6 +75,8 @@ export function ReceiveForm({ slug, poId, locations, defaultLocationId, lines }:
             <TableHead className="text-right">{t("line.received")}</TableHead>
             <TableHead className="text-right">{t("line.unit_cost")}</TableHead>
             <TableHead className="text-right">{t("line.receive_now")}</TableHead>
+            <TableHead className="text-right">{t("inspection.damaged")}</TableHead>
+            <TableHead className="text-right">{t("inspection.rejected")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -87,17 +89,27 @@ export function ReceiveForm({ slug, poId, locations, defaultLocationId, lines }:
                   <p className="text-xs text-muted-foreground">{l.sku}</p>
                 </TableCell>
                 <TableCell className="text-right tabular">{l.quantity}</TableCell>
-                <TableCell className="text-right tabular">{l.receivedQuantity}</TableCell>
+                <TableCell className="text-right tabular">
+                  {l.receivedQuantity}
+                  {l.damagedQuantity + l.rejectedQuantity > 0 && <span className="block text-xs text-destructive">{t("inspection.short", { damaged: l.damagedQuantity, rejected: l.rejectedQuantity })}</span>}
+                </TableCell>
                 <TableCell className="text-right tabular">{l.unitCost}</TableCell>
                 <TableCell className="text-right">
-                  <Input size="sm" name={`qty_${l.id}`} type="number" min={0} max={remaining} defaultValue={remaining} className="ml-auto w-24 text-right" aria-label={t("line.receive_now")} disabled={remaining === 0} />
+                  <Input size="sm" name={`qty_${l.id}`} type="number" min={0} max={remaining} defaultValue={remaining} className="ml-auto w-20 text-right" aria-label={t("line.receive_now")} disabled={remaining === 0} />
+                </TableCell>
+                <TableCell className="text-right">
+                  <Input size="sm" name={`dmg_${l.id}`} type="number" min={0} max={remaining} defaultValue={0} className="ml-auto w-16 text-right" aria-label={t("inspection.damaged")} disabled={remaining === 0} />
+                </TableCell>
+                <TableCell className="text-right">
+                  <Input size="sm" name={`rej_${l.id}`} type="number" min={0} max={remaining} defaultValue={0} className="ml-auto w-16 text-right" aria-label={t("inspection.rejected")} disabled={remaining === 0} />
                 </TableCell>
               </TableRow>
             );
           })}
         </TableBody>
       </Table>
-      <div className="flex flex-col gap-3 border-t p-4 sm:flex-row sm:items-end sm:justify-between">
+      <p className="border-t px-4 pt-3 text-xs text-muted-foreground">{t("inspection.hint")}</p>
+      <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1.5">
             <Label htmlFor="receive-location">{t("receive_into")}</Label>

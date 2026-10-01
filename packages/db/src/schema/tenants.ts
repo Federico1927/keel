@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, customType, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { createdAt, id, tenantIsolation, updatedAt } from "./_common";
 import { users } from "./auth";
 
@@ -91,4 +91,31 @@ export const tenantTaxRates = pgTable(
     createdAt: createdAt(),
   },
   (t) => [uniqueIndex("tenant_tax_rates_uq").on(t.tenantId, t.country), tenantIsolation("tenant_tax_rates")],
+).enableRLS();
+
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () => "bytea" });
+
+/**
+ * Tenant branding (#44): brand colour and logos. The default for every tenant-branded page (app
+ * primary colour, return portal, tracking page, supplier page, survey); those pages may still
+ * override it in their own settings.
+ */
+export const tenantBranding = pgTable(
+  "tenant_branding",
+  {
+    id: id(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    /** `#rrggbb` as chosen; the AA-safe light/dark variants are derived at render time. */
+    brandColor: text("brand_color"),
+    logoLightData: bytea("logo_light_data"),
+    logoLightType: text("logo_light_type"),
+    logoDarkData: bytea("logo_dark_data"),
+    logoDarkType: text("logo_dark_type"),
+    updatedBy: uuid("updated_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("tenant_branding_tenant_uq").on(t.tenantId), tenantIsolation("tenant_branding")],
 ).enableRLS();

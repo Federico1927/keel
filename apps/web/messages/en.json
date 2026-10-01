@@ -241,7 +241,8 @@
       "spend": "Ad spend",
       "hint": "Day {elapsed} of {days}, run rate by weekday.",
       "more": "Details"
-    }
+    },
+    "greeting_line": "{count, plural, =0 {No orders yet today} one {# order so far today} other {# orders so far today}}"
   },
   "settings": {
     "title": "Settings",
@@ -297,7 +298,8 @@
       "prices_include_tax": "Prices include tax",
       "add": "Add or update"
     },
-    "order_states_link": "Order state rules"
+    "order_states_link": "Order state rules",
+    "branding_link": "Branding"
   },
   "users": {
     "title": "Users & roles",
@@ -1009,7 +1011,30 @@
       "cover": "Cover",
       "reorder": "Reorder"
     },
-    "planning_link": "Planning"
+    "planning_link": "Planning",
+    "sync_now": "Sync now",
+    "sync_done": "Stock read: {changed} levels changed, {drift} drift, {conflicts} conflicts, {zeroed} stale levels zeroed.",
+    "sync_paused": "Stock sync paused at the time budget; it continues on the next run.",
+    "sync_queued": "Stock sync queued.",
+    "sync_failed": "Stock sync failed: {error}",
+    "drift_title": "Stock drift",
+    "drift_description": "Changes found by syncs that no sale, return, receipt or adjustment explains, negative values clamped to zero, and levels the platform no longer reports.",
+    "drift_empty": "No drift recorded.",
+    "drift_kind": {
+      "unexplained": "Unexplained change",
+      "negative": "Negative, clamped",
+      "not_reported": "No longer reported"
+    },
+    "drift_columns": {
+      "seen": "Seen",
+      "variant": "Variant",
+      "location": "Location",
+      "kind": "Kind",
+      "expected": "Expected",
+      "observed": "Platform"
+    },
+    "drift_all_locations": "All locations",
+    "drift_times": "×{n}"
   },
   "purchasing": {
     "title": "Purchasing",
@@ -1029,7 +1054,21 @@
       "expected": "Expected / received",
       "units": "Units",
       "total": "Total",
-      "covers": "Backorders"
+      "covers": "Backorders",
+      "destination": "Destination"
+    },
+    "packs": "Case packs",
+    "export_csv": "Export CSV",
+    "filters": {
+      "search": "Search",
+      "search_placeholder": "Number, supplier, SKU, note",
+      "all_suppliers": "All suppliers",
+      "destination": "Destination",
+      "all_destinations": "All destinations",
+      "from": "From",
+      "to": "To",
+      "apply": "Apply",
+      "clear": "Clear"
     }
   },
   "po_detail": {
@@ -1103,6 +1142,55 @@
       "send": "Send to supplier",
       "resend": "Send again",
       "link_hint": "Confirmation link (in demo mode no email leaves the platform: copy it to the supplier):"
+    },
+    "free_text_line": "Free-text line",
+    "inspection": {
+      "damaged": "Damaged",
+      "rejected": "Rejected",
+      "short": "{damaged} damaged · {rejected} rejected",
+      "hint": "\"Receive now\" counts every unit that arrived; damaged and rejected units are part of it and never go to stock or into the cost."
+    },
+    "manage": {
+      "duplicate": "Duplicate",
+      "delete_title": "Delete {number}?",
+      "delete_hint": "Only drafts and cancelled orders can be deleted. Lines, charges and supplier links go with it; the audit log keeps the record."
+    },
+    "links": {
+      "title": "Supplier links",
+      "state": {
+        "active": "Active",
+        "expired": "Expired",
+        "revoked": "Revoked"
+      },
+      "issued": "Issued {at} to {to}",
+      "expires": "Expires {at}",
+      "expired_on": "Expired on {at}",
+      "revoked": "Revoked: the supplier sees a neutral page.",
+      "views": "{n, plural, one {# view} other {# views}}, last {at}",
+      "no_views": "Never opened",
+      "revoke": "Revoke link",
+      "revoked_ok": "Link revoked."
+    },
+    "history": {
+      "title": "History",
+      "actions": {
+        "purchase_order": {
+          "created": "Created",
+          "updated": "Edited",
+          "duplicated": "Created as a copy",
+          "deleted": "Deleted",
+          "transition": "Status changed",
+          "received": "Goods received",
+          "sent_to_supplier": "Sent to the supplier",
+          "supplier_confirmed": "Confirmed by the supplier",
+          "supplier_problem": "Problem reported by the supplier",
+          "supplier_link_revoked": "Supplier link revoked",
+          "supplier_link_blocked": "Expired or revoked link opened",
+          "auto_draft": "Drafted from the replenishment plan",
+          "charge_added": "Charge added",
+          "charge_deleted": "Charge removed"
+        }
+      }
     }
   },
   "po_new": {
@@ -2458,14 +2546,26 @@
       "run": "Run",
       "status": "Status",
       "rows": "Rows",
-      "topic": "Topic"
+      "topic": "Topic",
+      "scanned": "Scanned",
+      "changed": "Changed",
+      "conflicts": "Conflicts",
+      "errors": "Errors",
+      "duration": "Duration"
     },
     "errors": {
       "connection_failed": "The platform refused the credentials.",
       "mock_mode": "This environment is in mock mode: set KEEL_INTEGRATION_MODE=live to connect a real account.",
       "live_mode": "Simulation is only available for mock integrations."
     },
-    "tracking": "Pixel & conversions"
+    "tracking": "Pixel & conversions",
+    "duration_s": "{s} s",
+    "run_kind": {
+      "initial": "backfill",
+      "delta": "delta",
+      "reconcile": "nightly reconcile",
+      "manual": "manual"
+    }
   },
   "integration_guide": {
     "verify_legend": "Steps marked “To verify” depend on vendor consoles that change often: check them against the vendor documentation before the first install.",
@@ -2788,7 +2888,8 @@
       "tenants": "Tenants",
       "billing": "Billing",
       "audit": "Audit log",
-      "support": "Support"
+      "support": "Support",
+      "styleguide": "Style guide"
     },
     "plans": {
       "starter": "Starter",
@@ -3221,7 +3322,9 @@
     "submit": {
       "confirm": "Confirm",
       "problem": "Send"
-    }
+    },
+    "inactive_title": "This link is no longer valid",
+    "inactive_body": "The link has expired or was replaced by a newer one. Ask the company that sent it for a new link."
   },
   "planning": {
     "back": "Inventory",
@@ -3500,7 +3603,9 @@
     "label_enabled": "Give the customer a prepaid return label",
     "label_destination": "Return address on the label",
     "label_hint": "The label is issued at submission and its tracking code is stored on the return. In this version the label provider is simulated.",
-    "off_notice": "The portal is off: customers who open {url} get a \"page not found\". Turn on \"Portal active\" below and save."
+    "off_notice": "The portal is off: customers who open {url} get a \"page not found\". Turn on \"Portal active\" below and save.",
+    "use_branding": "Use the workspace branding",
+    "logo_branding_hint": "Empty: the logo from Settings → Branding."
   },
   "return_portal": {
     "default_title": "Return an item",
@@ -4446,6 +4551,521 @@
         "products": "Products",
         "purchase_orders": "Purchase orders"
       }
+    }
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "greeting": {
+    "morning": "Good morning, {name}",
+    "afternoon": "Good afternoon, {name}",
+    "evening": "Good evening, {name}"
+  },
+  "profile": {
+    "menu": "Your profile",
+    "title": "Your profile",
+    "description": "How you appear to your team, how the app looks for you, and how you sign in.",
+    "identity": "Identity",
+    "identity_description": "Your name is shown to your team; the preferred name is how the app greets you.",
+    "name": "Full name",
+    "preferred_name": "Preferred name",
+    "preferred_name_hint": "Optional. Used in greetings, e.g. “Giulia”.",
+    "job_title": "Job title",
+    "save": "Save",
+    "saved": "Saved.",
+    "photo_upload": "Upload photo",
+    "photo_change": "Change photo",
+    "photo_remove": "Remove",
+    "uploading": "Uploading…",
+    "image_hint": "PNG, JPEG, WebP or GIF. Large pictures are reduced automatically.",
+    "preferences": "Preferences",
+    "preferences_description": "Applied to you only, on every device.",
+    "locale_default": "Workspace language",
+    "locale_default_named": "Workspace language ({language})",
+    "time_zone": "Time zone",
+    "time_zone_default": "Workspace time zone",
+    "time_zone_default_named": "Workspace time zone ({zone})",
+    "density": "Density",
+    "density_comfortable": "Comfortable",
+    "density_compact": "Compact",
+    "density_hint": "Compact shows more rows: tighter tables and cards.",
+    "format_hint": "Dates and numbers follow the language. The time zone is used for the greeting and your sign-in list; reports keep the workspace time zone so the whole team sees the same days.",
+    "security": "Sign-in and security",
+    "security_description": "Email, password and active sessions.",
+    "email": "Email",
+    "email_current": "Current email:",
+    "email_pending": "Waiting for confirmation from {email}. Nothing changes until the link in that inbox is opened.",
+    "email_cancel": "Cancel request",
+    "email_new": "New email",
+    "email_submit": "Send confirmation",
+    "email_hint": "We send a link to the new address and a notice to the current one.",
+    "email_sent": "Check the new inbox for the confirmation link.",
+    "password": "Password",
+    "password_current": "Current password",
+    "password_new": "New password",
+    "password_confirm": "Repeat the new password",
+    "password_hint": "At least 10 characters with a mix of letters, numbers and symbols, or a long phrase. Changing it signs you out everywhere else.",
+    "password_submit": "Change password",
+    "password_changed": "Password changed. Other sessions have been signed out.",
+    "sessions": "Recent sign-ins",
+    "sessions_description": "The last times your account was used to sign in.",
+    "sign_in_when": "When",
+    "sign_in_method": "Method",
+    "sign_in_device": "Device",
+    "sign_in_methods": {
+      "credentials": "Password",
+      "email": "Email link",
+      "other": "Other"
+    },
+    "sessions_sign_out_others": "Sign out of all other sessions",
+    "sessions_signed_out": "All other sessions have been signed out.",
+    "workspaces": "Workspaces",
+    "workspaces_description": "Where you have access and with which role. Roles are managed by owners and admins.",
+    "workspaces_super_admin": "Platform super-admin: you can open every workspace from the console.",
+    "errors": {
+      "invalid_input": "Some fields are invalid.",
+      "rate_limited": "Too many attempts. Try again in an hour.",
+      "wrong_password": "The current password is not correct.",
+      "weak_password": "The new password is too weak:",
+      "email_taken": "This email is already used by another account.",
+      "same_email": "This is already your email.",
+      "invalid_token": "This link is not valid.",
+      "expired_token": "This link has expired. Request a new one from your profile.",
+      "not_found": "Account not found.",
+      "password_mismatch": "The two new passwords do not match.",
+      "invalid_image": "This file is not a supported image.",
+      "image_too_large": "The image is too large (max 1.5 MB after reduction).",
+      "forbidden": "You are not allowed to do this.",
+      "unknown": "Something went wrong."
+    },
+    "password_issues": {
+      "too_short": "at least 10 characters",
+      "too_long": "at most 200 characters",
+      "too_common": "not a common or repeated password",
+      "personal": "not based on your name or email",
+      "low_variety": "mix upper and lower case, numbers and symbols (or use 16+ characters)"
+    }
+  },
+  "welcome": {
+    "title": "Complete your profile",
+    "description": "You are signed in as {email}. Tell your team who you are before you start.",
+    "submit": "Continue"
+  },
+  "email_change": {
+    "title": "Confirm your new email",
+    "description": "Confirm to use this address to sign in from now on.",
+    "confirm": "Confirm email change",
+    "done": "Done: you now sign in with {email}.",
+    "continue": "Continue",
+    "errors": {
+      "invalid_token": "This link is not valid or was already used.",
+      "expired_token": "This link has expired. Request a new one from your profile.",
+      "email_taken": "This email is already used by another account."
+    },
+    "mail_new_subject": "Confirm your new email address",
+    "mail_new_body": "Open this link to confirm the change of the email you sign in with: {url}\n\nIf you did not ask for it, ignore this message.",
+    "mail_old_subject": "Your sign-in email is about to change",
+    "mail_old_body": "Someone asked to change the sign-in email of your account to {email}. It changes only when that address confirms. If it was not you, change your password now."
+  },
+  "branding": {
+    "title": "Branding",
+    "description": "Logo and brand colour of the workspace: used in the app and as the default of the return portal, tracking, supplier and survey pages.",
+    "back": "All settings",
+    "color": "Brand colour",
+    "color_description": "Replaces the primary colour for everyone in this workspace. It is adjusted automatically so text and buttons stay readable (WCAG AA) in the light and dark theme.",
+    "color_hex": "Colour (#rrggbb)",
+    "color_picker": "Pick a colour",
+    "save": "Save colour",
+    "reset": "Use the default",
+    "invalid_color": "Use the #rrggbb format.",
+    "adjusted": "Adjusted for readability: {light} in the light theme, {dark} in the dark theme.",
+    "sample_button": "Save",
+    "sample_link": "View orders",
+    "saved": "Saved.",
+    "errors": {
+      "invalid_color": "Use the #rrggbb format.",
+      "generic": "Could not save the branding."
+    },
+    "logos": "Logos",
+    "logos_description": "One logo for light backgrounds and, optionally, one for dark backgrounds.",
+    "logo_light": "On light backgrounds",
+    "logo_dark": "On dark backgrounds",
+    "logo_dark_fallback": "Uses the light-background logo",
+    "logo_none": "No logo: the workspace name is shown",
+    "logo_upload": "Upload logo",
+    "logo_remove": "Remove",
+    "used_by": "Public pages (return portal, tracking, supplier, survey) use this branding unless their own settings override it."
+  },
+  "styleguide": {
+    "title": "Style guide",
+    "description": "Direction A, Modern SaaS (decided 2026-10-01): tokens, components in both themes, brand-colour variants and densities.",
+    "tokens": "Tokens",
+    "type_note": "Geist for interface text and headings, Geist Mono for codes; 8px corners, pill badges.",
+    "components": "Components",
+    "primary": "Primary",
+    "secondary": "Secondary",
+    "ghost": "Ghost",
+    "danger": "Danger",
+    "link": "Link",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Info",
+    "input": "Input",
+    "placeholder": "Type here",
+    "select": "Select",
+    "option": "Option",
+    "empty_title": "Nothing here yet",
+    "empty_description": "Empty states explain what will appear and how to get it.",
+    "brand": "Tenant brand colour",
+    "brand_description": "Each workspace can set its own colour; it is adjusted until text and controls pass AA in both themes.",
+    "brand_card": "Light and dark, after adjustment",
+    "adjusted": "adjusted",
+    "density": "Density",
+    "density_comfortable": "Comfortable",
+    "density_compact": "Compact",
+    "col_order": "Order",
+    "col_status": "Status",
+    "col_total": "Total"
+  },
+  "analytics_depth": {
+    "tabs": {
+      "orders_pnl": "P/L per order",
+      "utm": "UTM"
+    },
+    "total": "Total",
+    "export": "CSV",
+    "apply": "Apply",
+    "clear": "Clear",
+    "sort": "Sort",
+    "granularity": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month",
+      "quarter": "Quarter",
+      "year": "Year"
+    },
+    "periods": {
+      "title": "P/L over time",
+      "series": {
+        "cogs": "Cost of goods",
+        "shipping": "Shipping",
+        "fees": "Payment fees",
+        "returns": "Return costs",
+        "ads": "Advertising",
+        "fixed": "Fixed costs"
+      },
+      "partial": "partial",
+      "partial_hint": "This bucket covers only part of its period: cut by the selected dates or still running.",
+      "chart_hint": "Bars: costs stacked by type. Line: operating profit. Faded bars are partial periods. Buckets add up to the P/L above.",
+      "pages": "{n} periods"
+    },
+    "quality": {
+      "title": "Data quality",
+      "description": "How complete the numbers behind the P/L are.",
+      "incomplete_orders": "Sale orders with missing costs",
+      "incomplete_share": "{share} of net revenue: cost of goods understated",
+      "variants_missing_cost": "Variants without cost",
+      "fix_link": "Fix product costs →",
+      "cost_known": "Revenue with known cost",
+      "cost_known_hint": "Share of sale revenue whose product cost is known."
+    },
+    "orders_pnl": {
+      "title": "P/L per order",
+      "description": "Every sale order of the period with its own P/L; the sum walks to the period P/L below. {out} orders placed in the period are not sales (cancelled, pending, returned) and are left out.",
+      "search": "Order number",
+      "payment": "Payment method",
+      "channel": "Channel",
+      "sort": {
+        "placed_desc": "Newest first",
+        "placed_asc": "Oldest first",
+        "contribution_asc": "Lowest contribution",
+        "contribution_desc": "Highest contribution",
+        "net_desc": "Highest net revenue"
+      },
+      "missing_cost": "Missing cost",
+      "loss": "Loss-making",
+      "empty": "No sale order matches these filters.",
+      "order": "Order",
+      "fee_estimated": "Payment fee (est.)",
+      "no_cost": "no cost",
+      "total": "Total · {n} orders",
+      "summary": "{n} orders",
+      "reconciliation": "From orders to the period P/L",
+      "reconciliation_description": "The order rows add up to the P/L; costs known only for the whole period are listed on their own line.",
+      "reconciliation_filtered": "Computed on every sale order of the period, not only the filtered ones.",
+      "recon": {
+        "orders_contribution": "Sum of order contributions",
+        "shipping_adjustment": "Carrier invoice vs per-order estimate",
+        "return_timing": "Return costs by receipt date vs by order",
+        "contribution": "Contribution margin (P/L)",
+        "ads": "Advertising",
+        "fixed": "Fixed costs",
+        "operating": "Operating profit (P/L)"
+      },
+      "shipping_adjustment_hint": "Months with an actual carrier invoice use it instead of the per-order estimate.",
+      "return_timing_hint": "The P/L counts return costs when the goods come back; the table counts them on the order they belong to.",
+      "matches": "Matches the period P/L to the cent.",
+      "mismatch": "Does not match the period P/L: please report it."
+    },
+    "channels": {
+      "direct": "Direct",
+      "paid_social": "Paid social",
+      "paid_search": "Paid search",
+      "organic_search": "Organic search",
+      "email": "Email",
+      "social": "Social",
+      "referral": "Referral",
+      "unknown": "Unknown",
+      "other": "Other"
+    },
+    "products": {
+      "description": "Sales of the period with the spend of the campaigns linked to each product (split by net revenue when a campaign advertises several), profit, ROAS/ROI, stock, cover and what to do. Spend of campaigns without a linked product is on its own row, so total spend equals the period ad spend.",
+      "search": "Product",
+      "action": "Stock action",
+      "all_actions": "All actions",
+      "actions": {
+        "pause_ads": "Pause ads",
+        "reorder": "Reorder",
+        "last_units": "Last units",
+        "clear_excess": "Clear excess",
+        "scale_ads": "Scale ads",
+        "ok": "OK",
+        "no_data": "No stock"
+      },
+      "sort": {
+        "net_desc": "Highest net revenue",
+        "units_desc": "Most units",
+        "profit_desc": "Highest profit",
+        "profit_asc": "Lowest profit",
+        "ad_spend_desc": "Highest ad spend",
+        "roas_asc": "Lowest ROAS",
+        "cover_asc": "Lowest cover"
+      },
+      "net": "Net revenue",
+      "ad_spend": "Ad spend",
+      "profit": "Profit",
+      "light": "Ads",
+      "stock": "Stock + incoming",
+      "cover": "Cover",
+      "days": "{n} d",
+      "reorder_units": "{n} units",
+      "unattributed": "Unattributed spend: {n} campaigns without a linked product",
+      "link_campaigns": "Link campaigns →",
+      "spend_matches": "Total ad spend {spend}, equal to the period P/L.",
+      "campaigns": "{n} linked campaigns",
+      "summary": "{n} products"
+    },
+    "utm": {
+      "title": "UTM drill-down",
+      "description": "Sale orders by UTM parameter; click a value to open the next level. {n} sale orders have no attribution data.",
+      "dims": {
+        "source": "Source",
+        "medium": "Medium",
+        "campaign": "Campaign",
+        "content": "Content",
+        "term": "Term"
+      },
+      "none": "(none)",
+      "empty": "No sale order in this period.",
+      "orders": "Orders",
+      "revenue": "Revenue",
+      "net": "Net revenue",
+      "aov": "AOV",
+      "share": "Share",
+      "summary": "{n} values",
+      "trend_title": "Channels over time",
+      "trend_description": "Net revenue of sale orders by attribution channel."
+    },
+    "economics": {
+      "title": "Order economics",
+      "description": "This order's P/L, computed like the period P/L.",
+      "replaced": "Replaced by an edit: the replacement order carries the economics.",
+      "not_sale": "Not a sale (cancelled, pending or returned): it does not count in the P/L.",
+      "incomplete": "incomplete",
+      "estimated": "estimated",
+      "fee_source": {
+        "estimated": "estimated"
+      },
+      "lines": {
+        "gross": "Gross sales",
+        "refunds": "Refunds",
+        "tax": "Tax",
+        "net": "Net revenue",
+        "cogs": "Cost of goods",
+        "shipping": "Shipping cost",
+        "fee": "Payment fee",
+        "margin": "Order margin",
+        "returns": "Return costs",
+        "contribution": "Contribution"
+      },
+      "margin_rate": "Contribution {rate} of net revenue",
+      "open_table": "Open in P/L per order →"
+    },
+    "order_filters": {
+      "channel": "Channel: {value}",
+      "utm": "utm {dim}: {value}"
+    }
+  },
+  "po_editor": {
+    "lines": "Lines",
+    "search_placeholder": "Add a variant: SKU, barcode or title",
+    "no_results": "No variant found.",
+    "available_n": "{n} available",
+    "suggested_n": "suggested {n}",
+    "add_free_text": "Free-text line",
+    "free_text_placeholder": "Description (packaging, samples, service…)",
+    "free_text": "Not in catalogue",
+    "line_total": "Line total",
+    "empty": "No lines yet: search a variant, add a suggestion or a free-text line.",
+    "total": "Total",
+    "suggestions": "Reorder suggestions",
+    "add_all": "Add all suggested",
+    "add": "Add",
+    "save": "Save changes",
+    "edit_title": "Edit {number}",
+    "edit_hint": "Lines are replaced as a whole; every change is in the order history.",
+    "edit_sent_hint": "The order is already with the supplier: the supplier stays the same and the supplier link shows the new lines."
+  },
+  "supplier_terms": {
+    "title": "Suppliers & packs",
+    "hint": "Default supplier of each variant: planning and auto-drafted purchase orders use its cost, MOQ and lead time.",
+    "missing": "{n, plural, one {# variant has} other {# variants have}} no default supplier: auto-drafts skip them.",
+    "option_mix": "Option mix",
+    "columns": {
+      "variant": "Variant",
+      "supplier": "Supplier",
+      "supplier_sku": "Supplier SKU",
+      "cost": "Cost",
+      "moq": "MOQ",
+      "multiple": "Order multiple",
+      "lead_time": "Lead time (days)"
+    },
+    "edit": "Edit",
+    "none": "None",
+    "days": "{n} d",
+    "packs": "Case packs",
+    "no_packs": "No case pack fits this product.",
+    "manage_packs": "Manage packs",
+    "units_per_pack": "{n} units per pack",
+    "edit_variant": "Supplier terms · {variant}",
+    "keep": "unchanged",
+    "set_all": "Set for all variants",
+    "set_all_hint": "Same default supplier for every variant of the product. Empty fields keep the current value.",
+    "updated": "{n, plural, one {# variant} other {# variants}} updated.",
+    "bulk_title": "Default supplier in bulk",
+    "bulk_hint": "Pick the variants by product type, vendor or SKU prefix. {n} active variants have no default supplier yet.",
+    "bulk_apply": "Apply",
+    "bulk_done": "{n} of {matched} variants updated.",
+    "filter": {
+      "product_type": "Product type",
+      "vendor": "Vendor",
+      "sku_prefix": "SKU prefix",
+      "any": "Any",
+      "only_without": "Only variants without a supplier",
+      "required": "Choose at least one filter and a supplier."
+    }
+  },
+  "case_packs": {
+    "back": "Purchasing",
+    "title": "Case packs",
+    "description": "Cartons with a fixed ratio across the values of one option (any option: size, material, scent…). Replenishment suggests how many cartons per option group; the option-mix page turns them into PO lines.",
+    "empty_title": "No case packs yet",
+    "empty_description": "Create one with the units per option value your supplier ships in a carton.",
+    "for_product": "Only for {product}",
+    "for_all": "Every product with the option {option}",
+    "inactive": "Inactive",
+    "units_per_pack": "{n} units per pack",
+    "add_title": "New case pack",
+    "no_options": "The catalogue has no product options yet.",
+    "name": "Name",
+    "option": "Option",
+    "product": "Product",
+    "all_products": "All products with this option",
+    "units": "Units per value",
+    "units_for": "Units of {value}",
+    "custom_value": "Another value",
+    "add_value": "Add value",
+    "active": "Active"
+  },
+  "option_mix": {
+    "title": "Option mix · {product}",
+    "description": "Sales share per option combination, and a planner that turns a quantity or case packs into a draft purchase order.",
+    "window": "Sales window",
+    "days": "{n} days",
+    "units_sold": "{n} units sold",
+    "share_by": "Share by {option}",
+    "combinations": "Combinations",
+    "sku": "SKU",
+    "sold": "Sold",
+    "share": "Share",
+    "suggested": "Suggested",
+    "planner": {
+      "title": "Plan a purchase",
+      "hint": "Split a quantity by sales share, or buy cartons per option group (pre-filled with the replenishment suggestion).",
+      "mode": {
+        "units": "By sales share",
+        "packs": "By case pack"
+      },
+      "total_units": "Units to buy",
+      "multiple": "Round to multiples of",
+      "suggested_total": "Replenishment suggests {n} units.",
+      "pack": "Case pack",
+      "packs_for": "Cartons for {group}",
+      "cartons": "cartons",
+      "single_group": "All variants",
+      "variant": "Variant",
+      "quantity": "Quantity",
+      "cost": "Cost",
+      "total": "Total",
+      "supplier": "Supplier",
+      "destination": "Destination",
+      "create_po": "Create draft PO"
+    }
+  },
+  "platform_writes": {
+    "status": {
+      "pending": "Pending sync",
+      "running": "Syncing",
+      "succeeded": "Synced",
+      "failed": "Sync failed",
+      "superseded": "Replaced"
+    },
+    "retry": "Retry",
+    "retry_failed": "Could not retry",
+    "title": "Platform writes",
+    "description": "Changes Keel sends to Shopify, Meta and Google: {pending} waiting, {failed} failed, {succeeded} synced in the last 24 hours.",
+    "empty": "No platform writes yet.",
+    "immediate": "immediate",
+    "attempts": "{n, plural, one {# attempt} other {# attempts}}",
+    "next_attempt": "next attempt {when}",
+    "columns": {
+      "when": "When",
+      "write": "Write",
+      "status": "Status"
+    },
+    "kinds": {
+      "variant_update": "Variant price",
+      "product_status": "Product status",
+      "inventory_set": "Stock level",
+      "inventory_restock": "Restock",
+      "order_cancel": "Order cancellation",
+      "order_update_details": "Order details",
+      "order_tags": "Order tags",
+      "order_create": "New order",
+      "order_create_invoice": "Invoice order",
+      "discount_create": "Discount code",
+      "discount_pool": "Discount pool",
+      "return_request": "Return request",
+      "return_approve": "Return approval",
+      "return_decline": "Return decline",
+      "return_refund": "Refund",
+      "return_close": "Return closing",
+      "campaign_status": "Campaign status",
+      "variant_cost": "Variant cost",
+      "order_discount": "Order discount"
     }
   }
 }

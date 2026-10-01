@@ -4,12 +4,13 @@ import { getTranslations } from "next-intl/server";
 import { canDo, canWritePage } from "@keel/config";
 import { formatDate, formatMoney, formatNumber, formatPercent } from "@keel/core";
 import { and, eq, schema } from "@keel/db";
-import { campaignDailyLedger, campaignLinkSuggestions, campaignsWithEconomics, summarizeByProduct, variantStock } from "@keel/services";
+import { campaignDailyLedger, campaignLinkSuggestions, campaignsWithEconomics, latestPlatformWrites, summarizeByProduct, variantStock } from "@keel/services";
 import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DetailShell, EmptyState, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";
 import { RiskBadge } from "@/components/risk-badge";
+import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { ActionBadge, LightBadge } from "../badges";
 import { CampaignStatusButton, LinkProductForm, LinkedProductControls } from "./campaign-actions";
 import { SuggestionLinkButtons } from "./suggestion-buttons";
@@ -33,10 +34,11 @@ export default async function CampaignDetailPage({ params, searchParams }: { par
     ]);
     const productIds = row.products.map((p) => p.id);
     const stock = productIds.length ? summarizeByProduct(await variantStock(s, ctx.settings, { productIds })) : new Map();
-    return { row, ledger, suggestions: suggestions.find((g) => g.campaignId === id)?.suggestions ?? [], products, stock };
+    const platformWrite = (await latestPlatformWrites(s, "campaign", [id], { kinds: ["campaign.status"] })).get(id);
+    return { row, ledger, suggestions: suggestions.find((g) => g.campaignId === id)?.suggestions ?? [], products, stock, platformWrite };
   });
   if (!data) notFound();
-  const { row, ledger, suggestions, products, stock } = data;
+  const { row, ledger, suggestions, products, stock, platformWrite } = data;
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   const base = `/t/${tenant}/campaigns`;
   const qs = new URLSearchParams(Object.entries(periodParams(period, sp)).filter((e): e is [string, string] => Boolean(e[1]))).toString();
@@ -57,6 +59,7 @@ export default async function CampaignDetailPage({ params, searchParams }: { par
           <Badge variant={row.status === "active" ? "success" : "muted"}>{tl(`status.${row.status}`)}</Badge>
           <LightBadge light={row.light} />
           <ActionBadge action={row.action} />
+          <PlatformWriteStatus slug={tenant} write={platformWrite} canRetry={canDo(ctx.role, "pause_campaign")} showError />
         </>
       }
       actions={

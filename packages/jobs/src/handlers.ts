@@ -1,8 +1,9 @@
+import { platformRetentionDays } from "@keel/config";
 import { parseTenantSettings } from "@keel/core";
-import { adminDb, and, eq, inArray, schema, withTenant } from "@keel/db";
-import { checkCriticalStock, checkLateToShip, checkSyncDelays, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
+import { adminDb, and, eq, inArray, lte, schema, withTenant } from "@keel/db";
+import { checkCriticalStock, checkLateToShip, checkSyncDelays, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue } from "@keel/addon-cod";
-import { adsWindow, type ListExportJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
+import { adsWindow, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
 
 export interface Enqueue {
   (queue: string, data: unknown, opts?: { singletonKey?: string }): Promise<void>;
@@ -14,6 +15,8 @@ async function tenantRow(tenantId: string) {
   return t;
 }
 const sys = (tenantId: string) => (tx: ServiceContext["tx"]): ServiceContext => ({ tenantId, tx, actor: { type: "system", userId: null } });
+/** Short tenant transactions on demand: the outbox never holds one across a platform call. */
+const runner = (tenantId: string) => <T>(fn: (ctx: ServiceContext) => Promise<T>) => withTenant(tenantId, (tx) => fn(sys(tenantId)(tx)));
 
 export async function handleWebhook(job: WebhookJob): Promise<void> {
   const tenant = await tenantRow(job.tenantId);
@@ -42,13 +45,21 @@ export async function handleSyncOrders(job: SyncOrdersJob, enqueue: Enqueue): Pr
   if (result.error) throw new Error(result.error);
 }
 
-export async function handleSyncCatalog(job: SyncCatalogJob): Promise<void> {
+export async function handleSyncCatalog(job: SyncCatalogJob, enqueue?: Enqueue): Promise<void> {
   const tenant = await tenantRow(job.tenantId);
   const r = await withTenant(tenant.id, async (tx) => {
     const ctx = sys(tenant.id)(tx);
-    return runCatalogSync(ctx, await getCommercePlatformFor(ctx, tenant));
+    return runCatalogSync(ctx, await getCommercePlatformFor(ctx, tenant), { kind: job.kind ?? "delta", scope: job.scope ?? "catalog", budgetMs: 25_000 });
   });
+  // Resumable: a paused run re-enqueues itself and continues from the saved phase and cursor.
+  if (!r.finished && !r.error && enqueue) await enqueue("sync.catalog", job, { singletonKey: `${job.tenantId}:catalog:${job.scope ?? "catalog"}` });
   if (r.error) throw new Error(r.error);
+}
+
+/** One outbox write. Platform errors are not thrown: the outbox owns retries (backoff, rate limits), pg-boss only infrastructure failures. */
+export async function handlePlatformWrite(job: PlatformWriteJob): Promise<void> {
+  const tenant = await tenantRow(job.tenantId);
+  await executePlatformWrite(runner(tenant.id), tenant, job.writeId);
 }
 
 export async function handleSyncAds(job: SyncAdsJob): Promise<void> {
@@ -145,6 +156,22 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
     }
     return;
   }
+  if (job.kind === "writes") {
+    // outbox retries: tenants with writes due (rescheduled after a rate limit or a network error, or left running by a restart)
+    const due = await adminDb().selectDistinct({ tenantId: schema.platformWrites.tenantId }).from(schema.platformWrites).where(and(eq(schema.platformWrites.mode, "async"), inArray(schema.platformWrites.status, ["pending", "running"]), lte(schema.platformWrites.nextAttemptAt, new Date())));
+    for (const d of due) {
+      const tenant = await tenantRow(d.tenantId);
+      if (tenant.status !== "active") continue;
+      await processDuePlatformWrites(runner(tenant.id), tenant);
+    }
+    return;
+  }
+  if (job.kind === "retention") {
+    // platform-wide window (KEEL_RETENTION_DAYS, default 14): finished history goes, failures stay until resolved
+    const days = platformRetentionDays();
+    for (const t of await adminDb().select({ id: schema.tenants.id }).from(schema.tenants)) await withTenant(t.id, (tx) => purgeExpiredPlatformRows(sys(t.id)(tx), { days }));
+    return;
+  }
   if (job.kind === "tasks" || job.kind === "notify" || job.kind === "digest") {
     // tasks (every 10 min): task rules (time-based ones, orders, closing what moved on) and overdue reminders;
     // notify (hourly): sync delays, critical stock without incoming PO, late to ship; digest (daily): opt-in summary email
@@ -180,7 +207,7 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
       if (job.kind === "delta") await enqueue("sync.orders", { tenantId: r.tenantId, kind: "delta" } satisfies SyncOrdersJob, { singletonKey: `${r.tenantId}:delta` });
       if (job.kind === "reconcile") {
         await enqueue("sync.orders", { tenantId: r.tenantId, kind: "reconcile" } satisfies SyncOrdersJob, { singletonKey: `${r.tenantId}:reconcile` });
-        await enqueue("sync.catalog", { tenantId: r.tenantId } satisfies SyncCatalogJob, { singletonKey: `${r.tenantId}:catalog` });
+        await enqueue("sync.catalog", { tenantId: r.tenantId, kind: "reconcile" } satisfies SyncCatalogJob, { singletonKey: `${r.tenantId}:catalog:catalog` });
       }
       if (job.kind === "retry") {
         const tenant = await tenantRow(r.tenantId);

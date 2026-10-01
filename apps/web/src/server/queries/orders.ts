@@ -4,7 +4,7 @@ import { orderLineage, orderListWhere, orderMergeCandidates, type OrderFilters }
 import { OPEN_QUEUE_STATUSES } from "@keel/addon-cod";
 import type { TenantContext } from "@/server/tenant";
 
-export { parseOrderFilters, type OrderFilters } from "@keel/services";
+export { parseOrderFilters, utmParam, type OrderFilters } from "@keel/services";
 
 const buildWhere = (ctx: TenantContext, f: OrderFilters): SQL => orderListWhere({ tenantId: ctx.tenant.id, userId: ctx.user.id, orderNumberPrefix: ctx.tenant.orderNumberPrefix }, f);
 

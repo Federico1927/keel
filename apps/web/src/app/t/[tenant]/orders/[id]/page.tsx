@@ -3,13 +3,14 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { adminDb, eq, inArray, schema } from "@keel/db";
-import { formatDateTime, formatMoney, daysInTransit, orderEditBlock } from "@keel/core";
-import { customerOrderHistory, duplicateSiblings } from "@keel/services";
+import { formatDateTime, formatMoney, daysInTransit, orderEditBlock, displayName } from "@keel/core";
+import { customerOrderHistory, duplicateSiblings, latestPlatformWrites } from "@keel/services";
 import { ORDER_DISCOUNT_PRESETS_BPS, canDo, canViewPage, canWritePage, isPageEnabled } from "@keel/config";
 import { Alert, AlertDescription, AlertTitle, Badge, Button, Card, CardContent, CardHeader, CardTitle, DetailShell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { adjacentOrders, getOrderDetail, getOrderEditData } from "@/server/queries/orders";
 import { StatusBadge } from "@/components/status-badge";
+import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { OrderActions } from "./actions-bar";
 import { Timeline } from "./timeline";
 import { NotesPanel } from "./notes";
@@ -17,6 +18,7 @@ import { CodCard } from "./cod-card";
 import { EditOrderDialog, type AddressForm } from "./edit-order";
 import { DiscountOrderDialog } from "./discount-order";
 import { RecordTasks } from "@/components/record-tasks";
+import { EconomicsCard } from "./economics-card";
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
@@ -27,16 +29,17 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
   const canRequestReturn = canWritePage(ctx.role, "returns") && isPageEnabled("returns", ctx.activeAddons) && ["shipped", "delivered", "returned_partial"].includes(order.status);
   const t = await getTranslations("order_detail");
   const tp = await getTranslations("payment_methods");
-  const [history, duplicates, adjacent] = await Promise.all([
+  const [history, duplicates, adjacent, platformWrite] = await Promise.all([
     ctx.run((tx) => customerOrderHistory({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, id)),
     ctx.run((tx) => duplicateSiblings({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, id, ctx.settings.duplicateOrderWindowDays)),
     adjacentOrders(ctx, order.placedAt, order.id),
+    ctx.run(async (tx) => (await latestPlatformWrites({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, "order", [id])).get(id)),
   ]);
   const members = await adminDb().select({ id: schema.users.id, name: schema.users.name, email: schema.users.email }).from(schema.tenantMemberships).innerJoin(schema.users, eq(schema.users.id, schema.tenantMemberships.userId)).where(eq(schema.tenantMemberships.tenantId, ctx.tenant.id));
   const actorIds = [...new Set([...events.map((e) => e.actorUserId), ...notes.map((n) => n.authorId), order.assignedTo].filter((x): x is string => Boolean(x)))];
   const extra = actorIds.filter((a) => !members.some((m) => m.id === a));
   const extraUsers = extra.length ? await adminDb().select({ id: schema.users.id, name: schema.users.name, email: schema.users.email }).from(schema.users).where(inArray(schema.users.id, extra)) : [];
-  const people = [...members, ...extraUsers].map((m) => ({ id: m.id, name: m.name ?? m.email }));
+  const people = [...members, ...extraUsers].map((m) => ({ id: m.id, name: displayName(m) }));
   const nameOf = (id: string | null | undefined) => (id ? (people.find((p) => p.id === id)?.name ?? "—") : null);
   const base = `/t/${tenant}/orders`;
   const fmt = (minor: number) => formatMoney(minor, order.currency, ctx.locale);
@@ -109,6 +112,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
             </Badge>
           ))}
           {order.assignedTo && <Badge variant="info">{t("assigned_to", { name: nameOf(order.assignedTo) ?? "" })}</Badge>}
+          <PlatformWriteStatus slug={tenant} write={platformWrite} canRetry={canDo(ctx.role, "cancel_order")} showError />
         </>
       }
       actions={
@@ -160,8 +164,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
               ) : (
                 <>
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="rounded border p-2"><span className="block text-muted-foreground">{t("history.total")}</span><span className="font-serif text-lg tabular">{history.stats.total}</span></div>
-                    <div className="rounded border p-2"><span className="block text-muted-foreground">{t("history.spent")}</span><span className="font-serif text-lg tabular">{fmt(history.stats.totalSpentMinor)}</span></div>
+                    <div className="rounded border p-2"><span className="block text-muted-foreground">{t("history.total")}</span><span className="text-lg font-semibold tabular">{history.stats.total}</span></div>
+                    <div className="rounded border p-2"><span className="block text-muted-foreground">{t("history.spent")}</span><span className="text-lg font-semibold tabular">{fmt(history.stats.totalSpentMinor)}</span></div>
                     <div className="rounded border p-2"><span className="block text-muted-foreground">{t("history.delivered")}</span><span className="tabular">{history.stats.delivered}</span></div>
                     <div className="rounded border p-2"><span className="block text-muted-foreground">{t("history.returned")}</span><span className="tabular">{history.stats.returned}</span> · <span className="text-muted-foreground">{t("history.cancelled")}</span> <span className="tabular">{history.stats.cancelled}</span></div>
                   </div>
@@ -183,6 +187,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
               )}
             </CardContent>
           </Card>
+          <EconomicsCard ctx={ctx} orderId={order.id} />
           {attribution && (
             <Card>
               <CardHeader>

@@ -1,5 +1,5 @@
 import { and, eq, schema } from "@keel/db";
-import { AnthropicLlmProvider, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
+import { AnthropicLlmProvider, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type OutboundMessage, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 
 export interface PlatformTenant {
@@ -49,6 +49,7 @@ export async function getCommercePlatformFor(ctx: ServiceContext, tenant: Platfo
   const locations = await ctx.tx.select().from(schema.locations).where(eq(schema.locations.tenantId, tenant.id));
   const customers = await ctx.tx.select().from(schema.customers).where(eq(schema.customers.tenantId, tenant.id)).limit(300);
   const numbers = await ctx.tx.select({ n: schema.orders.orderNumber }).from(schema.orders).where(eq(schema.orders.tenantId, tenant.id)).orderBy(schema.orders.orderNumber);
+  const levels = await ctx.tx.select({ inv: schema.productVariants.inventoryItemExternalId, loc: schema.locations.externalId, available: schema.inventoryLevels.available }).from(schema.inventoryLevels).innerJoin(schema.productVariants, eq(schema.productVariants.id, schema.inventoryLevels.variantId)).innerJoin(schema.locations, eq(schema.locations.id, schema.inventoryLevels.locationId)).where(eq(schema.inventoryLevels.tenantId, tenant.id));
   const platform = new MockCommercePlatform({
     currency: tenant.currency,
     country: tenant.country,
@@ -59,6 +60,8 @@ export async function getCommercePlatformFor(ctx: ServiceContext, tenant: Platfo
     variants: variants.filter((v) => v.id && v.productId && v.inv).map((v) => ({ externalId: v.id!, productExternalId: v.productId!, inventoryItemExternalId: v.inv!, sku: v.sku ?? "", title: v.title, productTitle: v.productTitle, optionValues: v.optionValues as Record<string, string>, priceMinor: v.priceMinor, unitCostMinor: v.costMinor, barcode: v.barcode, productImageUrl: v.imageUrl })),
     locations: locations.map((l) => ({ externalId: l.externalId ?? l.id, name: l.name, country: l.country, isDefault: l.isDefault, isActive: l.isActive })),
     customers: customers.map((c) => ({ externalId: c.externalId ?? c.id, email: c.email, phone: c.phone, firstName: c.firstName, lastName: c.lastName, country: c.country, city: c.city, zip: c.zip, acceptsMarketing: c.acceptsMarketing, tags: c.tags, platformCreatedAt: c.platformCreatedAt })),
+    // the simulated store starts from the tenant's stock, so a sync only shows what really changed
+    inventory: levels.filter((l) => l.inv && l.loc).map((l) => ({ inventoryItemExternalId: l.inv!, locationExternalId: l.loc!, available: l.available })),
   });
   commerceMocks.set(tenant.id, platform);
   return platform;
@@ -116,6 +119,25 @@ export async function getNotificationSinks(ctx: ServiceContext): Promise<{ slack
 
 export function mockSinkFor(tenantId: string, kind: "slack" | "email"): MockNotificationSink | undefined {
   return sinkMocks.get(`${tenantId}:${kind}`);
+}
+
+/** Mock that also prints, like the magic link in development: the person needs the link to go on. */
+class ConsoleEmailSink extends MockNotificationSink {
+  constructor() {
+    super("email");
+  }
+  override async send(to: string[], message: OutboundMessage) {
+    console.info(`\n[email] to ${to.join(", ")}: ${message.subject}${message.url ? `\n${message.url}` : ""}\n`);
+    return super.send(to, message);
+  }
+}
+let platformEmail: MockNotificationSink | null = null;
+
+/** Platform emails that belong to no tenant (account security): live provider, else the printing mock. */
+export function getPlatformEmailSink(): NotificationSink {
+  if (integrationMode() === "live" && process.env.KEEL_EMAIL_API_KEY) return new HttpEmailSink({ apiKey: process.env.KEEL_EMAIL_API_KEY, from: process.env.KEEL_EMAIL_FROM ?? "no-reply@keel.app" });
+  platformEmail ??= new ConsoleEmailSink();
+  return platformEmail;
 }
 
 const guarantees = new Map<string, MockPaymentGuarantee>();

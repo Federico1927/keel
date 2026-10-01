@@ -1,7 +1,8 @@
-import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { boolean, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { createdAt, tenantIsolation, updatedAt } from "./_common";
 import { tenantColumns } from "./_tenant";
-import { locations, productVariants } from "./catalog";
+import { locations, products, productVariants } from "./catalog";
 import { users } from "./auth";
 
 export const suppliers = pgTable(
@@ -74,7 +75,11 @@ export const purchaseOrderLines = pgTable(
     variantId: uuid("variant_id").references(() => productVariants.id, { onDelete: "set null" }),
     description: text("description"),
     quantity: integer("quantity").notNull(),
+    /** Units that arrived (good + damaged + rejected); the line is complete when it reaches `quantity`. */
     receivedQuantity: integer("received_quantity").notNull().default(0),
+    /** Inspection at receipt: arrived but damaged or rejected, never put in stock. */
+    damagedQuantity: integer("damaged_quantity").notNull().default(0),
+    rejectedQuantity: integer("rejected_quantity").notNull().default(0),
     unitCostMinor: integer("unit_cost_minor").notNull(),
     /** Unit cost including allocated duties, freight and fees; feeds product cost on receipt when set. */
     landedUnitCostMinor: integer("landed_unit_cost_minor"),
@@ -213,4 +218,73 @@ export const bundleComponents = pgTable(
     createdAt: createdAt(),
   },
   (t) => [uniqueIndex("bundle_components_uq").on(t.tenantId, t.parentVariantId, t.componentVariantId), index("bundle_components_component_idx").on(t.tenantId, t.componentVariantId), tenantIsolation("bundle_components")],
+).enableRLS();
+
+/**
+ * Case packs (cartons) defined by the tenant on one option of any name: units per option value,
+ * e.g. option "Size": { S: 1, M: 2, L: 2, XL: 1 }. Without a product the pack applies to every
+ * product that has the option.
+ */
+export const casePacks = pgTable(
+  "case_packs",
+  {
+    ...tenantColumns(),
+    name: text("name").notNull(),
+    optionName: text("option_name").notNull(),
+    units: jsonb("units").notNull().default(sql`'{}'::jsonb`),
+    productId: uuid("product_id").references(() => products.id, { onDelete: "cascade" }),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("case_packs_tenant_idx").on(t.tenantId, t.optionName), tenantIsolation("case_packs")],
+).enableRLS();
+
+/**
+ * Links sent to a supplier for one purchase order. Only the SHA-256 of the token is stored; a link
+ * expires, can be revoked, and a resend revokes the previous one.
+ */
+export const supplierLinks = pgTable(
+  "supplier_links",
+  {
+    ...tenantColumns(),
+    purchaseOrderId: uuid("purchase_order_id")
+      .notNull()
+      .references(() => purchaseOrders.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull(),
+    /** Last characters of the token, to recognise a link in the UI. */
+    tokenHint: text("token_hint"),
+    sentToEmail: text("sent_to_email"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    revokedBy: uuid("revoked_by").references(() => users.id, { onDelete: "set null" }),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    lastViewedAt: timestamp("last_viewed_at", { withTimezone: true }),
+    viewCount: integer("view_count").notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("supplier_links_token_hash_uq").on(t.tokenHash), index("supplier_links_po_idx").on(t.tenantId, t.purchaseOrderId), tenantIsolation("supplier_links")],
+).enableRLS();
+
+/** Access log of supplier links: one row per page view or answer attempt, with the link's state then. */
+export const supplierLinkViews = pgTable(
+  "supplier_link_views",
+  {
+    ...tenantColumns(),
+    linkId: uuid("link_id")
+      .notNull()
+      .references(() => supplierLinks.id, { onDelete: "cascade" }),
+    purchaseOrderId: uuid("purchase_order_id")
+      .notNull()
+      .references(() => purchaseOrders.id, { onDelete: "cascade" }),
+    /** view | answer */
+    kind: text("kind").notNull().default("view"),
+    /** active | expired | revoked */
+    outcome: text("outcome").notNull(),
+    /** SHA-256 of the client address (no raw IP stored). */
+    ipHash: text("ip_hash"),
+    userAgent: text("user_agent"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("supplier_link_views_link_idx").on(t.tenantId, t.linkId, t.createdAt), tenantIsolation("supplier_link_views")],
 ).enableRLS();

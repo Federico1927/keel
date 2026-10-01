@@ -125,7 +125,11 @@ async function costCoverageOf(ctx: ServiceContext, orderIds: string[]): Promise<
 }
 
 export async function pnlForPeriod(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period): Promise<PnlReport> {
-  const rows = await orderEconomicsForPeriod(ctx, tenant, period);
+  return pnlFromRows(ctx, tenant, period, await orderEconomicsForPeriod(ctx, tenant, period));
+}
+
+/** The period P/L from economics rows already loaded with `orderEconomicsForPeriod` for the same period. */
+export async function pnlFromRows(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period, rows: EconomicsRow[]): Promise<PnlReport> {
   const adSpend = await adSpendForPeriod(ctx, period);
   const entries = await periodCostEntries(ctx, period);
   const fixed = resolveFixedCosts(entries, period.from, period.to, await legacyFixedMonthly(ctx));

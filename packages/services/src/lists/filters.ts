@@ -1,5 +1,5 @@
 import { and, eq, gte, inArray, lte, schema, sql, type SQL } from "@keel/db";
-import { CHURN_RISKS, ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES, type QueryParams } from "@keel/core";
+import { CHURN_RISKS, ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES, UTM_DIMENSIONS, UTM_NONE, type QueryParams, type UtmDimension } from "@keel/core";
 import type { CustomerFilters } from "../crm";
 import type { ReturnFilters } from "../returns";
 
@@ -30,6 +30,9 @@ export interface OrderFilters {
   variant?: string;
   /** Orders with at least one product line without a cost (the P/L warning links here). */
   missingCost?: boolean;
+  /** Attribution channel and UTM values (analytics drill-down); "(none)" matches orders without the value. */
+  attrChannel?: string;
+  utm?: Partial<Record<UtmDimension, string>>;
   sort?: "placed_desc" | "placed_asc" | "total_desc";
   page?: number;
 }
@@ -51,10 +54,16 @@ export function parseOrderFilters(sp: QueryParams): OrderFilters {
     product: isUuid(one(sp.product)) ? one(sp.product) : undefined,
     variant: isUuid(one(sp.variant)) ? one(sp.variant) : undefined,
     missingCost: one(sp.missingCost) === "1" || undefined,
+    attrChannel: one(sp.attrChannel)?.trim() || undefined,
+    utm: Object.fromEntries(UTM_DIMENSIONS.map((d) => [d, one(sp[utmParam(d)])?.trim() || undefined]).filter(([, v]) => v)),
     sort: sort === "placed_asc" || sort === "total_desc" ? sort : "placed_desc",
     page: Math.max(1, Number(one(sp.page) ?? 1) || 1),
   };
 }
+
+/** URL parameter of a UTM dimension: utmSource, utmMedium, … */
+export const utmParam = (d: UtmDimension) => `utm${d[0]!.toUpperCase()}${d.slice(1)}`;
+const UTM_COLUMN: Record<UtmDimension, string> = { source: "utm_source", medium: "utm_medium", campaign: "utm_campaign", content: "utm_content", term: "utm_term" };
 
 /** Who is looking: `assigned=me` and the order number prefix depend on it. */
 export interface OrderFilterScope {
@@ -82,9 +91,13 @@ export function orderListWhere(scope: OrderFilterScope, f: OrderFilters): SQL {
   else if (f.assigned) conds.push(isUuid(f.assigned) ? eq(schema.orders.assignedTo, f.assigned) : sql`false`);
   if (f.customer) conds.push(eq(schema.orders.customerId, f.customer));
   if (f.campaign) conds.push(sql`exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.campaign_id = ${f.campaign})`);
-  if (f.product) conds.push(sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.tenant_id = ${scope.tenantId} and l.product_id = ${f.product})`);
-  if (f.variant) conds.push(sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.tenant_id = ${scope.tenantId} and l.variant_id = ${f.variant})`);
+  if (f.product) conds.push(sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.tenant_id = ${scope.tenantId} and l.product_id = ${f.product} and l.current_quantity > 0)`);
+  if (f.variant) conds.push(sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.tenant_id = ${scope.tenantId} and l.variant_id = ${f.variant} and l.current_quantity > 0)`);
   if (f.missingCost) conds.push(sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.unit_cost_minor is null and not l.is_ancillary)`);
+  if (f.attrChannel) conds.push(f.attrChannel === "unknown" ? sql`not exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.channel <> 'unknown')` : sql`exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.channel = ${f.attrChannel})`);
+  const utm = Object.entries(f.utm ?? {}) as [UtmDimension, string][];
+  // same normalisation as the drill-down: trimmed, case-insensitive, empty = (none)
+  if (utm.length) conds.push(sql`coalesce((select ${sql.join(utm.map(([d, v]) => sql`lower(coalesce(nullif(trim(${sql.raw(`a.${UTM_COLUMN[d]}`)}), ''), ${UTM_NONE})) = ${v.toLowerCase()}`), sql` and `)} from order_attribution a where a.order_id = ${schema.orders.id}), ${sql.raw(utm.every(([, v]) => v === UTM_NONE) ? "true" : "false")})`);
   return and(...conds)!;
 }
 

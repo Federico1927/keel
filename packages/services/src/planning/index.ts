@@ -1,4 +1,3 @@
-import { randomBytes } from "node:crypto";
 import { and, eq, gte, inArray, schema, sql } from "@keel/db";
 import {
   addMonthsKey,
@@ -23,9 +22,10 @@ import {
   type StockAnalysisRow,
   type TenantSettings,
 } from "@keel/core";
-import type { CommercePlatform } from "@keel/integrations";
+import { enqueuePlatformWrite, type PlatformWriteRow } from "../writes";
 import type { ServiceContext } from "../context";
 import { createPurchaseOrder, nextPoNumber } from "../purchasing";
+import { issueSupplierLink } from "../purchasing/links";
 
 const SALE = "('confirmed','fulfilling','shipped','delivered','returned_partial')";
 const monthKey = (d: Date) => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
@@ -340,12 +340,12 @@ export async function deletePoCharge(ctx: ServiceContext, poId: string, chargeId
 
 /* ---------- supplier send & confirmation ---------- */
 
-/** Marks the PO as sent to the supplier with a fresh confirmation token; returns the token. */
+/**
+ * Marks the PO as sent to the supplier with a fresh confirmation link (the previous one is
+ * revoked); returns the token, which is shown once and stored only as a hash.
+ */
 export async function issueSupplierToken(ctx: ServiceContext, poId: string, email: string | null): Promise<string> {
-  const token = randomBytes(24).toString("base64url");
-  const now = ctx.now ?? new Date();
-  await ctx.tx.update(schema.purchaseOrders).set({ supplierToken: token, sentToEmail: email, sentAt: now, orderedAt: sql`coalesce(${schema.purchaseOrders.orderedAt}, ${now})`, status: sql`case when ${schema.purchaseOrders.status} = 'draft' then 'sent' else ${schema.purchaseOrders.status} end` }).where(and(eq(schema.purchaseOrders.tenantId, ctx.tenantId), eq(schema.purchaseOrders.id, poId)));
-  return token;
+  return (await issueSupplierLink(ctx, poId, email)).token;
 }
 
 /* ---------- cash flow ---------- */
@@ -493,8 +493,12 @@ export async function transferPlan(ctx: ServiceContext, tenant: PlanningTenant):
   return out.sort((a, b) => b.units - a.units);
 }
 
-/** Moves stock between two locations: platform first (both quantities), then local levels and two movements. */
-export async function applyTransfer(ctx: ServiceContext, platform: CommercePlatform | undefined, input: { variantId: string; fromLocationId: string; toLocationId: string; units: number }) {
+/**
+ * Moves stock between two locations: local levels and two movements, plus (with `pushToPlatform`)
+ * both new quantities enqueued as outbox writes in the same transaction. The caller dispatches the
+ * returned writes once committed.
+ */
+export async function applyTransfer(ctx: ServiceContext, input: { variantId: string; fromLocationId: string; toLocationId: string; units: number }, opts: { pushToPlatform?: boolean } = {}) {
   const units = Math.max(0, Math.floor(input.units));
   if (!units || input.fromLocationId === input.toLocationId) throw new Error("invalid_input");
   const lv = await ctx.tx.select({ l: schema.inventoryLevels, locExt: schema.locations.externalId, invExt: schema.productVariants.inventoryItemExternalId }).from(schema.inventoryLevels).innerJoin(schema.locations, eq(schema.locations.id, schema.inventoryLevels.locationId)).innerJoin(schema.productVariants, eq(schema.productVariants.id, schema.inventoryLevels.variantId)).where(and(eq(schema.inventoryLevels.tenantId, ctx.tenantId), eq(schema.inventoryLevels.variantId, input.variantId), inArray(schema.inventoryLevels.locationId, [input.fromLocationId, input.toLocationId])));
@@ -503,17 +507,18 @@ export async function applyTransfer(ctx: ServiceContext, platform: CommercePlatf
   if (!from || from.l.available < units) throw new Error("insufficient_stock");
   const newFrom = from.l.available - units;
   const newTo = (to?.l.available ?? 0) + units;
-  if (platform && from.invExt && from.locExt) {
-    await platform.setInventory(from.invExt, from.locExt, newFrom);
+  const writes: PlatformWriteRow[] = [];
+  if (opts.pushToPlatform && from.invExt && from.locExt) {
+    writes.push(await enqueuePlatformWrite(ctx, { kind: "inventory.set", entityType: "variant", entityId: input.variantId, payload: { inventoryItemExternalId: from.invExt, locationExternalId: from.locExt, available: newFrom } }));
     const [toLoc] = await ctx.tx.select({ ext: schema.locations.externalId }).from(schema.locations).where(eq(schema.locations.id, input.toLocationId)).limit(1);
-    if (toLoc?.ext) await platform.setInventory(from.invExt, toLoc.ext, newTo);
+    if (toLoc?.ext) writes.push(await enqueuePlatformWrite(ctx, { kind: "inventory.set", entityType: "variant", entityId: input.variantId, payload: { inventoryItemExternalId: from.invExt, locationExternalId: toLoc.ext, available: newTo } }));
   }
   await ctx.tx.update(schema.inventoryLevels).set({ available: newFrom, onHand: Math.max(0, (from.l.onHand ?? from.l.available) - units) }).where(eq(schema.inventoryLevels.id, from.l.id));
   if (to) await ctx.tx.update(schema.inventoryLevels).set({ available: newTo, onHand: (to.l.onHand ?? to.l.available) + units }).where(eq(schema.inventoryLevels.id, to.l.id));
   else await ctx.tx.insert(schema.inventoryLevels).values({ tenantId: ctx.tenantId, variantId: input.variantId, locationId: input.toLocationId, available: units, onHand: units, committed: 0 });
   const ref = { referenceType: "transfer", referenceId: null, actorUserId: ctx.actor.userId };
   await ctx.tx.insert(schema.inventoryMovements).values([{ tenantId: ctx.tenantId, variantId: input.variantId, locationId: input.fromLocationId, delta: -units, reason: "transfer_out", ...ref }, { tenantId: ctx.tenantId, variantId: input.variantId, locationId: input.toLocationId, delta: units, reason: "transfer_in", ...ref }]);
-  return { from: newFrom, to: newTo };
+  return { from: newFrom, to: newTo, writes };
 }
 
 /* ---------- revenue target ---------- */

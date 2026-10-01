@@ -28,7 +28,7 @@ export function SupplierAckForm({ token, defaultDate, previousNote }: { token: s
         <Label htmlFor="ack-note">{decision === "problem" ? t("problem_note") : t("note")}</Label>
         <Textarea id="ack-note" name="note" rows={3} required={decision === "problem"} defaultValue={previousNote ?? ""} />
       </div>
-      {state && !state.ok && <Alert variant="destructive"><AlertDescription>{tc(`errors.${state.error}`)}</AlertDescription></Alert>}
+      {state && !state.ok && <Alert variant="destructive"><AlertDescription>{state.error === "link_expired" ? t("inactive_body") : tc(`errors.${state.error}`)}</AlertDescription></Alert>}
       <Button type="submit" disabled={pending} data-testid="supplier-ack-submit">{t(`submit.${decision}`)}</Button>
     </form>
   );

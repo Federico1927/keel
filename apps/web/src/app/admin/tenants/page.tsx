@@ -96,7 +96,7 @@ export default async function AdminTenantsPage() {
                         <span
                           key={i.provider}
                           title={`${i.provider}: ${i.status}`}
-                          className={`h-2.5 w-2.5 rounded-full ${i.status === "connected" ? "bg-green-500" : i.status === "error" ? "bg-red-500" : "bg-muted-foreground/30"}`}
+                          className={`h-2.5 w-2.5 rounded-full ${i.status === "connected" ? "bg-success" : i.status === "error" ? "bg-destructive" : "bg-muted-foreground/30"}`}
                         />
                       ))}
                     </span>

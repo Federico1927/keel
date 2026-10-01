@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { cn } from "@keel/ui";
 import { PRODUCT_NAME } from "@keel/config";
+import { BrandMark } from "@/components/brand-mark";
 import { NAV_SECTIONS } from "./nav";
 
 export interface SidebarProps {
@@ -11,27 +12,44 @@ export interface SidebarProps {
   tenantName: string;
   /** Pages the current user may open (role × module). */
   allowedPages: string[];
+  /** Tenant logos from Settings → Branding; null shows the product mark and the tenant name. */
+  logoLight?: string | null;
+  logoDark?: string | null;
   onNavigate?: () => void;
 }
 
-export function SidebarNav({ tenantSlug, tenantName, allowedPages, onNavigate }: SidebarProps) {
+export function SidebarNav({ tenantSlug, tenantName, allowedPages, logoLight, logoDark, onNavigate }: SidebarProps) {
   const pathname = usePathname();
   const t = useTranslations();
   const base = `/t/${tenantSlug}`;
   const allowed = new Set(allowedPages);
   return (
     <nav className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
-      <div className="px-5 py-5">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-sidebar-muted">{PRODUCT_NAME}</p>
-        <p className="mt-1 truncate font-serif text-lg">{tenantName}</p>
-      </div>
-      <div className="flex-1 space-y-5 overflow-y-auto px-3 pb-6">
+      <Link href={base} onClick={onNavigate} className="flex h-14 items-center gap-2.5 border-b px-4">
+        {logoLight ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={logoLight} alt={tenantName} className="h-7 max-w-[10rem] object-contain dark:hidden" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={logoDark ?? logoLight} alt={tenantName} className="hidden h-7 max-w-[10rem] object-contain dark:block" />
+          </>
+        ) : (
+          <>
+            <BrandMark />
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold leading-tight">{tenantName}</span>
+              <span className="block text-[11px] leading-tight text-sidebar-muted">{PRODUCT_NAME}</span>
+            </span>
+          </>
+        )}
+      </Link>
+      <div className="flex-1 space-y-4 overflow-y-auto px-2.5 py-4">
         {NAV_SECTIONS.map((section) => {
           const items = section.items.filter((i) => allowed.has(i.page));
           if (items.length === 0) return null;
           return (
             <div key={section.labelKey}>
-              <p className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wider text-sidebar-muted">{t(section.labelKey)}</p>
+              <p className="px-2 pb-1 text-[11px] font-medium text-sidebar-muted">{t(section.labelKey)}</p>
               <ul className="space-y-0.5">
                 {items.map((item) => {
                   const href = `${base}${item.href}`;
@@ -44,12 +62,13 @@ export function SidebarNav({ tenantSlug, tenantName, allowedPages, onNavigate }:
                       <Link
                         href={href}
                         onClick={onNavigate}
+                        aria-current={active ? "page" : undefined}
                         className={cn(
-                          "flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-sidebar-accent",
-                          active && "bg-sidebar-accent font-medium text-white",
+                          "flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-sidebar-muted transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                          active && "bg-sidebar-accent font-medium text-sidebar-foreground",
                         )}
                       >
-                        <Icon className="h-4 w-4 opacity-80" />
+                        <Icon className={cn("h-4 w-4", active && "text-primary")} />
                         <span>{t(item.labelKey)}</span>
                       </Link>
                     </li>

@@ -10,6 +10,8 @@ export interface PortalProps {
   storeName: string;
   logoUrl: string | null;
   primaryColor: string;
+  /** Label colour on primaryColor (AA-checked). */
+  onPrimary: string;
   title: string;
   intro: string;
   successMessage: string;
@@ -66,7 +68,7 @@ export function PortalApp(p: PortalProps) {
   const [labelPath, setLabelPath] = useState<string | null>(null);
   const newKey = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
   const [idempotencyKey, setIdempotencyKey] = useState(newKey);
-  const accent = { backgroundColor: p.primaryColor, color: "#fff" };
+  const accent = { backgroundColor: p.primaryColor, color: p.onPrimary };
   const money = useMemo(() => (view ? new Intl.NumberFormat(p.locale, { style: "currency", currency: view.currency }) : null), [view, p.locale]);
   const date = (iso: string) => new Intl.DateTimeFormat(p.locale, { dateStyle: "medium" }).format(new Date(iso));
   const showError = (code: string, extra?: Record<string, string>) => setError(t.has(`errors.${code}`) ? t(`errors.${code}`, extra?.retryAfter ? { minutes: Math.ceil(Number(extra.retryAfter) / 60) } : undefined) : t("errors.generic"));

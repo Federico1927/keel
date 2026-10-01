@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { adminDb, eq, schema } from "@keel/db";
-import { formatDateTime, formatMoney } from "@keel/core";
+import { formatDateTime, formatMoney, displayName } from "@keel/core";
 import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { bulkActionsFor } from "@keel/config";
 import { requirePage } from "@/server/tenant";
@@ -25,7 +25,7 @@ export default async function OrdersPage({ params, searchParams }: { params: Pro
   const members = await adminDb().select({ id: schema.users.id, name: schema.users.name, email: schema.users.email }).from(schema.tenantMemberships).innerJoin(schema.users, eq(schema.users.id, schema.tenantMemberships.userId)).where(eq(schema.tenantMemberships.tenantId, ctx.tenant.id));
   const assignedIds = [...new Set(rows.map((r) => r.assignedTo).filter((x): x is string => Boolean(x)))];
   const assignees = assignedIds.length ? members.filter((m) => assignedIds.includes(m.id)) : [];
-  const nameOf = (id: string | null) => (id ? (assignees.find((a) => a.id === id)?.name ?? "—") : null);
+  const nameOf = (id: string | null) => (id ? (assignees.some((a) => a.id === id) ? displayName(assignees.find((a) => a.id === id)) : "—") : null);
   const base = `/t/${tenant}/orders`;
   const hrefFor = (p: number) => {
     const u = new URLSearchParams();
@@ -38,7 +38,7 @@ export default async function OrdersPage({ params, searchParams }: { params: Pro
   return (
     <>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<ListToolbar ctx={ctx} list="orders" basePath={base} />} />
-      <OrderFiltersBar basePath={base} filters={filters} counts={counts} members={members.map((m) => ({ id: m.id, name: m.name ?? m.email }))} drill={drill} />
+      <OrderFiltersBar basePath={base} filters={filters} counts={counts} members={members.map((m) => ({ id: m.id, name: displayName(m) }))} drill={drill} />
       {rows.length === 0 ? (
         <EmptyState title={t("empty_title")} description={t("empty_description")} className="mt-4" />
       ) : (

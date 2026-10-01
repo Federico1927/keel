@@ -3,10 +3,11 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { canDo } from "@keel/config";
 import { formatDate, formatDiscountValue, formatMoney, formatNumber, type DiscountType } from "@keel/core";
-import { discountDetail } from "@keel/services";
+import { discountDetail, latestPlatformWrites } from "@keel/services";
 import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
+import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { DiscountStateBadge } from "../state-badge";
 import { DiscountToggle } from "./toggle";
 
@@ -17,7 +18,10 @@ export default async function DiscountDetailPage({ params }: { params: Promise<{
   const td = await getTranslations("discounts");
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const at = { id: ctx.tenant.id, country: ctx.tenant.country, currency: ctx.tenant.currency, timezone: ctx.tenant.timezone, settings: ctx.settings };
-  const detail = await ctx.run((tx) => discountDetail({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, at, id));
+  const [detail, platformWrite] = await ctx.run(async (tx) => {
+    const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
+    return [await discountDetail(s, at, id), (await latestPlatformWrites(s, "discount", [id])).get(id)] as const;
+  });
   if (!detail) notFound();
   const { discount: d, pool, state, orders, totals } = detail;
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
@@ -31,6 +35,7 @@ export default async function DiscountDetailPage({ params }: { params: Promise<{
           <DiscountStateBadge state={state} />
           <Badge variant="outline">{d.type === "free_shipping" ? td("free_shipping") : formatDiscountValue(d.type as DiscountType, d.value, money)}</Badge>
           <Badge variant="muted">{d.source === "keel" ? "Keel" : t("platform")}</Badge>
+          <PlatformWriteStatus slug={tenant} write={platformWrite} canRetry={canDo(ctx.role, "create_discount")} showError />
           {pool && <Link href={`/t/${tenant}/discounts?pool=${pool.id}`} className="text-sm hover:underline">{t("in_pool", { title: pool.title })}</Link>}
         </>
       }

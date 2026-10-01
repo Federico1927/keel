@@ -317,6 +317,28 @@ Fatto:
 
 Resta per la issue #7: email di stato ai clienti, validazione indirizzi, pagine guida mancanti.
 
+## Scritture verso le piattaforme e sync affidabili (issue #24)
+
+Fatto:
+- Outbox `platform_writes`: ogni scrittura verso Shopify, Meta o Google è una riga con chiave di idempotenza, scritta nella stessa transazione della modifica locale. Va al job pg-boss `platform.write` quando c'è il worker, altrimenti parte subito dopo la richiesta. Ritentativi con attesa crescente: prima il Retry-After della piattaforma, poi 30 s × 2^n fino a 1 ora, al massimo 6 tentativi. Gli errori permanenti (permessi, richiesta non valida) falliscono subito con un messaggio leggibile.
+- Il tick `writes`, ogni minuto, esegue le scritture scadute e si ferma sul rate limit del fornitore.
+- Doppio clic o azione ripetuta entro 10 minuti: stessa riga, una sola scrittura sulla piattaforma (test con `failNext("rate_limited")`). Un valore più recente sostituisce le scritture ancora in attesa sullo stesso oggetto.
+- Migrate in coda: prezzo e stato prodotto, annullamento ordine, codice sconto singolo, stock al ricevimento dell'ordine d'acquisto e nei trasferimenti, pausa e riattivazione su Meta. Google viene rifiutato subito (sola lettura).
+- Restano sincrone ma registrate nell'outbox, perché il flusso ha bisogno della risposta: tag e annullamento COD, modifiche contatto e ordine sostitutivo COD, passi del write-back resi (con chiave per reso e passo), pool di codici sconto.
+- Badge "In attesa di sync" / "Sync non riuscito" con Riprova su prodotto (stato, prezzo, stock), ordine, sconto e campagna. Integrazioni → nuova scheda "Scritture verso le piattaforme" con conteggi, errori e Riprova. Come aggiungere un nuovo tipo di scrittura è spiegato in ARCHITECTURE.
+- `sync_runs` con letti, modificati, conflitti, errori, durata e riepilogo, mostrati nella tabella delle esecuzioni sulla pagina Integrazioni.
+- Sync del catalogo riprendibile a fasi con cursore salvato a ogni pagina; la notturna è una riconciliazione completa e alla fine azzera i livelli che la piattaforma non riporta più.
+- Stock riletto subito dopo i webhook `orders/*`, `fulfillments/*` e `refunds/create` (nuovo topic registrato). Pulsante "Sincronizza ora" nella pagina Magazzino.
+- Registro degli scostamenti di stock (`inventory_drift`), deduplicato: variazioni non spiegate da vendite o annullamenti, valori negativi riportati a zero, livelli non più riportati. Un livello con una scrittura Keel non ancora confermata non viene sovrascritto e conta come conflitto. Scheda "Scostamenti di stock" nella pagina Magazzino.
+- Il mock commerce tiene lo stock per articolo e location partendo dai livelli del negozio: gli ordini lo scalano e le scritture lo aggiornano.
+- Retention giornaliera (04:10) con finestra di piattaforma `KEEL_RETENTION_DAYS`, predefinita 14 giorni. Cancella webhook elaborati, scritture riuscite o sostituite, esecuzioni riuscite e scostamenti vecchi; webhook e scritture fallite restano finché non vengono risolti. Le code pg-boss usano la stessa finestra.
+- Seed: per entrambi i negozi scritture riuscite, una fallita con errore leggibile e una in attesa dopo un rate limit, esecuzioni di riconciliazione notturna (ordini e catalogo) e tre scostamenti di stock.
+- Migrazione 0019 (2 tabelle con RLS, 5 colonne con default su `sync_runs`, nessun SQL scritto a mano). Test: servizi 95 (8 nuovi), addon-cod 20, db 522, integrazioni 45, core 153, web 3; e2e `platform-writes.spec.ts` (3).
+
+Integrazione con #22 e #23:
+- La modifica ordini del core (dati di contatto, ordine sostitutivo, annullamento degli originali, sconto sull'ordine) scrive in modo sincrono ma registrato nell'outbox; il nuovo tipo è `order.discount`.
+- Il costo prodotto verso Shopify (`variant.cost`) passa in coda insieme alla modifica locale, sia da modifica manuale sia da import CSV, quando il negozio ha attivato la scrittura del costo.
+- La migrazione è stata rigenerata come 0022.
 ## Notifiche, email e attività (issue #33)
 
 Fatto:
@@ -373,7 +395,49 @@ Fatto:
 - Migrazione 0022 (tabelle `saved_views` e `list_exports` con RLS, indici trigram per la ricerca, indice su `order_lines.product_id`); test core 192, config 10, integrazioni 53, servizi 116 (+9 in `lists.test.ts`), db 571; e2e `lists.spec.ts` (6 scenari).
 
 Resta: le scritture verso la piattaforma delle azioni in blocco passeranno dalla coda della issue #24 quando sarà unita; le azioni singole sulle schede non usano ancora i nuovi servizi di scrittura; "seleziona tutti i risultati del filtro" (oltre la pagina) non c'è; export CSV degli ordini d'acquisto e delle tabelle di analisi arrivano dai rispettivi rami.
+## Stile A, tema scuro e branding (#44); profilo utente e saluto (#45)
+
+Fatto:
+- Direzione visiva A scelta dal committente: Geist (ospitato nel repository, nessun download a build o a runtime), superfici bianche, barra laterale chiara, blu `#2b59ff` (scuro `#5b7cff`), angoli di 8px, badge a pillola. Token in `packages/ui/src/tokens.css` e `tokens.ts`, importabili anche dalla landing; test automatico di contrasto WCAG AA su tutte le coppie testo/controllo nei due temi (tre colori di stato scuriti di poco per superarlo). Grafici con palette Okabe-Ito leggibile in entrambi i temi; regola di lint che blocca classi di palette e colori esadecimali in `apps/web`.
+- Tema Chiaro / Scuro / Sistema salvato sul profilo e applicato dal server su `<html>`: nessun lampo del tema sbagliato al caricamento. Densità Comoda / Compatta (righe delle tabelle e padding delle schede).
+- Impostazioni → Branding (owner/admin): colore del marchio regolato automaticamente per restare AA nei due temi, logo per sfondi chiari e scuri. È il colore primario dell'app per quel tenant e il predefinito di portale resi, tracking, pagina fornitori e sondaggio, che restano chiari e mantengono le loro personalizzazioni. Demo: Harbor Home ha il suo colore, Northwind il blu del prodotto.
+- `/admin/styleguide`: token, componenti reali nei due temi, varianti del colore del marchio e delle densità.
+- Profilo (`/t/<tenant>/profile` e `/admin/profile`, dal menu utente): nome, nome preferito, foto (ridimensionata sul server), ruolo aziendale; lingua (vuota = lingua dello spazio di lavoro), tema, densità, fuso orario; cambio password con controllo di robustezza, cambio email con conferma sul nuovo indirizzo e avviso al vecchio, "esci da tutte le altre sessioni", ultimi accessi; spazi di lavoro e ruoli. Ogni modifica nell'audit con diff, limiti di frequenza su password ed email.
+- Chi non ha un nome completa il profilo prima di entrare; `displayName` (nome preferito → nome → parte dell'email prima di @) sostituisce ogni ripiego sull'email.
+- Saluto in cima alla dashboard ("Buongiorno, Giulia") calcolato sul server nel fuso dell'utente, con la data di oggi e gli ordini del giorno.
+- Migrazione 0019 (tabelle `tenant_branding` con RLS e `user_sign_ins` di piattaforma, colonne nullable su `users`); test core 178, servizi (account e branding) 9, db 517, web 28, e2e: nuovi `theme.spec.ts` e `profile.spec.ts`. Screenshot rifatti: tutte le pagine in chiaro (en, it) e 16 pagine principali in scuro in `docs/screenshots/<lingua>/dark/` (`THEMES=light,dark` nello script).
+
+Resta: il fuso orario dell'utente vale per saluto, data e accessi; report e liste restano nel fuso del tenant (vedi DECISIONS). Collegamenti (token personali #21, preferenze notifiche #33) da aggiungere al profilo quando esisteranno.
+## Analisi approfondita: P/L per ordine, P/L nel tempo, prodotti con ads e stock, UTM (issue #31)
+
+Fatto:
+- Dettaglio ordine: scheda "Economia dell'ordine" (vendite lorde, rimborsi, imposte, ricavo netto, costo del venduto, spedizione, commissione di pagamento stimata, margine, costi dei resi, contribuzione), uguale a `orderEconomics` dell'ordine; visibile solo ai ruoli che vedono l'analisi.
+- Nuova scheda Analisi → "P/L per ordine": ogni ordine di vendita del periodo con il suo P/L, filtri (numero, metodo di pagamento, canale, costo mancante, in perdita), ordinamento, paginazione lato server, totali dei filtrati, esportazione CSV e riconciliazione al centesimo col P/L del periodo (fattura del corriere vs stima, costi dei resi per data di rientro, pubblicità, costi fissi).
+- Conto economico per giorno, settimana, mese, trimestre, anno con periodi parziali segnati, grafico con costi impilati e linea del risultato operativo, tabella paginata e CSV; la somma dei periodi è il P/L del periodo al centesimo.
+- Scheda Prodotti: unità, ricavo netto, costo del venduto, spesa delle campagne collegate, profitto, ROAS/ROI, semaforo, stock + in arrivo, copertura, azione di stock consigliata con pezzi da riordinare, riga "spesa non attribuita" (totale = spesa del periodo), filtri, ordinamento, paginazione, CSV.
+- Scheda UTM: drill-down sorgente → mezzo → campagna → contenuto → termine con ordini, ricavi, ricavo netto, scontrino medio e quota; trend dei canali nel tempo con la stessa suddivisione per periodi; CSV.
+- Widget "Qualità dei dati" nella panoramica: ordini di vendita con costi mancanti (link alla lista filtrata di #23), varianti senza costo (link a Prodotti → Qualità dati), quota di ricavo con costo noto.
+- Lista ordini: nuovi filtri `product`, `attrChannel`, `utmSource`…`utmTerm` con chip rimovibili, così ogni numero porta agli ordini che lo compongono.
+- Calcoli puri in `packages/core` (`pnl-periods.ts`, `product-profit.ts`, `utm-report.ts`) con test; servizi in `packages/services/src/analytics/pnl-depth.ts` con test di riconciliazione sui dati demo.
+- Nessuna migrazione, nessuna modifica al seed. Test core +25, servizi +6, e2e `analytics-pnl.spec.ts` (5 scenari) più `analytics.spec.ts` aggiornato.
+
+Resta: commissioni di pagamento effettive per ordine (#27); suddivisione per periodi nel fuso del negozio (oggi UTC come costi di periodo e spesa ads); il seed non ha `utm_term`, quindi l'ultimo livello UTM è "(nessuno)" sui dati demo.
 
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).
+
+## Acquisti in profondità (issue #29)
+
+Fatto:
+- Fornitore predefinito per variante (SKU fornitore, costo, MOQ, multiplo, tempo di consegna) dalla nuova sezione "Fornitori e confezioni" della scheda prodotto, per singola variante o per tutte le varianti del prodotto, e in blocco dalla pagina fornitori (tipo di prodotto, marca, prefisso SKU, solo varianti senza fornitore). Pianificazione e bozze automatiche usano subito fornitore e costo scelti.
+- Nuovo ordine d'acquisto con editor di righe: ricerca di qualsiasi variante per SKU, barcode o titolo, righe libere (descrizione, quantità, costo), suggerimenti di riordino aggiungibili uno a uno o tutti insieme. Lo stesso editor modifica gli ordini in bozza e inviati (righe sostituite, diff nell'audit); ogni ordine si può duplicare in bozza; bozze e annullati si possono eliminare. Scheda "Storico" nel dettaglio con le voci dell'audit.
+- Lista ordini d'acquisto: ricerca (numero, fornitore, SKU, descrizione, note), periodo, destinazione, fornitore, stato ed esportazione CSV con gli stessi filtri.
+- Confezioni (case pack) definite dal negozio su un'opzione qualsiasi con pezzi per valore, per tutti i prodotti con quell'opzione o per uno solo; pagina "Mix opzioni" per prodotto con quota di vendite per combinazione e per valore, suggerimento di cartoni per gruppo di opzioni e pianificatore che crea la bozza d'ordine (per quota di vendite o per confezioni). Calcoli puri in `packages/core/src/packs.ts`.
+- Ispezione al ricevimento: per riga arrivati, danneggiati e scartati; solo le unità buone vanno a magazzino e aggiornano il costo; i valori restano sulla riga e nell'audit. Le righe libere si ricevono senza toccare lo stock.
+- Link del fornitore più sicuri: token salvato solo come hash, scadenza a 30 giorni (costante in config), revoca, reinvio con nuovo token e revoca del precedente, pagina neutra per link scaduti o revocati (nessun dato dell'ordine), registro di ogni apertura e tentativo di risposta; stato dei link nel dettaglio ordine.
+- Seed: fornitore predefinito su gran parte delle varianti (un prodotto su otto senza, per la funzione in blocco), una confezione per negozio (Northwind: taglie per tutti i prodotti con l'opzione; Harbor: cartone misto su un prodotto), una bozza con una riga libera e un link fornitore scaduto con la sua apertura bloccata.
+- L'avviso giornaliero "variante critica senza ordine in arrivo" arriva dal tick delle notifiche (#33), non da questa issue.
+- Migrazione 0020 (3 tabelle con RLS: `case_packs`, `supplier_links`, `supplier_link_views`; 2 colonne con default su `purchase_order_lines`); test core 176, servizi `purchasing-depth` 7 (più `planning` e `purchasing` aggiornati), db 529; e2e `purchasing-depth` (6) più `inventory` e `planning` verdi sulla build di produzione.
+
+Resta: invio reale dell'email al fornitore (oggi il link si copia a mano in modalità demo); resi al fornitore per la merce danneggiata.

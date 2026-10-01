@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from "@keel/ui";
 import { portalTrackAction, type TrackingView } from "@/server/actions/portal";
 
-export function TrackApp({ slug, locale, timezone, primaryColor, returnsHref, lookupBy }: { slug: string; locale: string; timezone: string; primaryColor: string; returnsHref: string; lookupBy: "email" | "email_or_phone" }) {
+export function TrackApp({ slug, locale, timezone, primaryColor, onPrimary, returnsHref, lookupBy }: { slug: string; locale: string; timezone: string; primaryColor: string; onPrimary: string; returnsHref: string; lookupBy: "email" | "email_or_phone" }) {
   const t = useTranslations("return_portal");
   const to = useTranslations("order_status");
   const tsh = useTranslations("shipment_status");
@@ -25,7 +25,7 @@ export function TrackApp({ slug, locale, timezone, primaryColor, returnsHref, lo
               <div className="space-y-1.5"><Label htmlFor="tr-order">{t("lookup.order")}</Label><Input id="tr-order" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} required /></div>
               <div className="space-y-1.5"><Label htmlFor="tr-contact">{lookupBy === "email" ? t("lookup.email") : t("lookup.email_or_phone")}</Label><Input id="tr-contact" value={contact} onChange={(e) => setContact(e.target.value)} required /></div>
               {error && <Alert variant="destructive" data-testid="track-error"><AlertDescription>{error}</AlertDescription></Alert>}
-              <Button type="submit" disabled={pending} style={{ backgroundColor: primaryColor, color: "#fff" }} data-testid="track-submit">{t("track.submit")}</Button>
+              <Button type="submit" disabled={pending} style={{ backgroundColor: primaryColor, color: onPrimary }} data-testid="track-submit">{t("track.submit")}</Button>
             </form>
           </CardContent>
         </Card>

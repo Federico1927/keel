@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@keel
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { getCurrentUser } from "@/server/session";
 import { LoginForm } from "./login-form";
+import { BrandMark } from "@/components/brand-mark";
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const user = await getCurrentUser();
@@ -17,9 +18,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-md space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">{PRODUCT_NAME}</p>
-            <h1 className="text-3xl">{t("title")}</h1>
+          <div className="flex items-center gap-3">
+            <BrandMark className="h-9 w-9" />
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">{PRODUCT_NAME}</p>
+              <h1 className="text-2xl">{t("title")}</h1>
+            </div>
           </div>
           <LocaleSwitcher />
         </div>

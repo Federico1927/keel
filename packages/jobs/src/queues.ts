@@ -4,6 +4,7 @@ export const QUEUES = {
   syncOrders: "sync.orders",
   syncCatalog: "sync.catalog",
   syncAds: "sync.ads",
+  platformWrite: "platform.write",
   tick: "scheduler.tick",
   listExport: "list.export",
 } as const;
@@ -19,6 +20,14 @@ export interface SyncOrdersJob {
 }
 export interface SyncCatalogJob {
   tenantId: string;
+  /** delta (resync) | reconcile (nightly) | manual (inventory "Sync now"); default delta. */
+  kind?: "delta" | "reconcile" | "manual";
+  scope?: "catalog" | "inventory";
+}
+/** One outbox row of `platform_writes` to execute. */
+export interface PlatformWriteJob {
+  tenantId: string;
+  writeId: string;
 }
 export interface SyncAdsJob {
   tenantId: string;
@@ -32,8 +41,13 @@ export interface ListExportJob {
   exportId: string;
 }
 export interface TickJob {
-  /** delta (every 15 min) | ads (daily) | reconcile (nightly) | retry (every 10 min) | billing (daily) */
-  kind: "delta" | "ads" | "reconcile" | "retry" | "billing" | "cod" | "alerts" | "returns" | "crm" | "segments" | "tracking" | "tasks" | "notify" | "digest";
+  /** delta (every 15 min) | ads (daily) | reconcile (nightly) | retry (every 10 min) | billing (daily) | writes (every minute: outbox retries) | retention (daily) */
+  kind: "delta" | "ads" | "reconcile" | "retry" | "billing" | "cod" | "alerts" | "returns" | "crm" | "segments" | "tracking" | "tasks" | "notify" | "digest" | "writes" | "retention";
+}
+
+/** pg-boss keeps finished jobs for the same platform retention window as webhooks and writes. */
+export function queueRetentionOptions(days: number): { deleteAfterSeconds: number } {
+  return { deleteAfterSeconds: days * 86_400 };
 }
 
 /** Yesterday → today as ISO dates, the window a daily ads pull refreshes (platforms restate recent days). */

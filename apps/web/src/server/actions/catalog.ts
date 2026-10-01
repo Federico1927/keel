@@ -4,15 +4,15 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { adminDb, and, eq, recordAudit, schema } from "@keel/db";
 import { diffRecords, parseAmountToMinor, tenantSettingsSchema, type CostCsvFileError, type CostMatchRow, type CostMatchStatus } from "@keel/core";
-import { CostError, applyCostImport, previewCostImport, setVariantCosts, variantCostRows, type ServiceContext } from "@keel/services";
-import { getCommercePlatform } from "@/server/integrations";
+import { CostError, applyCostImport, enqueuePlatformWrite, previewCostImport, setVariantCosts, variantCostRows, type PlatformWriteRow, type ServiceContext } from "@keel/services";
+import { dispatchPlatformWrites } from "@/server/platform-writes";
 import { ForbiddenError, requireAction, requireWrite, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 
 const priceSchema = z.object({ variantId: z.string().uuid(), priceMinor: z.coerce.number().int().min(0) });
 const statusSchema = z.object({ productId: z.string().uuid(), status: z.enum(["active", "draft", "archived"]) });
 
-/** Price change: platform first, then local. */
+/** Price change: local change and the outbox write in one transaction, then the write runs (queued or inline). */
 export async function updateVariantPrice(slug: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   try {
     const ctx = await requireWrite(slug, "products");
@@ -20,18 +20,12 @@ export async function updateVariantPrice(slug: string, _prev: ActionResult | nul
     if (!parsed.success) return fail("invalid_input");
     const variant = await ctx.run(async (tx) => (await tx.select().from(schema.productVariants).where(and(eq(schema.productVariants.tenantId, ctx.tenant.id), eq(schema.productVariants.id, parsed.data.variantId))).limit(1))[0]);
     if (!variant) return fail("not_found");
-    const platform = await getCommercePlatform(ctx);
-    if (variant.externalId) {
-      try {
-        await platform.updateVariant(variant.externalId, { priceMinor: parsed.data.priceMinor });
-      } catch (e) {
-        return fail("platform_error", { platform: e instanceof Error ? e.message : String(e) });
-      }
-    }
-    await ctx.run(async (tx) => {
+    const write = await ctx.run(async (tx) => {
       await tx.update(schema.productVariants).set({ priceMinor: parsed.data.priceMinor }).where(eq(schema.productVariants.id, variant.id));
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "variant.price_updated", entityType: "variant", entityId: variant.id, diff: { priceMinor: { from: variant.priceMinor, to: parsed.data.priceMinor } } });
+      return variant.externalId ? enqueuePlatformWrite({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { kind: "variant.update", entityType: "variant", entityId: variant.id, payload: { variantExternalId: variant.externalId, priceMinor: parsed.data.priceMinor } }) : null;
     });
+    await dispatchPlatformWrites(ctx, [write]);
     revalidatePath(`/t/${slug}/products/${variant.productId}`);
     return ok();
   } catch (e) {
@@ -47,18 +41,12 @@ export async function updateProductStatus(slug: string, productId: string, statu
     if (!parsed.success) return fail("invalid_input");
     const product = await ctx.run(async (tx) => (await tx.select().from(schema.products).where(and(eq(schema.products.tenantId, ctx.tenant.id), eq(schema.products.id, productId))).limit(1))[0]);
     if (!product) return fail("not_found");
-    const platform = await getCommercePlatform(ctx);
-    if (product.externalId) {
-      try {
-        await platform.updateProductStatus(product.externalId, parsed.data.status);
-      } catch (e) {
-        return fail("platform_error", { platform: e instanceof Error ? e.message : String(e) });
-      }
-    }
-    await ctx.run(async (tx) => {
+    const write = await ctx.run(async (tx) => {
       await tx.update(schema.products).set({ status: parsed.data.status }).where(eq(schema.products.id, productId));
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "product.status_updated", entityType: "product", entityId: productId, diff: { status: { from: product.status, to: parsed.data.status } } });
+      return product.externalId ? enqueuePlatformWrite({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { kind: "product.status", entityType: "product", entityId: productId, payload: { productExternalId: product.externalId, status: parsed.data.status } }) : null;
     });
+    await dispatchPlatformWrites(ctx, [write]);
     revalidatePath(`/t/${slug}/products/${productId}`);
     return ok();
   } catch (e) {
@@ -88,19 +76,19 @@ const svc = (ctx: TenantContext, tx: ServiceContext["tx"]): ServiceContext => ({
 const applyToSchema = z.enum(["missing", "all"]).default("missing");
 const costsSchema = z.object({ productId: z.string().uuid(), applyTo: applyToSchema, costs: z.array(z.object({ variantId: z.string().uuid(), cost: z.string().max(32) })).min(1).max(500) });
 
-/** Writes cost changes to the platform (when the tenant opted in) before the local write, like price changes. */
-async function pushCostsToPlatform(ctx: TenantContext, rows: { externalId: string | null; inventoryItemExternalId: string | null; costMinor: number }[]): Promise<string | null> {
-  if (!ctx.settings.costWriteBack || !rows.some((r) => r.externalId)) return null;
-  const platform = await getCommercePlatform(ctx);
-  for (const r of rows) {
-    if (!r.externalId) continue;
-    try {
-      await platform.updateVariantCost({ variantExternalId: r.externalId, inventoryItemExternalId: r.inventoryItemExternalId }, r.costMinor);
-    } catch (e) {
-      return e instanceof Error ? e.message : String(e);
-    }
+/**
+ * Cost changes go to the platform (when the tenant opted in) through the outbox, enqueued in the
+ * same transaction as the local write; the caller dispatches them after the commit.
+ */
+async function enqueueCostWrites(ctx: TenantContext, s: ServiceContext, changed: readonly { variantId: string; toMinor: number }[]): Promise<PlatformWriteRow[]> {
+  if (!ctx.settings.costWriteBack || !changed.length) return [];
+  const refs = await variantCostRows(s, changed.map((c) => c.variantId));
+  const writes: PlatformWriteRow[] = [];
+  for (const c of changed) {
+    const v = refs.find((r) => r.id === c.variantId);
+    if (v?.externalId) writes.push(await enqueuePlatformWrite(s, { kind: "variant.cost", entityType: "variant", entityId: v.id, payload: { variantExternalId: v.externalId, inventoryItemExternalId: v.inventoryItemExternalId, costMinor: c.toMinor } }));
   }
-  return null;
+  return writes;
 }
 
 /** Cost per variant (and in bulk for the product): empty fields are left as they are. */
@@ -120,9 +108,11 @@ export async function saveVariantCosts(slug: string, input: unknown): Promise<Ac
     if (current.length !== wanted.length || current.some((v) => v.productId !== parsed.data.productId)) return fail("not_found");
     const changes = wanted.filter((w) => current.find((v) => v.id === w.variantId)!.costMinor !== w.costMinor);
     if (!changes.length) return ok({ changed: 0, lines: 0 });
-    const platformError = await pushCostsToPlatform(ctx, changes.map((c) => ({ ...current.find((v) => v.id === c.variantId)!, costMinor: c.costMinor })));
-    if (platformError) return fail("platform_error", { platform: platformError });
-    const res = await ctx.run((tx) => setVariantCosts(svc(ctx, tx), changes, { source: "manual", applyTo: parsed.data.applyTo, audit: auditActor(ctx) }));
+    const { res, writes } = await ctx.run(async (tx) => {
+      const res = await setVariantCosts(svc(ctx, tx), changes, { source: "manual", applyTo: parsed.data.applyTo, audit: auditActor(ctx) });
+      return { res, writes: await enqueueCostWrites(ctx, svc(ctx, tx), res.changed) };
+    });
+    await dispatchPlatformWrites(ctx, writes);
     revalidatePath(`/t/${slug}/products/${parsed.data.productId}`);
     revalidatePath(`/t/${slug}/products/quality`);
     return ok({ changed: res.changed.length, lines: res.linesUpdated });
@@ -169,15 +159,12 @@ export async function confirmCostImportAction(slug: string, input: unknown): Pro
     const ctx = await requireWrite(slug, "products");
     const parsed = importSchema.safeParse(input);
     if (!parsed.success) return fail("invalid_input");
-    if (ctx.settings.costWriteBack) {
-      const { preview } = await ctx.run((tx) => previewCostImport(svc(ctx, tx), parsed.data.csv));
-      const matched = (preview?.rows ?? []).filter((r) => r.status === "matched");
-      const refs = await ctx.run((tx) => variantCostRows(svc(ctx, tx), matched.map((r) => r.variantId!)));
-      const platformError = await pushCostsToPlatform(ctx, matched.map((r) => ({ ...refs.find((v) => v.id === r.variantId)!, costMinor: r.costMinor! })));
-      if (platformError) return fail("platform_error", { platform: platformError });
-    }
-    const res = await ctx.run((tx) => applyCostImport(svc(ctx, tx), parsed.data.csv, { applyTo: parsed.data.applyTo, fileName: parsed.data.fileName, audit: auditActor(ctx) }));
+    const { res, writes } = await ctx.run(async (tx) => {
+      const res = await applyCostImport(svc(ctx, tx), parsed.data.csv, { applyTo: parsed.data.applyTo, fileName: parsed.data.fileName, audit: auditActor(ctx) });
+      return { res, writes: res.result ? await enqueueCostWrites(ctx, svc(ctx, tx), res.result.changed) : [] };
+    });
     if (res.error || !res.result) return fail("invalid_input");
+    await dispatchPlatformWrites(ctx, writes);
     revalidatePath(`/t/${slug}/products`, "layout");
     return ok({ written: res.result.changed.length, lines: res.result.linesUpdated });
   } catch (e) {
