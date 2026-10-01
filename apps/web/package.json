@@ -10,7 +10,8 @@
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:e2e": "dotenv -e ../../.env -- playwright test"
+    "test:e2e": "dotenv -e ../../.env -- playwright test",
+    "screenshots": "dotenv -e ../../.env -- node scripts/screenshots.mjs"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.0",

@@ -224,7 +224,9 @@ async function seedCod(db: ReturnType<typeof drizzle<typeof schema>>, ctx: SeedC
     if (assignedTo) await db.insert(schema.codAssignmentLog).values({ tenantId, orderId: o.id, assignedTo, source: "cron", reason: "auto", assignedAt: enteredAt });
   }
   const returned = await db.execute<{ phone: string | null; email: string | null; n: number; last: Date }>(sql`select o.phone, o.email_normalized as email, count(*)::int as n, max(o.placed_at) as last from orders o where o.tenant_id = ${tenantId} and o.payment_method = 'cod' and o.status in ('returned','refunded') and (o.phone is not null or o.email_normalized is not null) group by 1, 2 order by n desc limit 12`);
-  for (const r of returned.rows) {
+  // small test seeds may have no returned COD order: profile a few recent recipients as "watch" so the table has rows
+  const profiled = returned.rows.length > 0 ? returned.rows : (await db.execute<{ phone: string | null; email: string | null; n: number; last: Date }>(sql`select o.phone, o.email_normalized as email, 1::int as n, max(o.placed_at) as last from orders o where o.tenant_id = ${tenantId} and o.payment_method = 'cod' and (o.phone is not null or o.email_normalized is not null) group by 1, 2 order by last desc limit 3`)).rows;
+  for (const r of profiled) {
     const key = r.phone ? normalizePhone(r.phone, "IT") ?? `email:${r.email}` : `email:${r.email}`;
     const weighted = r.n;
     const tier = weighted >= 3 ? "blacklisted" : weighted >= 2 ? "high_risk" : "watch";

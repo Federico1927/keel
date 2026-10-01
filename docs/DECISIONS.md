@@ -206,4 +206,14 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 
 ## 2026-10-01 · Demo guarantees must not depend on the clock
 
-**Decision.** The generator is deterministic for a given `now`, but a reseed at another hour shifts the random stream and the "interesting" states (products running out, failing campaigns) could vanish. Where CLAUDE.md §10 promises something, the generator now enforces it structurally (half of the low-stock variants never get an incoming purchase order) instead of relying on probability. Remaining probabilistic traits are documented in EVALUATION.
+**Decision.** The generator is deterministic for a given `now`, but a reseed at another hour shifts the random stream and the "interesting" states (products running out, failing campaigns) could vanish. Where CLAUDE.md §10 promises something, the generator now enforces it structurally instead of relying on probability: half of the low-stock variants never get an incoming purchase order, one low-stock variant in four has zero stock everywhere and is never covered (so "critical" products always exist), and the COD seed falls back to recent recipients when no returned COD order exists. The phase-12 reseed at a different hour is what exposed the last two. Remaining probabilistic traits are documented in EVALUATION.
+
+## 2026-10-01 · Screenshots are a script in the repo, not a one-off
+
+**Decision.** `apps/web/scripts/screenshots.mjs` logs in as the tenant owner and as the super-admin, forces the locale through the `NEXT_LOCALE` cookie and captures every main page into `docs/screenshots/<locale>/`. Detail pages are resolved from the first UUID link of their list, so the script survives a reseed. Captures are clipped at 3200 px: a 500-row ledger is not a screenshot. The committee asked for en and it; es is one environment variable away (`LOCALES=en,it,es`).
+
+**Alternatives.** Playwright `toHaveScreenshot` inside the e2e suite (rejected: it would turn documentation into a flaky visual-regression gate on data that changes with every seed).
+
+## 2026-10-01 · Evaluation document names what is simulated before what works
+
+**Decision.** `docs/EVALUATION.md` leads with the fact that no real store was ever connected and lists each mock with what it takes to make it real. The buyer must not discover this during the first installation. The ten steps start with a card-paying customer, not with the cash-on-delivery brand the reference platform was built for, because that validates the core without the add-on.

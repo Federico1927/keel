@@ -173,7 +173,7 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
   const defaultLocation = locations[0]!;
 
   /* ---------- products & variants ---------- */
-  interface V { id: string; productId: string; externalId: string; inventoryItemExternalId: string; sku: string; title: string; productTitle: string; priceMinor: number; costMinor: number; popularity: number; optionValues: Record<string, string>; stockTotal: number; isLow: boolean }
+  interface V { id: string; productId: string; externalId: string; inventoryItemExternalId: string; sku: string; title: string; productTitle: string; priceMinor: number; costMinor: number; popularity: number; optionValues: Record<string, string>; stockTotal: number; isLow: boolean; isCritical: boolean }
   const variants: V[] = [];
   const productsById = new Map<string, { id: string; title: string; templateIndex: number; popularity: number; isRepurchasable: boolean }>();
   for (let i = 0; i < cfg.productCount; i++) {
@@ -197,11 +197,14 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
       const priceMinor = tpl.priceMinor + (optionValues.Size === "XL" ? 500 : 0);
       const costMinor = Math.round(priceMinor * tpl.costRatio);
       const isLow = lowStockProduct || rng.chance(0.05);
-      const v: V = { id: vid, productId, externalId: ext(), inventoryItemExternalId: ext(), sku: `${code}-${Object.values(optionValues).map((x) => x.slice(0, 3).toUpperCase()).join("-")}`, title: Object.values(optionValues).join(" / "), productTitle: title, priceMinor, costMinor, popularity: popularity * (0.7 + rng.next() * 0.6), optionValues, stockTotal: 0, isLow };
+      // Demo guarantee (CLAUDE.md §10): one low-stock variant in four is out of stock everywhere and never
+      // covered by an incoming purchase order, so "critical" products exist whatever the seed time.
+      const isCritical = isLow && vi % 4 === 0;
+      const v: V = { id: vid, productId, externalId: ext(), inventoryItemExternalId: ext(), sku: `${code}-${Object.values(optionValues).map((x) => x.slice(0, 3).toUpperCase()).join("-")}`, title: Object.values(optionValues).join(" / "), productTitle: title, priceMinor, costMinor, popularity: popularity * (0.7 + rng.next() * 0.6), optionValues, stockTotal: 0, isLow, isCritical };
       variants.push(v);
       ds.productVariants.push({ id: vid, tenantId, productId, externalId: v.externalId, inventoryItemExternalId: v.inventoryItemExternalId, sku: v.sku, barcode: String(8000000000000 + vi + i * 100), title: v.title, optionValues, priceMinor, compareAtMinor: rng.chance(0.2) ? Math.round(priceMinor * 1.25) : null, costMinor, averageCostMinor: Math.round(costMinor * (0.97 + rng.next() * 0.06)), weightGrams: isApparel ? rng.int(150, 900) : rng.int(300, 9000), packSize: isApparel ? null : rng.pick([null, 4, 6]), isActive: true, syncedAt: now });
       for (const loc of locations) {
-        const available = isLow ? rng.int(0, 4) : rng.int(5, 90);
+        const available = isCritical ? 0 : isLow ? rng.int(0, 4) : rng.int(5, 90);
         const committed = rng.int(0, 3);
         v.stockTotal += available;
         ds.inventoryLevels.push(t({ variantId: vid, locationId: loc.id, available, committed, onHand: available + committed, syncedAt: now }));
@@ -566,7 +569,7 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
     const lineVariants = rng.shuffle(variants).slice(0, rng.int(3, 10));
     // prefer low-stock variants for incoming POs so coverage looks right
     // Incoming purchase orders cover only half of the low-stock variants, so the demo always has products at risk with nothing on the way (CLAUDE.md §10).
-    if (status === "in_transit" || status === "confirmed") for (const [vi, v] of variants.entries()) if (v.isLow && vi % 2 !== 0 && rng.chance(0.3) && !lineVariants.includes(v)) lineVariants.push(v);
+    if (status === "in_transit" || status === "confirmed") for (const [vi, v] of variants.entries()) if (v.isLow && !v.isCritical && vi % 2 !== 0 && rng.chance(0.3) && !lineVariants.includes(v)) lineVariants.push(v);
     let total = 0;
     for (const v of lineVariants) {
       const quantity = rng.int(10, 120);
