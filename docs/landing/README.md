@@ -119,6 +119,22 @@ message files.
 Any other static host works too: upload the contents of `apps/landing/out` after `pnpm --filter @keel/landing build`.
 The server in `scripts/serve.mjs` mirrors the expected routing (`/it/` → `it/index.html`, `404.html`).
 
+## Single-file preview
+
+`scripts/bundle-single-file.mjs` turns one exported page into a self-contained HTML file (styles,
+fonts, favicon and screenshots inlined; the Next runtime replaced by a small vanilla script for the
+carousel, pricing toggle, mobile menu, contact form and in-page links). Use it to share a preview by
+email or on a host that wraps pages in its own document and cannot serve sibling files:
+
+```bash
+pnpm --filter @keel/landing build
+cd apps/landing
+node scripts/bundle-single-file.mjs en out/index.html    preview-en.html --other-locale-url=<url of the Italian preview>
+node scripts/bundle-single-file.mjs it out/it/index.html preview-it.html --other-locale-url=<url of the English preview>
+```
+
+The real deployment does not need this: on Vercel or any static host the `out/` folder is served as is.
+
 ## Placeholders left on purpose
 
 No testimonials, customer logos, customer counts or result metrics are rendered: a commented
