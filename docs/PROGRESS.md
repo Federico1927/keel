@@ -1,10 +1,11 @@
 # Progress
 
-Stato: **non iniziato**. Claude Code aggiorna questo file a ogni fase (vedi CLAUDE.md, sezione 1).
+Stato aggiornato da Claude Code a ogni fase (CLAUDE.md §1). Alla ripresa di una sessione: rileggere `CLAUDE.md`, questo file e `docs/DECISIONS.md`, poi continuare dalla prima fase non completata.
 
 | Fase | Stato | Note |
 | --- | --- | --- |
-| 0 | da fare | |
+| Studio | fatta | `docs/reference/INVENTORY.md` + note dettagliate in `docs/reference/study/` |
+| 0 | fatta | Monorepo pnpm+turbo, Next 15, Drizzle, Postgres 16 di sistema (Docker non disponibile), next-intl en/it/es, Auth.js password + magic link, login in 3 lingue, lint/typecheck/test/build verdi |
 | 1 | da fare | |
 | 2 | da fare | |
 | 3 | da fare | |
@@ -18,6 +19,29 @@ Stato: **non iniziato**. Claude Code aggiorna questo file a ogni fase (vedi CLAU
 | 11 | da fare | |
 | 12 | da fare | |
 
+## Come riprendere
+
+```bash
+pnpm install
+pnpm db:bootstrap      # solo senza Docker: crea ruoli keel_admin/keel_app e i database keel, keel_test
+pnpm db:migrate && pnpm db:seed
+pnpm dev               # web su :3000 + job runner
+pnpm lint && pnpm typecheck && pnpm test && pnpm build
+```
+
+Senza Docker il cluster PostgreSQL 16 di sistema va avviato con `pg_ctlcluster 16 main start` (password dell'utente `postgres` impostata a `postgres` per il bootstrap).
+
+## Fase 0 — dettaglio
+
+Fatto:
+- `packages/config`: `PRODUCT_NAME`, lingue, ruoli, matrice permessi (ruolo × pagina × azione), registro moduli `core.*`/`addon.*`, piani, default neutri delle impostazioni.
+- `packages/db`: schema auth + tenant + audit, ruoli DB `keel_admin`/`keel_app`, RLS su `tenant_tax_rates` e `audit_logs`, `withTenant`, migrazioni Drizzle, seed piattaforma (2 tenant, 12 utenti demo), test di integrazione su database reale.
+- `packages/ui`: tema Tailwind v4 (token HSL), componenti base shadcn-style scritti a mano.
+- `apps/web`: Auth.js (credenziali + magic link in console), middleware di protezione, risoluzione locale da cookie, pagina login in en/it/es con selettore lingua, test di parità delle chiavi di traduzione, e2e Playwright sul login.
+- `packages/jobs`: pg-boss avviabile (`pnpm --filter @keel/jobs dev`).
+
+Manca (previsto nelle fasi successive): layout applicativo con navigazione, pagine di modulo, adapter, seed di dominio.
+
 ## Blocchi
 
-Nessuno.
+Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

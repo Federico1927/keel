@@ -1,0 +1,60 @@
+{
+  "product": { "tagline": "The structure under your store" },
+  "common": {
+    "language": "Language",
+    "locales": { "en": "English", "it": "Italiano", "es": "Español" },
+    "signed_in_as": "Signed in as {name} ({role})",
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "search": "Search",
+    "actions": "Actions",
+    "empty": "Nothing here yet",
+    "sign_out": "Sign out"
+  },
+  "auth": {
+    "title": "Sign in",
+    "card_title": "Welcome back",
+    "card_description": "Use your password or request a sign-in link by email.",
+    "tab_password": "Password",
+    "tab_magic": "Email link",
+    "email": "Email",
+    "password": "Password",
+    "sign_in": "Sign in",
+    "signing_in": "Signing in…",
+    "send_magic": "Send me a link",
+    "sending": "Sending…",
+    "magic_sent": "If the address exists, a sign-in link is on its way.",
+    "magic_hint": "In development the link is printed in the server console.",
+    "verify_title": "Check your inbox",
+    "verify_description": "We sent you a sign-in link. It expires in 15 minutes.",
+    "demo_hint": "Demo accounts are listed in the README.",
+    "errors": {
+      "invalid_credentials": "Email or password is incorrect.",
+      "invalid_input": "Please enter a valid email and password.",
+      "unknown": "Something went wrong. Please try again.",
+      "no_tenant": "Your account is not linked to any workspace yet."
+    }
+  },
+  "modules": {
+    "core": {
+      "orders": { "name": "Orders", "description": "Inbound orders, timeline, notes and customer history" },
+      "shipments": { "name": "Shipments", "description": "Fulfilments, tracking and stuck parcels" },
+      "crm": { "name": "CRM", "description": "Customers, segments and RFM" },
+      "analytics": { "name": "Analytics", "description": "KPIs, P/L and cohorts" },
+      "campaigns": { "name": "Campaigns", "description": "Ads performance linked to stock" },
+      "products": { "name": "Products & inventory", "description": "Catalog, stock levels and reorders" },
+      "returns": { "name": "Returns", "description": "Configurable return workflow" },
+      "discounts": { "name": "Discounts", "description": "Codes, pools and attribution" },
+      "purchasing": { "name": "Purchasing", "description": "Suppliers and purchase orders" },
+      "platform": { "name": "Platform", "description": "Users, settings, integrations and audit" }
+    },
+    "addon": {
+      "cod": { "name": "Cash on delivery", "description": "Confirmation queue, operator assignment, delivery score" },
+      "warehouse_3pl": { "name": "3PL warehouse connector", "description": "Connect an external warehouse" },
+      "whatsapp": { "name": "WhatsApp provider", "description": "Connect a local WhatsApp provider" },
+      "carrier_tracking": { "name": "Carrier tracking", "description": "Second source for shipment status" }
+    }
+  },
+  "plans": { "starter": "Starter", "growth": "Growth", "scale": "Scale" }
+}

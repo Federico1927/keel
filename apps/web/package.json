@@ -1,0 +1,46 @@
+{
+  "name": "@keel/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "dotenv -e ../../.env -- next dev --turbopack -p 3000",
+    "build": "dotenv -e ../../.env -- next build",
+    "start": "dotenv -e ../../.env -- next start -p 3000",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "dotenv -e ../../.env -- playwright test"
+  },
+  "dependencies": {
+    "@auth/drizzle-adapter": "^1.11.0",
+    "@keel/config": "workspace:*",
+    "@keel/core": "workspace:*",
+    "@keel/db": "workspace:*",
+    "@keel/integrations": "workspace:*",
+    "@keel/ui": "workspace:*",
+    "bcryptjs": "^3.0.2",
+    "lucide-react": "^0.540.0",
+    "next": "^15.5.0",
+    "next-auth": "5.0.0-beta.32",
+    "next-intl": "^4.3.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "recharts": "^3.1.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@keel/eslint-config": "workspace:*",
+    "@playwright/test": "^1.55.0",
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "^22.19.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "dotenv-cli": "^11.0.0",
+    "eslint": "^9.39.0",
+    "postcss": "^8.5.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.0"
+  }
+}

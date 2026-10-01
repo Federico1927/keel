@@ -1,0 +1,60 @@
+{
+  "product": { "tagline": "La struttura sotto il tuo negozio" },
+  "common": {
+    "language": "Lingua",
+    "locales": { "en": "English", "it": "Italiano", "es": "Español" },
+    "signed_in_as": "Accesso come {name} ({role})",
+    "loading": "Caricamento…",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "search": "Cerca",
+    "actions": "Azioni",
+    "empty": "Ancora nulla qui",
+    "sign_out": "Esci"
+  },
+  "auth": {
+    "title": "Accedi",
+    "card_title": "Bentornato",
+    "card_description": "Usa la password oppure richiedi un link di accesso via email.",
+    "tab_password": "Password",
+    "tab_magic": "Link via email",
+    "email": "Email",
+    "password": "Password",
+    "sign_in": "Accedi",
+    "signing_in": "Accesso in corso…",
+    "send_magic": "Inviami un link",
+    "sending": "Invio…",
+    "magic_sent": "Se l'indirizzo esiste, il link di accesso è in arrivo.",
+    "magic_hint": "In sviluppo il link viene stampato nella console del server.",
+    "verify_title": "Controlla la posta",
+    "verify_description": "Ti abbiamo inviato un link di accesso. Scade tra 15 minuti.",
+    "demo_hint": "Gli account demo sono elencati nel README.",
+    "errors": {
+      "invalid_credentials": "Email o password non corretti.",
+      "invalid_input": "Inserisci un'email e una password valide.",
+      "unknown": "Qualcosa è andato storto. Riprova.",
+      "no_tenant": "Il tuo account non è ancora collegato a nessun workspace."
+    }
+  },
+  "modules": {
+    "core": {
+      "orders": { "name": "Ordini", "description": "Ordini in entrata, timeline, note e storico cliente" },
+      "shipments": { "name": "Spedizioni", "description": "Evasioni, tracking e spedizioni ferme" },
+      "crm": { "name": "CRM", "description": "Clienti, segmenti e RFM" },
+      "analytics": { "name": "Analisi", "description": "KPI, P/L e coorti" },
+      "campaigns": { "name": "Campagne", "description": "Performance ads collegata allo stock" },
+      "products": { "name": "Prodotti e magazzino", "description": "Catalogo, giacenze e riordini" },
+      "returns": { "name": "Resi", "description": "Flusso resi configurabile" },
+      "discounts": { "name": "Sconti", "description": "Codici, pool e attribuzione" },
+      "purchasing": { "name": "Acquisti", "description": "Fornitori e ordini d'acquisto" },
+      "platform": { "name": "Piattaforma", "description": "Utenti, impostazioni, integrazioni e audit" }
+    },
+    "addon": {
+      "cod": { "name": "Contrassegno", "description": "Coda di conferma, assegnazione operatori, delivery score" },
+      "warehouse_3pl": { "name": "Connettore magazzino 3PL", "description": "Collega un magazzino esterno" },
+      "whatsapp": { "name": "Provider WhatsApp", "description": "Collega un provider WhatsApp locale" },
+      "carrier_tracking": { "name": "Tracking corrieri", "description": "Seconda fonte per lo stato delle spedizioni" }
+    }
+  },
+  "plans": { "starter": "Starter", "growth": "Growth", "scale": "Scale" }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "keel",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:e2e": "pnpm --filter @keel/web test:e2e",
+    "db:bootstrap": "pnpm --filter @keel/db bootstrap",
+    "db:generate": "pnpm --filter @keel/db generate",
+    "db:migrate": "pnpm --filter @keel/db migrate",
+    "db:seed": "pnpm --filter @keel/db seed",
+    "db:reset": "pnpm --filter @keel/db reset",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,json,md,css}\""
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "prettier": "^3.6.0",
+    "turbo": "^2.11.0",
+    "typescript": "^5.9.3"
+  }
+}
