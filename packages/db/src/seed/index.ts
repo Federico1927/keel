@@ -6,7 +6,7 @@ import * as schema from "../schema";
 import { generateTenantDataset, type TenantSeedConfig } from "./generator";
 import { writeDataset } from "./writer";
 import { createRng } from "@keel/integrations";
-import { SALE_STATUSES, allocateLandedCost, normalizePhone, runPredictionModel, type CustomerHistory } from "@keel/core";
+import { DEFAULT_SURVEY_CONFIG, SALE_STATUSES, allocateLandedCost, normalizePhone, runPredictionModel, type CustomerHistory } from "@keel/core";
 import { MODULES, PLANS, PLATFORM_CURRENCY } from "@keel/config";
 import { encryptJson } from "@keel/integrations";
 import { sql } from "drizzle-orm";
@@ -188,7 +188,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
   const log = opts.log ?? (() => {});
   for (const cfg of tenantSeedConfigs(ctx, opts)) {
     // Wipe previous domain rows of this tenant (cascade from the parent tables).
-    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels, schema.segmentDestinations, schema.pixelSettings, schema.pixelEvents, schema.pixelIdentities, schema.conversionSettings]) {
+    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels, schema.segmentDestinations, schema.pixelSettings, schema.pixelEvents, schema.pixelIdentities, schema.conversionSettings, schema.surveySettings]) {
       await db.delete(table).where(eq(table.tenantId, cfg.tenantId));
     }
     const started = Date.now();
@@ -205,6 +205,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("predictions", () => seedPredictions(db, cfg.tenantId, opts.now ?? new Date()));
     await step("destinations", () => seedDestinations(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("tracking", () => seedTracking(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
+    await step("survey", () => seedSurvey(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
   }
 }
@@ -277,6 +278,36 @@ async function seedRetentionCampaigns(db: ReturnType<typeof drizzle<typeof schem
     // an earlier newsletter sent from the email tool, with no measurable effect: the control group shows that too
     await send("Newsletter di primavera (inviata dallo strumento email)", "Clienti ricorrenti", "manual", "", null, 0, 75);
   }
+}
+
+/**
+ * Post-purchase survey answers on ~30% of the last 120 days' orders. A little over half agree with
+ * the order's click channel; the rest name channels clicks never see (word of mouth, influencers,
+ * podcasts), which is what the survey is for. The secret is fixed so demo links are reproducible.
+ */
+async function seedSurvey(db: ReturnType<typeof drizzle<typeof schema>>, key: keyof typeof DEMO_TENANTS, tenantId: string, now: Date) {
+  await db.insert(schema.surveySettings).values({ tenantId, enabled: true, config: DEFAULT_SURVEY_CONFIG, secret: `demo-${key}-survey-secret-0001` });
+  const locale = DEMO_TENANTS[key].defaultLocale;
+  await db.execute(sql`
+    with picked as (
+      select o.id, o.customer_id, o.placed_at, a.channel as click, abs(hashtext(o.id::text || 'ans')) % 100 as h
+      from orders o left join order_attribution a on a.order_id = o.id
+      where o.tenant_id = ${tenantId} and o.placed_at >= ${new Date(now.getTime() - 120 * 864e5)} and o.placed_at < ${new Date(now.getTime() - 864e5)}
+        and o.status in ('confirmed','fulfilling','shipped','delivered','returned_partial') and abs(hashtext(o.id::text || 'sv')) % 100 < 30
+    ),
+    answered as (
+      select id, customer_id, placed_at,
+        case
+          when h < 55 then case click when 'paid_social' then 'social_ad' when 'organic_search' then 'search' when 'paid_search' then 'search' when 'email' then 'email' when 'social' then 'social_post' else 'friend' end
+          when h < 72 then 'friend' when h < 82 then 'influencer' when h < 90 then 'podcast' when h < 96 then 'social_post' else 'search'
+        end as answer
+      from picked
+    )
+    insert into survey_responses (tenant_id, order_id, customer_id, answer_key, channel, locale, source, responded_at)
+    select ${tenantId}, id, customer_id, answer,
+      case answer when 'search' then 'organic_search' when 'social_ad' then 'paid_social' when 'social_post' then 'social' when 'friend' then 'word_of_mouth' when 'influencer' then 'influencer' when 'podcast' then 'podcast' when 'email' then 'email' end,
+      ${locale}, 'seed', placed_at + interval '26 hours'
+    from answered`);
 }
 
 /**

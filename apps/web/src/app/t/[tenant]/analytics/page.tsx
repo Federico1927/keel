@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatMoney, formatNumber, formatPercent, previousPeriod, type AttributionModel } from "@keel/core";
-import { ATTRIBUTION_MODELS, BASE_METRICS, attributionReport, blendedForPeriod, boughtTogether, dailySeries, entryProducts, kpisForPeriod, listCustomMetrics, ltvReport, metricValues, monthEndForecast, pnlForPeriod, productPerformance, repurchaseCohorts, secondPurchasePaths, userDashboard, type PnlReport } from "@keel/services";
+import { ATTRIBUTION_MODELS, BASE_METRICS, attributionReport, getSurveySettings, surveyResults, blendedForPeriod, boughtTogether, dailySeries, entryProducts, kpisForPeriod, listCustomMetrics, ltvReport, metricValues, monthEndForecast, pnlForPeriod, productPerformance, repurchaseCohorts, secondPurchasePaths, userDashboard, type PnlReport } from "@keel/services";
 import { canWritePage } from "@keel/config";
 import { CustomMetricForm, DashboardEditor, DeleteMetricButton } from "./advanced-controls";
+import { SurveySettings } from "./survey-settings";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { RevenueChart } from "@/components/charts/revenue-chart";
@@ -15,7 +16,7 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "analytics");
   const t = await getTranslations("analytics");
-  const tab = ["overview", "custom", "pnl", "attribution", "products", "cohorts", "ltv", "basket"].includes(sp.tab ?? "") ? sp.tab! : "overview";
+  const tab = ["overview", "custom", "pnl", "attribution", "products", "cohorts", "ltv", "basket", "survey"].includes(sp.tab ?? "") ? sp.tab! : "overview";
   const period = resolvePeriod(sp, ctx.tenant.timezone);
   const at = { id: ctx.tenant.id, country: ctx.tenant.country, currency: ctx.tenant.currency, timezone: ctx.tenant.timezone, settings: ctx.settings };
   const s = (tx: Parameters<Parameters<typeof ctx.run>[0]>[0]) => ({ tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } });
@@ -34,7 +35,7 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
     <>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<div className="flex flex-wrap items-center gap-2"><PeriodPicker basePath={base} keep={{ tab }} preset={period.preset} from={sp.from} to={sp.to} /><Link href={`${base}/alerts`} className="text-sm underline-offset-4 hover:underline" data-testid="alerts-link">{t("alerts_link")}</Link><Link href={`${base}/costs`} className="text-sm underline-offset-4 hover:underline">{t("costs_link")}</Link></div>} />
       <div className="mb-4 flex flex-wrap gap-1 rounded-md bg-muted p-1 text-sm">
-        {["overview", "custom", "pnl", "attribution", "products", "cohorts", "ltv", "basket"].map((k) => (
+        {["overview", "custom", "pnl", "attribution", "products", "cohorts", "ltv", "basket", "survey"].map((k) => (
           <Link key={k} href={query({ tab: k })} className={cn("flex-1 rounded-sm px-3 py-1.5 text-center", tab === k ? "bg-card shadow-sm" : "text-muted-foreground")}>
             {t(`tabs.${k}`)}
           </Link>
@@ -513,6 +514,65 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
                     ))}
                   </ul>
                 )}
+              </CardContent>
+            </Card>
+          </div>
+        );
+      })())}
+      {tab === "survey" && (await (async () => {
+        const ts = await getTranslations("survey_admin");
+        const { settings, results } = await ctx.run(async (tx) => ({ settings: await getSurveySettings(s(tx)), results: await surveyResults(s(tx), period, ctx.locale) }));
+        const canWrite = canWritePage(ctx.role, "analytics");
+        const origin = process.env.NEXT_PUBLIC_APP_URL || "https://<keel-host>";
+        const liquid = `<a href="${origin}/s/${tenant}?o={{ order.id }}&t={{ order.id | hmac_sha256: '${settings.secret}' }}&lang=${ctx.tenant.defaultLocale}">{{ 'How did you hear about us?' }}</a>`;
+        const share = (n: number, d: number) => (d ? formatPercent(n / d, ctx.locale, 0) : "—");
+        return (
+          <div className="space-y-6">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Stat label={ts("kpi.responses")} value={formatNumber(results.responses, ctx.locale)} />
+              <Stat label={ts("kpi.rate")} value={share(results.responses, results.orders)} hint={ts("kpi.rate_hint", { orders: formatNumber(results.orders, ctx.locale) })} />
+              <Stat label={ts("kpi.invisible")} value={share(results.crosstab.reduce((a, c) => a + c.invisible, 0), results.responses)} hint={ts("kpi.invisible_hint")} />
+            </div>
+            <div className="grid gap-6 lg:grid-cols-2">
+              <Card>
+                <CardHeader><CardTitle className="text-base">{ts("answers_title")}</CardTitle></CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader><TableRow><TableHead>{ts("answer")}</TableHead><TableHead className="text-right">{ts("responses")}</TableHead><TableHead className="text-right">{ts("share")}</TableHead><TableHead className="text-right">{ts("revenue")}</TableHead></TableRow></TableHeader>
+                    <TableBody>
+                      {results.answers.map((a) => (
+                        <TableRow key={a.key} data-testid="survey-answer"><TableCell>{a.label}</TableCell><TableCell className="text-right tabular">{formatNumber(a.responses, ctx.locale)}</TableCell><TableCell className="text-right tabular">{share(a.responses, results.responses)}</TableCell><TableCell className="text-right tabular">{money(a.revenueMinor)}</TableCell></TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">{ts("crosstab_title")}</CardTitle>
+                  <CardDescription>{ts("crosstab_description")}</CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader><TableRow><TableHead>{ts("reported")}</TableHead><TableHead className="text-right">{ts("responses")}</TableHead><TableHead className="text-right">{ts("agree")}</TableHead><TableHead className="text-right">{ts("invisible")}</TableHead></TableRow></TableHeader>
+                    <TableBody>
+                      {results.crosstab.map((c) => (
+                        <TableRow key={c.channel}><TableCell>{t(`ltv.channel.${c.channel}`, { default: c.channel })}</TableCell><TableCell className="text-right tabular">{formatNumber(c.answers, ctx.locale)}</TableCell><TableCell className="text-right tabular">{share(c.agree, c.answers)}</TableCell><TableCell className="text-right tabular">{share(c.invisible, c.answers)}</TableCell></TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+            {results.others.length > 0 && <p className="text-sm text-muted-foreground">{ts("others")}: {results.others.join(" · ")}</p>}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{ts("settings_title")}</CardTitle>
+                <CardDescription>{ts("settings_description")} <Link href={`/t/${tenant}/integrations/guide/survey`} className="underline">{ts("guide")}</Link></CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {canWrite && <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs" data-testid="survey-liquid">{liquid}</pre>}
+                <SurveySettings slug={tenant} enabled={settings.enabled} config={settings.config} canWrite={canWrite} />
               </CardContent>
             </Card>
           </div>

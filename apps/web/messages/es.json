@@ -870,7 +870,8 @@
       "ltv": "LTV",
       "basket": "Análisis de producto",
       "custom": "Mi panel",
-      "attribution": "Atribución"
+      "attribution": "Atribución",
+      "survey": "Encuesta"
     },
     "kpi": {
       "net_revenue": "Ingreso neto",
@@ -1024,7 +1025,12 @@
         "referral": "Referido",
         "direct": "Directo",
         "marketplace": "Marketplace",
-        "unknown": "Desconocido"
+        "unknown": "Desconocido",
+        "word_of_mouth": "Boca a boca",
+        "influencer": "Influencer",
+        "podcast": "Pódcast",
+        "offline": "Offline",
+        "other": "Otro"
       }
     },
     "basket": {
@@ -1090,7 +1096,8 @@
         "linear": "Lineal",
         "time_decay": "Decaimiento temporal",
         "position_based": "Basado en posición",
-        "last_platform_click": "Último clic de plataforma"
+        "last_platform_click": "Último clic de plataforma",
+        "survey_blend": "Mixto con encuesta"
       },
       "model_help": {
         "last_click": "Todo el mérito a la visita que cerró el pedido.",
@@ -1098,7 +1105,8 @@
         "linear": "Mérito repartido por igual entre todas las visitas del recorrido.",
         "time_decay": "Más mérito a las visitas cercanas a la compra (vida media 7 días).",
         "position_based": "40 % a la primera visita, 40 % a la última, 20 % a las intermedias.",
-        "last_platform_click": "Lo que reclama una plataforma: gana el último clic de pago, aunque una visita orgánica cerrara el pedido."
+        "last_platform_click": "Lo que reclama una plataforma: gana el último clic de pago, aunque una visita orgánica cerrara el pedido.",
+        "survey_blend": "Los pedidos con respuesta a la encuesta poscompra dan parte del mérito (configurada en la pestaña Encuesta) al canal que indicó el cliente; el resto, y los pedidos sin respuesta, siguen el decaimiento temporal. Muestra canales que los clics no ven, como el boca a boca o los pódcast."
       },
       "by": {
         "channel": "Canal",
@@ -2023,7 +2031,8 @@
       "shopify": "Shopify",
       "meta": "Meta Ads",
       "google": "Google Ads",
-      "tracking": "Píxel y conversiones"
+      "tracking": "Píxel y conversiones",
+      "survey": "Encuesta poscompra"
     },
     "status": {
       "not_connected": "No conectada",
@@ -2341,6 +2350,49 @@
         {
           "symptom": "Muchas filas \"sin consentimiento\"",
           "fix": "Normal cuando se exige consentimiento y los clientes no aceptaron el marketing."
+        }
+      ]
+    },
+    "survey": {
+      "title": "Activar la encuesta poscompra",
+      "intro": "Una encuesta de una pregunta (\"¿Cómo nos conociste?\") enlazada desde el email de confirmación del pedido. Las respuestas alimentan el modelo de atribución mixto y la pestaña Encuesta de Análisis.",
+      "scopes": "Sin permisos de plataforma: el enlace lo construye la plantilla del email con el secreto de la encuesta de la tienda (Análisis → Encuesta).",
+      "steps": [
+        {
+          "title": "Activa la encuesta",
+          "body": "Análisis → Encuesta → Encuesta activa, ajusta la pregunta y las opciones en cada idioma y guarda."
+        },
+        {
+          "title": "Copia el enlace para el email",
+          "body": "La misma pestaña muestra el enlace con el secreto de la tienda. Firma el id del pedido con el filtro hmac_sha256 de Shopify."
+        },
+        {
+          "title": "Añádelo a la confirmación del pedido",
+          "body": "Shopify admin → Configuración → Notificaciones → Confirmación del pedido → Editar código. Pega el enlace donde quieras la pregunta (tras el resumen funciona bien) y guarda. Envíate un email de prueba.",
+          "verify": true
+        },
+        {
+          "title": "Opcional: página de agradecimiento",
+          "body": "Un bloque de encuesta en la página de agradecimiento necesita una extensión de la interfaz de checkout de Shopify (una app). Hasta entonces, el enlace del email es la vía soportada.",
+          "verify": true
+        },
+        {
+          "title": "Lee los resultados",
+          "body": "Las respuestas aparecen en Análisis → Encuesta en segundos. Elige el modelo \"Mixto con encuesta\" en Atribución para dar parte del mérito al canal que indicaron los clientes."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "\"Este enlace no es válido\"",
+          "fix": "La plantilla cambió el id del pedido (usa order.id, no order.name) o el secreto se copió incompleto."
+        },
+        {
+          "symptom": "Página de la encuesta no encontrada",
+          "fix": "La encuesta no está activa."
+        },
+        {
+          "symptom": "Pocas respuestas",
+          "fix": "Sube el enlace en el email; una pregunta con opciones grandes se responde en un segundo."
         }
       ]
     }
@@ -3562,6 +3614,51 @@
     },
     "errors": {
       "destination_required": "Introduce el id del dataset o de la acción de conversión para activar el envío.",
+      "invalid_input": "Revisa los campos."
+    }
+  },
+  "survey_public": {
+    "other": "Otra cosa",
+    "other_placeholder": "Cuéntanos dónde",
+    "send": "Enviar",
+    "already": "Gracias, ya tenemos tu respuesta.",
+    "errors": {
+      "invalid_link": "Este enlace no es válido. Usa el del email del pedido.",
+      "not_found": "No encontramos este pedido.",
+      "invalid_answer": "Elige una respuesta.",
+      "disabled": "La encuesta está cerrada."
+    }
+  },
+  "survey_admin": {
+    "kpi": {
+      "responses": "Respuestas",
+      "rate": "Tasa de respuesta",
+      "rate_hint": "de {orders} pedidos del periodo",
+      "invisible": "Invisibles a los clics",
+      "invisible_hint": "Respuestas en pedidos cuyos clics dicen directo o nada"
+    },
+    "answers_title": "Lo que dicen los clientes",
+    "answer": "Respuesta",
+    "responses": "Respuestas",
+    "share": "Cuota",
+    "revenue": "Ingresos",
+    "crosstab_title": "Declarado y clics",
+    "crosstab_description": "Con qué frecuencia los clics coinciden con la respuesta, y con qué frecuencia no vieron nada.",
+    "reported": "Canal declarado",
+    "agree": "Los clics coinciden",
+    "invisible": "Los clics no ven",
+    "others": "Respuestas libres",
+    "settings_title": "Ajustes de la encuesta",
+    "settings_description": "Añade el enlace al email de confirmación del pedido (Shopify → Configuración → Notificaciones). Va firmado por pedido, así que no se puede falsificar.",
+    "guide": "Guía de activación",
+    "enabled": "Encuesta activa",
+    "allow_other": "Permitir una respuesta libre",
+    "blend": "Mérito a la respuesta en el modelo mixto (%)",
+    "option": "Opción",
+    "question": "Pregunta",
+    "saved": "Guardado.",
+    "errors": {
+      "invalid_config": "Cada opción necesita una clave única y la pregunta un texto.",
       "invalid_input": "Revisa los campos."
     }
   }

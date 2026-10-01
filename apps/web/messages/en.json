@@ -870,7 +870,8 @@
       "ltv": "LTV",
       "basket": "Product analysis",
       "custom": "My dashboard",
-      "attribution": "Attribution"
+      "attribution": "Attribution",
+      "survey": "Survey"
     },
     "kpi": {
       "net_revenue": "Net revenue",
@@ -1024,7 +1025,12 @@
         "referral": "Referral",
         "direct": "Direct",
         "marketplace": "Marketplace",
-        "unknown": "Unknown"
+        "unknown": "Unknown",
+        "word_of_mouth": "Word of mouth",
+        "influencer": "Influencer",
+        "podcast": "Podcast",
+        "offline": "Offline",
+        "other": "Other"
       }
     },
     "basket": {
@@ -1090,7 +1096,8 @@
         "linear": "Linear",
         "time_decay": "Time decay",
         "position_based": "Position based",
-        "last_platform_click": "Last platform click"
+        "last_platform_click": "Last platform click",
+        "survey_blend": "Survey blend"
       },
       "model_help": {
         "last_click": "All credit to the visit that closed the order.",
@@ -1098,7 +1105,8 @@
         "linear": "Credit split equally across every visit of the journey.",
         "time_decay": "More credit to visits closer to the purchase (half-life 7 days).",
         "position_based": "40 % to the first visit, 40 % to the last, 20 % shared by the middle.",
-        "last_platform_click": "What an ad platform claims: the last paid click wins, even if an organic visit closed the order."
+        "last_platform_click": "What an ad platform claims: the last paid click wins, even if an organic visit closed the order.",
+        "survey_blend": "Orders with a post-purchase survey answer give part of their credit (set in the Survey tab) to the channel the customer named; the rest, and unanswered orders, follow time decay. Shows channels clicks never see, like word of mouth or podcasts."
       },
       "by": {
         "channel": "Channel",
@@ -2023,7 +2031,8 @@
       "shopify": "Shopify",
       "meta": "Meta Ads",
       "google": "Google Ads",
-      "tracking": "Pixel & conversions"
+      "tracking": "Pixel & conversions",
+      "survey": "Post-purchase survey"
     },
     "status": {
       "not_connected": "Not connected",
@@ -2341,6 +2350,49 @@
         {
           "symptom": "Many \"no consent\" rows",
           "fix": "Expected when consent is required and customers have not opted in to marketing."
+        }
+      ]
+    },
+    "survey": {
+      "title": "Activate the post-purchase survey",
+      "intro": "A one-question survey (\"How did you hear about us?\") linked from the order confirmation email. Answers feed the survey-blend attribution model and the Survey tab in Analytics.",
+      "scopes": "No platform permission: the link is built by the email template with the store's survey secret (Analytics → Survey).",
+      "steps": [
+        {
+          "title": "Turn the survey on",
+          "body": "Analytics → Survey → Survey active, adjust the question and option labels in each language, save."
+        },
+        {
+          "title": "Copy the email link",
+          "body": "The same tab shows the link with this store's secret. It signs the order id with Shopify's hmac_sha256 filter."
+        },
+        {
+          "title": "Add it to the order confirmation",
+          "body": "Shopify admin → Settings → Notifications → Order confirmation → Edit code. Paste the link where you want the question to appear (after the order summary works well) and save. Send a test email to yourself.",
+          "verify": true
+        },
+        {
+          "title": "Optional: thank-you page",
+          "body": "A survey block on the thank-you page needs a Shopify checkout UI extension (an app). Until then the email link is the supported path.",
+          "verify": true
+        },
+        {
+          "title": "Read the results",
+          "body": "Answers appear in Analytics → Survey within seconds. Choose the \"Survey blend\" model in Attribution to give answered orders' credit partly to the channel customers named."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "\"This link is not valid\"",
+          "fix": "The template changed the order id (use order.id, not order.name) or the secret was copied incompletely."
+        },
+        {
+          "symptom": "Survey page not found",
+          "fix": "The survey is not active."
+        },
+        {
+          "symptom": "Low response rate",
+          "fix": "Move the link higher in the email; one question with big options answers in a second."
         }
       ]
     }
@@ -3562,6 +3614,51 @@
     },
     "errors": {
       "destination_required": "Enter the dataset or conversion action id to enable sending.",
+      "invalid_input": "Check the fields."
+    }
+  },
+  "survey_public": {
+    "other": "Something else",
+    "other_placeholder": "Tell us where",
+    "send": "Send",
+    "already": "Thank you, we already have your answer.",
+    "errors": {
+      "invalid_link": "This link is not valid. Use the one in your order email.",
+      "not_found": "We could not find this order.",
+      "invalid_answer": "Choose an answer.",
+      "disabled": "The survey is closed."
+    }
+  },
+  "survey_admin": {
+    "kpi": {
+      "responses": "Answers",
+      "rate": "Response rate",
+      "rate_hint": "of {orders} orders in the period",
+      "invisible": "Invisible to clicks",
+      "invisible_hint": "Answers on orders whose clicks say direct or nothing"
+    },
+    "answers_title": "What customers say",
+    "answer": "Answer",
+    "responses": "Answers",
+    "share": "Share",
+    "revenue": "Revenue",
+    "crosstab_title": "Self-reported vs clicks",
+    "crosstab_description": "How often the click data agrees with the answer, and how often the clicks saw nothing.",
+    "reported": "Reported channel",
+    "agree": "Clicks agree",
+    "invisible": "Clicks saw nothing",
+    "others": "Free answers",
+    "settings_title": "Survey settings",
+    "settings_description": "Add the link below to the order confirmation email (Shopify → Settings → Notifications). It is signed per order, so it cannot be forged.",
+    "guide": "Activation guide",
+    "enabled": "Survey active",
+    "allow_other": "Allow a free answer",
+    "blend": "Credit to the answer in the survey blend (%)",
+    "option": "Option",
+    "question": "Question",
+    "saved": "Saved.",
+    "errors": {
+      "invalid_config": "Every option needs a unique key and the question needs a text.",
       "invalid_input": "Check the fields."
     }
   }

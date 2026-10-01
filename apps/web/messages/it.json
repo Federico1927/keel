@@ -870,7 +870,8 @@
       "ltv": "LTV",
       "basket": "Analisi prodotto",
       "custom": "La mia dashboard",
-      "attribution": "Attribuzione"
+      "attribution": "Attribuzione",
+      "survey": "Sondaggio"
     },
     "kpi": {
       "net_revenue": "Ricavo netto",
@@ -1024,7 +1025,12 @@
         "referral": "Referral",
         "direct": "Diretto",
         "marketplace": "Marketplace",
-        "unknown": "Sconosciuto"
+        "unknown": "Sconosciuto",
+        "word_of_mouth": "Passaparola",
+        "influencer": "Influencer",
+        "podcast": "Podcast",
+        "offline": "Offline",
+        "other": "Altro"
       }
     },
     "basket": {
@@ -1090,7 +1096,8 @@
         "linear": "Lineare",
         "time_decay": "Decadimento temporale",
         "position_based": "Basato sulla posizione",
-        "last_platform_click": "Ultimo clic di piattaforma"
+        "last_platform_click": "Ultimo clic di piattaforma",
+        "survey_blend": "Misto con sondaggio"
       },
       "model_help": {
         "last_click": "Tutto il merito alla visita che ha chiuso l'ordine.",
@@ -1098,7 +1105,8 @@
         "linear": "Merito diviso in parti uguali tra tutte le visite del percorso.",
         "time_decay": "Più merito alle visite vicine all'acquisto (dimezzamento 7 giorni).",
         "position_based": "40 % alla prima visita, 40 % all'ultima, 20 % alle intermedie.",
-        "last_platform_click": "Quello che rivendica una piattaforma: vince l'ultimo clic a pagamento, anche se l'ordine l'ha chiuso una visita organica."
+        "last_platform_click": "Quello che rivendica una piattaforma: vince l'ultimo clic a pagamento, anche se l'ordine l'ha chiuso una visita organica.",
+        "survey_blend": "Gli ordini con una risposta al sondaggio post-acquisto danno una parte del merito (impostata nella scheda Sondaggio) al canale indicato dal cliente; il resto, e gli ordini senza risposta, seguono il decadimento nel tempo. Mostra canali che i clic non vedono, come passaparola o podcast."
       },
       "by": {
         "channel": "Canale",
@@ -2023,7 +2031,8 @@
       "shopify": "Shopify",
       "meta": "Meta Ads",
       "google": "Google Ads",
-      "tracking": "Pixel e conversioni"
+      "tracking": "Pixel e conversioni",
+      "survey": "Sondaggio post-acquisto"
     },
     "status": {
       "not_connected": "Non collegata",
@@ -2341,6 +2350,49 @@
         {
           "symptom": "Molte righe \"senza consenso\"",
           "fix": "Normale quando il consenso è richiesto e i clienti non hanno accettato il marketing."
+        }
+      ]
+    },
+    "survey": {
+      "title": "Attivare il sondaggio post-acquisto",
+      "intro": "Un sondaggio a una domanda (\"Come ci hai conosciuto?\") collegato dall'email di conferma dell'ordine. Le risposte alimentano il modello di attribuzione misto e la scheda Sondaggio in Analisi.",
+      "scopes": "Nessuna autorizzazione sulla piattaforma: il link lo costruisce il modello dell'email con il segreto del sondaggio del negozio (Analisi → Sondaggio).",
+      "steps": [
+        {
+          "title": "Attiva il sondaggio",
+          "body": "Analisi → Sondaggio → Sondaggio attivo, sistema domanda e opzioni in ogni lingua, salva."
+        },
+        {
+          "title": "Copia il link per l'email",
+          "body": "La stessa scheda mostra il link con il segreto del negozio. Firma l'id dell'ordine con il filtro hmac_sha256 di Shopify."
+        },
+        {
+          "title": "Aggiungilo alla conferma d'ordine",
+          "body": "Shopify admin → Impostazioni → Notifiche → Conferma dell'ordine → Modifica codice. Incolla il link dove vuoi la domanda (dopo il riepilogo funziona bene) e salva. Inviati un'email di prova.",
+          "verify": true
+        },
+        {
+          "title": "Facoltativo: pagina di ringraziamento",
+          "body": "Un blocco sondaggio nella pagina di ringraziamento richiede un'estensione dell'interfaccia di checkout di Shopify (un'app). Fino ad allora il link nell'email è la via supportata.",
+          "verify": true
+        },
+        {
+          "title": "Leggi i risultati",
+          "body": "Le risposte compaiono in Analisi → Sondaggio in pochi secondi. Scegli il modello \"Misto con sondaggio\" in Attribuzione per dare parte del merito degli ordini con risposta al canale indicato."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "\"Questo link non è valido\"",
+          "fix": "Il modello ha cambiato l'id dell'ordine (usa order.id, non order.name) o il segreto è stato copiato a metà."
+        },
+        {
+          "symptom": "Pagina del sondaggio non trovata",
+          "fix": "Il sondaggio non è attivo."
+        },
+        {
+          "symptom": "Poche risposte",
+          "fix": "Sposta il link più in alto nell'email; una domanda con opzioni grandi si risponde in un secondo."
         }
       ]
     }
@@ -3562,6 +3614,51 @@
     },
     "errors": {
       "destination_required": "Inserisci l'id del dataset o dell'azione di conversione per attivare l'invio.",
+      "invalid_input": "Controlla i campi."
+    }
+  },
+  "survey_public": {
+    "other": "Altro",
+    "other_placeholder": "Dicci dove",
+    "send": "Invia",
+    "already": "Grazie, abbiamo già la tua risposta.",
+    "errors": {
+      "invalid_link": "Questo link non è valido. Usa quello nell'email dell'ordine.",
+      "not_found": "Non abbiamo trovato questo ordine.",
+      "invalid_answer": "Scegli una risposta.",
+      "disabled": "Il sondaggio è chiuso."
+    }
+  },
+  "survey_admin": {
+    "kpi": {
+      "responses": "Risposte",
+      "rate": "Tasso di risposta",
+      "rate_hint": "su {orders} ordini del periodo",
+      "invisible": "Invisibili ai clic",
+      "invisible_hint": "Risposte su ordini i cui clic dicono diretto o niente"
+    },
+    "answers_title": "Cosa dicono i clienti",
+    "answer": "Risposta",
+    "responses": "Risposte",
+    "share": "Quota",
+    "revenue": "Ricavi",
+    "crosstab_title": "Dichiarato e clic",
+    "crosstab_description": "Quanto spesso i dati dei clic concordano con la risposta, e quanto spesso i clic non hanno visto niente.",
+    "reported": "Canale dichiarato",
+    "agree": "I clic concordano",
+    "invisible": "I clic non vedono",
+    "others": "Risposte libere",
+    "settings_title": "Impostazioni del sondaggio",
+    "settings_description": "Aggiungi il link qui sotto all'email di conferma dell'ordine (Shopify → Impostazioni → Notifiche). È firmato per ordine, quindi non si può falsificare.",
+    "guide": "Guida all'attivazione",
+    "enabled": "Sondaggio attivo",
+    "allow_other": "Consenti una risposta libera",
+    "blend": "Merito alla risposta nel modello misto (%)",
+    "option": "Opzione",
+    "question": "Domanda",
+    "saved": "Salvato.",
+    "errors": {
+      "invalid_config": "Ogni opzione ha bisogno di una chiave unica e la domanda di un testo.",
       "invalid_input": "Controlla i campi."
     }
   }

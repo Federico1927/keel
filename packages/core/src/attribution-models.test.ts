@@ -43,3 +43,23 @@ describe("attribution models", () => {
     expect(creditBy("last_platform_click", orders, (t) => t.campaignId)).toEqual([{ key: "g-1", orders: 1, netMinor: 10_000, marginMinor: 4_000 }]);
   });
 });
+
+describe("survey blend", () => {
+  const at = new Date("2026-09-30T12:00:00Z");
+  const touch = (daysAgo: number, channel: string) => ({ at: new Date(at.getTime() - daysAgo * 864e5), channel, campaignId: channel === "paid_social" ? "c1" : null, paid: channel.startsWith("paid") });
+  it("splits an answered order between the clicks and the reported channel", async () => {
+    const { creditBy } = await import("./attribution-models");
+    const rows = creditBy("survey_blend", [{ orderId: "o1", at, netMinor: 1000, marginMinor: 400, touches: [touch(1, "paid_social")], surveyChannel: "podcast" }], (t) => t.channel, { surveyBlend: 0.6 });
+    expect(rows.find((r) => r.key === "podcast")).toMatchObject({ orders: 0.6, netMinor: 600 });
+    expect(rows.find((r) => r.key === "paid_social")).toMatchObject({ orders: 0.4, netMinor: 400 });
+  });
+  it("is time decay without an answer, and all to the answer without clicks", async () => {
+    const { creditBy } = await import("./attribution-models");
+    const plain = creditBy("survey_blend", [{ orderId: "o1", at, netMinor: 1000, marginMinor: 0, touches: [touch(1, "email")] }], (t) => t.channel);
+    expect(plain).toEqual([{ key: "email", orders: 1, netMinor: 1000, marginMinor: 0 }]);
+    const noClicks = creditBy("survey_blend", [{ orderId: "o2", at, netMinor: 500, marginMinor: 0, touches: [], surveyChannel: "word_of_mouth" }], (t) => t.channel);
+    expect(noClicks).toEqual([{ key: "word_of_mouth", orders: 1, netMinor: 500, marginMinor: 0 }]);
+    const byCampaign = creditBy("survey_blend", [{ orderId: "o3", at, netMinor: 1000, marginMinor: 0, touches: [touch(1, "paid_social")], surveyChannel: "friend" }], (t) => t.campaignId);
+    expect(byCampaign).toEqual([{ key: "c1", orders: 0.5, netMinor: 500, marginMinor: 0 }]);
+  });
+});

@@ -103,3 +103,39 @@ export const conversionEvents = pgTable(
   },
   (t) => [uniqueIndex("conversion_events_uq").on(t.tenantId, t.provider, t.eventId), index("conversion_events_due_idx").on(t.tenantId, t.status, t.nextAttemptAt), tenantIsolation("conversion_events")],
 ).enableRLS();
+
+/** Post-purchase survey of a store: texts and options (packages/core/src/survey.ts) and the secret that signs links. */
+export const surveySettings = pgTable(
+  "survey_settings",
+  {
+    ...tenantColumns(),
+    enabled: boolean("enabled").notNull().default(false),
+    config: jsonb("config").notNull(),
+    /** HMAC secret for survey links; the store's email template signs the order id with it. */
+    secret: text("secret").notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("survey_settings_tenant_uq").on(t.tenantId), tenantIsolation("survey_settings")],
+).enableRLS();
+
+/** One answer per order: the first one counts. */
+export const surveyResponses = pgTable(
+  "survey_responses",
+  {
+    ...tenantColumns(),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    customerId: uuid("customer_id").references(() => customers.id, { onDelete: "set null" }),
+    answerKey: text("answer_key").notNull(),
+    /** Channel key the answer maps to, frozen at answer time. */
+    channel: text("channel").notNull(),
+    otherText: text("other_text"),
+    locale: text("locale"),
+    /** email_link | thank_you | staff | seed */
+    source: text("source").notNull().default("email_link"),
+    respondedAt: timestamp("responded_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("survey_responses_order_uq").on(t.tenantId, t.orderId), index("survey_responses_time_idx").on(t.tenantId, t.respondedAt), tenantIsolation("survey_responses")],
+).enableRLS();
