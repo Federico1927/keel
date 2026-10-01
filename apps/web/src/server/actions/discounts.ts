@@ -3,8 +3,9 @@ import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { recordAudit } from "@keel/db";
-import { createDiscountCode, createDiscountPool, DiscountError, setDiscountActive } from "@keel/services";
+import { createDiscountCode, createDiscountPool, DiscountError, runPlatformWriteNow, setDiscountActive } from "@keel/services";
 import { getCommercePlatform } from "@/server/integrations";
+import { dispatchPendingWritesFor } from "@/server/platform-writes";
 import { ForbiddenError, requireAction } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 
@@ -19,12 +20,13 @@ export async function createDiscountCodeAction(slug: string, _prev: ActionResult
     if (!parsed.success) return fail("invalid_input", Object.fromEntries(parsed.error.issues.map((i) => [i.path.join("."), i.message])));
     const d = parsed.data;
     const value = d.type === "percentage" ? Math.round(d.value * 100) : d.type === "fixed_amount" ? Math.round(d.value * 100) : 0;
-    const platform = await getCommercePlatform(ctx);
+    // created locally with its platform write enqueued (outbox); the external id arrives when the write succeeds
     const id = await ctx.run(async (tx) => {
-      const id = await createDiscountCode({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { code: d.code, title: d.title, type: d.type, value, startsAt: d.startsAt, endsAt: d.endsAt, usageLimit: d.usageLimit, minimumAmountMinor: d.minimumAmount === null ? null : Math.round(d.minimumAmount * 100) }, (i) => platform.createDiscountCode({ code: i.code, title: i.title, type: i.type, value: i.value, startsAt: i.startsAt, endsAt: i.endsAt, usageLimit: i.usageLimit, minimumAmountMinor: i.minimumAmountMinor }));
+      const id = await createDiscountCode({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { code: d.code, title: d.title, type: d.type, value, startsAt: d.startsAt, endsAt: d.endsAt, usageLimit: d.usageLimit, minimumAmountMinor: d.minimumAmount === null ? null : Math.round(d.minimumAmount * 100) });
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "discount.created", entityType: "discount", entityId: id, diff: { code: { from: null, to: d.code.toUpperCase() }, type: { from: null, to: d.type }, value: { from: null, to: value } } });
       return id;
     });
+    await dispatchPendingWritesFor(ctx, "discount", [id]);
     revalidatePath(`/t/${slug}/discounts`);
     return ok({ id });
   } catch (e) {
@@ -42,7 +44,9 @@ export async function createDiscountPoolAction(slug: string, _prev: ActionResult
     const d = parsed.data;
     const platform = await getCommercePlatform(ctx);
     const result = await ctx.run(async (tx) => {
-      const r = await createDiscountPool({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { title: d.title, prefix: d.prefix, type: d.type, value: Math.round(d.value * 100), size: d.size, startsAt: d.startsAt, endsAt: d.endsAt }, (i) => platform.createDiscountPool(i));
+      const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
+      // synchronous (recorded in the outbox): the form shows how many codes the platform accepted
+      const r = await createDiscountPool(s, { title: d.title, prefix: d.prefix, type: d.type, value: Math.round(d.value * 100), size: d.size, startsAt: d.startsAt, endsAt: d.endsAt }, (i) => runPlatformWriteNow(s, platform, { kind: "discount.pool", entityType: "discount_pool", payload: { title: i.title, codes: i.codes, type: i.type, value: i.value, startsAt: i.startsAt?.toISOString() ?? null, endsAt: i.endsAt?.toISOString() ?? null } }));
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "discount_pool.created", entityType: "discount_pool", entityId: r.poolId, diff: { title: { from: null, to: d.title }, size: { from: null, to: d.size }, imported: { from: null, to: r.imported } } });
       return r;
     });

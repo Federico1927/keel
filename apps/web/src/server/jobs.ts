@@ -1,4 +1,5 @@
-import { createBoss, QUEUES, type QueueName } from "@keel/jobs";
+import { platformRetentionDays } from "@keel/config";
+import { createBoss, QUEUES, queueRetentionOptions, type QueueName } from "@keel/jobs";
 
 /**
  * Enqueue helper for the web process. Queueing is opt-in (`KEEL_JOBS_QUEUE=1`, set when a
@@ -14,7 +15,7 @@ async function boss() {
         const b = createBoss();
         b.on("error", (e: unknown) => console.error("[web] pg-boss", e));
         await b.start();
-        for (const q of Object.values(QUEUES)) await b.createQueue(q).catch(() => undefined);
+        for (const q of Object.values(QUEUES)) await b.createQueue(q, queueRetentionOptions(platformRetentionDays())).catch(() => undefined);
         return b;
       } catch (e) {
         console.warn("[web] pg-boss unavailable, jobs run inline:", e instanceof Error ? e.message : e);
