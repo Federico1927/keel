@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "../schema";
@@ -188,7 +188,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
   const log = opts.log ?? (() => {});
   for (const cfg of tenantSeedConfigs(ctx, opts)) {
     // Wipe previous domain rows of this tenant (cascade from the parent tables).
-    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits]) {
+    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies]) {
       await db.delete(table).where(eq(table.tenantId, cfg.tenantId));
     }
     const started = Date.now();
@@ -315,6 +315,75 @@ async function seedReturnsExtras(db: ReturnType<typeof drizzle<typeof schema>>, 
       await db.insert(schema.returnEvidence).values([1, 2].map((n) => ({ tenantId, returnId: r.id, sessionNonce: `seed-${i}-${n}`, contentType: "image/png", sizeBytes: DEMO_PHOTO.length, data: DEMO_PHOTO })));
       photos += 2;
     }
+  }
+  // return policy: longer windows abroad and for gifts, exclusions, final sale, limit, automations
+  const types = (await db.selectDistinct({ v: schema.products.productType }).from(schema.products).where(eq(schema.products.tenantId, tenantId))).map((x) => x.v).filter((x): x is string => Boolean(x)).sort();
+  await db.insert(schema.returnPolicies).values({
+    tenantId,
+    policy: {
+      windows: it
+        ? [{ countries: ["DE", "AT", "FR", "ES"], productTypes: [], tags: [], days: 30 }, { countries: [], productTypes: [], tags: ["new"], days: 21 }]
+        : [{ countries: [], productTypes: types.slice(0, 1), tags: [], days: 60 }, { countries: ["CA"], productTypes: [], tags: [], days: 45 }],
+      exclusions: { productTypes: it ? [] : types.slice(-1), skuPrefixes: it ? ["GIFT-"] : [], titleContains: it ? ["gift card", "buono regalo"] : ["gift card"], tags: [] },
+      finalSaleDiscountBps: it ? 5000 : 6000,
+      customerLimit: it ? { count: 4, days: 90 } : null,
+      risk: { days: 365, watchRateBps: 3000, highRateBps: 5000, minReturns: 3, quickReturnDays: 3, highValueMinor: it ? 40000 : 80000 },
+      automations: [
+        { id: "flag-risky", name: it ? "Segnala clienti a rischio" : "Flag risky customers", active: true, trigger: "created", action: "flag", fault: null, note: it ? "Controlla lo storico prima di approvare" : "Check the history before approving", conditions: { maxAmountMinor: null, minAmountMinor: null, reasonCodes: [], resolutions: [], sources: [], productTypes: [], maxRisk: null, minRisk: "watch", firstReturnOnly: false } },
+        { id: "keep-cheap", name: it ? "Tieni gli articoli economici danneggiati" : "Keep cheap damaged items", active: true, trigger: "created", action: "returnless", fault: null, note: null, conditions: { maxAmountMinor: it ? 1500 : 2500, minAmountMinor: null, reasonCodes: ["damaged", "defective"], resolutions: [], sources: [], productTypes: [], maxRisk: "watch", minRisk: null, firstReturnOnly: false } },
+        { id: "approve-first", name: it ? "Approva il primo reso dal portale" : "Approve first portal returns", active: true, trigger: "created", action: "approve", fault: null, note: null, conditions: { maxAmountMinor: it ? 15000 : 30000, minAmountMinor: null, reasonCodes: [], resolutions: [], sources: ["portal"], productTypes: [], maxRisk: "none", minRisk: null, firstReturnOnly: true } },
+      ],
+    },
+  });
+  // a few serial returners with an open return: earlier refunded returns on their other delivered orders
+  const candidates = await db.execute<{ customer_id: string }>(sql`
+    select o.customer_id from return_requests r join orders o on o.id = r.order_id
+    where r.tenant_id = ${tenantId} and r.status in ('requested','approved') and o.customer_id is not null
+      and (select count(*) from orders o2 where o2.customer_id = o.customer_id and o2.status = 'delivered' and o2.id <> o.id) >= 3
+    group by 1 order by 1 limit 3`);
+  const [maxNumber] = (await db.execute<{ n: number }>(sql`select coalesce(max(number), 0)::int as n from return_requests where tenant_id = ${tenantId}`)).rows;
+  let nextNumber = Number(maxNumber?.n ?? 0);
+  for (const c of candidates.rows) {
+    const orders = await db.execute<{ id: string; placed_at: string }>(sql`
+      select o.id, o.placed_at from orders o where o.customer_id = ${c.customer_id} and o.status = 'delivered'
+        and not exists (select 1 from return_requests r where r.order_id = o.id) order by o.placed_at desc limit 3`);
+    for (const o of orders.rows) {
+      const lines = await db.select().from(schema.orderLines).where(and(eq(schema.orderLines.orderId, o.id), eq(schema.orderLines.isAncillary, false)));
+      if (!lines.length) continue;
+      const at = new Date(new Date(o.placed_at).getTime() + 6 * 864e5);
+      const value = lines.reduce((sum, l) => sum + l.totalMinor, 0);
+      const [rr] = await db.insert(schema.returnRequests).values({ tenantId, orderId: o.id, number: ++nextNumber, status: "refunded", reasonCode: "changed_mind", resolution: "refund", fault: "customer", proposedAmountMinor: value, refundedAmountMinor: value, requestedAt: at, approvedAt: at, receivedAt: at, closedAt: at, source: "portal", platformSyncStatus: "not_required" }).returning({ id: schema.returnRequests.id });
+      await db.insert(schema.returnLines).values(lines.map((l) => ({ tenantId, returnId: rr!.id, orderLineId: l.id, quantity: l.quantity, unitAmountMinor: l.unitPriceMinor, inspectionOutcome: "intact", inspectionAmountMinor: l.totalMinor, restocked: true })));
+      await db.update(schema.orders).set({ returnedFraction: 10000, refundedMinor: value, status: "returned" }).where(eq(schema.orders.id, o.id));
+    }
+  }
+  // risk on recent returns from each customer's history (same rule as the service), review flags, returnless examples
+  const risky = await db.execute<{ id: string; status: string; level: string; reasons: string[] }>(sql`
+    with per_customer as (
+      select o.customer_id, count(distinct r.id)::int as returns, coalesce(sum(rl.quantity), 0)::int as items_returned
+      from return_requests r join orders o on o.id = r.order_id left join return_lines rl on rl.return_id = r.id
+      where r.tenant_id = ${tenantId} and r.status <> 'rejected' and o.customer_id is not null group by 1
+    ), bought as (
+      select o.customer_id, coalesce(sum(l.quantity), 0)::int as items from orders o join order_lines l on l.order_id = o.id
+      where o.tenant_id = ${tenantId} and o.status <> 'cancelled' and l.is_ancillary = false and o.customer_id is not null group by 1
+    )
+    select r.id, r.status,
+      case when pc.returns >= 3 and pc.items_returned * 10000 >= 5000 * greatest(b.items, 1) then 'high'
+           when pc.returns >= 3 and pc.items_returned * 10000 >= 3000 * greatest(b.items, 1) then 'watch' else 'none' end as level,
+      case when pc.returns >= 3 and pc.items_returned * 10000 >= 5000 * greatest(b.items, 1) then '["serial_returner"]'::jsonb
+           when pc.returns >= 3 and pc.items_returned * 10000 >= 3000 * greatest(b.items, 1) then '["frequent_returner"]'::jsonb else '[]'::jsonb end as reasons
+    from return_requests r join orders o on o.id = r.order_id
+    left join per_customer pc on pc.customer_id = o.customer_id left join bought b on b.customer_id = o.customer_id
+    where r.tenant_id = ${tenantId} order by r.requested_at desc limit 400`);
+  for (const r of risky.rows) {
+    const open = !["refunded", "exchanged", "voucher_issued", "rejected"].includes(r.status);
+    await db.update(schema.returnRequests).set({ riskLevel: r.level, riskReasons: r.reasons, needsReview: open && r.level !== "none", automations: open && r.level !== "none" ? [{ id: "flag-risky", name: it ? "Segnala clienti a rischio" : "Flag risky customers", action: "flag" }] : [] }).where(eq(schema.returnRequests.id, r.id));
+  }
+  const cheap = await db.execute<{ id: string }>(sql`
+    select id from return_requests where tenant_id = ${tenantId} and status = 'refunded' and reason_code in ('damaged','defective') and proposed_amount_minor <= ${it ? 1500 : 2500} limit 5`);
+  for (const r of cheap.rows) {
+    await db.update(schema.returnRequests).set({ returnless: true, automations: [{ id: "keep-cheap", name: it ? "Tieni gli articoli economici danneggiati" : "Keep cheap damaged items", action: "returnless" }] }).where(eq(schema.returnRequests.id, r.id));
+    await db.update(schema.returnLines).set({ restocked: false }).where(eq(schema.returnLines.returnId, r.id));
   }
   // the isolation suite needs at least one photo per tenant even at tiny scales
   if (!photos && recent.rows[0]) await db.insert(schema.returnEvidence).values({ tenantId, returnId: recent.rows[0].id, sessionNonce: "seed-0", contentType: "image/png", sizeBytes: DEMO_PHOTO.length, data: DEMO_PHOTO });

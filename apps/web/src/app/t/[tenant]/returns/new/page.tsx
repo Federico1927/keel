@@ -30,7 +30,7 @@ export default async function NewReturnPage({ params, searchParams }: { params: 
     <>
       <p className="mb-2 text-sm text-muted-foreground"><Link href={`/t/${tenant}/orders/${order}`} className="hover:underline">← {context.order.name}</Link></p>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title", { order: context.order.name })} description={context.eligibility.deadline ? t("deadline", { date: formatDate(context.eligibility.deadline, ctx.locale, ctx.tenant.timezone), days: context.eligibility.daysLeft ?? 0 }) : t("description")} />
-      <NewReturnForm slug={tenant} orderId={order} lines={context.lines.map((l) => ({ id: l.id, title: l.title, variantTitle: l.variantTitle, sku: l.sku, quantity: l.quantity, returnable: l.returnable, alreadyReturned: l.alreadyReturned, unitNetMinor: l.unitNetMinor, excluded: l.excluded }))} reasons={reasons.map((r) => ({ code: r.code, label: r.label }))} eligible={context.eligibility.eligible} eligibilityReason={context.eligibility.reason} currency={context.order.currency} locale={ctx.locale} />
+      <NewReturnForm slug={tenant} orderId={order} lines={context.lines.map((l) => ({ id: l.id, title: l.title, variantTitle: l.variantTitle, sku: l.sku, quantity: l.quantity, returnable: l.returnable, alreadyReturned: l.alreadyReturned, unitNetMinor: l.unitNetMinor, excluded: l.excluded, block: l.block, maxQuantity: l.maxQuantity, deadline: l.deadline?.toISOString() ?? null }))} reasons={reasons.map((r) => ({ code: r.code, label: r.label }))} eligible={context.eligibility.eligible} eligibilityReason={context.eligibility.reason} currency={context.order.currency} locale={ctx.locale} />
     </>
   );
 }

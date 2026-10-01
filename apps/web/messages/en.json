@@ -1625,7 +1625,10 @@
       "staff": "Staff",
       "portal": "Portal",
       "platform": "Store"
-    }
+    },
+    "policy": "Policy and automations",
+    "needs_review": "To review",
+    "risk_high": "high risk"
   },
   "return_detail": {
     "order": "Order",
@@ -1750,7 +1753,31 @@
         "declined": "Return declined",
         "closed": "Return closed"
       }
-    }
+    },
+    "risk": {
+      "none": "Normal customer",
+      "watch": "Customer to watch",
+      "high": "High-risk customer"
+    },
+    "needs_review": "To review",
+    "returnless": "Kept by the customer",
+    "rules_title": "Rules",
+    "risk_label": "Customer risk",
+    "risk_reasons": {
+      "serial_returner": "returns most of what they buy",
+      "frequent_returner": "returns often",
+      "wear_and_return": "returns soon after delivery, own fault",
+      "high_returned_value": "high returned value"
+    },
+    "automation_actions": {
+      "approve": "approved automatically",
+      "reject": "rejected automatically",
+      "flag": "flagged for review",
+      "set_fault": "fault set",
+      "returnless": "refunded without return"
+    },
+    "mark_reviewed": "Mark as reviewed",
+    "flag_review": "Flag for review"
   },
   "return_new": {
     "title": "Return for {order}",
@@ -1764,7 +1791,7 @@
     "qty_for": "Quantity for {title}",
     "customer_note": "Customer note",
     "staff_note": "Internal note",
-    "staff_note_required": "Internal note (required to override the window)",
+    "staff_note_required": "Internal note (required to override the policy)",
     "summary": "Summary",
     "items": "Items",
     "proposed": "Proposed refund",
@@ -1773,14 +1800,27 @@
     "not_eligible": {
       "cancelled": "The order is cancelled or fully refunded.",
       "not_delivered": "The order has not been delivered yet.",
-      "expired": "The return window has expired."
+      "expired": "The return window has expired.",
+      "customer_limit": "This customer reached the return limit of the policy.",
+      "nothing_returnable": "No item of this order can be returned under the policy."
     },
     "errors": {
       "return_not_eligible": "The order is not eligible for a return.",
       "return_no_lines": "Choose at least one item.",
       "return_quantity_exceeds": "Quantity exceeds what can be returned.",
       "return_bad_reason": "Choose a valid reason.",
-      "return_order_not_found": "Order not found."
+      "return_order_not_found": "Order not found.",
+      "return_customer_limit": "The customer reached the return limit.",
+      "return_line_blocked": "An item is excluded by the return policy."
+    },
+    "override_label": "Override the policy (internal note required)",
+    "blocks": {
+      "excluded_type": "not returnable (product type)",
+      "excluded_sku": "not returnable (excluded item)",
+      "excluded_title": "not returnable (excluded item)",
+      "excluded_tag": "not returnable (collection)",
+      "final_sale": "final sale",
+      "expired": "return window closed"
     }
   },
   "returns_analytics": {
@@ -2974,7 +3014,8 @@
       "cancelled": "This order was cancelled, so there is nothing to return.",
       "not_delivered": "This order has not been delivered yet: come back once it arrives.",
       "expired": "The return window for this order has closed.",
-      "nothing_returnable": "Every item of this order is already in a return."
+      "nothing_returnable": "Every item of this order is already in a return.",
+      "customer_limit": "You reached the maximum number of returns allowed: please contact us."
     },
     "contact_support": "Questions? Write to",
     "done": {
@@ -3002,6 +3043,86 @@
       "photo_type": "This file is not a supported image.",
       "confirm_required": "Tick the confirmation box.",
       "fields_invalid": "Fill in the required fields."
+    },
+    "blocks": {
+      "excluded_type": "not returnable (product type)",
+      "excluded_sku": "not returnable (excluded item)",
+      "excluded_title": "not returnable (excluded item)",
+      "excluded_tag": "not returnable (collection)",
+      "final_sale": "final sale",
+      "expired": "return window closed"
+    }
+  },
+  "return_policy": {
+    "back": "Returns",
+    "title": "Return policy and automations",
+    "description": "Rules on top of the default window of {days} days. They apply to the portal and to the team; staff can override with a note.",
+    "windows": "Return windows",
+    "windows_hint": "A window applies to items shipped to those countries, of those product types or with those tags (empty = any). When several match, the longest wins; a match replaces the default, also when shorter.",
+    "countries": "Countries (IT, DE…)",
+    "product_types": "Product types",
+    "tags": "Product tags",
+    "days": "Days",
+    "add_window": "Add window",
+    "exclusions": "Never returnable",
+    "exclusions_hint": "Comma-separated. Items matching any list cannot be returned.",
+    "ex": {
+      "productTypes": "Product types",
+      "skuPrefixes": "SKU prefixes",
+      "titleContains": "Title contains",
+      "tags": "Product tags"
+    },
+    "final_sale": "Final sale from discount (%)",
+    "final_sale_hint": "Items bought with at least this discount, on the line or against the compare-at price, are final sale. Empty = no rule.",
+    "customers": "Customers",
+    "customers_hint": "Limit how often a customer can return, and when a customer is flagged as risky.",
+    "limit_on": "Limit returns per customer",
+    "limit_count": "Returns",
+    "limit_days": "In days",
+    "risk_watch": "Watch from return rate (%)",
+    "risk_high": "High risk from return rate (%)",
+    "risk_min_returns": "Minimum returns to judge",
+    "risk_quick": "Quick return within (days)",
+    "risk_value": "High returned value ({currency})",
+    "risk_hint": "Risk is shown on each return and can drive automations. It never blocks a customer by itself.",
+    "automations": "Automations",
+    "automations_hint": "Run in order when a return is created. Flags and fault accumulate; the first decision (approve, reject, refund without return) stops the list. Reject and refund-without-return need at least one condition.",
+    "auto_name": "Name",
+    "auto_action": "Action",
+    "auto_fault": "Fault",
+    "auto_note": "Note written on the return",
+    "active": "Active",
+    "up": "Move up",
+    "down": "Move down",
+    "new_automation": "New automation",
+    "add_automation": "Add automation",
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "flag": "Flag for review",
+      "set_fault": "Set fault",
+      "returnless": "Refund without return"
+    },
+    "faults": {
+      "merchant": "Ours",
+      "customer": "Customer's",
+      "undetermined": "To assess"
+    },
+    "cond": {
+      "max_amount": "Up to ({currency})",
+      "min_amount": "From ({currency})",
+      "product_types": "Product types",
+      "max_risk": "Customer risk at most",
+      "min_risk": "Customer risk at least",
+      "first_only": "Only the customer's first return",
+      "reasons": "Reasons",
+      "resolutions": "Resolutions",
+      "sources": "From"
+    },
+    "risk": {
+      "none": "Normal",
+      "watch": "Watch",
+      "high": "High"
     }
   }
 }

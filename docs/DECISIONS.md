@@ -324,6 +324,18 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 
 **Alternatives.** Writing to the store inside the transaction (rejected: a store outage would block the team and roll back their work); Shopify as the source of truth for returns (rejected: stores without Shopify returns, and portal requests must exist before the store knows them).
 
+## 2026-10-01 · Return policy: per-line windows and blocks, staff override with a note
+
+**Decision.** The policy (`return_policies`, schema in core) adds windows by shipping country, product type and product tag on top of the default window. When several rules match a line the longest wins, and a match replaces the default even when it is shorter (furniture to the US: 14 days). Exclusions are by product type, SKU prefix, title fragment and tag. Final sale applies from a discount threshold, on the line or against the compare-at price. A per-customer limit caps returns in a period. `orderReturnContext` computes each line's block and deadline: `returnable` is what can be returned now, `maxQuantity` what staff may still return with an override and a note. The portal never overrides. Product tags stand in for collections until collections are synced.
+
+## 2026-10-01 · Return automations run through the normal workflow
+
+**Decision.** Automations are evaluated in order when a return is created. Flags and fault accumulate; the first decision stops the evaluation: approve, reject, or refund without return (approve, received without restock, inspected, then refunded or voucher). Decisions call `transitionReturn` with the system as actor, so the order, the stock and the store write-back behave as if a person had clicked. Reject and refund-without-return without any condition are refused by the schema: one empty rule would otherwise reject or refund every return, which a test run proved.
+
+## 2026-10-01 · Customer return risk is explained, never a block
+
+**Decision.** Risk comes from the customer's history over a configurable window. It considers the return rate in items (watch and high thresholds, a minimum number of returns), customer-fault returns opened within a few days of delivery ("wear and return"), and a high returned value. It is stored on the return with its reasons, shown to the team, and usable as an automation condition. On its own it never rejects or blocks: the decision stays with the store, as for recipient risk in the COD add-on.
+
 ## 2026-10-01 · Landing page as a separate static app (`apps/landing`)
 
 **Decision.** The marketing site is a second Next.js app in the monorepo with `output: "export"`: plain HTML, CSS and pre-optimised WebP, deployable on Vercel with root directory `apps/landing` or on any static host. It shares the workspace (`@keel/config` for `PRODUCT_NAME`, the ESLint config, Tailwind 4, next-intl) but not `@keel/ui`: the design tokens are copied into `apps/landing/src/app/globals.css` so the landing has a marketing look (large serif headings, generous spacing, browser-frame screenshots) rather than the dashboard chrome, and so the app deploys without the Radix dependency tree.

@@ -17,6 +17,10 @@ export interface NewReturnLine {
   alreadyReturned: number;
   unitNetMinor: number;
   excluded: boolean;
+  /** Why the line cannot be returned now (policy exclusion, final sale, expired). */
+  block: string | null;
+  maxQuantity: number;
+  deadline: string | null;
 }
 
 export function NewReturnForm({ slug, orderId, lines, reasons, eligible, eligibilityReason, currency, locale }: { slug: string; orderId: string; lines: NewReturnLine[]; reasons: { code: string; label: string }[]; eligible: boolean; eligibilityReason: string | null; currency: string; locale: string }) {
@@ -33,8 +37,11 @@ export function NewReturnForm({ slug, orderId, lines, reasons, eligible, eligibi
   const [result, setResult] = useState<ActionResult<{ id: string }> | null>(null);
   const total = useMemo(() => lines.reduce((s, l) => s + (qty[l.id] ?? 0) * l.unitNetMinor, 0), [lines, qty]);
   const anyQty = Object.values(qty).some((q) => q > 0);
-  const canOverride = !eligible && eligibilityReason === "expired";
-  const blocked = !eligible && !canOverride;
+  const anyBlocked = lines.some((l) => l.block !== null && l.maxQuantity > 0) || eligibilityReason === "customer_limit";
+  const blocked = !eligible && (eligibilityReason === "cancelled" || eligibilityReason === "not_delivered");
+  const [override, setOverride] = useState(false);
+  const canOverride = override && anyBlocked;
+  const maxFor = (l: NewReturnLine) => (canOverride ? l.maxQuantity : l.returnable);
   return (
     <form
       className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]"
@@ -50,8 +57,13 @@ export function NewReturnForm({ slug, orderId, lines, reasons, eligible, eligibi
       <div className="space-y-4">
         {!eligible && (
           <Alert variant={blocked ? "destructive" : "default"}>
-            <AlertDescription>{t(`not_eligible.${eligibilityReason ?? "not_delivered"}`)}{canOverride ? ` ${t("override_hint")}` : ""}</AlertDescription>
+            <AlertDescription>{t(`not_eligible.${eligibilityReason ?? "not_delivered"}`)}{anyBlocked && !blocked ? ` ${t("override_hint")}` : ""}</AlertDescription>
           </Alert>
+        )}
+        {anyBlocked && !blocked && (
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={override} onChange={(e) => setOverride(e.target.checked)} data-testid="return-override" /> {t("override_label")}
+          </label>
         )}
         <Card>
           <CardHeader>
@@ -63,10 +75,10 @@ export function NewReturnForm({ slug, orderId, lines, reasons, eligible, eligibi
               <div key={l.id} className="grid grid-cols-[1fr_6rem_6rem] items-center gap-2 rounded-md border p-2 text-sm">
                 <div className="min-w-0">
                   <div className="truncate font-medium">{l.title}</div>
-                  <div className="truncate text-xs text-muted-foreground">{[l.variantTitle, l.sku].filter(Boolean).join(" · ")} · {t("ordered", { n: l.quantity })}{l.alreadyReturned ? ` · ${t("already", { n: l.alreadyReturned })}` : ""}{l.excluded ? ` · ${t("excluded")}` : ""}</div>
+                  <div className="truncate text-xs text-muted-foreground">{[l.variantTitle, l.sku].filter(Boolean).join(" · ")} · {t("ordered", { n: l.quantity })}{l.alreadyReturned ? ` · ${t("already", { n: l.alreadyReturned })}` : ""}{l.block ? <span className="text-warning"> · {t(`blocks.${l.block}`)}</span> : ""}</div>
                 </div>
                 <div className="text-right tabular">{formatMoney(l.unitNetMinor, currency, locale)}</div>
-                <Input type="number" min={0} max={l.returnable} value={qty[l.id] ?? 0} disabled={l.returnable === 0 || blocked} onChange={(e) => setQty({ ...qty, [l.id]: Math.max(0, Math.min(l.returnable, Number(e.target.value) || 0)) })} aria-label={t("qty_for", { title: l.title })} className="h-8" />
+                <Input type="number" min={0} max={maxFor(l)} value={qty[l.id] ?? 0} disabled={maxFor(l) === 0 || blocked} onChange={(e) => setQty({ ...qty, [l.id]: Math.max(0, Math.min(maxFor(l), Number(e.target.value) || 0)) })} aria-label={t("qty_for", { title: l.title })} className="h-8" />
               </div>
             ))}
           </CardContent>

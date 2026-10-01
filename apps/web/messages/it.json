@@ -1625,7 +1625,10 @@
       "staff": "Staff",
       "portal": "Portale",
       "platform": "Negozio"
-    }
+    },
+    "policy": "Politica e automazioni",
+    "needs_review": "Da rivedere",
+    "risk_high": "rischio alto"
   },
   "return_detail": {
     "order": "Ordine",
@@ -1750,7 +1753,31 @@
         "declined": "Reso rifiutato",
         "closed": "Reso chiuso"
       }
-    }
+    },
+    "risk": {
+      "none": "Cliente normale",
+      "watch": "Cliente da osservare",
+      "high": "Cliente ad alto rischio"
+    },
+    "needs_review": "Da rivedere",
+    "returnless": "Tenuto dal cliente",
+    "rules_title": "Regole",
+    "risk_label": "Rischio cliente",
+    "risk_reasons": {
+      "serial_returner": "rende la maggior parte di ciò che compra",
+      "frequent_returner": "rende spesso",
+      "wear_and_return": "rende subito dopo la consegna, per colpa sua",
+      "high_returned_value": "valore reso elevato"
+    },
+    "automation_actions": {
+      "approve": "approvato automaticamente",
+      "reject": "rifiutato automaticamente",
+      "flag": "segnalato per revisione",
+      "set_fault": "colpa impostata",
+      "returnless": "rimborsato senza reso"
+    },
+    "mark_reviewed": "Segna come rivisto",
+    "flag_review": "Segnala per revisione"
   },
   "return_new": {
     "title": "Reso per {order}",
@@ -1764,7 +1791,7 @@
     "qty_for": "Quantità per {title}",
     "customer_note": "Nota del cliente",
     "staff_note": "Nota interna",
-    "staff_note_required": "Nota interna (obbligatoria per forzare la finestra)",
+    "staff_note_required": "Nota interna (obbligatoria per derogare alla politica)",
     "summary": "Riepilogo",
     "items": "Articoli",
     "proposed": "Rimborso proposto",
@@ -1773,14 +1800,27 @@
     "not_eligible": {
       "cancelled": "L'ordine è annullato o già rimborsato.",
       "not_delivered": "L'ordine non è ancora stato consegnato.",
-      "expired": "La finestra di reso è scaduta."
+      "expired": "La finestra di reso è scaduta.",
+      "customer_limit": "Il cliente ha raggiunto il limite di resi della politica.",
+      "nothing_returnable": "Nessun articolo di questo ordine è restituibile secondo la politica."
     },
     "errors": {
       "return_not_eligible": "L'ordine non è idoneo al reso.",
       "return_no_lines": "Scegli almeno un articolo.",
       "return_quantity_exceeds": "Quantità superiore al restituibile.",
       "return_bad_reason": "Scegli un motivo valido.",
-      "return_order_not_found": "Ordine non trovato."
+      "return_order_not_found": "Ordine non trovato.",
+      "return_customer_limit": "Il cliente ha raggiunto il limite di resi.",
+      "return_line_blocked": "Un articolo è escluso dalla politica dei resi."
+    },
+    "override_label": "Deroga alla politica (nota interna obbligatoria)",
+    "blocks": {
+      "excluded_type": "non restituibile (tipo di prodotto)",
+      "excluded_sku": "non restituibile (articolo escluso)",
+      "excluded_title": "non restituibile (articolo escluso)",
+      "excluded_tag": "non restituibile (collezione)",
+      "final_sale": "vendita finale",
+      "expired": "finestra di reso chiusa"
     }
   },
   "returns_analytics": {
@@ -2974,7 +3014,8 @@
       "cancelled": "Questo ordine è stato annullato, quindi non c'è nulla da rendere.",
       "not_delivered": "Questo ordine non è ancora stato consegnato: torna quando arriva.",
       "expired": "La finestra per il reso di questo ordine è chiusa.",
-      "nothing_returnable": "Tutti gli articoli di questo ordine sono già in un reso."
+      "nothing_returnable": "Tutti gli articoli di questo ordine sono già in un reso.",
+      "customer_limit": "Hai raggiunto il numero massimo di resi consentiti: contattaci."
     },
     "contact_support": "Domande? Scrivi a",
     "done": {
@@ -3002,6 +3043,86 @@
       "photo_type": "Questo file non è un'immagine supportata.",
       "confirm_required": "Spunta la casella di conferma.",
       "fields_invalid": "Compila i campi obbligatori."
+    },
+    "blocks": {
+      "excluded_type": "non restituibile (tipo di prodotto)",
+      "excluded_sku": "non restituibile (articolo escluso)",
+      "excluded_title": "non restituibile (articolo escluso)",
+      "excluded_tag": "non restituibile (collezione)",
+      "final_sale": "vendita finale",
+      "expired": "finestra di reso chiusa"
+    }
+  },
+  "return_policy": {
+    "back": "Resi",
+    "title": "Politica dei resi e automazioni",
+    "description": "Regole in aggiunta alla finestra predefinita di {days} giorni. Valgono per il portale e per il team; lo staff può derogare con una nota.",
+    "windows": "Finestre di reso",
+    "windows_hint": "Una finestra vale per gli articoli spediti in quei paesi, di quei tipi di prodotto o con quei tag (vuoto = qualsiasi). Se più finestre corrispondono vince la più lunga; una corrispondenza sostituisce quella predefinita, anche se più corta.",
+    "countries": "Paesi (IT, DE…)",
+    "product_types": "Tipi di prodotto",
+    "tags": "Tag prodotto",
+    "days": "Giorni",
+    "add_window": "Aggiungi finestra",
+    "exclusions": "Mai restituibili",
+    "exclusions_hint": "Separati da virgola. Gli articoli che corrispondono a una lista non si possono rendere.",
+    "ex": {
+      "productTypes": "Tipi di prodotto",
+      "skuPrefixes": "Prefissi SKU",
+      "titleContains": "Il titolo contiene",
+      "tags": "Tag prodotto"
+    },
+    "final_sale": "Vendita finale da sconto (%)",
+    "final_sale_hint": "Gli articoli comprati con almeno questo sconto, sulla riga o rispetto al prezzo barrato, sono vendita finale. Vuoto = nessuna regola.",
+    "customers": "Clienti",
+    "customers_hint": "Limita quanto spesso un cliente può rendere e quando segnalarlo come a rischio.",
+    "limit_on": "Limita i resi per cliente",
+    "limit_count": "Resi",
+    "limit_days": "In giorni",
+    "risk_watch": "Da osservare dal tasso di reso (%)",
+    "risk_high": "Rischio alto dal tasso di reso (%)",
+    "risk_min_returns": "Resi minimi per giudicare",
+    "risk_quick": "Reso rapido entro (giorni)",
+    "risk_value": "Valore reso elevato ({currency})",
+    "risk_hint": "Il rischio è mostrato su ogni reso e può guidare le automazioni. Da solo non blocca mai un cliente.",
+    "automations": "Automazioni",
+    "automations_hint": "Eseguite in ordine alla creazione di un reso. Segnalazioni e colpa si sommano; la prima decisione (approva, rifiuta, rimborsa senza reso) ferma la lista. Rifiuta e rimborsa senza reso richiedono almeno una condizione.",
+    "auto_name": "Nome",
+    "auto_action": "Azione",
+    "auto_fault": "Colpa",
+    "auto_note": "Nota scritta sul reso",
+    "active": "Attiva",
+    "up": "Sposta su",
+    "down": "Sposta giù",
+    "new_automation": "Nuova automazione",
+    "add_automation": "Aggiungi automazione",
+    "actions": {
+      "approve": "Approva",
+      "reject": "Rifiuta",
+      "flag": "Segnala per revisione",
+      "set_fault": "Imposta colpa",
+      "returnless": "Rimborsa senza reso"
+    },
+    "faults": {
+      "merchant": "Nostra",
+      "customer": "Del cliente",
+      "undetermined": "Da valutare"
+    },
+    "cond": {
+      "max_amount": "Fino a ({currency})",
+      "min_amount": "Da ({currency})",
+      "product_types": "Tipi di prodotto",
+      "max_risk": "Rischio cliente al massimo",
+      "min_risk": "Rischio cliente almeno",
+      "first_only": "Solo il primo reso del cliente",
+      "reasons": "Motivi",
+      "resolutions": "Risoluzioni",
+      "sources": "Da"
+    },
+    "risk": {
+      "none": "Normale",
+      "watch": "Da osservare",
+      "high": "Alto"
     }
   }
 }

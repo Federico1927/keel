@@ -73,7 +73,10 @@ describe("returns workflow", () => {
     const context = await run((s) => orderReturnContext(s, settings, old));
     expect(context.eligibility).toMatchObject({ eligible: false, reason: "expired" });
     const reasons = await withTenant(tenantId, (tx) => tx.select().from(schema.returnReasons).where(eq(schema.returnReasons.tenantId, tenantId)), pools.app);
-    const line = context.lines.find((l) => l.returnable > 0)!;
+    // expired lines have nothing returnable now, but staff can still return up to maxQuantity with an override
+    const line = context.lines.find((l) => l.maxQuantity > 0)!;
+    expect(line.returnable).toBe(0);
+    expect(line.block).toBe("expired");
     await expect(run((s) => createReturn(s, settings, { orderId: old, reasonCode: reasons[0]!.code, resolution: "voucher", lines: [{ orderLineId: line.id, quantity: 1 }] }))).rejects.toBeInstanceOf(ReturnError);
     const created = await run((s) => createReturn(s, settings, { orderId: old, reasonCode: reasons[0]!.code, resolution: "voucher", lines: [{ orderLineId: line.id, quantity: 1 }], overrideWindow: true, staffNote: "goodwill" }));
     const list = await run((s) => listReturns(s, { status: "requested" }));
