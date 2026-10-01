@@ -1,8 +1,14 @@
 {
-  "product": { "tagline": "The structure under your store" },
+  "product": {
+    "tagline": "The structure under your store"
+  },
   "common": {
     "language": "Language",
-    "locales": { "en": "English", "it": "Italiano", "es": "Español" },
+    "locales": {
+      "en": "English",
+      "it": "Italiano",
+      "es": "Español"
+    },
     "signed_in_as": "Signed in as {name} ({role})",
     "loading": "Loading…",
     "save": "Save",
@@ -10,7 +16,18 @@
     "search": "Search",
     "actions": "Actions",
     "empty": "Nothing here yet",
-    "sign_out": "Sign out"
+    "sign_out": "Sign out",
+    "saved": "Saved.",
+    "yes": "Yes",
+    "no": "No",
+    "delete": "Delete",
+    "errors": {
+      "invalid_input": "Some fields are invalid.",
+      "forbidden": "You are not allowed to do this.",
+      "not_found": "Not found.",
+      "cannot_change_self": "You cannot change your own membership.",
+      "unknown": "Something went wrong."
+    }
   },
   "auth": {
     "title": "Sign in",
@@ -38,23 +55,220 @@
   },
   "modules": {
     "core": {
-      "orders": { "name": "Orders", "description": "Inbound orders, timeline, notes and customer history" },
-      "shipments": { "name": "Shipments", "description": "Fulfilments, tracking and stuck parcels" },
-      "crm": { "name": "CRM", "description": "Customers, segments and RFM" },
-      "analytics": { "name": "Analytics", "description": "KPIs, P/L and cohorts" },
-      "campaigns": { "name": "Campaigns", "description": "Ads performance linked to stock" },
-      "products": { "name": "Products & inventory", "description": "Catalog, stock levels and reorders" },
-      "returns": { "name": "Returns", "description": "Configurable return workflow" },
-      "discounts": { "name": "Discounts", "description": "Codes, pools and attribution" },
-      "purchasing": { "name": "Purchasing", "description": "Suppliers and purchase orders" },
-      "platform": { "name": "Platform", "description": "Users, settings, integrations and audit" }
+      "orders": {
+        "name": "Orders",
+        "description": "Inbound orders, timeline, notes and customer history"
+      },
+      "shipments": {
+        "name": "Shipments",
+        "description": "Fulfilments, tracking and stuck parcels"
+      },
+      "crm": {
+        "name": "CRM",
+        "description": "Customers, segments and RFM"
+      },
+      "analytics": {
+        "name": "Analytics",
+        "description": "KPIs, P/L and cohorts"
+      },
+      "campaigns": {
+        "name": "Campaigns",
+        "description": "Ads performance linked to stock"
+      },
+      "products": {
+        "name": "Products & inventory",
+        "description": "Catalog, stock levels and reorders"
+      },
+      "returns": {
+        "name": "Returns",
+        "description": "Configurable return workflow"
+      },
+      "discounts": {
+        "name": "Discounts",
+        "description": "Codes, pools and attribution"
+      },
+      "purchasing": {
+        "name": "Purchasing",
+        "description": "Suppliers and purchase orders"
+      },
+      "platform": {
+        "name": "Platform",
+        "description": "Users, settings, integrations and audit"
+      }
     },
     "addon": {
-      "cod": { "name": "Cash on delivery", "description": "Confirmation queue, operator assignment, delivery score" },
-      "warehouse_3pl": { "name": "3PL warehouse connector", "description": "Connect an external warehouse" },
-      "whatsapp": { "name": "WhatsApp provider", "description": "Connect a local WhatsApp provider" },
-      "carrier_tracking": { "name": "Carrier tracking", "description": "Second source for shipment status" }
+      "cod": {
+        "name": "Cash on delivery",
+        "description": "Confirmation queue, operator assignment, delivery score"
+      },
+      "warehouse_3pl": {
+        "name": "3PL warehouse connector",
+        "description": "Connect an external warehouse"
+      },
+      "whatsapp": {
+        "name": "WhatsApp provider",
+        "description": "Connect a local WhatsApp provider"
+      },
+      "carrier_tracking": {
+        "name": "Carrier tracking",
+        "description": "Second source for shipment status"
+      }
     }
   },
-  "plans": { "starter": "Starter", "growth": "Growth", "scale": "Scale" }
+  "plans": {
+    "starter": "Starter",
+    "growth": "Growth",
+    "scale": "Scale"
+  },
+  "nav": {
+    "sections": {
+      "operations": "Operations",
+      "catalog": "Catalog",
+      "growth": "Growth",
+      "platform": "Platform"
+    },
+    "dashboard": "Dashboard",
+    "orders": "Orders",
+    "shipments": "Shipments",
+    "returns": "Returns",
+    "cod_queue": "COD queue",
+    "products": "Products",
+    "inventory": "Inventory",
+    "purchasing": "Purchasing",
+    "analytics": "Analytics",
+    "campaigns": "Campaigns",
+    "customers": "Customers",
+    "segments": "Segments",
+    "discounts": "Discounts",
+    "integrations": "Integrations",
+    "users": "Users",
+    "settings": "Settings",
+    "audit": "Audit log"
+  },
+  "shell": {
+    "open_menu": "Open menu",
+    "switch_tenant": "Switch workspace",
+    "admin_console": "Super-admin console",
+    "impersonating": "You are viewing {tenant} as a super-admin. Every action is audited.",
+    "back_to_admin": "Back to console",
+    "suspended_title": "Workspace suspended",
+    "suspended_description": "This workspace is suspended for unpaid invoices. Contact the platform administrator.",
+    "not_found_title": "Page not available",
+    "not_found_description": "This page does not exist, or your role or plan does not include it."
+  },
+  "roles": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "operations": "Operations",
+    "customer_care": "Customer care",
+    "marketing": "Marketing",
+    "viewer": "Viewer"
+  },
+  "payment_methods": {
+    "card": "Card",
+    "wallet": "Wallet",
+    "bank_transfer": "Bank transfer",
+    "cod": "Cash on delivery",
+    "bnpl": "Buy now pay later",
+    "other": "Other"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "description": "Today at a glance, compared with the same time yesterday and last week.",
+    "coming_soon": "Available from phase 5",
+    "kpi": {
+      "revenue": "Revenue",
+      "orders": "Orders",
+      "aov": "Average order value",
+      "cancel_rate": "Cancellation rate"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Country, currency, timezone, thresholds and fees used by every calculation.",
+    "tabs": {
+      "general": "General",
+      "operational": "Thresholds & fees",
+      "taxes": "Tax rates"
+    },
+    "general": {
+      "title": "Workspace",
+      "description": "Identity and locale of the store.",
+      "name": "Name",
+      "country": "Country (ISO 2)",
+      "currency": "Currency (ISO 4217)",
+      "timezone": "Timezone (IANA)",
+      "default_locale": "Default language",
+      "order_prefix": "Order number prefix"
+    },
+    "operational": {
+      "thresholds_title": "Thresholds",
+      "thresholds_description": "Used by inventory risk, campaign recommendations, duplicate detection and shipments.",
+      "fees_title": "Payment fees",
+      "fees_description": "Percentage in basis points (180 = 1.80%) and fixed fee per order in minor units of {currency}.",
+      "fee_method": "Method",
+      "fee_percent": "Fee (bps)",
+      "fee_fixed": "Fixed (minor units)",
+      "fields": {
+        "lowStockThreshold": "Low stock threshold (units)",
+        "coverageDaysWarning": "Coverage warning (days)",
+        "coverageDaysCritical": "Coverage critical (days)",
+        "salesVelocityLookbackDays": "Sales velocity lookback (days)",
+        "reorderTargetDays": "Reorder target coverage (days)",
+        "roiGood": "ROI good (ratio)",
+        "roiMedium": "ROI medium (ratio)",
+        "campaignStockThreshold": "Campaign stock threshold (units)",
+        "duplicateOrderWindowDays": "Duplicate order window (days)",
+        "shipmentStuckDays": "Shipment stuck after (days)",
+        "returnWindowDays": "Return window (days)",
+        "shippingCostMinor": "Default shipping cost (minor units)"
+      }
+    },
+    "taxes": {
+      "title": "Tax rates by country",
+      "description": "Net revenue is computed with the rate of the shipping country; fallback is the store country.",
+      "country": "Country",
+      "rate": "Rate",
+      "prices_include_tax": "Prices include tax",
+      "add": "Add or update"
+    }
+  },
+  "users": {
+    "title": "Users & roles",
+    "description": "Who can access this workspace and with which role.",
+    "member": "Member",
+    "role": "Role",
+    "status": "Status",
+    "last_login": "Last login",
+    "active": "Active",
+    "inactive": "Inactive",
+    "deactivate": "Deactivate",
+    "reactivate": "Reactivate",
+    "invite_title": "Invite a member",
+    "invite_description": "The person signs in with the email link; no password is sent.",
+    "name": "Name",
+    "email": "Email",
+    "invite": "Invite",
+    "invited": "Invitation created. The sign-in link is printed in the server console in development."
+  },
+  "audit": {
+    "title": "Audit log",
+    "description": "Every significant change, with author and field-level diff.",
+    "when": "When",
+    "actor": "Actor",
+    "action": "Action",
+    "entity": "Entity",
+    "changes": "Changes",
+    "system": "System",
+    "via": "via {name}",
+    "actor_types": {
+      "user": "User",
+      "system": "System",
+      "super_admin": "Super-admin",
+      "impersonation": "Impersonation"
+    },
+    "empty_title": "No audit entries yet",
+    "empty_description": "Changes to settings, users, orders and integrations will appear here.",
+    "pagination": "Page {page} of {pages} · {total} entries"
+  }
 }

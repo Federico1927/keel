@@ -1,20 +1,20 @@
-import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { requireUser, getMemberships } from "@/server/session";
+import { PageHeader, Stat } from "@keel/ui";
+import { requirePage } from "@/server/tenant";
 
-export default async function TenantHome({ params }: { params: Promise<{ tenant: string }> }) {
+export default async function DashboardPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
-  const user = await requireUser();
-  const memberships = await getMemberships(user.id);
-  const m = memberships.find((x) => x.slug === tenant);
-  if (!m) notFound();
-  const t = await getTranslations("common");
+  const ctx = await requirePage(tenant, "dashboard");
+  const t = await getTranslations("dashboard");
   return (
-    <main className="p-8">
-      <h1 className="text-2xl">{m.name}</h1>
-      <p className="text-muted-foreground">
-        {t("signed_in_as", { name: user.name ?? user.email, role: m.role })}
-      </p>
-    </main>
+    <>
+      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Stat label={t("kpi.revenue")} value="—" hint={t("coming_soon")} />
+        <Stat label={t("kpi.orders")} value="—" hint={t("coming_soon")} />
+        <Stat label={t("kpi.aov")} value="—" hint={t("coming_soon")} />
+        <Stat label={t("kpi.cancel_rate")} value="—" hint={t("coming_soon")} />
+      </div>
+    </>
   );
 }

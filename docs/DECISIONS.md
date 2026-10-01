@@ -53,3 +53,17 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · Auth.js with JWT sessions
 
 **Decision.** Credentials (bcrypt) + magic link (link printed to the console in development, `MAGIC_LINK_WEBHOOK_URL` for a real mailer) with the Drizzle adapter for verification tokens and JWT sessions (Credentials requires JWT). Memberships are not stored in the token: they are read per request so a role change is effective immediately.
+
+## 2026-10-01 · Isolation tests are generated from the schema, not written per table
+
+**Decision.** `packages/db/test/isolation.test.ts` enumerates every Drizzle table with a `tenant_id` column and runs the same six checks on each (RLS enabled with a policy, seed covers both tenants, no cross-tenant read, no cross-tenant update/delete, cross-tenant insert rejected with `42501`, nothing visible without context). A new domain table is covered the moment it is exported from the schema; a table without `tenant_id` fails the suite unless listed as a platform table. The seed must populate both tenants, which keeps the demo data honest too.
+
+**Alternatives.** Hand-written tests per table (rejected: they rot, and a forgotten table is exactly the leak the brief wants to prevent).
+
+## 2026-10-01 · Platform tables with a tenant column still get RLS
+
+**Decision.** `tenant_memberships` and `tenant_addons` are read by the auth layer through the admin connection, but they carry `tenant_id` and therefore receive the same isolation policy. Uniform rule beats a special case.
+
+## 2026-10-01 · Settings as a typed JSON blob on `tenants`
+
+**Decision.** Operational thresholds and payment fees live in `tenants.settings` (jsonb) validated by `tenantSettingsSchema` (zod) with neutral defaults from `@keel/config`. Tax rates are a proper table because they are joined in revenue calculations. Adding a setting means one line in the schema and one translation key, no migration.

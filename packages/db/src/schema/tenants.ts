@@ -50,8 +50,10 @@ export const tenantMemberships = pgTable(
   (t) => [
     uniqueIndex("tenant_memberships_tenant_user_uq").on(t.tenantId, t.userId),
     index("tenant_memberships_user_idx").on(t.userId),
+    // Read by the auth layer through the admin connection; the app role only sees its own tenant.
+    tenantIsolation("tenant_memberships"),
   ],
-);
+).enableRLS();
 
 /** Add-ons activated per tenant by the super-admin. */
 export const tenantAddons = pgTable(
@@ -70,8 +72,8 @@ export const tenantAddons = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [uniqueIndex("tenant_addons_tenant_module_uq").on(t.tenantId, t.moduleKey)],
-);
+  (t) => [uniqueIndex("tenant_addons_tenant_module_uq").on(t.tenantId, t.moduleKey), tenantIsolation("tenant_addons")],
+).enableRLS();
 
 /** Tax rates per country, per tenant (CLAUDE.md §3). Platform-level table with tenant column but
  * read before the tenant context exists only via admin; still isolated by RLS. */

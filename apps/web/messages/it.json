@@ -1,8 +1,14 @@
 {
-  "product": { "tagline": "La struttura sotto il tuo negozio" },
+  "product": {
+    "tagline": "La struttura sotto il tuo negozio"
+  },
   "common": {
     "language": "Lingua",
-    "locales": { "en": "English", "it": "Italiano", "es": "Español" },
+    "locales": {
+      "en": "English",
+      "it": "Italiano",
+      "es": "Español"
+    },
     "signed_in_as": "Accesso come {name} ({role})",
     "loading": "Caricamento…",
     "save": "Salva",
@@ -10,7 +16,18 @@
     "search": "Cerca",
     "actions": "Azioni",
     "empty": "Ancora nulla qui",
-    "sign_out": "Esci"
+    "sign_out": "Esci",
+    "saved": "Salvato.",
+    "yes": "Sì",
+    "no": "No",
+    "delete": "Elimina",
+    "errors": {
+      "invalid_input": "Alcuni campi non sono validi.",
+      "forbidden": "Non hai i permessi per questa azione.",
+      "not_found": "Non trovato.",
+      "cannot_change_self": "Non puoi modificare la tua stessa appartenenza.",
+      "unknown": "Qualcosa è andato storto."
+    }
   },
   "auth": {
     "title": "Accedi",
@@ -38,23 +55,220 @@
   },
   "modules": {
     "core": {
-      "orders": { "name": "Ordini", "description": "Ordini in entrata, timeline, note e storico cliente" },
-      "shipments": { "name": "Spedizioni", "description": "Evasioni, tracking e spedizioni ferme" },
-      "crm": { "name": "CRM", "description": "Clienti, segmenti e RFM" },
-      "analytics": { "name": "Analisi", "description": "KPI, P/L e coorti" },
-      "campaigns": { "name": "Campagne", "description": "Performance ads collegata allo stock" },
-      "products": { "name": "Prodotti e magazzino", "description": "Catalogo, giacenze e riordini" },
-      "returns": { "name": "Resi", "description": "Flusso resi configurabile" },
-      "discounts": { "name": "Sconti", "description": "Codici, pool e attribuzione" },
-      "purchasing": { "name": "Acquisti", "description": "Fornitori e ordini d'acquisto" },
-      "platform": { "name": "Piattaforma", "description": "Utenti, impostazioni, integrazioni e audit" }
+      "orders": {
+        "name": "Ordini",
+        "description": "Ordini in entrata, timeline, note e storico cliente"
+      },
+      "shipments": {
+        "name": "Spedizioni",
+        "description": "Evasioni, tracking e spedizioni ferme"
+      },
+      "crm": {
+        "name": "CRM",
+        "description": "Clienti, segmenti e RFM"
+      },
+      "analytics": {
+        "name": "Analisi",
+        "description": "KPI, P/L e coorti"
+      },
+      "campaigns": {
+        "name": "Campagne",
+        "description": "Performance ads collegata allo stock"
+      },
+      "products": {
+        "name": "Prodotti e magazzino",
+        "description": "Catalogo, giacenze e riordini"
+      },
+      "returns": {
+        "name": "Resi",
+        "description": "Flusso resi configurabile"
+      },
+      "discounts": {
+        "name": "Sconti",
+        "description": "Codici, pool e attribuzione"
+      },
+      "purchasing": {
+        "name": "Acquisti",
+        "description": "Fornitori e ordini d'acquisto"
+      },
+      "platform": {
+        "name": "Piattaforma",
+        "description": "Utenti, impostazioni, integrazioni e audit"
+      }
     },
     "addon": {
-      "cod": { "name": "Contrassegno", "description": "Coda di conferma, assegnazione operatori, delivery score" },
-      "warehouse_3pl": { "name": "Connettore magazzino 3PL", "description": "Collega un magazzino esterno" },
-      "whatsapp": { "name": "Provider WhatsApp", "description": "Collega un provider WhatsApp locale" },
-      "carrier_tracking": { "name": "Tracking corrieri", "description": "Seconda fonte per lo stato delle spedizioni" }
+      "cod": {
+        "name": "Contrassegno",
+        "description": "Coda di conferma, assegnazione operatori, delivery score"
+      },
+      "warehouse_3pl": {
+        "name": "Connettore magazzino 3PL",
+        "description": "Collega un magazzino esterno"
+      },
+      "whatsapp": {
+        "name": "Provider WhatsApp",
+        "description": "Collega un provider WhatsApp locale"
+      },
+      "carrier_tracking": {
+        "name": "Tracking corrieri",
+        "description": "Seconda fonte per lo stato delle spedizioni"
+      }
     }
   },
-  "plans": { "starter": "Starter", "growth": "Growth", "scale": "Scale" }
+  "plans": {
+    "starter": "Starter",
+    "growth": "Growth",
+    "scale": "Scale"
+  },
+  "nav": {
+    "sections": {
+      "operations": "Operatività",
+      "catalog": "Catalogo",
+      "growth": "Crescita",
+      "platform": "Piattaforma"
+    },
+    "dashboard": "Dashboard",
+    "orders": "Ordini",
+    "shipments": "Spedizioni",
+    "returns": "Resi",
+    "cod_queue": "Coda contrassegno",
+    "products": "Prodotti",
+    "inventory": "Magazzino",
+    "purchasing": "Acquisti",
+    "analytics": "Analisi",
+    "campaigns": "Campagne",
+    "customers": "Clienti",
+    "segments": "Segmenti",
+    "discounts": "Sconti",
+    "integrations": "Integrazioni",
+    "users": "Utenti",
+    "settings": "Impostazioni",
+    "audit": "Registro attività"
+  },
+  "shell": {
+    "open_menu": "Apri menu",
+    "switch_tenant": "Cambia workspace",
+    "admin_console": "Console super-admin",
+    "impersonating": "Stai vedendo {tenant} come super-admin. Ogni azione è registrata.",
+    "back_to_admin": "Torna alla console",
+    "suspended_title": "Workspace sospeso",
+    "suspended_description": "Questo workspace è sospeso per fatture non pagate. Contatta l'amministratore della piattaforma.",
+    "not_found_title": "Pagina non disponibile",
+    "not_found_description": "La pagina non esiste, oppure il tuo ruolo o il tuo piano non la includono."
+  },
+  "roles": {
+    "owner": "Titolare",
+    "admin": "Amministratore",
+    "operations": "Operazioni",
+    "customer_care": "Customer care",
+    "marketing": "Marketing",
+    "viewer": "Sola lettura"
+  },
+  "payment_methods": {
+    "card": "Carta",
+    "wallet": "Wallet",
+    "bank_transfer": "Bonifico",
+    "cod": "Contrassegno",
+    "bnpl": "Paga dopo (BNPL)",
+    "other": "Altro"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "description": "Oggi a colpo d'occhio, confrontato con la stessa ora di ieri e di una settimana fa.",
+    "coming_soon": "Disponibile dalla fase 5",
+    "kpi": {
+      "revenue": "Ricavi",
+      "orders": "Ordini",
+      "aov": "Valore medio ordine",
+      "cancel_rate": "Tasso di annullamento"
+    }
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "description": "Paese, valuta, fuso orario, soglie e commissioni usati da ogni calcolo.",
+    "tabs": {
+      "general": "Generali",
+      "operational": "Soglie e commissioni",
+      "taxes": "Aliquote"
+    },
+    "general": {
+      "title": "Workspace",
+      "description": "Identità e localizzazione del negozio.",
+      "name": "Nome",
+      "country": "Paese (ISO 2)",
+      "currency": "Valuta (ISO 4217)",
+      "timezone": "Fuso orario (IANA)",
+      "default_locale": "Lingua predefinita",
+      "order_prefix": "Prefisso numeri ordine"
+    },
+    "operational": {
+      "thresholds_title": "Soglie",
+      "thresholds_description": "Usate da rischio magazzino, consigli campagne, rilevamento duplicati e spedizioni.",
+      "fees_title": "Commissioni di pagamento",
+      "fees_description": "Percentuale in punti base (180 = 1,80%) e quota fissa per ordine in centesimi di {currency}.",
+      "fee_method": "Metodo",
+      "fee_percent": "Commissione (bps)",
+      "fee_fixed": "Fissa (centesimi)",
+      "fields": {
+        "lowStockThreshold": "Soglia stock basso (pezzi)",
+        "coverageDaysWarning": "Copertura in allerta (giorni)",
+        "coverageDaysCritical": "Copertura critica (giorni)",
+        "salesVelocityLookbackDays": "Finestra velocità di vendita (giorni)",
+        "reorderTargetDays": "Copertura obiettivo riordino (giorni)",
+        "roiGood": "ROI buono (rapporto)",
+        "roiMedium": "ROI medio (rapporto)",
+        "campaignStockThreshold": "Soglia stock campagne (pezzi)",
+        "duplicateOrderWindowDays": "Finestra ordini duplicati (giorni)",
+        "shipmentStuckDays": "Spedizione ferma dopo (giorni)",
+        "returnWindowDays": "Finestra resi (giorni)",
+        "shippingCostMinor": "Costo spedizione predefinito (centesimi)"
+      }
+    },
+    "taxes": {
+      "title": "Aliquote per paese",
+      "description": "Il ricavo netto usa l'aliquota del paese di spedizione; in mancanza, quella del paese del negozio.",
+      "country": "Paese",
+      "rate": "Aliquota",
+      "prices_include_tax": "Prezzi IVA inclusa",
+      "add": "Aggiungi o aggiorna"
+    }
+  },
+  "users": {
+    "title": "Utenti e ruoli",
+    "description": "Chi può accedere a questo workspace e con quale ruolo.",
+    "member": "Membro",
+    "role": "Ruolo",
+    "status": "Stato",
+    "last_login": "Ultimo accesso",
+    "active": "Attivo",
+    "inactive": "Disattivato",
+    "deactivate": "Disattiva",
+    "reactivate": "Riattiva",
+    "invite_title": "Invita un membro",
+    "invite_description": "La persona accede con il link via email; nessuna password viene inviata.",
+    "name": "Nome",
+    "email": "Email",
+    "invite": "Invita",
+    "invited": "Invito creato. In sviluppo il link di accesso è stampato nella console del server."
+  },
+  "audit": {
+    "title": "Registro attività",
+    "description": "Ogni modifica significativa, con autore e differenze campo per campo.",
+    "when": "Quando",
+    "actor": "Autore",
+    "action": "Azione",
+    "entity": "Entità",
+    "changes": "Modifiche",
+    "system": "Sistema",
+    "via": "tramite {name}",
+    "actor_types": {
+      "user": "Utente",
+      "system": "Sistema",
+      "super_admin": "Super-admin",
+      "impersonation": "Impersonificazione"
+    },
+    "empty_title": "Nessuna voce nel registro",
+    "empty_description": "Le modifiche a impostazioni, utenti, ordini e integrazioni compariranno qui.",
+    "pagination": "Pagina {page} di {pages} · {total} voci"
+  }
 }

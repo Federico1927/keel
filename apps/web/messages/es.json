@@ -1,8 +1,14 @@
 {
-  "product": { "tagline": "La estructura bajo tu tienda" },
+  "product": {
+    "tagline": "La estructura bajo tu tienda"
+  },
   "common": {
     "language": "Idioma",
-    "locales": { "en": "English", "it": "Italiano", "es": "Español" },
+    "locales": {
+      "en": "English",
+      "it": "Italiano",
+      "es": "Español"
+    },
     "signed_in_as": "Sesión iniciada como {name} ({role})",
     "loading": "Cargando…",
     "save": "Guardar",
@@ -10,7 +16,18 @@
     "search": "Buscar",
     "actions": "Acciones",
     "empty": "Todavía no hay nada aquí",
-    "sign_out": "Cerrar sesión"
+    "sign_out": "Cerrar sesión",
+    "saved": "Guardado.",
+    "yes": "Sí",
+    "no": "No",
+    "delete": "Eliminar",
+    "errors": {
+      "invalid_input": "Algunos campos no son válidos.",
+      "forbidden": "No tienes permiso para esta acción.",
+      "not_found": "No encontrado.",
+      "cannot_change_self": "No puedes cambiar tu propia pertenencia.",
+      "unknown": "Algo salió mal."
+    }
   },
   "auth": {
     "title": "Iniciar sesión",
@@ -38,23 +55,220 @@
   },
   "modules": {
     "core": {
-      "orders": { "name": "Pedidos", "description": "Pedidos entrantes, cronología, notas e historial del cliente" },
-      "shipments": { "name": "Envíos", "description": "Preparaciones, seguimiento y envíos detenidos" },
-      "crm": { "name": "CRM", "description": "Clientes, segmentos y RFM" },
-      "analytics": { "name": "Analítica", "description": "KPI, P/L y cohortes" },
-      "campaigns": { "name": "Campañas", "description": "Rendimiento de anuncios ligado al stock" },
-      "products": { "name": "Productos e inventario", "description": "Catálogo, existencias y reposiciones" },
-      "returns": { "name": "Devoluciones", "description": "Flujo de devoluciones configurable" },
-      "discounts": { "name": "Descuentos", "description": "Códigos, lotes y atribución" },
-      "purchasing": { "name": "Compras", "description": "Proveedores y órdenes de compra" },
-      "platform": { "name": "Plataforma", "description": "Usuarios, ajustes, integraciones y auditoría" }
+      "orders": {
+        "name": "Pedidos",
+        "description": "Pedidos entrantes, cronología, notas e historial del cliente"
+      },
+      "shipments": {
+        "name": "Envíos",
+        "description": "Preparaciones, seguimiento y envíos detenidos"
+      },
+      "crm": {
+        "name": "CRM",
+        "description": "Clientes, segmentos y RFM"
+      },
+      "analytics": {
+        "name": "Analítica",
+        "description": "KPI, P/L y cohortes"
+      },
+      "campaigns": {
+        "name": "Campañas",
+        "description": "Rendimiento de anuncios ligado al stock"
+      },
+      "products": {
+        "name": "Productos e inventario",
+        "description": "Catálogo, existencias y reposiciones"
+      },
+      "returns": {
+        "name": "Devoluciones",
+        "description": "Flujo de devoluciones configurable"
+      },
+      "discounts": {
+        "name": "Descuentos",
+        "description": "Códigos, lotes y atribución"
+      },
+      "purchasing": {
+        "name": "Compras",
+        "description": "Proveedores y órdenes de compra"
+      },
+      "platform": {
+        "name": "Plataforma",
+        "description": "Usuarios, ajustes, integraciones y auditoría"
+      }
     },
     "addon": {
-      "cod": { "name": "Contra reembolso", "description": "Cola de confirmación, asignación de operadores, delivery score" },
-      "warehouse_3pl": { "name": "Conector de almacén 3PL", "description": "Conecta un almacén externo" },
-      "whatsapp": { "name": "Proveedor de WhatsApp", "description": "Conecta un proveedor local de WhatsApp" },
-      "carrier_tracking": { "name": "Seguimiento de transportistas", "description": "Segunda fuente para el estado de los envíos" }
+      "cod": {
+        "name": "Contra reembolso",
+        "description": "Cola de confirmación, asignación de operadores, delivery score"
+      },
+      "warehouse_3pl": {
+        "name": "Conector de almacén 3PL",
+        "description": "Conecta un almacén externo"
+      },
+      "whatsapp": {
+        "name": "Proveedor de WhatsApp",
+        "description": "Conecta un proveedor local de WhatsApp"
+      },
+      "carrier_tracking": {
+        "name": "Seguimiento de transportistas",
+        "description": "Segunda fuente para el estado de los envíos"
+      }
     }
   },
-  "plans": { "starter": "Starter", "growth": "Growth", "scale": "Scale" }
+  "plans": {
+    "starter": "Starter",
+    "growth": "Growth",
+    "scale": "Scale"
+  },
+  "nav": {
+    "sections": {
+      "operations": "Operaciones",
+      "catalog": "Catálogo",
+      "growth": "Crecimiento",
+      "platform": "Plataforma"
+    },
+    "dashboard": "Panel",
+    "orders": "Pedidos",
+    "shipments": "Envíos",
+    "returns": "Devoluciones",
+    "cod_queue": "Cola contra reembolso",
+    "products": "Productos",
+    "inventory": "Inventario",
+    "purchasing": "Compras",
+    "analytics": "Analítica",
+    "campaigns": "Campañas",
+    "customers": "Clientes",
+    "segments": "Segmentos",
+    "discounts": "Descuentos",
+    "integrations": "Integraciones",
+    "users": "Usuarios",
+    "settings": "Ajustes",
+    "audit": "Registro de auditoría"
+  },
+  "shell": {
+    "open_menu": "Abrir menú",
+    "switch_tenant": "Cambiar de espacio",
+    "admin_console": "Consola de superadministrador",
+    "impersonating": "Estás viendo {tenant} como superadministrador. Cada acción queda registrada.",
+    "back_to_admin": "Volver a la consola",
+    "suspended_title": "Espacio suspendido",
+    "suspended_description": "Este espacio está suspendido por facturas impagadas. Contacta con el administrador de la plataforma.",
+    "not_found_title": "Página no disponible",
+    "not_found_description": "La página no existe, o tu rol o tu plan no la incluyen."
+  },
+  "roles": {
+    "owner": "Propietario",
+    "admin": "Administrador",
+    "operations": "Operaciones",
+    "customer_care": "Atención al cliente",
+    "marketing": "Marketing",
+    "viewer": "Solo lectura"
+  },
+  "payment_methods": {
+    "card": "Tarjeta",
+    "wallet": "Monedero",
+    "bank_transfer": "Transferencia",
+    "cod": "Contra reembolso",
+    "bnpl": "Compra ahora, paga después",
+    "other": "Otro"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "description": "Hoy de un vistazo, comparado con la misma hora de ayer y de hace una semana.",
+    "coming_soon": "Disponible desde la fase 5",
+    "kpi": {
+      "revenue": "Ingresos",
+      "orders": "Pedidos",
+      "aov": "Ticket medio",
+      "cancel_rate": "Tasa de cancelación"
+    }
+  },
+  "settings": {
+    "title": "Ajustes",
+    "description": "País, moneda, zona horaria, umbrales y comisiones que usa cada cálculo.",
+    "tabs": {
+      "general": "General",
+      "operational": "Umbrales y comisiones",
+      "taxes": "Tipos impositivos"
+    },
+    "general": {
+      "title": "Espacio de trabajo",
+      "description": "Identidad y localización de la tienda.",
+      "name": "Nombre",
+      "country": "País (ISO 2)",
+      "currency": "Moneda (ISO 4217)",
+      "timezone": "Zona horaria (IANA)",
+      "default_locale": "Idioma predeterminado",
+      "order_prefix": "Prefijo de número de pedido"
+    },
+    "operational": {
+      "thresholds_title": "Umbrales",
+      "thresholds_description": "Usados por el riesgo de inventario, las recomendaciones de campañas, la detección de duplicados y los envíos.",
+      "fees_title": "Comisiones de pago",
+      "fees_description": "Porcentaje en puntos básicos (180 = 1,80%) y cuota fija por pedido en céntimos de {currency}.",
+      "fee_method": "Método",
+      "fee_percent": "Comisión (pb)",
+      "fee_fixed": "Fija (céntimos)",
+      "fields": {
+        "lowStockThreshold": "Umbral de stock bajo (unidades)",
+        "coverageDaysWarning": "Cobertura en alerta (días)",
+        "coverageDaysCritical": "Cobertura crítica (días)",
+        "salesVelocityLookbackDays": "Ventana de velocidad de ventas (días)",
+        "reorderTargetDays": "Cobertura objetivo de reposición (días)",
+        "roiGood": "ROI bueno (ratio)",
+        "roiMedium": "ROI medio (ratio)",
+        "campaignStockThreshold": "Umbral de stock para campañas (unidades)",
+        "duplicateOrderWindowDays": "Ventana de pedidos duplicados (días)",
+        "shipmentStuckDays": "Envío detenido tras (días)",
+        "returnWindowDays": "Plazo de devolución (días)",
+        "shippingCostMinor": "Coste de envío predeterminado (céntimos)"
+      }
+    },
+    "taxes": {
+      "title": "Tipos impositivos por país",
+      "description": "El ingreso neto usa el tipo del país de envío; si falta, el del país de la tienda.",
+      "country": "País",
+      "rate": "Tipo",
+      "prices_include_tax": "Precios con impuestos incluidos",
+      "add": "Añadir o actualizar"
+    }
+  },
+  "users": {
+    "title": "Usuarios y roles",
+    "description": "Quién puede acceder a este espacio y con qué rol.",
+    "member": "Miembro",
+    "role": "Rol",
+    "status": "Estado",
+    "last_login": "Último acceso",
+    "active": "Activo",
+    "inactive": "Desactivado",
+    "deactivate": "Desactivar",
+    "reactivate": "Reactivar",
+    "invite_title": "Invitar a un miembro",
+    "invite_description": "La persona accede con el enlace por correo; no se envía ninguna contraseña.",
+    "name": "Nombre",
+    "email": "Correo",
+    "invite": "Invitar",
+    "invited": "Invitación creada. En desarrollo el enlace de acceso se imprime en la consola del servidor."
+  },
+  "audit": {
+    "title": "Registro de auditoría",
+    "description": "Cada cambio significativo, con autor y diferencias campo a campo.",
+    "when": "Cuándo",
+    "actor": "Autor",
+    "action": "Acción",
+    "entity": "Entidad",
+    "changes": "Cambios",
+    "system": "Sistema",
+    "via": "a través de {name}",
+    "actor_types": {
+      "user": "Usuario",
+      "system": "Sistema",
+      "super_admin": "Superadministrador",
+      "impersonation": "Suplantación"
+    },
+    "empty_title": "Aún no hay entradas",
+    "empty_description": "Los cambios en ajustes, usuarios, pedidos e integraciones aparecerán aquí.",
+    "pagination": "Página {page} de {pages} · {total} entradas"
+  }
 }
