@@ -1,0 +1,66 @@
+import type { AnalyticsPlatform, CarrierProvider, ConnectionTest, MessagingChannel, NormalizedOrder, WarehouseProvider } from "../types";
+
+/** Mock implementations of the per-account slots. Real connectors are sold as add-ons. */
+export class MockMessagingChannel implements MessagingChannel {
+  readonly provider = "messaging-mock";
+  readonly sent: { to: string; template: string; variables: Record<string, string> }[] = [];
+  async testConnection(): Promise<ConnectionTest> {
+    return { ok: true, accountName: "Mock messaging" };
+  }
+  async sendMessage(input: { to: string; template: string; variables: Record<string, string> }) {
+    this.sent.push(input);
+    return { messageId: `mock-msg-${this.sent.length}` };
+  }
+  async verifyWebhook(_headers: Record<string, string | undefined>, rawBody: string) {
+    const p = JSON.parse(rawBody) as { messageId: string; status: "sent" | "delivered" | "read" | "failed" };
+    return { messageId: p.messageId, status: p.status, raw: p };
+  }
+}
+
+export class MockWarehouseProvider implements WarehouseProvider {
+  readonly provider = "warehouse-mock";
+  readonly pushed: string[] = [];
+  async testConnection(): Promise<ConnectionTest> {
+    return { ok: true, accountName: "Mock 3PL" };
+  }
+  async pushOrder(order: NormalizedOrder) {
+    this.pushed.push(order.externalId);
+    return { externalId: `wh-${order.externalId}` };
+  }
+  async fetchStock() {
+    return [] as { sku: string; available: number }[];
+  }
+  async fetchShipmentStatus() {
+    return null;
+  }
+}
+
+export class MockCarrierProvider implements CarrierProvider {
+  readonly provider = "carrier-mock";
+  async testConnection(): Promise<ConnectionTest> {
+    return { ok: true, accountName: "Mock carrier" };
+  }
+  async track(trackingNumber: string) {
+    const now = new Date();
+    return {
+      status: "in_transit" as const,
+      externalStatus: "IN_TRANSIT",
+      events: [
+        { status: "label_created" as const, description: `Label created for ${trackingNumber}`, location: null, at: new Date(now.getTime() - 2 * 864e5) },
+        { status: "in_transit" as const, description: "Departed facility", location: "Hub", at: new Date(now.getTime() - 864e5) },
+      ],
+    };
+  }
+}
+
+export class MockAnalyticsPlatform implements AnalyticsPlatform {
+  readonly provider = "ga4";
+  async testConnection(): Promise<ConnectionTest> {
+    return { ok: true, accountName: "Mock GA4 property" };
+  }
+  async fetchDailySessions(window: { since: string; until: string }) {
+    const out: { date: string; sessions: number; channel: string }[] = [];
+    for (let d = new Date(window.since); d <= new Date(window.until); d.setUTCDate(d.getUTCDate() + 1)) out.push({ date: d.toISOString().slice(0, 10), sessions: 1000, channel: "paid_social" });
+    return out;
+  }
+}

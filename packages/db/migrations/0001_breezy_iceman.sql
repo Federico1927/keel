@@ -1,0 +1,4 @@
+ALTER TABLE "tenant_addons" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE "tenant_memberships" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE POLICY "tenant_addons_tenant_isolation" ON "tenant_addons" AS PERMISSIVE FOR ALL TO "keel_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid) WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);--> statement-breakpoint
+CREATE POLICY "tenant_memberships_tenant_isolation" ON "tenant_memberships" AS PERMISSIVE FOR ALL TO "keel_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid) WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);

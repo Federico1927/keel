@@ -1,0 +1,2504 @@
+{
+  "product": {
+    "tagline": "La struttura sotto il tuo negozio"
+  },
+  "common": {
+    "language": "Lingua",
+    "locales": {
+      "en": "English",
+      "it": "Italiano",
+      "es": "Español"
+    },
+    "signed_in_as": "Accesso come {name} ({role})",
+    "loading": "Caricamento…",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "search": "Cerca",
+    "actions": "Azioni",
+    "empty": "Ancora nulla qui",
+    "sign_out": "Esci",
+    "saved": "Salvato.",
+    "yes": "Sì",
+    "no": "No",
+    "delete": "Elimina",
+    "errors": {
+      "invalid_input": "Alcuni campi non sono validi.",
+      "forbidden": "Non hai i permessi per questa azione.",
+      "not_found": "Non trovato.",
+      "cannot_change_self": "Non puoi modificare la tua stessa appartenenza.",
+      "unknown": "Qualcosa è andato storto.",
+      "already_cancelled": "L'ordine è già annullato.",
+      "platform_error": "La piattaforma e-commerce ha rifiutato la richiesta.",
+      "ads_read_only": "Questa piattaforma pubblicitaria è in sola lettura in questa versione.",
+      "ads_platform_error": "La piattaforma pubblicitaria ha rifiutato la richiesta.",
+      "invalid_rules": "Le regole del segmento non sono valide.",
+      "addon_not_available": "Questo add-on non è ancora disponibile.",
+      "cod_not_in_queue": "Questo ordine non è nella coda di conferma.",
+      "cod_invalid_outcome": "Esito non valido.",
+      "cod_operator_unavailable": "Nessun operatore disponibile oggi.",
+      "cod_forbidden": "Solo un admin può rilasciare un ordine dopo una chiamata registrata.",
+      "cod_not_found": "Non trovato.",
+      "cod_invalid_input": "Dati non validi.",
+      "cod_platform_error": "La piattaforma ha rifiutato la scrittura del tag o l'annullamento; non è stato registrato nulla.",
+      "invalid_formula": "La formula non è valida."
+    },
+    "edit": "Modifica"
+  },
+  "auth": {
+    "title": "Accedi",
+    "card_title": "Bentornato",
+    "card_description": "Usa la password oppure richiedi un link di accesso via email.",
+    "tab_password": "Password",
+    "tab_magic": "Link via email",
+    "email": "Email",
+    "password": "Password",
+    "sign_in": "Accedi",
+    "signing_in": "Accesso in corso…",
+    "send_magic": "Inviami un link",
+    "sending": "Invio…",
+    "magic_sent": "Se l'indirizzo esiste, il link di accesso è in arrivo.",
+    "magic_hint": "In sviluppo il link viene stampato nella console del server.",
+    "verify_title": "Controlla la posta",
+    "verify_description": "Ti abbiamo inviato un link di accesso. Scade tra 15 minuti.",
+    "demo_hint": "Gli account demo sono elencati nel README.",
+    "errors": {
+      "invalid_credentials": "Email o password non corretti.",
+      "invalid_input": "Inserisci un'email e una password valide.",
+      "unknown": "Qualcosa è andato storto. Riprova.",
+      "no_tenant": "Il tuo account non è ancora collegato a nessun workspace."
+    }
+  },
+  "modules": {
+    "core": {
+      "orders": {
+        "name": "Ordini",
+        "description": "Ordini in entrata, timeline, note e storico cliente"
+      },
+      "shipments": {
+        "name": "Spedizioni",
+        "description": "Evasioni, tracking e spedizioni ferme"
+      },
+      "crm": {
+        "name": "CRM",
+        "description": "Clienti, segmenti e RFM"
+      },
+      "analytics": {
+        "name": "Analisi",
+        "description": "KPI, P/L e coorti"
+      },
+      "campaigns": {
+        "name": "Campagne",
+        "description": "Performance ads collegata allo stock"
+      },
+      "products": {
+        "name": "Prodotti e magazzino",
+        "description": "Catalogo, giacenze e riordini"
+      },
+      "returns": {
+        "name": "Resi",
+        "description": "Flusso resi configurabile"
+      },
+      "discounts": {
+        "name": "Sconti",
+        "description": "Codici, pool e attribuzione"
+      },
+      "purchasing": {
+        "name": "Acquisti",
+        "description": "Fornitori e ordini d'acquisto"
+      },
+      "platform": {
+        "name": "Piattaforma",
+        "description": "Utenti, impostazioni, integrazioni e audit"
+      }
+    },
+    "addon": {
+      "cod": {
+        "name": "Contrassegno",
+        "description": "Coda di conferma, assegnazione operatori, delivery score"
+      },
+      "warehouse_3pl": {
+        "name": "Connettore magazzino 3PL",
+        "description": "Collega un magazzino esterno"
+      },
+      "whatsapp": {
+        "name": "Provider WhatsApp",
+        "description": "Collega un provider WhatsApp locale"
+      },
+      "carrier_tracking": {
+        "name": "Tracking corrieri",
+        "description": "Seconda fonte per lo stato delle spedizioni"
+      }
+    }
+  },
+  "plans": {
+    "starter": "Starter",
+    "growth": "Growth",
+    "scale": "Scale"
+  },
+  "nav": {
+    "sections": {
+      "operations": "Operatività",
+      "catalog": "Catalogo",
+      "growth": "Crescita",
+      "platform": "Piattaforma"
+    },
+    "dashboard": "Dashboard",
+    "orders": "Ordini",
+    "shipments": "Spedizioni",
+    "returns": "Resi",
+    "cod_queue": "Coda contrassegno",
+    "products": "Prodotti",
+    "inventory": "Magazzino",
+    "purchasing": "Acquisti",
+    "analytics": "Analisi",
+    "campaigns": "Campagne",
+    "customers": "Clienti",
+    "segments": "Segmenti",
+    "discounts": "Sconti",
+    "integrations": "Integrazioni",
+    "users": "Utenti",
+    "settings": "Impostazioni",
+    "audit": "Registro attività",
+    "cod_settings": "Impostazioni contrassegno"
+  },
+  "shell": {
+    "open_menu": "Apri menu",
+    "switch_tenant": "Cambia workspace",
+    "admin_console": "Console super-admin",
+    "impersonating": "Stai vedendo {tenant} come super-admin. Ogni azione è registrata.",
+    "back_to_admin": "Torna alla console",
+    "suspended_title": "Workspace sospeso",
+    "suspended_description": "Questo workspace è sospeso per fatture non pagate. Contatta l'amministratore della piattaforma.",
+    "not_found_title": "Pagina non disponibile",
+    "not_found_description": "La pagina non esiste, oppure il tuo ruolo o il tuo piano non la includono."
+  },
+  "roles": {
+    "owner": "Titolare",
+    "admin": "Amministratore",
+    "operations": "Operazioni",
+    "customer_care": "Customer care",
+    "marketing": "Marketing",
+    "viewer": "Sola lettura"
+  },
+  "payment_methods": {
+    "card": "Carta",
+    "wallet": "Wallet",
+    "bank_transfer": "Bonifico",
+    "cod": "Contrassegno",
+    "bnpl": "Paga dopo (BNPL)",
+    "other": "Altro"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "description": "Oggi fino ad ora, confrontato con ieri e con una settimana fa alla stessa ora.",
+    "coming_soon": "In arrivo",
+    "kpi": {
+      "revenue": "Vendite oggi",
+      "orders": "Ordini oggi",
+      "aov": "Valore medio ordine",
+      "cancel_rate": "Tasso di annullamento",
+      "placed": "piazzati"
+    },
+    "vs_yesterday": "vs ieri",
+    "vs_last_week": "vs settimana scorsa",
+    "today_by_status": "Ordini di oggi per stato",
+    "revenue_30d": "Vendite, ultimi 30 giorni",
+    "work_queue": "Da gestire",
+    "open": {
+      "fresh": "Ordini nuovi",
+      "pending_review": "Da verificare",
+      "on_hold": "In attesa",
+      "shipment_exceptions": "Eccezioni spedizione",
+      "stuck_shipments": "Spedizioni ferme",
+      "returns_requested": "Richieste di reso",
+      "critical_variants": "Varianti sotto soglia",
+      "failed_webhooks": "Webhook falliti"
+    },
+    "forecast": {
+      "title": "Previsione {month}",
+      "revenue": "Ricavo",
+      "band": "intervallo probabile",
+      "orders": "Ordini",
+      "spend": "Spesa ads",
+      "hint": "Giorno {elapsed} di {days}, run rate per giorno della settimana.",
+      "more": "Dettagli"
+    }
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "description": "Paese, valuta, fuso orario, soglie e commissioni usati da ogni calcolo.",
+    "tabs": {
+      "general": "Generali",
+      "operational": "Soglie e commissioni",
+      "taxes": "Aliquote"
+    },
+    "general": {
+      "title": "Workspace",
+      "description": "Identità e localizzazione del negozio.",
+      "name": "Nome",
+      "country": "Paese (ISO 2)",
+      "currency": "Valuta (ISO 4217)",
+      "timezone": "Fuso orario (IANA)",
+      "default_locale": "Lingua predefinita",
+      "order_prefix": "Prefisso numeri ordine"
+    },
+    "operational": {
+      "thresholds_title": "Soglie",
+      "thresholds_description": "Usate da rischio magazzino, consigli campagne, rilevamento duplicati e spedizioni.",
+      "fees_title": "Commissioni di pagamento",
+      "fees_description": "Percentuale in punti base (180 = 1,80%) e quota fissa per ordine in centesimi di {currency}.",
+      "fee_method": "Metodo",
+      "fee_percent": "Commissione (bps)",
+      "fee_fixed": "Fissa (centesimi)",
+      "fields": {
+        "lowStockThreshold": "Soglia stock basso (pezzi)",
+        "coverageDaysWarning": "Copertura in allerta (giorni)",
+        "coverageDaysCritical": "Copertura critica (giorni)",
+        "salesVelocityLookbackDays": "Finestra velocità di vendita (giorni)",
+        "reorderTargetDays": "Copertura obiettivo riordino (giorni)",
+        "roiGood": "ROI buono (rapporto)",
+        "roiMedium": "ROI medio (rapporto)",
+        "campaignStockThreshold": "Soglia stock campagne (pezzi)",
+        "duplicateOrderWindowDays": "Finestra ordini duplicati (giorni)",
+        "shipmentStuckDays": "Spedizione ferma dopo (giorni)",
+        "returnWindowDays": "Finestra resi (giorni)",
+        "shippingCostMinor": "Costo spedizione predefinito (centesimi)",
+        "returnShippingFallbackDays": "Giorni dalla spedizione alla consegna presunta",
+        "returnExcludedProductTypes": "Tipi di prodotto esclusi dai resi",
+        "returnExcludedProductTypes_placeholder": "Gift card, Intimo"
+      }
+    },
+    "taxes": {
+      "title": "Aliquote per paese",
+      "description": "Il ricavo netto usa l'aliquota del paese di spedizione; in mancanza, quella del paese del negozio.",
+      "country": "Paese",
+      "rate": "Aliquota",
+      "prices_include_tax": "Prezzi IVA inclusa",
+      "add": "Aggiungi o aggiorna"
+    },
+    "order_states_link": "Regole di stato ordine"
+  },
+  "users": {
+    "title": "Utenti e ruoli",
+    "description": "Chi può accedere a questo workspace e con quale ruolo.",
+    "member": "Membro",
+    "role": "Ruolo",
+    "status": "Stato",
+    "last_login": "Ultimo accesso",
+    "active": "Attivo",
+    "inactive": "Disattivato",
+    "deactivate": "Disattiva",
+    "reactivate": "Riattiva",
+    "invite_title": "Invita un membro",
+    "invite_description": "La persona accede con il link via email; nessuna password viene inviata.",
+    "name": "Nome",
+    "email": "Email",
+    "invite": "Invita",
+    "invited": "Invito creato. In sviluppo il link di accesso è stampato nella console del server."
+  },
+  "audit": {
+    "title": "Registro attività",
+    "description": "Ogni modifica significativa, con autore e differenze campo per campo.",
+    "when": "Quando",
+    "actor": "Autore",
+    "action": "Azione",
+    "entity": "Entità",
+    "changes": "Modifiche",
+    "system": "Sistema",
+    "via": "tramite {name}",
+    "actor_types": {
+      "user": "Utente",
+      "system": "Sistema",
+      "super_admin": "Super-admin",
+      "impersonation": "Impersonificazione"
+    },
+    "empty_title": "Nessuna voce nel registro",
+    "empty_description": "Le modifiche a impostazioni, utenti, ordini e integrazioni compariranno qui.",
+    "pagination": "Pagina {page} di {pages} · {total} voci"
+  },
+  "order_status": {
+    "new": "Nuovo",
+    "pending_review": "Da verificare",
+    "confirmed": "Confermato",
+    "fulfilling": "In evasione",
+    "shipped": "Spedito",
+    "delivered": "Consegnato",
+    "on_hold": "In attesa",
+    "cancelled": "Annullato",
+    "returned_partial": "Reso parziale",
+    "returned": "Reso",
+    "refunded": "Rimborsato"
+  },
+  "payment_status": {
+    "pending": "In attesa",
+    "paid": "Pagato",
+    "partially_refunded": "Rimborsato in parte",
+    "refunded": "Rimborsato",
+    "voided": "Annullato"
+  },
+  "shipment_status": {
+    "pending": "In attesa",
+    "label_created": "Etichetta creata",
+    "in_transit": "In transito",
+    "out_for_delivery": "In consegna",
+    "attempted": "Tentativo di consegna",
+    "delivered": "Consegnato",
+    "exception": "Eccezione",
+    "returned": "Rientrato al mittente",
+    "failed": "Fallito",
+    "unknown": "Sconosciuto"
+  },
+  "state_rules": {
+    "title": "Regole di stato ordine",
+    "description": "Come i fatti della piattaforma (tag, pagamento, evasione) diventano lo stato canonico. Vince la priorità più bassa; annullamenti, rimborsi, resi e consegne prevalgono sempre.",
+    "back_to_settings": "Torna alle impostazioni",
+    "rules_title": "Regole",
+    "rules_description": "Valutate in ordine di priorità; decide la prima che corrisponde.",
+    "add_rule": "Aggiungi regola",
+    "edit_rule": "Modifica regola",
+    "dialog_description": "Lascia vuota una condizione per ignorarla. Le liste sono separate da virgola.",
+    "priority": "Priorità",
+    "rule": "Regola",
+    "conditions": "Condizioni",
+    "result": "Stato risultante",
+    "inactive": "Disattiva",
+    "active": "Attiva",
+    "no_rules": "Nessuna regola: valgono i default della piattaforma (pagato → confermato, evaso → spedito).",
+    "overrides_note": "I fatti certi vengono prima delle regole: annullato → annullato, rimborsato → rimborsato, resi → reso, spedizione consegnata → consegnato. Gli stati impostati dall'operatore restano finché uno di questi fatti non cambia.",
+    "preview_title": "Anteprima sugli ordini recenti",
+    "preview_description": "Sugli ultimi {n} ordini le regole attuali ne cambierebbero {changed}.",
+    "order": "Ordine",
+    "current": "Attuale",
+    "would_be": "Diventerebbe",
+    "fields": {
+      "tags_any": "Almeno uno di questi tag",
+      "tags_all": "Tutti questi tag",
+      "tags_none": "Nessuno di questi tag",
+      "payment_methods": "Metodi di pagamento",
+      "payment_statuses": "Stati pagamento",
+      "financial_raw": "Stato finanziario piattaforma",
+      "fulfillment_raw": "Stato evasione piattaforma",
+      "min_age": "Età minima (ore)"
+    },
+    "summary": {
+      "tags_any": "tag (uno): {v}",
+      "tags_all": "tag (tutti): {v}",
+      "tags_none": "tag esclusi: {v}",
+      "payment_methods": "pagamento: {v}",
+      "payment_statuses": "stato pagamento: {v}",
+      "financial_raw": "finanziario: {v}",
+      "fulfillment_raw": "evasione: {v}",
+      "min_age": "più vecchio di {v}h",
+      "always": "sempre"
+    }
+  },
+  "notifications": {
+    "title": "Notifiche",
+    "empty": "Nessuna notifica"
+  },
+  "orders": {
+    "title": "Ordini",
+    "description": "Ordini in entrata con stato canonico, pagamento e assegnazione.",
+    "all": "Tutti",
+    "manual": "manuale",
+    "search": "Cerca",
+    "search_placeholder": "Numero ordine, nome, email o telefono",
+    "clear_filters": "Pulisci",
+    "empty_title": "Nessun ordine trovato",
+    "empty_description": "Prova un'altra ricerca o pulisci i filtri.",
+    "pagination": "{from}–{to} di {total} ordini",
+    "columns": {
+      "order": "Ordine",
+      "customer": "Cliente",
+      "status": "Stato",
+      "payment": "Pagamento",
+      "channel": "Canale",
+      "assigned": "Assegnato",
+      "total": "Totale"
+    },
+    "filters": {
+      "payment": "Metodo di pagamento",
+      "payment_status": "Stato pagamento",
+      "assigned": "Assegnatario",
+      "assigned_me": "Assegnati a me",
+      "assigned_none": "Non assegnati",
+      "sort": "Ordina",
+      "from": "Dal",
+      "to": "Al",
+      "tag": "Tag"
+    },
+    "sort": {
+      "placed_desc": "Più recenti",
+      "placed_asc": "Più vecchi",
+      "total_desc": "Totale più alto"
+    }
+  },
+  "order_detail": {
+    "back": "Ordini",
+    "manual_status": "manuale",
+    "assigned_to": "Assegnato a {name}",
+    "customer": "Cliente",
+    "open_customer": "Apri scheda cliente",
+    "history_title": "Storico cliente",
+    "history_unidentified": "Cliente non identificato: nessun id, email, telefono o indirizzo da confrontare.",
+    "history_first": "Primo ordine di questo cliente.",
+    "history_hops": "Include ordini collegati in {hops} passaggi (email, telefono o indirizzo condivisi).",
+    "history": {
+      "total": "Ordini precedenti",
+      "spent": "Valore totale",
+      "delivered": "Consegnati",
+      "returned": "Resi",
+      "cancelled": "Annullati",
+      "via": {
+        "email": "email",
+        "phone": "telefono",
+        "address": "indirizzo",
+        "name": "nome+CAP",
+        "linked": "collegato",
+        "customer": "cliente"
+      }
+    },
+    "attribution": "Attribuzione",
+    "channel": "Canale",
+    "campaign": "Campagna",
+    "duplicates_title": "Possibile ordine duplicato",
+    "duplicates_description": "Lo stesso cliente ha fatto un altro ordine con lo stesso prodotto entro {days} giorni:",
+    "duplicates": {
+      "same_variant": "stessa variante",
+      "same_product": "stesso prodotto"
+    },
+    "on_hold_reason": "In attesa: {reason}",
+    "lines": "Articoli",
+    "line": {
+      "product": "Prodotto",
+      "qty": "Q.tà",
+      "unit": "Prezzo unitario",
+      "total": "Totale"
+    },
+    "totals": {
+      "subtotal": "Subtotale",
+      "discount": "Sconto",
+      "shipping": "Spedizione",
+      "tax": "Imposte",
+      "total": "Totale",
+      "refunded": "Rimborsato"
+    },
+    "shipments": "Spedizioni",
+    "days_in_transit": "{days} giorni in viaggio",
+    "returns": "Resi",
+    "notes": "Note interne",
+    "note_placeholder": "Scrivi una nota. Digita @ per menzionare un collega.",
+    "mention_hint": "Le menzioni notificano la persona. Le note non escono mai dalla piattaforma.",
+    "add_note": "Aggiungi nota",
+    "delete_note": "Elimina nota",
+    "no_notes": "Nessuna nota interna.",
+    "timeline": "Timeline",
+    "no_events": "Nessun evento.",
+    "system": "Sistema",
+    "integration": "Integrazione",
+    "change_status": "Cambia stato",
+    "set_status_to": "Imposta stato",
+    "reset_status": "Lascia decidere alle regole",
+    "assign": "Assegna",
+    "unassigned": "Non assegnato",
+    "cancel_order": "Annulla ordine",
+    "confirm": "Conferma",
+    "note_optional": "Nota (facoltativa)",
+    "status_dialog_title": "Imposta stato: {status}",
+    "status_dialog_description": "Lo stato resta finché un fatto certo (annullamento, rimborso, consegna, reso) non lo cambia. La modifica è registrata nella timeline con il tuo nome.",
+    "cancel_dialog_title": "Annullare questo ordine?",
+    "cancel_dialog_description": "L'ordine viene annullato prima sulla piattaforma e-commerce, poi qui. L'operazione non è reversibile.",
+    "cancel_reason": "Motivo",
+    "cancel_reasons": {
+      "customer": "Richiesta del cliente",
+      "inventory": "Merce esaurita",
+      "fraud": "Sospetta frode",
+      "declined": "Pagamento rifiutato",
+      "other": "Altro"
+    },
+    "restock": "Reintegra la merce",
+    "refund": "Rimborsa il pagamento incassato",
+    "request_return": "Apri reso"
+  },
+  "order_events": {
+    "imported": "Importato",
+    "platform_update": "Aggiornamento piattaforma",
+    "status_changed": "Stato cambiato",
+    "payment_updated": "Pagamento aggiornato",
+    "fulfillment_updated": "Evasione aggiornata",
+    "shipment_updated": "Spedizione aggiornata",
+    "note_added": "Nota aggiunta",
+    "assigned": "Assegnato",
+    "cancelled": "Annullato",
+    "return_requested": "Reso richiesto",
+    "return_updated": "Reso aggiornato",
+    "manual_payment_recorded": "Pagamento manuale registrato",
+    "hold_set": "Messo in attesa",
+    "hold_released": "Attesa rimossa",
+    "cod_attempt": "Tentativo di contatto",
+    "cod_assigned": "Operatore assegnato",
+    "tags_updated": "Tag aggiornati",
+    "modified": "Ordine modificato",
+    "replaces": "Creato in sostituzione",
+    "replaced": "Sostituito da un nuovo ordine"
+  },
+  "shipments": {
+    "title": "Spedizioni",
+    "description": "Evasioni dalla piattaforma e-commerce; stato calcolato da tutte le fonti. Ferma significa in viaggio da più di {days} giorni.",
+    "search": "Cerca",
+    "search_placeholder": "Tracking, ordine o cliente",
+    "clear": "Pulisci",
+    "source": "fonte: {source}",
+    "empty_title": "Nessuna spedizione trovata",
+    "empty_description": "Prova un'altra vista o pulisci i filtri.",
+    "pagination": "{from}–{to} di {total} spedizioni",
+    "kpi": {
+      "in_transit": "In transito",
+      "out_for_delivery": "In consegna",
+      "exceptions": "Eccezioni",
+      "stuck": "Ferme > {days}g",
+      "delivered_7d": "Consegnate (7g)",
+      "returned_30d": "Rientrate (30g)"
+    },
+    "views": {
+      "all": "Tutte",
+      "open": "Aperte",
+      "stuck": "Ferme",
+      "exceptions": "Eccezioni"
+    },
+    "columns": {
+      "order": "Ordine",
+      "tracking": "Corriere e tracking",
+      "status": "Stato",
+      "shipped": "Spedita",
+      "days": "Giorni",
+      "last_event": "Ultimo evento"
+    },
+    "filters": {
+      "status": "Stato",
+      "carrier": "Corriere"
+    }
+  },
+  "stock_risk": {
+    "critical": "Critico",
+    "warning": "Basso",
+    "ok": "Sano",
+    "no_sales": "Senza vendite"
+  },
+  "po_status": {
+    "draft": "Bozza",
+    "sent": "Inviato",
+    "confirmed": "Confermato",
+    "in_transit": "In transito",
+    "partially_received": "Ricevuto in parte",
+    "received": "Ricevuto",
+    "cancelled": "Annullato"
+  },
+  "products": {
+    "title": "Prodotti",
+    "description": "Catalogo sincronizzato dalla piattaforma e-commerce, con giacenza, velocità di vendita e rischio per prodotto.",
+    "search": "Cerca",
+    "search_placeholder": "Titolo o SKU",
+    "clear": "Pulisci",
+    "all_types": "Tutti i tipi",
+    "all_statuses": "Tutti gli stati",
+    "empty_title": "Nessun prodotto trovato",
+    "empty_description": "Prova un'altra ricerca o pulisci i filtri.",
+    "pagination": "{from}–{to} di {total} prodotti",
+    "status": {
+      "active": "Attivo",
+      "draft": "Bozza",
+      "archived": "Archiviato"
+    },
+    "columns": {
+      "product": "Prodotto",
+      "type": "Tipo",
+      "status": "Stato",
+      "variants": "Varianti",
+      "available": "Disponibili",
+      "incoming": "In arrivo",
+      "sold": "Venduti ({days}g)",
+      "risk": "Rischio"
+    }
+  },
+  "product_detail": {
+    "back": "Prodotti",
+    "not_repurchasable": "non riacquistabile",
+    "repurchasable": "Riacquistabile",
+    "platform_status": "Stato sulla piattaforma",
+    "incoming": "Ordini d'acquisto in arrivo",
+    "campaigns": "Campagne collegate",
+    "movements": "Movimenti di magazzino",
+    "no_movements": "Nessun movimento registrato.",
+    "sales_90d": "Pezzi venduti, ultimi 90 giorni",
+    "variants": "Varianti e giacenze",
+    "create_po": "Crea ordine d'acquisto",
+    "save_price": "Salva",
+    "kpi": {
+      "available": "Disponibili",
+      "incoming": "In arrivo",
+      "sold": "Venduti ({days}g)",
+      "cover": "Giorni di copertura",
+      "reorder": "Riordino suggerito"
+    },
+    "variant": {
+      "title": "Variante",
+      "sku": "SKU",
+      "price": "Prezzo",
+      "cost": "Costo",
+      "available": "Disponibili",
+      "incoming": "In arrivo",
+      "velocity": "Pezzi/giorno",
+      "risk": "Rischio",
+      "reorder": "Riordino"
+    },
+    "movement": {
+      "receipt": "Ricevimento",
+      "return_restock": "Rientro da reso",
+      "adjustment": "Rettifica",
+      "sync": "Sync",
+      "sale": "Vendita"
+    }
+  },
+  "inventory": {
+    "title": "Magazzino",
+    "description": "Giacenza per variante con velocità su {days} giorni, giorni di copertura e riordini suggeriti per arrivare a {target} giorni.",
+    "search": "Cerca",
+    "search_placeholder": "Prodotto, variante o SKU",
+    "location": "Location",
+    "all_locations": "Tutte le location",
+    "lookback": "Finestra",
+    "lookback_days": "Ultimi {days} giorni",
+    "apply": "Applica",
+    "create_po": "Crea ordine d'acquisto",
+    "empty_title": "Niente da mostrare",
+    "empty_description": "Cambia i filtri o sincronizza il catalogo.",
+    "pagination": "{from}–{to} di {total} varianti",
+    "kpi": {
+      "units": "Pezzi a stock",
+      "value": "Valore di magazzino",
+      "value_hint": "all'ultimo costo d'acquisto",
+      "reorder": "Pezzi da riordinare"
+    },
+    "columns": {
+      "variant": "Variante",
+      "available": "Disponibili",
+      "incoming": "In arrivo",
+      "sold": "Venduti",
+      "velocity": "Pezzi/giorno",
+      "cover": "Copertura",
+      "reorder": "Riordino"
+    }
+  },
+  "purchasing": {
+    "title": "Acquisti",
+    "description": "Ordini d'acquisto dalla bozza al ricevimento; il ricevimento aggiorna stock e costo prodotto.",
+    "suppliers": "Fornitori",
+    "new_po": "Nuovo ordine d'acquisto",
+    "all": "Tutti",
+    "lines_count": "{n} righe",
+    "covers_orders": "copre {n} ordini",
+    "empty_title": "Nessun ordine d'acquisto",
+    "empty_description": "Creane uno dai suggerimenti del magazzino.",
+    "pagination": "{from}–{to} di {total} ordini d'acquisto",
+    "columns": {
+      "number": "Numero",
+      "supplier": "Fornitore",
+      "status": "Stato",
+      "expected": "Atteso / ricevuto",
+      "units": "Pezzi",
+      "total": "Totale",
+      "covers": "Backorder"
+    }
+  },
+  "po_detail": {
+    "back": "Acquisti",
+    "expected": "atteso il {date}",
+    "covers_orders": "copre {n} ordini in attesa",
+    "summary": "Riepilogo",
+    "total": "Totale",
+    "paid": "Pagato",
+    "balance": "Saldo",
+    "ordered": "Ordinato",
+    "received": "Ricevuto",
+    "destination": "Destinazione",
+    "waiting_orders": "Ordini in attesa di questa merce",
+    "payments": "Pagamenti",
+    "lines": "Righe",
+    "mark_as": "Segna come {status}",
+    "record_payment": "Registra pagamento",
+    "amount": "Importo",
+    "paid_on": "Pagato il",
+    "method": "Metodo",
+    "methods": {
+      "bank_transfer": "Bonifico",
+      "card": "Carta",
+      "other": "Altro"
+    },
+    "receive_into": "Ricevi in",
+    "push_to_platform": "Aggiorna anche lo stock sulla piattaforma e-commerce",
+    "receive": "Ricevi",
+    "received_ok": "Ricevuto. {released} ordini in attesa sbloccati.",
+    "audit_hint": "Ultimo aggiornamento {at}. Ogni transizione e ricevimento è nel registro attività.",
+    "line": {
+      "item": "Articolo",
+      "ordered": "Ordinati",
+      "received": "Ricevuti",
+      "unit_cost": "Costo unitario",
+      "total": "Totale",
+      "receive_now": "Ricevi ora"
+    }
+  },
+  "po_new": {
+    "back": "Acquisti",
+    "title": "Nuovo ordine d'acquisto",
+    "description": "Le quantità sono precompilate con il suggerimento per arrivare a {target} giorni di copertura; i costi con l'ultimo costo d'acquisto.",
+    "supplier": "Fornitore",
+    "destination": "Destinazione",
+    "expected": "Atteso il",
+    "notes": "Note",
+    "create": "Crea bozza",
+    "no_candidates": "Nessuna variante da riordinare al momento.",
+    "line": {
+      "variant": "Variante",
+      "available": "Disponibili",
+      "incoming": "In arrivo",
+      "cover": "Copertura",
+      "quantity": "Quantità",
+      "unit_cost": "Costo unitario ({currency})"
+    }
+  },
+  "suppliers": {
+    "back": "Acquisti",
+    "title": "Fornitori",
+    "description": "Anagrafica e saldi: dovuto sugli ordini confermati meno i pagamenti registrati.",
+    "add_title": "Aggiungi fornitore",
+    "add": "Aggiungi",
+    "fields": {
+      "name": "Nome",
+      "payeeName": "Intestatario",
+      "email": "Email",
+      "phone": "Telefono",
+      "country": "Paese (ISO 2)",
+      "leadTimeDays": "Lead time (giorni)"
+    },
+    "columns": {
+      "supplier": "Fornitore",
+      "contact": "Contatto",
+      "lead_time": "Lead time",
+      "owed": "Dovuto",
+      "paid": "Pagato",
+      "balance": "Saldo"
+    }
+  },
+  "analytics": {
+    "title": "Analisi",
+    "description": "KPI, P/L, prodotti e coorti. Ogni numero apre gli ordini che lo compongono.",
+    "period": "Periodo",
+    "apply": "Applica",
+    "from": "Dal",
+    "to": "Al",
+    "presets": {
+      "7d": "7 giorni",
+      "30d": "30 giorni",
+      "90d": "90 giorni",
+      "mtd": "Mese corrente",
+      "ytd": "Anno corrente"
+    },
+    "tabs": {
+      "overview": "Panoramica",
+      "pnl": "P/L",
+      "products": "Prodotti",
+      "cohorts": "Coorti",
+      "ltv": "LTV",
+      "basket": "Analisi prodotto",
+      "custom": "La mia dashboard",
+      "attribution": "Attribuzione"
+    },
+    "kpi": {
+      "net_revenue": "Ricavo netto",
+      "orders": "Ordini di vendita",
+      "aov": "Valore medio ordine",
+      "cancel_rate": "Tasso di annullamento",
+      "return_rate": "Tasso di reso",
+      "contribution": "Margine di contribuzione",
+      "new_customers": "Nuovi clienti",
+      "returning_customers": "Clienti ricorrenti"
+    },
+    "vs_previous": "vs periodo precedente",
+    "series_title": "Vendite per giorno",
+    "orders_series": "ordini",
+    "pnl": {
+      "title": "Conto economico",
+      "description": "Netto di imposte (aliquota per paese di spedizione), costo del venduto dallo snapshot del costo d'acquisto, spedizione e commissioni di pagamento dalle impostazioni, spesa ads dalle piattaforme collegate, costi fissi ripartiti per giorno.",
+      "line": "Voce",
+      "amount": "Importo",
+      "rate": "% sul netto",
+      "gross": "Vendite lorde",
+      "refunds": "Rimborsi",
+      "tax": "Imposte",
+      "net": "Ricavo netto",
+      "cogs": "Costo del venduto",
+      "gross_margin": "Margine lordo",
+      "shipping": "Costi di spedizione",
+      "fees": "Commissioni di pagamento",
+      "contribution": "Margine di contribuzione",
+      "ads": "Pubblicità",
+      "fixed": "Costi fissi",
+      "operating": "Risultato operativo",
+      "orders": "Ordini di vendita",
+      "placed": "Ordini piazzati",
+      "cancelled": "Annullati",
+      "returned": "Resi",
+      "pending": "In sospeso",
+      "cogs_incomplete": "{n} ordini hanno righe senza costo d'acquisto: il costo del venduto è sottostimato.",
+      "by_month": "Per mese",
+      "month": "Mese",
+      "open_orders": "Apri gli ordini",
+      "cost_sources": "Spedizioni: {shipping}. Costi fissi: {fixed}.",
+      "edit_costs": "Inserisci i costi di periodo",
+      "source": {
+        "actual": "consuntivo da fattura",
+        "estimate": "stima",
+        "legacy": "importo mensile fisso delle impostazioni",
+        "none": "nessun costo inserito",
+        "mixed": "consuntivo dove c'è, stima altrove"
+      }
+    },
+    "products": {
+      "title": "Performance prodotti",
+      "product": "Prodotto",
+      "units": "Pezzi",
+      "orders": "Ordini",
+      "revenue": "Ricavi",
+      "cogs": "Costo",
+      "margin": "Margine",
+      "returned": "Resi",
+      "empty": "Nessuna vendita nel periodo."
+    },
+    "cohorts": {
+      "title": "Coorti di riacquisto",
+      "description": "Clienti per mese del primo ordine e quota che ha riordinato nei mesi successivi.",
+      "cohort": "Coorte",
+      "customers": "Clienti",
+      "month": "M+{n}",
+      "empty": "Storico ancora insufficiente."
+    },
+    "blended": {
+      "title": "Metriche marketing blended",
+      "description": "Su tutte le piattaforme, contro gli ordini reali: non quello che le piattaforme dichiarano.",
+      "mer": "MER",
+      "mer_hint": "ricavo netto / spesa ads · spesa {share} del ricavo",
+      "nc_roas": "nc-ROAS",
+      "nc_roas_hint": "solo primi ordini · {n} nuovi clienti",
+      "cac": "CAC blended",
+      "cac_hint": "spesa ads / nuovi clienti",
+      "poas": "POAS",
+      "poas_hint": "margine di contribuzione / spesa ads",
+      "new": "nuovi",
+      "channel": {
+        "paid_social": "Paid social (Meta)",
+        "paid_search": "Paid search (Google)"
+      }
+    },
+    "forecast": {
+      "title": "Previsione a fine mese · {month}",
+      "description": "Run rate di {elapsed} giorni su {days}, pesato sul profilo per giorno della settimana delle ultime 8 settimane. Banda: una deviazione standard.",
+      "revenue": "Ricavo previsto",
+      "orders": "Ordini previsti",
+      "spend": "Spesa ads prevista",
+      "to_date": "a oggi {v}"
+    },
+    "costs": {
+      "title": "Costi di periodo",
+      "description": "Voci fisse e fattura di spedizione per mese, prima come stima e poi come consuntivo. Il P/L usa il consuntivo dove c'è, la stima altrove, e lo dichiara.",
+      "back": "P/L",
+      "current": "mese corrente",
+      "next": "mese prossimo",
+      "orders_n": "{n} ordini di vendita",
+      "fixed_used": "fissi {amount}",
+      "shipping_used": "spedizioni {amount}",
+      "fixed": "Costi fissi",
+      "shipping": "Spedizioni",
+      "line": "Voce",
+      "estimate": "Stima",
+      "actual": "Consuntivo",
+      "used": "Usato nel P/L",
+      "shipping_hint": "stima per ordine {amount}",
+      "shipping_dialog_help": "Stima: il budget del mese. Consuntivo: il totale della fattura del corriere; sostituisce la stima per ordine di questo mese.",
+      "fixed_total": "Totale fissi",
+      "kind": "Tipo",
+      "kind_fixed": "Fisso",
+      "kind_other": "Altro",
+      "label_placeholder": "Affitto, personale, software, agenzia…",
+      "actual_placeholder": "quando noto",
+      "note": "Nota",
+      "add_line": "Aggiungi voce",
+      "source": {
+        "actual": "consuntivo",
+        "estimate": "stima",
+        "none": "nessuno"
+      }
+    },
+    "ltv": {
+      "title": "Valore del cliente nel tempo (LTV)",
+      "description": "Ricavo netto cumulato medio per cliente a 30/60/90/180/365 giorni dal primo ordine. Contano solo i clienti abbastanza vecchi per la finestra, così le coorti giovani non sono penalizzate.",
+      "by": {
+        "cohort": "Mese di acquisizione",
+        "channel": "Canale di acquisizione",
+        "product": "Primo prodotto"
+      },
+      "first_order": "Primo ordine",
+      "window": "{d} g",
+      "repeat_90": "Riacquisto in 90 g",
+      "days_to_second": "Giorni al 2° ordine",
+      "cac": "CAC",
+      "payback": "Rientro",
+      "days": "{n} g",
+      "matured": "{n} clienti abbastanza vecchi",
+      "footnote": "Ricavo netto = totale − tasse − rimborsi degli ordini di vendita. CAC = spesa ads del mese / clienti acquisiti nel mese; rientro = giorni finché il margine cumulato per cliente copre il CAC.",
+      "channel": {
+        "paid_social": "Social a pagamento",
+        "paid_search": "Ricerca a pagamento",
+        "organic_search": "Ricerca organica",
+        "social": "Social",
+        "email": "Email",
+        "referral": "Referral",
+        "direct": "Diretto",
+        "marketplace": "Marketplace",
+        "unknown": "Sconosciuto"
+      }
+    },
+    "basket": {
+      "entry_title": "Prodotti di ingresso",
+      "entry_description": "Il primo prodotto acquistato da un cliente e quanto valgono quei clienti dopo un anno. Ordinati per valore a 365 giorni.",
+      "acquired": "Clienti acquisiti",
+      "ltv365": "Valore a 365 g",
+      "repeat": "Riacquisto in 365 g",
+      "pairs_title": "Acquistati insieme",
+      "pairs_description": "Coppie di prodotti nello stesso ordine di vendita nel periodo. Lift > 1: insieme più spesso del caso.",
+      "lift": "lift {v}",
+      "paths_title": "Primo → secondo acquisto",
+      "paths_description": "Prodotto principale del primo ordine e del secondo, con i giorni mediani tra i due."
+    },
+    "alerts_link": "Alert",
+    "costs_link": "Costi di periodo",
+    "metrics": {
+      "net_revenue": "Ricavo netto",
+      "gross_revenue": "Ricavo lordo",
+      "orders": "Ordini di vendita",
+      "aov": "Scontrino medio",
+      "ad_spend": "Spesa ads",
+      "cogs": "Costo del venduto",
+      "gross_margin": "Margine lordo",
+      "shipping": "Costi di spedizione",
+      "fees": "Commissioni di pagamento",
+      "fixed_costs": "Costi fissi",
+      "contribution": "Margine di contribuzione",
+      "operating_profit": "Risultato operativo",
+      "refunds": "Rimborsi",
+      "new_customers": "Nuovi clienti",
+      "mer": "MER",
+      "nc_roas": "nc-ROAS",
+      "cac": "CAC blended",
+      "poas": "POAS"
+    },
+    "custom": {
+      "title": "La mia dashboard",
+      "description": "Le tue metriche nel periodo scelto, confrontate con il precedente. Ogni utente sceglie le proprie.",
+      "edit": "Scegli le metriche",
+      "metrics_title": "Metriche personalizzate",
+      "metrics_description": "Una formula sulle metriche base, condivisa da tutto il team. Le metriche monetarie sono in unità minime (centesimi).",
+      "label": "Nome",
+      "label_placeholder": "Utile per ordine",
+      "formula": "Formula",
+      "format": "Formato",
+      "formats": {
+        "money": "Importo",
+        "ratio": "Rapporto (×)",
+        "percent": "Percentuale",
+        "number": "Numero"
+      },
+      "available": "Disponibili:",
+      "save_metric": "Salva metrica",
+      "invalid_formula": "Formula non valida."
+    },
+    "attribution": {
+      "title": "Attribuzione multi-touch",
+      "description": "Ordini di vendita del periodo accreditati a canali o campagne in base alle visite che li hanno preceduti (finestra di 30 giorni). Confronta il modello con l'ultimo clic e con quanto rivendicano le piattaforme.",
+      "models": {
+        "last_click": "Ultimo clic",
+        "first_click": "Primo clic",
+        "linear": "Lineare",
+        "time_decay": "Decadimento temporale",
+        "position_based": "Basato sulla posizione",
+        "last_platform_click": "Ultimo clic di piattaforma"
+      },
+      "model_help": {
+        "last_click": "Tutto il merito alla visita che ha chiuso l'ordine.",
+        "first_click": "Tutto il merito alla prima visita nota dei 30 giorni precedenti.",
+        "linear": "Merito diviso in parti uguali tra tutte le visite del percorso.",
+        "time_decay": "Più merito alle visite vicine all'acquisto (dimezzamento 7 giorni).",
+        "position_based": "40 % alla prima visita, 40 % all'ultima, 20 % alle intermedie.",
+        "last_platform_click": "Quello che rivendica una piattaforma: vince l'ultimo clic a pagamento, anche se l'ordine l'ha chiuso una visita organica."
+      },
+      "by": {
+        "channel": "Canale",
+        "campaign": "Campagna"
+      },
+      "orders": "Ordini accreditati",
+      "revenue": "Ricavo netto accreditato",
+      "spend": "Spesa",
+      "roas": "ROAS",
+      "last_click": "Ultimo clic",
+      "platform_claim": "Rivendicato dalla piattaforma",
+      "declared": "Dichiarato dalla piattaforma",
+      "footnote": "I percorsi vengono dalla visita di atterraggio dell'ordine e dalle visite precedenti del cliente; con il Web Pixel installato includono ogni sessione. Gli ordini senza visite usano la propria attribuzione."
+    },
+    "alerts": {
+      "title": "Alert",
+      "description": "Regole su metriche giornaliere: una soglia, o un'anomalia rispetto alla base robusta delle settimane precedenti. Controllate ogni ora dal job runner.",
+      "back": "Analisi",
+      "rules": "Regole",
+      "no_rules": "Nessuna regola",
+      "events": "Alert recenti",
+      "no_events": "Nessun alert finora",
+      "name": "Nome",
+      "metric": "Metrica",
+      "kind": "Tipo",
+      "kinds": {
+        "anomaly": "Anomalia",
+        "threshold": "Soglia"
+      },
+      "op": "Condizione",
+      "ops": {
+        "lt": "sotto",
+        "gt": "sopra"
+      },
+      "value": "Valore",
+      "days": "Per giorni consecutivi",
+      "direction": "Direzione",
+      "directions": {
+        "both": "in entrambe",
+        "up": "picco in su",
+        "down": "calo"
+      },
+      "sensitivity": "Sensibilità (deviazioni)",
+      "baseline_days": "Base (giorni)",
+      "channels": {
+        "in_app": "In-app",
+        "email": "Email",
+        "slack": "Slack"
+      },
+      "channels_label": "Invio",
+      "cooldown": "Pausa (h)",
+      "recipients": "Destinatari",
+      "create": "Crea regola",
+      "condition": "Condizione",
+      "last_fired": "Ultimo scatto",
+      "inactive": "spenta",
+      "enable": "Attiva",
+      "disable": "Disattiva",
+      "run_now": "Controlla ora",
+      "ran": "{evaluated} regole controllate, {fired} scattate",
+      "new_rule": "Nuova regola",
+      "new_rule_help": "Soglie monetarie in unità minime (centesimi). Rapporti in decimali (1,5 = 1,5×; 0,05 = 5 %).",
+      "delivery": "Invio",
+      "delivery_help": "In-app sempre. Email tramite il provider della piattaforma; Slack tramite un incoming webhook del tuo workspace.",
+      "slack_url": "URL incoming webhook Slack",
+      "slack_connected": "collegato — incolla un nuovo URL per sostituirlo",
+      "slack_live": "Slack collegato: i messaggi vengono inviati.",
+      "slack_mock": "Slack collegato in modalità mock: i messaggi sono registrati, non inviati.",
+      "slack_none": "Slack non collegato.",
+      "describe_threshold": "{op} {value} per {days} giorni",
+      "describe_anomaly": "anomalia, {direction}, ≥ {sensitivity} deviazioni su {days} giorni",
+      "reasons": {
+        "threshold": "soglia superata",
+        "anomaly_up": "picco",
+        "anomaly_down": "calo",
+        "ok": "ok",
+        "insufficient_data": "dati insufficienti"
+      },
+      "value_vs_baseline": "valore {value} vs {baseline}",
+      "metrics": {
+        "revenue": "Ricavo",
+        "orders": "Ordini di vendita",
+        "ad_spend": "Spesa ads",
+        "mer": "MER (ricavo / spesa)",
+        "aov": "Scontrino medio",
+        "cancel_rate": "Tasso di annullamento",
+        "stockouts": "Varianti esaurite",
+        "roas": "ROAS dichiarato",
+        "conversion_rate": "Tasso di conversione"
+      }
+    }
+  },
+  "campaigns": {
+    "title": "Campagne e stock",
+    "description": "Spesa dalle piattaforme ads, profitto solo sugli ordini non annullati e non resi, e un consiglio che tiene conto dello stock dei prodotti collegati.",
+    "ledger": "Registro giornaliero",
+    "all_platforms": "Tutte le piattaforme",
+    "all_statuses": "Tutti gli stati",
+    "empty_title": "Nessuna campagna",
+    "empty_description": "Collega Meta o Google Ads per importare le campagne.",
+    "suggestions_title": "Campagne da collegare",
+    "suggestions_description": "Suggerite dal nome della campagna e dalle pagine di atterraggio degli ordini attribuiti. Solo le corrispondenze esatte vengono collegate in automatico.",
+    "link": "Collega",
+    "auto_link": "Collega tutte le esatte",
+    "linked_n": "{n} collegate",
+    "light": {
+      "good": "Va bene",
+      "medium": "Medio",
+      "bad": "Va male",
+      "none": "Nessun dato"
+    },
+    "action": {
+      "ok": "Lascia attiva",
+      "pause": "Spegni",
+      "resume": "Accendi",
+      "consider_pause": "Valuta spegnimento",
+      "consider_resume": "Valuta accensione",
+      "pause_stock": "Spegni: stock sotto soglia",
+      "consider_stock": "Attenzione: stock basso"
+    },
+    "restock": {
+      "reorder": "Riordina",
+      "ok": "Stock OK",
+      "unknown": "Nessun dato di stock"
+    },
+    "reason": {
+      "stock_below_threshold": "I prodotti collegati sono sotto la soglia di stock e non c'è merce in arrivo.",
+      "stock_below_threshold_incoming_none": "Lo stock è basso e nessun ordine d'acquisto è in arrivo.",
+      "stock_below_threshold_incoming": "Lo stock è basso ma c'è un ordine d'acquisto in arrivo.",
+      "not_repurchasable": "Il prodotto non è riacquistabile.",
+      "roi_bad": "ROI sotto la soglia media.",
+      "roi_medium": "ROI tra le due soglie.",
+      "roi_good": "ROI sopra la soglia buona.",
+      "no_data": "Nessuna spesa o ordine nel periodo."
+    },
+    "columns": {
+      "campaign": "Campagna",
+      "status": "Stato",
+      "spend": "Spesa",
+      "orders": "Ordini",
+      "revenue": "Ricavo netto",
+      "margin": "Margine",
+      "profit": "Profitto",
+      "roas": "ROAS",
+      "roi": "ROI",
+      "cpa": "CPA",
+      "light": "Semaforo",
+      "action": "Consiglio",
+      "stock": "Stock",
+      "platform": "Piattaforma"
+    },
+    "status": {
+      "active": "Attiva",
+      "paused": "In pausa",
+      "archived": "Archiviata"
+    },
+    "totals": "Totale",
+    "platform": {
+      "meta": "Meta",
+      "google": "Google Ads"
+    },
+    "declared": {
+      "title_meta": "Meta: dichiarato vs reale",
+      "title_google": "Google: dichiarato vs reale",
+      "platform_says": "La piattaforma dichiara (acquisti · valore · ROAS)",
+      "real": "Ordini reali attribuiti (ordini · netto · ROAS)",
+      "gap": "Scarto",
+      "help": "Le piattaforme contano le conversioni con le proprie finestre e modelli; gli ordini reali sono gli ordini di vendita attribuiti da Keel. Uno scarto molto negativo vuol dire che la piattaforma sovrastima."
+    },
+    "creatives_link": "Creatività",
+    "creatives": {
+      "title": "Creatività",
+      "description": "Performance per annuncio con i numeri della piattaforma accanto agli ordini reali la cui visita di atterraggio portava quell'annuncio. Raggruppa per formato, hook o angolo per confrontare i concept.",
+      "back": "Campagne",
+      "by": {
+        "creative": "Creatività",
+        "format": "Formato",
+        "hook": "Hook",
+        "angle": "Angolo"
+      },
+      "empty": "Nessuna creatività nel periodo",
+      "spend": "Spesa",
+      "ctr": "CTR",
+      "cpc": "CPC",
+      "thumbstop": "Thumb-stop",
+      "declared": "Dichiarato (acq. · valore)",
+      "real": "Reale (ordini · netto)",
+      "roas": "ROAS reale",
+      "fatigue": "Affaticamento",
+      "fatigue_levels": {
+        "fresh": "Fresca",
+        "watch": "Da osservare",
+        "fatigued": "Affaticata",
+        "no_data": "—"
+      },
+      "fatigue_hint": "CTR {change} dalla prima all'ultima settimana · frequenza {freq}",
+      "paused": "in pausa",
+      "n_creatives": "{n} creatività",
+      "footnote": "I tag vengono dalla convenzione di nome FORMATO | HOOK | ANGOLO, modificabile sulla piattaforma. Le miniature sono segnaposto locali finché non si sincronizzano le anteprime dell'account."
+    }
+  },
+  "campaign_detail": {
+    "back": "Campagne",
+    "linked_products": "Prodotti collegati",
+    "no_products": "Nessun prodotto collegato. Collegane uno per avere consigli che tengono conto dello stock.",
+    "link_product": "Collega un prodotto",
+    "search_product": "Cerca prodotto",
+    "primary": "principale",
+    "set_primary": "Rendi principale",
+    "unlink": "Scollega",
+    "suggestions": "Suggerimenti",
+    "pause": "Spegni campagna",
+    "resume": "Accendi campagna",
+    "pause_title": "Spegnere questa campagna su {platform}?",
+    "pause_description": "La modifica viene inviata subito alla piattaforma ads e registrata nel registro attività. La spesa si ferma al prossimo sync.",
+    "resume_title": "Accendere questa campagna su {platform}?",
+    "resume_description": "La campagna ricomincia a spendere sulla piattaforma ads.",
+    "confirm": "Conferma",
+    "read_only": "{platform} è in sola lettura in questa versione: spegnila dalla piattaforma.",
+    "daily": "Registro giornaliero",
+    "reorder_hint": "Lo stock dei prodotti collegati è di {stock} pezzi contro una soglia di {threshold}. Riordino suggerito: {units} pezzi.",
+    "create_po": "Crea ordine d'acquisto",
+    "kpi": {
+      "spend": "Spesa",
+      "orders": "Vendite attribuite",
+      "revenue": "Ricavo netto",
+      "margin": "Margine",
+      "profit": "Profitto",
+      "roas": "ROAS",
+      "roi": "ROI",
+      "cpa": "CPA",
+      "cpc": "CPC",
+      "cr": "Conversione"
+    },
+    "ledger": {
+      "date": "Data",
+      "spend": "Spesa",
+      "impressions": "Impr.",
+      "clicks": "Clic",
+      "orders": "Ordini",
+      "revenue": "Ricavo netto",
+      "margin": "Margine",
+      "profit": "Profitto",
+      "roas": "ROAS",
+      "flags": {
+        "no_ads_data": "dati ads assenti",
+        "no_order_data": "nessun ordine"
+      }
+    }
+  },
+  "campaign_ledger": {
+    "title": "Registro giornaliero ads",
+    "description": "Una riga per giorno e campagna; i rapporti sono ricalcolati a ogni lettura, i dati mancanti sono segnalati e non mostrati come zero.",
+    "export_csv": "Esporta CSV",
+    "campaign": "Campagna",
+    "platform": "Piattaforma",
+    "empty": "Nessuna riga nel periodo."
+  },
+  "customers": {
+    "title": "Clienti",
+    "description": "Profili calcolati dagli ordini canonici di Keel: valore, frequenza, recenza e fascia RFM.",
+    "tabs": {
+      "list": "Clienti",
+      "rfm": "Matrice RFM"
+    },
+    "search": "Cerca",
+    "search_placeholder": "Nome, email o telefono",
+    "all_countries": "Tutti i paesi",
+    "all_tiers": "Tutte le fasce",
+    "sort": "Ordina",
+    "sorts": {
+      "last_order": "Ordine più recente",
+      "total_spent": "Valore più alto",
+      "orders": "Più ordini",
+      "name": "Nome"
+    },
+    "only_marketing": "Solo clienti con consenso marketing",
+    "empty_title": "Nessun cliente",
+    "empty_description": "I clienti arrivano con i primi ordini sincronizzati.",
+    "yes": "Sì",
+    "no": "No",
+    "pagination": "{from}–{to} di {total}",
+    "columns": {
+      "customer": "Cliente",
+      "customers": "Clienti",
+      "country": "Paese",
+      "orders": "Ordini",
+      "total_spent": "Spesa totale",
+      "aov": "AOV",
+      "last_order": "Ultimo ordine",
+      "tier": "Fascia RFM",
+      "marketing": "Marketing"
+    }
+  },
+  "customer_detail": {
+    "contact": "Contatto",
+    "customer_since": "Cliente dal {date}",
+    "segments": "Segmenti",
+    "no_segments": "In nessun segmento.",
+    "accepts_marketing": "Consenso marketing",
+    "group": {
+      "treated": "trattato",
+      "holdout": "gruppo di controllo"
+    },
+    "kpi": {
+      "orders": "Ordini di vendita",
+      "orders_hint": "{cancelled} annullati · {returned} resi",
+      "total_spent": "Spesa totale",
+      "aov": "Ordine medio",
+      "last_order": "Ultimo ordine"
+    },
+    "days_ago": "{n} giorni fa",
+    "orders_title": "Ordini",
+    "order": "Ordine",
+    "date": "Data",
+    "status": "Stato",
+    "payment": "Pagamento",
+    "total": "Totale"
+  },
+  "rfm": {
+    "description": "Matrice recenza × frequenza e fasce calcolate sugli ordini di vendita. Clicca una cella per creare un segmento.",
+    "matrix_title": "Recenza × frequenza",
+    "matrix_description": "{total} clienti con almeno un ordine di vendita.",
+    "recency_axis": "Ultimo ordine",
+    "contactable_short": "{n} contattabili",
+    "tiers_title": "Fasce",
+    "tiers_description": "Le regole si valutano dall'alto; vince la prima che corrisponde.",
+    "tier_col": "Fascia",
+    "tier_rule": "Regola",
+    "contactable": "Contattabili",
+    "revenue": "Ricavi",
+    "share": "Quota",
+    "make_segment": "Crea segmento",
+    "tier": {
+      "champions": "Campioni",
+      "loyal": "Fedeli",
+      "promising": "Promettenti",
+      "at_risk": "A rischio",
+      "new": "Nuovi",
+      "one_time": "Un solo ordine",
+      "dormant": "Dormienti",
+      "lost": "Persi"
+    },
+    "tier_rules": {
+      "champions": "5+ ordini, ultimo entro 6 mesi",
+      "loyal": "5+ ordini entro un anno, o 3–4 entro 6 mesi",
+      "promising": "2–4 ordini, ultimo entro 6 mesi",
+      "at_risk": "2–4 ordini, ultimo 6–12 mesi fa",
+      "new": "1 ordine negli ultimi 90 giorni",
+      "one_time": "1 ordine, da 90 giorni a un anno fa",
+      "dormant": "Ultimo ordine 1–2 anni fa",
+      "lost": "Ultimo ordine oltre 2 anni fa"
+    },
+    "recency": {
+      "r0_90": "0–90 giorni",
+      "r91_180": "91–180 giorni",
+      "r181_365": "181–365 giorni",
+      "r366_730": "1–2 anni",
+      "r730_plus": "Oltre 2 anni"
+    },
+    "frequency": {
+      "f1": "1 ordine",
+      "f2": "2 ordini",
+      "f3_4": "3–4 ordini",
+      "f5_plus": "5+ ordini"
+    }
+  },
+  "segments": {
+    "title": "Segmenti",
+    "description": "Regole E/O annidate sul profilo cliente, gruppo di controllo stabile per segmento, esportazione CSV.",
+    "new": "Nuovo segmento",
+    "new_description": "L'anteprima si aggiorna mentre modifichi; il salvataggio valuta il segmento e assegna il gruppo di controllo.",
+    "empty_title": "Nessun segmento",
+    "empty_description": "Creane uno dalla matrice RFM o da zero.",
+    "conditions_n": "{n} condizioni",
+    "export_csv": "Esporta CSV",
+    "evaluate": "Rivaluta",
+    "delete_title": "Eliminare questo segmento?",
+    "delete_description": "Le appartenenze vengono rimosse. I clienti non sono toccati.",
+    "evaluated_at": "Valutato {at}",
+    "never_evaluated": "Mai valutato",
+    "holdout_n": "{n} clienti nel gruppo di controllo",
+    "treated": "Trattati",
+    "members_title": "Membri",
+    "members_description": "I primi 50 per valore. Il gruppo non cambia una volta assegnato.",
+    "group": "Gruppo",
+    "groups": {
+      "treated": "trattato",
+      "holdout": "controllo"
+    },
+    "columns": {
+      "name": "Segmento",
+      "rules": "Regole",
+      "members": "Membri",
+      "holdout": "Gruppo di controllo",
+      "evaluated": "Ultima valutazione"
+    }
+  },
+  "segment_builder": {
+    "name": "Nome",
+    "description": "Descrizione",
+    "holdout": "Controllo %",
+    "holdout_help": "Il gruppo di controllo è una quota stabile del segmento che non riceve mai la campagna, per misurarne l'effetto. Massimo 50%.",
+    "rules": "Regole",
+    "limits": "{leaves}/{maxLeaves} condizioni · profondità {depth}/{maxDepth}",
+    "match_prefix": "Soddisfa",
+    "match_suffix": "delle condizioni seguenti",
+    "match_label": "Modalità",
+    "match": {
+      "all": "tutte",
+      "any": "almeno una"
+    },
+    "add_condition": "Condizione",
+    "add_group": "Gruppo",
+    "remove_group": "Rimuovi gruppo",
+    "remove_condition": "Rimuovi condizione",
+    "field": "Campo",
+    "operator": "Operatore",
+    "value": "Valore",
+    "from": "Da",
+    "to": "A",
+    "days": "giorni",
+    "true": "sì",
+    "false": "no",
+    "add_value": "Aggiungi valore…",
+    "remove_value": "Rimuovi",
+    "create": "Crea segmento",
+    "preview": "Anteprima",
+    "preview_description": "Conteggio in tempo reale sui dati attuali e un campione stabile.",
+    "matching": "Corrispondenti",
+    "contactable": "Con consenso",
+    "holdout_estimate": "≈ {n} clienti ({pct}%) nel gruppo di controllo.",
+    "groups": {
+      "orders": "Ordini",
+      "value": "Valore",
+      "recency": "Recenza",
+      "profile": "Profilo",
+      "products": "Prodotti",
+      "rfm": "RFM",
+      "sampling": "Campionamento"
+    },
+    "fields": {
+      "orders_count": "Ordini",
+      "cancelled_count": "Ordini annullati",
+      "returns_count": "Ordini resi",
+      "total_spent": "Spesa totale",
+      "aov": "Valore medio ordine",
+      "days_since_last_order": "Giorni dall'ultimo ordine",
+      "days_since_first_order": "Giorni dal primo ordine",
+      "accepts_marketing": "Consenso marketing",
+      "country": "Paese",
+      "tags": "Tag cliente",
+      "payment_methods": "Metodi di pagamento usati",
+      "bought_product": "Prodotto acquistato",
+      "bought_product_type": "Tipo di prodotto acquistato",
+      "rfm_recency": "Recenza RFM",
+      "rfm_frequency": "Frequenza RFM",
+      "rfm_tier": "Fascia RFM",
+      "random_pct": "Campione casuale (0–99)"
+    },
+    "ops": {
+      "gte": "è almeno",
+      "lte": "è al massimo",
+      "gt": "è più di",
+      "lt": "è meno di",
+      "eq": "è",
+      "between": "è tra",
+      "is_null": "è vuoto",
+      "not_null": "è valorizzato",
+      "in": "è uno di",
+      "not_in": "non è nessuno di",
+      "any": "include almeno uno di",
+      "none": "non include nessuno di",
+      "all": "include tutti"
+    },
+    "errors": {
+      "unknown_field": "Campo sconosciuto.",
+      "bad_op": "Operatore non valido per questo campo.",
+      "bad_value": "Scegli un valore.",
+      "empty_group": "Un gruppo richiede almeno una condizione.",
+      "too_deep": "Troppi livelli annidati.",
+      "too_many": "Troppe condizioni.",
+      "invalid_shape": "Regole malformate.",
+      "invalid_rules": "Regole non valide.",
+      "forbidden": "Non hai i permessi."
+    }
+  },
+  "return_status": {
+    "requested": "Richiesto",
+    "approved": "Approvato",
+    "received": "Ricevuto",
+    "inspected": "Ispezionato",
+    "refunded": "Rimborsato",
+    "exchanged": "Cambiato",
+    "voucher_issued": "Buono emesso",
+    "rejected": "Rifiutato"
+  },
+  "returns": {
+    "title": "Resi",
+    "description": "Richieste di reso con flusso configurabile, rientro a stock facoltativo per location e analisi per motivo e prodotto.",
+    "analytics": "Analisi",
+    "reasons": "Motivi",
+    "open": "Aperti",
+    "search": "Cerca",
+    "search_placeholder": "Numero reso, ordine, cliente",
+    "all_reasons": "Tutti i motivi",
+    "empty_title": "Nessun reso",
+    "empty_description": "I resi si aprono dal dettaglio di un ordine.",
+    "out_of_window": "Fuori finestra",
+    "items_n": "{n} articoli",
+    "pagination": "{from}–{to} di {total}",
+    "resolution": {
+      "refund": "Rimborso",
+      "exchange": "Cambio",
+      "voucher": "Buono"
+    },
+    "columns": {
+      "return": "Reso",
+      "order": "Ordine",
+      "reason": "Motivo",
+      "resolution": "Esito",
+      "amount": "Importo",
+      "status": "Stato",
+      "requested": "Richiesto il"
+    }
+  },
+  "return_detail": {
+    "order": "Ordine",
+    "placed": "Effettuato il {date}",
+    "notes": "Dettagli",
+    "reason": "Motivo",
+    "customer_note": "Nota del cliente",
+    "staff_note": "Note interne",
+    "voucher_code": "Codice buono",
+    "restocked_at": "Rientrato a stock in {location}",
+    "closing": "Chiuso",
+    "proposed_amount": "Proposto",
+    "accepted_amount": "Accettato",
+    "refunded_amount": "Rimborsato",
+    "lines": "Articoli",
+    "item": "Articolo",
+    "qty": "Q.tà",
+    "unit": "Valore unitario",
+    "inspection": "Ispezione",
+    "accepted": "Accettato",
+    "restocked": "A stock",
+    "yes": "Sì",
+    "history": "Storico",
+    "event_requested": "Reso richiesto",
+    "event_status": "{from} → {to}",
+    "event_updated": "Reso aggiornato",
+    "faults": {
+      "merchant": "Colpa del venditore",
+      "customer": "Scelta del cliente",
+      "undetermined": "Da stabilire"
+    },
+    "outcome": {
+      "intact": "Integro",
+      "damaged": "Danneggiato",
+      "missing": "Mancante"
+    },
+    "actions": {
+      "approved": "Approva",
+      "received": "Segna ricevuto",
+      "inspected": "Registra ispezione",
+      "refunded": "Rimborsa",
+      "exchanged": "Segna cambiato",
+      "voucher_issued": "Emetti buono",
+      "rejected": "Rifiuta"
+    },
+    "dialog": {
+      "approved": {
+        "title": "Approvare questo reso?",
+        "description": "Il cliente può rispedire gli articoli."
+      },
+      "received": {
+        "title": "Articoli ricevuti",
+        "description": "Scegli se rimettere gli articoli a stock e dove."
+      },
+      "inspected": {
+        "title": "Ispezione",
+        "description": "Registra lo stato di ogni articolo e l'importo che accetti di rimborsare."
+      },
+      "refunded": {
+        "title": "Rimborso",
+        "description": "Chiude il reso e aggiorna importo rimborsato e stato dell'ordine."
+      },
+      "exchanged": {
+        "title": "Cambio",
+        "description": "Chiude il reso come cambio."
+      },
+      "voucher_issued": {
+        "title": "Emetti buono",
+        "description": "Chiude il reso con un buono."
+      },
+      "rejected": {
+        "title": "Rifiutare questo reso?",
+        "description": "Serve una nota."
+      }
+    },
+    "restock_label": "Rimetti gli articoli a stock",
+    "restock_location": "Location",
+    "already_restocked": "già a stock",
+    "push_platform": "Rientro anche sulla piattaforma e-commerce",
+    "fault": "Responsabilità",
+    "fault_keep": "Mantieni",
+    "refund_amount": "Importo da rimborsare",
+    "voucher_amount": "Importo del buono",
+    "proposed": "Proposto: {amount}",
+    "voucher_auto": "Vuoto per generarlo",
+    "reject_note": "Motivo del rifiuto",
+    "note_optional": "Nota (facoltativa)",
+    "errors": {
+      "return_bad_transition": "Passaggio non consentito dallo stato attuale.",
+      "return_location_required": "Scegli una location.",
+      "return_return_not_found": "Reso non trovato.",
+      "return_invalid_input": "Dati non validi."
+    }
+  },
+  "return_new": {
+    "title": "Reso per {order}",
+    "description": "Scegli articoli e quantità in rientro.",
+    "deadline": "Finestra di reso fino al {date} ({days} giorni rimasti)",
+    "lines_title": "Articoli",
+    "lines_description": "I valori unitari sono al netto dello sconto ordine, ripartito pro quota.",
+    "ordered": "ordinati {n}",
+    "already": "{n} già resi",
+    "excluded": "non restituibile",
+    "qty_for": "Quantità per {title}",
+    "customer_note": "Nota del cliente",
+    "staff_note": "Nota interna",
+    "staff_note_required": "Nota interna (obbligatoria per forzare la finestra)",
+    "summary": "Riepilogo",
+    "items": "Articoli",
+    "proposed": "Rimborso proposto",
+    "submit": "Apri reso",
+    "override_hint": "Lo staff può comunque aprirlo con una nota interna.",
+    "not_eligible": {
+      "cancelled": "L'ordine è annullato o già rimborsato.",
+      "not_delivered": "L'ordine non è ancora stato consegnato.",
+      "expired": "La finestra di reso è scaduta."
+    },
+    "errors": {
+      "return_not_eligible": "L'ordine non è idoneo al reso.",
+      "return_no_lines": "Scegli almeno un articolo.",
+      "return_quantity_exceeds": "Quantità superiore al restituibile.",
+      "return_bad_reason": "Scegli un motivo valido.",
+      "return_order_not_found": "Ordine non trovato."
+    }
+  },
+  "returns_analytics": {
+    "title": "Analisi resi",
+    "description": "Resi richiesti nel periodo (esclusi i rifiutati) per motivo, responsabilità, esito e prodotto.",
+    "kpi": {
+      "returns": "Resi",
+      "closed": "{n} chiusi",
+      "rate": "Tasso di reso",
+      "of_orders": "su {n} ordini",
+      "refunded": "Rimborsato",
+      "merchant_fault": "Colpa del venditore"
+    },
+    "by_reason": "Per motivo",
+    "by_fault_resolution": "Per responsabilità ed esito",
+    "by_product": "Per prodotto",
+    "count": "Resi",
+    "share": "Quota",
+    "amount": "Importo",
+    "product": "Prodotto",
+    "returned_qty": "Resi",
+    "sold_qty": "Venduti",
+    "rate": "Tasso"
+  },
+  "return_reasons": {
+    "title": "Motivi di reso",
+    "description": "Motivi proposti all'apertura di un reso. Finestra: {window} giorni; {excluded} tipi di prodotto esclusi (impostazioni).",
+    "add_title": "Aggiungi un motivo",
+    "code": "Codice",
+    "label": "Etichetta",
+    "default_fault": "Responsabilità predefinita",
+    "active": "Attivo",
+    "settings_hint": "Finestra, giorni di consegna presunta e tipi esclusi sono in",
+    "settings_link": "impostazioni operative."
+  },
+  "discounts": {
+    "title": "Sconti",
+    "description": "Codici sincronizzati dalla piattaforma più codici e pool creati qui, con ordini, ricavi e margine per codice.",
+    "new": "Nuovo sconto",
+    "search": "Cerca",
+    "search_placeholder": "Codice o titolo",
+    "empty_title": "Nessuno sconto",
+    "empty_description": "Crea un codice o collega la piattaforma per importarli.",
+    "free_shipping": "Spedizione gratuita",
+    "pagination": "{from}–{to} di {total}",
+    "pool_summary": "{codes} codici, {used} usati · {value}",
+    "all_codes": "Tutti gli sconti",
+    "pools_title": "Pool di codici",
+    "pools_description": "Blocchi di codici unici monouso.",
+    "state": {
+      "all": "Tutti",
+      "active": "Attivo",
+      "scheduled": "Programmato",
+      "expired": "Scaduto",
+      "exhausted": "Esaurito",
+      "disabled": "Disattivato"
+    },
+    "pool_status": {
+      "ready": "Pronto",
+      "partial": "Parziale"
+    },
+    "columns": {
+      "code": "Codice",
+      "value": "Valore",
+      "state": "Stato",
+      "uses": "Utilizzi",
+      "orders": "Ordini",
+      "given": "Sconto erogato",
+      "revenue": "Ricavo netto",
+      "margin": "Margine",
+      "validity": "Validità",
+      "pool": "Pool",
+      "codes": "Codici",
+      "used": "Usati"
+    }
+  },
+  "discount_new": {
+    "title": "Nuovo sconto",
+    "description": "Creato prima sulla piattaforma e-commerce, poi registrato qui.",
+    "tabs": {
+      "single": "Codice singolo",
+      "pool": "Pool in blocco"
+    },
+    "single_title": "Codice singolo",
+    "single_description": "Un codice condiviso con limiti facoltativi.",
+    "pool_title": "Pool di codici unici",
+    "pool_description": "Genera N codici monouso con prefisso, inviati alla piattaforma in una chiamata.",
+    "code": "Codice",
+    "title_field": "Titolo",
+    "type": "Tipo",
+    "types": {
+      "percentage": "Percentuale",
+      "fixed_amount": "Importo fisso",
+      "free_shipping": "Spedizione gratuita"
+    },
+    "value_pct": "Valore (%)",
+    "value_amount": "Valore ({currency})",
+    "value_na": "Valore",
+    "starts_at": "Inizio",
+    "ends_at": "Fine",
+    "usage_limit": "Limite utilizzi",
+    "minimum": "Ordine minimo ({currency})",
+    "create_code": "Crea codice",
+    "prefix": "Prefisso",
+    "size": "Numero di codici",
+    "create_pool": "Crea pool",
+    "errors": {
+      "discount_code_exists": "Questo codice esiste già.",
+      "discount_invalid_input": "Dati non validi.",
+      "discount_platform_error": "La piattaforma ha rifiutato lo sconto.",
+      "discount_not_found": "Non trovato."
+    }
+  },
+  "discount_detail": {
+    "platform": "Piattaforma",
+    "in_pool": "Pool: {title}",
+    "rules": "Regole",
+    "validity": "Validità",
+    "usage": "Utilizzi",
+    "minimum": "Ordine minimo",
+    "external_id": "Id piattaforma",
+    "disable": "Disattiva",
+    "enable": "Attiva",
+    "kpi": {
+      "orders": "Ordini di vendita",
+      "orders_hint": "non annullati né resi",
+      "given": "Sconto erogato",
+      "revenue": "Ricavo netto",
+      "margin": "Margine"
+    },
+    "orders_title": "Ordini con questo codice",
+    "order": "Ordine",
+    "date": "Data",
+    "customer": "Cliente",
+    "status": "Stato",
+    "discount": "Sconto",
+    "total": "Totale"
+  },
+  "integrations": {
+    "title": "Integrazioni",
+    "description": "Collegamenti alle piattaforme e-commerce e pubblicitarie: stato, ultimo sync, errori, esecuzioni e registro dei webhook.",
+    "guides": "Guide di collegamento",
+    "open_guide": "Come collegarla",
+    "global_mock_banner": "Questo ambiente è in modalità mock (KEEL_INTEGRATION_MODE=mock): ogni adapter è un simulatore in memoria e nessuna richiesta esce dal processo. Usa “Simula webhook ordine” per vedere tutta la pipeline.",
+    "providers": {
+      "shopify": "Shopify",
+      "meta": "Meta Ads",
+      "google": "Google Ads"
+    },
+    "status": {
+      "not_connected": "Non collegata",
+      "connected": "Collegata",
+      "error": "Errore",
+      "syncing": "In sincronizzazione"
+    },
+    "mode": {
+      "mock": "Mock",
+      "live": "Live"
+    },
+    "health": {
+      "ok": "OK",
+      "degraded": "Degradata",
+      "error": "Errore",
+      "unknown": "Sconosciuto"
+    },
+    "no_account": "Nessun account collegato",
+    "last_sync": "Ultimo sync",
+    "last_success": "Ultimo successo",
+    "last_error": "Ultimo errore",
+    "missing_scopes": "Scope mancanti: {scopes}",
+    "rows_n": "{n} righe",
+    "test_connection": "Testa connessione",
+    "resync": "Risincronizza",
+    "connect": "Collega",
+    "reconnect": "Ricollega",
+    "disconnect": "Scollega",
+    "disconnected": "Scollegata.",
+    "simulate_order": "Simula webhook ordine",
+    "simulate_cancel": "Simula annullamento",
+    "simulate_bad": "Simula firma errata",
+    "simulated": "Webhook accettato (HTTP {status}) per {order}.",
+    "simulated_rejected": "Webhook rifiutato come previsto (HTTP {status}).",
+    "test_ok": "Connessione OK ({account}).",
+    "test_failed": "Connessione fallita: {error}",
+    "resync_queued": "Risincronizzazione in coda; il worker la eseguirà a breve.",
+    "resync_done": "Risincronizzazione completata: {summary}",
+    "connected_ok": "Collegata e verificata.",
+    "mock_notice": "In modalità mock le credenziali non vengono usate: il modulo mostra all'installatore cosa deve fornire il cliente.",
+    "public_app_hint": "Hai un'app pubblica con SHOPIFY_API_KEY configurata?",
+    "public_app_link": "Installa via OAuth",
+    "connect_title": {
+      "shopify": "App custom (token Admin API)",
+      "meta": "Token utente di sistema",
+      "google": "Credenziali Google Ads API"
+    },
+    "connect_description": {
+      "shopify": "Crea un'app custom nell'admin del negozio, concedi gli scope elencati nella guida, incolla il token Admin API e la chiave segreta usata per firmare i webhook.",
+      "meta": "Un token utente di sistema a lunga durata da Business Manager con ads_read e ads_management sull'account pubblicitario.",
+      "google": "Developer token, client OAuth e un refresh token autorizzato per lo scope Google Ads; sola lettura in questa versione."
+    },
+    "fields": {
+      "shop": "Dominio del negozio",
+      "access_token": "Token di accesso",
+      "api_secret": "Chiave segreta API",
+      "ad_account": "Id account pubblicitario",
+      "customer_id": "Customer id",
+      "login_customer_id": "Id manager (MCC)",
+      "developer_token": "Developer token",
+      "client_id": "OAuth client id",
+      "client_secret": "OAuth client secret",
+      "refresh_token": "Refresh token"
+    },
+    "slots_title": "Integrazioni per account",
+    "slots_description": "Slot per connettori ad hoc venduti per account. Esistono interfacce e mock; il provider specifico si implementa su richiesta.",
+    "slots": {
+      "messaging": "Canale di messaggistica",
+      "warehouse": "Magazzino / 3PL",
+      "carrier": "Tracking corriere"
+    },
+    "slots_hint": {
+      "messaging": "Provider WhatsApp o SMS per le campagne CRM.",
+      "warehouse": "Invio ordini e lettura stock da un operatore logistico esterno.",
+      "carrier": "Una seconda fonte per il resolver dello stato spedizione."
+    },
+    "on_request": "Disponibile su richiesta",
+    "runs_title": "Esecuzioni recenti",
+    "run_status": {
+      "running": "In corso",
+      "paused": "In pausa",
+      "success": "Riuscita",
+      "error": "Errore"
+    },
+    "webhooks_title": "Registro webhook",
+    "webhooks_description": "{processed} elaborati in 24h · {failed} falliti · {pending} in attesa",
+    "webhook_status": {
+      "pending": "In attesa",
+      "processed": "Elaborato",
+      "failed": "Fallito"
+    },
+    "retry_failed": "Riprova falliti ({n})",
+    "retried": "{n} su {total} elaborati.",
+    "replay": "Rielabora",
+    "columns": {
+      "when": "Quando",
+      "run": "Esecuzione",
+      "status": "Stato",
+      "rows": "Righe",
+      "topic": "Topic"
+    },
+    "errors": {
+      "connection_failed": "La piattaforma ha rifiutato le credenziali.",
+      "mock_mode": "Questo ambiente è in modalità mock: imposta KEEL_INTEGRATION_MODE=live per collegare un account reale.",
+      "live_mode": "La simulazione è disponibile solo per le integrazioni mock."
+    }
+  },
+  "integration_guide": {
+    "verify_legend": "I passi segnati “Da verificare” dipendono da console dei fornitori che cambiano spesso: controllali sulla documentazione del fornitore prima della prima installazione.",
+    "verify_badge": "Da verificare",
+    "scopes_title": "Scope minimi per modulo",
+    "scopes_description": "Chiedi al cliente solo ciò che serve ai moduli attivati.",
+    "webhooks_title": "Endpoint e topic dei webhook",
+    "errors_title": "Errori comuni",
+    "shopify": {
+      "title": "Collegare Shopify",
+      "intro": "Due strade: un'app custom creata nell'admin del negozio (più veloce, un solo negozio) o un'app pubblica con OAuth (un unico flusso di installazione per tutti i clienti).",
+      "steps": [
+        {
+          "title": "Crea l'app custom",
+          "body": "Nell'admin del negozio apri Impostazioni → App e canali di vendita → Sviluppa app → Crea un'app. Chiamala “Keel”.",
+          "verify": true
+        },
+        {
+          "title": "Concedi gli scope Admin API",
+          "body": "In Configurazione → Integrazione Admin API seleziona gli scope elencati a destra per i moduli acquistati dal cliente. Salva."
+        },
+        {
+          "title": "Installa e copia il token",
+          "body": "Installa l'app, poi mostra una sola volta il token Admin API (shpat_…) e la chiave segreta API. Incollali in Keel → Integrazioni → Shopify → Collega. Keel li salva cifrati (AES-GCM).",
+          "verify": true
+        },
+        {
+          "title": "Webhook",
+          "body": "Keel registra le sottoscrizioni webhook via API al momento del collegamento verso {webhookUrl}. Per un'app custom il segreto di firma è la chiave segreta API dell'app. L'endpoint risponde 200 in pochi millisecondi, salva l'evento e lo elabora in background; i duplicati sono ignorati per (topic, id, updated_at)."
+        },
+        {
+          "title": "Importazione iniziale",
+          "body": "Clicca Risincronizza: vengono importati location, prodotti, stock e sconti, poi gli ordini pagina per pagina con cursore riprendibile. I negozi grandi proseguono su più esecuzioni del worker; l'avanzamento è visibile in “Esecuzioni recenti”."
+        },
+        {
+          "title": "Regole di stato",
+          "body": "Keel non ricava mai lo stato dell'ordine da tag fissi. Apri Impostazioni → Stati ordine e mappa tag, metodi di pagamento e stati finanziari/di evasione del negozio sugli stati canonici; vedi l'anteprima sugli ultimi 50 ordini."
+        },
+        {
+          "title": "Verifica",
+          "body": "Testa connessione mostra il nome del negozio e gli scope concessi; fai un ordine di prova nel negozio e guardalo comparire in Ordini entro pochi secondi, con l'evento “importato” nella timeline."
+        },
+        {
+          "title": "App pubblica (facoltativa)",
+          "body": "Crea l'app nella dashboard Partner, imposta l'URL di redirect su /api/integrations/shopify/oauth/callback, metti client id e secret in SHOPIFY_API_KEY e SHOPIFY_API_SECRET, poi usa “Installa via OAuth”.",
+          "verify": true
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Connessione fallita con HTTP 401",
+          "fix": "Il token è stato revocato o copiato male. Genera un nuovo token nell'app e ricollega."
+        },
+        {
+          "symptom": "Accesso negato su una query",
+          "fix": "Manca uno scope: la scheda mostra quale. Aggiungilo nella configurazione dell'app e reinstalla."
+        },
+        {
+          "symptom": "Webhook rifiutati con 401",
+          "fix": "Il segreto di firma è diverso da quello salvato in Keel. Ricollega con la chiave segreta API attuale."
+        },
+        {
+          "symptom": "Throttled / 429",
+          "fix": "Normale durante sync pesanti: Keel attende e riprova da solo; l'esecuzione riprende dal cursore."
+        }
+      ]
+    },
+    "meta": {
+      "title": "Collegare Meta Ads",
+      "intro": "Keel legge campagne e insight giornalieri e può mettere in pausa o riattivare campagne con conferma esplicita. Un token utente di sistema mantiene il collegamento senza login personali.",
+      "steps": [
+        {
+          "title": "Crea un utente di sistema",
+          "body": "In Impostazioni Business → Utenti → Utenti di sistema crea un utente di sistema Admin chiamato “Keel”.",
+          "verify": true
+        },
+        {
+          "title": "Assegna l'account pubblicitario",
+          "body": "Aggiungi asset → Account pubblicitari → seleziona l'account → Gestisci campagne (serve per pausa/riattiva) oppure Visualizza performance (sola lettura)."
+        },
+        {
+          "title": "Genera il token",
+          "body": "Genera nuovo token → scegli l'app → permessi ads_read, ads_management, business_management → senza scadenza. Copialo una sola volta.",
+          "verify": true
+        },
+        {
+          "title": "Collega in Keel",
+          "body": "Integrazioni → Meta Ads → Collega: incolla l'id dell'account (act_…) e il token. Testa connessione mostra nome account e permessi concessi."
+        },
+        {
+          "title": "Backfill",
+          "body": "Risincronizza scarica gli ultimi 30 giorni a finestre di 7; il job notturno riaggiorna gli ultimi 3 giorni perché Meta corregge gli insight recenti."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Codice errore 190",
+          "fix": "Token scaduto o revocato: generane uno nuovo per l'utente di sistema."
+        },
+        {
+          "symptom": "Codice 17 / 32 / 613",
+          "fix": "Rate limit sull'account: Keel attende e riprova; riduci le finestre di backfill se persiste."
+        },
+        {
+          "symptom": "Errore di permesso (10/200)",
+          "fix": "All'utente di sistema manca l'asset account o il permesso; sistemalo nelle Impostazioni Business."
+        }
+      ]
+    },
+    "google": {
+      "title": "Collegare Google Ads",
+      "intro": "Sola lettura in questa versione: campagne e, per giorno, costo, impression, clic e conversioni tramite Google Ads API.",
+      "steps": [
+        {
+          "title": "Developer token",
+          "body": "Da un account Manager (MCC) apri Strumenti → Centro API e richiedi un developer token; l'accesso Basic basta per le letture in produzione.",
+          "verify": true
+        },
+        {
+          "title": "Client OAuth",
+          "body": "In Google Cloud crea un client OAuth (Web o Desktop) con Google Ads API abilitata; annota client id e secret.",
+          "verify": true
+        },
+        {
+          "title": "Refresh token",
+          "body": "Autorizza lo scope https://www.googleapis.com/auth/adwords con un utente che accede all'account cliente e conserva il refresh token."
+        },
+        {
+          "title": "Collega in Keel",
+          "body": "Integrazioni → Google Ads → Collega: customer id (cifre), id manager se si passa da un MCC, developer token, client id/secret, refresh token."
+        },
+        {
+          "title": "Verifica",
+          "body": "Testa connessione esegue una query GAQL di una riga; Risincronizza importa campagne e gli ultimi 30 giorni di metriche."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "PERMISSION_DENIED",
+          "fix": "Il developer token non è approvato per questo account, oppure manca il login-customer-id per un account gestito da MCC."
+        },
+        {
+          "symptom": "invalid_grant al refresh del token",
+          "fix": "Il refresh token è stato revocato; autorizza di nuovo e ricollega."
+        }
+      ]
+    }
+  },
+  "admin": {
+    "console": "Console super-admin",
+    "sign_out": "Esci",
+    "nav": {
+      "dashboard": "Dashboard",
+      "tenants": "Tenant",
+      "billing": "Fatturazione",
+      "audit": "Registro attività"
+    },
+    "plans": {
+      "starter": "Starter",
+      "growth": "Growth",
+      "scale": "Scale"
+    },
+    "payment": {
+      "ok": "In regola",
+      "past_due": "Scaduto",
+      "suspended": "Sospeso",
+      "none": "Nessuna fattura"
+    },
+    "dashboard": {
+      "title": "Piattaforma",
+      "description": "MRR, tenant, add-on, fatture ed errori di integrazione aperti su tutta la piattaforma.",
+      "mrr": "MRR",
+      "mrr_hint": "Abbonamenti attivi e scaduti",
+      "active_tenants": "Tenant attivi",
+      "tenants_hint": "{trial} in prova · {suspended} sospesi",
+      "open_invoices": "Fatture aperte",
+      "open_invoices_hint": "{n} aperte · {overdue} scadute",
+      "integration_errors": "Errori di integrazione",
+      "integration_errors_hint": "Fonti in errore o degradate",
+      "addons": "Add-on venduti",
+      "subscriptions": "Abbonamenti: {trialing} in prova · {active} attivi · {pastDue} scaduti",
+      "paid_30": "Incassato negli ultimi 30 giorni: {amount}",
+      "tenants": "Tenant",
+      "recent_audit": "Attività recente della piattaforma"
+    },
+    "tenants": {
+      "title": "Tenant",
+      "description": "Ogni workspace con piano, add-on, stato integrazioni, volume, ultimo accesso e stato pagamenti.",
+      "new": "Nuovo tenant",
+      "status": {
+        "active": "Attivo",
+        "trial": "In prova",
+        "suspended": "Sospeso",
+        "churned": "Cessato"
+      },
+      "columns": {
+        "tenant": "Tenant",
+        "plan": "Piano",
+        "addons": "Add-on",
+        "integrations": "Integrazioni",
+        "orders30": "Ordini / 30 gg",
+        "last_login": "Ultimo accesso",
+        "payment": "Pagamento"
+      }
+    },
+    "new_tenant": {
+      "title": "Nuovo tenant",
+      "description": "Crea il workspace, l'account owner, le regole di stato predefinite, gli slot integrazioni e un abbonamento di prova con la fattura di attivazione.",
+      "fields": {
+        "name": "Nome azienda",
+        "slug": "Slug (URL)",
+        "country": "Paese (ISO)",
+        "currency": "Valuta (ISO)",
+        "timezone": "Fuso orario",
+        "locale": "Lingua predefinita",
+        "prefix": "Prefisso numeri ordine",
+        "tax": "Aliquota (punti base)",
+        "plan": "Piano",
+        "owner_email": "Email owner",
+        "owner_name": "Nome owner"
+      },
+      "submit": "Crea tenant",
+      "created": "Tenant creato. Comunica la password temporanea all'owner una sola volta; non verrà più mostrata.",
+      "temp_password": "Password temporanea:",
+      "open_checklist": "Apri la checklist di setup",
+      "errors": {
+        "slug_taken": "Questo slug è già in uso.",
+        "invalid_slug": "Slug non valido."
+      }
+    },
+    "tenant": {
+      "open_as_support": "Apri come supporto",
+      "suspend": "Sospendi accesso",
+      "reactivate": "Riattiva",
+      "checklist": "Checklist di setup",
+      "checklist_progress": "{done} su {total} completati",
+      "checklist_items": {
+        "company": "Dati azienda",
+        "owner": "Account owner",
+        "users": "Almeno due utenti",
+        "shopify": "Shopify collegato",
+        "meta": "Meta Ads collegato",
+        "google": "Google Ads collegato",
+        "state_rules": "Regole di stato",
+        "costs": "Costi configurati",
+        "billing": "Pagamenti in regola"
+      },
+      "members": "Utenti",
+      "open_balance": "Saldo aperto",
+      "days_overdue": "{n} giorni di ritardo",
+      "suspend_after": "Sospensione dopo",
+      "days_n": "{n} giorni",
+      "plan_addons": "Piano e add-on",
+      "plan_addons_description": "Gli add-on sono feature flag verificati lato server: un modulo spento è irraggiungibile anche conoscendo l'URL.",
+      "on_request": "Su richiesta",
+      "addon_note": "Nota (facoltativa)",
+      "activated_at": "Attivo dal {date}",
+      "deactivated_at": "Disattivato il {date}",
+      "integrations": "Integrazioni",
+      "billing": "Abbonamento e fatture",
+      "subscription_line": "Stato {status} · provider {provider} · periodo corrente fino al {end}",
+      "no_subscription": "Nessun abbonamento.",
+      "recent_audit": "Attività recente su questo tenant"
+    },
+    "billing": {
+      "title": "Fatturazione",
+      "description": "Fatture di tutti i tenant. L'esecuzione mensile emette le fatture per i periodi conclusi e sospende i tenant oltre il periodo di tolleranza.",
+      "run": "Esegui fatturazione",
+      "run_done": "Emesse {issued}, sospesi {suspended}.",
+      "all": "Tutte",
+      "mark_paid": "Segna pagata",
+      "void": "Annulla",
+      "status": {
+        "open": "Aperta",
+        "paid": "Pagata",
+        "void": "Annullata",
+        "uncollectible": "Inesigibile"
+      },
+      "kind": {
+        "setup": "Fee di attivazione",
+        "subscription": "Abbonamento",
+        "adjustment": "Rettifica"
+      },
+      "columns": {
+        "number": "Numero",
+        "kind": "Tipo",
+        "amount": "Importo",
+        "issued": "Emessa",
+        "due": "Scadenza",
+        "status": "Stato"
+      }
+    },
+    "audit": {
+      "title": "Registro attività della piattaforma",
+      "description": "Ogni azione super-admin, impersonificazione ed evento di fatturazione, su tutti i tenant.",
+      "when": "Quando",
+      "tenant": "Tenant",
+      "actor": "Autore",
+      "action": "Azione",
+      "details": "Dettagli"
+    }
+  },
+  "cod": {
+    "title": "Coda conferme contrassegno",
+    "description": "Ordini in contrassegno in attesa di chiamata di conferma, ordinati per priorità: richiami scaduti, poi già tentati, poi i più vecchi.",
+    "settings_link": "Impostazioni",
+    "views": {
+      "all": "Coda",
+      "mine": "Miei",
+      "unassigned": "Non assegnati",
+      "scheduled": "Da richiamare",
+      "unreachable": "Non raggiungibili"
+    },
+    "empty_title": "Coda vuota",
+    "empty_description": "I nuovi ordini in contrassegno entrano qui automaticamente.",
+    "columns": {
+      "order": "Ordine",
+      "customer": "Cliente",
+      "total": "Totale",
+      "score": "Delivery score",
+      "attempts": "Tentativi",
+      "assigned": "Operatore",
+      "waiting": "In attesa da",
+      "operator": "Operatore"
+    },
+    "unassigned": "non assegnato",
+    "hours_n": "{n} h",
+    "call_back_badge": "Richiamare {at}",
+    "claim": "Prendi",
+    "release": "Rilascia",
+    "register_outcome": "Registra chiamata",
+    "outcome_title": "Esito chiamata per {order}",
+    "outcome_description": "Ogni chiamata è un tentativo con un esito. Confermato porta l'ordine in confermato; Annullato lo annulla sulla piattaforma. I tag configurati vengono scritti sulla piattaforma a ogni esito.",
+    "outcomes": {
+      "confirmed": "Confermato",
+      "no_answer": "Non risponde",
+      "call_back": "Da richiamare",
+      "modified": "Modificato",
+      "cancelled": "Annullato"
+    },
+    "outcomes_hint": {
+      "confirmed": "Il cliente ha confermato",
+      "no_answer": "Conta verso non raggiungibile",
+      "call_back": "Scegli data e ora",
+      "modified": "Modifiche concordate, resta in coda",
+      "cancelled": "Il cliente rifiuta: l'ordine viene annullato sulla piattaforma"
+    },
+    "call_back_at": "Richiamare il",
+    "note_optional": "Nota (facoltativa)",
+    "save_outcome": "Salva esito",
+    "rescore": "Ricalcola punteggi",
+    "rescored": "{n} elementi ricalcolati.",
+    "distribute": "Distribuisci non assegnati",
+    "distributed": "{assigned} assegnati, {skipped} saltati.",
+    "kpi_title": "Operatori, ultimi 7 giorni",
+    "confirmation_rate": "Tasso di conferma",
+    "score": {
+      "none": "Nessun punteggio",
+      "likely": "Consegna probabile",
+      "uncertain": "Incerta",
+      "unlikely": "Consegna improbabile"
+    },
+    "risk": {
+      "clean": "Pulito",
+      "watch": "Da osservare",
+      "high_risk": "Alto rischio",
+      "blacklisted": "Blacklist suggerita"
+    },
+    "queue_status": {
+      "pending": "In coda",
+      "scheduled": "Richiamo programmato",
+      "unreachable": "Non raggiungibile",
+      "confirmed": "Confermato al telefono",
+      "cancelled": "Annullato",
+      "left": "Uscito dalla coda"
+    },
+    "card_title": "Contrassegno",
+    "weight_n": "peso {n}",
+    "informational": "informativo",
+    "attempts_title": "Tentativi ({n})",
+    "factors": {
+      "customer_history": {
+        "name": "Storico cliente",
+        "help": "Ordini consegnati vs rifiutati/annullati dello stesso cliente, i recenti pesano di più."
+      },
+      "cod_attempts": {
+        "name": "Tentativi di contatto",
+        "help": "Ogni chiamata senza esito abbassa il punteggio."
+      },
+      "time_elapsed": {
+        "name": "Tempo in coda",
+        "help": "Gli ordini non confermati invecchiano male."
+      },
+      "cart_variants": {
+        "name": "Stesso prodotto, più varianti",
+        "help": "Tipico dei carrelli prova-e-rendi."
+      },
+      "cart_quantity": {
+        "name": "Quantità elevate",
+        "help": "Tre o più unità dello stesso prodotto."
+      },
+      "address_quality": {
+        "name": "Qualità indirizzo",
+        "help": "Controlli su telefono, via, CAP e città per paese."
+      },
+      "similar_orders": {
+        "name": "Ordini simili nella zona",
+        "help": "Tasso di consegna degli ordini in contrassegno con lo stesso CAP."
+      },
+      "order_value": {
+        "name": "Valore ordine",
+        "help": "Molto sopra l'ordine medio del negozio."
+      },
+      "night_order": {
+        "name": "Ordine notturno",
+        "help": "Effettuato nelle ore notturne configurate."
+      },
+      "recent_cancellations": {
+        "name": "Annullamenti recenti",
+        "help": "Ordini annullati dal cliente negli ultimi 90 giorni, peggio se per lo stesso prodotto."
+      },
+      "duplicate_orders": {
+        "name": "Ordini duplicati",
+        "help": "Un altro ordine della stessa persona entro 5 giorni."
+      },
+      "prepaid_history": {
+        "name": "Storico prepagato",
+        "help": "Ordini prepagati completati in passato dal cliente."
+      }
+    },
+    "settings": {
+      "title": "Impostazioni contrassegno",
+      "description": "Operatori e ore, pesi e soglie del punteggio, rischio destinatari. Nulla qui agisce da solo sugli ordini: l'add-on consiglia, gli operatori decidono.",
+      "operators_title": "Operatori e ore",
+      "operators_description": "Gli ordini sono distribuiti in proporzione alle ore lavorate oggi (round-robin pesato). Assenze e ore extra sovrascrivono il piano settimanale.",
+      "operator": "Operatore",
+      "week": "Settimana",
+      "active": "Attivo",
+      "days": {
+        "sun": "Dom",
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mer",
+        "thu": "Gio",
+        "fri": "Ven",
+        "sat": "Sab"
+      },
+      "exceptions_title": "Assenze e turni extra",
+      "date": "Data",
+      "kind": "Tipo",
+      "hours": "Ore",
+      "note": "Nota",
+      "kinds": {
+        "off": "Assenza",
+        "extra": "Ore extra"
+      },
+      "weights_title": "Pesi del delivery score",
+      "weights_description": "Pesi relativi 0–50. Un fattore con peso 0 è mostrato ma ignorato. Il punteggio è la media pesata dei fattori attivi, poi limitato dalla fascia di rischio del destinatario.",
+      "thresholds_title": "Soglie",
+      "thresholds_description": "Parametri di coda e punteggio.",
+      "fields": {
+        "unreachableAfterAttempts": "Non raggiungibile dopo N non risposte",
+        "queueCutoffDays": "Finestra coda (giorni)",
+        "timeElapsedWarnHours": "Avviso dopo ore in coda",
+        "customerHistoryHalfLifeDays": "Dimezzamento storico (giorni)",
+        "customerHistoryMinOrders": "Ordini minimi per lo storico",
+        "similarOrdersLookbackDays": "Finestra ordini simili (giorni)",
+        "similarOrdersMinSample": "Campione minimo ordini simili",
+        "orderValueMultiple": "Allerta valore (× AOV)",
+        "risk_watchMinReturns": "Osservare da resi",
+        "risk_highRiskMinReturns": "Alto rischio da resi",
+        "risk_blacklistMinReturns": "Blacklist da resi",
+        "risk_recentMonths": "Finestra recente (mesi)",
+        "risk_redemptionConsecutiveDeliveries": "Consegne per riabilitazione"
+      },
+      "risk_title": "Rischio destinatari",
+      "risk_description": "Resi pesati per età (recenti 1,0, vecchi 0,5); una fascia di riabilitazione dopo consegne consecutive.",
+      "recipients_title": "Destinatari a rischio",
+      "recipients_description": "Solo suggerimenti: nulla viene bloccato in automatico. Le chiavi sono telefoni o email, mai nomi.",
+      "recompute_risk": "Ricalcola dallo storico",
+      "risk_recomputed": "{profiles} destinatari, {flagged} segnalati.",
+      "recipient": "Destinatario",
+      "tier": "Fascia",
+      "returns": "Resi (pesati)",
+      "delivered": "Consegnati",
+      "last_return": "Ultimo reso",
+      "suggestion": "Suggerimento",
+      "suggest_blacklist": "Blacklist suggerita: verifica al telefono prima di spedire",
+      "suggest_verify": "Verifica indirizzo e intenzione prima di spedire",
+      "overrides": {
+        "force_clean": "forzato pulito",
+        "force_blacklist": "forzato blacklist"
+      },
+      "override_reason": "Motivo (min 5 caratteri)",
+      "force_blacklist": "Blacklist",
+      "force_clean": "Segna pulito",
+      "clear_override": "Rimuovi forzatura",
+      "allowed_tags": "Tag ammessi",
+      "allowed_tags_any": "tutti",
+      "tags_title": "Tag della piattaforma",
+      "tags_description": "Come la coda dialoga con il negozio tramite i tag degli ordini. Niente è cablato: una lista vuota significa che quel flusso non è usato. Il confronto ignora maiuscole; un * finale corrisponde a un prefisso (vendita* corrisponde a \"Vendita Marco\").",
+      "tags_read_title": "Tag che la coda legge",
+      "tags_read": {
+        "queue": "Tag di coda",
+        "confirmed": "Tag di conferma",
+        "cancelled": "Tag di annullamento"
+      },
+      "tags_read_help": {
+        "queue": "Un ordine con uno di questi entra (o rientra) in coda, qualunque sia il suo stato. Mostrato sulla riga e usabile per instradare gli operatori.",
+        "confirmed": "Chiude l'elemento in coda e conferma l'ordine quando il tag compare sulla piattaforma.",
+        "cancelled": "Chiude l'elemento come annullato. Precedenza: annullato, poi confermato, poi coda."
+      },
+      "tags_write_title": "Tag scritti per evento",
+      "tags_write_help": "Prima la piattaforma, poi Keel: se il negozio rifiuta la scrittura non viene registrato nulla. I tag già presenti non vengono aggiunti due volte.",
+      "tags_event": "Evento",
+      "tags_add": "Aggiungi",
+      "tags_remove": "Rimuovi",
+      "tags_event_entered": "Entra in coda",
+      "tags_clear_on_close": "Su confermato e annullato rimuovi anche tutti i tag di coda",
+      "cancel_restock": "Rimetti a stock le righe quando un esito annulla l'ordine",
+      "tags_placeholder": "Tag uno, Tag due",
+      "tags_event_replaced": "Sostituito da un nuovo ordine"
+    },
+    "filter_by_tag": "Tag:",
+    "all_tags": "Tutti",
+    "modify": {
+      "button": "Modifica ordine",
+      "title": "Modifica {order}",
+      "description": "Modifiche concordate con il cliente prima della conferma. Contatti e indirizzo si modificano sul posto. Cambiare le righe o unire ordini crea un nuovo ordine e annulla questo, così il magazzino non spedisce mai una riga rimossa.",
+      "contact": "Contatti e indirizzo",
+      "customer_name": "Nome",
+      "phone": "Telefono",
+      "email": "Email",
+      "address": {
+        "name": "Destinatario",
+        "address1": "Indirizzo",
+        "address2": "Indirizzo riga 2",
+        "city": "Città",
+        "province": "Provincia",
+        "zip": "CAP",
+        "country": "Paese (codice ISO)"
+      },
+      "note_append": "Aggiungi alla nota ordine",
+      "lines": "Righe",
+      "quantity": "Quantità",
+      "add_product": "Cerca prodotto per SKU o nome",
+      "add": "Aggiungi",
+      "new_total": "Nuovo totale {total}",
+      "merge": "Unisci altri ordini aperti di questo cliente",
+      "merge_help": "Le loro righe vengono aggiunte al nuovo ordine e vengono annullati come sostituiti.",
+      "attempt_note": "Nota della chiamata (facoltativa)",
+      "replace_warning": "Questo ordine verrà annullato sulla piattaforma e sostituito da uno nuovo con lo stesso operatore. I tentativi ripartono.",
+      "replaced_done": "Sostituito da {order}.",
+      "warning_not_cancelled": "Il vecchio ordine non è stato annullato sulla piattaforma: annullalo a mano.",
+      "save": "Salva modifiche",
+      "save_replace": "Sostituisci ordine"
+    }
+  }
+}
