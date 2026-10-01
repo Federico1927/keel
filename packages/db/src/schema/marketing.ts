@@ -280,3 +280,57 @@ export const dashboards = pgTable(
   },
   (t) => [index("dashboards_user_idx").on(t.tenantId, t.userId), tenantIsolation("dashboards")],
 ).enableRLS();
+
+/**
+ * Customer campaigns sent to a segment and measured against the segment's control group
+ * (see packages/core/src/retention.ts). Drafts are editable; a sent campaign is immutable.
+ */
+export const retentionCampaigns = pgTable(
+  "retention_campaigns",
+  {
+    ...tenantColumns(),
+    name: text("name").notNull(),
+    segmentId: uuid("segment_id").references(() => segments.id, { onDelete: "set null" }),
+    /** email | sms | whatsapp | manual (sent outside Keel, measured here) */
+    channel: text("channel").notNull(),
+    message: text("message").notNull().default(""),
+    discountCode: text("discount_code"),
+    costPerMessageMinor: integer("cost_per_message_minor").notNull().default(0),
+    attributionDays: integer("attribution_days").notNull().default(14),
+    /** draft | sent */
+    status: text("status").notNull().default("draft"),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    sentBy: uuid("sent_by").references(() => users.id, { onDelete: "set null" }),
+    treatedCount: integer("treated_count").notNull().default(0),
+    holdoutCount: integer("holdout_count").notNull().default(0),
+    deliveredCount: integer("delivered_count").notNull().default(0),
+    failedCount: integer("failed_count").notNull().default(0),
+    skippedCount: integer("skipped_count").notNull().default(0),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("retention_campaigns_tenant_idx").on(t.tenantId, t.createdAt), tenantIsolation("retention_campaigns")],
+).enableRLS();
+
+/** One row per customer of a sent campaign: their group, what happened to the message, when. */
+export const retentionExposures = pgTable(
+  "retention_exposures",
+  {
+    ...tenantColumns(),
+    campaignId: uuid("campaign_id")
+      .notNull()
+      .references(() => retentionCampaigns.id, { onDelete: "cascade" }),
+    customerId: uuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    /** treated | holdout */
+    groupName: text("group_name").notNull(),
+    /** sent | failed | skipped (no address) | held_out */
+    status: text("status").notNull(),
+    messageId: text("message_id"),
+    error: text("error"),
+    exposedAt: timestamp("exposed_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [uniqueIndex("retention_exposures_uq").on(t.campaignId, t.customerId), index("retention_exposures_customer_idx").on(t.tenantId, t.customerId), tenantIsolation("retention_exposures")],
+).enableRLS();

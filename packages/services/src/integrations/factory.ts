@@ -1,5 +1,5 @@
 import { and, eq, schema } from "@keel/db";
-import { GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, MockCommercePlatform, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
+import { GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, MockCommercePlatform, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 
 export interface PlatformTenant {
@@ -135,4 +135,21 @@ export function getPaymentGuaranteeFor(tenantId: string): PaymentGuarantee {
 /** Return label provider: the mock, until a carrier or EasyPost/Shippo account is connected (external block). */
 export function getReturnLabelProviderFor(_tenantId: string): ReturnLabelProvider {
   return new MockReturnLabelProvider();
+}
+
+const messaging = new Map<string, MockMessagingChannel>();
+/**
+ * Messaging channel for customer campaigns. Only the mock exists: email, SMS and WhatsApp
+ * providers are per-account integrations (external block); the mock records what was sent.
+ */
+export function getMessagingChannelFor(tenantId: string): MessagingChannel {
+  let m = messaging.get(tenantId);
+  if (!m) {
+    m = new MockMessagingChannel();
+    messaging.set(tenantId, m);
+  }
+  return m;
+}
+export function mockMessagingFor(tenantId: string): MockMessagingChannel | undefined {
+  return messaging.get(tenantId);
 }

@@ -3274,5 +3274,112 @@
     "card_expected_orders": "Expected orders, 90 days · 12 months",
     "card_order_value": "Expected order value",
     "card_computed": "Computed {at}"
+  },
+  "retention": {
+    "tabs": {
+      "segments": "Segments",
+      "campaigns": "Campaigns"
+    },
+    "description": "Messages to a segment, measured against the segment's control group: what each campaign added over doing nothing.",
+    "new": "New campaign",
+    "new_for_segment": "New campaign",
+    "new_description": "Pick a segment with a control group, write the message, then send from the draft.",
+    "empty_title": "No campaigns yet",
+    "empty_description": "Create one from a segment with a holdout to measure its real effect.",
+    "no_segments_title": "No segments",
+    "no_segments_description": "A campaign goes to a segment: create one first.",
+    "segment_deleted": "Segment deleted",
+    "columns": {
+      "name": "Campaign",
+      "channel": "Channel",
+      "sent": "Sent",
+      "groups": "Treated / control",
+      "uplift": "Effect",
+      "net_margin": "Net incremental margin",
+      "customers": "Customers",
+      "converted": "Bought",
+      "rate": "Conversion",
+      "revenue_pc": "Revenue per customer",
+      "margin_pc": "Margin per customer"
+    },
+    "channels": {
+      "email": "Email",
+      "sms": "SMS",
+      "whatsapp": "WhatsApp",
+      "manual": "Sent from another tool"
+    },
+    "channel_hint": {
+      "email": "Sent through the messaging channel to customers with an email address.",
+      "sms": "Sent to customers with a phone number.",
+      "whatsapp": "Sent to customers with a phone number.",
+      "manual": "Keel records who was in each group; send the message from your email tool to the treated customers (segment export)."
+    },
+    "status": {
+      "draft": "Draft",
+      "sent": "Sent"
+    },
+    "verdict": {
+      "no_control": "No control group",
+      "running": "Running · {pts} pt",
+      "inconclusive": "No clear effect · {pts} pt",
+      "significant": "Effect {pts} pt"
+    },
+    "fields": {
+      "name": "Name",
+      "segment": "Segment",
+      "channel": "Channel",
+      "message": "Message",
+      "discount_code": "Discount code (optional)",
+      "cost": "Cost per message ({currency})",
+      "attribution_days": "Attribution window (days)"
+    },
+    "holdout_hint": "{pct}% of the segment is the control group and will not be contacted.",
+    "no_holdout_warning": "This segment has no control group: the campaign can be sent but its effect cannot be measured. Set a holdout on the segment first.",
+    "message_hint": "{first_name} and {code} are replaced for each customer.",
+    "create": "Create draft",
+    "save_draft": "Save draft",
+    "send": "Send…",
+    "confirm_title": "Send this campaign?",
+    "confirm_description": "{treated} customers receive it, {holdout} are kept as control group. Only customers who accept marketing are included.",
+    "mde": "Over a comparable past window {baseline} of these customers bought. With these group sizes the test can detect an effect of about {mde} or more.",
+    "confirm_send": "Send now",
+    "draft_title": "Draft",
+    "draft_description": "Editable until sent. Sending re-evaluates the segment and fixes the groups.",
+    "delivery_title": "Delivery",
+    "sent_on": "Sent {at}",
+    "exposure": {
+      "sent": "Delivered (treated)",
+      "failed": "Failed (treated)",
+      "skipped": "No address (treated)",
+      "held_out": "Control group"
+    },
+    "method_title": "How it is measured",
+    "method_note": "Every customer in the segment who accepts marketing is either treated or control, fixed before sending. Results compare confirmed, non-cancelled orders in the {days} days after sending, counting every treated customer even when the message failed, so the comparison stays fair. Incremental = difference per customer × treated customers.",
+    "window_open": "Attribution window open until {at}: results are still moving.",
+    "window_closed": "Final: window closed on {at}.",
+    "no_holdout_result": "No control group: the numbers below show what the treated customers did, not what the campaign caused.",
+    "kpi": {
+      "uplift": "Conversion uplift",
+      "p_value": "p = {p}",
+      "incremental_orders": "Incremental orders",
+      "incremental_margin": "Incremental margin",
+      "ci": "95%: {lo} to {hi}",
+      "net": "Net of sending cost",
+      "cost": "Cost {cost} · ROI {roi}"
+    },
+    "groups_title": "Treated vs control",
+    "groups_description": "Orders within {days} days of sending.",
+    "group": {
+      "treated": "Treated",
+      "holdout": "Control"
+    },
+    "code_redemptions": "{n} orders used the code {code}.",
+    "errors": {
+      "not_found": "Campaign not found.",
+      "already_sent": "The campaign was already sent.",
+      "no_segment": "Choose a segment.",
+      "empty_segment": "Nobody in the segment accepts marketing.",
+      "invalid_input": "Check the fields."
+    }
   }
 }

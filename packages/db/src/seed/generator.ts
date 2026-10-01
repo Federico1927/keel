@@ -738,7 +738,7 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
 
   /* ---------- segments ---------- */
   const segDefs = [
-    { name: isApparel ? "Clienti ricorrenti" : "Repeat customers", rules: { match: "all", conditions: [{ field: "orders_count", op: "gte", value: 2 }] }, holdout: 10, test: (c: C) => c.ordersCount >= 2 },
+    { name: isApparel ? "Clienti ricorrenti" : "Repeat customers", rules: { match: "all", conditions: [{ field: "orders_count", op: "gte", value: 2 }] }, holdout: 20, test: (c: C) => c.ordersCount >= 2 },
     { name: isApparel ? "Alto valore, inattivi 90gg" : "High value, inactive 90d", rules: { match: "all", conditions: [{ field: "total_spent", op: "gte", value: isApparel ? 25000 : 40000 }, { field: "days_since_last_order", op: "gte", value: 90 }] }, holdout: 20, test: (c: C) => c.totalSpent >= (isApparel ? 25000 : 40000) && !!c.lastOrderAt && (now.getTime() - c.lastOrderAt.getTime()) / DAY >= 90 },
     { name: isApparel ? "Nuovi con consenso marketing" : "New with marketing consent", rules: { match: "all", conditions: [{ field: "orders_count", op: "eq", value: 1 }, { field: "accepts_marketing", op: "eq", value: true }, { match: "any", conditions: [{ field: "country", op: "in", value: [cfg.country] }, { field: "days_since_first_order", op: "lte", value: 60 }] }] }, holdout: 0, test: (c: C) => c.ordersCount === 1 && c.acceptsMarketing },
   ];

@@ -5,7 +5,7 @@ import { canDo, canWritePage } from "@keel/config";
 import { formatDate, formatDateTime, formatMoney, formatNumber, type SegmentGroup } from "@keel/core";
 import { and, eq, schema } from "@keel/db";
 import { segmentMembers } from "@keel/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { segmentBuilderOptions } from "@/server/queries/crm";
 import { SegmentBuilder } from "../builder";
@@ -17,6 +17,7 @@ export default async function SegmentDetailPage({ params }: { params: Promise<{ 
   const ctx = await requirePage(tenant, "segments");
   const t = await getTranslations("segments");
   const tc = await getTranslations("customers");
+  const tr = await getTranslations("retention");
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const data = await ctx.run(async (tx) => {
     const [segment] = await tx.select().from(schema.segments).where(and(eq(schema.segments.tenantId, ctx.tenant.id), eq(schema.segments.id, id))).limit(1);
@@ -34,7 +35,7 @@ export default async function SegmentDetailPage({ params }: { params: Promise<{ 
   return (
     <>
       <p className="mb-2 text-sm text-muted-foreground"><Link href={`/t/${tenant}/segments`} className="hover:underline">← {t("title")}</Link></p>
-      <PageHeader eyebrow={ctx.tenant.name} title={segment.name} description={segment.description ?? undefined} actions={<SegmentRowActions slug={tenant} segmentId={segment.id} canWrite={canWrite} canExport={canExport} afterDelete={`/t/${tenant}/segments`} />} />
+      <PageHeader eyebrow={ctx.tenant.name} title={segment.name} description={segment.description ?? undefined} actions={<>{canWrite && <Button asChild variant="outline" size="sm"><Link href={`/t/${tenant}/segments/campaigns/new?segment=${segment.id}`}>{tr("new_for_segment")}</Link></Button>}<SegmentRowActions slug={tenant} segmentId={segment.id} canWrite={canWrite} canExport={canExport} afterDelete={`/t/${tenant}/segments`} /></>} />
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
         <Stat label={t("columns.members")} value={segment.lastCount === null ? "—" : formatNumber(segment.lastCount, ctx.locale)} href={`/t/${tenant}/customers?segment=${segment.id}`} hint={segment.lastEvaluatedAt ? t("evaluated_at", { at: formatDateTime(segment.lastEvaluatedAt, ctx.locale, ctx.tenant.timezone) }) : t("never_evaluated")} />
         <Stat label={t("columns.holdout")} value={segment.holdoutPercentage ? `${segment.holdoutPercentage}%` : "—"} hint={holdoutCount !== null && segment.holdoutPercentage ? t("holdout_n", { n: formatNumber(holdoutCount, ctx.locale) }) : undefined} />

@@ -3274,5 +3274,112 @@
     "card_expected_orders": "Pedidos esperados, 90 días · 12 meses",
     "card_order_value": "Valor esperado por pedido",
     "card_computed": "Calculada el {at}"
+  },
+  "retention": {
+    "tabs": {
+      "segments": "Segmentos",
+      "campaigns": "Campañas"
+    },
+    "description": "Mensajes a un segmento, medidos contra el grupo de control del segmento: cuánto aportó cada campaña frente a no hacer nada.",
+    "new": "Nueva campaña",
+    "new_for_segment": "Nueva campaña",
+    "new_description": "Elige un segmento con grupo de control, escribe el mensaje y envía desde el borrador.",
+    "empty_title": "Sin campañas",
+    "empty_description": "Crea una desde un segmento con grupo de control para medir su efecto real.",
+    "no_segments_title": "Sin segmentos",
+    "no_segments_description": "Una campaña va a un segmento: crea uno primero.",
+    "segment_deleted": "Segmento eliminado",
+    "columns": {
+      "name": "Campaña",
+      "channel": "Canal",
+      "sent": "Enviada",
+      "groups": "Tratados / control",
+      "uplift": "Efecto",
+      "net_margin": "Margen incremental neto",
+      "customers": "Clientes",
+      "converted": "Compraron",
+      "rate": "Conversión",
+      "revenue_pc": "Ingreso por cliente",
+      "margin_pc": "Margen por cliente"
+    },
+    "channels": {
+      "email": "Email",
+      "sms": "SMS",
+      "whatsapp": "WhatsApp",
+      "manual": "Enviada desde otra herramienta"
+    },
+    "channel_hint": {
+      "email": "Enviada por el canal de mensajería a clientes con email.",
+      "sms": "Enviada a clientes con teléfono.",
+      "whatsapp": "Enviada a clientes con teléfono.",
+      "manual": "Keel registra quién está en cada grupo; envía el mensaje desde tu herramienta de email a los clientes tratados (exportación del segmento)."
+    },
+    "status": {
+      "draft": "Borrador",
+      "sent": "Enviada"
+    },
+    "verdict": {
+      "no_control": "Sin control",
+      "running": "En curso · {pts} pt",
+      "inconclusive": "Sin efecto claro · {pts} pt",
+      "significant": "Efecto {pts} pt"
+    },
+    "fields": {
+      "name": "Nombre",
+      "segment": "Segmento",
+      "channel": "Canal",
+      "message": "Mensaje",
+      "discount_code": "Código de descuento (opcional)",
+      "cost": "Coste por mensaje ({currency})",
+      "attribution_days": "Ventana de atribución (días)"
+    },
+    "holdout_hint": "El {pct}% del segmento es el grupo de control y no se contactará.",
+    "no_holdout_warning": "Este segmento no tiene grupo de control: la campaña se puede enviar pero su efecto no se puede medir. Configura primero un control en el segmento.",
+    "message_hint": "{first_name} y {code} se sustituyen para cada cliente.",
+    "create": "Crear borrador",
+    "save_draft": "Guardar borrador",
+    "send": "Enviar…",
+    "confirm_title": "¿Enviar esta campaña?",
+    "confirm_description": "{treated} clientes la reciben, {holdout} quedan como grupo de control. Solo se incluyen clientes que aceptan marketing.",
+    "mde": "En una ventana pasada comparable compró el {baseline} de estos clientes. Con estos grupos la prueba puede detectar un efecto de aproximadamente {mde} o más.",
+    "confirm_send": "Enviar ahora",
+    "draft_title": "Borrador",
+    "draft_description": "Editable hasta el envío. Enviar reevalúa el segmento y fija los grupos.",
+    "delivery_title": "Entrega",
+    "sent_on": "Enviada el {at}",
+    "exposure": {
+      "sent": "Entregados (tratados)",
+      "failed": "Fallidos (tratados)",
+      "skipped": "Sin dirección (tratados)",
+      "held_out": "Grupo de control"
+    },
+    "method_title": "Cómo se mide",
+    "method_note": "Cada cliente del segmento que acepta marketing es tratado o de control, fijado antes del envío. Los resultados comparan pedidos confirmados y no cancelados en los {days} días posteriores al envío, contando a todo cliente tratado aunque el mensaje fallara, para que la comparación sea justa. Incremental = diferencia por cliente × clientes tratados.",
+    "window_open": "Ventana de atribución abierta hasta el {at}: los resultados aún pueden cambiar.",
+    "window_closed": "Definitivo: ventana cerrada el {at}.",
+    "no_holdout_result": "Sin grupo de control: los números muestran lo que hicieron los clientes tratados, no lo que causó la campaña.",
+    "kpi": {
+      "uplift": "Aumento de conversión",
+      "p_value": "p = {p}",
+      "incremental_orders": "Pedidos incrementales",
+      "incremental_margin": "Margen incremental",
+      "ci": "95%: de {lo} a {hi}",
+      "net": "Neto del coste de envío",
+      "cost": "Coste {cost} · ROI {roi}"
+    },
+    "groups_title": "Tratados y control",
+    "groups_description": "Pedidos dentro de {days} días del envío.",
+    "group": {
+      "treated": "Tratados",
+      "holdout": "Control"
+    },
+    "code_redemptions": "{n} pedidos usaron el código {code}.",
+    "errors": {
+      "not_found": "Campaña no encontrada.",
+      "already_sent": "La campaña ya se envió.",
+      "no_segment": "Elige un segmento.",
+      "empty_segment": "Ningún cliente del segmento acepta marketing.",
+      "invalid_input": "Revisa los campos."
+    }
   }
 }

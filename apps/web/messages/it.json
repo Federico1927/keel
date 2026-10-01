@@ -3274,5 +3274,112 @@
     "card_expected_orders": "Ordini attesi, 90 giorni · 12 mesi",
     "card_order_value": "Valore atteso per ordine",
     "card_computed": "Calcolata il {at}"
+  },
+  "retention": {
+    "tabs": {
+      "segments": "Segmenti",
+      "campaigns": "Campagne"
+    },
+    "description": "Messaggi a un segmento, misurati contro il gruppo di controllo del segmento: quanto ogni campagna ha aggiunto rispetto a non fare niente.",
+    "new": "Nuova campagna",
+    "new_for_segment": "Nuova campagna",
+    "new_description": "Scegli un segmento con gruppo di controllo, scrivi il messaggio, poi invia dalla bozza.",
+    "empty_title": "Nessuna campagna",
+    "empty_description": "Creane una da un segmento con gruppo di controllo per misurarne l'effetto reale.",
+    "no_segments_title": "Nessun segmento",
+    "no_segments_description": "Una campagna va a un segmento: creane prima uno.",
+    "segment_deleted": "Segmento eliminato",
+    "columns": {
+      "name": "Campagna",
+      "channel": "Canale",
+      "sent": "Inviata",
+      "groups": "Trattati / controllo",
+      "uplift": "Effetto",
+      "net_margin": "Margine incrementale netto",
+      "customers": "Clienti",
+      "converted": "Hanno comprato",
+      "rate": "Conversione",
+      "revenue_pc": "Ricavo per cliente",
+      "margin_pc": "Margine per cliente"
+    },
+    "channels": {
+      "email": "Email",
+      "sms": "SMS",
+      "whatsapp": "WhatsApp",
+      "manual": "Inviata da un altro strumento"
+    },
+    "channel_hint": {
+      "email": "Inviata tramite il canale di messaggistica ai clienti con email.",
+      "sms": "Inviata ai clienti con numero di telefono.",
+      "whatsapp": "Inviata ai clienti con numero di telefono.",
+      "manual": "Keel registra chi è in ogni gruppo; invia il messaggio dal tuo strumento email ai clienti trattati (esportazione del segmento)."
+    },
+    "status": {
+      "draft": "Bozza",
+      "sent": "Inviata"
+    },
+    "verdict": {
+      "no_control": "Senza controllo",
+      "running": "In corso · {pts} pt",
+      "inconclusive": "Nessun effetto chiaro · {pts} pt",
+      "significant": "Effetto {pts} pt"
+    },
+    "fields": {
+      "name": "Nome",
+      "segment": "Segmento",
+      "channel": "Canale",
+      "message": "Messaggio",
+      "discount_code": "Codice sconto (facoltativo)",
+      "cost": "Costo per messaggio ({currency})",
+      "attribution_days": "Finestra di attribuzione (giorni)"
+    },
+    "holdout_hint": "Il {pct}% del segmento è il gruppo di controllo e non verrà contattato.",
+    "no_holdout_warning": "Questo segmento non ha gruppo di controllo: la campagna si può inviare ma il suo effetto non si può misurare. Imposta prima un controllo sul segmento.",
+    "message_hint": "{first_name} e {code} vengono sostituiti per ogni cliente.",
+    "create": "Crea bozza",
+    "save_draft": "Salva bozza",
+    "send": "Invia…",
+    "confirm_title": "Inviare questa campagna?",
+    "confirm_description": "{treated} clienti la ricevono, {holdout} restano come gruppo di controllo. Sono inclusi solo i clienti con consenso marketing.",
+    "mde": "In una finestra passata comparabile ha comprato il {baseline} di questi clienti. Con questi gruppi il test può rilevare un effetto di circa {mde} o più.",
+    "confirm_send": "Invia ora",
+    "draft_title": "Bozza",
+    "draft_description": "Modificabile fino all'invio. L'invio rivaluta il segmento e fissa i gruppi.",
+    "delivery_title": "Consegna",
+    "sent_on": "Inviata il {at}",
+    "exposure": {
+      "sent": "Consegnati (trattati)",
+      "failed": "Falliti (trattati)",
+      "skipped": "Senza indirizzo (trattati)",
+      "held_out": "Gruppo di controllo"
+    },
+    "method_title": "Come si misura",
+    "method_note": "Ogni cliente del segmento con consenso marketing è trattato o di controllo, deciso prima dell'invio. I risultati confrontano gli ordini confermati e non annullati nei {days} giorni dopo l'invio, contando ogni cliente trattato anche se il messaggio non è arrivato, così il confronto resta corretto. Incrementale = differenza per cliente × clienti trattati.",
+    "window_open": "Finestra di attribuzione aperta fino al {at}: i risultati possono ancora cambiare.",
+    "window_closed": "Definitivo: finestra chiusa il {at}.",
+    "no_holdout_result": "Nessun gruppo di controllo: i numeri sotto mostrano cosa hanno fatto i clienti trattati, non cosa ha causato la campagna.",
+    "kpi": {
+      "uplift": "Aumento della conversione",
+      "p_value": "p = {p}",
+      "incremental_orders": "Ordini incrementali",
+      "incremental_margin": "Margine incrementale",
+      "ci": "95%: da {lo} a {hi}",
+      "net": "Al netto del costo di invio",
+      "cost": "Costo {cost} · ROI {roi}"
+    },
+    "groups_title": "Trattati e controllo",
+    "groups_description": "Ordini entro {days} giorni dall'invio.",
+    "group": {
+      "treated": "Trattati",
+      "holdout": "Controllo"
+    },
+    "code_redemptions": "{n} ordini hanno usato il codice {code}.",
+    "errors": {
+      "not_found": "Campagna non trovata.",
+      "already_sent": "La campagna è già stata inviata.",
+      "no_segment": "Scegli un segmento.",
+      "empty_segment": "Nessun cliente del segmento ha il consenso marketing.",
+      "invalid_input": "Controlla i campi."
+    }
   }
 }
