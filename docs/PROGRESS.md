@@ -256,7 +256,7 @@ Fatto (issue #6, prima parte):
 - Lista clienti con filtro per rischio, colonna e ordinamento per valore previsto; scheda cliente con il riquadro previsioni.
 - Ricalcolo ogni notte alle 03:40 UTC (job `crm`) e su richiesta, con audit.
 - Seed: il generatore ora simula il ciclo di vita dei clienti (acquisizione, ritmo d'acquisto personale, abbandono) sulle stesse date d'ordine stagionali; prima nessun cliente abbandonava mai e il modello dava tutti "attivi". Il seed scrive le previsioni con lo stesso codice del job.
-- Migrazione 0013 (2 tabelle con RLS); test core 137, integrazioni 28, servizi 63, db 432, e2e E2E_COUNT.
+- Migrazione 0013 (2 tabelle con RLS); test core 137, integrazioni 28, servizi 63, db 432, e2e 57.
 
 Aperto: il seed completo impiega circa 2 minuti e 5 secondi su questo ambiente, oltre il limite di 2 minuti. Le fasi nuove pesano circa 1,5 secondi per negozio; il resto è scrittura e cancellazione dei dati precedenti, già prima di questo blocco.
 
