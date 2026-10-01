@@ -301,7 +301,7 @@ Fatto:
 - Analisi → Sondaggio: risposte, tasso di risposta, confronto tra canale dichiarato e canale dei clic, risposte libere, impostazioni e link da incollare nell'email.
 - Nuovo modello di attribuzione "Misto con sondaggio": negli ordini con risposta una quota del merito, configurabile, va al canale dichiarato; il resto segue il decadimento nel tempo.
 - Guida all'attivazione in tre lingue. Seed: sondaggio attivo su entrambi i negozi con risposte sul 30% degli ordini degli ultimi 120 giorni.
-- Migrazione 0017 (2 tabelle con RLS); test E2E5.
+- Migrazione 0017 (2 tabelle con RLS); test core 149, servizi 78, db 498, e2e 65.
 
 ## Blocchi
 
