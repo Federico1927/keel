@@ -7,6 +7,8 @@ import { variantStock } from "../inventory";
 export interface CampaignRow {
   id: string;
   platform: string;
+  /** What the ad platform reports for the period: its own conversions and value, to compare with attributed orders. */
+  declared: { purchases: number; valueMinor: number };
   externalId: string;
   name: string;
   status: string;
@@ -34,7 +36,7 @@ export async function campaignsWithEconomics(ctx: ServiceContext, tenant: Analyt
   const since = period.from.toISOString().slice(0, 10);
   const until = period.to.toISOString().slice(0, 10);
   const [spend, attribution, links] = await Promise.all([
-    ctx.tx.select({ campaignId: schema.adMetricsDaily.campaignId, spend: sql<number>`coalesce(sum(${schema.adMetricsDaily.spendMinor}),0)::int`, clicks: sql<number>`coalesce(sum(${schema.adMetricsDaily.clicks}),0)::int`, impressions: sql<number>`coalesce(sum(${schema.adMetricsDaily.impressions}),0)::int` }).from(schema.adMetricsDaily).where(and(inArray(schema.adMetricsDaily.campaignId, ids), gte(schema.adMetricsDaily.date, since), lt(schema.adMetricsDaily.date, until))).groupBy(schema.adMetricsDaily.campaignId),
+    ctx.tx.select({ campaignId: schema.adMetricsDaily.campaignId, spend: sql<number>`coalesce(sum(${schema.adMetricsDaily.spendMinor}),0)::int`, clicks: sql<number>`coalesce(sum(${schema.adMetricsDaily.clicks}),0)::int`, impressions: sql<number>`coalesce(sum(${schema.adMetricsDaily.impressions}),0)::int`, purchases: sql<number>`coalesce(sum(${schema.adMetricsDaily.purchases}),0)::int`, purchaseValue: sql<number>`coalesce(sum(${schema.adMetricsDaily.purchaseValueMinor}),0)::int` }).from(schema.adMetricsDaily).where(and(inArray(schema.adMetricsDaily.campaignId, ids), gte(schema.adMetricsDaily.date, since), lt(schema.adMetricsDaily.date, until))).groupBy(schema.adMetricsDaily.campaignId),
     ctx.tx.select({ orderId: schema.orderAttribution.orderId, campaignId: schema.orderAttribution.campaignId }).from(schema.orderAttribution).innerJoin(schema.orders, eq(schema.orders.id, schema.orderAttribution.orderId)).where(and(inArray(schema.orderAttribution.campaignId, ids), gte(schema.orders.placedAt, period.from), lt(schema.orders.placedAt, period.to))),
     ctx.tx.select({ campaignId: schema.campaignProductLinks.campaignId, productId: schema.campaignProductLinks.productId, isPrimary: schema.campaignProductLinks.isPrimary, title: schema.products.title, repurchasable: schema.products.isRepurchasable }).from(schema.campaignProductLinks).innerJoin(schema.products, eq(schema.products.id, schema.campaignProductLinks.productId)).where(inArray(schema.campaignProductLinks.campaignId, ids)),
   ]);
@@ -60,7 +62,7 @@ export async function campaignsWithEconomics(ctx: ServiceContext, tenant: Analyt
     const incoming = products.reduce((s, p) => s + p.incoming, 0);
     const stockRisk = products.length ? worstRisk(products.map((p) => p.risk)) : null;
     const rec = recommendAction({ status: c.status, light, repurchasable: products.length ? products.some((p) => p.repurchasable) : true, stock, incoming, stockThreshold: tenant.settings.campaignStockThreshold, stockRisk });
-    return { id: c.id, platform: c.platform, externalId: c.externalId, name: c.name, status: c.status, dailyBudgetMinor: c.dailyBudgetMinor, metrics, light, action: rec.action, restock: rec.restock, reason: rec.reason, products, stock, incoming, stockRisk };
+    return { id: c.id, platform: c.platform, declared: { purchases: sp?.purchases ?? 0, valueMinor: sp?.purchaseValue ?? 0 }, externalId: c.externalId, name: c.name, status: c.status, dailyBudgetMinor: c.dailyBudgetMinor, metrics, light, action: rec.action, restock: rec.restock, reason: rec.reason, products, stock, incoming, stockRisk };
   });
 }
 

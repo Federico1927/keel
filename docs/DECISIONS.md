@@ -233,3 +233,17 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · Per-tenant feature flags in tenant settings
 
 **Decision.** `tenant.settings.featureFlags` is a map of named booleans read with `hasFeature(settings, key)`. It is the cheapest lever for behaviour one account wants and nobody else does, below state rules and add-ons in the escalation ladder documented in ARCHITECTURE ("Changes for one tenant"). Flags gate code paths that already exist in the product; bespoke code still goes into an `addon.*` package.
+
+## 2026-10-01 · Period costs: estimate until the invoice, then actual, and the P/L says which
+
+**Decision.** `period_costs` holds one row per month, kind (fixed, other, shipping) and label with an estimate and an optional actual. The P/L resolves each month as actual ?? estimate; shipping replaces the per-order estimate with the carrier invoice month by month; months with no entry fall back to the old flat `cost_settings` amount so existing tenants lose nothing. Every report carries `costSources` (actual, estimate, legacy, none, mixed) and shows it under the table: a P/L built on estimates must say so. Entry is a page under Analytics, editable by owners and admins, audited line by line. Proration changed with it: a whole month costs exactly the monthly figure (before: days/30.44, so March cost 31/30.44 of the rent); a partial month is prorated on that month's own days. The phase-5 hand calculation was updated accordingly (fixed 3043 instead of 3099).
+
+**Alternatives.** Overwriting the estimate with the actual (rejected: the variance between the two is the information); per-day costs (rejected: invoices are monthly).
+
+## 2026-10-01 · Blended metrics against real orders, new customers by first order
+
+**Decision.** MER, nc-ROAS, blended CAC, POAS and CAC per paid channel are computed from Keel's own economics (net revenue, contribution margin, ad spend from the platforms) and from "new customers" defined as the customer's earliest non-cancelled, non-replaced order falling in the period. Platform-declared conversions are shown separately (campaigns) and never feed these ratios. Channel for CAC comes from the first order's attribution channel; spend is mapped platform → channel (Meta → paid social, Google → paid search).
+
+## 2026-10-01 · Month-end forecast is a weekday-weighted run rate, not a model
+
+**Decision.** The projection weights the remaining days by the weekday profile of the previous eight weeks and shows a band of one standard deviation of the daily values scaled by the square root of the remaining days. It is explainable in one sentence to a merchant, which is the point; a seasonal model belongs to the inventory forecast (Area 2), where there is enough history per SKU to justify it.

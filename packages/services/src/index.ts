@@ -7,6 +7,8 @@ export * from "./notifications";
 export * from "./purchasing";
 export * from "./inventory";
 export * from "./analytics";
+export * from "./analytics/depth";
+export * from "./analytics/ltv";
 export * from "./campaigns";
 export * from "./crm";
 export * from "./returns";

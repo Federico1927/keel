@@ -87,6 +87,7 @@ export interface TenantDataset {
   shipmentStatusMappings: Row[];
   stateRules: Row[];
   costSettings: Row[];
+  periodCosts: Row[];
   returnReasons: Row[];
   returnRequests: Row[];
   returnLines: Row[];
@@ -160,7 +161,7 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
   const seasonality = isApparel ? SEASONALITY_APPAREL : SEASONALITY_HOME;
   const ds: TenantDataset = {
     locations: [], products: [], productVariants: [], inventoryLevels: [], inventoryMovements: [], customers: [], campaigns: [], adMetricsDaily: [], campaignProductLinks: [], discountPools: [], discounts: [],
-    orders: [], orderLines: [], orderEvents: [], orderNotes: [], orderDiscounts: [], orderAttribution: [], shipments: [], shipmentSourceStates: [], shipmentEvents: [], shipmentStatusMappings: [], stateRules: [], costSettings: [],
+    orders: [], orderLines: [], orderEvents: [], orderNotes: [], orderDiscounts: [], orderAttribution: [], shipments: [], shipmentSourceStates: [], shipmentEvents: [], shipmentStatusMappings: [], stateRules: [], costSettings: [], periodCosts: [],
     returnReasons: [], returnRequests: [], returnLines: [], suppliers: [], purchaseOrders: [], purchaseOrderLines: [], supplierPayments: [], backorders: [], segments: [], segmentMemberships: [], notifications: [], integrations: [], integrationHealth: [], webhookEvents: [], syncRuns: [], auditLogs: [],
   };
   const t = (row: Row): Row & { id: string; tenantId: string } => ({ id: rng.uuid(), tenantId, ...row });
@@ -612,6 +613,16 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
     ds.costSettings.push(t({ kind: "shipping_per_order", label: null, amountMinor: (isApparel ? 620 : 890) + (m % 3) * 15, validFrom: iso(d), validTo: iso(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0))) }));
   }
   ds.costSettings.push(t({ kind: "fixed_monthly", label: isApparel ? "Software e servizi" : "Software & services", amountMinor: isApparel ? 180000 : 95000, validFrom: iso(addDays(now, -400)), validTo: null }));
+  // period costs: estimate every month, actual once the month is closed (±8 %); the current month has estimates only
+  const fixedLines: [string, number][] = isApparel ? [["Software e servizi", 180000], ["Personale", 1250000], ["Agenzia e consulenti", 240000], ["Affitto e utenze", 320000]] : [["Software & services", 95000], ["Payroll", 680000], ["Agency", 150000], ["Rent & utilities", 210000]];
+  for (let m = 12; m >= -1; m--) {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - m, 1));
+    const period = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+    const closed = m >= 1;
+    for (const [label, estimate] of fixedLines) ds.periodCosts.push(t({ period, kind: "fixed", label, estimateMinor: estimate, actualMinor: closed ? Math.round(estimate * (0.92 + rng.next() * 0.16)) : null, note: null }));
+    const shippingEstimate = Math.round((isApparel ? 1250 : 500) * (0.8 + rng.next() * 0.4) * (isApparel ? 620 : 890));
+    ds.periodCosts.push(t({ period, kind: "shipping", label: "", estimateMinor: shippingEstimate, actualMinor: closed ? Math.round(shippingEstimate * (0.9 + rng.next() * 0.2)) : null, note: null }));
+  }
 
   /* ---------- segments ---------- */
   const segDefs = [

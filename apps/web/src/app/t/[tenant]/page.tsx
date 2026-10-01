@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatMoney, formatNumber } from "@keel/core";
-import { dashboardSummary } from "@keel/services";
+import { dashboardSummary, monthEndForecast } from "@keel/services";
 import { Card, CardContent, CardHeader, CardTitle, PageHeader, Stat } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { RevenueChart } from "@/components/charts/revenue-chart";
@@ -11,7 +11,8 @@ export default async function DashboardPage({ params }: { params: Promise<{ tena
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "dashboard");
   const t = await getTranslations("dashboard");
-  const summary = await ctx.run((tx) => dashboardSummary({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { id: ctx.tenant.id, country: ctx.tenant.country, currency: ctx.tenant.currency, timezone: ctx.tenant.timezone, settings: ctx.settings }));
+  const at = { id: ctx.tenant.id, country: ctx.tenant.country, currency: ctx.tenant.currency, timezone: ctx.tenant.timezone, settings: ctx.settings };
+  const { summary, forecast } = await ctx.run(async (tx) => ({ summary: await dashboardSummary({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, at), forecast: await monthEndForecast({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, at) }));
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   const pctChange = (cur: number, prev: number) => (prev ? { value: (cur - prev) / prev } : null);
   const base = `/t/${tenant}`;
@@ -45,6 +46,18 @@ export default async function DashboardPage({ params }: { params: Promise<{ tena
           </CardContent>
         </Card>
         <div className="space-y-6">
+          <Card data-testid="forecast-card">
+            <CardHeader>
+              <CardTitle className="text-base">{t("forecast.title", { month: forecast.month })}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1 text-sm">
+              <div className="flex items-center justify-between"><span>{t("forecast.revenue")}</span><span className="tabular font-medium">{money(forecast.revenue.projected)}</span></div>
+              <div className="flex items-center justify-between text-xs text-muted-foreground"><span>{t("forecast.band")}</span><span className="tabular">{money(forecast.revenue.low)} – {money(forecast.revenue.high)}</span></div>
+              <div className="flex items-center justify-between"><span>{t("forecast.orders")}</span><span className="tabular font-medium">{formatNumber(forecast.orders.projected, ctx.locale)}</span></div>
+              <div className="flex items-center justify-between"><span>{t("forecast.spend")}</span><span className="tabular font-medium">{money(forecast.spend.projected)}</span></div>
+              <p className="pt-1 text-xs text-muted-foreground">{t("forecast.hint", { elapsed: forecast.elapsedDays, days: forecast.daysInMonth })} <Link href={`${base}/analytics`} className="underline-offset-4 hover:underline">{t("forecast.more")}</Link></p>
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader>
               <CardTitle className="text-base">{t("work_queue")}</CardTitle>

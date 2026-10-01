@@ -1,5 +1,5 @@
-import { and, eq, gte, inArray, lt, schema, sql } from "@keel/db";
-import { change, orderEconomics, previousPeriod, prorateMonthlyCost, runningWindows, sumEconomics, type OrderEconomics, type Period, type PnlTotals, type TenantSettings } from "@keel/core";
+import { and, eq, gte, inArray, lt, lte, schema, sql } from "@keel/db";
+import { change, monthKey, orderEconomics, previousPeriod, resolveFixedCosts, resolveShippingCosts, runningWindows, sumEconomics, type CostSource, type MonthCostUse, type OrderEconomics, type Period, type PeriodCostEntry, type PnlTotals, type TenantSettings } from "@keel/core";
 import type { ServiceContext } from "../context";
 
 export interface AnalyticsTenant {
@@ -81,9 +81,21 @@ export async function adSpendForPeriod(ctx: ServiceContext, period: Period, camp
   return r?.spend ?? 0;
 }
 
-export async function fixedCostsForPeriod(ctx: ServiceContext, period: Period): Promise<number> {
+/** Legacy flat monthly amounts (`cost_settings.fixed_monthly`) valid in a given month: the fallback when no period cost was entered. */
+async function legacyFixedMonthly(ctx: ServiceContext): Promise<(period: string) => number> {
   const rows = await ctx.tx.select().from(schema.costSettings).where(and(eq(schema.costSettings.tenantId, ctx.tenantId), eq(schema.costSettings.kind, "fixed_monthly")));
-  return rows.reduce((s, r) => s + prorateMonthlyCost(r.amountMinor, r.validFrom, r.validTo, period.from, period.to), 0);
+  return (period: string) => {
+    const day = `${period}-15`;
+    return rows.filter((r) => r.validFrom <= day && (!r.validTo || r.validTo >= day)).reduce((s, r) => s + r.amountMinor, 0);
+  };
+}
+
+/** Period cost entries (estimate / actual) for every month overlapping the period. */
+export async function periodCostEntries(ctx: ServiceContext, period: Period): Promise<PeriodCostEntry[]> {
+  const fromKey = monthKey(period.from);
+  const toKey = monthKey(new Date(period.to.getTime() - 1));
+  const rows = await ctx.tx.select().from(schema.periodCosts).where(and(eq(schema.periodCosts.tenantId, ctx.tenantId), gte(schema.periodCosts.period, fromKey), lte(schema.periodCosts.period, toKey)));
+  return rows.map((r) => ({ period: r.period, kind: r.kind as PeriodCostEntry["kind"], label: r.label, estimateMinor: r.estimateMinor, actualMinor: r.actualMinor }));
 }
 
 export interface PnlReport extends PnlTotals {
@@ -92,14 +104,29 @@ export interface PnlReport extends PnlTotals {
   cancelledOrders: number;
   returnedOrders: number;
   pendingOrders: number;
+  /** Which figure the P/L used for fixed and shipping costs: actual, estimate, legacy setting, none, or mixed across months. */
+  costSources: { fixed: CostSource; shipping: CostSource };
+  costByMonth: { fixed: MonthCostUse[]; shipping: MonthCostUse[] };
 }
 
 export async function pnlForPeriod(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period): Promise<PnlReport> {
   const rows = await orderEconomicsForPeriod(ctx, tenant, period);
-  const [adSpend, fixed] = await Promise.all([adSpendForPeriod(ctx, period), fixedCostsForPeriod(ctx, period)]);
-  const totals = sumEconomics(rows, adSpend, fixed);
+  const adSpend = await adSpendForPeriod(ctx, period);
+  const entries = await periodCostEntries(ctx, period);
+  const fixed = resolveFixedCosts(entries, period.from, period.to, await legacyFixedMonthly(ctx));
+  const shipEstimateByMonth: Record<string, number> = {};
+  for (const r of rows) if (r.inScope) shipEstimateByMonth[monthKey(r.placedAt)] = (shipEstimateByMonth[monthKey(r.placedAt)] ?? 0) + r.shippingCostMinor;
+  const shipping = resolveShippingCosts(shipEstimateByMonth, entries, period.from, period.to);
+  const totals = sumEconomics(rows, adSpend, fixed.totalMinor);
+  // the carrier invoice, when entered, replaces the per-order estimate month by month
+  totals.shippingCostMinor = shipping.totalMinor;
+  totals.contributionMinor = totals.grossMarginMinor - totals.shippingCostMinor - totals.paymentFeeMinor;
+  totals.operatingProfitMinor = totals.contributionMinor - adSpend - fixed.totalMinor;
+  totals.contributionRate = totals.netRevenueMinor ? totals.contributionMinor / totals.netRevenueMinor : null;
   return {
     ...totals,
+    costSources: { fixed: fixed.source, shipping: shipping.source },
+    costByMonth: { fixed: fixed.byMonth, shipping: shipping.byMonth },
     period,
     placedOrders: rows.length,
     cancelledOrders: rows.filter((r) => r.status === "cancelled").length,

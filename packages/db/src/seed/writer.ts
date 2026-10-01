@@ -29,6 +29,7 @@ export const WRITE_ORDER: [keyof TenantDataset, PgTable][] = [
   ["stateRules", schema.stateRules],
   ["shipmentStatusMappings", schema.shipmentStatusMappings],
   ["costSettings", schema.costSettings],
+  ["periodCosts", schema.periodCosts],
   ["returnReasons", schema.returnReasons],
   ["suppliers", schema.suppliers],
   ["orders", schema.orders],

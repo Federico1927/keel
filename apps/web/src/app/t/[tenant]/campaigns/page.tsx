@@ -46,6 +46,30 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
         }
       />
       <CampaignFilters basePath={base} keep={periodParams(period, sp)} platform={platform} status={status} />
+      {rows.length > 0 && (() => {
+        const byPlatform = ["meta", "google"].map((p) => {
+          const rs = rows.filter((r) => r.platform === p);
+          return { platform: p, spend: rs.reduce((s, r) => s + r.metrics.spendMinor, 0), declared: rs.reduce((s, r) => s + r.declared.purchases, 0), declaredValue: rs.reduce((s, r) => s + r.declared.valueMinor, 0), real: rs.reduce((s, r) => s + r.metrics.attributedOrders, 0), realRevenue: rs.reduce((s, r) => s + r.metrics.netRevenueMinor, 0) };
+        }).filter((x) => x.spend > 0 || x.declared > 0);
+        return (
+          <Card className="mt-4" data-testid="declared-vs-real">
+            <CardContent className="grid gap-3 p-4 sm:grid-cols-2">
+              {byPlatform.map((x) => {
+                const gap = x.declared ? (x.real - x.declared) / x.declared : null;
+                return (
+                  <div key={x.platform} className="space-y-1 text-sm">
+                    <p className="font-medium">{t(`declared.title_${x.platform}`)}</p>
+                    <div className="flex justify-between"><span className="text-muted-foreground">{t("declared.platform_says")}</span><span className="tabular">{x.declared} · {money(x.declaredValue)} · {ratio(x.spend ? x.declaredValue / x.spend : null)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">{t("declared.real")}</span><span className="tabular">{x.real} · {money(x.realRevenue)} · {ratio(x.spend ? x.realRevenue / x.spend : null)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">{t("declared.gap")}</span><span className={`tabular font-medium ${gap !== null && gap < -0.2 ? "text-destructive" : ""}`}>{gap === null ? "—" : `${gap > 0 ? "+" : ""}${Math.round(gap * 100)}%`}</span></div>
+                  </div>
+                );
+              })}
+              <p className="text-xs text-muted-foreground sm:col-span-2">{t("declared.help")}</p>
+            </CardContent>
+          </Card>
+        );
+      })()}
       {rows.length === 0 ? (
         <EmptyState title={t("empty_title")} description={t("empty_description")} className="mt-4" />
       ) : (

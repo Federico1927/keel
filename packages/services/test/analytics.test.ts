@@ -56,9 +56,10 @@ describe("P/L for a period", () => {
     expect(pnl.paymentFeeMinor).toBe(245 + 293);
     expect(pnl.contributionMinor).toBe(5105 + 6812);
     expect(pnl.adSpendMinor).toBe(3000);
-    // fixed: 3043 × 31 / 30.4375 = 3099.3 → 3099
-    expect(pnl.fixedCostsMinor).toBe(3099);
-    expect(pnl.operatingProfitMinor).toBe(5105 + 6812 - 3000 - 3099);
+    // fixed: March is a whole month and has no period cost entry → the legacy monthly amount, 3043
+    expect(pnl.fixedCostsMinor).toBe(3043);
+    expect(pnl.costSources).toEqual({ fixed: "legacy", shipping: "estimate" });
+    expect(pnl.operatingProfitMinor).toBe(5105 + 6812 - 3000 - 3043);
   });
   it("produces KPIs, dashboard, product performance and cohorts on the seed", async () => {
     const now = new Date();

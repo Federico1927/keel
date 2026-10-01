@@ -212,6 +212,15 @@
       "returns_requested": "Richieste di reso",
       "critical_variants": "Varianti sotto soglia",
       "failed_webhooks": "Webhook falliti"
+    },
+    "forecast": {
+      "title": "Previsione {month}",
+      "revenue": "Ricavo",
+      "band": "intervallo probabile",
+      "orders": "Ordini",
+      "spend": "Spesa ads",
+      "hint": "Giorno {elapsed} di {days}, run rate per giorno della settimana.",
+      "more": "Dettagli"
     }
   },
   "settings": {
@@ -799,7 +808,9 @@
       "overview": "Panoramica",
       "pnl": "P/L",
       "products": "Prodotti",
-      "cohorts": "Coorti"
+      "cohorts": "Coorti",
+      "ltv": "LTV",
+      "basket": "Analisi prodotto"
     },
     "kpi": {
       "net_revenue": "Ricavo netto",
@@ -840,7 +851,16 @@
       "cogs_incomplete": "{n} ordini hanno righe senza costo d'acquisto: il costo del venduto è sottostimato.",
       "by_month": "Per mese",
       "month": "Mese",
-      "open_orders": "Apri gli ordini"
+      "open_orders": "Apri gli ordini",
+      "cost_sources": "Spedizioni: {shipping}. Costi fissi: {fixed}.",
+      "edit_costs": "Inserisci i costi di periodo",
+      "source": {
+        "actual": "consuntivo da fattura",
+        "estimate": "stima",
+        "legacy": "importo mensile fisso delle impostazioni",
+        "none": "nessun costo inserito",
+        "mixed": "consuntivo dove c'è, stima altrove"
+      }
     },
     "products": {
       "title": "Performance prodotti",
@@ -860,6 +880,103 @@
       "customers": "Clienti",
       "month": "M+{n}",
       "empty": "Storico ancora insufficiente."
+    },
+    "blended": {
+      "title": "Metriche marketing blended",
+      "description": "Su tutte le piattaforme, contro gli ordini reali: non quello che le piattaforme dichiarano.",
+      "mer": "MER",
+      "mer_hint": "ricavo netto / spesa ads · spesa {share} del ricavo",
+      "nc_roas": "nc-ROAS",
+      "nc_roas_hint": "solo primi ordini · {n} nuovi clienti",
+      "cac": "CAC blended",
+      "cac_hint": "spesa ads / nuovi clienti",
+      "poas": "POAS",
+      "poas_hint": "margine di contribuzione / spesa ads",
+      "new": "nuovi",
+      "channel": {
+        "paid_social": "Paid social (Meta)",
+        "paid_search": "Paid search (Google)"
+      }
+    },
+    "forecast": {
+      "title": "Previsione a fine mese · {month}",
+      "description": "Run rate di {elapsed} giorni su {days}, pesato sul profilo per giorno della settimana delle ultime 8 settimane. Banda: una deviazione standard.",
+      "revenue": "Ricavo previsto",
+      "orders": "Ordini previsti",
+      "spend": "Spesa ads prevista",
+      "to_date": "a oggi {v}"
+    },
+    "costs": {
+      "title": "Costi di periodo",
+      "description": "Voci fisse e fattura di spedizione per mese, prima come stima e poi come consuntivo. Il P/L usa il consuntivo dove c'è, la stima altrove, e lo dichiara.",
+      "back": "P/L",
+      "current": "mese corrente",
+      "next": "mese prossimo",
+      "orders_n": "{n} ordini di vendita",
+      "fixed_used": "fissi {amount}",
+      "shipping_used": "spedizioni {amount}",
+      "fixed": "Costi fissi",
+      "shipping": "Spedizioni",
+      "line": "Voce",
+      "estimate": "Stima",
+      "actual": "Consuntivo",
+      "used": "Usato nel P/L",
+      "shipping_hint": "stima per ordine {amount}",
+      "shipping_dialog_help": "Stima: il budget del mese. Consuntivo: il totale della fattura del corriere; sostituisce la stima per ordine di questo mese.",
+      "fixed_total": "Totale fissi",
+      "kind": "Tipo",
+      "kind_fixed": "Fisso",
+      "kind_other": "Altro",
+      "label_placeholder": "Affitto, personale, software, agenzia…",
+      "actual_placeholder": "quando noto",
+      "note": "Nota",
+      "add_line": "Aggiungi voce",
+      "source": {
+        "actual": "consuntivo",
+        "estimate": "stima",
+        "none": "nessuno"
+      }
+    },
+    "ltv": {
+      "title": "Valore del cliente nel tempo (LTV)",
+      "description": "Ricavo netto cumulato medio per cliente a 30/60/90/180/365 giorni dal primo ordine. Contano solo i clienti abbastanza vecchi per la finestra, così le coorti giovani non sono penalizzate.",
+      "by": {
+        "cohort": "Mese di acquisizione",
+        "channel": "Canale di acquisizione",
+        "product": "Primo prodotto"
+      },
+      "first_order": "Primo ordine",
+      "window": "{d} g",
+      "repeat_90": "Riacquisto in 90 g",
+      "days_to_second": "Giorni al 2° ordine",
+      "cac": "CAC",
+      "payback": "Rientro",
+      "days": "{n} g",
+      "matured": "{n} clienti abbastanza vecchi",
+      "footnote": "Ricavo netto = totale − tasse − rimborsi degli ordini di vendita. CAC = spesa ads del mese / clienti acquisiti nel mese; rientro = giorni finché il margine cumulato per cliente copre il CAC.",
+      "channel": {
+        "paid_social": "Social a pagamento",
+        "paid_search": "Ricerca a pagamento",
+        "organic_search": "Ricerca organica",
+        "social": "Social",
+        "email": "Email",
+        "referral": "Referral",
+        "direct": "Diretto",
+        "marketplace": "Marketplace",
+        "unknown": "Sconosciuto"
+      }
+    },
+    "basket": {
+      "entry_title": "Prodotti di ingresso",
+      "entry_description": "Il primo prodotto acquistato da un cliente e quanto valgono quei clienti dopo un anno. Ordinati per valore a 365 giorni.",
+      "acquired": "Clienti acquisiti",
+      "ltv365": "Valore a 365 g",
+      "repeat": "Riacquisto in 365 g",
+      "pairs_title": "Acquistati insieme",
+      "pairs_description": "Coppie di prodotti nello stesso ordine di vendita nel periodo. Lift > 1: insieme più spesso del caso.",
+      "lift": "lift {v}",
+      "paths_title": "Primo → secondo acquisto",
+      "paths_description": "Prodotto principale del primo ordine e del secondo, con i giorni mediani tra i due."
     }
   },
   "campaigns": {
@@ -930,6 +1047,14 @@
     "platform": {
       "meta": "Meta",
       "google": "Google Ads"
+    },
+    "declared": {
+      "title_meta": "Meta: dichiarato vs reale",
+      "title_google": "Google: dichiarato vs reale",
+      "platform_says": "La piattaforma dichiara (acquisti · valore · ROAS)",
+      "real": "Ordini reali attribuiti (ordini · netto · ROAS)",
+      "gap": "Scarto",
+      "help": "Le piattaforme contano le conversioni con le proprie finestre e modelli; gli ordini reali sono gli ordini di vendita attribuiti da Keel. Uno scarto molto negativo vuol dire che la piattaforma sovrastima."
     }
   },
   "campaign_detail": {

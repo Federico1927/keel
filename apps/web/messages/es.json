@@ -212,6 +212,15 @@
       "returns_requested": "Solicitudes de devolución",
       "critical_variants": "Variantes con stock bajo",
       "failed_webhooks": "Webhooks fallidos"
+    },
+    "forecast": {
+      "title": "Previsión {month}",
+      "revenue": "Ingreso",
+      "band": "rango probable",
+      "orders": "Pedidos",
+      "spend": "Inversión",
+      "hint": "Día {elapsed} de {days}, ritmo por día de la semana.",
+      "more": "Detalles"
     }
   },
   "settings": {
@@ -799,7 +808,9 @@
       "overview": "Resumen",
       "pnl": "P/L",
       "products": "Productos",
-      "cohorts": "Cohortes"
+      "cohorts": "Cohortes",
+      "ltv": "LTV",
+      "basket": "Análisis de producto"
     },
     "kpi": {
       "net_revenue": "Ingreso neto",
@@ -840,7 +851,16 @@
       "cogs_incomplete": "{n} pedidos tienen líneas sin coste de compra: el coste de ventas está infravalorado.",
       "by_month": "Por mes",
       "month": "Mes",
-      "open_orders": "Abrir pedidos"
+      "open_orders": "Abrir pedidos",
+      "cost_sources": "Envíos: {shipping}. Costes fijos: {fixed}.",
+      "edit_costs": "Introducir costes del periodo",
+      "source": {
+        "actual": "real según factura",
+        "estimate": "estimación",
+        "legacy": "importe mensual fijo de ajustes",
+        "none": "ningún coste introducido",
+        "mixed": "real donde existe, estimación en el resto"
+      }
     },
     "products": {
       "title": "Rendimiento de productos",
@@ -860,6 +880,103 @@
       "customers": "Clientes",
       "month": "M+{n}",
       "empty": "Aún no hay historial suficiente."
+    },
+    "blended": {
+      "title": "Métricas de marketing combinadas",
+      "description": "En todas las plataformas, contra pedidos reales: no lo que declaran las plataformas.",
+      "mer": "MER",
+      "mer_hint": "ingreso neto / inversión · inversión {share} del ingreso",
+      "nc_roas": "nc-ROAS",
+      "nc_roas_hint": "solo primeros pedidos · {n} clientes nuevos",
+      "cac": "CAC combinado",
+      "cac_hint": "inversión / clientes nuevos",
+      "poas": "POAS",
+      "poas_hint": "margen de contribución / inversión",
+      "new": "nuevos",
+      "channel": {
+        "paid_social": "Paid social (Meta)",
+        "paid_search": "Paid search (Google)"
+      }
+    },
+    "forecast": {
+      "title": "Previsión a fin de mes · {month}",
+      "description": "Ritmo de {elapsed} de {days} días, ponderado por el perfil por día de la semana de las últimas 8 semanas. Banda: una desviación estándar.",
+      "revenue": "Ingreso previsto",
+      "orders": "Pedidos previstos",
+      "spend": "Inversión prevista",
+      "to_date": "hasta hoy {v}"
+    },
+    "costs": {
+      "title": "Costes del periodo",
+      "description": "Líneas fijas y factura de envío por mes, primero como estimación y después como real. El P/L usa el real donde existe, la estimación en el resto, y lo indica.",
+      "back": "P/L",
+      "current": "mes actual",
+      "next": "mes próximo",
+      "orders_n": "{n} pedidos de venta",
+      "fixed_used": "fijos {amount}",
+      "shipping_used": "envíos {amount}",
+      "fixed": "Costes fijos",
+      "shipping": "Envíos",
+      "line": "Línea",
+      "estimate": "Estimación",
+      "actual": "Real",
+      "used": "Usado en P/L",
+      "shipping_hint": "estimación por pedido {amount}",
+      "shipping_dialog_help": "Estimación: el presupuesto del mes. Real: el total de la factura del transportista; sustituye la estimación por pedido de este mes.",
+      "fixed_total": "Total fijos",
+      "kind": "Tipo",
+      "kind_fixed": "Fijo",
+      "kind_other": "Otro",
+      "label_placeholder": "Alquiler, nóminas, software, agencia…",
+      "actual_placeholder": "cuando se conozca",
+      "note": "Nota",
+      "add_line": "Añadir línea",
+      "source": {
+        "actual": "real",
+        "estimate": "estimación",
+        "none": "ninguno"
+      }
+    },
+    "ltv": {
+      "title": "Valor del cliente en el tiempo (LTV)",
+      "description": "Ingreso neto acumulado medio por cliente a 30/60/90/180/365 días del primer pedido. Solo cuentan los clientes con antigüedad suficiente para cada ventana, así las cohortes jóvenes no salen penalizadas.",
+      "by": {
+        "cohort": "Mes de adquisición",
+        "channel": "Canal de adquisición",
+        "product": "Primer producto"
+      },
+      "first_order": "Primer pedido",
+      "window": "{d} d",
+      "repeat_90": "Recompra en 90 d",
+      "days_to_second": "Días al 2.º pedido",
+      "cac": "CAC",
+      "payback": "Recuperación",
+      "days": "{n} d",
+      "matured": "{n} clientes con antigüedad suficiente",
+      "footnote": "Ingreso neto = total − impuestos − reembolsos de los pedidos de venta. CAC = inversión del mes / clientes adquiridos ese mes; recuperación = días hasta que el margen acumulado por cliente cubre el CAC.",
+      "channel": {
+        "paid_social": "Social de pago",
+        "paid_search": "Búsqueda de pago",
+        "organic_search": "Búsqueda orgánica",
+        "social": "Social",
+        "email": "Email",
+        "referral": "Referido",
+        "direct": "Directo",
+        "marketplace": "Marketplace",
+        "unknown": "Desconocido"
+      }
+    },
+    "basket": {
+      "entry_title": "Productos de entrada",
+      "entry_description": "El primer producto que compró un cliente y cuánto valen esos clientes al cabo de un año. Ordenados por valor a 365 días.",
+      "acquired": "Clientes adquiridos",
+      "ltv365": "Valor a 365 d",
+      "repeat": "Recompra en 365 d",
+      "pairs_title": "Comprados juntos",
+      "pairs_description": "Pares de productos en el mismo pedido de venta del periodo. Lift > 1: juntos más a menudo que por azar.",
+      "lift": "lift {v}",
+      "paths_title": "Primera → segunda compra",
+      "paths_description": "Producto principal del primer pedido y del segundo, con la mediana de días entre ambos."
     }
   },
   "campaigns": {
@@ -930,6 +1047,14 @@
     "platform": {
       "meta": "Meta",
       "google": "Google Ads"
+    },
+    "declared": {
+      "title_meta": "Meta: declarado vs real",
+      "title_google": "Google: declarado vs real",
+      "platform_says": "La plataforma declara (compras · valor · ROAS)",
+      "real": "Pedidos reales atribuidos (pedidos · neto · ROAS)",
+      "gap": "Diferencia",
+      "help": "Las plataformas cuentan conversiones con sus propias ventanas y modelos; los pedidos reales son los pedidos de venta atribuidos por Keel. Una diferencia muy negativa indica que la plataforma sobrestima."
     }
   },
   "campaign_detail": {

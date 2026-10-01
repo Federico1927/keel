@@ -212,6 +212,15 @@
       "returns_requested": "Return requests",
       "critical_variants": "Variants at low stock",
       "failed_webhooks": "Failed webhooks"
+    },
+    "forecast": {
+      "title": "Forecast {month}",
+      "revenue": "Revenue",
+      "band": "likely range",
+      "orders": "Orders",
+      "spend": "Ad spend",
+      "hint": "Day {elapsed} of {days}, run rate by weekday.",
+      "more": "Details"
     }
   },
   "settings": {
@@ -799,7 +808,9 @@
       "overview": "Overview",
       "pnl": "P/L",
       "products": "Products",
-      "cohorts": "Cohorts"
+      "cohorts": "Cohorts",
+      "ltv": "LTV",
+      "basket": "Product analysis"
     },
     "kpi": {
       "net_revenue": "Net revenue",
@@ -840,7 +851,16 @@
       "cogs_incomplete": "{n} orders have lines without a purchase cost: COGS is understated.",
       "by_month": "By month",
       "month": "Month",
-      "open_orders": "Open orders"
+      "open_orders": "Open orders",
+      "cost_sources": "Shipping: {shipping}. Fixed costs: {fixed}.",
+      "edit_costs": "Enter period costs",
+      "source": {
+        "actual": "actual invoice",
+        "estimate": "estimate",
+        "legacy": "flat monthly setting",
+        "none": "no cost entered",
+        "mixed": "actual where available, estimate elsewhere"
+      }
     },
     "products": {
       "title": "Product performance",
@@ -860,6 +880,103 @@
       "customers": "Customers",
       "month": "M+{n}",
       "empty": "Not enough history yet."
+    },
+    "blended": {
+      "title": "Blended marketing metrics",
+      "description": "Across every platform, against real orders: not what the ad platforms report.",
+      "mer": "MER",
+      "mer_hint": "net revenue / ad spend · spend {share} of revenue",
+      "nc_roas": "nc-ROAS",
+      "nc_roas_hint": "first orders only · {n} new customers",
+      "cac": "Blended CAC",
+      "cac_hint": "ad spend / new customers",
+      "poas": "POAS",
+      "poas_hint": "contribution margin / ad spend",
+      "new": "new",
+      "channel": {
+        "paid_social": "Paid social (Meta)",
+        "paid_search": "Paid search (Google)"
+      }
+    },
+    "forecast": {
+      "title": "Month-end forecast · {month}",
+      "description": "Run rate of {elapsed} of {days} days, weighted by the weekday profile of the last 8 weeks. Band: one standard deviation.",
+      "revenue": "Projected revenue",
+      "orders": "Projected orders",
+      "spend": "Projected ad spend",
+      "to_date": "to date {v}"
+    },
+    "costs": {
+      "title": "Period costs",
+      "description": "Fixed lines and the shipping invoice per month, as an estimate first and as the actual figure once known. The P/L uses the actual where it exists, the estimate elsewhere, and says which.",
+      "back": "P/L",
+      "current": "current month",
+      "next": "next month",
+      "orders_n": "{n} sale orders",
+      "fixed_used": "fixed {amount}",
+      "shipping_used": "shipping {amount}",
+      "fixed": "Fixed costs",
+      "shipping": "Shipping",
+      "line": "Line",
+      "estimate": "Estimate",
+      "actual": "Actual",
+      "used": "Used in P/L",
+      "shipping_hint": "per-order estimate {amount}",
+      "shipping_dialog_help": "Estimate: your budget for the month. Actual: the carrier invoice total; it replaces the per-order estimate for this month.",
+      "fixed_total": "Fixed total",
+      "kind": "Kind",
+      "kind_fixed": "Fixed",
+      "kind_other": "Other",
+      "label_placeholder": "Rent, payroll, tools, agency…",
+      "actual_placeholder": "when known",
+      "note": "Note",
+      "add_line": "Add line",
+      "source": {
+        "actual": "actual",
+        "estimate": "estimate",
+        "none": "none"
+      }
+    },
+    "ltv": {
+      "title": "Customer lifetime value",
+      "description": "Average cumulative net revenue per customer at 30/60/90/180/365 days from the first order. Only customers old enough for a window count in it, so young cohorts are not penalised.",
+      "by": {
+        "cohort": "Acquisition month",
+        "channel": "Acquisition channel",
+        "product": "First product"
+      },
+      "first_order": "First order",
+      "window": "{d} d",
+      "repeat_90": "Repeat in 90 d",
+      "days_to_second": "Days to 2nd order",
+      "cac": "CAC",
+      "payback": "Payback",
+      "days": "{n} d",
+      "matured": "{n} customers old enough",
+      "footnote": "Net revenue = total − tax − refunds of sale orders. CAC = ad spend of the month / customers acquired that month; payback = days until the cumulative margin per customer covers the CAC.",
+      "channel": {
+        "paid_social": "Paid social",
+        "paid_search": "Paid search",
+        "organic_search": "Organic search",
+        "social": "Social",
+        "email": "Email",
+        "referral": "Referral",
+        "direct": "Direct",
+        "marketplace": "Marketplace",
+        "unknown": "Unknown"
+      }
+    },
+    "basket": {
+      "entry_title": "Entry products",
+      "entry_description": "The first product a customer bought, and how much those customers are worth after a year. Sort: highest 365-day value first.",
+      "acquired": "Customers acquired",
+      "ltv365": "Value at 365 d",
+      "repeat": "Repeat in 365 d",
+      "pairs_title": "Bought together",
+      "pairs_description": "Product pairs in the same sale order in the period. Lift > 1: more often together than chance.",
+      "lift": "lift {v}",
+      "paths_title": "First → second purchase",
+      "paths_description": "Main product of the first order and of the second, with the median days between them."
     }
   },
   "campaigns": {
@@ -930,6 +1047,14 @@
     "platform": {
       "meta": "Meta",
       "google": "Google Ads"
+    },
+    "declared": {
+      "title_meta": "Meta: declared vs real",
+      "title_google": "Google: declared vs real",
+      "platform_says": "Platform declares (purchases · value · ROAS)",
+      "real": "Real attributed orders (orders · net · ROAS)",
+      "gap": "Gap",
+      "help": "Platforms count conversions with their own windows and modelling; real orders are Keel's attributed sale orders. A large negative gap means the platform over-reports."
     }
   },
   "campaign_detail": {
