@@ -20,6 +20,14 @@ Railway no longer reads `railway.json` for new services (Config as Code is depre
 5. Open `/login` and sign in with the demo users from `README.md` (password `KEEL_DEMO_PASSWORD`).
 6. **Worker** (required with `KEEL_INTEGRATION_MODE=live`, optional for a mock demo): a second service from the same repo, build `pnpm install --frozen-lockfile --prod=false`, start `pnpm --filter @keel/jobs start`, restart always, same variables, and `KEEL_JOBS_QUEUE=1` on **both** services. In live mode web and worker refuse to start without it.
 
+### Landing page (`apps/landing`)
+
+A static site (Next.js export) served by its own small Node server; a third service in the same project, from the same repo and branch:
+
+- Build command: `pnpm install --frozen-lockfile --prod=false && pnpm --filter @keel/landing build`
+- Start command: `pnpm --filter @keel/landing start` (serves `apps/landing/out` on `$PORT`); healthcheck `/`.
+- Variables, read at build time: `NEXT_PUBLIC_SITE_URL` (its own domain), `NEXT_PUBLIC_APP_URL` (the app's domain), `NEXT_PUBLIC_CONTACT_EMAIL`, optionally `NEXT_PUBLIC_DEMO_URL` (booking link; without it "Book a demo" opens an email) and `NEXT_PUBLIC_CONTACT_WEBHOOK_URL`. Changing one needs a redeploy.
+
 ### Variables
 
 | Name | Value | Notes |

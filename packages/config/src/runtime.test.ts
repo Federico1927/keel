@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { checkRuntimeConfig, DEV_DEFAULT_SECRETS } from "./runtime";
 
@@ -5,6 +6,11 @@ const db = { DATABASE_URL: "postgres://app", DATABASE_ADMIN_URL: "postgres://adm
 const secrets = { AUTH_SECRET: "a-real-secret", APP_ENCRYPTION_KEY: "a-real-key" };
 
 describe("checkRuntimeConfig", () => {
+  it("knows the development secrets that .env.example ships", () => {
+    const example = readFileSync(new URL("../../../.env.example", import.meta.url), "utf8");
+    for (const [name, value] of Object.entries(DEV_DEFAULT_SECRETS)) expect(example).toContain(`${name}=${value}\n`);
+  });
+
   it("accepts a mock demo with development secrets, with warnings only", () => {
     const r = checkRuntimeConfig({ ...db, ...DEV_DEFAULT_SECRETS }, "web");
     expect(r.errors).toEqual([]);

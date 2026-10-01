@@ -1,0 +1,322 @@
+{
+  "meta": {
+    "title": "{product} – Piattaforma operativa per e-commerce Shopify",
+    "description": "Ordini, spedizioni, magazzino, acquisti, resi, sconti, CRM e il P/L reale delle campagne Meta e Google, su un unico modello dati. Nessun contratto annuale, configurazione fatta dal nostro team, utenti illimitati.",
+    "og_tagline": "Una sola piattaforma operativa per e-commerce Shopify",
+    "locale_name": "Italiano"
+  },
+  "nav": {
+    "skip": "Vai al contenuto",
+    "modules": "Moduli",
+    "how": "Come funziona",
+    "pricing": "Prezzi",
+    "faq": "FAQ",
+    "cta": "Prenota una demo",
+    "sign_in": "Accedi",
+    "menu": "Apri il menu",
+    "close": "Chiudi il menu",
+    "language": "Lingua"
+  },
+  "hero": {
+    "eyebrow": "Piattaforma operativa per e-commerce Shopify",
+    "title": "Gestisci tutto il negozio su un solo insieme di numeri.",
+    "subtitle": "Ordini, spedizioni, magazzino, acquisti, resi, sconti, CRM e il profitto reale di ogni campagna Meta e Google. Una piattaforma e un modello dati, invece di quattro strumenti che non si parlano.",
+    "cta": "Prenota una demo",
+    "secondary": "Vedi i moduli",
+    "points": {
+      "contract": "Nessun contratto annuale",
+      "setup": "Configurazione fatta dal nostro team",
+      "users": "Utenti illimitati"
+    },
+    "screenshot_alt": "Dashboard di {product} per il negozio demo Harbor Home: vendite di oggi, ordini, valore medio ordine, tasso di annullamento, grafico delle vendite a 30 giorni ed elenco delle cose che richiedono attenzione"
+  },
+  "problem": {
+    "title": "I tuoi numeri vivono in quattro strumenti. Nessuno è giusto.",
+    "lead": "Un brand Shopify tipico fa le analisi in uno strumento, il magazzino in un altro, i resi in un terzo e le ads in due dashboard. Ognuno vede una fetta e la presenta come il totale.",
+    "items": {
+      "spread": {
+        "title": "Dati sparsi",
+        "body": "L'ordine è in Shopify, il costo in un foglio di calcolo, il reso nell'helpdesk, la spesa ads in due gestori di campagne. Nessuno li riconcilia prima della fine del mese."
+      },
+      "placed": {
+        "title": "Profitto calcolato sugli ordini piazzati",
+        "body": "Le dashboard sommano tutti gli ordini piazzati. Annullamenti e resi arrivano settimane dopo e cancellano in silenzio il margine che avevi già festeggiato."
+      },
+      "stock": {
+        "title": "Campagne che ignorano lo stock",
+        "body": "Il gestore delle campagne continua a spendere su un prodotto con tre pezzi rimasti. Il magazzino lo scopre quando arrivano i backorder."
+      },
+      "stale": {
+        "title": "Decisioni prese su export vecchi",
+        "body": "Quando i CSV sono stati uniti, la settimana è finita. Riordini, pause e sconti si decidono tardi, su numeri già superati."
+      }
+    }
+  },
+  "modules": {
+    "title": "Ogni modulo sullo stesso modello dati",
+    "lead": "Ogni modulo legge gli stessi ordini, prodotti, costi e clienti. Ricevi un ordine d'acquisto e il costo del prodotto muove il P/L. Annulli un ordine e il profitto della campagna si muove con lui.",
+    "items": {
+      "orders": {
+        "title": "Ordini",
+        "body": "Uno stato canonico per ogni ordine, ricavato da tag Shopify, pagamento ed evasione con regole che controlli tu. Timeline con autore e differenze, note interne con menzioni, storico cliente e rilevamento dei duplicati.",
+        "alt": "Lista ordini in {product}: ogni ordine con stato canonico, metodo e stato del pagamento, canale, assegnatario e totale"
+      },
+      "shipments": {
+        "title": "Spedizioni",
+        "body": "Tracking, corriere, giorni in viaggio, eccezioni e spedizioni ferme oltre la tua soglia. Lo stato visibile è calcolato da tutte le fonti con precedenze esplicite.",
+        "alt": "Pagina spedizioni in {product}: contatori per in transito, in consegna, eccezioni e spedizioni ferme, con lista di ordini, corrieri e numeri di tracking"
+      },
+      "inventory": {
+        "title": "Prodotti e magazzino",
+        "body": "Varianti con opzioni dinamiche, stock per location, velocità di vendita, giorni di copertura e suggerimenti di riordino. Modifiche di prezzo e stato scritte verso Shopify.",
+        "alt": "Pagina magazzino in {product}: unità in stock, valore dello stock, varianti critiche e basse, e lista delle varianti con velocità, giorni di copertura e unità da riordinare"
+      },
+      "purchasing": {
+        "title": "Acquisti e riordini",
+        "body": "Fornitori, ordini d'acquisto dalla bozza al ricevimento, merce in arrivo visibile su ogni prodotto. Il ricevimento aggiorna il costo del prodotto, e quel costo alimenta il P/L.",
+        "alt": "Pagina acquisti in {product}: ordini d'acquisto con fornitore, stato, data prevista, unità, totale e backorder coperti"
+      },
+      "returns": {
+        "title": "Resi",
+        "body": "Motivi, finestre e stati del workflow configurati per negozio. Rimborso, cambio o buono, rientro a stock facoltativo per location, analisi per prodotto e motivo.",
+        "alt": "Pagina resi in {product}: richieste di reso con ordine, motivo, esito, importo e stato del workflow"
+      },
+      "discounts": {
+        "title": "Sconti",
+        "body": "Codici sincronizzati da Shopify, codici singoli e pool di codici unici in blocco, con ordini, ricavi e margine attribuiti a ogni codice.",
+        "alt": "Pagina sconti in {product}: codici con valore, stato, utilizzi, ordini, sconto concesso, ricavo netto e margine"
+      },
+      "crm": {
+        "title": "CRM, segmenti e RFM",
+        "body": "Costruttore di segmenti con gruppi E/O annidati su ordini, prodotti, valore, recenza e paese, con anteprima in tempo reale. Matrice RFM con fasce. Esportazione CSV e gruppo di controllo incluso in ogni segmento.",
+        "alt": "Matrice RFM in {product}: clienti per recenza e frequenza con ricavi per cella, e fasce come campioni e fedeli"
+      },
+      "analytics": {
+        "title": "Analisi e P/L",
+        "body": "KPI con confronto tra periodi e un P/L al netto delle tasse: costo del venduto, spedizione, commissioni di pagamento, resi e spesa ads. Ogni numero apre gli ordini che lo compongono.",
+        "alt": "Conto economico in {product}: vendite lorde, rimborsi, tasse, ricavo netto, costo del venduto, margine lordo, spedizioni, commissioni di pagamento, pubblicità e profitto operativo"
+      },
+      "campaigns": {
+        "title": "Campagne collegate allo stock",
+        "body": "Campagne Meta e Google collegate ai prodotti. Il profitto conta solo gli ordini non annullati e non resi. I consigli guardano lo stock dei prodotti collegati prima di dirti di spendere di più.",
+        "alt": "Pagina campagne in {product}: spesa, ordini, ricavo netto, margine, profitto, ROAS, ROI, CPA e un indicatore di salute per ogni campagna Meta e Google"
+      }
+    },
+    "carousel_label": "Moduli del prodotto",
+    "prev": "Modulo precedente",
+    "next": "Modulo successivo",
+    "slide": "{n} di {total}",
+    "pause": "Metti in pausa lo scorrimento automatico",
+    "play": "Riprendi lo scorrimento automatico"
+  },
+  "how": {
+    "title": "Come funziona",
+    "lead": "Tre passi. Il secondo lo facciamo noi.",
+    "steps": {
+      "connect": {
+        "title": "Colleghi Shopify, Meta e Google",
+        "body": "OAuth o token di app custom per Shopify, accesso API per Meta e Google Ads. I webhook vengono verificati, messi in coda e ritentati; la sincronizzazione dello storico gira in background e riprende se si interrompe."
+      },
+      "configure": {
+        "title": "Configuriamo regole, costi e storico",
+        "body": "Il nostro team imposta regole di stato, aliquote, commissioni di pagamento, costi dei prodotti, importazione dello storico e gli utenti con i loro ruoli. Parti da una piattaforma configurata, non da una vuota."
+      },
+      "operate": {
+        "title": "Operi da un'unica piattaforma",
+        "body": "Operations, customer care e marketing lavorano nello stesso posto, ciascuno con i propri permessi. Le modifiche che contano vengono scritte verso Shopify."
+      }
+    },
+    "guides_label": "Guide passo per passo per il collegamento, dentro il prodotto:",
+    "guides": {
+      "shopify": "Guida Shopify",
+      "meta": "Guida Meta",
+      "google": "Guida Google Ads"
+    }
+  },
+  "comparison": {
+    "title": "Quanto costa oggi uno stack di strumenti specializzati",
+    "lead": "Un brand da {min} a {max} milioni di fatturato annuo paga tipicamente strumenti separati per analisi, magazzino e resi, più le ore per riconciliarli.",
+    "stack_label": "Uno stack specializzato tipico",
+    "stack_items": {
+      "analytics": "Strumento di analisi e attribuzione",
+      "inventory": "Strumento di magazzino e acquisti",
+      "returns": "Portale resi",
+      "spreadsheets": "Fogli di calcolo per riconciliare i tre",
+      "seats": "Prezzo per utente su ciascuno"
+    },
+    "stack_price": "Da {min} a {max} al mese",
+    "stack_price_note": "senza contare le ore di riconciliazione",
+    "keel_label": "{product} {plan}",
+    "keel_items": {
+      "model": "Tutti i moduli su un modello dati",
+      "users": "Utenti illimitati",
+      "setup": "Configurazione fatta dal nostro team",
+      "contract": "Nessun contratto annuale",
+      "addons": "Add-on e integrazioni su misura per account"
+    },
+    "keel_price": "{price} al mese",
+    "keel_price_note": "fino a {orders} ordini al mese",
+    "note": "Prezzi di listino tipici per brand Shopify di medie dimensioni. Il tuo stack attuale può costare meno o di più; la demo include un confronto sui tuoi strumenti reali."
+  },
+  "pricing": {
+    "title": "Prezzi",
+    "lead": "Quattro piani in base al volume di ordini. Utenti illimitati in ogni piano. Nessun contratto annuale obbligatorio.",
+    "billing_label": "Periodo di fatturazione",
+    "monthly": "Mensile",
+    "annual": "Annuale",
+    "annual_note": "2 mesi gratis",
+    "per_month": "/mese",
+    "billed_annually": "{total} fatturati annualmente",
+    "included_orders": "Fino a {n} ordini/mese",
+    "enterprise_orders": "Oltre {n} ordini/mese",
+    "setup": "Setup {price}, una tantum",
+    "setup_from": "Setup da {price}, una tantum",
+    "on_quote": "Su preventivo",
+    "recommended": "Consigliato",
+    "everything_in": "Tutto quello di {plan}, più:",
+    "unlimited_users": "Utenti illimitati",
+    "overage": "Oltre gli ordini inclusi: {price} ogni {n} ordini in più, fatturati a fine mese.",
+    "cta": "Prenota una demo",
+    "contact": "Parliamone",
+    "list_price": "Prezzo di listino {price}",
+    "founding": {
+      "badge": "Founding customers",
+      "title": "{percent}% di sconto sul canone per {months} mesi",
+      "body": "Per i primi {seats} clienti. Fee di setup invariata. I prezzi qui sotto includono già lo sconto."
+    },
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "tagline": "Operatività sotto controllo"
+      },
+      "growth": {
+        "name": "Growth",
+        "tagline": "Operatività più margine"
+      },
+      "scale": {
+        "name": "Scale",
+        "tagline": "Più negozi, una piattaforma"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "tagline": "Volumi alti, condizioni su misura"
+      }
+    },
+    "features": {
+      "orders": "Ordini",
+      "shipments": "Spedizioni",
+      "products_inventory": "Prodotti e magazzino",
+      "returns": "Resi",
+      "discounts": "Sconti",
+      "kpi_dashboard": "Dashboard KPI",
+      "pnl": "P/L per ordine e per periodo",
+      "campaigns_stock": "Campagne collegate allo stock",
+      "purchasing_reorders": "Acquisti e riordini",
+      "crm_segments_rfm": "CRM con segmenti e RFM",
+      "multi_store": "Più negozi",
+      "advanced_roles": "Ruoli e permessi avanzati",
+      "api": "Accesso API",
+      "ai_assistant": "Assistente AI",
+      "priority_support": "Supporto prioritario",
+      "enterprise_volume": "Prezzi a volume",
+      "enterprise_sla": "SLA contrattuale",
+      "enterprise_custom": "Moduli e integrazioni su misura"
+    }
+  },
+  "addons": {
+    "title": "Add-on e integrazioni su misura",
+    "lead": "Attivati per singolo account dal nostro team. Il core funziona con qualsiasi metodo di pagamento; quello che è specifico della tua operatività vive in un add-on.",
+    "per_month": "{price}/mese",
+    "from_per_month": "da {price}/mese",
+    "usage": "A consumo",
+    "quote": "Su preventivo",
+    "items": {
+      "cod": {
+        "title": "Contrassegno",
+        "body": "Coda di conferma con esiti delle chiamate, assegnazione agli operatori, delivery score spiegato fattore per fattore e segnalazione dei destinatari a rischio."
+      },
+      "custom_integration": {
+        "title": "Integrazioni su misura",
+        "body": "Un magazzino 3PL, un provider di messaggistica locale, un corriere: costruiti dietro le stesse interfacce e attivati solo per il tuo account."
+      },
+      "ai_studio": {
+        "title": "AI Studio",
+        "body": "Fai domande sui tuoi dati e automatizza le analisi ricorrenti. Fatturato a consumo."
+      },
+      "custom_development": {
+        "title": "Sviluppi custom",
+        "body": "Un modulo che serve alla tua operatività e a nessun altro. Analizzato e preventivato."
+      }
+    }
+  },
+  "faq": {
+    "title": "Le domande che ci fanno",
+    "items": {
+      "payments": {
+        "q": "Quali metodi di pagamento sono supportati?",
+        "a": "Tutti. Carta, wallet, PayPal, bonifico, buy now pay later e contrassegno sono equivalenti nel modello dati. La gestione operativa del contrassegno (chiamate di conferma, delivery score) è un add-on che attivi solo se ti serve."
+      },
+      "contracts": {
+        "q": "C'è un contratto annuale?",
+        "a": "No. I piani sono mensili e puoi disdire alla fine di qualsiasi mese. L'opzione annuale esiste solo per darti due mesi gratis; non è mai obbligatoria."
+      },
+      "setup": {
+        "q": "Cosa include il setup?",
+        "a": "Il collegamento di Shopify, Meta e Google, l'importazione dello storico ordini, la configurazione di regole di stato, aliquote, commissioni di pagamento, costi dei prodotti e degli utenti con i loro ruoli. Parti da una piattaforma configurata, non da una vuota."
+      },
+      "security": {
+        "q": "Come sono tenuti separati i miei dati da quelli degli altri clienti?",
+        "a": "Ogni tabella porta l'identificativo dell'account e il database applica l'isolamento a livello di riga su ogni query: un account non può mai leggere o scrivere le righe di un altro, e test automatici lo verificano su ogni tabella. Le credenziali delle integrazioni sono cifrate a riposo. Gli accessi del nostro supporto sono registrati e visibili a te."
+      },
+      "overage": {
+        "q": "Cosa succede se supero gli ordini inclusi?",
+        "a": "Non si ferma nulla. Gli ordini in più vengono fatturati a {price} ogni {n} ordini a fine mese. Se succede due mesi di fila ti proponiamo il piano successivo, che di solito costa meno."
+      },
+      "languages": {
+        "q": "Quali lingue sono disponibili?",
+        "a": "Il prodotto è disponibile in inglese, italiano e spagnolo, scelti per utente. Date, numeri e valute seguono le impostazioni del tuo negozio e di ogni utente."
+      }
+    }
+  },
+  "cta": {
+    "title": "Guarda {product} sui tuoi numeri.",
+    "body": "Una demo di 30 minuti sul negozio demo, oppure su un export dei tuoi ordini se preferisci.",
+    "button": "Prenota una demo"
+  },
+  "contact": {
+    "title": "Oppure scrivici",
+    "lead": "Raccontaci il tuo negozio. Rispondiamo entro un giorno lavorativo.",
+    "name": "Nome",
+    "email": "Email di lavoro",
+    "store": "URL del negozio",
+    "orders": "Ordini al mese",
+    "orders_options": {
+      "unset": "Seleziona",
+      "lt1k": "Meno di 1.000",
+      "1k5k": "Da 1.000 a 5.000",
+      "5k20k": "Da 5.000 a 20.000",
+      "gt20k": "Oltre 20.000"
+    },
+    "message": "Cosa vorresti risolvere?",
+    "submit": "Invia",
+    "sending": "Invio in corso…",
+    "success_title": "Grazie, messaggio ricevuto.",
+    "success_body": "Ti rispondiamo entro un giorno lavorativo.",
+    "error": "Non è stato possibile inviare il messaggio. Scrivici a {email}.",
+    "mailto_lead": "Preferisci l'email? Scrivici e rispondiamo entro un giorno lavorativo.",
+    "mailto_button": "Scrivici",
+    "required": "Campo obbligatorio.",
+    "invalid_email": "Inserisci un indirizzo email valido.",
+    "optional": "facoltativo"
+  },
+  "footer": {
+    "tagline": "La struttura sotto il tuo negozio.",
+    "product": "Prodotto",
+    "pricing": "Prezzi",
+    "faq": "FAQ",
+    "contact": "Contatti",
+    "sign_in": "Accedi a {product}",
+    "language": "Lingua",
+    "rights": "© {year} {product}. Tutti i diritti riservati."
+  }
+}
