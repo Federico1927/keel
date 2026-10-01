@@ -8,10 +8,23 @@ The core serves any store with any payment method. Cash on delivery is an add-on
 
 ```bash
 cp .env.example .env
-docker compose up -d && pnpm install && pnpm db:migrate && pnpm db:seed && pnpm dev
+docker compose up -d --wait && pnpm install && pnpm db:bootstrap && pnpm db:migrate && pnpm db:seed && pnpm dev
 ```
 
 Then open <http://localhost:3000>. The web app runs on port 3000 and the job runner starts next to it.
+
+`db:bootstrap` is idempotent: it creates the `keel_admin` / `keel_app` roles and the `keel` / `keel_test` databases if the Docker init script has not already done so, using the compose superuser (`postgres` / `postgres`).
+
+### If `pnpm db:migrate` says `role "keel_admin" does not exist`
+
+Something other than the Keel container answered on port 5432, or the container was still initialising. Check:
+
+```bash
+lsof -nP -iTCP:5432 -sTCP:LISTEN          # should list only com.docker (or docker-proxy)
+docker compose logs postgres | grep -i keel_admin
+```
+
+A local PostgreSQL (Postgres.app, Homebrew) listening on 5432 wins over the container for `127.0.0.1` connections. Either stop it, or move Keel to another port: change `5432:5432` to `5433:5432` in `docker-compose.yml` and replace `:5432` with `:5433` in the four `*_URL` lines of `.env`, then rerun the command above from `docker compose up`.
 
 Without Docker (cloud sandboxes, CI): install PostgreSQL 16 as a system package, start it, run `pnpm db:bootstrap` once to create the `keel_admin` / `keel_app` roles and the `keel` / `keel_test` databases, then continue from `pnpm db:migrate`. Schema, migrations and RLS policies are identical; only `DATABASE_URL` changes.
 
