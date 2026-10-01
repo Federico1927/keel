@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { and, eq } from "drizzle-orm";
 import { Pool } from "pg";
@@ -7,6 +8,7 @@ import { generateTenantDataset, type TenantSeedConfig } from "./generator";
 import { writeDataset } from "./writer";
 import { DEMO_COD_SETTINGS, DEMO_RETURN_COSTS, REASON_LABELS, REASON_PLATFORM, demoConversionSettings, demoPixelSettings, demoPortalConfig, demoReturnPolicy, demoSurveySettings } from "./settings";
 export { ensureDemoSettings } from "./settings";
+import { seedCollab } from "./collab";
 import { createRng } from "@keel/integrations";
 import { SALE_STATUSES, allocateLandedCost, normalizePhone, runPredictionModel, type CustomerHistory } from "@keel/core";
 import { MODULES, PLANS, PLATFORM_CURRENCY } from "@keel/config";
@@ -190,7 +192,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
   const log = opts.log ?? (() => {});
   for (const cfg of tenantSeedConfigs(ctx, opts)) {
     // Wipe previous domain rows of this tenant (cascade from the parent tables).
-    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels, schema.segmentDestinations, schema.pixelSettings, schema.pixelEvents, schema.pixelIdentities, schema.conversionSettings, schema.surveySettings, schema.assistantThreads]) {
+    for (const table of [schema.casePacks, schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.platformWrites, schema.inventoryDrift, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels, schema.segmentDestinations, schema.pixelSettings, schema.pixelEvents, schema.pixelIdentities, schema.conversionSettings, schema.surveySettings, schema.assistantThreads]) {
       await db.delete(table).where(eq(table.tenantId, cfg.tenantId));
     }
     const started = Date.now();
@@ -210,6 +212,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("survey", () => seedSurvey(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("assistant", () => seedAssistant(db, ctx, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("catalog", () => seedCatalogDuplicate(db, cfg.tenantId));
+    await step("collab", () => seedCollab(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, cfg.locale, opts.now ?? new Date()));
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
   }
 }
@@ -676,7 +679,8 @@ async function seedPlanningExtras(db: ReturnType<typeof drizzle<typeof schema>>,
   for (const r of hist.rows) if (!supplierOf.has(r.variant_id)) supplierOf.set(r.variant_id, { supplierId: r.supplier_id, cost: Number(r.cost) });
   const variants = await db.select({ id: schema.productVariants.id, productId: schema.productVariants.productId, sku: schema.productVariants.sku, costMinor: schema.productVariants.costMinor, productType: schema.products.productType }).from(schema.productVariants).innerJoin(schema.products, eq(schema.products.id, schema.productVariants.productId)).where(eq(schema.productVariants.tenantId, tenantId)).orderBy(schema.productVariants.sku);
   const productIndex = new Map([...new Set(variants.map((v) => v.productId))].map((p, i) => [p, i]));
-  const links = variants.map((v) => {
+  // every eighth product never bought before has no default supplier yet, so the bulk assignment has work to do
+  const links = variants.filter((v) => supplierOf.has(v.id) || (productIndex.get(v.productId) ?? 0) % 8 !== 7).map((v) => {
     const known = supplierOf.get(v.id);
     const supplier = known ? suppliers.find((s) => s.id === known.supplierId)! : suppliers[(productIndex.get(v.productId) ?? 0) % suppliers.length]!;
     return { tenantId, supplierId: supplier.id, variantId: v.id, supplierSku: v.sku ? `${supplier.name.slice(0, 3).toUpperCase()}-${v.sku}` : null, unitCostMinor: known?.cost ?? v.costMinor ?? null, moq: rng.chance(0.15) ? rng.pick([20, 30, 60]) : null, orderMultiple: null, leadTimeDays: rng.chance(0.2) ? (supplier.leadTimeDays ?? 21) + rng.int(-5, 10) : null, isPrimary: true };
@@ -733,6 +737,7 @@ async function seedPlanningExtras(db: ReturnType<typeof drizzle<typeof schema>>,
     await db.update(schema.inventoryLevels).set({ available: 0, onHand: 0 }).where(eq(schema.inventoryLevels.id, short.id));
     await db.update(schema.inventoryLevels).set({ available: surplus.available + short.available + 240, onHand: (surplus.onHand ?? surplus.available) + short.available + 240 }).where(eq(schema.inventoryLevels.id, surplus.id));
   }
+  await seedPurchasingDepth(db, key, tenantId, now, suppliers);
   // one bundle and one bill of materials made of existing variants
   if (variants.length >= 6) {
     const [bundle, b1, b2, kit, m1, m2] = [variants[variants.length - 1]!, variants[0]!, variants[3]!, variants[variants.length - 2]!, variants[1]!, variants[4]!];
@@ -741,6 +746,55 @@ async function seedPlanningExtras(db: ReturnType<typeof drizzle<typeof schema>>,
       { tenantId, parentVariantId: bundle.id, componentVariantId: b2.id, quantity: 2, kind: "bundle" },
       { tenantId, parentVariantId: kit.id, componentVariantId: m1.id, quantity: 2, kind: "bom" },
       { tenantId, parentVariantId: kit.id, componentVariantId: m2.id, quantity: 1, kind: "bom" },
+    ]);
+  }
+}
+
+/**
+ * Purchasing depth: a case pack on a product with options (Northwind: a size run for every product
+ * with a "Size" option; Harbor Home: a mixed carton on one product), a draft PO with a free-text
+ * line (packaging) next to catalogue lines, and one expired supplier link with its blocked view.
+ */
+async function seedPurchasingDepth(db: ReturnType<typeof drizzle<typeof schema>>, key: keyof typeof DEMO_TENANTS, tenantId: string, now: Date, suppliers: (typeof schema.suppliers.$inferSelect)[]) {
+  const it = key === "northwind";
+  const products = await db.select({ id: schema.products.id, options: schema.products.options }).from(schema.products).where(eq(schema.products.tenantId, tenantId)).orderBy(schema.products.title);
+  // the product with the most options, and its option with the most values (a size run on apparel, whatever the option is called)
+  const withOption = products
+    .map((p) => ({ id: p.id, options: p.options as { name: string; values: string[] }[] }))
+    .filter((p) => p.options.some((o) => o.values.length >= 2))
+    .sort((a, b) => b.options.length - a.options.length)
+    .map((p) => ({ id: p.id, option: [...p.options].sort((a, b) => b.values.length - a.values.length)[0] }))[0];
+  if (withOption?.option) {
+    const values = withOption.option.values;
+    const units = Object.fromEntries(values.map((v, i) => [v, i === 0 || i === values.length - 1 ? 1 : 2]));
+    await db.insert(schema.casePacks).values({ tenantId, name: it ? `Scatola ${withOption.option.name.toLowerCase()} ${values.join("-")}` : `Mixed carton ${values.join("/")}`, optionName: withOption.option.name, units, productId: it ? null : withOption.id });
+  }
+  // a draft PO with catalogue lines and a free-text packaging line
+  const [draft] = await db.select({ id: schema.purchaseOrders.id }).from(schema.purchaseOrders).where(and(eq(schema.purchaseOrders.tenantId, tenantId), eq(schema.purchaseOrders.status, "draft"))).orderBy(schema.purchaseOrders.number).limit(1);
+  let draftId = draft?.id;
+  if (!draftId && suppliers[0]) {
+    const prefix = `PO-${now.getUTCFullYear()}${String(now.getUTCMonth() + 1).padStart(2, "0")}-`;
+    const taken = await db.select({ n: schema.purchaseOrders.number }).from(schema.purchaseOrders).where(and(eq(schema.purchaseOrders.tenantId, tenantId), sql`${schema.purchaseOrders.number} like ${prefix + "%"}`));
+    const next = taken.reduce((m, r) => Math.max(m, Number(r.n.slice(prefix.length)) || 0), 0) + 1;
+    const [po] = await db.insert(schema.purchaseOrders).values({ tenantId, supplierId: suppliers[0].id, number: `${prefix}${String(next).padStart(3, "0")}`, status: "draft", currency: it ? "EUR" : "USD", totalMinor: 0 }).returning({ id: schema.purchaseOrders.id });
+    draftId = po!.id;
+    const vs = await db.select({ id: schema.productVariants.id, cost: schema.productVariants.costMinor }).from(schema.productVariants).where(eq(schema.productVariants.tenantId, tenantId)).orderBy(schema.productVariants.sku).limit(2);
+    if (vs.length) await db.insert(schema.purchaseOrderLines).values(vs.map((v) => ({ tenantId, purchaseOrderId: draftId!, variantId: v.id, quantity: 24, unitCostMinor: v.cost ?? 1000 })));
+  }
+  if (draftId) {
+    await db.insert(schema.purchaseOrderLines).values({ tenantId, purchaseOrderId: draftId, variantId: null, description: it ? "Cartellini e buste di confezionamento" : "Hang tags and poly bags", quantity: 500, unitCostMinor: it ? 12 : 15 });
+    const lines = await db.select({ q: schema.purchaseOrderLines.quantity, c: schema.purchaseOrderLines.unitCostMinor }).from(schema.purchaseOrderLines).where(eq(schema.purchaseOrderLines.purchaseOrderId, draftId));
+    await db.update(schema.purchaseOrders).set({ totalMinor: lines.reduce((t, l) => t + l.q * l.c, 0) }).where(eq(schema.purchaseOrders.id, draftId));
+  }
+  // one supplier link that expired last week, and the blocked view it logged
+  const [sent] = await db.select({ id: schema.purchaseOrders.id, email: schema.purchaseOrders.sentToEmail, sentAt: schema.purchaseOrders.sentAt, supplierId: schema.purchaseOrders.supplierId }).from(schema.purchaseOrders).where(and(eq(schema.purchaseOrders.tenantId, tenantId), sql`${schema.purchaseOrders.status} in ('sent','confirmed','in_transit','partially_received','received')`)).orderBy(schema.purchaseOrders.number).limit(1);
+  if (sent) {
+    const createdAt = new Date(now.getTime() - 37 * 864e5);
+    const token = `seed-expired-${tenantId}`;
+    const [link] = await db.insert(schema.supplierLinks).values({ tenantId, purchaseOrderId: sent.id, tokenHash: createHash("sha256").update(token).digest("hex"), tokenHint: token.slice(-4), sentToEmail: sent.email ?? suppliers.find((s) => s.id === sent.supplierId)?.email ?? null, expiresAt: new Date(createdAt.getTime() + 30 * 864e5), createdAt, lastViewedAt: new Date(now.getTime() - 2 * 864e5), viewCount: 2 }).returning({ id: schema.supplierLinks.id });
+    await db.insert(schema.supplierLinkViews).values([
+      { tenantId, linkId: link!.id, purchaseOrderId: sent.id, kind: "view", outcome: "active", createdAt: new Date(createdAt.getTime() + 864e5) },
+      { tenantId, linkId: link!.id, purchaseOrderId: sent.id, kind: "view", outcome: "expired", createdAt: new Date(now.getTime() - 2 * 864e5) },
     ]);
   }
 }

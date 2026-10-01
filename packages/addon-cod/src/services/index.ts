@@ -1,7 +1,7 @@
 import { and, desc, eq, inArray, schema, sql, type SQL } from "@keel/db";
 import { normalizePhone } from "@keel/core";
 import type { CommercePlatform } from "@keel/integrations";
-import { applyCancellation, customerOrderHistory, duplicateSiblings, notifyUsers, recomputeOrderStatus, setManualStatus, type ServiceContext } from "@keel/services";
+import { applyCancellation, customerOrderHistory, duplicateSiblings, notifyUsers, recomputeOrderStatus, runPlatformWriteNow, setManualStatus, type ServiceContext } from "@keel/services";
 import { hoursFor, localDay, nextOperator } from "../assignment";
 import { ATTEMPT_OUTCOMES, OPEN_QUEUE_STATUSES, applyOutcome, compareQueue, type AttemptOutcome, type QueueStatus } from "../queue";
 import { buildRecipientProfile, classifyRecipient, recipientKey, type RecipientShipment } from "../risk";
@@ -37,7 +37,8 @@ export async function applyTagEvent(ctx: ServiceContext, platform: CommercePlatf
   if (!plan.add.length && !plan.remove.length) return null;
   if (platform && order.externalId) {
     try {
-      await platform.updateOrderTags(order.externalId, plan.add, plan.remove);
+      // synchronous on purpose (recorded in the outbox): the tag drives the warehouse, a refused write must change nothing here
+      await runPlatformWriteNow(ctx, platform, { kind: "order.tags", entityType: "order", entityId: order.id, payload: { orderExternalId: order.externalId, add: plan.add, remove: plan.remove } });
     } catch (e) {
       throw new CodError("platform_error", e instanceof Error ? e.message : String(e));
     }
@@ -272,7 +273,7 @@ export async function recordAttempt(ctx: ServiceContext, input: AttemptInput, se
   // platform first: a refused cancellation or tag write records nothing locally
   if (input.outcome === "cancelled" && opts.platform && order.externalId && !order.cancelledAt) {
     try {
-      await opts.platform.cancelOrder(order.externalId, { reason: "customer", restock: s.cancelRestock, refund: false });
+      await runPlatformWriteNow(ctx, opts.platform, { kind: "order.cancel", entityType: "order", entityId: order.id, payload: { orderExternalId: order.externalId, reason: "customer", restock: s.cancelRestock, refund: false } });
     } catch (e) {
       throw new CodError("platform_error", e instanceof Error ? e.message : String(e));
     }

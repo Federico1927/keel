@@ -1,17 +1,16 @@
-import { adminDb, and, eq, recordAudit, schema, type Database } from "@keel/db";
+import { and, eq, recordAudit, schema, type Database } from "@keel/db";
 import { tablePdf } from "@keel/core";
 import type { ServiceContext } from "../context";
 import { notifyUsers } from "../notifications";
 import { transitionPurchaseOrder } from "../purchasing";
+import { resolveSupplierToken, type ResolvedSupplierLink } from "../purchasing/links";
 
 /**
- * Resolves the tenant of a supplier confirmation token. This is the only cross-tenant read of
- * the flow (the public page has no session); everything after it runs inside `withTenant`.
+ * Resolves the tenant, PO and link state of a supplier confirmation token (see
+ * `resolveSupplierToken`). Callers must refuse anything but `state: "active"`.
  */
-export async function tenantForSupplierToken(token: string, db?: Database): Promise<{ tenantId: string; poId: string } | null> {
-  if (!token || token.length < 16) return null;
-  const [row] = await (db ?? adminDb()).select({ tenantId: schema.purchaseOrders.tenantId, poId: schema.purchaseOrders.id }).from(schema.purchaseOrders).where(eq(schema.purchaseOrders.supplierToken, token)).limit(1);
-  return row ?? null;
+export async function tenantForSupplierToken(token: string, db?: Database): Promise<ResolvedSupplierLink | null> {
+  return resolveSupplierToken(token, db);
 }
 
 export interface SupplierPoView {
@@ -40,7 +39,7 @@ export async function supplierPoView(ctx: ServiceContext, poId: string): Promise
     .limit(1);
   if (!po) return null;
   const lines = await ctx.tx
-    .select({ sku: schema.productVariants.sku, title: schema.productVariants.title, product: schema.products.title, quantity: schema.purchaseOrderLines.quantity, unitCostMinor: schema.purchaseOrderLines.unitCostMinor, supplierSku: schema.supplierVariants.supplierSku })
+    .select({ sku: schema.productVariants.sku, title: schema.productVariants.title, product: schema.products.title, quantity: schema.purchaseOrderLines.quantity, unitCostMinor: schema.purchaseOrderLines.unitCostMinor, supplierSku: schema.supplierVariants.supplierSku, description: schema.purchaseOrderLines.description })
     .from(schema.purchaseOrderLines)
     .leftJoin(schema.productVariants, eq(schema.productVariants.id, schema.purchaseOrderLines.variantId))
     .leftJoin(schema.products, eq(schema.products.id, schema.productVariants.productId))
@@ -59,7 +58,7 @@ export async function supplierPoView(ctx: ServiceContext, poId: string): Promise
     ackAt: po.po.supplierAckAt,
     ackNote: po.po.supplierAckNote,
     totalMinor: po.po.totalMinor,
-    lines: lines.map((l) => ({ sku: l.sku, supplierSku: l.supplierSku, label: `${l.product ?? ""} ${l.title ?? ""}`.trim(), quantity: l.quantity, unitCostMinor: l.unitCostMinor, totalMinor: l.quantity * l.unitCostMinor })),
+    lines: lines.map((l) => ({ sku: l.sku, supplierSku: l.supplierSku, label: `${l.product ?? ""} ${l.title ?? ""}`.trim() || (l.description ?? ""), quantity: l.quantity, unitCostMinor: l.unitCostMinor, totalMinor: l.quantity * l.unitCostMinor })),
   };
 }
 

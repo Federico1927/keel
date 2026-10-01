@@ -45,7 +45,10 @@
       "not_editable": "Este pedido ya no se puede editar: está preparado, cancelado o sustituido.",
       "invalid_address": "La dirección no es válida: revisa los campos marcados.",
       "merge_invalid": "Estos pedidos no se pueden fusionar: cliente o pago distintos, o ya preparados.",
-      "nothing_to_change": "Nada que cambiar."
+      "nothing_to_change": "Nada que cambiar.",
+      "attachment_too_large": "El archivo supera 1,5 MB.",
+      "attachment_type": "Este tipo de archivo no se acepta.",
+      "invalid_type": "Tipo de notificación desconocido."
     },
     "edit": "Editar"
   },
@@ -170,7 +173,10 @@
     "audit": "Registro de auditoría",
     "cod_settings": "Ajustes contra reembolso",
     "planning": "Planificación",
-    "assistant": "Asistente"
+    "assistant": "Asistente",
+    "tasks": "Tareas",
+    "support": "Soporte",
+    "notifications": "Notificaciones"
   },
   "shell": {
     "open_menu": "Abrir menú",
@@ -181,7 +187,8 @@
     "suspended_title": "Espacio suspendido",
     "suspended_description": "Este espacio está suspendido por facturas impagadas. Contacta con el administrador de la plataforma.",
     "not_found_title": "Página no disponible",
-    "not_found_description": "La página no existe, o tu rol o tu plan no la incluyen."
+    "not_found_description": "La página no existe, o tu rol o tu plan no la incluyen.",
+    "support": "Ayuda"
   },
   "roles": {
     "owner": "Propietario",
@@ -408,7 +415,109 @@
   },
   "notifications": {
     "title": "Notificaciones",
-    "empty": "Sin notificaciones"
+    "empty": "Sin notificaciones",
+    "view_all": "Ver todas",
+    "description": "Todo lo que Keel te ha avisado, con filtros. Elige por tipo dónde recibir los avisos en Preferencias.",
+    "tabs": {
+      "all": "Todas",
+      "mentions": "Mis menciones",
+      "preferences": "Preferencias",
+      "suppressions": "Correos bloqueados"
+    },
+    "filters": {
+      "status": "Estado",
+      "all": "Todas",
+      "unread": "Sin leer",
+      "read": "Leídas",
+      "type": "Tipo",
+      "all_types": "Todos los tipos"
+    },
+    "mark_read": "Marcar como leída",
+    "mark_unread": "Marcar como no leída",
+    "mark_all_read": "Marcar todas como leídas",
+    "unread_n": "{n} sin leer",
+    "empty_title": "Sin notificaciones",
+    "empty_description": "Ninguna notificación coincide con los filtros.",
+    "pagination": "{from}–{to} de {total}",
+    "open": "Abrir",
+    "types": {
+      "mention": "Menciones",
+      "task_assigned": "Tarea asignada a ti",
+      "task_due": "Tarea que vence",
+      "support_reply": "Respuesta de soporte",
+      "alert": "Alertas",
+      "sync_delay": "Retraso de sincronización",
+      "stock_critical_no_po": "Stock crítico sin órdenes de compra en camino",
+      "late_to_ship": "Envíos retrasados",
+      "stock_low": "Stock bajo",
+      "stock_available": "Stock disponible de nuevo",
+      "return_portal": "Devoluciones del portal",
+      "po_supplier_confirmed": "El proveedor confirmó una orden",
+      "po_supplier_problem": "El proveedor informó un problema",
+      "integration_health": "Integraciones",
+      "cod_assigned": "Pedido contra reembolso asignado",
+      "digest": "Correo de resumen diario",
+      "other": "Otros"
+    },
+    "rendered": {
+      "stock_critical_no_po": "{title} variantes en venta con stock crítico y ninguna orden de compra",
+      "late_to_ship": "{title} pedidos aún sin enviar después de {body}",
+      "sync_delay": "La sincronización de {title} va con retraso ({body})"
+    },
+    "groups": {
+      "collaboration": "Colaboración",
+      "operations": "Operaciones",
+      "system": "Sistema"
+    },
+    "channels": {
+      "in_app": "En la app",
+      "email": "Correo",
+      "slack": "Slack"
+    },
+    "delivered": "Enviada: {channels}",
+    "preferences": {
+      "title": "Preferencias de notificación",
+      "description": "Por tipo y canal, solo para ti en esta tienda. El servidor las aplica a cada envío.",
+      "reset": "Restaurar valores predeterminados",
+      "default_hint": "Predeterminado",
+      "custom_hint": "Modificado",
+      "not_available": "No disponible para este tipo",
+      "slack_hint": "Los mensajes de Slack van al canal de la tienda configurado en Integraciones."
+    },
+    "mentions": {
+      "title": "Mis menciones",
+      "description": "Notas en pedidos, órdenes de compra y devoluciones en las que alguien te mencionó.",
+      "empty_title": "Sin menciones",
+      "empty_description": "Cuando un compañero escribe @tu nombre en una nota, aparece aquí.",
+      "by": "{author} en {record}",
+      "mark_all_read": "Marcar todas como leídas",
+      "entity": {
+        "all": "Todos los registros",
+        "order": "Pedidos",
+        "purchase_order": "Órdenes de compra",
+        "return": "Devoluciones"
+      }
+    },
+    "suppressions": {
+      "title": "Correos bloqueados",
+      "description": "Direcciones que no reciben correos de esta tienda: rebotes y quejas bloquean todos los correos, las bajas bloquean su categoría.",
+      "email": "Correo",
+      "category": "Categoría",
+      "reason": "Motivo",
+      "when": "Cuándo",
+      "note": "Nota",
+      "add": "Bloquear dirección",
+      "remove": "Quitar",
+      "empty": "No hay direcciones bloqueadas.",
+      "all_categories": "Todos los correos opcionales",
+      "reasons": {
+        "bounce": "Rebote",
+        "complaint": "Queja",
+        "unsubscribe": "Dado de baja",
+        "manual": "Añadido a mano"
+      },
+      "supplier_po": "Órdenes de compra a proveedores"
+    }
   },
   "orders": {
     "title": "Pedidos",
@@ -724,7 +833,30 @@
       "cover": "Cobertura",
       "reorder": "Reposición"
     },
-    "planning_link": "Planificación"
+    "planning_link": "Planificación",
+    "sync_now": "Sincronizar ahora",
+    "sync_done": "Stock leído: {changed} niveles cambiados, {drift} desviaciones, {conflicts} conflictos, {zeroed} niveles obsoletos a cero.",
+    "sync_paused": "Sincronización de stock pausada por límite de tiempo; continúa en la próxima ejecución.",
+    "sync_queued": "Sincronización de stock en cola.",
+    "sync_failed": "Error en la sincronización de stock: {error}",
+    "drift_title": "Desviaciones de stock",
+    "drift_description": "Cambios encontrados por las sincronizaciones que ninguna venta, devolución, recepción o ajuste explica, valores negativos llevados a cero y niveles que la plataforma ya no informa.",
+    "drift_empty": "No hay desviaciones registradas.",
+    "drift_kind": {
+      "unexplained": "Cambio sin explicar",
+      "negative": "Negativo, a cero",
+      "not_reported": "Ya no informado"
+    },
+    "drift_columns": {
+      "seen": "Visto",
+      "variant": "Variante",
+      "location": "Ubicación",
+      "kind": "Tipo",
+      "expected": "Esperado",
+      "observed": "Plataforma"
+    },
+    "drift_all_locations": "Todas las ubicaciones",
+    "drift_times": "×{n}"
   },
   "purchasing": {
     "title": "Compras",
@@ -744,7 +876,21 @@
       "expected": "Prevista / recibida",
       "units": "Unidades",
       "total": "Total",
-      "covers": "Pendientes"
+      "covers": "Pendientes",
+      "destination": "Destino"
+    },
+    "packs": "Cajas",
+    "export_csv": "Exportar CSV",
+    "filters": {
+      "search": "Buscar",
+      "search_placeholder": "Número, proveedor, SKU, nota",
+      "all_suppliers": "Todos los proveedores",
+      "destination": "Destino",
+      "all_destinations": "Todos los destinos",
+      "from": "Desde",
+      "to": "Hasta",
+      "apply": "Aplicar",
+      "clear": "Limpiar"
     }
   },
   "po_detail": {
@@ -818,6 +964,55 @@
       "send": "Enviar al proveedor",
       "resend": "Enviar de nuevo",
       "link_hint": "Enlace de confirmación (en modo demo no sale ningún email de la plataforma: reenvíalo al proveedor):"
+    },
+    "free_text_line": "Línea de texto libre",
+    "inspection": {
+      "damaged": "Dañados",
+      "rejected": "Rechazados",
+      "short": "{damaged} dañados · {rejected} rechazados",
+      "hint": "\"Recibir ahora\" cuenta todas las unidades llegadas; las dañadas y rechazadas forman parte de ellas y no entran en stock ni en el coste."
+    },
+    "manage": {
+      "duplicate": "Duplicar",
+      "delete_title": "¿Eliminar {number}?",
+      "delete_hint": "Solo se pueden eliminar borradores y pedidos cancelados. Se eliminan líneas, cargos y enlaces del proveedor; el registro de auditoría conserva la traza."
+    },
+    "links": {
+      "title": "Enlaces del proveedor",
+      "state": {
+        "active": "Activo",
+        "expired": "Caducado",
+        "revoked": "Revocado"
+      },
+      "issued": "Emitido el {at} a {to}",
+      "expires": "Caduca el {at}",
+      "expired_on": "Caducó el {at}",
+      "revoked": "Revocado: el proveedor ve una página neutra.",
+      "views": "{n, plural, one {# apertura} other {# aperturas}}, última {at}",
+      "no_views": "Nunca abierto",
+      "revoke": "Revocar enlace",
+      "revoked_ok": "Enlace revocado."
+    },
+    "history": {
+      "title": "Historial",
+      "actions": {
+        "purchase_order": {
+          "created": "Creado",
+          "updated": "Editado",
+          "duplicated": "Creado como copia",
+          "deleted": "Eliminado",
+          "transition": "Estado cambiado",
+          "received": "Mercancía recibida",
+          "sent_to_supplier": "Enviado al proveedor",
+          "supplier_confirmed": "Confirmado por el proveedor",
+          "supplier_problem": "Problema señalado por el proveedor",
+          "supplier_link_revoked": "Enlace del proveedor revocado",
+          "supplier_link_blocked": "Abierto un enlace caducado o revocado",
+          "auto_draft": "Borrador del plan de reposición",
+          "charge_added": "Cargo añadido",
+          "charge_deleted": "Cargo eliminado"
+        }
+      }
     }
   },
   "po_new": {
@@ -2353,14 +2548,26 @@
       "run": "Ejecución",
       "status": "Estado",
       "rows": "Filas",
-      "topic": "Topic"
+      "topic": "Topic",
+      "scanned": "Leídos",
+      "changed": "Cambiados",
+      "conflicts": "Conflictos",
+      "errors": "Errores",
+      "duration": "Duración"
     },
     "errors": {
       "connection_failed": "La plataforma rechazó las credenciales.",
       "mock_mode": "Este entorno está en modo mock: configura KEEL_INTEGRATION_MODE=live para conectar una cuenta real.",
       "live_mode": "La simulación solo está disponible para integraciones mock."
     },
-    "tracking": "Píxel y conversiones"
+    "tracking": "Píxel y conversiones",
+    "duration_s": "{s} s",
+    "run_kind": {
+      "initial": "histórico",
+      "delta": "delta",
+      "reconcile": "conciliación nocturna",
+      "manual": "manual"
+    }
   },
   "integration_guide": {
     "verify_legend": "Los pasos marcados “Por verificar” dependen de consolas de proveedores que cambian a menudo: compruébalos en la documentación del proveedor antes de la primera instalación.",
@@ -2682,7 +2889,8 @@
       "dashboard": "Panel",
       "tenants": "Tenants",
       "billing": "Facturación",
-      "audit": "Registro de auditoría"
+      "audit": "Registro de auditoría",
+      "support": "Soporte"
     },
     "plans": {
       "starter": "Starter",
@@ -2827,6 +3035,20 @@
       "actor": "Autor",
       "action": "Acción",
       "details": "Detalles"
+    },
+    "support": {
+      "title": "Soporte",
+      "description": "Solicitudes de las tiendas. Las respuestas notifican al autor; cada acción se escribe en el registro de auditoría.",
+      "tenant": "Tienda",
+      "all": "Todas",
+      "empty": "No hay solicitudes.",
+      "reply": "Responder",
+      "close_after": "Cerrar después de responder",
+      "send": "Enviar respuesta",
+      "reopen": "Reabrir",
+      "close": "Cerrar",
+      "author": "Abierta por",
+      "attachment_audit": "La descarga de un adjunto queda registrada en el registro de auditoría."
     }
   },
   "cod": {
@@ -3101,7 +3323,9 @@
     "submit": {
       "confirm": "Confirmar",
       "problem": "Enviar"
-    }
+    },
+    "inactive_title": "Este enlace ya no es válido",
+    "inactive_body": "El enlace ha caducado o fue sustituido por uno más reciente. Pide un enlace nuevo a la empresa que te lo envió."
   },
   "planning": {
     "back": "Inventario",
@@ -4204,5 +4428,328 @@
     "preview": "Descuento {amount} · nuevo total {total}",
     "refund_due": "El pedido está pagado: reembolsa {amount} al cliente desde la tienda.",
     "apply": "Aplicar descuento"
+  },
+  "po_editor": {
+    "lines": "Líneas",
+    "search_placeholder": "Añadir variante: SKU, código o título",
+    "no_results": "No se encontró ninguna variante.",
+    "available_n": "{n} disponibles",
+    "suggested_n": "sugerido {n}",
+    "add_free_text": "Línea de texto libre",
+    "free_text_placeholder": "Descripción (embalaje, muestras, servicio…)",
+    "free_text": "Fuera de catálogo",
+    "line_total": "Total línea",
+    "empty": "Aún no hay líneas: busca una variante, añade una sugerencia o una línea libre.",
+    "total": "Total",
+    "suggestions": "Sugerencias de reposición",
+    "add_all": "Añadir todas las sugeridas",
+    "add": "Añadir",
+    "save": "Guardar cambios",
+    "edit_title": "Editar {number}",
+    "edit_hint": "Las líneas se sustituyen en bloque; cada cambio queda en el historial del pedido.",
+    "edit_sent_hint": "El pedido ya está con el proveedor: el proveedor no cambia y su enlace muestra las nuevas líneas."
+  },
+  "supplier_terms": {
+    "title": "Proveedores y cajas",
+    "hint": "Proveedor predeterminado de cada variante: la planificación y los borradores automáticos usan su coste, MOQ y plazo.",
+    "missing": "{n, plural, one {# variante no tiene} other {# variantes no tienen}} proveedor predeterminado: los borradores automáticos las omiten.",
+    "option_mix": "Mix de opciones",
+    "columns": {
+      "variant": "Variante",
+      "supplier": "Proveedor",
+      "supplier_sku": "SKU del proveedor",
+      "cost": "Coste",
+      "moq": "MOQ",
+      "multiple": "Múltiplo de pedido",
+      "lead_time": "Plazo (días)"
+    },
+    "edit": "Editar",
+    "none": "Ninguno",
+    "days": "{n} d",
+    "packs": "Cajas",
+    "no_packs": "Ninguna caja se ajusta a este producto.",
+    "manage_packs": "Gestionar cajas",
+    "units_per_pack": "{n} unidades por caja",
+    "edit_variant": "Condiciones del proveedor · {variant}",
+    "keep": "sin cambios",
+    "set_all": "Aplicar a todas las variantes",
+    "set_all_hint": "Mismo proveedor predeterminado para todas las variantes del producto. Los campos vacíos mantienen el valor actual.",
+    "updated": "{n, plural, one {# variante actualizada} other {# variantes actualizadas}}.",
+    "bulk_title": "Proveedor predeterminado en bloque",
+    "bulk_hint": "Elige las variantes por tipo de producto, marca o prefijo de SKU. {n} variantes activas aún no tienen proveedor predeterminado.",
+    "bulk_apply": "Aplicar",
+    "bulk_done": "{n} de {matched} variantes actualizadas.",
+    "filter": {
+      "product_type": "Tipo de producto",
+      "vendor": "Marca",
+      "sku_prefix": "Prefijo de SKU",
+      "any": "Cualquiera",
+      "only_without": "Solo variantes sin proveedor",
+      "required": "Elige al menos un filtro y un proveedor."
+    }
+  },
+  "case_packs": {
+    "back": "Compras",
+    "title": "Cajas",
+    "description": "Cajas con una proporción fija entre los valores de una opción (cualquiera: talla, material, aroma…). La reposición sugiere cuántas cajas por grupo de opciones; la página de mix las convierte en líneas de pedido.",
+    "empty_title": "Aún no hay cajas",
+    "empty_description": "Crea una con las unidades por valor de opción que tu proveedor envía en una caja.",
+    "for_product": "Solo para {product}",
+    "for_all": "Todo producto con la opción {option}",
+    "inactive": "Inactiva",
+    "units_per_pack": "{n} unidades por caja",
+    "add_title": "Nueva caja",
+    "no_options": "El catálogo aún no tiene opciones de producto.",
+    "name": "Nombre",
+    "option": "Opción",
+    "product": "Producto",
+    "all_products": "Todos los productos con esta opción",
+    "units": "Unidades por valor",
+    "units_for": "Unidades de {value}",
+    "custom_value": "Otro valor",
+    "add_value": "Añadir valor",
+    "active": "Activa"
+  },
+  "option_mix": {
+    "title": "Mix de opciones · {product}",
+    "description": "Cuota de ventas por combinación de opciones y un planificador que convierte una cantidad o cajas en un borrador de pedido de compra.",
+    "window": "Periodo de ventas",
+    "days": "{n} días",
+    "units_sold": "{n} unidades vendidas",
+    "share_by": "Cuota por {option}",
+    "combinations": "Combinaciones",
+    "sku": "SKU",
+    "sold": "Vendidas",
+    "share": "Cuota",
+    "suggested": "Sugeridas",
+    "planner": {
+      "title": "Planificar una compra",
+      "hint": "Reparte una cantidad por cuota de ventas o compra cajas por grupo de opciones (rellenadas con la sugerencia de reposición).",
+      "mode": {
+        "units": "Por cuota de ventas",
+        "packs": "Por caja"
+      },
+      "total_units": "Unidades a comprar",
+      "multiple": "Redondear a múltiplos de",
+      "suggested_total": "La reposición sugiere {n} unidades.",
+      "pack": "Caja",
+      "packs_for": "Cajas para {group}",
+      "cartons": "cajas",
+      "single_group": "Todas las variantes",
+      "variant": "Variante",
+      "quantity": "Cantidad",
+      "cost": "Coste",
+      "total": "Total",
+      "supplier": "Proveedor",
+      "destination": "Destino",
+      "create_po": "Crear borrador de pedido"
+    }
+  },
+  "tasks": {
+    "title": "Tareas",
+    "description": "Trabajo vinculado a pedidos, devoluciones, órdenes de compra y productos. Las reglas abren tareas con los eventos y las cierran cuando el registro avanza.",
+    "tabs": {
+      "mine": "Mis tareas",
+      "all": "Todo el equipo",
+      "unassigned": "Sin asignar"
+    },
+    "status_filter": {
+      "open": "Abiertas",
+      "overdue": "Vencidas",
+      "closed": "Cerradas",
+      "all": "Todas"
+    },
+    "statuses": {
+      "open": "Abierta",
+      "in_progress": "En curso",
+      "done": "Hecha",
+      "cancelled": "Cancelada"
+    },
+    "columns": {
+      "task": "Tarea",
+      "record": "Registro",
+      "assignee": "Asignada a",
+      "due": "Vence",
+      "status": "Estado"
+    },
+    "new": "Nueva tarea",
+    "fields": {
+      "title": "Título",
+      "description": "Detalles",
+      "assignee": "Asignada a",
+      "due": "Fecha límite",
+      "record": "Registro vinculado"
+    },
+    "unassigned": "Sin asignar",
+    "no_record": "Ninguno",
+    "overdue": "Vencida",
+    "create": "Crear tarea",
+    "search": "Buscar tareas",
+    "empty_title": "Sin tareas",
+    "empty_description": "No hay nada: las tareas creadas a mano o por reglas aparecen en esta lista.",
+    "pagination": "{from}–{to} de {total}",
+    "rules": "Reglas",
+    "by_rule": "Abierta por una regla",
+    "auto_closed": "Cerrada automáticamente cuando el registro avanzó",
+    "actions": {
+      "start": "Empezar",
+      "done": "Hecha",
+      "reopen": "Reabrir",
+      "cancel": "Cancelar"
+    },
+    "entity": {
+      "order": "Pedido",
+      "return": "Devolución",
+      "purchase_order": "Orden de compra",
+      "product": "Producto"
+    },
+    "panel": {
+      "title": "Tareas",
+      "empty": "No hay tareas en este registro.",
+      "add": "Añadir tarea",
+      "all": "Todas las tareas"
+    },
+    "counts": {
+      "open": "{n} abiertas",
+      "overdue": "{n} vencidas"
+    }
+  },
+  "task_rules": {
+    "title": "Reglas de tareas",
+    "description": "Cuando un registro permanece en uno de los estados elegidos (durante un tiempo, o después de su fecha límite), Keel abre una tarea y la asigna; la tarea se cierra sola cuando el registro avanza.",
+    "new": "Nueva regla",
+    "edit": "Editar",
+    "entity": "Registro",
+    "statuses": "En el estado",
+    "min_hours": "Después de horas en el estado",
+    "use_due": "Solo después de su fecha límite",
+    "overdue_after": "Horas después de la fecha límite",
+    "task_title": "Título de la tarea",
+    "task_description": "Detalles de la tarea",
+    "due_in": "La tarea vence en (horas)",
+    "assignee_mode": "Asignar a",
+    "modes": {
+      "role": "Miembro menos ocupado con el rol",
+      "record_owner": "Responsable del registro (si no, rol)",
+      "user": "Un miembro concreto",
+      "none": "Nadie"
+    },
+    "role": "Rol",
+    "user": "Miembro",
+    "active": "Activa",
+    "inactive": "Apagada",
+    "save": "Guardar regla",
+    "delete": "Eliminar",
+    "restore_defaults": "Añadir las reglas predeterminadas que faltan",
+    "empty": "Aún no hay reglas.",
+    "summary": "{entity} en {statuses}",
+    "after_hours": "después de {n} h",
+    "past_due": "{n} h tras la fecha límite",
+    "default": "Predeterminada"
+  },
+  "support": {
+    "button": "Ayuda",
+    "title": "Soporte",
+    "description": "Solicitudes al equipo de Keel. Recibes una notificación cuando respondemos.",
+    "new": "Contactar con soporte",
+    "new_description": "Describe el problema; una captura o un archivo ayudan.",
+    "subject": "Asunto",
+    "category": "Categoría",
+    "categories": {
+      "question": "Pregunta",
+      "problem": "Problema",
+      "billing": "Facturación",
+      "feature": "Petición de funcionalidad"
+    },
+    "body": "Mensaje",
+    "attachment": "Adjunto (opcional)",
+    "attachment_hint": "Imágenes, PDF, texto o CSV, hasta 1,5 MB.",
+    "send": "Enviar",
+    "sent": "Solicitud enviada.",
+    "view": "Ver la solicitud",
+    "statuses": {
+      "open": "Esperando a Keel",
+      "answered": "Respondida",
+      "closed": "Cerrada"
+    },
+    "columns": {
+      "ticket": "Solicitud",
+      "status": "Estado",
+      "updated": "Último mensaje",
+      "author": "Abierta por"
+    },
+    "empty_title": "Sin solicitudes",
+    "empty_description": "Usa el botón Ayuda de la cabecera para escribir al equipo de Keel.",
+    "reply": "Responder",
+    "reply_placeholder": "Escribe una respuesta…",
+    "close": "Cerrar la solicitud",
+    "closed_hint": "Esta solicitud está cerrada: una respuesta la reabre.",
+    "you": "Tú",
+    "platform": "Soporte de Keel",
+    "download": "Descargar",
+    "messages_n": "{n} mensajes",
+    "all": "Todas las solicitudes"
+  },
+  "record_notes": {
+    "title": "Notas internas",
+    "placeholder": "Escribe una nota… usa @ para mencionar a un compañero",
+    "hint": "Las personas mencionadas reciben una notificación.",
+    "add": "Añadir nota",
+    "delete": "Eliminar nota",
+    "empty": "Aún no hay notas."
+  },
+  "unsubscribe": {
+    "title": "Preferencias de correo",
+    "confirm_title": "¿Dejar de recibir estos correos?",
+    "confirm": "Dejarás de recibir los correos «{category}» de {tenant} en {email}.",
+    "button": "Darme de baja",
+    "done_title": "Te has dado de baja",
+    "done": "{email} ya no recibirá los correos «{category}» de {tenant}. Puedes reactivarlos desde tus preferencias de notificación.",
+    "invalid_title": "Enlace no válido",
+    "invalid": "Este enlace de baja está dañado o incompleto.",
+    "all": "opcionales"
+  },
+  "platform_writes": {
+    "status": {
+      "pending": "Pendiente de sincronizar",
+      "running": "Sincronizando",
+      "succeeded": "Sincronizado",
+      "failed": "Error de sincronización",
+      "superseded": "Reemplazado"
+    },
+    "retry": "Reintentar",
+    "retry_failed": "No se pudo reintentar",
+    "title": "Escrituras a las plataformas",
+    "description": "Cambios que Keel envía a Shopify, Meta y Google: {pending} en espera, {failed} con error, {succeeded} sincronizados en las últimas 24 horas.",
+    "empty": "Aún no hay escrituras a las plataformas.",
+    "immediate": "inmediata",
+    "attempts": "{n, plural, one {# intento} other {# intentos}}",
+    "next_attempt": "próximo intento {when}",
+    "columns": {
+      "when": "Cuándo",
+      "write": "Escritura",
+      "status": "Estado"
+    },
+    "kinds": {
+      "variant_update": "Precio de variante",
+      "product_status": "Estado del producto",
+      "inventory_set": "Nivel de stock",
+      "inventory_restock": "Reposición",
+      "order_cancel": "Cancelación de pedido",
+      "order_update_details": "Datos del pedido",
+      "order_tags": "Etiquetas del pedido",
+      "order_create": "Nuevo pedido",
+      "order_create_invoice": "Pedido con factura",
+      "discount_create": "Código de descuento",
+      "discount_pool": "Lote de códigos",
+      "return_request": "Solicitud de devolución",
+      "return_approve": "Aprobación de devolución",
+      "return_decline": "Rechazo de devolución",
+      "return_refund": "Reembolso",
+      "return_close": "Cierre de devolución",
+      "campaign_status": "Estado de campaña",
+      "variant_cost": "Coste de variante",
+      "order_discount": "Descuento del pedido"
+    }
   }
 }

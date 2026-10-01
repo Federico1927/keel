@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Building2, CreditCard, LayoutDashboard, ScrollText } from "lucide-react";
+import { Building2, CreditCard, LayoutDashboard, LifeBuoy, ScrollText } from "lucide-react";
 import { cn } from "@keel/ui";
 
 export function AdminNav() {
@@ -12,6 +12,7 @@ export function AdminNav() {
     { href: "/admin", label: t("dashboard"), icon: LayoutDashboard, exact: true },
     { href: "/admin/tenants", label: t("tenants"), icon: Building2 },
     { href: "/admin/billing", label: t("billing"), icon: CreditCard },
+    { href: "/admin/support", label: t("support"), icon: LifeBuoy },
     { href: "/admin/audit", label: t("audit"), icon: ScrollText },
   ];
   return (

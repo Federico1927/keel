@@ -317,6 +317,41 @@ Fatto:
 
 Resta per la issue #7: email di stato ai clienti, validazione indirizzi, pagine guida mancanti.
 
+## Scritture verso le piattaforme e sync affidabili (issue #24)
+
+Fatto:
+- Outbox `platform_writes`: ogni scrittura verso Shopify, Meta o Google è una riga con chiave di idempotenza, scritta nella stessa transazione della modifica locale. Va al job pg-boss `platform.write` quando c'è il worker, altrimenti parte subito dopo la richiesta. Ritentativi con attesa crescente: prima il Retry-After della piattaforma, poi 30 s × 2^n fino a 1 ora, al massimo 6 tentativi. Gli errori permanenti (permessi, richiesta non valida) falliscono subito con un messaggio leggibile.
+- Il tick `writes`, ogni minuto, esegue le scritture scadute e si ferma sul rate limit del fornitore.
+- Doppio clic o azione ripetuta entro 10 minuti: stessa riga, una sola scrittura sulla piattaforma (test con `failNext("rate_limited")`). Un valore più recente sostituisce le scritture ancora in attesa sullo stesso oggetto.
+- Migrate in coda: prezzo e stato prodotto, annullamento ordine, codice sconto singolo, stock al ricevimento dell'ordine d'acquisto e nei trasferimenti, pausa e riattivazione su Meta. Google viene rifiutato subito (sola lettura).
+- Restano sincrone ma registrate nell'outbox, perché il flusso ha bisogno della risposta: tag e annullamento COD, modifiche contatto e ordine sostitutivo COD, passi del write-back resi (con chiave per reso e passo), pool di codici sconto.
+- Badge "In attesa di sync" / "Sync non riuscito" con Riprova su prodotto (stato, prezzo, stock), ordine, sconto e campagna. Integrazioni → nuova scheda "Scritture verso le piattaforme" con conteggi, errori e Riprova. Come aggiungere un nuovo tipo di scrittura è spiegato in ARCHITECTURE.
+- `sync_runs` con letti, modificati, conflitti, errori, durata e riepilogo, mostrati nella tabella delle esecuzioni sulla pagina Integrazioni.
+- Sync del catalogo riprendibile a fasi con cursore salvato a ogni pagina; la notturna è una riconciliazione completa e alla fine azzera i livelli che la piattaforma non riporta più.
+- Stock riletto subito dopo i webhook `orders/*`, `fulfillments/*` e `refunds/create` (nuovo topic registrato). Pulsante "Sincronizza ora" nella pagina Magazzino.
+- Registro degli scostamenti di stock (`inventory_drift`), deduplicato: variazioni non spiegate da vendite o annullamenti, valori negativi riportati a zero, livelli non più riportati. Un livello con una scrittura Keel non ancora confermata non viene sovrascritto e conta come conflitto. Scheda "Scostamenti di stock" nella pagina Magazzino.
+- Il mock commerce tiene lo stock per articolo e location partendo dai livelli del negozio: gli ordini lo scalano e le scritture lo aggiornano.
+- Retention giornaliera (04:10) con finestra di piattaforma `KEEL_RETENTION_DAYS`, predefinita 14 giorni. Cancella webhook elaborati, scritture riuscite o sostituite, esecuzioni riuscite e scostamenti vecchi; webhook e scritture fallite restano finché non vengono risolti. Le code pg-boss usano la stessa finestra.
+- Seed: per entrambi i negozi scritture riuscite, una fallita con errore leggibile e una in attesa dopo un rate limit, esecuzioni di riconciliazione notturna (ordini e catalogo) e tre scostamenti di stock.
+- Migrazione 0019 (2 tabelle con RLS, 5 colonne con default su `sync_runs`, nessun SQL scritto a mano). Test: servizi 95 (8 nuovi), addon-cod 20, db 522, integrazioni 45, core 153, web 3; e2e `platform-writes.spec.ts` (3).
+
+Integrazione con #22 e #23:
+- La modifica ordini del core (dati di contatto, ordine sostitutivo, annullamento degli originali, sconto sull'ordine) scrive in modo sincrono ma registrato nell'outbox; il nuovo tipo è `order.discount`.
+- Il costo prodotto verso Shopify (`variant.cost`) passa in coda insieme alla modifica locale, sia da modifica manuale sia da import CSV, quando il negozio ha attivato la scrittura del costo.
+- La migrazione è stata rigenerata come 0022.
+## Notifiche, email e attività (issue #33)
+
+Fatto:
+- Pagina Notifiche con filtri per stato e tipo, letto/da leggere per riga e "segna tutte come lette"; la campanella porta a "Vedi tutte" e mostra i testi tradotti.
+- Preferenze per utente, per tipo × canale (in app, email, Slack), applicate dal server a ogni invio. Nuovi tipi: ritardo di sincronizzazione, stock critico senza ordini d'acquisto in arrivo (`stock_critical_no_po`), spedizioni in ritardo oltre la soglia (soglie nelle impostazioni del negozio), controllati ogni ora dal job `notify`. Riepilogo giornaliero via email su richiesta (job `digest`).
+- Modelli email in en/it/es (invito, link di accesso, menzione, ordine al fornitore, riepilogo, notifica generica) con testo e HTML, inviati dal mailer esistente (mock in sviluppo). Lista di blocco per negozio: rimbalzi e segnalazioni bloccano tutto, le disiscrizioni la loro categoria. Link di disiscrizione firmato per destinatario verso una pagina pubblica, disiscrizione con un clic per i client di posta, webhook dei rimbalzi; pagina "Email bloccate" per titolare e amministratori.
+- "Le mie menzioni": note con @menzioni su ordini, ordini d'acquisto e resi (nuovo pannello note su ordini d'acquisto e resi).
+- Attività dello staff collegate a ordini, resi, ordini d'acquisto e prodotti, con assegnatario, scadenza e stato; pagina "Le mie attività" (mie, del team, non assegnate; aperte, scadute, chiuse) e scheda attività sulle pagine dei record. Regole configurabili che aprono attività sugli eventi e le chiudono quando il record va avanti; tre regole predefinite (reso ricevuto → ispeziona, ordine d'acquisto in ritardo → sollecita il fornitore, ordine in sospeso da più di 72 ore → rivedi).
+- Supporto: richiesta dal pulsante Aiuto nell'intestazione con allegato, risposta dalla console in `/admin/support`, notifica all'autore; ogni azione nel registro di audit.
+- Seed: regole predefinite e attività aperte e chiuse, preferenze, menzioni, notifiche dei nuovi tipi, una richiesta di supporto con risposta e una aperta con allegato, due indirizzi bloccati, su entrambi i negozi.
+- Migrazioni 0019 (8 tabelle con RLS) e 0020 (due colonne con default su `notifications`); test core 165, integrazioni 47, servizi 96, db 558, e2e 6 nuovi.
+
+Resta: firma dei webhook del provider email da verificare sul fornitore scelto; le attività sugli ordini si aprono e chiudono col job ogni 10 minuti, non all'istante.
 ## Costo prodotto (issue #23)
 
 Fatto:
@@ -366,3 +401,18 @@ Resta: commissioni di pagamento effettive per ordine (#27); suddivisione per per
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).
+
+## Acquisti in profondità (issue #29)
+
+Fatto:
+- Fornitore predefinito per variante (SKU fornitore, costo, MOQ, multiplo, tempo di consegna) dalla nuova sezione "Fornitori e confezioni" della scheda prodotto, per singola variante o per tutte le varianti del prodotto, e in blocco dalla pagina fornitori (tipo di prodotto, marca, prefisso SKU, solo varianti senza fornitore). Pianificazione e bozze automatiche usano subito fornitore e costo scelti.
+- Nuovo ordine d'acquisto con editor di righe: ricerca di qualsiasi variante per SKU, barcode o titolo, righe libere (descrizione, quantità, costo), suggerimenti di riordino aggiungibili uno a uno o tutti insieme. Lo stesso editor modifica gli ordini in bozza e inviati (righe sostituite, diff nell'audit); ogni ordine si può duplicare in bozza; bozze e annullati si possono eliminare. Scheda "Storico" nel dettaglio con le voci dell'audit.
+- Lista ordini d'acquisto: ricerca (numero, fornitore, SKU, descrizione, note), periodo, destinazione, fornitore, stato ed esportazione CSV con gli stessi filtri.
+- Confezioni (case pack) definite dal negozio su un'opzione qualsiasi con pezzi per valore, per tutti i prodotti con quell'opzione o per uno solo; pagina "Mix opzioni" per prodotto con quota di vendite per combinazione e per valore, suggerimento di cartoni per gruppo di opzioni e pianificatore che crea la bozza d'ordine (per quota di vendite o per confezioni). Calcoli puri in `packages/core/src/packs.ts`.
+- Ispezione al ricevimento: per riga arrivati, danneggiati e scartati; solo le unità buone vanno a magazzino e aggiornano il costo; i valori restano sulla riga e nell'audit. Le righe libere si ricevono senza toccare lo stock.
+- Link del fornitore più sicuri: token salvato solo come hash, scadenza a 30 giorni (costante in config), revoca, reinvio con nuovo token e revoca del precedente, pagina neutra per link scaduti o revocati (nessun dato dell'ordine), registro di ogni apertura e tentativo di risposta; stato dei link nel dettaglio ordine.
+- Seed: fornitore predefinito su gran parte delle varianti (un prodotto su otto senza, per la funzione in blocco), una confezione per negozio (Northwind: taglie per tutti i prodotti con l'opzione; Harbor: cartone misto su un prodotto), una bozza con una riga libera e un link fornitore scaduto con la sua apertura bloccata.
+- L'avviso giornaliero "variante critica senza ordine in arrivo" arriva dal tick delle notifiche (#33), non da questa issue.
+- Migrazione 0020 (3 tabelle con RLS: `case_packs`, `supplier_links`, `supplier_link_views`; 2 colonne con default su `purchase_order_lines`); test core 176, servizi `purchasing-depth` 7 (più `planning` e `purchasing` aggiornati), db 529; e2e `purchasing-depth` (6) più `inventory` e `planning` verdi sulla build di produzione.
+
+Resta: invio reale dell'email al fornitore (oggi il link si copia a mano in modalità demo); resi al fornitore per la merce danneggiata.

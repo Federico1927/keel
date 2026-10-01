@@ -10,7 +10,7 @@ export const SHOPIFY_SCOPES_BY_MODULE: Record<string, string[]> = {
   "core.crm": ["read_customers"],
 };
 export const SHOPIFY_ALL_SCOPES = [...new Set(Object.values(SHOPIFY_SCOPES_BY_MODULE).flat())];
-export const SHOPIFY_WEBHOOK_TOPICS = ["orders/create", "orders/updated", "orders/cancelled", "orders/paid", "orders/fulfilled", "products/create", "products/update", "products/delete", "inventory_levels/update", "fulfillments/create", "fulfillments/update", "returns/request", "returns/approve", "returns/close", "customers/create", "customers/update", "app/uninstalled"];
+export const SHOPIFY_WEBHOOK_TOPICS = ["orders/create", "orders/updated", "orders/cancelled", "orders/paid", "orders/fulfilled", "products/create", "products/update", "products/delete", "inventory_levels/update", "fulfillments/create", "fulfillments/update", "refunds/create", "returns/request", "returns/approve", "returns/close", "customers/create", "customers/update", "app/uninstalled"];
 export const SHOPIFY_API_VERSION = "2025-07";
 
 export function isValidShopDomain(shop: string): boolean {

@@ -6,7 +6,9 @@ import { formatMoney } from "@keel/core";
 import { Card, CardContent, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { listSuppliers } from "@/server/queries/purchasing";
+import { bulkSupplierFacets } from "@keel/services";
 import { SupplierForm } from "./form";
+import { BulkSupplierCard } from "./bulk";
 
 export default async function SuppliersPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ edit?: string }> }) {
   const { tenant } = await params;
@@ -16,6 +18,7 @@ export default async function SuppliersPage({ params, searchParams }: { params: 
   const suppliers = await listSuppliers(ctx);
   const canWrite = canDo(ctx.role, "receive_purchase_order");
   const editing = canWrite && edit ? suppliers.find((s) => s.id === edit) : undefined;
+  const facets = canWrite ? await ctx.run((tx) => bulkSupplierFacets({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } })) : null;
   return (
     <>
       <Link href={`/t/${tenant}/purchasing`} className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:underline">
@@ -62,6 +65,7 @@ export default async function SuppliersPage({ params, searchParams }: { params: 
         </Card>
         {canWrite && <SupplierForm slug={tenant} supplier={editing} cancelHref={editing ? `/t/${tenant}/purchasing/suppliers` : undefined} />}
       </div>
+      {facets && <div className="mt-6"><BulkSupplierCard slug={tenant} suppliers={suppliers.map((s) => ({ id: s.id, name: s.name }))} productTypes={facets.productTypes} vendors={facets.vendors} withoutSupplier={facets.variantsWithoutSupplier} /></div>}
     </>
   );
 }
