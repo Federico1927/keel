@@ -32,7 +32,7 @@ The seed is deterministic and takes about 40 seconds: two tenants, 21,000 orders
 
 ## Demo credentials
 
-Password for every demo user: `keel-demo-2026`.
+Password for every demo user: `keel-demo-2026`. Live: 'keel-e364f19155'
 
 | Email | Role | Tenant |
 | --- | --- | --- |
