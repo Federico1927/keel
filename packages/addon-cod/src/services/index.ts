@@ -1,16 +1,53 @@
 import { and, desc, eq, inArray, schema, sql, type SQL } from "@keel/db";
 import { normalizePhone } from "@keel/core";
-import { customerOrderHistory, duplicateSiblings, notifyUsers, recomputeOrderStatus, setManualStatus, type ServiceContext } from "@keel/services";
+import type { CommercePlatform } from "@keel/integrations";
+import { applyCancellation, customerOrderHistory, duplicateSiblings, notifyUsers, recomputeOrderStatus, setManualStatus, type ServiceContext } from "@keel/services";
 import { hoursFor, localDay, nextOperator } from "../assignment";
 import { ATTEMPT_OUTCOMES, OPEN_QUEUE_STATUSES, applyOutcome, compareQueue, type AttemptOutcome, type QueueStatus } from "../queue";
 import { buildRecipientProfile, classifyRecipient, recipientKey, type RecipientShipment } from "../risk";
 import { computeDeliveryScore, type OutcomeRecord, type ScoreResult } from "../scoring";
 import { parseCodSettings, type CodSettings, type RiskTier } from "../settings";
+import { classifyTags, normTag, operatorAllowed, planTagWrites, type TagWriteEvent } from "../tags";
 
 export class CodError extends Error {
-  constructor(public readonly code: "not_in_queue" | "invalid_outcome" | "operator_unavailable" | "forbidden" | "not_found" | "invalid_input") {
-    super(code);
+  constructor(
+    public readonly code: "not_in_queue" | "invalid_outcome" | "operator_unavailable" | "forbidden" | "not_found" | "invalid_input" | "platform_error",
+    public readonly detail: string | null = null,
+  ) {
+    super(detail ? `${code}: ${detail}` : code);
   }
+}
+
+export interface PlatformOpts {
+  /** Commerce adapter used for tag writes and cancellations; without it only local state changes. */
+  platform?: CommercePlatform;
+}
+
+/* ---------- platform tags ---------- */
+
+type TaggableOrder = { id: string; externalId: string | null; platformTags: string[] };
+
+/**
+ * Applies the tenant's configured tag changes for an event: platform first (so a refused write
+ * changes nothing locally), then the local tag set, a timeline event and a status recompute
+ * (a state rule may read the tag just written). No-op when the event has nothing to change.
+ */
+export async function applyTagEvent(ctx: ServiceContext, platform: CommercePlatform | undefined, order: TaggableOrder, event: TagWriteEvent, settings: CodSettings): Promise<{ added: string[]; removed: string[] } | null> {
+  const plan = planTagWrites(settings.tags, event, order.platformTags);
+  if (!plan.add.length && !plan.remove.length) return null;
+  if (platform && order.externalId) {
+    try {
+      await platform.updateOrderTags(order.externalId, plan.add, plan.remove);
+    } catch (e) {
+      throw new CodError("platform_error", e instanceof Error ? e.message : String(e));
+    }
+  }
+  const now = ctx.now ?? new Date();
+  await ctx.tx.update(schema.orders).set({ platformTags: plan.next }).where(and(eq(schema.orders.tenantId, ctx.tenantId), eq(schema.orders.id, order.id)));
+  await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: order.id, type: "tags_updated", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: { platformTags: { from: order.platformTags, to: plan.next } }, metadata: { added: plan.add, removed: plan.remove, source: "cod", event }, createdAt: now });
+  await recomputeOrderStatus(ctx, order.id);
+  order.platformTags = plan.next;
+  return { added: plan.add, removed: plan.remove };
 }
 
 /* ---------- settings ---------- */
@@ -29,36 +66,88 @@ export async function saveCodSettings(ctx: ServiceContext, patch: unknown): Prom
 
 /* ---------- queue membership ---------- */
 
-/** Which orders belong in the confirmation queue: COD, open canonical state, not shipped, inside the cutoff. */
-function queueEligibleWhere(ctx: ServiceContext, settings: CodSettings, now: Date): SQL {
-  return and(eq(schema.orders.tenantId, ctx.tenantId), eq(schema.orders.paymentMethod, "cod"), inArray(schema.orders.status, ["new", "pending_review"]), sql`${schema.orders.cancelledAt} is null`, sql`${schema.orders.placedAt} >= ${new Date(now.getTime() - settings.queueCutoffDays * 864e5)}`, sql`not exists (select 1 from shipments s where s.order_id = ${schema.orders.id})`)!;
+/** Candidate orders for the queue: COD, not cancelled, not shipped, inside the cutoff, not in a terminal state. */
+function queueCandidateWhere(ctx: ServiceContext, settings: CodSettings, now: Date): SQL {
+  return and(
+    eq(schema.orders.tenantId, ctx.tenantId),
+    eq(schema.orders.paymentMethod, "cod"),
+    sql`${schema.orders.cancelledAt} is null`,
+    sql`${schema.orders.status} not in ('cancelled','refunded','returned','returned_partial','delivered','shipped','fulfilling')`,
+    sql`${schema.orders.placedAt} >= ${new Date(now.getTime() - settings.queueCutoffDays * 864e5)}`,
+    sql`not exists (select 1 from shipments s where s.order_id = ${schema.orders.id})`,
+  )!;
 }
 
+const hasTagConfig = (s: CodSettings) => s.tags.queue.length + s.tags.confirmed.length + s.tags.cancelled.length > 0;
+
 /**
- * Keeps `cod_queue_items` aligned with the orders: new eligible orders enter as `pending`,
- * items whose order left the open states close with the reason. Idempotent, cheap, run on page load and by the job.
+ * Keeps `cod_queue_items` aligned with the orders. An order belongs in the queue when it carries
+ * one of the tenant's queue tags, or, without any configured tag, when its canonical status is
+ * `new` / `pending_review`. A confirmed tag closes the item and confirms the order; a cancelled tag
+ * closes it as cancelled (precedence cancelled > confirmed > queue, as in the reference platform).
+ * Idempotent, cheap, run on page load and by the job. Tag writes on entry are best effort.
  */
-export async function syncQueue(ctx: ServiceContext, settings?: CodSettings): Promise<{ entered: number; closed: number }> {
+export async function syncQueue(ctx: ServiceContext, settings?: CodSettings, opts: PlatformOpts = {}): Promise<{ entered: number; closed: number }> {
   const now = ctx.now ?? new Date();
   const s = settings ?? (await getCodSettings(ctx));
-  const eligible = await ctx.tx.select({ id: schema.orders.id }).from(schema.orders).where(queueEligibleWhere(ctx, s, now));
-  const eligibleIds = new Set(eligible.map((e) => e.id));
-  const open = await ctx.tx.select({ id: schema.codQueueItems.id, orderId: schema.codQueueItems.orderId, status: schema.codQueueItems.status }).from(schema.codQueueItems).where(and(eq(schema.codQueueItems.tenantId, ctx.tenantId), inArray(schema.codQueueItems.status, [...OPEN_QUEUE_STATUSES])));
+  const tagged = hasTagConfig(s);
+  const candidates = await ctx.tx.select({ id: schema.orders.id, status: schema.orders.status, platformTags: schema.orders.platformTags, externalId: schema.orders.externalId }).from(schema.orders).where(queueCandidateWhere(ctx, s, now));
+  const eligible = new Map<string, { entryTag: string | null; order: (typeof candidates)[number] }>();
+  const closeByTag = new Map<string, { kind: "confirmed" | "cancelled"; tag: string; order: (typeof candidates)[number] }>();
+  for (const o of candidates) {
+    const cls = tagged ? classifyTags(s.tags, o.platformTags) : null;
+    if (cls?.kind === "queue") eligible.set(o.id, { entryTag: cls.tag, order: o });
+    else if (cls?.kind === "confirmed" || cls?.kind === "cancelled") closeByTag.set(o.id, { kind: cls.kind, tag: cls.tag, order: o });
+    else if (!cls && (o.status === "new" || o.status === "pending_review")) eligible.set(o.id, { entryTag: null, order: o });
+  }
+  const open = await ctx.tx.select({ id: schema.codQueueItems.id, orderId: schema.codQueueItems.orderId, status: schema.codQueueItems.status, entryTag: schema.codQueueItems.entryTag, assignedTo: schema.codQueueItems.assignedTo }).from(schema.codQueueItems).where(and(eq(schema.codQueueItems.tenantId, ctx.tenantId), inArray(schema.codQueueItems.status, [...OPEN_QUEUE_STATUSES])));
   const openByOrder = new Map(open.map((o) => [o.orderId, o]));
   let entered = 0;
-  const toEnter = [...eligibleIds].filter((id) => !openByOrder.has(id));
+  const toEnter = [...eligible.keys()].filter((id) => !openByOrder.has(id));
   if (toEnter.length) {
     const existing = await ctx.tx.select({ id: schema.codQueueItems.id, orderId: schema.codQueueItems.orderId }).from(schema.codQueueItems).where(inArray(schema.codQueueItems.orderId, toEnter));
     const existingByOrder = new Map(existing.map((e) => [e.orderId, e.id]));
     for (const orderId of toEnter) {
+      const { entryTag, order } = eligible.get(orderId)!;
       const prev = existingByOrder.get(orderId);
-      if (prev) await ctx.tx.update(schema.codQueueItems).set({ status: "pending", closedAt: null, enteredAt: now, updatedAt: now }).where(eq(schema.codQueueItems.id, prev));
-      else await ctx.tx.insert(schema.codQueueItems).values({ tenantId: ctx.tenantId, orderId, status: "pending", enteredAt: now });
+      if (prev) await ctx.tx.update(schema.codQueueItems).set({ status: "pending", closedAt: null, enteredAt: now, entryTag, callBackAt: null, updatedAt: now }).where(eq(schema.codQueueItems.id, prev));
+      else await ctx.tx.insert(schema.codQueueItems).values({ tenantId: ctx.tenantId, orderId, status: "pending", entryTag, enteredAt: now });
       entered++;
+      // a queue tag on an already confirmed order means "back to confirmation" (the reference "Da chiamare")
+      if (entryTag && order.status === "confirmed") await setManualStatus(ctx, orderId, "pending_review", `cod_tag:${entryTag}`);
+      try {
+        await applyTagEvent(ctx, opts.platform, { id: order.id, externalId: order.externalId, platformTags: [...order.platformTags] }, "entered", s);
+      } catch (e) {
+        if (!(e instanceof CodError && e.code === "platform_error")) throw e;
+      }
+    }
+  }
+  // entry tag changed on an open item: refresh it and drop an operator who may not handle it
+  for (const o of open) {
+    const el = eligible.get(o.orderId);
+    if (!el || (el.entryTag ?? null) === (o.entryTag ?? null)) continue;
+    await ctx.tx.update(schema.codQueueItems).set({ entryTag: el.entryTag, updatedAt: now }).where(eq(schema.codQueueItems.id, o.id));
+    if (o.assignedTo && el.entryTag) {
+      const [cap] = await ctx.tx.select({ allowedTags: schema.codOperatorCapacity.allowedTags }).from(schema.codOperatorCapacity).where(and(eq(schema.codOperatorCapacity.tenantId, ctx.tenantId), eq(schema.codOperatorCapacity.userId, o.assignedTo))).limit(1);
+      if (cap && !operatorAllowed(cap.allowedTags as string[], el.entryTag)) {
+        await ctx.tx.update(schema.codQueueItems).set({ assignedTo: null, assignedAt: null, updatedAt: now }).where(eq(schema.codQueueItems.id, o.id));
+        await ctx.tx.update(schema.orders).set({ assignedTo: null }).where(eq(schema.orders.id, o.orderId));
+        await ctx.tx.insert(schema.codAssignmentLog).values({ tenantId: ctx.tenantId, orderId: o.orderId, assignedTo: null, source: "cron", reason: "reassign_tag_change", actorUserId: ctx.actor.userId, assignedAt: now });
+      }
     }
   }
   let closed = 0;
-  const stale = open.filter((o) => !eligibleIds.has(o.orderId));
+  // confirmed / cancelled tags: close the item (if any) and align the order
+  for (const [orderId, c] of closeByTag) {
+    const item = openByOrder.get(orderId);
+    if (item) {
+      await ctx.tx.update(schema.codQueueItems).set({ status: c.kind, closedAt: now, updatedAt: now }).where(eq(schema.codQueueItems.id, item.id));
+      await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId, type: "cod_attempt", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: { queueStatus: { from: item.status, to: c.kind } }, metadata: { outcome: c.kind, source: "tag", tag: c.tag }, createdAt: now });
+      closed++;
+    }
+    if (c.kind === "confirmed" && (c.order.status === "new" || c.order.status === "pending_review")) await setManualStatus(ctx, orderId, "confirmed", `cod_tag:${c.tag}`);
+  }
+  const stale = open.filter((o) => !eligible.has(o.orderId) && !closeByTag.has(o.orderId));
   if (stale.length) {
     const orders = await ctx.tx.select({ id: schema.orders.id, status: schema.orders.status, holdReason: schema.orders.holdReason }).from(schema.orders).where(inArray(schema.orders.id, stale.map((o) => o.orderId)));
     for (const o of stale) {
@@ -169,7 +258,7 @@ export interface AttemptInput {
  * Records a contact attempt and applies the outcome machine. `confirmed` sets the canonical
  * manual status, `cancelled` only closes the queue item (the order cancellation is the core action).
  */
-export async function recordAttempt(ctx: ServiceContext, input: AttemptInput, settings?: CodSettings): Promise<{ status: QueueStatus; attemptNumber: number }> {
+export async function recordAttempt(ctx: ServiceContext, input: AttemptInput, settings?: CodSettings, opts: PlatformOpts = {}): Promise<{ status: QueueStatus; attemptNumber: number; tags: { added: string[]; removed: string[] } | null }> {
   const now = ctx.now ?? new Date();
   const s = settings ?? (await getCodSettings(ctx));
   if (!ATTEMPT_OUTCOMES.includes(input.outcome)) throw new CodError("invalid_outcome");
@@ -178,16 +267,29 @@ export async function recordAttempt(ctx: ServiceContext, input: AttemptInput, se
   if (input.outcome === "call_back" && !input.callBackAt) throw new CodError("invalid_input");
   const next = applyOutcome({ status: item.status as QueueStatus, noAnswerCount: item.noAnswerCount }, input.outcome, s, input.callBackAt ?? null);
   const attemptNumber = item.attemptsCount + 1;
+  const [order] = await ctx.tx.select({ id: schema.orders.id, externalId: schema.orders.externalId, platformTags: schema.orders.platformTags, cancelledAt: schema.orders.cancelledAt }).from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenantId), eq(schema.orders.id, input.orderId))).limit(1);
+  if (!order) throw new CodError("not_found");
+  // platform first: a refused cancellation or tag write records nothing locally
+  if (input.outcome === "cancelled" && opts.platform && order.externalId && !order.cancelledAt) {
+    try {
+      await opts.platform.cancelOrder(order.externalId, { reason: "customer", restock: s.cancelRestock, refund: false });
+    } catch (e) {
+      throw new CodError("platform_error", e instanceof Error ? e.message : String(e));
+    }
+  }
+  const tagEvent: TagWriteEvent = next.status === "unreachable" ? "unreachable" : input.outcome;
+  const tags = await applyTagEvent(ctx, opts.platform, { id: order.id, externalId: order.externalId, platformTags: [...order.platformTags] }, tagEvent, s);
   await ctx.tx.insert(schema.codAttempts).values({ tenantId: ctx.tenantId, queueItemId: item.id, orderId: input.orderId, operatorId: ctx.actor.userId, attemptNumber, outcome: input.outcome, channel: input.channel ?? "phone", note: input.note ?? null, callBackAt: input.callBackAt ?? null });
   const closing = next.status === "confirmed" || next.status === "cancelled";
   await ctx.tx.update(schema.codQueueItems).set({ status: next.status, noAnswerCount: next.noAnswerCount, callBackAt: next.callBackAt, attemptsCount: attemptNumber, lastAttemptAt: now, closedAt: closing ? now : null, assignedTo: item.assignedTo ?? ctx.actor.userId, assignedAt: item.assignedAt ?? now, updatedAt: now }).where(eq(schema.codQueueItems.id, item.id));
   await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: input.orderId, type: "cod_attempt", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: { queueStatus: { from: item.status, to: next.status } }, metadata: { attemptNumber, outcome: input.outcome, callBackAt: input.callBackAt?.toISOString() ?? null, note: input.note ?? null }, createdAt: now });
   if (input.outcome === "confirmed") await setManualStatus(ctx, input.orderId, "confirmed", "cod_confirmed");
+  else if (input.outcome === "cancelled") await applyCancellation(ctx, input.orderId, { reason: "cod_refused", restock: s.cancelRestock, refund: false, source: "cod" });
   else if (input.outcome === "no_answer" && next.status === "unreachable") await setManualStatus(ctx, input.orderId, "on_hold", "cod_unreachable");
   else if (!item.assignedTo && ctx.actor.userId) await ctx.tx.update(schema.orders).set({ assignedTo: ctx.actor.userId }).where(eq(schema.orders.id, input.orderId));
   // re-score with the new attempt count (not for closed items)
   if (!closing) await scoreQueueItem(ctx, input.orderId, { settings: s }).catch(() => undefined);
-  return { status: next.status, attemptNumber };
+  return { status: next.status, attemptNumber, tags };
 }
 
 /* ---------- assignment ---------- */
@@ -195,7 +297,7 @@ export async function recordAttempt(ctx: ServiceContext, input: AttemptInput, se
 async function availableOperators(ctx: ServiceContext, timezone: string, now: Date) {
   const { dow, date } = localDay(now, timezone);
   const caps = await ctx.tx.select().from(schema.codOperatorCapacity).where(and(eq(schema.codOperatorCapacity.tenantId, ctx.tenantId), eq(schema.codOperatorCapacity.isActive, 1)));
-  if (!caps.length) return { date, operators: [] as { userId: string; hoursToday: number; assignedToday: number }[] };
+  if (!caps.length) return { date, operators: [] as { userId: string; hoursToday: number; assignedToday: number; allowedTags: string[] }[] };
   const exceptions = await ctx.tx.select().from(schema.codCapacityExceptions).where(and(eq(schema.codCapacityExceptions.tenantId, ctx.tenantId), eq(schema.codCapacityExceptions.date, date)));
   const members = await ctx.tx.select({ userId: schema.tenantMemberships.userId }).from(schema.tenantMemberships).where(and(eq(schema.tenantMemberships.tenantId, ctx.tenantId), eq(schema.tenantMemberships.isActive, true)));
   const active = new Set(members.map((m) => m.userId));
@@ -205,7 +307,7 @@ async function availableOperators(ctx: ServiceContext, timezone: string, now: Da
     .filter((c) => active.has(c.userId))
     .map((c) => {
       const ex = exceptions.find((e) => e.userId === c.userId);
-      return { userId: c.userId, hoursToday: hoursFor(c.dailyHours as number[], dow, ex ? { kind: ex.kind as "off" | "extra", hours: ex.hours } : null), assignedToday: counts.find((x) => x.userId === c.userId)?.n ?? 0 };
+      return { userId: c.userId, hoursToday: hoursFor(c.dailyHours as number[], dow, ex ? { kind: ex.kind as "off" | "extra", hours: ex.hours } : null), assignedToday: counts.find((x) => x.userId === c.userId)?.n ?? 0, allowedTags: (c.allowedTags as string[]) ?? [] };
     });
   return { date, operators };
 }
@@ -219,7 +321,8 @@ export async function assignQueueItem(ctx: ServiceContext, orderId: string, opts
   const reason = opts.userId ? "manual" : "auto";
   if (!target) {
     const { operators } = await availableOperators(ctx, opts.timezone, now);
-    target = nextOperator(operators);
+    // skill routing: an operator with allowed tags only receives items that entered with one of them
+    target = nextOperator(operators.filter((o) => operatorAllowed(o.allowedTags, item.entryTag)));
     if (!target) {
       await ctx.tx.insert(schema.codAssignmentLog).values({ tenantId: ctx.tenantId, orderId, assignedTo: null, source: opts.source, reason: "no_available_operator", actorUserId: ctx.actor.userId, assignedAt: now });
       return null;
@@ -258,12 +361,14 @@ export async function releaseQueueItem(ctx: ServiceContext, orderId: string, opt
 export async function listCapacity(ctx: ServiceContext) {
   const rows = await ctx.tx.select({ cap: schema.codOperatorCapacity, email: schema.users.email, name: schema.users.name }).from(schema.codOperatorCapacity).innerJoin(schema.users, eq(schema.users.id, schema.codOperatorCapacity.userId)).where(eq(schema.codOperatorCapacity.tenantId, ctx.tenantId)).orderBy(schema.users.email);
   const exceptions = await ctx.tx.select().from(schema.codCapacityExceptions).where(and(eq(schema.codCapacityExceptions.tenantId, ctx.tenantId), sql`${schema.codCapacityExceptions.date} >= ${new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10)}`)).orderBy(schema.codCapacityExceptions.date);
-  return { operators: rows.map((r) => ({ ...r.cap, dailyHours: r.cap.dailyHours as number[], email: r.email, name: r.name })), exceptions };
+  return { operators: rows.map((r) => ({ ...r.cap, dailyHours: r.cap.dailyHours as number[], allowedTags: (r.cap.allowedTags as string[]) ?? [], email: r.email, name: r.name })), exceptions };
 }
 
-export async function saveCapacity(ctx: ServiceContext, input: { userId: string; dailyHours: number[]; isActive: boolean }): Promise<void> {
+export async function saveCapacity(ctx: ServiceContext, input: { userId: string; dailyHours: number[]; isActive: boolean; allowedTags?: string[] }): Promise<void> {
   const hours = Array.from({ length: 7 }, (_, i) => Math.max(0, Math.min(24, Math.round(input.dailyHours[i] ?? 0))));
-  await ctx.tx.insert(schema.codOperatorCapacity).values({ tenantId: ctx.tenantId, userId: input.userId, dailyHours: hours, isActive: input.isActive ? 1 : 0 }).onConflictDoUpdate({ target: [schema.codOperatorCapacity.tenantId, schema.codOperatorCapacity.userId], set: { dailyHours: hours, isActive: input.isActive ? 1 : 0, updatedAt: new Date() } });
+  const allowedTags = (input.allowedTags ?? []).map((t) => t.trim()).filter(Boolean).slice(0, 30);
+  const set = { dailyHours: hours, isActive: input.isActive ? 1 : 0, ...(input.allowedTags !== undefined ? { allowedTags } : {}), updatedAt: new Date() };
+  await ctx.tx.insert(schema.codOperatorCapacity).values({ tenantId: ctx.tenantId, userId: input.userId, dailyHours: hours, isActive: input.isActive ? 1 : 0, allowedTags }).onConflictDoUpdate({ target: [schema.codOperatorCapacity.tenantId, schema.codOperatorCapacity.userId], set });
 }
 
 export async function saveCapacityException(ctx: ServiceContext, input: { userId: string; date: string; kind: "off" | "extra"; hours?: number | null; note?: string | null }): Promise<void> {
@@ -332,6 +437,8 @@ export interface QueueFilters {
   view?: "all" | "mine" | "unassigned" | "scheduled" | "unreachable";
   userId?: string | null;
   q?: string;
+  /** Only items that entered with this queue tag. */
+  tag?: string;
   limit?: number;
 }
 
@@ -343,6 +450,7 @@ export async function queueItems(ctx: ServiceContext, f: QueueFilters = {}) {
   else conds.push(inArray(schema.codQueueItems.status, ["pending", "scheduled"]));
   if (f.view === "mine" && f.userId) conds.push(eq(schema.codQueueItems.assignedTo, f.userId));
   if (f.view === "unassigned") conds.push(sql`${schema.codQueueItems.assignedTo} is null`);
+  if (f.tag) conds.push(eq(schema.codQueueItems.entryTag, normTag(f.tag)));
   if (f.q) conds.push(sql`(${schema.orders.name} ilike ${"%" + f.q + "%"} or ${schema.orders.customerName} ilike ${"%" + f.q + "%"} or ${schema.orders.phone} ilike ${"%" + f.q + "%"})`);
   const rows = await ctx.tx.select({ item: schema.codQueueItems, order: { id: schema.orders.id, name: schema.orders.name, customerName: schema.orders.customerName, phone: schema.orders.phone, email: schema.orders.email, totalMinor: schema.orders.totalMinor, currency: schema.orders.currency, placedAt: schema.orders.placedAt, status: schema.orders.status, shippingCity: schema.orders.shippingCity, shippingCountry: schema.orders.shippingCountry } }).from(schema.codQueueItems).innerJoin(schema.orders, eq(schema.orders.id, schema.codQueueItems.orderId)).where(and(...conds)).limit(f.limit ?? 300);
   const sorted = rows.sort((a, b) => compareQueue({ status: a.item.status as QueueStatus, callBackAt: a.item.callBackAt, attemptsCount: a.item.attemptsCount, enteredAt: a.item.enteredAt }, { status: b.item.status as QueueStatus, callBackAt: b.item.callBackAt, attemptsCount: b.item.attemptsCount, enteredAt: b.item.enteredAt }, now));

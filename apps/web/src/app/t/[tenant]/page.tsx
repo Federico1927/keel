@@ -35,7 +35,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ tena
         <Stat label={t("kpi.aov")} value={summary.today.aovMinor ? money(summary.today.aovMinor) : "—"} hint={summary.yesterday.sales ? `${t("vs_yesterday")} · ${money(Math.round(summary.yesterday.grossRevenueMinor / summary.yesterday.sales))}` : undefined} />
         <Stat label={t("kpi.cancel_rate")} value={summary.today.placed ? `${(((summary.today.byStatus.cancelled ?? 0) / summary.today.placed) * 100).toFixed(1)}%` : "—"} href={`${base}/orders?status=cancelled&from=${todayIso}`} />
       </div>
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_20rem]">
+      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">{t("revenue_30d")}</CardTitle>

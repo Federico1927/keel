@@ -4,6 +4,7 @@ import { applyOutcome, compareQueue } from "./queue";
 import { buildRecipientProfile, classifyRecipient, recipientKey } from "./risk";
 import { addressQuality, computeDeliveryScore, customerDeliveryScore, penalizedScore, type ScoreInput } from "./scoring";
 import { parseCodSettings } from "./settings";
+import { classifyTags, operatorAllowed, parseTagList, planTagWrites } from "./tags";
 
 const settings = parseCodSettings({});
 const base: ScoreInput = { customerOrders: null, prepaidDelivered: 0, attempts: 0, hoursSinceOrder: 2, closed: false, lines: [{ productId: "p1", variantId: "v1", quantity: 1 }], address: { phone: "+393331234567", address1: "Via Roma 10", zip: "20121", city: "Milano", province: "MI", country: "IT" }, similarOrders: { sample: 40, delivered: 34 }, totalMinor: 8000, aovMinor: 7000, localHour: 14, recentCancellations: { count: 0, sharesProduct: false }, duplicates: "none", riskTier: null };
@@ -101,5 +102,50 @@ describe("recipient risk", () => {
     const bad = buildRecipientProfile([{ outcome: "returned", at: ago(10) }, { outcome: "returned", at: ago(20) }, { outcome: "returned", at: ago(30) }], settings, now);
     expect(classifyRecipient(bad, settings).tier).toBe("blacklisted");
     expect(classifyRecipient(bad, settings, "force_clean").tier).toBe("clean");
+  });
+});
+
+describe("tags", () => {
+  const settings = {
+    queue: ["Da confermare", "Da chiamare"],
+    confirmed: ["Confermato", "Già pagato*"],
+    cancelled: ["Annullato*"],
+    clearQueueTagsOnClose: true,
+    write: {
+      entered: { add: ["Da confermare"], remove: [] },
+      confirmed: { add: ["Confermato"], remove: [] },
+      no_answer: { add: [], remove: [] },
+      call_back: { add: ["Da chiamare"], remove: ["Da confermare"] },
+      modified: { add: ["Richiesta modifica"], remove: [] },
+      cancelled: { add: ["Annullato"], remove: ["Confermato"] },
+      unreachable: { add: ["Non raggiungibile"], remove: [] },
+      replaced: { add: ["Annullato per variazione"], remove: [] },
+    },
+  };
+  it("classifies with the reference precedence and prefix wildcards, case-insensitively", () => {
+    expect(classifyTags(settings, ["cod", "DA CONFERMARE"])).toEqual({ kind: "queue", tag: "da confermare" });
+    expect(classifyTags(settings, ["da chiamare", "confermato"])).toEqual({ kind: "confirmed", tag: "confermato" });
+    expect(classifyTags(settings, ["confermato", "annullato per variazione"])).toEqual({ kind: "cancelled", tag: "annullato per variazione" });
+    expect(classifyTags(settings, ["già pagato bonifico"])).toEqual({ kind: "confirmed", tag: "già pagato bonifico" });
+    expect(classifyTags(settings, ["vip"])).toBeNull();
+  });
+  it("plans idempotent writes and clears queue tags on closing events", () => {
+    const confirmed = planTagWrites(settings, "confirmed", ["cod", "da confermare", "vip"]);
+    expect(confirmed).toEqual({ add: ["Confermato"], remove: ["da confermare"], next: ["cod", "vip", "confermato"] });
+    const again = planTagWrites(settings, "confirmed", confirmed.next);
+    expect(again.add).toEqual([]);
+    expect(again.remove).toEqual([]);
+    const callBack = planTagWrites(settings, "call_back", ["da confermare"]);
+    expect(callBack).toEqual({ add: ["Da chiamare"], remove: ["da confermare"], next: ["da chiamare"] });
+    // a non-closing event keeps queue tags
+    expect(planTagWrites(settings, "no_answer", ["da confermare"]).next).toEqual(["da confermare"]);
+    expect(planTagWrites({ ...settings, clearQueueTagsOnClose: false }, "confirmed", ["da confermare"]).next).toEqual(["da confermare", "confermato"]);
+  });
+  it("parses admin lists and routes operators by allowed tags", () => {
+    expect(parseTagList(" Da chiamare, da chiamare ,Richiesta   modifica\n\nX ")).toEqual(["Da chiamare", "Richiesta modifica", "X"]);
+    expect(operatorAllowed([], "da chiamare")).toBe(true);
+    expect(operatorAllowed(["Richiesta modifica"], null)).toBe(true);
+    expect(operatorAllowed(["Richiesta modifica"], "da chiamare")).toBe(false);
+    expect(operatorAllowed(["Da*"], "da chiamare")).toBe(true);
   });
 });

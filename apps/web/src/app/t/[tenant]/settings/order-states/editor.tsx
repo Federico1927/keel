@@ -31,7 +31,7 @@ export function StateRulesEditor({ slug, statuses, rules, preview }: { slug: str
   const [editing, setEditing] = useState<RuleRow | null | "new">(null);
   const [pending, start] = useTransition();
   return (
-    <div className="grid gap-6 xl:grid-cols-[1fr_28rem]">
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_28rem]">
       <Card>
         <CardHeader className="flex-row items-start justify-between space-y-0">
           <div>

@@ -1,5 +1,5 @@
 import { HttpClient, type HttpOptions } from "../http";
-import { IntegrationError, type CommercePlatform, type ConnectionTest, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type Page, type SyncQuery, type VerifiedWebhook, type WebhookRegistration } from "../types";
+import { IntegrationError, type CommercePlatform, type ConnectionTest, type CreateOrderInput, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type OrderDetailsPatch, type Page, type SyncQuery, type VerifiedWebhook, type WebhookRegistration } from "../types";
 import { ORDER_FIELDS, PRODUCT_FIELDS, idToGid, mapGraphqlCustomer, mapGraphqlDiscount, mapGraphqlInventoryLevel, mapGraphqlLocation, mapGraphqlOrder, mapGraphqlProduct, mapRestCustomer, mapRestInventoryLevel, mapRestOrder, mapRestProduct } from "./mappers";
 import { SHOPIFY_ALL_SCOPES, SHOPIFY_API_VERSION, verifyWebhookHmac } from "./oauth";
 
@@ -176,6 +176,43 @@ export class ShopifyCommercePlatform implements CommercePlatform {
   async cancelOrder(externalId: string, opts: { reason?: string; restock: boolean; refund: boolean }): Promise<void> {
     const reason = ({ customer: "CUSTOMER", fraud: "FRAUD", inventory: "INVENTORY", declined: "DECLINED", staff: "STAFF" } as Record<string, string>)[opts.reason ?? ""] ?? "OTHER";
     await this.mutate("orderCancel", `mutation($orderId: ID!, $reason: OrderCancelReason!, $refund: Boolean!, $restock: Boolean!) { orderCancel(orderId: $orderId, reason: $reason, refund: $refund, restock: $restock, notifyCustomer: true) { job { id } orderCancelUserErrors { field message } userErrors { field message } } }`, { orderId: idToGid("Order", externalId), reason, refund: opts.refund, restock: opts.restock });
+  }
+  async updateOrderDetails(externalId: string, patch: OrderDetailsPatch): Promise<void> {
+    const input: Rec = { id: idToGid("Order", externalId) };
+    if (patch.email !== undefined) input.email = patch.email;
+    if (patch.note !== undefined) input.note = patch.note;
+    if (patch.shippingAddress !== undefined && patch.shippingAddress) {
+      const a = patch.shippingAddress;
+      input.shippingAddress = { address1: a.address1 ?? null, address2: a.address2 ?? null, city: a.city ?? null, provinceCode: a.province ?? null, zip: a.zip ?? null, countryCode: a.country ?? null, phone: patch.phone ?? a.phone ?? null, firstName: a.name?.split(" ")[0] ?? null, lastName: a.name?.split(" ").slice(1).join(" ") || null };
+    }
+    await this.mutate("orderUpdate", `mutation($input: OrderInput!) { orderUpdate(input: $input) { userErrors { field message } } }`, { input });
+  }
+  /**
+   * Draft order → complete with payment pending. To verify on a real account: tax behaviour,
+   * shipping line and the COD gateway name depend on the shop's settings.
+   */
+  async createOrder(input: CreateOrderInput): Promise<NormalizedOrder> {
+    const a = input.shippingAddress;
+    const address = a ? { address1: a.address1 ?? null, address2: a.address2 ?? null, city: a.city ?? null, provinceCode: a.province ?? null, zip: a.zip ?? null, countryCode: a.country ?? null, phone: input.phone ?? a.phone ?? null, firstName: a.name?.split(" ")[0] ?? null, lastName: a.name?.split(" ").slice(1).join(" ") || null } : null;
+    const draft: Rec = {
+      lineItems: input.lines.map((l) => (l.variantExternalId ? { variantId: idToGid("ProductVariant", l.variantExternalId), quantity: l.quantity } : { title: l.title, quantity: l.quantity, originalUnitPrice: (l.unitPriceMinor / 100).toFixed(2) })),
+      email: input.email,
+      phone: input.phone,
+      note: input.note,
+      tags: input.tags,
+      shippingAddress: address,
+      billingAddress: input.billingAddress ? address : null,
+      customAttributes: [...input.noteAttributes, ...(input.replacesOrderName ? [{ key: "replaces_order", value: input.replacesOrderName }] : [])].map((x) => ("key" in x ? x : { key: x.name, value: x.value })),
+      ...(input.shippingMinor > 0 ? { shippingLine: { title: "Shipping", price: (input.shippingMinor / 100).toFixed(2) } } : {}),
+      ...(input.discountMinor > 0 ? { appliedDiscount: { valueType: "FIXED_AMOUNT", value: input.discountMinor / 100, title: "Keel" } } : {}),
+    };
+    const created = await this.mutate("draftOrderCreate", `mutation($input: DraftOrderInput!) { draftOrderCreate(input: $input) { draftOrder { id } userErrors { field message } } }`, { input: draft });
+    const draftId = String((created.draftOrder as Rec).id);
+    const completed = await this.mutate("draftOrderComplete", `mutation($id: ID!) { draftOrderComplete(id: $id, paymentPending: true) { draftOrder { order { id legacyResourceId } } userErrors { field message } } }`, { id: draftId });
+    const orderId = String(((completed.draftOrder as Rec).order as Rec).legacyResourceId ?? String(((completed.draftOrder as Rec).order as Rec).id).split("/").pop());
+    const order = await this.fetchOrder(orderId);
+    if (!order) throw new IntegrationError("not_found", "Created order not readable");
+    return order;
   }
   async addOrderNote(externalId: string, note: string): Promise<void> {
     await this.mutate("orderUpdate", `mutation($input: OrderInput!) { orderUpdate(input: $input) { userErrors { field message } } }`, { input: { id: idToGid("Order", externalId), note } });

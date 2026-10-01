@@ -38,6 +38,8 @@ export const codQueueItems = pgTable(
     score: integer("score"),
     scoreBreakdown: jsonb("score_breakdown").notNull().default(sql`'{}'::jsonb`),
     riskTier: text("risk_tier"),
+    /** Platform tag that pulled the order into the queue (lower-cased), null when it entered by canonical status. */
+    entryTag: text("entry_tag"),
     enteredAt: timestamp("entered_at", { withTimezone: true }).notNull().defaultNow(),
     closedAt: timestamp("closed_at", { withTimezone: true }),
     createdAt: createdAt(),
@@ -78,6 +80,8 @@ export const codOperatorCapacity = pgTable(
     isActive: integer("is_active").notNull().default(1),
     /** Hours per weekday, Sunday first: [sun, mon, …, sat]. */
     dailyHours: jsonb("daily_hours").notNull().default(sql`'[0,8,8,8,8,8,0]'::jsonb`),
+    /** Queue tags this operator may receive; empty = any order. */
+    allowedTags: jsonb("allowed_tags").notNull().default(sql`'[]'::jsonb`),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

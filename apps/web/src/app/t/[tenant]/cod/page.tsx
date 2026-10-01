@@ -3,14 +3,15 @@ import { getTranslations } from "next-intl/server";
 import { canWritePage } from "@keel/config";
 import { formatDateTime, formatMoney, formatNumber } from "@keel/core";
 import { adminDb, eq, inArray, schema } from "@keel/db";
-import { operatorKpis, queueItems, syncQueue } from "@keel/addon-cod";
+import { getCodSettings, operatorKpis, queueItems, syncQueue } from "@keel/addon-cod";
+import { getCommercePlatform } from "@/server/integrations";
 import { Badge, Card, CardContent, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { ClaimButton, OutcomeDialog, QueueToolbar, ScoreBadge } from "./queue-controls";
 
 const VIEWS = ["all", "mine", "unassigned", "scheduled", "unreachable"] as const;
 
-export default async function CodQueuePage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ view?: string; q?: string }> }) {
+export default async function CodQueuePage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ view?: string; q?: string; tag?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "cod_queue");
@@ -18,12 +19,15 @@ export default async function CodQueuePage({ params, searchParams }: { params: P
   const view = (VIEWS as readonly string[]).includes(sp.view ?? "") ? (sp.view as (typeof VIEWS)[number]) : "all";
   const canWrite = canWritePage(ctx.role, "cod_queue");
   const isAdmin = ctx.role === "owner" || ctx.role === "admin";
-  const { rows, counts, kpis } = await ctx.run(async (tx) => {
+  const platform = await getCommercePlatform(ctx);
+  const { rows, counts, kpis, queueTags } = await ctx.run(async (tx) => {
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
-    await syncQueue(s);
-    const q = await queueItems(s, { view, userId: ctx.user.id, q: sp.q });
-    return { ...q, kpis: await operatorKpis(s, 7) };
+    const settings = await getCodSettings(s);
+    await syncQueue(s, settings, { platform });
+    const q = await queueItems(s, { view, userId: ctx.user.id, q: sp.q, tag: sp.tag });
+    return { ...q, kpis: await operatorKpis(s, 7), queueTags: settings.tags.queue };
   });
+  const tagFilter = sp.tag && queueTags.some((t) => t.toLowerCase() === sp.tag!.toLowerCase()) ? sp.tag.toLowerCase() : null;
   const userIds = [...new Set(rows.map((r) => r.item.assignedTo).filter((x): x is string => Boolean(x)))];
   const users = userIds.length ? await adminDb().select({ id: schema.users.id, name: schema.users.name, email: schema.users.email }).from(schema.users).where(inArray(schema.users.id, userIds)) : [];
   void eq;
@@ -35,11 +39,20 @@ export default async function CodQueuePage({ params, searchParams }: { params: P
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<div className="flex flex-wrap items-center gap-2">{canWrite && <QueueToolbar slug={tenant} canDistribute={canWrite} />}{canWritePage(ctx.role, "cod_settings") && <Link href={`${base}/settings`} className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted">{t("settings_link")}</Link>}</div>} />
       <div className="mb-4 flex flex-wrap gap-1 rounded-md bg-muted p-1 text-sm">
         {VIEWS.map((v) => (
-          <Link key={v} href={`${base}?view=${v}`} className={cn("flex-1 rounded-sm px-3 py-1.5 text-center", view === v ? "bg-card shadow-sm" : "text-muted-foreground")}>
+          <Link key={v} href={`${base}?view=${v}${tagFilter ? `&tag=${encodeURIComponent(tagFilter)}` : ""}`} className={cn("flex-1 rounded-sm px-3 py-1.5 text-center", view === v ? "bg-card shadow-sm" : "text-muted-foreground")}>
             {t(`views.${v}`)} <span className="tabular opacity-70">{counts[v]}</span>
           </Link>
         ))}
       </div>
+      {queueTags.length > 0 && (
+        <div className="mb-4 flex flex-wrap items-center gap-1 text-sm" data-testid="tag-filter">
+          <span className="mr-1 text-muted-foreground">{t("filter_by_tag")}</span>
+          <Link href={`${base}?view=${view}`} className={cn("rounded-full border px-3 py-1", tagFilter ? "text-muted-foreground" : "bg-primary/10 font-medium text-primary")}>{t("all_tags")}</Link>
+          {queueTags.map((tag) => (
+            <Link key={tag} href={`${base}?view=${view}&tag=${encodeURIComponent(tag.toLowerCase())}`} className={cn("rounded-full border px-3 py-1", tagFilter === tag.toLowerCase() ? "bg-primary/10 font-medium text-primary" : "text-muted-foreground")}>{tag}</Link>
+          ))}
+        </div>
+      )}
       {rows.length === 0 ? (
         <EmptyState title={t("empty_title")} description={t("empty_description")} />
       ) : (
@@ -66,6 +79,7 @@ export default async function CodQueuePage({ params, searchParams }: { params: P
                       <TableCell>
                         <Link href={`/t/${tenant}/orders/${order.id}`} className="font-medium hover:underline">{order.name}</Link>
                         <div className="text-xs text-muted-foreground">{formatDateTime(order.placedAt, ctx.locale, ctx.tenant.timezone)}</div>
+                        {item.entryTag && <Badge variant="secondary" className="mt-1" data-testid="entry-tag">{item.entryTag}</Badge>}
                         {item.callBackAt && <Badge variant={overdue ? "warning" : "outline"} className="mt-1">{t("call_back_badge", { at: formatDateTime(item.callBackAt, ctx.locale, ctx.tenant.timezone) })}</Badge>}
                       </TableCell>
                       <TableCell>

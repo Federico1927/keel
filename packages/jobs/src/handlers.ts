@@ -60,11 +60,11 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
     // add-on tick: only tenants with addon.cod active; queue sync, scoring, auto-assignment, risk profiles once a day
     const addons = await adminDb().select({ tenantId: schema.tenantAddons.tenantId }).from(schema.tenantAddons).where(and(eq(schema.tenantAddons.moduleKey, "addon.cod"), eq(schema.tenantAddons.isActive, true)));
     for (const a of addons) {
-      const [t] = await adminDb().select({ id: schema.tenants.id, timezone: schema.tenants.timezone, country: schema.tenants.country, status: schema.tenants.status }).from(schema.tenants).where(eq(schema.tenants.id, a.tenantId)).limit(1);
+      const [t] = await adminDb().select({ id: schema.tenants.id, timezone: schema.tenants.timezone, country: schema.tenants.country, status: schema.tenants.status, currency: schema.tenants.currency, orderNumberPrefix: schema.tenants.orderNumberPrefix }).from(schema.tenants).where(eq(schema.tenants.id, a.tenantId)).limit(1);
       if (!t || t.status !== "active") continue;
       await withTenant(t.id, async (tx) => {
         const ctx = sys(t.id)(tx);
-        await syncQueue(ctx);
+        await syncQueue(ctx, undefined, { platform: await getCommercePlatformFor(ctx, t) });
         await scorePendingItems(ctx, { limit: 200, timezone: t.timezone });
         await distributeUnassigned(ctx, { source: "cron", timezone: t.timezone, limit: 200 });
         if (new Date().getUTCHours() === 2) await recomputeRecipientProfiles(ctx, undefined, t.country);

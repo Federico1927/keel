@@ -38,7 +38,8 @@
       "cod_operator_unavailable": "Ningún operador disponible hoy.",
       "cod_forbidden": "Solo un administrador puede liberar un pedido tras registrar una llamada.",
       "cod_not_found": "No encontrado.",
-      "cod_invalid_input": "Datos no válidos."
+      "cod_invalid_input": "Datos no válidos.",
+      "cod_platform_error": "La plataforma rechazó la escritura de la etiqueta o la cancelación; no se registró nada."
     },
     "edit": "Editar"
   },
@@ -525,7 +526,11 @@
     "hold_set": "Puesto en espera",
     "hold_released": "Espera retirada",
     "cod_attempt": "Intento de contacto",
-    "cod_assigned": "Operador asignado"
+    "cod_assigned": "Operador asignado",
+    "tags_updated": "Etiquetas actualizadas",
+    "modified": "Pedido modificado",
+    "replaces": "Creado como sustitución",
+    "replaced": "Sustituido por un pedido nuevo"
   },
   "shipments": {
     "title": "Envíos",
@@ -1960,7 +1965,7 @@
     "release": "Liberar",
     "register_outcome": "Registrar llamada",
     "outcome_title": "Resultado de la llamada para {order}",
-    "outcome_description": "Cada llamada es un intento con un resultado. Confirmado pasa el pedido a confirmado; la cancelación se hace desde las acciones del pedido.",
+    "outcome_description": "Cada llamada es un intento con un resultado. Confirmado pasa el pedido a confirmado; Cancelado lo cancela en la plataforma. Las etiquetas configuradas se escriben en la plataforma en cada resultado.",
     "outcomes": {
       "confirmed": "Confirmado",
       "no_answer": "No contesta",
@@ -1973,7 +1978,7 @@
       "no_answer": "Cuenta para ilocalizable",
       "call_back": "Elige fecha y hora",
       "modified": "Cambios acordados, sigue en cola",
-      "cancelled": "El cliente renuncia; cancela desde el pedido"
+      "cancelled": "El cliente rechaza: el pedido se cancela en la plataforma"
     },
     "call_back_at": "Rellamar el",
     "note_optional": "Nota (opcional)",
@@ -2124,7 +2129,66 @@
       "override_reason": "Motivo (mín. 5 caracteres)",
       "force_blacklist": "Lista negra",
       "force_clean": "Marcar limpio",
-      "clear_override": "Quitar forzado"
+      "clear_override": "Quitar forzado",
+      "allowed_tags": "Etiquetas permitidas",
+      "allowed_tags_any": "todas",
+      "tags_title": "Etiquetas de la plataforma",
+      "tags_description": "Cómo la cola dialoga con la tienda mediante las etiquetas de los pedidos. Nada está fijado en el código: una lista vacía significa que ese flujo no se usa. La comparación ignora mayúsculas; un * final coincide con un prefijo (vendita* coincide con \"Vendita Marco\").",
+      "tags_read_title": "Etiquetas que la cola lee",
+      "tags_read": {
+        "queue": "Etiquetas de cola",
+        "confirmed": "Etiquetas de confirmación",
+        "cancelled": "Etiquetas de cancelación"
+      },
+      "tags_read_help": {
+        "queue": "Un pedido con una de estas entra (o vuelve) a la cola, sea cual sea su estado. Se muestra en la fila y sirve para enrutar operadores.",
+        "confirmed": "Cierra el elemento de la cola y confirma el pedido cuando la etiqueta aparece en la plataforma.",
+        "cancelled": "Cierra el elemento como cancelado. Precedencia: cancelado, luego confirmado, luego cola."
+      },
+      "tags_write_title": "Etiquetas escritas por evento",
+      "tags_write_help": "Primero la plataforma, luego Keel: si la tienda rechaza la escritura no se registra nada. Las etiquetas ya presentes no se añaden dos veces.",
+      "tags_event": "Evento",
+      "tags_add": "Añadir",
+      "tags_remove": "Quitar",
+      "tags_event_entered": "Entra en la cola",
+      "tags_clear_on_close": "En confirmado y cancelado quitar también todas las etiquetas de cola",
+      "cancel_restock": "Reponer stock de las líneas cuando un resultado cancela el pedido",
+      "tags_placeholder": "Etiqueta uno, Etiqueta dos",
+      "tags_event_replaced": "Sustituido por un pedido nuevo"
+    },
+    "filter_by_tag": "Etiqueta:",
+    "all_tags": "Todas",
+    "modify": {
+      "button": "Modificar pedido",
+      "title": "Modificar {order}",
+      "description": "Cambios acordados con el cliente antes de la confirmación. Contacto y dirección se editan en el sitio. Cambiar líneas o fusionar pedidos crea un pedido nuevo y cancela este, así el almacén nunca envía una línea eliminada.",
+      "contact": "Contacto y dirección",
+      "customer_name": "Nombre",
+      "phone": "Teléfono",
+      "email": "Email",
+      "address": {
+        "name": "Destinatario",
+        "address1": "Dirección",
+        "address2": "Dirección línea 2",
+        "city": "Ciudad",
+        "province": "Provincia",
+        "zip": "Código postal",
+        "country": "País (código ISO)"
+      },
+      "note_append": "Añadir a la nota del pedido",
+      "lines": "Líneas",
+      "quantity": "Cantidad",
+      "add_product": "Buscar producto por SKU o nombre",
+      "add": "Añadir",
+      "new_total": "Nuevo total {total}",
+      "merge": "Fusionar otros pedidos abiertos de este cliente",
+      "merge_help": "Sus líneas se añaden al pedido nuevo y se cancelan como sustituidos.",
+      "attempt_note": "Nota de la llamada (opcional)",
+      "replace_warning": "Este pedido se cancelará en la plataforma y será sustituido por uno nuevo con el mismo operador. Los intentos empiezan de nuevo.",
+      "replaced_done": "Sustituido por {order}.",
+      "warning_not_cancelled": "No se pudo cancelar el pedido antiguo en la plataforma: cancélalo a mano.",
+      "save": "Guardar cambios",
+      "save_replace": "Sustituir pedido"
     }
   }
 }

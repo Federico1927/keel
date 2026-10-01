@@ -3,7 +3,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { canWritePage } from "@keel/config";
 import { recordAudit } from "@keel/db";
-import { CodError, assignQueueItem, deleteCapacityException, distributeUnassigned, recomputeRecipientProfiles, recordAttempt, releaseQueueItem, saveCapacity, saveCapacityException, saveCodSettings, scorePendingItems, scoreQueueItem, setRecipientOverride, syncQueue } from "@keel/addon-cod";
+import { CodError, TAG_WRITE_EVENTS, assignQueueItem, modifyCodOrder, deleteCapacityException, distributeUnassigned, parseTagList, recomputeRecipientProfiles, recordAttempt, releaseQueueItem, saveCapacity, saveCapacityException, saveCodSettings, scorePendingItems, scoreQueueItem, setRecipientOverride, syncQueue } from "@keel/addon-cod";
+import { getCommercePlatform } from "@/server/integrations";
 import { auditActor } from "@/server/audit-actor";
 import { ForbiddenError, requirePage, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
@@ -36,8 +37,9 @@ export async function recordAttemptAction(slug: string, input: unknown): Promise
     if (!parsed.success) return fail("invalid_input");
     const callBackAt = parsed.data.callBackAt ? new Date(parsed.data.callBackAt) : null;
     if (parsed.data.outcome === "call_back" && (!callBackAt || Number.isNaN(callBackAt.getTime()))) return fail("invalid_input");
+    const platform = await getCommercePlatform(ctx);
     const r = await ctx.run(async (tx) => {
-      const res = await recordAttempt(svc(ctx, tx), { orderId: parsed.data.orderId, outcome: parsed.data.outcome, note: parsed.data.note ?? null, callBackAt });
+      const res = await recordAttempt(svc(ctx, tx), { orderId: parsed.data.orderId, outcome: parsed.data.outcome, note: parsed.data.note ?? null, callBackAt }, undefined, { platform });
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: `cod.attempt_${parsed.data.outcome}`, entityType: "order", entityId: parsed.data.orderId, diff: { attempt: { from: res.attemptNumber - 1, to: res.attemptNumber } }, metadata: { queueStatus: res.status } });
       return res;
     });
@@ -81,9 +83,10 @@ export async function releaseQueueItemAction(slug: string, orderId: string): Pro
 export async function distributeAction(slug: string): Promise<ActionResult<{ assigned: number; skipped: number }>> {
   try {
     const ctx = await requireQueueWrite(slug);
+    const platform = await getCommercePlatform(ctx);
     const r = await ctx.run(async (tx) => {
       const s = svc(ctx, tx);
-      await syncQueue(s);
+      await syncQueue(s, undefined, { platform });
       const res = await distributeUnassigned(s, { source: "backfill", timezone: ctx.tenant.timezone });
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "cod.distributed", metadata: res });
       return res;
@@ -98,13 +101,14 @@ export async function distributeAction(slug: string): Promise<ActionResult<{ ass
 export async function rescoreAction(slug: string, orderId?: string): Promise<ActionResult<{ scored: number }>> {
   try {
     const ctx = await requireQueueWrite(slug);
+    const platform = await getCommercePlatform(ctx);
     const scored = await ctx.run(async (tx) => {
       const s = svc(ctx, tx);
       if (orderId && uuid.safeParse(orderId).success) {
         await scoreQueueItem(s, orderId, { timezone: ctx.tenant.timezone });
         return 1;
       }
-      await syncQueue(s);
+      await syncQueue(s, undefined, { platform });
       return scorePendingItems(s, { limit: 150, force: true, timezone: ctx.tenant.timezone });
     });
     revalidatePath(`/t/${slug}/cod`);
@@ -134,13 +138,13 @@ export async function saveCodSettingsAction(slug: string, _prev: ActionResult | 
   }
 }
 
-export async function saveCapacityAction(slug: string, userId: string, dailyHours: number[], isActive: boolean): Promise<ActionResult> {
+export async function saveCapacityAction(slug: string, userId: string, dailyHours: number[], isActive: boolean, allowedTags?: string[]): Promise<ActionResult> {
   try {
     const ctx = await requireCodSettings(slug);
     if (!uuid.safeParse(userId).success) return fail("invalid_input");
     await ctx.run(async (tx) => {
-      await saveCapacity(svc(ctx, tx), { userId, dailyHours, isActive });
-      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "cod.capacity_updated", entityType: "user", entityId: userId, diff: { dailyHours: { from: null, to: dailyHours }, isActive: { from: null, to: isActive } } });
+      await saveCapacity(svc(ctx, tx), { userId, dailyHours, isActive, allowedTags });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "cod.capacity_updated", entityType: "user", entityId: userId, diff: { dailyHours: { from: null, to: dailyHours }, isActive: { from: null, to: isActive }, ...(allowedTags ? { allowedTags: { from: null, to: allowedTags } } : {}) } });
     });
     revalidatePath(`/t/${slug}/cod/settings`);
     return ok();
@@ -200,5 +204,55 @@ export async function setOverrideAction(slug: string, recipientKey: string, over
     return ok();
   } catch (e) {
     return handle(e);
+  }
+}
+
+/** Tag vocabulary: which platform tags the queue reads and which it writes per event. */
+export async function saveCodTagSettingsAction(slug: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
+  try {
+    const ctx = await requireCodSettings(slug);
+    const list = (k: string) => parseTagList(String(formData.get(k) ?? ""));
+    const write = Object.fromEntries(TAG_WRITE_EVENTS.map((e) => [e, { add: list(`w_add_${e}`), remove: list(`w_remove_${e}`) }]));
+    const patch = { tags: { queue: list("tags_queue"), confirmed: list("tags_confirmed"), cancelled: list("tags_cancelled"), clearQueueTagsOnClose: formData.get("clearQueueTagsOnClose") === "on", write }, cancelRestock: formData.get("cancelRestock") === "on" };
+    await ctx.run(async (tx) => {
+      await saveCodSettings(svc(ctx, tx), patch);
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "cod.tags_updated", entityType: "cod_settings", diff: { tags: { from: null, to: patch.tags }, cancelRestock: { from: null, to: patch.cancelRestock } } });
+    });
+    revalidatePath(`/t/${slug}/cod/settings`);
+    revalidatePath(`/t/${slug}/cod`);
+    return ok();
+  } catch (e) {
+    return handle(e);
+  }
+}
+
+const addressSchema = z.object({ name: z.string().max(120).nullish(), address1: z.string().max(200).nullish(), address2: z.string().max(200).nullish(), city: z.string().max(120).nullish(), province: z.string().max(120).nullish(), zip: z.string().max(20).nullish(), country: z.string().max(2).nullish(), phone: z.string().max(40).nullish() });
+const modifySchema = z.object({
+  orderId: uuid,
+  contact: z.object({ customerName: z.string().max(120).nullish(), phone: z.string().max(40).nullish(), email: z.string().max(200).nullish(), shippingAddress: addressSchema.nullish(), note: z.string().max(2000).nullish(), noteMode: z.enum(["replace", "append"]).optional() }).optional(),
+  lines: z.array(z.object({ lineId: uuid.optional(), variantId: uuid.optional(), quantity: z.number().int().min(0).max(999) })).max(50).optional(),
+  mergeOrderIds: z.array(uuid).max(10).optional(),
+  attemptNote: z.string().max(500).nullish(),
+  registerAttempt: z.boolean().optional(),
+});
+
+/** Pre-confirmation change agreed on the phone: in-place contact edit, or replacement when lines change / orders merge. */
+export async function modifyCodOrderAction(slug: string, input: unknown): Promise<ActionResult<{ kind: "updated" | "replaced"; newOrderId?: string; newOrderName?: string; warning?: string | null }>> {
+  try {
+    const ctx = await requireQueueWrite(slug);
+    const parsed = modifySchema.safeParse(input);
+    if (!parsed.success) return fail("invalid_input");
+    const platform = await getCommercePlatform(ctx);
+    const r = await ctx.run(async (tx) => {
+      const res = await modifyCodOrder(svc(ctx, tx), platform, { ...parsed.data, contact: parsed.data.contact ? { ...parsed.data.contact, shippingAddress: parsed.data.contact.shippingAddress ?? undefined } : undefined }, { country: ctx.tenant.country });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: res.kind === "replaced" ? "cod.order_replaced" : "cod.order_modified", entityType: "order", entityId: parsed.data.orderId, metadata: res });
+      return res;
+    });
+    revalidatePath(`/t/${slug}/cod`);
+    revalidatePath(`/t/${slug}/orders/${parsed.data.orderId}`);
+    if (r.kind === "replaced") revalidatePath(`/t/${slug}/orders/${r.newOrderId}`);
+    return ok(r.kind === "replaced" ? { kind: "replaced", newOrderId: r.newOrderId, newOrderName: r.newOrderName, warning: r.warning } : { kind: "updated" });
+  } catch (e) {
+    return handle(e) as ActionResult<{ kind: "updated" | "replaced" }>;
   }
 }

@@ -84,4 +84,6 @@ Integration tests run against a real PostgreSQL (`keel_test`), including one iso
 - `STRIPE_SECRET_KEY` empty: `MockBillingProvider`. Set to a test key: `StripeBillingProvider`.
 - `KEEL_JOBS_QUEUE=1`: web enqueues work through pg-boss for the worker; unset, it processes inline after the response.
 
+Hosting a demo on Railway or Vercel: `docs/DEPLOY.md`.
+
 See `docs/ARCHITECTURE.md` for the design and `docs/EVALUATION.md` (Italian) for what is real, what is mock and what is missing.

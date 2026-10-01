@@ -84,6 +84,30 @@ export interface NormalizedOrder {
   fulfillments: NormalizedFulfillment[];
 }
 
+export interface OrderDetailsPatch {
+  shippingAddress?: Address | null;
+  email?: string | null;
+  phone?: string | null;
+  note?: string | null;
+}
+
+export interface CreateOrderInput {
+  lines: { variantExternalId: string | null; sku: string | null; title: string; quantity: number; unitPriceMinor: number }[];
+  currency: string;
+  email: string | null;
+  phone: string | null;
+  customerExternalId: string | null;
+  shippingAddress: Address | null;
+  billingAddress: Address | null;
+  shippingMinor: number;
+  discountMinor: number;
+  note: string | null;
+  tags: string[];
+  noteAttributes: { name: string; value: string }[];
+  /** Lineage, for the platform note / attributes: the order this one replaces. */
+  replacesOrderName: string | null;
+}
+
 export interface NormalizedFulfillment {
   externalId: string;
   status: ShipmentStatus;
@@ -218,6 +242,10 @@ export interface CommercePlatform {
   parseWebhookInventoryLevel(payload: unknown): NormalizedInventoryLevel;
   // Writes
   cancelOrder(externalId: string, opts: { reason?: string; restock: boolean; refund: boolean }): Promise<void>;
+  /** Contact and note changes on an open order (address, phone, email, note). Line changes go through `createOrder` + `cancelOrder`. */
+  updateOrderDetails(externalId: string, patch: OrderDetailsPatch): Promise<void>;
+  /** Creates an unpaid order (payment pending, e.g. cash on delivery) and returns it normalized, as a sync would. */
+  createOrder(input: CreateOrderInput): Promise<NormalizedOrder>;
   addOrderNote(externalId: string, note: string): Promise<void>;
   updateOrderTags(externalId: string, add: string[], remove: string[]): Promise<void>;
   updateVariant(variantExternalId: string, patch: { priceMinor?: number }): Promise<void>;

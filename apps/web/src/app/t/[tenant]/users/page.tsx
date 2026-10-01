@@ -24,7 +24,7 @@ export default async function UsersPage({ params }: { params: Promise<{ tenant: 
   return (
     <>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} />
-      <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <MembersTable
           slug={ctx.tenant.slug}
           currentUserId={ctx.user.id}

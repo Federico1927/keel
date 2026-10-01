@@ -145,6 +145,20 @@ Fatto:
 
 Non fatto (documentato in EVALUATION §4): GA4, connettore MCP, scritture Shopify oltre annullo/prezzo/stato/stock/sconti, riprogettazione mobile delle tabelle larghe.
 
+## Dopo la fase 12 — iterazione 2 (richieste di Federico)
+
+Fatto:
+- **Tag della piattaforma nell'add-on contrassegno**: vocabolario per tenant in Coda → Impostazioni (tag letti: coda / conferma / annullamento, con `*` per prefisso; tag scritti per evento: ingresso, ogni esito, non raggiungibile, sostituito); scrittura prima sulla piattaforma poi in locale con evento `tags_updated`; lettura nel sync della coda (ingresso, rientro di un ordine confermato, chiusura per tag); tag ammessi per operatore (instradamento); filtro per tag e badge in coda; seed di Northwind con il vocabolario del Control Room e regola di stato `confermato → confirmed`.
+- **Modifica e annullamento pre-conferma**: dialog "Modifica ordine" nella scheda contrassegno (contatti, indirizzo, nota, righe, unione ordini dello stesso cliente); contatti modificati sul posto, righe e unioni tramite sostituzione (nuovo ordine creato sulla piattaforma e importato, vecchi annullati come `replaced`, collegati, esclusi dalle analisi); esito "Annullato" che annulla davvero sulla piattaforma; adapter `updateOrderDetails` e `createOrder` (Shopify via draft order, da verificare su account reale; mock).
+- `featureFlags` per tenant in `tenant settings` con `hasFeature`.
+- Migrazione `0005` (`cod_queue_items.entry_tag`, `cod_operator_capacity.allowed_tags`); 20 test addon-cod; e2e contrassegno estesi.
+
+Attività aperte (in ordine di richiesta):
+1. Come applicare modifiche a un solo tenant: documentato in ARCHITECTURE ("Changes for one tenant"); manca l'editor dei flag nella console.
+2. Form resi pubblico e personalizzabile che alimenta la pagina Resi.
+3. Scrittura dei resi su Shopify (ordine marcato come reso, rimborso, rientro a stock).
+4. Analisi → P/L: costi fissi e di spedizione per periodo, stima e consuntivo.
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

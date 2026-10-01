@@ -2,10 +2,10 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatDate } from "@keel/core";
 import { adminDb, eq, schema } from "@keel/db";
-import { SCORE_FACTORS, getCodSettings, listCapacity, listRiskyRecipients } from "@keel/addon-cod";
+import { SCORE_FACTORS, TAG_WRITE_EVENTS, getCodSettings, listCapacity, listRiskyRecipients } from "@keel/addon-cod";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
-import { CapacityRow, DeleteExceptionButton, ExceptionForm, OverrideControls, RecomputeRiskButton, ScoringSettingsForm } from "./controls";
+import { CapacityRow, DeleteExceptionButton, ExceptionForm, OverrideControls, RecomputeRiskButton, ScoringSettingsForm, TagSettingsForm } from "./controls";
 
 export default async function CodSettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
@@ -37,13 +37,14 @@ export default async function CodSettingsPage({ params }: { params: Promise<{ te
                     <th className="px-3 py-2">{t("operator")}</th>
                     {(["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const).map((d) => <th key={d} className="px-1 py-2 text-center">{t(`days.${d}`)}</th>)}
                     <th className="px-3 py-2 text-right">{t("week")}</th>
+                    <th className="px-3 py-2">{t("allowed_tags")}</th>
                     <th className="px-3 py-2 text-right">{t("active")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {operators.map((o) => {
                     const cap = capacity.operators.find((c) => c.userId === o.id);
-                    return <CapacityRow key={o.id} slug={tenant} userId={o.id} label={o.label} dailyHours={cap?.dailyHours ?? [0, 0, 0, 0, 0, 0, 0]} isActive={cap ? cap.isActive === 1 : false} />;
+                    return <CapacityRow key={o.id} slug={tenant} userId={o.id} label={o.label} dailyHours={cap?.dailyHours ?? [0, 0, 0, 0, 0, 0, 0]} isActive={cap ? cap.isActive === 1 : false} allowedTags={cap?.allowedTags ?? []} />;
                   })}
                 </tbody>
               </table>
@@ -64,6 +65,7 @@ export default async function CodSettingsPage({ params }: { params: Promise<{ te
             </div>
           </CardContent>
         </Card>
+        <TagSettingsForm slug={tenant} settings={settings} events={TAG_WRITE_EVENTS} />
         <ScoringSettingsForm slug={tenant} settings={settings} factors={SCORE_FACTORS} />
         <Card>
           <CardHeader className="flex-row items-start justify-between space-y-0">

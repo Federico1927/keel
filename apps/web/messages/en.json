@@ -38,7 +38,8 @@
       "cod_operator_unavailable": "No operator available today.",
       "cod_forbidden": "Only an admin can release an order after a call was registered.",
       "cod_not_found": "Not found.",
-      "cod_invalid_input": "Invalid data."
+      "cod_invalid_input": "Invalid data.",
+      "cod_platform_error": "The commerce platform rejected the tag or cancellation write; nothing was recorded."
     },
     "edit": "Edit"
   },
@@ -525,7 +526,11 @@
     "hold_set": "Put on hold",
     "hold_released": "Hold released",
     "cod_attempt": "Contact attempt",
-    "cod_assigned": "Operator assigned"
+    "cod_assigned": "Operator assigned",
+    "tags_updated": "Tags updated",
+    "modified": "Order modified",
+    "replaces": "Created as replacement",
+    "replaced": "Replaced by a new order"
   },
   "shipments": {
     "title": "Shipments",
@@ -1960,7 +1965,7 @@
     "release": "Release",
     "register_outcome": "Register call",
     "outcome_title": "Call outcome for {order}",
-    "outcome_description": "Every call is an attempt with an outcome. Confirmed moves the order to confirmed; cancellation is done from the order actions.",
+    "outcome_description": "Every call is an attempt with an outcome. Confirmed moves the order to confirmed; Cancelled cancels it on the platform. Configured tags are written to the platform on every outcome.",
     "outcomes": {
       "confirmed": "Confirmed",
       "no_answer": "No answer",
@@ -1973,7 +1978,7 @@
       "no_answer": "Counts toward unreachable",
       "call_back": "Pick a date and time",
       "modified": "Changes agreed, stays in queue",
-      "cancelled": "Customer refused; cancel from the order"
+      "cancelled": "Customer refused: the order is cancelled on the platform"
     },
     "call_back_at": "Call back at",
     "note_optional": "Note (optional)",
@@ -2124,7 +2129,66 @@
       "override_reason": "Reason (min 5 chars)",
       "force_blacklist": "Blacklist",
       "force_clean": "Mark clean",
-      "clear_override": "Remove override"
+      "clear_override": "Remove override",
+      "allowed_tags": "Allowed tags",
+      "allowed_tags_any": "any",
+      "tags_title": "Platform tags",
+      "tags_description": "How the queue talks to your store through order tags. Nothing is hard-coded: an empty list means that tag flow is not used. Matching ignores case; a trailing * matches a prefix (vendita* matches \"Vendita Marco\").",
+      "tags_read_title": "Tags the queue reads",
+      "tags_read": {
+        "queue": "Queue tags",
+        "confirmed": "Confirmed tags",
+        "cancelled": "Cancelled tags"
+      },
+      "tags_read_help": {
+        "queue": "An order carrying one of these enters (or returns to) the queue, whatever its status. Shown on the row and usable to route operators.",
+        "confirmed": "Closes the queue item and confirms the order when the tag appears on the platform.",
+        "cancelled": "Closes the queue item as cancelled. Precedence: cancelled, then confirmed, then queue."
+      },
+      "tags_write_title": "Tags written per event",
+      "tags_write_help": "Platform first, then Keel: if the store rejects the write, nothing is recorded. Tags already present are not added twice.",
+      "tags_event": "Event",
+      "tags_add": "Add",
+      "tags_remove": "Remove",
+      "tags_event_entered": "Enters the queue",
+      "tags_clear_on_close": "On confirmed and cancelled also remove every queue tag",
+      "cancel_restock": "Restock lines when an outcome cancels the order",
+      "tags_placeholder": "Tag one, Tag two",
+      "tags_event_replaced": "Replaced by a new order"
+    },
+    "filter_by_tag": "Tag:",
+    "all_tags": "All",
+    "modify": {
+      "button": "Modify order",
+      "title": "Modify {order}",
+      "description": "Changes agreed with the customer before confirmation. Contact and address are edited in place. Changing lines or merging orders creates a new order and cancels this one, so the warehouse never ships a removed line.",
+      "contact": "Contact and address",
+      "customer_name": "Name",
+      "phone": "Phone",
+      "email": "Email",
+      "address": {
+        "name": "Recipient",
+        "address1": "Address",
+        "address2": "Address line 2",
+        "city": "City",
+        "province": "Province",
+        "zip": "Postal code",
+        "country": "Country (ISO code)"
+      },
+      "note_append": "Add to the order note",
+      "lines": "Lines",
+      "quantity": "Quantity",
+      "add_product": "Search product by SKU or name",
+      "add": "Add",
+      "new_total": "New total {total}",
+      "merge": "Merge other open orders of this customer",
+      "merge_help": "Their lines are added to the new order and they are cancelled as replaced.",
+      "attempt_note": "Call note (optional)",
+      "replace_warning": "This order will be cancelled on the platform and replaced by a new one with the same operator. Attempts restart.",
+      "replaced_done": "Replaced by {order}.",
+      "warning_not_cancelled": "The old order could not be cancelled on the platform: cancel it by hand.",
+      "save": "Save changes",
+      "save_replace": "Replace order"
     }
   }
 }

@@ -22,7 +22,7 @@ Keel è un MVP completo in tutte le dodici fasi previste: dieci moduli core, con
 | Resi configurabili con rientro a stock e propagazione all'ordine; sconti singoli e pool | Funziona | e2e resi e sconti |
 | Integrazioni: stato, salute, esecuzioni, registro webhook, test connessione, risincronizzazione, guide in 3 lingue | Funziona | e2e integrazioni |
 | Console `/admin`: tenant, creazione con checklist, add-on con nota, fatturazione mensile, sospensione per insoluto, impersonificazione con banner e audit | Funziona | e2e console: add-on spento → pagina irraggiungibile |
-| Add-on contrassegno: coda con esiti, assegnazione pesata, delivery score spiegato, destinatari a rischio | Funziona sul tenant demo | 13 test, e2e coda |
+| Add-on contrassegno: coda con esiti, assegnazione pesata, delivery score spiegato, destinatari a rischio; tag Shopify letti e scritti secondo il vocabolario del tenant; modifica pre-conferma (contatti sul posto, righe e unioni per sostituzione), annullo sulla piattaforma | Funziona sul tenant demo | 20 test, e2e coda e modifica |
 | Tre lingue (en, it, es), formati `Intl` per tenant | Funziona | Test di parità delle chiavi fallisce se manca una traduzione |
 
 ## 3. Cosa è mock o simulato
@@ -31,7 +31,7 @@ Tutto ciò che tocca il mondo esterno è dietro un'interfaccia e, in questa cons
 
 | Cosa | Com'è oggi | Cosa serve per renderlo reale |
 | --- | --- | --- |
-| Shopify, Meta, Google | Adapter live scritti e testati su payload registrati (fixture); in esecuzione gira il mock in memoria che genera dati coerenti con il seed e simula webhook, rate limit e token scaduti | Un negozio di sviluppo Shopify, un account Meta e Google Ads di test, le chiavi nel `.env`, `KEEL_INTEGRATION_MODE=live`. Prevedere una settimana di aggiustamenti sui payload reali: le fixture sono scritte in base alla documentazione, non registrate da un account vero |
+| Shopify, Meta, Google | Adapter live scritti e testati su payload registrati (fixture); in esecuzione gira il mock in memoria che genera dati coerenti con il seed e simula webhook, rate limit e token scaduti. La creazione di un ordine sostitutivo passa da draft order completato con pagamento in sospeso: comportamento di tasse, spedizione e gateway contrassegno da verificare sul negozio reale | Un negozio di sviluppo Shopify, un account Meta e Google Ads di test, le chiavi nel `.env`, `KEEL_INTEGRATION_MODE=live`. Prevedere una settimana di aggiustamenti sui payload reali: le fixture sono scritte in base alla documentazione, non registrate da un account vero |
 | Fatturazione | `MockBillingProvider` di default. `StripeBillingProvider` parla con l'API REST in test mode ma non riceve webhook né gestisce carte | Chiavi Stripe test, webhook `invoice.paid` / `payment_failed`, Checkout per la carta |
 | Magic link | Stampato in console | Un provider email (Resend, Postmark) |
 | Notifiche | Solo in-app | Email o Slack sulle stesse notifiche |
@@ -49,6 +49,13 @@ Richiesto dal brief ma non completo:
 - **Connettore MCP** citato nell'analisi di partenza: non implementato.
 - **Resi Shopify**: il webhook `returns/*` è parsato e registrato, ma il flusso resi nasce in Keel; non si crea un reso su Shopify.
 - **Vista mobile**: le pagine sono fluide e usabili su tablet; su telefono le tabelle larghe (ordini, registro campagne) scorrono in orizzontale, non sono riprogettate.
+
+Richiesto da Federico dopo la consegna, in lavorazione:
+
+- **Form resi pubblico** personalizzabile (campi, motivi, testi, lingua) che alimenta la pagina Resi.
+- **Resi scritti su Shopify** (ordine marcato come reso, rimborso, rientro a stock).
+- **P/L con costi fissi e di spedizione per periodo**, stima e consuntivo.
+- **Editor dei flag per tenant** nella console (il meccanismo `featureFlags` c'è, manca l'interfaccia).
 
 Non richiesto ma necessario prima della produzione:
 

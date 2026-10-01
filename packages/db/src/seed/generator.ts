@@ -278,6 +278,7 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
       ? { id: "verify-address", name: "Tag verify-address needs review", priority: 50, conditions: { tagsAny: ["verify-address"] }, resultStatus: "pending_review", isActive: true }
       : { id: "wholesale-hold", name: "Wholesale orders wait for approval", priority: 50, conditions: { tagsAny: ["wholesale"] }, resultStatus: "on_hold", isActive: true },
     { id: "bank-transfer-wait", name: "Bank transfers wait for payment", priority: 150, conditions: { paymentMethods: ["bank_transfer"], paymentStatuses: ["pending"] }, resultStatus: "pending_review", isActive: true },
+    ...(isApparel ? [{ id: "cod-confirmed-tag", name: "Tag confermato confirms a COD order", priority: 60, conditions: { paymentMethods: ["cod"], tagsAny: ["confermato"] }, resultStatus: "confirmed", isActive: true } as StateRule] : []),
   ];
   const ruleIdMap = new Map<string, string>();
   for (const r of rules) {
@@ -475,6 +476,12 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
     }
     const landingSite = utm.source ? `/products/${slug(lines[0]!.v.productTitle)}?utm_source=${utm.source}&utm_medium=${utm.medium}${utm.campaign ? `&utm_campaign=${utm.campaign}` : ""}${clickIds.fbclid ? `&fbclid=${clickIds.fbclid}` : ""}${clickIds.gclid ? `&gclid=${clickIds.gclid}` : ""}` : "/";
 
+    // Northwind speaks to its store through tags (the reference vocabulary): the COD add-on reads and writes them.
+    if (isApparel && paymentMethod === "cod") {
+      if (status === "new" || status === "pending_review") platformTags.push(rng.chance(0.15) ? "da chiamare" : "da confermare");
+      else if (status === "confirmed" || status === "fulfilling" || status === "shipped" || status === "delivered") platformTags.push("confermato");
+      else if (status === "cancelled") platformTags.push("annullato");
+    }
     ds.orders.push({
       id: orderId, tenantId, externalId: String(5000000000 + orderNumber), orderNumber, name: `#${cfg.orderNumberPrefix}${orderNumber}`, customerId: customer.id, customerName, email: customer.email, emailNormalized: normalizeEmail(customer.email), phone: customer.phone, phoneE164: customer.phoneE164,
       status, statusSource, statusReason: statusSource === "manual" ? "manual" : derived.reason, statusChangedAt: fulfilledAt ?? cancelledAt ?? placedAt, manualStatus: statusSource === "manual" ? status : null,

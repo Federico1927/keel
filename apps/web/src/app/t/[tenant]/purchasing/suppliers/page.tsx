@@ -20,7 +20,7 @@ export default async function SuppliersPage({ params }: { params: Promise<{ tena
         <ArrowLeft className="h-4 w-4" /> {t("back")}
       </Link>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} />
-      <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <Card>
           <CardContent className="p-0">
             <Table>

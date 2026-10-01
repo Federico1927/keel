@@ -16,7 +16,7 @@ import {
   type SyncQuery,
   type VerifiedWebhook,
   type WebhookRegistration,
-} from "../types";
+ type CreateOrderInput, type OrderDetailsPatch } from "../types";
 import { FailureScript } from "./failures";
 
 export interface MockCatalogVariant {
@@ -265,8 +265,79 @@ export class MockCommercePlatform implements CommercePlatform {
   async addOrderNote(externalId: string, note: string) {
     this.record("addOrderNote", { externalId, note });
   }
+  async updateOrderDetails(externalId: string, patch: OrderDetailsPatch) {
+    this.failures.check();
+    this.record("updateOrderDetails", { externalId, patch });
+    const o = this.orders.get(externalId);
+    if (!o) return;
+    if (patch.email !== undefined) o.email = patch.email;
+    if (patch.phone !== undefined) o.phone = patch.phone;
+    if (patch.note !== undefined) o.note = patch.note;
+    if (patch.shippingAddress !== undefined) o.shippingAddress = patch.shippingAddress;
+    o.platformUpdatedAt = new Date();
+  }
+  async createOrder(input: CreateOrderInput): Promise<NormalizedOrder> {
+    this.failures.check();
+    this.record("createOrder", { lines: input.lines.length, replaces: input.replacesOrderName });
+    const number = this.nextNumber++;
+    const now = new Date();
+    const lines = input.lines.map((l, i) => {
+      const v = l.variantExternalId ? this.opts.variants.find((x) => x.externalId === l.variantExternalId) : undefined;
+      const unit = v?.priceMinor ?? l.unitPriceMinor;
+      return { externalId: `${number}-${i + 1}`, variantExternalId: v?.externalId ?? l.variantExternalId, productExternalId: v?.productExternalId ?? null, sku: v?.sku ?? l.sku, title: v?.productTitle ?? l.title, variantTitle: v?.title ?? null, quantity: l.quantity, currentQuantity: l.quantity, unitPriceMinor: unit, discountMinor: 0, totalMinor: unit * l.quantity };
+    });
+    const subtotal = lines.reduce((s, l) => s + l.totalMinor, 0);
+    const customer = input.customerExternalId ? (this.opts.customers.find((c) => c.externalId === input.customerExternalId) ?? null) : null;
+    const order: NormalizedOrder = {
+      externalId: String(900000000 + number),
+      orderNumber: number,
+      name: `#${this.opts.orderNumberPrefix}${number}`,
+      customer,
+      email: input.email,
+      phone: input.phone,
+      customerName: input.shippingAddress?.name ?? (customer ? [customer.firstName, customer.lastName].filter(Boolean).join(" ") : null),
+      currency: input.currency,
+      subtotalMinor: subtotal,
+      discountMinor: input.discountMinor,
+      shippingMinor: input.shippingMinor,
+      taxMinor: 0,
+      totalMinor: subtotal - input.discountMinor + input.shippingMinor,
+      refundedMinor: 0,
+      paymentGateways: ["cash_on_delivery"],
+      paymentMethod: "cod",
+      paymentStatus: "pending",
+      financialStatusRaw: "pending",
+      fulfillmentStatusRaw: null,
+      tags: [...input.tags],
+      shippingAddress: input.shippingAddress,
+      billingAddress: input.billingAddress,
+      note: input.note,
+      noteAttributes: [...input.noteAttributes, ...(input.replacesOrderName ? [{ name: "replaces_order", value: input.replacesOrderName }] : [])],
+      landingSite: null,
+      referringSite: null,
+      sourceChannel: "pos",
+      placedAt: now,
+      cancelledAt: null,
+      cancelReason: null,
+      closedAt: null,
+      platformUpdatedAt: now,
+      lines,
+      discounts: [],
+      fulfillments: [],
+    };
+    this.orders.set(order.externalId, order);
+    return order;
+  }
   async updateOrderTags(externalId: string, add: string[], remove: string[]) {
+    this.failures.check();
     this.record("updateOrderTags", { externalId, add, remove });
+    const o = this.orders.get(externalId);
+    if (!o) return;
+    const drop = new Set(remove.map((t) => t.trim().toLowerCase()));
+    const kept = o.tags.filter((t) => !drop.has(t.trim().toLowerCase()));
+    const have = new Set(kept.map((t) => t.trim().toLowerCase()));
+    const tags = [...kept, ...add.filter((t) => !have.has(t.trim().toLowerCase()))];
+    this.orders.set(externalId, { ...o, tags, platformUpdatedAt: new Date() });
   }
   async updateVariant(variantExternalId: string, patch: { priceMinor?: number }) {
     this.record("updateVariant", { variantExternalId, patch });

@@ -82,3 +82,17 @@ export async function clearManualStatus(ctx: ServiceContext, orderId: string): P
   await ctx.tx.update(schema.orders).set({ manualStatus: null, holdReason: null }).where(and(eq(schema.orders.tenantId, ctx.tenantId), eq(schema.orders.id, orderId)));
   return recomputeOrderStatus(ctx, orderId, { eventMetadata: { manual: false } });
 }
+
+/**
+ * Local side of a cancellation, after the platform accepted it (or when the order has no
+ * external id): stamps the order, writes the timeline event and recomputes the status.
+ */
+export async function applyCancellation(ctx: ServiceContext, orderId: string, input: { reason: string; restock: boolean; refund: boolean; source?: string }): Promise<RecomputeResult | null> {
+  const [order] = await ctx.tx.select().from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenantId), eq(schema.orders.id, orderId))).limit(1);
+  if (!order || order.cancelledAt) return null;
+  const now = ctx.now ?? new Date();
+  const paymentStatus = input.refund && order.paymentStatus === "paid" ? "refunded" : order.paymentStatus === "pending" ? "voided" : order.paymentStatus;
+  await ctx.tx.update(schema.orders).set({ cancelledAt: now, cancelReason: input.reason, paymentStatus, financialStatusRaw: paymentStatus }).where(eq(schema.orders.id, orderId));
+  await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId, type: "cancelled", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: diffRecords<Record<string, unknown>>({ cancelledAt: null, paymentStatus: order.paymentStatus }, { cancelledAt: now, paymentStatus }), metadata: { reason: input.reason, restock: input.restock, refund: input.refund, source: input.source ?? null }, createdAt: now });
+  return recomputeOrderStatus(ctx, orderId);
+}

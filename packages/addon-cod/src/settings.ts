@@ -22,7 +22,34 @@ export const DEFAULT_WEIGHTS: Record<ScoreFactorKey, number> = {
 export const RISK_TIERS = ["clean", "watch", "high_risk", "blacklisted"] as const;
 export type RiskTier = (typeof RISK_TIERS)[number];
 
+const tagOpsSchema = z.object({ add: z.array(z.string().trim().min(1).max(80)).max(20).default([]), remove: z.array(z.string().trim().min(1).max(80)).max(20).default([]) }).prefault({});
+const tagListSchema = z.array(z.string().trim().min(1).max(80)).max(30).default([]);
+/** Shopify tag vocabulary of the tenant: read (queue / confirmed / cancelled) and written per event. All empty by default. */
+export const codTagSettingsSchema = z
+  .object({
+    queue: tagListSchema,
+    confirmed: tagListSchema,
+    cancelled: tagListSchema,
+    clearQueueTagsOnClose: z.boolean().default(true),
+    write: z
+      .object({
+        entered: tagOpsSchema,
+        confirmed: tagOpsSchema,
+        no_answer: tagOpsSchema,
+        call_back: tagOpsSchema,
+        modified: tagOpsSchema,
+        cancelled: tagOpsSchema,
+        unreachable: tagOpsSchema,
+        replaced: tagOpsSchema,
+      })
+      .prefault({}),
+  })
+  .prefault({});
+
 export const codSettingsSchema = z.object({
+  tags: codTagSettingsSchema,
+  /** Cancelled outcome: restock the lines on the platform when cancelling. */
+  cancelRestock: z.boolean().default(true),
   weights: z.object(Object.fromEntries(SCORE_FACTORS.map((k) => [k, z.number().min(0).max(50).default(DEFAULT_WEIGHTS[k])])) as Record<ScoreFactorKey, z.ZodDefault<z.ZodNumber>>).prefault({}),
   /** `no_answer` attempts after which the item becomes unreachable. */
   unreachableAfterAttempts: z.number().int().min(1).max(10).default(3),

@@ -3,8 +3,8 @@ import { useRouter } from "next/navigation";
 import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Switch } from "@keel/ui";
-import type { CodSettings, ScoreFactorKey } from "@keel/addon-cod";
-import { deleteExceptionAction, recomputeRiskAction, saveCapacityAction, saveCodSettingsAction, saveExceptionAction, setOverrideAction } from "@/server/actions/cod";
+import type { CodSettings, ScoreFactorKey, TagWriteEvent } from "@keel/addon-cod";
+import { deleteExceptionAction, recomputeRiskAction, saveCapacityAction, saveCodSettingsAction, saveCodTagSettingsAction, saveExceptionAction, setOverrideAction } from "@/server/actions/cod";
 
 export function ScoringSettingsForm({ slug, settings, factors }: { slug: string; settings: CodSettings; factors: readonly ScoreFactorKey[] }) {
   const t = useTranslations("cod.settings");
@@ -86,13 +86,15 @@ export function ScoringSettingsForm({ slug, settings, factors }: { slug: string;
 
 const DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
 
-export function CapacityRow({ slug, userId, label, dailyHours, isActive }: { slug: string; userId: string; label: string; dailyHours: number[]; isActive: boolean }) {
+export function CapacityRow({ slug, userId, label, dailyHours, isActive, allowedTags }: { slug: string; userId: string; label: string; dailyHours: number[]; isActive: boolean; allowedTags: string[] }) {
   const t = useTranslations("cod.settings");
   const router = useRouter();
   const [hours, setHours] = useState<number[]>(Array.from({ length: 7 }, (_, i) => dailyHours[i] ?? 0));
   const [active, setActive] = useState(isActive);
+  const [tags, setTags] = useState(allowedTags.join(", "));
   const [pending, start] = useTransition();
-  const save = (h: number[], a: boolean) => start(async () => { await saveCapacityAction(slug, userId, h, a); router.refresh(); });
+  const parseTags = (raw: string) => raw.split(",").map((x) => x.trim()).filter(Boolean);
+  const save = (h: number[], a: boolean, tg = tags) => start(async () => { await saveCapacityAction(slug, userId, h, a, parseTags(tg)); router.refresh(); });
   return (
     <tr className="border-b text-sm" data-testid="capacity-row">
       <td className="px-3 py-2">{label}</td>
@@ -102,6 +104,7 @@ export function CapacityRow({ slug, userId, label, dailyHours, isActive }: { slu
         </td>
       ))}
       <td className="px-3 py-2 text-right tabular">{hours.reduce((s, h) => s + h, 0)}</td>
+      <td className="px-3 py-2"><Input className="h-8 min-w-36" value={tags} placeholder={t("allowed_tags_any")} aria-label={`${label} ${t("allowed_tags")}`} onChange={(e) => setTags(e.target.value)} onBlur={() => save(hours, active, tags)} /></td>
       <td className="px-3 py-2 text-right"><Switch checked={active} disabled={pending} onCheckedChange={(v) => { setActive(v); save(hours, v); }} aria-label={t("active")} /></td>
     </tr>
   );
@@ -163,5 +166,72 @@ export function OverrideControls({ slug, recipientKey, override }: { slug: strin
         </>
       )}
     </div>
+  );
+}
+
+/** Which platform tags the queue reads and which it writes, per event. Comma-separated; `*` matches a prefix. */
+export function TagSettingsForm({ slug, settings, events }: { slug: string; settings: CodSettings; events: readonly TagWriteEvent[] }) {
+  const t = useTranslations("cod.settings");
+  const to = useTranslations("cod");
+  const tc = useTranslations("common");
+  const [state, action, pending] = useActionState(saveCodTagSettingsAction.bind(null, slug), null);
+  const join = (xs: string[]) => xs.join(", ");
+  const reads: { key: "queue" | "confirmed" | "cancelled" }[] = [{ key: "queue" }, { key: "confirmed" }, { key: "cancelled" }];
+  return (
+    <form action={action} className="space-y-6" data-testid="tag-settings">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t("tags_title")}</CardTitle>
+          <CardDescription>{t("tags_description")}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <p className="mb-2 text-sm font-medium">{t("tags_read_title")}</p>
+            <div className="grid gap-3 lg:grid-cols-3">
+              {reads.map((r) => (
+                <div key={r.key} className="space-y-1">
+                  <Label htmlFor={`tags_${r.key}`}>{t(`tags_read.${r.key}`)}</Label>
+                  <Input id={`tags_${r.key}`} name={`tags_${r.key}`} defaultValue={join(settings.tags[r.key])} placeholder={t("tags_placeholder")} />
+                  <p className="text-xs text-muted-foreground">{t(`tags_read_help.${r.key}`)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-medium">{t("tags_write_title")}</p>
+            <p className="mb-2 text-xs text-muted-foreground">{t("tags_write_help")}</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-xs uppercase text-muted-foreground">
+                    <th className="px-3 py-2">{t("tags_event")}</th>
+                    <th className="px-3 py-2">{t("tags_add")}</th>
+                    <th className="px-3 py-2">{t("tags_remove")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {events.map((e) => (
+                    <tr key={e} className="border-b">
+                      <td className="px-3 py-2 whitespace-nowrap">{e === "entered" ? t("tags_event_entered") : e === "replaced" ? t("tags_event_replaced") : e === "unreachable" ? to("queue_status.unreachable") : to(`outcomes.${e}`)}</td>
+                      <td className="px-3 py-2"><Input name={`w_add_${e}`} aria-label={`${t("tags_add")} ${e}`} defaultValue={join(settings.tags.write[e].add)} /></td>
+                      <td className="px-3 py-2"><Input name={`w_remove_${e}`} aria-label={`${t("tags_remove")} ${e}`} defaultValue={join(settings.tags.write[e].remove)} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-6 text-sm">
+            <label className="flex items-center gap-2"><input type="checkbox" name="clearQueueTagsOnClose" defaultChecked={settings.tags.clearQueueTagsOnClose} className="h-4 w-4" /> {t("tags_clear_on_close")}</label>
+            <label className="flex items-center gap-2"><input type="checkbox" name="cancelRestock" defaultChecked={settings.cancelRestock} className="h-4 w-4" /> {t("cancel_restock")}</label>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button type="submit" disabled={pending} data-testid="save-tags">{tc("save")}</Button>
+            {state?.ok && <span className="text-sm text-muted-foreground">{tc("saved")}</span>}
+            {state && !state.ok && <Alert variant="destructive" className="flex-1"><AlertDescription>{tc(`errors.${state.error}`)}</AlertDescription></Alert>}
+          </div>
+        </CardContent>
+      </Card>
+    </form>
   );
 }

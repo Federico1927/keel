@@ -3,8 +3,8 @@ import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { adminDb, and, eq, recordAudit, schema } from "@keel/db";
-import { ORDER_STATUSES, diffRecords, type OrderStatus } from "@keel/core";
-import { addOrderNote, clearManualStatus, deleteOrderNote, recomputeOrderStatus, setManualStatus } from "@keel/services";
+import { ORDER_STATUSES, type OrderStatus } from "@keel/core";
+import { addOrderNote, applyCancellation, clearManualStatus, deleteOrderNote, setManualStatus } from "@keel/services";
 import { getCommercePlatform } from "@/server/integrations";
 import { ForbiddenError, requireAction } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
@@ -59,10 +59,7 @@ export async function cancelOrder(slug: string, orderId: string, input: { reason
       }
     }
     await ctx.run(async (tx) => {
-      const paymentStatus = input.refund && order.paymentStatus === "paid" ? "refunded" : order.paymentStatus === "pending" ? "voided" : order.paymentStatus;
-      await tx.update(schema.orders).set({ cancelledAt: new Date(), cancelReason: input.reason, paymentStatus, financialStatusRaw: paymentStatus }).where(eq(schema.orders.id, orderId));
-      await tx.insert(schema.orderEvents).values({ tenantId: ctx.tenant.id, orderId, type: "cancelled", actorType: "user", actorUserId: ctx.user.id, diff: diffRecords<Record<string, unknown>>({ cancelledAt: null, paymentStatus: order.paymentStatus }, { cancelledAt: new Date(), paymentStatus }), metadata: { reason: input.reason, restock: input.restock, refund: input.refund } });
-      await recomputeOrderStatus({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, orderId);
+      await applyCancellation({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, orderId, input);
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "order.cancelled", entityType: "order", entityId: orderId, metadata: input });
     });
     revalidatePath(`/t/${slug}/orders/${orderId}`);

@@ -1,6 +1,10 @@
 import { getTranslations } from "next-intl/server";
 import { formatDateTime } from "@keel/core";
-import { queueItemDetail, scoreQueueItem, type ScoreFactor } from "@keel/addon-cod";
+import { mergeCandidates, queueItemDetail, scoreQueueItem, type ScoreFactor } from "@keel/addon-cod";
+import { and, eq, schema } from "@keel/db";
+import { formatMoney } from "@keel/core";
+import type { Address } from "@keel/integrations";
+import { ModifyOrderDialog } from "./cod-modify";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@keel/ui";
 import type { TenantContext } from "@/server/tenant";
 import { OutcomeDialog, ScoreBadge } from "../../cod/queue-controls";
@@ -15,10 +19,18 @@ export async function CodCard({ ctx, orderId, orderName, canWrite }: { ctx: Tena
     if (!detail) return null;
     const breakdown = detail.item.scoreBreakdown as { base?: number; factors?: ScoreFactor[] };
     const factors = breakdown.factors ?? (await scoreQueueItem(s, orderId, { timezone: ctx.tenant.timezone })).factors;
-    return { ...detail, factors };
+    const isOpen = ["pending", "scheduled", "unreachable"].includes(detail.item.status);
+    if (!isOpen || !canWrite) return { ...detail, factors, modify: null };
+    const [order] = await tx.select().from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenant.id), eq(schema.orders.id, orderId))).limit(1);
+    const lines = await tx.select().from(schema.orderLines).where(and(eq(schema.orderLines.tenantId, ctx.tenant.id), eq(schema.orderLines.orderId, orderId)));
+    const catalog = await tx.select({ id: schema.productVariants.id, sku: schema.productVariants.sku, title: schema.productVariants.title, product: schema.products.title, priceMinor: schema.productVariants.priceMinor }).from(schema.productVariants).innerJoin(schema.products, eq(schema.products.id, schema.productVariants.productId)).where(and(eq(schema.productVariants.tenantId, ctx.tenant.id), eq(schema.productVariants.isActive, true), eq(schema.products.status, "active"))).orderBy(schema.products.title).limit(600);
+    const candidates = await mergeCandidates(s, orderId);
+    return { ...detail, factors, modify: order ? { order, lines, catalog, candidates } : null };
   });
   if (!data) return null;
-  const { item, attempts, factors } = data;
+  const { item, attempts, factors, modify } = data;
+  const money = (minor: number, currency = modify?.order.currency ?? ctx.tenant.currency) => formatMoney(minor, currency, ctx.locale);
+  const addr = (modify?.order.shippingAddress as Address | null) ?? null;
   const open = ["pending", "scheduled", "unreachable"].includes(item.status);
   const sorted = [...factors].sort((a, b) => Number(b.contributes) - Number(a.contributes) || b.weight - a.weight);
   const sev = (s: string) => (s === "critical" ? "destructive" : s === "warning" ? "warning" : s === "positive" ? "success" : "muted") as "destructive" | "warning" | "success" | "muted";
@@ -53,7 +65,26 @@ export async function CodCard({ ctx, orderId, orderName, canWrite }: { ctx: Tena
             </ul>
           </div>
         )}
-        {canWrite && open && <OutcomeDialog slug={ctx.tenant.slug} orderId={orderId} orderName={orderName} />}
+        {canWrite && open && (
+          <div className="flex flex-wrap gap-2">
+            <OutcomeDialog slug={ctx.tenant.slug} orderId={orderId} orderName={orderName} />
+            {modify && (
+              <ModifyOrderDialog
+                slug={ctx.tenant.slug}
+                orderId={orderId}
+                orderName={orderName}
+                contact={{ customerName: modify.order.customerName ?? "", phone: modify.order.phone ?? "", email: modify.order.email ?? "" }}
+                address={{ name: addr?.name ?? modify.order.customerName ?? "", address1: addr?.address1 ?? "", address2: addr?.address2 ?? "", city: addr?.city ?? modify.order.shippingCity ?? "", province: addr?.province ?? "", zip: addr?.zip ?? modify.order.shippingZip ?? "", country: addr?.country ?? modify.order.shippingCountry ?? "" }}
+                note={modify.order.note ?? ""}
+                lines={modify.lines.filter((l) => l.currentQuantity > 0).map((l) => ({ id: l.id, title: l.title, variantTitle: l.variantTitle, sku: l.sku, quantity: l.currentQuantity, unitPriceMinor: l.unitPriceMinor }))}
+                catalog={modify.catalog.map((v) => ({ id: v.id, label: `${v.sku ? `${v.sku} · ` : ""}${v.product} ${v.title}`.trim(), priceMinor: v.priceMinor }))}
+                mergeCandidates={modify.candidates.map((m) => ({ id: m.id, name: m.name, total: money(m.totalMinor, m.currency), lines: m.lines.map((l) => `${l.quantity}× ${l.title}${l.variantTitle ? ` ${l.variantTitle}` : ""}`).join(", ") }))}
+                currency={modify.order.currency}
+                locale={ctx.locale}
+              />
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

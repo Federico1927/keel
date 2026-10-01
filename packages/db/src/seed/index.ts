@@ -9,7 +9,8 @@ import { createRng } from "@keel/integrations";
 import { normalizePhone } from "@keel/core";
 import { sql } from "drizzle-orm";
 
-export const DEMO_PASSWORD = "keel-demo-2026";
+/** Password of every demo user; override with KEEL_DEMO_PASSWORD on a hosted demo. */
+export const DEMO_PASSWORD = process.env.KEEL_DEMO_PASSWORD ?? "keel-demo-2026";
 
 export const DEMO_TENANTS = {
   northwind: {
@@ -206,9 +207,26 @@ async function seedCod(db: ReturnType<typeof drizzle<typeof schema>>, ctx: SeedC
   const rng = createRng(2026);
   const operators = ["ops@northwind.demo", "care@northwind.demo", "care2@northwind.demo"].map((e) => ctx.userIds[e]).filter((x): x is string => Boolean(x));
   const hours = [[0, 8, 8, 8, 8, 8, 0], [0, 4, 4, 4, 4, 4, 0], [0, 6, 6, 0, 6, 6, 4]];
-  for (const [i, userId] of operators.entries()) await db.insert(schema.codOperatorCapacity).values({ tenantId, userId, dailyHours: hours[i]!, isActive: 1 }).onConflictDoNothing();
+  // the third operator only handles modification requests: skill routing by tag
+  for (const [i, userId] of operators.entries()) await db.insert(schema.codOperatorCapacity).values({ tenantId, userId, dailyHours: hours[i]!, isActive: 1, allowedTags: i === 2 ? ["Richiesta modifica", "Da chiamare"] : [] }).onConflictDoNothing();
   if (operators[1]) await db.insert(schema.codCapacityExceptions).values({ tenantId, userId: operators[1], date: new Date(now.getTime() + 2 * 864e5).toISOString().slice(0, 10), kind: "off", note: "Day off" }).onConflictDoNothing();
-  await db.insert(schema.codSettings).values({ tenantId, config: { queueCutoffDays: 60 } }).onConflictDoNothing();
+  const tags = {
+    queue: ["Da confermare", "Da chiamare", "Richiesta modifica"],
+    confirmed: ["Confermato", "Già pagato*"],
+    cancelled: ["Annullato*", "Da annullare"],
+    clearQueueTagsOnClose: true,
+    write: {
+      entered: { add: ["Da confermare"], remove: [] },
+      confirmed: { add: ["Confermato"], remove: [] },
+      no_answer: { add: [], remove: [] },
+      call_back: { add: ["Da chiamare"], remove: ["Da confermare"] },
+      modified: { add: ["Richiesta modifica"], remove: [] },
+      cancelled: { add: ["Annullato"], remove: ["Confermato"] },
+      unreachable: { add: ["Non raggiungibile"], remove: [] },
+      replaced: { add: ["Annullato per variazione"], remove: ["Confermato"] },
+    },
+  };
+  await db.insert(schema.codSettings).values({ tenantId, config: { queueCutoffDays: 60, tags } }).onConflictDoNothing();
   const open = await db.execute<{ id: string; placed_at: Date }>(sql`select o.id, o.placed_at from orders o where o.tenant_id = ${tenantId} and o.payment_method = 'cod' and o.status in ('new','pending_review') and o.cancelled_at is null and not exists (select 1 from shipments s where s.order_id = o.id) and o.placed_at > ${new Date(now.getTime() - 60 * 864e5)} order by o.placed_at`);
   // small test seeds may have no open COD order: fall back to recent COD orders as closed items so every table has rows
   const isOpen = open.rows.length > 0;

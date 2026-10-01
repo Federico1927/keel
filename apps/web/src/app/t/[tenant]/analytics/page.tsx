@@ -93,8 +93,8 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
           { key: "operating", value: pnl.operatingProfitMinor, bold: true },
         ];
         return (
-          <div className="grid gap-6 lg:grid-cols-[1fr_18rem]">
-            <Card>
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+            <Card className="min-w-0">
               <CardHeader>
                 <CardTitle className="text-base">{t("pnl.title")}</CardTitle>
                 <CardDescription>{t("pnl.description")}</CardDescription>

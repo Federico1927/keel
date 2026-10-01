@@ -217,3 +217,19 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · Evaluation document names what is simulated before what works
 
 **Decision.** `docs/EVALUATION.md` leads with the fact that no real store was ever connected and lists each mock with what it takes to make it real. The buyer must not discover this during the first installation. The ten steps start with a card-paying customer, not with the cash-on-delivery brand the reference platform was built for, because that validates the core without the add-on.
+
+## 2026-10-01 · Platform tags are tenant vocabulary, read and written only by the add-on
+
+**Decision.** The reference platform drove its whole COD flow through hard-coded Shopify tags. Keel keeps the mechanism but moves every tag into the tenant's COD settings: three read lists (queue, confirmed, cancelled; precedence cancelled > confirmed > queue, `*` suffix for prefixes) and add/remove lists per event (entered, each call outcome, unreachable, replaced). Writes go platform first through `updateOrderTags`; a refused write records nothing locally. Reads happen in the queue sync: a queue tag pulls an order in (or back in, resetting a confirmed order to review), a confirmed tag closes the item and confirms the order, a cancelled tag closes it as cancelled. Operators may be restricted to queue tags (skill routing, as the reference's `allowed_tags`). The core still never interprets a tag: outside the add-on, tags reach the status only through the tenant's state rules.
+
+**Alternatives.** Hard-coded Italian vocabulary with overrides (rejected: it would leak one client's process into the product); a generic "tag automation" engine in the core (rejected: nobody asked for it, and the add-on is the only consumer).
+
+## 2026-10-01 · Pre-confirmation changes: edit contact in place, replace for lines
+
+**Decision.** Contact, address and note changes are written on the platform (`updateOrderDetails`) and locally with a diffed timeline event. Line changes and merges never use order editing: a new unpaid order is created (`createOrder`, draft order completed with payment pending on Shopify), imported through the normal importer, linked both ways (`replaces_order_id` / `replaced_by_order_id`), queued at once with the same operator; the old orders are cancelled with `cancel_reason = replaced`, tagged per settings and closed in the queue. Replaced orders are excluded from every analytics count. This copies the reference's lesson (`cancel_and_create` instead of Order Editing: a removed line stays visible to logistics and ships anyway) without copying its code. The `cancelled` call outcome now cancels the order on the platform too; before this change it only closed the queue item.
+
+**Alternatives.** Shopify Order Editing API (rejected for the reason above); doing the replacement in two separate user actions (rejected: the operator is on the phone).
+
+## 2026-10-01 · Per-tenant feature flags in tenant settings
+
+**Decision.** `tenant.settings.featureFlags` is a map of named booleans read with `hasFeature(settings, key)`. It is the cheapest lever for behaviour one account wants and nobody else does, below state rules and add-ons in the escalation ladder documented in ARCHITECTURE ("Changes for one tenant"). Flags gate code paths that already exist in the product; bespoke code still goes into an `addon.*` package.

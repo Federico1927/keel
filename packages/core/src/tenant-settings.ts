@@ -36,8 +36,19 @@ export const tenantSettingsSchema = z.object({
   shippingCostMinor: z.number().int().min(0).default(TENANT_SETTING_DEFAULTS.shippingCostMinor),
   /** Gateway name (lowercased) → normalized payment method. Seeded with common gateways. */
   gatewayMap: z.record(z.string(), z.enum(PAYMENT_METHODS)).default({}),
+  /**
+   * Per-tenant switches for behaviour that exists in the code base but is wanted by one account
+   * only (`"orders.show_vat_column": true`). Read with `hasFeature`; set from the console.
+   * A switch is cheaper than an add-on and leaves no trace in the core when it is off.
+   */
+  featureFlags: z.record(z.string().max(80), z.boolean()).default({}),
 });
 export type TenantSettings = z.infer<typeof tenantSettingsSchema>;
+
+/** True when the tenant switched this feature on. Unknown keys are off. */
+export function hasFeature(settings: Pick<TenantSettings, "featureFlags">, key: string): boolean {
+  return settings.featureFlags[key] === true;
+}
 
 export function parseTenantSettings(raw: unknown): TenantSettings {
   const result = tenantSettingsSchema.safeParse(raw ?? {});

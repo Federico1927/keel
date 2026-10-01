@@ -20,7 +20,8 @@
     "@keel/db": "workspace:*",
     "@keel/services": "workspace:*",
     "drizzle-orm": "^0.45.0",
-    "zod": "^4.0.0"
+    "zod": "^4.0.0",
+    "@keel/integrations": "workspace:*"
   },
   "devDependencies": {
     "@keel/eslint-config": "workspace:*",

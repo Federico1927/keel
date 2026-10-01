@@ -133,6 +133,22 @@ Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every
 4. Pages live under `apps/web/src/app/t/[tenant]/<name>`; `requirePage` already answers 404 when the add-on is off for the tenant. Add the nav entries behind `isPageEnabled`.
 5. Background work: add a `TickJob` kind and a handler in `packages/jobs/src/handlers.ts` that iterates only tenants with the add-on active.
 6. Activation is a row in `tenant_addons` written from the super-admin console with a note and date; the billing run adds the add-on line to the next invoice.
+7. If the add-on must talk to the store, take the `CommercePlatform` from `getCommercePlatformFor` and write platform first, local second (see `applyTagEvent` and `modifyCodOrder` in `packages/addon-cod` for the pattern, including replacement orders created through `createOrder`).
+
+## Changes for one tenant
+
+Keel has no per-tenant branches in the core. When one account wants something the others do not, climb this ladder and stop at the first rung that fits:
+
+1. **Tenant settings** (`tenants.settings`, validated by `tenantSettingsSchema`): thresholds, fees, tax rates, return rules, gateway mapping. Edited from Settings. Most "can we change X for us" requests end here.
+2. **State rules** (`state_rules`): how that store's tags, payment and fulfillment facts map to canonical statuses, with priorities and a preview. This is where a client's tag vocabulary lives for the core.
+3. **Add-on configuration**: each `addon.*` keeps its own per-tenant settings table (`cod_settings` holds weights, thresholds and the whole tag vocabulary of the COD flow). Nothing an add-on needs from a client is hard-coded.
+4. **Feature flags** (`settings.featureFlags`, read with `hasFeature(settings, "key")`): a named switch for a code path that exists in the product but should run for one account only (an extra column, a stricter validation, an experimental screen). Guard the server side (`requirePage`/action) and the client side (menu, component) with the same key. Flags are set from the console; they are documented in the module that reads them.
+5. **An add-on package** (`packages/addon-<name>`) behind `tenant_addons`: bespoke logic with its own tables, pages and jobs, activated for the paying account only. A disabled add-on is unreachable even by URL. This is the slot for "integrazioni ad hoc" (a 3PL, a local WhatsApp provider, a client-specific workflow).
+6. **An adapter** (`packages/integrations`) when the bespoke part is a third-party system: implement the interface, wire it in the factory, sell it as an add-on.
+
+Never: `if (tenant.slug === "...")` in shared code, client names in the core, columns that only one tenant fills without a flag or an add-on owning them.
+
+Worked example, "only Northwind wants a VAT column in the orders list": add `orders.vat_column` to Northwind's `featureFlags`, read `hasFeature(ctx.settings, "orders.vat_column")` in the orders page to render the column and in the CSV export; no migration, no add-on, invisible to Harbor Home.
 
 ## Web app layout
 

@@ -126,6 +126,9 @@ importers:
       '@keel/db':
         specifier: workspace:*
         version: link:../db
+      '@keel/integrations':
+        specifier: workspace:*
+        version: link:../integrations
       '@keel/services':
         specifier: workspace:*
         version: link:../services

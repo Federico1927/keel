@@ -22,16 +22,24 @@ function defaultSuperUrl(): string {
 }
 const superUrl = process.env.DATABASE_SUPERUSER_URL ?? defaultSuperUrl();
 const databases = (process.env.KEEL_DATABASES ?? "keel,keel_test").split(",").map((s) => s.trim());
+/** Role passwords: dev defaults locally, set KEEL_ADMIN_PASSWORD / KEEL_APP_PASSWORD on any hosted database. */
+const adminPassword = process.env.KEEL_ADMIN_PASSWORD ?? "keel_admin";
+const appPassword = process.env.KEEL_APP_PASSWORD ?? "keel_app";
+const lit = (v: string) => `'${v.replace(/'/g, "''")}'`;
 
 async function run() {
   const root = new Client({ connectionString: superUrl });
   await root.connect();
   await root.query(`DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'keel_admin') THEN
-      CREATE ROLE keel_admin LOGIN PASSWORD 'keel_admin' BYPASSRLS CREATEDB;
+      CREATE ROLE keel_admin LOGIN PASSWORD ${lit(adminPassword)} BYPASSRLS CREATEDB;
+    ELSE
+      ALTER ROLE keel_admin WITH LOGIN PASSWORD ${lit(adminPassword)} BYPASSRLS CREATEDB;
     END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'keel_app') THEN
-      CREATE ROLE keel_app LOGIN PASSWORD 'keel_app' NOBYPASSRLS;
+      CREATE ROLE keel_app LOGIN PASSWORD ${lit(appPassword)} NOBYPASSRLS;
+    ELSE
+      ALTER ROLE keel_app WITH LOGIN PASSWORD ${lit(appPassword)} NOBYPASSRLS;
     END IF;
   END $$;`);
   for (const db of databases) {
