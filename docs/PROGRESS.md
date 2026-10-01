@@ -174,6 +174,12 @@ Fatto (tutto ciò che non richiede dipendenze esterne):
 
 Resta per l'Area 1 (blocco esterno): pixel first-party (1.1), conversioni server-side (1.2), sondaggio post-acquisto (1.9), assistente AI (1.13).
 
+## Deploy e produzione (2026-10-01)
+
+Fatto: `railway.json` e `railway.worker.json`, porta da `$PORT`, Node 22 fissato; controllo di avvio (`checkRuntimeConfig`): in modalità `live` web e worker non partono senza `KEEL_JOBS_QUEUE=1`, URL del database e segreti non di sviluppo; Sentry facoltativo (solo errori, nessun dato personale) su server, browser e worker; variabili vuote di `.env.example` non diventano più password vuote in bootstrap e seed; `docs/DEPLOY.md` aggiornato.
+
+Manca: upload delle source map a Sentry; primo deploy reale su Railway non ancora verificato (nessun accesso da questa sessione).
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

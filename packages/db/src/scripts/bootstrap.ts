@@ -20,11 +20,11 @@ function defaultSuperUrl(): string {
   }
   return u.toString();
 }
-const superUrl = process.env.DATABASE_SUPERUSER_URL ?? defaultSuperUrl();
-const databases = (process.env.KEEL_DATABASES ?? "keel,keel_test").split(",").map((s) => s.trim());
+const superUrl = process.env.DATABASE_SUPERUSER_URL || defaultSuperUrl();
+const databases = (process.env.KEEL_DATABASES || "keel,keel_test").split(",").map((s) => s.trim());
 /** Role passwords: dev defaults locally, set KEEL_ADMIN_PASSWORD / KEEL_APP_PASSWORD on any hosted database. */
-const adminPassword = process.env.KEEL_ADMIN_PASSWORD ?? "keel_admin";
-const appPassword = process.env.KEEL_APP_PASSWORD ?? "keel_app";
+const adminPassword = process.env.KEEL_ADMIN_PASSWORD || "keel_admin";
+const appPassword = process.env.KEEL_APP_PASSWORD || "keel_app";
 const lit = (v: string) => `'${v.replace(/'/g, "''")}'`;
 
 async function run() {

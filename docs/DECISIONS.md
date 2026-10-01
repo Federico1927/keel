@@ -265,3 +265,13 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · Custom metrics are formulas over named base metrics, evaluated without JavaScript
 
 **Decision.** A small recursive-descent parser accepts numbers, the 18 base metric names, + − × ÷ and parentheses; anything else is a validation error. Division by zero and missing values give null instead of NaN. Custom metrics are shared by the tenant; dashboards are per user. Marketing gains write access to Analytics to manage metrics and alerts.
+
+## 2026-10-01 · Live mode refuses to start without the worker; Sentry errors-only, no personal data
+
+**Decision.** `checkRuntimeConfig` (packages/config) runs when the web server (Next.js `instrumentation.ts`) and the worker start. With `KEEL_INTEGRATION_MODE=live` the process exits if `KEEL_JOBS_QUEUE` is not `1`, if a database URL is missing, or if `AUTH_SECRET` / `APP_ENCRYPTION_KEY` are missing or still the `.env.example` values; a missing `SENTRY_DSN` is a warning. In `mock` mode the same problems are warnings only, because demos and the e2e suite run the production build with the development defaults. Sentry (`@sentry/nextjs`, `@sentry/node`) is enabled only when a DSN is set, errors only (`tracesSampleRate: 0`), with one shared `SENTRY_DATA_COLLECTION` that turns off every category Sentry 11 collects by default (bodies, cookies, headers, query params, DB parameters, queue payloads, stack-frame variables): tenants' orders carry their customers' personal data. Source-map upload (`withSentryConfig`) is not wired yet: stack traces point at compiled code until it is.
+
+**Alternatives.** Failing on `NODE_ENV=production` (rejected: it would break the e2e suite and every mock demo); keeping inline processing as a silent fallback in live mode (rejected: it is the failure mode the evaluation flagged).
+
+## 2026-10-01 · Railway config as code
+
+**Decision.** `railway.json` (web: build, `pnpm db:deploy` before each deploy — idempotent bootstrap of roles and database, migrations, and the demo seed only when `KEEL_SEED_ON_DEPLOY=1` — healthcheck on `/api/health`) and `railway.worker.json` (worker; the service points at it in its settings). The build reinstalls with `--prod=false` so turbo, TypeScript and Tailwind are present whatever `NODE_ENV` the builder sets. `next start` listens on `$PORT` (default 3000). `.node-version` pins Node 22. Empty variables copied from `.env.example` now fall back to the defaults in `db:bootstrap` and the seed (before, an empty `KEEL_DEMO_PASSWORD` or `KEEL_ADMIN_PASSWORD` became an empty password).
