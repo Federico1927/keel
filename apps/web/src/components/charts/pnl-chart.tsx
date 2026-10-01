@@ -1,19 +1,11 @@
 "use client";
 import { Bar, CartesianGrid, Cell, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { AXIS_TICK, CHART_COLORS, CHART_GRID, TOOLTIP_PROPS } from "./theme";
 
-/** Categorical series colours: tokens of the design system, so a palette change needs no code change. */
-export const SERIES_COLORS = [
-  "var(--color-chart-1, var(--color-primary))",
-  "var(--color-chart-2, var(--color-accent-foreground))",
-  "var(--color-chart-3, var(--color-info))",
-  "var(--color-chart-4, var(--color-warning))",
-  "var(--color-chart-5, var(--color-success))",
-  "var(--color-chart-6, var(--color-muted-foreground))",
-  "var(--color-chart-7, var(--color-sidebar-accent))",
-];
-const GRID = "var(--color-border)";
-const INK = "var(--color-muted-foreground)";
-const PROFIT = "var(--color-chart-profit, var(--color-foreground))";
+/** Categorical series colours from the theme tokens (follow light/dark and the tenant brand colour). */
+export const SERIES_COLORS = [...CHART_COLORS, "var(--muted)"];
+const GRID = CHART_GRID;
+const PROFIT = "var(--fg)";
 
 export interface PnlChartPoint {
   label: string;
@@ -33,12 +25,12 @@ export function PnlChart({ data, series, profitLabel, partialLabel, locale, curr
       <ResponsiveContainer>
         <ComposedChart data={rows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
-          <XAxis dataKey="label" tick={{ fontSize: 11, fill: INK }} minTickGap={16} />
-          <YAxis tick={{ fontSize: 11, fill: INK }} width={64} tickFormatter={(v: number) => money.format(v)} />
-          <Tooltip labelFormatter={(l, p) => `${String(l)}${p?.[0]?.payload?.partial ? ` · ${partialLabel}` : ""}`} formatter={(v, name) => [money.format(Number(v)), names[String(name)] ?? String(name)]} />
+          <XAxis dataKey="label" tick={AXIS_TICK} stroke={GRID} minTickGap={16} />
+          <YAxis tick={AXIS_TICK} stroke={GRID} width={64} tickFormatter={(v: number) => money.format(v)} />
+          <Tooltip {...TOOLTIP_PROPS} labelFormatter={(l, p) => `${String(l)}${p?.[0]?.payload?.partial ? ` · ${partialLabel}` : ""}`} formatter={(v, name) => [money.format(Number(v)), names[String(name)] ?? String(name)]} />
           <Legend formatter={(v: string) => names[v] ?? v} wrapperStyle={{ fontSize: 12 }} />
           {series.map((s, i) => (
-            <Bar key={s.key} dataKey={s.key} stackId="costs" fill={SERIES_COLORS[i % SERIES_COLORS.length]} stroke="var(--color-card)" strokeWidth={1}>
+            <Bar key={s.key} dataKey={s.key} stackId="costs" fill={SERIES_COLORS[i % SERIES_COLORS.length]} stroke="var(--surface)" strokeWidth={1}>
               {rows.map((r) => <Cell key={r.label} fillOpacity={r.partial ? 0.45 : 1} />)}
             </Bar>
           ))}
@@ -58,11 +50,11 @@ export function TrendChart({ data, keys, labels, locale, currency }: { data: { l
       <ResponsiveContainer>
         <ComposedChart data={rows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
-          <XAxis dataKey="label" tick={{ fontSize: 11, fill: INK }} minTickGap={16} />
-          <YAxis tick={{ fontSize: 11, fill: INK }} width={64} tickFormatter={(v: number) => money.format(v)} />
-          <Tooltip formatter={(v, name) => [money.format(Number(v)), labels[String(name)] ?? String(name)]} />
+          <XAxis dataKey="label" tick={AXIS_TICK} stroke={GRID} minTickGap={16} />
+          <YAxis tick={AXIS_TICK} stroke={GRID} width={64} tickFormatter={(v: number) => money.format(v)} />
+          <Tooltip {...TOOLTIP_PROPS} formatter={(v, name) => [money.format(Number(v)), labels[String(name)] ?? String(name)]} />
           <Legend formatter={(v: string) => labels[v] ?? v} wrapperStyle={{ fontSize: 12 }} />
-          {keys.map((k, i) => <Bar key={k} dataKey={k} stackId="trend" fill={SERIES_COLORS[i % SERIES_COLORS.length]} stroke="var(--color-card)" strokeWidth={1} />)}
+          {keys.map((k, i) => <Bar key={k} dataKey={k} stackId="trend" fill={SERIES_COLORS[i % SERIES_COLORS.length]} stroke="var(--surface)" strokeWidth={1} />)}
         </ComposedChart>
       </ResponsiveContainer>
     </div>

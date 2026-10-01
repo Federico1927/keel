@@ -161,6 +161,23 @@ describe("shopify product cost write", () => {
   });
 });
 
+describe("shopify product bulk writes", () => {
+  it("sets price and compare-at on a variant and adds/removes product tags", async () => {
+    const p = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("productVariant(id"), body: { data: { productVariant: { product: { id: "gid://shopify/Product/77" } } } } },
+      { match: (_u, i) => bodyOf(i).query.includes("productVariantsBulkUpdate"), body: { data: { productVariantsBulkUpdate: { userErrors: [] } } } },
+      { match: (_u, i) => bodyOf(i).query.includes("tagsAdd"), body: { data: { tagsAdd: { userErrors: [] } } } },
+      { match: (_u, i) => bodyOf(i).query.includes("tagsRemove"), body: { data: { tagsRemove: { userErrors: [] } } } },
+    ]);
+    await p.updateVariant("4100001", { priceMinor: 4990, compareAtMinor: 5990 });
+    expect(bodyOf({ body: p.http.calls[1]!.body! }).variables).toEqual({ productId: "gid://shopify/Product/77", variants: [{ id: "gid://shopify/ProductVariant/4100001", price: "49.90", compareAtPrice: "59.90" }] });
+    await p.updateVariant("4100001", { compareAtMinor: null });
+    expect(bodyOf({ body: p.http.calls[3]!.body! }).variables).toEqual({ productId: "gid://shopify/Product/77", variants: [{ id: "gid://shopify/ProductVariant/4100001", compareAtPrice: null }] });
+    await p.updateProductTags("77", ["sale"], ["new"]);
+    expect(p.http.calls.slice(4).map((c) => bodyOf({ body: c.body! }).variables)).toEqual([{ id: "gid://shopify/Product/77", tags: ["sale"] }, { id: "gid://shopify/Product/77", tags: ["new"] }]);
+  });
+});
+
 describe("shopify returns write-back", () => {
   const fulfillments = { data: { order: { fulfillments: [{ fulfillmentLineItems: { nodes: [{ id: "gid://shopify/FulfillmentLineItem/91", quantity: 1, lineItem: { id: "gid://shopify/LineItem/11" } }, { id: "gid://shopify/FulfillmentLineItem/92", quantity: 2, lineItem: { id: "gid://shopify/LineItem/12" } }] } }] } } };
   it("opens a return on fulfilled units, approves and closes it", async () => {

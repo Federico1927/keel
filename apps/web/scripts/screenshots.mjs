@@ -5,6 +5,9 @@
  * Usage (production server on :3000 with the demo seed loaded):
  *   pnpm --filter @keel/web screenshots            # en + it
  *   LOCALES=en,it,es pnpm --filter @keel/web screenshots
+ *   THEMES=light,dark pnpm --filter @keel/web screenshots   # dark goes to docs/screenshots/<locale>/dark/
+ *
+ * The demo users keep the "system" theme, so the browser's colour scheme picks light or dark.
  */
 import { chromium } from "@playwright/test";
 import { existsSync, mkdirSync } from "node:fs";
@@ -13,6 +16,7 @@ import { resolve } from "node:path";
 const BASE = process.env.E2E_BASE_URL ?? "http://localhost:3000";
 const OUT = resolve(process.env.SCREENSHOT_DIR ?? "../../docs/screenshots");
 const LOCALES = (process.env.LOCALES ?? "en,it").split(",");
+const THEMES = (process.env.THEMES ?? "light").split(",");
 const PASSWORD = process.env.DEMO_PASSWORD ?? "keel-demo-2026";
 const TENANT = "northwind-apparel";
 const chromiumPath = process.env.PW_CHROMIUM_PATH ?? "/opt/pw-browsers/chromium";
@@ -52,6 +56,8 @@ const TENANT_PAGES = [
   { name: "integrations", path: "/integrations" },
   { name: "integrations-guide-shopify", path: "/integrations/guide/shopify" },
   { name: "settings", path: "/settings" },
+  { name: "branding", path: "/settings/branding" },
+  { name: "profile", path: "/profile" },
   { name: "order-state-rules", path: "/settings/order-states" },
   { name: "users", path: "/users" },
   { name: "audit", path: "/audit" },
@@ -65,6 +71,7 @@ const ADMIN_PAGES = [
   { name: "admin-tenant-new", path: "/admin/tenants/new" },
   { name: "admin-billing", path: "/admin/billing" },
   { name: "admin-audit", path: "/admin/audit" },
+  { name: "admin-styleguide", path: "/admin/styleguide" },
 ];
 
 async function login(page, email) {
@@ -109,10 +116,11 @@ async function shoot(page, dir, spec, base) {
 
 async function main() {
   const browser = await chromium.launch(existsSync(chromiumPath) ? { executablePath: chromiumPath } : {});
+  for (const theme of THEMES)
   for (const locale of LOCALES) {
-    const dir = `${OUT}/${locale}`;
+    const dir = theme === "light" ? `${OUT}/${locale}` : `${OUT}/${locale}/${theme}`;
     mkdirSync(dir, { recursive: true });
-    const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1, colorScheme: theme });
     const page = await context.newPage();
     await setLocale(context, locale);
     await page.goto(`${BASE}/login`);
@@ -122,7 +130,7 @@ async function main() {
     for (const spec of TENANT_PAGES) await shoot(page, dir, spec, `/t/${TENANT}`);
     await context.close();
 
-    const admin = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+    const admin = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1, colorScheme: theme });
     const apage = await admin.newPage();
     await setLocale(admin, locale);
     await login(apage, "superadmin@keel.demo");

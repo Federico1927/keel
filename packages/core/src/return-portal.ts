@@ -26,9 +26,10 @@ export type PortalField = z.infer<typeof portalFieldSchema>;
 
 export const returnPortalConfigSchema = z.object({
   enabled: z.boolean().default(false),
+  /** Own logo URL; null → the tenant branding logo. */
   logoUrl: z.string().url().max(500).nullable().default(null),
-  /** Brand colour as #rrggbb. */
-  primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).default("#1f4e79"),
+  /** Own colour as #rrggbb; null → the tenant branding (Settings → Branding). Saved values stay as overrides. */
+  primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().default(null),
   title: localized,
   intro: localized,
   successMessage: localized,

@@ -42,13 +42,13 @@
       "cod_platform_error": "La piattaforma ha rifiutato la scrittura del tag o l'annullamento; non è stato registrato nulla.",
       "invalid_formula": "La formula non è valida.",
       "closed": "Questo ordine non può più essere modificato.",
+      "attachment_too_large": "Il file supera 1,5 MB.",
+      "attachment_type": "Questo tipo di file non è accettato.",
+      "invalid_type": "Tipo di notifica sconosciuto.",
       "not_editable": "Questo ordine non si può più modificare: è evaso, annullato o sostituito.",
       "invalid_address": "L'indirizzo non è valido: controlla i campi evidenziati.",
       "merge_invalid": "Questi ordini non si possono unire: cliente o pagamento diversi, oppure già evasi.",
-      "nothing_to_change": "Niente da modificare.",
-      "attachment_too_large": "Il file supera 1,5 MB.",
-      "attachment_type": "Questo tipo di file non è accettato.",
-      "invalid_type": "Tipo di notifica sconosciuto."
+      "nothing_to_change": "Niente da modificare."
     },
     "edit": "Modifica"
   },
@@ -241,7 +241,8 @@
       "spend": "Spesa ads",
       "hint": "Giorno {elapsed} di {days}, run rate per giorno della settimana.",
       "more": "Dettagli"
-    }
+    },
+    "greeting_line": "{count, plural, =0 {Ancora nessun ordine oggi} one {# ordine finora oggi} other {# ordini finora oggi}}"
   },
   "settings": {
     "title": "Impostazioni",
@@ -297,7 +298,8 @@
       "prices_include_tax": "Prezzi IVA inclusa",
       "add": "Aggiungi o aggiorna"
     },
-    "order_states_link": "Regole di stato ordine"
+    "order_states_link": "Regole di stato ordine",
+    "branding_link": "Branding"
   },
   "users": {
     "title": "Utenti e ruoli",
@@ -457,12 +459,15 @@
       "integration_health": "Integrazioni",
       "cod_assigned": "Ordine in contrassegno assegnato",
       "digest": "Email di riepilogo giornaliero",
+      "export_ready": "Esportazione CSV pronta",
       "other": "Altro"
     },
     "rendered": {
       "stock_critical_no_po": "{title} varianti in vendita con stock critico e nessun ordine d'acquisto",
       "late_to_ship": "{title} ordini ancora da spedire dopo {body}",
-      "sync_delay": "La sincronizzazione di {title} è in ritardo ({body})"
+      "sync_delay": "La sincronizzazione di {title} è in ritardo ({body})",
+      "export_ready": "L'esportazione di {body} è pronta ({title} righe)",
+      "export_failed": "L'esportazione di {body} è fallita"
     },
     "groups": {
       "collaboration": "Collaborazione",
@@ -517,7 +522,177 @@
         "manual": "Aggiunto a mano"
       },
       "supplier_po": "Ordini d'acquisto ai fornitori"
+    },
+    "export_lists": {
+      "orders": "ordini",
+      "products": "prodotti",
+      "returns": "resi",
+      "customers": "clienti"
     }
+  },
+  "tasks": {
+    "title": "Attività",
+    "description": "Lavoro collegato a ordini, resi, ordini d'acquisto e prodotti. Le regole aprono attività sugli eventi e le chiudono quando il record va avanti.",
+    "tabs": {
+      "mine": "Le mie attività",
+      "all": "Tutto il team",
+      "unassigned": "Non assegnate"
+    },
+    "status_filter": {
+      "open": "Aperte",
+      "overdue": "Scadute",
+      "closed": "Chiuse",
+      "all": "Tutte"
+    },
+    "statuses": {
+      "open": "Aperta",
+      "in_progress": "In corso",
+      "done": "Completata",
+      "cancelled": "Annullata"
+    },
+    "columns": {
+      "task": "Attività",
+      "record": "Record",
+      "assignee": "Assegnata a",
+      "due": "Scadenza",
+      "status": "Stato"
+    },
+    "new": "Nuova attività",
+    "fields": {
+      "title": "Titolo",
+      "description": "Dettagli",
+      "assignee": "Assegnata a",
+      "due": "Scadenza",
+      "record": "Record collegato"
+    },
+    "unassigned": "Non assegnata",
+    "no_record": "Nessuno",
+    "overdue": "Scaduta",
+    "create": "Crea attività",
+    "search": "Cerca attività",
+    "empty_title": "Nessuna attività",
+    "empty_description": "Qui non c'è nulla: le attività create a mano o dalle regole compaiono in questo elenco.",
+    "pagination": "{from}–{to} di {total}",
+    "rules": "Regole",
+    "by_rule": "Aperta da una regola",
+    "auto_closed": "Chiusa automaticamente quando il record è andato avanti",
+    "actions": {
+      "start": "Inizia",
+      "done": "Completa",
+      "reopen": "Riapri",
+      "cancel": "Annulla"
+    },
+    "entity": {
+      "order": "Ordine",
+      "return": "Reso",
+      "purchase_order": "Ordine d'acquisto",
+      "product": "Prodotto"
+    },
+    "panel": {
+      "title": "Attività",
+      "empty": "Nessuna attività su questo record.",
+      "add": "Aggiungi attività",
+      "all": "Tutte le attività"
+    },
+    "counts": {
+      "open": "{n} aperte",
+      "overdue": "{n} scadute"
+    }
+  },
+  "task_rules": {
+    "title": "Regole delle attività",
+    "description": "Quando un record resta in uno degli stati scelti (per un certo tempo, o oltre la sua scadenza), Keel apre un'attività e la assegna; l'attività si chiude da sola quando il record va avanti.",
+    "new": "Nuova regola",
+    "edit": "Modifica",
+    "entity": "Record",
+    "statuses": "Nello stato",
+    "min_hours": "Dopo ore nello stato",
+    "use_due": "Solo dopo la scadenza",
+    "overdue_after": "Ore oltre la scadenza",
+    "task_title": "Titolo dell'attività",
+    "task_description": "Dettagli dell'attività",
+    "due_in": "Scadenza dell'attività (ore)",
+    "assignee_mode": "Assegna a",
+    "modes": {
+      "role": "Membro meno carico con il ruolo",
+      "record_owner": "Responsabile del record (altrimenti ruolo)",
+      "user": "Un membro preciso",
+      "none": "Nessuno"
+    },
+    "role": "Ruolo",
+    "user": "Membro",
+    "active": "Attiva",
+    "inactive": "Spenta",
+    "save": "Salva regola",
+    "delete": "Elimina",
+    "restore_defaults": "Aggiungi le regole predefinite mancanti",
+    "empty": "Nessuna regola.",
+    "summary": "{entity} in {statuses}",
+    "after_hours": "dopo {n} h",
+    "past_due": "{n} h oltre la scadenza",
+    "default": "Predefinita"
+  },
+  "support": {
+    "button": "Aiuto",
+    "title": "Supporto",
+    "description": "Richieste al team di Keel. Ricevi una notifica quando rispondiamo.",
+    "new": "Contatta il supporto",
+    "new_description": "Descrivi il problema; uno screenshot o un file aiutano.",
+    "subject": "Oggetto",
+    "category": "Categoria",
+    "categories": {
+      "question": "Domanda",
+      "problem": "Problema",
+      "billing": "Fatturazione",
+      "feature": "Richiesta di funzionalità"
+    },
+    "body": "Messaggio",
+    "attachment": "Allegato (facoltativo)",
+    "attachment_hint": "Immagini, PDF, testo o CSV, fino a 1,5 MB.",
+    "send": "Invia",
+    "sent": "Richiesta inviata.",
+    "view": "Vedi la richiesta",
+    "statuses": {
+      "open": "In attesa di Keel",
+      "answered": "Risposta ricevuta",
+      "closed": "Chiusa"
+    },
+    "columns": {
+      "ticket": "Richiesta",
+      "status": "Stato",
+      "updated": "Ultimo messaggio",
+      "author": "Aperta da"
+    },
+    "empty_title": "Nessuna richiesta",
+    "empty_description": "Usa il pulsante Aiuto nell'intestazione per scrivere al team di Keel.",
+    "reply": "Rispondi",
+    "reply_placeholder": "Scrivi una risposta…",
+    "close": "Chiudi la richiesta",
+    "closed_hint": "Questa richiesta è chiusa: una risposta la riapre.",
+    "you": "Tu",
+    "platform": "Supporto Keel",
+    "download": "Scarica",
+    "messages_n": "{n} messaggi",
+    "all": "Tutte le richieste"
+  },
+  "record_notes": {
+    "title": "Note interne",
+    "placeholder": "Scrivi una nota… digita @ per menzionare un collega",
+    "hint": "Le persone menzionate ricevono una notifica.",
+    "add": "Aggiungi nota",
+    "delete": "Elimina nota",
+    "empty": "Nessuna nota."
+  },
+  "unsubscribe": {
+    "title": "Preferenze email",
+    "confirm_title": "Non ricevere più queste email?",
+    "confirm": "Non riceverai più le email «{category}» di {tenant} all'indirizzo {email}.",
+    "button": "Disiscriviti",
+    "done_title": "Disiscrizione completata",
+    "done": "{email} non riceverà più le email «{category}» di {tenant}. Puoi riattivarle dalle tue preferenze di notifica.",
+    "invalid_title": "Link non valido",
+    "invalid": "Questo link di disiscrizione è danneggiato o incompleto.",
+    "all": "facoltative"
   },
   "orders": {
     "title": "Ordini",
@@ -549,7 +724,9 @@
       "from": "Dal",
       "to": "Al",
       "tag": "Tag",
-      "missing_cost": "Prodotti senza costo"
+      "missing_cost": "Prodotti senza costo",
+      "product": "Prodotto: {name}",
+      "variant": "Variante: {name}"
     },
     "sort": {
       "placed_desc": "Più recenti",
@@ -802,7 +979,8 @@
       "adjustment": "Rettifica",
       "sync": "Sync",
       "sale": "Vendita"
-    }
+    },
+    "view_orders": "Vedi ordini"
   },
   "inventory": {
     "title": "Magazzino",
@@ -1429,186 +1607,6 @@
         "roas": "ROAS dichiarato",
         "conversion_rate": "Tasso di conversione"
       }
-    }
-  },
-  "analytics_depth": {
-    "tabs": {
-      "orders_pnl": "P/L per ordine",
-      "utm": "UTM"
-    },
-    "total": "Totale",
-    "export": "CSV",
-    "apply": "Applica",
-    "clear": "Azzera",
-    "sort": "Ordina",
-    "granularity": {
-      "day": "Giorno",
-      "week": "Settimana",
-      "month": "Mese",
-      "quarter": "Trimestre",
-      "year": "Anno"
-    },
-    "periods": {
-      "title": "P/L nel tempo",
-      "series": {
-        "cogs": "Costo del venduto",
-        "shipping": "Spedizioni",
-        "fees": "Commissioni di pagamento",
-        "returns": "Costi dei resi",
-        "ads": "Pubblicità",
-        "fixed": "Costi fissi"
-      },
-      "partial": "parziale",
-      "partial_hint": "Questo periodo è coperto solo in parte: tagliato dalle date scelte o ancora in corso.",
-      "chart_hint": "Barre: costi impilati per tipo. Linea: risultato operativo. Le barre chiare sono periodi parziali. La somma dei periodi è il P/L qui sopra.",
-      "pages": "{n} periodi"
-    },
-    "quality": {
-      "title": "Qualità dei dati",
-      "description": "Quanto sono completi i numeri dietro il P/L.",
-      "incomplete_orders": "Ordini di vendita con costi mancanti",
-      "incomplete_share": "{share} del ricavo netto: costo del venduto sottostimato",
-      "variants_missing_cost": "Varianti senza costo",
-      "fix_link": "Correggi i costi prodotto →",
-      "cost_known": "Ricavo con costo noto",
-      "cost_known_hint": "Quota del ricavo di vendita con costo prodotto noto."
-    },
-    "orders_pnl": {
-      "title": "P/L per ordine",
-      "description": "Ogni ordine di vendita del periodo con il suo P/L; la somma porta al P/L del periodo qui sotto. {out} ordini del periodo non sono vendite (annullati, in attesa, resi) e sono esclusi.",
-      "search": "Numero ordine",
-      "payment": "Metodo di pagamento",
-      "channel": "Canale",
-      "sort": {
-        "placed_desc": "Più recenti",
-        "placed_asc": "Meno recenti",
-        "contribution_asc": "Margine più basso",
-        "contribution_desc": "Margine più alto",
-        "net_desc": "Ricavo netto più alto"
-      },
-      "missing_cost": "Costo mancante",
-      "loss": "In perdita",
-      "empty": "Nessun ordine di vendita corrisponde ai filtri.",
-      "order": "Ordine",
-      "fee_estimated": "Commissione (stima)",
-      "no_cost": "senza costo",
-      "total": "Totale · {n} ordini",
-      "summary": "{n} ordini",
-      "reconciliation": "Dagli ordini al P/L del periodo",
-      "reconciliation_description": "Le righe degli ordini sommano al P/L; i costi noti solo per l'intero periodo sono su una riga a parte.",
-      "reconciliation_filtered": "Calcolato su tutti gli ordini di vendita del periodo, non solo su quelli filtrati.",
-      "recon": {
-        "orders_contribution": "Somma dei margini degli ordini",
-        "shipping_adjustment": "Fattura del corriere vs stima per ordine",
-        "return_timing": "Costi dei resi per data di rientro vs per ordine",
-        "contribution": "Margine di contribuzione (P/L)",
-        "ads": "Pubblicità",
-        "fixed": "Costi fissi",
-        "operating": "Risultato operativo (P/L)"
-      },
-      "shipping_adjustment_hint": "I mesi con fattura del corriere a consuntivo la usano al posto della stima per ordine.",
-      "return_timing_hint": "Il P/L conta i costi dei resi quando la merce rientra; la tabella li conta sull'ordine a cui appartengono.",
-      "matches": "Coincide al centesimo con il P/L del periodo.",
-      "mismatch": "Non coincide con il P/L del periodo: segnalalo."
-    },
-    "channels": {
-      "direct": "Diretto",
-      "paid_social": "Social a pagamento",
-      "paid_search": "Ricerca a pagamento",
-      "organic_search": "Ricerca organica",
-      "email": "Email",
-      "social": "Social",
-      "referral": "Referral",
-      "unknown": "Sconosciuto",
-      "other": "Altro"
-    },
-    "products": {
-      "description": "Vendite del periodo con la spesa delle campagne collegate a ogni prodotto (divisa per ricavo netto quando una campagna promuove più prodotti), profitto, ROAS/ROI, stock, copertura e cosa fare. La spesa delle campagne senza prodotto collegato è su una riga a parte, così la spesa totale è uguale a quella del periodo.",
-      "search": "Prodotto",
-      "action": "Azione di stock",
-      "all_actions": "Tutte le azioni",
-      "actions": {
-        "pause_ads": "Sospendi ads",
-        "reorder": "Riordina",
-        "last_units": "Ultimi pezzi",
-        "clear_excess": "Smaltisci eccesso",
-        "scale_ads": "Aumenta ads",
-        "ok": "OK",
-        "no_data": "Senza stock"
-      },
-      "sort": {
-        "net_desc": "Ricavo netto più alto",
-        "units_desc": "Più unità",
-        "profit_desc": "Profitto più alto",
-        "profit_asc": "Profitto più basso",
-        "ad_spend_desc": "Spesa ads più alta",
-        "roas_asc": "ROAS più basso",
-        "cover_asc": "Copertura più bassa"
-      },
-      "net": "Ricavo netto",
-      "ad_spend": "Spesa ads",
-      "profit": "Profitto",
-      "light": "Ads",
-      "stock": "Stock + in arrivo",
-      "cover": "Copertura",
-      "days": "{n} g",
-      "reorder_units": "{n} pezzi",
-      "unattributed": "Spesa non attribuita: {n} campagne senza prodotto collegato",
-      "link_campaigns": "Collega le campagne →",
-      "spend_matches": "Spesa ads totale {spend}, uguale al P/L del periodo.",
-      "campaigns": "{n} campagne collegate",
-      "summary": "{n} prodotti"
-    },
-    "utm": {
-      "title": "Analisi UTM",
-      "description": "Ordini di vendita per parametro UTM; clicca un valore per aprire il livello successivo. {n} ordini di vendita non hanno dati di attribuzione.",
-      "dims": {
-        "source": "Sorgente",
-        "medium": "Mezzo",
-        "campaign": "Campagna",
-        "content": "Contenuto",
-        "term": "Termine"
-      },
-      "none": "(nessuno)",
-      "empty": "Nessun ordine di vendita nel periodo.",
-      "orders": "Ordini",
-      "revenue": "Ricavi",
-      "net": "Ricavo netto",
-      "aov": "Scontrino medio",
-      "share": "Quota",
-      "summary": "{n} valori",
-      "trend_title": "Canali nel tempo",
-      "trend_description": "Ricavo netto degli ordini di vendita per canale di attribuzione."
-    },
-    "economics": {
-      "title": "Economia dell'ordine",
-      "description": "Il P/L di questo ordine, calcolato come il P/L del periodo.",
-      "replaced": "Sostituito da una modifica: l'economia è sull'ordine sostitutivo.",
-      "not_sale": "Non è una vendita (annullato, in attesa o reso): non conta nel P/L.",
-      "incomplete": "incompleto",
-      "estimated": "stima",
-      "fee_source": {
-        "estimated": "stima"
-      },
-      "lines": {
-        "gross": "Vendite lorde",
-        "refunds": "Rimborsi",
-        "tax": "Imposte",
-        "net": "Ricavo netto",
-        "cogs": "Costo del venduto",
-        "shipping": "Costo di spedizione",
-        "fee": "Commissione di pagamento",
-        "margin": "Margine dell'ordine",
-        "returns": "Costi dei resi",
-        "contribution": "Contribuzione"
-      },
-      "margin_rate": "Contribuzione {rate} del ricavo netto",
-      "open_table": "Apri nel P/L per ordine →"
-    },
-    "order_filters": {
-      "product": "Contiene il prodotto",
-      "channel": "Canale: {value}",
-      "utm": "utm {dim}: {value}"
     }
   },
   "campaigns": {
@@ -2890,7 +2888,8 @@
       "tenants": "Tenant",
       "billing": "Fatturazione",
       "audit": "Registro attività",
-      "support": "Supporto"
+      "support": "Supporto",
+      "styleguide": "Guida di stile"
     },
     "plans": {
       "starter": "Starter",
@@ -3604,7 +3603,9 @@
     "label_enabled": "Fornisci al cliente un'etichetta di reso prepagata",
     "label_destination": "Indirizzo di reso sull'etichetta",
     "label_hint": "L'etichetta viene emessa all'invio e il suo tracking viene salvato sul reso. In questa versione il fornitore delle etichette è simulato.",
-    "off_notice": "Il portale è spento: chi apre {url} vede \"pagina non trovata\". Attiva \"Portale attivo\" qui sotto e salva."
+    "off_notice": "Il portale è spento: chi apre {url} vede \"pagina non trovata\". Attiva \"Portale attivo\" qui sotto e salva.",
+    "use_branding": "Usa il branding dello spazio di lavoro",
+    "logo_branding_hint": "Vuoto: il logo di Impostazioni → Branding."
   },
   "return_portal": {
     "default_title": "Richiedi un reso",
@@ -4429,6 +4430,486 @@
     "refund_due": "L'ordine è pagato: rimborsa {amount} al cliente dal negozio.",
     "apply": "Applica sconto"
   },
+  "lists": {
+    "select_all": "Seleziona tutte le righe della pagina",
+    "select_row": "Seleziona {label}",
+    "selected": "{count, plural, one {# selezionato} other {# selezionati}}",
+    "clear_selection": "Annulla selezione",
+    "dialog_description": "{count, plural, one {Si applica a # record.} other {Si applica a # record.}} Ogni record viene scritto da solo: se uno fallisce gli altri proseguono.",
+    "concurrency_hint": "Al massimo 3 scritture verso il negozio alla volta. Alla fine ricevi un riepilogo.",
+    "run": "{count, plural, one {Applica a # record} other {Applica a # record}}",
+    "actions": {
+      "orders": {
+        "status": "Cambia stato",
+        "cancel": "Annulla",
+        "assign": "Assegna",
+        "tag": "Tag"
+      },
+      "products": {
+        "status": "Stato",
+        "price": "Prezzo",
+        "compare_at": "Prezzo barrato",
+        "tags": "Tag"
+      },
+      "returns": {
+        "approve": "Approva",
+        "reject": "Rifiuta",
+        "receive": "Segna ricevuto",
+        "refund": "Rimborsa"
+      }
+    },
+    "params": {
+      "status": "Nuovo stato",
+      "note": "Nota (facoltativa)",
+      "assignee": "Assegna a",
+      "add_tags": "Tag da aggiungere",
+      "remove_tags": "Tag da togliere",
+      "tags_placeholder": "Separati da virgola, es. priorità, regalo",
+      "mode": "Come",
+      "mode_set": "Imposta un importo",
+      "mode_percent": "Varia in percentuale",
+      "mode_clear": "Togli il prezzo barrato",
+      "percent": "Percentuale (negativa per ridurre)",
+      "amount": "Importo",
+      "all_variants": "Vale per tutte le varianti dei prodotti selezionati e viene scritto prima sul negozio.",
+      "restock_location": "Rimetti a stock in",
+      "no_restock": "Non rimettere a stock",
+      "refund_hint": "Rimborsa l'importo ispezionato di ogni reso. I resi non ancora ispezionati vengono saltati."
+    },
+    "reasons": {
+      "not_found": "Non trovato",
+      "already_cancelled": "Già annullato",
+      "unchanged": "Niente da cambiare",
+      "overridden": "Lo stato è deciso da un fatto dell'ordine ({detail})",
+      "bad_transition": "Non possibile dallo stato {detail}",
+      "location_required": "Serve una location di rientro",
+      "invalid_input": "Dati non validi",
+      "not_eligible": "Non idoneo",
+      "return_not_found": "Reso non trovato",
+      "platform_sync_error": "Fatto qui, ma la scrittura sul negozio è fallita: {detail}"
+    },
+    "summary": {
+      "title": "Azione di gruppo completata",
+      "counts": "Fatti {done} · Saltati {skipped} · Falliti {failed}",
+      "done": "Fatto",
+      "skipped": "Saltato",
+      "failed": "Fallito",
+      "batch": "Lotto {id}: ogni modifica è nel registro attività e nella timeline di ogni ordine.",
+      "close": "Chiudi"
+    },
+    "views": {
+      "label": "Viste",
+      "all": "Tutti (nessun filtro)",
+      "empty": "Nessuna vista salvata",
+      "shared": "Condivisa con il team",
+      "delete": "Elimina la vista {name}",
+      "save": "Salva i filtri attuali come vista…",
+      "save_title": "Salva vista",
+      "save_description": "Salva i filtri e l'ordinamento che vedi ora. Salvando di nuovo con lo stesso nome la vista si aggiorna.",
+      "name": "Nome",
+      "share": "Condividi con il team",
+      "no_filters": "Nessun filtro: tutta la lista"
+    },
+    "export_csv": "Esporta CSV",
+    "names": {
+      "orders": "Ordini",
+      "products": "Prodotti",
+      "returns": "Resi",
+      "customers": "Clienti",
+      "purchasing": "Ordini d'acquisto"
+    },
+    "exports": {
+      "title": "Esportazioni",
+      "description": "I CSV troppo grandi per lo scaricamento immediato vengono preparati in background. Solo tu puoi scaricare i tuoi.",
+      "queued": "Stiamo preparando l'esportazione. Riceverai una notifica quando il file è pronto.",
+      "empty_title": "Nessuna esportazione",
+      "empty_description": "Qui compaiono le esportazioni grandi dalle liste.",
+      "list": "Lista",
+      "requested": "Richiesta",
+      "status": "Stato",
+      "rows": "Righe",
+      "file": "File",
+      "download": "Scarica",
+      "statuses": {
+        "pending": "In coda",
+        "running": "In corso",
+        "done": "Pronta",
+        "failed": "Fallita"
+      }
+    },
+    "search": {
+      "open": "Cerca",
+      "open_label": "Cerca in tutto",
+      "placeholder": "Cerca ordini, clienti, prodotti, SKU, ordini d'acquisto…",
+      "placeholder_short": "Cerca…",
+      "hint": "Scrivi un numero d'ordine, un nome, un'email, un telefono (qualsiasi formato), uno SKU o un numero di ordine d'acquisto.",
+      "searching": "Ricerca in corso…",
+      "no_results": "Nessun risultato",
+      "orders_count": "{count, plural, one {# ordine} other {# ordini}}",
+      "groups": {
+        "orders": "Ordini",
+        "customers": "Clienti",
+        "products": "Prodotti",
+        "purchase_orders": "Ordini d'acquisto"
+      }
+    }
+  },
+  "theme": {
+    "label": "Tema",
+    "light": "Chiaro",
+    "dark": "Scuro",
+    "system": "Sistema"
+  },
+  "greeting": {
+    "morning": "Buongiorno, {name}",
+    "afternoon": "Buon pomeriggio, {name}",
+    "evening": "Buonasera, {name}"
+  },
+  "profile": {
+    "menu": "Il tuo profilo",
+    "title": "Il tuo profilo",
+    "description": "Come ti vede il team, come appare l'app per te e come accedi.",
+    "identity": "Identità",
+    "identity_description": "Il nome è visibile al team; il nome preferito è quello con cui l'app ti saluta.",
+    "name": "Nome e cognome",
+    "preferred_name": "Nome preferito",
+    "preferred_name_hint": "Facoltativo. Usato nei saluti, per esempio “Giulia”.",
+    "job_title": "Ruolo aziendale",
+    "save": "Salva",
+    "saved": "Salvato.",
+    "photo_upload": "Carica foto",
+    "photo_change": "Cambia foto",
+    "photo_remove": "Rimuovi",
+    "uploading": "Caricamento…",
+    "image_hint": "PNG, JPEG, WebP o GIF. Le immagini grandi vengono ridotte automaticamente.",
+    "preferences": "Preferenze",
+    "preferences_description": "Valgono solo per te, su ogni dispositivo.",
+    "locale_default": "Lingua dello spazio di lavoro",
+    "locale_default_named": "Lingua dello spazio di lavoro ({language})",
+    "time_zone": "Fuso orario",
+    "time_zone_default": "Fuso orario dello spazio di lavoro",
+    "time_zone_default_named": "Fuso dello spazio di lavoro ({zone})",
+    "density": "Densità",
+    "density_comfortable": "Comoda",
+    "density_compact": "Compatta",
+    "density_hint": "Compatta mostra più righe: tabelle e schede più strette.",
+    "format_hint": "Date e numeri seguono la lingua. Il fuso orario vale per il saluto e l'elenco degli accessi; i report restano nel fuso dello spazio di lavoro, così tutto il team vede gli stessi giorni.",
+    "security": "Accesso e sicurezza",
+    "security_description": "Email, password e sessioni attive.",
+    "email": "Email",
+    "email_current": "Email attuale:",
+    "email_pending": "In attesa di conferma da {email}. Non cambia nulla finché non si apre il link in quella casella.",
+    "email_cancel": "Annulla richiesta",
+    "email_new": "Nuova email",
+    "email_submit": "Invia conferma",
+    "email_hint": "Mandiamo un link al nuovo indirizzo e un avviso a quello attuale.",
+    "email_sent": "Controlla la nuova casella: trovi il link di conferma.",
+    "password": "Password",
+    "password_current": "Password attuale",
+    "password_new": "Nuova password",
+    "password_confirm": "Ripeti la nuova password",
+    "password_hint": "Almeno 10 caratteri con lettere, numeri e simboli, oppure una frase lunga. Cambiandola esci da tutte le altre sessioni.",
+    "password_submit": "Cambia password",
+    "password_changed": "Password cambiata. Le altre sessioni sono state chiuse.",
+    "sessions": "Accessi recenti",
+    "sessions_description": "Le ultime volte che il tuo account è stato usato per accedere.",
+    "sign_in_when": "Quando",
+    "sign_in_method": "Metodo",
+    "sign_in_device": "Dispositivo",
+    "sign_in_methods": {
+      "credentials": "Password",
+      "email": "Link via email",
+      "other": "Altro"
+    },
+    "sessions_sign_out_others": "Esci da tutte le altre sessioni",
+    "sessions_signed_out": "Tutte le altre sessioni sono state chiuse.",
+    "workspaces": "Spazi di lavoro",
+    "workspaces_description": "Dove hai accesso e con quale ruolo. I ruoli li gestiscono owner e admin.",
+    "workspaces_super_admin": "Super-admin della piattaforma: apri ogni spazio di lavoro dalla console.",
+    "errors": {
+      "invalid_input": "Alcuni campi non sono validi.",
+      "rate_limited": "Troppi tentativi. Riprova tra un'ora.",
+      "wrong_password": "La password attuale non è corretta.",
+      "weak_password": "La nuova password è troppo debole:",
+      "email_taken": "Questa email è già usata da un altro account.",
+      "same_email": "È già la tua email.",
+      "invalid_token": "Questo link non è valido.",
+      "expired_token": "Il link è scaduto. Richiedine uno nuovo dal profilo.",
+      "not_found": "Account non trovato.",
+      "password_mismatch": "Le due nuove password non coincidono.",
+      "invalid_image": "Il file non è un'immagine supportata.",
+      "image_too_large": "L'immagine è troppo grande (max 1,5 MB dopo la riduzione).",
+      "forbidden": "Non hai i permessi per farlo.",
+      "unknown": "Qualcosa è andato storto."
+    },
+    "password_issues": {
+      "too_short": "almeno 10 caratteri",
+      "too_long": "al massimo 200 caratteri",
+      "too_common": "non una password comune o ripetitiva",
+      "personal": "non basata sul tuo nome o sulla tua email",
+      "low_variety": "mescola maiuscole, minuscole, numeri e simboli (oppure usa 16+ caratteri)"
+    }
+  },
+  "welcome": {
+    "title": "Completa il tuo profilo",
+    "description": "Hai effettuato l'accesso come {email}. Prima di iniziare, di' al team chi sei.",
+    "submit": "Continua"
+  },
+  "email_change": {
+    "title": "Conferma la nuova email",
+    "description": "Conferma per usare questo indirizzo per accedere d'ora in poi.",
+    "confirm": "Conferma il cambio email",
+    "done": "Fatto: ora accedi con {email}.",
+    "continue": "Continua",
+    "errors": {
+      "invalid_token": "Il link non è valido o è già stato usato.",
+      "expired_token": "Il link è scaduto. Richiedine uno nuovo dal profilo.",
+      "email_taken": "Questa email è già usata da un altro account."
+    },
+    "mail_new_subject": "Conferma il tuo nuovo indirizzo email",
+    "mail_new_body": "Apri questo link per confermare il cambio dell'email con cui accedi: {url}\n\nSe non l'hai chiesto tu, ignora questo messaggio.",
+    "mail_old_subject": "L'email di accesso sta per cambiare",
+    "mail_old_body": "È stato chiesto di cambiare l'email di accesso del tuo account in {email}. Cambierà solo quando quell'indirizzo conferma. Se non sei stato tu, cambia subito la password."
+  },
+  "branding": {
+    "title": "Branding",
+    "description": "Logo e colore del marchio: usati nell'app e come predefiniti per portale resi, tracking, pagina fornitori e sondaggio.",
+    "back": "Tutte le impostazioni",
+    "color": "Colore del marchio",
+    "color_description": "Sostituisce il colore primario per tutti in questo spazio di lavoro. Viene regolato automaticamente perché testi e pulsanti restino leggibili (WCAG AA) nel tema chiaro e in quello scuro.",
+    "color_hex": "Colore (#rrggbb)",
+    "color_picker": "Scegli un colore",
+    "save": "Salva colore",
+    "reset": "Usa il predefinito",
+    "invalid_color": "Usa il formato #rrggbb.",
+    "adjusted": "Regolato per la leggibilità: {light} nel tema chiaro, {dark} nel tema scuro.",
+    "sample_button": "Salva",
+    "sample_link": "Vedi ordini",
+    "saved": "Salvato.",
+    "errors": {
+      "invalid_color": "Usa il formato #rrggbb.",
+      "generic": "Impossibile salvare il branding."
+    },
+    "logos": "Loghi",
+    "logos_description": "Un logo per sfondi chiari e, se vuoi, uno per sfondi scuri.",
+    "logo_light": "Su sfondo chiaro",
+    "logo_dark": "Su sfondo scuro",
+    "logo_dark_fallback": "Usa il logo per sfondo chiaro",
+    "logo_none": "Nessun logo: viene mostrato il nome",
+    "logo_upload": "Carica logo",
+    "logo_remove": "Rimuovi",
+    "used_by": "Le pagine pubbliche (portale resi, tracking, fornitori, sondaggio) usano questo branding, salvo personalizzazioni nelle loro impostazioni."
+  },
+  "styleguide": {
+    "title": "Guida di stile",
+    "description": "Direzione A, Modern SaaS (scelta il 2026-10-01): token, componenti nei due temi, varianti del colore del marchio e densità.",
+    "tokens": "Token",
+    "type_note": "Geist per testi e titoli, Geist Mono per i codici; angoli di 8px, badge a pillola.",
+    "components": "Componenti",
+    "primary": "Primario",
+    "secondary": "Secondario",
+    "ghost": "Discreto",
+    "danger": "Pericolo",
+    "link": "Link",
+    "success": "Successo",
+    "warning": "Attenzione",
+    "info": "Info",
+    "input": "Campo",
+    "placeholder": "Scrivi qui",
+    "select": "Selezione",
+    "option": "Opzione",
+    "empty_title": "Ancora niente qui",
+    "empty_description": "Gli stati vuoti spiegano cosa comparirà e come ottenerlo.",
+    "brand": "Colore del marchio del tenant",
+    "brand_description": "Ogni spazio di lavoro può avere il suo colore; viene regolato finché testi e controlli superano AA in entrambi i temi.",
+    "brand_card": "Chiaro e scuro, dopo la regolazione",
+    "adjusted": "regolato",
+    "density": "Densità",
+    "density_comfortable": "Comoda",
+    "density_compact": "Compatta",
+    "col_order": "Ordine",
+    "col_status": "Stato",
+    "col_total": "Totale"
+  },
+  "analytics_depth": {
+    "tabs": {
+      "orders_pnl": "P/L per ordine",
+      "utm": "UTM"
+    },
+    "total": "Totale",
+    "export": "CSV",
+    "apply": "Applica",
+    "clear": "Azzera",
+    "sort": "Ordina",
+    "granularity": {
+      "day": "Giorno",
+      "week": "Settimana",
+      "month": "Mese",
+      "quarter": "Trimestre",
+      "year": "Anno"
+    },
+    "periods": {
+      "title": "P/L nel tempo",
+      "series": {
+        "cogs": "Costo del venduto",
+        "shipping": "Spedizioni",
+        "fees": "Commissioni di pagamento",
+        "returns": "Costi dei resi",
+        "ads": "Pubblicità",
+        "fixed": "Costi fissi"
+      },
+      "partial": "parziale",
+      "partial_hint": "Questo periodo è coperto solo in parte: tagliato dalle date scelte o ancora in corso.",
+      "chart_hint": "Barre: costi impilati per tipo. Linea: risultato operativo. Le barre chiare sono periodi parziali. La somma dei periodi è il P/L qui sopra.",
+      "pages": "{n} periodi"
+    },
+    "quality": {
+      "title": "Qualità dei dati",
+      "description": "Quanto sono completi i numeri dietro il P/L.",
+      "incomplete_orders": "Ordini di vendita con costi mancanti",
+      "incomplete_share": "{share} del ricavo netto: costo del venduto sottostimato",
+      "variants_missing_cost": "Varianti senza costo",
+      "fix_link": "Correggi i costi prodotto →",
+      "cost_known": "Ricavo con costo noto",
+      "cost_known_hint": "Quota del ricavo di vendita con costo prodotto noto."
+    },
+    "orders_pnl": {
+      "title": "P/L per ordine",
+      "description": "Ogni ordine di vendita del periodo con il suo P/L; la somma porta al P/L del periodo qui sotto. {out} ordini del periodo non sono vendite (annullati, in attesa, resi) e sono esclusi.",
+      "search": "Numero ordine",
+      "payment": "Metodo di pagamento",
+      "channel": "Canale",
+      "sort": {
+        "placed_desc": "Più recenti",
+        "placed_asc": "Meno recenti",
+        "contribution_asc": "Margine più basso",
+        "contribution_desc": "Margine più alto",
+        "net_desc": "Ricavo netto più alto"
+      },
+      "missing_cost": "Costo mancante",
+      "loss": "In perdita",
+      "empty": "Nessun ordine di vendita corrisponde ai filtri.",
+      "order": "Ordine",
+      "fee_estimated": "Commissione (stima)",
+      "no_cost": "senza costo",
+      "total": "Totale · {n} ordini",
+      "summary": "{n} ordini",
+      "reconciliation": "Dagli ordini al P/L del periodo",
+      "reconciliation_description": "Le righe degli ordini sommano al P/L; i costi noti solo per l'intero periodo sono su una riga a parte.",
+      "reconciliation_filtered": "Calcolato su tutti gli ordini di vendita del periodo, non solo su quelli filtrati.",
+      "recon": {
+        "orders_contribution": "Somma dei margini degli ordini",
+        "shipping_adjustment": "Fattura del corriere vs stima per ordine",
+        "return_timing": "Costi dei resi per data di rientro vs per ordine",
+        "contribution": "Margine di contribuzione (P/L)",
+        "ads": "Pubblicità",
+        "fixed": "Costi fissi",
+        "operating": "Risultato operativo (P/L)"
+      },
+      "shipping_adjustment_hint": "I mesi con fattura del corriere a consuntivo la usano al posto della stima per ordine.",
+      "return_timing_hint": "Il P/L conta i costi dei resi quando la merce rientra; la tabella li conta sull'ordine a cui appartengono.",
+      "matches": "Coincide al centesimo con il P/L del periodo.",
+      "mismatch": "Non coincide con il P/L del periodo: segnalalo."
+    },
+    "channels": {
+      "direct": "Diretto",
+      "paid_social": "Social a pagamento",
+      "paid_search": "Ricerca a pagamento",
+      "organic_search": "Ricerca organica",
+      "email": "Email",
+      "social": "Social",
+      "referral": "Referral",
+      "unknown": "Sconosciuto",
+      "other": "Altro"
+    },
+    "products": {
+      "description": "Vendite del periodo con la spesa delle campagne collegate a ogni prodotto (divisa per ricavo netto quando una campagna promuove più prodotti), profitto, ROAS/ROI, stock, copertura e cosa fare. La spesa delle campagne senza prodotto collegato è su una riga a parte, così la spesa totale è uguale a quella del periodo.",
+      "search": "Prodotto",
+      "action": "Azione di stock",
+      "all_actions": "Tutte le azioni",
+      "actions": {
+        "pause_ads": "Sospendi ads",
+        "reorder": "Riordina",
+        "last_units": "Ultimi pezzi",
+        "clear_excess": "Smaltisci eccesso",
+        "scale_ads": "Aumenta ads",
+        "ok": "OK",
+        "no_data": "Senza stock"
+      },
+      "sort": {
+        "net_desc": "Ricavo netto più alto",
+        "units_desc": "Più unità",
+        "profit_desc": "Profitto più alto",
+        "profit_asc": "Profitto più basso",
+        "ad_spend_desc": "Spesa ads più alta",
+        "roas_asc": "ROAS più basso",
+        "cover_asc": "Copertura più bassa"
+      },
+      "net": "Ricavo netto",
+      "ad_spend": "Spesa ads",
+      "profit": "Profitto",
+      "light": "Ads",
+      "stock": "Stock + in arrivo",
+      "cover": "Copertura",
+      "days": "{n} g",
+      "reorder_units": "{n} pezzi",
+      "unattributed": "Spesa non attribuita: {n} campagne senza prodotto collegato",
+      "link_campaigns": "Collega le campagne →",
+      "spend_matches": "Spesa ads totale {spend}, uguale al P/L del periodo.",
+      "campaigns": "{n} campagne collegate",
+      "summary": "{n} prodotti"
+    },
+    "utm": {
+      "title": "Analisi UTM",
+      "description": "Ordini di vendita per parametro UTM; clicca un valore per aprire il livello successivo. {n} ordini di vendita non hanno dati di attribuzione.",
+      "dims": {
+        "source": "Sorgente",
+        "medium": "Mezzo",
+        "campaign": "Campagna",
+        "content": "Contenuto",
+        "term": "Termine"
+      },
+      "none": "(nessuno)",
+      "empty": "Nessun ordine di vendita nel periodo.",
+      "orders": "Ordini",
+      "revenue": "Ricavi",
+      "net": "Ricavo netto",
+      "aov": "Scontrino medio",
+      "share": "Quota",
+      "summary": "{n} valori",
+      "trend_title": "Canali nel tempo",
+      "trend_description": "Ricavo netto degli ordini di vendita per canale di attribuzione."
+    },
+    "economics": {
+      "title": "Economia dell'ordine",
+      "description": "Il P/L di questo ordine, calcolato come il P/L del periodo.",
+      "replaced": "Sostituito da una modifica: l'economia è sull'ordine sostitutivo.",
+      "not_sale": "Non è una vendita (annullato, in attesa o reso): non conta nel P/L.",
+      "incomplete": "incompleto",
+      "estimated": "stima",
+      "fee_source": {
+        "estimated": "stima"
+      },
+      "lines": {
+        "gross": "Vendite lorde",
+        "refunds": "Rimborsi",
+        "tax": "Imposte",
+        "net": "Ricavo netto",
+        "cogs": "Costo del venduto",
+        "shipping": "Costo di spedizione",
+        "fee": "Commissione di pagamento",
+        "margin": "Margine dell'ordine",
+        "returns": "Costi dei resi",
+        "contribution": "Contribuzione"
+      },
+      "margin_rate": "Contribuzione {rate} del ricavo netto",
+      "open_table": "Apri nel P/L per ordine →"
+    },
+    "order_filters": {
+      "channel": "Canale: {value}",
+      "utm": "utm {dim}: {value}"
+    }
+  },
   "po_editor": {
     "lines": "Righe",
     "search_placeholder": "Aggiungi una variante: SKU, barcode o titolo",
@@ -4545,170 +5026,6 @@
       "create_po": "Crea bozza d'ordine"
     }
   },
-  "tasks": {
-    "title": "Attività",
-    "description": "Lavoro collegato a ordini, resi, ordini d'acquisto e prodotti. Le regole aprono attività sugli eventi e le chiudono quando il record va avanti.",
-    "tabs": {
-      "mine": "Le mie attività",
-      "all": "Tutto il team",
-      "unassigned": "Non assegnate"
-    },
-    "status_filter": {
-      "open": "Aperte",
-      "overdue": "Scadute",
-      "closed": "Chiuse",
-      "all": "Tutte"
-    },
-    "statuses": {
-      "open": "Aperta",
-      "in_progress": "In corso",
-      "done": "Completata",
-      "cancelled": "Annullata"
-    },
-    "columns": {
-      "task": "Attività",
-      "record": "Record",
-      "assignee": "Assegnata a",
-      "due": "Scadenza",
-      "status": "Stato"
-    },
-    "new": "Nuova attività",
-    "fields": {
-      "title": "Titolo",
-      "description": "Dettagli",
-      "assignee": "Assegnata a",
-      "due": "Scadenza",
-      "record": "Record collegato"
-    },
-    "unassigned": "Non assegnata",
-    "no_record": "Nessuno",
-    "overdue": "Scaduta",
-    "create": "Crea attività",
-    "search": "Cerca attività",
-    "empty_title": "Nessuna attività",
-    "empty_description": "Qui non c'è nulla: le attività create a mano o dalle regole compaiono in questo elenco.",
-    "pagination": "{from}–{to} di {total}",
-    "rules": "Regole",
-    "by_rule": "Aperta da una regola",
-    "auto_closed": "Chiusa automaticamente quando il record è andato avanti",
-    "actions": {
-      "start": "Inizia",
-      "done": "Completa",
-      "reopen": "Riapri",
-      "cancel": "Annulla"
-    },
-    "entity": {
-      "order": "Ordine",
-      "return": "Reso",
-      "purchase_order": "Ordine d'acquisto",
-      "product": "Prodotto"
-    },
-    "panel": {
-      "title": "Attività",
-      "empty": "Nessuna attività su questo record.",
-      "add": "Aggiungi attività",
-      "all": "Tutte le attività"
-    },
-    "counts": {
-      "open": "{n} aperte",
-      "overdue": "{n} scadute"
-    }
-  },
-  "task_rules": {
-    "title": "Regole delle attività",
-    "description": "Quando un record resta in uno degli stati scelti (per un certo tempo, o oltre la sua scadenza), Keel apre un'attività e la assegna; l'attività si chiude da sola quando il record va avanti.",
-    "new": "Nuova regola",
-    "edit": "Modifica",
-    "entity": "Record",
-    "statuses": "Nello stato",
-    "min_hours": "Dopo ore nello stato",
-    "use_due": "Solo dopo la scadenza",
-    "overdue_after": "Ore oltre la scadenza",
-    "task_title": "Titolo dell'attività",
-    "task_description": "Dettagli dell'attività",
-    "due_in": "Scadenza dell'attività (ore)",
-    "assignee_mode": "Assegna a",
-    "modes": {
-      "role": "Membro meno carico con il ruolo",
-      "record_owner": "Responsabile del record (altrimenti ruolo)",
-      "user": "Un membro preciso",
-      "none": "Nessuno"
-    },
-    "role": "Ruolo",
-    "user": "Membro",
-    "active": "Attiva",
-    "inactive": "Spenta",
-    "save": "Salva regola",
-    "delete": "Elimina",
-    "restore_defaults": "Aggiungi le regole predefinite mancanti",
-    "empty": "Nessuna regola.",
-    "summary": "{entity} in {statuses}",
-    "after_hours": "dopo {n} h",
-    "past_due": "{n} h oltre la scadenza",
-    "default": "Predefinita"
-  },
-  "support": {
-    "button": "Aiuto",
-    "title": "Supporto",
-    "description": "Richieste al team di Keel. Ricevi una notifica quando rispondiamo.",
-    "new": "Contatta il supporto",
-    "new_description": "Descrivi il problema; uno screenshot o un file aiutano.",
-    "subject": "Oggetto",
-    "category": "Categoria",
-    "categories": {
-      "question": "Domanda",
-      "problem": "Problema",
-      "billing": "Fatturazione",
-      "feature": "Richiesta di funzionalità"
-    },
-    "body": "Messaggio",
-    "attachment": "Allegato (facoltativo)",
-    "attachment_hint": "Immagini, PDF, testo o CSV, fino a 1,5 MB.",
-    "send": "Invia",
-    "sent": "Richiesta inviata.",
-    "view": "Vedi la richiesta",
-    "statuses": {
-      "open": "In attesa di Keel",
-      "answered": "Risposta ricevuta",
-      "closed": "Chiusa"
-    },
-    "columns": {
-      "ticket": "Richiesta",
-      "status": "Stato",
-      "updated": "Ultimo messaggio",
-      "author": "Aperta da"
-    },
-    "empty_title": "Nessuna richiesta",
-    "empty_description": "Usa il pulsante Aiuto nell'intestazione per scrivere al team di Keel.",
-    "reply": "Rispondi",
-    "reply_placeholder": "Scrivi una risposta…",
-    "close": "Chiudi la richiesta",
-    "closed_hint": "Questa richiesta è chiusa: una risposta la riapre.",
-    "you": "Tu",
-    "platform": "Supporto Keel",
-    "download": "Scarica",
-    "messages_n": "{n} messaggi",
-    "all": "Tutte le richieste"
-  },
-  "record_notes": {
-    "title": "Note interne",
-    "placeholder": "Scrivi una nota… digita @ per menzionare un collega",
-    "hint": "Le persone menzionate ricevono una notifica.",
-    "add": "Aggiungi nota",
-    "delete": "Elimina nota",
-    "empty": "Nessuna nota."
-  },
-  "unsubscribe": {
-    "title": "Preferenze email",
-    "confirm_title": "Non ricevere più queste email?",
-    "confirm": "Non riceverai più le email «{category}» di {tenant} all'indirizzo {email}.",
-    "button": "Disiscriviti",
-    "done_title": "Disiscrizione completata",
-    "done": "{email} non riceverà più le email «{category}» di {tenant}. Puoi riattivarle dalle tue preferenze di notifica.",
-    "invalid_title": "Link non valido",
-    "invalid": "Questo link di disiscrizione è danneggiato o incompleto.",
-    "all": "facoltative"
-  },
   "platform_writes": {
     "status": {
       "pending": "In attesa di sync",
@@ -4749,7 +5066,9 @@
       "return_close": "Chiusura reso",
       "campaign_status": "Stato campagna",
       "variant_cost": "Costo variante",
-      "order_discount": "Sconto sull'ordine"
+      "order_discount": "Sconto sull'ordine",
+      "variant_prices": "Prezzi variante",
+      "product_tags": "Tag prodotto"
     }
   }
 }

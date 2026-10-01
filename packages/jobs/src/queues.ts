@@ -6,6 +6,7 @@ export const QUEUES = {
   syncAds: "sync.ads",
   platformWrite: "platform.write",
   tick: "scheduler.tick",
+  listExport: "list.export",
 } as const;
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];
 
@@ -33,6 +34,11 @@ export interface SyncAdsJob {
   provider: "meta" | "google";
   since: string;
   until: string;
+}
+/** A CSV export too large for a direct download (packages/services `requestListExport`). */
+export interface ListExportJob {
+  tenantId: string;
+  exportId: string;
 }
 export interface TickJob {
   /** delta (every 15 min) | ads (daily) | reconcile (nightly) | retry (every 10 min) | billing (daily) | writes (every minute: outbox retries) | retention (daily) */

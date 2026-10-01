@@ -328,7 +328,7 @@ export interface ReturnFilters {
 
 export async function listReturns(ctx: ServiceContext, f: ReturnFilters = {}) {
   const page = Math.max(1, f.page ?? 1);
-  const pageSize = Math.min(200, f.pageSize ?? 50);
+  const pageSize = Math.min(5000, Math.max(1, f.pageSize ?? 50));
   const conds: SQL[] = [eq(schema.returnRequests.tenantId, ctx.tenantId)];
   if (f.status === "open") conds.push(sql`${schema.returnRequests.status} not in ('refunded','exchanged','voucher_issued','rejected')`);
   else if (f.status) conds.push(eq(schema.returnRequests.status, f.status));

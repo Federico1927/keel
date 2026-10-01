@@ -9,7 +9,7 @@ test.describe("post-purchase survey", () => {
   test("a customer answers through the signed email link once; forged links are refused", async ({ page, browser }) => {
     await login(page, "owner@northwind.demo");
     await page.goto("/t/northwind-apparel/orders?status=delivered");
-    const names = (await page.locator("table tbody tr td:first-child a").allInnerTexts()).map((n) => n.trim()).filter((n) => /^#NW-\d+$/.test(n)).slice(0, 10);
+    const names = (await page.locator('table tbody tr a[href*="/orders/"]').allInnerTexts()).map((n) => n.trim()).filter((n) => /^#NW-\d+$/.test(n)).slice(0, 10);
     const customer = await (await browser.newContext()).newPage();
     await customer.goto(`/s/northwind-apparel?o=5000000001&t=${"0".repeat(64)}&lang=en`);
     await expect(customer.getByTestId("survey-error")).toContainText(/not valid/);

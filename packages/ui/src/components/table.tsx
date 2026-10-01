@@ -21,10 +21,10 @@ export const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttribut
 ));
 TableRow.displayName = "TableRow";
 export const TableHead = ({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) => (
-  <th className={cn("h-10 px-3 text-left align-middle text-xs font-medium uppercase tracking-wide text-muted-foreground [&:has([role=checkbox])]:pr-0", className)} {...props} />
+  <th className={cn("h-(--density-head-h) px-3 text-left align-middle text-xs font-medium uppercase tracking-wide text-muted-foreground [&:has([role=checkbox])]:pr-0", className)} {...props} />
 );
 export const TableCell = ({ className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) => (
-  <td className={cn("px-3 py-2.5 align-middle [&:has([role=checkbox])]:pr-0", className)} {...props} />
+  <td className={cn("px-3 py-(--density-cell-y) align-middle [&:has([role=checkbox])]:pr-0", className)} {...props} />
 );
 export const TableCaption = ({ className, ...props }: React.HTMLAttributes<HTMLTableCaptionElement>) => (
   <caption className={cn("mt-4 text-sm text-muted-foreground", className)} {...props} />

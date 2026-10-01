@@ -53,7 +53,7 @@ Rules the graph enforces:
 
 | Group | Tables | Notes |
 | --- | --- | --- |
-| Auth and platform | `users`, `accounts`, `sessions`, `verification_tokens`, `tenants`, `tenant_memberships`, `tenant_tax_rates`, `tenant_addons`, `audit_logs`, `notifications` | A user belongs to many tenants with one role per tenant. Tenant settings (country, currency, timezone, locale, order prefix, thresholds, fees, return rules) are a validated JSON column. |
+| Auth and platform | `users`, `user_sign_ins`, `accounts`, `sessions`, `verification_tokens`, `tenants`, `tenant_memberships`, `tenant_tax_rates`, `tenant_addons`, `tenant_branding`, `audit_logs`, `notifications` | A user belongs to many tenants with one role per tenant. Tenant settings (country, currency, timezone, locale, order prefix, thresholds, fees, return rules) are a validated JSON column. |
 | Integrations | `integrations`, `integration_health`, `sync_runs`, `webhook_events`, `platform_writes` | One row per provider per tenant with `mode` (`mock`/`live`), status, encrypted credentials. `webhook_events` is unique on (source, topic, external id, source updated at): the idempotency key. `sync_runs` holds the cursor so a sync resumes, and the run summary (scanned, changed, conflicts, errors, duration). `platform_writes` is the outbound outbox: one row per write to Shopify, Meta or Google, unique on its idempotency key. |
 | Catalog and stock | `products`, `product_variants`, `locations`, `inventory_levels`, `inventory_movements`, `inventory_drift`, `cost_settings` | Variants carry `option_values` as a JSON map, no hard-coded size or colour, and `cost_minor` with `cost_source` (`platform`, `manual`, `import`, `po_receipt`) and `cost_updated_at`. Movements are the ledger behind stock changes. `inventory_levels.synced_at` is when Keel last read the level from the platform. `inventory_drift` logs stock changes no Keel event explains, clamped negatives and levels no longer reported (deduplicated). |
 | Customers and orders | `customers`, `orders`, `order_lines`, `order_discounts`, `order_attribution`, `order_events`, `order_notes` | `orders.status` is the canonical state written only by `recomputeOrderStatus`. `order_events` is the timeline with author and field diff. `search_blob` is a generated column with a trigram index. |
@@ -234,13 +234,21 @@ Never: `if (tenant.slug === "...")` in shared code, client names in the core, co
 
 Worked example, "only Northwind wants a VAT column in the orders list": add `orders.vat_column` to Northwind's `featureFlags`, read `hasFeature(ctx.settings, "orders.vat_column")` in the orders page to render the column and in the CSV export; no migration, no add-on, invisible to Harbor Home.
 
+## Lists: bulk actions, saved views, search, export
+
+- List filters are parsed from the URL query by `parse*Filters` in `packages/services/src/lists/filters.ts`; pages, CSV exports and saved views all use them, so a view or an export means exactly what the page shows.
+- A list page adds three things with a few lines: `<ListToolbar ctx list basePath />` (saved views menu and Export CSV link, server component), `<ListSelection ids>` around the table with `<SelectAllCheckbox />` / `<RowCheckbox />`, and `<BulkBar slug list actions />` with `bulkActionsFor(role, list)`. Bulk actions are registered in `BULK_ACTIONS` (packages/config) with the permission they need, implemented in `packages/services/src/lists/bulk.ts` on top of `runBatch` (per-record transaction, concurrency 3, outcome per record, `batch_id` in audit and timeline).
+- `<CommandSearch slug />` in the topbar calls `globalSearchAction` → `globalSearch` (one tenant transaction, per-area indexed queries, only areas the role can open).
+- CSV: `apps/web/src/server/list-export.ts` serves `<list>/export` route handlers; above `EXPORT_DIRECT_MAX_ROWS` it creates a `list_exports` row and enqueues `list.export` (packages/jobs), whose handler calls `runListExport` and notifies the user (`export_ready`); `/exports` lists the user's files.
+
 ## Web app layout
 
 - `apps/web/src/server/tenant.ts`: `getTenantContext(slug)` resolves membership (or super-admin impersonation), tenant settings, active add-ons and locale; `ctx.run(fn)` wraps `withTenant`.
 - `apps/web/src/server/actions/*`: server actions, each starting with `requireAction`, writing through services, auditing with `auditActor(ctx)`.
 - `apps/web/src/server/queries/*`: read models for lists (server-side filters, pagination, counts).
 - i18n: `next-intl`, messages per locale under `apps/web/messages/<locale>`; a test fails when keys differ between languages. Dates, numbers and currencies always go through `Intl` with the tenant's locale, currency and timezone.
-- Auth: Auth.js with credentials and magic link (printed to the console in development); JWT sessions; middleware protects everything outside `/login`.
+- Auth: Auth.js with credentials and magic link (printed to the console in development); JWT sessions; middleware protects everything outside `/login`. `getCurrentUser` re-reads the user row on each request: a token older than `users.session_version` (password change, "sign out of other sessions") counts as signed out.
+- Look and feel: direction A tokens in `packages/ui/src/tokens.css` (mirrored in `tokens.ts`, AA-checked by a unit test), Geist via `@keel/ui/fonts`. The root layout renders the user's theme (`dark` class) and density (`data-density`) on `<html>`; only "system" is resolved by an inline script before paint. A tenant's brand colour (`tenant_branding`, made AA-safe per theme by `brandColorsFor` in core) is injected as `--primary` by the app shell and used by the public pages inside a `.light` subtree. No raw colours in `apps/web` (lint rule).
 
 ## Testing
 

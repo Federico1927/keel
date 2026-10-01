@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ChevronsUpDown, LogOut, Menu, ShieldAlert } from "lucide-react";
+import { ChevronsUpDown, Menu, ShieldAlert } from "lucide-react";
 import {
   Button,
   Dialog,
@@ -16,15 +16,17 @@ import {
   DropdownMenuTrigger,
 } from "@keel/ui";
 import { LocaleSwitcher } from "@/components/locale-switcher";
-import { signOutAction } from "@/server/actions/auth";
+import type { ThemePreference } from "@keel/ui/tokens";
 import { SidebarNav, type SidebarProps } from "./sidebar";
+import { UserMenu, type MenuUser } from "./user-menu";
 import { NotificationsBell, type BellItem } from "./notifications-bell";
 import { SupportButton } from "./support-button";
+import { CommandSearch } from "@/components/lists/command-search";
 
 interface TopbarProps {
   sidebar: SidebarProps;
-  userName: string;
-  userEmail: string;
+  user: MenuUser;
+  theme: ThemePreference;
   role: string;
   memberships: { slug: string; name: string }[];
   isSuperAdmin: boolean;
@@ -34,7 +36,7 @@ interface TopbarProps {
   support: { categories: string[] } | null;
 }
 
-export function Topbar({ sidebar, userName, userEmail, role, memberships, isSuperAdmin, impersonating, notifications, support }: TopbarProps) {
+export function Topbar({ sidebar, user, theme, role, memberships, isSuperAdmin, impersonating, notifications, support }: TopbarProps) {
   const t = useTranslations();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -76,27 +78,11 @@ export function Topbar({ sidebar, userName, userEmail, role, memberships, isSupe
           </DropdownMenuContent>
         </DropdownMenu>
         <div className="ml-auto flex items-center gap-2">
+          <CommandSearch slug={sidebar.tenantSlug} />
           {support && <SupportButton slug={sidebar.tenantSlug} categories={support.categories} />}
           <NotificationsBell slug={sidebar.tenantSlug} unread={notifications.unread} items={notifications.items} locale={notifications.locale} />
           <LocaleSwitcher />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-2">
-                <span className="hidden sm:inline">{userName}</span>
-                <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t(`roles.${role}`)}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel className="font-normal">
-                <p className="text-sm text-foreground">{userName}</p>
-                <p className="text-xs">{userEmail}</p>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => signOutAction()}>
-                <LogOut /> {t("common.sign_out")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <UserMenu user={user} role={role} theme={theme} profileHref={`/t/${sidebar.tenantSlug}/profile`} />
         </div>
       </header>
       <Dialog open={open} onOpenChange={setOpen}>

@@ -5,6 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 import type { PortalField, ReturnPortalConfig } from "@keel/core";
 import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Textarea, cn } from "@keel/ui";
 import { saveReturnBehaviourAction, savePortalConfigAction } from "@/server/actions/returns";
+import { TOKENS } from "@keel/ui/tokens";
 
 type Localized = Record<string, string>;
 const TEXTS = ["title", "intro", "instructions", "successMessage", "confirmText"] as const;
@@ -51,10 +52,14 @@ export function PortalConfigForm({ slug, url, config: initial, locales, defaultL
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="pc-logo">{t("logo")}</Label>
             <Input id="pc-logo" type="url" placeholder="https://" value={c.logoUrl ?? ""} onChange={(e) => set("logoUrl", e.target.value || null)} />
+            <p className="text-xs text-muted-foreground">{t("logo_branding_hint")}</p>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="pc-color">{t("color")}</Label>
-            <div className="flex gap-2"><input id="pc-color" type="color" value={c.primaryColor} onChange={(e) => set("primaryColor", e.target.value)} className="h-9 w-12 rounded border" /><Input value={c.primaryColor} onChange={(e) => set("primaryColor", e.target.value)} aria-label={t("color")} /></div>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={c.primaryColor === null} onChange={(e) => set("primaryColor", e.target.checked ? null : TOKENS.light.primary)} data-testid="portal-use-branding" /> {t("use_branding")}
+            </label>
+            {c.primaryColor !== null && <div className="flex gap-2"><input id="pc-color" type="color" value={c.primaryColor} onChange={(e) => set("primaryColor", e.target.value)} className="h-9 w-12 rounded border" /><Input value={c.primaryColor} onChange={(e) => set("primaryColor", e.target.value)} aria-label={t("color")} /></div>}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="pc-support">{t("support_email")}</Label>

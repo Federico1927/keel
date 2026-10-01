@@ -9,6 +9,7 @@ import { TENANT_ROLES, canManageRole, isTenantRole } from "@keel/config";
 import { TRANSACTIONAL_EMAIL, appBaseUrl, sendTenantEmail } from "@keel/services";
 import { requireAction, ForbiddenError } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
+import { displayName } from "@keel/core";
 
 const inviteSchema = z.object({ email: z.string().email().toLowerCase(), name: z.string().trim().min(1).max(80), role: z.enum(TENANT_ROLES) });
 
@@ -23,8 +24,10 @@ export async function inviteMember(slug: string, _prev: ActionResult | null, for
     if (!parsed.success) return fail("invalid_input");
     if (!canManageRole(ctx.role, parsed.data.role)) return fail("forbidden");
     const db = adminDb();
-    const [existing] = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, parsed.data.email)).limit(1);
+    const [existing] = await db.select({ id: schema.users.id, name: schema.users.name }).from(schema.users).where(eq(schema.users.email, parsed.data.email)).limit(1);
     let userId = existing?.id;
+    // an account without a name (created by a magic link) gets the one given in the invitation
+    if (existing && !existing.name?.trim()) await db.update(schema.users).set({ name: parsed.data.name }).where(eq(schema.users.id, existing.id));
     if (!userId) {
       const [created] = await db
         .insert(schema.users)
@@ -38,7 +41,7 @@ export async function inviteMember(slug: string, _prev: ActionResult | null, for
       .onConflictDoUpdate({ target: [schema.tenantMemberships.tenantId, schema.tenantMemberships.userId], set: { role: parsed.data.role, isActive: true } });
     const [invitee] = await db.select({ locale: schema.users.locale }).from(schema.users).where(eq(schema.users.id, userId)).limit(1);
     const delivery = await ctx.run(async (tx) => {
-      const sent = await sendTenantEmail({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { to: parsed.data.email, template: "invite", data: { tenantName: ctx.tenant.name, inviterName: ctx.user.name ?? ctx.user.email, role: parsed.data.role, url: `${appBaseUrl()}/login` }, locale: invitee?.locale ?? ctx.tenant.defaultLocale, category: TRANSACTIONAL_EMAIL });
+      const sent = await sendTenantEmail({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { to: parsed.data.email, template: "invite", data: { tenantName: ctx.tenant.name, inviterName: displayName(ctx.user), role: parsed.data.role, url: `${appBaseUrl()}/login` }, locale: invitee?.locale ?? ctx.tenant.defaultLocale, category: TRANSACTIONAL_EMAIL });
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "membership.invited", entityType: "user", entityId: userId, metadata: { email: parsed.data.email, role: parsed.data.role, email_delivery: sent.outcome } });
       return sent;
     });

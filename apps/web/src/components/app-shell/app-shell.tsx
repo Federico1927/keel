@@ -4,18 +4,24 @@ import { getMemberships } from "@/server/session";
 import { SidebarNav } from "./sidebar";
 import { Topbar } from "./topbar";
 import { SUPPORT_CATEGORIES, listNotifications, unreadCount } from "@keel/services";
+import { displayName, initials } from "@keel/core";
+import { brandCss, loadBrand } from "@/server/branding";
+import { avatarUrl } from "@/server/avatar";
 
 export async function AppShell({ ctx, children }: { ctx: TenantContext; children: React.ReactNode }) {
   const memberships = await getMemberships(ctx.user.id);
   const allowedPages = PAGES.filter((p) => isPageEnabled(p, ctx.activeAddons) && canViewPage(ctx.role, p));
-  const sidebar = { tenantSlug: ctx.tenant.slug, tenantName: ctx.tenant.name, allowedPages: [...allowedPages] };
+  const brand = await loadBrand(ctx.tenant.id, ctx.tenant.slug);
+  const css = brandCss(brand);
+  const sidebar = { tenantSlug: ctx.tenant.slug, tenantName: ctx.tenant.name, allowedPages: [...allowedPages], logoLight: brand.logoLight, logoDark: brand.logoDark };
   const { unread, items } = await ctx.run(async (tx) => {
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
     return { unread: await unreadCount(s, ctx.user.id), items: await listNotifications(s, ctx.user.id, 15) };
   });
   return (
     <div className="flex min-h-screen">
-      <aside className="hidden w-60 shrink-0 lg:block">
+      {css && <style data-tenant-brand dangerouslySetInnerHTML={{ __html: css }} />}
+      <aside className="hidden w-60 shrink-0 border-r bg-sidebar lg:block">
         <div className="sticky top-0 h-screen">
           <SidebarNav {...sidebar} />
         </div>
@@ -23,8 +29,8 @@ export async function AppShell({ ctx, children }: { ctx: TenantContext; children
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar
           sidebar={sidebar}
-          userName={ctx.user.name ?? ctx.user.email}
-          userEmail={ctx.user.email}
+          user={{ name: displayName(ctx.user), email: ctx.user.email, initials: initials(ctx.user), avatarUrl: avatarUrl(ctx.user) }}
+          theme={ctx.user.theme}
           role={ctx.role}
           memberships={memberships.map((m) => ({ slug: m.slug, name: m.name }))}
           isSuperAdmin={ctx.user.isSuperAdmin}

@@ -41,7 +41,7 @@ export default async function AssistantPage({ params, searchParams }: { params: 
     return num(Number(f.value));
   };
   const change = (c: number | null | undefined) =>
-    c === null || c === undefined ? null : <span className={cn("ml-1 text-xs", c >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive")}>{c >= 0 ? "+" : ""}{formatPercent(c, ctx.locale)}</span>;
+    c === null || c === undefined ? null : <span className={cn("ml-1 text-xs", c >= 0 ? "text-success" : "text-destructive")}>{c >= 0 ? "+" : ""}{formatPercent(c, ctx.locale)}</span>;
   const day = (d: string) => formatDate(`${d}T12:00:00Z`, ctx.locale, "UTC");
 
   const citationCard = (c: AssistantCitation, i: number) => (

@@ -21,3 +21,4 @@ export * from "./components/stat";
 export * from "./components/checkbox";
 export * from "./components/pagination";
 export * from "./components/detail-shell";
+export * from "./components/avatar";

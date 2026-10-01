@@ -10,7 +10,7 @@ test.describe("returns and discounts", () => {
     await expect(rows.first()).toBeVisible();
     // earlier runs on the same database may have returned some orders already: take the first with something left to return
     let opened = false;
-    const orderUrls = await rows.locator("td:first-child a").evaluateAll((els) => els.slice(0, 12).map((e) => (e as HTMLAnchorElement).href));
+    const orderUrls = await rows.locator('a[href*="/orders/"]').evaluateAll((els) => els.slice(0, 12).map((e) => (e as HTMLAnchorElement).href));
     for (const url of orderUrls) {
       await page.goto(url);
       const link = page.getByRole("link", { name: /Request return|Apri reso/ });

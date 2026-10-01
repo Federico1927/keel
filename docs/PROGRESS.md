@@ -383,6 +383,31 @@ Fatto:
 - #15: `Select` e `Input` hanno due altezze condivise (`sm`, `default`) e il testo centrato; niente più `<select>` grezzi né altezze impostate a mano (un test lo impedisce); controllo Playwright che il testo stia nel riquadro.
 - Lingua: date e numeri seguono la lingua mostrata a schermo; il selettore salva la lingua sul profilo e l'accesso la ripristina.
 
+## Liste: azioni in blocco, viste salvate, ricerca ⌘K, export CSV (issue #25)
+
+Fatto:
+- Selezione delle righe su Ordini, Prodotti e Resi con barra delle azioni in blocco: ordini (cambia stato, annulla, assegna, tag), prodotti (stato, prezzo fisso o in percentuale, prezzo barrato, tag), resi (approva, rifiuta, ricevi con rientro a stock facoltativo, rimborsa). Al massimo 3 scritture in parallelo; riepilogo "fatti / saltati con motivo / falliti con errore"; un `batch_id` in ogni riga di audit e in ogni evento della timeline. Le azioni compaiono solo ai ruoli che le possono eseguire (matrice in `packages/config/src/lists.ts`).
+- Viste salvate per Ordini, Prodotti, Resi, Clienti e Ordini d'acquisto: private o condivise con il team, si riaprono con gli stessi filtri e lo stesso ordinamento; salvare con lo stesso nome aggiorna la vista.
+- Ricerca globale ⌘K / Ctrl+K nell'intestazione: ordini (numero, nome, email, telefono in formato internazionale o locale), clienti, prodotti e SKU, ordini d'acquisto, in una sola richiesta dentro la transazione del tenant; ogni risultato apre il record.
+- Filtri `?product=` e `?variant=` sugli Ordini, con link dalla scheda prodotto e da Performance prodotti in Analisi.
+- Export CSV della lista filtrata per Ordini, Prodotti, Clienti e Resi: fino a 5.000 righe scarica subito, oltre parte un job in background, il file compare nella pagina Export e arriva una notifica. Ogni export e ogni download nel registro di audit.
+- Seed: viste salvate condivise e private sui due negozi e un export completato.
+- Migrazione 0022 (tabelle `saved_views` e `list_exports` con RLS, indici trigram per la ricerca, indice su `order_lines.product_id`); test core 192, config 10, integrazioni 53, servizi 116 (+9 in `lists.test.ts`), db 571; e2e `lists.spec.ts` (6 scenari).
+
+Resta: le scritture verso la piattaforma delle azioni in blocco passeranno dalla coda della issue #24 quando sarà unita; le azioni singole sulle schede non usano ancora i nuovi servizi di scrittura; "seleziona tutti i risultati del filtro" (oltre la pagina) non c'è; export CSV degli ordini d'acquisto e delle tabelle di analisi arrivano dai rispettivi rami.
+## Stile A, tema scuro e branding (#44); profilo utente e saluto (#45)
+
+Fatto:
+- Direzione visiva A scelta dal committente: Geist (ospitato nel repository, nessun download a build o a runtime), superfici bianche, barra laterale chiara, blu `#2b59ff` (scuro `#5b7cff`), angoli di 8px, badge a pillola. Token in `packages/ui/src/tokens.css` e `tokens.ts`, importabili anche dalla landing; test automatico di contrasto WCAG AA su tutte le coppie testo/controllo nei due temi (tre colori di stato scuriti di poco per superarlo). Grafici con palette Okabe-Ito leggibile in entrambi i temi; regola di lint che blocca classi di palette e colori esadecimali in `apps/web`.
+- Tema Chiaro / Scuro / Sistema salvato sul profilo e applicato dal server su `<html>`: nessun lampo del tema sbagliato al caricamento. Densità Comoda / Compatta (righe delle tabelle e padding delle schede).
+- Impostazioni → Branding (owner/admin): colore del marchio regolato automaticamente per restare AA nei due temi, logo per sfondi chiari e scuri. È il colore primario dell'app per quel tenant e il predefinito di portale resi, tracking, pagina fornitori e sondaggio, che restano chiari e mantengono le loro personalizzazioni. Demo: Harbor Home ha il suo colore, Northwind il blu del prodotto.
+- `/admin/styleguide`: token, componenti reali nei due temi, varianti del colore del marchio e delle densità.
+- Profilo (`/t/<tenant>/profile` e `/admin/profile`, dal menu utente): nome, nome preferito, foto (ridimensionata sul server), ruolo aziendale; lingua (vuota = lingua dello spazio di lavoro), tema, densità, fuso orario; cambio password con controllo di robustezza, cambio email con conferma sul nuovo indirizzo e avviso al vecchio, "esci da tutte le altre sessioni", ultimi accessi; spazi di lavoro e ruoli. Ogni modifica nell'audit con diff, limiti di frequenza su password ed email.
+- Chi non ha un nome completa il profilo prima di entrare; `displayName` (nome preferito → nome → parte dell'email prima di @) sostituisce ogni ripiego sull'email.
+- Saluto in cima alla dashboard ("Buongiorno, Giulia") calcolato sul server nel fuso dell'utente, con la data di oggi e gli ordini del giorno.
+- Migrazione 0019 (tabelle `tenant_branding` con RLS e `user_sign_ins` di piattaforma, colonne nullable su `users`); test core 178, servizi (account e branding) 9, db 517, web 28, e2e: nuovi `theme.spec.ts` e `profile.spec.ts`. Screenshot rifatti: tutte le pagine in chiaro (en, it) e 16 pagine principali in scuro in `docs/screenshots/<lingua>/dark/` (`THEMES=light,dark` nello script).
+
+Resta: il fuso orario dell'utente vale per saluto, data e accessi; report e liste restano nel fuso del tenant (vedi DECISIONS). Collegamenti (token personali #21, preferenze notifiche #33) da aggiungere al profilo quando esisteranno.
 ## Analisi approfondita: P/L per ordine, P/L nel tempo, prodotti con ads e stock, UTM (issue #31)
 
 Fatto:

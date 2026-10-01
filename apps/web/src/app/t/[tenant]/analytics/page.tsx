@@ -218,7 +218,7 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
                       <TableCell className="font-medium">{r.cohort}</TableCell>
                       <TableCell className="text-right tabular">{r.customers}</TableCell>
                       {r.retention.map((v, i) => (
-                        <TableCell key={i} className="text-right tabular" style={v !== null ? { backgroundColor: `hsl(205 55% 40% / ${Math.min(0.6, v * 2)})` } : undefined}>
+                        <TableCell key={i} className="text-right tabular" style={v !== null ? { backgroundColor: `color-mix(in srgb, var(--primary) ${Math.round(Math.min(0.6, v * 2) * 100)}%, transparent)` } : undefined}>
                           {v === null ? "" : formatPercent(v, ctx.locale, 0)}
                         </TableCell>
                       ))}

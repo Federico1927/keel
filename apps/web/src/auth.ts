@@ -2,11 +2,12 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import bcrypt from "bcryptjs";
-import { adminDb, eq, schema } from "@keel/db";
+import { adminDb, and, eq, schema } from "@keel/db";
 import { z } from "zod";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { isLocale } from "@keel/config";
-import { renderEmail, sendPlatformEmail } from "@keel/services";
+import { recordSignIn, renderEmail, sendPlatformEmail } from "@keel/services";
+import { THEME_COOKIE, isThemePreference } from "@keel/ui/tokens";
 import { authConfig } from "./auth.config";
 import { LOCALE_COOKIE } from "./i18n/request";
 
@@ -43,7 +44,7 @@ const magicLink = {
   },
 };
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
   ...authConfig,
   adapter: DrizzleAdapter(db(), {
     usersTable: schema.users,
@@ -64,17 +65,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const ok = await bcrypt.compare(parsed.data.password, user.passwordHash);
         if (!ok) return null;
         await db().update(schema.users).set({ lastLoginAt: new Date() }).where(eq(schema.users.id, user.id));
-        return { id: user.id, email: user.email, name: user.name, isSuperAdmin: user.isSuperAdmin, locale: user.locale };
+        return { id: user.id, email: user.email, name: user.name, isSuperAdmin: user.isSuperAdmin, locale: user.locale, sessionVersion: user.sessionVersion };
       },
     }),
     magicLink,
   ],
   events: {
-    async signIn({ user }) {
-      if (user.id) await db().update(schema.users).set({ lastLoginAt: new Date() }).where(eq(schema.users.id, user.id));
-      // a language chosen on the profile (or with the picker) follows the user to every device
-      const locale = (user as { locale?: string | null }).locale;
-      if (isLocale(locale)) (await cookies()).set(LOCALE_COOKIE, locale, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
+    async signIn({ user, account }) {
+      if (!user.id) return;
+      await db().update(schema.users).set({ lastLoginAt: new Date() }).where(eq(schema.users.id, user.id));
+      const h = await headers();
+      await recordSignIn(db(), { userId: user.id, method: account?.provider ?? "unknown", ip: h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? h.get("x-real-ip"), userAgent: h.get("user-agent") });
+      const jar = await cookies();
+      const year = { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" as const };
+      // a language chosen on the profile (or with the picker) follows the user to every device;
+      // without one, the language of the user's first tenant ("empty = tenant default")
+      const [row] = await db()
+        .select({ locale: schema.users.locale, theme: schema.users.theme, tenantLocale: schema.tenants.defaultLocale })
+        .from(schema.users)
+        .leftJoin(schema.tenantMemberships, and(eq(schema.tenantMemberships.userId, schema.users.id), eq(schema.tenantMemberships.isActive, true)))
+        .leftJoin(schema.tenants, eq(schema.tenants.id, schema.tenantMemberships.tenantId))
+        .where(eq(schema.users.id, user.id))
+        .orderBy(schema.tenants.name)
+        .limit(1);
+      const locale = row?.locale ?? row?.tenantLocale;
+      if (isLocale(locale)) jar.set(LOCALE_COOKIE, locale, year);
+      // mirror of the saved theme, so signed-out pages on this device keep it without a flash
+      jar.set(THEME_COOKIE, isThemePreference(row?.theme) ? row.theme : "system", year);
     },
   },
 });

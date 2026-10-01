@@ -4,6 +4,7 @@ import { formatMoney, formatNumber, formatPercent } from "@keel/core";
 import { creativePerformance } from "@keel/services";
 import { Badge, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
+import { CHART_COLORS } from "@/components/charts/theme";
 import { PeriodPicker } from "@/components/period-picker";
 import { periodParams, resolvePeriod } from "@/server/period";
 
@@ -13,7 +14,7 @@ function CreativeThumb({ format, label }: { format: string | null; label: string
   for (const ch of label) h = (h * 31 + ch.charCodeAt(0)) % 360;
   return (
     <svg viewBox="0 0 64 64" className="h-12 w-12 shrink-0 rounded-md" aria-hidden>
-      <defs><linearGradient id={`g${h}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={`hsl(${h} 55% 55%)`} /><stop offset="1" stopColor={`hsl(${(h + 60) % 360} 55% 35%)`} /></linearGradient></defs>
+      <defs><linearGradient id={`g${h}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={CHART_COLORS[h % CHART_COLORS.length]} /><stop offset="1" stopColor={CHART_COLORS[(h + 2) % CHART_COLORS.length]} /></linearGradient></defs>
       <rect width="64" height="64" fill={`url(#g${h})`} />
       {format === "video" && <polygon points="26,20 46,32 26,44" fill="white" opacity="0.9" />}
       {format === "carousel" && <g fill="white" opacity="0.85"><rect x="12" y="18" width="18" height="28" rx="2" /><rect x="34" y="18" width="18" height="28" rx="2" opacity="0.6" /></g>}

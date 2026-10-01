@@ -17,9 +17,14 @@ export default async function SettingsPage({ params }: { params: Promise<{ tenan
         title={t("title")}
         description={t("description")}
         actions={
-          <Button asChild variant="outline">
-            <Link href={`/t/${tenant}/settings/order-states`}>{t("order_states_link")}</Link>
-          </Button>
+          <>
+            <Button asChild variant="outline">
+              <Link href={`/t/${tenant}/settings/branding`}>{t("branding_link")}</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href={`/t/${tenant}/settings/order-states`}>{t("order_states_link")}</Link>
+            </Button>
+          </>
         }
       />
       <Tabs defaultValue="general">

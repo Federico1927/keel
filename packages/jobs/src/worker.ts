@@ -1,8 +1,8 @@
 import * as Sentry from "@sentry/node";
 import { checkRuntimeConfig, platformRetentionDays, SENTRY_DATA_COLLECTION } from "@keel/config";
 import { createBoss } from "./boss";
-import { handlePlatformWrite, handleSyncAds, handleSyncCatalog, handleSyncOrders, handleTick, handleWebhook, type Enqueue } from "./handlers";
-import { QUEUES, queueRetentionOptions, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
+import { handleListExport, handlePlatformWrite, handleSyncAds, handleSyncCatalog, handleSyncOrders, handleTick, handleWebhook, type Enqueue } from "./handlers";
+import { QUEUES, queueRetentionOptions, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
 
 /** Nightly reconciliation at 03:00 and customer predictions and full live-segment refresh at 03:40, live segments every 10 min, pixel stitching and server-side conversions every 5 min, delta every 15 min, ads daily at 06:00, webhook retry every 10 min, platform-write retries every minute, retention daily at 04:10 (UTC). */
 const SCHEDULES: { cron: string; data: TickJob }[] = [
@@ -76,6 +76,7 @@ async function main() {
   await boss.work<PlatformWriteJob>(QUEUES.platformWrite, { batchSize: 5 }, one((d: PlatformWriteJob) => handlePlatformWrite(d)));
   await boss.work<SyncAdsJob>(QUEUES.syncAds, one((d: SyncAdsJob) => handleSyncAds(d)));
   await boss.work<TickJob>(QUEUES.tick, one((d: TickJob) => handleTick(d, enqueue)));
+  await boss.work<ListExportJob>(QUEUES.listExport, one((d: ListExportJob) => handleListExport(d)));
   for (const s of SCHEDULES) await boss.schedule(QUEUES.tick, s.cron, s.data, { singletonKey: s.data.kind });
   console.info("[jobs] worker started: queues", Object.values(QUEUES).join(", "));
   const shutdown = async () => {

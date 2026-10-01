@@ -115,6 +115,7 @@ export const orderLines = pgTable(
     uniqueIndex("order_lines_tenant_external_uq").on(t.tenantId, t.externalId),
     index("order_lines_order_idx").on(t.orderId),
     index("order_lines_variant_idx").on(t.tenantId, t.variantId),
+    index("order_lines_product_idx").on(t.tenantId, t.productId),
     tenantIsolation("order_lines"),
   ],
 ).enableRLS();

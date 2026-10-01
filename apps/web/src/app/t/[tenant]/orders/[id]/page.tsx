@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { adminDb, eq, inArray, schema } from "@keel/db";
-import { formatDateTime, formatMoney, daysInTransit, orderEditBlock } from "@keel/core";
+import { formatDateTime, formatMoney, daysInTransit, orderEditBlock, displayName } from "@keel/core";
 import { customerOrderHistory, duplicateSiblings, latestPlatformWrites } from "@keel/services";
 import { ORDER_DISCOUNT_PRESETS_BPS, canDo, canViewPage, canWritePage, isPageEnabled } from "@keel/config";
 import { Alert, AlertDescription, AlertTitle, Badge, Button, Card, CardContent, CardHeader, CardTitle, DetailShell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
@@ -39,7 +39,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
   const actorIds = [...new Set([...events.map((e) => e.actorUserId), ...notes.map((n) => n.authorId), order.assignedTo].filter((x): x is string => Boolean(x)))];
   const extra = actorIds.filter((a) => !members.some((m) => m.id === a));
   const extraUsers = extra.length ? await adminDb().select({ id: schema.users.id, name: schema.users.name, email: schema.users.email }).from(schema.users).where(inArray(schema.users.id, extra)) : [];
-  const people = [...members, ...extraUsers].map((m) => ({ id: m.id, name: m.name ?? m.email }));
+  const people = [...members, ...extraUsers].map((m) => ({ id: m.id, name: displayName(m) }));
   const nameOf = (id: string | null | undefined) => (id ? (people.find((p) => p.id === id)?.name ?? "—") : null);
   const base = `/t/${tenant}/orders`;
   const fmt = (minor: number) => formatMoney(minor, order.currency, ctx.locale);
@@ -164,8 +164,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
               ) : (
                 <>
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="rounded border p-2"><span className="block text-muted-foreground">{t("history.total")}</span><span className="font-serif text-lg tabular">{history.stats.total}</span></div>
-                    <div className="rounded border p-2"><span className="block text-muted-foreground">{t("history.spent")}</span><span className="font-serif text-lg tabular">{fmt(history.stats.totalSpentMinor)}</span></div>
+                    <div className="rounded border p-2"><span className="block text-muted-foreground">{t("history.total")}</span><span className="text-lg font-semibold tabular">{history.stats.total}</span></div>
+                    <div className="rounded border p-2"><span className="block text-muted-foreground">{t("history.spent")}</span><span className="text-lg font-semibold tabular">{fmt(history.stats.totalSpentMinor)}</span></div>
                     <div className="rounded border p-2"><span className="block text-muted-foreground">{t("history.delivered")}</span><span className="tabular">{history.stats.delivered}</span></div>
                     <div className="rounded border p-2"><span className="block text-muted-foreground">{t("history.returned")}</span><span className="tabular">{history.stats.returned}</span> · <span className="text-muted-foreground">{t("history.cancelled")}</span> <span className="tabular">{history.stats.cancelled}</span></div>
                   </div>

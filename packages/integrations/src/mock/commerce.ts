@@ -17,7 +17,7 @@ import {
   type SyncQuery,
   type VerifiedWebhook,
   type WebhookRegistration,
- type CreateOrderInput, type OrderDetailsPatch, type OrderDiscountPatch } from "../types";
+ type CreateOrderInput, type OrderDetailsPatch, type OrderDiscountPatch, type VariantPatch } from "../types";
 import { FailureScript } from "./failures";
 
 export interface MockCatalogVariant {
@@ -390,8 +390,13 @@ export class MockCommercePlatform implements CommercePlatform {
     const tags = [...kept, ...add.filter((t) => !have.has(t.trim().toLowerCase()))];
     this.orders.set(externalId, { ...o, tags, platformUpdatedAt: new Date() });
   }
-  async updateVariant(variantExternalId: string, patch: { priceMinor?: number }) {
+  async updateVariant(variantExternalId: string, patch: VariantPatch) {
     this.record("updateVariant", { variantExternalId, patch });
+    const v = this.opts.variants.find((x) => x.externalId === variantExternalId);
+    if (v && patch.priceMinor !== undefined) v.priceMinor = patch.priceMinor;
+  }
+  async updateProductTags(productExternalId: string, add: string[], remove: string[]) {
+    this.record("updateProductTags", { productExternalId, add, remove });
   }
   async updateVariantCost(variant: { variantExternalId: string; inventoryItemExternalId: string | null }, costMinor: number) {
     this.record("updateVariantCost", { ...variant, costMinor });

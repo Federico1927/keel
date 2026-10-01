@@ -9,6 +9,7 @@ import { writeDataset } from "./writer";
 import { DEMO_COD_SETTINGS, DEMO_RETURN_COSTS, REASON_LABELS, REASON_PLATFORM, demoConversionSettings, demoPixelSettings, demoPortalConfig, demoReturnPolicy, demoSurveySettings } from "./settings";
 export { ensureDemoSettings } from "./settings";
 import { seedCollab } from "./collab";
+import { seedLists } from "./lists";
 import { createRng } from "@keel/integrations";
 import { SALE_STATUSES, allocateLandedCost, normalizePhone, runPredictionModel, type CustomerHistory } from "@keel/core";
 import { MODULES, PLANS, PLATFORM_CURRENCY } from "@keel/config";
@@ -114,8 +115,11 @@ export async function seedPlatform(db: ReturnType<typeof drizzle<typeof schema>>
         passwordHash,
         isSuperAdmin: "superAdmin" in u ? Boolean(u.superAdmin) : false,
         emailVerified: new Date(),
+        preferredName: demoPreferredName(u),
+        // explicit English: an empty language now means "the tenant's language" at sign-in (Northwind is Italian)
+        locale: "en",
       })
-      .onConflictDoUpdate({ target: schema.users.email, set: { name: u.name, passwordHash } })
+      .onConflictDoUpdate({ target: schema.users.email, set: { name: u.name, passwordHash, preferredName: demoPreferredName(u), locale: "en" } })
       .returning({ id: schema.users.id });
     userIds[u.email] = row!.id;
     for (const m of u.memberships) {
@@ -129,8 +133,19 @@ export async function seedPlatform(db: ReturnType<typeof drizzle<typeof schema>>
         .returning();
     }
   }
+  for (const [key, id] of Object.entries(tenantIds) as [keyof typeof DEMO_TENANTS, string][]) {
+    await db.insert(schema.tenantBranding).values({ tenantId: id, brandColor: DEMO_BRAND_COLORS[key] }).onConflictDoNothing();
+  }
   await seedBilling(db, tenantIds);
   return { tenantIds, userIds };
+}
+
+/** Demo branding: Northwind keeps the product blue, Harbor Home shows a brand colour of its own. */
+export const DEMO_BRAND_COLORS: Record<keyof typeof DEMO_TENANTS, string | null> = { northwind: null, harbor: "#3d5a40" };
+
+/** The first name, as a person would fill "preferred name"; the platform admin has none. */
+function demoPreferredName(u: (typeof DEMO_USERS)[number]): string | null {
+  return "superAdmin" in u ? null : u.name.split(" ")[0]!;
 }
 
 /** Demo billing: Northwind active on Growth with COD add-on and a paid history; Harbor Home past due on Starter. */
@@ -213,6 +228,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("assistant", () => seedAssistant(db, ctx, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("catalog", () => seedCatalogDuplicate(db, cfg.tenantId));
     await step("collab", () => seedCollab(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, cfg.locale, opts.now ?? new Date()));
+    await step("lists", () => seedLists(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
   }
 }

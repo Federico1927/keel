@@ -57,7 +57,7 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
                   <dt className="text-muted-foreground">{t("last_success")}</dt><dd>{dt(row?.lastSuccessAt)}</dd>
                   <dt className="text-muted-foreground">{t("last_error")}</dt><dd className={row?.lastError ? "text-destructive" : ""}>{row?.lastError ?? "—"}</dd>
                 </dl>
-                {cfg.missingScopes && cfg.missingScopes.length > 0 && <p className="text-xs text-amber-700">{t("missing_scopes", { scopes: cfg.missingScopes.join(", ") })}</p>}
+                {cfg.missingScopes && cfg.missingScopes.length > 0 && <p className="text-xs text-warning">{t("missing_scopes", { scopes: cfg.missingScopes.join(", ") })}</p>}
                 {health.length > 0 && (
                   <ul className="space-y-1 text-xs">
                     {health.map((h) => (

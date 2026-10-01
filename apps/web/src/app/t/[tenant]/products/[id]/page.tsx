@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
-import { canDo, canWritePage } from "@keel/config";
+import { canDo, canViewPage, canWritePage } from "@keel/config";
 import { formatDate, formatDateTime, formatMoney, formatNumber } from "@keel/core";
 import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
@@ -126,8 +126,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         <Stat label={t("kpi.reorder")} value={suggested > 0 ? formatNumber(suggested, ctx.locale) : "—"} hint={suggested > 0 ? <Link href={`/t/${tenant}/purchasing/new?product=${product.id}`} className="text-primary underline">{t("create_po")}</Link> : undefined} />
       </div>
       <Card>
-        <CardHeader>
+        <CardHeader className="flex-row items-center justify-between space-y-0">
           <CardTitle className="text-base">{t("sales_90d")}</CardTitle>
+          {canViewPage(ctx.role, "orders") && <Link href={`/t/${tenant}/orders?product=${product.id}`} className="text-sm text-primary hover:underline" data-testid="product-orders-link">{t("view_orders")}</Link>}
         </CardHeader>
         <CardContent>
           <SalesChart data={days} locale={ctx.locale} currency={ctx.tenant.currency} />
@@ -160,7 +161,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 const s = stock.find((r) => r.variantId === v.id);
                 return (
                   <TableRow key={v.id}>
-                    <TableCell className="font-medium">{v.title}</TableCell>
+                    <TableCell className="font-medium">{canViewPage(ctx.role, "orders") ? <Link href={`/t/${tenant}/orders?variant=${v.id}`} className="hover:underline" title={t("view_orders")}>{v.title}</Link> : v.title}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">{v.sku}</TableCell>
                     <TableCell className="text-right tabular">{canEdit ? <VariantPriceForm slug={tenant} variantId={v.id} price={v.priceMinor / 100} /> : fmt(v.priceMinor)}<PlatformWriteStatus slug={tenant} write={writes.price.get(v.id)} canRetry={canEdit} className="justify-end" /></TableCell>
                     <TableCell className="hidden text-right tabular text-muted-foreground md:table-cell">{v.costMinor !== null ? fmt(v.costMinor) : "—"}</TableCell>

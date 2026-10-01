@@ -33,7 +33,7 @@ type Strings = {
   digest: { subject: string; intro: string; more: string; cta: string };
   notification: { subject: string; cta: string };
   /** Subject/lead of system notifications whose title is data (a count, a source). */
-  system: { stock_critical_no_po: string; late_to_ship: string; sync_delay: string };
+  system: { stock_critical_no_po: string; late_to_ship: string; sync_delay: string; export_ready: string };
   roles: Record<string, string>;
   types: Record<string, string>;
 };
@@ -47,7 +47,7 @@ const STRINGS: Record<EmailLocale, Strings> = {
     supplier_po: { subject: "Purchase order {po} from {company}", intro: "Hello {supplier}, {company} sent you purchase order {po}. Please confirm it or tell us about any problem from the page below.", expected: "Expected delivery: {date}", cta: "View and confirm the order", hint: "The link is personal to this order." },
     digest: { subject: "Your daily summary for {tenant}", intro: "Unread in the last 24 hours:", more: "and {n} more", cta: "Open notifications" },
     notification: { subject: "{title}", cta: "Open in Keel" },
-    system: { stock_critical_no_po: "{title} selling variants at critical stock with nothing on order", late_to_ship: "{title} orders still to ship after {body}", sync_delay: "The {title} sync is late ({body})" },
+    system: { stock_critical_no_po: "{title} selling variants at critical stock with nothing on order", late_to_ship: "{title} orders still to ship after {body}", sync_delay: "The {title} sync is late ({body})", export_ready: "Your CSV export is ready: {title} rows ({body})" },
     roles: { owner: "owner", admin: "admin", operations: "operations", customer_care: "customer care", marketing: "marketing", viewer: "viewer" },
     types: { mention: "Mentions", task_assigned: "Tasks assigned to you", task_due: "Tasks due", support_reply: "Support replies", alert: "Alerts", sync_delay: "Sync delays", stock_critical_no_po: "Critical stock", late_to_ship: "Late to ship", stock_low: "Low stock", stock_available: "Stock available again", return_portal: "Returns from the portal", po_supplier_confirmed: "Supplier confirmations", po_supplier_problem: "Supplier problems", integration_health: "Integrations", cod_assigned: "COD assignments", other: "Other" },
   },
@@ -59,7 +59,7 @@ const STRINGS: Record<EmailLocale, Strings> = {
     supplier_po: { subject: "Ordine d'acquisto {po} da {company}", intro: "Buongiorno {supplier}, {company} ti ha inviato l'ordine d'acquisto {po}. Confermalo o segnalaci un problema dalla pagina qui sotto.", expected: "Consegna prevista: {date}", cta: "Vedi e conferma l'ordine", hint: "Il link è personale per questo ordine." },
     digest: { subject: "Il tuo riepilogo giornaliero di {tenant}", intro: "Da leggere nelle ultime 24 ore:", more: "e altri {n}", cta: "Apri le notifiche" },
     notification: { subject: "{title}", cta: "Apri in Keel" },
-    system: { stock_critical_no_po: "{title} varianti in vendita con stock critico e nessun ordine d'acquisto", late_to_ship: "{title} ordini ancora da spedire dopo {body}", sync_delay: "La sincronizzazione di {title} è in ritardo ({body})" },
+    system: { stock_critical_no_po: "{title} varianti in vendita con stock critico e nessun ordine d'acquisto", late_to_ship: "{title} ordini ancora da spedire dopo {body}", sync_delay: "La sincronizzazione di {title} è in ritardo ({body})", export_ready: "Il tuo export CSV è pronto: {title} righe ({body})" },
     roles: { owner: "titolare", admin: "amministratore", operations: "operazioni", customer_care: "assistenza clienti", marketing: "marketing", viewer: "sola lettura" },
     types: { mention: "Menzioni", task_assigned: "Attività assegnate a te", task_due: "Attività in scadenza", support_reply: "Risposte del supporto", alert: "Avvisi", sync_delay: "Ritardi di sincronizzazione", stock_critical_no_po: "Stock critico", late_to_ship: "Spedizioni in ritardo", stock_low: "Stock basso", stock_available: "Stock di nuovo disponibile", return_portal: "Resi dal portale", po_supplier_confirmed: "Conferme dei fornitori", po_supplier_problem: "Problemi dei fornitori", integration_health: "Integrazioni", cod_assigned: "Assegnazioni contrassegno", other: "Altro" },
   },
@@ -71,7 +71,7 @@ const STRINGS: Record<EmailLocale, Strings> = {
     supplier_po: { subject: "Orden de compra {po} de {company}", intro: "Hola {supplier}, {company} te envió la orden de compra {po}. Confírmala o avísanos de cualquier problema desde la página de abajo.", expected: "Entrega prevista: {date}", cta: "Ver y confirmar la orden", hint: "El enlace es personal para esta orden." },
     digest: { subject: "Tu resumen diario de {tenant}", intro: "Sin leer en las últimas 24 horas:", more: "y {n} más", cta: "Abrir notificaciones" },
     notification: { subject: "{title}", cta: "Abrir en Keel" },
-    system: { stock_critical_no_po: "{title} variantes en venta con stock crítico y ninguna orden de compra", late_to_ship: "{title} pedidos aún sin enviar después de {body}", sync_delay: "La sincronización de {title} va con retraso ({body})" },
+    system: { stock_critical_no_po: "{title} variantes en venta con stock crítico y ninguna orden de compra", late_to_ship: "{title} pedidos aún sin enviar después de {body}", sync_delay: "La sincronización de {title} va con retraso ({body})", export_ready: "Tu exportación CSV está lista: {title} filas ({body})" },
     roles: { owner: "propietario", admin: "administrador", operations: "operaciones", customer_care: "atención al cliente", marketing: "marketing", viewer: "solo lectura" },
     types: { mention: "Menciones", task_assigned: "Tareas asignadas a ti", task_due: "Tareas que vencen", support_reply: "Respuestas de soporte", alert: "Alertas", sync_delay: "Retrasos de sincronización", stock_critical_no_po: "Stock crítico", late_to_ship: "Envíos retrasados", stock_low: "Stock bajo", stock_available: "Stock disponible de nuevo", return_portal: "Devoluciones del portal", po_supplier_confirmed: "Confirmaciones de proveedores", po_supplier_problem: "Problemas de proveedores", integration_health: "Integraciones", cod_assigned: "Asignaciones contra reembolso", other: "Otros" },
   },

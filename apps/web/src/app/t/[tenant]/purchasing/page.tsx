@@ -7,6 +7,7 @@ import { Badge, Button, Card, CardContent, EmptyState, Input, Label, PageHeader,
 import { requirePage } from "@/server/tenant";
 import { listPurchaseOrders } from "@/server/queries/purchasing";
 import { StatusBadge } from "@/components/status-badge";
+import { ListToolbar } from "@/components/lists/list-toolbar";
 
 export default async function PurchasingPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
@@ -34,6 +35,7 @@ export default async function PurchasingPage({ params, searchParams }: { params:
         description={t("description")}
         actions={
           <>
+            <ListToolbar ctx={ctx} list="purchasing" basePath={base} />
             <Button asChild variant="outline">
               <Link href={`${base}/suppliers`}>
                 <Truck /> {t("suppliers")}

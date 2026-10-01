@@ -39,6 +39,7 @@ export const NOTIFICATION_TYPES = {
   integration_health: { channels: ALL, defaults: { in_app: true }, group: "system" },
   cod_assigned: { channels: ["in_app", "email"], defaults: { in_app: true }, group: "operations", module: "addon.cod" },
   digest: { channels: ["email"], defaults: { email: false }, group: "system" },
+  export_ready: { channels: ["in_app", "email"], defaults: { in_app: true }, group: "system" },
 } as const satisfies Record<string, NotificationTypeDefinition>;
 export type NotificationType = keyof typeof NOTIFICATION_TYPES;
 

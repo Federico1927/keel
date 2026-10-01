@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { canWritePage } from "@keel/config";
-import { formatDateTime } from "@keel/core";
+import { formatDateTime, displayName } from "@keel/core";
 import { adminDb, eq, schema } from "@keel/db";
 import { ALERT_METRIC_OPTIONS, integrationRow, listAlertRules, recentAlertEvents } from "@keel/services";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
@@ -76,7 +76,7 @@ export default async function AlertsPage({ params }: { params: Promise<{ tenant:
           <div className="space-y-6">
             <Card>
               <CardHeader><CardTitle className="text-base">{t("new_rule")}</CardTitle><CardDescription>{t("new_rule_help")}</CardDescription></CardHeader>
-              <CardContent><AlertRuleForm slug={tenant} metrics={[...ALERT_METRIC_OPTIONS]} members={members.map((m) => ({ id: m.id, label: m.name ?? m.email }))} /></CardContent>
+              <CardContent><AlertRuleForm slug={tenant} metrics={[...ALERT_METRIC_OPTIONS]} members={members.map((m) => ({ id: m.id, label: displayName(m) }))} /></CardContent>
             </Card>
             <Card>
               <CardHeader><CardTitle className="text-base">{t("delivery")}</CardTitle><CardDescription>{t("delivery_help")}</CardDescription></CardHeader>
