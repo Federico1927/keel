@@ -1,0 +1,280 @@
+import { normalizePaymentMethod } from "@keel/core";
+import { createHmac } from "node:crypto";
+import { createRng, type Rng } from "../rng";
+import {
+  IntegrationError,
+  type CommercePlatform,
+  type ConnectionTest,
+  type NormalizedCustomer,
+  type NormalizedDiscount,
+  type NormalizedInventoryLevel,
+  type NormalizedLocation,
+  type NormalizedOrder,
+  type NormalizedProduct,
+  type NormalizedReturn,
+  type Page,
+  type SyncQuery,
+  type VerifiedWebhook,
+  type WebhookRegistration,
+} from "../types";
+import { FailureScript } from "./failures";
+
+export interface MockCatalogVariant {
+  externalId: string;
+  productExternalId: string;
+  inventoryItemExternalId: string;
+  sku: string;
+  title: string;
+  productTitle: string;
+  optionValues: Record<string, string>;
+  priceMinor: number;
+}
+
+export interface MockCommerceOptions {
+  seed?: number;
+  currency: string;
+  country: string;
+  orderNumberPrefix: string;
+  /** Catalog the mock draws from so generated orders match the tenant's products. */
+  variants: MockCatalogVariant[];
+  locations: NormalizedLocation[];
+  customers: NormalizedCustomer[];
+  startOrderNumber: number;
+  webhookSecret?: string;
+}
+
+/**
+ * In-memory Shopify-like platform. It produces new orders on every `fetchOrders`
+ * call (as a live store would), can emit webhook envelopes signed like Shopify, and
+ * fails on demand (`failures.failNext`). No network, ever.
+ */
+export class MockCommercePlatform implements CommercePlatform {
+  readonly provider = "shopify";
+  readonly failures = new FailureScript();
+  private rng: Rng;
+  private orders = new Map<string, NormalizedOrder>();
+  private nextNumber: number;
+  private webhookSecret: string;
+  private writes: { op: string; args: unknown }[] = [];
+
+  constructor(private readonly opts: MockCommerceOptions) {
+    this.rng = createRng(opts.seed ?? 42);
+    this.nextNumber = opts.startOrderNumber;
+    this.webhookSecret = opts.webhookSecret ?? "mock-webhook-secret";
+  }
+
+  /** Audit of write calls, for tests and the integrations page. */
+  get writeLog() {
+    return this.writes;
+  }
+
+  async testConnection(): Promise<ConnectionTest> {
+    this.failures.check();
+    return { ok: true, accountName: "Mock Store", accountId: "mock-shop.myshopify.com", scopes: ["read_orders", "write_orders", "read_products", "write_products", "read_inventory", "write_inventory", "read_customers", "read_discounts", "write_discounts", "read_returns", "read_fulfillments"] };
+  }
+
+  /** Builds a plausible new order from the catalog. */
+  generateOrder(at = new Date()): NormalizedOrder {
+    const rng = this.rng;
+    const number = this.nextNumber++;
+    const customer = rng.pick(this.opts.customers);
+    const lineCount = rng.weighted([[1, 60], [2, 28], [3, 10], [4, 2]] as const);
+    const chosen = rng.shuffle(this.opts.variants).slice(0, lineCount);
+    const lines = chosen.map((v, i) => {
+      const qty = rng.weighted([[1, 85], [2, 13], [3, 2]] as const);
+      return {
+        externalId: `${number}-${i + 1}`,
+        variantExternalId: v.externalId,
+        productExternalId: v.productExternalId,
+        sku: v.sku,
+        title: v.productTitle,
+        variantTitle: v.title,
+        quantity: qty,
+        currentQuantity: qty,
+        unitPriceMinor: v.priceMinor,
+        discountMinor: 0,
+        totalMinor: v.priceMinor * qty,
+      };
+    });
+    const subtotal = lines.reduce((s, l) => s + l.totalMinor, 0);
+    const discount = rng.chance(0.25) ? Math.round(subtotal * 0.1) : 0;
+    const shipping = subtotal - discount > 8000 ? 0 : 590;
+    const gateway = rng.weighted([["shopify_payments", 55], ["paypal", 22], ["klarna", 8], ["bank_deposit", 5], ["cash_on_delivery", 10]] as const);
+    const paymentMethod = normalizePaymentMethod([gateway]);
+    const financial = paymentMethod === "cod" || paymentMethod === "bank_transfer" ? "pending" : "paid";
+    const total = subtotal - discount + shipping;
+    const order: NormalizedOrder = {
+      externalId: String(900000000 + number),
+      orderNumber: number,
+      name: `#${this.opts.orderNumberPrefix}${number}`,
+      customer,
+      email: customer.email,
+      phone: customer.phone,
+      customerName: [customer.firstName, customer.lastName].filter(Boolean).join(" "),
+      currency: this.opts.currency,
+      subtotalMinor: subtotal,
+      discountMinor: discount,
+      shippingMinor: shipping,
+      taxMinor: 0,
+      totalMinor: total,
+      refundedMinor: 0,
+      paymentGateways: [gateway],
+      paymentMethod,
+      paymentStatus: financial === "paid" ? "paid" : "pending",
+      financialStatusRaw: financial,
+      fulfillmentStatusRaw: null,
+      tags: rng.chance(0.15) ? ["vip"] : [],
+      shippingAddress: { name: `${customer.firstName} ${customer.lastName}`, address1: `${rng.int(1, 120)} Mock Street`, city: customer.city, zip: customer.zip, country: customer.country, phone: customer.phone },
+      billingAddress: null,
+      note: null,
+      noteAttributes: rng.chance(0.5) ? [{ name: "utm_source", value: rng.pick(["facebook", "google", "instagram"]) }, { name: "utm_campaign", value: `mock-${rng.int(1, 9)}` }] : [],
+      landingSite: rng.chance(0.5) ? `/products/mock?utm_source=facebook&utm_medium=paid&utm_campaign=mock-${rng.int(1, 9)}&fbclid=abc${rng.int(1000, 9999)}` : "/",
+      referringSite: null,
+      sourceChannel: "web",
+      placedAt: at,
+      cancelledAt: null,
+      cancelReason: null,
+      closedAt: null,
+      platformUpdatedAt: at,
+      lines,
+      discounts: discount ? [{ code: "WELCOME10", type: "percentage", amountMinor: discount }] : [],
+      fulfillments: [],
+    };
+    this.orders.set(order.externalId, order);
+    return order;
+  }
+
+  async fetchOrders(q: SyncQuery): Promise<Page<NormalizedOrder>> {
+    this.failures.check();
+    const page = Number(q.cursor ?? 0);
+    const limit = Math.min(q.limit ?? 50, 250);
+    // Simulate a store with new activity: up to 3 pages of fresh orders per sync.
+    if (page === 0) {
+      const count = this.rng.int(2, 6);
+      for (let i = 0; i < count; i++) this.generateOrder(new Date(Date.now() - this.rng.int(0, 3600) * 1000));
+    }
+    const all = [...this.orders.values()].sort((a, b) => a.platformUpdatedAt.getTime() - b.platformUpdatedAt.getTime());
+    const filtered = q.updatedSince ? all.filter((o) => o.platformUpdatedAt >= q.updatedSince!) : all;
+    const items = filtered.slice(page * limit, (page + 1) * limit);
+    const nextCursor = (page + 1) * limit < filtered.length ? String(page + 1) : null;
+    return { items, nextCursor };
+  }
+
+  async fetchOrder(externalId: string): Promise<NormalizedOrder | null> {
+    this.failures.check();
+    return this.orders.get(externalId) ?? null;
+  }
+
+  async fetchCustomers(q: SyncQuery): Promise<Page<NormalizedCustomer>> {
+    this.failures.check();
+    const page = Number(q.cursor ?? 0);
+    const limit = q.limit ?? 250;
+    const items = this.opts.customers.slice(page * limit, (page + 1) * limit);
+    return { items, nextCursor: (page + 1) * limit < this.opts.customers.length ? String(page + 1) : null };
+  }
+
+  async fetchProducts(): Promise<Page<NormalizedProduct>> {
+    this.failures.check();
+    const byProduct = new Map<string, NormalizedProduct>();
+    for (const v of this.opts.variants) {
+      let p = byProduct.get(v.productExternalId);
+      if (!p) {
+        p = { externalId: v.productExternalId, title: v.productTitle, handle: v.productTitle.toLowerCase().replace(/\s+/g, "-"), vendor: "Mock", productType: null, status: "active", tags: [], options: [], imageUrl: null, platformCreatedAt: null, variants: [] };
+        byProduct.set(v.productExternalId, p);
+      }
+      p.variants.push({ externalId: v.externalId, inventoryItemExternalId: v.inventoryItemExternalId, sku: v.sku, barcode: null, title: v.title, optionValues: v.optionValues, priceMinor: v.priceMinor, compareAtMinor: null, weightGrams: null });
+    }
+    return { items: [...byProduct.values()], nextCursor: null };
+  }
+
+  async fetchLocations(): Promise<NormalizedLocation[]> {
+    this.failures.check();
+    return this.opts.locations;
+  }
+
+  async fetchInventoryLevels(ids: string[]): Promise<NormalizedInventoryLevel[]> {
+    this.failures.check();
+    const out: NormalizedInventoryLevel[] = [];
+    for (const id of ids) for (const loc of this.opts.locations) out.push({ inventoryItemExternalId: id, locationExternalId: loc.externalId, available: this.rng.int(0, 60), onHand: null, committed: null, updatedAt: new Date() });
+    return out;
+  }
+
+  async fetchDiscounts(): Promise<Page<NormalizedDiscount>> {
+    this.failures.check();
+    return { items: [{ externalId: "mock-d-1", code: "WELCOME10", title: "Welcome 10%", type: "percentage", value: 1000, minimumAmountMinor: null, usageLimit: null, usedCount: 120, startsAt: null, endsAt: null, isActive: true }], nextCursor: null };
+  }
+
+  async fetchReturns(): Promise<Page<NormalizedReturn>> {
+    this.failures.check();
+    return { items: [], nextCursor: null };
+  }
+
+  async registerWebhooks(callbackUrl: string, topics: string[]): Promise<WebhookRegistration[]> {
+    this.failures.check();
+    return topics.map((topic) => ({ topic, address: callbackUrl, status: "registered" as const }));
+  }
+
+  sign(rawBody: string): string {
+    return createHmac("sha256", this.webhookSecret).update(rawBody, "utf8").digest("base64");
+  }
+
+  /** Builds a signed webhook envelope for the given order, exactly like the platform would. */
+  buildWebhook(topic: string, order: NormalizedOrder): { headers: Record<string, string>; rawBody: string } {
+    const rawBody = JSON.stringify({ id: Number(order.externalId), updated_at: order.platformUpdatedAt.toISOString(), __normalized: order });
+    return { headers: { "x-shopify-topic": topic, "x-shopify-hmac-sha256": this.sign(rawBody), "x-shopify-shop-domain": "mock-shop.myshopify.com" }, rawBody };
+  }
+
+  async verifyWebhook(headers: Record<string, string | undefined>, rawBody: string): Promise<VerifiedWebhook> {
+    const sig = headers["x-shopify-hmac-sha256"];
+    if (!sig || sig !== this.sign(rawBody)) throw new IntegrationError("permission", "Invalid webhook signature");
+    const payload = JSON.parse(rawBody) as { id: number; updated_at: string };
+    return { topic: headers["x-shopify-topic"] ?? "unknown", externalId: String(payload.id), sourceUpdatedAt: payload.updated_at, payload };
+  }
+
+  parseWebhookOrder(payload: unknown): NormalizedOrder {
+    const p = payload as { __normalized: NormalizedOrder };
+    const o = p.__normalized;
+    return { ...o, placedAt: new Date(o.placedAt), platformUpdatedAt: new Date(o.platformUpdatedAt), cancelledAt: o.cancelledAt ? new Date(o.cancelledAt) : null, closedAt: o.closedAt ? new Date(o.closedAt) : null, fulfillments: o.fulfillments.map((f) => ({ ...f, createdAt: new Date(f.createdAt), updatedAt: new Date(f.updatedAt), deliveredAt: f.deliveredAt ? new Date(f.deliveredAt) : null })) };
+  }
+
+  private record(op: string, args: unknown) {
+    this.failures.check();
+    this.writes.push({ op, args });
+  }
+  async cancelOrder(externalId: string, opts: { reason?: string; restock: boolean; refund: boolean }) {
+    this.record("cancelOrder", { externalId, ...opts });
+    const o = this.orders.get(externalId);
+    if (o) {
+      o.cancelledAt = new Date();
+      o.financialStatusRaw = opts.refund && o.paymentStatus === "paid" ? "refunded" : o.paymentStatus === "pending" ? "voided" : o.financialStatusRaw;
+      o.paymentStatus = opts.refund && o.paymentStatus === "paid" ? "refunded" : o.paymentStatus === "pending" ? "voided" : o.paymentStatus;
+      o.platformUpdatedAt = new Date();
+    }
+  }
+  async addOrderNote(externalId: string, note: string) {
+    this.record("addOrderNote", { externalId, note });
+  }
+  async updateOrderTags(externalId: string, add: string[], remove: string[]) {
+    this.record("updateOrderTags", { externalId, add, remove });
+  }
+  async updateVariant(variantExternalId: string, patch: { priceMinor?: number }) {
+    this.record("updateVariant", { variantExternalId, patch });
+  }
+  async updateProductStatus(productExternalId: string, status: "active" | "draft" | "archived") {
+    this.record("updateProductStatus", { productExternalId, status });
+  }
+  async setInventory(inventoryItemExternalId: string, locationExternalId: string, available: number) {
+    this.record("setInventory", { inventoryItemExternalId, locationExternalId, available });
+  }
+  async createDiscountCode(input: { code: string }) {
+    this.record("createDiscountCode", input);
+    return { externalId: `mock-d-${input.code}` };
+  }
+  async createDiscountPool(input: { title: string; codes: string[] }) {
+    this.record("createDiscountPool", { title: input.title, count: input.codes.length });
+    return { externalId: `mock-pool-${Date.now()}`, imported: input.codes, failed: [] };
+  }
+  async restockReturn(orderExternalId: string, lines: { orderLineExternalId: string; quantity: number; locationExternalId: string }[]) {
+    this.record("restockReturn", { orderExternalId, lines });
+  }
+}

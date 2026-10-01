@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
-import { PageHeader, Tabs, TabsContent, TabsList, TabsTrigger } from "@keel/ui";
+import Link from "next/link";
+import { Button, PageHeader, Tabs, TabsContent, TabsList, TabsTrigger } from "@keel/ui";
 import { schema } from "@keel/db";
 import { requirePage } from "@/server/tenant";
 import { GeneralSettingsForm, OperationalSettingsForm, TaxRatesSection } from "./forms";
@@ -11,7 +12,16 @@ export default async function SettingsPage({ params }: { params: Promise<{ tenan
   const taxRates = await ctx.run((tx) => tx.select().from(schema.tenantTaxRates).orderBy(schema.tenantTaxRates.country));
   return (
     <>
-      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} />
+      <PageHeader
+        eyebrow={ctx.tenant.name}
+        title={t("title")}
+        description={t("description")}
+        actions={
+          <Button asChild variant="outline">
+            <Link href={`/t/${tenant}/settings/order-states`}>{t("order_states_link")}</Link>
+          </Button>
+        }
+      />
       <Tabs defaultValue="general">
         <TabsList>
           <TabsTrigger value="general">{t("tabs.general")}</TabsTrigger>

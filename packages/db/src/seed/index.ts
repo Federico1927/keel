@@ -3,6 +3,8 @@ import { eq } from "drizzle-orm";
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "../schema";
+import { generateTenantDataset, type TenantSeedConfig } from "./generator";
+import { writeDataset } from "./writer";
 
 export const DEMO_PASSWORD = "keel-demo-2026";
 
@@ -120,7 +122,51 @@ export async function seedPlatform(db: ReturnType<typeof drizzle<typeof schema>>
   return { tenantIds, userIds };
 }
 
-export async function seedAll(adminUrl: string): Promise<void> {
+export interface SeedOptions {
+  /** 1 = full demo volume (~15k + ~6k orders). Tests use a small fraction. */
+  scale?: number;
+  now?: Date;
+  log?: (msg: string) => void;
+}
+
+export function tenantSeedConfigs(ctx: SeedContext, opts: SeedOptions = {}): TenantSeedConfig[] {
+  const scale = opts.scale ?? 1;
+  const now = opts.now ?? new Date();
+  const members = (key: keyof typeof DEMO_TENANTS) =>
+    DEMO_USERS.filter((u) => u.memberships.some((m) => m.tenant === key)).map((u) => ctx.userIds[u.email]!).filter(Boolean);
+  return [
+    {
+      key: "northwind", tenantId: ctx.tenantIds.northwind, seed: 20261001, currency: "EUR", country: "IT", timezone: "Europe/Rome", locale: "it", orderNumberPrefix: "NW-",
+      orderCount: Math.max(40, Math.round(15000 * scale)), productCount: Math.max(6, Math.round(120 * Math.min(1, scale * 4))), locationNames: ["Magazzino Milano", "Magazzino Bologna", "3PL Berlin"],
+      supplierNames: ["Tessitura Lombarda", "Maglificio Dolomiti", "Confezioni Adriatica", "Pellami Toscani"], metaCampaigns: Math.max(3, Math.round(25 * Math.min(1, scale * 4))), googleCampaigns: Math.max(1, Math.round(6 * Math.min(1, scale * 4))),
+      codShare: 0.1, returnRate: 0.12, cancelRate: 0.06, userIds: members("northwind"), now,
+    },
+    {
+      key: "harbor", tenantId: ctx.tenantIds.harbor, seed: 20261002, currency: "USD", country: "US", timezone: "America/New_York", locale: "en", orderNumberPrefix: "HH-",
+      orderCount: Math.max(40, Math.round(6000 * scale)), productCount: Math.max(6, Math.round(60 * Math.min(1, scale * 4))), locationNames: ["Newark Warehouse", "LA Showroom"],
+      supplierNames: ["Harbor Workshop", "Coastal Textiles"], metaCampaigns: Math.max(2, Math.round(8 * Math.min(1, scale * 4))), googleCampaigns: Math.max(1, Math.round(3 * Math.min(1, scale * 4))),
+      codShare: 0, returnRate: 0.07, cancelRate: 0.045, userIds: members("harbor"), now,
+    },
+  ];
+}
+
+/** Platform + full domain dataset for both demo tenants. Idempotent: domain rows are regenerated. */
+export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, ctx: SeedContext, opts: SeedOptions = {}): Promise<void> {
+  const log = opts.log ?? (() => {});
+  for (const cfg of tenantSeedConfigs(ctx, opts)) {
+    // Wipe previous domain rows of this tenant (cascade from the parent tables).
+    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns]) {
+      await db.delete(table).where(eq(table.tenantId, cfg.tenantId));
+    }
+    const started = Date.now();
+    const ds = generateTenantDataset(cfg);
+    const genMs = Date.now() - started;
+    const counts = await writeDataset(db, ds);
+    log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
+  }
+}
+
+export async function seedAll(adminUrl: string, opts: SeedOptions = {}): Promise<void> {
   const pool = new Pool({ connectionString: adminUrl, max: 4 });
   const db = drizzle(pool, { schema });
   try {
@@ -128,6 +174,7 @@ export async function seedAll(adminUrl: string): Promise<void> {
     const check = await db.select({ id: schema.tenants.id }).from(schema.tenants).where(eq(schema.tenants.slug, DEMO_TENANTS.northwind.slug));
     if (check.length !== 1) throw new Error("seed sanity check failed");
     console.info(`[db:seed] platform: ${Object.keys(ctx.tenantIds).length} tenants, ${Object.keys(ctx.userIds).length} users`);
+    await seedDomain(db, ctx, { ...opts, log: console.info });
   } finally {
     await pool.end();
   }

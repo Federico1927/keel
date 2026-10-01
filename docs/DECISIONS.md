@@ -67,3 +67,25 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · Settings as a typed JSON blob on `tenants`
 
 **Decision.** Operational thresholds and payment fees live in `tenants.settings` (jsonb) validated by `tenantSettingsSchema` (zod) with neutral defaults from `@keel/config`. Tax rates are a proper table because they are joined in revenue calculations. Adding a setting means one line in the schema and one translation key, no migration.
+
+## 2026-10-01 · Canonical status is a stored column written by one function
+
+**Decision.** `orders.status` is written only through `deriveOrderStatus(input, rules)` in `packages/core`. Precedence: hard facts (cancelled, voided, returned, refunded, partial return, delivered shipment) → operator-set status (`status_source = manual`) → in-transit shipment → tenant `state_rules` by priority → platform default (fulfilled → shipped, partial → fulfilling, paid → confirmed, else new). `status_reason` records which element decided, and the rules page previews the effect on the last 50 orders before saving.
+
+**Alternatives.** Deriving the status at read time from tags (the reference platform did this in four hand-synced places and the analysis names it as the main obstacle to multi-tenancy).
+
+## 2026-10-01 · Shipments: per-source state rows plus a resolver
+
+**Decision.** `shipments.status` is resolved from `shipment_source_states` (one row per source: platform, carrier, aggregator, 3PL) with a per-tenant precedence and freshness window, sticky exceptions with a reason and age, and no demotion from terminal states. Today the only source is the commerce platform; a second source is a new row, not a new column.
+
+## 2026-10-01 · Mock adapters are stateful simulators, not fixtures
+
+**Decision.** `MockCommercePlatform` and `MockAdsPlatform` generate new orders and metrics from the tenant's own catalog on every sync, sign webhook envelopes the way Shopify does (HMAC-SHA256 base64 over the raw body), and fail on demand (`failures.failNext("rate_limited")`) so retries and health escalation can be exercised without a network. The seed writes historical data directly to the database for speed; the mocks only produce incremental activity.
+
+## 2026-10-01 · Seed generator design
+
+**Decision.** `generateTenantDataset(config)` is a pure, seeded function producing every row for one tenant in memory (identifiers included), then `writeDataset` bulk-inserts in chunks of 500 following foreign-key order. Full volume (15,000 + 6,000 orders, ~300,000 rows) seeds in about 40 seconds; the isolation suite reuses the same generator at 1% scale so every table is covered by construction. Timestamps are relative to the run date so the demo always has fresh orders; the random stream is fixed, so two runs on the same day are identical.
+
+## 2026-10-01 · Money and rates as integers
+
+**Decision.** All amounts are integer minor units (`*_minor`), rates are basis points (`rate_bps`, `returned_fraction_bps`). Formatting happens only at the edge with `Intl` using the tenant currency and the user locale.

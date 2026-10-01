@@ -27,7 +27,8 @@
       "not_found": "No encontrado.",
       "cannot_change_self": "No puedes cambiar tu propia pertenencia.",
       "unknown": "Algo salió mal."
-    }
+    },
+    "edit": "Editar"
   },
   "auth": {
     "title": "Iniciar sesión",
@@ -231,7 +232,8 @@
       "rate": "Tipo",
       "prices_include_tax": "Precios con impuestos incluidos",
       "add": "Añadir o actualizar"
-    }
+    },
+    "order_states_link": "Reglas de estado de pedido"
   },
   "users": {
     "title": "Usuarios y roles",
@@ -270,5 +272,81 @@
     "empty_title": "Aún no hay entradas",
     "empty_description": "Los cambios en ajustes, usuarios, pedidos e integraciones aparecerán aquí.",
     "pagination": "Página {page} de {pages} · {total} entradas"
+  },
+  "order_status": {
+    "new": "Nuevo",
+    "pending_review": "Por revisar",
+    "confirmed": "Confirmado",
+    "fulfilling": "En preparación",
+    "shipped": "Enviado",
+    "delivered": "Entregado",
+    "on_hold": "En espera",
+    "cancelled": "Cancelado",
+    "returned_partial": "Devolución parcial",
+    "returned": "Devuelto",
+    "refunded": "Reembolsado"
+  },
+  "payment_status": {
+    "pending": "Pendiente",
+    "paid": "Pagado",
+    "partially_refunded": "Reembolsado parcialmente",
+    "refunded": "Reembolsado",
+    "voided": "Anulado"
+  },
+  "shipment_status": {
+    "pending": "Pendiente",
+    "label_created": "Etiqueta creada",
+    "in_transit": "En tránsito",
+    "out_for_delivery": "En reparto",
+    "attempted": "Intento de entrega",
+    "delivered": "Entregado",
+    "exception": "Incidencia",
+    "returned": "Devuelto al remitente",
+    "failed": "Fallido",
+    "unknown": "Desconocido"
+  },
+  "state_rules": {
+    "title": "Reglas de estado de pedido",
+    "description": "Cómo los hechos de la plataforma (etiquetas, pago, preparación) se convierten en el estado canónico. Gana la prioridad más baja; cancelaciones, reembolsos, devoluciones y entregas siempre prevalecen.",
+    "back_to_settings": "Volver a ajustes",
+    "rules_title": "Reglas",
+    "rules_description": "Se evalúan por prioridad; decide la primera que coincide.",
+    "add_rule": "Añadir regla",
+    "edit_rule": "Editar regla",
+    "dialog_description": "Deja una condición vacía para ignorarla. Las listas se separan con comas.",
+    "priority": "Prioridad",
+    "rule": "Regla",
+    "conditions": "Condiciones",
+    "result": "Estado resultante",
+    "inactive": "Inactiva",
+    "active": "Activa",
+    "no_rules": "Sin reglas: se aplican los valores por defecto (pagado → confirmado, preparado → enviado).",
+    "overrides_note": "Los hechos firmes van antes que las reglas: cancelado → cancelado, reembolsado → reembolsado, devoluciones → devuelto, envío entregado → entregado. Los estados fijados por un operador se mantienen hasta que cambie uno de esos hechos.",
+    "preview_title": "Vista previa en pedidos recientes",
+    "preview_description": "En los últimos {n} pedidos las reglas actuales cambiarían {changed}.",
+    "order": "Pedido",
+    "current": "Actual",
+    "would_be": "Pasaría a",
+    "fields": {
+      "tags_any": "Alguna de estas etiquetas",
+      "tags_all": "Todas estas etiquetas",
+      "tags_none": "Ninguna de estas etiquetas",
+      "payment_methods": "Métodos de pago",
+      "payment_statuses": "Estados de pago",
+      "financial_raw": "Estado financiero de la plataforma",
+      "fulfillment_raw": "Estado de preparación de la plataforma",
+      "min_age": "Antigüedad mínima (horas)"
+    },
+    "summary": {
+      "tags_any": "etiquetas (alguna): {v}",
+      "tags_all": "etiquetas (todas): {v}",
+      "tags_none": "etiquetas excluidas: {v}",
+      "payment_methods": "pago: {v}",
+      "payment_statuses": "estado de pago: {v}",
+      "financial_raw": "financiero: {v}",
+      "fulfillment_raw": "preparación: {v}",
+      "min_age": "más antiguo que {v}h",
+      "always": "siempre"
+    }
   }
 }

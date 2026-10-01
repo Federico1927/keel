@@ -27,7 +27,8 @@
     "@keel/core": "workspace:*",
     "bcryptjs": "^3.0.2",
     "drizzle-orm": "^0.45.0",
-    "pg": "^8.16.0"
+    "pg": "^8.16.0",
+    "@keel/integrations": "workspace:*"
   },
   "devDependencies": {
     "@keel/eslint-config": "workspace:*",

@@ -27,7 +27,8 @@
       "not_found": "Non trovato.",
       "cannot_change_self": "Non puoi modificare la tua stessa appartenenza.",
       "unknown": "Qualcosa è andato storto."
-    }
+    },
+    "edit": "Modifica"
   },
   "auth": {
     "title": "Accedi",
@@ -231,7 +232,8 @@
       "rate": "Aliquota",
       "prices_include_tax": "Prezzi IVA inclusa",
       "add": "Aggiungi o aggiorna"
-    }
+    },
+    "order_states_link": "Regole di stato ordine"
   },
   "users": {
     "title": "Utenti e ruoli",
@@ -270,5 +272,81 @@
     "empty_title": "Nessuna voce nel registro",
     "empty_description": "Le modifiche a impostazioni, utenti, ordini e integrazioni compariranno qui.",
     "pagination": "Pagina {page} di {pages} · {total} voci"
+  },
+  "order_status": {
+    "new": "Nuovo",
+    "pending_review": "Da verificare",
+    "confirmed": "Confermato",
+    "fulfilling": "In evasione",
+    "shipped": "Spedito",
+    "delivered": "Consegnato",
+    "on_hold": "In attesa",
+    "cancelled": "Annullato",
+    "returned_partial": "Reso parziale",
+    "returned": "Reso",
+    "refunded": "Rimborsato"
+  },
+  "payment_status": {
+    "pending": "In attesa",
+    "paid": "Pagato",
+    "partially_refunded": "Rimborsato in parte",
+    "refunded": "Rimborsato",
+    "voided": "Annullato"
+  },
+  "shipment_status": {
+    "pending": "In attesa",
+    "label_created": "Etichetta creata",
+    "in_transit": "In transito",
+    "out_for_delivery": "In consegna",
+    "attempted": "Tentativo di consegna",
+    "delivered": "Consegnato",
+    "exception": "Eccezione",
+    "returned": "Rientrato al mittente",
+    "failed": "Fallito",
+    "unknown": "Sconosciuto"
+  },
+  "state_rules": {
+    "title": "Regole di stato ordine",
+    "description": "Come i fatti della piattaforma (tag, pagamento, evasione) diventano lo stato canonico. Vince la priorità più bassa; annullamenti, rimborsi, resi e consegne prevalgono sempre.",
+    "back_to_settings": "Torna alle impostazioni",
+    "rules_title": "Regole",
+    "rules_description": "Valutate in ordine di priorità; decide la prima che corrisponde.",
+    "add_rule": "Aggiungi regola",
+    "edit_rule": "Modifica regola",
+    "dialog_description": "Lascia vuota una condizione per ignorarla. Le liste sono separate da virgola.",
+    "priority": "Priorità",
+    "rule": "Regola",
+    "conditions": "Condizioni",
+    "result": "Stato risultante",
+    "inactive": "Disattiva",
+    "active": "Attiva",
+    "no_rules": "Nessuna regola: valgono i default della piattaforma (pagato → confermato, evaso → spedito).",
+    "overrides_note": "I fatti certi vengono prima delle regole: annullato → annullato, rimborsato → rimborsato, resi → reso, spedizione consegnata → consegnato. Gli stati impostati dall'operatore restano finché uno di questi fatti non cambia.",
+    "preview_title": "Anteprima sugli ordini recenti",
+    "preview_description": "Sugli ultimi {n} ordini le regole attuali ne cambierebbero {changed}.",
+    "order": "Ordine",
+    "current": "Attuale",
+    "would_be": "Diventerebbe",
+    "fields": {
+      "tags_any": "Almeno uno di questi tag",
+      "tags_all": "Tutti questi tag",
+      "tags_none": "Nessuno di questi tag",
+      "payment_methods": "Metodi di pagamento",
+      "payment_statuses": "Stati pagamento",
+      "financial_raw": "Stato finanziario piattaforma",
+      "fulfillment_raw": "Stato evasione piattaforma",
+      "min_age": "Età minima (ore)"
+    },
+    "summary": {
+      "tags_any": "tag (uno): {v}",
+      "tags_all": "tag (tutti): {v}",
+      "tags_none": "tag esclusi: {v}",
+      "payment_methods": "pagamento: {v}",
+      "payment_statuses": "stato pagamento: {v}",
+      "financial_raw": "finanziario: {v}",
+      "fulfillment_raw": "evasione: {v}",
+      "min_age": "più vecchio di {v}h",
+      "always": "sempre"
+    }
   }
 }

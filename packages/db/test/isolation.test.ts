@@ -96,10 +96,13 @@ describe.each(tenantTables.map((t) => [getTableName(t), t] as const))("isolation
     const row = sample.rows[0]?.row;
     if (!row) return;
     const clone = { ...row, id: crypto.randomUUID() };
+    // Generated columns cannot be inserted explicitly: list the writable ones.
+    const cols = await pools.admin.execute<{ column_name: string }>(sql`select column_name from information_schema.columns where table_schema = 'public' and table_name = ${name} and is_generated = 'NEVER' order by ordinal_position`);
+    const colList = sql.join(cols.rows.map((c) => sql.identifier(c.column_name)), sql`, `);
     await expect(
       withTenant(
         tenantB,
-        (tx) => tx.execute(sql`insert into ${sql.identifier(name)} select * from jsonb_populate_record(null::${sql.identifier(name)}, ${JSON.stringify(clone)}::jsonb)`),
+        (tx) => tx.execute(sql`insert into ${sql.identifier(name)} (${colList}) select ${colList} from jsonb_populate_record(null::${sql.identifier(name)}, ${JSON.stringify(clone)}::jsonb)`),
         pools.app,
       ),
     ).rejects.toMatchObject({ cause: expect.objectContaining({ code: "42501" }) });

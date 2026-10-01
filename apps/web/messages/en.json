@@ -27,7 +27,8 @@
       "not_found": "Not found.",
       "cannot_change_self": "You cannot change your own membership.",
       "unknown": "Something went wrong."
-    }
+    },
+    "edit": "Edit"
   },
   "auth": {
     "title": "Sign in",
@@ -231,7 +232,8 @@
       "rate": "Rate",
       "prices_include_tax": "Prices include tax",
       "add": "Add or update"
-    }
+    },
+    "order_states_link": "Order state rules"
   },
   "users": {
     "title": "Users & roles",
@@ -270,5 +272,81 @@
     "empty_title": "No audit entries yet",
     "empty_description": "Changes to settings, users, orders and integrations will appear here.",
     "pagination": "Page {page} of {pages} · {total} entries"
+  },
+  "order_status": {
+    "new": "New",
+    "pending_review": "Pending review",
+    "confirmed": "Confirmed",
+    "fulfilling": "Fulfilling",
+    "shipped": "Shipped",
+    "delivered": "Delivered",
+    "on_hold": "On hold",
+    "cancelled": "Cancelled",
+    "returned_partial": "Partially returned",
+    "returned": "Returned",
+    "refunded": "Refunded"
+  },
+  "payment_status": {
+    "pending": "Pending",
+    "paid": "Paid",
+    "partially_refunded": "Partially refunded",
+    "refunded": "Refunded",
+    "voided": "Voided"
+  },
+  "shipment_status": {
+    "pending": "Pending",
+    "label_created": "Label created",
+    "in_transit": "In transit",
+    "out_for_delivery": "Out for delivery",
+    "attempted": "Delivery attempted",
+    "delivered": "Delivered",
+    "exception": "Exception",
+    "returned": "Returned to sender",
+    "failed": "Failed",
+    "unknown": "Unknown"
+  },
+  "state_rules": {
+    "title": "Order state rules",
+    "description": "How platform facts (tags, payment, fulfillment) map to the canonical status. Lowest priority wins; cancellations, refunds, returns and deliveries always override.",
+    "back_to_settings": "Back to settings",
+    "rules_title": "Rules",
+    "rules_description": "Evaluated in priority order; the first match decides.",
+    "add_rule": "Add rule",
+    "edit_rule": "Edit rule",
+    "dialog_description": "Leave a condition empty to ignore it. Lists are comma-separated.",
+    "priority": "Priority",
+    "rule": "Rule",
+    "conditions": "Conditions",
+    "result": "Resulting status",
+    "inactive": "Inactive",
+    "active": "Active",
+    "no_rules": "No rules: the platform defaults apply (paid → confirmed, fulfilled → shipped).",
+    "overrides_note": "Hard facts come first regardless of rules: cancelled → cancelled, refunded → refunded, returns → returned, delivered shipment → delivered. Operator-set statuses persist until one of those facts changes.",
+    "preview_title": "Preview on recent orders",
+    "preview_description": "On the last {n} orders the current rules would change {changed}.",
+    "order": "Order",
+    "current": "Current",
+    "would_be": "Would be",
+    "fields": {
+      "tags_any": "Any of these tags",
+      "tags_all": "All of these tags",
+      "tags_none": "None of these tags",
+      "payment_methods": "Payment methods",
+      "payment_statuses": "Payment statuses",
+      "financial_raw": "Platform financial status",
+      "fulfillment_raw": "Platform fulfillment status",
+      "min_age": "Minimum age (hours)"
+    },
+    "summary": {
+      "tags_any": "tags any: {v}",
+      "tags_all": "tags all: {v}",
+      "tags_none": "tags none: {v}",
+      "payment_methods": "payment: {v}",
+      "payment_statuses": "payment status: {v}",
+      "financial_raw": "financial: {v}",
+      "fulfillment_raw": "fulfillment: {v}",
+      "min_age": "older than {v}h",
+      "always": "always"
+    }
   }
 }
