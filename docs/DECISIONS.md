@@ -548,6 +548,43 @@ The `holdout_percentage` and `group_name` columns stay in the data model, as §7
 - Letting the model write SQL. Rejected: it would bypass the canonical economics (in-scope orders, tax, return costs), and a wrong join would produce confident wrong numbers.
 - Streaming answers token by token. Deferred: it needs a route handler with server-sent events. The tool rounds dominate the wait anyway.
 
+## 2026-10-01 · Reliable platform writes and sync: outbox, idempotency, reconcile runs, stock drift, retention (issue #24)
+
+**Decision.**
+- **Outbox.** Every write to Shopify, Meta or Google is a row in `platform_writes` (tenant table, RLS). The user action writes the local change, the audit entry and the outbox row in one transaction, then the write runs. With a worker (`KEEL_JOBS_QUEUE=1`) it goes through the pg-boss queue `platform.write`. Without one it runs inline right after the commit, so the single-process demo behaves the same.
+- **Local first.** For asynchronous writes the local change is applied at once and the platform follows; a failure shows as "Sync failed" with the platform's error and a Retry button on the record and on the Integrations page. The nightly sync re-aligns Keel with the platform's truth for anything that never lands. This replaces "platform first" in price, product status, order cancellation, single discount codes, stock pushes (purchase-order receipt, transfers) and Meta pause/resume.
+- **Retries.** Rate limits, network and unknown errors are retried: the first wait is the platform's Retry-After, then 30 s × 2^n, at most 1 hour, up to 6 attempts. Permission, invalid-request, not-found and unsupported errors fail at once. A `writes` tick runs every minute: it puts writes left `running` by a restart back to pending, executes due rows oldest first, and stops a tenant's batch for a provider on a rate limit. The pg-boss job never throws for a platform error: the outbox owns the retry policy.
+- **Idempotency.** Without a caller key the key is a hash of kind, target, payload hash and the id of the previous write on the same target. The same request within 10 minutes (double click, repeated action) returns the same row, even concurrently: the unique index on (tenant, key) makes the loser read the winner's row. A → B → A gives three writes, because the previous write is part of the key. Kinds that write absolute values (price, status, stock level, campaign status) supersede older pending or failed writes on the same target, so a late retry can never overwrite a newer value.
+- **Synchronous writes stay synchronous, recorded.** `runPlatformWriteNow` runs the same registered handler with an adapter the caller holds and records the call and its outcome (`mode = sync`). It is used where the flow needs the answer:
+  - COD tags and the COD cancellation: the add-on's contract is "a refused write changes nothing locally", and its tests assert it;
+  - COD contact edits and the replacement order, whose number and lines are imported immediately;
+  - the return write-back steps, already a resumable per-step machine, now keyed `return:<id>:<step>`;
+  - discount pools, where the form reports accepted and rejected codes.
+
+  With a key, a repeated call returns the stored result (the replacement order is revived with its dates); without one each call is its own record. A synchronous record rolls back with the caller's transaction, and the error is shown to the user at once.
+- **Google** campaign status changes are refused before anything changes (read-only in the MVP), instead of failing in the outbox.
+- **Reconcile runs.** `sync_runs` gains `rows_scanned`, `conflicts`, `error_count`, `duration_ms` and `summary`. Conflicts count platform values that disagree with Keel: stock drift, and objects with a Keel write not yet confirmed. The catalog run is resumable by phase (locations → products → stock → discounts → cleanup) with cursors saved after every page. The nightly run is `kind = reconcile` and is shown on the health page with its summary.
+- **Stock.**
+  - `inventory_levels.synced_at` now means "when Keel last read this level", not the platform's update time.
+  - A complete run sets to zero the levels of active variants it did not see, and logs them.
+  - Negative platform values are stored as zero and logged.
+  - A level with an unconfirmed `inventory.set` write is not overwritten.
+  - Drift is "the change since the last read minus what Keel can explain". The explanation is the variant's sales since then, minus cancellations since then of earlier orders. Sales carry no location, so the check is per variant, and receipts and transfers are already in the local level. Drift rows are deduplicated on a key, and a repeat bumps `occurrences`.
+- **Webhook stock refresh.** After `orders/*`, `fulfillments/*` and `refunds/create` (now registered), the stock of the order's variants is re-read in the same job, in a savepoint. A failure is recorded on `shopify:inventory` health and never fails the webhook; the nightly run catches up. A separate queue job was rejected: it would need plumbing in three call sites (job, inline route, replay) for no gain at this volume.
+- **Mock coherence.** The commerce mock now keeps stock per item and location, seeded from the tenant's levels. Orders it generates take stock from the default location, restocked cancellations put it back, and `setInventory`/`restockInventory` change it. A sync therefore shows only real changes; `adjustStock` simulates an edit in the store admin.
+- **Retention.** The window is platform-wide: `KEEL_RETENTION_DAYS`, default 14 (`PLATFORM_RETENTION_DAYS_DEFAULT`). A daily tick at 04:10 deletes, per tenant through `withTenant`:
+  - processed webhook events;
+  - succeeded or superseded writes, and synchronous records (their flow owns the failure);
+  - successful runs, and failed runs already followed by a success;
+  - drift not seen since.
+
+  Failed webhooks and failed asynchronous writes are kept until resolved. pg-boss queues get the same window as `deleteAfterSeconds`.
+
+**Alternatives.**
+- Keeping "platform first" with an in-request retry: rejected, because a rate limit or timeout would still lose the write or block the user.
+- A generic per-request dedupe table: rejected; the key on the outbox row is enough and keeps the status on the record.
+- Time-bucketed keys: rejected; a double click across a bucket boundary would write twice, and A → B → A would collide.
+- Clamping negative stock at the platform: rejected; Keel never writes stock it did not decide.
 ## 2026-10-01 · Notifications, email templates, staff tasks and support tickets (issue #33)
 
 **Decision.**
@@ -611,3 +648,12 @@ The `holdout_percentage` and `group_name` columns stay in the data model, as §7
 - `Select` and `Input` take `size="sm" | "default"` (h-8 / h-10) from one shared table. Single selects have no vertical padding and a line height equal to the inner height, so the text is centred and never clipped (WebKit draws native select text from the top of the padding box). Native selects stay (reliable in forms and server actions).
 - `apps/web` has no raw `<select>` and no height overrides on `Select`/`Input`: a unit test fails on either, and a Playwright check measures that the text fits the box on the Users role select, the language picker and the admin plan select. Only Chromium is available in the cloud sandbox, so the WebKit run of that check happens on a local machine.
 - Pages format dates and numbers in the locale the page is displayed in (the language cookie), not in the profile's saved language: the picker used to translate the text while dates stayed in the other language. The picker now also saves the language on the profile, and sign-in restores it on any device. A user without a saved language still sees the default (English); falling back to the tenant's language is left to the profile work (#45), because it changes the language of every demo user at once.
+
+**Integration with order editing (#22) and product cost (#23), 2026-10-01.**
+- The core order-edit service writes through the outbox synchronously and recorded, because the order page shows the result at once:
+  - contact and address edits use `order.update_details`;
+  - the replacement order uses `order.create`, keyed `order:replace:<order ids>`, so a repeated request reuses the order already created;
+  - the cancellation of the replaced orders uses `order.cancel`;
+  - discounts applied to an order use the new kind `order.discount`.
+- The COD add-on delegates to that service, so its replacement flow is recorded the same way.
+- Cost write-back becomes the asynchronous kind `variant.cost`. It is enqueued with the local cost change, for both manual edits and CSV imports, when the tenant enabled `costWriteBack`. This replaces "platform first": a refused cost write now shows as a failed write with Retry instead of blocking the local cost.

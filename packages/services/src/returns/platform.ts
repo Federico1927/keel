@@ -5,6 +5,7 @@ import { getPaymentGuaranteeFor } from "../integrations/factory";
 import { importOrder } from "../sync";
 import { getReturnPolicy } from "./policy";
 import type { ServiceContext } from "../context";
+import { runPlatformWriteNow, type PlatformWriteInput, type PlatformWriteKind } from "../writes";
 
 export interface ReturnSyncResult {
   status: "synced" | "not_required" | "error";
@@ -33,6 +34,9 @@ export async function syncReturnToPlatform(ctx: ServiceContext, platform: Commer
   let state = { externalId: req.externalId, platformStatus: req.platformStatus, platformRefundId: req.platformRefundId };
   const policy = await getReturnPolicy(ctx);
   const guarantee = opts.guarantee ?? getPaymentGuaranteeFor(ctx.tenantId);
+  // every platform call is recorded in the outbox, keyed per return and step: a step that already
+  // succeeded is answered from the record, a failed one is retried on the same row
+  const write = <K extends PlatformWriteKind>(step: string, kind: K, payload: PlatformWriteInput<K>["payload"]) => runPlatformWriteNow(ctx, platform, { kind, entityType: "return", entityId: req.id, payload, idempotencyKey: `return:${req.id}:${step}` });
   try {
     const lines = await ctx.tx
       .select({ id: schema.returnLines.id, quantity: schema.returnLines.quantity, unitAmountMinor: schema.returnLines.unitAmountMinor, restocked: schema.returnLines.restocked, platformRestocked: schema.returnLines.platformRestocked, orderLineExternalId: schema.orderLines.externalId, inventoryItemExternalId: schema.productVariants.inventoryItemExternalId })
@@ -45,7 +49,7 @@ export async function syncReturnToPlatform(ctx: ServiceContext, platform: Commer
 
     // 1. request (returns that came from the platform already exist there)
     if (!state.externalId && req.status !== "rejected" && withExt.length) {
-      const r = await platform.requestReturn(order.externalId, { lines: withExt.map((l) => ({ orderLineExternalId: l.orderLineExternalId!, quantity: l.quantity, reason: reason?.platformReason ?? null, note: req.customerNote })), note: req.customerNote });
+      const r = await write("request", "return.request", { orderExternalId: order.externalId, lines: withExt.map((l) => ({ orderLineExternalId: l.orderLineExternalId!, quantity: l.quantity, reason: reason?.platformReason ?? null, note: req.customerNote })), note: req.customerNote });
       state = { ...state, externalId: r.externalId, platformStatus: "requested" };
       await save({ externalId: r.externalId, platformStatus: "requested" });
       for (const rl of r.lines) {
@@ -56,13 +60,13 @@ export async function syncReturnToPlatform(ctx: ServiceContext, platform: Commer
     }
     // 2. approve or decline
     if (state.externalId && req.status === "rejected" && state.platformStatus === "requested") {
-      await platform.declineReturn(state.externalId, req.staffNote);
+      await write("decline", "return.decline", { returnExternalId: state.externalId, note: req.staffNote });
       state.platformStatus = "declined";
       await save({ platformStatus: "declined" });
       steps.push("declined");
     }
     if (state.externalId && !["requested", "rejected"].includes(req.status) && state.platformStatus === "requested") {
-      await platform.approveReturn(state.externalId);
+      await write("approve", "return.approve", { returnExternalId: state.externalId });
       state.platformStatus = "approved";
       await save({ platformStatus: "approved" });
       steps.push("approved");
@@ -72,21 +76,21 @@ export async function syncReturnToPlatform(ctx: ServiceContext, platform: Commer
     if (toRestock.length && req.restockLocationId) {
       const [loc] = await ctx.tx.select({ externalId: schema.locations.externalId }).from(schema.locations).where(eq(schema.locations.id, req.restockLocationId)).limit(1);
       if (loc?.externalId) {
-        await platform.restockInventory(toRestock.map((l) => ({ inventoryItemExternalId: l.inventoryItemExternalId!, locationExternalId: loc.externalId!, quantity: l.quantity })));
+        await write(`restock:${toRestock.map((l) => l.id).sort().join(",")}`, "inventory.restock", { lines: toRestock.map((l) => ({ inventoryItemExternalId: l.inventoryItemExternalId!, locationExternalId: loc.externalId!, quantity: l.quantity })) });
         await ctx.tx.update(schema.returnLines).set({ platformRestocked: true }).where(inArray(schema.returnLines.id, toRestock.map((l) => l.id)));
         steps.push("restocked");
       }
     }
     // 4. refund (vouchers and exchanges move no money on the original payment)
     if (req.status === "refunded" && !state.platformRefundId && withExt.length) {
-      const r = await platform.refundReturn(order.externalId, { lines: withExt.map((l) => ({ orderLineExternalId: l.orderLineExternalId!, quantity: l.quantity })), amountMinor: req.refundedAmountMinor ?? 0, currency: order.currency, note: `R-${req.number}`, notify: true });
+      const r = await write("refund", "return.refund", { orderExternalId: order.externalId, lines: withExt.map((l) => ({ orderLineExternalId: l.orderLineExternalId!, quantity: l.quantity })), amountMinor: req.refundedAmountMinor ?? 0, currency: order.currency, note: `R-${req.number}`, notify: true });
       state.platformRefundId = r.externalId;
       await save({ platformRefundId: r.externalId });
       steps.push("refunded");
     }
     // 4b. voucher: a one-use code on the store for the credit (with the bonus)
     if (req.status === "voucher_issued" && req.voucherCode && !req.voucherPlatformId && (req.refundedAmountMinor ?? 0) > 0) {
-      const v = await platform.createDiscountCode({ code: req.voucherCode, title: `Return R-${req.number}`, type: "fixed_amount", value: req.refundedAmountMinor!, usageLimit: 1 });
+      const v = await write("voucher", "discount.create", { code: req.voucherCode, title: `Return R-${req.number}`, type: "fixed_amount", value: req.refundedAmountMinor!, usageLimit: 1 });
       await save({ voucherPlatformId: v.externalId });
       steps.push("voucher");
     }
@@ -122,17 +126,17 @@ export async function syncReturnToPlatform(ctx: ServiceContext, platform: Commer
         replacesOrderName: null,
       };
       if ((req.exchangeDifferenceMinor ?? 0) > 0) {
-        const d = await platform.createInvoiceOrder(input);
+        const d = await write("exchange_invoice", "order.create_invoice", { input });
         await save({ exchangeDraftId: d.draftExternalId, exchangeInvoiceUrl: d.invoiceUrl });
         steps.push("exchange_invoice");
       } else {
-        const created = await platform.createOrder(input);
+        const created = await write("exchange_order", "order.create", { input });
         const imported = await importOrder(ctx, created, { country: opts.country ?? order.shippingCountry ?? "US", source: "sync" });
         await save({ exchangeOrderId: imported.id });
         steps.push("exchange_order");
         const leftover = -(req.exchangeDifferenceMinor ?? 0);
         if (leftover > 0 && policy.exchanges.refundDifference && !state.platformRefundId && withExt.length) {
-          const r = await platform.refundReturn(order.externalId, { lines: [], amountMinor: leftover, currency: order.currency, note: `R-${req.number} exchange difference`, notify: true });
+          const r = await write("difference_refund", "return.refund", { orderExternalId: order.externalId, lines: [], amountMinor: leftover, currency: order.currency, note: `R-${req.number} exchange difference`, notify: true });
           state.platformRefundId = r.externalId;
           await save({ platformRefundId: r.externalId });
           steps.push("difference_refunded");
@@ -147,7 +151,7 @@ export async function syncReturnToPlatform(ctx: ServiceContext, platform: Commer
     }
     // 5. close
     if (state.externalId && (RETURN_CLOSED_STATUSES as readonly string[]).includes(req.status) && req.status !== "rejected" && state.platformStatus === "approved") {
-      await platform.closeReturn(state.externalId);
+      await write("close", "return.close", { returnExternalId: state.externalId });
       state.platformStatus = "closed";
       await save({ platformStatus: "closed" });
       steps.push("closed");
@@ -155,7 +159,7 @@ export async function syncReturnToPlatform(ctx: ServiceContext, platform: Commer
     // 6. tags configured for this status (adding a tag twice is harmless)
     const tags = settings.returnPlatformTags[req.status] ?? [];
     if (tags.length) {
-      await platform.updateOrderTags(order.externalId, tags, []);
+      await write(`tags:${req.status}`, "order.tags", { orderExternalId: order.externalId, add: tags, remove: [] });
       steps.push("tagged");
     }
     await save({ platformSyncStatus: "synced", platformError: null, platformSyncedAt: now });

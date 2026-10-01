@@ -26,6 +26,7 @@ export * from "./tracking/pixel";
 export * from "./tracking/conversions";
 export * from "./tracking/survey";
 export * from "./assistant";
+export * from "./writes";
 export * from "./catalog/costs";
 export * from "./tasks";
 export * from "./notes";

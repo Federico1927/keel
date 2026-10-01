@@ -519,170 +519,6 @@
       "supplier_po": "Ordini d'acquisto ai fornitori"
     }
   },
-  "tasks": {
-    "title": "Attività",
-    "description": "Lavoro collegato a ordini, resi, ordini d'acquisto e prodotti. Le regole aprono attività sugli eventi e le chiudono quando il record va avanti.",
-    "tabs": {
-      "mine": "Le mie attività",
-      "all": "Tutto il team",
-      "unassigned": "Non assegnate"
-    },
-    "status_filter": {
-      "open": "Aperte",
-      "overdue": "Scadute",
-      "closed": "Chiuse",
-      "all": "Tutte"
-    },
-    "statuses": {
-      "open": "Aperta",
-      "in_progress": "In corso",
-      "done": "Completata",
-      "cancelled": "Annullata"
-    },
-    "columns": {
-      "task": "Attività",
-      "record": "Record",
-      "assignee": "Assegnata a",
-      "due": "Scadenza",
-      "status": "Stato"
-    },
-    "new": "Nuova attività",
-    "fields": {
-      "title": "Titolo",
-      "description": "Dettagli",
-      "assignee": "Assegnata a",
-      "due": "Scadenza",
-      "record": "Record collegato"
-    },
-    "unassigned": "Non assegnata",
-    "no_record": "Nessuno",
-    "overdue": "Scaduta",
-    "create": "Crea attività",
-    "search": "Cerca attività",
-    "empty_title": "Nessuna attività",
-    "empty_description": "Qui non c'è nulla: le attività create a mano o dalle regole compaiono in questo elenco.",
-    "pagination": "{from}–{to} di {total}",
-    "rules": "Regole",
-    "by_rule": "Aperta da una regola",
-    "auto_closed": "Chiusa automaticamente quando il record è andato avanti",
-    "actions": {
-      "start": "Inizia",
-      "done": "Completa",
-      "reopen": "Riapri",
-      "cancel": "Annulla"
-    },
-    "entity": {
-      "order": "Ordine",
-      "return": "Reso",
-      "purchase_order": "Ordine d'acquisto",
-      "product": "Prodotto"
-    },
-    "panel": {
-      "title": "Attività",
-      "empty": "Nessuna attività su questo record.",
-      "add": "Aggiungi attività",
-      "all": "Tutte le attività"
-    },
-    "counts": {
-      "open": "{n} aperte",
-      "overdue": "{n} scadute"
-    }
-  },
-  "task_rules": {
-    "title": "Regole delle attività",
-    "description": "Quando un record resta in uno degli stati scelti (per un certo tempo, o oltre la sua scadenza), Keel apre un'attività e la assegna; l'attività si chiude da sola quando il record va avanti.",
-    "new": "Nuova regola",
-    "edit": "Modifica",
-    "entity": "Record",
-    "statuses": "Nello stato",
-    "min_hours": "Dopo ore nello stato",
-    "use_due": "Solo dopo la scadenza",
-    "overdue_after": "Ore oltre la scadenza",
-    "task_title": "Titolo dell'attività",
-    "task_description": "Dettagli dell'attività",
-    "due_in": "Scadenza dell'attività (ore)",
-    "assignee_mode": "Assegna a",
-    "modes": {
-      "role": "Membro meno carico con il ruolo",
-      "record_owner": "Responsabile del record (altrimenti ruolo)",
-      "user": "Un membro preciso",
-      "none": "Nessuno"
-    },
-    "role": "Ruolo",
-    "user": "Membro",
-    "active": "Attiva",
-    "inactive": "Spenta",
-    "save": "Salva regola",
-    "delete": "Elimina",
-    "restore_defaults": "Aggiungi le regole predefinite mancanti",
-    "empty": "Nessuna regola.",
-    "summary": "{entity} in {statuses}",
-    "after_hours": "dopo {n} h",
-    "past_due": "{n} h oltre la scadenza",
-    "default": "Predefinita"
-  },
-  "support": {
-    "button": "Aiuto",
-    "title": "Supporto",
-    "description": "Richieste al team di Keel. Ricevi una notifica quando rispondiamo.",
-    "new": "Contatta il supporto",
-    "new_description": "Descrivi il problema; uno screenshot o un file aiutano.",
-    "subject": "Oggetto",
-    "category": "Categoria",
-    "categories": {
-      "question": "Domanda",
-      "problem": "Problema",
-      "billing": "Fatturazione",
-      "feature": "Richiesta di funzionalità"
-    },
-    "body": "Messaggio",
-    "attachment": "Allegato (facoltativo)",
-    "attachment_hint": "Immagini, PDF, testo o CSV, fino a 1,5 MB.",
-    "send": "Invia",
-    "sent": "Richiesta inviata.",
-    "view": "Vedi la richiesta",
-    "statuses": {
-      "open": "In attesa di Keel",
-      "answered": "Risposta ricevuta",
-      "closed": "Chiusa"
-    },
-    "columns": {
-      "ticket": "Richiesta",
-      "status": "Stato",
-      "updated": "Ultimo messaggio",
-      "author": "Aperta da"
-    },
-    "empty_title": "Nessuna richiesta",
-    "empty_description": "Usa il pulsante Aiuto nell'intestazione per scrivere al team di Keel.",
-    "reply": "Rispondi",
-    "reply_placeholder": "Scrivi una risposta…",
-    "close": "Chiudi la richiesta",
-    "closed_hint": "Questa richiesta è chiusa: una risposta la riapre.",
-    "you": "Tu",
-    "platform": "Supporto Keel",
-    "download": "Scarica",
-    "messages_n": "{n} messaggi",
-    "all": "Tutte le richieste"
-  },
-  "record_notes": {
-    "title": "Note interne",
-    "placeholder": "Scrivi una nota… digita @ per menzionare un collega",
-    "hint": "Le persone menzionate ricevono una notifica.",
-    "add": "Aggiungi nota",
-    "delete": "Elimina nota",
-    "empty": "Nessuna nota."
-  },
-  "unsubscribe": {
-    "title": "Preferenze email",
-    "confirm_title": "Non ricevere più queste email?",
-    "confirm": "Non riceverai più le email «{category}» di {tenant} all'indirizzo {email}.",
-    "button": "Disiscriviti",
-    "done_title": "Disiscrizione completata",
-    "done": "{email} non riceverà più le email «{category}» di {tenant}. Puoi riattivarle dalle tue preferenze di notifica.",
-    "invalid_title": "Link non valido",
-    "invalid": "Questo link di disiscrizione è danneggiato o incompleto.",
-    "all": "facoltative"
-  },
   "orders": {
     "title": "Ordini",
     "description": "Ordini in entrata con stato canonico, pagamento e assegnazione.",
@@ -997,7 +833,30 @@
       "cover": "Copertura",
       "reorder": "Riordino"
     },
-    "planning_link": "Pianificazione"
+    "planning_link": "Pianificazione",
+    "sync_now": "Sincronizza ora",
+    "sync_done": "Stock letto: {changed} livelli modificati, {drift} scostamenti, {conflicts} conflitti, {zeroed} livelli non più riportati azzerati.",
+    "sync_paused": "Sincronizzazione dello stock sospesa al limite di tempo; riprende alla prossima esecuzione.",
+    "sync_queued": "Sincronizzazione dello stock in coda.",
+    "sync_failed": "Sincronizzazione dello stock non riuscita: {error}",
+    "drift_title": "Scostamenti di stock",
+    "drift_description": "Variazioni trovate dalle sincronizzazioni che nessuna vendita, reso, ricevimento o rettifica spiega, valori negativi riportati a zero e livelli che la piattaforma non riporta più.",
+    "drift_empty": "Nessuno scostamento registrato.",
+    "drift_kind": {
+      "unexplained": "Variazione non spiegata",
+      "negative": "Negativo, azzerato",
+      "not_reported": "Non più riportato"
+    },
+    "drift_columns": {
+      "seen": "Visto",
+      "variant": "Variante",
+      "location": "Location",
+      "kind": "Tipo",
+      "expected": "Atteso",
+      "observed": "Piattaforma"
+    },
+    "drift_all_locations": "Tutte le location",
+    "drift_times": "×{n}"
   },
   "purchasing": {
     "title": "Acquisti",
@@ -2446,14 +2305,26 @@
       "run": "Esecuzione",
       "status": "Stato",
       "rows": "Righe",
-      "topic": "Topic"
+      "topic": "Topic",
+      "scanned": "Letti",
+      "changed": "Modificati",
+      "conflicts": "Conflitti",
+      "errors": "Errori",
+      "duration": "Durata"
     },
     "errors": {
       "connection_failed": "La piattaforma ha rifiutato le credenziali.",
       "mock_mode": "Questo ambiente è in modalità mock: imposta KEEL_INTEGRATION_MODE=live per collegare un account reale.",
       "live_mode": "La simulazione è disponibile solo per le integrazioni mock."
     },
-    "tracking": "Pixel e conversioni"
+    "tracking": "Pixel e conversioni",
+    "duration_s": "{s} s",
+    "run_kind": {
+      "initial": "storico",
+      "delta": "delta",
+      "reconcile": "riconciliazione notturna",
+      "manual": "manuale"
+    }
   },
   "integration_guide": {
     "verify_legend": "I passi segnati “Da verificare” dipendono da console dei fornitori che cambiano spesso: controllali sulla documentazione del fornitore prima della prima installazione.",
@@ -4158,6 +4029,213 @@
       "ask_owner": "Chiedi a un owner o a un admin di collegare la chiave Anthropic in Integrazioni.",
       "guide": "Come ottenere una chiave"
     }
+  },
+  "platform_writes": {
+    "status": {
+      "pending": "In attesa di sync",
+      "running": "In sincronizzazione",
+      "succeeded": "Sincronizzato",
+      "failed": "Sync non riuscito",
+      "superseded": "Sostituito"
+    },
+    "retry": "Riprova",
+    "retry_failed": "Impossibile riprovare",
+    "title": "Scritture verso le piattaforme",
+    "description": "Modifiche che Keel invia a Shopify, Meta e Google: {pending} in attesa, {failed} non riuscite, {succeeded} sincronizzate nelle ultime 24 ore.",
+    "empty": "Nessuna scrittura verso le piattaforme.",
+    "immediate": "immediata",
+    "attempts": "{n, plural, one {# tentativo} other {# tentativi}}",
+    "next_attempt": "prossimo tentativo {when}",
+    "columns": {
+      "when": "Quando",
+      "write": "Scrittura",
+      "status": "Stato"
+    },
+    "kinds": {
+      "variant_update": "Prezzo variante",
+      "product_status": "Stato prodotto",
+      "inventory_set": "Livello di stock",
+      "inventory_restock": "Rientro a stock",
+      "order_cancel": "Annullamento ordine",
+      "order_update_details": "Dati ordine",
+      "order_tags": "Tag ordine",
+      "order_create": "Nuovo ordine",
+      "order_create_invoice": "Ordine con fattura",
+      "discount_create": "Codice sconto",
+      "discount_pool": "Pool di codici",
+      "return_request": "Richiesta di reso",
+      "return_approve": "Approvazione reso",
+      "return_decline": "Rifiuto reso",
+      "return_refund": "Rimborso",
+      "return_close": "Chiusura reso",
+      "campaign_status": "Stato campagna",
+      "variant_cost": "Costo variante",
+      "order_discount": "Sconto sull'ordine"
+    }
+  },
+  "tasks": {
+    "title": "Attività",
+    "description": "Lavoro collegato a ordini, resi, ordini d'acquisto e prodotti. Le regole aprono attività sugli eventi e le chiudono quando il record va avanti.",
+    "tabs": {
+      "mine": "Le mie attività",
+      "all": "Tutto il team",
+      "unassigned": "Non assegnate"
+    },
+    "status_filter": {
+      "open": "Aperte",
+      "overdue": "Scadute",
+      "closed": "Chiuse",
+      "all": "Tutte"
+    },
+    "statuses": {
+      "open": "Aperta",
+      "in_progress": "In corso",
+      "done": "Completata",
+      "cancelled": "Annullata"
+    },
+    "columns": {
+      "task": "Attività",
+      "record": "Record",
+      "assignee": "Assegnata a",
+      "due": "Scadenza",
+      "status": "Stato"
+    },
+    "new": "Nuova attività",
+    "fields": {
+      "title": "Titolo",
+      "description": "Dettagli",
+      "assignee": "Assegnata a",
+      "due": "Scadenza",
+      "record": "Record collegato"
+    },
+    "unassigned": "Non assegnata",
+    "no_record": "Nessuno",
+    "overdue": "Scaduta",
+    "create": "Crea attività",
+    "search": "Cerca attività",
+    "empty_title": "Nessuna attività",
+    "empty_description": "Qui non c'è nulla: le attività create a mano o dalle regole compaiono in questo elenco.",
+    "pagination": "{from}–{to} di {total}",
+    "rules": "Regole",
+    "by_rule": "Aperta da una regola",
+    "auto_closed": "Chiusa automaticamente quando il record è andato avanti",
+    "actions": {
+      "start": "Inizia",
+      "done": "Completa",
+      "reopen": "Riapri",
+      "cancel": "Annulla"
+    },
+    "entity": {
+      "order": "Ordine",
+      "return": "Reso",
+      "purchase_order": "Ordine d'acquisto",
+      "product": "Prodotto"
+    },
+    "panel": {
+      "title": "Attività",
+      "empty": "Nessuna attività su questo record.",
+      "add": "Aggiungi attività",
+      "all": "Tutte le attività"
+    },
+    "counts": {
+      "open": "{n} aperte",
+      "overdue": "{n} scadute"
+    }
+  },
+  "task_rules": {
+    "title": "Regole delle attività",
+    "description": "Quando un record resta in uno degli stati scelti (per un certo tempo, o oltre la sua scadenza), Keel apre un'attività e la assegna; l'attività si chiude da sola quando il record va avanti.",
+    "new": "Nuova regola",
+    "edit": "Modifica",
+    "entity": "Record",
+    "statuses": "Nello stato",
+    "min_hours": "Dopo ore nello stato",
+    "use_due": "Solo dopo la scadenza",
+    "overdue_after": "Ore oltre la scadenza",
+    "task_title": "Titolo dell'attività",
+    "task_description": "Dettagli dell'attività",
+    "due_in": "Scadenza dell'attività (ore)",
+    "assignee_mode": "Assegna a",
+    "modes": {
+      "role": "Membro meno carico con il ruolo",
+      "record_owner": "Responsabile del record (altrimenti ruolo)",
+      "user": "Un membro preciso",
+      "none": "Nessuno"
+    },
+    "role": "Ruolo",
+    "user": "Membro",
+    "active": "Attiva",
+    "inactive": "Spenta",
+    "save": "Salva regola",
+    "delete": "Elimina",
+    "restore_defaults": "Aggiungi le regole predefinite mancanti",
+    "empty": "Nessuna regola.",
+    "summary": "{entity} in {statuses}",
+    "after_hours": "dopo {n} h",
+    "past_due": "{n} h oltre la scadenza",
+    "default": "Predefinita"
+  },
+  "support": {
+    "button": "Aiuto",
+    "title": "Supporto",
+    "description": "Richieste al team di Keel. Ricevi una notifica quando rispondiamo.",
+    "new": "Contatta il supporto",
+    "new_description": "Descrivi il problema; uno screenshot o un file aiutano.",
+    "subject": "Oggetto",
+    "category": "Categoria",
+    "categories": {
+      "question": "Domanda",
+      "problem": "Problema",
+      "billing": "Fatturazione",
+      "feature": "Richiesta di funzionalità"
+    },
+    "body": "Messaggio",
+    "attachment": "Allegato (facoltativo)",
+    "attachment_hint": "Immagini, PDF, testo o CSV, fino a 1,5 MB.",
+    "send": "Invia",
+    "sent": "Richiesta inviata.",
+    "view": "Vedi la richiesta",
+    "statuses": {
+      "open": "In attesa di Keel",
+      "answered": "Risposta ricevuta",
+      "closed": "Chiusa"
+    },
+    "columns": {
+      "ticket": "Richiesta",
+      "status": "Stato",
+      "updated": "Ultimo messaggio",
+      "author": "Aperta da"
+    },
+    "empty_title": "Nessuna richiesta",
+    "empty_description": "Usa il pulsante Aiuto nell'intestazione per scrivere al team di Keel.",
+    "reply": "Rispondi",
+    "reply_placeholder": "Scrivi una risposta…",
+    "close": "Chiudi la richiesta",
+    "closed_hint": "Questa richiesta è chiusa: una risposta la riapre.",
+    "you": "Tu",
+    "platform": "Supporto Keel",
+    "download": "Scarica",
+    "messages_n": "{n} messaggi",
+    "all": "Tutte le richieste"
+  },
+  "record_notes": {
+    "title": "Note interne",
+    "placeholder": "Scrivi una nota… digita @ per menzionare un collega",
+    "hint": "Le persone menzionate ricevono una notifica.",
+    "add": "Aggiungi nota",
+    "delete": "Elimina nota",
+    "empty": "Nessuna nota."
+  },
+  "unsubscribe": {
+    "title": "Preferenze email",
+    "confirm_title": "Non ricevere più queste email?",
+    "confirm": "Non riceverai più le email «{category}» di {tenant} all'indirizzo {email}.",
+    "button": "Disiscriviti",
+    "done_title": "Disiscrizione completata",
+    "done": "{email} non riceverà più le email «{category}» di {tenant}. Puoi riattivarle dalle tue preferenze di notifica.",
+    "invalid_title": "Link non valido",
+    "invalid": "Questo link di disiscrizione è danneggiato o incompleto.",
+    "all": "facoltative"
   },
   "product_costs": {
     "card_title": "Costo prodotto",

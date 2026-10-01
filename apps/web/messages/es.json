@@ -519,170 +519,6 @@
       "supplier_po": "Órdenes de compra a proveedores"
     }
   },
-  "tasks": {
-    "title": "Tareas",
-    "description": "Trabajo vinculado a pedidos, devoluciones, órdenes de compra y productos. Las reglas abren tareas con los eventos y las cierran cuando el registro avanza.",
-    "tabs": {
-      "mine": "Mis tareas",
-      "all": "Todo el equipo",
-      "unassigned": "Sin asignar"
-    },
-    "status_filter": {
-      "open": "Abiertas",
-      "overdue": "Vencidas",
-      "closed": "Cerradas",
-      "all": "Todas"
-    },
-    "statuses": {
-      "open": "Abierta",
-      "in_progress": "En curso",
-      "done": "Hecha",
-      "cancelled": "Cancelada"
-    },
-    "columns": {
-      "task": "Tarea",
-      "record": "Registro",
-      "assignee": "Asignada a",
-      "due": "Vence",
-      "status": "Estado"
-    },
-    "new": "Nueva tarea",
-    "fields": {
-      "title": "Título",
-      "description": "Detalles",
-      "assignee": "Asignada a",
-      "due": "Fecha límite",
-      "record": "Registro vinculado"
-    },
-    "unassigned": "Sin asignar",
-    "no_record": "Ninguno",
-    "overdue": "Vencida",
-    "create": "Crear tarea",
-    "search": "Buscar tareas",
-    "empty_title": "Sin tareas",
-    "empty_description": "No hay nada: las tareas creadas a mano o por reglas aparecen en esta lista.",
-    "pagination": "{from}–{to} de {total}",
-    "rules": "Reglas",
-    "by_rule": "Abierta por una regla",
-    "auto_closed": "Cerrada automáticamente cuando el registro avanzó",
-    "actions": {
-      "start": "Empezar",
-      "done": "Hecha",
-      "reopen": "Reabrir",
-      "cancel": "Cancelar"
-    },
-    "entity": {
-      "order": "Pedido",
-      "return": "Devolución",
-      "purchase_order": "Orden de compra",
-      "product": "Producto"
-    },
-    "panel": {
-      "title": "Tareas",
-      "empty": "No hay tareas en este registro.",
-      "add": "Añadir tarea",
-      "all": "Todas las tareas"
-    },
-    "counts": {
-      "open": "{n} abiertas",
-      "overdue": "{n} vencidas"
-    }
-  },
-  "task_rules": {
-    "title": "Reglas de tareas",
-    "description": "Cuando un registro permanece en uno de los estados elegidos (durante un tiempo, o después de su fecha límite), Keel abre una tarea y la asigna; la tarea se cierra sola cuando el registro avanza.",
-    "new": "Nueva regla",
-    "edit": "Editar",
-    "entity": "Registro",
-    "statuses": "En el estado",
-    "min_hours": "Después de horas en el estado",
-    "use_due": "Solo después de su fecha límite",
-    "overdue_after": "Horas después de la fecha límite",
-    "task_title": "Título de la tarea",
-    "task_description": "Detalles de la tarea",
-    "due_in": "La tarea vence en (horas)",
-    "assignee_mode": "Asignar a",
-    "modes": {
-      "role": "Miembro menos ocupado con el rol",
-      "record_owner": "Responsable del registro (si no, rol)",
-      "user": "Un miembro concreto",
-      "none": "Nadie"
-    },
-    "role": "Rol",
-    "user": "Miembro",
-    "active": "Activa",
-    "inactive": "Apagada",
-    "save": "Guardar regla",
-    "delete": "Eliminar",
-    "restore_defaults": "Añadir las reglas predeterminadas que faltan",
-    "empty": "Aún no hay reglas.",
-    "summary": "{entity} en {statuses}",
-    "after_hours": "después de {n} h",
-    "past_due": "{n} h tras la fecha límite",
-    "default": "Predeterminada"
-  },
-  "support": {
-    "button": "Ayuda",
-    "title": "Soporte",
-    "description": "Solicitudes al equipo de Keel. Recibes una notificación cuando respondemos.",
-    "new": "Contactar con soporte",
-    "new_description": "Describe el problema; una captura o un archivo ayudan.",
-    "subject": "Asunto",
-    "category": "Categoría",
-    "categories": {
-      "question": "Pregunta",
-      "problem": "Problema",
-      "billing": "Facturación",
-      "feature": "Petición de funcionalidad"
-    },
-    "body": "Mensaje",
-    "attachment": "Adjunto (opcional)",
-    "attachment_hint": "Imágenes, PDF, texto o CSV, hasta 1,5 MB.",
-    "send": "Enviar",
-    "sent": "Solicitud enviada.",
-    "view": "Ver la solicitud",
-    "statuses": {
-      "open": "Esperando a Keel",
-      "answered": "Respondida",
-      "closed": "Cerrada"
-    },
-    "columns": {
-      "ticket": "Solicitud",
-      "status": "Estado",
-      "updated": "Último mensaje",
-      "author": "Abierta por"
-    },
-    "empty_title": "Sin solicitudes",
-    "empty_description": "Usa el botón Ayuda de la cabecera para escribir al equipo de Keel.",
-    "reply": "Responder",
-    "reply_placeholder": "Escribe una respuesta…",
-    "close": "Cerrar la solicitud",
-    "closed_hint": "Esta solicitud está cerrada: una respuesta la reabre.",
-    "you": "Tú",
-    "platform": "Soporte de Keel",
-    "download": "Descargar",
-    "messages_n": "{n} mensajes",
-    "all": "Todas las solicitudes"
-  },
-  "record_notes": {
-    "title": "Notas internas",
-    "placeholder": "Escribe una nota… usa @ para mencionar a un compañero",
-    "hint": "Las personas mencionadas reciben una notificación.",
-    "add": "Añadir nota",
-    "delete": "Eliminar nota",
-    "empty": "Aún no hay notas."
-  },
-  "unsubscribe": {
-    "title": "Preferencias de correo",
-    "confirm_title": "¿Dejar de recibir estos correos?",
-    "confirm": "Dejarás de recibir los correos «{category}» de {tenant} en {email}.",
-    "button": "Darme de baja",
-    "done_title": "Te has dado de baja",
-    "done": "{email} ya no recibirá los correos «{category}» de {tenant}. Puedes reactivarlos desde tus preferencias de notificación.",
-    "invalid_title": "Enlace no válido",
-    "invalid": "Este enlace de baja está dañado o incompleto.",
-    "all": "opcionales"
-  },
   "orders": {
     "title": "Pedidos",
     "description": "Pedidos entrantes con su estado canónico, pago y asignación.",
@@ -997,7 +833,30 @@
       "cover": "Cobertura",
       "reorder": "Reposición"
     },
-    "planning_link": "Planificación"
+    "planning_link": "Planificación",
+    "sync_now": "Sincronizar ahora",
+    "sync_done": "Stock leído: {changed} niveles cambiados, {drift} desviaciones, {conflicts} conflictos, {zeroed} niveles obsoletos a cero.",
+    "sync_paused": "Sincronización de stock pausada por límite de tiempo; continúa en la próxima ejecución.",
+    "sync_queued": "Sincronización de stock en cola.",
+    "sync_failed": "Error en la sincronización de stock: {error}",
+    "drift_title": "Desviaciones de stock",
+    "drift_description": "Cambios encontrados por las sincronizaciones que ninguna venta, devolución, recepción o ajuste explica, valores negativos llevados a cero y niveles que la plataforma ya no informa.",
+    "drift_empty": "No hay desviaciones registradas.",
+    "drift_kind": {
+      "unexplained": "Cambio sin explicar",
+      "negative": "Negativo, a cero",
+      "not_reported": "Ya no informado"
+    },
+    "drift_columns": {
+      "seen": "Visto",
+      "variant": "Variante",
+      "location": "Ubicación",
+      "kind": "Tipo",
+      "expected": "Esperado",
+      "observed": "Plataforma"
+    },
+    "drift_all_locations": "Todas las ubicaciones",
+    "drift_times": "×{n}"
   },
   "purchasing": {
     "title": "Compras",
@@ -2446,14 +2305,26 @@
       "run": "Ejecución",
       "status": "Estado",
       "rows": "Filas",
-      "topic": "Topic"
+      "topic": "Topic",
+      "scanned": "Leídos",
+      "changed": "Cambiados",
+      "conflicts": "Conflictos",
+      "errors": "Errores",
+      "duration": "Duración"
     },
     "errors": {
       "connection_failed": "La plataforma rechazó las credenciales.",
       "mock_mode": "Este entorno está en modo mock: configura KEEL_INTEGRATION_MODE=live para conectar una cuenta real.",
       "live_mode": "La simulación solo está disponible para integraciones mock."
     },
-    "tracking": "Píxel y conversiones"
+    "tracking": "Píxel y conversiones",
+    "duration_s": "{s} s",
+    "run_kind": {
+      "initial": "histórico",
+      "delta": "delta",
+      "reconcile": "conciliación nocturna",
+      "manual": "manual"
+    }
   },
   "integration_guide": {
     "verify_legend": "Los pasos marcados “Por verificar” dependen de consolas de proveedores que cambian a menudo: compruébalos en la documentación del proveedor antes de la primera instalación.",
@@ -4158,6 +4029,213 @@
       "ask_owner": "Pide a un owner o admin que conecte la clave de Anthropic en Integraciones.",
       "guide": "Cómo obtener una clave"
     }
+  },
+  "platform_writes": {
+    "status": {
+      "pending": "Pendiente de sincronizar",
+      "running": "Sincronizando",
+      "succeeded": "Sincronizado",
+      "failed": "Error de sincronización",
+      "superseded": "Reemplazado"
+    },
+    "retry": "Reintentar",
+    "retry_failed": "No se pudo reintentar",
+    "title": "Escrituras a las plataformas",
+    "description": "Cambios que Keel envía a Shopify, Meta y Google: {pending} en espera, {failed} con error, {succeeded} sincronizados en las últimas 24 horas.",
+    "empty": "Aún no hay escrituras a las plataformas.",
+    "immediate": "inmediata",
+    "attempts": "{n, plural, one {# intento} other {# intentos}}",
+    "next_attempt": "próximo intento {when}",
+    "columns": {
+      "when": "Cuándo",
+      "write": "Escritura",
+      "status": "Estado"
+    },
+    "kinds": {
+      "variant_update": "Precio de variante",
+      "product_status": "Estado del producto",
+      "inventory_set": "Nivel de stock",
+      "inventory_restock": "Reposición",
+      "order_cancel": "Cancelación de pedido",
+      "order_update_details": "Datos del pedido",
+      "order_tags": "Etiquetas del pedido",
+      "order_create": "Nuevo pedido",
+      "order_create_invoice": "Pedido con factura",
+      "discount_create": "Código de descuento",
+      "discount_pool": "Lote de códigos",
+      "return_request": "Solicitud de devolución",
+      "return_approve": "Aprobación de devolución",
+      "return_decline": "Rechazo de devolución",
+      "return_refund": "Reembolso",
+      "return_close": "Cierre de devolución",
+      "campaign_status": "Estado de campaña",
+      "variant_cost": "Coste de variante",
+      "order_discount": "Descuento del pedido"
+    }
+  },
+  "tasks": {
+    "title": "Tareas",
+    "description": "Trabajo vinculado a pedidos, devoluciones, órdenes de compra y productos. Las reglas abren tareas con los eventos y las cierran cuando el registro avanza.",
+    "tabs": {
+      "mine": "Mis tareas",
+      "all": "Todo el equipo",
+      "unassigned": "Sin asignar"
+    },
+    "status_filter": {
+      "open": "Abiertas",
+      "overdue": "Vencidas",
+      "closed": "Cerradas",
+      "all": "Todas"
+    },
+    "statuses": {
+      "open": "Abierta",
+      "in_progress": "En curso",
+      "done": "Hecha",
+      "cancelled": "Cancelada"
+    },
+    "columns": {
+      "task": "Tarea",
+      "record": "Registro",
+      "assignee": "Asignada a",
+      "due": "Vence",
+      "status": "Estado"
+    },
+    "new": "Nueva tarea",
+    "fields": {
+      "title": "Título",
+      "description": "Detalles",
+      "assignee": "Asignada a",
+      "due": "Fecha límite",
+      "record": "Registro vinculado"
+    },
+    "unassigned": "Sin asignar",
+    "no_record": "Ninguno",
+    "overdue": "Vencida",
+    "create": "Crear tarea",
+    "search": "Buscar tareas",
+    "empty_title": "Sin tareas",
+    "empty_description": "No hay nada: las tareas creadas a mano o por reglas aparecen en esta lista.",
+    "pagination": "{from}–{to} de {total}",
+    "rules": "Reglas",
+    "by_rule": "Abierta por una regla",
+    "auto_closed": "Cerrada automáticamente cuando el registro avanzó",
+    "actions": {
+      "start": "Empezar",
+      "done": "Hecha",
+      "reopen": "Reabrir",
+      "cancel": "Cancelar"
+    },
+    "entity": {
+      "order": "Pedido",
+      "return": "Devolución",
+      "purchase_order": "Orden de compra",
+      "product": "Producto"
+    },
+    "panel": {
+      "title": "Tareas",
+      "empty": "No hay tareas en este registro.",
+      "add": "Añadir tarea",
+      "all": "Todas las tareas"
+    },
+    "counts": {
+      "open": "{n} abiertas",
+      "overdue": "{n} vencidas"
+    }
+  },
+  "task_rules": {
+    "title": "Reglas de tareas",
+    "description": "Cuando un registro permanece en uno de los estados elegidos (durante un tiempo, o después de su fecha límite), Keel abre una tarea y la asigna; la tarea se cierra sola cuando el registro avanza.",
+    "new": "Nueva regla",
+    "edit": "Editar",
+    "entity": "Registro",
+    "statuses": "En el estado",
+    "min_hours": "Después de horas en el estado",
+    "use_due": "Solo después de su fecha límite",
+    "overdue_after": "Horas después de la fecha límite",
+    "task_title": "Título de la tarea",
+    "task_description": "Detalles de la tarea",
+    "due_in": "La tarea vence en (horas)",
+    "assignee_mode": "Asignar a",
+    "modes": {
+      "role": "Miembro menos ocupado con el rol",
+      "record_owner": "Responsable del registro (si no, rol)",
+      "user": "Un miembro concreto",
+      "none": "Nadie"
+    },
+    "role": "Rol",
+    "user": "Miembro",
+    "active": "Activa",
+    "inactive": "Apagada",
+    "save": "Guardar regla",
+    "delete": "Eliminar",
+    "restore_defaults": "Añadir las reglas predeterminadas que faltan",
+    "empty": "Aún no hay reglas.",
+    "summary": "{entity} en {statuses}",
+    "after_hours": "después de {n} h",
+    "past_due": "{n} h tras la fecha límite",
+    "default": "Predeterminada"
+  },
+  "support": {
+    "button": "Ayuda",
+    "title": "Soporte",
+    "description": "Solicitudes al equipo de Keel. Recibes una notificación cuando respondemos.",
+    "new": "Contactar con soporte",
+    "new_description": "Describe el problema; una captura o un archivo ayudan.",
+    "subject": "Asunto",
+    "category": "Categoría",
+    "categories": {
+      "question": "Pregunta",
+      "problem": "Problema",
+      "billing": "Facturación",
+      "feature": "Petición de funcionalidad"
+    },
+    "body": "Mensaje",
+    "attachment": "Adjunto (opcional)",
+    "attachment_hint": "Imágenes, PDF, texto o CSV, hasta 1,5 MB.",
+    "send": "Enviar",
+    "sent": "Solicitud enviada.",
+    "view": "Ver la solicitud",
+    "statuses": {
+      "open": "Esperando a Keel",
+      "answered": "Respondida",
+      "closed": "Cerrada"
+    },
+    "columns": {
+      "ticket": "Solicitud",
+      "status": "Estado",
+      "updated": "Último mensaje",
+      "author": "Abierta por"
+    },
+    "empty_title": "Sin solicitudes",
+    "empty_description": "Usa el botón Ayuda de la cabecera para escribir al equipo de Keel.",
+    "reply": "Responder",
+    "reply_placeholder": "Escribe una respuesta…",
+    "close": "Cerrar la solicitud",
+    "closed_hint": "Esta solicitud está cerrada: una respuesta la reabre.",
+    "you": "Tú",
+    "platform": "Soporte de Keel",
+    "download": "Descargar",
+    "messages_n": "{n} mensajes",
+    "all": "Todas las solicitudes"
+  },
+  "record_notes": {
+    "title": "Notas internas",
+    "placeholder": "Escribe una nota… usa @ para mencionar a un compañero",
+    "hint": "Las personas mencionadas reciben una notificación.",
+    "add": "Añadir nota",
+    "delete": "Eliminar nota",
+    "empty": "Aún no hay notas."
+  },
+  "unsubscribe": {
+    "title": "Preferencias de correo",
+    "confirm_title": "¿Dejar de recibir estos correos?",
+    "confirm": "Dejarás de recibir los correos «{category}» de {tenant} en {email}.",
+    "button": "Darme de baja",
+    "done_title": "Te has dado de baja",
+    "done": "{email} ya no recibirá los correos «{category}» de {tenant}. Puedes reactivarlos desde tus preferencias de notificación.",
+    "invalid_title": "Enlace no válido",
+    "invalid": "Este enlace de baja está dañado o incompleto.",
+    "all": "opcionales"
   },
   "product_costs": {
     "card_title": "Coste del producto",

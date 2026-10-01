@@ -58,6 +58,8 @@ export const WRITE_ORDER: [keyof TenantDataset, PgTable][] = [
   ["integrationHealth", schema.integrationHealth],
   ["webhookEvents", schema.webhookEvents],
   ["syncRuns", schema.syncRuns],
+  ["platformWrites", schema.platformWrites],
+  ["inventoryDrift", schema.inventoryDrift],
   ["auditLogs", schema.auditLogs],
 ];
 

@@ -519,170 +519,6 @@
       "supplier_po": "Purchase orders to suppliers"
     }
   },
-  "tasks": {
-    "title": "Tasks",
-    "description": "Work linked to orders, returns, purchase orders and products. Rules open tasks on events and close them when the record moves on.",
-    "tabs": {
-      "mine": "My tasks",
-      "all": "Everyone",
-      "unassigned": "Unassigned"
-    },
-    "status_filter": {
-      "open": "Open",
-      "overdue": "Overdue",
-      "closed": "Closed",
-      "all": "All"
-    },
-    "statuses": {
-      "open": "Open",
-      "in_progress": "In progress",
-      "done": "Done",
-      "cancelled": "Cancelled"
-    },
-    "columns": {
-      "task": "Task",
-      "record": "Record",
-      "assignee": "Assignee",
-      "due": "Due",
-      "status": "Status"
-    },
-    "new": "New task",
-    "fields": {
-      "title": "Title",
-      "description": "Details",
-      "assignee": "Assignee",
-      "due": "Due date",
-      "record": "Linked record"
-    },
-    "unassigned": "Unassigned",
-    "no_record": "None",
-    "overdue": "Overdue",
-    "create": "Create task",
-    "search": "Search tasks",
-    "empty_title": "No tasks",
-    "empty_description": "Nothing here: tasks created by hand or by rules show up in this list.",
-    "pagination": "{from}–{to} of {total}",
-    "rules": "Rules",
-    "by_rule": "Opened by a rule",
-    "auto_closed": "Closed automatically when the record moved on",
-    "actions": {
-      "start": "Start",
-      "done": "Done",
-      "reopen": "Reopen",
-      "cancel": "Cancel"
-    },
-    "entity": {
-      "order": "Order",
-      "return": "Return",
-      "purchase_order": "Purchase order",
-      "product": "Product"
-    },
-    "panel": {
-      "title": "Tasks",
-      "empty": "No tasks on this record.",
-      "add": "Add task",
-      "all": "All tasks"
-    },
-    "counts": {
-      "open": "{n} open",
-      "overdue": "{n} overdue"
-    }
-  },
-  "task_rules": {
-    "title": "Task rules",
-    "description": "When a record sits in one of the chosen statuses (for a while, or past its due date), Keel opens a task and assigns it; the task closes by itself when the record moves on.",
-    "new": "New rule",
-    "edit": "Edit",
-    "entity": "Record",
-    "statuses": "In status",
-    "min_hours": "After hours in status",
-    "use_due": "Only when past its due date",
-    "overdue_after": "Hours past the due date",
-    "task_title": "Task title",
-    "task_description": "Task details",
-    "due_in": "Task due in (hours)",
-    "assignee_mode": "Assign to",
-    "modes": {
-      "role": "Least busy member with role",
-      "record_owner": "Record owner (else role)",
-      "user": "A specific member",
-      "none": "Nobody"
-    },
-    "role": "Role",
-    "user": "Member",
-    "active": "Active",
-    "inactive": "Off",
-    "save": "Save rule",
-    "delete": "Delete",
-    "restore_defaults": "Add missing default rules",
-    "empty": "No rules yet.",
-    "summary": "{entity} in {statuses}",
-    "after_hours": "after {n} h",
-    "past_due": "{n} h past due",
-    "default": "Default"
-  },
-  "support": {
-    "button": "Help",
-    "title": "Support",
-    "description": "Requests to the Keel team. You get a notification when we answer.",
-    "new": "Contact support",
-    "new_description": "Describe the problem; a screenshot or a file helps.",
-    "subject": "Subject",
-    "category": "Category",
-    "categories": {
-      "question": "Question",
-      "problem": "Problem",
-      "billing": "Billing",
-      "feature": "Feature request"
-    },
-    "body": "Message",
-    "attachment": "Attachment (optional)",
-    "attachment_hint": "Images, PDF, text or CSV, up to 1.5 MB.",
-    "send": "Send",
-    "sent": "Request sent.",
-    "view": "View request",
-    "statuses": {
-      "open": "Waiting for Keel",
-      "answered": "Answered",
-      "closed": "Closed"
-    },
-    "columns": {
-      "ticket": "Request",
-      "status": "Status",
-      "updated": "Last message",
-      "author": "Opened by"
-    },
-    "empty_title": "No requests",
-    "empty_description": "Use the Help button in the header to write to the Keel team.",
-    "reply": "Reply",
-    "reply_placeholder": "Write a reply…",
-    "close": "Close request",
-    "closed_hint": "This request is closed: a reply reopens it.",
-    "you": "You",
-    "platform": "Keel support",
-    "download": "Download",
-    "messages_n": "{n} messages",
-    "all": "All requests"
-  },
-  "record_notes": {
-    "title": "Internal notes",
-    "placeholder": "Write a note… type @ to mention a teammate",
-    "hint": "Mentioned people get a notification.",
-    "add": "Add note",
-    "delete": "Delete note",
-    "empty": "No notes yet."
-  },
-  "unsubscribe": {
-    "title": "Email preferences",
-    "confirm_title": "Stop these emails?",
-    "confirm": "You will no longer receive {category} emails from {tenant} at {email}.",
-    "button": "Unsubscribe",
-    "done_title": "You are unsubscribed",
-    "done": "{email} will no longer receive {category} emails from {tenant}. You can switch them back on from your notification preferences.",
-    "invalid_title": "Link not valid",
-    "invalid": "This unsubscribe link is broken or incomplete.",
-    "all": "optional"
-  },
   "orders": {
     "title": "Orders",
     "description": "Inbound orders with their canonical status, payment and assignment.",
@@ -997,7 +833,30 @@
       "cover": "Cover",
       "reorder": "Reorder"
     },
-    "planning_link": "Planning"
+    "planning_link": "Planning",
+    "sync_now": "Sync now",
+    "sync_done": "Stock read: {changed} levels changed, {drift} drift, {conflicts} conflicts, {zeroed} stale levels zeroed.",
+    "sync_paused": "Stock sync paused at the time budget; it continues on the next run.",
+    "sync_queued": "Stock sync queued.",
+    "sync_failed": "Stock sync failed: {error}",
+    "drift_title": "Stock drift",
+    "drift_description": "Changes found by syncs that no sale, return, receipt or adjustment explains, negative values clamped to zero, and levels the platform no longer reports.",
+    "drift_empty": "No drift recorded.",
+    "drift_kind": {
+      "unexplained": "Unexplained change",
+      "negative": "Negative, clamped",
+      "not_reported": "No longer reported"
+    },
+    "drift_columns": {
+      "seen": "Seen",
+      "variant": "Variant",
+      "location": "Location",
+      "kind": "Kind",
+      "expected": "Expected",
+      "observed": "Platform"
+    },
+    "drift_all_locations": "All locations",
+    "drift_times": "×{n}"
   },
   "purchasing": {
     "title": "Purchasing",
@@ -2446,14 +2305,26 @@
       "run": "Run",
       "status": "Status",
       "rows": "Rows",
-      "topic": "Topic"
+      "topic": "Topic",
+      "scanned": "Scanned",
+      "changed": "Changed",
+      "conflicts": "Conflicts",
+      "errors": "Errors",
+      "duration": "Duration"
     },
     "errors": {
       "connection_failed": "The platform refused the credentials.",
       "mock_mode": "This environment is in mock mode: set KEEL_INTEGRATION_MODE=live to connect a real account.",
       "live_mode": "Simulation is only available for mock integrations."
     },
-    "tracking": "Pixel & conversions"
+    "tracking": "Pixel & conversions",
+    "duration_s": "{s} s",
+    "run_kind": {
+      "initial": "backfill",
+      "delta": "delta",
+      "reconcile": "nightly reconcile",
+      "manual": "manual"
+    }
   },
   "integration_guide": {
     "verify_legend": "Steps marked “To verify” depend on vendor consoles that change often: check them against the vendor documentation before the first install.",
@@ -4158,6 +4029,213 @@
       "ask_owner": "Ask an owner or admin to connect the Anthropic key in Integrations.",
       "guide": "How to get a key"
     }
+  },
+  "platform_writes": {
+    "status": {
+      "pending": "Pending sync",
+      "running": "Syncing",
+      "succeeded": "Synced",
+      "failed": "Sync failed",
+      "superseded": "Replaced"
+    },
+    "retry": "Retry",
+    "retry_failed": "Could not retry",
+    "title": "Platform writes",
+    "description": "Changes Keel sends to Shopify, Meta and Google: {pending} waiting, {failed} failed, {succeeded} synced in the last 24 hours.",
+    "empty": "No platform writes yet.",
+    "immediate": "immediate",
+    "attempts": "{n, plural, one {# attempt} other {# attempts}}",
+    "next_attempt": "next attempt {when}",
+    "columns": {
+      "when": "When",
+      "write": "Write",
+      "status": "Status"
+    },
+    "kinds": {
+      "variant_update": "Variant price",
+      "product_status": "Product status",
+      "inventory_set": "Stock level",
+      "inventory_restock": "Restock",
+      "order_cancel": "Order cancellation",
+      "order_update_details": "Order details",
+      "order_tags": "Order tags",
+      "order_create": "New order",
+      "order_create_invoice": "Invoice order",
+      "discount_create": "Discount code",
+      "discount_pool": "Discount pool",
+      "return_request": "Return request",
+      "return_approve": "Return approval",
+      "return_decline": "Return decline",
+      "return_refund": "Refund",
+      "return_close": "Return closing",
+      "campaign_status": "Campaign status",
+      "variant_cost": "Variant cost",
+      "order_discount": "Order discount"
+    }
+  },
+  "tasks": {
+    "title": "Tasks",
+    "description": "Work linked to orders, returns, purchase orders and products. Rules open tasks on events and close them when the record moves on.",
+    "tabs": {
+      "mine": "My tasks",
+      "all": "Everyone",
+      "unassigned": "Unassigned"
+    },
+    "status_filter": {
+      "open": "Open",
+      "overdue": "Overdue",
+      "closed": "Closed",
+      "all": "All"
+    },
+    "statuses": {
+      "open": "Open",
+      "in_progress": "In progress",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "columns": {
+      "task": "Task",
+      "record": "Record",
+      "assignee": "Assignee",
+      "due": "Due",
+      "status": "Status"
+    },
+    "new": "New task",
+    "fields": {
+      "title": "Title",
+      "description": "Details",
+      "assignee": "Assignee",
+      "due": "Due date",
+      "record": "Linked record"
+    },
+    "unassigned": "Unassigned",
+    "no_record": "None",
+    "overdue": "Overdue",
+    "create": "Create task",
+    "search": "Search tasks",
+    "empty_title": "No tasks",
+    "empty_description": "Nothing here: tasks created by hand or by rules show up in this list.",
+    "pagination": "{from}–{to} of {total}",
+    "rules": "Rules",
+    "by_rule": "Opened by a rule",
+    "auto_closed": "Closed automatically when the record moved on",
+    "actions": {
+      "start": "Start",
+      "done": "Done",
+      "reopen": "Reopen",
+      "cancel": "Cancel"
+    },
+    "entity": {
+      "order": "Order",
+      "return": "Return",
+      "purchase_order": "Purchase order",
+      "product": "Product"
+    },
+    "panel": {
+      "title": "Tasks",
+      "empty": "No tasks on this record.",
+      "add": "Add task",
+      "all": "All tasks"
+    },
+    "counts": {
+      "open": "{n} open",
+      "overdue": "{n} overdue"
+    }
+  },
+  "task_rules": {
+    "title": "Task rules",
+    "description": "When a record sits in one of the chosen statuses (for a while, or past its due date), Keel opens a task and assigns it; the task closes by itself when the record moves on.",
+    "new": "New rule",
+    "edit": "Edit",
+    "entity": "Record",
+    "statuses": "In status",
+    "min_hours": "After hours in status",
+    "use_due": "Only when past its due date",
+    "overdue_after": "Hours past the due date",
+    "task_title": "Task title",
+    "task_description": "Task details",
+    "due_in": "Task due in (hours)",
+    "assignee_mode": "Assign to",
+    "modes": {
+      "role": "Least busy member with role",
+      "record_owner": "Record owner (else role)",
+      "user": "A specific member",
+      "none": "Nobody"
+    },
+    "role": "Role",
+    "user": "Member",
+    "active": "Active",
+    "inactive": "Off",
+    "save": "Save rule",
+    "delete": "Delete",
+    "restore_defaults": "Add missing default rules",
+    "empty": "No rules yet.",
+    "summary": "{entity} in {statuses}",
+    "after_hours": "after {n} h",
+    "past_due": "{n} h past due",
+    "default": "Default"
+  },
+  "support": {
+    "button": "Help",
+    "title": "Support",
+    "description": "Requests to the Keel team. You get a notification when we answer.",
+    "new": "Contact support",
+    "new_description": "Describe the problem; a screenshot or a file helps.",
+    "subject": "Subject",
+    "category": "Category",
+    "categories": {
+      "question": "Question",
+      "problem": "Problem",
+      "billing": "Billing",
+      "feature": "Feature request"
+    },
+    "body": "Message",
+    "attachment": "Attachment (optional)",
+    "attachment_hint": "Images, PDF, text or CSV, up to 1.5 MB.",
+    "send": "Send",
+    "sent": "Request sent.",
+    "view": "View request",
+    "statuses": {
+      "open": "Waiting for Keel",
+      "answered": "Answered",
+      "closed": "Closed"
+    },
+    "columns": {
+      "ticket": "Request",
+      "status": "Status",
+      "updated": "Last message",
+      "author": "Opened by"
+    },
+    "empty_title": "No requests",
+    "empty_description": "Use the Help button in the header to write to the Keel team.",
+    "reply": "Reply",
+    "reply_placeholder": "Write a reply…",
+    "close": "Close request",
+    "closed_hint": "This request is closed: a reply reopens it.",
+    "you": "You",
+    "platform": "Keel support",
+    "download": "Download",
+    "messages_n": "{n} messages",
+    "all": "All requests"
+  },
+  "record_notes": {
+    "title": "Internal notes",
+    "placeholder": "Write a note… type @ to mention a teammate",
+    "hint": "Mentioned people get a notification.",
+    "add": "Add note",
+    "delete": "Delete note",
+    "empty": "No notes yet."
+  },
+  "unsubscribe": {
+    "title": "Email preferences",
+    "confirm_title": "Stop these emails?",
+    "confirm": "You will no longer receive {category} emails from {tenant} at {email}.",
+    "button": "Unsubscribe",
+    "done_title": "You are unsubscribed",
+    "done": "{email} will no longer receive {category} emails from {tenant}. You can switch them back on from your notification preferences.",
+    "invalid_title": "Link not valid",
+    "invalid": "This unsubscribe link is broken or incomplete.",
+    "all": "optional"
   },
   "product_costs": {
     "card_title": "Product cost",
