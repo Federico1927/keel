@@ -5065,7 +5065,9 @@
       "return_close": "Return closing",
       "campaign_status": "Campaign status",
       "variant_cost": "Variant cost",
-      "order_discount": "Order discount"
+      "order_discount": "Order discount",
+      "variant_prices": "Variant prices",
+      "product_tags": "Product tags"
     }
   }
 }

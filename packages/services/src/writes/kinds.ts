@@ -19,6 +19,13 @@ defineCommerceWrite("variant.update", {
   execute: (platform, p) => platform.updateVariant(p.variantExternalId, { priceMinor: p.priceMinor }),
 });
 
+defineCommerceWrite("variant.prices", {
+  // the fields written are part of the target: a newer price + compare-at patch replaces an older one with the same fields
+  target: (p) => `variant:${p.variantExternalId}:prices:${Object.keys(p.patch).sort().join("+")}`,
+  supersedes: true,
+  execute: (platform, p) => platform.updateVariant(p.variantExternalId, p.patch),
+});
+
 defineCommerceWrite("variant.cost", {
   target: (p) => `variant:${p.variantExternalId}:cost`,
   supersedes: true,
@@ -29,6 +36,11 @@ defineCommerceWrite("product.status", {
   target: (p) => `product:${p.productExternalId}:status`,
   supersedes: true,
   execute: (platform, p) => platform.updateProductStatus(p.productExternalId, p.status),
+});
+
+defineCommerceWrite("product.tags", {
+  target: (p) => `product:${p.productExternalId}:tags`,
+  execute: (platform, p) => platform.updateProductTags(p.productExternalId, p.add, p.remove),
 });
 
 defineCommerceWrite("inventory.set", {

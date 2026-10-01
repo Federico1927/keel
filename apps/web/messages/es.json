@@ -5065,7 +5065,9 @@
       "return_close": "Cierre de devolución",
       "campaign_status": "Estado de campaña",
       "variant_cost": "Coste de variante",
-      "order_discount": "Descuento del pedido"
+      "order_discount": "Descuento del pedido",
+      "variant_prices": "Precios de variante",
+      "product_tags": "Etiquetas de producto"
     }
   }
 }

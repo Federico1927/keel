@@ -2,10 +2,11 @@ import { and, asc, eq, schema } from "@keel/db";
 import { applyBulkCompareAt, applyBulkPrice, planTagChange, type BulkCompareAtChange, type BulkPriceChange } from "@keel/core";
 import type { CommercePlatform } from "@keel/integrations";
 import type { ServiceContext } from "../context";
+import { runPlatformWriteNow } from "../writes";
 
 /**
- * Product writes that reach the commerce platform: platform first, then the local rows. The
- * returned diff is what the caller writes to the audit log.
+ * Product writes that reach the commerce platform: platform first (through the outbox, so every
+ * call is recorded), then the local rows. The returned diff is what the caller writes to the audit log.
  */
 
 export type ProductStatus = "active" | "draft" | "archived";
@@ -21,7 +22,7 @@ export async function setProductStatusWithPlatform(ctx: ServiceContext, platform
   const p = await loadProduct(ctx, productId);
   if (!p) return { kind: "not_found" };
   if (p.status === status) return { kind: "unchanged", title: p.title };
-  if (platform && p.externalId) await platform.updateProductStatus(p.externalId, status);
+  if (platform && p.externalId) await runPlatformWriteNow(ctx, platform, { kind: "product.status", entityType: "product", entityId: productId, payload: { productExternalId: p.externalId, status } });
   await ctx.tx.update(schema.products).set({ status }).where(and(eq(schema.products.tenantId, ctx.tenantId), eq(schema.products.id, productId)));
   return { kind: "updated", title: p.title, diff: { status: { from: p.status, to: status } } };
 }
@@ -31,7 +32,7 @@ export async function updateProductTagsWithPlatform(ctx: ServiceContext, platfor
   if (!p) return { kind: "not_found" };
   const plan = planTagChange(p.tags, add, remove);
   if (!plan.add.length && !plan.remove.length) return { kind: "unchanged", title: p.title };
-  if (platform && p.externalId) await platform.updateProductTags(p.externalId, plan.add, plan.remove);
+  if (platform && p.externalId) await runPlatformWriteNow(ctx, platform, { kind: "product.tags", entityType: "product", entityId: productId, payload: { productExternalId: p.externalId, add: plan.add, remove: plan.remove } });
   await ctx.tx.update(schema.products).set({ tags: plan.next }).where(and(eq(schema.products.tenantId, ctx.tenantId), eq(schema.products.id, productId)));
   return { kind: "updated", title: p.title, diff: { tags: { from: p.tags, to: plan.next } } };
 }
@@ -53,7 +54,7 @@ export async function updateProductPricesWithPlatform(ctx: ServiceContext, platf
     if (price !== v.priceMinor) patch.priceMinor = price;
     if (compareAt !== v.compareAtMinor) patch.compareAtMinor = compareAt;
     if (!Object.keys(patch).length) continue;
-    if (platform && v.externalId) await platform.updateVariant(v.externalId, patch);
+    if (platform && v.externalId) await runPlatformWriteNow(ctx, platform, { kind: "variant.prices", entityType: "variant", entityId: v.id, payload: { variantExternalId: v.externalId, patch } });
     await ctx.tx.update(schema.productVariants).set(patch).where(eq(schema.productVariants.id, v.id));
     if (patch.priceMinor !== undefined) diff[`price:${v.title}`] = { from: v.priceMinor, to: patch.priceMinor };
     if (patch.compareAtMinor !== undefined) diff[`compareAt:${v.title}`] = { from: v.compareAtMinor, to: patch.compareAtMinor };

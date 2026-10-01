@@ -68,6 +68,10 @@ describe("bulk orders", () => {
     const cancelled = await run((s) => s.tx.select({ id: schema.orders.id }).from(schema.orders).where(and(inArray(schema.orders.id, ids), sql`${schema.orders.cancelledAt} is not null`)));
     expect(cancelled).toHaveLength(18);
     expect(platform.writeLog.filter((w) => w.op === "cancelOrder")).toHaveLength(18);
+    // every accepted platform call is in the outbox (a refused one rolls back with its record)
+    const writes = await run((s) => s.tx.select({ entityId: schema.platformWrites.entityId, status: schema.platformWrites.status }).from(schema.platformWrites).where(and(eq(schema.platformWrites.tenantId, tenantId), eq(schema.platformWrites.kind, "order.cancel"), inArray(schema.platformWrites.entityId, ids))));
+    expect(writes).toHaveLength(18);
+    expect(writes.every((w) => w.status === "succeeded")).toBe(true);
     // running it again skips what is already cancelled and retries only the two that failed
     const again = await bulkOrders(runner(), platform, ids, { action: "cancel", reason: "customer", restock: true, refund: false }, { concurrency: 3 });
     expect(again).toMatchObject({ done: 2, skipped: 18, failed: 0 });
