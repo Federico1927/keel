@@ -30,3 +30,5 @@ export * from "./retention";
 export * from "./pixel";
 export * from "./survey";
 export * from "./assistant";
+export * from "./tasks";
+export * from "./notifications";

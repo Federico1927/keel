@@ -134,6 +134,20 @@
       "when": 1790884623986,
       "tag": "0018_familiar_sersi",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790889165674,
+      "tag": "0019_wild_xavin",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1790889276754,
+      "tag": "0020_optimal_war_machine",
+      "breakpoints": true
     }
   ]
 }

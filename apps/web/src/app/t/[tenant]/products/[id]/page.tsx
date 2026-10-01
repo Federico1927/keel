@@ -10,6 +10,7 @@ import { getProductDetail } from "@/server/queries/catalog";
 import { RiskBadge } from "@/components/risk-badge";
 import { SalesChart } from "@/components/charts/sales-chart";
 import { ProductActions, VariantPriceForm } from "./actions";
+import { RecordTasks } from "@/components/record-tasks";
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
@@ -56,6 +57,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       actions={canEdit ? <ProductActions slug={tenant} productId={product.id} status={product.status} isRepurchasable={product.isRepurchasable} /> : undefined}
       aside={
         <>
+          <RecordTasks slug={tenant} type="product" id={product.id} label={product.title} />
           {incomingPos.length > 0 && (
             <Card>
               <CardHeader>

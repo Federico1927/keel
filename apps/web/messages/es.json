@@ -41,7 +41,10 @@
       "cod_invalid_input": "Datos no válidos.",
       "cod_platform_error": "La plataforma rechazó la escritura de la etiqueta o la cancelación; no se registró nada.",
       "invalid_formula": "La fórmula no es válida.",
-      "closed": "Este pedido ya no se puede modificar."
+      "closed": "Este pedido ya no se puede modificar.",
+      "attachment_too_large": "El archivo supera 1,5 MB.",
+      "attachment_type": "Este tipo de archivo no se acepta.",
+      "invalid_type": "Tipo de notificación desconocido."
     },
     "edit": "Editar"
   },
@@ -166,7 +169,10 @@
     "audit": "Registro de auditoría",
     "cod_settings": "Ajustes contra reembolso",
     "planning": "Planificación",
-    "assistant": "Asistente"
+    "assistant": "Asistente",
+    "tasks": "Tareas",
+    "support": "Soporte",
+    "notifications": "Notificaciones"
   },
   "shell": {
     "open_menu": "Abrir menú",
@@ -177,7 +183,8 @@
     "suspended_title": "Espacio suspendido",
     "suspended_description": "Este espacio está suspendido por facturas impagadas. Contacta con el administrador de la plataforma.",
     "not_found_title": "Página no disponible",
-    "not_found_description": "La página no existe, o tu rol o tu plan no la incluyen."
+    "not_found_description": "La página no existe, o tu rol o tu plan no la incluyen.",
+    "support": "Ayuda"
   },
   "roles": {
     "owner": "Propietario",
@@ -403,7 +410,273 @@
   },
   "notifications": {
     "title": "Notificaciones",
-    "empty": "Sin notificaciones"
+    "empty": "Sin notificaciones",
+    "view_all": "Ver todas",
+    "description": "Todo lo que Keel te ha avisado, con filtros. Elige por tipo dónde recibir los avisos en Preferencias.",
+    "tabs": {
+      "all": "Todas",
+      "mentions": "Mis menciones",
+      "preferences": "Preferencias",
+      "suppressions": "Correos bloqueados"
+    },
+    "filters": {
+      "status": "Estado",
+      "all": "Todas",
+      "unread": "Sin leer",
+      "read": "Leídas",
+      "type": "Tipo",
+      "all_types": "Todos los tipos"
+    },
+    "mark_read": "Marcar como leída",
+    "mark_unread": "Marcar como no leída",
+    "mark_all_read": "Marcar todas como leídas",
+    "unread_n": "{n} sin leer",
+    "empty_title": "Sin notificaciones",
+    "empty_description": "Ninguna notificación coincide con los filtros.",
+    "pagination": "{from}–{to} de {total}",
+    "open": "Abrir",
+    "types": {
+      "mention": "Menciones",
+      "task_assigned": "Tarea asignada a ti",
+      "task_due": "Tarea que vence",
+      "support_reply": "Respuesta de soporte",
+      "alert": "Alertas",
+      "sync_delay": "Retraso de sincronización",
+      "stock_critical_no_po": "Stock crítico sin órdenes de compra en camino",
+      "late_to_ship": "Envíos retrasados",
+      "stock_low": "Stock bajo",
+      "stock_available": "Stock disponible de nuevo",
+      "return_portal": "Devoluciones del portal",
+      "po_supplier_confirmed": "El proveedor confirmó una orden",
+      "po_supplier_problem": "El proveedor informó un problema",
+      "integration_health": "Integraciones",
+      "cod_assigned": "Pedido contra reembolso asignado",
+      "digest": "Correo de resumen diario",
+      "other": "Otros"
+    },
+    "rendered": {
+      "stock_critical_no_po": "{title} variantes en venta con stock crítico y ninguna orden de compra",
+      "late_to_ship": "{title} pedidos aún sin enviar después de {body}",
+      "sync_delay": "La sincronización de {title} va con retraso ({body})"
+    },
+    "groups": {
+      "collaboration": "Colaboración",
+      "operations": "Operaciones",
+      "system": "Sistema"
+    },
+    "channels": {
+      "in_app": "En la app",
+      "email": "Correo",
+      "slack": "Slack"
+    },
+    "delivered": "Enviada: {channels}",
+    "preferences": {
+      "title": "Preferencias de notificación",
+      "description": "Por tipo y canal, solo para ti en esta tienda. El servidor las aplica a cada envío.",
+      "reset": "Restaurar valores predeterminados",
+      "default_hint": "Predeterminado",
+      "custom_hint": "Modificado",
+      "not_available": "No disponible para este tipo",
+      "slack_hint": "Los mensajes de Slack van al canal de la tienda configurado en Integraciones."
+    },
+    "mentions": {
+      "title": "Mis menciones",
+      "description": "Notas en pedidos, órdenes de compra y devoluciones en las que alguien te mencionó.",
+      "empty_title": "Sin menciones",
+      "empty_description": "Cuando un compañero escribe @tu nombre en una nota, aparece aquí.",
+      "by": "{author} en {record}",
+      "mark_all_read": "Marcar todas como leídas",
+      "entity": {
+        "all": "Todos los registros",
+        "order": "Pedidos",
+        "purchase_order": "Órdenes de compra",
+        "return": "Devoluciones"
+      }
+    },
+    "suppressions": {
+      "title": "Correos bloqueados",
+      "description": "Direcciones que no reciben correos de esta tienda: rebotes y quejas bloquean todos los correos, las bajas bloquean su categoría.",
+      "email": "Correo",
+      "category": "Categoría",
+      "reason": "Motivo",
+      "when": "Cuándo",
+      "note": "Nota",
+      "add": "Bloquear dirección",
+      "remove": "Quitar",
+      "empty": "No hay direcciones bloqueadas.",
+      "all_categories": "Todos los correos opcionales",
+      "reasons": {
+        "bounce": "Rebote",
+        "complaint": "Queja",
+        "unsubscribe": "Dado de baja",
+        "manual": "Añadido a mano"
+      },
+      "supplier_po": "Órdenes de compra a proveedores"
+    }
+  },
+  "tasks": {
+    "title": "Tareas",
+    "description": "Trabajo vinculado a pedidos, devoluciones, órdenes de compra y productos. Las reglas abren tareas con los eventos y las cierran cuando el registro avanza.",
+    "tabs": {
+      "mine": "Mis tareas",
+      "all": "Todo el equipo",
+      "unassigned": "Sin asignar"
+    },
+    "status_filter": {
+      "open": "Abiertas",
+      "overdue": "Vencidas",
+      "closed": "Cerradas",
+      "all": "Todas"
+    },
+    "statuses": {
+      "open": "Abierta",
+      "in_progress": "En curso",
+      "done": "Hecha",
+      "cancelled": "Cancelada"
+    },
+    "columns": {
+      "task": "Tarea",
+      "record": "Registro",
+      "assignee": "Asignada a",
+      "due": "Vence",
+      "status": "Estado"
+    },
+    "new": "Nueva tarea",
+    "fields": {
+      "title": "Título",
+      "description": "Detalles",
+      "assignee": "Asignada a",
+      "due": "Fecha límite",
+      "record": "Registro vinculado"
+    },
+    "unassigned": "Sin asignar",
+    "no_record": "Ninguno",
+    "overdue": "Vencida",
+    "create": "Crear tarea",
+    "search": "Buscar tareas",
+    "empty_title": "Sin tareas",
+    "empty_description": "No hay nada: las tareas creadas a mano o por reglas aparecen en esta lista.",
+    "pagination": "{from}–{to} de {total}",
+    "rules": "Reglas",
+    "by_rule": "Abierta por una regla",
+    "auto_closed": "Cerrada automáticamente cuando el registro avanzó",
+    "actions": {
+      "start": "Empezar",
+      "done": "Hecha",
+      "reopen": "Reabrir",
+      "cancel": "Cancelar"
+    },
+    "entity": {
+      "order": "Pedido",
+      "return": "Devolución",
+      "purchase_order": "Orden de compra",
+      "product": "Producto"
+    },
+    "panel": {
+      "title": "Tareas",
+      "empty": "No hay tareas en este registro.",
+      "add": "Añadir tarea",
+      "all": "Todas las tareas"
+    },
+    "counts": {
+      "open": "{n} abiertas",
+      "overdue": "{n} vencidas"
+    }
+  },
+  "task_rules": {
+    "title": "Reglas de tareas",
+    "description": "Cuando un registro permanece en uno de los estados elegidos (durante un tiempo, o después de su fecha límite), Keel abre una tarea y la asigna; la tarea se cierra sola cuando el registro avanza.",
+    "new": "Nueva regla",
+    "edit": "Editar",
+    "entity": "Registro",
+    "statuses": "En el estado",
+    "min_hours": "Después de horas en el estado",
+    "use_due": "Solo después de su fecha límite",
+    "overdue_after": "Horas después de la fecha límite",
+    "task_title": "Título de la tarea",
+    "task_description": "Detalles de la tarea",
+    "due_in": "La tarea vence en (horas)",
+    "assignee_mode": "Asignar a",
+    "modes": {
+      "role": "Miembro menos ocupado con el rol",
+      "record_owner": "Responsable del registro (si no, rol)",
+      "user": "Un miembro concreto",
+      "none": "Nadie"
+    },
+    "role": "Rol",
+    "user": "Miembro",
+    "active": "Activa",
+    "inactive": "Apagada",
+    "save": "Guardar regla",
+    "delete": "Eliminar",
+    "restore_defaults": "Añadir las reglas predeterminadas que faltan",
+    "empty": "Aún no hay reglas.",
+    "summary": "{entity} en {statuses}",
+    "after_hours": "después de {n} h",
+    "past_due": "{n} h tras la fecha límite",
+    "default": "Predeterminada"
+  },
+  "support": {
+    "button": "Ayuda",
+    "title": "Soporte",
+    "description": "Solicitudes al equipo de Keel. Recibes una notificación cuando respondemos.",
+    "new": "Contactar con soporte",
+    "new_description": "Describe el problema; una captura o un archivo ayudan.",
+    "subject": "Asunto",
+    "category": "Categoría",
+    "categories": {
+      "question": "Pregunta",
+      "problem": "Problema",
+      "billing": "Facturación",
+      "feature": "Petición de funcionalidad"
+    },
+    "body": "Mensaje",
+    "attachment": "Adjunto (opcional)",
+    "attachment_hint": "Imágenes, PDF, texto o CSV, hasta 1,5 MB.",
+    "send": "Enviar",
+    "sent": "Solicitud enviada.",
+    "view": "Ver la solicitud",
+    "statuses": {
+      "open": "Esperando a Keel",
+      "answered": "Respondida",
+      "closed": "Cerrada"
+    },
+    "columns": {
+      "ticket": "Solicitud",
+      "status": "Estado",
+      "updated": "Último mensaje",
+      "author": "Abierta por"
+    },
+    "empty_title": "Sin solicitudes",
+    "empty_description": "Usa el botón Ayuda de la cabecera para escribir al equipo de Keel.",
+    "reply": "Responder",
+    "reply_placeholder": "Escribe una respuesta…",
+    "close": "Cerrar la solicitud",
+    "closed_hint": "Esta solicitud está cerrada: una respuesta la reabre.",
+    "you": "Tú",
+    "platform": "Soporte de Keel",
+    "download": "Descargar",
+    "messages_n": "{n} mensajes",
+    "all": "Todas las solicitudes"
+  },
+  "record_notes": {
+    "title": "Notas internas",
+    "placeholder": "Escribe una nota… usa @ para mencionar a un compañero",
+    "hint": "Las personas mencionadas reciben una notificación.",
+    "add": "Añadir nota",
+    "delete": "Eliminar nota",
+    "empty": "Aún no hay notas."
+  },
+  "unsubscribe": {
+    "title": "Preferencias de correo",
+    "confirm_title": "¿Dejar de recibir estos correos?",
+    "confirm": "Dejarás de recibir los correos «{category}» de {tenant} en {email}.",
+    "button": "Darme de baja",
+    "done_title": "Te has dado de baja",
+    "done": "{email} ya no recibirá los correos «{category}» de {tenant}. Puedes reactivarlos desde tus preferencias de notificación.",
+    "invalid_title": "Enlace no válido",
+    "invalid": "Este enlace de baja está dañado o incompleto.",
+    "all": "opcionales"
   },
   "orders": {
     "title": "Pedidos",
@@ -2466,7 +2739,8 @@
       "dashboard": "Panel",
       "tenants": "Tenants",
       "billing": "Facturación",
-      "audit": "Registro de auditoría"
+      "audit": "Registro de auditoría",
+      "support": "Soporte"
     },
     "plans": {
       "starter": "Starter",
@@ -2611,6 +2885,20 @@
       "actor": "Autor",
       "action": "Acción",
       "details": "Detalles"
+    },
+    "support": {
+      "title": "Soporte",
+      "description": "Solicitudes de las tiendas. Las respuestas notifican al autor; cada acción se escribe en el registro de auditoría.",
+      "tenant": "Tienda",
+      "all": "Todas",
+      "empty": "No hay solicitudes.",
+      "reply": "Responder",
+      "close_after": "Cerrar después de responder",
+      "send": "Enviar respuesta",
+      "reopen": "Reabrir",
+      "close": "Cerrar",
+      "author": "Abierta por",
+      "attachment_audit": "La descarga de un adjunto queda registrada en el registro de auditoría."
     }
   },
   "cod": {

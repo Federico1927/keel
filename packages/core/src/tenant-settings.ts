@@ -61,6 +61,9 @@ export const tenantSettingsSchema = z.object({
   slowCoverDays: z.number().int().min(30).max(720).default(180),
   transferShortDays: z.number().int().min(1).max(90).default(14),
   transferSurplusDays: z.number().int().min(7).max(365).default(45),
+  /** Notifications: a paid order still unshipped after this many hours is late to ship; a sync is late after its freshness window plus this grace. */
+  lateToShipHours: z.number().int().min(1).max(720).default(48),
+  syncDelayGraceMinutes: z.number().int().min(0).max(10_080).default(60),
 });
 export type TenantSettings = z.infer<typeof tenantSettingsSchema>;
 

@@ -2,6 +2,7 @@ import { and, eq, inArray, schema, sql } from "@keel/db";
 import { backorderStatus, canTransitionPo, movingAverageCost, type PurchaseOrderStatus } from "@keel/core";
 import type { ServiceContext } from "../context";
 import { notifyUsers } from "../notifications";
+import { syncRecordTasks } from "../tasks";
 
 export class PurchasingError extends Error {
   constructor(public readonly code: "not_found" | "invalid_transition" | "invalid_quantity" | "no_location") {
@@ -51,6 +52,7 @@ export async function transitionPurchaseOrder(ctx: ServiceContext, poId: string,
   await ctx.tx.update(schema.purchaseOrders).set(stamps).where(eq(schema.purchaseOrders.id, poId));
   // Incoming stock changed: refresh backorder coverage for the variants of this PO.
   if (to === "confirmed" || to === "cancelled") await refreshBackorders(ctx, (await ctx.tx.select({ v: schema.purchaseOrderLines.variantId }).from(schema.purchaseOrderLines).where(eq(schema.purchaseOrderLines.purchaseOrderId, poId))).map((r) => r.v).filter((v): v is string => Boolean(v)));
+  await syncRecordTasks(ctx, "purchase_order", [poId]);
   return { from: po.status, to };
 }
 
@@ -112,6 +114,7 @@ export async function receivePurchaseOrder(ctx: ServiceContext, input: ReceiveIn
   const status: PurchaseOrderStatus = complete ? "received" : "partially_received";
   await ctx.tx.update(schema.purchaseOrders).set({ status, receivedAt: complete ? now : po.receivedAt }).where(eq(schema.purchaseOrders.id, po.id));
   const releasedOrders = await refreshBackorders(ctx, received.map((r) => r.variantId));
+  await syncRecordTasks(ctx, "purchase_order", [po.id]);
   return { status, received, releasedOrders };
 }
 

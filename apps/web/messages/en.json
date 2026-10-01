@@ -41,7 +41,10 @@
       "cod_invalid_input": "Invalid data.",
       "cod_platform_error": "The commerce platform rejected the tag or cancellation write; nothing was recorded.",
       "invalid_formula": "The formula is not valid.",
-      "closed": "This order can no longer be changed."
+      "closed": "This order can no longer be changed.",
+      "attachment_too_large": "The file is larger than 1.5 MB.",
+      "attachment_type": "This file type is not accepted.",
+      "invalid_type": "Unknown notification type."
     },
     "edit": "Edit"
   },
@@ -166,7 +169,10 @@
     "audit": "Audit log",
     "cod_settings": "COD settings",
     "planning": "Planning",
-    "assistant": "Assistant"
+    "assistant": "Assistant",
+    "tasks": "Tasks",
+    "support": "Support",
+    "notifications": "Notifications"
   },
   "shell": {
     "open_menu": "Open menu",
@@ -177,7 +183,8 @@
     "suspended_title": "Workspace suspended",
     "suspended_description": "This workspace is suspended for unpaid invoices. Contact the platform administrator.",
     "not_found_title": "Page not available",
-    "not_found_description": "This page does not exist, or your role or plan does not include it."
+    "not_found_description": "This page does not exist, or your role or plan does not include it.",
+    "support": "Help"
   },
   "roles": {
     "owner": "Owner",
@@ -403,7 +410,273 @@
   },
   "notifications": {
     "title": "Notifications",
-    "empty": "No notifications yet"
+    "empty": "No notifications yet",
+    "view_all": "View all",
+    "description": "Everything Keel told you, with filters. Choose per type where you want to hear about it in Preferences.",
+    "tabs": {
+      "all": "All",
+      "mentions": "My mentions",
+      "preferences": "Preferences",
+      "suppressions": "Email suppressions"
+    },
+    "filters": {
+      "status": "Status",
+      "all": "All",
+      "unread": "Unread",
+      "read": "Read",
+      "type": "Type",
+      "all_types": "All types"
+    },
+    "mark_read": "Mark read",
+    "mark_unread": "Mark unread",
+    "mark_all_read": "Mark all read",
+    "unread_n": "{n} unread",
+    "empty_title": "No notifications",
+    "empty_description": "Nothing matches these filters.",
+    "pagination": "{from}–{to} of {total}",
+    "open": "Open",
+    "types": {
+      "mention": "Mentions",
+      "task_assigned": "Task assigned to you",
+      "task_due": "Task due",
+      "support_reply": "Support reply",
+      "alert": "Alerts",
+      "sync_delay": "Sync delay",
+      "stock_critical_no_po": "Critical stock with no incoming PO",
+      "late_to_ship": "Late to ship",
+      "stock_low": "Low stock",
+      "stock_available": "Stock available again",
+      "return_portal": "Returns from the portal",
+      "po_supplier_confirmed": "Supplier confirmed a PO",
+      "po_supplier_problem": "Supplier reported a problem",
+      "integration_health": "Integrations",
+      "cod_assigned": "COD order assigned",
+      "digest": "Daily digest email",
+      "other": "Other"
+    },
+    "rendered": {
+      "stock_critical_no_po": "{title} selling variants at critical stock with nothing on order",
+      "late_to_ship": "{title} orders still to ship after {body}",
+      "sync_delay": "{title} sync is late ({body})"
+    },
+    "groups": {
+      "collaboration": "Collaboration",
+      "operations": "Operations",
+      "system": "System"
+    },
+    "channels": {
+      "in_app": "In-app",
+      "email": "Email",
+      "slack": "Slack"
+    },
+    "delivered": "Delivered: {channels}",
+    "preferences": {
+      "title": "Notification preferences",
+      "description": "Per type and channel, for you only in this store. The server applies them to every delivery.",
+      "reset": "Restore defaults",
+      "default_hint": "Default",
+      "custom_hint": "Changed",
+      "not_available": "Not available for this type",
+      "slack_hint": "Slack posts go to the store's channel set up in Integrations."
+    },
+    "mentions": {
+      "title": "My mentions",
+      "description": "Notes on orders, purchase orders and returns where someone mentioned you.",
+      "empty_title": "No mentions",
+      "empty_description": "When a teammate writes @your name in a note, it shows up here.",
+      "by": "{author} on {record}",
+      "mark_all_read": "Mark all read",
+      "entity": {
+        "all": "All records",
+        "order": "Orders",
+        "purchase_order": "Purchase orders",
+        "return": "Returns"
+      }
+    },
+    "suppressions": {
+      "title": "Email suppressions",
+      "description": "Addresses that do not receive email from this store: bounces and complaints block every email, unsubscribes block their category.",
+      "email": "Email",
+      "category": "Category",
+      "reason": "Reason",
+      "when": "When",
+      "note": "Note",
+      "add": "Suppress address",
+      "remove": "Remove",
+      "empty": "No suppressed addresses.",
+      "all_categories": "All optional emails",
+      "reasons": {
+        "bounce": "Bounce",
+        "complaint": "Complaint",
+        "unsubscribe": "Unsubscribed",
+        "manual": "Added by hand"
+      },
+      "supplier_po": "Purchase orders to suppliers"
+    }
+  },
+  "tasks": {
+    "title": "Tasks",
+    "description": "Work linked to orders, returns, purchase orders and products. Rules open tasks on events and close them when the record moves on.",
+    "tabs": {
+      "mine": "My tasks",
+      "all": "Everyone",
+      "unassigned": "Unassigned"
+    },
+    "status_filter": {
+      "open": "Open",
+      "overdue": "Overdue",
+      "closed": "Closed",
+      "all": "All"
+    },
+    "statuses": {
+      "open": "Open",
+      "in_progress": "In progress",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "columns": {
+      "task": "Task",
+      "record": "Record",
+      "assignee": "Assignee",
+      "due": "Due",
+      "status": "Status"
+    },
+    "new": "New task",
+    "fields": {
+      "title": "Title",
+      "description": "Details",
+      "assignee": "Assignee",
+      "due": "Due date",
+      "record": "Linked record"
+    },
+    "unassigned": "Unassigned",
+    "no_record": "None",
+    "overdue": "Overdue",
+    "create": "Create task",
+    "search": "Search tasks",
+    "empty_title": "No tasks",
+    "empty_description": "Nothing here: tasks created by hand or by rules show up in this list.",
+    "pagination": "{from}–{to} of {total}",
+    "rules": "Rules",
+    "by_rule": "Opened by a rule",
+    "auto_closed": "Closed automatically when the record moved on",
+    "actions": {
+      "start": "Start",
+      "done": "Done",
+      "reopen": "Reopen",
+      "cancel": "Cancel"
+    },
+    "entity": {
+      "order": "Order",
+      "return": "Return",
+      "purchase_order": "Purchase order",
+      "product": "Product"
+    },
+    "panel": {
+      "title": "Tasks",
+      "empty": "No tasks on this record.",
+      "add": "Add task",
+      "all": "All tasks"
+    },
+    "counts": {
+      "open": "{n} open",
+      "overdue": "{n} overdue"
+    }
+  },
+  "task_rules": {
+    "title": "Task rules",
+    "description": "When a record sits in one of the chosen statuses (for a while, or past its due date), Keel opens a task and assigns it; the task closes by itself when the record moves on.",
+    "new": "New rule",
+    "edit": "Edit",
+    "entity": "Record",
+    "statuses": "In status",
+    "min_hours": "After hours in status",
+    "use_due": "Only when past its due date",
+    "overdue_after": "Hours past the due date",
+    "task_title": "Task title",
+    "task_description": "Task details",
+    "due_in": "Task due in (hours)",
+    "assignee_mode": "Assign to",
+    "modes": {
+      "role": "Least busy member with role",
+      "record_owner": "Record owner (else role)",
+      "user": "A specific member",
+      "none": "Nobody"
+    },
+    "role": "Role",
+    "user": "Member",
+    "active": "Active",
+    "inactive": "Off",
+    "save": "Save rule",
+    "delete": "Delete",
+    "restore_defaults": "Add missing default rules",
+    "empty": "No rules yet.",
+    "summary": "{entity} in {statuses}",
+    "after_hours": "after {n} h",
+    "past_due": "{n} h past due",
+    "default": "Default"
+  },
+  "support": {
+    "button": "Help",
+    "title": "Support",
+    "description": "Requests to the Keel team. You get a notification when we answer.",
+    "new": "Contact support",
+    "new_description": "Describe the problem; a screenshot or a file helps.",
+    "subject": "Subject",
+    "category": "Category",
+    "categories": {
+      "question": "Question",
+      "problem": "Problem",
+      "billing": "Billing",
+      "feature": "Feature request"
+    },
+    "body": "Message",
+    "attachment": "Attachment (optional)",
+    "attachment_hint": "Images, PDF, text or CSV, up to 1.5 MB.",
+    "send": "Send",
+    "sent": "Request sent.",
+    "view": "View request",
+    "statuses": {
+      "open": "Waiting for Keel",
+      "answered": "Answered",
+      "closed": "Closed"
+    },
+    "columns": {
+      "ticket": "Request",
+      "status": "Status",
+      "updated": "Last message",
+      "author": "Opened by"
+    },
+    "empty_title": "No requests",
+    "empty_description": "Use the Help button in the header to write to the Keel team.",
+    "reply": "Reply",
+    "reply_placeholder": "Write a reply…",
+    "close": "Close request",
+    "closed_hint": "This request is closed: a reply reopens it.",
+    "you": "You",
+    "platform": "Keel support",
+    "download": "Download",
+    "messages_n": "{n} messages",
+    "all": "All requests"
+  },
+  "record_notes": {
+    "title": "Internal notes",
+    "placeholder": "Write a note… type @ to mention a teammate",
+    "hint": "Mentioned people get a notification.",
+    "add": "Add note",
+    "delete": "Delete note",
+    "empty": "No notes yet."
+  },
+  "unsubscribe": {
+    "title": "Email preferences",
+    "confirm_title": "Stop these emails?",
+    "confirm": "You will no longer receive {category} emails from {tenant} at {email}.",
+    "button": "Unsubscribe",
+    "done_title": "You are unsubscribed",
+    "done": "{email} will no longer receive {category} emails from {tenant}. You can switch them back on from your notification preferences.",
+    "invalid_title": "Link not valid",
+    "invalid": "This unsubscribe link is broken or incomplete.",
+    "all": "optional"
   },
   "orders": {
     "title": "Orders",
@@ -2466,7 +2739,8 @@
       "dashboard": "Dashboard",
       "tenants": "Tenants",
       "billing": "Billing",
-      "audit": "Audit log"
+      "audit": "Audit log",
+      "support": "Support"
     },
     "plans": {
       "starter": "Starter",
@@ -2611,6 +2885,20 @@
       "actor": "Actor",
       "action": "Action",
       "details": "Details"
+    },
+    "support": {
+      "title": "Support",
+      "description": "Requests from the stores. Replies notify the author; every action is written to the audit log.",
+      "tenant": "Store",
+      "all": "All",
+      "empty": "No requests.",
+      "reply": "Reply",
+      "close_after": "Close after replying",
+      "send": "Send reply",
+      "reopen": "Reopen",
+      "close": "Close",
+      "author": "Opened by",
+      "attachment_audit": "Downloading an attachment is recorded in the audit log."
     }
   },
   "cod": {

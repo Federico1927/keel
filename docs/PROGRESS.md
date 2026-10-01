@@ -317,6 +317,20 @@ Fatto:
 
 Resta per la issue #7: email di stato ai clienti, validazione indirizzi, pagine guida mancanti.
 
+## Notifiche, email e attività (issue #33)
+
+Fatto:
+- Pagina Notifiche con filtri per stato e tipo, letto/da leggere per riga e "segna tutte come lette"; la campanella porta a "Vedi tutte" e mostra i testi tradotti.
+- Preferenze per utente, per tipo × canale (in app, email, Slack), applicate dal server a ogni invio. Nuovi tipi: ritardo di sincronizzazione, stock critico senza ordini d'acquisto in arrivo (`stock_critical_no_po`), spedizioni in ritardo oltre la soglia (soglie nelle impostazioni del negozio), controllati ogni ora dal job `notify`. Riepilogo giornaliero via email su richiesta (job `digest`).
+- Modelli email in en/it/es (invito, link di accesso, menzione, ordine al fornitore, riepilogo, notifica generica) con testo e HTML, inviati dal mailer esistente (mock in sviluppo). Lista di blocco per negozio: rimbalzi e segnalazioni bloccano tutto, le disiscrizioni la loro categoria. Link di disiscrizione firmato per destinatario verso una pagina pubblica, disiscrizione con un clic per i client di posta, webhook dei rimbalzi; pagina "Email bloccate" per titolare e amministratori.
+- "Le mie menzioni": note con @menzioni su ordini, ordini d'acquisto e resi (nuovo pannello note su ordini d'acquisto e resi).
+- Attività dello staff collegate a ordini, resi, ordini d'acquisto e prodotti, con assegnatario, scadenza e stato; pagina "Le mie attività" (mie, del team, non assegnate; aperte, scadute, chiuse) e scheda attività sulle pagine dei record. Regole configurabili che aprono attività sugli eventi e le chiudono quando il record va avanti; tre regole predefinite (reso ricevuto → ispeziona, ordine d'acquisto in ritardo → sollecita il fornitore, ordine in sospeso da più di 72 ore → rivedi).
+- Supporto: richiesta dal pulsante Aiuto nell'intestazione con allegato, risposta dalla console in `/admin/support`, notifica all'autore; ogni azione nel registro di audit.
+- Seed: regole predefinite e attività aperte e chiuse, preferenze, menzioni, notifiche dei nuovi tipi, una richiesta di supporto con risposta e una aperta con allegato, due indirizzi bloccati, su entrambi i negozi.
+- Migrazioni 0019 (8 tabelle con RLS) e 0020 (due colonne con default su `notifications`); test core 165, integrazioni 47, servizi 96, db 558, e2e 6 nuovi.
+
+Resta: firma dei webhook del provider email da verificare sul fornitore scelto; le attività sugli ordini si aprono e chiudono col job ogni 10 minuti, non all'istante.
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

@@ -9,8 +9,8 @@ flowchart TD
   web["apps/web<br/>Next.js 15 · App Router<br/>/t/[tenant] · /admin · /api"]
   jobs["packages/jobs<br/>pg-boss worker"]
   cod["packages/addon-cod<br/>COD queue · assignment · score · risk"]
-  services["packages/services<br/>use cases: orders, sync, analytics, campaigns, crm, returns, discounts, purchasing, inventory, billing, notifications"]
-  core["packages/core<br/>pure domain: statuses, state rules, economics, segments, returns, discounts, billing math"]
+  services["packages/services<br/>use cases: orders, sync, analytics, campaigns, crm, returns, discounts, purchasing, inventory, billing, notifications, tasks, support"]
+  core["packages/core<br/>pure domain: statuses, state rules, economics, segments, returns, discounts, billing math, task rules"]
   db["packages/db<br/>Drizzle schema · migrations · RLS · withTenant · seed"]
   integrations["packages/integrations<br/>interfaces · Shopify/Meta/Google · mocks · AES-GCM"]
   config["packages/config<br/>roles, permissions, modules, plans, defaults"]
@@ -63,6 +63,7 @@ Rules the graph enforces:
 | Purchasing | `suppliers`, `supplier_payments`, `purchase_orders`, `purchase_order_lines`, `backorders` | Receiving a PO moves stock, updates the latest product cost (feeds P/L) and closes backorders. |
 | Marketing | `campaigns`, `ad_metrics_daily`, `campaign_product_links`, `segments`, `segment_memberships` | Segments store nested AND/OR rules as JSON plus `holdout_percentage`; memberships keep a stable group per customer. |
 | Billing | `subscriptions`, `invoices` | Keel owns the ledger; the provider only collects. |
+| Collaboration | `notifications`, `notification_preferences`, `email_suppressions`, `mentions`, `record_notes`, `tasks`, `task_rules`, `support_tickets`, `support_messages` | Notifications record every delivery (`in_app`, `delivered`); preferences override the type registry per user. Tasks link to a record (type + id) and remember the rule and episode that opened them. Support tickets are tenant data answered from the console through the admin connection. |
 | Add-on COD | `cod_settings`, `cod_queue_items`, `cod_attempts`, `cod_operator_capacity`, `cod_capacity_exceptions`, `cod_assignment_log`, `cod_recipient_profiles` | Only read and written by `@keel/addon-cod`. |
 
 ### Canonical order status
@@ -110,11 +111,17 @@ Failed events are retried by the `retry` tick every 10 minutes up to a maximum n
 - `runAdsSync(provider, window)` pulls campaigns and daily insights in resumable date windows; recent days are re-pulled because platforms restate them.
 - Each run writes `integration_health` (ok/error, last error text, rows written, freshness) which the Integrations page shows together with "Test connection" and "Resync".
 
-Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00, billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40.
+Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00, billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40, task rules and overdue reminders every 10 min, system notifications (sync delay, critical stock without PO, late to ship) hourly, digest emails daily at 07:05.
 
 ### Attribution
 
 `extractAttribution` reads UTM parameters and click ids from the order's landing and referring URLs and note attributes, derives a channel, and `matchCampaign` links the order to a campaign by external id, UTM campaign or name. Campaign profit counts only attributed orders in the sale scope, never cancelled or returned ones.
+
+## Notifications, email and tasks
+
+- `notifyUsers` (packages/services/src/notifications) is the single delivery path. Channels per recipient = `resolveNotificationChannels(type, overrides)` from the type registry in `packages/config/src/notifications.ts` and the user's `notification_preferences`. In-app rows show in the bell and `/notifications`; email is rendered by `renderEmail` (en/it/es templates) and sent by `sendTenantEmail`, which checks `email_suppressions` and adds a signed unsubscribe link (`/u/<token>`, one-click `/api/email/unsubscribe`); Slack posts once per event. Bounces come back on `/api/webhooks/email`.
+- New notification types must be added to the registry (channels, defaults, group, add-on) and to `notifications.types` in the message files; emails for types whose title is data go in the template's `system` strings.
+- Task rules: `planTaskChanges` (core, pure) decides per record which rules open a task and which open tasks close; `syncRecordTasks` applies it and is called by the return and purchase-order services; the `tasks` tick sweeps orders, time-based rules and closures. Record pages show `<RecordTasks>` and, for POs and returns, `<RecordNotes>`: self-contained server components.
 
 ## Adding an adapter
 

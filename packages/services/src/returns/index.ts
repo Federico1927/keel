@@ -1,5 +1,6 @@
 import { and, desc, eq, gte, inArray, lt, schema, sql, type SQL } from "@keel/db";
 import { RETURN_GOODS_BACK_STATUSES, SALE_STATUSES, canTransitionReturn, isReturnStatus, creditWithBonus, customerLimitReached, exchangeQuote, lineBlock, optionReturnRates, returnCostsOfPeriod, lineWindowDays, proposedReturnAmount, returnEligibility, returnableLines, returnedFractionBps, type LineBlock, type Eligibility, type Period, type ReturnStatus, type ReturnableLine, type TenantSettings } from "@keel/core";
+import { syncRecordTasks } from "../tasks";
 import type { ServiceContext } from "../context";
 import { recomputeOrderStatus } from "../orders/state";
 
@@ -224,6 +225,7 @@ export async function createReturn(ctx: ServiceContext, settings: TenantSettings
   }
   await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: input.orderId, type: "return_requested", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: {}, metadata: { returnId: row!.id, number, reason: reason.code, resolution: input.resolution, outOfWindow: outOfPolicy, source: input.source ?? "staff" }, createdAt: now });
   if (input.source !== "platform") await applyReturnAutomations(ctx, settings, row!.id, (to, note) => transitionReturn({ ...ctx, actor: { type: "system", userId: null } }, { returnId: row!.id, to, note: `auto: ${note}` }));
+  await syncRecordTasks(ctx, "return", [row!.id]);
   return { id: row!.id, number };
 }
 
@@ -305,6 +307,7 @@ export async function transitionReturn(ctx: ServiceContext, input: TransitionInp
     await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: order.id, type: "return_updated", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: { returnStatus: { from: req.status, to: input.to }, ...(changed ? { returnedFraction: { from: order.returnedFraction, to: fraction }, refundedMinor: { from: order.refundedMinor, to: refundedMinor } } : {}) }, metadata: { returnId: req.id, number: req.number }, createdAt: now });
     if (changed) await recomputeOrderStatus(ctx, order.id, { eventMetadata: { source: "return", returnId: req.id } });
   }
+  await syncRecordTasks(ctx, "return", [req.id]);
   return { previous: req.status, next: input.to };
 }
 

@@ -10,6 +10,8 @@ import { getPurchaseOrder } from "@/server/queries/purchasing";
 import { StatusBadge } from "@/components/status-badge";
 import { PoActions, ReceiveForm } from "./actions";
 import { LandedCostCard, SupplierCard } from "./planning-cards";
+import { RecordTasks } from "@/components/record-tasks";
+import { RecordNotes } from "@/components/record-notes";
 
 export default async function PurchaseOrderPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
@@ -45,6 +47,8 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
       actions={canWrite ? <PoActions slug={tenant} poId={po.id} status={po.status} transitions={PO_TRANSITIONS[po.status] ?? []} supplierId={supplier.id} balanceMinor={po.totalMinor - paid} /> : undefined}
       aside={
         <>
+          <RecordTasks slug={tenant} type="purchase_order" id={po.id} label={po.number} />
+          <RecordNotes slug={tenant} type="purchase_order" id={po.id} />
           <Card>
             <CardHeader>
               <CardTitle className="text-base">{t("summary")}</CardTitle>

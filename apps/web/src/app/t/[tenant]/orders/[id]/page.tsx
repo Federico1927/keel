@@ -14,6 +14,7 @@ import { OrderActions } from "./actions-bar";
 import { Timeline } from "./timeline";
 import { NotesPanel } from "./notes";
 import { CodCard } from "./cod-card";
+import { RecordTasks } from "@/components/record-tasks";
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
@@ -84,6 +85,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
       actions={canChange ? <OrderActions slug={tenant} orderId={order.id} currentStatus={order.status} statusSource={order.statusSource} cancelled={Boolean(order.cancelledAt)} members={people} assignedTo={order.assignedTo} canCancel={canDo(ctx.role, "cancel_order")} canAssign={canDo(ctx.role, "assign")} /> : undefined}
       aside={
         <>
+          <RecordTasks slug={tenant} type="order" id={order.id} label={order.name} />
           <Card>
             <CardHeader>
               <CardTitle className="text-base">{t("customer")}</CardTitle>

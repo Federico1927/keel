@@ -41,7 +41,10 @@
       "cod_invalid_input": "Dati non validi.",
       "cod_platform_error": "La piattaforma ha rifiutato la scrittura del tag o l'annullamento; non è stato registrato nulla.",
       "invalid_formula": "La formula non è valida.",
-      "closed": "Questo ordine non può più essere modificato."
+      "closed": "Questo ordine non può più essere modificato.",
+      "attachment_too_large": "Il file supera 1,5 MB.",
+      "attachment_type": "Questo tipo di file non è accettato.",
+      "invalid_type": "Tipo di notifica sconosciuto."
     },
     "edit": "Modifica"
   },
@@ -166,7 +169,10 @@
     "audit": "Registro attività",
     "cod_settings": "Impostazioni contrassegno",
     "planning": "Pianificazione",
-    "assistant": "Assistente"
+    "assistant": "Assistente",
+    "tasks": "Attività",
+    "support": "Supporto",
+    "notifications": "Notifiche"
   },
   "shell": {
     "open_menu": "Apri menu",
@@ -177,7 +183,8 @@
     "suspended_title": "Workspace sospeso",
     "suspended_description": "Questo workspace è sospeso per fatture non pagate. Contatta l'amministratore della piattaforma.",
     "not_found_title": "Pagina non disponibile",
-    "not_found_description": "La pagina non esiste, oppure il tuo ruolo o il tuo piano non la includono."
+    "not_found_description": "La pagina non esiste, oppure il tuo ruolo o il tuo piano non la includono.",
+    "support": "Aiuto"
   },
   "roles": {
     "owner": "Titolare",
@@ -403,7 +410,273 @@
   },
   "notifications": {
     "title": "Notifiche",
-    "empty": "Nessuna notifica"
+    "empty": "Nessuna notifica",
+    "view_all": "Vedi tutte",
+    "description": "Tutto quello che Keel ti ha segnalato, con filtri. Scegli per ogni tipo dove ricevere gli avvisi in Preferenze.",
+    "tabs": {
+      "all": "Tutte",
+      "mentions": "Le mie menzioni",
+      "preferences": "Preferenze",
+      "suppressions": "Email bloccate"
+    },
+    "filters": {
+      "status": "Stato",
+      "all": "Tutte",
+      "unread": "Da leggere",
+      "read": "Lette",
+      "type": "Tipo",
+      "all_types": "Tutti i tipi"
+    },
+    "mark_read": "Segna come letta",
+    "mark_unread": "Segna come da leggere",
+    "mark_all_read": "Segna tutte come lette",
+    "unread_n": "{n} da leggere",
+    "empty_title": "Nessuna notifica",
+    "empty_description": "Nessuna notifica corrisponde ai filtri.",
+    "pagination": "{from}–{to} di {total}",
+    "open": "Apri",
+    "types": {
+      "mention": "Menzioni",
+      "task_assigned": "Attività assegnata a te",
+      "task_due": "Attività in scadenza",
+      "support_reply": "Risposta del supporto",
+      "alert": "Avvisi",
+      "sync_delay": "Ritardo di sincronizzazione",
+      "stock_critical_no_po": "Stock critico senza ordini d'acquisto in arrivo",
+      "late_to_ship": "Spedizioni in ritardo",
+      "stock_low": "Stock basso",
+      "stock_available": "Stock di nuovo disponibile",
+      "return_portal": "Resi dal portale",
+      "po_supplier_confirmed": "Il fornitore ha confermato un ordine",
+      "po_supplier_problem": "Il fornitore ha segnalato un problema",
+      "integration_health": "Integrazioni",
+      "cod_assigned": "Ordine in contrassegno assegnato",
+      "digest": "Email di riepilogo giornaliero",
+      "other": "Altro"
+    },
+    "rendered": {
+      "stock_critical_no_po": "{title} varianti in vendita con stock critico e nessun ordine d'acquisto",
+      "late_to_ship": "{title} ordini ancora da spedire dopo {body}",
+      "sync_delay": "La sincronizzazione di {title} è in ritardo ({body})"
+    },
+    "groups": {
+      "collaboration": "Collaborazione",
+      "operations": "Operazioni",
+      "system": "Sistema"
+    },
+    "channels": {
+      "in_app": "In app",
+      "email": "Email",
+      "slack": "Slack"
+    },
+    "delivered": "Inviata: {channels}",
+    "preferences": {
+      "title": "Preferenze di notifica",
+      "description": "Per tipo e canale, solo per te in questo negozio. Il server le applica a ogni invio.",
+      "reset": "Ripristina i valori predefiniti",
+      "default_hint": "Predefinito",
+      "custom_hint": "Modificato",
+      "not_available": "Non disponibile per questo tipo",
+      "slack_hint": "I messaggi Slack vanno sul canale del negozio configurato in Integrazioni."
+    },
+    "mentions": {
+      "title": "Le mie menzioni",
+      "description": "Note su ordini, ordini d'acquisto e resi in cui qualcuno ti ha menzionato.",
+      "empty_title": "Nessuna menzione",
+      "empty_description": "Quando un collega scrive @tuo nome in una nota, la trovi qui.",
+      "by": "{author} su {record}",
+      "mark_all_read": "Segna tutte come lette",
+      "entity": {
+        "all": "Tutti i record",
+        "order": "Ordini",
+        "purchase_order": "Ordini d'acquisto",
+        "return": "Resi"
+      }
+    },
+    "suppressions": {
+      "title": "Email bloccate",
+      "description": "Indirizzi che non ricevono email da questo negozio: rimbalzi e segnalazioni bloccano tutte le email, le disiscrizioni bloccano la loro categoria.",
+      "email": "Email",
+      "category": "Categoria",
+      "reason": "Motivo",
+      "when": "Quando",
+      "note": "Nota",
+      "add": "Blocca indirizzo",
+      "remove": "Rimuovi",
+      "empty": "Nessun indirizzo bloccato.",
+      "all_categories": "Tutte le email facoltative",
+      "reasons": {
+        "bounce": "Rimbalzo",
+        "complaint": "Segnalazione",
+        "unsubscribe": "Disiscritto",
+        "manual": "Aggiunto a mano"
+      },
+      "supplier_po": "Ordini d'acquisto ai fornitori"
+    }
+  },
+  "tasks": {
+    "title": "Attività",
+    "description": "Lavoro collegato a ordini, resi, ordini d'acquisto e prodotti. Le regole aprono attività sugli eventi e le chiudono quando il record va avanti.",
+    "tabs": {
+      "mine": "Le mie attività",
+      "all": "Tutto il team",
+      "unassigned": "Non assegnate"
+    },
+    "status_filter": {
+      "open": "Aperte",
+      "overdue": "Scadute",
+      "closed": "Chiuse",
+      "all": "Tutte"
+    },
+    "statuses": {
+      "open": "Aperta",
+      "in_progress": "In corso",
+      "done": "Completata",
+      "cancelled": "Annullata"
+    },
+    "columns": {
+      "task": "Attività",
+      "record": "Record",
+      "assignee": "Assegnata a",
+      "due": "Scadenza",
+      "status": "Stato"
+    },
+    "new": "Nuova attività",
+    "fields": {
+      "title": "Titolo",
+      "description": "Dettagli",
+      "assignee": "Assegnata a",
+      "due": "Scadenza",
+      "record": "Record collegato"
+    },
+    "unassigned": "Non assegnata",
+    "no_record": "Nessuno",
+    "overdue": "Scaduta",
+    "create": "Crea attività",
+    "search": "Cerca attività",
+    "empty_title": "Nessuna attività",
+    "empty_description": "Qui non c'è nulla: le attività create a mano o dalle regole compaiono in questo elenco.",
+    "pagination": "{from}–{to} di {total}",
+    "rules": "Regole",
+    "by_rule": "Aperta da una regola",
+    "auto_closed": "Chiusa automaticamente quando il record è andato avanti",
+    "actions": {
+      "start": "Inizia",
+      "done": "Completa",
+      "reopen": "Riapri",
+      "cancel": "Annulla"
+    },
+    "entity": {
+      "order": "Ordine",
+      "return": "Reso",
+      "purchase_order": "Ordine d'acquisto",
+      "product": "Prodotto"
+    },
+    "panel": {
+      "title": "Attività",
+      "empty": "Nessuna attività su questo record.",
+      "add": "Aggiungi attività",
+      "all": "Tutte le attività"
+    },
+    "counts": {
+      "open": "{n} aperte",
+      "overdue": "{n} scadute"
+    }
+  },
+  "task_rules": {
+    "title": "Regole delle attività",
+    "description": "Quando un record resta in uno degli stati scelti (per un certo tempo, o oltre la sua scadenza), Keel apre un'attività e la assegna; l'attività si chiude da sola quando il record va avanti.",
+    "new": "Nuova regola",
+    "edit": "Modifica",
+    "entity": "Record",
+    "statuses": "Nello stato",
+    "min_hours": "Dopo ore nello stato",
+    "use_due": "Solo dopo la scadenza",
+    "overdue_after": "Ore oltre la scadenza",
+    "task_title": "Titolo dell'attività",
+    "task_description": "Dettagli dell'attività",
+    "due_in": "Scadenza dell'attività (ore)",
+    "assignee_mode": "Assegna a",
+    "modes": {
+      "role": "Membro meno carico con il ruolo",
+      "record_owner": "Responsabile del record (altrimenti ruolo)",
+      "user": "Un membro preciso",
+      "none": "Nessuno"
+    },
+    "role": "Ruolo",
+    "user": "Membro",
+    "active": "Attiva",
+    "inactive": "Spenta",
+    "save": "Salva regola",
+    "delete": "Elimina",
+    "restore_defaults": "Aggiungi le regole predefinite mancanti",
+    "empty": "Nessuna regola.",
+    "summary": "{entity} in {statuses}",
+    "after_hours": "dopo {n} h",
+    "past_due": "{n} h oltre la scadenza",
+    "default": "Predefinita"
+  },
+  "support": {
+    "button": "Aiuto",
+    "title": "Supporto",
+    "description": "Richieste al team di Keel. Ricevi una notifica quando rispondiamo.",
+    "new": "Contatta il supporto",
+    "new_description": "Descrivi il problema; uno screenshot o un file aiutano.",
+    "subject": "Oggetto",
+    "category": "Categoria",
+    "categories": {
+      "question": "Domanda",
+      "problem": "Problema",
+      "billing": "Fatturazione",
+      "feature": "Richiesta di funzionalità"
+    },
+    "body": "Messaggio",
+    "attachment": "Allegato (facoltativo)",
+    "attachment_hint": "Immagini, PDF, testo o CSV, fino a 1,5 MB.",
+    "send": "Invia",
+    "sent": "Richiesta inviata.",
+    "view": "Vedi la richiesta",
+    "statuses": {
+      "open": "In attesa di Keel",
+      "answered": "Risposta ricevuta",
+      "closed": "Chiusa"
+    },
+    "columns": {
+      "ticket": "Richiesta",
+      "status": "Stato",
+      "updated": "Ultimo messaggio",
+      "author": "Aperta da"
+    },
+    "empty_title": "Nessuna richiesta",
+    "empty_description": "Usa il pulsante Aiuto nell'intestazione per scrivere al team di Keel.",
+    "reply": "Rispondi",
+    "reply_placeholder": "Scrivi una risposta…",
+    "close": "Chiudi la richiesta",
+    "closed_hint": "Questa richiesta è chiusa: una risposta la riapre.",
+    "you": "Tu",
+    "platform": "Supporto Keel",
+    "download": "Scarica",
+    "messages_n": "{n} messaggi",
+    "all": "Tutte le richieste"
+  },
+  "record_notes": {
+    "title": "Note interne",
+    "placeholder": "Scrivi una nota… digita @ per menzionare un collega",
+    "hint": "Le persone menzionate ricevono una notifica.",
+    "add": "Aggiungi nota",
+    "delete": "Elimina nota",
+    "empty": "Nessuna nota."
+  },
+  "unsubscribe": {
+    "title": "Preferenze email",
+    "confirm_title": "Non ricevere più queste email?",
+    "confirm": "Non riceverai più le email «{category}» di {tenant} all'indirizzo {email}.",
+    "button": "Disiscriviti",
+    "done_title": "Disiscrizione completata",
+    "done": "{email} non riceverà più le email «{category}» di {tenant}. Puoi riattivarle dalle tue preferenze di notifica.",
+    "invalid_title": "Link non valido",
+    "invalid": "Questo link di disiscrizione è danneggiato o incompleto.",
+    "all": "facoltative"
   },
   "orders": {
     "title": "Ordini",
@@ -2466,7 +2739,8 @@
       "dashboard": "Dashboard",
       "tenants": "Tenant",
       "billing": "Fatturazione",
-      "audit": "Registro attività"
+      "audit": "Registro attività",
+      "support": "Supporto"
     },
     "plans": {
       "starter": "Starter",
@@ -2611,6 +2885,20 @@
       "actor": "Autore",
       "action": "Azione",
       "details": "Dettagli"
+    },
+    "support": {
+      "title": "Supporto",
+      "description": "Richieste dai negozi. Le risposte notificano l'autore; ogni azione è scritta nel registro di audit.",
+      "tenant": "Negozio",
+      "all": "Tutte",
+      "empty": "Nessuna richiesta.",
+      "reply": "Rispondi",
+      "close_after": "Chiudi dopo la risposta",
+      "send": "Invia risposta",
+      "reopen": "Riapri",
+      "close": "Chiudi",
+      "author": "Aperta da",
+      "attachment_audit": "Lo scaricamento di un allegato viene registrato nel registro di audit."
     }
   },
   "cod": {
