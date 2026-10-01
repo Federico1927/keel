@@ -177,13 +177,29 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "description": "Today at a glance, compared with the same time yesterday and last week.",
-    "coming_soon": "Available from phase 5",
+    "description": "Today until now, compared with yesterday and a week ago at the same time.",
+    "coming_soon": "Coming soon",
     "kpi": {
-      "revenue": "Revenue",
-      "orders": "Orders",
+      "revenue": "Sales today",
+      "orders": "Orders today",
       "aov": "Average order value",
-      "cancel_rate": "Cancellation rate"
+      "cancel_rate": "Cancellation rate",
+      "placed": "placed"
+    },
+    "vs_yesterday": "vs yesterday",
+    "vs_last_week": "vs last week",
+    "today_by_status": "Today's orders by status",
+    "revenue_30d": "Sales, last 30 days",
+    "work_queue": "Needs attention",
+    "open": {
+      "fresh": "New orders",
+      "pending_review": "Pending review",
+      "on_hold": "On hold",
+      "shipment_exceptions": "Shipment exceptions",
+      "stuck_shipments": "Stuck shipments",
+      "returns_requested": "Return requests",
+      "critical_variants": "Variants at low stock",
+      "failed_webhooks": "Failed webhooks"
     }
   },
   "settings": {
@@ -743,6 +759,87 @@
       "owed": "Owed",
       "paid": "Paid",
       "balance": "Balance"
+    }
+  },
+  "analytics": {
+    "title": "Analytics",
+    "description": "KPIs, P/L, products and cohorts. Every number opens the orders behind it.",
+    "period": "Period",
+    "apply": "Apply",
+    "from": "From",
+    "to": "To",
+    "presets": {
+      "7d": "7 days",
+      "30d": "30 days",
+      "90d": "90 days",
+      "mtd": "Month to date",
+      "ytd": "Year to date"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "pnl": "P/L",
+      "products": "Products",
+      "cohorts": "Cohorts"
+    },
+    "kpi": {
+      "net_revenue": "Net revenue",
+      "orders": "Sale orders",
+      "aov": "Average order value",
+      "cancel_rate": "Cancellation rate",
+      "return_rate": "Return rate",
+      "contribution": "Contribution margin",
+      "new_customers": "New customers",
+      "returning_customers": "Returning customers"
+    },
+    "vs_previous": "vs previous period",
+    "series_title": "Sales per day",
+    "orders_series": "orders",
+    "pnl": {
+      "title": "Profit and loss",
+      "description": "Net of tax (rate by shipping country), cost of goods from the purchase cost snapshot, shipping and payment fees from settings, ad spend from the connected platforms, fixed costs prorated by day.",
+      "line": "Line",
+      "amount": "Amount",
+      "rate": "% of net",
+      "gross": "Gross sales",
+      "refunds": "Refunds",
+      "tax": "Tax",
+      "net": "Net revenue",
+      "cogs": "Cost of goods",
+      "gross_margin": "Gross margin",
+      "shipping": "Shipping costs",
+      "fees": "Payment fees",
+      "contribution": "Contribution margin",
+      "ads": "Advertising",
+      "fixed": "Fixed costs",
+      "operating": "Operating profit",
+      "orders": "Sale orders",
+      "placed": "Orders placed",
+      "cancelled": "Cancelled",
+      "returned": "Returned",
+      "pending": "Pending",
+      "cogs_incomplete": "{n} orders have lines without a purchase cost: COGS is understated.",
+      "by_month": "By month",
+      "month": "Month",
+      "open_orders": "Open orders"
+    },
+    "products": {
+      "title": "Product performance",
+      "product": "Product",
+      "units": "Units",
+      "orders": "Orders",
+      "revenue": "Revenue",
+      "cogs": "COGS",
+      "margin": "Margin",
+      "returned": "Returned",
+      "empty": "No sales in this period."
+    },
+    "cohorts": {
+      "title": "Repurchase cohorts",
+      "description": "Customers by first-order month and the share that ordered again in the following months.",
+      "cohort": "Cohort",
+      "customers": "Customers",
+      "month": "M+{n}",
+      "empty": "Not enough history yet."
     }
   }
 }

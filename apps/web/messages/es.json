@@ -177,13 +177,29 @@
   },
   "dashboard": {
     "title": "Panel",
-    "description": "Hoy de un vistazo, comparado con la misma hora de ayer y de hace una semana.",
-    "coming_soon": "Disponible desde la fase 5",
+    "description": "Hoy hasta ahora, comparado con ayer y con hace una semana a la misma hora.",
+    "coming_soon": "Próximamente",
     "kpi": {
-      "revenue": "Ingresos",
-      "orders": "Pedidos",
+      "revenue": "Ventas hoy",
+      "orders": "Pedidos hoy",
       "aov": "Ticket medio",
-      "cancel_rate": "Tasa de cancelación"
+      "cancel_rate": "Tasa de cancelación",
+      "placed": "realizados"
+    },
+    "vs_yesterday": "vs ayer",
+    "vs_last_week": "vs semana pasada",
+    "today_by_status": "Pedidos de hoy por estado",
+    "revenue_30d": "Ventas, últimos 30 días",
+    "work_queue": "Requiere atención",
+    "open": {
+      "fresh": "Pedidos nuevos",
+      "pending_review": "Por revisar",
+      "on_hold": "En espera",
+      "shipment_exceptions": "Incidencias de envío",
+      "stuck_shipments": "Envíos detenidos",
+      "returns_requested": "Solicitudes de devolución",
+      "critical_variants": "Variantes con stock bajo",
+      "failed_webhooks": "Webhooks fallidos"
     }
   },
   "settings": {
@@ -743,6 +759,87 @@
       "owed": "Debido",
       "paid": "Pagado",
       "balance": "Saldo"
+    }
+  },
+  "analytics": {
+    "title": "Analítica",
+    "description": "KPI, P/L, productos y cohortes. Cada número abre los pedidos que lo componen.",
+    "period": "Periodo",
+    "apply": "Aplicar",
+    "from": "Desde",
+    "to": "Hasta",
+    "presets": {
+      "7d": "7 días",
+      "30d": "30 días",
+      "90d": "90 días",
+      "mtd": "Mes en curso",
+      "ytd": "Año en curso"
+    },
+    "tabs": {
+      "overview": "Resumen",
+      "pnl": "P/L",
+      "products": "Productos",
+      "cohorts": "Cohortes"
+    },
+    "kpi": {
+      "net_revenue": "Ingreso neto",
+      "orders": "Pedidos de venta",
+      "aov": "Ticket medio",
+      "cancel_rate": "Tasa de cancelación",
+      "return_rate": "Tasa de devolución",
+      "contribution": "Margen de contribución",
+      "new_customers": "Clientes nuevos",
+      "returning_customers": "Clientes recurrentes"
+    },
+    "vs_previous": "vs periodo anterior",
+    "series_title": "Ventas por día",
+    "orders_series": "pedidos",
+    "pnl": {
+      "title": "Cuenta de resultados",
+      "description": "Neto de impuestos (tipo por país de envío), coste de ventas del coste de compra registrado, envío y comisiones de pago de los ajustes, inversión publicitaria de las plataformas conectadas, costes fijos prorrateados por día.",
+      "line": "Concepto",
+      "amount": "Importe",
+      "rate": "% del neto",
+      "gross": "Ventas brutas",
+      "refunds": "Reembolsos",
+      "tax": "Impuestos",
+      "net": "Ingreso neto",
+      "cogs": "Coste de ventas",
+      "gross_margin": "Margen bruto",
+      "shipping": "Costes de envío",
+      "fees": "Comisiones de pago",
+      "contribution": "Margen de contribución",
+      "ads": "Publicidad",
+      "fixed": "Costes fijos",
+      "operating": "Resultado operativo",
+      "orders": "Pedidos de venta",
+      "placed": "Pedidos realizados",
+      "cancelled": "Cancelados",
+      "returned": "Devueltos",
+      "pending": "Pendientes",
+      "cogs_incomplete": "{n} pedidos tienen líneas sin coste de compra: el coste de ventas está infravalorado.",
+      "by_month": "Por mes",
+      "month": "Mes",
+      "open_orders": "Abrir pedidos"
+    },
+    "products": {
+      "title": "Rendimiento de productos",
+      "product": "Producto",
+      "units": "Unidades",
+      "orders": "Pedidos",
+      "revenue": "Ingresos",
+      "cogs": "Coste",
+      "margin": "Margen",
+      "returned": "Devueltos",
+      "empty": "Sin ventas en este periodo."
+    },
+    "cohorts": {
+      "title": "Cohortes de recompra",
+      "description": "Clientes por mes del primer pedido y porcentaje que volvió a comprar en los meses siguientes.",
+      "cohort": "Cohorte",
+      "customers": "Clientes",
+      "month": "M+{n}",
+      "empty": "Aún no hay historial suficiente."
     }
   }
 }

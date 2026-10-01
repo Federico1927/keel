@@ -177,13 +177,29 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "description": "Oggi a colpo d'occhio, confrontato con la stessa ora di ieri e di una settimana fa.",
-    "coming_soon": "Disponibile dalla fase 5",
+    "description": "Oggi fino ad ora, confrontato con ieri e con una settimana fa alla stessa ora.",
+    "coming_soon": "In arrivo",
     "kpi": {
-      "revenue": "Ricavi",
-      "orders": "Ordini",
+      "revenue": "Vendite oggi",
+      "orders": "Ordini oggi",
       "aov": "Valore medio ordine",
-      "cancel_rate": "Tasso di annullamento"
+      "cancel_rate": "Tasso di annullamento",
+      "placed": "piazzati"
+    },
+    "vs_yesterday": "vs ieri",
+    "vs_last_week": "vs settimana scorsa",
+    "today_by_status": "Ordini di oggi per stato",
+    "revenue_30d": "Vendite, ultimi 30 giorni",
+    "work_queue": "Da gestire",
+    "open": {
+      "fresh": "Ordini nuovi",
+      "pending_review": "Da verificare",
+      "on_hold": "In attesa",
+      "shipment_exceptions": "Eccezioni spedizione",
+      "stuck_shipments": "Spedizioni ferme",
+      "returns_requested": "Richieste di reso",
+      "critical_variants": "Varianti sotto soglia",
+      "failed_webhooks": "Webhook falliti"
     }
   },
   "settings": {
@@ -743,6 +759,87 @@
       "owed": "Dovuto",
       "paid": "Pagato",
       "balance": "Saldo"
+    }
+  },
+  "analytics": {
+    "title": "Analisi",
+    "description": "KPI, P/L, prodotti e coorti. Ogni numero apre gli ordini che lo compongono.",
+    "period": "Periodo",
+    "apply": "Applica",
+    "from": "Dal",
+    "to": "Al",
+    "presets": {
+      "7d": "7 giorni",
+      "30d": "30 giorni",
+      "90d": "90 giorni",
+      "mtd": "Mese corrente",
+      "ytd": "Anno corrente"
+    },
+    "tabs": {
+      "overview": "Panoramica",
+      "pnl": "P/L",
+      "products": "Prodotti",
+      "cohorts": "Coorti"
+    },
+    "kpi": {
+      "net_revenue": "Ricavo netto",
+      "orders": "Ordini di vendita",
+      "aov": "Valore medio ordine",
+      "cancel_rate": "Tasso di annullamento",
+      "return_rate": "Tasso di reso",
+      "contribution": "Margine di contribuzione",
+      "new_customers": "Nuovi clienti",
+      "returning_customers": "Clienti ricorrenti"
+    },
+    "vs_previous": "vs periodo precedente",
+    "series_title": "Vendite per giorno",
+    "orders_series": "ordini",
+    "pnl": {
+      "title": "Conto economico",
+      "description": "Netto di imposte (aliquota per paese di spedizione), costo del venduto dallo snapshot del costo d'acquisto, spedizione e commissioni di pagamento dalle impostazioni, spesa ads dalle piattaforme collegate, costi fissi ripartiti per giorno.",
+      "line": "Voce",
+      "amount": "Importo",
+      "rate": "% sul netto",
+      "gross": "Vendite lorde",
+      "refunds": "Rimborsi",
+      "tax": "Imposte",
+      "net": "Ricavo netto",
+      "cogs": "Costo del venduto",
+      "gross_margin": "Margine lordo",
+      "shipping": "Costi di spedizione",
+      "fees": "Commissioni di pagamento",
+      "contribution": "Margine di contribuzione",
+      "ads": "Pubblicità",
+      "fixed": "Costi fissi",
+      "operating": "Risultato operativo",
+      "orders": "Ordini di vendita",
+      "placed": "Ordini piazzati",
+      "cancelled": "Annullati",
+      "returned": "Resi",
+      "pending": "In sospeso",
+      "cogs_incomplete": "{n} ordini hanno righe senza costo d'acquisto: il costo del venduto è sottostimato.",
+      "by_month": "Per mese",
+      "month": "Mese",
+      "open_orders": "Apri gli ordini"
+    },
+    "products": {
+      "title": "Performance prodotti",
+      "product": "Prodotto",
+      "units": "Pezzi",
+      "orders": "Ordini",
+      "revenue": "Ricavi",
+      "cogs": "Costo",
+      "margin": "Margine",
+      "returned": "Resi",
+      "empty": "Nessuna vendita nel periodo."
+    },
+    "cohorts": {
+      "title": "Coorti di riacquisto",
+      "description": "Clienti per mese del primo ordine e quota che ha riordinato nei mesi successivi.",
+      "cohort": "Coorte",
+      "customers": "Clienti",
+      "month": "M+{n}",
+      "empty": "Storico ancora insufficiente."
     }
   }
 }

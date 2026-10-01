@@ -111,3 +111,13 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · Inventory risk formulas and their parameters
 
 **Decision.** `velocity = units sold in lookback / lookback days` (non-cancelled orders), `cover = (available + incoming) / velocity`, risk `critical` when effective stock is zero or cover ≤ critical days, `warning` when ≤ warning days, `no_sales` when nothing sold. Reorder suggestion `ceil(velocity × target days − effective stock)` rounded up to the variant pack size. Lookback, thresholds and target days are tenant settings; incoming counts purchase orders in `confirmed`, `in_transit` or `partially_received` (one set, used everywhere).
+
+## 2026-10-01 · One economics function, one scope rule
+
+**Decision.** `orderEconomics` in `packages/core` is the only place where net revenue, COGS, shipping cost, payment fee and margin are computed; dashboard, P/L, product performance and (from phase 6) campaigns call it or the SQL equivalents of its filters. "Counts as a sale" = canonical status in `confirmed, fulfilling, shipped, delivered, returned_partial`; cancelled, returned and refunded orders never count, pending ones are shown separately. Net revenue is net of tax (stored tax, or the shipping-country rate when the platform reports none) and of refunds. Missing purchase costs do not silently become zero: the P/L shows how many orders have incomplete COGS.
+
+**Alternatives.** Counting "confirmed" orders by tag (the reference) or all placed orders (rejected: the brief wants profit only on orders that were not cancelled or returned).
+
+## 2026-10-01 · Fixed costs prorated by day, ad spend from the ledger
+
+**Decision.** `cost_settings` rows of kind `fixed_monthly` are prorated by days inside the period (month = 30.4375 days); `shipping_per_order` rows are matched by order date. Ad spend is the sum of `ad_metrics_daily` for the period, whatever the campaign. The hand-calculated test in `packages/core/src/finance.test.ts` and the database test in `packages/services/test/analytics.test.ts` pin the numbers.
