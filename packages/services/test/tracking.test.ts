@@ -80,6 +80,8 @@ describe("first-party pixel", () => {
 describe("server-side conversions", () => {
   it("queues sale orders with consent, sends hashed events, retries failures and skips what a platform cannot match", async () => {
     await run((s) => saveConversionSettings(s, { provider: "meta", enabled: true, destinationId: "123", testEventCode: null, requireConsent: true, lookbackDays: 7 }));
+    // the seed enables Google too: keep this test to one platform
+    await run((s) => saveConversionSettings(s, { provider: "google", enabled: false, destinationId: "777", testEventCode: null, requireConsent: true, lookbackDays: 30 }));
     await run((s) => s.tx.delete(schema.conversionEvents).where(eq(schema.conversionEvents.tenantId, tenantId)));
     const q = await run((s) => enqueueConversions(s));
     expect(q.queued).toBeGreaterThan(0);
