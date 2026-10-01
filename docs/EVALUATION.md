@@ -23,6 +23,7 @@ Keel è un MVP completo in tutte le dodici fasi previste: dieci moduli core, con
 | Integrazioni: stato, salute, esecuzioni, registro webhook, test connessione, risincronizzazione, guide in 3 lingue | Funziona | e2e integrazioni |
 | Console `/admin`: tenant, creazione con checklist, add-on con nota, fatturazione mensile, sospensione per insoluto, impersonificazione con banner e audit | Funziona | e2e console: add-on spento → pagina irraggiungibile |
 | Add-on contrassegno: coda con esiti, assegnazione pesata, delivery score spiegato, destinatari a rischio; tag Shopify letti e scritti secondo il vocabolario del tenant; modifica pre-conferma (contatti sul posto, righe e unioni per sostituzione), annullo sulla piattaforma | Funziona sul tenant demo | 20 test, e2e coda e modifica |
+| Assistente AI nel core: domande in linguaggio naturale, risposte con numeri, periodo, filtri e link ai report; solo lettura e strumenti filtrati per ruolo; gira sulla chiave Anthropic del negozio (quarta scheda in Integrazioni) | Funziona (modello simulato nella demo) | Test servizi sul ciclo con risposte registrate; e2e assistente |
 | Tre lingue (en, it, es), formati `Intl` per tenant | Funziona | Test di parità delle chiavi fallisce se manca una traduzione |
 
 ## 3. Cosa è mock o simulato
@@ -36,6 +37,7 @@ Tutto ciò che tocca il mondo esterno è dietro un'interfaccia e, in questa cons
 | Magic link | Stampato in console | Un provider email (Resend, Postmark) |
 | Notifiche | Solo in-app | Email o Slack sulle stesse notifiche |
 | Corrieri, 3PL, WhatsApp | Solo interfacce (`CarrierProvider`, `WarehouseProvider`, `MessagingChannel`) e mock; nel catalogo come "Disponibile su richiesta" | Un connettore per cliente, come da modello di business |
+| Assistente AI | Adapter Anthropic scritto con l'SDK ufficiale e testato su risposte registrate; nella demo gira un modello simulato che chiama gli strumenti veri (numeri e link reali, testo essenziale) | Il negozio crea un account Anthropic con credito, incolla la chiave in Integrazioni → AI (Anthropic), `KEEL_INTEGRATION_MODE=live`. Il costo lo paga il negozio direttamente ad Anthropic |
 | Dati demo | Generatore deterministico: 15.000 + 6.000 ordini in circa 40 secondi | Nulla: restano utili per demo commerciali e test |
 
 Alcune caratteristiche "interessanti" del seed sono garantite strutturalmente (prodotti in esaurimento senza merce in arrivo, campagne in perdita); altre sono probabilistiche e possono variare leggermente a ogni riseed.

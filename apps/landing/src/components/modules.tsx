@@ -7,6 +7,7 @@ import { getTranslator } from "@/i18n/messages";
 const MODULES = [
   { key: "campaigns", shot: "campaigns" },
   { key: "analytics", shot: "analytics-pl" },
+  { key: "assistant", shot: "assistant" },
   { key: "orders", shot: "orders" },
   { key: "shipments", shot: "shipments" },
   { key: "inventory", shot: "inventory" },

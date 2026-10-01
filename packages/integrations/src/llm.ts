@@ -219,9 +219,9 @@ const MOCK_ROUTES: { tool: string; words: RegExp }[] = [
 ];
 
 const MOCK_PERIODS: { days: number; words: RegExp }[] = [
-  { days: 7, words: /7 (days|giorni|días)|last week|settimana|semana/i },
-  { days: 90, words: /90 (days|giorni|días)|quarter|trimestr|3 (months|mesi|meses)/i },
-  { days: 365, words: /year|12 (months|mesi|meses)|anno|año/i },
+  { days: 7, words: /\b7 (days|giorni|días)\b|\blast week\b|\bsettiman[ae]\b|\bsemana\b/i },
+  { days: 90, words: /\b90 (days|giorni|días)\b|\bquarter\b|\btrimestr[eio]\b|\b3 (months|mesi|meses)\b/i },
+  { days: 365, words: /\b(year|anno|año)\b|\b12 (months|mesi|meses)\b/i },
 ];
 
 export function detectLanguage(text: string): Lang {

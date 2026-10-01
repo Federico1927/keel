@@ -4,7 +4,7 @@ import { guideHref, type LandingLocale } from "@/config/site";
 import { getTranslator } from "@/i18n/messages";
 
 const STEPS = ["connect", "configure", "operate"] as const;
-const GUIDES = ["shopify", "meta", "google"] as const;
+const GUIDES = ["shopify", "meta", "google", "anthropic"] as const;
 
 export function HowItWorks({ locale }: { locale: LandingLocale }) {
   const t = getTranslator(locale);

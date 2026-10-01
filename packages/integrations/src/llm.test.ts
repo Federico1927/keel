@@ -129,6 +129,14 @@ describe("mock LLM provider", () => {
     expect(r.content[0]).toMatchObject({ type: "text" });
   });
 
+  it("reads the period from whole words only (\"hanno\" is not \"anno\")", async () => {
+    const llm = new MockLlmProvider({ today });
+    const r = await llm.complete({ system: "s", messages: [{ role: "user", content: [{ type: "text", text: "Quali prodotti hanno venduto di più negli ultimi 30 giorni?" }] }], tools: allTools });
+    expect(r.content[0]).toMatchObject({ name: "get_top_products", input: { from: "2026-09-02", to: "2026-10-01" } });
+    const year = await llm.complete({ system: "s", messages: [{ role: "user", content: [{ type: "text", text: "Ricavi dell'ultimo anno?" }] }], tools: allTools });
+    expect(year.content[0]).toMatchObject({ input: { from: "2025-10-02" } });
+  });
+
   it("detects the question's language", () => {
     expect(detectLanguage("Quali prodotti sono a rischio?")).toBe("it");
     expect(detectLanguage("¿Cuáles son los productos más vendidos?")).toBe("es");

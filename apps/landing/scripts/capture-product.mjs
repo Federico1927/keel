@@ -25,7 +25,9 @@ const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 
 /**
  * `list` + `match` pages open the first detail link found on the list page. `viewport` overrides the
- * default 1440x900 for pages whose tables need more room (same 16:10 ratio).
+ * default 1440x900 for pages whose tables need more room (same 16:10 ratio). `ask` (per locale)
+ * types a question on the assistant page and captures the answer instead, for locales the seeded
+ * conversation is not written in. `hide` lists test ids of demo-only notices left out of the capture.
  */
 export const PAGES = [
   { name: "dashboard", path: "" },
@@ -46,6 +48,13 @@ export const PAGES = [
   { name: "returns-analytics", path: "/returns/analytics" },
   { name: "discounts", path: "/discounts" },
   { name: "integrations", path: "/integrations" },
+  {
+    name: "assistant",
+    list: "/assistant",
+    match: "/assistant\\?thread=",
+    ask: { it: "Quali prodotti hanno venduto di più negli ultimi 30 giorni?" },
+    hide: ["assistant-mock-note"],
+  },
   { name: "integrations-guide-shopify", path: "/integrations/guide/shopify" },
 ];
 
@@ -57,10 +66,17 @@ async function login(page) {
   await page.waitForURL(/\/t\//);
 }
 
-async function shoot(page, dir, spec) {
+async function shoot(page, dir, spec, locale) {
   if (ONLY.size && !ONLY.has(spec.name)) return;
   const base = `${BASE}/t/${TENANT}`;
-  if (spec.list) {
+  const question = spec.ask?.[locale];
+  if (question) {
+    await page.goto(`${base}/assistant`);
+    await page.getByTestId("assistant-input").fill(question);
+    await page.getByTestId("assistant-ask").click();
+    await page.waitForURL(/\/assistant\?thread=/, { timeout: 60_000 });
+    await page.getByTestId("assistant-citation").first().waitFor();
+  } else if (spec.list) {
     await page.goto(`${base}${spec.list}`);
     const re = new RegExp(`${spec.match}${UUID}(\\?.*)?$`);
     const hrefs = await page
@@ -76,6 +92,7 @@ async function shoot(page, dir, spec) {
     await page.goto(`${base}${spec.path}`);
   }
   await page.waitForLoadState("networkidle");
+  for (const id of spec.hide ?? []) await page.addStyleTag({ content: `[data-testid="${id}"] { display: none !important; }` });
   await page.setViewportSize(spec.viewport ?? DEFAULT_VIEWPORT);
   // Charts animate in; give them a moment to settle.
   await page.waitForTimeout(600);
@@ -95,7 +112,7 @@ async function main() {
     const page = await context.newPage();
     await login(page);
     await context.addCookies([{ name: "NEXT_LOCALE", value: locale, url: BASE }]);
-    for (const spec of PAGES) await shoot(page, dir, spec);
+    for (const spec of PAGES) await shoot(page, dir, spec, locale);
     await context.close();
   }
   await browser.close();

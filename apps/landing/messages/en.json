@@ -100,6 +100,11 @@
         "title": "Campaigns linked to stock",
         "body": "Meta and Google campaigns linked to products. Profit counts only orders that were not cancelled or returned. Recommendations look at the stock of the linked products before telling you to spend more.",
         "alt": "Campaigns page in {product}: spend, orders, net revenue, margin, profit, ROAS, ROI, CPA and a health indicator for each Meta and Google campaign"
+      },
+      "assistant": {
+        "title": "AI assistant",
+        "body": "Ask about sales, profit, campaigns, products, returns, customers at risk or stock. Every answer cites its figures, period and filters, with a link to the report. It runs on your own Anthropic key and can only read.",
+        "alt": "Assistant page in {product}: a question on best-selling products and the answer with a cited table of products, units, revenue and margin"
       }
     },
     "carousel_label": "Product modules",
@@ -114,8 +119,8 @@
     "lead": "Three steps. The second one is ours.",
     "steps": {
       "connect": {
-        "title": "Connect Shopify, Meta and Google",
-        "body": "OAuth or a custom app token for Shopify, API access for Meta and Google Ads. Webhooks are verified, queued and retried; the historical sync runs in the background and resumes if interrupted."
+        "title": "Connect Shopify, Meta, Google and your AI key",
+        "body": "OAuth or a custom app token for Shopify, API access for Meta and Google Ads, and your own Anthropic key for the AI assistant. Webhooks are verified, queued and retried; the historical sync runs in the background and resumes if interrupted."
       },
       "configure": {
         "title": "We configure rules, costs and history",
@@ -130,7 +135,8 @@
     "guides": {
       "shopify": "Shopify guide",
       "meta": "Meta guide",
-      "google": "Google Ads guide"
+      "google": "Google Ads guide",
+      "anthropic": "AI assistant guide"
     }
   },
   "comparison": {
@@ -257,11 +263,15 @@
       },
       "setup": {
         "q": "What does the setup include?",
-        "a": "Connecting Shopify, Meta and Google, importing your order history, configuring status rules, tax rates, payment fees, product costs and your users with their roles. You start on a configured platform, not an empty one."
+        "a": "Connecting Shopify, Meta, Google and your Anthropic key for the AI assistant, importing your order history, configuring status rules, tax rates, payment fees, product costs and your users with their roles. You start on a configured platform, not an empty one."
       },
       "security": {
         "q": "How are my data kept separate from other customers?",
         "a": "Every table carries the account identifier and the database enforces row-level isolation on every query: an account can never read or write another account's rows, and automated tests prove it on every table. Integration credentials are encrypted at rest. Access by our support team is logged and visible to you."
+      },
+      "ai": {
+        "q": "Who pays for the AI assistant, and what does it see?",
+        "a": "The assistant is included in every plan and runs on your own Anthropic API key: Anthropic bills the usage directly to you, with the spend limit you set in their console, and {product} adds nothing on top. It only reads the reports the user's role can open, never changes data, and each answer shows the figures it used."
       },
       "overage": {
         "q": "What happens if I exceed the included orders?",
