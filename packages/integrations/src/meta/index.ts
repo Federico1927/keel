@@ -18,7 +18,7 @@ interface GraphPage<T> {
   error?: { message: string; code: number; error_subcode?: number; type?: string };
 }
 
-function mapError(e: { message: string; code: number; error_subcode?: number }): IntegrationError {
+export function mapMetaError(e: { message: string; code: number; error_subcode?: number }): IntegrationError {
   if (e.code === 190) return new IntegrationError("token_expired", e.message);
   if (e.code === 17 || e.code === 32 || e.code === 613 || e.code === 4 || e.code === 80004) return new IntegrationError("rate_limited", e.message, 60_000);
   if (e.code === 10 || e.code === 200 || e.code === 294) return new IntegrationError("permission", e.message);
@@ -53,7 +53,7 @@ export class MetaAdsPlatform implements AdsPlatform {
     for (const [k, v] of Object.entries(params)) u.searchParams.set(k, v);
     u.searchParams.set("access_token", this.creds.accessToken);
     const res = await this.http.request<GraphPage<T> & { error?: GraphPage<T>["error"] }>(u.toString());
-    if (res.json?.error) throw mapError(res.json.error);
+    if (res.json?.error) throw mapMetaError(res.json.error);
     const usage = res.headers.get("x-business-use-case-usage") ?? res.headers.get("x-ad-account-usage");
     if (usage) {
       try {
@@ -109,7 +109,7 @@ export class MetaAdsPlatform implements AdsPlatform {
     const u = new URL(`${this.base}/${externalId}`);
     const body = new URLSearchParams({ status: status === "active" ? "ACTIVE" : "PAUSED", access_token: this.creds.accessToken }).toString();
     const res = await this.http.request<{ success?: boolean; error?: { message: string; code: number } }>(u.toString(), { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body });
-    if (res.json?.error) throw mapError(res.json.error);
+    if (res.json?.error) throw mapMetaError(res.json.error);
     if (res.json?.success === false) throw new IntegrationError("invalid_request", "Meta refused the status change");
   }
 }

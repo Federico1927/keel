@@ -1,6 +1,6 @@
 import { parseTenantSettings } from "@keel/core";
 import { adminDb, and, eq, inArray, schema, withTenant } from "@keel/db";
-import { getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
+import { enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue } from "@keel/addon-cod";
 import { adsWindow, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
 
@@ -64,6 +64,24 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
       if (t.status !== "active") continue;
       await withTenant(t.id, async (tx) => {
         await evaluateAlertRules(sys(t.id)(tx), { id: t.id, country: t.country, currency: t.currency, timezone: t.timezone, settings: parseTenantSettings(t.settings) }, { appUrl: process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/t/${t.slug}` : undefined });
+      });
+    }
+    return;
+  }
+  if (job.kind === "tracking") {
+    // pixel sessions → orders placed since the last ticks, then the server-side conversion queue
+    const tenants = await adminDb().select({ id: schema.tenants.id, status: schema.tenants.status }).from(schema.tenants);
+    const withPixel = new Set((await adminDb().select({ tenantId: schema.pixelSettings.tenantId }).from(schema.pixelSettings)).map((r) => r.tenantId));
+    const withConversions = new Set((await adminDb().select({ tenantId: schema.conversionSettings.tenantId }).from(schema.conversionSettings).where(eq(schema.conversionSettings.enabled, true))).map((r) => r.tenantId));
+    for (const t of tenants) {
+      if (t.status !== "active" || (!withPixel.has(t.id) && !withConversions.has(t.id))) continue;
+      await withTenant(t.id, async (tx) => {
+        const ctx = sys(t.id)(tx);
+        if (withPixel.has(t.id)) await stitchPixelSessions(ctx, { orderSinceHours: 2 });
+        if (withConversions.has(t.id)) {
+          await enqueueConversions(ctx);
+          await sendDueConversions(ctx, (provider, settings) => getConversionSinkFor(ctx, provider, settings));
+        }
       });
     }
     return;

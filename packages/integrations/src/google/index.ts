@@ -47,6 +47,21 @@ export class GoogleAdsPlatform implements AdsPlatform {
     return this.creds.customerId.replace(/-/g, "");
   }
 
+  /** Authorized POST to a customer-scoped endpoint (e.g. `:uploadClickConversions`). */
+  async post<T>(path: string, body: unknown): Promise<T> {
+    const token = await this.token();
+    const headers: Record<string, string> = { authorization: `Bearer ${token}`, "developer-token": this.creds.developerToken, "content-type": "application/json" };
+    if (this.creds.loginCustomerId) headers["login-customer-id"] = this.creds.loginCustomerId.replace(/-/g, "");
+    const res = await this.http.request<T & { error?: { message: string; status?: string } }>(`${this.base}/customers/${this.customer()}${path}`, { method: "POST", headers, body: JSON.stringify(body) });
+    const err = res.json?.error;
+    if (err) throw new IntegrationError(err.status === "PERMISSION_DENIED" ? "permission" : err.status === "UNAUTHENTICATED" ? "token_expired" : err.status === "RESOURCE_EXHAUSTED" ? "rate_limited" : "invalid_request", err.message);
+    return res.json;
+  }
+
+  customerResource(): string {
+    return `customers/${this.customer()}`;
+  }
+
   /** searchStream returns an array of chunks, each with `results`. */
   async query(gaql: string): Promise<Rec[]> {
     const token = await this.token();

@@ -1,5 +1,5 @@
 import { and, eq, schema } from "@keel/db";
-import { GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, MockAudienceDestination, MockCommercePlatform, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type AudienceDestination, type AudienceProvider, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
+import { GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, GoogleConversionsSink, MetaConversionsSink, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 
 export interface PlatformTenant {
@@ -170,4 +170,27 @@ export function getAudienceDestinationFor(tenantId: string, provider: AudiencePr
 }
 export function mockAudienceFor(tenantId: string, provider: AudienceProvider): MockAudienceDestination | undefined {
   return audiences.get(`${tenantId}:${provider}`);
+}
+
+const conversionMocks = new Map<string, MockConversionSink>();
+/**
+ * Server-side conversion sink: live when the platform integration is live and a destination
+ * (Meta dataset, Google conversion action) is configured; the mock otherwise.
+ */
+export async function getConversionSinkFor(ctx: ServiceContext, provider: ConversionProvider, settings: { destinationId: string | null; testEventCode: string | null }): Promise<ConversionSink> {
+  const row = await integrationRow(ctx, provider);
+  if (isLive(row) && settings.destinationId) {
+    if (provider === "meta") return new MetaConversionsSink(decryptJson<MetaCredentials>(row!.credentialsEncrypted!), settings.destinationId, { testEventCode: settings.testEventCode });
+    return new GoogleConversionsSink(decryptJson<GoogleAdsCredentials>(row!.credentialsEncrypted!), settings.destinationId);
+  }
+  return mockConversionSinkFor(ctx.tenantId, provider);
+}
+export function mockConversionSinkFor(tenantId: string, provider: ConversionProvider): MockConversionSink {
+  const key = `${tenantId}:${provider}`;
+  let m = conversionMocks.get(key);
+  if (!m) {
+    m = new MockConversionSink(provider);
+    conversionMocks.set(key, m);
+  }
+  return m;
 }

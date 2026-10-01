@@ -488,3 +488,29 @@ The `holdout_percentage` and `group_name` columns stay in the data model, as §7
 - Pushing requires both segment write access and the export permission.
 
 **Alternatives.** Full replace on every sync (rejected: platforms rate-limit and reprocess large lists). Pushing plain emails to ad platforms (rejected: both platforms expect hashed identifiers, and it is personal data leaving the store).
+
+## 2026-10-01 · First-party pixel without a Shopify app
+
+**Decision.**
+- The pixel is a public collect endpoint per store (`/api/px/<public key>`), plus two forms of browser code:
+  - a script Keel serves for any storefront;
+  - the body of a Shopify custom pixel (Settings → Customer events), which needs no app review. That path is marked to verify.
+- The browser keeps a 1-year anonymous id and a 30-minute session id in first-party cookies, and posts text/plain JSON (sendBeacon, no CORS preflight).
+- The server stores raw events with a hashed IP, and creates one touchpoint per new session from its landing URL and referrer, using the same attribution helpers as orders.
+- Browsers are linked to orders by the checkout's order id, and to customers by a SHA-256 of the email (never stored in clear). That gives cross-visit and cross-device stitching.
+- A job every 5 minutes assigns each unassigned session to the customer's first order placed after it, within the store's lookback. Multi-touch attribution reads these touchpoints unchanged.
+- The thank-you page fires after the order exists, so a session that starts there is never credited.
+- Limits: a 64 KB body, 25 events per batch, an optional allow-list of origins, and 1,500 events per 10 minutes per hashed IP.
+
+**Alternatives.** A Shopify Web Pixel app extension (deferred: it needs a public app, while the custom pixel gives the same events for one store). A third-party analytics tool (rejected: the data would leave the store and could not be joined to orders and margins).
+
+## 2026-10-01 · Server-side conversions: one queue, platform adapters, hashed identifiers
+
+**Decision.**
+- Confirmed orders go to Meta (Conversions API) and Google Ads (click conversions with user identifiers, partial failure on) through a `ConversionSink` interface. The live adapters are tested on recorded payloads; the mock is used until the integration is live and a dataset or conversion action id is set.
+- A queue row per order and platform carries a stable event id (`order-<id>`), so the platform can drop the browser pixel's duplicate. It is retried with exponential backoff, up to 6 attempts, and doubles as the delivery log.
+- Email, phone, names, city, zip and country are normalised to Meta's rules and SHA-256 hashed before sending and before logging. Only click ids, `fbp`/`fbc`, IP and user agent of the checkout travel in clear, as both platforms require.
+- By default only orders of customers who accept marketing are sent; the others are logged as skipped. Meta's 7-day limit and Google's 90-day limit cap the lookback.
+- If Shopify's own Facebook channel already sends server events, the guide says to keep only one source.
+
+**Alternatives.** Sending from the browser only (rejected: ad blockers and cookie limits lose a share of purchases). Sending inside order import (rejected: a slow or failing platform would hold up order ingestion).
