@@ -240,6 +240,12 @@ Fatto (issue #5, chiusa):
 
 Spostato nella issue #7 (esterni): fornitore reale per il blocco su carta, fornitore di etichette, email di stato al cliente.
 
+## Landing page (`apps/landing`) · 2026-10-01
+
+Fatto: nuova app statica `apps/landing` (Next.js export, Tailwind 4, next-intl) con le nove sezioni richieste in inglese (`/`) e italiano (`/it/`), hreflang, sitemap, robots, immagine Open Graph generata; prezzi e offerta fondatori in `apps/landing/src/config/pricing.ts`; screenshot reali del tenant demo Harbor Home in WebP con cornice da browser; form di contatto con webhook pubblico o `mailto:`; CTA "Book a demo" da `NEXT_PUBLIC_DEMO_URL` con fallback `mailto:`. Screenshot della landing in `docs/landing/`, istruzioni in `docs/landing/README.md`. Gate: lint, typecheck, test e build verdi. Piani del prodotto (`packages/config`) allineati ai prezzi della landing (USD, utenti illimitati, eccedenza, add-on contrassegno 199 $), con test di parità.
+
+Manca: link di prenotazione reale e webhook del form (variabili d'ambiente da impostare in produzione); testimonianze e loghi (segnaposto commentato, niente di inventato); verifica degli scope su Vercel al primo deploy.
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

@@ -53,11 +53,14 @@ describe("return policy", () => {
 
   it("enforces the per-customer limit", async () => {
     await run((s) => saveReturnPolicy(s, { customerLimit: { count: 1, days: 730 } }));
-    const rows = await run(async (s) => (await s.tx.execute<{ order_id: string }>(sql`select r.order_id from return_requests r where r.tenant_id = ${tenantId} limit 1`)).rows);
-    // another order of a customer who already returned something
+    // another delivered order of a customer who already returned something (one query, ordered:
+    // a bare `limit 1` on the returns could pick a customer with no other delivered order)
     const other = await run(async (s) => (await s.tx.execute<{ id: string }>(sql`
-      select o2.id from orders o1 join orders o2 on o2.customer_id = o1.customer_id and o2.id <> o1.id
-      where o1.id = ${rows[0]!.order_id} and o2.status = 'delivered' limit 1`)).rows[0]);
+      select o2.id from return_requests r
+      join orders o1 on o1.id = r.order_id
+      join orders o2 on o2.customer_id = o1.customer_id and o2.id <> o1.id
+      where r.tenant_id = ${tenantId} and o2.status = 'delivered'
+      order by o2.id limit 1`)).rows[0]);
     expect(other, "a repeat customer with a return exists in the seed").toBeDefined();
     if (!other) return;
     const c = await run((s) => orderReturnContext(s, settings, other.id));

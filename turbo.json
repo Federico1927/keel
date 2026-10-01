@@ -1,8 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": [
-    ".env"
-  ],
+  "globalDependencies": [".env"],
   "globalEnv": [
     "DATABASE_URL",
     "DATABASE_ADMIN_URL",
@@ -22,38 +20,29 @@
     "KEEL_ADMIN_PASSWORD",
     "KEEL_APP_PASSWORD",
     "DATABASE_SUPERUSER_URL",
-    "KEEL_DATABASES"
+    "KEEL_DATABASES",
+    "NEXT_PUBLIC_SITE_URL",
+    "NEXT_PUBLIC_DEMO_URL",
+    "NEXT_PUBLIC_CONTACT_EMAIL",
+    "NEXT_PUBLIC_CONTACT_WEBHOOK_URL"
   ],
   "tasks": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        ".next/**",
-        "!.next/cache/**",
-        "dist/**"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "out/**"]
     },
     "dev": {
       "cache": false,
       "persistent": true
     },
     "lint": {
-      "dependsOn": [
-        "^build"
-      ]
+      "dependsOn": ["^build"]
     },
     "typecheck": {
-      "dependsOn": [
-        "^build"
-      ]
+      "dependsOn": ["^build"]
     },
     "test": {
-      "dependsOn": [
-        "^build",
-        "^test"
-      ],
+      "dependsOn": ["^build", "^test"],
       "cache": false
     },
     "clean": {
