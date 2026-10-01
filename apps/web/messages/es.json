@@ -457,12 +457,15 @@
       "integration_health": "Integraciones",
       "cod_assigned": "Pedido contra reembolso asignado",
       "digest": "Correo de resumen diario",
+      "export_ready": "Exportación CSV lista",
       "other": "Otros"
     },
     "rendered": {
       "stock_critical_no_po": "{title} variantes en venta con stock crítico y ninguna orden de compra",
       "late_to_ship": "{title} pedidos aún sin enviar después de {body}",
-      "sync_delay": "La sincronización de {title} va con retraso ({body})"
+      "sync_delay": "La sincronización de {title} va con retraso ({body})",
+      "export_ready": "Tu exportación de {body} está lista ({title} filas)",
+      "export_failed": "La exportación de {body} falló"
     },
     "groups": {
       "collaboration": "Colaboración",
@@ -517,6 +520,12 @@
         "manual": "Añadido a mano"
       },
       "supplier_po": "Órdenes de compra a proveedores"
+    },
+    "export_lists": {
+      "orders": "pedidos",
+      "products": "productos",
+      "returns": "devoluciones",
+      "customers": "clientes"
     }
   },
   "tasks": {
@@ -713,7 +722,9 @@
       "from": "Desde",
       "to": "Hasta",
       "tag": "Etiqueta",
-      "missing_cost": "Productos sin coste"
+      "missing_cost": "Productos sin coste",
+      "product": "Producto: {name}",
+      "variant": "Variante: {name}"
     },
     "sort": {
       "placed_desc": "Más recientes",
@@ -966,7 +977,8 @@
       "adjustment": "Ajuste",
       "sync": "Sincronización",
       "sale": "Venta"
-    }
+    },
+    "view_orders": "Ver pedidos"
   },
   "inventory": {
     "title": "Inventario",
@@ -4312,5 +4324,128 @@
     "preview": "Descuento {amount} · nuevo total {total}",
     "refund_due": "El pedido está pagado: reembolsa {amount} al cliente desde la tienda.",
     "apply": "Aplicar descuento"
+  },
+  "lists": {
+    "select_all": "Seleccionar todas las filas de la página",
+    "select_row": "Seleccionar {label}",
+    "selected": "{count, plural, one {# seleccionado} other {# seleccionados}}",
+    "clear_selection": "Quitar selección",
+    "dialog_description": "{count, plural, one {Se aplica a # registro.} other {Se aplica a # registros.}} Cada registro se escribe por separado: si uno falla, los demás continúan.",
+    "concurrency_hint": "Como máximo 3 escrituras a la tienda a la vez. Al final recibes un resumen.",
+    "run": "{count, plural, one {Aplicar a # registro} other {Aplicar a # registros}}",
+    "actions": {
+      "orders": {
+        "status": "Cambiar estado",
+        "cancel": "Cancelar",
+        "assign": "Asignar",
+        "tag": "Etiquetas"
+      },
+      "products": {
+        "status": "Estado",
+        "price": "Precio",
+        "compare_at": "Precio tachado",
+        "tags": "Etiquetas"
+      },
+      "returns": {
+        "approve": "Aprobar",
+        "reject": "Rechazar",
+        "receive": "Marcar recibida",
+        "refund": "Reembolsar"
+      }
+    },
+    "params": {
+      "status": "Nuevo estado",
+      "note": "Nota (opcional)",
+      "assignee": "Asignar a",
+      "add_tags": "Etiquetas a añadir",
+      "remove_tags": "Etiquetas a quitar",
+      "tags_placeholder": "Separadas por comas, p. ej. prioridad, regalo",
+      "mode": "Cómo",
+      "mode_set": "Fijar un importe",
+      "mode_percent": "Variar en porcentaje",
+      "mode_clear": "Quitar el precio tachado",
+      "percent": "Porcentaje (negativo para bajar)",
+      "amount": "Importe",
+      "all_variants": "Se aplica a todas las variantes de los productos seleccionados y se escribe primero en la tienda.",
+      "restock_location": "Reponer stock en",
+      "no_restock": "No reponer stock",
+      "refund_hint": "Reembolsa el importe inspeccionado de cada devolución. Las devoluciones aún no inspeccionadas se omiten."
+    },
+    "reasons": {
+      "not_found": "No encontrado",
+      "already_cancelled": "Ya cancelado",
+      "unchanged": "Nada que cambiar",
+      "overridden": "El estado lo decide un hecho del pedido ({detail})",
+      "bad_transition": "No es posible desde el estado {detail}",
+      "location_required": "Hace falta una ubicación de reposición",
+      "invalid_input": "Datos no válidos",
+      "not_eligible": "No elegible",
+      "return_not_found": "Devolución no encontrada",
+      "platform_sync_error": "Hecho aquí, pero la escritura en la tienda falló: {detail}"
+    },
+    "summary": {
+      "title": "Acción masiva terminada",
+      "counts": "Hechos {done} · Omitidos {skipped} · Fallidos {failed}",
+      "done": "Hecho",
+      "skipped": "Omitido",
+      "failed": "Fallido",
+      "batch": "Lote {id}: cada cambio está en el registro de auditoría y en la cronología de cada pedido.",
+      "close": "Cerrar"
+    },
+    "views": {
+      "label": "Vistas",
+      "all": "Todos (sin filtros)",
+      "empty": "Aún no hay vistas guardadas",
+      "shared": "Compartida con el equipo",
+      "delete": "Eliminar la vista {name}",
+      "save": "Guardar los filtros actuales como vista…",
+      "save_title": "Guardar vista",
+      "save_description": "Guarda los filtros y el orden que ves ahora. Si guardas de nuevo con el mismo nombre, la vista se actualiza.",
+      "name": "Nombre",
+      "share": "Compartir con el equipo",
+      "no_filters": "Sin filtros: toda la lista"
+    },
+    "export_csv": "Exportar CSV",
+    "names": {
+      "orders": "Pedidos",
+      "products": "Productos",
+      "returns": "Devoluciones",
+      "customers": "Clientes",
+      "purchasing": "Órdenes de compra"
+    },
+    "exports": {
+      "title": "Exportaciones",
+      "description": "Los CSV demasiado grandes para descargarse al momento se preparan en segundo plano. Solo tú puedes descargar los tuyos.",
+      "queued": "Estamos preparando la exportación. Recibirás una notificación cuando el archivo esté listo.",
+      "empty_title": "Aún no hay exportaciones",
+      "empty_description": "Aquí aparecen las exportaciones grandes de las listas.",
+      "list": "Lista",
+      "requested": "Solicitada",
+      "status": "Estado",
+      "rows": "Filas",
+      "file": "Archivo",
+      "download": "Descargar",
+      "statuses": {
+        "pending": "En cola",
+        "running": "En curso",
+        "done": "Lista",
+        "failed": "Fallida"
+      }
+    },
+    "search": {
+      "open": "Buscar",
+      "placeholder": "Busca pedidos, clientes, productos, SKU, órdenes de compra…",
+      "placeholder_short": "Buscar…",
+      "hint": "Escribe un número de pedido, un nombre, un email, un teléfono (cualquier formato), un SKU o un número de orden de compra.",
+      "searching": "Buscando…",
+      "no_results": "Sin resultados",
+      "orders_count": "{count, plural, one {# pedido} other {# pedidos}}",
+      "groups": {
+        "orders": "Pedidos",
+        "customers": "Clientes",
+        "products": "Productos",
+        "purchase_orders": "Órdenes de compra"
+      }
+    }
   }
 }

@@ -1,21 +1,12 @@
-import { and, asc, desc, eq, gte, inArray, schema, sql, type SQL } from "@keel/db";
+import { and, asc, desc, eq, gte, inArray, schema, sql } from "@keel/db";
 import { PAGE_SIZE } from "@keel/config";
-import { summarizeByProduct, variantStock } from "@keel/services";
+import { productListWhere, summarizeByProduct, variantStock, type ProductFilters } from "@keel/services";
 import type { TenantContext } from "@/server/tenant";
 
-export interface ProductFilters { q?: string; type?: string; status?: string; risk?: string; page?: number }
-
-export function parseProductFilters(sp: Record<string, string | string[] | undefined>): ProductFilters {
-  const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) || undefined;
-  return { q: one(sp.q)?.trim(), type: one(sp.type), status: one(sp.status), risk: one(sp.risk), page: Math.max(1, Number(one(sp.page) ?? 1) || 1) };
-}
+export { parseProductFilters, type ProductFilters } from "@keel/services";
 
 export async function listProducts(ctx: TenantContext, f: ProductFilters) {
-  const conds: SQL[] = [eq(schema.products.tenantId, ctx.tenant.id)];
-  if (f.q) conds.push(sql`(${schema.products.title} ilike ${"%" + f.q + "%"} or exists (select 1 from product_variants v where v.product_id = ${schema.products.id} and v.sku ilike ${"%" + f.q + "%"}))`);
-  if (f.type) conds.push(eq(schema.products.productType, f.type));
-  if (f.status) conds.push(eq(schema.products.status, f.status));
-  const where = and(...conds)!;
+  const where = productListWhere(ctx.tenant.id, f);
   return ctx.run(async (tx) => {
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
     const all = await tx.select({ id: schema.products.id, title: schema.products.title, productType: schema.products.productType, status: schema.products.status, vendor: schema.products.vendor, imageUrl: schema.products.imageUrl, options: schema.products.options, isRepurchasable: schema.products.isRepurchasable }).from(schema.products).where(where).orderBy(asc(schema.products.title));

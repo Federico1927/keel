@@ -1,8 +1,8 @@
 import { parseTenantSettings } from "@keel/core";
 import { adminDb, and, eq, inArray, schema, withTenant } from "@keel/db";
-import { checkCriticalStock, checkLateToShip, checkSyncDelays, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
+import { checkCriticalStock, checkLateToShip, checkSyncDelays, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue } from "@keel/addon-cod";
-import { adsWindow, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
+import { adsWindow, type ListExportJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
 
 export interface Enqueue {
   (queue: string, data: unknown, opts?: { singletonKey?: string }): Promise<void>;
@@ -23,6 +23,11 @@ export async function handleWebhook(job: WebhookJob): Promise<void> {
     const r = await processWebhookEvent(ctx, platform, job.eventId, { country: tenant.country });
     if (r.status === "failed") throw new Error(r.error ?? "webhook failed");
   });
+}
+
+/** Builds a queued CSV export, stores the file and notifies the user who asked for it. */
+export async function handleListExport(job: ListExportJob): Promise<void> {
+  await withTenant(job.tenantId, (tx) => runListExport(sys(job.tenantId)(tx), job.exportId));
 }
 
 export async function handleSyncOrders(job: SyncOrdersJob, enqueue: Enqueue): Promise<void> {

@@ -242,6 +242,11 @@ export interface VerifiedWebhook {
   payload: unknown;
 }
 
+export interface VariantPatch {
+  priceMinor?: number;
+  compareAtMinor?: number | null;
+}
+
 /** Commerce platform contract (Shopify today, anything tomorrow). */
 export interface CommercePlatform {
   readonly provider: string;
@@ -273,8 +278,10 @@ export interface CommercePlatform {
   applyOrderDiscount(externalId: string, discount: OrderDiscountPatch): Promise<void>;
   addOrderNote(externalId: string, note: string): Promise<void>;
   updateOrderTags(externalId: string, add: string[], remove: string[]): Promise<void>;
-  updateVariant(variantExternalId: string, patch: { priceMinor?: number }): Promise<void>;
+  /** Price and compare-at price of a variant; `compareAtMinor: null` removes the compare-at price. */
+  updateVariant(variantExternalId: string, patch: VariantPatch): Promise<void>;
   updateProductStatus(productExternalId: string, status: "active" | "draft" | "archived"): Promise<void>;
+  updateProductTags(productExternalId: string, add: string[], remove: string[]): Promise<void>;
   /** Unit cost of a variant on the platform (Shopify: the inventory item's `cost`); the inventory item id is looked up when unknown. */
   updateVariantCost(variant: { variantExternalId: string; inventoryItemExternalId: string | null }, costMinor: number): Promise<void>;
   setInventory(inventoryItemExternalId: string, locationExternalId: string, available: number): Promise<void>;

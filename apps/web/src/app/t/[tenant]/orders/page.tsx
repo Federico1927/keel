@@ -3,8 +3,12 @@ import { getTranslations } from "next-intl/server";
 import { adminDb, eq, schema } from "@keel/db";
 import { formatDateTime, formatMoney } from "@keel/core";
 import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { bulkActionsFor } from "@keel/config";
 import { requirePage } from "@/server/tenant";
-import { listOrders, parseOrderFilters } from "@/server/queries/orders";
+import { listOrders, orderDrillLabel, parseOrderFilters } from "@/server/queries/orders";
+import { ListToolbar } from "@/components/lists/list-toolbar";
+import { BulkBar } from "@/components/lists/bulk-bar";
+import { ListSelection, RowCheckbox, SelectAllCheckbox } from "@/components/lists/selection";
 import { StatusBadge } from "@/components/status-badge";
 import { OrderFiltersBar } from "./filters";
 
@@ -16,6 +20,8 @@ export default async function OrdersPage({ params, searchParams }: { params: Pro
   const tp = await getTranslations("payment_methods");
   const filters = parseOrderFilters(sp);
   const { rows, total, counts, page, pageSize } = await listOrders(ctx, filters);
+  const drill = await orderDrillLabel(ctx, filters);
+  const bulk = bulkActionsFor(ctx.role, "orders");
   const members = await adminDb().select({ id: schema.users.id, name: schema.users.name, email: schema.users.email }).from(schema.tenantMemberships).innerJoin(schema.users, eq(schema.users.id, schema.tenantMemberships.userId)).where(eq(schema.tenantMemberships.tenantId, ctx.tenant.id));
   const assignedIds = [...new Set(rows.map((r) => r.assignedTo).filter((x): x is string => Boolean(x)))];
   const assignees = assignedIds.length ? members.filter((m) => assignedIds.includes(m.id)) : [];
@@ -31,16 +37,18 @@ export default async function OrdersPage({ params, searchParams }: { params: Pro
   const to = Math.min(page * pageSize, total);
   return (
     <>
-      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} />
-      <OrderFiltersBar basePath={base} filters={filters} counts={counts} members={members.map((m) => ({ id: m.id, name: m.name ?? m.email }))} />
+      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<ListToolbar ctx={ctx} list="orders" basePath={base} />} />
+      <OrderFiltersBar basePath={base} filters={filters} counts={counts} members={members.map((m) => ({ id: m.id, name: m.name ?? m.email }))} drill={drill} />
       {rows.length === 0 ? (
         <EmptyState title={t("empty_title")} description={t("empty_description")} className="mt-4" />
       ) : (
+        <ListSelection ids={rows.map((o) => o.id)}>
         <Card className="mt-4">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
+                  {bulk.length > 0 && <TableHead className="w-8"><SelectAllCheckbox /></TableHead>}
                   <TableHead>{t("columns.order")}</TableHead>
                   <TableHead>{t("columns.customer")}</TableHead>
                   <TableHead>{t("columns.status")}</TableHead>
@@ -53,6 +61,7 @@ export default async function OrdersPage({ params, searchParams }: { params: Pro
               <TableBody>
                 {rows.map((o) => (
                   <TableRow key={o.id}>
+                    {bulk.length > 0 && <TableCell><RowCheckbox id={o.id} label={o.name} /></TableCell>}
                     <TableCell>
                       <Link href={`${base}/${o.id}`} className="font-medium text-primary hover:underline">
                         {o.name}
@@ -91,6 +100,8 @@ export default async function OrdersPage({ params, searchParams }: { params: Pro
             </Table>
           </CardContent>
         </Card>
+        <BulkBar slug={tenant} list="orders" actions={bulk} members={members.map((m) => ({ id: m.id, name: m.name ?? m.email }))} />
+        </ListSelection>
       )}
       <Pagination className="mt-4" page={page} pageSize={pageSize} total={total} hrefFor={hrefFor} summary={t("pagination", { from, to, total })} />
     </>

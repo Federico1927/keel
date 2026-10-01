@@ -243,7 +243,7 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
                     <TableRow key={r.productId}>
                       <TableCell><Link href={`/t/${tenant}/products/${r.productId}`} className="font-medium text-primary hover:underline">{r.title}</Link></TableCell>
                       <TableCell className="text-right tabular">{r.units}</TableCell>
-                      <TableCell className="text-right tabular">{r.orders}</TableCell>
+                      <TableCell className="text-right tabular"><Link href={`/t/${tenant}/orders?product=${r.productId}&from=${period.from.toISOString().slice(0, 10)}&to=${new Date(period.to.getTime() - 1).toISOString().slice(0, 10)}`} className="hover:underline" data-testid="product-orders-link">{r.orders}</Link></TableCell>
                       <TableCell className="text-right tabular">{money(r.grossRevenueMinor)}</TableCell>
                       <TableCell className="hidden text-right tabular md:table-cell">{money(r.cogsMinor)}</TableCell>
                       <TableCell className="text-right tabular">{money(r.marginMinor)} <span className="text-xs text-muted-foreground">{formatPercent(r.grossRevenueMinor ? r.marginMinor / r.grossRevenueMinor : null, ctx.locale, 0)}</span></TableCell>

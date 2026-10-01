@@ -457,12 +457,15 @@
       "integration_health": "Integrazioni",
       "cod_assigned": "Ordine in contrassegno assegnato",
       "digest": "Email di riepilogo giornaliero",
+      "export_ready": "Esportazione CSV pronta",
       "other": "Altro"
     },
     "rendered": {
       "stock_critical_no_po": "{title} varianti in vendita con stock critico e nessun ordine d'acquisto",
       "late_to_ship": "{title} ordini ancora da spedire dopo {body}",
-      "sync_delay": "La sincronizzazione di {title} è in ritardo ({body})"
+      "sync_delay": "La sincronizzazione di {title} è in ritardo ({body})",
+      "export_ready": "L'esportazione di {body} è pronta ({title} righe)",
+      "export_failed": "L'esportazione di {body} è fallita"
     },
     "groups": {
       "collaboration": "Collaborazione",
@@ -517,6 +520,12 @@
         "manual": "Aggiunto a mano"
       },
       "supplier_po": "Ordini d'acquisto ai fornitori"
+    },
+    "export_lists": {
+      "orders": "ordini",
+      "products": "prodotti",
+      "returns": "resi",
+      "customers": "clienti"
     }
   },
   "tasks": {
@@ -713,7 +722,9 @@
       "from": "Dal",
       "to": "Al",
       "tag": "Tag",
-      "missing_cost": "Prodotti senza costo"
+      "missing_cost": "Prodotti senza costo",
+      "product": "Prodotto: {name}",
+      "variant": "Variante: {name}"
     },
     "sort": {
       "placed_desc": "Più recenti",
@@ -966,7 +977,8 @@
       "adjustment": "Rettifica",
       "sync": "Sync",
       "sale": "Vendita"
-    }
+    },
+    "view_orders": "Vedi ordini"
   },
   "inventory": {
     "title": "Magazzino",
@@ -4312,5 +4324,128 @@
     "preview": "Sconto {amount} · nuovo totale {total}",
     "refund_due": "L'ordine è pagato: rimborsa {amount} al cliente dal negozio.",
     "apply": "Applica sconto"
+  },
+  "lists": {
+    "select_all": "Seleziona tutte le righe della pagina",
+    "select_row": "Seleziona {label}",
+    "selected": "{count, plural, one {# selezionato} other {# selezionati}}",
+    "clear_selection": "Annulla selezione",
+    "dialog_description": "{count, plural, one {Si applica a # record.} other {Si applica a # record.}} Ogni record viene scritto da solo: se uno fallisce gli altri proseguono.",
+    "concurrency_hint": "Al massimo 3 scritture verso il negozio alla volta. Alla fine ricevi un riepilogo.",
+    "run": "{count, plural, one {Applica a # record} other {Applica a # record}}",
+    "actions": {
+      "orders": {
+        "status": "Cambia stato",
+        "cancel": "Annulla",
+        "assign": "Assegna",
+        "tag": "Tag"
+      },
+      "products": {
+        "status": "Stato",
+        "price": "Prezzo",
+        "compare_at": "Prezzo barrato",
+        "tags": "Tag"
+      },
+      "returns": {
+        "approve": "Approva",
+        "reject": "Rifiuta",
+        "receive": "Segna ricevuto",
+        "refund": "Rimborsa"
+      }
+    },
+    "params": {
+      "status": "Nuovo stato",
+      "note": "Nota (facoltativa)",
+      "assignee": "Assegna a",
+      "add_tags": "Tag da aggiungere",
+      "remove_tags": "Tag da togliere",
+      "tags_placeholder": "Separati da virgola, es. priorità, regalo",
+      "mode": "Come",
+      "mode_set": "Imposta un importo",
+      "mode_percent": "Varia in percentuale",
+      "mode_clear": "Togli il prezzo barrato",
+      "percent": "Percentuale (negativa per ridurre)",
+      "amount": "Importo",
+      "all_variants": "Vale per tutte le varianti dei prodotti selezionati e viene scritto prima sul negozio.",
+      "restock_location": "Rimetti a stock in",
+      "no_restock": "Non rimettere a stock",
+      "refund_hint": "Rimborsa l'importo ispezionato di ogni reso. I resi non ancora ispezionati vengono saltati."
+    },
+    "reasons": {
+      "not_found": "Non trovato",
+      "already_cancelled": "Già annullato",
+      "unchanged": "Niente da cambiare",
+      "overridden": "Lo stato è deciso da un fatto dell'ordine ({detail})",
+      "bad_transition": "Non possibile dallo stato {detail}",
+      "location_required": "Serve una location di rientro",
+      "invalid_input": "Dati non validi",
+      "not_eligible": "Non idoneo",
+      "return_not_found": "Reso non trovato",
+      "platform_sync_error": "Fatto qui, ma la scrittura sul negozio è fallita: {detail}"
+    },
+    "summary": {
+      "title": "Azione di gruppo completata",
+      "counts": "Fatti {done} · Saltati {skipped} · Falliti {failed}",
+      "done": "Fatto",
+      "skipped": "Saltato",
+      "failed": "Fallito",
+      "batch": "Lotto {id}: ogni modifica è nel registro attività e nella timeline di ogni ordine.",
+      "close": "Chiudi"
+    },
+    "views": {
+      "label": "Viste",
+      "all": "Tutti (nessun filtro)",
+      "empty": "Nessuna vista salvata",
+      "shared": "Condivisa con il team",
+      "delete": "Elimina la vista {name}",
+      "save": "Salva i filtri attuali come vista…",
+      "save_title": "Salva vista",
+      "save_description": "Salva i filtri e l'ordinamento che vedi ora. Salvando di nuovo con lo stesso nome la vista si aggiorna.",
+      "name": "Nome",
+      "share": "Condividi con il team",
+      "no_filters": "Nessun filtro: tutta la lista"
+    },
+    "export_csv": "Esporta CSV",
+    "names": {
+      "orders": "Ordini",
+      "products": "Prodotti",
+      "returns": "Resi",
+      "customers": "Clienti",
+      "purchasing": "Ordini d'acquisto"
+    },
+    "exports": {
+      "title": "Esportazioni",
+      "description": "I CSV troppo grandi per lo scaricamento immediato vengono preparati in background. Solo tu puoi scaricare i tuoi.",
+      "queued": "Stiamo preparando l'esportazione. Riceverai una notifica quando il file è pronto.",
+      "empty_title": "Nessuna esportazione",
+      "empty_description": "Qui compaiono le esportazioni grandi dalle liste.",
+      "list": "Lista",
+      "requested": "Richiesta",
+      "status": "Stato",
+      "rows": "Righe",
+      "file": "File",
+      "download": "Scarica",
+      "statuses": {
+        "pending": "In coda",
+        "running": "In corso",
+        "done": "Pronta",
+        "failed": "Fallita"
+      }
+    },
+    "search": {
+      "open": "Cerca",
+      "placeholder": "Cerca ordini, clienti, prodotti, SKU, ordini d'acquisto…",
+      "placeholder_short": "Cerca…",
+      "hint": "Scrivi un numero d'ordine, un nome, un'email, un telefono (qualsiasi formato), uno SKU o un numero di ordine d'acquisto.",
+      "searching": "Ricerca in corso…",
+      "no_results": "Nessun risultato",
+      "orders_count": "{count, plural, one {# ordine} other {# ordini}}",
+      "groups": {
+        "orders": "Ordini",
+        "customers": "Clienti",
+        "products": "Prodotti",
+        "purchase_orders": "Ordini d'acquisto"
+      }
+    }
   }
 }

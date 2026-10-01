@@ -43,6 +43,7 @@ export const products = pgTable(
   (t) => [
     uniqueIndex("products_tenant_external_uq").on(t.tenantId, t.externalId),
     index("products_tenant_title_idx").on(t.tenantId, t.title),
+    index("products_title_trgm_idx").using("gin", sql`lower(${t.title}) gin_trgm_ops`),
     tenantIsolation("products"),
   ],
 ).enableRLS();
@@ -80,6 +81,7 @@ export const productVariants = pgTable(
     uniqueIndex("product_variants_tenant_external_uq").on(t.tenantId, t.externalId),
     index("product_variants_product_idx").on(t.productId),
     index("product_variants_sku_idx").on(t.tenantId, t.sku),
+    index("product_variants_sku_trgm_idx").using("gin", sql`lower(${t.sku}) gin_trgm_ops`),
     tenantIsolation("product_variants"),
   ],
 ).enableRLS();

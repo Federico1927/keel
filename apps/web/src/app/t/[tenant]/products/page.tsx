@@ -2,12 +2,15 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { formatNumber } from "@keel/core";
-import { canWritePage } from "@keel/config";
+import { bulkActionsFor, canWritePage } from "@keel/config";
 import { catalogQualityReport } from "@keel/services";
 import { requirePage } from "@/server/tenant";
 import { listProducts, parseProductFilters } from "@/server/queries/catalog";
 import { RiskBadge } from "@/components/risk-badge";
 import { ProductFiltersBar } from "./filters";
+import { ListToolbar } from "@/components/lists/list-toolbar";
+import { BulkBar } from "@/components/lists/bulk-bar";
+import { ListSelection, RowCheckbox, SelectAllCheckbox } from "@/components/lists/selection";
 
 export default async function ProductsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { tenant } = await params;
@@ -18,6 +21,7 @@ export default async function ProductsPage({ params, searchParams }: { params: P
   const { rows, total, page, pageSize, riskCounts, types } = await listProducts(ctx, filters);
   const quality = await ctx.run((tx) => catalogQualityReport({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }));
   const base = `/t/${tenant}/products`;
+  const bulk = bulkActionsFor(ctx.role, "products");
   const hrefFor = (p: number) => {
     const u = new URLSearchParams();
     for (const [k, v] of Object.entries(sp)) if (v && k !== "page") u.set(k, Array.isArray(v) ? v.join(",") : v);
@@ -32,6 +36,7 @@ export default async function ProductsPage({ params, searchParams }: { params: P
         description={t("description")}
         actions={
           <div className="flex flex-wrap items-center gap-3 text-sm">
+            <ListToolbar ctx={ctx} list="products" basePath={base} />
             <Link href={`${base}/quality`} className="underline-offset-4 hover:underline" data-testid="quality-link">
               {t("quality_link")} {quality.affected > 0 && <Badge variant="warning">{formatNumber(quality.affected, ctx.locale)}</Badge>}
             </Link>
@@ -43,11 +48,13 @@ export default async function ProductsPage({ params, searchParams }: { params: P
       {rows.length === 0 ? (
         <EmptyState title={t("empty_title")} description={t("empty_description")} className="mt-4" />
       ) : (
+        <ListSelection ids={rows.map((p) => p.id)}>
         <Card className="mt-4">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
+                  {bulk.length > 0 && <TableHead className="w-8"><SelectAllCheckbox /></TableHead>}
                   <TableHead>{t("columns.product")}</TableHead>
                   <TableHead className="hidden md:table-cell">{t("columns.type")}</TableHead>
                   <TableHead>{t("columns.status")}</TableHead>
@@ -61,6 +68,7 @@ export default async function ProductsPage({ params, searchParams }: { params: P
               <TableBody>
                 {rows.map((p) => (
                   <TableRow key={p.id}>
+                    {bulk.length > 0 && <TableCell><RowCheckbox id={p.id} label={p.title} /></TableCell>}
                     <TableCell>
                       <Link href={`${base}/${p.id}`} className="font-medium text-primary hover:underline">
                         {p.title}
@@ -82,6 +90,8 @@ export default async function ProductsPage({ params, searchParams }: { params: P
             </Table>
           </CardContent>
         </Card>
+        <BulkBar slug={tenant} list="products" actions={bulk} />
+        </ListSelection>
       )}
       <Pagination className="mt-4" page={page} pageSize={pageSize} total={total} hrefFor={hrefFor} summary={t("pagination", { from: total === 0 ? 0 : (page - 1) * pageSize + 1, to: Math.min(page * pageSize, total), total })} />
     </>

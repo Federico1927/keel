@@ -361,6 +361,19 @@ Fatto:
 - #15: `Select` e `Input` hanno due altezze condivise (`sm`, `default`) e il testo centrato; niente più `<select>` grezzi né altezze impostate a mano (un test lo impedisce); controllo Playwright che il testo stia nel riquadro.
 - Lingua: date e numeri seguono la lingua mostrata a schermo; il selettore salva la lingua sul profilo e l'accesso la ripristina.
 
+## Liste: azioni in blocco, viste salvate, ricerca ⌘K, export CSV (issue #25)
+
+Fatto:
+- Selezione delle righe su Ordini, Prodotti e Resi con barra delle azioni in blocco: ordini (cambia stato, annulla, assegna, tag), prodotti (stato, prezzo fisso o in percentuale, prezzo barrato, tag), resi (approva, rifiuta, ricevi con rientro a stock facoltativo, rimborsa). Al massimo 3 scritture in parallelo; riepilogo "fatti / saltati con motivo / falliti con errore"; un `batch_id` in ogni riga di audit e in ogni evento della timeline. Le azioni compaiono solo ai ruoli che le possono eseguire (matrice in `packages/config/src/lists.ts`).
+- Viste salvate per Ordini, Prodotti, Resi, Clienti e Ordini d'acquisto: private o condivise con il team, si riaprono con gli stessi filtri e lo stesso ordinamento; salvare con lo stesso nome aggiorna la vista.
+- Ricerca globale ⌘K / Ctrl+K nell'intestazione: ordini (numero, nome, email, telefono in formato internazionale o locale), clienti, prodotti e SKU, ordini d'acquisto, in una sola richiesta dentro la transazione del tenant; ogni risultato apre il record.
+- Filtri `?product=` e `?variant=` sugli Ordini, con link dalla scheda prodotto e da Performance prodotti in Analisi.
+- Export CSV della lista filtrata per Ordini, Prodotti, Clienti e Resi: fino a 5.000 righe scarica subito, oltre parte un job in background, il file compare nella pagina Export e arriva una notifica. Ogni export e ogni download nel registro di audit.
+- Seed: viste salvate condivise e private sui due negozi e un export completato.
+- Migrazione 0022 (tabelle `saved_views` e `list_exports` con RLS, indici trigram per la ricerca, indice su `order_lines.product_id`); test core 192, config 10, integrazioni 53, servizi 116 (+9 in `lists.test.ts`), db 571; e2e `lists.spec.ts` (6 scenari).
+
+Resta: le scritture verso la piattaforma delle azioni in blocco passeranno dalla coda della issue #24 quando sarà unita; le azioni singole sulle schede non usano ancora i nuovi servizi di scrittura; "seleziona tutti i risultati del filtro" (oltre la pagina) non c'è; export CSV degli ordini d'acquisto e delle tabelle di analisi arrivano dai rispettivi rami.
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

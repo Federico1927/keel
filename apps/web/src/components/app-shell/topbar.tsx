@@ -20,6 +20,7 @@ import { signOutAction } from "@/server/actions/auth";
 import { SidebarNav, type SidebarProps } from "./sidebar";
 import { NotificationsBell, type BellItem } from "./notifications-bell";
 import { SupportButton } from "./support-button";
+import { CommandSearch } from "@/components/lists/command-search";
 
 interface TopbarProps {
   sidebar: SidebarProps;
@@ -76,6 +77,7 @@ export function Topbar({ sidebar, userName, userEmail, role, memberships, isSupe
           </DropdownMenuContent>
         </DropdownMenu>
         <div className="ml-auto flex items-center gap-2">
+          <CommandSearch slug={sidebar.tenantSlug} />
           {support && <SupportButton slug={sidebar.tenantSlug} categories={support.categories} />}
           <NotificationsBell slug={sidebar.tenantSlug} unread={notifications.unread} items={notifications.items} locale={notifications.locale} />
           <LocaleSwitcher />

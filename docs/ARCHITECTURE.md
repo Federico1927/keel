@@ -167,6 +167,13 @@ Never: `if (tenant.slug === "...")` in shared code, client names in the core, co
 
 Worked example, "only Northwind wants a VAT column in the orders list": add `orders.vat_column` to Northwind's `featureFlags`, read `hasFeature(ctx.settings, "orders.vat_column")` in the orders page to render the column and in the CSV export; no migration, no add-on, invisible to Harbor Home.
 
+## Lists: bulk actions, saved views, search, export
+
+- List filters are parsed from the URL query by `parse*Filters` in `packages/services/src/lists/filters.ts`; pages, CSV exports and saved views all use them, so a view or an export means exactly what the page shows.
+- A list page adds three things with a few lines: `<ListToolbar ctx list basePath />` (saved views menu and Export CSV link, server component), `<ListSelection ids>` around the table with `<SelectAllCheckbox />` / `<RowCheckbox />`, and `<BulkBar slug list actions />` with `bulkActionsFor(role, list)`. Bulk actions are registered in `BULK_ACTIONS` (packages/config) with the permission they need, implemented in `packages/services/src/lists/bulk.ts` on top of `runBatch` (per-record transaction, concurrency 3, outcome per record, `batch_id` in audit and timeline).
+- `<CommandSearch slug />` in the topbar calls `globalSearchAction` → `globalSearch` (one tenant transaction, per-area indexed queries, only areas the role can open).
+- CSV: `apps/web/src/server/list-export.ts` serves `<list>/export` route handlers; above `EXPORT_DIRECT_MAX_ROWS` it creates a `list_exports` row and enqueues `list.export` (packages/jobs), whose handler calls `runListExport` and notifies the user (`export_ready`); `/exports` lists the user's files.
+
 ## Web app layout
 
 - `apps/web/src/server/tenant.ts`: `getTenantContext(slug)` resolves membership (or super-admin impersonation), tenant settings, active add-ons and locale; `ctx.run(fn)` wraps `withTenant`.

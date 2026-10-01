@@ -457,12 +457,15 @@
       "integration_health": "Integrations",
       "cod_assigned": "COD order assigned",
       "digest": "Daily digest email",
+      "export_ready": "CSV export ready",
       "other": "Other"
     },
     "rendered": {
       "stock_critical_no_po": "{title} selling variants at critical stock with nothing on order",
       "late_to_ship": "{title} orders still to ship after {body}",
-      "sync_delay": "{title} sync is late ({body})"
+      "sync_delay": "{title} sync is late ({body})",
+      "export_ready": "Your {body} export is ready ({title} rows)",
+      "export_failed": "Your {body} export failed"
     },
     "groups": {
       "collaboration": "Collaboration",
@@ -517,6 +520,12 @@
         "manual": "Added by hand"
       },
       "supplier_po": "Purchase orders to suppliers"
+    },
+    "export_lists": {
+      "orders": "orders",
+      "products": "products",
+      "returns": "returns",
+      "customers": "customers"
     }
   },
   "tasks": {
@@ -713,7 +722,9 @@
       "from": "From",
       "to": "To",
       "tag": "Tag",
-      "missing_cost": "Products without cost"
+      "missing_cost": "Products without cost",
+      "product": "Product: {name}",
+      "variant": "Variant: {name}"
     },
     "sort": {
       "placed_desc": "Newest first",
@@ -966,7 +977,8 @@
       "adjustment": "Adjustment",
       "sync": "Sync",
       "sale": "Sale"
-    }
+    },
+    "view_orders": "View orders"
   },
   "inventory": {
     "title": "Inventory",
@@ -4312,5 +4324,128 @@
     "preview": "Discount {amount} · new total {total}",
     "refund_due": "This order is paid: refund {amount} to the customer from the store.",
     "apply": "Apply discount"
+  },
+  "lists": {
+    "select_all": "Select all rows on this page",
+    "select_row": "Select {label}",
+    "selected": "{count, plural, one {# selected} other {# selected}}",
+    "clear_selection": "Clear selection",
+    "dialog_description": "{count, plural, one {Applies to # record.} other {Applies to # records.}} Each record is written on its own: one that fails does not stop the others.",
+    "concurrency_hint": "At most 3 writes to the store run at the same time. You get a summary at the end.",
+    "run": "{count, plural, one {Apply to # record} other {Apply to # records}}",
+    "actions": {
+      "orders": {
+        "status": "Change status",
+        "cancel": "Cancel",
+        "assign": "Assign",
+        "tag": "Tags"
+      },
+      "products": {
+        "status": "Status",
+        "price": "Price",
+        "compare_at": "Compare-at price",
+        "tags": "Tags"
+      },
+      "returns": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "receive": "Mark received",
+        "refund": "Refund"
+      }
+    },
+    "params": {
+      "status": "New status",
+      "note": "Note (optional)",
+      "assignee": "Assign to",
+      "add_tags": "Tags to add",
+      "remove_tags": "Tags to remove",
+      "tags_placeholder": "Comma separated, e.g. priority, gift",
+      "mode": "How",
+      "mode_set": "Set an amount",
+      "mode_percent": "Change by a percentage",
+      "mode_clear": "Remove the compare-at price",
+      "percent": "Percentage (negative to lower)",
+      "amount": "Amount",
+      "all_variants": "Applies to every variant of the selected products and is written to the store first.",
+      "restock_location": "Put back to stock at",
+      "no_restock": "Do not restock",
+      "refund_hint": "Refunds the inspected amount of each return. Returns not yet inspected are skipped."
+    },
+    "reasons": {
+      "not_found": "Not found",
+      "already_cancelled": "Already cancelled",
+      "unchanged": "Nothing to change",
+      "overridden": "A fact of the order decides its status ({detail})",
+      "bad_transition": "Not possible from status {detail}",
+      "location_required": "A restock location is required",
+      "invalid_input": "Invalid data",
+      "not_eligible": "Not eligible",
+      "return_not_found": "Return not found",
+      "platform_sync_error": "Done here, but the store write-back failed: {detail}"
+    },
+    "summary": {
+      "title": "Bulk action finished",
+      "counts": "Done {done} · Skipped {skipped} · Failed {failed}",
+      "done": "Done",
+      "skipped": "Skipped",
+      "failed": "Failed",
+      "batch": "Batch {id}: every change is in the audit log and in each order's timeline.",
+      "close": "Close"
+    },
+    "views": {
+      "label": "Views",
+      "all": "All (no filters)",
+      "empty": "No saved views yet",
+      "shared": "Shared with the team",
+      "delete": "Delete view {name}",
+      "save": "Save current filters as a view…",
+      "save_title": "Save view",
+      "save_description": "Saves the filters and sorting you see now. Saving again with the same name updates the view.",
+      "name": "Name",
+      "share": "Share with the team",
+      "no_filters": "No filters: the whole list"
+    },
+    "export_csv": "Export CSV",
+    "names": {
+      "orders": "Orders",
+      "products": "Products",
+      "returns": "Returns",
+      "customers": "Customers",
+      "purchasing": "Purchase orders"
+    },
+    "exports": {
+      "title": "Exports",
+      "description": "CSV files too large to download at once are prepared in the background. Only you can download yours.",
+      "queued": "Your export is being prepared. You will get a notification when the file is ready.",
+      "empty_title": "No exports yet",
+      "empty_description": "Large exports from the lists appear here.",
+      "list": "List",
+      "requested": "Requested",
+      "status": "Status",
+      "rows": "Rows",
+      "file": "File",
+      "download": "Download",
+      "statuses": {
+        "pending": "Queued",
+        "running": "Running",
+        "done": "Ready",
+        "failed": "Failed"
+      }
+    },
+    "search": {
+      "open": "Search",
+      "placeholder": "Search orders, customers, products, SKU, purchase orders…",
+      "placeholder_short": "Search…",
+      "hint": "Type an order number, a name, an email, a phone (any format), a SKU or a PO number.",
+      "searching": "Searching…",
+      "no_results": "No results",
+      "orders_count": "{count, plural, one {# order} other {# orders}}",
+      "groups": {
+        "orders": "Orders",
+        "customers": "Customers",
+        "products": "Products",
+        "purchase_orders": "Purchase orders"
+      }
+    }
   }
 }

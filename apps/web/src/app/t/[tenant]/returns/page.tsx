@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canWritePage } from "@keel/config";
+import { bulkActionsFor, canWritePage } from "@keel/config";
 import { formatDate, formatMoney, formatNumber } from "@keel/core";
 import { listReturnReasons, listReturns } from "@keel/services";
 import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
 import { ReturnFiltersBar } from "./filters";
+import { schema, eq } from "@keel/db";
+import { ListToolbar } from "@/components/lists/list-toolbar";
+import { BulkBar } from "@/components/lists/bulk-bar";
+import { ListSelection, RowCheckbox, SelectAllCheckbox } from "@/components/lists/selection";
 
 export default async function ReturnsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
@@ -15,11 +19,13 @@ export default async function ReturnsPage({ params, searchParams }: { params: Pr
   const t = await getTranslations("returns");
   const filters = { q: sp.q?.trim() || undefined, status: sp.status || undefined, reason: sp.reason || undefined, source: sp.source === "portal" || sp.source === "staff" || sp.source === "platform" ? sp.source : undefined, sync: sp.sync === "error" ? "error" : undefined, review: sp.review === "1" ? "1" : undefined };
   const page = Math.max(1, Number(sp.page ?? 1) || 1);
-  const { rows, total, pageSize, counts, reasons, syncErrors, portalCount, reviewCount } = await ctx.run(async (tx) => {
+  const bulk = bulkActionsFor(ctx.role, "returns");
+  const { rows, total, pageSize, counts, reasons, syncErrors, portalCount, reviewCount, locations } = await ctx.run(async (tx) => {
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
     const list = await listReturns(s, { ...filters, page });
     const reasons = await listReturnReasons(s);
-    return { ...list, reasons };
+    const locations = bulk.includes("receive") ? await tx.select({ id: schema.locations.id, name: schema.locations.name }).from(schema.locations).where(eq(schema.locations.tenantId, ctx.tenant.id)) : [];
+    return { ...list, reasons, locations };
   });
   const base = `/t/${tenant}/returns`;
   const hrefFor = (p: number) => {
@@ -37,6 +43,7 @@ export default async function ReturnsPage({ params, searchParams }: { params: Pr
         description={t("description")}
         actions={
           <div className="flex flex-wrap gap-2 text-sm">
+            <ListToolbar ctx={ctx} list="returns" basePath={base} />
             <Link href={`${base}/analytics`} className="rounded-md border px-3 py-1.5 hover:bg-muted">{t("analytics")}</Link>
             {canWrite && <Link href={`${base}/reasons`} className="rounded-md border px-3 py-1.5 hover:bg-muted">{t("reasons")}</Link>}
             {canWrite && <Link href={`${base}/policy`} className="rounded-md border px-3 py-1.5 hover:bg-muted" data-testid="policy-link">{t("policy")}</Link>}
@@ -53,11 +60,13 @@ export default async function ReturnsPage({ params, searchParams }: { params: Pr
       {rows.length === 0 ? (
         <EmptyState title={t("empty_title")} description={t("empty_description")} className="mt-4" />
       ) : (
+        <ListSelection ids={rows.map((r) => r.id)}>
         <Card className="mt-4">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
+                  {bulk.length > 0 && <TableHead className="w-8"><SelectAllCheckbox /></TableHead>}
                   <TableHead>{t("columns.return")}</TableHead>
                   <TableHead>{t("columns.order")}</TableHead>
                   <TableHead className="hidden md:table-cell">{t("columns.reason")}</TableHead>
@@ -70,6 +79,7 @@ export default async function ReturnsPage({ params, searchParams }: { params: Pr
               <TableBody>
                 {rows.map((r) => (
                   <TableRow key={r.id} data-testid="return-row">
+                    {bulk.length > 0 && <TableCell><RowCheckbox id={r.id} label={`R-${r.number}`} /></TableCell>}
                     <TableCell>
                       <Link href={`${base}/${r.id}`} className="font-medium hover:underline">R-{r.number}</Link>
                       {r.outOfWindow && <Badge variant="warning" className="ml-2">{t("out_of_window")}</Badge>}
@@ -94,6 +104,8 @@ export default async function ReturnsPage({ params, searchParams }: { params: Pr
             </Table>
           </CardContent>
         </Card>
+        <BulkBar slug={tenant} list="returns" actions={bulk} locations={locations} />
+        </ListSelection>
       )}
       <Pagination className="mt-4" page={page} pageSize={pageSize} total={total} hrefFor={hrefFor} summary={t("pagination", { from: total === 0 ? 0 : (page - 1) * pageSize + 1, to: Math.min(page * pageSize, total), total })} />
     </>

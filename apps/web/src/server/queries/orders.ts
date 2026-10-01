@@ -1,71 +1,24 @@
-import { and, asc, desc, eq, gte, inArray, lte, schema, sql, type SQL } from "@keel/db";
-import { ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES } from "@keel/core";
+import { and, asc, desc, eq, inArray, schema, sql, type SQL } from "@keel/db";
 import { PAGE_SIZE, isPageEnabled } from "@keel/config";
-import { orderLineage, orderMergeCandidates } from "@keel/services";
+import { orderLineage, orderListWhere, orderMergeCandidates, type OrderFilters } from "@keel/services";
 import { OPEN_QUEUE_STATUSES } from "@keel/addon-cod";
 import type { TenantContext } from "@/server/tenant";
 
-export interface OrderFilters {
-  q?: string;
-  status?: string[];
-  payment?: string[];
-  paymentStatus?: string[];
-  channel?: string[];
-  tag?: string;
-  from?: string;
-  to?: string;
-  assigned?: string;
-  campaign?: string;
-  customer?: string;
-  /** Orders with at least one product line without a cost (the P/L warning links here). */
-  missingCost?: boolean;
-  sort?: "placed_desc" | "placed_asc" | "total_desc";
-  page?: number;
-}
+export { parseOrderFilters, type OrderFilters } from "@keel/services";
 
-export function parseOrderFilters(sp: Record<string, string | string[] | undefined>): OrderFilters {
-  const list = (v: string | string[] | undefined) => (Array.isArray(v) ? v : v ? v.split(",") : []).map((s) => s.trim()).filter(Boolean);
-  const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? undefined;
-  const sort = one(sp.sort);
-  return {
-    q: one(sp.q)?.trim() || undefined,
-    status: list(sp.status).filter((s) => (ORDER_STATUSES as readonly string[]).includes(s)),
-    payment: list(sp.payment).filter((s) => (PAYMENT_METHODS as readonly string[]).includes(s)),
-    paymentStatus: list(sp.paymentStatus).filter((s) => (PAYMENT_STATUSES as readonly string[]).includes(s)),
-    channel: list(sp.channel),
-    tag: one(sp.tag)?.trim() || undefined,
-    from: one(sp.from) || undefined,
-    to: one(sp.to) || undefined,
-    assigned: one(sp.assigned) || undefined,
-    campaign: /^[0-9a-f-]{36}$/i.test(one(sp.campaign) ?? "") ? one(sp.campaign) : undefined,
-    customer: /^[0-9a-f-]{36}$/i.test(one(sp.customer) ?? "") ? one(sp.customer) : undefined,
-    missingCost: one(sp.missingCost) === "1" || undefined,
-    sort: sort === "placed_asc" || sort === "total_desc" ? sort : "placed_desc",
-    page: Math.max(1, Number(one(sp.page) ?? 1) || 1),
-  };
-}
+const buildWhere = (ctx: TenantContext, f: OrderFilters): SQL => orderListWhere({ tenantId: ctx.tenant.id, userId: ctx.user.id, orderNumberPrefix: ctx.tenant.orderNumberPrefix }, f);
 
-function buildWhere(ctx: TenantContext, f: OrderFilters): SQL {
-  const conds: SQL[] = [eq(schema.orders.tenantId, ctx.tenant.id)];
-  if (f.q) {
-    const numeric = f.q.replace(/^#/, "").replace(new RegExp(`^${ctx.tenant.orderNumberPrefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "i"), "");
-    if (/^\d{2,}$/.test(numeric)) conds.push(eq(schema.orders.orderNumber, Number(numeric)));
-    else conds.push(sql`${schema.orders.searchBlob} ilike ${"%" + f.q.toLowerCase() + "%"}`);
-  }
-  if (f.status?.length) conds.push(inArray(schema.orders.status, f.status));
-  if (f.payment?.length) conds.push(inArray(schema.orders.paymentMethod, f.payment));
-  if (f.paymentStatus?.length) conds.push(inArray(schema.orders.paymentStatus, f.paymentStatus));
-  if (f.channel?.length) conds.push(inArray(schema.orders.sourceChannel, f.channel));
-  if (f.tag) conds.push(sql`${f.tag.toLowerCase()} = any(${schema.orders.platformTags})`);
-  if (f.from) conds.push(gte(schema.orders.placedAt, new Date(f.from)));
-  if (f.to) conds.push(lte(schema.orders.placedAt, new Date(new Date(f.to).getTime() + 864e5)));
-  if (f.assigned === "me") conds.push(eq(schema.orders.assignedTo, ctx.user.id));
-  else if (f.assigned === "none") conds.push(sql`${schema.orders.assignedTo} is null`);
-  else if (f.assigned) conds.push(eq(schema.orders.assignedTo, f.assigned));
-  if (f.customer) conds.push(eq(schema.orders.customerId, f.customer));
-  if (f.campaign) conds.push(sql`exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.campaign_id = ${f.campaign})`);
-  if (f.missingCost) conds.push(sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.unit_cost_minor is null and not l.is_ancillary)`);
-  return and(...conds)!;
+/** Label of the product / variant drill-down filter (`?product=` / `?variant=`), for the filter chip. */
+export async function orderDrillLabel(ctx: TenantContext, f: OrderFilters): Promise<{ kind: "product" | "variant"; label: string } | null> {
+  if (!f.product && !f.variant) return null;
+  return ctx.run(async (tx) => {
+    if (f.variant) {
+      const [v] = await tx.select({ title: schema.productVariants.title, sku: schema.productVariants.sku, product: schema.products.title }).from(schema.productVariants).innerJoin(schema.products, eq(schema.products.id, schema.productVariants.productId)).where(and(eq(schema.productVariants.tenantId, ctx.tenant.id), eq(schema.productVariants.id, f.variant))).limit(1);
+      return { kind: "variant" as const, label: v ? `${v.product} · ${v.title}${v.sku ? ` (${v.sku})` : ""}` : "—" };
+    }
+    const [p] = await tx.select({ title: schema.products.title }).from(schema.products).where(and(eq(schema.products.tenantId, ctx.tenant.id), eq(schema.products.id, f.product!))).limit(1);
+    return { kind: "product" as const, label: p?.title ?? "—" };
+  });
 }
 
 export async function listOrders(ctx: TenantContext, f: OrderFilters) {

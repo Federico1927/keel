@@ -219,7 +219,8 @@ export interface CustomerFilters {
 export async function listCustomers(ctx: ServiceContext, f: CustomerFilters = {}): Promise<{ rows: CustomerRow[]; total: number; page: number; pageSize: number; countries: string[] }> {
   const now = ctx.now ?? new Date();
   const page = Math.max(1, f.page ?? 1);
-  const pageSize = Math.min(200, Math.max(1, f.pageSize ?? 50));
+  // pages ask for 50; the CSV export reads in larger chunks
+  const pageSize = Math.min(5000, Math.max(1, f.pageSize ?? 50));
   const conds: SQL[] = [sql`true`];
   if (f.q) {
     const like = `%${f.q.toLowerCase()}%`;

@@ -33,6 +33,8 @@ export const customers = pgTable(
     index("customers_email_idx").on(t.tenantId, t.emailNormalized),
     index("customers_phone_idx").on(t.tenantId, t.phoneE164),
     index("customers_last_order_idx").on(t.tenantId, t.lastOrderAt),
+    /** Global search by name or email (⌘K); the expression must match `customerSearchExpr` in services. */
+    index("customers_search_trgm_idx").using("gin", sql`(lower(coalesce(first_name, '') || ' ' || coalesce(last_name, '') || ' ' || coalesce(email, ''))) gin_trgm_ops`),
     tenantIsolation("customers"),
   ],
 ).enableRLS();

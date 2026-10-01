@@ -1,5 +1,5 @@
 import { HttpClient, type HttpOptions } from "../http";
-import { IntegrationError, type CommercePlatform, type ConnectionTest, type CreateOrderInput, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type OrderDetailsPatch, type OrderDiscountPatch, type Page, type PlatformReturnLineInput, type SyncQuery, type VerifiedWebhook, type WebhookRegistration } from "../types";
+import { IntegrationError, type CommercePlatform, type ConnectionTest, type CreateOrderInput, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type OrderDetailsPatch, type OrderDiscountPatch, type Page, type VariantPatch, type PlatformReturnLineInput, type SyncQuery, type VerifiedWebhook, type WebhookRegistration } from "../types";
 import { ORDER_FIELDS, PRODUCT_FIELDS, gidToId, idToGid, mapGraphqlCustomer, mapGraphqlDiscount, mapGraphqlInventoryLevel, mapGraphqlLocation, mapGraphqlOrder, mapGraphqlProduct, mapRestCustomer, mapRestInventoryLevel, mapRestOrder, mapRestProduct } from "./mappers";
 import { SHOPIFY_ALL_SCOPES, SHOPIFY_API_VERSION, verifyWebhookHmac } from "./oauth";
 
@@ -250,10 +250,10 @@ export class ShopifyCommercePlatform implements CommercePlatform {
     if (add.length) await this.mutate("tagsAdd", `mutation($id: ID!, $tags: [String!]!) { tagsAdd(id: $id, tags: $tags) { userErrors { field message } } }`, { id, tags: add });
     if (remove.length) await this.mutate("tagsRemove", `mutation($id: ID!, $tags: [String!]!) { tagsRemove(id: $id, tags: $tags) { userErrors { field message } } }`, { id, tags: remove });
   }
-  async updateVariant(variantExternalId: string, patch: { priceMinor?: number }): Promise<void> {
+  async updateVariant(variantExternalId: string, patch: VariantPatch): Promise<void> {
     const data = await this.graphql<{ productVariant: { product: { id: string } } | null }>(`query($id: ID!) { productVariant(id: $id) { product { id } } }`, { id: idToGid("ProductVariant", variantExternalId) });
     if (!data.productVariant) throw new IntegrationError("not_found", "Variant not found");
-    await this.mutate("productVariantsBulkUpdate", `mutation($productId: ID!, $variants: [ProductVariantsBulkInput!]!) { productVariantsBulkUpdate(productId: $productId, variants: $variants) { userErrors { field message } } }`, { productId: data.productVariant.product.id, variants: [{ id: idToGid("ProductVariant", variantExternalId), ...(patch.priceMinor !== undefined ? { price: (patch.priceMinor / 100).toFixed(2) } : {}) }] });
+    await this.mutate("productVariantsBulkUpdate", `mutation($productId: ID!, $variants: [ProductVariantsBulkInput!]!) { productVariantsBulkUpdate(productId: $productId, variants: $variants) { userErrors { field message } } }`, { productId: data.productVariant.product.id, variants: [{ id: idToGid("ProductVariant", variantExternalId), ...(patch.priceMinor !== undefined ? { price: (patch.priceMinor / 100).toFixed(2) } : {}), ...(patch.compareAtMinor !== undefined ? { compareAtPrice: patch.compareAtMinor === null ? null : (patch.compareAtMinor / 100).toFixed(2) } : {}) }] });
   }
   /** `inventoryItemUpdate` with `cost`: needs write_inventory. To verify on a real account: multi-currency shops store the cost in the shop currency. */
   async updateVariantCost(variant: { variantExternalId: string; inventoryItemExternalId: string | null }, costMinor: number): Promise<void> {
@@ -264,6 +264,11 @@ export class ShopifyCommercePlatform implements CommercePlatform {
       itemId = data.productVariant.inventoryItem.id;
     }
     await this.mutate("inventoryItemUpdate", `mutation($id: ID!, $input: InventoryItemInput!) { inventoryItemUpdate(id: $id, input: $input) { inventoryItem { id unitCost { amount } } userErrors { field message } } }`, { id: itemId, input: { cost: (costMinor / 100).toFixed(2) } });
+  }
+  async updateProductTags(productExternalId: string, add: string[], remove: string[]): Promise<void> {
+    const id = idToGid("Product", productExternalId);
+    if (add.length) await this.mutate("tagsAdd", `mutation($id: ID!, $tags: [String!]!) { tagsAdd(id: $id, tags: $tags) { userErrors { field message } } }`, { id, tags: add });
+    if (remove.length) await this.mutate("tagsRemove", `mutation($id: ID!, $tags: [String!]!) { tagsRemove(id: $id, tags: $tags) { userErrors { field message } } }`, { id, tags: remove });
   }
   async updateProductStatus(productExternalId: string, status: "active" | "draft" | "archived"): Promise<void> {
     await this.mutate("productUpdate", `mutation($input: ProductInput!) { productUpdate(input: $input) { userErrors { field message } } }`, { input: { id: idToGid("Product", productExternalId), status: status.toUpperCase() } });
