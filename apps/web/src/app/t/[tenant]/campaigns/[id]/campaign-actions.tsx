@@ -94,7 +94,7 @@ export function LinkProductForm({ slug, campaignId, products, hasLinks }: { slug
     >
       <div className="min-w-0 flex-1 space-y-1">
         <Label htmlFor="link-product">{t("link_product")}</Label>
-        <Select id="link-product" value={productId} onChange={(e) => setProductId(e.target.value)} className="h-9 w-full">
+        <Select size="sm" id="link-product" value={productId} onChange={(e) => setProductId(e.target.value)} className="w-full">
           <option value="">{t("search_product")}</option>
           {products.map((p) => (
             <option key={p.id} value={p.id}>{p.title}</option>

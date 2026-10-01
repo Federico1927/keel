@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, lt, lte, schema, sql } from "@keel/db";
+import { and, eq, gte, inArray, isNull, lt, lte, schema, sql } from "@keel/db";
 import { change, costCoverage, monthKey, orderEconomics, returnCostsOfPeriod, previousPeriod, resolveFixedCosts, resolveShippingCosts, runningWindows, sumEconomics, type CostCoverage, type CostSource, type MonthCostUse, type OrderEconomics, type Period, type PeriodCostEntry, type PnlTotals, type TenantSettings } from "@keel/core";
 import type { ServiceContext } from "../context";
 
@@ -38,10 +38,10 @@ export interface EconomicsRow extends OrderEconomics {
 
 /** Economics for every order placed in the period (in-scope flag included). */
 export async function orderEconomicsForPeriod(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period, opts: { orderIds?: string[] } = {}): Promise<EconomicsRow[]> {
-  const conds = [eq(schema.orders.tenantId, ctx.tenantId), gte(schema.orders.placedAt, period.from), lt(schema.orders.placedAt, period.to)];
+  // replaced orders (cancelled and recreated by an edit) are lineage, not demand: they never count
+  const conds = [eq(schema.orders.tenantId, ctx.tenantId), gte(schema.orders.placedAt, period.from), lt(schema.orders.placedAt, period.to), isNull(schema.orders.replacedByOrderId)];
   if (opts.orderIds) conds.push(inArray(schema.orders.id, opts.orderIds.length ? opts.orderIds : ["00000000-0000-0000-0000-000000000000"]));
-  // replaced orders (cancelled and recreated by an operator) are lineage, not demand: they never count
-  const orders = (await ctx.tx.select().from(schema.orders).where(and(...conds))).filter((o) => o.cancelReason !== "replaced");
+  const orders = await ctx.tx.select().from(schema.orders).where(and(...conds));
   if (!orders.length) return [];
   const lines = await ctx.tx.select({ orderId: schema.orderLines.orderId, quantity: schema.orderLines.currentQuantity, unitPriceMinor: schema.orderLines.unitPriceMinor, unitCostMinor: schema.orderLines.unitCostMinor, isAncillary: schema.orderLines.isAncillary }).from(schema.orderLines).where(and(eq(schema.orderLines.tenantId, ctx.tenantId), gte(schema.orderLines.createdAt, new Date(0)), inArray(schema.orderLines.orderId, orders.map((o) => o.id))));
   const byOrder = new Map<string, typeof lines>();

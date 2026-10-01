@@ -67,8 +67,8 @@ export function NewPoForm({ slug, suppliers, locations, currency, candidates }: 
                   <TableCell className="text-right tabular">{c.available}</TableCell>
                   <TableCell className="hidden text-right tabular text-muted-foreground md:table-cell">{c.incoming ? `+${c.incoming}` : "—"}</TableCell>
                   <TableCell><RiskBadge risk={c.risk} days={c.daysOfCover} /></TableCell>
-                  <TableCell className="text-right"><Input name={`qty_${c.variantId}`} type="number" min={0} defaultValue={c.suggested} className="ml-auto h-8 w-24 text-right" aria-label={t("line.quantity")} /></TableCell>
-                  <TableCell className="text-right"><Input name={`cost_${c.variantId}`} type="number" step="0.01" min={0} defaultValue={c.cost.toFixed(2)} className="ml-auto h-8 w-28 text-right" aria-label={t("line.unit_cost", { currency })} /></TableCell>
+                  <TableCell className="text-right"><Input size="sm" name={`qty_${c.variantId}`} type="number" min={0} defaultValue={c.suggested} className="ml-auto w-24 text-right" aria-label={t("line.quantity")} /></TableCell>
+                  <TableCell className="text-right"><Input size="sm" name={`cost_${c.variantId}`} type="number" step="0.01" min={0} defaultValue={c.cost.toFixed(2)} className="ml-auto w-28 text-right" aria-label={t("line.unit_cost", { currency })} /></TableCell>
                 </TableRow>
               ))}
               {candidates.length === 0 && (

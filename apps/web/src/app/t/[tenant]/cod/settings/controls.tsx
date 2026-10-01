@@ -100,11 +100,11 @@ export function CapacityRow({ slug, userId, label, dailyHours, isActive, allowed
       <td className="px-3 py-2">{label}</td>
       {DAYS.map((d, i) => (
         <td key={d} className="px-1 py-2">
-          <Input type="number" min={0} max={24} className="h-8 w-14 text-center" value={hours[i]} aria-label={`${label} ${t(`days.${d}`)}`} onChange={(e) => { const next = [...hours]; next[i] = Number(e.target.value) || 0; setHours(next); }} onBlur={() => save(hours, active)} />
+          <Input size="sm" type="number" min={0} max={24} className="w-14 text-center" value={hours[i]} aria-label={`${label} ${t(`days.${d}`)}`} onChange={(e) => { const next = [...hours]; next[i] = Number(e.target.value) || 0; setHours(next); }} onBlur={() => save(hours, active)} />
         </td>
       ))}
       <td className="px-3 py-2 text-right tabular">{hours.reduce((s, h) => s + h, 0)}</td>
-      <td className="px-3 py-2"><Input className="h-8 min-w-36" value={tags} placeholder={t("allowed_tags_any")} aria-label={`${label} ${t("allowed_tags")}`} onChange={(e) => setTags(e.target.value)} onBlur={() => save(hours, active, tags)} /></td>
+      <td className="px-3 py-2"><Input size="sm" className="min-w-36" value={tags} placeholder={t("allowed_tags_any")} aria-label={`${label} ${t("allowed_tags")}`} onChange={(e) => setTags(e.target.value)} onBlur={() => save(hours, active, tags)} /></td>
       <td className="px-3 py-2 text-right"><Switch checked={active} disabled={pending} onCheckedChange={(v) => { setActive(v); save(hours, v); }} aria-label={t("active")} /></td>
     </tr>
   );
@@ -160,7 +160,7 @@ export function OverrideControls({ slug, recipientKey, override }: { slug: strin
         <Button size="sm" variant="ghost" disabled={pending} onClick={() => apply(null)}>{t("clear_override")}</Button>
       ) : (
         <>
-          <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("override_reason")} className="h-8 w-40" />
+          <Input size="sm" value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("override_reason")} className="w-40" />
           <Button size="sm" variant="outline" disabled={pending || reason.trim().length < 5} onClick={() => apply("force_blacklist")}>{t("force_blacklist")}</Button>
           <Button size="sm" variant="ghost" disabled={pending || reason.trim().length < 5} onClick={() => apply("force_clean")}>{t("force_clean")}</Button>
         </>

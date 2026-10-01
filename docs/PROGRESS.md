@@ -329,6 +329,24 @@ Fatto:
 - Quando una variante riceve un costo che non aveva (sync, modifica, import, ricevimento di un ordine d'acquisto) le righe d'ordine senza costo vengono completate, così il conto economico successivo le conta.
 - Seed: origine del costo su tutte le varianti, un prodotto venduto senza costo, alcune varianti senza barcode, alcuni prodotti senza immagine, uno SKU duplicato.
 - Migrazione 0019 (2 colonne nullable su `product_variants`); test core 161, integrazioni 47, servizi 92, db 510; e2e +4 scenari (`catalog-costs.spec.ts`).
+## Modifica degli ordini nel core (issue #22)
+
+Fatto:
+- Servizio di modifica nel core (`packages/services/src/orders/edit.ts`), valido per ogni metodo di pagamento: contatti, indirizzo di spedizione e fatturazione, email, telefono e nota su qualsiasi ordine aperto non ancora evaso, scritti prima sulla piattaforma (`updateOrderDetails`) e poi in Keel, con evento `modified` (autore e diff dei campi). L'indirizzo di spedizione passa il controllo di formato (campi obbligatori, CAP per paese).
+- Cambio righe e unione di ordini dello stesso cliente come annulla-e-ricrea con storia (`replaces` / `replaced_by` / `lineage_root`): il nuovo ordine eredita giorno di creazione, attribuzione, canale, assegnatario e stato del pagamento; l'ordine sostituito è uno stato finale (annullato, motivo `override:replaced`) ed è escluso da KPI, conto economico, CRM, storico cliente e duplicati, così i report contano un solo ordine. Banner della storia nel dettaglio ordine; unione proposta anche dal banner dei duplicati.
+- Sconto su un ordine esistente (preimpostato o personalizzato, % o importo) tramite il nuovo `CommercePlatform.applyOrderDiscount` (mock e Shopify con l'API di modifica ordini), con evento e rimborso dovuto segnalato sugli ordini pagati.
+- Slot `AddressProvider` (autocompletamento e validazione) con mock deterministico, usato dal dialogo di modifica.
+- `addon.cod` chiama i servizi del core e aggiunge solo i suoi extra (tentativo di chiamata, tag della coda, passaggio della coda al nuovo ordine) tramite hook; stesso dialogo in variante COD.
+- Permessi: owner, admin, operations, customer care possono modificare; marketing e viewer no (azione `edit_order`, verificata lato server). Testi in en/it/es.
+- Migrazione 0019 (colonna `lineage_root_order_id`, nullable); test core 166, config 8, integrazioni 48, servizi 93, add-on COD 20, db 510; e2e `order-edit` (4) più `cod` e `orders` verdi sulla build di produzione.
+
+Resta: provider indirizzi reale e la sua guida (issue #7); preset di sconto configurabili per negozio se richiesti.
+## Correzioni: dati demo in produzione (#18), menu a tendina (#15), lingua e date
+
+Fatto:
+- #18: ogni deploy crea le righe di configurazione che mancano ai due negozi demo (portale e politica resi, motivi tradotti, pixel, conversioni, sondaggio, tag contrassegno, chiave AI simulata, costi dei resi) senza toccare ordini né righe modificate da qualcuno (`pnpm db:seed:settings`, dentro `db:deploy`). Il seed completo resta manuale (`KEEL_SEED_ON_DEPLOY=1` solo per il primo deploy o un reset voluto). La pagina del portale avvisa quando è spento; `pnpm smoke <url>` controlla salute, login e i due portali dopo il deploy.
+- #15: `Select` e `Input` hanno due altezze condivise (`sm`, `default`) e il testo centrato; niente più `<select>` grezzi né altezze impostate a mano (un test lo impedisce); controllo Playwright che il testo stia nel riquadro.
+- Lingua: date e numeri seguono la lingua mostrata a schermo; il selettore salva la lingua sul profilo e l'accesso la ripristina.
 
 ## Blocchi
 

@@ -14,8 +14,10 @@
     "db:generate": "pnpm --filter @keel/db generate",
     "db:migrate": "pnpm --filter @keel/db migrate",
     "db:seed": "pnpm --filter @keel/db seed",
+    "db:seed:settings": "pnpm --filter @keel/db seed:settings",
     "db:reset": "pnpm --filter @keel/db reset",
-    "db:deploy": "pnpm db:bootstrap && pnpm db:migrate && if [ \"$KEEL_SEED_ON_DEPLOY\" = 1 ]; then pnpm db:seed; fi",
+    "db:deploy": "pnpm db:bootstrap && pnpm db:migrate && if [ \"$KEEL_SEED_ON_DEPLOY\" = 1 ]; then pnpm db:seed; fi && pnpm db:seed:settings",
+    "smoke": "node scripts/smoke.mjs",
     "format": "prettier --write \"**/*.{ts,tsx,json,md,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md,css}\""
   },

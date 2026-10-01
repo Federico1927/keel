@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MockCommercePlatform } from "./commerce";
 import { MockAdsPlatform } from "./ads";
+import { MockAddressProvider } from "./address";
 import { IntegrationError } from "../types";
 
 function platform() {
@@ -69,5 +70,35 @@ describe("MockAdsPlatform", () => {
     expect(await meta.fetchDailyMetrics({ since: "2026-09-01", until: "2026-09-01" })).toHaveLength(0);
     const google = new MockAdsPlatform({ provider: "google", currency: "EUR", campaigns: [], readOnly: true });
     await expect(google.setCampaignStatus("x", "paused")).rejects.toMatchObject({ code: "unsupported" });
+  });
+});
+
+describe("order edits on the mock platform", () => {
+  it("creates a paid replacement carrying the payment method, then discounts it", async () => {
+    const p = platform();
+    const o = await p.createOrder({ lines: [{ variantExternalId: "v1", sku: null, title: "Tee", quantity: 2, unitPriceMinor: 2900 }], currency: "EUR", email: "a@b.it", phone: null, customerExternalId: "c1", shippingAddress: null, billingAddress: null, shippingMinor: 500, discountMinor: 0, note: null, tags: [], noteAttributes: [], replacesOrderName: "#T-1", payment: { method: "card", status: "paid", gateways: ["shopify_payments"] } });
+    expect(o).toMatchObject({ paymentMethod: "card", paymentStatus: "paid", totalMinor: 6300, paymentGateways: ["shopify_payments"] });
+    expect(o.noteAttributes).toContainEqual({ name: "replaces_order", value: "#T-1" });
+    await p.applyOrderDiscount(o.externalId, { type: "percentage", value: 1000, amountMinor: 580, currency: "EUR", code: "KEEL-10%" });
+    const after = await p.fetchOrder(o.externalId);
+    expect(after).toMatchObject({ discountMinor: 580, totalMinor: 5720 });
+    expect(p.writeLog.map((w) => w.op)).toEqual(["createOrder", "applyOrderDiscount"]);
+  });
+});
+
+describe("MockAddressProvider", () => {
+  it("suggests deterministic addresses in the requested country and validates the format", async () => {
+    const a = new MockAddressProvider();
+    expect(await a.autocomplete("ma", { country: "US" })).toEqual([]);
+    const s = await a.autocomplete("main street", { country: "US" });
+    expect(s).toHaveLength(3);
+    expect(s[0]!.address).toMatchObject({ address1: "Main Street 1", city: "Austin", province: "TX", zip: "78701", country: "US" });
+    expect(await a.autocomplete("main street", { country: "US" })).toEqual(s);
+    const ok = await a.validate({ name: "Ann Lee", ...s[0]!.address });
+    expect(ok.valid).toBe(true);
+    const bad = await a.validate({ name: "Ann Lee", address1: "1 Nowhere Rd", city: "Austin", province: "TX", zip: "7870", country: "us" });
+    expect(bad.valid).toBe(false);
+    expect(bad.issues.map((i) => i.code).sort()).toEqual(["invalid_zip", "not_found"]);
+    expect(bad.normalized?.country).toBe("US");
   });
 });

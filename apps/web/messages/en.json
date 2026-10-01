@@ -41,7 +41,11 @@
       "cod_invalid_input": "Invalid data.",
       "cod_platform_error": "The commerce platform rejected the tag or cancellation write; nothing was recorded.",
       "invalid_formula": "The formula is not valid.",
-      "closed": "This order can no longer be changed."
+      "closed": "This order can no longer be changed.",
+      "not_editable": "This order can no longer be edited: it is fulfilled, cancelled or replaced.",
+      "invalid_address": "The address is not valid: check the highlighted fields.",
+      "merge_invalid": "These orders cannot be merged: different customer or payment, or already fulfilled.",
+      "nothing_to_change": "Nothing to change."
     },
     "edit": "Edit"
   },
@@ -529,7 +533,24 @@
     },
     "restock": "Restock items",
     "refund": "Refund captured payment",
-    "request_return": "Request return"
+    "request_return": "Request return",
+    "lineage": {
+      "title": "Edited order",
+      "replaced_by": "This order was replaced by <link>{order}</link> and no longer counts in reports.",
+      "not_cancelled": "The store did not cancel it: cancel it by hand.",
+      "replaces": "Created as replacement of",
+      "replaces_hint": "It keeps their creation day and attribution.",
+      "chain": "Lineage"
+    },
+    "timeline_meta": {
+      "replaces": "Replaces {orders}",
+      "replaced_by": "Replaced by {order}",
+      "not_cancelled": "(not cancelled on the store)",
+      "discount": "{code}: −{amount}",
+      "balance_due": "Customer owes {amount}",
+      "balance_refund": "Refund {amount} to the customer",
+      "written_to": "Written to {platform}"
+    }
   },
   "order_events": {
     "imported": "Imported",
@@ -551,7 +572,8 @@
     "tags_updated": "Tags updated",
     "modified": "Order modified",
     "replaces": "Created as replacement",
-    "replaced": "Replaced by a new order"
+    "replaced": "Replaced by a new order",
+    "discount_applied": "Discount applied"
   },
   "shipments": {
     "title": "Shipments",
@@ -2849,39 +2871,7 @@
       "tags_event_replaced": "Replaced by a new order"
     },
     "filter_by_tag": "Tag:",
-    "all_tags": "All",
-    "modify": {
-      "button": "Modify order",
-      "title": "Modify {order}",
-      "description": "Changes agreed with the customer before confirmation. Contact and address are edited in place. Changing lines or merging orders creates a new order and cancels this one, so the warehouse never ships a removed line.",
-      "contact": "Contact and address",
-      "customer_name": "Name",
-      "phone": "Phone",
-      "email": "Email",
-      "address": {
-        "name": "Recipient",
-        "address1": "Address",
-        "address2": "Address line 2",
-        "city": "City",
-        "province": "Province",
-        "zip": "Postal code",
-        "country": "Country (ISO code)"
-      },
-      "note_append": "Add to the order note",
-      "lines": "Lines",
-      "quantity": "Quantity",
-      "add_product": "Search product by SKU or name",
-      "add": "Add",
-      "new_total": "New total {total}",
-      "merge": "Merge other open orders of this customer",
-      "merge_help": "Their lines are added to the new order and they are cancelled as replaced.",
-      "attempt_note": "Call note (optional)",
-      "replace_warning": "This order will be cancelled on the platform and replaced by a new one with the same operator. Attempts restart.",
-      "replaced_done": "Replaced by {order}.",
-      "warning_not_cancelled": "The old order could not be cancelled on the platform: cancel it by hand.",
-      "save": "Save changes",
-      "save_replace": "Replace order"
-    }
+    "all_tags": "All"
   },
   "po_pdf": {
     "title": "Purchase order",
@@ -3209,7 +3199,8 @@
     "tracking_page": "Public order tracking page",
     "label_enabled": "Give the customer a prepaid return label",
     "label_destination": "Return address on the label",
-    "label_hint": "The label is issued at submission and its tracking code is stored on the return. In this version the label provider is simulated."
+    "label_hint": "The label is issued at submission and its tracking code is stored on the return. In this version the label provider is simulated.",
+    "off_notice": "The portal is off: customers who open {url} get a \"page not found\". Turn on \"Portal active\" below and save."
   },
   "return_portal": {
     "default_title": "Return an item",
@@ -3969,5 +3960,69 @@
     "done": "{written, plural, one {# cost imported} other {# costs imported}}, {lines} order lines updated.",
     "write_back": "Write costs to Shopify",
     "write_back_hint": "When on, costs edited or imported here also update the unit cost on Shopify. Only owners and admins can change this."
+  },
+  "order_edit": {
+    "button": "Edit order",
+    "cod_button": "Modify order",
+    "merge_button": "Merge orders",
+    "title": "Edit {order}",
+    "description": "Contact, address and note are changed in place on the store. Changing lines or merging orders creates a new linked order and cancels this one, so the warehouse never ships a removed line.",
+    "cod_description": "Changes agreed with the customer before confirmation. Contact and address are edited in place. Changing lines or merging orders creates a new order and cancels this one, so the warehouse never ships a removed line.",
+    "contact": "Contact and address",
+    "customer_name": "Name",
+    "phone": "Phone",
+    "email": "Email",
+    "shipping_address": "Shipping address",
+    "edit_billing": "Change the billing address too",
+    "address": {
+      "name": "Recipient",
+      "address1": "Address",
+      "address2": "Address line 2",
+      "city": "City",
+      "province": "Province / state",
+      "zip": "Postal code",
+      "country": "Country (ISO code)"
+    },
+    "address_suggestions": "Suggestions",
+    "check_address": "Check address",
+    "address_ok": "The address looks valid.",
+    "address_issues": {
+      "required": "Required.",
+      "invalid_zip": "Not a valid postal code for this country.",
+      "invalid_country": "Use the two-letter country code.",
+      "not_found": "Address not found."
+    },
+    "note": "Order note",
+    "note_append": "Add to the order note",
+    "lines": "Lines",
+    "quantity": "Quantity",
+    "add_product": "Search product by SKU or name",
+    "add": "Add",
+    "new_total": "New total {total}",
+    "merge": "Merge other open orders of this customer",
+    "merge_help": "Their lines are added to the new order and they are cancelled as replaced. Only open orders with the same payment method and status can be merged.",
+    "attempt_note": "Call note (optional)",
+    "replace_warning": "This order will be cancelled on the store and replaced by a new linked order that keeps its creation day and attribution. Reports count one order.",
+    "cod_replace_warning": "This order will be cancelled on the platform and replaced by a new one with the same operator. Attempts restart.",
+    "paid_warning": "The payment stays with the original order and the new one is marked paid: collect or refund any difference from the store.",
+    "replaced_done": "Replaced by {order}.",
+    "warning_not_cancelled": "The old order could not be cancelled on the platform: cancel it by hand.",
+    "save": "Save changes",
+    "save_replace": "Replace order"
+  },
+  "order_discount": {
+    "button": "Apply discount",
+    "title": "Discount on {order}",
+    "description": "The discount is added to the order on the store and the total is reduced.",
+    "presets": "Quick discounts",
+    "type": "Type",
+    "type_percentage": "Percent",
+    "type_fixed_amount": "Amount ({currency})",
+    "value": "Value",
+    "code": "Code (optional)",
+    "reason": "Reason (optional)",
+    "preview": "Discount {amount} · new total {total}",
+    "refund_due": "This order is paid: refund {amount} to the customer from the store.",
+    "apply": "Apply discount"
   }
 }

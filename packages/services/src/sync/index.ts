@@ -60,6 +60,8 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
   const [existing] = await ctx.tx.select().from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenantId), eq(schema.orders.externalId, o.externalId))).limit(1);
   if (existing && existing.platformUpdatedAt && existing.platformUpdatedAt.getTime() > o.platformUpdatedAt.getTime() && opts.source !== "reconcile") return { id: existing.id, outcome: "unchanged" };
   const customerId = o.customer ? await upsertCustomer(ctx, o.customer, opts.country) : existing?.customerId ?? null;
+  // a replacement order (cancel-and-recreate edit) keeps the creation day and attribution of the order it replaces
+  const lineage = Boolean(existing?.replacesOrderId);
   const ship = o.shippingAddress;
   const values = {
     orderNumber: o.orderNumber,
@@ -94,7 +96,7 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
     landingSite: o.landingSite,
     referringSite: o.referringSite,
     sourceChannel: o.sourceChannel,
-    placedAt: o.placedAt,
+    placedAt: lineage ? existing!.placedAt : o.placedAt,
     cancelledAt: o.cancelledAt,
     cancelReason: o.cancelReason,
     closedAt: o.closedAt,
@@ -133,7 +135,7 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
   const campaigns = opts.campaigns ?? (await loadCampaignRefs(ctx));
   const campaign = matchCampaign(attribution, campaigns);
   const attrValues = { utmSource: attribution.utmSource, utmMedium: attribution.utmMedium, utmCampaign: attribution.utmCampaign, utmContent: attribution.utmContent, utmTerm: attribution.utmTerm, clickIds: attribution.clickIds, campaignId: campaign?.id ?? null, channel: deriveChannel(attribution, o.referringSite, o.sourceChannel), source: opts.source, capturedAt: now };
-  await ctx.tx.insert(schema.orderAttribution).values({ tenantId: ctx.tenantId, orderId, ...attrValues }).onConflictDoUpdate({ target: [schema.orderAttribution.orderId], set: attrValues });
+  if (!lineage) await ctx.tx.insert(schema.orderAttribution).values({ tenantId: ctx.tenantId, orderId, ...attrValues }).onConflictDoUpdate({ target: [schema.orderAttribution.orderId], set: attrValues });
   // fulfillments → shipments with per-source state and resolver
   for (const f of o.fulfillments) await importFulfillment(ctx, orderId, f, now);
   await recomputeOrderStatus(ctx, orderId, { eventMetadata: { source: opts.source } });

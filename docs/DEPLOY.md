@@ -12,12 +12,12 @@ Railway no longer reads `railway.json` for new services (Config as Code is depre
 2. **Add a service from this GitHub repo**, branch `main`, root directory empty (the monorepo needs the whole tree). Settings:
    - Build command: `pnpm install --frozen-lockfile --prod=false && pnpm build` (the reinstall keeps dev dependencies whatever `NODE_ENV` the builder sets).
    - Start command: `pnpm --filter @keel/web start` (listens on `$PORT`).
-   - Pre-deploy command: `pnpm db:deploy`, timeout 900 s. It creates or updates the `keel_admin` / `keel_app` roles and the `keel` database, runs the migrations, and loads the demo data only when `KEEL_SEED_ON_DEPLOY=1`.
+   - Pre-deploy command: `pnpm db:deploy`, timeout 900 s. It creates or updates the `keel_admin` / `keel_app` roles and the `keel` database, runs the migrations, loads the demo data only when `KEEL_SEED_ON_DEPLOY=1`, and always runs `pnpm db:seed:settings`: it creates the configuration rows the demo tenants are missing (return portal and policy, tracking, survey, COD tags, the AI key's mock connection, return costs) without touching orders or any row someone edited, so a feature merged after the last full seed shows up on the next deploy.
    - Healthcheck path `/api/health`, timeout 120 s; restart on failure.
    - Watch paths: `/**` (a narrower pattern such as `/apps/web/**` skips changes in `packages/`).
 3. **Variables** (table below). Reference the Postgres service: `DATABASE_SUPERUSER_URL=${{Postgres.DATABASE_URL}}`, and build the two Keel URLs on its private host, e.g. `postgres://keel_app:${{KEEL_APP_PASSWORD}}@${{Postgres.RAILWAY_PRIVATE_DOMAIN}}:5432/keel`. Set `KEEL_SEED_ON_DEPLOY=1` for the first deploy, then delete it: every deploy with it rewrites the two demo tenants.
 4. **Domain**: Settings → Networking → generate a domain (or add yours), set `AUTH_URL` and `NEXT_PUBLIC_APP_URL` to it with `https://`.
-5. Open `/login` and sign in with the demo users from `README.md` (password `KEEL_DEMO_PASSWORD`).
+5. Open `/login` and sign in with the demo users from `README.md` (password `KEEL_DEMO_PASSWORD`). After each deploy, `pnpm smoke https://<your domain>` checks the health endpoint, the login page and both demo return portals (exit code 1 on any failure; add paths with `SMOKE_PATHS`).
 6. **Worker** (required with `KEEL_INTEGRATION_MODE=live`, optional for a mock demo): a second service from the same repo, build `pnpm install --frozen-lockfile --prod=false`, start `pnpm --filter @keel/jobs start`, restart always, same variables, and `KEEL_JOBS_QUEUE=1` on **both** services. In live mode web and worker refuse to start without it.
 
 ### Landing page (`apps/landing`)
