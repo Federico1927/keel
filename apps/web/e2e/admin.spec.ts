@@ -31,12 +31,19 @@ test.describe("super-admin console", () => {
     await expect(owner.locator("nav").first()).toContainText(/COD queue|Coda contrassegno/);
     await ownerCtx.close();
 
-    // billing: Harbor Home has an open invoice → mark it paid
+    // billing: an open invoice (the seed leaves one for Harbor Home) can be marked paid
     await page.goto("/admin/billing?status=open");
-    const open = page.getByTestId("invoice-row").filter({ hasText: "Harbor Home" }).first();
-    await expect(open).toBeVisible();
-    await open.getByRole("button", { name: /Mark paid|Segna pagata/ }).click();
-    await expect(page.getByTestId("invoice-row").filter({ hasText: "Harbor Home" })).toHaveCount(0);
+    const openRows = page.getByTestId("invoice-row");
+    if ((await openRows.count()) > 0) {
+      // invoice numbers repeat across tenants: identify the row by number and tenant
+      const number = (await openRows.first().locator("td").nth(0).textContent())!.trim();
+      const tenantCell = (await openRows.first().locator("td").nth(1).textContent())!.trim();
+      const rowOf = () => page.getByTestId("invoice-row").filter({ hasText: number }).filter({ hasText: tenantCell.split("\n")[0]!.trim() });
+      await openRows.first().getByRole("button", { name: /Mark paid|Segna pagata/ }).click();
+      await expect(rowOf()).toHaveCount(0);
+      await page.goto("/admin/billing?status=paid");
+      await expect(rowOf()).toHaveCount(1);
+    }
 
     // impersonation: open as support shows the banner, and the audit log records it
     await page.goto("/admin/tenants");

@@ -32,7 +32,13 @@
       "ads_read_only": "This ads platform is read-only in this version.",
       "ads_platform_error": "The ads platform rejected the request.",
       "invalid_rules": "The segment rules are not valid.",
-      "addon_not_available": "This add-on is not available yet."
+      "addon_not_available": "This add-on is not available yet.",
+      "cod_not_in_queue": "This order is not in the confirmation queue.",
+      "cod_invalid_outcome": "Invalid outcome.",
+      "cod_operator_unavailable": "No operator available today.",
+      "cod_forbidden": "Only an admin can release an order after a call was registered.",
+      "cod_not_found": "Not found.",
+      "cod_invalid_input": "Invalid data."
     },
     "edit": "Edit"
   },
@@ -150,7 +156,8 @@
     "integrations": "Integrations",
     "users": "Users",
     "settings": "Settings",
-    "audit": "Audit log"
+    "audit": "Audit log",
+    "cod_settings": "COD settings"
   },
   "shell": {
     "open_menu": "Open menu",
@@ -1921,6 +1928,203 @@
       "actor": "Actor",
       "action": "Action",
       "details": "Details"
+    }
+  },
+  "cod": {
+    "title": "COD confirmation queue",
+    "description": "Cash-on-delivery orders waiting for a confirmation call, sorted by priority: overdue call-backs, then attempted, then oldest first.",
+    "settings_link": "Settings",
+    "views": {
+      "all": "Queue",
+      "mine": "Mine",
+      "unassigned": "Unassigned",
+      "scheduled": "Call back",
+      "unreachable": "Unreachable"
+    },
+    "empty_title": "Queue is empty",
+    "empty_description": "New COD orders enter here automatically.",
+    "columns": {
+      "order": "Order",
+      "customer": "Customer",
+      "total": "Total",
+      "score": "Delivery score",
+      "attempts": "Attempts",
+      "assigned": "Operator",
+      "waiting": "Waiting",
+      "operator": "Operator"
+    },
+    "unassigned": "unassigned",
+    "hours_n": "{n} h",
+    "call_back_badge": "Call back {at}",
+    "claim": "Take",
+    "release": "Release",
+    "register_outcome": "Register call",
+    "outcome_title": "Call outcome for {order}",
+    "outcome_description": "Every call is an attempt with an outcome. Confirmed moves the order to confirmed; cancellation is done from the order actions.",
+    "outcomes": {
+      "confirmed": "Confirmed",
+      "no_answer": "No answer",
+      "call_back": "Call back",
+      "modified": "Modified",
+      "cancelled": "Cancelled"
+    },
+    "outcomes_hint": {
+      "confirmed": "Customer confirmed the order",
+      "no_answer": "Counts toward unreachable",
+      "call_back": "Pick a date and time",
+      "modified": "Changes agreed, stays in queue",
+      "cancelled": "Customer refused; cancel from the order"
+    },
+    "call_back_at": "Call back at",
+    "note_optional": "Note (optional)",
+    "save_outcome": "Save outcome",
+    "rescore": "Recompute scores",
+    "rescored": "{n} items scored.",
+    "distribute": "Distribute unassigned",
+    "distributed": "{assigned} assigned, {skipped} skipped.",
+    "kpi_title": "Operators, last 7 days",
+    "confirmation_rate": "Confirmation rate",
+    "score": {
+      "none": "No score",
+      "likely": "Delivery likely",
+      "uncertain": "Uncertain",
+      "unlikely": "Delivery unlikely"
+    },
+    "risk": {
+      "clean": "Clean",
+      "watch": "Watch",
+      "high_risk": "High risk",
+      "blacklisted": "Blacklist suggested"
+    },
+    "queue_status": {
+      "pending": "In queue",
+      "scheduled": "Call back scheduled",
+      "unreachable": "Unreachable",
+      "confirmed": "Confirmed by phone",
+      "cancelled": "Cancelled",
+      "left": "Left the queue"
+    },
+    "card_title": "Cash on delivery",
+    "weight_n": "weight {n}",
+    "informational": "informational",
+    "attempts_title": "Attempts ({n})",
+    "factors": {
+      "customer_history": {
+        "name": "Customer history",
+        "help": "Delivered vs refused/cancelled orders of the same customer, recent ones weigh more."
+      },
+      "cod_attempts": {
+        "name": "Contact attempts",
+        "help": "Each failed call lowers the score."
+      },
+      "time_elapsed": {
+        "name": "Time in queue",
+        "help": "Unconfirmed orders age badly."
+      },
+      "cart_variants": {
+        "name": "Same product, several variants",
+        "help": "Typical of try-and-return carts."
+      },
+      "cart_quantity": {
+        "name": "Large quantities",
+        "help": "Three or more units of one product."
+      },
+      "address_quality": {
+        "name": "Address quality",
+        "help": "Phone, street, postal code and city checks per country."
+      },
+      "similar_orders": {
+        "name": "Similar orders in the area",
+        "help": "Delivery rate of COD orders with the same postal code."
+      },
+      "order_value": {
+        "name": "Order value",
+        "help": "Well above the shop's average order."
+      },
+      "night_order": {
+        "name": "Night order",
+        "help": "Placed between the configured night hours."
+      },
+      "recent_cancellations": {
+        "name": "Recent cancellations",
+        "help": "Cancelled orders of the customer in the last 90 days, worse if for the same product."
+      },
+      "duplicate_orders": {
+        "name": "Duplicate orders",
+        "help": "Another order by the same person within 5 days."
+      },
+      "prepaid_history": {
+        "name": "Prepaid history",
+        "help": "Prepaid orders the customer completed in the past."
+      }
+    },
+    "settings": {
+      "title": "COD settings",
+      "description": "Operators and their hours, scoring weights and thresholds, recipient risk. Nothing here acts automatically on orders: the add-on advises, operators decide.",
+      "operators_title": "Operators and hours",
+      "operators_description": "Orders are distributed in proportion to the hours worked today (smooth weighted round-robin). Days off and extra hours override the weekly plan.",
+      "operator": "Operator",
+      "week": "Week",
+      "active": "Active",
+      "days": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      },
+      "exceptions_title": "Absences and extra shifts",
+      "date": "Date",
+      "kind": "Kind",
+      "hours": "Hours",
+      "note": "Note",
+      "kinds": {
+        "off": "Day off",
+        "extra": "Extra hours"
+      },
+      "weights_title": "Delivery score weights",
+      "weights_description": "Relative weights 0–50. A factor with weight 0 is shown but ignored. The score is the weighted mean of the factors that fire, then capped by the recipient risk tier.",
+      "thresholds_title": "Thresholds",
+      "thresholds_description": "Queue and scoring parameters.",
+      "fields": {
+        "unreachableAfterAttempts": "Unreachable after N no-answer",
+        "queueCutoffDays": "Queue cutoff (days)",
+        "timeElapsedWarnHours": "Warn after hours in queue",
+        "customerHistoryHalfLifeDays": "History half-life (days)",
+        "customerHistoryMinOrders": "Min orders for history",
+        "similarOrdersLookbackDays": "Similar orders lookback (days)",
+        "similarOrdersMinSample": "Similar orders min sample",
+        "orderValueMultiple": "Order value alert (× AOV)",
+        "risk_watchMinReturns": "Watch from returns",
+        "risk_highRiskMinReturns": "High risk from returns",
+        "risk_blacklistMinReturns": "Blacklist from returns",
+        "risk_recentMonths": "Recent window (months)",
+        "risk_redemptionConsecutiveDeliveries": "Redemption deliveries"
+      },
+      "risk_title": "Recipient risk",
+      "risk_description": "Returns weighted by age (recent 1.0, older 0.5); one tier of redemption after consecutive deliveries.",
+      "recipients_title": "Recipients at risk",
+      "recipients_description": "Suggestions only: nothing is blocked automatically. Keys are phones or emails, never names.",
+      "recompute_risk": "Recompute from history",
+      "risk_recomputed": "{profiles} recipients, {flagged} flagged.",
+      "recipient": "Recipient",
+      "tier": "Tier",
+      "returns": "Returns (weighted)",
+      "delivered": "Delivered",
+      "last_return": "Last return",
+      "suggestion": "Suggestion",
+      "suggest_blacklist": "Suggest blacklist: verify by phone before shipping",
+      "suggest_verify": "Verify address and intent before shipping",
+      "overrides": {
+        "force_clean": "forced clean",
+        "force_blacklist": "forced blacklist"
+      },
+      "override_reason": "Reason (min 5 chars)",
+      "force_blacklist": "Blacklist",
+      "force_clean": "Mark clean",
+      "clear_override": "Remove override"
     }
   }
 }

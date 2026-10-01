@@ -9,6 +9,7 @@ const SCHEDULES: { cron: string; data: TickJob }[] = [
   { cron: "0 6 * * *", data: { kind: "ads" } },
   { cron: "0 3 * * *", data: { kind: "reconcile" } },
   { cron: "30 4 * * *", data: { kind: "billing" } },
+  { cron: "5,15,25,35,45,55 * * * *", data: { kind: "cod" } },
 ];
 
 async function main() {

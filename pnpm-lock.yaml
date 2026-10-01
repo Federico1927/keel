@@ -26,6 +26,9 @@ importers:
       '@auth/drizzle-adapter':
         specifier: ^1.11.0
         version: 1.11.3
+      '@keel/addon-cod':
+        specifier: workspace:*
+        version: link:../../packages/addon-cod
       '@keel/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -105,6 +108,49 @@ importers:
       tailwindcss:
         specifier: ^4.1.0
         version: 4.3.3
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.0
+        version: 3.2.7(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)
+
+  packages/addon-cod:
+    dependencies:
+      '@keel/config':
+        specifier: workspace:*
+        version: link:../config
+      '@keel/core':
+        specifier: workspace:*
+        version: link:../core
+      '@keel/db':
+        specifier: workspace:*
+        version: link:../db
+      '@keel/services':
+        specifier: workspace:*
+        version: link:../services
+      drizzle-orm:
+        specifier: ^0.45.0
+        version: 0.45.3(@types/pg@8.23.1)(pg@8.23.1)
+      zod:
+        specifier: ^4.0.0
+        version: 4.6.5
+    devDependencies:
+      '@keel/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@types/pg':
+        specifier: ^8.15.0
+        version: 8.23.1
+      dotenv-cli:
+        specifier: ^11.0.0
+        version: 11.0.0
+      eslint:
+        specifier: ^9.39.0
+        version: 9.39.5(jiti@2.7.0)
+      pg:
+        specifier: ^8.16.0
+        version: 8.23.1
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -249,6 +295,9 @@ importers:
 
   packages/jobs:
     dependencies:
+      '@keel/addon-cod':
+        specifier: workspace:*
+        version: link:../addon-cod
       '@keel/config':
         specifier: workspace:*
         version: link:../config

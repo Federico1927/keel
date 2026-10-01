@@ -32,7 +32,13 @@
       "ads_read_only": "Questa piattaforma pubblicitaria è in sola lettura in questa versione.",
       "ads_platform_error": "La piattaforma pubblicitaria ha rifiutato la richiesta.",
       "invalid_rules": "Le regole del segmento non sono valide.",
-      "addon_not_available": "Questo add-on non è ancora disponibile."
+      "addon_not_available": "Questo add-on non è ancora disponibile.",
+      "cod_not_in_queue": "Questo ordine non è nella coda di conferma.",
+      "cod_invalid_outcome": "Esito non valido.",
+      "cod_operator_unavailable": "Nessun operatore disponibile oggi.",
+      "cod_forbidden": "Solo un admin può rilasciare un ordine dopo una chiamata registrata.",
+      "cod_not_found": "Non trovato.",
+      "cod_invalid_input": "Dati non validi."
     },
     "edit": "Modifica"
   },
@@ -150,7 +156,8 @@
     "integrations": "Integrazioni",
     "users": "Utenti",
     "settings": "Impostazioni",
-    "audit": "Registro attività"
+    "audit": "Registro attività",
+    "cod_settings": "Impostazioni contrassegno"
   },
   "shell": {
     "open_menu": "Apri menu",
@@ -1921,6 +1928,203 @@
       "actor": "Autore",
       "action": "Azione",
       "details": "Dettagli"
+    }
+  },
+  "cod": {
+    "title": "Coda conferme contrassegno",
+    "description": "Ordini in contrassegno in attesa di chiamata di conferma, ordinati per priorità: richiami scaduti, poi già tentati, poi i più vecchi.",
+    "settings_link": "Impostazioni",
+    "views": {
+      "all": "Coda",
+      "mine": "Miei",
+      "unassigned": "Non assegnati",
+      "scheduled": "Da richiamare",
+      "unreachable": "Non raggiungibili"
+    },
+    "empty_title": "Coda vuota",
+    "empty_description": "I nuovi ordini in contrassegno entrano qui automaticamente.",
+    "columns": {
+      "order": "Ordine",
+      "customer": "Cliente",
+      "total": "Totale",
+      "score": "Delivery score",
+      "attempts": "Tentativi",
+      "assigned": "Operatore",
+      "waiting": "In attesa da",
+      "operator": "Operatore"
+    },
+    "unassigned": "non assegnato",
+    "hours_n": "{n} h",
+    "call_back_badge": "Richiamare {at}",
+    "claim": "Prendi",
+    "release": "Rilascia",
+    "register_outcome": "Registra chiamata",
+    "outcome_title": "Esito chiamata per {order}",
+    "outcome_description": "Ogni chiamata è un tentativo con un esito. Confermato porta l'ordine in confermato; l'annullamento si fa dalle azioni dell'ordine.",
+    "outcomes": {
+      "confirmed": "Confermato",
+      "no_answer": "Non risponde",
+      "call_back": "Da richiamare",
+      "modified": "Modificato",
+      "cancelled": "Annullato"
+    },
+    "outcomes_hint": {
+      "confirmed": "Il cliente ha confermato",
+      "no_answer": "Conta verso non raggiungibile",
+      "call_back": "Scegli data e ora",
+      "modified": "Modifiche concordate, resta in coda",
+      "cancelled": "Il cliente rinuncia; annulla dall'ordine"
+    },
+    "call_back_at": "Richiamare il",
+    "note_optional": "Nota (facoltativa)",
+    "save_outcome": "Salva esito",
+    "rescore": "Ricalcola punteggi",
+    "rescored": "{n} elementi ricalcolati.",
+    "distribute": "Distribuisci non assegnati",
+    "distributed": "{assigned} assegnati, {skipped} saltati.",
+    "kpi_title": "Operatori, ultimi 7 giorni",
+    "confirmation_rate": "Tasso di conferma",
+    "score": {
+      "none": "Nessun punteggio",
+      "likely": "Consegna probabile",
+      "uncertain": "Incerta",
+      "unlikely": "Consegna improbabile"
+    },
+    "risk": {
+      "clean": "Pulito",
+      "watch": "Da osservare",
+      "high_risk": "Alto rischio",
+      "blacklisted": "Blacklist suggerita"
+    },
+    "queue_status": {
+      "pending": "In coda",
+      "scheduled": "Richiamo programmato",
+      "unreachable": "Non raggiungibile",
+      "confirmed": "Confermato al telefono",
+      "cancelled": "Annullato",
+      "left": "Uscito dalla coda"
+    },
+    "card_title": "Contrassegno",
+    "weight_n": "peso {n}",
+    "informational": "informativo",
+    "attempts_title": "Tentativi ({n})",
+    "factors": {
+      "customer_history": {
+        "name": "Storico cliente",
+        "help": "Ordini consegnati vs rifiutati/annullati dello stesso cliente, i recenti pesano di più."
+      },
+      "cod_attempts": {
+        "name": "Tentativi di contatto",
+        "help": "Ogni chiamata senza esito abbassa il punteggio."
+      },
+      "time_elapsed": {
+        "name": "Tempo in coda",
+        "help": "Gli ordini non confermati invecchiano male."
+      },
+      "cart_variants": {
+        "name": "Stesso prodotto, più varianti",
+        "help": "Tipico dei carrelli prova-e-rendi."
+      },
+      "cart_quantity": {
+        "name": "Quantità elevate",
+        "help": "Tre o più unità dello stesso prodotto."
+      },
+      "address_quality": {
+        "name": "Qualità indirizzo",
+        "help": "Controlli su telefono, via, CAP e città per paese."
+      },
+      "similar_orders": {
+        "name": "Ordini simili nella zona",
+        "help": "Tasso di consegna degli ordini in contrassegno con lo stesso CAP."
+      },
+      "order_value": {
+        "name": "Valore ordine",
+        "help": "Molto sopra l'ordine medio del negozio."
+      },
+      "night_order": {
+        "name": "Ordine notturno",
+        "help": "Effettuato nelle ore notturne configurate."
+      },
+      "recent_cancellations": {
+        "name": "Annullamenti recenti",
+        "help": "Ordini annullati dal cliente negli ultimi 90 giorni, peggio se per lo stesso prodotto."
+      },
+      "duplicate_orders": {
+        "name": "Ordini duplicati",
+        "help": "Un altro ordine della stessa persona entro 5 giorni."
+      },
+      "prepaid_history": {
+        "name": "Storico prepagato",
+        "help": "Ordini prepagati completati in passato dal cliente."
+      }
+    },
+    "settings": {
+      "title": "Impostazioni contrassegno",
+      "description": "Operatori e ore, pesi e soglie del punteggio, rischio destinatari. Nulla qui agisce da solo sugli ordini: l'add-on consiglia, gli operatori decidono.",
+      "operators_title": "Operatori e ore",
+      "operators_description": "Gli ordini sono distribuiti in proporzione alle ore lavorate oggi (round-robin pesato). Assenze e ore extra sovrascrivono il piano settimanale.",
+      "operator": "Operatore",
+      "week": "Settimana",
+      "active": "Attivo",
+      "days": {
+        "sun": "Dom",
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mer",
+        "thu": "Gio",
+        "fri": "Ven",
+        "sat": "Sab"
+      },
+      "exceptions_title": "Assenze e turni extra",
+      "date": "Data",
+      "kind": "Tipo",
+      "hours": "Ore",
+      "note": "Nota",
+      "kinds": {
+        "off": "Assenza",
+        "extra": "Ore extra"
+      },
+      "weights_title": "Pesi del delivery score",
+      "weights_description": "Pesi relativi 0–50. Un fattore con peso 0 è mostrato ma ignorato. Il punteggio è la media pesata dei fattori attivi, poi limitato dalla fascia di rischio del destinatario.",
+      "thresholds_title": "Soglie",
+      "thresholds_description": "Parametri di coda e punteggio.",
+      "fields": {
+        "unreachableAfterAttempts": "Non raggiungibile dopo N non risposte",
+        "queueCutoffDays": "Finestra coda (giorni)",
+        "timeElapsedWarnHours": "Avviso dopo ore in coda",
+        "customerHistoryHalfLifeDays": "Dimezzamento storico (giorni)",
+        "customerHistoryMinOrders": "Ordini minimi per lo storico",
+        "similarOrdersLookbackDays": "Finestra ordini simili (giorni)",
+        "similarOrdersMinSample": "Campione minimo ordini simili",
+        "orderValueMultiple": "Allerta valore (× AOV)",
+        "risk_watchMinReturns": "Osservare da resi",
+        "risk_highRiskMinReturns": "Alto rischio da resi",
+        "risk_blacklistMinReturns": "Blacklist da resi",
+        "risk_recentMonths": "Finestra recente (mesi)",
+        "risk_redemptionConsecutiveDeliveries": "Consegne per riabilitazione"
+      },
+      "risk_title": "Rischio destinatari",
+      "risk_description": "Resi pesati per età (recenti 1,0, vecchi 0,5); una fascia di riabilitazione dopo consegne consecutive.",
+      "recipients_title": "Destinatari a rischio",
+      "recipients_description": "Solo suggerimenti: nulla viene bloccato in automatico. Le chiavi sono telefoni o email, mai nomi.",
+      "recompute_risk": "Ricalcola dallo storico",
+      "risk_recomputed": "{profiles} destinatari, {flagged} segnalati.",
+      "recipient": "Destinatario",
+      "tier": "Fascia",
+      "returns": "Resi (pesati)",
+      "delivered": "Consegnati",
+      "last_return": "Ultimo reso",
+      "suggestion": "Suggerimento",
+      "suggest_blacklist": "Blacklist suggerita: verifica al telefono prima di spedire",
+      "suggest_verify": "Verifica indirizzo e intenzione prima di spedire",
+      "overrides": {
+        "force_clean": "forzato pulito",
+        "force_blacklist": "forzato blacklist"
+      },
+      "override_reason": "Motivo (min 5 caratteri)",
+      "force_blacklist": "Blacklist",
+      "force_clean": "Segna pulito",
+      "clear_override": "Rimuovi forzatura"
     }
   }
 }

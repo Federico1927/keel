@@ -5,6 +5,9 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "../schema";
 import { generateTenantDataset, type TenantSeedConfig } from "./generator";
 import { writeDataset } from "./writer";
+import { createRng } from "@keel/integrations";
+import { normalizePhone } from "@keel/core";
+import { sql } from "drizzle-orm";
 
 export const DEMO_PASSWORD = "keel-demo-2026";
 
@@ -134,8 +137,9 @@ async function seedBilling(db: ReturnType<typeof drizzle<typeof schema>>, tenant
   for (const key of Object.keys(plans) as (keyof typeof DEMO_TENANTS)[]) {
     const tenantId = tenantIds[key];
     const p = plans[key];
-    const [existing] = await db.select({ id: schema.subscriptions.id }).from(schema.subscriptions).where(eq(schema.subscriptions.tenantId, tenantId)).limit(1);
-    if (existing) continue;
+    // demo billing is rewritten on every seed so the console always shows the same starting point
+    await db.delete(schema.invoices).where(eq(schema.invoices.tenantId, tenantId));
+    await db.delete(schema.subscriptions).where(eq(schema.subscriptions.tenantId, tenantId));
     const start = month(p.months);
     const [sub] = await db.insert(schema.subscriptions).values({ tenantId, planKey: p.planKey, status: p.lastPaid ? "active" : "past_due", provider: "mock", externalCustomerId: `mock_cus_${tenantId.slice(0, 8)}`, currency: p.currency, currentPeriodStart: month(0), currentPeriodEnd: month(-1), trialEndsAt: new Date(start.getTime() + 14 * 864e5), setupFeeMinor: p.setup }).returning({ id: schema.subscriptions.id });
     const rows = [{ number: `INV-${start.getUTCFullYear()}-0001`, kind: "setup", amountMinor: p.setup, lines: [{ kind: "setup", key: p.planKey, amountMinor: p.setup }], issuedAt: start, dueAt: new Date(start.getTime() + 7 * 864e5), paidAt: new Date(start.getTime() + 3 * 864e5) as Date | null, periodStart: null as Date | null, periodEnd: null as Date | null }];
@@ -181,14 +185,50 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
   const log = opts.log ?? (() => {});
   for (const cfg of tenantSeedConfigs(ctx, opts)) {
     // Wipe previous domain rows of this tenant (cascade from the parent tables).
-    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs]) {
+    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles]) {
       await db.delete(table).where(eq(table.tenantId, cfg.tenantId));
     }
     const started = Date.now();
     const ds = generateTenantDataset(cfg);
     const genMs = Date.now() - started;
     const counts = await writeDataset(db, ds);
+    if (cfg.key === "northwind") await seedCod(db, ctx, cfg.tenantId, opts.now ?? new Date());
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
+  }
+}
+
+/**
+ * Demo rows for `addon.cod` on the tenant that has the add-on: operator capacity, a day off,
+ * queue items for the open COD orders with a few attempts, and recipient profiles with risk tiers.
+ * The live queue sync, scoring and risk recompute take over from here.
+ */
+async function seedCod(db: ReturnType<typeof drizzle<typeof schema>>, ctx: SeedContext, tenantId: string, now: Date) {
+  const rng = createRng(2026);
+  const operators = ["ops@northwind.demo", "care@northwind.demo", "care2@northwind.demo"].map((e) => ctx.userIds[e]).filter((x): x is string => Boolean(x));
+  const hours = [[0, 8, 8, 8, 8, 8, 0], [0, 4, 4, 4, 4, 4, 0], [0, 6, 6, 0, 6, 6, 4]];
+  for (const [i, userId] of operators.entries()) await db.insert(schema.codOperatorCapacity).values({ tenantId, userId, dailyHours: hours[i]!, isActive: 1 }).onConflictDoNothing();
+  if (operators[1]) await db.insert(schema.codCapacityExceptions).values({ tenantId, userId: operators[1], date: new Date(now.getTime() + 2 * 864e5).toISOString().slice(0, 10), kind: "off", note: "Day off" }).onConflictDoNothing();
+  await db.insert(schema.codSettings).values({ tenantId, config: { queueCutoffDays: 60 } }).onConflictDoNothing();
+  const open = await db.execute<{ id: string; placed_at: Date }>(sql`select o.id, o.placed_at from orders o where o.tenant_id = ${tenantId} and o.payment_method = 'cod' and o.status in ('new','pending_review') and o.cancelled_at is null and not exists (select 1 from shipments s where s.order_id = o.id) and o.placed_at > ${new Date(now.getTime() - 60 * 864e5)} order by o.placed_at`);
+  // small test seeds may have no open COD order: fall back to recent COD orders as closed items so every table has rows
+  const isOpen = open.rows.length > 0;
+  const candidates = isOpen ? open.rows : (await db.execute<{ id: string; placed_at: Date }>(sql`select o.id, o.placed_at from orders o where o.tenant_id = ${tenantId} and o.payment_method = 'cod' order by o.placed_at desc limit 10`)).rows;
+  for (const [i, o] of candidates.entries()) {
+    const attempts = Math.max(i === 0 ? 1 : 0, rng.weighted([[0, 55], [1, 30], [2, 15]] as const));
+    const assignedTo = attempts > 0 || rng.chance(0.5) ? rng.pick(operators) : null;
+    const callBack = attempts > 0 && rng.chance(0.3);
+    const enteredAt = new Date(o.placed_at);
+    const [item] = await db.insert(schema.codQueueItems).values({ tenantId, orderId: o.id, status: !isOpen ? "left" : callBack ? "scheduled" : "pending", closedAt: isOpen ? null : now, assignedTo, assignedAt: assignedTo ? enteredAt : null, attemptsCount: attempts, noAnswerCount: callBack ? Math.max(0, attempts - 1) : attempts, lastAttemptAt: attempts ? new Date(enteredAt.getTime() + 3600e3 * attempts) : null, callBackAt: callBack ? new Date(now.getTime() + (i % 3 === 0 ? -2 : 6) * 3600e3) : null, enteredAt }).onConflictDoNothing().returning({ id: schema.codQueueItems.id });
+    if (!item) continue;
+    for (let n = 1; n <= attempts; n++) await db.insert(schema.codAttempts).values({ tenantId, queueItemId: item.id, orderId: o.id, operatorId: assignedTo, attemptNumber: n, outcome: callBack && n === attempts ? "call_back" : "no_answer", callBackAt: callBack && n === attempts ? new Date(now.getTime() + 6 * 3600e3) : null, createdAt: new Date(enteredAt.getTime() + 3600e3 * n) });
+    if (assignedTo) await db.insert(schema.codAssignmentLog).values({ tenantId, orderId: o.id, assignedTo, source: "cron", reason: "auto", assignedAt: enteredAt });
+  }
+  const returned = await db.execute<{ phone: string | null; email: string | null; n: number; last: Date }>(sql`select o.phone, o.email_normalized as email, count(*)::int as n, max(o.placed_at) as last from orders o where o.tenant_id = ${tenantId} and o.payment_method = 'cod' and o.status in ('returned','refunded') and (o.phone is not null or o.email_normalized is not null) group by 1, 2 order by n desc limit 12`);
+  for (const r of returned.rows) {
+    const key = r.phone ? normalizePhone(r.phone, "IT") ?? `email:${r.email}` : `email:${r.email}`;
+    const weighted = r.n;
+    const tier = weighted >= 3 ? "blacklisted" : weighted >= 2 ? "high_risk" : "watch";
+    await db.insert(schema.codRecipientProfiles).values({ tenantId, recipientKey: key, ordersTotal: r.n + 1, ordersDelivered: 1, ordersReturned: r.n, weightedReturns: weighted, consecutiveDeliveries: 0, tier, lastReturnAt: new Date(r.last), computedAt: now }).onConflictDoNothing();
   }
 }
 

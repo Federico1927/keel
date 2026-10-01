@@ -15,7 +15,11 @@ export default defineConfig({
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], launchOptions } }],
+  // The console spec toggles add-ons and billing for the demo tenants: it runs after everything else.
+  projects: [
+    { name: "chromium", use: { ...devices["Desktop Chrome"], launchOptions }, testIgnore: /admin\.spec\.ts/ },
+    { name: "admin", use: { ...devices["Desktop Chrome"], launchOptions }, testMatch: /admin\.spec\.ts/, dependencies: ["chromium"] },
+  ],
   webServer: process.env.E2E_NO_SERVER
     ? undefined
     : {

@@ -40,6 +40,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { page: "shipments", href: "/shipments", labelKey: "nav.shipments", icon: Truck },
       { page: "returns", href: "/returns", labelKey: "nav.returns", icon: RotateCcw },
       { page: "cod_queue", href: "/cod", labelKey: "nav.cod_queue", icon: PhoneCall },
+      { page: "cod_settings", href: "/cod/settings", labelKey: "nav.cod_settings", icon: PhoneCall },
     ],
   },
   {

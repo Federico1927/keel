@@ -32,7 +32,13 @@
       "ads_read_only": "Esta plataforma publicitaria es de solo lectura en esta versión.",
       "ads_platform_error": "La plataforma publicitaria rechazó la solicitud.",
       "invalid_rules": "Las reglas del segmento no son válidas.",
-      "addon_not_available": "Este add-on aún no está disponible."
+      "addon_not_available": "Este add-on aún no está disponible.",
+      "cod_not_in_queue": "Este pedido no está en la cola de confirmación.",
+      "cod_invalid_outcome": "Resultado no válido.",
+      "cod_operator_unavailable": "Ningún operador disponible hoy.",
+      "cod_forbidden": "Solo un administrador puede liberar un pedido tras registrar una llamada.",
+      "cod_not_found": "No encontrado.",
+      "cod_invalid_input": "Datos no válidos."
     },
     "edit": "Editar"
   },
@@ -150,7 +156,8 @@
     "integrations": "Integraciones",
     "users": "Usuarios",
     "settings": "Ajustes",
-    "audit": "Registro de auditoría"
+    "audit": "Registro de auditoría",
+    "cod_settings": "Ajustes contra reembolso"
   },
   "shell": {
     "open_menu": "Abrir menú",
@@ -1921,6 +1928,203 @@
       "actor": "Autor",
       "action": "Acción",
       "details": "Detalles"
+    }
+  },
+  "cod": {
+    "title": "Cola de confirmación contra reembolso",
+    "description": "Pedidos contra reembolso a la espera de llamada de confirmación, por prioridad: rellamadas vencidas, luego intentados, luego los más antiguos.",
+    "settings_link": "Ajustes",
+    "views": {
+      "all": "Cola",
+      "mine": "Míos",
+      "unassigned": "Sin asignar",
+      "scheduled": "Rellamar",
+      "unreachable": "Ilocalizables"
+    },
+    "empty_title": "Cola vacía",
+    "empty_description": "Los nuevos pedidos contra reembolso entran aquí automáticamente.",
+    "columns": {
+      "order": "Pedido",
+      "customer": "Cliente",
+      "total": "Total",
+      "score": "Puntuación de entrega",
+      "attempts": "Intentos",
+      "assigned": "Operador",
+      "waiting": "Esperando",
+      "operator": "Operador"
+    },
+    "unassigned": "sin asignar",
+    "hours_n": "{n} h",
+    "call_back_badge": "Rellamar {at}",
+    "claim": "Tomar",
+    "release": "Liberar",
+    "register_outcome": "Registrar llamada",
+    "outcome_title": "Resultado de la llamada para {order}",
+    "outcome_description": "Cada llamada es un intento con un resultado. Confirmado pasa el pedido a confirmado; la cancelación se hace desde las acciones del pedido.",
+    "outcomes": {
+      "confirmed": "Confirmado",
+      "no_answer": "No contesta",
+      "call_back": "Rellamar",
+      "modified": "Modificado",
+      "cancelled": "Cancelado"
+    },
+    "outcomes_hint": {
+      "confirmed": "El cliente confirmó",
+      "no_answer": "Cuenta para ilocalizable",
+      "call_back": "Elige fecha y hora",
+      "modified": "Cambios acordados, sigue en cola",
+      "cancelled": "El cliente renuncia; cancela desde el pedido"
+    },
+    "call_back_at": "Rellamar el",
+    "note_optional": "Nota (opcional)",
+    "save_outcome": "Guardar resultado",
+    "rescore": "Recalcular puntuaciones",
+    "rescored": "{n} elementos recalculados.",
+    "distribute": "Distribuir sin asignar",
+    "distributed": "{assigned} asignados, {skipped} omitidos.",
+    "kpi_title": "Operadores, últimos 7 días",
+    "confirmation_rate": "Tasa de confirmación",
+    "score": {
+      "none": "Sin puntuación",
+      "likely": "Entrega probable",
+      "uncertain": "Incierta",
+      "unlikely": "Entrega improbable"
+    },
+    "risk": {
+      "clean": "Limpio",
+      "watch": "Observar",
+      "high_risk": "Alto riesgo",
+      "blacklisted": "Lista negra sugerida"
+    },
+    "queue_status": {
+      "pending": "En cola",
+      "scheduled": "Rellamada programada",
+      "unreachable": "Ilocalizable",
+      "confirmed": "Confirmado por teléfono",
+      "cancelled": "Cancelado",
+      "left": "Salió de la cola"
+    },
+    "card_title": "Contra reembolso",
+    "weight_n": "peso {n}",
+    "informational": "informativo",
+    "attempts_title": "Intentos ({n})",
+    "factors": {
+      "customer_history": {
+        "name": "Historial del cliente",
+        "help": "Pedidos entregados vs rechazados/cancelados del mismo cliente, los recientes pesan más."
+      },
+      "cod_attempts": {
+        "name": "Intentos de contacto",
+        "help": "Cada llamada sin éxito baja la puntuación."
+      },
+      "time_elapsed": {
+        "name": "Tiempo en cola",
+        "help": "Los pedidos sin confirmar envejecen mal."
+      },
+      "cart_variants": {
+        "name": "Mismo producto, varias variantes",
+        "help": "Típico de carritos de probar y devolver."
+      },
+      "cart_quantity": {
+        "name": "Cantidades altas",
+        "help": "Tres o más unidades de un producto."
+      },
+      "address_quality": {
+        "name": "Calidad de la dirección",
+        "help": "Comprobaciones de teléfono, calle, código postal y ciudad por país."
+      },
+      "similar_orders": {
+        "name": "Pedidos similares en la zona",
+        "help": "Tasa de entrega de pedidos contra reembolso con el mismo código postal."
+      },
+      "order_value": {
+        "name": "Valor del pedido",
+        "help": "Muy por encima del pedido medio de la tienda."
+      },
+      "night_order": {
+        "name": "Pedido nocturno",
+        "help": "Realizado en las horas nocturnas configuradas."
+      },
+      "recent_cancellations": {
+        "name": "Cancelaciones recientes",
+        "help": "Pedidos cancelados por el cliente en los últimos 90 días, peor si del mismo producto."
+      },
+      "duplicate_orders": {
+        "name": "Pedidos duplicados",
+        "help": "Otro pedido de la misma persona en 5 días."
+      },
+      "prepaid_history": {
+        "name": "Historial prepagado",
+        "help": "Pedidos prepagados completados por el cliente."
+      }
+    },
+    "settings": {
+      "title": "Ajustes contra reembolso",
+      "description": "Operadores y horas, pesos y umbrales de la puntuación, riesgo de destinatarios. Nada actúa solo sobre los pedidos: el add-on aconseja, los operadores deciden.",
+      "operators_title": "Operadores y horas",
+      "operators_description": "Los pedidos se distribuyen en proporción a las horas trabajadas hoy (round-robin ponderado). Ausencias y horas extra anulan el plan semanal.",
+      "operator": "Operador",
+      "week": "Semana",
+      "active": "Activo",
+      "days": {
+        "sun": "Dom",
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mié",
+        "thu": "Jue",
+        "fri": "Vie",
+        "sat": "Sáb"
+      },
+      "exceptions_title": "Ausencias y turnos extra",
+      "date": "Fecha",
+      "kind": "Tipo",
+      "hours": "Horas",
+      "note": "Nota",
+      "kinds": {
+        "off": "Ausencia",
+        "extra": "Horas extra"
+      },
+      "weights_title": "Pesos de la puntuación de entrega",
+      "weights_description": "Pesos relativos 0–50. Un factor con peso 0 se muestra pero se ignora. La puntuación es la media ponderada de los factores activos, limitada luego por el nivel de riesgo del destinatario.",
+      "thresholds_title": "Umbrales",
+      "thresholds_description": "Parámetros de cola y puntuación.",
+      "fields": {
+        "unreachableAfterAttempts": "Ilocalizable tras N sin respuesta",
+        "queueCutoffDays": "Ventana de cola (días)",
+        "timeElapsedWarnHours": "Aviso tras horas en cola",
+        "customerHistoryHalfLifeDays": "Semivida del historial (días)",
+        "customerHistoryMinOrders": "Pedidos mínimos para el historial",
+        "similarOrdersLookbackDays": "Ventana pedidos similares (días)",
+        "similarOrdersMinSample": "Muestra mínima pedidos similares",
+        "orderValueMultiple": "Alerta de valor (× AOV)",
+        "risk_watchMinReturns": "Observar desde devoluciones",
+        "risk_highRiskMinReturns": "Alto riesgo desde devoluciones",
+        "risk_blacklistMinReturns": "Lista negra desde devoluciones",
+        "risk_recentMonths": "Ventana reciente (meses)",
+        "risk_redemptionConsecutiveDeliveries": "Entregas para rehabilitación"
+      },
+      "risk_title": "Riesgo de destinatarios",
+      "risk_description": "Devoluciones ponderadas por antigüedad (recientes 1,0, antiguas 0,5); un nivel de rehabilitación tras entregas consecutivas.",
+      "recipients_title": "Destinatarios en riesgo",
+      "recipients_description": "Solo sugerencias: nada se bloquea automáticamente. Las claves son teléfonos o emails, nunca nombres.",
+      "recompute_risk": "Recalcular desde el historial",
+      "risk_recomputed": "{profiles} destinatarios, {flagged} señalados.",
+      "recipient": "Destinatario",
+      "tier": "Nivel",
+      "returns": "Devoluciones (ponderadas)",
+      "delivered": "Entregados",
+      "last_return": "Última devolución",
+      "suggestion": "Sugerencia",
+      "suggest_blacklist": "Lista negra sugerida: verifica por teléfono antes de enviar",
+      "suggest_verify": "Verifica dirección e intención antes de enviar",
+      "overrides": {
+        "force_clean": "forzado limpio",
+        "force_blacklist": "forzado lista negra"
+      },
+      "override_reason": "Motivo (mín. 5 caracteres)",
+      "force_blacklist": "Lista negra",
+      "force_clean": "Marcar limpio",
+      "clear_override": "Quitar forzado"
     }
   }
 }

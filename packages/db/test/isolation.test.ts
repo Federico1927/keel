@@ -20,6 +20,8 @@ import { seedDomainForTests } from "./seed-for-tests";
 const PLATFORM_TABLES = new Set(["users", "accounts", "sessions", "verification_tokens", "tenants", "tenant_memberships", "tenant_addons"]);
 /** Tenant tables the seed may legitimately leave empty for one tenant. */
 const EMPTY_ALLOWED = new Set<string>(["tenant_addons"]);
+/** Add-on tables: only tenants with the add-on carry rows, so the seed populates tenant A alone. */
+const ADDON_ONLY = new Set<string>(["cod_settings", "cod_queue_items", "cod_attempts", "cod_operator_capacity", "cod_capacity_exceptions", "cod_assignment_log", "cod_recipient_profiles"]);
 
 const pools = testPools();
 let tenantA = "";
@@ -64,7 +66,7 @@ describe.each(tenantTables.map((t) => [getTableName(t), t] as const))("isolation
              count(*) filter (where tenant_id = ${tenantB}::uuid)::int as b
       from ${sql.identifier(name)}`);
     expect(r.rows[0]?.a, `${name}: no rows for tenant A`).toBeGreaterThan(0);
-    expect(r.rows[0]?.b, `${name}: no rows for tenant B`).toBeGreaterThan(0);
+    if (!ADDON_ONLY.has(name)) expect(r.rows[0]?.b, `${name}: no rows for tenant B`).toBeGreaterThan(0);
   });
 
   it("tenant A sees exactly its rows, tenant B none of A's", async () => {

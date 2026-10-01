@@ -1,5 +1,6 @@
 import { adminDb, and, eq, inArray, schema, withTenant } from "@keel/db";
 import { applySuspensions, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
+import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue } from "@keel/addon-cod";
 import { adsWindow, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
 
 export interface Enqueue {
@@ -55,6 +56,22 @@ export async function handleSyncAds(job: SyncAdsJob): Promise<void> {
 
 /** Fan-out: one job per connected tenant/provider, deduplicated by singleton key. */
 export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> {
+  if (job.kind === "cod") {
+    // add-on tick: only tenants with addon.cod active; queue sync, scoring, auto-assignment, risk profiles once a day
+    const addons = await adminDb().select({ tenantId: schema.tenantAddons.tenantId }).from(schema.tenantAddons).where(and(eq(schema.tenantAddons.moduleKey, "addon.cod"), eq(schema.tenantAddons.isActive, true)));
+    for (const a of addons) {
+      const [t] = await adminDb().select({ id: schema.tenants.id, timezone: schema.tenants.timezone, country: schema.tenants.country, status: schema.tenants.status }).from(schema.tenants).where(eq(schema.tenants.id, a.tenantId)).limit(1);
+      if (!t || t.status !== "active") continue;
+      await withTenant(t.id, async (tx) => {
+        const ctx = sys(t.id)(tx);
+        await syncQueue(ctx);
+        await scorePendingItems(ctx, { limit: 200, timezone: t.timezone });
+        await distributeUnassigned(ctx, { source: "cron", timezone: t.timezone, limit: 200 });
+        if (new Date().getUTCHours() === 2) await recomputeRecipientProfiles(ctx, undefined, t.country);
+      });
+    }
+    return;
+  }
   if (job.kind === "billing") {
     await issueDueInvoices(adminDb());
     await applySuspensions(adminDb());

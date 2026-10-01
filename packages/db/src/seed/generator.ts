@@ -565,7 +565,8 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
     const number = `PO-${orderedAt.getUTCFullYear()}${String(orderedAt.getUTCMonth() + 1).padStart(2, "0")}-${String(i + 1).padStart(3, "0")}`;
     const lineVariants = rng.shuffle(variants).slice(0, rng.int(3, 10));
     // prefer low-stock variants for incoming POs so coverage looks right
-    if (status === "in_transit" || status === "confirmed") for (const v of variants) if (v.isLow && rng.chance(0.3) && !lineVariants.includes(v)) lineVariants.push(v);
+    // Incoming purchase orders cover only half of the low-stock variants, so the demo always has products at risk with nothing on the way (CLAUDE.md §10).
+    if (status === "in_transit" || status === "confirmed") for (const [vi, v] of variants.entries()) if (v.isLow && vi % 2 !== 0 && rng.chance(0.3) && !lineVariants.includes(v)) lineVariants.push(v);
     let total = 0;
     for (const v of lineVariants) {
       const quantity = rng.int(10, 120);

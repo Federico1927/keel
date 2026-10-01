@@ -5,7 +5,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { adminDb, eq, inArray, schema } from "@keel/db";
 import { formatDateTime, formatMoney, daysInTransit } from "@keel/core";
 import { customerOrderHistory, duplicateSiblings } from "@keel/services";
-import { canDo, canWritePage, isPageEnabled } from "@keel/config";
+import { canDo, canViewPage, canWritePage, isPageEnabled } from "@keel/config";
 import { Alert, AlertDescription, AlertTitle, Badge, Button, Card, CardContent, CardHeader, CardTitle, DetailShell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { adjacentOrders, getOrderDetail } from "@/server/queries/orders";
@@ -13,6 +13,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { OrderActions } from "./actions-bar";
 import { Timeline } from "./timeline";
 import { NotesPanel } from "./notes";
+import { CodCard } from "./cod-card";
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
@@ -295,6 +296,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
         </Card>
       )}
 
+      {order.paymentMethod === "cod" && isPageEnabled("cod_queue", ctx.activeAddons) && canViewPage(ctx.role, "cod_queue") && <CodCard ctx={ctx} orderId={order.id} orderName={order.name} canWrite={canWritePage(ctx.role, "cod_queue")} />}
       {(returns.length > 0 || canRequestReturn) && (
         <Card>
           <CardHeader className="flex-row items-center justify-between space-y-0">

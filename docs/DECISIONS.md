@@ -191,3 +191,19 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · Impersonation is implicit access made explicit in the audit log
 
 **Decision.** A super-admin without a membership opens any tenant as `owner`; the context marks it as impersonation, the topbar shows the banner, and `auditActor(ctx)` stamps every server action with `actorType: impersonation` and `impersonatedBy`. The console's "Open as support" button also writes `impersonation.started`, so a support session has a visible beginning in the platform audit log. No separate impersonation token or cookie: there is nothing to leak or to forget to expire.
+
+## 2026-10-01 · The COD add-on is a separate package the core never imports
+
+**Decision.** Everything cash-on-delivery lives in `@keel/addon-cod` (pure logic, services and tests) plus its own tables; `apps/web` and `packages/jobs` import it behind the `addon.cod` flag, and the core packages (`core`, `services`) have no reference to it. The queue reads canonical states (`new`, `pending_review`) and writes back only through the core's manual status, so the add-on cannot invent order states. This is the guiding principle of CLAUDE.md made structural: removing the package leaves the core intact.
+
+## 2026-10-01 · Explicit outcome machine, advice-only risk
+
+**Decision.** Each call is an attempt with an outcome (`confirmed`, `no_answer`, `call_back`, `modified`, `cancelled`); `unreachable` arrives after N `no_answer` (tenant setting) and parks the order `on_hold` with a visible reason, instead of being inferred from tags as in the reference. The delivery score is a weighted mean of the factors that fire, listed with weight, raw value and detail so an operator can argue with it; the recipient tier only caps it. Risk profiles key on phone or email, never on names, show masked keys, and produce text suggestions (verify, suggest blacklist); nothing is cancelled or blocked automatically, and overrides require a written reason.
+
+## 2026-10-01 · Fair-share assignment is per day and per hours
+
+**Decision.** Operators declare hours per weekday plus day-off or extra-hours exceptions; the next order goes to the operator with the largest debt `hours/teamHours × (assigned + 1) − assigned` (smooth weighted round-robin). Every assignment, manual or automatic, is logged and counts toward the day's quota. Once an operator has registered a call, only an admin can release or transfer the order, so nobody drops a half-worked order back into the pool.
+
+## 2026-10-01 · Demo guarantees must not depend on the clock
+
+**Decision.** The generator is deterministic for a given `now`, but a reseed at another hour shifts the random stream and the "interesting" states (products running out, failing campaigns) could vanish. Where CLAUDE.md §10 promises something, the generator now enforces it structurally (half of the low-stock variants never get an incoming purchase order) instead of relying on probability. Remaining probabilistic traits are documented in EVALUATION.
