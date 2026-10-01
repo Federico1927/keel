@@ -39,10 +39,11 @@ export function MembersTable({ slug, currentUserId, actorRole, locale, timezone,
                   <TableCell>
                     {editable ? (
                       <Select
+                        size="sm"
                         aria-label={t("role")}
                         defaultValue={m.role}
                         disabled={pending}
-                        className="h-8 w-40"
+                        className="w-40"
                         onChange={(e) => start(() => void changeMemberRole(slug, m.userId, e.target.value))}
                       >
                         {TENANT_ROLES.filter((r) => canManageRole(actorRole, r)).map((r) => (

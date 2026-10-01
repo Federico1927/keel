@@ -4,7 +4,10 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import bcrypt from "bcryptjs";
 import { adminDb, eq, schema } from "@keel/db";
 import { z } from "zod";
+import { cookies } from "next/headers";
+import { isLocale } from "@keel/config";
 import { authConfig } from "./auth.config";
+import { LOCALE_COOKIE } from "./i18n/request";
 
 const credentialsSchema = z.object({ email: z.string().email(), password: z.string().min(1) });
 
@@ -62,6 +65,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   events: {
     async signIn({ user }) {
       if (user.id) await db().update(schema.users).set({ lastLoginAt: new Date() }).where(eq(schema.users.id, user.id));
+      // a language chosen on the profile (or with the picker) follows the user to every device
+      const locale = (user as { locale?: string | null }).locale;
+      if (isLocale(locale)) (await cookies()).set(LOCALE_COOKIE, locale, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
     },
   },
 });

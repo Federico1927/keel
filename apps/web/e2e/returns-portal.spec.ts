@@ -21,6 +21,10 @@ async function deliveredOrders(page: Page): Promise<{ name: string; email: strin
 }
 
 test.describe("customer return portal", () => {
+  test("both demo portals are public (smoke check of the demo settings)", async ({ request }) => {
+    for (const slug of ["northwind-apparel", "harbor-home"]) expect((await request.get(`/r/${slug}`)).status(), slug).toBe(200);
+  });
+
   test("a customer returns an item through the portal and the team sees it, written to the store", async ({ page, browser }) => {
     await login(page, "owner@northwind.demo");
     const candidates = await deliveredOrders(page);

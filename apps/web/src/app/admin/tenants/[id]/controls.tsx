@@ -24,7 +24,7 @@ export function AddonToggle({ tenantId, moduleKey, active, available }: { tenant
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Switch checked={active} disabled={!available || pending} aria-label={moduleKey} data-testid={`addon-${moduleKey}`} onCheckedChange={(v) => start(async () => { await setAddonAction(tenantId, moduleKey, v, note || null); router.refresh(); })} />
-      {available && <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("addon_note")} className="h-8 w-44" />}
+      {available && <Input size="sm" value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("addon_note")} className="w-44" />}
     </div>
   );
 }
@@ -34,7 +34,7 @@ export function PlanSelect({ tenantId, planKey }: { tenantId: string; planKey: s
   const router = useRouter();
   const [pending, start] = useTransition();
   return (
-    <Select value={planKey} disabled={pending} className="h-8 w-40" aria-label="plan" onChange={(e) => start(async () => { await setPlanAction(tenantId, e.target.value); router.refresh(); })}>
+    <Select size="sm" value={planKey} disabled={pending} className="w-40" aria-label="plan" onChange={(e) => start(async () => { await setPlanAction(tenantId, e.target.value); router.refresh(); })}>
       {PLAN_KEYS.map((p) => <option key={p} value={p}>{tp(p)}</option>)}
     </Select>
   );

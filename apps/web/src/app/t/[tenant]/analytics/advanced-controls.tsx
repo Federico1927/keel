@@ -89,7 +89,7 @@ export function AlertRuleForm({ slug, metrics, members }: { slug: string; metric
       )}
       <div className="flex flex-wrap items-center gap-4 text-sm">
         {(["in_app", "email", "slack"] as const).map((c) => <label key={c} className="flex items-center gap-1"><input type="checkbox" name={`ch_${c}`} defaultChecked={c === "in_app"} className="h-4 w-4" /> {t(`channels.${c}`)}</label>)}
-        <span className="flex items-center gap-1"><Label htmlFor="ar-cool">{t("cooldown")}</Label><Input id="ar-cool" name="cooldownHours" type="number" min={1} max={168} defaultValue={24} className="h-8 w-20" /></span>
+        <span className="flex items-center gap-1"><Label htmlFor="ar-cool">{t("cooldown")}</Label><Input size="sm" id="ar-cool" name="cooldownHours" type="number" min={1} max={168} defaultValue={24} className="w-20" /></span>
       </div>
       <div className="space-y-1">
         <Label htmlFor="ar-rec">{t("recipients")}</Label>
