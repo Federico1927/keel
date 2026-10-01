@@ -62,7 +62,7 @@ The table is updated at the end of every area: rows that moved from ABSENT/PARTI
 | # | Feature | Status | What is missing | Effort | External |
 | --- | --- | --- | --- | --- | --- |
 | 4.1 | Dynamic segments in real time, synced to Meta Custom Audiences and Google Customer Match | PARTIAL | Segments are evaluated on demand and memberships stored. No incremental re-evaluation on order events, no audience sync. | M | **EXTERNAL**: ads accounts with audience permissions (adapter + mock) |
-| 4.2 | Per-customer predictions: repurchase probability, next order date, expected LTV, churn risk | ABSENT | Pure model on inter-purchase times (recency/frequency based), stored per customer, usable in segments. | M | — |
+| 4.2 | Per-customer predictions: repurchase probability, next order date, expected LTV, churn risk | DONE | MBG/NBD + Gamma-Gamma fitted per tenant (`packages/core/src/predictions.ts`), back-tested on the last 180 days, stored per customer, nightly and on demand; four segment fields; Predictions tab, customer card. | M | — |
 | 4.3 | Export of segments to email tools through an adapter | PARTIAL | CSV export and a `MessagingChannel` interface. No `AudienceDestination` adapter, no push. | S | Email tool API keys (mock) |
 | 4.4 | Campaigns with control group and incremental margin | PARTIAL | Holdout assignment and two-proportion test exist. No campaign entity, no exposure log, no incremental margin report. | M | — |
 

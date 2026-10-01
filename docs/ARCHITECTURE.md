@@ -110,7 +110,7 @@ Failed events are retried by the `retry` tick every 10 minutes up to a maximum n
 - `runAdsSync(provider, window)` pulls campaigns and daily insights in resumable date windows; recent days are re-pulled because platforms restate them.
 - Each run writes `integration_health` (ok/error, last error text, rows written, freshness) which the Integrations page shows together with "Test connection" and "Resync".
 
-Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00, billing at 04:30, COD tick every 10 min.
+Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00, billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40.
 
 ### Attribution
 

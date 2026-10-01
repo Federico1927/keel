@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { formatDate, formatMoney, formatNumber } from "@keel/core";
+import { formatDate, formatMoney, formatNumber, formatPercent } from "@keel/core";
 import { customerDetail } from "@keel/services";
 import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
 import { TierBadge } from "../tier-badge";
+import { ChurnBadge } from "../churn-badge";
 
 export default async function CustomerDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
@@ -14,10 +15,11 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
   const t = await getTranslations("customer_detail");
   const tc = await getTranslations("customers");
   const tp = await getTranslations("payment_methods");
+  const tpr = await getTranslations("predictions");
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const detail = await ctx.run((tx) => customerDetail({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, id));
   if (!detail) notFound();
-  const { customer: c, orders, segments } = detail;
+  const { customer: c, orders, segments, prediction: p } = detail;
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   const name = [c.firstName, c.lastName].filter(Boolean).join(" ") || c.email || "—";
   return (
@@ -42,6 +44,24 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
               <p>{c.email ?? "—"}</p>
               <p>{c.phone ?? "—"}</p>
               <p className="text-muted-foreground">{t("customer_since", { date: c.firstOrderAt ? formatDate(c.firstOrderAt, ctx.locale, ctx.tenant.timezone) : c.platformCreatedAt ? formatDate(c.platformCreatedAt, ctx.locale, ctx.tenant.timezone) : "—" })}</p>
+            </CardContent>
+          </Card>
+          <Card data-testid="prediction-card">
+            <CardHeader><CardTitle className="text-base">{tpr("card_title")}</CardTitle></CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              {!p ? (
+                <p className="text-muted-foreground">{tpr("card_none")}</p>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between gap-2"><span className="text-muted-foreground">{tpr("columns.risk")}</span><ChurnBadge risk={p.churnRisk} /></div>
+                  <div className="flex items-center justify-between gap-2"><span className="text-muted-foreground">{tpr("columns.p_alive")}</span><span className="tabular">{formatPercent(p.pAlive, ctx.locale, 0)}</span></div>
+                  <div className="flex items-center justify-between gap-2"><span className="text-muted-foreground">{tpr("card_expected_orders")}</span><span className="tabular">{formatNumber(p.expectedOrders90, ctx.locale, { maximumFractionDigits: 2 })} · {formatNumber(p.expectedOrders365, ctx.locale, { maximumFractionDigits: 2 })}</span></div>
+                  <div className="flex items-center justify-between gap-2"><span className="text-muted-foreground">{tpr("card_order_value")}</span><span className="tabular">{money(p.expectedOrderValueMinor)}</span></div>
+                  <div className="flex items-center justify-between gap-2"><span className="text-muted-foreground">{tpr("columns.predicted_value")}</span><span className="font-medium tabular">{money(p.predictedValue365Minor)}</span></div>
+                  <div className="flex items-center justify-between gap-2"><span className="text-muted-foreground">{tpr("columns.next_order")}</span><span className="tabular">{p.nextOrderAt ? formatDate(p.nextOrderAt, ctx.locale, ctx.tenant.timezone) : "—"}</span></div>
+                  <p className="text-xs text-muted-foreground">{tpr("card_computed", { at: formatDate(p.computedAt, ctx.locale, ctx.tenant.timezone) })}</p>
+                </>
+              )}
             </CardContent>
           </Card>
           <Card>

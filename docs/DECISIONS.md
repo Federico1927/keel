@@ -407,3 +407,27 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · Number formatting forces grouping
 
 **Decision.** `apps/landing/src/lib/format.ts` passes `useGrouping: "always"`. Italian CLDR data groups four-digit numbers only from some ICU versions on: Node 22 prints `1000`, Chromium 141 prints `1.000`. The pricing component renders those strings on the server and again in the browser, so the difference broke hydration on the Italian page in production builds (not in `next dev`). A unit test pins the expected output.
+
+## 2026-10-01 · Customer predictions with MBG/NBD and Gamma-Gamma, fitted per tenant
+
+**Decision.** `packages/core/src/predictions.ts` fits two textbook "buy till you die" models by maximum likelihood (Nelder–Mead in log space, no dependency): MBG/NBD for purchase rate and drop-out, Gamma-Gamma for order value. Per customer it gives P(active), expected orders at 90 and 365 days, expected order value, predicted value over 12 months and an expected next-order date: last order plus the customer's own average gap, or the store's median gap to the second order for one-time buyers; none when the risk is high. Purchases on the same calendar day count once. Only sale-scope orders count, as in the profile and the P/L. The fit needs at least 50 customers; below that the tenant gets an "insufficient data" model row and no predictions. `a` is kept above 1 so the expected-purchases formula is defined. Every run back-tests itself: fit on orders up to 180 days ago, predict the following 180 days, compare with what happened. The page shows the result next to the predictions.
+
+**Alternatives.** BG/NBD (rejected: a one-time buyer can never drop out, so P(active) stays 1 for most customers of a typical store). Pareto/NBD (rejected: same quality, harder numerics). A gradient-boosted classifier on RFM features (rejected: needs labelled history per store, is harder to explain, and needs a training pipeline; this model fits in under a second per tenant and has published, checkable formulas). Recency thresholds only (rejected: ignores each customer's own rhythm).
+
+## 2026-10-01 · Churn risk is P(active) in three bands, thresholds per tenant
+
+**Decision.** Churn risk is low when P(active) is at least 70%, medium from 40%, high below. Both thresholds are tenant settings (`churnLowPct`, `churnMediumPct`); medium is clamped to never exceed low. Predictions are recomputed nightly at 03:40 UTC, after the reconciliation, and on demand by anyone who can edit segments. The stored rows are replaced on every run, so a customer whose orders are cancelled loses the prediction.
+
+**Alternatives.** Relative bands by percentile (rejected: "high risk" would exist even in a store where everyone is active). Probability of no purchase in the next 90 days (rejected: it marks every slow but loyal customer as at risk).
+
+## 2026-10-01 · Demo customers follow a lifecycle
+
+**Decision.** The seed generator used to pick each order's customer by a skewed index with no notion of time, so no customer ever stopped buying. Fitted on that data, the prediction model put 94% of customers at low risk. `lifecycleCustomerSequence` now simulates each customer: acquisition (a third before the data window), a personal purchase rate (Gamma), and a drop-out chance after each purchase (Beta, mean 26%). It then maps the event sequence by rank onto the seasonal order dates the generator already samples, so volume, seasonality and growth are unchanged. On the demo the back-test error is 0.8% (Northwind) and −12.5% (Harbor, partly the generator's growth trend), and churn risk spreads across all three bands. The isolation suite now seeds at 3% instead of 1%, so both demo tenants have the 50 customers the model needs; it still runs in about 8 seconds.
+
+**Alternatives.** Retrying a pick until it lands on an active customer (tried: surviving customers then buy faster as others lapse, and the back-test under-predicted by 27%). Lowering the model's customer minimum so the 1% test seed fits (rejected: a product limit should not bend to a test fixture).
+
+## 2026-10-01 · The customer profile CTE is materialized
+
+**Decision.** Every query over the customer profile (`with p as materialized (...)` in `packages/services/src/crm/index.ts`) now computes the per-customer aggregates once. Without the hint, Postgres inlined the CTE and misestimated the RFM `case` filters. It then re-ran the order aggregations inside a nested loop: the segment preview's sample query took 4.4 s on Northwind and now takes 0.24 s.
+
+**Alternatives.** A materialized view of profiles refreshed by a job (rejected for now: the profile must reflect orders immediately, and the hint fixes the measured cost).

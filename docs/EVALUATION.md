@@ -98,7 +98,7 @@ Non richiesto ma necessario prima della produzione:
 7. **Pilota di quattro settimane gratuito con il primo cliente**, con revisione settimanale di: regole di stato, attribuzione campagne, soglie semaforo. Raccogliere i casi in cui lo stato canonico è sbagliato.
 8. **Stripe in test mode end-to-end**: Checkout per la carta, webhook `invoice.paid`, poi chiavi live. Due giorni.
 9. **Pagine legali e GDPR minime**: DPA, esportazione dati del tenant, cancellazione su richiesta. Tre giorni con un modello.
-10. **Prezzo e contratto**: fee di installazione (già nei piani: 490/990/1.990 €) coperta dalle ore dei passi 2, 3 e 6; abbonamento Growth al primo cliente con uno sconto a tempo. Passare da pilota a pagante alla fine delle quattro settimane.
+10. **Prezzo e contratto**: fee di installazione (già nei piani: 490/1.500/3.000 $) coperta dalle ore dei passi 2, 3 e 6; abbonamento Growth al primo cliente con uno sconto a tempo. Passare da pilota a pagante alla fine delle quattro settimane.
 
 ## 8. Come valutare il prodotto in trenta minuti
 
