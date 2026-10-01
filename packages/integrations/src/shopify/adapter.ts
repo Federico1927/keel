@@ -191,10 +191,17 @@ export class ShopifyCommercePlatform implements CommercePlatform {
    * Draft order → complete with payment pending. To verify on a real account: tax behaviour,
    * shipping line and the COD gateway name depend on the shop's settings.
    */
-  async createOrder(input: CreateOrderInput): Promise<NormalizedOrder> {
+  async createInvoiceOrder(input: CreateOrderInput): Promise<{ draftExternalId: string; invoiceUrl: string | null }> {
+    const created = await this.mutate("draftOrderCreate", `mutation($input: DraftOrderInput!) { draftOrderCreate(input: $input) { draftOrder { id invoiceUrl } userErrors { field message } } }`, { input: this.draftInput(input) });
+    const draft = created.draftOrder as { id: string; invoiceUrl: string | null };
+    const sent = await this.mutate("draftOrderInvoiceSend", `mutation($id: ID!) { draftOrderInvoiceSend(id: $id) { draftOrder { id invoiceUrl } userErrors { field message } } }`, { id: draft.id });
+    return { draftExternalId: gidToId(draft.id) ?? draft.id, invoiceUrl: ((sent.draftOrder as { invoiceUrl?: string | null } | undefined)?.invoiceUrl ?? draft.invoiceUrl) || null };
+  }
+
+  private draftInput(input: CreateOrderInput): Rec {
     const a = input.shippingAddress;
     const address = a ? { address1: a.address1 ?? null, address2: a.address2 ?? null, city: a.city ?? null, provinceCode: a.province ?? null, zip: a.zip ?? null, countryCode: a.country ?? null, phone: input.phone ?? a.phone ?? null, firstName: a.name?.split(" ")[0] ?? null, lastName: a.name?.split(" ").slice(1).join(" ") || null } : null;
-    const draft: Rec = {
+    return {
       lineItems: input.lines.map((l) => (l.variantExternalId ? { variantId: idToGid("ProductVariant", l.variantExternalId), quantity: l.quantity } : { title: l.title, quantity: l.quantity, originalUnitPrice: (l.unitPriceMinor / 100).toFixed(2) })),
       email: input.email,
       phone: input.phone,
@@ -206,6 +213,10 @@ export class ShopifyCommercePlatform implements CommercePlatform {
       ...(input.shippingMinor > 0 ? { shippingLine: { title: "Shipping", price: (input.shippingMinor / 100).toFixed(2) } } : {}),
       ...(input.discountMinor > 0 ? { appliedDiscount: { valueType: "FIXED_AMOUNT", value: input.discountMinor / 100, title: "Keel" } } : {}),
     };
+  }
+
+  async createOrder(input: CreateOrderInput): Promise<NormalizedOrder> {
+    const draft = this.draftInput(input);
     const created = await this.mutate("draftOrderCreate", `mutation($input: DraftOrderInput!) { draftOrderCreate(input: $input) { draftOrder { id } userErrors { field message } } }`, { input: draft });
     const draftId = String((created.draftOrder as Rec).id);
     const completed = await this.mutate("draftOrderComplete", `mutation($id: ID!) { draftOrderComplete(id: $id, paymentPending: true) { draftOrder { order { id legacyResourceId } } userErrors { field message } } }`, { id: draftId });

@@ -78,6 +78,13 @@
       "when": 1790868881214,
       "tag": "0010_hard_black_cat",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790871015488,
+      "tag": "0011_absurd_sharon_carter",
+      "breakpoints": true
     }
   ]
 }

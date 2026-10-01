@@ -1777,7 +1777,24 @@
       "returnless": "refunded without return"
     },
     "mark_reviewed": "Mark as reviewed",
-    "flag_review": "Flag for review"
+    "flag_review": "Flag for review",
+    "exchange": {
+      "title": "Exchange",
+      "credit_title": "Store credit",
+      "customer_pays": "The customer pays {amount} more (payment link).",
+      "we_refund": "We refund {amount} of difference.",
+      "even": "Even exchange.",
+      "invoice": "Payment link sent to the customer",
+      "order": "Exchange order",
+      "bonus": "Credit bonus: {amount}",
+      "voucher_on_store": "Voucher code created on the store.",
+      "guarantee": {
+        "authorized": "Instant exchange: {amount} held on the card until {date}.",
+        "voided": "Instant exchange: goods received, hold of {amount} released.",
+        "captured": "Instant exchange: goods not received, {amount} charged.",
+        "failed": "Instant exchange: the card hold failed, ship only after the goods arrive."
+      }
+    }
   },
   "return_new": {
     "title": "Return for {order}",
@@ -1821,7 +1838,9 @@
       "excluded_tag": "not returnable (collection)",
       "final_sale": "final sale",
       "expired": "return window closed"
-    }
+    },
+    "exchange_for": "Exchange {title} for",
+    "exchange_none": "Exchange for: decide later"
   },
   "returns_analytics": {
     "title": "Returns analysis",
@@ -2993,7 +3012,13 @@
       "bank_hint": "Your order was not paid online: tell us where to send the refund.",
       "holder": "Account holder",
       "note": "Anything to add?",
-      "submit": "Send request"
+      "submit": "Send request",
+      "exchange_for": "Exchange {item} for",
+      "exchange_choose": "Choose a size or colour",
+      "pay_difference": "You will pay the difference of {amount} with a payment link.",
+      "refund_difference": "We will refund the difference of {amount}.",
+      "even_exchange": "Same price: nothing to pay.",
+      "credit_bonus": "Store credit: {amount}, including a {pct}% bonus."
     },
     "resolutions": {
       "refund": "A refund",
@@ -3123,6 +3148,15 @@
       "none": "Normal",
       "watch": "Watch",
       "high": "High"
-    }
+    },
+    "exchanges_title": "Exchanges and store credit",
+    "exchanges_hint": "Exchanges for another variant of the same product, with the price difference paid through a payment link or refunded.",
+    "credit_bonus": "Store credit bonus (%)",
+    "credit_bonus_hint": "Extra credit when the customer picks a voucher instead of a refund.",
+    "exchanges_on": "Allow exchanges for another variant",
+    "refund_difference": "Refund the difference when the new item costs less",
+    "instant_on": "Instant exchange: ship the replacement at approval, with a card hold",
+    "instant_days": "Days to send the goods back",
+    "instant_hint": "The hold is released when the goods arrive and charged after the deadline. It needs a card payment provider: in this version the hold is simulated."
   }
 }

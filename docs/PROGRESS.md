@@ -217,6 +217,17 @@ Fatto (issue #5, prima parte):
 
 Resta per la issue #5: cambi con differenza da pagare e bonus sul buono (3.3, 3.5), analisi per opzione e costo dei resi nel P/L (3.9), pagina di tracking per il cliente (3.10), interfacce esterne per cambio immediato ed etichette (3.4, 3.7).
 
+## Programma di profondità — Area 3, terzo blocco (cambi, buoni, cambio immediato)
+
+Fatto (issue #5, seconda parte):
+- Cambio con un'altra variante disponibile dello stesso prodotto, dal portale e dallo staff. La differenza di prezzo si paga con un link di pagamento del negozio (draft order con fattura), oppure si rimborsa se il nuovo articolo costa meno. L'ordine pagato si ricollega al reso.
+- Bonus sul buono configurabile, mostrato al cliente e aggiunto al credito. Il buono diventa un codice monouso a importo fisso creato sul negozio (prima esisteva solo in Keel).
+- Cambio immediato: il sostituto parte all'approvazione con un blocco sulla carta del valore della merce, rilasciato all'arrivo e addebitato dal job dopo la scadenza. Il fornitore di pagamento è dietro un'interfaccia con mock.
+- Seed: cambi con variante e differenza, bonus sui buoni, impostazioni per entrambi i negozi.
+- Migrazione 0011 (1 tabella con RLS, colonne additive); test core 121, integrazioni 28, servizi 55, db 420, e2e 53.
+
+Resta per la issue #5: analisi per opzione e costo dei resi nel P/L (3.9), pagina di tracking per il cliente (3.10), interfaccia del fornitore di etichette (3.7), fornitore reale per il blocco sulla carta.
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

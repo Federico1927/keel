@@ -5,7 +5,8 @@ import { encryptJson } from "@keel/integrations";
 import { canWritePage, isTenantRole } from "@keel/config";
 import type { ServiceContext } from "../context";
 import { notifyUsers } from "../notifications";
-import { ReturnError, createReturn, listReturnReasons, orderReturnContext } from "./index";
+import { ReturnError, createReturn, exchangeOptions, listReturnReasons, orderReturnContext } from "./index";
+import { getReturnPolicy } from "./policy";
 
 /* ---------- configuration ---------- */
 
@@ -116,7 +117,9 @@ export interface PortalOrderView {
   ineligibleReason: string | null;
   deadline: Date | null;
   needsBankDetailsFor: string[];
-  lines: { id: string; title: string; variantTitle: string | null; returnable: number; unitNetMinor: number }[];
+  lines: { id: string; title: string; variantTitle: string | null; returnable: number; unitNetMinor: number; exchangeOptions: { variantId: string; title: string; priceMinor: number }[] }[];
+  /** Extra credit when choosing a voucher (basis points). */
+  creditBonusBps: number;
   /** Lines the customer cannot return, with the reason (final sale, excluded, window closed). */
   blocked: { id: string; title: string; variantTitle: string | null; block: string }[];
   returns: { number: number; status: string; requestedAt: Date; resolution: string }[];
@@ -150,7 +153,10 @@ export async function portalLookup(ctx: ServiceContext, settings: TenantSettings
 export async function portalOrderView(ctx: ServiceContext, settings: TenantSettings, config: ReturnPortalConfig, orderId: string, token: string): Promise<PortalOrderView> {
   const rc = await orderReturnContext(ctx, settings, orderId);
   const returns = await ctx.tx.select({ number: schema.returnRequests.number, status: schema.returnRequests.status, requestedAt: schema.returnRequests.requestedAt, resolution: schema.returnRequests.resolution }).from(schema.returnRequests).where(and(eq(schema.returnRequests.tenantId, ctx.tenantId), eq(schema.returnRequests.orderId, orderId))).orderBy(desc(schema.returnRequests.requestedAt));
-  const lines = rc.lines.filter((l) => !l.excluded && l.returnable > 0).map((l) => ({ id: l.id, title: l.title, variantTitle: l.variantTitle, returnable: l.returnable, unitNetMinor: l.unitNetMinor }));
+  const policy = await getReturnPolicy(ctx);
+  const open = rc.lines.filter((l) => !l.excluded && l.returnable > 0);
+  const options = policy.exchanges.enabled && config.resolutions.includes("exchange") ? await exchangeOptions(ctx, open.map((l) => l.id)) : {};
+  const lines = open.map((l) => ({ id: l.id, title: l.title, variantTitle: l.variantTitle, returnable: l.returnable, unitNetMinor: l.unitNetMinor, exchangeOptions: (options[l.id] ?? []).filter((o) => o.title !== l.variantTitle).map((o) => ({ variantId: o.variantId, title: o.title, priceMinor: o.priceMinor })) }));
   return {
     token,
     orderName: rc.order.name,
@@ -162,6 +168,7 @@ export async function portalOrderView(ctx: ServiceContext, settings: TenantSetti
     deadline: rc.eligibility.deadline,
     needsBankDetailsFor: config.resolutions.filter((r) => needsBankDetails(config, rc.order.paymentMethod, r)),
     lines,
+    creditBonusBps: policy.creditBonusBps,
     blocked: rc.lines.filter((l) => l.block && l.maxQuantity > 0).map((l) => ({ id: l.id, title: l.title, variantTitle: l.variantTitle, block: l.block! })),
     returns,
   };
@@ -211,6 +218,7 @@ export interface PortalSubmitInput {
   confirmed?: boolean;
   locale?: string | null;
   idempotencyKey?: string | null;
+  exchangeLines?: { orderLineId: string; variantId: string; quantity: number }[];
 }
 
 export async function portalSubmit(ctx: ServiceContext, settings: TenantSettings, config: ReturnPortalConfig, session: PortalSession, input: PortalSubmitInput): Promise<{ id: string; number: number; duplicate: boolean }> {
@@ -229,7 +237,8 @@ export async function portalSubmit(ctx: ServiceContext, settings: TenantSettings
     tracking = normalizeTrackingCode(input.trackingCode);
     if (!tracking) throw new PortalError("tracking_invalid");
   } else if (config.tracking.mode === "required") throw new PortalError("tracking_required");
-  if (resolution === "exchange" && config.exchangeNoteRequired && !input.exchangeNote?.trim()) throw new PortalError("exchange_note_required");
+  // a chosen variant says what the customer wants; otherwise the note must
+  if (resolution === "exchange" && config.exchangeNoteRequired && !input.exchangeNote?.trim() && !input.exchangeLines?.some((l) => l.quantity > 0)) throw new PortalError("exchange_note_required");
   const answers = validatePortalAnswers(config.fields, input.answers ?? {});
   if (!answers.ok) throw new PortalError("fields_invalid", answers.errors);
   if (Object.keys(config.confirmText).length && !input.confirmed) throw new PortalError("confirm_required");
@@ -259,6 +268,7 @@ export async function portalSubmit(ctx: ServiceContext, settings: TenantSettings
       bankDetailsEnc,
       customerLocale: input.locale ?? null,
       idempotencyKey: input.idempotencyKey ?? null,
+      exchangeLines: resolution === "exchange" ? input.exchangeLines : undefined,
     });
   } catch (e) {
     if (e instanceof ReturnError) throw new PortalError(e.code === "not_eligible" ? "not_eligible" : "invalid_input", e.code);

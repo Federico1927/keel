@@ -60,6 +60,7 @@ export function PortalApp(p: PortalProps) {
   const [holder, setHolder] = useState("");
   const [iban, setIban] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+  const [exchangeFor, setExchangeFor] = useState<Record<string, string>>({});
   const [photos, setPhotos] = useState<{ id: string; url: string }[]>([]);
   const [done, setDone] = useState<number | null>(null);
   const newKey = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
@@ -70,6 +71,10 @@ export function PortalApp(p: PortalProps) {
   const showError = (code: string, extra?: Record<string, string>) => setError(t.has(`errors.${code}`) ? t(`errors.${code}`, extra?.retryAfter ? { minutes: Math.ceil(Number(extra.retryAfter) / 60) } : undefined) : t("errors.generic"));
   const needsBank = view?.needsBankDetailsFor.includes(resolution) ?? false;
   const selected = Object.entries(qty).filter(([, q]) => q > 0);
+  const chosenExchange = resolution === "exchange" ? selected.filter(([id]) => exchangeFor[id]).map(([id, q]) => ({ orderLineId: id, variantId: exchangeFor[id]!, quantity: q })) : [];
+  const credit = view ? selected.reduce((sum, [id, q]) => sum + q * (view.lines.find((l) => l.id === id)?.unitNetMinor ?? 0), 0) : 0;
+  const newItems = view ? chosenExchange.reduce((sum, e) => sum + e.quantity * (view.lines.find((l) => l.id === e.orderLineId)?.exchangeOptions.find((o) => o.variantId === e.variantId)?.priceMinor ?? 0), 0) : 0;
+  const bonus = view && resolution === "voucher" ? Math.round((credit * view.creditBonusBps) / 10000) : 0;
 
   const lookup = () =>
     start(async () => {
@@ -114,6 +119,7 @@ export function PortalApp(p: PortalProps) {
         resolution,
         customerNote: note || null,
         exchangeNote: resolution === "exchange" ? exchangeNote : null,
+        exchangeLines: chosenExchange.length ? chosenExchange : undefined,
         trackingCode: p.tracking.mode !== "off" ? tracking || null : null,
         trackingCarrier: p.tracking.mode !== "off" ? carrier || null : null,
         bankHolder: needsBank ? holder : null,
@@ -239,7 +245,32 @@ export function PortalApp(p: PortalProps) {
                     </Select>
                   </div>
                 </section>
-                {resolution === "exchange" && (
+                {resolution === "exchange" && selected.some(([id]) => (view.lines.find((l) => l.id === id)?.exchangeOptions.length ?? 0) > 0) && (
+                  <section className="space-y-2" data-testid="portal-exchange">
+                    {selected.map(([id]) => {
+                      const line = view.lines.find((l) => l.id === id)!;
+                      if (!line.exchangeOptions.length) return null;
+                      return (
+                        <div key={id} className="space-y-1.5">
+                          <Label htmlFor={`rp-x-${id}`}>{t("form.exchange_for", { item: line.title })}</Label>
+                          <Select id={`rp-x-${id}`} value={exchangeFor[id] ?? ""} onChange={(e) => setExchangeFor({ ...exchangeFor, [id]: e.target.value })}>
+                            <option value="">{t("form.exchange_choose")}</option>
+                            {line.exchangeOptions.map((o) => <option key={o.variantId} value={o.variantId}>{o.title} · {money?.format(o.priceMinor / 100)}</option>)}
+                          </Select>
+                        </div>
+                      );
+                    })}
+                    {chosenExchange.length > 0 && money && (
+                      <p className="text-sm" data-testid="portal-difference">
+                        {newItems - credit > 0 ? t("form.pay_difference", { amount: money.format((newItems - credit) / 100) }) : newItems - credit < 0 ? t("form.refund_difference", { amount: money.format((credit - newItems) / 100) }) : t("form.even_exchange")}
+                      </p>
+                    )}
+                  </section>
+                )}
+                {resolution === "voucher" && bonus > 0 && money && (
+                  <p className="rounded-md bg-muted p-3 text-sm" data-testid="portal-bonus">{t("form.credit_bonus", { amount: money.format((credit + bonus) / 100), pct: Math.round(view.creditBonusBps / 100) })}</p>
+                )}
+                {resolution === "exchange" && chosenExchange.length === 0 && (
                   <div className="space-y-1.5">
                     <Label htmlFor="rp-exchange">{t("form.exchange")}{p.exchangeNoteRequired ? " *" : ""}</Label>
                     <Input id="rp-exchange" value={exchangeNote} onChange={(e) => setExchangeNote(e.target.value)} placeholder={t("form.exchange_placeholder")} />
@@ -344,7 +375,7 @@ export function PortalApp(p: PortalProps) {
             <ul className="border-t pt-2">
               {view.returns.map((r) => <li key={r.number}>R-{r.number} · {t(`status.${r.status}`)} · {date(r.requestedAt)}</li>)}
             </ul>
-            {view.eligible && <Button variant="outline" onClick={() => { setStep("form"); setQty({}); setPhotos([]); setConfirmed(false); setIdempotencyKey(newKey()); }}>{t("done.another")}</Button>}
+            {view.eligible && <Button variant="outline" onClick={() => { setStep("form"); setQty({}); setPhotos([]); setConfirmed(false); setExchangeFor({}); setIdempotencyKey(newKey()); }}>{t("done.another")}</Button>}
           </CardContent>
         </Card>
       )}

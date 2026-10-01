@@ -99,6 +99,29 @@ export function PolicyForm({ slug, initial, currency, reasons, productTypes, tag
 
       <Card>
         <CardHeader>
+          <CardTitle className="text-base">{t("exchanges_title")}</CardTitle>
+          <CardDescription>{t("exchanges_hint")}</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 text-sm sm:grid-cols-2">
+          <div className="space-y-1">
+            <Label htmlFor="credit-bonus">{t("credit_bonus")}</Label>
+            <Input id="credit-bonus" type="number" min={0} max={50} value={p.creditBonusBps / 100} onChange={(e) => setP({ ...p, creditBonusBps: Math.max(0, Math.min(5000, Math.round((Number(e.target.value) || 0) * 100))) })} />
+            <p className="text-xs text-muted-foreground">{t("credit_bonus_hint")}</p>
+          </div>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2"><input type="checkbox" checked={p.exchanges.enabled} onChange={(e) => setP({ ...p, exchanges: { ...p.exchanges, enabled: e.target.checked } })} /> {t("exchanges_on")}</label>
+            <label className="flex items-center gap-2"><input type="checkbox" checked={p.exchanges.refundDifference} onChange={(e) => setP({ ...p, exchanges: { ...p.exchanges, refundDifference: e.target.checked } })} /> {t("refund_difference")}</label>
+          </div>
+          <div className="space-y-2 sm:col-span-2 border-t pt-3">
+            <label className="flex items-center gap-2"><input type="checkbox" checked={p.instantExchange.enabled} onChange={(e) => setP({ ...p, instantExchange: { ...p.instantExchange, enabled: e.target.checked } })} data-testid="instant-exchange" /> {t("instant_on")}</label>
+            <div className="flex items-center gap-2"><Label htmlFor="instant-days" className="text-xs">{t("instant_days")}</Label><Input id="instant-days" type="number" min={3} max={60} className="w-24" value={p.instantExchange.days} onChange={(e) => setP({ ...p, instantExchange: { ...p.instantExchange, days: Math.max(3, Math.min(60, Number(e.target.value) || 21)) } })} /></div>
+            <p className="text-xs text-muted-foreground">{t("instant_hint")}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle className="text-base">{t("automations")}</CardTitle>
           <CardDescription>{t("automations_hint")}</CardDescription>
         </CardHeader>

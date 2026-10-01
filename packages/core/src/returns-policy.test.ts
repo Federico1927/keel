@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { customerLimitReached, customerReturnRisk, lineBlock, lineWindowDays, parseReturnPolicy, selectAutomations, type ReturnFacts } from "./returns-policy";
+import { creditWithBonus, exchangeQuote, customerLimitReached, customerReturnRisk, lineBlock, lineWindowDays, parseReturnPolicy, selectAutomations, type ReturnFacts } from "./returns-policy";
 
 const policy = parseReturnPolicy({
   windows: [
@@ -62,6 +62,13 @@ describe("return policy", () => {
     expect(parseReturnPolicy({ automations: [{ id: "x", name: "Reject all", action: "reject" }] }).automations).toEqual([]);
     expect(parseReturnPolicy({ automations: [{ id: "x", name: "Approve all", action: "approve" }] }).automations).toHaveLength(1);
     expect(parseReturnPolicy({ automations: [{ id: "x", name: "Reject big", action: "reject", conditions: { minAmountMinor: 100000 } }] }).automations).toHaveLength(1);
+  });
+  it("adds the credit bonus and quotes exchanges both ways", () => {
+    expect(creditWithBonus(4990, 1000)).toEqual({ bonusMinor: 499, creditMinor: 5489 });
+    expect(creditWithBonus(4990, 0)).toEqual({ bonusMinor: 0, creditMinor: 4990 });
+    expect(exchangeQuote([{ quantity: 1, unitNetMinor: 4000 }], [{ quantity: 1, unitPriceMinor: 5500 }])).toEqual({ creditMinor: 4000, newItemsMinor: 5500, differenceMinor: 1500 });
+    expect(exchangeQuote([{ quantity: 2, unitNetMinor: 3000 }], [{ quantity: 2, unitPriceMinor: 2500 }]).differenceMinor).toBe(-1000);
+    expect(parseReturnPolicy({}).instantExchange).toEqual({ enabled: false, days: 21 });
   });
   it("falls back to an empty policy on invalid input", () => {
     expect(parseReturnPolicy({ windows: "nope" }).windows).toEqual([]);

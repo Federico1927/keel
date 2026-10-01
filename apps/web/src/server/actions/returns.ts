@@ -20,6 +20,7 @@ const createSchema = z.object({
   customerNote: z.string().max(1000).optional().nullable(),
   staffNote: z.string().max(1000).optional().nullable(),
   overrideWindow: z.boolean().optional(),
+  exchangeLines: z.array(z.object({ orderLineId: z.string().uuid(), variantId: z.string().uuid(), quantity: z.coerce.number().int().min(1) })).optional(),
 });
 
 async function requireReturnsWrite(slug: string) {
@@ -63,7 +64,7 @@ const transitionSchema = z.object({
 async function syncAfter(ctx: TenantContext, returnId: string): Promise<string> {
   if (!ctx.settings.returnsWriteBack) return "not_required";
   const platform = await getCommercePlatform(ctx);
-  const r = await ctx.run((tx) => syncReturnToPlatform({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, platform, ctx.settings, returnId));
+  const r = await ctx.run((tx) => syncReturnToPlatform({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, platform, ctx.settings, returnId, { country: ctx.tenant.country }));
   return r.status;
 }
 
@@ -94,7 +95,7 @@ export async function retryReturnSyncAction(slug: string, returnId: string): Pro
     const ctx = await requireReturnsWrite(slug);
     const platform = await getCommercePlatform(ctx);
     const r = await ctx.run(async (tx) => {
-      const res = await syncReturnToPlatform({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, platform, ctx.settings, z.string().uuid().parse(returnId));
+      const res = await syncReturnToPlatform({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, platform, ctx.settings, z.string().uuid().parse(returnId), { country: ctx.tenant.country });
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "return.platform_sync", entityType: "return", entityId: returnId, metadata: { status: res.status, steps: res.steps, error: res.error ?? null } });
       return res;
     });

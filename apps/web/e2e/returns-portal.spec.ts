@@ -63,6 +63,41 @@ test.describe("customer return portal", () => {
     }).toPass({ timeout: 20_000 });
   });
 
+  test("a customer exchanges for another size and sees the difference; the team sees the exchange", async ({ page, browser }) => {
+    await login(page, "owner@northwind.demo");
+    const candidates = await deliveredOrders(page);
+    const customer = await browser.newContext();
+    const c = await customer.newPage();
+    let submitted: string | null = null;
+    for (const o of candidates) {
+      await c.goto("/r/northwind-apparel?lang=en");
+      await c.getByTestId("portal-shipped").click();
+      await c.getByLabel("Order number").fill(o.name.replace("#NW-", ""));
+      await c.getByLabel(/Email or phone/).fill(o.email);
+      await c.getByTestId("portal-lookup").click();
+      await expect(c.getByTestId("portal-line").first().or(c.getByTestId("portal-not-eligible"))).toBeVisible();
+      if (await c.getByTestId("portal-not-eligible").isVisible()) continue;
+      await c.getByTestId("portal-line").first().locator("select").selectOption("1");
+      await c.getByLabel("You would like").selectOption("exchange");
+      const picker = c.getByTestId("portal-exchange").locator("select").first();
+      if ((await c.getByTestId("portal-exchange").count()) === 0 || (await picker.locator("option").count()) < 2) continue;
+      await picker.selectOption({ index: 1 });
+      await expect(c.getByTestId("portal-difference")).toBeVisible();
+      await c.getByLabel("Reason").selectOption("wrong_size");
+      await c.getByTestId("portal-confirm").check();
+      await c.getByTestId("portal-submit").click();
+      await expect(c.getByTestId("portal-done")).toBeVisible();
+      submitted = (await c.getByTestId("portal-done").innerText()).match(/R-\d+/)![0];
+      break;
+    }
+    await customer.close();
+    expect(submitted, "an order with another size in stock").not.toBeNull();
+    await page.goto(`${T}/returns?q=${submitted}`);
+    await page.getByRole("link", { name: submitted! }).click();
+    await expect(page.getByTestId("return-exchange-card")).toBeVisible();
+    await expect(page.getByTestId("exchange-difference")).toBeVisible();
+  });
+
   test("an unknown order is refused without revealing anything, and a disabled store has no portal", async ({ page }) => {
     await page.goto("/r/northwind-apparel?lang=it");
     await page.getByRole("button", { name: "L'ho già spedito" }).click();

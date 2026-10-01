@@ -1777,7 +1777,24 @@
       "returnless": "reembolsada sin devolución"
     },
     "mark_reviewed": "Marcar como revisada",
-    "flag_review": "Marcar para revisión"
+    "flag_review": "Marcar para revisión",
+    "exchange": {
+      "title": "Cambio",
+      "credit_title": "Vale",
+      "customer_pays": "El cliente paga {amount} más (enlace de pago).",
+      "we_refund": "Reembolsamos {amount} de diferencia.",
+      "even": "Cambio al mismo precio.",
+      "invoice": "Enlace de pago enviado al cliente",
+      "order": "Pedido de cambio",
+      "bonus": "Bono en el vale: {amount}",
+      "voucher_on_store": "Código del vale creado en la tienda.",
+      "guarantee": {
+        "authorized": "Cambio inmediato: {amount} retenidos en la tarjeta hasta el {date}.",
+        "voided": "Cambio inmediato: mercancía recibida, retención de {amount} liberada.",
+        "captured": "Cambio inmediato: mercancía no recibida, cobrados {amount}.",
+        "failed": "Cambio inmediato: la retención en la tarjeta falló, envía solo cuando llegue la mercancía."
+      }
+    }
   },
   "return_new": {
     "title": "Devolución de {order}",
@@ -1821,7 +1838,9 @@
       "excluded_tag": "no admite devolución (colección)",
       "final_sale": "venta final",
       "expired": "plazo de devolución cerrado"
-    }
+    },
+    "exchange_for": "Cambiar {title} por",
+    "exchange_none": "Cambio: decidir más tarde"
   },
   "returns_analytics": {
     "title": "Análisis de devoluciones",
@@ -2993,7 +3012,13 @@
       "bank_hint": "Tu pedido no se pagó online: dinos dónde enviar el reembolso.",
       "holder": "Titular de la cuenta",
       "note": "¿Algo que añadir?",
-      "submit": "Enviar solicitud"
+      "submit": "Enviar solicitud",
+      "exchange_for": "Cambiar {item} por",
+      "exchange_choose": "Elige talla o color",
+      "pay_difference": "Pagarás la diferencia de {amount} con un enlace de pago.",
+      "refund_difference": "Te reembolsaremos la diferencia de {amount}.",
+      "even_exchange": "Mismo precio: nada que pagar.",
+      "credit_bonus": "Vale: {amount}, con un bono del {pct}%."
     },
     "resolutions": {
       "refund": "Un reembolso",
@@ -3123,6 +3148,15 @@
       "none": "Normal",
       "watch": "A vigilar",
       "high": "Alto"
-    }
+    },
+    "exchanges_title": "Cambios y vales",
+    "exchanges_hint": "Cambio por otra variante del mismo producto, con la diferencia de precio pagada con un enlace o reembolsada.",
+    "credit_bonus": "Bono en el vale (%)",
+    "credit_bonus_hint": "Crédito extra cuando el cliente elige un vale en lugar del reembolso.",
+    "exchanges_on": "Permitir el cambio por otra variante",
+    "refund_difference": "Reembolsar la diferencia si el nuevo artículo cuesta menos",
+    "instant_on": "Cambio inmediato: enviar el sustituto al aprobar, con una retención en la tarjeta",
+    "instant_days": "Días para devolver la mercancía",
+    "instant_hint": "La retención se libera al llegar la mercancía y se cobra tras el plazo. Requiere un proveedor de pagos con tarjeta: en esta versión la retención es simulada."
   }
 }

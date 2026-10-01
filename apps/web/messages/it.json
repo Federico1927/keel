@@ -1777,7 +1777,24 @@
       "returnless": "rimborsato senza reso"
     },
     "mark_reviewed": "Segna come rivisto",
-    "flag_review": "Segnala per revisione"
+    "flag_review": "Segnala per revisione",
+    "exchange": {
+      "title": "Cambio",
+      "credit_title": "Buono",
+      "customer_pays": "Il cliente paga {amount} in più (link di pagamento).",
+      "we_refund": "Rimborsiamo {amount} di differenza.",
+      "even": "Cambio alla pari.",
+      "invoice": "Link di pagamento inviato al cliente",
+      "order": "Ordine di cambio",
+      "bonus": "Bonus sul buono: {amount}",
+      "voucher_on_store": "Codice buono creato sul negozio.",
+      "guarantee": {
+        "authorized": "Cambio immediato: {amount} bloccati sulla carta fino al {date}.",
+        "voided": "Cambio immediato: merce ricevuta, blocco di {amount} rilasciato.",
+        "captured": "Cambio immediato: merce non ricevuta, addebitati {amount}.",
+        "failed": "Cambio immediato: blocco sulla carta non riuscito, spedisci solo dopo l'arrivo della merce."
+      }
+    }
   },
   "return_new": {
     "title": "Reso per {order}",
@@ -1821,7 +1838,9 @@
       "excluded_tag": "non restituibile (collezione)",
       "final_sale": "vendita finale",
       "expired": "finestra di reso chiusa"
-    }
+    },
+    "exchange_for": "Cambia {title} con",
+    "exchange_none": "Cambio: da decidere"
   },
   "returns_analytics": {
     "title": "Analisi resi",
@@ -2993,7 +3012,13 @@
       "bank_hint": "Il tuo ordine non è stato pagato online: indicaci dove inviare il rimborso.",
       "holder": "Intestatario del conto",
       "note": "Vuoi aggiungere qualcosa?",
-      "submit": "Invia richiesta"
+      "submit": "Invia richiesta",
+      "exchange_for": "Cambia {item} con",
+      "exchange_choose": "Scegli taglia o colore",
+      "pay_difference": "Pagherai la differenza di {amount} con un link di pagamento.",
+      "refund_difference": "Ti rimborseremo la differenza di {amount}.",
+      "even_exchange": "Stesso prezzo: niente da pagare.",
+      "credit_bonus": "Buono: {amount}, con un bonus del {pct}%."
     },
     "resolutions": {
       "refund": "Un rimborso",
@@ -3123,6 +3148,15 @@
       "none": "Normale",
       "watch": "Da osservare",
       "high": "Alto"
-    }
+    },
+    "exchanges_title": "Cambi e buoni",
+    "exchanges_hint": "Cambio con un'altra variante dello stesso prodotto, con la differenza di prezzo pagata con un link o rimborsata.",
+    "credit_bonus": "Bonus sul buono (%)",
+    "credit_bonus_hint": "Credito extra quando il cliente sceglie un buono invece del rimborso.",
+    "exchanges_on": "Consenti il cambio con un'altra variante",
+    "refund_difference": "Rimborsa la differenza se il nuovo articolo costa meno",
+    "instant_on": "Cambio immediato: spedisci il sostituto all'approvazione, con un blocco sulla carta",
+    "instant_days": "Giorni per rispedire la merce",
+    "instant_hint": "Il blocco si rilascia all'arrivo della merce e si addebita dopo la scadenza. Serve un fornitore di pagamenti con carta: in questa versione il blocco è simulato."
   }
 }

@@ -164,6 +164,20 @@ describe("shopify returns write-back", () => {
   });
 });
 
+describe("shopify exchange invoice", () => {
+  it("creates a draft with the return credit as discount and sends the invoice", async () => {
+    const p = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("draftOrderCreate"), body: { data: { draftOrderCreate: { draftOrder: { id: "gid://shopify/DraftOrder/900", invoiceUrl: "https://shop/invoices/abc" }, userErrors: [] } } } },
+      { match: (_u, i) => bodyOf(i).query.includes("draftOrderInvoiceSend"), body: { data: { draftOrderInvoiceSend: { draftOrder: { id: "gid://shopify/DraftOrder/900", invoiceUrl: "https://shop/invoices/abc" }, userErrors: [] } } } },
+    ]);
+    const r = await p.createInvoiceOrder({ lines: [{ variantExternalId: "4100002", sku: null, title: "Shirt M", quantity: 1, unitPriceMinor: 5500 }], currency: "EUR", email: "a@example.com", phone: null, customerExternalId: null, shippingAddress: null, billingAddress: null, shippingMinor: 0, discountMinor: 4000, note: "Exchange R-12", tags: ["exchange"], noteAttributes: [{ name: "keel_return_id", value: "r1" }], replacesOrderName: null });
+    expect(r).toEqual({ draftExternalId: "900", invoiceUrl: "https://shop/invoices/abc" });
+    const sent = bodyOf({ body: p.http.calls[0]!.body! }).variables as { input: { appliedDiscount: { value: number }; customAttributes: { key: string }[] } };
+    expect(sent.input.appliedDiscount.value).toBe(40);
+    expect(sent.input.customAttributes[0]!.key).toBe("keel_return_id");
+  });
+});
+
 describe("shopify oauth", () => {
   it("builds the install url and verifies the callback hmac", () => {
     const url = buildInstallUrl("northwind-demo.myshopify.com", "key", ["read_orders"], "https://keel.example/cb", "st");
