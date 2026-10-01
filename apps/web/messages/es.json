@@ -1503,5 +1503,269 @@
     "status": "Estado",
     "discount": "Descuento",
     "total": "Total"
+  },
+  "integrations": {
+    "title": "Integraciones",
+    "description": "Conexiones con las plataformas de comercio y anuncios: estado, última sincronización, errores, ejecuciones y registro de webhooks.",
+    "guides": "Guías de conexión",
+    "open_guide": "Cómo conectarla",
+    "global_mock_banner": "Este entorno funciona en modo mock (KEEL_INTEGRATION_MODE=mock): cada adaptador es un simulador en memoria y ninguna petición sale del proceso. Usa “Simular webhook de pedido” para ver toda la canalización.",
+    "providers": {
+      "shopify": "Shopify",
+      "meta": "Meta Ads",
+      "google": "Google Ads"
+    },
+    "status": {
+      "not_connected": "No conectada",
+      "connected": "Conectada",
+      "error": "Error",
+      "syncing": "Sincronizando"
+    },
+    "mode": {
+      "mock": "Mock",
+      "live": "Live"
+    },
+    "health": {
+      "ok": "OK",
+      "degraded": "Degradada",
+      "error": "Error",
+      "unknown": "Desconocido"
+    },
+    "no_account": "Sin cuenta vinculada",
+    "last_sync": "Última sincronización",
+    "last_success": "Último éxito",
+    "last_error": "Último error",
+    "missing_scopes": "Permisos faltantes: {scopes}",
+    "rows_n": "{n} filas",
+    "test_connection": "Probar conexión",
+    "resync": "Resincronizar",
+    "connect": "Conectar",
+    "reconnect": "Reconectar",
+    "disconnect": "Desconectar",
+    "disconnected": "Desconectada.",
+    "simulate_order": "Simular webhook de pedido",
+    "simulate_cancel": "Simular cancelación",
+    "simulate_bad": "Simular firma inválida",
+    "simulated": "Webhook aceptado (HTTP {status}) para {order}.",
+    "simulated_rejected": "Webhook rechazado como se esperaba (HTTP {status}).",
+    "test_ok": "Conexión OK ({account}).",
+    "test_failed": "Conexión fallida: {error}",
+    "resync_queued": "Resincronización en cola; el worker la ejecutará en breve.",
+    "resync_done": "Resincronización completada: {summary}",
+    "connected_ok": "Conectada y verificada.",
+    "mock_notice": "En modo mock las credenciales no se usan: el formulario muestra al instalador lo que debe aportar el cliente.",
+    "public_app_hint": "¿Tienes una app pública con SHOPIFY_API_KEY configurada?",
+    "public_app_link": "Instalar vía OAuth",
+    "connect_title": {
+      "shopify": "App personalizada (token Admin API)",
+      "meta": "Token de usuario del sistema",
+      "google": "Credenciales de Google Ads API"
+    },
+    "connect_description": {
+      "shopify": "Crea una app personalizada en el admin de la tienda, concede los permisos de la guía, pega el token de Admin API y la clave secreta usada para firmar webhooks.",
+      "meta": "Un token de usuario del sistema de larga duración de Business Manager con ads_read y ads_management sobre la cuenta publicitaria.",
+      "google": "Developer token, cliente OAuth y un refresh token autorizado para el ámbito de Google Ads; solo lectura en esta versión."
+    },
+    "fields": {
+      "shop": "Dominio de la tienda",
+      "access_token": "Token de acceso",
+      "api_secret": "Clave secreta de la API",
+      "ad_account": "Id de cuenta publicitaria",
+      "customer_id": "Customer id",
+      "login_customer_id": "Id de administrador (MCC)",
+      "developer_token": "Developer token",
+      "client_id": "OAuth client id",
+      "client_secret": "OAuth client secret",
+      "refresh_token": "Refresh token"
+    },
+    "slots_title": "Integraciones por cuenta",
+    "slots_description": "Espacios para conectores a medida vendidos por cuenta. Existen interfaces y mocks; el proveedor concreto se implementa bajo pedido.",
+    "slots": {
+      "messaging": "Canal de mensajería",
+      "warehouse": "Almacén / 3PL",
+      "carrier": "Seguimiento de transportista"
+    },
+    "slots_hint": {
+      "messaging": "Proveedores de WhatsApp o SMS para campañas CRM.",
+      "warehouse": "Envío de pedidos y lectura de stock desde un operador logístico externo.",
+      "carrier": "Una segunda fuente para el resolutor de estado de envío."
+    },
+    "on_request": "Disponible bajo pedido",
+    "runs_title": "Ejecuciones recientes",
+    "run_status": {
+      "running": "En curso",
+      "paused": "En pausa",
+      "success": "Correcta",
+      "error": "Error"
+    },
+    "webhooks_title": "Registro de webhooks",
+    "webhooks_description": "{processed} procesados en 24h · {failed} fallidos · {pending} pendientes",
+    "webhook_status": {
+      "pending": "Pendiente",
+      "processed": "Procesado",
+      "failed": "Fallido"
+    },
+    "retry_failed": "Reintentar fallidos ({n})",
+    "retried": "{n} de {total} procesados.",
+    "replay": "Reprocesar",
+    "columns": {
+      "when": "Cuándo",
+      "run": "Ejecución",
+      "status": "Estado",
+      "rows": "Filas",
+      "topic": "Topic"
+    },
+    "errors": {
+      "connection_failed": "La plataforma rechazó las credenciales.",
+      "mock_mode": "Este entorno está en modo mock: configura KEEL_INTEGRATION_MODE=live para conectar una cuenta real.",
+      "live_mode": "La simulación solo está disponible para integraciones mock."
+    }
+  },
+  "integration_guide": {
+    "verify_legend": "Los pasos marcados “Por verificar” dependen de consolas de proveedores que cambian a menudo: compruébalos en la documentación del proveedor antes de la primera instalación.",
+    "verify_badge": "Por verificar",
+    "scopes_title": "Permisos mínimos por módulo",
+    "scopes_description": "Pide al cliente solo lo que necesitan los módulos activados.",
+    "webhooks_title": "Endpoint y topics de webhooks",
+    "errors_title": "Errores comunes",
+    "shopify": {
+      "title": "Conectar Shopify",
+      "intro": "Dos vías: una app personalizada creada en el admin de la tienda (más rápida, una sola tienda) o una app pública con OAuth (un único flujo de instalación para todos los clientes).",
+      "steps": [
+        {
+          "title": "Crea la app personalizada",
+          "body": "En el admin de la tienda abre Configuración → Apps y canales de venta → Desarrollar apps → Crear una app. Llámala “Keel”.",
+          "verify": true
+        },
+        {
+          "title": "Concede los permisos de Admin API",
+          "body": "En Configuración → Integración Admin API selecciona los permisos listados a la derecha para los módulos contratados. Guarda."
+        },
+        {
+          "title": "Instala y copia el token",
+          "body": "Instala la app, luego muestra una sola vez el token de Admin API (shpat_…) y la clave secreta de la API. Pégalos en Keel → Integraciones → Shopify → Conectar. Keel los guarda cifrados (AES-GCM).",
+          "verify": true
+        },
+        {
+          "title": "Webhooks",
+          "body": "Keel registra sus suscripciones de webhooks por API al conectar hacia {webhookUrl}. Para una app personalizada el secreto de firma es la clave secreta de la API. El endpoint responde 200 en milisegundos, guarda el evento y lo procesa en segundo plano; los duplicados se ignoran por (topic, id, updated_at)."
+        },
+        {
+          "title": "Importación inicial",
+          "body": "Haz clic en Resincronizar: se importan ubicaciones, productos, inventario y descuentos, luego los pedidos página a página con cursor reanudable. Las tiendas grandes continúan en varias ejecuciones; el progreso se ve en “Ejecuciones recientes”."
+        },
+        {
+          "title": "Reglas de estado",
+          "body": "Keel nunca deriva el estado del pedido de etiquetas fijas. Abre Ajustes → Estados de pedido y asigna etiquetas, métodos de pago y estados financieros/de preparación a los estados canónicos; previsualiza sobre los últimos 50 pedidos."
+        },
+        {
+          "title": "Verifica",
+          "body": "Probar conexión muestra el nombre de la tienda y los permisos concedidos; haz un pedido de prueba y míralo aparecer en Pedidos en segundos, con el evento “importado” en su cronología."
+        },
+        {
+          "title": "App pública (opcional)",
+          "body": "Crea la app en el panel de Partners, configura la URL de redirección en /api/integrations/shopify/oauth/callback, pon el client id y el secret en SHOPIFY_API_KEY y SHOPIFY_API_SECRET, y usa “Instalar vía OAuth”.",
+          "verify": true
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Conexión fallida con HTTP 401",
+          "fix": "El token fue revocado o copiado incompleto. Genera un token nuevo en la app y reconecta."
+        },
+        {
+          "symptom": "Acceso denegado en una consulta",
+          "fix": "Falta un permiso: la tarjeta muestra cuál. Añádelo en la configuración de la app y reinstala."
+        },
+        {
+          "symptom": "Webhooks rechazados con 401",
+          "fix": "El secreto de firma difiere del guardado en Keel. Reconecta con la clave secreta actual."
+        },
+        {
+          "symptom": "Throttled / 429",
+          "fix": "Normal durante sincronizaciones pesadas: Keel espera y reintenta solo; la ejecución continúa desde el cursor."
+        }
+      ]
+    },
+    "meta": {
+      "title": "Conectar Meta Ads",
+      "intro": "Keel lee campañas e insights diarios y puede pausar o reanudar campañas con confirmación explícita. Un token de usuario del sistema mantiene la conexión sin inicios de sesión personales.",
+      "steps": [
+        {
+          "title": "Crea un usuario del sistema",
+          "body": "En Configuración del negocio → Usuarios → Usuarios del sistema crea un usuario del sistema Admin llamado “Keel”.",
+          "verify": true
+        },
+        {
+          "title": "Asigna la cuenta publicitaria",
+          "body": "Añadir activos → Cuentas publicitarias → selecciona la cuenta → Administrar campañas (necesario para pausar/reanudar) o Ver rendimiento (solo lectura)."
+        },
+        {
+          "title": "Genera el token",
+          "body": "Generar nuevo token → elige la app → permisos ads_read, ads_management, business_management → sin caducidad. Cópialo una vez.",
+          "verify": true
+        },
+        {
+          "title": "Conecta en Keel",
+          "body": "Integraciones → Meta Ads → Conectar: pega el id de la cuenta (act_…) y el token. Probar conexión muestra el nombre y los permisos."
+        },
+        {
+          "title": "Backfill",
+          "body": "Resincronizar descarga los últimos 30 días en ventanas de 7; el trabajo nocturno refresca los últimos 3 días porque Meta corrige insights recientes."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Código de error 190",
+          "fix": "Token caducado o revocado: genera uno nuevo para el usuario del sistema."
+        },
+        {
+          "symptom": "Código 17 / 32 / 613",
+          "fix": "Límite de uso en la cuenta: Keel espera y reintenta; reduce las ventanas de backfill si persiste."
+        },
+        {
+          "symptom": "Error de permiso (10/200)",
+          "fix": "Al usuario del sistema le falta el activo o el permiso; corrígelo en la Configuración del negocio."
+        }
+      ]
+    },
+    "google": {
+      "title": "Conectar Google Ads",
+      "intro": "Solo lectura en esta versión: campañas y, por día, coste, impresiones, clics y conversiones vía Google Ads API.",
+      "steps": [
+        {
+          "title": "Developer token",
+          "body": "Desde una cuenta de administrador (MCC) abre Herramientas → Centro de API y solicita un developer token; el acceso Básico basta para lecturas en producción.",
+          "verify": true
+        },
+        {
+          "title": "Cliente OAuth",
+          "body": "En Google Cloud crea un cliente OAuth (Web o Escritorio) con la Google Ads API habilitada; anota client id y secret.",
+          "verify": true
+        },
+        {
+          "title": "Refresh token",
+          "body": "Autoriza el ámbito https://www.googleapis.com/auth/adwords con un usuario con acceso a la cuenta y guarda el refresh token."
+        },
+        {
+          "title": "Conecta en Keel",
+          "body": "Integraciones → Google Ads → Conectar: customer id (dígitos), id de administrador si se accede vía MCC, developer token, client id/secret, refresh token."
+        },
+        {
+          "title": "Verifica",
+          "body": "Probar conexión ejecuta una consulta GAQL de una fila; Resincronizar importa campañas y los últimos 30 días de métricas."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "PERMISSION_DENIED",
+          "fix": "El developer token no está aprobado para esta cuenta, o falta el login-customer-id para una cuenta gestionada por MCC."
+        },
+        {
+          "symptom": "invalid_grant al refrescar el token",
+          "fix": "El refresh token fue revocado; autoriza de nuevo y reconecta."
+        }
+      ]
+    }
   }
 }

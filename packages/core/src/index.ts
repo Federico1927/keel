@@ -14,3 +14,4 @@ export * from "./campaigns";
 export * from "./segments";
 export * from "./returns";
 export * from "./discounts";
+export * from "./attribution";

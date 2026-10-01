@@ -213,6 +213,9 @@ export interface CommercePlatform {
   /** Verifies the signature and normalizes the envelope; throws on invalid signature. */
   verifyWebhook(headers: Record<string, string | undefined>, rawBody: string): Promise<VerifiedWebhook>;
   parseWebhookOrder(payload: unknown): NormalizedOrder;
+  parseWebhookProduct(payload: unknown): NormalizedProduct;
+  parseWebhookCustomer(payload: unknown): NormalizedCustomer | null;
+  parseWebhookInventoryLevel(payload: unknown): NormalizedInventoryLevel;
   // Writes
   cancelOrder(externalId: string, opts: { reason?: string; restock: boolean; refund: boolean }): Promise<void>;
   addOrderNote(externalId: string, note: string): Promise<void>;

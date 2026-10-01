@@ -28,7 +28,8 @@
     "react-dom": "^19.1.0",
     "recharts": "^3.1.0",
     "zod": "^4.0.0",
-    "@keel/services": "workspace:*"
+    "@keel/services": "workspace:*",
+    "@keel/jobs": "workspace:*"
   },
   "devDependencies": {
     "@keel/eslint-config": "workspace:*",

@@ -11,3 +11,5 @@ export * from "./campaigns";
 export * from "./crm";
 export * from "./returns";
 export * from "./discounts";
+export * from "./sync";
+export * from "./integrations/factory";

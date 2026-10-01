@@ -234,7 +234,18 @@ export class MockCommercePlatform implements CommercePlatform {
   parseWebhookOrder(payload: unknown): NormalizedOrder {
     const p = payload as { __normalized: NormalizedOrder };
     const o = p.__normalized;
-    return { ...o, placedAt: new Date(o.placedAt), platformUpdatedAt: new Date(o.platformUpdatedAt), cancelledAt: o.cancelledAt ? new Date(o.cancelledAt) : null, closedAt: o.closedAt ? new Date(o.closedAt) : null, fulfillments: o.fulfillments.map((f) => ({ ...f, createdAt: new Date(f.createdAt), updatedAt: new Date(f.updatedAt), deliveredAt: f.deliveredAt ? new Date(f.deliveredAt) : null })) };
+    return { ...o, customer: o.customer ? { ...o.customer, platformCreatedAt: o.customer.platformCreatedAt ? new Date(o.customer.platformCreatedAt) : null } : null, placedAt: new Date(o.placedAt), platformUpdatedAt: new Date(o.platformUpdatedAt), cancelledAt: o.cancelledAt ? new Date(o.cancelledAt) : null, closedAt: o.closedAt ? new Date(o.closedAt) : null, fulfillments: o.fulfillments.map((f) => ({ ...f, createdAt: new Date(f.createdAt), updatedAt: new Date(f.updatedAt), deliveredAt: f.deliveredAt ? new Date(f.deliveredAt) : null })) };
+  }
+
+  parseWebhookProduct(payload: unknown): NormalizedProduct {
+    return (payload as { __normalized: NormalizedProduct }).__normalized;
+  }
+  parseWebhookCustomer(payload: unknown): NormalizedCustomer | null {
+    return (payload as { __normalized?: NormalizedCustomer }).__normalized ?? null;
+  }
+  parseWebhookInventoryLevel(payload: unknown): NormalizedInventoryLevel {
+    const p = payload as { inventory_item_id: string; location_id: string; available: number; updated_at: string };
+    return { inventoryItemExternalId: String(p.inventory_item_id), locationExternalId: String(p.location_id), available: Number(p.available), onHand: null, committed: null, updatedAt: new Date(p.updated_at) };
   }
 
   private record(op: string, args: unknown) {

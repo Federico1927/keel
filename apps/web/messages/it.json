@@ -1503,5 +1503,269 @@
     "status": "Stato",
     "discount": "Sconto",
     "total": "Totale"
+  },
+  "integrations": {
+    "title": "Integrazioni",
+    "description": "Collegamenti alle piattaforme e-commerce e pubblicitarie: stato, ultimo sync, errori, esecuzioni e registro dei webhook.",
+    "guides": "Guide di collegamento",
+    "open_guide": "Come collegarla",
+    "global_mock_banner": "Questo ambiente è in modalità mock (KEEL_INTEGRATION_MODE=mock): ogni adapter è un simulatore in memoria e nessuna richiesta esce dal processo. Usa “Simula webhook ordine” per vedere tutta la pipeline.",
+    "providers": {
+      "shopify": "Shopify",
+      "meta": "Meta Ads",
+      "google": "Google Ads"
+    },
+    "status": {
+      "not_connected": "Non collegata",
+      "connected": "Collegata",
+      "error": "Errore",
+      "syncing": "In sincronizzazione"
+    },
+    "mode": {
+      "mock": "Mock",
+      "live": "Live"
+    },
+    "health": {
+      "ok": "OK",
+      "degraded": "Degradata",
+      "error": "Errore",
+      "unknown": "Sconosciuto"
+    },
+    "no_account": "Nessun account collegato",
+    "last_sync": "Ultimo sync",
+    "last_success": "Ultimo successo",
+    "last_error": "Ultimo errore",
+    "missing_scopes": "Scope mancanti: {scopes}",
+    "rows_n": "{n} righe",
+    "test_connection": "Testa connessione",
+    "resync": "Risincronizza",
+    "connect": "Collega",
+    "reconnect": "Ricollega",
+    "disconnect": "Scollega",
+    "disconnected": "Scollegata.",
+    "simulate_order": "Simula webhook ordine",
+    "simulate_cancel": "Simula annullamento",
+    "simulate_bad": "Simula firma errata",
+    "simulated": "Webhook accettato (HTTP {status}) per {order}.",
+    "simulated_rejected": "Webhook rifiutato come previsto (HTTP {status}).",
+    "test_ok": "Connessione OK ({account}).",
+    "test_failed": "Connessione fallita: {error}",
+    "resync_queued": "Risincronizzazione in coda; il worker la eseguirà a breve.",
+    "resync_done": "Risincronizzazione completata: {summary}",
+    "connected_ok": "Collegata e verificata.",
+    "mock_notice": "In modalità mock le credenziali non vengono usate: il modulo mostra all'installatore cosa deve fornire il cliente.",
+    "public_app_hint": "Hai un'app pubblica con SHOPIFY_API_KEY configurata?",
+    "public_app_link": "Installa via OAuth",
+    "connect_title": {
+      "shopify": "App custom (token Admin API)",
+      "meta": "Token utente di sistema",
+      "google": "Credenziali Google Ads API"
+    },
+    "connect_description": {
+      "shopify": "Crea un'app custom nell'admin del negozio, concedi gli scope elencati nella guida, incolla il token Admin API e la chiave segreta usata per firmare i webhook.",
+      "meta": "Un token utente di sistema a lunga durata da Business Manager con ads_read e ads_management sull'account pubblicitario.",
+      "google": "Developer token, client OAuth e un refresh token autorizzato per lo scope Google Ads; sola lettura in questa versione."
+    },
+    "fields": {
+      "shop": "Dominio del negozio",
+      "access_token": "Token di accesso",
+      "api_secret": "Chiave segreta API",
+      "ad_account": "Id account pubblicitario",
+      "customer_id": "Customer id",
+      "login_customer_id": "Id manager (MCC)",
+      "developer_token": "Developer token",
+      "client_id": "OAuth client id",
+      "client_secret": "OAuth client secret",
+      "refresh_token": "Refresh token"
+    },
+    "slots_title": "Integrazioni per account",
+    "slots_description": "Slot per connettori ad hoc venduti per account. Esistono interfacce e mock; il provider specifico si implementa su richiesta.",
+    "slots": {
+      "messaging": "Canale di messaggistica",
+      "warehouse": "Magazzino / 3PL",
+      "carrier": "Tracking corriere"
+    },
+    "slots_hint": {
+      "messaging": "Provider WhatsApp o SMS per le campagne CRM.",
+      "warehouse": "Invio ordini e lettura stock da un operatore logistico esterno.",
+      "carrier": "Una seconda fonte per il resolver dello stato spedizione."
+    },
+    "on_request": "Disponibile su richiesta",
+    "runs_title": "Esecuzioni recenti",
+    "run_status": {
+      "running": "In corso",
+      "paused": "In pausa",
+      "success": "Riuscita",
+      "error": "Errore"
+    },
+    "webhooks_title": "Registro webhook",
+    "webhooks_description": "{processed} elaborati in 24h · {failed} falliti · {pending} in attesa",
+    "webhook_status": {
+      "pending": "In attesa",
+      "processed": "Elaborato",
+      "failed": "Fallito"
+    },
+    "retry_failed": "Riprova falliti ({n})",
+    "retried": "{n} su {total} elaborati.",
+    "replay": "Rielabora",
+    "columns": {
+      "when": "Quando",
+      "run": "Esecuzione",
+      "status": "Stato",
+      "rows": "Righe",
+      "topic": "Topic"
+    },
+    "errors": {
+      "connection_failed": "La piattaforma ha rifiutato le credenziali.",
+      "mock_mode": "Questo ambiente è in modalità mock: imposta KEEL_INTEGRATION_MODE=live per collegare un account reale.",
+      "live_mode": "La simulazione è disponibile solo per le integrazioni mock."
+    }
+  },
+  "integration_guide": {
+    "verify_legend": "I passi segnati “Da verificare” dipendono da console dei fornitori che cambiano spesso: controllali sulla documentazione del fornitore prima della prima installazione.",
+    "verify_badge": "Da verificare",
+    "scopes_title": "Scope minimi per modulo",
+    "scopes_description": "Chiedi al cliente solo ciò che serve ai moduli attivati.",
+    "webhooks_title": "Endpoint e topic dei webhook",
+    "errors_title": "Errori comuni",
+    "shopify": {
+      "title": "Collegare Shopify",
+      "intro": "Due strade: un'app custom creata nell'admin del negozio (più veloce, un solo negozio) o un'app pubblica con OAuth (un unico flusso di installazione per tutti i clienti).",
+      "steps": [
+        {
+          "title": "Crea l'app custom",
+          "body": "Nell'admin del negozio apri Impostazioni → App e canali di vendita → Sviluppa app → Crea un'app. Chiamala “Keel”.",
+          "verify": true
+        },
+        {
+          "title": "Concedi gli scope Admin API",
+          "body": "In Configurazione → Integrazione Admin API seleziona gli scope elencati a destra per i moduli acquistati dal cliente. Salva."
+        },
+        {
+          "title": "Installa e copia il token",
+          "body": "Installa l'app, poi mostra una sola volta il token Admin API (shpat_…) e la chiave segreta API. Incollali in Keel → Integrazioni → Shopify → Collega. Keel li salva cifrati (AES-GCM).",
+          "verify": true
+        },
+        {
+          "title": "Webhook",
+          "body": "Keel registra le sottoscrizioni webhook via API al momento del collegamento verso {webhookUrl}. Per un'app custom il segreto di firma è la chiave segreta API dell'app. L'endpoint risponde 200 in pochi millisecondi, salva l'evento e lo elabora in background; i duplicati sono ignorati per (topic, id, updated_at)."
+        },
+        {
+          "title": "Importazione iniziale",
+          "body": "Clicca Risincronizza: vengono importati location, prodotti, stock e sconti, poi gli ordini pagina per pagina con cursore riprendibile. I negozi grandi proseguono su più esecuzioni del worker; l'avanzamento è visibile in “Esecuzioni recenti”."
+        },
+        {
+          "title": "Regole di stato",
+          "body": "Keel non ricava mai lo stato dell'ordine da tag fissi. Apri Impostazioni → Stati ordine e mappa tag, metodi di pagamento e stati finanziari/di evasione del negozio sugli stati canonici; vedi l'anteprima sugli ultimi 50 ordini."
+        },
+        {
+          "title": "Verifica",
+          "body": "Testa connessione mostra il nome del negozio e gli scope concessi; fai un ordine di prova nel negozio e guardalo comparire in Ordini entro pochi secondi, con l'evento “importato” nella timeline."
+        },
+        {
+          "title": "App pubblica (facoltativa)",
+          "body": "Crea l'app nella dashboard Partner, imposta l'URL di redirect su /api/integrations/shopify/oauth/callback, metti client id e secret in SHOPIFY_API_KEY e SHOPIFY_API_SECRET, poi usa “Installa via OAuth”.",
+          "verify": true
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Connessione fallita con HTTP 401",
+          "fix": "Il token è stato revocato o copiato male. Genera un nuovo token nell'app e ricollega."
+        },
+        {
+          "symptom": "Accesso negato su una query",
+          "fix": "Manca uno scope: la scheda mostra quale. Aggiungilo nella configurazione dell'app e reinstalla."
+        },
+        {
+          "symptom": "Webhook rifiutati con 401",
+          "fix": "Il segreto di firma è diverso da quello salvato in Keel. Ricollega con la chiave segreta API attuale."
+        },
+        {
+          "symptom": "Throttled / 429",
+          "fix": "Normale durante sync pesanti: Keel attende e riprova da solo; l'esecuzione riprende dal cursore."
+        }
+      ]
+    },
+    "meta": {
+      "title": "Collegare Meta Ads",
+      "intro": "Keel legge campagne e insight giornalieri e può mettere in pausa o riattivare campagne con conferma esplicita. Un token utente di sistema mantiene il collegamento senza login personali.",
+      "steps": [
+        {
+          "title": "Crea un utente di sistema",
+          "body": "In Impostazioni Business → Utenti → Utenti di sistema crea un utente di sistema Admin chiamato “Keel”.",
+          "verify": true
+        },
+        {
+          "title": "Assegna l'account pubblicitario",
+          "body": "Aggiungi asset → Account pubblicitari → seleziona l'account → Gestisci campagne (serve per pausa/riattiva) oppure Visualizza performance (sola lettura)."
+        },
+        {
+          "title": "Genera il token",
+          "body": "Genera nuovo token → scegli l'app → permessi ads_read, ads_management, business_management → senza scadenza. Copialo una sola volta.",
+          "verify": true
+        },
+        {
+          "title": "Collega in Keel",
+          "body": "Integrazioni → Meta Ads → Collega: incolla l'id dell'account (act_…) e il token. Testa connessione mostra nome account e permessi concessi."
+        },
+        {
+          "title": "Backfill",
+          "body": "Risincronizza scarica gli ultimi 30 giorni a finestre di 7; il job notturno riaggiorna gli ultimi 3 giorni perché Meta corregge gli insight recenti."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Codice errore 190",
+          "fix": "Token scaduto o revocato: generane uno nuovo per l'utente di sistema."
+        },
+        {
+          "symptom": "Codice 17 / 32 / 613",
+          "fix": "Rate limit sull'account: Keel attende e riprova; riduci le finestre di backfill se persiste."
+        },
+        {
+          "symptom": "Errore di permesso (10/200)",
+          "fix": "All'utente di sistema manca l'asset account o il permesso; sistemalo nelle Impostazioni Business."
+        }
+      ]
+    },
+    "google": {
+      "title": "Collegare Google Ads",
+      "intro": "Sola lettura in questa versione: campagne e, per giorno, costo, impression, clic e conversioni tramite Google Ads API.",
+      "steps": [
+        {
+          "title": "Developer token",
+          "body": "Da un account Manager (MCC) apri Strumenti → Centro API e richiedi un developer token; l'accesso Basic basta per le letture in produzione.",
+          "verify": true
+        },
+        {
+          "title": "Client OAuth",
+          "body": "In Google Cloud crea un client OAuth (Web o Desktop) con Google Ads API abilitata; annota client id e secret.",
+          "verify": true
+        },
+        {
+          "title": "Refresh token",
+          "body": "Autorizza lo scope https://www.googleapis.com/auth/adwords con un utente che accede all'account cliente e conserva il refresh token."
+        },
+        {
+          "title": "Collega in Keel",
+          "body": "Integrazioni → Google Ads → Collega: customer id (cifre), id manager se si passa da un MCC, developer token, client id/secret, refresh token."
+        },
+        {
+          "title": "Verifica",
+          "body": "Testa connessione esegue una query GAQL di una riga; Risincronizza importa campagne e gli ultimi 30 giorni di metriche."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "PERMISSION_DENIED",
+          "fix": "Il developer token non è approvato per questo account, oppure manca il login-customer-id per un account gestito da MCC."
+        },
+        {
+          "symptom": "invalid_grant al refresh del token",
+          "fix": "Il refresh token è stato revocato; autorizza di nuovo e ricollega."
+        }
+      ]
+    }
   }
 }

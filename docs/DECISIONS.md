@@ -159,3 +159,21 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · Discount economics use the same scope as everything else
 
 **Decision.** A code's orders are the `order_discounts` rows whose order is in sale scope; revenue and margin come from `orderEconomics`, so a code with a negative margin shows it. Pools generate codes locally with a dependency-free generator and push them to the platform in one call; the platform's `imported`/`failed` split is stored per code (`is_active` false for failed) and the pool is marked `partial`, so a retry is a visible action rather than a silent loop. Codes synced from the platform are read-only except for enable/disable.
+
+## 2026-10-01 · Live adapters are tested against recorded payloads, never the network
+
+**Decision.** Every live adapter takes an injectable `fetch`; the test-suite feeds it recorded, anonymised payloads (`__fixtures__`) and asserts the normalised output, the queries sent, HMAC verification and error mapping. No test, seed or development process can reach Shopify, Meta or Google: `KEEL_INTEGRATION_MODE=mock` forces the simulators regardless of what the integration rows say, and the live row mode is only honoured when the env is `live`. The fixtures are the contract with the vendors; when an API version changes, the fixture changes with it.
+
+## 2026-10-01 · One importer for webhooks, syncs and reconciliation
+
+**Decision.** `importOrder` is the single path from a platform order to the canonical model, whatever brought the payload (webhook, delta sync, initial backfill, nightly reconciliation). It is idempotent, preserves local decisions (manual status, assignment, hold, returns), records `imported` or `platform_update` with a field diff, and hands the status to `recomputeOrderStatus`. A stale payload (older `updated_at` than what we hold) is ignored except during reconciliation. The same holds for products, customers, inventory levels and discounts.
+
+## 2026-10-01 · Webhooks: log first, answer 200, process after the response
+
+**Decision.** The endpoint resolves the tenant from the shop domain, verifies the HMAC with that tenant's own secret, stores the event under a unique key `(tenant, source, topic, external id, source updated_at)` and answers immediately; a duplicate delivery is a 200 with `duplicate: true`. Processing happens after the response: through pg-boss when `KEEL_JOBS_QUEUE=1` (a worker is deployed), inline otherwise, so a single-process demo never leaves events pending. Failed events keep their payload, are retried by the scheduler and can be replayed from the page.
+
+**Alternatives.** Always queue (rejected: without a worker the demo stalls and tests become timing-dependent); a 60-second dedup heuristic as in the reference (rejected: the unique index is exact).
+
+## 2026-10-01 · Resumable sync runs live in `sync_runs`
+
+**Decision.** A sync pass is a `sync_runs` row whose cursor (`nextCursor`, `updatedSince`, `highWaterMark`, pages) is saved after every page. Delta syncs start from the last successful high-water mark minus 2 minutes; a run that exceeds its time budget is left `paused` and resumed by the next job, which re-enqueues itself. Reconciliation re-reads the last 35 days by creation date and lets equal timestamps through, so cancellations missed by webhooks are caught nightly. Health rows per source turn `degraded` on the first failure and `error` after three consecutive ones.

@@ -1503,5 +1503,269 @@
     "status": "Status",
     "discount": "Discount",
     "total": "Total"
+  },
+  "integrations": {
+    "title": "Integrations",
+    "description": "Connections to the commerce and ads platforms: status, last sync, errors, sync runs and the webhook log.",
+    "guides": "Setup guides",
+    "open_guide": "How to connect",
+    "global_mock_banner": "This environment runs in mock mode (KEEL_INTEGRATION_MODE=mock): every adapter is an in-memory simulator and no request leaves the process. Use “Simulate order webhook” to see the full pipeline.",
+    "providers": {
+      "shopify": "Shopify",
+      "meta": "Meta Ads",
+      "google": "Google Ads"
+    },
+    "status": {
+      "not_connected": "Not connected",
+      "connected": "Connected",
+      "error": "Error",
+      "syncing": "Syncing"
+    },
+    "mode": {
+      "mock": "Mock",
+      "live": "Live"
+    },
+    "health": {
+      "ok": "OK",
+      "degraded": "Degraded",
+      "error": "Error",
+      "unknown": "Unknown"
+    },
+    "no_account": "No account linked",
+    "last_sync": "Last sync",
+    "last_success": "Last success",
+    "last_error": "Last error",
+    "missing_scopes": "Missing scopes: {scopes}",
+    "rows_n": "{n} rows",
+    "test_connection": "Test connection",
+    "resync": "Resync",
+    "connect": "Connect",
+    "reconnect": "Reconnect",
+    "disconnect": "Disconnect",
+    "disconnected": "Disconnected.",
+    "simulate_order": "Simulate order webhook",
+    "simulate_cancel": "Simulate cancellation",
+    "simulate_bad": "Simulate bad signature",
+    "simulated": "Webhook accepted (HTTP {status}) for {order}.",
+    "simulated_rejected": "Webhook rejected as expected (HTTP {status}).",
+    "test_ok": "Connection OK ({account}).",
+    "test_failed": "Connection failed: {error}",
+    "resync_queued": "Resync queued; the worker will run it shortly.",
+    "resync_done": "Resync done: {summary}",
+    "connected_ok": "Connected and verified.",
+    "mock_notice": "In mock mode credentials are not used: the form is here to show the installer what the customer must provide.",
+    "public_app_hint": "Have a public app with SHOPIFY_API_KEY configured?",
+    "public_app_link": "Install via OAuth",
+    "connect_title": {
+      "shopify": "Custom app (Admin API token)",
+      "meta": "System user token",
+      "google": "Google Ads API credentials"
+    },
+    "connect_description": {
+      "shopify": "Create a custom app in the store admin, grant the scopes listed in the guide, paste the Admin API access token and the API secret key used to sign webhooks.",
+      "meta": "A long-lived system user token from Business Manager with ads_read and ads_management on the ad account.",
+      "google": "Developer token, OAuth client and a refresh token authorised for the Google Ads scope; read-only in this version."
+    },
+    "fields": {
+      "shop": "Shop domain",
+      "access_token": "Access token",
+      "api_secret": "API secret key",
+      "ad_account": "Ad account id",
+      "customer_id": "Customer id",
+      "login_customer_id": "Manager (MCC) id",
+      "developer_token": "Developer token",
+      "client_id": "OAuth client id",
+      "client_secret": "OAuth client secret",
+      "refresh_token": "Refresh token"
+    },
+    "slots_title": "Per-account integrations",
+    "slots_description": "Slots for ad hoc connectors sold per account. Interfaces and mocks exist; a specific provider is implemented on request.",
+    "slots": {
+      "messaging": "Messaging channel",
+      "warehouse": "Warehouse / 3PL",
+      "carrier": "Carrier tracking"
+    },
+    "slots_hint": {
+      "messaging": "WhatsApp or SMS providers for CRM campaigns.",
+      "warehouse": "Push orders and read stock from an external logistics provider.",
+      "carrier": "A second source for the shipment status resolver."
+    },
+    "on_request": "Available on request",
+    "runs_title": "Recent sync runs",
+    "run_status": {
+      "running": "Running",
+      "paused": "Paused",
+      "success": "Success",
+      "error": "Error"
+    },
+    "webhooks_title": "Webhook log",
+    "webhooks_description": "{processed} processed in 24h · {failed} failed · {pending} pending",
+    "webhook_status": {
+      "pending": "Pending",
+      "processed": "Processed",
+      "failed": "Failed"
+    },
+    "retry_failed": "Retry failed ({n})",
+    "retried": "{n} of {total} processed.",
+    "replay": "Replay",
+    "columns": {
+      "when": "When",
+      "run": "Run",
+      "status": "Status",
+      "rows": "Rows",
+      "topic": "Topic"
+    },
+    "errors": {
+      "connection_failed": "The platform refused the credentials.",
+      "mock_mode": "This environment is in mock mode: set KEEL_INTEGRATION_MODE=live to connect a real account.",
+      "live_mode": "Simulation is only available for mock integrations."
+    }
+  },
+  "integration_guide": {
+    "verify_legend": "Steps marked “To verify” depend on vendor consoles that change often: check them against the vendor documentation before the first install.",
+    "verify_badge": "To verify",
+    "scopes_title": "Minimum scopes by module",
+    "scopes_description": "Ask the customer only for what the activated modules need.",
+    "webhooks_title": "Webhook endpoint and topics",
+    "errors_title": "Common errors",
+    "shopify": {
+      "title": "Connect Shopify",
+      "intro": "Two ways: a custom app created in the store admin (fastest, one store) or a public app with OAuth (one install flow for every customer).",
+      "steps": [
+        {
+          "title": "Create the custom app",
+          "body": "In the store admin open Settings → Apps and sales channels → Develop apps → Create an app. Name it “Keel”.",
+          "verify": true
+        },
+        {
+          "title": "Grant Admin API scopes",
+          "body": "In Configuration → Admin API integration select the scopes listed on the right for the modules the customer bought. Save."
+        },
+        {
+          "title": "Install and copy the token",
+          "body": "Install the app, then reveal the Admin API access token once (shpat_…) and the API secret key. Paste both in Keel → Integrations → Shopify → Connect. Keel stores them encrypted (AES-GCM).",
+          "verify": true
+        },
+        {
+          "title": "Webhooks",
+          "body": "Keel registers its webhook subscriptions through the API at connect time against {webhookUrl}. For a custom app the signing secret is the app's API secret key. The endpoint answers 200 within milliseconds, stores the event and processes it in the background; duplicates are ignored by (topic, id, updated_at)."
+        },
+        {
+          "title": "Initial import",
+          "body": "Click Resync: locations, products, inventory and discounts are imported, then orders page by page with a resumable cursor. Large stores continue across several worker runs; progress is visible under “Recent sync runs”."
+        },
+        {
+          "title": "Order state rules",
+          "body": "Keel never derives the order status from fixed tags. Open Settings → Order states and map the store's tags, payment methods and financial/fulfillment statuses to the canonical states; preview the result on the last 50 orders."
+        },
+        {
+          "title": "Verify",
+          "body": "Test connection shows the shop name and the granted scopes; place a test order in the store and watch it appear in Orders within seconds, with an “imported” event in its timeline."
+        },
+        {
+          "title": "Public app (optional)",
+          "body": "Create the app in the Partner dashboard, set the redirect URL to /api/integrations/shopify/oauth/callback, put the client id and secret in SHOPIFY_API_KEY and SHOPIFY_API_SECRET, then use “Install via OAuth”.",
+          "verify": true
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Connection failed with HTTP 401",
+          "fix": "The token was revoked or copied incompletely. Create a new token in the app and reconnect."
+        },
+        {
+          "symptom": "Access denied on a query",
+          "fix": "A scope is missing: the card shows which. Add it in the app configuration and reinstall."
+        },
+        {
+          "symptom": "Webhooks rejected with 401",
+          "fix": "The signing secret differs from the one saved in Keel. Reconnect with the current API secret key."
+        },
+        {
+          "symptom": "Throttled / 429",
+          "fix": "Normal under heavy sync: Keel waits and retries automatically; the run resumes from its cursor."
+        }
+      ]
+    },
+    "meta": {
+      "title": "Connect Meta Ads",
+      "intro": "Keel reads campaigns and daily insights and can pause or resume campaigns with an explicit confirmation. A system user token keeps the connection alive without personal logins.",
+      "steps": [
+        {
+          "title": "Create a system user",
+          "body": "In Business Settings → Users → System users create an Admin system user named “Keel”.",
+          "verify": true
+        },
+        {
+          "title": "Assign the ad account",
+          "body": "Add assets → Ad accounts → select the account → Manage campaigns (needed for pause/resume) or View performance (read-only)."
+        },
+        {
+          "title": "Generate the token",
+          "body": "Generate new token → choose the app → permissions ads_read, ads_management, business_management → never expires. Copy it once.",
+          "verify": true
+        },
+        {
+          "title": "Connect in Keel",
+          "body": "Integrations → Meta Ads → Connect: paste the ad account id (act_…) and the token. Test connection shows the account name and granted permissions."
+        },
+        {
+          "title": "Backfill",
+          "body": "Resync pulls the last 30 days in 7-day windows; the nightly job refreshes the last 3 days because Meta restates recent insights."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Error code 190",
+          "fix": "Token expired or revoked: generate a new one for the system user."
+        },
+        {
+          "symptom": "Error code 17 / 32 / 613",
+          "fix": "Rate limit on the ad account: Keel backs off and retries; reduce backfill windows if it persists."
+        },
+        {
+          "symptom": "Permission error (10/200)",
+          "fix": "The system user lacks the ad account asset or the permission; fix it in Business Settings."
+        }
+      ]
+    },
+    "google": {
+      "title": "Connect Google Ads",
+      "intro": "Read-only in this version: campaigns and daily cost, impressions, clicks and conversions through the Google Ads API.",
+      "steps": [
+        {
+          "title": "Developer token",
+          "body": "From a Manager (MCC) account open Tools → API Center and request a developer token; Basic access is enough for production reads.",
+          "verify": true
+        },
+        {
+          "title": "OAuth client",
+          "body": "In Google Cloud create an OAuth client (Web or Desktop) with the Google Ads API enabled; note client id and secret.",
+          "verify": true
+        },
+        {
+          "title": "Refresh token",
+          "body": "Authorise the scope https://www.googleapis.com/auth/adwords with a user who can access the customer account and keep the refresh token."
+        },
+        {
+          "title": "Connect in Keel",
+          "body": "Integrations → Google Ads → Connect: customer id (digits), manager id when accessed through an MCC, developer token, client id/secret, refresh token."
+        },
+        {
+          "title": "Verify",
+          "body": "Test connection runs a one-row GAQL query; Resync imports campaigns and the last 30 days of metrics."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "PERMISSION_DENIED",
+          "fix": "The developer token is not approved for this account, or the login-customer-id is missing for an MCC-managed account."
+        },
+        {
+          "symptom": "invalid_grant on token refresh",
+          "fix": "The refresh token was revoked; authorise again and reconnect."
+        }
+      ]
+    }
   }
 }
