@@ -144,6 +144,8 @@ export interface NormalizedVariant {
   priceMinor: number;
   compareAtMinor: number | null;
   weightGrams: number | null;
+  /** Unit cost on the platform (Shopify `inventoryItem.unitCost`); undefined when the payload does not carry it (REST webhooks). */
+  costMinor?: number | null;
 }
 
 export interface NormalizedInventoryLevel {
@@ -252,6 +254,8 @@ export interface CommercePlatform {
   updateOrderTags(externalId: string, add: string[], remove: string[]): Promise<void>;
   updateVariant(variantExternalId: string, patch: { priceMinor?: number }): Promise<void>;
   updateProductStatus(productExternalId: string, status: "active" | "draft" | "archived"): Promise<void>;
+  /** Unit cost of a variant on the platform (Shopify: the inventory item's `cost`); the inventory item id is looked up when unknown. */
+  updateVariantCost(variant: { variantExternalId: string; inventoryItemExternalId: string | null }, costMinor: number): Promise<void>;
   setInventory(inventoryItemExternalId: string, locationExternalId: string, available: number): Promise<void>;
   createDiscountCode(input: { code: string; title: string; type: "percentage" | "fixed_amount" | "free_shipping"; value: number; startsAt?: Date | null; endsAt?: Date | null; usageLimit?: number | null; minimumAmountMinor?: number | null }): Promise<{ externalId: string }>;
   createDiscountPool(input: { title: string; codes: string[]; type: "percentage" | "fixed_amount"; value: number; startsAt?: Date | null; endsAt?: Date | null }): Promise<{ externalId: string; imported: string[]; failed: string[] }>;

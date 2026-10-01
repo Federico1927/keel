@@ -5,7 +5,7 @@ import { IntegrationError } from "../types";
 import { ShopifyCommercePlatform } from "./adapter";
 import { mapRestOrder } from "./mappers";
 import { buildInstallUrl, verifyOAuthCallback, verifyWebhookHmac } from "./oauth";
-import { graphqlCancel, graphqlDiscounts, graphqlInventory, graphqlOrdersPage, graphqlProductsPage, graphqlShop, graphqlThrottled, graphqlWebhookCreate, graphqlWebhooks, restOrderWebhook } from "./__fixtures__";
+import { graphqlCancel, graphqlDiscounts, graphqlInventory, graphqlInventoryItemUpdate, graphqlOrdersPage, graphqlProductsPage, graphqlShop, graphqlThrottled, graphqlVariantInventoryItem, graphqlWebhookCreate, graphqlWebhooks, restOrderWebhook } from "./__fixtures__";
 
 const creds = { shop: "northwind-demo.myshopify.com", accessToken: "shpat_test", apiSecret: "shhh" };
 const bodyOf = (init?: { body?: string }) => (init?.body ? (JSON.parse(init.body) as { query: string; variables: Record<string, unknown> }) : { query: "", variables: {} });
@@ -68,7 +68,10 @@ describe("shopify adapter", () => {
     ]);
     const products = await p.fetchProducts({});
     expect(products.items[0]).toMatchObject({ externalId: "8100001", productType: "Outerwear", status: "active" });
-    expect(products.items[0]!.variants[0]).toMatchObject({ sku: "GIA-M-BLU", priceMinor: 12900, compareAtMinor: 15900, weightGrams: 800, inventoryItemExternalId: "4500001", optionValues: { Size: "M", Color: "Blu" } });
+    expect(products.items[0]!.variants[0]).toMatchObject({ sku: "GIA-M-BLU", priceMinor: 12900, compareAtMinor: 15900, weightGrams: 800, inventoryItemExternalId: "4500001", optionValues: { Size: "M", Color: "Blu" }, costMinor: 4850 });
+    // a variant without a cost on Shopify maps to null, never to zero
+    expect(products.items[0]!.variants[1]).toMatchObject({ sku: "GIA-L-BLU", barcode: null, costMinor: null, weightGrams: 800 });
+    expect(bodyOf({ body: p.http.calls[0]!.body! }).query).toContain("unitCost { amount");
     const discounts = await p.fetchDiscounts({});
     expect(discounts.items[0]).toMatchObject({ code: "WELCOME10", type: "percentage", value: 1000, usedCount: 412 });
     expect(discounts.items[1]).toMatchObject({ code: "FREESHIP", type: "free_shipping", usageLimit: 1000 });
@@ -118,6 +121,22 @@ describe("shopify adapter", () => {
     const sent = bodyOf({ body: p.http.calls[0]!.body! });
     expect(sent.variables).toMatchObject({ orderId: "gid://shopify/Order/5678901234567", reason: "CUSTOMER", restock: true, refund: false });
     await expect(p.updateProductStatus("8100001", "draft")).rejects.toMatchObject({ code: "invalid_request" });
+  });
+});
+
+describe("shopify product cost write", () => {
+  it("updates the inventory item cost, looking the item up when only the variant is known", async () => {
+    const p = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("productVariant(id"), body: graphqlVariantInventoryItem },
+      { match: (_u, i) => bodyOf(i).query.includes("inventoryItemUpdate"), body: graphqlInventoryItemUpdate },
+    ]);
+    await p.updateVariantCost({ variantExternalId: "4100001", inventoryItemExternalId: "4500001" }, 5200);
+    expect(bodyOf({ body: p.http.calls[0]!.body! }).variables).toEqual({ id: "gid://shopify/InventoryItem/4500001", input: { cost: "52.00" } });
+    await p.updateVariantCost({ variantExternalId: "4100004", inventoryItemExternalId: null }, 1999);
+    expect(p.http.calls).toHaveLength(3);
+    expect(bodyOf({ body: p.http.calls[2]!.body! }).variables).toEqual({ id: "gid://shopify/InventoryItem/4500004", input: { cost: "19.99" } });
+    const rejected = platform([{ match: () => true, body: { data: { inventoryItemUpdate: { inventoryItem: null, userErrors: [{ field: ["input", "cost"], message: "Cost must be positive" }] } } } }]);
+    await expect(rejected.updateVariantCost({ variantExternalId: "1", inventoryItemExternalId: "2" }, 1)).rejects.toMatchObject({ code: "invalid_request" });
   });
 });
 

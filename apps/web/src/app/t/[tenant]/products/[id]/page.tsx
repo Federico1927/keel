@@ -2,14 +2,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
-import { canDo } from "@keel/config";
-import { formatDateTime, formatMoney, formatNumber } from "@keel/core";
+import { canDo, canWritePage } from "@keel/config";
+import { formatDate, formatDateTime, formatMoney, formatNumber } from "@keel/core";
 import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { getProductDetail } from "@/server/queries/catalog";
 import { RiskBadge } from "@/components/risk-badge";
 import { SalesChart } from "@/components/charts/sales-chart";
 import { ProductActions, VariantPriceForm } from "./actions";
+import { VariantCostsForm } from "./costs-form";
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
@@ -166,6 +167,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </Table>
         </CardContent>
       </Card>
+      <VariantCostsForm slug={tenant} productId={product.id} canEdit={canWritePage(ctx.role, "products")} writeBack={ctx.settings.costWriteBack} variants={variants.map((v) => ({ id: v.id, title: v.title, sku: v.sku, cost: v.costMinor !== null ? (v.costMinor / 100).toFixed(2) : "", source: v.costSource, updated: v.costUpdatedAt ? formatDate(v.costUpdatedAt, ctx.locale, ctx.tenant.timezone) : null }))} />
     </DetailShell>
   );
 }

@@ -219,7 +219,8 @@
       "stuck_shipments": "Stuck shipments",
       "returns_requested": "Return requests",
       "critical_variants": "Variants at low stock",
-      "failed_webhooks": "Failed webhooks"
+      "failed_webhooks": "Failed webhooks",
+      "catalog_quality": "Variants without cost or SKU"
     },
     "forecast": {
       "title": "Forecast {month}",
@@ -434,7 +435,8 @@
       "sort": "Sort",
       "from": "From",
       "to": "To",
-      "tag": "Tag"
+      "tag": "Tag",
+      "missing_cost": "Products without cost"
     },
     "sort": {
       "placed_desc": "Newest first",
@@ -628,7 +630,9 @@
       "incoming": "Incoming",
       "sold": "Sold ({days}d)",
       "risk": "Risk"
-    }
+    },
+    "quality_link": "Data quality",
+    "import_costs_link": "Import costs"
   },
   "product_detail": {
     "back": "Products",
@@ -910,7 +914,7 @@
       "cancelled": "Cancelled",
       "returned": "Returned",
       "pending": "Pending",
-      "cogs_incomplete": "{n} orders have lines without a purchase cost: COGS is understated.",
+      "cogs_incomplete": "{n} orders contain products without cost ({share} of net revenue): cost of goods is understated.",
       "by_month": "By month",
       "month": "Month",
       "open_orders": "Open orders",
@@ -923,7 +927,17 @@
         "none": "no cost entered",
         "mixed": "actual where available, estimate elsewhere"
       },
-      "return_costs": "Return costs"
+      "return_costs": "Return costs",
+      "fix_costs": "Fix product costs",
+      "cost_reliability": "Known cost on {share} of sale revenue:",
+      "cost_origin": {
+        "po_receipt": "purchase orders",
+        "platform": "Shopify",
+        "import": "CSV import",
+        "manual": "entered by hand",
+        "unknown": "not recorded",
+        "missing": "missing"
+      }
     },
     "products": {
       "title": "Product performance",
@@ -3865,5 +3879,95 @@
       "ask_owner": "Ask an owner or admin to connect the Anthropic key in Integrations.",
       "guide": "How to get a key"
     }
+  },
+  "product_costs": {
+    "card_title": "Product cost",
+    "card_description": "Unit cost per variant: it is copied onto the orders that sell it and feeds margins, the P/L and campaign profit. A received purchase order updates it too.",
+    "bulk_label": "Same cost for all variants",
+    "bulk_apply": "Use for all variants",
+    "variant": "Variant",
+    "sku": "SKU",
+    "cost": "Cost",
+    "cost_of": "Cost of {variant}",
+    "source_label": "Source",
+    "source": {
+      "platform": "From Shopify",
+      "manual": "Entered by hand",
+      "import": "CSV import",
+      "po_receipt": "Purchase order",
+      "unknown": "Not recorded"
+    },
+    "missing": "Missing",
+    "apply_to": "Past orders",
+    "apply_missing": "Fill only orders without a cost",
+    "apply_all": "Restate all past orders",
+    "write_back_on": "Costs are also written to Shopify.",
+    "saved": "{changed, plural, =0 {Nothing changed.} one {# cost saved, {lines} order lines updated.} other {# costs saved, {lines} order lines updated.}}"
+  },
+  "catalog_quality": {
+    "back": "Products",
+    "title": "Catalog data quality",
+    "description": "{affected} of {total} active variants need attention. A missing cost makes every margin look better than it is.",
+    "import_costs": "Import costs from CSV",
+    "issue": {
+      "missing_cost": "Missing cost",
+      "missing_sku": "Missing SKU",
+      "duplicate_sku": "Duplicate SKU",
+      "missing_barcode": "Missing barcode",
+      "missing_image": "Missing image"
+    },
+    "empty_title": "Nothing to fix",
+    "empty_description": "Every active variant has a cost, a unique SKU, a barcode and an image.",
+    "columns": {
+      "product": "Product",
+      "sku": "SKU",
+      "barcode": "Barcode",
+      "cost": "Cost",
+      "issues": "Issues"
+    },
+    "pagination": "{from}–{to} of {total} variants"
+  },
+  "cost_import": {
+    "back": "Catalog data quality",
+    "title": "Import product costs",
+    "description": "Upload a CSV with SKU and cost (and optionally the supplier SKU). You see what matches before anything is written.",
+    "file_title": "Cost file",
+    "file_hint": "Columns: sku, cost, supplier_sku (optional). Comma, semicolon or tab separated; decimals with a dot or a comma. Shopify's \"Cost per item\" export works as is.",
+    "file": "CSV file",
+    "apply_to": "Past orders",
+    "apply_missing": "Fill only orders without a cost",
+    "apply_all": "Restate all past orders",
+    "preview": "Preview",
+    "template": "Download a template",
+    "preview_title": "Preview",
+    "preview_hint": "Nothing has been written yet. Only matched rows are imported; the others are listed so you can fix the file.",
+    "status": {
+      "matched": "Will update",
+      "unchanged": "Same cost",
+      "unmatched": "SKU not found",
+      "ambiguous": "SKU on several variants",
+      "invalid": "Invalid row"
+    },
+    "columns": {
+      "line": "Line",
+      "sku": "SKU",
+      "variant": "Variant",
+      "cost": "Cost",
+      "status": "Result"
+    },
+    "row_error": {
+      "missing_sku": "No SKU",
+      "invalid_cost": "Cost is not a valid amount",
+      "duplicate_row": "Repeated in the file"
+    },
+    "file_error": {
+      "empty": "The file has no rows.",
+      "missing_columns": "The file needs a cost column and a sku (or supplier_sku) column.",
+      "too_many_rows": "The file has too many rows (maximum 20,000)."
+    },
+    "confirm": "Import {n, plural, one {# cost} other {# costs}}",
+    "done": "{written, plural, one {# cost imported} other {# costs imported}}, {lines} order lines updated.",
+    "write_back": "Write costs to Shopify",
+    "write_back_hint": "When on, costs edited or imported here also update the unit cost on Shopify. Only owners and admins can change this."
   }
 }

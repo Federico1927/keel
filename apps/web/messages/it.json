@@ -219,7 +219,8 @@
       "stuck_shipments": "Spedizioni ferme",
       "returns_requested": "Richieste di reso",
       "critical_variants": "Varianti sotto soglia",
-      "failed_webhooks": "Webhook falliti"
+      "failed_webhooks": "Webhook falliti",
+      "catalog_quality": "Varianti senza costo o SKU"
     },
     "forecast": {
       "title": "Previsione {month}",
@@ -434,7 +435,8 @@
       "sort": "Ordina",
       "from": "Dal",
       "to": "Al",
-      "tag": "Tag"
+      "tag": "Tag",
+      "missing_cost": "Prodotti senza costo"
     },
     "sort": {
       "placed_desc": "Più recenti",
@@ -628,7 +630,9 @@
       "incoming": "In arrivo",
       "sold": "Venduti ({days}g)",
       "risk": "Rischio"
-    }
+    },
+    "quality_link": "Qualità dati",
+    "import_costs_link": "Importa costi"
   },
   "product_detail": {
     "back": "Prodotti",
@@ -910,7 +914,7 @@
       "cancelled": "Annullati",
       "returned": "Resi",
       "pending": "In sospeso",
-      "cogs_incomplete": "{n} ordini hanno righe senza costo d'acquisto: il costo del venduto è sottostimato.",
+      "cogs_incomplete": "{n} ordini contengono prodotti senza costo ({share} del ricavo netto): il costo del venduto è sottostimato.",
       "by_month": "Per mese",
       "month": "Mese",
       "open_orders": "Apri gli ordini",
@@ -923,7 +927,17 @@
         "none": "nessun costo inserito",
         "mixed": "consuntivo dove c'è, stima altrove"
       },
-      "return_costs": "Costi dei resi"
+      "return_costs": "Costi dei resi",
+      "fix_costs": "Sistema i costi prodotto",
+      "cost_reliability": "Costo noto sul {share} del ricavo di vendita:",
+      "cost_origin": {
+        "po_receipt": "ordini d'acquisto",
+        "platform": "Shopify",
+        "import": "import CSV",
+        "manual": "inserito a mano",
+        "unknown": "non registrata",
+        "missing": "mancante"
+      }
     },
     "products": {
       "title": "Performance prodotti",
@@ -3865,5 +3879,95 @@
       "ask_owner": "Chiedi a un owner o a un admin di collegare la chiave Anthropic in Integrazioni.",
       "guide": "Come ottenere una chiave"
     }
+  },
+  "product_costs": {
+    "card_title": "Costo prodotto",
+    "card_description": "Costo unitario per variante: viene copiato sugli ordini che la vendono e alimenta margini, conto economico e profitto delle campagne. Anche il ricevimento di un ordine d'acquisto lo aggiorna.",
+    "bulk_label": "Stesso costo per tutte le varianti",
+    "bulk_apply": "Usa per tutte le varianti",
+    "variant": "Variante",
+    "sku": "SKU",
+    "cost": "Costo",
+    "cost_of": "Costo di {variant}",
+    "source_label": "Origine",
+    "source": {
+      "platform": "Da Shopify",
+      "manual": "Inserito a mano",
+      "import": "Import CSV",
+      "po_receipt": "Ordine d'acquisto",
+      "unknown": "Non registrata"
+    },
+    "missing": "Mancante",
+    "apply_to": "Ordini passati",
+    "apply_missing": "Completa solo gli ordini senza costo",
+    "apply_all": "Ricalcola tutti gli ordini passati",
+    "write_back_on": "I costi vengono scritti anche su Shopify.",
+    "saved": "{changed, plural, =0 {Nessuna modifica.} one {# costo salvato, {lines} righe d'ordine aggiornate.} other {# costi salvati, {lines} righe d'ordine aggiornate.}}"
+  },
+  "catalog_quality": {
+    "back": "Prodotti",
+    "title": "Qualità dati del catalogo",
+    "description": "{affected} varianti attive su {total} richiedono attenzione. Un costo mancante fa sembrare ogni margine migliore di quanto sia.",
+    "import_costs": "Importa costi da CSV",
+    "issue": {
+      "missing_cost": "Costo mancante",
+      "missing_sku": "SKU mancante",
+      "duplicate_sku": "SKU duplicato",
+      "missing_barcode": "Barcode mancante",
+      "missing_image": "Immagine mancante"
+    },
+    "empty_title": "Niente da sistemare",
+    "empty_description": "Ogni variante attiva ha costo, SKU univoco, barcode e immagine.",
+    "columns": {
+      "product": "Prodotto",
+      "sku": "SKU",
+      "barcode": "Barcode",
+      "cost": "Costo",
+      "issues": "Problemi"
+    },
+    "pagination": "{from}–{to} di {total} varianti"
+  },
+  "cost_import": {
+    "back": "Qualità dati del catalogo",
+    "title": "Importa costi prodotto",
+    "description": "Carica un CSV con SKU e costo (e facoltativamente lo SKU del fornitore). Vedi le corrispondenze prima che venga scritto qualcosa.",
+    "file_title": "File dei costi",
+    "file_hint": "Colonne: sku, cost, supplier_sku (facoltativa). Separatore virgola, punto e virgola o tab; decimali con punto o virgola. L'export \"Costo per articolo\" di Shopify funziona così com'è.",
+    "file": "File CSV",
+    "apply_to": "Ordini passati",
+    "apply_missing": "Completa solo gli ordini senza costo",
+    "apply_all": "Ricalcola tutti gli ordini passati",
+    "preview": "Anteprima",
+    "template": "Scarica un modello",
+    "preview_title": "Anteprima",
+    "preview_hint": "Non è stato ancora scritto nulla. Vengono importate solo le righe abbinate; le altre sono elencate per correggere il file.",
+    "status": {
+      "matched": "Da aggiornare",
+      "unchanged": "Stesso costo",
+      "unmatched": "SKU non trovato",
+      "ambiguous": "SKU su più varianti",
+      "invalid": "Riga non valida"
+    },
+    "columns": {
+      "line": "Riga",
+      "sku": "SKU",
+      "variant": "Variante",
+      "cost": "Costo",
+      "status": "Esito"
+    },
+    "row_error": {
+      "missing_sku": "Senza SKU",
+      "invalid_cost": "Il costo non è un importo valido",
+      "duplicate_row": "Ripetuta nel file"
+    },
+    "file_error": {
+      "empty": "Il file non ha righe.",
+      "missing_columns": "Il file deve avere una colonna cost e una colonna sku (o supplier_sku).",
+      "too_many_rows": "Il file ha troppe righe (massimo 20.000)."
+    },
+    "confirm": "Importa {n, plural, one {# costo} other {# costi}}",
+    "done": "{written, plural, one {# costo importato} other {# costi importati}}, {lines} righe d'ordine aggiornate.",
+    "write_back": "Scrivi i costi su Shopify",
+    "write_back_hint": "Se attivo, i costi modificati o importati qui aggiornano anche il costo unitario su Shopify. Solo owner e admin possono cambiarlo."
   }
 }

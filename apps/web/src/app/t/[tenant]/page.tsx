@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatMoney, formatNumber } from "@keel/core";
-import { dashboardSummary, monthEndForecast } from "@keel/services";
+import { catalogQualityReport, dashboardSummary, monthEndForecast } from "@keel/services";
 import { Card, CardContent, CardHeader, CardTitle, PageHeader, Stat } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { RevenueChart } from "@/components/charts/revenue-chart";
@@ -12,7 +12,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ tena
   const ctx = await requirePage(tenant, "dashboard");
   const t = await getTranslations("dashboard");
   const at = { id: ctx.tenant.id, country: ctx.tenant.country, currency: ctx.tenant.currency, timezone: ctx.tenant.timezone, settings: ctx.settings };
-  const { summary, forecast } = await ctx.run(async (tx) => ({ summary: await dashboardSummary({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, at), forecast: await monthEndForecast({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, at) }));
+  const { summary, forecast, quality } = await ctx.run(async (tx) => ({ summary: await dashboardSummary({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, at), forecast: await monthEndForecast({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, at), quality: await catalogQualityReport({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }) }));
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   const pctChange = (cur: number, prev: number) => (prev ? { value: (cur - prev) / prev } : null);
   const base = `/t/${tenant}`;
@@ -26,6 +26,8 @@ export default async function DashboardPage({ params }: { params: Promise<{ tena
     { key: "returns_requested", value: summary.open.returnsRequested, href: `${base}/returns?status=requested` },
     { key: "critical_variants", value: summary.open.criticalVariants, href: `${base}/inventory?risk=critical` },
     { key: "failed_webhooks", value: summary.open.failedWebhooks, href: `${base}/integrations` },
+    // variants without a cost make every margin optimistic: the catalog check sits with the other open items
+    { key: "catalog_quality", value: quality.rows.filter((r) => r.issues.some((i) => i === "missing_cost" || i === "missing_sku" || i === "duplicate_sku")).length, href: `${base}/products/quality${quality.counts.missing_cost ? "?issue=missing_cost" : ""}` },
   ];
   return (
     <>
@@ -66,7 +68,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ tena
               {openItems.map((i) => (
                 <Link key={i.key} href={i.href} className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-muted/50">
                   <span>{t(`open.${i.key}`)}</span>
-                  <span className={`tabular font-medium ${i.value > 0 && (i.key === "shipment_exceptions" || i.key === "failed_webhooks" || i.key === "critical_variants") ? "text-destructive" : ""}`}>{i.value}</span>
+                  <span className={`tabular font-medium ${i.value > 0 && (i.key === "shipment_exceptions" || i.key === "failed_webhooks" || i.key === "critical_variants") ? "text-destructive" : i.value > 0 && i.key === "catalog_quality" ? "text-warning" : ""}`}>{i.value}</span>
                 </Link>
               ))}
             </CardContent>

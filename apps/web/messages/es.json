@@ -219,7 +219,8 @@
       "stuck_shipments": "Envíos detenidos",
       "returns_requested": "Solicitudes de devolución",
       "critical_variants": "Variantes con stock bajo",
-      "failed_webhooks": "Webhooks fallidos"
+      "failed_webhooks": "Webhooks fallidos",
+      "catalog_quality": "Variantes sin coste o SKU"
     },
     "forecast": {
       "title": "Previsión {month}",
@@ -434,7 +435,8 @@
       "sort": "Ordenar",
       "from": "Desde",
       "to": "Hasta",
-      "tag": "Etiqueta"
+      "tag": "Etiqueta",
+      "missing_cost": "Productos sin coste"
     },
     "sort": {
       "placed_desc": "Más recientes",
@@ -628,7 +630,9 @@
       "incoming": "En camino",
       "sold": "Vendidos ({days}d)",
       "risk": "Riesgo"
-    }
+    },
+    "quality_link": "Calidad de datos",
+    "import_costs_link": "Importar costes"
   },
   "product_detail": {
     "back": "Productos",
@@ -910,7 +914,7 @@
       "cancelled": "Cancelados",
       "returned": "Devueltos",
       "pending": "Pendientes",
-      "cogs_incomplete": "{n} pedidos tienen líneas sin coste de compra: el coste de ventas está infravalorado.",
+      "cogs_incomplete": "{n} pedidos contienen productos sin coste ({share} de los ingresos netos): el coste de la mercancía está infravalorado.",
       "by_month": "Por mes",
       "month": "Mes",
       "open_orders": "Abrir pedidos",
@@ -923,7 +927,17 @@
         "none": "ningún coste introducido",
         "mixed": "real donde existe, estimación en el resto"
       },
-      "return_costs": "Costes de devolución"
+      "return_costs": "Costes de devolución",
+      "fix_costs": "Corregir costes de producto",
+      "cost_reliability": "Coste conocido en el {share} de los ingresos por ventas:",
+      "cost_origin": {
+        "po_receipt": "pedidos de compra",
+        "platform": "Shopify",
+        "import": "importación CSV",
+        "manual": "introducido a mano",
+        "unknown": "no registrado",
+        "missing": "falta"
+      }
     },
     "products": {
       "title": "Rendimiento de productos",
@@ -3865,5 +3879,95 @@
       "ask_owner": "Pide a un owner o admin que conecte la clave de Anthropic en Integraciones.",
       "guide": "Cómo obtener una clave"
     }
+  },
+  "product_costs": {
+    "card_title": "Coste del producto",
+    "card_description": "Coste unitario por variante: se copia en los pedidos que la venden y alimenta márgenes, la cuenta de resultados y el beneficio de las campañas. La recepción de un pedido de compra también lo actualiza.",
+    "bulk_label": "Mismo coste para todas las variantes",
+    "bulk_apply": "Usar para todas las variantes",
+    "variant": "Variante",
+    "sku": "SKU",
+    "cost": "Coste",
+    "cost_of": "Coste de {variant}",
+    "source_label": "Origen",
+    "source": {
+      "platform": "De Shopify",
+      "manual": "Introducido a mano",
+      "import": "Importación CSV",
+      "po_receipt": "Pedido de compra",
+      "unknown": "No registrado"
+    },
+    "missing": "Falta",
+    "apply_to": "Pedidos pasados",
+    "apply_missing": "Completar solo pedidos sin coste",
+    "apply_all": "Recalcular todos los pedidos pasados",
+    "write_back_on": "Los costes también se escriben en Shopify.",
+    "saved": "{changed, plural, =0 {Sin cambios.} one {# coste guardado, {lines} líneas de pedido actualizadas.} other {# costes guardados, {lines} líneas de pedido actualizadas.}}"
+  },
+  "catalog_quality": {
+    "back": "Productos",
+    "title": "Calidad de datos del catálogo",
+    "description": "{affected} de {total} variantes activas necesitan atención. Un coste que falta hace que cada margen parezca mejor de lo que es.",
+    "import_costs": "Importar costes desde CSV",
+    "issue": {
+      "missing_cost": "Falta el coste",
+      "missing_sku": "Falta el SKU",
+      "duplicate_sku": "SKU duplicado",
+      "missing_barcode": "Falta el código de barras",
+      "missing_image": "Falta la imagen"
+    },
+    "empty_title": "Nada que corregir",
+    "empty_description": "Cada variante activa tiene coste, SKU único, código de barras e imagen.",
+    "columns": {
+      "product": "Producto",
+      "sku": "SKU",
+      "barcode": "Código de barras",
+      "cost": "Coste",
+      "issues": "Problemas"
+    },
+    "pagination": "{from}–{to} de {total} variantes"
+  },
+  "cost_import": {
+    "back": "Calidad de datos del catálogo",
+    "title": "Importar costes de producto",
+    "description": "Sube un CSV con SKU y coste (y opcionalmente el SKU del proveedor). Ves las coincidencias antes de que se escriba nada.",
+    "file_title": "Archivo de costes",
+    "file_hint": "Columnas: sku, cost, supplier_sku (opcional). Separado por coma, punto y coma o tabulador; decimales con punto o coma. La exportación \"Coste por artículo\" de Shopify funciona tal cual.",
+    "file": "Archivo CSV",
+    "apply_to": "Pedidos pasados",
+    "apply_missing": "Completar solo pedidos sin coste",
+    "apply_all": "Recalcular todos los pedidos pasados",
+    "preview": "Vista previa",
+    "template": "Descargar una plantilla",
+    "preview_title": "Vista previa",
+    "preview_hint": "Todavía no se ha escrito nada. Solo se importan las filas que coinciden; las demás se listan para corregir el archivo.",
+    "status": {
+      "matched": "Se actualizará",
+      "unchanged": "Mismo coste",
+      "unmatched": "SKU no encontrado",
+      "ambiguous": "SKU en varias variantes",
+      "invalid": "Fila no válida"
+    },
+    "columns": {
+      "line": "Línea",
+      "sku": "SKU",
+      "variant": "Variante",
+      "cost": "Coste",
+      "status": "Resultado"
+    },
+    "row_error": {
+      "missing_sku": "Sin SKU",
+      "invalid_cost": "El coste no es un importe válido",
+      "duplicate_row": "Repetida en el archivo"
+    },
+    "file_error": {
+      "empty": "El archivo no tiene filas.",
+      "missing_columns": "El archivo necesita una columna cost y una columna sku (o supplier_sku).",
+      "too_many_rows": "El archivo tiene demasiadas filas (máximo 20.000)."
+    },
+    "confirm": "Importar {n, plural, one {# coste} other {# costes}}",
+    "done": "{written, plural, one {# coste importado} other {# costes importados}}, {lines} líneas de pedido actualizadas.",
+    "write_back": "Escribir los costes en Shopify",
+    "write_back_hint": "Si está activo, los costes editados o importados aquí también actualizan el coste unitario en Shopify. Solo owners y admins pueden cambiarlo."
   }
 }

@@ -29,6 +29,10 @@ export interface MockCatalogVariant {
   productTitle: string;
   optionValues: Record<string, string>;
   priceMinor: number;
+  /** Unit cost the simulated store reports (`inventoryItem.unitCost`); null or absent = never entered. */
+  unitCostMinor?: number | null;
+  barcode?: string | null;
+  productImageUrl?: string | null;
 }
 
 export interface MockCommerceOptions {
@@ -180,10 +184,10 @@ export class MockCommercePlatform implements CommercePlatform {
     for (const v of this.opts.variants) {
       let p = byProduct.get(v.productExternalId);
       if (!p) {
-        p = { externalId: v.productExternalId, title: v.productTitle, handle: v.productTitle.toLowerCase().replace(/\s+/g, "-"), vendor: "Mock", productType: null, status: "active", tags: [], options: [], imageUrl: null, platformCreatedAt: null, variants: [] };
+        p = { externalId: v.productExternalId, title: v.productTitle, handle: v.productTitle.toLowerCase().replace(/\s+/g, "-"), vendor: "Mock", productType: null, status: "active", tags: [], options: [], imageUrl: v.productImageUrl ?? null, platformCreatedAt: null, variants: [] };
         byProduct.set(v.productExternalId, p);
       }
-      p.variants.push({ externalId: v.externalId, inventoryItemExternalId: v.inventoryItemExternalId, sku: v.sku, barcode: null, title: v.title, optionValues: v.optionValues, priceMinor: v.priceMinor, compareAtMinor: null, weightGrams: null });
+      p.variants.push({ externalId: v.externalId, inventoryItemExternalId: v.inventoryItemExternalId, sku: v.sku, barcode: v.barcode ?? null, title: v.title, optionValues: v.optionValues, priceMinor: v.priceMinor, compareAtMinor: null, weightGrams: null, costMinor: v.unitCostMinor ?? null });
     }
     return { items: [...byProduct.values()], nextCursor: null };
   }
@@ -342,6 +346,11 @@ export class MockCommercePlatform implements CommercePlatform {
   }
   async updateVariant(variantExternalId: string, patch: { priceMinor?: number }) {
     this.record("updateVariant", { variantExternalId, patch });
+  }
+  async updateVariantCost(variant: { variantExternalId: string; inventoryItemExternalId: string | null }, costMinor: number) {
+    this.record("updateVariantCost", { ...variant, costMinor });
+    const v = this.opts.variants.find((x) => x.externalId === variant.variantExternalId);
+    if (v) v.unitCostMinor = costMinor;
   }
   async updateProductStatus(productExternalId: string, status: "active" | "draft" | "archived") {
     this.record("updateProductStatus", { productExternalId, status });

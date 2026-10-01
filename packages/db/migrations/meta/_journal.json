@@ -134,6 +134,13 @@
       "when": 1790884623986,
       "tag": "0018_familiar_sersi",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790888587354,
+      "tag": "0019_dark_rage",
+      "breakpoints": true
     }
   ]
 }

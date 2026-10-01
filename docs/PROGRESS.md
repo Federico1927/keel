@@ -317,6 +317,19 @@ Fatto:
 
 Resta per la issue #7: email di stato ai clienti, validazione indirizzi, pagine guida mancanti.
 
+## Costo prodotto (issue #23)
+
+Fatto:
+- Origine del costo per variante (`cost_source`: Shopify, a mano, import CSV, ordine d'acquisto) e data dell'ultimo aggiornamento, mostrate nella scheda prodotto.
+- Sync Shopify: legge `inventoryItem.unitCost` e lo usa solo se Keel non ha un costo (o se quello attuale viene già da Shopify); un costo da ordine d'acquisto, a mano o importato non viene mai sovrascritto. Fixture e test del mapper aggiornati; l'adapter simulato riporta il costo unitario.
+- Scheda prodotto: costo per variante e "stesso costo per tutte le varianti", con scelta sugli ordini passati (solo quelli senza costo, oppure ricalcolo di tutti). Ogni modifica scrive una riga di audit con il diff. Scrittura facoltativa del costo su Shopify (`inventoryItemUpdate`) dietro l'impostazione `costWriteBack`, spenta di default.
+- Import CSV (SKU, costo, SKU fornitore facoltativo) in due passi: anteprima con righe abbinate, invariate, non trovate, ambigue e non valide, senza scrivere nulla; poi conferma, con una riga di audit per l'import. Parsing e abbinamento sono funzioni pure in `packages/core`.
+- Pagina Prodotti → Qualità dati: varianti senza costo, SKU, barcode o immagine e SKU duplicati, con filtri e conteggi; conteggio nella coda di lavoro della dashboard e link dalla lista prodotti.
+- Conto economico: "N ordini contengono prodotti senza costo (X% del ricavo netto)" con link alla lista ordini filtrata (nuovo filtro `missingCost=1`) e affidabilità del costo per origine sul ricavo di vendita.
+- Quando una variante riceve un costo che non aveva (sync, modifica, import, ricevimento di un ordine d'acquisto) le righe d'ordine senza costo vengono completate, così il conto economico successivo le conta.
+- Seed: origine del costo su tutte le varianti, un prodotto venduto senza costo, alcune varianti senza barcode, alcuni prodotti senza immagine, uno SKU duplicato.
+- Migrazione 0019 (2 colonne nullable su `product_variants`); test core 161, integrazioni 47, servizi 92, db 510; e2e +4 scenari (`catalog-costs.spec.ts`).
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

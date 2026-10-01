@@ -1,5 +1,5 @@
 import { and, eq, gte, inArray, lt, lte, schema, sql } from "@keel/db";
-import { change, monthKey, orderEconomics, returnCostsOfPeriod, previousPeriod, resolveFixedCosts, resolveShippingCosts, runningWindows, sumEconomics, type CostSource, type MonthCostUse, type OrderEconomics, type Period, type PeriodCostEntry, type PnlTotals, type TenantSettings } from "@keel/core";
+import { change, costCoverage, monthKey, orderEconomics, returnCostsOfPeriod, previousPeriod, resolveFixedCosts, resolveShippingCosts, runningWindows, sumEconomics, type CostCoverage, type CostSource, type MonthCostUse, type OrderEconomics, type Period, type PeriodCostEntry, type PnlTotals, type TenantSettings } from "@keel/core";
 import type { ServiceContext } from "../context";
 
 export interface AnalyticsTenant {
@@ -108,6 +108,20 @@ export interface PnlReport extends PnlTotals {
   costSources: { fixed: CostSource; shipping: CostSource };
   costByMonth: { fixed: MonthCostUse[]; shipping: MonthCostUse[] };
   returnCosts: { labelsMinor: number; handlingMinor: number; recoveredMinor: number; totalMinor: number };
+  /** How reliable the cost of goods is: sale line revenue by where its cost came from (`missing` when the line has none). */
+  costCoverage: CostCoverage;
+}
+
+/** Line revenue of the given orders grouped by the variant's cost source and whether the line carries a cost. */
+async function costCoverageOf(ctx: ServiceContext, orderIds: string[]): Promise<CostCoverage> {
+  if (!orderIds.length) return costCoverage([]);
+  const rows = await ctx.tx
+    .select({ source: schema.productVariants.costSource, hasCost: sql<boolean>`${schema.orderLines.unitCostMinor} is not null`, revenue: sql<number>`coalesce(sum(${schema.orderLines.currentQuantity} * ${schema.orderLines.unitPriceMinor}), 0)::bigint` })
+    .from(schema.orderLines)
+    .leftJoin(schema.productVariants, eq(schema.productVariants.id, schema.orderLines.variantId))
+    .where(and(eq(schema.orderLines.tenantId, ctx.tenantId), eq(schema.orderLines.isAncillary, false), inArray(schema.orderLines.orderId, orderIds)))
+    .groupBy(schema.productVariants.costSource, sql`${schema.orderLines.unitCostMinor} is not null`);
+  return costCoverage(rows.map((r) => ({ source: r.source, hasCost: r.hasCost, revenueMinor: Number(r.revenue) })));
 }
 
 export async function pnlForPeriod(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period): Promise<PnlReport> {
@@ -131,6 +145,7 @@ export async function pnlForPeriod(ctx: ServiceContext, tenant: AnalyticsTenant,
     ...totals,
     costSources: { fixed: fixed.source, shipping: shipping.source },
     returnCosts,
+    costCoverage: await costCoverageOf(ctx, rows.filter((r) => r.inScope).map((r) => r.orderId)),
     costByMonth: { fixed: fixed.byMonth, shipping: shipping.byMonth },
     period,
     placedOrders: rows.length,
