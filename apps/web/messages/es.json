@@ -4539,6 +4539,7 @@
     },
     "search": {
       "open": "Buscar",
+      "open_label": "Buscar en todo",
       "placeholder": "Busca pedidos, clientes, productos, SKU, órdenes de compra…",
       "placeholder_short": "Buscar…",
       "hint": "Escribe un número de pedido, un nombre, un email, un teléfono (cualquier formato), un SKU o un número de orden de compra.",

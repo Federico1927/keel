@@ -4539,6 +4539,7 @@
     },
     "search": {
       "open": "Search",
+      "open_label": "Search everything",
       "placeholder": "Search orders, customers, products, SKU, purchase orders…",
       "placeholder_short": "Search…",
       "hint": "Type an order number, a name, an email, a phone (any format), a SKU or a PO number.",

@@ -6,7 +6,7 @@ const T = "/t/northwind-apparel";
 /** Recently delivered orders as the team sees them: number and customer email. */
 async function deliveredOrders(page: Page): Promise<{ name: string; email: string }[]> {
   await page.goto(`${T}/orders?status=delivered`);
-  const links = page.locator("table tbody tr td:first-child a");
+  const links = page.locator('table tbody tr a[href*="/orders/"]');
   const hrefs = (await links.evaluateAll((els) => els.slice(0, 8).map((e) => (e as HTMLAnchorElement).href)));
   const out: { name: string; email: string }[] = [];
   for (const href of hrefs) {
