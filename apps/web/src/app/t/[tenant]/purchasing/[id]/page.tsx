@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
 import { canDo } from "@keel/config";
-import { PO_TRANSITIONS, canDeletePo, canEditPo, formatDate, formatDateTime, formatMoney } from "@keel/core";
+import { PO_TRANSITIONS, canDeletePo, canEditPo, formatDate, formatDateTime, formatMoney, displayName } from "@keel/core";
 import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { getPurchaseOrder } from "@/server/queries/purchasing";
@@ -101,7 +101,7 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
                   <div key={h.id} className="border-l-2 pl-2">
                     <p className="font-medium">{t.has(`history.actions.${h.action}`) ? t(`history.actions.${h.action}` as never) : h.action}</p>
                     <p className="text-muted-foreground">
-                      {formatDateTime(h.createdAt, ctx.locale, ctx.tenant.timezone)} · {h.actorType === "system" ? ta("system") : (h.actorName ?? h.actorEmail ?? "—")}
+                      {formatDateTime(h.createdAt, ctx.locale, ctx.tenant.timezone)} · {h.actorType === "system" ? ta("system") : (h.actorName || h.actorEmail ? displayName({ name: h.actorName, email: h.actorEmail }) : "—")}
                     </p>
                     {Object.keys(h.diff as object).length > 0 && <p className="text-muted-foreground">{Object.keys(h.diff as object).join(", ")}</p>}
                   </div>

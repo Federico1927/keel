@@ -19,7 +19,7 @@ export default async function OrdersPage({ params, searchParams }: { params: Pro
   const members = await adminDb().select({ id: schema.users.id, name: schema.users.name, email: schema.users.email }).from(schema.tenantMemberships).innerJoin(schema.users, eq(schema.users.id, schema.tenantMemberships.userId)).where(eq(schema.tenantMemberships.tenantId, ctx.tenant.id));
   const assignedIds = [...new Set(rows.map((r) => r.assignedTo).filter((x): x is string => Boolean(x)))];
   const assignees = assignedIds.length ? members.filter((m) => assignedIds.includes(m.id)) : [];
-  const nameOf = (id: string | null) => (id ? (assignees.find((a) => a.id === id)?.name ?? "—") : null);
+  const nameOf = (id: string | null) => (id ? (assignees.some((a) => a.id === id) ? displayName(assignees.find((a) => a.id === id)) : "—") : null);
   const base = `/t/${tenant}/orders`;
   const hrefFor = (p: number) => {
     const u = new URLSearchParams();

@@ -138,17 +138,17 @@ export async function DataQualityCard({ ctx, tenant, pnl, fromIso, toIso }: { ct
       <CardContent className="grid gap-3 sm:grid-cols-3">
         <Link href={`/t/${tenant}/orders?from=${fromIso}&to=${toIso}&status=${SALE}&missingCost=1`} className="block rounded-lg border p-3 hover:bg-muted/40" data-testid="quality-incomplete-orders">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("incomplete_orders")}</p>
-          <p className={cn("mt-1 font-serif text-2xl tabular", pnl.cogsIncompleteOrders > 0 && "text-warning")}>{formatNumber(pnl.cogsIncompleteOrders, ctx.locale)}</p>
+          <p className={cn("mt-1 text-2xl font-semibold tracking-tight tabular", pnl.cogsIncompleteOrders > 0 && "text-warning")}>{formatNumber(pnl.cogsIncompleteOrders, ctx.locale)}</p>
           <p className="text-xs text-muted-foreground">{t("incomplete_share", { share: formatPercent(share, ctx.locale) })}</p>
         </Link>
         <Link href={`/t/${tenant}/products/quality?issue=missing_cost`} className="block rounded-lg border p-3 hover:bg-muted/40" data-testid="quality-missing-cost">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("variants_missing_cost")}</p>
-          <p className={cn("mt-1 font-serif text-2xl tabular", catalog.counts.missing_cost > 0 && "text-warning")}>{formatNumber(catalog.counts.missing_cost, ctx.locale)}</p>
+          <p className={cn("mt-1 text-2xl font-semibold tracking-tight tabular", catalog.counts.missing_cost > 0 && "text-warning")}>{formatNumber(catalog.counts.missing_cost, ctx.locale)}</p>
           <p className="text-xs text-muted-foreground">{t("fix_link")}</p>
         </Link>
         <div className="rounded-lg border p-3">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("cost_known")}</p>
-          <p className="mt-1 font-serif text-2xl tabular">{formatPercent(pnl.costCoverage.totalMinor ? pnl.costCoverage.coveredShare : null, ctx.locale)}</p>
+          <p className="mt-1 text-2xl font-semibold tracking-tight tabular">{formatPercent(pnl.costCoverage.totalMinor ? pnl.costCoverage.coveredShare : null, ctx.locale)}</p>
           <p className="text-xs text-muted-foreground">{t("cost_known_hint")}</p>
         </div>
       </CardContent>

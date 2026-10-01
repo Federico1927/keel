@@ -164,8 +164,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
               ) : (
                 <>
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="rounded border p-2"><span className="block text-muted-foreground">{t("history.total")}</span><span className="font-serif text-lg tabular">{history.stats.total}</span></div>
-                    <div className="rounded border p-2"><span className="block text-muted-foreground">{t("history.spent")}</span><span className="font-serif text-lg tabular">{fmt(history.stats.totalSpentMinor)}</span></div>
+                    <div className="rounded border p-2"><span className="block text-muted-foreground">{t("history.total")}</span><span className="text-lg font-semibold tabular">{history.stats.total}</span></div>
+                    <div className="rounded border p-2"><span className="block text-muted-foreground">{t("history.spent")}</span><span className="text-lg font-semibold tabular">{fmt(history.stats.totalSpentMinor)}</span></div>
                     <div className="rounded border p-2"><span className="block text-muted-foreground">{t("history.delivered")}</span><span className="tabular">{history.stats.delivered}</span></div>
                     <div className="rounded border p-2"><span className="block text-muted-foreground">{t("history.returned")}</span><span className="tabular">{history.stats.returned}</span> · <span className="text-muted-foreground">{t("history.cancelled")}</span> <span className="tabular">{history.stats.cancelled}</span></div>
                   </div>
