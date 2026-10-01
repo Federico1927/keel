@@ -84,19 +84,16 @@ export const ORDER_EVENT_TYPES = [
 ] as const;
 export type OrderEventType = (typeof ORDER_EVENT_TYPES)[number];
 
+/** Attribution channels, the same values `deriveChannel` produces from live orders. */
 export const CHANNELS = [
-  "meta_ads",
-  "meta_organic",
-  "google_ads",
-  "google_organic",
-  "tiktok_ads",
-  "tiktok_organic",
+  "paid_social",
+  "paid_search",
+  "organic_search",
+  "social",
   "email",
-  "sms",
-  "whatsapp",
-  "search_other",
   "referral",
   "direct",
+  "marketplace",
   "unknown",
 ] as const;
 export type Channel = (typeof CHANNELS)[number];

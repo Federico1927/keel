@@ -159,6 +159,21 @@ Attività aperte (in ordine di richiesta):
 3. Scrittura dei resi su Shopify (ordine marcato come reso, rimborso, rientro a stock).
 4. Analisi → P/L: costi fissi e di spedizione per periodo, stima e consuntivo.
 
+## Programma di profondità — Area 1 (analisi, attribuzione, profitto)
+
+Fatto (tutto ciò che non richiede dipendenze esterne):
+- Costi di periodo con stima e consuntivo (fissi, altri, fattura spedizioni) e P/L che dichiara la fonte; regola di proratazione mensile aggiornata.
+- Metriche blended (MER, nc-ROAS, CAC blended e per canale, POAS) e previsione a fine mese (dashboard e Analisi).
+- LTV a 30/60/90/180/365 giorni per mese di acquisizione, canale e primo prodotto, con rientro del CAC; analisi prodotto (prodotti di ingresso, acquistati insieme con lift, primo → secondo acquisto).
+- Attribuzione multi-touch con sei modelli su `touchpoints`, confronto con ultimo clic, rivendicazione della piattaforma e dichiarato; pannello dichiarato vs reale su Campagne.
+- Creatività: tabelle `ad_creatives` e metriche giornaliere, raggruppamento per formato/hook/angolo, ordini reali, affaticamento.
+- Alert su soglia e anomalia robusta con job orario, consegna in-app, email (adapter provider + mock) e Slack (incoming webhook, adapter reale testato su fixture).
+- Metriche personalizzate con costruttore di formule sicuro e dashboard per utente.
+- Seed: canali allineati ai valori canonici dell'importer, 2–6 creatività per campagna con una in affaticamento, 0–3 visite precedenti per ordine, regole di alert ed eventi, metriche e dashboard per entrambi i tenant.
+- Migrazioni 0006–0007; test core 91, servizi 34, db 359 (isolamento sulle 8 nuove tabelle), e2e 42.
+
+Resta per l'Area 1 (blocco esterno): pixel first-party (1.1), conversioni server-side (1.2), sondaggio post-acquisto (1.9), assistente AI (1.13).
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

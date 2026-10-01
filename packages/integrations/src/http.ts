@@ -29,7 +29,7 @@ export class HttpClient {
     this.minIntervalMs = opts.minIntervalMs ?? 0;
   }
 
-  async request<T>(url: string, init: { method?: string; headers?: Record<string, string>; body?: string } = {}): Promise<{ status: number; headers: { get(name: string): string | null }; json: T; text: string }> {
+  async request<T>(url: string, init: { method?: string; headers?: Record<string, string>; body?: string; /** accept a plain-text body (json = null) */ textOk?: boolean } = {}): Promise<{ status: number; headers: { get(name: string): string | null }; json: T; text: string }> {
     let attempt = 0;
     for (;;) {
       if (this.minIntervalMs) {
@@ -40,7 +40,7 @@ export class HttpClient {
       this.calls.push({ url, method: init.method ?? "GET", body: init.body });
       let res: Awaited<ReturnType<FetchLike>>;
       try {
-        res = await this.fetchImpl(url, init);
+        res = await this.fetchImpl(url, { method: init.method, headers: init.headers, body: init.body });
       } catch (e) {
         if (attempt < this.maxRetries) {
           attempt++;
@@ -68,6 +68,7 @@ export class HttpClient {
       try {
         json = (text ? JSON.parse(text) : null) as T;
       } catch {
+        if (init.textOk) return { status: res.status, headers: res.headers, json: null as T, text };
         throw new IntegrationError("unknown", `Non-JSON response from ${url}`);
       }
       return { status: res.status, headers: res.headers, json, text };

@@ -39,7 +39,8 @@
       "cod_forbidden": "Solo un admin può rilasciare un ordine dopo una chiamata registrata.",
       "cod_not_found": "Non trovato.",
       "cod_invalid_input": "Dati non validi.",
-      "cod_platform_error": "La piattaforma ha rifiutato la scrittura del tag o l'annullamento; non è stato registrato nulla."
+      "cod_platform_error": "La piattaforma ha rifiutato la scrittura del tag o l'annullamento; non è stato registrato nulla.",
+      "invalid_formula": "La formula non è valida."
     },
     "edit": "Modifica"
   },
@@ -810,7 +811,9 @@
       "products": "Prodotti",
       "cohorts": "Coorti",
       "ltv": "LTV",
-      "basket": "Analisi prodotto"
+      "basket": "Analisi prodotto",
+      "custom": "La mia dashboard",
+      "attribution": "Attribuzione"
     },
     "kpi": {
       "net_revenue": "Ricavo netto",
@@ -977,6 +980,157 @@
       "lift": "lift {v}",
       "paths_title": "Primo → secondo acquisto",
       "paths_description": "Prodotto principale del primo ordine e del secondo, con i giorni mediani tra i due."
+    },
+    "alerts_link": "Alert",
+    "costs_link": "Costi di periodo",
+    "metrics": {
+      "net_revenue": "Ricavo netto",
+      "gross_revenue": "Ricavo lordo",
+      "orders": "Ordini di vendita",
+      "aov": "Scontrino medio",
+      "ad_spend": "Spesa ads",
+      "cogs": "Costo del venduto",
+      "gross_margin": "Margine lordo",
+      "shipping": "Costi di spedizione",
+      "fees": "Commissioni di pagamento",
+      "fixed_costs": "Costi fissi",
+      "contribution": "Margine di contribuzione",
+      "operating_profit": "Risultato operativo",
+      "refunds": "Rimborsi",
+      "new_customers": "Nuovi clienti",
+      "mer": "MER",
+      "nc_roas": "nc-ROAS",
+      "cac": "CAC blended",
+      "poas": "POAS"
+    },
+    "custom": {
+      "title": "La mia dashboard",
+      "description": "Le tue metriche nel periodo scelto, confrontate con il precedente. Ogni utente sceglie le proprie.",
+      "edit": "Scegli le metriche",
+      "metrics_title": "Metriche personalizzate",
+      "metrics_description": "Una formula sulle metriche base, condivisa da tutto il team. Le metriche monetarie sono in unità minime (centesimi).",
+      "label": "Nome",
+      "label_placeholder": "Utile per ordine",
+      "formula": "Formula",
+      "format": "Formato",
+      "formats": {
+        "money": "Importo",
+        "ratio": "Rapporto (×)",
+        "percent": "Percentuale",
+        "number": "Numero"
+      },
+      "available": "Disponibili:",
+      "save_metric": "Salva metrica",
+      "invalid_formula": "Formula non valida."
+    },
+    "attribution": {
+      "title": "Attribuzione multi-touch",
+      "description": "Ordini di vendita del periodo accreditati a canali o campagne in base alle visite che li hanno preceduti (finestra di 30 giorni). Confronta il modello con l'ultimo clic e con quanto rivendicano le piattaforme.",
+      "models": {
+        "last_click": "Ultimo clic",
+        "first_click": "Primo clic",
+        "linear": "Lineare",
+        "time_decay": "Decadimento temporale",
+        "position_based": "Basato sulla posizione",
+        "last_platform_click": "Ultimo clic di piattaforma"
+      },
+      "model_help": {
+        "last_click": "Tutto il merito alla visita che ha chiuso l'ordine.",
+        "first_click": "Tutto il merito alla prima visita nota dei 30 giorni precedenti.",
+        "linear": "Merito diviso in parti uguali tra tutte le visite del percorso.",
+        "time_decay": "Più merito alle visite vicine all'acquisto (dimezzamento 7 giorni).",
+        "position_based": "40 % alla prima visita, 40 % all'ultima, 20 % alle intermedie.",
+        "last_platform_click": "Quello che rivendica una piattaforma: vince l'ultimo clic a pagamento, anche se l'ordine l'ha chiuso una visita organica."
+      },
+      "by": {
+        "channel": "Canale",
+        "campaign": "Campagna"
+      },
+      "orders": "Ordini accreditati",
+      "revenue": "Ricavo netto accreditato",
+      "spend": "Spesa",
+      "roas": "ROAS",
+      "last_click": "Ultimo clic",
+      "platform_claim": "Rivendicato dalla piattaforma",
+      "declared": "Dichiarato dalla piattaforma",
+      "footnote": "I percorsi vengono dalla visita di atterraggio dell'ordine e dalle visite precedenti del cliente; con il Web Pixel installato includono ogni sessione. Gli ordini senza visite usano la propria attribuzione."
+    },
+    "alerts": {
+      "title": "Alert",
+      "description": "Regole su metriche giornaliere: una soglia, o un'anomalia rispetto alla base robusta delle settimane precedenti. Controllate ogni ora dal job runner.",
+      "back": "Analisi",
+      "rules": "Regole",
+      "no_rules": "Nessuna regola",
+      "events": "Alert recenti",
+      "no_events": "Nessun alert finora",
+      "name": "Nome",
+      "metric": "Metrica",
+      "kind": "Tipo",
+      "kinds": {
+        "anomaly": "Anomalia",
+        "threshold": "Soglia"
+      },
+      "op": "Condizione",
+      "ops": {
+        "lt": "sotto",
+        "gt": "sopra"
+      },
+      "value": "Valore",
+      "days": "Per giorni consecutivi",
+      "direction": "Direzione",
+      "directions": {
+        "both": "in entrambe",
+        "up": "picco in su",
+        "down": "calo"
+      },
+      "sensitivity": "Sensibilità (deviazioni)",
+      "baseline_days": "Base (giorni)",
+      "channels": {
+        "in_app": "In-app",
+        "email": "Email",
+        "slack": "Slack"
+      },
+      "channels_label": "Invio",
+      "cooldown": "Pausa (h)",
+      "recipients": "Destinatari",
+      "create": "Crea regola",
+      "condition": "Condizione",
+      "last_fired": "Ultimo scatto",
+      "inactive": "spenta",
+      "enable": "Attiva",
+      "disable": "Disattiva",
+      "run_now": "Controlla ora",
+      "ran": "{evaluated} regole controllate, {fired} scattate",
+      "new_rule": "Nuova regola",
+      "new_rule_help": "Soglie monetarie in unità minime (centesimi). Rapporti in decimali (1,5 = 1,5×; 0,05 = 5 %).",
+      "delivery": "Invio",
+      "delivery_help": "In-app sempre. Email tramite il provider della piattaforma; Slack tramite un incoming webhook del tuo workspace.",
+      "slack_url": "URL incoming webhook Slack",
+      "slack_connected": "collegato — incolla un nuovo URL per sostituirlo",
+      "slack_live": "Slack collegato: i messaggi vengono inviati.",
+      "slack_mock": "Slack collegato in modalità mock: i messaggi sono registrati, non inviati.",
+      "slack_none": "Slack non collegato.",
+      "describe_threshold": "{op} {value} per {days} giorni",
+      "describe_anomaly": "anomalia, {direction}, ≥ {sensitivity} deviazioni su {days} giorni",
+      "reasons": {
+        "threshold": "soglia superata",
+        "anomaly_up": "picco",
+        "anomaly_down": "calo",
+        "ok": "ok",
+        "insufficient_data": "dati insufficienti"
+      },
+      "value_vs_baseline": "valore {value} vs {baseline}",
+      "metrics": {
+        "revenue": "Ricavo",
+        "orders": "Ordini di vendita",
+        "ad_spend": "Spesa ads",
+        "mer": "MER (ricavo / spesa)",
+        "aov": "Scontrino medio",
+        "cancel_rate": "Tasso di annullamento",
+        "stockouts": "Varianti esaurite",
+        "roas": "ROAS dichiarato",
+        "conversion_rate": "Tasso di conversione"
+      }
     }
   },
   "campaigns": {
@@ -1055,6 +1209,37 @@
       "real": "Ordini reali attribuiti (ordini · netto · ROAS)",
       "gap": "Scarto",
       "help": "Le piattaforme contano le conversioni con le proprie finestre e modelli; gli ordini reali sono gli ordini di vendita attribuiti da Keel. Uno scarto molto negativo vuol dire che la piattaforma sovrastima."
+    },
+    "creatives_link": "Creatività",
+    "creatives": {
+      "title": "Creatività",
+      "description": "Performance per annuncio con i numeri della piattaforma accanto agli ordini reali la cui visita di atterraggio portava quell'annuncio. Raggruppa per formato, hook o angolo per confrontare i concept.",
+      "back": "Campagne",
+      "by": {
+        "creative": "Creatività",
+        "format": "Formato",
+        "hook": "Hook",
+        "angle": "Angolo"
+      },
+      "empty": "Nessuna creatività nel periodo",
+      "spend": "Spesa",
+      "ctr": "CTR",
+      "cpc": "CPC",
+      "thumbstop": "Thumb-stop",
+      "declared": "Dichiarato (acq. · valore)",
+      "real": "Reale (ordini · netto)",
+      "roas": "ROAS reale",
+      "fatigue": "Affaticamento",
+      "fatigue_levels": {
+        "fresh": "Fresca",
+        "watch": "Da osservare",
+        "fatigued": "Affaticata",
+        "no_data": "—"
+      },
+      "fatigue_hint": "CTR {change} dalla prima all'ultima settimana · frequenza {freq}",
+      "paused": "in pausa",
+      "n_creatives": "{n} creatività",
+      "footnote": "I tag vengono dalla convenzione di nome FORMATO | HOOK | ANGOLO, modificabile sulla piattaforma. Le miniature sono segnaposto locali finché non si sincronizzano le anteprime dell'account."
     }
   },
   "campaign_detail": {

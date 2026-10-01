@@ -247,3 +247,21 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · Month-end forecast is a weekday-weighted run rate, not a model
 
 **Decision.** The projection weights the remaining days by the weekday profile of the previous eight weeks and shows a band of one standard deviation of the daily values scaled by the square root of the remaining days. It is explainable in one sentence to a merchant, which is the point; a seasonal model belongs to the inventory forecast (Area 2), where there is enough history per SKU to justify it.
+
+## 2026-10-01 · One touchpoint store for attribution and for the future pixel
+
+**Decision.** `touchpoints` holds every known visit before a purchase: today the order's landing visit (from the importer) and earlier visits recorded per customer; once the Shopify Web Pixel extension is installed, every session it collects. The six attribution models are pure functions over these rows; orders without touchpoints fall back to their own attribution row, so a tenant without the pixel still gets last click and nothing breaks. "Last platform click" is modelled explicitly (the last paid click wins even if an organic visit closed the order) to show the merchant how platforms over-claim.
+
+**Alternatives.** Computing attribution only from the landing URL (rejected: no multi-touch possible); storing sessions in a separate analytics database (rejected for the MVP: one Postgres keeps RLS and tenancy intact; partitioning by month is the path when volume demands it).
+
+## 2026-10-01 · Seed channels use the canonical values of the importer
+
+**Decision.** The seed used its own channel names (`meta_ads`, `google_organic`…) while the Shopify importer produces `paid_social`, `organic_search`… Everything that groups by channel (CAC per channel, LTV by channel, attribution) would have split the same traffic in two vocabularies. The seed now writes the canonical values and `CHANNELS` in core lists them.
+
+## 2026-10-01 · Alerts: robust anomaly, not a model; delivery through sinks
+
+**Decision.** Anomalies are the latest day against the median and median absolute deviation of the previous N days (default 28), firing at a configurable number of deviations; thresholds need N consecutive days. A cooldown stops repeats. Delivery goes through a `NotificationSink` interface: in-app always, Slack via the tenant's incoming webhook (encrypted as integration `slack`), email via the platform's provider (`KEEL_EMAIL_API_KEY`). In mock mode both record instead of sending and the event says `mock`, so the demo shows the whole loop offline.
+
+## 2026-10-01 · Custom metrics are formulas over named base metrics, evaluated without JavaScript
+
+**Decision.** A small recursive-descent parser accepts numbers, the 18 base metric names, + − × ÷ and parentheses; anything else is a validation error. Division by zero and missing values give null instead of NaN. Custom metrics are shared by the tenant; dashboards are per user. Marketing gains write access to Analytics to manage metrics and alerts.

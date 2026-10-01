@@ -1,19 +1,21 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatMoney, formatNumber, formatPercent } from "@keel/core";
-import { blendedForPeriod, boughtTogether, dailySeries, entryProducts, kpisForPeriod, ltvReport, monthEndForecast, pnlForPeriod, productPerformance, repurchaseCohorts, secondPurchasePaths, type PnlReport } from "@keel/services";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { formatMoney, formatNumber, formatPercent, previousPeriod, type AttributionModel } from "@keel/core";
+import { ATTRIBUTION_MODELS, BASE_METRICS, attributionReport, blendedForPeriod, boughtTogether, dailySeries, entryProducts, kpisForPeriod, listCustomMetrics, ltvReport, metricValues, monthEndForecast, pnlForPeriod, productPerformance, repurchaseCohorts, secondPurchasePaths, userDashboard, type PnlReport } from "@keel/services";
+import { canWritePage } from "@keel/config";
+import { CustomMetricForm, DashboardEditor, DeleteMetricButton } from "./advanced-controls";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { RevenueChart } from "@/components/charts/revenue-chart";
 import { PeriodPicker } from "@/components/period-picker";
 import { resolvePeriod } from "@/server/period";
 
-export default async function AnalyticsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ tab?: string; from?: string; to?: string; preset?: string; by?: string }> }) {
+export default async function AnalyticsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ tab?: string; from?: string; to?: string; preset?: string; by?: string; model?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "analytics");
   const t = await getTranslations("analytics");
-  const tab = ["overview", "pnl", "products", "cohorts", "ltv", "basket"].includes(sp.tab ?? "") ? sp.tab! : "overview";
+  const tab = ["overview", "custom", "pnl", "attribution", "products", "cohorts", "ltv", "basket"].includes(sp.tab ?? "") ? sp.tab! : "overview";
   const period = resolvePeriod(sp, ctx.tenant.timezone);
   const at = { id: ctx.tenant.id, country: ctx.tenant.country, currency: ctx.tenant.currency, timezone: ctx.tenant.timezone, settings: ctx.settings };
   const s = (tx: Parameters<Parameters<typeof ctx.run>[0]>[0]) => ({ tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } });
@@ -30,9 +32,9 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
 
   return (
     <>
-      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<PeriodPicker basePath={base} keep={{ tab }} preset={period.preset} from={sp.from} to={sp.to} />} />
-      <div className="mb-4 flex gap-1 rounded-md bg-muted p-1 text-sm">
-        {["overview", "pnl", "products", "cohorts", "ltv", "basket"].map((k) => (
+      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<div className="flex flex-wrap items-center gap-2"><PeriodPicker basePath={base} keep={{ tab }} preset={period.preset} from={sp.from} to={sp.to} /><Link href={`${base}/alerts`} className="text-sm underline-offset-4 hover:underline" data-testid="alerts-link">{t("alerts_link")}</Link><Link href={`${base}/costs`} className="text-sm underline-offset-4 hover:underline">{t("costs_link")}</Link></div>} />
+      <div className="mb-4 flex flex-wrap gap-1 rounded-md bg-muted p-1 text-sm">
+        {["overview", "custom", "pnl", "attribution", "products", "cohorts", "ltv", "basket"].map((k) => (
           <Link key={k} href={query({ tab: k })} className={cn("flex-1 rounded-sm px-3 py-1.5 text-center", tab === k ? "bg-card shadow-sm" : "text-muted-foreground")}>
             {t(`tabs.${k}`)}
           </Link>
@@ -277,6 +279,114 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
                   ))}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+        );
+      })())}
+
+      {tab === "custom" && (await (async () => {
+        const fallback = ["net_revenue", "orders", "aov", "mer", "poas", "new_customers", "contribution", "operating_profit"];
+        const { dash, customs } = await ctx.run(async (tx) => ({ dash: await userDashboard(s(tx), ctx.user.id), customs: await listCustomMetrics(s(tx)) }));
+        const keys = ((dash?.widgets as { metric: string }[] | undefined) ?? fallback.map((m) => ({ metric: m }))).map((w) => w.metric);
+        const values = await ctx.run((tx) => metricValues(s(tx), at, period, previousPeriod(period), keys));
+        const fmt = (v: number | null, f: string) => (v === null ? "—" : f === "money" ? money(Math.round(v)) : f === "percent" ? formatPercent(v, ctx.locale, 1) : f === "ratio" ? `${v.toFixed(2)}×` : formatNumber(Math.round(v * 100) / 100, ctx.locale));
+        const labelOf = (k: string, l: string | null) => l ?? t(`metrics.${k}`);
+        const options = [...BASE_METRICS.map((m) => ({ key: m, label: t(`metrics.${m}`) })), ...customs.map((c) => ({ key: `custom:${c.key}`, label: c.label }))];
+        const canWrite = canWritePage(ctx.role, "analytics");
+        return (
+          <div className="space-y-6">
+            <Card data-testid="my-dashboard">
+              <CardHeader className="flex-row flex-wrap items-start justify-between gap-2 space-y-0">
+                <div>
+                  <CardTitle className="text-base">{dash?.name ?? t("custom.title")}</CardTitle>
+                  <CardDescription>{t("custom.description")}</CardDescription>
+                </div>
+                <DashboardEditor slug={tenant} options={options} selected={keys} />
+              </CardHeader>
+              <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {values.map((v) => {
+                  const ch = v.value !== null && v.previous ? (v.value - v.previous) / Math.abs(v.previous) : null;
+                  return <Stat key={v.metric} label={labelOf(v.metric, v.label)} value={fmt(v.value, v.format)} trend={ch !== null ? { value: ch } : null} hint={`${t("vs_previous")} · ${fmt(v.previous, v.format)}`} />;
+                })}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{t("custom.metrics_title")}</CardTitle>
+                <CardDescription>{t("custom.metrics_description")}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {customs.length > 0 && (
+                  <ul className="divide-y text-sm" data-testid="custom-metrics">
+                    {customs.map((c) => (
+                      <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                        <span><span className="font-medium">{c.label}</span> <span className="font-mono text-xs text-muted-foreground">{c.formula}</span></span>
+                        {canWrite && <DeleteMetricButton slug={tenant} id={c.id} />}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {canWrite && <CustomMetricForm slug={tenant} bases={[...BASE_METRICS]} />}
+              </CardContent>
+            </Card>
+          </div>
+        );
+      })())}
+
+      {tab === "attribution" && (await (async () => {
+        const model = (ATTRIBUTION_MODELS as readonly string[]).includes(sp.model ?? "") ? (sp.model as AttributionModel) : "linear";
+        const by = sp.by === "campaign" ? "campaign" : "channel";
+        const rows = await ctx.run((tx) => attributionReport(s(tx), at, period, model, by));
+        const ratio = (v: number | null) => (v === null ? "—" : `${v.toFixed(2)}×`);
+        return (
+          <Card data-testid="attribution-card">
+            <CardHeader className="space-y-3">
+              <div>
+                <CardTitle className="text-base">{t("attribution.title")}</CardTitle>
+                <CardDescription>{t("attribution.description")}</CardDescription>
+              </div>
+              <div className="flex flex-wrap gap-2 text-sm">
+                <div className="flex flex-wrap gap-1 rounded-md bg-muted p-1">
+                  {ATTRIBUTION_MODELS.map((m) => <Link key={m} href={`${query({ tab: "attribution" })}&model=${m}&by=${by}`} className={cn("rounded-sm px-2 py-1", model === m ? "bg-card shadow-sm" : "text-muted-foreground")} data-testid={`model-${m}`}>{t(`attribution.models.${m}`)}</Link>)}
+                </div>
+                <div className="flex gap-1 rounded-md bg-muted p-1">
+                  {(["channel", "campaign"] as const).map((b) => <Link key={b} href={`${query({ tab: "attribution" })}&model=${model}&by=${b}`} className={cn("rounded-sm px-2 py-1", by === b ? "bg-card shadow-sm" : "text-muted-foreground")}>{t(`attribution.by.${b}`)}</Link>)}
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">{t(`attribution.model_help.${model}`)}</p>
+            </CardHeader>
+            <CardContent className="p-0">
+              {rows.length === 0 ? <EmptyState title={t("products.empty")} /> : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t(`attribution.by.${by}`)}</TableHead>
+                      <TableHead className="text-right">{t("attribution.orders")}</TableHead>
+                      <TableHead className="text-right">{t("attribution.revenue")}</TableHead>
+                      <TableHead className="hidden text-right md:table-cell">{t("attribution.spend")}</TableHead>
+                      <TableHead className="text-right">{t("attribution.roas")}</TableHead>
+                      <TableHead className="hidden text-right lg:table-cell">{t("attribution.last_click")}</TableHead>
+                      <TableHead className="hidden text-right lg:table-cell">{t("attribution.platform_claim")}</TableHead>
+                      <TableHead className="hidden text-right xl:table-cell">{t("attribution.declared")}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {rows.slice(0, 60).map((r) => (
+                      <TableRow key={r.key} data-testid="attribution-row">
+                        <TableCell className="max-w-[18rem] truncate font-medium">{by === "channel" ? t(`ltv.channel.${r.key}`, { default: r.key }) : <Link href={`/t/${tenant}/campaigns/${r.key}`} className="hover:underline">{r.label}</Link>}{r.platform && <Badge variant="outline" className="ml-1">{r.platform}</Badge>}</TableCell>
+                        <TableCell className="text-right tabular">{formatNumber(r.orders, ctx.locale)}</TableCell>
+                        <TableCell className="text-right tabular">{money(r.netMinor)}</TableCell>
+                        <TableCell className="hidden text-right tabular md:table-cell">{r.spendMinor !== null ? money(r.spendMinor) : "—"}</TableCell>
+                        <TableCell className="text-right tabular font-medium">{ratio(r.roas)}</TableCell>
+                        <TableCell className="hidden text-right tabular lg:table-cell">{money(r.lastClick.netMinor)}</TableCell>
+                        <TableCell className="hidden text-right tabular lg:table-cell">{money(r.platformClaim.netMinor)}</TableCell>
+                        <TableCell className="hidden text-right tabular xl:table-cell">{r.declared ? `${formatNumber(r.declared.purchases, ctx.locale)} · ${money(r.declared.valueMinor)}` : "—"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+              <p className="border-t p-3 text-xs text-muted-foreground">{t("attribution.footnote")}</p>
             </CardContent>
           </Card>
         );

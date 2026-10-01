@@ -53,3 +53,43 @@ test.describe("dashboard and analytics", () => {
     await expect(page.getByTestId("cost-sources")).toContainText(/actual invoice|consuntivo da fattura/);
   });
 });
+
+test.describe("analytics depth", () => {
+  test("attribution models, my dashboard with a custom metric, creatives and alerts", async ({ page }) => {
+    await login(page, "marketing@northwind.demo");
+    // attribution: switching model changes the credited numbers but keeps the comparison columns
+    await page.goto("/t/northwind-apparel/analytics?preset=30d&tab=attribution");
+    await expect(page.getByTestId("attribution-row").first()).toBeVisible();
+    await page.getByTestId("model-first_click").click();
+    await expect(page).toHaveURL(/model=first_click/);
+    await expect(page.getByTestId("attribution-row").first()).toBeVisible();
+    // custom metric + dashboard
+    await page.goto("/t/northwind-apparel/analytics?preset=30d&tab=custom");
+    await expect(page.getByTestId("my-dashboard")).toBeVisible();
+    await page.getByLabel(/^Name$|^Nome$/).fill("E2E margin per order");
+    await page.getByLabel(/^Formula$/).fill("contribution / orders");
+    await page.getByTestId("save-metric").click();
+    await expect(page.getByTestId("custom-metrics")).toContainText("E2E margin per order");
+    await page.getByTestId("edit-dashboard").click();
+    await page.getByTestId("metric-custom:e2e_margin_per_order").click();
+    await page.getByTestId("save-dashboard").click();
+    await expect(page.getByTestId("my-dashboard")).toContainText("E2E margin per order");
+    // creatives grouped by format
+    await page.goto("/t/northwind-apparel/campaigns/creatives?preset=90d");
+    await expect(page.getByTestId("creative-row").first()).toBeVisible();
+    await page.getByRole("link", { name: /^Format$|^Formato$/ }).click();
+    await expect(page.getByTestId("creatives-table")).toContainText(/video|image|carousel/);
+    // alerts: create a rule that fires, run now, see it in recent alerts
+    await page.goto("/t/northwind-apparel/analytics/alerts");
+    await expect(page.getByTestId("alert-rule").first()).toBeVisible();
+    await page.getByLabel(/^Name$|^Nome$/).fill("E2E orders above zero");
+    await page.getByLabel(/^Metric$|^Metrica$/).selectOption("orders");
+    await page.getByLabel(/^Kind$|^Tipo$/).selectOption("threshold");
+    await page.getByLabel(/^Condition$|^Condizione$/).selectOption("gt");
+    await page.getByLabel(/^Value$|^Valore$/).fill("-1");
+    await page.getByTestId("save-alert").click();
+    await expect(page.getByTestId("alert-rule").filter({ hasText: "E2E orders above zero" })).toHaveCount(1);
+    await page.getByTestId("run-alerts").click();
+    await expect(page.getByTestId("alert-events")).toContainText("E2E orders above zero");
+  });
+});

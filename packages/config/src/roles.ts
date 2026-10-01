@@ -111,7 +111,7 @@ const MATRIX: Record<Exclude<TenantRole, "owner" | "admin">, Partial<Record<Page
     shipments: "none",
     customers: "read",
     segments: "write",
-    analytics: "read",
+    analytics: "write",
     campaigns: "write",
     products: "read",
     inventory: "read",

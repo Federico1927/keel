@@ -1,5 +1,5 @@
 import { and, eq, schema } from "@keel/db";
-import { GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, MockCommercePlatform, ShopifyCommercePlatform, decryptJson, integrationMode, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
+import { GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, MockCommercePlatform, MockNotificationSink, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type NotificationSink, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 
 export interface PlatformTenant {
@@ -88,4 +88,32 @@ export function resetMockPlatforms(): void {
   commerceMocks.clear();
   adsMocks.clear();
   liveCommerce.clear();
+}
+
+/* ---------- alert delivery sinks ---------- */
+
+const sinkMocks = new Map<string, MockNotificationSink>();
+
+/**
+ * Slack goes to the tenant's incoming webhook (integration row `slack`, credentials `{ webhookUrl }`);
+ * email goes through the platform's transactional provider (`KEEL_EMAIL_API_KEY`, `KEEL_EMAIL_FROM`).
+ * In mock mode, or without credentials, recording mocks are returned so alerts still show "delivered (mock)".
+ */
+export async function getNotificationSinks(ctx: ServiceContext): Promise<{ slack: NotificationSink | null; email: NotificationSink; mock: { slack: boolean; email: boolean } }> {
+  const row = await integrationRow(ctx, "slack");
+  const mockSink = (kind: "slack" | "email") => {
+    const key = `${ctx.tenantId}:${kind}`;
+    const m = sinkMocks.get(key) ?? new MockNotificationSink(kind);
+    sinkMocks.set(key, m);
+    return m;
+  };
+  const slackLive = isLive(row);
+  const slack = slackLive ? new SlackWebhookSink(decryptJson<{ webhookUrl: string }>(row!.credentialsEncrypted!).webhookUrl) : row ? mockSink("slack") : null;
+  const emailLive = integrationMode() === "live" && Boolean(process.env.KEEL_EMAIL_API_KEY);
+  const email = emailLive ? new HttpEmailSink({ apiKey: process.env.KEEL_EMAIL_API_KEY!, from: process.env.KEEL_EMAIL_FROM ?? "alerts@keel.app" }) : mockSink("email");
+  return { slack, email, mock: { slack: !slackLive, email: !emailLive } };
+}
+
+export function mockSinkFor(tenantId: string, kind: "slack" | "email"): MockNotificationSink | undefined {
+  return sinkMocks.get(`${tenantId}:${kind}`);
 }

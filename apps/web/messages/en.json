@@ -39,7 +39,8 @@
       "cod_forbidden": "Only an admin can release an order after a call was registered.",
       "cod_not_found": "Not found.",
       "cod_invalid_input": "Invalid data.",
-      "cod_platform_error": "The commerce platform rejected the tag or cancellation write; nothing was recorded."
+      "cod_platform_error": "The commerce platform rejected the tag or cancellation write; nothing was recorded.",
+      "invalid_formula": "The formula is not valid."
     },
     "edit": "Edit"
   },
@@ -810,7 +811,9 @@
       "products": "Products",
       "cohorts": "Cohorts",
       "ltv": "LTV",
-      "basket": "Product analysis"
+      "basket": "Product analysis",
+      "custom": "My dashboard",
+      "attribution": "Attribution"
     },
     "kpi": {
       "net_revenue": "Net revenue",
@@ -977,6 +980,157 @@
       "lift": "lift {v}",
       "paths_title": "First → second purchase",
       "paths_description": "Main product of the first order and of the second, with the median days between them."
+    },
+    "alerts_link": "Alerts",
+    "costs_link": "Period costs",
+    "metrics": {
+      "net_revenue": "Net revenue",
+      "gross_revenue": "Gross revenue",
+      "orders": "Sale orders",
+      "aov": "Average order value",
+      "ad_spend": "Ad spend",
+      "cogs": "Cost of goods",
+      "gross_margin": "Gross margin",
+      "shipping": "Shipping costs",
+      "fees": "Payment fees",
+      "fixed_costs": "Fixed costs",
+      "contribution": "Contribution margin",
+      "operating_profit": "Operating profit",
+      "refunds": "Refunds",
+      "new_customers": "New customers",
+      "mer": "MER",
+      "nc_roas": "nc-ROAS",
+      "cac": "Blended CAC",
+      "poas": "POAS"
+    },
+    "custom": {
+      "title": "My dashboard",
+      "description": "Your metrics for the selected period, compared with the previous one. Each user arranges their own.",
+      "edit": "Choose metrics",
+      "metrics_title": "Custom metrics",
+      "metrics_description": "A formula over the base metrics, shared by the whole team. Money metrics are in minor units (cents).",
+      "label": "Name",
+      "label_placeholder": "Profit per order",
+      "formula": "Formula",
+      "format": "Format",
+      "formats": {
+        "money": "Money",
+        "ratio": "Ratio (×)",
+        "percent": "Percent",
+        "number": "Number"
+      },
+      "available": "Available:",
+      "save_metric": "Save metric",
+      "invalid_formula": "Invalid formula."
+    },
+    "attribution": {
+      "title": "Multi-touch attribution",
+      "description": "Sale orders of the period credited to channels or campaigns from the visits that preceded them (30-day lookback). Compare the model with last click and with what the platforms claim.",
+      "models": {
+        "last_click": "Last click",
+        "first_click": "First click",
+        "linear": "Linear",
+        "time_decay": "Time decay",
+        "position_based": "Position based",
+        "last_platform_click": "Last platform click"
+      },
+      "model_help": {
+        "last_click": "All credit to the visit that closed the order.",
+        "first_click": "All credit to the first known visit in the 30 days before.",
+        "linear": "Credit split equally across every visit of the journey.",
+        "time_decay": "More credit to visits closer to the purchase (half-life 7 days).",
+        "position_based": "40 % to the first visit, 40 % to the last, 20 % shared by the middle.",
+        "last_platform_click": "What an ad platform claims: the last paid click wins, even if an organic visit closed the order."
+      },
+      "by": {
+        "channel": "Channel",
+        "campaign": "Campaign"
+      },
+      "orders": "Credited orders",
+      "revenue": "Credited net revenue",
+      "spend": "Spend",
+      "roas": "ROAS",
+      "last_click": "Last click",
+      "platform_claim": "Platform claim",
+      "declared": "Platform declares",
+      "footnote": "Journeys come from the order's landing visit and the customer's earlier visits; with the Web Pixel installed they include every session. Orders without visits fall back to their own attribution."
+    },
+    "alerts": {
+      "title": "Alerts",
+      "description": "Rules on daily metrics: a threshold, or an anomaly against the robust baseline of the previous weeks. Checked every hour by the job runner.",
+      "back": "Analytics",
+      "rules": "Rules",
+      "no_rules": "No alert rules yet",
+      "events": "Recent alerts",
+      "no_events": "Nothing fired yet",
+      "name": "Name",
+      "metric": "Metric",
+      "kind": "Kind",
+      "kinds": {
+        "anomaly": "Anomaly",
+        "threshold": "Threshold"
+      },
+      "op": "Condition",
+      "ops": {
+        "lt": "below",
+        "gt": "above"
+      },
+      "value": "Value",
+      "days": "For consecutive days",
+      "direction": "Direction",
+      "directions": {
+        "both": "either way",
+        "up": "spike up",
+        "down": "drop"
+      },
+      "sensitivity": "Sensitivity (deviations)",
+      "baseline_days": "Baseline (days)",
+      "channels": {
+        "in_app": "In-app",
+        "email": "Email",
+        "slack": "Slack"
+      },
+      "channels_label": "Delivery",
+      "cooldown": "Cooldown (h)",
+      "recipients": "Recipients",
+      "create": "Create rule",
+      "condition": "Condition",
+      "last_fired": "Last fired",
+      "inactive": "off",
+      "enable": "Enable",
+      "disable": "Disable",
+      "run_now": "Check now",
+      "ran": "{evaluated} rules checked, {fired} fired",
+      "new_rule": "New rule",
+      "new_rule_help": "Money thresholds are in minor units (cents). Ratios as decimals (1.5 = 1.5×; 0.05 = 5 %).",
+      "delivery": "Delivery",
+      "delivery_help": "In-app always. Email through the platform provider; Slack through an incoming webhook of your workspace.",
+      "slack_url": "Slack incoming webhook URL",
+      "slack_connected": "connected — paste a new URL to replace it",
+      "slack_live": "Slack connected: messages are sent.",
+      "slack_mock": "Slack connected in mock mode: messages are recorded, not sent.",
+      "slack_none": "Slack not connected.",
+      "describe_threshold": "{op} {value} for {days} days",
+      "describe_anomaly": "anomaly, {direction}, ≥ {sensitivity} deviations over {days} days",
+      "reasons": {
+        "threshold": "threshold crossed",
+        "anomaly_up": "spike",
+        "anomaly_down": "drop",
+        "ok": "ok",
+        "insufficient_data": "not enough data"
+      },
+      "value_vs_baseline": "value {value} vs {baseline}",
+      "metrics": {
+        "revenue": "Revenue",
+        "orders": "Sale orders",
+        "ad_spend": "Ad spend",
+        "mer": "MER (revenue / spend)",
+        "aov": "Average order value",
+        "cancel_rate": "Cancellation rate",
+        "stockouts": "Variants out of stock",
+        "roas": "Platform ROAS",
+        "conversion_rate": "Conversion rate"
+      }
     }
   },
   "campaigns": {
@@ -1055,6 +1209,37 @@
       "real": "Real attributed orders (orders · net · ROAS)",
       "gap": "Gap",
       "help": "Platforms count conversions with their own windows and modelling; real orders are Keel's attributed sale orders. A large negative gap means the platform over-reports."
+    },
+    "creatives_link": "Creatives",
+    "creatives": {
+      "title": "Creatives",
+      "description": "Ad-level performance with the platform's numbers next to real orders whose landing visit carried the ad. Group by format, hook or angle to compare concepts.",
+      "back": "Campaigns",
+      "by": {
+        "creative": "Creative",
+        "format": "Format",
+        "hook": "Hook",
+        "angle": "Angle"
+      },
+      "empty": "No creatives in this period",
+      "spend": "Spend",
+      "ctr": "CTR",
+      "cpc": "CPC",
+      "thumbstop": "Thumb-stop",
+      "declared": "Declared (purch. · value)",
+      "real": "Real (orders · net)",
+      "roas": "Real ROAS",
+      "fatigue": "Fatigue",
+      "fatigue_levels": {
+        "fresh": "Fresh",
+        "watch": "Watch",
+        "fatigued": "Fatigued",
+        "no_data": "—"
+      },
+      "fatigue_hint": "CTR {change} from the first to the last week · frequency {freq}",
+      "paused": "paused",
+      "n_creatives": "{n} creatives",
+      "footnote": "Tags come from the naming convention FORMAT | HOOK | ANGLE, editable on the platform. Thumbnails are local placeholders until the ad account's previews are synced."
     }
   },
   "campaign_detail": {

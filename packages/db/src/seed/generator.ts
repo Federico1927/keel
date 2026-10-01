@@ -88,6 +88,9 @@ export interface TenantDataset {
   stateRules: Row[];
   costSettings: Row[];
   periodCosts: Row[];
+  touchpoints: Row[];
+  adCreatives: Row[];
+  adCreativeMetricsDaily: Row[];
   returnReasons: Row[];
   returnRequests: Row[];
   returnLines: Row[];
@@ -161,7 +164,7 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
   const seasonality = isApparel ? SEASONALITY_APPAREL : SEASONALITY_HOME;
   const ds: TenantDataset = {
     locations: [], products: [], productVariants: [], inventoryLevels: [], inventoryMovements: [], customers: [], campaigns: [], adMetricsDaily: [], campaignProductLinks: [], discountPools: [], discounts: [],
-    orders: [], orderLines: [], orderEvents: [], orderNotes: [], orderDiscounts: [], orderAttribution: [], shipments: [], shipmentSourceStates: [], shipmentEvents: [], shipmentStatusMappings: [], stateRules: [], costSettings: [], periodCosts: [],
+    orders: [], orderLines: [], orderEvents: [], orderNotes: [], orderDiscounts: [], orderAttribution: [], shipments: [], shipmentSourceStates: [], shipmentEvents: [], shipmentStatusMappings: [], stateRules: [], costSettings: [], periodCosts: [], touchpoints: [], adCreatives: [], adCreativeMetricsDaily: [],
     returnReasons: [], returnRequests: [], returnLines: [], suppliers: [], purchaseOrders: [], purchaseOrderLines: [], supplierPayments: [], backorders: [], segments: [], segmentMemberships: [], notifications: [], integrations: [], integrationHealth: [], webhookEvents: [], syncRuns: [], auditLogs: [],
   };
   const t = (row: Row): Row & { id: string; tenantId: string } => ({ id: rng.uuid(), tenantId, ...row });
@@ -247,6 +250,25 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
   };
   for (let i = 0; i < cfg.metaCampaigns; i++) camps.push(mkCamp("meta", i));
   for (let i = 0; i < cfg.googleCampaigns; i++) camps.push(mkCamp("google", 100 + i));
+  // creatives: Meta campaigns get 3–6 ads named "FORMAT | HOOK | ANGLE", Google campaigns 2 text ads
+  interface Creative { id: string; externalId: string; campaignId: string; format: string; weight: number; ctrFactor: number; fatigues: boolean }
+  const creativesByCampaign = new Map<string, Creative[]>();
+  const HOOKS = isApparel ? ["UGC unboxing", "Before after", "Founder story", "Street style", "Detail close-up", "Try-on haul"] : ["Room makeover", "UGC review", "Before after", "Designer tip", "Detail close-up", "Cozy evening"];
+  const ANGLES = ["Price", "Quality", "Novelty", "Social proof", "Comfort", "Limited stock"];
+  let creativeSeq = 0;
+  for (const c of camps) {
+    const n = c.platform === "meta" ? rng.int(3, 6) : 2;
+    const list: Creative[] = [];
+    for (let k = 0; k < n; k++) {
+      const format = c.platform === "meta" ? rng.weighted([["video", 40], ["image", 35], ["carousel", 25]] as const) : "text";
+      const hook = rng.pick(HOOKS);
+      const angle = rng.pick(ANGLES);
+      const cr: Creative = { id: rng.uuid(), externalId: `${c.platform === "meta" ? "2385" : "6912"}${String(100000 + creativeSeq++)}`, campaignId: c.id, format, weight: 0.5 + rng.next(), ctrFactor: 0.7 + rng.next() * 0.7, fatigues: c.platform === "meta" && k === 0 };
+      list.push(cr);
+      ds.adCreatives.push(t({ id: cr.id, campaignId: c.id, platform: c.platform, externalId: cr.externalId, adsetExternalId: `${c.externalId}-as${1 + (k % 2)}`, adsetName: k % 2 ? (isApparel ? "Retargeting 30g" : "Retargeting 30d") : (isApparel ? "Prospecting broad" : "Prospecting broad"), name: c.platform === "meta" ? `${format.toUpperCase()} | ${hook} | ${angle}` : `${c.name} – RSA ${k + 1}`, format, hook: c.platform === "meta" ? hook.toLowerCase() : null, angle: c.platform === "meta" ? angle.toLowerCase() : null, headline: c.platform === "meta" ? `${hook} — ${angle}` : c.name, body: null, thumbnailUrl: null, status: c.status === "active" ? (rng.chance(0.85) ? "active" : "paused") : c.status, tags: [], syncedAt: now }));
+    }
+    creativesByCampaign.set(c.id, list);
+  }
   for (const c of camps) {
     ds.campaigns.push({ id: c.id, tenantId, platform: c.platform, externalId: c.externalId, accountExternalId: c.platform === "meta" ? "act_demo" : "123-456-7890", name: c.name, status: c.status, objective: c.platform === "meta" ? "OUTCOME_SALES" : "SALES", dailyBudgetMinor: c.dailySpend, currency: cfg.currency, platformCreatedAt: c.startedAt, syncedAt: now });
     if (c.productId) ds.campaignProductLinks.push(t({ campaignId: c.id, productId: c.productId, isPrimary: true, source: rng.chance(0.6) ? "auto" : "manual" }));
@@ -258,7 +280,24 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
       const impressions = Math.round(spend / (c.platform === "meta" ? 6 : 11));
       const clicks = Math.round(impressions * (c.platform === "meta" ? 0.012 : 0.03) * (0.7 + rng.next() * 0.6));
       const purchases = Math.round(clicks * 0.025 * c.efficiency * (0.6 + rng.next() * 0.8));
-      ds.adMetricsDaily.push(t({ campaignId: c.id, date: iso(d), spendMinor: spend, impressions, clicks, viewContent: Math.round(clicks * 0.55), purchases, purchaseValueMinor: Math.round(purchases * (isApparel ? 7600 : 11200) * (0.8 + rng.next() * 0.4)) }));
+      const purchaseValueMinor = Math.round(purchases * (isApparel ? 7600 : 11200) * (0.8 + rng.next() * 0.4));
+      ds.adMetricsDaily.push(t({ campaignId: c.id, date: iso(d), spendMinor: spend, impressions, clicks, viewContent: Math.round(clicks * 0.55), purchases, purchaseValueMinor }));
+      // split the day across the campaign's creatives; the "fatiguing" one loses CTR as it ages
+      const crs = creativesByCampaign.get(c.id) ?? [];
+      if (crs.length) {
+        const ageDays = (d.getTime() - c.startedAt.getTime()) / 864e5;
+        const weights = crs.map((cr) => cr.weight);
+        const wsum = weights.reduce((a, b) => a + b, 0);
+        crs.forEach((cr, k) => {
+          const share = weights[k]! / wsum;
+          const imp = Math.round(impressions * share);
+          const ctrFactor = cr.fatigues ? Math.max(0.35, 1 - Math.max(0, ageDays - 10) * 0.012) : cr.ctrFactor;
+          const clk = Math.round(imp * (c.platform === "meta" ? 0.012 : 0.03) * ctrFactor * (0.8 + rng.next() * 0.4));
+          const pur = Math.round(clk * 0.025 * c.efficiency * (0.6 + rng.next() * 0.8));
+          const reach = Math.max(1, Math.round(imp / (1.2 + (cr.fatigues ? Math.min(3, ageDays * 0.03) : 0.4))));
+          ds.adCreativeMetricsDaily.push(t({ creativeId: cr.id, date: iso(d), spendMinor: Math.round(spend * share), impressions: imp, reach, clicks: clk, purchases: pur, purchaseValueMinor: Math.round(pur * (isApparel ? 7600 : 11200) * (0.8 + rng.next() * 0.4)), videoViews3s: cr.format === "video" ? Math.round(imp * 0.28) : 0 }));
+        });
+      }
     }
   }
 
@@ -453,6 +492,7 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
     const customerName = `${customer.firstName} ${customer.lastName}`;
     // attribution
     const attributed = rng.chance(0.58);
+    let orderCreativeId: string | null = null;
     let campaign: Camp | null = null;
     let channel = "direct";
     let utm: { source: string | null; medium: string | null; campaign: string | null; content: string | null } = { source: null, medium: null, campaign: null, content: null };
@@ -460,20 +500,23 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
     if (attributed && camps.length) {
       campaign = rng.weighted(campaignWeights);
       if (campaign.platform === "meta") {
-        utm = { source: rng.pick(["facebook", "instagram", "fb"]), medium: "paid", campaign: campaign.externalId, content: `ad_${rng.int(100, 999)}` };
+        const crs = creativesByCampaign.get(campaign.id) ?? [];
+        const cr = crs.length ? rng.weighted(crs.map((x) => [x, x.weight * x.ctrFactor] as const)) : null;
+        orderCreativeId = cr?.id ?? null;
+        utm = { source: rng.pick(["facebook", "instagram", "fb"]), medium: "paid", campaign: campaign.externalId, content: cr?.externalId ?? `ad_${rng.int(100, 999)}` };
         clickIds.fbclid = `IwAR${rng.int(1e9, 9e9).toString(36)}`;
-        channel = "meta_ads";
+        channel = "paid_social";
       } else {
         utm = { source: "google", medium: "cpc", campaign: campaign.externalId, content: null };
         clickIds.gclid = `Cj0K${rng.int(1e9, 9e9).toString(36)}`;
-        channel = "google_ads";
+        channel = "paid_search";
       }
     } else {
-      const c = rng.weighted([["direct", 40], ["google_organic", 22], ["email", 15], ["meta_organic", 10], ["referral", 8], ["unknown", 5]] as const);
+      const c = rng.weighted([["direct", 40], ["organic_search", 22], ["email", 15], ["social", 10], ["referral", 8], ["unknown", 5]] as const);
       channel = c;
       if (c === "email") utm = { source: "newsletter", medium: "email", campaign: `weekly-${rng.int(1, 40)}`, content: null };
-      if (c === "google_organic") utm = { source: "google", medium: "organic", campaign: null, content: null };
-      if (c === "meta_organic") utm = { source: "instagram", medium: "social", campaign: null, content: null };
+      if (c === "organic_search") utm = { source: "google", medium: "organic", campaign: null, content: null };
+      if (c === "social") utm = { source: "instagram", medium: "social", campaign: null, content: null };
     }
     const landingSite = utm.source ? `/products/${slug(lines[0]!.v.productTitle)}?utm_source=${utm.source}&utm_medium=${utm.medium}${utm.campaign ? `&utm_campaign=${utm.campaign}` : ""}${clickIds.fbclid ? `&fbclid=${clickIds.fbclid}` : ""}${clickIds.gclid ? `&gclid=${clickIds.gclid}` : ""}` : "/";
 
@@ -490,7 +533,7 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
       subtotalMinor: subtotal, discountMinor, shippingMinor, taxMinor, totalMinor, refundedMinor, returnedFraction: Math.round(returnedFraction * 10000),
       shippingAddress, billingAddress: shippingAddress, shippingCountry: customer.city.country, shippingZip: customer.city.zip, shippingCity: customer.city.city, addressKey: addressKey({ address1: customer.street, zip: customer.city.zip, city: customer.city.city }), nameZipKey: nameZipKey(customerName, customer.city.zip),
       note: rng.chance(0.06) ? (isApparel ? "Citofono rotto, chiamare all'arrivo" : "Leave at the side door, please") : null, noteAttributes: utm.source ? [{ name: "utm_source", value: utm.source }, { name: "utm_campaign", value: utm.campaign ?? "" }] : [],
-      landingSite, referringSite: channel === "referral" ? "https://blog.example/best-picks" : channel === "google_organic" ? "https://www.google.com/" : null, sourceChannel: rng.chance(0.03) ? "pos" : rng.chance(0.03) ? "draft" : "web", isTest: false,
+      landingSite, referringSite: channel === "referral" ? "https://blog.example/best-picks" : channel === "organic_search" ? "https://www.google.com/" : null, sourceChannel: rng.chance(0.03) ? "pos" : rng.chance(0.03) ? "draft" : "web", isTest: false,
       placedAt, cancelledAt, cancelReason: cancelled ? rng.pick(["customer", "inventory", "fraud", "other"]) : null, closedAt: deliveredAt, assignedTo, holdReason, platformUpdatedAt: deliveredAt ?? fulfilledAt ?? cancelledAt ?? placedAt, syncedAt: now,
     });
     for (const l of lines) ds.orderLines.push({ id: l.id, tenantId, orderId, externalId: l.externalId, productId: l.v.productId, variantId: l.v.id, sku: l.v.sku, title: l.v.productTitle, variantTitle: l.v.title, quantity: l.quantity, currentQuantity: cancelled ? 0 : l.quantity, unitPriceMinor: l.unitPriceMinor, discountMinor: Math.round((discountMinor * l.totalMinor) / Math.max(subtotal, 1)), totalMinor: l.totalMinor, unitCostMinor: l.v.costMinor, isAncillary: false });
@@ -498,6 +541,18 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
       ds.orderDiscounts.push(t({ orderId, code: discountCode.code, type: discountCode.type, amountMinor: discountMinor }));
     }
     ds.orderAttribution.push(t({ orderId, utmSource: utm.source, utmMedium: utm.medium, utmCampaign: utm.campaign, utmContent: utm.content, utmTerm: null, clickIds, campaignId: campaign?.id ?? null, channel, source: "seed", capturedAt: placedAt }));
+    // touchpoints: the order's own landing visit plus 0–3 earlier visits in the 21 days before (multi-touch journeys)
+    const paidChannel = channel === "paid_social" || channel === "paid_search";
+    ds.touchpoints.push(t({ orderId, customerId: customer.id, anonymousId: null, sessionId: null, occurredAt: placedAt, channel, source: utm.source, medium: utm.medium, utmCampaign: utm.campaign, utmContent: utm.content, campaignId: campaign?.id ?? null, creativeId: orderCreativeId, clickId: clickIds.fbclid ?? clickIds.gclid ?? null, paid: paidChannel, landingUrl: null, origin: "order_landing" }));
+    const earlier = rng.weighted([[0, 40], [1, 30], [2, 20], [3, 10]] as const);
+    for (let k = 0; k < earlier; k++) {
+      const when = new Date(placedAt.getTime() - rng.int(1, 21 * 24) * 3600e3);
+      const paidTouch = camps.length > 0 && rng.chance(0.55);
+      const pc = paidTouch ? rng.weighted(campaignWeights) : null;
+      const pcr = pc ? rng.pick(creativesByCampaign.get(pc.id) ?? [null]) : null;
+      const ch = pc ? (pc.platform === "meta" ? "paid_social" : "paid_search") : rng.weighted([["organic_search", 35], ["email", 30], ["social", 20], ["referral", 15]] as const);
+      ds.touchpoints.push(t({ orderId, customerId: customer.id, anonymousId: null, sessionId: null, occurredAt: when, channel: ch, source: pc ? (pc.platform === "meta" ? "facebook" : "google") : null, medium: pc ? (pc.platform === "meta" ? "paid" : "cpc") : null, utmCampaign: pc?.externalId ?? null, utmContent: pcr?.externalId ?? null, campaignId: pc?.id ?? null, creativeId: pcr?.id ?? null, clickId: null, paid: Boolean(pc), landingUrl: null, origin: "seed" }));
+    }
     // events
     sysEvent(orderId, "imported", placedAt, { actorType: "integration", metadata: { source: "shopify", gateway } });
     if (statusSource === "manual") ds.orderEvents.push(t({ orderId, type: "status_changed", actorType: "user", actorUserId: userIds.length ? rng.pick(userIds) : null, diff: { status: { from: "new", to: "confirmed" } }, metadata: { source: "manual" }, createdAt: addHours(placedAt, rng.int(1, 12)) }));

@@ -1,5 +1,6 @@
+import { parseTenantSettings } from "@keel/core";
 import { adminDb, and, eq, inArray, schema, withTenant } from "@keel/db";
-import { applySuspensions, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
+import { applySuspensions, evaluateAlertRules, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue } from "@keel/addon-cod";
 import { adsWindow, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
 
@@ -56,6 +57,17 @@ export async function handleSyncAds(job: SyncAdsJob): Promise<void> {
 
 /** Fan-out: one job per connected tenant/provider, deduplicated by singleton key. */
 export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> {
+  if (job.kind === "alerts") {
+    // alert rules of every active tenant: threshold and anomaly checks on yesterday's closed day
+    const tenants = await adminDb().select({ id: schema.tenants.id, slug: schema.tenants.slug, country: schema.tenants.country, currency: schema.tenants.currency, timezone: schema.tenants.timezone, settings: schema.tenants.settings, status: schema.tenants.status }).from(schema.tenants);
+    for (const t of tenants) {
+      if (t.status !== "active") continue;
+      await withTenant(t.id, async (tx) => {
+        await evaluateAlertRules(sys(t.id)(tx), { id: t.id, country: t.country, currency: t.currency, timezone: t.timezone, settings: parseTenantSettings(t.settings) }, { appUrl: process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/t/${t.slug}` : undefined });
+      });
+    }
+    return;
+  }
   if (job.kind === "cod") {
     // add-on tick: only tenants with addon.cod active; queue sync, scoring, auto-assignment, risk profiles once a day
     const addons = await adminDb().select({ tenantId: schema.tenantAddons.tenantId }).from(schema.tenantAddons).where(and(eq(schema.tenantAddons.moduleKey, "addon.cod"), eq(schema.tenantAddons.isActive, true)));

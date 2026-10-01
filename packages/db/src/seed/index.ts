@@ -186,7 +186,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
   const log = opts.log ?? (() => {});
   for (const cfg of tenantSeedConfigs(ctx, opts)) {
     // Wipe previous domain rows of this tenant (cascade from the parent tables).
-    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles]) {
+    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles]) {
       await db.delete(table).where(eq(table.tenantId, cfg.tenantId));
     }
     const started = Date.now();
@@ -194,8 +194,39 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     const genMs = Date.now() - started;
     const counts = await writeDataset(db, ds);
     if (cfg.key === "northwind") await seedCod(db, ctx, cfg.tenantId, opts.now ?? new Date());
+    await seedAnalyticsExtras(db, ctx, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date());
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
   }
+}
+
+/** Alert rules with a few past firings, two custom metrics and the owner's dashboard, per tenant. */
+async function seedAnalyticsExtras(db: ReturnType<typeof drizzle<typeof schema>>, ctx: SeedContext, key: keyof typeof DEMO_TENANTS, tenantId: string, now: Date) {
+  const it = key === "northwind";
+  const owner = ctx.userIds[it ? "owner@northwind.demo" : "owner@harborhome.demo"] ?? null;
+  const marketing = ctx.userIds[it ? "marketing@northwind.demo" : "marketing@harborhome.demo"] ?? null;
+  const recipients = [owner, marketing].filter(Boolean);
+  const rules = await db
+    .insert(schema.alertRules)
+    .values([
+      { tenantId, name: it ? "ROAS blended sotto 2 per 2 giorni" : "Blended ROAS below 2 for 2 days", metric: "mer", condition: { kind: "threshold", op: "lt", value: 2, days: 2 }, channels: ["in_app", "email"], recipients, cooldownHours: 24, createdBy: owner },
+      { tenantId, name: it ? "Spesa ads anomala" : "Unusual ad spend", metric: "ad_spend", condition: { kind: "anomaly", direction: "up", sensitivity: 3, baselineDays: 28 }, channels: ["in_app", "slack"], recipients, cooldownHours: 12, createdBy: marketing ?? owner },
+      { tenantId, name: it ? "Calo ordini" : "Orders drop", metric: "orders", condition: { kind: "anomaly", direction: "down", sensitivity: 3, baselineDays: 28 }, channels: ["in_app"], recipients, cooldownHours: 24, createdBy: owner },
+      { tenantId, name: it ? "Varianti in rottura di stock" : "Variants running out", metric: "stockouts", condition: { kind: "threshold", op: "gt", value: 10, days: 1 }, channels: ["in_app"], recipients, cooldownHours: 24, createdBy: owner },
+    ])
+    .returning({ id: schema.alertRules.id, metric: schema.alertRules.metric });
+  const spendRule = rules.find((r) => r.metric === "ad_spend")!;
+  const merRule = rules.find((r) => r.metric === "mer")!;
+  await db.insert(schema.alertEvents).values([
+    { tenantId, ruleId: spendRule.id, firedAt: new Date(now.getTime() - 3 * 864e5), value: "48210", baseline: "31200", score: "4.1", reason: "anomaly_up", delivered: { in_app: "ok", slack: "mock" } },
+    { tenantId, ruleId: merRule.id, firedAt: new Date(now.getTime() - 9 * 864e5), value: "1.84", baseline: "2", score: null, reason: "threshold", delivered: { in_app: "ok", email: "mock" } },
+  ]);
+  await db.update(schema.alertRules).set({ lastFiredAt: new Date(now.getTime() - 3 * 864e5), lastEvaluatedAt: now }).where(eq(schema.alertRules.id, spendRule.id));
+  await db.insert(schema.customMetrics).values([
+    { tenantId, key: "profit_per_order", label: it ? "Utile per ordine" : "Profit per order", formula: "operating_profit / orders", format: "money", createdBy: owner },
+    { tenantId, key: "ads_share", label: it ? "Peso della pubblicità" : "Ads share of revenue", formula: "ad_spend / net_revenue", format: "percent", createdBy: owner },
+    { tenantId, key: "contribution_after_ads", label: it ? "Contribuzione dopo ads" : "Contribution after ads", formula: "contribution - ad_spend", format: "money", createdBy: owner },
+  ]);
+  if (owner) await db.insert(schema.dashboards).values({ tenantId, userId: owner, name: it ? "La mia dashboard" : "My dashboard", isDefault: true, widgets: [{ metric: "net_revenue" }, { metric: "orders" }, { metric: "mer" }, { metric: "poas" }, { metric: "custom:profit_per_order" }, { metric: "custom:ads_share" }, { metric: "new_customers" }, { metric: "operating_profit" }] });
 }
 
 /**

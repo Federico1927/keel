@@ -42,6 +42,7 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
           <div className="flex flex-wrap items-center gap-2">
             <PeriodPicker basePath={base} keep={{ platform, status }} preset={period.preset} from={sp.from} to={sp.to} />
             <Link href={`${base}/ledger?${qs}`} className="text-sm underline-offset-4 hover:underline">{t("ledger")}</Link>
+            <Link href={`${base}/creatives?${qs}`} className="text-sm underline-offset-4 hover:underline" data-testid="creatives-link">{t("creatives_link")}</Link>
           </div>
         }
       />

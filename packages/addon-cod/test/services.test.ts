@@ -22,7 +22,7 @@ describe("queue", () => {
   it("syncs eligible COD orders in and closed ones out, scores them with an explained breakdown", async () => {
     // make sure there is at least one fresh open COD order
     const [order] = await withTenant(tenantId, (tx) => tx.select().from(schema.orders).where(and(eq(schema.orders.tenantId, tenantId), eq(schema.orders.paymentMethod, "cod"))).limit(1), pools.app);
-    await withTenant(tenantId, (tx) => tx.update(schema.orders).set({ status: "pending_review", cancelledAt: null, placedAt: new Date(), manualStatus: null, platformTags: [] }).where(eq(schema.orders.id, order!.id)), pools.app);
+    await withTenant(tenantId, (tx) => tx.update(schema.orders).set({ status: "pending_review", cancelledAt: null, placedAt: new Date(), manualStatus: null, platformTags: [], returnedFraction: 0, refundedMinor: 0, fulfillmentStatusRaw: null, paymentStatus: "pending", financialStatusRaw: "pending" }).where(eq(schema.orders.id, order!.id)), pools.app);
     await withTenant(tenantId, (tx) => tx.delete(schema.shipments).where(eq(schema.shipments.orderId, order!.id)), pools.app);
     const r = await ops((s) => syncQueue(s));
     expect(r.entered).toBeGreaterThanOrEqual(1);
@@ -49,7 +49,7 @@ describe("queue", () => {
     expect(settings.unreachableAfterAttempts).toBe(2);
     const open = await withTenant(tenantId, (tx) => tx.select().from(schema.orders).where(and(eq(schema.orders.tenantId, tenantId), eq(schema.orders.paymentMethod, "cod"), sql`${schema.orders.status} <> 'cancelled'`)).limit(2), pools.app);
     for (const o of open) {
-      await withTenant(tenantId, (tx) => tx.update(schema.orders).set({ status: "new", cancelledAt: null, placedAt: new Date(), manualStatus: null, platformTags: [] }).where(eq(schema.orders.id, o.id)), pools.app);
+      await withTenant(tenantId, (tx) => tx.update(schema.orders).set({ status: "new", cancelledAt: null, placedAt: new Date(), manualStatus: null, platformTags: [], returnedFraction: 0, refundedMinor: 0, fulfillmentStatusRaw: null, paymentStatus: "pending", financialStatusRaw: "pending" }).where(eq(schema.orders.id, o.id)), pools.app);
       await withTenant(tenantId, (tx) => tx.delete(schema.shipments).where(eq(schema.shipments.orderId, o.id)), pools.app);
     }
     await ops((s) => syncQueue(s));
@@ -86,7 +86,7 @@ describe("assignment", () => {
     // 12 fresh unassigned COD items
     const orders = await withTenant(tenantId, (tx) => tx.select({ id: schema.orders.id }).from(schema.orders).where(and(eq(schema.orders.tenantId, tenantId), eq(schema.orders.paymentMethod, "cod"))).limit(14), pools.app);
     for (const o of orders) {
-      await withTenant(tenantId, (tx) => tx.update(schema.orders).set({ status: "new", cancelledAt: null, placedAt: new Date(), manualStatus: null, assignedTo: null, platformTags: [] }).where(eq(schema.orders.id, o.id)), pools.app);
+      await withTenant(tenantId, (tx) => tx.update(schema.orders).set({ status: "new", cancelledAt: null, placedAt: new Date(), manualStatus: null, assignedTo: null, platformTags: [], returnedFraction: 0, refundedMinor: 0, fulfillmentStatusRaw: null, paymentStatus: "pending", financialStatusRaw: "pending" }).where(eq(schema.orders.id, o.id)), pools.app);
       await withTenant(tenantId, (tx) => tx.delete(schema.shipments).where(eq(schema.shipments.orderId, o.id)), pools.app);
     }
     await withTenant(tenantId, (tx) => tx.delete(schema.codAssignmentLog).where(eq(schema.codAssignmentLog.tenantId, tenantId)), pools.app);
@@ -125,7 +125,7 @@ describe("platform tags", () => {
   const freshCodOrders = async (n: number) => {
     const rows = await withTenant(tenantId, (tx) => tx.select({ id: schema.orders.id }).from(schema.orders).where(and(eq(schema.orders.tenantId, tenantId), eq(schema.orders.paymentMethod, "cod"))).orderBy(schema.orders.orderNumber).limit(n), pools.app);
     for (const o of rows) {
-      await withTenant(tenantId, (tx) => tx.update(schema.orders).set({ status: "pending_review", cancelledAt: null, placedAt: new Date(), manualStatus: null, assignedTo: null, platformTags: ["cod"], fulfillmentStatusRaw: null, paymentStatus: "pending", financialStatusRaw: "pending" }).where(eq(schema.orders.id, o.id)), pools.app);
+      await withTenant(tenantId, (tx) => tx.update(schema.orders).set({ status: "pending_review", cancelledAt: null, placedAt: new Date(), manualStatus: null, assignedTo: null, platformTags: ["cod"], fulfillmentStatusRaw: null, paymentStatus: "pending", financialStatusRaw: "pending", returnedFraction: 0, refundedMinor: 0 }).where(eq(schema.orders.id, o.id)), pools.app);
       await withTenant(tenantId, (tx) => tx.delete(schema.shipments).where(eq(schema.shipments.orderId, o.id)), pools.app);
     }
     await withTenant(tenantId, (tx) => tx.delete(schema.codQueueItems).where(inArray(schema.codQueueItems.orderId, rows.map((r) => r.id))), pools.app);
@@ -194,7 +194,7 @@ describe("pre-confirmation changes", () => {
   const prepare = async (n: number) => {
     const rows = await withTenant(tenantId, (tx) => tx.select({ id: schema.orders.id, customerId: schema.orders.customerId }).from(schema.orders).where(and(eq(schema.orders.tenantId, tenantId), eq(schema.orders.paymentMethod, "cod"), sql`${schema.orders.customerId} is not null`)).orderBy(schema.orders.orderNumber).limit(n), pools.app);
     for (const o of rows) {
-      await withTenant(tenantId, (tx) => tx.update(schema.orders).set({ status: "pending_review", cancelledAt: null, cancelReason: null, placedAt: new Date(), manualStatus: null, assignedTo: null, platformTags: ["cod"], fulfillmentStatusRaw: null, paymentStatus: "pending", financialStatusRaw: "pending", replacedByOrderId: null }).where(eq(schema.orders.id, o.id)), pools.app);
+      await withTenant(tenantId, (tx) => tx.update(schema.orders).set({ status: "pending_review", cancelledAt: null, cancelReason: null, placedAt: new Date(), manualStatus: null, assignedTo: null, platformTags: ["cod"], fulfillmentStatusRaw: null, paymentStatus: "pending", financialStatusRaw: "pending", replacedByOrderId: null, returnedFraction: 0, refundedMinor: 0 }).where(eq(schema.orders.id, o.id)), pools.app);
       await withTenant(tenantId, (tx) => tx.delete(schema.shipments).where(eq(schema.shipments.orderId, o.id)), pools.app);
     }
     await withTenant(tenantId, (tx) => tx.delete(schema.codQueueItems).where(inArray(schema.codQueueItems.orderId, rows.map((r) => r.id))), pools.app);
@@ -237,7 +237,9 @@ describe("pre-confirmation changes", () => {
     expect(candidates.map((c) => c.id)).toContain(b!.id);
     const lines = await withTenant(tenantId, (tx) => tx.select().from(schema.orderLines).where(eq(schema.orderLines.orderId, a!.id)), pools.app);
     const first = lines.find((l) => l.currentQuantity > 0)!;
-    const r = await ops((s) => modifyCodOrder(s, p, { orderId: a!.id, lines: [{ lineId: first.id, quantity: first.currentQuantity + 1 }], mergeOrderIds: [b!.id] }, { country: "IT" }));
+    // keep every current line, one more unit of the first
+    const keep = lines.filter((l) => l.currentQuantity > 0).map((l) => ({ lineId: l.id, quantity: l.id === first.id ? l.currentQuantity + 1 : l.currentQuantity }));
+    const r = await ops((s) => modifyCodOrder(s, p, { orderId: a!.id, lines: keep, mergeOrderIds: [b!.id] }, { country: "IT" }));
     expect(r.kind).toBe("replaced");
     if (r.kind !== "replaced") return;
     expect(r.merged).toBe(1);
