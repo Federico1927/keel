@@ -73,6 +73,8 @@ export const segments = pgTable(
     rules: jsonb("rules").notNull().default(sql`'{"match":"all","conditions":[]}'::jsonb`),
     holdoutPercentage: integer("holdout_percentage").notNull().default(0),
     holdoutSalt: text("holdout_salt").notNull().default("holdout"),
+    /** Re-evaluated within minutes when customers' orders change, and fully every night. */
+    liveUpdates: boolean("live_updates").notNull().default(false),
     lastCount: integer("last_count"),
     lastEvaluatedAt: timestamp("last_evaluated_at", { withTimezone: true }),
     createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
@@ -333,4 +335,47 @@ export const retentionExposures = pgTable(
     exposedAt: timestamp("exposed_at", { withTimezone: true }).notNull(),
   },
   (t) => [uniqueIndex("retention_exposures_uq").on(t.campaignId, t.customerId), index("retention_exposures_customer_idx").on(t.tenantId, t.customerId), tenantIsolation("retention_exposures")],
+).enableRLS();
+
+/** A segment pushed to an external audience (ad platform or email tool). Only the treated group is pushed. */
+export const segmentDestinations = pgTable(
+  "segment_destinations",
+  {
+    ...tenantColumns(),
+    segmentId: uuid("segment_id")
+      .notNull()
+      .references(() => segments.id, { onDelete: "cascade" }),
+    /** meta_custom_audience | google_customer_match | email_tool */
+    provider: text("provider").notNull(),
+    audienceName: text("audience_name").notNull(),
+    externalAudienceId: text("external_audience_id"),
+    /** Sync after every live re-evaluation (otherwise only on demand). */
+    autoSync: boolean("auto_sync").notNull().default(true),
+    /** never | ok | error */
+    status: text("status").notNull().default("never"),
+    memberCount: integer("member_count").notNull().default(0),
+    lastSyncAt: timestamp("last_sync_at", { withTimezone: true }),
+    lastAdded: integer("last_added").notNull().default(0),
+    lastRemoved: integer("last_removed").notNull().default(0),
+    lastError: text("last_error"),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("segment_destinations_segment_idx").on(t.tenantId, t.segmentId), tenantIsolation("segment_destinations")],
+).enableRLS();
+
+/** Who the destination currently holds, as far as Keel pushed it: the base for add/remove diffs. */
+export const segmentDestinationMembers = pgTable(
+  "segment_destination_members",
+  {
+    ...tenantColumns(),
+    destinationId: uuid("destination_id")
+      .notNull()
+      .references(() => segmentDestinations.id, { onDelete: "cascade" }),
+    customerId: uuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    syncedAt: timestamp("synced_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("segment_destination_members_uq").on(t.destinationId, t.customerId), tenantIsolation("segment_destination_members")],
 ).enableRLS();

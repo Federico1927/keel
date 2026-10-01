@@ -12,7 +12,7 @@ import { SendPanel } from "./send-panel";
 
 export default async function RetentionCampaignPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
-  const ctx = await requirePage(tenant, "segments");
+  const ctx = await requirePage(tenant, "customer_campaigns");
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const t = await getTranslations("retention");
   const at = { id: ctx.tenant.id, country: ctx.tenant.country, currency: ctx.tenant.currency, timezone: ctx.tenant.timezone, settings: ctx.settings };
@@ -20,7 +20,7 @@ export default async function RetentionCampaignPage({ params }: { params: Promis
   const detail = await ctx.run((tx) => retentionCampaignDetail({ ...s, tx }, at, id));
   if (!detail) notFound();
   const { campaign: c, segment, results } = detail;
-  const canWrite = canWritePage(ctx.role, "segments");
+  const canWrite = canWritePage(ctx.role, "customer_campaigns");
   const money = (m: number | null | undefined) => (m === null || m === undefined ? "—" : formatMoney(Math.round(m), ctx.tenant.currency, ctx.locale));
   const pct = (v: number | null | undefined) => (v === null || v === undefined ? "—" : formatPercent(v, ctx.locale, 1));
   const back = <Link href={`/t/${tenant}/segments/campaigns`} className="hover:underline">← {t("tabs.campaigns")}</Link>;

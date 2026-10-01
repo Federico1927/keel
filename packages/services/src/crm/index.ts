@@ -11,8 +11,10 @@ const RETURNED = ["returned", "returned_partial", "refunded"];
  * from Keel's canonical orders (sale scope = same rule as the P/L) and the customer row.
  * Returned as a CTE body so list, preview, evaluation and RFM all share one definition.
  */
-function profileCte(ctx: ServiceContext, now: Date): SQL {
+function profileCte(ctx: ServiceContext, now: Date, onlyCustomers?: string[]): SQL {
   const t = ctx.tenantId;
+  // restricting every branch (not just the outer select) keeps incremental evaluation cheap
+  const only = (col: SQL) => (onlyCustomers ? sql` and ${col} = any(${sql.param(onlyCustomers)}::uuid[])` : sql``);
   return sql`
     select c.id as customer_id, c.first_name, c.last_name, c.email, c.phone_e164 as phone, c.country, c.city, c.accepts_marketing, c.tags, c.platform_created_at,
       coalesce(a.orders_count, 0)::int as orders_count,
@@ -42,16 +44,16 @@ function profileCte(ctx: ServiceContext, now: Date): SQL {
         max(o.placed_at) filter (where o.status in ${SALE}) as last_order_at,
         min(o.placed_at) filter (where o.status in ${SALE}) as first_order_at,
         array_agg(distinct o.payment_method) filter (where o.status in ${SALE}) as payment_methods
-      from orders o where o.tenant_id = ${t} and o.customer_id is not null group by o.customer_id
+      from orders o where o.tenant_id = ${t} and o.customer_id is not null${only(sql`o.customer_id`)} group by o.customer_id
     ) a on a.customer_id = c.id
     left join (
       select o.customer_id,
         array_agg(distinct l.product_id) filter (where l.product_id is not null) as product_ids,
         array_agg(distinct p.product_type) filter (where p.product_type is not null) as product_types
       from orders o join order_lines l on l.order_id = o.id left join products p on p.id = l.product_id
-      where o.tenant_id = ${t} and o.customer_id is not null and o.status in ${SALE} group by o.customer_id
+      where o.tenant_id = ${t} and o.customer_id is not null and o.status in ${SALE}${only(sql`o.customer_id`)} group by o.customer_id
     ) pr on pr.customer_id = c.id
-    where c.tenant_id = ${t}`;
+    where c.tenant_id = ${t}${only(sql`c.id`)}`;
 }
 
 const RFM_RECENCY_SQL = sql`case when p.days_since_last_order is null then null when p.days_since_last_order <= 90 then 'r0_90' when p.days_since_last_order <= 180 then 'r91_180' when p.days_since_last_order <= 365 then 'r181_365' when p.days_since_last_order <= 730 then 'r366_730' else 'r730_plus' end`;
@@ -269,6 +271,7 @@ export interface SegmentInput {
   description?: string | null;
   rules: unknown;
   holdoutPercentage: number;
+  liveUpdates?: boolean;
 }
 
 export async function saveSegment(ctx: ServiceContext, input: SegmentInput, segmentId?: string): Promise<string> {
@@ -276,10 +279,10 @@ export async function saveSegment(ctx: ServiceContext, input: SegmentInput, segm
   if (!rules) throw new SegmentRuleError(errors);
   const holdout = Math.min(50, Math.max(0, Math.round(input.holdoutPercentage)));
   if (segmentId) {
-    await ctx.tx.update(schema.segments).set({ name: input.name, description: input.description ?? null, rules, holdoutPercentage: holdout, updatedAt: new Date() }).where(and(eq(schema.segments.tenantId, ctx.tenantId), eq(schema.segments.id, segmentId)));
+    await ctx.tx.update(schema.segments).set({ name: input.name, description: input.description ?? null, rules, holdoutPercentage: holdout, ...(input.liveUpdates === undefined ? {} : { liveUpdates: input.liveUpdates }), updatedAt: new Date() }).where(and(eq(schema.segments.tenantId, ctx.tenantId), eq(schema.segments.id, segmentId)));
     return segmentId;
   }
-  const [row] = await ctx.tx.insert(schema.segments).values({ tenantId: ctx.tenantId, name: input.name, description: input.description ?? null, rules, holdoutPercentage: holdout, createdBy: ctx.actor.userId }).returning({ id: schema.segments.id });
+  const [row] = await ctx.tx.insert(schema.segments).values({ tenantId: ctx.tenantId, name: input.name, description: input.description ?? null, rules, holdoutPercentage: holdout, liveUpdates: input.liveUpdates ?? false, createdBy: ctx.actor.userId }).returning({ id: schema.segments.id });
   return row!.id;
 }
 
@@ -345,4 +348,72 @@ export async function customerDetail(ctx: ServiceContext, customerId: string): P
   const orders = await ctx.tx.select({ id: schema.orders.id, name: schema.orders.name, placedAt: schema.orders.placedAt, status: schema.orders.status, paymentMethod: schema.orders.paymentMethod, totalMinor: schema.orders.totalMinor, currency: schema.orders.currency }).from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenantId), eq(schema.orders.customerId, customerId))).orderBy(desc(schema.orders.placedAt)).limit(100);
   const memberships = await ctx.tx.select({ id: schema.segments.id, name: schema.segments.name, groupName: schema.segmentMemberships.groupName }).from(schema.segmentMemberships).innerJoin(schema.segments, eq(schema.segments.id, schema.segmentMemberships.segmentId)).where(eq(schema.segmentMemberships.customerId, customerId));
   return { customer, orders, segments: memberships, returns: customer.returnsCount, prediction: await customerPrediction(ctx, customerId) };
+}
+
+export interface MembershipDelta {
+  segmentId: string;
+  checked: number;
+  added: number;
+  removed: number;
+  count: number;
+}
+
+/**
+ * Incremental evaluation: re-checks only the given customers against the rules, adds the new
+ * matches with their stable group and removes those who stopped matching. Same result as a full
+ * evaluation for these customers; everyone else is untouched.
+ */
+export async function evaluateSegmentForCustomers(ctx: ServiceContext, segmentId: string, customerIds: string[]): Promise<MembershipDelta> {
+  const now = ctx.now ?? new Date();
+  const [segment] = await ctx.tx.select().from(schema.segments).where(and(eq(schema.segments.tenantId, ctx.tenantId), eq(schema.segments.id, segmentId))).limit(1);
+  if (!segment) throw new Error("segment_not_found");
+  let added = 0;
+  let removed = 0;
+  if (customerIds.length) {
+    const where = compileSegmentRules(segment.rules);
+    const matches = await ctx.tx.execute<{ customer_id: string }>(sql`with p as materialized (${profileCte(ctx, now, customerIds)}) select p.customer_id from p where ${where}`);
+    const matching = new Set(matches.rows.map((r) => r.customer_id));
+    const existing = await ctx.tx.select({ customerId: schema.segmentMemberships.customerId }).from(schema.segmentMemberships).where(and(eq(schema.segmentMemberships.segmentId, segmentId), inArray(schema.segmentMemberships.customerId, customerIds)));
+    const present = new Set(existing.map((e) => e.customerId));
+    const stale = [...present].filter((id) => !matching.has(id));
+    const fresh = [...matching].filter((id) => !present.has(id));
+    if (stale.length) await ctx.tx.delete(schema.segmentMemberships).where(and(eq(schema.segmentMemberships.segmentId, segmentId), inArray(schema.segmentMemberships.customerId, stale)));
+    if (fresh.length) await ctx.tx.insert(schema.segmentMemberships).values(fresh.map((customerId) => ({ tenantId: ctx.tenantId, segmentId, customerId, groupName: assignHoldout(segmentId, customerId, segment.holdoutPercentage, segment.holdoutSalt), evaluatedAt: now }))).onConflictDoNothing();
+    added = fresh.length;
+    removed = stale.length;
+  }
+  const [agg] = await ctx.tx.select({ n: sql<number>`count(*)::int` }).from(schema.segmentMemberships).where(eq(schema.segmentMemberships.segmentId, segmentId));
+  await ctx.tx.update(schema.segments).set({ lastCount: agg?.n ?? 0, lastEvaluatedAt: now }).where(eq(schema.segments.id, segmentId));
+  return { segmentId, checked: customerIds.length, added, removed, count: agg?.n ?? 0 };
+}
+
+/** Customers whose orders or profile changed after `since`: the only ones whose membership can have changed by an event. */
+export async function customersChangedSince(ctx: ServiceContext, since: Date): Promise<string[]> {
+  const rows = await ctx.tx.execute<{ id: string }>(sql`
+    select customer_id as id from orders where tenant_id = ${ctx.tenantId} and customer_id is not null and updated_at > ${since}
+    union
+    select id from customers where tenant_id = ${ctx.tenantId} and updated_at > ${since}`);
+  return rows.rows.map((r) => r.id);
+}
+
+/**
+ * Keeps live segments current. Incremental (every few minutes): only customers changed since
+ * each segment's last evaluation. Full (nightly): everyone, because time-based conditions such
+ * as "days since last order" or the nightly predictions change without any event.
+ */
+export async function refreshLiveSegments(ctx: ServiceContext, opts: { full?: boolean } = {}): Promise<MembershipDelta[]> {
+  const live = await ctx.tx.select({ id: schema.segments.id, lastEvaluatedAt: schema.segments.lastEvaluatedAt }).from(schema.segments).where(and(eq(schema.segments.tenantId, ctx.tenantId), eq(schema.segments.liveUpdates, true)));
+  const out: MembershipDelta[] = [];
+  for (const s of live) {
+    if (opts.full || !s.lastEvaluatedAt) {
+      const before = await ctx.tx.select({ customerId: schema.segmentMemberships.customerId }).from(schema.segmentMemberships).where(eq(schema.segmentMemberships.segmentId, s.id));
+      const r = await evaluateSegment(ctx, s.id);
+      const after = new Set((await ctx.tx.select({ customerId: schema.segmentMemberships.customerId }).from(schema.segmentMemberships).where(eq(schema.segmentMemberships.segmentId, s.id))).map((m) => m.customerId));
+      const had = new Set(before.map((b) => b.customerId));
+      out.push({ segmentId: s.id, checked: -1, added: [...after].filter((x) => !had.has(x)).length, removed: [...had].filter((x) => !after.has(x)).length, count: r.count });
+      continue;
+    }
+    out.push(await evaluateSegmentForCustomers(ctx, s.id, await customersChangedSince(ctx, s.lastEvaluatedAt)));
+  }
+  return out;
 }

@@ -18,6 +18,7 @@ export type CoreModule = (typeof CORE_MODULES)[number];
 
 export const ADDON_MODULES = [
   "addon.cod",
+  "addon.customer_campaigns",
   "addon.warehouse_3pl",
   "addon.whatsapp",
   "addon.carrier_tracking",
@@ -51,6 +52,8 @@ export const MODULES: Record<ModuleKey, ModuleDefinition> = {
   "core.purchasing": { key: "core.purchasing", nameKey: "modules.core.purchasing.name", descriptionKey: "modules.core.purchasing.description", availability: "implemented", pages: ["purchasing"], monthlyPriceMinor: null },
   "core.platform": { key: "core.platform", nameKey: "modules.core.platform.name", descriptionKey: "modules.core.platform.description", availability: "implemented", pages: ["integrations", "settings", "users", "audit", "notifications"], monthlyPriceMinor: null },
   "addon.cod": { key: "addon.cod", nameKey: "modules.addon.cod.name", descriptionKey: "modules.addon.cod.description", availability: "implemented", pages: ["cod_queue", "cod_settings"], monthlyPriceMinor: 19900 },
+  /** Messages to segments with a control group: holdout on segments, treated/control groups, uplift. WhatsApp providers (e.g. Spoki) plug in as its channel. */
+  "addon.customer_campaigns": { key: "addon.customer_campaigns", nameKey: "modules.addon.customer_campaigns.name", descriptionKey: "modules.addon.customer_campaigns.description", availability: "implemented", pages: ["customer_campaigns"], monthlyPriceMinor: 9900 },
   "addon.warehouse_3pl": { key: "addon.warehouse_3pl", nameKey: "modules.addon.warehouse_3pl.name", descriptionKey: "modules.addon.warehouse_3pl.description", availability: "on_request", pages: [], monthlyPriceMinor: null },
   "addon.whatsapp": { key: "addon.whatsapp", nameKey: "modules.addon.whatsapp.name", descriptionKey: "modules.addon.whatsapp.description", availability: "on_request", pages: [], monthlyPriceMinor: null },
   "addon.carrier_tracking": { key: "addon.carrier_tracking", nameKey: "modules.addon.carrier_tracking.name", descriptionKey: "modules.addon.carrier_tracking.description", availability: "on_request", pages: [], monthlyPriceMinor: null },

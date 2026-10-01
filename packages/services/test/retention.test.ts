@@ -23,7 +23,7 @@ describe("customer campaigns", () => {
   it("the seeded win-back is measured against its control group, with the code redemptions", async () => {
     // the sign of the uplift is checked on the full-size demo; at test scale the control group is a handful of customers
     const list = await run((s) => listRetentionCampaigns(s, tenant));
-    const sent = list.find((c) => c.status === "sent")!;
+    const sent = list.find((c) => c.name.startsWith("Win-back"))!;
     expect(sent.results!.report.measurable).toBe(true);
     expect(sent.results!.windowOpen).toBe(false);
     const r = sent.results!.report;

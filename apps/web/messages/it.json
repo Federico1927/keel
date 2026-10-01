@@ -128,6 +128,10 @@
       "carrier_tracking": {
         "name": "Tracking corrieri",
         "description": "Seconda fonte per lo stato delle spedizioni"
+      },
+      "customer_campaigns": {
+        "name": "Campagne clienti",
+        "description": "Campagne email, SMS e WhatsApp ai segmenti con gruppo di controllo: controllo sui segmenti e margine incrementale misurato."
       }
     }
   },
@@ -3379,6 +3383,43 @@
       "already_sent": "La campagna è già stata inviata.",
       "no_segment": "Scegli un segmento.",
       "empty_segment": "Nessun cliente del segmento ha il consenso marketing.",
+      "invalid_input": "Controlla i campi."
+    }
+  },
+  "destinations": {
+    "title": "Aggiornamento continuo e destinazioni",
+    "description": "Invia questo segmento alle piattaforme pubblicitarie e agli strumenti email. Si inviano solo i clienti con consenso marketing; le piattaforme pubblicitarie ricevono solo identificativi cifrati (hash).",
+    "description_holdout": "Invia questo segmento alle piattaforme pubblicitarie e agli strumenti email. Si inviano solo i clienti con consenso marketing, mai il gruppo di controllo; le piattaforme pubblicitarie ricevono solo identificativi cifrati (hash).",
+    "live": "Aggiornamento continuo",
+    "live_help": "Ricontrollato entro 10 minuti da ogni modifica agli ordini e completamente ogni notte (condizioni sul tempo e previsioni). Le destinazioni con sincronizzazione automatica seguono.",
+    "mock": "mock",
+    "columns": {
+      "destination": "Destinazione",
+      "members": "Membri",
+      "last_sync": "Ultima sincronizzazione",
+      "auto": "Automatica"
+    },
+    "providers": {
+      "meta_custom_audience": "Pubblico personalizzato Meta",
+      "google_customer_match": "Customer Match Google",
+      "email_tool": "Lista dello strumento email"
+    },
+    "status": {
+      "never": "mai sincronizzata",
+      "ok": "sincronizzata",
+      "error": "errore"
+    },
+    "last_sync": "{at} · +{added} −{removed}",
+    "sync": "Sincronizza ora",
+    "add": "Aggiungi destinazione",
+    "fields": {
+      "provider": "Destinazione",
+      "audience_name": "Nome del pubblico",
+      "auto_sync": "Sincronizzazione automatica"
+    },
+    "privacy_note": "Finché l'account non è collegato (Integrazioni), le destinazioni funzionano in modalità mock: Keel calcola e registra esattamente cosa verrebbe inviato.",
+    "errors": {
+      "not_found": "Destinazione non trovata.",
       "invalid_input": "Controlla i campi."
     }
   }

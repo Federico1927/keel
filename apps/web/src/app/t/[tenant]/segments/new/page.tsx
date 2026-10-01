@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canWritePage } from "@keel/config";
+import { canWritePage, isPageEnabled } from "@keel/config";
 import { validateSegmentRules, type SegmentGroup } from "@keel/core";
 import { PageHeader } from "@keel/ui";
 import { notFound } from "next/navigation";
@@ -21,7 +21,7 @@ export default async function NewSegmentPage({ params, searchParams }: { params:
     <>
       <p className="mb-2 text-sm text-muted-foreground"><Link href={`/t/${tenant}/segments`} className="hover:underline">← {t("title")}</Link></p>
       <PageHeader eyebrow={ctx.tenant.name} title={t("new")} description={t("new_description")} />
-      <SegmentBuilder slug={tenant} segment={{ name: "", description: null, rules, holdoutPercentage: 0 }} options={options} currency={ctx.tenant.currency} locale={ctx.locale} canWrite />
+      <SegmentBuilder slug={tenant} segment={{ name: "", description: null, rules, holdoutPercentage: 0 }} options={options} currency={ctx.tenant.currency} locale={ctx.locale} canWrite holdoutEnabled={isPageEnabled("customer_campaigns", ctx.activeAddons)} />
     </>
   );
 }
