@@ -26,3 +26,4 @@ export * from "./pdf";
 export * from "./return-portal";
 export * from "./returns-policy";
 export * from "./predictions";
+export * from "./retention";

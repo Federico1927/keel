@@ -188,7 +188,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
   const log = opts.log ?? (() => {});
   for (const cfg of tenantSeedConfigs(ctx, opts)) {
     // Wipe previous domain rows of this tenant (cascade from the parent tables).
-    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies]) {
+    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels]) {
       await db.delete(table).where(eq(table.tenantId, cfg.tenantId));
     }
     const started = Date.now();
@@ -201,8 +201,77 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("analytics", () => seedAnalyticsExtras(db, ctx, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("planning", () => seedPlanningExtras(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("returns", () => seedReturnsExtras(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
+    await step("campaigns", () => seedRetentionCampaigns(db, ctx, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("predictions", () => seedPredictions(db, cfg.tenantId, opts.now ?? new Date()));
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
+  }
+}
+
+/**
+ * Customer campaigns measured against the segment's control group. Northwind's win-back went
+ * out 35 days ago with a 10% code; about 9% of the treated customers answered with an order that
+ * reuses one of their past baskets, so the results page shows a real, significant uplift. Harbor's
+ * campaign was sent from another tool (manual channel) and had no effect, which the control
+ * group shows too. A draft on a segment without control group shows the warning.
+ */
+async function seedRetentionCampaigns(db: ReturnType<typeof drizzle<typeof schema>>, ctx: SeedContext, key: keyof typeof DEMO_TENANTS, tenantId: string, now: Date) {
+  const it = key === "northwind";
+  const sender = ctx.userIds[it ? "marketing@northwind.demo" : "marketing@harborhome.demo"] ?? null;
+  const segmentId = async (name: string) => (await db.select({ id: schema.segments.id }).from(schema.segments).where(and(eq(schema.segments.tenantId, tenantId), eq(schema.segments.name, name))).limit(1))[0]?.id ?? null;
+  const send = async (name: string, segment: string, channel: string, message: string, code: string | null, cost: number, daysAgo: number) => {
+    const segId = await segmentId(segment);
+    if (!segId) return null;
+    const sentAt = new Date(now.getTime() - daysAgo * 864e5);
+    const [c] = await db.insert(schema.retentionCampaigns).values({ tenantId, name, segmentId: segId, channel, message, discountCode: code, costPerMessageMinor: cost, attributionDays: 14, status: "sent", sentAt, sentBy: sender, createdBy: sender, createdAt: sentAt, updatedAt: sentAt }).returning({ id: schema.retentionCampaigns.id });
+    await db.execute(sql`
+      insert into retention_exposures (tenant_id, campaign_id, customer_id, group_name, status, message_id, exposed_at)
+      select ${tenantId}, ${c!.id}, m.customer_id, m.group_name,
+        case when m.group_name = 'holdout' then 'held_out' when ${channel} = 'email' and c.email is null then 'skipped' else 'sent' end,
+        case when m.group_name = 'treated' and ${channel} <> 'manual' then 'mock-msg-seed-' || left(m.customer_id::text, 8) end, ${sentAt}
+      from segment_memberships m join customers c on c.id = m.customer_id
+      where m.segment_id = ${segId} and c.accepts_marketing`);
+    const [counts] = (await db.execute<{ t: number; h: number; d: number; s: number }>(sql`select count(*) filter (where group_name = 'treated')::int as t, count(*) filter (where group_name = 'holdout')::int as h, count(*) filter (where status = 'sent')::int as d, count(*) filter (where status = 'skipped')::int as s from retention_exposures where campaign_id = ${c!.id}`)).rows;
+    await db.update(schema.retentionCampaigns).set({ treatedCount: counts!.t, holdoutCount: counts!.h, deliveredCount: counts!.d, skippedCount: counts!.s }).where(eq(schema.retentionCampaigns.id, c!.id));
+    return { id: c!.id, sentAt };
+  };
+  if (it) {
+    const sent = await send("Win-back clienti ricorrenti -10%", "Clienti ricorrenti", "email", "Ciao {first_name}, ci manchi! Per te il 10% di sconto con il codice {code}.", "BACK10", 2, 35);
+    if (sent) {
+      // response orders: ~9% of treated customers buy again within the window, reusing their last basket
+      const [tenant] = await db.select({ prefix: schema.tenants.orderNumberPrefix }).from(schema.tenants).where(eq(schema.tenants.id, tenantId));
+      // copy every stored column (generated ones such as the search blob are recomputed)
+      const cols = async (table: string) => (await db.execute<{ c: string }>(sql`select quote_ident(column_name) as c from information_schema.columns where table_schema = 'public' and table_name = ${table} and is_generated = 'NEVER' order by ordinal_position`)).rows.map((r) => r.c).join(", ");
+      const orderCols = sql.raw(await cols("orders"));
+      const lineCols = sql.raw(await cols("order_lines"));
+      await db.execute(sql`
+        with picks as (
+          select distinct on (e.customer_id) o.id as old_id, gen_random_uuid() as new_id,
+            e.exposed_at + make_interval(days => 1 + abs(hashtext(e.customer_id::text || 'day')) % 12, hours => abs(hashtext(e.customer_id::text)) % 10) as at
+          from retention_exposures e join orders o on o.customer_id = e.customer_id and o.placed_at < e.exposed_at and o.status in ('delivered', 'shipped')
+          where e.campaign_id = ${sent.id} and e.group_name = 'treated' and abs(hashtext(e.customer_id::text || 'resp')) % 100 < 9
+          order by e.customer_id, o.placed_at desc
+        ),
+        numbered as (select p.*, (select max(order_number) from orders where tenant_id = ${tenantId}) + row_number() over (order by p.at) as num from picks p),
+        ins as (
+          insert into orders (${orderCols}) select ${orderCols} from (select (jsonb_populate_record(null::orders, to_jsonb(o) || jsonb_build_object(
+            'id', n.new_id, 'external_id', 'crm-' || n.new_id, 'order_number', n.num, 'name', '#' || ${tenant!.prefix} || n.num,
+            'status', 'delivered', 'status_changed_at', n.at + interval '4 days', 'cancelled_at', null, 'cancel_reason', null, 'refunded_minor', 0, 'returned_fraction_bps', 0,
+            'placed_at', n.at, 'closed_at', n.at + interval '4 days', 'platform_updated_at', n.at + interval '4 days', 'created_at', n.at, 'updated_at', n.at + interval '4 days'))).*
+            from orders o join numbered n on n.old_id = o.id) r
+          returning id, total_minor
+        ),
+        lines as (
+          insert into order_lines (${lineCols}) select ${lineCols} from (select (jsonb_populate_record(null::order_lines, to_jsonb(l) || jsonb_build_object('id', gen_random_uuid(), 'order_id', n.new_id, 'external_id', 'crm-' || gen_random_uuid(), 'created_at', n.at))).*
+            from order_lines l join numbered n on n.old_id = l.order_id) r
+          returning id
+        )
+        insert into order_discounts (tenant_id, order_id, code, type, amount_minor)
+        select ${tenantId}, ins.id, 'BACK10', 'percentage', round(ins.total_minor * 0.1)::int from ins`);
+    }
+    const segId = await segmentId("Nuovi con consenso marketing");
+    if (segId) await db.insert(schema.retentionCampaigns).values({ tenantId, name: "Benvenuto, secondo acquisto", segmentId: segId, channel: "email", message: "Ciao {first_name}, grazie per il primo ordine! Il codice {code} vale per il secondo.", discountCode: "SECONDO15", costPerMessageMinor: 2, attributionDays: 21, status: "draft", createdBy: sender });
+  } else {
+    await send("Spring newsletter (sent from the email tool)", "Repeat customers", "manual", "", null, 0, 25);
   }
 }
 

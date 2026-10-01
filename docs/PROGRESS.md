@@ -262,6 +262,18 @@ Aperto: il seed completo impiega circa 2 minuti e 5 secondi su questo ambiente, 
 
 Resta per la issue #6: campagne con gruppo di controllo e margine incrementale (4.4), esportazione dei segmenti verso strumenti esterni tramite adapter (4.3), segmenti aggiornati in tempo reale e sincronizzazione delle audience (4.1).
 
+## Programma di profondità — Area 4, secondo blocco (campagne con gruppo di controllo)
+
+Fatto (issue #6, seconda parte):
+- Campagne clienti su un segmento: email, SMS, WhatsApp tramite l'interfaccia `MessagingChannel` (mock), oppure "inviata da un altro strumento" per misurare campagne spedite altrove. Bozza modificabile, invio con anteprima dei gruppi e dell'effetto minimo rilevabile, registro di esposizione per cliente.
+- Il gruppo di controllo è quello del segmento (assegnazione stabile già nel modello dati); entrano solo i clienti con consenso marketing, prima di leggere la divisione.
+- Risultati per intenzione di trattamento sulla finestra di attribuzione: conversione trattati e controllo con p-value, ordini, ricavi e margine incrementali con intervallo al 95%, costo di invio, margine netto e ROI, utilizzi del codice. Margine con la stessa economia del P/L.
+- Pagine Segmenti → Campagne (lista con verdetto ed effetto netto, nuova, bozza, dettaglio) e collegamento "Nuova campagna" dalla scheda segmento.
+- Seed: Northwind ha una campagna di riconquista con codice, inviata 35 giorni fa, con effetto reale e significativo (circa 18% contro 8% di conversione), più una bozza su un segmento senza controllo; Harbor ha una campagna inviata da un altro strumento senza effetto chiaro.
+- Migrazione 0014 (2 tabelle con RLS); test core 142, servizi 67, db 444, e2e E2E2.
+
+Resta per la issue #6: esportazione dei segmenti verso strumenti esterni tramite adapter (4.3), segmenti aggiornati in tempo reale e sincronizzazione delle audience (4.1).
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

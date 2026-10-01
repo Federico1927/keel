@@ -431,3 +431,24 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 **Decision.** Every query over the customer profile (`with p as materialized (...)` in `packages/services/src/crm/index.ts`) now computes the per-customer aggregates once. Without the hint, Postgres inlined the CTE and misestimated the RFM `case` filters. It then re-ran the order aggregations inside a nested loop: the segment preview's sample query took 4.4 s on Northwind and now takes 0.24 s.
 
 **Alternatives.** A materialized view of profiles refreshed by a job (rejected for now: the profile must reflect orders immediately, and the hint fixes the measured cost).
+
+## 2026-10-01 · Customer campaigns use the segment's control group and intention-to-treat results
+
+**Decision.**
+- A customer campaign targets one segment, and its control group is the segment's holdout. That assignment is the one the data model already keeps stable per customer, so a customer held out of a segment is never messaged by any campaign on it.
+- Consent is applied before the split is read: only customers who accept marketing enter either group, so the groups stay comparable.
+- Results are intention-to-treat. Every treated customer counts, including those whose message failed or who had no address. The outcome is sale-scope orders in the attribution window after exposure, with the P/L's per-order economics.
+- Incremental margin is (treated − control) margin per customer × treated customers, with a Welch 95% interval. Uplift significance is the two-proportion test already in core. Before sending, the dialog shows the minimum detectable effect, so a control group too small to say anything is visible.
+- Sending is synchronous through `MessagingChannel` (mock).
+- The "manual" channel records exposures for campaigns sent from another tool.
+
+**Alternatives.**
+- A fresh random split per campaign (rejected: it ignores the stable holdout the brief put in the data model, and customers would drift in and out of control groups).
+- Per-protocol results that count only delivered messages (rejected: deliverability differs between customers, so the comparison would no longer be randomised).
+- Queue-based sending (deferred: needed with real providers and large audiences, which is the external block, issue #7).
+
+## 2026-10-01 · Seeded campaign effect comes from real orders
+
+**Decision.** For the demo's measured win-back campaign, about 9% of the treated customers get one extra order within the window. Each one is a copy of the customer's own last delivered order (lines included, generated columns recomputed) and uses the campaign code. The P/L, the customer history and the campaign results therefore all see the same orders, and the effect on the page is computed, not typed in. Harbor's campaign has no injected effect, so the demo shows a "no clear effect" verdict too.
+
+**Alternatives.** Hard-coding result numbers (rejected: the results page would disagree with the orders it links to). Raising purchase rates inside the lifecycle generator (rejected: segment membership is only known after the orders exist).

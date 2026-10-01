@@ -6,6 +6,7 @@ import { listSegments } from "@keel/services";
 import { Button, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { SegmentRowActions } from "./row-actions";
+import { SegmentTabs } from "./segment-tabs";
 
 export default async function SegmentsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
@@ -18,6 +19,7 @@ export default async function SegmentsPage({ params }: { params: Promise<{ tenan
   return (
     <>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={canWrite ? <Button asChild><Link href={`${base}/new`}>{t("new")}</Link></Button> : undefined} />
+      <SegmentTabs tenant={tenant} active="segments" />
       {segments.length === 0 ? (
         <EmptyState title={t("empty_title")} description={t("empty_description")} />
       ) : (
