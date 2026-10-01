@@ -60,7 +60,7 @@ export default async function TasksPage({ params, searchParams }: { params: Prom
         <form action={base} className="flex gap-2">
           {scope !== "mine" && <input type="hidden" name="scope" value={scope} />}
           {status !== "open" && <input type="hidden" name="status" value={status} />}
-          <Input name="q" defaultValue={q} placeholder={t("search")} aria-label={t("search")} className="h-8 sm:w-56" />
+          <Input name="q" defaultValue={q} placeholder={t("search")} aria-label={t("search")} size="sm" className="sm:w-56" />
         </form>
       </div>
       {data.rows.length === 0 ? (

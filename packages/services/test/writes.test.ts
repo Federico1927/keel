@@ -94,6 +94,13 @@ describe("platform write outbox", () => {
     expect((await executePlatformWrite(run, tenant, w.id)).status).toBe("succeeded");
   });
 
+  it("a cost change goes out as a variant.cost write", async () => {
+    const v = await aVariant(2);
+    const w = await run((s) => enqueuePlatformWrite(s, { kind: "variant.cost", entityType: "variant", entityId: v.id, payload: { variantExternalId: v.externalId!, inventoryItemExternalId: v.inventoryItemExternalId, costMinor: 1234 } }));
+    expect((await executePlatformWrite(run, tenant, w.id)).status).toBe("succeeded");
+    expect(writesOf("updateVariantCost").at(-1)?.args).toMatchObject({ costMinor: 1234 });
+  });
+
   it("synchronous writes are recorded; with a key the same request returns the stored answer instead of writing twice", async () => {
     const [o] = await db((tx) => tx.select().from(schema.orders).where(and(eq(schema.orders.tenantId, tenantId), sql`${schema.orders.externalId} is not null`)).limit(1));
     const before = writesOf("updateOrderTags").length;

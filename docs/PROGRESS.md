@@ -335,7 +335,10 @@ Fatto:
 - Seed: per entrambi i negozi scritture riuscite, una fallita con errore leggibile e una in attesa dopo un rate limit, esecuzioni di riconciliazione notturna (ordini e catalogo) e tre scostamenti di stock.
 - Migrazione 0019 (2 tabelle con RLS, 5 colonne con default su `sync_runs`, nessun SQL scritto a mano). Test: servizi 95 (8 nuovi), addon-cod 20, db 522, integrazioni 45, core 153, web 3; e2e `platform-writes.spec.ts` (3).
 
-Resta: scrittura del costo prodotto verso Shopify (issue #23, un tipo di scrittura in più); modifica ordini nel core (issue #22) da appoggiare sull'outbox.
+Integrazione con #22 e #23:
+- La modifica ordini del core (dati di contatto, ordine sostitutivo, annullamento degli originali, sconto sull'ordine) scrive in modo sincrono ma registrato nell'outbox; il nuovo tipo è `order.discount`.
+- Il costo prodotto verso Shopify (`variant.cost`) passa in coda insieme alla modifica locale, sia da modifica manuale sia da import CSV, quando il negozio ha attivato la scrittura del costo.
+- La migrazione è stata rigenerata come 0022.
 ## Notifiche, email e attività (issue #33)
 
 Fatto:

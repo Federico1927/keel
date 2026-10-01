@@ -162,27 +162,27 @@ sequenceDiagram
 - **Inline mode.** Without a worker, the write runs inline right after the request, with one short wait when the platform asks for under 2 seconds. Anything longer stays pending until the next tick or a manual retry.
 - **Synchronous writes.** `runPlatformWriteNow(ctx, adapter, input)` executes at once with an adapter the caller holds and records the call and its outcome (`mode = sync`). It is for flows that need the platform's answer to continue:
   - COD tag writes and the COD cancellation: platform first by design, a refused write changes nothing locally;
-  - COD contact edits, the replacement order and the cancellation of the replaced orders;
+  - order editing in the core (`packages/services/src/orders/edit.ts`, used by the order page and by the COD add-on): contact and address edits, the replacement order (keyed `order:replace:<order ids>`) and the cancellation of the replaced orders, and discounts applied to an order;
   - the return write-back steps (request, approve or decline, restock, refund, voucher, exchange order or invoice, close, tags), keyed per return and step;
   - discount pools, where the form shows how many codes the platform accepted.
 
   With a key, the same key returns the stored result (dates revived) instead of writing twice, and a failed attempt is retried on the same row. When the caller's transaction rolls back, the record goes with it, and the error is shown to the user at once.
-- **Asynchronous writes** (outbox, retried): variant price, product status, stock level (purchase-order receipt with "push to platform", transfers between locations), order cancellation, single discount code (the external id is filled in when the write succeeds), Meta campaign pause and resume. Google is refused up front because it is read-only in the MVP.
+- **Asynchronous writes** (outbox, retried): variant price, variant cost (when the tenant enabled cost write-back; manual edits and CSV imports), product status, stock level (purchase-order receipt with "push to platform", transfers between locations), order cancellation, single discount code (the external id is filled in when the write succeeds), Meta campaign pause and resume. Google is refused up front because it is read-only in the MVP.
 
 ### Adding a platform write
 
-1. Add the kind to `PlatformWriteKinds` in `packages/services/src/writes/registry.ts`: `"variant.cost": { payload: { variantExternalId: string; costMinor: number }; result: void }`. An add-on package can augment the interface with `declare module "@keel/services/writes/registry"`.
+1. Add the kind to `PlatformWriteKinds` in `packages/services/src/writes/registry.ts`, e.g. `"variant.compare_at": { payload: { variantExternalId: string; compareAtMinor: number | null }; result: void }`. An add-on package can augment the interface with `declare module "@keel/services/writes/registry"`.
 2. Register it once in `packages/services/src/writes/kinds.ts` (or in the add-on):
    ```ts
-   defineCommerceWrite("variant.cost", {
-     target: (p) => `variant:${p.variantExternalId}:cost`,
+   defineCommerceWrite("variant.compare_at", {
+     target: (p) => `variant:${p.variantExternalId}:compare_at`,
      supersedes: true,
-     execute: (platform, p) => platform.updateVariant(p.variantExternalId, { costMinor: p.costMinor }),
+     execute: (platform, p) => platform.updateVariant(p.variantExternalId, { compareAtMinor: p.compareAtMinor }),
    });
    ```
    Use `defineAdsWrite` with `provider: (p) => p.provider` for ads platforms. Add `onSuccess(ctx, write, result)` to store something the platform returns, and `revive` if the result has dates.
-3. In the service or action, in the same transaction as the local change: `const w = await enqueuePlatformWrite(ctx, { kind: "variant.cost", entityType: "variant", entityId, payload })`. After the commit, the web action calls `dispatchPlatformWrites(ctx, [w])`. If a service enqueues internally, call `dispatchPendingWritesFor(ctx, entityType, ids)` instead.
-4. Show `<PlatformWriteStatus slug write={latest.get(id)} />` next to the value, and add the kind's label under `platform_writes.kinds` in the three message files (dots become underscores: `variant_cost`).
+3. In the service or action, in the same transaction as the local change: `const w = await enqueuePlatformWrite(ctx, { kind: "variant.compare_at", entityType: "variant", entityId, payload })`. After the commit, the web action calls `dispatchPlatformWrites(ctx, [w])`. If a service enqueues internally, call `dispatchPendingWritesFor(ctx, entityType, ids)` instead.
+4. Show `<PlatformWriteStatus slug write={latest.get(id)} />` next to the value, and add the kind's label under `platform_writes.kinds` in the three message files (dots become underscores: `variant_compare_at`).
 
 ### Attribution
 

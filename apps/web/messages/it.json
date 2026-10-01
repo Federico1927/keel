@@ -4068,7 +4068,9 @@
       "return_decline": "Rifiuto reso",
       "return_refund": "Rimborso",
       "return_close": "Chiusura reso",
-      "campaign_status": "Stato campagna"
+      "campaign_status": "Stato campagna",
+      "variant_cost": "Costo variante",
+      "order_discount": "Sconto sull'ordine"
     }
   },
   "tasks": {

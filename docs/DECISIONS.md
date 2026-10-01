@@ -648,3 +648,12 @@ The `holdout_percentage` and `group_name` columns stay in the data model, as §7
 - `Select` and `Input` take `size="sm" | "default"` (h-8 / h-10) from one shared table. Single selects have no vertical padding and a line height equal to the inner height, so the text is centred and never clipped (WebKit draws native select text from the top of the padding box). Native selects stay (reliable in forms and server actions).
 - `apps/web` has no raw `<select>` and no height overrides on `Select`/`Input`: a unit test fails on either, and a Playwright check measures that the text fits the box on the Users role select, the language picker and the admin plan select. Only Chromium is available in the cloud sandbox, so the WebKit run of that check happens on a local machine.
 - Pages format dates and numbers in the locale the page is displayed in (the language cookie), not in the profile's saved language: the picker used to translate the text while dates stayed in the other language. The picker now also saves the language on the profile, and sign-in restores it on any device. A user without a saved language still sees the default (English); falling back to the tenant's language is left to the profile work (#45), because it changes the language of every demo user at once.
+
+**Integration with order editing (#22) and product cost (#23), 2026-10-01.**
+- The core order-edit service writes through the outbox synchronously and recorded, because the order page shows the result at once:
+  - contact and address edits use `order.update_details`;
+  - the replacement order uses `order.create`, keyed `order:replace:<order ids>`, so a repeated request reuses the order already created;
+  - the cancellation of the replaced orders uses `order.cancel`;
+  - discounts applied to an order use the new kind `order.discount`.
+- The COD add-on delegates to that service, so its replacement flow is recorded the same way.
+- Cost write-back becomes the asynchronous kind `variant.cost`. It is enqueued with the local cost change, for both manual edits and CSV imports, when the tenant enabled `costWriteBack`. This replaces "platform first": a refused cost write now shows as a failed write with Retry instead of blocking the local cost.

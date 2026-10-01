@@ -4068,7 +4068,9 @@
       "return_decline": "Return decline",
       "return_refund": "Refund",
       "return_close": "Return closing",
-      "campaign_status": "Campaign status"
+      "campaign_status": "Campaign status",
+      "variant_cost": "Variant cost",
+      "order_discount": "Order discount"
     }
   },
   "tasks": {

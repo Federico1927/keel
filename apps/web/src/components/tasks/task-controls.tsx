@@ -19,7 +19,7 @@ export function TaskActions({ slug, taskId, status, assigneeId, people, compact 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {!compact && (
-        <Select aria-label={t("fields.assignee")} className="h-8 w-40 text-xs" value={assigneeId ?? ""} disabled={pending} onChange={(e) => patch({ assigneeId: e.target.value || null })}>
+        <Select aria-label={t("fields.assignee")} size="sm" className="w-40 text-xs" value={assigneeId ?? ""} disabled={pending} onChange={(e) => patch({ assigneeId: e.target.value || null })}>
           <option value="">{t("unassigned")}</option>
           {people.map((p) => (
             <option key={p.id} value={p.id}>{p.name}</option>

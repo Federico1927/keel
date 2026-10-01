@@ -11,10 +11,12 @@ test.describe("platform writes, stock sync and reconcile runs", () => {
     const price = page.getByRole("spinbutton", { name: /^Price$|^Prezzo$/ }).first();
     const current = Number(await price.inputValue());
     await price.fill((current + 1).toFixed(2));
-    await page.getByRole("button", { name: /^Save$|^Salva$/ }).first().click();
-    await expect(page.getByRole("button", { name: /^Save$|^Salva$/ })).toHaveCount(0);
-    // synced: no pending or failed badge on the product
-    await expect(page.locator('[data-testid="platform-write-status"][data-status="failed"]')).toHaveCount(0);
+    const form = page.locator("form", { has: price });
+    await form.getByRole("button", { name: /^Save$|^Salva$/ }).click();
+    await expect(form.getByRole("button", { name: /^Save$|^Salva$/ })).toHaveCount(0);
+    // synced: no pending or failed badge on the edited variant
+    const row = page.locator("tr", { has: price });
+    await expect(row.getByTestId("platform-write-status").filter({ hasText: /./ }).and(page.locator('[data-status="failed"], [data-status="pending"]'))).toHaveCount(0);
     await page.goto("/t/northwind-apparel/integrations");
     const latest = page.getByTestId("platform-write-row").first();
     await expect(latest).toHaveAttribute("data-kind", "variant.update");

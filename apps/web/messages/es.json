@@ -4068,7 +4068,9 @@
       "return_decline": "Rechazo de devolución",
       "return_refund": "Reembolso",
       "return_close": "Cierre de devolución",
-      "campaign_status": "Estado de campaña"
+      "campaign_status": "Estado de campaña",
+      "variant_cost": "Coste de variante",
+      "order_discount": "Descuento del pedido"
     }
   },
   "tasks": {
