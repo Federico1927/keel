@@ -134,13 +134,6 @@
       "when": 1790884623986,
       "tag": "0018_familiar_sersi",
       "breakpoints": true
-    },
-    {
-      "idx": 19,
-      "version": "7",
-      "when": 1790890341185,
-      "tag": "0019_flippant_nicolaos",
-      "breakpoints": true
     }
   ]
 }
