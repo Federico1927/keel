@@ -6,9 +6,8 @@ import { loadMessages } from "./messages";
 export const LOCALE_COOKIE = "NEXT_LOCALE";
 
 /**
- * Locale resolution: explicit cookie (set by the user picker or by the tenant
- * default on login) → default. The user/tenant preference is written to the
- * cookie at sign-in and whenever the user changes it, so this stays cheap.
+ * Locale resolution: the cookie (written by the language picker, and at sign-in from the language
+ * saved on the user's profile) → default. Pages format dates and numbers in this same locale.
  */
 export default getRequestConfig(async () => {
   const store = await cookies();

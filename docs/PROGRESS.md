@@ -317,6 +317,13 @@ Fatto:
 
 Resta per la issue #7: email di stato ai clienti, validazione indirizzi, pagine guida mancanti.
 
+## Correzioni: dati demo in produzione (#18), menu a tendina (#15), lingua e date
+
+Fatto:
+- #18: ogni deploy crea le righe di configurazione che mancano ai due negozi demo (portale e politica resi, motivi tradotti, pixel, conversioni, sondaggio, tag contrassegno, chiave AI simulata, costi dei resi) senza toccare ordini né righe modificate da qualcuno (`pnpm db:seed:settings`, dentro `db:deploy`). Il seed completo resta manuale (`KEEL_SEED_ON_DEPLOY=1` solo per il primo deploy o un reset voluto). La pagina del portale avvisa quando è spento; `pnpm smoke <url>` controlla salute, login e i due portali dopo il deploy.
+- #15: `Select` e `Input` hanno due altezze condivise (`sm`, `default`) e il testo centrato; niente più `<select>` grezzi né altezze impostate a mano (un test lo impedisce); controllo Playwright che il testo stia nel riquadro.
+- Lingua: date e numeri seguono la lingua mostrata a schermo; il selettore salva la lingua sul profilo e l'accesso la ripristina.
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

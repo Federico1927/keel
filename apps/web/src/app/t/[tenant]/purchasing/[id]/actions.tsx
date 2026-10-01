@@ -90,7 +90,7 @@ export function ReceiveForm({ slug, poId, locations, defaultLocationId, lines }:
                 <TableCell className="text-right tabular">{l.receivedQuantity}</TableCell>
                 <TableCell className="text-right tabular">{l.unitCost}</TableCell>
                 <TableCell className="text-right">
-                  <Input name={`qty_${l.id}`} type="number" min={0} max={remaining} defaultValue={remaining} className="ml-auto h-8 w-24 text-right" aria-label={t("line.receive_now")} disabled={remaining === 0} />
+                  <Input size="sm" name={`qty_${l.id}`} type="number" min={0} max={remaining} defaultValue={remaining} className="ml-auto w-24 text-right" aria-label={t("line.receive_now")} disabled={remaining === 0} />
                 </TableCell>
               </TableRow>
             );

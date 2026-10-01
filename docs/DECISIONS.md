@@ -547,3 +547,22 @@ The `holdout_percentage` and `group_name` columns stay in the data model, as §7
 - A platform key as a fallback for stores without an account. Rejected by the client: own key only.
 - Letting the model write SQL. Rejected: it would bypass the canonical economics (in-scope orders, tax, return costs), and a wrong join would produce confident wrong numbers.
 - Streaming answers token by token. Deferred: it needs a route handler with server-sent events. The tool rounds dominate the wait anyway.
+
+## 2026-10-01 · Demo configuration is filled in on every deploy; the full seed is manual
+
+**Decision.**
+- The full seed (`pnpm db:seed`) rewrites the two demo tenants. It runs on a deploy only with `KEEL_SEED_ON_DEPLOY=1`, which is meant for the first deploy or a deliberate demo reset, then removed.
+- Every deploy runs `pnpm db:seed:settings` (part of `db:deploy`). It creates the configuration rows the demo tenants are missing: return portal and policy, translated return reasons, pixel, server-side conversions, survey, COD tag vocabulary (only with the add-on), the mock Anthropic connection, return costs in the tenant settings. It never overwrites an existing row, never touches orders, and skips tenants that don't exist. The values live in one module (`packages/db/src/seed/settings.ts`) shared with the full seed.
+- For real tenants, a missing settings row means the feature's defaults (code already treats it that way: the portal is off, the survey is off). Only the demo tenants need the demo values, so no data migration is needed.
+- The portal settings page says when the portal is off and that customers get a 404 at the public URL. `pnpm smoke <url>` checks health, login and both demo portals after a deploy; the e2e suite checks the portals too.
+
+**Why.** Production was seeded once, before the portal and the later return features existed. Those features had code but no configuration, so the live demo looked broken (`/r/harbor-home` returned 404).
+
+**Alternatives.** Re-running the full seed on every deploy (rejected: it rewrites demo data people may be showing, and takes minutes). A data migration per feature (rejected for demo values: migrations must not carry demo content; real tenants already get defaults).
+
+## 2026-10-01 · One height scale for selects and inputs; formats follow the language on screen
+
+**Decision.**
+- `Select` and `Input` take `size="sm" | "default"` (h-8 / h-10) from one shared table. Single selects have no vertical padding and a line height equal to the inner height, so the text is centred and never clipped (WebKit draws native select text from the top of the padding box). Native selects stay (reliable in forms and server actions).
+- `apps/web` has no raw `<select>` and no height overrides on `Select`/`Input`: a unit test fails on either, and a Playwright check measures that the text fits the box on the Users role select, the language picker and the admin plan select. Only Chromium is available in the cloud sandbox, so the WebKit run of that check happens on a local machine.
+- Pages format dates and numbers in the locale the page is displayed in (the language cookie), not in the profile's saved language: the picker used to translate the text while dates stayed in the other language. The picker now also saves the language on the profile, and sign-in restores it on any device. A user without a saved language still sees the default (English); falling back to the tenant's language is left to the profile work (#45), because it changes the language of every demo user at once.
