@@ -76,6 +76,13 @@ Unit tests for the pricing helpers: `apps/landing/src/config/pricing.test.ts`.
   `src/app/(<locale>)/<locale>/` with the three one-line files you find in `src/app/(it)/it/`
   (layout, page, opengraph-image). Hreflang, sitemap and the language switch pick it up.
 
+## Modules carousel
+
+The modules section is a horizontal carousel (`src/components/modules-carousel.tsx`): scroll-snap
+track, tab strip with the module names, previous/next buttons and auto-advance every 6 seconds that
+stops on the first interaction. Order and screenshots per module: `MODULES` in
+`src/components/modules.tsx`. Interval: `AUTOPLAY_MS` in the carousel component.
+
 ## Product screenshots
 
 The landing shows real screens of the demo tenant **Harbor Home** (no add-ons, so nothing

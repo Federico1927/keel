@@ -259,3 +259,13 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 **Decision.** `packages/config/src/plans.ts` is the source of truth for billing and now carries the landing values: Starter 249 USD / 1,000 orders / setup 490, Growth 599 / 5,000 / 1,500, Scale 1,190 / 20,000 / 3,000 ("from" on the landing), all in a single `PLATFORM_CURRENCY` (USD) with `maxUsers: null` (unlimited on every plan) and an `OVERAGE` block (49 USD per 1,000 extra orders). The cash-on-delivery add-on is 199 USD. The seed, the super-admin console and the tests read these constants instead of literals, and a landing test fails when `apps/landing/src/config/pricing.ts` drifts from the product config. Enterprise stays a custom contract without a plan key.
 
 **Alternatives.** Keeping the landing as the only place with prices (rejected: the billing console and the invoices in the seed would quote different numbers). Importing the landing config into the product (rejected: the dependency would point the wrong way).
+
+## 2026-10-01 · Modules as a horizontal carousel
+
+**Decision.** The modules section is a carousel (`apps/landing/src/components/modules-carousel.tsx`): native CSS scroll-snap (swipe, trackpad, keyboard scrolling), a tab strip with the module names, previous/next buttons, a position counter and gentle auto-advance every 6 seconds that stops at the first manual interaction, pauses on hover and focus, respects `prefers-reduced-motion` and has a pause control. No carousel library: the page stays at the same JS weight.
+
+**Alternatives.** The vertical card grid of the first version (replaced on request: nine screenshots in a column made the page long and the screenshots small). A library such as Embla or Swiper (rejected: 30 to 150 kB for behaviour scroll-snap gives for free).
+
+## 2026-10-01 · Number formatting forces grouping
+
+**Decision.** `apps/landing/src/lib/format.ts` passes `useGrouping: "always"`. Italian CLDR data groups four-digit numbers only from some ICU versions on: Node 22 prints `1000`, Chromium 141 prints `1.000`. The pricing component renders those strings on the server and again in the browser, so the difference broke hydration on the Italian page in production builds (not in `next dev`). A unit test pins the expected output.

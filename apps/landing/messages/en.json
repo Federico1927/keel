@@ -101,7 +101,13 @@
         "body": "Meta and Google campaigns linked to products. Profit counts only orders that were not cancelled or returned. Recommendations look at the stock of the linked products before telling you to spend more.",
         "alt": "Campaigns page in {product}: spend, orders, net revenue, margin, profit, ROAS, ROI, CPA and a health indicator for each Meta and Google campaign"
       }
-    }
+    },
+    "carousel_label": "Product modules",
+    "prev": "Previous module",
+    "next": "Next module",
+    "slide": "{n} of {total}",
+    "pause": "Pause automatic scrolling",
+    "play": "Resume automatic scrolling"
   },
   "how": {
     "title": "How it works",

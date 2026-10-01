@@ -101,7 +101,13 @@
         "body": "Campagne Meta e Google collegate ai prodotti. Il profitto conta solo gli ordini non annullati e non resi. I consigli guardano lo stock dei prodotti collegati prima di dirti di spendere di più.",
         "alt": "Pagina campagne in {product}: spesa, ordini, ricavo netto, margine, profitto, ROAS, ROI, CPA e un indicatore di salute per ogni campagna Meta e Google"
       }
-    }
+    },
+    "carousel_label": "Moduli del prodotto",
+    "prev": "Modulo precedente",
+    "next": "Modulo successivo",
+    "slide": "{n} di {total}",
+    "pause": "Metti in pausa lo scorrimento automatico",
+    "play": "Riprendi lo scorrimento automatico"
   },
   "how": {
     "title": "Come funziona",
