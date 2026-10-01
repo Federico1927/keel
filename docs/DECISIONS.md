@@ -217,3 +217,39 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · Evaluation document names what is simulated before what works
 
 **Decision.** `docs/EVALUATION.md` leads with the fact that no real store was ever connected and lists each mock with what it takes to make it real. The buyer must not discover this during the first installation. The ten steps start with a card-paying customer, not with the cash-on-delivery brand the reference platform was built for, because that validates the core without the add-on.
+
+## 2026-10-01 · Landing page as a separate static app (`apps/landing`)
+
+**Decision.** The marketing site is a second Next.js app in the monorepo with `output: "export"`: plain HTML, CSS and pre-optimised WebP, deployable on Vercel with root directory `apps/landing` or on any static host. It shares the workspace (`@keel/config` for `PRODUCT_NAME`, the ESLint config, Tailwind 4, next-intl) but not `@keel/ui`: the design tokens are copied into `apps/landing/src/app/globals.css` so the landing has a marketing look (large serif headings, generous spacing, browser-frame screenshots) rather than the dashboard chrome, and so the app deploys without the Radix dependency tree.
+
+**Alternatives.** A route inside `apps/web` (rejected: the product is server-rendered behind auth and a database; the landing must build and deploy without either). Importing `@keel/ui/styles.css` (rejected: pulls the component scan and base styles meant for the dashboard).
+
+## 2026-10-01 · Landing locales as route groups, not a dynamic segment
+
+**Decision.** English lives at `/`, Italian at `/it/`; each is a route group with its own root layout (`src/app/(en)`, `src/app/(it)/it`) that renders the shared `LandingPage` and `ogImage` for its locale. Translations are flat JSON files per language with the same key-parity test as the product; server components use `createTranslator` (pure, no request context), the three client components (header, pricing toggle, contact form) use a client-side `NextIntlClientProvider`.
+
+**Alternatives.** An optional catch-all `[[...locale]]` segment (rejected: Next 15.5 cannot export `opengraph-image` under it, build fails with a `//opengraph-image` path mismatch). Cookie-based locale like the product (rejected: a static site has no request to read a cookie from, and SEO needs one URL per language). Locale prefix for English too (`/en/`) (rejected: the default language at the root is the usual convention and keeps `x-default` trivial).
+
+## 2026-10-01 · Pricing numbers in one file, pricing words in the message files
+
+**Decision.** `apps/landing/src/config/pricing.ts` holds every number, threshold and flag (plans, overage, annual months charged, add-ons, founding offer, stack comparison figures). Translated copy for plans, features, add-ons and FAQ lives in `messages/<locale>.json` keyed by the identifiers in the config. The founding discount applies to monthly billing only; the annual toggle shows list prices with two months free, so the two offers never stack and both stay explainable in one sentence.
+
+**Alternatives.** Per-locale strings inside `pricing.ts` (rejected: a second translation source that the key-parity test cannot see). Stacking the founding discount with the annual discount (rejected: 50% off year one is a pricing decision the brief did not take; stacking is one line to enable if wanted).
+
+## 2026-10-01 · Contact form posts from the browser to a public webhook
+
+**Decision.** The brief names `CONTACT_WEBHOOK_URL`; with a static export there is no server to hold a private variable, so the form uses `NEXT_PUBLIC_CONTACT_WEBHOOK_URL` and the browser posts JSON directly (the endpoint must allow cross-origin requests, as Make, Zapier, Formspree and similar do). Without the variable the submit button opens a prefilled `mailto:`. Validation is client-side; a honeypot field drops bots.
+
+**Alternatives.** A Next route handler (rejected: not available in a static export). A third-party form service by default (rejected: adds an external dependency and a script to the page).
+
+## 2026-10-01 · Landing screenshots come from Harbor Home, captured by a dedicated script
+
+**Decision.** The existing `docs/screenshots` are full-page captures of Northwind Apparel, whose navigation shows the cash-on-delivery add-on; the brief forbids giving the add-on prominence. The landing therefore captures its own screens from the Harbor Home demo tenant (no add-ons, USD, English UI, or Italian UI for the Italian page) with `apps/landing/scripts/capture-product.mjs` (viewport-only, 2x, 16:10) and converts them to WebP sizes with `scripts/optimize-images.mjs`. Only demo data appears; the integrations and guide pages are not shown because they print the local webhook URL. The 2x PNG sources are git-ignored; only the WebP output is committed (about 2 MB).
+
+**Side fix.** The P/L side column of the product rendered collapsed because `Stat` with `href` emitted an inline anchor; `packages/ui/src/components/stat.tsx` now sets `block`.
+
+## 2026-10-01 · Open Graph image generated at build time
+
+**Decision.** `opengraph-image.tsx` per locale uses `next/og` (`ImageResponse`) with the product name, the tagline and the three differentiators; it is rendered during `next build`, so there is no runtime dependency. Vercel receives the `image/png` content type through `apps/landing/vercel.json`, because the export writes the file without an extension.
+
+**Alternatives.** A pre-rendered PNG with sharp (rejected: text layout by hand; the system fonts in CI differ from the design).

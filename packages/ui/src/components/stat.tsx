@@ -19,7 +19,7 @@ export function Stat({ label, value, hint, trend, className, href }: { label: st
       )}
     </>
   );
-  const cls = cn("rounded-lg border bg-card p-4", href && "transition-colors hover:bg-muted/40", className);
+  const cls = cn("block rounded-lg border bg-card p-4", href && "transition-colors hover:bg-muted/40", className);
   return href ? (
     <a href={href} className={cls}>
       {body}

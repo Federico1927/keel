@@ -1,0 +1,316 @@
+{
+  "meta": {
+    "title": "{product} – Operations platform for Shopify stores",
+    "description": "Orders, shipments, inventory, purchasing, returns, discounts, CRM and the real P/L of Meta and Google campaigns, on one data model. No annual contract, setup done by our team, unlimited users.",
+    "og_tagline": "One operating platform for Shopify stores",
+    "locale_name": "English"
+  },
+  "nav": {
+    "skip": "Skip to content",
+    "modules": "Modules",
+    "how": "How it works",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "cta": "Book a demo",
+    "sign_in": "Sign in",
+    "menu": "Open menu",
+    "close": "Close menu",
+    "language": "Language"
+  },
+  "hero": {
+    "eyebrow": "Operations platform for Shopify stores",
+    "title": "Run the whole store on one set of numbers.",
+    "subtitle": "Orders, shipments, inventory, purchasing, returns, discounts, CRM and the real profit of every Meta and Google campaign. One platform and one data model, instead of four tools that never agree.",
+    "cta": "Book a demo",
+    "secondary": "See the modules",
+    "points": {
+      "contract": "No annual contract",
+      "setup": "Setup done by our team",
+      "users": "Unlimited users"
+    },
+    "screenshot_alt": "{product} dashboard for the demo store Harbor Home: sales today, orders, average order value, cancellation rate, a 30-day sales chart and a list of items that need attention"
+  },
+  "problem": {
+    "title": "Your numbers live in four tools. None of them is right.",
+    "lead": "A typical Shopify brand runs analytics in one tool, inventory in another, returns in a third and the ads in two dashboards. Each one sees a slice and reports it as the whole.",
+    "items": {
+      "spread": {
+        "title": "Scattered data",
+        "body": "The order is in Shopify, the cost in a spreadsheet, the return in the helpdesk, the ad spend in two ad managers. Nobody reconciles them until month end."
+      },
+      "placed": {
+        "title": "Profit counted on orders placed",
+        "body": "Dashboards add up every order placed. Cancellations and returns arrive weeks later and quietly erase the margin you already celebrated."
+      },
+      "stock": {
+        "title": "Campaigns that ignore stock",
+        "body": "The ad manager keeps spending on a product with three units left. The warehouse finds out when the backorders arrive."
+      },
+      "stale": {
+        "title": "Decisions made on stale exports",
+        "body": "By the time the CSVs are merged, the week is over. Reorders, pauses and discounts get decided late, on numbers already out of date."
+      }
+    }
+  },
+  "modules": {
+    "title": "Every module on the same data model",
+    "lead": "Each module reads the same orders, products, costs and customers. Receive a purchase order and the product cost moves the P/L. Cancel an order and the campaign profit moves with it.",
+    "items": {
+      "orders": {
+        "title": "Orders",
+        "body": "A canonical status for every order, mapped from your Shopify tags, payment and fulfilment with rules you control. Timeline with author and diff, internal notes with mentions, customer history and duplicate detection.",
+        "alt": "Orders list in {product}: each order with its canonical status, payment method and status, channel, assignee and total"
+      },
+      "shipments": {
+        "title": "Shipments",
+        "body": "Tracking, carrier, days in transit, exceptions and shipments stuck beyond your threshold. The visible status is resolved from every source with explicit precedence.",
+        "alt": "Shipments page in {product}: counters for in transit, out for delivery, exceptions and stuck shipments, with a list of orders, carriers and tracking numbers"
+      },
+      "inventory": {
+        "title": "Products and inventory",
+        "body": "Variants with dynamic options, stock per location, sales velocity, days of cover and reorder suggestions. Price and status changes are written back to Shopify.",
+        "alt": "Inventory page in {product}: units in stock, stock value, critical and low variants, and a list of variants with velocity, days of cover and units to reorder"
+      },
+      "purchasing": {
+        "title": "Purchasing and reorders",
+        "body": "Suppliers, purchase orders from draft to receipt, incoming stock visible on every product. Receiving updates the product cost, and that cost feeds the P/L.",
+        "alt": "Purchasing page in {product}: purchase orders with supplier, status, expected date, units, total and backorders covered"
+      },
+      "returns": {
+        "title": "Returns",
+        "body": "Reasons, windows and workflow states configured per store. Refund, exchange or voucher, optional restock per location, analysis by product and reason.",
+        "alt": "Returns page in {product}: return requests with order, reason, resolution, amount and workflow status"
+      },
+      "discounts": {
+        "title": "Discounts",
+        "body": "Codes synced from Shopify, single codes and bulk pools of unique codes, with orders, revenue and margin attributed to each code.",
+        "alt": "Discounts page in {product}: codes with value, state, uses, orders, discount given, net revenue and margin"
+      },
+      "crm": {
+        "title": "CRM, segments and RFM",
+        "body": "Nested AND/OR segment builder on orders, products, value, recency and country, with a live preview. RFM matrix with bands. CSV export and a holdout group built into every segment.",
+        "alt": "RFM matrix in {product}: customers by recency and frequency with revenue per cell, and bands such as champions and loyal"
+      },
+      "analytics": {
+        "title": "Analytics and P/L",
+        "body": "KPIs with period comparison and a P/L net of tax: cost of goods, shipping, payment fees, returns and ad spend. Every number opens the orders behind it.",
+        "alt": "Profit and loss in {product}: gross sales, refunds, tax, net revenue, cost of goods, gross margin, shipping, payment fees, advertising and operating profit"
+      },
+      "campaigns": {
+        "title": "Campaigns linked to stock",
+        "body": "Meta and Google campaigns linked to products. Profit counts only orders that were not cancelled or returned. Recommendations look at the stock of the linked products before telling you to spend more.",
+        "alt": "Campaigns page in {product}: spend, orders, net revenue, margin, profit, ROAS, ROI, CPA and a health indicator for each Meta and Google campaign"
+      }
+    }
+  },
+  "how": {
+    "title": "How it works",
+    "lead": "Three steps. The second one is ours.",
+    "steps": {
+      "connect": {
+        "title": "Connect Shopify, Meta and Google",
+        "body": "OAuth or a custom app token for Shopify, API access for Meta and Google Ads. Webhooks are verified, queued and retried; the historical sync runs in the background and resumes if interrupted."
+      },
+      "configure": {
+        "title": "We configure rules, costs and history",
+        "body": "Our team sets up status rules, tax rates, payment fees, product costs, the history import and your users with their roles. You start on a configured platform, not an empty one."
+      },
+      "operate": {
+        "title": "Operate from one platform",
+        "body": "Operations, customer care and marketing work in the same place with their own permissions. Changes that matter are written back to Shopify."
+      }
+    },
+    "guides_label": "Step-by-step connection guides, inside the product:",
+    "guides": {
+      "shopify": "Shopify guide",
+      "meta": "Meta guide",
+      "google": "Google Ads guide"
+    }
+  },
+  "comparison": {
+    "title": "What a specialised stack costs today",
+    "lead": "A brand doing {min} to {max} million a year typically pays for separate tools for analytics, inventory and returns, plus the hours to reconcile them.",
+    "stack_label": "A typical specialised stack",
+    "stack_items": {
+      "analytics": "Analytics and attribution tool",
+      "inventory": "Inventory and purchasing tool",
+      "returns": "Returns portal",
+      "spreadsheets": "Spreadsheets to reconcile the three",
+      "seats": "Per-seat pricing on each"
+    },
+    "stack_price": "{min} to {max} per month",
+    "stack_price_note": "before the hours spent reconciling",
+    "keel_label": "{product} {plan}",
+    "keel_items": {
+      "model": "All modules on one data model",
+      "users": "Unlimited users",
+      "setup": "Setup done by our team",
+      "contract": "No annual contract",
+      "addons": "Add-ons and tailored integrations per account"
+    },
+    "keel_price": "{price} per month",
+    "keel_price_note": "up to {orders} orders per month",
+    "note": "Typical list prices for mid-sized Shopify brands. Your current stack may cost less or more; the demo includes a comparison on your actual tools."
+  },
+  "pricing": {
+    "title": "Pricing",
+    "lead": "Four plans by order volume. Unlimited users on every plan. No annual contract required.",
+    "billing_label": "Billing period",
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "annual_note": "2 months free",
+    "per_month": "/month",
+    "billed_annually": "{total} billed annually",
+    "included_orders": "Up to {n} orders/month",
+    "enterprise_orders": "Over {n} orders/month",
+    "setup": "Setup {price}, one-off",
+    "setup_from": "Setup from {price}, one-off",
+    "on_quote": "On quote",
+    "recommended": "Recommended",
+    "everything_in": "Everything in {plan}, plus:",
+    "unlimited_users": "Unlimited users",
+    "overage": "Above the included orders: {price} per {n} extra orders, billed at month end.",
+    "cta": "Book a demo",
+    "contact": "Talk to us",
+    "list_price": "List price {price}",
+    "founding": {
+      "badge": "Founding customers",
+      "title": "{percent}% off the subscription for {months} months",
+      "body": "For the first {seats} customers. Setup fee unchanged. Prices below already include the discount."
+    },
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "tagline": "Operations under control"
+      },
+      "growth": {
+        "name": "Growth",
+        "tagline": "Operations plus margin"
+      },
+      "scale": {
+        "name": "Scale",
+        "tagline": "Several stores, one platform"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "tagline": "High volume, tailored terms"
+      }
+    },
+    "features": {
+      "orders": "Orders",
+      "shipments": "Shipments",
+      "products_inventory": "Products and inventory",
+      "returns": "Returns",
+      "discounts": "Discounts",
+      "kpi_dashboard": "KPI dashboard",
+      "pnl": "P/L per order and per period",
+      "campaigns_stock": "Campaigns linked to stock",
+      "purchasing_reorders": "Purchasing and reorders",
+      "crm_segments_rfm": "CRM with segments and RFM",
+      "multi_store": "Several stores",
+      "advanced_roles": "Advanced roles and permissions",
+      "api": "API access",
+      "ai_assistant": "AI assistant",
+      "priority_support": "Priority support",
+      "enterprise_volume": "Volume pricing",
+      "enterprise_sla": "Contractual SLA",
+      "enterprise_custom": "Custom modules and integrations"
+    }
+  },
+  "addons": {
+    "title": "Add-ons and tailored integrations",
+    "lead": "Activated per account by our team. The core works for any payment method; what is specific to your operation lives in an add-on.",
+    "per_month": "{price}/month",
+    "from_per_month": "from {price}/month",
+    "usage": "Pay per use",
+    "quote": "On quote",
+    "items": {
+      "cod": {
+        "title": "Cash on delivery",
+        "body": "Confirmation queue with call outcomes, operator assignment, a delivery score explained factor by factor and risk flags on recipients."
+      },
+      "custom_integration": {
+        "title": "Tailored integrations",
+        "body": "A 3PL warehouse, a local messaging provider, a carrier: built behind the same interfaces and switched on for your account only."
+      },
+      "ai_studio": {
+        "title": "AI Studio",
+        "body": "Ask questions on your own data and automate recurring analyses. Billed on usage."
+      },
+      "custom_development": {
+        "title": "Custom development",
+        "body": "A module your operation needs and nobody else has. Scoped and quoted."
+      }
+    }
+  },
+  "faq": {
+    "title": "Questions we get asked",
+    "items": {
+      "payments": {
+        "q": "Which payment methods are supported?",
+        "a": "All of them. Card, wallets, PayPal, bank transfer, buy now pay later and cash on delivery are equivalent in the data model. Cash on delivery operations (confirmation calls, delivery score) are an add-on you activate only if you need it."
+      },
+      "contracts": {
+        "q": "Is there an annual contract?",
+        "a": "No. Plans are monthly and you can cancel at the end of any month. The annual option exists only to give you two months free; it is never required."
+      },
+      "setup": {
+        "q": "What does the setup include?",
+        "a": "Connecting Shopify, Meta and Google, importing your order history, configuring status rules, tax rates, payment fees, product costs and your users with their roles. You start on a configured platform, not an empty one."
+      },
+      "security": {
+        "q": "How are my data kept separate from other customers?",
+        "a": "Every table carries the account identifier and the database enforces row-level isolation on every query: an account can never read or write another account's rows, and automated tests prove it on every table. Integration credentials are encrypted at rest. Access by our support team is logged and visible to you."
+      },
+      "overage": {
+        "q": "What happens if I exceed the included orders?",
+        "a": "Nothing stops. Extra orders are billed at {price} per {n} orders at month end. If it happens two months in a row we suggest the next plan, which usually costs less."
+      },
+      "languages": {
+        "q": "Which languages are available?",
+        "a": "The product is available in English, Italian and Spanish, chosen per user. Dates, numbers and currencies follow the settings of your store and of each user."
+      }
+    }
+  },
+  "cta": {
+    "title": "See {product} on your numbers.",
+    "body": "A 30-minute demo on the demo store, or on an export of your own orders if you prefer.",
+    "button": "Book a demo"
+  },
+  "contact": {
+    "title": "Or write to us",
+    "lead": "Tell us about your store. We reply within one business day.",
+    "name": "Name",
+    "email": "Work email",
+    "store": "Store URL",
+    "orders": "Orders per month",
+    "orders_options": {
+      "unset": "Select",
+      "lt1k": "Under 1,000",
+      "1k5k": "1,000 to 5,000",
+      "5k20k": "5,000 to 20,000",
+      "gt20k": "Over 20,000"
+    },
+    "message": "What would you like to solve?",
+    "submit": "Send",
+    "sending": "Sending…",
+    "success_title": "Thanks, message received.",
+    "success_body": "We will get back to you within one business day.",
+    "error": "The message could not be sent. Write to us at {email} instead.",
+    "mailto_lead": "Prefer email? Write to us and we reply within one business day.",
+    "mailto_button": "Email us",
+    "required": "This field is required.",
+    "invalid_email": "Enter a valid email address.",
+    "optional": "optional"
+  },
+  "footer": {
+    "tagline": "The structure under your store.",
+    "product": "Product",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "sign_in": "Sign in to {product}",
+    "language": "Language",
+    "rights": "© {year} {product}. All rights reserved."
+  }
+}

@@ -54,6 +54,7 @@ Tenant URLs: `/t/northwind-apparel` and `/t/harbor-home`. Magic links are printe
 
 ```
 apps/web                 Next.js 15 app: tenant workspace (/t/<slug>), super-admin console (/admin), webhooks, OAuth
+apps/landing             Marketing site (Next.js static export, en + it): pricing config, demo CTA, see docs/landing/README.md
 packages/config          Product name, locales, roles and permission matrix, module registry, plans, defaults
 packages/core            Pure domain logic: canonical statuses, state rules, economics, segments, returns, billing math
 packages/db              Drizzle schema (56 tables), migrations, RLS, withTenant, deterministic seed, isolation tests
@@ -71,6 +72,7 @@ docs/                    ARCHITECTURE, DECISIONS, PROGRESS, EVALUATION (Italian)
 pnpm lint && pnpm typecheck && pnpm test && pnpm build   # the gate every phase passed
 pnpm test:e2e                                            # Playwright against the production build on :3000
 pnpm --filter @keel/web screenshots                      # regenerate docs/screenshots (en + it)
+pnpm --filter @keel/landing dev                          # marketing site on :3100 (docs/landing/README.md)
 pnpm db:generate                                         # new migration after a schema change
 pnpm db:reset                                            # drop, migrate, seed
 ```
