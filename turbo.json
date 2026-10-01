@@ -1,16 +1,55 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": [".env"],
-  "globalEnv": ["DATABASE_URL", "DATABASE_ADMIN_URL", "AUTH_SECRET", "NEXTAUTH_URL", "AUTH_URL", "APP_ENCRYPTION_KEY", "NODE_ENV", "CI", "KEEL_INTEGRATION_MODE", "STRIPE_SECRET_KEY", "NEXT_PUBLIC_APP_URL"],
+  "globalDependencies": [
+    ".env"
+  ],
+  "globalEnv": [
+    "DATABASE_URL",
+    "DATABASE_ADMIN_URL",
+    "AUTH_SECRET",
+    "NEXTAUTH_URL",
+    "AUTH_URL",
+    "APP_ENCRYPTION_KEY",
+    "NODE_ENV",
+    "CI",
+    "KEEL_INTEGRATION_MODE",
+    "STRIPE_SECRET_KEY",
+    "NEXT_PUBLIC_APP_URL"
+  ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**"
+      ]
     },
-    "dev": { "cache": false, "persistent": true },
-    "lint": { "dependsOn": ["^build"] },
-    "typecheck": { "dependsOn": ["^build"] },
-    "test": { "dependsOn": ["^build"], "cache": false },
-    "clean": { "cache": false }
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "test": {
+      "dependsOn": [
+        "^build",
+        "^test"
+      ],
+      "cache": false
+    },
+    "clean": {
+      "cache": false
+    }
   }
 }

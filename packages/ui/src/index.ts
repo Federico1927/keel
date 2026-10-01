@@ -19,3 +19,5 @@ export * from "./components/empty-state";
 export * from "./components/page-header";
 export * from "./components/stat";
 export * from "./components/checkbox";
+export * from "./components/pagination";
+export * from "./components/detail-shell";

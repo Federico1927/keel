@@ -26,7 +26,9 @@
       "forbidden": "Non hai i permessi per questa azione.",
       "not_found": "Non trovato.",
       "cannot_change_self": "Non puoi modificare la tua stessa appartenenza.",
-      "unknown": "Qualcosa è andato storto."
+      "unknown": "Qualcosa è andato storto.",
+      "already_cancelled": "L'ordine è già annullato.",
+      "platform_error": "La piattaforma e-commerce ha rifiutato la richiesta."
     },
     "edit": "Modifica"
   },
@@ -347,6 +349,188 @@
       "fulfillment_raw": "evasione: {v}",
       "min_age": "più vecchio di {v}h",
       "always": "sempre"
+    }
+  },
+  "notifications": {
+    "title": "Notifiche",
+    "empty": "Nessuna notifica"
+  },
+  "orders": {
+    "title": "Ordini",
+    "description": "Ordini in entrata con stato canonico, pagamento e assegnazione.",
+    "all": "Tutti",
+    "manual": "manuale",
+    "search": "Cerca",
+    "search_placeholder": "Numero ordine, nome, email o telefono",
+    "clear_filters": "Pulisci",
+    "empty_title": "Nessun ordine trovato",
+    "empty_description": "Prova un'altra ricerca o pulisci i filtri.",
+    "pagination": "{from}–{to} di {total} ordini",
+    "columns": {
+      "order": "Ordine",
+      "customer": "Cliente",
+      "status": "Stato",
+      "payment": "Pagamento",
+      "channel": "Canale",
+      "assigned": "Assegnato",
+      "total": "Totale"
+    },
+    "filters": {
+      "payment": "Metodo di pagamento",
+      "payment_status": "Stato pagamento",
+      "assigned": "Assegnatario",
+      "assigned_me": "Assegnati a me",
+      "assigned_none": "Non assegnati",
+      "sort": "Ordina",
+      "from": "Dal",
+      "to": "Al",
+      "tag": "Tag"
+    },
+    "sort": {
+      "placed_desc": "Più recenti",
+      "placed_asc": "Più vecchi",
+      "total_desc": "Totale più alto"
+    }
+  },
+  "order_detail": {
+    "back": "Ordini",
+    "manual_status": "manuale",
+    "assigned_to": "Assegnato a {name}",
+    "customer": "Cliente",
+    "open_customer": "Apri scheda cliente",
+    "history_title": "Storico cliente",
+    "history_unidentified": "Cliente non identificato: nessun id, email, telefono o indirizzo da confrontare.",
+    "history_first": "Primo ordine di questo cliente.",
+    "history_hops": "Include ordini collegati in {hops} passaggi (email, telefono o indirizzo condivisi).",
+    "history": {
+      "total": "Ordini precedenti",
+      "spent": "Valore totale",
+      "delivered": "Consegnati",
+      "returned": "Resi",
+      "cancelled": "Annullati",
+      "via": {
+        "email": "email",
+        "phone": "telefono",
+        "address": "indirizzo",
+        "name": "nome+CAP",
+        "linked": "collegato",
+        "customer": "cliente"
+      }
+    },
+    "attribution": "Attribuzione",
+    "channel": "Canale",
+    "campaign": "Campagna",
+    "duplicates_title": "Possibile ordine duplicato",
+    "duplicates_description": "Lo stesso cliente ha fatto un altro ordine con lo stesso prodotto entro {days} giorni:",
+    "duplicates": {
+      "same_variant": "stessa variante",
+      "same_product": "stesso prodotto"
+    },
+    "on_hold_reason": "In attesa: {reason}",
+    "lines": "Articoli",
+    "line": {
+      "product": "Prodotto",
+      "qty": "Q.tà",
+      "unit": "Prezzo unitario",
+      "total": "Totale"
+    },
+    "totals": {
+      "subtotal": "Subtotale",
+      "discount": "Sconto",
+      "shipping": "Spedizione",
+      "tax": "Imposte",
+      "total": "Totale",
+      "refunded": "Rimborsato"
+    },
+    "shipments": "Spedizioni",
+    "days_in_transit": "{days} giorni in viaggio",
+    "returns": "Resi",
+    "notes": "Note interne",
+    "note_placeholder": "Scrivi una nota. Digita @ per menzionare un collega.",
+    "mention_hint": "Le menzioni notificano la persona. Le note non escono mai dalla piattaforma.",
+    "add_note": "Aggiungi nota",
+    "delete_note": "Elimina nota",
+    "no_notes": "Nessuna nota interna.",
+    "timeline": "Timeline",
+    "no_events": "Nessun evento.",
+    "system": "Sistema",
+    "integration": "Integrazione",
+    "change_status": "Cambia stato",
+    "set_status_to": "Imposta stato",
+    "reset_status": "Lascia decidere alle regole",
+    "assign": "Assegna",
+    "unassigned": "Non assegnato",
+    "cancel_order": "Annulla ordine",
+    "confirm": "Conferma",
+    "note_optional": "Nota (facoltativa)",
+    "status_dialog_title": "Imposta stato: {status}",
+    "status_dialog_description": "Lo stato resta finché un fatto certo (annullamento, rimborso, consegna, reso) non lo cambia. La modifica è registrata nella timeline con il tuo nome.",
+    "cancel_dialog_title": "Annullare questo ordine?",
+    "cancel_dialog_description": "L'ordine viene annullato prima sulla piattaforma e-commerce, poi qui. L'operazione non è reversibile.",
+    "cancel_reason": "Motivo",
+    "cancel_reasons": {
+      "customer": "Richiesta del cliente",
+      "inventory": "Merce esaurita",
+      "fraud": "Sospetta frode",
+      "declined": "Pagamento rifiutato",
+      "other": "Altro"
+    },
+    "restock": "Reintegra la merce",
+    "refund": "Rimborsa il pagamento incassato"
+  },
+  "order_events": {
+    "imported": "Importato",
+    "platform_update": "Aggiornamento piattaforma",
+    "status_changed": "Stato cambiato",
+    "payment_updated": "Pagamento aggiornato",
+    "fulfillment_updated": "Evasione aggiornata",
+    "shipment_updated": "Spedizione aggiornata",
+    "note_added": "Nota aggiunta",
+    "assigned": "Assegnato",
+    "cancelled": "Annullato",
+    "return_requested": "Reso richiesto",
+    "return_updated": "Reso aggiornato",
+    "manual_payment_recorded": "Pagamento manuale registrato",
+    "hold_set": "Messo in attesa",
+    "hold_released": "Attesa rimossa",
+    "cod_attempt": "Tentativo di contatto",
+    "cod_assigned": "Operatore assegnato"
+  },
+  "shipments": {
+    "title": "Spedizioni",
+    "description": "Evasioni dalla piattaforma e-commerce; stato calcolato da tutte le fonti. Ferma significa in viaggio da più di {days} giorni.",
+    "search": "Cerca",
+    "search_placeholder": "Tracking, ordine o cliente",
+    "clear": "Pulisci",
+    "source": "fonte: {source}",
+    "empty_title": "Nessuna spedizione trovata",
+    "empty_description": "Prova un'altra vista o pulisci i filtri.",
+    "pagination": "{from}–{to} di {total} spedizioni",
+    "kpi": {
+      "in_transit": "In transito",
+      "out_for_delivery": "In consegna",
+      "exceptions": "Eccezioni",
+      "stuck": "Ferme > {days}g",
+      "delivered_7d": "Consegnate (7g)",
+      "returned_30d": "Rientrate (30g)"
+    },
+    "views": {
+      "all": "Tutte",
+      "open": "Aperte",
+      "stuck": "Ferme",
+      "exceptions": "Eccezioni"
+    },
+    "columns": {
+      "order": "Ordine",
+      "tracking": "Corriere e tracking",
+      "status": "Stato",
+      "shipped": "Spedita",
+      "days": "Giorni",
+      "last_event": "Ultimo evento"
+    },
+    "filters": {
+      "status": "Stato",
+      "carrier": "Corriere"
     }
   }
 }

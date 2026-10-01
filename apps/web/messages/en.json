@@ -26,7 +26,9 @@
       "forbidden": "You are not allowed to do this.",
       "not_found": "Not found.",
       "cannot_change_self": "You cannot change your own membership.",
-      "unknown": "Something went wrong."
+      "unknown": "Something went wrong.",
+      "already_cancelled": "The order is already cancelled.",
+      "platform_error": "The commerce platform rejected the request."
     },
     "edit": "Edit"
   },
@@ -347,6 +349,188 @@
       "fulfillment_raw": "fulfillment: {v}",
       "min_age": "older than {v}h",
       "always": "always"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet"
+  },
+  "orders": {
+    "title": "Orders",
+    "description": "Inbound orders with their canonical status, payment and assignment.",
+    "all": "All",
+    "manual": "manual",
+    "search": "Search",
+    "search_placeholder": "Order number, name, email or phone",
+    "clear_filters": "Clear",
+    "empty_title": "No orders match",
+    "empty_description": "Try a different search or clear the filters.",
+    "pagination": "{from}–{to} of {total} orders",
+    "columns": {
+      "order": "Order",
+      "customer": "Customer",
+      "status": "Status",
+      "payment": "Payment",
+      "channel": "Channel",
+      "assigned": "Assigned",
+      "total": "Total"
+    },
+    "filters": {
+      "payment": "Payment method",
+      "payment_status": "Payment status",
+      "assigned": "Assignee",
+      "assigned_me": "Assigned to me",
+      "assigned_none": "Unassigned",
+      "sort": "Sort",
+      "from": "From",
+      "to": "To",
+      "tag": "Tag"
+    },
+    "sort": {
+      "placed_desc": "Newest first",
+      "placed_asc": "Oldest first",
+      "total_desc": "Highest total"
+    }
+  },
+  "order_detail": {
+    "back": "Orders",
+    "manual_status": "manual",
+    "assigned_to": "Assigned to {name}",
+    "customer": "Customer",
+    "open_customer": "Open customer profile",
+    "history_title": "Customer history",
+    "history_unidentified": "Customer not identified: no id, email, phone or address to match.",
+    "history_first": "First order of this customer.",
+    "history_hops": "Includes orders linked through {hops} hops (shared email, phone or address).",
+    "history": {
+      "total": "Previous orders",
+      "spent": "Lifetime value",
+      "delivered": "Delivered",
+      "returned": "Returned",
+      "cancelled": "Cancelled",
+      "via": {
+        "email": "email",
+        "phone": "phone",
+        "address": "address",
+        "name": "name+zip",
+        "linked": "linked",
+        "customer": "customer"
+      }
+    },
+    "attribution": "Attribution",
+    "channel": "Channel",
+    "campaign": "Campaign",
+    "duplicates_title": "Possible duplicate order",
+    "duplicates_description": "Same customer placed another order with the same product within {days} days:",
+    "duplicates": {
+      "same_variant": "same variant",
+      "same_product": "same product"
+    },
+    "on_hold_reason": "On hold: {reason}",
+    "lines": "Items",
+    "line": {
+      "product": "Product",
+      "qty": "Qty",
+      "unit": "Unit price",
+      "total": "Total"
+    },
+    "totals": {
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "shipping": "Shipping",
+      "tax": "Tax",
+      "total": "Total",
+      "refunded": "Refunded"
+    },
+    "shipments": "Shipments",
+    "days_in_transit": "{days} days in transit",
+    "returns": "Returns",
+    "notes": "Internal notes",
+    "note_placeholder": "Write a note. Type @ to mention a teammate.",
+    "mention_hint": "Mentions notify the person. Notes never leave the platform.",
+    "add_note": "Add note",
+    "delete_note": "Delete note",
+    "no_notes": "No internal notes yet.",
+    "timeline": "Timeline",
+    "no_events": "No events yet.",
+    "system": "System",
+    "integration": "Integration",
+    "change_status": "Change status",
+    "set_status_to": "Set status to",
+    "reset_status": "Let rules decide again",
+    "assign": "Assign",
+    "unassigned": "Unassigned",
+    "cancel_order": "Cancel order",
+    "confirm": "Confirm",
+    "note_optional": "Note (optional)",
+    "status_dialog_title": "Set status to {status}",
+    "status_dialog_description": "The status stays until a hard fact (cancellation, refund, delivery, return) changes it. The change is recorded in the timeline with your name.",
+    "cancel_dialog_title": "Cancel this order?",
+    "cancel_dialog_description": "The order is cancelled on the commerce platform first, then here. This cannot be undone.",
+    "cancel_reason": "Reason",
+    "cancel_reasons": {
+      "customer": "Customer request",
+      "inventory": "Out of stock",
+      "fraud": "Suspected fraud",
+      "declined": "Payment declined",
+      "other": "Other"
+    },
+    "restock": "Restock items",
+    "refund": "Refund captured payment"
+  },
+  "order_events": {
+    "imported": "Imported",
+    "platform_update": "Platform update",
+    "status_changed": "Status changed",
+    "payment_updated": "Payment updated",
+    "fulfillment_updated": "Fulfillment updated",
+    "shipment_updated": "Shipment updated",
+    "note_added": "Note added",
+    "assigned": "Assigned",
+    "cancelled": "Cancelled",
+    "return_requested": "Return requested",
+    "return_updated": "Return updated",
+    "manual_payment_recorded": "Manual payment recorded",
+    "hold_set": "Put on hold",
+    "hold_released": "Hold released",
+    "cod_attempt": "Contact attempt",
+    "cod_assigned": "Operator assigned"
+  },
+  "shipments": {
+    "title": "Shipments",
+    "description": "Fulfilments from the commerce platform; status resolved from every source. Stuck means moving for more than {days} days.",
+    "search": "Search",
+    "search_placeholder": "Tracking number, order or customer",
+    "clear": "Clear",
+    "source": "source: {source}",
+    "empty_title": "No shipments match",
+    "empty_description": "Try another view or clear the filters.",
+    "pagination": "{from}–{to} of {total} shipments",
+    "kpi": {
+      "in_transit": "In transit",
+      "out_for_delivery": "Out for delivery",
+      "exceptions": "Exceptions",
+      "stuck": "Stuck > {days}d",
+      "delivered_7d": "Delivered (7d)",
+      "returned_30d": "Returned (30d)"
+    },
+    "views": {
+      "all": "All",
+      "open": "Open",
+      "stuck": "Stuck",
+      "exceptions": "Exceptions"
+    },
+    "columns": {
+      "order": "Order",
+      "tracking": "Carrier & tracking",
+      "status": "Status",
+      "shipped": "Shipped",
+      "days": "Days",
+      "last_event": "Last event"
+    },
+    "filters": {
+      "status": "Status",
+      "carrier": "Carrier"
     }
   }
 }

@@ -26,7 +26,9 @@
       "forbidden": "No tienes permiso para esta acción.",
       "not_found": "No encontrado.",
       "cannot_change_self": "No puedes cambiar tu propia pertenencia.",
-      "unknown": "Algo salió mal."
+      "unknown": "Algo salió mal.",
+      "already_cancelled": "El pedido ya está cancelado.",
+      "platform_error": "La plataforma de comercio rechazó la solicitud."
     },
     "edit": "Editar"
   },
@@ -347,6 +349,188 @@
       "fulfillment_raw": "preparación: {v}",
       "min_age": "más antiguo que {v}h",
       "always": "siempre"
+    }
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "empty": "Sin notificaciones"
+  },
+  "orders": {
+    "title": "Pedidos",
+    "description": "Pedidos entrantes con su estado canónico, pago y asignación.",
+    "all": "Todos",
+    "manual": "manual",
+    "search": "Buscar",
+    "search_placeholder": "Número de pedido, nombre, correo o teléfono",
+    "clear_filters": "Limpiar",
+    "empty_title": "Ningún pedido coincide",
+    "empty_description": "Prueba otra búsqueda o limpia los filtros.",
+    "pagination": "{from}–{to} de {total} pedidos",
+    "columns": {
+      "order": "Pedido",
+      "customer": "Cliente",
+      "status": "Estado",
+      "payment": "Pago",
+      "channel": "Canal",
+      "assigned": "Asignado",
+      "total": "Total"
+    },
+    "filters": {
+      "payment": "Método de pago",
+      "payment_status": "Estado del pago",
+      "assigned": "Asignado a",
+      "assigned_me": "Asignados a mí",
+      "assigned_none": "Sin asignar",
+      "sort": "Ordenar",
+      "from": "Desde",
+      "to": "Hasta",
+      "tag": "Etiqueta"
+    },
+    "sort": {
+      "placed_desc": "Más recientes",
+      "placed_asc": "Más antiguos",
+      "total_desc": "Mayor total"
+    }
+  },
+  "order_detail": {
+    "back": "Pedidos",
+    "manual_status": "manual",
+    "assigned_to": "Asignado a {name}",
+    "customer": "Cliente",
+    "open_customer": "Abrir ficha del cliente",
+    "history_title": "Historial del cliente",
+    "history_unidentified": "Cliente no identificado: sin id, correo, teléfono ni dirección que comparar.",
+    "history_first": "Primer pedido de este cliente.",
+    "history_hops": "Incluye pedidos enlazados en {hops} saltos (correo, teléfono o dirección compartidos).",
+    "history": {
+      "total": "Pedidos anteriores",
+      "spent": "Valor total",
+      "delivered": "Entregados",
+      "returned": "Devueltos",
+      "cancelled": "Cancelados",
+      "via": {
+        "email": "correo",
+        "phone": "teléfono",
+        "address": "dirección",
+        "name": "nombre+CP",
+        "linked": "enlazado",
+        "customer": "cliente"
+      }
+    },
+    "attribution": "Atribución",
+    "channel": "Canal",
+    "campaign": "Campaña",
+    "duplicates_title": "Posible pedido duplicado",
+    "duplicates_description": "El mismo cliente hizo otro pedido con el mismo producto en {days} días:",
+    "duplicates": {
+      "same_variant": "misma variante",
+      "same_product": "mismo producto"
+    },
+    "on_hold_reason": "En espera: {reason}",
+    "lines": "Artículos",
+    "line": {
+      "product": "Producto",
+      "qty": "Cant.",
+      "unit": "Precio unitario",
+      "total": "Total"
+    },
+    "totals": {
+      "subtotal": "Subtotal",
+      "discount": "Descuento",
+      "shipping": "Envío",
+      "tax": "Impuestos",
+      "total": "Total",
+      "refunded": "Reembolsado"
+    },
+    "shipments": "Envíos",
+    "days_in_transit": "{days} días en tránsito",
+    "returns": "Devoluciones",
+    "notes": "Notas internas",
+    "note_placeholder": "Escribe una nota. Escribe @ para mencionar a alguien.",
+    "mention_hint": "Las menciones avisan a la persona. Las notas nunca salen de la plataforma.",
+    "add_note": "Añadir nota",
+    "delete_note": "Eliminar nota",
+    "no_notes": "Aún no hay notas internas.",
+    "timeline": "Cronología",
+    "no_events": "Sin eventos.",
+    "system": "Sistema",
+    "integration": "Integración",
+    "change_status": "Cambiar estado",
+    "set_status_to": "Establecer estado",
+    "reset_status": "Dejar que decidan las reglas",
+    "assign": "Asignar",
+    "unassigned": "Sin asignar",
+    "cancel_order": "Cancelar pedido",
+    "confirm": "Confirmar",
+    "note_optional": "Nota (opcional)",
+    "status_dialog_title": "Establecer estado: {status}",
+    "status_dialog_description": "El estado se mantiene hasta que un hecho firme (cancelación, reembolso, entrega, devolución) lo cambie. El cambio queda en la cronología con tu nombre.",
+    "cancel_dialog_title": "¿Cancelar este pedido?",
+    "cancel_dialog_description": "El pedido se cancela primero en la plataforma de comercio y luego aquí. No se puede deshacer.",
+    "cancel_reason": "Motivo",
+    "cancel_reasons": {
+      "customer": "Solicitud del cliente",
+      "inventory": "Sin stock",
+      "fraud": "Posible fraude",
+      "declined": "Pago rechazado",
+      "other": "Otro"
+    },
+    "restock": "Reponer artículos",
+    "refund": "Reembolsar el pago cobrado"
+  },
+  "order_events": {
+    "imported": "Importado",
+    "platform_update": "Actualización de la plataforma",
+    "status_changed": "Estado cambiado",
+    "payment_updated": "Pago actualizado",
+    "fulfillment_updated": "Preparación actualizada",
+    "shipment_updated": "Envío actualizado",
+    "note_added": "Nota añadida",
+    "assigned": "Asignado",
+    "cancelled": "Cancelado",
+    "return_requested": "Devolución solicitada",
+    "return_updated": "Devolución actualizada",
+    "manual_payment_recorded": "Pago manual registrado",
+    "hold_set": "Puesto en espera",
+    "hold_released": "Espera retirada",
+    "cod_attempt": "Intento de contacto",
+    "cod_assigned": "Operador asignado"
+  },
+  "shipments": {
+    "title": "Envíos",
+    "description": "Preparaciones de la plataforma; estado resuelto a partir de todas las fuentes. Detenido significa más de {days} días en movimiento.",
+    "search": "Buscar",
+    "search_placeholder": "Seguimiento, pedido o cliente",
+    "clear": "Limpiar",
+    "source": "fuente: {source}",
+    "empty_title": "Ningún envío coincide",
+    "empty_description": "Prueba otra vista o limpia los filtros.",
+    "pagination": "{from}–{to} de {total} envíos",
+    "kpi": {
+      "in_transit": "En tránsito",
+      "out_for_delivery": "En reparto",
+      "exceptions": "Incidencias",
+      "stuck": "Detenidos > {days}d",
+      "delivered_7d": "Entregados (7d)",
+      "returned_30d": "Devueltos (30d)"
+    },
+    "views": {
+      "all": "Todos",
+      "open": "Abiertos",
+      "stuck": "Detenidos",
+      "exceptions": "Incidencias"
+    },
+    "columns": {
+      "order": "Pedido",
+      "tracking": "Transportista y seguimiento",
+      "status": "Estado",
+      "shipped": "Enviado",
+      "days": "Días",
+      "last_event": "Último evento"
+    },
+    "filters": {
+      "status": "Estado",
+      "carrier": "Transportista"
     }
   }
 }

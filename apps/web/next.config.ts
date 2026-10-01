@@ -5,7 +5,7 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  transpilePackages: ["@keel/ui", "@keel/config", "@keel/core", "@keel/db", "@keel/integrations"],
+  transpilePackages: ["@keel/ui", "@keel/config", "@keel/core", "@keel/db", "@keel/integrations", "@keel/services"],
   serverExternalPackages: ["pg", "pg-boss", "bcryptjs"],
   experimental: { serverActions: { bodySizeLimit: "2mb" } },
   typescript: { ignoreBuildErrors: false },

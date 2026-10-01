@@ -18,6 +18,7 @@ import {
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { signOutAction } from "@/server/actions/auth";
 import { SidebarNav, type SidebarProps } from "./sidebar";
+import { NotificationsBell, type BellItem } from "./notifications-bell";
 
 interface TopbarProps {
   sidebar: SidebarProps;
@@ -27,9 +28,10 @@ interface TopbarProps {
   memberships: { slug: string; name: string }[];
   isSuperAdmin: boolean;
   impersonating: boolean;
+  notifications: { unread: number; items: BellItem[]; locale: string };
 }
 
-export function Topbar({ sidebar, userName, userEmail, role, memberships, isSuperAdmin, impersonating }: TopbarProps) {
+export function Topbar({ sidebar, userName, userEmail, role, memberships, isSuperAdmin, impersonating, notifications }: TopbarProps) {
   const t = useTranslations();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -71,6 +73,7 @@ export function Topbar({ sidebar, userName, userEmail, role, memberships, isSupe
           </DropdownMenuContent>
         </DropdownMenu>
         <div className="ml-auto flex items-center gap-2">
+          <NotificationsBell slug={sidebar.tenantSlug} unread={notifications.unread} items={notifications.items} locale={notifications.locale} />
           <LocaleSwitcher />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

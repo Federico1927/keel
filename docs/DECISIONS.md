@@ -89,3 +89,17 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · Money and rates as integers
 
 **Decision.** All amounts are integer minor units (`*_minor`), rates are basis points (`rate_bps`, `returned_fraction_bps`). Formatting happens only at the edge with `Intl` using the tenant currency and the user locale.
+
+## 2026-10-01 · A `packages/services` layer between core and the apps
+
+**Decision.** Logic that combines the database, the pure core and the adapters (order state transitions, customer history, duplicates, notes with mentions, notifications) lives in `packages/services`, used by both `apps/web` and `packages/jobs`. `packages/core` stays free of I/O; `apps/web` keeps only request handling, authorisation and rendering. This is an addition to the fixed stack, not a change of it.
+
+**Alternatives.** Services inside `apps/web` (rejected: jobs would duplicate them) or inside `packages/db` (rejected: it would pull adapters into the data layer).
+
+## 2026-10-01 · Operator actions go remote-first
+
+**Decision.** Cancelling an order calls the commerce adapter first and only then aligns the local row and recomputes the status (a webhook arriving mid-way is idempotent on the external id). Status changes and assignments are local decisions and are not written back as platform tags: Keel never uses tags as a state channel. Notes never leave the platform.
+
+## 2026-10-01 · Test suites that share the test database run serially
+
+**Decision.** `packages/db` and `packages/services` both reset and migrate `keel_test`. The turbo `test` task depends on `^test`, so a package's dependencies are tested first and the two suites never run at the same time.

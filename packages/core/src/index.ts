@@ -5,3 +5,6 @@ export * from "./format";
 export * from "./domain";
 export * from "./state-rules";
 export * from "./identity";
+export * from "./duplicates";
+export * from "./shipment-resolver";
+export * from "./mentions";
