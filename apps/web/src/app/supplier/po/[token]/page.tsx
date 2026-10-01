@@ -9,6 +9,7 @@ import { supplierPoView, tenantForSupplierToken } from "@keel/services";
 import { Badge, Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { loadMessages } from "@/i18n/messages";
 import { SupplierAckForm } from "./form";
+import { brandStyle, loadBrand, publicBrand } from "@/server/branding";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -22,7 +23,7 @@ export default async function SupplierPoPage({ params, searchParams }: { params:
   const { lang } = await searchParams;
   const found = await tenantForSupplierToken(token);
   if (!found) notFound();
-  const [tenant] = await adminDb().select({ defaultLocale: schema.tenants.defaultLocale, timezone: schema.tenants.timezone }).from(schema.tenants).where(eq(schema.tenants.id, found.tenantId)).limit(1);
+  const [tenant] = await adminDb().select({ slug: schema.tenants.slug, defaultLocale: schema.tenants.defaultLocale, timezone: schema.tenants.timezone }).from(schema.tenants).where(eq(schema.tenants.id, found.tenantId)).limit(1);
   const locale: Locale = isLocale(lang) ? lang : isLocale(tenant?.defaultLocale) ? (tenant!.defaultLocale as Locale) : DEFAULT_LOCALE;
   const view = await withTenant(found.tenantId, (tx) => supplierPoView({ tenantId: found.tenantId, tx, actor: { type: "system", userId: null } }, found.poId));
   if (!view) notFound();
@@ -32,10 +33,14 @@ export default async function SupplierPoPage({ params, searchParams }: { params:
   const money = (m: number) => formatMoney(m, view.currency, locale);
   const tz = tenant?.timezone ?? "UTC";
   const open = ["sent", "confirmed"].includes(view.status);
+  const brand = publicBrand(await loadBrand(found.tenantId, tenant?.slug ?? ""));
   return (
+    <div className="light min-h-screen bg-background text-foreground" style={brandStyle(brand)}>
     <main className="mx-auto max-w-3xl space-y-6 px-4 py-8" lang={locale}>
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {brand.logoUrl && <img src={brand.logoUrl} alt={view.companyName} className="mb-3 h-8 w-auto" />}
           <p className="text-xs uppercase tracking-wide text-muted-foreground">{view.companyName}</p>
           <h1 className="text-2xl font-semibold">{t("title", { number: view.number })}</h1>
           <p className="text-sm text-muted-foreground">{t("for_supplier", { supplier: view.supplierName })}</p>
@@ -98,5 +103,6 @@ export default async function SupplierPoPage({ params, searchParams }: { params:
       </Card>
       <footer className="text-center text-xs text-muted-foreground">{t("powered_by", { product: PRODUCT_NAME })}</footer>
     </main>
+    </div>
   );
 }

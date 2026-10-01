@@ -27,7 +27,7 @@ export function SurveyForm(p: SurveyFormProps) {
   return (
     <Card>
       <CardContent className="space-y-4 pt-6">
-        <h1 className="font-serif text-2xl">{p.question}</h1>
+        <h1 className="text-2xl font-semibold">{p.question}</h1>
         <div className="grid gap-2" role="radiogroup" aria-label={p.question}>
           {[...p.options, ...(p.allowOther ? [{ key: "other", label: t("other") }] : [])].map((o) => (
             <label key={o.key} className="flex cursor-pointer items-center gap-2 rounded-md border p-3 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5" data-testid="survey-option">

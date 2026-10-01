@@ -229,7 +229,8 @@
       "spend": "Spesa ads",
       "hint": "Giorno {elapsed} di {days}, run rate per giorno della settimana.",
       "more": "Dettagli"
-    }
+    },
+    "greeting_line": "{count, plural, =0 {Ancora nessun ordine oggi} one {# ordine finora oggi} other {# ordini finora oggi}}"
   },
   "settings": {
     "title": "Impostazioni",
@@ -285,7 +286,8 @@
       "prices_include_tax": "Prezzi IVA inclusa",
       "add": "Aggiungi o aggiorna"
     },
-    "order_states_link": "Regole di stato ordine"
+    "order_states_link": "Regole di stato ordine",
+    "branding_link": "Branding"
   },
   "users": {
     "title": "Utenti e ruoli",
@@ -304,6 +306,183 @@
     "email": "Email",
     "invite": "Invita",
     "invited": "Invito creato. In sviluppo il link di accesso è stampato nella console del server."
+  },
+  "theme": {
+    "label": "Tema",
+    "light": "Chiaro",
+    "dark": "Scuro",
+    "system": "Sistema"
+  },
+  "greeting": {
+    "morning": "Buongiorno, {name}",
+    "afternoon": "Buon pomeriggio, {name}",
+    "evening": "Buonasera, {name}"
+  },
+  "profile": {
+    "menu": "Il tuo profilo",
+    "title": "Il tuo profilo",
+    "description": "Come ti vede il team, come appare l'app per te e come accedi.",
+    "identity": "Identità",
+    "identity_description": "Il nome è visibile al team; il nome preferito è quello con cui l'app ti saluta.",
+    "name": "Nome e cognome",
+    "preferred_name": "Nome preferito",
+    "preferred_name_hint": "Facoltativo. Usato nei saluti, per esempio “Giulia”.",
+    "job_title": "Ruolo aziendale",
+    "save": "Salva",
+    "saved": "Salvato.",
+    "photo_upload": "Carica foto",
+    "photo_change": "Cambia foto",
+    "photo_remove": "Rimuovi",
+    "uploading": "Caricamento…",
+    "image_hint": "PNG, JPEG, WebP o GIF. Le immagini grandi vengono ridotte automaticamente.",
+    "preferences": "Preferenze",
+    "preferences_description": "Valgono solo per te, su ogni dispositivo.",
+    "locale_default": "Lingua dello spazio di lavoro",
+    "locale_default_named": "Lingua dello spazio di lavoro ({language})",
+    "time_zone": "Fuso orario",
+    "time_zone_default": "Fuso orario dello spazio di lavoro",
+    "time_zone_default_named": "Fuso dello spazio di lavoro ({zone})",
+    "density": "Densità",
+    "density_comfortable": "Comoda",
+    "density_compact": "Compatta",
+    "density_hint": "Compatta mostra più righe: tabelle e schede più strette.",
+    "format_hint": "Date e numeri seguono la lingua. Il fuso orario vale per il saluto e l'elenco degli accessi; i report restano nel fuso dello spazio di lavoro, così tutto il team vede gli stessi giorni.",
+    "security": "Accesso e sicurezza",
+    "security_description": "Email, password e sessioni attive.",
+    "email": "Email",
+    "email_current": "Email attuale:",
+    "email_pending": "In attesa di conferma da {email}. Non cambia nulla finché non si apre il link in quella casella.",
+    "email_cancel": "Annulla richiesta",
+    "email_new": "Nuova email",
+    "email_submit": "Invia conferma",
+    "email_hint": "Mandiamo un link al nuovo indirizzo e un avviso a quello attuale.",
+    "email_sent": "Controlla la nuova casella: trovi il link di conferma.",
+    "password": "Password",
+    "password_current": "Password attuale",
+    "password_new": "Nuova password",
+    "password_confirm": "Ripeti la nuova password",
+    "password_hint": "Almeno 10 caratteri con lettere, numeri e simboli, oppure una frase lunga. Cambiandola esci da tutte le altre sessioni.",
+    "password_submit": "Cambia password",
+    "password_changed": "Password cambiata. Le altre sessioni sono state chiuse.",
+    "sessions": "Accessi recenti",
+    "sessions_description": "Le ultime volte che il tuo account è stato usato per accedere.",
+    "sign_in_when": "Quando",
+    "sign_in_method": "Metodo",
+    "sign_in_device": "Dispositivo",
+    "sign_in_methods": {
+      "credentials": "Password",
+      "email": "Link via email",
+      "other": "Altro"
+    },
+    "sessions_sign_out_others": "Esci da tutte le altre sessioni",
+    "sessions_signed_out": "Tutte le altre sessioni sono state chiuse.",
+    "workspaces": "Spazi di lavoro",
+    "workspaces_description": "Dove hai accesso e con quale ruolo. I ruoli li gestiscono owner e admin.",
+    "workspaces_super_admin": "Super-admin della piattaforma: apri ogni spazio di lavoro dalla console.",
+    "errors": {
+      "invalid_input": "Alcuni campi non sono validi.",
+      "rate_limited": "Troppi tentativi. Riprova tra un'ora.",
+      "wrong_password": "La password attuale non è corretta.",
+      "weak_password": "La nuova password è troppo debole:",
+      "email_taken": "Questa email è già usata da un altro account.",
+      "same_email": "È già la tua email.",
+      "invalid_token": "Questo link non è valido.",
+      "expired_token": "Il link è scaduto. Richiedine uno nuovo dal profilo.",
+      "not_found": "Account non trovato.",
+      "password_mismatch": "Le due nuove password non coincidono.",
+      "invalid_image": "Il file non è un'immagine supportata.",
+      "image_too_large": "L'immagine è troppo grande (max 1,5 MB dopo la riduzione).",
+      "forbidden": "Non hai i permessi per farlo.",
+      "unknown": "Qualcosa è andato storto."
+    },
+    "password_issues": {
+      "too_short": "almeno 10 caratteri",
+      "too_long": "al massimo 200 caratteri",
+      "too_common": "non una password comune o ripetitiva",
+      "personal": "non basata sul tuo nome o sulla tua email",
+      "low_variety": "mescola maiuscole, minuscole, numeri e simboli (oppure usa 16+ caratteri)"
+    }
+  },
+  "welcome": {
+    "title": "Completa il tuo profilo",
+    "description": "Hai effettuato l'accesso come {email}. Prima di iniziare, di' al team chi sei.",
+    "submit": "Continua"
+  },
+  "email_change": {
+    "title": "Conferma la nuova email",
+    "description": "Conferma per usare questo indirizzo per accedere d'ora in poi.",
+    "confirm": "Conferma il cambio email",
+    "done": "Fatto: ora accedi con {email}.",
+    "continue": "Continua",
+    "errors": {
+      "invalid_token": "Il link non è valido o è già stato usato.",
+      "expired_token": "Il link è scaduto. Richiedine uno nuovo dal profilo.",
+      "email_taken": "Questa email è già usata da un altro account."
+    },
+    "mail_new_subject": "Conferma il tuo nuovo indirizzo email",
+    "mail_new_body": "Apri questo link per confermare il cambio dell'email con cui accedi: {url}\n\nSe non l'hai chiesto tu, ignora questo messaggio.",
+    "mail_old_subject": "L'email di accesso sta per cambiare",
+    "mail_old_body": "È stato chiesto di cambiare l'email di accesso del tuo account in {email}. Cambierà solo quando quell'indirizzo conferma. Se non sei stato tu, cambia subito la password."
+  },
+  "branding": {
+    "title": "Branding",
+    "description": "Logo e colore del marchio: usati nell'app e come predefiniti per portale resi, tracking, pagina fornitori e sondaggio.",
+    "back": "Tutte le impostazioni",
+    "color": "Colore del marchio",
+    "color_description": "Sostituisce il colore primario per tutti in questo spazio di lavoro. Viene regolato automaticamente perché testi e pulsanti restino leggibili (WCAG AA) nel tema chiaro e in quello scuro.",
+    "color_hex": "Colore (#rrggbb)",
+    "color_picker": "Scegli un colore",
+    "save": "Salva colore",
+    "reset": "Usa il predefinito",
+    "invalid_color": "Usa il formato #rrggbb.",
+    "adjusted": "Regolato per la leggibilità: {light} nel tema chiaro, {dark} nel tema scuro.",
+    "sample_button": "Salva",
+    "sample_link": "Vedi ordini",
+    "saved": "Salvato.",
+    "errors": {
+      "invalid_color": "Usa il formato #rrggbb.",
+      "generic": "Impossibile salvare il branding."
+    },
+    "logos": "Loghi",
+    "logos_description": "Un logo per sfondi chiari e, se vuoi, uno per sfondi scuri.",
+    "logo_light": "Su sfondo chiaro",
+    "logo_dark": "Su sfondo scuro",
+    "logo_dark_fallback": "Usa il logo per sfondo chiaro",
+    "logo_none": "Nessun logo: viene mostrato il nome",
+    "logo_upload": "Carica logo",
+    "logo_remove": "Rimuovi",
+    "used_by": "Le pagine pubbliche (portale resi, tracking, fornitori, sondaggio) usano questo branding, salvo personalizzazioni nelle loro impostazioni."
+  },
+  "styleguide": {
+    "title": "Guida di stile",
+    "description": "Direzione A, Modern SaaS (scelta il 2026-10-01): token, componenti nei due temi, varianti del colore del marchio e densità.",
+    "tokens": "Token",
+    "type_note": "Geist per testi e titoli, Geist Mono per i codici; angoli di 8px, badge a pillola.",
+    "components": "Componenti",
+    "primary": "Primario",
+    "secondary": "Secondario",
+    "ghost": "Discreto",
+    "danger": "Pericolo",
+    "link": "Link",
+    "success": "Successo",
+    "warning": "Attenzione",
+    "info": "Info",
+    "input": "Campo",
+    "placeholder": "Scrivi qui",
+    "select": "Selezione",
+    "option": "Opzione",
+    "empty_title": "Ancora niente qui",
+    "empty_description": "Gli stati vuoti spiegano cosa comparirà e come ottenerlo.",
+    "brand": "Colore del marchio del tenant",
+    "brand_description": "Ogni spazio di lavoro può avere il suo colore; viene regolato finché testi e controlli superano AA in entrambi i temi.",
+    "brand_card": "Chiaro e scuro, dopo la regolazione",
+    "adjusted": "regolato",
+    "density": "Densità",
+    "density_comfortable": "Comoda",
+    "density_compact": "Compatta",
+    "col_order": "Ordine",
+    "col_status": "Stato",
+    "col_total": "Totale"
   },
   "audit": {
     "title": "Registro attività",
@@ -2466,7 +2645,8 @@
       "dashboard": "Dashboard",
       "tenants": "Tenant",
       "billing": "Fatturazione",
-      "audit": "Registro attività"
+      "audit": "Registro attività",
+      "styleguide": "Guida di stile"
     },
     "plans": {
       "starter": "Starter",
@@ -3196,7 +3376,9 @@
     "label_enabled": "Fornisci al cliente un'etichetta di reso prepagata",
     "label_destination": "Indirizzo di reso sull'etichetta",
     "label_hint": "L'etichetta viene emessa all'invio e il suo tracking viene salvato sul reso. In questa versione il fornitore delle etichette è simulato.",
-    "off_notice": "Il portale è spento: chi apre {url} vede \"pagina non trovata\". Attiva \"Portale attivo\" qui sotto e salva."
+    "off_notice": "Il portale è spento: chi apre {url} vede \"pagina non trovata\". Attiva \"Portale attivo\" qui sotto e salva.",
+    "use_branding": "Usa il branding dello spazio di lavoro",
+    "logo_branding_hint": "Vuoto: il logo di Impostazioni → Branding."
   },
   "return_portal": {
     "default_title": "Richiedi un reso",

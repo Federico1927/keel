@@ -324,6 +324,20 @@ Fatto:
 - #15: `Select` e `Input` hanno due altezze condivise (`sm`, `default`) e il testo centrato; niente più `<select>` grezzi né altezze impostate a mano (un test lo impedisce); controllo Playwright che il testo stia nel riquadro.
 - Lingua: date e numeri seguono la lingua mostrata a schermo; il selettore salva la lingua sul profilo e l'accesso la ripristina.
 
+## Stile A, tema scuro e branding (#44); profilo utente e saluto (#45)
+
+Fatto:
+- Direzione visiva A scelta dal committente: Geist (ospitato nel repository, nessun download a build o a runtime), superfici bianche, barra laterale chiara, blu `#2b59ff` (scuro `#5b7cff`), angoli di 8px, badge a pillola. Token in `packages/ui/src/tokens.css` e `tokens.ts`, importabili anche dalla landing; test automatico di contrasto WCAG AA su tutte le coppie testo/controllo nei due temi (tre colori di stato scuriti di poco per superarlo). Grafici con palette Okabe-Ito leggibile in entrambi i temi; regola di lint che blocca classi di palette e colori esadecimali in `apps/web`.
+- Tema Chiaro / Scuro / Sistema salvato sul profilo e applicato dal server su `<html>`: nessun lampo del tema sbagliato al caricamento. Densità Comoda / Compatta (righe delle tabelle e padding delle schede).
+- Impostazioni → Branding (owner/admin): colore del marchio regolato automaticamente per restare AA nei due temi, logo per sfondi chiari e scuri. È il colore primario dell'app per quel tenant e il predefinito di portale resi, tracking, pagina fornitori e sondaggio, che restano chiari e mantengono le loro personalizzazioni. Demo: Harbor Home ha il suo colore, Northwind il blu del prodotto.
+- `/admin/styleguide`: token, componenti reali nei due temi, varianti del colore del marchio e delle densità.
+- Profilo (`/t/<tenant>/profile` e `/admin/profile`, dal menu utente): nome, nome preferito, foto (ridimensionata sul server), ruolo aziendale; lingua (vuota = lingua dello spazio di lavoro), tema, densità, fuso orario; cambio password con controllo di robustezza, cambio email con conferma sul nuovo indirizzo e avviso al vecchio, "esci da tutte le altre sessioni", ultimi accessi; spazi di lavoro e ruoli. Ogni modifica nell'audit con diff, limiti di frequenza su password ed email.
+- Chi non ha un nome completa il profilo prima di entrare; `displayName` (nome preferito → nome → parte dell'email prima di @) sostituisce ogni ripiego sull'email.
+- Saluto in cima alla dashboard ("Buongiorno, Giulia") calcolato sul server nel fuso dell'utente, con la data di oggi e gli ordini del giorno.
+- Migrazione 0019 (tabelle `tenant_branding` con RLS e `user_sign_ins` di piattaforma, colonne nullable su `users`); test core 178, servizi (account e branding) 9, db 517, web 28, e2e: nuovi `theme.spec.ts` e `profile.spec.ts`. Screenshot rifatti: tutte le pagine in chiaro (en, it) e 16 pagine principali in scuro in `docs/screenshots/<lingua>/dark/` (`THEMES=light,dark` nello script).
+
+Resta: il fuso orario dell'utente vale per saluto, data e accessi; report e liste restano nel fuso del tenant (vedi DECISIONS). Collegamenti (token personali #21, preferenze notifiche #33) da aggiungere al profilo quando esisteranno.
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

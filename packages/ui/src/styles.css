@@ -1,50 +1,69 @@
 @import "tailwindcss";
+@import "./tokens.css";
 @source "../../ui/src";
 
-@theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Source Serif 4", ui-serif, Georgia, serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+/* `dark:` follows the class on <html>, not the OS (the server already resolved the user's choice). */
+@custom-variant dark (&:where(.dark, .dark *));
 
-  --color-background: hsl(40 20% 98%);
-  --color-foreground: hsl(220 15% 14%);
-  --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(220 15% 14%);
-  --color-popover: hsl(0 0% 100%);
-  --color-popover-foreground: hsl(220 15% 14%);
-  --color-primary: hsl(205 55% 30%);
-  --color-primary-foreground: hsl(0 0% 100%);
-  --color-secondary: hsl(40 15% 93%);
-  --color-secondary-foreground: hsl(220 15% 20%);
-  --color-muted: hsl(40 15% 94%);
-  --color-muted-foreground: hsl(220 10% 42%);
-  --color-accent: hsl(28 70% 92%);
-  --color-accent-foreground: hsl(28 60% 25%);
-  --color-destructive: hsl(4 60% 45%);
-  --color-destructive-foreground: hsl(0 0% 100%);
-  --color-success: hsl(150 35% 36%);
-  --color-success-foreground: hsl(0 0% 100%);
-  --color-warning: hsl(36 70% 42%);
-  --color-warning-foreground: hsl(0 0% 100%);
-  --color-info: hsl(205 55% 40%);
-  --color-border: hsl(40 12% 86%);
-  --color-input: hsl(40 12% 86%);
-  --color-ring: hsl(205 55% 40%);
-  --color-sidebar: hsl(220 18% 12%);
-  --color-sidebar-foreground: hsl(40 20% 92%);
-  --color-sidebar-muted: hsl(220 10% 62%);
-  --color-sidebar-accent: hsl(220 16% 18%);
+@theme inline {
+  --font-sans: var(--font-sans-stack);
+  /* Direction A has no serif: `font-serif` left in older markup renders in Geist too. */
+  --font-serif: var(--font-sans-stack);
+  --font-mono: var(--font-mono-stack);
 
-  --radius-sm: 0.25rem;
-  --radius-md: 0.4rem;
-  --radius-lg: 0.6rem;
-  --radius-xl: 0.9rem;
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--fg);
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--fg);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--on-primary);
+  --color-secondary: var(--surface-2);
+  --color-secondary-foreground: var(--fg);
+  --color-muted: var(--surface-2);
+  --color-muted-foreground: var(--muted);
+  --color-accent: var(--surface-2);
+  --color-accent-foreground: var(--fg);
+  --color-destructive: var(--danger);
+  --color-destructive-foreground: var(--on-danger);
+  --color-success: var(--success);
+  --color-success-foreground: var(--on-success);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--on-warning);
+  --color-info: var(--info);
+  --color-info-foreground: var(--on-info);
+  --color-border: var(--line);
+  --color-input: var(--line-strong);
+  --color-ring: var(--primary);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-fg);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-overlay: var(--overlay);
+
+  /* 8px corners everywhere; pills for badges and avatars (rounded-full). */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+
+  --shadow-sm: 0 1px 2px 0 hsl(var(--shadow-color) / 0.06);
+  --shadow: 0 1px 3px 0 hsl(var(--shadow-color) / 0.08), 0 1px 2px -1px hsl(var(--shadow-color) / 0.06);
 }
 
 @layer base {
   * { @apply border-border; }
-  html { -webkit-font-smoothing: antialiased; }
-  body { @apply bg-background text-foreground font-sans; font-feature-settings: "cv11", "ss01", "tnum"; }
-  h1, h2 { @apply font-serif tracking-tight; }
-  .tabular { font-variant-numeric: tabular-nums; }
+  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body { @apply bg-background text-foreground font-sans; }
+  h1, h2, h3 { @apply tracking-tight; }
+  h1, h2 { @apply font-semibold; }
+  table, .tabular { font-variant-numeric: tabular-nums; }
+  :focus-visible { outline-color: var(--primary); }
 }

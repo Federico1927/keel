@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { adminDb, eq, schema } from "@keel/db";
-import { formatDateTime, formatMoney } from "@keel/core";
+import { formatDateTime, formatMoney, displayName } from "@keel/core";
 import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { listOrders, parseOrderFilters } from "@/server/queries/orders";
@@ -32,7 +32,7 @@ export default async function OrdersPage({ params, searchParams }: { params: Pro
   return (
     <>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} />
-      <OrderFiltersBar basePath={base} filters={filters} counts={counts} members={members.map((m) => ({ id: m.id, name: m.name ?? m.email }))} />
+      <OrderFiltersBar basePath={base} filters={filters} counts={counts} members={members.map((m) => ({ id: m.id, name: displayName(m) }))} />
       {rows.length === 0 ? (
         <EmptyState title={t("empty_title")} description={t("empty_description")} className="mt-4" />
       ) : (

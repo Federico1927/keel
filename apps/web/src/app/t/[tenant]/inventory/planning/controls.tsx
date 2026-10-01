@@ -6,6 +6,7 @@ import { Trash2 } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Legend, Line, ComposedChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Alert, AlertDescription, Button, Checkbox, Input, Label, Select } from "@keel/ui";
 import { applyTransferAction, deleteBundleComponentAction, deleteDemandEventAction, generateDraftsAction, saveBundleComponentAction, saveDemandEventAction, setForecastOverrideAction } from "@/server/actions/planning";
+import { AXIS_TICK, CHART_COLORS, CHART_GRID, TOOLTIP_PROPS } from "@/components/charts/theme";
 
 export interface ReplenishmentView {
   variantId: string;
@@ -133,13 +134,13 @@ export function ForecastChart({ data, locale, labels }: { data: { month: string;
     <div className="h-64 w-full">
       <ResponsiveContainer>
         <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(40 12% 88%)" vertical={false} />
-          <XAxis dataKey="month" tickFormatter={label} tick={{ fontSize: 11 }} minTickGap={16} />
-          <YAxis tick={{ fontSize: 11 }} width={40} allowDecimals={false} />
-          <Tooltip labelFormatter={(m) => label(String(m))} />
+          <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} vertical={false} />
+          <XAxis dataKey="month" tickFormatter={label} tick={AXIS_TICK} stroke={CHART_GRID} minTickGap={16} />
+          <YAxis tick={AXIS_TICK} stroke={CHART_GRID} width={40} allowDecimals={false} />
+          <Tooltip {...TOOLTIP_PROPS} labelFormatter={(m) => label(String(m))} />
           <Legend wrapperStyle={{ fontSize: 12 }} />
-          <Bar dataKey="history" name={labels.history} fill="hsl(205 55% 40%)" radius={[3, 3, 0, 0]} />
-          <Line dataKey="forecast" name={labels.forecast} stroke="hsl(28 60% 45%)" strokeWidth={2} strokeDasharray="5 4" dot={{ r: 2 }} />
+          <Bar dataKey="history" name={labels.history} fill={CHART_COLORS[0]} radius={[3, 3, 0, 0]} />
+          <Line dataKey="forecast" name={labels.forecast} stroke={CHART_COLORS[1]} strokeWidth={2} strokeDasharray="5 4" dot={{ r: 2 }} />
         </ComposedChart>
       </ResponsiveContainer>
     </div>
@@ -154,13 +155,13 @@ export function CashChart({ data, locale, currency, labels }: { data: { month: s
     <div className="h-56 w-full">
       <ResponsiveContainer>
         <BarChart data={rows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(40 12% 88%)" vertical={false} />
-          <XAxis dataKey="month" tickFormatter={(m: string) => fmt.format(new Date(`${m}-01T00:00:00Z`))} tick={{ fontSize: 11 }} />
-          <YAxis tick={{ fontSize: 11 }} width={64} tickFormatter={(v: number) => money.format(v)} />
-          <Tooltip formatter={(v) => money.format(Number(v))} />
+          <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} vertical={false} />
+          <XAxis dataKey="month" tickFormatter={(m: string) => fmt.format(new Date(`${m}-01T00:00:00Z`))} tick={AXIS_TICK} stroke={CHART_GRID} />
+          <YAxis tick={AXIS_TICK} stroke={CHART_GRID} width={64} tickFormatter={(v: number) => money.format(v)} />
+          <Tooltip {...TOOLTIP_PROPS} formatter={(v) => money.format(Number(v))} />
           <Legend wrapperStyle={{ fontSize: 12 }} />
-          <Bar dataKey="committed" name={labels.committed} stackId="a" fill="hsl(205 55% 40%)" />
-          <Bar dataKey="planned" name={labels.planned} stackId="a" fill="hsl(28 60% 60%)" radius={[3, 3, 0, 0]} />
+          <Bar dataKey="committed" name={labels.committed} stackId="a" fill={CHART_COLORS[0]} />
+          <Bar dataKey="planned" name={labels.planned} stackId="a" fill={CHART_COLORS[1]} radius={[3, 3, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

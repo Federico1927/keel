@@ -22,8 +22,10 @@ export async function inviteMember(slug: string, _prev: ActionResult | null, for
     if (!parsed.success) return fail("invalid_input");
     if (!canManageRole(ctx.role, parsed.data.role)) return fail("forbidden");
     const db = adminDb();
-    const [existing] = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, parsed.data.email)).limit(1);
+    const [existing] = await db.select({ id: schema.users.id, name: schema.users.name }).from(schema.users).where(eq(schema.users.email, parsed.data.email)).limit(1);
     let userId = existing?.id;
+    // an account without a name (created by a magic link) gets the one given in the invitation
+    if (existing && !existing.name?.trim()) await db.update(schema.users).set({ name: parsed.data.name }).where(eq(schema.users.id, existing.id));
     if (!userId) {
       const [created] = await db
         .insert(schema.users)

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { adminDb, eq, inArray, schema } from "@keel/db";
-import { formatDateTime, formatMoney, daysInTransit } from "@keel/core";
+import { formatDateTime, formatMoney, daysInTransit, displayName } from "@keel/core";
 import { customerOrderHistory, duplicateSiblings } from "@keel/services";
 import { canDo, canViewPage, canWritePage, isPageEnabled } from "@keel/config";
 import { Alert, AlertDescription, AlertTitle, Badge, Button, Card, CardContent, CardHeader, CardTitle, DetailShell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
@@ -33,7 +33,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
   const actorIds = [...new Set([...events.map((e) => e.actorUserId), ...notes.map((n) => n.authorId), order.assignedTo].filter((x): x is string => Boolean(x)))];
   const extra = actorIds.filter((a) => !members.some((m) => m.id === a));
   const extraUsers = extra.length ? await adminDb().select({ id: schema.users.id, name: schema.users.name, email: schema.users.email }).from(schema.users).where(inArray(schema.users.id, extra)) : [];
-  const people = [...members, ...extraUsers].map((m) => ({ id: m.id, name: m.name ?? m.email }));
+  const people = [...members, ...extraUsers].map((m) => ({ id: m.id, name: displayName(m) }));
   const nameOf = (id: string | null | undefined) => (id ? (people.find((p) => p.id === id)?.name ?? "—") : null);
   const base = `/t/${tenant}/orders`;
   const fmt = (minor: number) => formatMoney(minor, order.currency, ctx.locale);

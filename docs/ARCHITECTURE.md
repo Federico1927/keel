@@ -53,7 +53,7 @@ Rules the graph enforces:
 
 | Group | Tables | Notes |
 | --- | --- | --- |
-| Auth and platform | `users`, `accounts`, `sessions`, `verification_tokens`, `tenants`, `tenant_memberships`, `tenant_tax_rates`, `tenant_addons`, `audit_logs`, `notifications` | A user belongs to many tenants with one role per tenant. Tenant settings (country, currency, timezone, locale, order prefix, thresholds, fees, return rules) are a validated JSON column. |
+| Auth and platform | `users`, `user_sign_ins`, `accounts`, `sessions`, `verification_tokens`, `tenants`, `tenant_memberships`, `tenant_tax_rates`, `tenant_addons`, `tenant_branding`, `audit_logs`, `notifications` | A user belongs to many tenants with one role per tenant. Tenant settings (country, currency, timezone, locale, order prefix, thresholds, fees, return rules) are a validated JSON column. |
 | Integrations | `integrations`, `integration_health`, `sync_runs`, `webhook_events` | One row per provider per tenant with `mode` (`mock`/`live`), status, encrypted credentials. `webhook_events` is unique on (source, topic, external id, source updated at): the idempotency key. `sync_runs` holds the cursor so a sync resumes. |
 | Catalog and stock | `products`, `product_variants`, `locations`, `inventory_levels`, `inventory_movements`, `cost_settings` | Variants carry `option_values` as a JSON map, no hard-coded size or colour. Movements are the ledger behind stock changes. |
 | Customers and orders | `customers`, `orders`, `order_lines`, `order_discounts`, `order_attribution`, `order_events`, `order_notes` | `orders.status` is the canonical state written only by `recomputeOrderStatus`. `order_events` is the timeline with author and field diff. `search_blob` is a generated column with a trigram index. |
@@ -160,7 +160,8 @@ Worked example, "only Northwind wants a VAT column in the orders list": add `ord
 - `apps/web/src/server/actions/*`: server actions, each starting with `requireAction`, writing through services, auditing with `auditActor(ctx)`.
 - `apps/web/src/server/queries/*`: read models for lists (server-side filters, pagination, counts).
 - i18n: `next-intl`, messages per locale under `apps/web/messages/<locale>`; a test fails when keys differ between languages. Dates, numbers and currencies always go through `Intl` with the tenant's locale, currency and timezone.
-- Auth: Auth.js with credentials and magic link (printed to the console in development); JWT sessions; middleware protects everything outside `/login`.
+- Auth: Auth.js with credentials and magic link (printed to the console in development); JWT sessions; middleware protects everything outside `/login`. `getCurrentUser` re-reads the user row on each request: a token older than `users.session_version` (password change, "sign out of other sessions") counts as signed out.
+- Look and feel: direction A tokens in `packages/ui/src/tokens.css` (mirrored in `tokens.ts`, AA-checked by a unit test), Geist via `@keel/ui/fonts`. The root layout renders the user's theme (`dark` class) and density (`data-density`) on `<html>`; only "system" is resolved by an inline script before paint. A tenant's brand colour (`tenant_branding`, made AA-safe per theme by `brandColorsFor` in core) is injected as `--primary` by the app shell and used by the public pages inside a `.light` subtree. No raw colours in `apps/web` (lint rule).
 
 ## Testing
 

@@ -1,0 +1,90 @@
+/*
+ * Direction A tokens (issue #44). Plain CSS custom properties, no Tailwind: any app can import
+ * this file. Values are mirrored in tokens.ts, where a unit test checks them for WCAG AA.
+ * The theme is a class on <html> (`dark`); `.light` forces the light set on a subtree
+ * (tenant-branded public pages). Density is `data-density` on <html>.
+ */
+:root,
+.light {
+  color-scheme: light;
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --surface-2: #f1f3f6;
+  --fg: #0b0d12;
+  --muted: #5b6170;
+  --line: #e4e7ec;
+  --line-strong: #8391a8;
+  --primary: #2b59ff;
+  --on-primary: #ffffff;
+  --success: #107244;
+  --on-success: #ffffff;
+  --warning: #935500;
+  --on-warning: #ffffff;
+  --danger: #ba2929;
+  --on-danger: #ffffff;
+  --info: #1649ff;
+  --on-info: #ffffff;
+  --sidebar: #ffffff;
+  --sidebar-fg: #0b0d12;
+  --sidebar-muted: #5b6170;
+  --sidebar-accent: #f1f3f6;
+  --chart-1: #2b59ff;
+  --chart-2: #bb8100;
+  --chart-3: #009e73;
+  --chart-4: #d55e00;
+  --chart-5: #c870a1;
+  --chart-6: #1c93d7;
+  --chart-grid: #e4e7ec;
+  --overlay: rgb(11 13 18 / 0.45);
+  --shadow-color: 220 20% 20%;
+}
+
+.dark {
+  color-scheme: dark;
+  --bg: #0b0d12;
+  --surface: #12151c;
+  --surface-2: #181c25;
+  --fg: #eef0f5;
+  --muted: #9aa1b2;
+  --line: #232836;
+  --line-strong: #566285;
+  --primary: #5b7cff;
+  --on-primary: #0b0d12;
+  --success: #3fcf8e;
+  --on-success: #0b0d12;
+  --warning: #f0a640;
+  --on-warning: #0b0d12;
+  --danger: #ff6b6b;
+  --on-danger: #0b0d12;
+  --info: #6886ff;
+  --on-info: #0b0d12;
+  --sidebar: #12151c;
+  --sidebar-fg: #eef0f5;
+  --sidebar-muted: #9aa1b2;
+  --sidebar-accent: #181c25;
+  --chart-1: #5b7cff;
+  --chart-2: #e69f00;
+  --chart-3: #009e73;
+  --chart-4: #d55e00;
+  --chart-5: #cc79a7;
+  --chart-6: #56b4e9;
+  --chart-grid: #232836;
+  --overlay: rgb(0 0 0 / 0.6);
+  --shadow-color: 0 0% 0%;
+}
+
+/* Density: comfortable is direction A's own spacing; compact tightens tables and cards. */
+:root {
+  --density-card: 1.25rem;
+  --density-cell-y: 0.5rem;
+  --density-head-h: 2.5rem;
+  --density-stat: 1rem;
+  --font-sans-stack: var(--font-geist-sans, "Geist"), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono-stack: var(--font-geist-mono, "Geist Mono"), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+[data-density="compact"] {
+  --density-card: 0.875rem;
+  --density-cell-y: 0.3125rem;
+  --density-head-h: 2rem;
+  --density-stat: 0.75rem;
+}

@@ -229,7 +229,8 @@
       "spend": "Ad spend",
       "hint": "Day {elapsed} of {days}, run rate by weekday.",
       "more": "Details"
-    }
+    },
+    "greeting_line": "{count, plural, =0 {No orders yet today} one {# order so far today} other {# orders so far today}}"
   },
   "settings": {
     "title": "Settings",
@@ -285,7 +286,8 @@
       "prices_include_tax": "Prices include tax",
       "add": "Add or update"
     },
-    "order_states_link": "Order state rules"
+    "order_states_link": "Order state rules",
+    "branding_link": "Branding"
   },
   "users": {
     "title": "Users & roles",
@@ -304,6 +306,183 @@
     "email": "Email",
     "invite": "Invite",
     "invited": "Invitation created. The sign-in link is printed in the server console in development."
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "greeting": {
+    "morning": "Good morning, {name}",
+    "afternoon": "Good afternoon, {name}",
+    "evening": "Good evening, {name}"
+  },
+  "profile": {
+    "menu": "Your profile",
+    "title": "Your profile",
+    "description": "How you appear to your team, how the app looks for you, and how you sign in.",
+    "identity": "Identity",
+    "identity_description": "Your name is shown to your team; the preferred name is how the app greets you.",
+    "name": "Full name",
+    "preferred_name": "Preferred name",
+    "preferred_name_hint": "Optional. Used in greetings, e.g. “Giulia”.",
+    "job_title": "Job title",
+    "save": "Save",
+    "saved": "Saved.",
+    "photo_upload": "Upload photo",
+    "photo_change": "Change photo",
+    "photo_remove": "Remove",
+    "uploading": "Uploading…",
+    "image_hint": "PNG, JPEG, WebP or GIF. Large pictures are reduced automatically.",
+    "preferences": "Preferences",
+    "preferences_description": "Applied to you only, on every device.",
+    "locale_default": "Workspace language",
+    "locale_default_named": "Workspace language ({language})",
+    "time_zone": "Time zone",
+    "time_zone_default": "Workspace time zone",
+    "time_zone_default_named": "Workspace time zone ({zone})",
+    "density": "Density",
+    "density_comfortable": "Comfortable",
+    "density_compact": "Compact",
+    "density_hint": "Compact shows more rows: tighter tables and cards.",
+    "format_hint": "Dates and numbers follow the language. The time zone is used for the greeting and your sign-in list; reports keep the workspace time zone so the whole team sees the same days.",
+    "security": "Sign-in and security",
+    "security_description": "Email, password and active sessions.",
+    "email": "Email",
+    "email_current": "Current email:",
+    "email_pending": "Waiting for confirmation from {email}. Nothing changes until the link in that inbox is opened.",
+    "email_cancel": "Cancel request",
+    "email_new": "New email",
+    "email_submit": "Send confirmation",
+    "email_hint": "We send a link to the new address and a notice to the current one.",
+    "email_sent": "Check the new inbox for the confirmation link.",
+    "password": "Password",
+    "password_current": "Current password",
+    "password_new": "New password",
+    "password_confirm": "Repeat the new password",
+    "password_hint": "At least 10 characters with a mix of letters, numbers and symbols, or a long phrase. Changing it signs you out everywhere else.",
+    "password_submit": "Change password",
+    "password_changed": "Password changed. Other sessions have been signed out.",
+    "sessions": "Recent sign-ins",
+    "sessions_description": "The last times your account was used to sign in.",
+    "sign_in_when": "When",
+    "sign_in_method": "Method",
+    "sign_in_device": "Device",
+    "sign_in_methods": {
+      "credentials": "Password",
+      "email": "Email link",
+      "other": "Other"
+    },
+    "sessions_sign_out_others": "Sign out of all other sessions",
+    "sessions_signed_out": "All other sessions have been signed out.",
+    "workspaces": "Workspaces",
+    "workspaces_description": "Where you have access and with which role. Roles are managed by owners and admins.",
+    "workspaces_super_admin": "Platform super-admin: you can open every workspace from the console.",
+    "errors": {
+      "invalid_input": "Some fields are invalid.",
+      "rate_limited": "Too many attempts. Try again in an hour.",
+      "wrong_password": "The current password is not correct.",
+      "weak_password": "The new password is too weak:",
+      "email_taken": "This email is already used by another account.",
+      "same_email": "This is already your email.",
+      "invalid_token": "This link is not valid.",
+      "expired_token": "This link has expired. Request a new one from your profile.",
+      "not_found": "Account not found.",
+      "password_mismatch": "The two new passwords do not match.",
+      "invalid_image": "This file is not a supported image.",
+      "image_too_large": "The image is too large (max 1.5 MB after reduction).",
+      "forbidden": "You are not allowed to do this.",
+      "unknown": "Something went wrong."
+    },
+    "password_issues": {
+      "too_short": "at least 10 characters",
+      "too_long": "at most 200 characters",
+      "too_common": "not a common or repeated password",
+      "personal": "not based on your name or email",
+      "low_variety": "mix upper and lower case, numbers and symbols (or use 16+ characters)"
+    }
+  },
+  "welcome": {
+    "title": "Complete your profile",
+    "description": "You are signed in as {email}. Tell your team who you are before you start.",
+    "submit": "Continue"
+  },
+  "email_change": {
+    "title": "Confirm your new email",
+    "description": "Confirm to use this address to sign in from now on.",
+    "confirm": "Confirm email change",
+    "done": "Done: you now sign in with {email}.",
+    "continue": "Continue",
+    "errors": {
+      "invalid_token": "This link is not valid or was already used.",
+      "expired_token": "This link has expired. Request a new one from your profile.",
+      "email_taken": "This email is already used by another account."
+    },
+    "mail_new_subject": "Confirm your new email address",
+    "mail_new_body": "Open this link to confirm the change of the email you sign in with: {url}\n\nIf you did not ask for it, ignore this message.",
+    "mail_old_subject": "Your sign-in email is about to change",
+    "mail_old_body": "Someone asked to change the sign-in email of your account to {email}. It changes only when that address confirms. If it was not you, change your password now."
+  },
+  "branding": {
+    "title": "Branding",
+    "description": "Logo and brand colour of the workspace: used in the app and as the default of the return portal, tracking, supplier and survey pages.",
+    "back": "All settings",
+    "color": "Brand colour",
+    "color_description": "Replaces the primary colour for everyone in this workspace. It is adjusted automatically so text and buttons stay readable (WCAG AA) in the light and dark theme.",
+    "color_hex": "Colour (#rrggbb)",
+    "color_picker": "Pick a colour",
+    "save": "Save colour",
+    "reset": "Use the default",
+    "invalid_color": "Use the #rrggbb format.",
+    "adjusted": "Adjusted for readability: {light} in the light theme, {dark} in the dark theme.",
+    "sample_button": "Save",
+    "sample_link": "View orders",
+    "saved": "Saved.",
+    "errors": {
+      "invalid_color": "Use the #rrggbb format.",
+      "generic": "Could not save the branding."
+    },
+    "logos": "Logos",
+    "logos_description": "One logo for light backgrounds and, optionally, one for dark backgrounds.",
+    "logo_light": "On light backgrounds",
+    "logo_dark": "On dark backgrounds",
+    "logo_dark_fallback": "Uses the light-background logo",
+    "logo_none": "No logo: the workspace name is shown",
+    "logo_upload": "Upload logo",
+    "logo_remove": "Remove",
+    "used_by": "Public pages (return portal, tracking, supplier, survey) use this branding unless their own settings override it."
+  },
+  "styleguide": {
+    "title": "Style guide",
+    "description": "Direction A, Modern SaaS (decided 2026-10-01): tokens, components in both themes, brand-colour variants and densities.",
+    "tokens": "Tokens",
+    "type_note": "Geist for interface text and headings, Geist Mono for codes; 8px corners, pill badges.",
+    "components": "Components",
+    "primary": "Primary",
+    "secondary": "Secondary",
+    "ghost": "Ghost",
+    "danger": "Danger",
+    "link": "Link",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Info",
+    "input": "Input",
+    "placeholder": "Type here",
+    "select": "Select",
+    "option": "Option",
+    "empty_title": "Nothing here yet",
+    "empty_description": "Empty states explain what will appear and how to get it.",
+    "brand": "Tenant brand colour",
+    "brand_description": "Each workspace can set its own colour; it is adjusted until text and controls pass AA in both themes.",
+    "brand_card": "Light and dark, after adjustment",
+    "adjusted": "adjusted",
+    "density": "Density",
+    "density_comfortable": "Comfortable",
+    "density_compact": "Compact",
+    "col_order": "Order",
+    "col_status": "Status",
+    "col_total": "Total"
   },
   "audit": {
     "title": "Audit log",
@@ -2466,7 +2645,8 @@
       "dashboard": "Dashboard",
       "tenants": "Tenants",
       "billing": "Billing",
-      "audit": "Audit log"
+      "audit": "Audit log",
+      "styleguide": "Style guide"
     },
     "plans": {
       "starter": "Starter",
@@ -3196,7 +3376,9 @@
     "label_enabled": "Give the customer a prepaid return label",
     "label_destination": "Return address on the label",
     "label_hint": "The label is issued at submission and its tracking code is stored on the return. In this version the label provider is simulated.",
-    "off_notice": "The portal is off: customers who open {url} get a \"page not found\". Turn on \"Portal active\" below and save."
+    "off_notice": "The portal is off: customers who open {url} get a \"page not found\". Turn on \"Portal active\" below and save.",
+    "use_branding": "Use the workspace branding",
+    "logo_branding_hint": "Empty: the logo from Settings → Branding."
   },
   "return_portal": {
     "default_title": "Return an item",

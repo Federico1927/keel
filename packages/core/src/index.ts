@@ -30,3 +30,6 @@ export * from "./retention";
 export * from "./pixel";
 export * from "./survey";
 export * from "./assistant";
+export * from "./color";
+export * from "./greeting";
+export * from "./password";
