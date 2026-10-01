@@ -698,7 +698,30 @@
       "cover": "Cobertura",
       "reorder": "Reposición"
     },
-    "planning_link": "Planificación"
+    "planning_link": "Planificación",
+    "sync_now": "Sincronizar ahora",
+    "sync_done": "Stock leído: {changed} niveles cambiados, {drift} desviaciones, {conflicts} conflictos, {zeroed} niveles obsoletos a cero.",
+    "sync_paused": "Sincronización de stock pausada por límite de tiempo; continúa en la próxima ejecución.",
+    "sync_queued": "Sincronización de stock en cola.",
+    "sync_failed": "Error en la sincronización de stock: {error}",
+    "drift_title": "Desviaciones de stock",
+    "drift_description": "Cambios encontrados por las sincronizaciones que ninguna venta, devolución, recepción o ajuste explica, valores negativos llevados a cero y niveles que la plataforma ya no informa.",
+    "drift_empty": "No hay desviaciones registradas.",
+    "drift_kind": {
+      "unexplained": "Cambio sin explicar",
+      "negative": "Negativo, a cero",
+      "not_reported": "Ya no informado"
+    },
+    "drift_columns": {
+      "seen": "Visto",
+      "variant": "Variante",
+      "location": "Ubicación",
+      "kind": "Tipo",
+      "expected": "Esperado",
+      "observed": "Plataforma"
+    },
+    "drift_all_locations": "Todas las ubicaciones",
+    "drift_times": "×{n}"
   },
   "purchasing": {
     "title": "Compras",
@@ -2137,14 +2160,26 @@
       "run": "Ejecución",
       "status": "Estado",
       "rows": "Filas",
-      "topic": "Topic"
+      "topic": "Topic",
+      "scanned": "Leídos",
+      "changed": "Cambiados",
+      "conflicts": "Conflictos",
+      "errors": "Errores",
+      "duration": "Duración"
     },
     "errors": {
       "connection_failed": "La plataforma rechazó las credenciales.",
       "mock_mode": "Este entorno está en modo mock: configura KEEL_INTEGRATION_MODE=live para conectar una cuenta real.",
       "live_mode": "La simulación solo está disponible para integraciones mock."
     },
-    "tracking": "Píxel y conversiones"
+    "tracking": "Píxel y conversiones",
+    "duration_s": "{s} s",
+    "run_kind": {
+      "initial": "histórico",
+      "delta": "delta",
+      "reconcile": "conciliación nocturna",
+      "manual": "manual"
+    }
   },
   "integration_guide": {
     "verify_legend": "Los pasos marcados “Por verificar” dependen de consolas de proveedores que cambian a menudo: compruébalos en la documentación del proveedor antes de la primera instalación.",
@@ -3864,6 +3899,47 @@
       "connect": "Conectar en Integraciones",
       "ask_owner": "Pide a un owner o admin que conecte la clave de Anthropic en Integraciones.",
       "guide": "Cómo obtener una clave"
+    }
+  },
+  "platform_writes": {
+    "status": {
+      "pending": "Pendiente de sincronizar",
+      "running": "Sincronizando",
+      "succeeded": "Sincronizado",
+      "failed": "Error de sincronización",
+      "superseded": "Reemplazado"
+    },
+    "retry": "Reintentar",
+    "retry_failed": "No se pudo reintentar",
+    "title": "Escrituras a las plataformas",
+    "description": "Cambios que Keel envía a Shopify, Meta y Google: {pending} en espera, {failed} con error, {succeeded} sincronizados en las últimas 24 horas.",
+    "empty": "Aún no hay escrituras a las plataformas.",
+    "immediate": "inmediata",
+    "attempts": "{n, plural, one {# intento} other {# intentos}}",
+    "next_attempt": "próximo intento {when}",
+    "columns": {
+      "when": "Cuándo",
+      "write": "Escritura",
+      "status": "Estado"
+    },
+    "kinds": {
+      "variant_update": "Precio de variante",
+      "product_status": "Estado del producto",
+      "inventory_set": "Nivel de stock",
+      "inventory_restock": "Reposición",
+      "order_cancel": "Cancelación de pedido",
+      "order_update_details": "Datos del pedido",
+      "order_tags": "Etiquetas del pedido",
+      "order_create": "Nuevo pedido",
+      "order_create_invoice": "Pedido con factura",
+      "discount_create": "Código de descuento",
+      "discount_pool": "Lote de códigos",
+      "return_request": "Solicitud de devolución",
+      "return_approve": "Aprobación de devolución",
+      "return_decline": "Rechazo de devolución",
+      "return_refund": "Reembolso",
+      "return_close": "Cierre de devolución",
+      "campaign_status": "Estado de campaña"
     }
   }
 }

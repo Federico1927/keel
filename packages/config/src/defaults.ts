@@ -25,3 +25,12 @@ export const TENANT_SETTING_DEFAULTS = {
 export const PAGE_SIZE = 50;
 export const MAX_SEGMENT_DEPTH = 3;
 export const MAX_SEGMENT_CONDITIONS = 30;
+
+/** Days processed webhook events, finished platform writes, sync runs and job rows are kept (platform-wide, not per tenant). */
+export const PLATFORM_RETENTION_DAYS_DEFAULT = 14;
+
+/** Retention window from `KEEL_RETENTION_DAYS` (1–365), the default otherwise. */
+export function platformRetentionDays(env: Record<string, string | undefined> = process.env): number {
+  const n = Number(env.KEEL_RETENTION_DAYS);
+  return Number.isInteger(n) && n >= 1 && n <= 365 ? n : PLATFORM_RETENTION_DAYS_DEFAULT;
+}

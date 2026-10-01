@@ -698,7 +698,30 @@
       "cover": "Cover",
       "reorder": "Reorder"
     },
-    "planning_link": "Planning"
+    "planning_link": "Planning",
+    "sync_now": "Sync now",
+    "sync_done": "Stock read: {changed} levels changed, {drift} drift, {conflicts} conflicts, {zeroed} stale levels zeroed.",
+    "sync_paused": "Stock sync paused at the time budget; it continues on the next run.",
+    "sync_queued": "Stock sync queued.",
+    "sync_failed": "Stock sync failed: {error}",
+    "drift_title": "Stock drift",
+    "drift_description": "Changes found by syncs that no sale, return, receipt or adjustment explains, negative values clamped to zero, and levels the platform no longer reports.",
+    "drift_empty": "No drift recorded.",
+    "drift_kind": {
+      "unexplained": "Unexplained change",
+      "negative": "Negative, clamped",
+      "not_reported": "No longer reported"
+    },
+    "drift_columns": {
+      "seen": "Seen",
+      "variant": "Variant",
+      "location": "Location",
+      "kind": "Kind",
+      "expected": "Expected",
+      "observed": "Platform"
+    },
+    "drift_all_locations": "All locations",
+    "drift_times": "×{n}"
   },
   "purchasing": {
     "title": "Purchasing",
@@ -2137,14 +2160,26 @@
       "run": "Run",
       "status": "Status",
       "rows": "Rows",
-      "topic": "Topic"
+      "topic": "Topic",
+      "scanned": "Scanned",
+      "changed": "Changed",
+      "conflicts": "Conflicts",
+      "errors": "Errors",
+      "duration": "Duration"
     },
     "errors": {
       "connection_failed": "The platform refused the credentials.",
       "mock_mode": "This environment is in mock mode: set KEEL_INTEGRATION_MODE=live to connect a real account.",
       "live_mode": "Simulation is only available for mock integrations."
     },
-    "tracking": "Pixel & conversions"
+    "tracking": "Pixel & conversions",
+    "duration_s": "{s} s",
+    "run_kind": {
+      "initial": "backfill",
+      "delta": "delta",
+      "reconcile": "nightly reconcile",
+      "manual": "manual"
+    }
   },
   "integration_guide": {
     "verify_legend": "Steps marked “To verify” depend on vendor consoles that change often: check them against the vendor documentation before the first install.",
@@ -3864,6 +3899,47 @@
       "connect": "Connect in Integrations",
       "ask_owner": "Ask an owner or admin to connect the Anthropic key in Integrations.",
       "guide": "How to get a key"
+    }
+  },
+  "platform_writes": {
+    "status": {
+      "pending": "Pending sync",
+      "running": "Syncing",
+      "succeeded": "Synced",
+      "failed": "Sync failed",
+      "superseded": "Replaced"
+    },
+    "retry": "Retry",
+    "retry_failed": "Could not retry",
+    "title": "Platform writes",
+    "description": "Changes Keel sends to Shopify, Meta and Google: {pending} waiting, {failed} failed, {succeeded} synced in the last 24 hours.",
+    "empty": "No platform writes yet.",
+    "immediate": "immediate",
+    "attempts": "{n, plural, one {# attempt} other {# attempts}}",
+    "next_attempt": "next attempt {when}",
+    "columns": {
+      "when": "When",
+      "write": "Write",
+      "status": "Status"
+    },
+    "kinds": {
+      "variant_update": "Variant price",
+      "product_status": "Product status",
+      "inventory_set": "Stock level",
+      "inventory_restock": "Restock",
+      "order_cancel": "Order cancellation",
+      "order_update_details": "Order details",
+      "order_tags": "Order tags",
+      "order_create": "New order",
+      "order_create_invoice": "Invoice order",
+      "discount_create": "Discount code",
+      "discount_pool": "Discount pool",
+      "return_request": "Return request",
+      "return_approve": "Return approval",
+      "return_decline": "Return decline",
+      "return_refund": "Refund",
+      "return_close": "Return closing",
+      "campaign_status": "Campaign status"
     }
   }
 }

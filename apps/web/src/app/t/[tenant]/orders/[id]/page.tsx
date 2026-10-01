@@ -4,12 +4,13 @@ import { getTranslations } from "next-intl/server";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { adminDb, eq, inArray, schema } from "@keel/db";
 import { formatDateTime, formatMoney, daysInTransit } from "@keel/core";
-import { customerOrderHistory, duplicateSiblings } from "@keel/services";
+import { customerOrderHistory, duplicateSiblings, latestPlatformWrites } from "@keel/services";
 import { canDo, canViewPage, canWritePage, isPageEnabled } from "@keel/config";
 import { Alert, AlertDescription, AlertTitle, Badge, Button, Card, CardContent, CardHeader, CardTitle, DetailShell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { adjacentOrders, getOrderDetail } from "@/server/queries/orders";
 import { StatusBadge } from "@/components/status-badge";
+import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { OrderActions } from "./actions-bar";
 import { Timeline } from "./timeline";
 import { NotesPanel } from "./notes";
@@ -24,10 +25,11 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
   const canRequestReturn = canWritePage(ctx.role, "returns") && isPageEnabled("returns", ctx.activeAddons) && ["shipped", "delivered", "returned_partial"].includes(order.status);
   const t = await getTranslations("order_detail");
   const tp = await getTranslations("payment_methods");
-  const [history, duplicates, adjacent] = await Promise.all([
+  const [history, duplicates, adjacent, platformWrite] = await Promise.all([
     ctx.run((tx) => customerOrderHistory({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, id)),
     ctx.run((tx) => duplicateSiblings({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, id, ctx.settings.duplicateOrderWindowDays)),
     adjacentOrders(ctx, order.placedAt, order.id),
+    ctx.run(async (tx) => (await latestPlatformWrites({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, "order", [id])).get(id)),
   ]);
   const members = await adminDb().select({ id: schema.users.id, name: schema.users.name, email: schema.users.email }).from(schema.tenantMemberships).innerJoin(schema.users, eq(schema.users.id, schema.tenantMemberships.userId)).where(eq(schema.tenantMemberships.tenantId, ctx.tenant.id));
   const actorIds = [...new Set([...events.map((e) => e.actorUserId), ...notes.map((n) => n.authorId), order.assignedTo].filter((x): x is string => Boolean(x)))];
@@ -79,6 +81,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
             </Badge>
           ))}
           {order.assignedTo && <Badge variant="info">{t("assigned_to", { name: nameOf(order.assignedTo) ?? "" })}</Badge>}
+          <PlatformWriteStatus slug={tenant} write={platformWrite} canRetry={canDo(ctx.role, "cancel_order")} showError />
         </>
       }
       actions={canChange ? <OrderActions slug={tenant} orderId={order.id} currentStatus={order.status} statusSource={order.statusSource} cancelled={Boolean(order.cancelledAt)} members={people} assignedTo={order.assignedTo} canCancel={canDo(ctx.role, "cancel_order")} canAssign={canDo(ctx.role, "assign")} /> : undefined}

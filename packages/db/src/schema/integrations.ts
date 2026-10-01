@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, integer, jsonb, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { createdAt, tenantIsolation, updatedAt } from "./_common";
 import { tenantColumns } from "./_tenant";
 
@@ -78,10 +78,63 @@ export const syncRuns = pgTable(
     kind: text("kind").notNull().default("delta"),
     status: text("status").notNull().default("running"),
     cursor: jsonb("cursor").notNull().default(sql`'{}'::jsonb`),
+    /** Objects changed (created, updated, zeroed). */
     rowsWritten: integer("rows_written").notNull().default(0),
+    /** Objects read from the platform. */
+    rowsScanned: integer("rows_scanned").notNull().default(0),
+    /** Platform values that disagreed with what Keel expected (drift, a Keel write not yet confirmed). */
+    conflicts: integer("conflicts").notNull().default(0),
+    errorCount: integer("error_count").notNull().default(0),
+    /** Working time summed over the resumed slices of the run. */
+    durationMs: integer("duration_ms"),
+    summary: jsonb("summary").notNull().default(sql`'{}'::jsonb`),
     error: text("error"),
     startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
     finishedAt: timestamp("finished_at", { withTimezone: true }),
   },
   (t) => [index("sync_runs_tenant_started_idx").on(t.tenantId, t.startedAt), tenantIsolation("sync_runs")],
+).enableRLS();
+
+/**
+ * Outbound write outbox: every write to a commerce or ads platform is a row here, keyed for
+ * idempotency, executed by a job (or inline when no worker runs), retried with backoff.
+ * `mode = sync` rows record writes a flow needed an immediate answer for (executed in the request).
+ */
+export const platformWrites = pgTable(
+  "platform_writes",
+  {
+    ...tenantColumns(),
+    provider: text("provider").notNull(),
+    kind: text("kind").notNull(),
+    mode: text("mode").notNull().default("async"),
+    /** Keel record the write belongs to (for the status badge). */
+    entityType: text("entity_type").notNull(),
+    entityId: uuid("entity_id"),
+    /** Platform object written (`variant:<id>`, `inventory:<item>@<location>`…): newer writes supersede older pending ones on the same target. */
+    targetKey: text("target_key").notNull(),
+    payload: jsonb("payload").notNull(),
+    payloadHash: text("payload_hash").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    /** pending | running | succeeded | failed | superseded */
+    status: text("status").notNull().default("pending"),
+    attempts: integer("attempts").notNull().default(0),
+    maxAttempts: integer("max_attempts").notNull().default(6),
+    nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true }).notNull().defaultNow(),
+    lastError: text("last_error"),
+    lastErrorCode: text("last_error_code"),
+    result: jsonb("result"),
+    actorType: text("actor_type").notNull().default("system"),
+    actorUserId: uuid("actor_user_id"),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    uniqueIndex("platform_writes_idempotency_uq").on(t.tenantId, t.idempotencyKey),
+    index("platform_writes_due_idx").on(t.tenantId, t.status, t.nextAttemptAt),
+    index("platform_writes_entity_idx").on(t.tenantId, t.entityType, t.entityId, t.createdAt),
+    index("platform_writes_target_idx").on(t.tenantId, t.targetKey, t.createdAt),
+    tenantIsolation("platform_writes"),
+  ],
 ).enableRLS();

@@ -1,7 +1,7 @@
 import { and, eq, inArray, schema } from "@keel/db";
 import { addressKey, nameZipKey, normalizeEmail, normalizePhone } from "@keel/core";
 import type { Address, CommercePlatform, CreateOrderInput } from "@keel/integrations";
-import { applyCancellation, importOrder, type ServiceContext } from "@keel/services";
+import { applyCancellation, importOrder, runPlatformWriteNow, type ServiceContext } from "@keel/services";
 import { OPEN_QUEUE_STATUSES } from "../queue";
 import { classifyTags } from "../tags";
 import type { CodSettings } from "../settings";
@@ -30,6 +30,7 @@ export type ModifyOrderResult = { kind: "updated"; orderId: string; changed: str
 type OrderRow = typeof schema.orders.$inferSelect;
 type LineRow = typeof schema.orderLines.$inferSelect;
 
+const allSourceIds = (id: string, sources: { order: { id: string } }[]) => [id, ...sources.map((s) => s.order.id).sort()].join(",");
 const sameAddress = (a: Address | null, b: Address | null) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 
 async function loadOrder(ctx: ServiceContext, orderId: string): Promise<{ order: OrderRow; lines: LineRow[] }> {
@@ -131,7 +132,7 @@ export async function modifyCodOrder(ctx: ServiceContext, platform: CommercePlat
 
   if (!needsReplace) {
     if (contact.changed.length) {
-      if (platform && order.externalId) await platformCall(() => platform.updateOrderDetails(order.externalId!, contact.platform));
+      if (platform && order.externalId) await platformCall(() => runPlatformWriteNow(ctx, platform, { kind: "order.update_details", entityType: "order", entityId: order.id, payload: { orderExternalId: order.externalId!, patch: contact.platform } }));
       await ctx.tx.update(schema.orders).set({ ...contact.patch, updatedAt: now }).where(eq(schema.orders.id, order.id));
       const diff = Object.fromEntries(contact.changed.map((k) => [k, { from: (order as Record<string, unknown>)[k] ?? null, to: (contact.patch as Record<string, unknown>)[k] ?? null }]));
       await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: order.id, type: "modified", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff, metadata: { source: "cod" }, createdAt: now });
@@ -176,7 +177,8 @@ export async function modifyCodOrder(ctx: ServiceContext, platform: CommercePlat
   };
   if (!platform) throw new CodError("platform_error", "no commerce platform");
   if (input.registerAttempt !== false) await recordAttempt(ctx, { orderId: order.id, outcome: "modified", note: input.attemptNote ?? null }, settings, { platform });
-  const created = await platformCall(() => platform.createOrder(createInput));
+  // synchronous: the replacement's number and lines are needed right away; keyed so a repeated request reuses the order already created
+  const created = await platformCall(() => runPlatformWriteNow(ctx, platform, { kind: "order.create", entityType: "order", entityId: order.id, payload: { input: createInput }, idempotencyKey: `cod:replace:${order.id}:${allSourceIds(order.id, sources)}` }));
   const imported = await importOrder(ctx, created, { country: opts.country, source: "sync" });
   const allOld = [{ order, lines, item }, ...sources];
   await ctx.tx.update(schema.orders).set({ replacesOrderId: order.id, assignedTo: item.assignedTo }).where(eq(schema.orders.id, imported.id));
@@ -193,7 +195,7 @@ export async function modifyCodOrder(ctx: ServiceContext, platform: CommercePlat
     let cancelledOnPlatform = !o.order.externalId;
     if (o.order.externalId) {
       try {
-        await platform.cancelOrder(o.order.externalId, { reason: "customer", restock: true, refund: false });
+        await runPlatformWriteNow(ctx, platform, { kind: "order.cancel", entityType: "order", entityId: o.order.id, payload: { orderExternalId: o.order.externalId, reason: "customer", restock: true, refund: false } });
         cancelledOnPlatform = true;
       } catch {
         warning = "old_order_not_cancelled";

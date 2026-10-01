@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { adminDb, and, eq, recordAudit, schema } from "@keel/db";
 import { ORDER_STATUSES, type OrderStatus } from "@keel/core";
-import { addOrderNote, applyCancellation, clearManualStatus, deleteOrderNote, setManualStatus } from "@keel/services";
-import { getCommercePlatform } from "@/server/integrations";
+import { addOrderNote, applyCancellation, clearManualStatus, deleteOrderNote, enqueuePlatformWrite, setManualStatus } from "@keel/services";
+import { dispatchPlatformWrites } from "@/server/platform-writes";
 import { ForbiddenError, requireAction } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 
@@ -43,25 +43,20 @@ export async function resetOrderStatus(slug: string, orderId: string): Promise<A
   }
 }
 
-/** Cancels on the platform first (adapter), then aligns the local order and recomputes the status. */
+/** Cancels locally and enqueues the platform cancellation in the same transaction; the write then runs (queued or inline) and its status shows on the order. */
 export async function cancelOrder(slug: string, orderId: string, input: { reason: string; restock: boolean; refund: boolean }): Promise<ActionResult> {
   try {
     const ctx = await requireAction(slug, "cancel_order", "orders");
     const order = await ctx.run(async (tx) => (await tx.select().from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenant.id), eq(schema.orders.id, orderId))).limit(1))[0]);
     if (!order) return fail("not_found");
     if (order.cancelledAt) return fail("already_cancelled");
-    const platform = await getCommercePlatform(ctx);
-    if (order.externalId) {
-      try {
-        await platform.cancelOrder(order.externalId, { reason: input.reason, restock: input.restock, refund: input.refund });
-      } catch (e) {
-        return fail("platform_error", { platform: e instanceof Error ? e.message : String(e) });
-      }
-    }
-    await ctx.run(async (tx) => {
-      await applyCancellation({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, orderId, input);
+    const write = await ctx.run(async (tx) => {
+      const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
+      await applyCancellation(s, orderId, input);
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "order.cancelled", entityType: "order", entityId: orderId, metadata: input });
+      return order.externalId ? enqueuePlatformWrite(s, { kind: "order.cancel", entityType: "order", entityId: orderId, payload: { orderExternalId: order.externalId, reason: input.reason, restock: input.restock, refund: input.refund } }) : null;
     });
+    await dispatchPlatformWrites(ctx, [write]);
     revalidatePath(`/t/${slug}/orders/${orderId}`);
     return ok();
   } catch (e) {

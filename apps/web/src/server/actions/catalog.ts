@@ -3,14 +3,15 @@ import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, eq, recordAudit, schema } from "@keel/db";
-import { getCommercePlatform } from "@/server/integrations";
+import { enqueuePlatformWrite } from "@keel/services";
+import { dispatchPlatformWrites } from "@/server/platform-writes";
 import { ForbiddenError, requireWrite } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 
 const priceSchema = z.object({ variantId: z.string().uuid(), priceMinor: z.coerce.number().int().min(0) });
 const statusSchema = z.object({ productId: z.string().uuid(), status: z.enum(["active", "draft", "archived"]) });
 
-/** Price change: platform first, then local. */
+/** Price change: local change and the outbox write in one transaction, then the write runs (queued or inline). */
 export async function updateVariantPrice(slug: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   try {
     const ctx = await requireWrite(slug, "products");
@@ -18,18 +19,12 @@ export async function updateVariantPrice(slug: string, _prev: ActionResult | nul
     if (!parsed.success) return fail("invalid_input");
     const variant = await ctx.run(async (tx) => (await tx.select().from(schema.productVariants).where(and(eq(schema.productVariants.tenantId, ctx.tenant.id), eq(schema.productVariants.id, parsed.data.variantId))).limit(1))[0]);
     if (!variant) return fail("not_found");
-    const platform = await getCommercePlatform(ctx);
-    if (variant.externalId) {
-      try {
-        await platform.updateVariant(variant.externalId, { priceMinor: parsed.data.priceMinor });
-      } catch (e) {
-        return fail("platform_error", { platform: e instanceof Error ? e.message : String(e) });
-      }
-    }
-    await ctx.run(async (tx) => {
+    const write = await ctx.run(async (tx) => {
       await tx.update(schema.productVariants).set({ priceMinor: parsed.data.priceMinor }).where(eq(schema.productVariants.id, variant.id));
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "variant.price_updated", entityType: "variant", entityId: variant.id, diff: { priceMinor: { from: variant.priceMinor, to: parsed.data.priceMinor } } });
+      return variant.externalId ? enqueuePlatformWrite({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { kind: "variant.update", entityType: "variant", entityId: variant.id, payload: { variantExternalId: variant.externalId, priceMinor: parsed.data.priceMinor } }) : null;
     });
+    await dispatchPlatformWrites(ctx, [write]);
     revalidatePath(`/t/${slug}/products/${variant.productId}`);
     return ok();
   } catch (e) {
@@ -45,18 +40,12 @@ export async function updateProductStatus(slug: string, productId: string, statu
     if (!parsed.success) return fail("invalid_input");
     const product = await ctx.run(async (tx) => (await tx.select().from(schema.products).where(and(eq(schema.products.tenantId, ctx.tenant.id), eq(schema.products.id, productId))).limit(1))[0]);
     if (!product) return fail("not_found");
-    const platform = await getCommercePlatform(ctx);
-    if (product.externalId) {
-      try {
-        await platform.updateProductStatus(product.externalId, parsed.data.status);
-      } catch (e) {
-        return fail("platform_error", { platform: e instanceof Error ? e.message : String(e) });
-      }
-    }
-    await ctx.run(async (tx) => {
+    const write = await ctx.run(async (tx) => {
       await tx.update(schema.products).set({ status: parsed.data.status }).where(eq(schema.products.id, productId));
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "product.status_updated", entityType: "product", entityId: productId, diff: { status: { from: product.status, to: parsed.data.status } } });
+      return product.externalId ? enqueuePlatformWrite({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { kind: "product.status", entityType: "product", entityId: productId, payload: { productExternalId: product.externalId, status: parsed.data.status } }) : null;
     });
+    await dispatchPlatformWrites(ctx, [write]);
     revalidatePath(`/t/${slug}/products/${productId}`);
     return ok();
   } catch (e) {

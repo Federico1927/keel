@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, eq, recordAudit, schema } from "@keel/db";
 import { PURCHASE_ORDER_STATUSES, type PurchaseOrderStatus } from "@keel/core";
-import { PurchasingError, createPurchaseOrder, receivePurchaseOrder, recordSupplierPayment, transitionPurchaseOrder } from "@keel/services";
-import { getCommercePlatform } from "@/server/integrations";
+import { PurchasingError, createPurchaseOrder, enqueuePlatformWrite, receivePurchaseOrder, recordSupplierPayment, transitionPurchaseOrder, type PlatformWriteRow } from "@keel/services";
+import { dispatchPlatformWrites } from "@/server/platform-writes";
 import { ForbiddenError, requireAction } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 
@@ -40,23 +40,27 @@ export async function receivePo(slug: string, poId: string, _prev: ActionResult<
     for (const [k, v] of formData.entries()) if (k.startsWith("qty_")) lines.push({ lineId: k.slice(4), quantity: Number(v) });
     const parsed = receiveSchema.safeParse({ locationId: formData.get("locationId") || null, pushToPlatform: formData.get("pushToPlatform") === "on", lines });
     if (!parsed.success || parsed.data.lines.every((l) => l.quantity === 0)) return fail("invalid_input");
-    const platform = parsed.data.pushToPlatform ? await getCommercePlatform(ctx) : null;
+    const push = parsed.data.pushToPlatform;
+    const writes: PlatformWriteRow[] = [];
     const result = await ctx.run(async (tx) => {
-      const r = await receivePurchaseOrder({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, {
+      const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
+      const r = await receivePurchaseOrder(s, {
         poId,
         locationId: parsed.data.locationId,
         lines: parsed.data.lines,
-        pushToPlatform: platform
+        // the new stock level goes to the platform through the outbox, committed with the receipt
+        pushToPlatform: push
           ? async (variantId, locationId, available) => {
               const [v] = await tx.select({ inv: schema.productVariants.inventoryItemExternalId }).from(schema.productVariants).where(eq(schema.productVariants.id, variantId)).limit(1);
               const [l] = await tx.select({ ext: schema.locations.externalId }).from(schema.locations).where(eq(schema.locations.id, locationId)).limit(1);
-              if (v?.inv && l?.ext) await platform.setInventory(v.inv, l.ext, available);
+              if (v?.inv && l?.ext) writes.push(await enqueuePlatformWrite(s, { kind: "inventory.set", entityType: "variant", entityId: variantId, payload: { inventoryItemExternalId: v.inv, locationExternalId: l.ext, available } }));
             }
           : undefined,
       });
-      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "purchase_order.received", entityType: "purchase_order", entityId: poId, metadata: { status: r.status, received: r.received.map((x) => ({ variantId: x.variantId, quantity: x.quantity, cost: x.newCostMinor })), releasedOrders: r.releasedOrders, pushToPlatform: Boolean(platform) } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "purchase_order.received", entityType: "purchase_order", entityId: poId, metadata: { status: r.status, received: r.received.map((x) => ({ variantId: x.variantId, quantity: x.quantity, cost: x.newCostMinor })), releasedOrders: r.releasedOrders, pushToPlatform: push } });
       return r;
     });
+    await dispatchPlatformWrites(ctx, writes);
     revalidatePath(`/t/${slug}/purchasing/${poId}`);
     revalidatePath(`/t/${slug}/inventory`);
     return ok({ status: result.status, released: result.releasedOrders.length });

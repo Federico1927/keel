@@ -317,6 +317,26 @@ Fatto:
 
 Resta per la issue #7: email di stato ai clienti, validazione indirizzi, pagine guida mancanti.
 
+## Scritture verso le piattaforme e sync affidabili (issue #24)
+
+Fatto:
+- Outbox `platform_writes`: ogni scrittura verso Shopify, Meta o Google è una riga con chiave di idempotenza, scritta nella stessa transazione della modifica locale. Va al job pg-boss `platform.write` quando c'è il worker, altrimenti parte subito dopo la richiesta. Ritentativi con attesa crescente: prima il Retry-After della piattaforma, poi 30 s × 2^n fino a 1 ora, al massimo 6 tentativi. Gli errori permanenti (permessi, richiesta non valida) falliscono subito con un messaggio leggibile.
+- Il tick `writes`, ogni minuto, esegue le scritture scadute e si ferma sul rate limit del fornitore.
+- Doppio clic o azione ripetuta entro 10 minuti: stessa riga, una sola scrittura sulla piattaforma (test con `failNext("rate_limited")`). Un valore più recente sostituisce le scritture ancora in attesa sullo stesso oggetto.
+- Migrate in coda: prezzo e stato prodotto, annullamento ordine, codice sconto singolo, stock al ricevimento dell'ordine d'acquisto e nei trasferimenti, pausa e riattivazione su Meta. Google viene rifiutato subito (sola lettura).
+- Restano sincrone ma registrate nell'outbox, perché il flusso ha bisogno della risposta: tag e annullamento COD, modifiche contatto e ordine sostitutivo COD, passi del write-back resi (con chiave per reso e passo), pool di codici sconto.
+- Badge "In attesa di sync" / "Sync non riuscito" con Riprova su prodotto (stato, prezzo, stock), ordine, sconto e campagna. Integrazioni → nuova scheda "Scritture verso le piattaforme" con conteggi, errori e Riprova. Come aggiungere un nuovo tipo di scrittura è spiegato in ARCHITECTURE.
+- `sync_runs` con letti, modificati, conflitti, errori, durata e riepilogo, mostrati nella tabella delle esecuzioni sulla pagina Integrazioni.
+- Sync del catalogo riprendibile a fasi con cursore salvato a ogni pagina; la notturna è una riconciliazione completa e alla fine azzera i livelli che la piattaforma non riporta più.
+- Stock riletto subito dopo i webhook `orders/*`, `fulfillments/*` e `refunds/create` (nuovo topic registrato). Pulsante "Sincronizza ora" nella pagina Magazzino.
+- Registro degli scostamenti di stock (`inventory_drift`), deduplicato: variazioni non spiegate da vendite o annullamenti, valori negativi riportati a zero, livelli non più riportati. Un livello con una scrittura Keel non ancora confermata non viene sovrascritto e conta come conflitto. Scheda "Scostamenti di stock" nella pagina Magazzino.
+- Il mock commerce tiene lo stock per articolo e location partendo dai livelli del negozio: gli ordini lo scalano e le scritture lo aggiornano.
+- Retention giornaliera (04:10) con finestra di piattaforma `KEEL_RETENTION_DAYS`, predefinita 14 giorni. Cancella webhook elaborati, scritture riuscite o sostituite, esecuzioni riuscite e scostamenti vecchi; webhook e scritture fallite restano finché non vengono risolti. Le code pg-boss usano la stessa finestra.
+- Seed: per entrambi i negozi scritture riuscite, una fallita con errore leggibile e una in attesa dopo un rate limit, esecuzioni di riconciliazione notturna (ordini e catalogo) e tre scostamenti di stock.
+- Migrazione 0019 (2 tabelle con RLS, 5 colonne con default su `sync_runs`, nessun SQL scritto a mano). Test: servizi 95 (8 nuovi), addon-cod 20, db 522, integrazioni 45, core 153, web 3; e2e `platform-writes.spec.ts` (3).
+
+Resta: scrittura del costo prodotto verso Shopify (issue #23, un tipo di scrittura in più); modifica ordini nel core (issue #22) da appoggiare sull'outbox.
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).
