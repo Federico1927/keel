@@ -7,6 +7,7 @@ import { generateTenantDataset, type TenantSeedConfig } from "./generator";
 import { writeDataset } from "./writer";
 import { createRng } from "@keel/integrations";
 import { allocateLandedCost, normalizePhone } from "@keel/core";
+import { MODULES, PLANS, PLATFORM_CURRENCY } from "@keel/config";
 import { sql } from "drizzle-orm";
 
 /** Password of every demo user; override with KEEL_DEMO_PASSWORD on a hosted demo (an empty value keeps the default). */
@@ -132,8 +133,8 @@ async function seedBilling(db: ReturnType<typeof drizzle<typeof schema>>, tenant
   const now = new Date();
   const month = (n: number) => new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - n, 1));
   const plans: Record<keyof typeof DEMO_TENANTS, { planKey: string; monthly: number; setup: number; currency: string; months: number; lastPaid: boolean }> = {
-    northwind: { planKey: "growth", monthly: 34900 + 9900, setup: 99000, currency: "EUR", months: 6, lastPaid: true },
-    harbor: { planKey: "starter", monthly: 14900, setup: 49000, currency: "EUR", months: 3, lastPaid: false },
+    northwind: { planKey: "growth", monthly: PLANS.growth.monthlyPriceMinor + MODULES["addon.cod"].monthlyPriceMinor!, setup: PLANS.growth.setupFeeMinor, currency: PLATFORM_CURRENCY, months: 6, lastPaid: true },
+    harbor: { planKey: "starter", monthly: PLANS.starter.monthlyPriceMinor, setup: PLANS.starter.setupFeeMinor, currency: PLATFORM_CURRENCY, months: 3, lastPaid: false },
   };
   for (const key of Object.keys(plans) as (keyof typeof DEMO_TENANTS)[]) {
     const tenantId = tenantIds[key];
@@ -147,7 +148,7 @@ async function seedBilling(db: ReturnType<typeof drizzle<typeof schema>>, tenant
     for (let m = p.months - 1; m >= 0; m--) {
       const issued = month(m);
       const isLast = m === 0;
-      rows.push({ number: `INV-${issued.getUTCFullYear()}-${String(rows.length + 1).padStart(4, "0")}`, kind: "subscription", amountMinor: p.monthly, lines: p.planKey === "growth" ? [{ kind: "plan", key: "growth", amountMinor: 34900 }, { kind: "addon", key: "addon.cod", amountMinor: 9900 }] : [{ kind: "plan", key: "starter", amountMinor: 14900 }], issuedAt: issued, dueAt: new Date(issued.getTime() + 7 * 864e5), paidAt: isLast && !p.lastPaid ? null : new Date(issued.getTime() + 2 * 864e5), periodStart: issued, periodEnd: month(m - 1) });
+      rows.push({ number: `INV-${issued.getUTCFullYear()}-${String(rows.length + 1).padStart(4, "0")}`, kind: "subscription", amountMinor: p.monthly, lines: p.planKey === "growth" ? [{ kind: "plan", key: "growth", amountMinor: PLANS.growth.monthlyPriceMinor }, { kind: "addon", key: "addon.cod", amountMinor: MODULES["addon.cod"].monthlyPriceMinor! }] : [{ kind: "plan", key: "starter", amountMinor: PLANS.starter.monthlyPriceMinor }], issuedAt: issued, dueAt: new Date(issued.getTime() + 7 * 864e5), paidAt: isLast && !p.lastPaid ? null : new Date(issued.getTime() + 2 * 864e5), periodStart: issued, periodEnd: month(m - 1) });
     }
     for (const r of rows) await db.insert(schema.invoices).values({ tenantId, subscriptionId: sub!.id, number: r.number, provider: "mock", externalId: `mock_in_${r.number}`, status: r.paidAt ? "paid" : "open", kind: r.kind, amountMinor: r.amountMinor, currency: p.currency, lines: r.lines, periodStart: r.periodStart, periodEnd: r.periodEnd, issuedAt: r.issuedAt, dueAt: r.dueAt, paidAt: r.paidAt }).onConflictDoNothing();
   }
