@@ -155,13 +155,6 @@
       "when": 1790891426937,
       "tag": "0021_late_tana_nile",
       "breakpoints": true
-    },
-    {
-      "idx": 22,
-      "version": "7",
-      "when": 1790892015579,
-      "tag": "0022_living_nighthawk",
-      "breakpoints": true
     }
   ]
 }
