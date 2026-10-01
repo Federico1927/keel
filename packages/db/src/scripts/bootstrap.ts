@@ -1,12 +1,26 @@
 /**
  * Creates the database roles and databases when Docker is not used
  * (system PostgreSQL). Idempotent. Needs a superuser connection in
- * DATABASE_SUPERUSER_URL (default postgres://postgres:postgres@127.0.0.1:5432/postgres).
+ * DATABASE_SUPERUSER_URL (default: user postgres/postgres on the host and port of DATABASE_ADMIN_URL).
  */
 import { Client } from "pg";
 
-const superUrl =
-  process.env.DATABASE_SUPERUSER_URL ?? "postgres://postgres:postgres@127.0.0.1:5432/postgres";
+/** Superuser URL: explicit, else the compose superuser on the same host and port as DATABASE_ADMIN_URL. */
+function defaultSuperUrl(): string {
+  const u = new URL("postgres://postgres:postgres@127.0.0.1:5432/postgres");
+  const admin = process.env.DATABASE_ADMIN_URL;
+  if (admin) {
+    try {
+      const a = new URL(admin);
+      u.hostname = a.hostname;
+      u.port = a.port;
+    } catch {
+      /* keep the default */
+    }
+  }
+  return u.toString();
+}
+const superUrl = process.env.DATABASE_SUPERUSER_URL ?? defaultSuperUrl();
 const databases = (process.env.KEEL_DATABASES ?? "keel,keel_test").split(",").map((s) => s.trim());
 
 async function run() {
