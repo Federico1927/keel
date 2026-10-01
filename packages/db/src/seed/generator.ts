@@ -108,6 +108,8 @@ export interface TenantDataset {
   integrationHealth: Row[];
   webhookEvents: Row[];
   syncRuns: Row[];
+  platformWrites: Row[];
+  inventoryDrift: Row[];
   auditLogs: Row[];
 }
 
@@ -223,7 +225,7 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
   const ds: TenantDataset = {
     locations: [], products: [], productVariants: [], inventoryLevels: [], inventoryMovements: [], customers: [], campaigns: [], adMetricsDaily: [], campaignProductLinks: [], discountPools: [], discounts: [],
     orders: [], orderLines: [], orderEvents: [], orderNotes: [], orderDiscounts: [], orderAttribution: [], shipments: [], shipmentSourceStates: [], shipmentEvents: [], shipmentStatusMappings: [], stateRules: [], costSettings: [], periodCosts: [], touchpoints: [], adCreatives: [], adCreativeMetricsDaily: [],
-    returnReasons: [], returnRequests: [], returnLines: [], suppliers: [], purchaseOrders: [], purchaseOrderLines: [], supplierPayments: [], backorders: [], segments: [], segmentMemberships: [], notifications: [], integrations: [], integrationHealth: [], webhookEvents: [], syncRuns: [], auditLogs: [],
+    returnReasons: [], returnRequests: [], returnLines: [], suppliers: [], purchaseOrders: [], purchaseOrderLines: [], supplierPayments: [], backorders: [], segments: [], segmentMemberships: [], notifications: [], integrations: [], integrationHealth: [], webhookEvents: [], syncRuns: [], platformWrites: [], inventoryDrift: [], auditLogs: [],
   };
   const t = (row: Row): Row & { id: string; tenantId: string } => ({ id: rng.uuid(), tenantId, ...row });
   let extCounter = 1000;
@@ -756,7 +758,7 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
   for (const [provider, accId, accName] of providers) {
     ds.integrations.push(t({ provider, status: "connected", mode: "mock", externalAccountId: accId, externalAccountName: accName, credentialsEncrypted: null, config: provider === "shopify" ? { webhooksRegistered: true, apiVersion: "2025-07" } : {}, lastSyncAt: addHours(now, -1), lastSuccessAt: addHours(now, -1), lastError: null }));
     ds.integrationHealth.push(t({ source: provider, status: "ok", lastSuccessAt: addHours(now, -1), lastAttemptAt: addHours(now, -1), lastMetricDate: iso(addDays(now, -1)), consecutiveFailures: 0, rowsWrittenLast: provider === "shopify" ? 42 : 310, freshnessMinutes: provider === "shopify" ? 30 : provider === "meta" ? 60 : 720, lastError: null, meta: {} }));
-    ds.syncRuns.push(t({ provider, objectType: provider === "shopify" ? "orders" : "metrics", kind: "delta", status: "success", cursor: {}, rowsWritten: 42, error: null, startedAt: addHours(now, -1), finishedAt: addHours(now, -0.98) }));
+    ds.syncRuns.push(t({ provider, objectType: provider === "shopify" ? "orders" : "metrics", kind: "delta", status: "success", cursor: {}, rowsWritten: 42, rowsScanned: provider === "shopify" ? 57 : 310, conflicts: 0, errorCount: 0, durationMs: provider === "shopify" ? 4200 : 9800, error: null, startedAt: addHours(now, -1), finishedAt: addHours(now, -0.98) }));
   }
   // the AI assistant runs on the store's own Anthropic key; in the demo the key is a mock connection
   ds.integrations.push(t({ provider: "anthropic", status: "connected", mode: "mock", externalAccountId: "claude-opus-5-5", externalAccountName: "Claude (mock)", credentialsEncrypted: null, config: {}, lastSyncAt: null, lastSuccessAt: addHours(now, -2), lastError: null }));
@@ -773,5 +775,75 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
   ds.auditLogs.push(t({ actorUserId: null, actorType: "system", action: "tenant.seeded", entityType: "tenant", entityId: tenantId, diff: {}, metadata: { orders: ds.orders.length } }));
   ds.auditLogs.push(t({ actorUserId: userIds[0] ?? null, actorType: "user", action: "integration.connected", entityType: "integration", entityId: "shopify", diff: { status: { from: "not_connected", to: "connected" } }, metadata: {}, createdAt: addDays(now, -200) }));
 
+  applyCatalogQualityGaps(ds, now);
+
+  /* ---------- platform writes (outbox), nightly reconcile runs, stock drift ---------- */
+  // Last in the generator so the rows above keep their deterministic ids.
+  const nightly = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 3, 0, 0) - (now.getUTCHours() < 3 ? DAY : 0));
+  const catalogScanned = ds.productVariants.length * locations.length + ds.products.length;
+  ds.syncRuns.push(t({ provider: "shopify", objectType: "orders", kind: "reconcile", status: "success", cursor: {}, rowsWritten: isApparel ? 37 : 14, rowsScanned: isApparel ? 1460 : 590, conflicts: 1, errorCount: 0, durationMs: isApparel ? 48_300 : 21_700, summary: {}, error: null, startedAt: nightly, finishedAt: new Date(nightly.getTime() + (isApparel ? 48_300 : 21_700)) }));
+  ds.syncRuns.push(t({ provider: "shopify", objectType: "catalog", kind: "reconcile", status: "success", cursor: { phase: "finalize" }, rowsWritten: isApparel ? 212 : 96, rowsScanned: catalogScanned, conflicts: 3, errorCount: 0, durationMs: isApparel ? 31_900 : 12_400, summary: { products: ds.products.length, inventory: isApparel ? 180 : 80, discounts: 4, zeroed: 1, drift: 2, clamped: 1 }, error: null, startedAt: new Date(nightly.getTime() + 60_000), finishedAt: new Date(nightly.getTime() + 60_000 + (isApparel ? 31_900 : 12_400)) }));
+  const pv = ds.productVariants.filter((v) => v.externalId && v.inventoryItemExternalId);
+  const [v1, v2, v3, v4] = [3, 11, 19, 27].map((i) => pv[i % pv.length]!) as [Row, Row, Row, Row];
+  const productOf = (v: Row) => ds.products.find((p) => p.id === v.productId)!;
+  const [loc0, loc1] = [locations[0]!, locations[1] ?? locations[0]!];
+  const levelOf = (v: Row, locId: string) => (ds.inventoryLevels.find((l) => l.variantId === v.id && l.locationId === locId)?.available as number | undefined) ?? 0;
+  const metaCampaign = ds.campaigns.find((c) => c.platform === "meta" && c.status === "paused") ?? ds.campaigns.find((c) => c.platform === "meta")!;
+  const w = (row: Row) => t({ mode: "async", attempts: 1, maxAttempts: 6, lastError: null, lastErrorCode: null, result: null, actorType: "user", actorUserId: userIds[0] ?? null, ...row, payloadHash: `seed-${String(row.kind)}-${String(row.targetKey)}`, idempotencyKey: `seed:${String(row.kind)}:${String(row.targetKey)}` });
+  ds.platformWrites.push(w({ provider: "shopify", kind: "variant.update", entityType: "variant", entityId: v1.id, targetKey: `variant:${v1.externalId}:price`, payload: { variantExternalId: v1.externalId, priceMinor: v1.priceMinor }, status: "succeeded", nextAttemptAt: addHours(now, -3), startedAt: addHours(now, -3), completedAt: addHours(now, -3), createdAt: addHours(now, -3) }));
+  ds.platformWrites.push(w({ provider: "meta", kind: "campaign.status", entityType: "campaign", entityId: metaCampaign.id, targetKey: `campaign:meta:${metaCampaign.externalId}:status`, payload: { provider: "meta", campaignExternalId: metaCampaign.externalId, status: metaCampaign.status === "paused" ? "paused" : "active" }, status: "succeeded", attempts: 2, nextAttemptAt: addHours(now, -26), startedAt: addHours(now, -26), completedAt: addHours(now, -26), createdAt: addHours(now, -26) }));
+  const p2 = productOf(v2);
+  ds.platformWrites.push(w({ provider: "shopify", kind: "product.status", entityType: "product", entityId: p2.id, targetKey: `product:${p2.externalId}:status`, payload: { productExternalId: p2.externalId, status: p2.status }, status: "failed", nextAttemptAt: addHours(now, -5), lastError: "[permission] Missing scope write_products: reinstall the app with product write access", lastErrorCode: "permission", startedAt: addHours(now, -5), completedAt: addHours(now, -5), createdAt: addHours(now, -5) }));
+  ds.platformWrites.push(w({ provider: "shopify", kind: "inventory.set", entityType: "variant", entityId: v3.id, targetKey: `inventory:${v3.inventoryItemExternalId}@${loc1.externalId}`, payload: { inventoryItemExternalId: v3.inventoryItemExternalId, locationExternalId: loc1.externalId, available: levelOf(v3, loc1.id as string) }, status: "pending", nextAttemptAt: addHours(now, 0.25), lastError: "[rate_limited] Throttled: retry after 15 minutes", lastErrorCode: "rate_limited", startedAt: addHours(now, -0.1), completedAt: null, createdAt: addHours(now, -0.1) }));
+  const drift = (row: Row) => t({ source: "reconcile", runId: null, detail: {}, occurrences: 1, detectedAt: addHours(nightly, 0.02), lastSeenAt: addHours(nightly, 0.02), ...row, delta: (row.observed as number) - (row.expected as number) });
+  const l2 = levelOf(v2, loc0.id as string);
+  ds.inventoryDrift.push(drift({ variantId: v2.id, locationId: loc0.id, kind: "unexplained", localBefore: l2 + 4, expected: l2 + 3, observed: l2, applied: l2, detail: { explained: -1, locations: [{ locationId: loc0.id, local: l2 + 4, observed: l2 }] }, dedupeKey: `seed:unexplained:${v2.id}` }));
+  ds.inventoryDrift.push(drift({ variantId: v4.id, locationId: loc0.id, kind: "negative", localBefore: 1, expected: 0, observed: -2, applied: 0, dedupeKey: `seed:negative:${v4.id}`, occurrences: 2 }));
+  ds.inventoryDrift.push(drift({ variantId: v1.id, locationId: loc1.id, kind: "not_reported", localBefore: 6, expected: 6, observed: 0, applied: 0, dedupeKey: `seed:not_reported:${v1.id}` }));
+
   return ds;
+}
+
+/**
+ * Where each cost came from, and a few gaps for the catalog data-quality page and the P/L cost
+ * warning. No rng draws, so the rest of the dataset is unchanged: a product never bought on a
+ * purchase order (but sold) has no cost, nor do the lines it sold on; a few variants have no
+ * barcode and a few products no image. The duplicate SKU is written after the planning extras
+ * (`seedCatalogDuplicate`), which order variants by SKU.
+ */
+function applyCatalogQualityGaps(ds: TenantDataset, now: Date): void {
+  const receivedAt = new Map<string, Date>();
+  const poReceived = new Map(ds.purchaseOrders.map((p) => [p.id as string, (p.receivedAt as Date | null) ?? now]));
+  const onPo = new Set<string>();
+  for (const l of ds.purchaseOrderLines) {
+    onPo.add(l.variantId as string);
+    if ((l.receivedQuantity as number) <= 0) continue;
+    const at = poReceived.get(l.purchaseOrderId as string) ?? now;
+    const prev = receivedAt.get(l.variantId as string);
+    if (!prev || prev < at) receivedAt.set(l.variantId as string, at);
+  }
+  const sold = new Set(ds.orderLines.map((l) => l.variantId as string));
+  const variantsOf = new Map<string, Row[]>();
+  for (const v of ds.productVariants) variantsOf.set(v.productId as string, [...(variantsOf.get(v.productId as string) ?? []), v]);
+  const products = ds.products;
+  const half = Math.floor(products.length / 2);
+  const uncosted = [...products.slice(half), ...products.slice(0, half)].find((p) => {
+    const vs = variantsOf.get(p.id as string) ?? [];
+    return vs.length > 0 && vs.every((v) => !onPo.has(v.id as string)) && vs.some((v) => sold.has(v.id as string));
+  });
+  const noCost = new Set((uncosted ? variantsOf.get(uncosted.id as string) ?? [] : []).map((v) => v.id as string));
+  products.forEach((p, i) => {
+    p.imageUrl = i % 37 === 36 ? null : `https://cdn.keel.example/demo/${String(p.handle)}.jpg`;
+    if (i % 29 === 7) {
+      const last = (variantsOf.get(p.id as string) ?? []).at(-1);
+      if (last) last.barcode = null;
+    }
+  });
+  for (const v of ds.productVariants) {
+    const id = v.id as string;
+    if (noCost.has(id)) Object.assign(v, { costMinor: null, averageCostMinor: null, costSource: null, costUpdatedAt: null });
+    else if (receivedAt.has(id)) Object.assign(v, { costSource: "po_receipt", costUpdatedAt: receivedAt.get(id) });
+    else Object.assign(v, { costSource: "platform", costUpdatedAt: v.syncedAt ?? now });
+  }
+  for (const l of ds.orderLines) if (noCost.has(l.variantId as string)) l.unitCostMinor = null;
 }

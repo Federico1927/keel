@@ -20,6 +20,7 @@ import type { ThemePreference } from "@keel/ui/tokens";
 import { SidebarNav, type SidebarProps } from "./sidebar";
 import { UserMenu, type MenuUser } from "./user-menu";
 import { NotificationsBell, type BellItem } from "./notifications-bell";
+import { SupportButton } from "./support-button";
 
 interface TopbarProps {
   sidebar: SidebarProps;
@@ -30,9 +31,11 @@ interface TopbarProps {
   isSuperAdmin: boolean;
   impersonating: boolean;
   notifications: { unread: number; items: BellItem[]; locale: string };
+  /** Present when the user may write to the platform owner. */
+  support: { categories: string[] } | null;
 }
 
-export function Topbar({ sidebar, user, theme, role, memberships, isSuperAdmin, impersonating, notifications }: TopbarProps) {
+export function Topbar({ sidebar, user, theme, role, memberships, isSuperAdmin, impersonating, notifications, support }: TopbarProps) {
   const t = useTranslations();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -74,6 +77,7 @@ export function Topbar({ sidebar, user, theme, role, memberships, isSuperAdmin, 
           </DropdownMenuContent>
         </DropdownMenu>
         <div className="ml-auto flex items-center gap-2">
+          {support && <SupportButton slug={sidebar.tenantSlug} categories={support.categories} />}
           <NotificationsBell slug={sidebar.tenantSlug} unread={notifications.unread} items={notifications.items} locale={notifications.locale} />
           <LocaleSwitcher />
           <UserMenu user={user} role={role} theme={theme} profileHref={`/t/${sidebar.tenantSlug}/profile`} />

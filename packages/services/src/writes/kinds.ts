@@ -1,0 +1,106 @@
+import { and, eq, schema } from "@keel/db";
+import type { NormalizedOrder } from "@keel/integrations";
+import { defineAdsWrite, defineCommerceWrite } from "./registry";
+
+/* The platform writes Keel makes today. Each is one registration: provider, target, execution, optional follow-up. */
+
+const date = (v: string | null | undefined) => (v ? new Date(v) : null);
+const d = (v: unknown) => (v ? new Date(v as string) : null);
+
+/** A `NormalizedOrder` read back from JSON (dates were serialized). */
+export function reviveOrder(raw: unknown): NormalizedOrder {
+  const o = raw as NormalizedOrder;
+  return { ...o, customer: o.customer ? { ...o.customer, platformCreatedAt: d(o.customer.platformCreatedAt) } : null, placedAt: new Date(o.placedAt), platformUpdatedAt: new Date(o.platformUpdatedAt), cancelledAt: d(o.cancelledAt), closedAt: d(o.closedAt), fulfillments: o.fulfillments.map((f) => ({ ...f, createdAt: new Date(f.createdAt), updatedAt: new Date(f.updatedAt), deliveredAt: d(f.deliveredAt) })) };
+}
+
+defineCommerceWrite("variant.update", {
+  target: (p) => `variant:${p.variantExternalId}:price`,
+  supersedes: true,
+  execute: (platform, p) => platform.updateVariant(p.variantExternalId, { priceMinor: p.priceMinor }),
+});
+
+defineCommerceWrite("variant.cost", {
+  target: (p) => `variant:${p.variantExternalId}:cost`,
+  supersedes: true,
+  execute: (platform, p) => platform.updateVariantCost({ variantExternalId: p.variantExternalId, inventoryItemExternalId: p.inventoryItemExternalId }, p.costMinor),
+});
+
+defineCommerceWrite("product.status", {
+  target: (p) => `product:${p.productExternalId}:status`,
+  supersedes: true,
+  execute: (platform, p) => platform.updateProductStatus(p.productExternalId, p.status),
+});
+
+defineCommerceWrite("inventory.set", {
+  target: (p) => `inventory:${p.inventoryItemExternalId}@${p.locationExternalId}`,
+  supersedes: true,
+  execute: (platform, p) => platform.setInventory(p.inventoryItemExternalId, p.locationExternalId, p.available),
+});
+
+defineCommerceWrite("inventory.restock", {
+  target: (p) => `inventory:restock:${p.lines.map((l) => `${l.inventoryItemExternalId}@${l.locationExternalId}`).sort().join(",")}`,
+  execute: (platform, p) => platform.restockInventory(p.lines),
+});
+
+defineCommerceWrite("order.cancel", {
+  target: (p) => `order:${p.orderExternalId}:cancel`,
+  execute: (platform, p) => platform.cancelOrder(p.orderExternalId, { reason: p.reason, restock: p.restock, refund: p.refund }),
+});
+
+defineCommerceWrite("order.update_details", {
+  target: (p) => `order:${p.orderExternalId}:details`,
+  execute: (platform, p) => platform.updateOrderDetails(p.orderExternalId, p.patch),
+});
+
+defineCommerceWrite("order.discount", {
+  target: (p) => `order:${p.orderExternalId}:discount:${p.discount.code}`,
+  execute: (platform, p) => platform.applyOrderDiscount(p.orderExternalId, p.discount),
+});
+
+defineCommerceWrite("order.tags", {
+  target: (p) => `order:${p.orderExternalId}:tags`,
+  execute: (platform, p) => platform.updateOrderTags(p.orderExternalId, p.add, p.remove),
+});
+
+defineCommerceWrite("order.create", {
+  target: (p) => `order:create:${p.input.replacesOrderName ?? p.input.noteAttributes.find((a) => a.name === "keel_return_id")?.value ?? "new"}`,
+  execute: (platform, p) => platform.createOrder(p.input),
+  revive: reviveOrder,
+});
+
+defineCommerceWrite("order.create_invoice", {
+  target: (p) => `draft:create:${p.input.noteAttributes.find((a) => a.name === "keel_return_id")?.value ?? "new"}`,
+  execute: (platform, p) => platform.createInvoiceOrder(p.input),
+});
+
+defineCommerceWrite("discount.create", {
+  target: (p) => `discount:${p.code}`,
+  execute: (platform, p) => platform.createDiscountCode({ code: p.code, title: p.title, type: p.type, value: p.value, startsAt: date(p.startsAt), endsAt: date(p.endsAt), usageLimit: p.usageLimit ?? null, minimumAmountMinor: p.minimumAmountMinor ?? null }),
+  onSuccess: async (ctx, write, result) => {
+    if (write.entityType === "discount" && write.entityId) await ctx.tx.update(schema.discounts).set({ externalId: result.externalId, syncedAt: ctx.now ?? new Date() }).where(and(eq(schema.discounts.tenantId, ctx.tenantId), eq(schema.discounts.id, write.entityId)));
+  },
+});
+
+defineCommerceWrite("discount.pool", {
+  target: (p) => `discount_pool:${p.title}:${p.codes[0] ?? ""}:${p.codes.length}`,
+  execute: (platform, p) => platform.createDiscountPool({ title: p.title, codes: p.codes, type: p.type, value: p.value, startsAt: date(p.startsAt), endsAt: date(p.endsAt) }),
+});
+
+defineCommerceWrite("return.request", {
+  target: (p) => `return:${p.orderExternalId}:request:${p.lines.map((l) => l.orderLineExternalId).sort().join(",")}`,
+  execute: (platform, p) => platform.requestReturn(p.orderExternalId, { lines: p.lines, note: p.note }),
+});
+defineCommerceWrite("return.approve", { target: (p) => `return:${p.returnExternalId}:approve`, execute: (platform, p) => platform.approveReturn(p.returnExternalId) });
+defineCommerceWrite("return.decline", { target: (p) => `return:${p.returnExternalId}:decline`, execute: (platform, p) => platform.declineReturn(p.returnExternalId, p.note) });
+defineCommerceWrite("return.refund", { target: (p) => `order:${p.orderExternalId}:refund`, execute: (platform, p) => platform.refundReturn(p.orderExternalId, { lines: p.lines, amountMinor: p.amountMinor, currency: p.currency, note: p.note, notify: p.notify }) });
+defineCommerceWrite("return.close", { target: (p) => `return:${p.returnExternalId}:close`, execute: (platform, p) => platform.closeReturn(p.returnExternalId) });
+
+defineAdsWrite("campaign.status", {
+  provider: (p) => p.provider,
+  target: (p) => `campaign:${p.provider}:${p.campaignExternalId}:status`,
+  supersedes: true,
+  execute: (platform, p) => platform.setCampaignStatus(p.campaignExternalId, p.status),
+  onSuccess: async (ctx, write) => {
+    if (write.entityType === "campaign" && write.entityId) await ctx.tx.update(schema.campaigns).set({ syncedAt: ctx.now ?? new Date() }).where(and(eq(schema.campaigns.tenantId, ctx.tenantId), eq(schema.campaigns.id, write.entityId)));
+  },
+});

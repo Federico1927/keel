@@ -6,7 +6,7 @@ import { adminDb, and, eq, schema } from "@keel/db";
 import { z } from "zod";
 import { cookies, headers } from "next/headers";
 import { isLocale } from "@keel/config";
-import { recordSignIn } from "@keel/services";
+import { recordSignIn, renderEmail, sendPlatformEmail } from "@keel/services";
 import { THEME_COOKIE, isThemePreference } from "@keel/ui/tokens";
 import { authConfig } from "./auth.config";
 import { LOCALE_COOKIE } from "./i18n/request";
@@ -18,8 +18,10 @@ function db() {
 }
 
 /**
- * Magic-link "provider": in development the link is printed to the console
- * (CLAUDE.md §2). A real mailer plugs in here through MAGIC_LINK_WEBHOOK_URL.
+ * Magic-link "provider": the email is rendered from the `magic_link` template in the user's
+ * language. A real mailer plugs in through MAGIC_LINK_WEBHOOK_URL or the platform email provider
+ * (live mode with KEEL_EMAIL_API_KEY); otherwise, in development, the email text with the link is
+ * printed to the console (CLAUDE.md §2).
  */
 const magicLink = {
   id: "email",
@@ -29,12 +31,16 @@ const magicLink = {
   maxAge: 15 * 60,
   options: {},
   async sendVerificationRequest({ identifier, url }: { identifier: string; url: string }) {
+    const [user] = await db().select({ locale: schema.users.locale }).from(schema.users).where(eq(schema.users.email, identifier.toLowerCase())).limit(1);
+    const data = { url, minutes: 15 };
     const hook = process.env.MAGIC_LINK_WEBHOOK_URL;
     if (hook) {
-      await fetch(hook, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ to: identifier, url }) });
+      const mail = renderEmail("magic_link", user?.locale, data);
+      await fetch(hook, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ to: identifier, url, subject: mail.subject, text: mail.text, html: mail.html }) });
       return;
     }
-    console.info(`\n[auth] Magic link for ${identifier}:\n${url}\n`);
+    const sent = await sendPlatformEmail({ to: identifier, template: "magic_link", data, locale: user?.locale });
+    if (sent.outcome === "mock") console.info(`\n[auth] Magic link for ${identifier}:\n${url}\n\n--- ${sent.rendered.subject} ---\n${sent.rendered.text}\n`);
   },
 };
 

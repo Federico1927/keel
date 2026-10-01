@@ -128,6 +128,7 @@ const getPnl: AssistantTool<z.ZodObject<typeof periodInput>> = {
         cancelledOrders: p.cancelledOrders,
         returnedOrders: p.returnedOrders,
         ordersWithoutProductCost: p.cogsIncompleteOrders,
+        revenueShareWithKnownProductCost: round(p.costCoverage.coveredShare),
         ...Object.fromEntries(lines.map(([k, v]) => [k.replace(/_(\w)/g, (_, c: string) => c.toUpperCase()), major(v, cur)])),
         grossMarginRate: round(p.grossMarginRate),
         contributionRate: round(p.contributionRate),

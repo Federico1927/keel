@@ -118,7 +118,8 @@ test.describe("addon.cod", () => {
     await expect(page.getByTestId("entry-tag").first()).toBeVisible();
     await page.goto("/t/northwind-apparel/cod/settings");
     await page.getByRole("button", { name: /Recompute from history|Ricalcola dallo storico/ }).click();
-    await expect(page.getByText(/\d+ recipients|\d+ destinatari/)).toBeVisible();
+    // recomputing every recipient profile from the order history takes a while on the full demo
+    await expect(page.getByText(/\d+ recipients|\d+ destinatari/)).toBeVisible({ timeout: 30_000 });
     await expect(page.getByTestId("risk-row").first()).toBeVisible();
     await page.goto("/t/northwind-apparel/cod?view=unassigned");
     await page.getByTestId("distribute").click();

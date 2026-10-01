@@ -10,6 +10,8 @@ import { requirePage } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
 import { ReturnWorkflow } from "./workflow";
 import { BankDetails, PlatformSyncCard, ReviewToggle } from "./platform-card";
+import { RecordTasks } from "@/components/record-tasks";
+import { RecordNotes } from "@/components/record-notes";
 
 const STEPS = ["requested", "approved", "received", "inspected"] as const;
 
@@ -49,6 +51,8 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ t
       actions={<ReturnWorkflow slug={tenant} returnId={r.id} status={r.status} resolution={r.resolution} lines={lines.map((l) => ({ id: l.id, title: l.title, variantTitle: l.variantTitle, quantity: l.quantity, unitAmountMinor: l.unitAmountMinor, restocked: l.restocked, inspectionAmountMinor: l.inspectionAmountMinor, hasVariant: Boolean(l.variantId) }))} locations={locations} proposedAmountMinor={r.proposedAmountMinor} currency={order.currency} locale={ctx.locale} canAct={canAct} />}
       aside={
         <div className="space-y-4">
+          <RecordTasks slug={tenant} type="return" id={r.id} label={`R-${r.number}`} />
+          <RecordNotes slug={tenant} type="return" id={r.id} />
           <Card>
             <CardHeader><CardTitle className="text-base">{t("order")}</CardTitle></CardHeader>
             <CardContent className="space-y-1 text-sm">

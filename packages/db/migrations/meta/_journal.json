@@ -134,6 +134,41 @@
       "when": 1790884623986,
       "tag": "0018_familiar_sersi",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790888527467,
+      "tag": "0019_zippy_otto_octavius",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1790890455678,
+      "tag": "0020_normal_xorn",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790891426937,
+      "tag": "0021_late_tana_nile",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1790892524772,
+      "tag": "0022_naive_mac_gargan",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1790894237257,
+      "tag": "0023_abandoned_salo",
+      "breakpoints": true
     }
   ]
 }

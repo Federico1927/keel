@@ -3,9 +3,10 @@ import { getTranslations } from "next-intl/server";
 import { canDo } from "@keel/config";
 import { formatDateTime, formatNumber } from "@keel/core";
 import { integrationMode } from "@keel/integrations";
-import { integrationOverview } from "@keel/services";
+import { integrationOverview, platformWritesOverview } from "@keel/services";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
+import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { ProviderActions, WebhookControls, WebhookRowAction } from "./controls";
 
 const PROVIDERS = ["shopify", "meta", "google", "anthropic"] as const;
@@ -15,7 +16,11 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "integrations");
   const t = await getTranslations("integrations");
-  const data = await ctx.run((tx) => integrationOverview({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }));
+  const tw = await getTranslations("platform_writes");
+  const { data, writes } = await ctx.run(async (tx) => {
+    const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
+    return { data: await integrationOverview(s), writes: await platformWritesOverview(s, { limit: 15 }) };
+  });
   const canManage = canDo(ctx.role, "manage_integrations");
   const globalMock = integrationMode() === "mock";
   const dt = (d: Date | null | undefined) => (d ? formatDateTime(d, ctx.locale, ctx.tenant.timezone) : "—");
@@ -94,16 +99,24 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
                   <TableHead>{t("columns.when")}</TableHead>
                   <TableHead>{t("columns.run")}</TableHead>
                   <TableHead>{t("columns.status")}</TableHead>
-                  <TableHead className="text-right">{t("columns.rows")}</TableHead>
+                  <TableHead className="hidden text-right sm:table-cell">{t("columns.scanned")}</TableHead>
+                  <TableHead className="text-right">{t("columns.changed")}</TableHead>
+                  <TableHead className="hidden text-right md:table-cell">{t("columns.conflicts")}</TableHead>
+                  <TableHead className="hidden text-right md:table-cell">{t("columns.errors")}</TableHead>
+                  <TableHead className="hidden text-right sm:table-cell">{t("columns.duration")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {data.runs.map((r) => (
-                  <TableRow key={r.id}>
+                  <TableRow key={r.id} data-testid="sync-run-row" data-kind={r.kind} data-object={r.objectType}>
                     <TableCell className="whitespace-nowrap text-xs">{dt(r.startedAt)}</TableCell>
-                    <TableCell className="text-xs"><span className="font-mono">{r.provider}/{r.objectType}</span> · {r.kind}{r.error && <div className="truncate text-destructive" title={r.error}>{r.error}</div>}</TableCell>
+                    <TableCell className="text-xs"><span className="font-mono">{r.provider}/{r.objectType}</span> · {t.has(`run_kind.${r.kind}`) ? t(`run_kind.${r.kind}`) : r.kind}{r.error && <div className="truncate text-destructive" title={r.error}>{r.error}</div>}</TableCell>
                     <TableCell><Badge variant={r.status === "success" ? "success" : r.status === "error" ? "destructive" : "warning"}>{t(`run_status.${r.status}`)}</Badge></TableCell>
+                    <TableCell className="hidden text-right tabular sm:table-cell">{formatNumber(r.rowsScanned, ctx.locale)}</TableCell>
                     <TableCell className="text-right tabular">{formatNumber(r.rowsWritten, ctx.locale)}</TableCell>
+                    <TableCell className={`hidden text-right tabular md:table-cell ${r.conflicts ? "text-warning" : ""}`}>{formatNumber(r.conflicts, ctx.locale)}</TableCell>
+                    <TableCell className={`hidden text-right tabular md:table-cell ${r.errorCount ? "text-destructive" : ""}`}>{formatNumber(r.errorCount, ctx.locale)}</TableCell>
+                    <TableCell className="hidden whitespace-nowrap text-right tabular sm:table-cell">{r.durationMs === null ? "—" : t("duration_s", { s: formatNumber(Math.round(r.durationMs / 100) / 10, ctx.locale) })}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -142,6 +155,42 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
           </CardContent>
         </Card>
       </div>
+      <Card className="mt-6" data-testid="platform-writes">
+        <CardHeader>
+          <CardTitle className="text-base">{tw("title")}</CardTitle>
+          <CardDescription>{tw("description", { pending: formatNumber(writes.counts.pending, ctx.locale), failed: formatNumber(writes.counts.failed, ctx.locale), succeeded: formatNumber(writes.counts.succeeded24h, ctx.locale) })}</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          {writes.rows.length === 0 ? (
+            <p className="p-4 text-sm text-muted-foreground">{tw("empty")}</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{tw("columns.when")}</TableHead>
+                  <TableHead>{tw("columns.write")}</TableHead>
+                  <TableHead>{tw("columns.status")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {writes.rows.map((w) => (
+                  <TableRow key={w.id} data-testid="platform-write-row" data-status={w.status} data-kind={w.kind}>
+                    <TableCell className="whitespace-nowrap text-xs">{dt(w.createdAt)}</TableCell>
+                    <TableCell className="text-xs">
+                      <span className="font-medium">{tw.has(`kinds.${w.kind.replace(/\./g, "_")}`) ? tw(`kinds.${w.kind.replace(/\./g, "_")}`) : w.kind}</span> <span className="font-mono text-muted-foreground">· {w.provider}</span>
+                      {w.mode === "sync" && <span className="text-muted-foreground"> · {tw("immediate")}</span>}
+                      <span className="text-muted-foreground"> · {tw("attempts", { n: w.attempts })}</span>
+                      {w.status === "pending" && w.attempts > 0 && <span className="text-muted-foreground"> · {tw("next_attempt", { when: dt(w.nextAttemptAt) })}</span>}
+                      {w.lastError && w.status !== "succeeded" && <div className="truncate text-destructive" title={w.lastError}>{w.lastError}</div>}
+                    </TableCell>
+                    <TableCell><PlatformWriteStatus slug={tenant} write={w} showSynced canRetry={canManage} /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </>
   );
 }

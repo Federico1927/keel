@@ -17,7 +17,7 @@ import {
   type SyncQuery,
   type VerifiedWebhook,
   type WebhookRegistration,
- type CreateOrderInput, type OrderDetailsPatch } from "../types";
+ type CreateOrderInput, type OrderDetailsPatch, type OrderDiscountPatch } from "../types";
 import { FailureScript } from "./failures";
 
 export interface MockCatalogVariant {
@@ -29,6 +29,10 @@ export interface MockCatalogVariant {
   productTitle: string;
   optionValues: Record<string, string>;
   priceMinor: number;
+  /** Unit cost the simulated store reports (`inventoryItem.unitCost`); null or absent = never entered. */
+  unitCostMinor?: number | null;
+  barcode?: string | null;
+  productImageUrl?: string | null;
 }
 
 export interface MockCommerceOptions {
@@ -42,6 +46,8 @@ export interface MockCommerceOptions {
   customers: NormalizedCustomer[];
   startOrderNumber: number;
   webhookSecret?: string;
+  /** Starting stock per inventory item and location (the tenant's levels); unknown pairs get a random level on first read. */
+  inventory?: { inventoryItemExternalId: string; locationExternalId: string; available: number }[];
 }
 
 /**
@@ -57,11 +63,36 @@ export class MockCommercePlatform implements CommercePlatform {
   private nextNumber: number;
   private webhookSecret: string;
   private writes: { op: string; args: unknown }[] = [];
+  /** Stock the store holds, per `item@location`: orders take from it, writes set or add to it. */
+  private stock = new Map<string, number>();
 
   constructor(private readonly opts: MockCommerceOptions) {
     this.rng = createRng(opts.seed ?? 42);
     this.nextNumber = opts.startOrderNumber;
     this.webhookSecret = opts.webhookSecret ?? "mock-webhook-secret";
+    for (const l of opts.inventory ?? []) this.stock.set(`${l.inventoryItemExternalId}@${l.locationExternalId}`, l.available);
+  }
+
+  /** Current stock of an item at a location (tests). */
+  stockOf(inventoryItemExternalId: string, locationExternalId: string): number | undefined {
+    return this.stock.get(`${inventoryItemExternalId}@${locationExternalId}`);
+  }
+  /** Changes stock behind Keel's back, as a manual edit in the store admin would (tests, drift). */
+  adjustStock(inventoryItemExternalId: string, locationExternalId: string, delta: number): void {
+    const key = `${inventoryItemExternalId}@${locationExternalId}`;
+    this.stock.set(key, (this.stock.get(key) ?? 0) + delta);
+  }
+  private defaultLocation(): string | null {
+    return (this.opts.locations.find((l) => l.isDefault && l.isActive) ?? this.opts.locations.find((l) => l.isActive))?.externalId ?? null;
+  }
+  /** Units leave (or come back to) the default location, like a sale or a restocked cancellation. */
+  private moveStock(lines: { variantExternalId: string | null; quantity: number }[], sign: 1 | -1): void {
+    const loc = this.defaultLocation();
+    if (!loc) return;
+    for (const l of lines) {
+      const inv = this.opts.variants.find((v) => v.externalId === l.variantExternalId)?.inventoryItemExternalId;
+      if (inv && this.stock.has(`${inv}@${loc}`)) this.adjustStock(inv, loc, sign * l.quantity);
+    }
   }
 
   /** Audit of write calls, for tests and the integrations page. */
@@ -142,6 +173,7 @@ export class MockCommercePlatform implements CommercePlatform {
       fulfillments: [],
     };
     this.orders.set(order.externalId, order);
+    this.moveStock(order.lines, -1);
     return order;
   }
 
@@ -180,10 +212,10 @@ export class MockCommercePlatform implements CommercePlatform {
     for (const v of this.opts.variants) {
       let p = byProduct.get(v.productExternalId);
       if (!p) {
-        p = { externalId: v.productExternalId, title: v.productTitle, handle: v.productTitle.toLowerCase().replace(/\s+/g, "-"), vendor: "Mock", productType: null, status: "active", tags: [], options: [], imageUrl: null, platformCreatedAt: null, variants: [] };
+        p = { externalId: v.productExternalId, title: v.productTitle, handle: v.productTitle.toLowerCase().replace(/\s+/g, "-"), vendor: "Mock", productType: null, status: "active", tags: [], options: [], imageUrl: v.productImageUrl ?? null, platformCreatedAt: null, variants: [] };
         byProduct.set(v.productExternalId, p);
       }
-      p.variants.push({ externalId: v.externalId, inventoryItemExternalId: v.inventoryItemExternalId, sku: v.sku, barcode: null, title: v.title, optionValues: v.optionValues, priceMinor: v.priceMinor, compareAtMinor: null, weightGrams: null });
+      p.variants.push({ externalId: v.externalId, inventoryItemExternalId: v.inventoryItemExternalId, sku: v.sku, barcode: v.barcode ?? null, title: v.title, optionValues: v.optionValues, priceMinor: v.priceMinor, compareAtMinor: null, weightGrams: null, costMinor: v.unitCostMinor ?? null });
     }
     return { items: [...byProduct.values()], nextCursor: null };
   }
@@ -196,7 +228,13 @@ export class MockCommercePlatform implements CommercePlatform {
   async fetchInventoryLevels(ids: string[]): Promise<NormalizedInventoryLevel[]> {
     this.failures.check();
     const out: NormalizedInventoryLevel[] = [];
-    for (const id of ids) for (const loc of this.opts.locations) out.push({ inventoryItemExternalId: id, locationExternalId: loc.externalId, available: this.rng.int(0, 60), onHand: null, committed: null, updatedAt: new Date() });
+    for (const id of ids)
+      for (const loc of this.opts.locations) {
+        if (!loc.isActive) continue;
+        const key = `${id}@${loc.externalId}`;
+        if (!this.stock.has(key)) this.stock.set(key, this.rng.int(0, 60));
+        out.push({ inventoryItemExternalId: id, locationExternalId: loc.externalId, available: this.stock.get(key)!, onHand: null, committed: null, updatedAt: new Date() });
+      }
     return out;
   }
 
@@ -256,6 +294,7 @@ export class MockCommercePlatform implements CommercePlatform {
   async cancelOrder(externalId: string, opts: { reason?: string; restock: boolean; refund: boolean }) {
     this.record("cancelOrder", { externalId, ...opts });
     const o = this.orders.get(externalId);
+    if (o && !o.cancelledAt && opts.restock) this.moveStock(o.lines.map((l) => ({ variantExternalId: l.variantExternalId, quantity: l.currentQuantity })), 1);
     if (o) {
       o.cancelledAt = new Date();
       o.financialStatusRaw = opts.refund && o.paymentStatus === "paid" ? "refunded" : o.paymentStatus === "pending" ? "voided" : o.financialStatusRaw;
@@ -275,11 +314,21 @@ export class MockCommercePlatform implements CommercePlatform {
     if (patch.phone !== undefined) o.phone = patch.phone;
     if (patch.note !== undefined) o.note = patch.note;
     if (patch.shippingAddress !== undefined) o.shippingAddress = patch.shippingAddress;
+    if (patch.billingAddress !== undefined) o.billingAddress = patch.billingAddress;
+    o.platformUpdatedAt = new Date();
+  }
+  async applyOrderDiscount(externalId: string, discount: OrderDiscountPatch) {
+    this.record("applyOrderDiscount", { externalId, ...discount });
+    const o = this.orders.get(externalId);
+    if (!o) return;
+    o.discountMinor += discount.amountMinor;
+    o.totalMinor = Math.max(0, o.totalMinor - discount.amountMinor);
+    o.discounts = [...o.discounts, { code: discount.code, type: discount.type, amountMinor: discount.amountMinor }];
     o.platformUpdatedAt = new Date();
   }
   async createOrder(input: CreateOrderInput): Promise<NormalizedOrder> {
     this.failures.check();
-    this.record("createOrder", { lines: input.lines.length, replaces: input.replacesOrderName });
+    this.record("createOrder", { lines: input.lines.length, replaces: input.replacesOrderName, payment: input.payment ?? null });
     const number = this.nextNumber++;
     const now = new Date();
     const lines = input.lines.map((l, i) => {
@@ -304,10 +353,10 @@ export class MockCommercePlatform implements CommercePlatform {
       taxMinor: 0,
       totalMinor: subtotal - input.discountMinor + input.shippingMinor,
       refundedMinor: 0,
-      paymentGateways: ["cash_on_delivery"],
-      paymentMethod: "cod",
-      paymentStatus: "pending",
-      financialStatusRaw: "pending",
+      paymentGateways: input.payment?.gateways.length ? [...input.payment.gateways] : ["cash_on_delivery"],
+      paymentMethod: input.payment?.method ?? "cod",
+      paymentStatus: input.payment?.status ?? "pending",
+      financialStatusRaw: input.payment?.status ?? "pending",
       fulfillmentStatusRaw: null,
       tags: [...input.tags],
       shippingAddress: input.shippingAddress,
@@ -327,6 +376,7 @@ export class MockCommercePlatform implements CommercePlatform {
       fulfillments: [],
     };
     this.orders.set(order.externalId, order);
+    this.moveStock(order.lines, -1);
     return order;
   }
   async updateOrderTags(externalId: string, add: string[], remove: string[]) {
@@ -343,11 +393,17 @@ export class MockCommercePlatform implements CommercePlatform {
   async updateVariant(variantExternalId: string, patch: { priceMinor?: number }) {
     this.record("updateVariant", { variantExternalId, patch });
   }
+  async updateVariantCost(variant: { variantExternalId: string; inventoryItemExternalId: string | null }, costMinor: number) {
+    this.record("updateVariantCost", { ...variant, costMinor });
+    const v = this.opts.variants.find((x) => x.externalId === variant.variantExternalId);
+    if (v) v.unitCostMinor = costMinor;
+  }
   async updateProductStatus(productExternalId: string, status: "active" | "draft" | "archived") {
     this.record("updateProductStatus", { productExternalId, status });
   }
   async setInventory(inventoryItemExternalId: string, locationExternalId: string, available: number) {
     this.record("setInventory", { inventoryItemExternalId, locationExternalId, available });
+    this.stock.set(`${inventoryItemExternalId}@${locationExternalId}`, available);
   }
   async createDiscountCode(input: { code: string }) {
     this.record("createDiscountCode", input);
@@ -365,6 +421,7 @@ export class MockCommercePlatform implements CommercePlatform {
   }
   async restockInventory(lines: { inventoryItemExternalId: string; locationExternalId: string; quantity: number }[]) {
     this.record("restockInventory", { lines });
+    for (const l of lines) this.adjustStock(l.inventoryItemExternalId, l.locationExternalId, l.quantity);
   }
   private returnSeq = 0;
   private returns = new Map<string, { orderExternalId: string; status: "requested" | "approved" | "declined" | "closed" }>();

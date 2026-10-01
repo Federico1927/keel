@@ -81,6 +81,10 @@ export const ORDER_EVENT_TYPES = [
   "hold_released",
   "cod_attempt",
   "cod_assigned",
+  "modified",
+  "replaces",
+  "replaced",
+  "discount_applied",
 ] as const;
 export type OrderEventType = (typeof ORDER_EVENT_TYPES)[number];
 

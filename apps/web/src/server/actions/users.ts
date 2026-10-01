@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { adminDb, and, eq, recordAudit, schema } from "@keel/db";
 import { TENANT_ROLES, canManageRole, isTenantRole } from "@keel/config";
+import { TRANSACTIONAL_EMAIL, appBaseUrl, sendTenantEmail } from "@keel/services";
 import { requireAction, ForbiddenError } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 
@@ -37,8 +38,13 @@ export async function inviteMember(slug: string, _prev: ActionResult | null, for
       .insert(schema.tenantMemberships)
       .values({ tenantId: ctx.tenant.id, userId, role: parsed.data.role })
       .onConflictDoUpdate({ target: [schema.tenantMemberships.tenantId, schema.tenantMemberships.userId], set: { role: parsed.data.role, isActive: true } });
-    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "membership.invited", entityType: "user", entityId: userId, metadata: { email: parsed.data.email, role: parsed.data.role } }));
-    console.info(`[users] invited ${parsed.data.email} to ${slug} as ${parsed.data.role}; sign-in via magic link at /login`);
+    const [invitee] = await db.select({ locale: schema.users.locale }).from(schema.users).where(eq(schema.users.id, userId)).limit(1);
+    const delivery = await ctx.run(async (tx) => {
+      const sent = await sendTenantEmail({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { to: parsed.data.email, template: "invite", data: { tenantName: ctx.tenant.name, inviterName: ctx.user.name ?? ctx.user.email, role: parsed.data.role, url: `${appBaseUrl()}/login` }, locale: invitee?.locale ?? ctx.tenant.defaultLocale, category: TRANSACTIONAL_EMAIL });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "membership.invited", entityType: "user", entityId: userId, metadata: { email: parsed.data.email, role: parsed.data.role, email_delivery: sent.outcome } });
+      return sent;
+    });
+    console.info(`[users] invited ${parsed.data.email} to ${slug} as ${parsed.data.role} (invite email: ${delivery.outcome}); sign-in via magic link at /login`);
     revalidatePath(`/t/${slug}/users`);
     return ok();
   } catch (e) {

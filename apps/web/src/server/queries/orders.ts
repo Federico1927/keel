@@ -1,6 +1,8 @@
 import { and, asc, desc, eq, gte, inArray, lte, schema, sql, type SQL } from "@keel/db";
-import { ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES } from "@keel/core";
-import { PAGE_SIZE } from "@keel/config";
+import { ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES, UTM_DIMENSIONS, UTM_NONE, type UtmDimension } from "@keel/core";
+import { PAGE_SIZE, isPageEnabled } from "@keel/config";
+import { orderLineage, orderMergeCandidates } from "@keel/services";
+import { OPEN_QUEUE_STATUSES } from "@keel/addon-cod";
 import type { TenantContext } from "@/server/tenant";
 
 export interface OrderFilters {
@@ -15,6 +17,13 @@ export interface OrderFilters {
   assigned?: string;
   campaign?: string;
   customer?: string;
+  /** Orders with at least one product line without a cost (the P/L warning links here). */
+  missingCost?: boolean;
+  /** Orders with a line of this product (analytics product table). */
+  product?: string;
+  /** Attribution channel and UTM values (analytics drill-down); "(none)" matches orders without the value. */
+  attrChannel?: string;
+  utm?: Partial<Record<UtmDimension, string>>;
   sort?: "placed_desc" | "placed_asc" | "total_desc";
   page?: number;
 }
@@ -35,10 +44,18 @@ export function parseOrderFilters(sp: Record<string, string | string[] | undefin
     assigned: one(sp.assigned) || undefined,
     campaign: /^[0-9a-f-]{36}$/i.test(one(sp.campaign) ?? "") ? one(sp.campaign) : undefined,
     customer: /^[0-9a-f-]{36}$/i.test(one(sp.customer) ?? "") ? one(sp.customer) : undefined,
+    missingCost: one(sp.missingCost) === "1" || undefined,
+    product: /^[0-9a-f-]{36}$/i.test(one(sp.product) ?? "") ? one(sp.product) : undefined,
+    attrChannel: one(sp.attrChannel)?.trim() || undefined,
+    utm: Object.fromEntries(UTM_DIMENSIONS.map((d) => [d, one(sp[utmParam(d)])?.trim() || undefined]).filter(([, v]) => v)),
     sort: sort === "placed_asc" || sort === "total_desc" ? sort : "placed_desc",
     page: Math.max(1, Number(one(sp.page) ?? 1) || 1),
   };
 }
+
+/** URL parameter of a UTM dimension: utmSource, utmMedium, … */
+export const utmParam = (d: UtmDimension) => `utm${d[0]!.toUpperCase()}${d.slice(1)}`;
+const UTM_COLUMN: Record<UtmDimension, string> = { source: "utm_source", medium: "utm_medium", campaign: "utm_campaign", content: "utm_content", term: "utm_term" };
 
 function buildWhere(ctx: TenantContext, f: OrderFilters): SQL {
   const conds: SQL[] = [eq(schema.orders.tenantId, ctx.tenant.id)];
@@ -59,6 +76,12 @@ function buildWhere(ctx: TenantContext, f: OrderFilters): SQL {
   else if (f.assigned) conds.push(eq(schema.orders.assignedTo, f.assigned));
   if (f.customer) conds.push(eq(schema.orders.customerId, f.customer));
   if (f.campaign) conds.push(sql`exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.campaign_id = ${f.campaign})`);
+  if (f.missingCost) conds.push(sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.unit_cost_minor is null and not l.is_ancillary)`);
+  if (f.product) conds.push(sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.product_id = ${f.product} and l.current_quantity > 0)`);
+  if (f.attrChannel) conds.push(f.attrChannel === "unknown" ? sql`not exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.channel <> 'unknown')` : sql`exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.channel = ${f.attrChannel})`);
+  const utm = Object.entries(f.utm ?? {}) as [UtmDimension, string][];
+  // same normalisation as the drill-down: trimmed, case-insensitive, empty = (none)
+  if (utm.length) conds.push(sql`coalesce((select ${sql.join(utm.map(([d, v]) => sql`lower(coalesce(nullif(trim(${sql.raw(`a.${UTM_COLUMN[d]}`)}), ''), ${UTM_NONE})) = ${v.toLowerCase()}`), sql` and `)} from order_attribution a where a.order_id = ${schema.orders.id}), ${sql.raw(utm.every(([, v]) => v === UTM_NONE) ? "true" : "false")})`);
   return and(...conds)!;
 }
 
@@ -128,5 +151,25 @@ export async function adjacentOrders(ctx: TenantContext, placedAt: Date, id: str
     const [prev] = await tx.select({ id: schema.orders.id, name: schema.orders.name }).from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenant.id), sql`(${schema.orders.placedAt}, ${schema.orders.id}) > (${placedAt}, ${id}::uuid)`)).orderBy(asc(schema.orders.placedAt), asc(schema.orders.id)).limit(1);
     const [next] = await tx.select({ id: schema.orders.id, name: schema.orders.name }).from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenant.id), sql`(${schema.orders.placedAt}, ${schema.orders.id}) < (${placedAt}, ${id}::uuid)`)).orderBy(desc(schema.orders.placedAt), desc(schema.orders.id)).limit(1);
     return { newer: prev ?? null, older: next ?? null };
+  });
+}
+
+/**
+ * What the order page needs to offer editing: lineage (always), and when the order is editable the
+ * catalog for added lines, merge candidates, and whether the COD card owns the edit (an open
+ * confirmation-queue item, so the call attempt and queue hand-over happen in the add-on).
+ */
+export async function getOrderEditData(ctx: TenantContext, order: { id: string; paymentMethod: string }, opts: { editable: boolean }) {
+  return ctx.run(async (tx) => {
+    const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
+    const lineage = await orderLineage(s, order.id);
+    if (!opts.editable) return { lineage, catalog: [], candidates: [], codOwnsEdit: false };
+    const [catalog, candidates, queue] = await Promise.all([
+      tx.select({ id: schema.productVariants.id, sku: schema.productVariants.sku, title: schema.productVariants.title, product: schema.products.title, priceMinor: schema.productVariants.priceMinor }).from(schema.productVariants).innerJoin(schema.products, eq(schema.products.id, schema.productVariants.productId)).where(and(eq(schema.productVariants.tenantId, ctx.tenant.id), eq(schema.productVariants.isActive, true), eq(schema.products.status, "active"))).orderBy(schema.products.title).limit(600),
+      orderMergeCandidates(s, order.id),
+      order.paymentMethod === "cod" && isPageEnabled("cod_queue", ctx.activeAddons) ? tx.select({ status: schema.codQueueItems.status }).from(schema.codQueueItems).where(and(eq(schema.codQueueItems.tenantId, ctx.tenant.id), eq(schema.codQueueItems.orderId, order.id))).limit(1) : Promise.resolve([]),
+    ]);
+    const codOwnsEdit = queue.some((q) => (OPEN_QUEUE_STATUSES as readonly string[]).includes(q.status));
+    return { lineage, catalog, candidates, codOwnsEdit };
   });
 }

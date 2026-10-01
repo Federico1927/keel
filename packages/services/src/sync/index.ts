@@ -1,8 +1,14 @@
 import { and, desc, eq, inArray, isNull, schema, sql } from "@keel/db";
-import { DEFAULT_PRECEDENCE, addressKey, deriveChannel, diffRecords, extractAttribution, hasChanges, matchCampaign, nameZipKey, normalizeEmail, normalizePhone, resolveShipmentStatus, type CampaignRef, type ShipmentStatus } from "@keel/core";
+import { DEFAULT_PRECEDENCE, addressKey, deriveChannel, diffRecords, extractAttribution, hasChanges, matchCampaign, nameZipKey, normalizeEmail, normalizePhone, resolveShipmentStatus, shouldTakePlatformCost, type CampaignRef, type ShipmentStatus } from "@keel/core";
 import { IntegrationError, type AdsPlatform, type CommercePlatform, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 import { recomputeOrderStatus } from "../orders/state";
+import { applyCostToOrderLines } from "../catalog/costs";
+import { unconfirmedWriteTargets } from "../writes";
+import { applyInventoryLevels, refreshInventoryForVariants, zeroUnreportedLevels } from "./inventory";
+
+export * from "./inventory";
+export * from "./housekeeping";
 
 export type ImportSource = "webhook" | "sync" | "backfill" | "reconcile";
 export interface ImportOutcome {
@@ -59,6 +65,8 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
   const [existing] = await ctx.tx.select().from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenantId), eq(schema.orders.externalId, o.externalId))).limit(1);
   if (existing && existing.platformUpdatedAt && existing.platformUpdatedAt.getTime() > o.platformUpdatedAt.getTime() && opts.source !== "reconcile") return { id: existing.id, outcome: "unchanged" };
   const customerId = o.customer ? await upsertCustomer(ctx, o.customer, opts.country) : existing?.customerId ?? null;
+  // a replacement order (cancel-and-recreate edit) keeps the creation day and attribution of the order it replaces
+  const lineage = Boolean(existing?.replacesOrderId);
   const ship = o.shippingAddress;
   const values = {
     orderNumber: o.orderNumber,
@@ -93,7 +101,7 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
     landingSite: o.landingSite,
     referringSite: o.referringSite,
     sourceChannel: o.sourceChannel,
-    placedAt: o.placedAt,
+    placedAt: lineage ? existing!.placedAt : o.placedAt,
     cancelledAt: o.cancelledAt,
     cancelReason: o.cancelReason,
     closedAt: o.closedAt,
@@ -132,7 +140,7 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
   const campaigns = opts.campaigns ?? (await loadCampaignRefs(ctx));
   const campaign = matchCampaign(attribution, campaigns);
   const attrValues = { utmSource: attribution.utmSource, utmMedium: attribution.utmMedium, utmCampaign: attribution.utmCampaign, utmContent: attribution.utmContent, utmTerm: attribution.utmTerm, clickIds: attribution.clickIds, campaignId: campaign?.id ?? null, channel: deriveChannel(attribution, o.referringSite, o.sourceChannel), source: opts.source, capturedAt: now };
-  await ctx.tx.insert(schema.orderAttribution).values({ tenantId: ctx.tenantId, orderId, ...attrValues }).onConflictDoUpdate({ target: [schema.orderAttribution.orderId], set: attrValues });
+  if (!lineage) await ctx.tx.insert(schema.orderAttribution).values({ tenantId: ctx.tenantId, orderId, ...attrValues }).onConflictDoUpdate({ target: [schema.orderAttribution.orderId], set: attrValues });
   // fulfillments → shipments with per-source state and resolver
   for (const f of o.fulfillments) await importFulfillment(ctx, orderId, f, now);
   await recomputeOrderStatus(ctx, orderId, { eventMetadata: { source: opts.source } });
@@ -176,12 +184,20 @@ export async function importProduct(ctx: ServiceContext, p: NormalizedProduct): 
   const [row] = await ctx.tx.insert(schema.products).values({ tenantId: ctx.tenantId, externalId: p.externalId, ...values }).onConflictDoUpdate({ target: [schema.products.tenantId, schema.products.externalId], set: values }).returning({ id: schema.products.id });
   const productId = row!.id;
   const keep: string[] = [];
+  const costed: string[] = [];
+  const known = p.variants.length ? await ctx.tx.select({ externalId: schema.productVariants.externalId, costMinor: schema.productVariants.costMinor, costSource: schema.productVariants.costSource }).from(schema.productVariants).where(and(eq(schema.productVariants.tenantId, ctx.tenantId), inArray(schema.productVariants.externalId, p.variants.map((v) => v.externalId)))) : [];
   for (const v of p.variants) {
-    const vv = { productId, inventoryItemExternalId: v.inventoryItemExternalId, sku: v.sku, barcode: v.barcode, title: v.title, optionValues: v.optionValues, priceMinor: v.priceMinor, compareAtMinor: v.compareAtMinor, weightGrams: v.weightGrams, isActive: true, syncedAt: now, updatedAt: now };
+    const cur = known.find((k) => k.externalId === v.externalId) ?? { costMinor: null, costSource: null };
+    // the platform cost fills a missing cost (or follows itself); a manual, imported or PO cost is never overwritten
+    const cost = shouldTakePlatformCost(cur, v.costMinor) ? { costMinor: v.costMinor!, costSource: "platform", costUpdatedAt: now } : {};
+    const vv = { productId, inventoryItemExternalId: v.inventoryItemExternalId, sku: v.sku, barcode: v.barcode, title: v.title, optionValues: v.optionValues, priceMinor: v.priceMinor, compareAtMinor: v.compareAtMinor, weightGrams: v.weightGrams, isActive: true, syncedAt: now, updatedAt: now, ...cost };
     const [vr] = await ctx.tx.insert(schema.productVariants).values({ tenantId: ctx.tenantId, externalId: v.externalId, ...vv }).onConflictDoUpdate({ target: [schema.productVariants.tenantId, schema.productVariants.externalId], set: vv }).returning({ id: schema.productVariants.id });
     keep.push(vr!.id);
+    if (cur.costMinor === null && "costMinor" in cost) costed.push(vr!.id);
   }
   if (keep.length) await ctx.tx.update(schema.productVariants).set({ isActive: false, updatedAt: now }).where(and(eq(schema.productVariants.productId, productId), sql`${schema.productVariants.id} <> all(${sql.param(keep)}::uuid[])`));
+  // orders sold before the cost was known get it now
+  await applyCostToOrderLines(ctx, costed, "missing");
   return { id: productId, outcome: existing ? "updated" : "created" };
 }
 
@@ -190,7 +206,8 @@ export async function importInventoryLevel(ctx: ServiceContext, lvl: NormalizedI
   const [variant] = await ctx.tx.select({ id: schema.productVariants.id }).from(schema.productVariants).where(and(eq(schema.productVariants.tenantId, ctx.tenantId), eq(schema.productVariants.inventoryItemExternalId, lvl.inventoryItemExternalId))).limit(1);
   const [location] = await ctx.tx.select({ id: schema.locations.id }).from(schema.locations).where(and(eq(schema.locations.tenantId, ctx.tenantId), eq(schema.locations.externalId, lvl.locationExternalId))).limit(1);
   if (!variant || !location) return false;
-  const values = { available: lvl.available, onHand: lvl.onHand ?? lvl.available, committed: lvl.committed ?? 0, syncedAt: lvl.updatedAt, updatedAt: now };
+  // synced_at is when Keel read the level: a complete run zeroes the levels it did not see
+  const values = { available: lvl.available, onHand: lvl.onHand ?? lvl.available, committed: lvl.committed ?? 0, syncedAt: now, updatedAt: now };
   await ctx.tx.insert(schema.inventoryLevels).values({ tenantId: ctx.tenantId, variantId: variant.id, locationId: location.id, ...values }).onConflictDoUpdate({ target: [schema.inventoryLevels.variantId, schema.inventoryLevels.locationId], set: values });
   return true;
 }
@@ -203,12 +220,14 @@ export async function importDiscount(ctx: ServiceContext, d: NormalizedDiscount)
 
 /* ---------- health ---------- */
 
-export async function recordHealth(ctx: ServiceContext, source: string, ok: boolean, info: { error?: string | null; rowsWritten?: number; lastMetricDate?: string | null; freshnessMinutes?: number } = {}): Promise<void> {
+/** Health of one source; `touchIntegration: false` keeps the integration card's own status untouched (outbound writes). */
+export async function recordHealth(ctx: ServiceContext, source: string, ok: boolean, info: { error?: string | null; rowsWritten?: number; lastMetricDate?: string | null; freshnessMinutes?: number; touchIntegration?: boolean } = {}): Promise<void> {
   const now = ctx.now ?? new Date();
   const [prev] = await ctx.tx.select().from(schema.integrationHealth).where(and(eq(schema.integrationHealth.tenantId, ctx.tenantId), eq(schema.integrationHealth.source, source))).limit(1);
   const consecutiveFailures = ok ? 0 : (prev?.consecutiveFailures ?? 0) + 1;
   const values = { status: ok ? "ok" : consecutiveFailures >= 3 ? "error" : "degraded", lastAttemptAt: now, lastSuccessAt: ok ? now : prev?.lastSuccessAt ?? null, lastMetricDate: info.lastMetricDate ?? prev?.lastMetricDate ?? null, consecutiveFailures, rowsWrittenLast: info.rowsWritten ?? (ok ? 0 : prev?.rowsWrittenLast ?? 0), freshnessMinutes: info.freshnessMinutes ?? prev?.freshnessMinutes ?? 60, lastError: ok ? null : info.error ?? prev?.lastError ?? null, updatedAt: now };
   await ctx.tx.insert(schema.integrationHealth).values({ tenantId: ctx.tenantId, source, ...values }).onConflictDoUpdate({ target: [schema.integrationHealth.tenantId, schema.integrationHealth.source], set: values });
+  if (info.touchIntegration === false) return;
   const provider = source.split(":")[0]!;
   await ctx.tx.update(schema.integrations).set(ok ? { lastSyncAt: now, lastSuccessAt: now, lastError: null, status: "connected", updatedAt: now } : { lastSyncAt: now, lastError: info.error ?? null, status: consecutiveFailures >= 3 ? "error" : "connected", updatedAt: now }).where(and(eq(schema.integrations.tenantId, ctx.tenantId), eq(schema.integrations.provider, provider), sql`${schema.integrations.status} <> 'not_connected'`));
 }
@@ -236,17 +255,18 @@ export async function processWebhookEvent(ctx: ServiceContext, platform: Commerc
   const topic = ev.topic;
   try {
     const family = topic.split("/")[0];
+    let touchedOrderId: string | null = null;
     if (family === "orders") {
-      await importOrder(ctx, platform.parseWebhookOrder(payload), { country: opts.country, source: "webhook" });
-    } else if (family === "fulfillments") {
+      touchedOrderId = (await importOrder(ctx, platform.parseWebhookOrder(payload), { country: opts.country, source: "webhook" })).id;
+    } else if (family === "fulfillments" || family === "refunds") {
       const orderExternalId = payload.__normalized ? null : String(payload.order_id ?? "");
       const order = payload.__normalized ? platform.parseWebhookOrder(payload) : orderExternalId ? await platform.fetchOrder(orderExternalId) : null;
-      if (order) await importOrder(ctx, order, { country: opts.country, source: "webhook" });
+      if (order) touchedOrderId = (await importOrder(ctx, order, { country: opts.country, source: "webhook" })).id;
     } else if (family === "products") {
       if (topic === "products/delete") await ctx.tx.update(schema.products).set({ status: "archived", updatedAt: now }).where(and(eq(schema.products.tenantId, ctx.tenantId), eq(schema.products.externalId, String(payload.id))));
       else await importProduct(ctx, platform.parseWebhookProduct(payload));
     } else if (topic === "inventory_levels/update") {
-      await importInventoryLevel(ctx, platform.parseWebhookInventoryLevel(payload));
+      await applyInventoryLevels(ctx, [platform.parseWebhookInventoryLevel(payload)], { source: "webhook" });
     } else if (family === "customers") {
       const c = platform.parseWebhookCustomer(payload);
       if (c) await upsertCustomer(ctx, c, opts.country);
@@ -254,6 +274,7 @@ export async function processWebhookEvent(ctx: ServiceContext, platform: Commerc
       await ctx.tx.update(schema.integrations).set({ status: "not_connected", lastError: "App uninstalled from the store", credentialsEncrypted: null, updatedAt: now }).where(and(eq(schema.integrations.tenantId, ctx.tenantId), eq(schema.integrations.provider, platform.provider)));
     }
     // returns/* and unknown topics are logged only in this version.
+    if (touchedOrderId) await refreshOrderStock(ctx, platform, touchedOrderId);
     await ctx.tx.update(schema.webhookEvents).set({ status: "processed", attempts: ev.attempts + 1, lastError: null, processedAt: now }).where(eq(schema.webhookEvents.id, ev.id));
     await recordHealth(ctx, `${ev.source}:webhooks`, true, { rowsWritten: 1, freshnessMinutes: 30 });
     return { status: "processed", topic };
@@ -262,6 +283,24 @@ export async function processWebhookEvent(ctx: ServiceContext, platform: Commerc
     await ctx.tx.update(schema.webhookEvents).set({ status: "failed", attempts: ev.attempts + 1, lastError: error }).where(eq(schema.webhookEvents.id, ev.id));
     await recordHealth(ctx, `${ev.source}:webhooks`, false, { error });
     return { status: "failed", topic, error };
+  }
+}
+
+/**
+ * Stock of the variants an order touches, re-read right after its webhook (sale, fulfilment,
+ * refund). Best effort: a failure is recorded on `<provider>:inventory` health and never fails the
+ * webhook; the nightly reconciliation catches up. Runs in a savepoint so a database error cannot
+ * poison the webhook's transaction.
+ */
+async function refreshOrderStock(ctx: ServiceContext, platform: CommercePlatform, orderId: string): Promise<void> {
+  const lines = await ctx.tx.select({ variantId: schema.orderLines.variantId }).from(schema.orderLines).where(and(eq(schema.orderLines.tenantId, ctx.tenantId), eq(schema.orderLines.orderId, orderId)));
+  const variantIds = lines.map((l) => l.variantId).filter((v): v is string => Boolean(v));
+  if (!variantIds.length) return;
+  try {
+    const r = await ctx.tx.transaction((sp) => refreshInventoryForVariants({ ...ctx, tx: sp }, platform, variantIds, { source: "webhook" }));
+    await recordHealth(ctx, `${platform.provider}:inventory`, true, { rowsWritten: r.changed, freshnessMinutes: 24 * 60, touchIntegration: false });
+  } catch (e) {
+    await recordHealth(ctx, `${platform.provider}:inventory`, false, { error: errMessage(e), touchIntegration: false });
   }
 }
 
@@ -297,10 +336,16 @@ export async function runOrdersSync(ctx: ServiceContext, platform: CommercePlatf
   let cursor: OrdersCursor;
   let runId: string;
   let rowsWritten = 0;
+  let scanned = 0;
+  let conflicts = 0;
+  let durationBefore = 0;
   if (paused) {
     runId = paused.id;
     cursor = paused.cursor as OrdersCursor;
     rowsWritten = paused.rowsWritten;
+    scanned = paused.rowsScanned;
+    conflicts = paused.conflicts;
+    durationBefore = paused.durationMs ?? 0;
     await ctx.tx.update(schema.syncRuns).set({ status: "running" }).where(eq(schema.syncRuns.id, runId));
   } else {
     const [last] = await ctx.tx.select({ cursor: schema.syncRuns.cursor }).from(schema.syncRuns).where(and(eq(schema.syncRuns.tenantId, ctx.tenantId), eq(schema.syncRuns.provider, provider), eq(schema.syncRuns.objectType, "orders"), eq(schema.syncRuns.status, "success"))).orderBy(desc(schema.syncRuns.finishedAt)).limit(1);
@@ -311,9 +356,13 @@ export async function runOrdersSync(ctx: ServiceContext, platform: CommercePlatf
   }
   const campaigns = await loadCampaignRefs(ctx);
   let maxUpdated = cursor.highWaterMark ? new Date(cursor.highWaterMark) : null;
+  const stats = () => ({ rowsWritten, rowsScanned: scanned, conflicts, durationMs: durationBefore + (Date.now() - started) });
   try {
     for (;;) {
       const page = await platform.fetchOrders({ cursor: cursor.nextCursor ?? null, updatedSince: cursor.updatedSince ? new Date(cursor.updatedSince) : null, createdSince: cursor.createdSince ? new Date(cursor.createdSince) : null, limit: opts.pageSize ?? 50 });
+      scanned += page.items.length;
+      // a Keel change to these orders the platform has not confirmed yet: the platform's answer disagrees with Keel
+      if (page.items.length) conflicts += (await unconfirmedWriteTargets(ctx, ["order.cancel", "order.update_details", "order.tags"], page.items.flatMap((o) => [`order:${o.externalId}:cancel`, `order:${o.externalId}:details`, `order:${o.externalId}:tags`]))).size;
       for (const o of page.items) {
         const r = await importOrder(ctx, o, { country: opts.country, source: opts.kind === "reconcile" ? "reconcile" : opts.kind === "initial" ? "backfill" : "sync", campaigns });
         if (r.outcome !== "unchanged") rowsWritten++;
@@ -321,64 +370,146 @@ export async function runOrdersSync(ctx: ServiceContext, platform: CommercePlatf
       }
       cursor = { ...cursor, nextCursor: page.nextCursor, highWaterMark: maxUpdated?.toISOString() ?? cursor.highWaterMark ?? null, pages: (cursor.pages ?? 0) + 1 };
       if (!page.nextCursor) {
-        await ctx.tx.update(schema.syncRuns).set({ status: "success", cursor: { ...cursor, nextCursor: null }, rowsWritten, finishedAt: new Date() }).where(eq(schema.syncRuns.id, runId));
+        await ctx.tx.update(schema.syncRuns).set({ status: "success", cursor: { ...cursor, nextCursor: null }, ...stats(), finishedAt: new Date() }).where(eq(schema.syncRuns.id, runId));
         await recordHealth(ctx, provider, true, { rowsWritten, freshnessMinutes: 30 });
         return { runId, rowsWritten, finished: true, error: null };
       }
-      await ctx.tx.update(schema.syncRuns).set({ cursor, rowsWritten }).where(eq(schema.syncRuns.id, runId));
+      await ctx.tx.update(schema.syncRuns).set({ cursor, ...stats() }).where(eq(schema.syncRuns.id, runId));
       if (Date.now() - started > budgetMs) {
-        await ctx.tx.update(schema.syncRuns).set({ status: "paused", cursor, rowsWritten }).where(eq(schema.syncRuns.id, runId));
+        await ctx.tx.update(schema.syncRuns).set({ status: "paused", cursor, ...stats() }).where(eq(schema.syncRuns.id, runId));
         return { runId, rowsWritten, finished: false, error: null };
       }
     }
   } catch (e) {
     const error = errMessage(e);
-    await ctx.tx.update(schema.syncRuns).set({ status: "error", error, cursor, rowsWritten, finishedAt: new Date() }).where(eq(schema.syncRuns.id, runId));
+    await ctx.tx.update(schema.syncRuns).set({ status: "error", error, cursor, ...stats(), errorCount: 1, finishedAt: new Date() }).where(eq(schema.syncRuns.id, runId));
     await recordHealth(ctx, provider, false, { error, rowsWritten });
     return { runId, rowsWritten, finished: false, error };
   }
 }
 
-/** Locations, products (+variants), inventory levels and discounts; one run row per object type. */
-export async function runCatalogSync(ctx: ServiceContext, platform: CommercePlatform): Promise<{ products: number; inventory: number; discounts: number; error: string | null }> {
+interface CatalogCursor {
+  phase: "locations" | "products" | "inventory" | "discounts" | "finalize";
+  productCursor: string | null;
+  inventoryOffset: number;
+  discountCursor: string | null;
+  counts: { products: number; inventory: number; discounts: number; zeroed: number; drift: number; clamped: number };
+}
+
+export interface CatalogSyncResult {
+  runId: string;
+  finished: boolean;
+  products: number;
+  inventory: number;
+  discounts: number;
+  zeroed: number;
+  drift: number;
+  conflicts: number;
+  error: string | null;
+}
+
+/**
+ * Catalog run (locations → products → stock → discounts → stale-level cleanup), resumable: the
+ * phase and cursors are saved in `sync_runs` after every page, the run pauses at the time budget
+ * and the next call resumes it. `scope: "inventory"` reads stock only ("Sync now" on the inventory
+ * page). Only a complete run zeroes the levels the platform no longer reports.
+ */
+export async function runCatalogSync(ctx: ServiceContext, platform: CommercePlatform, opts: { kind?: string; scope?: "catalog" | "inventory"; budgetMs?: number; batchSize?: number } = {}): Promise<CatalogSyncResult> {
   const now = ctx.now ?? new Date();
+  const started = Date.now();
   const provider = platform.provider;
-  const runRow = async (objectType: string) => (await ctx.tx.insert(schema.syncRuns).values({ tenantId: ctx.tenantId, provider, objectType, kind: "delta", status: "running", startedAt: now }).returning({ id: schema.syncRuns.id }))[0]!.id;
-  const finish = (id: string, rows: number, error: string | null) => ctx.tx.update(schema.syncRuns).set({ status: error ? "error" : "success", rowsWritten: rows, error, finishedAt: new Date() }).where(eq(schema.syncRuns.id, id));
-  let products = 0;
-  let inventory = 0;
-  let discounts = 0;
-  const run = await runRow("catalog");
+  const kind = opts.kind ?? "delta";
+  const objectType = opts.scope === "inventory" ? "inventory" : "catalog";
+  const budgetMs = opts.budgetMs ?? 25_000;
+  const batch = opts.batchSize ?? 100;
+  const [paused] = await ctx.tx.select().from(schema.syncRuns).where(and(eq(schema.syncRuns.tenantId, ctx.tenantId), eq(schema.syncRuns.provider, provider), eq(schema.syncRuns.objectType, objectType), eq(schema.syncRuns.kind, kind), eq(schema.syncRuns.status, "paused"))).orderBy(desc(schema.syncRuns.startedAt)).limit(1);
+  let cursor: CatalogCursor;
+  let run: { id: string; startedAt: Date; scanned: number; changed: number; conflicts: number; durationMs: number };
+  if (paused) {
+    cursor = paused.cursor as unknown as CatalogCursor;
+    run = { id: paused.id, startedAt: paused.startedAt, scanned: paused.rowsScanned, changed: paused.rowsWritten, conflicts: paused.conflicts, durationMs: paused.durationMs ?? 0 };
+    await ctx.tx.update(schema.syncRuns).set({ status: "running" }).where(eq(schema.syncRuns.id, run.id));
+  } else {
+    cursor = { phase: objectType === "inventory" ? "inventory" : "locations", productCursor: null, inventoryOffset: 0, discountCursor: null, counts: { products: 0, inventory: 0, discounts: 0, zeroed: 0, drift: 0, clamped: 0 } };
+    const [row] = await ctx.tx.insert(schema.syncRuns).values({ tenantId: ctx.tenantId, provider, objectType, kind, status: "running", cursor, startedAt: now }).returning({ id: schema.syncRuns.id, startedAt: schema.syncRuns.startedAt });
+    run = { id: row!.id, startedAt: row!.startedAt, scanned: 0, changed: 0, conflicts: 0, durationMs: 0 };
+  }
+  const c = cursor.counts;
+  const source = kind === "reconcile" ? "reconcile" : kind === "manual" ? "manual" : "sync";
+  const stats = () => ({ rowsScanned: run.scanned, rowsWritten: run.changed, conflicts: run.conflicts, durationMs: run.durationMs + (Date.now() - started), summary: { ...c } });
+  const result = (finished: boolean, error: string | null): CatalogSyncResult => ({ runId: run.id, finished, products: c.products, inventory: c.inventory, discounts: c.discounts, zeroed: c.zeroed, drift: c.drift, conflicts: run.conflicts, error });
+  const outOfTime = async () => {
+    if (Date.now() - started <= budgetMs) return false;
+    await ctx.tx.update(schema.syncRuns).set({ status: "paused", cursor, ...stats() }).where(eq(schema.syncRuns.id, run.id));
+    return true;
+  };
+  const save = () => ctx.tx.update(schema.syncRuns).set({ cursor, ...stats() }).where(eq(schema.syncRuns.id, run.id));
   try {
-    for (const l of await platform.fetchLocations()) await importLocation(ctx, l);
-    let cursor: string | null = null;
-    do {
-      const page = await platform.fetchProducts({ cursor, limit: 50 });
+    if (cursor.phase === "locations") {
+      const locations = await platform.fetchLocations();
+      for (const l of locations) await importLocation(ctx, l);
+      run.scanned += locations.length;
+      cursor.phase = "products";
+      await save();
+    }
+    while (cursor.phase === "products") {
+      const page = await platform.fetchProducts({ cursor: cursor.productCursor, limit: 50 });
       for (const p of page.items) {
         await importProduct(ctx, p);
-        products++;
+        c.products++;
       }
-      cursor = page.nextCursor;
-    } while (cursor);
-    const items = (await ctx.tx.select({ inv: schema.productVariants.inventoryItemExternalId }).from(schema.productVariants).where(and(eq(schema.productVariants.tenantId, ctx.tenantId), eq(schema.productVariants.isActive, true), sql`${schema.productVariants.inventoryItemExternalId} is not null`))).map((r) => r.inv!);
-    for (let i = 0; i < items.length; i += 100) for (const lvl of await platform.fetchInventoryLevels(items.slice(i, i + 100))) if (await importInventoryLevel(ctx, lvl)) inventory++;
-    let dc: string | null = null;
-    do {
-      const page = await platform.fetchDiscounts({ cursor: dc, limit: 100 });
+      run.scanned += page.items.length;
+      run.changed += page.items.length;
+      cursor.productCursor = page.nextCursor;
+      if (!page.nextCursor) cursor.phase = "inventory";
+      await save();
+      if (await outOfTime()) return result(false, null);
+    }
+    if (cursor.phase === "inventory") {
+      // stable order, so an offset resumes exactly where the previous slice stopped
+      const items = (await ctx.tx.select({ inv: schema.productVariants.inventoryItemExternalId }).from(schema.productVariants).where(and(eq(schema.productVariants.tenantId, ctx.tenantId), eq(schema.productVariants.isActive, true), sql`${schema.productVariants.inventoryItemExternalId} is not null`)).orderBy(schema.productVariants.inventoryItemExternalId)).map((r) => r.inv!);
+      while (cursor.inventoryOffset < items.length) {
+        const levels = await platform.fetchInventoryLevels(items.slice(cursor.inventoryOffset, cursor.inventoryOffset + batch));
+        const r = await applyInventoryLevels(ctx, levels, { source, runId: run.id });
+        c.inventory += r.changed;
+        c.drift += r.drift;
+        c.clamped += r.clamped;
+        run.scanned += r.scanned;
+        run.changed += r.changed;
+        run.conflicts += r.conflicts + r.drift;
+        cursor.inventoryOffset += batch;
+        await save();
+        if (cursor.inventoryOffset < items.length && (await outOfTime())) return result(false, null);
+      }
+      cursor.phase = objectType === "inventory" ? "finalize" : "discounts";
+      await save();
+    }
+    while (cursor.phase === "discounts") {
+      const page = await platform.fetchDiscounts({ cursor: cursor.discountCursor, limit: 100 });
       for (const d of page.items) {
         await importDiscount(ctx, d);
-        discounts++;
+        c.discounts++;
       }
-      dc = page.nextCursor;
-    } while (dc);
-    await finish(run, products + inventory + discounts, null);
-    await recordHealth(ctx, `${provider}:catalog`, true, { rowsWritten: products + inventory + discounts, freshnessMinutes: 24 * 60 });
-    return { products, inventory, discounts, error: null };
+      run.scanned += page.items.length;
+      run.changed += page.items.length;
+      cursor.discountCursor = page.nextCursor;
+      if (!page.nextCursor) cursor.phase = "finalize";
+      await save();
+      if (cursor.phase === "discounts" && (await outOfTime())) return result(false, null);
+    }
+    // complete run: levels the platform did not report are stale
+    const z = await zeroUnreportedLevels(ctx, run.startedAt, { source, runId: run.id });
+    c.zeroed += z.zeroed;
+    run.changed += z.zeroed;
+    run.conflicts += z.conflicts;
+    await ctx.tx.update(schema.syncRuns).set({ status: "success", cursor, ...stats(), finishedAt: new Date() }).where(eq(schema.syncRuns.id, run.id));
+    await recordHealth(ctx, `${provider}:${objectType}`, true, { rowsWritten: run.changed, freshnessMinutes: 24 * 60 });
+    return result(true, null);
   } catch (e) {
     const error = errMessage(e);
-    await finish(run, products + inventory + discounts, error);
-    await recordHealth(ctx, `${provider}:catalog`, false, { error });
-    return { products, inventory, discounts, error };
+    await ctx.tx.update(schema.syncRuns).set({ status: "error", error, cursor, ...stats(), errorCount: 1, finishedAt: new Date() }).where(eq(schema.syncRuns.id, run.id));
+    await recordHealth(ctx, `${provider}:${objectType}`, false, { error });
+    return result(false, error);
   }
 }
 

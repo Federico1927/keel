@@ -41,7 +41,14 @@
       "cod_invalid_input": "Datos no válidos.",
       "cod_platform_error": "La plataforma rechazó la escritura de la etiqueta o la cancelación; no se registró nada.",
       "invalid_formula": "La fórmula no es válida.",
-      "closed": "Este pedido ya no se puede modificar."
+      "closed": "Este pedido ya no se puede modificar.",
+      "not_editable": "Este pedido ya no se puede editar: está preparado, cancelado o sustituido.",
+      "invalid_address": "La dirección no es válida: revisa los campos marcados.",
+      "merge_invalid": "Estos pedidos no se pueden fusionar: cliente o pago distintos, o ya preparados.",
+      "nothing_to_change": "Nada que cambiar.",
+      "attachment_too_large": "El archivo supera 1,5 MB.",
+      "attachment_type": "Este tipo de archivo no se acepta.",
+      "invalid_type": "Tipo de notificación desconocido."
     },
     "edit": "Editar"
   },
@@ -166,7 +173,10 @@
     "audit": "Registro de auditoría",
     "cod_settings": "Ajustes contra reembolso",
     "planning": "Planificación",
-    "assistant": "Asistente"
+    "assistant": "Asistente",
+    "tasks": "Tareas",
+    "support": "Soporte",
+    "notifications": "Notificaciones"
   },
   "shell": {
     "open_menu": "Abrir menú",
@@ -177,7 +187,8 @@
     "suspended_title": "Espacio suspendido",
     "suspended_description": "Este espacio está suspendido por facturas impagadas. Contacta con el administrador de la plataforma.",
     "not_found_title": "Página no disponible",
-    "not_found_description": "La página no existe, o tu rol o tu plan no la incluyen."
+    "not_found_description": "La página no existe, o tu rol o tu plan no la incluyen.",
+    "support": "Ayuda"
   },
   "roles": {
     "owner": "Propietario",
@@ -219,7 +230,8 @@
       "stuck_shipments": "Envíos detenidos",
       "returns_requested": "Solicitudes de devolución",
       "critical_variants": "Variantes con stock bajo",
-      "failed_webhooks": "Webhooks fallidos"
+      "failed_webhooks": "Webhooks fallidos",
+      "catalog_quality": "Variantes sin coste o SKU"
     },
     "forecast": {
       "title": "Previsión {month}",
@@ -582,7 +594,109 @@
   },
   "notifications": {
     "title": "Notificaciones",
-    "empty": "Sin notificaciones"
+    "empty": "Sin notificaciones",
+    "view_all": "Ver todas",
+    "description": "Todo lo que Keel te ha avisado, con filtros. Elige por tipo dónde recibir los avisos en Preferencias.",
+    "tabs": {
+      "all": "Todas",
+      "mentions": "Mis menciones",
+      "preferences": "Preferencias",
+      "suppressions": "Correos bloqueados"
+    },
+    "filters": {
+      "status": "Estado",
+      "all": "Todas",
+      "unread": "Sin leer",
+      "read": "Leídas",
+      "type": "Tipo",
+      "all_types": "Todos los tipos"
+    },
+    "mark_read": "Marcar como leída",
+    "mark_unread": "Marcar como no leída",
+    "mark_all_read": "Marcar todas como leídas",
+    "unread_n": "{n} sin leer",
+    "empty_title": "Sin notificaciones",
+    "empty_description": "Ninguna notificación coincide con los filtros.",
+    "pagination": "{from}–{to} de {total}",
+    "open": "Abrir",
+    "types": {
+      "mention": "Menciones",
+      "task_assigned": "Tarea asignada a ti",
+      "task_due": "Tarea que vence",
+      "support_reply": "Respuesta de soporte",
+      "alert": "Alertas",
+      "sync_delay": "Retraso de sincronización",
+      "stock_critical_no_po": "Stock crítico sin órdenes de compra en camino",
+      "late_to_ship": "Envíos retrasados",
+      "stock_low": "Stock bajo",
+      "stock_available": "Stock disponible de nuevo",
+      "return_portal": "Devoluciones del portal",
+      "po_supplier_confirmed": "El proveedor confirmó una orden",
+      "po_supplier_problem": "El proveedor informó un problema",
+      "integration_health": "Integraciones",
+      "cod_assigned": "Pedido contra reembolso asignado",
+      "digest": "Correo de resumen diario",
+      "other": "Otros"
+    },
+    "rendered": {
+      "stock_critical_no_po": "{title} variantes en venta con stock crítico y ninguna orden de compra",
+      "late_to_ship": "{title} pedidos aún sin enviar después de {body}",
+      "sync_delay": "La sincronización de {title} va con retraso ({body})"
+    },
+    "groups": {
+      "collaboration": "Colaboración",
+      "operations": "Operaciones",
+      "system": "Sistema"
+    },
+    "channels": {
+      "in_app": "En la app",
+      "email": "Correo",
+      "slack": "Slack"
+    },
+    "delivered": "Enviada: {channels}",
+    "preferences": {
+      "title": "Preferencias de notificación",
+      "description": "Por tipo y canal, solo para ti en esta tienda. El servidor las aplica a cada envío.",
+      "reset": "Restaurar valores predeterminados",
+      "default_hint": "Predeterminado",
+      "custom_hint": "Modificado",
+      "not_available": "No disponible para este tipo",
+      "slack_hint": "Los mensajes de Slack van al canal de la tienda configurado en Integraciones."
+    },
+    "mentions": {
+      "title": "Mis menciones",
+      "description": "Notas en pedidos, órdenes de compra y devoluciones en las que alguien te mencionó.",
+      "empty_title": "Sin menciones",
+      "empty_description": "Cuando un compañero escribe @tu nombre en una nota, aparece aquí.",
+      "by": "{author} en {record}",
+      "mark_all_read": "Marcar todas como leídas",
+      "entity": {
+        "all": "Todos los registros",
+        "order": "Pedidos",
+        "purchase_order": "Órdenes de compra",
+        "return": "Devoluciones"
+      }
+    },
+    "suppressions": {
+      "title": "Correos bloqueados",
+      "description": "Direcciones que no reciben correos de esta tienda: rebotes y quejas bloquean todos los correos, las bajas bloquean su categoría.",
+      "email": "Correo",
+      "category": "Categoría",
+      "reason": "Motivo",
+      "when": "Cuándo",
+      "note": "Nota",
+      "add": "Bloquear dirección",
+      "remove": "Quitar",
+      "empty": "No hay direcciones bloqueadas.",
+      "all_categories": "Todos los correos opcionales",
+      "reasons": {
+        "bounce": "Rebote",
+        "complaint": "Queja",
+        "unsubscribe": "Dado de baja",
+        "manual": "Añadido a mano"
+      },
+      "supplier_po": "Órdenes de compra a proveedores"
+    }
   },
   "orders": {
     "title": "Pedidos",
@@ -613,7 +727,8 @@
       "sort": "Ordenar",
       "from": "Desde",
       "to": "Hasta",
-      "tag": "Etiqueta"
+      "tag": "Etiqueta",
+      "missing_cost": "Productos sin coste"
     },
     "sort": {
       "placed_desc": "Más recientes",
@@ -706,7 +821,24 @@
     },
     "restock": "Reponer artículos",
     "refund": "Reembolsar el pago cobrado",
-    "request_return": "Abrir devolución"
+    "request_return": "Abrir devolución",
+    "lineage": {
+      "title": "Pedido editado",
+      "replaced_by": "Este pedido fue sustituido por <link>{order}</link> y ya no cuenta en los informes.",
+      "not_cancelled": "La tienda no lo canceló: cancélalo a mano.",
+      "replaces": "Creado como sustitución de",
+      "replaces_hint": "Conserva su día de creación y la atribución.",
+      "chain": "Historial"
+    },
+    "timeline_meta": {
+      "replaces": "Sustituye {orders}",
+      "replaced_by": "Sustituido por {order}",
+      "not_cancelled": "(no cancelado en la tienda)",
+      "discount": "{code}: −{amount}",
+      "balance_due": "El cliente debe {amount}",
+      "balance_refund": "Reembolsa {amount} al cliente",
+      "written_to": "Escrito en {platform}"
+    }
   },
   "order_events": {
     "imported": "Importado",
@@ -728,7 +860,8 @@
     "tags_updated": "Etiquetas actualizadas",
     "modified": "Pedido modificado",
     "replaces": "Creado como sustitución",
-    "replaced": "Sustituido por un pedido nuevo"
+    "replaced": "Sustituido por un pedido nuevo",
+    "discount_applied": "Descuento aplicado"
   },
   "shipments": {
     "title": "Envíos",
@@ -807,7 +940,9 @@
       "incoming": "En camino",
       "sold": "Vendidos ({days}d)",
       "risk": "Riesgo"
-    }
+    },
+    "quality_link": "Calidad de datos",
+    "import_costs_link": "Importar costes"
   },
   "product_detail": {
     "back": "Productos",
@@ -877,7 +1012,30 @@
       "cover": "Cobertura",
       "reorder": "Reposición"
     },
-    "planning_link": "Planificación"
+    "planning_link": "Planificación",
+    "sync_now": "Sincronizar ahora",
+    "sync_done": "Stock leído: {changed} niveles cambiados, {drift} desviaciones, {conflicts} conflictos, {zeroed} niveles obsoletos a cero.",
+    "sync_paused": "Sincronización de stock pausada por límite de tiempo; continúa en la próxima ejecución.",
+    "sync_queued": "Sincronización de stock en cola.",
+    "sync_failed": "Error en la sincronización de stock: {error}",
+    "drift_title": "Desviaciones de stock",
+    "drift_description": "Cambios encontrados por las sincronizaciones que ninguna venta, devolución, recepción o ajuste explica, valores negativos llevados a cero y niveles que la plataforma ya no informa.",
+    "drift_empty": "No hay desviaciones registradas.",
+    "drift_kind": {
+      "unexplained": "Cambio sin explicar",
+      "negative": "Negativo, a cero",
+      "not_reported": "Ya no informado"
+    },
+    "drift_columns": {
+      "seen": "Visto",
+      "variant": "Variante",
+      "location": "Ubicación",
+      "kind": "Tipo",
+      "expected": "Esperado",
+      "observed": "Plataforma"
+    },
+    "drift_all_locations": "Todas las ubicaciones",
+    "drift_times": "×{n}"
   },
   "purchasing": {
     "title": "Compras",
@@ -897,7 +1055,21 @@
       "expected": "Prevista / recibida",
       "units": "Unidades",
       "total": "Total",
-      "covers": "Pendientes"
+      "covers": "Pendientes",
+      "destination": "Destino"
+    },
+    "packs": "Cajas",
+    "export_csv": "Exportar CSV",
+    "filters": {
+      "search": "Buscar",
+      "search_placeholder": "Número, proveedor, SKU, nota",
+      "all_suppliers": "Todos los proveedores",
+      "destination": "Destino",
+      "all_destinations": "Todos los destinos",
+      "from": "Desde",
+      "to": "Hasta",
+      "apply": "Aplicar",
+      "clear": "Limpiar"
     }
   },
   "po_detail": {
@@ -971,6 +1143,55 @@
       "send": "Enviar al proveedor",
       "resend": "Enviar de nuevo",
       "link_hint": "Enlace de confirmación (en modo demo no sale ningún email de la plataforma: reenvíalo al proveedor):"
+    },
+    "free_text_line": "Línea de texto libre",
+    "inspection": {
+      "damaged": "Dañados",
+      "rejected": "Rechazados",
+      "short": "{damaged} dañados · {rejected} rechazados",
+      "hint": "\"Recibir ahora\" cuenta todas las unidades llegadas; las dañadas y rechazadas forman parte de ellas y no entran en stock ni en el coste."
+    },
+    "manage": {
+      "duplicate": "Duplicar",
+      "delete_title": "¿Eliminar {number}?",
+      "delete_hint": "Solo se pueden eliminar borradores y pedidos cancelados. Se eliminan líneas, cargos y enlaces del proveedor; el registro de auditoría conserva la traza."
+    },
+    "links": {
+      "title": "Enlaces del proveedor",
+      "state": {
+        "active": "Activo",
+        "expired": "Caducado",
+        "revoked": "Revocado"
+      },
+      "issued": "Emitido el {at} a {to}",
+      "expires": "Caduca el {at}",
+      "expired_on": "Caducó el {at}",
+      "revoked": "Revocado: el proveedor ve una página neutra.",
+      "views": "{n, plural, one {# apertura} other {# aperturas}}, última {at}",
+      "no_views": "Nunca abierto",
+      "revoke": "Revocar enlace",
+      "revoked_ok": "Enlace revocado."
+    },
+    "history": {
+      "title": "Historial",
+      "actions": {
+        "purchase_order": {
+          "created": "Creado",
+          "updated": "Editado",
+          "duplicated": "Creado como copia",
+          "deleted": "Eliminado",
+          "transition": "Estado cambiado",
+          "received": "Mercancía recibida",
+          "sent_to_supplier": "Enviado al proveedor",
+          "supplier_confirmed": "Confirmado por el proveedor",
+          "supplier_problem": "Problema señalado por el proveedor",
+          "supplier_link_revoked": "Enlace del proveedor revocado",
+          "supplier_link_blocked": "Abierto un enlace caducado o revocado",
+          "auto_draft": "Borrador del plan de reposición",
+          "charge_added": "Cargo añadido",
+          "charge_deleted": "Cargo eliminado"
+        }
+      }
     }
   },
   "po_new": {
@@ -1089,7 +1310,7 @@
       "cancelled": "Cancelados",
       "returned": "Devueltos",
       "pending": "Pendientes",
-      "cogs_incomplete": "{n} pedidos tienen líneas sin coste de compra: el coste de ventas está infravalorado.",
+      "cogs_incomplete": "{n} pedidos contienen productos sin coste ({share} de los ingresos netos): el coste de la mercancía está infravalorado.",
       "by_month": "Por mes",
       "month": "Mes",
       "open_orders": "Abrir pedidos",
@@ -1102,7 +1323,17 @@
         "none": "ningún coste introducido",
         "mixed": "real donde existe, estimación en el resto"
       },
-      "return_costs": "Costes de devolución"
+      "return_costs": "Costes de devolución",
+      "fix_costs": "Corregir costes de producto",
+      "cost_reliability": "Coste conocido en el {share} de los ingresos por ventas:",
+      "cost_origin": {
+        "po_receipt": "pedidos de compra",
+        "platform": "Shopify",
+        "import": "importación CSV",
+        "manual": "introducido a mano",
+        "unknown": "no registrado",
+        "missing": "falta"
+      }
     },
     "products": {
       "title": "Rendimiento de productos",
@@ -2316,14 +2547,26 @@
       "run": "Ejecución",
       "status": "Estado",
       "rows": "Filas",
-      "topic": "Topic"
+      "topic": "Topic",
+      "scanned": "Leídos",
+      "changed": "Cambiados",
+      "conflicts": "Conflictos",
+      "errors": "Errores",
+      "duration": "Duración"
     },
     "errors": {
       "connection_failed": "La plataforma rechazó las credenciales.",
       "mock_mode": "Este entorno está en modo mock: configura KEEL_INTEGRATION_MODE=live para conectar una cuenta real.",
       "live_mode": "La simulación solo está disponible para integraciones mock."
     },
-    "tracking": "Píxel y conversiones"
+    "tracking": "Píxel y conversiones",
+    "duration_s": "{s} s",
+    "run_kind": {
+      "initial": "histórico",
+      "delta": "delta",
+      "reconcile": "conciliación nocturna",
+      "manual": "manual"
+    }
   },
   "integration_guide": {
     "verify_legend": "Los pasos marcados “Por verificar” dependen de consolas de proveedores que cambian a menudo: compruébalos en la documentación del proveedor antes de la primera instalación.",
@@ -2646,7 +2889,8 @@
       "tenants": "Tenants",
       "billing": "Facturación",
       "audit": "Registro de auditoría",
-      "styleguide": "Guía de estilo"
+      "styleguide": "Guía de estilo",
+      "support": "Soporte"
     },
     "plans": {
       "starter": "Starter",
@@ -2791,6 +3035,20 @@
       "actor": "Autor",
       "action": "Acción",
       "details": "Detalles"
+    },
+    "support": {
+      "title": "Soporte",
+      "description": "Solicitudes de las tiendas. Las respuestas notifican al autor; cada acción se escribe en el registro de auditoría.",
+      "tenant": "Tienda",
+      "all": "Todas",
+      "empty": "No hay solicitudes.",
+      "reply": "Responder",
+      "close_after": "Cerrar después de responder",
+      "send": "Enviar respuesta",
+      "reopen": "Reabrir",
+      "close": "Cerrar",
+      "author": "Abierta por",
+      "attachment_audit": "La descarga de un adjunto queda registrada en el registro de auditoría."
     }
   },
   "cod": {
@@ -3015,39 +3273,7 @@
       "tags_event_replaced": "Sustituido por un pedido nuevo"
     },
     "filter_by_tag": "Etiqueta:",
-    "all_tags": "Todas",
-    "modify": {
-      "button": "Modificar pedido",
-      "title": "Modificar {order}",
-      "description": "Cambios acordados con el cliente antes de la confirmación. Contacto y dirección se editan en el sitio. Cambiar líneas o fusionar pedidos crea un pedido nuevo y cancela este, así el almacén nunca envía una línea eliminada.",
-      "contact": "Contacto y dirección",
-      "customer_name": "Nombre",
-      "phone": "Teléfono",
-      "email": "Email",
-      "address": {
-        "name": "Destinatario",
-        "address1": "Dirección",
-        "address2": "Dirección línea 2",
-        "city": "Ciudad",
-        "province": "Provincia",
-        "zip": "Código postal",
-        "country": "País (código ISO)"
-      },
-      "note_append": "Añadir a la nota del pedido",
-      "lines": "Líneas",
-      "quantity": "Cantidad",
-      "add_product": "Buscar producto por SKU o nombre",
-      "add": "Añadir",
-      "new_total": "Nuevo total {total}",
-      "merge": "Fusionar otros pedidos abiertos de este cliente",
-      "merge_help": "Sus líneas se añaden al pedido nuevo y se cancelan como sustituidos.",
-      "attempt_note": "Nota de la llamada (opcional)",
-      "replace_warning": "Este pedido se cancelará en la plataforma y será sustituido por uno nuevo con el mismo operador. Los intentos empiezan de nuevo.",
-      "replaced_done": "Sustituido por {order}.",
-      "warning_not_cancelled": "No se pudo cancelar el pedido antiguo en la plataforma: cancélalo a mano.",
-      "save": "Guardar cambios",
-      "save_replace": "Sustituir pedido"
-    }
+    "all_tags": "Todas"
   },
   "po_pdf": {
     "title": "Orden de compra",
@@ -3097,7 +3323,9 @@
     "submit": {
       "confirm": "Confirmar",
       "problem": "Enviar"
-    }
+    },
+    "inactive_title": "Este enlace ya no es válido",
+    "inactive_body": "El enlace ha caducado o fue sustituido por uno más reciente. Pide un enlace nuevo a la empresa que te lo envió."
   },
   "planning": {
     "back": "Inventario",
@@ -4047,6 +4275,663 @@
       "connect": "Conectar en Integraciones",
       "ask_owner": "Pide a un owner o admin que conecte la clave de Anthropic en Integraciones.",
       "guide": "Cómo obtener una clave"
+    }
+  },
+  "analytics_depth": {
+    "tabs": {
+      "orders_pnl": "P/L por pedido",
+      "utm": "UTM"
+    },
+    "total": "Total",
+    "export": "CSV",
+    "apply": "Aplicar",
+    "clear": "Limpiar",
+    "sort": "Ordenar",
+    "granularity": {
+      "day": "Día",
+      "week": "Semana",
+      "month": "Mes",
+      "quarter": "Trimestre",
+      "year": "Año"
+    },
+    "periods": {
+      "title": "P/L en el tiempo",
+      "series": {
+        "cogs": "Coste de la mercancía",
+        "shipping": "Envíos",
+        "fees": "Comisiones de pago",
+        "returns": "Costes de devoluciones",
+        "ads": "Publicidad",
+        "fixed": "Costes fijos"
+      },
+      "partial": "parcial",
+      "partial_hint": "Este periodo está cubierto solo en parte: recortado por las fechas elegidas o aún en curso.",
+      "chart_hint": "Barras: costes apilados por tipo. Línea: resultado operativo. Las barras claras son periodos parciales. La suma de los periodos es el P/L de arriba.",
+      "pages": "{n} periodos"
+    },
+    "quality": {
+      "title": "Calidad de los datos",
+      "description": "Qué tan completos son los números detrás del P/L.",
+      "incomplete_orders": "Pedidos de venta con costes faltantes",
+      "incomplete_share": "{share} de los ingresos netos: coste de la mercancía subestimado",
+      "variants_missing_cost": "Variantes sin coste",
+      "fix_link": "Corregir costes de producto →",
+      "cost_known": "Ingresos con coste conocido",
+      "cost_known_hint": "Parte de los ingresos de venta con coste de producto conocido."
+    },
+    "orders_pnl": {
+      "title": "P/L por pedido",
+      "description": "Cada pedido de venta del periodo con su propio P/L; la suma lleva al P/L del periodo de abajo. {out} pedidos del periodo no son ventas (cancelados, pendientes, devueltos) y quedan fuera.",
+      "search": "Número de pedido",
+      "payment": "Método de pago",
+      "channel": "Canal",
+      "sort": {
+        "placed_desc": "Más recientes",
+        "placed_asc": "Más antiguos",
+        "contribution_asc": "Menor contribución",
+        "contribution_desc": "Mayor contribución",
+        "net_desc": "Mayores ingresos netos"
+      },
+      "missing_cost": "Coste faltante",
+      "loss": "Con pérdidas",
+      "empty": "Ningún pedido de venta coincide con los filtros.",
+      "order": "Pedido",
+      "fee_estimated": "Comisión (est.)",
+      "no_cost": "sin coste",
+      "total": "Total · {n} pedidos",
+      "summary": "{n} pedidos",
+      "reconciliation": "De los pedidos al P/L del periodo",
+      "reconciliation_description": "Las filas de pedidos suman el P/L; los costes conocidos solo para todo el periodo van en su propia línea.",
+      "reconciliation_filtered": "Calculado sobre todos los pedidos de venta del periodo, no solo los filtrados.",
+      "recon": {
+        "orders_contribution": "Suma de las contribuciones de los pedidos",
+        "shipping_adjustment": "Factura del transportista vs estimación por pedido",
+        "return_timing": "Costes de devoluciones por fecha de recepción vs por pedido",
+        "contribution": "Margen de contribución (P/L)",
+        "ads": "Publicidad",
+        "fixed": "Costes fijos",
+        "operating": "Resultado operativo (P/L)"
+      },
+      "shipping_adjustment_hint": "Los meses con factura real del transportista la usan en lugar de la estimación por pedido.",
+      "return_timing_hint": "El P/L cuenta los costes de devoluciones cuando vuelve la mercancía; la tabla los cuenta en el pedido al que pertenecen.",
+      "matches": "Coincide al céntimo con el P/L del periodo.",
+      "mismatch": "No coincide con el P/L del periodo: por favor, notifícalo."
+    },
+    "channels": {
+      "direct": "Directo",
+      "paid_social": "Social de pago",
+      "paid_search": "Búsqueda de pago",
+      "organic_search": "Búsqueda orgánica",
+      "email": "Email",
+      "social": "Social",
+      "referral": "Referido",
+      "unknown": "Desconocido",
+      "other": "Otro"
+    },
+    "products": {
+      "description": "Ventas del periodo con el gasto de las campañas vinculadas a cada producto (repartido por ingresos netos cuando una campaña anuncia varios), beneficio, ROAS/ROI, stock, cobertura y qué hacer. El gasto de campañas sin producto vinculado va en su propia fila, así el gasto total es igual al del periodo.",
+      "search": "Producto",
+      "action": "Acción de stock",
+      "all_actions": "Todas las acciones",
+      "actions": {
+        "pause_ads": "Pausar anuncios",
+        "reorder": "Reponer",
+        "last_units": "Últimas unidades",
+        "clear_excess": "Liquidar exceso",
+        "scale_ads": "Escalar anuncios",
+        "ok": "OK",
+        "no_data": "Sin stock"
+      },
+      "sort": {
+        "net_desc": "Mayores ingresos netos",
+        "units_desc": "Más unidades",
+        "profit_desc": "Mayor beneficio",
+        "profit_asc": "Menor beneficio",
+        "ad_spend_desc": "Mayor gasto en anuncios",
+        "roas_asc": "Menor ROAS",
+        "cover_asc": "Menor cobertura"
+      },
+      "net": "Ingresos netos",
+      "ad_spend": "Gasto en anuncios",
+      "profit": "Beneficio",
+      "light": "Anuncios",
+      "stock": "Stock + entrante",
+      "cover": "Cobertura",
+      "days": "{n} d",
+      "reorder_units": "{n} uds.",
+      "unattributed": "Gasto no atribuido: {n} campañas sin producto vinculado",
+      "link_campaigns": "Vincular campañas →",
+      "spend_matches": "Gasto total en anuncios {spend}, igual al P/L del periodo.",
+      "campaigns": "{n} campañas vinculadas",
+      "summary": "{n} productos"
+    },
+    "utm": {
+      "title": "Análisis UTM",
+      "description": "Pedidos de venta por parámetro UTM; haz clic en un valor para abrir el siguiente nivel. {n} pedidos de venta no tienen datos de atribución.",
+      "dims": {
+        "source": "Fuente",
+        "medium": "Medio",
+        "campaign": "Campaña",
+        "content": "Contenido",
+        "term": "Término"
+      },
+      "none": "(ninguno)",
+      "empty": "Ningún pedido de venta en este periodo.",
+      "orders": "Pedidos",
+      "revenue": "Ingresos",
+      "net": "Ingresos netos",
+      "aov": "Ticket medio",
+      "share": "Cuota",
+      "summary": "{n} valores",
+      "trend_title": "Canales en el tiempo",
+      "trend_description": "Ingresos netos de los pedidos de venta por canal de atribución."
+    },
+    "economics": {
+      "title": "Economía del pedido",
+      "description": "El P/L de este pedido, calculado como el P/L del periodo.",
+      "replaced": "Sustituido por una edición: la economía está en el pedido de reemplazo.",
+      "not_sale": "No es una venta (cancelado, pendiente o devuelto): no cuenta en el P/L.",
+      "incomplete": "incompleto",
+      "estimated": "estimado",
+      "fee_source": {
+        "estimated": "estimada"
+      },
+      "lines": {
+        "gross": "Ventas brutas",
+        "refunds": "Reembolsos",
+        "tax": "Impuestos",
+        "net": "Ingresos netos",
+        "cogs": "Coste de la mercancía",
+        "shipping": "Coste de envío",
+        "fee": "Comisión de pago",
+        "margin": "Margen del pedido",
+        "returns": "Costes de devoluciones",
+        "contribution": "Contribución"
+      },
+      "margin_rate": "Contribución {rate} de los ingresos netos",
+      "open_table": "Abrir en P/L por pedido →"
+    },
+    "order_filters": {
+      "product": "Contiene el producto",
+      "channel": "Canal: {value}",
+      "utm": "utm {dim}: {value}"
+    }
+  },
+  "product_costs": {
+    "card_title": "Coste del producto",
+    "card_description": "Coste unitario por variante: se copia en los pedidos que la venden y alimenta márgenes, la cuenta de resultados y el beneficio de las campañas. La recepción de un pedido de compra también lo actualiza.",
+    "bulk_label": "Mismo coste para todas las variantes",
+    "bulk_apply": "Usar para todas las variantes",
+    "variant": "Variante",
+    "sku": "SKU",
+    "cost": "Coste",
+    "cost_of": "Coste de {variant}",
+    "source_label": "Origen",
+    "source": {
+      "platform": "De Shopify",
+      "manual": "Introducido a mano",
+      "import": "Importación CSV",
+      "po_receipt": "Pedido de compra",
+      "unknown": "No registrado"
+    },
+    "missing": "Falta",
+    "apply_to": "Pedidos pasados",
+    "apply_missing": "Completar solo pedidos sin coste",
+    "apply_all": "Recalcular todos los pedidos pasados",
+    "write_back_on": "Los costes también se escriben en Shopify.",
+    "saved": "{changed, plural, =0 {Sin cambios.} one {# coste guardado, {lines} líneas de pedido actualizadas.} other {# costes guardados, {lines} líneas de pedido actualizadas.}}"
+  },
+  "catalog_quality": {
+    "back": "Productos",
+    "title": "Calidad de datos del catálogo",
+    "description": "{affected} de {total} variantes activas necesitan atención. Un coste que falta hace que cada margen parezca mejor de lo que es.",
+    "import_costs": "Importar costes desde CSV",
+    "issue": {
+      "missing_cost": "Falta el coste",
+      "missing_sku": "Falta el SKU",
+      "duplicate_sku": "SKU duplicado",
+      "missing_barcode": "Falta el código de barras",
+      "missing_image": "Falta la imagen"
+    },
+    "empty_title": "Nada que corregir",
+    "empty_description": "Cada variante activa tiene coste, SKU único, código de barras e imagen.",
+    "columns": {
+      "product": "Producto",
+      "sku": "SKU",
+      "barcode": "Código de barras",
+      "cost": "Coste",
+      "issues": "Problemas"
+    },
+    "pagination": "{from}–{to} de {total} variantes"
+  },
+  "cost_import": {
+    "back": "Calidad de datos del catálogo",
+    "title": "Importar costes de producto",
+    "description": "Sube un CSV con SKU y coste (y opcionalmente el SKU del proveedor). Ves las coincidencias antes de que se escriba nada.",
+    "file_title": "Archivo de costes",
+    "file_hint": "Columnas: sku, cost, supplier_sku (opcional). Separado por coma, punto y coma o tabulador; decimales con punto o coma. La exportación \"Coste por artículo\" de Shopify funciona tal cual.",
+    "file": "Archivo CSV",
+    "apply_to": "Pedidos pasados",
+    "apply_missing": "Completar solo pedidos sin coste",
+    "apply_all": "Recalcular todos los pedidos pasados",
+    "preview": "Vista previa",
+    "template": "Descargar una plantilla",
+    "preview_title": "Vista previa",
+    "preview_hint": "Todavía no se ha escrito nada. Solo se importan las filas que coinciden; las demás se listan para corregir el archivo.",
+    "status": {
+      "matched": "Se actualizará",
+      "unchanged": "Mismo coste",
+      "unmatched": "SKU no encontrado",
+      "ambiguous": "SKU en varias variantes",
+      "invalid": "Fila no válida"
+    },
+    "columns": {
+      "line": "Línea",
+      "sku": "SKU",
+      "variant": "Variante",
+      "cost": "Coste",
+      "status": "Resultado"
+    },
+    "row_error": {
+      "missing_sku": "Sin SKU",
+      "invalid_cost": "El coste no es un importe válido",
+      "duplicate_row": "Repetida en el archivo"
+    },
+    "file_error": {
+      "empty": "El archivo no tiene filas.",
+      "missing_columns": "El archivo necesita una columna cost y una columna sku (o supplier_sku).",
+      "too_many_rows": "El archivo tiene demasiadas filas (máximo 20.000)."
+    },
+    "confirm": "Importar {n, plural, one {# coste} other {# costes}}",
+    "done": "{written, plural, one {# coste importado} other {# costes importados}}, {lines} líneas de pedido actualizadas.",
+    "write_back": "Escribir los costes en Shopify",
+    "write_back_hint": "Si está activo, los costes editados o importados aquí también actualizan el coste unitario en Shopify. Solo owners y admins pueden cambiarlo."
+  },
+  "order_edit": {
+    "button": "Editar pedido",
+    "cod_button": "Modificar pedido",
+    "merge_button": "Fusionar pedidos",
+    "title": "Editar {order}",
+    "description": "Contacto, dirección y nota se cambian en el sitio en la tienda. Cambiar líneas o fusionar pedidos crea un pedido nuevo vinculado y cancela este, así el almacén nunca envía una línea eliminada.",
+    "cod_description": "Cambios acordados con el cliente antes de la confirmación. Contacto y dirección se editan en el sitio. Cambiar líneas o fusionar pedidos crea un pedido nuevo y cancela este, así el almacén nunca envía una línea eliminada.",
+    "contact": "Contacto y dirección",
+    "customer_name": "Nombre",
+    "phone": "Teléfono",
+    "email": "Email",
+    "shipping_address": "Dirección de envío",
+    "edit_billing": "Cambiar también la dirección de facturación",
+    "address": {
+      "name": "Destinatario",
+      "address1": "Dirección",
+      "address2": "Dirección línea 2",
+      "city": "Ciudad",
+      "province": "Provincia / estado",
+      "zip": "Código postal",
+      "country": "País (código ISO)"
+    },
+    "address_suggestions": "Sugerencias",
+    "check_address": "Comprobar dirección",
+    "address_ok": "La dirección parece válida.",
+    "address_issues": {
+      "required": "Obligatorio.",
+      "invalid_zip": "Código postal no válido para este país.",
+      "invalid_country": "Usa el código de país de dos letras.",
+      "not_found": "Dirección no encontrada."
+    },
+    "note": "Nota del pedido",
+    "note_append": "Añadir a la nota del pedido",
+    "lines": "Líneas",
+    "quantity": "Cantidad",
+    "add_product": "Buscar producto por SKU o nombre",
+    "add": "Añadir",
+    "new_total": "Nuevo total {total}",
+    "merge": "Fusionar otros pedidos abiertos de este cliente",
+    "merge_help": "Sus líneas se añaden al pedido nuevo y se cancelan como sustituidos. Solo se pueden fusionar pedidos abiertos con el mismo método y estado de pago.",
+    "attempt_note": "Nota de la llamada (opcional)",
+    "replace_warning": "Este pedido se cancelará en la tienda y será sustituido por un pedido nuevo vinculado que conserva el día de creación y la atribución. Los informes cuentan un solo pedido.",
+    "cod_replace_warning": "Este pedido se cancelará en la plataforma y será sustituido por uno nuevo con el mismo operador. Los intentos empiezan de nuevo.",
+    "paid_warning": "El pago se queda en el pedido original y el nuevo figura como pagado: cobra o reembolsa la diferencia desde la tienda.",
+    "replaced_done": "Sustituido por {order}.",
+    "warning_not_cancelled": "No se pudo cancelar el pedido antiguo en la plataforma: cancélalo a mano.",
+    "save": "Guardar cambios",
+    "save_replace": "Sustituir pedido"
+  },
+  "order_discount": {
+    "button": "Aplicar descuento",
+    "title": "Descuento en {order}",
+    "description": "El descuento se añade al pedido en la tienda y el total se reduce.",
+    "presets": "Descuentos rápidos",
+    "type": "Tipo",
+    "type_percentage": "Porcentaje",
+    "type_fixed_amount": "Importe ({currency})",
+    "value": "Valor",
+    "code": "Código (opcional)",
+    "reason": "Motivo (opcional)",
+    "preview": "Descuento {amount} · nuevo total {total}",
+    "refund_due": "El pedido está pagado: reembolsa {amount} al cliente desde la tienda.",
+    "apply": "Aplicar descuento"
+  },
+  "po_editor": {
+    "lines": "Líneas",
+    "search_placeholder": "Añadir variante: SKU, código o título",
+    "no_results": "No se encontró ninguna variante.",
+    "available_n": "{n} disponibles",
+    "suggested_n": "sugerido {n}",
+    "add_free_text": "Línea de texto libre",
+    "free_text_placeholder": "Descripción (embalaje, muestras, servicio…)",
+    "free_text": "Fuera de catálogo",
+    "line_total": "Total línea",
+    "empty": "Aún no hay líneas: busca una variante, añade una sugerencia o una línea libre.",
+    "total": "Total",
+    "suggestions": "Sugerencias de reposición",
+    "add_all": "Añadir todas las sugeridas",
+    "add": "Añadir",
+    "save": "Guardar cambios",
+    "edit_title": "Editar {number}",
+    "edit_hint": "Las líneas se sustituyen en bloque; cada cambio queda en el historial del pedido.",
+    "edit_sent_hint": "El pedido ya está con el proveedor: el proveedor no cambia y su enlace muestra las nuevas líneas."
+  },
+  "supplier_terms": {
+    "title": "Proveedores y cajas",
+    "hint": "Proveedor predeterminado de cada variante: la planificación y los borradores automáticos usan su coste, MOQ y plazo.",
+    "missing": "{n, plural, one {# variante no tiene} other {# variantes no tienen}} proveedor predeterminado: los borradores automáticos las omiten.",
+    "option_mix": "Mix de opciones",
+    "columns": {
+      "variant": "Variante",
+      "supplier": "Proveedor",
+      "supplier_sku": "SKU del proveedor",
+      "cost": "Coste",
+      "moq": "MOQ",
+      "multiple": "Múltiplo de pedido",
+      "lead_time": "Plazo (días)"
+    },
+    "edit": "Editar",
+    "none": "Ninguno",
+    "days": "{n} d",
+    "packs": "Cajas",
+    "no_packs": "Ninguna caja se ajusta a este producto.",
+    "manage_packs": "Gestionar cajas",
+    "units_per_pack": "{n} unidades por caja",
+    "edit_variant": "Condiciones del proveedor · {variant}",
+    "keep": "sin cambios",
+    "set_all": "Aplicar a todas las variantes",
+    "set_all_hint": "Mismo proveedor predeterminado para todas las variantes del producto. Los campos vacíos mantienen el valor actual.",
+    "updated": "{n, plural, one {# variante actualizada} other {# variantes actualizadas}}.",
+    "bulk_title": "Proveedor predeterminado en bloque",
+    "bulk_hint": "Elige las variantes por tipo de producto, marca o prefijo de SKU. {n} variantes activas aún no tienen proveedor predeterminado.",
+    "bulk_apply": "Aplicar",
+    "bulk_done": "{n} de {matched} variantes actualizadas.",
+    "filter": {
+      "product_type": "Tipo de producto",
+      "vendor": "Marca",
+      "sku_prefix": "Prefijo de SKU",
+      "any": "Cualquiera",
+      "only_without": "Solo variantes sin proveedor",
+      "required": "Elige al menos un filtro y un proveedor."
+    }
+  },
+  "case_packs": {
+    "back": "Compras",
+    "title": "Cajas",
+    "description": "Cajas con una proporción fija entre los valores de una opción (cualquiera: talla, material, aroma…). La reposición sugiere cuántas cajas por grupo de opciones; la página de mix las convierte en líneas de pedido.",
+    "empty_title": "Aún no hay cajas",
+    "empty_description": "Crea una con las unidades por valor de opción que tu proveedor envía en una caja.",
+    "for_product": "Solo para {product}",
+    "for_all": "Todo producto con la opción {option}",
+    "inactive": "Inactiva",
+    "units_per_pack": "{n} unidades por caja",
+    "add_title": "Nueva caja",
+    "no_options": "El catálogo aún no tiene opciones de producto.",
+    "name": "Nombre",
+    "option": "Opción",
+    "product": "Producto",
+    "all_products": "Todos los productos con esta opción",
+    "units": "Unidades por valor",
+    "units_for": "Unidades de {value}",
+    "custom_value": "Otro valor",
+    "add_value": "Añadir valor",
+    "active": "Activa"
+  },
+  "option_mix": {
+    "title": "Mix de opciones · {product}",
+    "description": "Cuota de ventas por combinación de opciones y un planificador que convierte una cantidad o cajas en un borrador de pedido de compra.",
+    "window": "Periodo de ventas",
+    "days": "{n} días",
+    "units_sold": "{n} unidades vendidas",
+    "share_by": "Cuota por {option}",
+    "combinations": "Combinaciones",
+    "sku": "SKU",
+    "sold": "Vendidas",
+    "share": "Cuota",
+    "suggested": "Sugeridas",
+    "planner": {
+      "title": "Planificar una compra",
+      "hint": "Reparte una cantidad por cuota de ventas o compra cajas por grupo de opciones (rellenadas con la sugerencia de reposición).",
+      "mode": {
+        "units": "Por cuota de ventas",
+        "packs": "Por caja"
+      },
+      "total_units": "Unidades a comprar",
+      "multiple": "Redondear a múltiplos de",
+      "suggested_total": "La reposición sugiere {n} unidades.",
+      "pack": "Caja",
+      "packs_for": "Cajas para {group}",
+      "cartons": "cajas",
+      "single_group": "Todas las variantes",
+      "variant": "Variante",
+      "quantity": "Cantidad",
+      "cost": "Coste",
+      "total": "Total",
+      "supplier": "Proveedor",
+      "destination": "Destino",
+      "create_po": "Crear borrador de pedido"
+    }
+  },
+  "tasks": {
+    "title": "Tareas",
+    "description": "Trabajo vinculado a pedidos, devoluciones, órdenes de compra y productos. Las reglas abren tareas con los eventos y las cierran cuando el registro avanza.",
+    "tabs": {
+      "mine": "Mis tareas",
+      "all": "Todo el equipo",
+      "unassigned": "Sin asignar"
+    },
+    "status_filter": {
+      "open": "Abiertas",
+      "overdue": "Vencidas",
+      "closed": "Cerradas",
+      "all": "Todas"
+    },
+    "statuses": {
+      "open": "Abierta",
+      "in_progress": "En curso",
+      "done": "Hecha",
+      "cancelled": "Cancelada"
+    },
+    "columns": {
+      "task": "Tarea",
+      "record": "Registro",
+      "assignee": "Asignada a",
+      "due": "Vence",
+      "status": "Estado"
+    },
+    "new": "Nueva tarea",
+    "fields": {
+      "title": "Título",
+      "description": "Detalles",
+      "assignee": "Asignada a",
+      "due": "Fecha límite",
+      "record": "Registro vinculado"
+    },
+    "unassigned": "Sin asignar",
+    "no_record": "Ninguno",
+    "overdue": "Vencida",
+    "create": "Crear tarea",
+    "search": "Buscar tareas",
+    "empty_title": "Sin tareas",
+    "empty_description": "No hay nada: las tareas creadas a mano o por reglas aparecen en esta lista.",
+    "pagination": "{from}–{to} de {total}",
+    "rules": "Reglas",
+    "by_rule": "Abierta por una regla",
+    "auto_closed": "Cerrada automáticamente cuando el registro avanzó",
+    "actions": {
+      "start": "Empezar",
+      "done": "Hecha",
+      "reopen": "Reabrir",
+      "cancel": "Cancelar"
+    },
+    "entity": {
+      "order": "Pedido",
+      "return": "Devolución",
+      "purchase_order": "Orden de compra",
+      "product": "Producto"
+    },
+    "panel": {
+      "title": "Tareas",
+      "empty": "No hay tareas en este registro.",
+      "add": "Añadir tarea",
+      "all": "Todas las tareas"
+    },
+    "counts": {
+      "open": "{n} abiertas",
+      "overdue": "{n} vencidas"
+    }
+  },
+  "task_rules": {
+    "title": "Reglas de tareas",
+    "description": "Cuando un registro permanece en uno de los estados elegidos (durante un tiempo, o después de su fecha límite), Keel abre una tarea y la asigna; la tarea se cierra sola cuando el registro avanza.",
+    "new": "Nueva regla",
+    "edit": "Editar",
+    "entity": "Registro",
+    "statuses": "En el estado",
+    "min_hours": "Después de horas en el estado",
+    "use_due": "Solo después de su fecha límite",
+    "overdue_after": "Horas después de la fecha límite",
+    "task_title": "Título de la tarea",
+    "task_description": "Detalles de la tarea",
+    "due_in": "La tarea vence en (horas)",
+    "assignee_mode": "Asignar a",
+    "modes": {
+      "role": "Miembro menos ocupado con el rol",
+      "record_owner": "Responsable del registro (si no, rol)",
+      "user": "Un miembro concreto",
+      "none": "Nadie"
+    },
+    "role": "Rol",
+    "user": "Miembro",
+    "active": "Activa",
+    "inactive": "Apagada",
+    "save": "Guardar regla",
+    "delete": "Eliminar",
+    "restore_defaults": "Añadir las reglas predeterminadas que faltan",
+    "empty": "Aún no hay reglas.",
+    "summary": "{entity} en {statuses}",
+    "after_hours": "después de {n} h",
+    "past_due": "{n} h tras la fecha límite",
+    "default": "Predeterminada"
+  },
+  "support": {
+    "button": "Ayuda",
+    "title": "Soporte",
+    "description": "Solicitudes al equipo de Keel. Recibes una notificación cuando respondemos.",
+    "new": "Contactar con soporte",
+    "new_description": "Describe el problema; una captura o un archivo ayudan.",
+    "subject": "Asunto",
+    "category": "Categoría",
+    "categories": {
+      "question": "Pregunta",
+      "problem": "Problema",
+      "billing": "Facturación",
+      "feature": "Petición de funcionalidad"
+    },
+    "body": "Mensaje",
+    "attachment": "Adjunto (opcional)",
+    "attachment_hint": "Imágenes, PDF, texto o CSV, hasta 1,5 MB.",
+    "send": "Enviar",
+    "sent": "Solicitud enviada.",
+    "view": "Ver la solicitud",
+    "statuses": {
+      "open": "Esperando a Keel",
+      "answered": "Respondida",
+      "closed": "Cerrada"
+    },
+    "columns": {
+      "ticket": "Solicitud",
+      "status": "Estado",
+      "updated": "Último mensaje",
+      "author": "Abierta por"
+    },
+    "empty_title": "Sin solicitudes",
+    "empty_description": "Usa el botón Ayuda de la cabecera para escribir al equipo de Keel.",
+    "reply": "Responder",
+    "reply_placeholder": "Escribe una respuesta…",
+    "close": "Cerrar la solicitud",
+    "closed_hint": "Esta solicitud está cerrada: una respuesta la reabre.",
+    "you": "Tú",
+    "platform": "Soporte de Keel",
+    "download": "Descargar",
+    "messages_n": "{n} mensajes",
+    "all": "Todas las solicitudes"
+  },
+  "record_notes": {
+    "title": "Notas internas",
+    "placeholder": "Escribe una nota… usa @ para mencionar a un compañero",
+    "hint": "Las personas mencionadas reciben una notificación.",
+    "add": "Añadir nota",
+    "delete": "Eliminar nota",
+    "empty": "Aún no hay notas."
+  },
+  "unsubscribe": {
+    "title": "Preferencias de correo",
+    "confirm_title": "¿Dejar de recibir estos correos?",
+    "confirm": "Dejarás de recibir los correos «{category}» de {tenant} en {email}.",
+    "button": "Darme de baja",
+    "done_title": "Te has dado de baja",
+    "done": "{email} ya no recibirá los correos «{category}» de {tenant}. Puedes reactivarlos desde tus preferencias de notificación.",
+    "invalid_title": "Enlace no válido",
+    "invalid": "Este enlace de baja está dañado o incompleto.",
+    "all": "opcionales"
+  },
+  "platform_writes": {
+    "status": {
+      "pending": "Pendiente de sincronizar",
+      "running": "Sincronizando",
+      "succeeded": "Sincronizado",
+      "failed": "Error de sincronización",
+      "superseded": "Reemplazado"
+    },
+    "retry": "Reintentar",
+    "retry_failed": "No se pudo reintentar",
+    "title": "Escrituras a las plataformas",
+    "description": "Cambios que Keel envía a Shopify, Meta y Google: {pending} en espera, {failed} con error, {succeeded} sincronizados en las últimas 24 horas.",
+    "empty": "Aún no hay escrituras a las plataformas.",
+    "immediate": "inmediata",
+    "attempts": "{n, plural, one {# intento} other {# intentos}}",
+    "next_attempt": "próximo intento {when}",
+    "columns": {
+      "when": "Cuándo",
+      "write": "Escritura",
+      "status": "Estado"
+    },
+    "kinds": {
+      "variant_update": "Precio de variante",
+      "product_status": "Estado del producto",
+      "inventory_set": "Nivel de stock",
+      "inventory_restock": "Reposición",
+      "order_cancel": "Cancelación de pedido",
+      "order_update_details": "Datos del pedido",
+      "order_tags": "Etiquetas del pedido",
+      "order_create": "Nuevo pedido",
+      "order_create_invoice": "Pedido con factura",
+      "discount_create": "Código de descuento",
+      "discount_pool": "Lote de códigos",
+      "return_request": "Solicitud de devolución",
+      "return_approve": "Aprobación de devolución",
+      "return_decline": "Rechazo de devolución",
+      "return_refund": "Reembolso",
+      "return_close": "Cierre de devolución",
+      "campaign_status": "Estado de campaña",
+      "variant_cost": "Coste de variante",
+      "order_discount": "Descuento del pedido"
     }
   }
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatMoney, formatNumber, formatPercent, previousPeriod, type AttributionModel } from "@keel/core";
-import { ATTRIBUTION_MODELS, BASE_METRICS, attributionReport, getSurveySettings, surveyResults, blendedForPeriod, boughtTogether, dailySeries, entryProducts, kpisForPeriod, listCustomMetrics, ltvReport, metricValues, monthEndForecast, pnlForPeriod, productPerformance, repurchaseCohorts, secondPurchasePaths, userDashboard, type PnlReport } from "@keel/services";
+import { defaultGranularity, formatMoney, formatNumber, formatPercent, isGranularity, previousPeriod, type AttributionModel } from "@keel/core";
+import { ATTRIBUTION_MODELS, BASE_METRICS, attributionReport, getSurveySettings, surveyResults, blendedForPeriod, boughtTogether, dailySeries, entryProducts, kpisForPeriod, listCustomMetrics, ltvReport, metricValues, monthEndForecast, pnlBreakdown, repurchaseCohorts, secondPurchasePaths, userDashboard } from "@keel/services";
 import { canWritePage } from "@keel/config";
 import { CustomMetricForm, DashboardEditor, DeleteMetricButton } from "./advanced-controls";
 import { SurveySettings } from "./survey-settings";
@@ -10,13 +10,17 @@ import { requirePage } from "@/server/tenant";
 import { RevenueChart } from "@/components/charts/revenue-chart";
 import { PeriodPicker } from "@/components/period-picker";
 import { resolvePeriod } from "@/server/period";
+import { DataQualityCard, OrderPnlTab, PnlPeriods, ProductsTab, UtmTab } from "./depth";
 
-export default async function AnalyticsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ tab?: string; from?: string; to?: string; preset?: string; by?: string; model?: string }> }) {
+export default async function AnalyticsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "analytics");
   const t = await getTranslations("analytics");
-  const tab = ["overview", "custom", "pnl", "attribution", "products", "cohorts", "ltv", "basket", "survey"].includes(sp.tab ?? "") ? sp.tab! : "overview";
+  const td = await getTranslations("analytics_depth");
+  const TABS = ["overview", "custom", "pnl", "orders_pnl", "attribution", "utm", "products", "cohorts", "ltv", "basket", "survey"];
+  const NEW_TABS = ["orders_pnl", "utm"];
+  const tab = TABS.includes(sp.tab ?? "") ? sp.tab! : "overview";
   const period = resolvePeriod(sp, ctx.tenant.timezone);
   const at = { id: ctx.tenant.id, country: ctx.tenant.country, currency: ctx.tenant.currency, timezone: ctx.tenant.timezone, settings: ctx.settings };
   const s = (tx: Parameters<Parameters<typeof ctx.run>[0]>[0]) => ({ tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } });
@@ -30,14 +34,17 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
     for (const [k, v] of Object.entries({ tab, preset: period.preset, from: period.preset ? undefined : sp.from, to: period.preset ? undefined : sp.to, ...patch })) if (v) u.set(k, v);
     return `${base}?${u}`;
   };
+  // period and tab, kept by the GET filter forms of the depth tabs
+  const keep = { tab, preset: period.preset, from: period.preset ? undefined : sp.from, to: period.preset ? undefined : sp.to };
+  const granularity = isGranularity(sp.gran) ? sp.gran : defaultGranularity(period);
 
   return (
     <>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<div className="flex flex-wrap items-center gap-2"><PeriodPicker basePath={base} keep={{ tab }} preset={period.preset} from={sp.from} to={sp.to} /><Link href={`${base}/alerts`} className="text-sm underline-offset-4 hover:underline" data-testid="alerts-link">{t("alerts_link")}</Link><Link href={`${base}/costs`} className="text-sm underline-offset-4 hover:underline">{t("costs_link")}</Link></div>} />
       <div className="mb-4 flex flex-wrap gap-1 rounded-md bg-muted p-1 text-sm">
-        {["overview", "custom", "pnl", "attribution", "products", "cohorts", "ltv", "basket", "survey"].map((k) => (
+        {TABS.map((k) => (
           <Link key={k} href={query({ tab: k })} className={cn("flex-1 rounded-sm px-3 py-1.5 text-center", tab === k ? "bg-card shadow-sm" : "text-muted-foreground")}>
-            {t(`tabs.${k}`)}
+            {NEW_TABS.includes(k) ? td(`tabs.${k}`) : t(`tabs.${k}`)}
           </Link>
         ))}
       </div>
@@ -100,21 +107,13 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
                 <RevenueChart data={series} locale={ctx.locale} currency={ctx.tenant.currency} ordersLabel={t("orders_series")} />
               </CardContent>
             </Card>
+            <div className="mt-6"><DataQualityCard ctx={ctx} tenant={tenant} pnl={c} fromIso={fromIso} toIso={toIso} /></div>
           </>
         );
       })())}
 
       {tab === "pnl" && (await (async () => {
-        const pnl = await ctx.run((tx) => pnlForPeriod(s(tx), at, period));
-        // monthly breakdown within the period (max 13 months)
-        const months: { label: string; from: Date; to: Date }[] = [];
-        const cursor = new Date(Date.UTC(period.from.getUTCFullYear(), period.from.getUTCMonth(), 1));
-        while (cursor < period.to && months.length < 13) {
-          const next = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 1));
-          months.push({ label: cursor.toISOString().slice(0, 7), from: new Date(Math.max(cursor.getTime(), period.from.getTime())), to: new Date(Math.min(next.getTime(), period.to.getTime())) });
-          cursor.setUTCMonth(cursor.getUTCMonth() + 1);
-        }
-        const monthly: (PnlReport & { label: string })[] = months.length > 1 ? await ctx.run(async (tx) => Promise.all(months.map(async (m) => ({ ...(await pnlForPeriod(s(tx), at, { from: m.from, to: m.to })), label: m.label })))) : [];
+        const { pnl, buckets } = await ctx.run((tx) => pnlBreakdown(s(tx), at, period, granularity));
         const rate = (v: number) => formatPercent(pnl.netRevenueMinor ? v / pnl.netRevenueMinor : null, ctx.locale);
         const lines: { key: string; value: number; bold?: boolean; neg?: boolean; href?: string }[] = [
           { key: "gross", value: pnl.grossRevenueMinor, href: ordersLink("&status=confirmed,fulfilling,shipped,delivered,returned_partial") },
@@ -157,41 +156,22 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
                     ))}
                   </TableBody>
                 </Table>
-                {pnl.cogsIncompleteOrders > 0 && <p className="border-t p-3 text-xs text-warning">{t("pnl.cogs_incomplete", { n: pnl.cogsIncompleteOrders })}</p>}
+                {pnl.cogsIncompleteOrders > 0 && (
+                  <p className="border-t p-3 text-xs text-warning" data-testid="cogs-incomplete">
+                    <Link href={ordersLink("&status=confirmed,fulfilling,shipped,delivered,returned_partial&missingCost=1")} className="underline-offset-4 hover:underline">{t("pnl.cogs_incomplete", { n: pnl.cogsIncompleteOrders, share: formatPercent(pnl.netRevenueMinor ? pnl.cogsIncompleteRevenueMinor / pnl.netRevenueMinor : null, ctx.locale) })}</Link>{" "}
+                    <Link href={`/t/${tenant}/products/quality?issue=missing_cost`} className="font-medium underline-offset-4 hover:underline">{t("pnl.fix_costs")}</Link>
+                  </p>
+                )}
+                {pnl.costCoverage.totalMinor > 0 && (
+                  <p className="border-t p-3 text-xs text-muted-foreground" data-testid="cost-reliability">
+                    {t("pnl.cost_reliability", { share: formatPercent(pnl.costCoverage.coveredShare, ctx.locale) })}{" "}
+                    {(["po_receipt", "platform", "import", "manual", "unknown", "missing"] as const).filter((k) => pnl.costCoverage.byKey[k] > 0).map((k) => `${t(`pnl.cost_origin.${k}`)} ${formatPercent(pnl.costCoverage.byKey[k] / pnl.costCoverage.totalMinor, ctx.locale)}`).join(" · ")}
+                  </p>
+                )}
                 <p className="border-t p-3 text-xs text-muted-foreground" data-testid="cost-sources">
                   {t("pnl.cost_sources", { shipping: t(`pnl.source.${pnl.costSources.shipping}`), fixed: t(`pnl.source.${pnl.costSources.fixed}`) })} <Link href={`${base}/costs`} className="underline-offset-4 hover:underline">{t("pnl.edit_costs")}</Link>
                 </p>
-                {monthly.length > 0 && (
-                  <div className="border-t">
-                    <p className="px-4 pt-4 text-sm font-medium">{t("pnl.by_month")}</p>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{t("pnl.month")}</TableHead>
-                          <TableHead className="text-right">{t("pnl.orders")}</TableHead>
-                          <TableHead className="text-right">{t("pnl.net")}</TableHead>
-                          <TableHead className="text-right">{t("pnl.cogs")}</TableHead>
-                          <TableHead className="text-right">{t("pnl.contribution")}</TableHead>
-                          <TableHead className="text-right">{t("pnl.ads")}</TableHead>
-                          <TableHead className="text-right">{t("pnl.operating")}</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {monthly.map((m) => (
-                          <TableRow key={m.label}>
-                            <TableCell><Link href={`${base}?tab=pnl&from=${m.period.from.toISOString().slice(0, 10)}&to=${new Date(m.period.to.getTime() - 1).toISOString().slice(0, 10)}`} className="hover:underline">{m.label}</Link></TableCell>
-                            <TableCell className="text-right tabular">{m.orders}</TableCell>
-                            <TableCell className="text-right tabular">{money(m.netRevenueMinor)}</TableCell>
-                            <TableCell className="text-right tabular">{money(m.cogsMinor)}</TableCell>
-                            <TableCell className="text-right tabular">{money(m.contributionMinor)}</TableCell>
-                            <TableCell className="text-right tabular">{money(m.adSpendMinor)}</TableCell>
-                            <TableCell className={cn("text-right tabular font-medium", m.operatingProfitMinor < 0 && "text-destructive")}>{money(m.operatingProfitMinor)}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
+                <PnlPeriods ctx={ctx} tenant={tenant} pnl={pnl} buckets={buckets} granularity={granularity} query={query} sp={sp} />
               </CardContent>
             </Card>
             <div className="space-y-3">
@@ -205,46 +185,11 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
         );
       })())}
 
-      {tab === "products" && (await (async () => {
-        const rows = await ctx.run((tx) => productPerformance(s(tx), period));
-        return rows.length === 0 ? (
-          <EmptyState title={t("products.empty")} />
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">{t("products.title")}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("products.product")}</TableHead>
-                    <TableHead className="text-right">{t("products.units")}</TableHead>
-                    <TableHead className="text-right">{t("products.orders")}</TableHead>
-                    <TableHead className="text-right">{t("products.revenue")}</TableHead>
-                    <TableHead className="hidden text-right md:table-cell">{t("products.cogs")}</TableHead>
-                    <TableHead className="text-right">{t("products.margin")}</TableHead>
-                    <TableHead className="hidden text-right md:table-cell">{t("products.returned")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rows.map((r) => (
-                    <TableRow key={r.productId}>
-                      <TableCell><Link href={`/t/${tenant}/products/${r.productId}`} className="font-medium text-primary hover:underline">{r.title}</Link></TableCell>
-                      <TableCell className="text-right tabular">{r.units}</TableCell>
-                      <TableCell className="text-right tabular">{r.orders}</TableCell>
-                      <TableCell className="text-right tabular">{money(r.grossRevenueMinor)}</TableCell>
-                      <TableCell className="hidden text-right tabular md:table-cell">{money(r.cogsMinor)}</TableCell>
-                      <TableCell className="text-right tabular">{money(r.marginMinor)} <span className="text-xs text-muted-foreground">{formatPercent(r.grossRevenueMinor ? r.marginMinor / r.grossRevenueMinor : null, ctx.locale, 0)}</span></TableCell>
-                      <TableCell className="hidden text-right tabular md:table-cell">{r.returnedUnits}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        );
-      })())}
+      {tab === "products" && <ProductsTab ctx={ctx} tenant={tenant} period={period} query={query} sp={sp} keep={keep} />}
+
+      {tab === "orders_pnl" && <OrderPnlTab ctx={ctx} tenant={tenant} period={period} query={query} sp={sp} keep={keep} />}
+
+      {tab === "utm" && <UtmTab ctx={ctx} tenant={tenant} period={period} granularity={granularity} query={query} sp={sp} keep={keep} />}
 
       {tab === "cohorts" && (await (async () => {
         const rows = await ctx.run((tx) => repurchaseCohorts(s(tx), at));

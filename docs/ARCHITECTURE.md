@@ -9,8 +9,8 @@ flowchart TD
   web["apps/web<br/>Next.js 15 · App Router<br/>/t/[tenant] · /admin · /api"]
   jobs["packages/jobs<br/>pg-boss worker"]
   cod["packages/addon-cod<br/>COD queue · assignment · score · risk"]
-  services["packages/services<br/>use cases: orders, sync, analytics, campaigns, crm, returns, discounts, purchasing, inventory, billing, notifications"]
-  core["packages/core<br/>pure domain: statuses, state rules, economics, segments, returns, discounts, billing math"]
+  services["packages/services<br/>use cases: orders, sync, analytics, campaigns, crm, returns, discounts, purchasing, inventory, billing, notifications, tasks, support"]
+  core["packages/core<br/>pure domain: statuses, state rules, economics, segments, returns, discounts, billing math, task rules"]
   db["packages/db<br/>Drizzle schema · migrations · RLS · withTenant · seed"]
   integrations["packages/integrations<br/>interfaces · Shopify/Meta/Google · mocks · AES-GCM"]
   config["packages/config<br/>roles, permissions, modules, plans, defaults"]
@@ -54,26 +54,35 @@ Rules the graph enforces:
 | Group | Tables | Notes |
 | --- | --- | --- |
 | Auth and platform | `users`, `user_sign_ins`, `accounts`, `sessions`, `verification_tokens`, `tenants`, `tenant_memberships`, `tenant_tax_rates`, `tenant_addons`, `tenant_branding`, `audit_logs`, `notifications` | A user belongs to many tenants with one role per tenant. Tenant settings (country, currency, timezone, locale, order prefix, thresholds, fees, return rules) are a validated JSON column. |
-| Integrations | `integrations`, `integration_health`, `sync_runs`, `webhook_events` | One row per provider per tenant with `mode` (`mock`/`live`), status, encrypted credentials. `webhook_events` is unique on (source, topic, external id, source updated at): the idempotency key. `sync_runs` holds the cursor so a sync resumes. |
-| Catalog and stock | `products`, `product_variants`, `locations`, `inventory_levels`, `inventory_movements`, `cost_settings` | Variants carry `option_values` as a JSON map, no hard-coded size or colour. Movements are the ledger behind stock changes. |
+| Integrations | `integrations`, `integration_health`, `sync_runs`, `webhook_events`, `platform_writes` | One row per provider per tenant with `mode` (`mock`/`live`), status, encrypted credentials. `webhook_events` is unique on (source, topic, external id, source updated at): the idempotency key. `sync_runs` holds the cursor so a sync resumes, and the run summary (scanned, changed, conflicts, errors, duration). `platform_writes` is the outbound outbox: one row per write to Shopify, Meta or Google, unique on its idempotency key. |
+| Catalog and stock | `products`, `product_variants`, `locations`, `inventory_levels`, `inventory_movements`, `inventory_drift`, `cost_settings` | Variants carry `option_values` as a JSON map, no hard-coded size or colour, and `cost_minor` with `cost_source` (`platform`, `manual`, `import`, `po_receipt`) and `cost_updated_at`. Movements are the ledger behind stock changes. `inventory_levels.synced_at` is when Keel last read the level from the platform. `inventory_drift` logs stock changes no Keel event explains, clamped negatives and levels no longer reported (deduplicated). |
 | Customers and orders | `customers`, `orders`, `order_lines`, `order_discounts`, `order_attribution`, `order_events`, `order_notes` | `orders.status` is the canonical state written only by `recomputeOrderStatus`. `order_events` is the timeline with author and field diff. `search_blob` is a generated column with a trigram index. |
 | Shipments | `shipments`, `shipment_events`, `shipment_source_states`, `shipment_status_mappings` | One row per source per shipment; the resolver picks the visible status. |
 | Rules | `state_rules` | Per tenant, ordered by priority: conditions on tags, payment method, financial and fulfillment status → canonical status. |
 | Returns and discounts | `return_reasons`, `return_requests`, `return_lines`, `discounts`, `discount_pools` | Return reasons and workflow outcomes are tenant data. Pools generate unique codes in bulk. |
-| Purchasing | `suppliers`, `supplier_payments`, `purchase_orders`, `purchase_order_lines`, `backorders` | Receiving a PO moves stock, updates the latest product cost (feeds P/L) and closes backorders. |
+| Purchasing | `suppliers`, `supplier_variants`, `supplier_payments`, `purchase_orders`, `purchase_order_lines`, `purchase_order_charges`, `backorders`, `case_packs`, `supplier_links`, `supplier_link_views` | The primary `supplier_variants` row is a variant's default supplier (SKU, cost, MOQ, lead time) read by planning and auto-drafts. A PO line has a variant or a free-text description. Receiving records arrived, damaged and rejected units per line; only good units move stock and update the latest product cost (feeds P/L) and close backorders. Case packs hold units per value of one option (any name); `packages/core/src/packs.ts` turns them and the option mix into PO lines. Supplier links store only the token's SHA-256, expire after `SUPPLIER_LINK_TTL_DAYS`, can be revoked, and log every view; expired or revoked links get a neutral page. |
 | Marketing | `campaigns`, `ad_metrics_daily`, `campaign_product_links`, `segments`, `segment_memberships` | Segments store nested AND/OR rules as JSON plus `holdout_percentage`; memberships keep a stable group per customer. |
 | Billing | `subscriptions`, `invoices` | Keel owns the ledger; the provider only collects. |
+| Collaboration | `notifications`, `notification_preferences`, `email_suppressions`, `mentions`, `record_notes`, `tasks`, `task_rules`, `support_tickets`, `support_messages` | Notifications record every delivery (`in_app`, `delivered`); preferences override the type registry per user. Tasks link to a record (type + id) and remember the rule and episode that opened them. Support tickets are tenant data answered from the console through the admin connection. |
 | Add-on COD | `cod_settings`, `cod_queue_items`, `cod_attempts`, `cod_operator_capacity`, `cod_capacity_exceptions`, `cod_assignment_log`, `cod_recipient_profiles` | Only read and written by `@keel/addon-cod`. |
 
 ### Canonical order status
 
 `new → pending_review → confirmed → fulfilling → shipped → delivered`, plus `on_hold`, `cancelled`, `returned_partial`, `returned`, `refunded`.
 
-`deriveOrderStatus(input, rules)` in `packages/core/src/state-rules.ts` applies, in order: certain facts (cancelled, refunded, returned fractions), a manual status set by staff, the shipment status, the tenant's `state_rules` by priority, and finally the platform's own payment and fulfillment facts. No tag is interpreted by code; tags are only inputs to tenant-defined rules, with a preview over the last 50 orders in the UI.
+`deriveOrderStatus(input, rules)` in `packages/core/src/state-rules.ts` applies, in order: certain facts (replaced by an edit, cancelled, refunded, returned fractions), a manual status set by staff, the shipment status, the tenant's `state_rules` by priority, and finally the platform's own payment and fulfillment facts. No tag is interpreted by code; tags are only inputs to tenant-defined rules, with a preview over the last 50 orders in the UI.
 
 ### Economics
 
-`orderEconomics` in `packages/core/src/finance.ts` is the single source for revenue net of tax (rate by tenant country), product cost (latest purchase cost), shipping, payment fees (basis points per method), returns and ad spend. The sale scope used everywhere (dashboard, P/L, campaigns, discounts) is `confirmed, fulfilling, shipped, delivered, returned_partial`. Money is stored in integer minor units; rates in basis points.
+`orderEconomics` in `packages/core/src/finance.ts` is the single source for revenue net of tax (rate by tenant country), product cost (the variant cost snapshotted on each order line at import; lines sold without a cost are filled when the variant gets one), shipping, payment fees (basis points per method), returns and ad spend. The sale scope used everywhere (dashboard, P/L, campaigns, discounts) is `confirmed, fulfilling, shipped, delivered, returned_partial`. Money is stored in integer minor units; rates in basis points.
+
+Views built on it reconcile by construction (`packages/core/src/pnl-periods.ts`): the per-order P/L table sums to the period P/L with the period-only items (carrier invoice vs estimates, return costs by receipt date, ads, fixed costs) on their own reconciliation lines; the P/L by day/week/month/quarter/year (UTC buckets, partial ones flagged) allocates every period amount with an exact largest-remainder split; the product table splits each campaign's spend over its linked products and keeps unlinked spend on an "unattributed" row, so the product spend adds up to the period ad spend. Services in `packages/services/src/analytics/pnl-depth.ts`; CSV at `/t/[tenant]/analytics/export/{orders|products|utm|pnl}`.
+
+### Order editing and lineage
+
+`packages/services/src/orders/edit.ts` edits any open, unfulfilled order whatever the payment method (`orderEditBlock` in `packages/core/src/order-edit.ts` decides what is editable). Contact, address, email, phone and note go to the platform first through `CommercePlatform.updateOrderDetails`, then to Keel, with a `modified` event (author and field diff). A shipping address must pass `validateAddressFormat` (required fields, postal code pattern of the country); the dialog also offers autocomplete and validation through the `AddressProvider` slot (`getAddressProviderFor`, mock only until a live provider is connected).
+
+Changing lines or merging orders of the same customer is cancel-and-recreate: `createOrder` on the platform (payment state carried over: a paid original makes a paid replacement), import, then the old orders are cancelled there (restock, no refund) and linked with `replaces_order_id` / `replaced_by_order_id` / `lineage_root_order_id`. The replacement inherits the creation day, attribution, channel and assignee; a later sync keeps them. A replaced order is a final fact (`override:replaced` → `cancelled`) and is excluded from P/L, KPIs, CRM aggregates, customer history and duplicate detection by `replaced_by_order_id is null`, so KPIs count one order per lineage. Discounts on an existing order go through `CommercePlatform.applyOrderDiscount` (Shopify order editing API) with a `discount_applied` event. Add-ons extend a replacement through `ReplaceHooks` (`inheritTags`, `afterCreated`, `afterReplaced`): `addon.cod` uses them for queue tags and the queue hand-over, and registers the call attempt around the core call.
 
 ### Shipment status from many sources
 
@@ -106,19 +115,90 @@ Failed events are retried by the `retry` tick every 10 minutes up to a maximum n
 ### Sync and reconciliation
 
 - `runOrdersSync(kind)` with `kind = initial | delta | reconcile` pages through the platform with a cursor stored in `sync_runs`; it stops at a time budget and resumes from the cursor on the next tick. `reconcile` re-reads the last N days nightly.
-- `runCatalogSync` imports products, variants, locations, inventory levels and discounts.
+- `runCatalogSync` imports locations, products and variants, inventory levels and discounts in phases. The phase and the cursors are saved in `sync_runs` after every page, so the run pauses at its time budget and the next job resumes it. The nightly run (`kind = reconcile`) is a complete pass: at the end, levels of active variants the platform did not report (read before the run started) are set to zero and logged. `scope: "inventory"` reads stock only: that is "Sync now" on the inventory page.
+- Stock read from the platform (sync, `inventory_levels/update`, the refresh after `orders/*`, `fulfillments/*` and `refunds/create` webhooks) goes through `applyInventoryLevels`. Negative values are stored as zero and logged. A level with a Keel `inventory.set` write not yet confirmed is not overwritten and counts as a conflict. When the change since the last read is not explained by sales and cancellations of the variant, it is logged in `inventory_drift`.
+- After an order, fulfilment or refund webhook, the stock of the order's variants is re-read in the same job (best effort, in a savepoint: a failure is recorded on the `shopify:inventory` health source and never fails the webhook).
+- In the product phase, the platform unit cost fills a variant only when Keel has none or the current one came from the platform; manual, imported and purchase-order costs are never overwritten (`shouldTakePlatformCost`).
 - `runAdsSync(provider, window)` pulls campaigns and daily insights in resumable date windows; recent days are re-pulled because platforms restate them.
-- Each run writes `integration_health` (ok/error, last error text, rows written, freshness) which the Integrations page shows together with "Test connection" and "Resync".
+- Each run writes `integration_health` (ok/error, last error text, rows written, freshness) which the Integrations page shows together with "Test connection" and "Resync", and the run table with scanned, changed, conflicts, errors and duration per run.
+- Retention: a daily tick deletes rows older than the platform-wide window (`KEEL_RETENTION_DAYS`, default 14, `platformRetentionDays()` in `packages/config`): processed webhook events, succeeded or superseded writes, synchronous write records, successful runs (and failed runs already followed by a success), drift not seen since. Failed webhooks and failed asynchronous writes stay until they are resolved. pg-boss queues get the same window as `deleteAfterSeconds`.
 
-Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00, billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40.
+Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00 (orders and the complete catalog run), billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40, task rules and overdue reminders every 10 min, system notifications (sync delay, critical stock without PO, late to ship) hourly, digest emails daily at 07:05, platform-write retries every minute, retention at 04:10.
+
+### Outbound writes (outbox)
+
+Every write Keel makes to a platform goes through `platform_writes` (`packages/services/src/writes`). The local change and the outbox row are written in the same transaction, so a platform outage never loses a write and never blocks the team.
+
+```mermaid
+sequenceDiagram
+  participant U as User action (server action)
+  participant DB as Postgres (tenant tx)
+  participant D as dispatchPlatformWrites
+  participant Q as pg-boss platform.write
+  participant X as executePlatformWrite
+  participant P as Platform adapter
+  U->>DB: local change + audit + enqueuePlatformWrite (same transaction)
+  DB-->>U: commit
+  U->>D: rows returned by enqueue
+  alt worker deployed (KEEL_JOBS_QUEUE=1)
+    D->>Q: send {tenantId, writeId}
+    Q->>X: job
+  else no worker
+    D->>X: inline, right after the commit
+  end
+  X->>DB: claim (row lock, status running, attempts+1)
+  X->>P: handler.execute(adapter, payload), outside any transaction
+  alt success
+    X->>DB: succeeded + result + onSuccess (e.g. store the external id)
+  else rate limit / network
+    X->>DB: pending, next_attempt_at = Retry-After or 30 s × 2^n (max 1 h)
+  else permanent (permission, invalid, not found)
+    X->>DB: failed + readable error (badge with Retry)
+  end
+  Note over X,DB: "writes" tick every minute: due rows, stale running rows back to pending, stop a tenant's batch on a rate limit
+```
+
+- **Idempotency.** Without a caller key, the key is derived from kind, target, payload hash and the previous write on the same target. The same request repeated within 10 minutes (double click, retry of the action) returns the same row. A → B → A is three writes. A caller can pass its own `idempotencyKey`, which is absolute.
+- **Ordering.** Kinds that write an absolute value (price, product status, stock level, campaign status) set `supersedes`: a newer write on the same target marks the older pending or failed ones `superseded`, so a late retry can never overwrite a newer value.
+- **Status on the record.** `latestPlatformWrites(ctx, entityType, ids)` gives the last write per record, and `<PlatformWriteStatus>` (`apps/web/src/components/platform-write-status.tsx`) renders nothing once synced, "Pending sync" while queued or retrying, "Sync failed" with the error and a Retry button (`retryPlatformWriteAction`). The Integrations page lists recent writes with counts.
+- **Inline mode.** Without a worker, the write runs inline right after the request, with one short wait when the platform asks for under 2 seconds. Anything longer stays pending until the next tick or a manual retry.
+- **Synchronous writes.** `runPlatformWriteNow(ctx, adapter, input)` executes at once with an adapter the caller holds and records the call and its outcome (`mode = sync`). It is for flows that need the platform's answer to continue:
+  - COD tag writes and the COD cancellation: platform first by design, a refused write changes nothing locally;
+  - order editing in the core (`packages/services/src/orders/edit.ts`, used by the order page and by the COD add-on): contact and address edits, the replacement order (keyed `order:replace:<order ids>`) and the cancellation of the replaced orders, and discounts applied to an order;
+  - the return write-back steps (request, approve or decline, restock, refund, voucher, exchange order or invoice, close, tags), keyed per return and step;
+  - discount pools, where the form shows how many codes the platform accepted.
+
+  With a key, the same key returns the stored result (dates revived) instead of writing twice, and a failed attempt is retried on the same row. When the caller's transaction rolls back, the record goes with it, and the error is shown to the user at once.
+- **Asynchronous writes** (outbox, retried): variant price, variant cost (when the tenant enabled cost write-back; manual edits and CSV imports), product status, stock level (purchase-order receipt with "push to platform", transfers between locations), order cancellation, single discount code (the external id is filled in when the write succeeds), Meta campaign pause and resume. Google is refused up front because it is read-only in the MVP.
+
+### Adding a platform write
+
+1. Add the kind to `PlatformWriteKinds` in `packages/services/src/writes/registry.ts`, e.g. `"variant.compare_at": { payload: { variantExternalId: string; compareAtMinor: number | null }; result: void }`. An add-on package can augment the interface with `declare module "@keel/services/writes/registry"`.
+2. Register it once in `packages/services/src/writes/kinds.ts` (or in the add-on):
+   ```ts
+   defineCommerceWrite("variant.compare_at", {
+     target: (p) => `variant:${p.variantExternalId}:compare_at`,
+     supersedes: true,
+     execute: (platform, p) => platform.updateVariant(p.variantExternalId, { compareAtMinor: p.compareAtMinor }),
+   });
+   ```
+   Use `defineAdsWrite` with `provider: (p) => p.provider` for ads platforms. Add `onSuccess(ctx, write, result)` to store something the platform returns, and `revive` if the result has dates.
+3. In the service or action, in the same transaction as the local change: `const w = await enqueuePlatformWrite(ctx, { kind: "variant.compare_at", entityType: "variant", entityId, payload })`. After the commit, the web action calls `dispatchPlatformWrites(ctx, [w])`. If a service enqueues internally, call `dispatchPendingWritesFor(ctx, entityType, ids)` instead.
+4. Show `<PlatformWriteStatus slug write={latest.get(id)} />` next to the value, and add the kind's label under `platform_writes.kinds` in the three message files (dots become underscores: `variant_compare_at`).
 
 ### Attribution
 
 `extractAttribution` reads UTM parameters and click ids from the order's landing and referring URLs and note attributes, derives a channel, and `matchCampaign` links the order to a campaign by external id, UTM campaign or name. Campaign profit counts only attributed orders in the sale scope, never cancelled or returned ones.
 
+## Notifications, email and tasks
+
+- `notifyUsers` (packages/services/src/notifications) is the single delivery path. Channels per recipient = `resolveNotificationChannels(type, overrides)` from the type registry in `packages/config/src/notifications.ts` and the user's `notification_preferences`. In-app rows show in the bell and `/notifications`; email is rendered by `renderEmail` (en/it/es templates) and sent by `sendTenantEmail`, which checks `email_suppressions` and adds a signed unsubscribe link (`/u/<token>`, one-click `/api/email/unsubscribe`); Slack posts once per event. Bounces come back on `/api/webhooks/email`.
+- New notification types must be added to the registry (channels, defaults, group, add-on) and to `notifications.types` in the message files; emails for types whose title is data go in the template's `system` strings.
+- Task rules: `planTaskChanges` (core, pure) decides per record which rules open a task and which open tasks close; `syncRecordTasks` applies it and is called by the return and purchase-order services; the `tasks` tick sweeps orders, time-based rules and closures. Record pages show `<RecordTasks>` and, for POs and returns, `<RecordNotes>`: self-contained server components.
+
 ## Adding an adapter
 
-1. Implement one of the interfaces in `packages/integrations/src/types.ts` (`CommercePlatform`, `AdsPlatform`, `AnalyticsPlatform`, `MessagingChannel`, `WarehouseProvider`, `CarrierProvider`). Return the normalized types; never leak provider payloads upward.
+1. Implement one of the interfaces in `packages/integrations/src/types.ts` (`CommercePlatform`, `AdsPlatform`, `AnalyticsPlatform`, `MessagingChannel`, `WarehouseProvider`, `CarrierProvider`, `AddressProvider`). Return the normalized types; never leak provider payloads upward.
 2. Use `HttpClient` from `packages/integrations/src/http.ts`: it injects `fetch`, retries on 429/5xx with `Retry-After`, and maps errors to `IntegrationError` codes (`rate_limit`, `auth`, `permission`, `not_found`, `transient`).
 3. Record real responses as fixtures under `__fixtures__/` and test the adapter with `fixtureFetch(routes)`; no network in tests.
 4. Register the provider in `packages/services/src/integrations/factory.ts` (how to build it from decrypted credentials) and add the credential shape to `crypto.ts` consumers.
@@ -137,7 +217,7 @@ Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every
 4. Pages live under `apps/web/src/app/t/[tenant]/<name>`; `requirePage` already answers 404 when the add-on is off for the tenant. Add the nav entries behind `isPageEnabled`.
 5. Background work: add a `TickJob` kind and a handler in `packages/jobs/src/handlers.ts` that iterates only tenants with the add-on active.
 6. Activation is a row in `tenant_addons` written from the super-admin console with a note and date; the billing run adds the add-on line to the next invoice.
-7. If the add-on must talk to the store, take the `CommercePlatform` from `getCommercePlatformFor` and write platform first, local second (see `applyTagEvent` and `modifyCodOrder` in `packages/addon-cod` for the pattern, including replacement orders created through `createOrder`).
+7. If the add-on must talk to the store, take the `CommercePlatform` from `getCommercePlatformFor` and write platform first, local second (see `applyTagEvent` in `packages/addon-cod`). Order edits are core services (`editOrderDetails`, `replaceOrder`, `applyOrderDiscount`): call them and add the add-on's extras through `ReplaceHooks`, as `modifyCodOrder` does, instead of writing a copy.
 
 ## Changes for one tenant
 

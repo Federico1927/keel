@@ -113,7 +113,7 @@ describe("supplier confirmation", () => {
     const token = await run((s) => issueSupplierToken(s, poId, "orders@supplier.example"));
     expect(await tenantForSupplierToken("short")).toBeNull();
     const found = await tenantForSupplierToken(token, pools.admin);
-    expect(found).toEqual({ tenantId, poId });
+    expect(found).toMatchObject({ tenantId, poId, state: "active" });
     const view = await run((s) => supplierPoView(s, poId));
     expect(view?.status).toBe("sent");
     expect(view?.lines[0]?.quantity).toBe(12);

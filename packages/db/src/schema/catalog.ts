@@ -63,8 +63,11 @@ export const productVariants = pgTable(
     optionValues: jsonb("option_values").notNull().default(sql`'{}'::jsonb`),
     priceMinor: integer("price_minor").notNull().default(0),
     compareAtMinor: integer("compare_at_minor"),
-    /** Last purchase cost; feeds P/L. */
+    /** Latest unit cost; snapshotted on order lines and feeds the P/L. */
     costMinor: integer("cost_minor"),
+    /** Where `cost_minor` came from: platform | manual | import | po_receipt (null: written before this column). */
+    costSource: text("cost_source"),
+    costUpdatedAt: timestamp("cost_updated_at", { withTimezone: true }),
     averageCostMinor: integer("average_cost_minor"),
     weightGrams: integer("weight_grams"),
     packSize: integer("pack_size"),
@@ -120,4 +123,37 @@ export const inventoryMovements = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("inventory_movements_variant_idx").on(t.tenantId, t.variantId, t.createdAt), tenantIsolation("inventory_movements")],
+).enableRLS();
+
+/**
+ * Stock drift: a platform read changed stock in a way Keel did not expect (no sale, return,
+ * receipt or adjustment explains it), a negative level was clamped, or a level was no longer
+ * reported. Deduplicated on `dedupe_key`: the same discrepancy seen again bumps `occurrences`.
+ */
+export const inventoryDrift = pgTable(
+  "inventory_drift",
+  {
+    ...tenantColumns(),
+    variantId: uuid("variant_id")
+      .notNull()
+      .references(() => productVariants.id, { onDelete: "cascade" }),
+    locationId: uuid("location_id").references(() => locations.id, { onDelete: "cascade" }),
+    /** unexplained | negative | not_reported */
+    kind: text("kind").notNull(),
+    /** sync | reconcile | webhook | manual */
+    source: text("source").notNull(),
+    runId: uuid("run_id"),
+    localBefore: integer("local_before").notNull(),
+    expected: integer("expected").notNull(),
+    observed: integer("observed").notNull(),
+    /** Unexplained units (observed − expected). */
+    delta: integer("delta").notNull(),
+    applied: integer("applied").notNull(),
+    detail: jsonb("detail").notNull().default(sql`'{}'::jsonb`),
+    dedupeKey: text("dedupe_key").notNull(),
+    occurrences: integer("occurrences").notNull().default(1),
+    detectedAt: timestamp("detected_at", { withTimezone: true }).notNull().defaultNow(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("inventory_drift_dedupe_uq").on(t.tenantId, t.dedupeKey), index("inventory_drift_tenant_seen_idx").on(t.tenantId, t.lastSeenAt), tenantIsolation("inventory_drift")],
 ).enableRLS();

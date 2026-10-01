@@ -101,7 +101,8 @@ export const graphqlProductsPage = {
           createdAt: "2026-02-01T10:00:00Z",
           options: [{ name: "Size", values: ["S", "M", "L"] }, { name: "Color", values: ["Blu"] }],
           featuredMedia: { preview: { image: { url: "https://cdn.example/giacca.jpg" } } },
-          variants: { nodes: [{ id: "gid://shopify/ProductVariant/4100001", legacyResourceId: "4100001", sku: "GIA-M-BLU", barcode: "8001234567890", title: "M / Blu", price: "129.00", compareAtPrice: "159.00", selectedOptions: [{ name: "Size", value: "M" }, { name: "Color", value: "Blu" }], inventoryItem: { id: "gid://shopify/InventoryItem/4500001", legacyResourceId: "4500001", measurement: { weight: { value: 0.8, unit: "KILOGRAMS" } } } }] },
+          variants: { nodes: [{ id: "gid://shopify/ProductVariant/4100001", legacyResourceId: "4100001", sku: "GIA-M-BLU", barcode: "8001234567890", title: "M / Blu", price: "129.00", compareAtPrice: "159.00", selectedOptions: [{ name: "Size", value: "M" }, { name: "Color", value: "Blu" }], inventoryItem: { id: "gid://shopify/InventoryItem/4500001", legacyResourceId: "4500001", unitCost: { amount: "48.5", currencyCode: "EUR" }, measurement: { weight: { value: 0.8, unit: "KILOGRAMS" } } } },
+            { id: "gid://shopify/ProductVariant/4100004", legacyResourceId: "4100004", sku: "GIA-L-BLU", barcode: null, title: "L / Blu", price: "129.00", compareAtPrice: null, selectedOptions: [{ name: "Size", value: "L" }, { name: "Color", value: "Blu" }], inventoryItem: { id: "gid://shopify/InventoryItem/4500004", legacyResourceId: "4500004", unitCost: null, measurement: { weight: { value: 800, unit: "GRAMS" } } } }] },
         },
       ],
       pageInfo: { hasNextPage: false, endCursor: null },
@@ -130,3 +131,7 @@ export const graphqlInventory = { data: { nodes: [{ id: "gid://shopify/Inventory
 export const graphqlWebhooks = { data: { webhookSubscriptions: { nodes: [{ topic: "ORDERS_CREATE", endpoint: { __typename: "WebhookHttpEndpoint", callbackUrl: "https://keel.example/api/webhooks/shopify" } }] } } };
 export const graphqlWebhookCreate = { data: { webhookSubscriptionCreate: { userErrors: [] } } };
 export const graphqlCancel = { data: { orderCancel: { job: { id: "gid://shopify/Job/1" }, orderCancelUserErrors: [], userErrors: [] } } };
+
+/** inventoryItemUpdate with a cost (Admin GraphQL 2025-01). */
+export const graphqlInventoryItemUpdate = { data: { inventoryItemUpdate: { inventoryItem: { id: "gid://shopify/InventoryItem/4500001", unitCost: { amount: "52.0" } }, userErrors: [] } } };
+export const graphqlVariantInventoryItem = { data: { productVariant: { inventoryItem: { id: "gid://shopify/InventoryItem/4500004" } } } };
