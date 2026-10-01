@@ -425,3 +425,9 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 **Decision.** The seed generator used to pick each order's customer by a skewed index with no notion of time, so no customer ever stopped buying. Fitted on that data, the prediction model put 94% of customers at low risk. `lifecycleCustomerSequence` now simulates each customer: acquisition (a third before the data window), a personal purchase rate (Gamma), and a drop-out chance after each purchase (Beta, mean 26%). It then maps the event sequence by rank onto the seasonal order dates the generator already samples, so volume, seasonality and growth are unchanged. On the demo the back-test error is 0.8% (Northwind) and −12.5% (Harbor, partly the generator's growth trend), and churn risk spreads across all three bands. The isolation suite now seeds at 3% instead of 1%, so both demo tenants have the 50 customers the model needs; it still runs in about 8 seconds.
 
 **Alternatives.** Retrying a pick until it lands on an active customer (tried: surviving customers then buy faster as others lapse, and the back-test under-predicted by 27%). Lowering the model's customer minimum so the 1% test seed fits (rejected: a product limit should not bend to a test fixture).
+
+## 2026-10-01 · The customer profile CTE is materialized
+
+**Decision.** Every query over the customer profile (`with p as materialized (...)` in `packages/services/src/crm/index.ts`) now computes the per-customer aggregates once. Without the hint, Postgres inlined the CTE and misestimated the RFM `case` filters. It then re-ran the order aggregations inside a nested loop: the segment preview's sample query took 4.4 s on Northwind and now takes 0.24 s.
+
+**Alternatives.** A materialized view of profiles refreshed by a job (rejected for now: the profile must reflect orders immediately, and the hint fixes the measured cost).

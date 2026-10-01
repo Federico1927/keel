@@ -231,8 +231,8 @@ export async function listCustomers(ctx: ServiceContext, f: CustomerFilters = {}
   if (f.segmentId) conds.push(sql`exists (select 1 from segment_memberships m where m.segment_id = ${f.segmentId} and m.customer_id = p.customer_id)`);
   const where = sql.join(conds, sql` and `);
   const order = f.sort === "total_spent" ? sql`p.total_spent desc` : f.sort === "orders" ? sql`p.orders_count desc, p.total_spent desc` : f.sort === "name" ? sql`p.last_name nulls last, p.first_name` : f.sort === "predicted_value" ? sql`p.predicted_value desc nulls last` : sql`p.last_order_at desc nulls last`;
-  const rows = await ctx.tx.execute<ProfileRow>(sql`with p as (${profileCte(ctx, now)}) select p.* from p where ${where} order by ${order}, p.customer_id limit ${pageSize} offset ${(page - 1) * pageSize}`);
-  const count = await ctx.tx.execute<{ n: number }>(sql`with p as (${profileCte(ctx, now)}) select count(*)::int as n from p where ${where}`);
+  const rows = await ctx.tx.execute<ProfileRow>(sql`with p as materialized (${profileCte(ctx, now)}) select p.* from p where ${where} order by ${order}, p.customer_id limit ${pageSize} offset ${(page - 1) * pageSize}`);
+  const count = await ctx.tx.execute<{ n: number }>(sql`with p as materialized (${profileCte(ctx, now)}) select count(*)::int as n from p where ${where}`);
   const countries = await ctx.tx.execute<{ country: string }>(sql`select distinct country from customers where tenant_id = ${ctx.tenantId} and country is not null order by 1`);
   return { rows: rows.rows.map(toRow), total: count.rows[0]?.n ?? 0, page, pageSize, countries: countries.rows.map((r) => r.country) };
 }
@@ -241,7 +241,7 @@ export async function listCustomers(ctx: ServiceContext, f: CustomerFilters = {}
 export async function customerProfiles(ctx: ServiceContext, customerIds?: string[]): Promise<CustomerRow[]> {
   const now = ctx.now ?? new Date();
   const filter = customerIds ? sql`where p.customer_id = any(${sql.param(customerIds)}::uuid[])` : sql``;
-  const rows = await ctx.tx.execute<ProfileRow>(sql`with p as (${profileCte(ctx, now)}) select p.* from p ${filter}`);
+  const rows = await ctx.tx.execute<ProfileRow>(sql`with p as materialized (${profileCte(ctx, now)}) select p.* from p ${filter}`);
   return rows.rows.map(toRow);
 }
 
@@ -255,8 +255,8 @@ export interface SegmentPreview {
 export async function previewSegment(ctx: ServiceContext, rules: unknown, sampleSize = 20): Promise<SegmentPreview> {
   const now = ctx.now ?? new Date();
   const where = compileSegmentRules(rules);
-  const agg = await ctx.tx.execute<{ n: number; c: number }>(sql`with p as (${profileCte(ctx, now)}) select count(*)::int as n, count(*) filter (where p.accepts_marketing)::int as c from p where ${where}`);
-  const sample = await ctx.tx.execute<ProfileRow>(sql`with p as (${profileCte(ctx, now)}) select p.* from p where ${where} order by hashtext(p.customer_id::text) limit ${sampleSize}`);
+  const agg = await ctx.tx.execute<{ n: number; c: number }>(sql`with p as materialized (${profileCte(ctx, now)}) select count(*)::int as n, count(*) filter (where p.accepts_marketing)::int as c from p where ${where}`);
+  const sample = await ctx.tx.execute<ProfileRow>(sql`with p as materialized (${profileCte(ctx, now)}) select p.* from p where ${where} order by hashtext(p.customer_id::text) limit ${sampleSize}`);
   return {
     count: agg.rows[0]?.n ?? 0,
     contactable: agg.rows[0]?.c ?? 0,
@@ -296,7 +296,7 @@ export async function evaluateSegment(ctx: ServiceContext, segmentId: string): P
   const [segment] = await ctx.tx.select().from(schema.segments).where(and(eq(schema.segments.tenantId, ctx.tenantId), eq(schema.segments.id, segmentId))).limit(1);
   if (!segment) throw new Error("segment_not_found");
   const where = compileSegmentRules(segment.rules);
-  const matches = await ctx.tx.execute<{ customer_id: string }>(sql`with p as (${profileCte(ctx, now)}) select p.customer_id from p where ${where}`);
+  const matches = await ctx.tx.execute<{ customer_id: string }>(sql`with p as materialized (${profileCte(ctx, now)}) select p.customer_id from p where ${where}`);
   const ids = matches.rows.map((r) => r.customer_id);
   const idSet = new Set(ids);
   const existing = await ctx.tx.select({ customerId: schema.segmentMemberships.customerId, groupName: schema.segmentMemberships.groupName }).from(schema.segmentMemberships).where(eq(schema.segmentMemberships.segmentId, segmentId));
@@ -323,7 +323,7 @@ export async function segmentMembers(ctx: ServiceContext, segmentId: string, opt
   const groupFilter = opts.group ? sql`and m.group_name = ${opts.group}` : sql``;
   const limit = opts.limit ? sql`limit ${opts.limit}` : sql``;
   const offset = opts.offset ? sql`offset ${opts.offset}` : sql``;
-  const rows = await ctx.tx.execute<ProfileRow & { group_name: string }>(sql`with p as (${profileCte(ctx, now)}) select p.*, m.group_name from segment_memberships m join p on p.customer_id = m.customer_id where m.segment_id = ${segmentId} ${groupFilter} order by p.total_spent desc, p.customer_id ${limit} ${offset}`);
+  const rows = await ctx.tx.execute<ProfileRow & { group_name: string }>(sql`with p as materialized (${profileCte(ctx, now)}) select p.*, m.group_name from segment_memberships m join p on p.customer_id = m.customer_id where m.segment_id = ${segmentId} ${groupFilter} order by p.total_spent desc, p.customer_id ${limit} ${offset}`);
   return rows.rows.map((r) => ({ ...toRow(r), groupName: r.group_name }));
 }
 
