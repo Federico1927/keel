@@ -1,5 +1,5 @@
 import { and, eq, schema } from "@keel/db";
-import { GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, GoogleConversionsSink, MetaConversionsSink, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
+import { AnthropicLlmProvider, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, GoogleConversionsSink, MetaConversionsSink, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 
 export interface PlatformTenant {
@@ -193,4 +193,22 @@ export function mockConversionSinkFor(tenantId: string, provider: ConversionProv
     conversionMocks.set(key, m);
   }
   return m;
+}
+
+/* ---------- language model (AI assistant) ---------- */
+
+const llmMocks = new Map<string, MockLlmProvider>();
+
+/**
+ * The assistant runs on the store's own Anthropic key, connected in Integrations (provider
+ * `anthropic`, credentials `{ apiKey }`), so the store pays the model provider directly. Null when
+ * the integration is not connected; the deterministic mock when it is connected in mock mode.
+ */
+export async function getLlmProviderFor(ctx: ServiceContext): Promise<LlmProvider | null> {
+  const row = await integrationRow(ctx, "anthropic");
+  if (!row || row.status === "not_connected") return null;
+  if (isLive(row)) return new AnthropicLlmProvider(decryptJson<AnthropicCredentials>(row.credentialsEncrypted!));
+  const cached = llmMocks.get(ctx.tenantId) ?? new MockLlmProvider();
+  llmMocks.set(ctx.tenantId, cached);
+  return cached;
 }

@@ -3,15 +3,17 @@ import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, eq, recordAudit, schema } from "@keel/db";
-import { GoogleAdsPlatform, MetaAdsPlatform, ShopifyCommercePlatform, SHOPIFY_WEBHOOK_TOPICS, encryptJson, integrationMode, isValidShopDomain, type ConnectionTest } from "@keel/integrations";
-import { getAdsPlatformFor, getCommercePlatformFor, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync } from "@keel/services";
+import { AnthropicLlmProvider, GoogleAdsPlatform, MetaAdsPlatform, ShopifyCommercePlatform, SHOPIFY_WEBHOOK_TOPICS, encryptJson, integrationMode, isValidShopDomain, type ConnectionTest } from "@keel/integrations";
+import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync } from "@keel/services";
 import { enqueue } from "@/server/jobs";
 import { ForbiddenError, requireAction } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 
-const PROVIDERS = ["shopify", "meta", "google"] as const;
+const PROVIDERS = ["shopify", "meta", "google", "anthropic"] as const;
 type Provider = (typeof PROVIDERS)[number];
 const providerSchema = z.enum(PROVIDERS);
+/** Providers whose data Keel imports; the AI key has nothing to resync. */
+const syncProviderSchema = z.enum(["shopify", "meta", "google"]);
 
 async function saveConnection(slug: string, provider: Provider, test: ConnectionTest, credentials: unknown, accountId: string, config: Record<string, unknown> = {}): Promise<ActionResult> {
   const ctx = await requireAction(slug, "manage_integrations", "integrations");
@@ -75,6 +77,21 @@ export async function connectGoogle(slug: string, _prev: ActionResult | null, fo
   }
 }
 
+const anthropicSchema = z.object({ apiKey: z.string().trim().min(20) });
+/** The store's own Anthropic key for the AI assistant; the store pays its usage to Anthropic directly. */
+export async function connectAnthropic(slug: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
+  try {
+    const parsed = anthropicSchema.safeParse(Object.fromEntries(formData.entries()));
+    if (!parsed.success) return fail("invalid_input");
+    if (integrationMode() !== "live") return fail("mock_mode");
+    const test = await new AnthropicLlmProvider({ apiKey: parsed.data.apiKey }).testConnection();
+    return saveConnection(slug, "anthropic", test, { apiKey: parsed.data.apiKey }, test.accountId ?? "anthropic");
+  } catch (e) {
+    if (e instanceof ForbiddenError) return fail("forbidden");
+    throw e;
+  }
+}
+
 export async function disconnectIntegration(slug: string, provider: string): Promise<ActionResult> {
   try {
     const p = providerSchema.safeParse(provider);
@@ -99,7 +116,8 @@ export async function testIntegration(slug: string, provider: string): Promise<A
     const ctx = await requireAction(slug, "manage_integrations", "integrations");
     const result = await ctx.run(async (tx) => {
       const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
-      const platform = p.data === "shopify" ? await getCommercePlatformFor(s, ctx.tenant) : await getAdsPlatformFor(s, ctx.tenant, p.data);
+      const platform = p.data === "shopify" ? await getCommercePlatformFor(s, ctx.tenant) : p.data === "anthropic" ? await getLlmProviderFor(s) : await getAdsPlatformFor(s, ctx.tenant, p.data);
+      if (!platform) return { ok: false, error: "not connected" } satisfies ConnectionTest;
       const test = await platform.testConnection().catch((e: unknown) => ({ ok: false, error: e instanceof Error ? e.message : String(e) }) as ConnectionTest);
       await tx.update(schema.integrations).set(test.ok ? { lastSuccessAt: new Date(), lastError: null, status: "connected", externalAccountName: test.accountName ?? undefined, updatedAt: new Date() } : { lastError: test.error ?? "connection failed", status: "error", updatedAt: new Date() }).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, p.data)));
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.tested", entityType: "integration", entityId: p.data, diff: { ok: { from: null, to: test.ok } } });
@@ -116,7 +134,7 @@ export async function testIntegration(slug: string, provider: string): Promise<A
 /** Resync: queued when a worker is available, otherwise run inline with a time budget. */
 export async function resyncIntegration(slug: string, provider: string): Promise<ActionResult<{ queued: boolean; summary: string }>> {
   try {
-    const p = providerSchema.safeParse(provider);
+    const p = syncProviderSchema.safeParse(provider);
     if (!p.success) return fail("invalid_input");
     const ctx = await requireAction(slug, "manage_integrations", "integrations");
     await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.resync_requested", entityType: "integration", entityId: p.data }));

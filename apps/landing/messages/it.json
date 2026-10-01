@@ -100,6 +100,11 @@
         "title": "Campagne collegate allo stock",
         "body": "Campagne Meta e Google collegate ai prodotti. Il profitto conta solo gli ordini non annullati e non resi. I consigli guardano lo stock dei prodotti collegati prima di dirti di spendere di più.",
         "alt": "Pagina campagne in {product}: spesa, ordini, ricavo netto, margine, profitto, ROAS, ROI, CPA e un indicatore di salute per ogni campagna Meta e Google"
+      },
+      "assistant": {
+        "title": "Assistente AI",
+        "body": "Chiedi di vendite, profitto, campagne, prodotti, resi, clienti a rischio o magazzino. Ogni risposta cita numeri, periodo e filtri, con il link al report. Usa la tua chiave Anthropic e può solo leggere.",
+        "alt": "Pagina Assistente di {product}: una domanda sui prodotti più venduti e la risposta con la tabella citata di prodotti, pezzi, ricavi e margine"
       }
     },
     "carousel_label": "Moduli del prodotto",
@@ -114,8 +119,8 @@
     "lead": "Tre passi. Il secondo lo facciamo noi.",
     "steps": {
       "connect": {
-        "title": "Colleghi Shopify, Meta e Google",
-        "body": "OAuth o token di app custom per Shopify, accesso API per Meta e Google Ads. I webhook vengono verificati, messi in coda e ritentati; la sincronizzazione dello storico gira in background e riprende se si interrompe."
+        "title": "Collega Shopify, Meta, Google e la tua chiave AI",
+        "body": "OAuth o token di app personalizzata per Shopify, accesso API per Meta e Google Ads, e la tua chiave Anthropic per l'assistente AI. I webhook sono verificati, messi in coda e ritentati; la sincronizzazione storica gira in background e riprende se si interrompe."
       },
       "configure": {
         "title": "Configuriamo regole, costi e storico",
@@ -130,7 +135,8 @@
     "guides": {
       "shopify": "Guida Shopify",
       "meta": "Guida Meta",
-      "google": "Guida Google Ads"
+      "google": "Guida Google Ads",
+      "anthropic": "Guida assistente AI"
     }
   },
   "comparison": {
@@ -216,7 +222,7 @@
       "multi_store": "Più negozi",
       "advanced_roles": "Ruoli e permessi avanzati",
       "api": "Accesso API",
-      "ai_assistant": "Assistente AI",
+      "ai_assistant": "Assistente AI sui tuoi dati (con la tua chiave Anthropic)",
       "priority_support": "Supporto prioritario",
       "enterprise_volume": "Prezzi a volume",
       "enterprise_sla": "SLA contrattuale",
@@ -228,7 +234,6 @@
     "lead": "Attivati per singolo account dal nostro team. Il core funziona con qualsiasi metodo di pagamento; quello che è specifico della tua operatività vive in un add-on.",
     "per_month": "{price}/mese",
     "from_per_month": "da {price}/mese",
-    "usage": "A consumo",
     "quote": "Su preventivo",
     "items": {
       "cod": {
@@ -238,10 +243,6 @@
       "custom_integration": {
         "title": "Integrazioni su misura",
         "body": "Un magazzino 3PL, un provider di messaggistica locale, un corriere: costruiti dietro le stesse interfacce e attivati solo per il tuo account."
-      },
-      "ai_studio": {
-        "title": "AI Studio",
-        "body": "Fai domande sui tuoi dati e automatizza le analisi ricorrenti. Fatturato a consumo."
       },
       "custom_development": {
         "title": "Sviluppi custom",
@@ -262,11 +263,15 @@
       },
       "setup": {
         "q": "Cosa include il setup?",
-        "a": "Il collegamento di Shopify, Meta e Google, l'importazione dello storico ordini, la configurazione di regole di stato, aliquote, commissioni di pagamento, costi dei prodotti e degli utenti con i loro ruoli. Parti da una piattaforma configurata, non da una vuota."
+        "a": "Il collegamento di Shopify, Meta, Google e della tua chiave Anthropic per l'assistente AI, l'importazione dello storico ordini, la configurazione di regole di stato, aliquote, commissioni di pagamento, costi prodotto e dei tuoi utenti con i loro ruoli. Parti da una piattaforma configurata, non vuota."
       },
       "security": {
         "q": "Come sono tenuti separati i miei dati da quelli degli altri clienti?",
         "a": "Ogni tabella porta l'identificativo dell'account e il database applica l'isolamento a livello di riga su ogni query: un account non può mai leggere o scrivere le righe di un altro, e test automatici lo verificano su ogni tabella. Le credenziali delle integrazioni sono cifrate a riposo. Gli accessi del nostro supporto sono registrati e visibili a te."
+      },
+      "ai": {
+        "q": "Chi paga l'assistente AI, e cosa vede?",
+        "a": "L'assistente è incluso in tutti i piani e usa la tua chiave API Anthropic: Anthropic ti addebita il consumo direttamente, con il limite di spesa che imposti nella loro console, e {product} non aggiunge nulla. Legge solo i report che il ruolo dell'utente può aprire, non modifica mai i dati e ogni risposta mostra i numeri che ha usato."
       },
       "overage": {
         "q": "Cosa succede se supero gli ordini inclusi?",

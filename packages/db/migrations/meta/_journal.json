@@ -127,6 +127,13 @@
       "when": 1790883327427,
       "tag": "0017_flashy_praxagora",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790884623986,
+      "tag": "0018_familiar_sersi",
+      "breakpoints": true
     }
   ]
 }

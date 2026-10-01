@@ -3,10 +3,10 @@ import { useRouter } from "next/navigation";
 import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, cn } from "@keel/ui";
-import { connectGoogle, connectMeta, connectShopifyCustomApp, disconnectIntegration, processWebhookNow, resyncIntegration, retryWebhooks, simulateWebhook, testIntegration } from "@/server/actions/integrations";
+import { connectAnthropic, connectGoogle, connectMeta, connectShopifyCustomApp, disconnectIntegration, processWebhookNow, resyncIntegration, retryWebhooks, simulateWebhook, testIntegration } from "@/server/actions/integrations";
 import type { ActionResult } from "@/server/action-result";
 
-type Provider = "shopify" | "meta" | "google";
+type Provider = "shopify" | "meta" | "google" | "anthropic";
 
 export function ProviderActions({ slug, provider, connected, mock, canManage }: { slug: string; provider: Provider; connected: boolean; mock: boolean; canManage: boolean }) {
   const t = useTranslations("integrations");
@@ -27,7 +27,7 @@ export function ProviderActions({ slug, provider, connected, mock, canManage }: 
         <Button size="sm" variant="outline" disabled={pending} onClick={() => start(async () => { const r = await testIntegration(slug, provider); say(r, r.ok && r.data ? (r.data.ok ? t("test_ok", { account: r.data.accountName ?? "" }) : t("test_failed", { error: r.data.error ?? "" })) : ""); })}>
           {t("test_connection")}
         </Button>
-        {connected && (
+        {connected && provider !== "anthropic" && (
           <Button size="sm" variant="outline" disabled={pending} onClick={() => start(async () => { const r = await resyncIntegration(slug, provider); say(r, r.ok && r.data ? (r.data.queued ? t("resync_queued") : t("resync_done", { summary: r.data.summary })) : ""); })}>
             {t("resync")}
           </Button>
@@ -67,13 +67,15 @@ export function ProviderActions({ slug, provider, connected, mock, canManage }: 
 function ConnectForm({ slug, provider, mock, onDone }: { slug: string; provider: Provider; mock: boolean; onDone: () => void }) {
   const t = useTranslations("integrations");
   const tc = useTranslations("common");
-  const action = provider === "shopify" ? connectShopifyCustomApp : provider === "meta" ? connectMeta : connectGoogle;
+  const action = provider === "shopify" ? connectShopifyCustomApp : provider === "meta" ? connectMeta : provider === "anthropic" ? connectAnthropic : connectGoogle;
   const [state, formAction, pending] = useActionState(action.bind(null, slug), null);
   const fields: { name: string; label: string; type?: string; placeholder?: string }[] = provider === "shopify"
     ? [{ name: "shop", label: t("fields.shop"), placeholder: "my-store.myshopify.com" }, { name: "accessToken", label: t("fields.access_token"), type: "password", placeholder: "shpat_…" }, { name: "apiSecret", label: t("fields.api_secret"), type: "password" }]
-    : provider === "meta"
-      ? [{ name: "adAccountId", label: t("fields.ad_account"), placeholder: "act_123456789" }, { name: "accessToken", label: t("fields.access_token"), type: "password" }]
-      : [{ name: "customerId", label: t("fields.customer_id"), placeholder: "123-456-7890" }, { name: "loginCustomerId", label: t("fields.login_customer_id"), placeholder: "optional" }, { name: "developerToken", label: t("fields.developer_token"), type: "password" }, { name: "clientId", label: t("fields.client_id") }, { name: "clientSecret", label: t("fields.client_secret"), type: "password" }, { name: "refreshToken", label: t("fields.refresh_token"), type: "password" }];
+    : provider === "anthropic"
+      ? [{ name: "apiKey", label: t("fields.api_key"), type: "password", placeholder: "sk-ant-…" }]
+      : provider === "meta"
+        ? [{ name: "adAccountId", label: t("fields.ad_account"), placeholder: "act_123456789" }, { name: "accessToken", label: t("fields.access_token"), type: "password" }]
+        : [{ name: "customerId", label: t("fields.customer_id"), placeholder: "123-456-7890" }, { name: "loginCustomerId", label: t("fields.login_customer_id"), placeholder: "optional" }, { name: "developerToken", label: t("fields.developer_token"), type: "password" }, { name: "clientId", label: t("fields.client_id") }, { name: "clientSecret", label: t("fields.client_secret"), type: "password" }, { name: "refreshToken", label: t("fields.refresh_token"), type: "password" }];
   return (
     <Card className={cn("mt-2", state?.ok && "border-green-600")}>
       <CardHeader>

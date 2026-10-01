@@ -41,6 +41,7 @@ export const PLANS: readonly Plan[] = [
       "returns",
       "discounts",
       "kpi_dashboard",
+      "ai_assistant",
     ],
   },
   {
@@ -59,7 +60,7 @@ export const PLANS: readonly Plan[] = [
     setupFee: 3000,
     setupFeeFrom: true,
     inheritsFrom: "growth",
-    features: ["multi_store", "advanced_roles", "api", "ai_assistant", "priority_support"],
+    features: ["multi_store", "advanced_roles", "api", "priority_support"],
   },
   {
     id: "enterprise",
@@ -77,13 +78,11 @@ export const OVERAGE = { pricePerBlock: 49, blockSize: 1000 } as const;
 /** Add-ons and tailored integrations, priced per account. */
 export type AddonPricing =
   | { id: string; kind: "monthly"; price: number; from?: boolean }
-  | { id: string; kind: "usage" }
   | { id: string; kind: "quote" };
 
 export const ADDONS: readonly AddonPricing[] = [
   { id: "cod", kind: "monthly", price: 199 },
   { id: "custom_integration", kind: "monthly", price: 99, from: true },
-  { id: "ai_studio", kind: "usage" },
   { id: "custom_development", kind: "quote" },
 ];
 

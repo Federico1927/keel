@@ -32,6 +32,6 @@ export function demoHref(subject: string): string {
 }
 
 /** Integration guide pages inside the product (tenant-scoped; the slug is resolved after login). */
-export function guideHref(provider: "shopify" | "meta" | "google"): string {
+export function guideHref(provider: "shopify" | "meta" | "google" | "anthropic"): string {
   return `${APP_URL}/login?next=${encodeURIComponent(`/integrations/guide/${provider}`)}`;
 }

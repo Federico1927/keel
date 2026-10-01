@@ -86,7 +86,9 @@ stops on the first interaction. Order and screenshots per module: `MODULES` in
 ## Product screenshots
 
 The landing shows real screens of the demo tenant **Harbor Home** (no add-ons, so nothing
-payment-specific appears in the navigation). Only demo data is shown.
+payment-specific appears in the navigation). Only demo data is shown. The assistant screen opens
+Harbor's seeded conversation in English; for Italian the capture asks the same question in Italian,
+and it hides the "simulated connection" notice, which only exists in the mock demo.
 
 To regenerate after a product change:
 

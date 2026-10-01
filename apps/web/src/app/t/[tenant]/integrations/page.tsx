@@ -8,7 +8,7 @@ import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageH
 import { requirePage } from "@/server/tenant";
 import { ProviderActions, WebhookControls, WebhookRowAction } from "./controls";
 
-const PROVIDERS = ["shopify", "meta", "google"] as const;
+const PROVIDERS = ["shopify", "meta", "google", "anthropic"] as const;
 const SLOTS = ["messaging", "warehouse", "carrier"] as const;
 
 export default async function IntegrationsPage({ params }: { params: Promise<{ tenant: string }> }) {
@@ -27,7 +27,7 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
       {globalMock && (
         <p className="mb-4 rounded-md border border-dashed bg-muted/40 p-3 text-sm text-muted-foreground" data-testid="mock-banner">{t("global_mock_banner")}</p>
       )}
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {PROVIDERS.map((p) => {
           const row = data.integrations.find((i) => i.provider === p);
           const health = data.health.filter((h) => h.source === p || h.source.startsWith(`${p}:`));

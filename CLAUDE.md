@@ -178,6 +178,9 @@ Per ogni modulo: lista con filtri e ricerca lato server, paginazione, dettaglio,
 10. **Piattaforma**
     Notifiche in-app, pagina "salute integrazioni", impostazioni del tenant, gestione utenti e ruoli, audit log consultabile dagli owner.
 
+11. **Assistente AI** (decisione del committente, 2026-10-01, issue #7)
+    Nel core, non un add-on: ogni negozio collega la **propria chiave API Anthropic** in Integrazioni e paga il consumo direttamente ad Anthropic; senza chiave la pagina chiede di collegarla. Solo lettura, tramite strumenti sopra i servizi di analisi filtrati per ruolo; ogni risposta cita numeri, periodo, filtri e link. Interfaccia `LlmProvider` in `packages/integrations` con adapter Anthropic (SDK ufficiale) e mock deterministico.
+
 ---
 
 ## 8. Moduli add-on e console super-admin

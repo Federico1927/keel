@@ -1,15 +1,16 @@
 import { ChevronDown } from "lucide-react";
 import { Section } from "@/components/ui";
 import { OVERAGE } from "@/config/pricing";
-import type { LandingLocale } from "@/config/site";
+import { PRODUCT_NAME, type LandingLocale } from "@/config/site";
 import { getTranslator } from "@/i18n/messages";
 import { formatNumber, formatPrice } from "@/lib/format";
 
-const ITEMS = ["payments", "contracts", "setup", "security", "overage", "languages"] as const;
+const ITEMS = ["payments", "contracts", "setup", "security", "ai", "overage", "languages"] as const;
 
 export function Faq({ locale }: { locale: LandingLocale }) {
   const t = getTranslator(locale);
   const vars = {
+    product: PRODUCT_NAME,
     price: formatPrice(locale, OVERAGE.pricePerBlock),
     n: formatNumber(locale, OVERAGE.blockSize),
   };

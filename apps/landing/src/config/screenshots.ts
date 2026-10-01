@@ -22,6 +22,7 @@ export const SCREENSHOTS: Record<string, ScreenshotRole> = {
   returns: "card",
   discounts: "card",
   rfm: "card",
+  assistant: "card",
 };
 
 export function screenshotSrcSet(

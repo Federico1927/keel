@@ -16,3 +16,4 @@ export * from "./marketing";
 export * from "./billing";
 export * from "./cod";
 export * from "./tracking";
+export * from "./assistant";

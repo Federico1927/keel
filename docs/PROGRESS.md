@@ -303,6 +303,20 @@ Fatto:
 - Guida all'attivazione in tre lingue. Seed: sondaggio attivo su entrambi i negozi con risposte sul 30% degli ordini degli ultimi 120 giorni.
 - Migrazione 0017 (2 tabelle con RLS); test core 149, servizi 78, db 498, e2e 65.
 
+## Esterni (issue #7), terzo blocco: assistente AI
+
+Fatto:
+- Assistente AI nel core (decisione del committente): ogni negozio collega la propria chiave API Anthropic in Integrazioni e paga il consumo direttamente ad Anthropic. Senza chiave la pagina Assistente spiega come ottenerla e porta a Integrazioni. Guida all'attivazione in tre lingue con i passi da verificare segnati.
+- Pagina Assistente con conversazioni private per utente, domande suggerite in base al ruolo e contatore di domande e token del mese.
+- L'assistente risponde solo leggendo: sette strumenti sopra i servizi di analisi (KPI, conto economico, prodotti, campagne, resi, previsioni clienti, stock da riordinare), offerti solo se il ruolo dell'utente vede la pagina corrispondente. Sotto ogni risposta le citazioni: numeri, periodo, filtri e link alla pagina da cui vengono.
+- Interfaccia `LlmProvider` con adapter Anthropic (SDK ufficiale, testato su risposte registrate, nessuna chiamata di rete) e modello simulato deterministico: nella demo il testo è essenziale ma i numeri e i link sono reali. "Testa connessione" verifica la chiave senza consumare token.
+- Seed: chiave simulata collegata su entrambi i negozi, con una conversazione di esempio (prodotti più venduti degli ultimi 30 giorni) in italiano su Northwind e in inglese su Harbor.
+- Landing allineata: l'assistente è incluso in tutti i piani ("con la tua chiave Anthropic"), tolto l'add-on AI Studio a consumo; nuova slide "Assistente AI" nel carosello dei moduli con screenshot reali (en, it), il passo "Collega" e la guida citano la chiave Anthropic, nuova domanda frequente su chi paga e cosa vede l'assistente.
+- Integrazioni: quarta scheda "AI (Anthropic)" accanto a Shopify, Meta e Google, con collega, testa connessione e guida.
+- Migrazione 0018 (2 tabelle con RLS); test core 153, integrazioni 45, servizi 87, db 510, e2e 70.
+
+Resta per la issue #7: email di stato ai clienti, validazione indirizzi, pagine guida mancanti.
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).
