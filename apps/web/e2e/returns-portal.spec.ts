@@ -13,7 +13,8 @@ async function deliveredOrders(page: Page): Promise<{ name: string; email: strin
     await page.goto(href);
     const html = await page.content();
     const name = /#NW-\d+/.exec(await page.locator("h1").first().innerText())?.[0];
-    const email = /[\w.+-]+@[\w-]+\.[\w.]+/.exec(html)?.[0];
+    // the first customer address on the page; demo staff addresses (*.demo) can appear in the shell
+    const email = [...html.matchAll(/[\w.+-]+@[\w-]+\.[\w.]+/g)].map((m) => m[0]).find((e) => !e.endsWith(".demo"));
     if (name && email) out.push({ name, email });
   }
   return out;
