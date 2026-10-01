@@ -5,3 +5,4 @@ export * from "./slots";
 export * from "./guarantee";
 export * from "./labels";
 export * from "./audience";
+export * from "./address";

@@ -44,7 +44,7 @@ function profileCte(ctx: ServiceContext, now: Date, onlyCustomers?: string[]): S
         max(o.placed_at) filter (where o.status in ${SALE}) as last_order_at,
         min(o.placed_at) filter (where o.status in ${SALE}) as first_order_at,
         array_agg(distinct o.payment_method) filter (where o.status in ${SALE}) as payment_methods
-      from orders o where o.tenant_id = ${t} and o.customer_id is not null${only(sql`o.customer_id`)} group by o.customer_id
+      from orders o where o.tenant_id = ${t} and o.customer_id is not null and o.replaced_by_order_id is null${only(sql`o.customer_id`)} group by o.customer_id
     ) a on a.customer_id = c.id
     left join (
       select o.customer_id,

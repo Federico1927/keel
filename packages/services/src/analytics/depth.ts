@@ -62,7 +62,7 @@ async function firstOrdersInPeriod(ctx: ServiceContext, period: Period): Promise
   const rows = await ctx.tx.execute<{ order_id: string; channel: string | null }>(sql`
     with firsts as (
       select distinct on (customer_id) id, customer_id from orders
-      where tenant_id = ${ctx.tenantId} and customer_id is not null and status not in ('cancelled') and cancel_reason is distinct from 'replaced'
+      where tenant_id = ${ctx.tenantId} and customer_id is not null and status not in ('cancelled') and replaced_by_order_id is null
       order by customer_id, placed_at asc, id asc
     )
     select f.id as order_id, a.channel from firsts f

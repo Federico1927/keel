@@ -3,17 +3,19 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { adminDb, eq, inArray, schema } from "@keel/db";
-import { formatDateTime, formatMoney, daysInTransit } from "@keel/core";
+import { formatDateTime, formatMoney, daysInTransit, orderEditBlock } from "@keel/core";
 import { customerOrderHistory, duplicateSiblings } from "@keel/services";
-import { canDo, canViewPage, canWritePage, isPageEnabled } from "@keel/config";
+import { ORDER_DISCOUNT_PRESETS_BPS, canDo, canViewPage, canWritePage, isPageEnabled } from "@keel/config";
 import { Alert, AlertDescription, AlertTitle, Badge, Button, Card, CardContent, CardHeader, CardTitle, DetailShell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
-import { adjacentOrders, getOrderDetail } from "@/server/queries/orders";
+import { adjacentOrders, getOrderDetail, getOrderEditData } from "@/server/queries/orders";
 import { StatusBadge } from "@/components/status-badge";
 import { OrderActions } from "./actions-bar";
 import { Timeline } from "./timeline";
 import { NotesPanel } from "./notes";
 import { CodCard } from "./cod-card";
+import { EditOrderDialog, type AddressForm } from "./edit-order";
+import { DiscountOrderDialog } from "./discount-order";
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
@@ -39,6 +41,33 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
   const fmt = (minor: number) => formatMoney(minor, order.currency, ctx.locale);
   const addr = order.shippingAddress as { name?: string; address1?: string; address2?: string; city?: string; province?: string; zip?: string; country?: string; phone?: string } | null;
   const canChange = canDo(ctx.role, "change_order_state");
+  // order editing (core, any payment method): open and unfulfilled orders, roles with edit_order
+  const editBlock = orderEditBlock({ ...order, shipmentCount: shipments.length });
+  const canEdit = canDo(ctx.role, "edit_order") && editBlock === null;
+  const edit = await getOrderEditData(ctx, order, { editable: canEdit });
+  const showEdit = canEdit && !edit.codOwnsEdit;
+  const tl = await getTranslations("order_detail.lineage");
+  const nameById = new Map(edit.lineage.map((o) => [o.id, o.name]));
+  const replacedSources = edit.lineage.filter((o) => o.replacedByOrderId === order.id);
+  const replacedBy = order.replacedByOrderId ? { id: order.replacedByOrderId, name: nameById.get(order.replacedByOrderId) ?? order.replacedByOrderId.slice(0, 8) } : null;
+  const asForm = (a: typeof addr): AddressForm => ({ name: a?.name ?? order.customerName ?? "", address1: a?.address1 ?? "", address2: a?.address2 ?? "", city: a?.city ?? order.shippingCity ?? "", province: a?.province ?? "", zip: a?.zip ?? order.shippingZip ?? "", country: a?.country ?? order.shippingCountry ?? "" });
+  const paid = order.paymentStatus === "paid" || order.paymentStatus === "partially_refunded";
+  const editProps = {
+    slug: tenant,
+    orderId: order.id,
+    orderName: order.name,
+    contact: { customerName: order.customerName ?? "", phone: order.phone ?? "", email: order.email ?? "" },
+    address: asForm(addr),
+    billing: order.billingAddress ? asForm(order.billingAddress as typeof addr) : null,
+    note: order.note ?? "",
+    lines: lines.filter((l) => l.currentQuantity > 0).map((l) => ({ id: l.id, title: l.title, variantTitle: l.variantTitle, sku: l.sku, quantity: l.currentQuantity, unitPriceMinor: l.unitPriceMinor })),
+    catalog: edit.catalog.map((v) => ({ id: v.id, label: `${v.sku ? `${v.sku} · ` : ""}${v.product} ${v.title}`.trim(), priceMinor: v.priceMinor })),
+    mergeCandidates: edit.candidates.map((m) => ({ id: m.id, name: m.name, total: formatMoney(m.totalMinor, m.currency, ctx.locale), lines: m.lines.map((l) => `${l.quantity}× ${l.title}${l.variantTitle ? ` ${l.variantTitle}` : ""}`).join(", ") })),
+    paid,
+    currency: order.currency,
+    locale: ctx.locale,
+  };
+  const mergeableDuplicates = showEdit ? duplicates.filter((d) => edit.candidates.some((c) => c.id === d.orderId)).map((d) => d.orderId) : [];
 
   return (
     <DetailShell
@@ -81,7 +110,15 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
           {order.assignedTo && <Badge variant="info">{t("assigned_to", { name: nameOf(order.assignedTo) ?? "" })}</Badge>}
         </>
       }
-      actions={canChange ? <OrderActions slug={tenant} orderId={order.id} currentStatus={order.status} statusSource={order.statusSource} cancelled={Boolean(order.cancelledAt)} members={people} assignedTo={order.assignedTo} canCancel={canDo(ctx.role, "cancel_order")} canAssign={canDo(ctx.role, "assign")} /> : undefined}
+      actions={
+        canChange || canEdit ? (
+          <>
+            {showEdit && <EditOrderDialog {...editProps} />}
+            {canEdit && <DiscountOrderDialog slug={tenant} orderId={order.id} orderName={order.name} amounts={order} presetsBps={ORDER_DISCOUNT_PRESETS_BPS} paid={paid} currency={order.currency} locale={ctx.locale} />}
+            {canChange && <OrderActions slug={tenant} orderId={order.id} currentStatus={order.status} statusSource={order.statusSource} cancelled={Boolean(order.cancelledAt) || Boolean(order.replacedByOrderId)} members={people} assignedTo={order.assignedTo} canCancel={canDo(ctx.role, "cancel_order")} canAssign={canDo(ctx.role, "assign")} />}
+          </>
+        ) : undefined
+      }
       aside={
         <>
           <Card>
@@ -169,6 +206,32 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
         </>
       }
     >
+      {edit.lineage.length > 0 && (
+        <Alert variant={replacedBy ? "warning" : "info"} data-testid="lineage-banner">
+          <AlertTitle>{tl("title")}</AlertTitle>
+          <AlertDescription className="space-y-1">
+            {replacedBy && (
+              <p>
+                {tl.rich("replaced_by", { order: replacedBy.name, link: (chunks) => <Link href={`${base}/${replacedBy.id}`} className="font-medium underline">{chunks}</Link> })}
+                {!order.cancelledAt && ` ${tl("not_cancelled")}`}
+              </p>
+            )}
+            {order.replacesOrderId && (
+              <p>
+                {tl("replaces")}{" "}
+                {(replacedSources.length ? replacedSources : [{ id: order.replacesOrderId, name: nameById.get(order.replacesOrderId) ?? "—" }]).map((o, i) => <span key={o.id}>{i > 0 ? ", " : ""}<Link href={`${base}/${o.id}`} className="font-medium underline">{o.name}</Link></span>)}
+                . {tl("replaces_hint")}
+              </p>
+            )}
+            {edit.lineage.length > 2 && (
+              <p className="text-xs">
+                {tl("chain")}:{" "}
+                {edit.lineage.map((o, i) => <span key={o.id}>{i > 0 ? " → " : ""}{o.id === order.id ? <strong>{o.name}</strong> : <Link href={`${base}/${o.id}`} className="underline">{o.name}</Link>}</span>)}
+              </p>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
       {duplicates.length > 0 && (
         <Alert variant="warning">
           <AlertTitle>{t("duplicates_title")}</AlertTitle>
@@ -179,6 +242,11 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
                 {d.name} ({t(`duplicates.${d.matchType}`)})
               </Link>
             ))}
+            {mergeableDuplicates.length > 0 && (
+              <span className="mt-2 block">
+                <EditOrderDialog {...editProps} trigger="merge" initialMerge={mergeableDuplicates} />
+              </span>
+            )}
           </AlertDescription>
         </Alert>
       )}
@@ -318,7 +386,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
 
       <div className="grid gap-6 lg:grid-cols-2">
         <NotesPanel slug={tenant} orderId={order.id} currentUserId={ctx.user.id} isAdmin={ctx.role === "owner" || ctx.role === "admin"} canWrite={canDo(ctx.role, "add_note")} people={people} notes={notes.map((n) => ({ id: n.id, authorId: n.authorId, authorName: nameOf(n.authorId) ?? t("system"), body: n.body, createdAt: n.createdAt.toISOString() }))} locale={ctx.locale} timezone={ctx.tenant.timezone} />
-        <Timeline events={events.map((e) => ({ id: e.id, type: e.type, actorName: e.actorUserId ? nameOf(e.actorUserId) : null, actorType: e.actorType, diff: e.diff as Record<string, { from: unknown; to: unknown }>, metadata: e.metadata as Record<string, unknown>, createdAt: e.createdAt.toISOString() }))} locale={ctx.locale} timezone={ctx.tenant.timezone} />
+        <Timeline currency={order.currency} events={events.map((e) => ({ id: e.id, type: e.type, actorName: e.actorUserId ? nameOf(e.actorUserId) : null, actorType: e.actorType, diff: e.diff as Record<string, { from: unknown; to: unknown }>, metadata: e.metadata as Record<string, unknown>, createdAt: e.createdAt.toISOString() }))} locale={ctx.locale} timezone={ctx.tenant.timezone} />
       </div>
     </DetailShell>
   );
