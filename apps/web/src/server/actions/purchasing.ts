@@ -1,4 +1,5 @@
 "use server";
+import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, eq, recordAudit, schema } from "@keel/db";
@@ -20,7 +21,7 @@ export async function transitionPo(slug: string, poId: string, to: string): Prom
     if (!(PURCHASE_ORDER_STATUSES as readonly string[]).includes(to)) return fail("invalid_input");
     await ctx.run(async (tx) => {
       const r = await transitionPurchaseOrder({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, poId, to as PurchaseOrderStatus);
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "purchase_order.transition", entityType: "purchase_order", entityId: poId, diff: { status: { from: r.from, to: r.to } } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "purchase_order.transition", entityType: "purchase_order", entityId: poId, diff: { status: { from: r.from, to: r.to } } });
     });
     revalidatePath(`/t/${slug}/purchasing/${poId}`);
     revalidatePath(`/t/${slug}/purchasing`);
@@ -53,7 +54,7 @@ export async function receivePo(slug: string, poId: string, _prev: ActionResult<
             }
           : undefined,
       });
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "purchase_order.received", entityType: "purchase_order", entityId: poId, metadata: { status: r.status, received: r.received.map((x) => ({ variantId: x.variantId, quantity: x.quantity, cost: x.newCostMinor })), releasedOrders: r.releasedOrders, pushToPlatform: Boolean(platform) } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "purchase_order.received", entityType: "purchase_order", entityId: poId, metadata: { status: r.status, received: r.received.map((x) => ({ variantId: x.variantId, quantity: x.quantity, cost: x.newCostMinor })), releasedOrders: r.releasedOrders, pushToPlatform: Boolean(platform) } });
       return r;
     });
     revalidatePath(`/t/${slug}/purchasing/${poId}`);
@@ -81,7 +82,7 @@ export async function createPo(slug: string, _prev: ActionResult<{ id: string }>
     if (!parsed.success) return fail("invalid_input");
     const id = await ctx.run(async (tx) => {
       const poId = await createPurchaseOrder({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { supplierId: parsed.data.supplierId, destinationLocationId: parsed.data.destinationLocationId, currency: ctx.tenant.currency, expectedAt: parsed.data.expectedAt ? new Date(parsed.data.expectedAt) : null, notes: parsed.data.notes ?? null, lines: parsed.data.lines });
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "purchase_order.created", entityType: "purchase_order", entityId: poId, metadata: { lines: parsed.data.lines.length } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "purchase_order.created", entityType: "purchase_order", entityId: poId, metadata: { lines: parsed.data.lines.length } });
       return poId;
     });
     revalidatePath(`/t/${slug}/purchasing`);
@@ -102,7 +103,7 @@ export async function addSupplierPayment(slug: string, _prev: ActionResult | nul
       const [sup] = await tx.select({ id: schema.suppliers.id }).from(schema.suppliers).where(and(eq(schema.suppliers.tenantId, ctx.tenant.id), eq(schema.suppliers.id, parsed.data.supplierId))).limit(1);
       if (!sup) throw new PurchasingError("not_found");
       const id = await recordSupplierPayment({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { ...parsed.data, paidAt: new Date(parsed.data.paidAt) });
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "supplier_payment.recorded", entityType: "supplier_payment", entityId: id, metadata: { amountMinor: parsed.data.amountMinor, supplierId: parsed.data.supplierId } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "supplier_payment.recorded", entityType: "supplier_payment", entityId: id, metadata: { amountMinor: parsed.data.amountMinor, supplierId: parsed.data.supplierId } });
     });
     revalidatePath(`/t/${slug}/purchasing`, "layout");
     return ok();
@@ -124,10 +125,10 @@ export async function saveSupplier(slug: string, _prev: ActionResult | null, for
     await ctx.run(async (tx) => {
       if (d.id) {
         await tx.update(schema.suppliers).set(values).where(and(eq(schema.suppliers.tenantId, ctx.tenant.id), eq(schema.suppliers.id, d.id)));
-        await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "supplier.updated", entityType: "supplier", entityId: d.id, diff: { name: { from: null, to: d.name } } });
+        await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "supplier.updated", entityType: "supplier", entityId: d.id, diff: { name: { from: null, to: d.name } } });
       } else {
         const [row] = await tx.insert(schema.suppliers).values({ tenantId: ctx.tenant.id, currency: ctx.tenant.currency, ...values }).returning({ id: schema.suppliers.id });
-        await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "supplier.created", entityType: "supplier", entityId: row!.id });
+        await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "supplier.created", entityType: "supplier", entityId: row!.id });
       }
     });
     revalidatePath(`/t/${slug}/purchasing/suppliers`);

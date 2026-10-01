@@ -119,7 +119,33 @@ export async function seedPlatform(db: ReturnType<typeof drizzle<typeof schema>>
         .returning();
     }
   }
+  await seedBilling(db, tenantIds);
   return { tenantIds, userIds };
+}
+
+/** Demo billing: Northwind active on Growth with COD add-on and a paid history; Harbor Home past due on Starter. */
+async function seedBilling(db: ReturnType<typeof drizzle<typeof schema>>, tenantIds: SeedContext["tenantIds"]) {
+  const now = new Date();
+  const month = (n: number) => new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - n, 1));
+  const plans: Record<keyof typeof DEMO_TENANTS, { planKey: string; monthly: number; setup: number; currency: string; months: number; lastPaid: boolean }> = {
+    northwind: { planKey: "growth", monthly: 34900 + 9900, setup: 99000, currency: "EUR", months: 6, lastPaid: true },
+    harbor: { planKey: "starter", monthly: 14900, setup: 49000, currency: "EUR", months: 3, lastPaid: false },
+  };
+  for (const key of Object.keys(plans) as (keyof typeof DEMO_TENANTS)[]) {
+    const tenantId = tenantIds[key];
+    const p = plans[key];
+    const [existing] = await db.select({ id: schema.subscriptions.id }).from(schema.subscriptions).where(eq(schema.subscriptions.tenantId, tenantId)).limit(1);
+    if (existing) continue;
+    const start = month(p.months);
+    const [sub] = await db.insert(schema.subscriptions).values({ tenantId, planKey: p.planKey, status: p.lastPaid ? "active" : "past_due", provider: "mock", externalCustomerId: `mock_cus_${tenantId.slice(0, 8)}`, currency: p.currency, currentPeriodStart: month(0), currentPeriodEnd: month(-1), trialEndsAt: new Date(start.getTime() + 14 * 864e5), setupFeeMinor: p.setup }).returning({ id: schema.subscriptions.id });
+    const rows = [{ number: `INV-${start.getUTCFullYear()}-0001`, kind: "setup", amountMinor: p.setup, lines: [{ kind: "setup", key: p.planKey, amountMinor: p.setup }], issuedAt: start, dueAt: new Date(start.getTime() + 7 * 864e5), paidAt: new Date(start.getTime() + 3 * 864e5) as Date | null, periodStart: null as Date | null, periodEnd: null as Date | null }];
+    for (let m = p.months - 1; m >= 0; m--) {
+      const issued = month(m);
+      const isLast = m === 0;
+      rows.push({ number: `INV-${issued.getUTCFullYear()}-${String(rows.length + 1).padStart(4, "0")}`, kind: "subscription", amountMinor: p.monthly, lines: p.planKey === "growth" ? [{ kind: "plan", key: "growth", amountMinor: 34900 }, { kind: "addon", key: "addon.cod", amountMinor: 9900 }] : [{ kind: "plan", key: "starter", amountMinor: 14900 }], issuedAt: issued, dueAt: new Date(issued.getTime() + 7 * 864e5), paidAt: isLast && !p.lastPaid ? null : new Date(issued.getTime() + 2 * 864e5), periodStart: issued, periodEnd: month(m - 1) });
+    }
+    for (const r of rows) await db.insert(schema.invoices).values({ tenantId, subscriptionId: sub!.id, number: r.number, provider: "mock", externalId: `mock_in_${r.number}`, status: r.paidAt ? "paid" : "open", kind: r.kind, amountMinor: r.amountMinor, currency: p.currency, lines: r.lines, periodStart: r.periodStart, periodEnd: r.periodEnd, issuedAt: r.issuedAt, dueAt: r.dueAt, paidAt: r.paidAt }).onConflictDoNothing();
+  }
 }
 
 export interface SeedOptions {

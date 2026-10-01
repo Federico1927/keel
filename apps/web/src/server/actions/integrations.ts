@@ -1,4 +1,5 @@
 "use server";
+import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, eq, recordAudit, schema } from "@keel/db";
@@ -18,7 +19,7 @@ async function saveConnection(slug: string, provider: Provider, test: Connection
   await ctx.run(async (tx) => {
     const values = { status: "connected", mode: "live", externalAccountId: accountId, externalAccountName: test.accountName ?? accountId, credentialsEncrypted: encryptJson(credentials), config: { ...config, scopes: test.scopes ?? [], missingScopes: test.missingScopes ?? [] }, lastError: null, lastSuccessAt: new Date(), updatedAt: new Date() };
     await tx.insert(schema.integrations).values({ tenantId: ctx.tenant.id, provider, ...values }).onConflictDoUpdate({ target: [schema.integrations.tenantId, schema.integrations.provider], set: values });
-    await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "integration.connected", entityType: "integration", entityId: provider, diff: { status: { from: null, to: "connected" }, account: { from: null, to: accountId } } });
+    await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.connected", entityType: "integration", entityId: provider, diff: { status: { from: null, to: "connected" }, account: { from: null, to: accountId } } });
   });
   revalidatePath(`/t/${slug}/integrations`);
   return ok();
@@ -81,7 +82,7 @@ export async function disconnectIntegration(slug: string, provider: string): Pro
     const ctx = await requireAction(slug, "manage_integrations", "integrations");
     await ctx.run(async (tx) => {
       await tx.update(schema.integrations).set({ status: "not_connected", credentialsEncrypted: null, mode: "mock", lastError: null, updatedAt: new Date() }).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, p.data)));
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "integration.disconnected", entityType: "integration", entityId: p.data, diff: { status: { from: "connected", to: "not_connected" } } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.disconnected", entityType: "integration", entityId: p.data, diff: { status: { from: "connected", to: "not_connected" } } });
     });
     revalidatePath(`/t/${slug}/integrations`);
     return ok();
@@ -101,7 +102,7 @@ export async function testIntegration(slug: string, provider: string): Promise<A
       const platform = p.data === "shopify" ? await getCommercePlatformFor(s, ctx.tenant) : await getAdsPlatformFor(s, ctx.tenant, p.data);
       const test = await platform.testConnection().catch((e: unknown) => ({ ok: false, error: e instanceof Error ? e.message : String(e) }) as ConnectionTest);
       await tx.update(schema.integrations).set(test.ok ? { lastSuccessAt: new Date(), lastError: null, status: "connected", externalAccountName: test.accountName ?? undefined, updatedAt: new Date() } : { lastError: test.error ?? "connection failed", status: "error", updatedAt: new Date() }).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, p.data)));
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "integration.tested", entityType: "integration", entityId: p.data, diff: { ok: { from: null, to: test.ok } } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.tested", entityType: "integration", entityId: p.data, diff: { ok: { from: null, to: test.ok } } });
       return test;
     });
     revalidatePath(`/t/${slug}/integrations`);
@@ -118,7 +119,7 @@ export async function resyncIntegration(slug: string, provider: string): Promise
     const p = providerSchema.safeParse(provider);
     if (!p.success) return fail("invalid_input");
     const ctx = await requireAction(slug, "manage_integrations", "integrations");
-    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "integration.resync_requested", entityType: "integration", entityId: p.data }));
+    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.resync_requested", entityType: "integration", entityId: p.data }));
     const since = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
     const until = new Date().toISOString().slice(0, 10);
     const queued = p.data === "shopify" ? (await enqueue("sync.orders", { tenantId: ctx.tenant.id, kind: "delta" }, { singletonKey: `${ctx.tenant.id}:delta` })) && (await enqueue("sync.catalog", { tenantId: ctx.tenant.id }, { singletonKey: `${ctx.tenant.id}:catalog` })) : await enqueue("sync.ads", { tenantId: ctx.tenant.id, provider: p.data, since, until }, { singletonKey: `${ctx.tenant.id}:${p.data}:${until}` });
@@ -161,7 +162,7 @@ export async function simulateWebhook(slug: string, scenario: "order" | "cancel"
     if (scenario === "bad_signature") headers["x-shopify-hmac-sha256"] = "invalid";
     const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
     const res = await fetch(`${base}/api/webhooks/shopify`, { method: "POST", headers, body: env.rawBody });
-    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "integration.webhook_simulated", entityType: "integration", entityId: "shopify", diff: { scenario: { from: null, to: scenario }, status: { from: null, to: res.status } } }));
+    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.webhook_simulated", entityType: "integration", entityId: "shopify", diff: { scenario: { from: null, to: scenario }, status: { from: null, to: res.status } } }));
     revalidatePath(`/t/${slug}/integrations`);
     revalidatePath(`/t/${slug}/orders`);
     return ok({ status: res.status, orderName: scenario === "bad_signature" ? null : order.name });

@@ -1,4 +1,5 @@
 "use server";
+import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { canWritePage } from "@keel/config";
@@ -35,7 +36,7 @@ export async function saveSegmentAction(slug: string, input: unknown, segmentId?
     const id = await ctx.run(async (tx) => {
       const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
       const id = await saveSegment(s, { name: parsed.data.name, description: parsed.data.description ?? null, rules: parsed.data.rules, holdoutPercentage: parsed.data.holdoutPercentage }, segmentId);
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: segmentId ? "segment.updated" : "segment.created", entityType: "segment", entityId: id, diff: { name: { from: null, to: parsed.data.name }, holdoutPercentage: { from: null, to: parsed.data.holdoutPercentage } } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: segmentId ? "segment.updated" : "segment.created", entityType: "segment", entityId: id, diff: { name: { from: null, to: parsed.data.name }, holdoutPercentage: { from: null, to: parsed.data.holdoutPercentage } } });
       await evaluateSegment(s, id);
       return id;
     });
@@ -55,7 +56,7 @@ export async function evaluateSegmentAction(slug: string, segmentId: string): Pr
     if (!z.string().uuid().safeParse(segmentId).success) return fail("invalid_input");
     const result = await ctx.run(async (tx) => {
       const r = await evaluateSegment({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, segmentId);
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "segment.evaluated", entityType: "segment", entityId: segmentId, diff: { count: { from: null, to: r.count } } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "segment.evaluated", entityType: "segment", entityId: segmentId, diff: { count: { from: null, to: r.count } } });
       return r;
     });
     revalidatePath(`/t/${slug}/segments`);
@@ -74,7 +75,7 @@ export async function deleteSegmentAction(slug: string, segmentId: string): Prom
     if (!z.string().uuid().safeParse(segmentId).success) return fail("invalid_input");
     await ctx.run(async (tx) => {
       await deleteSegment({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, segmentId);
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "segment.deleted", entityType: "segment", entityId: segmentId });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "segment.deleted", entityType: "segment", entityId: segmentId });
     });
     revalidatePath(`/t/${slug}/segments`);
     return ok();

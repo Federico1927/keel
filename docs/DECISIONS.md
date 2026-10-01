@@ -177,3 +177,17 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · Resumable sync runs live in `sync_runs`
 
 **Decision.** A sync pass is a `sync_runs` row whose cursor (`nextCursor`, `updatedSince`, `highWaterMark`, pages) is saved after every page. Delta syncs start from the last successful high-water mark minus 2 minutes; a run that exceeds its time budget is left `paused` and resumed by the next job, which re-enqueues itself. Reconciliation re-reads the last 35 days by creation date and lets equal timestamps through, so cancellations missed by webhooks are caught nightly. Health rows per source turn `degraded` on the first failure and `error` after three consecutive ones.
+
+## 2026-10-01 · Keel owns the invoice ledger; the payment provider only collects
+
+**Decision.** Subscriptions and invoices are Keel tables written by the console and the billing job through the admin connection. `BillingProvider` is reduced to three calls (ensure customer, create invoice, read invoice status); the mock does nothing and the Stripe implementation talks to the REST API in test mode without the SDK. Plan prices, setup fees and add-on prices come from `packages/config`, so a price change is a config change and the next invoice picks it up. Stripe webhooks and card collection are the first step after a first paying customer, not before.
+
+**Alternatives.** Stripe Billing as the source of truth (rejected: the console must work with no Stripe account, and the demo must show the whole cycle offline).
+
+## 2026-10-01 · Suspension is computed, manual suspension is sticky
+
+**Decision.** A tenant is suspended when an open invoice is overdue by more than its `suspend_after_days` (default 14) and reactivated automatically when nothing overdue remains; both transitions are audited. A suspension set by hand from the console stores `manualSuspension` in the tenant settings and is never lifted by the billing job. Suspended tenants are redirected to `/suspended`; super-admins still get in for support.
+
+## 2026-10-01 · Impersonation is implicit access made explicit in the audit log
+
+**Decision.** A super-admin without a membership opens any tenant as `owner`; the context marks it as impersonation, the topbar shows the banner, and `auditActor(ctx)` stamps every server action with `actorType: impersonation` and `impersonatedBy`. The console's "Open as support" button also writes `impersonation.started`, so a support session has a visible beginning in the platform audit log. No separate impersonation token or cookie: there is nothing to leak or to forget to expire.

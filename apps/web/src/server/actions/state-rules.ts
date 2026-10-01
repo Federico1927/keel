@@ -1,4 +1,5 @@
 "use server";
+import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, desc, eq, recordAudit, schema } from "@keel/db";
@@ -60,10 +61,10 @@ export async function saveStateRule(slug: string, _prev: ActionResult | null, fo
         const [prev] = await tx.select().from(schema.stateRules).where(and(eq(schema.stateRules.id, d.id), eq(schema.stateRules.tenantId, ctx.tenant.id)));
         if (!prev) throw new ForbiddenError("not_found");
         await tx.update(schema.stateRules).set({ name: d.name, priority: d.priority, resultStatus: d.resultStatus, isActive: d.isActive, conditions: d.conditions }).where(eq(schema.stateRules.id, d.id));
-        await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "state_rule.updated", entityType: "state_rule", entityId: d.id, diff: { name: { from: prev.name, to: d.name }, priority: { from: prev.priority, to: d.priority }, resultStatus: { from: prev.resultStatus, to: d.resultStatus }, conditions: { from: prev.conditions, to: d.conditions } } });
+        await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "state_rule.updated", entityType: "state_rule", entityId: d.id, diff: { name: { from: prev.name, to: d.name }, priority: { from: prev.priority, to: d.priority }, resultStatus: { from: prev.resultStatus, to: d.resultStatus }, conditions: { from: prev.conditions, to: d.conditions } } });
       } else {
         const [row] = await tx.insert(schema.stateRules).values({ tenantId: ctx.tenant.id, name: d.name, priority: d.priority, resultStatus: d.resultStatus, isActive: d.isActive, conditions: d.conditions }).returning({ id: schema.stateRules.id });
-        await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "state_rule.created", entityType: "state_rule", entityId: row!.id, diff: { conditions: { from: null, to: d.conditions }, resultStatus: { from: null, to: d.resultStatus } } });
+        await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "state_rule.created", entityType: "state_rule", entityId: row!.id, diff: { conditions: { from: null, to: d.conditions }, resultStatus: { from: null, to: d.resultStatus } } });
       }
     });
     revalidatePath(`/t/${slug}/settings/order-states`);
@@ -79,7 +80,7 @@ export async function deleteStateRule(slug: string, id: string): Promise<ActionR
     const ctx = await requireAction(slug, "manage_settings", "settings");
     await ctx.run(async (tx) => {
       await tx.delete(schema.stateRules).where(and(eq(schema.stateRules.id, id), eq(schema.stateRules.tenantId, ctx.tenant.id)));
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "state_rule.deleted", entityType: "state_rule", entityId: id });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "state_rule.deleted", entityType: "state_rule", entityId: id });
     });
     revalidatePath(`/t/${slug}/settings/order-states`);
     return ok();

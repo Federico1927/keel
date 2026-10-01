@@ -1,5 +1,5 @@
 import { adminDb, and, eq, inArray, schema, withTenant } from "@keel/db";
-import { getAdsPlatformFor, getCommercePlatformFor, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
+import { applySuspensions, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
 import { adsWindow, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
 
 export interface Enqueue {
@@ -55,6 +55,11 @@ export async function handleSyncAds(job: SyncAdsJob): Promise<void> {
 
 /** Fan-out: one job per connected tenant/provider, deduplicated by singleton key. */
 export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> {
+  if (job.kind === "billing") {
+    await issueDueInvoices(adminDb());
+    await applySuspensions(adminDb());
+    return;
+  }
   const rows = await adminDb().select({ tenantId: schema.integrations.tenantId, provider: schema.integrations.provider }).from(schema.integrations).where(and(inArray(schema.integrations.provider, ["shopify", "meta", "google"]), inArray(schema.integrations.status, ["connected", "error", "syncing"])));
   const active = new Set((await adminDb().select({ id: schema.tenants.id }).from(schema.tenants).where(eq(schema.tenants.status, "active"))).map((t) => t.id));
   const window = adsWindow();

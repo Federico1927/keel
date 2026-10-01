@@ -1,4 +1,5 @@
 "use server";
+import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { adminDb, and, eq, recordAudit, schema } from "@keel/db";
@@ -40,7 +41,7 @@ export async function updateGeneralSettings(slug: string, _prev: ActionResult | 
     );
     // tenants is a platform table: written through the admin connection, audited in the tenant.
     await adminDb().update(schema.tenants).set(next).where(eq(schema.tenants.id, ctx.tenant.id));
-    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "tenant.settings.general_updated", entityType: "tenant", entityId: ctx.tenant.id, diff }));
+    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "tenant.settings.general_updated", entityType: "tenant", entityId: ctx.tenant.id, diff }));
     revalidatePath(`/t/${slug}`, "layout");
     return ok();
   } catch (e) {
@@ -82,7 +83,7 @@ export async function updateOperationalSettings(slug: string, _prev: ActionResul
     if (!parsed.success) return fail("invalid_input", Object.fromEntries(parsed.error.issues.map((i) => [i.path.join("."), i.message])));
     const diff = diffRecords(current as unknown as Record<string, unknown>, parsed.data as unknown as Record<string, unknown>);
     await adminDb().update(schema.tenants).set({ settings: parsed.data }).where(eq(schema.tenants.id, ctx.tenant.id));
-    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "tenant.settings.operational_updated", entityType: "tenant", entityId: ctx.tenant.id, diff }));
+    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "tenant.settings.operational_updated", entityType: "tenant", entityId: ctx.tenant.id, diff }));
     revalidatePath(`/t/${slug}/settings`);
     return ok();
   } catch (e) {
@@ -103,7 +104,7 @@ export async function upsertTaxRate(slug: string, _prev: ActionResult | null, fo
         .insert(schema.tenantTaxRates)
         .values({ tenantId: ctx.tenant.id, ...parsed.data })
         .onConflictDoUpdate({ target: [schema.tenantTaxRates.tenantId, schema.tenantTaxRates.country], set: { rateBps: parsed.data.rateBps, pricesIncludeTax: parsed.data.pricesIncludeTax } });
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "tenant.tax_rate.upserted", entityType: "tax_rate", entityId: parsed.data.country, diff: { rateBps: { from: null, to: parsed.data.rateBps } } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "tenant.tax_rate.upserted", entityType: "tax_rate", entityId: parsed.data.country, diff: { rateBps: { from: null, to: parsed.data.rateBps } } });
     });
     revalidatePath(`/t/${slug}/settings`);
     return ok();
@@ -118,7 +119,7 @@ export async function deleteTaxRate(slug: string, country: string): Promise<Acti
     const ctx = await requireAction(slug, "manage_settings", "settings");
     await ctx.run(async (tx) => {
       await tx.delete(schema.tenantTaxRates).where(and(eq(schema.tenantTaxRates.tenantId, ctx.tenant.id), eq(schema.tenantTaxRates.country, country)));
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "tenant.tax_rate.deleted", entityType: "tax_rate", entityId: country });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "tenant.tax_rate.deleted", entityType: "tax_rate", entityId: country });
     });
     revalidatePath(`/t/${slug}/settings`);
     return ok();

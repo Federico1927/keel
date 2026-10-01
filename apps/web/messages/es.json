@@ -31,7 +31,8 @@
       "platform_error": "La plataforma de comercio rechazó la solicitud.",
       "ads_read_only": "Esta plataforma publicitaria es de solo lectura en esta versión.",
       "ads_platform_error": "La plataforma publicitaria rechazó la solicitud.",
-      "invalid_rules": "Las reglas del segmento no son válidas."
+      "invalid_rules": "Las reglas del segmento no son válidas.",
+      "addon_not_available": "Este add-on aún no está disponible."
     },
     "edit": "Editar"
   },
@@ -1766,6 +1767,160 @@
           "fix": "El refresh token fue revocado; autoriza de nuevo y reconecta."
         }
       ]
+    }
+  },
+  "admin": {
+    "console": "Consola de superadministrador",
+    "sign_out": "Cerrar sesión",
+    "nav": {
+      "dashboard": "Panel",
+      "tenants": "Tenants",
+      "billing": "Facturación",
+      "audit": "Registro de auditoría"
+    },
+    "plans": {
+      "starter": "Starter",
+      "growth": "Growth",
+      "scale": "Scale"
+    },
+    "payment": {
+      "ok": "Al corriente",
+      "past_due": "Vencido",
+      "suspended": "Suspendido",
+      "none": "Sin facturas"
+    },
+    "dashboard": {
+      "title": "Plataforma",
+      "description": "MRR, tenants, add-ons, facturas y errores de integración abiertos en toda la plataforma.",
+      "mrr": "MRR",
+      "mrr_hint": "Suscripciones activas y vencidas",
+      "active_tenants": "Tenants activos",
+      "tenants_hint": "{trial} en prueba · {suspended} suspendidos",
+      "open_invoices": "Facturas abiertas",
+      "open_invoices_hint": "{n} abiertas · {overdue} vencidas",
+      "integration_errors": "Errores de integración",
+      "integration_errors_hint": "Fuentes en error o degradadas",
+      "addons": "Add-ons vendidos",
+      "subscriptions": "Suscripciones: {trialing} en prueba · {active} activas · {pastDue} vencidas",
+      "paid_30": "Cobrado en los últimos 30 días: {amount}",
+      "tenants": "Tenants",
+      "recent_audit": "Actividad reciente de la plataforma"
+    },
+    "tenants": {
+      "title": "Tenants",
+      "description": "Cada espacio con plan, add-ons, estado de integraciones, volumen, último acceso y estado de pago.",
+      "new": "Nuevo tenant",
+      "status": {
+        "active": "Activo",
+        "trial": "Prueba",
+        "suspended": "Suspendido",
+        "churned": "Baja"
+      },
+      "columns": {
+        "tenant": "Tenant",
+        "plan": "Plan",
+        "addons": "Add-ons",
+        "integrations": "Integraciones",
+        "orders30": "Pedidos / 30 d",
+        "last_login": "Último acceso",
+        "payment": "Pago"
+      }
+    },
+    "new_tenant": {
+      "title": "Nuevo tenant",
+      "description": "Crea el espacio, la cuenta del propietario, reglas de estado predeterminadas, espacios de integración y una suscripción de prueba con la factura de activación.",
+      "fields": {
+        "name": "Nombre de la empresa",
+        "slug": "Slug (URL)",
+        "country": "País (ISO)",
+        "currency": "Moneda (ISO)",
+        "timezone": "Zona horaria",
+        "locale": "Idioma predeterminado",
+        "prefix": "Prefijo de pedidos",
+        "tax": "Tipo impositivo (puntos básicos)",
+        "plan": "Plan",
+        "owner_email": "Email del propietario",
+        "owner_name": "Nombre del propietario"
+      },
+      "submit": "Crear tenant",
+      "created": "Tenant creado. Comparte la contraseña temporal con el propietario una sola vez; no se volverá a mostrar.",
+      "temp_password": "Contraseña temporal:",
+      "open_checklist": "Abrir la lista de configuración",
+      "errors": {
+        "slug_taken": "Este slug ya está en uso.",
+        "invalid_slug": "Slug no válido."
+      }
+    },
+    "tenant": {
+      "open_as_support": "Abrir como soporte",
+      "suspend": "Suspender acceso",
+      "reactivate": "Reactivar",
+      "checklist": "Lista de configuración",
+      "checklist_progress": "{done} de {total} completados",
+      "checklist_items": {
+        "company": "Datos de la empresa",
+        "owner": "Cuenta del propietario",
+        "users": "Al menos dos usuarios",
+        "shopify": "Shopify conectado",
+        "meta": "Meta Ads conectado",
+        "google": "Google Ads conectado",
+        "state_rules": "Reglas de estado",
+        "costs": "Costes configurados",
+        "billing": "Pagos al corriente"
+      },
+      "members": "Miembros",
+      "open_balance": "Saldo pendiente",
+      "days_overdue": "{n} días de retraso",
+      "suspend_after": "Suspender tras",
+      "days_n": "{n} días",
+      "plan_addons": "Plan y add-ons",
+      "plan_addons_description": "Los add-ons son feature flags comprobados en el servidor: un módulo desactivado es inaccesible incluso por URL.",
+      "on_request": "Bajo pedido",
+      "addon_note": "Nota (opcional)",
+      "activated_at": "Activo desde {date}",
+      "deactivated_at": "Desactivado el {date}",
+      "integrations": "Integraciones",
+      "billing": "Suscripción y facturas",
+      "subscription_line": "Estado {status} · proveedor {provider} · periodo actual hasta {end}",
+      "no_subscription": "Sin suscripción.",
+      "recent_audit": "Actividad reciente en este tenant"
+    },
+    "billing": {
+      "title": "Facturación",
+      "description": "Facturas de todos los tenants. La ejecución mensual emite facturas por los periodos concluidos y suspende los tenants que superan el periodo de gracia.",
+      "run": "Ejecutar facturación",
+      "run_done": "Emitidas {issued}, suspendidos {suspended}.",
+      "all": "Todas",
+      "mark_paid": "Marcar pagada",
+      "void": "Anular",
+      "status": {
+        "open": "Abierta",
+        "paid": "Pagada",
+        "void": "Anulada",
+        "uncollectible": "Incobrable"
+      },
+      "kind": {
+        "setup": "Cuota de activación",
+        "subscription": "Suscripción",
+        "adjustment": "Ajuste"
+      },
+      "columns": {
+        "number": "Número",
+        "kind": "Tipo",
+        "amount": "Importe",
+        "issued": "Emitida",
+        "due": "Vencimiento",
+        "status": "Estado"
+      }
+    },
+    "audit": {
+      "title": "Registro de auditoría de la plataforma",
+      "description": "Cada acción de superadministrador, suplantación y evento de facturación, en todos los tenants.",
+      "when": "Cuándo",
+      "tenant": "Tenant",
+      "actor": "Autor",
+      "action": "Acción",
+      "details": "Detalles"
     }
   }
 }

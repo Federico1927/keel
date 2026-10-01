@@ -1,4 +1,5 @@
 "use server";
+import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
@@ -34,7 +35,7 @@ export async function inviteMember(slug: string, _prev: ActionResult | null, for
       .insert(schema.tenantMemberships)
       .values({ tenantId: ctx.tenant.id, userId, role: parsed.data.role })
       .onConflictDoUpdate({ target: [schema.tenantMemberships.tenantId, schema.tenantMemberships.userId], set: { role: parsed.data.role, isActive: true } });
-    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "membership.invited", entityType: "user", entityId: userId, metadata: { email: parsed.data.email, role: parsed.data.role } }));
+    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "membership.invited", entityType: "user", entityId: userId, metadata: { email: parsed.data.email, role: parsed.data.role } }));
     console.info(`[users] invited ${parsed.data.email} to ${slug} as ${parsed.data.role}; sign-in via magic link at /login`);
     revalidatePath(`/t/${slug}/users`);
     return ok();
@@ -54,7 +55,7 @@ export async function changeMemberRole(slug: string, userId: string, role: strin
     if (!m) return fail("not_found");
     if (!canManageRole(ctx.role, m.role) || !canManageRole(ctx.role, role)) return fail("forbidden");
     await db.update(schema.tenantMemberships).set({ role }).where(eq(schema.tenantMemberships.id, m.id));
-    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "membership.role_changed", entityType: "user", entityId: userId, diff: { role: { from: m.role, to: role } } }));
+    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "membership.role_changed", entityType: "user", entityId: userId, diff: { role: { from: m.role, to: role } } }));
     revalidatePath(`/t/${slug}/users`);
     return ok();
   } catch (e) {
@@ -72,7 +73,7 @@ export async function setMemberActive(slug: string, userId: string, isActive: bo
     if (!m) return fail("not_found");
     if (!canManageRole(ctx.role, m.role)) return fail("forbidden");
     await db.update(schema.tenantMemberships).set({ isActive }).where(eq(schema.tenantMemberships.id, m.id));
-    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: isActive ? "membership.reactivated" : "membership.deactivated", entityType: "user", entityId: userId }));
+    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: isActive ? "membership.reactivated" : "membership.deactivated", entityType: "user", entityId: userId }));
     revalidatePath(`/t/${slug}/users`);
     return ok();
   } catch (e) {

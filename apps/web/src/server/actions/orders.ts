@@ -1,4 +1,5 @@
 "use server";
+import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { adminDb, and, eq, recordAudit, schema } from "@keel/db";
@@ -17,7 +18,7 @@ export async function changeOrderStatus(slug: string, orderId: string, status: s
     await ctx.run(async (tx) => {
       const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
       const r = await setManualStatus(s, orderId, status as OrderStatus, note);
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, actorType: ctx.impersonation ? "impersonation" : "user", impersonatedBy: ctx.impersonation?.adminUserId ?? null, action: "order.status_changed", entityType: "order", entityId: orderId, diff: { status: { from: r.previous, to: r.next } }, metadata: { note: note ?? null } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), actorType: ctx.impersonation ? "impersonation" : "user", impersonatedBy: ctx.impersonation?.adminUserId ?? null, action: "order.status_changed", entityType: "order", entityId: orderId, diff: { status: { from: r.previous, to: r.next } }, metadata: { note: note ?? null } });
     });
     revalidatePath(`/t/${slug}/orders/${orderId}`);
     return ok();
@@ -32,7 +33,7 @@ export async function resetOrderStatus(slug: string, orderId: string): Promise<A
     const ctx = await requireAction(slug, "change_order_state", "orders");
     await ctx.run(async (tx) => {
       const r = await clearManualStatus({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, orderId);
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "order.status_reset", entityType: "order", entityId: orderId, diff: { status: { from: r.previous, to: r.next } } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "order.status_reset", entityType: "order", entityId: orderId, diff: { status: { from: r.previous, to: r.next } } });
     });
     revalidatePath(`/t/${slug}/orders/${orderId}`);
     return ok();
@@ -62,7 +63,7 @@ export async function cancelOrder(slug: string, orderId: string, input: { reason
       await tx.update(schema.orders).set({ cancelledAt: new Date(), cancelReason: input.reason, paymentStatus, financialStatusRaw: paymentStatus }).where(eq(schema.orders.id, orderId));
       await tx.insert(schema.orderEvents).values({ tenantId: ctx.tenant.id, orderId, type: "cancelled", actorType: "user", actorUserId: ctx.user.id, diff: diffRecords<Record<string, unknown>>({ cancelledAt: null, paymentStatus: order.paymentStatus }, { cancelledAt: new Date(), paymentStatus }), metadata: { reason: input.reason, restock: input.restock, refund: input.refund } });
       await recomputeOrderStatus({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, orderId);
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "order.cancelled", entityType: "order", entityId: orderId, metadata: input });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "order.cancelled", entityType: "order", entityId: orderId, metadata: input });
     });
     revalidatePath(`/t/${slug}/orders/${orderId}`);
     return ok();

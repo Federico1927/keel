@@ -1,4 +1,5 @@
 "use server";
+import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { canWritePage } from "@keel/config";
@@ -31,7 +32,7 @@ export async function setCampaignStatus(slug: string, campaignId: string, status
     }
     await ctx.run(async (tx) => {
       await tx.update(schema.campaigns).set({ status: parsedStatus.data, syncedAt: new Date() }).where(eq(schema.campaigns.id, campaign.id));
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: parsedStatus.data === "paused" ? "campaign.paused" : "campaign.resumed", entityType: "campaign", entityId: campaign.id, diff: { status: { from: campaign.status, to: parsedStatus.data } } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: parsedStatus.data === "paused" ? "campaign.paused" : "campaign.resumed", entityType: "campaign", entityId: campaign.id, diff: { status: { from: campaign.status, to: parsedStatus.data } } });
     });
     revalidatePath(`/t/${slug}/campaigns`);
     revalidatePath(`/t/${slug}/campaigns/${campaign.id}`);
@@ -58,7 +59,7 @@ export async function linkProduct(slug: string, campaignId: string, productId: s
       const [product] = await tx.select({ id: schema.products.id }).from(schema.products).where(and(eq(schema.products.tenantId, ctx.tenant.id), eq(schema.products.id, productId))).limit(1);
       if (!campaign || !product) throw new NotFound();
       await linkCampaignProduct(s, campaignId, productId, isPrimary, source);
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "campaign.product_linked", entityType: "campaign", entityId: campaignId, diff: { productId: { from: null, to: productId }, isPrimary: { from: null, to: isPrimary }, source: { from: null, to: source } } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "campaign.product_linked", entityType: "campaign", entityId: campaignId, diff: { productId: { from: null, to: productId }, isPrimary: { from: null, to: isPrimary }, source: { from: null, to: source } } });
     });
     revalidatePath(`/t/${slug}/campaigns`);
     revalidatePath(`/t/${slug}/campaigns/${campaignId}`);
@@ -77,7 +78,7 @@ export async function unlinkProduct(slug: string, campaignId: string, productId:
     await ctx.run(async (tx) => {
       const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
       await unlinkCampaignProduct(s, campaignId, productId);
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "campaign.product_unlinked", entityType: "campaign", entityId: campaignId, diff: { productId: { from: productId, to: null } } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "campaign.product_unlinked", entityType: "campaign", entityId: campaignId, diff: { productId: { from: productId, to: null } } });
     });
     revalidatePath(`/t/${slug}/campaigns`);
     revalidatePath(`/t/${slug}/campaigns/${campaignId}`);
@@ -94,7 +95,7 @@ export async function autoLink(slug: string): Promise<ActionResult<{ linked: num
     const linked = await ctx.run(async (tx) => {
       const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
       const n = await autoLinkCampaigns(s);
-      if (n > 0) await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "campaign.auto_linked", entityType: "campaign", diff: { linked: { from: 0, to: n } } });
+      if (n > 0) await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "campaign.auto_linked", entityType: "campaign", diff: { linked: { from: 0, to: n } } });
       return n;
     });
     revalidatePath(`/t/${slug}/campaigns`);

@@ -31,7 +31,8 @@
       "platform_error": "The commerce platform rejected the request.",
       "ads_read_only": "This ads platform is read-only in this version.",
       "ads_platform_error": "The ads platform rejected the request.",
-      "invalid_rules": "The segment rules are not valid."
+      "invalid_rules": "The segment rules are not valid.",
+      "addon_not_available": "This add-on is not available yet."
     },
     "edit": "Edit"
   },
@@ -1766,6 +1767,160 @@
           "fix": "The refresh token was revoked; authorise again and reconnect."
         }
       ]
+    }
+  },
+  "admin": {
+    "console": "Super-admin console",
+    "sign_out": "Sign out",
+    "nav": {
+      "dashboard": "Dashboard",
+      "tenants": "Tenants",
+      "billing": "Billing",
+      "audit": "Audit log"
+    },
+    "plans": {
+      "starter": "Starter",
+      "growth": "Growth",
+      "scale": "Scale"
+    },
+    "payment": {
+      "ok": "In good standing",
+      "past_due": "Past due",
+      "suspended": "Suspended",
+      "none": "No invoices"
+    },
+    "dashboard": {
+      "title": "Platform",
+      "description": "MRR, tenants, add-ons, invoices and open integration errors across the platform.",
+      "mrr": "MRR",
+      "mrr_hint": "Active and past-due subscriptions",
+      "active_tenants": "Active tenants",
+      "tenants_hint": "{trial} trial · {suspended} suspended",
+      "open_invoices": "Open invoices",
+      "open_invoices_hint": "{n} open · {overdue} overdue",
+      "integration_errors": "Integration errors",
+      "integration_errors_hint": "Health rows in error or degraded",
+      "addons": "Add-ons sold",
+      "subscriptions": "Subscriptions: {trialing} trialing · {active} active · {pastDue} past due",
+      "paid_30": "Collected in the last 30 days: {amount}",
+      "tenants": "Tenants",
+      "recent_audit": "Recent platform activity"
+    },
+    "tenants": {
+      "title": "Tenants",
+      "description": "Every workspace with plan, add-ons, integration status, volume, last access and payment state.",
+      "new": "New tenant",
+      "status": {
+        "active": "Active",
+        "trial": "Trial",
+        "suspended": "Suspended",
+        "churned": "Churned"
+      },
+      "columns": {
+        "tenant": "Tenant",
+        "plan": "Plan",
+        "addons": "Add-ons",
+        "integrations": "Integrations",
+        "orders30": "Orders / 30d",
+        "last_login": "Last login",
+        "payment": "Payment"
+      }
+    },
+    "new_tenant": {
+      "title": "New tenant",
+      "description": "Creates the workspace, the owner account, default state rules, integration slots and a trial subscription with the setup-fee invoice.",
+      "fields": {
+        "name": "Company name",
+        "slug": "Slug (URL)",
+        "country": "Country (ISO)",
+        "currency": "Currency (ISO)",
+        "timezone": "Timezone",
+        "locale": "Default language",
+        "prefix": "Order number prefix",
+        "tax": "Tax rate (basis points)",
+        "plan": "Plan",
+        "owner_email": "Owner email",
+        "owner_name": "Owner name"
+      },
+      "submit": "Create tenant",
+      "created": "Tenant created. Share the temporary password with the owner once; it is not shown again.",
+      "temp_password": "Temporary password:",
+      "open_checklist": "Open setup checklist",
+      "errors": {
+        "slug_taken": "This slug is already used.",
+        "invalid_slug": "Invalid slug."
+      }
+    },
+    "tenant": {
+      "open_as_support": "Open as support",
+      "suspend": "Suspend access",
+      "reactivate": "Reactivate",
+      "checklist": "Setup checklist",
+      "checklist_progress": "{done} of {total} done",
+      "checklist_items": {
+        "company": "Company data",
+        "owner": "Owner account",
+        "users": "At least two users",
+        "shopify": "Shopify connected",
+        "meta": "Meta Ads connected",
+        "google": "Google Ads connected",
+        "state_rules": "Order state rules",
+        "costs": "Cost settings",
+        "billing": "Billing in good standing"
+      },
+      "members": "Members",
+      "open_balance": "Open balance",
+      "days_overdue": "{n} days overdue",
+      "suspend_after": "Suspend after",
+      "days_n": "{n} days",
+      "plan_addons": "Plan and add-ons",
+      "plan_addons_description": "Add-ons are feature flags checked on the server: a disabled module is unreachable even by URL.",
+      "on_request": "On request",
+      "addon_note": "Note (optional)",
+      "activated_at": "Active since {date}",
+      "deactivated_at": "Deactivated on {date}",
+      "integrations": "Integrations",
+      "billing": "Subscription and invoices",
+      "subscription_line": "Status {status} · provider {provider} · current period ends {end}",
+      "no_subscription": "No subscription yet.",
+      "recent_audit": "Recent activity on this tenant"
+    },
+    "billing": {
+      "title": "Billing",
+      "description": "Invoices across tenants. The monthly run issues subscription invoices for ended periods and suspends tenants past the grace period.",
+      "run": "Run billing now",
+      "run_done": "Issued {issued}, suspended {suspended}.",
+      "all": "All",
+      "mark_paid": "Mark paid",
+      "void": "Void",
+      "status": {
+        "open": "Open",
+        "paid": "Paid",
+        "void": "Void",
+        "uncollectible": "Uncollectible"
+      },
+      "kind": {
+        "setup": "Setup fee",
+        "subscription": "Subscription",
+        "adjustment": "Adjustment"
+      },
+      "columns": {
+        "number": "Number",
+        "kind": "Kind",
+        "amount": "Amount",
+        "issued": "Issued",
+        "due": "Due",
+        "status": "Status"
+      }
+    },
+    "audit": {
+      "title": "Platform audit log",
+      "description": "Every super-admin action, impersonation and billing event, across tenants.",
+      "when": "When",
+      "tenant": "Tenant",
+      "actor": "Actor",
+      "action": "Action",
+      "details": "Details"
     }
   }
 }

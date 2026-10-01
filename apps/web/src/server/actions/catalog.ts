@@ -1,4 +1,5 @@
 "use server";
+import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, eq, recordAudit, schema } from "@keel/db";
@@ -27,7 +28,7 @@ export async function updateVariantPrice(slug: string, _prev: ActionResult | nul
     }
     await ctx.run(async (tx) => {
       await tx.update(schema.productVariants).set({ priceMinor: parsed.data.priceMinor }).where(eq(schema.productVariants.id, variant.id));
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "variant.price_updated", entityType: "variant", entityId: variant.id, diff: { priceMinor: { from: variant.priceMinor, to: parsed.data.priceMinor } } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "variant.price_updated", entityType: "variant", entityId: variant.id, diff: { priceMinor: { from: variant.priceMinor, to: parsed.data.priceMinor } } });
     });
     revalidatePath(`/t/${slug}/products/${variant.productId}`);
     return ok();
@@ -54,7 +55,7 @@ export async function updateProductStatus(slug: string, productId: string, statu
     }
     await ctx.run(async (tx) => {
       await tx.update(schema.products).set({ status: parsed.data.status }).where(eq(schema.products.id, productId));
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "product.status_updated", entityType: "product", entityId: productId, diff: { status: { from: product.status, to: parsed.data.status } } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "product.status_updated", entityType: "product", entityId: productId, diff: { status: { from: product.status, to: parsed.data.status } } });
     });
     revalidatePath(`/t/${slug}/products/${productId}`);
     return ok();
@@ -69,7 +70,7 @@ export async function toggleRepurchasable(slug: string, productId: string, value
     const ctx = await requireAction(slug, "edit", "products");
     await ctx.run(async (tx) => {
       await tx.update(schema.products).set({ isRepurchasable: value }).where(and(eq(schema.products.tenantId, ctx.tenant.id), eq(schema.products.id, productId)));
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "product.repurchasable_updated", entityType: "product", entityId: productId, diff: { isRepurchasable: { from: !value, to: value } } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "product.repurchasable_updated", entityType: "product", entityId: productId, diff: { isRepurchasable: { from: !value, to: value } } });
     });
     revalidatePath(`/t/${slug}/products/${productId}`);
     return ok();

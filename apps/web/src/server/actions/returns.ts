@@ -1,4 +1,5 @@
 "use server";
+import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { canWritePage } from "@keel/config";
@@ -31,7 +32,7 @@ export async function createReturnAction(slug: string, input: unknown): Promise<
     if (!parsed.success) return fail("invalid_input");
     const created = await ctx.run(async (tx) => {
       const r = await createReturn({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, ctx.settings, parsed.data);
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "return.created", entityType: "return", entityId: r.id, diff: { number: { from: null, to: r.number }, orderId: { from: null, to: parsed.data.orderId } } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "return.created", entityType: "return", entityId: r.id, diff: { number: { from: null, to: r.number }, orderId: { from: null, to: parsed.data.orderId } } });
       return r;
     });
     revalidatePath(`/t/${slug}/returns`);
@@ -77,7 +78,7 @@ export async function transitionReturnAction(slug: string, returnId: string, inp
             }
           : undefined,
       });
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: `return.${parsed.data.to}`, entityType: "return", entityId: returnId, diff: { status: { from: r.previous, to: r.next } } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: `return.${parsed.data.to}`, entityType: "return", entityId: returnId, diff: { status: { from: r.previous, to: r.next } } });
       return r;
     });
     revalidatePath(`/t/${slug}/returns`);
@@ -100,7 +101,7 @@ export async function saveReturnReasonAction(slug: string, _prev: ActionResult |
     const reasonId = String(formData.get("reasonId") || "") || undefined;
     await ctx.run(async (tx) => {
       const id = await saveReturnReason({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, parsed.data, reasonId);
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: reasonId ? "return_reason.updated" : "return_reason.created", entityType: "return_reason", entityId: id, diff: { code: { from: null, to: parsed.data.code }, label: { from: null, to: parsed.data.label } } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: reasonId ? "return_reason.updated" : "return_reason.created", entityType: "return_reason", entityId: id, diff: { code: { from: null, to: parsed.data.code }, label: { from: null, to: parsed.data.label } } });
     });
     revalidatePath(`/t/${slug}/returns/reasons`);
     return ok();
@@ -116,7 +117,7 @@ export async function toggleReturnReasonAction(slug: string, reasonId: string, i
     const ctx = await requireReturnsWrite(slug);
     await ctx.run(async (tx) => {
       await setReturnReasonActive({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, reasonId, isActive);
-      await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "return_reason.toggled", entityType: "return_reason", entityId: reasonId, diff: { isActive: { from: !isActive, to: isActive } } });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "return_reason.toggled", entityType: "return_reason", entityId: reasonId, diff: { isActive: { from: !isActive, to: isActive } } });
     });
     revalidatePath(`/t/${slug}/returns/reasons`);
     return ok();

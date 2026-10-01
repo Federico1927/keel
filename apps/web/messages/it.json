@@ -31,7 +31,8 @@
       "platform_error": "La piattaforma e-commerce ha rifiutato la richiesta.",
       "ads_read_only": "Questa piattaforma pubblicitaria è in sola lettura in questa versione.",
       "ads_platform_error": "La piattaforma pubblicitaria ha rifiutato la richiesta.",
-      "invalid_rules": "Le regole del segmento non sono valide."
+      "invalid_rules": "Le regole del segmento non sono valide.",
+      "addon_not_available": "Questo add-on non è ancora disponibile."
     },
     "edit": "Modifica"
   },
@@ -1766,6 +1767,160 @@
           "fix": "Il refresh token è stato revocato; autorizza di nuovo e ricollega."
         }
       ]
+    }
+  },
+  "admin": {
+    "console": "Console super-admin",
+    "sign_out": "Esci",
+    "nav": {
+      "dashboard": "Dashboard",
+      "tenants": "Tenant",
+      "billing": "Fatturazione",
+      "audit": "Registro attività"
+    },
+    "plans": {
+      "starter": "Starter",
+      "growth": "Growth",
+      "scale": "Scale"
+    },
+    "payment": {
+      "ok": "In regola",
+      "past_due": "Scaduto",
+      "suspended": "Sospeso",
+      "none": "Nessuna fattura"
+    },
+    "dashboard": {
+      "title": "Piattaforma",
+      "description": "MRR, tenant, add-on, fatture ed errori di integrazione aperti su tutta la piattaforma.",
+      "mrr": "MRR",
+      "mrr_hint": "Abbonamenti attivi e scaduti",
+      "active_tenants": "Tenant attivi",
+      "tenants_hint": "{trial} in prova · {suspended} sospesi",
+      "open_invoices": "Fatture aperte",
+      "open_invoices_hint": "{n} aperte · {overdue} scadute",
+      "integration_errors": "Errori di integrazione",
+      "integration_errors_hint": "Fonti in errore o degradate",
+      "addons": "Add-on venduti",
+      "subscriptions": "Abbonamenti: {trialing} in prova · {active} attivi · {pastDue} scaduti",
+      "paid_30": "Incassato negli ultimi 30 giorni: {amount}",
+      "tenants": "Tenant",
+      "recent_audit": "Attività recente della piattaforma"
+    },
+    "tenants": {
+      "title": "Tenant",
+      "description": "Ogni workspace con piano, add-on, stato integrazioni, volume, ultimo accesso e stato pagamenti.",
+      "new": "Nuovo tenant",
+      "status": {
+        "active": "Attivo",
+        "trial": "In prova",
+        "suspended": "Sospeso",
+        "churned": "Cessato"
+      },
+      "columns": {
+        "tenant": "Tenant",
+        "plan": "Piano",
+        "addons": "Add-on",
+        "integrations": "Integrazioni",
+        "orders30": "Ordini / 30 gg",
+        "last_login": "Ultimo accesso",
+        "payment": "Pagamento"
+      }
+    },
+    "new_tenant": {
+      "title": "Nuovo tenant",
+      "description": "Crea il workspace, l'account owner, le regole di stato predefinite, gli slot integrazioni e un abbonamento di prova con la fattura di attivazione.",
+      "fields": {
+        "name": "Nome azienda",
+        "slug": "Slug (URL)",
+        "country": "Paese (ISO)",
+        "currency": "Valuta (ISO)",
+        "timezone": "Fuso orario",
+        "locale": "Lingua predefinita",
+        "prefix": "Prefisso numeri ordine",
+        "tax": "Aliquota (punti base)",
+        "plan": "Piano",
+        "owner_email": "Email owner",
+        "owner_name": "Nome owner"
+      },
+      "submit": "Crea tenant",
+      "created": "Tenant creato. Comunica la password temporanea all'owner una sola volta; non verrà più mostrata.",
+      "temp_password": "Password temporanea:",
+      "open_checklist": "Apri la checklist di setup",
+      "errors": {
+        "slug_taken": "Questo slug è già in uso.",
+        "invalid_slug": "Slug non valido."
+      }
+    },
+    "tenant": {
+      "open_as_support": "Apri come supporto",
+      "suspend": "Sospendi accesso",
+      "reactivate": "Riattiva",
+      "checklist": "Checklist di setup",
+      "checklist_progress": "{done} su {total} completati",
+      "checklist_items": {
+        "company": "Dati azienda",
+        "owner": "Account owner",
+        "users": "Almeno due utenti",
+        "shopify": "Shopify collegato",
+        "meta": "Meta Ads collegato",
+        "google": "Google Ads collegato",
+        "state_rules": "Regole di stato",
+        "costs": "Costi configurati",
+        "billing": "Pagamenti in regola"
+      },
+      "members": "Utenti",
+      "open_balance": "Saldo aperto",
+      "days_overdue": "{n} giorni di ritardo",
+      "suspend_after": "Sospensione dopo",
+      "days_n": "{n} giorni",
+      "plan_addons": "Piano e add-on",
+      "plan_addons_description": "Gli add-on sono feature flag verificati lato server: un modulo spento è irraggiungibile anche conoscendo l'URL.",
+      "on_request": "Su richiesta",
+      "addon_note": "Nota (facoltativa)",
+      "activated_at": "Attivo dal {date}",
+      "deactivated_at": "Disattivato il {date}",
+      "integrations": "Integrazioni",
+      "billing": "Abbonamento e fatture",
+      "subscription_line": "Stato {status} · provider {provider} · periodo corrente fino al {end}",
+      "no_subscription": "Nessun abbonamento.",
+      "recent_audit": "Attività recente su questo tenant"
+    },
+    "billing": {
+      "title": "Fatturazione",
+      "description": "Fatture di tutti i tenant. L'esecuzione mensile emette le fatture per i periodi conclusi e sospende i tenant oltre il periodo di tolleranza.",
+      "run": "Esegui fatturazione",
+      "run_done": "Emesse {issued}, sospesi {suspended}.",
+      "all": "Tutte",
+      "mark_paid": "Segna pagata",
+      "void": "Annulla",
+      "status": {
+        "open": "Aperta",
+        "paid": "Pagata",
+        "void": "Annullata",
+        "uncollectible": "Inesigibile"
+      },
+      "kind": {
+        "setup": "Fee di attivazione",
+        "subscription": "Abbonamento",
+        "adjustment": "Rettifica"
+      },
+      "columns": {
+        "number": "Numero",
+        "kind": "Tipo",
+        "amount": "Importo",
+        "issued": "Emessa",
+        "due": "Scadenza",
+        "status": "Stato"
+      }
+    },
+    "audit": {
+      "title": "Registro attività della piattaforma",
+      "description": "Ogni azione super-admin, impersonificazione ed evento di fatturazione, su tutti i tenant.",
+      "when": "Quando",
+      "tenant": "Tenant",
+      "actor": "Autore",
+      "action": "Azione",
+      "details": "Dettagli"
     }
   }
 }

@@ -13,3 +13,4 @@ export * from "./returns";
 export * from "./discounts";
 export * from "./sync";
 export * from "./integrations/factory";
+export * from "./billing";
