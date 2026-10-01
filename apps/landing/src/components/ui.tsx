@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { cx } from "@/lib/cx";
 
 const BUTTON =
@@ -47,9 +46,9 @@ export function ButtonLink({
     );
   }
   return (
-    <Link href={href} className={cls}>
+    <a href={href} className={cls}>
       {children}
-    </Link>
+    </a>
   );
 }
 

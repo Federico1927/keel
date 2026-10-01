@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { PRODUCT_NAME } from "@/config/site";
 import "./globals.css";
 
@@ -10,12 +9,9 @@ export default function NotFound() {
         <div className="text-center">
           <p className="text-sm uppercase tracking-widest text-muted-foreground">404</p>
           <h1 className="mt-2 text-3xl">Page not found</h1>
-          <Link
-            href="/"
-            className="mt-6 inline-block text-primary underline-offset-4 hover:underline"
-          >
+          <a href="/" className="mt-6 inline-block text-primary underline-offset-4 hover:underline">
             {PRODUCT_NAME}
-          </Link>
+          </a>
         </div>
       </body>
     </html>

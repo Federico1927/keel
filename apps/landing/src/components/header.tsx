@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Menu, X } from "lucide-react";
 import {
@@ -38,14 +37,14 @@ export function Header({ locale }: { locale: LandingLocale }) {
         {t("nav.skip")}
       </a>
       <div className="container-x flex h-16 items-center justify-between gap-6">
-        <Link
+        <a
           href={base}
           className="flex items-center gap-2 font-serif text-xl tracking-tight"
           aria-label={PRODUCT_NAME}
         >
           <Logo className="size-7" />
           {PRODUCT_NAME}
-        </Link>
+        </a>
         <nav className="hidden items-center gap-7 text-sm md:flex" aria-label="Main">
           {links.map((l) => (
             <a
@@ -135,7 +134,7 @@ export function LocaleSwitch({
       )}
     >
       {LANDING_LOCALES.map((l) => (
-        <Link
+        <a
           key={l}
           href={localePath(l)}
           hrefLang={l}
@@ -149,7 +148,7 @@ export function LocaleSwitch({
           )}
         >
           {LOCALE_NAMES[l]}
-        </Link>
+        </a>
       ))}
     </nav>
   );

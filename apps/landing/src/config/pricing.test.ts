@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { MODULES, OVERAGE as PRODUCT_OVERAGE, PLANS as PRODUCT_PLANS } from "@keel/config";
 import {
   ADDONS,
   ANNUAL_MONTHS_CHARGED,
   FOUNDING_OFFER,
+  OVERAGE,
   PLANS,
+  PRICING_CURRENCY,
   annualMonthlyEquivalent,
   annualTotal,
   foundingPrice,
@@ -30,5 +33,24 @@ describe("pricing config", () => {
   });
   it("add-on ids are unique", () => {
     expect(new Set(ADDONS.map((a) => a.id)).size).toBe(ADDONS.length);
+  });
+});
+
+describe("landing pricing matches the product plan config", () => {
+  it("monthly price, setup fee and included orders agree with @keel/config", () => {
+    for (const plan of PLANS) {
+      if (plan.id === "enterprise") continue;
+      const product = PRODUCT_PLANS[plan.id];
+      expect(product.monthlyPriceMinor).toBe((plan.monthlyPrice ?? 0) * 100);
+      expect(product.setupFeeMinor).toBe((plan.setupFee ?? 0) * 100);
+      expect(product.maxOrdersPerMonth).toBe(plan.includedOrdersPerMonth);
+      expect(product.currency).toBe(PRICING_CURRENCY);
+    }
+  });
+  it("overage and the cash-on-delivery add-on agree with @keel/config", () => {
+    expect(PRODUCT_OVERAGE.pricePerBlockMinor).toBe(OVERAGE.pricePerBlock * 100);
+    expect(PRODUCT_OVERAGE.blockOrders).toBe(OVERAGE.blockSize);
+    const cod = ADDONS.find((a) => a.id === "cod");
+    expect(cod?.kind === "monthly" && cod.price * 100).toBe(MODULES["addon.cod"].monthlyPriceMinor);
   });
 });

@@ -253,3 +253,9 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 **Decision.** `opengraph-image.tsx` per locale uses `next/og` (`ImageResponse`) with the product name, the tagline and the three differentiators; it is rendered during `next build`, so there is no runtime dependency. Vercel receives the `image/png` content type through `apps/landing/vercel.json`, because the export writes the file without an extension.
 
 **Alternatives.** A pre-rendered PNG with sharp (rejected: text layout by hand; the system fonts in CI differ from the design).
+
+## 2026-10-01 · Product plans aligned to the landing prices
+
+**Decision.** `packages/config/src/plans.ts` is the source of truth for billing and now carries the landing values: Starter 249 USD / 1,000 orders / setup 490, Growth 599 / 5,000 / 1,500, Scale 1,190 / 20,000 / 3,000 ("from" on the landing), all in a single `PLATFORM_CURRENCY` (USD) with `maxUsers: null` (unlimited on every plan) and an `OVERAGE` block (49 USD per 1,000 extra orders). The cash-on-delivery add-on is 199 USD. The seed, the super-admin console and the tests read these constants instead of literals, and a landing test fails when `apps/landing/src/config/pricing.ts` drifts from the product config. Enterprise stays a custom contract without a plan key.
+
+**Alternatives.** Keeping the landing as the only place with prices (rejected: the billing console and the invoices in the seed would quote different numbers). Importing the landing config into the product (rejected: the dependency would point the wrong way).
