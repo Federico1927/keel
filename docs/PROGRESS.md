@@ -189,9 +189,9 @@ Resta per l'Area 2: domanda per sede (le vendite non portano ancora la sede di e
 
 ## Deploy e produzione (2026-10-01)
 
-Fatto: `railway.json` e `railway.worker.json`, porta da `$PORT`, Node 22 fissato; controllo di avvio (`checkRuntimeConfig`): in modalità `live` web e worker non partono senza `KEEL_JOBS_QUEUE=1`, URL del database e segreti non di sviluppo; Sentry facoltativo (solo errori, nessun dato personale) su server, browser e worker; variabili vuote di `.env.example` non diventano più password vuote in bootstrap e seed; `docs/DEPLOY.md` aggiornato.
+Fatto: servizio Railway configurato dalle impostazioni (documentate in `docs/DEPLOY.md`; `railway.json` è deprecato e non viene letto dai servizi nuovi), `pnpm db:deploy` come pre-deploy, build senza variabili del database, porta da `$PORT`, Node 22 fissato; controllo di avvio (`checkRuntimeConfig`): in modalità `live` web e worker non partono senza `KEEL_JOBS_QUEUE=1`, URL del database e segreti non di sviluppo; Sentry facoltativo (solo errori, nessun dato personale) su server, browser e worker; variabili vuote di `.env.example` non diventano più password vuote in bootstrap e seed; `docs/DEPLOY.md` aggiornato.
 
-Manca: upload delle source map a Sentry; primo deploy reale su Railway non ancora verificato (nessun accesso da questa sessione).
+Manca: upload delle source map a Sentry; worker su Railway (non serve in modalità mock); migrazione a `.railway/railway.ts` quando ci sarà la CLI o la GitHub Action.
 
 ## Blocchi
 

@@ -6,17 +6,19 @@ Pick Railway when you want one project with everything inside. Pick Vercel for t
 
 ## Option A: Railway (recommended for the demo)
 
-The repository carries the Railway configuration: `railway.json` (web) and `railway.worker.json` (worker). Build, start, pre-deploy and healthcheck come from those files; only the variables are set in the dashboard.
+Railway no longer reads `railway.json` for new services (Config as Code is deprecated and stops being read on 2026-12-01; its replacement, `.railway/railway.ts`, is applied with the Railway CLI). The settings below go in each service's **Settings** in the dashboard.
 
-1. **Create a project** in the **EU West** region and add a **PostgreSQL** service.
-2. **Add a service from this GitHub repo** (root directory: repository root). It picks up `railway.json`:
-   - build `pnpm install --frozen-lockfile --prod=false && pnpm build`, start `pnpm --filter @keel/web start` (listens on `$PORT`);
-   - pre-deploy `pnpm db:deploy`: creates or updates the `keel_admin` / `keel_app` roles and the `keel` database, runs the migrations, and loads the demo data only when `KEEL_SEED_ON_DEPLOY=1`;
-   - healthcheck `GET /api/health`.
-3. **Variables** (table below). Reference the Postgres service for the superuser URL, e.g. `DATABASE_SUPERUSER_URL=${{Postgres.DATABASE_URL}}`, and build the two Keel URLs on its private host (`postgres.railway.internal`). Set `KEEL_SEED_ON_DEPLOY=1` for the first deploy, then delete it: every deploy with it rewrites the two demo tenants.
-4. **Domain**: Settings → Networking → generate a domain (or add yours), set `AUTH_URL` and `NEXT_PUBLIC_APP_URL` to it with `https://`, redeploy.
-5. Open `/login` and sign in with the demo credentials from `README.md` (password `KEEL_DEMO_PASSWORD`).
-6. **Worker** (required with `KEEL_INTEGRATION_MODE=live`, optional for a mock demo): add a second service from the same repo, Settings → Config-as-code → `railway.worker.json`, same variables, and `KEEL_JOBS_QUEUE=1` on **both** services. In live mode web and worker refuse to start without it.
+1. **Create a project** (EU West for real tenants) and add a **PostgreSQL** service.
+2. **Add a service from this GitHub repo**, branch `main`, root directory empty (the monorepo needs the whole tree). Settings:
+   - Build command: `pnpm install --frozen-lockfile --prod=false && pnpm build` (the reinstall keeps dev dependencies whatever `NODE_ENV` the builder sets).
+   - Start command: `pnpm --filter @keel/web start` (listens on `$PORT`).
+   - Pre-deploy command: `pnpm db:deploy`, timeout 900 s. It creates or updates the `keel_admin` / `keel_app` roles and the `keel` database, runs the migrations, and loads the demo data only when `KEEL_SEED_ON_DEPLOY=1`.
+   - Healthcheck path `/api/health`, timeout 120 s; restart on failure.
+   - Watch paths: `/**` (a narrower pattern such as `/apps/web/**` skips changes in `packages/`).
+3. **Variables** (table below). Reference the Postgres service: `DATABASE_SUPERUSER_URL=${{Postgres.DATABASE_URL}}`, and build the two Keel URLs on its private host, e.g. `postgres://keel_app:${{KEEL_APP_PASSWORD}}@${{Postgres.RAILWAY_PRIVATE_DOMAIN}}:5432/keel`. Set `KEEL_SEED_ON_DEPLOY=1` for the first deploy, then delete it: every deploy with it rewrites the two demo tenants.
+4. **Domain**: Settings → Networking → generate a domain (or add yours), set `AUTH_URL` and `NEXT_PUBLIC_APP_URL` to it with `https://`.
+5. Open `/login` and sign in with the demo users from `README.md` (password `KEEL_DEMO_PASSWORD`).
+6. **Worker** (required with `KEEL_INTEGRATION_MODE=live`, optional for a mock demo): a second service from the same repo, build `pnpm install --frozen-lockfile --prod=false`, start `pnpm --filter @keel/jobs start`, restart always, same variables, and `KEEL_JOBS_QUEUE=1` on **both** services. In live mode web and worker refuse to start without it.
 
 ### Variables
 
