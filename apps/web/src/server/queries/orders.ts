@@ -17,6 +17,8 @@ export interface OrderFilters {
   assigned?: string;
   campaign?: string;
   customer?: string;
+  /** Orders with at least one product line without a cost (the P/L warning links here). */
+  missingCost?: boolean;
   sort?: "placed_desc" | "placed_asc" | "total_desc";
   page?: number;
 }
@@ -37,6 +39,7 @@ export function parseOrderFilters(sp: Record<string, string | string[] | undefin
     assigned: one(sp.assigned) || undefined,
     campaign: /^[0-9a-f-]{36}$/i.test(one(sp.campaign) ?? "") ? one(sp.campaign) : undefined,
     customer: /^[0-9a-f-]{36}$/i.test(one(sp.customer) ?? "") ? one(sp.customer) : undefined,
+    missingCost: one(sp.missingCost) === "1" || undefined,
     sort: sort === "placed_asc" || sort === "total_desc" ? sort : "placed_desc",
     page: Math.max(1, Number(one(sp.page) ?? 1) || 1),
   };
@@ -61,6 +64,7 @@ function buildWhere(ctx: TenantContext, f: OrderFilters): SQL {
   else if (f.assigned) conds.push(eq(schema.orders.assignedTo, f.assigned));
   if (f.customer) conds.push(eq(schema.orders.customerId, f.customer));
   if (f.campaign) conds.push(sql`exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.campaign_id = ${f.campaign})`);
+  if (f.missingCost) conds.push(sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.unit_cost_minor is null and not l.is_ancillary)`);
   return and(...conds)!;
 }
 

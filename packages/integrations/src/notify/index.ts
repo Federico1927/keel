@@ -12,6 +12,12 @@ export interface OutboundMessage {
   text: string;
   /** Deep link back into Keel. */
   url?: string;
+  /** Rendered HTML body (email only); `text` stays the plain-text part. */
+  html?: string;
+  /** Extra headers (email only), e.g. List-Unsubscribe. */
+  headers?: Record<string, string>;
+  /** Provider tags, echoed back on bounce webhooks (e.g. the tenant id). */
+  tags?: Record<string, string>;
 }
 
 export interface NotificationSink {
@@ -53,7 +59,25 @@ export class HttpEmailSink implements NotificationSink {
   }
   async send(to: string[], message: OutboundMessage) {
     if (!to.length) return { id: null };
-    const res = await this.http.request<{ id?: string }>(this.cfg.endpoint ?? "https://api.resend.com/emails", { method: "POST", headers: { authorization: `Bearer ${this.cfg.apiKey}`, "content-type": "application/json" }, body: JSON.stringify({ from: this.cfg.from, to, subject: message.subject, text: `${message.text}${message.url ? `\n\n${message.url}` : ""}` }) });
+    const res = await this.http.request<{ id?: string }>(this.cfg.endpoint ?? "https://api.resend.com/emails", { method: "POST", headers: { authorization: `Bearer ${this.cfg.apiKey}`, "content-type": "application/json" }, body: JSON.stringify({ from: this.cfg.from, to, subject: message.subject, text: `${message.text}${message.url ? `\n\n${message.url}` : ""}`, ...(message.html ? { html: message.html } : {}), ...(message.headers ? { headers: message.headers } : {}), ...(message.tags ? { tags: Object.entries(message.tags).map(([name, value]) => ({ name, value })) } : {}) }) });
     return { id: res.json?.id ?? null };
   }
+}
+
+/**
+ * Delivery events posted back by the email provider (Resend-style `{ type, data: { to, tags } }`;
+ * to verify on the chosen provider). Only what feeds the suppression list is kept: hard bounces and
+ * complaints, with the tenant tag the message was sent with.
+ */
+export function parseEmailDeliveryEvent(payload: unknown): { kind: "bounce" | "complaint"; emails: string[]; tenantId: string | null } | null {
+  if (!payload || typeof payload !== "object") return null;
+  const p = payload as { type?: unknown; data?: { to?: unknown; email?: unknown; tags?: unknown } };
+  const kind = p.type === "email.bounced" ? "bounce" : p.type === "email.complained" ? "complaint" : null;
+  if (!kind || !p.data) return null;
+  const raw = Array.isArray(p.data.to) ? p.data.to : [p.data.to ?? p.data.email];
+  const emails = raw.filter((e): e is string => typeof e === "string" && e.includes("@")).map((e) => e.trim().toLowerCase());
+  if (!emails.length) return null;
+  const tags = p.data.tags;
+  const tag = Array.isArray(tags) ? (tags as { name?: string; value?: string }[]).find((t) => t.name === "tenant_id")?.value : tags && typeof tags === "object" ? (tags as Record<string, unknown>).tenant_id : undefined;
+  return { kind, emails, tenantId: typeof tag === "string" && /^[0-9a-f-]{36}$/i.test(tag) ? tag : null };
 }

@@ -94,6 +94,8 @@ export interface PnlTotals {
   refundedMinor: number;
   cogsMinor: number;
   cogsIncompleteOrders: number;
+  /** Net revenue of the sale orders that contain a line without a cost. */
+  cogsIncompleteRevenueMinor: number;
   grossMarginMinor: number;
   shippingCostMinor: number;
   paymentFeeMinor: number;
@@ -109,7 +111,7 @@ export interface PnlTotals {
 }
 
 export function sumEconomics(rows: readonly OrderEconomics[], adSpendMinor: number, fixedCostsMinor: number, returnCostsMinor = 0): PnlTotals {
-  const t: PnlTotals = { orders: 0, grossRevenueMinor: 0, taxMinor: 0, netRevenueMinor: 0, refundedMinor: 0, cogsMinor: 0, cogsIncompleteOrders: 0, grossMarginMinor: 0, shippingCostMinor: 0, paymentFeeMinor: 0, returnCostsMinor, contributionMinor: 0, adSpendMinor, fixedCostsMinor, operatingProfitMinor: 0, aovMinor: null, grossMarginRate: null, contributionRate: null };
+  const t: PnlTotals = { orders: 0, grossRevenueMinor: 0, taxMinor: 0, netRevenueMinor: 0, refundedMinor: 0, cogsMinor: 0, cogsIncompleteOrders: 0, cogsIncompleteRevenueMinor: 0, grossMarginMinor: 0, shippingCostMinor: 0, paymentFeeMinor: 0, returnCostsMinor, contributionMinor: 0, adSpendMinor, fixedCostsMinor, operatingProfitMinor: 0, aovMinor: null, grossMarginRate: null, contributionRate: null };
   for (const r of rows) {
     if (!r.inScope) continue;
     t.orders++;
@@ -118,7 +120,10 @@ export function sumEconomics(rows: readonly OrderEconomics[], adSpendMinor: numb
     t.netRevenueMinor += r.netRevenueMinor;
     t.refundedMinor += r.refundedMinor;
     t.cogsMinor += r.cogsMinor;
-    if (!r.cogsComplete) t.cogsIncompleteOrders++;
+    if (!r.cogsComplete) {
+      t.cogsIncompleteOrders++;
+      t.cogsIncompleteRevenueMinor += r.netRevenueMinor;
+    }
     t.shippingCostMinor += r.shippingCostMinor;
     t.paymentFeeMinor += r.paymentFeeMinor;
   }

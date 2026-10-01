@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { formatNumber } from "@keel/core";
+import { canWritePage } from "@keel/config";
+import { catalogQualityReport } from "@keel/services";
 import { requirePage } from "@/server/tenant";
 import { listProducts, parseProductFilters } from "@/server/queries/catalog";
 import { RiskBadge } from "@/components/risk-badge";
@@ -14,6 +16,7 @@ export default async function ProductsPage({ params, searchParams }: { params: P
   const t = await getTranslations("products");
   const filters = parseProductFilters(sp);
   const { rows, total, page, pageSize, riskCounts, types } = await listProducts(ctx, filters);
+  const quality = await ctx.run((tx) => catalogQualityReport({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }));
   const base = `/t/${tenant}/products`;
   const hrefFor = (p: number) => {
     const u = new URLSearchParams();
@@ -23,7 +26,19 @@ export default async function ProductsPage({ params, searchParams }: { params: P
   };
   return (
     <>
-      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} />
+      <PageHeader
+        eyebrow={ctx.tenant.name}
+        title={t("title")}
+        description={t("description")}
+        actions={
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <Link href={`${base}/quality`} className="underline-offset-4 hover:underline" data-testid="quality-link">
+              {t("quality_link")} {quality.affected > 0 && <Badge variant="warning">{formatNumber(quality.affected, ctx.locale)}</Badge>}
+            </Link>
+            {canWritePage(ctx.role, "products") && <Link href={`${base}/import-costs`} className="underline-offset-4 hover:underline">{t("import_costs_link")}</Link>}
+          </div>
+        }
+      />
       <ProductFiltersBar basePath={base} filters={filters} types={types} riskCounts={riskCounts} />
       {rows.length === 0 ? (
         <EmptyState title={t("empty_title")} description={t("empty_description")} className="mt-4" />
