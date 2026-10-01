@@ -35,10 +35,12 @@ export function SidebarNav({ tenantSlug, tenantName, allowedPages, onNavigate }:
               <ul className="space-y-0.5">
                 {items.map((item) => {
                   const href = `${base}${item.href}`;
-                  const active = item.href === "" ? pathname === base : pathname.startsWith(href);
+                  // longest matching entry wins, so /inventory/planning does not also light up /inventory
+                  const matches = (h: string) => (h === "" ? pathname === base : pathname === `${base}${h}` || pathname.startsWith(`${base}${h}/`));
+                  const active = matches(item.href) && !NAV_SECTIONS.some((sec) => sec.items.some((o) => allowed.has(o.page) && o.href.length > item.href.length && o.href.startsWith(item.href) && matches(o.href)));
                   const Icon = item.icon;
                   return (
-                    <li key={item.page}>
+                    <li key={item.href}>
                       <Link
                         href={href}
                         onClick={onNavigate}

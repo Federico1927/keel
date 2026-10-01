@@ -52,6 +52,12 @@ Hai accesso in sola lettura a due piattaforme che Federico ha costruito per sing
 6. **Profondità prima dell'ampiezza dentro ogni modulo**: un modulo con lista, dettaglio, azioni principali e test vale più di tre moduli con sole liste.
 7. **Codice, commenti, documentazione tecnica e nomi in inglese.** Testi dell'interfaccia solo tramite file di traduzione (sezione 5).
 8. Non chiudere la sessione finché tutte le fasi non sono completate o documentate come bloccate.
+9. **Ogni funzionalità completata va unita a `main` subito** (richiesta esplicita del committente, 2026-10-01). `main` viene pubblicato automaticamente su Railway, quindi:
+   - prima del merge devono passare `pnpm lint && pnpm typecheck && pnpm test && pnpm build` e la suite e2e sulla build di produzione;
+   - commit e push sul branch di lavoro, poi PR verso `main` con riepilogo e merge (metodo `merge`, mai force-push su `main`);
+   - le migrazioni devono essere additive e compatibili con il codice già in produzione (colonne nuove nullable o con default, niente rinomina o cancellazione nello stesso merge);
+   - dopo il merge, riparti dal nuovo `main` sullo stesso branch per la funzionalità successiva;
+   - una funzionalità a metà non si unisce: si unisce quando è completa e verificata.
 
 ---
 

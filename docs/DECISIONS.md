@@ -266,6 +266,36 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 
 **Decision.** A small recursive-descent parser accepts numbers, the 18 base metric names, + − × ÷ and parentheses; anything else is a validation error. Division by zero and missing values give null instead of NaN. Custom metrics are shared by the tenant; dashboards are per user. Marketing gains write access to Analytics to manage metrics and alerts.
 
+## 2026-10-01 · Inventory forecast: seasonality per product type, level and trend per variant
+
+**Decision.** Most variants sell a few units a month: a seasonal model per SKU would be noise. Seasonal indices are learnt on the product type over 24 months (pooled), the level is the de-seasonalised mean of the last 3 months and the trend the slope of the last 6, capped at ±8% a month. Events add their uplift in their month by scope (all, product type, product); a manual override replaces the model for that variant and month. Accuracy is the WAPE of a forecast made 3 months ago. Reorder demand is the higher of the 90-day pace and the next two months of forecast, so a coming peak raises the order before it happens.
+
+**Alternatives.** Holt-Winters or Prophet per SKU (rejected: unstable on sparse series and not explainable to a merchant); no trend (rejected: growing products would be under-ordered).
+
+## 2026-10-01 · Supplier confirmation by a public link, email in mock
+
+**Decision.** Sending a PO issues a random 192-bit token stored on the PO (unique index) and marks a draft as sent. The public page `/supplier/po/[token]` resolves the tenant with the admin connection (the only cross-tenant read, by token), then works inside `withTenant`. The supplier sees agreed prices only, never landed cost or margin. Confirming moves sent → confirmed (so incoming stock covers backorders) and may change the delivery date; a problem needs a note. Both notify the PO creator and are audited as system actions. Without an email provider the link is shown to the user to forward; the provider adapter is part of the external block.
+
+## 2026-10-01 · PDF written by a 200-line pure function
+
+**Decision.** A purchase order PDF needs text, a table and pages. `renderPdf`/`tablePdf` in core write PDF 1.4 with the standard Helvetica fonts (WinAnsi, so € and accented letters work) and right-aligned numbers. No dependency, testable byte by byte. Non-Latin scripts are replaced with "?": when a tenant needs them, swap in a library with embedded fonts behind the same function.
+
+## 2026-10-01 · Landed cost becomes the product cost at receipt
+
+**Decision.** Charges on a PO are allocated to its lines by value, quantity or weight; the landed unit cost is stored per line and recomputed on every change. Receiving writes the landed cost (when present) to the variant's last cost and moving average, so the P/L margin includes duties and freight without a separate step.
+
+## 2026-10-01 · Write permission is checked on the page, not through the "edit" action
+
+**Decision.** `requireAction(slug, "edit", page)` checked the generic "edit" action, which belongs to the orders page: a customer-care user could change product prices. A `requireWrite(slug, page)` guard now checks the role's level on the page itself; catalog and planning actions use it.
+
+## 2026-10-01 · XYZ on four-week buckets
+
+**Decision.** Weekly sales per variant are mostly zeros, so the coefficient of variation put almost every variant in Z. Variability is measured on 13 four-week buckets over the last year.
+
+## 2026-10-01 · Purchase order numbers continue from the highest of the month
+
+**Decision.** The next number was "count of the month + 1", which collides as soon as numbers are not contiguous (imports, the seed, deleted drafts). It is now the highest numeric suffix of the month + 1, still guarded by the unique index.
+
 ## 2026-10-01 · Live mode refuses to start without the worker; Sentry errors-only, no personal data
 
 **Decision.** `checkRuntimeConfig` (packages/config) runs when the web server (Next.js `instrumentation.ts`) and the worker start. With `KEEL_INTEGRATION_MODE=live` the process exits if `KEEL_JOBS_QUEUE` is not `1`, if a database URL is missing, or if `AUTH_SECRET` / `APP_ENCRYPTION_KEY` are missing or still the `.env.example` values; a missing `SENTRY_DSN` is a warning. In `mock` mode the same problems are warnings only, because demos and the e2e suite run the production build with the development defaults. Sentry (`@sentry/nextjs`, `@sentry/node`) is enabled only when a DSN is set, errors only (`tracesSampleRate: 0`), with one shared `SENTRY_DATA_COLLECTION` that turns off every category Sentry 11 collects by default (bodies, cookies, headers, query params, DB parameters, queue payloads, stack-frame variables): tenants' orders carry their customers' personal data. Source-map upload (`withSentryConfig`) is not wired yet: stack traces point at compiled code until it is.

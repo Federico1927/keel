@@ -29,17 +29,17 @@ The table is updated at the end of every area: rows that moved from ABSENT/PARTI
 
 | # | Feature | Status | What is missing | Effort | External |
 | --- | --- | --- | --- | --- | --- |
-| 2.1 | Demand forecast per SKU, 12 months, seasonality, trend, promotions/events, manual override | PARTIAL | Only a velocity over a lookback window. No monthly model, no seasonality indices, no event uplift, no overrides, no forecast table. | L | — |
-| 2.2 | Demand plan from a revenue target | ABSENT | Allocation of a target revenue to SKUs by share and price, stock required per SKU. | M | — |
-| 2.3 | Reorder with lead time, safety stock, service level, MOQ, multiples, costs | PARTIAL | `reorderSuggestion` to target days; `suppliers.lead_time_days` stored but unused; no safety stock, service level, MOQ, multiples, supplier assignment per variant. | M | — |
-| 2.4 | Automatic PO drafts grouped by supplier, PDF to supplier, confirmation tracking | PARTIAL | A PO can be pre-filled from one product's suggestion. No grouping run, no PDF, no send/ack tracking. | M | Email provider for sending (adapter + mock) |
-| 2.5 | Partial receipts, ordered vs received differences, landed cost allocated to product cost | PARTIAL | Partial receipts and backorders exist. No landed cost (duties, freight, fees) and no allocation. | M | — |
-| 2.6 | Multi-location forecast and reorder, transfer suggestions | PARTIAL | Levels per location; reorder aggregated across locations; no transfers. | M | — |
-| 2.7 | Bundles and kits with derived stock | ABSENT | Bundle components table, derived availability, sales explosion into components for velocity. | M | — |
-| 2.8 | Raw materials and bills of materials | ABSENT | Materials, BOM per variant, consumption on production or sale, reorder of materials. | L | — |
-| 2.9 | Cash flow impact of purchase plans | ABSENT | Payment terms per supplier, cash out schedule per PO and per plan. | M | — |
-| 2.10 | Stock analysis: excess, slow movers, tied-up value, cover, turnover, ABC/XYZ | PARTIAL | Cover days and risk exist. No excess/slow mover view, no value tied up, no turnover, no ABC/XYZ. | M | — |
-| 2.11 | Stock-out alerts with predicted date | PARTIAL | Risk tiers exist; date not shown; no alert delivery (ties to 1.11). | S | — |
+| 2.1 | Demand forecast per SKU, 12 months, seasonality, trend, promotions/events, manual override | PRESENT | Seasonality pooled on the product type (24 months), level and capped trend per variant, demand events by scope, manual overrides per month, WAPE backtest on 3 months. Not a statistical package: no confidence interval. | L | — |
+| 2.2 | Demand plan from a revenue target | PRESENT | Target split by forecast revenue share, units per SKU against stock + incoming, gap at cost. | M | — |
+| 2.3 | Reorder with lead time, safety stock, service level, MOQ, multiples, costs | PRESENT | Safety stock from demand and lead-time variability at the tenant's service level, reorder point, MOQ and multiples per supplier or per supplier-variant link. | M | — |
+| 2.4 | Automatic PO drafts grouped by supplier, PDF to supplier, confirmation tracking | PRESENT | One draft per supplier from the selected suggestions, PDF of the PO, public confirmation page by token (confirm with date or report a problem), notification and audit. Email delivery is mock: the link is shown to forward. | M | Email provider for sending (adapter + mock) |
+| 2.5 | Partial receipts, ordered vs received differences, landed cost allocated to product cost | PRESENT | Charges (duty, freight, fee) allocated by value, quantity or weight; receiving writes the landed unit cost to the variant cost and moving average, so the P/L sees it. | M | — |
+| 2.6 | Multi-location forecast and reorder, transfer suggestions | PARTIAL | Transfer suggestions between locations with one-click transfer written to the platform. Reorder stays aggregated across locations and location demand is split by fixed weights, because sales are not tagged by fulfilment location yet. | M | — |
+| 2.7 | Bundles and kits with derived stock | PARTIAL | Bundle components and derived availability. Missing: exploding bundle sales into component velocity, and pushing the derived stock to the platform. | M | — |
+| 2.8 | Raw materials and bills of materials | PARTIAL | BOM per variant and material requirements from the forecast. Missing: consumption on production or sale and production orders. | L | — |
+| 2.9 | Cash flow impact of purchase plans | PRESENT | Deposit and balance terms per supplier; committed (open POs net of payments) and planned (drafts + suggestions) outflow by month. | M | — |
+| 2.10 | Stock analysis: excess, slow movers, tied-up value, cover, turnover, ABC/XYZ | PRESENT | ABC on 12-month revenue, XYZ on 4-week buckets, matrix with value, excess beyond configurable cover, slow movers, turnover. | M | — |
+| 2.11 | Stock-out alerts with predicted date | PRESENT | Predicted stock-out date on the reorder table, flagged when before the supplier lead time; alert rule on stock-outs from Area 1. | S | — |
 
 ## Area 3 — Returns and exchanges
 

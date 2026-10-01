@@ -40,7 +40,8 @@
       "cod_not_found": "No encontrado.",
       "cod_invalid_input": "Datos no válidos.",
       "cod_platform_error": "La plataforma rechazó la escritura de la etiqueta o la cancelación; no se registró nada.",
-      "invalid_formula": "La fórmula no es válida."
+      "invalid_formula": "La fórmula no es válida.",
+      "closed": "Este pedido ya no se puede modificar."
     },
     "edit": "Editar"
   },
@@ -159,7 +160,8 @@
     "users": "Usuarios",
     "settings": "Ajustes",
     "audit": "Registro de auditoría",
-    "cod_settings": "Ajustes contra reembolso"
+    "cod_settings": "Ajustes contra reembolso",
+    "planning": "Planificación"
   },
   "shell": {
     "open_menu": "Abrir menú",
@@ -688,7 +690,8 @@
       "velocity": "Unidades/día",
       "cover": "Cobertura",
       "reorder": "Reposición"
-    }
+    },
+    "planning_link": "Planificación"
   },
   "purchasing": {
     "title": "Compras",
@@ -746,7 +749,42 @@
       "received": "Recibidos",
       "unit_cost": "Coste unitario",
       "total": "Total",
-      "receive_now": "Recibir ahora"
+      "receive_now": "Recibir ahora",
+      "landed": "Coste unitario landed"
+    },
+    "auto_draft": "Borrador automático",
+    "landed": {
+      "title": "Coste landed",
+      "hint": "Aranceles, transporte y comisiones se reparten entre las líneas; al recibir la mercancía, el coste landed pasa a ser el coste del producto.",
+      "empty": "Sin costes adicionales.",
+      "total": "Total costes",
+      "kind": "Tipo",
+      "basis": "Repartir por",
+      "amount": "Importe",
+      "note": "Nota",
+      "add": "Añadir coste",
+      "kinds": {
+        "duty": "Arancel",
+        "freight": "Transporte",
+        "fee": "Comisión",
+        "other": "Otro"
+      },
+      "bases": {
+        "value": "Valor",
+        "quantity": "Cantidad",
+        "weight": "Peso"
+      }
+    },
+    "supplier": {
+      "title": "Proveedor",
+      "download_pdf": "Descargar PDF",
+      "sent": "Enviado {at} a {to}",
+      "acknowledged": "Respuesta del proveedor {at}",
+      "waiting": "Esperando la confirmación del proveedor.",
+      "email": "Email del proveedor",
+      "send": "Enviar al proveedor",
+      "resend": "Enviar de nuevo",
+      "link_hint": "Enlace de confirmación (en modo demo no sale ningún email de la plataforma: reenvíalo al proveedor):"
     }
   },
   "po_new": {
@@ -780,7 +818,13 @@
       "email": "Correo",
       "phone": "Teléfono",
       "country": "País (ISO 2)",
-      "leadTimeDays": "Plazo de entrega (días)"
+      "leadTimeDays": "Plazo de entrega (días)",
+      "contactName": "Persona de contacto",
+      "leadTimeSdDays": "Variabilidad del plazo (± días)",
+      "depositPct": "Anticipo (%)",
+      "balanceDays": "Saldo (días tras la recepción)",
+      "moqDefault": "Pedido mínimo (unidades)",
+      "orderMultipleDefault": "Múltiplo de pedido"
     },
     "columns": {
       "supplier": "Proveedor",
@@ -788,8 +832,15 @@
       "lead_time": "Plazo",
       "owed": "Debido",
       "paid": "Pagado",
-      "balance": "Saldo"
-    }
+      "balance": "Saldo",
+      "terms": "Condiciones"
+    },
+    "edit_title": "Editar {name}",
+    "edit": "Editar condiciones",
+    "terms": "Condiciones de compra",
+    "terms_hint": "El planificador usa el plazo de entrega y su variabilidad para el stock de seguridad, el mínimo y los múltiplos para redondear cantidades, y el anticipo y los días de pago para el plan de caja.",
+    "terms_summary": "Anticipo {deposit}% · saldo a {days} días de la recepción",
+    "moq_summary": "Mínimo {moq}"
   },
   "analytics": {
     "title": "Analítica",
@@ -2499,6 +2550,249 @@
       "warning_not_cancelled": "No se pudo cancelar el pedido antiguo en la plataforma: cancélalo a mano.",
       "save": "Guardar cambios",
       "save_replace": "Sustituir pedido"
+    }
+  },
+  "po_pdf": {
+    "title": "Orden de compra",
+    "supplier": "Proveedor",
+    "expected": "Entrega solicitada",
+    "sku": "SKU",
+    "item": "Artículo",
+    "quantity": "Cant.",
+    "unit_price": "Precio unitario",
+    "total": "Total",
+    "confirm_at": "Confirma el pedido en",
+    "notes": "Notas"
+  },
+  "supplier_portal": {
+    "title": "Orden de compra {number}",
+    "for_supplier": "Para {supplier}",
+    "language": "Idioma",
+    "status": {
+      "draft": "Borrador",
+      "sent": "Esperando su confirmación",
+      "confirmed": "Confirmado",
+      "in_transit": "En tránsito",
+      "partially_received": "Recibido en parte",
+      "received": "Recibido",
+      "cancelled": "Cancelado"
+    },
+    "expected": "Entrega solicitada: {date}",
+    "answered": "Respondido el {date}",
+    "columns": {
+      "sku": "SKU",
+      "item": "Artículo",
+      "quantity": "Cant.",
+      "unit_price": "Precio unitario",
+      "total": "Total"
+    },
+    "answer_title": "Su respuesta",
+    "closed": "El pedido está cerrado: no hace falta respuesta.",
+    "powered_by": "Enviado con {product}",
+    "thanks": "Gracias, su respuesta ha quedado registrada.",
+    "decision": {
+      "confirm": "Confirmar el pedido",
+      "problem": "Indicar un problema"
+    },
+    "delivery_date": "Fecha de entrega",
+    "note": "Nota (opcional)",
+    "problem_note": "¿Cuál es el problema?",
+    "submit": {
+      "confirm": "Confirmar",
+      "problem": "Enviar"
+    }
+  },
+  "planning": {
+    "back": "Inventario",
+    "title": "Planificación de stock",
+    "description": "Previsión, reposición con plazo de entrega y stock de seguridad (nivel de servicio {level}), análisis de stock, traspasos y caja de compras. Periodo de revisión {review} días.",
+    "apply": "Aplicar",
+    "tabs": {
+      "replenishment": "Reposición",
+      "forecast": "Previsión",
+      "analysis": "Análisis de stock",
+      "transfers": "Traspasos",
+      "cashflow": "Caja",
+      "target": "Objetivo de ventas",
+      "bundles": "Packs y escandallos"
+    },
+    "replenishment": {
+      "kpi": {
+        "to_order": "Variantes a pedir",
+        "urgent": "Rotura antes de la entrega",
+        "urgent_hint": "Se agota antes del plazo del proveedor",
+        "cost": "Valor de compra",
+        "suppliers": "Proveedores"
+      },
+      "only_to_order": "A pedir",
+      "all_variants": "Todas las variantes",
+      "empty_title": "Nada que reponer",
+      "empty_description": "Todas las variantes están por encima del punto de pedido.",
+      "generate": "Crear borradores ({n})",
+      "select_all": "Seleccionar todo",
+      "select_none": "Quitar selección",
+      "created": "{n, plural, one {# borrador creado:} other {# borradores creados:}}",
+      "none_created": "Ningún borrador nuevo: las variantes elegidas ya están en un borrador o no tienen proveedor.",
+      "no_supplier": "Sin proveedor",
+      "in_draft": "{n} en borrador",
+      "cover_days": "{n} días de cobertura · plazo {lead} d",
+      "moq": "Mínimo {n}",
+      "multiple": "× {n}",
+      "position_hint": "{available} disponibles + {incoming} en camino − {backordered} pendientes",
+      "columns": {
+        "variant": "Variante",
+        "supplier": "Proveedor",
+        "position": "Posición",
+        "daily": "Unid./día",
+        "stockout": "Rotura",
+        "safety": "Seguridad",
+        "rop": "Punto de pedido",
+        "order": "Pedir",
+        "cost": "Coste"
+      },
+      "method": "Demanda = el mayor entre el ritmo de los últimos 90 días y los dos próximos meses de previsión. Stock de seguridad = z × √(plazo × σ²demanda + demanda² × σ²plazo). Se pide cuando disponible + en camino − pendientes ≤ punto de pedido; la cantidad cubre plazo + periodo de revisión + seguridad, redondeada a mínimo y múltiplos."
+    },
+    "forecast": {
+      "product": "Producto",
+      "history": "Vendido",
+      "forecast": "Previsión",
+      "chart_hint": "Últimos 24 meses ({history} unidades) y próximos 12",
+      "accuracy": "error en los últimos 3 meses {wape}",
+      "by_variant": "Por variante, próximos 6 meses",
+      "override_hint": "Haz clic en un número para corregirlo; un valor vacío quita la corrección.",
+      "variant": "Variante",
+      "wape": "Error",
+      "overridden": "Corrección manual",
+      "click_to_override": "Clic para corregir",
+      "override_for": "Corrección para {month}",
+      "ok": "OK",
+      "uplift": "Efecto del evento {pct}",
+      "method": "La estacionalidad se aprende sobre el tipo de producto en 24 meses, el nivel y la tendencia sobre la variante (tendencia limitada). Los eventos suman su efecto en su mes; las correcciones manuales sustituyen al modelo. Error = WAPE de una previsión hecha hace 3 meses frente a las ventas reales."
+    },
+    "events": {
+      "title": "Eventos de demanda",
+      "hint": "Promociones y picos que mueven la demanda en un mes.",
+      "empty": "Sin eventos.",
+      "name": "Nombre",
+      "month": "Mes",
+      "uplift": "Aumento (%)",
+      "scope": "Se aplica a",
+      "scopes": {
+        "all": "Todos los productos",
+        "product_type": "Tipo de producto"
+      },
+      "add": "Añadir evento"
+    },
+    "analysis": {
+      "kpi": {
+        "value": "Valor del stock",
+        "excess": "Stock en exceso",
+        "excess_hint": "Más de {days} días de cobertura",
+        "slow": "Baja rotación",
+        "slow_hint": "Cobertura de más de {days} días o sin ventas",
+        "variants": "Variantes"
+      },
+      "matrix": "ABC × XYZ",
+      "matrix_hint": "Número y valor del stock por clase. Haz clic en una celda para verla.",
+      "abc": {
+        "A": "Primer 80% de las ventas",
+        "B": "Siguiente 15%",
+        "C": "Último 5%"
+      },
+      "xyz": {
+        "X": "Demanda estable",
+        "Y": "Demanda variable",
+        "Z": "Demanda errática"
+      },
+      "legend": "ABC ordena por ventas de 12 meses (80/15/5). XYZ mide la variabilidad de la demanda en bloques de 4 semanas (coeficiente de variación ≤ 0,5, ≤ 1, > 1).",
+      "attention": "Exceso y baja rotación",
+      "cell_title": "Clase {cell}",
+      "slow": "lenta",
+      "days": "{n} d",
+      "empty": "Nada que mostrar.",
+      "columns": {
+        "variant": "Variante",
+        "class": "Clase",
+        "on_hand": "En stock",
+        "value": "Valor",
+        "cover": "Cobertura",
+        "turnover": "Rotaciones/año",
+        "excess": "Unidades en exceso"
+      }
+    },
+    "transfers": {
+      "empty_title": "No hace falta ningún traspaso",
+      "empty_description": "Ninguna ubicación está corta mientras otra tiene excedente.",
+      "hint": "Mueve stock de las ubicaciones con más de {surplus} días de cobertura a las que tienen menos de {short}. Las cantidades se escriben en la plataforma para ambas ubicaciones.",
+      "apply": "Traspasar",
+      "done": "Traspasado",
+      "columns": {
+        "variant": "Variante",
+        "from": "Desde",
+        "to": "Hacia",
+        "units": "Unidades"
+      }
+    },
+    "cashflow": {
+      "committed": "Comprometido",
+      "committed_hint": "Órdenes de compra abiertas, netas de pagos",
+      "planned": "Planificado",
+      "planned_hint": "Borradores y sugerencias de reposición actuales",
+      "total": "Salidas totales",
+      "by_month": "Pagos a proveedores por mes",
+      "month": "Mes",
+      "cumulative": "Acumulado",
+      "payments": "Próximos pagos",
+      "plan_ref": "Plan de reposición · {supplier}",
+      "kinds": {
+        "deposit": "Anticipo",
+        "balance": "Saldo"
+      },
+      "method": "Cada compra paga el anticipo del proveedor al pedir y el saldo a los días acordados tras la recepción prevista. Los pedidos recibidos y aún no pagados vencen desde la fecha de recepción."
+    },
+    "target": {
+      "revenue": "Objetivo de ventas",
+      "months": "Meses",
+      "compute": "Calcular plan",
+      "empty_title": "Define un objetivo de ventas",
+      "empty_description": "El plan escala el mix de la previsión hasta el objetivo y muestra el stock a comprar por variante.",
+      "forecast_revenue": "Ventas previstas",
+      "forecast_hint": "Próximos {months} meses a precios actuales",
+      "target": "Objetivo",
+      "vs_forecast": "{pct} frente a la previsión",
+      "gap_cost": "Stock a comprar",
+      "gap_hint": "A coste, tras el stock actual y en camino",
+      "columns": {
+        "variant": "Variante",
+        "forecast": "Unidades previstas",
+        "planned": "Unidades para el objetivo",
+        "stock": "Stock + en camino",
+        "gap": "A comprar",
+        "gap_cost": "Coste"
+      }
+    },
+    "bundles": {
+      "empty_title": "Sin packs",
+      "empty_description": "Define un pack (se vende como uno, stock calculado de sus componentes) o un escandallo.",
+      "kinds": {
+        "bundle": "Pack",
+        "bom": "Escandallo"
+      },
+      "available": "{n} vendibles con el stock de componentes",
+      "buildable": "{n} fabricables con el stock de materiales",
+      "in_stock": "{n} en stock",
+      "mrp_title": "Necesidades de material (3 meses)",
+      "mrp_hint": "La previsión de los productos terminados desglosada por sus escandallos.",
+      "component": "Componente",
+      "required": "Necesario",
+      "stock": "En stock",
+      "shortfall": "Faltante",
+      "add_title": "Añadir un componente",
+      "add_hint": "Si el componente ya existe para ese producto, se actualiza su cantidad.",
+      "parent": "Variante principal",
+      "quantity": "Cantidad por unidad",
+      "kind": "Tipo",
+      "add": "Guardar"
     }
   }
 }
