@@ -188,7 +188,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
   const log = opts.log ?? (() => {});
   for (const cfg of tenantSeedConfigs(ctx, opts)) {
     // Wipe previous domain rows of this tenant (cascade from the parent tables).
-    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels, schema.segmentDestinations]) {
+    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels, schema.segmentDestinations, schema.pixelSettings, schema.pixelEvents, schema.pixelIdentities, schema.conversionSettings]) {
       await db.delete(table).where(eq(table.tenantId, cfg.tenantId));
     }
     const started = Date.now();
@@ -204,6 +204,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("campaigns", () => seedRetentionCampaigns(db, ctx, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("predictions", () => seedPredictions(db, cfg.tenantId, opts.now ?? new Date()));
     await step("destinations", () => seedDestinations(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
+    await step("tracking", () => seedTracking(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
   }
 }
@@ -275,6 +276,74 @@ async function seedRetentionCampaigns(db: ReturnType<typeof drizzle<typeof schem
     if (segId) await db.insert(schema.retentionCampaigns).values({ tenantId, name: "Benvenuto, secondo acquisto", segmentId: segId, channel: "email", message: "Ciao {first_name}, grazie per il primo ordine! Il codice {code} vale per il secondo.", discountCode: "SECONDO15", costPerMessageMinor: 2, attributionDays: 21, status: "draft", createdBy: sender });
     // an earlier newsletter sent from the email tool, with no measurable effect: the control group shows that too
     await send("Newsletter di primavera (inviata dallo strumento email)", "Clienti ricorrenti", "manual", "", null, 0, 75);
+  }
+}
+
+/**
+ * Pixel traffic for the last 14 days and the server-side conversion log, as the live pipeline
+ * would leave them. About 60% of recent orders have a browser journey: one or two earlier
+ * sessions (stitched to the order as pixel touchpoints) plus the converting session's events;
+ * twice as many sessions never convert. The converting session itself is represented by the
+ * order's landing touch the seed already writes, so it is not added twice.
+ */
+async function seedTracking(db: ReturnType<typeof drizzle<typeof schema>>, key: keyof typeof DEMO_TENANTS, tenantId: string, now: Date) {
+  const rng = createRng(key === "northwind" ? 7101 : 7102);
+  const DAY = 864e5;
+  await db.insert(schema.pixelSettings).values({ tenantId, publicKey: key === "northwind" ? "px_northwindDemoKey01" : "px_harborDemoKey0001", lookbackDays: 30 });
+  const orders = (await db.execute<{ id: string; external_id: string | null; customer_id: string | null; placed_at: string | Date; email: string | null }>(sql`
+    select id, external_id, customer_id, placed_at, email_normalized as email from orders
+    where tenant_id = ${tenantId} and placed_at >= ${new Date(now.getTime() - 14 * DAY)} and status in ('confirmed','fulfilling','shipped','delivered','returned_partial') order by placed_at`)).rows;
+  const channels: [string, string | null, string | null, boolean][] = [["organic_search", "google", "organic", false], ["paid_social", "facebook", "paid", true], ["email", "newsletter", "email", false], ["social", "instagram", "social", false], ["direct", null, null, false], ["paid_search", "google", "cpc", true]];
+  const events: (typeof schema.pixelEvents.$inferInsert)[] = [];
+  const touches: (typeof schema.touchpoints.$inferInsert)[] = [];
+  const identities: (typeof schema.pixelIdentities.$inferInsert)[] = [];
+  const host = key === "northwind" ? "https://northwind-apparel.example" : "https://harbor-home.example";
+  const id = (p: string) => `${p}${rng.uuid().replace(/-/g, "").slice(0, 16)}`;
+  const session = (anon: string, at: Date, ch: [string, string | null, string | null, boolean], orderId: string | null, customerId: string | null, extra: string[]) => {
+    const sid = id("s");
+    const url = ch[1] ? `${host}/?utm_source=${ch[1]}&utm_medium=${ch[2]}` : `${host}/`;
+    touches.push({ tenantId, orderId, customerId, anonymousId: anon, sessionId: sid, occurredAt: at, channel: ch[0], source: ch[1], medium: ch[2], paid: ch[3], landingUrl: url, origin: "pixel" });
+    ["page_view", ...extra].forEach((e, i) => events.push({ tenantId, anonymousId: anon, sessionId: sid, event: e, url: i ? `${host}/products/item-${rng.int(1, 60)}` : url, referrer: null, props: {}, occurredAt: new Date(at.getTime() + i * 45_000), receivedAt: new Date(at.getTime() + i * 45_000) }));
+    return sid;
+  };
+  let converted = 0;
+  for (const o of orders) {
+    if (!rng.chance(0.6)) continue;
+    converted++;
+    const placed = new Date(o.placed_at);
+    const anon = id("a");
+    for (let k = 0, n = rng.int(1, 2); k < n; k++) session(anon, new Date(placed.getTime() - rng.int(1, 10) * DAY - rng.int(0, 600) * 60_000), rng.pick(channels), o.id, o.customer_id, ["product_view"]);
+    const sid = id("s");
+    for (const [e, min] of [["page_view", -20], ["add_to_cart", -10], ["checkout_started", -5], ["checkout_completed", 1]] as const) {
+      const at = new Date(placed.getTime() + min * 60_000);
+      const done = e === "checkout_completed";
+      events.push({ tenantId, anonymousId: anon, sessionId: sid, event: e, url: done ? `${host}/checkouts/thank-you` : `${host}/cart`, referrer: null, props: done ? { orderId: o.external_id, fbp: `fb.1.${placed.getTime()}.${rng.int(1e8, 9e8)}` } : {}, clientIp: done ? `198.51.100.${rng.int(1, 254)}` : null, userAgent: done ? "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)" : null, occurredAt: at, receivedAt: at });
+    }
+    identities.push({ tenantId, anonymousId: anon, orderExternalId: o.external_id, customerId: o.customer_id, linkedAt: placed });
+  }
+  for (let i = 0; i < converted * 2; i++) session(id("a"), new Date(now.getTime() - rng.int(0, 14 * 24 * 60) * 60_000), rng.pick(channels), null, null, rng.chance(0.5) ? ["product_view"] : []);
+  for (let i = 0; i < events.length; i += 2000) await db.insert(schema.pixelEvents).values(events.slice(i, i + 2000));
+  for (let i = 0; i < touches.length; i += 2000) await db.insert(schema.touchpoints).values(touches.slice(i, i + 2000));
+  for (let i = 0; i < identities.length; i += 2000) await db.insert(schema.pixelIdentities).values(identities.slice(i, i + 2000));
+  await db.execute(sql`update pixel_identities i set email_sha256 = encode(sha256(convert_to(o.email_normalized, 'UTF8')), 'hex') from orders o where i.tenant_id = ${tenantId} and o.tenant_id = ${tenantId} and o.external_id = i.order_external_id and o.email_normalized is not null`);
+
+  // server-side conversions: both platforms on, consent required; the last week's log
+  await db.insert(schema.conversionSettings).values([
+    { tenantId, provider: "meta", enabled: true, destinationId: "1234567890123456", requireConsent: true, lookbackDays: 7 },
+    { tenantId, provider: "google", enabled: true, destinationId: "987654321", requireConsent: true, lookbackDays: 30 },
+  ]);
+  for (const provider of ["meta", "google"]) {
+    await db.execute(sql`
+      insert into conversion_events (tenant_id, provider, order_id, event_id, status, reason, attempts, last_error, sent_at, created_at)
+      select ${tenantId}, ${provider}, o.id, 'order-' || coalesce(o.external_id, o.id::text),
+        case when not coalesce(c.accepts_marketing, false) then 'skipped' when abs(hashtext(o.id::text || ${provider})) % 40 = 0 then 'failed' else 'sent' end,
+        case when not coalesce(c.accepts_marketing, false) then 'no_consent' end,
+        case when not coalesce(c.accepts_marketing, false) then 0 when abs(hashtext(o.id::text || ${provider})) % 40 = 0 then 6 else 1 end,
+        case when coalesce(c.accepts_marketing, false) and abs(hashtext(o.id::text || ${provider})) % 40 = 0 then 'rate_limited: Mock: rate limit exceeded' end,
+        case when coalesce(c.accepts_marketing, false) and abs(hashtext(o.id::text || ${provider})) % 40 <> 0 then o.placed_at + interval '6 minutes' end,
+        o.placed_at + interval '5 minutes'
+      from orders o left join customers c on c.id = o.customer_id
+      where o.tenant_id = ${tenantId} and o.placed_at >= ${new Date(now.getTime() - 7 * DAY)} and o.status in ('confirmed','fulfilling','shipped','delivered','returned_partial')`);
   }
 }
 

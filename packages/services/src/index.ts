@@ -21,3 +21,5 @@ export * from "./planning";
 export * from "./crm/predictions";
 export * from "./crm/campaigns";
 export * from "./crm/destinations";
+export * from "./tracking/pixel";
+export * from "./tracking/conversions";

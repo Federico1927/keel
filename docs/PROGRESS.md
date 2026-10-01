@@ -285,6 +285,15 @@ Fatto (issue #6, chiusa; issue #38, chiusa):
 
 Resta: collegamenti reali per messaggistica e audience (issue #7); la landing non mostra ancora l'add-on campagne.
 
+## Esterni (issue #7), primo blocco: pixel proprietario e conversioni lato server
+
+Fatto:
+- Pixel proprietario: endpoint pubblico di raccolta per chiave del negozio (CORS, elenco delle origini consentite, limite per IP cifrato), script per qualsiasi negozio e codice del pixel personalizzato di Shopify (Eventi dei clienti, senza app). Ogni sessione diventa un punto di contatto con canale e campagna; checkout ed email cifrate collegano i browser agli ordini, anche tra dispositivi; il job ogni 5 minuti assegna le sessioni all'ordine che hanno preceduto. L'attribuzione multi-touch le legge senza modifiche.
+- Conversioni lato server: interfaccia `ConversionSink` con adapter reali per Meta Conversions API e conversioni da clic di Google Ads (testati su payload registrati, nessuna chiamata di rete) e mock di default. Id evento stabile per ordine (deduplica col pixel del browser), dati del cliente solo come hash SHA-256, regola sul consenso marketing, coda con ritentativi e registro degli invii.
+- Pagina Integrazioni → Pixel e conversioni: salute del pixel, codici da copiare, impostazioni per piattaforma, esecuzione della coda, registro. Guida all'attivazione in tre lingue con i passi da verificare segnati.
+- Seed: traffico del pixel degli ultimi 14 giorni su entrambi i negozi e registro delle conversioni dell'ultima settimana.
+- Migrazione 0016 (5 tabelle con RLS); test core 145, integrazioni 36, servizi 75, db 486, e2e 63.
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

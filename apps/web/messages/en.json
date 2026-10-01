@@ -2022,7 +2022,8 @@
     "providers": {
       "shopify": "Shopify",
       "meta": "Meta Ads",
-      "google": "Google Ads"
+      "google": "Google Ads",
+      "tracking": "Pixel & conversions"
     },
     "status": {
       "not_connected": "Not connected",
@@ -2128,7 +2129,8 @@
       "connection_failed": "The platform refused the credentials.",
       "mock_mode": "This environment is in mock mode: set KEEL_INTEGRATION_MODE=live to connect a real account.",
       "live_mode": "Simulation is only available for mock integrations."
-    }
+    },
+    "tracking": "Pixel & conversions"
   },
   "integration_guide": {
     "verify_legend": "Steps marked “To verify” depend on vendor consoles that change often: check them against the vendor documentation before the first install.",
@@ -2273,6 +2275,72 @@
         {
           "symptom": "invalid_grant on token refresh",
           "fix": "The refresh token was revoked; authorise again and reconnect."
+        }
+      ]
+    },
+    "tracking": {
+      "title": "Activate the pixel and server-side conversions",
+      "intro": "The pixel runs on the store; conversions use the Meta and Google connections already in Integrations. No extra credentials are stored for the pixel.",
+      "scopes": "Meta: the system user token needs the dataset (pixel) assigned with Manage access.\nGoogle: a conversion action of type \"Import → clicks\", and Customer data terms accepted for user identifiers.\nPrivacy: decide which consent category (marketing or analytics) the pixel runs under.",
+      "steps": [
+        {
+          "title": "Copy the custom pixel",
+          "body": "Integrations → Pixel & conversions → copy the Shopify custom pixel. It already contains this store's collect address."
+        },
+        {
+          "title": "Add it in Shopify",
+          "body": "Shopify admin → Settings → Customer events → Add custom pixel → name it \"Keel\" → paste the code → Save → Connect.",
+          "verify": true
+        },
+        {
+          "title": "Set the customer privacy permission",
+          "body": "In the pixel's settings choose the permission that matches your consent policy (Marketing or Analytics). With Shopify's cookie banner the pixel only runs after consent.",
+          "verify": true
+        },
+        {
+          "title": "Check that events arrive",
+          "body": "Browse the store in a private window, then reload the Pixel & conversions page: events and sessions grow, and an order placed from that window shows its journey. \"Send test event\" checks Keel's side alone."
+        },
+        {
+          "title": "Meta: dataset and token access",
+          "body": "Events Manager → Data sources → your dataset (pixel) → copy its id. In Business Settings → System users → Keel → Add assets → Datasets, give it Manage access. Optional: copy a Test event code from Events Manager → Test events to see the first events there.",
+          "verify": true
+        },
+        {
+          "title": "Avoid double counting with Meta",
+          "body": "If Shopify's Facebook & Instagram app already sends Conversions API events (\"Maximum\" data sharing), keep only one server source: either turn that off or leave Keel's Meta sending disabled.",
+          "verify": true
+        },
+        {
+          "title": "Google: conversion action",
+          "body": "Google Ads → Goals → Conversions → New → Import → Other data sources or CRMs → Track conversions from clicks; category Purchase. Copy the conversion action id (ctId in the address bar). Accept the Customer data terms under Goals → Settings to send hashed identifiers.",
+          "verify": true
+        },
+        {
+          "title": "Enable and run",
+          "body": "Enter the ids, keep \"Only customers who accept marketing\" unless your legal basis says otherwise, save, then Run queue now. The delivery log shows each order's outcome; the job repeats every 5 minutes."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Events stay at 0",
+          "fix": "The custom pixel is not connected, consent was not given in the test browser, or the store origin is not in the allowed list."
+        },
+        {
+          "symptom": "Meta error 190",
+          "fix": "The token expired or the system user lost the dataset: generate a new token or reassign the dataset."
+        },
+        {
+          "symptom": "Meta \"Invalid parameter\"",
+          "fix": "The dataset id is wrong, or the event is older than 7 days."
+        },
+        {
+          "symptom": "Google \"conversion action not found\"",
+          "fix": "Wrong id, or the action belongs to another account (check the manager account in the Google connection)."
+        },
+        {
+          "symptom": "Many \"no consent\" rows",
+          "fix": "Expected when consent is required and customers have not opted in to marketing."
         }
       ]
     }
@@ -3420,6 +3488,80 @@
     "privacy_note": "Until the account is connected (Integrations), destinations run in mock mode: Keel computes and records exactly what would be sent.",
     "errors": {
       "not_found": "Destination not found.",
+      "invalid_input": "Check the fields."
+    }
+  },
+  "tracking": {
+    "title": "Pixel and server-side conversions",
+    "back": "Integrations",
+    "guide_link": "Activation guide",
+    "description": "A first-party pixel on the store feeds multi-touch attribution; confirmed orders go back to Meta and Google from the server, with hashed customer data.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "saved": "Saved.",
+    "live": "live",
+    "mock": "mock",
+    "pixel": {
+      "title": "First-party pixel",
+      "description": "Sessions, product views, carts and checkouts on the store's own domain. Each session becomes a touchpoint; checkouts and hashed emails link browsers to orders, across visits and devices.",
+      "shopify_title": "Shopify: custom pixel",
+      "shopify_help": "Paste in Shopify admin → Settings → Customer events → Add custom pixel, then Connect.",
+      "script_title": "Any other storefront: script tag",
+      "script_help": "Put it in the <head> of every page. Call keel.identify(email) after login or newsletter sign-up.",
+      "enabled": "Collect events",
+      "origins": "Allowed store origins (one per line, empty = any)",
+      "origins_help": "Events from other origins are refused. The public key alone is not a secret.",
+      "lookback": "Lookback (days)",
+      "test_event": "Send test event",
+      "kpi": {
+        "events": "Events, 7 days",
+        "last": "Last {at}",
+        "sessions": "Sessions",
+        "visitors": "{n} browsers",
+        "identified": "Identified browsers",
+        "orders": "Orders with pixel journey",
+        "orders_hint": "{n} of {total} orders, 7 days"
+      }
+    },
+    "conversions": {
+      "title": "Server-side conversions",
+      "description": "Confirmed orders are sent once to each platform with the same event id, so a browser pixel duplicate is dropped. Email, phone, name and address leave Keel only as SHA-256 hashes.",
+      "name_meta": "Meta Conversions API",
+      "name_google": "Google Ads conversions",
+      "enable_meta": "Send purchases to Meta",
+      "enable_google": "Send purchases to Google Ads",
+      "destination_meta": "Dataset (pixel) id",
+      "destination_google": "Conversion action id",
+      "test_code": "Test event code (optional)",
+      "lookback": "Send orders from the last N days (max {max})",
+      "require_consent": "Only customers who accept marketing",
+      "stats": "7 days: {sent} sent · {failed} failed · {pending} queued · {consent} no consent · {ident} no identifier",
+      "run_now": "Run queue now",
+      "retry_failed": "Retry failed"
+    },
+    "log": {
+      "title": "Delivery log",
+      "description": "Last 30 events across platforms.",
+      "order": "Order",
+      "platform": "Platform",
+      "status": "Status",
+      "detail": "Detail",
+      "when": "When",
+      "attempts": "{n} attempts",
+      "statuses": {
+        "pending": "queued",
+        "sent": "sent",
+        "failed": "failed",
+        "skipped": "skipped"
+      },
+      "reasons": {
+        "no_consent": "No marketing consent",
+        "no_identifier": "No click id or identifier",
+        "too_old": "Too old"
+      }
+    },
+    "errors": {
+      "destination_required": "Enter the dataset or conversion action id to enable sending.",
       "invalid_input": "Check the fields."
     }
   }

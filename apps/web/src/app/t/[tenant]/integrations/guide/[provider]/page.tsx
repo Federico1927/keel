@@ -5,7 +5,8 @@ import { META_REQUIRED_PERMISSIONS, SHOPIFY_SCOPES_BY_MODULE, SHOPIFY_WEBHOOK_TO
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, cn } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 
-const PROVIDERS = ["shopify", "meta", "google"] as const;
+/** One guide per activation: the three platforms, then the external providers and tracking. */
+const PROVIDERS = ["shopify", "meta", "google", "tracking"] as const;
 type Provider = (typeof PROVIDERS)[number];
 interface Step { title: string; body: string; verify?: boolean }
 
@@ -55,6 +56,7 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
               ))}
               {p === "meta" && <div className="font-mono text-muted-foreground">{META_REQUIRED_PERMISSIONS.join(", ")}</div>}
               {p === "google" && <div className="font-mono text-muted-foreground">https://www.googleapis.com/auth/adwords · developer token (Basic access) · OAuth client (Desktop/Web) · refresh token</div>}
+              {t.has(`${p}.scopes`) && <div className="whitespace-pre-line text-muted-foreground">{t(`${p}.scopes`)}</div>}
             </CardContent>
           </Card>
           {p === "shopify" && (

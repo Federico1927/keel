@@ -2022,7 +2022,8 @@
     "providers": {
       "shopify": "Shopify",
       "meta": "Meta Ads",
-      "google": "Google Ads"
+      "google": "Google Ads",
+      "tracking": "Píxel y conversiones"
     },
     "status": {
       "not_connected": "No conectada",
@@ -2128,7 +2129,8 @@
       "connection_failed": "La plataforma rechazó las credenciales.",
       "mock_mode": "Este entorno está en modo mock: configura KEEL_INTEGRATION_MODE=live para conectar una cuenta real.",
       "live_mode": "La simulación solo está disponible para integraciones mock."
-    }
+    },
+    "tracking": "Píxel y conversiones"
   },
   "integration_guide": {
     "verify_legend": "Los pasos marcados “Por verificar” dependen de consolas de proveedores que cambian a menudo: compruébalos en la documentación del proveedor antes de la primera instalación.",
@@ -2273,6 +2275,72 @@
         {
           "symptom": "invalid_grant al refrescar el token",
           "fix": "El refresh token fue revocado; autoriza de nuevo y reconecta."
+        }
+      ]
+    },
+    "tracking": {
+      "title": "Activar el píxel y las conversiones desde el servidor",
+      "intro": "El píxel funciona en la tienda; las conversiones usan las conexiones de Meta y Google ya presentes en Integraciones. Para el píxel no se guardan más credenciales.",
+      "scopes": "Meta: el token del usuario del sistema necesita el dataset (píxel) asignado con acceso de administración.\nGoogle: una acción de conversión de tipo \"Importar → clics\" y los Términos de datos de clientes aceptados para los identificadores.\nPrivacidad: decide en qué categoría de consentimiento (marketing o análisis) funciona el píxel.",
+      "steps": [
+        {
+          "title": "Copia el píxel personalizado",
+          "body": "Integraciones → Píxel y conversiones → copia el píxel personalizado de Shopify. Ya contiene la dirección de recogida de esta tienda."
+        },
+        {
+          "title": "Añádelo en Shopify",
+          "body": "Shopify admin → Configuración → Eventos de clientes → Agregar píxel personalizado → nombre \"Keel\" → pega el código → Guardar → Conectar.",
+          "verify": true
+        },
+        {
+          "title": "Configura el permiso de privacidad",
+          "body": "En los ajustes del píxel elige el permiso acorde con tu política de consentimiento (Marketing o Análisis). Con el banner de cookies de Shopify el píxel solo funciona tras el consentimiento.",
+          "verify": true
+        },
+        {
+          "title": "Comprueba que llegan eventos",
+          "body": "Navega por la tienda en una ventana privada y recarga Píxel y conversiones: crecen eventos y sesiones, y un pedido hecho desde esa ventana muestra su recorrido. \"Enviar evento de prueba\" comprueba solo el lado de Keel."
+        },
+        {
+          "title": "Meta: dataset y acceso del token",
+          "body": "Administrador de eventos → Orígenes de datos → tu dataset (píxel) → copia el id. En Configuración del negocio → Usuarios del sistema → Keel → Agregar activos → Datasets, da acceso de administración. Opcional: copia un código de prueba en Administrador de eventos → Probar eventos.",
+          "verify": true
+        },
+        {
+          "title": "Evita el doble recuento con Meta",
+          "body": "Si la app Facebook e Instagram de Shopify ya envía eventos de la Conversions API (uso compartido de datos \"Máximo\"), deja una sola fuente desde el servidor: desactiva esa o mantén apagado el envío a Meta de Keel.",
+          "verify": true
+        },
+        {
+          "title": "Google: acción de conversión",
+          "body": "Google Ads → Objetivos → Conversiones → Nueva → Importar → Otras fuentes de datos o CRM → Seguimiento de conversiones de clics; categoría Compra. Copia el id de la acción (ctId en la barra de direcciones). Acepta los Términos de datos de clientes en Objetivos → Configuración para enviar identificadores cifrados.",
+          "verify": true
+        },
+        {
+          "title": "Activa y ejecuta",
+          "body": "Introduce los ids, mantén \"Solo clientes que aceptan marketing\" salvo otra base legal, guarda y pulsa Ejecutar la cola ahora. El registro muestra el resultado de cada pedido; el job se repite cada 5 minutos."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Los eventos siguen en 0",
+          "fix": "El píxel no está conectado, en el navegador de prueba no se dio el consentimiento, o el origen de la tienda no está permitido."
+        },
+        {
+          "symptom": "Error de Meta 190",
+          "fix": "Token caducado o el usuario del sistema perdió el dataset: genera un token nuevo o reasigna el dataset."
+        },
+        {
+          "symptom": "Meta \"Invalid parameter\"",
+          "fix": "Id del dataset incorrecto, o evento con más de 7 días."
+        },
+        {
+          "symptom": "Google \"conversion action not found\"",
+          "fix": "Id incorrecto, o la acción pertenece a otra cuenta (revisa la cuenta de administrador en la conexión de Google)."
+        },
+        {
+          "symptom": "Muchas filas \"sin consentimiento\"",
+          "fix": "Normal cuando se exige consentimiento y los clientes no aceptaron el marketing."
         }
       ]
     }
@@ -3420,6 +3488,80 @@
     "privacy_note": "Hasta que la cuenta esté conectada (Integraciones), los destinos funcionan en modo mock: Keel calcula y registra exactamente lo que se enviaría.",
     "errors": {
       "not_found": "Destino no encontrado.",
+      "invalid_input": "Revisa los campos."
+    }
+  },
+  "tracking": {
+    "title": "Píxel y conversiones desde el servidor",
+    "back": "Integraciones",
+    "guide_link": "Guía de activación",
+    "description": "Un píxel propio en la tienda alimenta la atribución multitoque; los pedidos confirmados vuelven a Meta y Google desde el servidor, con datos del cliente cifrados (hash).",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "saved": "Guardado.",
+    "live": "real",
+    "mock": "mock",
+    "pixel": {
+      "title": "Píxel propio",
+      "description": "Sesiones, productos vistos, carritos y checkouts en el dominio de la tienda. Cada sesión es un punto de contacto; los checkouts y los emails cifrados enlazan navegadores con pedidos, entre visitas y dispositivos.",
+      "shopify_title": "Shopify: píxel personalizado",
+      "shopify_help": "Pégalo en Shopify admin → Configuración → Eventos de clientes → Agregar píxel personalizado y luego Conectar.",
+      "script_title": "Otras tiendas: etiqueta script",
+      "script_help": "Ponla en el <head> de cada página. Llama a keel.identify(email) tras el inicio de sesión o la suscripción.",
+      "enabled": "Recoger eventos",
+      "origins": "Orígenes de tienda permitidos (uno por línea, vacío = todos)",
+      "origins_help": "Los eventos de otros orígenes se rechazan. La clave pública por sí sola no es un secreto.",
+      "lookback": "Ventana (días)",
+      "test_event": "Enviar evento de prueba",
+      "kpi": {
+        "events": "Eventos, 7 días",
+        "last": "Último {at}",
+        "sessions": "Sesiones",
+        "visitors": "{n} navegadores",
+        "identified": "Navegadores identificados",
+        "orders": "Pedidos con recorrido del píxel",
+        "orders_hint": "{n} de {total} pedidos, 7 días"
+      }
+    },
+    "conversions": {
+      "title": "Conversiones desde el servidor",
+      "description": "Los pedidos confirmados se envían una vez a cada plataforma con el mismo id de evento, así se descarta el duplicado del píxel del navegador. Email, teléfono, nombre y dirección salen de Keel solo como hash SHA-256.",
+      "name_meta": "Meta Conversions API",
+      "name_google": "Conversiones de Google Ads",
+      "enable_meta": "Enviar compras a Meta",
+      "enable_google": "Enviar compras a Google Ads",
+      "destination_meta": "Id del dataset (píxel)",
+      "destination_google": "Id de la acción de conversión",
+      "test_code": "Código de evento de prueba (opcional)",
+      "lookback": "Enviar pedidos de los últimos N días (máx. {max})",
+      "require_consent": "Solo clientes que aceptan marketing",
+      "stats": "7 días: {sent} enviados · {failed} fallidos · {pending} en cola · {consent} sin consentimiento · {ident} sin identificador",
+      "run_now": "Ejecutar la cola ahora",
+      "retry_failed": "Reintentar fallidos"
+    },
+    "log": {
+      "title": "Registro de envíos",
+      "description": "Últimos 30 eventos en todas las plataformas.",
+      "order": "Pedido",
+      "platform": "Plataforma",
+      "status": "Estado",
+      "detail": "Detalle",
+      "when": "Cuándo",
+      "attempts": "{n} intentos",
+      "statuses": {
+        "pending": "en cola",
+        "sent": "enviado",
+        "failed": "fallido",
+        "skipped": "omitido"
+      },
+      "reasons": {
+        "no_consent": "Sin consentimiento de marketing",
+        "no_identifier": "Sin click id ni identificador",
+        "too_old": "Demasiado antiguo"
+      }
+    },
+    "errors": {
+      "destination_required": "Introduce el id del dataset o de la acción de conversión para activar el envío.",
       "invalid_input": "Revisa los campos."
     }
   }
