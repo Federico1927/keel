@@ -209,7 +209,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
 
 /**
  * Customer campaigns measured against the segment's control group. Northwind's win-back went
- * out 35 days ago with a 10% code; about 9% of the treated customers answered with an order that
+ * out 35 days ago with a 10% code; about 12% of the treated customers answered with an order that
  * reuses one of their past baskets, so the results page shows a real, significant uplift. Harbor's
  * campaign was sent from another tool (manual channel) and had no effect, which the control
  * group shows too. A draft on a segment without control group shows the warning.
@@ -237,7 +237,7 @@ async function seedRetentionCampaigns(db: ReturnType<typeof drizzle<typeof schem
   if (it) {
     const sent = await send("Win-back clienti ricorrenti -10%", "Clienti ricorrenti", "email", "Ciao {first_name}, ci manchi! Per te il 10% di sconto con il codice {code}.", "BACK10", 2, 35);
     if (sent) {
-      // response orders: ~9% of treated customers buy again within the window, reusing their last basket
+      // response orders: ~12% of treated customers buy again within the window, reusing their last basket
       const [tenant] = await db.select({ prefix: schema.tenants.orderNumberPrefix }).from(schema.tenants).where(eq(schema.tenants.id, tenantId));
       // copy every stored column (generated ones such as the search blob are recomputed)
       const cols = async (table: string) => (await db.execute<{ c: string }>(sql`select quote_ident(column_name) as c from information_schema.columns where table_schema = 'public' and table_name = ${table} and is_generated = 'NEVER' order by ordinal_position`)).rows.map((r) => r.c).join(", ");
@@ -248,7 +248,7 @@ async function seedRetentionCampaigns(db: ReturnType<typeof drizzle<typeof schem
           select distinct on (e.customer_id) o.id as old_id, gen_random_uuid() as new_id,
             e.exposed_at + make_interval(days => 1 + abs(hashtext(e.customer_id::text || 'day')) % 12, hours => abs(hashtext(e.customer_id::text)) % 10) as at
           from retention_exposures e join orders o on o.customer_id = e.customer_id and o.placed_at < e.exposed_at and o.status in ('delivered', 'shipped')
-          where e.campaign_id = ${sent.id} and e.group_name = 'treated' and abs(hashtext(e.customer_id::text || 'resp')) % 100 < 9
+          where e.campaign_id = ${sent.id} and e.group_name = 'treated' and abs(hashtext(e.customer_id::text || 'resp')) % 100 < 12
           order by e.customer_id, o.placed_at desc
         ),
         numbered as (select p.*, (select max(order_number) from orders where tenant_id = ${tenantId}) + row_number() over (order by p.at) as num from picks p),

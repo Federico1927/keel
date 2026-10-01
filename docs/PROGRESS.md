@@ -258,7 +258,7 @@ Fatto (issue #6, prima parte):
 - Seed: il generatore ora simula il ciclo di vita dei clienti (acquisizione, ritmo d'acquisto personale, abbandono) sulle stesse date d'ordine stagionali; prima nessun cliente abbandonava mai e il modello dava tutti "attivi". Il seed scrive le previsioni con lo stesso codice del job.
 - Migrazione 0013 (2 tabelle con RLS); test core 137, integrazioni 28, servizi 63, db 432, e2e 57.
 
-Aperto: il seed completo impiega circa 2 minuti e 5 secondi su questo ambiente, oltre il limite di 2 minuti. Le fasi nuove pesano circa 1,5 secondi per negozio; il resto è scrittura e cancellazione dei dati precedenti, già prima di questo blocco.
+Aperto: il seed completo impiega tra 1 minuto e 55 secondi e 2 minuti e 50 secondi su questo ambiente, a seconda del disco; il limite è 2 minuti. Le fasi nuove pesano circa 1,5 secondi per negozio; il resto è scrittura e cancellazione dei dati precedenti, già prima di questo blocco.
 
 Resta per la issue #6: campagne con gruppo di controllo e margine incrementale (4.4), esportazione dei segmenti verso strumenti esterni tramite adapter (4.3), segmenti aggiornati in tempo reale e sincronizzazione delle audience (4.1).
 
@@ -269,7 +269,7 @@ Fatto (issue #6, seconda parte):
 - Il gruppo di controllo è quello del segmento (assegnazione stabile già nel modello dati); entrano solo i clienti con consenso marketing, prima di leggere la divisione.
 - Risultati per intenzione di trattamento sulla finestra di attribuzione: conversione trattati e controllo con p-value, ordini, ricavi e margine incrementali con intervallo al 95%, costo di invio, margine netto e ROI, utilizzi del codice. Margine con la stessa economia del P/L.
 - Pagine Segmenti → Campagne (lista con verdetto ed effetto netto, nuova, bozza, dettaglio) e collegamento "Nuova campagna" dalla scheda segmento.
-- Seed: Northwind ha una campagna di riconquista con codice, inviata 35 giorni fa, con effetto reale e significativo (circa 18% contro 8% di conversione), più una bozza su un segmento senza controllo; Harbor ha una campagna inviata da un altro strumento senza effetto chiaro.
+- Seed: Northwind ha una campagna di riconquista con codice, inviata 35 giorni fa, con effetto reale e significativo (circa 21% contro 13% di conversione, p = 0,002), più una bozza su un segmento senza controllo; Harbor ha una campagna inviata da un altro strumento senza effetto chiaro.
 - Migrazione 0014 (2 tabelle con RLS); test core 142, servizi 67, db 444, e2e E2E2.
 
 Resta per la issue #6: esportazione dei segmenti verso strumenti esterni tramite adapter (4.3), segmenti aggiornati in tempo reale e sincronizzazione delle audience (4.1).
