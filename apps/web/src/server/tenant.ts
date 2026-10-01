@@ -2,7 +2,7 @@ import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
 import { adminDb, and, eq, schema, withTenant, type Transaction } from "@keel/db";
 import { parseTenantSettings, type TenantSettings } from "@keel/core";
-import { canDo, canViewPage, isPageEnabled, type ActionKey, type PageKey, type TenantRole } from "@keel/config";
+import { canDo, canViewPage, canWritePage, isPageEnabled, type ActionKey, type PageKey, type TenantRole } from "@keel/config";
 import { getCurrentUser, type CurrentUser } from "./session";
 
 export interface TenantContext {
@@ -82,5 +82,13 @@ export async function requireAction(slug: string, action: ActionKey, page?: Page
   const ctx = await getTenantContext(slug);
   if (page && !isPageEnabled(page, ctx.activeAddons)) throw new ForbiddenError("module_disabled");
   if (!canDo(ctx.role, action)) throw new ForbiddenError(action);
+  return ctx;
+}
+
+/** Write access to one page (the page's own level in the matrix, not the generic "edit" action). */
+export async function requireWrite(slug: string, page: PageKey): Promise<TenantContext> {
+  const ctx = await getTenantContext(slug);
+  if (!isPageEnabled(page, ctx.activeAddons)) throw new ForbiddenError("module_disabled");
+  if (!canWritePage(ctx.role, page)) throw new ForbiddenError(`write:${page}`);
   return ctx;
 }

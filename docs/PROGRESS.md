@@ -174,6 +174,19 @@ Fatto (tutto ciò che non richiede dipendenze esterne):
 
 Resta per l'Area 1 (blocco esterno): pixel first-party (1.1), conversioni server-side (1.2), sondaggio post-acquisto (1.9), assistente AI (1.13).
 
+## Programma di profondità — Area 2 (pianificazione scorte e acquisti)
+
+Fatto:
+- Previsione a 12 mesi per variante (stagionalità sul tipo di prodotto, livello e trend sulla variante, eventi di domanda per ambito, correzioni manuali per mese, errore WAPE sugli ultimi 3 mesi) con grafico e tabella modificabile.
+- Riordino con scorta di sicurezza (livello di servizio del tenant, variabilità di domanda e lead time), punto di riordino, minimi e multipli per fornitore o per coppia fornitore-variante, data di esaurimento prevista; bozze di ordini d'acquisto generate in blocco, una per fornitore.
+- Ordini d'acquisto: costi aggiuntivi (dazi, trasporto, commissioni) ripartiti per valore, quantità o peso in costo landed, che al ricevimento diventa il costo del prodotto; PDF dell'ordine; invio al fornitore con link pubblico di conferma (conferma con data o segnalazione di un problema), notifica e audit. L'email è mock: il link viene mostrato per inoltrarlo.
+- Condizioni del fornitore (variabilità del lead time, acconto, giorni di saldo, minimo, multiplo, referente) modificabili.
+- Analisi scorte ABC × XYZ con valore, eccessi e lenta rotazione; trasferimenti tra sedi con esecuzione scritta sulla piattaforma; piano di cassa per gli acquisti (impegnato e pianificato per mese); piano da obiettivo di ricavo; bundle con disponibilità derivata e distinte base con fabbisogno materiali.
+- Correzioni trovate strada facendo: permesso di modifica di prodotti e magazzino ora verificato sulla pagina (prima bastava il permesso sugli ordini); numerazione degli ordini d'acquisto che non collide più con numeri non consecutivi; due e2e resi ripetibili senza reseed.
+- Migrazione 0008 (5 tabelle nuove, tutte con RLS); test core 103, servizi 39, db 389, e2e 47.
+
+Resta per l'Area 2: domanda per sede (le vendite non portano ancora la sede di evasione), vendite dei bundle esplose sulla velocità dei componenti, consumo dei materiali in produzione, invio reale dell'email al fornitore (serve il provider email).
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

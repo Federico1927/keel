@@ -42,6 +42,13 @@ export const tenantSettingsSchema = z.object({
    * A switch is cheaper than an add-on and leaves no trace in the core when it is off.
    */
   featureFlags: z.record(z.string().max(80), z.boolean()).default({}),
+  /** Replenishment: target service level (basis points, 9500 = 95 %), days of demand each order covers, cover thresholds for analysis and transfers. */
+  serviceLevelBps: z.number().int().min(5000).max(9990).default(9500),
+  reviewDays: z.number().int().min(7).max(180).default(30),
+  excessCoverDays: z.number().int().min(30).max(720).default(120),
+  slowCoverDays: z.number().int().min(30).max(720).default(180),
+  transferShortDays: z.number().int().min(1).max(90).default(14),
+  transferSurplusDays: z.number().int().min(7).max(365).default(45),
 });
 export type TenantSettings = z.infer<typeof tenantSettingsSchema>;
 

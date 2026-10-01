@@ -6,7 +6,7 @@ import * as schema from "../schema";
 import { generateTenantDataset, type TenantSeedConfig } from "./generator";
 import { writeDataset } from "./writer";
 import { createRng } from "@keel/integrations";
-import { normalizePhone } from "@keel/core";
+import { allocateLandedCost, normalizePhone } from "@keel/core";
 import { sql } from "drizzle-orm";
 
 /** Password of every demo user; override with KEEL_DEMO_PASSWORD on a hosted demo. */
@@ -186,7 +186,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
   const log = opts.log ?? (() => {});
   for (const cfg of tenantSeedConfigs(ctx, opts)) {
     // Wipe previous domain rows of this tenant (cascade from the parent tables).
-    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles]) {
+    for (const table of [schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents]) {
       await db.delete(table).where(eq(table.tenantId, cfg.tenantId));
     }
     const started = Date.now();
@@ -195,6 +195,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     const counts = await writeDataset(db, ds);
     if (cfg.key === "northwind") await seedCod(db, ctx, cfg.tenantId, opts.now ?? new Date());
     await seedAnalyticsExtras(db, ctx, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date());
+    await seedPlanningExtras(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date());
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
   }
 }
@@ -227,6 +228,98 @@ async function seedAnalyticsExtras(db: ReturnType<typeof drizzle<typeof schema>>
     { tenantId, key: "contribution_after_ads", label: it ? "Contribuzione dopo ads" : "Contribution after ads", formula: "contribution - ad_spend", format: "money", createdBy: owner },
   ]);
   if (owner) await db.insert(schema.dashboards).values({ tenantId, userId: owner, name: it ? "La mia dashboard" : "My dashboard", isDefault: true, widgets: [{ metric: "net_revenue" }, { metric: "orders" }, { metric: "mer" }, { metric: "poas" }, { metric: "custom:profit_per_order" }, { metric: "custom:ads_share" }, { metric: "new_customers" }, { metric: "operating_profit" }] });
+}
+
+/**
+ * Planning data: supplier terms (lead-time variability, deposit, balance days, MOQ), the
+ * supplier of each variant (from the purchase history), seasonal demand events, two forecast
+ * overrides, duties and freight on the open purchase orders (with landed cost), one bundle
+ * and one bill of materials made of existing variants.
+ */
+async function seedPlanningExtras(db: ReturnType<typeof drizzle<typeof schema>>, key: keyof typeof DEMO_TENANTS, tenantId: string, now: Date) {
+  const it = key === "northwind";
+  const rng = createRng(it ? 4242 : 4343);
+  const suppliers = await db.select().from(schema.suppliers).where(eq(schema.suppliers.tenantId, tenantId)).orderBy(schema.suppliers.name);
+  if (!suppliers.length) return;
+  for (const [i, s] of suppliers.entries()) {
+    await db.update(schema.suppliers).set({ leadTimeSdDays: [3, 7, 2, 10][i % 4]!, depositBps: [3000, 0, 5000, 2000][i % 4]!, balanceDays: [30, 60, 0, 45][i % 4]!, moqDefault: [50, null, 100, 24][i % 4] ?? null, orderMultipleDefault: [10, 6, 12, null][i % 4] ?? null, contactName: it ? ["Giulia Bassi", "Rui Costa", "Ayşe Demir", "Marco Neri"][i % 4]! : ["Dana Price", "Linh Tran", "Arjun Mehta"][i % 3]! }).where(eq(schema.suppliers.id, s.id));
+  }
+  // supplier of each variant: the most frequent supplier in its PO history, else round-robin by product
+  const hist = await db.execute<{ variant_id: string; supplier_id: string; n: number; cost: number }>(sql`
+    select l.variant_id, p.supplier_id, count(*)::int as n, max(l.unit_cost_minor)::int as cost
+    from purchase_order_lines l join purchase_orders p on p.id = l.purchase_order_id
+    where l.tenant_id = ${tenantId} and l.variant_id is not null group by 1, 2 order by 1, 3 desc`);
+  const supplierOf = new Map<string, { supplierId: string; cost: number }>();
+  for (const r of hist.rows) if (!supplierOf.has(r.variant_id)) supplierOf.set(r.variant_id, { supplierId: r.supplier_id, cost: Number(r.cost) });
+  const variants = await db.select({ id: schema.productVariants.id, productId: schema.productVariants.productId, sku: schema.productVariants.sku, costMinor: schema.productVariants.costMinor, productType: schema.products.productType }).from(schema.productVariants).innerJoin(schema.products, eq(schema.products.id, schema.productVariants.productId)).where(eq(schema.productVariants.tenantId, tenantId)).orderBy(schema.productVariants.sku);
+  const productIndex = new Map([...new Set(variants.map((v) => v.productId))].map((p, i) => [p, i]));
+  const links = variants.map((v) => {
+    const known = supplierOf.get(v.id);
+    const supplier = known ? suppliers.find((s) => s.id === known.supplierId)! : suppliers[(productIndex.get(v.productId) ?? 0) % suppliers.length]!;
+    return { tenantId, supplierId: supplier.id, variantId: v.id, supplierSku: v.sku ? `${supplier.name.slice(0, 3).toUpperCase()}-${v.sku}` : null, unitCostMinor: known?.cost ?? v.costMinor ?? null, moq: rng.chance(0.15) ? rng.pick([20, 30, 60]) : null, orderMultiple: null, leadTimeDays: rng.chance(0.2) ? (supplier.leadTimeDays ?? 21) + rng.int(-5, 10) : null, isPrimary: true };
+  });
+  for (let i = 0; i < links.length; i += 500) await db.insert(schema.supplierVariants).values(links.slice(i, i + 500));
+  // seasonal events in the next 12 months
+  const types = [...new Set(variants.map((v) => v.productType).filter((t): t is string => Boolean(t)))].sort();
+  const monthIn = (m: number) => {
+    const y = now.getUTCFullYear() + (m <= now.getUTCMonth() ? 1 : 0);
+    return `${y}-${String(m + 1).padStart(2, "0")}`;
+  };
+  const events = it
+    ? [
+        { name: "Black Friday", month: monthIn(10), upliftBps: 6000, scope: "all", scopeValue: null },
+        { name: "Natale", month: monthIn(11), upliftBps: 3500, scope: "all", scopeValue: null },
+        { name: "Saldi estivi", month: monthIn(6), upliftBps: 2500, scope: types[0] ? "product_type" : "all", scopeValue: types[0] ?? null },
+      ]
+    : [
+        { name: "Black Friday", month: monthIn(10), upliftBps: 5000, scope: "all", scopeValue: null },
+        { name: "Holiday season", month: monthIn(11), upliftBps: 3000, scope: "all", scopeValue: null },
+        { name: "Memorial Day sale", month: monthIn(4), upliftBps: 2000, scope: types[0] ? "product_type" : "all", scopeValue: types[0] ?? null },
+      ];
+  await db.insert(schema.demandEvents).values(events.map((e) => ({ tenantId, ...e })));
+  // two manual forecast corrections next month
+  const nextMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  const nm = `${nextMonth.getUTCFullYear()}-${String(nextMonth.getUTCMonth() + 1).padStart(2, "0")}`;
+  const overrides = variants.slice(0, 2).map((v, i) => ({ tenantId, variantId: v.id, month: nm, units: i === 0 ? 120 : 15, note: it ? (i === 0 ? "Campagna influencer prevista" : "Fine serie") : i === 0 ? "Retail partner launch" : "Phasing out" }));
+  await db.insert(schema.forecastOverrides).values(overrides);
+  // duties and freight on the open purchase orders, landed cost on their lines
+  const open = await db.select({ id: schema.purchaseOrders.id, total: schema.purchaseOrders.totalMinor }).from(schema.purchaseOrders).where(sql`${schema.purchaseOrders.tenantId} = ${tenantId} and ${schema.purchaseOrders.status} in ('sent','confirmed','in_transit')`).orderBy(schema.purchaseOrders.number);
+  const targets = open.length ? open.slice(0, 3) : (await db.select({ id: schema.purchaseOrders.id, total: schema.purchaseOrders.totalMinor }).from(schema.purchaseOrders).where(eq(schema.purchaseOrders.tenantId, tenantId)).orderBy(schema.purchaseOrders.number).limit(1));
+  for (const po of targets) {
+    const charges = [
+      { kind: "freight", amountMinor: Math.max(5000, Math.round(po.total * 0.04)), basis: "weight", note: it ? "Trasporto via camion" : "Ocean freight" },
+      { kind: "duty", amountMinor: Math.round(po.total * (it ? 0.08 : 0.12)), basis: "value", note: it ? "Dazi doganali" : "Import duty" },
+    ];
+    await db.insert(schema.purchaseOrderCharges).values(charges.map((c) => ({ tenantId, purchaseOrderId: po.id, ...c })));
+    const lines = await db.select({ id: schema.purchaseOrderLines.id, quantity: schema.purchaseOrderLines.quantity, unitCostMinor: schema.purchaseOrderLines.unitCostMinor, weightGrams: schema.productVariants.weightGrams }).from(schema.purchaseOrderLines).leftJoin(schema.productVariants, eq(schema.productVariants.id, schema.purchaseOrderLines.variantId)).where(eq(schema.purchaseOrderLines.purchaseOrderId, po.id));
+    for (const r of allocateLandedCost(lines, charges as { kind: "freight"; amountMinor: number; basis: "weight" }[])) await db.update(schema.purchaseOrderLines).set({ landedUnitCostMinor: r.landedUnitCostMinor }).where(eq(schema.purchaseOrderLines.id, r.id));
+  }
+  // stock imbalance between locations for a few fast movers, so the transfer planner has work to do
+  const fast = await db.execute<{ variant_id: string }>(sql`
+    select l.variant_id from order_lines l join orders o on o.id = l.order_id
+    where o.tenant_id = ${tenantId} and o.placed_at >= ${new Date(now.getTime() - 90 * 864e5)} and l.variant_id is not null
+      and l.variant_id in (select variant_id from inventory_levels where tenant_id = ${tenantId} group by 1 having count(*) >= 2)
+    group by 1 order by sum(l.current_quantity) desc, 1 limit 6`);
+  const locs = await db.select().from(schema.locations).where(eq(schema.locations.tenantId, tenantId));
+  const main = locs.find((l) => l.isDefault);
+  for (const r of fast.rows) {
+    const levels = await db.select().from(schema.inventoryLevels).where(eq(schema.inventoryLevels.variantId, r.variant_id));
+    const short = levels.find((l) => l.locationId !== main?.id);
+    const surplus = levels.find((l) => l.locationId === main?.id);
+    if (!short || !surplus) continue;
+    await db.update(schema.inventoryLevels).set({ available: 0, onHand: 0 }).where(eq(schema.inventoryLevels.id, short.id));
+    await db.update(schema.inventoryLevels).set({ available: surplus.available + short.available + 240, onHand: (surplus.onHand ?? surplus.available) + short.available + 240 }).where(eq(schema.inventoryLevels.id, surplus.id));
+  }
+  // one bundle and one bill of materials made of existing variants
+  if (variants.length >= 6) {
+    const [bundle, b1, b2, kit, m1, m2] = [variants[variants.length - 1]!, variants[0]!, variants[3]!, variants[variants.length - 2]!, variants[1]!, variants[4]!];
+    await db.insert(schema.bundleComponents).values([
+      { tenantId, parentVariantId: bundle.id, componentVariantId: b1.id, quantity: 1, kind: "bundle" },
+      { tenantId, parentVariantId: bundle.id, componentVariantId: b2.id, quantity: 2, kind: "bundle" },
+      { tenantId, parentVariantId: kit.id, componentVariantId: m1.id, quantity: 2, kind: "bom" },
+      { tenantId, parentVariantId: kit.id, componentVariantId: m2.id, quantity: 1, kind: "bom" },
+    ]);
+  }
 }
 
 /**
