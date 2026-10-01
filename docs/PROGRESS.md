@@ -281,7 +281,7 @@ Fatto (issue #6, chiusa; issue #38, chiusa):
 - Destinazioni dei segmenti tramite l'interfaccia `AudienceDestination`: pubblico personalizzato Meta, Customer Match Google, lista di uno strumento email. Sincronizzazione per differenza (aggiunte e rimozioni), idempotente, con stato ed errore leggibile, automatica dopo ogni cambiamento del segmento o su richiesta. Le piattaforme pubblicitarie ricevono solo hash SHA-256 di email e telefono normalizzati; solo clienti con consenso marketing. Adapter solo mock: i collegamenti reali sono nella issue #7.
 - Su richiesta del committente, campagne clienti e gruppi di controllo diventano l'add-on `addon.customer_campaigns` (99 $/mese, valore da confermare): senza l'add-on i segmenti non hanno campo di controllo né colonna gruppo, l'esportazione CSV e le destinazioni includono tutti i membri, le pagine delle campagne restituiscono 404. Northwind ha l'add-on, Harbor no.
 - Seed: segmento "clienti ricorrenti" live con una destinazione per negozio; Harbor senza controllo e senza campagne; Northwind con una seconda campagna (inviata da un altro strumento, senza effetto chiaro).
-- Migrazione 0015 (2 tabelle con RLS, una colonna con default); test E2E3.
+- Migrazione 0015 (2 tabelle con RLS, una colonna con default); test core 142, integrazioni 31, servizi 70, db 456, e2e 61.
 
 Resta: collegamenti reali per messaggistica e audience (issue #7); la landing non mostra ancora l'add-on campagne.
 
