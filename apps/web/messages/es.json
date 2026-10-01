@@ -3249,7 +3249,8 @@
     "tracking_page": "Página pública de seguimiento de pedidos",
     "label_enabled": "Dar al cliente una etiqueta de devolución prepagada",
     "label_destination": "Dirección de devolución en la etiqueta",
-    "label_hint": "La etiqueta se emite al enviar la solicitud y su seguimiento se guarda en la devolución. En esta versión el proveedor de etiquetas es simulado."
+    "label_hint": "La etiqueta se emite al enviar la solicitud y su seguimiento se guarda en la devolución. En esta versión el proveedor de etiquetas es simulado.",
+    "off_notice": "El portal está desactivado: quien abre {url} ve \"página no encontrada\". Activa \"Portal activo\" abajo y guarda."
   },
   "return_portal": {
     "default_title": "Devolver un artículo",

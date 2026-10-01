@@ -5,8 +5,10 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "../schema";
 import { generateTenantDataset, type TenantSeedConfig } from "./generator";
 import { writeDataset } from "./writer";
+import { DEMO_COD_SETTINGS, DEMO_RETURN_COSTS, REASON_LABELS, REASON_PLATFORM, demoConversionSettings, demoPixelSettings, demoPortalConfig, demoReturnPolicy, demoSurveySettings } from "./settings";
+export { ensureDemoSettings } from "./settings";
 import { createRng } from "@keel/integrations";
-import { DEFAULT_SURVEY_CONFIG, SALE_STATUSES, allocateLandedCost, normalizePhone, runPredictionModel, type CustomerHistory } from "@keel/core";
+import { SALE_STATUSES, allocateLandedCost, normalizePhone, runPredictionModel, type CustomerHistory } from "@keel/core";
 import { MODULES, PLANS, PLATFORM_CURRENCY } from "@keel/config";
 import { encryptJson } from "@keel/integrations";
 import { sql } from "drizzle-orm";
@@ -287,7 +289,7 @@ async function seedRetentionCampaigns(db: ReturnType<typeof drizzle<typeof schem
  * podcasts), which is what the survey is for. The secret is fixed so demo links are reproducible.
  */
 async function seedSurvey(db: ReturnType<typeof drizzle<typeof schema>>, key: keyof typeof DEMO_TENANTS, tenantId: string, now: Date) {
-  await db.insert(schema.surveySettings).values({ tenantId, enabled: true, config: DEFAULT_SURVEY_CONFIG, secret: `demo-${key}-survey-secret-0001` });
+  await db.insert(schema.surveySettings).values(demoSurveySettings(key, tenantId));
   const locale = DEMO_TENANTS[key].defaultLocale;
   await db.execute(sql`
     with picked as (
@@ -321,7 +323,7 @@ async function seedSurvey(db: ReturnType<typeof drizzle<typeof schema>>, key: ke
 async function seedTracking(db: ReturnType<typeof drizzle<typeof schema>>, key: keyof typeof DEMO_TENANTS, tenantId: string, now: Date) {
   const rng = createRng(key === "northwind" ? 7101 : 7102);
   const DAY = 864e5;
-  await db.insert(schema.pixelSettings).values({ tenantId, publicKey: key === "northwind" ? "px_northwindDemoKey01" : "px_harborDemoKey0001", lookbackDays: 30 });
+  await db.insert(schema.pixelSettings).values(demoPixelSettings(key, tenantId));
   const orders = (await db.execute<{ id: string; external_id: string | null; customer_id: string | null; placed_at: string | Date; email: string | null }>(sql`
     select id, external_id, customer_id, placed_at, email_normalized as email from orders
     where tenant_id = ${tenantId} and placed_at >= ${new Date(now.getTime() - 14 * DAY)} and status in ('confirmed','fulfilling','shipped','delivered','returned_partial') order by placed_at`)).rows;
@@ -360,10 +362,7 @@ async function seedTracking(db: ReturnType<typeof drizzle<typeof schema>>, key: 
   await db.execute(sql`update pixel_identities i set email_sha256 = encode(sha256(convert_to(o.email_normalized, 'UTF8')), 'hex') from orders o where i.tenant_id = ${tenantId} and o.tenant_id = ${tenantId} and o.external_id = i.order_external_id and o.email_normalized is not null`);
 
   // server-side conversions: both platforms on, consent required; the last week's log
-  await db.insert(schema.conversionSettings).values([
-    { tenantId, provider: "meta", enabled: true, destinationId: "1234567890123456", requireConsent: true, lookbackDays: 7 },
-    { tenantId, provider: "google", enabled: true, destinationId: "987654321", requireConsent: true, lookbackDays: 30 },
-  ]);
+  await db.insert(schema.conversionSettings).values(demoConversionSettings(tenantId));
   for (const provider of ["meta", "google"]) {
     await db.execute(sql`
       insert into conversion_events (tenant_id, provider, order_id, event_id, status, reason, attempts, last_error, sent_at, created_at)
@@ -515,16 +514,6 @@ async function seedAnalyticsExtras(db: ReturnType<typeof drizzle<typeof schema>>
   if (owner) await db.insert(schema.dashboards).values({ tenantId, userId: owner, name: it ? "La mia dashboard" : "My dashboard", isDefault: true, widgets: [{ metric: "net_revenue" }, { metric: "orders" }, { metric: "mer" }, { metric: "poas" }, { metric: "custom:profit_per_order" }, { metric: "custom:ads_share" }, { metric: "new_customers" }, { metric: "operating_profit" }] });
 }
 
-const REASON_LABELS: Record<string, Record<string, string>> = {
-  wrong_size: { en: "Wrong size or fit", it: "Taglia sbagliata", es: "Talla incorrecta" },
-  changed_mind: { en: "Changed my mind", it: "Ho cambiato idea", es: "He cambiado de opinión" },
-  defective: { en: "Defective", it: "Difettoso", es: "Defectuoso" },
-  damaged: { en: "Damaged in transit", it: "Danneggiato nel trasporto", es: "Dañado en el transporte" },
-  not_as_described: { en: "Not as described", it: "Non conforme alla descrizione", es: "No coincide con la descripción" },
-  wrong_item: { en: "Wrong item received", it: "Articolo sbagliato", es: "Artículo equivocado" },
-  other: { en: "Other", it: "Altro", es: "Otro" },
-};
-const REASON_PLATFORM: Record<string, string> = { wrong_size: "SIZE_TOO_SMALL", changed_mind: "UNWANTED", defective: "DEFECTIVE", damaged: "DEFECTIVE", not_as_described: "NOT_AS_DESCRIBED", wrong_item: "WRONG_ITEM" };
 /** 1×1 PNG used as a stand-in for customer photos in the demo. */
 const DEMO_PHOTO = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64");
 
@@ -537,32 +526,10 @@ async function seedReturnsExtras(db: ReturnType<typeof drizzle<typeof schema>>, 
   const it = key === "northwind";
   const rng = createRng(it ? 5151 : 5252);
   for (const [code, labels] of Object.entries(REASON_LABELS)) await db.update(schema.returnReasons).set({ labels, platformReason: REASON_PLATFORM[code] ?? null }).where(sql`${schema.returnReasons.tenantId} = ${tenantId} and ${schema.returnReasons.code} = ${code}`);
-  await db.insert(schema.returnPortalSettings).values({
-    tenantId,
-    config: {
-      enabled: true,
-      primaryColor: it ? "#1f3a5f" : "#3d5a40",
-      title: it ? { it: "Reso o cambio", en: "Return or exchange", es: "Devolución o cambio" } : { en: "Start a return", es: "Iniciar una devolución", it: "Avvia un reso" },
-      intro: it ? { it: "Hai 30 giorni dalla consegna. Ti servono il numero d'ordine e l'email usata per l'acquisto.", en: "You have 30 days from delivery. You need the order number and the email used for the purchase." } : { en: "You have 30 days from delivery to send items back. Have your order number and email at hand." },
-      instructions: it ? { it: "Spedisci a: Northwind Apparel, Magazzino resi, Via dell'Industria 12, 40100 Bologna.\nImballa gli articoli nella confezione originale con il numero di reso all'esterno.", en: "Ship to: Northwind Apparel, Returns, Via dell'Industria 12, 40100 Bologna, Italy.\nPack the items in the original box with the return number on the outside." } : { en: "Ship to: Harbor Home Returns, 400 Dock St, Newark NJ 07105.\nUse a sturdy box and write the return number on the label." },
-      successMessage: it ? { it: "Ti scriveremo appena il pacco arriva in magazzino.", en: "We will write to you as soon as the parcel reaches our warehouse." } : { en: "We will email you when your return arrives and is checked." },
-      confirmText: it ? { it: "Confermo che gli articoli sono integri e con le etichette.", en: "I confirm the items are unworn and with their tags." } : {},
-      resolutions: it ? ["refund", "exchange", "voucher"] : ["refund", "voucher"],
-      bankDetailsFor: it ? ["cod", "bank_transfer"] : ["bank_transfer"],
-      lookupBy: it ? "email_or_phone" : "email",
-      tracking: it ? { mode: "optional", carriers: ["Poste Italiane", "DHL", "UPS"] } : { mode: "optional", carriers: ["UPS", "USPS", "FedEx"] },
-      photos: { mode: "optional", max: 3 },
-      supportEmail: it ? "assistenza@northwind.example" : "help@harborhome.example",
-      trackingPage: true,
-      returnLabel: it ? { enabled: true, destination: "Northwind Apparel - Resi\nVia dell'Industria 12\n40100 Bologna BO\nItalia" } : { enabled: false, destination: "Harbor Home Returns\n400 Dock St\nNewark NJ 07105" },
-      fields: it
-        ? [{ key: "worn", type: "checkbox", label: { it: "Ho provato il capo solo in casa", en: "I only tried the item on at home" }, required: false, options: [], optionLabels: {} }]
-        : [{ key: "packaging", type: "select", label: { en: "Original packaging", es: "Embalaje original" }, required: true, options: ["yes", "partial", "no"], optionLabels: { yes: { en: "Yes, complete" }, partial: { en: "Partly" }, no: { en: "No" } } }],
-    },
-  });
+  await db.insert(schema.returnPortalSettings).values({ tenantId, config: demoPortalConfig(key) });
   await db.insert(schema.publicRateLimits).values({ tenantId, key: "lookup:ip:demo", windowStart: now, count: 1 });
   // what a return costs the store (label and handling), for the P/L; merged into existing settings
-  await db.execute(sql`update tenants set settings = coalesce(settings, '{}'::jsonb) || ${JSON.stringify(it ? { returnLabelCostMinor: 650, returnHandlingCostMinor: 250, returnShippingCostMinor: 590 } : { returnLabelCostMinor: 900, returnHandlingCostMinor: 300 })}::jsonb where id = ${tenantId}`);
+  await db.execute(sql`update tenants set settings = coalesce(settings, '{}'::jsonb) || ${JSON.stringify(DEMO_RETURN_COSTS[key])}::jsonb where id = ${tenantId}`);
   // recent returns: a share from the portal, with the store write-back state
   const recent = await db.execute<{ id: string; status: string; resolution: string; payment_method: string; external_id: string | null; created: Date }>(sql`
     select r.id, r.status, r.resolution, o.payment_method, o.external_id, r.requested_at as created
@@ -604,26 +571,7 @@ async function seedReturnsExtras(db: ReturnType<typeof drizzle<typeof schema>>, 
   }
   // return policy: longer windows abroad and for gifts, exclusions, final sale, limit, automations
   const types = (await db.selectDistinct({ v: schema.products.productType }).from(schema.products).where(eq(schema.products.tenantId, tenantId))).map((x) => x.v).filter((x): x is string => Boolean(x)).sort();
-  await db.insert(schema.returnPolicies).values({
-    tenantId,
-    policy: {
-      windows: it
-        ? [{ countries: ["DE", "AT", "FR", "ES"], productTypes: [], tags: [], days: 30 }, { countries: [], productTypes: [], tags: ["new"], days: 21 }]
-        : [{ countries: [], productTypes: types.slice(0, 1), tags: [], days: 60 }, { countries: ["CA"], productTypes: [], tags: [], days: 45 }],
-      exclusions: { productTypes: it ? [] : types.slice(-1), skuPrefixes: it ? ["GIFT-"] : [], titleContains: it ? ["gift card", "buono regalo"] : ["gift card"], tags: [] },
-      finalSaleDiscountBps: it ? 5000 : 6000,
-      creditBonusBps: it ? 1000 : 500,
-      exchanges: { enabled: true, refundDifference: true },
-      instantExchange: { enabled: false, days: 21 },
-      customerLimit: it ? { count: 4, days: 90 } : null,
-      risk: { days: 365, watchRateBps: 3000, highRateBps: 5000, minReturns: 3, quickReturnDays: 3, highValueMinor: it ? 40000 : 80000 },
-      automations: [
-        { id: "flag-risky", name: it ? "Segnala clienti a rischio" : "Flag risky customers", active: true, trigger: "created", action: "flag", fault: null, note: it ? "Controlla lo storico prima di approvare" : "Check the history before approving", conditions: { maxAmountMinor: null, minAmountMinor: null, reasonCodes: [], resolutions: [], sources: [], productTypes: [], maxRisk: null, minRisk: "watch", firstReturnOnly: false } },
-        { id: "keep-cheap", name: it ? "Tieni gli articoli economici danneggiati" : "Keep cheap damaged items", active: true, trigger: "created", action: "returnless", fault: null, note: null, conditions: { maxAmountMinor: it ? 1500 : 2500, minAmountMinor: null, reasonCodes: ["damaged", "defective"], resolutions: [], sources: [], productTypes: [], maxRisk: "watch", minRisk: null, firstReturnOnly: false } },
-        { id: "approve-first", name: it ? "Approva il primo reso dal portale" : "Approve first portal returns", active: true, trigger: "created", action: "approve", fault: null, note: null, conditions: { maxAmountMinor: it ? 15000 : 30000, minAmountMinor: null, reasonCodes: [], resolutions: [], sources: ["portal"], productTypes: [], maxRisk: "none", minRisk: null, firstReturnOnly: true } },
-      ],
-    },
-  });
+  await db.insert(schema.returnPolicies).values({ tenantId, policy: demoReturnPolicy(key, types) });
   // a few serial returners with an open return: earlier refunded returns on their other delivered orders
   const candidates = await db.execute<{ customer_id: string }>(sql`
     select o.customer_id from return_requests r join orders o on o.id = r.order_id
@@ -808,23 +756,7 @@ async function seedCod(db: ReturnType<typeof drizzle<typeof schema>>, ctx: SeedC
   // the third operator only handles modification requests: skill routing by tag
   for (const [i, userId] of operators.entries()) await db.insert(schema.codOperatorCapacity).values({ tenantId, userId, dailyHours: hours[i]!, isActive: 1, allowedTags: i === 2 ? ["Richiesta modifica", "Da chiamare"] : [] }).onConflictDoNothing();
   if (operators[1]) await db.insert(schema.codCapacityExceptions).values({ tenantId, userId: operators[1], date: new Date(now.getTime() + 2 * 864e5).toISOString().slice(0, 10), kind: "off", note: "Day off" }).onConflictDoNothing();
-  const tags = {
-    queue: ["Da confermare", "Da chiamare", "Richiesta modifica"],
-    confirmed: ["Confermato", "Già pagato*"],
-    cancelled: ["Annullato*", "Da annullare"],
-    clearQueueTagsOnClose: true,
-    write: {
-      entered: { add: ["Da confermare"], remove: [] },
-      confirmed: { add: ["Confermato"], remove: [] },
-      no_answer: { add: [], remove: [] },
-      call_back: { add: ["Da chiamare"], remove: ["Da confermare"] },
-      modified: { add: ["Richiesta modifica"], remove: [] },
-      cancelled: { add: ["Annullato"], remove: ["Confermato"] },
-      unreachable: { add: ["Non raggiungibile"], remove: [] },
-      replaced: { add: ["Annullato per variazione"], remove: ["Confermato"] },
-    },
-  };
-  await db.insert(schema.codSettings).values({ tenantId, config: { queueCutoffDays: 60, tags } }).onConflictDoNothing();
+  await db.insert(schema.codSettings).values({ tenantId, config: DEMO_COD_SETTINGS }).onConflictDoNothing();
   const open = await db.execute<{ id: string; placed_at: Date }>(sql`select o.id, o.placed_at from orders o where o.tenant_id = ${tenantId} and o.payment_method = 'cod' and o.status in ('new','pending_review') and o.cancelled_at is null and not exists (select 1 from shipments s where s.order_id = o.id) and o.placed_at > ${new Date(now.getTime() - 60 * 864e5)} order by o.placed_at`);
   // small test seeds may have no open COD order: fall back to recent COD orders as closed items so every table has rows
   const isOpen = open.rows.length > 0;

@@ -3249,7 +3249,8 @@
     "tracking_page": "Pagina pubblica di tracking degli ordini",
     "label_enabled": "Fornisci al cliente un'etichetta di reso prepagata",
     "label_destination": "Indirizzo di reso sull'etichetta",
-    "label_hint": "L'etichetta viene emessa all'invio e il suo tracking viene salvato sul reso. In questa versione il fornitore delle etichette è simulato."
+    "label_hint": "L'etichetta viene emessa all'invio e il suo tracking viene salvato sul reso. In questa versione il fornitore delle etichette è simulato.",
+    "off_notice": "Il portale è spento: chi apre {url} vede \"pagina non trovata\". Attiva \"Portale attivo\" qui sotto e salva."
   },
   "return_portal": {
     "default_title": "Richiedi un reso",

@@ -3249,7 +3249,8 @@
     "tracking_page": "Public order tracking page",
     "label_enabled": "Give the customer a prepaid return label",
     "label_destination": "Return address on the label",
-    "label_hint": "The label is issued at submission and its tracking code is stored on the return. In this version the label provider is simulated."
+    "label_hint": "The label is issued at submission and its tracking code is stored on the return. In this version the label provider is simulated.",
+    "off_notice": "The portal is off: customers who open {url} get a \"page not found\". Turn on \"Portal active\" below and save."
   },
   "return_portal": {
     "default_title": "Return an item",

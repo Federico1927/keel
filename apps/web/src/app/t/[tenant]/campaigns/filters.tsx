@@ -13,12 +13,12 @@ export function CampaignFilters({ basePath, keep, platform, status }: { basePath
   };
   return (
     <div className="flex flex-wrap gap-2">
-      <Select aria-label={t("columns.platform")} value={platform ?? ""} onChange={(e) => go({ platform: e.target.value || undefined })} className="h-9 w-40">
+      <Select size="sm" aria-label={t("columns.platform")} value={platform ?? ""} onChange={(e) => go({ platform: e.target.value || undefined })} className="w-40">
         <option value="">{t("all_platforms")}</option>
         <option value="meta">{t("platform.meta")}</option>
         <option value="google">{t("platform.google")}</option>
       </Select>
-      <Select aria-label={t("columns.status")} value={status ?? ""} onChange={(e) => go({ status: e.target.value || undefined })} className="h-9 w-40">
+      <Select size="sm" aria-label={t("columns.status")} value={status ?? ""} onChange={(e) => go({ status: e.target.value || undefined })} className="w-40">
         <option value="">{t("all_statuses")}</option>
         {["active", "paused", "archived"].map((s) => (
           <option key={s} value={s}>{t(`status.${s}`)}</option>

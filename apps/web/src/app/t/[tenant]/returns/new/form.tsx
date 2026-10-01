@@ -81,12 +81,12 @@ export function NewReturnForm({ slug, orderId, lines, reasons, eligible, eligibi
                 </div>
                 <div className="text-right tabular">{formatMoney(l.unitNetMinor, currency, locale)}</div>
                 {resolution === "exchange" && (qty[l.id] ?? 0) > 0 && l.exchangeOptions.length > 0 && (
-                  <select aria-label={t("exchange_for", { title: l.title })} className="col-span-3 h-8 rounded-md border border-input bg-card px-2 text-sm" value={exchangeFor[l.id] ?? ""} onChange={(e) => setExchangeFor({ ...exchangeFor, [l.id]: e.target.value })} data-testid="exchange-variant">
+                  <Select size="sm" aria-label={t("exchange_for", { title: l.title })} wrapperClassName="col-span-3" value={exchangeFor[l.id] ?? ""} onChange={(e) => setExchangeFor({ ...exchangeFor, [l.id]: e.target.value })} data-testid="exchange-variant">
                     <option value="">{t("exchange_none")}</option>
                     {l.exchangeOptions.map((o) => <option key={o.variantId} value={o.variantId}>{o.title} · {formatMoney(o.priceMinor, currency, locale)}</option>)}
-                  </select>
+                  </Select>
                 )}
-                <Input type="number" min={0} max={maxFor(l)} value={qty[l.id] ?? 0} disabled={maxFor(l) === 0 || blocked} onChange={(e) => setQty({ ...qty, [l.id]: Math.max(0, Math.min(maxFor(l), Number(e.target.value) || 0)) })} aria-label={t("qty_for", { title: l.title })} className="h-8" />
+                <Input size="sm" type="number" min={0} max={maxFor(l)} value={qty[l.id] ?? 0} disabled={maxFor(l) === 0 || blocked} onChange={(e) => setQty({ ...qty, [l.id]: Math.max(0, Math.min(maxFor(l), Number(e.target.value) || 0)) })} aria-label={t("qty_for", { title: l.title })} />
               </div>
             ))}
           </CardContent>

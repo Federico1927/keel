@@ -3,6 +3,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { SUPPORTED_LOCALES } from "@keel/config";
+import { Select } from "@keel/ui";
 import { setLocaleAction } from "@/i18n/locale-actions";
 
 export function LocaleSwitcher({ className }: { className?: string }) {
@@ -13,9 +14,9 @@ export function LocaleSwitcher({ className }: { className?: string }) {
   return (
     <label className={className}>
       <span className="sr-only">{t("language")}</span>
-      <select
+      <Select
+        size="sm"
         aria-label={t("language")}
-        className="h-9 rounded-md border border-input bg-card px-2 text-sm"
         value={locale}
         disabled={pending}
         onChange={(e) => {
@@ -31,7 +32,7 @@ export function LocaleSwitcher({ className }: { className?: string }) {
             {t(`locales.${l}`)}
           </option>
         ))}
-      </select>
+      </Select>
     </label>
   );
 }

@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import { adminDb, and, eq, schema, withTenant, type Transaction } from "@keel/db";
 import { parseTenantSettings, type TenantSettings } from "@keel/core";
 import { canDo, canViewPage, canWritePage, isPageEnabled, type ActionKey, type PageKey, type TenantRole } from "@keel/config";
@@ -56,7 +57,8 @@ export const getTenantContext = cache(async (slug: string): Promise<TenantContex
     role,
     activeAddons: addons.map((a) => a.moduleKey),
     impersonation,
-    locale: user.locale ?? tenant.defaultLocale,
+    // the language the page is shown in (picker cookie, set from the profile at sign-in), so formats match the text
+    locale: await getLocale(),
     run: (fn) => withTenant(tenant.id, fn),
   };
   return ctx;

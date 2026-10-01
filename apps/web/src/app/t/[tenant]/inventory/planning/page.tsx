@@ -5,7 +5,7 @@ import { canWritePage } from "@keel/config";
 import { formatDate, formatMoney, formatNumber, formatPercent } from "@keel/core";
 import { and, eq, schema } from "@keel/db";
 import { bundleReport, cashFlowPlan, listDemandEvents, materialRequirements, productForecast, replenishmentPlan, revenueTargetPlan, stockAnalysisReport, transferPlan, type ServiceContext } from "@keel/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { BundleForm, CashChart, DeleteComponentButton, DeleteEventButton, DemandEventForm, ForecastChart, OverrideCell, ReplenishmentTable, TransferButton } from "./controls";
 
@@ -140,9 +140,9 @@ export default async function PlanningPage({ params, searchParams }: { params: P
             <div className="space-y-4">
               <form method="get" className="flex flex-wrap items-center gap-2">
                 <input type="hidden" name="tab" value="forecast" />
-                <select name="product" defaultValue={productId} className="h-9 max-w-xs rounded-md border border-input bg-card px-2 text-sm" aria-label={t("forecast.product")}>
+                <Select size="sm" name="product" defaultValue={productId} className="max-w-xs" aria-label={t("forecast.product")}>
                   {products.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
-                </select>
+                </Select>
                 <button type="submit" className="h-9 rounded-md border bg-secondary px-3 text-sm">{t("apply")}</button>
               </form>
               {fc && (
@@ -408,9 +408,9 @@ export default async function PlanningPage({ params, searchParams }: { params: P
               </label>
               <label className="space-y-1 text-sm">
                 <span className="block text-xs text-muted-foreground">{t("target.months")}</span>
-                <select name="months" defaultValue={String(months)} className="h-9 rounded-md border border-input bg-card px-2">
+                <Select size="sm" name="months" defaultValue={String(months)} className="w-auto">
                   {[1, 2, 3, 6, 12].map((m) => <option key={m} value={m}>{m}</option>)}
-                </select>
+                </Select>
               </label>
               <button type="submit" className="h-9 rounded-md border bg-secondary px-3 text-sm" data-testid="target-submit">{t("target.compute")}</button>
             </form>

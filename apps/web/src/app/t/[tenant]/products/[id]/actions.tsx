@@ -29,7 +29,7 @@ export function VariantPriceForm({ slug, variantId, price }: { slug: string; var
   return (
     <form action={action} className="inline-flex items-center justify-end gap-1">
       <input type="hidden" name="variantId" value={variantId} />
-      <Input name="price" type="number" step="0.01" min="0" value={value} onChange={(e) => setValue(e.target.value)} className="h-8 w-24 text-right" aria-label={t("variant.price")} />
+      <Input size="sm" name="price" type="number" step="0.01" min="0" value={value} onChange={(e) => setValue(e.target.value)} className="w-24 text-right" aria-label={t("variant.price")} />
       {Number(value) !== price && (
         <Button type="submit" size="sm" variant="secondary" disabled={pending}>
           {t("save_price")}

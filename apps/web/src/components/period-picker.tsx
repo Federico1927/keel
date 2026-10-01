@@ -29,8 +29,8 @@ export function PeriodPicker({ basePath, keep = {}, preset, from, to }: { basePa
           go({ from: f, to: tt });
         }}
       >
-        <Input type="date" value={f} onChange={(e) => setF(e.target.value)} className="h-8 w-36" aria-label={t("from")} />
-        <Input type="date" value={tt} onChange={(e) => setTt(e.target.value)} className="h-8 w-36" aria-label={t("to")} />
+        <Input size="sm" type="date" value={f} onChange={(e) => setF(e.target.value)} className="w-36" aria-label={t("from")} />
+        <Input size="sm" type="date" value={tt} onChange={(e) => setTt(e.target.value)} className="w-36" aria-label={t("to")} />
         <Button type="submit" size="sm" variant="secondary">{t("apply")}</Button>
       </form>
     </div>

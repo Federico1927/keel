@@ -174,7 +174,7 @@ function GroupEditor({ node, depth, options, currency, disabled, onChange, onRem
     <div className={cn("rounded-lg border p-3", depth > 1 && "bg-muted/30")} data-testid="rule-group">
       <div className="mb-2 flex flex-wrap items-center gap-2 text-sm">
         <span>{t("match_prefix")}</span>
-        <Select value={node.match} onChange={(e) => onChange({ ...node, match: e.target.value as "all" | "any" })} disabled={disabled} className="h-8 w-28" aria-label={t("match_label")}>
+        <Select size="sm" value={node.match} onChange={(e) => onChange({ ...node, match: e.target.value as "all" | "any" })} disabled={disabled} className="w-28" aria-label={t("match_label")}>
           <option value="all">{t("match.all")}</option>
           <option value="any">{t("match.any")}</option>
         </Select>
@@ -222,7 +222,7 @@ function LeafEditor({ leaf, options, currency, disabled, onChange, onRemove }: {
   const grouped = FIELD_ORDER.reduce<Record<string, string[]>>((acc, f) => ((acc[SEGMENT_FIELDS[f]!.group] ??= []).push(f), acc), {});
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-md border bg-card p-2" data-testid="rule-leaf">
-      <Select value={leaf.field} onChange={(e) => setField(e.target.value)} disabled={disabled} className="h-8 w-52" aria-label={t("field")}>
+      <Select size="sm" value={leaf.field} onChange={(e) => setField(e.target.value)} disabled={disabled} className="w-52" aria-label={t("field")}>
         {Object.entries(grouped).map(([g, fields]) => (
           <optgroup key={g} label={t(`groups.${g}`)}>
             {fields.map((f) => (
@@ -231,7 +231,7 @@ function LeafEditor({ leaf, options, currency, disabled, onChange, onRemove }: {
           </optgroup>
         ))}
       </Select>
-      <Select value={leaf.op} onChange={(e) => setOp(e.target.value as SegmentOp)} disabled={disabled} className="h-8 w-40" aria-label={t("operator")}>
+      <Select size="sm" value={leaf.op} onChange={(e) => setOp(e.target.value as SegmentOp)} disabled={disabled} className="w-40" aria-label={t("operator")}>
         {ops.map((o) => (
           <option key={o} value={o}>{t(`ops.${o}`)}</option>
         ))}
@@ -257,9 +257,9 @@ function ValueEditor({ leaf, options, currency, disabled, onChange }: { leaf: Se
     const [a, b] = Array.isArray(leaf.value) ? (leaf.value as number[]) : [0, 0];
     return (
       <span className="flex items-center gap-1">
-        <Input type="number" className="h-8 w-24" value={num(a) / scale} onChange={(e) => onChange([Math.round(Number(e.target.value) * scale), b])} disabled={disabled} aria-label={t("from")} />
+        <Input size="sm" type="number" className="w-24" value={num(a) / scale} onChange={(e) => onChange([Math.round(Number(e.target.value) * scale), b])} disabled={disabled} aria-label={t("from")} />
         <span className="text-xs">–</span>
-        <Input type="number" className="h-8 w-24" value={num(b) / scale} onChange={(e) => onChange([a, Math.round(Number(e.target.value) * scale)])} disabled={disabled} aria-label={t("to")} />
+        <Input size="sm" type="number" className="w-24" value={num(b) / scale} onChange={(e) => onChange([a, Math.round(Number(e.target.value) * scale)])} disabled={disabled} aria-label={t("to")} />
         {def.money && <span className="text-xs text-muted-foreground">{currency}</span>}
       </span>
     );
@@ -267,14 +267,14 @@ function ValueEditor({ leaf, options, currency, disabled, onChange }: { leaf: Se
   if (def.type === "number" || def.type === "days") {
     return (
       <span className="flex items-center gap-1">
-        <Input type="number" className="h-8 w-28" value={num(leaf.value) / scale} onChange={(e) => onChange(Math.round(Number(e.target.value) * scale))} disabled={disabled} aria-label={t("value")} />
+        <Input size="sm" type="number" className="w-28" value={num(leaf.value) / scale} onChange={(e) => onChange(Math.round(Number(e.target.value) * scale))} disabled={disabled} aria-label={t("value")} />
         <span className="text-xs text-muted-foreground">{def.money ? currency : def.type === "days" ? t("days") : ""}</span>
       </span>
     );
   }
   if (def.type === "boolean") {
     return (
-      <Select value={leaf.value === false ? "false" : "true"} onChange={(e) => onChange(e.target.value === "true")} disabled={disabled} className="h-8 w-28" aria-label={t("value")}>
+      <Select size="sm" value={leaf.value === false ? "false" : "true"} onChange={(e) => onChange(e.target.value === "true")} disabled={disabled} className="w-28" aria-label={t("value")}>
         <option value="true">{t("true")}</option>
         <option value="false">{t("false")}</option>
       </Select>
@@ -308,7 +308,7 @@ function ValueEditor({ leaf, options, currency, disabled, onChange }: { leaf: Se
           )}
         </span>
       ))}
-      <Select value="" onChange={(e) => e.target.value && !selected.includes(e.target.value) && onChange([...selected, e.target.value])} disabled={disabled} className="h-8 w-44" aria-label={t("add_value")}>
+      <Select size="sm" value="" onChange={(e) => e.target.value && !selected.includes(e.target.value) && onChange([...selected, e.target.value])} disabled={disabled} className="w-44" aria-label={t("add_value")}>
         <option value="">{t("add_value")}</option>
         {pick.filter((p) => !selected.includes(p.value)).map((p) => (
           <option key={p.value} value={p.value}>{p.label}</option>
