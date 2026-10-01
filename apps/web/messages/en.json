@@ -28,7 +28,9 @@
       "cannot_change_self": "You cannot change your own membership.",
       "unknown": "Something went wrong.",
       "already_cancelled": "The order is already cancelled.",
-      "platform_error": "The commerce platform rejected the request."
+      "platform_error": "The commerce platform rejected the request.",
+      "ads_read_only": "This ads platform is read-only in this version.",
+      "ads_platform_error": "The ads platform rejected the request."
     },
     "edit": "Edit"
   },
@@ -841,5 +843,132 @@
       "month": "M+{n}",
       "empty": "Not enough history yet."
     }
+  },
+  "campaigns": {
+    "title": "Campaigns & stock",
+    "description": "Spend from the ads platforms, profit only on orders that were not cancelled or returned, and a recommendation that looks at the stock of the linked products.",
+    "ledger": "Daily register",
+    "all_platforms": "All platforms",
+    "all_statuses": "All statuses",
+    "empty_title": "No campaigns",
+    "empty_description": "Connect Meta or Google Ads to import campaigns.",
+    "suggestions_title": "Campaigns to link",
+    "suggestions_description": "Suggested from the campaign name and the landing pages of attributed orders. Only exact matches are linked automatically.",
+    "link": "Link",
+    "auto_link": "Link all exact matches",
+    "linked_n": "{n} linked",
+    "light": {
+      "good": "Good",
+      "medium": "Medium",
+      "bad": "Bad",
+      "none": "No data"
+    },
+    "action": {
+      "ok": "Keep running",
+      "pause": "Pause",
+      "resume": "Resume",
+      "consider_pause": "Consider pausing",
+      "consider_resume": "Consider resuming",
+      "pause_stock": "Pause: stock below threshold",
+      "consider_stock": "Watch: stock low"
+    },
+    "restock": {
+      "reorder": "Reorder",
+      "ok": "Stock OK",
+      "unknown": "No stock data"
+    },
+    "reason": {
+      "stock_below_threshold": "Linked products are below the stock threshold with nothing incoming.",
+      "stock_below_threshold_incoming_none": "Stock is low and no purchase order is on the way.",
+      "stock_below_threshold_incoming": "Stock is low but a purchase order is incoming.",
+      "not_repurchasable": "The product cannot be repurchased.",
+      "roi_bad": "ROI below the medium threshold.",
+      "roi_medium": "ROI between the thresholds.",
+      "roi_good": "ROI above the good threshold.",
+      "no_data": "No spend or orders in the period."
+    },
+    "columns": {
+      "campaign": "Campaign",
+      "status": "Status",
+      "spend": "Spend",
+      "orders": "Orders",
+      "revenue": "Net revenue",
+      "margin": "Margin",
+      "profit": "Profit",
+      "roas": "ROAS",
+      "roi": "ROI",
+      "cpa": "CPA",
+      "light": "Health",
+      "action": "Recommendation",
+      "stock": "Stock",
+      "platform": "Platform"
+    },
+    "status": {
+      "active": "Active",
+      "paused": "Paused",
+      "archived": "Archived"
+    },
+    "totals": "Total",
+    "platform": {
+      "meta": "Meta",
+      "google": "Google Ads"
+    }
+  },
+  "campaign_detail": {
+    "back": "Campaigns",
+    "linked_products": "Linked products",
+    "no_products": "No product linked yet. Link one to get stock-aware recommendations.",
+    "link_product": "Link a product",
+    "search_product": "Search product",
+    "primary": "primary",
+    "set_primary": "Set primary",
+    "unlink": "Unlink",
+    "suggestions": "Suggestions",
+    "pause": "Pause campaign",
+    "resume": "Resume campaign",
+    "pause_title": "Pause this campaign on {platform}?",
+    "pause_description": "The change is sent to the ads platform now and recorded in the audit log. Spend stops at the next platform sync.",
+    "resume_title": "Resume this campaign on {platform}?",
+    "resume_description": "The campaign starts spending again on the ads platform.",
+    "confirm": "Confirm",
+    "read_only": "{platform} is read-only in this version: pause it from the platform.",
+    "daily": "Daily register",
+    "reorder_hint": "Stock of linked products is {stock} units against a threshold of {threshold}. Suggested reorder: {units} units.",
+    "create_po": "Create purchase order",
+    "kpi": {
+      "spend": "Spend",
+      "orders": "Attributed sales",
+      "revenue": "Net revenue",
+      "margin": "Margin",
+      "profit": "Profit",
+      "roas": "ROAS",
+      "roi": "ROI",
+      "cpa": "CPA",
+      "cpc": "CPC",
+      "cr": "Conversion"
+    },
+    "ledger": {
+      "date": "Date",
+      "spend": "Spend",
+      "impressions": "Impr.",
+      "clicks": "Clicks",
+      "orders": "Orders",
+      "revenue": "Net revenue",
+      "margin": "Margin",
+      "profit": "Profit",
+      "roas": "ROAS",
+      "flags": {
+        "no_ads_data": "no ads data",
+        "no_order_data": "no orders"
+      }
+    }
+  },
+  "campaign_ledger": {
+    "title": "Ads daily register",
+    "description": "One row per day and campaign; ratios are recalculated on every read, missing data is flagged instead of shown as zero.",
+    "export_csv": "Export CSV",
+    "campaign": "Campaign",
+    "platform": "Platform",
+    "empty": "No rows in this period."
   }
 }

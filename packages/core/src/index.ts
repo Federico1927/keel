@@ -10,3 +10,4 @@ export * from "./shipment-resolver";
 export * from "./mentions";
 export * from "./inventory";
 export * from "./finance";
+export * from "./campaigns";

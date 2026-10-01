@@ -22,7 +22,9 @@ test.describe("products, inventory and purchasing", () => {
 
   test("receiving a purchase order updates stock and cost", async ({ page }) => {
     await login(page, "ops@northwind.demo");
-    await page.goto("/t/northwind-apparel/purchasing?status=in_transit");
+    // confirmed and in-transit orders can both be received; pick whichever still has rows after earlier runs
+    await page.goto("/t/northwind-apparel/purchasing?status=confirmed");
+    if ((await page.locator("table tbody tr").count()) === 0) await page.goto("/t/northwind-apparel/purchasing?status=in_transit");
     await page.locator("table tbody tr").first().getByRole("link").first().click();
     await expect(page.getByRole("button", { name: /^Receive$|^Ricevi$/ })).toBeVisible();
     const firstQty = page.locator('input[name^="qty_"]').first();

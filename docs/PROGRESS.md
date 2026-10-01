@@ -11,7 +11,7 @@ Stato aggiornato da Claude Code a ogni fase (CLAUDE.md §1). Alla ripresa di una
 | 3 | fatta | Lista ordini con ricerca server-side (numero esatto o trigram), filtri, conteggi per stato, paginazione; dettaglio con timeline (autore + diff), note interne con @menzioni e notifiche, storico cliente a 3 hop, duplicati, attribuzione, spedizioni; azioni cambia stato / annulla (via adapter) / assegna; pagina spedizioni con KPI, viste ferme/eccezioni, resolver multi-fonte |
 | 4 | fatta | Catalogo con opzioni dinamiche, stock per location, velocità/copertura/rischio/riordino, grafico vendite 90 giorni, prezzo e stato scritti verso l'adapter; fornitori con saldi; ordini d'acquisto con transizioni, creazione precompilata dai suggerimenti, ricevimento parziale/completo che aggiorna stock, costo e backorder |
 | 5 | fatta | `orderEconomics` + P/L di periodo in core con test a mano su 3 ordini (A 51,05 / B annullato / C 68,12 → risultato operativo 79,17), servizi analytics (KPI con confronto, dashboard con finestre "running", serie giornaliere, performance prodotti, coorti), dashboard reale e pagina Analisi con tab e drill-through verso gli ordini |
-| 6 | da fare | |
+| 6 | fatta | `campaignMetrics`/`trafficLight`/`recommendAction`/`suggestProductsForCampaign` in core (test), servizi campagne (economia per campagna sugli ordini attribuiti e in scope, registro giornaliero data × campagna con flag dati mancanti, suggerimenti e auto-link solo ≥ 0,95), pagine `/campaigns` (periodo, filtri, semaforo, raccomandazione con stock), dettaglio (KPI, registro, prodotti collegati con rischio e riordino, pausa/riattiva via adapter con conferma, Google in sola lettura), `/campaigns/ledger` con CSV; 3 e2e |
 | 7 | da fare | |
 | 8 | da fare | |
 | 9 | da fare | |
@@ -81,6 +81,16 @@ Fatto:
 - `packages/core/finance`: `orderEconomics`, `sumEconomics`, `prorateMonthlyCost`, `previousPeriod`, `runningWindows`, `change`. Criterio di uscita verificato: il P/L di un mese su 3 ordini di test coincide con il calcolo a mano sia nella funzione pura sia leggendo dal database.
 - `packages/services/analytics`: `orderEconomicsForPeriod`, `pnlForPeriod`, `kpisForPeriod` (nuovi vs ricorrenti, tassi di annullamento e reso, variazioni vs periodo precedente), `dailySeries`, `dashboardSummary`, `productPerformance`, `repurchaseCohorts`.
 - Web: dashboard con KPI di oggi vs ieri/settimana scorsa alla stessa ora, coda di lavoro cliccabile, grafico 30 giorni, ordini di oggi per stato; `/analytics` con selettore periodo (preset e date), tab Panoramica / P/L (cascata + per mese) / Prodotti / Coorti; ogni numero porta alla lista ordini filtrata.
+
+## Fase 6 — dettaglio
+
+Fatto:
+- `packages/core/campaigns`: `campaignMetrics` (profitto = margine − spesa, ROAS, ROI, CPA, CPC, conversione, divisioni sicure), `trafficLight` sulle soglie ROI del tenant, `recommendAction` (ok / pause / resume / consider_* / pause_stock / consider_stock, con motivo e consiglio di riordino) che guarda stock, merce in arrivo e riacquistabilità dei prodotti collegati, `suggestProductsForCampaign` (URL > titolo esatto > prefisso > contiene > token). Criterio di uscita verificato nei test: con stock sotto soglia e nulla in arrivo la raccomandazione è "spegni", con un PO in arrivo diventa "valuta".
+- `packages/services/campaigns`: `campaignsWithEconomics` (spesa da `ad_metrics_daily`, ordini da `order_attribution` filtrati con `orderEconomics` → solo ordini non annullati e non resi), `campaignDailyLedger` (nessun rapporto salvato, ROAS nullo a spesa zero, flag `no_ads_data`/`no_order_data`), `campaignLinkSuggestions`, `linkCampaignProduct` (un solo primario), `autoLinkCampaigns`.
+- Web: `/campaigns` con selettore periodo condiviso (`@/components/period-picker`, `@/server/period`), filtri piattaforma/stato, colonne spesa/ordini/ricavo/margine/profitto/ROAS/ROI/CPA, semaforo, raccomandazione, stock (+ in arrivo), riga totali, pannello "campagne da collegare" con link singolo e auto-link; `/campaigns/[id]` con KPI, registro giornaliero, prodotti collegati (rischio, giorni copertura, primario, scollega), suggerimento di riordino con link a "nuovo ordine d'acquisto" precompilato, collegamento manuale da select, pausa/riattiva con dialog di conferma che scrive prima sull'adapter Meta poi in locale + audit; Google mostra l'avviso di sola lettura. `/campaigns/ledger` + `/campaigns/ledger/export` (CSV). La lista ordini accetta `?campaign=<id>` per il drill-through delle vendite attribuite.
+- e2e: lista/dettaglio/pausa/riattiva/collega/scollega come marketing, Google read-only + CSV come owner, viewer senza controlli di scrittura + drill-through.
+
+Nota sui test e2e: il test di ricevimento ordini d'acquisto consuma un PO confermato o in transito a ogni esecuzione; dopo molte esecuzioni sullo stesso database rilanciare `pnpm db:seed`.
 
 ## Blocchi
 

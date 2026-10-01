@@ -28,7 +28,9 @@
       "cannot_change_self": "No puedes cambiar tu propia pertenencia.",
       "unknown": "Algo salió mal.",
       "already_cancelled": "El pedido ya está cancelado.",
-      "platform_error": "La plataforma de comercio rechazó la solicitud."
+      "platform_error": "La plataforma de comercio rechazó la solicitud.",
+      "ads_read_only": "Esta plataforma publicitaria es de solo lectura en esta versión.",
+      "ads_platform_error": "La plataforma publicitaria rechazó la solicitud."
     },
     "edit": "Editar"
   },
@@ -841,5 +843,132 @@
       "month": "M+{n}",
       "empty": "Aún no hay historial suficiente."
     }
+  },
+  "campaigns": {
+    "title": "Campañas y stock",
+    "description": "Inversión de las plataformas de anuncios, beneficio solo sobre pedidos no cancelados ni devueltos, y una recomendación que mira el stock de los productos vinculados.",
+    "ledger": "Registro diario",
+    "all_platforms": "Todas las plataformas",
+    "all_statuses": "Todos los estados",
+    "empty_title": "Sin campañas",
+    "empty_description": "Conecta Meta o Google Ads para importar campañas.",
+    "suggestions_title": "Campañas por vincular",
+    "suggestions_description": "Sugeridas por el nombre de la campaña y las páginas de destino de los pedidos atribuidos. Solo las coincidencias exactas se vinculan automáticamente.",
+    "link": "Vincular",
+    "auto_link": "Vincular todas las exactas",
+    "linked_n": "{n} vinculadas",
+    "light": {
+      "good": "Bien",
+      "medium": "Medio",
+      "bad": "Mal",
+      "none": "Sin datos"
+    },
+    "action": {
+      "ok": "Mantener activa",
+      "pause": "Pausar",
+      "resume": "Reanudar",
+      "consider_pause": "Valorar pausa",
+      "consider_resume": "Valorar reanudar",
+      "pause_stock": "Pausar: stock bajo el umbral",
+      "consider_stock": "Atención: stock bajo"
+    },
+    "restock": {
+      "reorder": "Reponer",
+      "ok": "Stock OK",
+      "unknown": "Sin datos de stock"
+    },
+    "reason": {
+      "stock_below_threshold": "Los productos vinculados están bajo el umbral de stock y no hay mercancía en camino.",
+      "stock_below_threshold_incoming_none": "El stock es bajo y no hay ninguna orden de compra en camino.",
+      "stock_below_threshold_incoming": "El stock es bajo pero hay una orden de compra en camino.",
+      "not_repurchasable": "El producto no se puede recomprar.",
+      "roi_bad": "ROI por debajo del umbral medio.",
+      "roi_medium": "ROI entre los dos umbrales.",
+      "roi_good": "ROI por encima del umbral bueno.",
+      "no_data": "Sin inversión ni pedidos en el periodo."
+    },
+    "columns": {
+      "campaign": "Campaña",
+      "status": "Estado",
+      "spend": "Inversión",
+      "orders": "Pedidos",
+      "revenue": "Ingreso neto",
+      "margin": "Margen",
+      "profit": "Beneficio",
+      "roas": "ROAS",
+      "roi": "ROI",
+      "cpa": "CPA",
+      "light": "Semáforo",
+      "action": "Recomendación",
+      "stock": "Stock",
+      "platform": "Plataforma"
+    },
+    "status": {
+      "active": "Activa",
+      "paused": "Pausada",
+      "archived": "Archivada"
+    },
+    "totals": "Total",
+    "platform": {
+      "meta": "Meta",
+      "google": "Google Ads"
+    }
+  },
+  "campaign_detail": {
+    "back": "Campañas",
+    "linked_products": "Productos vinculados",
+    "no_products": "Ningún producto vinculado. Vincula uno para recibir recomendaciones según el stock.",
+    "link_product": "Vincular un producto",
+    "search_product": "Buscar producto",
+    "primary": "principal",
+    "set_primary": "Hacer principal",
+    "unlink": "Desvincular",
+    "suggestions": "Sugerencias",
+    "pause": "Pausar campaña",
+    "resume": "Reanudar campaña",
+    "pause_title": "¿Pausar esta campaña en {platform}?",
+    "pause_description": "El cambio se envía ahora a la plataforma de anuncios y queda en el registro de auditoría. La inversión se detiene en la próxima sincronización.",
+    "resume_title": "¿Reanudar esta campaña en {platform}?",
+    "resume_description": "La campaña vuelve a invertir en la plataforma de anuncios.",
+    "confirm": "Confirmar",
+    "read_only": "{platform} es de solo lectura en esta versión: páusala desde la plataforma.",
+    "daily": "Registro diario",
+    "reorder_hint": "El stock de los productos vinculados es de {stock} unidades frente a un umbral de {threshold}. Reposición sugerida: {units} unidades.",
+    "create_po": "Crear orden de compra",
+    "kpi": {
+      "spend": "Inversión",
+      "orders": "Ventas atribuidas",
+      "revenue": "Ingreso neto",
+      "margin": "Margen",
+      "profit": "Beneficio",
+      "roas": "ROAS",
+      "roi": "ROI",
+      "cpa": "CPA",
+      "cpc": "CPC",
+      "cr": "Conversión"
+    },
+    "ledger": {
+      "date": "Fecha",
+      "spend": "Inversión",
+      "impressions": "Impr.",
+      "clicks": "Clics",
+      "orders": "Pedidos",
+      "revenue": "Ingreso neto",
+      "margin": "Margen",
+      "profit": "Beneficio",
+      "roas": "ROAS",
+      "flags": {
+        "no_ads_data": "sin datos de anuncios",
+        "no_order_data": "sin pedidos"
+      }
+    }
+  },
+  "campaign_ledger": {
+    "title": "Registro diario de anuncios",
+    "description": "Una fila por día y campaña; los ratios se recalculan en cada lectura y los datos ausentes se marcan en lugar de mostrarse como cero.",
+    "export_csv": "Exportar CSV",
+    "campaign": "Campaña",
+    "platform": "Plataforma",
+    "empty": "Sin filas en este periodo."
   }
 }

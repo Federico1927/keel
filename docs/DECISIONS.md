@@ -121,3 +121,17 @@ Le decisioni sono in inglese (documentazione tecnica, regola 1.7 di CLAUDE.md); 
 ## 2026-10-01 · Fixed costs prorated by day, ad spend from the ledger
 
 **Decision.** `cost_settings` rows of kind `fixed_monthly` are prorated by days inside the period (month = 30.4375 days); `shipping_per_order` rows are matched by order date. Ad spend is the sum of `ad_metrics_daily` for the period, whatever the campaign. The hand-calculated test in `packages/core/src/finance.test.ts` and the database test in `packages/services/test/analytics.test.ts` pin the numbers.
+
+## 2026-10-01 · Campaign profit counts only in-scope attributed orders
+
+**Decision.** A campaign's orders are the `order_attribution` rows pointing to it (UTM campaign or click id resolved at import); of those, only orders that `orderEconomics` marks in scope (not cancelled, returned or refunded) contribute revenue, margin and count. Profit = margin − spend; ROI = profit / spend; ROAS = net revenue / spend. Ratios are never stored: the daily ledger is recomputed on every read and flags days with ads data but no orders (or the reverse) instead of showing zeros. Spend without campaign metrics in a period is still spend, so a campaign with no attribution shows a negative profit, not "no data".
+
+**Alternatives.** Platform-reported purchases (rejected: the brief wants Keel's own economics, and reported conversions double count across platforms); all placed orders (rejected by the brief).
+
+## 2026-10-01 · Recommendations are advice, pausing is explicit
+
+**Decision.** `recommendAction` only produces a label and a reason; nothing is paused automatically. Stock wins over ROI: an active campaign whose linked products are below the tenant threshold with nothing incoming gets `pause_stock` (or `consider_stock` when a purchase order is on the way), whatever its ROI. The pause button calls the ads adapter first inside a confirmation dialog, then updates the local row and writes an audit entry; Google stays read-only in the MVP and the detail page says so instead of hiding the control silently. The stock threshold and the ROI thresholds are tenant settings.
+
+## 2026-10-01 · Product links: one primary, auto-link only on near-certain matches
+
+**Decision.** `campaign_product_links` allows many products per campaign with a single primary (enforced in the service, not with a partial index, to keep the seed simple). Suggestions rank URL matches from attributed landing pages above exact title matches, then prefix, contains and token overlap; the "link all" action only applies suggestions with confidence ≥ 0.95 and never overrides a manual link. Weaker suggestions are shown with their kind and confidence for a human to accept.

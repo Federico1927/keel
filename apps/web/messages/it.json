@@ -28,7 +28,9 @@
       "cannot_change_self": "Non puoi modificare la tua stessa appartenenza.",
       "unknown": "Qualcosa è andato storto.",
       "already_cancelled": "L'ordine è già annullato.",
-      "platform_error": "La piattaforma e-commerce ha rifiutato la richiesta."
+      "platform_error": "La piattaforma e-commerce ha rifiutato la richiesta.",
+      "ads_read_only": "Questa piattaforma pubblicitaria è in sola lettura in questa versione.",
+      "ads_platform_error": "La piattaforma pubblicitaria ha rifiutato la richiesta."
     },
     "edit": "Modifica"
   },
@@ -841,5 +843,132 @@
       "month": "M+{n}",
       "empty": "Storico ancora insufficiente."
     }
+  },
+  "campaigns": {
+    "title": "Campagne e stock",
+    "description": "Spesa dalle piattaforme ads, profitto solo sugli ordini non annullati e non resi, e un consiglio che tiene conto dello stock dei prodotti collegati.",
+    "ledger": "Registro giornaliero",
+    "all_platforms": "Tutte le piattaforme",
+    "all_statuses": "Tutti gli stati",
+    "empty_title": "Nessuna campagna",
+    "empty_description": "Collega Meta o Google Ads per importare le campagne.",
+    "suggestions_title": "Campagne da collegare",
+    "suggestions_description": "Suggerite dal nome della campagna e dalle pagine di atterraggio degli ordini attribuiti. Solo le corrispondenze esatte vengono collegate in automatico.",
+    "link": "Collega",
+    "auto_link": "Collega tutte le esatte",
+    "linked_n": "{n} collegate",
+    "light": {
+      "good": "Va bene",
+      "medium": "Medio",
+      "bad": "Va male",
+      "none": "Nessun dato"
+    },
+    "action": {
+      "ok": "Lascia attiva",
+      "pause": "Spegni",
+      "resume": "Accendi",
+      "consider_pause": "Valuta spegnimento",
+      "consider_resume": "Valuta accensione",
+      "pause_stock": "Spegni: stock sotto soglia",
+      "consider_stock": "Attenzione: stock basso"
+    },
+    "restock": {
+      "reorder": "Riordina",
+      "ok": "Stock OK",
+      "unknown": "Nessun dato di stock"
+    },
+    "reason": {
+      "stock_below_threshold": "I prodotti collegati sono sotto la soglia di stock e non c'è merce in arrivo.",
+      "stock_below_threshold_incoming_none": "Lo stock è basso e nessun ordine d'acquisto è in arrivo.",
+      "stock_below_threshold_incoming": "Lo stock è basso ma c'è un ordine d'acquisto in arrivo.",
+      "not_repurchasable": "Il prodotto non è riacquistabile.",
+      "roi_bad": "ROI sotto la soglia media.",
+      "roi_medium": "ROI tra le due soglie.",
+      "roi_good": "ROI sopra la soglia buona.",
+      "no_data": "Nessuna spesa o ordine nel periodo."
+    },
+    "columns": {
+      "campaign": "Campagna",
+      "status": "Stato",
+      "spend": "Spesa",
+      "orders": "Ordini",
+      "revenue": "Ricavo netto",
+      "margin": "Margine",
+      "profit": "Profitto",
+      "roas": "ROAS",
+      "roi": "ROI",
+      "cpa": "CPA",
+      "light": "Semaforo",
+      "action": "Consiglio",
+      "stock": "Stock",
+      "platform": "Piattaforma"
+    },
+    "status": {
+      "active": "Attiva",
+      "paused": "In pausa",
+      "archived": "Archiviata"
+    },
+    "totals": "Totale",
+    "platform": {
+      "meta": "Meta",
+      "google": "Google Ads"
+    }
+  },
+  "campaign_detail": {
+    "back": "Campagne",
+    "linked_products": "Prodotti collegati",
+    "no_products": "Nessun prodotto collegato. Collegane uno per avere consigli che tengono conto dello stock.",
+    "link_product": "Collega un prodotto",
+    "search_product": "Cerca prodotto",
+    "primary": "principale",
+    "set_primary": "Rendi principale",
+    "unlink": "Scollega",
+    "suggestions": "Suggerimenti",
+    "pause": "Spegni campagna",
+    "resume": "Accendi campagna",
+    "pause_title": "Spegnere questa campagna su {platform}?",
+    "pause_description": "La modifica viene inviata subito alla piattaforma ads e registrata nel registro attività. La spesa si ferma al prossimo sync.",
+    "resume_title": "Accendere questa campagna su {platform}?",
+    "resume_description": "La campagna ricomincia a spendere sulla piattaforma ads.",
+    "confirm": "Conferma",
+    "read_only": "{platform} è in sola lettura in questa versione: spegnila dalla piattaforma.",
+    "daily": "Registro giornaliero",
+    "reorder_hint": "Lo stock dei prodotti collegati è di {stock} pezzi contro una soglia di {threshold}. Riordino suggerito: {units} pezzi.",
+    "create_po": "Crea ordine d'acquisto",
+    "kpi": {
+      "spend": "Spesa",
+      "orders": "Vendite attribuite",
+      "revenue": "Ricavo netto",
+      "margin": "Margine",
+      "profit": "Profitto",
+      "roas": "ROAS",
+      "roi": "ROI",
+      "cpa": "CPA",
+      "cpc": "CPC",
+      "cr": "Conversione"
+    },
+    "ledger": {
+      "date": "Data",
+      "spend": "Spesa",
+      "impressions": "Impr.",
+      "clicks": "Clic",
+      "orders": "Ordini",
+      "revenue": "Ricavo netto",
+      "margin": "Margine",
+      "profit": "Profitto",
+      "roas": "ROAS",
+      "flags": {
+        "no_ads_data": "dati ads assenti",
+        "no_order_data": "nessun ordine"
+      }
+    }
+  },
+  "campaign_ledger": {
+    "title": "Registro giornaliero ads",
+    "description": "Una riga per giorno e campagna; i rapporti sono ricalcolati a ogni lettura, i dati mancanti sono segnalati e non mostrati come zero.",
+    "export_csv": "Esporta CSV",
+    "campaign": "Campagna",
+    "platform": "Piattaforma",
+    "empty": "Nessuna riga nel periodo."
   }
 }

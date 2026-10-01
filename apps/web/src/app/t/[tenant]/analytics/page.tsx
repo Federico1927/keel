@@ -5,21 +5,8 @@ import { dailySeries, kpisForPeriod, pnlForPeriod, productPerformance, repurchas
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { RevenueChart } from "@/components/charts/revenue-chart";
-import { PeriodPicker } from "./period-picker";
-
-function resolvePeriod(sp: { from?: string; to?: string; preset?: string }, timezone: string) {
-  const now = new Date();
-  const todayLocal = new Date(now.toLocaleString("en-US", { timeZone: timezone }));
-  const endOfToday = new Date(now.getTime() + 60_000);
-  const daysAgo = (n: number) => new Date(now.getTime() - n * 864e5);
-  const preset = sp.preset ?? (sp.from ? undefined : "30d");
-  if (preset === "7d") return { from: daysAgo(7), to: endOfToday, preset };
-  if (preset === "90d") return { from: daysAgo(90), to: endOfToday, preset };
-  if (preset === "mtd") return { from: new Date(Date.UTC(todayLocal.getFullYear(), todayLocal.getMonth(), 1)), to: endOfToday, preset };
-  if (preset === "ytd") return { from: new Date(Date.UTC(todayLocal.getFullYear(), 0, 1)), to: endOfToday, preset };
-  if (sp.from) return { from: new Date(sp.from), to: sp.to ? new Date(new Date(sp.to).getTime() + 864e5) : endOfToday, preset: undefined };
-  return { from: daysAgo(30), to: endOfToday, preset: "30d" };
-}
+import { PeriodPicker } from "@/components/period-picker";
+import { resolvePeriod } from "@/server/period";
 
 export default async function AnalyticsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ tab?: string; from?: string; to?: string; preset?: string }> }) {
   const { tenant } = await params;
@@ -43,7 +30,7 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
 
   return (
     <>
-      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<PeriodPicker basePath={base} tab={tab} preset={period.preset} from={sp.from} to={sp.to} />} />
+      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<PeriodPicker basePath={base} keep={{ tab }} preset={period.preset} from={sp.from} to={sp.to} />} />
       <div className="mb-4 flex gap-1 rounded-md bg-muted p-1 text-sm">
         {["overview", "pnl", "products", "cohorts"].map((k) => (
           <Link key={k} href={query({ tab: k })} className={cn("flex-1 rounded-sm px-3 py-1.5 text-center", tab === k ? "bg-card shadow-sm" : "text-muted-foreground")}>
