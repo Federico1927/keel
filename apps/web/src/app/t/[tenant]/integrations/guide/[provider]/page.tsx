@@ -6,7 +6,7 @@ import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageH
 import { requirePage } from "@/server/tenant";
 
 /** One guide per activation: the three platforms, then the external providers and tracking. */
-const PROVIDERS = ["shopify", "meta", "google", "tracking"] as const;
+const PROVIDERS = ["shopify", "meta", "google", "tracking", "survey"] as const;
 type Provider = (typeof PROVIDERS)[number];
 interface Step { title: string; body: string; verify?: boolean }
 

@@ -294,6 +294,15 @@ Fatto:
 - Seed: traffico del pixel degli ultimi 14 giorni su entrambi i negozi e registro delle conversioni dell'ultima settimana.
 - Migrazione 0016 (5 tabelle con RLS); test core 145, integrazioni 36, servizi 75, db 486, e2e 63.
 
+## Esterni (issue #7), secondo blocco: sondaggio post-acquisto
+
+Fatto:
+- Sondaggio a una domanda ("Come ci hai conosciuto?") ospitato da Keel su `/s/<negozio>`, raggiungibile dal link nell'email di conferma dell'ordine. Il link è firmato per ordine con il segreto del negozio: il modello email di Shopify lo calcola col filtro `hmac_sha256`, senza chiamare Keel. Una sola risposta per ordine; opzioni e testi in tre lingue, ognuna collegata a un canale, anche canali che i clic non vedono (passaparola, influencer, podcast).
+- Analisi → Sondaggio: risposte, tasso di risposta, confronto tra canale dichiarato e canale dei clic, risposte libere, impostazioni e link da incollare nell'email.
+- Nuovo modello di attribuzione "Misto con sondaggio": negli ordini con risposta una quota del merito, configurabile, va al canale dichiarato; il resto segue il decadimento nel tempo.
+- Guida all'attivazione in tre lingue. Seed: sondaggio attivo su entrambi i negozi con risposte sul 30% degli ordini degli ultimi 120 giorni.
+- Migrazione 0017 (2 tabelle con RLS); test core 149, servizi 78, db 498, e2e 65.
+
 ## Blocchi
 
 Nessuno. Docker daemon assente nell'ambiente cloud: usato PostgreSQL 16 di sistema (vedi DECISIONS).

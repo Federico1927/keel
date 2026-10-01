@@ -1,6 +1,7 @@
 import { and, desc, eq, gte, inArray, lt, schema, sql } from "@keel/db";
 import { ATTRIBUTION_MODELS, compileFormula, creativeFatigue, creditBy, evaluateAlert, evaluateFormula, parseCreativeName, type AlertCondition, type AttributedOrder, type AttributionModel, type FatigueResult, type Period, type Touchpoint } from "@keel/core";
 import type { ServiceContext } from "../context";
+import { getSurveySettings, surveyChannelsFor } from "../tracking/survey";
 import { getNotificationSinks } from "../integrations/factory";
 import { notifyUsers } from "../notifications";
 import { blendedForPeriod } from "./depth";
@@ -57,9 +58,12 @@ export async function attributionReport(ctx: ServiceContext, tenant: AnalyticsTe
       }
     }
   }
-  const orders: AttributedOrder[] = econ.map((e) => ({ orderId: e.orderId, at: e.placedAt, netMinor: e.netRevenueMinor, marginMinor: e.marginMinor, touches: byOrder.get(e.orderId) ?? [] }));
+  // survey blend: the customer's own answer takes a share of the order (post-purchase survey)
+  const survey = model === "survey_blend" ? await surveyChannelsFor(ctx, ids) : new Map<string, string>();
+  const surveyBlend = model === "survey_blend" ? (await getSurveySettings(ctx)).config.blendBps / 10_000 : undefined;
+  const orders: AttributedOrder[] = econ.map((e) => ({ orderId: e.orderId, at: e.placedAt, netMinor: e.netRevenueMinor, marginMinor: e.marginMinor, touches: byOrder.get(e.orderId) ?? [], surveyChannel: survey.get(e.orderId) ?? null }));
   const keyOf = (t: Touchpoint) => (by === "channel" ? t.channel : t.campaignId);
-  const o = { lookbackDays: opts.lookbackDays ?? 30 };
+  const o = { lookbackDays: opts.lookbackDays ?? 30, surveyBlend };
   const main = creditBy(model, orders, keyOf, o);
   const last = new Map(creditBy("last_click", orders, keyOf, o).map((r) => [r.key, r]));
   const claim = new Map(creditBy("last_platform_click", orders, keyOf, o).map((r) => [r.key, r]));

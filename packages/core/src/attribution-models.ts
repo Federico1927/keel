@@ -4,7 +4,7 @@
  * visits recorded by the pixel (see `touchpoints`). Every model splits one unit of credit across
  * the touchpoints of one order; revenue and orders are then credited with those weights.
  */
-export const ATTRIBUTION_MODELS = ["last_click", "first_click", "linear", "time_decay", "position_based", "last_platform_click"] as const;
+export const ATTRIBUTION_MODELS = ["last_click", "first_click", "linear", "time_decay", "position_based", "last_platform_click", "survey_blend"] as const;
 export type AttributionModel = (typeof ATTRIBUTION_MODELS)[number];
 
 export interface Touchpoint {
@@ -22,6 +22,8 @@ export interface ModelOptions {
   positionEnds?: number;
   /** Touches older than this before the order are ignored (default 30 days). */
   lookbackDays?: number;
+  /** Survey blend: share of an answered order credited to the reported channel (default 0.5). */
+  surveyBlend?: number;
 }
 
 const DAY = 864e5;
@@ -53,6 +55,9 @@ export function attributionWeights(model: AttributionModel, touches: readonly To
       const middle = (1 - 2 * ends) / (n - 2);
       return eligible.map((touch, i) => ({ touch, weight: i === 0 || i === n - 1 ? ends : middle }));
     }
+    case "survey_blend":
+      // without the order's survey answer the blend is time decay (see creditBy)
+      return attributionWeights("time_decay", touches, orderAt, opts);
     case "last_platform_click": {
       // what an ad platform claims: the last paid click wins the whole order, even if a later organic visit closed it
       for (let i = n - 1; i >= 0; i--) if (eligible[i]!.paid) return only(i);
@@ -67,6 +72,8 @@ export interface AttributedOrder {
   netMinor: number;
   marginMinor: number;
   touches: Touchpoint[];
+  /** Channel the customer named in the post-purchase survey, when answered. */
+  surveyChannel?: string | null;
 }
 
 export interface CreditRow {
@@ -76,11 +83,26 @@ export interface CreditRow {
   marginMinor: number;
 }
 
+/**
+ * Survey blend: a share of the order (`surveyBlend`, default half) goes to the channel the
+ * customer reported, the rest follows time decay over the clicks. Orders without an answer are
+ * pure time decay; answered orders without clicks go entirely to the answer. The survey touch has
+ * no campaign, so by-campaign views only see the click share.
+ */
+function orderWeights(model: AttributionModel, o: AttributedOrder, opts: ModelOptions): { touch: Touchpoint; weight: number }[] {
+  if (model !== "survey_blend") return attributionWeights(model, o.touches, o.at, opts);
+  const base = attributionWeights("time_decay", o.touches, o.at, opts);
+  if (!o.surveyChannel) return base;
+  const reported: Touchpoint = { at: o.at, channel: o.surveyChannel, campaignId: null, paid: false };
+  const share = base.length ? Math.min(1, Math.max(0, opts.surveyBlend ?? 0.5)) : 1;
+  return [...base.map((b) => ({ touch: b.touch, weight: b.weight * (1 - share) })), { touch: reported, weight: share }];
+}
+
 /** Credited orders, revenue and margin per channel or campaign under a model. Fractional orders are kept to 2 decimals. */
 export function creditBy(model: AttributionModel, orders: readonly AttributedOrder[], keyOf: (t: Touchpoint) => string | null, opts: ModelOptions = {}): CreditRow[] {
   const acc = new Map<string, CreditRow>();
   for (const o of orders) {
-    for (const { touch, weight } of attributionWeights(model, o.touches, o.at, opts)) {
+    for (const { touch, weight } of orderWeights(model, o, opts)) {
       if (!weight) continue;
       const key = keyOf(touch);
       if (key === null) continue;

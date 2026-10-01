@@ -514,3 +514,14 @@ The `holdout_percentage` and `group_name` columns stay in the data model, as §7
 - If Shopify's own Facebook channel already sends server events, the guide says to keep only one source.
 
 **Alternatives.** Sending from the browser only (rejected: ad blockers and cookie limits lose a share of purchases). Sending inside order import (rejected: a slow or failing platform would hold up order ingestion).
+
+## 2026-10-01 · Post-purchase survey hosted by Keel, linked from the confirmation email
+
+**Decision.**
+- The survey is a public page at `/s/<store>?o=<platform order id>&t=<signature>`. The signature is HMAC-SHA256 of the order id with a per-store secret.
+- Shopify's order confirmation template can compute it with the Liquid `hmac_sha256` filter, so the link needs no call to Keel and cannot be forged for another order. The guide marks this as to verify.
+- One answer per order, first wins. Options are configurable per language and each maps to a channel key, including channels clicks never see (word of mouth, influencer, podcast).
+- The new attribution model "survey blend" gives a configurable share of an answered order to the reported channel; the rest, and unanswered orders, follow time decay. By-campaign views only see the click share, because an answer has no campaign.
+- The Survey tab compares answers with the click channel of the same orders, showing how much demand the clicks never saw.
+
+**Alternatives.** A thank-you-page block (deferred: it needs a checkout UI extension, which means a Shopify app; the email link works for every store today). Letting answers override click attribution entirely (rejected: self-reports are noisy, and the blend keeps both signals).
