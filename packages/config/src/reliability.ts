@@ -34,7 +34,7 @@ export const WATCHDOG_NOTIFY_EVERY_HOURS = 6;
  * shop's 15-minute delta writes nothing for hours (96 runs = a day), a daily ads pull that writes no
  * metric for three days is suspicious.
  */
-export const IDLE_AFTER_ZERO_ROW_RUNS: Readonly<Record<string, number>> = { shopify: 96, meta: 3, google: 3 };
+export const IDLE_AFTER_ZERO_ROW_RUNS: Readonly<Record<string, number>> = { shopify: 96, meta: 3, google: 3, tiktok: 3 };
 export const DEFAULT_IDLE_AFTER_ZERO_ROW_RUNS = 10;
 
 export function idleAfterRuns(source: string): number {

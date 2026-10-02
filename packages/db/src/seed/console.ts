@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/node-postgres";
-import { MODULES, PLANS, PLATFORM_CURRENCY, type PlanKey, type TenantStatus } from "@keel/config";
+import { MODULES, PLANS, PLATFORM_CURRENCY, adPlatformsForPlan, type PlanKey, type TenantStatus } from "@keel/config";
 import { monthlyChargeMinor, subscriptionStatusFor } from "@keel/core";
 import * as schema from "../schema";
 
@@ -124,7 +124,7 @@ export async function seedConsoleTenants(db: Db, now = new Date()): Promise<Reco
       const [u] = await db.insert(schema.users).values({ email: p.email, emailVerified: created, ...values }).onConflictDoUpdate({ target: schema.users.email, set: values }).returning({ id: schema.users.id });
       await db.insert(schema.tenantMemberships).values({ tenantId, userId: u!.id, role: p.role }).onConflictDoUpdate({ target: [schema.tenantMemberships.tenantId, schema.tenantMemberships.userId], set: { role: p.role, isActive: true } });
     }
-    for (const provider of ["shopify", "meta", "google"]) {
+    for (const provider of ["shopify", ...adPlatformsForPlan(c.planKey)]) {
       const problem = c.integrationErrors?.find((e) => e.source === provider);
       const status = problem?.status === "error" ? "error" : problem || (provider === "shopify" && c.steps.some((s) => s.status === "active")) ? "connected" : "not_connected";
       await db.insert(schema.integrations).values({ tenantId, provider, status, mode: "mock", lastError: problem?.error ?? null }).onConflictDoUpdate({ target: [schema.integrations.tenantId, schema.integrations.provider], set: { status, lastError: problem?.error ?? null } });

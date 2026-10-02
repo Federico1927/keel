@@ -46,10 +46,9 @@ function linkPath(link: MetricLink, q: string): string {
       return "purchasing";
     case "campaigns":
       return "campaigns";
-    case "campaigns_meta":
-      return "campaigns?platform=meta";
-    case "campaigns_google":
-      return "campaigns?platform=google";
+    default:
+      // campaigns_<platform>: the campaign list filtered to that ad platform
+      return `campaigns?platform=${link.slice("campaigns_".length)}`;
   }
 }
 

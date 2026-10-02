@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { adPlatformsForPlan } from "@keel/config";
 import { formatMoney, formatNumber, formatPercent } from "@keel/core";
 import { creativePerformance } from "@keel/services";
 import { Badge, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
@@ -33,7 +34,7 @@ export default async function CreativesPage({ params, searchParams }: { params: 
   const period = resolvePeriod(sp, ctx.tenant.timezone);
   const by = (["creative", "format", "hook", "angle"] as const).find((b) => b === sp.by) ?? "creative";
   const at = { id: ctx.tenant.id, country: ctx.tenant.country, currency: ctx.tenant.currency, timezone: ctx.tenant.timezone, settings: ctx.settings };
-  const rows = await ctx.run((tx) => creativePerformance({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, at, period, by, { platform: sp.platform === "google" ? "google" : sp.platform === "meta" ? "meta" : undefined }));
+  const rows = await ctx.run((tx) => creativePerformance({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, at, period, by, { platform: adPlatformsForPlan(ctx.tenant.planKey).find((p) => p === sp.platform) }));
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   const ratio = (r: number | null) => (r === null ? "—" : `${r.toFixed(2)}×`);
   const base = `/t/${tenant}/campaigns/creatives`;

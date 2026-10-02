@@ -8,7 +8,9 @@ export function ContactSection({ locale }: { locale: LandingLocale }) {
     <section id="contact" className="scroll-mt-20 py-16 sm:py-24">
       <div className="container-x grid gap-10 lg:grid-cols-[1fr_1.4fr]">
         <div>
-          <h2 className="text-3xl sm:text-4xl">{t("contact.title")}</h2>
+          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            {t("contact.title")}
+          </h2>
           <p className="mt-4 text-lg text-muted-foreground">{t("contact.lead")}</p>
           <p className="mt-6 text-sm text-muted-foreground">
             <a

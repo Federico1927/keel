@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { TenantRole } from "@keel/config";
-import { assistantPeriod, type CitationFigure, type CitationRow } from "@keel/core";
+import { AD_PLATFORMS, assistantPeriod, type CitationFigure, type CitationRow } from "@keel/core";
 import { kpisForPeriod, pnlForPeriod, productPerformance } from "../analytics";
 import { campaignsWithEconomics } from "../campaigns";
 import { returnsAnalytics } from "../returns";
@@ -148,12 +148,12 @@ const getTopProducts: AssistantTool<typeof productsInput> = {
   },
 };
 
-const campaignsInput = z.object({ ...periodInput, platform: z.enum(["meta", "google"]).optional().describe("Only one ad platform"), sort: z.enum(["profit", "loss", "spend", "roas"]).default("spend").describe("Ranking: profit = most profitable first, loss = least profitable first"), limit: limit(25, 10) });
+const campaignsInput = z.object({ ...periodInput, platform: z.enum(AD_PLATFORMS).optional().describe("Only one ad platform"), sort: z.enum(["profit", "loss", "spend", "roas"]).default("spend").describe("Ranking: profit = most profitable first, loss = least profitable first"), limit: limit(25, 10) });
 const getCampaigns: AssistantTool<typeof campaignsInput> = {
   name: "get_campaigns",
   ...readTool,
   page: "campaigns",
-  description: "Ad campaigns (Meta, Google) over a period with spend, attributed orders and revenue, profit after product costs (only orders not cancelled or returned), ROAS, the suggested action (ok, pause, resume, consider_pause, consider_resume, pause_stock = pause because the products are running out, consider_stock) with its reason, and the stock of the linked products. Use it for questions on ads, ROAS, which campaigns lose money or what to pause.",
+  description: "Ad campaigns (Meta, Google, TikTok) over a period with spend, attributed orders and revenue, profit after product costs (only orders not cancelled or returned), ROAS, the suggested action (ok, pause, resume, consider_pause, consider_resume, pause_stock = pause because the products are running out, consider_stock) with its reason, and the stock of the linked products. Use it for questions on ads, ROAS, which campaigns lose money or what to pause.",
   input: campaignsInput,
   async run(rt, input) {
     const { period, cite } = periodOf(rt, input);

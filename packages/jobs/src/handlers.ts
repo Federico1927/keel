@@ -1,4 +1,4 @@
-import { OPERATIONAL_TENANT_STATUSES, isTenantOperational, platformRetentionDays } from "@keel/config";
+import { AD_PLATFORMS, OPERATIONAL_TENANT_STATUSES, isAdPlatform, isAdPlatformInPlan, isTenantOperational, platformRetentionDays } from "@keel/config";
 import { parseTenantSettings } from "@keel/core";
 import { adminDb, and, eq, inArray, lte, schema, withTenant } from "@keel/db";
 import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, runAdsEntitySync, rollupAdEntityMetrics } from "@keel/services";
@@ -10,7 +10,7 @@ export interface Enqueue {
 }
 
 async function tenantRow(tenantId: string) {
-  const [t] = await adminDb().select({ id: schema.tenants.id, currency: schema.tenants.currency, country: schema.tenants.country, orderNumberPrefix: schema.tenants.orderNumberPrefix, status: schema.tenants.status }).from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
+  const [t] = await adminDb().select({ id: schema.tenants.id, currency: schema.tenants.currency, country: schema.tenants.country, orderNumberPrefix: schema.tenants.orderNumberPrefix, status: schema.tenants.status, planKey: schema.tenants.planKey }).from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
   if (!t) throw new Error(`tenant ${tenantId} not found`);
   return t;
 }
@@ -121,6 +121,8 @@ export async function handlePlatformWrite(job: PlatformWriteJob): Promise<void> 
  */
 export async function handleSyncAds(job: SyncAdsJob, enqueue?: Enqueue): Promise<JobOutcome> {
   const tenant = await tenantRow(job.tenantId);
+  // a platform outside the tenant's plan (TikTok below Growth) is never pulled, whoever queued the job
+  if (!isAdPlatformInPlan(job.provider, tenant.planKey)) return { rows: 0, summary: { skipped: "not_in_plan", provider: job.provider } };
   let campaigns = 0, metrics = 0;
   if (job.phase !== "entities") {
     const r = await withTenant(tenant.id, async (tx) => {
@@ -134,9 +136,9 @@ export async function handleSyncAds(job: SyncAdsJob, enqueue?: Enqueue): Promise
   const settings = parseTenantSettings((await adminDb().select({ settings: schema.tenants.settings }).from(schema.tenants).where(eq(schema.tenants.id, tenant.id)).limit(1))[0]?.settings);
   const e = await withTenant(tenant.id, async (tx) => {
     const ctx = sys(tenant.id)(tx);
-    return runAdsEntitySync(ctx, await getAdsPlatformFor(ctx, tenant, job.provider), { since: job.since, until: job.until, budgetMs: 25_000, minImpressions: settings.adsSearchTermMinImpressions });
+    return runAdsEntitySync(ctx, await getAdsPlatformFor(ctx, tenant, job.provider), { since: job.since, until: job.until, kind: job.kind ?? "delta", budgetMs: 25_000, minImpressions: settings.adsSearchTermMinImpressions });
   });
-  if (!e.finished && !e.error && enqueue) await enqueue("sync.ads", { ...job, phase: "entities" } satisfies SyncAdsJob, { singletonKey: `${job.tenantId}:${job.provider}:entities`, ...(e.rateLimited ? { startAfterSeconds: Math.ceil((e.retryAfterMs ?? 60_000) / 1000) } : {}) });
+  if (!e.finished && !e.error && enqueue) await enqueue("sync.ads", { ...job, phase: "entities" } satisfies SyncAdsJob, { singletonKey: `${job.tenantId}:${job.provider}:entities${job.kind === "backfill" ? ":backfill" : ""}`, ...(e.rateLimited ? { startAfterSeconds: Math.ceil((e.retryAfterMs ?? 60_000) / 1000) } : {}) });
   if (e.error) throw new Error(e.error);
   return { rows: campaigns + metrics, summary: { campaigns, metrics, phase: job.phase ?? "campaigns", entitiesFinished: e.finished } };
 }
@@ -323,8 +325,9 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<JobOut
     await applySuspensions(adminDb());
     return;
   }
-  const rows = await adminDb().select({ tenantId: schema.integrations.tenantId, provider: schema.integrations.provider }).from(schema.integrations).where(and(inArray(schema.integrations.provider, ["shopify", "meta", "google"]), inArray(schema.integrations.status, ["connected", "error", "syncing"])));
-  const active = new Set((await adminDb().select({ id: schema.tenants.id }).from(schema.tenants).where(inArray(schema.tenants.status, [...OPERATIONAL_TENANT_STATUSES]))).map((t) => t.id));
+  const rows = await adminDb().select({ tenantId: schema.integrations.tenantId, provider: schema.integrations.provider }).from(schema.integrations).where(and(inArray(schema.integrations.provider, ["shopify", ...AD_PLATFORMS]), inArray(schema.integrations.status, ["connected", "error", "syncing"])));
+  const planOf = new Map((await adminDb().select({ id: schema.tenants.id, planKey: schema.tenants.planKey }).from(schema.tenants).where(inArray(schema.tenants.status, [...OPERATIONAL_TENANT_STATUSES]))).map((t) => [t.id, t.planKey]));
+  const active = new Set(planOf.keys());
   const window = adsWindow();
   for (const r of rows) {
     if (!active.has(r.tenantId)) continue;
@@ -343,8 +346,8 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<JobOut
           await retryFailedWebhooks(ctx, await getCommercePlatformFor(ctx, tenant), { country: tenant.country });
         });
       }
-    } else if (job.kind === "ads") {
-      await enqueue("sync.ads", { tenantId: r.tenantId, provider: r.provider as "meta" | "google", ...window } satisfies SyncAdsJob, { singletonKey: `${r.tenantId}:${r.provider}:${window.until}` });
+    } else if (job.kind === "ads" && isAdPlatform(r.provider) && isAdPlatformInPlan(r.provider, planOf.get(r.tenantId) ?? "")) {
+      await enqueue("sync.ads", { tenantId: r.tenantId, provider: r.provider, ...window } satisfies SyncAdsJob, { singletonKey: `${r.tenantId}:${r.provider}:${window.until}` });
     }
   }
 }

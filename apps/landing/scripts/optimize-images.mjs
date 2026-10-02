@@ -13,7 +13,7 @@ import { resolve } from "node:path";
 
 const SRC = resolve(process.env.CAPTURE_DIR ?? "./screenshots-src");
 const OUT = resolve("./public/screenshots");
-const LOCALES = (process.env.LOCALES ?? "en,it").split(",");
+const LOCALES = (process.env.LOCALES ?? "en,it,es").split(",");
 const QUALITY = Number(process.env.WEBP_QUALITY ?? 82);
 
 /** Parse the TS config without a TS toolchain: the file is simple enough for two regexes. */

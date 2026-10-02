@@ -212,7 +212,7 @@ const MOCK_ROUTES: { tool: string; words: RegExp }[] = [
   { tool: "get_kpis", words: /revenue|sales|\borders\b|aov|ricav|vendite|\bordini\b|fatturat|ingres|ventas|pedidos|kpi|andat|went|fueron/i },
   { tool: "get_profit_and_loss", words: /profit|margin|p\/?l|contribution|profitt|margin|utile|beneficio|ganancia|guadagn/i },
   { tool: "get_top_products", words: /product|best.?sell|prodott|più vendut|producto|más vendid/i },
-  { tool: "get_campaigns", words: /campaign|ads?\b|roas|spend|campagn|spesa|campaña|gasto|meta|google/i },
+  { tool: "get_campaigns", words: /campaign|ads?\b|roas|spend|campagn|spesa|campaña|gasto|meta|google|tiktok/i },
   { tool: "get_returns_summary", words: /return|refund|\bres[oi]\b|rimbors|\brend(ono|ere|e)\b|devoluci|devuelv|reembols/i },
   { tool: "get_customer_predictions", words: /churn|at risk|customer|abbandon|a rischio|client|riesgo/i },
   { tool: "get_stock_risk", words: /stock|inventory|out of stock|reorder|magazzin|esaur|riordin|inventario|agotad|reabastec/i },
