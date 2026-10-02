@@ -36,6 +36,8 @@ export interface ScoreInput {
   closed: boolean;
   lines: { productId: string | null; variantId: string | null; quantity: number }[];
   address: AddressInput | null;
+  /** Result of the tenant's address provider (C.18), when one checked this address. */
+  addressCheck?: { valid: boolean; issues: string[] } | null;
   similarOrders: { sample: number; delivered: number } | null;
   totalMinor: number;
   aovMinor: number | null;
@@ -125,7 +127,10 @@ export function computeDeliveryScore(i: ScoreInput, settings: CodSettings): Scor
   // 5. address
   if (i.address) {
     const q = addressQuality(i.address);
-    push("address_quality", q.ok ? 85 : 15, q.ok ? "positive" : "critical", true, { problems: q.problems });
+    // the provider's verdict (street not found, postal code not matching the city…) joins the format checks
+    const problems = [...new Set([...q.problems, ...(i.addressCheck && !i.addressCheck.valid ? i.addressCheck.issues.map((x) => `provider_${x}`) : [])])];
+    const ok = problems.length === 0;
+    push("address_quality", ok ? (i.addressCheck?.valid ? 95 : 85) : 15, ok ? "positive" : "critical", true, { problems, ...(i.addressCheck ? { validated: i.addressCheck.valid } : {}) });
   }
   // 6. similar orders (same zip, same payment method, known outcome)
   if (i.similarOrders && i.similarOrders.sample >= settings.similarOrdersMinSample) {

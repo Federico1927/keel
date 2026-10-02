@@ -8,6 +8,7 @@ import { RevenueChart } from "@/components/charts/revenue-chart";
 import { MetricChart, Sparkline } from "@/components/charts/metric-chart";
 import { StatusBadge } from "@/components/status-badge";
 import { formatMetric, metricHref, periodParams, trendOf } from "./format";
+import { CodWidget } from "@/app/t/[tenant]/cod/widgets";
 
 export interface WidgetViewEnv {
   base: string;
@@ -216,6 +217,12 @@ export async function WidgetView({ widget, result, period, env }: { widget: Dash
         </Link>
       );
     }
+
+    // the COD add-on's widgets render in its own component (addon.cod)
+    case "cod_pending":
+    case "cod_operators":
+    case "cod_mine":
+      return <CodWidget type={widget.type} data={data} base={base} locale={locale} />;
 
     /* ---------- Keel's template tiles ---------- */
     case "today_kpis": {

@@ -23,8 +23,10 @@ import { BackorderCard, StockCheckCard } from "./backorder-cards";
 import { RecordPaymentDialog, RefundDialog } from "./payment-dialogs";
 import { PaymentsCard } from "./payments-card";
 
-export default async function OrderDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
+export default async function OrderDetailPage({ params, searchParams }: { params: Promise<{ tenant: string; id: string }>; searchParams: Promise<{ queue?: string; tag?: string }> }) {
   const { tenant, id } = await params;
+  // queue context of the COD add-on's navigator (prev / next in the same view)
+  const sp = await searchParams;
   const ctx = await requirePage(tenant, "orders");
   const detail = await getOrderDetail(ctx, id);
   if (!detail) notFound();
@@ -388,7 +390,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
         </Card>
       )}
 
-      {order.paymentMethod === "cod" && isPageEnabled("cod_queue", ctx.activeAddons) && canViewPage(ctx.role, "cod_queue") && <CodCard ctx={ctx} orderId={order.id} orderName={order.name} canWrite={canWritePage(ctx.role, "cod_queue")} />}
+      {order.paymentMethod === "cod" && isPageEnabled("cod_queue", ctx.activeAddons) && canViewPage(ctx.role, "cod_queue") && <CodCard ctx={ctx} orderId={order.id} orderName={order.name} canWrite={canWritePage(ctx.role, "cod_queue")} queue={{ view: sp.queue, tag: sp.tag }} />}
       {(returns.length > 0 || canRequestReturn) && (
         <Card>
           <CardHeader className="flex-row items-center justify-between space-y-0">

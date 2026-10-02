@@ -58,7 +58,16 @@
       "not_paid": "Si possono rimborsare solo ordini pagati.",
       "exceeds_refundable": "Il rimborso supera quanto resta rimborsabile sull'ordine.",
       "line_invalid": "Controlla le unità da rimborsare: più di quante restano su una riga.",
-      "location_required": "Scegli dove rimettere a magazzino le unità."
+      "location_required": "Scegli dove rimettere a magazzino le unità.",
+      "cod_daily_limit": "Limite giornaliero di trasferimenti raggiunto: chiedi a un amministratore.",
+      "cod_already_called": "Dopo la prima chiamata solo un amministratore può trasferire l'ordine.",
+      "cod_not_yours": "Puoi trasferire solo gli ordini assegnati a te.",
+      "cod_same_operator": "L'ordine è già assegnato a quella persona.",
+      "cod_target": "Quella persona non è un membro attivo del team.",
+      "cod_template": "Modello di messaggio sconosciuto.",
+      "cod_phone": "L'ordine non ha un numero di telefono.",
+      "cod_reason": "Scrivi un motivo (almeno 3 caratteri).",
+      "cod_carrier_columns": "Il file deve avere una colonna riferimento (tracking o ordine) e una colonna esito."
     },
     "edit": "Modifica"
   },
@@ -1023,7 +1032,10 @@
     "fulfilled": "Spedito da Keel",
     "packed": "Imballato",
     "unpacked": "Tornato da imballare",
-    "delivery_instruction_sent": "Istruzione di consegna inviata"
+    "delivery_instruction_sent": "Istruzione di consegna inviata",
+    "cod_escalated": "Segnalazione contrassegno",
+    "cod_message": "Messaggio di conferma inviato",
+    "payment_method_changed": "Metodo di pagamento cambiato"
   },
   "shipments": {
     "title": "Spedizioni",
@@ -3803,7 +3815,9 @@
       "mine": "Miei",
       "unassigned": "Non assegnati",
       "scheduled": "Da richiamare",
-      "unreachable": "Non raggiungibili"
+      "unreachable": "Non raggiungibili",
+      "planned": "Programmati",
+      "escalated": "Segnalati"
     },
     "empty_title": "Coda vuota",
     "empty_description": "I nuovi ordini in contrassegno entrano qui automaticamente.",
@@ -3830,14 +3844,17 @@
       "no_answer": "Non risponde",
       "call_back": "Da richiamare",
       "modified": "Modificato",
-      "cancelled": "Annullato"
+      "cancelled": "Annullato",
+      "confirm_scheduled": "Conferma programmata",
+      "message_sent": "Messaggio inviato"
     },
     "outcomes_hint": {
       "confirmed": "Il cliente ha confermato",
       "no_answer": "Conta verso non raggiungibile",
       "call_back": "Scegli data e ora",
       "modified": "Modifiche concordate, resta in coda",
-      "cancelled": "Il cliente rifiuta: l'ordine viene annullato sulla piattaforma"
+      "cancelled": "Il cliente rifiuta: l'ordine viene annullato sulla piattaforma",
+      "confirm_scheduled": "Il cliente accetta, ma da un giorno successivo"
     },
     "call_back_at": "Richiamare il",
     "note_optional": "Nota (facoltativa)",
@@ -3866,7 +3883,8 @@
       "unreachable": "Non raggiungibile",
       "confirmed": "Confermato al telefono",
       "cancelled": "Annullato",
-      "left": "Uscito dalla coda"
+      "left": "Uscito dalla coda",
+      "confirm_scheduled": "Conferma programmata"
     },
     "card_title": "Contrassegno",
     "weight_n": "peso {n}",
@@ -4013,10 +4031,204 @@
       "tags_clear_on_close": "Su confermato e annullato rimuovi anche tutti i tag di coda",
       "cancel_restock": "Rimetti a stock le righe quando un esito annulla l'ordine",
       "tags_placeholder": "Tag uno, Tag due",
-      "tags_event_replaced": "Sostituito da un nuovo ordine"
+      "tags_event_replaced": "Sostituito da un nuovo ordine",
+      "ops": {
+        "title": "Comportamento della coda",
+        "description": "Colori delle righe, conferme programmate, trasferimenti, segnalazione dei colli di bottiglia, righe del costo contrassegno e automazione dei resi al mittente.",
+        "fields": {
+          "agingWarnHours": "Giallo dopo ore",
+          "agingAlertHours": "Rosso dopo ore",
+          "scheduledConfirmHour": "Conferme programmate dalle (ora)",
+          "transferDailyLimit": "Trasferimenti per operatore al giorno",
+          "bottleneckFactor": "Collo di bottiglia a × media del team",
+          "feeLineMatch": "Righe costo contrassegno (SKU o titolo)",
+          "refusalCostMinor": "Costo di un pacco rifiutato (centesimi)"
+        },
+        "fee_help": "Tolte quando l'operatore passa una sostituzione a un metodo prepagato. Un * finale indica un prefisso.",
+        "refusal_help": "In unità minime ({decimals} decimali). 0 = il doppio della stima del costo di spedizione.",
+        "rts_label": "Annulla i pacchi contrassegno non pagati tornati al mittente",
+        "rts_help": "Quando si apre un caso di reso al mittente su un ordine in contrassegno non pagato, l'ordine viene annullato sul negozio senza rientro a stock e il pagamento in attesa viene annullato. Il caso resta aperto per il controllo fisico."
+      },
+      "templates": {
+        "title": "Messaggi di conferma",
+        "description": "Modelli che gli operatori copiano o inviano dalla scheda contrassegno (WhatsApp, SMS…) tramite il canale di messaggistica collegato all'account. Ogni invio conta come tentativo di contatto.",
+        "variables": "Variabili:",
+        "key": "Chiave",
+        "name": "Nome",
+        "body": "Testo",
+        "remove": "Rimuovi",
+        "add": "Aggiungi modello",
+        "webhook_title": "Ricevute di consegna",
+        "webhook_help": "Indica questo indirizzo al provider di messaggistica per le ricevute di consegna e lettura.",
+        "copy": "Copia"
+      },
+      "preview": {
+        "title": "Anteprima punteggio",
+        "description": "Punteggio di consegna di qualsiasi ordine con i pesi attuali, senza salvarlo.",
+        "order": "Numero ordine",
+        "run": "Calcola",
+        "base": "prima del rischio: {n}"
+      },
+      "carrier": {
+        "title": "Importazione esiti corriere",
+        "description": "CSV della fatturazione o delle rimesse contrassegno del corriere: consegnato o rifiutato per pacco. Abbinato per numero di tracking o d'ordine; alimenta il rischio destinatari e i costi sprecati.",
+        "file": "File CSV",
+        "paste": "Oppure incolla il CSV",
+        "format": "Colonne: riferimento (tracking o ordine), esito (consegnato / rifiutato), data e costo facoltativi. Separatore ; , o tab.",
+        "import": "Importa",
+        "result": "{imported} righe, {matched} abbinate, {unmatched} non abbinate, {errors} scartate.",
+        "batch_counts": "{rows} righe · {matched} abbinate · {refused} rifiutate"
+      }
     },
     "filter_by_tag": "Tag:",
-    "all_tags": "Tutti"
+    "all_tags": "Tutti",
+    "days_n": "{n} g",
+    "avg_age": "età media {age}",
+    "never_contacted": "Mai chiamato · {age}",
+    "planned_badge": "Conferma il {date}",
+    "planned_failed": "Conferma programmata non riuscita",
+    "planned_error": "La conferma programmata è stata rifiutata dal negozio ({error}); verrà ritentata al prossimo giro giornaliero.",
+    "escalated": "Segnalato",
+    "escalated_note": "Segnalato a un amministratore: {reason}",
+    "team_link": "Console del team",
+    "attempts_n": "{n} tentativi",
+    "warehouse_lines": "Articoli per il magazzino",
+    "copy": "Copia",
+    "confirm_on": "Conferma il",
+    "confirm_on_hint": "Un job giornaliero conferma l'ordine quella mattina (dall'ora impostata nelle impostazioni contrassegno). Se il negozio rifiuta, la data resta e si riprova il giorno dopo.",
+    "nav_position": "{position} di {total} · {view}",
+    "system": "sistema",
+    "channels": {
+      "scheduled": "programmato",
+      "bulk": "in blocco",
+      "messaging-mock": "messaggio"
+    },
+    "risk_panel": {
+      "refused": "Rifiutati",
+      "wasted": "Costo sprecato in rifiuti",
+      "expected": "Valore atteso",
+      "tier": "Fascia destinatario",
+      "linked": "Contatti collegati",
+      "hint": "Valore atteso = probabilità di consegna (punteggio) × margine − probabilità di rifiuto × {cost} per pacco rifiutato."
+    },
+    "messages": {
+      "timeline": "Messaggi ({n})",
+      "status": {
+        "sent": "Inviato",
+        "delivered": "Consegnato",
+        "read": "Letto",
+        "failed": "Non riuscito"
+      },
+      "copy": "Copia testo",
+      "send": "Invia",
+      "sent": "Inviato, registrato come tentativo n. {n}.",
+      "no_phone": "L'ordine non ha un numero di telefono",
+      "action_failed": "Impossibile inviare il messaggio."
+    },
+    "transfer": {
+      "menu": "Trasferisci",
+      "release": "Rilascia in coda",
+      "pass_to": "Passa a un collega",
+      "left_today": "ancora {n} oggi",
+      "no_transfer_after_call": "Dopo la prima chiamata solo un amministratore può trasferire l'ordine.",
+      "escalate": "Segnala a un amministratore",
+      "resolve": "Chiudi la segnalazione",
+      "escalate_title": "Segnala questo ordine",
+      "escalate_description": "Gli amministratori ricevono una notifica e l'ordine resta nella vista Segnalati finché uno di loro non la chiude.",
+      "reason": "Motivo",
+      "action_failed": "Operazione non riuscita."
+    },
+    "precheck": {
+      "open": "Verifica preliminare ({n})",
+      "title": "Prima di chiamare {order}",
+      "recomputed": "Il punteggio era vecchio ed è stato appena ricalcolato. Punti da verificare al telefono:",
+      "description": "Punti da verificare al telefono:",
+      "severity": {
+        "critical": "Critico",
+        "warning": "Attenzione"
+      },
+      "previous_addresses": "Altri indirizzi usati da questo cliente",
+      "close": "Ho capito"
+    },
+    "bulk": {
+      "select_all": "Seleziona tutti",
+      "selected": "{n} selezionati",
+      "assign": "Assegna",
+      "assign_to": "Assegna a",
+      "unassign": "Togli l'operatore",
+      "distribute": "Distribuisci in parti uguali",
+      "confirm": "Conferma",
+      "cancel": "Annulla ordini",
+      "confirm_question": "Confermare {n} ordini?",
+      "cancel_question": "Annullare {n} ordini sul negozio?",
+      "yes": "Sì",
+      "clear": "Deseleziona",
+      "result": "{done} eseguiti, {failed} rifiutati.",
+      "failed": "Azione in blocco non riuscita."
+    },
+    "team": {
+      "title": "Console customer care",
+      "description": "Chi ha cosa in carico adesso, l'efficienza di ogni operatore nel periodo e cosa ha gestito ciascuno.",
+      "tabs": {
+        "supervisor": "Supervisione",
+        "efficiency": "Efficienza",
+        "attribution": "Gestiti per operatore"
+      },
+      "supervisor_title": "Ordini aperti per operatore",
+      "supervisor_description": "Media del team {avg} da chiamare. Chi è molto sopra è segnalato come collo di bottiglia.",
+      "to_call": "Da chiamare",
+      "overdue": "Richiami scaduti",
+      "never_contacted": "Mai chiamati",
+      "oldest": "Più vecchio",
+      "bottleneck": "Collo di bottiglia",
+      "empty_title": "Nessuna chiamata nel periodo",
+      "empty_description": "Scegli un altro periodo.",
+      "efficiency_title": "Efficienza",
+      "efficiency_description": "Dai tentativi registrati: ordini gestiti, quota confermata, tentativi per conferma, tempo dall'ingresso in coda alla chiamata di chiusura, ordini chiusi per giorno attivo.",
+      "handled": "Gestiti",
+      "confirmed_pct": "% confermati",
+      "attempts_per_confirmation": "Tentativi / conferma",
+      "avg_handling": "Tempo medio di gestione",
+      "throughput": "Produttività",
+      "system": "Programmati (sistema)",
+      "messages_n": "{n} messaggi",
+      "minutes_n": "{n} min",
+      "per_day": "{n}/giorno",
+      "attribution_title": "Ordini gestiti",
+      "all_outcomes": "Tutti",
+      "pick_operator": "Scegli un operatore.",
+      "last_outcome": "Ultimo esito",
+      "last_at": "Ultima chiamata"
+    },
+    "widgets": {
+      "pending": {
+        "today": "oggi",
+        "yesterday": "ieri",
+        "week": "7 giorni",
+        "total": "{n} aperti in tutto"
+      },
+      "mine": {
+        "call_backs": "{n} richiami scaduti",
+        "never": "{n} mai chiamati",
+        "planned": "{n} programmati",
+        "unreachable": "{n} irraggiungibili"
+      },
+      "operators": {
+        "empty": "Nessun ordine in contrassegno aperto.",
+        "unassigned": "Non assegnati",
+        "overdue": "{n} scaduti"
+      }
+    },
+    "modify": {
+      "payment_method": "Metodo di pagamento del nuovo ordine",
+      "keep_cod": "Mantieni contrassegno",
+      "methods": {
+        "card": "Carta (link di pagamento inviato a parte)",
+        "bank_transfer": "Bonifico",
+        "other": "Altro metodo prepagato"
+      },
+      "payment_hint": "L'ordine viene ricreato con il nuovo metodo, pagamento in attesa: le righe del costo contrassegno vengono tolte ed esce dalla coda conferme."
+    }
   },
   "po_pdf": {
     "title": "Ordine d'acquisto",
@@ -6983,6 +7195,18 @@
       "cod_queue": {
         "name": "Contrassegni da confermare",
         "description": "Ordini in contrassegno in attesa di chiamata."
+      },
+      "cod_pending": {
+        "name": "Contrassegni da confermare",
+        "description": "Ordini in contrassegno aperti di oggi, ieri e degli ultimi 7 giorni."
+      },
+      "cod_operators": {
+        "name": "Ticket contrassegno per operatore",
+        "description": "Ordini da chiamare e richiami scaduti per ogni operatore."
+      },
+      "cod_mine": {
+        "name": "La mia coda contrassegno",
+        "description": "I tuoi ordini assegnati: da chiamare, richiami scaduti, mai chiamati, programmati, irraggiungibili."
       }
     },
     "metrics": {

@@ -3,7 +3,10 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { canWritePage } from "@keel/config";
 import { recordAudit } from "@keel/db";
-import { CodError, TAG_WRITE_EVENTS, assignQueueItem, modifyCodOrder, deleteCapacityException, distributeUnassigned, parseTagList, recomputeRecipientProfiles, recordAttempt, releaseQueueItem, saveCapacity, saveCapacityException, saveCodSettings, scorePendingItems, scoreQueueItem, setRecipientOverride, syncQueue } from "@keel/addon-cod";
+import { CodError, TAG_WRITE_EVENTS, assignQueueItem, bulkAssign, bulkOutcome, distributeEqually, escalateQueueItem, getCodSettings, importCarrierOutcomes, messageTemplateSchema, modifyCodOrder, deleteCapacityException, distributeUnassigned, parseCarrierCsv, parseTagList, recomputeRecipientProfiles, recordAttempt, releaseQueueItem, resolveEscalation, saveCapacity, saveCapacityException, saveCodSettings, scorePendingItems, scoreQueueItem, sendCodMessage, setRecipientOverride, syncQueue, transferQueueItem, warehouseLines, type ScoreFactor } from "@keel/addon-cod";
+import { and, eq, schema, sql } from "@keel/db";
+import { displayName } from "@keel/core";
+import { getAddressProviderFor, getMessagingChannelFor } from "@keel/services";
 import { getCommercePlatform } from "@/server/integrations";
 import { auditActor } from "@/server/audit-actor";
 import { ForbiddenError, requirePage, type TenantContext } from "@/server/tenant";
@@ -22,13 +25,18 @@ async function requireCodSettings(slug: string) {
   if (!canWritePage(ctx.role, "cod_settings")) throw new ForbiddenError("edit");
   return ctx;
 }
+/** Error details with their own message (`cod_<detail>`): the rest fall back to the code's message. */
+const DETAIL_CODES = new Set(["daily_limit", "already_called", "not_yours", "same_operator", "target", "template", "phone", "reason"]);
 const handle = (e: unknown): ActionResult => {
   if (e instanceof ForbiddenError) return fail("forbidden");
-  if (e instanceof CodError) return fail(`cod_${e.code}`);
+  if (e instanceof CodError) return fail(e.detail && DETAIL_CODES.has(e.detail) ? `cod_${e.detail}` : `cod_${e.code}`);
   throw e;
 };
+const isAdminRole = (ctx: TenantContext) => ctx.role === "owner" || ctx.role === "admin";
+/** Supervisors of the queue: bulk actions, assigning to others. */
+const isSupervisor = (ctx: TenantContext) => isAdminRole(ctx) || ctx.role === "operations";
 
-const attemptSchema = z.object({ orderId: uuid, outcome: z.enum(["confirmed", "no_answer", "call_back", "cancelled", "modified"]), note: z.string().max(500).optional().nullable(), callBackAt: z.string().optional().nullable() });
+const attemptSchema = z.object({ orderId: uuid, outcome: z.enum(["confirmed", "no_answer", "call_back", "cancelled", "modified", "confirm_scheduled"]), note: z.string().max(500).optional().nullable(), callBackAt: z.string().optional().nullable(), confirmOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable() });
 
 export async function recordAttemptAction(slug: string, input: unknown): Promise<ActionResult<{ status: string; attemptNumber: number }>> {
   try {
@@ -39,7 +47,7 @@ export async function recordAttemptAction(slug: string, input: unknown): Promise
     if (parsed.data.outcome === "call_back" && (!callBackAt || Number.isNaN(callBackAt.getTime()))) return fail("invalid_input");
     const platform = await getCommercePlatform(ctx);
     const r = await ctx.run(async (tx) => {
-      const res = await recordAttempt(svc(ctx, tx), { orderId: parsed.data.orderId, outcome: parsed.data.outcome, note: parsed.data.note ?? null, callBackAt }, undefined, { platform });
+      const res = await recordAttempt(svc(ctx, tx), { orderId: parsed.data.orderId, outcome: parsed.data.outcome, note: parsed.data.note ?? null, callBackAt, confirmOn: parsed.data.confirmOn ?? null }, undefined, { platform });
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: `cod.attempt_${parsed.data.outcome}`, entityType: "order", entityId: parsed.data.orderId, diff: { attempt: { from: res.attemptNumber - 1, to: res.attemptNumber } }, metadata: { queueStatus: res.status } });
       return res;
     });
@@ -232,6 +240,7 @@ const modifySchema = z.object({
   contact: z.object({ customerName: z.string().max(120).nullish(), phone: z.string().max(40).nullish(), email: z.string().max(200).nullish(), shippingAddress: addressSchema.nullish(), note: z.string().max(2000).nullish(), noteMode: z.enum(["replace", "append"]).optional() }).optional(),
   lines: z.array(z.object({ lineId: uuid.optional(), variantId: uuid.optional(), quantity: z.number().int().min(0).max(999) })).max(50).optional(),
   mergeOrderIds: z.array(uuid).max(10).optional(),
+  paymentMethod: z.enum(["card", "bank_transfer", "other"]).nullish(),
   attemptNote: z.string().max(500).nullish(),
   registerAttempt: z.boolean().optional(),
 });
@@ -254,5 +263,178 @@ export async function modifyCodOrderAction(slug: string, input: unknown): Promis
     return ok(r.kind === "replaced" ? { kind: "replaced", newOrderId: r.newOrderId, newOrderName: r.newOrderName, warning: r.warning } : { kind: "updated" });
   } catch (e) {
     return handle(e) as ActionResult<{ kind: "updated" | "replaced" }>;
+  }
+}
+
+/* ---------- depth of the Control Room scan (issue #8) ---------- */
+
+/** Warehouse list for the confirm dialog: `SKU × qty` per line (C.6). */
+export async function orderLinesAction(slug: string, orderId: string): Promise<ActionResult<{ text: string }>> {
+  try {
+    const ctx = await requirePage(slug, "cod_queue");
+    if (!uuid.safeParse(orderId).success) return fail("invalid_input");
+    const lines = await ctx.run((tx) => tx.select({ sku: schema.orderLines.sku, title: schema.orderLines.title, variantTitle: schema.orderLines.variantTitle, quantity: schema.orderLines.currentQuantity, isAncillary: schema.orderLines.isAncillary }).from(schema.orderLines).where(and(eq(schema.orderLines.tenantId, ctx.tenant.id), eq(schema.orderLines.orderId, orderId))));
+    return ok({ text: warehouseLines(lines) });
+  } catch (e) {
+    return handle(e) as ActionResult<{ text: string }>;
+  }
+}
+
+/** Pass to a colleague (C.9): operators within the rules, admins freely. */
+export async function transferAction(slug: string, orderId: string, toUserId: string, note?: string | null): Promise<ActionResult<{ transfersToday: number }>> {
+  try {
+    const ctx = await requireQueueWrite(slug);
+    if (!uuid.safeParse(orderId).success || !uuid.safeParse(toUserId).success) return fail("invalid_input");
+    const r = await ctx.run((tx) => transferQueueItem(svc(ctx, tx), orderId, toUserId, { isAdmin: isAdminRole(ctx), timezone: ctx.tenant.timezone, note: note?.slice(0, 300) ?? null }));
+    revalidatePath(`/t/${slug}/cod`);
+    revalidatePath(`/t/${slug}/orders/${orderId}`);
+    return ok(r);
+  } catch (e) {
+    return handle(e) as ActionResult<{ transfersToday: number }>;
+  }
+}
+
+export async function escalateAction(slug: string, orderId: string, reason: string): Promise<ActionResult> {
+  try {
+    const ctx = await requireQueueWrite(slug);
+    if (!uuid.safeParse(orderId).success) return fail("invalid_input");
+    await ctx.run((tx) => escalateQueueItem(svc(ctx, tx), orderId, String(reason ?? "")));
+    revalidatePath(`/t/${slug}/cod`);
+    revalidatePath(`/t/${slug}/orders/${orderId}`);
+    return ok();
+  } catch (e) {
+    return handle(e);
+  }
+}
+
+export async function resolveEscalationAction(slug: string, orderId: string, assignTo?: string | null): Promise<ActionResult> {
+  try {
+    const ctx = await requireQueueWrite(slug);
+    if (!isAdminRole(ctx)) return fail("forbidden");
+    if (!uuid.safeParse(orderId).success || (assignTo && !uuid.safeParse(assignTo).success)) return fail("invalid_input");
+    await ctx.run((tx) => resolveEscalation(svc(ctx, tx), orderId, { assignTo: assignTo ?? null, timezone: ctx.tenant.timezone }));
+    revalidatePath(`/t/${slug}/cod`);
+    revalidatePath(`/t/${slug}/orders/${orderId}`);
+    return ok();
+  } catch (e) {
+    return handle(e);
+  }
+}
+
+const bulkSchema = z.object({ kind: z.enum(["assign", "unassign", "distribute", "confirm", "cancel"]), orderIds: z.array(uuid).min(1).max(200), userId: uuid.nullish() });
+
+/** Selection bar of the queue (C.4): supervisors only. */
+export async function bulkQueueAction(slug: string, input: unknown): Promise<ActionResult<{ done: number; failed: number }>> {
+  try {
+    const ctx = await requireQueueWrite(slug);
+    if (!isSupervisor(ctx)) return fail("forbidden");
+    const parsed = bulkSchema.safeParse(input);
+    if (!parsed.success || (parsed.data.kind === "assign" && !parsed.data.userId)) return fail("invalid_input");
+    const { kind, orderIds, userId } = parsed.data;
+    const platform = kind === "confirm" || kind === "cancel" ? await getCommercePlatform(ctx) : undefined;
+    const r = await ctx.run(async (tx) => {
+      const s = svc(ctx, tx);
+      if (kind === "assign" || kind === "unassign") return bulkAssign(s, orderIds, kind === "assign" ? userId! : null, { timezone: ctx.tenant.timezone });
+      if (kind === "distribute") return distributeEqually(s, orderIds, { timezone: ctx.tenant.timezone });
+      return bulkOutcome(s, orderIds, kind === "confirm" ? "confirmed" : "cancelled", { platform });
+    });
+    revalidatePath(`/t/${slug}/cod`);
+    return ok({ done: r.done, failed: r.failed.length });
+  } catch (e) {
+    return handle(e) as ActionResult<{ done: number; failed: number }>;
+  }
+}
+
+/** Sends a confirmation template through the tenant's messaging channel (C.17). */
+export async function sendCodMessageAction(slug: string, orderId: string, templateKey: string): Promise<ActionResult<{ attemptNumber: number }>> {
+  try {
+    const ctx = await requireQueueWrite(slug);
+    if (!uuid.safeParse(orderId).success) return fail("invalid_input");
+    const r = await ctx.run(async (tx) => {
+      const res = await sendCodMessage(svc(ctx, tx), getMessagingChannelFor(ctx.tenant.id), { orderId, templateKey: String(templateKey) }, { shopName: ctx.tenant.name, locale: ctx.locale, operatorName: displayName(ctx.user) });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "cod.message_sent", entityType: "order", entityId: orderId, metadata: { template: templateKey, attemptNumber: res.attemptNumber } });
+      return res;
+    });
+    revalidatePath(`/t/${slug}/orders/${orderId}`);
+    revalidatePath(`/t/${slug}/cod`);
+    return ok({ attemptNumber: r.attemptNumber });
+  } catch (e) {
+    return handle(e) as ActionResult<{ attemptNumber: number }>;
+  }
+}
+
+/** Queue behaviour: aging, scheduled confirmations, transfers, return-to-sender automation, fee lines, refusal cost. */
+export async function saveCodOperationsAction(slug: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
+  try {
+    const ctx = await requireCodSettings(slug);
+    const num = (k: string) => (formData.has(k) && formData.get(k) !== "" ? Number(formData.get(k)) : undefined);
+    const patch = JSON.parse(JSON.stringify({ agingWarnHours: num("agingWarnHours"), agingAlertHours: num("agingAlertHours"), scheduledConfirmHour: num("scheduledConfirmHour"), transferDailyLimit: num("transferDailyLimit"), bottleneckFactor: num("bottleneckFactor"), refusalCostMinor: num("refusalCostMinor"), rtsAutoCancel: formData.get("rtsAutoCancel") === "on", feeLineMatch: parseTagList(String(formData.get("feeLineMatch") ?? "")) })) as Record<string, unknown>;
+    const before = await ctx.run((tx) => getCodSettings(svc(ctx, tx)));
+    await ctx.run(async (tx) => {
+      const after = await saveCodSettings(svc(ctx, tx), patch);
+      const diff = Object.fromEntries(Object.keys(patch).filter((k) => JSON.stringify((before as Record<string, unknown>)[k]) !== JSON.stringify((after as Record<string, unknown>)[k])).map((k) => [k, { from: (before as Record<string, unknown>)[k], to: (after as Record<string, unknown>)[k] }]));
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "cod.settings_updated", entityType: "cod_settings", diff });
+    });
+    revalidatePath(`/t/${slug}/cod/settings`);
+    return ok();
+  } catch (e) {
+    return handle(e);
+  }
+}
+
+/** Message templates: the whole list is replaced (key, name, body per template). */
+export async function saveCodTemplatesAction(slug: string, templates: unknown): Promise<ActionResult> {
+  try {
+    const ctx = await requireCodSettings(slug);
+    const parsed = z.array(messageTemplateSchema).max(20).safeParse(templates);
+    if (!parsed.success || new Set(parsed.data.map((t) => t.key)).size !== parsed.data.length) return fail("invalid_input");
+    await ctx.run(async (tx) => {
+      await saveCodSettings(svc(ctx, tx), { messageTemplates: parsed.data });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "cod.templates_updated", entityType: "cod_settings", diff: { messageTemplates: { from: null, to: parsed.data.map((t) => t.key) } } });
+    });
+    revalidatePath(`/t/${slug}/cod/settings`);
+    return ok();
+  } catch (e) {
+    return handle(e);
+  }
+}
+
+/** Score of any order by its number, without storing it (C.15). */
+export async function previewScoreAction(slug: string, orderName: string): Promise<ActionResult<{ orderId: string; name: string; score: number; base: number; riskTier: string | null; factors: ScoreFactor[] }>> {
+  try {
+    const ctx = await requireCodSettings(slug);
+    const q = String(orderName ?? "").trim().replace(/^#/, "");
+    if (!q) return fail("invalid_input");
+    const r = await ctx.run(async (tx) => {
+      const [o] = await tx.select({ id: schema.orders.id, name: schema.orders.name }).from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenant.id), sql`lower(${schema.orders.name}) in (${q.toLowerCase()}, ${`#${q.toLowerCase()}`})`)).limit(1);
+      if (!o) return null;
+      const s = await scoreQueueItem(svc(ctx, tx), o.id, { timezone: ctx.tenant.timezone, addressProvider: getAddressProviderFor(ctx.tenant.id), preview: true });
+      return { orderId: o.id, name: o.name, score: s.score, base: s.base, riskTier: s.riskTier, factors: s.factors };
+    });
+    return r ? ok(r) : fail("cod_not_found");
+  } catch (e) {
+    return handle(e) as ActionResult<never>;
+  }
+}
+
+/** Carrier billing / remittance file (C.19): parse, match, store; recipient risk recomputed right after. */
+export async function importCarrierAction(slug: string, _prev: ActionResult<{ imported: number; matched: number; unmatched: number; errors: number }> | null, formData: FormData): Promise<ActionResult<{ imported: number; matched: number; unmatched: number; errors: number }>> {
+  try {
+    const ctx = await requireCodSettings(slug);
+    const file = formData.get("file");
+    const text = file && typeof file === "object" && "text" in file && (file as File).size > 0 ? await (file as File).text() : String(formData.get("csv") ?? "");
+    if (!text.trim() || text.length > 2_000_000) return fail("invalid_input");
+    const parsed = parseCarrierCsv(text, { decimals: new Intl.NumberFormat("en", { style: "currency", currency: ctx.tenant.currency }).resolvedOptions().maximumFractionDigits ?? 2 });
+    if (parsed.missingColumns.length) return fail("cod_carrier_columns");
+    const batch = `${new Date().toISOString().slice(0, 16)}-${ctx.user.id.slice(0, 6)}`;
+    const r = await ctx.run(async (tx) => {
+      const res = await importCarrierOutcomes(svc(ctx, tx), parsed.rows, { batch });
+      await recomputeRecipientProfiles(svc(ctx, tx), undefined, ctx.tenant.country);
+      return res;
+    });
+    revalidatePath(`/t/${slug}/cod/settings`);
+    return ok({ imported: r.imported, matched: r.matched, unmatched: r.unmatched.length, errors: parsed.errors.length });
+  } catch (e) {
+    return handle(e) as ActionResult<never>;
   }
 }

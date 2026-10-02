@@ -1,21 +1,24 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDate, displayName } from "@keel/core";
+import { formatDate, formatDateTime, displayName } from "@keel/core";
 import { adminDb, eq, schema } from "@keel/db";
-import { SCORE_FACTORS, TAG_WRITE_EVENTS, getCodSettings, listCapacity, listRiskyRecipients } from "@keel/addon-cod";
+import { SCORE_FACTORS, TAG_WRITE_EVENTS, TEMPLATE_VARIABLES, carrierImportSummary, getCodSettings, listCapacity, listRiskyRecipients } from "@keel/addon-cod";
+import { codMessagingWebhookUrl } from "@/server/cod-webhook";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { CapacityRow, DeleteExceptionButton, ExceptionForm, OverrideControls, RecomputeRiskButton, ScoringSettingsForm, TagSettingsForm } from "./controls";
+import { CarrierImportForm, OperationsForm, ScorePreview, TemplatesEditor } from "./extras";
 
 export default async function CodSettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "cod_settings");
   const t = await getTranslations("cod.settings");
   const tcod = await getTranslations("cod");
-  const { settings, capacity, risky } = await ctx.run(async (tx) => {
+  const { settings, capacity, risky, batches } = await ctx.run(async (tx) => {
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
-    return { settings: await getCodSettings(s), capacity: await listCapacity(s), risky: await listRiskyRecipients(s, { tiers: ["watch", "high_risk", "blacklisted"], limit: 100 }) };
+    return { settings: await getCodSettings(s), capacity: await listCapacity(s), risky: await listRiskyRecipients(s, { tiers: ["watch", "high_risk", "blacklisted"], limit: 100 }), batches: await carrierImportSummary(s) };
   });
+  const decimals = new Intl.NumberFormat("en", { style: "currency", currency: ctx.tenant.currency }).resolvedOptions().maximumFractionDigits ?? 2;
   const members = await adminDb().select({ id: schema.users.id, name: schema.users.name, email: schema.users.email, role: schema.tenantMemberships.role }).from(schema.tenantMemberships).innerJoin(schema.users, eq(schema.users.id, schema.tenantMemberships.userId)).where(eq(schema.tenantMemberships.tenantId, ctx.tenant.id));
   const operators = members.filter((m) => ["operations", "customer_care", "admin", "owner"].includes(m.role)).map((m) => ({ id: m.id, label: displayName(m) }));
   const mask = (k: string) => (k.startsWith("email:") ? k.replace(/^email:(.{2}).*(@.*)$/, "email:$1***$2") : k.replace(/\d(?=\d{3})/g, "•"));
@@ -65,8 +68,12 @@ export default async function CodSettingsPage({ params }: { params: Promise<{ te
             </div>
           </CardContent>
         </Card>
+        <OperationsForm slug={tenant} settings={settings} currencyDecimals={decimals} />
+        <TemplatesEditor slug={tenant} templates={settings.messageTemplates} variables={TEMPLATE_VARIABLES} webhookUrl={codMessagingWebhookUrl(ctx.tenant.id)} />
         <TagSettingsForm slug={tenant} settings={settings} events={TAG_WRITE_EVENTS} />
+        <ScorePreview slug={tenant} />
         <ScoringSettingsForm slug={tenant} settings={settings} factors={SCORE_FACTORS} />
+        <CarrierImportForm slug={tenant} batches={batches.map((b) => ({ batch: b.batch, at: formatDateTime(b.at instanceof Date ? b.at : new Date(b.at), ctx.locale, ctx.tenant.timezone), rows: b.rows, matched: b.matched, refused: b.refused }))} />
         <Card>
           <CardHeader className="flex-row items-start justify-between space-y-0">
             <div>

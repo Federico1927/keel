@@ -93,7 +93,14 @@ export const DEMO_COD_SETTINGS = { queueCutoffDays: 60, tags: {
     unreachable: { add: ["Non raggiungibile"], remove: [] },
     replaced: { add: ["Annullato per variazione"], remove: ["Confermato"] },
   },
-} };
+},
+  messageTemplates: [
+    { key: "conferma", name: "Conferma ordine", body: "Ciao {{first_name}}, sono {{operator_name}} di {{shop_name}}. Confermi l'ordine {{order_name}} ({{items}}) da {{total}} in contrassegno, consegna a {{address}}? Rispondi SÌ per confermare." },
+    { key: "non_risponde", name: "Non risponde", body: "Ciao {{first_name}}, abbiamo provato a chiamarti per l'ordine {{order_name}} da {{total}}. Quando possiamo richiamarti?" },
+    { key: "consegna_programmata", name: "Consegna programmata", body: "Ciao {{first_name}}, come concordato confermeremo l'ordine {{order_name}} il {{scheduled_date}}. Grazie da {{shop_name}}!" },
+  ],
+  feeLineMatch: ["COD-FEE", "Contrassegno*"],
+};
 
 export function demoSurveySettings(key: DemoKey, tenantId: string) {
   return { tenantId, enabled: true, config: DEFAULT_SURVEY_CONFIG, secret: `demo-${key}-survey-secret-0001` };
