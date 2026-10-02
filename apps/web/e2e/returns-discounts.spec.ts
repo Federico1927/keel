@@ -17,16 +17,18 @@ test.describe("returns and discounts", () => {
       if ((await link.count()) === 0) continue;
       await link.click();
       await expect(page).toHaveURL(/\/returns\/new\?order=/);
-      if ((await page.locator('input[type="number"]:not([disabled])').count()) > 0) {
+      const qty = page.locator('input[type="number"]:not([disabled])').first();
+      if ((await qty.count()) === 0) continue;
+      await qty.fill("1");
+      await page.getByRole("button", { name: /Open return|Apri reso/ }).click();
+      // another spec running in parallel can open a store return on the same order meanwhile: then try the next one
+      const done = await page.waitForURL(/\/returns\/[0-9a-f-]{36}$/, { timeout: 15_000 }).then(() => true, () => false);
+      if (done) {
         opened = true;
         break;
       }
     }
     expect(opened).toBe(true);
-    const qty = page.locator('input[type="number"]:not([disabled])').first();
-    await qty.fill("1");
-    await page.getByRole("button", { name: /Open return|Apri reso/ }).click();
-    await expect(page).toHaveURL(/\/returns\/[0-9a-f-]{36}$/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(/R-\d+/);
 
     await page.getByRole("button", { name: /^Approve$|^Approva$/ }).click();
