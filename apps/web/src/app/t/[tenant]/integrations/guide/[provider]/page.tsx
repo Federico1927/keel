@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { GOOGLE_ADS_API_VERSION, META_REQUIRED_PERMISSIONS, SHOPIFY_SCOPES_BY_MODULE, SHOPIFY_WEBHOOK_TOPICS } from "@keel/integrations";
+import { isAdPlatformInPlan } from "@keel/config";
+import { ADS_UTM_TEMPLATES } from "@keel/core";
+import { GOOGLE_ADS_API_VERSION, META_REQUIRED_PERMISSIONS, SHOPIFY_SCOPES_BY_MODULE, SHOPIFY_WEBHOOK_TOPICS, TIKTOK_API_VERSION, TIKTOK_SCOPES_BY_MODULE } from "@keel/integrations";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, cn } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 
-/** One guide per activation: the three platforms, then the external providers and tracking; last, the platform email sender (super-admins only: tenants configure nothing). */
-const PROVIDERS = ["shopify", "meta", "google", "anthropic", "tracking", "survey", "email"] as const;
+/** One guide per activation: the platforms (TikTok when the plan includes it), then the external providers and tracking; last, the platform email sender (super-admins only: tenants configure nothing). */
+const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic", "tracking", "survey", "email"] as const;
 type Provider = (typeof PROVIDERS)[number];
 interface Step { title: string; body: string; verify?: boolean }
 
@@ -17,6 +19,8 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
   const p = provider as Provider;
   const platformAdmin = ctx.user.isSuperAdmin;
   if (p === "email" && !platformAdmin) notFound();
+  const tiktok = isAdPlatformInPlan("tiktok", ctx.tenant.planKey);
+  if (p === "tiktok" && !tiktok) notFound();
   const t = await getTranslations("integration_guide");
   const ti = await getTranslations("integrations");
   const steps = t.raw(`${p}.steps`) as Step[];
@@ -24,12 +28,14 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
   const base = `/t/${tenant}/integrations`;
   const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/webhooks/shopify`;
   const emailWebhookUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/webhooks/email`;
+  const tiktokCallbackUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/integrations/tiktok/oauth/callback`;
+  const fill = (body: string) => body.replace("{webhookUrl}", webhookUrl).replace("{emailWebhookUrl}", emailWebhookUrl).replace("{callbackUrl}", tiktokCallbackUrl).replace("{utmTemplate}", ADS_UTM_TEMPLATES.tiktok).replace("{apiVersion}", p === "tiktok" ? TIKTOK_API_VERSION : GOOGLE_ADS_API_VERSION);
   return (
     <>
       <p className="mb-2 text-sm text-muted-foreground"><Link href={base} className="hover:underline">← {ti("title")}</Link></p>
       <PageHeader eyebrow={ctx.tenant.name} title={t(`${p}.title`)} description={t(`${p}.intro`)} />
-      <div className="mb-4 flex gap-1 rounded-md bg-muted p-1 text-sm">
-        {PROVIDERS.filter((k) => k !== "email" || platformAdmin).map((k) => (
+      <div className="mb-4 flex flex-wrap gap-1 rounded-md bg-muted p-1 text-sm">
+        {PROVIDERS.filter((k) => (k !== "email" || platformAdmin) && (k !== "tiktok" || tiktok)).map((k) => (
           <Link key={k} href={`${base}/guide/${k}`} className={cn("flex-1 rounded-sm px-3 py-1.5 text-center", k === p ? "bg-card shadow-sm" : "text-muted-foreground")}>{ti(`providers.${k}`)}</Link>
         ))}
       </div>
@@ -43,7 +49,7 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
                 <h3 className="font-medium">{s.title}</h3>
                 {s.verify && <Badge variant="warning">{t("verify_badge")}</Badge>}
               </div>
-              <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{s.body.replace("{webhookUrl}", webhookUrl).replace("{emailWebhookUrl}", emailWebhookUrl).replace("{apiVersion}", GOOGLE_ADS_API_VERSION)}</p>
+              <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{fill(s.body)}</p>
             </li>
           ))}
         </ol>
@@ -59,6 +65,12 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
               ))}
               {p === "meta" && <div className="font-mono text-muted-foreground">{META_REQUIRED_PERMISSIONS.join(", ")}</div>}
               {p === "google" && <div className="font-mono text-muted-foreground" data-testid="google-api-version">https://www.googleapis.com/auth/adwords · developer token (Basic access) · OAuth client (Desktop/Web) · refresh token · Google Ads API {GOOGLE_ADS_API_VERSION}</div>}
+              {p === "tiktok" && (
+                <>
+                  {Object.entries(TIKTOK_SCOPES_BY_MODULE).map(([mod, scopes]) => <div key={mod}><div className="font-medium">{t(`tiktok.modules.${mod}`)}</div><div className="font-mono text-muted-foreground">{scopes.join(", ")}</div></div>)}
+                  <div className="font-mono text-muted-foreground" data-testid="tiktok-api-version">TikTok API for Business {TIKTOK_API_VERSION} · {tiktokCallbackUrl}</div>
+                </>
+              )}
               {t.has(`${p}.scopes`) && <div className="whitespace-pre-line text-muted-foreground">{t(`${p}.scopes`)}</div>}
             </CardContent>
           </Card>

@@ -9,6 +9,7 @@
     ".": "./src/index.ts",
     "./styles.css": "./src/styles.css",
     "./tokens.css": "./src/tokens.css",
+    "./theme.css": "./src/theme.css",
     "./fonts": "./src/fonts.ts",
     "./*": "./src/*.ts"
   },

@@ -141,6 +141,12 @@
       "mcp": {
         "name": "Client AI (MCP)",
         "description": "Claude, ChatGPT, Cursor e altri client AI leggono i dati del negozio come l'utente collegato"
+      },
+      "ads": {
+        "tiktok": {
+          "name": "TikTok Ads",
+          "description": "Campagne, gruppi di annunci e annunci TikTok con metriche giornaliere, profitto sugli ordini reali e pausa/riattivazione"
+        }
       }
     },
     "addon": {
@@ -1867,7 +1873,8 @@
     "totals": "Totale",
     "platform": {
       "meta": "Meta",
-      "google": "Google Ads"
+      "google": "Google Ads",
+      "tiktok": "TikTok Ads"
     },
     "declared": {
       "title_meta": "Meta: dichiarato vs reale",
@@ -1875,7 +1882,8 @@
       "platform_says": "La piattaforma dichiara (acquisti · valore · ROAS)",
       "real": "Ordini reali attribuiti (ordini · netto · ROAS)",
       "gap": "Scarto",
-      "help": "Le piattaforme contano le conversioni con le proprie finestre e modelli; gli ordini reali sono gli ordini di vendita attribuiti da Keel. Uno scarto molto negativo vuol dire che la piattaforma sovrastima."
+      "help": "Le piattaforme contano le conversioni con le proprie finestre e modelli; gli ordini reali sono gli ordini di vendita attribuiti da Keel. Uno scarto molto negativo vuol dire che la piattaforma sovrastima.",
+      "title_tiktok": "TikTok: dichiarato vs reale"
     },
     "creatives_link": "Creatività",
     "creatives": {
@@ -2653,7 +2661,8 @@
       "tracking": "Pixel e conversioni",
       "survey": "Sondaggio post-acquisto",
       "anthropic": "AI (Anthropic)",
-      "email": "Email di piattaforma"
+      "email": "Email di piattaforma",
+      "tiktok": "TikTok Ads"
     },
     "status": {
       "not_connected": "Non collegata",
@@ -2702,13 +2711,15 @@
       "shopify": "App custom (token Admin API)",
       "meta": "Token utente di sistema",
       "google": "Credenziali Google Ads API",
-      "anthropic": "Chiave API Anthropic"
+      "anthropic": "Chiave API Anthropic",
+      "tiktok": "App TikTok for Business"
     },
     "connect_description": {
       "shopify": "Crea un'app custom nell'admin del negozio, concedi gli scope elencati nella guida, incolla il token Admin API e la chiave segreta usata per firmare i webhook.",
       "meta": "Un token utente di sistema a lunga durata da Business Manager con ads_read e ads_management sull'account pubblicitario.",
       "google": "Developer token, client OAuth e un refresh token autorizzato per lo scope Google Ads; sola lettura in questa versione.",
-      "anthropic": "La chiave del negozio da console.anthropic.com. Anthropic addebita il consumo dell'assistente a quell'account; Keel conserva la chiave cifrata."
+      "anthropic": "La chiave del negozio da console.anthropic.com. Anthropic addebita il consumo dell'assistente a quell'account; Keel conserva la chiave cifrata.",
+      "tiktok": "App id e secret dell'app TikTok for Business e l'auth code restituito dall'autorizzazione dell'inserzionista; Keel lo scambia con un token a lunga durata valido per tutti gli account inserzionista autorizzati."
     },
     "fields": {
       "shop": "Dominio del negozio",
@@ -2721,7 +2732,10 @@
       "client_id": "OAuth client id",
       "client_secret": "OAuth client secret",
       "refresh_token": "Refresh token",
-      "api_key": "Chiave API"
+      "api_key": "Chiave API",
+      "app_id": "App id",
+      "app_secret": "App secret",
+      "auth_code": "Auth code"
     },
     "slots_title": "Integrazioni per account",
     "slots_description": "Slot per connettori ad hoc venduti per account. Esistono interfacce e mock; il provider specifico si implementa su richiesta.",
@@ -2781,7 +2795,14 @@
     "simulate_return": "Simula reso",
     "simulated_return": "Webhook del reso accettato (HTTP {status}) per {order}.",
     "google_write_access": "Accesso in scrittura concesso",
-    "google_write_access_hint": "Permette a Keel di mettere in pausa annunci e aggiungere parole chiave negative. Senza, Google resta in sola lettura."
+    "google_write_access_hint": "Permette a Keel di mettere in pausa annunci e aggiungere parole chiave negative. Senza, Google resta in sola lettura.",
+    "tiktok_mock_connect": "Collega account demo",
+    "tiktok_mock_connected": "TikTok collegato (mock): {summary}",
+    "tiktok_mock_partial": "TikTok collegato (mock): {summary}. Il resto dei 90 giorni continua a importarsi in background.",
+    "tiktok_app_hint": "Usi l'app TikTok di Keel (TIKTOK_APP_ID configurato)?",
+    "tiktok_app_link": "Autorizza con TikTok",
+    "not_in_plan_badge": "Non incluso",
+    "not_in_plan": "Incluso dal piano {plan}: chiedi al gestore della piattaforma di cambiare piano."
   },
   "integration_guide": {
     "verify_legend": "I passi segnati “Da verificare” dipendono da console dei fornitori che cambiano spesso: controllali sulla documentazione del fornitore prima della prima installazione.",
@@ -2815,6 +2836,11 @@
         {
           "title": "Importazione iniziale",
           "body": "Clicca Risincronizza: vengono importati location, prodotti, stock e sconti, poi gli ordini pagina per pagina con cursore riprendibile. I negozi grandi proseguono su più esecuzioni del worker; l'avanzamento è visibile in “Esecuzioni recenti”."
+        },
+        {
+          "title": "Prodotti: cosa modifica Keel",
+          "body": "Keel rispecchia in lettura tutti i campi del prodotto (contenuti multimediali, descrizione, stato e canali, organizzazione, varianti, SEO, metacampi) e riscrive solo titolo, descrizione, vendor, tipo, tag, stato, SEO, categoria, prezzo e prezzo di confronto delle varianti, SKU, codice a barre, peso, comportamento senza stock e contenuti (aggiunta da URL, ordine, rimozione, testo alternativo). Scope: read_products e write_products; read_publications per mostrare i canali di vendita. Tutto il resto apre il prodotto nell'admin di Shopify. Una modifica aperta prima di un cambiamento fatto in Shopify viene rifiutata con “cambiato in Shopify, ricarica”.",
+          "verify": true
         },
         {
           "title": "Regole di stato",
@@ -3200,6 +3226,73 @@
           "fix": "RESEND_WEBHOOK_SECRET manca o è diversa dal signing secret dell'endpoint: il webhook risponde 401 o 503."
         }
       ]
+    },
+    "tiktok": {
+      "title": "Collegare TikTok Ads",
+      "intro": "Campagne, gruppi di annunci e annunci (testo, video, miniatura) con spesa giornaliera, impression, clic, conversioni, valore delle conversioni e visualizzazioni video, da tutti gli account inserzionista autorizzati. Pausa e riattivazione di campagne e annunci chiedono conferma e passano dalla coda di scrittura. Incluso dal piano Growth.",
+      "steps": [
+        {
+          "title": "Creare l’app TikTok for Business",
+          "body": "Sul portale sviluppatori TikTok API for Business crea un’app (oppure usa quella di Keel, se TIKTOK_APP_ID è configurato). Imposta come redirect URL dell’inserzionista:\n{callbackUrl}",
+          "verify": true
+        },
+        {
+          "title": "Permessi",
+          "body": "Richiedi i gruppi di permessi che servono ai moduli attivi (riquadro a destra): Ad Account Management, Ads Management e Reporting per campagne e metriche; Creative Management per le miniature dei video. TikTok revisiona l’app prima che possa essere usata su account diversi dal tuo.",
+          "verify": true
+        },
+        {
+          "title": "Autorizzare gli account inserzionista",
+          "body": "Il titolare del negozio (o un admin del suo Business Center) apre il link di autorizzazione, sceglie gli account inserzionista e conferma. TikTok reindirizza con un auth_code valido pochi minuti e utilizzabile una sola volta.",
+          "verify": true
+        },
+        {
+          "title": "Collegare in Keel",
+          "body": "Integrazioni → TikTok Ads → Collega: app id, app secret e l’auth code (oppure “Autorizza con TikTok” con l’app di Keel). Keel scambia il codice con un token a lunga durata, lo salva cifrato (AES-GCM) e importa tutti gli inserzionisti coperti."
+        },
+        {
+          "title": "Template UTM",
+          "body": "In ogni annuncio, nei parametri URL (o in coda all’URL della landing page):\n{utmTemplate}\nTikTok compila __CAMPAIGN_ID__, __AID__ (gruppo di annunci) e __CID__ (annuncio). Insieme al click id ttclid collegano gli ordini a campagne, gruppi e annunci; gli annunci senza vengono segnalati nella pagina Suggerimenti.",
+          "verify": true
+        },
+        {
+          "title": "Versione dell’API",
+          "body": "Keel chiama la TikTok API for Business {apiVersion} (reporting: report/integrated/get, righe giornaliere in finestre fino a 30 giorni). Controlla il changelog prima di ogni rilascio.",
+          "verify": true
+        },
+        {
+          "title": "Verificare",
+          "body": "Testa connessione legge gli account inserzionista; Risincronizza importa campagne e metriche giornaliere, poi gruppi di annunci e annunci in finestre di 7 giorni (riprendibile, rispetta i limiti di frequenza). Il primo import copre gli ultimi 90 giorni."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "40105 / 40102 token non valido o scaduto",
+          "fix": "L’inserzionista ha revocato l’autorizzazione o il token è stato rigenerato: autorizza di nuovo e ricollega."
+        },
+        {
+          "symptom": "40001 permesso negato",
+          "fix": "All’app manca un gruppo di permessi, oppure l’account inserzionista non è stato selezionato durante l’autorizzazione."
+        },
+        {
+          "symptom": "40100 troppe richieste",
+          "fix": "Limite di frequenza: Keel mette in pausa la sincronizzazione e riparte dalla stessa finestra dopo l’attesa."
+        },
+        {
+          "symptom": "Auth code scaduto o già usato",
+          "fix": "L’auth code dura pochi minuti e vale una volta sola: ripeti l’autorizzazione."
+        },
+        {
+          "symptom": "Gli ordini non mostrano l’annuncio TikTok",
+          "fix": "Nei parametri URL mancano utm_content=__CID__ / utm_term=__AID__, oppure il negozio perde ttclid dall’URL di arrivo."
+        }
+      ],
+      "scopes": "L’analisi in sola lettura richiede Ad Account Management e Reporting; pausa e riattivazione richiedono anche Ads Management. Senza Creative Management funziona tutto tranne le miniature.",
+      "modules": {
+        "campaigns": "Campagne, gruppi, annunci e metriche",
+        "creatives": "Miniature dei video",
+        "pause": "Pausa / riattivazione"
+      }
     }
   },
   "admin": {
@@ -3338,7 +3431,8 @@
         "google": "Google Ads collegato",
         "state_rules": "Regole di stato",
         "costs": "Costi configurati",
-        "billing": "Pagamenti in regola"
+        "billing": "Pagamenti in regola",
+        "tiktok": "TikTok Ads collegato"
       },
       "members": "Utenti",
       "open_balance": "Saldo aperto",
@@ -5156,7 +5250,8 @@
       "consider_pause": "Valuta la pausa",
       "consider_resume": "Valuta la riattivazione",
       "pause_stock": "Pausa: stock basso",
-      "consider_stock": "Controlla lo stock"
+      "consider_stock": "Controlla lo stock",
+      "tiktok": "TikTok"
     },
     "open_source": "Apri la pagina",
     "figures": {
@@ -6035,7 +6130,10 @@
       "discount_status": "Attivazione sconto",
       "discount_pool_status": "Attivazione pool di sconti",
       "ad_status": "Stato annuncio",
-      "keyword_negative": "Parola chiave negativa"
+      "keyword_negative": "Parola chiave negativa",
+      "product_update": "Dettagli prodotto",
+      "variant_details": "Dettagli variante",
+      "product_media": "Contenuti del prodotto"
     }
   },
   "dev_inbox": {
@@ -7243,7 +7341,11 @@
       "google_spend": "Spesa Google",
       "google_roas": "ROAS Google",
       "google_cpa": "CPA Google",
-      "google_ctr": "CTR Google"
+      "google_ctr": "CTR Google",
+      "tiktok_spend": "Spesa TikTok",
+      "tiktok_roas": "ROAS TikTok",
+      "tiktok_cpa": "CPA TikTok",
+      "tiktok_ctr": "CTR TikTok"
     },
     "metric_groups": {
       "finance": "Economia",
@@ -7437,7 +7539,8 @@
     },
     "platforms": {
       "meta": "Meta",
-      "google": "Google"
+      "google": "Google",
+      "tiktok": "TikTok"
     }
   },
   "billing": {
@@ -7860,7 +7963,8 @@
       "utm_ok": "Tutte le campagne attive hanno i modelli.",
       "utm_row": "{missing} annunci su {ads} senza {params}",
       "template_meta": "Meta: parametri URL dell'annuncio",
-      "template_google": "Google: modello di monitoraggio dell'account"
+      "template_google": "Google: modello di monitoraggio dell'account",
+      "template_tiktok": "TikTok: parametri URL dell’annuncio"
     },
     "actions": {
       "read_only": "{platform} è in sola lettura per questo negozio.",
@@ -7885,6 +7989,138 @@
         "campaign": "Campagna",
         "ad_group": "Gruppo di annunci"
       }
+    },
+    "no_assets_tiktok": "TikTok non riporta metriche per singolo asset: il video dell’annuncio è elencato con il suo id."
+  },
+  "product_mirror": {
+    "edit": "Modifica",
+    "cancel": "Annulla",
+    "save": "Salva su Shopify",
+    "saving": "Salvataggio…",
+    "yes": "Sì",
+    "no": "No",
+    "last_synced": "Sincronizzato da Shopify {when}",
+    "never_synced": "Mai sincronizzato da Shopify",
+    "edit_in_shopify": "Modifica in Shopify",
+    "errors": {
+      "stale": "Il prodotto è cambiato in Shopify dopo che l'hai aperto. Ricarica per vedere la versione attuale e poi modifica di nuovo.",
+      "reload": "Ricarica",
+      "platform": "Shopify ha rifiutato la modifica: {message}",
+      "generic": "Impossibile salvare la modifica.",
+      "not_found": "Prodotto non trovato.",
+      "forbidden": "Non puoi modificare i prodotti.",
+      "invalid_input": "Controlla i valori inseriti.",
+      "invalid_variant": "Controlla prezzo, prezzo di confronto e peso di {variant}.",
+      "invalid": {
+        "title_required": "Il titolo è obbligatorio.",
+        "too_long": "Un campo supera la lunghezza consentita da Shopify.",
+        "invalid_price": "I prezzi devono essere zero o più.",
+        "invalid_weight": "Il peso deve essere un numero intero di grammi.",
+        "invalid_status": "Stato sconosciuto."
+      }
+    },
+    "details": {
+      "title": "Titolo e descrizione",
+      "no_description": "Nessuna descrizione in Shopify.",
+      "field_title": "Titolo",
+      "field_description": "Descrizione (HTML)",
+      "html_hint": "Shopify salva la descrizione in HTML; Keel la mostra solo con la formattazione (niente script o contenuti incorporati)."
+    },
+    "status": {
+      "title": "Stato e canali",
+      "channels": "Canali di vendita",
+      "no_channels": "Nessun canale letto finora.",
+      "published": "Pubblicato",
+      "not_published": "Non pubblicato",
+      "channels_hint": "La pubblicazione sui canali si gestisce in Shopify."
+    },
+    "organisation": {
+      "title": "Organizzazione",
+      "vendor": "Fornitore (vendor)",
+      "type": "Tipo di prodotto",
+      "category": "Categoria",
+      "collections": "Collezioni",
+      "tags": "Tag",
+      "category_id": "Id categoria (tassonomia Shopify)",
+      "tags_hint": "Separati da virgola. Le collezioni si gestiscono in Shopify."
+    },
+    "seo": {
+      "title": "Anteprima nei motori di ricerca",
+      "no_description": "Nessuna descrizione: i motori di ricerca useranno il testo della pagina.",
+      "field_title": "Titolo della pagina",
+      "field_description": "Meta descrizione"
+    },
+    "variants": {
+      "variant": "Variante",
+      "price": "Prezzo",
+      "compare_at": "Prezzo di confronto",
+      "sku": "SKU",
+      "barcode": "Codice a barre",
+      "weight": "Peso (g)",
+      "policy": "Se esaurito",
+      "policy_deny": "Interrompi la vendita",
+      "policy_continue": "Continua a vendere",
+      "edit": "Modifica varianti",
+      "inactive": "rimossa",
+      "more_fields": "Altri campi delle varianti (da Shopify)",
+      "tracked": "Inventario tracciato",
+      "requires_shipping": "Prodotto fisico",
+      "taxable": "Applica imposte",
+      "hs_code": "Codice HS",
+      "origin": "Paese di origine"
+    },
+    "sync": {
+      "product": "Sincronizza da Shopify",
+      "done": "{changed, plural, =0 {Già aggiornato} one {# campo aggiornato} other {# campi aggiornati}}",
+      "catalog": "Sincronizza catalogo da Shopify",
+      "queued": "Sincronizzazione del catalogo avviata in background.",
+      "failed": "Sincronizzazione non riuscita: {error}",
+      "catalog_done": "Catalogo sincronizzato: {products} prodotti.",
+      "catalog_progress": "Sincronizzazione… {products} prodotti finora",
+      "last": "Ultima sincronizzazione del catalogo {when}",
+      "never": "Catalogo mai sincronizzato",
+      "running": "Sincronizzazione: {products} di {total} prodotti"
+    },
+    "gallery": {
+      "title": "Contenuti multimediali",
+      "done": "Fatto",
+      "manage": "Gestisci",
+      "empty": "Nessun contenuto in Shopify.",
+      "open": "Apri immagine {n}",
+      "move_left": "Sposta a sinistra",
+      "move_right": "Sposta a destra",
+      "alt": "Testo alternativo",
+      "delete": "Rimuovi",
+      "delete_confirm": "Rimuovere questo contenuto dal prodotto in Shopify?",
+      "add_url": "URL dell'immagine",
+      "add": "Aggiungi da URL",
+      "save_alt": "Salva testo alternativo",
+      "cancel": "Annulla",
+      "hint": "Le modifiche vengono scritte subito su Shopify. Per caricare file dal computer usa Shopify.",
+      "previous": "Precedente",
+      "next": "Successiva",
+      "no_alt": "Nessun testo alternativo",
+      "type": {
+        "video": "Video",
+        "model": "Modello 3D"
+      }
+    },
+    "metafields": {
+      "title": "Metacampi",
+      "read_only": "Sola lettura",
+      "empty": "Nessun metacampo."
+    },
+    "pnl": {
+      "title": "P/L, ultimi 30 giorni",
+      "open": "Analisi",
+      "empty": "Nessuna vendita né spesa pubblicitaria negli ultimi 30 giorni.",
+      "units": "Unità vendute",
+      "net_revenue": "Ricavi netti",
+      "cogs": "Costo del venduto",
+      "gross_margin": "Margine lordo",
+      "ad_spend": "Spesa ads (campagne collegate)",
+      "profit": "Profitto",
+      "missing_cost": "{units} unità vendute senza costo: il margine è sovrastimato."
     }
   }
 }

@@ -6,8 +6,10 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "../schema";
 import { generateTenantDataset, type TenantSeedConfig } from "./generator";
 import { writeDataset } from "./writer";
+import { ensureDemoProductCatalog, type DemoCatalogKey } from "./media";
 import { DEMO_COD_SETTINGS, DEMO_RETURN_COSTS, REASON_LABELS, REASON_PLATFORM, demoConversionSettings, demoPixelSettings, demoPortalConfig, demoReturnPolicy, demoSurveySettings } from "./settings";
 export { ensureDemoSettings } from "./settings";
+export { ensureDemoProductCatalog, demoMediaUrl, DEMO_MEDIA_PREFIX } from "./media";
 import { seedCollab } from "./collab";
 import { seedEmailLog } from "./email";
 import { seedLists } from "./lists";
@@ -18,6 +20,7 @@ import { seedInventoryControl } from "./inventory-control";
 import { seedDashboards } from "./dashboards";
 import { seedMcp } from "./mcp";
 import { seedAdsDepth } from "./ads";
+import { seedTiktok } from "./tiktok";
 import { seedPlatformReliability, seedReliability } from "./reliability";
 import { createRng } from "@keel/integrations";
 import { SALE_STATUSES, allocateLandedCost, normalizePhone, runPredictionModel, type CustomerHistory } from "@keel/core";
@@ -253,6 +256,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     const step = async (name: string, fn: () => Promise<unknown>) => { const t0 = Date.now(); await fn(); if (process.env.SEED_TIMING) log(`[db:seed]   ${name} ${Date.now() - t0}ms`); };
     let counts: Record<string, number> = {};
     await step("write", async () => { counts = await writeDataset(db, ds); });
+    await step("media", () => ensureDemoProductCatalog(db, cfg.tenantId, cfg.key as DemoCatalogKey, opts.now ?? new Date()));
     if (cfg.key === "northwind") await step("cod", () => seedCod(db, ctx, cfg.tenantId, opts.now ?? new Date()));
     await step("analytics", () => seedAnalyticsExtras(db, ctx, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("planning", () => seedPlanningExtras(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
@@ -273,6 +277,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("dashboards", () => seedDashboards(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("mcp", () => seedMcp(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("ads", () => seedAdsDepth(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
+    await step("tiktok", () => seedTiktok(db, DEMO_TENANTS[cfg.key as keyof typeof DEMO_TENANTS].planKey, cfg.tenantId, opts.now ?? new Date()));
     await step("reliability", () => seedReliability(db, cfg.key as "northwind" | "harbor", cfg.tenantId, ctx.userIds[cfg.key === "northwind" ? "owner@northwind.demo" : "owner@harborhome.demo"] ?? null, opts.now ?? new Date()));
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
   }

@@ -141,6 +141,12 @@
       "mcp": {
         "name": "AI clients (MCP)",
         "description": "Claude, ChatGPT, Cursor and other AI clients read the store's data as the connected user"
+      },
+      "ads": {
+        "tiktok": {
+          "name": "TikTok Ads",
+          "description": "TikTok campaigns, ad groups and ads with daily metrics, profit on real orders and pause/resume"
+        }
       }
     },
     "addon": {
@@ -1867,7 +1873,8 @@
     "totals": "Total",
     "platform": {
       "meta": "Meta",
-      "google": "Google Ads"
+      "google": "Google Ads",
+      "tiktok": "TikTok Ads"
     },
     "declared": {
       "title_meta": "Meta: declared vs real",
@@ -1875,7 +1882,8 @@
       "platform_says": "Platform declares (purchases · value · ROAS)",
       "real": "Real attributed orders (orders · net · ROAS)",
       "gap": "Gap",
-      "help": "Platforms count conversions with their own windows and modelling; real orders are Keel's attributed sale orders. A large negative gap means the platform over-reports."
+      "help": "Platforms count conversions with their own windows and modelling; real orders are Keel's attributed sale orders. A large negative gap means the platform over-reports.",
+      "title_tiktok": "TikTok: declared vs real"
     },
     "creatives_link": "Creatives",
     "creatives": {
@@ -2653,7 +2661,8 @@
       "tracking": "Pixel & conversions",
       "survey": "Post-purchase survey",
       "anthropic": "AI (Anthropic)",
-      "email": "Platform email"
+      "email": "Platform email",
+      "tiktok": "TikTok Ads"
     },
     "status": {
       "not_connected": "Not connected",
@@ -2702,13 +2711,15 @@
       "shopify": "Custom app (Admin API token)",
       "meta": "System user token",
       "google": "Google Ads API credentials",
-      "anthropic": "Anthropic API key"
+      "anthropic": "Anthropic API key",
+      "tiktok": "TikTok for Business app"
     },
     "connect_description": {
       "shopify": "Create a custom app in the store admin, grant the scopes listed in the guide, paste the Admin API access token and the API secret key used to sign webhooks.",
       "meta": "A long-lived system user token from Business Manager with ads_read and ads_management on the ad account.",
       "google": "Developer token, OAuth client and a refresh token authorised for the Google Ads scope; read-only in this version.",
-      "anthropic": "The store's own key from console.anthropic.com. Anthropic bills the assistant's usage to that account; Keel stores the key encrypted."
+      "anthropic": "The store's own key from console.anthropic.com. Anthropic bills the assistant's usage to that account; Keel stores the key encrypted.",
+      "tiktok": "App id and secret of the TikTok for Business app and the auth code returned by the advertiser authorization; Keel exchanges it for a long-lived token covering every authorized advertiser account."
     },
     "fields": {
       "shop": "Shop domain",
@@ -2721,7 +2732,10 @@
       "client_id": "OAuth client id",
       "client_secret": "OAuth client secret",
       "refresh_token": "Refresh token",
-      "api_key": "API key"
+      "api_key": "API key",
+      "app_id": "App id",
+      "app_secret": "App secret",
+      "auth_code": "Auth code"
     },
     "slots_title": "Per-account integrations",
     "slots_description": "Slots for ad hoc connectors sold per account. Interfaces and mocks exist; a specific provider is implemented on request.",
@@ -2781,7 +2795,14 @@
     "simulate_return": "Simulate return",
     "simulated_return": "Return webhook accepted (HTTP {status}) for {order}.",
     "google_write_access": "Write access granted",
-    "google_write_access_hint": "Lets Keel pause ads and add negative keywords. Without it Google stays read-only."
+    "google_write_access_hint": "Lets Keel pause ads and add negative keywords. Without it Google stays read-only.",
+    "tiktok_mock_connect": "Connect demo account",
+    "tiktok_mock_connected": "TikTok connected (mock): {summary}",
+    "tiktok_mock_partial": "TikTok connected (mock): {summary}. The rest of the 90 days keeps importing in the background.",
+    "tiktok_app_hint": "Using Keel's own TikTok app (TIKTOK_APP_ID configured)?",
+    "tiktok_app_link": "Authorize with TikTok",
+    "not_in_plan_badge": "Not in plan",
+    "not_in_plan": "Included from the {plan} plan: ask the platform owner to change the plan."
   },
   "integration_guide": {
     "verify_legend": "Steps marked “To verify” depend on vendor consoles that change often: check them against the vendor documentation before the first install.",
@@ -2815,6 +2836,11 @@
         {
           "title": "Initial import",
           "body": "Click Resync: locations, products, inventory and discounts are imported, then orders page by page with a resumable cursor. Large stores continue across several worker runs; progress is visible under “Recent sync runs”."
+        },
+        {
+          "title": "Products: what Keel edits",
+          "body": "Keel mirrors every product field on read (media, description, status and channels, organisation, variants, SEO, metafields) and writes back only title, description, vendor, type, tags, status, SEO, category, variant price, compare-at price, SKU, barcode, weight, inventory policy and media (add from URL, reorder, remove, alt text). Scopes: read_products and write_products; read_publications to show the sales channels. Everything else opens the product in the Shopify admin. An edit opened before a change made in Shopify is refused with “changed in Shopify, reload”.",
+          "verify": true
         },
         {
           "title": "Order state rules",
@@ -3200,6 +3226,73 @@
           "fix": "RESEND_WEBHOOK_SECRET is missing or differs from the endpoint signing secret: the webhook answers 401 or 503."
         }
       ]
+    },
+    "tiktok": {
+      "title": "Connect TikTok Ads",
+      "intro": "Campaigns, ad groups and ads (copy, video, thumbnail) with daily spend, impressions, clicks, conversions, conversion value and video views, from every authorized advertiser account. Pausing and resuming campaigns and ads asks for confirmation and goes through the write queue. Included from the Growth plan.",
+      "steps": [
+        {
+          "title": "Create the TikTok for Business app",
+          "body": "On the TikTok API for Business developer portal create an app (or use Keel’s, when TIKTOK_APP_ID is configured). Set the advertiser redirect URL to:\n{callbackUrl}",
+          "verify": true
+        },
+        {
+          "title": "Permissions",
+          "body": "Request the permission groups the activated modules need (panel on the right): Ad Account Management, Ads Management and Reporting for campaigns and metrics; Creative Management for video thumbnails. TikTok reviews the app before it can be used on accounts other than yours.",
+          "verify": true
+        },
+        {
+          "title": "Authorize the advertiser accounts",
+          "body": "The store owner (or an admin of its Business Center) opens the authorization link, picks the advertiser accounts and confirms. TikTok redirects back with an auth_code valid for a few minutes and usable once.",
+          "verify": true
+        },
+        {
+          "title": "Connect in Keel",
+          "body": "Integrations → TikTok Ads → Connect: app id, app secret and the auth code (or “Authorize with TikTok” with Keel’s app). Keel exchanges the code for a long-lived access token, stores it encrypted (AES-GCM) and imports every advertiser it covers."
+        },
+        {
+          "title": "UTM template",
+          "body": "In every ad set the URL parameters (or append them to the landing page URL):\n{utmTemplate}\nTikTok fills __CAMPAIGN_ID__, __AID__ (ad group) and __CID__ (ad). Together with the ttclid click id they tie orders to campaigns, ad groups and ads; ads without them are flagged on the Suggestions page.",
+          "verify": true
+        },
+        {
+          "title": "API version",
+          "body": "Keel calls the TikTok API for Business {apiVersion} (reporting: report/integrated/get, daily rows in windows of up to 30 days). Check the changelog before each release.",
+          "verify": true
+        },
+        {
+          "title": "Verify",
+          "body": "Test connection reads the advertiser accounts; Resync imports campaigns and daily metrics, then ad groups and ads in 7-day windows (resumable, rate limits respected). The first import covers the last 90 days."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "40105 / 40102 access token invalid or expired",
+          "fix": "The advertiser revoked the authorization or the token was rotated: authorize again and reconnect."
+        },
+        {
+          "symptom": "40001 no permission",
+          "fix": "The app lacks a permission group, or the advertiser account was not selected during the authorization."
+        },
+        {
+          "symptom": "40100 too many requests",
+          "fix": "Rate limit: Keel pauses the sync and resumes from the same window after the wait."
+        },
+        {
+          "symptom": "Auth code expired or used",
+          "fix": "The auth code lasts a few minutes and works once: run the authorization again."
+        },
+        {
+          "symptom": "Orders show no TikTok ad",
+          "fix": "The URL parameters miss utm_content=__CID__ / utm_term=__AID__, or the store drops ttclid from the landing URL."
+        }
+      ],
+      "scopes": "Read-only analysis needs Ad Account Management and Reporting; pause/resume needs Ads Management too. Without Creative Management everything works except thumbnails.",
+      "modules": {
+        "campaigns": "Campaigns, ad groups, ads and metrics",
+        "creatives": "Video thumbnails",
+        "pause": "Pause / resume"
+      }
     }
   },
   "admin": {
@@ -3338,7 +3431,8 @@
         "google": "Google Ads connected",
         "state_rules": "Order state rules",
         "costs": "Cost settings",
-        "billing": "Billing in good standing"
+        "billing": "Billing in good standing",
+        "tiktok": "TikTok Ads connected"
       },
       "members": "Members",
       "open_balance": "Open balance",
@@ -5156,7 +5250,8 @@
       "consider_pause": "Consider pausing",
       "consider_resume": "Consider resuming",
       "pause_stock": "Pause: low stock",
-      "consider_stock": "Check stock"
+      "consider_stock": "Check stock",
+      "tiktok": "TikTok"
     },
     "open_source": "Open page",
     "figures": {
@@ -6035,7 +6130,10 @@
       "discount_status": "Discount on/off",
       "discount_pool_status": "Discount pool on/off",
       "ad_status": "Ad status",
-      "keyword_negative": "Negative keyword"
+      "keyword_negative": "Negative keyword",
+      "product_update": "Product details",
+      "variant_details": "Variant details",
+      "product_media": "Product media"
     }
   },
   "dev_inbox": {
@@ -7243,7 +7341,11 @@
       "google_spend": "Google spend",
       "google_roas": "Google ROAS",
       "google_cpa": "Google CPA",
-      "google_ctr": "Google CTR"
+      "google_ctr": "Google CTR",
+      "tiktok_spend": "TikTok spend",
+      "tiktok_roas": "TikTok ROAS",
+      "tiktok_cpa": "TikTok CPA",
+      "tiktok_ctr": "TikTok CTR"
     },
     "metric_groups": {
       "finance": "Finance",
@@ -7437,7 +7539,8 @@
     },
     "platforms": {
       "meta": "Meta",
-      "google": "Google"
+      "google": "Google",
+      "tiktok": "TikTok"
     }
   },
   "billing": {
@@ -7860,7 +7963,8 @@
       "utm_ok": "Every active campaign carries the templates.",
       "utm_row": "{missing} of {ads} ads miss {params}",
       "template_meta": "Meta: URL parameters of the ad",
-      "template_google": "Google: account tracking template"
+      "template_google": "Google: account tracking template",
+      "template_tiktok": "TikTok: URL parameters of the ad"
     },
     "actions": {
       "read_only": "{platform} is read-only for this store.",
@@ -7885,6 +7989,138 @@
         "campaign": "Campaign",
         "ad_group": "Ad group"
       }
+    },
+    "no_assets_tiktok": "TikTok reports no metrics per asset: the ad’s video is listed with its id."
+  },
+  "product_mirror": {
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "save": "Save to Shopify",
+    "saving": "Saving…",
+    "yes": "Yes",
+    "no": "No",
+    "last_synced": "Synced from Shopify {when}",
+    "never_synced": "Never synced from Shopify",
+    "edit_in_shopify": "Edit in Shopify",
+    "errors": {
+      "stale": "This product changed in Shopify after you opened it. Reload to see the current version, then edit again.",
+      "reload": "Reload",
+      "platform": "Shopify refused the change: {message}",
+      "generic": "The change could not be saved.",
+      "not_found": "Product not found.",
+      "forbidden": "You cannot edit products.",
+      "invalid_input": "Check the values entered.",
+      "invalid_variant": "Check the price, compare-at price and weight of {variant}.",
+      "invalid": {
+        "title_required": "The title is required.",
+        "too_long": "A field is longer than Shopify allows.",
+        "invalid_price": "Prices must be zero or more.",
+        "invalid_weight": "The weight must be a whole number of grams.",
+        "invalid_status": "Unknown status."
+      }
+    },
+    "details": {
+      "title": "Title and description",
+      "no_description": "No description in Shopify.",
+      "field_title": "Title",
+      "field_description": "Description (HTML)",
+      "html_hint": "Shopify stores the description as HTML; Keel shows it with formatting only (no scripts or embeds)."
+    },
+    "status": {
+      "title": "Status and channels",
+      "channels": "Sales channels",
+      "no_channels": "No channel read yet.",
+      "published": "Published",
+      "not_published": "Not published",
+      "channels_hint": "Publishing on channels is managed in Shopify."
+    },
+    "organisation": {
+      "title": "Organisation",
+      "vendor": "Vendor",
+      "type": "Product type",
+      "category": "Category",
+      "collections": "Collections",
+      "tags": "Tags",
+      "category_id": "Category id (Shopify taxonomy)",
+      "tags_hint": "Comma separated. Collections are managed in Shopify."
+    },
+    "seo": {
+      "title": "Search engine listing",
+      "no_description": "No description: search engines will pick text from the page.",
+      "field_title": "Page title",
+      "field_description": "Meta description"
+    },
+    "variants": {
+      "variant": "Variant",
+      "price": "Price",
+      "compare_at": "Compare-at price",
+      "sku": "SKU",
+      "barcode": "Barcode",
+      "weight": "Weight (g)",
+      "policy": "When out of stock",
+      "policy_deny": "Stop selling",
+      "policy_continue": "Continue selling",
+      "edit": "Edit variants",
+      "inactive": "removed",
+      "more_fields": "More variant fields (from Shopify)",
+      "tracked": "Tracked",
+      "requires_shipping": "Physical product",
+      "taxable": "Charge tax",
+      "hs_code": "HS code",
+      "origin": "Country of origin"
+    },
+    "sync": {
+      "product": "Sync from Shopify",
+      "done": "{changed, plural, =0 {Already up to date} one {# field updated} other {# fields updated}}",
+      "catalog": "Sync catalog from Shopify",
+      "queued": "Catalog sync started in the background.",
+      "failed": "Sync failed: {error}",
+      "catalog_done": "Catalog synced: {products} products.",
+      "catalog_progress": "Syncing… {products} products so far",
+      "last": "Last catalog sync {when}",
+      "never": "Catalog never synced",
+      "running": "Syncing: {products} of {total} products"
+    },
+    "gallery": {
+      "title": "Media",
+      "done": "Done",
+      "manage": "Manage",
+      "empty": "No media in Shopify.",
+      "open": "Open image {n}",
+      "move_left": "Move left",
+      "move_right": "Move right",
+      "alt": "Alt text",
+      "delete": "Remove",
+      "delete_confirm": "Remove this media from the product in Shopify?",
+      "add_url": "Image URL",
+      "add": "Add from URL",
+      "save_alt": "Save alt text",
+      "cancel": "Cancel",
+      "hint": "Changes are written to Shopify at once. Uploads from your computer: use Shopify.",
+      "previous": "Previous",
+      "next": "Next",
+      "no_alt": "No alt text",
+      "type": {
+        "video": "Video",
+        "model": "3D model"
+      }
+    },
+    "metafields": {
+      "title": "Metafields",
+      "read_only": "Read-only",
+      "empty": "No metafields."
+    },
+    "pnl": {
+      "title": "P/L, last 30 days",
+      "open": "Analytics",
+      "empty": "No sales or ad spend in the last 30 days.",
+      "units": "Units sold",
+      "net_revenue": "Net revenue",
+      "cogs": "Cost of goods",
+      "gross_margin": "Gross margin",
+      "ad_spend": "Ad spend (linked campaigns)",
+      "profit": "Profit",
+      "missing_cost": "{units} units sold without a cost: the margin is overstated."
     }
   }
 }

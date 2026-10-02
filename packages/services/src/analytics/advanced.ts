@@ -1,5 +1,5 @@
 import { and, desc, eq, gte, inArray, lt, schema, sql } from "@keel/db";
-import { ATTRIBUTION_MODELS, compileFormula, creativeFatigue, creditBy, evaluateAlert, evaluateFormula, parseCreativeName, type AlertCondition, type AttributedOrder, type AttributionModel, type FatigueResult, type Period, type Touchpoint } from "@keel/core";
+import { AD_PLATFORM_CHANNEL, ATTRIBUTION_MODELS, type AdPlatform, compileFormula, creativeFatigue, creditBy, evaluateAlert, evaluateFormula, parseCreativeName, type AlertCondition, type AttributedOrder, type AttributionModel, type FatigueResult, type Period, type Touchpoint } from "@keel/core";
 import type { ServiceContext } from "../context";
 import { countLateToShip } from "../fulfilment";
 import { getSurveySettings, surveyChannelsFor } from "../tracking/survey";
@@ -76,7 +76,7 @@ export async function attributionReport(ctx: ServiceContext, tenant: AnalyticsTe
   const names = by === "campaign" ? new Map((await ctx.tx.select({ id: schema.campaigns.id, name: schema.campaigns.name, platform: schema.campaigns.platform }).from(schema.campaigns).where(eq(schema.campaigns.tenantId, ctx.tenantId))).map((c) => [c.id, c])) : new Map();
   const channelSpend = new Map<string, { spend: number; purchases: number; value: number }>();
   for (const s of spendRows) {
-    const ch = s.platform === "meta" ? "paid_social" : "paid_search";
+    const ch = AD_PLATFORM_CHANNEL[s.platform as AdPlatform] ?? "paid_search";
     const cur = channelSpend.get(ch) ?? { spend: 0, purchases: 0, value: 0 };
     channelSpend.set(ch, { spend: cur.spend + s.spend, purchases: cur.purchases + s.purchases, value: cur.value + s.value });
   }

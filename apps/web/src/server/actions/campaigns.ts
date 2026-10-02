@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { canWritePage } from "@keel/config";
 import { and, eq, recordAudit, schema } from "@keel/db";
-import { autoLinkCampaigns, enqueuePlatformWrite, linkCampaignProduct, unlinkCampaignProduct } from "@keel/services";
+import { autoLinkCampaigns, linkCampaignProduct, requestCampaignStatus, unlinkCampaignProduct } from "@keel/services";
 import { dispatchPlatformWrites } from "@/server/platform-writes";
 import { ForbiddenError, requireAction, requirePage } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
@@ -14,7 +14,8 @@ const statusSchema = z.enum(["active", "paused"]);
 
 /**
  * Pause/resume (explicit confirmation on the client): local status, audit and the outbox write in one
- * transaction, then the write runs. Google is read-only in the MVP, refused before anything changes.
+ * transaction, then the write runs. Google is read-only in the MVP and a platform outside the plan is
+ * refused, both before anything changes.
  */
 export async function setCampaignStatus(slug: string, campaignId: string, status: string): Promise<ActionResult> {
   try {
@@ -22,20 +23,11 @@ export async function setCampaignStatus(slug: string, campaignId: string, status
     const parsedId = uuid.safeParse(campaignId);
     const parsedStatus = statusSchema.safeParse(status);
     if (!parsedId.success || !parsedStatus.success) return fail("invalid_input");
-    const campaign = await ctx.run(async (tx) => (await tx.select().from(schema.campaigns).where(and(eq(schema.campaigns.tenantId, ctx.tenant.id), eq(schema.campaigns.id, parsedId.data))).limit(1))[0]);
-    if (!campaign) return fail("not_found");
-    if (campaign.platform !== "meta" && campaign.platform !== "google") return fail("invalid_input");
-    if (campaign.status === parsedStatus.data) return ok();
-    if (campaign.platform === "google") return fail("ads_read_only");
-    const provider = campaign.platform;
-    const write = await ctx.run(async (tx) => {
-      await tx.update(schema.campaigns).set({ status: parsedStatus.data }).where(eq(schema.campaigns.id, campaign.id));
-      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: parsedStatus.data === "paused" ? "campaign.paused" : "campaign.resumed", entityType: "campaign", entityId: campaign.id, diff: { status: { from: campaign.status, to: parsedStatus.data } } });
-      return enqueuePlatformWrite({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { kind: "campaign.status", entityType: "campaign", entityId: campaign.id, payload: { provider, campaignExternalId: campaign.externalId, status: parsedStatus.data } });
-    });
-    await dispatchPlatformWrites(ctx, [write]);
+    const out = await ctx.run((tx) => requestCampaignStatus({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, parsedId.data, parsedStatus.data, auditActor(ctx)));
+    if (!out.ok) return fail(out.error);
+    if (out.write) await dispatchPlatformWrites(ctx, [out.write]);
     revalidatePath(`/t/${slug}/campaigns`);
-    revalidatePath(`/t/${slug}/campaigns/${campaign.id}`);
+    revalidatePath(`/t/${slug}/campaigns/${parsedId.data}`);
     return ok();
   } catch (e) {
     if (e instanceof ForbiddenError) return fail("forbidden");

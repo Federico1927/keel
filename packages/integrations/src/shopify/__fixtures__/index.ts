@@ -85,29 +85,56 @@ export const graphqlOrdersPage = {
   extensions: { cost: { requestedQueryCost: 52, actualQueryCost: 20, throttleStatus: { maximumAvailable: 2000, currentlyAvailable: 1980, restoreRate: 100 } } },
 };
 
-export const graphqlProductsPage = {
-  data: {
-    products: {
-      nodes: [
-        {
-          id: "gid://shopify/Product/8100001",
-          legacyResourceId: "8100001",
-          title: "Giacca Primavera",
-          handle: "giacca-primavera",
-          vendor: "Northwind",
-          productType: "Outerwear",
-          status: "ACTIVE",
-          tags: ["new-in"],
-          createdAt: "2026-02-01T10:00:00Z",
-          options: [{ name: "Size", values: ["S", "M", "L"] }, { name: "Color", values: ["Blu"] }],
-          featuredMedia: { preview: { image: { url: "https://cdn.example/giacca.jpg" } } },
-          variants: { nodes: [{ id: "gid://shopify/ProductVariant/4100001", legacyResourceId: "4100001", sku: "GIA-M-BLU", barcode: "8001234567890", title: "M / Blu", price: "129.00", compareAtPrice: "159.00", selectedOptions: [{ name: "Size", value: "M" }, { name: "Color", value: "Blu" }], inventoryItem: { id: "gid://shopify/InventoryItem/4500001", legacyResourceId: "4500001", unitCost: { amount: "48.5", currencyCode: "EUR" }, measurement: { weight: { value: 0.8, unit: "KILOGRAMS" } } } },
-            { id: "gid://shopify/ProductVariant/4100004", legacyResourceId: "4100004", sku: "GIA-L-BLU", barcode: null, title: "L / Blu", price: "129.00", compareAtPrice: null, selectedOptions: [{ name: "Size", value: "L" }, { name: "Color", value: "Blu" }], inventoryItem: { id: "gid://shopify/InventoryItem/4500004", legacyResourceId: "4500004", unitCost: null, measurement: { weight: { value: 800, unit: "GRAMS" } } } }] },
-        },
-      ],
-      pageInfo: { hasNextPage: false, endCursor: null },
-    },
+/** A product as the 2025-07 product query returns it (issue #19 fields + #23 unit cost). */
+export const graphqlProductNode = {
+  id: "gid://shopify/Product/8100001",
+  legacyResourceId: "8100001",
+  title: "Giacca Primavera",
+  handle: "giacca-primavera",
+  vendor: "Northwind",
+  productType: "Outerwear",
+  status: "ACTIVE",
+  tags: ["new-in"],
+  createdAt: "2026-02-01T10:00:00Z",
+  updatedAt: "2026-09-20T08:15:00Z",
+  descriptionHtml: "<p>Giacca leggera <strong>impermeabile</strong>.</p>",
+  seo: { title: "Giacca Primavera impermeabile", description: "Giacca leggera per la mezza stagione." },
+  category: { id: "gid://shopify/TaxonomyCategory/aa-1-10-2", name: "Coats & Jackets", fullName: "Apparel & Accessories > Clothing > Outerwear > Coats & Jackets" },
+  options: [{ name: "Size", values: ["S", "M", "L"] }, { name: "Color", values: ["Blu"] }],
+  featuredMedia: { preview: { image: { url: "https://cdn.example/giacca.jpg" } } },
+  media: {
+    nodes: [
+      { id: "gid://shopify/MediaImage/3100001", alt: "Giacca blu, fronte", mediaContentType: "IMAGE", preview: { image: { url: "https://cdn.example/giacca.jpg", width: 1200, height: 1500 } }, image: { url: "https://cdn.example/giacca.jpg", width: 1200, height: 1500 } },
+      { id: "gid://shopify/Video/3100002", alt: null, mediaContentType: "VIDEO", preview: { image: { url: "https://cdn.example/giacca-video.jpg", width: 1280, height: 720 } } },
+      { id: "gid://shopify/MediaImage/3100009", alt: "processing", mediaContentType: "IMAGE", preview: { image: null }, image: null },
+    ],
+    pageInfo: { hasNextPage: true, endCursor: "media-cursor-1" },
   },
+  collections: { nodes: [{ id: "gid://shopify/Collection/501", title: "Primavera 2026", handle: "primavera-2026" }] },
+  resourcePublications: { nodes: [{ isPublished: true, publishDate: "2026-02-01T10:05:00Z", publication: { id: "gid://shopify/Publication/1", name: "Online Store" } }, { isPublished: false, publishDate: null, publication: { id: "gid://shopify/Publication/2", name: "Point of Sale" } }] },
+  metafields: { nodes: [{ namespace: "custom", key: "material", type: "single_line_text_field", value: "Nylon riciclato" }] },
+  variants: {
+    nodes: [
+      { id: "gid://shopify/ProductVariant/4100001", legacyResourceId: "4100001", sku: "GIA-M-BLU", barcode: "8001234567890", title: "M / Blu", price: "129.00", compareAtPrice: "159.00", inventoryPolicy: "DENY", taxable: true, selectedOptions: [{ name: "Size", value: "M" }, { name: "Color", value: "Blu" }], media: { nodes: [{ id: "gid://shopify/MediaImage/3100001" }] }, inventoryItem: { id: "gid://shopify/InventoryItem/4500001", legacyResourceId: "4500001", tracked: true, requiresShipping: true, harmonizedSystemCode: "620193", countryCodeOfOrigin: "IT", unitCost: { amount: "48.5", currencyCode: "EUR" }, measurement: { weight: { value: 0.8, unit: "KILOGRAMS" } } } },
+      { id: "gid://shopify/ProductVariant/4100004", legacyResourceId: "4100004", sku: "GIA-L-BLU", barcode: null, title: "L / Blu", price: "129.00", compareAtPrice: null, inventoryPolicy: "CONTINUE", taxable: false, selectedOptions: [{ name: "Size", value: "L" }, { name: "Color", value: "Blu" }], media: { nodes: [] }, inventoryItem: { id: "gid://shopify/InventoryItem/4500004", legacyResourceId: "4500004", tracked: false, requiresShipping: false, harmonizedSystemCode: null, countryCodeOfOrigin: null, unitCost: null, measurement: { weight: { value: 800, unit: "GRAMS" } } } },
+    ],
+  },
+};
+
+export const graphqlProductsPage = {
+  data: { products: { nodes: [graphqlProductNode], pageInfo: { hasNextPage: false, endCursor: null } } },
+};
+
+/** The second media page of product 8100001 (`PRODUCT_MEDIA_PAGE`). */
+export const graphqlProductMediaPage2 = {
+  data: { product: { media: { nodes: [{ id: "gid://shopify/Model3d/3100003", alt: "3D", mediaContentType: "MODEL_3D", preview: { image: { url: "https://cdn.example/giacca-3d.jpg", width: 800, height: 800 } } }], pageInfo: { hasNextPage: false, endCursor: null } } } },
+};
+
+export const graphqlProduct = { data: { product: { ...graphqlProductNode, media: { ...graphqlProductNode.media, pageInfo: { hasNextPage: false, endCursor: null } } } } };
+
+/** `productUpdate(product:)` answering the product after the write. */
+export const graphqlProductUpdate = {
+  data: { productUpdate: { product: { ...graphqlProductNode, title: "Giacca Primavera Light", tags: ["new-in", "light"], updatedAt: "2026-09-21T09:00:00Z", seo: { title: "Giacca Light", description: "Nuova descrizione" }, media: { ...graphqlProductNode.media, pageInfo: { hasNextPage: false, endCursor: null } } }, userErrors: [] } },
 };
 
 export const graphqlShop = { data: { shop: { name: "Northwind Apparel", myshopifyDomain: "northwind-demo.myshopify.com", currencyCode: "EUR" }, currentAppInstallation: { accessScopes: [{ handle: "read_orders" }, { handle: "write_orders" }, { handle: "read_products" }, { handle: "write_products" }, { handle: "read_inventory" }, { handle: "write_inventory" }, { handle: "read_customers" }, { handle: "read_discounts" }, { handle: "write_discounts" }, { handle: "read_fulfillments" }, { handle: "read_locations" }] } } };

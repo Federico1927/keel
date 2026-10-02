@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canDo } from "@keel/config";
+import { canDo, adPlatformsForPlan } from "@keel/config";
 import { ADS_UTM_TEMPLATES, formatMoney, formatNumber, formatPercent } from "@keel/core";
 import { adsRecommendations, canWriteAds } from "@keel/services";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
@@ -118,8 +118,8 @@ export default async function AdsRecommendationsPage({ params, searchParams }: {
                 {recs.utm.map((u) => <li key={u.campaignId} className="flex flex-wrap items-center justify-between gap-2" data-testid="rec-utm-row"><Link href={`${base}/${u.campaignId}?${qs}`} className="font-medium hover:underline">{u.campaignName}</Link><span className="text-muted-foreground">{t("rec.utm_row", { missing: u.missing, ads: u.ads, params: u.params.join(", ") })}</span></li>)}
               </ul>
             )}
-            <div className="grid gap-2 md:grid-cols-2">
-              {(["meta", "google"] as const).map((p) => <div key={p}><p className="text-xs font-medium">{t(`rec.template_${p}`)}</p><code className="block break-all rounded bg-muted p-2 text-xs">{ADS_UTM_TEMPLATES[p]}</code></div>)}
+            <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+              {adPlatformsForPlan(ctx.tenant.planKey).map((p) => <div key={p}><p className="text-xs font-medium">{t(`rec.template_${p}`)}</p><code className="block break-all rounded bg-muted p-2 text-xs">{ADS_UTM_TEMPLATES[p]}</code></div>)}
             </div>
           </CardContent>
         </Card>

@@ -2,8 +2,8 @@ import { PRODUCT_NAME } from "@keel/config";
 
 export { PRODUCT_NAME };
 
-/** Locales published by the landing. The product supports more; the landing ships en + it. */
-export const LANDING_LOCALES = ["en", "it"] as const;
+/** Locales published by the landing: the same three as the product. */
+export const LANDING_LOCALES = ["en", "it", "es"] as const;
 export type LandingLocale = (typeof LANDING_LOCALES)[number];
 export const DEFAULT_LANDING_LOCALE: LandingLocale = "en";
 

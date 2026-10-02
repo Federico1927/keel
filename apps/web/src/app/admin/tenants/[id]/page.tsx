@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { ADDON_MODULES, CHURN_RETENTION_DAYS, MODULES, PLATFORM_CURRENCY, TENANT_EXPORT_TTL_DAYS, isTenantStatus } from "@keel/config";
+import { ADDON_MODULES, CHURN_RETENTION_DAYS, isAdPlatform, MODULES, PLATFORM_CURRENCY, TENANT_EXPORT_TTL_DAYS, isTenantStatus } from "@keel/config";
 import { LIFECYCLE_TRANSITIONS, formatDate, formatDateTime, formatMoney, formatNumber } from "@keel/core";
 import { listTenantExports, tenantAdminDetail } from "@keel/services";
 import {
@@ -235,9 +235,9 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
           <CardTitle className="flex items-center justify-between gap-2 text-base">{t("tenant.integrations")} <Link href={`/admin/integrations?tenant=${d.tenant.id}`} className="text-xs font-normal text-primary hover:underline">{t("tenant.integration_issues")}</Link></CardTitle>
         </CardHeader>
         <CardContent>
-          <ul className="grid gap-2 text-sm sm:grid-cols-3">
+          <ul className="grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
             {d.integrations
-              .filter((i) => ["shopify", "meta", "google"].includes(i.provider))
+              .filter((i) => i.provider === "shopify" || isAdPlatform(i.provider))
               .map((i) => (
                 <li key={i.id} className="rounded-md border p-2">
                   <div className="flex items-center justify-between">

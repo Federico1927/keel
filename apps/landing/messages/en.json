@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "{product} – Operations platform for Shopify stores",
-    "description": "Orders, shipments, inventory, purchasing, returns, discounts, CRM and the real P/L of Meta and Google campaigns, on one data model. No annual contract, setup done by our team, unlimited users.",
+    "description": "Orders, shipments, inventory, purchasing, returns, discounts, CRM, dashboards and the real P/L of Meta and Google campaigns, on one data model. No annual contract, setup done by our team, unlimited users.",
     "og_tagline": "One operating platform for Shopify stores",
     "locale_name": "English"
   },
@@ -20,7 +20,7 @@
   "hero": {
     "eyebrow": "Operations platform for Shopify stores",
     "title": "Run the whole store on one set of numbers.",
-    "subtitle": "Orders, shipments, inventory, purchasing, returns, discounts, CRM and the real profit of every Meta and Google campaign. One platform and one data model, instead of four tools that never agree.",
+    "subtitle": "Orders, shipments, inventory, purchasing, returns, discounts, CRM and the real profit of every Meta and Google campaign, down to the single ad and keyword. One platform and one data model, instead of four tools that never agree.",
     "cta": "Book a demo",
     "secondary": "See the modules",
     "points": {
@@ -28,7 +28,7 @@
       "setup": "Setup done by our team",
       "users": "Unlimited users"
     },
-    "screenshot_alt": "{product} dashboard for the demo store Harbor Home: sales today, orders, average order value, cancellation rate, a 30-day sales chart and a list of items that need attention"
+    "screenshot_alt": "{product} dashboard for the demo store Harbor Home: sales, orders, average order value and cancellation rate today, integration status, a 30-day sales chart, the month-end forecast and the queues that need attention"
   },
   "problem": {
     "title": "Your numbers live in four tools. None of them is right.",
@@ -58,52 +58,52 @@
     "items": {
       "orders": {
         "title": "Orders",
-        "body": "A canonical status for every order, mapped from your Shopify tags, payment and fulfilment with rules you control. Timeline with author and diff, internal notes with mentions, customer history and duplicate detection.",
+        "body": "A canonical status for every order, mapped from Shopify tags, payment and fulfilment with rules you control. Timeline with author and diff, internal notes with mentions, customer history, duplicate detection, bulk actions and saved views.",
         "alt": "Orders list in {product}: each order with its canonical status, payment method and status, channel, assignee and total"
       },
       "shipments": {
         "title": "Shipments",
-        "body": "Tracking, carrier, days in transit, exceptions and shipments stuck beyond your threshold. The visible status is resolved from every source with explicit precedence.",
-        "alt": "Shipments page in {product}: counters for in transit, out for delivery, exceptions and stuck shipments, with a list of orders, carriers and tracking numbers"
+        "body": "Tracking, carrier, days in transit and shipments stuck beyond your threshold, plus queues for orders late to ship and delivery exceptions. The visible status is resolved from every source with explicit precedence.",
+        "alt": "Shipments page in {product}: counters for in transit, out for delivery, exceptions, stuck, delivered and returned shipments, with a list of orders, carriers and tracking numbers"
       },
       "inventory": {
         "title": "Products and inventory",
-        "body": "Variants with dynamic options, stock per location, sales velocity, days of cover and reorder suggestions. Price and status changes are written back to Shopify.",
+        "body": "Variants with dynamic options, stock per location, sales velocity, days of cover and reorder suggestions. Adjustments with reasons, stock-takes and an unexplained-loss report. Price and status changes are written back to Shopify.",
         "alt": "Inventory page in {product}: units in stock, stock value, critical and low variants, and a list of variants with velocity, days of cover and units to reorder"
       },
       "purchasing": {
         "title": "Purchasing and reorders",
-        "body": "Suppliers, purchase orders from draft to receipt, incoming stock visible on every product. Receiving updates the product cost, and that cost feeds the P/L.",
+        "body": "Suppliers, purchase orders from draft to receipt, incoming stock visible on every product. Orders waiting for stock are held as backorders, linked to the purchase order and released on receipt. Receiving updates the product cost, and that cost feeds the P/L.",
         "alt": "Purchasing page in {product}: purchase orders with supplier, status, expected date, units, total and backorders covered"
       },
       "returns": {
         "title": "Returns",
-        "body": "Reasons, windows and workflow states configured per store. Refund, exchange or voucher, optional restock per location, analysis by product and reason.",
+        "body": "Reasons, windows and workflow states configured per store, synced with Shopify returns. Refund, exchange or voucher, optional restock per location, analysis by product and reason.",
         "alt": "Returns page in {product}: return requests with order, reason, resolution, amount and workflow status"
       },
       "discounts": {
         "title": "Discounts",
-        "body": "Codes synced from Shopify, single codes and bulk pools of unique codes, with orders, revenue and margin attributed to each code.",
+        "body": "Codes synced with Shopify, single codes and bulk pools of unique codes, with orders, revenue and margin attributed to each code.",
         "alt": "Discounts page in {product}: codes with value, state, uses, orders, discount given, net revenue and margin"
       },
       "crm": {
         "title": "CRM, segments and RFM",
-        "body": "Nested AND/OR segment builder on orders, products, value, recency and country, with a live preview. RFM matrix with bands. CSV export and a holdout group built into every segment.",
-        "alt": "RFM matrix in {product}: customers by recency and frequency with revenue per cell, and bands such as champions and loyal"
+        "body": "Customer profiles with value, frequency and last order. Nested AND/OR segment builder on orders, products, value, recency and country, with a live preview. RFM matrix with bands and CSV export.",
+        "alt": "RFM matrix in {product}: customers by recency and frequency with revenue per cell, and tiers such as champions and loyal"
       },
       "analytics": {
         "title": "Analytics and P/L",
-        "body": "KPIs with period comparison and a P/L net of tax: cost of goods, shipping, payment fees, returns and ad spend. Every number opens the orders behind it.",
-        "alt": "Profit and loss in {product}: gross sales, refunds, tax, net revenue, cost of goods, gross margin, shipping, payment fees, advertising and operating profit"
+        "body": "KPIs with period comparison and a P/L net of tax: cost of goods, shipping, payment fees, returns and ad spend. Payouts, actual payment fees and a tax report. Every number opens the orders behind it.",
+        "alt": "Profit and loss in {product}: gross sales, refunds, tax, net revenue, cost of goods, gross margin, shipping, payment fees, return costs, contribution margin, advertising, fixed costs and operating profit"
       },
       "campaigns": {
         "title": "Campaigns linked to stock",
-        "body": "Meta and Google campaigns linked to products. Profit counts only orders that were not cancelled or returned. Recommendations look at the stock of the linked products before telling you to spend more.",
+        "body": "Meta and Google campaigns linked to products, down to ad set, ad, asset, keyword and search term. Profit counts only orders that were not cancelled or returned. Recommendations look at the stock of the linked products before telling you to spend more.",
         "alt": "Campaigns page in {product}: spend, orders, net revenue, margin, profit, ROAS, ROI, CPA and a health indicator for each Meta and Google campaign"
       },
       "assistant": {
         "title": "AI assistant",
-        "body": "Ask about sales, profit, campaigns, products, returns, customers at risk or stock. Every answer cites its figures, period and filters, with a link to the report. It runs on your own Anthropic key and can only read.",
+        "body": "Ask about sales, profit, campaigns, products, returns, customers at risk or stock. Every answer cites its figures, period and filters, with a link to the report. It runs on your own Anthropic key, billed by Anthropic, and can only read.",
         "alt": "Assistant page in {product}: a question on best-selling products and the answer with a cited table of products, units, revenue and margin"
       }
     },
@@ -112,7 +112,41 @@
     "next": "Next module",
     "slide": "{n} of {total}",
     "pause": "Pause automatic scrolling",
-    "play": "Resume automatic scrolling"
+    "play": "Resume automatic scrolling",
+    "extra": {
+      "title": "Also included",
+      "from_plan": "From {plan}",
+      "items": {
+        "dashboards": {
+          "title": "Dashboards you build",
+          "body": "Each team arranges its own home from a catalog of widgets, with custom metrics and filters. Widgets respect each role's permissions."
+        },
+        "mcp": {
+          "title": "Your AI tools on your data (MCP)",
+          "body": "Connect Claude, ChatGPT, Cursor or another MCP client: it reads the store's data as the signed-in user, with that user's permissions. Off until an owner turns it on."
+        },
+        "money": {
+          "title": "Payments and payouts",
+          "body": "Manual payments and partial refunds, payouts and actual fees from the payment processor, and a tax report by period."
+        },
+        "lists": {
+          "title": "Fast lists",
+          "body": "Search everything with ⌘K, save views, run bulk actions and export any list to CSV."
+        },
+        "health": {
+          "title": "Integration health",
+          "body": "Every connection shows its last sync and last error. A watchdog resyncs stale sources and alerts owners when something stops."
+        },
+        "roles": {
+          "title": "Roles and audit log",
+          "body": "Six roles with permissions per page and action. Every significant change is recorded with author and diff; owners can export all their data."
+        },
+        "tiktok": {
+          "title": "TikTok Ads",
+          "body": "Campaigns, ad groups and ads with daily metrics, next to Meta and Google in the same profit view; pause and resume from Keel."
+        }
+      }
+    }
   },
   "how": {
     "title": "How it works",
@@ -128,7 +162,7 @@
       },
       "operate": {
         "title": "Operate from one platform",
-        "body": "Operations, customer care and marketing work in the same place with their own permissions. Changes that matter are written back to Shopify."
+        "body": "Operations, customer care and marketing work in the same place with their own permissions. Changes that matter are written back to Shopify, and the integration health page tells you when a connection needs attention."
       }
     },
     "guides_label": "Step-by-step connection guides, inside the product:",
@@ -166,7 +200,7 @@
   },
   "pricing": {
     "title": "Pricing",
-    "lead": "Four plans by order volume. Unlimited users on every plan. No annual contract required.",
+    "lead": "Four plans by order volume. Every core module and unlimited users on every plan. No annual contract required.",
     "billing_label": "Billing period",
     "monthly": "Monthly",
     "annual": "Annual",
@@ -180,7 +214,6 @@
     "on_quote": "On quote",
     "recommended": "Recommended",
     "everything_in": "Everything in {plan}, plus:",
-    "unlimited_users": "Unlimited users",
     "overage": "Above the included orders: {price} per {n} extra orders, billed at month end.",
     "cta": "Book a demo",
     "contact": "Talk to us",
@@ -193,56 +226,56 @@
     "plans": {
       "starter": {
         "name": "Starter",
-        "tagline": "Operations under control"
+        "tagline": "Every core module"
       },
       "growth": {
         "name": "Growth",
-        "tagline": "Operations plus margin"
+        "tagline": "More volume, plus your AI tools"
       },
       "scale": {
         "name": "Scale",
-        "tagline": "Several stores, one platform"
+        "tagline": "High volume, longer history"
       },
       "enterprise": {
         "name": "Enterprise",
-        "tagline": "High volume, tailored terms"
+        "tagline": "Above Scale, tailored terms"
       }
     },
     "features": {
-      "orders": "Orders",
-      "shipments": "Shipments",
-      "products_inventory": "Products and inventory",
-      "returns": "Returns",
-      "discounts": "Discounts",
-      "kpi_dashboard": "KPI dashboard",
-      "pnl": "P/L per order and per period",
-      "campaigns_stock": "Campaigns linked to stock",
-      "purchasing_reorders": "Purchasing and reorders",
+      "orders_shipments": "Orders and shipments",
+      "products_purchasing": "Products, inventory, purchasing and backorders",
+      "returns_discounts": "Returns and discounts",
+      "analytics_pnl": "Analytics, P/L and custom dashboards",
+      "campaigns_stock": "Meta and Google campaigns linked to stock",
       "crm_segments_rfm": "CRM with segments and RFM",
-      "multi_store": "Several stores",
-      "advanced_roles": "Advanced roles and permissions",
-      "api": "API access",
-      "ai_assistant": "AI assistant on your data (your own Anthropic key)",
+      "ai_assistant": "AI assistant (your own Anthropic key)",
+      "mcp": "AI clients through MCP (Claude, ChatGPT, Cursor…)",
+      "audit_retention": "Audit log kept {days} days",
+      "unlimited_users": "Unlimited users",
       "priority_support": "Priority support",
       "enterprise_volume": "Volume pricing",
       "enterprise_sla": "Contractual SLA",
-      "enterprise_custom": "Custom modules and integrations"
+      "enterprise_custom": "Custom modules and integrations",
+      "tiktok_ads": "TikTok Ads next to Meta and Google"
     }
   },
   "addons": {
     "title": "Add-ons and tailored integrations",
     "lead": "Activated per account by our team. The core works for any payment method; what is specific to your operation lives in an add-on.",
     "per_month": "{price}/month",
-    "from_per_month": "from {price}/month",
     "quote": "On quote",
     "items": {
+      "customer_campaigns": {
+        "title": "Customer campaigns",
+        "body": "Campaigns to your segments with a control group: a stable holdout per customer, the send recorded from the tool you already use, and the incremental orders, revenue and margin each campaign really produced."
+      },
       "cod": {
         "title": "Cash on delivery",
-        "body": "Confirmation queue with call outcomes, operator assignment, a delivery score explained factor by factor and risk flags on recipients."
+        "body": "For stores that collect on delivery: confirmation queue with call outcomes, operator assignment, a delivery score explained factor by factor and risk flags on recipients."
       },
       "custom_integration": {
         "title": "Tailored integrations",
-        "body": "A 3PL warehouse, a local messaging provider, a carrier: built behind the same interfaces and switched on for your account only."
+        "body": "A 3PL warehouse, a second tracking source, another system you run: built behind the same interfaces and switched on for your account only."
       },
       "custom_development": {
         "title": "Custom development",
@@ -267,11 +300,19 @@
       },
       "security": {
         "q": "How are my data kept separate from other customers?",
-        "a": "Every table carries the account identifier and the database enforces row-level isolation on every query: an account can never read or write another account's rows, and automated tests prove it on every table. Integration credentials are encrypted at rest. Access by our support team is logged and visible to you."
+        "a": "Every table carries the account identifier and the database enforces row-level isolation on every query: an account can never read or write another account's rows, and automated tests prove it on every table. Integration credentials are encrypted at rest. Every action of our support team inside your account is recorded in your audit log."
+      },
+      "export": {
+        "q": "Can I take my data with me?",
+        "a": "Yes. An owner can export every table of the account as CSV files in one archive, at any time, and any list can be exported to CSV from its page."
       },
       "ai": {
         "q": "Who pays for the AI assistant, and what does it see?",
         "a": "The assistant is included in every plan and runs on your own Anthropic API key: Anthropic bills the usage directly to you, with the spend limit you set in their console, and {product} adds nothing on top. It only reads the reports the user's role can open, never changes data, and each answer shows the figures it used."
+      },
+      "mcp": {
+        "q": "Can I use Claude, ChatGPT or Cursor with my store's data?",
+        "a": "Yes, from the Growth plan. {product} includes an MCP server: an owner turns it on, each user connects their own AI client and approves the access, and the client reads only what that user can see. It never changes data, and every connection can be revoked."
       },
       "overage": {
         "q": "What happens if I exceed the included orders?",
@@ -312,7 +353,8 @@
     "mailto_button": "Email us",
     "required": "This field is required.",
     "invalid_email": "Enter a valid email address.",
-    "optional": "optional"
+    "optional": "optional",
+    "privacy": "We use these details only to reply to your request and to follow up on it. They are not shared with third parties for marketing. To see or delete them, write to {email}."
   },
   "footer": {
     "tagline": "The structure under your store.",
@@ -323,5 +365,11 @@
     "sign_in": "Sign in to {product}",
     "language": "Language",
     "rights": "© {year} {product}. All rights reserved."
+  },
+  "coming_soon": {
+    "badge": "Coming soon",
+    "title": "Being built",
+    "lead": "Not part of the plans until it ships. Ask us for the timing.",
+    "items": {}
   }
 }

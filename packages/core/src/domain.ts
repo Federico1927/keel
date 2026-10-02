@@ -54,12 +54,12 @@ export type PurchaseOrderStatus = (typeof PURCHASE_ORDER_STATUSES)[number];
 /** Purchase orders counted as incoming stock. */
 export const INCOMING_PO_STATUSES: readonly PurchaseOrderStatus[] = ["confirmed", "in_transit", "partially_received"];
 
-export const AD_PLATFORMS = ["meta", "google"] as const;
-export type AdPlatform = (typeof AD_PLATFORMS)[number];
+/** The canonical list lives in @keel/config (plan modules gate some platforms); re-exported for domain code. */
+export { AD_PLATFORMS, isAdPlatform, type AdPlatform } from "@keel/config";
 export const CAMPAIGN_STATUSES = ["active", "paused", "archived"] as const;
 export type CampaignStatus = (typeof CAMPAIGN_STATUSES)[number];
 
-export const INTEGRATION_PROVIDERS = ["shopify", "meta", "google", "ga4", "messaging", "warehouse", "carrier"] as const;
+export const INTEGRATION_PROVIDERS = ["shopify", "meta", "google", "tiktok", "ga4", "messaging", "warehouse", "carrier"] as const;
 export type IntegrationProvider = (typeof INTEGRATION_PROVIDERS)[number];
 export const INTEGRATION_STATUSES = ["not_connected", "connected", "error", "syncing"] as const;
 export type IntegrationStatus = (typeof INTEGRATION_STATUSES)[number];

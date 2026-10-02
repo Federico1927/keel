@@ -4,7 +4,7 @@ import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 export const SHOPIFY_SCOPES_BY_MODULE: Record<string, string[]> = {
   "core.orders": ["read_orders", "write_orders", "read_customers", "read_fulfillments", "read_merchant_managed_fulfillment_orders", "write_merchant_managed_fulfillment_orders"],
   "core.shipments": ["read_fulfillments", "read_shipping", "write_merchant_managed_fulfillment_orders"],
-  "core.catalog": ["read_products", "write_products", "read_inventory", "write_inventory", "read_locations"],
+  "core.catalog": ["read_products", "write_products", "read_inventory", "write_inventory", "read_locations", "read_publications"],
   "core.discounts": ["read_discounts", "write_discounts"],
   "core.returns": ["read_returns", "write_returns", "write_inventory"],
   "core.crm": ["read_customers"],

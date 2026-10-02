@@ -1,14 +1,16 @@
 import { ImageResponse } from "next/og";
+import { TOKENS } from "@keel/ui/tokens";
 import { PRODUCT_NAME, type LandingLocale } from "@/config/site";
 import { getTranslator } from "@/i18n/messages";
 
 export const OG_SIZE = { width: 1200, height: 630 };
 export const OG_CONTENT_TYPE = "image/png";
 
-/** Open Graph card generated at build time: name, tagline and the three differentiators. */
+/** Open Graph card generated at build time, per locale, in the direction A light palette of packages/ui. */
 export function ogImage(locale: LandingLocale) {
   const t = getTranslator(locale);
   const points = ["contract", "setup", "users"] as const;
+  const c = TOKENS.light;
   return new ImageResponse(
     <div
       style={{
@@ -18,8 +20,9 @@ export function ogImage(locale: LandingLocale) {
         flexDirection: "column",
         justifyContent: "space-between",
         padding: 72,
-        background: "linear-gradient(135deg, #1b1f27 0%, #243b55 100%)",
-        color: "#f3efe6",
+        background: `linear-gradient(160deg, ${c.surface} 55%, ${c.bg} 100%)`,
+        borderTop: `12px solid ${c.primary}`,
+        color: c.fg,
         fontFamily: "sans-serif",
       }}
     >
@@ -29,8 +32,7 @@ export function ogImage(locale: LandingLocale) {
           alignItems: "center",
           gap: 18,
           fontSize: 40,
-          letterSpacing: 6,
-          textTransform: "uppercase",
+          fontWeight: 600,
         }}
       >
         <svg
@@ -38,7 +40,7 @@ export function ogImage(locale: LandingLocale) {
           height="52"
           viewBox="0 0 32 32"
           fill="none"
-          stroke="#f3efe6"
+          stroke={c.primary}
           strokeWidth="2.4"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -53,7 +55,7 @@ export function ogImage(locale: LandingLocale) {
         <div style={{ fontSize: 64, fontWeight: 700, lineHeight: 1.1, maxWidth: 1000 }}>
           {t("meta.og_tagline")}
         </div>
-        <div style={{ display: "flex", gap: 36, fontSize: 28, color: "#c9d3e0" }}>
+        <div style={{ display: "flex", gap: 36, fontSize: 28, color: c.muted }}>
           {points.map((p) => (
             <div key={p} style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span
@@ -62,7 +64,7 @@ export function ogImage(locale: LandingLocale) {
                   width: 12,
                   height: 12,
                   borderRadius: 999,
-                  background: "#7fb0a0",
+                  background: c.success,
                 }}
               />
               {t(`hero.points.${p}`)}

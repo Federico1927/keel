@@ -13,10 +13,14 @@ type Status = "idle" | "sending" | "sent" | "error";
 
 const ORDER_OPTIONS = ["lt1k", "1k5k", "5k20k", "gt20k"] as const;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+/** A person needs more than this to fill the form; faster submits are bots and are dropped silently. */
+const MIN_FILL_MS = 3000;
 
 /**
  * Posts to the configured webhook as JSON. The site is static, so the browser calls the webhook
  * directly (it must allow cross-origin POSTs). Without a webhook the submit opens a prefilled email.
+ * Spam protection: a honeypot field and a minimum fill time, both silent for the sender; the
+ * webhook should still rate-limit. The privacy notice under the button is shown in every language.
  */
 export function ContactForm({
   locale,
@@ -38,6 +42,7 @@ export function ContactForm({
   const [errors, setErrors] = useState<Errors>({});
   const [status, setStatus] = useState<Status>("idle");
   const [honeypot, setHoneypot] = useState("");
+  const [shownAt] = useState(() => Date.now());
 
   function set(field: Field, value: string) {
     setValues((v) => ({ ...v, [field]: value }));
@@ -58,7 +63,7 @@ export function ContactForm({
     const next = validate();
     setErrors(next);
     if (Object.keys(next).length > 0) return;
-    if (honeypot) {
+    if (honeypot || Date.now() - shownAt < MIN_FILL_MS) {
       setStatus("sent");
       return;
     }
@@ -94,8 +99,8 @@ export function ContactForm({
 
   if (status === "sent") {
     return (
-      <div className="rounded-2xl border border-success/40 bg-success/5 p-8" role="status">
-        <p className="font-sans text-lg font-semibold">{t("success_title")}</p>
+      <div className="rounded-lg border border-success/40 bg-success/5 p-8" role="status">
+        <p className="text-lg font-semibold">{t("success_title")}</p>
         <p className="mt-2 text-muted-foreground">{t("success_body")}</p>
       </div>
     );
@@ -105,7 +110,7 @@ export function ContactForm({
     <form
       onSubmit={onSubmit}
       noValidate
-      className="rounded-2xl border border-border bg-card p-6 sm:p-8"
+      className="rounded-lg border border-border bg-card p-6 shadow-sm sm:p-8"
     >
       {!webhookUrl && <p className="mb-5 text-sm text-muted-foreground">{t("mailto_lead")}</p>}
       <div className="grid gap-4 sm:grid-cols-2">
@@ -206,14 +211,17 @@ export function ContactForm({
           {status === "sending" ? t("sending") : webhookUrl ? t("submit") : t("mailto_button")}
         </button>
       </div>
+      <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+        {t("privacy", { email })}
+      </p>
     </form>
   );
 }
 
 function inputClass(invalid: boolean) {
   return cx(
-    "mt-1 block h-10 w-full rounded-md border bg-background px-3 text-sm placeholder:text-muted-foreground/70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-    invalid ? "border-destructive" : "border-border",
+    "mt-1 block h-10 w-full rounded-md border bg-card px-3 text-sm placeholder:text-muted-foreground/70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+    invalid ? "border-destructive" : "border-input",
   );
 }
 

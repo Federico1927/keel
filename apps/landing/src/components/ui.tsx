@@ -3,10 +3,10 @@ import { cx } from "@/lib/cx";
 const BUTTON =
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50";
 const VARIANTS = {
-  primary: "bg-primary text-primary-foreground hover:bg-primary-strong",
-  outline: "border border-border bg-card text-foreground hover:bg-muted",
+  primary: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
+  outline: "border border-border bg-card text-foreground shadow-sm hover:bg-muted",
   ghost: "text-foreground hover:bg-muted",
-  inverted: "bg-card text-ink hover:bg-secondary",
+  inverted: "bg-background text-foreground hover:bg-secondary",
 } as const;
 const SIZES = { md: "h-10 px-4", lg: "h-12 px-6 text-base" } as const;
 
@@ -74,18 +74,16 @@ export function Section({
       id={id}
       className={cx(
         "scroll-mt-20 py-16 sm:py-24",
-        tone === "muted" && "bg-secondary/60",
+        tone === "muted" && "border-y border-border bg-card",
         className,
       )}
     >
       <div className="container-x">
         <div className="max-w-3xl">
-          {eyebrow && (
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-              {eyebrow}
-            </p>
-          )}
-          <h2 className="text-3xl leading-tight sm:text-4xl">{title}</h2>
+          {eyebrow && <p className="mb-3 text-sm font-medium text-primary">{eyebrow}</p>}
+          <h2 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+            {title}
+          </h2>
           {lead && <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{lead}</p>}
         </div>
         <div className="mt-10 sm:mt-14">{children}</div>

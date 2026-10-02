@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AD_PLATFORMS, type AdPlatform } from "./ads";
 import { isAddonModule, type ModuleKey } from "./modules";
 import { canDo, canViewPage, type PageKey, type TenantRole } from "./roles";
 
@@ -13,7 +14,7 @@ import { canDo, canViewPage, type PageKey, type TenantRole } from "./roles";
 export type MetricFormat = "money" | "ratio" | "percent" | "number" | "days";
 export type MetricGroup = "finance" | "orders" | "customers" | "inventory" | "ads";
 /** Where a metric's number clicks through (apps/web builds the URL with the period). */
-export type MetricLink = "pnl" | "orders" | "orders_cancelled" | "returns" | "customers" | "inventory" | "purchasing" | "campaigns" | "campaigns_meta" | "campaigns_google";
+export type MetricLink = "pnl" | "orders" | "orders_cancelled" | "returns" | "customers" | "inventory" | "purchasing" | "campaigns" | `campaigns_${AdPlatform}`;
 
 export interface MetricDefinition {
   key: string;
@@ -60,7 +61,7 @@ export const METRICS: readonly MetricDefinition[] = [
   m("coverage_days", "inventory", "days", { kind: "snapshot", series: false, filterable: false, page: "inventory", link: "inventory" }),
   m("out_of_stock_variants", "inventory", "number", { kind: "snapshot", series: false, filterable: false, higherIsBetter: false, page: "inventory", link: "inventory" }),
   m("incoming_po_value", "inventory", "money", { kind: "snapshot", series: false, filterable: false, page: "purchasing", link: "purchasing" }),
-  ...(["meta", "google"] as const).flatMap((p) => [
+  ...AD_PLATFORMS.flatMap((p) => [
     m(`${p}_spend`, "ads", "money", { series: false, filterable: false, higherIsBetter: false, page: "campaigns", link: `campaigns_${p}` }),
     m(`${p}_roas`, "ads", "ratio", { series: false, filterable: false, page: "campaigns", link: `campaigns_${p}` }),
     m(`${p}_cpa`, "ads", "money", { series: false, filterable: false, higherIsBetter: false, page: "campaigns", link: `campaigns_${p}` }),

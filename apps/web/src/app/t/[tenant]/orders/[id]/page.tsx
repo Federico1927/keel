@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ProductThumb } from "@/components/product-thumb";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
@@ -30,7 +31,7 @@ export default async function OrderDetailPage({ params, searchParams }: { params
   const ctx = await requirePage(tenant, "orders");
   const detail = await getOrderDetail(ctx, id);
   if (!detail) notFound();
-  const { order, lines, events, notes, shipments, sourceStates, shipmentEvents, attribution, campaign, discounts, returns } = detail;
+  const { order, lines, lineImages, events, notes, shipments, sourceStates, shipmentEvents, attribution, campaign, discounts, returns } = detail;
   const canRequestReturn = canWritePage(ctx.role, "returns") && isPageEnabled("returns", ctx.activeAddons) && ["shipped", "delivered", "returned_partial"].includes(order.status);
   const t = await getTranslations("order_detail");
   const tp = await getTranslations("payment_methods");
@@ -295,16 +296,21 @@ export default async function OrderDetailPage({ params, searchParams }: { params
               {lines.map((l) => (
                 <TableRow key={l.id}>
                   <TableCell>
-                    {l.productId ? (
-                      <Link href={`/t/${tenant}/products/${l.productId}`} className="font-medium hover:underline">
-                        {l.title}
-                      </Link>
-                    ) : (
-                      <span className="font-medium">{l.title}</span>
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      {l.variantTitle} {l.sku ? `· ${l.sku}` : ""}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <ProductThumb src={lineImages[l.id]} alt={`${l.title} ${l.variantTitle ?? ""}`} size="sm" />
+                      <div className="min-w-0">
+                        {l.productId ? (
+                          <Link href={`/t/${tenant}/products/${l.productId}`} className="font-medium hover:underline">
+                            {l.title}
+                          </Link>
+                        ) : (
+                          <span className="font-medium">{l.title}</span>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          {l.variantTitle} {l.sku ? `· ${l.sku}` : ""}
+                        </p>
+                      </div>
+                    </div>
                   </TableCell>
                   <TableCell className="text-right tabular">
                     {l.currentQuantity}

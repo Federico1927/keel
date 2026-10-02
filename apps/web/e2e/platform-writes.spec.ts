@@ -2,24 +2,22 @@ import { expect, test } from "@playwright/test";
 import { login } from "./helpers";
 
 test.describe("platform writes, stock sync and reconcile runs", () => {
-  test("a price edit goes through the outbox and is listed as synced on the integrations page", async ({ page }) => {
+  test("a price edit is written to the platform first and is listed as synced on the integrations page", async ({ page }) => {
     await login(page, "owner@northwind.demo");
     await page.goto("/t/northwind-apparel/products");
     await page.locator("table tbody tr").first().getByRole("link").first().click();
     await expect(page.getByText(/Variants and stock|Varianti e giacenze/)).toBeVisible();
     await page.waitForLoadState("networkidle");
-    const price = page.getByRole("spinbutton", { name: /^Price$|^Prezzo$/ }).first();
+    // issue #19: variant fields are edited in the variants editor, Shopify first (synchronous outbox write)
+    await page.getByTestId("edit-variants").click();
+    const price = page.getByTestId("edit-variant-price").first();
     const current = Number(await price.inputValue());
     await price.fill((current + 1).toFixed(2));
-    const form = page.locator("form", { has: price });
-    await form.getByRole("button", { name: /^Save$|^Salva$/ }).click();
-    await expect(form.getByRole("button", { name: /^Save$|^Salva$/ })).toHaveCount(0);
-    // synced: no pending or failed badge on the edited variant
-    const row = page.locator("tr", { has: price });
-    await expect(row.getByTestId("platform-write-status").filter({ hasText: /./ }).and(page.locator('[data-status="failed"], [data-status="pending"]'))).toHaveCount(0);
+    await page.getByTestId("variants-editor").getByTestId("save-product").click();
+    await expect(page.getByTestId("variants-editor")).toHaveCount(0);
     await page.goto("/t/northwind-apparel/integrations");
     const latest = page.getByTestId("platform-write-row").first();
-    await expect(latest).toHaveAttribute("data-kind", "variant.update");
+    await expect(latest).toHaveAttribute("data-kind", "variant.details");
     await expect(latest).toHaveAttribute("data-status", "succeeded");
   });
 

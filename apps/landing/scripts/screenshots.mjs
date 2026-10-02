@@ -1,5 +1,6 @@
 /**
- * Captures the landing in every locale, desktop and mobile, into docs/landing/.
+ * Captures the landing in every locale, desktop and mobile in the light theme plus desktop in the
+ * dark theme (the page follows the OS setting), into docs/landing/.
  * Builds nothing: run `pnpm --filter @keel/landing build` first. Starts its own static server.
  *
  *   pnpm --filter @keel/landing screenshots
@@ -14,7 +15,7 @@ import { resolve } from "node:path";
 const PORT = Number(process.env.PORT ?? 3199);
 const BASE = `http://localhost:${PORT}`;
 const OUT = resolve(process.env.OUT_DIR ?? "../../docs/landing");
-const LOCALES = (process.env.LOCALES ?? "en,it").split(",");
+const LOCALES = (process.env.LOCALES ?? "en,it,es").split(",");
 const chromiumPath = process.env.PW_CHROMIUM_PATH ?? "/opt/pw-browsers/chromium";
 const VIEWPORTS = {
   desktop: { width: 1440, height: 900, deviceScaleFactor: 1 },
@@ -50,15 +51,21 @@ async function main() {
     const browser = await chromium.launch(
       existsSync(chromiumPath) ? { executablePath: chromiumPath } : {},
     );
+    const shots = [
+      { device: "desktop", colorScheme: "light", suffix: "" },
+      { device: "mobile", colorScheme: "light", suffix: "" },
+      { device: "desktop", colorScheme: "dark", suffix: "-dark" },
+    ];
     for (const locale of LOCALES) {
-      for (const [device, viewport] of Object.entries(VIEWPORTS)) {
-        const { deviceScaleFactor, isMobile, hasTouch, ...size } = viewport;
+      for (const { device, colorScheme, suffix } of shots) {
+        const { deviceScaleFactor, isMobile, hasTouch, ...size } = VIEWPORTS[device];
         const context = await browser.newContext({
           viewport: size,
           deviceScaleFactor,
           isMobile,
           hasTouch,
           locale,
+          colorScheme,
         });
         const page = await context.newPage();
         await page.goto(`${BASE}${locale === "en" ? "/" : `/${locale}/`}`);
@@ -85,7 +92,7 @@ async function main() {
         });
         await page.waitForLoadState("networkidle");
         await page.waitForTimeout(300);
-        const path = `${OUT}/${locale}-${device}.png`;
+        const path = `${OUT}/${locale}-${device}${suffix}.png`;
         // Palette PNG: UI captures shrink 3-4x with no visible loss, which keeps the docs folder small.
         await sharp(await page.screenshot({ fullPage: true }))
           .png({ palette: true, quality: 90, effort: 7 })

@@ -6,6 +6,7 @@ export * from "./http";
 export * from "./shopify";
 export * from "./meta";
 export * from "./google";
+export * from "./tiktok";
 
 export const INTEGRATION_MODES = ["mock", "live"] as const;
 export type IntegrationMode = (typeof INTEGRATION_MODES)[number];

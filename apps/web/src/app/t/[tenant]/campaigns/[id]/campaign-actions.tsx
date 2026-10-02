@@ -1,12 +1,13 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { AD_PLATFORM_LABELS } from "@keel/config";
 import { Pause, Play } from "lucide-react";
 import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Label, Select } from "@keel/ui";
 import { linkProduct, setCampaignStatus, unlinkProduct } from "@/server/actions/campaigns";
 import type { ActionResult } from "@/server/action-result";
 
-const PLATFORM_LABEL: Record<string, string> = { meta: "Meta", google: "Google Ads" };
+const PLATFORM_LABEL: Readonly<Record<string, string>> = AD_PLATFORM_LABELS;
 
 export function CampaignStatusButton({ slug, campaignId, platform, status, canPause, readOnly }: { slug: string; campaignId: string; platform: string; status: string; canPause: boolean; readOnly: boolean }) {
   const t = useTranslations("campaign_detail");
