@@ -183,6 +183,13 @@
       "when": 1790896090043,
       "tag": "0025_gigantic_centennial",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1790897105430,
+      "tag": "0026_chunky_violations",
+      "breakpoints": true
     }
   ]
 }

@@ -27,12 +27,12 @@ async function boss() {
 }
 
 /** Returns true when the job was queued, false when the caller should run it inline. */
-export async function enqueue(queue: QueueName, data: object, opts: { singletonKey?: string } = {}): Promise<boolean> {
+export async function enqueue(queue: QueueName, data: object, opts: { singletonKey?: string; startAfterSeconds?: number } = {}): Promise<boolean> {
   if (process.env.KEEL_JOBS_QUEUE !== "1") return false;
   const b = await boss();
   if (!b) return false;
   try {
-    await b.send(queue, data, { retryLimit: 3, retryDelay: 30, retryBackoff: true, ...(opts.singletonKey ? { singletonKey: opts.singletonKey, singletonSeconds: 60 } : {}) });
+    await b.send(queue, data, { retryLimit: 3, retryDelay: 30, retryBackoff: true, ...(opts.singletonKey ? { singletonKey: opts.singletonKey, singletonSeconds: 60 } : {}), ...(opts.startAfterSeconds ? { startAfter: opts.startAfterSeconds } : {}) });
     return true;
   } catch (e) {
     console.warn("[web] enqueue failed, running inline:", e instanceof Error ? e.message : e);

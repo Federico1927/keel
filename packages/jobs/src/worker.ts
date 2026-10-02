@@ -1,10 +1,11 @@
 import * as Sentry from "@sentry/node";
 import { checkRuntimeConfig, platformRetentionDays, SENTRY_DATA_COLLECTION } from "@keel/config";
+import { setEmailDispatcher } from "@keel/services";
 import { createBoss } from "./boss";
-import { handleListExport, handlePlatformWrite, handleSyncAds, handleSyncCatalog, handleSyncOrders, handleTick, handleWebhook, type Enqueue } from "./handlers";
-import { QUEUES, queueRetentionOptions, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
+import { handleEmailEvent, handleEmailSend, handleListExport, handlePlatformWrite, handleSyncAds, handleSyncCatalog, handleSyncOrders, handleTick, handleWebhook, type Enqueue } from "./handlers";
+import { QUEUES, queueRetentionOptions, type EmailEventJob, type EmailSendJob, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
 
-/** Nightly reconciliation at 03:00 and customer predictions and full live-segment refresh at 03:40, live segments every 10 min, pixel stitching and server-side conversions every 5 min, delta every 15 min, ads daily at 06:00, webhook retry every 10 min, platform-write retries every minute, retention daily at 04:10 (UTC). */
+/** Email housekeeping every 10 min. Nightly reconciliation at 03:00 and customer predictions and full live-segment refresh at 03:40, live segments every 10 min, pixel stitching and server-side conversions every 5 min, delta every 15 min, ads daily at 06:00, webhook retry every 10 min, platform-write retries every minute, retention daily at 04:10 (UTC). */
 const SCHEDULES: { cron: string; data: TickJob }[] = [
   { cron: "*/15 * * * *", data: { kind: "delta" } },
   { cron: "*/10 * * * *", data: { kind: "retry" } },
@@ -22,6 +23,7 @@ const SCHEDULES: { cron: string; data: TickJob }[] = [
   { cron: "4,14,24,34,44,54 * * * *", data: { kind: "tasks" } },
   { cron: "25 * * * *", data: { kind: "notify" } },
   { cron: "5 7 * * *", data: { kind: "digest" } },
+  { cron: "7,17,27,37,47,57 * * * *", data: { kind: "emails" } },
 ];
 
 /** Same startup rules as the web process; Sentry (errors only, no PII) when `SENTRY_DSN` is set. */
@@ -57,8 +59,10 @@ async function main() {
     await boss.updateQueue(q, retention).catch(() => undefined);
   }
   const enqueue: Enqueue = async (queue, data, opts) => {
-    await boss.send(queue, data as object, { retryLimit: 3, retryDelay: 30, retryBackoff: true, ...(opts?.singletonKey ? { singletonKey: opts.singletonKey, singletonSeconds: 60 } : {}) });
+    await boss.send(queue, data as object, { retryLimit: 3, retryDelay: 30, retryBackoff: true, ...(opts?.singletonKey ? { singletonKey: opts.singletonKey, singletonSeconds: 60 } : {}), ...(opts?.startAfterSeconds ? { startAfter: opts.startAfterSeconds } : {}) });
   };
+  // emails queued by ticks (digests, alerts, notifications) go through the same queue; a short delay lets their transaction commit
+  setEmailDispatcher((job) => enqueue(QUEUES.emailSend, job, { startAfterSeconds: 2 }));
   // A failing job is reported, then rethrown so pg-boss applies its retry policy.
   const one = <T>(fn: (data: T) => Promise<void>) => async (jobs: { data: T }[] | { data: T }) => {
     for (const j of Array.isArray(jobs) ? jobs : [jobs]) {
@@ -77,6 +81,8 @@ async function main() {
   await boss.work<SyncAdsJob>(QUEUES.syncAds, one((d: SyncAdsJob) => handleSyncAds(d)));
   await boss.work<TickJob>(QUEUES.tick, one((d: TickJob) => handleTick(d, enqueue)));
   await boss.work<ListExportJob>(QUEUES.listExport, one((d: ListExportJob) => handleListExport(d)));
+  await boss.work<EmailSendJob>(QUEUES.emailSend, { batchSize: 5 }, one((d: EmailSendJob) => handleEmailSend(d, enqueue)));
+  await boss.work<EmailEventJob>(QUEUES.emailEvent, { batchSize: 10 }, one((d: EmailEventJob) => handleEmailEvent(d)));
   for (const s of SCHEDULES) await boss.schedule(QUEUES.tick, s.cron, s.data, { singletonKey: s.data.kind });
   console.info("[jobs] worker started: queues", Object.values(QUEUES).join(", "));
   const shutdown = async () => {

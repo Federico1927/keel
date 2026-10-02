@@ -1,0 +1,102 @@
+{
+  "common": {
+    "footer": "Ricevi questa email perché usi {product}.",
+    "security_footer": "Questa è un'email di sicurezza sul tuo account {product}: arriva anche se hai disattivato le altre email.",
+    "unsubscribe": "Non ricevere più queste email",
+    "ignore": "Se non aspettavi questa email puoi ignorarla.",
+    "support": "Domande? Scrivi a {email}.",
+    "button_fallback": "Se il pulsante non funziona, copia questo link nel browser:"
+  },
+  "templates": {
+    "magic_link": {
+      "subject": "Il tuo link di accesso a {product}",
+      "preheader": "Il link scade tra {minutes} minuti.",
+      "intro": "Usa questo link per accedere. Scade tra {minutes} minuti e funziona una volta sola.",
+      "cta": "Accedi",
+      "hint": "Se non hai chiesto di accedere, ignora questa email: senza il link nessuno può entrare."
+    },
+    "email_change_confirm": {
+      "subject": "Conferma il tuo nuovo indirizzo email",
+      "preheader": "Il link scade tra {hours} ore.",
+      "intro": "È stato chiesto di usare questo indirizzo per un account {product}. Conferma per completare il cambio: il link scade tra {hours} ore.",
+      "cta": "Conferma il nuovo indirizzo",
+      "hint": "Se non sei stato tu, ignora questa email: l'account mantiene l'indirizzo attuale."
+    },
+    "email_change_notice": {
+      "subject": "L'indirizzo email del tuo account {product} sta cambiando",
+      "preheader": "È stato chiesto il passaggio a {email}.",
+      "intro": "È stato chiesto di cambiare l'indirizzo di accesso del tuo account in {email}. Non cambia nulla finché il nuovo indirizzo non conferma.",
+      "hint": "Se non sei stato tu, accedi e cambia la password, poi annulla la richiesta dal tuo profilo."
+    },
+    "invite": {
+      "subject": "{inviter} ti ha invitato in {tenant} su {product}",
+      "preheader": "Entra in {tenant} con il ruolo {role}.",
+      "intro": "{inviter} ti ha aggiunto a {tenant} con il ruolo {role}.",
+      "cta": "Accedi",
+      "hint": "Accedi con questo indirizzo email: ti mandiamo un link, senza password."
+    },
+    "mention": {
+      "subject": "{author} ti ha menzionato su {record}",
+      "preheader": "{author} ti ha menzionato in una nota.",
+      "intro": "{author} ti ha menzionato in una nota su {record}:",
+      "cta": "Apri la nota"
+    },
+    "supplier_po": {
+      "subject": "Ordine d'acquisto {po} da {company}",
+      "preheader": "Conferma l'ordine d'acquisto {po}.",
+      "intro": "Buongiorno {supplier}, {company} ti ha inviato l'ordine d'acquisto {po}. Confermalo o segnalaci un problema dalla pagina qui sotto.",
+      "expected": "Consegna prevista: {date}",
+      "cta": "Vedi e conferma l'ordine",
+      "hint": "Il link è personale per questo ordine."
+    },
+    "digest": {
+      "subject": "Il tuo riepilogo giornaliero di {tenant}",
+      "preheader": "Quello che non hai letto nelle ultime 24 ore.",
+      "intro": "Da leggere nelle ultime 24 ore:",
+      "more": "e altri {n}",
+      "cta": "Apri le notifiche"
+    },
+    "notification": {
+      "subject": "{title}",
+      "cta": "Apri in {product}"
+    },
+    "test": {
+      "subject": "Email di prova di {product}",
+      "preheader": "L'invio delle email funziona.",
+      "intro": "Questa è un'email di prova inviata dalla console di {product}. Se la stai leggendo, mittente, dominio e provider funzionano.",
+      "detail": "Provider: {provider} · inviata alle {time} (UTC)"
+    }
+  },
+  "system": {
+    "stock_critical_no_po": "{title} varianti in vendita con stock critico e nessun ordine d'acquisto",
+    "late_to_ship": "{title} ordini ancora da spedire dopo {body}",
+    "sync_delay": "La sincronizzazione di {title} è in ritardo ({body})",
+    "export_ready": "Il tuo export CSV è pronto: {title} righe ({body})"
+  },
+  "roles": {
+    "owner": "titolare",
+    "admin": "amministratore",
+    "operations": "operazioni",
+    "customer_care": "assistenza clienti",
+    "marketing": "marketing",
+    "viewer": "sola lettura"
+  },
+  "types": {
+    "mention": "Menzioni",
+    "task_assigned": "Attività assegnate a te",
+    "task_due": "Attività in scadenza",
+    "support_reply": "Risposte del supporto",
+    "alert": "Avvisi",
+    "sync_delay": "Ritardi di sincronizzazione",
+    "stock_critical_no_po": "Stock critico",
+    "late_to_ship": "Spedizioni in ritardo",
+    "stock_low": "Stock basso",
+    "stock_available": "Stock di nuovo disponibile",
+    "return_portal": "Resi dal portale",
+    "po_supplier_confirmed": "Conferme dei fornitori",
+    "po_supplier_problem": "Problemi dei fornitori",
+    "integration_health": "Integrazioni",
+    "cod_assigned": "Assegnazioni contrassegno",
+    "other": "Altro"
+  }
+}

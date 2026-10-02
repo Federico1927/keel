@@ -7,6 +7,8 @@ export const QUEUES = {
   platformWrite: "platform.write",
   tick: "scheduler.tick",
   listExport: "list.export",
+  emailSend: "email.send",
+  emailEvent: "email.event",
 } as const;
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];
 
@@ -40,9 +42,18 @@ export interface ListExportJob {
   tenantId: string;
   exportId: string;
 }
+/** One queued email (packages/services `queueEmail`): the log row id and the encrypted rendered message. */
+export interface EmailSendJob {
+  messageId: string;
+  payload: string;
+}
+/** One stored provider delivery event (`email_events`) to apply. */
+export interface EmailEventJob {
+  eventId: string;
+}
 export interface TickJob {
-  /** delta (every 15 min) | ads (daily) | reconcile (nightly) | retry (every 10 min) | billing (daily) | writes (every minute: outbox retries) | retention (daily) */
-  kind: "delta" | "ads" | "reconcile" | "retry" | "billing" | "cod" | "alerts" | "returns" | "crm" | "segments" | "tracking" | "tasks" | "notify" | "digest" | "writes" | "retention";
+  /** delta (every 15 min) | ads (daily) | reconcile (nightly) | retry (every 10 min) | billing (daily) | writes (every minute: outbox retries) | retention (daily) | emails (every 10 min: provider events left behind, lost queued emails) */
+  kind: "delta" | "ads" | "reconcile" | "retry" | "billing" | "cod" | "alerts" | "returns" | "crm" | "segments" | "tracking" | "tasks" | "notify" | "digest" | "writes" | "retention" | "emails";
 }
 
 /** pg-boss keeps finished jobs for the same platform retention window as webhooks and writes. */

@@ -63,6 +63,7 @@ Rules the graph enforces:
 | Purchasing | `suppliers`, `supplier_variants`, `supplier_payments`, `purchase_orders`, `purchase_order_lines`, `purchase_order_charges`, `backorders`, `case_packs`, `supplier_links`, `supplier_link_views` | The primary `supplier_variants` row is a variant's default supplier (SKU, cost, MOQ, lead time) read by planning and auto-drafts. A PO line has a variant or a free-text description. Receiving records arrived, damaged and rejected units per line; only good units move stock and update the latest product cost (feeds P/L) and close backorders. Case packs hold units per value of one option (any name); `packages/core/src/packs.ts` turns them and the option mix into PO lines. Supplier links store only the token's SHA-256, expire after `SUPPLIER_LINK_TTL_DAYS`, can be revoked, and log every view; expired or revoked links get a neutral page. |
 | Marketing | `campaigns`, `ad_metrics_daily`, `campaign_product_links`, `segments`, `segment_memberships` | Segments store nested AND/OR rules as JSON plus `holdout_percentage`; memberships keep a stable group per customer. |
 | Billing | `subscriptions`, `invoices` | Keel owns the ledger; the provider only collects. |
+| Email | `email_messages`, `email_events`, `email_address_suppressions` | The platform sender's delivery log (nullable `tenant_id`, RLS read/append per tenant, advanced by the admin connection; recipient as keyed hash + masked form, never body or links), provider webhook events (unique on provider + event id) and platform-wide suppressions from hard bounces and complaints (hashed). |
 | Collaboration | `notifications`, `notification_preferences`, `email_suppressions`, `mentions`, `record_notes`, `tasks`, `task_rules`, `support_tickets`, `support_messages` | Notifications record every delivery (`in_app`, `delivered`); preferences override the type registry per user. Tasks link to a record (type + id) and remember the rule and episode that opened them. Support tickets are tenant data answered from the console through the admin connection. |
 | Add-on COD | `cod_settings`, `cod_queue_items`, `cod_attempts`, `cod_operator_capacity`, `cod_capacity_exceptions`, `cod_assignment_log`, `cod_recipient_profiles` | Only read and written by `@keel/addon-cod`. |
 
@@ -123,7 +124,7 @@ Failed events are retried by the `retry` tick every 10 minutes up to a maximum n
 - Each run writes `integration_health` (ok/error, last error text, rows written, freshness) which the Integrations page shows together with "Test connection" and "Resync", and the run table with scanned, changed, conflicts, errors and duration per run.
 - Retention: a daily tick deletes rows older than the platform-wide window (`KEEL_RETENTION_DAYS`, default 14, `platformRetentionDays()` in `packages/config`): processed webhook events, succeeded or superseded writes, synchronous write records, successful runs (and failed runs already followed by a success), drift not seen since. Failed webhooks and failed asynchronous writes stay until they are resolved. pg-boss queues get the same window as `deleteAfterSeconds`.
 
-Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00 (orders and the complete catalog run), billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40, task rules and overdue reminders every 10 min, system notifications (sync delay, critical stock without PO, late to ship) hourly, digest emails daily at 07:05, platform-write retries every minute, retention at 04:10.
+Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00 (orders and the complete catalog run), billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40, task rules and overdue reminders every 10 min, system notifications (sync delay, critical stock without PO, late to ship) hourly, digest emails daily at 07:05, email housekeeping (provider events left pending, lost queued emails) every 10 min, platform-write retries every minute, retention at 04:10.
 
 ### Outbound writes (outbox)
 
@@ -192,13 +193,37 @@ sequenceDiagram
 
 ## Notifications, email and tasks
 
-- `notifyUsers` (packages/services/src/notifications) is the single delivery path. Channels per recipient = `resolveNotificationChannels(type, overrides)` from the type registry in `packages/config/src/notifications.ts` and the user's `notification_preferences`. In-app rows show in the bell and `/notifications`; email is rendered by `renderEmail` (en/it/es templates) and sent by `sendTenantEmail`, which checks `email_suppressions` and adds a signed unsubscribe link (`/u/<token>`, one-click `/api/email/unsubscribe`); Slack posts once per event. Bounces come back on `/api/webhooks/email`.
+- `notifyUsers` (packages/services/src/notifications) is the single delivery path. Channels per recipient = `resolveNotificationChannels(type, overrides)` from the type registry in `packages/config/src/notifications.ts` and the user's `notification_preferences`. In-app rows show in the bell and `/notifications`; email is queued with `queueEmail` (below); Slack posts once per event.
+- Email (issue #51) has one code path, `packages/services/src/email`:
+
+```mermaid
+sequenceDiagram
+  participant S as Service (notifyUsers, digest, invite, magic link, …)
+  participant M as queueEmail
+  participant DB as email_messages
+  participant Q as pg-boss email.send (or in-process after the response)
+  participant D as deliverEmailJob
+  participant P as EmailProvider (Resend | mock)
+  participant W as /api/webhooks/email
+  S->>M: template, props, locale, event
+  M->>M: render (messages/{en,it,es}.json), check platform + tenant suppression
+  M->>DB: insert row (unique idempotency key) status queued | suppressed
+  M->>Q: { messageId, encrypted payload }
+  Q->>D: job
+  D->>DB: claim (queued → sending), expired? suppressed?
+  D->>P: send with Idempotency-Key
+  D->>DB: sent | queued + next attempt (backoff) | failed | expired
+  P-->>W: delivered / bounced / complained (Svix-signed)
+  W->>DB: email_events (unique event id), 200, then status + email_address_suppressions
+```
+
+  The provider is Resend only with `RESEND_API_KEY` and `KEEL_INTEGRATION_MODE=live`, otherwise the recording mock (`/dev/emails` in development; `/admin/email` says "Email not configured"). Templates are typed (`EMAIL_TEMPLATES`: kind `security | transactional | notification` and default category); security emails need `expiresAt` and are never sent after it. Optional emails carry a signed unsubscribe link (`/u/<token>`, one-click `/api/email/unsubscribe`) checked against the tenant's `email_suppressions`. A new email = a template in `templates.ts` + strings in the three message files + a `queueEmail` call with a stable `event`.
 - New notification types must be added to the registry (channels, defaults, group, add-on) and to `notifications.types` in the message files; emails for types whose title is data go in the template's `system` strings.
 - Task rules: `planTaskChanges` (core, pure) decides per record which rules open a task and which open tasks close; `syncRecordTasks` applies it and is called by the return and purchase-order services; the `tasks` tick sweeps orders, time-based rules and closures. Record pages show `<RecordTasks>` and, for POs and returns, `<RecordNotes>`: self-contained server components.
 
 ## Adding an adapter
 
-1. Implement one of the interfaces in `packages/integrations/src/types.ts` (`CommercePlatform`, `AdsPlatform`, `AnalyticsPlatform`, `MessagingChannel`, `WarehouseProvider`, `CarrierProvider`, `AddressProvider`). Return the normalized types; never leak provider payloads upward.
+1. Implement one of the interfaces in `packages/integrations/src/types.ts` (`CommercePlatform`, `AdsPlatform`, `AnalyticsPlatform`, `MessagingChannel`, `WarehouseProvider`, `CarrierProvider`, `AddressProvider`; `EmailProvider` lives in `src/email`). Return the normalized types; never leak provider payloads upward.
 2. Use `HttpClient` from `packages/integrations/src/http.ts`: it injects `fetch`, retries on 429/5xx with `Retry-After`, and maps errors to `IntegrationError` codes (`rate_limit`, `auth`, `permission`, `not_found`, `transient`).
 3. Record real responses as fixtures under `__fixtures__/` and test the adapter with `fixtureFetch(routes)`; no network in tests.
 4. Register the provider in `packages/services/src/integrations/factory.ts` (how to build it from decrypted credentials) and add the credential shape to `crypto.ts` consumers.

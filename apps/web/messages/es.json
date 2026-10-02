@@ -65,7 +65,7 @@
     "send_magic": "Enviarme un enlace",
     "sending": "Enviando…",
     "magic_sent": "Si la dirección existe, el enlace de acceso está en camino.",
-    "magic_hint": "En desarrollo el enlace se imprime en la consola del servidor.",
+    "magic_hint": "En desarrollo el enlace se imprime en la consola del servidor y aparece en la bandeja de desarrollo (/dev/emails).",
     "verify_title": "Revisa tu correo",
     "verify_description": "Te enviamos un enlace de acceso. Caduca en 15 minutos.",
     "demo_hint": "Las cuentas de demostración están en el README.",
@@ -2443,7 +2443,8 @@
       "google": "Google Ads",
       "tracking": "Píxel y conversiones",
       "survey": "Encuesta poscompra",
-      "anthropic": "IA (Anthropic)"
+      "anthropic": "IA (Anthropic)",
+      "email": "Email de plataforma"
     },
     "status": {
       "not_connected": "No conectada",
@@ -2878,6 +2879,78 @@
           "fix": "Sube el enlace en el email; una pregunta con opciones grandes se responde en un segundo."
         }
       ]
+    },
+    "email": {
+      "title": "Email de plataforma (Resend)",
+      "intro": "Keel envía enlaces de acceso, invitaciones, notificaciones y resúmenes desde un único remitente de plataforma. Esta guía es para el administrador de la plataforma: los tenants no necesitan nada.",
+      "steps": [
+        {
+          "title": "Crea la cuenta de Resend",
+          "body": "Regístrate en resend.com con el buzón del administrador de la plataforma y activa la autenticación en dos pasos.",
+          "verify": true
+        },
+        {
+          "title": "Añade el dominio de envío",
+          "body": "Domains → Add domain. Usa un subdominio dedicado al correo transaccional (por ejemplo mail.tudominio.com) y la región más cercana a tus usuarios.",
+          "verify": true
+        },
+        {
+          "title": "SPF",
+          "body": "Añade los registros MX y TXT que Resend muestra para el subdominio de rebotes (el TXT es un registro SPF como v=spf1 include:… ~all). Mantén un solo registro SPF por nombre.",
+          "verify": true
+        },
+        {
+          "title": "DKIM",
+          "body": "Añade el registro TXT de DKIM (resend._domainkey.…) tal como se muestra y espera a que Resend marque el dominio como Verified.",
+          "verify": true
+        },
+        {
+          "title": "DMARC",
+          "body": "Publica un registro TXT en _dmarc.tudominio.com, por ejemplo v=DMARC1; p=none; rua=mailto:dmarc@tudominio.com. Pasa a p=quarantine cuando los informes estén limpios.",
+          "verify": true
+        },
+        {
+          "title": "Clave API solo de envío",
+          "body": "API Keys → Create API key con permiso “Sending access”, limitada al dominio verificado. Se muestra una sola vez y empieza por re_.",
+          "verify": true
+        },
+        {
+          "title": "Define las variables en Railway",
+          "body": "En los servicios web y worker define RESEND_API_KEY, EMAIL_FROM (p. ej. Keel <no-reply@mail.tudominio.com>, en el dominio verificado), EMAIL_REPLY_TO (el buzón de soporte) y KEEL_INTEGRATION_MODE=live; opcionalmente EMAIL_LEGAL_NAME, EMAIL_LEGAL_ADDRESS y EMAIL_SUPPORT_ADDRESS para el pie. Vuelve a desplegar. Nunca hagas commit de la clave."
+        },
+        {
+          "title": "Webhook de entrega",
+          "body": "Webhooks → Add endpoint {emailWebhookUrl} con los eventos email.delivered, email.delivery_delayed, email.bounced y email.complained. Copia el signing secret (whsec_…) en RESEND_WEBHOOK_SECRET del servicio web.",
+          "verify": true
+        },
+        {
+          "title": "Envía un correo de prueba",
+          "body": "Consola → Email debe indicar “Resend está enviando”. Envía un correo de prueba a un buzón que controles, abre el mensaje original y comprueba que SPF, DKIM y DMARC pasan. El registro muestra el correo como entregado cuando llega el webhook."
+        }
+      ],
+      "scopes": "Una sola clave API con “Sending access”, limitada al dominio de envío. Nunca una clave de acceso completo.",
+      "errors": [
+        {
+          "symptom": "La consola muestra “Email no configurado”",
+          "fix": "Falta RESEND_API_KEY en el servicio o KEEL_INTEGRATION_MODE no es live: define ambas y vuelve a desplegar."
+        },
+        {
+          "symptom": "domain_not_verified en el registro",
+          "fix": "EMAIL_FROM usa un dominio que Resend aún no ha verificado: completa los registros DNS o usa un dominio verificado."
+        },
+        {
+          "symptom": "auth en el registro",
+          "fix": "La clave se revocó o no tiene acceso de envío: crea una nueva clave solo de envío."
+        },
+        {
+          "symptom": "rate_limit en el registro",
+          "fix": "Resend limita las peticiones por segundo y por día: la cola reintenta con backoff; si persiste, sube de plan."
+        },
+        {
+          "symptom": "Los rebotes no se registran",
+          "fix": "Falta RESEND_WEBHOOK_SECRET o no coincide con el signing secret del endpoint: el webhook responde 401 o 503."
+        }
+      ]
     }
   },
   "admin": {
@@ -2889,7 +2962,8 @@
       "billing": "Facturación",
       "audit": "Registro de auditoría",
       "support": "Soporte",
-      "styleguide": "Guía de estilo"
+      "styleguide": "Guía de estilo",
+      "email": "Email"
     },
     "plans": {
       "starter": "Starter",
@@ -3048,6 +3122,110 @@
       "close": "Cerrar",
       "author": "Abierta por",
       "attachment_audit": "La descarga de un adjunto queda registrada en el registro de auditoría."
+    },
+    "email": {
+      "title": "Email",
+      "description": "El remitente de la plataforma: estado del proveedor, entregas de los últimos 7 días, el registro y un envío de prueba.",
+      "status_title": "Proveedor",
+      "state": {
+        "configured": "Resend está enviando",
+        "not_configured": "Email no configurado",
+        "mock_mode": "Modo mock"
+      },
+      "state_hint": {
+        "configured": "Los correos salen por Resend desde {from}.",
+        "not_configured": "RESEND_API_KEY no está definida (o KEEL_INTEGRATION_MODE no es live): el mock captura los correos y nadie los recibe. Define las variables en Railway, consulta la guía.",
+        "mock_mode": "Hay una clave de Resend pero KEEL_INTEGRATION_MODE es mock: el mock captura los correos y nadie los recibe."
+      },
+      "from": "Remitente",
+      "reply_to": "Responder a",
+      "webhook": "Webhook de entrega",
+      "webhook_on": "Firmado (RESEND_WEBHOOK_SECRET definida)",
+      "webhook_off": "No configurado: los rebotes y las quejas no se registran",
+      "from_missing": "EMAIL_FROM no está definida: se usa el remitente por defecto y Resend lo rechazará",
+      "none": "—",
+      "stats_title": "Últimos 7 días",
+      "stats": {
+        "sent": "Enviados",
+        "delivered": "Entregados",
+        "bounced": "Rebotados",
+        "complained": "Quejas",
+        "failed": "Fallidos",
+        "suppressed": "Suprimidos",
+        "queued": "En cola"
+      },
+      "test_title": "Enviar un correo de prueba",
+      "test_description": "Un correo de la plataforma a cualquier dirección, por la misma cola que todos los demás. Queda en la auditoría.",
+      "test_to": "Destinatario",
+      "test_send": "Enviar correo de prueba",
+      "test_result": {
+        "queued": "Correo de prueba en cola para {email}.",
+        "queued_mock": "Correo de prueba en cola para {email}: lo captura el mock, nadie lo recibe.",
+        "suppressed": "La dirección está en la lista de supresión: no se envió nada.",
+        "invalid": "Dirección de correo no válida.",
+        "duplicate": "Ya está en cola."
+      },
+      "filters": {
+        "status": "Estado",
+        "template": "Plantilla",
+        "tenant": "Tenant",
+        "recipient": "Destinatario (dirección completa)",
+        "all": "Todos",
+        "platform": "Plataforma (sin tenant)",
+        "apply": "Filtrar",
+        "reset": "Restablecer"
+      },
+      "columns": {
+        "when": "Cuándo",
+        "tenant": "Tenant",
+        "template": "Plantilla",
+        "recipient": "Destinatario",
+        "status": "Estado",
+        "attempts": "Intentos",
+        "provider": "Id del proveedor",
+        "error": "Último error"
+      },
+      "status": {
+        "queued": "En cola",
+        "sending": "Enviando",
+        "sent": "Enviado",
+        "delivered": "Entregado",
+        "delivery_delayed": "Retrasado",
+        "bounced": "Rebotado",
+        "complained": "Queja",
+        "failed": "Fallido",
+        "suppressed": "Suprimido",
+        "expired": "Caducado"
+      },
+      "templates": {
+        "magic_link": "Enlace de acceso",
+        "email_change_confirm": "Cambio de email: confirmación",
+        "email_change_notice": "Cambio de email: aviso",
+        "invite": "Invitación",
+        "mention": "Mención",
+        "supplier_po": "Orden de compra al proveedor",
+        "digest": "Resumen diario",
+        "notification": "Notificación",
+        "test": "Prueba"
+      },
+      "log_title": "Registro de envíos",
+      "empty": "Ningún correo coincide con los filtros.",
+      "pagination": "{from}–{to} de {total}",
+      "privacy": "Los destinatarios se muestran enmascarados y se guardan como hash con clave; los cuerpos y los enlaces nunca se guardan.",
+      "platform": "Plataforma",
+      "suppressions_title": "Direcciones suprimidas",
+      "suppressions_description": "Informadas por el proveedor: un rebote permanente bloquea todos los correos, una queja todos salvo los de acceso y seguridad.",
+      "suppressions_empty": "No hay direcciones suprimidas.",
+      "suppression_reason": {
+        "bounce": "Rebote permanente",
+        "complaint": "Queja de spam"
+      },
+      "suppression_source": {
+        "provider": "Proveedor",
+        "admin": "Consola"
+      },
+      "remove": "Quitar",
+      "guide_title": "Guía de configuración"
     }
   },
   "cod": {
@@ -4664,11 +4842,7 @@
       "invalid_token": "El enlace no es válido o ya se ha usado.",
       "expired_token": "El enlace ha caducado. Pide uno nuevo desde tu perfil.",
       "email_taken": "Este email ya lo usa otra cuenta."
-    },
-    "mail_new_subject": "Confirma tu nueva dirección de email",
-    "mail_new_body": "Abre este enlace para confirmar el cambio del email con el que inicias sesión: {url}\n\nSi no lo has pedido, ignora este mensaje.",
-    "mail_old_subject": "Tu email de acceso va a cambiar",
-    "mail_old_body": "Se ha pedido cambiar el email de acceso de tu cuenta a {email}. Solo cambiará cuando esa dirección lo confirme. Si no has sido tú, cambia la contraseña ahora."
+    }
   },
   "branding": {
     "title": "Marca",
@@ -5069,5 +5243,16 @@
       "variant_prices": "Precios de variante",
       "product_tags": "Etiquetas de producto"
     }
+  },
+  "dev_inbox": {
+    "title": "Bandeja de desarrollo",
+    "description": "Correos capturados por el proveedor mock en este proceso. Solo en desarrollo: en producción esta página no existe.",
+    "empty": "Aún no hay correos capturados. Pide un enlace de acceso en la página de login o envía un correo de prueba desde la consola.",
+    "to": "Para",
+    "subject": "Asunto",
+    "when": "Cuándo",
+    "html": "HTML",
+    "text": "Texto plano",
+    "count": "{count, plural, one {# correo} other {# correos}}"
   }
 }

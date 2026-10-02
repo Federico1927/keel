@@ -1,0 +1,1747 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > digest.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Your daily summary for Northwind Apparel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">What you have not read in the last 24 hours.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Unread in the last 24 hours:</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Mentions (5): #NW-1 · #NW-2 and 3 more</li><li>Late to ship (1): 12</li></ul>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/t/northwind-apparel/notifications" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Open notifications</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">If the button does not work, copy this link into your browser:<br><a class="k-link" href="https://app.keel.example/t/northwind-apparel/notifications" style="color:#2b59ff;word-break:break-all">https://app.keel.example/t/northwind-apparel/notifications</a></p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+You receive this email because you use Keel.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Unsubscribe from these emails</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Your daily summary for Northwind Apparel",
+  "text": "Unread in the last 24 hours:
+
+- Mentions (5): #NW-1 · #NW-2 and 3 more
+- Late to ship (1): 12
+
+Open notifications: https://app.keel.example/t/northwind-apparel/notifications
+
+--
+
+You receive this email because you use Keel.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Unsubscribe from these emails: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > digest.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Tu resumen diario de Northwind Apparel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Lo que no has leído en las últimas 24 horas.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Sin leer en las últimas 24 horas:</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Menciones (5): #NW-1 · #NW-2 y 3 más</li><li>Envíos retrasados (1): 12</li></ul>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/t/northwind-apparel/notifications" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Abrir notificaciones</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Si el botón no funciona, copia este enlace en el navegador:<br><a class="k-link" href="https://app.keel.example/t/northwind-apparel/notifications" style="color:#2b59ff;word-break:break-all">https://app.keel.example/t/northwind-apparel/notifications</a></p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Recibes este correo porque usas Keel.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Dejar de recibir estos correos</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Tu resumen diario de Northwind Apparel",
+  "text": "Sin leer en las últimas 24 horas:
+
+- Menciones (5): #NW-1 · #NW-2 y 3 más
+- Envíos retrasados (1): 12
+
+Abrir notificaciones: https://app.keel.example/t/northwind-apparel/notifications
+
+--
+
+Recibes este correo porque usas Keel.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Dejar de recibir estos correos: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > digest.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Il tuo riepilogo giornaliero di Northwind Apparel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Quello che non hai letto nelle ultime 24 ore.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Da leggere nelle ultime 24 ore:</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Menzioni (5): #NW-1 · #NW-2 e altri 3</li><li>Spedizioni in ritardo (1): 12</li></ul>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/t/northwind-apparel/notifications" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Apri le notifiche</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Se il pulsante non funziona, copia questo link nel browser:<br><a class="k-link" href="https://app.keel.example/t/northwind-apparel/notifications" style="color:#2b59ff;word-break:break-all">https://app.keel.example/t/northwind-apparel/notifications</a></p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Ricevi questa email perché usi Keel.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Non ricevere più queste email</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Il tuo riepilogo giornaliero di Northwind Apparel",
+  "text": "Da leggere nelle ultime 24 ore:
+
+- Menzioni (5): #NW-1 · #NW-2 e altri 3
+- Spedizioni in ritardo (1): 12
+
+Apri le notifiche: https://app.keel.example/t/northwind-apparel/notifications
+
+--
+
+Ricevi questa email perché usi Keel.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Non ricevere più queste email: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > email_change_confirm.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Confirm your new email address</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">The link expires in 24 hours.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Someone asked to use this address for a Keel account. Confirm to complete the change: the link expires in 24 hours.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/account/confirm-email?token=def456" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Confirm the new address</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">If the button does not work, copy this link into your browser:<br><a class="k-link" href="https://app.keel.example/account/confirm-email?token=def456" style="color:#2b59ff;word-break:break-all">https://app.keel.example/account/confirm-email?token=def456</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">If it was not you, ignore this email: the account keeps its current address.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+This is a security email about your Keel account: it is sent even if you turned off other emails.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Confirm your new email address",
+  "text": "Someone asked to use this address for a Keel account. Confirm to complete the change: the link expires in 24 hours.
+
+Confirm the new address: https://app.keel.example/account/confirm-email?token=def456
+
+If it was not you, ignore this email: the account keeps its current address.
+
+--
+
+This is a security email about your Keel account: it is sent even if you turned off other emails.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > email_change_confirm.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Confirma tu nueva dirección de correo</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">El enlace caduca en 24 horas.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Se pidió usar esta dirección para una cuenta de Keel. Confirma para completar el cambio: el enlace caduca en 24 horas.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/account/confirm-email?token=def456" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Confirmar la nueva dirección</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Si el botón no funciona, copia este enlace en el navegador:<br><a class="k-link" href="https://app.keel.example/account/confirm-email?token=def456" style="color:#2b59ff;word-break:break-all">https://app.keel.example/account/confirm-email?token=def456</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Si no fuiste tú, ignora este correo: la cuenta conserva su dirección actual.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Este es un correo de seguridad sobre tu cuenta de Keel: llega aunque hayas desactivado los demás correos.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Confirma tu nueva dirección de correo",
+  "text": "Se pidió usar esta dirección para una cuenta de Keel. Confirma para completar el cambio: el enlace caduca en 24 horas.
+
+Confirmar la nueva dirección: https://app.keel.example/account/confirm-email?token=def456
+
+Si no fuiste tú, ignora este correo: la cuenta conserva su dirección actual.
+
+--
+
+Este es un correo de seguridad sobre tu cuenta de Keel: llega aunque hayas desactivado los demás correos.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > email_change_confirm.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Conferma il tuo nuovo indirizzo email</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Il link scade tra 24 ore.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">È stato chiesto di usare questo indirizzo per un account Keel. Conferma per completare il cambio: il link scade tra 24 ore.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/account/confirm-email?token=def456" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Conferma il nuovo indirizzo</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Se il pulsante non funziona, copia questo link nel browser:<br><a class="k-link" href="https://app.keel.example/account/confirm-email?token=def456" style="color:#2b59ff;word-break:break-all">https://app.keel.example/account/confirm-email?token=def456</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Se non sei stato tu, ignora questa email: l&#39;account mantiene l&#39;indirizzo attuale.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Questa è un&#39;email di sicurezza sul tuo account Keel: arriva anche se hai disattivato le altre email.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Conferma il tuo nuovo indirizzo email",
+  "text": "È stato chiesto di usare questo indirizzo per un account Keel. Conferma per completare il cambio: il link scade tra 24 ore.
+
+Conferma il nuovo indirizzo: https://app.keel.example/account/confirm-email?token=def456
+
+Se non sei stato tu, ignora questa email: l'account mantiene l'indirizzo attuale.
+
+--
+
+Questa è un'email di sicurezza sul tuo account Keel: arriva anche se hai disattivato le altre email.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > email_change_notice.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Your Keel email address is changing</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">A change to new@northwind.demo was requested.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">A change of the sign-in address of your account to new@northwind.demo was requested. Nothing changes until the new address confirms.</p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">If it was not you, sign in and change your password, then cancel the request from your profile.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+This is a security email about your Keel account: it is sent even if you turned off other emails.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Your Keel email address is changing",
+  "text": "A change of the sign-in address of your account to new@northwind.demo was requested. Nothing changes until the new address confirms.
+
+If it was not you, sign in and change your password, then cancel the request from your profile.
+
+--
+
+This is a security email about your Keel account: it is sent even if you turned off other emails.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > email_change_notice.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>La dirección de correo de tu cuenta de Keel va a cambiar</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Se pidió el cambio a new@northwind.demo.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Se pidió cambiar la dirección de acceso de tu cuenta a new@northwind.demo. No cambia nada hasta que la nueva dirección confirme.</p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Si no fuiste tú, inicia sesión y cambia la contraseña, luego cancela la solicitud desde tu perfil.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Este es un correo de seguridad sobre tu cuenta de Keel: llega aunque hayas desactivado los demás correos.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "La dirección de correo de tu cuenta de Keel va a cambiar",
+  "text": "Se pidió cambiar la dirección de acceso de tu cuenta a new@northwind.demo. No cambia nada hasta que la nueva dirección confirme.
+
+Si no fuiste tú, inicia sesión y cambia la contraseña, luego cancela la solicitud desde tu perfil.
+
+--
+
+Este es un correo de seguridad sobre tu cuenta de Keel: llega aunque hayas desactivado los demás correos.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > email_change_notice.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>L&#39;indirizzo email del tuo account Keel sta cambiando</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">È stato chiesto il passaggio a new@northwind.demo.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">È stato chiesto di cambiare l&#39;indirizzo di accesso del tuo account in new@northwind.demo. Non cambia nulla finché il nuovo indirizzo non conferma.</p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Se non sei stato tu, accedi e cambia la password, poi annulla la richiesta dal tuo profilo.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Questa è un&#39;email di sicurezza sul tuo account Keel: arriva anche se hai disattivato le altre email.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "L'indirizzo email del tuo account Keel sta cambiando",
+  "text": "È stato chiesto di cambiare l'indirizzo di accesso del tuo account in new@northwind.demo. Non cambia nulla finché il nuovo indirizzo non conferma.
+
+Se non sei stato tu, accedi e cambia la password, poi annulla la richiesta dal tuo profilo.
+
+--
+
+Questa è un'email di sicurezza sul tuo account Keel: arriva anche se hai disattivato le altre email.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > invite.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Giulia invited you to Northwind Apparel on Keel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Join Northwind Apparel as operations.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Giulia added you to Northwind Apparel as operations.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/login" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Sign in</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">If the button does not work, copy this link into your browser:<br><a class="k-link" href="https://app.keel.example/login" style="color:#2b59ff;word-break:break-all">https://app.keel.example/login</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Sign in with this email address: we will send you a link, no password needed.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+You receive this email because you use Keel.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Unsubscribe from these emails</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Giulia invited you to Northwind Apparel on Keel",
+  "text": "Giulia added you to Northwind Apparel as operations.
+
+Sign in: https://app.keel.example/login
+
+Sign in with this email address: we will send you a link, no password needed.
+
+--
+
+You receive this email because you use Keel.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Unsubscribe from these emails: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > invite.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Giulia te invitó a Northwind Apparel en Keel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Únete a Northwind Apparel con el rol operaciones.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Giulia te añadió a Northwind Apparel con el rol operaciones.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/login" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Iniciar sesión</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Si el botón no funciona, copia este enlace en el navegador:<br><a class="k-link" href="https://app.keel.example/login" style="color:#2b59ff;word-break:break-all">https://app.keel.example/login</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Inicia sesión con esta dirección de correo: te enviamos un enlace, sin contraseña.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Recibes este correo porque usas Keel.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Dejar de recibir estos correos</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Giulia te invitó a Northwind Apparel en Keel",
+  "text": "Giulia te añadió a Northwind Apparel con el rol operaciones.
+
+Iniciar sesión: https://app.keel.example/login
+
+Inicia sesión con esta dirección de correo: te enviamos un enlace, sin contraseña.
+
+--
+
+Recibes este correo porque usas Keel.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Dejar de recibir estos correos: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > invite.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Giulia ti ha invitato in Northwind Apparel su Keel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Entra in Northwind Apparel con il ruolo operazioni.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Giulia ti ha aggiunto a Northwind Apparel con il ruolo operazioni.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/login" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Accedi</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Se il pulsante non funziona, copia questo link nel browser:<br><a class="k-link" href="https://app.keel.example/login" style="color:#2b59ff;word-break:break-all">https://app.keel.example/login</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Accedi con questo indirizzo email: ti mandiamo un link, senza password.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Ricevi questa email perché usi Keel.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Non ricevere più queste email</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Giulia ti ha invitato in Northwind Apparel su Keel",
+  "text": "Giulia ti ha aggiunto a Northwind Apparel con il ruolo operazioni.
+
+Accedi: https://app.keel.example/login
+
+Accedi con questo indirizzo email: ti mandiamo un link, senza password.
+
+--
+
+Ricevi questa email perché usi Keel.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Non ricevere più queste email: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > magic_link.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Your Keel sign-in link</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">The link expires in 15 minutes.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Use this link to sign in. It expires in 15 minutes and works once.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/api/auth/callback/email?token=abc123" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Sign in</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">If the button does not work, copy this link into your browser:<br><a class="k-link" href="https://app.keel.example/api/auth/callback/email?token=abc123" style="color:#2b59ff;word-break:break-all">https://app.keel.example/api/auth/callback/email?token=abc123</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">If you did not ask to sign in, ignore this email: nobody can enter without the link.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+This is a security email about your Keel account: it is sent even if you turned off other emails.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Your Keel sign-in link",
+  "text": "Use this link to sign in. It expires in 15 minutes and works once.
+
+Sign in: https://app.keel.example/api/auth/callback/email?token=abc123
+
+If you did not ask to sign in, ignore this email: nobody can enter without the link.
+
+--
+
+This is a security email about your Keel account: it is sent even if you turned off other emails.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > magic_link.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Tu enlace de acceso a Keel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">El enlace caduca en 15 minutos.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Usa este enlace para iniciar sesión. Caduca en 15 minutos y funciona una sola vez.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/api/auth/callback/email?token=abc123" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Iniciar sesión</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Si el botón no funciona, copia este enlace en el navegador:<br><a class="k-link" href="https://app.keel.example/api/auth/callback/email?token=abc123" style="color:#2b59ff;word-break:break-all">https://app.keel.example/api/auth/callback/email?token=abc123</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Si no pediste acceder, ignora este correo: sin el enlace nadie puede entrar.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Este es un correo de seguridad sobre tu cuenta de Keel: llega aunque hayas desactivado los demás correos.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Tu enlace de acceso a Keel",
+  "text": "Usa este enlace para iniciar sesión. Caduca en 15 minutos y funciona una sola vez.
+
+Iniciar sesión: https://app.keel.example/api/auth/callback/email?token=abc123
+
+Si no pediste acceder, ignora este correo: sin el enlace nadie puede entrar.
+
+--
+
+Este es un correo de seguridad sobre tu cuenta de Keel: llega aunque hayas desactivado los demás correos.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > magic_link.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Il tuo link di accesso a Keel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Il link scade tra 15 minuti.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Usa questo link per accedere. Scade tra 15 minuti e funziona una volta sola.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/api/auth/callback/email?token=abc123" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Accedi</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Se il pulsante non funziona, copia questo link nel browser:<br><a class="k-link" href="https://app.keel.example/api/auth/callback/email?token=abc123" style="color:#2b59ff;word-break:break-all">https://app.keel.example/api/auth/callback/email?token=abc123</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Se non hai chiesto di accedere, ignora questa email: senza il link nessuno può entrare.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Questa è un&#39;email di sicurezza sul tuo account Keel: arriva anche se hai disattivato le altre email.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Il tuo link di accesso a Keel",
+  "text": "Usa questo link per accedere. Scade tra 15 minuti e funziona una volta sola.
+
+Accedi: https://app.keel.example/api/auth/callback/email?token=abc123
+
+Se non hai chiesto di accedere, ignora questa email: senza il link nessuno può entrare.
+
+--
+
+Questa è un'email di sicurezza sul tuo account Keel: arriva anche se hai disattivato le altre email.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > mention.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Giulia mentioned you on #NW-1042</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Giulia mentioned you in a note.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Giulia mentioned you in a note on #NW-1042:</p>
+<blockquote class="k-quote" style="margin:0 0 16px;padding:8px 12px;border-left:3px solid #8391a8;color:#0b0d12;white-space:pre-wrap;font-size:14px;line-height:1.5">Can you check the address?
+The courier called.</blockquote>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/t/northwind-apparel/orders/1" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Open the note</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">If the button does not work, copy this link into your browser:<br><a class="k-link" href="https://app.keel.example/t/northwind-apparel/orders/1" style="color:#2b59ff;word-break:break-all">https://app.keel.example/t/northwind-apparel/orders/1</a></p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+You receive this email because you use Keel.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Unsubscribe from these emails</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Giulia mentioned you on #NW-1042",
+  "text": "Giulia mentioned you in a note on #NW-1042:
+
+> Can you check the address?
+> The courier called.
+
+Open the note: https://app.keel.example/t/northwind-apparel/orders/1
+
+--
+
+You receive this email because you use Keel.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Unsubscribe from these emails: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > mention.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Giulia te mencionó en #NW-1042</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Giulia te mencionó en una nota.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Giulia te mencionó en una nota de #NW-1042:</p>
+<blockquote class="k-quote" style="margin:0 0 16px;padding:8px 12px;border-left:3px solid #8391a8;color:#0b0d12;white-space:pre-wrap;font-size:14px;line-height:1.5">Can you check the address?
+The courier called.</blockquote>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/t/northwind-apparel/orders/1" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Abrir la nota</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Si el botón no funciona, copia este enlace en el navegador:<br><a class="k-link" href="https://app.keel.example/t/northwind-apparel/orders/1" style="color:#2b59ff;word-break:break-all">https://app.keel.example/t/northwind-apparel/orders/1</a></p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Recibes este correo porque usas Keel.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Dejar de recibir estos correos</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Giulia te mencionó en #NW-1042",
+  "text": "Giulia te mencionó en una nota de #NW-1042:
+
+> Can you check the address?
+> The courier called.
+
+Abrir la nota: https://app.keel.example/t/northwind-apparel/orders/1
+
+--
+
+Recibes este correo porque usas Keel.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Dejar de recibir estos correos: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > mention.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Giulia ti ha menzionato su #NW-1042</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Giulia ti ha menzionato in una nota.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Giulia ti ha menzionato in una nota su #NW-1042:</p>
+<blockquote class="k-quote" style="margin:0 0 16px;padding:8px 12px;border-left:3px solid #8391a8;color:#0b0d12;white-space:pre-wrap;font-size:14px;line-height:1.5">Can you check the address?
+The courier called.</blockquote>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/t/northwind-apparel/orders/1" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Apri la nota</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Se il pulsante non funziona, copia questo link nel browser:<br><a class="k-link" href="https://app.keel.example/t/northwind-apparel/orders/1" style="color:#2b59ff;word-break:break-all">https://app.keel.example/t/northwind-apparel/orders/1</a></p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Ricevi questa email perché usi Keel.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Non ricevere più queste email</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Giulia ti ha menzionato su #NW-1042",
+  "text": "Giulia ti ha menzionato in una nota su #NW-1042:
+
+> Can you check the address?
+> The courier called.
+
+Apri la nota: https://app.keel.example/t/northwind-apparel/orders/1
+
+--
+
+Ricevi questa email perché usi Keel.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Non ricevere più queste email: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > notification.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>4 selling variants at critical stock with nothing on order</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">4 selling variants at critical stock with nothing on order</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/t/northwind-apparel/inventory" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Open in Keel</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">If the button does not work, copy this link into your browser:<br><a class="k-link" href="https://app.keel.example/t/northwind-apparel/inventory" style="color:#2b59ff;word-break:break-all">https://app.keel.example/t/northwind-apparel/inventory</a></p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+You receive this email because you use Keel.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Unsubscribe from these emails</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "4 selling variants at critical stock with nothing on order",
+  "text": "4 selling variants at critical stock with nothing on order
+
+Open in Keel: https://app.keel.example/t/northwind-apparel/inventory
+
+--
+
+You receive this email because you use Keel.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Unsubscribe from these emails: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > notification.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>4 variantes en venta con stock crítico y ninguna orden de compra</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">4 variantes en venta con stock crítico y ninguna orden de compra</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/t/northwind-apparel/inventory" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Abrir en Keel</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Si el botón no funciona, copia este enlace en el navegador:<br><a class="k-link" href="https://app.keel.example/t/northwind-apparel/inventory" style="color:#2b59ff;word-break:break-all">https://app.keel.example/t/northwind-apparel/inventory</a></p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Recibes este correo porque usas Keel.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Dejar de recibir estos correos</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "4 variantes en venta con stock crítico y ninguna orden de compra",
+  "text": "4 variantes en venta con stock crítico y ninguna orden de compra
+
+Abrir en Keel: https://app.keel.example/t/northwind-apparel/inventory
+
+--
+
+Recibes este correo porque usas Keel.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Dejar de recibir estos correos: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > notification.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>4 varianti in vendita con stock critico e nessun ordine d&#39;acquisto</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">4 varianti in vendita con stock critico e nessun ordine d&#39;acquisto</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/t/northwind-apparel/inventory" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Apri in Keel</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Se il pulsante non funziona, copia questo link nel browser:<br><a class="k-link" href="https://app.keel.example/t/northwind-apparel/inventory" style="color:#2b59ff;word-break:break-all">https://app.keel.example/t/northwind-apparel/inventory</a></p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Ricevi questa email perché usi Keel.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Non ricevere più queste email</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "4 varianti in vendita con stock critico e nessun ordine d'acquisto",
+  "text": "4 varianti in vendita con stock critico e nessun ordine d'acquisto
+
+Apri in Keel: https://app.keel.example/t/northwind-apparel/inventory
+
+--
+
+Ricevi questa email perché usi Keel.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Non ricevere più queste email: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > supplier_po.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Purchase order PO-0042 from Northwind Apparel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Please confirm purchase order PO-0042.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Hello Tessitura Rossi, Northwind Apparel sent you purchase order PO-0042. Please confirm it or tell us about any problem from the page below.</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Expected delivery: Oct 20, 2026</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/supplier/po/tok" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">View and confirm the order</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">If the button does not work, copy this link into your browser:<br><a class="k-link" href="https://app.keel.example/supplier/po/tok" style="color:#2b59ff;word-break:break-all">https://app.keel.example/supplier/po/tok</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">The link is personal to this order.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+You receive this email because you use Keel.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Unsubscribe from these emails</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Purchase order PO-0042 from Northwind Apparel",
+  "text": "Hello Tessitura Rossi, Northwind Apparel sent you purchase order PO-0042. Please confirm it or tell us about any problem from the page below.
+
+Expected delivery: Oct 20, 2026
+
+View and confirm the order: https://app.keel.example/supplier/po/tok
+
+The link is personal to this order.
+
+--
+
+You receive this email because you use Keel.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Unsubscribe from these emails: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > supplier_po.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Orden de compra PO-0042 de Northwind Apparel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Confirma la orden de compra PO-0042.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Hola Tessitura Rossi, Northwind Apparel te envió la orden de compra PO-0042. Confírmala o avísanos de cualquier problema desde la página de abajo.</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Entrega prevista: 20 oct 2026</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/supplier/po/tok" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Ver y confirmar la orden</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Si el botón no funciona, copia este enlace en el navegador:<br><a class="k-link" href="https://app.keel.example/supplier/po/tok" style="color:#2b59ff;word-break:break-all">https://app.keel.example/supplier/po/tok</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">El enlace es personal para esta orden.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Recibes este correo porque usas Keel.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Dejar de recibir estos correos</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Orden de compra PO-0042 de Northwind Apparel",
+  "text": "Hola Tessitura Rossi, Northwind Apparel te envió la orden de compra PO-0042. Confírmala o avísanos de cualquier problema desde la página de abajo.
+
+Entrega prevista: 20 oct 2026
+
+Ver y confirmar la orden: https://app.keel.example/supplier/po/tok
+
+El enlace es personal para esta orden.
+
+--
+
+Recibes este correo porque usas Keel.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Dejar de recibir estos correos: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > supplier_po.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Ordine d&#39;acquisto PO-0042 da Northwind Apparel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Conferma l&#39;ordine d&#39;acquisto PO-0042.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Buongiorno Tessitura Rossi, Northwind Apparel ti ha inviato l&#39;ordine d&#39;acquisto PO-0042. Confermalo o segnalaci un problema dalla pagina qui sotto.</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Consegna prevista: 20 ott 2026</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/supplier/po/tok" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Vedi e conferma l&#39;ordine</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Se il pulsante non funziona, copia questo link nel browser:<br><a class="k-link" href="https://app.keel.example/supplier/po/tok" style="color:#2b59ff;word-break:break-all">https://app.keel.example/supplier/po/tok</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Il link è personale per questo ordine.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Ricevi questa email perché usi Keel.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Non ricevere più queste email</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Ordine d'acquisto PO-0042 da Northwind Apparel",
+  "text": "Buongiorno Tessitura Rossi, Northwind Apparel ti ha inviato l'ordine d'acquisto PO-0042. Confermalo o segnalaci un problema dalla pagina qui sotto.
+
+Consegna prevista: 20 ott 2026
+
+Vedi e conferma l'ordine: https://app.keel.example/supplier/po/tok
+
+Il link è personale per questo ordine.
+
+--
+
+Ricevi questa email perché usi Keel.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Non ricevere più queste email: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > test.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Keel test email</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Email sending works.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">This is a test email sent from the Keel console. If you are reading it, the sender, the domain and the provider work.</p>
+<p class="k-muted" style="margin:12px 0 0;font-size:12px;color:#5b6170">Provider: mock · sent at Oct 1, 2026, 9:30 AM (UTC)</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+You receive this email because you use Keel.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Unsubscribe from these emails</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Keel test email",
+  "text": "This is a test email sent from the Keel console. If you are reading it, the sender, the domain and the provider work.
+
+Provider: mock · sent at Oct 1, 2026, 9:30 AM (UTC)
+
+--
+
+You receive this email because you use Keel.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Unsubscribe from these emails: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > test.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Correo de prueba de Keel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">El envío de correos funciona.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Este es un correo de prueba enviado desde la consola de Keel. Si lo estás leyendo, el remitente, el dominio y el proveedor funcionan.</p>
+<p class="k-muted" style="margin:12px 0 0;font-size:12px;color:#5b6170">Proveedor: mock · enviado a las 1 oct 2026, 9:30 (UTC)</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Recibes este correo porque usas Keel.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Dejar de recibir estos correos</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Correo de prueba de Keel",
+  "text": "Este es un correo de prueba enviado desde la consola de Keel. Si lo estás leyendo, el remitente, el dominio y el proveedor funcionan.
+
+Proveedor: mock · enviado a las 1 oct 2026, 9:30 (UTC)
+
+--
+
+Recibes este correo porque usas Keel.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Dejar de recibir estos correos: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > test.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Email di prova di Keel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">L&#39;invio delle email funziona.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Questa è un&#39;email di prova inviata dalla console di Keel. Se la stai leggendo, mittente, dominio e provider funzionano.</p>
+<p class="k-muted" style="margin:12px 0 0;font-size:12px;color:#5b6170">Provider: mock · inviata alle 1 ott 2026, 09:30 (UTC)</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Ricevi questa email perché usi Keel.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Non ricevere più queste email</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Email di prova di Keel",
+  "text": "Questa è un'email di prova inviata dalla console di Keel. Se la stai leggendo, mittente, dominio e provider funzionano.
+
+Provider: mock · inviata alle 1 ott 2026, 09:30 (UTC)
+
+--
+
+Ricevi questa email perché usi Keel.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Non ricevere più queste email: https://app.keel.example/u/signed",
+}
+`;

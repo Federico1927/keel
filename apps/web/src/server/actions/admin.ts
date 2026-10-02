@@ -4,9 +4,10 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { PLAN_KEYS } from "@keel/config";
 import { eq, recordAudit, schema } from "@keel/db";
-import { applySuspensions, createTenant, issueDueInvoices, recordInvoicePayment, setTenantAddon, setTenantPlan, setTenantSuspension, voidInvoice } from "@keel/services";
+import { applySuspensions, createTenant, emailSettings, issueDueInvoices, recordInvoicePayment, removeAddressSuppression, sendTestEmail, setTenantAddon, setTenantPlan, setTenantSuspension, voidInvoice } from "@keel/services";
 import { requireSuperAdmin } from "@/server/admin";
 import { fail, ok, type ActionResult } from "@/server/action-result";
+import "@/server/email";
 
 const uuid = z.string().uuid();
 
@@ -105,4 +106,23 @@ export async function openAsSupportAction(tenantId: string): Promise<never> {
   if (!tenant) redirect("/admin/tenants");
   await recordAudit(db, { tenantId, actorUserId: user.id, actorType: "super_admin", action: "impersonation.started", entityType: "tenant", entityId: tenantId });
   redirect(`/t/${tenant.slug}`);
+}
+
+/** Console → Email: a platform test email through the same queue as every other email (audited in the service). */
+export async function sendTestEmailAction(_prev: ActionResult<{ outcome: string; email: string; mock: boolean }> | null, formData: FormData): Promise<ActionResult<{ outcome: string; email: string; mock: boolean }>> {
+  const { user, db } = await requireSuperAdmin();
+  const email = z.string().trim().email().max(254).safeParse(formData.get("to"));
+  if (!email.success) return fail("invalid_input");
+  const r = await sendTestEmail(db, { to: email.data, locale: user.locale ?? null, actorUserId: user.id });
+  revalidatePath("/admin/email");
+  return ok({ outcome: r.outcome, email: email.data, mock: emailSettings().provider === "mock" });
+}
+
+/** Lifts a platform suppression (the mailbox works again). Audited in the service. */
+export async function removeAddressSuppressionAction(id: string): Promise<ActionResult> {
+  const { user, db } = await requireSuperAdmin();
+  if (!uuid.safeParse(id).success) return fail("invalid_input");
+  if (!(await removeAddressSuppression(db, id, user.id))) return fail("not_found");
+  revalidatePath("/admin/email");
+  return ok();
 }
