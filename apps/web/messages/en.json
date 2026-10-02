@@ -48,7 +48,17 @@
       "not_editable": "This order can no longer be edited: it is fulfilled, cancelled or replaced.",
       "invalid_address": "The address is not valid: check the highlighted fields.",
       "merge_invalid": "These orders cannot be merged: different customer or payment, or already fulfilled.",
-      "nothing_to_change": "Nothing to change."
+      "nothing_to_change": "Nothing to change.",
+      "not_pending": "The payment of this order is not pending.",
+      "cancelled": "The order is cancelled.",
+      "amount_invalid": "Enter an amount greater than zero.",
+      "exceeds_outstanding": "The amount is more than what is still to collect.",
+      "date_invalid": "The date cannot be in the future.",
+      "replaced": "The order was replaced by an edit: use the new order.",
+      "not_paid": "Only paid orders can be refunded.",
+      "exceeds_refundable": "The refund is more than what remains refundable on the order.",
+      "line_invalid": "Check the units to refund: more than what is left on a line.",
+      "location_required": "Choose where the units go back in stock."
     },
     "edit": "Edit"
   },
@@ -738,7 +748,11 @@
       "tag": "Tag",
       "missing_cost": "Products without cost",
       "product": "Product: {name}",
-      "variant": "Variant: {name}"
+      "variant": "Variant: {name}",
+      "country": "Country: {country}",
+      "fee_actual": "Actual payment fee (from payouts)",
+      "fee_estimated": "Estimated payment fee",
+      "payout": "In a payout"
     },
     "sort": {
       "placed_desc": "Newest first",
@@ -860,7 +874,13 @@
         "order_cancelled": "Order cancelled",
         "order_replaced": "Order replaced",
         "order_fulfilled": "Fulfilled on the store"
-      }
+      },
+      "payment": "{amount} by {method}",
+      "payment_outstanding": "{amount} still due",
+      "refund": "{amount} back to the customer",
+      "refund_capped": "{amount} asked, capped by the store",
+      "restocked": "{n} units back in stock",
+      "queued_platform": "Queued for the store"
     },
     "backorders": {
       "title_open": "Waiting for stock",
@@ -918,7 +938,9 @@
     "replaced": "Replaced by a new order",
     "discount_applied": "Discount applied",
     "backorder_created": "Waiting for stock",
-    "backorder_closed": "Stock wait closed"
+    "backorder_closed": "Stock wait closed",
+    "payment_recorded": "Payment recorded",
+    "refund_issued": "Refund issued"
   },
   "shipments": {
     "title": "Shipments",
@@ -1037,7 +1059,8 @@
       "return_restock": "Return restocked",
       "adjustment": "Adjustment",
       "sync": "Sync",
-      "sale": "Sale"
+      "sale": "Sale",
+      "refund_restock": "Refund restocked"
     },
     "view_orders": "View orders",
     "grid": {
@@ -4957,7 +4980,8 @@
       "incomplete": "incomplete",
       "estimated": "estimated",
       "fee_source": {
-        "estimated": "estimated"
+        "estimated": "estimated",
+        "actual": "actual"
       },
       "lines": {
         "gross": "Gross sales",
@@ -5139,7 +5163,181 @@
       "variant_prices": "Variant prices",
       "product_tags": "Product tags",
       "order_fulfillment_hold": "Fulfillment hold",
-      "order_fulfillment_release": "Fulfillment hold release"
+      "order_fulfillment_release": "Fulfillment hold release",
+      "order_mark_paid": "Mark order paid",
+      "order_refund": "Order refund"
     }
+  },
+  "order_payments": {
+    "mark_paid": "Mark as paid",
+    "payment_title": "Record a payment on {order}",
+    "payment_description": "Money received outside checkout (bank transfer, cash, cheque…). Still to collect: {amount}. The store is updated too.",
+    "amount": "Amount ({currency})",
+    "date": "Date received",
+    "method": "Method",
+    "note": "Note",
+    "note_placeholder": "Bank reference, receipt number…",
+    "preview_paid": "The order will be marked paid.",
+    "preview_partial": "Partial payment: {rest} will still be due and the order stays pending.",
+    "save_payment": "Record payment",
+    "refund": "Refund",
+    "refund_title": "Refund on {order}",
+    "refund_description": "Money back to the customer on the original payment, written to the store first. Still refundable: {amount}.",
+    "lines": "Items (optional)",
+    "line_qty": "Units of {item} to refund",
+    "lines_hint": "Picking units fills in their price less the order discount; the amount stays editable.",
+    "restock": "Put the units back in stock",
+    "location": "Location",
+    "reason": "Reason",
+    "reason_placeholder": "Goodwill, price adjustment, damaged item…",
+    "notify": "Email the customer",
+    "too_much": "More than what is left to refund ({amount}).",
+    "refund_preview": "{amount} back to the customer; {left} will remain refundable.",
+    "refund_save": "Refund",
+    "card_title": "Payments and refunds",
+    "kind": {
+      "manual_payment": "Manual payment",
+      "refund": "Refund"
+    },
+    "system": "System",
+    "accepted_of": "accepted by the store out of {amount} asked",
+    "processor": "Payment processor",
+    "balance_type": {
+      "charge": "Charge",
+      "refund": "Refund",
+      "adjustment": "Adjustment",
+      "dispute": "Dispute",
+      "reserve": "Reserve",
+      "other": "Other"
+    },
+    "fee": "fee {amount}",
+    "payout_of": "Payout of {date}",
+    "payout_status": {
+      "scheduled": "scheduled",
+      "in_transit": "in transit",
+      "paid": "paid",
+      "failed": "failed",
+      "canceled": "canceled"
+    },
+    "not_paid_out": "not paid out yet"
+  },
+  "analytics_money": {
+    "payouts_link": "Payouts",
+    "tabs": {
+      "payments": "Payment methods",
+      "tax": "Tax"
+    },
+    "export": "Export CSV",
+    "fees": {
+      "actual": "Payment fees from payouts: {amount} on {n} orders",
+      "estimated": "estimated from your rates: {amount} on {n} orders",
+      "payouts": "See payouts"
+    },
+    "methods": {
+      "empty": "No orders in this period.",
+      "title": "Payment methods",
+      "description": "Orders, revenue, cancellations, returns and fees for every payment method, side by side.",
+      "method": "Method",
+      "placed": "Placed",
+      "orders": "Sales",
+      "net_revenue": "Net revenue",
+      "share": "Share",
+      "aov": "AOV",
+      "cancel_rate": "Cancelled",
+      "return_rate": "Returned",
+      "fees": "Fees",
+      "fee_rate": "Fee rate",
+      "partly_estimated": "{n} estimated",
+      "estimated": "estimated",
+      "actual": "from payouts",
+      "footnote": "Fees from payouts: {actual}. Estimated from your rates (Settings → fees): {estimated}. Cancel rate = cancelled / placed; return rate = returned / (sales + returned), as on the dashboard."
+    },
+    "tax": {
+      "empty": "No sales in this period.",
+      "title": "Tax report",
+      "description": "Tax on the sales of the period by country and rate. The total is the P/L tax line.",
+      "country": "Country",
+      "rate": "Rate",
+      "orders": "Orders",
+      "gross": "Gross sales",
+      "taxable": "Taxable",
+      "tax": "Tax",
+      "refunded_tax": "Tax on refunds",
+      "net_tax": "Net of refunds",
+      "total": "Total",
+      "matches": "Matches the P/L tax line: {amount}.",
+      "mismatch": "Does not match the P/L tax line ({amount}): data changed while loading, reload the page.",
+      "footnote": "Rate = the order's effective rate (tax reported by the store over the goods after discounts, rounded to 0.1%), or your rate for the country when the store reported none. Shipping country; your country when unknown."
+    }
+  },
+  "payouts": {
+    "sync": "Sync payouts",
+    "synced": "{payouts} payouts and {transactions} transactions read.",
+    "sync_paused": "{payouts} payouts and {transactions} transactions read; the rest continues in the background.",
+    "back": "Analytics",
+    "back_list": "Payouts",
+    "title": "Payouts",
+    "description": "Deposits of the payment processor to your bank: each one with its charges, refunds, adjustments, fees and net. The P/L takes the actual fee of an order from here.",
+    "totals": {
+      "gross": "Charges",
+      "refunds": "Refunds",
+      "adjustments": "Adjustments",
+      "fees": "Fees",
+      "net": "Net deposited",
+      "count": "{n} payouts"
+    },
+    "filters": {
+      "status": "Status",
+      "all_statuses": "All statuses",
+      "from": "From",
+      "to": "To",
+      "apply": "Filter",
+      "clear": "Clear"
+    },
+    "status": {
+      "scheduled": "Scheduled",
+      "in_transit": "In transit",
+      "paid": "Paid",
+      "failed": "Failed",
+      "canceled": "Canceled"
+    },
+    "empty": "No payouts yet",
+    "empty_filtered": "No payouts match these filters",
+    "empty_hint": "Payouts arrive with the daily sync once the store uses the platform's payment processor (Shopify Payments). Without it, fees stay estimates.",
+    "columns": {
+      "date": "Date",
+      "status": "Status",
+      "transactions": "Transactions",
+      "gross": "Charges",
+      "refunds": "Refunds",
+      "adjustments": "Adjustments",
+      "fees": "Fees",
+      "net": "Net",
+      "when": "When",
+      "type": "Type",
+      "order": "Order",
+      "amount": "Amount",
+      "fee": "Fee"
+    },
+    "summary": "{n} payouts",
+    "last_sync": "Last sync: {at}",
+    "last_sync_error": "Last sync failed: {error}",
+    "detail_eyebrow": "Payout",
+    "detail_title": "Payout of {date}",
+    "detail_description": "Processor reference {id}. Every charge, refund and fee in the deposit, linked to its order.",
+    "orders_charged": "{n} orders charged",
+    "orders_refunded": "{n} orders refunded",
+    "mismatch": "The {n} imported transactions add up to {net}, not to the payout's net: some are still missing. Sync again.",
+    "unmatched": "{n} transactions refer to orders Keel has not imported yet.",
+    "transactions_title": "Transactions ({n})",
+    "type": {
+      "charge": "Charge",
+      "refund": "Refund",
+      "adjustment": "Adjustment",
+      "dispute": "Dispute",
+      "reserve": "Reserve",
+      "other": "Other"
+    },
+    "total": "Total"
   }
 }

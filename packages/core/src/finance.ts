@@ -1,6 +1,7 @@
 import { SALE_STATUSES, type OrderStatus } from "./domain";
 import { pct, safeDiv } from "./money";
 import type { PaymentMethod } from "./tenant-settings";
+import { resolvePaymentFee, type PaymentFeeSource } from "./payments";
 
 /** Whether an order counts as a sale for revenue, profit and attribution (CLAUDE.md §7.5). */
 export function countsAsSale(status: OrderStatus | string): boolean {
@@ -27,6 +28,8 @@ export interface EconomicsInput {
   paymentMethod: PaymentMethod | string;
   paymentFeeBps: number;
   paymentFeeFixedMinor: number;
+  /** Fee the gateway actually charged (balance transactions of a payout); null/undefined = not known, the estimate applies. */
+  actualPaymentFeeMinor?: number | null;
   shippingCostMinor: number;
 }
 export interface OrderEconomics {
@@ -38,6 +41,8 @@ export interface OrderEconomics {
   cogsComplete: boolean;
   shippingCostMinor: number;
   paymentFeeMinor: number;
+  /** Whether the fee is the gateway's actual fee or the tenant's estimate per method. */
+  paymentFeeSource: PaymentFeeSource;
   refundedMinor: number;
   marginMinor: number;
   marginRate: number | null;
@@ -68,7 +73,8 @@ export function orderEconomics(i: EconomicsInput): OrderEconomics {
     cogs += l.quantity * l.unitCostMinor;
   }
   cogs = Math.round(cogs * keep);
-  const paymentFee = inScope ? pct(gross, i.paymentFeeBps) + i.paymentFeeFixedMinor : 0;
+  const fee = resolvePaymentFee(pct(gross, i.paymentFeeBps) + i.paymentFeeFixedMinor, i.actualPaymentFeeMinor);
+  const paymentFee = inScope ? fee.feeMinor : 0;
   const shippingCost = inScope ? i.shippingCostMinor : 0;
   const margin = inScope ? netRevenue - cogs - shippingCost - paymentFee : 0;
   return {
@@ -80,6 +86,7 @@ export function orderEconomics(i: EconomicsInput): OrderEconomics {
     cogsComplete,
     shippingCostMinor: shippingCost,
     paymentFeeMinor: paymentFee,
+    paymentFeeSource: fee.source,
     refundedMinor: inScope ? refunded : 0,
     marginMinor: margin,
     marginRate: inScope ? safeDiv(margin, netRevenue) : null,
@@ -99,6 +106,11 @@ export interface PnlTotals {
   grossMarginMinor: number;
   shippingCostMinor: number;
   paymentFeeMinor: number;
+  /** Fees taken from payouts (actual) and from the tenant's rates (estimate), and the sale orders behind each. */
+  paymentFeeActualMinor: number;
+  paymentFeeEstimatedMinor: number;
+  paymentFeeActualOrders: number;
+  paymentFeeEstimatedOrders: number;
   /** Return labels and handling of the returns received in the period, net of deductions charged to customers. */
   returnCostsMinor: number;
   contributionMinor: number;
@@ -111,7 +123,7 @@ export interface PnlTotals {
 }
 
 export function sumEconomics(rows: readonly OrderEconomics[], adSpendMinor: number, fixedCostsMinor: number, returnCostsMinor = 0): PnlTotals {
-  const t: PnlTotals = { orders: 0, grossRevenueMinor: 0, taxMinor: 0, netRevenueMinor: 0, refundedMinor: 0, cogsMinor: 0, cogsIncompleteOrders: 0, cogsIncompleteRevenueMinor: 0, grossMarginMinor: 0, shippingCostMinor: 0, paymentFeeMinor: 0, returnCostsMinor, contributionMinor: 0, adSpendMinor, fixedCostsMinor, operatingProfitMinor: 0, aovMinor: null, grossMarginRate: null, contributionRate: null };
+  const t: PnlTotals = { orders: 0, grossRevenueMinor: 0, taxMinor: 0, netRevenueMinor: 0, refundedMinor: 0, cogsMinor: 0, cogsIncompleteOrders: 0, cogsIncompleteRevenueMinor: 0, grossMarginMinor: 0, shippingCostMinor: 0, paymentFeeMinor: 0, paymentFeeActualMinor: 0, paymentFeeEstimatedMinor: 0, paymentFeeActualOrders: 0, paymentFeeEstimatedOrders: 0, returnCostsMinor, contributionMinor: 0, adSpendMinor, fixedCostsMinor, operatingProfitMinor: 0, aovMinor: null, grossMarginRate: null, contributionRate: null };
   for (const r of rows) {
     if (!r.inScope) continue;
     t.orders++;
@@ -126,6 +138,13 @@ export function sumEconomics(rows: readonly OrderEconomics[], adSpendMinor: numb
     }
     t.shippingCostMinor += r.shippingCostMinor;
     t.paymentFeeMinor += r.paymentFeeMinor;
+    if (r.paymentFeeSource === "actual") {
+      t.paymentFeeActualMinor += r.paymentFeeMinor;
+      t.paymentFeeActualOrders++;
+    } else {
+      t.paymentFeeEstimatedMinor += r.paymentFeeMinor;
+      t.paymentFeeEstimatedOrders++;
+    }
   }
   t.grossMarginMinor = t.netRevenueMinor - t.cogsMinor;
   t.contributionMinor = t.grossMarginMinor - t.shippingCostMinor - t.paymentFeeMinor - t.returnCostsMinor;

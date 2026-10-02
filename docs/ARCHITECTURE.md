@@ -49,7 +49,7 @@ Rules the graph enforces:
 
 ## Data model
 
-56 tables, grouped. All domain tables carry `tenant_id`, `created_at`, `updated_at`.
+59 tables, grouped. All domain tables carry `tenant_id`, `created_at`, `updated_at`.
 
 | Group | Tables | Notes |
 | --- | --- | --- |
@@ -57,6 +57,7 @@ Rules the graph enforces:
 | Integrations | `integrations`, `integration_health`, `sync_runs`, `webhook_events`, `platform_writes` | One row per provider per tenant with `mode` (`mock`/`live`), status, encrypted credentials. `webhook_events` is unique on (source, topic, external id, source updated at): the idempotency key. `sync_runs` holds the cursor so a sync resumes, and the run summary (scanned, changed, conflicts, errors, duration). `platform_writes` is the outbound outbox: one row per write to Shopify, Meta or Google, unique on its idempotency key. |
 | Catalog and stock | `products`, `product_variants`, `locations`, `inventory_levels`, `inventory_movements`, `inventory_drift`, `cost_settings` | Variants carry `option_values` as a JSON map, no hard-coded size or colour, and `cost_minor` with `cost_source` (`platform`, `manual`, `import`, `po_receipt`) and `cost_updated_at`. Movements are the ledger behind stock changes. `inventory_levels.synced_at` is when Keel last read the level from the platform. `inventory_drift` logs stock changes no Keel event explains, clamped negatives and levels no longer reported (deduplicated). |
 | Customers and orders | `customers`, `orders`, `order_lines`, `order_discounts`, `order_attribution`, `order_events`, `order_notes` | `orders.status` is the canonical state written only by `recomputeOrderStatus`. `order_events` is the timeline with author and field diff. `search_blob` is a generated column with a trigram index. |
+| Payments | `order_transactions`, `payouts`, `balance_transactions` | `order_transactions` is the ledger of money Keel moved after checkout (manual payments, refunds issued from the order page, with author and platform refund id); the order row keeps the totals. `payouts` / `balance_transactions` are the processor's deposits and movements (actual fee per charge), linked to orders by external id. |
 | Shipments | `shipments`, `shipment_events`, `shipment_source_states`, `shipment_status_mappings` | One row per source per shipment; the resolver picks the visible status. |
 | Rules | `state_rules` | Per tenant, ordered by priority: conditions on tags, payment method, financial and fulfillment status → canonical status. |
 | Returns and discounts | `return_reasons`, `return_requests`, `return_lines`, `discounts`, `discount_pools` | Return reasons and workflow outcomes are tenant data. Pools generate unique codes in bulk. |
@@ -74,9 +75,13 @@ Rules the graph enforces:
 
 ### Economics
 
-`orderEconomics` in `packages/core/src/finance.ts` is the single source for revenue net of tax (rate by tenant country), product cost (the variant cost snapshotted on each order line at import; lines sold without a cost are filled when the variant gets one), shipping, payment fees (basis points per method), returns and ad spend. The sale scope used everywhere (dashboard, P/L, campaigns, discounts) is `confirmed, fulfilling, shipped, delivered, returned_partial`. Money is stored in integer minor units; rates in basis points.
+`orderEconomics` in `packages/core/src/finance.ts` is the single source for revenue net of tax (rate by tenant country), product cost (the variant cost snapshotted on each order line at import; lines sold without a cost are filled when the variant gets one), shipping, payment fees (the processor's actual fee from the order's balance transactions once a charge was imported, else basis points + fixed per method, with `paymentFeeSource` on every row and actual/estimated totals in the P/L), returns and ad spend. The sale scope used everywhere (dashboard, P/L, campaigns, discounts) is `confirmed, fulfilling, shipped, delivered, returned_partial`. Money is stored in integer minor units; rates in basis points.
 
 Views built on it reconcile by construction (`packages/core/src/pnl-periods.ts`): the per-order P/L table sums to the period P/L with the period-only items (carrier invoice vs estimates, return costs by receipt date, ads, fixed costs) on their own reconciliation lines; the P/L by day/week/month/quarter/year (UTC buckets, partial ones flagged) allocates every period amount with an exact largest-remainder split; the product table splits each campaign's spend over its linked products and keeps unlinked spend on an "unattributed" row, so the product spend adds up to the period ad spend. Services in `packages/services/src/analytics/pnl-depth.ts`; CSV at `/t/[tenant]/analytics/export/{orders|products|utm|pnl}`.
+
+### Payments after checkout (issue #27)
+
+`packages/services/src/payments` (rules in `packages/core/src/payments.ts`), for every payment method alike. A manual payment (`recordManualPayment`) on an order with payment `pending` writes an `order_transactions` row, sets `paid` when the payments cover the total, writes `payment_recorded` and enqueues `order.mark_paid` (outbox). A refund (`refundOrder`) is checked by `validateRefund` (amount ≤ total − refunded, units not yet refunded), written platform first through `order.refund` → `CommercePlatform.refundOrder` (synchronous: Keel records the amount the platform accepted), then updates `refunded_minor` and the payment status, restocks the chosen units (`refund_restock` movement, the line's current quantity goes down) and writes `refund_issued`. `refundReturn` delegates to `refundOrder` in both adapters. The tax report (`taxReportForPeriod`) and the payment-method breakdown (`paymentMethodReport`) are built from `orderEconomicsForPeriod`, so they add up to the P/L.
 
 ### Order editing and lineage
 
@@ -123,11 +128,12 @@ Failed events are retried by the `retry` tick every 10 minutes up to a maximum n
 - Stock read from the platform (sync, `inventory_levels/update`, the refresh after `orders/*`, `fulfillments/*` and `refunds/create` webhooks) goes through `applyInventoryLevels`. Negative values are stored as zero and logged. A level with a Keel `inventory.set` write not yet confirmed is not overwritten and counts as a conflict. When the change since the last read is not explained by sales and cancellations of the variant, it is logged in `inventory_drift`.
 - After an order, fulfilment or refund webhook, the stock of the order's variants is re-read in the same job (best effort, in a savepoint: a failure is recorded on the `shopify:inventory` health source and never fails the webhook).
 - In the product phase, the platform unit cost fills a variant only when Keel has none or the current one came from the platform; manual, imported and purchase-order costs are never overwritten (`shouldTakePlatformCost`).
+- `runPayoutsSync` imports the processor's payouts, then the balance transactions of each payout, with the same `sync_runs` cursor, budget and resume; a delta restarts a week before the latest payout (scheduled and in-transit payouts change). The mock builds payouts with the same deterministic generator the seed uses (`buildMockPayouts`).
 - `runAdsSync(provider, window)` pulls campaigns and daily insights in resumable date windows; recent days are re-pulled because platforms restate them.
 - Each run writes `integration_health` (ok/error, last error text, rows written, freshness) which the Integrations page shows together with "Test connection" and "Resync", and the run table with scanned, changed, conflicts, errors and duration per run.
 - Retention: a daily tick deletes rows older than the platform-wide window (`KEEL_RETENTION_DAYS`, default 14, `platformRetentionDays()` in `packages/config`): processed webhook events, succeeded or superseded writes, synchronous write records, successful runs (and failed runs already followed by a success), drift not seen since. Failed webhooks and failed asynchronous writes stay until they are resolved. pg-boss queues get the same window as `deleteAfterSeconds`.
 
-Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00 (orders and the complete catalog run), billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40, task rules and overdue reminders every 10 min, system notifications (sync delay, critical stock without PO, late to ship) hourly, digest emails daily at 07:05, platform-write retries every minute, retention at 04:10, backorder safety re-check every 10 min.
+Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00 (orders and the complete catalog run), billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40, task rules and overdue reminders every 10 min, system notifications (sync delay, critical stock without PO, late to ship) hourly, digest emails daily at 07:05, platform-write retries every minute, retention at 04:10, backorder safety re-check every 10 min, processor payouts daily at 05:20 (queue `sync.payouts`).
 
 ### Outbound writes (outbox)
 
@@ -170,10 +176,11 @@ sequenceDiagram
   - COD tag writes and the COD cancellation: platform first by design, a refused write changes nothing locally;
   - order editing in the core (`packages/services/src/orders/edit.ts`, used by the order page and by the COD add-on): contact and address edits, the replacement order (keyed `order:replace:<order ids>`) and the cancellation of the replaced orders, and discounts applied to an order;
   - the return write-back steps (request, approve or decline, restock, refund, voucher, exchange order or invoice, close, tags), keyed per return and step;
-  - discount pools, where the form shows how many codes the platform accepted.
+  - discount pools, where the form shows how many codes the platform accepted;
+  - order refunds from the order page (`order.refund`, keyed per dialog request), where Keel records the amount the platform accepted.
 
   With a key, the same key returns the stored result (dates revived) instead of writing twice, and a failed attempt is retried on the same row. When the caller's transaction rolls back, the record goes with it, and the error is shown to the user at once.
-- **Asynchronous writes** (outbox, retried): variant price, variant cost (when the tenant enabled cost write-back; manual edits and CSV imports), product status, stock level (purchase-order receipt with "push to platform", transfers between locations), order cancellation, fulfillment hold and release (backorders), single discount code (the external id is filled in when the write succeeds), Meta campaign pause and resume. Google is refused up front because it is read-only in the MVP.
+- **Asynchronous writes** (outbox, retried): variant price, variant cost (when the tenant enabled cost write-back; manual edits and CSV imports), product status, stock level (purchase-order receipt with "push to platform", transfers between locations), order cancellation, fulfillment hold and release (backorders), manual payment (`order.mark_paid`, keyed per payment), single discount code (the external id is filled in when the write succeeds), Meta campaign pause and resume. Google is refused up front because it is read-only in the MVP.
 
 ### Adding a platform write
 

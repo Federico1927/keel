@@ -1,5 +1,5 @@
-import { and, eq, schema } from "@keel/db";
-import { AnthropicLlmProvider, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type OutboundMessage, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
+import { and, eq, gte, inArray, isNotNull, schema, sql } from "@keel/db";
+import { AnthropicLlmProvider, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, PROCESSOR_GATEWAYS, ShopifyCommercePlatform, type MockPaymentOrder, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type OutboundMessage, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 
 export interface PlatformTenant {
@@ -51,6 +51,7 @@ export async function getCommercePlatformFor(ctx: ServiceContext, tenant: Platfo
   const numbers = await ctx.tx.select({ n: schema.orders.orderNumber }).from(schema.orders).where(eq(schema.orders.tenantId, tenant.id)).orderBy(schema.orders.orderNumber);
   const levels = await ctx.tx.select({ inv: schema.productVariants.inventoryItemExternalId, loc: schema.locations.externalId, available: schema.inventoryLevels.available }).from(schema.inventoryLevels).innerJoin(schema.productVariants, eq(schema.productVariants.id, schema.inventoryLevels.variantId)).innerJoin(schema.locations, eq(schema.locations.id, schema.inventoryLevels.locationId)).where(eq(schema.inventoryLevels.tenantId, tenant.id));
   const platform = new MockCommercePlatform({
+    paymentOrders: await mockPaymentOrders(ctx, tenant.id),
     currency: tenant.currency,
     country: tenant.country,
     orderNumberPrefix: tenant.orderNumberPrefix,
@@ -65,6 +66,18 @@ export async function getCommercePlatformFor(ctx: ServiceContext, tenant: Platfo
   });
   commerceMocks.set(tenant.id, platform);
   return platform;
+}
+
+/** Window of orders the simulated processor pays out (the seed writes the same payouts for it). */
+export const MOCK_PAYOUT_DAYS = 100;
+
+/** The tenant's recent orders paid through the processor, as the mock payouts are built from them. */
+async function mockPaymentOrders(ctx: ServiceContext, tenantId: string): Promise<MockPaymentOrder[]> {
+  const rows = await ctx.tx
+    .select({ externalId: schema.orders.externalId, placedAt: schema.orders.placedAt, totalMinor: schema.orders.totalMinor, refundedMinor: schema.orders.refundedMinor, paymentStatus: schema.orders.paymentStatus, cancelledAt: schema.orders.cancelledAt, gateways: schema.orders.paymentGateways, refundedAt: sql<string | null>`(select min(t.occurred_at) from order_transactions t where t.order_id = ${schema.orders.id} and t.kind = 'refund')` })
+    .from(schema.orders)
+    .where(and(eq(schema.orders.tenantId, tenantId), isNotNull(schema.orders.externalId), gte(schema.orders.placedAt, new Date(Date.now() - MOCK_PAYOUT_DAYS * 864e5)), inArray(schema.orders.paymentStatus, ["paid", "partially_refunded", "refunded"]), sql`${schema.orders.paymentGateways} && ${sql.raw(`array[${PROCESSOR_GATEWAYS.map((g) => `'${g}'`).join(",")}]::text[]`)}`));
+  return rows.map((o) => ({ externalId: o.externalId!, placedAt: o.placedAt, totalMinor: o.totalMinor, refundedMinor: o.paymentStatus === "refunded" ? o.totalMinor : o.refundedMinor, refundedAt: o.cancelledAt ?? (o.refundedAt ? new Date(o.refundedAt) : null), gateways: o.gateways }));
 }
 
 export async function getAdsPlatformFor(ctx: ServiceContext, tenant: PlatformTenant, provider: "meta" | "google"): Promise<AdsPlatform> {

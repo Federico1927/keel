@@ -4,6 +4,7 @@ export const QUEUES = {
   syncOrders: "sync.orders",
   syncCatalog: "sync.catalog",
   syncAds: "sync.ads",
+  syncPayouts: "sync.payouts",
   platformWrite: "platform.write",
   tick: "scheduler.tick",
   listExport: "list.export",
@@ -29,6 +30,10 @@ export interface PlatformWriteJob {
   tenantId: string;
   writeId: string;
 }
+/** Payouts and balance transactions of the payment processor (actual fees), resumable like the other syncs. */
+export interface SyncPayoutsJob {
+  tenantId: string;
+}
 export interface SyncAdsJob {
   tenantId: string;
   provider: "meta" | "google";
@@ -41,8 +46,8 @@ export interface ListExportJob {
   exportId: string;
 }
 export interface TickJob {
-  /** delta (every 15 min) | ads (daily) | reconcile (nightly) | retry (every 10 min) | billing (daily) | writes (every minute: outbox retries) | retention (daily) | backorders (every 10 min: safety re-check) */
-  kind: "delta" | "ads" | "reconcile" | "retry" | "billing" | "cod" | "alerts" | "returns" | "crm" | "segments" | "tracking" | "tasks" | "notify" | "digest" | "writes" | "retention" | "backorders";
+  /** delta (every 15 min) | ads (daily) | reconcile (nightly) | retry (every 10 min) | billing (daily) | writes (every minute: outbox retries) | retention (daily) | backorders (every 10 min: safety re-check) | payouts (daily: processor payouts and actual fees) */
+  kind: "delta" | "ads" | "reconcile" | "retry" | "billing" | "cod" | "alerts" | "returns" | "crm" | "segments" | "tracking" | "tasks" | "notify" | "digest" | "writes" | "retention" | "backorders" | "payouts";
 }
 
 /** pg-boss keeps finished jobs for the same platform retention window as webhooks and writes. */

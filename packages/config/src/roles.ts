@@ -58,6 +58,8 @@ export const ACTIONS = [
   "approve_return",
   "create_discount",
   "edit_order",
+  "record_payment",
+  "refund_order",
 ] as const;
 export type ActionKey = (typeof ACTIONS)[number];
 
@@ -188,6 +190,10 @@ const ACTION_PAGE: Record<ActionKey, PageKey> = {
   create_discount: "discounts",
   /** Contact, address, lines, merge and discount on an open order (core, any payment method). */
   edit_order: "orders",
+  /** Manual payment (bank transfer received, cash…) on an order with payment pending. */
+  record_payment: "orders",
+  /** Money refund from the order page (goodwill, price adjustment, lines with restock). */
+  refund_order: "orders",
 };
 
 /** Actions restricted to owner/admin regardless of page level. */

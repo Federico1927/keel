@@ -44,15 +44,28 @@ const BACKORDER_REASONS = ["stock_available", "wait_cancelled", "order_cancelled
 /** Order-edit details carried in the event metadata: platform write, lineage, money to settle. */
 function EditMeta({ e, money }: { e: TimelineEvent; money: (minor: number) => string }) {
   const t = useTranslations("order_detail.timeline_meta");
+  const tp = useTranslations("payment_methods");
   const m = e.metadata;
   const parts: string[] = [];
+  // payments (issue #27): manual payment and refund
+  if (e.type === "payment_recorded" && typeof m.amountMinor === "number") {
+    parts.push(t("payment", { amount: money(m.amountMinor), method: typeof m.method === "string" && tp.has(m.method) ? tp(m.method) : String(m.method ?? "") }));
+    if (typeof m.outstandingMinor === "number" && m.outstandingMinor > 0) parts.push(t("payment_outstanding", { amount: money(m.outstandingMinor) }));
+  }
+  if (e.type === "refund_issued" && typeof m.amountMinor === "number") {
+    parts.push(t("refund", { amount: money(m.amountMinor) }));
+    if (typeof m.requestedMinor === "number" && m.requestedMinor !== m.amountMinor) parts.push(t("refund_capped", { amount: money(m.requestedMinor) }));
+    if (Array.isArray(m.lines) && m.lines.length) parts.push((m.lines as { quantity: number; title: string; sku: string | null }[]).map((l) => `${l.quantity}× ${l.sku ?? l.title}`).join(", "));
+    if (typeof m.restocked === "number" && m.restocked > 0) parts.push(t("restocked", { n: m.restocked }));
+  }
+  if (m.platform === "outbox") parts.push(t("queued_platform"));
   if (e.type === "replaces" && Array.isArray(m.replaces)) parts.push(t("replaces", { orders: (m.replaces as { name: string }[]).map((x) => x.name).join(", ") }));
   if (e.type === "replaced" && typeof m.replacedBy === "string") parts.push(t("replaced_by", { order: m.replacedBy }) + (m.cancelledOnPlatform === false ? ` ${t("not_cancelled")}` : ""));
   if (e.type === "discount_applied" && typeof m.code === "string" && typeof m.amountMinor === "number") parts.push(t("discount", { code: m.code, amount: money(m.amountMinor) }));
   const balance = typeof m.balanceMinor === "number" ? m.balanceMinor : typeof m.refundDueMinor === "number" ? -m.refundDueMinor : 0;
   if (balance > 0) parts.push(t("balance_due", { amount: money(balance) }));
   if (balance < 0) parts.push(t("balance_refund", { amount: money(-balance) }));
-  if (typeof m.platform === "string" && m.platform) parts.push(t("written_to", { platform: m.platform }));
+  if (typeof m.platform === "string" && m.platform && m.platform !== "outbox") parts.push(t("written_to", { platform: m.platform }));
   // backorders: what waits for which PO, and why a wait ended
   if (e.type === "backorder_created" && Array.isArray(m.lines)) for (const l of m.lines as { quantity: number; sku: string | null; title: string; poNumber: string | null; expectedAt: string | null }[]) parts.push(l.poNumber ? t("backorder_line_po", { qty: l.quantity, item: l.sku ?? l.title, po: l.poNumber, eta: l.expectedAt ?? "—" }) : t("backorder_line", { qty: l.quantity, item: l.sku ?? l.title }));
   if ((e.type === "hold_released" || e.type === "backorder_closed") && typeof m.reason === "string" && BACKORDER_REASONS.includes(m.reason)) parts.push(t(`backorder_reason.${m.reason}`));

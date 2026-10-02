@@ -48,7 +48,17 @@
       "not_editable": "Este pedido ya no se puede editar: está preparado, cancelado o sustituido.",
       "invalid_address": "La dirección no es válida: revisa los campos marcados.",
       "merge_invalid": "Estos pedidos no se pueden fusionar: cliente o pago distintos, o ya preparados.",
-      "nothing_to_change": "Nada que cambiar."
+      "nothing_to_change": "Nada que cambiar.",
+      "not_pending": "El pago de este pedido no está pendiente.",
+      "cancelled": "El pedido está cancelado.",
+      "amount_invalid": "Introduce un importe mayor que cero.",
+      "exceeds_outstanding": "El importe supera lo pendiente de cobro.",
+      "date_invalid": "La fecha no puede estar en el futuro.",
+      "replaced": "El pedido fue sustituido por una edición: usa el pedido nuevo.",
+      "not_paid": "Solo se pueden reembolsar pedidos pagados.",
+      "exceeds_refundable": "El reembolso supera lo que queda reembolsable en el pedido.",
+      "line_invalid": "Revisa las unidades a reembolsar: más de las que quedan en una línea.",
+      "location_required": "Elige dónde reponer las unidades."
     },
     "edit": "Editar"
   },
@@ -738,7 +748,11 @@
       "tag": "Etiqueta",
       "missing_cost": "Productos sin coste",
       "product": "Producto: {name}",
-      "variant": "Variante: {name}"
+      "variant": "Variante: {name}",
+      "country": "País: {country}",
+      "fee_actual": "Comisión real (de los pagos)",
+      "fee_estimated": "Comisión estimada",
+      "payout": "En un pago"
     },
     "sort": {
       "placed_desc": "Más recientes",
@@ -860,7 +874,13 @@
         "order_cancelled": "Pedido cancelado",
         "order_replaced": "Pedido sustituido",
         "order_fulfilled": "Preparado en la tienda"
-      }
+      },
+      "payment": "{amount} con {method}",
+      "payment_outstanding": "pendiente {amount}",
+      "refund": "{amount} devueltos al cliente",
+      "refund_capped": "{amount} solicitados, limitados por la tienda",
+      "restocked": "{n} unidades repuestas",
+      "queued_platform": "En cola para la tienda"
     },
     "backorders": {
       "title_open": "En espera de stock",
@@ -918,7 +938,9 @@
     "replaced": "Sustituido por un pedido nuevo",
     "discount_applied": "Descuento aplicado",
     "backorder_created": "En espera de stock",
-    "backorder_closed": "Espera de stock cerrada"
+    "backorder_closed": "Espera de stock cerrada",
+    "payment_recorded": "Pago registrado",
+    "refund_issued": "Reembolso emitido"
   },
   "shipments": {
     "title": "Envíos",
@@ -1037,7 +1059,8 @@
       "return_restock": "Devolución repuesta",
       "adjustment": "Ajuste",
       "sync": "Sincronización",
-      "sale": "Venta"
+      "sale": "Venta",
+      "refund_restock": "Reposición por reembolso"
     },
     "view_orders": "Ver pedidos",
     "grid": {
@@ -4957,7 +4980,8 @@
       "incomplete": "incompleto",
       "estimated": "estimado",
       "fee_source": {
-        "estimated": "estimada"
+        "estimated": "estimada",
+        "actual": "real"
       },
       "lines": {
         "gross": "Ventas brutas",
@@ -5139,7 +5163,181 @@
       "variant_prices": "Precios de variante",
       "product_tags": "Etiquetas de producto",
       "order_fulfillment_hold": "Bloqueo de preparación",
-      "order_fulfillment_release": "Liberación del bloqueo"
+      "order_fulfillment_release": "Liberación del bloqueo",
+      "order_mark_paid": "Marcar pedido pagado",
+      "order_refund": "Reembolso de pedido"
     }
+  },
+  "order_payments": {
+    "mark_paid": "Marcar como pagado",
+    "payment_title": "Registrar un pago en {order}",
+    "payment_description": "Dinero recibido fuera del checkout (transferencia, efectivo, cheque…). Pendiente de cobro: {amount}. También se actualiza la tienda.",
+    "amount": "Importe ({currency})",
+    "date": "Fecha de cobro",
+    "method": "Método",
+    "note": "Nota",
+    "note_placeholder": "Referencia bancaria, número de recibo…",
+    "preview_paid": "El pedido quedará marcado como pagado.",
+    "preview_partial": "Pago parcial: quedarán pendientes {rest} y el pedido sigue pendiente de pago.",
+    "save_payment": "Registrar pago",
+    "refund": "Reembolsar",
+    "refund_title": "Reembolso en {order}",
+    "refund_description": "Dinero devuelto al cliente en el pago original, escrito primero en la tienda. Aún reembolsable: {amount}.",
+    "lines": "Artículos (opcional)",
+    "line_qty": "Unidades de {item} a reembolsar",
+    "lines_hint": "Al elegir unidades se rellena su precio menos el descuento del pedido; el importe sigue siendo editable.",
+    "restock": "Reponer las unidades en stock",
+    "location": "Ubicación",
+    "reason": "Motivo",
+    "reason_placeholder": "Gesto comercial, ajuste de precio, artículo dañado…",
+    "notify": "Avisar al cliente por email",
+    "too_much": "Más de lo que queda por reembolsar ({amount}).",
+    "refund_preview": "{amount} devueltos al cliente; quedarán {left} reembolsables.",
+    "refund_save": "Reembolsar",
+    "card_title": "Pagos y reembolsos",
+    "kind": {
+      "manual_payment": "Pago manual",
+      "refund": "Reembolso"
+    },
+    "system": "Sistema",
+    "accepted_of": "aceptado por la tienda de {amount} solicitados",
+    "processor": "Procesador de pagos",
+    "balance_type": {
+      "charge": "Cargo",
+      "refund": "Reembolso",
+      "adjustment": "Ajuste",
+      "dispute": "Disputa",
+      "reserve": "Reserva",
+      "other": "Otro"
+    },
+    "fee": "comisión {amount}",
+    "payout_of": "Pago del {date}",
+    "payout_status": {
+      "scheduled": "programado",
+      "in_transit": "en tránsito",
+      "paid": "pagado",
+      "failed": "fallido",
+      "canceled": "cancelado"
+    },
+    "not_paid_out": "aún no pagado"
+  },
+  "analytics_money": {
+    "payouts_link": "Pagos recibidos",
+    "tabs": {
+      "payments": "Métodos de pago",
+      "tax": "Impuestos"
+    },
+    "export": "Exportar CSV",
+    "fees": {
+      "actual": "Comisiones de los pagos: {amount} en {n} pedidos",
+      "estimated": "estimadas con tus tarifas: {amount} en {n} pedidos",
+      "payouts": "Ver pagos recibidos"
+    },
+    "methods": {
+      "empty": "No hay pedidos en este periodo.",
+      "title": "Métodos de pago",
+      "description": "Pedidos, ingresos, cancelaciones, devoluciones y comisiones de cada método de pago, comparados.",
+      "method": "Método",
+      "placed": "Recibidos",
+      "orders": "Ventas",
+      "net_revenue": "Ingresos netos",
+      "share": "Cuota",
+      "aov": "Ticket medio",
+      "cancel_rate": "Cancelados",
+      "return_rate": "Devueltos",
+      "fees": "Comisiones",
+      "fee_rate": "Incidencia",
+      "partly_estimated": "{n} estimadas",
+      "estimated": "estimadas",
+      "actual": "de los pagos",
+      "footnote": "Comisiones de los pagos: {actual}. Estimadas con tus tarifas (Ajustes → comisiones): {estimated}. Tasa de cancelación = cancelados / recibidos; tasa de devolución = devueltos / (ventas + devueltos), como en el panel."
+    },
+    "tax": {
+      "empty": "No hay ventas en este periodo.",
+      "title": "Informe de impuestos",
+      "description": "Impuestos de las ventas del periodo por país y tipo. El total es la línea de impuestos de la cuenta de resultados.",
+      "country": "País",
+      "rate": "Tipo",
+      "orders": "Pedidos",
+      "gross": "Ventas brutas",
+      "taxable": "Base imponible",
+      "tax": "Impuesto",
+      "refunded_tax": "Impuesto de reembolsos",
+      "net_tax": "Neto de reembolsos",
+      "total": "Total",
+      "matches": "Coincide con la línea de impuestos de la cuenta de resultados: {amount}.",
+      "mismatch": "No coincide con la línea de impuestos de la cuenta de resultados ({amount}): los datos cambiaron al cargar, recarga la página.",
+      "footnote": "Tipo = tipo efectivo del pedido (impuesto informado por la tienda sobre la mercancía con descuento, redondeado al 0,1%), o tu tipo para el país si la tienda no lo informó. País de envío; tu país si no se conoce."
+    }
+  },
+  "payouts": {
+    "sync": "Sincronizar pagos",
+    "synced": "Leídos {payouts} pagos y {transactions} movimientos.",
+    "sync_paused": "Leídos {payouts} pagos y {transactions} movimientos; el resto sigue en segundo plano.",
+    "back": "Análisis",
+    "back_list": "Pagos recibidos",
+    "title": "Pagos recibidos",
+    "description": "Pagos del procesador de pagos a tu banco: cada uno con cargos, reembolsos, ajustes, comisiones y neto. La cuenta de resultados toma de aquí la comisión real de un pedido.",
+    "totals": {
+      "gross": "Cargos",
+      "refunds": "Reembolsos",
+      "adjustments": "Ajustes",
+      "fees": "Comisiones",
+      "net": "Neto pagado",
+      "count": "{n} pagos"
+    },
+    "filters": {
+      "status": "Estado",
+      "all_statuses": "Todos los estados",
+      "from": "Desde",
+      "to": "Hasta",
+      "apply": "Filtrar",
+      "clear": "Limpiar"
+    },
+    "status": {
+      "scheduled": "Programado",
+      "in_transit": "En tránsito",
+      "paid": "Pagado",
+      "failed": "Fallido",
+      "canceled": "Cancelado"
+    },
+    "empty": "Aún no hay pagos",
+    "empty_filtered": "Ningún pago coincide con los filtros",
+    "empty_hint": "Los pagos llegan con la sincronización diaria si la tienda usa el procesador de pagos de la plataforma (Shopify Payments). Si no, las comisiones siguen siendo estimadas.",
+    "columns": {
+      "date": "Fecha",
+      "status": "Estado",
+      "transactions": "Movimientos",
+      "gross": "Cargos",
+      "refunds": "Reembolsos",
+      "adjustments": "Ajustes",
+      "fees": "Comisiones",
+      "net": "Neto",
+      "when": "Cuándo",
+      "type": "Tipo",
+      "order": "Pedido",
+      "amount": "Importe",
+      "fee": "Comisión"
+    },
+    "summary": "{n} pagos",
+    "last_sync": "Última sincronización: {at}",
+    "last_sync_error": "La última sincronización falló: {error}",
+    "detail_eyebrow": "Pago",
+    "detail_title": "Pago del {date}",
+    "detail_description": "Referencia del procesador {id}. Cada cargo, reembolso y comisión del pago, enlazado a su pedido.",
+    "orders_charged": "{n} pedidos cobrados",
+    "orders_refunded": "{n} pedidos reembolsados",
+    "mismatch": "Los {n} movimientos importados suman {net}, no el neto del pago: aún faltan algunos. Sincroniza de nuevo.",
+    "unmatched": "{n} movimientos se refieren a pedidos que Keel aún no ha importado.",
+    "transactions_title": "Movimientos ({n})",
+    "type": {
+      "charge": "Cargo",
+      "refund": "Reembolso",
+      "adjustment": "Ajuste",
+      "dispute": "Disputa",
+      "reserve": "Reserva",
+      "other": "Otro"
+    },
+    "total": "Total"
   }
 }

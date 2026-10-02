@@ -1,9 +1,9 @@
 import { platformRetentionDays } from "@keel/config";
 import { parseTenantSettings } from "@keel/core";
 import { adminDb, and, eq, inArray, lte, schema, withTenant } from "@keel/db";
-import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, checkSyncDelays, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "@keel/services";
+import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, checkSyncDelays, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, type ServiceContext } from "@keel/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue } from "@keel/addon-cod";
-import { adsWindow, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
+import { adsWindow, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type TickJob, type WebhookJob } from "./queues";
 
 export interface Enqueue {
   (queue: string, data: unknown, opts?: { singletonKey?: string }): Promise<void>;
@@ -53,6 +53,17 @@ export async function handleSyncCatalog(job: SyncCatalogJob, enqueue?: Enqueue):
   });
   // Resumable: a paused run re-enqueues itself and continues from the saved phase and cursor.
   if (!r.finished && !r.error && enqueue) await enqueue("sync.catalog", job, { singletonKey: `${job.tenantId}:catalog:${job.scope ?? "catalog"}` });
+  if (r.error) throw new Error(r.error);
+}
+
+/** Payouts and balance transactions; a paused run re-enqueues itself and resumes from its cursor. */
+export async function handleSyncPayouts(job: SyncPayoutsJob, enqueue?: Enqueue): Promise<void> {
+  const tenant = await tenantRow(job.tenantId);
+  const r = await withTenant(tenant.id, async (tx) => {
+    const ctx = sys(tenant.id)(tx);
+    return runPayoutsSync(ctx, await getCommercePlatformFor(ctx, tenant), { budgetMs: 25_000 });
+  });
+  if (!r.finished && !r.error && enqueue) await enqueue("sync.payouts", job, { singletonKey: `${job.tenantId}:payouts` });
   if (r.error) throw new Error(r.error);
 }
 
@@ -220,6 +231,7 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
         await enqueue("sync.orders", { tenantId: r.tenantId, kind: "reconcile" } satisfies SyncOrdersJob, { singletonKey: `${r.tenantId}:reconcile` });
         await enqueue("sync.catalog", { tenantId: r.tenantId, kind: "reconcile" } satisfies SyncCatalogJob, { singletonKey: `${r.tenantId}:catalog:catalog` });
       }
+      if (job.kind === "payouts") await enqueue("sync.payouts", { tenantId: r.tenantId } satisfies SyncPayoutsJob, { singletonKey: `${r.tenantId}:payouts` });
       if (job.kind === "retry") {
         const tenant = await tenantRow(r.tenantId);
         await withTenant(tenant.id, async (tx) => {

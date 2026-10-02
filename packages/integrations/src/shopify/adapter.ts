@@ -1,5 +1,6 @@
 import { HttpClient, type HttpOptions } from "../http";
-import { IntegrationError, type CommercePlatform, type ConnectionTest, type CreateOrderInput, type FulfillmentHoldInput, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type OrderDetailsPatch, type OrderDiscountPatch, type Page, type VariantPatch, type PlatformReturnLineInput, type SyncQuery, type VerifiedWebhook, type WebhookRegistration } from "../types";
+import type { BalanceTransactionType, PayoutStatus } from "@keel/core";
+import { IntegrationError, type CommercePlatform, type ConnectionTest, type CreateOrderInput, type ManualPaymentInput, type NormalizedBalanceTransaction, type NormalizedPayout, type RefundOrderInput, type FulfillmentHoldInput, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type OrderDetailsPatch, type OrderDiscountPatch, type Page, type VariantPatch, type PlatformReturnLineInput, type SyncQuery, type VerifiedWebhook, type WebhookRegistration } from "../types";
 import { ORDER_FIELDS, PRODUCT_FIELDS, gidToId, idToGid, mapGraphqlCustomer, mapGraphqlDiscount, mapGraphqlInventoryLevel, mapGraphqlLocation, mapGraphqlOrder, mapGraphqlProduct, mapRestCustomer, mapRestInventoryLevel, mapRestOrder, mapRestProduct } from "./mappers";
 import { SHOPIFY_ALL_SCOPES, SHOPIFY_API_VERSION, verifyWebhookHmac } from "./oauth";
 
@@ -372,9 +373,17 @@ export class ShopifyCommercePlatform implements CommercePlatform {
     await this.mutate("returnDeclineRequest", `mutation($input: ReturnDeclineRequestInput!) { returnDeclineRequest(input: $input) { return { id status } userErrors { field message } } }`, { input: { id: idToGid("Return", returnExternalId), declineReason: "OTHER", declineNote: note ?? undefined } });
   }
 
-  async refundReturn(orderExternalId: string, input: { lines: { orderLineExternalId: string; quantity: number }[]; amountMinor: number; currency: string; note?: string | null; notify: boolean }): Promise<{ externalId: string; amountMinor: number }> {
+  refundReturn(orderExternalId: string, input: { lines: { orderLineExternalId: string; quantity: number }[]; amountMinor: number; currency: string; note?: string | null; notify: boolean }): Promise<{ externalId: string; amountMinor: number }> {
+    return this.refundOrder(orderExternalId, { ...input, lines: input.lines.map((l) => ({ ...l, restock: false })) });
+  }
+
+  /**
+   * `refundCreate` on the original capture: refundable = captured − already refunded; nothing captured
+   * (e.g. paid on delivery) → a refund without money movement. Restocked lines use `RETURN` at the
+   * given location. To verify on a real account: `RETURN` vs `CANCEL` for unfulfilled lines.
+   */
+  async refundOrder(orderExternalId: string, input: RefundOrderInput): Promise<{ externalId: string; amountMinor: number }> {
     const orderId = idToGid("Order", orderExternalId);
-    // Money goes back on the original capture: refundable = captured − already refunded; nothing captured (e.g. paid on delivery) → no transaction.
     const data = await this.graphql<{ order: { transactions: { id: string; kind: string; status: string; gateway: string; amountSet: { shopMoney: { amount: string } } }[] } | null }>(`query($id: ID!) { order(id: $id) { transactions(first: 50) { id kind status gateway amountSet { shopMoney { amount } } } } }`, { id: orderId });
     if (!data.order) throw new IntegrationError("not_found", `Order ${orderExternalId} not found`);
     const ok = data.order.transactions.filter((t) => t.status === "SUCCESS");
@@ -388,7 +397,7 @@ export class ShopifyCommercePlatform implements CommercePlatform {
         orderId,
         note: input.note ?? undefined,
         notify: input.notify,
-        refundLineItems: input.lines.map((l) => ({ lineItemId: idToGid("LineItem", l.orderLineExternalId), quantity: l.quantity, restockType: "NO_RESTOCK" })),
+        refundLineItems: input.lines.map((l) => ({ lineItemId: idToGid("LineItem", l.orderLineExternalId), quantity: l.quantity, restockType: l.restock ? "RETURN" : "NO_RESTOCK", ...(l.restock && input.locationExternalId ? { locationId: idToGid("Location", input.locationExternalId) } : {}) })),
         transactions: amount > 0 && parent ? [{ orderId, parentId: parent.id, gateway: parent.gateway, kind: "REFUND", amount: (amount / 100).toFixed(2) }] : [],
       },
     });
@@ -397,7 +406,65 @@ export class ShopifyCommercePlatform implements CommercePlatform {
     return { externalId: gidToId(refund.id) ?? refund.id, amountMinor: minor(refund.totalRefundedSet.shopMoney.amount) };
   }
 
+  /**
+   * The whole balance: `orderMarkAsPaid`; part of it: `orderCreateManualPayment` with the method as
+   * the payment name. To verify on a real account: the manual payment mutation's availability on
+   * the shop's API version and how the gateway name shows in the admin.
+   */
+  async markOrderPaid(externalId: string, input: ManualPaymentInput): Promise<void> {
+    const id = idToGid("Order", externalId);
+    if (input.fullBalance) await this.mutate("orderMarkAsPaid", `mutation($input: OrderMarkAsPaidInput!) { orderMarkAsPaid(input: $input) { order { id displayFinancialStatus } userErrors { field message } } }`, { input: { id } });
+    else await this.mutate("orderCreateManualPayment", `mutation($id: ID!, $amount: MoneyInput, $paymentMethodName: String) { orderCreateManualPayment(id: $id, amount: $amount, paymentMethodName: $paymentMethodName) { order { id displayFinancialStatus } userErrors { field message } } }`, { id, amount: { amount: (input.amountMinor / 100).toFixed(2), currencyCode: input.currency }, paymentMethodName: input.method });
+  }
+
+  /** Shopify Payments payouts (read_shopify_payments_payouts). To verify on a real account: the `issued_at` search syntax. */
+  async fetchPayouts(q: SyncQuery): Promise<Page<NormalizedPayout>> {
+    const data = await this.graphql<{ shopifyPaymentsAccount: { payouts: { nodes: Rec[]; pageInfo: { hasNextPage: boolean; endCursor: string | null } } } | null }>(`query($first: Int!, $after: String, $query: String) { shopifyPaymentsAccount { payouts(first: $first, after: $after, query: $query) { nodes { id legacyResourceId issuedAt status net { amount currencyCode } summary { chargesGross { amount } chargesFee { amount } refundsFeeGross { amount } refundsFee { amount } adjustmentsGross { amount } adjustmentsFee { amount } reservedFundsGross { amount } reservedFundsFee { amount } retriedPayoutsGross { amount } retriedPayoutsFee { amount } } } pageInfo { hasNextPage endCursor } } } }`, { first: Math.min(q.limit ?? 50, 100), after: q.cursor ?? null, query: q.createdSince ? `issued_at:>=${q.createdSince.toISOString().slice(0, 10)}` : null });
+    // a shop without Shopify Payments has no account: no payouts, every fee stays an estimate
+    if (!data.shopifyPaymentsAccount) return { items: [], nextCursor: null };
+    const conn = data.shopifyPaymentsAccount.payouts;
+    return { items: conn.nodes.map(mapPayout), nextCursor: conn.pageInfo.hasNextPage ? conn.pageInfo.endCursor : null };
+  }
+
+  /** Balance transactions of one payout, with the actual fee per charge. To verify on a real account: the `payout_id` search syntax. */
+  async fetchBalanceTransactions(q: { payoutExternalId: string; cursor?: string | null; limit?: number }): Promise<Page<NormalizedBalanceTransaction>> {
+    const data = await this.graphql<{ shopifyPaymentsAccount: { balanceTransactions: { nodes: Rec[]; pageInfo: { hasNextPage: boolean; endCursor: string | null } } } | null }>(`query($first: Int!, $after: String, $query: String) { shopifyPaymentsAccount { balanceTransactions(first: $first, after: $after, query: $query) { nodes { id type test transactionDate amount { amount currencyCode } fee { amount } net { amount } associatedOrder { id } associatedPayout { id } } pageInfo { hasNextPage endCursor } } } }`, { first: Math.min(q.limit ?? 100, 250), after: q.cursor ?? null, query: `payout_id:${q.payoutExternalId}` });
+    if (!data.shopifyPaymentsAccount) return { items: [], nextCursor: null };
+    const conn = data.shopifyPaymentsAccount.balanceTransactions;
+    return { items: conn.nodes.filter((n) => !n.test).map((n) => mapBalanceTransaction(n, q.payoutExternalId)), nextCursor: conn.pageInfo.hasNextPage ? conn.pageInfo.endCursor : null };
+  }
+
   async closeReturn(returnExternalId: string): Promise<void> {
     await this.mutate("returnClose", `mutation($id: ID!) { returnClose(id: $id) { return { id status } userErrors { field message } } }`, { id: idToGid("Return", returnExternalId) });
   }
+}
+
+const money = (m: unknown) => Math.round(Number((m as { amount?: string } | null | undefined)?.amount ?? 0) * 100);
+const PAYOUT_STATUS: Record<string, PayoutStatus> = { SCHEDULED: "scheduled", IN_TRANSIT: "in_transit", PAID: "paid", FAILED: "failed", CANCELED: "canceled" };
+
+function mapPayout(n: Rec): NormalizedPayout {
+  const s = (n.summary ?? {}) as Rec;
+  const net = n.net as { amount: string; currencyCode: string };
+  const grossMinor = money(s.chargesGross);
+  const refundsMinor = -Math.abs(money(s.refundsFeeGross));
+  const adjustmentsMinor = money(s.adjustmentsGross) + money(s.reservedFundsGross) + money(s.retriedPayoutsGross);
+  const feeMinor = money(s.chargesFee) + money(s.refundsFee) + money(s.adjustmentsFee) + money(s.reservedFundsFee) + money(s.retriedPayoutsFee);
+  return { externalId: String(n.legacyResourceId ?? gidToId(String(n.id))), status: PAYOUT_STATUS[String(n.status)] ?? "paid", issuedAt: new Date(String(n.issuedAt)), currency: net.currencyCode, grossMinor, refundsMinor, adjustmentsMinor, feeMinor, netMinor: money(net) };
+}
+
+/** Shopify's many transaction types folded into Keel's few. */
+function balanceType(t: string): BalanceTransactionType {
+  if (t === "CHARGE") return "charge";
+  if (t.startsWith("REFUND")) return "refund";
+  if (t.startsWith("DISPUTE") || t.startsWith("CHARGEBACK")) return "dispute";
+  if (t.startsWith("RESERVED_FUNDS")) return "reserve";
+  if (t.includes("ADJUSTMENT")) return "adjustment";
+  return "other";
+}
+
+function mapBalanceTransaction(n: Rec, payoutExternalId: string): NormalizedBalanceTransaction {
+  const amount = n.amount as { amount: string; currencyCode: string };
+  const order = n.associatedOrder as { id?: string } | null;
+  const payout = n.associatedPayout as { id?: string } | null;
+  return { externalId: gidToId(String(n.id)) ?? String(n.id), payoutExternalId: (payout?.id ? gidToId(payout.id) : null) ?? payoutExternalId, type: balanceType(String(n.type)), orderExternalId: order?.id ? (gidToId(order.id) ?? null) : null, amountMinor: money(amount), feeMinor: money(n.fee), netMinor: money(n.net), currency: amount.currencyCode, occurredAt: new Date(String(n.transactionDate)) };
 }

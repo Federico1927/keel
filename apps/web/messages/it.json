@@ -48,7 +48,17 @@
       "not_editable": "Questo ordine non si può più modificare: è evaso, annullato o sostituito.",
       "invalid_address": "L'indirizzo non è valido: controlla i campi evidenziati.",
       "merge_invalid": "Questi ordini non si possono unire: cliente o pagamento diversi, oppure già evasi.",
-      "nothing_to_change": "Niente da modificare."
+      "nothing_to_change": "Niente da modificare.",
+      "not_pending": "Il pagamento di questo ordine non è in attesa.",
+      "cancelled": "L'ordine è annullato.",
+      "amount_invalid": "Inserisci un importo maggiore di zero.",
+      "exceeds_outstanding": "L'importo supera quanto resta da incassare.",
+      "date_invalid": "La data non può essere nel futuro.",
+      "replaced": "L'ordine è stato sostituito da una modifica: usa il nuovo ordine.",
+      "not_paid": "Si possono rimborsare solo ordini pagati.",
+      "exceeds_refundable": "Il rimborso supera quanto resta rimborsabile sull'ordine.",
+      "line_invalid": "Controlla le unità da rimborsare: più di quante restano su una riga.",
+      "location_required": "Scegli dove rimettere a magazzino le unità."
     },
     "edit": "Modifica"
   },
@@ -738,7 +748,11 @@
       "tag": "Tag",
       "missing_cost": "Prodotti senza costo",
       "product": "Prodotto: {name}",
-      "variant": "Variante: {name}"
+      "variant": "Variante: {name}",
+      "country": "Paese: {country}",
+      "fee_actual": "Commissione effettiva (dai versamenti)",
+      "fee_estimated": "Commissione stimata",
+      "payout": "In un versamento"
     },
     "sort": {
       "placed_desc": "Più recenti",
@@ -860,7 +874,13 @@
         "order_cancelled": "Ordine annullato",
         "order_replaced": "Ordine sostituito",
         "order_fulfilled": "Evaso sul negozio"
-      }
+      },
+      "payment": "{amount} con {method}",
+      "payment_outstanding": "ancora da incassare {amount}",
+      "refund": "{amount} restituiti al cliente",
+      "refund_capped": "{amount} richiesti, limitati dal negozio",
+      "restocked": "{n} unità rimesse a magazzino",
+      "queued_platform": "In coda per il negozio"
     },
     "backorders": {
       "title_open": "In attesa di stock",
@@ -918,7 +938,9 @@
     "replaced": "Sostituito da un nuovo ordine",
     "discount_applied": "Sconto applicato",
     "backorder_created": "In attesa di stock",
-    "backorder_closed": "Attesa di stock chiusa"
+    "backorder_closed": "Attesa di stock chiusa",
+    "payment_recorded": "Pagamento registrato",
+    "refund_issued": "Rimborso emesso"
   },
   "shipments": {
     "title": "Spedizioni",
@@ -1037,7 +1059,8 @@
       "return_restock": "Rientro da reso",
       "adjustment": "Rettifica",
       "sync": "Sync",
-      "sale": "Vendita"
+      "sale": "Vendita",
+      "refund_restock": "Rientro da rimborso"
     },
     "view_orders": "Vedi ordini",
     "grid": {
@@ -4957,7 +4980,8 @@
       "incomplete": "incompleto",
       "estimated": "stima",
       "fee_source": {
-        "estimated": "stima"
+        "estimated": "stima",
+        "actual": "effettiva"
       },
       "lines": {
         "gross": "Vendite lorde",
@@ -5139,7 +5163,181 @@
       "variant_prices": "Prezzi variante",
       "product_tags": "Tag prodotto",
       "order_fulfillment_hold": "Blocco evasione",
-      "order_fulfillment_release": "Sblocco evasione"
+      "order_fulfillment_release": "Sblocco evasione",
+      "order_mark_paid": "Segna ordine pagato",
+      "order_refund": "Rimborso ordine"
     }
+  },
+  "order_payments": {
+    "mark_paid": "Segna come pagato",
+    "payment_title": "Registra un pagamento su {order}",
+    "payment_description": "Denaro ricevuto fuori dal checkout (bonifico, contanti, assegno…). Ancora da incassare: {amount}. Viene aggiornato anche il negozio.",
+    "amount": "Importo ({currency})",
+    "date": "Data di incasso",
+    "method": "Metodo",
+    "note": "Nota",
+    "note_placeholder": "Riferimento bancario, numero ricevuta…",
+    "preview_paid": "L'ordine sarà segnato come pagato.",
+    "preview_partial": "Pagamento parziale: resteranno da incassare {rest} e l'ordine resta in attesa di pagamento.",
+    "save_payment": "Registra pagamento",
+    "refund": "Rimborsa",
+    "refund_title": "Rimborso su {order}",
+    "refund_description": "Denaro restituito al cliente sul pagamento originale, scritto prima sul negozio. Ancora rimborsabile: {amount}.",
+    "lines": "Articoli (facoltativo)",
+    "line_qty": "Unità di {item} da rimborsare",
+    "lines_hint": "Scegliendo le unità si compila il loro prezzo meno lo sconto dell'ordine; l'importo resta modificabile.",
+    "restock": "Rimetti le unità a magazzino",
+    "location": "Magazzino",
+    "reason": "Motivo",
+    "reason_placeholder": "Gesto commerciale, adeguamento prezzo, articolo danneggiato…",
+    "notify": "Avvisa il cliente via email",
+    "too_much": "Più di quanto resta da rimborsare ({amount}).",
+    "refund_preview": "{amount} restituiti al cliente; resteranno rimborsabili {left}.",
+    "refund_save": "Rimborsa",
+    "card_title": "Pagamenti e rimborsi",
+    "kind": {
+      "manual_payment": "Pagamento manuale",
+      "refund": "Rimborso"
+    },
+    "system": "Sistema",
+    "accepted_of": "accettato dal negozio su {amount} richiesti",
+    "processor": "Processore di pagamento",
+    "balance_type": {
+      "charge": "Addebito",
+      "refund": "Rimborso",
+      "adjustment": "Rettifica",
+      "dispute": "Contestazione",
+      "reserve": "Riserva",
+      "other": "Altro"
+    },
+    "fee": "commissione {amount}",
+    "payout_of": "Versamento del {date}",
+    "payout_status": {
+      "scheduled": "programmato",
+      "in_transit": "in transito",
+      "paid": "versato",
+      "failed": "fallito",
+      "canceled": "annullato"
+    },
+    "not_paid_out": "non ancora versato"
+  },
+  "analytics_money": {
+    "payouts_link": "Versamenti",
+    "tabs": {
+      "payments": "Metodi di pagamento",
+      "tax": "Imposte"
+    },
+    "export": "Esporta CSV",
+    "fees": {
+      "actual": "Commissioni dai versamenti: {amount} su {n} ordini",
+      "estimated": "stimate dalle tue tariffe: {amount} su {n} ordini",
+      "payouts": "Vedi versamenti"
+    },
+    "methods": {
+      "empty": "Nessun ordine nel periodo.",
+      "title": "Metodi di pagamento",
+      "description": "Ordini, ricavi, annullamenti, resi e commissioni per ogni metodo di pagamento, a confronto.",
+      "method": "Metodo",
+      "placed": "Ricevuti",
+      "orders": "Vendite",
+      "net_revenue": "Ricavi netti",
+      "share": "Quota",
+      "aov": "Scontrino medio",
+      "cancel_rate": "Annullati",
+      "return_rate": "Resi",
+      "fees": "Commissioni",
+      "fee_rate": "Incidenza",
+      "partly_estimated": "{n} stimate",
+      "estimated": "stimate",
+      "actual": "dai versamenti",
+      "footnote": "Commissioni dai versamenti: {actual}. Stimate dalle tue tariffe (Impostazioni → commissioni): {estimated}. Tasso di annullamento = annullati / ricevuti; tasso di reso = resi / (vendite + resi), come nella dashboard."
+    },
+    "tax": {
+      "empty": "Nessuna vendita nel periodo.",
+      "title": "Report imposte",
+      "description": "Imposte sulle vendite del periodo per paese e aliquota. Il totale è la riga imposte del conto economico.",
+      "country": "Paese",
+      "rate": "Aliquota",
+      "orders": "Ordini",
+      "gross": "Vendite lorde",
+      "taxable": "Imponibile",
+      "tax": "Imposta",
+      "refunded_tax": "Imposta sui rimborsi",
+      "net_tax": "Al netto dei rimborsi",
+      "total": "Totale",
+      "matches": "Coincide con la riga imposte del conto economico: {amount}.",
+      "mismatch": "Non coincide con la riga imposte del conto economico ({amount}): i dati sono cambiati durante il caricamento, ricarica la pagina.",
+      "footnote": "Aliquota = aliquota effettiva dell'ordine (imposta indicata dal negozio sulla merce scontata, arrotondata allo 0,1%), oppure la tua aliquota per il paese se il negozio non ne ha indicata. Paese di spedizione; il tuo paese se non noto."
+    }
+  },
+  "payouts": {
+    "sync": "Sincronizza versamenti",
+    "synced": "Letti {payouts} versamenti e {transactions} movimenti.",
+    "sync_paused": "Letti {payouts} versamenti e {transactions} movimenti; il resto prosegue in background.",
+    "back": "Analisi",
+    "back_list": "Versamenti",
+    "title": "Versamenti",
+    "description": "Versamenti del processore di pagamento sul tuo conto: ognuno con addebiti, rimborsi, rettifiche, commissioni e netto. Il conto economico prende da qui la commissione effettiva di un ordine.",
+    "totals": {
+      "gross": "Addebiti",
+      "refunds": "Rimborsi",
+      "adjustments": "Rettifiche",
+      "fees": "Commissioni",
+      "net": "Netto versato",
+      "count": "{n} versamenti"
+    },
+    "filters": {
+      "status": "Stato",
+      "all_statuses": "Tutti gli stati",
+      "from": "Dal",
+      "to": "Al",
+      "apply": "Filtra",
+      "clear": "Azzera"
+    },
+    "status": {
+      "scheduled": "Programmato",
+      "in_transit": "In transito",
+      "paid": "Versato",
+      "failed": "Fallito",
+      "canceled": "Annullato"
+    },
+    "empty": "Nessun versamento",
+    "empty_filtered": "Nessun versamento corrisponde ai filtri",
+    "empty_hint": "I versamenti arrivano con la sincronizzazione giornaliera se il negozio usa il processore di pagamento della piattaforma (Shopify Payments). Altrimenti le commissioni restano stimate.",
+    "columns": {
+      "date": "Data",
+      "status": "Stato",
+      "transactions": "Movimenti",
+      "gross": "Addebiti",
+      "refunds": "Rimborsi",
+      "adjustments": "Rettifiche",
+      "fees": "Commissioni",
+      "net": "Netto",
+      "when": "Quando",
+      "type": "Tipo",
+      "order": "Ordine",
+      "amount": "Importo",
+      "fee": "Commissione"
+    },
+    "summary": "{n} versamenti",
+    "last_sync": "Ultima sincronizzazione: {at}",
+    "last_sync_error": "Ultima sincronizzazione non riuscita: {error}",
+    "detail_eyebrow": "Versamento",
+    "detail_title": "Versamento del {date}",
+    "detail_description": "Riferimento del processore {id}. Ogni addebito, rimborso e commissione del versamento, collegato al suo ordine.",
+    "orders_charged": "{n} ordini addebitati",
+    "orders_refunded": "{n} ordini rimborsati",
+    "mismatch": "I {n} movimenti importati sommano {net}, non il netto del versamento: ne mancano ancora alcuni. Sincronizza di nuovo.",
+    "unmatched": "{n} movimenti si riferiscono a ordini non ancora importati in Keel.",
+    "transactions_title": "Movimenti ({n})",
+    "type": {
+      "charge": "Addebito",
+      "refund": "Rimborso",
+      "adjustment": "Rettifica",
+      "dispute": "Contestazione",
+      "reserve": "Riserva",
+      "other": "Altro"
+    },
+    "total": "Totale"
   }
 }

@@ -84,6 +84,16 @@ defineCommerceWrite("order.fulfillment_release", {
   execute: (platform, p) => platform.releaseFulfillment(p.orderExternalId),
 });
 
+// payments (issue #27): each manual payment and each refund is one-shot, keyed by the caller
+defineCommerceWrite("order.mark_paid", {
+  target: (p) => `order:${p.orderExternalId}:payment`,
+  execute: (platform, p) => platform.markOrderPaid(p.orderExternalId, { amountMinor: p.amountMinor, currency: p.currency, method: p.method, fullBalance: p.fullBalance, note: p.note ?? null }),
+});
+defineCommerceWrite("order.refund", {
+  target: (p) => `order:${p.orderExternalId}:refund`,
+  execute: (platform, p) => platform.refundOrder(p.orderExternalId, { lines: p.lines, locationExternalId: p.locationExternalId ?? null, amountMinor: p.amountMinor, currency: p.currency, note: p.note ?? null, notify: p.notify }),
+});
+
 defineCommerceWrite("order.create", {
   target: (p) => `order:create:${p.input.replacesOrderName ?? p.input.noteAttributes.find((a) => a.name === "keel_return_id")?.value ?? "new"}`,
   execute: (platform, p) => platform.createOrder(p.input),

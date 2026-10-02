@@ -11,6 +11,7 @@ export * from "./mentions";
 export * from "./inventory";
 export * from "./backorders";
 export * from "./finance";
+export * from "./payments";
 export * from "./costs";
 export * from "./ltv";
 export * from "./attribution-models";
