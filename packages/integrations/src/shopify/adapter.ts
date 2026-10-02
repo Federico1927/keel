@@ -1,5 +1,5 @@
 import { HttpClient, type HttpOptions } from "../http";
-import { IntegrationError, type CommercePlatform, type ConnectionTest, type CreateFulfillmentInput, type CreateOrderInput, type NormalizedCustomer, type NormalizedFulfillment, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type OrderDetailsPatch, type OrderDiscountPatch, type Page, type VariantPatch, type PlatformReturnLineInput, type SyncQuery, type VerifiedWebhook, type WebhookRegistration } from "../types";
+import { IntegrationError, type CommercePlatform, type ConnectionTest, type CreateFulfillmentInput, type CreateOrderInput, type NormalizedCustomer, type NormalizedFulfillment, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type OrderDetailsPatch, type OrderDiscountPatch, type Page, type VariantPatch, type PlatformReturnLineInput, type SyncQuery, type VerifiedWebhook, type WebhookRegistration, type FulfillmentHoldInput } from "../types";
 import { ORDER_FIELDS, PRODUCT_FIELDS, gidToId, idToGid, mapFulfillmentStatus, mapGraphqlCustomer, mapGraphqlDiscount, mapGraphqlInventoryLevel, mapGraphqlLocation, mapGraphqlOrder, mapGraphqlProduct, mapRestCustomer, mapRestInventoryLevel, mapRestOrder, mapRestProduct } from "./mappers";
 import { SHOPIFY_ALL_SCOPES, SHOPIFY_API_VERSION, verifyWebhookHmac } from "./oauth";
 
@@ -14,6 +14,8 @@ export interface ShopifyOptions extends HttpOptions {
 }
 
 type Rec = Record<string, unknown>;
+/** Handle of the fulfillment holds Keel places: releasing touches only these. */
+export const KEEL_HOLD_HANDLE = "keel-awaiting-stock";
 interface GraphqlResponse<T> {
   data?: T;
   errors?: { message: string; extensions?: { code?: string } }[];
@@ -308,6 +310,32 @@ export class ShopifyCommercePlatform implements CommercePlatform {
   async restockInventory(lines: { inventoryItemExternalId: string; locationExternalId: string; quantity: number }[]): Promise<void> {
     if (!lines.length) return;
     await this.mutate("inventoryAdjustQuantities", `mutation($input: InventoryAdjustQuantitiesInput!) { inventoryAdjustQuantities(input: $input) { userErrors { field message } } }`, { input: { name: "available", reason: "restock", changes: lines.map((l) => ({ inventoryItemId: idToGid("InventoryItem", l.inventoryItemExternalId), locationId: idToGid("Location", l.locationExternalId), delta: l.quantity })) } });
+  }
+
+  /** Fulfillment orders of an order with their holds (Shopify splits an order per location). */
+  private async fulfillmentOrders(orderExternalId: string): Promise<{ id: string; status: string; holds: { id: string; handle: string | null }[] }[]> {
+    const data = await this.graphql<{ order: { fulfillmentOrders: { nodes: { id: string; status: string; fulfillmentHolds: { id: string; handle: string | null }[] }[] } } | null }>(`query($id: ID!) { order(id: $id) { fulfillmentOrders(first: 20) { nodes { id status fulfillmentHolds { id handle } } } } }`, { id: idToGid("Order", orderExternalId) });
+    if (!data.order) throw new IntegrationError("not_found", `Order ${orderExternalId} not found`);
+    return data.order.fulfillmentOrders.nodes.map((n) => ({ id: n.id, status: n.status, holds: n.fulfillmentHolds ?? [] }));
+  }
+
+  /** Holds every open fulfillment order with Keel's handle; one already holding Keel's hold is left alone. */
+  async holdFulfillment(externalId: string, hold: FulfillmentHoldInput): Promise<void> {
+    const reason = hold.reason === "awaiting_stock" ? "INVENTORY_OUT_OF_STOCK" : "OTHER";
+    for (const fo of await this.fulfillmentOrders(externalId)) {
+      if (fo.holds.some((h) => h.handle === KEEL_HOLD_HANDLE)) continue;
+      if (fo.status !== "OPEN" && fo.status !== "ON_HOLD") continue;
+      await this.mutate("fulfillmentOrderHold", `mutation($id: ID!, $fulfillmentHold: FulfillmentOrderHoldInput!) { fulfillmentOrderHold(id: $id, fulfillmentHold: $fulfillmentHold) { fulfillmentHold { id } userErrors { field message } } }`, { id: fo.id, fulfillmentHold: { reason, reasonNotes: hold.note ?? undefined, handle: KEEL_HOLD_HANDLE, notifyMerchant: false } });
+    }
+  }
+
+  /** Releases only the holds carrying Keel's handle, so a merchant's own hold survives. */
+  async releaseFulfillment(externalId: string): Promise<void> {
+    for (const fo of await this.fulfillmentOrders(externalId)) {
+      const ours = fo.holds.filter((h) => h.handle === KEEL_HOLD_HANDLE).map((h) => h.id);
+      if (!ours.length) continue;
+      await this.mutate("fulfillmentOrderReleaseHold", `mutation($id: ID!, $holdIds: [ID!]) { fulfillmentOrderReleaseHold(id: $id, holdIds: $holdIds) { fulfillmentOrder { id status } userErrors { field message } } }`, { id: fo.id, holdIds: ours });
+    }
   }
 
   /** Order line → fulfillment line items (a return is opened on fulfilled units). */

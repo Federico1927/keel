@@ -5,7 +5,8 @@ import type { TenantRole } from "@keel/config";
 import type { ServiceContext } from "../context";
 import { variantStock } from "../inventory";
 import { notifyUsers, absoluteAppLink } from "./index";
-import { appBaseUrl, sendTenantEmail } from "./mailer";
+import { queueEmail } from "../email/mailer";
+import { appBaseUrl } from "../email/unsubscribe";
 
 /** Active members with one of the roles (system notifications go to the people who can act). */
 export async function membersWithRoles(ctx: ServiceContext, roles: readonly TenantRole[]): Promise<string[]> {
@@ -75,8 +76,9 @@ export async function sendDigests(ctx: ServiceContext): Promise<number> {
     if (!items.length) continue;
     const [u] = await ctx.tx.select({ email: schema.users.email, locale: schema.users.locale }).from(schema.users).where(eq(schema.users.id, userId)).limit(1);
     if (!u) continue;
-    const r = await sendTenantEmail(ctx, { to: u.email, template: "digest", data: { tenantName: tenant?.name ?? "", groups: digestSummary(items), url: absoluteAppLink("/notifications", tenant?.slug ?? "") ?? appBaseUrl() }, locale: u.locale ?? tenant?.defaultLocale, category: "digest" });
-    if (r.outcome === "sent" || r.outcome === "mock") sent++;
+    // one digest per user and day: a second run of the tick the same day is a no-op
+    const r = await queueEmail(ctx, { to: u.email, template: "digest", data: { tenantName: tenant?.name ?? "", groups: digestSummary(items), url: absoluteAppLink("/notifications", tenant?.slug ?? "") ?? appBaseUrl() }, locale: u.locale ?? tenant?.defaultLocale, event: `digest:${userId}:${now.toISOString().slice(0, 10)}` });
+    if (r.outcome === "queued") sent++;
   }
   return sent;
 }

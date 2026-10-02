@@ -2,7 +2,7 @@
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { and, desc, eq, recordAudit, schema } from "@keel/db";
+import { and, desc, eq, inArray, recordAudit, schema } from "@keel/db";
 import { ORDER_STATUSES, deriveOrderStatus, previewRules, stateRuleConditionsSchema, type OrderStatus, type PaymentMethod, type PaymentStatus, type ShipmentStatus, type StateRule } from "@keel/core";
 import { ForbiddenError, requireAction } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
@@ -109,6 +109,8 @@ export async function previewStateRules(slug: string, candidate?: { rule: StateR
     const recent = await tx.select().from(schema.orders).where(eq(schema.orders.tenantId, ctx.tenant.id)).orderBy(desc(schema.orders.placedAt)).limit(50);
     const shipmentRows = recent.length ? await tx.select({ orderId: schema.shipments.orderId, status: schema.shipments.status }).from(schema.shipments).where(eq(schema.shipments.tenantId, ctx.tenant.id)) : [];
     const shipmentByOrder = new Map(shipmentRows.map((s) => [s.orderId, s.status as ShipmentStatus]));
+    // orders waiting for stock stay held whatever the rules say: the preview must show it
+    const waiting = recent.length ? new Set((await tx.selectDistinct({ orderId: schema.backorders.orderId }).from(schema.backorders).where(and(eq(schema.backorders.tenantId, ctx.tenant.id), inArray(schema.backorders.orderId, recent.map((o) => o.id)), inArray(schema.backorders.status, ["pending", "covered"])))).map((r) => r.orderId)) : new Set<string>();
     const samples = recent.map((o) => ({
       id: o.id,
       name: o.name,
@@ -125,6 +127,7 @@ export async function previewStateRules(slug: string, candidate?: { rule: StateR
         shipmentStatus: shipmentByOrder.get(o.id) ?? null,
         returnedFraction: o.returnedFraction / 10000,
         manualStatus: null,
+        awaitingStock: waiting.has(o.id),
       },
     }));
     const out = previewRules(samples, rules);

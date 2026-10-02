@@ -139,7 +139,7 @@ export async function sendPoToSupplierAction(slug: string, poId: string, _prev: 
       if (!po) throw new Error("not_found");
       if (!["draft", "sent", "confirmed"].includes(po.status)) throw new Error("invalid_input");
       const link = await issueSupplierLink(svc(ctx, tx), poId, email.data || null);
-      // the PO email (template supplier_po, tenant language) goes out when an address is given; mock sink in mock mode
+      // the PO email (template supplier_po, tenant language) is queued when an address is given; the platform sender delivers it after the commit
       const delivery = email.data ? await sendSupplierPoEmail(svc(ctx, tx), { poId, to: email.data, url: `${origin}/supplier/po/${link.token}` }) : "none";
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "purchase_order.sent_to_supplier", entityType: "purchase_order", entityId: poId, diff: { status: { from: po.status, to: po.status === "draft" ? "sent" : po.status } }, metadata: { email: email.data || null, delivery, linkId: link.linkId, expiresAt: link.expiresAt.toISOString(), revokedLinks: link.revoked } });
       return link;

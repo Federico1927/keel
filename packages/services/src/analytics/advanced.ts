@@ -5,6 +5,7 @@ import { countLateToShip } from "../fulfilment";
 import { getSurveySettings, surveyChannelsFor } from "../tracking/survey";
 import { getNotificationSinks } from "../integrations/factory";
 import { notifyUsers } from "../notifications";
+import { queueEmail } from "../email/mailer";
 import { blendedForPeriod } from "./depth";
 import { orderEconomicsForPeriod, pnlForPeriod, type AnalyticsTenant } from "./index";
 
@@ -402,7 +403,7 @@ export async function evaluateAlertRules(ctx: ServiceContext, tenant: AnalyticsT
   if (opts.ruleId) conds.push(eq(schema.alertRules.id, opts.ruleId));
   const rules = await ctx.tx.select().from(schema.alertRules).where(and(...conds));
   const fired: { ruleId: string; name: string; reason: string }[] = [];
-  const sinks = rules.some((r) => (r.channels as string[]).some((c) => c !== "in_app")) ? await getNotificationSinks(ctx) : null;
+  const sinks = rules.some((r) => (r.channels as string[]).includes("slack")) ? await getNotificationSinks(ctx) : null;
   for (const r of rules) {
     const cond = r.condition as AlertCondition;
     const days = cond.kind === "threshold" ? Math.max(cond.days, 1) : cond.baselineDays + 1;
@@ -420,14 +421,13 @@ export async function evaluateAlertRules(ctx: ServiceContext, tenant: AnalyticsT
       await notifyUsers(ctx, { userIds: recipients, type: "alert", title: r.name, body: text, link, severity: "warning", metadata: { ruleId: r.id, reason: ev.reason } });
       delivered.in_app = "ok";
     }
-    if (sinks && channels.includes("email") && recipients.length) {
-      const users = await ctx.tx.select({ email: schema.users.email }).from(schema.users).where(inArray(schema.users.id, recipients));
-      try {
-        await sinks.email.send(users.map((u) => u.email), { subject: `[Keel] ${r.name}`, text, url: opts.appUrl ? `${opts.appUrl}${link}` : undefined });
-        delivered.email = sinks.mock.email ? "mock" : "ok";
-      } catch (e) {
-        delivered.email = `error: ${e instanceof Error ? e.message : String(e)}`;
-      }
+    if (channels.includes("email") && recipients.length) {
+      // queued through the platform mailer: suppression lists, unsubscribe link, delivery log, one email per firing and person
+      const users = await ctx.tx.select({ email: schema.users.email, locale: schema.users.locale }).from(schema.users).where(inArray(schema.users.id, recipients));
+      const [own] = await ctx.tx.select({ locale: schema.tenants.defaultLocale }).from(schema.tenants).where(eq(schema.tenants.id, ctx.tenantId)).limit(1);
+      const outcomes: { outcome: string }[] = [];
+      for (const u of users) outcomes.push(await queueEmail(ctx, { to: u.email, template: "notification", data: { title: r.name, body: text, url: opts.appUrl ? `${opts.appUrl}${link}` : null, type: "alert" }, locale: u.locale ?? own?.locale, category: "alert", event: `alert:${r.id}:${now.toISOString()}` }));
+      delivered.email = outcomes.some((o) => o.outcome === "queued") ? "queued" : (outcomes[0]?.outcome ?? "none");
     }
     if (sinks && channels.includes("slack")) {
       if (!sinks.slack) delivered.slack = "not_configured";

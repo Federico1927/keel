@@ -2,7 +2,8 @@ import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, or, recordAudit, s
 import { RETURN_TO_SENDER_STATUSES, EXCEPTION_LIKE, planShipmentCases, suggestRtsFollowUps, validateResolution, type CaseKind, type ExceptionResolution, type InstructionChannel, type ResolutionIssue, type RtsFollowUp, type ShipmentStatus } from "@keel/core";
 import type { Address, CarrierProvider } from "@keel/integrations";
 import type { ServiceContext } from "../context";
-import { TRANSACTIONAL_EMAIL, sendTenantEmail } from "../notifications/mailer";
+import { queueEmail } from "../email/mailer";
+import { TRANSACTIONAL_EMAIL } from "../email/suppressions";
 
 /**
  * Delivery-exception work queue and return-to-sender review (issue #28). Cases open by themselves
@@ -178,9 +179,10 @@ export async function sendCaseInstruction(ctx: ServiceContext, caseId: string, i
       throw new CaseError("send_failed", e instanceof Error ? e.message : String(e));
     }
   } else {
-    const r = await sendTenantEmail(ctx, { to: emailTo!, template: "carrier_instruction", data: { companyName: deps.companyName, carrier: ship?.carrier ?? null, trackingNumber: ship?.trackingNumber ?? "", orderName: ship?.orderName ?? "", resolution: input.resolution, address: detail.address, pickupPoint: detail.pickupPoint, note: detail.note }, locale: deps.locale, category: TRANSACTIONAL_EMAIL });
-    if (r.outcome !== "sent" && r.outcome !== "mock") throw new CaseError("send_failed", r.error ?? r.outcome);
-    reference = `email:${r.outcome}`;
+    // queued with the case as the event: the email job retries delivery, and the same case never queues it twice
+    const r = await queueEmail(ctx, { to: emailTo!, template: "carrier_instruction", data: { companyName: deps.companyName, carrier: ship?.carrier ?? null, trackingNumber: ship?.trackingNumber ?? "", orderName: ship?.orderName ?? "", resolution: input.resolution, address: detail.address, pickupPoint: detail.pickupPoint, note: detail.note }, locale: deps.locale, event: `shipment_case:${row.id}`, category: TRANSACTIONAL_EMAIL });
+    if (r.outcome === "suppressed" || r.outcome === "invalid") throw new CaseError("send_failed", r.outcome);
+    reference = `email:${r.id}`;
   }
   const [done] = await ctx.tx.update(schema.shipmentCases).set({ instructionRef: reference }).where(eq(schema.shipmentCases.id, row.id)).returning();
   await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: row.orderId, type: "delivery_instruction_sent", actorType: ctx.actor.type, actorUserId: me, diff: { deliveryResolution: { from: null, to: input.resolution } }, metadata: { caseId: row.id, channel: input.channel, to: done!.instructionTo, reference, trackingNumber: ship?.trackingNumber ?? null, ...(detail.pickupPoint ? { pickupPoint: detail.pickupPoint } : {}) }, createdAt: now });

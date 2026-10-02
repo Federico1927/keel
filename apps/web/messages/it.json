@@ -65,7 +65,7 @@
     "send_magic": "Inviami un link",
     "sending": "Invio…",
     "magic_sent": "Se l'indirizzo esiste, il link di accesso è in arrivo.",
-    "magic_hint": "In sviluppo il link viene stampato nella console del server.",
+    "magic_hint": "In sviluppo il link viene stampato nella console del server e compare nella posta di sviluppo (/dev/emails).",
     "verify_title": "Controlla la posta",
     "verify_description": "Ti abbiamo inviato un link di accesso. Scade tra 15 minuti.",
     "demo_hint": "Gli account demo sono elencati nel README.",
@@ -244,7 +244,15 @@
       "hint": "Giorno {elapsed} di {days}, run rate per giorno della settimana.",
       "more": "Dettagli"
     },
-    "greeting_line": "{count, plural, =0 {Ancora nessun ordine oggi} one {# ordine finora oggi} other {# ordini finora oggi}}"
+    "greeting_line": "{count, plural, =0 {Ancora nessun ordine oggi} one {# ordine finora oggi} other {# ordini finora oggi}}",
+    "stock_tile": {
+      "title": "Stock e backorder",
+      "holding": "Ordini in attesa di stock ({units} unità)",
+      "best_sellers_low": "Più venduti in esaurimento (30 giorni)",
+      "none_low": "Nessun prodotto più venduto è sotto la soglia.",
+      "cell": "{sold} venduti · {available} rimasti · +{incoming}",
+      "waiting": "{n} in attesa"
+    }
   },
   "settings": {
     "title": "Impostazioni",
@@ -289,8 +297,12 @@
         "returnExcludedProductTypes": "Tipi di prodotto esclusi dai resi",
         "returnExcludedProductTypes_placeholder": "Gift card, Intimo",
         "churnLowPct": "Rischio abbandono basso da (% probabilità attivo)",
-        "churnMediumPct": "Rischio abbandono medio da (% probabilità attivo)"
-      }
+        "churnMediumPct": "Rischio abbandono medio da (% probabilità attivo)",
+        "backorderHold": "Metti in sospeso gli ordini che richiedono più dello stock disponibile finché un ordine d'acquisto in arrivo non li copre",
+        "backorderPlatformHold": "Durante l'attesa blocca anche l'evasione sul negozio, così il magazzino non li spedisce"
+      },
+      "backorders_title": "Backorder",
+      "backorders_description": "Cosa succede quando un ordine richiede più dello stock disponibile."
     },
     "taxes": {
       "title": "Aliquote per paese",
@@ -735,6 +747,10 @@
       "placed_desc": "Più recenti",
       "placed_asc": "Più vecchi",
       "total_desc": "Totale più alto"
+    },
+    "views": {
+      "awaiting": "In attesa di stock",
+      "ready": "Pronti da sbloccare"
     }
   },
   "order_detail": {
@@ -838,7 +854,48 @@
       "discount": "{code}: −{amount}",
       "balance_due": "Il cliente deve {amount}",
       "balance_refund": "Rimborsa {amount} al cliente",
-      "written_to": "Scritto su {platform}"
+      "written_to": "Scritto su {platform}",
+      "backorder_line": "{qty}× {item}: nessun ordine d'acquisto in arrivo",
+      "backorder_line_po": "{qty}× {item}: {po}, arrivo previsto {eta}",
+      "backorder_reason": {
+        "stock_available": "Stock arrivato",
+        "wait_cancelled": "Attesa annullata dallo staff",
+        "order_cancelled": "Ordine annullato",
+        "order_replaced": "Ordine sostituito",
+        "order_fulfilled": "Evaso sul negozio"
+      }
+    },
+    "backorders": {
+      "title_open": "In attesa di stock",
+      "title_closed": "Attese di stock",
+      "description_open": "{units, plural, one {# unità non è} other {# unità non sono}} a magazzino. L'ordine resta in sospeso finché non arriva l'ordine d'acquisto.",
+      "description_closed": "Questo ordine ha atteso lo stock; l'attesa è finita.",
+      "cancel_wait": "Annulla attesa",
+      "cancel_wait_title": "Smettere di attendere lo stock?",
+      "cancel_wait_description": "L'ordine viene sbloccato subito (qui e sul negozio) anche se lo stock non è arrivato. Usalo se spedisci da un'altra fonte o se modifichi l'ordine.",
+      "cancel_wait_confirm": "Sblocca l'ordine",
+      "note_optional": "Nota (facoltativa)",
+      "eta": "Arrivo previsto {date}",
+      "no_eta": "senza data",
+      "no_po": "Nessun ordine d'acquisto in arrivo lo copre ancora",
+      "units": "{n, plural, one {# unità} other {# unità}}",
+      "closed_status": {
+        "fulfilled": "Sbloccato",
+        "cancelled": "Annullato",
+        "pending": "In attesa",
+        "covered": "Coperto"
+      }
+    },
+    "stock_check": {
+      "title": "Verifica stock",
+      "description": "Per riga, su tutte le location: disponibile ora, impegnato in ordini non evasi e ordini d'acquisto in arrivo.",
+      "line": "Riga",
+      "ordered": "Ordinati",
+      "available": "Disponibili",
+      "committed": "Impegnati",
+      "incoming": "In arrivo (OdA · stato · arrivo)",
+      "waiting": "{n} in attesa",
+      "no_eta": "senza data"
     }
   },
   "order_events": {
@@ -866,7 +923,9 @@
     "fulfilled": "Spedito da Keel",
     "packed": "Imballato",
     "unpacked": "Tornato da imballare",
-    "delivery_instruction_sent": "Istruzione di consegna inviata"
+    "delivery_instruction_sent": "Istruzione di consegna inviata",
+    "backorder_created": "In attesa di stock",
+    "backorder_closed": "Attesa di stock chiusa"
   },
   "shipments": {
     "title": "Spedizioni",
@@ -988,7 +1047,17 @@
       "sync": "Sync",
       "sale": "Vendita"
     },
-    "view_orders": "Vedi ordini"
+    "view_orders": "Vedi ordini",
+    "grid": {
+      "title": "Stock per opzione",
+      "legend": "Ogni cella: disponibile, +in arrivo dagli ordini d'acquisto, −impegnato in ordini non evasi.",
+      "rows": "Righe",
+      "cols": "Colonne",
+      "total": "Totale",
+      "none": "(nessuno)",
+      "all": "Tutte",
+      "folded": "Sommate in ogni cella: {options}"
+    }
   },
   "inventory": {
     "title": "Magazzino",
@@ -2452,7 +2521,8 @@
       "google": "Google Ads",
       "tracking": "Pixel e conversioni",
       "survey": "Sondaggio post-acquisto",
-      "anthropic": "AI (Anthropic)"
+      "anthropic": "AI (Anthropic)",
+      "email": "Email di piattaforma"
     },
     "status": {
       "not_connected": "Non collegata",
@@ -2887,6 +2957,78 @@
           "fix": "Sposta il link più in alto nell'email; una domanda con opzioni grandi si risponde in un secondo."
         }
       ]
+    },
+    "email": {
+      "title": "Email di piattaforma (Resend)",
+      "intro": "Keel invia link di accesso, inviti, notifiche e riepiloghi da un unico mittente di piattaforma. Questa guida è per l'amministratore della piattaforma: ai tenant non serve nulla.",
+      "steps": [
+        {
+          "title": "Crea l'account Resend",
+          "body": "Registrati su resend.com con la casella dell'amministratore della piattaforma e attiva l'autenticazione a due fattori.",
+          "verify": true
+        },
+        {
+          "title": "Aggiungi il dominio di invio",
+          "body": "Domains → Add domain. Usa un sottodominio dedicato alla posta transazionale (per esempio mail.tuodominio.it) e la regione più vicina ai tuoi utenti.",
+          "verify": true
+        },
+        {
+          "title": "SPF",
+          "body": "Aggiungi i record MX e TXT che Resend mostra per il sottodominio dei bounce (il TXT è un record SPF come v=spf1 include:… ~all). Tieni un solo record SPF per nome.",
+          "verify": true
+        },
+        {
+          "title": "DKIM",
+          "body": "Aggiungi il record TXT DKIM (resend._domainkey.…) esattamente come mostrato, poi attendi che Resend segni il dominio come Verified.",
+          "verify": true
+        },
+        {
+          "title": "DMARC",
+          "body": "Pubblica un record TXT su _dmarc.tuodominio.it, per esempio v=DMARC1; p=none; rua=mailto:dmarc@tuodominio.it. Passa a p=quarantine quando i report sono puliti.",
+          "verify": true
+        },
+        {
+          "title": "Chiave API di solo invio",
+          "body": "API Keys → Create API key con permesso “Sending access”, limitata al dominio verificato. Viene mostrata una sola volta e inizia con re_.",
+          "verify": true
+        },
+        {
+          "title": "Imposta le variabili su Railway",
+          "body": "Sui servizi web e worker imposta RESEND_API_KEY, EMAIL_FROM (es. Keel <no-reply@mail.tuodominio.it>, sul dominio verificato), EMAIL_REPLY_TO (la casella del supporto) e KEEL_INTEGRATION_MODE=live; facoltative EMAIL_LEGAL_NAME, EMAIL_LEGAL_ADDRESS ed EMAIL_SUPPORT_ADDRESS per il piè di pagina. Ripubblica. Non fare mai commit della chiave."
+        },
+        {
+          "title": "Webhook di consegna",
+          "body": "Webhooks → Add endpoint {emailWebhookUrl} con gli eventi email.delivered, email.delivery_delayed, email.bounced ed email.complained. Copia il signing secret (whsec_…) in RESEND_WEBHOOK_SECRET sul servizio web.",
+          "verify": true
+        },
+        {
+          "title": "Invia un'email di prova",
+          "body": "Console → Email deve indicare “Resend sta inviando”. Invia un'email di prova a una casella che controlli, apri il messaggio originale e verifica che SPF, DKIM e DMARC risultino superati. Il registro mostra l'email come consegnata quando arriva il webhook."
+        }
+      ],
+      "scopes": "Una sola chiave API con “Sending access”, limitata al dominio di invio. Mai una chiave con accesso completo.",
+      "errors": [
+        {
+          "symptom": "La console mostra “Email non configurata”",
+          "fix": "Manca RESEND_API_KEY sul servizio o KEEL_INTEGRATION_MODE non è live: impostale entrambe e ripubblica."
+        },
+        {
+          "symptom": "domain_not_verified nel registro",
+          "fix": "EMAIL_FROM usa un dominio che Resend non ha ancora verificato: completa i record DNS o usa un dominio verificato."
+        },
+        {
+          "symptom": "auth nel registro",
+          "fix": "La chiave è stata revocata o non ha accesso all'invio: crea una nuova chiave di solo invio."
+        },
+        {
+          "symptom": "rate_limit nel registro",
+          "fix": "Resend limita le richieste al secondo e al giorno: la coda riprova con backoff; se persiste passa a un piano superiore."
+        },
+        {
+          "symptom": "I bounce non vengono registrati",
+          "fix": "RESEND_WEBHOOK_SECRET manca o è diversa dal signing secret dell'endpoint: il webhook risponde 401 o 503."
+        }
+      ]
     }
   },
   "admin": {
@@ -2898,7 +3040,8 @@
       "billing": "Fatturazione",
       "audit": "Registro attività",
       "support": "Supporto",
-      "styleguide": "Guida di stile"
+      "styleguide": "Guida di stile",
+      "email": "Email"
     },
     "plans": {
       "starter": "Starter",
@@ -3057,6 +3200,110 @@
       "close": "Chiudi",
       "author": "Aperta da",
       "attachment_audit": "Lo scaricamento di un allegato viene registrato nel registro di audit."
+    },
+    "email": {
+      "title": "Email",
+      "description": "Il mittente della piattaforma: stato del provider, consegne degli ultimi 7 giorni, registro e invio di prova.",
+      "status_title": "Provider",
+      "state": {
+        "configured": "Resend sta inviando",
+        "not_configured": "Email non configurata",
+        "mock_mode": "Modalità mock"
+      },
+      "state_hint": {
+        "configured": "Le email partono tramite Resend da {from}.",
+        "not_configured": "RESEND_API_KEY non è impostata (o KEEL_INTEGRATION_MODE non è live): le email vengono catturate dal mock e nessuno le riceve. Imposta le variabili su Railway, vedi la guida.",
+        "mock_mode": "C'è una chiave Resend ma KEEL_INTEGRATION_MODE è mock: le email vengono catturate dal mock e nessuno le riceve."
+      },
+      "from": "Mittente",
+      "reply_to": "Rispondi a",
+      "webhook": "Webhook di consegna",
+      "webhook_on": "Firmato (RESEND_WEBHOOK_SECRET impostata)",
+      "webhook_off": "Non configurato: bounce e segnalazioni non vengono registrati",
+      "from_missing": "EMAIL_FROM non è impostata: si usa il mittente predefinito e Resend lo rifiuterà",
+      "none": "—",
+      "stats_title": "Ultimi 7 giorni",
+      "stats": {
+        "sent": "Inviate",
+        "delivered": "Consegnate",
+        "bounced": "Rimbalzate",
+        "complained": "Segnalazioni",
+        "failed": "Fallite",
+        "suppressed": "Soppresse",
+        "queued": "In coda"
+      },
+      "test_title": "Invia un'email di prova",
+      "test_description": "Un'email della piattaforma a qualsiasi indirizzo, nella stessa coda di tutte le altre. Registrata nell'audit.",
+      "test_to": "Destinatario",
+      "test_send": "Invia email di prova",
+      "test_result": {
+        "queued": "Email di prova in coda per {email}.",
+        "queued_mock": "Email di prova in coda per {email}: la cattura il mock, nessuno la riceve.",
+        "suppressed": "L'indirizzo è nella lista di soppressione: non è stato inviato nulla.",
+        "invalid": "Indirizzo email non valido.",
+        "duplicate": "Già in coda."
+      },
+      "filters": {
+        "status": "Stato",
+        "template": "Modello",
+        "tenant": "Tenant",
+        "recipient": "Destinatario (indirizzo completo)",
+        "all": "Tutti",
+        "platform": "Piattaforma (nessun tenant)",
+        "apply": "Filtra",
+        "reset": "Azzera"
+      },
+      "columns": {
+        "when": "Quando",
+        "tenant": "Tenant",
+        "template": "Modello",
+        "recipient": "Destinatario",
+        "status": "Stato",
+        "attempts": "Tentativi",
+        "provider": "Id provider",
+        "error": "Ultimo errore"
+      },
+      "status": {
+        "queued": "In coda",
+        "sending": "In invio",
+        "sent": "Inviata",
+        "delivered": "Consegnata",
+        "delivery_delayed": "In ritardo",
+        "bounced": "Rimbalzata",
+        "complained": "Segnalata",
+        "failed": "Fallita",
+        "suppressed": "Soppressa",
+        "expired": "Scaduta"
+      },
+      "templates": {
+        "magic_link": "Link di accesso",
+        "email_change_confirm": "Cambio email: conferma",
+        "email_change_notice": "Cambio email: avviso",
+        "invite": "Invito",
+        "mention": "Menzione",
+        "supplier_po": "Ordine d'acquisto al fornitore",
+        "digest": "Riepilogo giornaliero",
+        "notification": "Notifica",
+        "test": "Prova"
+      },
+      "log_title": "Registro invii",
+      "empty": "Nessuna email corrisponde ai filtri.",
+      "pagination": "{from}–{to} di {total}",
+      "privacy": "I destinatari sono mostrati mascherati e salvati come hash con chiave; corpi e link non vengono mai salvati.",
+      "platform": "Piattaforma",
+      "suppressions_title": "Indirizzi soppressi",
+      "suppressions_description": "Segnalati dal provider: un bounce permanente blocca ogni email, una segnalazione di spam ogni email tranne quelle di accesso e sicurezza.",
+      "suppressions_empty": "Nessun indirizzo soppresso.",
+      "suppression_reason": {
+        "bounce": "Bounce permanente",
+        "complaint": "Segnalazione spam"
+      },
+      "suppression_source": {
+        "provider": "Provider",
+        "admin": "Console"
+      },
+      "remove": "Rimuovi",
+      "guide_title": "Guida alla configurazione"
     }
   },
   "cod": {
@@ -4559,7 +4806,8 @@
         "customers": "Clienti",
         "products": "Prodotti",
         "purchase_orders": "Ordini d'acquisto"
-      }
+      },
+      "open_label": "Cerca in tutto"
     }
   },
   "theme": {
@@ -4673,11 +4921,7 @@
       "invalid_token": "Il link non è valido o è già stato usato.",
       "expired_token": "Il link è scaduto. Richiedine uno nuovo dal profilo.",
       "email_taken": "Questa email è già usata da un altro account."
-    },
-    "mail_new_subject": "Conferma il tuo nuovo indirizzo email",
-    "mail_new_body": "Apri questo link per confermare il cambio dell'email con cui accedi: {url}\n\nSe non l'hai chiesto tu, ignora questo messaggio.",
-    "mail_old_subject": "L'email di accesso sta per cambiare",
-    "mail_old_body": "È stato chiesto di cambiare l'email di accesso del tuo account in {email}. Cambierà solo quando quell'indirizzo conferma. Se non sei stato tu, cambia subito la password."
+    }
   },
   "branding": {
     "title": "Branding",
@@ -5077,7 +5321,9 @@
       "order_discount": "Sconto sull'ordine",
       "variant_prices": "Prezzi variante",
       "product_tags": "Tag prodotto",
-      "fulfillment_create": "Evasione"
+      "fulfillment_create": "Evasione",
+      "order_fulfillment_hold": "Blocco evasione",
+      "order_fulfillment_release": "Sblocco evasione"
     }
   },
   "fulfilment": {
@@ -5322,5 +5568,16 @@
     "delete": "Elimina",
     "add": "Aggiungi",
     "unmapped_title": "Visti ma non mappati (clicca per compilare il modulo):"
+  },
+  "dev_inbox": {
+    "title": "Posta di sviluppo",
+    "description": "Email catturate dal provider mock in questo processo. Solo in sviluppo: in produzione questa pagina non esiste.",
+    "empty": "Nessuna email catturata. Chiedi un link di accesso dalla pagina di login o invia un'email di prova dalla console.",
+    "to": "A",
+    "subject": "Oggetto",
+    "when": "Quando",
+    "html": "HTML",
+    "text": "Testo semplice",
+    "count": "{count, plural, one {# email} other {# email}}"
   }
 }

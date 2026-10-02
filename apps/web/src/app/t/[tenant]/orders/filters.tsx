@@ -9,7 +9,7 @@ import type { OrderFilters } from "@/server/queries/orders";
 
 const utmKey = (d: string) => `utm${d[0]!.toUpperCase()}${d.slice(1)}`;
 
-export function OrderFiltersBar({ basePath, filters, counts, members, drill = null }: { basePath: string; filters: OrderFilters; counts: Record<string, number>; members: { id: string; name: string }[]; drill?: { kind: "product" | "variant"; label: string } | null }) {
+export function OrderFiltersBar({ basePath, filters, counts, stockViews, members, drill = null }: { basePath: string; filters: OrderFilters; counts: Record<string, number>; stockViews?: { awaiting: number; ready: number }; members: { id: string; name: string }[]; drill?: { kind: "product" | "variant"; label: string } | null }) {
   const t = useTranslations("orders");
   const ts = useTranslations("order_status");
   const tp = useTranslations("payment_methods");
@@ -21,7 +21,7 @@ export function OrderFiltersBar({ basePath, filters, counts, members, drill = nu
 
   const apply = (patch: Partial<Record<string, string | string[] | undefined>>) => {
     const u = new URLSearchParams();
-    const current: Record<string, string | string[] | undefined> = { q: filters.q, status: filters.status, payment: filters.payment, paymentStatus: filters.paymentStatus, channel: filters.channel, tag: filters.tag, from: filters.from, to: filters.to, assigned: filters.assigned, missingCost: filters.missingCost ? "1" : undefined, product: filters.product, variant: filters.variant, campaign: filters.campaign, customer: filters.customer, attrChannel: filters.attrChannel, ...Object.fromEntries(Object.entries(filters.utm ?? {}).map(([d, v]) => [utmKey(d), v])), sort: filters.sort };
+    const current: Record<string, string | string[] | undefined> = { q: filters.q, status: filters.status, payment: filters.payment, paymentStatus: filters.paymentStatus, channel: filters.channel, tag: filters.tag, from: filters.from, to: filters.to, assigned: filters.assigned, missingCost: filters.missingCost ? "1" : undefined, product: filters.product, variant: filters.variant, campaign: filters.campaign, customer: filters.customer, attrChannel: filters.attrChannel, stock: filters.stock, ...Object.fromEntries(Object.entries(filters.utm ?? {}).map(([d, v]) => [utmKey(d), v])), sort: filters.sort };
     const merged = { ...current, ...patch };
     for (const [k, v] of Object.entries(merged)) {
       if (!v || (Array.isArray(v) && v.length === 0)) continue;
@@ -35,7 +35,7 @@ export function OrderFiltersBar({ basePath, filters, counts, members, drill = nu
     apply({ status: cur.includes(s) ? cur.filter((x) => x !== s) : [...cur, s] });
   };
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
-  const hasFilters = Boolean(filters.q || filters.status?.length || filters.payment?.length || filters.paymentStatus?.length || filters.channel?.length || filters.tag || filters.from || filters.to || filters.assigned || filters.missingCost || filters.product || filters.variant || filters.attrChannel || Object.keys(filters.utm ?? {}).length);
+  const hasFilters = Boolean(filters.q || filters.status?.length || filters.payment?.length || filters.paymentStatus?.length || filters.channel?.length || filters.tag || filters.from || filters.to || filters.assigned || filters.missingCost || filters.product || filters.variant || filters.attrChannel || filters.stock || Object.keys(filters.utm ?? {}).length);
   // attribution drill-down filters set by analytics links: one removable chip each
   const attribution: { key: string; label: string; patch: Record<string, undefined> }[] = [
     ...(filters.attrChannel ? [{ key: "attrChannel", label: ta("channel", { value: filters.attrChannel }), patch: { attrChannel: undefined } }] : []),
@@ -51,6 +51,12 @@ export function OrderFiltersBar({ basePath, filters, counts, members, drill = nu
         {ORDER_STATUSES.filter((s) => counts[s]).map((s) => (
           <button key={s} type="button" onClick={() => toggleStatus(s)} className={cn("rounded-full border px-3 py-1 text-xs", filters.status?.includes(s) ? "bg-primary text-primary-foreground" : "bg-card")}>
             {ts(s)} <span className="tabular opacity-70">{counts[s]}</span>
+          </button>
+        ))}
+        {stockViews && (stockViews.awaiting > 0 || stockViews.ready > 0 || filters.stock) && (["awaiting", "ready"] as const).map((v) => (
+          <button key={v} type="button" onClick={() => apply({ stock: filters.stock === v ? undefined : v })} className={cn("inline-flex items-center gap-1 rounded-full border border-warning/60 px-3 py-1 text-xs", filters.stock === v ? "bg-warning text-warning-foreground" : "bg-warning/10")} data-testid={`view-stock-${v}`} aria-pressed={filters.stock === v}>
+            {t(`views.${v}`)} <span className="tabular opacity-70">{stockViews[v]}</span>
+            {filters.stock === v && <X className="h-3 w-3" />}
           </button>
         ))}
         {drill && (

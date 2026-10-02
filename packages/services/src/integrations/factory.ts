@@ -1,5 +1,5 @@
 import { and, eq, schema } from "@keel/db";
-import { AnthropicLlmProvider, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCarrierProvider, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type CarrierProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type OutboundMessage, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
+import { AnthropicLlmProvider, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCarrierProvider, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type CarrierProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 
 export interface PlatformTenant {
@@ -98,46 +98,25 @@ export function resetMockPlatforms(): void {
 const sinkMocks = new Map<string, MockNotificationSink>();
 
 /**
- * Slack goes to the tenant's incoming webhook (integration row `slack`, credentials `{ webhookUrl }`);
- * email goes through the platform's transactional provider (`KEEL_EMAIL_API_KEY`, `KEEL_EMAIL_FROM`).
- * In mock mode, or without credentials, recording mocks are returned so alerts still show "delivered (mock)".
+ * Slack goes to the tenant's incoming webhook (integration row `slack`, credentials `{ webhookUrl }`).
+ * In mock mode, or without credentials, a recording mock is returned so alerts still show "delivered (mock)".
+ * Email is not a sink: it goes through the platform mailer (`queueEmail`, packages/services/src/email).
  */
-export async function getNotificationSinks(ctx: ServiceContext): Promise<{ slack: NotificationSink | null; email: NotificationSink; mock: { slack: boolean; email: boolean } }> {
+export async function getNotificationSinks(ctx: ServiceContext): Promise<{ slack: NotificationSink | null; mock: { slack: boolean } }> {
   const row = await integrationRow(ctx, "slack");
-  const mockSink = (kind: "slack" | "email") => {
-    const key = `${ctx.tenantId}:${kind}`;
-    const m = sinkMocks.get(key) ?? new MockNotificationSink(kind);
-    sinkMocks.set(key, m);
-    return m;
-  };
   const slackLive = isLive(row);
-  const slack = slackLive ? new SlackWebhookSink(decryptJson<{ webhookUrl: string }>(row!.credentialsEncrypted!).webhookUrl) : row ? mockSink("slack") : null;
-  const emailLive = integrationMode() === "live" && Boolean(process.env.KEEL_EMAIL_API_KEY);
-  const email = emailLive ? new HttpEmailSink({ apiKey: process.env.KEEL_EMAIL_API_KEY!, from: process.env.KEEL_EMAIL_FROM ?? "alerts@keel.app" }) : mockSink("email");
-  return { slack, email, mock: { slack: !slackLive, email: !emailLive } };
-}
-
-export function mockSinkFor(tenantId: string, kind: "slack" | "email"): MockNotificationSink | undefined {
-  return sinkMocks.get(`${tenantId}:${kind}`);
-}
-
-/** Mock that also prints, like the magic link in development: the person needs the link to go on. */
-class ConsoleEmailSink extends MockNotificationSink {
-  constructor() {
-    super("email");
+  let slack: NotificationSink | null = null;
+  if (slackLive) slack = new SlackWebhookSink(decryptJson<{ webhookUrl: string }>(row!.credentialsEncrypted!).webhookUrl);
+  else if (row) {
+    const m = sinkMocks.get(ctx.tenantId) ?? new MockNotificationSink();
+    sinkMocks.set(ctx.tenantId, m);
+    slack = m;
   }
-  override async send(to: string[], message: OutboundMessage) {
-    console.info(`\n[email] to ${to.join(", ")}: ${message.subject}${message.url ? `\n${message.url}` : ""}\n`);
-    return super.send(to, message);
-  }
+  return { slack, mock: { slack: !slackLive } };
 }
-let platformEmail: MockNotificationSink | null = null;
 
-/** Platform emails that belong to no tenant (account security): live provider, else the printing mock. */
-export function getPlatformEmailSink(): NotificationSink {
-  if (integrationMode() === "live" && process.env.KEEL_EMAIL_API_KEY) return new HttpEmailSink({ apiKey: process.env.KEEL_EMAIL_API_KEY, from: process.env.KEEL_EMAIL_FROM ?? "no-reply@keel.app" });
-  platformEmail ??= new ConsoleEmailSink();
-  return platformEmail;
+export function mockSinkFor(tenantId: string): MockNotificationSink | undefined {
+  return sinkMocks.get(tenantId);
 }
 
 const guarantees = new Map<string, MockPaymentGuarantee>();

@@ -17,7 +17,7 @@ import {
   type SyncQuery,
   type VerifiedWebhook,
   type WebhookRegistration,
- type CreateFulfillmentInput, type NormalizedFulfillment, type CreateOrderInput, type OrderDetailsPatch, type OrderDiscountPatch, type VariantPatch } from "../types";
+ type CreateFulfillmentInput, type NormalizedFulfillment, type CreateOrderInput, type OrderDetailsPatch, type OrderDiscountPatch, type VariantPatch, type FulfillmentHoldInput } from "../types";
 import { FailureScript } from "./failures";
 
 export interface MockCatalogVariant {
@@ -389,6 +389,20 @@ export class MockCommercePlatform implements CommercePlatform {
     const have = new Set(kept.map((t) => t.trim().toLowerCase()));
     const tags = [...kept, ...add.filter((t) => !have.has(t.trim().toLowerCase()))];
     this.orders.set(externalId, { ...o, tags, platformUpdatedAt: new Date() });
+  }
+  /** Fulfillment holds per order (Keel's own), as the store would show them. */
+  private holds = new Map<string, FulfillmentHoldInput>();
+  /** Current Keel hold on an order (tests). */
+  fulfillmentHoldOf(externalId: string): FulfillmentHoldInput | undefined {
+    return this.holds.get(externalId);
+  }
+  async holdFulfillment(externalId: string, hold: FulfillmentHoldInput) {
+    this.record("holdFulfillment", { externalId, ...hold });
+    this.holds.set(externalId, { reason: hold.reason, note: hold.note ?? null });
+  }
+  async releaseFulfillment(externalId: string) {
+    this.record("releaseFulfillment", { externalId });
+    this.holds.delete(externalId);
   }
   async updateVariant(variantExternalId: string, patch: VariantPatch) {
     this.record("updateVariant", { variantExternalId, patch });

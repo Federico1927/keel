@@ -1,4 +1,4 @@
-import type { AdsPlatform, CommercePlatform, CreateFulfillmentInput, CreateOrderInput, NormalizedFulfillment, NormalizedOrder, OrderDetailsPatch, OrderDiscountPatch, PlatformReturnLineInput, VariantPatch } from "@keel/integrations";
+import type { AdsPlatform, CommercePlatform, CreateFulfillmentInput, CreateOrderInput, NormalizedFulfillment, NormalizedOrder, OrderDetailsPatch, OrderDiscountPatch, PlatformReturnLineInput, VariantPatch, FulfillmentHoldInput } from "@keel/integrations";
 import type { schema } from "@keel/db";
 import type { ServiceContext } from "../context";
 
@@ -35,6 +35,8 @@ export interface PlatformWriteKinds {
   "order.update_details": { payload: { orderExternalId: string; patch: OrderDetailsPatch }; result: void };
   "order.discount": { payload: { orderExternalId: string; discount: OrderDiscountPatch }; result: void };
   "order.tags": { payload: { orderExternalId: string; add: string[]; remove: string[] }; result: void };
+  "order.fulfillment_hold": { payload: { orderExternalId: string; hold: FulfillmentHoldInput }; result: void };
+  "order.fulfillment_release": { payload: { orderExternalId: string }; result: void };
   "order.create": { payload: { input: CreateOrderInput }; result: NormalizedOrder };
   "order.create_invoice": { payload: { input: CreateOrderInput }; result: { draftExternalId: string; invoiceUrl: string | null } };
   "discount.create": { payload: DiscountCodePayload; result: { externalId: string } };

@@ -1,13 +1,14 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import bcrypt from "bcryptjs";
-import { and, eq, schema, withTenant } from "@keel/db";
+import { and, desc, eq, like, schema, withTenant } from "@keel/db";
 import { testPools } from "@keel/db/test-utils";
 import { seedPlatform, type SeedContext } from "@keel/db/seed";
-import { MockNotificationSink } from "@keel/integrations";
 import {
   type AccountError,
   changePassword,
   confirmEmailChange,
+  drainEmailJobs,
+  mockEmailOutbox,
   getAccountProfile,
   getBrandLogo,
   getTenantBranding,
@@ -31,7 +32,13 @@ let userId = "";
 let otherId = "";
 const ac = (over: Partial<AccountContext> = {}): AccountContext => ({ db: pools.admin, userId, ...over });
 const audits = (action: string, who = userId) => pools.admin.select().from(schema.auditLogs).where(and(eq(schema.auditLogs.actorUserId, who), eq(schema.auditLogs.action, action)));
-const messages = { confirmUrl: (t: string) => `http://x/account/confirm-email?token=${t}`, toNew: (url: string) => ({ subject: "Confirm", text: url }), toOld: (e: string) => ({ subject: "Notice", text: e }) };
+const confirmUrl = (t: string) => `http://x/account/confirm-email?token=${t}`;
+/** Token from the confirmation email the mock captured for an address (the links never reach the log). */
+const tokenSentTo = async (address: string) => {
+  await drainEmailJobs(pools.admin);
+  const mail = mockEmailOutbox().to(address).at(-1)!;
+  return new URL(/http:\/\/x\/account\/confirm-email\?token=[\w-]+/.exec(mail.message.text)![0]).searchParams.get("token")!;
+};
 
 beforeAll(async () => {
   ctx = await seedPlatform(pools.admin);
@@ -97,15 +104,16 @@ describe("account security", () => {
   });
 
   it("changes the email only after the new address confirms, and tells the old one", async () => {
-    const sink = new MockNotificationSink("email");
     const profile = (await getAccountProfile(pools.admin, userId))!;
-    await expect(requestEmailChange(ac(), "owner@northwind.demo", sink, messages)).rejects.toMatchObject({ code: "email_taken" });
+    await expect(requestEmailChange(ac(), "owner@northwind.demo", confirmUrl)).rejects.toMatchObject({ code: "email_taken" });
     const target = `new-${Date.now()}@test.local`;
-    await requestEmailChange(ac(), target.toUpperCase(), sink, messages);
-    expect(sink.sent.map((m) => m.to[0])).toEqual([target, profile.email]);
+    await requestEmailChange(ac(), target.toUpperCase(), confirmUrl);
+    const token = await tokenSentTo(target);
+    const notice = mockEmailOutbox().to(profile.email).at(-1)!;
+    expect(notice.message.text).toContain(target);
+    expect(notice.message.text).not.toContain("token=");
     expect((await getAccountProfile(pools.admin, userId))!.email).toBe(profile.email);
     expect((await pendingEmailChange(pools.admin, userId))?.email).toBe(target);
-    const token = new URL(sink.sent[0]!.message.url!).searchParams.get("token")!;
     await expect(confirmEmailChange(pools.admin, "forged")).rejects.toMatchObject({ code: "invalid_token" });
     expect(await confirmEmailChange(pools.admin, token)).toEqual({ userId, email: target });
     expect((await getAccountProfile(pools.admin, userId))!.email).toBe(target);
@@ -113,10 +121,17 @@ describe("account security", () => {
     expect(await pendingEmailChange(pools.admin, userId)).toBeNull();
   });
 
-  it("expires email links", async () => {
-    const sink = new MockNotificationSink("email");
-    await requestEmailChange(ac({ now: new Date(Date.now() - 2 * 86400_000) }), `old-${Date.now()}@test.local`, sink, messages);
-    const token = new URL(sink.sent[0]!.message.url!).searchParams.get("token")!;
+  it("expires email links, and never sends a confirmation whose link is dead", async () => {
+    const target = `old-${Date.now()}@test.local`;
+    await requestEmailChange(ac({ now: new Date(Date.now() - 2 * 86400_000) }), target, confirmUrl);
+    await drainEmailJobs(pools.admin);
+    expect(mockEmailOutbox().to(target)).toHaveLength(0);
+    const [row] = await pools.admin.select({ status: schema.emailMessages.status }).from(schema.emailMessages).where(and(eq(schema.emailMessages.template, "email_change_confirm"), eq(schema.emailMessages.recipientMasked, "ol•••@te•••.local"))).orderBy(desc(schema.emailMessages.createdAt)).limit(1);
+    expect(row?.status).toBe("expired");
+    const fresh = `fresh-${Date.now()}@test.local`;
+    await requestEmailChange(ac(), fresh, confirmUrl);
+    const token = await tokenSentTo(fresh);
+    await pools.admin.update(schema.verificationTokens).set({ expires: new Date(Date.now() - 1000) }).where(like(schema.verificationTokens.identifier, `email-change:${userId}:%`));
     await expect(confirmEmailChange(pools.admin, token)).rejects.toMatchObject({ code: "expired_token" });
   });
 

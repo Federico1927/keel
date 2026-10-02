@@ -1,0 +1,113 @@
+{
+  "common": {
+    "footer": "You receive this email because you use {product}.",
+    "security_footer": "This is a security email about your {product} account: it is sent even if you turned off other emails.",
+    "unsubscribe": "Unsubscribe from these emails",
+    "ignore": "If you did not expect this email you can ignore it.",
+    "support": "Questions? Write to {email}.",
+    "button_fallback": "If the button does not work, copy this link into your browser:"
+  },
+  "templates": {
+    "magic_link": {
+      "subject": "Your {product} sign-in link",
+      "preheader": "The link expires in {minutes} minutes.",
+      "intro": "Use this link to sign in. It expires in {minutes} minutes and works once.",
+      "cta": "Sign in",
+      "hint": "If you did not ask to sign in, ignore this email: nobody can enter without the link."
+    },
+    "email_change_confirm": {
+      "subject": "Confirm your new email address",
+      "preheader": "The link expires in {hours} hours.",
+      "intro": "Someone asked to use this address for a {product} account. Confirm to complete the change: the link expires in {hours} hours.",
+      "cta": "Confirm the new address",
+      "hint": "If it was not you, ignore this email: the account keeps its current address."
+    },
+    "email_change_notice": {
+      "subject": "Your {product} email address is changing",
+      "preheader": "A change to {email} was requested.",
+      "intro": "A change of the sign-in address of your account to {email} was requested. Nothing changes until the new address confirms.",
+      "hint": "If it was not you, sign in and change your password, then cancel the request from your profile."
+    },
+    "invite": {
+      "subject": "{inviter} invited you to {tenant} on {product}",
+      "preheader": "Join {tenant} as {role}.",
+      "intro": "{inviter} added you to {tenant} as {role}.",
+      "cta": "Sign in",
+      "hint": "Sign in with this email address: we will send you a link, no password needed."
+    },
+    "mention": {
+      "subject": "{author} mentioned you on {record}",
+      "preheader": "{author} mentioned you in a note.",
+      "intro": "{author} mentioned you in a note on {record}:",
+      "cta": "Open the note"
+    },
+    "supplier_po": {
+      "subject": "Purchase order {po} from {company}",
+      "preheader": "Please confirm purchase order {po}.",
+      "intro": "Hello {supplier}, {company} sent you purchase order {po}. Please confirm it or tell us about any problem from the page below.",
+      "expected": "Expected delivery: {date}",
+      "cta": "View and confirm the order",
+      "hint": "The link is personal to this order."
+    },
+    "digest": {
+      "subject": "Your daily summary for {tenant}",
+      "preheader": "What you have not read in the last 24 hours.",
+      "intro": "Unread in the last 24 hours:",
+      "more": "and {n} more",
+      "cta": "Open notifications"
+    },
+    "notification": {
+      "subject": "{title}",
+      "cta": "Open in {product}"
+    },
+    "test": {
+      "subject": "{product} test email",
+      "preheader": "Email sending works.",
+      "intro": "This is a test email sent from the {product} console. If you are reading it, the sender, the domain and the provider work.",
+      "detail": "Provider: {provider} · sent at {time} (UTC)"
+    },
+    "carrier_instruction": {
+      "subject": "Delivery instruction for parcel {tracking} ({company})",
+      "preheader": "Instruction for parcel {tracking}.",
+      "intro": "Hello, {company} sends an instruction for parcel {tracking} (order {order}, carrier {carrier}).",
+      "redeliver": "Please attempt delivery again.",
+      "new_address": "Please deliver to this new address:",
+      "pickup_point": "Please hold the parcel at this pickup point:",
+      "return": "Please return the parcel to the sender.",
+      "note": "Note: {note}",
+      "hint": "Please reply to this email to confirm."
+    }
+  },
+  "system": {
+    "stock_critical_no_po": "{title} selling variants at critical stock with nothing on order",
+    "late_to_ship": "{title} orders still to ship after {body} working days",
+    "sync_delay": "The {title} sync is late ({body})",
+    "export_ready": "Your CSV export is ready: {title} rows ({body})"
+  },
+  "roles": {
+    "owner": "owner",
+    "admin": "admin",
+    "operations": "operations",
+    "customer_care": "customer care",
+    "marketing": "marketing",
+    "viewer": "viewer"
+  },
+  "types": {
+    "mention": "Mentions",
+    "task_assigned": "Tasks assigned to you",
+    "task_due": "Tasks due",
+    "support_reply": "Support replies",
+    "alert": "Alerts",
+    "sync_delay": "Sync delays",
+    "stock_critical_no_po": "Critical stock",
+    "late_to_ship": "Late to ship",
+    "stock_low": "Low stock",
+    "stock_available": "Stock available again",
+    "return_portal": "Returns from the portal",
+    "po_supplier_confirmed": "Supplier confirmations",
+    "po_supplier_problem": "Supplier problems",
+    "integration_health": "Integrations",
+    "cod_assigned": "COD assignments",
+    "other": "Other"
+  }
+}

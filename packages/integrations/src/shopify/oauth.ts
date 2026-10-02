@@ -2,7 +2,7 @@ import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
 /** Minimum Admin API scopes per Keel module; the installer asks only for what the account needs. */
 export const SHOPIFY_SCOPES_BY_MODULE: Record<string, string[]> = {
-  "core.orders": ["read_orders", "write_orders", "read_customers", "read_fulfillments"],
+  "core.orders": ["read_orders", "write_orders", "read_customers", "read_fulfillments", "read_merchant_managed_fulfillment_orders", "write_merchant_managed_fulfillment_orders"],
   "core.shipments": ["read_fulfillments", "read_shipping", "write_merchant_managed_fulfillment_orders"],
   "core.catalog": ["read_products", "write_products", "read_inventory", "write_inventory", "read_locations"],
   "core.discounts": ["read_discounts", "write_discounts"],

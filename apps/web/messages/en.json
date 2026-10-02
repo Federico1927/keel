@@ -65,7 +65,7 @@
     "send_magic": "Send me a link",
     "sending": "Sending…",
     "magic_sent": "If the address exists, a sign-in link is on its way.",
-    "magic_hint": "In development the link is printed in the server console.",
+    "magic_hint": "In development the link is printed in the server console and shows in the dev inbox (/dev/emails).",
     "verify_title": "Check your inbox",
     "verify_description": "We sent you a sign-in link. It expires in 15 minutes.",
     "demo_hint": "Demo accounts are listed in the README.",
@@ -244,7 +244,15 @@
       "hint": "Day {elapsed} of {days}, run rate by weekday.",
       "more": "Details"
     },
-    "greeting_line": "{count, plural, =0 {No orders yet today} one {# order so far today} other {# orders so far today}}"
+    "greeting_line": "{count, plural, =0 {No orders yet today} one {# order so far today} other {# orders so far today}}",
+    "stock_tile": {
+      "title": "Stock and backorders",
+      "holding": "Orders waiting for stock ({units} units)",
+      "best_sellers_low": "Best sellers running low (30 days)",
+      "none_low": "No best seller is low on stock.",
+      "cell": "{sold} sold · {available} left · +{incoming}",
+      "waiting": "{n} waiting"
+    }
   },
   "settings": {
     "title": "Settings",
@@ -289,8 +297,12 @@
         "returnExcludedProductTypes": "Product types excluded from returns",
         "returnExcludedProductTypes_placeholder": "Gift card, Underwear",
         "churnLowPct": "Churn risk low from (% probability active)",
-        "churnMediumPct": "Churn risk medium from (% probability active)"
-      }
+        "churnMediumPct": "Churn risk medium from (% probability active)",
+        "backorderHold": "Hold orders that need more than the available stock until an incoming purchase order covers them",
+        "backorderPlatformHold": "Also place a fulfillment hold on the store while they wait, so the warehouse does not ship them"
+      },
+      "backorders_title": "Backorders",
+      "backorders_description": "What happens when an order needs more than the stock available."
     },
     "taxes": {
       "title": "Tax rates by country",
@@ -735,6 +747,10 @@
       "placed_desc": "Newest first",
       "placed_asc": "Oldest first",
       "total_desc": "Highest total"
+    },
+    "views": {
+      "awaiting": "Awaiting stock",
+      "ready": "Ready to release"
     }
   },
   "order_detail": {
@@ -838,7 +854,48 @@
       "discount": "{code}: −{amount}",
       "balance_due": "Customer owes {amount}",
       "balance_refund": "Refund {amount} to the customer",
-      "written_to": "Written to {platform}"
+      "written_to": "Written to {platform}",
+      "backorder_line": "{qty}× {item}: no incoming purchase order yet",
+      "backorder_line_po": "{qty}× {item}: {po}, ETA {eta}",
+      "backorder_reason": {
+        "stock_available": "Stock arrived",
+        "wait_cancelled": "Wait cancelled by staff",
+        "order_cancelled": "Order cancelled",
+        "order_replaced": "Order replaced",
+        "order_fulfilled": "Fulfilled on the store"
+      }
+    },
+    "backorders": {
+      "title_open": "Waiting for stock",
+      "title_closed": "Stock waits",
+      "description_open": "{units, plural, one {# unit is} other {# units are}} not in stock. The order is on hold until the purchase order arrives.",
+      "description_closed": "This order waited for stock; the wait is over.",
+      "cancel_wait": "Cancel wait",
+      "cancel_wait_title": "Stop waiting for stock?",
+      "cancel_wait_description": "The order is released now (here and on the store) even though the stock has not arrived. Use it when you will ship from elsewhere or change the order.",
+      "cancel_wait_confirm": "Release the order",
+      "note_optional": "Note (optional)",
+      "eta": "ETA {date}",
+      "no_eta": "no date",
+      "no_po": "No incoming purchase order covers it yet",
+      "units": "{n, plural, one {# unit} other {# units}}",
+      "closed_status": {
+        "fulfilled": "Released",
+        "cancelled": "Cancelled",
+        "pending": "Waiting",
+        "covered": "Covered"
+      }
+    },
+    "stock_check": {
+      "title": "Stock check",
+      "description": "Per line, across all locations: available now, committed to unfulfilled orders, and incoming purchase orders.",
+      "line": "Line",
+      "ordered": "Ordered",
+      "available": "Available",
+      "committed": "Committed",
+      "incoming": "Incoming (PO · status · ETA)",
+      "waiting": "{n} waiting",
+      "no_eta": "no date"
     }
   },
   "order_events": {
@@ -866,7 +923,9 @@
     "fulfilled": "Shipped from Keel",
     "packed": "Packed",
     "unpacked": "Back to pending",
-    "delivery_instruction_sent": "Delivery instruction sent"
+    "delivery_instruction_sent": "Delivery instruction sent",
+    "backorder_created": "Waiting for stock",
+    "backorder_closed": "Stock wait closed"
   },
   "shipments": {
     "title": "Shipments",
@@ -988,7 +1047,17 @@
       "sync": "Sync",
       "sale": "Sale"
     },
-    "view_orders": "View orders"
+    "view_orders": "View orders",
+    "grid": {
+      "title": "Stock by option",
+      "legend": "Each cell: available, +incoming from purchase orders, −committed to unfulfilled orders.",
+      "rows": "Rows",
+      "cols": "Columns",
+      "total": "Total",
+      "none": "(none)",
+      "all": "All",
+      "folded": "Summed in each cell: {options}"
+    }
   },
   "inventory": {
     "title": "Inventory",
@@ -2452,7 +2521,8 @@
       "google": "Google Ads",
       "tracking": "Pixel & conversions",
       "survey": "Post-purchase survey",
-      "anthropic": "AI (Anthropic)"
+      "anthropic": "AI (Anthropic)",
+      "email": "Platform email"
     },
     "status": {
       "not_connected": "Not connected",
@@ -2887,6 +2957,78 @@
           "fix": "Move the link higher in the email; one question with big options answers in a second."
         }
       ]
+    },
+    "email": {
+      "title": "Platform email (Resend)",
+      "intro": "Keel sends sign-in links, invitations, notifications and digests from one platform sender. This guide is for the platform administrator: tenants need nothing.",
+      "steps": [
+        {
+          "title": "Create the Resend account",
+          "body": "Sign up at resend.com with the platform administrator mailbox and turn on two-factor authentication.",
+          "verify": true
+        },
+        {
+          "title": "Add the sending domain",
+          "body": "Domains → Add domain. Use a subdomain dedicated to transactional mail (for example mail.yourdomain.com) and the region closest to your users.",
+          "verify": true
+        },
+        {
+          "title": "SPF",
+          "body": "Add the MX and TXT records Resend shows for the bounce subdomain (the TXT is an SPF record such as v=spf1 include:… ~all). Keep a single SPF record per name.",
+          "verify": true
+        },
+        {
+          "title": "DKIM",
+          "body": "Add the DKIM TXT record (resend._domainkey.…) exactly as shown, then wait until Resend marks the domain Verified.",
+          "verify": true
+        },
+        {
+          "title": "DMARC",
+          "body": "Publish a TXT record on _dmarc.yourdomain.com, for example v=DMARC1; p=none; rua=mailto:dmarc@yourdomain.com. Move to p=quarantine once the reports are clean.",
+          "verify": true
+        },
+        {
+          "title": "Sending-only API key",
+          "body": "API Keys → Create API key with permission “Sending access”, restricted to the verified domain. It is shown once and starts with re_.",
+          "verify": true
+        },
+        {
+          "title": "Set the Railway variables",
+          "body": "On the web and worker services set RESEND_API_KEY, EMAIL_FROM (e.g. Keel <no-reply@mail.yourdomain.com>, on the verified domain), EMAIL_REPLY_TO (the support mailbox) and KEEL_INTEGRATION_MODE=live; optionally EMAIL_LEGAL_NAME, EMAIL_LEGAL_ADDRESS and EMAIL_SUPPORT_ADDRESS for the footer. Redeploy. Never commit the key."
+        },
+        {
+          "title": "Delivery webhook",
+          "body": "Webhooks → Add endpoint {emailWebhookUrl} with the events email.delivered, email.delivery_delayed, email.bounced and email.complained. Copy the signing secret (whsec_…) into RESEND_WEBHOOK_SECRET on the web service.",
+          "verify": true
+        },
+        {
+          "title": "Send a test email",
+          "body": "Console → Email must read “Resend is sending”. Send a test email to a mailbox you control, open the original message and check that SPF, DKIM and DMARC pass. The log shows the email as delivered once the webhook arrives."
+        }
+      ],
+      "scopes": "One API key with “Sending access” only, restricted to the sending domain. Never a full-access key.",
+      "errors": [
+        {
+          "symptom": "The console shows “Email not configured”",
+          "fix": "RESEND_API_KEY is missing on the service or KEEL_INTEGRATION_MODE is not live: set both and redeploy."
+        },
+        {
+          "symptom": "domain_not_verified in the log",
+          "fix": "EMAIL_FROM uses a domain Resend has not verified yet: finish the DNS records or use a verified domain."
+        },
+        {
+          "symptom": "auth in the log",
+          "fix": "The key was revoked or has no sending access: create a new sending-only key."
+        },
+        {
+          "symptom": "rate_limit in the log",
+          "fix": "Resend limits requests per second and per day: the queue retries with backoff; upgrade the plan if it persists."
+        },
+        {
+          "symptom": "Bounces are not recorded",
+          "fix": "RESEND_WEBHOOK_SECRET is missing or differs from the endpoint signing secret: the webhook answers 401 or 503."
+        }
+      ]
     }
   },
   "admin": {
@@ -2898,7 +3040,8 @@
       "billing": "Billing",
       "audit": "Audit log",
       "support": "Support",
-      "styleguide": "Style guide"
+      "styleguide": "Style guide",
+      "email": "Email"
     },
     "plans": {
       "starter": "Starter",
@@ -3057,6 +3200,110 @@
       "close": "Close",
       "author": "Opened by",
       "attachment_audit": "Downloading an attachment is recorded in the audit log."
+    },
+    "email": {
+      "title": "Email",
+      "description": "The platform sender: provider status, delivery in the last 7 days, the log and a test send.",
+      "status_title": "Provider",
+      "state": {
+        "configured": "Resend is sending",
+        "not_configured": "Email not configured",
+        "mock_mode": "Mock mode"
+      },
+      "state_hint": {
+        "configured": "Emails go out through Resend from {from}.",
+        "not_configured": "RESEND_API_KEY is not set (or KEEL_INTEGRATION_MODE is not live): emails are captured by the mock and nobody receives them. Set the variables on Railway, see the setup guide.",
+        "mock_mode": "A Resend key is set but KEEL_INTEGRATION_MODE is mock: emails are captured by the mock and nobody receives them."
+      },
+      "from": "Sender",
+      "reply_to": "Reply-to",
+      "webhook": "Delivery webhook",
+      "webhook_on": "Signed (RESEND_WEBHOOK_SECRET set)",
+      "webhook_off": "Not configured: bounces and complaints are not recorded",
+      "from_missing": "EMAIL_FROM is not set: the default sender is used and Resend will refuse it",
+      "none": "—",
+      "stats_title": "Last 7 days",
+      "stats": {
+        "sent": "Sent",
+        "delivered": "Delivered",
+        "bounced": "Bounced",
+        "complained": "Complaints",
+        "failed": "Failed",
+        "suppressed": "Suppressed",
+        "queued": "In queue"
+      },
+      "test_title": "Send a test email",
+      "test_description": "A platform email to any address, through the same queue as every other email. Audited.",
+      "test_to": "Recipient",
+      "test_send": "Send test email",
+      "test_result": {
+        "queued": "Test email queued for {email}.",
+        "queued_mock": "Test email queued for {email}: the mock captures it, nobody receives it.",
+        "suppressed": "This address is on the suppression list: nothing was sent.",
+        "invalid": "Not a valid email address.",
+        "duplicate": "Already queued."
+      },
+      "filters": {
+        "status": "Status",
+        "template": "Template",
+        "tenant": "Tenant",
+        "recipient": "Recipient (full address)",
+        "all": "All",
+        "platform": "Platform (no tenant)",
+        "apply": "Filter",
+        "reset": "Reset"
+      },
+      "columns": {
+        "when": "When",
+        "tenant": "Tenant",
+        "template": "Template",
+        "recipient": "Recipient",
+        "status": "Status",
+        "attempts": "Attempts",
+        "provider": "Provider id",
+        "error": "Last error"
+      },
+      "status": {
+        "queued": "Queued",
+        "sending": "Sending",
+        "sent": "Sent",
+        "delivered": "Delivered",
+        "delivery_delayed": "Delayed",
+        "bounced": "Bounced",
+        "complained": "Complaint",
+        "failed": "Failed",
+        "suppressed": "Suppressed",
+        "expired": "Expired"
+      },
+      "templates": {
+        "magic_link": "Sign-in link",
+        "email_change_confirm": "Email change: confirm",
+        "email_change_notice": "Email change: notice",
+        "invite": "Invitation",
+        "mention": "Mention",
+        "supplier_po": "Purchase order to supplier",
+        "digest": "Daily digest",
+        "notification": "Notification",
+        "test": "Test"
+      },
+      "log_title": "Delivery log",
+      "empty": "No emails match these filters.",
+      "pagination": "{from}–{to} of {total}",
+      "privacy": "Recipients are shown masked and stored as a keyed hash; bodies and links are never stored.",
+      "platform": "Platform",
+      "suppressions_title": "Suppressed addresses",
+      "suppressions_description": "Reported by the provider: a hard bounce blocks every email, a complaint every email except sign-in and security ones.",
+      "suppressions_empty": "No suppressed addresses.",
+      "suppression_reason": {
+        "bounce": "Hard bounce",
+        "complaint": "Complaint"
+      },
+      "suppression_source": {
+        "provider": "Provider",
+        "admin": "Console"
+      },
+      "remove": "Remove",
+      "guide_title": "Setup guide"
     }
   },
   "cod": {
@@ -4559,7 +4806,8 @@
         "customers": "Customers",
         "products": "Products",
         "purchase_orders": "Purchase orders"
-      }
+      },
+      "open_label": "Search everything"
     }
   },
   "theme": {
@@ -4673,11 +4921,7 @@
       "invalid_token": "This link is not valid or was already used.",
       "expired_token": "This link has expired. Request a new one from your profile.",
       "email_taken": "This email is already used by another account."
-    },
-    "mail_new_subject": "Confirm your new email address",
-    "mail_new_body": "Open this link to confirm the change of the email you sign in with: {url}\n\nIf you did not ask for it, ignore this message.",
-    "mail_old_subject": "Your sign-in email is about to change",
-    "mail_old_body": "Someone asked to change the sign-in email of your account to {email}. It changes only when that address confirms. If it was not you, change your password now."
+    }
   },
   "branding": {
     "title": "Branding",
@@ -5077,7 +5321,9 @@
       "order_discount": "Order discount",
       "variant_prices": "Variant prices",
       "product_tags": "Product tags",
-      "fulfillment_create": "Fulfilment"
+      "fulfillment_create": "Fulfilment",
+      "order_fulfillment_hold": "Fulfillment hold",
+      "order_fulfillment_release": "Fulfillment hold release"
     }
   },
   "fulfilment": {
@@ -5322,5 +5568,16 @@
     "delete": "Delete",
     "add": "Add mapping",
     "unmapped_title": "Seen but not mapped (click to fill the form):"
+  },
+  "dev_inbox": {
+    "title": "Dev inbox",
+    "description": "Emails captured by the mock provider in this process. Development only: this page does not exist in production.",
+    "empty": "No emails captured yet. Ask for a magic link on the login page or send a test email from the console.",
+    "to": "To",
+    "subject": "Subject",
+    "when": "When",
+    "html": "HTML",
+    "text": "Plain text",
+    "count": "{count, plural, one {# email} other {# emails}}"
   }
 }

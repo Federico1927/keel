@@ -43,6 +43,10 @@ export const tenantSettingsSchema = z.object({
   returnsWriteBack: z.boolean().default(true),
   /** Write product costs edited or imported in Keel to the commerce platform (Shopify `inventoryItem.unitCost`). */
   costWriteBack: z.boolean().default(false),
+  /** Backorders: an order line stock cannot serve waits for an incoming purchase order and holds the order (`on_hold`, awaiting stock). */
+  backorderHold: z.boolean().default(true),
+  /** While an order waits for stock, also place a fulfillment hold on the commerce platform so the warehouse does not ship it. */
+  backorderPlatformHold: z.boolean().default(true),
   /** Order tags written on the platform when a return reaches a status (e.g. refunded → "REFUNDED"). */
   returnPlatformTags: z.record(z.string(), z.array(z.string().max(40)).max(5)).default({}),
   paymentFeeBps: feeMap.default({ ...TENANT_SETTING_DEFAULTS.paymentFeeBps }),

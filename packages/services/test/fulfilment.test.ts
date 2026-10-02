@@ -5,7 +5,7 @@ import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
 import { MockCarrierProvider, MockCommercePlatform } from "@keel/integrations";
 import { parseTenantSettings } from "@keel/core";
 import {
-  CaseError, FulfilmentError, MappingError, bulkSetPacked, checkLateToShip, claimCase, closeCase, countLateToShip, fulfilmentBoard, importFulfillment, listShipmentCases, mockSinkFor, packingSlipsPdf, recomputeOrderStatus, recordFollowUp, releaseCase, saveStatusMapping, sendCaseInstruction, setOrderPacked, shipmentCaseDetail, shipOrder, syncShipmentCases,
+  CaseError, FulfilmentError, MappingError, bulkSetPacked, drainEmailJobs, mockEmailOutbox, checkLateToShip, claimCase, closeCase, countLateToShip, fulfilmentBoard, importFulfillment, listShipmentCases, packingSlipsPdf, recomputeOrderStatus, recordFollowUp, releaseCase, saveStatusMapping, sendCaseInstruction, setOrderPacked, shipmentCaseDetail, shipOrder, syncShipmentCases,
   type ServiceContext,
 } from "../src";
 
@@ -182,7 +182,8 @@ describe("delivery-exception work queue", () => {
     await expect(ops((s) => sendCaseInstruction(s, caseId, { resolution: "redeliver", channel: "carrier" }, { carrier, companyName: "Harbor Home", locale: "en" }))).rejects.toMatchObject({ code: "send_failed" });
     await expect(ops((s) => sendCaseInstruction(s, caseId, { resolution: "new_address", address: { name: "A", address1: "1 Main", city: "Austin", province: "TX", zip: "12", country: "US" }, channel: "email", emailTo: "support@carrier.example" }, { carrier: null, companyName: "Harbor Home", locale: "en" }))).rejects.toBeInstanceOf(CaseError);
     await ops((s) => sendCaseInstruction(s, caseId, { resolution: "new_address", address: { name: "Ann Lee", address1: "500 Congress Ave", city: "Austin", province: "TX", zip: "78701", country: "US" }, channel: "email", emailTo: "support@carrier.example" }, { carrier: null, companyName: "Harbor Home", locale: "en" }));
-    const mail = (mockSinkFor(harbor, "email")?.sent ?? []).filter((m) => m.to.includes("support@carrier.example")).at(-1)!;
+    await drainEmailJobs(pools.admin);
+    const mail = mockEmailOutbox().sent.filter((m) => m.message.to === "support@carrier.example").at(-1)!;
     expect(mail.message.subject).toContain("Delivery instruction");
     expect(mail.message.text).toContain("500 Congress Ave");
   });

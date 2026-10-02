@@ -4,7 +4,7 @@ import { z } from "zod";
 import { and, desc, eq, gte, inArray, like, lt, schema, sql, recordAudit, type DbExecutor } from "@keel/db";
 import { SUPPORTED_LOCALES } from "@keel/config";
 import { checkPassword, diffRecords, hasChanges, isTimeZone, normalizeEmail, type PasswordIssue } from "@keel/core";
-import type { NotificationSink } from "@keel/integrations";
+import { queueEmail } from "../email/mailer";
 
 /**
  * The signed-in person's own account (#45): profile, preferences, password, email, sessions.
@@ -193,18 +193,14 @@ const EMAIL_TOKEN_PREFIX = "email-change:";
 export const EMAIL_CHANGE_TTL_MS = 24 * 3600_000;
 const hashToken = (raw: string) => createHash("sha256").update(raw).digest("hex");
 
-export interface EmailChangeMessages {
-  /** Absolute URL of the confirmation page; the raw token is appended. */
-  confirmUrl: (token: string) => string;
-  toNew: (url: string) => { subject: string; text: string };
-  toOld: (newEmail: string) => { subject: string; text: string };
-}
 
 /**
  * Starts an email change: nothing changes on the account until the new address opens the link.
- * The link goes to the new address, a notice to the old one. Any earlier pending request is replaced.
+ * The link goes to the new address, a notice to the old one (security templates through the
+ * platform mailer, never sent once the link has expired). Any earlier pending request is replaced.
+ * `confirmUrl` builds the absolute URL of the confirmation page from the raw token.
  */
-export async function requestEmailChange(ac: AccountContext, rawEmail: string, sink: NotificationSink, messages: EmailChangeMessages): Promise<{ pendingEmail: string }> {
+export async function requestEmailChange(ac: AccountContext, rawEmail: string, confirmUrl: (token: string) => string): Promise<{ pendingEmail: string }> {
   const email = normalizeEmail(rawEmail);
   if (!email) throw new AccountError("invalid_input");
   await assertRate(ac, ["profile.email_change_requested"], EMAIL_CHANGES_PER_HOUR);
@@ -215,10 +211,11 @@ export async function requestEmailChange(ac: AccountContext, rawEmail: string, s
   const raw = randomBytes(32).toString("base64url");
   const now = ac.now ?? new Date();
   await ac.db.delete(schema.verificationTokens).where(like(schema.verificationTokens.identifier, `${EMAIL_TOKEN_PREFIX}${ac.userId}:%`));
-  await ac.db.insert(schema.verificationTokens).values({ identifier: `${EMAIL_TOKEN_PREFIX}${ac.userId}:${email}`, token: hashToken(raw), expires: new Date(now.getTime() + EMAIL_CHANGE_TTL_MS) });
-  const url = messages.confirmUrl(raw);
-  await sink.send([email], { ...messages.toNew(url), url });
-  await sink.send([profile.email], messages.toOld(email));
+  const expires = new Date(now.getTime() + EMAIL_CHANGE_TTL_MS);
+  await ac.db.insert(schema.verificationTokens).values({ identifier: `${EMAIL_TOKEN_PREFIX}${ac.userId}:${email}`, token: hashToken(raw), expires });
+  const event = `email-change:${hashToken(raw)}`;
+  await queueEmail({ db: ac.db, now }, { to: email, template: "email_change_confirm", data: { url: confirmUrl(raw), hours: EMAIL_CHANGE_TTL_MS / 3600_000 }, locale: profile.locale, event, expiresAt: expires });
+  await queueEmail({ db: ac.db, now }, { to: profile.email, template: "email_change_notice", data: { newEmail: email }, locale: profile.locale, event, expiresAt: expires });
   await audit(ac, "profile.email_change_requested", {}, { newEmail: email });
   return { pendingEmail: email };
 }

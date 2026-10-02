@@ -3,7 +3,7 @@ import { eq, schema, withTenant } from "@keel/db";
 import { testPools } from "@keel/db/test-utils";
 import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
 import { parseTenantSettings } from "@keel/core";
-import { attributionReport, blendedForPeriod, creativePerformance, evaluateAlertRules, listCustomMetrics, ltvReport, metricValues, mockSinkFor, saveAlertRule, saveCustomMetric, upsertPeriodCost, pnlForPeriod, type AnalyticsTenant, type ServiceContext } from "../src";
+import { attributionReport, blendedForPeriod, creativePerformance, evaluateAlertRules, listCustomMetrics, ltvReport, metricValues, drainEmailJobs, mockEmailOutbox, mockSinkFor, saveAlertRule, saveCustomMetric, upsertPeriodCost, pnlForPeriod, type AnalyticsTenant, type ServiceContext } from "../src";
 
 const pools = testPools();
 let ctx: SeedContext;
@@ -89,8 +89,10 @@ describe("alerts", () => {
     const again = await run((s) => evaluateAlertRules(s, tenant, { ruleId: id }));
     expect(again.fired).toEqual([]);
     const [ev] = await withTenant(tenantId, (tx) => tx.select().from(schema.alertEvents).where(eq(schema.alertEvents.ruleId, id)), pools.app);
-    expect(ev!.delivered).toMatchObject({ in_app: "ok", email: "mock", slack: "mock" });
-    expect(mockSinkFor(tenantId, "email")!.sent.length).toBeGreaterThan(0);
+    expect(ev!.delivered).toMatchObject({ in_app: "ok", email: "queued", slack: "mock" });
+    expect(mockSinkFor(tenantId)!.sent.length).toBeGreaterThan(0);
+    await drainEmailJobs(pools.admin);
+    expect(mockEmailOutbox().to("owner@northwind.demo").some((m) => m.message.subject === "Orders above zero")).toBe(true);
     const notes = await withTenant(tenantId, (tx) => tx.select().from(schema.notifications).where(eq(schema.notifications.type, "alert")), pools.app);
     expect(notes.length).toBeGreaterThan(0);
   });

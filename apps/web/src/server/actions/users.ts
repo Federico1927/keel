@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { adminDb, and, eq, recordAudit, schema } from "@keel/db";
 import { TENANT_ROLES, canManageRole, isTenantRole } from "@keel/config";
-import { TRANSACTIONAL_EMAIL, appBaseUrl, sendTenantEmail } from "@keel/services";
+import { appBaseUrl, queueEmail } from "@keel/services";
 import { requireAction, ForbiddenError } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 import { displayName } from "@keel/core";
@@ -41,7 +41,7 @@ export async function inviteMember(slug: string, _prev: ActionResult | null, for
       .onConflictDoUpdate({ target: [schema.tenantMemberships.tenantId, schema.tenantMemberships.userId], set: { role: parsed.data.role, isActive: true } });
     const [invitee] = await db.select({ locale: schema.users.locale }).from(schema.users).where(eq(schema.users.id, userId)).limit(1);
     const delivery = await ctx.run(async (tx) => {
-      const sent = await sendTenantEmail({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { to: parsed.data.email, template: "invite", data: { tenantName: ctx.tenant.name, inviterName: displayName(ctx.user), role: parsed.data.role, url: `${appBaseUrl()}/login` }, locale: invitee?.locale ?? ctx.tenant.defaultLocale, category: TRANSACTIONAL_EMAIL });
+      const sent = await queueEmail({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { to: parsed.data.email, template: "invite", data: { tenantName: ctx.tenant.name, inviterName: displayName(ctx.user), role: parsed.data.role, url: `${appBaseUrl()}/login` }, locale: invitee?.locale ?? ctx.tenant.defaultLocale, event: `invite:${userId}:${Date.now()}` });
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "membership.invited", entityType: "user", entityId: userId, metadata: { email: parsed.data.email, role: parsed.data.role, email_delivery: sent.outcome } });
       return sent;
     });

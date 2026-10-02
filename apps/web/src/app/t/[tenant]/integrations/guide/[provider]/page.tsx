@@ -5,8 +5,8 @@ import { META_REQUIRED_PERMISSIONS, SHOPIFY_SCOPES_BY_MODULE, SHOPIFY_WEBHOOK_TO
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, cn } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 
-/** One guide per activation: the three platforms, then the external providers and tracking. */
-const PROVIDERS = ["shopify", "meta", "google", "anthropic", "tracking", "survey"] as const;
+/** One guide per activation: the three platforms, then the external providers and tracking; last, the platform email sender (super-admins only: tenants configure nothing). */
+const PROVIDERS = ["shopify", "meta", "google", "anthropic", "tracking", "survey", "email"] as const;
 type Provider = (typeof PROVIDERS)[number];
 interface Step { title: string; body: string; verify?: boolean }
 
@@ -15,18 +15,21 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
   const ctx = await requirePage(tenant, "integrations");
   if (!PROVIDERS.includes(provider as Provider)) notFound();
   const p = provider as Provider;
+  const platformAdmin = ctx.user.isSuperAdmin;
+  if (p === "email" && !platformAdmin) notFound();
   const t = await getTranslations("integration_guide");
   const ti = await getTranslations("integrations");
   const steps = t.raw(`${p}.steps`) as Step[];
   const errors = t.raw(`${p}.errors`) as { symptom: string; fix: string }[];
   const base = `/t/${tenant}/integrations`;
   const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/webhooks/shopify`;
+  const emailWebhookUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/webhooks/email`;
   return (
     <>
       <p className="mb-2 text-sm text-muted-foreground"><Link href={base} className="hover:underline">← {ti("title")}</Link></p>
       <PageHeader eyebrow={ctx.tenant.name} title={t(`${p}.title`)} description={t(`${p}.intro`)} />
       <div className="mb-4 flex gap-1 rounded-md bg-muted p-1 text-sm">
-        {PROVIDERS.map((k) => (
+        {PROVIDERS.filter((k) => k !== "email" || platformAdmin).map((k) => (
           <Link key={k} href={`${base}/guide/${k}`} className={cn("flex-1 rounded-sm px-3 py-1.5 text-center", k === p ? "bg-card shadow-sm" : "text-muted-foreground")}>{ti(`providers.${k}`)}</Link>
         ))}
       </div>
@@ -40,7 +43,7 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
                 <h3 className="font-medium">{s.title}</h3>
                 {s.verify && <Badge variant="warning">{t("verify_badge")}</Badge>}
               </div>
-              <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{s.body.replace("{webhookUrl}", webhookUrl)}</p>
+              <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{s.body.replace("{webhookUrl}", webhookUrl).replace("{emailWebhookUrl}", emailWebhookUrl)}</p>
             </li>
           ))}
         </ol>

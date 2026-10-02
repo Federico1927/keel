@@ -71,7 +71,7 @@ export function CommandSearch({ slug }: { slug: string }) {
   let lastGroup = "";
   return (
     <>
-      <Button variant="outline" size="sm" className="gap-2 text-muted-foreground" onClick={() => setOpen(true)} aria-label={t("open")} data-testid="command-search-trigger">
+      <Button variant="outline" size="sm" className="gap-2 text-muted-foreground" onClick={() => setOpen(true)} aria-label={t("open_label")} data-testid="command-search-trigger">
         <Search className="h-4 w-4" />
         <span className="hidden md:inline">{t("placeholder_short")}</span>
         <kbd className="hidden rounded border bg-muted px-1.5 text-[10px] font-medium md:inline">⌘K</kbd>

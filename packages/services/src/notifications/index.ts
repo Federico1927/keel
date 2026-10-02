@@ -1,13 +1,13 @@
+import { randomUUID } from "node:crypto";
 import { and, desc, eq, inArray, isNotNull, isNull, schema, sql, type SQL } from "@keel/db";
 import { NOTIFICATION_CHANNELS, resolveNotificationChannels, type NotificationChannel } from "@keel/config";
 import type { ServiceContext } from "../context";
 import { getNotificationSinks } from "../integrations/factory";
-import type { EmailTemplateData } from "./email-templates";
-import { appBaseUrl, sendTenantEmail } from "./mailer";
+import type { EmailTemplateData } from "../email/templates";
+import { queueEmail } from "../email/mailer";
+import { appBaseUrl } from "../email/unsubscribe";
 import { preferenceOverridesFor } from "./preferences";
 
-export * from "./email-templates";
-export * from "./mailer";
 export * from "./preferences";
 export * from "./mentions";
 export * from "./system";
@@ -38,8 +38,9 @@ export function absoluteAppLink(link: string | null | undefined, tenantSlug: str
  * Delivers one event to users on the channels each of them chose for the type (preferences,
  * enforced here, the only write path for notifications). Every delivery leaves one row: in-app
  * rows show in the bell and the inbox; rows with the in-app channel off only record the outbound
- * deliveries (and feed the anti-spam check). Email goes through the templates and the suppression
- * list; Slack posts once per event to the tenant's channel when any recipient wants it.
+ * deliveries (and feed the anti-spam check). Email is queued through the platform mailer
+ * (templates, suppression lists, delivery log; idempotent per notification row); Slack posts once
+ * per event to the tenant's channel when any recipient wants it.
  * Returns the number of in-app notifications written.
  */
 export async function notifyUsers(ctx: ServiceContext, input: NotifyInput): Promise<number> {
@@ -67,7 +68,7 @@ export async function notifyUsers(ctx: ServiceContext, input: NotifyInput): Prom
   const needSlack = recipients.some((r) => r.channels.slack);
   const [tenant] = await ctx.tx.select({ slug: schema.tenants.slug, name: schema.tenants.name, defaultLocale: schema.tenants.defaultLocale }).from(schema.tenants).where(eq(schema.tenants.id, ctx.tenantId)).limit(1);
   const url = absoluteAppLink(input.link, tenant?.slug ?? "");
-  const sinks = needEmail || needSlack ? await getNotificationSinks(ctx) : null;
+  const sinks = needSlack ? await getNotificationSinks(ctx) : null;
   let slackOutcome: string | null = null;
   if (needSlack && sinks) {
     if (!sinks.slack) slackOutcome = "not_configured";
@@ -84,18 +85,19 @@ export async function notifyUsers(ctx: ServiceContext, input: NotifyInput): Prom
   let written = 0;
   for (const r of recipients) {
     const delivered: Record<string, string> = {};
-    if (r.channels.email && sinks) {
+    const id = randomUUID();
+    if (r.channels.email) {
       const person = people.find((p) => p.id === r.userId);
       if (person) {
         const locale = person.locale ?? tenant?.defaultLocale ?? "en";
         const res = input.email
-          ? await sendTenantEmail(ctx, { to: person.email, template: "mention", data: { ...input.email.data, url: url ?? appBaseUrl() }, locale, category: input.type, sink: sinks.email, mock: sinks.mock.email })
-          : await sendTenantEmail(ctx, { to: person.email, template: "notification", data: { title: input.title, body: input.body ?? null, url, type: input.type }, locale, category: input.type, sink: sinks.email, mock: sinks.mock.email });
+          ? await queueEmail(ctx, { to: person.email, template: "mention", data: { ...input.email.data, url: url ?? appBaseUrl() }, locale, category: input.type, event: `notification:${id}` })
+          : await queueEmail(ctx, { to: person.email, template: "notification", data: { title: input.title, body: input.body ?? null, url, type: input.type }, locale, category: input.type, event: `notification:${id}` });
         delivered.email = res.outcome;
       }
     }
     if (r.channels.slack && slackOutcome) delivered.slack = slackOutcome;
-    await ctx.tx.insert(schema.notifications).values({ tenantId: ctx.tenantId, userId: r.userId, type: input.type, title: input.title, body: input.body ?? null, link: input.link ?? null, severity: input.severity ?? "info", metadata: input.metadata ?? {}, inApp: r.channels.in_app, readAt: r.channels.in_app ? null : now, delivered, createdAt: now });
+    await ctx.tx.insert(schema.notifications).values({ id, tenantId: ctx.tenantId, userId: r.userId, type: input.type, title: input.title, body: input.body ?? null, link: input.link ?? null, severity: input.severity ?? "info", metadata: input.metadata ?? {}, inApp: r.channels.in_app, readAt: r.channels.in_app ? null : now, delivered, createdAt: now });
     if (r.channels.in_app) written++;
   }
   return written;
