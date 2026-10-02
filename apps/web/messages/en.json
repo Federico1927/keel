@@ -58,7 +58,16 @@
       "not_paid": "Only paid orders can be refunded.",
       "exceeds_refundable": "The refund is more than what remains refundable on the order.",
       "line_invalid": "Check the units to refund: more than what is left on a line.",
-      "location_required": "Choose where the units go back in stock."
+      "location_required": "Choose where the units go back in stock.",
+      "cod_daily_limit": "Daily transfer limit reached: ask an admin.",
+      "cod_already_called": "After the first call only an admin can transfer the order.",
+      "cod_not_yours": "You can only transfer orders assigned to you.",
+      "cod_same_operator": "The order is already assigned to that person.",
+      "cod_target": "That person is not an active member of the team.",
+      "cod_template": "Unknown message template.",
+      "cod_phone": "The order has no phone number.",
+      "cod_reason": "Write a reason (at least 3 characters).",
+      "cod_carrier_columns": "The file needs a reference column (tracking or order) and an outcome column."
     },
     "edit": "Edit"
   },
@@ -359,8 +368,8 @@
     "order_states_link": "Order state rules",
     "branding_link": "Branding",
     "fulfilment_link": "Fulfilment",
-    "data_export_link": "Data export",
-    "ai_link": "AI & MCP"
+    "ai_link": "AI & MCP",
+    "data_export_link": "Data export"
   },
   "users": {
     "title": "Users & roles",
@@ -561,8 +570,8 @@
       "digest": "Daily digest email",
       "export_ready": "CSV export ready",
       "other": "Other",
-      "platform_failure": "Failing background jobs",
-      "mcp_proposal": "Proposal from an AI client"
+      "mcp_proposal": "Proposal from an AI client",
+      "platform_failure": "Failing background jobs"
     },
     "rendered": {
       "stock_critical_no_po": "{title} selling variants at critical stock with nothing on order",
@@ -1029,7 +1038,10 @@
     "fulfilled": "Shipped from Hullwise",
     "packed": "Packed",
     "unpacked": "Back to pending",
-    "delivery_instruction_sent": "Delivery instruction sent"
+    "delivery_instruction_sent": "Delivery instruction sent",
+    "cod_escalated": "COD escalation",
+    "cod_message": "Confirmation message sent",
+    "payment_method_changed": "Payment method changed"
   },
   "shipments": {
     "title": "Shipments",
@@ -1867,11 +1879,11 @@
     "declared": {
       "title_meta": "Meta: declared vs real",
       "title_google": "Google: declared vs real",
-      "title_tiktok": "TikTok: declared vs real",
       "platform_says": "Platform declares (purchases · value · ROAS)",
       "real": "Real attributed orders (orders · net · ROAS)",
       "gap": "Gap",
-      "help": "Platforms count conversions with their own windows and modelling; real orders are Hullwise's attributed sale orders. A large negative gap means the platform over-reports."
+      "help": "Platforms count conversions with their own windows and modelling; real orders are Hullwise's attributed sale orders. A large negative gap means the platform over-reports.",
+      "title_tiktok": "TikTok: declared vs real"
     },
     "creatives_link": "Creatives",
     "creatives": {
@@ -2646,11 +2658,11 @@
       "shopify": "Shopify",
       "meta": "Meta Ads",
       "google": "Google Ads",
-      "tiktok": "TikTok Ads",
       "tracking": "Pixel & conversions",
       "survey": "Post-purchase survey",
       "anthropic": "AI (Anthropic)",
-      "email": "Platform email"
+      "email": "Platform email",
+      "tiktok": "TikTok Ads"
     },
     "status": {
       "not_connected": "Not connected",
@@ -2699,15 +2711,15 @@
       "shopify": "Custom app (Admin API token)",
       "meta": "System user token",
       "google": "Google Ads API credentials",
-      "tiktok": "TikTok for Business app",
-      "anthropic": "Anthropic API key"
+      "anthropic": "Anthropic API key",
+      "tiktok": "TikTok for Business app"
     },
     "connect_description": {
       "shopify": "Create a custom app in the store admin, grant the scopes listed in the guide, paste the Admin API access token and the API secret key used to sign webhooks.",
       "meta": "A long-lived system user token from Business Manager with ads_read and ads_management on the ad account.",
       "google": "Developer token, OAuth client and a refresh token authorised for the Google Ads scope; read-only in this version.",
-      "tiktok": "App id and secret of the TikTok for Business app and the auth code returned by the advertiser authorization; Hullwise exchanges it for a long-lived token covering every authorized advertiser account.",
-      "anthropic": "The store's own key from console.anthropic.com. Anthropic bills the assistant's usage to that account; Hullwise stores the key encrypted."
+      "anthropic": "The store's own key from console.anthropic.com. Anthropic bills the assistant's usage to that account; Hullwise stores the key encrypted.",
+      "tiktok": "App id and secret of the TikTok for Business app and the auth code returned by the advertiser authorization; Hullwise exchanges it for a long-lived token covering every authorized advertiser account."
     },
     "fields": {
       "shop": "Shop domain",
@@ -2824,6 +2836,11 @@
         {
           "title": "Initial import",
           "body": "Click Resync: locations, products, inventory and discounts are imported, then orders page by page with a resumable cursor. Large stores continue across several worker runs; progress is visible under “Recent sync runs”."
+        },
+        {
+          "title": "Products: what Hullwise edits",
+          "body": "Hullwise mirrors every product field on read (media, description, status and channels, organisation, variants, SEO, metafields) and writes back only title, description, vendor, type, tags, status, SEO, category, variant price, compare-at price, SKU, barcode, weight, inventory policy and media (add from URL, reorder, remove, alt text). Scopes: read_products and write_products; read_publications to show the sales channels. Everything else opens the product in the Shopify admin. An edit opened before a change made in Shopify is refused with “changed in Shopify, reload”.",
+          "verify": true
         },
         {
           "title": "Order state rules",
@@ -2971,73 +2988,6 @@
         }
       ],
       "scopes": "Reading: the adwords scope with read access and a Basic developer token. Optional, only to pause ads and add negative keywords: the same scope with a user who can edit the account."
-    },
-    "tiktok": {
-      "title": "Connect TikTok Ads",
-      "intro": "Campaigns, ad groups and ads (copy, video, thumbnail) with daily spend, impressions, clicks, conversions, conversion value and video views, from every authorized advertiser account. Pausing and resuming campaigns and ads asks for confirmation and goes through the write queue. Included from the Growth plan.",
-      "steps": [
-        {
-          "title": "Create the TikTok for Business app",
-          "body": "On the TikTok API for Business developer portal create an app (or use Hullwise’s, when TIKTOK_APP_ID is configured). Set the advertiser redirect URL to:\n{callbackUrl}",
-          "verify": true
-        },
-        {
-          "title": "Permissions",
-          "body": "Request the permission groups the activated modules need (panel on the right): Ad Account Management, Ads Management and Reporting for campaigns and metrics; Creative Management for video thumbnails. TikTok reviews the app before it can be used on accounts other than yours.",
-          "verify": true
-        },
-        {
-          "title": "Authorize the advertiser accounts",
-          "body": "The store owner (or an admin of its Business Center) opens the authorization link, picks the advertiser accounts and confirms. TikTok redirects back with an auth_code valid for a few minutes and usable once.",
-          "verify": true
-        },
-        {
-          "title": "Connect in Hullwise",
-          "body": "Integrations → TikTok Ads → Connect: app id, app secret and the auth code (or “Authorize with TikTok” with Hullwise’s app). Hullwise exchanges the code for a long-lived access token, stores it encrypted (AES-GCM) and imports every advertiser it covers."
-        },
-        {
-          "title": "UTM template",
-          "body": "In every ad set the URL parameters (or append them to the landing page URL):\n{utmTemplate}\nTikTok fills __CAMPAIGN_ID__, __AID__ (ad group) and __CID__ (ad). Together with the ttclid click id they tie orders to campaigns, ad groups and ads; ads without them are flagged on the Suggestions page.",
-          "verify": true
-        },
-        {
-          "title": "API version",
-          "body": "Hullwise calls the TikTok API for Business {apiVersion} (reporting: report/integrated/get, daily rows in windows of up to 30 days). Check the changelog before each release.",
-          "verify": true
-        },
-        {
-          "title": "Verify",
-          "body": "Test connection reads the advertiser accounts; Resync imports campaigns and daily metrics, then ad groups and ads in 7-day windows (resumable, rate limits respected). The first import covers the last 90 days."
-        }
-      ],
-      "errors": [
-        {
-          "symptom": "40105 / 40102 access token invalid or expired",
-          "fix": "The advertiser revoked the authorization or the token was rotated: authorize again and reconnect."
-        },
-        {
-          "symptom": "40001 no permission",
-          "fix": "The app lacks a permission group, or the advertiser account was not selected during the authorization."
-        },
-        {
-          "symptom": "40100 too many requests",
-          "fix": "Rate limit: Hullwise pauses the sync and resumes from the same window after the wait."
-        },
-        {
-          "symptom": "Auth code expired or used",
-          "fix": "The auth code lasts a few minutes and works once: run the authorization again."
-        },
-        {
-          "symptom": "Orders show no TikTok ad",
-          "fix": "The URL parameters miss utm_content=__CID__ / utm_term=__AID__, or the store drops ttclid from the landing URL."
-        }
-      ],
-      "scopes": "Read-only analysis needs Ad Account Management and Reporting; pause/resume needs Ads Management too. Without Creative Management everything works except thumbnails.",
-      "modules": {
-        "campaigns": "Campaigns, ad groups, ads and metrics",
-        "creatives": "Video thumbnails",
-        "pause": "Pause / resume"
-      }
     },
     "anthropic": {
       "title": "Connect the AI assistant (Anthropic)",
@@ -3276,6 +3226,73 @@
           "fix": "RESEND_WEBHOOK_SECRET is missing or differs from the endpoint signing secret: the webhook answers 401 or 503."
         }
       ]
+    },
+    "tiktok": {
+      "title": "Connect TikTok Ads",
+      "intro": "Campaigns, ad groups and ads (copy, video, thumbnail) with daily spend, impressions, clicks, conversions, conversion value and video views, from every authorized advertiser account. Pausing and resuming campaigns and ads asks for confirmation and goes through the write queue. Included from the Growth plan.",
+      "steps": [
+        {
+          "title": "Create the TikTok for Business app",
+          "body": "On the TikTok API for Business developer portal create an app (or use Hullwise’s, when TIKTOK_APP_ID is configured). Set the advertiser redirect URL to:\n{callbackUrl}",
+          "verify": true
+        },
+        {
+          "title": "Permissions",
+          "body": "Request the permission groups the activated modules need (panel on the right): Ad Account Management, Ads Management and Reporting for campaigns and metrics; Creative Management for video thumbnails. TikTok reviews the app before it can be used on accounts other than yours.",
+          "verify": true
+        },
+        {
+          "title": "Authorize the advertiser accounts",
+          "body": "The store owner (or an admin of its Business Center) opens the authorization link, picks the advertiser accounts and confirms. TikTok redirects back with an auth_code valid for a few minutes and usable once.",
+          "verify": true
+        },
+        {
+          "title": "Connect in Hullwise",
+          "body": "Integrations → TikTok Ads → Connect: app id, app secret and the auth code (or “Authorize with TikTok” with Hullwise’s app). Hullwise exchanges the code for a long-lived access token, stores it encrypted (AES-GCM) and imports every advertiser it covers."
+        },
+        {
+          "title": "UTM template",
+          "body": "In every ad set the URL parameters (or append them to the landing page URL):\n{utmTemplate}\nTikTok fills __CAMPAIGN_ID__, __AID__ (ad group) and __CID__ (ad). Together with the ttclid click id they tie orders to campaigns, ad groups and ads; ads without them are flagged on the Suggestions page.",
+          "verify": true
+        },
+        {
+          "title": "API version",
+          "body": "Hullwise calls the TikTok API for Business {apiVersion} (reporting: report/integrated/get, daily rows in windows of up to 30 days). Check the changelog before each release.",
+          "verify": true
+        },
+        {
+          "title": "Verify",
+          "body": "Test connection reads the advertiser accounts; Resync imports campaigns and daily metrics, then ad groups and ads in 7-day windows (resumable, rate limits respected). The first import covers the last 90 days."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "40105 / 40102 access token invalid or expired",
+          "fix": "The advertiser revoked the authorization or the token was rotated: authorize again and reconnect."
+        },
+        {
+          "symptom": "40001 no permission",
+          "fix": "The app lacks a permission group, or the advertiser account was not selected during the authorization."
+        },
+        {
+          "symptom": "40100 too many requests",
+          "fix": "Rate limit: Hullwise pauses the sync and resumes from the same window after the wait."
+        },
+        {
+          "symptom": "Auth code expired or used",
+          "fix": "The auth code lasts a few minutes and works once: run the authorization again."
+        },
+        {
+          "symptom": "Orders show no TikTok ad",
+          "fix": "The URL parameters miss utm_content=__CID__ / utm_term=__AID__, or the store drops ttclid from the landing URL."
+        }
+      ],
+      "scopes": "Read-only analysis needs Ad Account Management and Reporting; pause/resume needs Ads Management too. Without Creative Management everything works except thumbnails.",
+      "modules": {
+        "campaigns": "Campaigns, ad groups, ads and metrics",
+        "creatives": "Video thumbnails",
+        "pause": "Pause / resume"
+      }
     }
   },
   "admin": {
@@ -3303,10 +3320,10 @@
         "support": "Support",
         "audit": "Audit"
       },
-      "jobs": "Job runs",
-      "alerts": "Failure alerts",
       "mcp": "MCP",
-      "subscriptions": "Subscriptions"
+      "subscriptions": "Subscriptions",
+      "jobs": "Job runs",
+      "alerts": "Failure alerts"
     },
     "plans": {
       "starter": "Starter",
@@ -3412,10 +3429,10 @@
         "shopify": "Shopify connected",
         "meta": "Meta Ads connected",
         "google": "Google Ads connected",
-        "tiktok": "TikTok Ads connected",
         "state_rules": "Order state rules",
         "costs": "Cost settings",
-        "billing": "Billing in good standing"
+        "billing": "Billing in good standing",
+        "tiktok": "TikTok Ads connected"
       },
       "members": "Members",
       "open_balance": "Open balance",
@@ -3617,6 +3634,40 @@
       },
       "remove": "Remove",
       "guide_title": "Setup guide"
+    },
+    "mcp": {
+      "title": "MCP usage",
+      "description": "Calls of AI clients per tenant over the last 30 days, and the kill switch. Every switch is written to the tenant's audit log.",
+      "platform_disabled": "HULLWISE_MCP_DISABLED=1: the MCP server refuses every call on this deployment.",
+      "stat_calls": "Calls (30 days)",
+      "stat_errors": "Errors",
+      "stat_rate_limited": "Rate limited",
+      "stat_connections": "Active connections",
+      "stat_unknown_tokens": "Unknown tokens",
+      "tenants_title": "Tenants",
+      "tenants_description": "Plan, state, usage and the kill switch per tenant.",
+      "col_tenant": "Tenant",
+      "col_status": "State",
+      "col_calls": "Calls",
+      "col_errors": "Errors",
+      "col_users": "People",
+      "col_connections": "Connections",
+      "col_last_call": "Last call",
+      "col_kill": "Kill switch",
+      "pending": "{count} to approve",
+      "denied_rl": "{denied} refused · {limited} limited",
+      "kill": "Suspend MCP",
+      "kill_confirm": "Suspend MCP for this tenant? Every call is refused until you restore it.",
+      "restore": "Restore MCP",
+      "note_placeholder": "Reason (audited)",
+      "availability": {
+        "ok": "Active",
+        "plan": "Not in plan",
+        "tenant_disabled": "Off (tenant)",
+        "killed": "Suspended",
+        "platform_disabled": "Platform off",
+        "suspended": "Tenant suspended"
+      }
     },
     "platform_label": "Platform",
     "export_csv": "Export CSV",
@@ -3847,40 +3898,6 @@
       "close": "Close",
       "empty_title": "No alerts",
       "empty_description": "Nothing is failing right now."
-    },
-    "mcp": {
-      "title": "MCP usage",
-      "description": "Calls of AI clients per tenant over the last 30 days, and the kill switch. Every switch is written to the tenant's audit log.",
-      "platform_disabled": "HULLWISE_MCP_DISABLED=1: the MCP server refuses every call on this deployment.",
-      "stat_calls": "Calls (30 days)",
-      "stat_errors": "Errors",
-      "stat_rate_limited": "Rate limited",
-      "stat_connections": "Active connections",
-      "stat_unknown_tokens": "Unknown tokens",
-      "tenants_title": "Tenants",
-      "tenants_description": "Plan, state, usage and the kill switch per tenant.",
-      "col_tenant": "Tenant",
-      "col_status": "State",
-      "col_calls": "Calls",
-      "col_errors": "Errors",
-      "col_users": "People",
-      "col_connections": "Connections",
-      "col_last_call": "Last call",
-      "col_kill": "Kill switch",
-      "pending": "{count} to approve",
-      "denied_rl": "{denied} refused · {limited} limited",
-      "kill": "Suspend MCP",
-      "kill_confirm": "Suspend MCP for this tenant? Every call is refused until you restore it.",
-      "restore": "Restore MCP",
-      "note_placeholder": "Reason (audited)",
-      "availability": {
-        "ok": "Active",
-        "plan": "Not in plan",
-        "tenant_disabled": "Off (tenant)",
-        "killed": "Suspended",
-        "platform_disabled": "Platform off",
-        "suspended": "Tenant suspended"
-      }
     }
   },
   "cod": {
@@ -3892,7 +3909,9 @@
       "mine": "Mine",
       "unassigned": "Unassigned",
       "scheduled": "Call back",
-      "unreachable": "Unreachable"
+      "unreachable": "Unreachable",
+      "planned": "Planned",
+      "escalated": "Escalated"
     },
     "empty_title": "Queue is empty",
     "empty_description": "New COD orders enter here automatically.",
@@ -3919,14 +3938,17 @@
       "no_answer": "No answer",
       "call_back": "Call back",
       "modified": "Modified",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "confirm_scheduled": "Confirm on a date",
+      "message_sent": "Message sent"
     },
     "outcomes_hint": {
       "confirmed": "Customer confirmed the order",
       "no_answer": "Counts toward unreachable",
       "call_back": "Pick a date and time",
       "modified": "Changes agreed, stays in queue",
-      "cancelled": "Customer refused: the order is cancelled on the platform"
+      "cancelled": "Customer refused: the order is cancelled on the platform",
+      "confirm_scheduled": "Customer agrees, but from a later day"
     },
     "call_back_at": "Call back at",
     "note_optional": "Note (optional)",
@@ -3955,7 +3977,8 @@
       "unreachable": "Unreachable",
       "confirmed": "Confirmed by phone",
       "cancelled": "Cancelled",
-      "left": "Left the queue"
+      "left": "Left the queue",
+      "confirm_scheduled": "Confirmation scheduled"
     },
     "card_title": "Cash on delivery",
     "weight_n": "weight {n}",
@@ -4102,10 +4125,204 @@
       "tags_clear_on_close": "On confirmed and cancelled also remove every queue tag",
       "cancel_restock": "Restock lines when an outcome cancels the order",
       "tags_placeholder": "Tag one, Tag two",
-      "tags_event_replaced": "Replaced by a new order"
+      "tags_event_replaced": "Replaced by a new order",
+      "ops": {
+        "title": "Queue behaviour",
+        "description": "Row colours, scheduled confirmations, transfers, the supervisor's bottleneck flag, COD fee lines and the return-to-sender automation.",
+        "fields": {
+          "agingWarnHours": "Amber after hours",
+          "agingAlertHours": "Red after hours",
+          "scheduledConfirmHour": "Scheduled confirmations from (hour)",
+          "transferDailyLimit": "Transfers per operator per day",
+          "bottleneckFactor": "Bottleneck at × team average",
+          "feeLineMatch": "COD fee lines (SKU or title)",
+          "refusalCostMinor": "Cost of a refused parcel (minor units)"
+        },
+        "fee_help": "Dropped when an operator switches a replacement to a prepaid method. A trailing * matches a prefix.",
+        "refusal_help": "In minor units ({decimals} decimals). 0 = twice the shipping cost estimate.",
+        "rts_label": "Cancel unpaid COD parcels returned to sender",
+        "rts_help": "When a return-to-sender case opens on a COD order still unpaid, the order is cancelled on the store without restock, which voids the pending payment. The review case stays open for the physical check."
+      },
+      "templates": {
+        "title": "Confirmation messages",
+        "description": "Templates operators copy or send from the COD card (WhatsApp, SMS…) through the messaging channel connected to the account. Each send counts as a contact attempt.",
+        "variables": "Variables:",
+        "key": "Key",
+        "name": "Name",
+        "body": "Text",
+        "remove": "Remove",
+        "add": "Add template",
+        "webhook_title": "Delivery receipts",
+        "webhook_help": "Give this address to the messaging provider for delivery and read receipts.",
+        "copy": "Copy"
+      },
+      "preview": {
+        "title": "Score preview",
+        "description": "Delivery score of any order with the current weights, without saving it.",
+        "order": "Order number",
+        "run": "Compute",
+        "base": "before risk: {n}"
+      },
+      "carrier": {
+        "title": "Carrier outcomes import",
+        "description": "CSV from the carrier's billing or COD remittance: delivered or refused per parcel. Matched by tracking number or order number; it feeds recipient risk and the wasted-cost figures.",
+        "file": "CSV file",
+        "paste": "Or paste the CSV",
+        "format": "Columns: reference (tracking or order), outcome (delivered / refused), optional date and cost. Separator ; , or tab.",
+        "import": "Import",
+        "result": "{imported} rows, {matched} matched, {unmatched} unmatched, {errors} skipped.",
+        "batch_counts": "{rows} rows · {matched} matched · {refused} refused"
+      }
     },
     "filter_by_tag": "Tag:",
-    "all_tags": "All"
+    "all_tags": "All",
+    "days_n": "{n} d",
+    "avg_age": "avg age {age}",
+    "never_contacted": "Never called · {age}",
+    "planned_badge": "Confirm on {date}",
+    "planned_failed": "Scheduled confirmation failed",
+    "planned_error": "The scheduled confirmation was refused by the store ({error}); it will be tried again at the next daily run.",
+    "escalated": "Escalated",
+    "escalated_note": "Escalated to an admin: {reason}",
+    "team_link": "Team console",
+    "attempts_n": "{n} attempts",
+    "warehouse_lines": "Items for the warehouse",
+    "copy": "Copy",
+    "confirm_on": "Confirm on",
+    "confirm_on_hint": "A daily job confirms the order that morning (from the hour set in COD settings). If the store refuses, the date is kept and it is tried again the next day.",
+    "nav_position": "{position} of {total} · {view}",
+    "system": "system",
+    "channels": {
+      "scheduled": "scheduled",
+      "bulk": "bulk",
+      "messaging-mock": "message"
+    },
+    "risk_panel": {
+      "refused": "Refused",
+      "wasted": "Wasted on refusals",
+      "expected": "Expected value",
+      "tier": "Recipient tier",
+      "linked": "Linked contacts",
+      "hint": "Expected value = delivery probability (score) × margin − refusal probability × {cost} per refused parcel."
+    },
+    "messages": {
+      "timeline": "Messages ({n})",
+      "status": {
+        "sent": "Sent",
+        "delivered": "Delivered",
+        "read": "Read",
+        "failed": "Failed"
+      },
+      "copy": "Copy text",
+      "send": "Send",
+      "sent": "Sent, logged as attempt #{n}.",
+      "no_phone": "The order has no phone number",
+      "action_failed": "The message could not be sent."
+    },
+    "transfer": {
+      "menu": "Transfer",
+      "release": "Release to the queue",
+      "pass_to": "Pass to a colleague",
+      "left_today": "{n} left today",
+      "no_transfer_after_call": "After the first call only an admin can transfer the order.",
+      "escalate": "Escalate to an admin",
+      "resolve": "Close the escalation",
+      "escalate_title": "Escalate this order",
+      "escalate_description": "Admins are notified and the order shows in the Escalated view until one of them closes it.",
+      "reason": "Reason",
+      "action_failed": "The action failed."
+    },
+    "precheck": {
+      "open": "Pre-check ({n})",
+      "title": "Before calling {order}",
+      "recomputed": "The score was stale and has just been recomputed. Points to check on the phone:",
+      "description": "Points to check on the phone:",
+      "severity": {
+        "critical": "Critical",
+        "warning": "Warning"
+      },
+      "previous_addresses": "Other addresses used by this customer",
+      "close": "Got it"
+    },
+    "bulk": {
+      "select_all": "Select all",
+      "selected": "{n} selected",
+      "assign": "Assign",
+      "assign_to": "Assign to",
+      "unassign": "Remove the operator",
+      "distribute": "Distribute equally",
+      "confirm": "Confirm",
+      "cancel": "Cancel orders",
+      "confirm_question": "Confirm {n} orders?",
+      "cancel_question": "Cancel {n} orders on the store?",
+      "yes": "Yes",
+      "clear": "Clear",
+      "result": "{done} done, {failed} refused.",
+      "failed": "The bulk action failed."
+    },
+    "team": {
+      "title": "Customer-care console",
+      "description": "Who holds what right now, efficiency per operator over a period, and what each operator handled.",
+      "tabs": {
+        "supervisor": "Supervisor",
+        "efficiency": "Efficiency",
+        "attribution": "Handled by operator"
+      },
+      "supervisor_title": "Open items per operator",
+      "supervisor_description": "Team average {avg} to call. An operator well above it is flagged as a bottleneck.",
+      "to_call": "To call",
+      "overdue": "Overdue call-backs",
+      "never_contacted": "Never called",
+      "oldest": "Oldest",
+      "bottleneck": "Bottleneck",
+      "empty_title": "No calls in this period",
+      "empty_description": "Pick another period.",
+      "efficiency_title": "Efficiency",
+      "efficiency_description": "From the registered attempts: orders handled, share confirmed, attempts per confirmation, time from entering the queue to the closing call, closed orders per active day.",
+      "handled": "Handled",
+      "confirmed_pct": "% confirmed",
+      "attempts_per_confirmation": "Attempts / confirmation",
+      "avg_handling": "Avg handling time",
+      "throughput": "Throughput",
+      "system": "Scheduled (system)",
+      "messages_n": "{n} messages",
+      "minutes_n": "{n} min",
+      "per_day": "{n}/day",
+      "attribution_title": "Orders handled",
+      "all_outcomes": "All",
+      "pick_operator": "Pick an operator.",
+      "last_outcome": "Last outcome",
+      "last_at": "Last call"
+    },
+    "widgets": {
+      "pending": {
+        "today": "today",
+        "yesterday": "yesterday",
+        "week": "7 days",
+        "total": "{n} open in total"
+      },
+      "mine": {
+        "call_backs": "{n} call-backs due",
+        "never": "{n} never called",
+        "planned": "{n} planned",
+        "unreachable": "{n} unreachable"
+      },
+      "operators": {
+        "empty": "No open COD orders.",
+        "unassigned": "Unassigned",
+        "overdue": "{n} overdue"
+      }
+    },
+    "modify": {
+      "payment_method": "Payment method of the new order",
+      "keep_cod": "Keep cash on delivery",
+      "methods": {
+        "card": "Card (payment link sent separately)",
+        "bank_transfer": "Bank transfer",
+        "other": "Other prepaid method"
+      },
+      "payment_hint": "The order is recreated with the new method, payment pending: the COD fee lines are dropped and it leaves the confirmation queue."
+    }
   },
   "po_pdf": {
     "title": "Purchase order",
@@ -5024,7 +5241,6 @@
       "roas": "ROAS",
       "meta": "Meta",
       "google": "Google",
-      "tiktok": "TikTok",
       "slipping": "valuable customers at risk",
       "due_soon": "due to order soon",
       "top": "highest predicted value",
@@ -5034,7 +5250,8 @@
       "consider_pause": "Consider pausing",
       "consider_resume": "Consider resuming",
       "pause_stock": "Pause: low stock",
-      "consider_stock": "Check stock"
+      "consider_stock": "Check stock",
+      "tiktok": "TikTok"
     },
     "open_source": "Open page",
     "figures": {
@@ -5913,7 +6130,10 @@
       "discount_status": "Discount on/off",
       "discount_pool_status": "Discount pool on/off",
       "ad_status": "Ad status",
-      "keyword_negative": "Negative keyword"
+      "keyword_negative": "Negative keyword",
+      "product_update": "Product details",
+      "variant_details": "Variant details",
+      "product_media": "Product media"
     }
   },
   "dev_inbox": {
@@ -6641,670 +6861,6 @@
       }
     }
   },
-  "data_export": {
-    "title": "Data export",
-    "description": "Download everything Hullwise holds for this store.",
-    "what_title": "Full export of the store's data",
-    "what_description": "One CSV file per table (orders, customers, products, returns, campaigns, settings and more) in a zip archive, built in the background. You are notified when it is ready; the download link expires after {days} days. Secrets such as integration credentials are never included.",
-    "request": "Export all data",
-    "requesting": "Starting…",
-    "errors": {
-      "in_progress": "An export is already running.",
-      "generic": "The export could not be started."
-    },
-    "empty_title": "No exports yet",
-    "empty_description": "Exports you start appear here with their download link.",
-    "columns": {
-      "requested": "Requested",
-      "status": "Status",
-      "rows": "Rows",
-      "expires": "Link expires",
-      "file": "File"
-    },
-    "by_platform": "Hullwise support",
-    "statuses": {
-      "pending": "Queued",
-      "running": "Running",
-      "done": "Ready",
-      "failed": "Failed",
-      "expired": "Expired"
-    },
-    "tables_n": "{n} tables",
-    "download": "Download",
-    "downloads": "{n, plural, one {downloaded once} other {downloaded # times}}"
-  },
-  "dashboards": {
-    "title": "Dashboards",
-    "description": "The home your team sees, home variants per role, extra dashboards and personal copies.",
-    "home_description": "Your team's dashboard, designed by the store's owners.",
-    "edit": "Edit dashboard",
-    "customise": "Customise",
-    "home_name": "Home",
-    "preview_as": "Preview as…",
-    "preview_banner": "Preview as {role}",
-    "draft_banner": "unpublished draft",
-    "exit_preview": "Exit preview",
-    "draft_badge": "Unpublished changes",
-    "template_badge": "Hullwise template",
-    "customised_badge": "Customised",
-    "open": "Open",
-    "home": "Home",
-    "home_template": "Your home is Hullwise's template: it follows Hullwise's updates until you customise it.",
-    "home_custom": "Customised home: {name}.",
-    "reset_home": "Reset home to Hullwise template",
-    "reset_home_confirm": "The tenant home goes back to Hullwise's template. Role variants are kept. Continue?",
-    "reset_all": "Reset home and role variants",
-    "reset_all_confirm": "The home and every role variant go back to Hullwise's template. Continue?",
-    "personal_toggle": "Personal dashboards",
-    "personal_toggle_hint": "When on, anyone can copy a dashboard into a personal one. The tenant's dashboards stay the reference.",
-    "name": "Name",
-    "kind": "Kind",
-    "scope_new": {
-      "tenant": "Extra dashboard",
-      "role": "Home variant for roles",
-      "personal": "Personal copy of my home"
-    },
-    "roles_variant": "Roles that see this home",
-    "roles_visible": "Roles that can open it",
-    "roles_all_hint": "None selected: everyone in the store.",
-    "create": "Create",
-    "copy_of": "Copy of {name}",
-    "duplicate": "Make a personal copy",
-    "delete": "Delete",
-    "delete_confirm": "Delete this dashboard?",
-    "scope": {
-      "tenant": "Store dashboard",
-      "role": "Home variant",
-      "personal": "Personal dashboard"
-    },
-    "personal_description": "Only you see it.",
-    "visible_to": "Visible to: {roles}",
-    "visible_all": "Visible to everyone in the store",
-    "widgets_n": "{n, plural, one {# widget} other {# widgets}}",
-    "variants": "Home variants by role",
-    "variants_description": "A role with a variant sees it instead of the store home.",
-    "variants_empty": "No variants: every role sees the store home.",
-    "extras": "Other dashboards",
-    "extras_description": "Named dashboards, for example a weekly review.",
-    "extras_empty": "No other dashboards yet.",
-    "personal": "My dashboards",
-    "personal_hint": "Your own copies: change them freely.",
-    "personal_empty": "No personal dashboards.",
-    "new_dashboard": "New dashboard",
-    "settings": "Settings",
-    "metrics_page": "Metrics and targets",
-    "metrics_description": "The metrics your dashboards can show: Hullwise's catalog and your own formulas, with monthly targets.",
-    "custom_metrics": "Custom metrics",
-    "custom_metrics_hint": "Formulas over the base metrics, optionally over filtered orders. Every change goes to the audit log.",
-    "custom_metrics_empty": "No custom metrics yet.",
-    "this_month": "This month",
-    "targets": "Monthly targets",
-    "targets_hint": "A month without its own target uses the latest earlier one.",
-    "catalog": "Metric catalog",
-    "catalog_hint": "Base metrics computed by Hullwise's services: they agree with the P/L, the campaigns and the stock pages.",
-    "catalog_group": "Group",
-    "catalog_flags": "Use",
-    "flag_snapshot": "now",
-    "flag_filterable": "filters",
-    "flag_series": "time series",
-    "catalog_pending": "Sessions and conversion rate arrive with the GA4 connection; TikTok ads and search terms with their integrations.",
-    "periods": {
-      "today": "Today",
-      "7d": "7 days",
-      "30d": "30 days",
-      "90d": "90 days",
-      "mtd": "Month to date",
-      "last_month": "Last month",
-      "ytd": "Year to date",
-      "follow": "Dashboard period"
-    },
-    "widget": {
-      "error": "This widget could not load. The rest of the dashboard is fine.",
-      "forbidden": "Not available for your role.",
-      "unavailable": "This widget is not available on your plan.",
-      "days_unit": "days",
-      "open_list": "Open",
-      "now": "now",
-      "vs_previous": "vs previous period",
-      "filtered": "filtered",
-      "unknown": "Unknown",
-      "empty": "Nothing in this period.",
-      "breakdown_title": "{metric} by {by}",
-      "target_title": "{metric}: monthly target",
-      "no_target": "No target set for this month.",
-      "of_target": "of {target}",
-      "projected": "Month-end projection {value} (day {elapsed} of {days})",
-      "no_alerts": "No alerts fired recently.",
-      "empty_note": "Empty note."
-    },
-    "widget_groups": {
-      "metrics": "Metrics",
-      "charts": "Charts",
-      "lists": "Lists",
-      "queues": "Work queues",
-      "content": "Content",
-      "hullwise": "Hullwise home tiles"
-    },
-    "widget_types": {
-      "kpi": {
-        "name": "KPI tile",
-        "description": "One metric with comparison and trend."
-      },
-      "timeseries": {
-        "name": "Time series",
-        "description": "1–3 metrics by day, week or month."
-      },
-      "breakdown": {
-        "name": "Breakdown",
-        "description": "A metric by channel, country, payment, product, campaign or platform."
-      },
-      "top_list": {
-        "name": "Top list",
-        "description": "Best products, campaigns or customers."
-      },
-      "target": {
-        "name": "Target",
-        "description": "Month to date against the monthly target, with projection."
-      },
-      "alerts": {
-        "name": "Alerts",
-        "description": "The latest alerts that fired."
-      },
-      "note": {
-        "name": "Note",
-        "description": "Text for the team (markdown)."
-      },
-      "queue_review": {
-        "name": "Orders to review",
-        "description": "Orders pending review."
-      },
-      "queue_late": {
-        "name": "Late to ship",
-        "description": "Ready orders past the shipping deadline."
-      },
-      "queue_awaiting_stock": {
-        "name": "Awaiting stock",
-        "description": "Orders held for missing stock."
-      },
-      "queue_exceptions": {
-        "name": "Delivery exceptions",
-        "description": "Open shipment exception cases."
-      },
-      "queue_integrations": {
-        "name": "Integration health",
-        "description": "Connections or syncs in error and failed webhooks."
-      },
-      "today_kpis": {
-        "name": "Today's KPIs",
-        "description": "Sales, orders, AOV and cancellations today."
-      },
-      "sales_30d": {
-        "name": "Sales, last 30 days",
-        "description": "Daily sales and orders."
-      },
-      "month_forecast": {
-        "name": "Month forecast",
-        "description": "Projected revenue, orders and ad spend."
-      },
-      "work_queue": {
-        "name": "Needs attention",
-        "description": "Everything open, with counts."
-      },
-      "stock_backorders": {
-        "name": "Stock and backorders",
-        "description": "Orders waiting for stock, best sellers running low."
-      },
-      "today_by_status": {
-        "name": "Today's orders by status",
-        "description": "Today's orders per canonical status."
-      },
-      "cod_queue": {
-        "name": "COD to confirm",
-        "description": "Cash-on-delivery orders waiting for a call."
-      }
-    },
-    "metrics": {
-      "net_revenue": "Net revenue",
-      "gross_revenue": "Gross sales",
-      "orders": "Orders",
-      "aov": "Average order value",
-      "ad_spend": "Ad spend",
-      "cogs": "Cost of goods",
-      "gross_margin": "Gross margin",
-      "shipping": "Shipping costs",
-      "fees": "Payment fees",
-      "fixed_costs": "Fixed costs",
-      "contribution": "Contribution margin",
-      "operating_profit": "Operating profit",
-      "refunds": "Refunds",
-      "new_customers": "New customers",
-      "mer": "MER",
-      "nc_roas": "nc-ROAS",
-      "cac": "Blended CAC",
-      "poas": "POAS",
-      "cancel_rate": "Cancellation rate",
-      "returns_rate": "Return rate",
-      "return_cost": "Return costs",
-      "repeat_customer_rate": "Repeat customer rate",
-      "stock_value_cost": "Stock value at cost",
-      "coverage_days": "Days of cover",
-      "out_of_stock_variants": "Out-of-stock variants",
-      "incoming_po_value": "Incoming PO value",
-      "meta_spend": "Meta spend",
-      "meta_roas": "Meta ROAS",
-      "meta_cpa": "Meta CPA",
-      "meta_ctr": "Meta CTR",
-      "google_spend": "Google spend",
-      "google_roas": "Google ROAS",
-      "google_cpa": "Google CPA",
-      "google_ctr": "Google CTR",
-      "tiktok_spend": "TikTok spend",
-      "tiktok_roas": "TikTok ROAS",
-      "tiktok_cpa": "TikTok CPA",
-      "tiktok_ctr": "TikTok CTR"
-    },
-    "metric_groups": {
-      "finance": "Finance",
-      "orders": "Orders and returns",
-      "customers": "Customers",
-      "inventory": "Inventory",
-      "ads": "Ads by platform",
-      "custom": "Custom metrics"
-    },
-    "breakdown_dims": {
-      "channel": "channel",
-      "country": "country",
-      "payment_method": "payment method",
-      "product": "product",
-      "campaign": "campaign",
-      "platform": "platform"
-    },
-    "top_entities": {
-      "products": "Top products",
-      "campaigns": "Top campaigns by profit",
-      "customers": "Top customers",
-      "ads": "Top ads by profit",
-      "keywords": "Top keywords by profit",
-      "search_terms": "Top search terms by spend"
-    },
-    "top_secondary": {
-      "products": "{v} units",
-      "campaigns": "ROAS {v}",
-      "customers": "{v} orders",
-      "ads": "ROAS {v}",
-      "keywords": "ROAS {v}",
-      "search_terms": "{v} orders"
-    },
-    "granularity": {
-      "day": "Day",
-      "week": "Week",
-      "month": "Month"
-    },
-    "channels": {
-      "paid_social": "Paid social",
-      "paid_search": "Paid search",
-      "organic_search": "Organic search",
-      "email": "Email",
-      "social": "Social",
-      "direct": "Direct",
-      "referral": "Referral",
-      "unknown": "Unknown"
-    },
-    "queue_parts": {
-      "connections": "{n} connections",
-      "sources": "{n} syncs",
-      "webhooks": "{n} webhooks",
-      "unassigned": "{n} unassigned"
-    },
-    "editor": {
-      "title": "Edit: {name}",
-      "description": "Changes are saved as a draft: preview them as a role, then publish.",
-      "published": "Published.",
-      "saved": "Draft saved.",
-      "none": "— none —",
-      "title_field": "Title (optional)",
-      "title_placeholder": "Automatic",
-      "width": "Width",
-      "height": "Height",
-      "columns": "{n, plural, one {# column} other {# columns}}",
-      "rows": "{n, plural, one {# row} other {# rows}}",
-      "period": "Period",
-      "metric": "Metric",
-      "compare": "Compare with",
-      "compare_previous": "Previous period",
-      "compare_none": "Nothing",
-      "sparkline": "Show the trend line",
-      "series_n": "Metric {n}",
-      "chart": "Chart",
-      "chart_line": "Lines",
-      "chart_bar": "Bars",
-      "granularity": "By",
-      "by": "Split by",
-      "limit": "Rows",
-      "entity": "List",
-      "note_text": "Text",
-      "note_hint": "Headings (#), lists (-), **bold**, *italic*, [links](https://…). HTML is shown as text.",
-      "note_translation": "Text in {locale} (optional)",
-      "dashboard_period": "Dashboard period",
-      "save_draft": "Save draft",
-      "publish": "Publish",
-      "preview_as": "Save and preview as…",
-      "discard": "Discard draft",
-      "reset_confirm": "Replace the widgets with Hullwise's template? Publish to apply.",
-      "reset_template": "Reset to Hullwise template",
-      "count": "{n} of {max} widgets",
-      "drag_hint": "Drag the widgets to reorder them, or use the arrows. Click a widget to configure it.",
-      "configure": "Configure",
-      "move_up": "Move up",
-      "move_down": "Move down",
-      "remove": "Remove",
-      "size": "{w}×{h}",
-      "empty": "No widgets: add one from the catalog.",
-      "settings": "Widget settings",
-      "add_widget": "Add a widget",
-      "done": "Done"
-    },
-    "errors": {
-      "generic": "Something went wrong.",
-      "forbidden": "You cannot change this dashboard.",
-      "not_found": "Dashboard not found.",
-      "invalid_layout": "Some widgets are not valid.",
-      "too_many_widgets": "Too many widgets for one dashboard.",
-      "module_disabled": "A widget needs a module your store does not have.",
-      "role_taken": "A selected role already has a home variant.",
-      "home_exists": "The store home already exists.",
-      "invalid_input": "Check the fields.",
-      "personal_off": "Personal dashboards are switched off for this store.",
-      "invalid_formula": "The formula is not valid.",
-      "invalid_filters": "The filters are not valid.",
-      "invalid_key": "Choose another key: this one is empty or a base metric.",
-      "not_filterable": "With filters, use only metrics computed from the orders (not fixed costs, operating profit, new customers or stock)."
-    },
-    "builder": {
-      "saved": "Metric saved.",
-      "label": "Name",
-      "label_placeholder": "Contribution per order",
-      "key": "Key",
-      "key_placeholder": "from the name",
-      "formula": "Formula",
-      "formula_ok": "Valid formula.",
-      "formula_error": "Not valid",
-      "formula_help": "Combine base metrics with + − × ÷ and parentheses, e.g. contribution / orders.",
-      "available": "Available metrics",
-      "filters": "Computed over",
-      "filters_hint": "Leave empty for the whole store. Filters keep only the matching orders.",
-      "f_channel": "Channel",
-      "f_country": "Country",
-      "f_payment": "Payment method",
-      "f_platform": "Ad platform",
-      "f_campaign": "Campaign",
-      "f_product": "Product",
-      "f_product_type": "Product type",
-      "f_customer": "Customers",
-      "f_customer_all": "All",
-      "f_customer_new": "New (first order)",
-      "f_customer_returning": "Returning",
-      "format": "Format",
-      "formats": {
-        "money": "Money",
-        "percent": "Percent",
-        "ratio": "Ratio (×)",
-        "number": "Number"
-      },
-      "direction": "Trend",
-      "higher_better": "Higher is better",
-      "lower_better": "Lower is better",
-      "translation": "Name in {locale}",
-      "description_field": "Description",
-      "preview": "Preview this month",
-      "save": "Save metric",
-      "cancel": "Cancel",
-      "preview_value": "This month: {value} (previous period {previous})",
-      "delete": "Delete",
-      "delete_confirm": "Delete this metric? Widgets using it will show a dash.",
-      "invalid_target": "Target not valid.",
-      "target_saved": "Target saved.",
-      "target_metric": "Metric",
-      "target_month": "Month",
-      "target_value_money": "Target (currency)",
-      "target_value_percent": "Target (%)",
-      "target_value_number": "Target",
-      "target_clear": "empty = remove",
-      "target_save": "Set target",
-      "edit_title": "Edit {name}",
-      "new_title": "New metric",
-      "hint": "Only owners and admins create or change metrics.",
-      "filter_names": {
-        "channel": "Channel",
-        "country": "Country",
-        "paymentMethod": "Payment",
-        "productIds": "Products",
-        "productType": "Product type",
-        "campaignIds": "Campaigns",
-        "platform": "Platform",
-        "customerType": "Customers"
-      }
-    },
-    "payment_methods": {
-      "card": "Card",
-      "wallet": "Wallet",
-      "bank_transfer": "Bank transfer",
-      "cod": "Cash on delivery",
-      "bnpl": "Buy now pay later",
-      "other": "Other"
-    },
-    "platforms": {
-      "meta": "Meta",
-      "google": "Google",
-      "tiktok": "TikTok"
-    }
-  },
-  "ads": {
-    "nav": {
-      "label": "Campaign analysis",
-      "campaigns": "Campaigns",
-      "creatives": "Creatives",
-      "keywords": "Keywords & search terms",
-      "words": "Words",
-      "recommendations": "Suggestions"
-    },
-    "cols": {
-      "name": "Name",
-      "spend": "Spend",
-      "impressions": "Impressions",
-      "ctr": "CTR",
-      "platform_conv": "Platform conv.",
-      "hullwise_orders": "Hullwise orders",
-      "revenue": "Net revenue",
-      "profit": "Profit",
-      "roas": "ROAS",
-      "frequency": "Frequency",
-      "match": "Match",
-      "quality": "Quality",
-      "campaign": "Campaign",
-      "action": "Action",
-      "phrase": "Phrase",
-      "items": "Used in",
-      "margin": "Margin",
-      "cpa": "CPA",
-      "field": "Field",
-      "asset": "Asset",
-      "hullwise_orders_allocated": "Hullwise orders (allocated)",
-      "date": "Date",
-      "search_term": "Search term",
-      "clicks": "Clicks",
-      "reason": "Why",
-      "ad": "Ad"
-    },
-    "excluded_n": "+{n} cancelled/returned",
-    "ad_sets_title": "Ad sets",
-    "ad_groups_title": "Ad groups",
-    "ad_sets_description": "Platform numbers next to Hullwise's: orders, revenue and profit count only orders that were not cancelled or returned.",
-    "utm_missing": "{n} of {total} ads do not carry {params}: their orders reach Hullwise without an ad. Add this template to the ads:",
-    "no_ad_sets": "No ad sets yet",
-    "no_ad_sets_hint": "They arrive with the next ads sync.",
-    "hullwise_not_visible": "Hullwise cannot see this row's orders (the UTM template does not name it).",
-    "n_ads": "{n} ads",
-    "n_keywords": "{n} keywords",
-    "unassigned_orders": "{n} campaign orders are not tied to an ad set",
-    "open_orders": "Open orders",
-    "reconciliation": "Spend by ads {ads} of {campaign} · unallocated {unallocated}",
-    "ad_set": "Ad set",
-    "ad_group": "Ad group",
-    "status": {
-      "active": "Active",
-      "paused": "Paused",
-      "archived": "Archived"
-    },
-    "ads_title": "Ads",
-    "ads_description": "Fatigue means frequency is rising while CTR falls. Suggestions are read-only: a person decides.",
-    "no_ads": "No ads in this ad set",
-    "keywords_title": "Keywords",
-    "no_keywords": "No keywords",
-    "search_terms_title": "Search terms",
-    "all_search_terms": "All search terms of the campaign",
-    "no_search_terms": "No search terms",
-    "other_terms": "Other terms (under the minimum impressions)",
-    "via_keyword": "via “{keyword}”",
-    "negative_reason": {
-      "only_cancelled": "Only cancelled orders",
-      "no_orders": "Spend, no orders",
-      "unprofitable_orders": "Orders at a loss",
-      "no_conversions": "Spend, no conversions"
-    },
-    "excluded": "Excluded",
-    "hullwise_footnote": "Hullwise ties orders to ad sets, ads and keywords through the UTM template; numbers the platform cannot tie show a dash.",
-    "match": {
-      "exact": "Exact",
-      "phrase": "Phrase",
-      "broad": "Broad"
-    },
-    "fatigue": {
-      "watch": "Watch: CTR falling",
-      "fatigued": "Fatigued"
-    },
-    "utm_badge": "UTM missing",
-    "pause_reason": {
-      "losing": "Losing money",
-      "fatigued": "Fatigued and losing",
-      "low_label": "Rated LOW",
-      "low_ctr": "Half the CTR of its siblings"
-    },
-    "ctr_change": "CTR {change} since the start",
-    "copy_title": "Copy and tracking",
-    "utm_missing_ad": "This ad does not carry {params}: its orders reach Hullwise without the ad. Template:",
-    "assets_title": "Assets",
-    "no_assets": "No asset breakdown",
-    "no_assets_meta": "Meta reports assets only for dynamic creative and Advantage+ creative ads.",
-    "no_assets_google": "Google reports assets for responsive ads.",
-    "no_assets_tiktok": "TikTok reports no metrics per asset: the ad’s video is listed with its id.",
-    "field": {
-      "headline": "Headline",
-      "description": "Description",
-      "body": "Primary text",
-      "title": "Title",
-      "image": "Image",
-      "video": "Video",
-      "other": "Other"
-    },
-    "assets_footnote": "Platforms report assets, not orders: Hullwise spreads the ad's orders over its assets by spend share within each field.",
-    "daily_title": "By day",
-    "no_days": "No daily data in the period",
-    "keywords_page_title": "Keywords and search terms",
-    "keywords_page_description": "Google Ads keywords and the queries that triggered the ads, with Hullwise's own orders where the UTM template names them.",
-    "tabs": {
-      "keywords": "Keywords",
-      "search_terms": "Search terms"
-    },
-    "search_placeholder": "Search text",
-    "all_campaigns": "All campaigns",
-    "sort_label": "Sort",
-    "sort": {
-      "spend": "Spend",
-      "profit": "Profit",
-      "roas": "ROAS",
-      "conversions": "Conversions"
-    },
-    "candidates_only": "Negative-keyword candidates only",
-    "apply": "Apply",
-    "google_only": "Keywords and search terms come from Google Ads; Meta has none.",
-    "rows_total": "{n} rows",
-    "prev": "Previous",
-    "next": "Next",
-    "page_of": "Page {page} of {pages}",
-    "keywords_footnote": "Hullwise orders come from utm_term set to the keyword by the tracking template.",
-    "search_terms_footnote": "Hullwise sees a search term's orders when the term is a keyword (exact match); for the others the platform's conversions decide. Terms under the minimum impressions are grouped under “Other terms”.",
-    "words_title": "Words",
-    "words_description": "Winning and losing words and phrases (1–3 words) in ad copy, search terms and keywords, with the profit of Hullwise's orders.",
-    "word_source": {
-      "copy": "Ad copy",
-      "search_terms": "Search terms",
-      "keywords": "Keywords"
-    },
-    "ngram": {
-      "all": "All",
-      "n1": "1 word",
-      "n2": "2 words",
-      "n3": "3 words"
-    },
-    "no_words": "Not enough volume",
-    "no_words_hint": "A phrase needs at least two ads or terms and some spend.",
-    "winners": "Winning words",
-    "winners_description": "Phrases in items that made a profit, best first.",
-    "no_winners": "No profitable phrase in the period",
-    "losers": "Losing words",
-    "losers_description": "Phrases in items that lost money, worst first.",
-    "no_losers": "No losing phrase in the period",
-    "words_footnote": "{items} items analysed. Each phrase sums the full numbers of every item that contains it, so phrases overlap.",
-    "recommendations_title": "Ads suggestions",
-    "recommendations_description": "Read-only suggestions: a person reviews them and acts; writes to the platforms always ask for confirmation.",
-    "in_items": "in {n}",
-    "rec": {
-      "negatives_title": "Negative keyword candidates",
-      "negatives_description": "{n} search terms spend without profitable orders.",
-      "google_read_only": "Google is read-only for this store: grant write access in Integrations to exclude terms from here.",
-      "none": "Nothing to suggest",
-      "all_candidates": "All candidates",
-      "ads_title": "Ads to pause",
-      "ads_description": "Active ads losing money in the period, or fatigued and losing.",
-      "words_title": "Winning words to reuse in copy",
-      "words_description": "Phrases of the ads that made the most profit.",
-      "open_words": "Open Words",
-      "assets_title": "Weak assets",
-      "assets_description": "Assets rated LOW by the platform or with half the CTR of their siblings.",
-      "utm_title": "UTM templates",
-      "utm_description": "Without these parameters Hullwise cannot tie orders to ads, ad sets and keywords.",
-      "utm_ok": "Every active campaign carries the templates.",
-      "utm_row": "{missing} of {ads} ads miss {params}",
-      "template_meta": "Meta: URL parameters of the ad",
-      "template_google": "Google: account tracking template",
-      "template_tiktok": "TikTok: URL parameters of the ad"
-    },
-    "actions": {
-      "read_only": "{platform} is read-only for this store.",
-      "read_only_short": "Read-only",
-      "pause_ad": "Pause ad",
-      "resume_ad": "Resume ad",
-      "pause_title": "Pause this ad on {platform}?",
-      "resume_title": "Resume this ad on {platform}?",
-      "write_description": "Hullwise changes the status here and sends it to the platform; if the platform is unreachable the change is retried and shown as pending.",
-      "confirm": "Confirm",
-      "exclude": "Exclude",
-      "negative_title": "Add “{text}” as a negative keyword?",
-      "negative_description": "Google stops showing the ads for this query. The change is sent through the write queue.",
-      "match_type": "Match type",
-      "match": {
-        "exact": "Exact",
-        "phrase": "Phrase",
-        "broad": "Broad"
-      },
-      "level": "Level",
-      "levels": {
-        "campaign": "Campaign",
-        "ad_group": "Ad group"
-      }
-    }
-  },
   "mcp": {
     "copy": "Copy",
     "copied": "Copied",
@@ -7549,6 +7105,444 @@
       }
     }
   },
+  "dashboards": {
+    "title": "Dashboards",
+    "description": "The home your team sees, home variants per role, extra dashboards and personal copies.",
+    "home_description": "Your team's dashboard, designed by the store's owners.",
+    "edit": "Edit dashboard",
+    "customise": "Customise",
+    "home_name": "Home",
+    "preview_as": "Preview as…",
+    "preview_banner": "Preview as {role}",
+    "draft_banner": "unpublished draft",
+    "exit_preview": "Exit preview",
+    "draft_badge": "Unpublished changes",
+    "template_badge": "Hullwise template",
+    "customised_badge": "Customised",
+    "open": "Open",
+    "home": "Home",
+    "home_template": "Your home is Hullwise's template: it follows Hullwise's updates until you customise it.",
+    "home_custom": "Customised home: {name}.",
+    "reset_home": "Reset home to Hullwise template",
+    "reset_home_confirm": "The tenant home goes back to Hullwise's template. Role variants are kept. Continue?",
+    "reset_all": "Reset home and role variants",
+    "reset_all_confirm": "The home and every role variant go back to Hullwise's template. Continue?",
+    "personal_toggle": "Personal dashboards",
+    "personal_toggle_hint": "When on, anyone can copy a dashboard into a personal one. The tenant's dashboards stay the reference.",
+    "name": "Name",
+    "kind": "Kind",
+    "scope_new": {
+      "tenant": "Extra dashboard",
+      "role": "Home variant for roles",
+      "personal": "Personal copy of my home"
+    },
+    "roles_variant": "Roles that see this home",
+    "roles_visible": "Roles that can open it",
+    "roles_all_hint": "None selected: everyone in the store.",
+    "create": "Create",
+    "copy_of": "Copy of {name}",
+    "duplicate": "Make a personal copy",
+    "delete": "Delete",
+    "delete_confirm": "Delete this dashboard?",
+    "scope": {
+      "tenant": "Store dashboard",
+      "role": "Home variant",
+      "personal": "Personal dashboard"
+    },
+    "personal_description": "Only you see it.",
+    "visible_to": "Visible to: {roles}",
+    "visible_all": "Visible to everyone in the store",
+    "widgets_n": "{n, plural, one {# widget} other {# widgets}}",
+    "variants": "Home variants by role",
+    "variants_description": "A role with a variant sees it instead of the store home.",
+    "variants_empty": "No variants: every role sees the store home.",
+    "extras": "Other dashboards",
+    "extras_description": "Named dashboards, for example a weekly review.",
+    "extras_empty": "No other dashboards yet.",
+    "personal": "My dashboards",
+    "personal_hint": "Your own copies: change them freely.",
+    "personal_empty": "No personal dashboards.",
+    "new_dashboard": "New dashboard",
+    "settings": "Settings",
+    "metrics_page": "Metrics and targets",
+    "metrics_description": "The metrics your dashboards can show: Hullwise's catalog and your own formulas, with monthly targets.",
+    "custom_metrics": "Custom metrics",
+    "custom_metrics_hint": "Formulas over the base metrics, optionally over filtered orders. Every change goes to the audit log.",
+    "custom_metrics_empty": "No custom metrics yet.",
+    "this_month": "This month",
+    "targets": "Monthly targets",
+    "targets_hint": "A month without its own target uses the latest earlier one.",
+    "catalog": "Metric catalog",
+    "catalog_hint": "Base metrics computed by Hullwise's services: they agree with the P/L, the campaigns and the stock pages.",
+    "catalog_group": "Group",
+    "catalog_flags": "Use",
+    "flag_snapshot": "now",
+    "flag_filterable": "filters",
+    "flag_series": "time series",
+    "catalog_pending": "Sessions and conversion rate arrive with the GA4 connection; TikTok ads and search terms with their integrations.",
+    "periods": {
+      "today": "Today",
+      "7d": "7 days",
+      "30d": "30 days",
+      "90d": "90 days",
+      "mtd": "Month to date",
+      "last_month": "Last month",
+      "ytd": "Year to date",
+      "follow": "Dashboard period"
+    },
+    "widget": {
+      "error": "This widget could not load. The rest of the dashboard is fine.",
+      "forbidden": "Not available for your role.",
+      "unavailable": "This widget is not available on your plan.",
+      "days_unit": "days",
+      "open_list": "Open",
+      "now": "now",
+      "vs_previous": "vs previous period",
+      "filtered": "filtered",
+      "unknown": "Unknown",
+      "empty": "Nothing in this period.",
+      "breakdown_title": "{metric} by {by}",
+      "target_title": "{metric}: monthly target",
+      "no_target": "No target set for this month.",
+      "of_target": "of {target}",
+      "projected": "Month-end projection {value} (day {elapsed} of {days})",
+      "no_alerts": "No alerts fired recently.",
+      "empty_note": "Empty note."
+    },
+    "widget_groups": {
+      "metrics": "Metrics",
+      "charts": "Charts",
+      "lists": "Lists",
+      "queues": "Work queues",
+      "content": "Content",
+      "hullwise": "Hullwise home tiles"
+    },
+    "widget_types": {
+      "kpi": {
+        "name": "KPI tile",
+        "description": "One metric with comparison and trend."
+      },
+      "timeseries": {
+        "name": "Time series",
+        "description": "1–3 metrics by day, week or month."
+      },
+      "breakdown": {
+        "name": "Breakdown",
+        "description": "A metric by channel, country, payment, product, campaign or platform."
+      },
+      "top_list": {
+        "name": "Top list",
+        "description": "Best products, campaigns or customers."
+      },
+      "target": {
+        "name": "Target",
+        "description": "Month to date against the monthly target, with projection."
+      },
+      "alerts": {
+        "name": "Alerts",
+        "description": "The latest alerts that fired."
+      },
+      "note": {
+        "name": "Note",
+        "description": "Text for the team (markdown)."
+      },
+      "queue_review": {
+        "name": "Orders to review",
+        "description": "Orders pending review."
+      },
+      "queue_late": {
+        "name": "Late to ship",
+        "description": "Ready orders past the shipping deadline."
+      },
+      "queue_awaiting_stock": {
+        "name": "Awaiting stock",
+        "description": "Orders held for missing stock."
+      },
+      "queue_exceptions": {
+        "name": "Delivery exceptions",
+        "description": "Open shipment exception cases."
+      },
+      "queue_integrations": {
+        "name": "Integration health",
+        "description": "Connections or syncs in error and failed webhooks."
+      },
+      "today_kpis": {
+        "name": "Today's KPIs",
+        "description": "Sales, orders, AOV and cancellations today."
+      },
+      "sales_30d": {
+        "name": "Sales, last 30 days",
+        "description": "Daily sales and orders."
+      },
+      "month_forecast": {
+        "name": "Month forecast",
+        "description": "Projected revenue, orders and ad spend."
+      },
+      "work_queue": {
+        "name": "Needs attention",
+        "description": "Everything open, with counts."
+      },
+      "stock_backorders": {
+        "name": "Stock and backorders",
+        "description": "Orders waiting for stock, best sellers running low."
+      },
+      "today_by_status": {
+        "name": "Today's orders by status",
+        "description": "Today's orders per canonical status."
+      },
+      "cod_queue": {
+        "name": "COD to confirm",
+        "description": "Cash-on-delivery orders waiting for a call."
+      },
+      "cod_pending": {
+        "name": "COD to confirm",
+        "description": "Open COD orders placed today, yesterday and in the last 7 days."
+      },
+      "cod_operators": {
+        "name": "COD tickets per operator",
+        "description": "Orders to call and overdue call-backs held by each operator."
+      },
+      "cod_mine": {
+        "name": "My COD queue",
+        "description": "Your assigned orders: to call, call-backs due, never called, planned, unreachable."
+      }
+    },
+    "metrics": {
+      "net_revenue": "Net revenue",
+      "gross_revenue": "Gross sales",
+      "orders": "Orders",
+      "aov": "Average order value",
+      "ad_spend": "Ad spend",
+      "cogs": "Cost of goods",
+      "gross_margin": "Gross margin",
+      "shipping": "Shipping costs",
+      "fees": "Payment fees",
+      "fixed_costs": "Fixed costs",
+      "contribution": "Contribution margin",
+      "operating_profit": "Operating profit",
+      "refunds": "Refunds",
+      "new_customers": "New customers",
+      "mer": "MER",
+      "nc_roas": "nc-ROAS",
+      "cac": "Blended CAC",
+      "poas": "POAS",
+      "cancel_rate": "Cancellation rate",
+      "returns_rate": "Return rate",
+      "return_cost": "Return costs",
+      "repeat_customer_rate": "Repeat customer rate",
+      "stock_value_cost": "Stock value at cost",
+      "coverage_days": "Days of cover",
+      "out_of_stock_variants": "Out-of-stock variants",
+      "incoming_po_value": "Incoming PO value",
+      "meta_spend": "Meta spend",
+      "meta_roas": "Meta ROAS",
+      "meta_cpa": "Meta CPA",
+      "meta_ctr": "Meta CTR",
+      "google_spend": "Google spend",
+      "google_roas": "Google ROAS",
+      "google_cpa": "Google CPA",
+      "google_ctr": "Google CTR",
+      "tiktok_spend": "TikTok spend",
+      "tiktok_roas": "TikTok ROAS",
+      "tiktok_cpa": "TikTok CPA",
+      "tiktok_ctr": "TikTok CTR"
+    },
+    "metric_groups": {
+      "finance": "Finance",
+      "orders": "Orders and returns",
+      "customers": "Customers",
+      "inventory": "Inventory",
+      "ads": "Ads by platform",
+      "custom": "Custom metrics"
+    },
+    "breakdown_dims": {
+      "channel": "channel",
+      "country": "country",
+      "payment_method": "payment method",
+      "product": "product",
+      "campaign": "campaign",
+      "platform": "platform"
+    },
+    "top_entities": {
+      "products": "Top products",
+      "campaigns": "Top campaigns by profit",
+      "customers": "Top customers",
+      "ads": "Top ads by profit",
+      "keywords": "Top keywords by profit",
+      "search_terms": "Top search terms by spend"
+    },
+    "top_secondary": {
+      "products": "{v} units",
+      "campaigns": "ROAS {v}",
+      "customers": "{v} orders",
+      "ads": "ROAS {v}",
+      "keywords": "ROAS {v}",
+      "search_terms": "{v} orders"
+    },
+    "granularity": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    },
+    "channels": {
+      "paid_social": "Paid social",
+      "paid_search": "Paid search",
+      "organic_search": "Organic search",
+      "email": "Email",
+      "social": "Social",
+      "direct": "Direct",
+      "referral": "Referral",
+      "unknown": "Unknown"
+    },
+    "queue_parts": {
+      "connections": "{n} connections",
+      "sources": "{n} syncs",
+      "webhooks": "{n} webhooks",
+      "unassigned": "{n} unassigned"
+    },
+    "editor": {
+      "title": "Edit: {name}",
+      "description": "Changes are saved as a draft: preview them as a role, then publish.",
+      "published": "Published.",
+      "saved": "Draft saved.",
+      "none": "— none —",
+      "title_field": "Title (optional)",
+      "title_placeholder": "Automatic",
+      "width": "Width",
+      "height": "Height",
+      "columns": "{n, plural, one {# column} other {# columns}}",
+      "rows": "{n, plural, one {# row} other {# rows}}",
+      "period": "Period",
+      "metric": "Metric",
+      "compare": "Compare with",
+      "compare_previous": "Previous period",
+      "compare_none": "Nothing",
+      "sparkline": "Show the trend line",
+      "series_n": "Metric {n}",
+      "chart": "Chart",
+      "chart_line": "Lines",
+      "chart_bar": "Bars",
+      "granularity": "By",
+      "by": "Split by",
+      "limit": "Rows",
+      "entity": "List",
+      "note_text": "Text",
+      "note_hint": "Headings (#), lists (-), **bold**, *italic*, [links](https://…). HTML is shown as text.",
+      "note_translation": "Text in {locale} (optional)",
+      "dashboard_period": "Dashboard period",
+      "save_draft": "Save draft",
+      "publish": "Publish",
+      "preview_as": "Save and preview as…",
+      "discard": "Discard draft",
+      "reset_confirm": "Replace the widgets with Hullwise's template? Publish to apply.",
+      "reset_template": "Reset to Hullwise template",
+      "count": "{n} of {max} widgets",
+      "drag_hint": "Drag the widgets to reorder them, or use the arrows. Click a widget to configure it.",
+      "configure": "Configure",
+      "move_up": "Move up",
+      "move_down": "Move down",
+      "remove": "Remove",
+      "size": "{w}×{h}",
+      "empty": "No widgets: add one from the catalog.",
+      "settings": "Widget settings",
+      "add_widget": "Add a widget",
+      "done": "Done"
+    },
+    "errors": {
+      "generic": "Something went wrong.",
+      "forbidden": "You cannot change this dashboard.",
+      "not_found": "Dashboard not found.",
+      "invalid_layout": "Some widgets are not valid.",
+      "too_many_widgets": "Too many widgets for one dashboard.",
+      "module_disabled": "A widget needs a module your store does not have.",
+      "role_taken": "A selected role already has a home variant.",
+      "home_exists": "The store home already exists.",
+      "invalid_input": "Check the fields.",
+      "personal_off": "Personal dashboards are switched off for this store.",
+      "invalid_formula": "The formula is not valid.",
+      "invalid_filters": "The filters are not valid.",
+      "invalid_key": "Choose another key: this one is empty or a base metric.",
+      "not_filterable": "With filters, use only metrics computed from the orders (not fixed costs, operating profit, new customers or stock)."
+    },
+    "builder": {
+      "saved": "Metric saved.",
+      "label": "Name",
+      "label_placeholder": "Contribution per order",
+      "key": "Key",
+      "key_placeholder": "from the name",
+      "formula": "Formula",
+      "formula_ok": "Valid formula.",
+      "formula_error": "Not valid",
+      "formula_help": "Combine base metrics with + − × ÷ and parentheses, e.g. contribution / orders.",
+      "available": "Available metrics",
+      "filters": "Computed over",
+      "filters_hint": "Leave empty for the whole store. Filters keep only the matching orders.",
+      "f_channel": "Channel",
+      "f_country": "Country",
+      "f_payment": "Payment method",
+      "f_platform": "Ad platform",
+      "f_campaign": "Campaign",
+      "f_product": "Product",
+      "f_product_type": "Product type",
+      "f_customer": "Customers",
+      "f_customer_all": "All",
+      "f_customer_new": "New (first order)",
+      "f_customer_returning": "Returning",
+      "format": "Format",
+      "formats": {
+        "money": "Money",
+        "percent": "Percent",
+        "ratio": "Ratio (×)",
+        "number": "Number"
+      },
+      "direction": "Trend",
+      "higher_better": "Higher is better",
+      "lower_better": "Lower is better",
+      "translation": "Name in {locale}",
+      "description_field": "Description",
+      "preview": "Preview this month",
+      "save": "Save metric",
+      "cancel": "Cancel",
+      "preview_value": "This month: {value} (previous period {previous})",
+      "delete": "Delete",
+      "delete_confirm": "Delete this metric? Widgets using it will show a dash.",
+      "invalid_target": "Target not valid.",
+      "target_saved": "Target saved.",
+      "target_metric": "Metric",
+      "target_month": "Month",
+      "target_value_money": "Target (currency)",
+      "target_value_percent": "Target (%)",
+      "target_value_number": "Target",
+      "target_clear": "empty = remove",
+      "target_save": "Set target",
+      "edit_title": "Edit {name}",
+      "new_title": "New metric",
+      "hint": "Only owners and admins create or change metrics.",
+      "filter_names": {
+        "channel": "Channel",
+        "country": "Country",
+        "paymentMethod": "Payment",
+        "productIds": "Products",
+        "productType": "Product type",
+        "campaignIds": "Campaigns",
+        "platform": "Platform",
+        "customerType": "Customers"
+      }
+    },
+    "payment_methods": {
+      "card": "Card",
+      "wallet": "Wallet",
+      "bank_transfer": "Bank transfer",
+      "cod": "Cash on delivery",
+      "bnpl": "Buy now pay later",
+      "other": "Other"
+    },
+    "platforms": {
+      "meta": "Meta",
+      "google": "Google",
+      "tiktok": "TikTok"
+    }
+  },
   "billing": {
     "title": "Billing",
     "description": "Your plan, payment method and invoices.",
@@ -7759,5 +7753,374 @@
     "none": "No subscription at the processor yet.",
     "catalog_missing": "Sync the catalog first (Billing → Subscriptions).",
     "cancel_at_period_end": "ends at period end"
+  },
+  "data_export": {
+    "title": "Data export",
+    "description": "Download everything Hullwise holds for this store.",
+    "what_title": "Full export of the store's data",
+    "what_description": "One CSV file per table (orders, customers, products, returns, campaigns, settings and more) in a zip archive, built in the background. You are notified when it is ready; the download link expires after {days} days. Secrets such as integration credentials are never included.",
+    "request": "Export all data",
+    "requesting": "Starting…",
+    "errors": {
+      "in_progress": "An export is already running.",
+      "generic": "The export could not be started."
+    },
+    "empty_title": "No exports yet",
+    "empty_description": "Exports you start appear here with their download link.",
+    "columns": {
+      "requested": "Requested",
+      "status": "Status",
+      "rows": "Rows",
+      "expires": "Link expires",
+      "file": "File"
+    },
+    "by_platform": "Hullwise support",
+    "statuses": {
+      "pending": "Queued",
+      "running": "Running",
+      "done": "Ready",
+      "failed": "Failed",
+      "expired": "Expired"
+    },
+    "tables_n": "{n} tables",
+    "download": "Download",
+    "downloads": "{n, plural, one {downloaded once} other {downloaded # times}}"
+  },
+  "ads": {
+    "nav": {
+      "label": "Campaign analysis",
+      "campaigns": "Campaigns",
+      "creatives": "Creatives",
+      "keywords": "Keywords & search terms",
+      "words": "Words",
+      "recommendations": "Suggestions"
+    },
+    "cols": {
+      "name": "Name",
+      "spend": "Spend",
+      "impressions": "Impressions",
+      "ctr": "CTR",
+      "platform_conv": "Platform conv.",
+      "hullwise_orders": "Hullwise orders",
+      "revenue": "Net revenue",
+      "profit": "Profit",
+      "roas": "ROAS",
+      "frequency": "Frequency",
+      "match": "Match",
+      "quality": "Quality",
+      "campaign": "Campaign",
+      "action": "Action",
+      "phrase": "Phrase",
+      "items": "Used in",
+      "margin": "Margin",
+      "cpa": "CPA",
+      "field": "Field",
+      "asset": "Asset",
+      "hullwise_orders_allocated": "Hullwise orders (allocated)",
+      "date": "Date",
+      "search_term": "Search term",
+      "clicks": "Clicks",
+      "reason": "Why",
+      "ad": "Ad"
+    },
+    "excluded_n": "+{n} cancelled/returned",
+    "ad_sets_title": "Ad sets",
+    "ad_groups_title": "Ad groups",
+    "ad_sets_description": "Platform numbers next to Hullwise's: orders, revenue and profit count only orders that were not cancelled or returned.",
+    "utm_missing": "{n} of {total} ads do not carry {params}: their orders reach Hullwise without an ad. Add this template to the ads:",
+    "no_ad_sets": "No ad sets yet",
+    "no_ad_sets_hint": "They arrive with the next ads sync.",
+    "hullwise_not_visible": "Hullwise cannot see this row's orders (the UTM template does not name it).",
+    "n_ads": "{n} ads",
+    "n_keywords": "{n} keywords",
+    "unassigned_orders": "{n} campaign orders are not tied to an ad set",
+    "open_orders": "Open orders",
+    "reconciliation": "Spend by ads {ads} of {campaign} · unallocated {unallocated}",
+    "ad_set": "Ad set",
+    "ad_group": "Ad group",
+    "status": {
+      "active": "Active",
+      "paused": "Paused",
+      "archived": "Archived"
+    },
+    "ads_title": "Ads",
+    "ads_description": "Fatigue means frequency is rising while CTR falls. Suggestions are read-only: a person decides.",
+    "no_ads": "No ads in this ad set",
+    "keywords_title": "Keywords",
+    "no_keywords": "No keywords",
+    "search_terms_title": "Search terms",
+    "all_search_terms": "All search terms of the campaign",
+    "no_search_terms": "No search terms",
+    "other_terms": "Other terms (under the minimum impressions)",
+    "via_keyword": "via “{keyword}”",
+    "negative_reason": {
+      "only_cancelled": "Only cancelled orders",
+      "no_orders": "Spend, no orders",
+      "unprofitable_orders": "Orders at a loss",
+      "no_conversions": "Spend, no conversions"
+    },
+    "excluded": "Excluded",
+    "hullwise_footnote": "Hullwise ties orders to ad sets, ads and keywords through the UTM template; numbers the platform cannot tie show a dash.",
+    "match": {
+      "exact": "Exact",
+      "phrase": "Phrase",
+      "broad": "Broad"
+    },
+    "fatigue": {
+      "watch": "Watch: CTR falling",
+      "fatigued": "Fatigued"
+    },
+    "utm_badge": "UTM missing",
+    "pause_reason": {
+      "losing": "Losing money",
+      "fatigued": "Fatigued and losing",
+      "low_label": "Rated LOW",
+      "low_ctr": "Half the CTR of its siblings"
+    },
+    "ctr_change": "CTR {change} since the start",
+    "copy_title": "Copy and tracking",
+    "utm_missing_ad": "This ad does not carry {params}: its orders reach Hullwise without the ad. Template:",
+    "assets_title": "Assets",
+    "no_assets": "No asset breakdown",
+    "no_assets_meta": "Meta reports assets only for dynamic creative and Advantage+ creative ads.",
+    "no_assets_google": "Google reports assets for responsive ads.",
+    "field": {
+      "headline": "Headline",
+      "description": "Description",
+      "body": "Primary text",
+      "title": "Title",
+      "image": "Image",
+      "video": "Video",
+      "other": "Other"
+    },
+    "assets_footnote": "Platforms report assets, not orders: Hullwise spreads the ad's orders over its assets by spend share within each field.",
+    "daily_title": "By day",
+    "no_days": "No daily data in the period",
+    "keywords_page_title": "Keywords and search terms",
+    "keywords_page_description": "Google Ads keywords and the queries that triggered the ads, with Hullwise's own orders where the UTM template names them.",
+    "tabs": {
+      "keywords": "Keywords",
+      "search_terms": "Search terms"
+    },
+    "search_placeholder": "Search text",
+    "all_campaigns": "All campaigns",
+    "sort_label": "Sort",
+    "sort": {
+      "spend": "Spend",
+      "profit": "Profit",
+      "roas": "ROAS",
+      "conversions": "Conversions"
+    },
+    "candidates_only": "Negative-keyword candidates only",
+    "apply": "Apply",
+    "google_only": "Keywords and search terms come from Google Ads; Meta has none.",
+    "rows_total": "{n} rows",
+    "prev": "Previous",
+    "next": "Next",
+    "page_of": "Page {page} of {pages}",
+    "keywords_footnote": "Hullwise orders come from utm_term set to the keyword by the tracking template.",
+    "search_terms_footnote": "Hullwise sees a search term's orders when the term is a keyword (exact match); for the others the platform's conversions decide. Terms under the minimum impressions are grouped under “Other terms”.",
+    "words_title": "Words",
+    "words_description": "Winning and losing words and phrases (1–3 words) in ad copy, search terms and keywords, with the profit of Hullwise's orders.",
+    "word_source": {
+      "copy": "Ad copy",
+      "search_terms": "Search terms",
+      "keywords": "Keywords"
+    },
+    "ngram": {
+      "all": "All",
+      "n1": "1 word",
+      "n2": "2 words",
+      "n3": "3 words"
+    },
+    "no_words": "Not enough volume",
+    "no_words_hint": "A phrase needs at least two ads or terms and some spend.",
+    "winners": "Winning words",
+    "winners_description": "Phrases in items that made a profit, best first.",
+    "no_winners": "No profitable phrase in the period",
+    "losers": "Losing words",
+    "losers_description": "Phrases in items that lost money, worst first.",
+    "no_losers": "No losing phrase in the period",
+    "words_footnote": "{items} items analysed. Each phrase sums the full numbers of every item that contains it, so phrases overlap.",
+    "recommendations_title": "Ads suggestions",
+    "recommendations_description": "Read-only suggestions: a person reviews them and acts; writes to the platforms always ask for confirmation.",
+    "in_items": "in {n}",
+    "rec": {
+      "negatives_title": "Negative keyword candidates",
+      "negatives_description": "{n} search terms spend without profitable orders.",
+      "google_read_only": "Google is read-only for this store: grant write access in Integrations to exclude terms from here.",
+      "none": "Nothing to suggest",
+      "all_candidates": "All candidates",
+      "ads_title": "Ads to pause",
+      "ads_description": "Active ads losing money in the period, or fatigued and losing.",
+      "words_title": "Winning words to reuse in copy",
+      "words_description": "Phrases of the ads that made the most profit.",
+      "open_words": "Open Words",
+      "assets_title": "Weak assets",
+      "assets_description": "Assets rated LOW by the platform or with half the CTR of their siblings.",
+      "utm_title": "UTM templates",
+      "utm_description": "Without these parameters Hullwise cannot tie orders to ads, ad sets and keywords.",
+      "utm_ok": "Every active campaign carries the templates.",
+      "utm_row": "{missing} of {ads} ads miss {params}",
+      "template_meta": "Meta: URL parameters of the ad",
+      "template_google": "Google: account tracking template",
+      "template_tiktok": "TikTok: URL parameters of the ad"
+    },
+    "actions": {
+      "read_only": "{platform} is read-only for this store.",
+      "read_only_short": "Read-only",
+      "pause_ad": "Pause ad",
+      "resume_ad": "Resume ad",
+      "pause_title": "Pause this ad on {platform}?",
+      "resume_title": "Resume this ad on {platform}?",
+      "write_description": "Hullwise changes the status here and sends it to the platform; if the platform is unreachable the change is retried and shown as pending.",
+      "confirm": "Confirm",
+      "exclude": "Exclude",
+      "negative_title": "Add “{text}” as a negative keyword?",
+      "negative_description": "Google stops showing the ads for this query. The change is sent through the write queue.",
+      "match_type": "Match type",
+      "match": {
+        "exact": "Exact",
+        "phrase": "Phrase",
+        "broad": "Broad"
+      },
+      "level": "Level",
+      "levels": {
+        "campaign": "Campaign",
+        "ad_group": "Ad group"
+      }
+    },
+    "no_assets_tiktok": "TikTok reports no metrics per asset: the ad’s video is listed with its id."
+  },
+  "product_mirror": {
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "save": "Save to Shopify",
+    "saving": "Saving…",
+    "yes": "Yes",
+    "no": "No",
+    "last_synced": "Synced from Shopify {when}",
+    "never_synced": "Never synced from Shopify",
+    "edit_in_shopify": "Edit in Shopify",
+    "errors": {
+      "stale": "This product changed in Shopify after you opened it. Reload to see the current version, then edit again.",
+      "reload": "Reload",
+      "platform": "Shopify refused the change: {message}",
+      "generic": "The change could not be saved.",
+      "not_found": "Product not found.",
+      "forbidden": "You cannot edit products.",
+      "invalid_input": "Check the values entered.",
+      "invalid_variant": "Check the price, compare-at price and weight of {variant}.",
+      "invalid": {
+        "title_required": "The title is required.",
+        "too_long": "A field is longer than Shopify allows.",
+        "invalid_price": "Prices must be zero or more.",
+        "invalid_weight": "The weight must be a whole number of grams.",
+        "invalid_status": "Unknown status."
+      }
+    },
+    "details": {
+      "title": "Title and description",
+      "no_description": "No description in Shopify.",
+      "field_title": "Title",
+      "field_description": "Description (HTML)",
+      "html_hint": "Shopify stores the description as HTML; Hullwise shows it with formatting only (no scripts or embeds)."
+    },
+    "status": {
+      "title": "Status and channels",
+      "channels": "Sales channels",
+      "no_channels": "No channel read yet.",
+      "published": "Published",
+      "not_published": "Not published",
+      "channels_hint": "Publishing on channels is managed in Shopify."
+    },
+    "organisation": {
+      "title": "Organisation",
+      "vendor": "Vendor",
+      "type": "Product type",
+      "category": "Category",
+      "collections": "Collections",
+      "tags": "Tags",
+      "category_id": "Category id (Shopify taxonomy)",
+      "tags_hint": "Comma separated. Collections are managed in Shopify."
+    },
+    "seo": {
+      "title": "Search engine listing",
+      "no_description": "No description: search engines will pick text from the page.",
+      "field_title": "Page title",
+      "field_description": "Meta description"
+    },
+    "variants": {
+      "variant": "Variant",
+      "price": "Price",
+      "compare_at": "Compare-at price",
+      "sku": "SKU",
+      "barcode": "Barcode",
+      "weight": "Weight (g)",
+      "policy": "When out of stock",
+      "policy_deny": "Stop selling",
+      "policy_continue": "Continue selling",
+      "edit": "Edit variants",
+      "inactive": "removed",
+      "more_fields": "More variant fields (from Shopify)",
+      "tracked": "Tracked",
+      "requires_shipping": "Physical product",
+      "taxable": "Charge tax",
+      "hs_code": "HS code",
+      "origin": "Country of origin"
+    },
+    "sync": {
+      "product": "Sync from Shopify",
+      "done": "{changed, plural, =0 {Already up to date} one {# field updated} other {# fields updated}}",
+      "catalog": "Sync catalog from Shopify",
+      "queued": "Catalog sync started in the background.",
+      "failed": "Sync failed: {error}",
+      "catalog_done": "Catalog synced: {products} products.",
+      "catalog_progress": "Syncing… {products} products so far",
+      "last": "Last catalog sync {when}",
+      "never": "Catalog never synced",
+      "running": "Syncing: {products} of {total} products"
+    },
+    "gallery": {
+      "title": "Media",
+      "done": "Done",
+      "manage": "Manage",
+      "empty": "No media in Shopify.",
+      "open": "Open image {n}",
+      "move_left": "Move left",
+      "move_right": "Move right",
+      "alt": "Alt text",
+      "delete": "Remove",
+      "delete_confirm": "Remove this media from the product in Shopify?",
+      "add_url": "Image URL",
+      "add": "Add from URL",
+      "save_alt": "Save alt text",
+      "cancel": "Cancel",
+      "hint": "Changes are written to Shopify at once. Uploads from your computer: use Shopify.",
+      "previous": "Previous",
+      "next": "Next",
+      "no_alt": "No alt text",
+      "type": {
+        "video": "Video",
+        "model": "3D model"
+      }
+    },
+    "metafields": {
+      "title": "Metafields",
+      "read_only": "Read-only",
+      "empty": "No metafields."
+    },
+    "pnl": {
+      "title": "P/L, last 30 days",
+      "open": "Analytics",
+      "empty": "No sales or ad spend in the last 30 days.",
+      "units": "Units sold",
+      "net_revenue": "Net revenue",
+      "cogs": "Cost of goods",
+      "gross_margin": "Gross margin",
+      "ad_spend": "Ad spend (linked campaigns)",
+      "profit": "Profit",
+      "missing_cost": "{units} units sold without a cost: the margin is overstated."
+    }
   }
 }

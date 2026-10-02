@@ -58,7 +58,16 @@
       "not_paid": "Solo se pueden reembolsar pedidos pagados.",
       "exceeds_refundable": "El reembolso supera lo que queda reembolsable en el pedido.",
       "line_invalid": "Revisa las unidades a reembolsar: más de las que quedan en una línea.",
-      "location_required": "Elige dónde reponer las unidades."
+      "location_required": "Elige dónde reponer las unidades.",
+      "cod_daily_limit": "Límite diario de transferencias alcanzado: pide ayuda a un administrador.",
+      "cod_already_called": "Después de la primera llamada solo un administrador puede transferir el pedido.",
+      "cod_not_yours": "Solo puedes transferir los pedidos asignados a ti.",
+      "cod_same_operator": "El pedido ya está asignado a esa persona.",
+      "cod_target": "Esa persona no es un miembro activo del equipo.",
+      "cod_template": "Plantilla de mensaje desconocida.",
+      "cod_phone": "El pedido no tiene teléfono.",
+      "cod_reason": "Escribe un motivo (al menos 3 caracteres).",
+      "cod_carrier_columns": "El archivo necesita una columna de referencia (seguimiento o pedido) y una de resultado."
     },
     "edit": "Editar"
   },
@@ -359,8 +368,8 @@
     "order_states_link": "Reglas de estado de pedido",
     "branding_link": "Marca",
     "fulfilment_link": "Preparación",
-    "data_export_link": "Exportación de datos",
-    "ai_link": "IA y MCP"
+    "ai_link": "IA y MCP",
+    "data_export_link": "Exportación de datos"
   },
   "users": {
     "title": "Usuarios y roles",
@@ -561,8 +570,8 @@
       "digest": "Correo de resumen diario",
       "export_ready": "Exportación CSV lista",
       "other": "Otros",
-      "platform_failure": "Trabajos en segundo plano que fallan",
-      "mcp_proposal": "Propuesta de un cliente de IA"
+      "mcp_proposal": "Propuesta de un cliente de IA",
+      "platform_failure": "Trabajos en segundo plano que fallan"
     },
     "rendered": {
       "stock_critical_no_po": "{title} variantes en venta con stock crítico y ninguna orden de compra",
@@ -1029,7 +1038,10 @@
     "fulfilled": "Enviado desde Hullwise",
     "packed": "Empaquetado",
     "unpacked": "Vuelto a pendiente",
-    "delivery_instruction_sent": "Instrucción de entrega enviada"
+    "delivery_instruction_sent": "Instrucción de entrega enviada",
+    "cod_escalated": "Escalado contra reembolso",
+    "cod_message": "Mensaje de confirmación enviado",
+    "payment_method_changed": "Método de pago cambiado"
   },
   "shipments": {
     "title": "Envíos",
@@ -1867,11 +1879,11 @@
     "declared": {
       "title_meta": "Meta: declarado vs real",
       "title_google": "Google: declarado vs real",
-      "title_tiktok": "TikTok: declarado vs real",
       "platform_says": "La plataforma declara (compras · valor · ROAS)",
       "real": "Pedidos reales atribuidos (pedidos · neto · ROAS)",
       "gap": "Diferencia",
-      "help": "Las plataformas cuentan conversiones con sus propias ventanas y modelos; los pedidos reales son los pedidos de venta atribuidos por Hullwise. Una diferencia muy negativa indica que la plataforma sobrestima."
+      "help": "Las plataformas cuentan conversiones con sus propias ventanas y modelos; los pedidos reales son los pedidos de venta atribuidos por Hullwise. Una diferencia muy negativa indica que la plataforma sobrestima.",
+      "title_tiktok": "TikTok: declarado vs real"
     },
     "creatives_link": "Creatividades",
     "creatives": {
@@ -2646,11 +2658,11 @@
       "shopify": "Shopify",
       "meta": "Meta Ads",
       "google": "Google Ads",
-      "tiktok": "TikTok Ads",
       "tracking": "Píxel y conversiones",
       "survey": "Encuesta poscompra",
       "anthropic": "IA (Anthropic)",
-      "email": "Email de plataforma"
+      "email": "Email de plataforma",
+      "tiktok": "TikTok Ads"
     },
     "status": {
       "not_connected": "No conectada",
@@ -2699,15 +2711,15 @@
       "shopify": "App personalizada (token Admin API)",
       "meta": "Token de usuario del sistema",
       "google": "Credenciales de Google Ads API",
-      "tiktok": "App de TikTok for Business",
-      "anthropic": "Clave API de Anthropic"
+      "anthropic": "Clave API de Anthropic",
+      "tiktok": "App de TikTok for Business"
     },
     "connect_description": {
       "shopify": "Crea una app personalizada en el admin de la tienda, concede los permisos de la guía, pega el token de Admin API y la clave secreta usada para firmar webhooks.",
       "meta": "Un token de usuario del sistema de larga duración de Business Manager con ads_read y ads_management sobre la cuenta publicitaria.",
       "google": "Developer token, cliente OAuth y un refresh token autorizado para el ámbito de Google Ads; solo lectura en esta versión.",
-      "tiktok": "App id y secret de la app de TikTok for Business y el auth code que devuelve la autorización del anunciante; Hullwise lo canjea por un token de larga duración válido para todas las cuentas de anunciante autorizadas.",
-      "anthropic": "La clave de la tienda desde console.anthropic.com. Anthropic factura el uso del asistente a esa cuenta; Hullwise guarda la clave cifrada."
+      "anthropic": "La clave de la tienda desde console.anthropic.com. Anthropic factura el uso del asistente a esa cuenta; Hullwise guarda la clave cifrada.",
+      "tiktok": "App id y secret de la app de TikTok for Business y el auth code que devuelve la autorización del anunciante; Hullwise lo canjea por un token de larga duración válido para todas las cuentas de anunciante autorizadas."
     },
     "fields": {
       "shop": "Dominio de la tienda",
@@ -2824,6 +2836,11 @@
         {
           "title": "Importación inicial",
           "body": "Haz clic en Resincronizar: se importan ubicaciones, productos, inventario y descuentos, luego los pedidos página a página con cursor reanudable. Las tiendas grandes continúan en varias ejecuciones; el progreso se ve en “Ejecuciones recientes”."
+        },
+        {
+          "title": "Productos: qué edita Hullwise",
+          "body": "Hullwise refleja en lectura todos los campos del producto (multimedia, descripción, estado y canales, organización, variantes, SEO, metacampos) y solo escribe título, descripción, vendor, tipo, etiquetas, estado, SEO, categoría, precio y precio de comparación de las variantes, SKU, código de barras, peso, política sin stock y multimedia (añadir desde URL, ordenar, quitar, texto alternativo). Scopes: read_products y write_products; read_publications para mostrar los canales de venta. Todo lo demás abre el producto en el admin de Shopify. Una edición abierta antes de un cambio hecho en Shopify se rechaza con “cambiado en Shopify, recarga”.",
+          "verify": true
         },
         {
           "title": "Reglas de estado",
@@ -2971,73 +2988,6 @@
         }
       ],
       "scopes": "Lectura: ámbito adwords con acceso de lectura y developer token Básico. Opcional, solo para pausar anuncios y añadir palabras clave negativas: el mismo ámbito con un usuario que pueda editar la cuenta."
-    },
-    "tiktok": {
-      "title": "Conectar TikTok Ads",
-      "intro": "Campañas, grupos de anuncios y anuncios (texto, vídeo, miniatura) con gasto diario, impresiones, clics, conversiones, valor de conversión y reproducciones de vídeo, de todas las cuentas de anunciante autorizadas. Pausar y reactivar campañas y anuncios pide confirmación y pasa por la cola de escritura. Incluido desde el plan Growth.",
-      "steps": [
-        {
-          "title": "Crear la app de TikTok for Business",
-          "body": "En el portal de desarrolladores de TikTok API for Business crea una app (o usa la de Hullwise, si TIKTOK_APP_ID está configurado). Configura como redirect URL del anunciante:\n{callbackUrl}",
-          "verify": true
-        },
-        {
-          "title": "Permisos",
-          "body": "Solicita los grupos de permisos que necesitan los módulos activos (panel de la derecha): Ad Account Management, Ads Management y Reporting para campañas y métricas; Creative Management para las miniaturas de los vídeos. TikTok revisa la app antes de que pueda usarse en cuentas distintas de la tuya.",
-          "verify": true
-        },
-        {
-          "title": "Autorizar las cuentas de anunciante",
-          "body": "El titular de la tienda (o un admin de su Business Center) abre el enlace de autorización, elige las cuentas de anunciante y confirma. TikTok redirige con un auth_code válido unos minutos y de un solo uso.",
-          "verify": true
-        },
-        {
-          "title": "Conectar en Hullwise",
-          "body": "Integraciones → TikTok Ads → Conectar: app id, app secret y el auth code (o “Autorizar con TikTok” con la app de Hullwise). Hullwise canjea el código por un token de larga duración, lo guarda cifrado (AES-GCM) e importa todos los anunciantes que cubre."
-        },
-        {
-          "title": "Plantilla UTM",
-          "body": "En cada anuncio, en los parámetros de URL (o al final de la URL de la landing page):\n{utmTemplate}\nTikTok rellena __CAMPAIGN_ID__, __AID__ (grupo de anuncios) y __CID__ (anuncio). Junto con el click id ttclid vinculan los pedidos a campañas, grupos y anuncios; los anuncios sin ellos se señalan en la página Sugerencias.",
-          "verify": true
-        },
-        {
-          "title": "Versión de la API",
-          "body": "Hullwise llama a la TikTok API for Business {apiVersion} (reporting: report/integrated/get, filas diarias en ventanas de hasta 30 días). Revisa el changelog antes de cada versión.",
-          "verify": true
-        },
-        {
-          "title": "Verificar",
-          "body": "Probar conexión lee las cuentas de anunciante; Resincronizar importa campañas y métricas diarias, y luego grupos de anuncios y anuncios en ventanas de 7 días (reanudable, respeta los límites de frecuencia). La primera importación cubre los últimos 90 días."
-        }
-      ],
-      "errors": [
-        {
-          "symptom": "40105 / 40102 token no válido o caducado",
-          "fix": "El anunciante revocó la autorización o el token se regeneró: autoriza de nuevo y vuelve a conectar."
-        },
-        {
-          "symptom": "40001 sin permiso",
-          "fix": "A la app le falta un grupo de permisos, o la cuenta de anunciante no se seleccionó durante la autorización."
-        },
-        {
-          "symptom": "40100 demasiadas solicitudes",
-          "fix": "Límite de frecuencia: Hullwise pausa la sincronización y continúa desde la misma ventana tras la espera."
-        },
-        {
-          "symptom": "Auth code caducado o ya usado",
-          "fix": "El auth code dura unos minutos y sirve una sola vez: repite la autorización."
-        },
-        {
-          "symptom": "Los pedidos no muestran el anuncio de TikTok",
-          "fix": "En los parámetros de URL faltan utm_content=__CID__ / utm_term=__AID__, o la tienda pierde ttclid en la URL de llegada."
-        }
-      ],
-      "scopes": "El análisis de solo lectura necesita Ad Account Management y Reporting; pausar y reactivar necesita también Ads Management. Sin Creative Management funciona todo salvo las miniaturas.",
-      "modules": {
-        "campaigns": "Campañas, grupos, anuncios y métricas",
-        "creatives": "Miniaturas de vídeo",
-        "pause": "Pausa / reactivación"
-      }
     },
     "anthropic": {
       "title": "Conecta el asistente de IA (Anthropic)",
@@ -3276,6 +3226,73 @@
           "fix": "Falta RESEND_WEBHOOK_SECRET o no coincide con el signing secret del endpoint: el webhook responde 401 o 503."
         }
       ]
+    },
+    "tiktok": {
+      "title": "Conectar TikTok Ads",
+      "intro": "Campañas, grupos de anuncios y anuncios (texto, vídeo, miniatura) con gasto diario, impresiones, clics, conversiones, valor de conversión y reproducciones de vídeo, de todas las cuentas de anunciante autorizadas. Pausar y reactivar campañas y anuncios pide confirmación y pasa por la cola de escritura. Incluido desde el plan Growth.",
+      "steps": [
+        {
+          "title": "Crear la app de TikTok for Business",
+          "body": "En el portal de desarrolladores de TikTok API for Business crea una app (o usa la de Hullwise, si TIKTOK_APP_ID está configurado). Configura como redirect URL del anunciante:\n{callbackUrl}",
+          "verify": true
+        },
+        {
+          "title": "Permisos",
+          "body": "Solicita los grupos de permisos que necesitan los módulos activos (panel de la derecha): Ad Account Management, Ads Management y Reporting para campañas y métricas; Creative Management para las miniaturas de los vídeos. TikTok revisa la app antes de que pueda usarse en cuentas distintas de la tuya.",
+          "verify": true
+        },
+        {
+          "title": "Autorizar las cuentas de anunciante",
+          "body": "El titular de la tienda (o un admin de su Business Center) abre el enlace de autorización, elige las cuentas de anunciante y confirma. TikTok redirige con un auth_code válido unos minutos y de un solo uso.",
+          "verify": true
+        },
+        {
+          "title": "Conectar en Hullwise",
+          "body": "Integraciones → TikTok Ads → Conectar: app id, app secret y el auth code (o “Autorizar con TikTok” con la app de Hullwise). Hullwise canjea el código por un token de larga duración, lo guarda cifrado (AES-GCM) e importa todos los anunciantes que cubre."
+        },
+        {
+          "title": "Plantilla UTM",
+          "body": "En cada anuncio, en los parámetros de URL (o al final de la URL de la landing page):\n{utmTemplate}\nTikTok rellena __CAMPAIGN_ID__, __AID__ (grupo de anuncios) y __CID__ (anuncio). Junto con el click id ttclid vinculan los pedidos a campañas, grupos y anuncios; los anuncios sin ellos se señalan en la página Sugerencias.",
+          "verify": true
+        },
+        {
+          "title": "Versión de la API",
+          "body": "Hullwise llama a la TikTok API for Business {apiVersion} (reporting: report/integrated/get, filas diarias en ventanas de hasta 30 días). Revisa el changelog antes de cada versión.",
+          "verify": true
+        },
+        {
+          "title": "Verificar",
+          "body": "Probar conexión lee las cuentas de anunciante; Resincronizar importa campañas y métricas diarias, y luego grupos de anuncios y anuncios en ventanas de 7 días (reanudable, respeta los límites de frecuencia). La primera importación cubre los últimos 90 días."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "40105 / 40102 token no válido o caducado",
+          "fix": "El anunciante revocó la autorización o el token se regeneró: autoriza de nuevo y vuelve a conectar."
+        },
+        {
+          "symptom": "40001 sin permiso",
+          "fix": "A la app le falta un grupo de permisos, o la cuenta de anunciante no se seleccionó durante la autorización."
+        },
+        {
+          "symptom": "40100 demasiadas solicitudes",
+          "fix": "Límite de frecuencia: Hullwise pausa la sincronización y continúa desde la misma ventana tras la espera."
+        },
+        {
+          "symptom": "Auth code caducado o ya usado",
+          "fix": "El auth code dura unos minutos y sirve una sola vez: repite la autorización."
+        },
+        {
+          "symptom": "Los pedidos no muestran el anuncio de TikTok",
+          "fix": "En los parámetros de URL faltan utm_content=__CID__ / utm_term=__AID__, o la tienda pierde ttclid en la URL de llegada."
+        }
+      ],
+      "scopes": "El análisis de solo lectura necesita Ad Account Management y Reporting; pausar y reactivar necesita también Ads Management. Sin Creative Management funciona todo salvo las miniaturas.",
+      "modules": {
+        "campaigns": "Campañas, grupos, anuncios y métricas",
+        "creatives": "Miniaturas de vídeo",
+        "pause": "Pausa / reactivación"
+      }
     }
   },
   "admin": {
@@ -3303,10 +3320,10 @@
         "support": "Soporte",
         "audit": "Auditoría"
       },
-      "jobs": "Ejecuciones de trabajos",
-      "alerts": "Alertas de fallos",
       "mcp": "MCP",
-      "subscriptions": "Suscripciones"
+      "subscriptions": "Suscripciones",
+      "jobs": "Ejecuciones de trabajos",
+      "alerts": "Alertas de fallos"
     },
     "plans": {
       "starter": "Starter",
@@ -3412,10 +3429,10 @@
         "shopify": "Shopify conectado",
         "meta": "Meta Ads conectado",
         "google": "Google Ads conectado",
-        "tiktok": "TikTok Ads conectado",
         "state_rules": "Reglas de estado",
         "costs": "Costes configurados",
-        "billing": "Pagos al corriente"
+        "billing": "Pagos al corriente",
+        "tiktok": "TikTok Ads conectado"
       },
       "members": "Miembros",
       "open_balance": "Saldo pendiente",
@@ -3617,6 +3634,40 @@
       },
       "remove": "Quitar",
       "guide_title": "Guía de configuración"
+    },
+    "mcp": {
+      "title": "Uso de MCP",
+      "description": "Llamadas de clientes de IA por tenant en los últimos 30 días y el interruptor de emergencia. Cada cambio se registra en el log de auditoría del tenant.",
+      "platform_disabled": "HULLWISE_MCP_DISABLED=1: el servidor MCP rechaza toda llamada en este despliegue.",
+      "stat_calls": "Llamadas (30 días)",
+      "stat_errors": "Errores",
+      "stat_rate_limited": "Limitadas",
+      "stat_connections": "Conexiones activas",
+      "stat_unknown_tokens": "Tokens desconocidos",
+      "tenants_title": "Tenants",
+      "tenants_description": "Plan, estado, uso e interruptor por tenant.",
+      "col_tenant": "Tenant",
+      "col_status": "Estado",
+      "col_calls": "Llamadas",
+      "col_errors": "Errores",
+      "col_users": "Personas",
+      "col_connections": "Conexiones",
+      "col_last_call": "Última llamada",
+      "col_kill": "Interruptor",
+      "pending": "{count} por aprobar",
+      "denied_rl": "{denied} rechazadas · {limited} limitadas",
+      "kill": "Suspender MCP",
+      "kill_confirm": "¿Suspender MCP para este tenant? Toda llamada se rechaza hasta que lo restablezcas.",
+      "restore": "Restablecer MCP",
+      "note_placeholder": "Motivo (auditado)",
+      "availability": {
+        "ok": "Activo",
+        "plan": "No incluido",
+        "tenant_disabled": "Desactivado (tenant)",
+        "killed": "Suspendido",
+        "platform_disabled": "Plataforma desactivada",
+        "suspended": "Tenant suspendido"
+      }
     },
     "platform_label": "Plataforma",
     "export_csv": "Exportar CSV",
@@ -3847,40 +3898,6 @@
       "close": "Cerrar",
       "empty_title": "Sin alertas",
       "empty_description": "Ahora mismo no falla nada."
-    },
-    "mcp": {
-      "title": "Uso de MCP",
-      "description": "Llamadas de clientes de IA por tenant en los últimos 30 días y el interruptor de emergencia. Cada cambio se registra en el log de auditoría del tenant.",
-      "platform_disabled": "HULLWISE_MCP_DISABLED=1: el servidor MCP rechaza toda llamada en este despliegue.",
-      "stat_calls": "Llamadas (30 días)",
-      "stat_errors": "Errores",
-      "stat_rate_limited": "Limitadas",
-      "stat_connections": "Conexiones activas",
-      "stat_unknown_tokens": "Tokens desconocidos",
-      "tenants_title": "Tenants",
-      "tenants_description": "Plan, estado, uso e interruptor por tenant.",
-      "col_tenant": "Tenant",
-      "col_status": "Estado",
-      "col_calls": "Llamadas",
-      "col_errors": "Errores",
-      "col_users": "Personas",
-      "col_connections": "Conexiones",
-      "col_last_call": "Última llamada",
-      "col_kill": "Interruptor",
-      "pending": "{count} por aprobar",
-      "denied_rl": "{denied} rechazadas · {limited} limitadas",
-      "kill": "Suspender MCP",
-      "kill_confirm": "¿Suspender MCP para este tenant? Toda llamada se rechaza hasta que lo restablezcas.",
-      "restore": "Restablecer MCP",
-      "note_placeholder": "Motivo (auditado)",
-      "availability": {
-        "ok": "Activo",
-        "plan": "No incluido",
-        "tenant_disabled": "Desactivado (tenant)",
-        "killed": "Suspendido",
-        "platform_disabled": "Plataforma desactivada",
-        "suspended": "Tenant suspendido"
-      }
     }
   },
   "cod": {
@@ -3892,7 +3909,9 @@
       "mine": "Míos",
       "unassigned": "Sin asignar",
       "scheduled": "Rellamar",
-      "unreachable": "Ilocalizables"
+      "unreachable": "Ilocalizables",
+      "planned": "Programados",
+      "escalated": "Escalados"
     },
     "empty_title": "Cola vacía",
     "empty_description": "Los nuevos pedidos contra reembolso entran aquí automáticamente.",
@@ -3919,14 +3938,17 @@
       "no_answer": "No contesta",
       "call_back": "Rellamar",
       "modified": "Modificado",
-      "cancelled": "Cancelado"
+      "cancelled": "Cancelado",
+      "confirm_scheduled": "Confirmar en una fecha",
+      "message_sent": "Mensaje enviado"
     },
     "outcomes_hint": {
       "confirmed": "El cliente confirmó",
       "no_answer": "Cuenta para ilocalizable",
       "call_back": "Elige fecha y hora",
       "modified": "Cambios acordados, sigue en cola",
-      "cancelled": "El cliente rechaza: el pedido se cancela en la plataforma"
+      "cancelled": "El cliente rechaza: el pedido se cancela en la plataforma",
+      "confirm_scheduled": "El cliente acepta, pero a partir de otro día"
     },
     "call_back_at": "Rellamar el",
     "note_optional": "Nota (opcional)",
@@ -3955,7 +3977,8 @@
       "unreachable": "Ilocalizable",
       "confirmed": "Confirmado por teléfono",
       "cancelled": "Cancelado",
-      "left": "Salió de la cola"
+      "left": "Salió de la cola",
+      "confirm_scheduled": "Confirmación programada"
     },
     "card_title": "Contra reembolso",
     "weight_n": "peso {n}",
@@ -4102,10 +4125,204 @@
       "tags_clear_on_close": "En confirmado y cancelado quitar también todas las etiquetas de cola",
       "cancel_restock": "Reponer stock de las líneas cuando un resultado cancela el pedido",
       "tags_placeholder": "Etiqueta uno, Etiqueta dos",
-      "tags_event_replaced": "Sustituido por un pedido nuevo"
+      "tags_event_replaced": "Sustituido por un pedido nuevo",
+      "ops": {
+        "title": "Comportamiento de la cola",
+        "description": "Colores de las filas, confirmaciones programadas, transferencias, cuellos de botella, líneas del recargo y la automatización de devoluciones al remitente.",
+        "fields": {
+          "agingWarnHours": "Ámbar tras horas",
+          "agingAlertHours": "Rojo tras horas",
+          "scheduledConfirmHour": "Confirmaciones programadas desde (hora)",
+          "transferDailyLimit": "Transferencias por operador al día",
+          "bottleneckFactor": "Cuello de botella a × media del equipo",
+          "feeLineMatch": "Líneas de recargo (SKU o título)",
+          "refusalCostMinor": "Coste de un paquete rechazado (céntimos)"
+        },
+        "fee_help": "Se quitan cuando el operador cambia un reemplazo a un método prepago. Un * final indica un prefijo.",
+        "refusal_help": "En unidades mínimas ({decimals} decimales). 0 = el doble de la estimación del envío.",
+        "rts_label": "Cancelar los paquetes contra reembolso no pagados devueltos al remitente",
+        "rts_help": "Cuando se abre un caso de devolución al remitente en un pedido contra reembolso no pagado, se cancela en la tienda sin reponer stock y se anula el pago pendiente. El caso queda abierto para la revisión física."
+      },
+      "templates": {
+        "title": "Mensajes de confirmación",
+        "description": "Plantillas que los operadores copian o envían desde la ficha (WhatsApp, SMS…) por el canal de mensajería conectado a la cuenta. Cada envío cuenta como intento de contacto.",
+        "variables": "Variables:",
+        "key": "Clave",
+        "name": "Nombre",
+        "body": "Texto",
+        "remove": "Quitar",
+        "add": "Añadir plantilla",
+        "webhook_title": "Acuses de entrega",
+        "webhook_help": "Indica esta dirección al proveedor de mensajería para los acuses de entrega y lectura.",
+        "copy": "Copiar"
+      },
+      "preview": {
+        "title": "Vista previa de la puntuación",
+        "description": "Puntuación de entrega de cualquier pedido con los pesos actuales, sin guardarla.",
+        "order": "Número de pedido",
+        "run": "Calcular",
+        "base": "antes del riesgo: {n}"
+      },
+      "carrier": {
+        "title": "Importación de resultados del transportista",
+        "description": "CSV de la facturación o liquidación del transportista: entregado o rechazado por paquete. Se asocia por número de seguimiento o de pedido; alimenta el riesgo y los costes perdidos.",
+        "file": "Archivo CSV",
+        "paste": "O pega el CSV",
+        "format": "Columnas: referencia (seguimiento o pedido), resultado (entregado / rechazado), fecha y coste opcionales. Separador ; , o tabulador.",
+        "import": "Importar",
+        "result": "{imported} filas, {matched} asociadas, {unmatched} sin asociar, {errors} descartadas.",
+        "batch_counts": "{rows} filas · {matched} asociadas · {refused} rechazadas"
+      }
     },
     "filter_by_tag": "Etiqueta:",
-    "all_tags": "Todas"
+    "all_tags": "Todas",
+    "days_n": "{n} d",
+    "avg_age": "antigüedad media {age}",
+    "never_contacted": "Nunca llamado · {age}",
+    "planned_badge": "Confirmar el {date}",
+    "planned_failed": "Falló la confirmación programada",
+    "planned_error": "La tienda rechazó la confirmación programada ({error}); se reintentará en la próxima ejecución diaria.",
+    "escalated": "Escalado",
+    "escalated_note": "Escalado a un administrador: {reason}",
+    "team_link": "Consola del equipo",
+    "attempts_n": "{n} intentos",
+    "warehouse_lines": "Artículos para el almacén",
+    "copy": "Copiar",
+    "confirm_on": "Confirmar el",
+    "confirm_on_hint": "Un proceso diario confirma el pedido esa mañana (desde la hora configurada). Si la tienda lo rechaza, la fecha se mantiene y se reintenta al día siguiente.",
+    "nav_position": "{position} de {total} · {view}",
+    "system": "sistema",
+    "channels": {
+      "scheduled": "programado",
+      "bulk": "en bloque",
+      "messaging-mock": "mensaje"
+    },
+    "risk_panel": {
+      "refused": "Rechazados",
+      "wasted": "Coste perdido en rechazos",
+      "expected": "Valor esperado",
+      "tier": "Nivel del destinatario",
+      "linked": "Contactos vinculados",
+      "hint": "Valor esperado = probabilidad de entrega (puntuación) × margen − probabilidad de rechazo × {cost} por paquete rechazado."
+    },
+    "messages": {
+      "timeline": "Mensajes ({n})",
+      "status": {
+        "sent": "Enviado",
+        "delivered": "Entregado",
+        "read": "Leído",
+        "failed": "Fallido"
+      },
+      "copy": "Copiar texto",
+      "send": "Enviar",
+      "sent": "Enviado, registrado como intento n.º {n}.",
+      "no_phone": "El pedido no tiene teléfono",
+      "action_failed": "No se pudo enviar el mensaje."
+    },
+    "transfer": {
+      "menu": "Transferir",
+      "release": "Devolver a la cola",
+      "pass_to": "Pasar a un compañero",
+      "left_today": "quedan {n} hoy",
+      "no_transfer_after_call": "Después de la primera llamada solo un administrador puede transferir el pedido.",
+      "escalate": "Escalar a un administrador",
+      "resolve": "Cerrar el escalado",
+      "escalate_title": "Escalar este pedido",
+      "escalate_description": "Los administradores reciben un aviso y el pedido aparece en Escalados hasta que uno lo cierre.",
+      "reason": "Motivo",
+      "action_failed": "La acción falló."
+    },
+    "precheck": {
+      "open": "Comprobación previa ({n})",
+      "title": "Antes de llamar a {order}",
+      "recomputed": "La puntuación estaba desactualizada y se acaba de recalcular. Puntos a comprobar por teléfono:",
+      "description": "Puntos a comprobar por teléfono:",
+      "severity": {
+        "critical": "Crítico",
+        "warning": "Atención"
+      },
+      "previous_addresses": "Otras direcciones usadas por este cliente",
+      "close": "Entendido"
+    },
+    "bulk": {
+      "select_all": "Seleccionar todos",
+      "selected": "{n} seleccionados",
+      "assign": "Asignar",
+      "assign_to": "Asignar a",
+      "unassign": "Quitar el operador",
+      "distribute": "Repartir a partes iguales",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar pedidos",
+      "confirm_question": "¿Confirmar {n} pedidos?",
+      "cancel_question": "¿Cancelar {n} pedidos en la tienda?",
+      "yes": "Sí",
+      "clear": "Limpiar",
+      "result": "{done} hechos, {failed} rechazados.",
+      "failed": "La acción en bloque falló."
+    },
+    "team": {
+      "title": "Consola de atención al cliente",
+      "description": "Quién tiene qué ahora, la eficiencia de cada operador en el periodo y lo que gestionó cada uno.",
+      "tabs": {
+        "supervisor": "Supervisión",
+        "efficiency": "Eficiencia",
+        "attribution": "Gestionados por operador"
+      },
+      "supervisor_title": "Pedidos abiertos por operador",
+      "supervisor_description": "Media del equipo {avg} por llamar. Quien está muy por encima se marca como cuello de botella.",
+      "to_call": "Por llamar",
+      "overdue": "Rellamadas vencidas",
+      "never_contacted": "Nunca llamados",
+      "oldest": "Más antiguo",
+      "bottleneck": "Cuello de botella",
+      "empty_title": "Sin llamadas en el periodo",
+      "empty_description": "Elige otro periodo.",
+      "efficiency_title": "Eficiencia",
+      "efficiency_description": "A partir de los intentos registrados: pedidos gestionados, porcentaje confirmado, intentos por confirmación, tiempo desde la entrada en cola hasta la llamada de cierre y pedidos cerrados por día activo.",
+      "handled": "Gestionados",
+      "confirmed_pct": "% confirmados",
+      "attempts_per_confirmation": "Intentos / confirmación",
+      "avg_handling": "Tiempo medio de gestión",
+      "throughput": "Rendimiento",
+      "system": "Programados (sistema)",
+      "messages_n": "{n} mensajes",
+      "minutes_n": "{n} min",
+      "per_day": "{n}/día",
+      "attribution_title": "Pedidos gestionados",
+      "all_outcomes": "Todos",
+      "pick_operator": "Elige un operador.",
+      "last_outcome": "Último resultado",
+      "last_at": "Última llamada"
+    },
+    "widgets": {
+      "pending": {
+        "today": "hoy",
+        "yesterday": "ayer",
+        "week": "7 días",
+        "total": "{n} abiertos en total"
+      },
+      "mine": {
+        "call_backs": "{n} rellamadas vencidas",
+        "never": "{n} nunca llamados",
+        "planned": "{n} programados",
+        "unreachable": "{n} ilocalizables"
+      },
+      "operators": {
+        "empty": "No hay pedidos contra reembolso abiertos.",
+        "unassigned": "Sin asignar",
+        "overdue": "{n} vencidos"
+      }
+    },
+    "modify": {
+      "payment_method": "Método de pago del nuevo pedido",
+      "keep_cod": "Mantener contra reembolso",
+      "methods": {
+        "card": "Tarjeta (enlace de pago enviado aparte)",
+        "bank_transfer": "Transferencia",
+        "other": "Otro método prepago"
+      },
+      "payment_hint": "El pedido se recrea con el nuevo método y pago pendiente: se quitan las líneas del recargo contra reembolso y sale de la cola."
+    }
   },
   "po_pdf": {
     "title": "Orden de compra",
@@ -5024,7 +5241,6 @@
       "roas": "ROAS",
       "meta": "Meta",
       "google": "Google",
-      "tiktok": "TikTok",
       "slipping": "clientes valiosos en riesgo",
       "due_soon": "próximos a recomprar",
       "top": "mayor valor previsto",
@@ -5034,7 +5250,8 @@
       "consider_pause": "Valorar pausa",
       "consider_resume": "Valorar reactivación",
       "pause_stock": "Pausar: stock bajo",
-      "consider_stock": "Revisar stock"
+      "consider_stock": "Revisar stock",
+      "tiktok": "TikTok"
     },
     "open_source": "Abrir la página",
     "figures": {
@@ -5913,7 +6130,10 @@
       "discount_status": "Activación de descuento",
       "discount_pool_status": "Activación de lote de descuentos",
       "ad_status": "Estado del anuncio",
-      "keyword_negative": "Palabra clave negativa"
+      "keyword_negative": "Palabra clave negativa",
+      "product_update": "Detalles del producto",
+      "variant_details": "Detalles de la variante",
+      "product_media": "Multimedia del producto"
     }
   },
   "dev_inbox": {
@@ -6641,670 +6861,6 @@
       }
     }
   },
-  "data_export": {
-    "title": "Exportación de datos",
-    "description": "Descarga todo lo que Hullwise guarda de esta tienda.",
-    "what_title": "Exportación completa de los datos de la tienda",
-    "what_description": "Un archivo CSV por tabla (pedidos, clientes, productos, devoluciones, campañas, ajustes y más) en un archivo zip, generado en segundo plano. Recibes un aviso cuando está listo; el enlace de descarga caduca a los {days} días. Las credenciales de las integraciones y otros secretos nunca se incluyen.",
-    "request": "Exportar todos los datos",
-    "requesting": "Iniciando…",
-    "errors": {
-      "in_progress": "Ya hay una exportación en curso.",
-      "generic": "No se pudo iniciar la exportación."
-    },
-    "empty_title": "Aún no hay exportaciones",
-    "empty_description": "Las exportaciones que inicies aparecen aquí con su enlace de descarga.",
-    "columns": {
-      "requested": "Solicitada",
-      "status": "Estado",
-      "rows": "Filas",
-      "expires": "Caducidad del enlace",
-      "file": "Archivo"
-    },
-    "by_platform": "Soporte de Hullwise",
-    "statuses": {
-      "pending": "En cola",
-      "running": "En curso",
-      "done": "Lista",
-      "failed": "Fallida",
-      "expired": "Caducada"
-    },
-    "tables_n": "{n} tablas",
-    "download": "Descargar",
-    "downloads": "{n, plural, one {descargada una vez} other {descargada # veces}}"
-  },
-  "dashboards": {
-    "title": "Paneles",
-    "description": "La página de inicio que ve tu equipo, variantes por rol, paneles adicionales y copias personales.",
-    "home_description": "El panel de tu equipo, diseñado por los responsables de la tienda.",
-    "edit": "Editar panel",
-    "customise": "Personalizar",
-    "home_name": "Inicio",
-    "preview_as": "Vista previa como…",
-    "preview_banner": "Vista previa como {role}",
-    "draft_banner": "borrador sin publicar",
-    "exit_preview": "Salir de la vista previa",
-    "draft_badge": "Cambios sin publicar",
-    "template_badge": "Plantilla de Hullwise",
-    "customised_badge": "Personalizada",
-    "open": "Abrir",
-    "home": "Inicio",
-    "home_template": "Tu inicio es la plantilla de Hullwise: sigue las actualizaciones de Hullwise hasta que lo personalices.",
-    "home_custom": "Inicio personalizado: {name}.",
-    "reset_home": "Restablecer la plantilla de Hullwise",
-    "reset_home_confirm": "El inicio vuelve a la plantilla de Hullwise. Las variantes por rol se mantienen. ¿Continuar?",
-    "reset_all": "Restablecer inicio y variantes",
-    "reset_all_confirm": "El inicio y todas las variantes por rol vuelven a la plantilla de Hullwise. ¿Continuar?",
-    "personal_toggle": "Paneles personales",
-    "personal_toggle_hint": "Si está activo, cualquiera puede copiar un panel en uno personal. Los paneles de la tienda siguen siendo la referencia.",
-    "name": "Nombre",
-    "kind": "Tipo",
-    "scope_new": {
-      "tenant": "Panel adicional",
-      "role": "Variante del inicio por roles",
-      "personal": "Copia personal de mi inicio"
-    },
-    "roles_variant": "Roles que ven este inicio",
-    "roles_visible": "Roles que pueden abrirlo",
-    "roles_all_hint": "Ninguno seleccionado: todo el equipo.",
-    "create": "Crear",
-    "copy_of": "Copia de {name}",
-    "duplicate": "Crear una copia personal",
-    "delete": "Eliminar",
-    "delete_confirm": "¿Eliminar este panel?",
-    "scope": {
-      "tenant": "Panel de la tienda",
-      "role": "Variante del inicio",
-      "personal": "Panel personal"
-    },
-    "personal_description": "Solo tú lo ves.",
-    "visible_to": "Visible para: {roles}",
-    "visible_all": "Visible para todo el equipo",
-    "widgets_n": "{n, plural, one {# widget} other {# widgets}}",
-    "variants": "Variantes del inicio por rol",
-    "variants_description": "Un rol con una variante la ve en lugar del inicio de la tienda.",
-    "variants_empty": "Sin variantes: todos los roles ven el inicio de la tienda.",
-    "extras": "Otros paneles",
-    "extras_description": "Paneles con nombre, por ejemplo una revisión semanal.",
-    "extras_empty": "Todavía no hay otros paneles.",
-    "personal": "Mis paneles",
-    "personal_hint": "Tus copias: cámbialas libremente.",
-    "personal_empty": "Sin paneles personales.",
-    "new_dashboard": "Nuevo panel",
-    "settings": "Ajustes",
-    "metrics_page": "Métricas y objetivos",
-    "metrics_description": "Las métricas que tus paneles pueden mostrar: el catálogo de Hullwise y tus fórmulas, con objetivos mensuales.",
-    "custom_metrics": "Métricas personalizadas",
-    "custom_metrics_hint": "Fórmulas sobre las métricas base, opcionalmente sobre pedidos filtrados. Cada cambio queda en el registro de actividad.",
-    "custom_metrics_empty": "Todavía no hay métricas personalizadas.",
-    "this_month": "Este mes",
-    "targets": "Objetivos mensuales",
-    "targets_hint": "Un mes sin objetivo propio usa el último anterior.",
-    "catalog": "Catálogo de métricas",
-    "catalog_hint": "Métricas base calculadas por los servicios de Hullwise: coinciden con el P/L, las campañas y el inventario.",
-    "catalog_group": "Grupo",
-    "catalog_flags": "Uso",
-    "flag_snapshot": "ahora",
-    "flag_filterable": "filtros",
-    "flag_series": "series",
-    "catalog_pending": "Sesiones y tasa de conversión llegarán con la conexión de GA4; TikTok y los términos de búsqueda con sus integraciones.",
-    "periods": {
-      "today": "Hoy",
-      "7d": "7 días",
-      "30d": "30 días",
-      "90d": "90 días",
-      "mtd": "Mes en curso",
-      "last_month": "Mes pasado",
-      "ytd": "Año en curso",
-      "follow": "Periodo del panel"
-    },
-    "widget": {
-      "error": "Este widget no se pudo cargar. El resto del panel funciona.",
-      "forbidden": "No disponible para tu rol.",
-      "unavailable": "Este widget no está disponible en tu plan.",
-      "days_unit": "días",
-      "open_list": "Abrir",
-      "now": "ahora",
-      "vs_previous": "vs periodo anterior",
-      "filtered": "filtrada",
-      "unknown": "Desconocido",
-      "empty": "Nada en este periodo.",
-      "breakdown_title": "{metric} por {by}",
-      "target_title": "{metric}: objetivo mensual",
-      "no_target": "Sin objetivo para este mes.",
-      "of_target": "de {target}",
-      "projected": "Proyección a fin de mes {value} (día {elapsed} de {days})",
-      "no_alerts": "Sin alertas recientes.",
-      "empty_note": "Nota vacía."
-    },
-    "widget_groups": {
-      "metrics": "Métricas",
-      "charts": "Gráficos",
-      "lists": "Listas",
-      "queues": "Colas de trabajo",
-      "content": "Contenido",
-      "hullwise": "Bloques del inicio de Hullwise"
-    },
-    "widget_types": {
-      "kpi": {
-        "name": "Indicador KPI",
-        "description": "Una métrica con comparación y tendencia."
-      },
-      "timeseries": {
-        "name": "Serie temporal",
-        "description": "1–3 métricas por día, semana o mes."
-      },
-      "breakdown": {
-        "name": "Desglose",
-        "description": "Una métrica por canal, país, pago, producto, campaña o plataforma."
-      },
-      "top_list": {
-        "name": "Ranking",
-        "description": "Mejores productos, campañas o clientes."
-      },
-      "target": {
-        "name": "Objetivo",
-        "description": "Mes en curso frente al objetivo, con proyección."
-      },
-      "alerts": {
-        "name": "Alertas",
-        "description": "Las últimas alertas disparadas."
-      },
-      "note": {
-        "name": "Nota",
-        "description": "Texto para el equipo (markdown)."
-      },
-      "queue_review": {
-        "name": "Pedidos por revisar",
-        "description": "Pedidos pendientes de revisión."
-      },
-      "queue_late": {
-        "name": "Envío atrasado",
-        "description": "Pedidos listos pasado el plazo de envío."
-      },
-      "queue_awaiting_stock": {
-        "name": "Esperando stock",
-        "description": "Pedidos retenidos por falta de stock."
-      },
-      "queue_exceptions": {
-        "name": "Incidencias de entrega",
-        "description": "Casos de incidencia abiertos."
-      },
-      "queue_integrations": {
-        "name": "Salud de integraciones",
-        "description": "Conexiones o sincronizaciones con error y webhooks fallidos."
-      },
-      "today_kpis": {
-        "name": "KPI de hoy",
-        "description": "Ventas, pedidos, ticket medio y cancelaciones de hoy."
-      },
-      "sales_30d": {
-        "name": "Ventas, últimos 30 días",
-        "description": "Ventas y pedidos por día."
-      },
-      "month_forecast": {
-        "name": "Previsión del mes",
-        "description": "Ingresos, pedidos y gasto en anuncios previstos."
-      },
-      "work_queue": {
-        "name": "Requiere atención",
-        "description": "Todo lo abierto, con recuentos."
-      },
-      "stock_backorders": {
-        "name": "Stock y pedidos pendientes",
-        "description": "Pedidos esperando stock, más vendidos con poco stock."
-      },
-      "today_by_status": {
-        "name": "Pedidos de hoy por estado",
-        "description": "Pedidos de hoy por estado."
-      },
-      "cod_queue": {
-        "name": "Contra reembolso por confirmar",
-        "description": "Pedidos contra reembolso esperando llamada."
-      }
-    },
-    "metrics": {
-      "net_revenue": "Ingresos netos",
-      "gross_revenue": "Ventas brutas",
-      "orders": "Pedidos",
-      "aov": "Ticket medio",
-      "ad_spend": "Gasto en anuncios",
-      "cogs": "Coste de la mercancía",
-      "gross_margin": "Margen bruto",
-      "shipping": "Costes de envío",
-      "fees": "Comisiones de pago",
-      "fixed_costs": "Costes fijos",
-      "contribution": "Margen de contribución",
-      "operating_profit": "Beneficio operativo",
-      "refunds": "Reembolsos",
-      "new_customers": "Clientes nuevos",
-      "mer": "MER",
-      "nc_roas": "nc-ROAS",
-      "cac": "CAC combinado",
-      "poas": "POAS",
-      "cancel_rate": "Tasa de cancelación",
-      "returns_rate": "Tasa de devolución",
-      "return_cost": "Costes de devoluciones",
-      "repeat_customer_rate": "Clientes recurrentes",
-      "stock_value_cost": "Valor del stock al coste",
-      "coverage_days": "Días de cobertura",
-      "out_of_stock_variants": "Variantes agotadas",
-      "incoming_po_value": "Valor de mercancía en camino",
-      "meta_spend": "Gasto en Meta",
-      "meta_roas": "ROAS de Meta",
-      "meta_cpa": "CPA de Meta",
-      "meta_ctr": "CTR de Meta",
-      "google_spend": "Gasto en Google",
-      "google_roas": "ROAS de Google",
-      "google_cpa": "CPA de Google",
-      "google_ctr": "CTR de Google",
-      "tiktok_spend": "Gasto en TikTok",
-      "tiktok_roas": "ROAS de TikTok",
-      "tiktok_cpa": "CPA de TikTok",
-      "tiktok_ctr": "CTR de TikTok"
-    },
-    "metric_groups": {
-      "finance": "Finanzas",
-      "orders": "Pedidos y devoluciones",
-      "customers": "Clientes",
-      "inventory": "Inventario",
-      "ads": "Anuncios por plataforma",
-      "custom": "Métricas personalizadas"
-    },
-    "breakdown_dims": {
-      "channel": "canal",
-      "country": "país",
-      "payment_method": "método de pago",
-      "product": "producto",
-      "campaign": "campaña",
-      "platform": "plataforma"
-    },
-    "top_entities": {
-      "products": "Mejores productos",
-      "campaigns": "Mejores campañas por beneficio",
-      "customers": "Mejores clientes",
-      "ads": "Mejores anuncios por beneficio",
-      "keywords": "Mejores palabras clave por beneficio",
-      "search_terms": "Términos de búsqueda por gasto"
-    },
-    "top_secondary": {
-      "products": "{v} uds.",
-      "campaigns": "ROAS {v}",
-      "customers": "{v} pedidos",
-      "ads": "ROAS {v}",
-      "keywords": "ROAS {v}",
-      "search_terms": "{v} pedidos"
-    },
-    "granularity": {
-      "day": "Día",
-      "week": "Semana",
-      "month": "Mes"
-    },
-    "channels": {
-      "paid_social": "Social de pago",
-      "paid_search": "Búsqueda de pago",
-      "organic_search": "Búsqueda orgánica",
-      "email": "Email",
-      "social": "Social",
-      "direct": "Directo",
-      "referral": "Referido",
-      "unknown": "Desconocido"
-    },
-    "queue_parts": {
-      "connections": "{n} conexiones",
-      "sources": "{n} sincronizaciones",
-      "webhooks": "{n} webhooks",
-      "unassigned": "{n} sin asignar"
-    },
-    "editor": {
-      "title": "Editar: {name}",
-      "description": "Los cambios se guardan como borrador: revísalos como un rol y luego publica.",
-      "published": "Publicado.",
-      "saved": "Borrador guardado.",
-      "none": "— ninguna —",
-      "title_field": "Título (opcional)",
-      "title_placeholder": "Automático",
-      "width": "Ancho",
-      "height": "Alto",
-      "columns": "{n, plural, one {# columna} other {# columnas}}",
-      "rows": "{n, plural, one {# fila} other {# filas}}",
-      "period": "Periodo",
-      "metric": "Métrica",
-      "compare": "Comparar con",
-      "compare_previous": "Periodo anterior",
-      "compare_none": "Nada",
-      "sparkline": "Mostrar la tendencia",
-      "series_n": "Métrica {n}",
-      "chart": "Gráfico",
-      "chart_line": "Líneas",
-      "chart_bar": "Barras",
-      "granularity": "Por",
-      "by": "Desglosar por",
-      "limit": "Filas",
-      "entity": "Lista",
-      "note_text": "Texto",
-      "note_hint": "Títulos (#), listas (-), **negrita**, *cursiva*, [enlaces](https://…). El HTML se muestra como texto.",
-      "note_translation": "Texto en {locale} (opcional)",
-      "dashboard_period": "Periodo del panel",
-      "save_draft": "Guardar borrador",
-      "publish": "Publicar",
-      "preview_as": "Guardar y ver como…",
-      "discard": "Descartar borrador",
-      "reset_confirm": "¿Sustituir los widgets por la plantilla de Hullwise? Publica para aplicar.",
-      "reset_template": "Restablecer plantilla de Hullwise",
-      "count": "{n} de {max} widgets",
-      "drag_hint": "Arrastra los widgets para reordenarlos o usa las flechas. Haz clic en un widget para configurarlo.",
-      "configure": "Configurar",
-      "move_up": "Subir",
-      "move_down": "Bajar",
-      "remove": "Quitar",
-      "size": "{w}×{h}",
-      "empty": "Sin widgets: añade uno del catálogo.",
-      "settings": "Ajustes del widget",
-      "add_widget": "Añadir un widget",
-      "done": "Hecho"
-    },
-    "errors": {
-      "generic": "Algo salió mal.",
-      "forbidden": "No puedes modificar este panel.",
-      "not_found": "Panel no encontrado.",
-      "invalid_layout": "Algunos widgets no son válidos.",
-      "too_many_widgets": "Demasiados widgets para un panel.",
-      "module_disabled": "Un widget requiere un módulo que tu tienda no tiene.",
-      "role_taken": "Un rol seleccionado ya tiene una variante del inicio.",
-      "home_exists": "El inicio de la tienda ya existe.",
-      "invalid_input": "Revisa los campos.",
-      "personal_off": "Los paneles personales están desactivados para esta tienda.",
-      "invalid_formula": "La fórmula no es válida.",
-      "invalid_filters": "Los filtros no son válidos.",
-      "invalid_key": "Elige otra clave: está vacía o es una métrica base.",
-      "not_filterable": "Con filtros, usa solo métricas calculadas a partir de los pedidos (no costes fijos, beneficio operativo, clientes nuevos ni stock)."
-    },
-    "builder": {
-      "saved": "Métrica guardada.",
-      "label": "Nombre",
-      "label_placeholder": "Contribución por pedido",
-      "key": "Clave",
-      "key_placeholder": "del nombre",
-      "formula": "Fórmula",
-      "formula_ok": "Fórmula válida.",
-      "formula_error": "No válida",
-      "formula_help": "Combina métricas base con + − × ÷ y paréntesis, p. ej. contribution / orders.",
-      "available": "Métricas disponibles",
-      "filters": "Calculada sobre",
-      "filters_hint": "Déjalo vacío para toda la tienda. Los filtros mantienen solo los pedidos que coinciden.",
-      "f_channel": "Canal",
-      "f_country": "País",
-      "f_payment": "Método de pago",
-      "f_platform": "Plataforma de anuncios",
-      "f_campaign": "Campaña",
-      "f_product": "Producto",
-      "f_product_type": "Tipo de producto",
-      "f_customer": "Clientes",
-      "f_customer_all": "Todos",
-      "f_customer_new": "Nuevos (primer pedido)",
-      "f_customer_returning": "Recurrentes",
-      "format": "Formato",
-      "formats": {
-        "money": "Moneda",
-        "percent": "Porcentaje",
-        "ratio": "Ratio (×)",
-        "number": "Número"
-      },
-      "direction": "Tendencia",
-      "higher_better": "Más alto es mejor",
-      "lower_better": "Más bajo es mejor",
-      "translation": "Nombre en {locale}",
-      "description_field": "Descripción",
-      "preview": "Vista previa del mes",
-      "save": "Guardar métrica",
-      "cancel": "Cancelar",
-      "preview_value": "Este mes: {value} (periodo anterior {previous})",
-      "delete": "Eliminar",
-      "delete_confirm": "¿Eliminar esta métrica? Los widgets que la usan mostrarán un guion.",
-      "invalid_target": "Objetivo no válido.",
-      "target_saved": "Objetivo guardado.",
-      "target_metric": "Métrica",
-      "target_month": "Mes",
-      "target_value_money": "Objetivo (moneda)",
-      "target_value_percent": "Objetivo (%)",
-      "target_value_number": "Objetivo",
-      "target_clear": "vacío = quitar",
-      "target_save": "Fijar objetivo",
-      "edit_title": "Editar {name}",
-      "new_title": "Nueva métrica",
-      "hint": "Solo los responsables y administradores crean o cambian métricas.",
-      "filter_names": {
-        "channel": "Canal",
-        "country": "País",
-        "paymentMethod": "Pago",
-        "productIds": "Productos",
-        "productType": "Tipo de producto",
-        "campaignIds": "Campañas",
-        "platform": "Plataforma",
-        "customerType": "Clientes"
-      }
-    },
-    "payment_methods": {
-      "card": "Tarjeta",
-      "wallet": "Monedero",
-      "bank_transfer": "Transferencia",
-      "cod": "Contra reembolso",
-      "bnpl": "Compra ahora, paga después",
-      "other": "Otro"
-    },
-    "platforms": {
-      "meta": "Meta",
-      "google": "Google",
-      "tiktok": "TikTok"
-    }
-  },
-  "ads": {
-    "nav": {
-      "label": "Análisis de campañas",
-      "campaigns": "Campañas",
-      "creatives": "Creatividades",
-      "keywords": "Palabras clave y búsquedas",
-      "words": "Palabras",
-      "recommendations": "Sugerencias"
-    },
-    "cols": {
-      "name": "Nombre",
-      "spend": "Gasto",
-      "impressions": "Impresiones",
-      "ctr": "CTR",
-      "platform_conv": "Conv. plataforma",
-      "hullwise_orders": "Pedidos Hullwise",
-      "revenue": "Ingreso neto",
-      "profit": "Beneficio",
-      "roas": "ROAS",
-      "frequency": "Frecuencia",
-      "match": "Concordancia",
-      "quality": "Calidad",
-      "campaign": "Campaña",
-      "action": "Acción",
-      "phrase": "Frase",
-      "items": "Usada en",
-      "margin": "Margen",
-      "cpa": "CPA",
-      "field": "Campo",
-      "asset": "Recurso",
-      "hullwise_orders_allocated": "Pedidos Hullwise (repartidos)",
-      "date": "Fecha",
-      "search_term": "Término de búsqueda",
-      "clicks": "Clics",
-      "reason": "Por qué",
-      "ad": "Anuncio"
-    },
-    "excluded_n": "+{n} cancelados/devueltos",
-    "ad_sets_title": "Conjuntos de anuncios",
-    "ad_groups_title": "Grupos de anuncios",
-    "ad_sets_description": "Las cifras de la plataforma junto a las de Hullwise: pedidos, ingresos y beneficio cuentan solo los pedidos no cancelados ni devueltos.",
-    "utm_missing": "{n} de {total} anuncios no llevan {params}: sus pedidos llegan a Hullwise sin anuncio. Añade esta plantilla a los anuncios:",
-    "no_ad_sets": "Aún no hay conjuntos",
-    "no_ad_sets_hint": "Llegan con la próxima sincronización de anuncios.",
-    "hullwise_not_visible": "Hullwise no ve los pedidos de esta fila (la plantilla UTM no la nombra).",
-    "n_ads": "{n} anuncios",
-    "n_keywords": "{n} palabras clave",
-    "unassigned_orders": "{n} pedidos de la campaña no están ligados a un conjunto",
-    "open_orders": "Abrir pedidos",
-    "reconciliation": "Gasto de los anuncios {ads} de {campaign} · sin asignar {unallocated}",
-    "ad_set": "Conjunto de anuncios",
-    "ad_group": "Grupo de anuncios",
-    "status": {
-      "active": "Activo",
-      "paused": "En pausa",
-      "archived": "Archivado"
-    },
-    "ads_title": "Anuncios",
-    "ads_description": "Fatiga: la frecuencia sube mientras el CTR baja. Las sugerencias son de solo lectura: decide una persona.",
-    "no_ads": "No hay anuncios en este conjunto",
-    "keywords_title": "Palabras clave",
-    "no_keywords": "No hay palabras clave",
-    "search_terms_title": "Términos de búsqueda",
-    "all_search_terms": "Todos los términos de la campaña",
-    "no_search_terms": "No hay términos de búsqueda",
-    "other_terms": "Otros términos (bajo las impresiones mínimas)",
-    "via_keyword": "por “{keyword}”",
-    "negative_reason": {
-      "only_cancelled": "Solo pedidos cancelados",
-      "no_orders": "Gasto sin pedidos",
-      "unprofitable_orders": "Pedidos con pérdida",
-      "no_conversions": "Gasto sin conversiones"
-    },
-    "excluded": "Excluido",
-    "hullwise_footnote": "Hullwise liga los pedidos a conjuntos, anuncios y palabras clave mediante la plantilla UTM; donde la plataforma no los liga aparece un guion.",
-    "match": {
-      "exact": "Exacta",
-      "phrase": "Frase",
-      "broad": "Amplia"
-    },
-    "fatigue": {
-      "watch": "Atención: CTR en descenso",
-      "fatigued": "Fatigado"
-    },
-    "utm_badge": "Faltan UTM",
-    "pause_reason": {
-      "losing": "Con pérdidas",
-      "fatigued": "Fatigado y con pérdidas",
-      "low_label": "Calificado BAJO",
-      "low_ctr": "Mitad del CTR de los demás"
-    },
-    "ctr_change": "CTR {change} desde el inicio",
-    "copy_title": "Textos y seguimiento",
-    "utm_missing_ad": "Este anuncio no lleva {params}: sus pedidos llegan a Hullwise sin el anuncio. Plantilla:",
-    "assets_title": "Recursos",
-    "no_assets": "Sin desglose por recurso",
-    "no_assets_meta": "Meta solo informa de recursos en anuncios con creatividad dinámica o Advantage+.",
-    "no_assets_google": "Google informa de recursos en los anuncios adaptables.",
-    "no_assets_tiktok": "TikTok no informa de métricas por recurso: el vídeo del anuncio aparece con su id.",
-    "field": {
-      "headline": "Título",
-      "description": "Descripción",
-      "body": "Texto principal",
-      "title": "Título corto",
-      "image": "Imagen",
-      "video": "Vídeo",
-      "other": "Otro"
-    },
-    "assets_footnote": "Las plataformas informan de recursos, no de pedidos: Hullwise reparte los pedidos del anuncio entre sus recursos según la cuota de gasto en cada campo.",
-    "daily_title": "Por día",
-    "no_days": "Sin datos diarios en el periodo",
-    "keywords_page_title": "Palabras clave y términos de búsqueda",
-    "keywords_page_description": "Las palabras clave de Google Ads y las búsquedas que activaron los anuncios, con los pedidos de Hullwise donde la plantilla UTM las nombra.",
-    "tabs": {
-      "keywords": "Palabras clave",
-      "search_terms": "Términos de búsqueda"
-    },
-    "search_placeholder": "Buscar texto",
-    "all_campaigns": "Todas las campañas",
-    "sort_label": "Ordenar",
-    "sort": {
-      "spend": "Gasto",
-      "profit": "Beneficio",
-      "roas": "ROAS",
-      "conversions": "Conversiones"
-    },
-    "candidates_only": "Solo candidatos a palabra clave negativa",
-    "apply": "Aplicar",
-    "google_only": "Las palabras clave y los términos de búsqueda vienen de Google Ads; Meta no los tiene.",
-    "rows_total": "{n} filas",
-    "prev": "Anterior",
-    "next": "Siguiente",
-    "page_of": "Página {page} de {pages}",
-    "keywords_footnote": "Los pedidos Hullwise vienen de utm_term con la palabra clave que pone la plantilla de seguimiento.",
-    "search_terms_footnote": "Hullwise ve los pedidos de un término cuando el término es una palabra clave (concordancia exacta); para los demás deciden las conversiones de la plataforma. Los términos bajo las impresiones mínimas se agrupan en “Otros términos”.",
-    "words_title": "Palabras",
-    "words_description": "Palabras y frases (1–3 palabras) ganadoras y perdedoras en los textos de los anuncios, los términos de búsqueda y las palabras clave, con el beneficio de los pedidos Hullwise.",
-    "word_source": {
-      "copy": "Textos de anuncios",
-      "search_terms": "Términos de búsqueda",
-      "keywords": "Palabras clave"
-    },
-    "ngram": {
-      "all": "Todas",
-      "n1": "1 palabra",
-      "n2": "2 palabras",
-      "n3": "3 palabras"
-    },
-    "no_words": "Volumen insuficiente",
-    "no_words_hint": "Una frase necesita al menos dos anuncios o términos y algo de gasto.",
-    "winners": "Palabras ganadoras",
-    "winners_description": "Frases de elementos con beneficio, las mejores primero.",
-    "no_winners": "Ninguna frase con beneficio en el periodo",
-    "losers": "Palabras perdedoras",
-    "losers_description": "Frases de elementos con pérdidas, las peores primero.",
-    "no_losers": "Ninguna frase con pérdidas en el periodo",
-    "words_footnote": "{items} elementos analizados. Cada frase suma las cifras completas de cada elemento que la contiene, así que las frases se solapan.",
-    "recommendations_title": "Sugerencias de anuncios",
-    "recommendations_description": "Sugerencias de solo lectura: una persona las revisa y actúa; las escrituras en las plataformas siempre piden confirmación.",
-    "in_items": "en {n}",
-    "rec": {
-      "negatives_title": "Candidatos a palabra clave negativa",
-      "negatives_description": "{n} términos de búsqueda gastan sin pedidos con beneficio.",
-      "google_read_only": "Google es de solo lectura para esta tienda: concede acceso de escritura en Integraciones para excluir términos desde aquí.",
-      "none": "Nada que sugerir",
-      "all_candidates": "Todos los candidatos",
-      "ads_title": "Anuncios para pausar",
-      "ads_description": "Anuncios activos con pérdidas en el periodo, o fatigados y con pérdidas.",
-      "words_title": "Palabras ganadoras para reutilizar",
-      "words_description": "Frases de los anuncios con más beneficio.",
-      "open_words": "Abrir Palabras",
-      "assets_title": "Recursos débiles",
-      "assets_description": "Recursos calificados BAJO por la plataforma o con la mitad del CTR de los demás.",
-      "utm_title": "Plantillas UTM",
-      "utm_description": "Sin estos parámetros Hullwise no puede ligar los pedidos a anuncios, conjuntos y palabras clave.",
-      "utm_ok": "Todas las campañas activas llevan las plantillas.",
-      "utm_row": "{missing} de {ads} anuncios sin {params}",
-      "template_meta": "Meta: parámetros de URL del anuncio",
-      "template_google": "Google: plantilla de seguimiento de la cuenta",
-      "template_tiktok": "TikTok: parámetros de URL del anuncio"
-    },
-    "actions": {
-      "read_only": "{platform} es de solo lectura para esta tienda.",
-      "read_only_short": "Solo lectura",
-      "pause_ad": "Pausar anuncio",
-      "resume_ad": "Reanudar anuncio",
-      "pause_title": "¿Pausar este anuncio en {platform}?",
-      "resume_title": "¿Reanudar este anuncio en {platform}?",
-      "write_description": "Hullwise cambia el estado aquí y lo envía a la plataforma; si no responde, el cambio se reintenta y se muestra como pendiente.",
-      "confirm": "Confirmar",
-      "exclude": "Excluir",
-      "negative_title": "¿Añadir “{text}” como palabra clave negativa?",
-      "negative_description": "Google deja de mostrar los anuncios para esta búsqueda. El cambio pasa por la cola de escrituras.",
-      "match_type": "Concordancia",
-      "match": {
-        "exact": "Exacta",
-        "phrase": "Frase",
-        "broad": "Amplia"
-      },
-      "level": "Nivel",
-      "levels": {
-        "campaign": "Campaña",
-        "ad_group": "Grupo de anuncios"
-      }
-    }
-  },
   "mcp": {
     "copy": "Copiar",
     "copied": "Copiado",
@@ -7549,6 +7105,444 @@
       }
     }
   },
+  "dashboards": {
+    "title": "Paneles",
+    "description": "La página de inicio que ve tu equipo, variantes por rol, paneles adicionales y copias personales.",
+    "home_description": "El panel de tu equipo, diseñado por los responsables de la tienda.",
+    "edit": "Editar panel",
+    "customise": "Personalizar",
+    "home_name": "Inicio",
+    "preview_as": "Vista previa como…",
+    "preview_banner": "Vista previa como {role}",
+    "draft_banner": "borrador sin publicar",
+    "exit_preview": "Salir de la vista previa",
+    "draft_badge": "Cambios sin publicar",
+    "template_badge": "Plantilla de Hullwise",
+    "customised_badge": "Personalizada",
+    "open": "Abrir",
+    "home": "Inicio",
+    "home_template": "Tu inicio es la plantilla de Hullwise: sigue las actualizaciones de Hullwise hasta que lo personalices.",
+    "home_custom": "Inicio personalizado: {name}.",
+    "reset_home": "Restablecer la plantilla de Hullwise",
+    "reset_home_confirm": "El inicio vuelve a la plantilla de Hullwise. Las variantes por rol se mantienen. ¿Continuar?",
+    "reset_all": "Restablecer inicio y variantes",
+    "reset_all_confirm": "El inicio y todas las variantes por rol vuelven a la plantilla de Hullwise. ¿Continuar?",
+    "personal_toggle": "Paneles personales",
+    "personal_toggle_hint": "Si está activo, cualquiera puede copiar un panel en uno personal. Los paneles de la tienda siguen siendo la referencia.",
+    "name": "Nombre",
+    "kind": "Tipo",
+    "scope_new": {
+      "tenant": "Panel adicional",
+      "role": "Variante del inicio por roles",
+      "personal": "Copia personal de mi inicio"
+    },
+    "roles_variant": "Roles que ven este inicio",
+    "roles_visible": "Roles que pueden abrirlo",
+    "roles_all_hint": "Ninguno seleccionado: todo el equipo.",
+    "create": "Crear",
+    "copy_of": "Copia de {name}",
+    "duplicate": "Crear una copia personal",
+    "delete": "Eliminar",
+    "delete_confirm": "¿Eliminar este panel?",
+    "scope": {
+      "tenant": "Panel de la tienda",
+      "role": "Variante del inicio",
+      "personal": "Panel personal"
+    },
+    "personal_description": "Solo tú lo ves.",
+    "visible_to": "Visible para: {roles}",
+    "visible_all": "Visible para todo el equipo",
+    "widgets_n": "{n, plural, one {# widget} other {# widgets}}",
+    "variants": "Variantes del inicio por rol",
+    "variants_description": "Un rol con una variante la ve en lugar del inicio de la tienda.",
+    "variants_empty": "Sin variantes: todos los roles ven el inicio de la tienda.",
+    "extras": "Otros paneles",
+    "extras_description": "Paneles con nombre, por ejemplo una revisión semanal.",
+    "extras_empty": "Todavía no hay otros paneles.",
+    "personal": "Mis paneles",
+    "personal_hint": "Tus copias: cámbialas libremente.",
+    "personal_empty": "Sin paneles personales.",
+    "new_dashboard": "Nuevo panel",
+    "settings": "Ajustes",
+    "metrics_page": "Métricas y objetivos",
+    "metrics_description": "Las métricas que tus paneles pueden mostrar: el catálogo de Hullwise y tus fórmulas, con objetivos mensuales.",
+    "custom_metrics": "Métricas personalizadas",
+    "custom_metrics_hint": "Fórmulas sobre las métricas base, opcionalmente sobre pedidos filtrados. Cada cambio queda en el registro de actividad.",
+    "custom_metrics_empty": "Todavía no hay métricas personalizadas.",
+    "this_month": "Este mes",
+    "targets": "Objetivos mensuales",
+    "targets_hint": "Un mes sin objetivo propio usa el último anterior.",
+    "catalog": "Catálogo de métricas",
+    "catalog_hint": "Métricas base calculadas por los servicios de Hullwise: coinciden con el P/L, las campañas y el inventario.",
+    "catalog_group": "Grupo",
+    "catalog_flags": "Uso",
+    "flag_snapshot": "ahora",
+    "flag_filterable": "filtros",
+    "flag_series": "series",
+    "catalog_pending": "Sesiones y tasa de conversión llegarán con la conexión de GA4; TikTok y los términos de búsqueda con sus integraciones.",
+    "periods": {
+      "today": "Hoy",
+      "7d": "7 días",
+      "30d": "30 días",
+      "90d": "90 días",
+      "mtd": "Mes en curso",
+      "last_month": "Mes pasado",
+      "ytd": "Año en curso",
+      "follow": "Periodo del panel"
+    },
+    "widget": {
+      "error": "Este widget no se pudo cargar. El resto del panel funciona.",
+      "forbidden": "No disponible para tu rol.",
+      "unavailable": "Este widget no está disponible en tu plan.",
+      "days_unit": "días",
+      "open_list": "Abrir",
+      "now": "ahora",
+      "vs_previous": "vs periodo anterior",
+      "filtered": "filtrada",
+      "unknown": "Desconocido",
+      "empty": "Nada en este periodo.",
+      "breakdown_title": "{metric} por {by}",
+      "target_title": "{metric}: objetivo mensual",
+      "no_target": "Sin objetivo para este mes.",
+      "of_target": "de {target}",
+      "projected": "Proyección a fin de mes {value} (día {elapsed} de {days})",
+      "no_alerts": "Sin alertas recientes.",
+      "empty_note": "Nota vacía."
+    },
+    "widget_groups": {
+      "metrics": "Métricas",
+      "charts": "Gráficos",
+      "lists": "Listas",
+      "queues": "Colas de trabajo",
+      "content": "Contenido",
+      "hullwise": "Bloques del inicio de Hullwise"
+    },
+    "widget_types": {
+      "kpi": {
+        "name": "Indicador KPI",
+        "description": "Una métrica con comparación y tendencia."
+      },
+      "timeseries": {
+        "name": "Serie temporal",
+        "description": "1–3 métricas por día, semana o mes."
+      },
+      "breakdown": {
+        "name": "Desglose",
+        "description": "Una métrica por canal, país, pago, producto, campaña o plataforma."
+      },
+      "top_list": {
+        "name": "Ranking",
+        "description": "Mejores productos, campañas o clientes."
+      },
+      "target": {
+        "name": "Objetivo",
+        "description": "Mes en curso frente al objetivo, con proyección."
+      },
+      "alerts": {
+        "name": "Alertas",
+        "description": "Las últimas alertas disparadas."
+      },
+      "note": {
+        "name": "Nota",
+        "description": "Texto para el equipo (markdown)."
+      },
+      "queue_review": {
+        "name": "Pedidos por revisar",
+        "description": "Pedidos pendientes de revisión."
+      },
+      "queue_late": {
+        "name": "Envío atrasado",
+        "description": "Pedidos listos pasado el plazo de envío."
+      },
+      "queue_awaiting_stock": {
+        "name": "Esperando stock",
+        "description": "Pedidos retenidos por falta de stock."
+      },
+      "queue_exceptions": {
+        "name": "Incidencias de entrega",
+        "description": "Casos de incidencia abiertos."
+      },
+      "queue_integrations": {
+        "name": "Salud de integraciones",
+        "description": "Conexiones o sincronizaciones con error y webhooks fallidos."
+      },
+      "today_kpis": {
+        "name": "KPI de hoy",
+        "description": "Ventas, pedidos, ticket medio y cancelaciones de hoy."
+      },
+      "sales_30d": {
+        "name": "Ventas, últimos 30 días",
+        "description": "Ventas y pedidos por día."
+      },
+      "month_forecast": {
+        "name": "Previsión del mes",
+        "description": "Ingresos, pedidos y gasto en anuncios previstos."
+      },
+      "work_queue": {
+        "name": "Requiere atención",
+        "description": "Todo lo abierto, con recuentos."
+      },
+      "stock_backorders": {
+        "name": "Stock y pedidos pendientes",
+        "description": "Pedidos esperando stock, más vendidos con poco stock."
+      },
+      "today_by_status": {
+        "name": "Pedidos de hoy por estado",
+        "description": "Pedidos de hoy por estado."
+      },
+      "cod_queue": {
+        "name": "Contra reembolso por confirmar",
+        "description": "Pedidos contra reembolso esperando llamada."
+      },
+      "cod_pending": {
+        "name": "Contra reembolso por confirmar",
+        "description": "Pedidos contra reembolso abiertos de hoy, ayer y los últimos 7 días."
+      },
+      "cod_operators": {
+        "name": "Tickets contra reembolso por operador",
+        "description": "Pedidos por llamar y rellamadas vencidas de cada operador."
+      },
+      "cod_mine": {
+        "name": "Mi cola contra reembolso",
+        "description": "Tus pedidos asignados: por llamar, rellamadas vencidas, nunca llamados, programados, ilocalizables."
+      }
+    },
+    "metrics": {
+      "net_revenue": "Ingresos netos",
+      "gross_revenue": "Ventas brutas",
+      "orders": "Pedidos",
+      "aov": "Ticket medio",
+      "ad_spend": "Gasto en anuncios",
+      "cogs": "Coste de la mercancía",
+      "gross_margin": "Margen bruto",
+      "shipping": "Costes de envío",
+      "fees": "Comisiones de pago",
+      "fixed_costs": "Costes fijos",
+      "contribution": "Margen de contribución",
+      "operating_profit": "Beneficio operativo",
+      "refunds": "Reembolsos",
+      "new_customers": "Clientes nuevos",
+      "mer": "MER",
+      "nc_roas": "nc-ROAS",
+      "cac": "CAC combinado",
+      "poas": "POAS",
+      "cancel_rate": "Tasa de cancelación",
+      "returns_rate": "Tasa de devolución",
+      "return_cost": "Costes de devoluciones",
+      "repeat_customer_rate": "Clientes recurrentes",
+      "stock_value_cost": "Valor del stock al coste",
+      "coverage_days": "Días de cobertura",
+      "out_of_stock_variants": "Variantes agotadas",
+      "incoming_po_value": "Valor de mercancía en camino",
+      "meta_spend": "Gasto en Meta",
+      "meta_roas": "ROAS de Meta",
+      "meta_cpa": "CPA de Meta",
+      "meta_ctr": "CTR de Meta",
+      "google_spend": "Gasto en Google",
+      "google_roas": "ROAS de Google",
+      "google_cpa": "CPA de Google",
+      "google_ctr": "CTR de Google",
+      "tiktok_spend": "Gasto en TikTok",
+      "tiktok_roas": "ROAS de TikTok",
+      "tiktok_cpa": "CPA de TikTok",
+      "tiktok_ctr": "CTR de TikTok"
+    },
+    "metric_groups": {
+      "finance": "Finanzas",
+      "orders": "Pedidos y devoluciones",
+      "customers": "Clientes",
+      "inventory": "Inventario",
+      "ads": "Anuncios por plataforma",
+      "custom": "Métricas personalizadas"
+    },
+    "breakdown_dims": {
+      "channel": "canal",
+      "country": "país",
+      "payment_method": "método de pago",
+      "product": "producto",
+      "campaign": "campaña",
+      "platform": "plataforma"
+    },
+    "top_entities": {
+      "products": "Mejores productos",
+      "campaigns": "Mejores campañas por beneficio",
+      "customers": "Mejores clientes",
+      "ads": "Mejores anuncios por beneficio",
+      "keywords": "Mejores palabras clave por beneficio",
+      "search_terms": "Términos de búsqueda por gasto"
+    },
+    "top_secondary": {
+      "products": "{v} uds.",
+      "campaigns": "ROAS {v}",
+      "customers": "{v} pedidos",
+      "ads": "ROAS {v}",
+      "keywords": "ROAS {v}",
+      "search_terms": "{v} pedidos"
+    },
+    "granularity": {
+      "day": "Día",
+      "week": "Semana",
+      "month": "Mes"
+    },
+    "channels": {
+      "paid_social": "Social de pago",
+      "paid_search": "Búsqueda de pago",
+      "organic_search": "Búsqueda orgánica",
+      "email": "Email",
+      "social": "Social",
+      "direct": "Directo",
+      "referral": "Referido",
+      "unknown": "Desconocido"
+    },
+    "queue_parts": {
+      "connections": "{n} conexiones",
+      "sources": "{n} sincronizaciones",
+      "webhooks": "{n} webhooks",
+      "unassigned": "{n} sin asignar"
+    },
+    "editor": {
+      "title": "Editar: {name}",
+      "description": "Los cambios se guardan como borrador: revísalos como un rol y luego publica.",
+      "published": "Publicado.",
+      "saved": "Borrador guardado.",
+      "none": "— ninguna —",
+      "title_field": "Título (opcional)",
+      "title_placeholder": "Automático",
+      "width": "Ancho",
+      "height": "Alto",
+      "columns": "{n, plural, one {# columna} other {# columnas}}",
+      "rows": "{n, plural, one {# fila} other {# filas}}",
+      "period": "Periodo",
+      "metric": "Métrica",
+      "compare": "Comparar con",
+      "compare_previous": "Periodo anterior",
+      "compare_none": "Nada",
+      "sparkline": "Mostrar la tendencia",
+      "series_n": "Métrica {n}",
+      "chart": "Gráfico",
+      "chart_line": "Líneas",
+      "chart_bar": "Barras",
+      "granularity": "Por",
+      "by": "Desglosar por",
+      "limit": "Filas",
+      "entity": "Lista",
+      "note_text": "Texto",
+      "note_hint": "Títulos (#), listas (-), **negrita**, *cursiva*, [enlaces](https://…). El HTML se muestra como texto.",
+      "note_translation": "Texto en {locale} (opcional)",
+      "dashboard_period": "Periodo del panel",
+      "save_draft": "Guardar borrador",
+      "publish": "Publicar",
+      "preview_as": "Guardar y ver como…",
+      "discard": "Descartar borrador",
+      "reset_confirm": "¿Sustituir los widgets por la plantilla de Hullwise? Publica para aplicar.",
+      "reset_template": "Restablecer plantilla de Hullwise",
+      "count": "{n} de {max} widgets",
+      "drag_hint": "Arrastra los widgets para reordenarlos o usa las flechas. Haz clic en un widget para configurarlo.",
+      "configure": "Configurar",
+      "move_up": "Subir",
+      "move_down": "Bajar",
+      "remove": "Quitar",
+      "size": "{w}×{h}",
+      "empty": "Sin widgets: añade uno del catálogo.",
+      "settings": "Ajustes del widget",
+      "add_widget": "Añadir un widget",
+      "done": "Hecho"
+    },
+    "errors": {
+      "generic": "Algo salió mal.",
+      "forbidden": "No puedes modificar este panel.",
+      "not_found": "Panel no encontrado.",
+      "invalid_layout": "Algunos widgets no son válidos.",
+      "too_many_widgets": "Demasiados widgets para un panel.",
+      "module_disabled": "Un widget requiere un módulo que tu tienda no tiene.",
+      "role_taken": "Un rol seleccionado ya tiene una variante del inicio.",
+      "home_exists": "El inicio de la tienda ya existe.",
+      "invalid_input": "Revisa los campos.",
+      "personal_off": "Los paneles personales están desactivados para esta tienda.",
+      "invalid_formula": "La fórmula no es válida.",
+      "invalid_filters": "Los filtros no son válidos.",
+      "invalid_key": "Elige otra clave: está vacía o es una métrica base.",
+      "not_filterable": "Con filtros, usa solo métricas calculadas a partir de los pedidos (no costes fijos, beneficio operativo, clientes nuevos ni stock)."
+    },
+    "builder": {
+      "saved": "Métrica guardada.",
+      "label": "Nombre",
+      "label_placeholder": "Contribución por pedido",
+      "key": "Clave",
+      "key_placeholder": "del nombre",
+      "formula": "Fórmula",
+      "formula_ok": "Fórmula válida.",
+      "formula_error": "No válida",
+      "formula_help": "Combina métricas base con + − × ÷ y paréntesis, p. ej. contribution / orders.",
+      "available": "Métricas disponibles",
+      "filters": "Calculada sobre",
+      "filters_hint": "Déjalo vacío para toda la tienda. Los filtros mantienen solo los pedidos que coinciden.",
+      "f_channel": "Canal",
+      "f_country": "País",
+      "f_payment": "Método de pago",
+      "f_platform": "Plataforma de anuncios",
+      "f_campaign": "Campaña",
+      "f_product": "Producto",
+      "f_product_type": "Tipo de producto",
+      "f_customer": "Clientes",
+      "f_customer_all": "Todos",
+      "f_customer_new": "Nuevos (primer pedido)",
+      "f_customer_returning": "Recurrentes",
+      "format": "Formato",
+      "formats": {
+        "money": "Moneda",
+        "percent": "Porcentaje",
+        "ratio": "Ratio (×)",
+        "number": "Número"
+      },
+      "direction": "Tendencia",
+      "higher_better": "Más alto es mejor",
+      "lower_better": "Más bajo es mejor",
+      "translation": "Nombre en {locale}",
+      "description_field": "Descripción",
+      "preview": "Vista previa del mes",
+      "save": "Guardar métrica",
+      "cancel": "Cancelar",
+      "preview_value": "Este mes: {value} (periodo anterior {previous})",
+      "delete": "Eliminar",
+      "delete_confirm": "¿Eliminar esta métrica? Los widgets que la usan mostrarán un guion.",
+      "invalid_target": "Objetivo no válido.",
+      "target_saved": "Objetivo guardado.",
+      "target_metric": "Métrica",
+      "target_month": "Mes",
+      "target_value_money": "Objetivo (moneda)",
+      "target_value_percent": "Objetivo (%)",
+      "target_value_number": "Objetivo",
+      "target_clear": "vacío = quitar",
+      "target_save": "Fijar objetivo",
+      "edit_title": "Editar {name}",
+      "new_title": "Nueva métrica",
+      "hint": "Solo los responsables y administradores crean o cambian métricas.",
+      "filter_names": {
+        "channel": "Canal",
+        "country": "País",
+        "paymentMethod": "Pago",
+        "productIds": "Productos",
+        "productType": "Tipo de producto",
+        "campaignIds": "Campañas",
+        "platform": "Plataforma",
+        "customerType": "Clientes"
+      }
+    },
+    "payment_methods": {
+      "card": "Tarjeta",
+      "wallet": "Monedero",
+      "bank_transfer": "Transferencia",
+      "cod": "Contra reembolso",
+      "bnpl": "Compra ahora, paga después",
+      "other": "Otro"
+    },
+    "platforms": {
+      "meta": "Meta",
+      "google": "Google",
+      "tiktok": "TikTok"
+    }
+  },
   "billing": {
     "title": "Facturación",
     "description": "Tu plan, el método de pago y las facturas.",
@@ -7759,5 +7753,374 @@
     "none": "Aún no hay suscripción en el procesador.",
     "catalog_missing": "Sincroniza primero el catálogo (Facturación → Suscripciones).",
     "cancel_at_period_end": "termina al final del periodo"
+  },
+  "data_export": {
+    "title": "Exportación de datos",
+    "description": "Descarga todo lo que Hullwise guarda de esta tienda.",
+    "what_title": "Exportación completa de los datos de la tienda",
+    "what_description": "Un archivo CSV por tabla (pedidos, clientes, productos, devoluciones, campañas, ajustes y más) en un archivo zip, generado en segundo plano. Recibes un aviso cuando está listo; el enlace de descarga caduca a los {days} días. Las credenciales de las integraciones y otros secretos nunca se incluyen.",
+    "request": "Exportar todos los datos",
+    "requesting": "Iniciando…",
+    "errors": {
+      "in_progress": "Ya hay una exportación en curso.",
+      "generic": "No se pudo iniciar la exportación."
+    },
+    "empty_title": "Aún no hay exportaciones",
+    "empty_description": "Las exportaciones que inicies aparecen aquí con su enlace de descarga.",
+    "columns": {
+      "requested": "Solicitada",
+      "status": "Estado",
+      "rows": "Filas",
+      "expires": "Caducidad del enlace",
+      "file": "Archivo"
+    },
+    "by_platform": "Soporte de Hullwise",
+    "statuses": {
+      "pending": "En cola",
+      "running": "En curso",
+      "done": "Lista",
+      "failed": "Fallida",
+      "expired": "Caducada"
+    },
+    "tables_n": "{n} tablas",
+    "download": "Descargar",
+    "downloads": "{n, plural, one {descargada una vez} other {descargada # veces}}"
+  },
+  "ads": {
+    "nav": {
+      "label": "Análisis de campañas",
+      "campaigns": "Campañas",
+      "creatives": "Creatividades",
+      "keywords": "Palabras clave y búsquedas",
+      "words": "Palabras",
+      "recommendations": "Sugerencias"
+    },
+    "cols": {
+      "name": "Nombre",
+      "spend": "Gasto",
+      "impressions": "Impresiones",
+      "ctr": "CTR",
+      "platform_conv": "Conv. plataforma",
+      "hullwise_orders": "Pedidos Hullwise",
+      "revenue": "Ingreso neto",
+      "profit": "Beneficio",
+      "roas": "ROAS",
+      "frequency": "Frecuencia",
+      "match": "Concordancia",
+      "quality": "Calidad",
+      "campaign": "Campaña",
+      "action": "Acción",
+      "phrase": "Frase",
+      "items": "Usada en",
+      "margin": "Margen",
+      "cpa": "CPA",
+      "field": "Campo",
+      "asset": "Recurso",
+      "hullwise_orders_allocated": "Pedidos Hullwise (repartidos)",
+      "date": "Fecha",
+      "search_term": "Término de búsqueda",
+      "clicks": "Clics",
+      "reason": "Por qué",
+      "ad": "Anuncio"
+    },
+    "excluded_n": "+{n} cancelados/devueltos",
+    "ad_sets_title": "Conjuntos de anuncios",
+    "ad_groups_title": "Grupos de anuncios",
+    "ad_sets_description": "Las cifras de la plataforma junto a las de Hullwise: pedidos, ingresos y beneficio cuentan solo los pedidos no cancelados ni devueltos.",
+    "utm_missing": "{n} de {total} anuncios no llevan {params}: sus pedidos llegan a Hullwise sin anuncio. Añade esta plantilla a los anuncios:",
+    "no_ad_sets": "Aún no hay conjuntos",
+    "no_ad_sets_hint": "Llegan con la próxima sincronización de anuncios.",
+    "hullwise_not_visible": "Hullwise no ve los pedidos de esta fila (la plantilla UTM no la nombra).",
+    "n_ads": "{n} anuncios",
+    "n_keywords": "{n} palabras clave",
+    "unassigned_orders": "{n} pedidos de la campaña no están ligados a un conjunto",
+    "open_orders": "Abrir pedidos",
+    "reconciliation": "Gasto de los anuncios {ads} de {campaign} · sin asignar {unallocated}",
+    "ad_set": "Conjunto de anuncios",
+    "ad_group": "Grupo de anuncios",
+    "status": {
+      "active": "Activo",
+      "paused": "En pausa",
+      "archived": "Archivado"
+    },
+    "ads_title": "Anuncios",
+    "ads_description": "Fatiga: la frecuencia sube mientras el CTR baja. Las sugerencias son de solo lectura: decide una persona.",
+    "no_ads": "No hay anuncios en este conjunto",
+    "keywords_title": "Palabras clave",
+    "no_keywords": "No hay palabras clave",
+    "search_terms_title": "Términos de búsqueda",
+    "all_search_terms": "Todos los términos de la campaña",
+    "no_search_terms": "No hay términos de búsqueda",
+    "other_terms": "Otros términos (bajo las impresiones mínimas)",
+    "via_keyword": "por “{keyword}”",
+    "negative_reason": {
+      "only_cancelled": "Solo pedidos cancelados",
+      "no_orders": "Gasto sin pedidos",
+      "unprofitable_orders": "Pedidos con pérdida",
+      "no_conversions": "Gasto sin conversiones"
+    },
+    "excluded": "Excluido",
+    "hullwise_footnote": "Hullwise liga los pedidos a conjuntos, anuncios y palabras clave mediante la plantilla UTM; donde la plataforma no los liga aparece un guion.",
+    "match": {
+      "exact": "Exacta",
+      "phrase": "Frase",
+      "broad": "Amplia"
+    },
+    "fatigue": {
+      "watch": "Atención: CTR en descenso",
+      "fatigued": "Fatigado"
+    },
+    "utm_badge": "Faltan UTM",
+    "pause_reason": {
+      "losing": "Con pérdidas",
+      "fatigued": "Fatigado y con pérdidas",
+      "low_label": "Calificado BAJO",
+      "low_ctr": "Mitad del CTR de los demás"
+    },
+    "ctr_change": "CTR {change} desde el inicio",
+    "copy_title": "Textos y seguimiento",
+    "utm_missing_ad": "Este anuncio no lleva {params}: sus pedidos llegan a Hullwise sin el anuncio. Plantilla:",
+    "assets_title": "Recursos",
+    "no_assets": "Sin desglose por recurso",
+    "no_assets_meta": "Meta solo informa de recursos en anuncios con creatividad dinámica o Advantage+.",
+    "no_assets_google": "Google informa de recursos en los anuncios adaptables.",
+    "field": {
+      "headline": "Título",
+      "description": "Descripción",
+      "body": "Texto principal",
+      "title": "Título corto",
+      "image": "Imagen",
+      "video": "Vídeo",
+      "other": "Otro"
+    },
+    "assets_footnote": "Las plataformas informan de recursos, no de pedidos: Hullwise reparte los pedidos del anuncio entre sus recursos según la cuota de gasto en cada campo.",
+    "daily_title": "Por día",
+    "no_days": "Sin datos diarios en el periodo",
+    "keywords_page_title": "Palabras clave y términos de búsqueda",
+    "keywords_page_description": "Las palabras clave de Google Ads y las búsquedas que activaron los anuncios, con los pedidos de Hullwise donde la plantilla UTM las nombra.",
+    "tabs": {
+      "keywords": "Palabras clave",
+      "search_terms": "Términos de búsqueda"
+    },
+    "search_placeholder": "Buscar texto",
+    "all_campaigns": "Todas las campañas",
+    "sort_label": "Ordenar",
+    "sort": {
+      "spend": "Gasto",
+      "profit": "Beneficio",
+      "roas": "ROAS",
+      "conversions": "Conversiones"
+    },
+    "candidates_only": "Solo candidatos a palabra clave negativa",
+    "apply": "Aplicar",
+    "google_only": "Las palabras clave y los términos de búsqueda vienen de Google Ads; Meta no los tiene.",
+    "rows_total": "{n} filas",
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "page_of": "Página {page} de {pages}",
+    "keywords_footnote": "Los pedidos Hullwise vienen de utm_term con la palabra clave que pone la plantilla de seguimiento.",
+    "search_terms_footnote": "Hullwise ve los pedidos de un término cuando el término es una palabra clave (concordancia exacta); para los demás deciden las conversiones de la plataforma. Los términos bajo las impresiones mínimas se agrupan en “Otros términos”.",
+    "words_title": "Palabras",
+    "words_description": "Palabras y frases (1–3 palabras) ganadoras y perdedoras en los textos de los anuncios, los términos de búsqueda y las palabras clave, con el beneficio de los pedidos Hullwise.",
+    "word_source": {
+      "copy": "Textos de anuncios",
+      "search_terms": "Términos de búsqueda",
+      "keywords": "Palabras clave"
+    },
+    "ngram": {
+      "all": "Todas",
+      "n1": "1 palabra",
+      "n2": "2 palabras",
+      "n3": "3 palabras"
+    },
+    "no_words": "Volumen insuficiente",
+    "no_words_hint": "Una frase necesita al menos dos anuncios o términos y algo de gasto.",
+    "winners": "Palabras ganadoras",
+    "winners_description": "Frases de elementos con beneficio, las mejores primero.",
+    "no_winners": "Ninguna frase con beneficio en el periodo",
+    "losers": "Palabras perdedoras",
+    "losers_description": "Frases de elementos con pérdidas, las peores primero.",
+    "no_losers": "Ninguna frase con pérdidas en el periodo",
+    "words_footnote": "{items} elementos analizados. Cada frase suma las cifras completas de cada elemento que la contiene, así que las frases se solapan.",
+    "recommendations_title": "Sugerencias de anuncios",
+    "recommendations_description": "Sugerencias de solo lectura: una persona las revisa y actúa; las escrituras en las plataformas siempre piden confirmación.",
+    "in_items": "en {n}",
+    "rec": {
+      "negatives_title": "Candidatos a palabra clave negativa",
+      "negatives_description": "{n} términos de búsqueda gastan sin pedidos con beneficio.",
+      "google_read_only": "Google es de solo lectura para esta tienda: concede acceso de escritura en Integraciones para excluir términos desde aquí.",
+      "none": "Nada que sugerir",
+      "all_candidates": "Todos los candidatos",
+      "ads_title": "Anuncios para pausar",
+      "ads_description": "Anuncios activos con pérdidas en el periodo, o fatigados y con pérdidas.",
+      "words_title": "Palabras ganadoras para reutilizar",
+      "words_description": "Frases de los anuncios con más beneficio.",
+      "open_words": "Abrir Palabras",
+      "assets_title": "Recursos débiles",
+      "assets_description": "Recursos calificados BAJO por la plataforma o con la mitad del CTR de los demás.",
+      "utm_title": "Plantillas UTM",
+      "utm_description": "Sin estos parámetros Hullwise no puede ligar los pedidos a anuncios, conjuntos y palabras clave.",
+      "utm_ok": "Todas las campañas activas llevan las plantillas.",
+      "utm_row": "{missing} de {ads} anuncios sin {params}",
+      "template_meta": "Meta: parámetros de URL del anuncio",
+      "template_google": "Google: plantilla de seguimiento de la cuenta",
+      "template_tiktok": "TikTok: parámetros de URL del anuncio"
+    },
+    "actions": {
+      "read_only": "{platform} es de solo lectura para esta tienda.",
+      "read_only_short": "Solo lectura",
+      "pause_ad": "Pausar anuncio",
+      "resume_ad": "Reanudar anuncio",
+      "pause_title": "¿Pausar este anuncio en {platform}?",
+      "resume_title": "¿Reanudar este anuncio en {platform}?",
+      "write_description": "Hullwise cambia el estado aquí y lo envía a la plataforma; si no responde, el cambio se reintenta y se muestra como pendiente.",
+      "confirm": "Confirmar",
+      "exclude": "Excluir",
+      "negative_title": "¿Añadir “{text}” como palabra clave negativa?",
+      "negative_description": "Google deja de mostrar los anuncios para esta búsqueda. El cambio pasa por la cola de escrituras.",
+      "match_type": "Concordancia",
+      "match": {
+        "exact": "Exacta",
+        "phrase": "Frase",
+        "broad": "Amplia"
+      },
+      "level": "Nivel",
+      "levels": {
+        "campaign": "Campaña",
+        "ad_group": "Grupo de anuncios"
+      }
+    },
+    "no_assets_tiktok": "TikTok no informa de métricas por recurso: el vídeo del anuncio aparece con su id."
+  },
+  "product_mirror": {
+    "edit": "Editar",
+    "cancel": "Cancelar",
+    "save": "Guardar en Shopify",
+    "saving": "Guardando…",
+    "yes": "Sí",
+    "no": "No",
+    "last_synced": "Sincronizado desde Shopify {when}",
+    "never_synced": "Nunca sincronizado desde Shopify",
+    "edit_in_shopify": "Editar en Shopify",
+    "errors": {
+      "stale": "Este producto cambió en Shopify después de abrirlo. Recarga para ver la versión actual y vuelve a editar.",
+      "reload": "Recargar",
+      "platform": "Shopify rechazó el cambio: {message}",
+      "generic": "No se pudo guardar el cambio.",
+      "not_found": "Producto no encontrado.",
+      "forbidden": "No puedes editar productos.",
+      "invalid_input": "Revisa los valores introducidos.",
+      "invalid_variant": "Revisa el precio, el precio de comparación y el peso de {variant}.",
+      "invalid": {
+        "title_required": "El título es obligatorio.",
+        "too_long": "Un campo supera la longitud que permite Shopify.",
+        "invalid_price": "Los precios deben ser cero o más.",
+        "invalid_weight": "El peso debe ser un número entero de gramos.",
+        "invalid_status": "Estado desconocido."
+      }
+    },
+    "details": {
+      "title": "Título y descripción",
+      "no_description": "Sin descripción en Shopify.",
+      "field_title": "Título",
+      "field_description": "Descripción (HTML)",
+      "html_hint": "Shopify guarda la descripción en HTML; Hullwise la muestra solo con formato (sin scripts ni contenido incrustado)."
+    },
+    "status": {
+      "title": "Estado y canales",
+      "channels": "Canales de venta",
+      "no_channels": "Aún no se ha leído ningún canal.",
+      "published": "Publicado",
+      "not_published": "No publicado",
+      "channels_hint": "La publicación en canales se gestiona en Shopify."
+    },
+    "organisation": {
+      "title": "Organización",
+      "vendor": "Proveedor (vendor)",
+      "type": "Tipo de producto",
+      "category": "Categoría",
+      "collections": "Colecciones",
+      "tags": "Etiquetas",
+      "category_id": "Id de categoría (taxonomía de Shopify)",
+      "tags_hint": "Separadas por comas. Las colecciones se gestionan en Shopify."
+    },
+    "seo": {
+      "title": "Vista previa en buscadores",
+      "no_description": "Sin descripción: los buscadores usarán texto de la página.",
+      "field_title": "Título de la página",
+      "field_description": "Meta descripción"
+    },
+    "variants": {
+      "variant": "Variante",
+      "price": "Precio",
+      "compare_at": "Precio de comparación",
+      "sku": "SKU",
+      "barcode": "Código de barras",
+      "weight": "Peso (g)",
+      "policy": "Sin stock",
+      "policy_deny": "Dejar de vender",
+      "policy_continue": "Seguir vendiendo",
+      "edit": "Editar variantes",
+      "inactive": "eliminada",
+      "more_fields": "Más campos de las variantes (de Shopify)",
+      "tracked": "Inventario controlado",
+      "requires_shipping": "Producto físico",
+      "taxable": "Cobrar impuestos",
+      "hs_code": "Código SA",
+      "origin": "País de origen"
+    },
+    "sync": {
+      "product": "Sincronizar desde Shopify",
+      "done": "{changed, plural, =0 {Ya está al día} one {# campo actualizado} other {# campos actualizados}}",
+      "catalog": "Sincronizar catálogo desde Shopify",
+      "queued": "Sincronización del catálogo iniciada en segundo plano.",
+      "failed": "La sincronización falló: {error}",
+      "catalog_done": "Catálogo sincronizado: {products} productos.",
+      "catalog_progress": "Sincronizando… {products} productos hasta ahora",
+      "last": "Última sincronización del catálogo {when}",
+      "never": "Catálogo nunca sincronizado",
+      "running": "Sincronizando: {products} de {total} productos"
+    },
+    "gallery": {
+      "title": "Multimedia",
+      "done": "Listo",
+      "manage": "Gestionar",
+      "empty": "Sin multimedia en Shopify.",
+      "open": "Abrir imagen {n}",
+      "move_left": "Mover a la izquierda",
+      "move_right": "Mover a la derecha",
+      "alt": "Texto alternativo",
+      "delete": "Quitar",
+      "delete_confirm": "¿Quitar este contenido del producto en Shopify?",
+      "add_url": "URL de la imagen",
+      "add": "Añadir desde URL",
+      "save_alt": "Guardar texto alternativo",
+      "cancel": "Cancelar",
+      "hint": "Los cambios se escriben en Shopify al instante. Para subir archivos desde tu equipo usa Shopify.",
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "no_alt": "Sin texto alternativo",
+      "type": {
+        "video": "Vídeo",
+        "model": "Modelo 3D"
+      }
+    },
+    "metafields": {
+      "title": "Metacampos",
+      "read_only": "Solo lectura",
+      "empty": "Sin metacampos."
+    },
+    "pnl": {
+      "title": "P/L, últimos 30 días",
+      "open": "Analítica",
+      "empty": "Sin ventas ni gasto publicitario en los últimos 30 días.",
+      "units": "Unidades vendidas",
+      "net_revenue": "Ingresos netos",
+      "cogs": "Coste de la mercancía",
+      "gross_margin": "Margen bruto",
+      "ad_spend": "Gasto en anuncios (campañas vinculadas)",
+      "profit": "Beneficio",
+      "missing_cost": "{units} unidades vendidas sin coste: el margen está sobrestimado."
+    }
   }
 }

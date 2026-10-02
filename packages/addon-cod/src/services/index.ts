@@ -1,9 +1,9 @@
 import { and, desc, eq, inArray, schema, sql, type SQL } from "@hullwise/db";
 import { normalizePhone } from "@hullwise/core";
-import type { CommercePlatform } from "@hullwise/integrations";
+import type { AddressProvider, CommercePlatform } from "@hullwise/integrations";
 import { applyCancellation, customerOrderHistory, duplicateSiblings, notifyUsers, recomputeOrderStatus, runPlatformWriteNow, setManualStatus, type ServiceContext } from "@hullwise/services";
 import { hoursFor, localDay, nextOperator } from "../assignment";
-import { ATTEMPT_OUTCOMES, OPEN_QUEUE_STATUSES, applyOutcome, compareQueue, type AttemptOutcome, type QueueStatus } from "../queue";
+import { ATTEMPT_OUTCOMES, OPEN_QUEUE_STATUSES, TO_CALL_STATUSES, applyOutcome, compareQueue, type AttemptOutcome, type QueueStatus } from "../queue";
 import { buildRecipientProfile, classifyRecipient, recipientKey, type RecipientShipment } from "../risk";
 import { computeDeliveryScore, type OutcomeRecord, type ScoreResult } from "../scoring";
 import { parseCodSettings, type CodSettings, type RiskTier } from "../settings";
@@ -111,8 +111,9 @@ export async function syncQueue(ctx: ServiceContext, settings?: CodSettings, opt
     for (const orderId of toEnter) {
       const { entryTag, order } = eligible.get(orderId)!;
       const prev = existingByOrder.get(orderId);
-      if (prev) await ctx.tx.update(schema.codQueueItems).set({ status: "pending", closedAt: null, enteredAt: now, entryTag, callBackAt: null, updatedAt: now }).where(eq(schema.codQueueItems.id, prev));
-      else await ctx.tx.insert(schema.codQueueItems).values({ tenantId: ctx.tenantId, orderId, status: "pending", entryTag, enteredAt: now });
+      if (prev) await ctx.tx.update(schema.codQueueItems).set({ status: "pending", closedAt: null, enteredAt: now, entryTag, callBackAt: null, scheduledConfirmOn: null, scheduledConfirmTriedOn: null, scheduledConfirmError: null, escalatedAt: null, escalatedBy: null, escalationReason: null, updatedAt: now }).where(eq(schema.codQueueItems.id, prev));
+      // two page loads may sync at once: the second insert of the same order is a no-op
+      else await ctx.tx.insert(schema.codQueueItems).values({ tenantId: ctx.tenantId, orderId, status: "pending", entryTag, enteredAt: now }).onConflictDoNothing();
       entered++;
       // a queue tag on an already confirmed order means "back to confirmation" (the reference "Da chiamare")
       if (entryTag && order.status === "confirmed") await setManualStatus(ctx, orderId, "pending_review", `cod_tag:${entryTag}`);
@@ -179,7 +180,7 @@ function outcomeOf(status: string, shipmentStatus: string | null): OutcomeRecord
 }
 
 /** Computes and stores the explained score for one queue item; returns the breakdown. */
-export async function scoreQueueItem(ctx: ServiceContext, orderId: string, opts: { settings?: CodSettings; timezone?: string } = {}): Promise<ScoreResult> {
+export async function scoreQueueItem(ctx: ServiceContext, orderId: string, opts: { settings?: CodSettings; timezone?: string; addressProvider?: AddressProvider; preview?: boolean } = {}): Promise<ScoreResult> {
   const now = ctx.now ?? new Date();
   const settings = opts.settings ?? (await getCodSettings(ctx));
   const [order] = await ctx.tx.select().from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenantId), eq(schema.orders.id, orderId))).limit(1);
@@ -212,6 +213,18 @@ export async function scoreQueueItem(ctx: ServiceContext, orderId: string, opts:
   const key = recipientKey(normalizePhone(order.phone ?? addr?.phone ?? null, order.shippingCountry ?? "IT"), order.emailNormalized);
   const [profile] = key ? await ctx.tx.select({ tier: schema.codRecipientProfiles.tier }).from(schema.codRecipientProfiles).where(and(eq(schema.codRecipientProfiles.tenantId, ctx.tenantId), eq(schema.codRecipientProfiles.recipientKey, key))).limit(1) : [];
   const localHour = Number(new Intl.DateTimeFormat("en-US", { timeZone: opts.timezone ?? "UTC", hour: "numeric", hour12: false }).format(order.placedAt)) % 24;
+  // address provider (C.18): checked once per address, the verdict is kept in the breakdown and reused while the address is unchanged
+  const addressKeyValue = addr ? [addr.address1, addr.zip ?? order.shippingZip, addr.city ?? order.shippingCity, addr.country ?? order.shippingCountry].map((x) => (x ?? "").trim().toLowerCase()).join("|") : null;
+  const cached = (item?.scoreBreakdown as { addressCheck?: { key: string; valid: boolean; issues: string[] } } | undefined)?.addressCheck;
+  let addressCheck: { key: string; valid: boolean; issues: string[] } | null = cached && cached.key === addressKeyValue ? cached : null;
+  if (!addressCheck && addr && addressKeyValue && opts.addressProvider) {
+    try {
+      const v = await opts.addressProvider.validate({ name: order.customerName, address1: addr.address1 ?? null, address2: null, city: addr.city ?? order.shippingCity, province: addr.province ?? null, zip: addr.zip ?? order.shippingZip, country: addr.country ?? order.shippingCountry });
+      addressCheck = { key: addressKeyValue, valid: v.valid, issues: v.issues.map((x) => `${x.field}_${x.code}`) };
+    } catch {
+      addressCheck = null; // a provider outage never blocks scoring: the format checks still apply
+    }
+  }
   const result = computeDeliveryScore(
     {
       customerOrders,
@@ -221,6 +234,7 @@ export async function scoreQueueItem(ctx: ServiceContext, orderId: string, opts:
       closed: !["new", "pending_review"].includes(order.status),
       lines,
       address: addr ? { phone: order.phone ?? addr.phone ?? null, address1: addr.address1 ?? null, zip: addr.zip ?? order.shippingZip, city: addr.city ?? order.shippingCity, province: addr.province ?? null, country: addr.country ?? order.shippingCountry } : null,
+      addressCheck,
       similarOrders: similar,
       totalMinor: order.totalMinor,
       aovMinor: await tenantAov(ctx, now),
@@ -231,17 +245,17 @@ export async function scoreQueueItem(ctx: ServiceContext, orderId: string, opts:
     },
     settings,
   );
-  if (item) await ctx.tx.update(schema.codQueueItems).set({ score: result.score, scoreBreakdown: { base: result.base, factors: result.factors, computedAt: now.toISOString() }, riskTier: result.riskTier, updatedAt: now }).where(eq(schema.codQueueItems.id, item.id));
+  if (item && !opts.preview) await ctx.tx.update(schema.codQueueItems).set({ score: result.score, scoreBreakdown: { base: result.base, factors: result.factors, computedAt: now.toISOString(), attempts: item.attemptsCount, ...(addressCheck ? { addressCheck } : {}) }, riskTier: result.riskTier, updatedAt: now }).where(eq(schema.codQueueItems.id, item.id));
   return result;
 }
 
 /** Scores open items missing a score (or all, when `force`), oldest first, bounded. */
-export async function scorePendingItems(ctx: ServiceContext, opts: { limit?: number; force?: boolean; timezone?: string } = {}): Promise<number> {
+export async function scorePendingItems(ctx: ServiceContext, opts: { limit?: number; force?: boolean; timezone?: string; addressProvider?: AddressProvider } = {}): Promise<number> {
   const settings = await getCodSettings(ctx);
   const conds = [eq(schema.codQueueItems.tenantId, ctx.tenantId), inArray(schema.codQueueItems.status, [...OPEN_QUEUE_STATUSES])];
   if (!opts.force) conds.push(sql`${schema.codQueueItems.score} is null`);
   const items = await ctx.tx.select({ orderId: schema.codQueueItems.orderId }).from(schema.codQueueItems).where(and(...conds)).orderBy(schema.codQueueItems.enteredAt).limit(opts.limit ?? 100);
-  for (const i of items) await scoreQueueItem(ctx, i.orderId, { settings, timezone: opts.timezone });
+  for (const i of items) await scoreQueueItem(ctx, i.orderId, { settings, timezone: opts.timezone, addressProvider: opts.addressProvider });
   return items.length;
 }
 
@@ -252,6 +266,8 @@ export interface AttemptInput {
   outcome: AttemptOutcome;
   note?: string | null;
   callBackAt?: Date | null;
+  /** `confirm_scheduled`: the tenant-local day (YYYY-MM-DD) the order is to be confirmed. */
+  confirmOn?: string | null;
   channel?: string;
 }
 
@@ -266,6 +282,7 @@ export async function recordAttempt(ctx: ServiceContext, input: AttemptInput, se
   const [item] = await ctx.tx.select().from(schema.codQueueItems).where(and(eq(schema.codQueueItems.tenantId, ctx.tenantId), eq(schema.codQueueItems.orderId, input.orderId))).limit(1);
   if (!item || !OPEN_QUEUE_STATUSES.includes(item.status as QueueStatus)) throw new CodError("not_in_queue");
   if (input.outcome === "call_back" && !input.callBackAt) throw new CodError("invalid_input");
+  if (input.outcome === "confirm_scheduled" && !/^\d{4}-\d{2}-\d{2}$/.test(input.confirmOn ?? "")) throw new CodError("invalid_input");
   const next = applyOutcome({ status: item.status as QueueStatus, noAnswerCount: item.noAnswerCount }, input.outcome, s, input.callBackAt ?? null);
   const attemptNumber = item.attemptsCount + 1;
   const [order] = await ctx.tx.select({ id: schema.orders.id, externalId: schema.orders.externalId, platformTags: schema.orders.platformTags, cancelledAt: schema.orders.cancelledAt }).from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenantId), eq(schema.orders.id, input.orderId))).limit(1);
@@ -282,8 +299,9 @@ export async function recordAttempt(ctx: ServiceContext, input: AttemptInput, se
   const tags = await applyTagEvent(ctx, opts.platform, { id: order.id, externalId: order.externalId, platformTags: [...order.platformTags] }, tagEvent, s);
   await ctx.tx.insert(schema.codAttempts).values({ tenantId: ctx.tenantId, queueItemId: item.id, orderId: input.orderId, operatorId: ctx.actor.userId, attemptNumber, outcome: input.outcome, channel: input.channel ?? "phone", note: input.note ?? null, callBackAt: input.callBackAt ?? null });
   const closing = next.status === "confirmed" || next.status === "cancelled";
-  await ctx.tx.update(schema.codQueueItems).set({ status: next.status, noAnswerCount: next.noAnswerCount, callBackAt: next.callBackAt, attemptsCount: attemptNumber, lastAttemptAt: now, closedAt: closing ? now : null, assignedTo: item.assignedTo ?? ctx.actor.userId, assignedAt: item.assignedAt ?? now, updatedAt: now }).where(eq(schema.codQueueItems.id, item.id));
-  await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: input.orderId, type: "cod_attempt", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: { queueStatus: { from: item.status, to: next.status } }, metadata: { attemptNumber, outcome: input.outcome, callBackAt: input.callBackAt?.toISOString() ?? null, note: input.note ?? null }, createdAt: now });
+  const confirmOn = input.outcome === "confirm_scheduled" ? input.confirmOn! : null;
+  await ctx.tx.update(schema.codQueueItems).set({ status: next.status, noAnswerCount: next.noAnswerCount, callBackAt: next.callBackAt, attemptsCount: attemptNumber, lastAttemptAt: now, closedAt: closing ? now : null, assignedTo: item.assignedTo ?? ctx.actor.userId, assignedAt: item.assignedAt ?? (ctx.actor.userId ? now : null), scheduledConfirmOn: confirmOn, scheduledConfirmTriedOn: null, scheduledConfirmError: null, ...(closing ? { escalatedAt: null, escalatedBy: null, escalationReason: null } : {}), updatedAt: now }).where(eq(schema.codQueueItems.id, item.id));
+  await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: input.orderId, type: "cod_attempt", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: { queueStatus: { from: item.status, to: next.status } }, metadata: { attemptNumber, outcome: input.outcome, callBackAt: input.callBackAt?.toISOString() ?? null, ...(confirmOn ? { confirmOn } : {}), ...(input.channel && input.channel !== "phone" ? { channel: input.channel } : {}), note: input.note ?? null }, createdAt: now });
   if (input.outcome === "confirmed") await setManualStatus(ctx, input.orderId, "confirmed", "cod_confirmed");
   else if (input.outcome === "cancelled") await applyCancellation(ctx, input.orderId, { reason: "cod_refused", restock: s.cancelRestock, refund: false, source: "cod" });
   else if (input.outcome === "no_answer" && next.status === "unreachable") await setManualStatus(ctx, input.orderId, "on_hold", "cod_unreachable");
@@ -387,14 +405,17 @@ export async function deleteCapacityException(ctx: ServiceContext, id: string): 
 export async function recomputeRecipientProfiles(ctx: ServiceContext, settings?: CodSettings, country = "IT"): Promise<{ profiles: number; flagged: number }> {
   const now = ctx.now ?? new Date();
   const s = settings ?? (await getCodSettings(ctx));
+  // carrier outcomes imported from billing files (C.19) win over what the order says
   const rows = await ctx.tx.execute<{ phone: string | null; ship_phone: string | null; email: string | null; country: string | null; outcome: string; at: Date | string }>(sql`
     select o.phone, o.shipping_address->>'phone' as ship_phone, o.email_normalized as email, o.shipping_country as country,
-      case when o.status = 'delivered' or sh.status = 'delivered' then 'delivered'
+      case when co.outcome = 'delivered' then 'delivered' when co.outcome = 'refused' then 'returned'
+           when o.status = 'delivered' or sh.status = 'delivered' then 'delivered'
            when o.status in ('returned','refunded') or sh.status in ('returned','failed') then 'returned' end as outcome,
-      coalesce(sh.delivered_at, sh.last_event_at, o.placed_at) as at
+      coalesce(co.occurred_at, sh.delivered_at, sh.last_event_at, o.placed_at) as at
     from orders o left join lateral (select s.status, s.delivered_at, s.last_event_at from shipments s where s.order_id = o.id order by s.created_at desc limit 1) sh on true
+      left join lateral (select c.outcome, c.occurred_at from cod_carrier_outcomes c where c.order_id = o.id order by c.created_at desc limit 1) co on true
     where o.tenant_id = ${ctx.tenantId} and o.payment_method = 'cod'
-      and (o.status in ('delivered','returned','refunded') or sh.status in ('delivered','returned','failed'))`);
+      and (co.outcome is not null or o.status in ('delivered','returned','refunded') or sh.status in ('delivered','returned','failed'))`);
   const byKey = new Map<string, RecipientShipment[]>();
   for (const r of rows.rows) {
     const key = recipientKey(normalizePhone(r.phone ?? r.ship_phone ?? null, r.country ?? country), r.email);
@@ -434,8 +455,11 @@ export async function listRiskyRecipients(ctx: ServiceContext, opts: { tiers?: R
 
 /* ---------- queue views ---------- */
 
+export const QUEUE_VIEWS = ["all", "mine", "unassigned", "scheduled", "planned", "unreachable", "escalated"] as const;
+export type QueueView = (typeof QUEUE_VIEWS)[number];
+
 export interface QueueFilters {
-  view?: "all" | "mine" | "unassigned" | "scheduled" | "unreachable";
+  view?: QueueView;
   userId?: string | null;
   q?: string;
   /** Only items that entered with this queue tag. */
@@ -448,16 +472,23 @@ export async function queueItems(ctx: ServiceContext, f: QueueFilters = {}) {
   const conds: SQL[] = [eq(schema.codQueueItems.tenantId, ctx.tenantId)];
   if (f.view === "unreachable") conds.push(eq(schema.codQueueItems.status, "unreachable"));
   else if (f.view === "scheduled") conds.push(eq(schema.codQueueItems.status, "scheduled"));
-  else conds.push(inArray(schema.codQueueItems.status, ["pending", "scheduled"]));
+  else if (f.view === "planned") conds.push(eq(schema.codQueueItems.status, "confirm_scheduled"));
+  else if (f.view === "escalated") conds.push(inArray(schema.codQueueItems.status, [...OPEN_QUEUE_STATUSES]), sql`${schema.codQueueItems.escalatedAt} is not null`);
+  else conds.push(inArray(schema.codQueueItems.status, [...TO_CALL_STATUSES]));
   if (f.view === "mine" && f.userId) conds.push(eq(schema.codQueueItems.assignedTo, f.userId));
   if (f.view === "unassigned") conds.push(sql`${schema.codQueueItems.assignedTo} is null`);
   if (f.tag) conds.push(eq(schema.codQueueItems.entryTag, normTag(f.tag)));
   if (f.q) conds.push(sql`(${schema.orders.name} ilike ${"%" + f.q + "%"} or ${schema.orders.customerName} ilike ${"%" + f.q + "%"} or ${schema.orders.phone} ilike ${"%" + f.q + "%"})`);
-  const rows = await ctx.tx.select({ item: schema.codQueueItems, order: { id: schema.orders.id, name: schema.orders.name, customerName: schema.orders.customerName, phone: schema.orders.phone, email: schema.orders.email, totalMinor: schema.orders.totalMinor, currency: schema.orders.currency, placedAt: schema.orders.placedAt, status: schema.orders.status, shippingCity: schema.orders.shippingCity, shippingCountry: schema.orders.shippingCountry } }).from(schema.codQueueItems).innerJoin(schema.orders, eq(schema.orders.id, schema.codQueueItems.orderId)).where(and(...conds)).limit(f.limit ?? 300);
+  const rows = await ctx.tx.select({ item: schema.codQueueItems, order: { id: schema.orders.id, name: schema.orders.name, customerName: schema.orders.customerName, phone: schema.orders.phone, email: schema.orders.email, totalMinor: schema.orders.totalMinor, currency: schema.orders.currency, placedAt: schema.orders.placedAt, status: schema.orders.status, shippingCity: schema.orders.shippingCity, shippingCountry: schema.orders.shippingCountry } }).from(schema.codQueueItems).innerJoin(schema.orders, eq(schema.orders.id, schema.codQueueItems.orderId)).where(and(...conds)).orderBy(schema.codQueueItems.enteredAt).limit(f.limit ?? 300);
   const sorted = rows.sort((a, b) => compareQueue({ status: a.item.status as QueueStatus, callBackAt: a.item.callBackAt, attemptsCount: a.item.attemptsCount, enteredAt: a.item.enteredAt }, { status: b.item.status as QueueStatus, callBackAt: b.item.callBackAt, attemptsCount: b.item.attemptsCount, enteredAt: b.item.enteredAt }, now));
-  const counts = await ctx.tx.select({ status: schema.codQueueItems.status, assigned: sql<number>`count(*) filter (where ${schema.codQueueItems.assignedTo} is not null)::int`, n: sql<number>`count(*)::int`, mine: sql<number>`count(*) filter (where ${schema.codQueueItems.assignedTo} = ${f.userId ?? "00000000-0000-0000-0000-000000000000"}::uuid)::int` }).from(schema.codQueueItems).where(and(eq(schema.codQueueItems.tenantId, ctx.tenantId), inArray(schema.codQueueItems.status, [...OPEN_QUEUE_STATUSES]))).groupBy(schema.codQueueItems.status);
-  const sum = (fn: (c: (typeof counts)[number]) => number, statuses?: string[]) => counts.filter((c) => !statuses || statuses.includes(c.status)).reduce((s, c) => s + fn(c), 0);
-  return { rows: sorted, counts: { all: sum((c) => c.n, ["pending", "scheduled"]), mine: sum((c) => c.mine, ["pending", "scheduled"]), unassigned: sum((c) => c.n - c.assigned, ["pending", "scheduled"]), scheduled: sum((c) => c.n, ["scheduled"]), unreachable: sum((c) => c.n, ["unreachable"]) } };
+  return { rows: sorted, counts: await queueCounts(ctx, f.userId ?? null) };
+}
+
+/** Open items per view (the view tabs and the sidebar badge). */
+export async function queueCounts(ctx: ServiceContext, userId: string | null): Promise<Record<QueueView, number>> {
+  const counts = await ctx.tx.select({ status: schema.codQueueItems.status, assigned: sql<number>`count(*) filter (where ${schema.codQueueItems.assignedTo} is not null)::int`, n: sql<number>`count(*)::int`, mine: sql<number>`count(*) filter (where ${schema.codQueueItems.assignedTo} = ${userId ?? "00000000-0000-0000-0000-000000000000"}::uuid)::int`, escalated: sql<number>`count(*) filter (where ${schema.codQueueItems.escalatedAt} is not null)::int` }).from(schema.codQueueItems).where(and(eq(schema.codQueueItems.tenantId, ctx.tenantId), inArray(schema.codQueueItems.status, [...OPEN_QUEUE_STATUSES]))).groupBy(schema.codQueueItems.status);
+  const sum = (fn: (c: (typeof counts)[number]) => number, statuses?: readonly string[]) => counts.filter((c) => !statuses || statuses.includes(c.status)).reduce((s, c) => s + fn(c), 0);
+  return { all: sum((c) => c.n, TO_CALL_STATUSES), mine: sum((c) => c.mine, TO_CALL_STATUSES), unassigned: sum((c) => c.n - c.assigned, TO_CALL_STATUSES), scheduled: sum((c) => c.n, ["scheduled"]), planned: sum((c) => c.n, ["confirm_scheduled"]), unreachable: sum((c) => c.n, ["unreachable"]), escalated: sum((c) => c.escalated) };
 }
 
 export async function queueItemDetail(ctx: ServiceContext, orderId: string) {

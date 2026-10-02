@@ -49,7 +49,10 @@ export async function getProductDetail(ctx: TenantContext, id: string) {
       .where(and(inArray(schema.purchaseOrderLines.variantId, variants.map((v) => v.id)), inArray(schema.purchaseOrders.status, ["confirmed", "in_transit", "partially_received", "sent"])));
     const movements = await tx.select().from(schema.inventoryMovements).where(and(eq(schema.inventoryMovements.tenantId, ctx.tenant.id), inArray(schema.inventoryMovements.variantId, variants.map((v) => v.id)))).orderBy(desc(schema.inventoryMovements.createdAt)).limit(30);
     const campaigns = await tx.select({ id: schema.campaigns.id, name: schema.campaigns.name, platform: schema.campaigns.platform, status: schema.campaigns.status }).from(schema.campaignProductLinks).innerJoin(schema.campaigns, eq(schema.campaigns.id, schema.campaignProductLinks.campaignId)).where(eq(schema.campaignProductLinks.productId, id));
-    return { product, variants, stock, locations, daily, incomingPos, movements, campaigns };
+    // issue #19: the gallery and the store's domain (deep link to the Shopify admin, SEO preview)
+    const media = await tx.select().from(schema.productMedia).where(and(eq(schema.productMedia.tenantId, ctx.tenant.id), eq(schema.productMedia.productId, id))).orderBy(asc(schema.productMedia.position));
+    const [shop] = await tx.select({ domain: schema.integrations.externalAccountId }).from(schema.integrations).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, "shopify"))).limit(1);
+    return { product, variants, stock, locations, daily, incomingPos, movements, campaigns, media, shopDomain: shop?.domain ?? null };
   });
 }
 

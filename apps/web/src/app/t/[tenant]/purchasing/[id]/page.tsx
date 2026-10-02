@@ -6,6 +6,8 @@ import { canDo } from "@hullwise/config";
 import { PO_TRANSITIONS, canDeletePo, canEditPo, formatDate, formatDateTime, formatMoney, displayName } from "@hullwise/core";
 import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
+import { catalogThumbnails } from "@hullwise/services";
+import { ProductThumb } from "@/components/product-thumb";
 import { getPurchaseOrder } from "@/server/queries/purchasing";
 import { StatusBadge } from "@/components/status-badge";
 import { PoActions, ReceiveForm } from "./actions";
@@ -20,6 +22,7 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
   const detail = await getPurchaseOrder(ctx, id);
   if (!detail) notFound();
   const { po, supplier, lines, backorders, payments, locations, charges, links, history } = detail;
+  const thumbs = await ctx.run((tx) => catalogThumbnails({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { variantIds: lines.map((l) => l.variantId) }));
   const t = await getTranslations("po_detail");
   const ta = await getTranslations("audit");
   const fmt = (m: number) => formatMoney(m, po.currency, ctx.locale);
@@ -150,8 +153,13 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
                 {lines.map((l) => (
                   <TableRow key={l.id}>
                     <TableCell>
-                      {l.productId ? <Link href={`/t/${tenant}/products/${l.productId}`} className="font-medium hover:underline">{l.productTitle}</Link> : <span className="font-medium">{l.description}</span>}
-                      <p className="text-xs text-muted-foreground">{l.variantId ? `${l.variantTitle ?? ""} ${l.sku ? `· ${l.sku}` : ""}` : t("free_text_line")}</p>
+                      <div className="flex items-center gap-2">
+                        {l.variantId && <ProductThumb src={thumbs.variants.get(l.variantId)} alt={`${l.productTitle ?? ""} ${l.variantTitle ?? ""}`} size="xs" />}
+                        <div className="min-w-0">
+                          {l.productId ? <Link href={`/t/${tenant}/products/${l.productId}`} className="font-medium hover:underline">{l.productTitle}</Link> : <span className="font-medium">{l.description}</span>}
+                          <p className="text-xs text-muted-foreground">{l.variantId ? `${l.variantTitle ?? ""} ${l.sku ? `· ${l.sku}` : ""}` : t("free_text_line")}</p>
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell className="text-right tabular">{l.quantity}</TableCell>
                     <TableCell className="text-right tabular">

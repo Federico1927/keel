@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Checkbox, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Textarea } from "@hullwise/ui";
+import { Alert, AlertDescription, Button, Checkbox, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select, Textarea } from "@hullwise/ui";
 import { editOrderAction, suggestAddressesAction, validateAddressAction } from "@/server/actions/orders";
 import { modifyCodOrderAction } from "@/server/actions/cod";
 import type { ActionResult } from "@/server/action-result";
@@ -66,6 +66,9 @@ export function EditOrderDialog({ slug, orderId, orderName, variant = "core", co
   const [pick, setPick] = useState("");
   const [merge, setMerge] = useState<string[]>(initialMerge);
   const [attemptNote, setAttemptNote] = useState("");
+  // COD variant only: switch the replacement to a prepaid method (the add-on drops its fee lines)
+  const [payment, setPayment] = useState<"" | "card" | "bank_transfer" | "other">("");
+  const tm = useTranslations("cod.modify");
   const [pending, start] = useTransition();
   const [result, setResult] = useState<EditResult | null>(null);
   const [issues, setIssues] = useState<Record<string, string>>({});
@@ -87,7 +90,7 @@ export function EditOrderDialog({ slug, orderId, orderName, variant = "core", co
   }, [a.address1, a.country, slug]);
 
   const linesChanged = useMemo(() => added.some((x) => x.quantity > 0) || lines.some((l) => (qty[l.id] ?? l.quantity) !== l.quantity), [added, lines, qty]);
-  const willReplace = linesChanged || merge.length > 0;
+  const willReplace = linesChanged || merge.length > 0 || (cod && payment !== "");
   const total = lines.reduce((s, l) => s + (qty[l.id] ?? 0) * l.unitPriceMinor, 0) + added.reduce((s, x) => s + (catalog.find((v) => v.id === x.variantId)?.priceMinor ?? 0) * x.quantity, 0);
   const issueText = (code: string | undefined) => (code ? (t.has(`address_issues.${code}`) ? t(`address_issues.${code}`) : code) : null);
   const field = (form: AddressForm, set: (f: AddressForm) => void, k: keyof AddressForm, prefix: string, showIssues: boolean) => (
@@ -119,7 +122,7 @@ export function EditOrderDialog({ slug, orderId, orderName, variant = "core", co
       const desired = willReplace ? { lines: [...lines.map((l) => ({ lineId: l.id, quantity: qty[l.id] ?? 0 })), ...added.filter((x) => x.quantity > 0).map((x) => ({ variantId: x.variantId, quantity: x.quantity }))], mergeOrderIds: merge } : {};
       const contactInput = { customerName: nullish(c.customerName), phone: nullish(c.phone), email: nullish(c.email), shippingAddress: toAddress(a, c.phone) };
       const r: EditResult = cod
-        ? await modifyCodOrderAction(slug, { orderId, contact: { ...contactInput, ...(n.trim() ? { note: n.trim(), noteMode: "append" as const } : {}) }, ...desired, attemptNote: nullish(attemptNote) })
+        ? await modifyCodOrderAction(slug, { orderId, contact: { ...contactInput, ...(n.trim() ? { note: n.trim(), noteMode: "append" as const } : {}) }, ...desired, ...(payment ? { paymentMethod: payment } : {}), attemptNote: nullish(attemptNote) })
         : await editOrderAction(slug, { orderId, contact: { ...contactInput, ...(editBilling ? { billingAddress: toAddress(b, "") } : {}), note: n, noteMode: "replace" as const }, ...desired });
       setResult(r);
       if (!r.ok) {
@@ -221,6 +224,16 @@ export function EditOrderDialog({ slug, orderId, orderName, variant = "core", co
                   </label>
                 ))}
               </section>
+            )}
+            {cod && (
+              <div className="space-y-1">
+                <Label htmlFor="m-payment">{tm("payment_method")}</Label>
+                <Select id="m-payment" value={payment} onChange={(e) => setPayment(e.target.value as typeof payment)} data-testid="modify-payment">
+                  <option value="">{tm("keep_cod")}</option>
+                  {(["card", "bank_transfer", "other"] as const).map((m) => <option key={m} value={m}>{tm(`methods.${m}`)}</option>)}
+                </Select>
+                {payment && <p className="text-xs text-muted-foreground">{tm("payment_hint")}</p>}
+              </div>
             )}
             {cod && (
               <div className="space-y-1">

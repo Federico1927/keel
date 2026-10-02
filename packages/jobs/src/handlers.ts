@@ -1,8 +1,8 @@
-import { AD_PLATFORMS, OPERATIONAL_TENANT_STATUSES, isAdPlatform, isAdPlatformInPlan, isTenantOperational, platformRetentionDays } from "@hullwise/config";
+import { AD_PLATFORMS, OPERATIONAL_TENANT_STATUSES, appUrl, isAdPlatform, isAdPlatformInPlan, isTenantOperational, platformRetentionDays } from "@hullwise/config";
 import { parseTenantSettings } from "@hullwise/core";
 import { adminDb, and, eq, inArray, lte, schema, withTenant } from "@hullwise/db";
-import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, runAdsEntitySync, rollupAdEntityMetrics } from "@hullwise/services";
-import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue } from "@hullwise/addon-cod";
+import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, getAddressProviderFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, runAdsEntitySync, rollupAdEntityMetrics } from "@hullwise/services";
+import { autoCancelReturnedToSender, distributeUnassigned, getCodSettings, recomputeRecipientProfiles, runScheduledConfirmations, scorePendingItems, syncQueue } from "@hullwise/addon-cod";
 import { adsWindow, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob, resyncJobsFor, type TenantExportJob } from "./queues";
 
 export interface Enqueue {
@@ -171,7 +171,7 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<JobOut
     for (const t of tenants) {
       if (!isTenantOperational(t.status)) continue;
       await withTenant(t.id, async (tx) => {
-        await evaluateAlertRules(sys(t.id)(tx), { id: t.id, country: t.country, currency: t.currency, timezone: t.timezone, settings: parseTenantSettings(t.settings) }, { appUrl: process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/t/${t.slug}` : undefined });
+        await evaluateAlertRules(sys(t.id)(tx), { id: t.id, country: t.country, currency: t.currency, timezone: t.timezone, settings: parseTenantSettings(t.settings) }, { appUrl: `${appUrl()}/t/${t.slug}` });
       });
     }
     return;
@@ -240,8 +240,14 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<JobOut
       if (!t || !isTenantOperational(t.status)) continue;
       await withTenant(t.id, async (tx) => {
         const ctx = sys(t.id)(tx);
-        await syncQueue(ctx, undefined, { platform: await getCommercePlatformFor(ctx, t) });
-        await scorePendingItems(ctx, { limit: 200, timezone: t.timezone });
+        const settings = await getCodSettings(ctx);
+        const platform = await getCommercePlatformFor(ctx, t);
+        await syncQueue(ctx, settings, { platform });
+        // confirmations agreed for today (from the configured hour; a refused platform call waits for the next day's run)
+        await runScheduledConfirmations(ctx, { timezone: t.timezone, platform, settings });
+        // parcels back at the sender and never paid: cancel without restock, voiding the payment (behind a setting)
+        await autoCancelReturnedToSender(ctx, { platform, settings });
+        await scorePendingItems(ctx, { limit: 200, timezone: t.timezone, addressProvider: getAddressProviderFor(t.id) });
         await distributeUnassigned(ctx, { source: "cron", timezone: t.timezone, limit: 200 });
         if (new Date().getUTCHours() === 2) await recomputeRecipientProfiles(ctx, undefined, t.country);
       });

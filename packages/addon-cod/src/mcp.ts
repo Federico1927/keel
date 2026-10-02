@@ -1,14 +1,14 @@
 import { z } from "zod";
 import { MCP_LIMITS } from "@hullwise/config";
 import { hullwiseLink, localDateTime, majorUnits, type HullwiseTool } from "@hullwise/services";
-import { queueItems } from "./services";
+import { QUEUE_VIEWS, queueItems } from "./services";
 
 /**
  * MCP tools of the COD add-on (#21). They carry `module: "addon.cod"`: the MCP server neither lists
  * nor runs them for a tenant without the add-on. The web app adds them to the core tool list.
  */
 
-const queueInput = z.object({ view: z.enum(["all", "mine", "unassigned", "scheduled", "unreachable"]).default("all").describe("Queue view; mine = assigned to the connected user"), limit: z.number().int().min(1).max(MCP_LIMITS.maxPageSize).default(20) });
+const queueInput = z.object({ view: z.enum(QUEUE_VIEWS).default("all").describe("Queue view; mine = assigned to the connected user, planned = confirmation scheduled for a later day, escalated = flagged for an admin"), limit: z.number().int().min(1).max(MCP_LIMITS.maxPageSize).default(20) });
 const getCodQueue: HullwiseTool<typeof queueInput> = {
   name: "get_cod_queue",
   title: "Cash-on-delivery confirmation queue",
@@ -16,7 +16,7 @@ const getCodQueue: HullwiseTool<typeof queueInput> = {
   module: "addon.cod",
   scope: "read",
   effect: "read",
-  description: "The cash-on-delivery confirmation queue in calling order: counts per view (to call, mine, unassigned, scheduled call-backs, unreachable) and the next orders with delivery score (0-100), risk tier, attempts, call-back time and assignee. Example: { \"view\": \"unassigned\" }.",
+  description: "The cash-on-delivery confirmation queue in calling order: counts per view (to call, mine, unassigned, scheduled call-backs, planned confirmations, unreachable, escalated) and the next orders with delivery score (0-100), risk tier, attempts, call-back time and assignee. Example: { \"view\": \"unassigned\" }.",
   input: queueInput,
   async run(rt, input) {
     const q = await queueItems(rt.ctx, { view: input.view, userId: rt.userId, limit: 300 });

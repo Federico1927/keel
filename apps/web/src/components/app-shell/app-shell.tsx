@@ -9,18 +9,21 @@ import { BillingBanner } from "./billing-banner";
 import { displayName, initials } from "@hullwise/core";
 import { brandCss, loadBrand } from "@/server/branding";
 import { avatarUrl } from "@/server/avatar";
+import { queueCounts } from "@hullwise/addon-cod";
 
 export async function AppShell({ ctx, children }: { ctx: TenantContext; children: React.ReactNode }) {
   const memberships = await getMemberships(ctx.user.id);
   const allowedPages = PAGES.filter((p) => isPageEnabled(p, ctx.activeAddons) && canViewPage(ctx.role, p));
   const brand = await loadBrand(ctx.tenant.id, ctx.tenant.slug);
   const css = brandCss(brand);
-  const sidebar = { tenantSlug: ctx.tenant.slug, tenantName: ctx.tenant.name, allowedPages: [...allowedPages], logoLight: brand.logoLight, logoDark: brand.logoDark };
-  const { unread, items, banner } = await ctx.run(async (tx) => {
+  const { unread, items, banner, codToCall } = await ctx.run(async (tx) => {
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
     // owners see what they owe (#53): past due, or a payment the bank wants confirmed
-    return { unread: await unreadCount(s, ctx.user.id), items: await listNotifications(s, ctx.user.id, 15), banner: ctx.role === "owner" ? await tenantBillingBanner(s, ctx.tenant) : null };
+    return { unread: await unreadCount(s, ctx.user.id), items: await listNotifications(s, ctx.user.id, 15), banner: ctx.role === "owner" ? await tenantBillingBanner(s, ctx.tenant) : null, codToCall: allowedPages.includes("cod_queue") ? (await queueCounts(s, ctx.user.id)).all : null };
   });
+  // nav badges: only modules the viewer can open (COD queue count, C.16)
+  const badges: Record<string, number> = codToCall ? { "/cod": codToCall } : {};
+  const sidebar = { tenantSlug: ctx.tenant.slug, tenantName: ctx.tenant.name, allowedPages: [...allowedPages], logoLight: brand.logoLight, logoDark: brand.logoDark, badges };
   return (
     <>
     {ctx.impersonation && <ImpersonationBanner tenantName={ctx.tenant.name} slug={ctx.tenant.slug} />}

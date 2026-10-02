@@ -16,7 +16,7 @@ export interface HttpOptions {
  */
 export class HttpClient {
   private readonly fetchImpl: FetchLike;
-  private readonly sleep: (ms: number) => Promise<void>;
+  readonly sleep: (ms: number) => Promise<void>;
   private readonly maxRetries: number;
   private readonly minIntervalMs: number;
   private lastCallAt = 0;

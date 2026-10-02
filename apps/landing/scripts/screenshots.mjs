@@ -98,6 +98,25 @@ async function main() {
           .png({ palette: true, quality: 90, effort: 7 })
           .toFile(path);
         console.info(`[landing] ${path}`);
+        // One image per section (header, each top-level section, footer), light theme only.
+        if (colorScheme === "light") {
+          mkdirSync(`${OUT}/sections`, { recursive: true });
+          const handles = page.locator("header, main section, footer");
+          const total = await handles.count();
+          let n = 0;
+          for (let i = 0; i < total; i++) {
+            const el = handles.nth(i);
+            // only outermost sections: skip a section nested in another section
+            const nested = await el.evaluate((node) => Boolean(node.parentElement?.closest("section")));
+            if (nested || !(await el.isVisible())) continue;
+            const id = await el.evaluate((node) => node.id || node.getAttribute("aria-labelledby") || node.tagName.toLowerCase());
+            const name = n === 1 && id === "section" ? "hero" : id;
+            n += 1;
+            const file = `${OUT}/sections/${locale}-${device}-${String(n).padStart(2, "0")}-${name}.png`;
+            await sharp(await el.screenshot()).png({ palette: true, quality: 90, effort: 7 }).toFile(file);
+          }
+          console.info(`[landing] ${n} sections for ${locale} ${device}`);
+        }
         await context.close();
       }
     }

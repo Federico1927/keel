@@ -1,5 +1,5 @@
 import { normalizePaymentMethod, type PaymentStatus, type ShipmentStatus } from "@hullwise/core";
-import type { Address, NormalizedCustomer, NormalizedDiscount, NormalizedFulfillment, NormalizedInventoryLevel, NormalizedLocation, NormalizedOrder, NormalizedOrderLine, NormalizedProduct, NormalizedReturn, NormalizedVariant } from "../types";
+import type { Address, NormalizedCustomer, NormalizedDiscount, NormalizedFulfillment, NormalizedInventoryLevel, NormalizedLocation, NormalizedOrder, NormalizedOrderLine, NormalizedProduct, NormalizedReturn, NormalizedVariant, NormalizedMedia } from "../types";
 
 /* ---------- helpers ---------- */
 
@@ -177,8 +177,11 @@ export function mapRestProduct(p: Rec): NormalizedProduct {
     priceMinor: moneyToMinor(v.price as string),
     compareAtMinor: v.compare_at_price ? moneyToMinor(v.compare_at_price as string) : null,
     weightGrams: v.grams !== undefined && v.grams !== null ? Number(v.grams) : null,
+    ...(v.inventory_policy !== undefined ? { inventoryPolicy: String(v.inventory_policy) === "continue" ? ("continue" as const) : ("deny" as const) } : {}),
+    ...(v.taxable !== undefined ? { taxable: v.taxable === true } : {}),
   }));
-  return { externalId: String(p.id), title: String(p.title ?? ""), handle: str(p.handle), vendor: str(p.vendor), productType: str(p.product_type), status: (String(p.status ?? "active").toLowerCase() as "active" | "draft" | "archived"), tags: tags(p.tags), options, imageUrl: str((p.image as Rec | undefined)?.src), platformCreatedAt: date(p.created_at as string), variants };
+  // media ids of the REST payload are not the GraphQL media ids: the webhook handler reads the product back (`fetchProduct`)
+  return { externalId: String(p.id), title: String(p.title ?? ""), handle: str(p.handle), vendor: str(p.vendor), productType: str(p.product_type), status: (String(p.status ?? "active").toLowerCase() as "active" | "draft" | "archived"), tags: tags(p.tags), options, imageUrl: str((p.image as Rec | undefined)?.src), platformCreatedAt: date(p.created_at as string), variants, ...(p.updated_at !== undefined ? { platformUpdatedAt: date(p.updated_at as string) } : {}), ...(p.body_html !== undefined ? { descriptionHtml: str(p.body_html) } : {}) };
 }
 
 /** inventory_levels/update webhook payload. */
@@ -269,22 +272,81 @@ export function mapGraphqlOrder(n: Rec): NormalizedOrder {
   };
 }
 
+/** Media page size inside the product query; a product with more media is completed by `PRODUCT_MEDIA_PAGE`. */
+export const PRODUCT_MEDIA_FIRST = 50;
+/** Metafields mirrored per product (read-only; first N in the platform's order). */
+export const PRODUCT_METAFIELDS_FIRST = 30;
+export const MEDIA_FIELDS = `id alt mediaContentType preview { image { url width height } } ... on MediaImage { image { url width height } }`;
+
+/**
+ * One product query for sync, webhooks and write-backs (issue #19 merged into the #23 query: the
+ * variant's `inventoryItem.unitCost` stays here, cost rules unchanged). Field names to verify on a
+ * live store: `category.fullName`, `resourcePublications` (needs read_publications), variant `media`.
+ */
 export const PRODUCT_FIELDS = `
-  id legacyResourceId title handle vendor productType status tags createdAt
+  id legacyResourceId title handle vendor productType status tags createdAt updatedAt descriptionHtml
+  seo { title description }
+  category { id name fullName }
   options { name values }
   featuredMedia { preview { image { url } } }
-  variants(first: 100) { nodes { id legacyResourceId sku barcode title price compareAtPrice selectedOptions { name value } inventoryItem { id legacyResourceId unitCost { amount currencyCode } measurement { weight { value unit } } } } }
+  media(first: ${PRODUCT_MEDIA_FIRST}) { nodes { ${MEDIA_FIELDS} } pageInfo { hasNextPage endCursor } }
+  collections(first: 20) { nodes { id title handle } }
+  resourcePublications(first: 20) { nodes { isPublished publishDate publication { id name } } }
+  metafields(first: ${PRODUCT_METAFIELDS_FIRST}) { nodes { namespace key type value } }
+  variants(first: 100) { nodes { id legacyResourceId sku barcode title price compareAtPrice inventoryPolicy taxable selectedOptions { name value } media(first: 1) { nodes { id } } inventoryItem { id legacyResourceId tracked requiresShipping harmonizedSystemCode countryCodeOfOrigin unitCost { amount currencyCode } measurement { weight { value unit } } } } }
 `;
 
+/** The next media page of one product (products with more than `PRODUCT_MEDIA_FIRST` media). */
+export const PRODUCT_MEDIA_PAGE = `query($id: ID!, $after: String) { product(id: $id) { media(first: ${PRODUCT_MEDIA_FIRST}, after: $after) { nodes { ${MEDIA_FIELDS} } pageInfo { hasNextPage endCursor } } } }`;
+
+const MEDIA_TYPES: Record<string, NormalizedMedia["type"]> = { IMAGE: "image", VIDEO: "video", EXTERNAL_VIDEO: "video", MODEL_3D: "model" };
+
+/** A GraphQL media node; null when it has no image to show yet (still processing). */
+export function mapGraphqlMedia(m: Rec): NormalizedMedia | null {
+  const img = ((m.image as Rec | null | undefined) ?? ((m.preview as Rec | null | undefined)?.image as Rec | null | undefined)) ?? null;
+  const url = str(img?.url);
+  if (!m.id || !url) return null;
+  return { externalId: String(m.id), type: MEDIA_TYPES[String(m.mediaContentType ?? "IMAGE")] ?? "image", url, alt: str(m.alt), width: img?.width === undefined || img?.width === null ? null : Number(img.width), height: img?.height === undefined || img?.height === null ? null : Number(img.height) };
+}
+
+const nodes = (v: unknown): Rec[] => (((v as Rec | undefined)?.nodes as Rec[] | undefined) ?? []);
+
 export function mapGraphqlProduct(n: Rec): NormalizedProduct {
-  const variants: NormalizedVariant[] = (((n.variants as Rec | undefined)?.nodes as Rec[] | undefined) ?? []).map((v) => {
-    const w = (((v.inventoryItem as Rec | undefined)?.measurement as Rec | undefined)?.weight as Rec | undefined) ?? null;
+  const variants: NormalizedVariant[] = nodes(n.variants).map((v) => {
+    const item = (v.inventoryItem as Rec | undefined) ?? {};
+    const w = ((item.measurement as Rec | undefined)?.weight as Rec | undefined) ?? null;
     const grams = w ? Math.round(Number(w.value) * (w.unit === "KILOGRAMS" ? 1000 : w.unit === "POUNDS" ? 453.592 : w.unit === "OUNCES" ? 28.3495 : 1)) : null;
     // unitCost is in the shop currency; null when the merchant never entered a cost
-    const unitCost = ((v.inventoryItem as Rec | undefined)?.unitCost as Rec | null | undefined)?.amount;
-    return { externalId: String(v.legacyResourceId ?? gidToId(v.id as string)), inventoryItemExternalId: str((v.inventoryItem as Rec | undefined)?.legacyResourceId) ?? gidToId((v.inventoryItem as Rec | undefined)?.id as string), sku: str(v.sku), barcode: str(v.barcode), title: String(v.title ?? ""), optionValues: Object.fromEntries(((v.selectedOptions as Rec[] | undefined) ?? []).map((o) => [String(o.name), String(o.value)])), priceMinor: moneyToMinor(v.price as string), compareAtMinor: v.compareAtPrice ? moneyToMinor(v.compareAtPrice as string) : null, weightGrams: grams, costMinor: unitCost === null || unitCost === undefined || unitCost === "" ? null : moneyToMinor(String(unitCost)) };
+    const unitCost = (item.unitCost as Rec | null | undefined)?.amount;
+    const bool = (x: unknown) => (x === undefined || x === null ? null : x === true);
+    return {
+      externalId: String(v.legacyResourceId ?? gidToId(v.id as string)), inventoryItemExternalId: str(item.legacyResourceId) ?? gidToId(item.id as string), sku: str(v.sku), barcode: str(v.barcode), title: String(v.title ?? ""),
+      optionValues: Object.fromEntries(((v.selectedOptions as Rec[] | undefined) ?? []).map((o) => [String(o.name), String(o.value)])), priceMinor: moneyToMinor(v.price as string), compareAtMinor: v.compareAtPrice ? moneyToMinor(v.compareAtPrice as string) : null, weightGrams: grams,
+      costMinor: unitCost === null || unitCost === undefined || unitCost === "" ? null : moneyToMinor(String(unitCost)),
+      ...(v.media !== undefined ? { imageMediaExternalId: str(nodes(v.media)[0]?.id) } : {}),
+      ...(v.inventoryPolicy !== undefined ? { inventoryPolicy: String(v.inventoryPolicy).toLowerCase() === "continue" ? ("continue" as const) : ("deny" as const) } : {}),
+      ...(v.taxable !== undefined ? { taxable: bool(v.taxable) } : {}),
+      ...(item.tracked !== undefined ? { tracksInventory: bool(item.tracked) } : {}),
+      ...(item.requiresShipping !== undefined ? { requiresShipping: bool(item.requiresShipping) } : {}),
+      ...(item.harmonizedSystemCode !== undefined ? { hsCode: str(item.harmonizedSystemCode) } : {}),
+      ...(item.countryCodeOfOrigin !== undefined ? { countryOfOrigin: str(item.countryCodeOfOrigin) } : {}),
+    };
   });
-  return { externalId: String(n.legacyResourceId ?? gidToId(n.id as string)), title: String(n.title ?? ""), handle: str(n.handle), vendor: str(n.vendor), productType: str(n.productType), status: String(n.status ?? "ACTIVE").toLowerCase() as "active" | "draft" | "archived", tags: tags(n.tags), options: ((n.options as Rec[] | undefined) ?? []).map((o) => ({ name: String(o.name), values: ((o.values as string[] | undefined) ?? []).map(String) })), imageUrl: str((((n.featuredMedia as Rec | undefined)?.preview as Rec | undefined)?.image as Rec | undefined)?.url), platformCreatedAt: date(n.createdAt as string), variants };
+  const cat = n.category as Rec | null | undefined;
+  const seo = n.seo as Rec | null | undefined;
+  return {
+    externalId: String(n.legacyResourceId ?? gidToId(n.id as string)), title: String(n.title ?? ""), handle: str(n.handle), vendor: str(n.vendor), productType: str(n.productType), status: String(n.status ?? "ACTIVE").toLowerCase() as "active" | "draft" | "archived", tags: tags(n.tags),
+    options: ((n.options as Rec[] | undefined) ?? []).map((o) => ({ name: String(o.name), values: ((o.values as string[] | undefined) ?? []).map(String) })),
+    imageUrl: str((((n.featuredMedia as Rec | undefined)?.preview as Rec | undefined)?.image as Rec | undefined)?.url), platformCreatedAt: date(n.createdAt as string), variants,
+    ...(n.updatedAt !== undefined ? { platformUpdatedAt: date(n.updatedAt as string) } : {}),
+    ...(n.descriptionHtml !== undefined ? { descriptionHtml: str(n.descriptionHtml) } : {}),
+    ...(n.seo !== undefined ? { seo: { title: str(seo?.title), description: str(seo?.description) } } : {}),
+    ...(n.category !== undefined ? { category: cat?.id ? { id: String(cat.id), name: String(cat.fullName ?? cat.name ?? "") } : null } : {}),
+    ...(n.collections !== undefined ? { collections: nodes(n.collections).map((c) => ({ id: String(c.id), title: String(c.title ?? ""), handle: str(c.handle) })) } : {}),
+    ...(n.resourcePublications !== undefined ? { publishedChannels: nodes(n.resourcePublications).map((r) => ({ id: String((r.publication as Rec | undefined)?.id ?? ""), name: String((r.publication as Rec | undefined)?.name ?? ""), published: r.isPublished === true, publishedAt: str(r.publishDate) })).filter((r) => r.id) } : {}),
+    ...(n.metafields !== undefined ? { metafields: nodes(n.metafields).map((m) => ({ namespace: String(m.namespace ?? ""), key: String(m.key ?? ""), type: String(m.type ?? ""), value: String(m.value ?? "") })) } : {}),
+    ...(n.media !== undefined ? { media: nodes(n.media).map(mapGraphqlMedia).filter((m): m is NormalizedMedia => m !== null) } : {}),
+  };
 }
 
 export function mapGraphqlCustomer(n: Rec): NormalizedCustomer {

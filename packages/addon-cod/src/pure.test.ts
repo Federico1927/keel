@@ -117,6 +117,7 @@ describe("tags", () => {
       no_answer: { add: [], remove: [] },
       call_back: { add: ["Da chiamare"], remove: ["Da confermare"] },
       modified: { add: ["Richiesta modifica"], remove: [] },
+      confirm_scheduled: { add: [], remove: [] },
       cancelled: { add: ["Annullato"], remove: ["Confermato"] },
       unreachable: { add: ["Non raggiungibile"], remove: [] },
       replaced: { add: ["Annullato per variazione"], remove: [] },

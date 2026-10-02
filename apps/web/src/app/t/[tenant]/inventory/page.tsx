@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ProductThumb } from "@/components/product-thumb";
 import { getTranslations } from "next-intl/server";
 import { canWritePage } from "@hullwise/config";
 import { formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
@@ -83,10 +84,15 @@ export default async function InventoryPage({ params, searchParams }: { params: 
                 {rows.map((r) => (
                   <TableRow key={r.variantId}>
                     <TableCell>
-                      <Link href={`/t/${tenant}/products/${r.productId}`} className="font-medium text-primary hover:underline">
-                        {r.productTitle}
-                      </Link>
-                      <p className="text-xs text-muted-foreground">{r.variantTitle} {r.sku ? `· ${r.sku}` : ""}</p>
+                      <div className="flex items-center gap-2">
+                        <ProductThumb src={r.imageUrl} alt={`${r.productTitle} ${r.variantTitle}`} size="xs" />
+                        <div className="min-w-0">
+                          <Link href={`/t/${tenant}/products/${r.productId}`} className="font-medium text-primary hover:underline">
+                            {r.productTitle}
+                          </Link>
+                          <p className="text-xs text-muted-foreground">{r.variantTitle} {r.sku ? `· ${r.sku}` : ""}</p>
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell className="text-right tabular font-medium">{r.available}</TableCell>
                     <TableCell className="hidden text-right tabular text-muted-foreground md:table-cell">{r.incoming ? `+${r.incoming}` : "—"}</TableCell>

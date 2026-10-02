@@ -191,6 +191,10 @@ export interface ReplaceHooks {
   afterCreated?: (ctx: ServiceContext, info: { newOrder: { id: string; externalId: string; name: string; platformTags: string[] }; target: OrderRow }) => Promise<void>;
   /** After each old order is linked and cancelled. */
   afterReplaced?: (ctx: ServiceContext, info: { order: OrderRow; newOrderId: string; cancelledOnPlatform: boolean }) => Promise<void>;
+  /** Last change to the platform order before it is created (an add-on switching the payment method). */
+  createInput?: (input: CreateOrderInput) => CreateOrderInput;
+  /** Recreate even when lines and merges are unchanged (the add-on's own change is in `createInput`). */
+  force?: boolean;
 }
 
 export interface ReplaceResult {
@@ -249,7 +253,7 @@ export async function replaceOrder(ctx: ServiceContext, platform: CommercePlatfo
   const desired = input.lines ? await resolveDesiredLines(ctx, lines, input.lines) : null;
   const linesChanged = desired !== null && linesDiffer(current, desired);
   const mergeIds = [...new Set((input.mergeOrderIds ?? []).filter((id) => id !== order.id))];
-  if (!linesChanged && !mergeIds.length) throw new OrderEditError("nothing_to_change");
+  if (!linesChanged && !mergeIds.length && !opts.hooks?.force) throw new OrderEditError("nothing_to_change");
   const sources: EditableOrder[] = [];
   for (const id of mergeIds) {
     const src = await loadEditableOrder(ctx, id);
@@ -280,7 +284,8 @@ export async function replaceOrder(ctx: ServiceContext, platform: CommercePlatfo
     payment: { method: order.paymentMethod as NonNullable<CreateOrderInput["payment"]>["method"], status: paid ? "paid" : "pending", gateways: order.paymentGateways },
   };
   // synchronous: the replacement's number and lines are needed right away; keyed so a repeated request reuses the order already created
-  const created = await platformCall(() => runPlatformWriteNow(ctx, platform, { kind: "order.create", entityType: "order", entityId: order.id, payload: { input: createInput }, idempotencyKey: `order:replace:${[order.id, ...sources.map((x) => x.order.id).sort()].join(",")}` }));
+  const finalInput = opts.hooks?.createInput ? opts.hooks.createInput(createInput) : createInput;
+  const created = await platformCall(() => runPlatformWriteNow(ctx, platform, { kind: "order.create", entityType: "order", entityId: order.id, payload: { input: finalInput }, idempotencyKey: `order:replace:${[order.id, ...sources.map((x) => x.order.id).sort()].join(",")}` }));
   const imported = await importOrder(ctx, created, { country: opts.country, source: "sync", stockCheck: false });
   const allOld = [target, ...sources];
   // stock the replaced orders give back (restock on cancel): their open units, less what was waiting for stock anyway

@@ -1,5 +1,5 @@
 import { and, eq, schema } from "@hullwise/db";
-import { IntegrationError, type NormalizedFulfillment, type NormalizedOrder } from "@hullwise/integrations";
+import { IntegrationError, type NormalizedFulfillment, type NormalizedOrder, type NormalizedProduct } from "@hullwise/integrations";
 import { defineAdsWrite, defineCommerceWrite } from "./registry";
 
 /* The platform writes Hullwise makes today. Each is one registration: provider, target, execution, optional follow-up. */
@@ -41,6 +41,30 @@ defineCommerceWrite("product.status", {
 defineCommerceWrite("product.tags", {
   target: (p) => `product:${p.productExternalId}:tags`,
   execute: (platform, p) => platform.updateProductTags(p.productExternalId, p.add, p.remove),
+});
+
+/** A `NormalizedProduct` read back from JSON (dates were serialized). */
+export function reviveProduct(raw: unknown): NormalizedProduct {
+  const p = raw as NormalizedProduct;
+  return { ...p, platformCreatedAt: d(p.platformCreatedAt), ...(p.platformUpdatedAt !== undefined ? { platformUpdatedAt: d(p.platformUpdatedAt) } : {}) };
+}
+
+defineCommerceWrite("product.update", {
+  target: (p) => `product:${p.productExternalId}:update:${Object.keys(p.patch).sort().join("+")}`,
+  execute: (platform, p) => platform.updateProduct(p.productExternalId, p.patch),
+  revive: reviveProduct,
+});
+
+defineCommerceWrite("variant.details", {
+  target: (p) => `variant:${p.variantExternalId}:details:${Object.keys(p.patch).sort().join("+")}`,
+  supersedes: true,
+  execute: (platform, p) => platform.updateVariant(p.variantExternalId, p.patch),
+});
+
+defineCommerceWrite("product.media", {
+  target: (p) => `product:${p.productExternalId}:media:${p.op.type}`,
+  execute: (platform, p) => platform.updateProductMedia(p.productExternalId, p.op),
+  revive: reviveProduct,
 });
 
 defineCommerceWrite("inventory.set", {

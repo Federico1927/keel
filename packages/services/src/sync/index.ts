@@ -214,12 +214,41 @@ export async function importLocation(ctx: ServiceContext, l: NormalizedLocation)
   return row!.id;
 }
 
+/** Platform mirror columns of a product (issue #19): only the fields the payload carries are written. */
+function productMirrorValues(p: NormalizedProduct) {
+  return {
+    ...(p.platformUpdatedAt !== undefined ? { platformUpdatedAt: p.platformUpdatedAt } : {}),
+    ...(p.descriptionHtml !== undefined ? { descriptionHtml: p.descriptionHtml } : {}),
+    ...(p.seo !== undefined ? { seoTitle: p.seo.title, seoDescription: p.seo.description } : {}),
+    ...(p.category !== undefined ? { categoryId: p.category?.id ?? null, categoryName: p.category?.name ?? null } : {}),
+    ...(p.collections !== undefined ? { collections: p.collections } : {}),
+    ...(p.publishedChannels !== undefined ? { publishedChannels: p.publishedChannels } : {}),
+    ...(p.metafields !== undefined ? { metafields: p.metafields } : {}),
+  };
+}
+
+/** Gallery of a product as the platform holds it: rows no longer reported go (variant images fall back to null). Returns external → local id. */
+async function syncProductMedia(ctx: ServiceContext, productId: string, media: NonNullable<NormalizedProduct["media"]>, now: Date): Promise<Map<string, string>> {
+  const ids = media.map((m) => m.externalId);
+  await ctx.tx.delete(schema.productMedia).where(and(eq(schema.productMedia.tenantId, ctx.tenantId), eq(schema.productMedia.productId, productId), ids.length ? sql`(${schema.productMedia.externalId} is null or ${schema.productMedia.externalId} <> all(${sql.param(ids)}::text[]))` : sql`true`));
+  const out = new Map<string, string>();
+  for (const [position, m] of media.entries()) {
+    const values = { type: m.type, url: m.url, alt: m.alt, position, width: m.width, height: m.height, updatedAt: now };
+    const [row] = await ctx.tx.insert(schema.productMedia).values({ tenantId: ctx.tenantId, productId, externalId: m.externalId, ...values }).onConflictDoUpdate({ target: [schema.productMedia.productId, schema.productMedia.externalId], set: values }).returning({ id: schema.productMedia.id });
+    out.set(m.externalId, row!.id);
+  }
+  return out;
+}
+
 export async function importProduct(ctx: ServiceContext, p: NormalizedProduct): Promise<{ id: string; outcome: "created" | "updated" }> {
   const now = ctx.now ?? new Date();
-  const values = { title: p.title, handle: p.handle, vendor: p.vendor, productType: p.productType, status: p.status, tags: p.tags, options: p.options, imageUrl: p.imageUrl, platformCreatedAt: p.platformCreatedAt, syncedAt: now, updatedAt: now };
+  // the cover is the first media when the payload carries the gallery
+  const imageUrl = p.media !== undefined ? (p.media[0]?.url ?? null) : p.imageUrl;
+  const values = { title: p.title, handle: p.handle, vendor: p.vendor, productType: p.productType, status: p.status, tags: p.tags, options: p.options, imageUrl, platformCreatedAt: p.platformCreatedAt, ...productMirrorValues(p), syncedAt: now, updatedAt: now };
   const [existing] = await ctx.tx.select({ id: schema.products.id }).from(schema.products).where(and(eq(schema.products.tenantId, ctx.tenantId), eq(schema.products.externalId, p.externalId))).limit(1);
   const [row] = await ctx.tx.insert(schema.products).values({ tenantId: ctx.tenantId, externalId: p.externalId, ...values }).onConflictDoUpdate({ target: [schema.products.tenantId, schema.products.externalId], set: values }).returning({ id: schema.products.id });
   const productId = row!.id;
+  const mediaIds = p.media !== undefined ? await syncProductMedia(ctx, productId, p.media, now) : null;
   const keep: string[] = [];
   const costed: string[] = [];
   const known = p.variants.length ? await ctx.tx.select({ externalId: schema.productVariants.externalId, costMinor: schema.productVariants.costMinor, costSource: schema.productVariants.costSource }).from(schema.productVariants).where(and(eq(schema.productVariants.tenantId, ctx.tenantId), inArray(schema.productVariants.externalId, p.variants.map((v) => v.externalId)))) : [];
@@ -227,7 +256,16 @@ export async function importProduct(ctx: ServiceContext, p: NormalizedProduct): 
     const cur = known.find((k) => k.externalId === v.externalId) ?? { costMinor: null, costSource: null };
     // the platform cost fills a missing cost (or follows itself); a manual, imported or PO cost is never overwritten
     const cost = shouldTakePlatformCost(cur, v.costMinor) ? { costMinor: v.costMinor!, costSource: "platform", costUpdatedAt: now } : {};
-    const vv = { productId, inventoryItemExternalId: v.inventoryItemExternalId, sku: v.sku, barcode: v.barcode, title: v.title, optionValues: v.optionValues, priceMinor: v.priceMinor, compareAtMinor: v.compareAtMinor, weightGrams: v.weightGrams, isActive: true, syncedAt: now, updatedAt: now, ...cost };
+    const mirror = {
+      ...(v.imageMediaExternalId !== undefined && mediaIds ? { imageMediaId: v.imageMediaExternalId ? (mediaIds.get(v.imageMediaExternalId) ?? null) : null } : {}),
+      ...(v.inventoryPolicy !== undefined ? { inventoryPolicy: v.inventoryPolicy } : {}),
+      ...(v.tracksInventory !== undefined ? { tracksInventory: v.tracksInventory } : {}),
+      ...(v.requiresShipping !== undefined ? { requiresShipping: v.requiresShipping } : {}),
+      ...(v.taxable !== undefined ? { taxable: v.taxable } : {}),
+      ...(v.hsCode !== undefined ? { hsCode: v.hsCode } : {}),
+      ...(v.countryOfOrigin !== undefined ? { countryOfOrigin: v.countryOfOrigin } : {}),
+    };
+    const vv = { productId, inventoryItemExternalId: v.inventoryItemExternalId, sku: v.sku, barcode: v.barcode, title: v.title, optionValues: v.optionValues, priceMinor: v.priceMinor, compareAtMinor: v.compareAtMinor, weightGrams: v.weightGrams, isActive: true, syncedAt: now, updatedAt: now, ...mirror, ...cost };
     const [vr] = await ctx.tx.insert(schema.productVariants).values({ tenantId: ctx.tenantId, externalId: v.externalId, ...vv }).onConflictDoUpdate({ target: [schema.productVariants.tenantId, schema.productVariants.externalId], set: vv }).returning({ id: schema.productVariants.id });
     keep.push(vr!.id);
     if (cur.costMinor === null && "costMinor" in cost) costed.push(vr!.id);
@@ -308,7 +346,12 @@ export async function processWebhookEvent(ctx: ServiceContext, platform: Commerc
       if (order) touchedOrderId = (await importOrder(ctx, order, { country: opts.country, source: "webhook" })).id;
     } else if (family === "products") {
       if (topic === "products/delete") await ctx.tx.update(schema.products).set({ status: "archived", updatedAt: now }).where(and(eq(schema.products.tenantId, ctx.tenantId), eq(schema.products.externalId, String(payload.id))));
-      else await importProduct(ctx, platform.parseWebhookProduct(payload));
+      else {
+        // the REST payload lacks the gallery ids, SEO, category, channels and metafields: the product is read back
+        const parsed = platform.parseWebhookProduct(payload);
+        const full = await platform.fetchProduct(parsed.externalId);
+        await importProduct(ctx, full ?? parsed);
+      }
     } else if (topic === "inventory_levels/update") {
       await applyInventoryLevels(ctx, [platform.parseWebhookInventoryLevel(payload)], { source: "webhook" });
     } else if (family === "customers") {

@@ -1,7 +1,7 @@
 import { HttpClient, type HttpOptions } from "../http";
 import type { BalanceTransactionType, PayoutStatus } from "@hullwise/core";
-import { IntegrationError, type CommercePlatform, type ConnectionTest, type CreateOrderInput, type ManualPaymentInput, type NormalizedBalanceTransaction, type NormalizedPayout, type RefundOrderInput, type FulfillmentHoldInput, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type OrderDetailsPatch, type OrderDiscountPatch, type Page, type VariantPatch, type PlatformReturnLineInput, type SyncQuery, type VerifiedWebhook, type WebhookRegistration, type CreateFulfillmentInput, type NormalizedFulfillment } from "../types";
-import { ORDER_FIELDS, PRODUCT_FIELDS, gidToId, idToGid, mapGraphqlCustomer, mapGraphqlDiscount, mapGraphqlInventoryLevel, mapGraphqlLocation, mapGraphqlOrder, mapGraphqlProduct, mapRestCustomer, mapRestInventoryLevel, mapRestOrder, mapRestProduct, mapFulfillmentStatus, mapGraphqlReturn, mapRestReturn, RETURN_FIELDS } from "./mappers";
+import { IntegrationError, type CommercePlatform, type ConnectionTest, type CreateOrderInput, type ManualPaymentInput, type NormalizedBalanceTransaction, type NormalizedPayout, type RefundOrderInput, type FulfillmentHoldInput, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type OrderDetailsPatch, type OrderDiscountPatch, type Page, type VariantPatch, type ProductPatch, type ProductMediaOperation, type PlatformReturnLineInput, type SyncQuery, type VerifiedWebhook, type WebhookRegistration, type CreateFulfillmentInput, type NormalizedFulfillment } from "../types";
+import { ORDER_FIELDS, PRODUCT_FIELDS, PRODUCT_MEDIA_PAGE, gidToId, idToGid, mapGraphqlCustomer, mapGraphqlDiscount, mapGraphqlInventoryLevel, mapGraphqlLocation, mapGraphqlOrder, mapGraphqlProduct, mapRestCustomer, mapRestInventoryLevel, mapRestOrder, mapRestProduct, mapFulfillmentStatus, mapGraphqlReturn, mapRestReturn, RETURN_FIELDS } from "./mappers";
 import { SHOPIFY_ALL_SCOPES, SHOPIFY_API_VERSION, verifyWebhookHmac } from "./oauth";
 
 export interface ShopifyCredentials {
@@ -88,8 +88,29 @@ export class ShopifyCommercePlatform implements CommercePlatform {
   fetchCustomers(q: SyncQuery): Promise<Page<NormalizedCustomer>> {
     return this.pageOf("customers", `id legacyResourceId email phone firstName lastName tags createdAt emailMarketingConsent { marketingState } smsMarketingConsent { marketingState } defaultAddress { city zip countryCodeV2 phone }`, q, mapGraphqlCustomer);
   }
-  fetchProducts(q: SyncQuery): Promise<Page<NormalizedProduct>> {
-    return this.pageOf("products", PRODUCT_FIELDS, q, mapGraphqlProduct);
+  async fetchProducts(q: SyncQuery): Promise<Page<NormalizedProduct>> {
+    const raw = await this.pageOf("products", PRODUCT_FIELDS, q, (n) => n);
+    const items: NormalizedProduct[] = [];
+    for (const n of raw.items) items.push(mapGraphqlProduct(await this.completeMedia(n)));
+    return { items, nextCursor: raw.nextCursor };
+  }
+  async fetchProduct(externalId: string): Promise<NormalizedProduct | null> {
+    const data = await this.graphql<{ product: Rec | null }>(`query($id: ID!) { product(id: $id) { ${PRODUCT_FIELDS} } }`, { id: idToGid("Product", externalId) });
+    return data.product ? mapGraphqlProduct(await this.completeMedia(data.product)) : null;
+  }
+  /** Reads the remaining media pages of a product node in place (the product query carries the first page). */
+  private async completeMedia(n: Rec): Promise<Rec> {
+    const media = n.media as { nodes: Rec[]; pageInfo?: { hasNextPage: boolean; endCursor: string | null } } | undefined;
+    if (!media?.pageInfo?.hasNextPage) return n;
+    const all = [...media.nodes];
+    let after = media.pageInfo.endCursor;
+    for (let i = 0; after && i < 20; i++) {
+      const data = await this.graphql<{ product: { media: { nodes: Rec[]; pageInfo: { hasNextPage: boolean; endCursor: string | null } } } | null }>(PRODUCT_MEDIA_PAGE, { id: n.id, after });
+      if (!data.product) break;
+      all.push(...data.product.media.nodes);
+      after = data.product.media.pageInfo.hasNextPage ? data.product.media.pageInfo.endCursor : null;
+    }
+    return { ...n, media: { nodes: all, pageInfo: { hasNextPage: false, endCursor: null } } };
   }
   async fetchLocations(): Promise<NormalizedLocation[]> {
     const data = await this.graphql<{ locations: { nodes: Rec[] } }>(`{ locations(first: 50, includeInactive: true) { nodes { id legacyResourceId name isActive isPrimary address { countryCode } } } }`);
@@ -268,7 +289,49 @@ export class ShopifyCommercePlatform implements CommercePlatform {
   async updateVariant(variantExternalId: string, patch: VariantPatch): Promise<void> {
     const data = await this.graphql<{ productVariant: { product: { id: string } } | null }>(`query($id: ID!) { productVariant(id: $id) { product { id } } }`, { id: idToGid("ProductVariant", variantExternalId) });
     if (!data.productVariant) throw new IntegrationError("not_found", "Variant not found");
-    await this.mutate("productVariantsBulkUpdate", `mutation($productId: ID!, $variants: [ProductVariantsBulkInput!]!) { productVariantsBulkUpdate(productId: $productId, variants: $variants) { userErrors { field message } } }`, { productId: data.productVariant.product.id, variants: [{ id: idToGid("ProductVariant", variantExternalId), ...(patch.priceMinor !== undefined ? { price: (patch.priceMinor / 100).toFixed(2) } : {}), ...(patch.compareAtMinor !== undefined ? { compareAtPrice: patch.compareAtMinor === null ? null : (patch.compareAtMinor / 100).toFixed(2) } : {}) }] });
+    // SKU and weight live on the inventory item (ProductVariantsBulkInput.inventoryItem); to verify on a live store
+    const item: Rec = {};
+    if (patch.sku !== undefined) item.sku = patch.sku ?? "";
+    if (patch.weightGrams !== undefined) item.measurement = { weight: { value: patch.weightGrams ?? 0, unit: "GRAMS" } };
+    const input: Rec = { id: idToGid("ProductVariant", variantExternalId), ...(patch.priceMinor !== undefined ? { price: (patch.priceMinor / 100).toFixed(2) } : {}), ...(patch.compareAtMinor !== undefined ? { compareAtPrice: patch.compareAtMinor === null ? null : (patch.compareAtMinor / 100).toFixed(2) } : {}), ...(patch.barcode !== undefined ? { barcode: patch.barcode ?? "" } : {}), ...(patch.inventoryPolicy !== undefined ? { inventoryPolicy: patch.inventoryPolicy.toUpperCase() } : {}), ...(Object.keys(item).length ? { inventoryItem: item } : {}) };
+    await this.mutate("productVariantsBulkUpdate", `mutation($productId: ID!, $variants: [ProductVariantsBulkInput!]!) { productVariantsBulkUpdate(productId: $productId, variants: $variants) { userErrors { field message } } }`, { productId: data.productVariant.product.id, variants: [input] });
+  }
+  /** `productUpdate(product: ProductUpdateInput)` (2024-10+ signature); answers the product as Shopify holds it after the write. */
+  async updateProduct(externalId: string, patch: ProductPatch): Promise<NormalizedProduct> {
+    const product: Rec = { id: idToGid("Product", externalId) };
+    if (patch.title !== undefined) product.title = patch.title;
+    if (patch.descriptionHtml !== undefined) product.descriptionHtml = patch.descriptionHtml;
+    if (patch.vendor !== undefined) product.vendor = patch.vendor;
+    if (patch.productType !== undefined) product.productType = patch.productType;
+    if (patch.tags !== undefined) product.tags = patch.tags;
+    if (patch.status !== undefined) product.status = patch.status.toUpperCase();
+    if (patch.seo !== undefined) product.seo = { title: patch.seo.title ?? "", description: patch.seo.description ?? "" };
+    if (patch.categoryId !== undefined) product.category = patch.categoryId;
+    const res = await this.mutate("productUpdate", `mutation($product: ProductUpdateInput!) { productUpdate(product: $product) { product { ${PRODUCT_FIELDS} } userErrors { field message } } }`, { product });
+    if (!res.product) throw new IntegrationError("not_found", "Product not found");
+    return mapGraphqlProduct(await this.completeMedia(res.product as Rec));
+  }
+  /**
+   * Gallery writes (to verify on a live store: media mutations moved between API versions):
+   * create = `productUpdate(media:)` from a public URL, reorder = `productReorderMedia` (a job,
+   * awaited briefly), delete = `productDeleteMedia`, alt text = `fileUpdate`. Then the product is
+   * read back, so Hullwise stores what Shopify holds.
+   */
+  async updateProductMedia(externalId: string, op: ProductMediaOperation): Promise<NormalizedProduct> {
+    const id = idToGid("Product", externalId);
+    if (op.type === "create") await this.mutate("productUpdate", `mutation($product: ProductUpdateInput!, $media: [CreateMediaInput!]) { productUpdate(product: $product, media: $media) { product { id } userErrors { field message } } }`, { product: { id }, media: [{ originalSource: op.url, alt: op.alt ?? "", mediaContentType: "IMAGE" }] });
+    else if (op.type === "reorder") {
+      const res = await this.mutate("productReorderMedia", `mutation($id: ID!, $moves: [MoveInput!]!) { productReorderMedia(id: $id, moves: $moves) { job { id done } mediaUserErrors { field message } userErrors: mediaUserErrors { field message } } }`, { id, moves: op.mediaExternalIds.map((m, i) => ({ id: m, newPosition: String(i) })) });
+      let job = res.job as { id: string; done: boolean } | null | undefined;
+      for (let i = 0; job && !job.done && i < 5; i++) {
+        await this.http.sleep(500);
+        job = (await this.graphql<{ job: { id: string; done: boolean } | null }>(`query($id: ID!) { job(id: $id) { id done } }`, { id: job.id })).job;
+      }
+    } else if (op.type === "delete") await this.mutate("productDeleteMedia", `mutation($productId: ID!, $mediaIds: [ID!]!) { productDeleteMedia(productId: $productId, mediaIds: $mediaIds) { deletedMediaIds mediaUserErrors { field message } userErrors: mediaUserErrors { field message } } }`, { productId: id, mediaIds: op.mediaExternalIds });
+    else await this.mutate("fileUpdate", `mutation($files: [FileUpdateInput!]!) { fileUpdate(files: $files) { files { id alt } userErrors { field message } } }`, { files: [{ id: op.mediaExternalId, alt: op.alt ?? "" }] });
+    const product = await this.fetchProduct(externalId);
+    if (!product) throw new IntegrationError("not_found", "Product not found");
+    return product;
   }
   /** `inventoryItemUpdate` with `cost`: needs write_inventory. To verify on a real account: multi-currency shops store the cost in the shop currency. */
   async updateVariantCost(variant: { variantExternalId: string; inventoryItemExternalId: string | null }, costMinor: number): Promise<void> {
@@ -286,7 +349,7 @@ export class ShopifyCommercePlatform implements CommercePlatform {
     if (remove.length) await this.mutate("tagsRemove", `mutation($id: ID!, $tags: [String!]!) { tagsRemove(id: $id, tags: $tags) { userErrors { field message } } }`, { id, tags: remove });
   }
   async updateProductStatus(productExternalId: string, status: "active" | "draft" | "archived"): Promise<void> {
-    await this.mutate("productUpdate", `mutation($input: ProductInput!) { productUpdate(input: $input) { userErrors { field message } } }`, { input: { id: idToGid("Product", productExternalId), status: status.toUpperCase() } });
+    await this.mutate("productUpdate", `mutation($product: ProductUpdateInput!) { productUpdate(product: $product) { product { id } userErrors { field message } } }`, { product: { id: idToGid("Product", productExternalId), status: status.toUpperCase() } });
   }
   async setInventory(inventoryItemExternalId: string, locationExternalId: string, available: number): Promise<void> {
     await this.mutate("inventorySetQuantities", `mutation($input: InventorySetQuantitiesInput!) { inventorySetQuantities(input: $input) { userErrors { field message } } }`, { input: { name: "available", reason: "correction", ignoreCompareQuantity: true, quantities: [{ inventoryItemId: idToGid("InventoryItem", inventoryItemExternalId), locationId: idToGid("Location", locationExternalId), quantity: available }] } });

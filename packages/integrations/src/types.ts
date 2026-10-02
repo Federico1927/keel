@@ -161,7 +161,73 @@ export interface NormalizedProduct {
   imageUrl: string | null;
   platformCreatedAt: Date | null;
   variants: NormalizedVariant[];
+  /*
+   * Full mirror (issue #19). Optional: undefined = the payload does not carry the field (REST
+   * webhook, a mock built from a few variants) and the stored value is kept.
+   */
+  /** The platform's last change; an edit opened on an older version is refused. */
+  platformUpdatedAt?: Date | null;
+  descriptionHtml?: string | null;
+  seo?: { title: string | null; description: string | null };
+  /** Standard taxonomy category: id and full name. */
+  category?: { id: string; name: string } | null;
+  collections?: NormalizedCollectionRef[];
+  /** Sales channels (Shopify publications) and whether the product is published on each. */
+  publishedChannels?: NormalizedPublication[];
+  /** First metafields, read-only. */
+  metafields?: NormalizedMetafield[];
+  /** Gallery in display order. */
+  media?: NormalizedMedia[];
 }
+
+export interface NormalizedMedia {
+  /** Platform media id, as the platform writes it back (Shopify: the media gid, its type included). */
+  externalId: string;
+  type: "image" | "video" | "model";
+  /** Always an image: the preview for videos and 3D models. */
+  url: string;
+  alt: string | null;
+  width: number | null;
+  height: number | null;
+}
+export interface NormalizedCollectionRef {
+  id: string;
+  title: string;
+  handle: string | null;
+}
+export interface NormalizedPublication {
+  id: string;
+  name: string;
+  published: boolean;
+  publishedAt: string | null;
+}
+export interface NormalizedMetafield {
+  namespace: string;
+  key: string;
+  type: string;
+  value: string;
+}
+
+/** Product fields Hullwise edits (issue #19); everything else is edited on the platform. */
+export interface ProductPatch {
+  title?: string;
+  descriptionHtml?: string;
+  vendor?: string;
+  productType?: string;
+  /** The whole tag list (absolute). */
+  tags?: string[];
+  status?: "active" | "draft" | "archived";
+  seo?: { title: string | null; description: string | null };
+  /** Taxonomy category id; null removes the category. */
+  categoryId?: string | null;
+}
+
+/** Gallery changes; each answers the product as the platform holds it afterwards. */
+export type ProductMediaOperation =
+  | { type: "create"; url: string; alt: string | null }
+  | { type: "reorder"; mediaExternalIds: string[] }
+  | { type: "delete"; mediaExternalIds: string[] }
+  | { type: "alt"; mediaExternalId: string; alt: string | null };
 
 export interface NormalizedVariant {
   externalId: string;
@@ -175,6 +241,15 @@ export interface NormalizedVariant {
   weightGrams: number | null;
   /** Unit cost on the platform (Shopify `inventoryItem.unitCost`); undefined when the payload does not carry it (REST webhooks). */
   costMinor?: number | null;
+  /* Mirror (issue #19); undefined = not in the payload. */
+  /** The media shown for the variant (an id of `NormalizedProduct.media`). */
+  imageMediaExternalId?: string | null;
+  inventoryPolicy?: "deny" | "continue";
+  tracksInventory?: boolean | null;
+  requiresShipping?: boolean | null;
+  taxable?: boolean | null;
+  hsCode?: string | null;
+  countryOfOrigin?: string | null;
 }
 
 export interface NormalizedInventoryLevel {
@@ -260,6 +335,11 @@ export interface VerifiedWebhook {
 export interface VariantPatch {
   priceMinor?: number;
   compareAtMinor?: number | null;
+  /* Issue #19: the variant fields Hullwise edits besides prices. */
+  sku?: string | null;
+  barcode?: string | null;
+  weightGrams?: number | null;
+  inventoryPolicy?: "deny" | "continue";
 }
 
 /** A deposit of the platform's payment processor (Shopify Payments) to the merchant's bank. */
@@ -356,7 +436,13 @@ export interface CommercePlatform {
   /** Releases the holds Hullwise placed on the order; holds placed by others stay. A no-op when there is none. */
   releaseFulfillment(externalId: string): Promise<void>;
   updateOrderTags(externalId: string, add: string[], remove: string[]): Promise<void>;
-  /** Price and compare-at price of a variant; `compareAtMinor: null` removes the compare-at price. */
+  /** One product with every mirrored field (media, SEO, channels, metafields…); null when it does not exist. */
+  fetchProduct(externalId: string): Promise<NormalizedProduct | null>;
+  /** Writes the editable product fields and answers the product as the platform holds it afterwards. */
+  updateProduct(externalId: string, patch: ProductPatch): Promise<NormalizedProduct>;
+  /** Adds (from a URL), reorders, removes media or changes alt text; answers the product afterwards. */
+  updateProductMedia(externalId: string, op: ProductMediaOperation): Promise<NormalizedProduct>;
+  /** Variant fields: price and compare-at price (`compareAtMinor: null` removes it), SKU, barcode, weight, inventory policy. */
   updateVariant(variantExternalId: string, patch: VariantPatch): Promise<void>;
   updateProductStatus(productExternalId: string, status: "active" | "draft" | "archived"): Promise<void>;
   updateProductTags(productExternalId: string, add: string[], remove: string[]): Promise<void>;

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid, type AnyPgColumn } from "drizzle-orm/pg-core";
 import { createdAt, tenantIsolation, updatedAt } from "./_common";
 import { tenantColumns } from "./_tenant";
 import { users } from "./auth";
@@ -32,7 +32,23 @@ export const products = pgTable(
     tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
     /** Dynamic options: [{ name: "Size", values: ["S","M"] }] — never hardcoded size/colour. */
     options: jsonb("options").notNull().default(sql`'[]'::jsonb`),
+    /** Cover image (the first media); `product_media` holds the whole gallery. */
     imageUrl: text("image_url"),
+    // Read mirror of the platform product (issue #19): refreshed by sync and webhooks; null = never read.
+    descriptionHtml: text("description_html"),
+    seoTitle: text("seo_title"),
+    seoDescription: text("seo_description"),
+    /** Platform taxonomy category (Shopify Standard Product Taxonomy id and full name). */
+    categoryId: text("category_id"),
+    categoryName: text("category_name"),
+    /** [{ id, title, handle }]: collections the product belongs to (read-only). */
+    collections: jsonb("collections"),
+    /** [{ id, name, published, publishedAt }]: sales channels / publications (read-only). */
+    publishedChannels: jsonb("published_channels"),
+    /** [{ namespace, key, type, value }]: first metafields, read-only (definitions are out of scope). */
+    metafields: jsonb("metafields"),
+    /** The platform's `updatedAt` of the version Hullwise holds: an edit opened on an older version is refused. */
+    platformUpdatedAt: timestamp("platform_updated_at", { withTimezone: true }),
     isAncillary: boolean("is_ancillary").notNull().default(false),
     isRepurchasable: boolean("is_repurchasable").notNull().default(true),
     platformCreatedAt: timestamp("platform_created_at", { withTimezone: true }),
@@ -72,6 +88,15 @@ export const productVariants = pgTable(
     averageCostMinor: integer("average_cost_minor"),
     weightGrams: integer("weight_grams"),
     packSize: integer("pack_size"),
+    // Platform mirror (issue #19); null = not read yet.
+    imageMediaId: uuid("image_media_id").references((): AnyPgColumn => productMedia.id, { onDelete: "set null" }),
+    /** deny | continue: selling when out of stock. */
+    inventoryPolicy: text("inventory_policy"),
+    tracksInventory: boolean("tracks_inventory"),
+    requiresShipping: boolean("requires_shipping"),
+    taxable: boolean("taxable"),
+    hsCode: text("hs_code"),
+    countryOfOrigin: text("country_of_origin"),
     isActive: boolean("is_active").notNull().default(true),
     syncedAt: timestamp("synced_at", { withTimezone: true }),
     createdAt: createdAt(),
@@ -84,6 +109,32 @@ export const productVariants = pgTable(
     index("product_variants_sku_trgm_idx").using("gin", sql`lower(${t.sku}) gin_trgm_ops`),
     tenantIsolation("product_variants"),
   ],
+).enableRLS();
+
+/**
+ * Product gallery mirrored from the platform (issue #19): images, videos and 3D models in display
+ * order. `url` is always an image (the preview for videos and models). `external_id` is the
+ * platform's media gid (its type is part of it); null for media of a product Hullwise holds alone.
+ */
+export const productMedia = pgTable(
+  "product_media",
+  {
+    ...tenantColumns(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    externalId: text("external_id"),
+    /** image | video | model */
+    type: text("type").notNull().default("image"),
+    url: text("url").notNull(),
+    alt: text("alt"),
+    position: integer("position").notNull().default(0),
+    width: integer("width"),
+    height: integer("height"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("product_media_product_external_uq").on(t.productId, t.externalId), index("product_media_tenant_product_idx").on(t.tenantId, t.productId, t.position), tenantIsolation("product_media")],
 ).enableRLS();
 
 export const inventoryLevels = pgTable(

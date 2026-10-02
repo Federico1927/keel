@@ -5,7 +5,7 @@ import { IntegrationError } from "../types";
 import { ShopifyCommercePlatform } from "./adapter";
 import { mapRestOrder } from "./mappers";
 import { buildInstallUrl, verifyOAuthCallback, verifyWebhookHmac } from "./oauth";
-import { graphqlCancel, graphqlDiscounts, graphqlFulfillmentOrderHold, graphqlFulfillmentOrderReleaseHold, graphqlFulfillmentOrders, graphqlInventory, graphqlInventoryItemUpdate, graphqlOrdersPage, graphqlProductsPage, graphqlShop, graphqlThrottled, graphqlVariantInventoryItem, graphqlWebhookCreate, graphqlWebhooks, restOrderWebhook, graphqlPayouts, graphqlBalanceTransactions, graphqlNoPaymentsAccount, graphqlMarkAsPaid, graphqlManualPayment, graphqlReturnsPage, graphqlReturn, restReturnWebhook, restReturnApproveWebhook, graphqlDiscountDeactivate, graphqlDiscountByCode, graphqlRedeemCodeBulkDelete, graphqlRedeemCodeBulkAdd } from "./__fixtures__";
+import { graphqlCancel, graphqlDiscounts, graphqlFulfillmentOrderHold, graphqlFulfillmentOrderReleaseHold, graphqlFulfillmentOrders, graphqlInventory, graphqlInventoryItemUpdate, graphqlOrdersPage, graphqlProductsPage, graphqlProduct, graphqlProductMediaPage2, graphqlProductUpdate, graphqlShop, graphqlThrottled, graphqlVariantInventoryItem, graphqlWebhookCreate, graphqlWebhooks, restOrderWebhook, graphqlPayouts, graphqlBalanceTransactions, graphqlNoPaymentsAccount, graphqlMarkAsPaid, graphqlManualPayment, graphqlReturnsPage, graphqlReturn, restReturnWebhook, restReturnApproveWebhook, graphqlDiscountDeactivate, graphqlDiscountByCode, graphqlRedeemCodeBulkDelete, graphqlRedeemCodeBulkAdd } from "./__fixtures__";
 
 const creds = { shop: "northwind-demo.myshopify.com", accessToken: "shpat_test", apiSecret: "shhh" };
 const bodyOf = (init?: { body?: string }) => (init?.body ? (JSON.parse(init.body) as { query: string; variables: Record<string, unknown> }) : { query: "", variables: {} });
@@ -63,11 +63,14 @@ describe("shopify adapter", () => {
   it("maps products, discounts and inventory levels", async () => {
     const p = platform([
       { match: (_u, i) => bodyOf(i).query.includes("products(first"), body: graphqlProductsPage },
+      { match: (_u, i) => bodyOf(i).query.includes("media(first: 50, after"), body: graphqlProductMediaPage2 },
       { match: (_u, i) => bodyOf(i).query.includes("discountNodes"), body: graphqlDiscounts },
       { match: (_u, i) => bodyOf(i).query.includes("InventoryItem"), body: graphqlInventory },
     ]);
     const products = await p.fetchProducts({});
     expect(products.items[0]).toMatchObject({ externalId: "8100001", productType: "Outerwear", status: "active" });
+    // the second media page was read too (one product query, no second product fetch)
+    expect(products.items[0]!.media!.map((m) => m.externalId)).toEqual(["gid://shopify/MediaImage/3100001", "gid://shopify/Video/3100002", "gid://shopify/Model3d/3100003"]);
     expect(products.items[0]!.variants[0]).toMatchObject({ sku: "GIA-M-BLU", priceMinor: 12900, compareAtMinor: 15900, weightGrams: 800, inventoryItemExternalId: "4500001", optionValues: { Size: "M", Color: "Blu" }, costMinor: 4850 });
     // a variant without a cost on Shopify maps to null, never to zero
     expect(products.items[0]!.variants[1]).toMatchObject({ sku: "GIA-L-BLU", barcode: null, costMinor: null, weightGrams: 800 });
@@ -142,6 +145,80 @@ describe("shopify adapter", () => {
     expect(adds).toHaveLength(1);
     expect(adds[0]!.variables).toMatchObject({ lineItemId: "gid://shopify/CalculatedLineItem/2", discount: { fixedValue: { amount: "5.00", currencyCode: "USD" } } });
     expect(fixedCalls.at(-1)!.query).toContain("orderEditCommit");
+  });
+});
+
+describe("shopify product mirror (issue #19)", () => {
+  it("maps every mirrored field of the recorded product", async () => {
+    const p = platform([{ match: (_u, i) => bodyOf(i).query.includes("product(id"), body: graphqlProduct }]);
+    const prod = (await p.fetchProduct("8100001"))!;
+    expect(bodyOf({ body: p.http.calls[0]!.body! }).variables).toEqual({ id: "gid://shopify/Product/8100001" });
+    expect(prod).toMatchObject({
+      platformUpdatedAt: new Date("2026-09-20T08:15:00Z"),
+      descriptionHtml: "<p>Giacca leggera <strong>impermeabile</strong>.</p>",
+      seo: { title: "Giacca Primavera impermeabile", description: "Giacca leggera per la mezza stagione." },
+      category: { id: "gid://shopify/TaxonomyCategory/aa-1-10-2", name: "Apparel & Accessories > Clothing > Outerwear > Coats & Jackets" },
+      collections: [{ id: "gid://shopify/Collection/501", title: "Primavera 2026", handle: "primavera-2026" }],
+      publishedChannels: [{ id: "gid://shopify/Publication/1", name: "Online Store", published: true, publishedAt: "2026-02-01T10:05:00Z" }, { id: "gid://shopify/Publication/2", name: "Point of Sale", published: false, publishedAt: null }],
+      metafields: [{ namespace: "custom", key: "material", type: "single_line_text_field", value: "Nylon riciclato" }],
+    });
+    // a media still processing (no image yet) is skipped; a video keeps its preview image
+    expect(prod.media).toEqual([
+      { externalId: "gid://shopify/MediaImage/3100001", type: "image", url: "https://cdn.example/giacca.jpg", alt: "Giacca blu, fronte", width: 1200, height: 1500 },
+      { externalId: "gid://shopify/Video/3100002", type: "video", url: "https://cdn.example/giacca-video.jpg", alt: null, width: 1280, height: 720 },
+    ]);
+    expect(prod.variants[0]).toMatchObject({ imageMediaExternalId: "gid://shopify/MediaImage/3100001", inventoryPolicy: "deny", taxable: true, tracksInventory: true, requiresShipping: true, hsCode: "620193", countryOfOrigin: "IT", costMinor: 4850 });
+    expect(prod.variants[1]).toMatchObject({ imageMediaExternalId: null, inventoryPolicy: "continue", taxable: false, tracksInventory: false, requiresShipping: false, hsCode: null, countryOfOrigin: null, costMinor: null });
+    const missing = platform([{ match: () => true, body: { data: { product: null } } }]);
+    expect(await missing.fetchProduct("1")).toBeNull();
+  });
+  it("leaves the fields a REST webhook does not carry undefined (the stored mirror is kept)", () => {
+    const p = platform([]);
+    const prod = p.parseWebhookProduct({ id: 8100001, title: "Giacca", body_html: "<p>x</p>", updated_at: "2026-09-20T08:15:00Z", status: "active", tags: "a, b", options: [{ name: "Size", values: ["M"] }], variants: [{ id: 1, title: "M", option1: "M", price: "10.00", inventory_policy: "continue", taxable: true }] });
+    expect(prod).toMatchObject({ descriptionHtml: "<p>x</p>", platformUpdatedAt: new Date("2026-09-20T08:15:00Z"), tags: ["a", "b"] });
+    expect(prod.media).toBeUndefined();
+    expect(prod.seo).toBeUndefined();
+    expect(prod.metafields).toBeUndefined();
+    expect(prod.variants[0]).toMatchObject({ inventoryPolicy: "continue", taxable: true });
+    expect(prod.variants[0]!.imageMediaExternalId).toBeUndefined();
+  });
+  it("updates the editable fields with productUpdate(product:) and maps the answer", async () => {
+    const p = platform([{ match: (_u, i) => bodyOf(i).query.includes("productUpdate"), body: graphqlProductUpdate }]);
+    const after = await p.updateProduct("8100001", { title: "Giacca Primavera Light", tags: ["new-in", "light"], seo: { title: "Giacca Light", description: "Nuova descrizione" }, status: "draft", categoryId: null, descriptionHtml: "<p>y</p>", vendor: "NW", productType: "Coats" });
+    const sent = bodyOf({ body: p.http.calls[0]!.body! });
+    expect(sent.query).toContain("productUpdate(product: $product)");
+    expect(sent.variables).toEqual({ product: { id: "gid://shopify/Product/8100001", title: "Giacca Primavera Light", descriptionHtml: "<p>y</p>", vendor: "NW", productType: "Coats", tags: ["new-in", "light"], status: "DRAFT", seo: { title: "Giacca Light", description: "Nuova descrizione" }, category: null } });
+    expect(after).toMatchObject({ title: "Giacca Primavera Light", tags: ["new-in", "light"], platformUpdatedAt: new Date("2026-09-21T09:00:00Z"), seo: { title: "Giacca Light", description: "Nuova descrizione" } });
+    const refused = platform([{ match: () => true, body: { data: { productUpdate: { product: null, userErrors: [{ field: ["title"], message: "Title can't be blank" }] } } } }]);
+    await expect(refused.updateProduct("8100001", { title: "" })).rejects.toMatchObject({ code: "invalid_request" });
+  });
+  it("writes media operations and reads the product back", async () => {
+    const p = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("productReorderMedia"), body: { data: { productReorderMedia: { job: { id: "gid://shopify/Job/1", done: false }, mediaUserErrors: [], userErrors: [] } } } },
+      { match: (_u, i) => bodyOf(i).query.includes("job(id"), body: { data: { job: { id: "gid://shopify/Job/1", done: true } } } },
+      { match: (_u, i) => bodyOf(i).query.includes("productDeleteMedia"), body: { data: { productDeleteMedia: { deletedMediaIds: ["gid://shopify/Video/3100002"], mediaUserErrors: [], userErrors: [] } } } },
+      { match: (_u, i) => bodyOf(i).query.includes("fileUpdate"), body: { data: { fileUpdate: { files: [{ id: "gid://shopify/MediaImage/3100001", alt: "Fronte" }], userErrors: [] } } } },
+      { match: (_u, i) => bodyOf(i).query.includes("productUpdate"), body: { data: { productUpdate: { product: { id: "gid://shopify/Product/8100001" }, userErrors: [] } } } },
+      { match: (_u, i) => bodyOf(i).query.includes("product(id"), body: graphqlProduct },
+    ]);
+    await p.updateProductMedia("8100001", { type: "reorder", mediaExternalIds: ["gid://shopify/Video/3100002", "gid://shopify/MediaImage/3100001"] });
+    expect(bodyOf({ body: p.http.calls[0]!.body! }).variables).toEqual({ id: "gid://shopify/Product/8100001", moves: [{ id: "gid://shopify/Video/3100002", newPosition: "0" }, { id: "gid://shopify/MediaImage/3100001", newPosition: "1" }] });
+    expect(bodyOf({ body: p.http.calls[1]!.body! }).query).toContain("job(id");
+    await p.updateProductMedia("8100001", { type: "delete", mediaExternalIds: ["gid://shopify/Video/3100002"] });
+    expect(bodyOf({ body: p.http.calls[3]!.body! }).variables).toEqual({ productId: "gid://shopify/Product/8100001", mediaIds: ["gid://shopify/Video/3100002"] });
+    await p.updateProductMedia("8100001", { type: "alt", mediaExternalId: "gid://shopify/MediaImage/3100001", alt: "Fronte" });
+    expect(bodyOf({ body: p.http.calls[5]!.body! }).variables).toEqual({ files: [{ id: "gid://shopify/MediaImage/3100001", alt: "Fronte" }] });
+    const after = await p.updateProductMedia("8100001", { type: "create", url: "https://cdn.example/new.jpg", alt: null });
+    expect(bodyOf({ body: p.http.calls[7]!.body! }).variables).toEqual({ product: { id: "gid://shopify/Product/8100001" }, media: [{ originalSource: "https://cdn.example/new.jpg", alt: "", mediaContentType: "IMAGE" }] });
+    expect(after.externalId).toBe("8100001");
+  });
+  it("writes SKU, barcode, weight and inventory policy through productVariantsBulkUpdate", async () => {
+    const p = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("productVariant(id"), body: { data: { productVariant: { product: { id: "gid://shopify/Product/77" } } } } },
+      { match: (_u, i) => bodyOf(i).query.includes("productVariantsBulkUpdate"), body: { data: { productVariantsBulkUpdate: { userErrors: [] } } } },
+    ]);
+    await p.updateVariant("4100001", { sku: "GIA-M-BLU-2", barcode: null, weightGrams: 750, inventoryPolicy: "continue" });
+    expect(bodyOf({ body: p.http.calls[1]!.body! }).variables).toEqual({ productId: "gid://shopify/Product/77", variants: [{ id: "gid://shopify/ProductVariant/4100001", barcode: "", inventoryPolicy: "CONTINUE", inventoryItem: { sku: "GIA-M-BLU-2", measurement: { weight: { value: 750, unit: "GRAMS" } } } }] });
   });
 });
 

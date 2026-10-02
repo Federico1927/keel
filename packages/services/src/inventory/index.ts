@@ -8,6 +8,8 @@ export interface VariantStockRow {
   productTitle: string;
   variantTitle: string;
   sku: string | null;
+  /** Thumbnail: the variant's own image, else the product cover (issue #19). */
+  imageUrl: string | null;
   packSize: number | null;
   costMinor: number | null;
   priceMinor: number;
@@ -33,9 +35,10 @@ export async function variantStock(ctx: ServiceContext, settings: TenantSettings
   if (opts.variantIds?.length) where.push(inArray(schema.productVariants.id, opts.variantIds));
   if (opts.productIds?.length) where.push(inArray(schema.productVariants.productId, opts.productIds));
   const variants = await ctx.tx
-    .select({ id: schema.productVariants.id, productId: schema.productVariants.productId, productTitle: schema.products.title, title: schema.productVariants.title, sku: schema.productVariants.sku, packSize: schema.productVariants.packSize, costMinor: schema.productVariants.costMinor, priceMinor: schema.productVariants.priceMinor })
+    .select({ id: schema.productVariants.id, productId: schema.productVariants.productId, productTitle: schema.products.title, title: schema.productVariants.title, sku: schema.productVariants.sku, imageUrl: sql<string | null>`coalesce(${schema.productMedia.url}, ${schema.products.imageUrl})`, packSize: schema.productVariants.packSize, costMinor: schema.productVariants.costMinor, priceMinor: schema.productVariants.priceMinor })
     .from(schema.productVariants)
     .innerJoin(schema.products, eq(schema.products.id, schema.productVariants.productId))
+    .leftJoin(schema.productMedia, eq(schema.productMedia.id, schema.productVariants.imageMediaId))
     .where(and(...where));
   if (!variants.length) return [];
   const ids = variants.map((v) => v.id);
@@ -64,7 +67,7 @@ export async function variantStock(ctx: ServiceContext, settings: TenantSettings
     const unitsSold = soldBy.get(v.id) ?? 0;
     const vel = stockVelocity({ unitsSold, lookbackDays: lookback, available, incoming: inc, criticalDays: settings.coverageDaysCritical, warningDays: settings.coverageDaysWarning });
     return {
-      variantId: v.id, productId: v.productId, productTitle: v.productTitle, variantTitle: v.title, sku: v.sku, packSize: v.packSize, costMinor: v.costMinor, priceMinor: v.priceMinor,
+      variantId: v.id, productId: v.productId, productTitle: v.productTitle, variantTitle: v.title, sku: v.sku, imageUrl: v.imageUrl, packSize: v.packSize, costMinor: v.costMinor, priceMinor: v.priceMinor,
       available, committed, incoming: inc, unitsSold, velocityPerDay: vel.velocityPerDay, daysOfCover: vel.daysOfCover, risk: vel.risk,
       suggestedReorder: reorderSuggestion(vel.velocityPerDay, vel.effectiveStock, settings.reorderTargetDays, v.packSize),
       byLocation: lv.map((l) => ({ locationId: l.locationId, available: l.available })),

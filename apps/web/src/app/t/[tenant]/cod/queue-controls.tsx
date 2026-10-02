@@ -1,10 +1,11 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Alert, AlertDescription, Badge, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Textarea } from "@hullwise/ui";
-import { claimQueueItemAction, distributeAction, recordAttemptAction, releaseQueueItemAction, rescoreAction } from "@/server/actions/cod";
+import { claimQueueItemAction, distributeAction, orderLinesAction, recordAttemptAction, releaseQueueItemAction, rescoreAction } from "@/server/actions/cod";
 import type { ActionResult } from "@/server/action-result";
+import { CopyButton } from "./queue-extras";
 
 export function ScoreBadge({ score, tier }: { score: number | null; tier: string | null }) {
   const t = useTranslations("cod");
@@ -18,7 +19,7 @@ export function ScoreBadge({ score, tier }: { score: number | null; tier: string
   );
 }
 
-const OUTCOMES = ["confirmed", "no_answer", "call_back", "modified", "cancelled"] as const;
+const OUTCOMES = ["confirmed", "no_answer", "call_back", "confirm_scheduled", "modified", "cancelled"] as const;
 
 export function OutcomeDialog({ slug, orderId, orderName, compact }: { slug: string; orderId: string; orderName: string; compact?: boolean }) {
   const t = useTranslations("cod");
@@ -28,8 +29,15 @@ export function OutcomeDialog({ slug, orderId, orderName, compact }: { slug: str
   const [outcome, setOutcome] = useState<(typeof OUTCOMES)[number]>("confirmed");
   const [note, setNote] = useState("");
   const [callBackAt, setCallBackAt] = useState("");
+  const [confirmOn, setConfirmOn] = useState("");
+  const [lines, setLines] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const [result, setResult] = useState<ActionResult<unknown> | null>(null);
+  // the warehouse list (SKU × qty) is fetched once, when the dialog opens on "confirmed" (C.6)
+  useEffect(() => {
+    if (!open || outcome !== "confirmed" || lines !== null) return;
+    void orderLinesAction(slug, orderId).then((r) => setLines(r.ok && r.data ? r.data.text : ""));
+  }, [open, outcome, lines, slug, orderId]);
   return (
     <>
       <Button size={compact ? "sm" : "default"} onClick={() => setOpen(true)} data-testid="register-outcome">{t("register_outcome")}</Button>
@@ -48,6 +56,22 @@ export function OutcomeDialog({ slug, orderId, orderName, compact }: { slug: str
                 </button>
               ))}
             </div>
+            {outcome === "confirmed" && lines && (
+              <div className="space-y-1 rounded-md border bg-muted/40 p-2" data-testid="warehouse-lines">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">{t("warehouse_lines")}</span>
+                  <CopyButton text={lines} label={t("copy")} testId="copy-lines" />
+                </div>
+                <pre className="whitespace-pre-wrap font-mono text-xs">{lines}</pre>
+              </div>
+            )}
+            {outcome === "confirm_scheduled" && (
+              <div className="space-y-1">
+                <Label htmlFor="confirm-on">{t("confirm_on")}</Label>
+                <Input id="confirm-on" type="date" value={confirmOn} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setConfirmOn(e.target.value)} data-testid="confirm-on" />
+                <p className="text-xs text-muted-foreground">{t("confirm_on_hint")}</p>
+              </div>
+            )}
             {outcome === "call_back" && (
               <div className="space-y-1">
                 <Label htmlFor="cb-at">{t("call_back_at")}</Label>
@@ -67,10 +91,10 @@ export function OutcomeDialog({ slug, orderId, orderName, compact }: { slug: str
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)}>{tc("cancel")}</Button>
             <Button
-              disabled={pending || (outcome === "call_back" && !callBackAt)}
+              disabled={pending || (outcome === "call_back" && !callBackAt) || (outcome === "confirm_scheduled" && !confirmOn)}
               onClick={() =>
                 start(async () => {
-                  const r = await recordAttemptAction(slug, { orderId, outcome, note: note || null, callBackAt: outcome === "call_back" ? new Date(callBackAt).toISOString() : null });
+                  const r = await recordAttemptAction(slug, { orderId, outcome, note: note || null, callBackAt: outcome === "call_back" ? new Date(callBackAt).toISOString() : null, confirmOn: outcome === "confirm_scheduled" ? confirmOn : null });
                   setResult(r);
                   if (r.ok) {
                     setOpen(false);
