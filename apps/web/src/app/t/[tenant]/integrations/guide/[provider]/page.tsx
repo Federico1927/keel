@@ -68,7 +68,7 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
                 <h3 className="font-medium">{fill(s.title)}</h3>
                 {s.verify && <Badge variant="warning">{t("verify_badge")}</Badge>}
               </div>
-              <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{fill(s.body)}</p>
+              <p className="mt-2 whitespace-pre-line break-words text-sm text-muted-foreground">{fill(s.body)}</p>
             </li>
           ))}
         </ol>

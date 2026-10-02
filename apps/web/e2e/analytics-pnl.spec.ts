@@ -75,7 +75,7 @@ test.describe("analytics depth: P/L per order, periods, products with ads, UTM",
     await expect(page.locator("table tbody tr").first()).toBeVisible();
   });
 
-  test("overview data-quality widget links to the missing-cost orders; customer care sees no economics", async ({ page }) => {
+  test("overview data-quality widget links to the missing-cost orders; customer care sees no economics", async ({ page, browser }) => {
     await login(page, "owner@northwind.demo");
     await page.goto(`${T}/analytics?preset=ytd`);
     await expect(page.getByTestId("data-quality")).toBeVisible();
@@ -83,12 +83,12 @@ test.describe("analytics depth: P/L per order, periods, products with ads, UTM",
     await expect(page).toHaveURL(/\/orders\?.*missingCost=1/);
     await expect(page.getByTestId("filter-missing-cost")).toBeVisible();
     const orderHref = await page.locator("table tbody tr").first().getByRole("link").first().getAttribute("href");
-    // late prefetch responses can set the session cookie again after it is cleared
-    await page.waitForLoadState("networkidle");
-    await page.context().clearCookies();
-    await login(page, "care@northwind.demo");
-    await page.goto(orderHref!);
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    await expect(page.getByTestId("order-economics")).toHaveCount(0);
+    // a fresh context: clearing cookies races with late prefetch responses that set the session again
+    const care = await (await browser.newContext()).newPage();
+    await login(care, "care@northwind.demo");
+    await care.goto(orderHref!);
+    await expect(care.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(care.getByTestId("order-economics")).toHaveCount(0);
+    await care.context().close();
   });
 });

@@ -2,3 +2,13 @@
 @import "tailwindcss";
 @import "./theme.css";
 @source "../../ui/src";
+
+/*
+ * Phone width (#79). A grid without its own column template gets one column that can shrink, the same
+ * track Tailwind's `grid-cols-N` uses; without it the implicit `auto` column grows to the widest
+ * unwrappable content (a table, a long error) and the page scrolls sideways. Any `grid-cols-*` utility,
+ * at any breakpoint, overrides this because utilities sit above the base layer.
+ */
+@layer base {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+}

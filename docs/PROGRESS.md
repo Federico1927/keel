@@ -768,6 +768,31 @@ Fatto:
 
 Resta: le pagine non controllate dall'e2e possono avere ancora griglie con colonna implicita `auto` e contenuto senza a capo; la verifica più ampia resta in #49.
 
+## Ogni pagina controllata a larghezza telefono (issue #79) e campagna demo con effetto garantito (issue #84)
+
+Fatto:
+- **Controllo su tutte le pagine**: `mobile.spec.ts` non usa più un elenco scritto a mano. Legge le route da `apps/web/src/app` e visita ogni pagina del tenant (come owner di Northwind) e della console (come super-admin) a 390 e 360 px.
+  - Le route dinamiche si riempiono con i link trovati durante la visita, fino a tre record diversi per route, perché lo sforamento può dipendere dai dati.
+  - Due liste filtrate (ordini consegnati, ordini d'acquisto in bozza) sono punti di partenza per le pagine che esistono solo per alcuni record (nuovo reso, modifica dell'ordine d'acquisto).
+  - Una route che nessun link raggiunge fa fallire il test, salvo che sia elencata in `UNREACHED` con il motivo; oggi l'elenco è vuoto.
+  - Una pagina nuova viene controllata senza toccare il test.
+- **Causa comune corretta una volta sola**: 199 griglie in 108 file non hanno colonne per il telefono. La loro colonna implicita `auto` si allarga fino al contenuto più largo che non va a capo. Una regola nel livello base del foglio di stile dell'app (`packages/ui/src/styles.css`) dà a ogni griglia senza colonne proprie una colonna che si può restringere; ogni classe `grid-cols-*` la sostituisce al proprio breakpoint. Così si sono sistemati senza toccare le pagine:
+  - catalogo metriche: +398 px;
+  - dettaglio tenant in console: +49 px, solo sul tenant con un errore di integrazione lungo;
+  - avvisi di analisi: +11 px, solo dopo che un altro test aveva creato un avviso.
+- **Guide alle integrazioni** Meta (+45 px) e Google (+25 px): oltre alla griglia, nei passi c'erano URL e nomi di scope lunghi senza spazi; ora vanno a capo (`break-words` solo lì).
+- **Campagna demo "Win-back clienti ricorrenti"** (#84): dopo un nuovo seed l'effetto risultava non significativo (+3,9 punti, p = 0,094) e l'e2e falliva. Ora il seed crea abbastanza risposte, solo tra i clienti trattati che non avevano già comprato nella finestra, da superare il gruppo di controllo di 8 punti (almeno il 5% dei trattati, così ci sono utilizzi del codice anche nei seed piccoli dei test).
+
+- **Impostazioni contrassegno**: al primo disegno, prima che il JavaScript parta, la pagina era più larga di 466–496 px per circa 250 ms. Ogni riga della tabella operatori ha un `<input>` nascosto in posizione assoluta (quello che Radix affianca agli interruttori nei form), e il contenitore che scorre non era posizionato, quindi l'input ne usciva. Ora il contenitore è `relative`, come quello del componente `Table`. Altri 8 file usano lo stesso contenitore senza `relative`; il controllo non ha trovato problemi, quindi restano com'erano.
+- **e2e `analytics-pnl.spec.ts`**: il secondo accesso (customer care) a volte trovava ancora la sessione dell'owner, perché una richiesta in volo rimetteva il cookie dopo `clearCookies()`. Ora usa un contesto del browser nuovo, come `account.spec.ts`.
+- **Pagine non controllate**: le pagine di `addon.subscriptions` (arrivate con #78) sono una 404 per tutti gli utenti demo, perché nessun tenant demo ha l'add-on attivo; sono elencate in `UNREACHED` con il motivo.
+
+Resta: comodità d'uso sul telefono (dimensione dei controlli, liste pensate per il telefono, PWA) in #49. Le pagine degli abbonamenti si controlleranno quando un tenant demo avrà l'add-on.
+
+Problemi aperti trovati strada facendo, fuori da questo lavoro:
+- **Durata del seed oltre i 2 minuti di §10**: nell'ambiente cloud, nella stessa giornata, è passata da 82 s a 304 s man mano che su `main` arrivavano nuove funzioni. Non è il gonfiamento del database (tuple morte trascurabili, autovacuum attivo), e la nuova query di #84 dura circa 1 s. Va misurato per tenant e per passo.
+- **Testi mancanti nella console**: la pagina email della console chiede chiavi `admin.email.templates.<modello>` che non esistono (`password_reset`, `billing_checkout`, `new_sign_in`, `password_changed`, `welcome`, `return_*` e altre); il server registra `MISSING_MESSAGE` a ogni visita. Il test di parità tra lingue non le vede perché mancano in tutte e tre le lingue.
+
 ## Rinomina del prodotto in Hullwise (2026-10-02)
 
 Fatto, sul branch `claude/modest-mendel-t7bo1a` (non unito a `main`: l'unione cambia nomi di variabili, ruoli e domini in produzione, vedi `docs/DEPLOY.md` → "Rename cutover").

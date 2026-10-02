@@ -200,7 +200,7 @@ export function TagSettingsForm({ slug, settings, events }: { slug: string; sett
           <div>
             <p className="mb-2 text-sm font-medium">{t("tags_write_title")}</p>
             <p className="mb-2 text-xs text-muted-foreground">{t("tags_write_help")}</p>
-            <div className="overflow-x-auto">
+            <div className="relative overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b text-left text-xs uppercase text-muted-foreground">
