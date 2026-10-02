@@ -76,3 +76,19 @@ export function hostOf(url: string | null | undefined): string | null {
 export function cookieDomain(env: Env = process.env): string | undefined {
   return nonEmpty(env.COOKIE_DOMAIN);
 }
+
+/**
+ * Operations docs (runbooks) of the repository, read on GitHub from `main`: the console links them
+ * for the platform owner, who has access to the repository. `HULLWISE_DOCS_URL` points elsewhere
+ * (a fork, a branch, a docs site). The default names the repository, not the product.
+ */
+export const DEFAULT_DOCS_URL = "https://github.com/Federico1927/keel/blob/main/docs";
+
+export function docsUrl(file: string, env: Env = process.env): string {
+  return `${trim(nonEmpty(env.HULLWISE_DOCS_URL) ?? DEFAULT_DOCS_URL)}/${file.replace(/^\/+/, "")}`;
+}
+
+/** The first-store onboarding runbook: Italian for an Italian console, English otherwise. */
+export function onboardingRunbookUrl(locale: string, env: Env = process.env): string {
+  return docsUrl(locale === "it" ? "ONBOARDING.it.md" : "ONBOARDING.md", env);
+}

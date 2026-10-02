@@ -4224,6 +4224,7 @@
       "reactivate": "Reactivate",
       "checklist": "Setup checklist",
       "checklist_progress": "{done} of {total} done",
+      "runbook": "Onboarding runbook: every step and how to check it",
       "checklist_items": {
         "company": "Company data",
         "owner": "Owner account",
