@@ -1,7 +1,19 @@
 import { HttpClient, type HttpOptions } from "../http";
 import { IntegrationError, type AdEntityMetricLevel, type AdEntityStatus, type AdsCapabilities, type AdsPlatform, type ConnectionTest, type NormalizedAd, type NormalizedAdAsset, type NormalizedAdMetric, type NormalizedAdSet, type NormalizedCampaign, type NormalizedEntityMetric } from "../types";
 
-export const META_API_VERSION = "v21.0";
+/** Marketing API version (v26.0: the reads and status writes below are unchanged since v21 as far as the changelog says; Da verificare on a live account). */
+export const META_API_VERSION = "v26.0";
+/**
+ * Since v25 the legacy Advantage+ shopping and app campaigns (ASC/AAC, `smart_promotion_type`
+ * AUTOMATED_SHOPPING_ADS / SMART_APP_PROMOTION) cannot be created or updated through the API, and v26
+ * pauses the remaining ones: a status change on them is refused with this message instead of Meta's error.
+ */
+export const META_LEGACY_ADVANTAGE_TYPES = ["AUTOMATED_SHOPPING_ADS", "SMART_APP_PROMOTION"];
+export const META_ADVANTAGE_LOCKED_MESSAGE = "Meta no longer lets apps pause or resume legacy Advantage+ shopping or app campaigns (Marketing API v25 and later). Change it in Ads Manager, or move it to a new Advantage+ campaign.";
+/** Meta's own refusal on such a campaign (exact wording Da verificare): mapped to the readable message. */
+export function isAdvantageLockedError(message: string): boolean {
+  return /advantage\+?\s*(shopping|app)|\b(ASC|AAC)\b|smart.?promotion|automated.?shopping/i.test(message);
+}
 /** Marketing API permissions the installer must request for the system user / app. */
 export const META_REQUIRED_PERMISSIONS = ["ads_read", "ads_management", "business_management"];
 
@@ -125,18 +137,38 @@ export class MetaAdsPlatform implements AdsPlatform {
   }
 
   async setCampaignStatus(externalId: string, status: "active" | "paused"): Promise<void> {
+    await this.refuseLegacyAdvantage(externalId, "smart_promotion_type", (r) => r.smart_promotion_type);
     await this.postStatus(externalId, status);
+  }
+
+  /**
+   * Reads the campaign type before a status write and refuses legacy Advantage+ shopping/app campaigns
+   * with a readable message. Best effort: a read that fails for another reason lets the write decide.
+   */
+  private async refuseLegacyAdvantage(objectId: string, fields: string, pick: (r: Rec) => unknown): Promise<void> {
+    let type: unknown;
+    try {
+      type = pick((await this.get<Rec>(objectId, { fields })) as unknown as Rec);
+    } catch (e) {
+      if (e instanceof IntegrationError && (e.code === "token_expired" || e.code === "rate_limited")) throw e;
+      return;
+    }
+    if (typeof type === "string" && META_LEGACY_ADVANTAGE_TYPES.includes(type.toUpperCase())) throw new IntegrationError("invalid_request", META_ADVANTAGE_LOCKED_MESSAGE);
   }
 
   private async postStatus(objectId: string, status: "active" | "paused"): Promise<void> {
     const u = new URL(`${this.base}/${objectId}`);
     const body = new URLSearchParams({ status: status === "active" ? "ACTIVE" : "PAUSED", access_token: this.creds.accessToken }).toString();
-    const res = await this.http.request<{ success?: boolean; error?: { message: string; code: number } }>(u.toString(), { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body });
-    if (res.json?.error) throw mapMetaError(res.json.error);
+    const res = await this.http.request<{ success?: boolean; error?: { message: string; code: number; error_subcode?: number; error_user_msg?: string } }>(u.toString(), { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body });
+    if (res.json?.error) {
+      if (isAdvantageLockedError(`${res.json.error.message} ${res.json.error.error_user_msg ?? ""}`)) throw new IntegrationError("invalid_request", META_ADVANTAGE_LOCKED_MESSAGE);
+      throw mapMetaError(res.json.error);
+    }
     if (res.json?.success === false) throw new IntegrationError("invalid_request", "Meta refused the status change");
   }
 
   async setAdStatus(ad: { adExternalId: string }, status: "active" | "paused"): Promise<void> {
+    await this.refuseLegacyAdvantage(ad.adExternalId, "campaign{smart_promotion_type}", (r) => rec(r.campaign).smart_promotion_type);
     await this.postStatus(ad.adExternalId, status);
   }
 

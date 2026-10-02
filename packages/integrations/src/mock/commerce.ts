@@ -22,6 +22,7 @@ import {
  type CreateOrderInput, type FulfillmentHoldInput, type ManualPaymentInput, type NormalizedBalanceTransaction, type NormalizedPayout, type OrderDetailsPatch, type OrderDiscountPatch, type RefundOrderInput, type VariantPatch, type CreateFulfillmentInput, type NormalizedFulfillment } from "../types";
 import { FailureScript } from "./failures";
 import { buildMockPayouts, isProcessorGateway, type MockPaymentOrder, type MockPayoutRefund } from "./payouts";
+import { SHOPIFY_ALL_SCOPES, missingShopifyScopes } from "../shopify/oauth";
 
 export interface MockCatalogVariant {
   externalId: string;
@@ -71,6 +72,14 @@ export interface MockCommerceOptions {
    * them the catalog is built from `variants`. Writes change this state and bump `platformUpdatedAt`.
    */
   products?: NormalizedProduct[];
+  /** Order history the store already holds (issue #87): `orders` orders spread evenly over the last `months` months. */
+  history?: { orders: number; months: number; now?: Date };
+  /** Fresh orders the store takes between two syncs (the first page of every orders read); default 2–6, `[0, 0]` for none. */
+  freshOrders?: [number, number];
+  /** Scopes the simulated app installation holds (default: all of them); test connection reports the rest as missing. */
+  grantedScopes?: string[];
+  /** Shop domain the simulator answers as (webhooks, test connection). */
+  shopDomain?: string;
 }
 
 /** Category names the simulated store resolves when a category id is written. */
@@ -101,6 +110,15 @@ export class MockCommercePlatform implements CommercePlatform {
     this.nextNumber = opts.startOrderNumber;
     this.webhookSecret = opts.webhookSecret ?? "mock-webhook-secret";
     for (const l of opts.inventory ?? []) this.stock.set(`${l.inventoryItemExternalId}@${l.locationExternalId}`, l.available);
+    if (opts.history && opts.variants.length && opts.customers.length) {
+      // oldest first, evenly spread, deterministic: an initial import walks them in `updated_at` order
+      const now = (opts.history.now ?? new Date()).getTime();
+      const span = opts.history.months * 30.4 * 864e5;
+      for (let i = 0; i < opts.history.orders; i++) {
+        const at = new Date(now - span + Math.floor(((i + 0.5) * span) / opts.history.orders));
+        this.generateOrder(at, { keepStock: true });
+      }
+    }
     if (opts.products) for (const p of opts.products) this.catalog.set(p.externalId, structuredClone(p));
     else
       for (const v of opts.variants) {
@@ -166,11 +184,18 @@ export class MockCommercePlatform implements CommercePlatform {
 
   async testConnection(): Promise<ConnectionTest> {
     this.failures.check();
-    return { ok: true, accountName: "Mock Store", accountId: "mock-shop.myshopify.com", scopes: ["read_orders", "write_orders", "read_products", "write_products", "read_inventory", "write_inventory", "read_customers", "read_discounts", "write_discounts", "read_returns", "read_fulfillments", "read_publications"] };
+    const scopes = this.opts.grantedScopes ?? SHOPIFY_ALL_SCOPES;
+    const missing = missingShopifyScopes(scopes);
+    return { ok: true, accountName: "Mock Store", accountId: this.opts.shopDomain ?? "mock-shop.myshopify.com", scopes, missingScopes: [...missing.required, ...missing.optional], missingRequiredScopes: missing.required, missingScopesByModule: missing.byModule };
   }
 
-  /** Builds a plausible new order from the catalog. */
-  generateOrder(at = new Date()): NormalizedOrder {
+  /** Orders the simulated store holds (history + fresh ones). */
+  get orderCount(): number {
+    return this.orders.size;
+  }
+
+  /** Builds a plausible new order from the catalog (`keepStock`: a historical order, stock untouched). */
+  generateOrder(at = new Date(), opts: { keepStock?: boolean } = {}): NormalizedOrder {
     const rng = this.rng;
     const number = this.nextNumber++;
     const customer = rng.pick(this.opts.customers);
@@ -237,7 +262,7 @@ export class MockCommercePlatform implements CommercePlatform {
       fulfillments: [],
     };
     this.orders.set(order.externalId, order);
-    this.moveStock(order.lines, -1);
+    if (!opts.keepStock) this.moveStock(order.lines, -1);
     return order;
   }
 
@@ -246,12 +271,13 @@ export class MockCommercePlatform implements CommercePlatform {
     const page = Number(q.cursor ?? 0);
     const limit = Math.min(q.limit ?? 50, 250);
     // Simulate a store with new activity: up to 3 pages of fresh orders per sync.
-    if (page === 0) {
-      const count = this.rng.int(2, 6);
+    if (page === 0 && this.opts.customers.length && this.opts.variants.length) {
+      const [min, max] = this.opts.freshOrders ?? [2, 6];
+      const count = this.rng.int(min, max);
       for (let i = 0; i < count; i++) this.generateOrder(new Date(Date.now() - this.rng.int(0, 3600) * 1000));
     }
-    const all = [...this.orders.values()].sort((a, b) => a.platformUpdatedAt.getTime() - b.platformUpdatedAt.getTime());
-    const filtered = q.updatedSince ? all.filter((o) => o.platformUpdatedAt >= q.updatedSince!) : all;
+    const all = [...this.orders.values()].sort((a, b) => a.platformUpdatedAt.getTime() - b.platformUpdatedAt.getTime() || a.orderNumber - b.orderNumber);
+    const filtered = all.filter((o) => (!q.updatedSince || o.platformUpdatedAt >= q.updatedSince) && (!q.createdSince || o.placedAt >= q.createdSince));
     const items = filtered.slice(page * limit, (page + 1) * limit);
     const nextCursor = (page + 1) * limit < filtered.length ? String(page + 1) : null;
     return { items, nextCursor };
@@ -375,7 +401,7 @@ export class MockCommercePlatform implements CommercePlatform {
     const r = this.returns.get(returnExternalId);
     if (!r) throw new IntegrationError("not_found", `Mock: return ${returnExternalId} not found`);
     const rawBody = JSON.stringify({ id: r.externalId, updated_at: r.updatedAt.toISOString(), __normalized: this.returnOf(r) });
-    return { headers: { "x-shopify-topic": topic, "x-shopify-hmac-sha256": this.sign(rawBody), "x-shopify-shop-domain": "mock-shop.myshopify.com" }, rawBody };
+    return { headers: { "x-shopify-topic": topic, "x-shopify-hmac-sha256": this.sign(rawBody), "x-shopify-shop-domain": this.opts.shopDomain ?? "mock-shop.myshopify.com" }, rawBody };
   }
 
   /** Refunds made through this simulator since it started (they show up in the next payouts). */
@@ -412,7 +438,7 @@ export class MockCommercePlatform implements CommercePlatform {
   /** Builds a signed webhook envelope for the given order, exactly like the platform would. */
   buildWebhook(topic: string, order: NormalizedOrder): { headers: Record<string, string>; rawBody: string } {
     const rawBody = JSON.stringify({ id: Number(order.externalId), updated_at: order.platformUpdatedAt.toISOString(), __normalized: order });
-    return { headers: { "x-shopify-topic": topic, "x-shopify-hmac-sha256": this.sign(rawBody), "x-shopify-shop-domain": "mock-shop.myshopify.com" }, rawBody };
+    return { headers: { "x-shopify-topic": topic, "x-shopify-hmac-sha256": this.sign(rawBody), "x-shopify-shop-domain": this.opts.shopDomain ?? "mock-shop.myshopify.com" }, rawBody };
   }
 
   async verifyWebhook(headers: Record<string, string | undefined>, rawBody: string): Promise<VerifiedWebhook> {
@@ -436,7 +462,7 @@ export class MockCommercePlatform implements CommercePlatform {
   buildProductWebhook(topic: string, productExternalId: string): { headers: Record<string, string>; rawBody: string } {
     const p = this.productOrThrow(productExternalId);
     const rawBody = JSON.stringify({ id: Number(p.externalId) || p.externalId, updated_at: (p.platformUpdatedAt ?? new Date()).toISOString(), __normalized: p });
-    return { headers: { "x-shopify-topic": topic, "x-shopify-hmac-sha256": this.sign(rawBody), "x-shopify-shop-domain": "mock-shop.myshopify.com" }, rawBody };
+    return { headers: { "x-shopify-topic": topic, "x-shopify-hmac-sha256": this.sign(rawBody), "x-shopify-shop-domain": this.opts.shopDomain ?? "mock-shop.myshopify.com" }, rawBody };
   }
   parseWebhookCustomer(payload: unknown): NormalizedCustomer | null {
     return (payload as { __normalized?: NormalizedCustomer }).__normalized ?? null;

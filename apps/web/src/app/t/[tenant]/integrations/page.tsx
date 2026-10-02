@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { AD_ACCOUNT_LIMIT, adPlatformMinPlan, canDo, isAdPlatform, isAdPlatformInPlan, isPageEnabled } from "@hullwise/config";
+import { AD_ACCOUNT_LIMIT, SHOPIFY_SETUP, adPlatformMinPlan, canDo, isAdPlatform, isAdPlatformInPlan, isPageEnabled } from "@hullwise/config";
 import { formatDateTime, formatNumber } from "@hullwise/core";
 import { SUBSCRIPTION_PROVIDERS, integrationMode } from "@hullwise/integrations";
-import { adAccountsOverview, integrationOverview, platformWritesOverview } from "@hullwise/services";
+import { adAccountsOverview, historyImportStatus, integrationOverview, platformWritesOverview } from "@hullwise/services";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, DataList } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { PlatformWriteStatus } from "@/components/platform-write-status";
@@ -12,21 +12,28 @@ import { GoogleWriteAccessToggle } from "./write-access";
 import { MetaAdAccounts } from "./ad-accounts";
 import { ProviderControls as SubscriptionProviderControls } from "../subscriptions/controls";
 import { SpokiCard } from "@/components/spoki-card";
+import { HistoryImportProgress } from "@/components/integrations/history-import";
+import { resolveSetupValues } from "@/server/integration-setup";
+import { savedShopifyApp } from "@/server/shopify-connection";
+import { ContinueImportButton, ShopifySetup } from "./shopify-setup";
 
 const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic", "address"] as const;
 /** Per-account integrations activated by the Hullwise team: interface and mock in Hullwise, each with its activation guide. */
 const SLOTS = ["messaging", "warehouse", "carrier", "payment_guarantee", "return_labels", "audiences"] as const;
 
-export default async function IntegrationsPage({ params }: { params: Promise<{ tenant: string }> }) {
+export default async function IntegrationsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ shopify_error?: string }> }) {
   const { tenant } = await params;
+  const { shopify_error: shopifyError } = await searchParams;
   const ctx = await requirePage(tenant, "integrations");
   const t = await getTranslations("integrations");
   const tw = await getTranslations("platform_writes");
   const tp = await getTranslations("plans");
-  const { data, writes, metaAccounts } = await ctx.run(async (tx) => {
+  const { data, writes, metaAccounts, history } = await ctx.run(async (tx) => {
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
-    return { data: await integrationOverview(s), writes: await platformWritesOverview(s, { limit: 15 }), metaAccounts: await adAccountsOverview(s, "meta") };
+    return { data: await integrationOverview(s), writes: await platformWritesOverview(s, { limit: 15 }), metaAccounts: await adAccountsOverview(s, "meta"), history: await historyImportStatus(s) };
   });
+  const setupValues = resolveSetupValues(SHOPIFY_SETUP);
+  const workerQueue = process.env.HULLWISE_JOBS_QUEUE === "1";
   const canManage = canDo(ctx.role, "manage_integrations");
   const globalMock = integrationMode() === "mock";
   const dt = (d: Date | null | undefined) => (d ? formatDateTime(d, ctx.locale, ctx.tenant.timezone) : "—");
@@ -57,9 +64,9 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
           const health = data.health.filter((h) => (h.source === p || h.source.startsWith(`${p}:`)) && !metaAccounts.some((a) => !a.isPrimary && h.source.startsWith(`${p}:${a.externalAccountId}`)));
           const connected = !!row && row.status !== "not_connected";
           const mock = globalMock || !row || row.mode !== "live";
-          const cfg = (row?.config ?? {}) as { missingScopes?: string[] };
+          const cfg = (row?.config ?? {}) as { missingScopes?: string[]; missingRequiredScopes?: string[] };
           return (
-            <Card key={p} data-testid={`provider-${p}`}>
+            <Card key={p} data-testid={`provider-${p}`} className={p === "shopify" ? "md:col-span-2" : undefined}>
               <CardHeader>
                 <div className="flex items-center justify-between gap-2">
                   <CardTitle className="text-base">{t(`providers.${p}`)}</CardTitle>
@@ -76,7 +83,7 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
                   <dt className="text-muted-foreground">{t("last_success")}</dt><dd>{dt(row?.lastSuccessAt)}</dd>
                   <dt className="text-muted-foreground">{t("last_error")}</dt><dd className={row?.lastError ? "text-destructive" : ""}>{row?.lastError ?? "—"}</dd>
                 </dl>
-                {cfg.missingScopes && cfg.missingScopes.length > 0 && <p className="text-xs text-warning">{t("missing_scopes", { scopes: cfg.missingScopes.join(", ") })}</p>}
+                {p !== "shopify" && cfg.missingScopes && cfg.missingScopes.length > 0 && <p className="text-xs text-warning">{t("missing_scopes", { scopes: cfg.missingScopes.join(", ") })}</p>}
                 {health.length > 0 && (
                   <ul className="space-y-1 text-xs">
                     {health.map((h) => (
@@ -89,6 +96,12 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
                 )}
                 {p === "google" && connected && <GoogleWriteAccessToggle slug={tenant} enabled={(row?.config as { writeAccess?: boolean } | undefined)?.writeAccess === true} canManage={canManage} />}
                 <ProviderActions slug={tenant} provider={p} connected={connected} mock={mock} canManage={canManage} />
+                {p === "shopify" && (connected || history.state !== "not_started") && <HistoryImportProgress status={history} locale={ctx.locale} timezone={ctx.tenant.timezone} action={canManage && history.inProgress && !workerQueue ? <ContinueImportButton slug={tenant} /> : null} />}
+                {p === "shopify" && (() => {
+                  const missingRequired = cfg.missingRequiredScopes ?? [];
+                  const app = savedShopifyApp(row?.config);
+                  return <ShopifySetup slug={tenant} definition={SHOPIFY_SETUP} values={setupValues} guideHref={`${base}/guide/shopify`} connected={connected} mock={mock} canManage={canManage} publicApp={!!process.env.SHOPIFY_API_KEY && !!process.env.SHOPIFY_API_SECRET} savedApp={app && !connected ? { shop: app.shop, clientId: app.clientId } : null} flashError={shopifyError && SHOPIFY_SETUP.errors.includes(shopifyError) ? shopifyError : null} missing={{ required: connected ? missingRequired : [], optional: connected ? (cfg.missingScopes ?? []).filter((x) => !missingRequired.includes(x)) : [] }} />;
+                })()}
                 <p className="text-xs"><Link href={`${base}/guide/${p}`} className="underline-offset-4 hover:underline">{t("open_guide")}</Link></p>
               </CardContent>
             </Card>

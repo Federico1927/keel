@@ -70,7 +70,7 @@ export const graphqlOrdersPage = {
           totalTaxSet: { shopMoney: { amount: "11.70" } },
           totalPriceSet: { shopMoney: { amount: "64.90" } },
           totalRefundedSet: { shopMoney: { amount: "0.00" } },
-          customer: { id: "gid://shopify/Customer/7000000002", legacyResourceId: "7000000002", email: "marco.bianchi@example.com", phone: "+393471234567", firstName: "Marco", lastName: "Bianchi", tags: [], createdAt: "2026-01-10T08:00:00Z", emailMarketingConsent: { marketingState: "NOT_SUBSCRIBED" }, smsMarketingConsent: null, defaultAddress: { city: "Torino", zip: "10121", countryCodeV2: "IT", phone: "+393471234567" } },
+          customer: { id: "gid://shopify/Customer/7000000002", legacyResourceId: "7000000002", firstName: "Marco", lastName: "Bianchi", tags: [], createdAt: "2026-01-10T08:00:00Z", defaultEmailAddress: { emailAddress: "marco.bianchi@example.com", marketingState: "NOT_SUBSCRIBED" }, defaultPhoneNumber: { phoneNumber: "+393471234567", marketingState: "SUBSCRIBED" }, defaultAddress: { city: "Torino", zip: "10121", countryCodeV2: "IT", phone: "+393471234567" } },
           shippingAddress: { name: "Marco Bianchi", address1: "Corso Francia 10", address2: null, city: "Torino", provinceCode: "TO", zip: "10121", countryCodeV2: "IT", phone: "+393471234567" },
           billingAddress: null,
           discountCodes: [],
@@ -155,7 +155,8 @@ export const graphqlDiscounts = {
 
 export const graphqlInventory = { data: { nodes: [{ id: "gid://shopify/InventoryItem/4500001", legacyResourceId: "4500001", inventoryLevels: { nodes: [{ updatedAt: "2026-09-29T06:00:00Z", location: { id: "gid://shopify/Location/6100001", legacyResourceId: "6100001" }, quantities: [{ name: "available", quantity: 12 }, { name: "on_hand", quantity: 15 }, { name: "committed", quantity: 3 }] }] } }] } };
 
-export const graphqlWebhooks = { data: { webhookSubscriptions: { nodes: [{ topic: "ORDERS_CREATE", endpoint: { __typename: "WebhookHttpEndpoint", callbackUrl: "https://hullwise.example/api/webhooks/shopify" } }] } } };
+/** `webhookSubscriptions` with `uri` (Admin API 2025-10+; `endpoint.callbackUrl` is deprecated). */
+export const graphqlWebhooks = { data: { webhookSubscriptions: { nodes: [{ topic: "ORDERS_CREATE", uri: "https://hullwise.example/api/webhooks/shopify" }] } } };
 export const graphqlWebhookCreate = { data: { webhookSubscriptionCreate: { userErrors: [] } } };
 export const graphqlCancel = { data: { orderCancel: { job: { id: "gid://shopify/Job/1" }, orderCancelUserErrors: [], userErrors: [] } } };
 

@@ -7,3 +7,4 @@ export * from "./labels";
 export * from "./audience";
 export * from "./address";
 export * from "./payouts";
+export * from "./demo-store";

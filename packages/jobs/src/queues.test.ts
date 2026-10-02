@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { QUEUES, jobTypeOf, resyncJobsFor, runNowJob } from "./queues";
+import { QUEUES, historyImportJobs, jobTypeOf, resyncJobsFor, runNowJob, syncSingletonKey } from "./queues";
 
 describe("ads resyncs (watchdog, run now)", () => {
   const now = new Date("2026-10-02T06:00:00Z");
@@ -23,5 +23,18 @@ describe("subscription app resync (addon.subscriptions)", () => {
   it("re-reads a stale subscription app through the add-on's tick", () => {
     for (const source of ["shopify_subscriptions", "recharge", "loop"]) expect(resyncJobsFor("t1", source)).toEqual([{ queue: QUEUES.tick, data: { kind: "subscriptions" }, singletonKey: "t1:subscriptions" }]);
     expect(runNowJob("tick:subscriptions", null)).toEqual({ queue: QUEUES.tick, data: { kind: "subscriptions" } });
+  });
+});
+
+describe("history import jobs (#87)", () => {
+  it("queues exactly one initial orders job, the full catalog and the returns, each with its own per-tenant key", () => {
+    const jobs = historyImportJobs("t1");
+    expect(jobs.filter((j) => j.queue === QUEUES.syncOrders)).toEqual([{ queue: QUEUES.syncOrders, data: { tenantId: "t1", kind: "initial" }, singletonKey: "t1:initial" }]);
+    expect(jobs.map((j) => j.singletonKey)).toEqual(["t1:catalog:initial", "t1:initial", "t1:returns:initial"]);
+    // a resume queues only what is not finished
+    expect(historyImportJobs("t1", ["orders"]).map((j) => j.queue)).toEqual([QUEUES.syncOrders]);
+    // never the delta lanes' keys, so a resync cannot swallow the import
+    expect(syncSingletonKey(QUEUES.syncCatalog, "t1", "delta")).toBe("t1:catalog:catalog");
+    expect(syncSingletonKey(QUEUES.syncReturns, "t1", "delta")).toBe("t1:returns");
   });
 });

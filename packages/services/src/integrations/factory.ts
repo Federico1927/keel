@@ -1,9 +1,10 @@
 import { isAdPlatformInPlan, isMultiAccountAdPlatform } from "@hullwise/config";
 import type { AdPlatform } from "@hullwise/core";
-import { and, eq, gte, inArray, isNotNull, schema, sql } from "@hullwise/db";
-import { AnthropicLlmProvider, GoogleAddressProvider, type GoogleAddressCredentials, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, type MockAdsStructure, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, PROCESSOR_GATEWAYS, ShopifyCommercePlatform, type MockPaymentOrder, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type NormalizedProduct, type ShopifyCredentials, MockCarrierProvider, type CarrierProvider, TiktokAdsPlatform, mockDemoAdsAccount, type TiktokCredentials } from "@hullwise/integrations";
+import { and, eq, gte, inArray, isNotNull, schema, sql, withTenant } from "@hullwise/db";
+import { AnthropicLlmProvider, GoogleAddressProvider, type GoogleAddressCredentials, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, type MockAdsStructure, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, PROCESSOR_GATEWAYS, ShopifyCommercePlatform, type MockPaymentOrder, SlackWebhookSink, decryptJson, encryptJson, integrationMode, mockDemoStore, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type NormalizedProduct, type ShopifyCredentials, MockCarrierProvider, type CarrierProvider, TiktokAdsPlatform, mockDemoAdsAccount, type TiktokCredentials } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { getAdAccount, primaryAdAccountId } from "../ads/accounts";
+import { historyImportMonths } from "../sync/history";
 
 export interface PlatformTenant {
   id: string;
@@ -31,18 +32,42 @@ export function isLive(row: { mode: string; credentialsEncrypted: string | null;
   return integrationMode() === "live" && !!row && row.mode === "live" && !!row.credentialsEncrypted && row.status !== "not_connected";
 }
 
+/**
+ * Stores credentials a live Shopify adapter renewed (client credentials tokens last 24 h). Its own short
+ * tenant transaction, not awaited by the adapter: the caller's transaction may hold the integration row.
+ */
+function persistRefreshedShopify(tenantId: string, cacheEntry: { key: string }) {
+  return (creds: ShopifyCredentials) => {
+    const key = encryptJson(creds);
+    cacheEntry.key = key;
+    void withTenant(tenantId, (tx) => tx.update(schema.integrations).set({ credentialsEncrypted: key, updatedAt: new Date() }).where(and(eq(schema.integrations.tenantId, tenantId), eq(schema.integrations.provider, "shopify"), eq(schema.integrations.mode, "live")))).catch((e: unknown) => console.warn("[shopify] could not store the renewed token:", e instanceof Error ? e.message : e));
+  };
+}
+
+/** Orders the simulated demo store holds for a tenant connected in mock mode without data of its own (#87). */
+export const MOCK_DEMO_STORE_ORDERS = 480;
+
 export async function getCommercePlatformFor(ctx: ServiceContext, tenant: PlatformTenant): Promise<CommercePlatform> {
   const row = await integrationRow(ctx, "shopify");
   if (isLive(row)) {
     const key = row!.credentialsEncrypted!;
     const cached = liveCommerce.get(tenant.id);
     if (cached && cached.key === key) return cached.platform;
-    const platform = new ShopifyCommercePlatform(decryptJson<ShopifyCredentials>(key));
-    liveCommerce.set(tenant.id, { key, platform });
-    return platform;
+    const entry = { key, platform: null as unknown as CommercePlatform };
+    entry.platform = new ShopifyCommercePlatform(decryptJson<ShopifyCredentials>(key), { onCredentialsRefreshed: persistRefreshedShopify(tenant.id, entry) });
+    liveCommerce.set(tenant.id, entry);
+    return entry.platform;
   }
   const cached = commerceMocks.get(tenant.id);
   if (cached) return cached;
+  const mockCfg = (row?.config ?? {}) as { mockStore?: string; grantedScopes?: string[] };
+  if (mockCfg.mockStore === "demo") {
+    // a store connected in mock mode from scratch: a deterministic simulated store with its order history
+    const months = (await historyImportMonths(ctx)) || 36;
+    const demo = new MockCommercePlatform({ ...mockDemoStore({ key: tenant.id, currency: tenant.currency, country: tenant.country, orderNumberPrefix: tenant.orderNumberPrefix, months, orders: MOCK_DEMO_STORE_ORDERS }), webhookSecret: row?.externalAccountId ? `mock-secret-${row.externalAccountId}` : undefined, shopDomain: row?.externalAccountId ?? undefined, grantedScopes: mockCfg.grantedScopes });
+    commerceMocks.set(tenant.id, demo);
+    return demo;
+  }
   const variants = await ctx.tx
     .select({ id: schema.productVariants.externalId, productId: schema.products.externalId, inv: schema.productVariants.inventoryItemExternalId, sku: schema.productVariants.sku, title: schema.productVariants.title, productTitle: schema.products.title, optionValues: schema.productVariants.optionValues, priceMinor: schema.productVariants.priceMinor, costMinor: schema.productVariants.costMinor, barcode: schema.productVariants.barcode, imageUrl: schema.products.imageUrl })
     .from(schema.productVariants)
@@ -67,6 +92,8 @@ export async function getCommercePlatformFor(ctx: ServiceContext, tenant: Platfo
     // the simulated store starts from the tenant's stock, so a sync only shows what really changed
     inventory: levels.filter((l) => l.inv && l.loc).map((l) => ({ inventoryItemExternalId: l.inv!, locationExternalId: l.loc!, available: l.available })),
     products: await mockStoreProducts(ctx, tenant.id),
+    shopDomain: row?.externalAccountId ?? undefined,
+    grantedScopes: mockCfg.grantedScopes,
   });
   commerceMocks.set(tenant.id, platform);
   return platform;
@@ -205,6 +232,12 @@ async function mockAdsStructure(ctx: ServiceContext, tenantId: string, provider:
 /** The mock commerce simulator for a tenant, when one is cached (webhook simulation, tests). */
 export function mockCommerceFor(tenantId: string): MockCommercePlatform | undefined {
   return commerceMocks.get(tenantId);
+}
+
+/** Drops a tenant's cached commerce adapter (a reconnect changes the simulated store or the credentials). */
+export function forgetCommercePlatform(tenantId: string): void {
+  commerceMocks.delete(tenantId);
+  liveCommerce.delete(tenantId);
 }
 
 export function resetMockPlatforms(): void {

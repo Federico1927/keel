@@ -29,6 +29,7 @@ export * from "./returns";
 export * from "./discounts";
 export * from "./sync";
 export * from "./integrations/factory";
+export * from "./integrations/compliance";
 export * from "./billing";
 export * from "./planning";
 export * from "./crm/predictions";

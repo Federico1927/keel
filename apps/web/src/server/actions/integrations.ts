@@ -4,11 +4,12 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, desc, eq, recordAudit, schema, sql } from "@hullwise/db";
 import { apiEndpoint, isAdPlatform, isAdPlatformInPlan } from "@hullwise/config";
-import { AnthropicLlmProvider, GoogleAddressProvider, GoogleAdsPlatform, MOCK_ACCOUNT_IDS, MetaAdsPlatform, ShopifyCommercePlatform, SHOPIFY_WEBHOOK_TOPICS, TiktokAdsPlatform, encryptJson, exchangeTiktokAuthCode, integrationMode, isValidShopDomain, type ConnectionTest } from "@hullwise/integrations";
+import { AnthropicLlmProvider, GoogleAddressProvider, GoogleAdsPlatform, MOCK_ACCOUNT_IDS, MetaAdsPlatform, TiktokAdsPlatform, encryptJson, exchangeTiktokAuthCode, integrationMode, type ConnectionTest } from "@hullwise/integrations";
 import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, resolveAddressProvider, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsBackfill, runAdsSync, runAdsSyncForAccounts, runCatalogSync, runOrdersSync, runReturnsSync } from "@hullwise/services";
 import { SPOKI_MODULE, retrySpokiWebhooks } from "@hullwise/addon-spoki";
 import { handleSpokiEvent, spokiHooksFor } from "@hullwise/jobs";
 import { enqueue } from "@/server/jobs";
+import { startHistoryImport } from "@/server/history-import";
 import { ForbiddenError, requireAction, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 
@@ -28,33 +29,15 @@ async function saveConnection(slug: string, provider: Provider, test: Connection
   requireProviderInPlan(ctx, provider);
   if (!test.ok) return fail("connection_failed", { platform: test.error ?? "" });
   await ctx.run(async (tx) => {
-    const values = { status: "connected", mode: "live", externalAccountId: accountId, externalAccountName: test.accountName ?? accountId, credentialsEncrypted: encryptJson(credentials), config: { ...config, scopes: test.scopes ?? [], missingScopes: test.missingScopes ?? [] }, lastError: null, lastSuccessAt: new Date(), updatedAt: new Date() };
+    // a reconnect keeps the history import progress (#87)
+    const [prev] = await tx.select({ config: schema.integrations.config }).from(schema.integrations).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, provider))).limit(1);
+    const history = (prev?.config as { historyImport?: unknown } | undefined)?.historyImport;
+    const values = { status: "connected", mode: "live", externalAccountId: accountId, externalAccountName: test.accountName ?? accountId, credentialsEncrypted: encryptJson(credentials), config: { ...(history ? { historyImport: history } : {}), ...config, scopes: test.scopes ?? [], missingScopes: test.missingScopes ?? [] }, lastError: null, lastSuccessAt: new Date(), updatedAt: new Date() };
     await tx.insert(schema.integrations).values({ tenantId: ctx.tenant.id, provider, ...values }).onConflictDoUpdate({ target: [schema.integrations.tenantId, schema.integrations.provider], set: values });
     await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.connected", entityType: "integration", entityId: provider, diff: { status: { from: null, to: "connected" }, account: { from: null, to: accountId } } });
   });
   revalidatePath(`/t/${slug}/integrations`);
   return ok();
-}
-
-const shopifySchema = z.object({ shop: z.string().trim().toLowerCase(), accessToken: z.string().trim().min(10), apiSecret: z.string().trim().min(8) });
-export async function connectShopifyCustomApp(slug: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
-  try {
-    const parsed = shopifySchema.safeParse(Object.fromEntries(formData.entries()));
-    if (!parsed.success || !isValidShopDomain(parsed.data.shop)) return fail("invalid_input");
-    if (integrationMode() !== "live") return fail("mock_mode");
-    const platform = new ShopifyCommercePlatform(parsed.data);
-    const test = await platform.testConnection();
-    const saved = await saveConnection(slug, "shopify", test, parsed.data, parsed.data.shop, { installedVia: "custom_app" });
-    if (!saved.ok) return saved;
-    const callback = apiEndpoint("/webhooks/shopify");
-    const regs = await platform.registerWebhooks(callback, SHOPIFY_WEBHOOK_TOPICS).catch(() => []);
-    const ctx = await requireAction(slug, "manage_integrations", "integrations");
-    await ctx.run((tx) => tx.update(schema.integrations).set({ config: { installedVia: "custom_app", scopes: test.scopes ?? [], missingScopes: test.missingScopes ?? [], webhooks: regs } }).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, "shopify"))));
-    return ok();
-  } catch (e) {
-    if (e instanceof ForbiddenError) return fail("forbidden");
-    throw e;
-  }
 }
 
 const metaSchema = z.object({ accessToken: z.string().trim().min(10), adAccountId: z.string().trim().min(3) });
@@ -228,7 +211,9 @@ export async function testIntegration(slug: string, provider: string): Promise<A
       const platform = p.data === "shopify" ? await getCommercePlatformFor(s, ctx.tenant) : p.data === "anthropic" ? await getLlmProviderFor(s) : p.data === "address" ? await resolveAddressProvider(s) : await getAdsPlatformFor(s, ctx.tenant, p.data);
       if (!platform) return { ok: false, error: "not connected" } satisfies ConnectionTest;
       const test = await platform.testConnection().catch((e: unknown) => ({ ok: false, error: e instanceof Error ? e.message : String(e) }) as ConnectionTest);
-      await tx.update(schema.integrations).set(test.ok ? { lastSuccessAt: new Date(), lastError: null, status: "connected", externalAccountName: test.accountName ?? undefined, updatedAt: new Date() } : { lastError: test.error ?? "connection failed", status: "error", updatedAt: new Date() }).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, p.data)));
+      // Shopify: the scopes the app version grants now, so the card says what is still missing (#89)
+      const scopes = test.ok && test.scopes ? { config: sql`coalesce(${schema.integrations.config}, '{}'::jsonb) || ${JSON.stringify({ scopes: test.scopes, missingScopes: test.missingScopes ?? [], missingRequiredScopes: test.missingRequiredScopes ?? [], missingScopesByModule: test.missingScopesByModule ?? {} })}::jsonb` } : {};
+      await tx.update(schema.integrations).set(test.ok ? { lastSuccessAt: new Date(), lastError: null, status: "connected", externalAccountName: test.accountName ?? undefined, updatedAt: new Date(), ...scopes } : { lastError: test.error ?? "connection failed", status: "error", updatedAt: new Date() }).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, p.data)));
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.tested", entityType: "integration", entityId: p.data, diff: { ok: { from: null, to: test.ok } } });
       return test;
     });
@@ -248,6 +233,8 @@ export async function resyncIntegration(slug: string, provider: string): Promise
     const ctx = await requireAction(slug, "manage_integrations", "integrations");
     requireProviderInPlan(ctx, p.data);
     await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.resync_requested", entityType: "integration", entityId: p.data }));
+    // a paused history import (#87) continues with the resync
+    if (p.data === "shopify") await startHistoryImport(ctx.tenant, { resumeOnly: true, actorUserId: ctx.user.id });
     const since = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
     const until = new Date().toISOString().slice(0, 10);
     const queued = p.data === "shopify" ? (await enqueue("sync.orders", { tenantId: ctx.tenant.id, kind: "delta" }, { singletonKey: `${ctx.tenant.id}:delta` })) && (await enqueue("sync.catalog", { tenantId: ctx.tenant.id }, { singletonKey: `${ctx.tenant.id}:catalog` })) && (await enqueue("sync.returns", { tenantId: ctx.tenant.id, kind: "delta" }, { singletonKey: `${ctx.tenant.id}:returns` })) : await enqueue("sync.ads", { tenantId: ctx.tenant.id, provider: p.data, since, until }, { singletonKey: `${ctx.tenant.id}:${p.data}:${until}` });

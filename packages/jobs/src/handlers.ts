@@ -4,7 +4,7 @@ import { adminDb, and, eq, inArray, lte, schema, withTenant, appDb } from "@hull
 import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, recheckConversionAdjustments, runAdsSyncForAccounts, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, rollupAdEntityMetrics, campaignTick, processCampaignSend, getMessagingChannelFor, resolveAddressProvider, SUBSCRIPTIONS_ADDON, getSubscriptionProviderFor, runSubscriptionSync, refreshSubscriberRisk, deliverWebhook, dueWebhookDeliveries, purgeApiRows } from "@hullwise/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue, autoCancelReturnedToSender, getCodSettings, runScheduledConfirmations, applyCodReply, applyMessageStatus } from "@hullwise/addon-cod";
 import { SPOKI_MODULE, getSpokiApiFor, getSpokiState, processSpokiWebhookEvent, retrySpokiWebhooks, runOrderNotifications, spokiMessagingChannel, type SpokiHooks } from "@hullwise/addon-spoki";
-import { adsWindow, type CampaignSendJob, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob, resyncJobsFor, type TenantExportJob, type WebhookDeliverJob } from "./queues";
+import { QUEUES, adsWindow, syncSingletonKey, type CampaignSendJob, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob, resyncJobsFor, type TenantExportJob, type WebhookDeliverJob } from "./queues";
 
 export interface Enqueue {
   (queue: string, data: unknown, opts?: { singletonKey?: string; startAfterSeconds?: number }): Promise<void>;
@@ -73,7 +73,7 @@ export async function handleSyncOrders(job: SyncOrdersJob, enqueue: Enqueue): Pr
     return runOrdersSync(ctx, platform, { kind: job.kind, country: tenant.country, budgetMs: 25_000 });
   });
   // Resumable: a paused run re-enqueues itself with the saved cursor.
-  if (!result.finished && !result.error) await enqueue("sync.orders", job, { singletonKey: `${job.tenantId}:${job.kind}` });
+  if (!result.finished && !result.error) await enqueue("sync.orders", job, { singletonKey: syncSingletonKey(QUEUES.syncOrders, job.tenantId, job.kind) });
   if (result.error) throw new Error(result.error);
   return { rows: result.rowsWritten, summary: { finished: result.finished } };
 }
@@ -85,7 +85,7 @@ export async function handleSyncCatalog(job: SyncCatalogJob, enqueue?: Enqueue):
     return runCatalogSync(ctx, await getCommercePlatformFor(ctx, tenant), { kind: job.kind ?? "delta", scope: job.scope ?? "catalog", budgetMs: 25_000 });
   });
   // Resumable: a paused run re-enqueues itself and continues from the saved phase and cursor.
-  if (!r.finished && !r.error && enqueue) await enqueue("sync.catalog", job, { singletonKey: `${job.tenantId}:catalog:${job.scope ?? "catalog"}` });
+  if (!r.finished && !r.error && enqueue) await enqueue("sync.catalog", job, { singletonKey: syncSingletonKey(QUEUES.syncCatalog, job.tenantId, job.kind, job.scope) });
   if (r.error) throw new Error(r.error);
 }
 
@@ -107,7 +107,7 @@ export async function handleSyncReturns(job: SyncReturnsJob, enqueue?: Enqueue):
     const ctx = sys(tenant.id)(tx);
     return runReturnsSync(ctx, await getCommercePlatformFor(ctx, tenant), { kind: job.kind ?? "reconcile", country: tenant.country, budgetMs: 25_000 });
   });
-  if (!r.finished && !r.error && enqueue) await enqueue("sync.returns", job, { singletonKey: `${job.tenantId}:returns` });
+  if (!r.finished && !r.error && enqueue) await enqueue("sync.returns", job, { singletonKey: syncSingletonKey(QUEUES.syncReturns, job.tenantId, job.kind) });
   if (r.error) throw new Error(r.error);
 }
 

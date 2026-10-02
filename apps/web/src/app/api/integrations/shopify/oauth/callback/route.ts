@@ -1,27 +1,60 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { cookies } from "next/headers";
-import { appUrl, cookieDomain } from "@hullwise/config";
-import { encryptJson, exchangeOAuthCode, verifyOAuthCallback } from "@hullwise/integrations";
-import { recordAudit, schema } from "@hullwise/db";
-import { requireAction } from "@/server/tenant";
+import { apiEndpoint, appUrl } from "@hullwise/config";
+import { and, eq, schema, withTenant } from "@hullwise/db";
+import { SHOPIFY_WEBHOOK_TOPICS, ShopifyCommercePlatform, ShopifyGrantError, decryptJson, exchangeOAuthCode, verifyOAuthCallback, verifyState, type ShopifyCredentials } from "@hullwise/integrations";
+import { savedShopifyApp, saveShopifyConnection } from "@/server/shopify-connection";
+import { startHistoryImport } from "@/server/history-import";
 
-/** Shopify redirects here with code/hmac/shop/state; we verify, exchange the code and store encrypted credentials. */
+interface ShopifyState extends Record<string, unknown> {
+  t: string;
+  s: string;
+  u: string;
+  shop: string;
+  app: "tenant" | "public";
+}
+
+/**
+ * Shopify redirects here with code/hmac/shop/state (issue #89). The signed `state` names the tenant; the
+ * query HMAC is verified with that tenant's app secret (or the platform app's), the code is exchanged for
+ * the offline token (stored encrypted, with its expiry and refresh token when Shopify sends them), webhooks
+ * are registered and the history import starts. Errors go back to the integrations page as a code the card
+ * explains in plain words.
+ */
 export async function GET(req: NextRequest) {
   const q = Object.fromEntries(req.nextUrl.searchParams.entries());
-  const jar = await cookies();
-  const raw = jar.get("hullwise_shopify_oauth")?.value;
-  jar.delete({ name: "hullwise_shopify_oauth", domain: cookieDomain(), path: "/" });
-  const apiKey = process.env.SHOPIFY_API_KEY;
-  const apiSecret = process.env.SHOPIFY_API_SECRET;
-  if (!raw || !apiKey || !apiSecret) return new NextResponse("oauth session missing", { status: 400 });
-  const saved = JSON.parse(raw) as { state: string; slug: string; shop: string };
-  if (q.state !== saved.state || q.shop !== saved.shop || !verifyOAuthCallback(q, apiSecret)) return new NextResponse("invalid oauth callback", { status: 401 });
-  const ctx = await requireAction(saved.slug, "manage_integrations", "integrations");
-  const { accessToken, scopes } = await exchangeOAuthCode(saved.shop, apiKey, apiSecret, q.code ?? "");
-  await ctx.run(async (tx) => {
-    const values = { status: "connected", mode: "live", externalAccountId: saved.shop, externalAccountName: saved.shop, credentialsEncrypted: encryptJson({ shop: saved.shop, accessToken, apiSecret }), config: { scopes, installedVia: "oauth" }, lastError: null, updatedAt: new Date() };
-    await tx.insert(schema.integrations).values({ tenantId: ctx.tenant.id, provider: "shopify", ...values }).onConflictDoUpdate({ target: [schema.integrations.tenantId, schema.integrations.provider], set: values });
-    await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "integration.connected", entityType: "integration", entityId: "shopify", diff: { status: { from: null, to: "connected" }, shop: { from: null, to: saved.shop } } });
+  const st = verifyState<ShopifyState>(q.state);
+  if (!st || q.shop !== st.shop) return new NextResponse("invalid or expired oauth state", { status: 401 });
+  const back = (query: string) => NextResponse.redirect(new URL(`/t/${st.s}/integrations?${query}`, appUrl()));
+  const tenant = await withTenant(st.t, async (tx) => {
+    const [t] = await tx.select({ id: schema.tenants.id, slug: schema.tenants.slug, currency: schema.tenants.currency, country: schema.tenants.country, orderNumberPrefix: schema.tenants.orderNumberPrefix }).from(schema.tenants).where(eq(schema.tenants.id, st.t)).limit(1);
+    const [row] = await tx.select({ config: schema.integrations.config }).from(schema.integrations).where(and(eq(schema.integrations.tenantId, st.t), eq(schema.integrations.provider, "shopify"))).limit(1);
+    return t ? { ...t, app: savedShopifyApp(row?.config) } : null;
   });
-  return NextResponse.redirect(new URL(`/t/${saved.slug}/integrations?connected=shopify`, appUrl()));
+  if (!tenant) return new NextResponse("unknown tenant", { status: 404 });
+  let clientId: string;
+  let secret: string;
+  if (st.app === "tenant") {
+    if (!tenant.app || tenant.app.shop !== st.shop) return back("shopify_error=install_not_ready");
+    clientId = tenant.app.clientId;
+    secret = decryptJson<{ clientSecret: string }>(tenant.app.secretEncrypted).clientSecret;
+  } else {
+    if (!process.env.SHOPIFY_API_KEY || !process.env.SHOPIFY_API_SECRET) return new NextResponse("SHOPIFY_API_KEY / SHOPIFY_API_SECRET are not configured", { status: 501 });
+    clientId = process.env.SHOPIFY_API_KEY;
+    secret = process.env.SHOPIFY_API_SECRET;
+  }
+  if (!verifyOAuthCallback(q, secret)) return back("shopify_error=wrong_credentials");
+  let credentials: ShopifyCredentials;
+  try {
+    const token = await exchangeOAuthCode(st.shop, clientId, secret, q.code ?? "");
+    credentials = { shop: st.shop, clientId, apiSecret: secret, accessToken: token.accessToken, expiresAt: token.expiresAt, refreshToken: token.refreshToken ?? null, grant: "authorization_code" };
+  } catch (e) {
+    return back(`shopify_error=${e instanceof ShopifyGrantError ? e.reason : "unknown"}`);
+  }
+  const platform = new ShopifyCommercePlatform(credentials);
+  const test = await platform.testConnection();
+  if (!test.ok) return back("shopify_error=unknown");
+  const regs = await platform.registerWebhooks(apiEndpoint("/webhooks/shopify"), SHOPIFY_WEBHOOK_TOPICS).catch(() => []);
+  await saveShopifyConnection(tenant.id, { actorUserId: st.u, actorType: "user" }, { mode: "live", shop: st.shop, name: test.accountName ?? st.shop, credentials, test, config: { installedVia: st.app === "tenant" ? "oauth_own_app" : "oauth_public_app", webhooks: regs } });
+  await startHistoryImport(tenant, { actorUserId: st.u });
+  return back(`connected=shopify${test.missingRequiredScopes?.length ? "&shopify_error=missing_scopes" : ""}`);
 }
