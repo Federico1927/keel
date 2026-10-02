@@ -3,6 +3,7 @@ import { applyBulkCompareAt, applyBulkPrice, planTagChange, type BulkCompareAtCh
 import type { CommercePlatform } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 import { runPlatformWriteNow } from "../writes";
+import { recordPriceChanges, type PriceChangeSource } from "./price-history";
 
 /**
  * Product writes that reach the commerce platform: platform first (through the outbox, so every
@@ -42,7 +43,7 @@ export async function updateProductTagsWithPlatform(ctx: ServiceContext, platfor
  * the platform; a failure stops the product there and is rethrown, so the caller's transaction rolls
  * back the local rows (variants already written on the platform come back with the next catalog sync).
  */
-export async function updateProductPricesWithPlatform(ctx: ServiceContext, platform: CommercePlatform | undefined, productId: string, change: { price?: BulkPriceChange; compareAt?: BulkCompareAtChange }): Promise<ProductWriteOutcome> {
+export async function updateProductPricesWithPlatform(ctx: ServiceContext, platform: CommercePlatform | undefined, productId: string, change: { price?: BulkPriceChange; compareAt?: BulkCompareAtChange }, history: { source: PriceChangeSource; batchId?: string | null } = { source: "bulk" }): Promise<ProductWriteOutcome> {
   const p = await loadProduct(ctx, productId);
   if (!p) return { kind: "not_found" };
   const variants = await ctx.tx.select({ id: schema.productVariants.id, externalId: schema.productVariants.externalId, title: schema.productVariants.title, priceMinor: schema.productVariants.priceMinor, compareAtMinor: schema.productVariants.compareAtMinor }).from(schema.productVariants).where(and(eq(schema.productVariants.tenantId, ctx.tenantId), eq(schema.productVariants.productId, productId))).orderBy(asc(schema.productVariants.title));
@@ -56,6 +57,7 @@ export async function updateProductPricesWithPlatform(ctx: ServiceContext, platf
     if (!Object.keys(patch).length) continue;
     if (platform && v.externalId) await runPlatformWriteNow(ctx, platform, { kind: "variant.prices", entityType: "variant", entityId: v.id, payload: { variantExternalId: v.externalId, patch } });
     await ctx.tx.update(schema.productVariants).set(patch).where(eq(schema.productVariants.id, v.id));
+    await recordPriceChanges(ctx, [{ variantId: v.id, priceBeforeMinor: v.priceMinor, priceAfterMinor: price, compareAtBeforeMinor: v.compareAtMinor, compareAtAfterMinor: compareAt }], history);
     if (patch.priceMinor !== undefined) diff[`price:${v.title}`] = { from: v.priceMinor, to: patch.priceMinor };
     if (patch.compareAtMinor !== undefined) diff[`compareAt:${v.title}`] = { from: v.compareAtMinor, to: patch.compareAtMinor };
   }

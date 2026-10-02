@@ -22,3 +22,4 @@ export * from "./lists";
 export * from "./payments";
 export * from "./fulfilment";
 export * from "./email";
+export * from "./inventory-control";
