@@ -9,7 +9,8 @@ import { requirePage } from "@/server/tenant";
 import { getProductDetail } from "@/server/queries/catalog";
 import { RiskBadge } from "@/components/risk-badge";
 import { PlatformWriteStatus } from "@/components/platform-write-status";
-import { latestPlatformWrites } from "@keel/services";
+import { latestPlatformWrites, priceHistory } from "@keel/services";
+import { AdjustStockDialog } from "@/components/adjust-stock-dialog";
 import { SalesChart } from "@/components/charts/sales-chart";
 import { ProductActions, VariantPriceForm } from "./actions";
 import { VariantCostsForm } from "./costs-form";
@@ -25,6 +26,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const { product, variants, stock, locations, daily, incomingPos, movements, campaigns } = detail;
   const t = await getTranslations("product_detail");
   const tp = await getTranslations("products");
+  const tic = await getTranslations("inventory_control");
+  const canAdjust = canWritePage(ctx.role, "inventory");
   const fmt = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   const totalAvailable = stock.reduce((s, r) => s + r.available, 0);
   const totalIncoming = stock.reduce((s, r) => s + r.incoming, 0);
@@ -36,7 +39,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const writes = await ctx.run(async (tx) => {
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
     const ids = variants.map((v) => v.id);
-    return { status: (await latestPlatformWrites(s, "product", [product.id], { kinds: ["product.status"] })).get(product.id), price: await latestPlatformWrites(s, "variant", ids, { kinds: ["variant.update"] }), stock: await latestPlatformWrites(s, "variant", ids, { kinds: ["inventory.set"] }) };
+    return { status: (await latestPlatformWrites(s, "product", [product.id], { kinds: ["product.status"] })).get(product.id), price: await latestPlatformWrites(s, "variant", ids, { kinds: ["variant.update", "variant.prices"] }), stock: await latestPlatformWrites(s, "variant", ids, { kinds: ["inventory.set"] }), prices: await priceHistory(s, { variantIds: ids, limit: 10 }) };
   });
   const options = product.options as { name: string; values: string[] }[];
   const days: { day: string; units: number; revenue: number }[] = [];
@@ -66,7 +69,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           ))}
         </>
       }
-      actions={canEdit ? <ProductActions slug={tenant} productId={product.id} status={product.status} isRepurchasable={product.isRepurchasable} /> : undefined}
+      actions={canEdit || canAdjust ? <div className="flex flex-wrap items-center gap-3">{canAdjust && variants.length > 0 && <AdjustStockDialog slug={tenant} variants={variants.map((v) => ({ id: v.id, label: `${v.title}${v.sku ? ` · ${v.sku}` : ""}`, levels: Object.fromEntries((stock.find((r) => r.variantId === v.id)?.byLocation ?? []).map((l) => [l.locationId, l.available])) }))} locations={locations.map((l) => ({ id: l.id, name: l.name }))} />}{canEdit && <ProductActions slug={tenant} productId={product.id} status={product.status} isRepurchasable={product.isRepurchasable} />}</div> : undefined}
       aside={
         <>
           <RecordTasks slug={tenant} type="product" id={product.id} label={product.title} />
@@ -110,8 +113,22 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               {movements.slice(0, 12).map((m) => (
                 <div key={m.id} className="flex justify-between gap-2">
                   <span className="text-muted-foreground">{formatDateTime(m.createdAt, ctx.locale, ctx.tenant.timezone)}</span>
-                  <span>{t(`movement.${m.reason}`)}</span>
+                  <span>{t(`movement.${m.reason}`)}{m.reasonCode ? ` · ${tic(`reasons.${m.reasonCode}`)}` : ""}</span>
                   <span className={`tabular ${m.delta > 0 ? "text-success" : "text-destructive"}`}>{m.delta > 0 ? "+" : ""}{m.delta}</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+          <Card data-testid="price-history">
+            <CardHeader>
+              <CardTitle className="text-base">{tic("price_history.title")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1 text-xs">
+              {writes.prices.length === 0 && <p className="text-muted-foreground">{tic("price_history.empty")}</p>}
+              {writes.prices.map((h) => (
+                <div key={h.c.id} className="flex flex-wrap justify-between gap-x-2">
+                  <span className="text-muted-foreground">{formatDate(h.c.createdAt, ctx.locale, ctx.tenant.timezone)} · {h.variantTitle}</span>
+                  <span className="tabular">{fmt(h.c.priceBeforeMinor)} → {fmt(h.c.priceAfterMinor)}{h.c.compareAtAfterMinor !== null && h.c.compareAtAfterMinor !== h.c.compareAtBeforeMinor ? ` (${fmt(h.c.compareAtAfterMinor)})` : ""} <span className="text-muted-foreground">{tic(`price_history.source.${h.c.source}`)}</span></span>
                 </div>
               ))}
             </CardContent>
