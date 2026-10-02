@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { adPlatformMinPlan, canDo, isAdPlatform, isAdPlatformInPlan, isPageEnabled } from "@hullwise/config";
-import { formatDateTime, formatNumber } from "@hullwise/core";
+import { formatDate, formatDateTime, formatNumber } from "@hullwise/core";
 import { SUBSCRIPTION_PROVIDERS, integrationMode } from "@hullwise/integrations";
 import { integrationOverview, platformWritesOverview } from "@hullwise/services";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
@@ -85,6 +85,19 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
                     ))}
                   </ul>
                 )}
+                {p === "shopify" && data.historyImport.state !== "not_started" && (() => {
+                  // the first import of the store's order history (issue #87)
+                  const h = data.historyImport;
+                  const day = (d: Date | null) => (d ? formatDate(d, ctx.locale, ctx.tenant.timezone) : "—");
+                  return (
+                    <div className="space-y-1 rounded-md border p-2 text-xs" data-testid="history-import" data-state={h.state}>
+                      <p className="flex items-center justify-between gap-2"><span className="font-medium">{t("history_import.title")}</span><Badge variant={h.state === "done" ? "success" : h.state === "error" ? "destructive" : "warning"}>{t(`history_import.state.${h.state}`)}</Badge></p>
+                      <p className="text-muted-foreground">{t("history_import.detail", { n: formatNumber(h.ordersImported, ctx.locale), since: h.since ? day(h.since) : t("history_import.all_orders"), oldest: day(h.oldestOrderAt) })}</p>
+                      {h.state !== "done" && <p className="text-muted-foreground">{t("history_import.incomplete_hint")}</p>}
+                      {h.error && <p className="text-destructive">{h.error}</p>}
+                    </div>
+                  );
+                })()}
                 {p === "google" && connected && <GoogleWriteAccessToggle slug={tenant} enabled={(row?.config as { writeAccess?: boolean } | undefined)?.writeAccess === true} canManage={canManage} />}
                 <ProviderActions slug={tenant} provider={p} connected={connected} mock={mock} canManage={canManage} />
                 <p className="text-xs"><Link href={`${base}/guide/${p}`} className="underline-offset-4 hover:underline">{t("open_guide")}</Link></p>

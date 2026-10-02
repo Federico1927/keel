@@ -368,7 +368,8 @@
         "markdownMinMarginBps": "Markdown minimum margin (basis points, 2000 = 20%)",
         "adsDailyRetentionDays": "Ads: daily detail kept (days)",
         "adsSearchTermMinImpressions": "Ads: search terms grouped under (impressions)",
-        "adsMinSpendMinor": "Ads: minimum spend for suggestions (cents)"
+        "adsMinSpendMinor": "Ads: minimum spend for suggestions (cents)",
+        "historyImportMonths": "Order history read when Shopify is connected (months, 0 = all)"
       },
       "backorders_title": "Backorders",
       "backorders_description": "What happens when an order needs more than the stock available."
@@ -2898,7 +2899,21 @@
     "not_in_plan": "Included from the {plan} plan: ask the platform owner to change the plan.",
     "open_subscriptions": "Open subscriptions",
     "address_mock_connect": "Use the simulated provider",
-    "address_mock_connected": "Address validation connected (simulated provider)."
+    "address_mock_connected": "Address validation connected (simulated provider).",
+    "history_import": {
+      "title": "Order history import",
+      "state": {
+        "running": "In progress",
+        "paused": "In progress",
+        "error": "Failed",
+        "done": "Complete"
+      },
+      "detail": "{n} orders imported · orders since {since} · oldest order in Hullwise {oldest}",
+      "all_orders": "the first one",
+      "incomplete_hint": "Until it completes, analytics, RFM, cohorts and customer history only cover part of the history. Resync continues it.",
+      "banner": "The store's order history is still being imported ({n} orders so far): past periods, cohorts and customer history are incomplete until it finishes.",
+      "banner_error": "The import of the store's order history stopped after {n} orders: past periods, cohorts and customer history are incomplete. An owner or admin can continue it with Resync in Integrations."
+    }
   },
   "integration_guide": {
     "verify_legend": "Steps marked “To verify” depend on vendor consoles that change often: check them against the vendor documentation before the first install.",
@@ -4023,7 +4038,8 @@
         "state_rules": "Order state rules",
         "costs": "Cost settings",
         "billing": "Billing in good standing",
-        "tiktok": "TikTok Ads connected"
+        "tiktok": "TikTok Ads connected",
+        "history_import": "Order history imported"
       },
       "members": "Members",
       "open_balance": "Open balance",

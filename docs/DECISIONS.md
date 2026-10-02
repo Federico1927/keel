@@ -1121,3 +1121,13 @@ The `holdout_percentage` and `group_name` columns stay in the data model, as §7
 **Not in this change: per-tenant readiness.** A released version can still be unable to work for one store (e.g. campaigns without a connected messaging provider). That check belongs to the tenant, not to the version, and is a follow-up next to this registry.
 
 **Alternatives.** A single "ready" flag per add-on (rejected: it cannot say that COD v1 works while v2 is being built). Semantic versions (rejected: the console only needs "which one can be sold now"). Switching off unreleased add-ons in the seed (rejected: the demo tenants are how the work in progress is evaluated).
+
+## 2026-10-02 · First Shopify import of the order history (#87)
+
+**Decision.** Connecting Shopify (custom-app token or OAuth) starts the first import of the store's order history: a `sync_runs` row of kind `initial` that reads every order created inside the tenant's window, then the catalog, then the returns of those orders. The window is a tenant setting, `historyImportMonths` (default 24, 0 = every order), in the settings JSON (no migration), editable by owners and admins in Settings → Operational; a super-admin sets it while impersonating, before connecting the store.
+- The orders job queues the returns import when it finishes, because a return of an order not imported yet would be skipped.
+- An `initial` run resumes after a failure from its cursor (paused **or** error), instead of reading hours of pages again; delta and reconcile runs keep the old behaviour.
+- A finished import is never started again by a reconnect. "Resync" continues an unfinished one, and starts it for a live store connected before this change; demo stores (simulated Shopify, history from the seed) never get one.
+- Progress is on the Shopify card of Integrations, on the console's setup checklist ("Order history imported"; a simulated store counts as done) and in a banner on the home and Analytics while it runs or after it failed.
+
+**Alternatives.** Making the first `delta` read everything (rejected: one run kind with two meanings, and no place for a window). A new table for import state (rejected: `sync_runs` already holds cursor, counts and status). Choosing the window in the console's create-tenant form (deferred: it is a tenant setting, so the existing settings form covers it without touching the console flow).

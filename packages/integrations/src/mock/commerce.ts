@@ -251,7 +251,7 @@ export class MockCommercePlatform implements CommercePlatform {
       for (let i = 0; i < count; i++) this.generateOrder(new Date(Date.now() - this.rng.int(0, 3600) * 1000));
     }
     const all = [...this.orders.values()].sort((a, b) => a.platformUpdatedAt.getTime() - b.platformUpdatedAt.getTime());
-    const filtered = q.updatedSince ? all.filter((o) => o.platformUpdatedAt >= q.updatedSince!) : all;
+    const filtered = all.filter((o) => (!q.updatedSince || o.platformUpdatedAt >= q.updatedSince) && (!q.createdSince || o.placedAt >= q.createdSince));
     const items = filtered.slice(page * limit, (page + 1) * limit);
     const nextCursor = (page + 1) * limit < filtered.length ? String(page + 1) : null;
     return { items, nextCursor };

@@ -46,7 +46,7 @@ export interface SyncPayoutsJob {
 /** Returns created or changed on the platform (nightly reconcile), resumable like the other syncs. */
 export interface SyncReturnsJob {
   tenantId: string;
-  kind?: "delta" | "reconcile";
+  kind?: "initial" | "delta" | "reconcile";
 }
 export interface SyncAdsJob {
   tenantId: string;

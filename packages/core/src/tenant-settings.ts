@@ -105,6 +105,8 @@ export const tenantSettingsSchema = z.object({
   campaignThrottlePerMinute: z.object({ email: z.number().int().min(1).max(100_000), sms: z.number().int().min(1).max(100_000), whatsapp: z.number().int().min(1).max(100_000) }).default({ email: 600, sms: 60, whatsapp: 60 }),
   /** While a campaign's measurement window is open, its treated and control customers stay out of other campaigns. */
   campaignMeasurementLock: z.boolean().default(true),
+  /** First Shopify import (issue #87): months of order history read when the store is connected; 0 reads every order. */
+  historyImportMonths: z.number().int().min(0).max(120).default(24),
 });
 export type TenantSettings = z.infer<typeof tenantSettingsSchema>;
 export const RETURN_EMAIL_EVENTS = ["approved", "received", "refunded", "voucher_issued", "exchange_shipped"] as const;
@@ -163,4 +165,19 @@ export function normalizePaymentMethod(gateways: readonly string[], override: Re
     if (/card|stripe|adyen|visa|mastercard|checkout|payments/.test(key)) return "card";
   }
   return "other";
+}
+
+/**
+ * Oldest order date the first Shopify import reads (issue #87): `months` calendar months before
+ * `now`, clamped to the last day of a shorter month (31 March − 1 month = 28/29 February); null
+ * when `months` is 0, meaning every order.
+ */
+export function historyImportSince(now: Date, months: number): Date | null {
+  if (months <= 0) return null;
+  const target = new Date(now.getTime());
+  target.setUTCDate(1);
+  target.setUTCMonth(target.getUTCMonth() - months);
+  const lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+  target.setUTCDate(Math.min(now.getUTCDate(), lastDay));
+  return target;
 }

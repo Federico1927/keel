@@ -5,10 +5,11 @@ import { z } from "zod";
 import { and, desc, eq, recordAudit, schema, sql } from "@hullwise/db";
 import { apiEndpoint, isAdPlatform, isAdPlatformInPlan } from "@hullwise/config";
 import { AnthropicLlmProvider, GoogleAddressProvider, GoogleAdsPlatform, MOCK_ACCOUNT_IDS, MetaAdsPlatform, ShopifyCommercePlatform, SHOPIFY_WEBHOOK_TOPICS, TiktokAdsPlatform, encryptJson, exchangeTiktokAuthCode, integrationMode, isValidShopDomain, type ConnectionTest } from "@hullwise/integrations";
-import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, resolveAddressProvider, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsBackfill, runAdsSync, runCatalogSync, runOrdersSync, runReturnsSync } from "@hullwise/services";
+import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, resolveAddressProvider, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsBackfill, runAdsSync, runCatalogSync, runOrdersSync, runReturnsSync, historyImportStatus } from "@hullwise/services";
 import { SPOKI_MODULE, retrySpokiWebhooks } from "@hullwise/addon-spoki";
 import { handleSpokiEvent, spokiHooksFor } from "@hullwise/jobs";
 import { enqueue } from "@/server/jobs";
+import { startHistoryImport } from "@/server/history-import";
 import { ForbiddenError, requireAction, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 
@@ -50,6 +51,9 @@ export async function connectShopifyCustomApp(slug: string, _prev: ActionResult 
     const regs = await platform.registerWebhooks(callback, SHOPIFY_WEBHOOK_TOPICS).catch(() => []);
     const ctx = await requireAction(slug, "manage_integrations", "integrations");
     await ctx.run((tx) => tx.update(schema.integrations).set({ config: { installedVia: "custom_app", scopes: test.scopes ?? [], missingScopes: test.missingScopes ?? [], webhooks: regs } }).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, "shopify"))));
+    // the store's order history (issue #87); the connection stays saved if starting it fails, "Resync" retries
+    await startHistoryImport(ctx).catch((e: unknown) => console.error("[web] history import not started:", e instanceof Error ? e.message : e));
+    revalidatePath(`/t/${slug}/integrations`);
     return ok();
   } catch (e) {
     if (e instanceof ForbiddenError) return fail("forbidden");
@@ -248,6 +252,16 @@ export async function resyncIntegration(slug: string, provider: string): Promise
     const ctx = await requireAction(slug, "manage_integrations", "integrations");
     requireProviderInPlan(ctx, p.data);
     await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.resync_requested", entityType: "integration", entityId: p.data }));
+    if (p.data === "shopify") {
+      // an unfinished first import (issue #87) is continued, and a live store connected before it existed gets it now
+      const [history, row] = await ctx.run(async (tx) => [await historyImportStatus({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }), (await tx.select({ mode: schema.integrations.mode }).from(schema.integrations).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, "shopify"))).limit(1))[0]] as const);
+      if (history.state === "paused" || history.state === "error" || (history.state === "not_started" && row?.mode === "live" && integrationMode() === "live")) {
+        const started = await startHistoryImport(ctx);
+        revalidatePath(`/t/${slug}/integrations`);
+        revalidatePath(`/t/${slug}/orders`);
+        return ok({ queued: started === "queued", summary: `history_import:${started}` });
+      }
+    }
     const since = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
     const until = new Date().toISOString().slice(0, 10);
     const queued = p.data === "shopify" ? (await enqueue("sync.orders", { tenantId: ctx.tenant.id, kind: "delta" }, { singletonKey: `${ctx.tenant.id}:delta` })) && (await enqueue("sync.catalog", { tenantId: ctx.tenant.id }, { singletonKey: `${ctx.tenant.id}:catalog` })) && (await enqueue("sync.returns", { tenantId: ctx.tenant.id, kind: "delta" }, { singletonKey: `${ctx.tenant.id}:returns` })) : await enqueue("sync.ads", { tenantId: ctx.tenant.id, provider: p.data, since, until }, { singletonKey: `${ctx.tenant.id}:${p.data}:${until}` });
