@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, getMemberships } from "@/server/session";
 
-export default async function Home() {
+import { withIntl } from "@/i18n/intl-scope";
+async function Home() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   const memberships = await getMemberships(user.id);
@@ -11,3 +12,5 @@ export default async function Home() {
   }
   redirect(`/t/${memberships[0]!.slug}`);
 }
+
+export default withIntl(Home, "app/page.tsx");

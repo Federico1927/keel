@@ -8,6 +8,7 @@ import { PeriodPicker } from "@/components/period-picker";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { requirePage } from "@/server/tenant";
 
+import { withIntl } from "@/i18n/intl-scope";
 const TABS = ["supervisor", "efficiency", "attribution"] as const;
 
 /**
@@ -15,7 +16,7 @@ const TABS = ["supervisor", "efficiency", "attribution"] as const;
  * operator over a period, and what each operator handled with links to the orders. Supervisors
  * (owner, admin, operations) see the whole team; an operator sees their own rows.
  */
-export default async function CodTeamPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ tab?: string; operator?: string; outcome?: string; preset?: string; from?: string; to?: string }> }) {
+async function CodTeamPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ tab?: string; operator?: string; outcome?: string; preset?: string; from?: string; to?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "cod_queue");
@@ -141,3 +142,5 @@ export default async function CodTeamPage({ params, searchParams }: { params: Pr
     </>
   );
 }
+
+export default withIntl(CodTeamPage, "app/t/[tenant]/cod/team/page.tsx");

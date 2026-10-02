@@ -12,12 +12,13 @@ import { ConnectionsTable, tenantMcpAvailability } from "@/components/mcp/connec
 import { McpGuides } from "@/components/mcp/guides";
 import { McpSwitches } from "./switches";
 
+import { withIntl } from "@/i18n/intl-scope";
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("mcp.settings"))("title") };
 }
 
 /** Settings → AI & MCP (#21): the server URL, the switches, how to connect, every connection of the workspace and recent activity. Owners and admins. */
-export default async function AiSettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
+async function AiSettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "settings");
   const t = await getTranslations("mcp.settings");
@@ -107,3 +108,5 @@ export default async function AiSettingsPage({ params }: { params: Promise<{ ten
     </>
   );
 }
+
+export default withIntl(AiSettingsPage, "app/t/[tenant]/settings/ai/page.tsx");

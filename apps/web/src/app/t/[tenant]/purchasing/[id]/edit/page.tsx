@@ -11,8 +11,9 @@ import { getPurchaseOrder } from "@/server/queries/purchasing";
 import { PoEditor } from "../../po-editor";
 import { lineFromOption, newLineKey } from "../../po-lines";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** Edit a draft or sent PO: header and lines; the supplier of a sent PO is fixed. */
-export default async function EditPurchaseOrderPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
+async function EditPurchaseOrderPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
   const ctx = await requirePage(tenant, "purchasing");
   if (!canDo(ctx.role, "receive_purchase_order")) notFound();
@@ -44,3 +45,5 @@ export default async function EditPurchaseOrderPage({ params }: { params: Promis
     </>
   );
 }
+
+export default withIntl(EditPurchaseOrderPage, "app/t/[tenant]/purchasing/[id]/edit/page.tsx");

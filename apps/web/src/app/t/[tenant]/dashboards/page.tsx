@@ -7,8 +7,9 @@ import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitl
 import { requirePage } from "@/server/tenant";
 import { CreateDashboardForm, CustomiseHomeButton, DuplicateButton, PersonalToggle, ResetHomeButton } from "@/components/dashboard/controls";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** The tenant's dashboards: the home (template or customised), role variants, extra dashboards and the user's personal copies. */
-export default async function DashboardsPage({ params }: { params: Promise<{ tenant: string }> }) {
+async function DashboardsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "dashboard");
   const t = await getTranslations("dashboards");
@@ -88,3 +89,5 @@ export default async function DashboardsPage({ params }: { params: Promise<{ ten
     </>
   );
 }
+
+export default withIntl(DashboardsPage, "app/t/[tenant]/dashboards/page.tsx");

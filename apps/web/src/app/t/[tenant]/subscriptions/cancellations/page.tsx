@@ -9,10 +9,11 @@ import { analyticsTenant } from "@/server/dashboards";
 import { ReasonEditor } from "../controls";
 import { SubscriptionTabs, svcOf } from "../shared";
 
+import { withIntl } from "@/i18n/intl-scope";
 const DIMENSIONS: CancellationDimension[] = ["product", "cohort", "channel"];
 
 /** Cancellation reasons (addon.subscriptions): normalized onto the tenant's list, by product, cohort or acquisition channel, with the monthly trend. */
-export default async function CancellationsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ by?: string }> }) {
+async function CancellationsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ by?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "subscriptions");
@@ -76,3 +77,5 @@ export default async function CancellationsPage({ params, searchParams }: { para
     </>
   );
 }
+
+export default withIntl(CancellationsPage, "app/t/[tenant]/subscriptions/cancellations/page.tsx");

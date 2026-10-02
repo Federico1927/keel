@@ -21,11 +21,12 @@ import { ShopifySetup } from "./shopify-setup";
 import { Ga4Card } from "./ga4-card";
 import { AccountingCard } from "@/components/accounting-card";
 
+import { withIntl } from "@/i18n/intl-scope";
 const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic", "address"] as const;
 /** Per-account integrations activated by the Hullwise team: interface and mock in Hullwise, each with its activation guide. */
 const SLOTS = ["messaging", "warehouse", "carrier", "payment_guarantee", "return_labels", "audiences"] as const;
 
-export default async function IntegrationsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ shopify_error?: string; setup?: string; setup_error?: string }> }) {
+async function IntegrationsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ shopify_error?: string; setup?: string; setup_error?: string }> }) {
   const { tenant } = await params;
   const { shopify_error: shopifyError, setup: setupProvider, setup_error: setupErrorParam } = await searchParams;
   const ctx = await requirePage(tenant, "integrations");
@@ -229,3 +230,5 @@ export default async function IntegrationsPage({ params, searchParams }: { param
     </>
   );
 }
+
+export default withIntl(IntegrationsPage, "app/t/[tenant]/integrations/page.tsx");

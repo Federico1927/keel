@@ -8,8 +8,9 @@ import { requirePage } from "@/server/tenant";
 import { FulfilmentTabs } from "./tabs";
 import { Board } from "./board";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** Late-to-ship queue and pick/pack board (pending → packed → shipped), issue #28. */
-export default async function FulfilmentPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+async function FulfilmentPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "shipments");
   const t = await getTranslations("fulfilment");
@@ -62,3 +63,5 @@ export default async function FulfilmentPage({ params, searchParams }: { params:
     </>
   );
 }
+
+export default withIntl(FulfilmentPage, "app/t/[tenant]/fulfilment/page.tsx");

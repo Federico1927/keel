@@ -10,8 +10,9 @@ import { dayHref, dayLabel } from "../../analytics/daily-sales/shared";
 import { DayActions } from "../controls";
 import { STATUS_VARIANT, reasonText } from "../shared";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** One day of the push log (#85): every journal version with its lines, as pushed (or as it would be pushed). */
-export default async function AccountingDayPage({ params }: { params: Promise<{ tenant: string; day: string }> }) {
+async function AccountingDayPage({ params }: { params: Promise<{ tenant: string; day: string }> }) {
   const { tenant, day } = await params;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) notFound();
   const ctx = await requirePage(tenant, "accounting");
@@ -67,3 +68,5 @@ export default async function AccountingDayPage({ params }: { params: Promise<{ 
     </>
   );
 }
+
+export default withIntl(AccountingDayPage, "app/t/[tenant]/accounting/[day]/page.tsx");

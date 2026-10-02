@@ -3,16 +3,17 @@ import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatDateTime, formatNumber } from "@hullwise/core";
 import { mcpUsageByTenant } from "@hullwise/services";
-import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, DataList } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { KillSwitch } from "./kill-switch";
 
+import { withIntl } from "@/i18n/intl-scope";
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("admin.mcp"))("title") };
 }
 
 /** Console (#21): MCP usage per tenant over 30 days and the per-tenant kill switch. Super-admins only; every switch is audited. */
-export default async function AdminMcpPage() {
+async function AdminMcpPage() {
   const { db } = await requireSuperAdmin();
   const t = await getTranslations("admin.mcp");
   const ta = await getTranslations("admin");
@@ -42,44 +43,32 @@ export default async function AdminMcpPage() {
           <CardTitle>{t("tenants_title")}</CardTitle>
           <CardDescription>{t("tenants_description")}</CardDescription>
         </CardHeader>
-        <CardContent>
-          <Table data-testid="admin-mcp-tenants">
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("col_tenant")}</TableHead>
-                <TableHead>{t("col_status")}</TableHead>
-                <TableHead className="text-right">{t("col_calls")}</TableHead>
-                <TableHead className="hidden text-right md:table-cell">{t("col_errors")}</TableHead>
-                <TableHead className="hidden text-right lg:table-cell">{t("col_users")}</TableHead>
-                <TableHead className="hidden text-right lg:table-cell">{t("col_connections")}</TableHead>
-                <TableHead className="hidden xl:table-cell">{t("col_last_call")}</TableHead>
-                <TableHead className="text-right">{t("col_kill")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {usage.tenants.map((x) => (
-                <TableRow key={x.tenantId} data-testid="admin-mcp-row">
-                  <TableCell>
-                    <Link href={`/admin/tenants/${x.tenantId}`} className="font-medium hover:underline">{x.name}</Link>
-                    <div className="text-xs text-muted-foreground">{tp(x.planKey as "starter")}</div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={x.availability === "ok" ? "success" : x.availability === "killed" ? "destructive" : "muted"}>{t(`availability.${x.availability}`)}</Badge>
-                    {x.killedAt && <div className="mt-1 text-xs text-muted-foreground">{formatDateTime(x.killedAt, locale, "UTC")}{x.killNote ? ` · ${x.killNote}` : ""}</div>}
-                    {x.availability !== "ok" && x.availability !== "killed" && <div className="mt-1 hidden text-xs text-muted-foreground lg:block">{tu(x.availability)}</div>}
-                  </TableCell>
-                  <TableCell className="text-right">{n(x.calls)}{x.pendingProposals > 0 && <div className="text-xs text-muted-foreground">{t("pending", { count: x.pendingProposals })}</div>}</TableCell>
-                  <TableCell className="hidden text-right md:table-cell">{n(x.errors)}<div className="text-xs text-muted-foreground">{t("denied_rl", { denied: x.denied, limited: x.rateLimited })}</div></TableCell>
-                  <TableCell className="hidden text-right lg:table-cell">{n(x.users)}</TableCell>
-                  <TableCell className="hidden text-right lg:table-cell">{n(x.activeConnections)}</TableCell>
-                  <TableCell className="hidden whitespace-nowrap text-sm xl:table-cell">{x.lastCallAt ? formatDateTime(x.lastCallAt, locale, "UTC") : "—"}</TableCell>
-                  <TableCell className="text-right">{x.availability !== "plan" && <KillSwitch tenantId={x.tenantId} killed={Boolean(x.killedAt)} />}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <CardContent className="p-0">
+          <DataList
+            data-testid="admin-mcp-tenants"
+            rows={usage.tenants}
+            rowKey={(x) => x.tenantId}
+            rowProps={() => ({ "data-testid": "admin-mcp-row" })}
+            columns={[
+              { key: "tenant", header: t("col_tenant"), mobile: "title", cell: (x) => <><Link href={`/admin/tenants/${x.tenantId}`} className="font-medium hover:underline">{x.name}</Link><div className="text-xs font-normal text-muted-foreground">{tp(x.planKey as "starter")}</div></> },
+              { key: "status", header: t("col_status"), mobile: "badge", cell: (x) => <>
+                <Badge variant={x.availability === "ok" ? "success" : x.availability === "killed" ? "destructive" : "muted"}>{t(`availability.${x.availability}`)}</Badge>
+                {x.killedAt && <div className="mt-1 text-xs text-muted-foreground max-md:hidden">{formatDateTime(x.killedAt, locale, "UTC")}{x.killNote ? ` · ${x.killNote}` : ""}</div>}
+                {x.availability !== "ok" && x.availability !== "killed" && <div className="mt-1 hidden text-xs text-muted-foreground lg:block">{tu(x.availability)}</div>}
+              </> },
+              { key: "killed", header: null, mobile: "subtitle", className: "text-xs md:hidden", headClassName: "md:hidden", cell: (x) => (x.killedAt ? `${formatDateTime(x.killedAt, locale, "UTC")}${x.killNote ? ` · ${x.killNote}` : ""}` : null) },
+              { key: "calls", header: t("col_calls"), align: "right", cell: (x) => <>{n(x.calls)}{x.pendingProposals > 0 && <div className="text-xs text-muted-foreground max-md:inline max-md:before:content-['_·_']">{t("pending", { count: x.pendingProposals })}</div>}</> },
+              { key: "errors", header: t("col_errors"), align: "right", priority: 2, cell: (x) => <>{n(x.errors)}<div className="text-xs text-muted-foreground max-md:inline max-md:before:content-['_·_']">{t("denied_rl", { denied: x.denied, limited: x.rateLimited })}</div></> },
+              { key: "users", header: t("col_users"), align: "right", priority: 2, cell: (x) => n(x.users) },
+              { key: "connections", header: t("col_connections"), align: "right", priority: 3, cell: (x) => n(x.activeConnections) },
+              { key: "last_call", header: t("col_last_call"), priority: 3, className: "whitespace-nowrap text-sm", cell: (x) => (x.lastCallAt ? formatDateTime(x.lastCallAt, locale, "UTC") : "—") },
+              { key: "kill", header: t("col_kill"), mobile: "action", align: "right", cell: (x) => (x.availability !== "plan" ? <KillSwitch tenantId={x.tenantId} killed={Boolean(x.killedAt)} /> : null) },
+            ]}
+          />
         </CardContent>
       </Card>
     </>
   );
 }
+
+export default withIntl(AdminMcpPage, "app/admin/mcp/page.tsx");

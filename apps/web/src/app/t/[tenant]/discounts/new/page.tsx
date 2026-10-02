@@ -4,7 +4,8 @@ import { PageHeader } from "@hullwise/ui";
 import { requireAction } from "@/server/tenant";
 import { DiscountForms } from "./forms";
 
-export default async function NewDiscountPage({ params }: { params: Promise<{ tenant: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function NewDiscountPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requireAction(tenant, "create_discount", "discounts");
   const t = await getTranslations("discount_new");
@@ -17,3 +18,5 @@ export default async function NewDiscountPage({ params }: { params: Promise<{ te
     </>
   );
 }
+
+export default withIntl(NewDiscountPage, "app/t/[tenant]/discounts/new/page.tsx");

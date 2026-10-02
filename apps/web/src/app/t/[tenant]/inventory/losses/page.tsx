@@ -9,7 +9,8 @@ import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";
 import { stockLocations, svcOf } from "@/server/queries/inventory-control";
 
-export default async function LossesPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string; location?: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function LossesPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string; location?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "inventory");
@@ -67,3 +68,5 @@ export default async function LossesPage({ params, searchParams }: { params: Pro
     </>
   );
 }
+
+export default withIntl(LossesPage, "app/t/[tenant]/inventory/losses/page.tsx");

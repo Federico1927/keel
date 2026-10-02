@@ -7,8 +7,9 @@ import { Alert, AlertDescription, Badge, Card, CardContent, CardHeader, CardTitl
 import { requirePage } from "@/server/tenant";
 import { PAYOUT_STATUS_VARIANT as STATUS_VARIANT } from "../status";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** One deposit: its orders, fees, refunds and net, every row linked to the order behind it. */
-export default async function PayoutDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
+async function PayoutDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
   const ctx = await requirePage(tenant, "analytics");
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
@@ -82,3 +83,5 @@ export default async function PayoutDetailPage({ params }: { params: Promise<{ t
     </>
   );
 }
+
+export default withIntl(PayoutDetailPage, "app/t/[tenant]/analytics/payouts/[id]/page.tsx");

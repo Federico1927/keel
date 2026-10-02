@@ -9,13 +9,14 @@ import { requirePage } from "@/server/tenant";
 import { analyticsTenant, runAnalytics } from "@/server/analytics";
 import { Num, dayHref, dayLabel, rateText } from "../shared";
 
+import { withIntl } from "@/i18n/intl-scope";
 const KINDS = ["sale", "refund", "fee"] as const;
 
 /**
  * One day of the daily sales summary (#85): its rows per tax rate, its fees per method, and the
  * orders behind its numbers, narrowed by kind, tax rate or payment method from the summary's links.
  */
-export default async function DailySalesDayPage({ params, searchParams }: { params: Promise<{ tenant: string; day: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
+async function DailySalesDayPage({ params, searchParams }: { params: Promise<{ tenant: string; day: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant, day } = await params;
   const sp = await searchParams;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || Number.isNaN(Date.parse(`${day}T00:00:00Z`))) notFound();
@@ -128,3 +129,5 @@ export default async function DailySalesDayPage({ params, searchParams }: { para
     </>
   );
 }
+
+export default withIntl(DailySalesDayPage, "app/t/[tenant]/analytics/daily-sales/[day]/page.tsx");

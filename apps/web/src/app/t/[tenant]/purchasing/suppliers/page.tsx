@@ -10,7 +10,8 @@ import { bulkSupplierFacets } from "@hullwise/services";
 import { SupplierForm } from "./form";
 import { BulkSupplierCard } from "./bulk";
 
-export default async function SuppliersPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ edit?: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function SuppliersPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ edit?: string }> }) {
   const { tenant } = await params;
   const { edit } = await searchParams;
   const ctx = await requirePage(tenant, "purchasing");
@@ -51,3 +52,5 @@ export default async function SuppliersPage({ params, searchParams }: { params: 
     </>
   );
 }
+
+export default withIntl(SuppliersPage, "app/t/[tenant]/purchasing/suppliers/page.tsx");

@@ -10,6 +10,7 @@ import { requirePage } from "@/server/tenant";
 import { apiBaseUrl } from "@/server/api-docs";
 import { verificationSnippet } from "@/components/developers/snippets";
 
+import { withIntl } from "@/i18n/intl-scope";
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("api_docs"))("title") };
 }
@@ -26,7 +27,7 @@ function Code({ children, testId }: { children: string; testId?: string }) {
  * and webhook signing. A test fails when a route, parameter, scope, error code or event type has no
  * text in the messages, so the docs cannot fall behind the API.
  */
-export default async function ApiDocsPage({ params }: { params: Promise<{ tenant: string }> }) {
+async function ApiDocsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "settings");
   if (!canDo(ctx.role, "manage_integrations") || !isModuleInPlan("core.api", ctx.tenant.planKey)) notFound();
@@ -139,3 +140,5 @@ export default async function ApiDocsPage({ params }: { params: Promise<{ tenant
     </>
   );
 }
+
+export default withIntl(ApiDocsPage, "app/t/[tenant]/settings/developers/docs/page.tsx");

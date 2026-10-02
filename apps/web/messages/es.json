@@ -4224,7 +4224,6 @@
       "reactivate": "Reactivar",
       "checklist": "Lista de configuración",
       "checklist_progress": "{done} de {total} completados",
-      "runbook": "Guía de incorporación: cada paso y cómo comprobarlo",
       "checklist_items": {
         "company": "Datos de la empresa",
         "owner": "Cuenta del propietario",
@@ -4276,7 +4275,8 @@
       "active_version": "activa: v{version}",
       "active_unreleased": "activado antes de publicarse: se puede desactivar, no volver a activar",
       "not_released": "No se puede activar hasta que haya una versión publicada.",
-      "in_development": "en desarrollo"
+      "in_development": "en desarrollo",
+      "runbook": "Guía de incorporación: cada paso y cómo comprobarlo"
     },
     "billing": {
       "title": "Facturación",
@@ -4498,7 +4498,8 @@
       "search": "Buscar",
       "all": "Todos",
       "apply": "Filtrar",
-      "reset": "Restablecer"
+      "reset": "Restablecer",
+      "sort": "Ordenar por"
     },
     "health": {
       "integrations": "Errores de integración",
@@ -6680,7 +6681,8 @@
     "sign_in_alerts": "Avisarme por correo de nuevos accesos",
     "sign_in_alerts_hint": "Un correo de seguridad cuando tu cuenta inicia sesión desde un dispositivo o navegador que no había usado antes.",
     "connections": "Conexiones",
-    "connections_description": "Clientes de IA y tokens de acceso personales que actúan como tú en este espacio de trabajo a través del servidor MCP."
+    "connections_description": "Clientes de IA y tokens de acceso personales que actúan como tú en este espacio de trabajo a través del servidor MCP.",
+    "menu_label": "Menú de la cuenta: {name}"
   },
   "welcome": {
     "title": "Completa tu perfil",

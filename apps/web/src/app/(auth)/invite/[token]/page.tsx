@@ -8,6 +8,7 @@ import { AuthShell } from "@/components/account/auth-shell";
 import { getCurrentUser } from "@/server/session";
 import { AcceptAsUserButton, AcceptInvitationForm, SignOutAndReturnButton } from "./forms";
 
+import { withIntl } from "@/i18n/intl-scope";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -19,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * the privacy policy; an existing account signs in first, then joins. Expired, revoked, used or
  * unknown tokens get a clear page. Opening the page changes nothing: acceptance is a POST.
  */
-export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
+async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
   const { token: rawToken } = await params;
   const token = rawToken.slice(0, 200);
   const t = await getTranslations("account");
@@ -67,3 +68,5 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
     </AuthShell>
   );
 }
+
+export default withIntl(InvitePage, "app/(auth)/invite/[token]/page.tsx");

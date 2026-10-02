@@ -9,7 +9,8 @@ import { DiscountFiltersBar } from "./filters";
 import { DiscountStateBadge } from "./state-badge";
 import { PlatformWriteStatus } from "@/components/platform-write-status";
 
-export default async function DiscountsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function DiscountsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "discounts");
@@ -98,3 +99,5 @@ export default async function DiscountsPage({ params, searchParams }: { params: 
     </>
   );
 }
+
+export default withIntl(DiscountsPage, "app/t/[tenant]/discounts/page.tsx");

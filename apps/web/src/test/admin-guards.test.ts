@@ -39,7 +39,9 @@ describe("super-admin console guards", () => {
 
   it.each(routes.map((r) => [r.route, r] as const))("%s calls requireSuperAdmin before any data access", (_route, r) => {
     const src = readFileSync(r.file, "utf8");
-    const handler = r.kind === "page" ? src.slice(src.indexOf("export default async function")) : src.slice(src.indexOf("export async function GET"));
+    // a page is the component that `export default withIntl(Page, …)` wraps (#49 message scopes)
+    const page = src.match(/export default withIntl\((\w+),/)?.[1];
+    const handler = r.kind === "page" ? src.slice(page ? src.indexOf(`async function ${page}(`) : src.indexOf("export default async function")) : src.slice(src.indexOf("export async function GET"));
     expect(handler.length, `${r.file}: no handler found`).toBeGreaterThan(0);
     const guard = handler.indexOf("requireSuperAdmin()");
     expect(guard, `${r.file} must call requireSuperAdmin()`).toBeGreaterThan(0);

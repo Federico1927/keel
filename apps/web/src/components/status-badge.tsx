@@ -1,4 +1,5 @@
-"use client";
+// Shared (no "use client"): a server page renders it on the server, with no client component or client messages per badge.
+// i18n-client-namespaces: order_status, payment_status, po_status, return_status, shipment_status (the badge's namespace prop)
 import { useTranslations } from "next-intl";
 import { Badge } from "@hullwise/ui";
 

@@ -7,8 +7,9 @@ import { catalogQualityReport } from "@hullwise/services";
 import { Badge, Card, CardContent, DataList, EmptyState, PageHeader, Pagination, Stat, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** Catalog data quality: variants with missing cost, SKU, barcode or image, and duplicate SKUs. */
-export default async function CatalogQualityPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ issue?: string; page?: string }> }) {
+async function CatalogQualityPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ issue?: string; page?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "products");
@@ -56,3 +57,5 @@ export default async function CatalogQualityPage({ params, searchParams }: { par
     </>
   );
 }
+
+export default withIntl(CatalogQualityPage, "app/t/[tenant]/products/quality/page.tsx");

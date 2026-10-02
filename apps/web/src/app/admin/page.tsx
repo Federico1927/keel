@@ -4,12 +4,13 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { desc, schema } from "@hullwise/db";
 import { formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
 import { churnedPastRetention, platformMetrics, tenantsOverview } from "@hullwise/services";
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, DataList, PageHeader, Stat } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { BillingRunButton } from "./billing/controls";
 import { HealthBadge, LifecycleBadge } from "./_components/badges";
 
-export default async function AdminHome() {
+import { withIntl } from "@/i18n/intl-scope";
+async function AdminHome() {
   const { db } = await requireSuperAdmin();
   const t = await getTranslations("admin");
   const locale = await getLocale();
@@ -43,18 +44,16 @@ export default async function AdminHome() {
           </CardHeader>
           <CardContent className="p-0">
             {attention.length === 0 ? <p className="px-6 pb-6 text-sm text-muted-foreground">{t("dashboard.attention_none")}</p> : (
-              <Table>
-                <TableHeader><TableRow><TableHead>{t("tenants.columns.tenant")}</TableHead><TableHead>{t("tenants.columns.health")}</TableHead><TableHead>{t("dashboard.why")}</TableHead></TableRow></TableHeader>
-                <TableBody>
-                  {attention.slice(0, 8).map((x) => (
-                    <TableRow key={x.id}>
-                      <TableCell><Link href={`/admin/tenants/${x.id}`} className="font-medium hover:underline">{x.name}</Link> <LifecycleBadge status={x.status} label={t(`tenants.status.${x.status}`)} /></TableCell>
-                      <TableCell><HealthBadge score={x.health.score} attention={x.health.needsAttention} /></TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{x.health.factors.map((f) => t(`health.${f.key}`)).join(", ")}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <DataList
+                rows={attention.slice(0, 8)}
+                rowKey={(x) => x.id}
+                rowProps={() => ({ "data-testid": "attention-row" })}
+                columns={[
+                  { key: "tenant", header: t("tenants.columns.tenant"), mobile: "title", cell: (x) => <><Link href={`/admin/tenants/${x.id}`} className="font-medium hover:underline">{x.name}</Link> <LifecycleBadge status={x.status} label={t(`tenants.status.${x.status}`)} /></> },
+                  { key: "health", header: t("tenants.columns.health"), mobile: "badge", cell: (x) => <HealthBadge score={x.health.score} attention={x.health.needsAttention} /> },
+                  { key: "why", header: t("dashboard.why"), mobile: "subtitle", className: "text-xs text-muted-foreground", cell: (x) => x.health.factors.map((f) => t(`health.${f.key}`)).join(", ") },
+                ]}
+              />
             )}
           </CardContent>
         </Card>
@@ -93,3 +92,5 @@ export default async function AdminHome() {
     </>
   );
 }
+
+export default withIntl(AdminHome, "app/admin/page.tsx");

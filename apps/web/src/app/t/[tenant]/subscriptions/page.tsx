@@ -13,10 +13,11 @@ import { subscriptionSetups } from "@/server/integration-setup";
 import { MrrMovementChart } from "./mrr-chart";
 import { SubscriptionTabs, isoDay, svcOf } from "./shared";
 
+import { withIntl } from "@/i18n/intl-scope";
 const PERIODS = [30, 90, 365] as const;
 
 /** addon.subscriptions (#67) overview: KPIs, MRR movement, survival cohorts, forecast, profit and LTV; every number links to its subscribers or orders. */
-export default async function SubscriptionsOverviewPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ days?: string }> }) {
+async function SubscriptionsOverviewPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ days?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "subscriptions");
@@ -186,3 +187,5 @@ export default async function SubscriptionsOverviewPage({ params, searchParams }
     </>
   );
 }
+
+export default withIntl(SubscriptionsOverviewPage, "app/t/[tenant]/subscriptions/page.tsx");

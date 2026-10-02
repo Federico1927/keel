@@ -7,10 +7,11 @@ import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataL
 import { requirePage } from "@/server/tenant";
 import { SubscriptionTabs, svcOf } from "../shared";
 
+import { withIntl } from "@/i18n/intl-scope";
 const WEEKS = [1, 2, 4, 8] as const;
 
 /** Stock for renewals (addon.subscriptions): units the scheduled renewals need per variant vs available + incoming POs; the reorder suggestion also flows into planning. */
-export default async function RenewalStockPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ weeks?: string }> }) {
+async function RenewalStockPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ weeks?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "subscriptions");
@@ -58,3 +59,5 @@ export default async function RenewalStockPage({ params, searchParams }: { param
     </>
   );
 }
+
+export default withIntl(RenewalStockPage, "app/t/[tenant]/subscriptions/stock/page.tsx");

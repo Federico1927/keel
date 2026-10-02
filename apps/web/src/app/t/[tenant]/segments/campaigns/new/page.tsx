@@ -7,7 +7,8 @@ import { Card, CardContent, EmptyState, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { CampaignForm } from "../campaign-form";
 
-export default async function NewRetentionCampaignPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ segment?: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function NewRetentionCampaignPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ segment?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "customer_campaigns");
@@ -32,3 +33,5 @@ export default async function NewRetentionCampaignPage({ params, searchParams }:
     </>
   );
 }
+
+export default withIntl(NewRetentionCampaignPage, "app/t/[tenant]/segments/campaigns/new/page.tsx");

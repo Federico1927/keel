@@ -8,7 +8,8 @@ import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";
 
-export default async function ReturnsAnalyticsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function ReturnsAnalyticsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "returns");
@@ -144,3 +145,5 @@ export default async function ReturnsAnalyticsPage({ params, searchParams }: { p
     </>
   );
 }
+
+export default withIntl(ReturnsAnalyticsPage, "app/t/[tenant]/returns/analytics/page.tsx");

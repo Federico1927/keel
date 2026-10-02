@@ -14,7 +14,8 @@ import { TierBadge } from "../../customers/tier-badge";
 import { SegmentSyncCard } from "./destinations";
 import { SegmentInsightsCard } from "./insights";
 
-export default async function SegmentDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function SegmentDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
   const ctx = await requirePage(tenant, "segments");
   const t = await getTranslations("segments");
@@ -84,3 +85,5 @@ export default async function SegmentDetailPage({ params }: { params: Promise<{ 
     </>
   );
 }
+
+export default withIntl(SegmentDetailPage, "app/t/[tenant]/segments/[id]/page.tsx");

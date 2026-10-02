@@ -9,7 +9,8 @@ import { CustomerTabs } from "../customer-tabs";
 import { encodeRulesParam } from "@/server/queries/crm";
 import { TierBadge } from "../tier-badge";
 
-export default async function RfmPage({ params }: { params: Promise<{ tenant: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function RfmPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "customers");
   const t = await getTranslations("rfm");
@@ -91,3 +92,5 @@ export default async function RfmPage({ params }: { params: Promise<{ tenant: st
     </>
   );
 }
+
+export default withIntl(RfmPage, "app/t/[tenant]/customers/rfm/page.tsx");

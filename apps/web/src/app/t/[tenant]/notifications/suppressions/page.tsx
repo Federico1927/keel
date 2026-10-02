@@ -8,7 +8,8 @@ import { requirePage } from "@/server/tenant";
 import { NotificationTabs } from "../tabs";
 import { AddSuppressionForm, RemoveSuppressionButton } from "./forms";
 
-export default async function SuppressionsPage({ params }: { params: Promise<{ tenant: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function SuppressionsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "notifications");
   if (!canDo(ctx.role, "manage_settings")) notFound();
@@ -41,3 +42,5 @@ export default async function SuppressionsPage({ params }: { params: Promise<{ t
     </>
   );
 }
+
+export default withIntl(SuppressionsPage, "app/t/[tenant]/notifications/suppressions/page.tsx");

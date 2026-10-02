@@ -3,13 +3,14 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { PLATFORM_CURRENCY, UPCOMING_RENEWAL_DAYS } from "@hullwise/config";
 import { formatDate, formatDateTime, formatMoney } from "@hullwise/core";
 import { consoleBillingOverview } from "@hullwise/services";
-import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, DataList, PageHeader, Stat } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { BillingModeBadge } from "../../_components/billing-mode";
 import { CatalogSyncButton, TenantResyncButton } from "./controls";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** Console → Billing → Subscriptions (#53): what Stripe collects, from the webhook mirror. */
-export default async function AdminSubscriptionsPage() {
+async function AdminSubscriptionsPage() {
   const { db } = await requireSuperAdmin();
   const t = await getTranslations("admin_billing");
   const tl = await getTranslations("admin");
@@ -91,62 +92,42 @@ export default async function AdminSubscriptionsPage() {
         <CardHeader><CardTitle className="text-base">{t("subscriptions_table")}</CardTitle></CardHeader>
         <CardContent className="p-0">
           {o.subscriptions.length === 0 ? <EmptyState title={t("empty")} /> : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("table.tenant")}</TableHead>
-                  <TableHead>{t("table.status")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("table.collection")}</TableHead>
-                  <TableHead className="text-right">{t("table.monthly")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("table.period_end")}</TableHead>
-                  <TableHead className="hidden lg:table-cell">{t("table.synced")}</TableHead>
-                  <TableHead />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {o.subscriptions.map((r) => (
-                  <TableRow key={r.tenantId} data-testid="subscription-row">
-                    <TableCell><Link href={`/admin/tenants/${r.tenantId}`} className="font-medium hover:underline">{r.tenantName}</Link><div className="text-xs text-muted-foreground">{tl(`plans.${r.planKey}`)}{r.vat !== "unknown" ? ` · ${t(`vat.${r.vat}`)}` : ""}</div></TableCell>
-                    <TableCell><Badge variant={r.externalStatus === "active" ? "success" : r.externalStatus === "trialing" ? "info" : r.externalStatus === "past_due" || r.externalStatus === "unpaid" ? "warning" : "muted"}>{t(`external.${r.externalStatus ?? "incomplete"}`)}</Badge></TableCell>
-                    <TableCell className="hidden md:table-cell">{t(`collection.${r.collectionMethod === "send_invoice" ? "send_invoice" : "charge_automatically"}`)}</TableCell>
-                    <TableCell className="text-right tabular">{money(r.monthlyMinor, r.currency)}</TableCell>
-                    <TableCell className="hidden md:table-cell">{formatDate(r.currentPeriodEnd, locale, "UTC")}</TableCell>
-                    <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">{r.lastSyncedAt ? formatDateTime(r.lastSyncedAt, locale, "UTC") : "—"}</TableCell>
-                    <TableCell>{r.provider === "stripe" && <TenantResyncButton tenantId={r.tenantId} />}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={o.subscriptions}
+              rowKey={(r) => r.tenantId}
+              rowProps={() => ({ "data-testid": "subscription-row" })}
+              columns={[
+                { key: "tenant", header: t("table.tenant"), mobile: "title", cell: (r) => <><Link href={`/admin/tenants/${r.tenantId}`} className="font-medium hover:underline">{r.tenantName}</Link><div className="text-xs font-normal text-muted-foreground">{tl(`plans.${r.planKey}`)}{r.vat !== "unknown" ? ` · ${t(`vat.${r.vat}`)}` : ""}</div></> },
+                { key: "status", header: t("table.status"), mobile: "badge", cell: (r) => <Badge variant={r.externalStatus === "active" ? "success" : r.externalStatus === "trialing" ? "info" : r.externalStatus === "past_due" || r.externalStatus === "unpaid" ? "warning" : "muted"}>{t(`external.${r.externalStatus ?? "incomplete"}`)}</Badge> },
+                { key: "collection", header: t("table.collection"), priority: 2, cell: (r) => t(`collection.${r.collectionMethod === "send_invoice" ? "send_invoice" : "charge_automatically"}`) },
+                { key: "monthly", header: t("table.monthly"), align: "right", className: "tabular", cell: (r) => money(r.monthlyMinor, r.currency) },
+                { key: "period_end", header: t("table.period_end"), cell: (r) => formatDate(r.currentPeriodEnd, locale, "UTC") },
+                { key: "synced", header: t("table.synced"), priority: 3, className: "text-xs text-muted-foreground", cell: (r) => (r.lastSyncedAt ? formatDateTime(r.lastSyncedAt, locale, "UTC") : "—") },
+                { key: "resync", header: null, mobile: "action", cell: (r) => (r.provider === "stripe" ? <TenantResyncButton tenantId={r.tenantId} /> : null) },
+              ]}
+            />
           )}
         </CardContent>
       </Card>
       <Card className="mt-6">
         <CardHeader><CardTitle className="text-base">{t("catalog_title")}</CardTitle><CardDescription>{t("catalog_description")}</CardDescription></CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("catalog_columns.item")}</TableHead>
-                <TableHead className="hidden md:table-cell">{t("catalog_columns.lookup_key")}</TableHead>
-                <TableHead className="text-right">{t("catalog_columns.amount")}</TableHead>
-                <TableHead className="hidden lg:table-cell">{t("catalog_columns.price")}</TableHead>
-                <TableHead>{t("catalog_columns.synced")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {o.catalog.map((c) => (
-                <TableRow key={c.lookupKey} data-testid="catalog-row">
-                  <TableCell>{c.name}<div className="text-xs text-muted-foreground">{t(`kind.${c.kind}`)}</div></TableCell>
-                  <TableCell className="hidden font-mono text-xs md:table-cell">{c.lookupKey}</TableCell>
-                  <TableCell className="text-right tabular">{money(c.amountMinor, c.currency)}{c.interval ? "/m" : ""}</TableCell>
-                  <TableCell className="hidden break-all font-mono text-xs lg:table-cell">{c.priceId ?? "—"}</TableCell>
-                  <TableCell><Badge variant={c.inStep ? "success" : "warning"} className="whitespace-nowrap">{c.inStep ? t("in_step") : t("out_of_step")}</Badge></TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataList
+            rows={o.catalog}
+            rowKey={(c) => c.lookupKey}
+            rowProps={() => ({ "data-testid": "catalog-row" })}
+            columns={[
+              { key: "item", header: t("catalog_columns.item"), mobile: "title", cell: (c) => <>{c.name}<div className="text-xs font-normal text-muted-foreground">{t(`kind.${c.kind}`)}</div></> },
+              { key: "synced", header: t("catalog_columns.synced"), mobile: "badge", cell: (c) => <Badge variant={c.inStep ? "success" : "warning"} className="whitespace-nowrap">{c.inStep ? t("in_step") : t("out_of_step")}</Badge> },
+              { key: "lookup", header: t("catalog_columns.lookup_key"), priority: 2, className: "break-all font-mono text-xs", cell: (c) => c.lookupKey },
+              { key: "amount", header: t("catalog_columns.amount"), align: "right", className: "tabular", cell: (c) => `${money(c.amountMinor, c.currency)}${c.interval ? "/m" : ""}` },
+              { key: "price", header: t("catalog_columns.price"), priority: 3, className: "break-all font-mono text-xs", cell: (c) => c.priceId ?? "—" },
+            ]}
+          />
         </CardContent>
       </Card>
     </>
   );
 }
+
+export default withIntl(AdminSubscriptionsPage, "app/admin/billing/subscriptions/page.tsx");

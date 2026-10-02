@@ -4224,7 +4224,6 @@
       "reactivate": "Reactivate",
       "checklist": "Setup checklist",
       "checklist_progress": "{done} of {total} done",
-      "runbook": "Onboarding runbook: every step and how to check it",
       "checklist_items": {
         "company": "Company data",
         "owner": "Owner account",
@@ -4276,7 +4275,8 @@
       "active_version": "active: v{version}",
       "active_unreleased": "switched on before release: it can be switched off, not on again",
       "not_released": "Can't be switched on until a version is released.",
-      "in_development": "in development"
+      "in_development": "in development",
+      "runbook": "Onboarding runbook: every step and how to check it"
     },
     "billing": {
       "title": "Billing",
@@ -4498,7 +4498,8 @@
       "search": "Search",
       "all": "All",
       "apply": "Filter",
-      "reset": "Reset"
+      "reset": "Reset",
+      "sort": "Sort by"
     },
     "health": {
       "integrations": "Integration errors",
@@ -6680,7 +6681,8 @@
     "sign_in_alerts": "Email me about new sign-ins",
     "sign_in_alerts_hint": "A security email when your account signs in from a device or browser it has not used before.",
     "connections": "Connections",
-    "connections_description": "AI clients and personal access tokens that act as you in this workspace through the MCP server."
+    "connections_description": "AI clients and personal access tokens that act as you in this workspace through the MCP server.",
+    "menu_label": "Account menu: {name}"
   },
   "welcome": {
     "title": "Complete your profile",

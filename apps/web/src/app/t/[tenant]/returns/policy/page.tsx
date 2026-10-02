@@ -9,7 +9,8 @@ import { PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { PolicyForm } from "./form";
 
-export default async function ReturnPolicyPage({ params }: { params: Promise<{ tenant: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function ReturnPolicyPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "returns");
   if (!canWritePage(ctx.role, "returns")) notFound();
@@ -30,3 +31,5 @@ export default async function ReturnPolicyPage({ params }: { params: Promise<{ t
     </>
   );
 }
+
+export default withIntl(ReturnPolicyPage, "app/t/[tenant]/returns/policy/page.tsx");

@@ -8,7 +8,8 @@ import { reorderCandidates } from "@/server/queries/purchasing";
 import { PoEditor } from "../po-editor";
 import { lineFromOption } from "../po-lines";
 
-export default async function NewPurchaseOrderPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ product?: string; supplier?: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function NewPurchaseOrderPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ product?: string; supplier?: string }> }) {
   const { tenant } = await params;
   const { product, supplier } = await searchParams;
   const ctx = await requirePage(tenant, "purchasing");
@@ -41,3 +42,5 @@ export default async function NewPurchaseOrderPage({ params, searchParams }: { p
     </>
   );
 }
+
+export default withIntl(NewPurchaseOrderPage, "app/t/[tenant]/purchasing/new/page.tsx");

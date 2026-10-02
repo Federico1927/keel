@@ -7,7 +7,8 @@ import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";
 
-export default async function CampaignLedgerPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string; platform?: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function CampaignLedgerPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string; platform?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "campaigns");
@@ -63,3 +64,5 @@ export default async function CampaignLedgerPage({ params, searchParams }: { par
     </>
   );
 }
+
+export default withIntl(CampaignLedgerPage, "app/t/[tenant]/campaigns/ledger/page.tsx");

@@ -3,7 +3,8 @@ import { PageHeader } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { NewTenantForm } from "./form";
 
-export default async function NewTenantPage() {
+import { withIntl } from "@/i18n/intl-scope";
+async function NewTenantPage() {
   await requireSuperAdmin();
   const t = await getTranslations("admin");
   return (
@@ -13,3 +14,5 @@ export default async function NewTenantPage() {
     </>
   );
 }
+
+export default withIntl(NewTenantPage, "app/admin/tenants/new/page.tsx");

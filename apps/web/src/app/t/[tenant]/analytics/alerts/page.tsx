@@ -8,9 +8,10 @@ import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataL
 import { requirePage } from "@/server/tenant";
 import { AlertRuleControls, AlertRuleForm, RunAlertsButton, SlackWebhookForm } from "../advanced-controls";
 
+import { withIntl } from "@/i18n/intl-scope";
 type Cond = { kind: "threshold"; op: "lt" | "gt"; value: number; days: number } | { kind: "anomaly"; direction: string; sensitivity: number; baselineDays: number };
 
-export default async function AlertsPage({ params }: { params: Promise<{ tenant: string }> }) {
+async function AlertsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "analytics");
   const t = await getTranslations("analytics.alerts");
@@ -82,3 +83,5 @@ export default async function AlertsPage({ params }: { params: Promise<{ tenant:
     </>
   );
 }
+
+export default withIntl(AlertsPage, "app/t/[tenant]/analytics/alerts/page.tsx");

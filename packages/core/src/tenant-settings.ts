@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { MOBILE_NAV_SLOTS, TENANT_SETTING_DEFAULTS } from "@hullwise/config";
 
-export const PAYMENT_METHODS = ["card", "wallet", "bank_transfer", "cod", "bnpl", "other"] as const;
-export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+import { PAYMENT_METHODS, type PaymentMethod } from "./payment-methods";
+export { PAYMENT_METHODS, type PaymentMethod } from "./payment-methods";
 
 const feeMap = z.object({
   card: z.number().int().min(0),

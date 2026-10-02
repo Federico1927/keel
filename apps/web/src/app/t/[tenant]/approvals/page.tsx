@@ -9,6 +9,7 @@ import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Empty
 import { getTenantContext } from "@/server/tenant";
 import { ProposalActions } from "./actions";
 
+import { withIntl } from "@/i18n/intl-scope";
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("mcp.approvals"))("title") };
 }
@@ -20,7 +21,7 @@ const STATUS_VARIANT: Record<string, "success" | "warning" | "destructive" | "mu
  * campaign, a draft purchase order). Everyone sees them; only people whose role allows the action
  * can approve, and approving runs it as them.
  */
-export default async function ApprovalsPage({ params }: { params: Promise<{ tenant: string }> }) {
+async function ApprovalsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await getTenantContext(tenant);
   if (!isModuleInPlan("core.mcp", ctx.tenant.planKey)) notFound();
@@ -114,3 +115,5 @@ export default async function ApprovalsPage({ params }: { params: Promise<{ tena
     </>
   );
 }
+
+export default withIntl(ApprovalsPage, "app/t/[tenant]/approvals/page.tsx");

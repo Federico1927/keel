@@ -11,6 +11,7 @@ import { apiBaseUrl } from "@/server/api-docs";
 import { CopyField } from "@/components/mcp/copy-field";
 import { ApiTokenActions, CreateApiTokenForm, CreateWebhookForm, WebhookEndpointActions } from "@/components/developers/forms";
 
+import { withIntl } from "@/i18n/intl-scope";
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("developers"))("title") };
 }
@@ -22,7 +23,7 @@ const STATE_VARIANT = { active: "success", expired: "muted", revoked: "muted" } 
  * calls. Owners and admins (the page needs `settings`, the actions `manage_integrations`); the API is
  * from Growth, like MCP: below it the page explains the plan and offers nothing.
  */
-export default async function DevelopersPage({ params }: { params: Promise<{ tenant: string }> }) {
+async function DevelopersPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "settings");
   if (!canDo(ctx.role, "manage_integrations")) notFound();
@@ -165,3 +166,5 @@ export default async function DevelopersPage({ params }: { params: Promise<{ ten
     </>
   );
 }
+
+export default withIntl(DevelopersPage, "app/t/[tenant]/settings/developers/page.tsx");

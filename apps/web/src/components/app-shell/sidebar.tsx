@@ -1,4 +1,5 @@
 "use client";
+// i18n-client-namespaces: nav, mobile (labels come from nav.ts)
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";

@@ -10,7 +10,8 @@ import { requirePage } from "@/server/tenant";
 import { CapacityRow, DeleteExceptionButton, ExceptionForm, OverrideControls, RecomputeRiskButton, ScoringSettingsForm, TagSettingsForm } from "./controls";
 import { CarrierImportForm, OperationsForm, ScorePreview, TemplatesEditor } from "./extras";
 
-export default async function CodSettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function CodSettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "cod_settings");
   const t = await getTranslations("cod.settings");
@@ -102,3 +103,5 @@ export default async function CodSettingsPage({ params }: { params: Promise<{ te
     </>
   );
 }
+
+export default withIntl(CodSettingsPage, "app/t/[tenant]/cod/settings/page.tsx");

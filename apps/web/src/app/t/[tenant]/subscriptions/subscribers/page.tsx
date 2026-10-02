@@ -8,8 +8,9 @@ import { requirePage } from "@/server/tenant";
 import { encodeRulesParam } from "@/server/queries/crm";
 import { RiskBadge, SubscriptionStatusBadge, SubscriptionTabs, intervalFormatter, svcOf } from "../shared";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** Subscribers (addon.subscriptions): server-side filters and pagination; cards on mobile, a table from `md`. */
-export default async function SubscribersPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+async function SubscribersPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "subscriptions");
@@ -84,3 +85,5 @@ export default async function SubscribersPage({ params, searchParams }: { params
     </>
   );
 }
+
+export default withIntl(SubscribersPage, "app/t/[tenant]/subscriptions/subscribers/page.tsx");

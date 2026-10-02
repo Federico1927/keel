@@ -1,4 +1,5 @@
 "use client";
+// i18n-client-namespaces: nav, mobile (labels come from nav.ts)
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

@@ -8,6 +8,7 @@ import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, Car
 import { requirePage } from "@/server/tenant";
 import { PortalButton } from "./portal-button";
 
+import { withIntl } from "@/i18n/intl-scope";
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("billing"))("title") };
 }
@@ -15,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const STATUS_VARIANT: Record<string, "success" | "warning" | "destructive" | "muted"> = { paid: "success", open: "warning", uncollectible: "destructive", void: "muted" };
 
 /** Settings → Billing (#53), owners only: plan, add-ons, next invoice, payment status, invoices, the Stripe portal. */
-export default async function BillingSettingsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+async function BillingSettingsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "settings");
   if (ctx.role !== "owner") notFound();
@@ -98,3 +99,5 @@ export default async function BillingSettingsPage({ params, searchParams }: { pa
     </>
   );
 }
+
+export default withIntl(BillingSettingsPage, "app/t/[tenant]/settings/billing/page.tsx");

@@ -10,9 +10,10 @@ import { requirePage } from "@/server/tenant";
 import { svcOf } from "@/server/queries/inventory-control";
 import { CountEditor, StockTakeActions, StockTakeScanner } from "../controls";
 
+import { withIntl } from "@/i18n/intl-scope";
 const STATUS_BADGE = { match: "success", missing: "destructive", surplus: "warning", unknown: "muted" } as const;
 
-export default async function StockTakePage({ params, searchParams }: { params: Promise<{ tenant: string; id: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+async function StockTakePage({ params, searchParams }: { params: Promise<{ tenant: string; id: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { tenant, id } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "inventory");
@@ -83,3 +84,5 @@ export default async function StockTakePage({ params, searchParams }: { params: 
     </>
   );
 }
+
+export default withIntl(StockTakePage, "app/t/[tenant]/inventory/stock-takes/[id]/page.tsx");

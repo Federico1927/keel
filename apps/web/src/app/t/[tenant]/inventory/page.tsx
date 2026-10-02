@@ -11,7 +11,8 @@ import { listInventory, parseInventoryFilters } from "@/server/queries/catalog";
 import { RiskBadge } from "@/components/risk-badge";
 import { AdjustStockDialog } from "@/components/adjust-stock-dialog";
 
-export default async function InventoryPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function InventoryPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "inventory");
@@ -57,7 +58,7 @@ export default async function InventoryPage({ params, searchParams }: { params: 
         <div className="flex flex-wrap gap-1 sm:ml-auto">
           {(["critical", "warning", "ok", "no_sales"] as const).map((r) => (
             <Link key={r} href={link({ risk: f.risk === r ? undefined : r })} className={cn("rounded-full border px-3 py-1 text-xs pointer-coarse:py-2", f.risk === r ? "bg-primary text-primary-foreground" : "bg-card")}>
-              {tr(r)} <span className="tabular opacity-70">{counts[r]}</span>
+              {tr(r)} <span className="tabular font-normal">{counts[r]}</span>
             </Link>
           ))}
         </div>
@@ -127,3 +128,5 @@ export default async function InventoryPage({ params, searchParams }: { params: 
     </>
   );
 }
+
+export default withIntl(InventoryPage, "app/t/[tenant]/inventory/page.tsx");

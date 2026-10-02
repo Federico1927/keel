@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { PLAN_KEYS } from "@hullwise/config";
-import { Alert, AlertDescription, Button, Card, CardContent, Input, Label, Select } from "@hullwise/ui";
+import { Alert, AlertDescription, Button, Card, CardContent, Input, Label, Select, StickyActionBar, StickyActionSpacer } from "@hullwise/ui";
 import { createTenantAction } from "@/server/actions/admin";
 
 export function NewTenantForm() {
@@ -49,9 +49,10 @@ export function NewTenantForm() {
               <AlertDescription>{t.has(`errors.${state.error}`) ? t(`errors.${state.error}`) : tc(`errors.${state.error}`)}{state.fieldErrors ? ` (${Object.keys(state.fieldErrors).join(", ")})` : ""}</AlertDescription>
             </Alert>
           )}
-          <div className="sm:col-span-2"><Button type="submit" disabled={pending}>{t("submit")}</Button></div>
+          <StickyActionBar className="sm:col-span-2"><Button type="submit" disabled={pending} className="max-md:flex-1" data-testid="new-tenant-submit">{t("submit")}</Button></StickyActionBar>
         </CardContent>
       </Card>
+      <StickyActionSpacer />
     </form>
   );
 }

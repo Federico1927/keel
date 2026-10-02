@@ -12,7 +12,8 @@ import { SuggestionsPanel } from "./suggestions";
 import { LightBadge, ActionBadge } from "./badges";
 import { CampaignStatusButton } from "./[id]/campaign-actions";
 
-export default async function CampaignsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string; platform?: string; status?: string; account?: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function CampaignsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string; platform?: string; status?: string; account?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "campaigns");
@@ -132,3 +133,5 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
     </>
   );
 }
+
+export default withIntl(CampaignsPage, "app/t/[tenant]/campaigns/page.tsx");

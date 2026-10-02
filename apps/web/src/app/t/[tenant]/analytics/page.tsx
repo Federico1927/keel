@@ -17,7 +17,8 @@ import { DataQualityCard, OrderPnlTab, PnlPeriods, ProductsTab, UtmTab } from ".
 import { FeeSourceNote, PaymentMethodsTab, TaxTab } from "./money";
 import { TrafficTab } from "./traffic";
 
-export default async function AnalyticsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function AnalyticsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "analytics");
@@ -538,3 +539,5 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
     </>
   );
 }
+
+export default withIntl(AnalyticsPage, "app/t/[tenant]/analytics/page.tsx");

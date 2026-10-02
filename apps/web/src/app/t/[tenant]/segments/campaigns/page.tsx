@@ -11,7 +11,8 @@ import { SegmentTabs } from "../segment-tabs";
 import { UpliftBadge } from "./uplift-badge";
 import { CampaignStatusBadge } from "./status-badge";
 
-export default async function RetentionCampaignsPage({ params }: { params: Promise<{ tenant: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function RetentionCampaignsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "customer_campaigns");
   const t = await getTranslations("retention");
@@ -51,3 +52,5 @@ export default async function RetentionCampaignsPage({ params }: { params: Promi
     </>
   );
 }
+
+export default withIntl(RetentionCampaignsPage, "app/t/[tenant]/segments/campaigns/page.tsx");

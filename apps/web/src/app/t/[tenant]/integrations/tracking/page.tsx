@@ -9,7 +9,8 @@ import { requirePage } from "@/server/tenant";
 import { collectUrlFor, shopifyCustomPixel } from "@/server/pixel-snippets";
 import { ConversionForm, CopyBlock, PixelControls, RunConversions } from "./controls";
 
-export default async function TrackingPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ log?: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function TrackingPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ log?: string }> }) {
   const { tenant } = await params;
   // the log: every event, or the retractions and restatements alone (#82)
   const adjustmentsOnly = (await searchParams).log === "adjustments";
@@ -124,3 +125,5 @@ export default async function TrackingPage({ params, searchParams }: { params: P
     </>
   );
 }
+
+export default withIntl(TrackingPage, "app/t/[tenant]/integrations/tracking/page.tsx");
