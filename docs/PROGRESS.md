@@ -885,3 +885,14 @@ Resta:
 - **Ondata 3 (Tier 3)**: P/L e analisi, pianificazione e mix, markdown e perdite, editor dashboard, regole di stato (`settings/order-states`), registro/parole/raccomandazioni campagne, analisi resi, qualità e costi prodotto, soppressioni notifiche, impostazioni e team contrassegno, audit; conferme ancora native su dashboard (reset, elimina, metriche) e markdown.
 - Console super-admin (`/admin`): in carico a un'altra sessione.
 - Il test mobile Tier 1 "ordine trovato per telefono → indirizzo" può fallire se sceglie un ordine demo senza provincia (la validazione indirizzi la richiede): dipende dai dati, non da questa ondata.
+## Versioni degli add-on: si attiva solo una versione rilasciata (issue #77)
+
+Fatto:
+- Registro delle versioni in `packages/config/src/addon-versions.ts`: ogni add-on ha versioni `released` o `in_development`; la console ne mostra al massimo due (l'ultima rilasciata e quella in lavorazione).
+- `addon.cod`: v1 rilasciata, v2 (messaggi ai destinatari con un provider WhatsApp/SMS reale) in sviluppo. `addon.customer_campaigns`: v1 in sviluppo, quindi **non attivabile** (oggi i messaggi sono solo simulati).
+- `setTenantAddon` rifiuta l'attivazione senza versione rilasciata (`addon_not_released`); lo spegnimento è sempre possibile. Colonna `tenant_addons.version` (migrazione 0044, additiva) con la versione attivata. Le attivazioni già esistenti restano accese e la console le segnala.
+- Console: badge di versione e motivo del blocco nella scheda tenant e nella pagina Piani e add-on; l'interruttore ora mostra l'errore invece di ignorarlo.
+- Fatturazione allineata: si addebitano solo gli add-on rilasciati (fatture, voci Stripe, MRR, catalogo); quelli attivi ma non rilasciati restano usabili e nella finestra di abbonamento compaiono come "incluso, non fatturato".
+- Test: unit (`addon-versions.test.ts`), servizi (`billing.test.ts`), e2e (`addon-versions.spec.ts`).
+
+Resta: il controllo per singolo negozio (es. campagne senza provider di messaggi collegato), da aggiungere accanto al registro.
