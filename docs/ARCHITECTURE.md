@@ -154,6 +154,24 @@ Before resolving, `importFulfillment` (packages/services/src/sync) maps every so
 
 ## Integration flows
 
+### Connecting Shopify (issue #89)
+
+```mermaid
+flowchart LR
+  card["Shopify card<br/>IntegrationSetupChecklist (SHOPIFY_SETUP)"] -->|shop, Client ID, secret| cc["connectShopifyApp<br/>client credentials grant"]
+  cc -->|ok| save["saveShopifyConnection<br/>encrypted creds + token expiry"]
+  cc -->|shop_not_permitted / not installed| install["Install on your store<br/>/api/integrations/shopify/oauth/start?app=tenant"]
+  install -->|signed state| cb["oauth/callback<br/>verify state + query HMAC, exchange code"]
+  cb --> save
+  save --> hooks["registerWebhooks (uri)"] --> hist["startHistoryImport (#91)"]
+```
+
+- Paths: the merchant's Dev Dashboard app (client credentials; main), the same app through the authorization code grant ("Install on your store", when the store is outside the app's organization), the platform public app (`SHOPIFY_API_KEY`, Advanced) and the legacy pasted token (Advanced). The saved app (`integrations.config.app`: shop, Client ID, secret encrypted) feeds the OAuth fallback; the OAuth `state` is signed with `signState` (packages/integrations/src/crypto.ts), no cookie.
+- `ShopifyCredentials` carries `grant`, `clientId`, `expiresAt`, `refreshToken`: the adapter renews a client-credentials token before it expires or once on a 401, and hands the new credentials to `onCredentialsRefreshed` (the factory stores them in its own tenant transaction).
+- Setup definitions live in `packages/config/src/integration-setup.ts` (`IntegrationSetupGuide`: steps with message keys, copy values, credential `fields`, connect `strategy`, error map); the card and the guide page render them with `apps/web/src/components/integration-setup.tsx`; copyable values (scope lists, URLs) are resolved by `apps/web/src/server/integration-setup.ts`. A new card adds a definition, its messages under the definition's namespace and its resolvers.
+- Privacy webhooks (`customers/data_request`, `customers/redact`, `shop/redact`): `/api/webhooks/shopify/compliance` → `handleShopifyCompliance` (packages/services/src/integrations/compliance.ts): signature with the store's app secret, one `webhook_events` row (source `shopify_compliance`), audit, a `compliance_request` platform alert as the console task; `shop/redact` clears the connection.
+- Pinned vendor versions and their last supported day: `API_VERSION_SUPPORT` (packages/integrations/src/versions.ts), checked by a unit test.
+
 ### Webhook (Shopify)
 
 ```mermaid

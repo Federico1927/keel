@@ -48,7 +48,7 @@ export function windowElapsed(lastAt: Date | null | undefined, windowMinutes: nu
   return !lastAt || now.getTime() - lastAt.getTime() >= windowMinutes * 60_000;
 }
 
-export type FailureAlertKind = "job_failure" | "sync_stale";
+export type FailureAlertKind = "job_failure" | "sync_stale" | "compliance_request";
 
 /** One alert per (kind, tenant, job type or source): repeated failures update it instead of opening new ones. */
 export function failureAlertSignature(kind: FailureAlertKind, tenantId: string | null, subject: string): string {

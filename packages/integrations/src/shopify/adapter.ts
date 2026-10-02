@@ -1,18 +1,30 @@
 import { HttpClient, type HttpOptions } from "../http";
 import type { BalanceTransactionType, PayoutStatus } from "@hullwise/core";
 import { IntegrationError, type CommercePlatform, type ConnectionTest, type CreateOrderInput, type ManualPaymentInput, type NormalizedBalanceTransaction, type NormalizedPayout, type RefundOrderInput, type FulfillmentHoldInput, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type OrderDetailsPatch, type OrderDiscountPatch, type Page, type VariantPatch, type ProductPatch, type ProductMediaOperation, type PlatformReturnLineInput, type SyncQuery, type VerifiedWebhook, type WebhookRegistration, type CreateFulfillmentInput, type NormalizedFulfillment } from "../types";
-import { ORDER_FIELDS, PRODUCT_FIELDS, PRODUCT_MEDIA_PAGE, gidToId, idToGid, mapGraphqlCustomer, mapGraphqlDiscount, mapGraphqlInventoryLevel, mapGraphqlLocation, mapGraphqlOrder, mapGraphqlProduct, mapRestCustomer, mapRestInventoryLevel, mapRestOrder, mapRestProduct, mapFulfillmentStatus, mapGraphqlReturn, mapRestReturn, RETURN_FIELDS } from "./mappers";
-import { SHOPIFY_ALL_SCOPES, SHOPIFY_API_VERSION, verifyWebhookHmac } from "./oauth";
+import { CUSTOMER_FIELDS, ORDER_FIELDS, PRODUCT_FIELDS, PRODUCT_MEDIA_PAGE, gidToId, idToGid, mapGraphqlCustomer, mapGraphqlDiscount, mapGraphqlInventoryLevel, mapGraphqlLocation, mapGraphqlOrder, mapGraphqlProduct, mapRestCustomer, mapRestInventoryLevel, mapRestOrder, mapRestProduct, mapFulfillmentStatus, mapGraphqlReturn, mapRestReturn, RETURN_FIELDS } from "./mappers";
+import { SHOPIFY_API_VERSION, missingShopifyScopes, refreshShopifyToken, requestClientCredentialsToken, verifyWebhookHmac } from "./oauth";
 
 export interface ShopifyCredentials {
   shop: string;
   accessToken: string;
-  /** App secret (public app) or the custom app's webhook signing secret. */
+  /** The app's client secret (Dev Dashboard app, public app) or the legacy custom app's API secret: it signs webhooks. */
   apiSecret: string;
+  /** Client ID of the app that holds the token (absent on a legacy pasted token). */
+  clientId?: string;
+  /** How the token was obtained: `client_credentials` renews itself, `authorization_code` with a refresh token too, `static` never. */
+  grant?: "client_credentials" | "authorization_code" | "static";
+  /** ISO expiry of `accessToken` (null or absent: no expiry). */
+  expiresAt?: string | null;
+  refreshToken?: string | null;
 }
 export interface ShopifyOptions extends HttpOptions {
   apiVersion?: string;
+  /** Called with the new credentials after a token refresh, so the caller can store them (encrypted). */
+  onCredentialsRefreshed?: (creds: ShopifyCredentials) => void | Promise<void>;
+  now?: () => number;
 }
+/** A token closer than this to its expiry is renewed before the next call. */
+export const SHOPIFY_TOKEN_REFRESH_MARGIN_MS = 5 * 60_000;
 
 type Rec = Record<string, unknown>;
 /** Handle of the fulfillment holds Hullwise places: releasing touches only these. */
@@ -32,14 +44,68 @@ export class ShopifyCommercePlatform implements CommercePlatform {
   readonly http: HttpClient;
   private readonly endpoint: string;
 
-  constructor(private readonly creds: ShopifyCredentials, opts: ShopifyOptions = {}) {
+  private creds: ShopifyCredentials;
+  private readonly now: () => number;
+  private refreshing: Promise<void> | null = null;
+
+  constructor(creds: ShopifyCredentials, private readonly opts: ShopifyOptions = {}) {
+    this.creds = { ...creds };
+    this.now = opts.now ?? Date.now;
     this.http = new HttpClient({ minIntervalMs: 250, ...opts });
     this.endpoint = `https://${creds.shop}/admin/api/${opts.apiVersion ?? SHOPIFY_API_VERSION}/graphql.json`;
   }
 
+  /** The credentials in use (after a refresh, the new token). */
+  get credentials(): Readonly<ShopifyCredentials> {
+    return this.creds;
+  }
+
+  private canRefresh(): boolean {
+    return !!this.creds.clientId && (this.creds.grant === "client_credentials" || !!this.creds.refreshToken);
+  }
+
+  /** New token: client credentials grant again, or the refresh token of an expiring offline token. One refresh at a time. */
+  async refreshToken(): Promise<void> {
+    this.refreshing ??= (async () => {
+      try {
+        const { shop, clientId, apiSecret, refreshToken } = this.creds;
+        const t = this.creds.grant === "client_credentials" ? await requestClientCredentialsToken(shop, clientId!, apiSecret, this.http, this.now) : await refreshShopifyToken(shop, clientId!, apiSecret, refreshToken!, this.http, this.now);
+        this.creds = { ...this.creds, accessToken: t.accessToken, expiresAt: t.expiresAt, ...(t.refreshToken ? { refreshToken: t.refreshToken } : {}) };
+        await this.opts.onCredentialsRefreshed?.(this.creds);
+      } catch (e) {
+        throw new IntegrationError("token_expired", `Shopify token refresh failed: ${e instanceof Error ? e.message : String(e)}`);
+      } finally {
+        this.refreshing = null;
+      }
+    })();
+    return this.refreshing;
+  }
+
+  private async ensureFreshToken(): Promise<void> {
+    if (!this.canRefresh() || !this.creds.expiresAt) return;
+    if (new Date(this.creds.expiresAt).getTime() - this.now() < SHOPIFY_TOKEN_REFRESH_MARGIN_MS) await this.refreshToken();
+  }
+
+  /** One POST; a 401 with a renewable token is retried once with a new token, then reported as `token_expired`. */
+  private async post<T>(body: string): Promise<{ json: GraphqlResponse<T> }> {
+    await this.ensureFreshToken();
+    try {
+      return await this.http.request<GraphqlResponse<T>>(this.endpoint, { method: "POST", headers: { "content-type": "application/json", "x-shopify-access-token": this.creds.accessToken }, body });
+    } catch (e) {
+      if (!(e instanceof IntegrationError) || e.code !== "token_expired" || !this.canRefresh()) throw e;
+      await this.refreshToken();
+      try {
+        return await this.http.request<GraphqlResponse<T>>(this.endpoint, { method: "POST", headers: { "content-type": "application/json", "x-shopify-access-token": this.creds.accessToken }, body });
+      } catch (again) {
+        if (again instanceof IntegrationError && again.code === "token_expired") throw new IntegrationError("token_expired", `Shopify refused the renewed token: ${again.message}`);
+        throw again;
+      }
+    }
+  }
+
   async graphql<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
     for (let attempt = 0; attempt < 4; attempt++) {
-      const res = await this.http.request<GraphqlResponse<T>>(this.endpoint, { method: "POST", headers: { "content-type": "application/json", "x-shopify-access-token": this.creds.accessToken }, body: JSON.stringify({ query, variables }) });
+      const res = await this.post<T>(JSON.stringify({ query, variables }));
       const body = res.json;
       if (body.errors?.length) {
         const throttled = body.errors.some((e) => e.extensions?.code === "THROTTLED" || /throttled/i.test(e.message));
@@ -61,8 +127,8 @@ export class ShopifyCommercePlatform implements CommercePlatform {
     try {
       const data = await this.graphql<{ shop: { name: string; myshopifyDomain: string; currencyCode: string }; currentAppInstallation: { accessScopes: { handle: string }[] } }>(`{ shop { name myshopifyDomain currencyCode } currentAppInstallation { accessScopes { handle } } }`);
       const scopes = data.currentAppInstallation?.accessScopes?.map((s) => s.handle) ?? [];
-      const missing = SHOPIFY_ALL_SCOPES.filter((s) => !scopes.includes(s) && !(s.startsWith("read_") && scopes.includes(s.replace("read_", "write_"))));
-      return { ok: true, accountName: data.shop.name, accountId: data.shop.myshopifyDomain, scopes, missingScopes: missing };
+      const missing = missingShopifyScopes(scopes);
+      return { ok: true, accountName: data.shop.name, accountId: data.shop.myshopifyDomain, scopes, missingScopes: [...missing.required, ...missing.optional], missingRequiredScopes: missing.required, missingScopesByModule: missing.byModule };
     } catch (e) {
       return { ok: false, error: e instanceof Error ? e.message : String(e) };
     }
@@ -86,7 +152,7 @@ export class ShopifyCommercePlatform implements CommercePlatform {
     return data.order ? mapGraphqlOrder(data.order) : null;
   }
   fetchCustomers(q: SyncQuery): Promise<Page<NormalizedCustomer>> {
-    return this.pageOf("customers", `id legacyResourceId email phone firstName lastName tags createdAt emailMarketingConsent { marketingState } smsMarketingConsent { marketingState } defaultAddress { city zip countryCodeV2 phone }`, q, mapGraphqlCustomer);
+    return this.pageOf("customers", CUSTOMER_FIELDS, q, mapGraphqlCustomer);
   }
   async fetchProducts(q: SyncQuery): Promise<Page<NormalizedProduct>> {
     const raw = await this.pageOf("products", PRODUCT_FIELDS, q, (n) => n);
@@ -155,8 +221,9 @@ export class ShopifyCommercePlatform implements CommercePlatform {
 
   /** Idempotent: lists existing subscriptions for the callback and creates only the missing topics. */
   async registerWebhooks(callbackUrl: string, topics: string[]): Promise<WebhookRegistration[]> {
-    const existing = await this.graphql<{ webhookSubscriptions: { nodes: { topic: string; endpoint: { callbackUrl?: string } }[] } }>(`{ webhookSubscriptions(first: 100) { nodes { topic endpoint { __typename ... on WebhookHttpEndpoint { callbackUrl } } } } }`);
-    const have = new Set(existing.webhookSubscriptions.nodes.filter((n) => n.endpoint.callbackUrl === callbackUrl).map((n) => n.topic));
+    // `uri` replaced `endpoint.callbackUrl` / `callbackUrl` (2025-10; the input field is gone in the current schema)
+    const existing = await this.graphql<{ webhookSubscriptions: { nodes: { topic: string; uri?: string | null }[] } }>(`{ webhookSubscriptions(first: 100) { nodes { topic uri } } }`);
+    const have = new Set(existing.webhookSubscriptions.nodes.filter((n) => n.uri === callbackUrl).map((n) => n.topic));
     const out: WebhookRegistration[] = [];
     for (const topic of topics) {
       const enumTopic = topic.toUpperCase().replace("/", "_");
@@ -165,7 +232,7 @@ export class ShopifyCommercePlatform implements CommercePlatform {
         continue;
       }
       try {
-        const res = await this.graphql<{ webhookSubscriptionCreate: { userErrors: { message: string }[] } }>(`mutation($topic: WebhookSubscriptionTopic!, $sub: WebhookSubscriptionInput!) { webhookSubscriptionCreate(topic: $topic, webhookSubscription: $sub) { userErrors { message } } }`, { topic: enumTopic, sub: { callbackUrl, format: "JSON" } });
+        const res = await this.graphql<{ webhookSubscriptionCreate: { userErrors: { message: string }[] } }>(`mutation($topic: WebhookSubscriptionTopic!, $sub: WebhookSubscriptionInput!) { webhookSubscriptionCreate(topic: $topic, webhookSubscription: $sub) { userErrors { message } } }`, { topic: enumTopic, sub: { uri: callbackUrl, format: "JSON" } });
         const err = res.webhookSubscriptionCreate.userErrors[0]?.message;
         out.push(err ? { topic, address: callbackUrl, status: "failed", error: err } : { topic, address: callbackUrl, status: "registered" });
       } catch (e) {

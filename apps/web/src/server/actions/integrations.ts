@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, desc, eq, recordAudit, schema, sql } from "@hullwise/db";
 import { apiEndpoint, isAdPlatform, isAdPlatformInPlan } from "@hullwise/config";
-import { AnthropicLlmProvider, GoogleAddressProvider, GoogleAdsPlatform, MOCK_ACCOUNT_IDS, MetaAdsPlatform, ShopifyCommercePlatform, SHOPIFY_WEBHOOK_TOPICS, TiktokAdsPlatform, encryptJson, exchangeTiktokAuthCode, integrationMode, isValidShopDomain, type ConnectionTest } from "@hullwise/integrations";
-import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, resolveAddressProvider, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsBackfill, runAdsSync, runCatalogSync, runOrdersSync, runReturnsSync, historyImportStatus, runAdsSyncForAccounts } from "@hullwise/services";
+import { AnthropicLlmProvider, GoogleAddressProvider, GoogleAdsPlatform, MOCK_ACCOUNT_IDS, MetaAdsPlatform, TiktokAdsPlatform, encryptJson, exchangeTiktokAuthCode, integrationMode, type ConnectionTest } from "@hullwise/integrations";
+import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, resolveAddressProvider, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsBackfill, runAdsSync, runAdsSyncForAccounts, runCatalogSync, runOrdersSync, runReturnsSync, historyImportStatus } from "@hullwise/services";
 import { SPOKI_MODULE, retrySpokiWebhooks } from "@hullwise/addon-spoki";
 import { handleSpokiEvent, spokiHooksFor } from "@hullwise/jobs";
 import { enqueue } from "@/server/jobs";
@@ -35,30 +35,6 @@ async function saveConnection(slug: string, provider: Provider, test: Connection
   });
   revalidatePath(`/t/${slug}/integrations`);
   return ok();
-}
-
-const shopifySchema = z.object({ shop: z.string().trim().toLowerCase(), accessToken: z.string().trim().min(10), apiSecret: z.string().trim().min(8) });
-export async function connectShopifyCustomApp(slug: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
-  try {
-    const parsed = shopifySchema.safeParse(Object.fromEntries(formData.entries()));
-    if (!parsed.success || !isValidShopDomain(parsed.data.shop)) return fail("invalid_input");
-    if (integrationMode() !== "live") return fail("mock_mode");
-    const platform = new ShopifyCommercePlatform(parsed.data);
-    const test = await platform.testConnection();
-    const saved = await saveConnection(slug, "shopify", test, parsed.data, parsed.data.shop, { installedVia: "custom_app" });
-    if (!saved.ok) return saved;
-    const callback = apiEndpoint("/webhooks/shopify");
-    const regs = await platform.registerWebhooks(callback, SHOPIFY_WEBHOOK_TOPICS).catch(() => []);
-    const ctx = await requireAction(slug, "manage_integrations", "integrations");
-    await ctx.run((tx) => tx.update(schema.integrations).set({ config: { installedVia: "custom_app", scopes: test.scopes ?? [], missingScopes: test.missingScopes ?? [], webhooks: regs } }).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, "shopify"))));
-    // the store's order history (issue #87); the connection stays saved if starting it fails, "Resync" retries
-    await startHistoryImport(ctx).catch((e: unknown) => console.error("[web] history import not started:", e instanceof Error ? e.message : e));
-    revalidatePath(`/t/${slug}/integrations`);
-    return ok();
-  } catch (e) {
-    if (e instanceof ForbiddenError) return fail("forbidden");
-    throw e;
-  }
 }
 
 const metaSchema = z.object({ accessToken: z.string().trim().min(10), adAccountId: z.string().trim().min(3) });
@@ -232,7 +208,9 @@ export async function testIntegration(slug: string, provider: string): Promise<A
       const platform = p.data === "shopify" ? await getCommercePlatformFor(s, ctx.tenant) : p.data === "anthropic" ? await getLlmProviderFor(s) : p.data === "address" ? await resolveAddressProvider(s) : await getAdsPlatformFor(s, ctx.tenant, p.data);
       if (!platform) return { ok: false, error: "not connected" } satisfies ConnectionTest;
       const test = await platform.testConnection().catch((e: unknown) => ({ ok: false, error: e instanceof Error ? e.message : String(e) }) as ConnectionTest);
-      await tx.update(schema.integrations).set(test.ok ? { lastSuccessAt: new Date(), lastError: null, status: "connected", externalAccountName: test.accountName ?? undefined, updatedAt: new Date() } : { lastError: test.error ?? "connection failed", status: "error", updatedAt: new Date() }).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, p.data)));
+      // Shopify: the scopes the app version grants now, so the card says what is still missing (#89)
+      const scopes = test.ok && test.scopes ? { config: sql`coalesce(${schema.integrations.config}, '{}'::jsonb) || ${JSON.stringify({ scopes: test.scopes, missingScopes: test.missingScopes ?? [], missingRequiredScopes: test.missingRequiredScopes ?? [], missingScopesByModule: test.missingScopesByModule ?? {} })}::jsonb` } : {};
+      await tx.update(schema.integrations).set(test.ok ? { lastSuccessAt: new Date(), lastError: null, status: "connected", externalAccountName: test.accountName ?? undefined, updatedAt: new Date(), ...scopes } : { lastError: test.error ?? "connection failed", status: "error", updatedAt: new Date() }).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, p.data)));
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.tested", entityType: "integration", entityId: p.data, diff: { ok: { from: null, to: test.ok } } });
       return test;
     });

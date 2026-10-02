@@ -68,8 +68,8 @@
       "cod_phone": "L'ordine non ha un numero di telefono.",
       "cod_reason": "Scrivi un motivo (almeno 3 caratteri).",
       "cod_carrier_columns": "Il file deve avere una colonna riferimento (tracking o ordine) e una colonna esito.",
-      "addon_not_released": "Questo add-on non ha ancora una versione rilasciata: non si può attivare.",
-      "ad_account_removed": "Questo account pubblicitario è stato rimosso da Hullwise: le sue campagne restano nello storico ma non si possono più mettere in pausa o riattivare da qui."
+      "ad_account_removed": "Questo account pubblicitario è stato rimosso da Hullwise: le sue campagne restano nello storico ma non si possono più mettere in pausa o riattivare da qui.",
+      "addon_not_released": "Questo add-on non ha ancora una versione rilasciata: non si può attivare."
     },
     "edit": "Modifica"
   },
@@ -2929,20 +2929,6 @@
     "open_subscriptions": "Apri abbonamenti",
     "address_mock_connect": "Usa il fornitore simulato",
     "address_mock_connected": "Validazione indirizzi collegata (fornitore simulato).",
-    "history_import": {
-      "title": "Importazione dello storico ordini",
-      "state": {
-        "running": "In corso",
-        "paused": "In corso",
-        "error": "Non riuscita",
-        "done": "Completata"
-      },
-      "detail": "{n} ordini importati · ordini dal {since} · ordine più vecchio in Hullwise {oldest}",
-      "all_orders": "primo ordine",
-      "incomplete_hint": "Finché non è completa, analisi, RFM, coorti e storico clienti coprono solo una parte dello storico. Risincronizza la fa proseguire.",
-      "banner": "Lo storico ordini del negozio è ancora in importazione ({n} ordini finora): periodi passati, coorti e storico clienti sono incompleti finché non termina.",
-      "banner_error": "L'importazione dello storico ordini si è fermata dopo {n} ordini: periodi passati, coorti e storico clienti sono incompleti. Un owner o un admin può farla proseguire con Risincronizza in Integrazioni."
-    },
     "ad_accounts": {
       "title": "Account pubblicitari Meta",
       "description": "Ogni account si sincronizza per conto suo, con stato, ultima sincronizzazione e ultimo errore. Fino a {n} account.",
@@ -2961,6 +2947,20 @@
         "status": "Stato",
         "campaigns": "Campagne"
       }
+    },
+    "history_import": {
+      "title": "Importazione dello storico ordini",
+      "state": {
+        "running": "In corso",
+        "paused": "In corso",
+        "error": "Non riuscita",
+        "done": "Completata"
+      },
+      "detail": "{n} ordini importati · ordini dal {since} · ordine più vecchio in Hullwise {oldest}",
+      "all_orders": "primo ordine",
+      "incomplete_hint": "Finché non è completa, analisi, RFM, coorti e storico clienti coprono solo una parte dello storico. Risincronizza la fa proseguire.",
+      "banner": "Lo storico ordini del negozio è ancora in importazione ({n} ordini finora): periodi passati, coorti e storico clienti sono incompleti finché non termina.",
+      "banner_error": "L'importazione dello storico ordini si è fermata dopo {n} ordini: periodi passati, coorti e storico clienti sono incompleti. Un owner o un admin può farla proseguire con Risincronizza in Integrazioni."
     }
   },
   "integration_guide": {
@@ -2972,67 +2972,71 @@
     "errors_title": "Errori comuni",
     "shopify": {
       "title": "Collegare Shopify",
-      "intro": "Due strade: un'app custom creata nell'admin del negozio (più veloce, un solo negozio) o un'app pubblica con OAuth (un unico flusso di installazione per tutti i clienti).",
+      "intro": "Il negoziante collega il negozio con una propria app Shopify della Dev Dashboard (la configurazione qui sotto, circa dieci minuti). Agenzie e installazioni della piattaforma hanno i loro percorsi più in basso.",
       "steps": [
         {
-          "title": "Crea l'app custom",
-          "body": "Nell'admin del negozio apri Impostazioni → App e canali di vendita → Sviluppa app → Crea un'app. Chiamala “Hullwise”.",
-          "verify": true
+          "title": "Tre modi di collegarsi",
+          "body": "1. Stessa organizzazione (consigliato): app e negozio appartengono alla stessa organizzazione Shopify. Collega usa la concessione client credentials con Client ID e secret; non serve un URL di reindirizzamento e il token di 24 ore si rinnova da solo.\n2. Negozio di un cliente (agenzia): l'app sta in un'altra organizzazione. Collega risponde che il negozio è fuori dall'organizzazione dell'app; aggiungi l'URL di reindirizzamento alla versione dell'app e usa “Installa sul tuo negozio” (authorization code grant, stessi Client ID e secret).\n3. App della piattaforma: un'app pubblica della piattaforma (SHOPIFY_API_KEY / SHOPIFY_API_SECRET), in Avanzate."
         },
         {
-          "title": "Concedi gli scope Admin API",
-          "body": "In Configurazione → Integrazione Admin API seleziona gli scope elencati a destra per i moduli acquistati dal cliente. Salva."
-        },
-        {
-          "title": "Installa e copia il token",
-          "body": "Installa l'app, poi mostra una sola volta il token Admin API (shpat_…) e la chiave segreta API. Incollali in Hullwise → Integrazioni → Shopify → Collega. Hullwise li salva cifrati (AES-GCM).",
+          "title": "Agenzia: distribuzione personalizzata",
+          "body": "Nella Dev Dashboard apri l'app → Distribuzione → Distribuzione personalizzata, inserisci il dominio del negozio del cliente e genera il link di installazione. Nella versione dell'app aggiungi l'URL di reindirizzamento {redirectUrl} agli URL consentiti e imposta l'URL dell'app su {appUrl}; pubblica la versione. Poi salva Client ID e secret in Integrazioni → Shopify → Collega e clicca “Installa sul tuo negozio”.",
           "verify": true
         },
         {
           "title": "Webhook",
-          "body": "Hullwise registra le sottoscrizioni webhook via API al momento del collegamento verso {webhookUrl}. Per un'app custom il segreto di firma è la chiave segreta API dell'app. L'endpoint risponde 200 in pochi millisecondi, salva l'evento e lo elabora in background; i duplicati sono ignorati per (topic, id, updated_at)."
+          "body": "{product} registra le sottoscrizioni webhook via API quando il negozio si collega, verso {webhookUrl}. Sono firmate con il Client secret dell'app (app custom precedenti: la chiave segreta API). L'endpoint risponde 200 in pochi millisecondi, salva l'evento e lo elabora in background; i duplicati sono ignorati per (topic, id, updated_at). I webhook privacy (customers/data_request, customers/redact, shop/redact) vanno a {complianceUrl}."
         },
         {
-          "title": "Importazione iniziale",
-          "body": "Clicca Risincronizza: vengono importati location, prodotti, stock e sconti, poi gli ordini pagina per pagina con cursore riprendibile. I negozi grandi proseguono su più esecuzioni del worker; l'avanzamento è visibile in “Esecuzioni recenti”."
+          "title": "Storico ordini",
+          "body": "Il collegamento avvia l'importazione dello storico ordini entro la finestra impostata (Impostazioni → Operative, 24 mesi di default), poi del catalogo e dei resi di quegli ordini. Il worker la prosegue a blocchi; senza worker la prosegue Risincronizza. L'avanzamento è sulla scheda Shopify e le dashboard mostrano un avviso finché non termina."
         },
         {
-          "title": "Prodotti: cosa modifica Hullwise",
-          "body": "Hullwise rispecchia in lettura tutti i campi del prodotto (contenuti multimediali, descrizione, stato e canali, organizzazione, varianti, SEO, metacampi) e riscrive solo titolo, descrizione, vendor, tipo, tag, stato, SEO, categoria, prezzo e prezzo di confronto delle varianti, SKU, codice a barre, peso, comportamento senza stock e contenuti (aggiunta da URL, ordine, rimozione, testo alternativo). Scope: read_products e write_products; read_publications per mostrare i canali di vendita. Tutto il resto apre il prodotto nell'admin di Shopify. Una modifica aperta prima di un cambiamento fatto in Shopify viene rifiutata con “cambiato in Shopify, ricarica”.",
+          "title": "Prodotti: cosa modifica {product}",
+          "body": "{product} rispecchia in lettura tutti i campi del prodotto (contenuti multimediali, descrizione, stato e canali, organizzazione, varianti, SEO, metacampi) e riscrive solo titolo, descrizione, vendor, tipo, tag, stato, SEO, categoria, prezzo e prezzo di confronto delle varianti, SKU, codice a barre, peso, comportamento senza stock e contenuti (aggiunta da URL, ordine, rimozione, testo alternativo). Scope: read_products e write_products; read_publications per mostrare i canali di vendita. Tutto il resto apre il prodotto nell'admin di Shopify. Una modifica aperta prima di un cambiamento fatto in Shopify viene rifiutata con “cambiato in Shopify, ricarica”.",
           "verify": true
         },
         {
           "title": "Regole di stato",
-          "body": "Hullwise non ricava mai lo stato dell'ordine da tag fissi. Apri Impostazioni → Stati ordine e mappa tag, metodi di pagamento e stati finanziari/di evasione del negozio sugli stati canonici; vedi l'anteprima sugli ultimi 50 ordini."
+          "body": "{product} non ricava mai lo stato dell'ordine da tag fissi. Apri Impostazioni → Stati ordine e mappa tag, metodi di pagamento e stati finanziari/di evasione del negozio sugli stati canonici; vedi l'anteprima sugli ultimi 50 ordini."
         },
         {
           "title": "Verifica",
-          "body": "Testa connessione mostra il nome del negozio e gli scope concessi; fai un ordine di prova nel negozio e guardalo comparire in Ordini entro pochi secondi, con l'evento “importato” nella timeline."
+          "body": "Testa connessione mostra il nome del negozio e dice a parole quali permessi mancano e come aggiungerli (nuova versione → pubblica → approva nell'admin del negozio). Fai un ordine di prova nel negozio e guardalo comparire in Ordini entro pochi secondi, con l'evento “importato” nella timeline."
         },
         {
-          "title": "App pubblica (facoltativa)",
-          "body": "Crea l'app nella dashboard Partner, imposta l'URL di redirect su /api/integrations/shopify/oauth/callback, metti client id e secret in SHOPIFY_API_KEY e SHOPIFY_API_SECRET, poi usa “Installa via OAuth”.",
+          "title": "App della piattaforma (facoltativa)",
+          "body": "Per un'app pubblica della piattaforma: creala nella Dev Dashboard con distribuzione pubblica, imposta l'URL di reindirizzamento su {redirectUrl}, metti Client ID e secret in SHOPIFY_API_KEY e SHOPIFY_API_SECRET; i negozianti usano poi Avanzate → “Installa l'app della piattaforma”.",
           "verify": true
+        },
+        {
+          "title": "App custom esistente (prima del 2026)",
+          "body": "Dal 1° gennaio 2026 Shopify non permette più di creare app nell'admin del negozio. Un negozio che ne ha già una può ancora collegarsi da Avanzate con il token di accesso Admin API (shpat_…) e la chiave segreta API."
         }
       ],
       "errors": [
         {
-          "symptom": "Connessione fallita con HTTP 401",
-          "fix": "Il token è stato revocato o copiato male. Genera un nuovo token nell'app e ricollega."
+          "symptom": "“Il negozio non è nella stessa organizzazione Shopify dell'app”",
+          "fix": "Usa “Installa sul tuo negozio” dopo aver aggiunto l'URL di reindirizzamento alla versione dell'app, oppure crea l'app dall'organizzazione proprietaria del negozio."
         },
         {
-          "symptom": "Accesso negato su una query",
-          "fix": "Manca uno scope: la scheda mostra quale. Aggiungilo nella configurazione dell'app e reinstalla."
+          "symptom": "“Shopify ha rifiutato il Client ID o il Client secret”",
+          "fix": "Copiali di nuovo dalle Impostazioni dell'app; un secret rigenerato invalida il precedente."
+        },
+        {
+          "symptom": "Permessi mancanti",
+          "fix": "Crea una nuova versione con gli scope indicati, pubblicala e approva l'aggiornamento nell'admin del negozio."
         },
         {
           "symptom": "Webhook rifiutati con 401",
-          "fix": "Il segreto di firma è diverso da quello salvato in Hullwise. Ricollega con la chiave segreta API attuale."
+          "fix": "Il segreto di firma è diverso da quello salvato: ricollega con il Client secret attuale."
         },
         {
           "symptom": "Throttled / 429",
-          "fix": "Normale durante sync pesanti: Hullwise attende e riprova da solo; l'esecuzione riprende dal cursore."
+          "fix": "Normale durante sync pesanti: {product} attende e riprova da solo; l'esecuzione riprende dal cursore."
         }
-      ]
+      ],
+      "setup_title": "Configurazione del negoziante"
     },
     "meta": {
       "title": "Collegare Meta Ads",
@@ -3475,7 +3479,7 @@
         },
         {
           "title": "Shopify Subscriptions: aggiungi gli scope dei contratti",
-          "body": "Nell'app personalizzata della connessione Shopify (Impostazioni → App e canali di vendita → Sviluppa app → la tua app → Configurazione), aggiungi read_own_subscription_contracts, write_own_subscription_contracts e read_customer_payment_methods, salva e reinstalla l'app perché il token li riceva.",
+          "body": "Nell'app Shopify della connessione (Dev Dashboard → la tua app → nuova versione → Accesso; un'app custom precedente: Impostazioni → App e canali di vendita → Sviluppa app → Configurazione), aggiungi read_own_subscription_contracts, write_own_subscription_contracts e read_customer_payment_methods, pubblica la versione e approva l'aggiornamento nell'admin del negozio perché il token li riceva.",
           "verify": true
         },
         {
@@ -3958,6 +3962,8 @@
         }
       ]
     },
+    "scope_required": "Obbligatorio",
+    "scope_optional": "Facoltativo",
     "ga4": {
       "title": "Google Analytics 4",
       "intro": "Legge le sessioni GA4 del negozio per giorno, canale, sorgente / mezzo / campagna e pagina di destinazione, così {product} può mostrare il tasso di conversione (ordini ÷ sessioni) per canale, pagina di destinazione e campagna accanto al proprio pixel. Sola lettura: {product} non modifica mai la proprietà. Il negozio la collega da solo: aggiunge l'e-mail del lettore di {product} come Visualizzatore sulla proprietà e incolla l'ID proprietà. Chi preferisce credenziali proprie può usare un suo account di servizio o OAuth.",
@@ -9983,6 +9989,109 @@
       "signing": "La firma è l'HMAC-SHA256 del timestamp, un punto e il corpo grezzo, con il segreto dell'endpoint come chiave, in esadecimale: t=<timestamp>,v1=<firma>. Rifiuta i timestamp più vecchi di {tolerance} secondi. Dopo una rigenerazione del segreto firma anche il precedente (un secondo v1) per {grace} ore.",
       "retries": "Una consegna riesce con qualsiasi risposta 2xx entro {timeout} secondi. Altrimenti viene ritentata dopo {schedule}; poi la consegna è fallita e si può rinviare a mano dal registro. I redirect non vengono seguiti.",
       "security": "Gli endpoint devono essere https su un host pubblico. Gli indirizzi privati, di loopback, link-local o di metadati cloud vengono rifiutati al salvataggio dell'endpoint e di nuovo a ogni consegna, dopo la risoluzione DNS."
+    }
+  },
+  "integration_setup": {
+    "common": {
+      "connecting": "Collegamento…",
+      "hide_setup": "Nascondi configurazione"
+    },
+    "shopify": {
+      "intro": "Collega il negozio con una tua app Shopify: circa dieci minuti, una volta sola. Segui i passi nel tuo account Shopify, poi incolla qui tre valori.",
+      "mock_notice": "Questo ambiente è simulato: Collega associa un negozio simulato e i valori inseriti non vengono inviati da nessuna parte. I passi qui sotto sono quelli che il negoziante fa su un negozio reale.",
+      "connect": "Collega",
+      "reconnect": "Cambia app o ricollega",
+      "connected": "Collegato a {shop}. L'importazione dello storico ordini è partita: l'avanzamento è su questa scheda.",
+      "connected_no_import": "Collegato a {shop}. Lo storico ordini era già stato importato.",
+      "missing_optional": "Permessi facoltativi non ancora concessi: {scopes}. Le funzioni che li usano restano spente finché non li aggiungi a una nuova versione dell'app, la pubblichi e la approvi nell'admin del negozio.",
+      "saved_app": "App salvata: Client ID {clientId} per {shop}.",
+      "install_hint": "Il negozio non è nella stessa organizzazione Shopify dell'app (per esempio l'app l'ha creata un'agenzia). Aggiungi l'URL di reindirizzamento qui sotto agli URL di reindirizzamento consentiti della versione dell'app, pubblica la versione, poi installa l'app sul negozio da qui.",
+      "install": "Installa sul tuo negozio",
+      "public_app_hint": "App della piattaforma: se questo spazio offre un'app Shopify pubblica, scrivi il dominio del negozio e approva l'installazione su Shopify.",
+      "public_app_link": "Installa l'app della piattaforma",
+      "legacy_title": "App custom esistente (creata nell'admin Shopify prima del 2026)",
+      "legacy_hint": "Shopify non permette più di creare queste app. Se il negozio ne ha già una, incolla il token di accesso Admin API (shpat_…) e la chiave segreta API.",
+      "legacy_connect": "Collega con il token",
+      "steps": {
+        "create_app": {
+          "title": "Crea un'app nella Dev Dashboard di Shopify",
+          "body": "Accedi a dev.shopify.com con l'account proprietario del negozio. Apri App → Crea app → Inizia dalla Dev Dashboard e dalle un nome (per esempio quello del negozio). L'app e il negozio devono appartenere alla stessa organizzazione."
+        },
+        "scopes": {
+          "title": "Crea una versione con questi permessi",
+          "body": "Nell'app apri Versioni → Nuova versione. In Accesso incolla gli scope obbligatori; aggiungi quelli facoltativi per le funzioni che vuoi (sconti, resi, modifica ordini, pagamenti Shopify Payments). Per ora lascia vuoti gli URL di reindirizzamento. L'URL dei webhook di conformità qui sotto va nei webhook privacy (GDPR) della versione, se il modulo lo chiede."
+        },
+        "release_install": {
+          "title": "Pubblica la versione e installa l'app sul negozio",
+          "body": "Clicca Pubblica, poi dalla home dell'app scegli Installa app, seleziona il negozio e approva i permessi nell'admin del negozio. Ogni modifica successiva dei permessi richiede una nuova versione, la pubblicazione e l'approvazione nell'admin del negozio."
+        },
+        "credentials": {
+          "title": "Copia Client ID e Client secret",
+          "body": "Nelle Impostazioni dell'app (o nella Panoramica) copia il Client ID e mostra il Client secret. Tieni il secret riservato: qui viene salvato cifrato e non viene più mostrato."
+        },
+        "connect": {
+          "title": "Incollali qui e collega",
+          "body": "Scrivi il dominio del negozio (nome.myshopify.com), il Client ID e il Client secret, poi Collega. Il collegamento viene verificato subito, i webhook vengono registrati e parte l'importazione dello storico ordini. Se Shopify risponde che il negozio non è nell'organizzazione dell'app, aggiungi l'URL di reindirizzamento qui sotto alla versione dell'app e usa “Installa sul tuo negozio”."
+        }
+      },
+      "values": {
+        "scopes_required": "Scope obbligatori",
+        "scopes_optional": "Scope facoltativi",
+        "compliance_url": "URL dei webhook di conformità (GDPR)",
+        "redirect_url": "URL di reindirizzamento (solo per “Installa sul tuo negozio”)",
+        "app_url": "URL dell'app"
+      },
+      "fields": {
+        "shop": "Dominio del negozio",
+        "clientId": "Client ID",
+        "clientSecret": "Client secret"
+      },
+      "errors": {
+        "invalid_input": {
+          "message": "Controlla i campi.",
+          "fix": "Il dominio del negozio è del tipo nome.myshopify.com; Client ID e secret si trovano nelle Impostazioni dell'app nella Dev Dashboard."
+        },
+        "wrong_credentials": {
+          "message": "Shopify ha rifiutato il Client ID o il Client secret.",
+          "fix": "Copiali di nuovo dalle Impostazioni dell'app nella Dev Dashboard (il secret potrebbe essere stato rigenerato) e ricollega."
+        },
+        "not_in_organization": {
+          "message": "Questo negozio non è nella stessa organizzazione Shopify dell'app.",
+          "fix": "Aggiungi l'URL di reindirizzamento agli URL consentiti della versione dell'app, pubblica la versione, poi usa “Installa sul tuo negozio”. Oppure crea l'app dall'organizzazione proprietaria del negozio."
+        },
+        "not_installed": {
+          "message": "L'app non è installata su questo negozio.",
+          "fix": "Nella Dev Dashboard apri l'app, scegli Installa app e seleziona questo negozio, poi ricollega. Anche “Installa sul tuo negozio” la installa."
+        },
+        "shop_not_found": {
+          "message": "Shopify non conosce questo dominio.",
+          "fix": "Usa il dominio myshopify.com del negozio (admin Shopify → Impostazioni → Domini), non il dominio pubblico."
+        },
+        "version_not_released": {
+          "message": "L'app non ha una versione pubblicata con permessi su questo negozio.",
+          "fix": "Crea una versione con gli scope obbligatori, pubblicala e approvala nell'admin del negozio, poi ricollega."
+        },
+        "missing_scopes": {
+          "message": "Permessi mancanti: {detail}.",
+          "fix": "Nella Dev Dashboard crea una nuova versione dell'app con questi scope, pubblicala, poi approva l'aggiornamento nell'admin del negozio (App). Quindi ricollega o ripeti il test della connessione."
+        },
+        "token_refresh_failed": {
+          "message": "Non è stato possibile rinnovare l'accesso al negozio.",
+          "fix": "Probabilmente il Client secret è stato rigenerato o l'app è stata disinstallata: ricollega con Client ID e secret attuali."
+        },
+        "install_not_ready": {
+          "message": "Salva prima l'app.",
+          "fix": "Compila dominio del negozio, Client ID e Client secret e clicca Collega: il pulsante di installazione compare se Shopify lo richiede."
+        },
+        "unknown": {
+          "message": "Shopify ha risposto con un errore: {detail}",
+          "fix": "Controlla i passi qui sopra; se persiste, riprova tra qualche minuto."
+        }
+      },
+      "title": "Collega Shopify con la tua app",
+      "copy": "Copia",
+      "full_guide": "Guida completa, con gli altri modi di collegarsi",
+      "advanced": "Avanzate: altri modi di collegarsi"
     }
   },
   "ga4": {

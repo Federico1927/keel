@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { PRODUCT_NAME, apiEndpoint, canDo, isAdPlatformInPlan, isAnalyticsPlatformInPlan, isPageEnabled } from "@hullwise/config";
+import { PRODUCT_NAME, apiEndpoint, canDo, isAdPlatformInPlan, isAnalyticsPlatformInPlan, isPageEnabled, appUrl, integrationSetup } from "@hullwise/config";
 import { SPOKI_MODULE } from "@hullwise/addon-spoki";
 import { ACCOUNTING_ADDON } from "@hullwise/services";
 import { ADS_UTM_TEMPLATES } from "@hullwise/core";
-import { GA4_ADMIN_API_BASE, GA4_DATA_API_BASE, GA4_SCOPE, GOOGLE_ADDRESS_APIS, GOOGLE_ADS_API_VERSION, LOOP_API_VERSION, META_REQUIRED_PERMISSIONS, RECHARGE_API_VERSION, SUBSCRIPTION_PROVIDERS, SUBSCRIPTION_SCOPES, SUBSCRIPTION_WEBHOOK_TOPICS, SHOPIFY_SCOPES_BY_MODULE, SHOPIFY_WEBHOOK_TOPICS, TIKTOK_API_VERSION, TIKTOK_SCOPES_BY_MODULE } from "@hullwise/integrations";
+import { GA4_ADMIN_API_BASE, GA4_DATA_API_BASE, GA4_SCOPE, GOOGLE_ADDRESS_APIS, GOOGLE_ADS_API_VERSION, LOOP_API_VERSION, META_REQUIRED_PERMISSIONS, RECHARGE_API_VERSION, SUBSCRIPTION_PROVIDERS, SUBSCRIPTION_SCOPES, SUBSCRIPTION_WEBHOOK_TOPICS, SHOPIFY_SCOPES_BY_MODULE, SHOPIFY_WEBHOOK_TOPICS, TIKTOK_API_VERSION, TIKTOK_SCOPES_BY_MODULE, META_API_VERSION, SHOPIFY_API_VERSION, SHOPIFY_REQUIRED_MODULES } from "@hullwise/integrations";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { spokiWebhookUrl } from "@/server/spoki-webhook";
+import { resolveSetupValues } from "@/server/integration-setup";
+import { IntegrationSetupChecklist } from "@/components/integration-setup";
 
 /** One guide per activation: the platforms (TikTok when the plan includes it), then the external providers and tracking; last, the platform email sender (super-admins only: tenants configure nothing). */
 const PROVIDERS = ["shopify", "meta", "google", "tiktok", "ga4", "anthropic", "address", "subscriptions", "tracking", "survey", "email"] as const;
@@ -50,7 +52,12 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
   const subscriptionsWebhookUrl = apiEndpoint(`/webhooks/subscriptions/${ctx.tenant.id}`);
   // `{product}` keeps the product name out of the texts (one constant, PRODUCT_NAME)
   const product = { product: PRODUCT_NAME };
-  const fill = (body: string) => body.replaceAll("{product}", PRODUCT_NAME).replace("{webhookUrl}", webhookUrl).replace("{emailWebhookUrl}", emailWebhookUrl).replace("{callbackUrl}", tiktokCallbackUrl).replace("{subscriptionsWebhookUrl}", subscriptionsWebhookUrl).replace("{utmTemplate}", ADS_UTM_TEMPLATES.tiktok).replace("{apiVersion}", p === "tiktok" ? TIKTOK_API_VERSION : GOOGLE_ADS_API_VERSION);
+  // self-serve setup (#89): the same definition and copyable values as the integrations card
+  // only guides of a self-serve connect flow (credential fields); GA4's card resolves its own values
+  const found = integrationSetup(p);
+  const setup = found?.fields?.length ? found : null;
+  const setupValues = setup ? resolveSetupValues(setup) : {};
+  const fill = (body: string) => body.replaceAll("{product}", PRODUCT_NAME).replace("{redirectUrl}", apiEndpoint("/integrations/shopify/oauth/callback")).replace("{appUrl}", appUrl()).replace("{complianceUrl}", apiEndpoint("/webhooks/shopify/compliance")).replace("{webhookUrl}", webhookUrl).replace("{emailWebhookUrl}", emailWebhookUrl).replace("{callbackUrl}", tiktokCallbackUrl).replace("{subscriptionsWebhookUrl}", subscriptionsWebhookUrl).replace("{utmTemplate}", ADS_UTM_TEMPLATES.tiktok).replace("{apiVersion}", p === "tiktok" ? TIKTOK_API_VERSION : GOOGLE_ADS_API_VERSION);
   return (
     <>
       <p className="mb-2 text-sm text-muted-foreground"><Link href={base} className="hover:underline">← {ti("title")}</Link></p>
@@ -70,6 +77,12 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
       </nav>
       {adHoc && <p className="mb-4 rounded-md border bg-muted/40 p-3 text-sm" data-testid="ad-hoc-notice">{t("ad_hoc_notice", product)}</p>}
       <p className="mb-4 text-xs text-muted-foreground">{t("verify_legend")}</p>
+      {setup && (
+        <section className="mb-6 max-w-3xl" data-testid="guide-setup">
+          <h2 className="mb-3 text-base font-semibold">{t(`${p}.setup_title`)}</h2>
+          <IntegrationSetupChecklist guide={setup} values={setupValues} variant="guide" testId={`${setup.provider}-guide-setup`} />
+        </section>
+      )}
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <ol className="min-w-0 space-y-3 [overflow-wrap:anywhere]">
           {steps.map((s, i) => (
@@ -91,9 +104,10 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
             </CardHeader>
             <CardContent className="space-y-2 text-xs [overflow-wrap:anywhere]">
               {p === "shopify" && Object.entries(SHOPIFY_SCOPES_BY_MODULE).map(([mod, scopes]) => (
-                <div key={mod}><div className="font-medium">{mod}</div><div className="font-mono text-muted-foreground">{scopes.join(", ")}</div></div>
+                <div key={mod} data-testid={`shopify-scopes-${mod}`}><div className="font-medium">{mod} · <span className="font-normal text-muted-foreground">{(SHOPIFY_REQUIRED_MODULES as readonly string[]).includes(mod) ? t("scope_required") : t("scope_optional")}</span></div><div className="font-mono text-muted-foreground">{scopes.join(", ")}</div></div>
               ))}
-              {p === "meta" && <div className="font-mono text-muted-foreground">{META_REQUIRED_PERMISSIONS.join(", ")}</div>}
+              {p === "shopify" && <div className="font-mono text-muted-foreground" data-testid="shopify-api-version">Admin API {SHOPIFY_API_VERSION}</div>}
+              {p === "meta" && <div className="font-mono text-muted-foreground" data-testid="meta-api-version">{META_REQUIRED_PERMISSIONS.join(", ")} · Marketing API {META_API_VERSION}</div>}
               {p === "google" && <div className="font-mono text-muted-foreground" data-testid="google-api-version">https://www.googleapis.com/auth/adwords · developer token (Basic access) · OAuth client (Desktop/Web) · refresh token · Google Ads API {GOOGLE_ADS_API_VERSION}</div>}
               {p === "tiktok" && (
                 <>

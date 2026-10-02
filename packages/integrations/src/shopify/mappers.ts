@@ -191,13 +191,24 @@ export function mapRestInventoryLevel(p: Rec): NormalizedInventoryLevel {
 
 /* ---------- GraphQL (Admin API) ---------- */
 
+/**
+ * Customer fields: `defaultEmailAddress` / `defaultPhoneNumber` replace the deprecated `email`, `phone`,
+ * `emailMarketingConsent` and `smsMarketingConsent` (still read as a fallback by the mapper).
+ */
+export const CUSTOMER_FIELDS = `id legacyResourceId firstName lastName tags createdAt defaultEmailAddress { emailAddress marketingState } defaultPhoneNumber { phoneNumber marketingState } defaultAddress { city zip countryCodeV2 phone }`;
+
+const sub = (v: unknown): Rec | undefined => (v && typeof v === "object" ? (v as Rec) : undefined);
+const customerEmail = (c: Rec) => str(sub(c.defaultEmailAddress)?.emailAddress) ?? str(c.email);
+const customerPhone = (c: Rec) => str(sub(c.defaultPhoneNumber)?.phoneNumber) ?? str(c.phone);
+const customerSubscribed = (c: Rec) => [sub(c.defaultEmailAddress), sub(c.defaultPhoneNumber), sub(c.emailMarketingConsent), sub(c.smsMarketingConsent)].some((x) => x?.marketingState === "SUBSCRIBED");
+
 export const ORDER_FIELDS = `
   id legacyResourceId name email phone note tags createdAt updatedAt cancelledAt cancelReason closedAt processedAt
   currencyCode displayFinancialStatus displayFulfillmentStatus paymentGatewayNames sourceName landingPageUrl referrerUrl
   customAttributes { key value }
   subtotalPriceSet { shopMoney { amount } } totalDiscountsSet { shopMoney { amount } } totalShippingPriceSet { shopMoney { amount } }
   totalTaxSet { shopMoney { amount } } totalPriceSet { shopMoney { amount } } totalRefundedSet { shopMoney { amount } }
-  customer { id legacyResourceId email phone firstName lastName tags createdAt emailMarketingConsent { marketingState } smsMarketingConsent { marketingState } defaultAddress { city zip countryCodeV2 phone } }
+  customer { ${CUSTOMER_FIELDS} }
   shippingAddress { name address1 address2 city provinceCode zip countryCodeV2 phone }
   billingAddress { name address1 address2 city provinceCode zip countryCodeV2 phone }
   discountCodes
@@ -212,7 +223,7 @@ export function mapGraphqlOrder(n: Rec): NormalizedOrder {
   const addr = (a: Rec | null | undefined): Address | null => (a ? { name: str(a.name), address1: str(a.address1), address2: str(a.address2), city: str(a.city), province: str(a.provinceCode), zip: str(a.zip), country: str(a.countryCodeV2), phone: str(a.phone) } : null);
   const shipping = addr(n.shippingAddress as Rec);
   const customer: NormalizedCustomer | null = cust
-    ? { externalId: String(cust.legacyResourceId ?? gidToId(cust.id as string)), email: str(cust.email), phone: str(cust.phone) ?? str((cust.defaultAddress as Rec | undefined)?.phone), firstName: str(cust.firstName), lastName: str(cust.lastName), country: str((cust.defaultAddress as Rec | undefined)?.countryCodeV2) ?? shipping?.country ?? null, city: str((cust.defaultAddress as Rec | undefined)?.city) ?? shipping?.city ?? null, zip: str((cust.defaultAddress as Rec | undefined)?.zip) ?? shipping?.zip ?? null, acceptsMarketing: (cust.emailMarketingConsent as Rec | undefined)?.marketingState === "SUBSCRIBED" || (cust.smsMarketingConsent as Rec | undefined)?.marketingState === "SUBSCRIBED", tags: tags(cust.tags), platformCreatedAt: date(cust.createdAt as string) }
+    ? { externalId: String(cust.legacyResourceId ?? gidToId(cust.id as string)), email: customerEmail(cust), phone: customerPhone(cust) ?? str((cust.defaultAddress as Rec | undefined)?.phone), firstName: str(cust.firstName), lastName: str(cust.lastName), country: str((cust.defaultAddress as Rec | undefined)?.countryCodeV2) ?? shipping?.country ?? null, city: str((cust.defaultAddress as Rec | undefined)?.city) ?? shipping?.city ?? null, zip: str((cust.defaultAddress as Rec | undefined)?.zip) ?? shipping?.zip ?? null, acceptsMarketing: customerSubscribed(cust), tags: tags(cust.tags), platformCreatedAt: date(cust.createdAt as string) }
     : null;
   const lines: NormalizedOrderLine[] = (((n.lineItems as Rec | undefined)?.nodes as Rec[] | undefined) ?? []).map((l) => {
     const qty = Number(l.quantity ?? 0);
@@ -351,7 +362,7 @@ export function mapGraphqlProduct(n: Rec): NormalizedProduct {
 
 export function mapGraphqlCustomer(n: Rec): NormalizedCustomer {
   const a = (n.defaultAddress as Rec | undefined) ?? null;
-  return { externalId: String(n.legacyResourceId ?? gidToId(n.id as string)), email: str(n.email), phone: str(n.phone) ?? str(a?.phone), firstName: str(n.firstName), lastName: str(n.lastName), country: str(a?.countryCodeV2), city: str(a?.city), zip: str(a?.zip), acceptsMarketing: (n.emailMarketingConsent as Rec | undefined)?.marketingState === "SUBSCRIBED" || (n.smsMarketingConsent as Rec | undefined)?.marketingState === "SUBSCRIBED", tags: tags(n.tags), platformCreatedAt: date(n.createdAt as string) };
+  return { externalId: String(n.legacyResourceId ?? gidToId(n.id as string)), email: customerEmail(n), phone: customerPhone(n) ?? str(a?.phone), firstName: str(n.firstName), lastName: str(n.lastName), country: str(a?.countryCodeV2), city: str(a?.city), zip: str(a?.zip), acceptsMarketing: customerSubscribed(n), tags: tags(n.tags), platformCreatedAt: date(n.createdAt as string) };
 }
 
 export function mapGraphqlLocation(n: Rec): NormalizedLocation {

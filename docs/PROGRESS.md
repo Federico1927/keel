@@ -974,3 +974,22 @@ Resta:
 - Console super-admin (`/admin`): ultime pagine nella allow-list, in carico a un'altra sessione.
 - Conferme native ancora nelle impostazioni sviluppatori (token API, endpoint webhook, #81).
 - Azioni a scorrimento sulle righe, pull-to-refresh, notifiche push web e misure Lighthouse restano come nelle ondate precedenti.
+
+## Shopify con app della Dev Dashboard, versioni API, webhook privacy (issue #89)
+
+Fatto:
+- **Collegamento self-serve dalla scheda Shopify**: checklist numerata (crea l'app nella Dev Dashboard, versione con gli scope obbligatori e facoltativi da copiare, pubblica e installa, copia Client ID e secret) con pulsanti di copia e link alla guida; poi dominio del negozio, Client ID e Client secret → **client credentials grant**. Token di 24 ore salvato cifrato con la scadenza e rinnovato dall'adattatore (prima della scadenza o una volta su 401, poi `token_expired`).
+- **Negozio fuori dall'organizzazione dell'app** (es. app creata da un'agenzia): la scheda mostra "Installa sul tuo negozio" e l'URL di reindirizzamento da copiare; OAuth con le stesse credenziali e `state` firmato (HMAC con `APP_ENCRYPTION_KEY`), senza cookie.
+- **Avanzate**: app pubblica della piattaforma (`SHOPIFY_API_KEY`) e token incollato delle app custom create prima del 2026.
+- **Errori a parole** con la correzione: secret errato, app non installata, versione non pubblicata, scope mancanti (elencati, con "nuova versione → pubblica → approva nell'admin"), rinnovo del token fallito. Testa connessione dice quali permessi mancano.
+- **Storico ordini**: ogni nuovo percorso avvia l'importazione di #91 (`startHistoryImport`), come i percorsi già esistenti.
+- **Versioni API**: Shopify `2026-10` (tutte le operazioni GraphQL validate sullo schema attuale: `uri` per i webhook, campi email/telefono del cliente aggiornati, deprecati elencati in DECISIONS), Meta `v26.0` con messaggio leggibile sulle campagne Advantage+ shopping/app non più modificabili via API, Google v23. Test con data di fine supporto per piattaforma.
+- **Webhook privacy GDPR** (`customers/data_request`, `customers/redact`, `shop/redact`) su `/webhooks/shopify/compliance`: firma verificata, registrati una volta, audit e attività nella console (avviso `compliance_request`); `shop/redact` scollega Shopify.
+- **Componente di configurazione unico**: quello di GA4 (#86) esteso con campi credenziali, strategia di collegamento, valori da copiare con etichetta, mappa degli errori; la guida Shopify usa la stessa definizione della scheda. Guide en/it/es riscritte per la Dev Dashboard (passi dei fornitori "Da verificare").
+- **Modalità mock**: Collega associa il negozio simulato con qualsiasi valore; un Client ID con `missing-scopes` mostra l'errore degli scope mancanti.
+- Nessuna migrazione, nessun SQL scritto a mano, seed: solo `apiVersion` nella config demo. Test: integrazioni (client credentials, rinnovo, scope, state firmato, versioni, Meta v26), servizi (`shopify-compliance.test.ts`), web (`shopify-connect.test.ts`: ogni percorso avvia l'importazione una volta), e2e `shopify-setup.spec.ts`.
+
+Resta:
+- Provare su un negozio di sviluppo reale (#88): grant, OAuth di ripiego, scope, webhook e webhook privacy; confermare i testi d'errore di Shopify e i passi "Da verificare".
+- Installazioni avviate da Shopify (link di distribuzione personalizzata senza il nostro `state`) e cancellazione automatica dei dati di un cliente su `customers/redact`.
+- Migrare le altre schede (Meta, Google, TikTok…) al componente di configurazione (issue successiva).

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fixtureFetch } from "../http";
-import { MetaAdsPlatform } from "./index";
+import { META_ADVANTAGE_LOCKED_MESSAGE, META_API_VERSION, MetaAdsPlatform, isAdvantageLockedError } from "./index";
 import * as F from "./__fixtures__/entities";
 
 const campaigns = { data: [{ id: "120210000000001", name: "Summer Sale – Prospecting", status: "ACTIVE", effective_status: "ACTIVE", objective: "OUTCOME_SALES", daily_budget: "5000", created_time: "2026-05-01T10:00:00+0000", account_id: "123" }, { id: "120210000000002", name: "Retargeting", status: "PAUSED", effective_status: "PAUSED", objective: "OUTCOME_SALES", daily_budget: "2000", created_time: "2026-04-01T10:00:00+0000", account_id: "123" }], paging: { cursors: { before: "a", after: "b" } } };
@@ -34,9 +34,9 @@ describe("meta adapter", () => {
     await expect(expired.fetchCampaigns()).rejects.toMatchObject({ code: "token_expired" });
     const limited = make([{ match: () => true, body: { error: { message: "User request limit reached", code: 17 } } }]);
     await expect(limited.fetchCampaigns()).rejects.toMatchObject({ code: "rate_limited" });
-    const p = make([{ match: (u, i) => u.endsWith("/120210000000001") && i?.method === "POST", body: { success: true } }]);
+    const p = make([{ match: (u, i) => u.endsWith("/120210000000001") && i?.method === "POST", body: { success: true } }, { match: (u) => u.includes("/120210000000001?fields=smart_promotion_type"), body: { id: "120210000000001", smart_promotion_type: "GUIDED_CREATION" } }]);
     await p.setCampaignStatus("120210000000001", "paused");
-    expect(p.http.calls[0]!.body).toContain("status=PAUSED");
+    expect(p.http.calls.find((c) => c.method === "POST")!.body).toContain("status=PAUSED");
   });
 });
 
@@ -92,10 +92,35 @@ describe("meta adapter below the campaign (fixtures)", () => {
   });
 
   it("pauses an ad with a POST on the ad id and maps rate limits", async () => {
-    const p = make([{ match: (u, i) => u.endsWith("/120210000001001") && i?.method === "POST", body: { success: true } }]);
+    const p = make([{ match: (u, i) => u.endsWith("/120210000001001") && i?.method === "POST", body: { success: true } }, { match: (u) => u.includes("/120210000001001?fields="), body: { id: "120210000001001", campaign: { id: "1", smart_promotion_type: "GUIDED_CREATION" } } }]);
     await p.setAdStatus({ adExternalId: "120210000001001" }, "paused");
-    expect(p.http.calls[0]!.body).toContain("status=PAUSED");
+    expect(p.http.calls.find((c) => c.method === "POST")!.body).toContain("status=PAUSED");
     const limited = make([{ match: () => true, body: { error: { message: "Application request limit reached", code: 4 } } }]);
     await expect(limited.fetchEntityMetrics("ad", window)).rejects.toMatchObject({ code: "rate_limited" });
+  });
+});
+
+describe("meta API v26 (issue #89)", () => {
+  const make = (routes: Parameters<typeof fixtureFetch>[0]) => new MetaAdsPlatform({ accessToken: "tok", adAccountId: "123" }, { fetchImpl: fixtureFetch(routes), sleep: async () => undefined, minIntervalMs: 0 });
+
+  it("calls the pinned version", async () => {
+    const p = make([{ match: (u) => u.includes("/act_123/campaigns"), body: campaigns }]);
+    await p.fetchCampaigns();
+    expect(p.http.calls[0]!.url).toContain(`graph.facebook.com/${META_API_VERSION}/`);
+    expect(META_API_VERSION).toBe("v26.0");
+  });
+
+  it("refuses a status change on a legacy Advantage+ shopping campaign with a readable message, without writing", async () => {
+    const p = make([{ match: (u) => u.includes("?fields=smart_promotion_type"), body: { id: "9", smart_promotion_type: "AUTOMATED_SHOPPING_ADS" } }, { match: (_u, i) => i?.method === "POST", body: { success: true } }]);
+    await expect(p.setCampaignStatus("9", "paused")).rejects.toMatchObject({ code: "invalid_request", message: META_ADVANTAGE_LOCKED_MESSAGE });
+    expect(p.http.calls.some((c) => c.method === "POST")).toBe(false);
+    const ad = make([{ match: (u) => u.includes("?fields="), body: { id: "8", campaign: { id: "9", smart_promotion_type: "SMART_APP_PROMOTION" } } }]);
+    await expect(ad.setAdStatus({ adExternalId: "8" }, "active")).rejects.toThrow(META_ADVANTAGE_LOCKED_MESSAGE);
+  });
+
+  it("maps Meta's own refusal of an Advantage+ shopping update to the readable message", async () => {
+    const p = make([{ match: (u) => u.includes("?fields="), body: { error: { message: "Unsupported get request", code: 100 } } }, { match: (_u, i) => i?.method === "POST", body: { error: { message: "Advantage+ shopping campaigns can no longer be updated through the API", code: 100, error_subcode: 1885183 } } }]);
+    await expect(p.setCampaignStatus("9", "paused")).rejects.toThrow(META_ADVANTAGE_LOCKED_MESSAGE);
+    expect(isAdvantageLockedError("Invalid parameter")).toBe(false);
   });
 });

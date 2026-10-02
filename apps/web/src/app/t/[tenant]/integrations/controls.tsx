@@ -3,13 +3,15 @@ import { useRouter } from "next/navigation";
 import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, cn } from "@hullwise/ui";
-import { connectAddress, connectAddressMock, connectAnthropic, connectGoogle, connectMeta, connectShopifyCustomApp, connectTiktok, connectTiktokMock, disconnectIntegration, processWebhookNow, resyncIntegration, retryWebhooks, simulateReturnWebhook, simulateWebhook, testIntegration } from "@/server/actions/integrations";
+import { connectAddress, connectAddressMock, connectAnthropic, connectGoogle, connectMeta, connectTiktok, connectTiktokMock, disconnectIntegration, processWebhookNow, resyncIntegration, retryWebhooks, simulateReturnWebhook, simulateWebhook, testIntegration } from "@/server/actions/integrations";
 import type { ActionResult } from "@/server/action-result";
 
 type Provider = "shopify" | "meta" | "google" | "tiktok" | "anthropic" | "address";
+type FormProvider = Exclude<Provider, "shopify">;
 
 export function ProviderActions({ slug, provider, connected, mock, canManage }: { slug: string; provider: Provider; connected: boolean; mock: boolean; canManage: boolean }) {
   const t = useTranslations("integrations");
+  const ts = useTranslations("integration_setup.shopify");
   const tc = useTranslations("common");
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -24,7 +26,7 @@ export function ProviderActions({ slug, provider, connected, mock, canManage }: 
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" variant="outline" disabled={pending} onClick={() => start(async () => { const r = await testIntegration(slug, provider); say(r, r.ok && r.data ? (r.data.ok ? t("test_ok", { account: r.data.accountName ?? "" }) : t("test_failed", { error: r.data.error ?? "" })) : ""); })}>
+        <Button size="sm" variant="outline" disabled={pending} onClick={() => start(async () => { const r = await testIntegration(slug, provider); say(r, r.ok && r.data ? (r.data.ok ? `${t("test_ok", { account: r.data.accountName ?? "" })}${r.data.missingRequiredScopes?.length ? ` ${ts("errors.missing_scopes.message", { detail: r.data.missingRequiredScopes.join(", ") })} ${ts("errors.missing_scopes.fix", { detail: "" })}` : r.data.missingScopes?.length && provider === "shopify" ? ` ${ts("missing_optional", { scopes: r.data.missingScopes.join(", ") })}` : ""}` : t("test_failed", { error: r.data.error ?? "" })) : ""); })}>
           {t("test_connection")}
         </Button>
         {connected && provider !== "anthropic" && provider !== "address" && (
@@ -58,11 +60,14 @@ export function ProviderActions({ slug, provider, connected, mock, canManage }: 
             {t("address_mock_connect")}
           </Button>
         )}
-        <Button size="sm" variant={(connected && !mock) || provider === "tiktok" || provider === "address" ? "ghost" : "default"} disabled={pending} onClick={() => setShowConnect((v) => !v)}>
-          {connected && !mock ? t("reconnect") : t("connect")}
-        </Button>
+        {/* Shopify connects through its own setup block (checklist + client credentials, ShopifySetup) */}
+        {provider !== "shopify" && (
+          <Button size="sm" variant={(connected && !mock) || provider === "tiktok" || provider === "address" ? "ghost" : "default"} disabled={pending} onClick={() => setShowConnect((v) => !v)}>
+            {connected && !mock ? t("reconnect") : t("connect")}
+          </Button>
+        )}
         {/* the simulated TikTok account can be disconnected too, to show the connection flow again */}
-        {connected && (!mock || provider === "tiktok" || provider === "address") && (
+        {connected && (!mock || provider === "tiktok" || provider === "address" || provider === "shopify") && (
           <Button size="sm" variant="ghost" disabled={pending} onClick={() => start(async () => say(await disconnectIntegration(slug, provider), t("disconnected")))}>
             {t("disconnect")}
           </Button>
@@ -73,19 +78,17 @@ export function ProviderActions({ slug, provider, connected, mock, canManage }: 
           <AlertDescription data-testid={`msg-${provider}`}>{msg.text}</AlertDescription>
         </Alert>
       )}
-      {showConnect && <ConnectForm slug={slug} provider={provider} mock={mock} onDone={() => setShowConnect(false)} />}
+      {showConnect && provider !== "shopify" && <ConnectForm slug={slug} provider={provider} mock={mock} onDone={() => setShowConnect(false)} />}
     </div>
   );
 }
 
-function ConnectForm({ slug, provider, mock, onDone }: { slug: string; provider: Provider; mock: boolean; onDone: () => void }) {
+function ConnectForm({ slug, provider, mock, onDone }: { slug: string; provider: FormProvider; mock: boolean; onDone: () => void }) {
   const t = useTranslations("integrations");
   const tc = useTranslations("common");
-  const action = provider === "shopify" ? connectShopifyCustomApp : provider === "meta" ? connectMeta : provider === "anthropic" ? connectAnthropic : provider === "address" ? connectAddress : provider === "tiktok" ? connectTiktok : connectGoogle;
+  const action = provider === "meta" ? connectMeta : provider === "anthropic" ? connectAnthropic : provider === "address" ? connectAddress : provider === "tiktok" ? connectTiktok : connectGoogle;
   const [state, formAction, pending] = useActionState(action.bind(null, slug), null);
-  const fields: { name: string; label: string; type?: string; placeholder?: string }[] = provider === "shopify"
-    ? [{ name: "shop", label: t("fields.shop"), placeholder: "my-store.myshopify.com" }, { name: "accessToken", label: t("fields.access_token"), type: "password", placeholder: "shpat_…" }, { name: "apiSecret", label: t("fields.api_secret"), type: "password" }]
-    : provider === "anthropic"
+  const fields: { name: string; label: string; type?: string; placeholder?: string }[] = provider === "anthropic"
       ? [{ name: "apiKey", label: t("fields.api_key"), type: "password", placeholder: "sk-ant-…" }]
       : provider === "address"
         ? [{ name: "apiKey", label: t("fields.google_api_key"), type: "password", placeholder: "AIza…" }]
@@ -111,11 +114,6 @@ function ConnectForm({ slug, provider, mock, onDone }: { slug: string; provider:
           {provider === "tiktok" && (
             <p className="text-xs text-muted-foreground sm:col-span-2">
               {t("tiktok_app_hint")} <a className="underline" href={`/api/integrations/tiktok/oauth/start?tenant=${slug}`}>{t("tiktok_app_link")}</a>
-            </p>
-          )}
-          {provider === "shopify" && (
-            <p className="text-xs text-muted-foreground sm:col-span-2">
-              {t("public_app_hint")} <a className="underline" href={`/api/integrations/shopify/oauth/start?tenant=${slug}&shop=`}>{t("public_app_link")}</a>
             </p>
           )}
           {state && !state.ok && (
