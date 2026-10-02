@@ -1,6 +1,6 @@
 import { and, eq, gte, isNull, lt, schema, sql } from "@keel/db";
 import { dashboardPeriod, orderPnl, previousPeriod, projectMonthEnd, type Granularity, type Period } from "@keel/core";
-import { WIDGETS, WIDGET_SETTINGS, isCustomMetricRef, isWidgetAvailable, isWidgetVisible, metricDefinition, type DashboardWidget, type MetricFormat, type TenantRole, type WidgetSettings, type WidgetType } from "@keel/config";
+import { AD_PLATFORMS, WIDGETS, WIDGET_SETTINGS, isCustomMetricRef, isWidgetAvailable, isWidgetVisible, metricDefinition, type DashboardWidget, type MetricFormat, type TenantRole, type WidgetSettings, type WidgetType } from "@keel/config";
 import type { ServiceContext } from "../context";
 import { dashboardSummary, productPerformance, orderEconomicsForPeriod, type AnalyticsTenant, type DashboardSummary } from "../analytics";
 import { monthEndForecast, type MonthForecast } from "../analytics/depth";
@@ -147,7 +147,7 @@ const topList: WidgetLoader = async (ctx, env, { settings, period }) => {
 };
 
 /** Metrics that add up over days (a month-end projection grows them); rates, ratios and averages do not. */
-const ADDITIVE = new Set(["net_revenue", "gross_revenue", "orders", "ad_spend", "cogs", "gross_margin", "shipping", "fees", "fixed_costs", "contribution", "operating_profit", "refunds", "new_customers", "return_cost", "meta_spend", "google_spend"]);
+const ADDITIVE = new Set(["net_revenue", "gross_revenue", "orders", "ad_spend", "cogs", "gross_margin", "shipping", "fees", "fixed_costs", "contribution", "operating_profit", "refunds", "new_customers", "return_cost", ...AD_PLATFORMS.map((p) => `${p}_spend`)]);
 
 const target: WidgetLoader = async (ctx, env, { settings }) => {
   const s = settings as WidgetSettings<"target">;

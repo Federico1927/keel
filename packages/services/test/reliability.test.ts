@@ -200,15 +200,16 @@ describe("audit retention and viewer filters (#32)", () => {
     await db().execute(sql`insert into audit_logs (tenant_id, actor_type, action, entity_type, entity_id, created_at) select ${harbor}::uuid, 'system', 'test.old', 'order', 'o-' || g, ${old} from generate_series(1, 2500) g`);
     await db().insert(schema.auditLogs).values({ tenantId: harbor, actorType: "system", action: "test.recent", entityType: "order", entityId: "o-recent", createdAt: recent });
     const [res] = await purgeExpiredAudit(db(), { now, batchSize: 1000, tenantIds: [harbor] });
-    expect(res).toMatchObject({ tenantId: harbor, retentionDays: 180, batches: 3 });
+    // other suites may leave old audit rows of their own: the batches follow what was actually deleted
+    expect(res).toMatchObject({ tenantId: harbor, retentionDays: 180, batches: Math.ceil(res!.deleted / 1000) });
     expect(res!.deleted).toBeGreaterThanOrEqual(2500);
     const left = await db().select({ action: schema.auditLogs.action }).from(schema.auditLogs).where(and(eq(schema.auditLogs.tenantId, harbor), sql`${schema.auditLogs.action} like 'test.%'`));
     expect(left.map((l) => l.action)).toEqual(["test.recent"]);
     const [run] = await db().select().from(schema.jobRuns).where(and(eq(schema.jobRuns.jobType, "audit.retention"), eq(schema.jobRuns.tenantId, harbor), sql`${schema.jobRuns.summary}->>'seed' is null`)).orderBy(desc(schema.jobRuns.startedAt)).limit(1);
     expect(run).toMatchObject({ status: "succeeded", rows: res!.deleted });
-    expect(run!.summary).toMatchObject({ batches: 3, retentionDays: 180 });
+    expect(run!.summary).toMatchObject({ batches: res!.batches, retentionDays: 180 });
     const [trace] = await db().select().from(schema.auditLogs).where(and(eq(schema.auditLogs.tenantId, harbor), eq(schema.auditLogs.action, "audit.retention_purged")));
-    expect(trace!.metadata).toMatchObject({ deleted: res!.deleted, batches: 3 });
+    expect(trace!.metadata).toMatchObject({ deleted: res!.deleted, batches: res!.batches });
     // a second run finds nothing and still leaves its record
     const [again] = await purgeExpiredAudit(db(), { now, batchSize: 1000, tenantIds: [harbor] });
     expect(again).toMatchObject({ deleted: 0, batches: 0 });

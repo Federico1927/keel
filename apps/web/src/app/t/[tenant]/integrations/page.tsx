@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canDo } from "@keel/config";
+import { adPlatformMinPlan, canDo, isAdPlatform, isAdPlatformInPlan } from "@keel/config";
 import { formatDateTime, formatNumber } from "@keel/core";
 import { integrationMode } from "@keel/integrations";
 import { integrationOverview, platformWritesOverview } from "@keel/services";
@@ -10,7 +10,7 @@ import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { ProviderActions, WebhookControls, WebhookRowAction } from "./controls";
 import { GoogleWriteAccessToggle } from "./write-access";
 
-const PROVIDERS = ["shopify", "meta", "google", "anthropic"] as const;
+const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic"] as const;
 const SLOTS = ["messaging", "warehouse", "carrier"] as const;
 
 export default async function IntegrationsPage({ params }: { params: Promise<{ tenant: string }> }) {
@@ -18,6 +18,7 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
   const ctx = await requirePage(tenant, "integrations");
   const t = await getTranslations("integrations");
   const tw = await getTranslations("platform_writes");
+  const tp = await getTranslations("plans");
   const { data, writes } = await ctx.run(async (tx) => {
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
     return { data: await integrationOverview(s), writes: await platformWritesOverview(s, { limit: 15 }) };
@@ -35,6 +36,18 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
       )}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {PROVIDERS.map((p) => {
+          // an ad platform outside the plan (TikTok below Growth): a locked card, no actions, no guide
+          if (isAdPlatform(p) && !isAdPlatformInPlan(p, ctx.tenant.planKey)) return (
+            <Card key={p} data-testid={`provider-${p}`} data-locked="true" className="border-dashed">
+              <CardHeader>
+                <div className="flex items-center justify-between gap-2">
+                  <CardTitle className="text-base">{t(`providers.${p}`)}</CardTitle>
+                  <Badge variant="muted">{t("not_in_plan_badge")}</Badge>
+                </div>
+                <CardDescription>{t("not_in_plan", { plan: tp(adPlatformMinPlan(p) ?? "growth") })}</CardDescription>
+              </CardHeader>
+            </Card>
+          );
           const row = data.integrations.find((i) => i.provider === p);
           const health = data.health.filter((h) => h.source === p || h.source.startsWith(`${p}:`));
           const connected = !!row && row.status !== "not_connected";

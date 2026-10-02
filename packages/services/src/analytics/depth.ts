@@ -1,5 +1,5 @@
 import { and, eq, gte, lt, lte, schema, sql } from "@keel/db";
-import { blendedMetrics, forecastMonthEnd, monthKey, monthRange, monthsBetween, type BlendedMetrics, type Forecast, type Period } from "@keel/core";
+import { AD_PLATFORM_CHANNEL, blendedMetrics, forecastMonthEnd, monthKey, monthRange, monthsBetween, type BlendedMetrics, type Forecast, type Period } from "@keel/core";
 import type { ServiceContext } from "../context";
 import { dailySeries, orderEconomicsForPeriod, pnlForPeriod, type AnalyticsTenant } from "./index";
 
@@ -72,7 +72,7 @@ async function firstOrdersInPeriod(ctx: ServiceContext, period: Period): Promise
   return rows.rows.map((r) => ({ orderId: r.order_id, channel: r.channel ?? "unknown" }));
 }
 
-const PLATFORM_CHANNEL: Record<string, string> = { meta: "paid_social", google: "paid_search" };
+const PLATFORM_CHANNEL: Readonly<Record<string, string>> = AD_PLATFORM_CHANNEL;
 
 export async function blendedForPeriod(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period): Promise<BlendedReport> {
   const [pnl, firsts, econ] = [await pnlForPeriod(ctx, tenant, period), await firstOrdersInPeriod(ctx, period), await orderEconomicsForPeriod(ctx, tenant, period)];

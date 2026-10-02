@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { isAdPlatformInPlan } from "@keel/config";
 import { formatMoney, formatNumber } from "@keel/core";
 import { and, eq, schema } from "@keel/db";
 import { adRows, campaignAdSets, keywordRows, searchTermRows } from "@keel/services";
@@ -25,7 +26,7 @@ export default async function AdSetPage({ params, searchParams }: { params: Prom
     const [sets, ads, keywords, terms] = await Promise.all([campaignAdSets(s, at, period, id), adRows(s, at, period, { adSetId }), keywordRows(s, at, period, { adSetId, sort: "spend" }), searchTermRows(s, at, period, { adSetId, sort: "spend" })]);
     return { set, row: sets.rows.find((r) => r.id === adSetId)!, ads, keywords, terms };
   });
-  if (!data) notFound();
+  if (!data || !isAdPlatformInPlan(data.set.s.platform, ctx.tenant.planKey)) notFound();
   const { set, row, ads, keywords, terms } = data;
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   const qs = new URLSearchParams(Object.entries(periodParams(period, sp)).filter((e): e is [string, string] => Boolean(e[1]))).toString();
@@ -35,7 +36,7 @@ export default async function AdSetPage({ params, searchParams }: { params: Prom
   return (
     <DetailShell
       back={<Link href={`${base}/${id}?${qs}`} className="hover:underline">← {set.campaignName}</Link>}
-      eyebrow={`${set.s.platform.toUpperCase()} · ${t(google ? "ad_group" : "ad_set")} · ${set.s.externalId}`}
+      eyebrow={`${set.s.platform.toUpperCase()} · ${t(set.s.platform === "meta" ? "ad_set" : "ad_group")} · ${set.s.externalId}`}
       title={set.s.name}
       chips={<Badge variant={set.s.status === "active" ? "success" : "muted"}>{t(`status.${set.s.status}`)}</Badge>}
       actions={<PeriodPicker basePath={`${base}/${id}/adsets/${adSetId}`} preset={period.preset} from={sp.from} to={sp.to} />}

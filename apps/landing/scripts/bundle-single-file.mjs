@@ -40,7 +40,7 @@ const MIME = {
 const messages = JSON.parse(
   readFileSync(join(process.cwd(), "messages", `${locale}.json`), "utf8"),
 );
-const INTL = { en: "en-US", it: "it-IT" }[locale] ?? locale;
+const INTL = { en: "en-US", it: "it-IT", es: "es-ES" }[locale] ?? locale;
 const price = (n) =>
   new Intl.NumberFormat(INTL, {
     style: "currency",
@@ -108,7 +108,7 @@ const priceBlocks = PLANS.map((plan) => {
     const founding = FOUNDING_OFFER.enabled && !annual;
     const shown = founding ? Math.round(base * (1 - FOUNDING_OFFER.discountPercent / 100)) : base;
     return (
-      `<p class="flex items-baseline gap-1"><span class="font-serif text-4xl tabular">${price(shown)}</span><span class="text-sm text-muted-foreground">${esc(t.per_month)}</span></p>` +
+      `<p class="flex items-baseline gap-1"><span class="text-4xl font-semibold tracking-tight tabular">${price(shown)}</span><span class="text-sm text-muted-foreground">${esc(t.per_month)}</span></p>` +
       (founding
         ? `<p class="mt-1 text-xs text-muted-foreground line-through">${esc(fill(t.list_price, { price: price(base) }))}</p>`
         : "") +
@@ -138,7 +138,7 @@ const script = `
   if (group) {
     var btns = group.querySelectorAll("button"), cards = document.querySelectorAll("#pricing > div > ul > li"), banner = group.parentElement.querySelector(".rounded-md.border.px-4");
     function setAnnual(annual) {
-      btns.forEach(function (b, i) { var on = (i === 1) === annual; b.setAttribute("aria-pressed", String(on)); b.classList.toggle("bg-foreground", on); b.classList.toggle("text-background", on); b.classList.toggle("text-muted-foreground", !on); });
+      btns.forEach(function (b, i) { var on = (i === 1) === annual; b.setAttribute("aria-pressed", String(on)); b.classList.toggle("bg-primary", on); b.classList.toggle("text-primary-foreground", on); b.classList.toggle("text-muted-foreground", !on); });
       cards.forEach(function (card, i) { var b = blocks[i]; if (!b) return; card.querySelector(".min-h-20").innerHTML = annual ? b.annual : b.monthly; });
       if (banner) { banner.classList.toggle("opacity-70", annual); }
     }
@@ -148,14 +148,14 @@ const script = `
   // Carousel.
   var region = document.querySelector('[aria-roledescription="carousel"]');
   if (region) {
-    var track = region.querySelector("ul"), slides = Array.prototype.slice.call(track.children), tabs = region.querySelectorAll('[role="tab"]'), dots = region.querySelectorAll('[aria-hidden="true"] > button');
+    var track = region.querySelector("[data-carousel-track]"), slides = Array.prototype.slice.call(track.children), tabs = region.querySelectorAll('[role="tab"]'), dots = region.querySelectorAll('[aria-hidden="true"] > button');
     var ctl = region.querySelectorAll(".flex.items-center.gap-2 > button"), pauseBtn = ctl[0], prevBtn = ctl[1], nextBtn = ctl[2], counter = region.querySelector('[aria-live="polite"]');
     var index = 0, autoplay = true, paused = false, total = slides.length, timer = null;
     var pauseIcon = pauseBtn.innerHTML, playIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>';
     var labels = ${JSON.stringify({ pause: messages.modules.pause, play: messages.modules.play, slide: messages.modules.slide })};
     function render() {
-      tabs.forEach(function (tab, i) { var on = i === index; tab.setAttribute("aria-selected", String(on)); tab.classList.toggle("border-foreground", on); tab.classList.toggle("bg-foreground", on); tab.classList.toggle("text-background", on); tab.classList.toggle("border-border", !on); tab.classList.toggle("bg-card", !on); tab.classList.toggle("text-muted-foreground", !on); });
-      dots.forEach(function (d, i) { var on = i === index; d.classList.toggle("w-6", on); d.classList.toggle("bg-foreground", on); d.classList.toggle("w-1.5", !on); d.classList.toggle("bg-border", !on); });
+      tabs.forEach(function (tab, i) { var on = i === index; tab.setAttribute("aria-selected", String(on)); tab.classList.toggle("border-primary", on); tab.classList.toggle("bg-primary", on); tab.classList.toggle("text-primary-foreground", on); tab.classList.toggle("border-border", !on); tab.classList.toggle("bg-card", !on); tab.classList.toggle("text-muted-foreground", !on); });
+      dots.forEach(function (d, i) { var on = i === index; d.classList.toggle("w-6", on); d.classList.toggle("bg-primary", on); d.classList.toggle("w-1.5", !on); d.classList.toggle("bg-border", !on); });
       counter.textContent = labels.slide.replace("{n}", index + 1).replace("{total}", total);
       pauseBtn.innerHTML = autoplay ? pauseIcon : playIcon; pauseBtn.setAttribute("aria-label", autoplay ? labels.pause : labels.play); pauseBtn.setAttribute("aria-pressed", String(!autoplay));
     }

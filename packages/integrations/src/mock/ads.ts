@@ -1,4 +1,4 @@
-import { splitExact } from "@keel/core";
+import { splitExact, type AdPlatform } from "@keel/core";
 import { IntegrationError, type AdEntityMetricLevel, type AdsCapabilities, type AdsPlatform, type ConnectionTest, type NegativeKeywordInput, type NormalizedAd, type NormalizedAdAsset, type NormalizedAdMetric, type NormalizedAdSet, type NormalizedCampaign, type NormalizedEntityMetric, type NormalizedKeyword } from "../types";
 import { FailureScript } from "./failures";
 
@@ -13,16 +13,18 @@ export interface MockAdsStructure {
 }
 
 export interface MockAdsOptions {
-  provider: "meta" | "google";
+  provider: AdPlatform;
   /** Kept for compatibility: metrics are a stable hash of campaign and day. */
   seed?: number;
   currency: string;
   campaigns: NormalizedCampaign[];
   /** Approximate daily spend per campaign, minor units. */
   dailySpendMinor?: number;
+  /** Spend around each campaign's daily budget instead (TikTok: a resync keeps the seeded winners and losers). */
+  budgetSpend?: boolean;
   readOnly?: boolean;
   structure?: MockAdsStructure;
-  /** Google: the tenant granted the write scope (pause ads, negative keywords). Meta can always write. */
+  /** Google: the tenant granted the write scope (pause ads, negative keywords). Meta and TikTok can always write. */
   adWrites?: boolean;
 }
 
@@ -37,6 +39,34 @@ function unit(key: string): number {
 }
 
 const MODIFIERS = ["", "sale", "best", "cheap", "online"];
+
+/** The account id each simulated platform reports (the seed uses the same ones). */
+export const MOCK_ACCOUNT_IDS: Readonly<Record<AdPlatform, string>> = { meta: "act_demo", google: "123-456-7890", tiktok: "7100000000000000001" };
+
+/**
+ * A small demo account for a simulated platform the tenant has no data for yet (a new store connecting
+ * TikTok in mock mode): four campaigns, two ad groups each, two video ads per ad group, deterministic
+ * per tenant so a second connection shows the same account.
+ */
+export function mockDemoAdsAccount(provider: AdPlatform, opts: { key: string; currency: string; landingBase: string }): { campaigns: NormalizedCampaign[]; structure: MockAdsStructure } {
+  const base = 1780000000000000 + Math.floor(unit(`${opts.key}|${provider}`) * 1e9) * 1000;
+  const names = ["Spark Ads – bestsellers", "Prospecting – broad", "Retargeting 14d", "New arrivals – Smart+"];
+  const campaigns: NormalizedCampaign[] = names.map((name, i) => ({ externalId: String(base + 100 + i), accountExternalId: MOCK_ACCOUNT_IDS[provider], name, status: i === 2 ? "paused" : "active", objective: "WEB_CONVERSIONS", dailyBudgetMinor: 3000 + i * 1500, currency: opts.currency, platformCreatedAt: new Date(Date.UTC(2026, 0, 10 + i * 7)) }));
+  const structure: MockAdsStructure = { adSets: [], ads: [], assets: [], keywords: [] };
+  campaigns.forEach((c, i) => {
+    for (let g = 0; g < 2; g++) {
+      const setId = String(base + 1000 + i * 10 + g);
+      structure.adSets.push({ externalId: setId, campaignExternalId: c.externalId, name: g ? "Interest – lifestyle" : "Broad 18-44", status: "active", optimizationGoal: "CONVERT", dailyBudgetMinor: null });
+      for (let a = 0; a < 2; a++) {
+        const adId = String(base + 2000 + i * 100 + g * 10 + a);
+        const videoId = `v-mock-${adId}`;
+        structure.ads.push({ externalId: adId, adSetExternalId: setId, campaignExternalId: c.externalId, name: `${a ? "UGC review" : "Try-on haul"} | hook ${g + 1}`, status: "active", format: "video", headline: null, body: a ? "Real customers, real fit. Free returns." : "See it moving before you buy. Ships in 24h.", finalUrl: `${opts.landingBase}/collections/new?utm_source=tiktok&utm_medium=paid_social&utm_campaign=__CAMPAIGN_ID__&utm_content=__CID__&utm_term=__AID__`, urlTags: "utm_source=tiktok&utm_medium=paid_social&utm_campaign=__CAMPAIGN_ID__&utm_content=__CID__&utm_term=__AID__", thumbnailUrl: null });
+        structure.assets.push({ assetExternalId: videoId, adExternalId: adId, adSetExternalId: setId, campaignExternalId: c.externalId, type: "video", fieldType: "video", text: null, url: null, performanceLabel: null });
+      }
+    }
+  });
+  return { campaigns, structure };
+}
 
 export class MockAdsPlatform implements AdsPlatform {
   readonly provider: string;
@@ -54,11 +84,12 @@ export class MockAdsPlatform implements AdsPlatform {
     this.s = opts.structure ?? { adSets: [], ads: [], assets: [], keywords: [] };
     for (const a of this.s.ads) this.adStatuses.set(a.externalId, a.status);
     const google = opts.provider === "google";
-    this.capabilities = { supportsKeywords: google, supportsSearchTerms: google, supportsAssetBreakdown: true, supportsAdWrites: google ? opts.adWrites === true : !opts.readOnly };
+    // TikTok, like the live adapter: no keywords, no search terms, no per-asset reporting
+    this.capabilities = { supportsKeywords: google, supportsSearchTerms: google, supportsAssetBreakdown: opts.provider !== "tiktok", supportsAdWrites: google ? opts.adWrites === true : !opts.readOnly };
   }
   async testConnection(): Promise<ConnectionTest> {
     this.failures.check();
-    return { ok: true, accountName: `Mock ${this.opts.provider} account`, accountId: this.opts.provider === "meta" ? "act_mock" : "123-456-7890" };
+    return { ok: true, accountName: `Mock ${this.opts.provider} account`, accountId: MOCK_ACCOUNT_IDS[this.opts.provider] };
   }
   async fetchCampaigns(): Promise<NormalizedCampaign[]> {
     this.failures.check();
@@ -75,7 +106,8 @@ export class MockAdsPlatform implements AdsPlatform {
   /** The campaign's day: the same numbers whichever level asks, so ad sets, ads, keywords and terms add up to it. */
   private campaignDay(campaignExternalId: string, date: string): NormalizedAdMetric {
     const r = (k: string) => unit(`${campaignExternalId}|${date}|${k}`);
-    const spend = Math.round((this.opts.dailySpendMinor ?? 5000) * (0.6 + r("s") * 0.8));
+    const daily = (this.opts.budgetSpend ? this.opts.campaigns.find((c) => c.externalId === campaignExternalId)?.dailyBudgetMinor : null) ?? this.opts.dailySpendMinor ?? 5000;
+    const spend = Math.round(daily * (0.6 + r("s") * 0.8));
     const impressions = Math.round(spend / 8);
     const clicks = Math.round(impressions * (0.01 + r("c") * 0.02));
     return { campaignExternalId, date, spendMinor: spend, impressions, clicks, viewContent: Math.round(clicks * 0.6), purchases: Math.round(clicks * 0.03), purchaseValueMinor: Math.round(clicks * 0.03 * 6500) };

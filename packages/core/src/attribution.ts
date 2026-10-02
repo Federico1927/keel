@@ -1,3 +1,5 @@
+import type { AdPlatform } from "@keel/config";
+
 /** UTM and click-id extraction from what the commerce platform stores on an order; no vendor-specific params. */
 export const CLICK_ID_KEYS = ["fbclid", "gclid", "gbraid", "wbraid", "ttclid", "msclkid", "epik", "li_fat_id"] as const;
 export type ClickIdKey = (typeof CLICK_ID_KEYS)[number];
@@ -80,6 +82,22 @@ export function deriveChannel(a: Attribution, referringSite: string | null, sour
   return "direct";
 }
 
+/** The ad platform a click id belongs to (only platforms Keel imports spend from). */
+export const CLICK_ID_PLATFORM: Readonly<Partial<Record<ClickIdKey, AdPlatform>>> = { fbclid: "meta", gclid: "google", gbraid: "google", wbraid: "google", ttclid: "tiktok" };
+/** `utm_source` values each ad platform's templates write. */
+export const AD_PLATFORM_UTM_SOURCES: Readonly<Record<AdPlatform, readonly string[]>> = { meta: ["facebook", "instagram", "fb", "ig", "meta"], google: ["google"], tiktok: ["tiktok"] };
+/** Channel an ad platform's paid traffic belongs to. */
+export const AD_PLATFORM_CHANNEL: Readonly<Record<AdPlatform, AttributionChannel>> = { meta: "paid_social", google: "paid_search", tiktok: "paid_social" };
+
+/** The ad platform an order's click ids (first) or UTM source point to, if any. */
+export function adPlatformOf(a: Pick<Attribution, "clickIds" | "utmSource">): AdPlatform | null {
+  for (const [key, platform] of Object.entries(CLICK_ID_PLATFORM) as [ClickIdKey, AdPlatform][]) if (a.clickIds[key]) return platform;
+  const source = (a.utmSource ?? "").trim().toLowerCase();
+  if (!source) return null;
+  for (const [platform, sources] of Object.entries(AD_PLATFORM_UTM_SOURCES) as [AdPlatform, readonly string[]][]) if (sources.includes(source)) return platform;
+  return null;
+}
+
 export interface CampaignRef {
   id: string;
   externalId: string;
@@ -91,10 +109,10 @@ export function normalizeCampaignName(s: string): string {
   return s.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
 }
 
-/** Campaign by platform id (utm_id / numeric utm_campaign) first, then by normalized name; platform inferred from the click id when present. */
+/** Campaign by platform id (utm_id / numeric utm_campaign) first, then by normalized name; platform inferred from the click id (or the UTM source) when present. */
 export function matchCampaign(a: Attribution, campaigns: CampaignRef[]): CampaignRef | null {
   if (!campaigns.length) return null;
-  const preferred = a.clickIds.fbclid ? "meta" : a.clickIds.gclid || a.clickIds.gbraid || a.clickIds.wbraid ? "google" : null;
+  const preferred = adPlatformOf(a);
   const ordered = preferred ? [...campaigns.filter((c) => c.platform === preferred), ...campaigns.filter((c) => c.platform !== preferred)] : campaigns;
   for (const candidate of [a.utmId, a.utmCampaign]) {
     if (candidate && /^\d{6,}$/.test(candidate)) {

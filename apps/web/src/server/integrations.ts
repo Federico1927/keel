@@ -1,4 +1,5 @@
 import { getAdsPlatformFor, getCommercePlatformFor, resetMockPlatforms } from "@keel/services";
+import type { AdPlatform } from "@keel/core";
 import type { AdsPlatform, CommercePlatform } from "@keel/integrations";
 import type { TenantContext } from "./tenant";
 
@@ -7,7 +8,7 @@ export async function getCommercePlatform(ctx: TenantContext): Promise<CommerceP
   return ctx.run((tx) => getCommercePlatformFor({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, ctx.tenant));
 }
 
-export async function getAdsPlatform(ctx: TenantContext, provider: "meta" | "google"): Promise<AdsPlatform> {
+export async function getAdsPlatform(ctx: TenantContext, provider: AdPlatform): Promise<AdsPlatform> {
   return ctx.run((tx) => getAdsPlatformFor({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, ctx.tenant, provider));
 }
 

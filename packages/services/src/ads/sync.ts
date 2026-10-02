@@ -2,7 +2,7 @@ import { and, desc, eq, inArray, schema, sql, type SQL } from "@keel/db";
 import { OTHER_SEARCH_TERM, isNoiseTerm, normalizeSearchText, splitDateWindows, type AdEntityLevel } from "@keel/core";
 import { IntegrationError, NO_ADS_CAPABILITIES, type AdsPlatform, type NormalizedEntityMetric } from "@keel/integrations";
 import type { ServiceContext } from "../context";
-import { recordHealth } from "../sync";
+import { recordHealth, runAdsSync } from "../sync";
 
 /**
  * Ads below the campaign (issue #40): ad sets, ads, assets, keywords and search terms with daily
@@ -272,4 +272,31 @@ export async function runAdsEntitySync(ctx: ServiceContext, platform: AdsPlatfor
     await recordHealth(ctx, `${provider}:entities`, false, { error, touchIntegration: false });
     return result(false, error);
   }
+}
+
+export interface AdsBackfillResult {
+  campaigns: number;
+  metrics: number;
+  /** Ad sets, ads, assets and the entity-level metric rows written so far. */
+  counts: Record<string, number>;
+  /** False when the entity run paused (budget or rate limit): the `sync.ads` job resumes it. */
+  finished: boolean;
+  rateLimited: boolean;
+  retryAfterMs: number | null;
+  error: string | null;
+}
+
+/**
+ * First import after connecting an ads platform: campaigns and daily metrics over the last `days`
+ * days, then ad sets / ad groups, ads and their daily metrics in resumable 7-day windows (kind
+ * `backfill`, so a paused delta run of the same platform is never confused with it).
+ */
+export async function runAdsBackfill(ctx: ServiceContext, platform: AdsPlatform, opts: { days?: number; budgetMs?: number; minImpressions?: number } = {}): Promise<AdsBackfillResult> {
+  const now = ctx.now ?? new Date();
+  const until = now.toISOString().slice(0, 10);
+  const since = new Date(now.getTime() - ((opts.days ?? 90) - 1) * 864e5).toISOString().slice(0, 10);
+  const c = await runAdsSync(ctx, platform, { since, until });
+  if (c.error) return { campaigns: c.campaigns, metrics: c.metrics, counts: {}, finished: false, rateLimited: false, retryAfterMs: null, error: c.error };
+  const e = await runAdsEntitySync(ctx, platform, { since, until, kind: "backfill", budgetMs: opts.budgetMs ?? 20_000, minImpressions: opts.minImpressions });
+  return { campaigns: c.campaigns, metrics: c.metrics, counts: e.counts, finished: e.finished, rateLimited: e.rateLimited, retryAfterMs: e.retryAfterMs, error: e.error };
 }

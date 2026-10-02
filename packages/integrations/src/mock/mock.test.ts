@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MockCommercePlatform } from "./commerce";
-import { MockAdsPlatform } from "./ads";
+import { MOCK_ACCOUNT_IDS, MockAdsPlatform, mockDemoAdsAccount } from "./ads";
 import { MockAddressProvider } from "./address";
 import { MockCarrierProvider } from "./slots";
 import { IntegrationError } from "../types";
@@ -235,3 +235,42 @@ describe("MockAdsPlatform below the campaign", () => {
     expect((await meta.fetchAds()).find((a) => a.externalId === "a1")!.status).toBe("paused");
   });
 });
+
+describe("MockAdsPlatform as TikTok", () => {
+  const demo = mockDemoAdsAccount("tiktok", { key: "tenant-1", currency: "EUR", landingBase: "https://shop.example" });
+  const window = { since: "2026-07-01", until: "2026-09-28" };
+
+  it("builds a deterministic demo account: campaigns, ad groups, video ads with the TikTok UTM template", () => {
+    expect(mockDemoAdsAccount("tiktok", { key: "tenant-1", currency: "EUR", landingBase: "https://shop.example" })).toEqual(demo);
+    expect(demo.campaigns).toHaveLength(4);
+    expect(demo.structure.adSets).toHaveLength(8);
+    expect(demo.structure.ads).toHaveLength(16);
+    expect(demo.structure.ads.every((a) => a.format === "video" && a.urlTags!.includes("utm_content=__CID__"))).toBe(true);
+    expect(demo.structure.assets.every((a) => a.type === "video")).toBe(true);
+    expect(mockDemoAdsAccount("tiktok", { key: "tenant-2", currency: "EUR", landingBase: "https://shop.example" }).campaigns[0]!.externalId).not.toBe(demo.campaigns[0]!.externalId);
+  });
+
+  it("declares TikTok's capabilities, reports 90 days that reconcile across levels, pauses and simulates errors", async () => {
+    const p = new MockAdsPlatform({ provider: "tiktok", currency: "EUR", campaigns: demo.campaigns, structure: demo.structure });
+    expect(p.capabilities).toEqual({ supportsKeywords: false, supportsSearchTerms: false, supportsAssetBreakdown: false, supportsAdWrites: true });
+    expect(await p.testConnection()).toMatchObject({ ok: true, accountId: MOCK_ACCOUNT_IDS.tiktok });
+    const days = await p.fetchDailyMetrics(window);
+    const active = demo.campaigns.filter((c) => c.status === "active").length;
+    expect(days).toHaveLength(active * 90);
+    const ads = await p.fetchEntityMetrics("ad", window);
+    const sets = await p.fetchEntityMetrics("ad_set", window);
+    const total = (rows: { spendMinor: number }[]) => rows.reduce((s, r) => s + r.spendMinor, 0);
+    expect(total(ads)).toBe(total(days));
+    expect(total(sets)).toBe(total(days));
+    expect(await p.fetchEntityMetrics("keyword", window)).toEqual([]);
+    expect(await p.fetchKeywords()).toEqual([]);
+    await p.setCampaignStatus(demo.campaigns[0]!.externalId, "paused");
+    await p.setAdStatus({ adExternalId: demo.structure.ads[0]!.externalId, adSetExternalId: null }, "paused");
+    expect(p.writeLog.map((w) => w.op)).toEqual(["setCampaignStatus", "setAdStatus"]);
+    p.failures.failNext("rate_limited");
+    await expect(p.fetchEntityMetrics("ad", window)).rejects.toMatchObject({ code: "rate_limited" });
+    p.failures.failNext("token_expired");
+    await expect(p.fetchCampaigns()).rejects.toMatchObject({ code: "token_expired" });
+  });
+});
+

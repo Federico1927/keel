@@ -1,12 +1,13 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { AD_PLATFORM_LABELS } from "@keel/config";
 import { Ban, Pause, Play } from "lucide-react";
 import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Label, Select } from "@keel/ui";
 import { addNegativeKeywordAction, setAdStatusAction } from "@/server/actions/ads";
 import type { ActionResult } from "@/server/action-result";
 
-const PLATFORM_LABEL: Record<string, string> = { meta: "Meta", google: "Google Ads" };
+const PLATFORM_LABEL: Readonly<Record<string, string>> = AD_PLATFORM_LABELS;
 
 /** Pause or resume one ad on the platform, after an explicit confirmation; the write goes through the outbox. */
 export function AdStatusButton({ slug, adId, platform, status, canWrite }: { slug: string; adId: string; platform: string; status: string; canWrite: boolean }) {

@@ -2,8 +2,8 @@ import Link from "next/link";
 import { ProductThumb } from "@/components/product-thumb";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { canDo, canWritePage } from "@keel/config";
-import { ADS_UTM_TEMPLATES, UTM_NONE, formatDate, formatMoney, formatNumber, formatPercent } from "@keel/core";
+import { canDo, canWritePage, isAdPlatformInPlan } from "@keel/config";
+import { ADS_UTM_TEMPLATES, UTM_NONE, type AdPlatform, formatDate, formatMoney, formatNumber, formatPercent } from "@keel/core";
 import { and, eq, schema } from "@keel/db";
 import { adRows, campaignAdSets, catalogThumbnails, campaignDailyLedger, campaignLinkSuggestions, campaignsWithEconomics, latestPlatformWrites, summarizeByProduct, variantStock } from "@keel/services";
 import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DetailShell, EmptyState, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
@@ -43,7 +43,8 @@ export default async function CampaignDetailPage({ params, searchParams }: { par
     const thumbs = (await catalogThumbnails(s, { productIds })).products;
     return { row, ledger, suggestions: suggestions.find((g) => g.campaignId === id)?.suggestions ?? [], products, stock, platformWrite, adSets, ads, thumbs };
   });
-  if (!data) notFound();
+  // a campaign of an ad platform outside the plan (TikTok below Growth) is unreachable, even by URL
+  if (!data || !isAdPlatformInPlan(data.row.platform, ctx.tenant.planKey)) notFound();
   const { row, ledger, suggestions, products, stock, platformWrite, adSets, ads, thumbs } = data;
   const missingUtm = ads.rows.filter((a) => !a.utm.ok);
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
@@ -138,7 +139,7 @@ export default async function CampaignDetailPage({ params, searchParams }: { par
 
       <Card className="mt-6" data-testid="ad-sets">
         <CardHeader>
-          <CardTitle className="text-base">{ta(row.platform === "google" ? "ad_groups_title" : "ad_sets_title")}</CardTitle>
+          <CardTitle className="text-base">{ta(row.platform === "meta" ? "ad_sets_title" : "ad_groups_title")}</CardTitle>
           <CardDescription>{ta("ad_sets_description")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 p-0">
@@ -146,7 +147,7 @@ export default async function CampaignDetailPage({ params, searchParams }: { par
             <Alert className="mx-4" data-testid="utm-missing">
               <AlertDescription className="space-y-1">
                 <p>{ta("utm_missing", { n: missingUtm.length, total: ads.rows.length, params: [...new Set(missingUtm.flatMap((a) => a.utm.missing))].join(", ") })}</p>
-                <code className="block break-all rounded bg-muted p-2 text-xs">{ADS_UTM_TEMPLATES[row.platform as "meta" | "google"] ?? ""}</code>
+                <code className="block break-all rounded bg-muted p-2 text-xs">{ADS_UTM_TEMPLATES[row.platform as AdPlatform] ?? ""}</code>
               </AlertDescription>
             </Alert>
           )}

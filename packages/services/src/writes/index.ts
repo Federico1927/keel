@@ -3,7 +3,8 @@ import { and, desc, eq, inArray, lte, ne, schema, sql } from "@keel/db";
 import { IntegrationError, type AdsPlatform, type CommercePlatform } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 import type { TenantRunner } from "../assistant";
-import { getAdsPlatformFor, getCommercePlatformFor, type PlatformTenant } from "../integrations/factory";
+import type { AdPlatform } from "@keel/core";
+import { AdPlatformNotInPlanError, getAdsPlatformFor, getCommercePlatformFor, type PlatformTenant } from "../integrations/factory";
 import { recordHealth } from "../sync";
 import { writeHandler, type PlatformWriteKind, type PlatformWriteRow, type WritePayload, type WriteResult } from "./registry";
 import "./kinds";
@@ -180,7 +181,15 @@ export async function executePlatformWrite(run: TenantRunner, tenant: PlatformTe
       await ctx.tx.update(schema.platformWrites).set({ status: "failed", lastError: `Unknown write kind ${w.kind}`, lastErrorCode: "unsupported", completedAt: now }).where(eq(schema.platformWrites.id, w.id));
       return null;
     }
-    const adapter: CommercePlatform | AdsPlatform = w.provider === "shopify" ? await getCommercePlatformFor(ctx, tenant) : await getAdsPlatformFor(ctx, tenant, w.provider as "meta" | "google");
+    let adapter: CommercePlatform | AdsPlatform;
+    try {
+      adapter = w.provider === "shopify" ? await getCommercePlatformFor(ctx, tenant) : await getAdsPlatformFor(ctx, tenant, w.provider as AdPlatform);
+    } catch (e) {
+      // a platform the plan no longer includes: the write can never run, so it fails instead of retrying
+      if (!(e instanceof AdPlatformNotInPlanError)) throw e;
+      await ctx.tx.update(schema.platformWrites).set({ status: "failed", lastError: e.message, lastErrorCode: "permission", completedAt: now }).where(eq(schema.platformWrites.id, w.id));
+      return null;
+    }
     const [row] = await ctx.tx.update(schema.platformWrites).set({ status: "running", attempts: w.attempts + 1, startedAt: now, updatedAt: now }).where(eq(schema.platformWrites.id, w.id)).returning();
     return { w: row!, h, adapter };
   });

@@ -16,11 +16,11 @@ export function Problem({ locale }: { locale: LandingLocale }) {
     <Section id="problem" title={t("problem.title")} lead={t("problem.lead")} tone="muted">
       <ul className="grid gap-4 sm:grid-cols-2">
         {ITEMS.map(({ key, Icon }) => (
-          <li key={key} className="rounded-xl border border-border bg-card p-6">
-            <Icon className="size-6 text-primary" aria-hidden="true" />
-            <h3 className="mt-4 font-sans text-lg font-semibold tracking-normal">
-              {t(`problem.items.${key}.title`)}
-            </h3>
+          <li key={key} className="rounded-lg border border-border bg-background p-6">
+            <span className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Icon className="size-5" aria-hidden="true" />
+            </span>
+            <h3 className="mt-4 text-lg font-semibold">{t(`problem.items.${key}.title`)}</h3>
             <p className="mt-2 leading-relaxed text-muted-foreground">
               {t(`problem.items.${key}.body`)}
             </p>

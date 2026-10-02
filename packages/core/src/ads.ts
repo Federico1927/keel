@@ -1,3 +1,4 @@
+import type { AdPlatform } from "@keel/config";
 import { campaignMetrics, type CampaignMetrics } from "./campaigns";
 
 /**
@@ -18,16 +19,20 @@ export const OTHER_SEARCH_TERM = "(other)";
 
 /**
  * UTM templates that tie an order to an ad, ad set or keyword. Meta fills the dynamic parameters in
- * the ad's URL parameters; Google fills ValueTrack parameters in the tracking template.
+ * the ad's URL parameters; Google fills ValueTrack parameters in the tracking template; TikTok fills
+ * its macros in the ad's URL (`__CAMPAIGN_ID__`, `__AID__` = ad group, `__CID__` = ad) [to verify:
+ * macro names in TikTok Ads Manager].
  */
-export const ADS_UTM_TEMPLATES = {
+export const ADS_UTM_TEMPLATES: Readonly<Record<AdPlatform, string>> = {
   meta: "utm_source=facebook&utm_medium=paid&utm_campaign={{campaign.id}}&utm_content={{ad.id}}&utm_term={{adset.id}}",
   google: "{lpurl}?utm_source=google&utm_medium=cpc&utm_campaign={campaignid}&utm_content={creative}&utm_term={keyword}",
-} as const;
+  tiktok: "utm_source=tiktok&utm_medium=paid_social&utm_campaign=__CAMPAIGN_ID__&utm_content=__CID__&utm_term=__AID__",
+};
 
-const REQUIRED_PARAMS: Record<string, { param: "utm_content" | "utm_term"; value: string }[]> = {
+const REQUIRED_PARAMS: Record<AdPlatform, { param: "utm_content" | "utm_term"; value: string }[]> = {
   meta: [{ param: "utm_content", value: "{{ad.id}}" }, { param: "utm_term", value: "{{adset.id}}" }],
   google: [{ param: "utm_content", value: "{creative}" }, { param: "utm_term", value: "{keyword}" }],
+  tiktok: [{ param: "utm_content", value: "__CID__" }, { param: "utm_term", value: "__AID__" }],
 };
 
 export interface UtmCheck {
@@ -37,7 +42,7 @@ export interface UtmCheck {
 
 /** Whether an ad's URL parameters / tracking template / final URL carry the dynamic UTMs Keel needs. */
 export function checkUtmTemplate(platform: string, ...sources: (string | null | undefined)[]): UtmCheck {
-  const required = REQUIRED_PARAMS[platform];
+  const required = REQUIRED_PARAMS[platform as AdPlatform] as (typeof REQUIRED_PARAMS)[AdPlatform] | undefined;
   if (!required) return { ok: true, missing: [] };
   const text = sources.filter(Boolean).join("&").toLowerCase().replace(/\s+/g, "");
   const missing = required.filter((r) => !text.includes(`${r.param}=${r.value.toLowerCase()}`)).map((r) => r.param);
@@ -60,7 +65,8 @@ export interface OrderAdKeys {
 export function orderAdKeys(platform: string, utm: { utmContent: string | null; utmTerm: string | null }): OrderAdKeys {
   const content = utm.utmContent?.trim() || null;
   const term = utm.utmTerm?.trim() || null;
-  if (platform === "meta") return { adExternalId: content, adSetExternalId: term, termText: null };
+  // Meta and TikTok carry the ad set / ad group id in utm_term ({{adset.id}}, __AID__)
+  if (platform === "meta" || platform === "tiktok") return { adExternalId: content, adSetExternalId: term, termText: null };
   if (platform === "google") return { adExternalId: content, adSetExternalId: null, termText: term ? normalizeSearchText(term) : null };
   return { adExternalId: content, adSetExternalId: null, termText: null };
 }

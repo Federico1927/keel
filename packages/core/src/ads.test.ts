@@ -7,12 +7,15 @@ describe("UTM templates", () => {
     expect(checkUtmTemplate("google", null, ADS_UTM_TEMPLATES.google)).toEqual({ ok: true, missing: [] });
     expect(checkUtmTemplate("meta", "utm_source=facebook&utm_campaign={{campaign.id}}")).toEqual({ ok: false, missing: ["utm_content", "utm_term"] });
     expect(checkUtmTemplate("google", "https://shop.example/p?utm_content={creative}")).toEqual({ ok: false, missing: ["utm_term"] });
-    expect(checkUtmTemplate("tiktok", "")).toEqual({ ok: true, missing: [] });
+    expect(checkUtmTemplate("tiktok", ADS_UTM_TEMPLATES.tiktok)).toEqual({ ok: true, missing: [] });
+    expect(checkUtmTemplate("tiktok", "utm_source=tiktok&utm_medium=paid_social&utm_campaign=__CAMPAIGN_ID__&utm_content=__CID__")).toEqual({ ok: false, missing: ["utm_term"] });
+    expect(checkUtmTemplate("snapchat", "")).toEqual({ ok: true, missing: [] });
   });
 
   it("maps an order's UTMs to ad, ad set and keyword per platform", () => {
     expect(orderAdKeys("meta", { utmContent: "2385100001", utmTerm: "120000000000-as1" })).toEqual({ adExternalId: "2385100001", adSetExternalId: "120000000000-as1", termText: null });
     expect(orderAdKeys("google", { utmContent: "6912100003", utmTerm: "  Linen  Shirt " })).toEqual({ adExternalId: "6912100003", adSetExternalId: null, termText: "linen shirt" });
+    expect(orderAdKeys("tiktok", { utmContent: "1780000000000301", utmTerm: "1780000000000201" })).toEqual({ adExternalId: "1780000000000301", adSetExternalId: "1780000000000201", termText: null });
     expect(normalizeSearchText('"+linen +shirt"')).toBe("linen shirt");
     expect(normalizeSearchText("[oak table]")).toBe("oak table");
   });

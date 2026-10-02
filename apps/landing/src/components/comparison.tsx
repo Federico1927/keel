@@ -1,12 +1,13 @@
 import { Check, Minus } from "lucide-react";
 import { Section } from "@/components/ui";
+import { COMPARISON_CLAIMS } from "@/config/claims";
 import { PLANS, STACK_COMPARISON } from "@/config/pricing";
 import { PRODUCT_NAME, type LandingLocale } from "@/config/site";
 import { getTranslator } from "@/i18n/messages";
 import { formatNumber, formatPrice } from "@/lib/format";
 
 const STACK_ITEMS = ["analytics", "inventory", "returns", "spreadsheets", "seats"] as const;
-const KEEL_ITEMS = ["model", "users", "setup", "contract", "addons"] as const;
+const KEEL_ITEMS = Object.keys(COMPARISON_CLAIMS) as (keyof typeof COMPARISON_CLAIMS)[];
 
 export function Comparison({ locale }: { locale: LandingLocale }) {
   const t = getTranslator(locale);
@@ -22,9 +23,9 @@ export function Comparison({ locale }: { locale: LandingLocale }) {
       })}
     >
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <div className="rounded-lg border border-border bg-card p-6 sm:p-8">
           <p className="text-sm font-medium text-muted-foreground">{t("comparison.stack_label")}</p>
-          <p className="mt-3 font-serif text-3xl tabular sm:text-4xl">
+          <p className="mt-3 text-3xl font-semibold tracking-tight tabular sm:text-4xl">
             {t("comparison.stack_price", {
               min: formatPrice(locale, STACK_COMPARISON.minMonthly),
               max: formatPrice(locale, STACK_COMPARISON.maxMonthly),
@@ -40,14 +41,14 @@ export function Comparison({ locale }: { locale: LandingLocale }) {
             ))}
           </ul>
         </div>
-        <div className="rounded-2xl border border-primary/40 bg-primary/5 p-6 sm:p-8">
+        <div className="rounded-lg border border-primary/40 bg-primary/5 p-6 sm:p-8">
           <p className="text-sm font-medium text-primary">
             {t("comparison.keel_label", {
               product: PRODUCT_NAME,
               plan: t(`pricing.plans.${growth.id}.name`),
             })}
           </p>
-          <p className="mt-3 font-serif text-3xl tabular sm:text-4xl">
+          <p className="mt-3 text-3xl font-semibold tracking-tight tabular sm:text-4xl">
             {t("comparison.keel_price", { price })}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">

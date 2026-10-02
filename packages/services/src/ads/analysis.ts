@@ -246,6 +246,8 @@ export async function adRows(ctx: ServiceContext, tenant: AnalyticsTenant, perio
 
 export interface AssetRow {
   id: string;
+  /** Platform id (Google asset, Meta breakdown id, TikTok video id). */
+  assetExternalId: string;
   type: string;
   fieldType: string;
   text: string | null;
@@ -273,7 +275,7 @@ export async function adDetail(ctx: ServiceContext, tenant: AnalyticsTenant, per
   const weak = new Map(assetPauseSuggestions(assets.map((a) => ({ id: a.id, adId, fieldType: a.fieldType, performanceLabel: a.performanceLabel, impressions: metrics.get(a.id)?.impressions ?? 0, clicks: metrics.get(a.id)?.clicks ?? 0 })), { minImpressions: 200 }).map((s) => [s.id, s.reason]));
   const assetRows: AssetRow[] = assets.map((a) => {
     const m = metrics.get(a.id) ?? { ...ZERO_METRICS };
-    return { id: a.id, type: a.type, fieldType: a.fieldType, text: a.textContent, url: a.url, performanceLabel: a.performanceLabel, metrics: m, economics: econ(m, allocated.get(a.id)), suggestion: weak.get(a.id) ?? null };
+    return { id: a.id, assetExternalId: a.assetExternalId, type: a.type, fieldType: a.fieldType, text: a.textContent, url: a.url, performanceLabel: a.performanceLabel, metrics: m, economics: econ(m, allocated.get(a.id)), suggestion: weak.get(a.id) ?? null };
   }).sort((x, y) => x.fieldType.localeCompare(y.fieldType) || y.metrics.spendMinor - x.metrics.spendMinor);
   const days = await adDays(ctx, period, [adId]);
   return { ad, assets: assetRows, days };
