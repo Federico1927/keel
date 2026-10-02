@@ -33,6 +33,7 @@
       "ads_platform_error": "La piattaforma pubblicitaria ha rifiutato la richiesta.",
       "invalid_rules": "Le regole del segmento non sono valide.",
       "addon_not_available": "Questo add-on non è ancora disponibile.",
+      "addon_not_released": "Questo add-on non ha ancora una versione rilasciata: non si può attivare.",
       "cod_not_in_queue": "Questo ordine non è nella coda di conferma.",
       "cod_invalid_outcome": "Esito non valido.",
       "cod_operator_unavailable": "Nessun operatore disponibile oggi.",
@@ -152,7 +153,9 @@
     "addon": {
       "cod": {
         "name": "Contrassegno",
-        "description": "Coda di conferma, assegnazione operatori, delivery score"
+        "description": "Coda di conferma, assegnazione operatori, delivery score",
+        "v1": "Coda di conferma, esiti e tentativi, assegnazione agli operatori, delivery score e rischio destinatario.",
+        "v2": "Messaggi ai destinatari tramite un vero provider WhatsApp o SMS (oggi solo simulati)."
       },
       "warehouse_3pl": {
         "name": "Connettore magazzino 3PL",
@@ -168,11 +171,13 @@
       },
       "customer_campaigns": {
         "name": "Campagne clienti",
-        "description": "Campagne email, SMS e WhatsApp ai segmenti con gruppo di controllo: controllo sui segmenti e margine incrementale misurato."
+        "description": "Campagne email, SMS e WhatsApp ai segmenti con gruppo di controllo: controllo sui segmenti e margine incrementale misurato.",
+        "v1": "Approvazione, pianificazione, coda di invio e gruppi di controllo; i messaggi sono solo simulati, nessun provider li invia ancora."
       },
       "subscriptions": {
         "name": "Abbonamenti",
-        "description": "MRR, churn, coorti, recupero pagamenti non riusciti e stock per i rinnovi dei tuoi prodotti in abbonamento (Shopify Subscriptions, Recharge, Loop)"
+        "description": "MRR, churn, coorti, recupero pagamenti non riusciti e stock per i rinnovi dei tuoi prodotti in abbonamento (Shopify Subscriptions, Recharge, Loop)",
+        "v1": "Connettori Shopify Subscriptions, Recharge e Loop, verificati solo su dati registrati: nessun negozio reale collegato."
       }
     }
   },
@@ -3981,7 +3986,13 @@
       "no_logo": "Nessun logo caricato",
       "brand_updated": "Aggiornato il {date}",
       "data_export": "Esportazione dati",
-      "data_export_description": "Tutte le tabelle del tenant in file CSV dentro uno zip, generato in background; il link scade dopo {days} giorni. Richieste e download finiscono nell'audit."
+      "data_export_description": "Tutte le tabelle del tenant in file CSV dentro uno zip, generato in background; il link scade dopo {days} giorni. Richieste e download finiscono nell'audit.",
+      "version_released": "v{version} · rilasciata",
+      "version_in_development": "v{version} · in sviluppo",
+      "active_version": "attiva: v{version}",
+      "active_unreleased": "attivato prima del rilascio: si può spegnere, non riattivare",
+      "not_released": "Non si può attivare finché non c'è una versione rilasciata.",
+      "in_development": "in sviluppo"
     },
     "billing": {
       "title": "Fatturazione",
@@ -8430,7 +8441,8 @@
     "synced": "Sincronizzato",
     "none": "Ancora nessun abbonamento sul processore.",
     "catalog_missing": "Sincronizza prima il catalogo (Fatturazione → Abbonamenti).",
-    "cancel_at_period_end": "termina a fine periodo"
+    "cancel_at_period_end": "termina a fine periodo",
+    "addon_not_billed": "incluso, non fatturato: nessuna versione rilasciata"
   },
   "data_export": {
     "title": "Esportazione dati",

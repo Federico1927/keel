@@ -264,6 +264,7 @@
     "lead": "Attivati per singolo account dal nostro team. Il core funziona con qualsiasi metodo di pagamento; quello che è specifico della tua operatività vive in un add-on.",
     "per_month": "{price}/mese",
     "quote": "Su preventivo",
+    "coming_soon": "In arrivo",
     "items": {
       "customer_campaigns": {
         "title": "Campagne ai clienti",

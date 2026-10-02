@@ -1,5 +1,5 @@
 import { and, asc, eq, recordAudit, schema, type DbExecutor } from "@hullwise/db";
-import { MODULES, isAddonModule, type PlanKey } from "@hullwise/config";
+import { MODULES, canActivateAddon, isAddonModule, releasedVersion, type PlanKey } from "@hullwise/config";
 import { desiredSubscriptionKeys, hasItemChanges, subscriptionItemChanges } from "@hullwise/core";
 import { BillingProviderError, type BillingProvider } from "@hullwise/integrations";
 import { recordLifecycleEvent } from "./lifecycle";
@@ -52,13 +52,16 @@ export async function setTenantPlan(db: DbExecutor, tenantId: string, planKey: P
 export async function setTenantAddon(db: DbExecutor, tenantId: string, moduleKey: string, active: boolean, actorUserId: string, note?: string | null, now = new Date(), opts: { provider?: BillingProvider } = {}): Promise<void> {
   if (!isAddonModule(moduleKey) || MODULES[moduleKey].availability !== "implemented") throw new Error("addon_not_available");
   const [existing] = await db.select().from(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, tenantId), eq(schema.tenantAddons.moduleKey, moduleKey))).limit(1);
+  // switching on needs a released version (#77); switching off, or saving the note of an active add-on, never does
+  if (active && !existing?.isActive && !canActivateAddon(moduleKey)) throw new Error("addon_not_released");
+  const version = active && !existing?.isActive ? (releasedVersion(moduleKey)?.version ?? null) : (existing?.version ?? null);
   const [tenant] = await db.select({ status: schema.tenants.status, planKey: schema.tenants.planKey }).from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
   if (tenant && (existing?.isActive ?? false) !== active) {
     const current = await activeAddons(db, tenantId);
     await syncSubscriptionItems(db, tenantId, { planKey: tenant.planKey as PlanKey, addons: active ? [...current, moduleKey] : current.filter((k) => k !== moduleKey) }, { provider: opts.provider, actorUserId, now });
   }
-  if (existing) await db.update(schema.tenantAddons).set({ isActive: active, activatedAt: active ? now : existing.activatedAt, deactivatedAt: active ? null : now, note: note ?? existing.note, activatedBy: actorUserId, updatedAt: now }).where(eq(schema.tenantAddons.id, existing.id));
-  else if (active) await db.insert(schema.tenantAddons).values({ tenantId, moduleKey, isActive: true, activatedAt: now, note: note ?? null, activatedBy: actorUserId });
-  await recordAudit(db, { tenantId, actorUserId, actorType: "super_admin", action: active ? "tenant.addon_enabled" : "tenant.addon_disabled", entityType: "tenant_addon", entityId: moduleKey, diff: { isActive: { from: existing?.isActive ?? false, to: active } }, metadata: { note: note ?? null } });
+  if (existing) await db.update(schema.tenantAddons).set({ isActive: active, activatedAt: active ? now : existing.activatedAt, deactivatedAt: active ? null : now, note: note ?? existing.note, activatedBy: actorUserId, version, updatedAt: now }).where(eq(schema.tenantAddons.id, existing.id));
+  else if (active) await db.insert(schema.tenantAddons).values({ tenantId, moduleKey, isActive: true, activatedAt: now, note: note ?? null, activatedBy: actorUserId, version });
+  await recordAudit(db, { tenantId, actorUserId, actorType: "super_admin", action: active ? "tenant.addon_enabled" : "tenant.addon_disabled", entityType: "tenant_addon", entityId: moduleKey, diff: { isActive: { from: existing?.isActive ?? false, to: active } }, metadata: { note: note ?? null, version } });
   if ((existing?.isActive ?? false) !== active && tenant) await recordLifecycleEvent(db, tenantId, { from: tenant.status, to: tenant.status, reason: "addons_changed", note: note ?? null, actorUserId, now });
 }
