@@ -1,7 +1,7 @@
 import { isAdPlatformInPlan } from "@keel/config";
 import type { AdPlatform } from "@keel/core";
 import { and, eq, gte, inArray, isNotNull, schema, sql } from "@keel/db";
-import { AnthropicLlmProvider, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, TiktokAdsPlatform, mockDemoAdsAccount, type MockAdsStructure, type TiktokCredentials, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, PROCESSOR_GATEWAYS, ShopifyCommercePlatform, type MockPaymentOrder, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials, MockCarrierProvider, type CarrierProvider } from "@keel/integrations";
+import { AnthropicLlmProvider, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, type MockAdsStructure, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, PROCESSOR_GATEWAYS, ShopifyCommercePlatform, type MockPaymentOrder, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type NormalizedProduct, type ShopifyCredentials, MockCarrierProvider, type CarrierProvider, TiktokAdsPlatform, mockDemoAdsAccount, type TiktokCredentials } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 
 export interface PlatformTenant {
@@ -65,9 +65,37 @@ export async function getCommercePlatformFor(ctx: ServiceContext, tenant: Platfo
     customers: customers.map((c) => ({ externalId: c.externalId ?? c.id, email: c.email, phone: c.phone, firstName: c.firstName, lastName: c.lastName, country: c.country, city: c.city, zip: c.zip, acceptsMarketing: c.acceptsMarketing, tags: c.tags, platformCreatedAt: c.platformCreatedAt })),
     // the simulated store starts from the tenant's stock, so a sync only shows what really changed
     inventory: levels.filter((l) => l.inv && l.loc).map((l) => ({ inventoryItemExternalId: l.inv!, locationExternalId: l.loc!, available: l.available })),
+    products: await mockStoreProducts(ctx, tenant.id),
   });
   commerceMocks.set(tenant.id, platform);
   return platform;
+}
+
+/**
+ * The simulated store's catalog, as complete as Shopify's (issue #19): every product Keel holds with
+ * a platform id, its gallery, SEO, category, channels, metafields and variant fields. A sync of the
+ * untouched mock therefore changes nothing; writes change the store and Keel reads them back.
+ */
+async function mockStoreProducts(ctx: ServiceContext, tenantId: string): Promise<NormalizedProduct[]> {
+  const products = await ctx.tx.select().from(schema.products).where(and(eq(schema.products.tenantId, tenantId), isNotNull(schema.products.externalId))).orderBy(schema.products.title);
+  if (!products.length) return [];
+  const variants = await ctx.tx.select().from(schema.productVariants).where(and(eq(schema.productVariants.tenantId, tenantId), eq(schema.productVariants.isActive, true), isNotNull(schema.productVariants.externalId))).orderBy(schema.productVariants.title);
+  const media = await ctx.tx.select().from(schema.productMedia).where(eq(schema.productMedia.tenantId, tenantId)).orderBy(schema.productMedia.position);
+  const mediaExt = new Map(media.map((m) => [m.id, m.externalId]));
+  return products.map((p) => {
+    const gallery = media.filter((m) => m.productId === p.id && m.externalId);
+    return {
+      externalId: p.externalId!, title: p.title, handle: p.handle, vendor: p.vendor, productType: p.productType, status: p.status as "active" | "draft" | "archived", tags: p.tags, options: p.options as { name: string; values: string[] }[], imageUrl: p.imageUrl, platformCreatedAt: p.platformCreatedAt,
+      platformUpdatedAt: p.platformUpdatedAt ?? p.syncedAt ?? null, descriptionHtml: p.descriptionHtml, seo: { title: p.seoTitle, description: p.seoDescription }, category: p.categoryId ? { id: p.categoryId, name: p.categoryName ?? p.categoryId } : null,
+      collections: (p.collections as NormalizedProduct["collections"]) ?? [], publishedChannels: (p.publishedChannels as NormalizedProduct["publishedChannels"]) ?? [], metafields: (p.metafields as NormalizedProduct["metafields"]) ?? [],
+      media: gallery.map((m) => ({ externalId: m.externalId!, type: m.type as "image" | "video" | "model", url: m.url, alt: m.alt, width: m.width, height: m.height })),
+      variants: variants.filter((v) => v.productId === p.id).map((v) => ({
+        externalId: v.externalId!, inventoryItemExternalId: v.inventoryItemExternalId, sku: v.sku, barcode: v.barcode, title: v.title, optionValues: v.optionValues as Record<string, string>, priceMinor: v.priceMinor, compareAtMinor: v.compareAtMinor, weightGrams: v.weightGrams,
+        costMinor: v.costMinor,
+        imageMediaExternalId: v.imageMediaId ? (mediaExt.get(v.imageMediaId) ?? null) : null, inventoryPolicy: (v.inventoryPolicy as "deny" | "continue" | null) ?? "deny", tracksInventory: v.tracksInventory ?? true, requiresShipping: v.requiresShipping ?? true, taxable: v.taxable ?? true, hsCode: v.hsCode, countryOfOrigin: v.countryOfOrigin,
+      })),
+    };
+  });
 }
 
 /** Window of orders the simulated processor pays out (the seed writes the same payouts for it). */

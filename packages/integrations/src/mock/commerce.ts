@@ -14,6 +14,8 @@ import {
   type NormalizedProduct,
   type NormalizedReturn,
   type Page,
+  type ProductMediaOperation,
+  type ProductPatch,
   type SyncQuery,
   type VerifiedWebhook,
   type WebhookRegistration,
@@ -64,7 +66,15 @@ export interface MockCommerceOptions {
   inventory?: { inventoryItemExternalId: string; locationExternalId: string; available: number }[];
   /** The tenant's recent orders paid through the processor: payouts and fees are built from them (plus orders the mock creates). */
   paymentOrders?: MockPaymentOrder[];
+  /**
+   * Full products the simulated store holds (issue #19: media, SEO, channels, metafields…). Without
+   * them the catalog is built from `variants`. Writes change this state and bump `platformUpdatedAt`.
+   */
+  products?: NormalizedProduct[];
 }
+
+/** Category names the simulated store resolves when a category id is written. */
+const MOCK_CATEGORY_NAMES: Record<string, string> = {};
 
 /**
  * In-memory Shopify-like platform. It produces new orders on every `fetchOrders`
@@ -82,11 +92,49 @@ export class MockCommercePlatform implements CommercePlatform {
   /** Stock the store holds, per `item@location`: orders take from it, writes set or add to it. */
   private stock = new Map<string, number>();
 
+  /** The store's products, by external id (issue #19). */
+  private catalog = new Map<string, NormalizedProduct>();
+  private mediaSeq = 9_000_000;
+
   constructor(private readonly opts: MockCommerceOptions) {
     this.rng = createRng(opts.seed ?? 42);
     this.nextNumber = opts.startOrderNumber;
     this.webhookSecret = opts.webhookSecret ?? "mock-webhook-secret";
     for (const l of opts.inventory ?? []) this.stock.set(`${l.inventoryItemExternalId}@${l.locationExternalId}`, l.available);
+    if (opts.products) for (const p of opts.products) this.catalog.set(p.externalId, structuredClone(p));
+    else
+      for (const v of opts.variants) {
+        let p = this.catalog.get(v.productExternalId);
+        if (!p) {
+          p = { externalId: v.productExternalId, title: v.productTitle, handle: v.productTitle.toLowerCase().replace(/\s+/g, "-"), vendor: "Mock", productType: null, status: "active", tags: [], options: [], imageUrl: v.productImageUrl ?? null, platformCreatedAt: null, variants: [] };
+          this.catalog.set(v.productExternalId, p);
+        }
+        p.variants.push({ externalId: v.externalId, inventoryItemExternalId: v.inventoryItemExternalId, sku: v.sku, barcode: v.barcode ?? null, title: v.title, optionValues: v.optionValues, priceMinor: v.priceMinor, compareAtMinor: null, weightGrams: null, costMinor: v.unitCostMinor ?? null });
+      }
+  }
+
+  /** A change made in the store admin behind Keel's back (tests: stale edits, sync). */
+  simulateExternalEdit(productExternalId: string, patch: Partial<Omit<NormalizedProduct, "externalId" | "variants">>): NormalizedProduct {
+    const p = this.productOrThrow(productExternalId);
+    Object.assign(p, patch);
+    this.touch(p);
+    return structuredClone(p);
+  }
+  private productOrThrow(externalId: string): NormalizedProduct {
+    const p = this.catalog.get(externalId);
+    if (!p) throw new IntegrationError("not_found", `Product ${externalId} not found`);
+    return p;
+  }
+  /** Every write moves `updatedAt` forward, as the store does. */
+  private touch(p: NormalizedProduct): void {
+    p.platformUpdatedAt = new Date(Math.max(Date.now(), (p.platformUpdatedAt?.getTime() ?? 0) + 1000));
+  }
+  private variantInCatalog(variantExternalId: string): { product: NormalizedProduct; variant: NormalizedProduct["variants"][number] } | null {
+    for (const product of this.catalog.values()) {
+      const variant = product.variants.find((v) => v.externalId === variantExternalId);
+      if (variant) return { product, variant };
+    }
+    return null;
   }
 
   /** Current stock of an item at a location (tests). */
@@ -118,7 +166,7 @@ export class MockCommercePlatform implements CommercePlatform {
 
   async testConnection(): Promise<ConnectionTest> {
     this.failures.check();
-    return { ok: true, accountName: "Mock Store", accountId: "mock-shop.myshopify.com", scopes: ["read_orders", "write_orders", "read_products", "write_products", "read_inventory", "write_inventory", "read_customers", "read_discounts", "write_discounts", "read_returns", "read_fulfillments"] };
+    return { ok: true, accountName: "Mock Store", accountId: "mock-shop.myshopify.com", scopes: ["read_orders", "write_orders", "read_products", "write_products", "read_inventory", "write_inventory", "read_customers", "read_discounts", "write_discounts", "read_returns", "read_fulfillments", "read_publications"] };
   }
 
   /** Builds a plausible new order from the catalog. */
@@ -222,18 +270,46 @@ export class MockCommercePlatform implements CommercePlatform {
     return { items, nextCursor: (page + 1) * limit < this.opts.customers.length ? String(page + 1) : null };
   }
 
-  async fetchProducts(): Promise<Page<NormalizedProduct>> {
+  async fetchProducts(q: SyncQuery = {}): Promise<Page<NormalizedProduct>> {
     this.failures.check();
-    const byProduct = new Map<string, NormalizedProduct>();
-    for (const v of this.opts.variants) {
-      let p = byProduct.get(v.productExternalId);
-      if (!p) {
-        p = { externalId: v.productExternalId, title: v.productTitle, handle: v.productTitle.toLowerCase().replace(/\s+/g, "-"), vendor: "Mock", productType: null, status: "active", tags: [], options: [], imageUrl: v.productImageUrl ?? null, platformCreatedAt: null, variants: [] };
-        byProduct.set(v.productExternalId, p);
-      }
-      p.variants.push({ externalId: v.externalId, inventoryItemExternalId: v.inventoryItemExternalId, sku: v.sku, barcode: v.barcode ?? null, title: v.title, optionValues: v.optionValues, priceMinor: v.priceMinor, compareAtMinor: null, weightGrams: null, costMinor: v.unitCostMinor ?? null });
+    const all = [...this.catalog.values()];
+    const from = Number(q.cursor ?? 0) || 0;
+    const limit = q.limit ?? 250;
+    return { items: all.slice(from, from + limit).map((p) => structuredClone(p)), nextCursor: from + limit < all.length ? String(from + limit) : null };
+  }
+  async fetchProduct(externalId: string): Promise<NormalizedProduct | null> {
+    this.failures.check();
+    const p = this.catalog.get(externalId);
+    return p ? structuredClone(p) : null;
+  }
+  async updateProduct(externalId: string, patch: ProductPatch): Promise<NormalizedProduct> {
+    this.record("updateProduct", { externalId, patch });
+    const p = this.productOrThrow(externalId);
+    const { seo, categoryId, ...plain } = patch;
+    Object.assign(p, plain);
+    if (seo) p.seo = { title: seo.title || null, description: seo.description || null };
+    if (categoryId !== undefined) p.category = categoryId ? { id: categoryId, name: MOCK_CATEGORY_NAMES[categoryId] ?? p.category?.name ?? categoryId } : null;
+    this.touch(p);
+    return structuredClone(p);
+  }
+  async updateProductMedia(externalId: string, op: ProductMediaOperation): Promise<NormalizedProduct> {
+    this.record("updateProductMedia", { externalId, op });
+    const p = this.productOrThrow(externalId);
+    let media = [...(p.media ?? [])];
+    if (op.type === "create") media.push({ externalId: `gid://shopify/MediaImage/${++this.mediaSeq}`, type: "image", url: op.url, alt: op.alt, width: null, height: null });
+    else if (op.type === "reorder") media = [...op.mediaExternalIds.map((id) => media.find((m) => m.externalId === id)).filter((m): m is NonNullable<typeof m> => Boolean(m)), ...media.filter((m) => !op.mediaExternalIds.includes(m.externalId))];
+    else if (op.type === "delete") {
+      media = media.filter((m) => !op.mediaExternalIds.includes(m.externalId));
+      for (const v of p.variants) if (v.imageMediaExternalId && op.mediaExternalIds.includes(v.imageMediaExternalId)) v.imageMediaExternalId = null;
+    } else {
+      const m = media.find((x) => x.externalId === op.mediaExternalId);
+      if (!m) throw new IntegrationError("not_found", "Media not found");
+      m.alt = op.alt;
     }
-    return { items: [...byProduct.values()], nextCursor: null };
+    p.media = media;
+    p.imageUrl = media[0]?.url ?? null;
+    this.touch(p);
+    return structuredClone(p);
   }
 
   async fetchLocations(): Promise<NormalizedLocation[]> {
@@ -353,7 +429,14 @@ export class MockCommercePlatform implements CommercePlatform {
   }
 
   parseWebhookProduct(payload: unknown): NormalizedProduct {
-    return (payload as { __normalized: NormalizedProduct }).__normalized;
+    const p = (payload as { __normalized: NormalizedProduct }).__normalized;
+    return { ...p, platformCreatedAt: p.platformCreatedAt ? new Date(p.platformCreatedAt) : null, ...(p.platformUpdatedAt !== undefined ? { platformUpdatedAt: p.platformUpdatedAt ? new Date(p.platformUpdatedAt) : null } : {}) };
+  }
+  /** A signed `products/*` webhook of a product the store holds (tests). */
+  buildProductWebhook(topic: string, productExternalId: string): { headers: Record<string, string>; rawBody: string } {
+    const p = this.productOrThrow(productExternalId);
+    const rawBody = JSON.stringify({ id: Number(p.externalId) || p.externalId, updated_at: (p.platformUpdatedAt ?? new Date()).toISOString(), __normalized: p });
+    return { headers: { "x-shopify-topic": topic, "x-shopify-hmac-sha256": this.sign(rawBody), "x-shopify-shop-domain": "mock-shop.myshopify.com" }, rawBody };
   }
   parseWebhookCustomer(payload: unknown): NormalizedCustomer | null {
     return (payload as { __normalized?: NormalizedCustomer }).__normalized ?? null;
@@ -488,17 +571,35 @@ export class MockCommercePlatform implements CommercePlatform {
     this.record("updateVariant", { variantExternalId, patch });
     const v = this.opts.variants.find((x) => x.externalId === variantExternalId);
     if (v && patch.priceMinor !== undefined) v.priceMinor = patch.priceMinor;
+    if (v && patch.sku !== undefined) v.sku = patch.sku ?? "";
+    const found = this.variantInCatalog(variantExternalId);
+    if (found) {
+      Object.assign(found.variant, patch);
+      this.touch(found.product);
+    }
   }
   async updateProductTags(productExternalId: string, add: string[], remove: string[]) {
     this.record("updateProductTags", { productExternalId, add, remove });
+    const p = this.catalog.get(productExternalId);
+    if (p) {
+      p.tags = [...p.tags.filter((t) => !remove.includes(t)), ...add.filter((t) => !p.tags.includes(t))];
+      this.touch(p);
+    }
   }
   async updateVariantCost(variant: { variantExternalId: string; inventoryItemExternalId: string | null }, costMinor: number) {
     this.record("updateVariantCost", { ...variant, costMinor });
     const v = this.opts.variants.find((x) => x.externalId === variant.variantExternalId);
     if (v) v.unitCostMinor = costMinor;
+    const found = this.variantInCatalog(variant.variantExternalId);
+    if (found) found.variant.costMinor = costMinor;
   }
   async updateProductStatus(productExternalId: string, status: "active" | "draft" | "archived") {
     this.record("updateProductStatus", { productExternalId, status });
+    const p = this.catalog.get(productExternalId);
+    if (p) {
+      p.status = status;
+      this.touch(p);
+    }
   }
   async setInventory(inventoryItemExternalId: string, locationExternalId: string, available: number) {
     this.record("setInventory", { inventoryItemExternalId, locationExternalId, available });

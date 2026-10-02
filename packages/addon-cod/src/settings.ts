@@ -38,6 +38,7 @@ export const codTagSettingsSchema = z
         no_answer: tagOpsSchema,
         call_back: tagOpsSchema,
         modified: tagOpsSchema,
+        confirm_scheduled: tagOpsSchema,
         cancelled: tagOpsSchema,
         unreachable: tagOpsSchema,
         replaced: tagOpsSchema,
@@ -46,8 +47,35 @@ export const codTagSettingsSchema = z
   })
   .prefault({});
 
+/** Variables a confirmation message template may use, as `{{name}}`. */
+export const TEMPLATE_VARIABLES = ["customer_name", "first_name", "order_name", "total", "items", "address", "shop_name", "operator_name", "scheduled_date"] as const;
+export type TemplateVariable = (typeof TEMPLATE_VARIABLES)[number];
+export const messageTemplateSchema = z.object({
+  key: z.string().trim().min(1).max(40).regex(/^[a-z0-9_-]+$/),
+  name: z.string().trim().min(1).max(80),
+  body: z.string().trim().min(1).max(1000),
+});
+export type MessageTemplate = z.infer<typeof messageTemplateSchema>;
+
 export const codSettingsSchema = z.object({
   tags: codTagSettingsSchema,
+  /** Rows age: a row turns amber after this many hours since the last call (or in queue when never called), red after the alert threshold. */
+  agingWarnHours: z.number().int().min(1).max(240).default(4),
+  agingAlertHours: z.number().int().min(1).max(720).default(24),
+  /** Local hour from which the daily job confirms the orders scheduled for today. */
+  scheduledConfirmHour: z.number().int().min(0).max(23).default(8),
+  /** Orders an operator may pass to a colleague per day (admins are not limited). */
+  transferDailyLimit: z.number().int().min(0).max(100).default(5),
+  /** Supervisor view: an operator is a bottleneck with more open items than this multiple of the team average. */
+  bottleneckFactor: z.number().min(1).max(10).default(1.5),
+  /** Confirmation message templates (WhatsApp, SMS…) sent through the tenant's messaging channel. */
+  messageTemplates: z.array(messageTemplateSchema).max(20).default([]),
+  /** Return to sender of a COD order still unpaid: cancel it on the platform without restock, which voids the pending payment. Off by default. */
+  rtsAutoCancel: z.boolean().default(false),
+  /** Lines dropped when a replacement changes the payment method away from COD (the COD fee line): SKU or title, `*` = prefix. */
+  feeLineMatch: z.array(z.string().trim().min(1).max(80)).max(10).default([]),
+  /** What a refused parcel costs when the carrier file does not say (outbound plus return); 0 = use twice the shipping cost estimate. */
+  refusalCostMinor: z.number().int().min(0).default(0),
   /** Cancelled outcome: restock the lines on the platform when cancelling. */
   cancelRestock: z.boolean().default(true),
   weights: z.object(Object.fromEntries(SCORE_FACTORS.map((k) => [k, z.number().min(0).max(50).default(DEFAULT_WEIGHTS[k])])) as Record<ScoreFactorKey, z.ZodDefault<z.ZodNumber>>).prefault({}),

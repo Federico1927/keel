@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, inArray, schema, sql, type SQL } from "@keel/db";
 import { PAGE_SIZE, isPageEnabled } from "@keel/config";
-import { orderLineage, orderListWhere, orderMergeCandidates, type OrderFilters } from "@keel/services";
+import { catalogThumbnails, orderLineage, orderListWhere, orderMergeCandidates, type OrderFilters } from "@keel/services";
 import { OPEN_QUEUE_STATUSES } from "@keel/addon-cod";
 import type { TenantContext } from "@/server/tenant";
 
@@ -80,7 +80,9 @@ export async function getOrderDetail(ctx: TenantContext, id: string) {
         ])
       : [[], []];
     const campaign = attribution[0]?.campaignId ? (await tx.select({ id: schema.campaigns.id, name: schema.campaigns.name, platform: schema.campaigns.platform }).from(schema.campaigns).where(eq(schema.campaigns.id, attribution[0].campaignId)).limit(1))[0] ?? null : null;
-    return { order, lines, events, notes, shipments, sourceStates, shipmentEvents, attribution: attribution[0] ?? null, campaign, discounts, returns };
+    const thumbs = await catalogThumbnails({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { variantIds: lines.map((l) => l.variantId), productIds: lines.map((l) => l.productId) });
+    const lineImages = Object.fromEntries(lines.map((l) => [l.id, (l.variantId && thumbs.variants.get(l.variantId)) || (l.productId && thumbs.products.get(l.productId)) || null]));
+    return { order, lines, lineImages, events, notes, shipments, sourceStates, shipmentEvents, attribution: attribution[0] ?? null, campaign, discounts, returns };
   });
 }
 

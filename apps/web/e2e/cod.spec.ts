@@ -1,5 +1,15 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { login } from "./helpers";
+
+/** The pre-check dialog opens by itself on orders opened from the queue when the score flags something (#8). */
+async function dismissPrecheck(page: Page) {
+  // the dialog opens from an effect after hydration: wait for it to have run
+  if ((await page.getByTestId("precheck-open").count()) > 0) await expect(page.getByTestId("precheck-open")).toHaveAttribute("data-ready", "true");
+  if (await page.getByTestId("precheck-dialog").isVisible()) {
+    await page.getByTestId("precheck-close").click();
+    await expect(page.getByTestId("precheck-dialog")).toHaveCount(0);
+  }
+}
 
 test.describe.configure({ mode: "serial" });
 
@@ -78,6 +88,7 @@ test.describe("addon.cod", () => {
     await expect(row).toBeVisible();
     await row.getByRole("link").first().click();
     await expect(page.getByTestId("cod-card")).toBeVisible();
+    await dismissPrecheck(page);
     // 1. contact change in place
     await page.getByTestId("modify-order").click();
     await page.getByLabel(/^Phone$|^Telefono$/).fill("+39 333 000 1111");

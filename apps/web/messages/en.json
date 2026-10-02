@@ -58,7 +58,16 @@
       "not_paid": "Only paid orders can be refunded.",
       "exceeds_refundable": "The refund is more than what remains refundable on the order.",
       "line_invalid": "Check the units to refund: more than what is left on a line.",
-      "location_required": "Choose where the units go back in stock."
+      "location_required": "Choose where the units go back in stock.",
+      "cod_daily_limit": "Daily transfer limit reached: ask an admin.",
+      "cod_already_called": "After the first call only an admin can transfer the order.",
+      "cod_not_yours": "You can only transfer orders assigned to you.",
+      "cod_same_operator": "The order is already assigned to that person.",
+      "cod_target": "That person is not an active member of the team.",
+      "cod_template": "Unknown message template.",
+      "cod_phone": "The order has no phone number.",
+      "cod_reason": "Write a reason (at least 3 characters).",
+      "cod_carrier_columns": "The file needs a reference column (tracking or order) and an outcome column."
     },
     "edit": "Edit"
   },
@@ -1037,7 +1046,10 @@
     "fulfilled": "Shipped from Keel",
     "packed": "Packed",
     "unpacked": "Back to pending",
-    "delivery_instruction_sent": "Delivery instruction sent"
+    "delivery_instruction_sent": "Delivery instruction sent",
+    "cod_escalated": "COD escalation",
+    "cod_message": "Confirmation message sent",
+    "payment_method_changed": "Payment method changed"
   },
   "shipments": {
     "title": "Shipments",
@@ -2868,6 +2880,11 @@
           "body": "Click Resync: locations, products, inventory and discounts are imported, then orders page by page with a resumable cursor. Large stores continue across several worker runs; progress is visible under “Recent sync runs”."
         },
         {
+          "title": "Products: what Keel edits",
+          "body": "Keel mirrors every product field on read (media, description, status and channels, organisation, variants, SEO, metafields) and writes back only title, description, vendor, type, tags, status, SEO, category, variant price, compare-at price, SKU, barcode, weight, inventory policy and media (add from URL, reorder, remove, alt text). Scopes: read_products and write_products; read_publications to show the sales channels. Everything else opens the product in the Shopify admin. An edit opened before a change made in Shopify is refused with “changed in Shopify, reload”.",
+          "verify": true
+        },
+        {
           "title": "Order state rules",
           "body": "Keel never derives the order status from fixed tags. Open Settings → Order states and map the store's tags, payment methods and financial/fulfillment statuses to the canonical states; preview the result on the last 50 orders."
         },
@@ -3934,7 +3951,9 @@
       "mine": "Mine",
       "unassigned": "Unassigned",
       "scheduled": "Call back",
-      "unreachable": "Unreachable"
+      "unreachable": "Unreachable",
+      "planned": "Planned",
+      "escalated": "Escalated"
     },
     "empty_title": "Queue is empty",
     "empty_description": "New COD orders enter here automatically.",
@@ -3961,14 +3980,17 @@
       "no_answer": "No answer",
       "call_back": "Call back",
       "modified": "Modified",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "confirm_scheduled": "Confirm on a date",
+      "message_sent": "Message sent"
     },
     "outcomes_hint": {
       "confirmed": "Customer confirmed the order",
       "no_answer": "Counts toward unreachable",
       "call_back": "Pick a date and time",
       "modified": "Changes agreed, stays in queue",
-      "cancelled": "Customer refused: the order is cancelled on the platform"
+      "cancelled": "Customer refused: the order is cancelled on the platform",
+      "confirm_scheduled": "Customer agrees, but from a later day"
     },
     "call_back_at": "Call back at",
     "note_optional": "Note (optional)",
@@ -3997,7 +4019,8 @@
       "unreachable": "Unreachable",
       "confirmed": "Confirmed by phone",
       "cancelled": "Cancelled",
-      "left": "Left the queue"
+      "left": "Left the queue",
+      "confirm_scheduled": "Confirmation scheduled"
     },
     "card_title": "Cash on delivery",
     "weight_n": "weight {n}",
@@ -4144,10 +4167,204 @@
       "tags_clear_on_close": "On confirmed and cancelled also remove every queue tag",
       "cancel_restock": "Restock lines when an outcome cancels the order",
       "tags_placeholder": "Tag one, Tag two",
-      "tags_event_replaced": "Replaced by a new order"
+      "tags_event_replaced": "Replaced by a new order",
+      "ops": {
+        "title": "Queue behaviour",
+        "description": "Row colours, scheduled confirmations, transfers, the supervisor's bottleneck flag, COD fee lines and the return-to-sender automation.",
+        "fields": {
+          "agingWarnHours": "Amber after hours",
+          "agingAlertHours": "Red after hours",
+          "scheduledConfirmHour": "Scheduled confirmations from (hour)",
+          "transferDailyLimit": "Transfers per operator per day",
+          "bottleneckFactor": "Bottleneck at × team average",
+          "feeLineMatch": "COD fee lines (SKU or title)",
+          "refusalCostMinor": "Cost of a refused parcel (minor units)"
+        },
+        "fee_help": "Dropped when an operator switches a replacement to a prepaid method. A trailing * matches a prefix.",
+        "refusal_help": "In minor units ({decimals} decimals). 0 = twice the shipping cost estimate.",
+        "rts_label": "Cancel unpaid COD parcels returned to sender",
+        "rts_help": "When a return-to-sender case opens on a COD order still unpaid, the order is cancelled on the store without restock, which voids the pending payment. The review case stays open for the physical check."
+      },
+      "templates": {
+        "title": "Confirmation messages",
+        "description": "Templates operators copy or send from the COD card (WhatsApp, SMS…) through the messaging channel connected to the account. Each send counts as a contact attempt.",
+        "variables": "Variables:",
+        "key": "Key",
+        "name": "Name",
+        "body": "Text",
+        "remove": "Remove",
+        "add": "Add template",
+        "webhook_title": "Delivery receipts",
+        "webhook_help": "Give this address to the messaging provider for delivery and read receipts.",
+        "copy": "Copy"
+      },
+      "preview": {
+        "title": "Score preview",
+        "description": "Delivery score of any order with the current weights, without saving it.",
+        "order": "Order number",
+        "run": "Compute",
+        "base": "before risk: {n}"
+      },
+      "carrier": {
+        "title": "Carrier outcomes import",
+        "description": "CSV from the carrier's billing or COD remittance: delivered or refused per parcel. Matched by tracking number or order number; it feeds recipient risk and the wasted-cost figures.",
+        "file": "CSV file",
+        "paste": "Or paste the CSV",
+        "format": "Columns: reference (tracking or order), outcome (delivered / refused), optional date and cost. Separator ; , or tab.",
+        "import": "Import",
+        "result": "{imported} rows, {matched} matched, {unmatched} unmatched, {errors} skipped.",
+        "batch_counts": "{rows} rows · {matched} matched · {refused} refused"
+      }
     },
     "filter_by_tag": "Tag:",
-    "all_tags": "All"
+    "all_tags": "All",
+    "days_n": "{n} d",
+    "avg_age": "avg age {age}",
+    "never_contacted": "Never called · {age}",
+    "planned_badge": "Confirm on {date}",
+    "planned_failed": "Scheduled confirmation failed",
+    "planned_error": "The scheduled confirmation was refused by the store ({error}); it will be tried again at the next daily run.",
+    "escalated": "Escalated",
+    "escalated_note": "Escalated to an admin: {reason}",
+    "team_link": "Team console",
+    "attempts_n": "{n} attempts",
+    "warehouse_lines": "Items for the warehouse",
+    "copy": "Copy",
+    "confirm_on": "Confirm on",
+    "confirm_on_hint": "A daily job confirms the order that morning (from the hour set in COD settings). If the store refuses, the date is kept and it is tried again the next day.",
+    "nav_position": "{position} of {total} · {view}",
+    "system": "system",
+    "channels": {
+      "scheduled": "scheduled",
+      "bulk": "bulk",
+      "messaging-mock": "message"
+    },
+    "risk_panel": {
+      "refused": "Refused",
+      "wasted": "Wasted on refusals",
+      "expected": "Expected value",
+      "tier": "Recipient tier",
+      "linked": "Linked contacts",
+      "hint": "Expected value = delivery probability (score) × margin − refusal probability × {cost} per refused parcel."
+    },
+    "messages": {
+      "timeline": "Messages ({n})",
+      "status": {
+        "sent": "Sent",
+        "delivered": "Delivered",
+        "read": "Read",
+        "failed": "Failed"
+      },
+      "copy": "Copy text",
+      "send": "Send",
+      "sent": "Sent, logged as attempt #{n}.",
+      "no_phone": "The order has no phone number",
+      "action_failed": "The message could not be sent."
+    },
+    "transfer": {
+      "menu": "Transfer",
+      "release": "Release to the queue",
+      "pass_to": "Pass to a colleague",
+      "left_today": "{n} left today",
+      "no_transfer_after_call": "After the first call only an admin can transfer the order.",
+      "escalate": "Escalate to an admin",
+      "resolve": "Close the escalation",
+      "escalate_title": "Escalate this order",
+      "escalate_description": "Admins are notified and the order shows in the Escalated view until one of them closes it.",
+      "reason": "Reason",
+      "action_failed": "The action failed."
+    },
+    "precheck": {
+      "open": "Pre-check ({n})",
+      "title": "Before calling {order}",
+      "recomputed": "The score was stale and has just been recomputed. Points to check on the phone:",
+      "description": "Points to check on the phone:",
+      "severity": {
+        "critical": "Critical",
+        "warning": "Warning"
+      },
+      "previous_addresses": "Other addresses used by this customer",
+      "close": "Got it"
+    },
+    "bulk": {
+      "select_all": "Select all",
+      "selected": "{n} selected",
+      "assign": "Assign",
+      "assign_to": "Assign to",
+      "unassign": "Remove the operator",
+      "distribute": "Distribute equally",
+      "confirm": "Confirm",
+      "cancel": "Cancel orders",
+      "confirm_question": "Confirm {n} orders?",
+      "cancel_question": "Cancel {n} orders on the store?",
+      "yes": "Yes",
+      "clear": "Clear",
+      "result": "{done} done, {failed} refused.",
+      "failed": "The bulk action failed."
+    },
+    "team": {
+      "title": "Customer-care console",
+      "description": "Who holds what right now, efficiency per operator over a period, and what each operator handled.",
+      "tabs": {
+        "supervisor": "Supervisor",
+        "efficiency": "Efficiency",
+        "attribution": "Handled by operator"
+      },
+      "supervisor_title": "Open items per operator",
+      "supervisor_description": "Team average {avg} to call. An operator well above it is flagged as a bottleneck.",
+      "to_call": "To call",
+      "overdue": "Overdue call-backs",
+      "never_contacted": "Never called",
+      "oldest": "Oldest",
+      "bottleneck": "Bottleneck",
+      "empty_title": "No calls in this period",
+      "empty_description": "Pick another period.",
+      "efficiency_title": "Efficiency",
+      "efficiency_description": "From the registered attempts: orders handled, share confirmed, attempts per confirmation, time from entering the queue to the closing call, closed orders per active day.",
+      "handled": "Handled",
+      "confirmed_pct": "% confirmed",
+      "attempts_per_confirmation": "Attempts / confirmation",
+      "avg_handling": "Avg handling time",
+      "throughput": "Throughput",
+      "system": "Scheduled (system)",
+      "messages_n": "{n} messages",
+      "minutes_n": "{n} min",
+      "per_day": "{n}/day",
+      "attribution_title": "Orders handled",
+      "all_outcomes": "All",
+      "pick_operator": "Pick an operator.",
+      "last_outcome": "Last outcome",
+      "last_at": "Last call"
+    },
+    "widgets": {
+      "pending": {
+        "today": "today",
+        "yesterday": "yesterday",
+        "week": "7 days",
+        "total": "{n} open in total"
+      },
+      "mine": {
+        "call_backs": "{n} call-backs due",
+        "never": "{n} never called",
+        "planned": "{n} planned",
+        "unreachable": "{n} unreachable"
+      },
+      "operators": {
+        "empty": "No open COD orders.",
+        "unassigned": "Unassigned",
+        "overdue": "{n} overdue"
+      }
+    },
+    "modify": {
+      "payment_method": "Payment method of the new order",
+      "keep_cod": "Keep cash on delivery",
+      "methods": {
+        "card": "Card (payment link sent separately)",
+        "bank_transfer": "Bank transfer",
+        "other": "Other prepaid method"
+      },
+      "payment_hint": "The order is recreated with the new method, payment pending: the COD fee lines are dropped and it leaves the confirmation queue."
+    }
   },
   "po_pdf": {
     "title": "Purchase order",
@@ -6085,7 +6302,10 @@
       "discount_status": "Discount on/off",
       "discount_pool_status": "Discount pool on/off",
       "ad_status": "Ad status",
-      "keyword_negative": "Negative keyword"
+      "keyword_negative": "Negative keyword",
+      "product_update": "Product details",
+      "variant_details": "Variant details",
+      "product_media": "Product media"
     }
   },
   "dev_inbox": {
@@ -7033,6 +7253,18 @@
       "cod_queue": {
         "name": "COD to confirm",
         "description": "Cash-on-delivery orders waiting for a call."
+      },
+      "cod_pending": {
+        "name": "COD to confirm",
+        "description": "Open COD orders placed today, yesterday and in the last 7 days."
+      },
+      "cod_operators": {
+        "name": "COD tickets per operator",
+        "description": "Orders to call and overdue call-backs held by each operator."
+      },
+      "cod_mine": {
+        "name": "My COD queue",
+        "description": "Your assigned orders: to call, call-backs due, never called, planned, unreachable."
       }
     },
     "metrics": {
@@ -7931,5 +8163,136 @@
     "none": "No subscription at the processor yet.",
     "catalog_missing": "Sync the catalog first (Billing → Subscriptions).",
     "cancel_at_period_end": "ends at period end"
+  },
+  "product_mirror": {
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "save": "Save to Shopify",
+    "saving": "Saving…",
+    "yes": "Yes",
+    "no": "No",
+    "last_synced": "Synced from Shopify {when}",
+    "never_synced": "Never synced from Shopify",
+    "edit_in_shopify": "Edit in Shopify",
+    "errors": {
+      "stale": "This product changed in Shopify after you opened it. Reload to see the current version, then edit again.",
+      "reload": "Reload",
+      "platform": "Shopify refused the change: {message}",
+      "generic": "The change could not be saved.",
+      "not_found": "Product not found.",
+      "forbidden": "You cannot edit products.",
+      "invalid_input": "Check the values entered.",
+      "invalid_variant": "Check the price, compare-at price and weight of {variant}.",
+      "invalid": {
+        "title_required": "The title is required.",
+        "too_long": "A field is longer than Shopify allows.",
+        "invalid_price": "Prices must be zero or more.",
+        "invalid_weight": "The weight must be a whole number of grams.",
+        "invalid_status": "Unknown status."
+      }
+    },
+    "details": {
+      "title": "Title and description",
+      "no_description": "No description in Shopify.",
+      "field_title": "Title",
+      "field_description": "Description (HTML)",
+      "html_hint": "Shopify stores the description as HTML; Keel shows it with formatting only (no scripts or embeds)."
+    },
+    "status": {
+      "title": "Status and channels",
+      "channels": "Sales channels",
+      "no_channels": "No channel read yet.",
+      "published": "Published",
+      "not_published": "Not published",
+      "channels_hint": "Publishing on channels is managed in Shopify."
+    },
+    "organisation": {
+      "title": "Organisation",
+      "vendor": "Vendor",
+      "type": "Product type",
+      "category": "Category",
+      "collections": "Collections",
+      "tags": "Tags",
+      "category_id": "Category id (Shopify taxonomy)",
+      "tags_hint": "Comma separated. Collections are managed in Shopify."
+    },
+    "seo": {
+      "title": "Search engine listing",
+      "no_description": "No description: search engines will pick text from the page.",
+      "field_title": "Page title",
+      "field_description": "Meta description"
+    },
+    "variants": {
+      "variant": "Variant",
+      "price": "Price",
+      "compare_at": "Compare-at price",
+      "sku": "SKU",
+      "barcode": "Barcode",
+      "weight": "Weight (g)",
+      "policy": "When out of stock",
+      "policy_deny": "Stop selling",
+      "policy_continue": "Continue selling",
+      "edit": "Edit variants",
+      "inactive": "removed",
+      "more_fields": "More variant fields (from Shopify)",
+      "tracked": "Tracked",
+      "requires_shipping": "Physical product",
+      "taxable": "Charge tax",
+      "hs_code": "HS code",
+      "origin": "Country of origin"
+    },
+    "sync": {
+      "product": "Sync from Shopify",
+      "done": "{changed, plural, =0 {Already up to date} one {# field updated} other {# fields updated}}",
+      "catalog": "Sync catalog from Shopify",
+      "queued": "Catalog sync started in the background.",
+      "failed": "Sync failed: {error}",
+      "catalog_done": "Catalog synced: {products} products.",
+      "catalog_progress": "Syncing… {products} products so far",
+      "last": "Last catalog sync {when}",
+      "never": "Catalog never synced",
+      "running": "Syncing: {products} of {total} products"
+    },
+    "gallery": {
+      "title": "Media",
+      "done": "Done",
+      "manage": "Manage",
+      "empty": "No media in Shopify.",
+      "open": "Open image {n}",
+      "move_left": "Move left",
+      "move_right": "Move right",
+      "alt": "Alt text",
+      "delete": "Remove",
+      "delete_confirm": "Remove this media from the product in Shopify?",
+      "add_url": "Image URL",
+      "add": "Add from URL",
+      "save_alt": "Save alt text",
+      "cancel": "Cancel",
+      "hint": "Changes are written to Shopify at once. Uploads from your computer: use Shopify.",
+      "previous": "Previous",
+      "next": "Next",
+      "no_alt": "No alt text",
+      "type": {
+        "video": "Video",
+        "model": "3D model"
+      }
+    },
+    "metafields": {
+      "title": "Metafields",
+      "read_only": "Read-only",
+      "empty": "No metafields."
+    },
+    "pnl": {
+      "title": "P/L, last 30 days",
+      "open": "Analytics",
+      "empty": "No sales or ad spend in the last 30 days.",
+      "units": "Units sold",
+      "net_revenue": "Net revenue",
+      "cogs": "Cost of goods",
+      "gross_margin": "Gross margin",
+      "ad_spend": "Ad spend (linked campaigns)",
+      "profit": "Profit",
+      "missing_cost": "{units} units sold without a cost: the margin is overstated."
+    }
   }
 }

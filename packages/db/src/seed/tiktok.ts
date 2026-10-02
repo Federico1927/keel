@@ -161,7 +161,10 @@ export async function seedTiktok(db: Db, planKey: string, tenantId: string, now:
     for (let d = new Date(c.start); d <= c.end; d = new Date(d.getTime() + DAY)) days.push(iso(d));
     const mine = assigned.filter((a) => a.camp === c);
     const lifetimeMargin = mine.reduce((s, a) => s + Math.max(0, margin.get(a.orderId) ?? 0), 0);
-    const total = Math.max(Math.round(lifetimeMargin * c.spendOverMargin), Math.round(c.minDailyMinor * volume) * days.length);
+    const byMargin = Math.round(lifetimeMargin * c.spendOverMargin);
+    const floor = Math.round(c.minDailyMinor * volume) * days.length;
+    // a campaign meant to win never gets a spend floor that eats its margin (small stores, the test seed)
+    const total = c.spendOverMargin < 1 && lifetimeMargin > 0 ? Math.min(Math.max(byMargin, floor), Math.round(lifetimeMargin * 0.5)) : Math.max(byMargin, floor);
     const ordersByDay = new Map<string, number>();
     const marginByDay = new Map<string, number>();
     for (const a of mine) {

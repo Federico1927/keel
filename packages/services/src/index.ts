@@ -49,6 +49,7 @@ export * from "./notes";
 export * from "./support";
 export * from "./orders/writes";
 export * from "./catalog/writes";
+export * from "./catalog/edit";
 export * from "./lists";
 export * from "./fulfilment";
 export * from "./tools";
