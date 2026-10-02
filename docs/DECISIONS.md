@@ -1231,6 +1231,38 @@ The `holdout_percentage` and `group_name` columns stay in the data model, as §7
 - Progress is on the Shopify card of Integrations, on the console's setup checklist ("Order history imported"; a simulated store counts as done) and in a banner on the home and Analytics while it runs or after it failed.
 
 **Alternatives.** Making the first `delta` read everything (rejected: one run kind with two meanings, and no place for a window). A new table for import state (rejected: `sync_runs` already holds cursor, counts and status). Choosing the window in the console's create-tenant form (deferred: it is a tenant setting, so the existing settings form covers it without touching the console flow).
+
+## 2026-10-02 · Phone-width check over every route (#79)
+
+**Decision.**
+- `apps/web/e2e/mobile.spec.ts` discovers every `page.tsx` under `src/app/t` and `src/app/admin`, as `admin-routes.spec.ts` does. It visits each page at 390 and 360 px and requires `scrollWidth - clientWidth <= 1`.
+  - Dynamic routes are filled from links collected while crawling. Parents are crawled before children, and up to three records are checked per route, since overflow can depend on the data.
+  - Links that are route handlers (exports, downloads) or static siblings of a dynamic segment are not used as samples.
+  - Filtered lists are entry points for pages that exist only for some records.
+  - An unreached route fails the test unless it is listed in `UNREACHED` with a reason.
+- The shared cause is fixed once, in the app stylesheet's base layer: `.grid { grid-template-columns: minmax(0, 1fr) }`.
+  - A grid with no column template had one implicit `auto` column, which grows to its widest unwrappable content.
+  - `minmax(0, 1fr)` is the track Tailwind's own `grid-cols-N` uses, and any `grid-cols-*` utility overrides it at its breakpoint, because utilities sit above the base layer.
+  - A one-column grid renders the same as before unless its content was wider than the container, which is the overflow case.
+  - Nothing in the app uses `grid-flow-col` or implicit columns. The rule is in `styles.css` (app only), not in `theme.css`, which the landing site shares.
+- `UNREACHED` keys cover a route and everything under it. The test also fails on keys that no longer match an unreached route, so a stale excuse cannot hide a page. The subscriptions add-on is listed because no demo tenant has it active.
+- `overflow-wrap: break-word` on `body` was tried and dropped: amounts in narrow KPI tiles wrapped mid-number on desktop ("€249.5 / 1"). Long words are wrapped only where they are expected (integration guide steps).
+
+**Alternatives.**
+- A hand-written list of pages (rejected: it missed every page fixed here, and each new page would need an edit to the test).
+- One record per dynamic route (rejected: it missed the Meta and Google guides and the tenant with a long integration error).
+- `grid-cols-[minmax(0,1fr)]` added page by page (rejected: 199 grids in 108 files, and data-dependent cases are only found when the data happens to trigger them).
+- `.grid > * { min-width: 0 }` (rejected: it changes how every grid item sizes, while the template rule only changes grids without a template).
+
+## 2026-10-02 · Seeded win-back effect is guaranteed, not drawn (#84)
+
+**Decision.** The demo win-back campaign's response orders are sized structurally.
+- Responders are treated customers without an order of their own in the 14-day window, picked by hash.
+- There are enough of them for treated conversion to reach the control group's conversion plus 8 points, with a floor of 5% of the treated group.
+
+Before, about 12% of treated customers were picked by hash, overlapping with customers who would have bought anyway. That gave about +4 pt, near the significance threshold, and a reseed at another hour produced p = 0.094, which failed `retention.spec.ts`. This applies "Demo guarantees must not depend on the clock" (2026-10-01).
+
+**Alternatives.** Raising the 12% rate (rejected: still probabilistic). Loosening the e2e assertion (rejected: the demo is meant to show a measured effect).
 ## 2026-10-02 · Mobile first, wave 3: Tier 3 analysis and configuration pages (#49)
 
 **Decision.**

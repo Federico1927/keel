@@ -334,19 +334,42 @@ async function seedRetentionCampaigns(db: ReturnType<typeof drizzle<typeof schem
   if (it) {
     const sent = await send("Win-back clienti ricorrenti -10%", "Clienti ricorrenti", "email", "Ciao {first_name}, ci manchi! Per te il 10% di sconto con il codice {code}.", "BACK10", 2, 35);
     if (sent) {
-      // response orders: ~12% of treated customers buy again within the window, reusing their last basket
+      // response orders, reusing each responder's last basket. The demo promises a measurable effect, so
+      // the count is set structurally, not by chance (a reseed at another hour once left p = 0.09):
+      // responders are treated customers who did not already buy in the window, enough of them for the
+      // treated conversion to beat the control group's by RESPONSE_UPLIFT.
+      const RESPONSE_UPLIFT = 0.08;
       const [tenant] = await db.select({ prefix: schema.tenants.orderNumberPrefix }).from(schema.tenants).where(eq(schema.tenants.id, tenantId));
       // copy every stored column (generated ones such as the search blob are recomputed)
       const cols = async (table: string) => (await db.execute<{ c: string }>(sql`select quote_ident(column_name) as c from information_schema.columns where table_schema = 'public' and table_name = ${table} and is_generated = 'NEVER' order by ordinal_position`)).rows.map((r) => r.c).join(", ");
       const orderCols = sql.raw(await cols("orders"));
       const lineCols = sql.raw(await cols("order_lines"));
       await db.execute(sql`
-        with picks as (
-          select distinct on (e.customer_id) o.id as old_id, gen_random_uuid() as new_id,
-            e.exposed_at + make_interval(days => 1 + abs(hashtext(e.customer_id::text || 'day')) % 12, hours => abs(hashtext(e.customer_id::text)) % 10) as at
-          from retention_exposures e join orders o on o.customer_id = e.customer_id and o.placed_at < e.exposed_at and o.status in ('delivered', 'shipped')
-          where e.campaign_id = ${sent.id} and e.group_name = 'treated' and abs(hashtext(e.customer_id::text || 'resp')) % 100 < 12
-          order by e.customer_id, o.placed_at desc
+        with window_buyers as (
+          select e.customer_id, e.group_name, exists (
+            select 1 from orders o where o.customer_id = e.customer_id and o.placed_at > e.exposed_at and o.placed_at <= e.exposed_at + interval '14 days' and o.status not in ('cancelled', 'returned')
+          ) as bought
+          from retention_exposures e where e.campaign_id = ${sent.id}
+        ),
+        needed as (
+          -- at least a few responders even when chance already favours the treated group (small test seeds)
+          select greatest(ceil(0.05 * count(*) filter (where group_name = 'treated')),
+            ceil((coalesce(avg(bought::int) filter (where group_name = 'holdout'), 0) + ${RESPONSE_UPLIFT}) * count(*) filter (where group_name = 'treated'))
+            - count(*) filter (where group_name = 'treated' and bought))::int as n
+          from window_buyers
+        ),
+        responders as (
+          select e.customer_id, e.exposed_at from retention_exposures e join window_buyers w on w.customer_id = e.customer_id
+          where e.campaign_id = ${sent.id} and e.group_name = 'treated' and not w.bought
+            and exists (select 1 from orders o where o.customer_id = e.customer_id and o.placed_at < e.exposed_at and o.status in ('delivered', 'shipped'))
+          order by abs(hashtext(e.customer_id::text || 'resp')), e.customer_id
+          limit (select n from needed)
+        ),
+        picks as (
+          select distinct on (r.customer_id) o.id as old_id, gen_random_uuid() as new_id,
+            r.exposed_at + make_interval(days => 1 + abs(hashtext(r.customer_id::text || 'day')) % 12, hours => abs(hashtext(r.customer_id::text)) % 10) as at
+          from responders r join orders o on o.customer_id = r.customer_id and o.placed_at < r.exposed_at and o.status in ('delivered', 'shipped')
+          order by r.customer_id, o.placed_at desc
         ),
         numbered as (select p.*, (select max(order_number) from orders where tenant_id = ${tenantId}) + row_number() over (order by p.at) as num from picks p),
         ins as (

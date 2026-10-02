@@ -6,6 +6,7 @@ import { appUrl, canWritePage } from "@hullwise/config";
 import { CustomMetricForm, DashboardEditor, DeleteMetricButton } from "./advanced-controls";
 import { SurveySettings } from "./survey-settings";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, EmptyState, PageHeader, Stat, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { HistoryImportBanner } from "@/components/history-import-banner";
 import { ChartFullscreen } from "@/components/mobile/chart-fullscreen";
 import { WideTable } from "@/components/mobile/wide-table";
 import { HistoryImportBanner } from "@/components/history-import-banner";
