@@ -194,13 +194,18 @@
     "open_menu": "Apri menu",
     "switch_tenant": "Cambia workspace",
     "admin_console": "Console super-admin",
-    "impersonating": "Stai vedendo {tenant} come super-admin. Ogni azione è registrata.",
+    "impersonating": "Stai vedendo <b>{tenant}</b> come super-admin. Ogni azione è registrata.",
     "back_to_admin": "Torna alla console",
     "suspended_title": "Workspace sospeso",
     "suspended_description": "Questo workspace è sospeso per fatture non pagate. Contatta l'amministratore della piattaforma.",
     "not_found_title": "Pagina non disponibile",
     "not_found_description": "La pagina non esiste, oppure il tuo ruolo o il tuo piano non la includono.",
-    "support": "Aiuto"
+    "support": "Aiuto",
+    "support_mode": "Modalità supporto",
+    "exit_impersonation": "Esci",
+    "churned_title": "Workspace chiuso",
+    "churned_description": "Questo workspace è stato chiuso. Contatta l'amministratore della piattaforma se ti servono i dati.",
+    "suspended_platform_description": "L'amministratore della piattaforma ha sospeso questo workspace. Contattalo per ripristinare l'accesso."
   },
   "roles": {
     "owner": "Titolare",
@@ -3081,13 +3086,27 @@
     "console": "Console super-admin",
     "sign_out": "Esci",
     "nav": {
-      "dashboard": "Dashboard",
+      "dashboard": "Panoramica",
       "tenants": "Tenant",
       "billing": "Fatturazione",
       "audit": "Registro attività",
       "support": "Supporto",
       "styleguide": "Guida di stile",
-      "email": "Email"
+      "email": "Email",
+      "label": "Console",
+      "metrics": "Metriche",
+      "plans": "Piani e add-on",
+      "users": "Utenti",
+      "integrations": "Integrazioni",
+      "groups": {
+        "overview": "Panoramica",
+        "tenants": "Tenant",
+        "users": "Utenti",
+        "billing": "Fatturazione",
+        "operations": "Operazioni",
+        "support": "Supporto",
+        "audit": "Audit"
+      }
     },
     "plans": {
       "starter": "Starter",
@@ -3115,7 +3134,16 @@
       "subscriptions": "Abbonamenti: {trialing} in prova · {active} attivi · {pastDue} scaduti",
       "paid_30": "Incassato negli ultimi 30 giorni: {amount}",
       "tenants": "Tenant",
-      "recent_audit": "Attività recente della piattaforma"
+      "recent_audit": "Attività recente della piattaforma",
+      "find_user": "Cerca un utente per nome o email",
+      "find": "Cerca",
+      "attention": "Da controllare",
+      "attention_description": "Tenant con punteggio di salute sotto 70: errori di integrazione, job falliti, fatture scadute o un team che non accede più.",
+      "attention_none": "Tutti i tenant sono in salute.",
+      "see_all": "Vedi tutti",
+      "why": "Perché",
+      "past_retention": "{n, plural, one {# tenant chiuso ha} other {# tenant chiusi hanno}} superato il periodo di conservazione dei dati",
+      "past_retention_hint": "Se ne occuperà il flusso di esportazione e cancellazione (#32); per ora non si cancella nulla in automatico."
     },
     "tenants": {
       "title": "Tenant",
@@ -3125,7 +3153,8 @@
         "active": "Attivo",
         "trial": "In prova",
         "suspended": "Sospeso",
-        "churned": "Cessato"
+        "churned": "Cessato",
+        "past_due": "Pagamento scaduto"
       },
       "columns": {
         "tenant": "Tenant",
@@ -3134,8 +3163,16 @@
         "integrations": "Integrazioni",
         "orders30": "Ordini / 30 gg",
         "last_login": "Ultimo accesso",
-        "payment": "Pagamento"
-      }
+        "payment": "Pagamento",
+        "status": "Stato",
+        "health": "Salute",
+        "mrr": "MRR"
+      },
+      "needs_attention": "Da controllare",
+      "search_placeholder": "Nome o slug",
+      "count": "{shown} di {total} tenant",
+      "empty": "Nessun tenant corrisponde ai filtri.",
+      "trial_ends": "Prova fino al {date}"
     },
     "new_tenant": {
       "title": "Nuovo tenant",
@@ -3200,7 +3237,16 @@
       "reset_not_active": "Non inviata: l'account non è attivo",
       "reset_rate_limited": "Troppe richieste per questo indirizzo",
       "reset_failed": "Invio non riuscito",
-      "owner_invited": "invito in attesa"
+      "owner_invited": "invito in attesa",
+      "integration_issues": "Dettaglio errori",
+      "branding": "Branding",
+      "branding_description": "Vista in sola lettura del colore e dei loghi del tenant (il tenant li modifica in Impostazioni → Branding).",
+      "brand_default": "Predefinito del prodotto",
+      "brand_adjusted": "Regolato per il contrasto a {color}",
+      "logo_light": "Logo per sfondi chiari",
+      "logo_dark": "Logo per sfondi scuri",
+      "no_logo": "Nessun logo caricato",
+      "brand_updated": "Aggiornato il {date}"
     },
     "billing": {
       "title": "Fatturazione",
@@ -3228,7 +3274,12 @@
         "issued": "Emessa",
         "due": "Scadenza",
         "status": "Stato"
-      }
+      },
+      "search_placeholder": "Numero fattura o tenant",
+      "due_filter": "Scadenza",
+      "overdue_only": "Solo scadute",
+      "empty": "Nessuna fattura corrisponde ai filtri.",
+      "summary": "{from}–{to} di {total} · {amount}"
     },
     "audit": {
       "title": "Registro attività della piattaforma",
@@ -3237,7 +3288,10 @@
       "tenant": "Tenant",
       "actor": "Autore",
       "action": "Azione",
-      "details": "Dettagli"
+      "details": "Dettagli",
+      "platform": "Piattaforma (nessun tenant)",
+      "actor_type": "Tipo di autore",
+      "summary": "{from}–{to} di {total}"
     },
     "support": {
       "title": "Supporto",
@@ -3356,6 +3410,179 @@
       },
       "remove": "Rimuovi",
       "guide_title": "Guida alla configurazione"
+    },
+    "platform_label": "Piattaforma",
+    "export_csv": "Esporta CSV",
+    "filters": {
+      "search": "Cerca",
+      "all": "Tutti",
+      "apply": "Filtra",
+      "reset": "Azzera"
+    },
+    "health": {
+      "integrations": "Errori di integrazione",
+      "jobs": "Job falliti",
+      "invoices": "Fatture scadute",
+      "login": "Nessun accesso recente"
+    },
+    "lifecycle": {
+      "title": "Ciclo di vita",
+      "description": "Prova → attivo → pagamento scaduto → sospeso → chiuso. Ogni cambio conserva motivo e nota; sospeso e chiuso tengono fuori gli utenti del tenant.",
+      "blocked_now": "In questo momento gli utenti del tenant non possono accedere al workspace.",
+      "current": "Stato attuale",
+      "since": "dal {date}",
+      "reason": "Motivo",
+      "trial_end": "Fine prova",
+      "retained_until": "Dati conservati fino al",
+      "retention_hint": "({days} giorni dalla chiusura, poi il flusso di esportazione/cancellazione)",
+      "system": "job di fatturazione",
+      "change": "Cambia stato",
+      "change_title": "Cambia lo stato del ciclo di vita",
+      "change_description": "Sono elencati solo i passaggi consentiti. Il cambio viene registrato nell'audit con motivo e nota.",
+      "to": "Nuovo stato",
+      "blocks_access": "Gli utenti del tenant perdono l'accesso appena confermi.",
+      "note": "Nota (obbligatoria)",
+      "cancel": "Annulla",
+      "confirm": "Conferma",
+      "save_trial_end": "Salva",
+      "errors": {
+        "invalid_input": "Scegli stato e motivo e scrivi una nota.",
+        "invalid_transition": "Questo passaggio non è consentito dallo stato attuale.",
+        "failed": "Impossibile salvare il cambio."
+      },
+      "reasons": {
+        "tenant_created": "Tenant creato",
+        "trial_converted": "Prova convertita",
+        "trial_expired": "Prova scaduta",
+        "payment_overdue": "Pagamento in ritardo",
+        "unpaid_invoice": "Fattura non pagata",
+        "payment_recovered": "Pagamento ricevuto",
+        "customer_request": "Richiesta del cliente",
+        "terms_violation": "Violazione dei termini",
+        "win_back": "Riattivazione",
+        "manual": "Manuale",
+        "other": "Altro",
+        "plan_changed": "Piano cambiato",
+        "addons_changed": "Add-on cambiati"
+      }
+    },
+    "users": {
+      "title": "Utenti",
+      "description": "Tutte le persone di tutti i tenant: appartenenze, ultimo accesso, flag super-admin. Disattiva, invia il reset della password o chiudi le sessioni; le password non si vedono né si impostano qui.",
+      "search": "Nome o email",
+      "search_placeholder": "es. giulia@ o Ferri",
+      "kind": "Mostra",
+      "kinds": {
+        "active": "Attivi",
+        "disabled": "Disattivati",
+        "super_admin": "Super-admin",
+        "no_tenant": "Senza tenant"
+      },
+      "empty": "Nessun utente corrisponde ai filtri.",
+      "columns": {
+        "user": "Utente",
+        "tenants": "Tenant e ruoli",
+        "last_login": "Ultimo accesso",
+        "status": "Stato"
+      },
+      "never": "Mai",
+      "super_admin": "Super-admin",
+      "disabled": "Disattivato",
+      "active": "Attivo",
+      "summary": "{from}–{to} di {total}"
+    },
+    "user": {
+      "account": "Account",
+      "created": "Creato",
+      "email_verified": "Email verificata",
+      "password_changed": "Password cambiata",
+      "language": "Lingua",
+      "no_passwords": "La console non mostra né imposta password: il link di reset arriva all'email della persona.",
+      "disabled_since": "Disattivato dal {date}",
+      "no_reason": "Nessun motivo indicato",
+      "disabled_by": "da {email}",
+      "no_tenants": "Non appartiene a nessun tenant.",
+      "role": "Ruolo",
+      "since": "Membro dal",
+      "membership_inactive": "non attivo",
+      "sign_ins": "Accessi recenti",
+      "sign_ins_hint": "Metodo e dispositivo degli ultimi dieci accessi.",
+      "activity": "Attività dell'account",
+      "self_hint": "Non puoi disattivare il tuo account.",
+      "enable": "Riattiva",
+      "disable": "Disattiva",
+      "enable_title": "Riattivare questo account?",
+      "disable_title": "Disattivare questo account su tutta la piattaforma?",
+      "enable_description": "La persona potrà di nuovo accedere con password o link. Le sessioni chiuse restano chiuse.",
+      "disable_description": "Tutte le sessioni si chiudono subito, l'accesso viene rifiutato con qualsiasi metodo e la persona riceve un'email di sicurezza. Le appartenenze restano.",
+      "note": "Nota (facoltativa)",
+      "reason": "Motivo (visibile solo agli admin della piattaforma)",
+      "cancel": "Annulla",
+      "errors": {
+        "self": "Non puoi disattivare il tuo account.",
+        "failed": "Impossibile salvare il cambio."
+      },
+      "sessions_revoked": "Sessioni chiuse",
+      "revoke_sessions": "Chiudi tutte le sessioni"
+    },
+    "metrics": {
+      "title": "Metriche",
+      "description": "MRR e tenant paganti per mese, nuovi contro chiusi, adozione degli add-on, ricostruiti dallo storico del ciclo di vita. Ogni numero apre i tenant che lo compongono.",
+      "series": {
+        "mrr": "MRR",
+        "active": "Tenant paganti",
+        "trial": "In prova",
+        "new": "Nuovi",
+        "churned": "Chiusi"
+      },
+      "trial_hint": "{n} in prova",
+      "new_vs_churned": "Nuovi / chiusi",
+      "this_month": "Questo mese",
+      "arr": "Run-rate (ARR)",
+      "arr_hint": "MRR × 12",
+      "chart_title": "MRR e tenant paganti",
+      "chart_description": "Stato a fine mese (per il mese in corso: oggi).",
+      "table_title": "Per mese",
+      "table_description": "Clicca un numero per vederne i tenant.",
+      "month": "Mese",
+      "behind": "{metric} · {month}",
+      "behind_count": "{n, plural, one {# tenant} other {# tenant}}",
+      "none": "Nessun tenant."
+    },
+    "plans_page": {
+      "title": "Piani e add-on",
+      "description": "Prezzi, limiti e adozione dei piani e degli add-on definiti nel codice.",
+      "read_only": "Sola lettura: piani e prezzi stanno in @keel/config (packages/config/src/plans.ts e modules.ts). Per ora modificarli resta una modifica al codice, così fatturazione, landing e test cambiano insieme.",
+      "tenants_n": "{n, plural, one {# tenant} other {# tenant}}",
+      "monthly": "Mensile",
+      "setup": "Fee di attivazione",
+      "orders_limit": "Ordini al mese",
+      "users_limit": "Utenti",
+      "unlimited": "Illimitati",
+      "overage": "Oltre il limite del piano: {price} per blocco di {orders} ordini.",
+      "addons": "Add-on",
+      "addon": "Add-on",
+      "availability": "Disponibilità",
+      "tenants": "Tenant",
+      "availability_implemented": "Disponibile",
+      "availability_on_request": "Su richiesta"
+    },
+    "integrations": {
+      "title": "Integrazioni",
+      "description": "Errori di integrazione di tutti i tenant, per tenant e fonte, con gli ultimi sync falliti.",
+      "sources_in_error": "Fonti con problemi",
+      "failed_webhooks": "Webhook falliti",
+      "failed_writes": "Scritture fallite",
+      "source": "Fonte",
+      "status": "Stato",
+      "status_problems": "Errore o degradato",
+      "status_all": "Tutti",
+      "empty": "Nessun problema di integrazione.",
+      "last_success": "Ultimo successo",
+      "error": "Ultimo errore",
+      "failures": "{n} errori consecutivi",
+      "failed_runs": "Sync falliti",
+      "failed_runs_hint": "Gli ultimi 30, dal più recente."
     }
   },
   "cod": {

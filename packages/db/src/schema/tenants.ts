@@ -13,7 +13,8 @@ export const tenants = pgTable(
     id: id(),
     slug: text("slug").notNull().unique(),
     name: text("name").notNull(),
-    status: text("status", { enum: ["active", "suspended", "trial", "churned"] })
+    /** Lifecycle (#48): trial → active → past_due → suspended → churned; see @keel/config lifecycle. */
+    status: text("status", { enum: ["active", "suspended", "trial", "churned", "past_due"] })
       .notNull()
       .default("active"),
     planKey: text("plan_key").notNull().default("starter"),
@@ -26,6 +27,13 @@ export const tenants = pgTable(
     settings: jsonb("settings").notNull().default(sql`'{}'::jsonb`),
     suspendAfterDays: integer("suspend_after_days").notNull().default(14),
     suspendedAt: timestamp("suspended_at", { withTimezone: true }),
+    /** #48: end of the trial (lifecycle, independent of the billing provider). */
+    trialEndsAt: timestamp("trial_ends_at", { withTimezone: true }),
+    churnedAt: timestamp("churned_at", { withTimezone: true }),
+    /** Reason and note of the latest lifecycle change; the history is `tenant_lifecycle_events`. */
+    statusReason: text("status_reason"),
+    statusNote: text("status_note"),
+    statusChangedAt: timestamp("status_changed_at", { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

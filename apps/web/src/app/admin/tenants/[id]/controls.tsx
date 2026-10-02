@@ -2,9 +2,9 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { PLAN_KEYS } from "@keel/config";
-import { Button, Input, Select, Switch } from "@keel/ui";
-import { markInvoicePaidAction, openAsSupportAction, sendPasswordResetAction, setAddonAction, setPlanAction, setSuspensionAction, voidInvoiceAction } from "@/server/actions/admin";
+import { MANUAL_LIFECYCLE_REASONS, PLAN_KEYS } from "@keel/config";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Input, Label, Select, Switch, Textarea } from "@keel/ui";
+import { markInvoicePaidAction, openAsSupportAction, sendPasswordResetAction, setAddonAction, setPlanAction, setTrialEndAction, transitionTenantAction, voidInvoiceAction } from "@/server/actions/admin";
 
 export function OpenAsSupportButton({ tenantId }: { tenantId: string }) {
   const t = useTranslations("admin.tenant");
@@ -40,14 +40,75 @@ export function PlanSelect({ tenantId, planKey }: { tenantId: string; planKey: s
   );
 }
 
-export function SuspensionButton({ tenantId, suspended }: { tenantId: string; suspended: boolean }) {
-  const t = useTranslations("admin.tenant");
+/** Lifecycle change (#48): target state, reason and note are required; the dialog lists only the allowed moves. */
+export function LifecycleControl({ tenantId, allowed }: { tenantId: string; allowed: readonly string[] }) {
+  const t = useTranslations("admin");
   const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [to, setTo] = useState(allowed[0] ?? "");
+  const [reason, setReason] = useState<string>(MANUAL_LIFECYCLE_REASONS[0]);
+  const [note, setNote] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+  if (!allowed.length) return null;
+  const submit = () =>
+    start(async () => {
+      const r = await transitionTenantAction(tenantId, { to, reason, note });
+      if (!r.ok) return setError(r.error === "invalid_input" ? t("lifecycle.errors.invalid_input") : r.error === "invalid_transition" ? t("lifecycle.errors.invalid_transition") : t("lifecycle.errors.failed"));
+      setOpen(false);
+      setNote("");
+      router.refresh();
+    });
+  return (
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); setError(null); }}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" data-testid="change-lifecycle">{t("lifecycle.change")}</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("lifecycle.change_title")}</DialogTitle>
+          <DialogDescription>{t("lifecycle.change_description")}</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="lc-to">{t("lifecycle.to")}</Label>
+            <Select id="lc-to" value={to} onChange={(e) => setTo(e.target.value)} data-testid="lifecycle-to">
+              {allowed.map((s) => <option key={s} value={s}>{t(`tenants.status.${s}`)}</option>)}
+            </Select>
+            {(to === "suspended" || to === "churned") && <p className="text-xs text-destructive">{t("lifecycle.blocks_access")}</p>}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="lc-reason">{t("lifecycle.reason")}</Label>
+            <Select id="lc-reason" value={reason} onChange={(e) => setReason(e.target.value)} data-testid="lifecycle-reason">
+              {MANUAL_LIFECYCLE_REASONS.map((r) => <option key={r} value={r}>{t(`lifecycle.reasons.${r}`)}</option>)}
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="lc-note">{t("lifecycle.note")}</Label>
+            <Textarea id="lc-note" value={note} onChange={(e) => setNote(e.target.value)} rows={3} maxLength={1000} required data-testid="lifecycle-note" />
+          </div>
+          {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>{t("lifecycle.cancel")}</Button>
+          <Button variant={to === "suspended" || to === "churned" ? "destructive" : "default"} disabled={pending || note.trim().length < 3} onClick={submit} data-testid="confirm-lifecycle">{t("lifecycle.confirm")}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Extends or shortens the trial (audited); the trialing subscription's first period follows. */
+export function TrialEndControl({ tenantId, value }: { tenantId: string; value: string }) {
+  const t = useTranslations("admin.lifecycle");
+  const router = useRouter();
+  const [date, setDate] = useState(value);
   const [pending, start] = useTransition();
   return (
-    <Button size="sm" variant={suspended ? "default" : "destructive"} disabled={pending} onClick={() => start(async () => { await setSuspensionAction(tenantId, !suspended, null); router.refresh(); })}>
-      {suspended ? t("reactivate") : t("suspend")}
-    </Button>
+    <span className="flex flex-wrap items-center gap-2">
+      <Input size="sm" type="date" value={date} onChange={(e) => setDate(e.target.value)} aria-label={t("trial_end")} className="w-40" data-testid="trial-end" />
+      <Button size="sm" variant="outline" disabled={pending || !date || date === value} onClick={() => start(async () => { await setTrialEndAction(tenantId, date, ""); router.refresh(); })}>{t("save_trial_end")}</Button>
+    </span>
   );
 }
 

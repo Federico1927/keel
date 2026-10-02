@@ -2,31 +2,31 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Building2, CreditCard, LayoutDashboard, LifeBuoy, Mail, Palette, ScrollText } from "lucide-react";
+import { Building2, ChartLine, CreditCard, LayoutDashboard, LifeBuoy, Mail, Package, Palette, Plug, ScrollText, Users } from "lucide-react";
 import { cn } from "@keel/ui";
+import { ADMIN_NAV, type AdminNavKey } from "./nav-items";
+
+const ICONS: Record<AdminNavKey, typeof LayoutDashboard> = { dashboard: LayoutDashboard, metrics: ChartLine, tenants: Building2, plans: Package, users: Users, billing: CreditCard, integrations: Plug, email: Mail, support: LifeBuoy, audit: ScrollText, styleguide: Palette };
 
 export function AdminNav() {
   const t = useTranslations("admin.nav");
   const pathname = usePathname();
-  const items = [
-    { href: "/admin", label: t("dashboard"), icon: LayoutDashboard, exact: true },
-    { href: "/admin/tenants", label: t("tenants"), icon: Building2 },
-    { href: "/admin/billing", label: t("billing"), icon: CreditCard },
-    { href: "/admin/support", label: t("support"), icon: LifeBuoy },
-    { href: "/admin/email", label: t("email"), icon: Mail },
-    { href: "/admin/audit", label: t("audit"), icon: ScrollText },
-    { href: "/admin/styleguide", label: t("styleguide"), icon: Palette },
-  ];
   return (
-    <nav className="flex gap-1 overflow-x-auto px-2 pb-2 lg:flex-col lg:px-3">
-      {items.map((i) => {
-        const active = i.exact ? pathname === i.href : pathname.startsWith(i.href);
-        return (
-          <Link key={i.href} href={i.href} className={cn("flex items-center gap-2 rounded-md px-3 py-2 text-sm", active ? "bg-sidebar-accent font-medium text-sidebar-foreground [&>svg]:text-primary" : "text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground")}>
-            <i.icon className="h-4 w-4" /> {i.label}
-          </Link>
-        );
-      })}
+    <nav className="flex gap-1 overflow-x-auto px-2 pb-2 lg:flex-col lg:gap-3 lg:px-3" aria-label={t("label")}>
+      {ADMIN_NAV.map((g) => (
+        <div key={g.group} className="flex gap-1 lg:flex-col" data-testid={`admin-nav-${g.group}`}>
+          <p className="hidden px-3 text-[11px] font-medium uppercase tracking-wide text-sidebar-muted lg:block">{t(`groups.${g.group}`)}</p>
+          {g.items.map((i) => {
+            const Icon = ICONS[i.key];
+            const active = "exact" in i && i.exact ? pathname === i.href : pathname === i.href || pathname.startsWith(`${i.href}/`);
+            return (
+              <Link key={i.href} href={i.href} aria-current={active ? "page" : undefined} className={cn("flex shrink-0 items-center gap-2 rounded-md px-3 py-1.5 text-sm", active ? "bg-platform/10 font-medium text-platform" : "text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground")}>
+                <Icon className="h-4 w-4" /> {t(i.key)}
+              </Link>
+            );
+          })}
+        </div>
+      ))}
     </nav>
   );
 }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
-import { DEFAULT_LOCALE, PRODUCT_NAME, SUPPORTED_LOCALES, isLocale, type Locale } from "@keel/config";
+import { DEFAULT_LOCALE, PRODUCT_NAME, SUPPORTED_LOCALES, isLocale, isTenantOperational, type Locale } from "@keel/config";
 import { adminDb, eq, schema, withTenant } from "@keel/db";
 import { getPortalConfig } from "@keel/services";
 import { loadMessages } from "@/i18n/messages";
@@ -17,7 +17,7 @@ export default async function TrackPage({ params, searchParams }: { params: Prom
   const { slug } = await params;
   const sp = await searchParams;
   const [tenant] = await adminDb().select({ id: schema.tenants.id, name: schema.tenants.name, status: schema.tenants.status, defaultLocale: schema.tenants.defaultLocale, timezone: schema.tenants.timezone }).from(schema.tenants).where(eq(schema.tenants.slug, slug)).limit(1);
-  if (!tenant || tenant.status !== "active") notFound();
+  if (!tenant || !isTenantOperational(tenant.status)) notFound();
   const config = await withTenant(tenant.id, (tx) => getPortalConfig({ tenantId: tenant.id, tx, actor: { type: "system", userId: null } }));
   if (!config.enabled || !config.trackingPage) notFound();
   const locale: Locale = isLocale(sp.lang) ? sp.lang : isLocale(tenant.defaultLocale) ? tenant.defaultLocale : DEFAULT_LOCALE;

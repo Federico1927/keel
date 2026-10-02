@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { adminDb, and, eq, schema, withTenant, type Transaction } from "@keel/db";
 import { parseTenantSettings, type TenantSettings } from "@keel/core";
-import { canDo, canViewPage, canWritePage, isPageEnabled, type ActionKey, type PageKey, type TenantRole } from "@keel/config";
+import { canDo, canViewPage, canWritePage, isPageEnabled, isTenantBlocked, type ActionKey, type PageKey, type TenantRole } from "@keel/config";
 import { getCurrentUser, type CurrentUser } from "./session";
 
 export interface TenantContext {
@@ -43,7 +43,8 @@ export const getTenantContext = cache(async (slug: string): Promise<TenantContex
     impersonation = { adminUserId: user.id };
   }
   if (!role) notFound();
-  if (tenant.status === "suspended" && !user.isSuperAdmin) redirect(`/suspended?tenant=${tenant.slug}`);
+  // suspended and churned tenants keep their users out (#48); the reason picks the message, never the note
+  if (isTenantBlocked(tenant.status) && !user.isSuperAdmin) redirect(`/suspended?tenant=${tenant.slug}&reason=${blockedReason(tenant)}`);
 
   const addons = await db
     .select({ moduleKey: schema.tenantAddons.moduleKey })
@@ -63,6 +64,12 @@ export const getTenantContext = cache(async (slug: string): Promise<TenantContex
   };
   return ctx;
 });
+
+/** What the blocked page tells the tenant's users: unpaid invoices, closed workspace or a platform decision. */
+export function blockedReason(tenant: { status: string; statusReason: string | null }): "payment" | "churned" | "platform" {
+  if (tenant.status === "churned") return "churned";
+  return tenant.statusReason === "unpaid_invoice" || tenant.statusReason === "payment_overdue" ? "payment" : "platform";
+}
 
 /** Page guard: role permission and module flag. Unreachable pages are a 404, even by URL. */
 export async function requirePage(slug: string, page: PageKey): Promise<TenantContext> {

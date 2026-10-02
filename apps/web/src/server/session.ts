@@ -32,7 +32,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const session = await auth();
   if (!session?.user?.id) return null;
   const p = await getAccountProfile(adminDb(), session.user.id);
-  if (!p) return null;
+  if (!p || p.disabled) return null;
   if (p.sessionVersion !== (session.user.sessionVersion ?? 0) && (await rewrittenTokenVersion(p.id)) !== p.sessionVersion) return null;
   return {
     id: p.id,

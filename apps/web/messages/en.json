@@ -194,13 +194,18 @@
     "open_menu": "Open menu",
     "switch_tenant": "Switch workspace",
     "admin_console": "Super-admin console",
-    "impersonating": "You are viewing {tenant} as a super-admin. Every action is audited.",
+    "impersonating": "You are viewing <b>{tenant}</b> as a super-admin. Every action is audited.",
     "back_to_admin": "Back to console",
     "suspended_title": "Workspace suspended",
     "suspended_description": "This workspace is suspended for unpaid invoices. Contact the platform administrator.",
     "not_found_title": "Page not available",
     "not_found_description": "This page does not exist, or your role or plan does not include it.",
-    "support": "Help"
+    "support": "Help",
+    "support_mode": "Support mode",
+    "exit_impersonation": "Exit",
+    "churned_title": "Workspace closed",
+    "churned_description": "This workspace has been closed. Contact the platform administrator if you need your data.",
+    "suspended_platform_description": "The platform administrator suspended this workspace. Contact them to restore access."
   },
   "roles": {
     "owner": "Owner",
@@ -3081,13 +3086,27 @@
     "console": "Super-admin console",
     "sign_out": "Sign out",
     "nav": {
-      "dashboard": "Dashboard",
+      "dashboard": "Overview",
       "tenants": "Tenants",
       "billing": "Billing",
       "audit": "Audit log",
       "support": "Support",
       "styleguide": "Style guide",
-      "email": "Email"
+      "email": "Email",
+      "label": "Console",
+      "metrics": "Metrics",
+      "plans": "Plans and add-ons",
+      "users": "Users",
+      "integrations": "Integrations",
+      "groups": {
+        "overview": "Overview",
+        "tenants": "Tenants",
+        "users": "Users",
+        "billing": "Billing",
+        "operations": "Operations",
+        "support": "Support",
+        "audit": "Audit"
+      }
     },
     "plans": {
       "starter": "Starter",
@@ -3115,7 +3134,16 @@
       "subscriptions": "Subscriptions: {trialing} trialing · {active} active · {pastDue} past due",
       "paid_30": "Collected in the last 30 days: {amount}",
       "tenants": "Tenants",
-      "recent_audit": "Recent platform activity"
+      "recent_audit": "Recent platform activity",
+      "find_user": "Find a user by name or email",
+      "find": "Find",
+      "attention": "Needs attention",
+      "attention_description": "Tenants whose health score is below 70: integration errors, failed jobs, overdue invoices or a team that stopped signing in.",
+      "attention_none": "Every tenant looks healthy.",
+      "see_all": "See all",
+      "why": "Why",
+      "past_retention": "{n, plural, one {# churned tenant is} other {# churned tenants are}} past the data-retention window",
+      "past_retention_hint": "The data-export and delete flow (#32) will take over; nothing is deleted automatically yet."
     },
     "tenants": {
       "title": "Tenants",
@@ -3125,7 +3153,8 @@
         "active": "Active",
         "trial": "Trial",
         "suspended": "Suspended",
-        "churned": "Churned"
+        "churned": "Churned",
+        "past_due": "Past due"
       },
       "columns": {
         "tenant": "Tenant",
@@ -3134,8 +3163,16 @@
         "integrations": "Integrations",
         "orders30": "Orders / 30d",
         "last_login": "Last login",
-        "payment": "Payment"
-      }
+        "payment": "Payment",
+        "status": "Status",
+        "health": "Health",
+        "mrr": "MRR"
+      },
+      "needs_attention": "Needs attention",
+      "search_placeholder": "Name or slug",
+      "count": "{shown} of {total} tenants",
+      "empty": "No tenants match these filters.",
+      "trial_ends": "Trial ends {date}"
     },
     "new_tenant": {
       "title": "New tenant",
@@ -3200,7 +3237,16 @@
       "reset_not_active": "Not sent: the account is not active",
       "reset_rate_limited": "Too many requests for this address",
       "reset_failed": "Could not send",
-      "owner_invited": "invitation pending"
+      "owner_invited": "invitation pending",
+      "integration_issues": "Errors drill-down",
+      "branding": "Branding",
+      "branding_description": "Read-only view of the tenant's brand colour and logos (the tenant edits them in Settings → Branding).",
+      "brand_default": "Product default",
+      "brand_adjusted": "Adjusted for contrast to {color}",
+      "logo_light": "Logo for light backgrounds",
+      "logo_dark": "Logo for dark backgrounds",
+      "no_logo": "No logo uploaded",
+      "brand_updated": "Updated {date}"
     },
     "billing": {
       "title": "Billing",
@@ -3228,7 +3274,12 @@
         "issued": "Issued",
         "due": "Due",
         "status": "Status"
-      }
+      },
+      "search_placeholder": "Invoice number or tenant",
+      "due_filter": "Due",
+      "overdue_only": "Overdue only",
+      "empty": "No invoices match these filters.",
+      "summary": "{from}–{to} of {total} · {amount}"
     },
     "audit": {
       "title": "Platform audit log",
@@ -3237,7 +3288,10 @@
       "tenant": "Tenant",
       "actor": "Actor",
       "action": "Action",
-      "details": "Details"
+      "details": "Details",
+      "platform": "Platform (no tenant)",
+      "actor_type": "Actor type",
+      "summary": "{from}–{to} of {total}"
     },
     "support": {
       "title": "Support",
@@ -3356,6 +3410,179 @@
       },
       "remove": "Remove",
       "guide_title": "Setup guide"
+    },
+    "platform_label": "Platform",
+    "export_csv": "Export CSV",
+    "filters": {
+      "search": "Search",
+      "all": "All",
+      "apply": "Filter",
+      "reset": "Reset"
+    },
+    "health": {
+      "integrations": "Integration errors",
+      "jobs": "Failed jobs",
+      "invoices": "Overdue invoices",
+      "login": "No recent sign-in"
+    },
+    "lifecycle": {
+      "title": "Lifecycle",
+      "description": "Trial → active → past due → suspended → churned. Every change keeps a reason and a note; suspended and churned keep the tenant's users out.",
+      "blocked_now": "The tenant's users cannot sign in to this workspace right now.",
+      "current": "Current state",
+      "since": "since {date}",
+      "reason": "Reason",
+      "trial_end": "Trial end",
+      "retained_until": "Data kept until",
+      "retention_hint": "({days} days after churn, then the export/delete flow)",
+      "system": "billing run",
+      "change": "Change state",
+      "change_title": "Change lifecycle state",
+      "change_description": "Only the moves the lifecycle allows are listed. The change is audited with your reason and note.",
+      "to": "New state",
+      "blocks_access": "The tenant's users lose access as soon as you confirm.",
+      "note": "Note (required)",
+      "cancel": "Cancel",
+      "confirm": "Confirm change",
+      "save_trial_end": "Save",
+      "errors": {
+        "invalid_input": "Pick a state and a reason, and write a note.",
+        "invalid_transition": "This move is not allowed from the current state.",
+        "failed": "The change could not be saved."
+      },
+      "reasons": {
+        "tenant_created": "Tenant created",
+        "trial_converted": "Trial converted",
+        "trial_expired": "Trial expired",
+        "payment_overdue": "Payment overdue",
+        "unpaid_invoice": "Unpaid invoice",
+        "payment_recovered": "Payment received",
+        "customer_request": "Customer request",
+        "terms_violation": "Terms violation",
+        "win_back": "Win-back",
+        "manual": "Manual",
+        "other": "Other",
+        "plan_changed": "Plan changed",
+        "addons_changed": "Add-ons changed"
+      }
+    },
+    "users": {
+      "title": "Users",
+      "description": "Everyone across tenants: memberships, last sign-in, super-admin flag. Disable, send a password reset or end sessions; passwords are never shown or set here.",
+      "search": "Name or email",
+      "search_placeholder": "e.g. giulia@ or Ferri",
+      "kind": "Show",
+      "kinds": {
+        "active": "Active",
+        "disabled": "Disabled",
+        "super_admin": "Super-admins",
+        "no_tenant": "Without a tenant"
+      },
+      "empty": "No users match these filters.",
+      "columns": {
+        "user": "User",
+        "tenants": "Tenants and roles",
+        "last_login": "Last sign-in",
+        "status": "Status"
+      },
+      "never": "Never",
+      "super_admin": "Super-admin",
+      "disabled": "Disabled",
+      "active": "Active",
+      "summary": "{from}–{to} of {total}"
+    },
+    "user": {
+      "account": "Account",
+      "created": "Created",
+      "email_verified": "Email verified",
+      "password_changed": "Password changed",
+      "language": "Language",
+      "no_passwords": "The console never shows or sets passwords: a reset link goes to the person's own email.",
+      "disabled_since": "Disabled since {date}",
+      "no_reason": "No reason given",
+      "disabled_by": "by {email}",
+      "no_tenants": "Not a member of any tenant.",
+      "role": "Role",
+      "since": "Member since",
+      "membership_inactive": "inactive",
+      "sign_ins": "Recent sign-ins",
+      "sign_ins_hint": "Method and device of the last ten sign-ins.",
+      "activity": "Account activity",
+      "self_hint": "You cannot disable your own account.",
+      "enable": "Enable",
+      "disable": "Disable",
+      "enable_title": "Enable this account?",
+      "disable_title": "Disable this account on the whole platform?",
+      "enable_description": "The person can sign in again with their password or a link. Sessions ended earlier stay ended.",
+      "disable_description": "Every session ends at once, sign-in is refused with any method and the person receives a security email. Memberships are kept.",
+      "note": "Note (optional)",
+      "reason": "Reason (shown to platform admins only)",
+      "cancel": "Cancel",
+      "errors": {
+        "self": "You cannot disable your own account.",
+        "failed": "The change could not be saved."
+      },
+      "sessions_revoked": "Sessions ended",
+      "revoke_sessions": "End all sessions"
+    },
+    "metrics": {
+      "title": "Metrics",
+      "description": "MRR and paying tenants by month, new versus churned, add-on adoption, rebuilt from the lifecycle history. Every number opens the tenants behind it.",
+      "series": {
+        "mrr": "MRR",
+        "active": "Paying tenants",
+        "trial": "In trial",
+        "new": "New",
+        "churned": "Churned"
+      },
+      "trial_hint": "{n} in trial",
+      "new_vs_churned": "New / churned",
+      "this_month": "This month",
+      "arr": "Run-rate (ARR)",
+      "arr_hint": "MRR × 12",
+      "chart_title": "MRR and paying tenants",
+      "chart_description": "State at the end of each month (the running month: today).",
+      "table_title": "By month",
+      "table_description": "Click a number to list its tenants.",
+      "month": "Month",
+      "behind": "{metric} · {month}",
+      "behind_count": "{n, plural, one {# tenant} other {# tenants}}",
+      "none": "No tenants."
+    },
+    "plans_page": {
+      "title": "Plans and add-ons",
+      "description": "Prices, limits and adoption of the plans and add-ons defined in the code.",
+      "read_only": "Read-only: plans and prices live in @keel/config (packages/config/src/plans.ts and modules.ts). Editing them stays a code change for now, so billing, the landing page and tests change together.",
+      "tenants_n": "{n, plural, one {# tenant} other {# tenants}}",
+      "monthly": "Monthly",
+      "setup": "Setup fee",
+      "orders_limit": "Orders per month",
+      "users_limit": "Users",
+      "unlimited": "Unlimited",
+      "overage": "Above the plan limit: {price} per block of {orders} orders.",
+      "addons": "Add-ons",
+      "addon": "Add-on",
+      "availability": "Availability",
+      "tenants": "Tenants",
+      "availability_implemented": "Available",
+      "availability_on_request": "On request"
+    },
+    "integrations": {
+      "title": "Integrations",
+      "description": "Integration errors across tenants, by tenant and source, with the latest failed sync runs.",
+      "sources_in_error": "Sources with problems",
+      "failed_webhooks": "Failed webhooks",
+      "failed_writes": "Failed platform writes",
+      "source": "Source",
+      "status": "Status",
+      "status_problems": "Error or degraded",
+      "status_all": "All",
+      "empty": "No integration problems.",
+      "last_success": "Last success",
+      "error": "Last error",
+      "failures": "{n} consecutive failures",
+      "failed_runs": "Failed sync runs",
+      "failed_runs_hint": "The latest 30, newest first."
     }
   },
   "cod": {

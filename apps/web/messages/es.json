@@ -194,13 +194,18 @@
     "open_menu": "Abrir menú",
     "switch_tenant": "Cambiar de espacio",
     "admin_console": "Consola de superadministrador",
-    "impersonating": "Estás viendo {tenant} como superadministrador. Cada acción queda registrada.",
+    "impersonating": "Estás viendo <b>{tenant}</b> como superadministrador. Cada acción queda registrada.",
     "back_to_admin": "Volver a la consola",
     "suspended_title": "Espacio suspendido",
     "suspended_description": "Este espacio está suspendido por facturas impagadas. Contacta con el administrador de la plataforma.",
     "not_found_title": "Página no disponible",
     "not_found_description": "La página no existe, o tu rol o tu plan no la incluyen.",
-    "support": "Ayuda"
+    "support": "Ayuda",
+    "support_mode": "Modo soporte",
+    "exit_impersonation": "Salir",
+    "churned_title": "Espacio cerrado",
+    "churned_description": "Este espacio se ha cerrado. Contacta con el administrador de la plataforma si necesitas tus datos.",
+    "suspended_platform_description": "El administrador de la plataforma ha suspendido este espacio. Contacta con él para recuperar el acceso."
   },
   "roles": {
     "owner": "Propietario",
@@ -3081,13 +3086,27 @@
     "console": "Consola de superadministrador",
     "sign_out": "Cerrar sesión",
     "nav": {
-      "dashboard": "Panel",
+      "dashboard": "Resumen",
       "tenants": "Tenants",
       "billing": "Facturación",
       "audit": "Registro de auditoría",
       "support": "Soporte",
       "styleguide": "Guía de estilo",
-      "email": "Email"
+      "email": "Email",
+      "label": "Consola",
+      "metrics": "Métricas",
+      "plans": "Planes y complementos",
+      "users": "Usuarios",
+      "integrations": "Integraciones",
+      "groups": {
+        "overview": "Resumen",
+        "tenants": "Tenants",
+        "users": "Usuarios",
+        "billing": "Facturación",
+        "operations": "Operaciones",
+        "support": "Soporte",
+        "audit": "Auditoría"
+      }
     },
     "plans": {
       "starter": "Starter",
@@ -3115,7 +3134,16 @@
       "subscriptions": "Suscripciones: {trialing} en prueba · {active} activas · {pastDue} vencidas",
       "paid_30": "Cobrado en los últimos 30 días: {amount}",
       "tenants": "Tenants",
-      "recent_audit": "Actividad reciente de la plataforma"
+      "recent_audit": "Actividad reciente de la plataforma",
+      "find_user": "Buscar un usuario por nombre o email",
+      "find": "Buscar",
+      "attention": "Requieren atención",
+      "attention_description": "Tenants con una puntuación de salud inferior a 70: errores de integración, trabajos fallidos, facturas vencidas o un equipo que ya no inicia sesión.",
+      "attention_none": "Todos los tenants están sanos.",
+      "see_all": "Ver todo",
+      "why": "Motivo",
+      "past_retention": "{n, plural, one {# tenant cerrado ha superado} other {# tenants cerrados han superado}} el periodo de conservación de datos",
+      "past_retention_hint": "Se encargará el flujo de exportación y borrado (#32); de momento no se borra nada automáticamente."
     },
     "tenants": {
       "title": "Tenants",
@@ -3125,7 +3153,8 @@
         "active": "Activo",
         "trial": "Prueba",
         "suspended": "Suspendido",
-        "churned": "Baja"
+        "churned": "Baja",
+        "past_due": "Pago vencido"
       },
       "columns": {
         "tenant": "Tenant",
@@ -3134,8 +3163,16 @@
         "integrations": "Integraciones",
         "orders30": "Pedidos / 30 d",
         "last_login": "Último acceso",
-        "payment": "Pago"
-      }
+        "payment": "Pago",
+        "status": "Estado",
+        "health": "Salud",
+        "mrr": "MRR"
+      },
+      "needs_attention": "Requieren atención",
+      "search_placeholder": "Nombre o slug",
+      "count": "{shown} de {total} tenants",
+      "empty": "Ningún tenant coincide con los filtros.",
+      "trial_ends": "Prueba hasta el {date}"
     },
     "new_tenant": {
       "title": "Nuevo tenant",
@@ -3200,7 +3237,16 @@
       "reset_not_active": "No enviado: la cuenta no está activa",
       "reset_rate_limited": "Demasiadas solicitudes para esta dirección",
       "reset_failed": "No se pudo enviar",
-      "owner_invited": "invitación pendiente"
+      "owner_invited": "invitación pendiente",
+      "integration_issues": "Detalle de errores",
+      "branding": "Marca",
+      "branding_description": "Vista de solo lectura del color y los logotipos del tenant (el tenant los edita en Ajustes → Marca).",
+      "brand_default": "Predeterminado del producto",
+      "brand_adjusted": "Ajustado por contraste a {color}",
+      "logo_light": "Logotipo para fondos claros",
+      "logo_dark": "Logotipo para fondos oscuros",
+      "no_logo": "Sin logotipo",
+      "brand_updated": "Actualizado el {date}"
     },
     "billing": {
       "title": "Facturación",
@@ -3228,7 +3274,12 @@
         "issued": "Emitida",
         "due": "Vencimiento",
         "status": "Estado"
-      }
+      },
+      "search_placeholder": "Número de factura o tenant",
+      "due_filter": "Vencimiento",
+      "overdue_only": "Solo vencidas",
+      "empty": "Ninguna factura coincide con los filtros.",
+      "summary": "{from}–{to} de {total} · {amount}"
     },
     "audit": {
       "title": "Registro de auditoría de la plataforma",
@@ -3237,7 +3288,10 @@
       "tenant": "Tenant",
       "actor": "Autor",
       "action": "Acción",
-      "details": "Detalles"
+      "details": "Detalles",
+      "platform": "Plataforma (sin tenant)",
+      "actor_type": "Tipo de autor",
+      "summary": "{from}–{to} de {total}"
     },
     "support": {
       "title": "Soporte",
@@ -3356,6 +3410,179 @@
       },
       "remove": "Quitar",
       "guide_title": "Guía de configuración"
+    },
+    "platform_label": "Plataforma",
+    "export_csv": "Exportar CSV",
+    "filters": {
+      "search": "Buscar",
+      "all": "Todos",
+      "apply": "Filtrar",
+      "reset": "Restablecer"
+    },
+    "health": {
+      "integrations": "Errores de integración",
+      "jobs": "Trabajos fallidos",
+      "invoices": "Facturas vencidas",
+      "login": "Sin accesos recientes"
+    },
+    "lifecycle": {
+      "title": "Ciclo de vida",
+      "description": "Prueba → activo → pago vencido → suspendido → cerrado. Cada cambio guarda un motivo y una nota; suspendido y cerrado dejan fuera a los usuarios del tenant.",
+      "blocked_now": "Ahora mismo los usuarios del tenant no pueden entrar en este espacio.",
+      "current": "Estado actual",
+      "since": "desde el {date}",
+      "reason": "Motivo",
+      "trial_end": "Fin de la prueba",
+      "retained_until": "Datos conservados hasta",
+      "retention_hint": "({days} días tras el cierre; después, el flujo de exportación/borrado)",
+      "system": "proceso de facturación",
+      "change": "Cambiar estado",
+      "change_title": "Cambiar el estado del ciclo de vida",
+      "change_description": "Solo se listan los pasos permitidos. El cambio queda auditado con tu motivo y tu nota.",
+      "to": "Nuevo estado",
+      "blocks_access": "Los usuarios del tenant pierden el acceso en cuanto confirmes.",
+      "note": "Nota (obligatoria)",
+      "cancel": "Cancelar",
+      "confirm": "Confirmar cambio",
+      "save_trial_end": "Guardar",
+      "errors": {
+        "invalid_input": "Elige un estado y un motivo y escribe una nota.",
+        "invalid_transition": "Este paso no está permitido desde el estado actual.",
+        "failed": "No se pudo guardar el cambio."
+      },
+      "reasons": {
+        "tenant_created": "Tenant creado",
+        "trial_converted": "Prueba convertida",
+        "trial_expired": "Prueba vencida",
+        "payment_overdue": "Pago atrasado",
+        "unpaid_invoice": "Factura impagada",
+        "payment_recovered": "Pago recibido",
+        "customer_request": "Petición del cliente",
+        "terms_violation": "Incumplimiento de los términos",
+        "win_back": "Recuperación",
+        "manual": "Manual",
+        "other": "Otro",
+        "plan_changed": "Plan cambiado",
+        "addons_changed": "Complementos cambiados"
+      }
+    },
+    "users": {
+      "title": "Usuarios",
+      "description": "Todas las personas de todos los tenants: membresías, último acceso, marca de superadministrador. Desactiva, envía un restablecimiento de contraseña o cierra sesiones; aquí nunca se ven ni se fijan contraseñas.",
+      "search": "Nombre o email",
+      "search_placeholder": "p. ej. giulia@ o Ferri",
+      "kind": "Mostrar",
+      "kinds": {
+        "active": "Activos",
+        "disabled": "Desactivados",
+        "super_admin": "Superadministradores",
+        "no_tenant": "Sin tenant"
+      },
+      "empty": "Ningún usuario coincide con los filtros.",
+      "columns": {
+        "user": "Usuario",
+        "tenants": "Tenants y roles",
+        "last_login": "Último acceso",
+        "status": "Estado"
+      },
+      "never": "Nunca",
+      "super_admin": "Superadministrador",
+      "disabled": "Desactivado",
+      "active": "Activo",
+      "summary": "{from}–{to} de {total}"
+    },
+    "user": {
+      "account": "Cuenta",
+      "created": "Creada",
+      "email_verified": "Email verificado",
+      "password_changed": "Contraseña cambiada",
+      "language": "Idioma",
+      "no_passwords": "La consola nunca muestra ni fija contraseñas: el enlace de restablecimiento llega al email de la persona.",
+      "disabled_since": "Desactivado desde el {date}",
+      "no_reason": "Sin motivo indicado",
+      "disabled_by": "por {email}",
+      "no_tenants": "No pertenece a ningún tenant.",
+      "role": "Rol",
+      "since": "Miembro desde",
+      "membership_inactive": "inactivo",
+      "sign_ins": "Accesos recientes",
+      "sign_ins_hint": "Método y dispositivo de los últimos diez accesos.",
+      "activity": "Actividad de la cuenta",
+      "self_hint": "No puedes desactivar tu propia cuenta.",
+      "enable": "Activar",
+      "disable": "Desactivar",
+      "enable_title": "¿Activar esta cuenta?",
+      "disable_title": "¿Desactivar esta cuenta en toda la plataforma?",
+      "enable_description": "La persona podrá volver a entrar con su contraseña o un enlace. Las sesiones cerradas siguen cerradas.",
+      "disable_description": "Todas las sesiones se cierran al instante, se rechaza el acceso con cualquier método y la persona recibe un email de seguridad. Las membresías se mantienen.",
+      "note": "Nota (opcional)",
+      "reason": "Motivo (solo lo ven los administradores de la plataforma)",
+      "cancel": "Cancelar",
+      "errors": {
+        "self": "No puedes desactivar tu propia cuenta.",
+        "failed": "No se pudo guardar el cambio."
+      },
+      "sessions_revoked": "Sesiones cerradas",
+      "revoke_sessions": "Cerrar todas las sesiones"
+    },
+    "metrics": {
+      "title": "Métricas",
+      "description": "MRR y tenants de pago por mes, nuevos frente a cerrados, adopción de complementos, reconstruidos a partir del historial del ciclo de vida. Cada número abre los tenants que lo componen.",
+      "series": {
+        "mrr": "MRR",
+        "active": "Tenants de pago",
+        "trial": "En prueba",
+        "new": "Nuevos",
+        "churned": "Cerrados"
+      },
+      "trial_hint": "{n} en prueba",
+      "new_vs_churned": "Nuevos / cerrados",
+      "this_month": "Este mes",
+      "arr": "Run-rate (ARR)",
+      "arr_hint": "MRR × 12",
+      "chart_title": "MRR y tenants de pago",
+      "chart_description": "Estado al final de cada mes (el mes en curso: hoy).",
+      "table_title": "Por mes",
+      "table_description": "Haz clic en un número para ver sus tenants.",
+      "month": "Mes",
+      "behind": "{metric} · {month}",
+      "behind_count": "{n, plural, one {# tenant} other {# tenants}}",
+      "none": "Ningún tenant."
+    },
+    "plans_page": {
+      "title": "Planes y complementos",
+      "description": "Precios, límites y adopción de los planes y complementos definidos en el código.",
+      "read_only": "Solo lectura: los planes y precios están en @keel/config (packages/config/src/plans.ts y modules.ts). De momento editarlos sigue siendo un cambio de código, para que facturación, landing y tests cambien a la vez.",
+      "tenants_n": "{n, plural, one {# tenant} other {# tenants}}",
+      "monthly": "Mensual",
+      "setup": "Cuota de alta",
+      "orders_limit": "Pedidos al mes",
+      "users_limit": "Usuarios",
+      "unlimited": "Ilimitados",
+      "overage": "Por encima del límite del plan: {price} por bloque de {orders} pedidos.",
+      "addons": "Complementos",
+      "addon": "Complemento",
+      "availability": "Disponibilidad",
+      "tenants": "Tenants",
+      "availability_implemented": "Disponible",
+      "availability_on_request": "Bajo petición"
+    },
+    "integrations": {
+      "title": "Integraciones",
+      "description": "Errores de integración de todos los tenants, por tenant y fuente, con las últimas sincronizaciones fallidas.",
+      "sources_in_error": "Fuentes con problemas",
+      "failed_webhooks": "Webhooks fallidos",
+      "failed_writes": "Escrituras fallidas",
+      "source": "Fuente",
+      "status": "Estado",
+      "status_problems": "Error o degradado",
+      "status_all": "Todos",
+      "empty": "Ningún problema de integración.",
+      "last_success": "Último éxito",
+      "error": "Último error",
+      "failures": "{n} fallos seguidos",
+      "failed_runs": "Sincronizaciones fallidas",
+      "failed_runs_hint": "Las 30 más recientes primero."
     }
   },
   "cod": {

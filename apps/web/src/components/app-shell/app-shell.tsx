@@ -3,6 +3,7 @@ import type { TenantContext } from "@/server/tenant";
 import { getMemberships } from "@/server/session";
 import { SidebarNav } from "./sidebar";
 import { Topbar } from "./topbar";
+import { ImpersonationBanner } from "./impersonation-banner";
 import { SUPPORT_CATEGORIES, listNotifications, unreadCount } from "@keel/services";
 import { displayName, initials } from "@keel/core";
 import { brandCss, loadBrand } from "@/server/branding";
@@ -19,6 +20,8 @@ export async function AppShell({ ctx, children }: { ctx: TenantContext; children
     return { unread: await unreadCount(s, ctx.user.id), items: await listNotifications(s, ctx.user.id, 15) };
   });
   return (
+    <>
+    {ctx.impersonation && <ImpersonationBanner tenantName={ctx.tenant.name} slug={ctx.tenant.slug} />}
     <div className="flex min-h-screen">
       {css && <style data-tenant-brand dangerouslySetInnerHTML={{ __html: css }} />}
       <aside className="hidden w-60 shrink-0 border-r bg-sidebar lg:block">
@@ -34,12 +37,12 @@ export async function AppShell({ ctx, children }: { ctx: TenantContext; children
           role={ctx.role}
           memberships={memberships.map((m) => ({ slug: m.slug, name: m.name }))}
           isSuperAdmin={ctx.user.isSuperAdmin}
-          impersonating={ctx.impersonation !== null}
           support={canWritePage(ctx.role, "support") ? { categories: [...SUPPORT_CATEGORIES] } : null}
           notifications={{ unread, items: items.map((n) => ({ id: n.id, type: n.type, title: n.title, body: n.body, link: n.link, severity: n.severity, readAt: n.readAt?.toISOString() ?? null, createdAt: n.createdAt.toISOString() })), locale: ctx.locale }}
         />
         <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
       </div>
     </div>
+    </>
   );
 }
