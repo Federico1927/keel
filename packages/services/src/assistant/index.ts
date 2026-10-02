@@ -4,6 +4,7 @@ import { ASSISTANT_MAX_QUESTION_CHARS, ASSISTANT_MAX_STEPS, AssistantInputError,
 import { LlmError, type LlmBlock, type LlmMessage, type LlmProvider, type LlmStopReason } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 import type { AnalyticsTenant } from "../analytics";
+import { ToolError } from "../tools";
 import { assistantToolsFor, toolDefinition, type AssistantTool } from "./tools";
 
 export * from "./tools";
@@ -252,10 +253,11 @@ async function runTools(run: TenantRunner, scope: AssistantScope, tools: readonl
       const parsed = tool.input.safeParse(call.input ?? {});
       if (!parsed.success) return { block: { type: "tool_result", toolUseId: call.id, content: `Invalid input: ${parsed.error.issues.map((i) => `${i.path.join(".") || "input"}: ${i.message}`).join("; ")}`, isError: true } };
       try {
-        const r = await run((ctx) => tool.run({ ctx, tenant: scope.tenant, slug: scope.tenant.slug, today }, parsed.data));
+        const r = await run((ctx) => tool.run({ ctx, tenant: scope.tenant, slug: scope.tenant.slug, today, userId: scope.userId, role: scope.role, activeAddons: scope.activeAddons }, parsed.data));
         return { block: { type: "tool_result", toolUseId: call.id, content: JSON.stringify(r.data) }, citation: r.citation };
       } catch (err) {
         if (err instanceof AssistantInputError) return { block: { type: "tool_result", toolUseId: call.id, content: `Invalid input: ${err.message}`, isError: true } };
+        if (err instanceof ToolError) return { block: { type: "tool_result", toolUseId: call.id, content: `${err.code === "not_found" ? "Not found" : "Invalid input"}: ${err.message}`, isError: true } };
         console.error(`[assistant] tool ${call.name} failed`, err);
         return { block: { type: "tool_result", toolUseId: call.id, content: "The tool failed on the server. Tell the user this figure is unavailable right now.", isError: true } };
       }

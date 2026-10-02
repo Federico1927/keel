@@ -17,11 +17,11 @@ import { testPools } from "../src/test-utils";
 import { seedPlatform } from "../src/seed";
 import { seedDomainForTests } from "./seed-for-tests";
 
-const PLATFORM_TABLES = new Set(["users", "accounts", "sessions", "verification_tokens", "user_sign_ins", "tenants", "tenant_memberships", "tenant_addons", "email_events", "email_address_suppressions", "password_resets"]);
+const PLATFORM_TABLES = new Set(["users", "accounts", "sessions", "verification_tokens", "user_sign_ins", "tenants", "tenant_memberships", "tenant_addons", "email_events", "email_address_suppressions", "password_resets", "oauth_clients"]);
 /** Tenant tables the seed may legitimately leave empty for one tenant. */
 const EMPTY_ALLOWED = new Set<string>(["tenant_addons"]);
-/** Add-on tables: only tenants with the add-on carry rows, so the seed populates tenant A alone. */
-const ADDON_ONLY = new Set<string>(["cod_settings", "cod_queue_items", "cod_attempts", "cod_operator_capacity", "cod_capacity_exceptions", "cod_assignment_log", "cod_recipient_profiles", "retention_campaigns", "retention_exposures"]);
+/** Add-on and plan-gated tables: only tenants with the add-on (or the plan: MCP is Growth and up) carry rows, so the seed populates tenant A alone. */
+const ADDON_ONLY = new Set<string>(["mcp_authorization_codes", "mcp_tokens", "mcp_request_log", "mcp_rate_buckets", "mcp_pending_actions", "cod_settings", "cod_queue_items", "cod_attempts", "cod_operator_capacity", "cod_capacity_exceptions", "cod_assignment_log", "cod_recipient_profiles", "retention_campaigns", "retention_exposures"]);
 
 const pools = testPools();
 let tenantA = "";

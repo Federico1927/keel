@@ -18,18 +18,19 @@
     "@keel/config": "workspace:*",
     "@keel/core": "workspace:*",
     "@keel/db": "workspace:*",
+    "@keel/integrations": "workspace:*",
     "@keel/services": "workspace:*",
     "drizzle-orm": "^0.45.0",
-    "zod": "^4.0.0",
-    "@keel/integrations": "workspace:*"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@keel/eslint-config": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.31.0",
+    "@types/pg": "^8.15.0",
     "dotenv-cli": "^11.0.0",
     "eslint": "^9.39.0",
-    "typescript": "^5.9.3",
-    "vitest": "^3.2.0",
     "pg": "^8.16.0",
-    "@types/pg": "^8.15.0"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.0"
   }
 }

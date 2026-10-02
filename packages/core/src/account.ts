@@ -20,9 +20,9 @@ export function isNewDevice(current: string | null | undefined, previous: (strin
   return !previous.some((p) => (describeUserAgent(p)?.label ?? "") === key);
 }
 
-/** A same-origin path to go to after signing in: relative, no protocol-relative or backslash tricks; anything else → fallback. */
+/** A same-origin path to go to after signing in: relative, no protocol-relative or backslash tricks; anything else → fallback. Up to 2048 characters: an OAuth authorize URL (MCP consent) carries PKCE and redirect parameters. */
 export function safeNextPath(next: unknown, fallback = "/"): string {
-  if (typeof next !== "string" || next.length > 500) return fallback;
+  if (typeof next !== "string" || next.length > 2048) return fallback;
   if (!next.startsWith("/") || next.startsWith("//") || next.includes("\\") || [...next].some((c) => c.charCodeAt(0) < 32)) return fallback;
   return next;
 }
