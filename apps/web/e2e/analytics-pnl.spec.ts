@@ -83,6 +83,8 @@ test.describe("analytics depth: P/L per order, periods, products with ads, UTM",
     await expect(page).toHaveURL(/\/orders\?.*missingCost=1/);
     await expect(page.getByTestId("filter-missing-cost")).toBeVisible();
     const orderHref = await page.locator("table tbody tr").first().getByRole("link").first().getAttribute("href");
+    // late prefetch responses can set the session cookie again after it is cleared
+    await page.waitForLoadState("networkidle");
     await page.context().clearCookies();
     await login(page, "care@northwind.demo");
     await page.goto(orderHref!);
