@@ -1410,7 +1410,10 @@
           "charge_deleted": "Costo accessorio rimosso"
         }
       }
-    }
+    },
+    "scan_hint": "Scansiona gli articoli mentre li spacchetti: ogni lettura conta un'unità sulla sua riga.",
+    "scan_no_match": "Nessuna riga ancora da ricevere corrisponde a {code}.",
+    "scan_counted": "{item}: {n} di {of}"
   },
   "po_new": {
     "back": "Acquisti",
@@ -2501,7 +2504,9 @@
         "captured": "Cambio immediato: merce non ricevuta, addebitati {amount}.",
         "failed": "Cambio immediato: blocco sulla carta non riuscito, spedisci solo dopo l'arrivo della merce."
       }
-    }
+    },
+    "scan_hint": "Scansiona ogni articolo per selezionarlo per il rientro a stock.",
+    "scan_no_match": "Nessuna riga di questo reso corrisponde a {code}."
   },
   "return_new": {
     "title": "Reso per {order}",
@@ -9398,6 +9403,53 @@
         "cancel": "Parole di annullamento",
         "help": "Una risposta di conferma registra l'esito confermato (scritto prima sul negozio, come quello di un operatore). Una risposta di annullamento segnala l'ordine a un admin: nulla viene annullato in automatico."
       }
+    }
+  },
+  "mobile": {
+    "close": "Chiudi",
+    "nav": {
+      "label": "Principale",
+      "more": "Altro",
+      "stock_takes": "Inventari",
+      "approvals": "Approvazioni"
+    },
+    "filters": {
+      "label": "Filtri",
+      "title": "Filtri e ordinamento",
+      "done": "Mostra risultati",
+      "remove": "Rimuovi filtro"
+    },
+    "stepper": {
+      "decrement": "Diminuisci",
+      "increment": "Aumenta"
+    },
+    "scan": {
+      "open": "Scansiona",
+      "title": "Scansiona un codice",
+      "hint": "Inquadra un codice a barre o un QR. Puoi anche scrivere il codice nel campo.",
+      "unavailable": "La fotocamera non è disponibile qui (nessuna fotocamera, permesso negato o pagina non sicura). Scrivi il codice nel campo.",
+      "close": "Fatto",
+      "scanned": "Letto {code}"
+    },
+    "pwa": {
+      "install_title": "Installa {product}",
+      "install_body": "Aggiungila alla schermata Home: si apre a schermo intero, come un'app.",
+      "install": "Installa",
+      "dismiss": "Non ora",
+      "offline_title": "Sei offline",
+      "offline_body": "Questa pagina richiede una connessione. Controlla la rete e riprova: ciò che hai salvato non va perso.",
+      "retry": "Riprova"
+    },
+    "settings": {
+      "link": "Navigazione mobile",
+      "title": "Navigazione mobile",
+      "description": "Le quattro destinazioni della barra in basso sul telefono, per ogni ruolo. Tutto il resto resta in “Altro”. Una destinazione che la persona non può aprire viene sostituita automaticamente.",
+      "role_hint": "Predefinite: {list}",
+      "slot": "Posizione {n}",
+      "use_default": "Predefinita del ruolo",
+      "save": "Salva",
+      "saved": "Salvato",
+      "back": "Impostazioni"
     }
   }
 }

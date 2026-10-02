@@ -1410,7 +1410,10 @@
           "charge_deleted": "Charge removed"
         }
       }
-    }
+    },
+    "scan_hint": "Scan the items as you unpack them: each scan counts one unit on its line.",
+    "scan_no_match": "No line still to receive matches {code}.",
+    "scan_counted": "{item}: {n} of {of}"
   },
   "po_new": {
     "back": "Purchasing",
@@ -2501,7 +2504,9 @@
         "captured": "Instant exchange: goods not received, {amount} charged.",
         "failed": "Instant exchange: the card hold failed, ship only after the goods arrive."
       }
-    }
+    },
+    "scan_hint": "Scan each item to tick it for restock.",
+    "scan_no_match": "No line of this return matches {code}."
   },
   "return_new": {
     "title": "Return for {order}",
@@ -9398,6 +9403,53 @@
         "cancel": "Cancel keywords",
         "help": "A confirm reply records a confirmed outcome (written to the store first, like an operator's). A cancel reply escalates the order to an admin: nothing is cancelled automatically."
       }
+    }
+  },
+  "mobile": {
+    "close": "Close",
+    "nav": {
+      "label": "Main",
+      "more": "More",
+      "stock_takes": "Stock-takes",
+      "approvals": "Approvals"
+    },
+    "filters": {
+      "label": "Filters",
+      "title": "Filters and sort",
+      "done": "Show results",
+      "remove": "Remove filter"
+    },
+    "stepper": {
+      "decrement": "Decrease",
+      "increment": "Increase"
+    },
+    "scan": {
+      "open": "Scan",
+      "title": "Scan a barcode",
+      "hint": "Point the camera at a barcode or QR code. You can also type the code in the field.",
+      "unavailable": "The camera is not available here (no camera, permission refused or not a secure page). Type the code in the field instead.",
+      "close": "Done",
+      "scanned": "Scanned {code}"
+    },
+    "pwa": {
+      "install_title": "Install {product}",
+      "install_body": "Add it to your home screen: it opens full screen, like an app.",
+      "install": "Install",
+      "dismiss": "Not now",
+      "offline_title": "You're offline",
+      "offline_body": "This page needs a connection. Check your network and try again: nothing you have saved is lost.",
+      "retry": "Try again"
+    },
+    "settings": {
+      "link": "Mobile navigation",
+      "title": "Mobile navigation",
+      "description": "The four destinations in the bottom bar on phones, for each role. Everything else stays under “More”. A destination the person cannot open is replaced automatically.",
+      "role_hint": "Default: {list}",
+      "slot": "Slot {n}",
+      "use_default": "Role default",
+      "save": "Save",
+      "saved": "Saved",
+      "back": "Settings"
     }
   }
 }

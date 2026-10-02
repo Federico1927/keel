@@ -1,7 +1,8 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Ban, ChevronDown, RotateCcw, UserPlus } from "lucide-react";
+import Link from "next/link";
+import { Ban, ChevronDown, MessageSquarePlus, RotateCcw, UserPlus } from "lucide-react";
 import { Alert, AlertDescription, Button, Checkbox, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Label, Select } from "@hullwise/ui";
 import { ORDER_STATUSES } from "@hullwise/core";
 import { assignOrder, cancelOrder, changeOrderStatus, resetOrderStatus } from "@/server/actions/orders";
@@ -9,7 +10,7 @@ import type { ActionResult } from "@/server/action-result";
 
 const MANUAL_CHOICES = ORDER_STATUSES.filter((s) => !["cancelled", "returned", "returned_partial", "refunded", "delivered"].includes(s));
 
-export function OrderActions({ slug, orderId, currentStatus, statusSource, cancelled, members, assignedTo, canCancel, canAssign }: { slug: string; orderId: string; currentStatus: string; statusSource: string; cancelled: boolean; members: { id: string; name: string }[]; assignedTo: string | null; canCancel: boolean; canAssign: boolean }) {
+export function OrderActions({ slug, orderId, currentStatus, statusSource, cancelled, members, assignedTo, canCancel, canAssign, noteHref }: { slug: string; orderId: string; currentStatus: string; statusSource: string; cancelled: boolean; members: { id: string; name: string }[]; assignedTo: string | null; canCancel: boolean; canAssign: boolean; /** Phones: a shortcut to the notes composer. */ noteHref?: string }) {
   const t = useTranslations("order_detail");
   const ts = useTranslations("order_status");
   const tc = useTranslations("common");
@@ -41,7 +42,7 @@ export function OrderActions({ slug, orderId, currentStatus, statusSource, cance
       )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button disabled={pending || cancelled}>
+          <Button disabled={pending || cancelled} className="max-md:flex-1">
             {t("change_status")} <ChevronDown />
           </Button>
         </DropdownMenuTrigger>
@@ -62,14 +63,20 @@ export function OrderActions({ slug, orderId, currentStatus, statusSource, cance
           )}
         </DropdownMenuContent>
       </DropdownMenu>
+      {noteHref && (
+        <Button asChild variant="outline" size="icon" className="md:hidden">
+          <Link href={noteHref} aria-label={t("add_note")} data-testid="sticky-add-note"><MessageSquarePlus /></Link>
+        </Button>
+      )}
+      {/* phones: icon buttons in the docked bar; the accessible name stays the label */}
       {canAssign && (
-        <Button variant="outline" disabled={pending} onClick={() => setAssignOpen(true)}>
-          <UserPlus /> {t("assign")}
+        <Button variant="outline" disabled={pending} onClick={() => setAssignOpen(true)} className="max-md:w-11 max-md:px-0" aria-label={t("assign")}>
+          <UserPlus /> <span className="max-md:sr-only">{t("assign")}</span>
         </Button>
       )}
       {canCancel && !cancelled && (
-        <Button variant="destructive" disabled={pending} onClick={() => setCancelOpen(true)}>
-          <Ban /> {t("cancel_order")}
+        <Button variant="destructive" disabled={pending} onClick={() => setCancelOpen(true)} className="max-md:w-11 max-md:px-0" aria-label={t("cancel_order")}>
+          <Ban /> <span className="max-md:sr-only">{t("cancel_order")}</span>
         </Button>
       )}
 

@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { canWritePage } from "@hullwise/config";
 import { formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
 import { recentInventoryDrift } from "@hullwise/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Pagination, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardDescription, CardHeader, Button, CardTitle, DataList, EmptyState, Input, PageHeader, Pagination, Select, Stat, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { SyncInventoryButton } from "./sync-now";
 import { listInventory, parseInventoryFilters } from "@/server/queries/catalog";
@@ -40,7 +40,7 @@ export default async function InventoryPage({ params, searchParams }: { params: 
         <Stat label={t("kpi.reorder")} value={formatNumber(suggestedReorderTotal, ctx.locale)} hint={<Link href={`/t/${tenant}/purchasing/new`} className="text-primary underline">{t("create_po")}</Link>} />
       </div>
       <form className="mb-3 flex flex-wrap items-center gap-2" method="get">
-        <input name="q" defaultValue={f.q ?? ""} placeholder={t("search_placeholder")} className="h-9 w-64 rounded-md border border-input bg-card px-3 text-sm" aria-label={t("search")} />
+        <Input type="search" enterKeyHint="search" size="sm" name="q" defaultValue={f.q ?? ""} placeholder={t("search_placeholder")} className="w-full sm:w-64" aria-label={t("search")} />
         {f.risk && <input type="hidden" name="risk" value={f.risk} />}
         <Select size="sm" name="location" defaultValue={f.location ?? ""} className="w-auto" aria-label={t("location")}>
           <option value="">{t("all_locations")}</option>
@@ -53,10 +53,10 @@ export default async function InventoryPage({ params, searchParams }: { params: 
             <option key={d} value={d}>{t("lookback_days", { days: d })}</option>
           ))}
         </Select>
-        <button type="submit" className="h-9 rounded-md border bg-secondary px-3 text-sm">{t("apply")}</button>
-        <div className="ml-auto flex gap-1">
+        <Button type="submit" size="sm" variant="secondary">{t("apply")}</Button>
+        <div className="flex flex-wrap gap-1 sm:ml-auto">
           {(["critical", "warning", "ok", "no_sales"] as const).map((r) => (
-            <Link key={r} href={link({ risk: f.risk === r ? undefined : r })} className={cn("rounded-full border px-3 py-1 text-xs", f.risk === r ? "bg-primary text-primary-foreground" : "bg-card")}>
+            <Link key={r} href={link({ risk: f.risk === r ? undefined : r })} className={cn("rounded-full border px-3 py-1 text-xs pointer-coarse:py-2", f.risk === r ? "bg-primary text-primary-foreground" : "bg-card")}>
               {tr(r)} <span className="tabular opacity-70">{counts[r]}</span>
             </Link>
           ))}
@@ -67,44 +67,34 @@ export default async function InventoryPage({ params, searchParams }: { params: 
       ) : (
         <Card>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("columns.variant")}</TableHead>
-                  <TableHead className="text-right">{t("columns.available")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("columns.incoming")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("columns.sold")}</TableHead>
-                  <TableHead className="hidden text-right lg:table-cell">{t("columns.velocity")}</TableHead>
-                  <TableHead>{t("columns.cover")}</TableHead>
-                  <TableHead className="text-right">{t("columns.reorder")}</TableHead>
-                  {canSync && <TableHead className="w-10"><span className="sr-only">{tc("adjust.button")}</span></TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.variantId}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <ProductThumb src={r.imageUrl} alt={`${r.productTitle} ${r.variantTitle}`} size="xs" />
-                        <div className="min-w-0">
-                          <Link href={`/t/${tenant}/products/${r.productId}`} className="font-medium text-primary hover:underline">
-                            {r.productTitle}
-                          </Link>
-                          <p className="text-xs text-muted-foreground">{r.variantTitle} {r.sku ? `· ${r.sku}` : ""}</p>
-                        </div>
+            <DataList
+              rows={rows}
+              rowKey={(r) => r.variantId}
+              rowProps={() => ({ "data-testid": "inventory-row" })}
+              columns={[
+                {
+                  key: "variant",
+                  header: t("columns.variant"),
+                  mobile: "title",
+                  cell: (r) => (
+                    <div className="flex items-center gap-2">
+                      <ProductThumb src={r.imageUrl} alt={`${r.productTitle} ${r.variantTitle}`} size="xs" />
+                      <div className="min-w-0">
+                        <Link href={`/t/${tenant}/products/${r.productId}`} className="font-medium text-primary hover:underline max-md:after:absolute max-md:after:inset-0">{r.productTitle}</Link>
+                        <p className="text-xs font-normal text-muted-foreground">{r.variantTitle} {r.sku ? `· ${r.sku}` : ""}</p>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-right tabular font-medium">{r.available}</TableCell>
-                    <TableCell className="hidden text-right tabular text-muted-foreground md:table-cell">{r.incoming ? `+${r.incoming}` : "—"}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{r.unitsSold}</TableCell>
-                    <TableCell className="hidden text-right tabular lg:table-cell">{r.velocityPerDay.toFixed(2)}</TableCell>
-                    <TableCell><RiskBadge risk={r.risk} days={r.daysOfCover} /></TableCell>
-                    <TableCell className="text-right tabular">{r.suggestedReorder || "—"}</TableCell>
-                    {canSync && <TableCell className="text-right"><AdjustStockDialog compact slug={tenant} variants={[{ id: r.variantId, label: `${r.productTitle} · ${r.variantTitle}${r.sku ? ` · ${r.sku}` : ""}`, levels: Object.fromEntries(r.byLocation.map((l) => [l.locationId, l.available])) }]} locations={locations.map((l) => ({ id: l.id, name: l.name }))} defaultLocationId={f.location ?? locations[0]?.id} /></TableCell>}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </div>
+                  ),
+                },
+                { key: "available", header: t("columns.available"), mobile: "badge", align: "right", className: "tabular font-medium", cell: (r) => r.available },
+                { key: "incoming", header: t("columns.incoming"), align: "right", className: "tabular text-muted-foreground", cell: (r) => (r.incoming ? `+${r.incoming}` : "—") },
+                { key: "sold", header: t("columns.sold"), align: "right", className: "tabular", cell: (r) => r.unitsSold },
+                { key: "velocity", header: t("columns.velocity"), priority: 2, align: "right", className: "tabular", cell: (r) => r.velocityPerDay.toFixed(2) },
+                { key: "cover", header: t("columns.cover"), label: "", cell: (r) => <RiskBadge risk={r.risk} days={r.daysOfCover} /> },
+                { key: "reorder", header: t("columns.reorder"), align: "right", className: "tabular", cell: (r) => r.suggestedReorder || "—" },
+                ...(canSync ? [{ key: "adjust", header: <span className="sr-only">{tc("adjust.button")}</span>, mobile: "action" as const, headClassName: "w-10", className: "md:text-right max-md:basis-auto max-md:pt-0", cell: (r: (typeof rows)[number]) => <AdjustStockDialog compact slug={tenant} variants={[{ id: r.variantId, label: `${r.productTitle} · ${r.variantTitle}${r.sku ? ` · ${r.sku}` : ""}`, levels: Object.fromEntries(r.byLocation.map((l) => [l.locationId, l.available])) }]} locations={locations.map((l) => ({ id: l.id, name: l.name }))} defaultLocationId={f.location ?? locations[0]?.id} /> }] : []),
+              ]}
+            />
           </CardContent>
         </Card>
       )}
@@ -118,33 +108,19 @@ export default async function InventoryPage({ params, searchParams }: { params: 
           {drift.length === 0 ? (
             <p className="p-4 text-sm text-muted-foreground">{t("drift_empty")}</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("drift_columns.seen")}</TableHead>
-                  <TableHead>{t("drift_columns.variant")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("drift_columns.location")}</TableHead>
-                  <TableHead>{t("drift_columns.kind")}</TableHead>
-                  <TableHead className="text-right">{t("drift_columns.expected")}</TableHead>
-                  <TableHead className="text-right">{t("drift_columns.observed")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {drift.map((r) => (
-                  <TableRow key={r.d.id} data-testid="drift-row" data-kind={r.d.kind}>
-                    <TableCell className="whitespace-nowrap text-xs">{formatDateTime(r.d.lastSeenAt, ctx.locale, ctx.tenant.timezone)}{r.d.occurrences > 1 && <span className="ml-1 text-muted-foreground">{t("drift_times", { n: r.d.occurrences })}</span>}</TableCell>
-                    <TableCell>
-                      <Link href={`/t/${tenant}/products/${r.productId}`} className="font-medium text-primary hover:underline">{r.productTitle}</Link>
-                      <p className="text-xs text-muted-foreground">{r.variantTitle} {r.sku ? `· ${r.sku}` : ""}</p>
-                    </TableCell>
-                    <TableCell className="hidden text-sm md:table-cell">{r.locationName ?? t("drift_all_locations")}</TableCell>
-                    <TableCell><Badge variant={r.d.kind === "unexplained" ? "warning" : r.d.kind === "negative" ? "destructive" : "muted"}>{t(`drift_kind.${r.d.kind}`)}</Badge></TableCell>
-                    <TableCell className="text-right tabular">{formatNumber(r.d.expected, ctx.locale)}</TableCell>
-                    <TableCell className="text-right tabular font-medium">{formatNumber(r.d.observed, ctx.locale)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={drift}
+              rowKey={(r) => r.d.id}
+              rowProps={(r) => ({ "data-testid": "drift-row", "data-kind": r.d.kind })}
+              columns={[
+                { key: "seen", header: t("drift_columns.seen"), mobile: "meta", label: "", className: "whitespace-nowrap text-xs", cell: (r) => <>{formatDateTime(r.d.lastSeenAt, ctx.locale, ctx.tenant.timezone)}{r.d.occurrences > 1 && <span className="ml-1 text-muted-foreground">{t("drift_times", { n: r.d.occurrences })}</span>}</> },
+                { key: "variant", header: t("drift_columns.variant"), mobile: "title", cell: (r) => <><Link href={`/t/${tenant}/products/${r.productId}`} className="font-medium text-primary hover:underline">{r.productTitle}</Link><p className="text-xs font-normal text-muted-foreground">{r.variantTitle} {r.sku ? `· ${r.sku}` : ""}</p></> },
+                { key: "location", header: t("drift_columns.location"), className: "text-sm", cell: (r) => r.locationName ?? t("drift_all_locations") },
+                { key: "kind", header: t("drift_columns.kind"), mobile: "badge", cell: (r) => <Badge variant={r.d.kind === "unexplained" ? "warning" : r.d.kind === "negative" ? "destructive" : "muted"}>{t(`drift_kind.${r.d.kind}`)}</Badge> },
+                { key: "expected", header: t("drift_columns.expected"), align: "right", className: "tabular", cell: (r) => formatNumber(r.d.expected, ctx.locale) },
+                { key: "observed", header: t("drift_columns.observed"), align: "right", className: "tabular font-medium", cell: (r) => formatNumber(r.d.observed, ctx.locale) },
+              ]}
+            />
           )}
         </CardContent>
       </Card>

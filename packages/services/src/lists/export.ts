@@ -13,6 +13,8 @@ export interface ExportScope {
   tenantId: string;
   userId: string | null;
   orderNumberPrefix: string;
+  /** Tenant country, for phone search terms (same match as the list page). */
+  country?: string;
   settings: TenantSettings;
 }
 
@@ -119,11 +121,11 @@ export async function requestListExport(ctx: ServiceContext, input: { list: Expo
 export async function runListExport(ctx: ServiceContext, exportId: string): Promise<{ status: "done" | "failed" | "skipped"; rows: number }> {
   const [job] = await ctx.tx.select().from(schema.listExports).where(and(eq(schema.listExports.tenantId, ctx.tenantId), eq(schema.listExports.id, exportId))).limit(1);
   if (!job || job.status === "done") return { status: "skipped", rows: job?.rowCount ?? 0 };
-  const [tenant] = await ctx.tx.select({ orderNumberPrefix: schema.tenants.orderNumberPrefix, settings: schema.tenants.settings }).from(schema.tenants).where(eq(schema.tenants.id, ctx.tenantId)).limit(1);
+  const [tenant] = await ctx.tx.select({ orderNumberPrefix: schema.tenants.orderNumberPrefix, country: schema.tenants.country, settings: schema.tenants.settings }).from(schema.tenants).where(eq(schema.tenants.id, ctx.tenantId)).limit(1);
   const now = ctx.now ?? new Date();
   const list = job.list as ExportListKey;
   try {
-    const { csv, rows } = await buildListCsv(ctx, list, queryParams(job.query), { tenantId: ctx.tenantId, userId: job.userId, orderNumberPrefix: tenant?.orderNumberPrefix ?? "", settings: parseTenantSettings(tenant?.settings) });
+    const { csv, rows } = await buildListCsv(ctx, list, queryParams(job.query), { tenantId: ctx.tenantId, userId: job.userId, orderNumberPrefix: tenant?.orderNumberPrefix ?? "", country: tenant?.country, settings: parseTenantSettings(tenant?.settings) });
     await ctx.tx.update(schema.listExports).set({ status: "done", content: csv, rowCount: rows, fileName: exportFileName(list, now), completedAt: now, error: null }).where(eq(schema.listExports.id, exportId));
     await notifyUsers(ctx, { userIds: [job.userId], type: "export_ready", title: String(rows), body: list, link: "/exports", severity: "success", metadata: { exportId, list } });
     return { status: "done", rows };

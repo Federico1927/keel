@@ -2,10 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { canDo } from "@hullwise/config";
-import { formatDate, formatDateTime, formatMoney } from "@hullwise/core";
+import { RETURN_TRANSITIONS, formatDate, formatDateTime, formatMoney, type ReturnStatus } from "@hullwise/core";
 import { getPortalConfig, returnDetail, returnEvidenceList, signReturnLink } from "@hullwise/services";
 import { pickLocalized } from "@hullwise/core";
-import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardHeader, CardTitle, DataList, DetailShell, Stat } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
 import { ReturnWorkflow } from "./workflow";
@@ -48,7 +48,7 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ t
           {r.returnless && <Badge variant="outline">{t("returnless")}</Badge>}
         </>
       }
-      actions={<ReturnWorkflow slug={tenant} returnId={r.id} status={r.status} resolution={r.resolution} lines={lines.map((l) => ({ id: l.id, title: l.title, variantTitle: l.variantTitle, quantity: l.quantity, unitAmountMinor: l.unitAmountMinor, restocked: l.restocked, inspectionAmountMinor: l.inspectionAmountMinor, hasVariant: Boolean(l.variantId) }))} locations={locations} proposedAmountMinor={r.proposedAmountMinor} currency={order.currency} locale={ctx.locale} canAct={canAct} />}
+      primaryActions={canAct && (RETURN_TRANSITIONS[r.status as ReturnStatus] ?? []).length > 0 ? <ReturnWorkflow slug={tenant} returnId={r.id} status={r.status} resolution={r.resolution} lines={lines.map((l) => ({ id: l.id, title: l.title, variantTitle: l.variantTitle, quantity: l.quantity, unitAmountMinor: l.unitAmountMinor, restocked: l.restocked, inspectionAmountMinor: l.inspectionAmountMinor, hasVariant: Boolean(l.variantId), codes: [l.sku, l.barcode] }))} locations={locations} proposedAmountMinor={r.proposedAmountMinor} currency={order.currency} locale={ctx.locale} canAct={canAct} /> : undefined}
       aside={
         <div className="space-y-4">
           <RecordTasks slug={tenant} type="return" id={r.id} label={`R-${r.number}`} />
@@ -136,11 +136,11 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ t
         </div>
       }
     >
-      <ol className="mb-6 flex flex-wrap gap-2 text-xs">
+      <ol className="mb-6 flex gap-2 overflow-x-auto pb-1 text-xs md:flex-wrap">
         {STEPS.map((s, i) => (
-          <li key={s} className={`rounded-full border px-3 py-1 ${!closed && i <= stepIndex ? "bg-primary text-primary-foreground" : closed ? "bg-muted" : ""}`}>{ts(s)}</li>
+          <li key={s} className={`shrink-0 rounded-full border px-3 py-1 ${!closed && i <= stepIndex ? "bg-primary text-primary-foreground" : closed ? "bg-muted" : ""}`}>{ts(s)}</li>
         ))}
-        <li className={`rounded-full border px-3 py-1 ${closed ? (r.status === "rejected" ? "bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground") : ""}`}>{closed ? ts(r.status) : t("closing")}</li>
+        <li className={`shrink-0 rounded-full border px-3 py-1 ${closed ? (r.status === "rejected" ? "bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground") : ""}`}>{closed ? ts(r.status) : t("closing")}</li>
       </ol>
       <div className="grid gap-3 sm:grid-cols-3">
         <Stat label={t("proposed_amount")} value={money(r.proposedAmountMinor)} />
@@ -150,33 +150,18 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ t
       <Card className="mt-6">
         <CardHeader><CardTitle className="text-base">{t("lines")}</CardTitle></CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("item")}</TableHead>
-                <TableHead className="text-right">{t("qty")}</TableHead>
-                <TableHead className="text-right">{t("unit")}</TableHead>
-                <TableHead className="hidden md:table-cell">{t("inspection")}</TableHead>
-                <TableHead className="text-right">{t("accepted")}</TableHead>
-                <TableHead className="hidden md:table-cell">{t("restocked")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {lines.map((l) => (
-                <TableRow key={l.id}>
-                  <TableCell>
-                    {l.productId ? <Link href={`/t/${tenant}/products/${l.productId}`} className="font-medium hover:underline">{l.title}</Link> : <span className="font-medium">{l.title}</span>}
-                    <div className="text-xs text-muted-foreground">{[l.variantTitle, l.sku].filter(Boolean).join(" · ")}</div>
-                  </TableCell>
-                  <TableCell className="text-right tabular">{l.quantity}</TableCell>
-                  <TableCell className="text-right tabular">{money(l.unitAmountMinor)}</TableCell>
-                  <TableCell className="hidden md:table-cell">{l.inspectionOutcome ? t(`outcome.${l.inspectionOutcome}`) : "—"}</TableCell>
-                  <TableCell className="text-right tabular">{money(l.inspectionAmountMinor ?? l.quantity * l.unitAmountMinor)}</TableCell>
-                  <TableCell className="hidden md:table-cell">{l.restocked ? t("yes") : "—"}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataList
+            rows={lines}
+            rowKey={(l) => l.id}
+            columns={[
+              { key: "item", header: t("item"), mobile: "title", cell: (l) => <>{l.productId ? <Link href={`/t/${tenant}/products/${l.productId}`} className="font-medium hover:underline">{l.title}</Link> : <span className="font-medium">{l.title}</span>}<div className="text-xs font-normal text-muted-foreground">{[l.variantTitle, l.sku].filter(Boolean).join(" · ")}</div></> },
+              { key: "qty", header: t("qty"), align: "right", className: "tabular", cell: (l) => l.quantity },
+              { key: "unit", header: t("unit"), align: "right", className: "tabular", cell: (l) => money(l.unitAmountMinor) },
+              { key: "inspection", header: t("inspection"), cell: (l) => (l.inspectionOutcome ? t(`outcome.${l.inspectionOutcome}`) : "—") },
+              { key: "accepted", header: t("accepted"), mobile: "badge", align: "right", className: "tabular", cell: (l) => money(l.inspectionAmountMinor ?? l.quantity * l.unitAmountMinor) },
+              { key: "restocked", header: t("restocked"), cell: (l) => (l.restocked ? t("yes") : "—") },
+            ]}
+          />
         </CardContent>
       </Card>
       <Card className="mt-6">

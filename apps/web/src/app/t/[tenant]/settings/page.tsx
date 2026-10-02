@@ -11,6 +11,7 @@ export default async function SettingsPage({ params }: { params: Promise<{ tenan
   const ctx = await requirePage(tenant, "settings");
   const t = await getTranslations("settings");
   const tb = await getTranslations("billing");
+  const tm = await getTranslations("mobile.settings");
   const taxRates = await ctx.run((tx) => tx.select().from(schema.tenantTaxRates).orderBy(schema.tenantTaxRates.country));
   return (
     <>
@@ -31,6 +32,9 @@ export default async function SettingsPage({ params }: { params: Promise<{ tenan
             </Button>
             <Button asChild variant="outline">
               <Link href={`/t/${tenant}/settings/ai`} data-testid="ai-settings-link">{t("ai_link")}</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href={`/t/${tenant}/settings/mobile`} data-testid="mobile-nav-settings-link">{tm("link")}</Link>
             </Button>
             {ctx.role === "owner" && (
               <Button asChild variant="outline">

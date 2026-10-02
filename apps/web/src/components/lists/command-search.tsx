@@ -16,6 +16,7 @@ type Hit = { key: string; href: string; group: "orders" | "customers" | "product
 export function CommandSearch({ slug }: { slug: string }) {
   const t = useTranslations("lists.search");
   const ts = useTranslations("order_status");
+  const tm = useTranslations("mobile");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
@@ -77,9 +78,9 @@ export function CommandSearch({ slug }: { slug: string }) {
         <kbd className="hidden rounded border bg-muted px-1.5 text-[10px] font-medium md:inline">⌘K</kbd>
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="top-[12vh] max-w-xl translate-y-0 gap-0 p-0 sm:top-[15vh]">
+        <DialogContent mobile="fullscreen" className="content-start gap-0 p-0 pt-[env(safe-area-inset-top)] sm:top-[15vh] sm:max-w-xl sm:translate-y-0 sm:pt-0" closeLabel={tm("close")}>
           <DialogTitle className="sr-only">{t("open")}</DialogTitle>
-          <div className="flex items-center gap-2 border-b px-3">
+          <div className="flex items-center gap-2 border-b px-3 pr-12">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <Input
               autoFocus
@@ -91,12 +92,12 @@ export function CommandSearch({ slug }: { slug: string }) {
                 if (e.key === "Enter") { e.preventDefault(); go(hits[active]); }
               }}
               placeholder={t("placeholder")}
-              className="h-12 border-0 shadow-none focus-visible:ring-0"
+              className="h-12 border-0 shadow-none focus-visible:ring-0 pointer-coarse:h-12"
               aria-label={t("placeholder")}
               data-testid="command-search-input"
             />
           </div>
-          <div className="max-h-[60vh] overflow-y-auto p-1" role="listbox" aria-busy={pending}>
+          <div className="overflow-y-auto p-1 sm:max-h-[60vh]" role="listbox" aria-busy={pending}>
             {q.trim().length < 2 ? (
               <p className="px-3 py-6 text-center text-sm text-muted-foreground">{t("hint")}</p>
             ) : hits.length === 0 ? (
@@ -109,7 +110,7 @@ export function CommandSearch({ slug }: { slug: string }) {
                 return (
                   <div key={h.key}>
                     {header && <p className="px-3 pb-1 pt-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">{header}</p>}
-                    <button type="button" role="option" aria-selected={i === active} onMouseEnter={() => setActive(i)} onClick={() => go(h)} className={cn("flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm", i === active ? "bg-muted" : "hover:bg-muted/60")} data-testid="command-search-hit">
+                    <button type="button" role="option" aria-selected={i === active} onMouseEnter={() => setActive(i)} onClick={() => go(h)} className={cn("flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm pointer-coarse:min-h-12", i === active ? "bg-muted" : "hover:bg-muted/60")} data-testid="command-search-hit">
                       <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
                       <span className="min-w-0">
                         <span className="block truncate font-medium">{h.title}</span>

@@ -7,7 +7,7 @@ import { adminDb, and, eq, inArray, schema } from "@hullwise/db";
 import { formatDateTime, formatMoney, daysInTransit, orderEditBlock, displayName } from "@hullwise/core";
 import { customerOrderHistory, duplicateSiblings, latestPlatformWrites, orderMoney } from "@hullwise/services";
 import { ORDER_DISCOUNT_PRESETS_BPS, canDo, canViewPage, canWritePage, isPageEnabled } from "@hullwise/config";
-import { Alert, AlertDescription, AlertTitle, Badge, Button, Card, CardContent, CardHeader, CardTitle, DetailShell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, AlertTitle, Badge, Button, Card, CardContent, CardHeader, CardTitle, DataList, DetailShell, DetailStat } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { adjacentOrders, getOrderDetail, getOrderEditData } from "@/server/queries/orders";
 import { StatusBadge } from "@/components/status-badge";
@@ -130,17 +130,24 @@ export default async function OrderDetailPage({ params, searchParams }: { params
           <PlatformWriteStatus slug={tenant} write={platformWrite} canRetry={canDo(ctx.role, "cancel_order")} showError />
         </>
       }
+      stats={
+        <>
+          <DetailStat label={t("totals.total")} value={fmt(order.totalMinor)} />
+          <DetailStat label={t("customer")} value={order.phone ? <a href={`tel:${order.phoneE164 ?? order.phone}`} className="font-normal text-primary underline-offset-4 hover:underline" data-testid="order-phone">{order.customerName ?? order.phone}</a> : (order.customerName ?? "—")} className="max-w-[60vw] truncate" />
+        </>
+      }
       actions={
-        canChange || canEdit || canRecordPayment || canRefund ? (
+        canEdit || canRecordPayment || canRefund ? (
           <>
             {canRecordPayment && money && <RecordPaymentDialog slug={tenant} orderId={order.id} orderName={order.name} outstandingMinor={money.outstandingMinor} defaultMethod={order.paymentMethod} today={today} currency={order.currency} locale={ctx.locale} />}
             {canRefund && money && <RefundDialog slug={tenant} orderId={order.id} orderName={order.name} refundableMinor={money.refundableMinor} order={{ paymentStatus: order.paymentStatus, totalMinor: order.totalMinor, refundedMinor: order.refundedMinor, subtotalMinor: order.subtotalMinor, discountMinor: order.discountMinor }} lines={money.lines} locations={locations} currency={order.currency} locale={ctx.locale} />}
             {showEdit && <EditOrderDialog {...editProps} />}
             {canEdit && <DiscountOrderDialog slug={tenant} orderId={order.id} orderName={order.name} amounts={order} presetsBps={ORDER_DISCOUNT_PRESETS_BPS} paid={paid} currency={order.currency} locale={ctx.locale} />}
-            {canChange && <OrderActions slug={tenant} orderId={order.id} currentStatus={order.status} statusSource={order.statusSource} cancelled={Boolean(order.cancelledAt) || Boolean(order.replacedByOrderId)} members={people} assignedTo={order.assignedTo} canCancel={canDo(ctx.role, "cancel_order")} canAssign={canDo(ctx.role, "assign")} />}
           </>
         ) : undefined
       }
+      // status, assignment and cancel: inline on desktop, docked within thumb reach on phones (#49)
+      primaryActions={canChange ? <OrderActions slug={tenant} orderId={order.id} currentStatus={order.status} statusSource={order.statusSource} cancelled={Boolean(order.cancelledAt) || Boolean(order.replacedByOrderId)} members={people} assignedTo={order.assignedTo} canCancel={canDo(ctx.role, "cancel_order")} canAssign={canDo(ctx.role, "assign")} noteHref={canDo(ctx.role, "add_note") ? "#order-notes" : undefined} /> : undefined}
       aside={
         <>
           <RecordTasks slug={tenant} type="order" id={order.id} label={order.name} />
@@ -285,45 +292,29 @@ export default async function OrderDetailPage({ params, searchParams }: { params
           <CardTitle className="text-base">{t("lines")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("line.product")}</TableHead>
-                <TableHead className="text-right">{t("line.qty")}</TableHead>
-                <TableHead className="text-right">{t("line.unit")}</TableHead>
-                <TableHead className="text-right">{t("line.total")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {lines.map((l) => (
-                <TableRow key={l.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <ProductThumb src={lineImages[l.id]} alt={`${l.title} ${l.variantTitle ?? ""}`} size="sm" />
-                      <div className="min-w-0">
-                        {l.productId ? (
-                          <Link href={`/t/${tenant}/products/${l.productId}`} className="font-medium hover:underline">
-                            {l.title}
-                          </Link>
-                        ) : (
-                          <span className="font-medium">{l.title}</span>
-                        )}
-                        <p className="text-xs text-muted-foreground">
-                          {l.variantTitle} {l.sku ? `· ${l.sku}` : ""}
-                        </p>
-                      </div>
+          <DataList
+            rows={lines}
+            rowKey={(l) => l.id}
+            columns={[
+              {
+                key: "product",
+                header: t("line.product"),
+                mobile: "title",
+                cell: (l) => (
+                  <div className="flex items-center gap-2">
+                    <ProductThumb src={lineImages[l.id]} alt={`${l.title} ${l.variantTitle ?? ""}`} size="sm" />
+                    <div className="min-w-0">
+                      {l.productId ? <Link href={`/t/${tenant}/products/${l.productId}`} className="font-medium hover:underline">{l.title}</Link> : <span className="font-medium">{l.title}</span>}
+                      <p className="text-xs font-normal text-muted-foreground">{l.variantTitle} {l.sku ? `· ${l.sku}` : ""}</p>
                     </div>
-                  </TableCell>
-                  <TableCell className="text-right tabular">
-                    {l.currentQuantity}
-                    {l.currentQuantity !== l.quantity && <span className="text-muted-foreground"> / {l.quantity}</span>}
-                  </TableCell>
-                  <TableCell className="text-right tabular">{fmt(l.unitPriceMinor)}</TableCell>
-                  <TableCell className="text-right tabular">{fmt(l.totalMinor)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  </div>
+                ),
+              },
+              { key: "qty", header: t("line.qty"), align: "right", className: "tabular", cell: (l) => <>{l.currentQuantity}{l.currentQuantity !== l.quantity && <span className="text-muted-foreground"> / {l.quantity}</span>}</> },
+              { key: "unit", header: t("line.unit"), align: "right", className: "tabular", cell: (l) => fmt(l.unitPriceMinor) },
+              { key: "total", header: t("line.total"), mobile: "badge", align: "right", className: "tabular", cell: (l) => fmt(l.totalMinor) },
+            ]}
+          />
           <dl className="grid grid-cols-2 gap-x-6 gap-y-1 border-t p-4 text-sm sm:ml-auto sm:w-80">
             <dt className="text-muted-foreground">{t("totals.subtotal")}</dt>
             <dd className="text-right tabular">{fmt(order.subtotalMinor)}</dd>

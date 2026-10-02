@@ -24,7 +24,7 @@ export function ProposalActions({ slug, id }: { slug: string; id: string }) {
   return (
     <div className="space-y-2">
       <Textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={2} placeholder={t("note_placeholder")} aria-label={t("note_placeholder")} />
-      <div className="flex flex-wrap justify-end gap-2">
+      <div className="flex flex-wrap justify-end gap-2 max-sm:[&>button]:flex-1">
         <Button type="button" variant="outline" size="sm" disabled={pending} onClick={() => decide("reject")} data-testid="proposal-reject">{t("reject")}</Button>
         <Button type="button" size="sm" disabled={pending} onClick={() => { if (window.confirm(t("approve_confirm"))) decide("approve"); }} data-testid="proposal-approve">{t("approve")}</Button>
       </div>

@@ -1,4 +1,4 @@
-import type { PageKey } from "@hullwise/config";
+import type { MobileNavKey, PageKey } from "@hullwise/config";
 import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
@@ -8,6 +8,8 @@ import {
   MessageCircle,
   Boxes,
   CalendarRange,
+  ClipboardCheck,
+  Inbox,
   ClipboardList,
   Contact,
   Gauge,
@@ -88,3 +90,24 @@ export const NAV_SECTIONS: NavSection[] = [
     ],
   },
 ];
+
+/** Link, label and icon of each bottom-bar destination (#49); which ones a user gets comes from resolveMobileNav. */
+export const MOBILE_NAV_ITEMS: Record<MobileNavKey, { href: string; labelKey: string; icon: LucideIcon }> = {
+  dashboard: { href: "", labelKey: "nav.dashboard", icon: Gauge },
+  orders: { href: "/orders", labelKey: "nav.orders", icon: ShoppingBag },
+  fulfilment: { href: "/fulfilment", labelKey: "nav.fulfilment", icon: PackageCheck },
+  shipments: { href: "/shipments", labelKey: "nav.shipments", icon: Truck },
+  returns: { href: "/returns", labelKey: "nav.returns", icon: RotateCcw },
+  tasks: { href: "/tasks", labelKey: "nav.tasks", icon: ListChecks },
+  cod_queue: { href: "/cod", labelKey: "nav.cod_queue", icon: PhoneCall },
+  products: { href: "/products", labelKey: "nav.products", icon: Package },
+  inventory: { href: "/inventory", labelKey: "nav.inventory", icon: Boxes },
+  stock_takes: { href: "/inventory/stock-takes", labelKey: "mobile.nav.stock_takes", icon: ClipboardCheck },
+  purchasing: { href: "/purchasing", labelKey: "nav.purchasing", icon: ClipboardList },
+  campaigns: { href: "/campaigns", labelKey: "nav.campaigns", icon: Megaphone },
+  analytics: { href: "/analytics", labelKey: "nav.analytics", icon: BarChart3 },
+  customers: { href: "/customers", labelKey: "nav.customers", icon: Contact },
+  notifications: { href: "/notifications", labelKey: "nav.notifications", icon: Bell },
+  approvals: { href: "/approvals", labelKey: "mobile.nav.approvals", icon: Inbox },
+  assistant: { href: "/assistant", labelKey: "nav.assistant", icon: Sparkles },
+};

@@ -1410,7 +1410,10 @@
           "charge_deleted": "Cargo eliminado"
         }
       }
-    }
+    },
+    "scan_hint": "Escanea los artículos al desembalarlos: cada lectura cuenta una unidad en su línea.",
+    "scan_no_match": "Ninguna línea pendiente de recibir coincide con {code}.",
+    "scan_counted": "{item}: {n} de {of}"
   },
   "po_new": {
     "back": "Compras",
@@ -2501,7 +2504,9 @@
         "captured": "Cambio inmediato: mercancía no recibida, cobrados {amount}.",
         "failed": "Cambio inmediato: la retención en la tarjeta falló, envía solo cuando llegue la mercancía."
       }
-    }
+    },
+    "scan_hint": "Escanea cada artículo para marcarlo para reponer stock.",
+    "scan_no_match": "Ninguna línea de esta devolución coincide con {code}."
   },
   "return_new": {
     "title": "Devolución de {order}",
@@ -9398,6 +9403,53 @@
         "cancel": "Palabras de cancelación",
         "help": "Una respuesta de confirmación registra el resultado confirmado (escrito primero en la tienda, como el de un operador). Una respuesta de cancelación escala el pedido a un admin: nada se cancela automáticamente."
       }
+    }
+  },
+  "mobile": {
+    "close": "Cerrar",
+    "nav": {
+      "label": "Principal",
+      "more": "Más",
+      "stock_takes": "Recuentos",
+      "approvals": "Aprobaciones"
+    },
+    "filters": {
+      "label": "Filtros",
+      "title": "Filtros y orden",
+      "done": "Ver resultados",
+      "remove": "Quitar filtro"
+    },
+    "stepper": {
+      "decrement": "Disminuir",
+      "increment": "Aumentar"
+    },
+    "scan": {
+      "open": "Escanear",
+      "title": "Escanear un código",
+      "hint": "Apunta la cámara a un código de barras o QR. También puedes escribir el código en el campo.",
+      "unavailable": "La cámara no está disponible aquí (sin cámara, permiso denegado o página no segura). Escribe el código en el campo.",
+      "close": "Listo",
+      "scanned": "Leído {code}"
+    },
+    "pwa": {
+      "install_title": "Instalar {product}",
+      "install_body": "Añádela a la pantalla de inicio: se abre a pantalla completa, como una app.",
+      "install": "Instalar",
+      "dismiss": "Ahora no",
+      "offline_title": "Sin conexión",
+      "offline_body": "Esta página necesita conexión. Revisa la red e inténtalo de nuevo: no se pierde nada de lo guardado.",
+      "retry": "Reintentar"
+    },
+    "settings": {
+      "link": "Navegación móvil",
+      "title": "Navegación móvil",
+      "description": "Los cuatro destinos de la barra inferior en el móvil, para cada rol. Todo lo demás queda en «Más». Un destino que la persona no puede abrir se sustituye automáticamente.",
+      "role_hint": "Por defecto: {list}",
+      "slot": "Posición {n}",
+      "use_default": "Predeterminado del rol",
+      "save": "Guardar",
+      "saved": "Guardado",
+      "back": "Ajustes"
     }
   }
 }

@@ -35,7 +35,7 @@ export function NotesPanel({ slug, orderId, currentUserId, isAdmin, canWrite, pe
     });
 
   return (
-    <Card>
+    <Card id="order-notes" className="scroll-mt-20">
       <CardHeader>
         <CardTitle className="text-base">{t("notes")}</CardTitle>
       </CardHeader>

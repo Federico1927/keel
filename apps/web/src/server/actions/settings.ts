@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { adminDb, and, eq, recordAudit, schema } from "@hullwise/db";
 import { diffRecords, tenantSettingsSchema } from "@hullwise/core";
-import { SUPPORTED_LOCALES } from "@hullwise/config";
+import { MOBILE_NAV_SLOTS, SUPPORTED_LOCALES, TENANT_ROLES, isMobileNavKey } from "@hullwise/config";
 import { requireAction, ForbiddenError } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 
@@ -131,6 +131,29 @@ export async function deleteTaxRate(slug: string, country: string): Promise<Acti
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "tenant.tax_rate.deleted", entityType: "tax_rate", entityId: country });
     });
     revalidatePath(`/t/${slug}/settings`);
+    return ok();
+  } catch (e) {
+    if (e instanceof ForbiddenError) return fail("forbidden");
+    throw e;
+  }
+}
+
+/** Phone bottom navigation per role (#49): up to MOBILE_NAV_SLOTS known destinations each; an empty role falls back to its default. */
+export async function updateMobileNavAction(slug: string, choice: Record<string, string[]>): Promise<ActionResult> {
+  try {
+    const ctx = await requireAction(slug, "manage_settings", "settings");
+    const mobileNav: Record<string, string[]> = {};
+    for (const role of TENANT_ROLES) {
+      const keys = [...new Set((choice[role] ?? []).filter(isMobileNavKey))].slice(0, MOBILE_NAV_SLOTS);
+      if (keys.length) mobileNav[role] = keys;
+    }
+    const current = ctx.settings;
+    const parsed = tenantSettingsSchema.safeParse({ ...current, mobileNav });
+    if (!parsed.success) return fail("invalid_input");
+    const diff = diffRecords({ mobileNav: current.mobileNav }, { mobileNav: parsed.data.mobileNav });
+    await adminDb().update(schema.tenants).set({ settings: parsed.data }).where(eq(schema.tenants.id, ctx.tenant.id));
+    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "tenant.settings.mobile_nav_updated", entityType: "tenant", entityId: ctx.tenant.id, diff }));
+    revalidatePath(`/t/${slug}`, "layout");
     return ok();
   } catch (e) {
     if (e instanceof ForbiddenError) return fail("forbidden");

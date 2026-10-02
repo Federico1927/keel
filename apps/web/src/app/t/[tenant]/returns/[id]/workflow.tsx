@@ -2,10 +2,11 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select, Textarea } from "@hullwise/ui";
-import { RETURN_TRANSITIONS, formatMoney, type ReturnStatus } from "@hullwise/core";
+import { Alert, AlertDescription, Button, ScanButton, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select, Textarea } from "@hullwise/ui";
+import { RETURN_TRANSITIONS, formatMoney, matchScanCode, type ReturnStatus } from "@hullwise/core";
 import { transitionReturnAction } from "@/server/actions/returns";
 import type { ActionResult } from "@/server/action-result";
+import { scanLabels } from "@/components/scan-labels";
 
 export interface WorkflowLine {
   id: string;
@@ -16,12 +17,16 @@ export interface WorkflowLine {
   restocked: boolean;
   inspectionAmountMinor: number | null;
   hasVariant: boolean;
+  /** SKU and barcode, for ticking the line by scanning the item (#49). */
+  codes?: (string | null)[];
 }
 
 export function ReturnWorkflow({ slug, returnId, status, resolution, lines, locations, proposedAmountMinor, currency, locale, canAct }: { slug: string; returnId: string; status: string; resolution: string; lines: WorkflowLine[]; locations: { id: string; name: string; isDefault: boolean }[]; proposedAmountMinor: number; currency: string; locale: string; canAct: boolean }) {
   const t = useTranslations("return_detail");
   const ts = useTranslations("return_status");
   const tc = useTranslations("common");
+  const tm = useTranslations("mobile.scan");
+  const [scanned, setScanned] = useState<{ ok: boolean; text: string } | null>(null);
   const router = useRouter();
   const [pending, start] = useTransition();
   const [target, setTarget] = useState<ReturnStatus | null>(null);
@@ -35,6 +40,14 @@ export function ReturnWorkflow({ slug, returnId, status, resolution, lines, loca
   const [fault, setFault] = useState("");
   const [result, setResult] = useState<ActionResult<{ next: string; sync: string }> | null>(null);
   if (!canAct) return null;
+  // receiving by scanning: each code ticks the matching line for restock
+  const onScan = (code: string) => {
+    const hit = matchScanCode(code, lines.map((l) => ({ ...l, codes: l.codes ?? [], open: !l.restocked && l.hasVariant && !selected.includes(l.id) })));
+    if (hit && hit.hasVariant && !hit.restocked) {
+      setSelected((cur) => (cur.includes(hit.id) ? cur : [...cur, hit.id]));
+      setScanned({ ok: true, text: `${hit.title}${hit.variantTitle ? ` · ${hit.variantTitle}` : ""}` });
+    } else setScanned({ ok: false, text: t("scan_no_match", { code }) });
+  };
   const next = RETURN_TRANSITIONS[status as ReturnStatus] ?? [];
   const closers: ReturnStatus[] = ["refunded", "exchanged", "voucher_issued"];
   const preferredCloser: ReturnStatus = resolution === "exchange" ? "exchanged" : resolution === "voucher" ? "voucher_issued" : "refunded";
@@ -59,7 +72,7 @@ export function ReturnWorkflow({ slug, returnId, status, resolution, lines, loca
       }
     });
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2 max-md:w-full max-md:[&>button]:flex-1">
       {result?.ok && result.data?.sync === "error" && (
         <Alert variant="warning" className="w-full" data-testid="return-sync-warning">
           <AlertDescription>{t("sync_failed")}</AlertDescription>
@@ -84,8 +97,8 @@ export function ReturnWorkflow({ slug, returnId, status, resolution, lines, loca
           <div className="space-y-4">
             {target === "received" && (
               <>
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={restock} onChange={(e) => setRestock(e.target.checked)} /> {t("restock_label")}
+                <label className="flex min-h-11 items-center gap-3 text-sm">
+                  <input type="checkbox" className="h-5 w-5" checked={restock} onChange={(e) => setRestock(e.target.checked)} /> {t("restock_label")}
                 </label>
                 {restock && (
                   <>
@@ -97,10 +110,15 @@ export function ReturnWorkflow({ slug, returnId, status, resolution, lines, loca
                         ))}
                       </Select>
                     </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm text-muted-foreground">{t("scan_hint")}</span>
+                      <ScanButton size="sm" continuous labels={scanLabels(tm)} onScan={onScan} />
+                    </div>
+                    {scanned && <p className={scanned.ok ? "text-sm text-success" : "text-sm text-warning"} role="status" data-testid="return-scan-result">{scanned.text}</p>}
                     <ul className="space-y-1 text-sm">
                       {lines.map((l) => (
-                        <li key={l.id} className="flex items-center gap-2">
-                          <input type="checkbox" disabled={l.restocked || !l.hasVariant} checked={selected.includes(l.id)} onChange={(e) => setSelected(e.target.checked ? [...selected, l.id] : selected.filter((x) => x !== l.id))} />
+                        <li key={l.id} className="flex min-h-11 items-center gap-3">
+                          <input type="checkbox" className="h-5 w-5 shrink-0" aria-label={l.title} disabled={l.restocked || !l.hasVariant} checked={selected.includes(l.id)} onChange={(e) => setSelected(e.target.checked ? [...selected, l.id] : selected.filter((x) => x !== l.id))} data-testid="restock-line" data-code={l.codes?.find(Boolean) ?? undefined} />
                           <span className="min-w-0 flex-1 truncate">{l.title}{l.variantTitle ? ` · ${l.variantTitle}` : ""}</span>
                           <span className="tabular text-muted-foreground">× {l.quantity}</span>
                           {l.restocked && <span className="text-xs text-muted-foreground">{t("already_restocked")}</span>}
@@ -114,8 +132,8 @@ export function ReturnWorkflow({ slug, returnId, status, resolution, lines, loca
             {target === "inspected" && (
               <div className="space-y-2">
                 {lines.map((l) => (
-                  <div key={l.id} className="grid grid-cols-[1fr_8rem_7rem] items-center gap-2 text-sm">
-                    <span className="min-w-0 truncate">{l.title}{l.variantTitle ? ` · ${l.variantTitle}` : ""} × {l.quantity}</span>
+                  <div key={l.id} className="grid grid-cols-2 items-center gap-2 text-sm sm:grid-cols-[1fr_8rem_7rem]">
+                    <span className="col-span-2 min-w-0 truncate sm:col-span-1">{l.title}{l.variantTitle ? ` · ${l.variantTitle}` : ""} × {l.quantity}</span>
                     <Select size="sm" value={inspection[l.id]!.outcome} onChange={(e) => setInspection({ ...inspection, [l.id]: { ...inspection[l.id]!, outcome: e.target.value as "intact" | "damaged" | "missing" } })} >
                       {(["intact", "damaged", "missing"] as const).map((o) => (
                         <option key={o} value={o}>{t(`outcome.${o}`)}</option>

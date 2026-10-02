@@ -19,7 +19,7 @@ export async function handleListExport(req: NextRequest, tenant: string, list: E
   if (!canExportList(ctx.role, list)) return new NextResponse("forbidden", { status: 403 });
   const query = canonicalQuery(Object.fromEntries(req.nextUrl.searchParams.entries()));
   const params = queryParams(query);
-  const scope: ExportScope = { tenantId: ctx.tenant.id, userId: ctx.user.id, orderNumberPrefix: ctx.tenant.orderNumberPrefix, settings: ctx.settings };
+  const scope: ExportScope = { tenantId: ctx.tenant.id, userId: ctx.user.id, orderNumberPrefix: ctx.tenant.orderNumberPrefix, country: ctx.tenant.country, settings: ctx.settings };
   const s = (tx: Parameters<Parameters<typeof ctx.run>[0]>[0]) => ({ tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } });
   const total = await ctx.run((tx) => countListExport(s(tx), list, params, scope));
   if (total > EXPORT_DIRECT_MAX_ROWS) {

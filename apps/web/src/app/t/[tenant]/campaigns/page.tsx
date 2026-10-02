@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { adPlatformsForPlan, canWritePage } from "@hullwise/config";
+import { adPlatformsForPlan, canDo, canWritePage } from "@hullwise/config";
 import { formatMoney, formatNumber, formatPercent } from "@hullwise/core";
 import { campaignLinkSuggestions, campaignsWithEconomics } from "@hullwise/services";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Card, CardContent, EmptyState, PageHeader, DataList } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";
 import { CampaignFilters } from "./filters";
 import { SuggestionsPanel } from "./suggestions";
 import { LightBadge, ActionBadge } from "./badges";
+import { CampaignStatusButton } from "./[id]/campaign-actions";
 
 export default async function CampaignsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string; platform?: string; status?: string }> }) {
   const { tenant } = await params;
@@ -35,6 +36,7 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
   const qs = new URLSearchParams(Object.entries(keep).filter((e): e is [string, string] => Boolean(e[1]))).toString();
   const totals = rows.reduce((a, r) => ({ spend: a.spend + r.metrics.spendMinor, orders: a.orders + r.metrics.attributedOrders, revenue: a.revenue + r.metrics.netRevenueMinor, profit: a.profit + r.metrics.profitMinor }), { spend: 0, orders: 0, revenue: 0, profit: 0 });
   const canEdit = canWritePage(ctx.role, "campaigns");
+  const canPause = canDo(ctx.role, "pause_campaign");
 
   return (
     <>
@@ -67,9 +69,9 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
                 return (
                   <div key={x.platform} className="space-y-1 text-sm">
                     <p className="font-medium">{t(`declared.title_${x.platform}`)}</p>
-                    <div className="flex justify-between"><span className="text-muted-foreground">{t("declared.platform_says")}</span><span className="tabular">{x.declared} · {money(x.declaredValue)} · {ratio(x.spend ? x.declaredValue / x.spend : null)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">{t("declared.real")}</span><span className="tabular">{x.real} · {money(x.realRevenue)} · {ratio(x.spend ? x.realRevenue / x.spend : null)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">{t("declared.gap")}</span><span className={`tabular font-medium ${gap !== null && gap < -0.2 ? "text-destructive" : ""}`}>{gap === null ? "—" : `${gap > 0 ? "+" : ""}${Math.round(gap * 100)}%`}</span></div>
+                    <div className="flex flex-wrap justify-between gap-x-2"><span className="text-muted-foreground">{t("declared.platform_says")}</span><span className="tabular">{x.declared} · {money(x.declaredValue)} · {ratio(x.spend ? x.declaredValue / x.spend : null)}</span></div>
+                    <div className="flex flex-wrap justify-between gap-x-2"><span className="text-muted-foreground">{t("declared.real")}</span><span className="tabular">{x.real} · {money(x.realRevenue)} · {ratio(x.spend ? x.realRevenue / x.spend : null)}</span></div>
+                    <div className="flex flex-wrap justify-between gap-x-2"><span className="text-muted-foreground">{t("declared.gap")}</span><span className={`tabular font-medium ${gap !== null && gap < -0.2 ? "text-destructive" : ""}`}>{gap === null ? "—" : `${gap > 0 ? "+" : ""}${Math.round(gap * 100)}%`}</span></div>
                   </div>
                 );
               })}
@@ -83,62 +85,29 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
       ) : (
         <Card className="mt-4">
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("columns.campaign")}</TableHead>
-                  <TableHead className="hidden lg:table-cell">{t("columns.status")}</TableHead>
-                  <TableHead className="text-right">{t("columns.spend")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("columns.orders")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("columns.revenue")}</TableHead>
-                  <TableHead className="hidden text-right xl:table-cell">{t("columns.margin")}</TableHead>
-                  <TableHead className="text-right">{t("columns.profit")}</TableHead>
-                  <TableHead className="hidden text-right lg:table-cell">{t("columns.roas")}</TableHead>
-                  <TableHead className="hidden text-right lg:table-cell">{t("columns.roi")}</TableHead>
-                  <TableHead className="hidden text-right xl:table-cell">{t("columns.cpa")}</TableHead>
-                  <TableHead>{t("columns.light")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("columns.action")}</TableHead>
-                  <TableHead className="hidden text-right xl:table-cell">{t("columns.stock")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.id} data-testid="campaign-row">
-                    <TableCell className="max-w-[18rem]">
-                      <Link href={`${base}/${r.id}?${qs}`} className="block truncate font-medium hover:underline">{r.name}</Link>
-                      <span className="text-xs uppercase text-muted-foreground">{r.platform} · {t("linked_n", { n: r.products.length })}</span>
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell"><Badge variant={r.status === "active" ? "success" : "muted"}>{t(`status.${r.status}`)}</Badge></TableCell>
-                    <TableCell className="text-right tabular">{money(r.metrics.spendMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{formatNumber(r.metrics.attributedOrders, ctx.locale)}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{money(r.metrics.netRevenueMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular xl:table-cell">{money(r.metrics.marginMinor)}</TableCell>
-                    <TableCell className={`text-right tabular font-medium ${r.metrics.profitMinor < 0 ? "text-destructive" : ""}`}>{money(r.metrics.profitMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular lg:table-cell">{ratio(r.metrics.roas)}</TableCell>
-                    <TableCell className="hidden text-right tabular lg:table-cell">{r.metrics.roi === null ? "—" : formatPercent(r.metrics.roi, ctx.locale)}</TableCell>
-                    <TableCell className="hidden text-right tabular xl:table-cell">{r.metrics.cpaMinor === null ? "—" : money(r.metrics.cpaMinor)}</TableCell>
-                    <TableCell><LightBadge light={r.light} /></TableCell>
-                    <TableCell className="hidden md:table-cell"><ActionBadge action={r.action} /></TableCell>
-                    <TableCell className="hidden text-right tabular xl:table-cell">{r.stock === null ? "—" : `${formatNumber(r.stock, ctx.locale)}${r.incoming ? ` (+${formatNumber(r.incoming, ctx.locale)})` : ""}`}</TableCell>
-                  </TableRow>
-                ))}
-                <TableRow className="bg-muted/40 font-medium">
-                  <TableCell>{t("totals")}</TableCell>
-                  <TableCell className="hidden lg:table-cell" />
-                  <TableCell className="text-right tabular">{money(totals.spend)}</TableCell>
-                  <TableCell className="hidden text-right tabular md:table-cell">{formatNumber(totals.orders, ctx.locale)}</TableCell>
-                  <TableCell className="hidden text-right tabular md:table-cell">{money(totals.revenue)}</TableCell>
-                  <TableCell className="hidden xl:table-cell" />
-                  <TableCell className={`text-right tabular ${totals.profit < 0 ? "text-destructive" : ""}`}>{money(totals.profit)}</TableCell>
-                  <TableCell className="hidden lg:table-cell" />
-                  <TableCell className="hidden lg:table-cell" />
-                  <TableCell className="hidden xl:table-cell" />
-                  <TableCell />
-                  <TableCell className="hidden md:table-cell" />
-                  <TableCell className="hidden xl:table-cell" />
-                </TableRow>
-              </TableBody>
-            </Table>
+            <DataList
+              rows={rows}
+              rowKey={(r) => r.id}
+              rowProps={() => ({ "data-testid": "campaign-row" })}
+              footer={{ campaign: t("totals"), spend: money(totals.spend), orders: formatNumber(totals.orders, ctx.locale), revenue: money(totals.revenue), profit: <span className={totals.profit < 0 ? "text-destructive" : ""}>{money(totals.profit)}</span> }}
+              columns={[
+                { key: "campaign", header: t("columns.campaign"), mobile: "title", className: "md:max-w-[18rem]", cell: (r) => <><Link href={`${base}/${r.id}?${qs}`} className="block truncate font-medium hover:underline">{r.name}</Link><span className="text-xs font-normal uppercase text-muted-foreground">{r.platform} · {t("linked_n", { n: r.products.length })}</span></> },
+                { key: "status", header: t("columns.status"), priority: 2, label: "", cell: (r) => <Badge variant={r.status === "active" ? "success" : "muted"}>{t(`status.${r.status}`)}</Badge> },
+                { key: "spend", header: t("columns.spend"), align: "right", className: "tabular", cell: (r) => money(r.metrics.spendMinor) },
+                { key: "orders", header: t("columns.orders"), align: "right", className: "tabular", cell: (r) => formatNumber(r.metrics.attributedOrders, ctx.locale) },
+                { key: "revenue", header: t("columns.revenue"), mobile: "detail", align: "right", className: "tabular", cell: (r) => money(r.metrics.netRevenueMinor) },
+                { key: "margin", header: t("columns.margin"), mobile: "detail", priority: 3, align: "right", className: "tabular", cell: (r) => money(r.metrics.marginMinor) },
+                { key: "profit", header: t("columns.profit"), align: "right", className: "tabular font-medium", cell: (r) => <span className={r.metrics.profitMinor < 0 ? "text-destructive" : ""}>{money(r.metrics.profitMinor)}</span> },
+                { key: "roas", header: t("columns.roas"), priority: 2, align: "right", className: "tabular", cell: (r) => ratio(r.metrics.roas) },
+                { key: "roi", header: t("columns.roi"), mobile: "detail", priority: 2, align: "right", className: "tabular", cell: (r) => (r.metrics.roi === null ? "—" : formatPercent(r.metrics.roi, ctx.locale)) },
+                { key: "cpa", header: t("columns.cpa"), mobile: "detail", priority: 3, align: "right", className: "tabular", cell: (r) => (r.metrics.cpaMinor === null ? "—" : money(r.metrics.cpaMinor)) },
+                { key: "light", header: t("columns.light"), mobile: "badge", cell: (r) => <LightBadge light={r.light} /> },
+                { key: "action", header: t("columns.action"), label: "", cell: (r) => <ActionBadge action={r.action} /> },
+                { key: "stock", header: t("columns.stock"), mobile: "detail", priority: 3, align: "right", className: "tabular", cell: (r) => (r.stock === null ? "—" : `${formatNumber(r.stock, ctx.locale)}${r.incoming ? ` (+${formatNumber(r.incoming, ctx.locale)})` : ""}`) },
+                // phones: pause a losing campaign from the list, with the same confirmation as the detail page (#49)
+                { key: "quick", header: "", mobile: "action", className: "md:hidden", headClassName: "md:hidden", cell: (r) => (canPause && r.status === "active" && r.action.startsWith("pause") && r.platform !== "google" ? <CampaignStatusButton slug={tenant} campaignId={r.id} platform={r.platform} status={r.status} canPause readOnly={false} size="sm" className="w-full" /> : null) },
+              ]}
+            />
           </CardContent>
         </Card>
       )}

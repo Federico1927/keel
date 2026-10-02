@@ -136,7 +136,7 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
         </CardHeader>
         <CardContent className="p-0">
           {canWrite && receivable ? (
-            <ReceiveForm slug={tenant} poId={po.id} locations={locations.map((l) => ({ id: l.id, name: l.name, isDefault: l.isDefault }))} defaultLocationId={po.destinationLocationId} lines={lines.map((l) => ({ id: l.id, label: l.productTitle ? `${l.productTitle} · ${l.variantTitle ?? ""}` : (l.description ?? ""), sku: l.sku ?? (l.variantId ? null : t("free_text_line")), quantity: l.quantity, receivedQuantity: l.receivedQuantity, damagedQuantity: l.damagedQuantity, rejectedQuantity: l.rejectedQuantity, unitCost: l.landedUnitCostMinor !== null ? `${fmt(l.unitCostMinor)} → ${fmt(l.landedUnitCostMinor)}` : fmt(l.unitCostMinor) }))} />
+            <ReceiveForm slug={tenant} poId={po.id} locations={locations.map((l) => ({ id: l.id, name: l.name, isDefault: l.isDefault }))} defaultLocationId={po.destinationLocationId} lines={lines.map((l) => ({ id: l.id, label: l.productTitle ? `${l.productTitle} · ${l.variantTitle ?? ""}` : (l.description ?? ""), sku: l.sku ?? (l.variantId ? null : t("free_text_line")), codes: [l.sku, l.barcode], quantity: l.quantity, receivedQuantity: l.receivedQuantity, damagedQuantity: l.damagedQuantity, rejectedQuantity: l.rejectedQuantity, unitCost: l.landedUnitCostMinor !== null ? `${fmt(l.unitCostMinor)} → ${fmt(l.landedUnitCostMinor)}` : fmt(l.unitCostMinor) }))} />
           ) : (
             <Table>
               <TableHeader>
