@@ -102,7 +102,8 @@ describe("bulk orders", () => {
 
 describe("bulk products and returns", () => {
   it("changes prices, compare-at and status through the platform", async () => {
-    const products = await run((s) => s.tx.select({ id: schema.products.id, externalId: schema.products.externalId }).from(schema.products).where(eq(schema.products.tenantId, tenantId)).limit(2));
+    // active products in a fixed order: other suites may have moved some to draft
+    const products = await run((s) => s.tx.select({ id: schema.products.id, externalId: schema.products.externalId }).from(schema.products).where(and(eq(schema.products.tenantId, tenantId), eq(schema.products.status, "active"))).orderBy(schema.products.id).limit(2));
     const ids = products.map((p) => p.id);
     const before = await run((s) => s.tx.select({ id: schema.productVariants.id, price: schema.productVariants.priceMinor }).from(schema.productVariants).where(inArray(schema.productVariants.productId, ids)));
     const platform = mockPlatform();
