@@ -264,6 +264,7 @@
     "lead": "Nuestro equipo los activa por cuenta. El núcleo funciona con cualquier método de pago; lo que es específico de tu operación vive en un complemento.",
     "per_month": "{price}/mes",
     "quote": "Bajo presupuesto",
+    "coming_soon": "Próximamente",
     "items": {
       "customer_campaigns": {
         "title": "Campañas a clientes",

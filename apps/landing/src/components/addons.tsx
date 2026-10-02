@@ -1,6 +1,6 @@
 import { Code2, Megaphone, PhoneCall, Puzzle, Repeat } from "lucide-react";
 import { Section } from "@/components/ui";
-import { ADDONS } from "@/config/pricing";
+import { ADDONS, addonOnSale } from "@/config/pricing";
 import type { LandingLocale } from "@/config/site";
 import { getTranslator } from "@/i18n/messages";
 import { formatPrice } from "@/lib/format";
@@ -22,8 +22,9 @@ export function Addons({ locale }: { locale: LandingLocale }) {
         {ADDONS.map((a) => {
           const key = a.id as AddonKey;
           const Icon = ICONS[key];
-          const price =
-            a.kind === "monthly"
+          const price = !addonOnSale(a.id)
+            ? t("addons.coming_soon")
+            : a.kind === "monthly"
               ? t("addons.per_month", { price: formatPrice(locale, a.price) })
               : t("addons.quote");
           return (

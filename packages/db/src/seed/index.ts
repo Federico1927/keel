@@ -25,7 +25,7 @@ import { seedPlatformReliability, seedReliability } from "./reliability";
 import { seedSubscriptions } from "./subscriptions";
 import { createRng } from "@hullwise/integrations";
 import { SALE_STATUSES, allocateLandedCost, assignHoldout, campaignMessageKey, normalizePhone, runPredictionModel, type CustomerHistory } from "@hullwise/core";
-import { MODULES, PLANS, PLATFORM_CURRENCY } from "@hullwise/config";
+import { MODULES, PLANS, PLATFORM_CURRENCY, isAddonModule, releasedVersion } from "@hullwise/config";
 import { encryptJson } from "@hullwise/integrations";
 import { sql } from "drizzle-orm";
 
@@ -108,7 +108,7 @@ export async function seedPlatform(db: ReturnType<typeof drizzle<typeof schema>>
     for (const addon of t.addons) {
       await db
         .insert(schema.tenantAddons)
-        .values({ tenantId: row!.id, moduleKey: addon, note: "Enabled by seed" })
+        .values({ tenantId: row!.id, moduleKey: addon, note: "Enabled by seed", version: isAddonModule(addon) ? (releasedVersion(addon)?.version ?? null) : null })
         .onConflictDoNothing();
     }
     for (const tr of t.taxRates) {

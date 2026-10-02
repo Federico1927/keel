@@ -264,6 +264,7 @@
     "lead": "Activated per account by our team. The core works for any payment method; what is specific to your operation lives in an add-on.",
     "per_month": "{price}/month",
     "quote": "On quote",
+    "coming_soon": "Coming soon",
     "items": {
       "customer_campaigns": {
         "title": "Customer campaigns",

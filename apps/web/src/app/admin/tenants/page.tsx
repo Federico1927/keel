@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { ADDON_MODULES, PLAN_KEYS, PLATFORM_CURRENCY, TENANT_STATUSES } from "@hullwise/config";
+import { ADDON_MODULES, MODULES, PLAN_KEYS, PLATFORM_CURRENCY, TENANT_STATUSES, canActivateAddon } from "@hullwise/config";
 import { formatDate, formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
 import { adminTenantList } from "@hullwise/services";
 import { Badge, Button, Card, CardContent, EmptyState, Input, Label, PageHeader, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
@@ -66,7 +66,7 @@ export default async function AdminTenantsPage({ searchParams }: { searchParams:
           <Label htmlFor="t-addon">{t("tenants.columns.addons")}</Label>
           <Select id="t-addon" name="addon" defaultValue={f.addon ?? ""}>
             <option value="">{t("filters.all")}</option>
-            {ADDON_MODULES.map((a) => <option key={a} value={a}>{tm(`addon.${a.replace("addon.", "")}.name`)}</option>)}
+            {ADDON_MODULES.map((a) => <option key={a} value={a}>{tm(`addon.${a.replace("addon.", "")}.name`)}{MODULES[a].availability === "implemented" && !canActivateAddon(a) ? ` · ${t("tenant.in_development")}` : ""}</option>)}
           </Select>
         </div>
         <div className="flex items-end gap-2">

@@ -1,4 +1,4 @@
-import { BILLING_PRODUCT_NAMES, MODULES, PLANS, PLAN_KEYS, PRODUCT_NAME, isAddonModule, type PlanKey } from "@hullwise/config";
+import { BILLING_PRODUCT_NAMES, MODULES, PLANS, PLAN_KEYS, PRODUCT_NAME, isAddonModule, isBillableAddon, type PlanKey } from "@hullwise/config";
 
 /**
  * Stripe billing (#53), pure part: the catalog Hullwise pushes to Stripe (one product and one price
@@ -36,7 +36,7 @@ export function productIdFor(kind: CatalogKind, key: string): string {
 
 const title = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-/** Everything sellable, from @hullwise/config: plans (monthly), their setup fees (one-off), priced and implemented add-ons (monthly). */
+/** Everything sellable, from @hullwise/config: plans (monthly), their setup fees (one-off), priced add-ons with a released version (monthly, #77). */
 export function billingCatalog(): CatalogItem[] {
   const out: CatalogItem[] = [];
   for (const key of PLAN_KEYS) {
@@ -46,7 +46,7 @@ export function billingCatalog(): CatalogItem[] {
   }
   const currency = PLANS[PLAN_KEYS[0]].currency;
   for (const def of Object.values(MODULES)) {
-    if (!isAddonModule(def.key) || def.availability !== "implemented" || !def.monthlyPriceMinor) continue;
+    if (!isAddonModule(def.key) || !isBillableAddon(def.key) || !def.monthlyPriceMinor) continue;
     out.push({ lookupKey: lookupKeyFor("addon", def.key), productId: productIdFor("addon", def.key), kind: "addon", key: def.key, name: `${PRODUCT_NAME} add-on: ${BILLING_PRODUCT_NAMES[def.key] ?? title(slug(def.key).replace(/_/g, " "))}`, amountMinor: def.monthlyPriceMinor, currency, interval: "month" });
   }
   return out;
@@ -115,12 +115,12 @@ export function subscriptionSignal(externalStatus: string | null | undefined): S
   }
 }
 
-/** Lookup keys a subscription should carry: the plan and every priced, implemented add-on that is active. */
+/** Lookup keys a subscription should carry: the plan and every active add-on that is billable (released and priced, #77). */
 export function desiredSubscriptionKeys(planKey: PlanKey, addons: readonly string[]): string[] {
   const keys = [lookupKeyFor("plan", planKey)];
   for (const a of [...addons].sort()) {
     const def = MODULES[a as keyof typeof MODULES];
-    if (def && isAddonModule(def.key) && def.availability === "implemented" && def.monthlyPriceMinor) keys.push(lookupKeyFor("addon", a));
+    if (def && isAddonModule(def.key) && isBillableAddon(def.key) && def.monthlyPriceMinor) keys.push(lookupKeyFor("addon", a));
   }
   return keys;
 }
