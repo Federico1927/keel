@@ -4,6 +4,9 @@ export interface SourceState {
   source: string;
   status: ShipmentStatus;
   lastEventAt: Date;
+  /** From the tenant's status mapping: this source's status is final / an exception even if the canonical status alone is not. */
+  isFinal?: boolean;
+  isException?: boolean;
 }
 export interface PrecedenceEntry {
   source: string;
@@ -54,7 +57,8 @@ export function resolveShipmentStatus(input: ResolveInput): ResolveResult {
   const conflicts: ResolveResult["conflicts"] = [];
   if (states.length === 0) return { status: input.previousStatus ?? "pending", sourceOfTruth: null, exceptionReason: null, exceptionSince: null, conflicts };
 
-  const finals = states.filter((s) => SHIPMENT_FINAL_STATUSES.includes(s.status));
+  const isFinal = (s: SourceState) => s.isFinal === true || SHIPMENT_FINAL_STATUSES.includes(s.status);
+  const finals = states.filter(isFinal);
   let winner: SourceState;
   if (finals.length) {
     // Latest final event wins (delivered after a return attempt, or return after delivery).
@@ -70,10 +74,11 @@ export function resolveShipmentStatus(input: ResolveInput): ResolveResult {
     winner = pool[0]!;
     for (const other of pool.slice(1)) if (other.status !== winner.status) conflicts.push({ winner: winner.source, loser: other.source, winnerStatus: winner.status, loserStatus: other.status });
   }
-  let status = winner.status;
+  // a mapping can flag a non-exception canonical status as an exception (e.g. "held at customs" → in_transit + exception)
+  let status: ShipmentStatus = winner.isException && !EXCEPTION_LIKE.includes(winner.status) && !isFinal(winner) ? "exception" : winner.status;
   const prev = input.previousStatus;
   // Never demote a terminal status with a non-final event.
-  if (prev && SHIPMENT_FINAL_STATUSES.includes(prev) && !SHIPMENT_FINAL_STATUSES.includes(status)) status = prev;
+  if (prev && SHIPMENT_FINAL_STATUSES.includes(prev) && !isFinal(winner)) status = prev;
   // Sticky exception.
   let exceptionReason = input.exceptionReason;
   let exceptionSince = input.exceptionSince;

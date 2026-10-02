@@ -3,7 +3,7 @@
  * and an anomaly ("spend more than 3 robust deviations away from the last 28 days"). Pure: the
  * service builds the series, this decides whether to fire and explains why.
  */
-export const ALERT_METRICS = ["revenue", "orders", "ad_spend", "roas", "mer", "conversion_rate", "aov", "cancel_rate", "stockouts"] as const;
+export const ALERT_METRICS = ["revenue", "orders", "ad_spend", "roas", "mer", "conversion_rate", "aov", "cancel_rate", "stockouts", "late_to_ship"] as const;
 export type AlertMetric = (typeof ALERT_METRICS)[number];
 
 export type AlertCondition =

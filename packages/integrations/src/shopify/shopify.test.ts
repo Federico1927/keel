@@ -221,6 +221,34 @@ describe("shopify returns write-back", () => {
   });
 });
 
+describe("shopify fulfilment from Keel", () => {
+  const fulfillmentOrders = { data: { order: { fulfillmentOrders: { nodes: [
+    { id: "gid://shopify/FulfillmentOrder/71", status: "OPEN", lineItems: { nodes: [{ id: "gid://shopify/FulfillmentOrderLineItem/81", remainingQuantity: 1, lineItem: { id: "gid://shopify/LineItem/11" } }, { id: "gid://shopify/FulfillmentOrderLineItem/82", remainingQuantity: 2, lineItem: { id: "gid://shopify/LineItem/12" } }] } },
+    { id: "gid://shopify/FulfillmentOrder/72", status: "CLOSED", lineItems: { nodes: [{ id: "gid://shopify/FulfillmentOrderLineItem/83", remainingQuantity: 0, lineItem: { id: "gid://shopify/LineItem/13" } }] } },
+  ] } } } };
+  const created = { data: { fulfillmentCreate: { fulfillment: { id: "gid://shopify/Fulfillment/91", legacyResourceId: "91", status: "SUCCESS", displayStatus: "CONFIRMED", createdAt: "2026-10-01T09:00:00Z", updatedAt: "2026-10-01T09:00:00Z", trackingInfo: [{ number: "1Z999", url: "https://track.example/1Z999", company: "UPS" }] }, userErrors: [] } } };
+  it("fulfils every open line of the order with the tracking info and maps the result", async () => {
+    const p = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("fulfillmentOrders(first"), body: fulfillmentOrders },
+      { match: (_u, i) => bodyOf(i).query.includes("fulfillmentCreate"), body: created },
+    ]);
+    const f = await p.createFulfillment({ orderExternalId: "5678901234567", carrier: "UPS", trackingNumber: "1Z999", trackingUrl: "https://track.example/1Z999", notifyCustomer: true });
+    expect(f).toMatchObject({ externalId: "91", status: "label_created", externalStatus: "confirmed", trackingNumber: "1Z999", carrier: "UPS" });
+    const sent = bodyOf({ body: p.http.calls[1]!.body! }).variables;
+    expect(sent).toEqual({ fulfillment: { lineItemsByFulfillmentOrder: [{ fulfillmentOrderId: "gid://shopify/FulfillmentOrder/71" }], notifyCustomer: true, trackingInfo: { company: "UPS", number: "1Z999", url: "https://track.example/1Z999" } } });
+  });
+  it("fulfils only the requested lines and refuses an order with nothing left", async () => {
+    const p = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("fulfillmentOrders(first"), body: fulfillmentOrders },
+      { match: (_u, i) => bodyOf(i).query.includes("fulfillmentCreate"), body: created },
+    ]);
+    await p.createFulfillment({ orderExternalId: "5678901234567", lines: [{ orderLineExternalId: "12", quantity: 1 }], carrier: "UPS", trackingNumber: "1Z999", notifyCustomer: false });
+    expect((bodyOf({ body: p.http.calls[1]!.body! }).variables as { fulfillment: { lineItemsByFulfillmentOrder: unknown[] } }).fulfillment.lineItemsByFulfillmentOrder).toEqual([{ fulfillmentOrderId: "gid://shopify/FulfillmentOrder/71", fulfillmentOrderLineItems: [{ id: "gid://shopify/FulfillmentOrderLineItem/82", quantity: 1 }] }]);
+    const none = platform([{ match: (_u, i) => bodyOf(i).query.includes("fulfillmentOrders(first"), body: { data: { order: { fulfillmentOrders: { nodes: [] } } } } }]);
+    await expect(none.createFulfillment({ orderExternalId: "1", carrier: "UPS", trackingNumber: "1", notifyCustomer: false })).rejects.toMatchObject({ code: "invalid_request" });
+  });
+});
+
 describe("shopify exchange invoice", () => {
   it("creates a draft with the return credit as discount and sends the invoice", async () => {
     const p = platform([

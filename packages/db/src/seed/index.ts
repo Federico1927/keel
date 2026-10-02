@@ -10,6 +10,7 @@ import { DEMO_COD_SETTINGS, DEMO_RETURN_COSTS, REASON_LABELS, REASON_PLATFORM, d
 export { ensureDemoSettings } from "./settings";
 import { seedCollab } from "./collab";
 import { seedLists } from "./lists";
+import { seedFulfilment } from "./fulfilment";
 import { createRng } from "@keel/integrations";
 import { SALE_STATUSES, allocateLandedCost, normalizePhone, runPredictionModel, type CustomerHistory } from "@keel/core";
 import { MODULES, PLANS, PLATFORM_CURRENCY } from "@keel/config";
@@ -220,6 +221,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("analytics", () => seedAnalyticsExtras(db, ctx, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("planning", () => seedPlanningExtras(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("returns", () => seedReturnsExtras(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
+    await step("fulfilment", () => seedFulfilment(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("campaigns", () => seedRetentionCampaigns(db, ctx, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("predictions", () => seedPredictions(db, cfg.tenantId, opts.now ?? new Date()));
     await step("destinations", () => seedDestinations(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));

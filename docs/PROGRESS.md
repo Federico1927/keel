@@ -441,3 +441,16 @@ Fatto:
 - Migrazione 0020 (3 tabelle con RLS: `case_packs`, `supplier_links`, `supplier_link_views`; 2 colonne con default su `purchase_order_lines`); test core 176, servizi `purchasing-depth` 7 (più `planning` e `purchasing` aggiornati), db 529; e2e `purchasing-depth` (6) più `inventory` e `planning` verdi sulla build di produzione.
 
 Resta: invio reale dell'email al fornitore (oggi il link si copia a mano in modalità demo); resi al fornitore per la merce danneggiata.
+
+## Evasione e spedizioni (issue #28)
+
+Fatto:
+- Coda "da spedire in ritardo": ordini pronti da spedire (stato canonico confermato o in evasione, nessuna spedizione) oltre una soglia in giorni lavorativi nel fuso del negozio (nuove impostazioni `lateToShipBusinessDays` e `workdays`); conteggio in dashboard, notifica giornaliera (`checkLateToShip` di #33 aggiornato) e nuova metrica `late_to_ship` per le regole di avviso (una regola per negozio nel seed). Nessuna dipendenza dal metodo di pagamento.
+- Bacheca imballo/spedizione `/fulfilment`: da imballare → imballati → spediti oggi, ricerca, vista "solo in ritardo", età in giorni lavorativi, selezione con distinte in blocco e "segna imballati" in blocco (`runBatch`). "Spedisci" chiama `CommercePlatform.createFulfillment` (Shopify `fulfillmentCreate`, mock) tramite l'outbox sincrono (`fulfillment.create`): l'ordine cambia solo dopo la conferma della piattaforma, con evento "Spedito da Keel" (autore, tracking, diff) e stato ricalcolato. Distinta PDF per ordine e in blocco con il writer PDF esistente.
+- Coda eccezioni di consegna e revisione dei resi al mittente (`shipment_cases`): i casi si aprono da soli dallo stato risolto (import e passaggio orario), una sola persona li prende in carico, l'istruzione (nuovo tentativo, nuovo indirizzo, punto di ritiro, reso) parte una volta sola tramite `CarrierProvider` (mock) o email al corriere (nuovo template), il caso si chiude da solo quando la spedizione riparte. Resi al mittente con azioni suggerite (rimettere a stock, rimborsare se c'è un incasso, contattare il cliente) segnate fatte o saltate; nessuna automazione sui pagamenti.
+- Editor della mappatura degli stati in Impostazioni → Evasione (con orologio delle spedizioni ed email del corriere); il risolutore legge la tabella (stato canonico, eccezione, finale) a ogni import.
+- Migrazione 0026 (tabella `shipment_cases` con RLS e indice unico parziale; colonne nullable `orders.packed_at`, `orders.packed_by`). Seed: arretrato di ordini pagati non spediti da 5–12 giorni, alcuni pacchi imballati, almeno 3–5 eccezioni e 2–3 resi al mittente recenti per negozio con i loro casi (uno preso in carico, uno già istruito, una revisione a metà), regola di avviso sul ritardo.
+- Test: core `fulfilment.test.ts` (11, compresa la proprietà soglia/giorni lavorativi in tre fusi), integrazioni (adapter Shopify su payload registrati, mock), servizi `fulfilment.test.ts` (11: soglia in giorni lavorativi, spedizione e rifiuto della piattaforma, presa in carico esclusiva concorrente, doppio invio bloccato anche in concorrenza, chiusura automatica, mappatura); e2e `fulfilment.spec.ts` (3 scenari).
+
+Resta: spedizioni parziali dalla bacheca; calendario delle festività per i giorni lavorativi; connettori reali dei corrieri (slot `CarrierProvider`); automazione del contrassegno sui resi al mittente (issue dell'add-on).
+

@@ -190,11 +190,11 @@ describe("staff tasks", () => {
 
 describe("system notifications", () => {
   it("late to ship notifies once a day", async () => {
-    const n1 = await run((s) => checkLateToShip({ ...s, actor: { type: "system", userId: null } }, parseTenantSettings({ lateToShipHours: 1 })));
+    const n1 = await run((s) => checkLateToShip({ ...s, actor: { type: "system", userId: null } }, parseTenantSettings({ lateToShipBusinessDays: 0 })));
     if (n1 === 0) return;
     const count = () => run(async (s) => (await s.tx.select({ n: sql<number>`count(*)::int` }).from(schema.notifications).where(and(eq(schema.notifications.tenantId, tenantId), eq(schema.notifications.type, "late_to_ship"), eq(schema.notifications.userId, uid("ops@northwind.demo")))))[0]!.n);
     const c1 = await count();
-    await run((s) => checkLateToShip({ ...s, actor: { type: "system", userId: null } }, parseTenantSettings({ lateToShipHours: 1 })));
+    await run((s) => checkLateToShip({ ...s, actor: { type: "system", userId: null } }, parseTenantSettings({ lateToShipBusinessDays: 0 })));
     expect(await count()).toBe(c1);
   });
 });

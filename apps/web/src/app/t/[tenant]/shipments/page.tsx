@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { daysInTransit, formatDateTime } from "@keel/core";
-import { Card, CardContent, EmptyState, PageHeader, Pagination, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { Button, Card, CardContent, EmptyState, PageHeader, Pagination, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { listShipments, parseShipmentFilters } from "@/server/queries/shipments";
 import { StatusBadge } from "@/components/status-badge";
@@ -23,7 +23,7 @@ export default async function ShipmentsPage({ params, searchParams }: { params: 
   };
   return (
     <>
-      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description", { days: ctx.settings.shipmentStuckDays })} />
+      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description", { days: ctx.settings.shipmentStuckDays })} actions={<Button asChild variant="outline"><Link href={`/t/${tenant}/fulfilment/exceptions`}>{t("work_queue")}</Link></Button>} />
       <div className="mb-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <Stat label={t("kpi.in_transit")} value={summary.inTransit} href={`${base}?status=label_created,in_transit`} />
         <Stat label={t("kpi.out_for_delivery")} value={summary.outForDelivery} href={`${base}?status=out_for_delivery`} />

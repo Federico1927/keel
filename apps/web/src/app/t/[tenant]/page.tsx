@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatMoney, formatNumber } from "@keel/core";
-import { catalogQualityReport, dashboardSummary, monthEndForecast } from "@keel/services";
+import { catalogQualityReport, countLateToShip, dashboardSummary, monthEndForecast } from "@keel/services";
 import { Card, CardContent, CardHeader, CardTitle, PageHeader, Stat } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { RevenueChart } from "@/components/charts/revenue-chart";
@@ -13,7 +13,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ tena
   const ctx = await requirePage(tenant, "dashboard");
   const t = await getTranslations("dashboard");
   const at = { id: ctx.tenant.id, country: ctx.tenant.country, currency: ctx.tenant.currency, timezone: ctx.tenant.timezone, settings: ctx.settings };
-  const { summary, forecast, quality } = await ctx.run(async (tx) => ({ summary: await dashboardSummary({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, at), forecast: await monthEndForecast({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, at), quality: await catalogQualityReport({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }) }));
+  const { summary, forecast, quality, lateToShip } = await ctx.run(async (tx) => ({ summary: await dashboardSummary({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, at), forecast: await monthEndForecast({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, at), quality: await catalogQualityReport({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }), lateToShip: await countLateToShip({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { timezone: ctx.tenant.timezone, settings: ctx.settings }) }));
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   const pctChange = (cur: number, prev: number) => (prev ? { value: (cur - prev) / prev } : null);
   const base = `/t/${tenant}`;
@@ -22,7 +22,8 @@ export default async function DashboardPage({ params }: { params: Promise<{ tena
     { key: "fresh", value: summary.open.fresh, href: `${base}/orders?status=new` },
     { key: "pending_review", value: summary.open.pendingReview, href: `${base}/orders?status=pending_review` },
     { key: "on_hold", value: summary.open.onHold, href: `${base}/orders?status=on_hold` },
-    { key: "shipment_exceptions", value: summary.open.shipmentExceptions, href: `${base}/shipments?view=exceptions` },
+    { key: "late_to_ship", value: lateToShip, href: `${base}/fulfilment?view=late` },
+    { key: "shipment_exceptions", value: summary.open.shipmentExceptions, href: `${base}/fulfilment/exceptions` },
     { key: "stuck_shipments", value: summary.open.stuckShipments, href: `${base}/shipments?view=stuck` },
     { key: "returns_requested", value: summary.open.returnsRequested, href: `${base}/returns?status=requested` },
     { key: "critical_variants", value: summary.open.criticalVariants, href: `${base}/inventory?risk=critical` },
@@ -70,7 +71,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ tena
               {openItems.map((i) => (
                 <Link key={i.key} href={i.href} className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-muted/50">
                   <span>{t(`open.${i.key}`)}</span>
-                  <span className={`tabular font-medium ${i.value > 0 && (i.key === "shipment_exceptions" || i.key === "failed_webhooks" || i.key === "critical_variants") ? "text-destructive" : i.value > 0 && i.key === "catalog_quality" ? "text-warning" : ""}`}>{i.value}</span>
+                  <span className={`tabular font-medium ${i.value > 0 && (i.key === "shipment_exceptions" || i.key === "failed_webhooks" || i.key === "critical_variants" || i.key === "late_to_ship") ? "text-destructive" : i.value > 0 && i.key === "catalog_quality" ? "text-warning" : ""}`}>{i.value}</span>
                 </Link>
               ))}
             </CardContent>

@@ -1,6 +1,7 @@
 import { and, desc, eq, gte, inArray, lt, schema, sql } from "@keel/db";
 import { ATTRIBUTION_MODELS, compileFormula, creativeFatigue, creditBy, evaluateAlert, evaluateFormula, parseCreativeName, type AlertCondition, type AttributedOrder, type AttributionModel, type FatigueResult, type Period, type Touchpoint } from "@keel/core";
 import type { ServiceContext } from "../context";
+import { countLateToShip } from "../fulfilment";
 import { getSurveySettings, surveyChannelsFor } from "../tracking/survey";
 import { getNotificationSinks } from "../integrations/factory";
 import { notifyUsers } from "../notifications";
@@ -314,7 +315,7 @@ export async function saveUserDashboard(ctx: ServiceContext, userId: string, wid
 
 /* ---------- alerts ---------- */
 
-export const ALERT_METRIC_OPTIONS = ["revenue", "orders", "ad_spend", "mer", "aov", "cancel_rate", "stockouts", "roas"] as const;
+export const ALERT_METRIC_OPTIONS = ["revenue", "orders", "ad_spend", "mer", "aov", "cancel_rate", "stockouts", "late_to_ship", "roas"] as const;
 
 /** Daily series (oldest → newest, today excluded) for an alert metric over `days` days in the tenant timezone. */
 export async function alertSeries(ctx: ServiceContext, tenant: AnalyticsTenant, metric: string, days: number, opts: { campaignId?: string | null } = {}): Promise<(number | null)[]> {
@@ -326,6 +327,8 @@ export async function alertSeries(ctx: ServiceContext, tenant: AnalyticsTenant, 
     const d = new Date(end.getTime() - i * 864e5);
     dayKeys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
   }
+  // snapshot metric: orders ready to ship past the tenant's working-day threshold right now (issue #28)
+  if (metric === "late_to_ship") return [await countLateToShip(ctx, { timezone: tenant.timezone, settings: tenant.settings, now })];
   if (metric === "stockouts") {
     const [r] = await ctx.tx.select({ n: sql<number>`count(distinct ${schema.inventoryLevels.variantId})::int` }).from(schema.inventoryLevels).where(and(eq(schema.inventoryLevels.tenantId, ctx.tenantId), sql`${schema.inventoryLevels.available} <= 0`));
     return [r?.n ?? 0];

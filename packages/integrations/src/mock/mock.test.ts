@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MockCommercePlatform } from "./commerce";
 import { MockAdsPlatform } from "./ads";
 import { MockAddressProvider } from "./address";
+import { MockCarrierProvider } from "./slots";
 import { IntegrationError } from "../types";
 
 function platform() {
@@ -100,5 +101,25 @@ describe("MockAddressProvider", () => {
     expect(bad.valid).toBe(false);
     expect(bad.issues.map((i) => i.code).sort()).toEqual(["invalid_zip", "not_found"]);
     expect(bad.normalized?.country).toBe("US");
+  });
+});
+
+describe("fulfilment and carrier instructions on the mocks", () => {
+  it("fulfils an order once, with the tracking, and refuses a second fulfilment", async () => {
+    const p = platform();
+    const [o] = (await p.fetchOrders({ limit: 1 })).items;
+    const f = await p.createFulfillment({ orderExternalId: o!.externalId, carrier: "UPS", trackingNumber: "1Z1", notifyCustomer: true });
+    expect(f).toMatchObject({ status: "label_created", externalStatus: "confirmed", carrier: "UPS", trackingNumber: "1Z1" });
+    expect((await p.fetchOrder(o!.externalId))!.fulfillmentStatusRaw).toBe("fulfilled");
+    await expect(p.createFulfillment({ orderExternalId: o!.externalId, carrier: "UPS", trackingNumber: "1Z2", notifyCustomer: false })).rejects.toBeInstanceOf(IntegrationError);
+    // an order the simulator does not hold (seeded history) is acknowledged
+    expect((await p.createFulfillment({ orderExternalId: "unknown", carrier: "DHL", trackingNumber: "JD1", notifyCustomer: false })).trackingNumber).toBe("JD1");
+  });
+  it("records carrier instructions and can fail on demand", async () => {
+    const c = new MockCarrierProvider();
+    expect(await c.sendInstruction({ reference: "case:1", trackingNumber: "1Z1", carrier: "UPS", resolution: "redeliver" })).toEqual({ reference: "mock-instr-1" });
+    c.failures.failNext("network");
+    await expect(c.sendInstruction({ reference: "case:2", trackingNumber: "1Z2", carrier: "UPS", resolution: "return" })).rejects.toBeInstanceOf(IntegrationError);
+    expect(c.instructions).toHaveLength(1);
   });
 });

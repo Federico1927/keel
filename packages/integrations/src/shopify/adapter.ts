@@ -1,6 +1,6 @@
 import { HttpClient, type HttpOptions } from "../http";
-import { IntegrationError, type CommercePlatform, type ConnectionTest, type CreateOrderInput, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type OrderDetailsPatch, type OrderDiscountPatch, type Page, type VariantPatch, type PlatformReturnLineInput, type SyncQuery, type VerifiedWebhook, type WebhookRegistration } from "../types";
-import { ORDER_FIELDS, PRODUCT_FIELDS, gidToId, idToGid, mapGraphqlCustomer, mapGraphqlDiscount, mapGraphqlInventoryLevel, mapGraphqlLocation, mapGraphqlOrder, mapGraphqlProduct, mapRestCustomer, mapRestInventoryLevel, mapRestOrder, mapRestProduct } from "./mappers";
+import { IntegrationError, type CommercePlatform, type ConnectionTest, type CreateFulfillmentInput, type CreateOrderInput, type NormalizedCustomer, type NormalizedFulfillment, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type OrderDetailsPatch, type OrderDiscountPatch, type Page, type VariantPatch, type PlatformReturnLineInput, type SyncQuery, type VerifiedWebhook, type WebhookRegistration } from "../types";
+import { ORDER_FIELDS, PRODUCT_FIELDS, gidToId, idToGid, mapFulfillmentStatus, mapGraphqlCustomer, mapGraphqlDiscount, mapGraphqlInventoryLevel, mapGraphqlLocation, mapGraphqlOrder, mapGraphqlProduct, mapRestCustomer, mapRestInventoryLevel, mapRestOrder, mapRestProduct } from "./mappers";
 import { SHOPIFY_ALL_SCOPES, SHOPIFY_API_VERSION, verifyWebhookHmac } from "./oauth";
 
 export interface ShopifyCredentials {
@@ -371,5 +371,39 @@ export class ShopifyCommercePlatform implements CommercePlatform {
 
   async closeReturn(returnExternalId: string): Promise<void> {
     await this.mutate("returnClose", `mutation($id: ID!) { returnClose(id: $id) { return { id status } userErrors { field message } } }`, { id: idToGid("Return", returnExternalId) });
+  }
+
+  /**
+   * Fulfilment from Keel: the order's open fulfillment orders → one `fulfillmentCreate` with the
+   * tracking info. Lines omitted = every remaining unit. Scope `write_merchant_managed_fulfillment_orders`
+   * (or the third-party / assigned variants, depending on who holds the location).
+   */
+  async createFulfillment(input: CreateFulfillmentInput): Promise<NormalizedFulfillment> {
+    const data = await this.graphql<{ order: { fulfillmentOrders: { nodes: { id: string; status: string; lineItems: { nodes: { id: string; remainingQuantity: number; lineItem: { id: string } }[] } }[] } } | null }>(`query($id: ID!) { order(id: $id) { fulfillmentOrders(first: 20) { nodes { id status lineItems(first: 100) { nodes { id remainingQuantity lineItem { id } } } } } } }`, { id: idToGid("Order", input.orderExternalId) });
+    if (!data.order) throw new IntegrationError("not_found", `Order ${input.orderExternalId} not found`);
+    const open = data.order.fulfillmentOrders.nodes.filter((fo) => fo.status === "OPEN" || fo.status === "IN_PROGRESS");
+    const wanted = input.lines ? new Map(input.lines.map((l) => [l.orderLineExternalId, l.quantity])) : null;
+    const groups: Rec[] = [];
+    for (const fo of open) {
+      const items: { id: string; quantity: number }[] = [];
+      for (const li of fo.lineItems.nodes) {
+        if (li.remainingQuantity <= 0) continue;
+        const lineId = gidToId(li.lineItem.id) ?? li.lineItem.id;
+        if (!wanted) items.push({ id: li.id, quantity: li.remainingQuantity });
+        else if (wanted.has(lineId)) {
+          const q = Math.min(li.remainingQuantity, wanted.get(lineId)!);
+          if (q > 0) items.push({ id: li.id, quantity: q });
+          wanted.set(lineId, wanted.get(lineId)! - q);
+        }
+      }
+      if (items.length) groups.push({ fulfillmentOrderId: fo.id, ...(wanted ? { fulfillmentOrderLineItems: items } : {}) });
+    }
+    if (!groups.length) throw new IntegrationError("invalid_request", `Order ${input.orderExternalId} has nothing left to fulfil`);
+    const res = await this.mutate("fulfillmentCreate", `mutation($fulfillment: FulfillmentInput!) { fulfillmentCreate(fulfillment: $fulfillment) { fulfillment { id legacyResourceId status displayStatus createdAt updatedAt trackingInfo { number url company } } userErrors { field message } } }`, { fulfillment: { lineItemsByFulfillmentOrder: groups, notifyCustomer: input.notifyCustomer, trackingInfo: { company: input.carrier, number: input.trackingNumber, ...(input.trackingUrl ? { url: input.trackingUrl } : {}) } } });
+    const f = res.fulfillment as { id: string; legacyResourceId?: string; status: string; displayStatus?: string | null; createdAt: string; updatedAt?: string; trackingInfo?: { number?: string; url?: string; company?: string }[] } | undefined;
+    if (!f) throw new IntegrationError("unknown", "fulfillmentCreate returned no fulfillment");
+    const ti = f.trackingInfo?.[0];
+    const display = (f.displayStatus ?? "").toLowerCase() || null;
+    return { externalId: String(f.legacyResourceId ?? gidToId(f.id) ?? f.id), status: mapFulfillmentStatus(display, f.status.toLowerCase()), externalStatus: display, trackingNumber: ti?.number ?? input.trackingNumber, trackingUrl: ti?.url ?? input.trackingUrl ?? null, carrier: ti?.company ?? input.carrier, createdAt: new Date(f.createdAt), updatedAt: new Date(f.updatedAt ?? f.createdAt), deliveredAt: null };
   }
 }

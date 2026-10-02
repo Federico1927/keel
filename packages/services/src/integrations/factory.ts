@@ -1,5 +1,5 @@
 import { and, eq, schema } from "@keel/db";
-import { AnthropicLlmProvider, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type OutboundMessage, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
+import { AnthropicLlmProvider, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, HttpEmailSink, MetaAdsPlatform, MockAdsPlatform, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCarrierProvider, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, ShopifyCommercePlatform, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type CarrierProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type OutboundMessage, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 
 export interface PlatformTenant {
@@ -171,6 +171,25 @@ export function getAddressProviderFor(tenantId: string): AddressProvider {
 /** Return label provider: the mock, until a carrier or EasyPost/Shippo account is connected (external block). */
 export function getReturnLabelProviderFor(_tenantId: string): ReturnLabelProvider {
   return new MockReturnLabelProvider();
+}
+
+const carriers = new Map<string, MockCarrierProvider>();
+/**
+ * Carrier connector for delivery instructions (issue #28). Only the mock exists: a live carrier or
+ * aggregator API is a per-account integration (`CarrierProvider`); in live mode, until one is sold
+ * and wired here, there is none and instructions go by email.
+ */
+export function getCarrierProviderFor(tenantId: string): CarrierProvider | null {
+  if (integrationMode() === "live") return null;
+  let c = carriers.get(tenantId);
+  if (!c) {
+    c = new MockCarrierProvider();
+    carriers.set(tenantId, c);
+  }
+  return c;
+}
+export function mockCarrierFor(tenantId: string): MockCarrierProvider | undefined {
+  return carriers.get(tenantId);
 }
 
 const messaging = new Map<string, MockMessagingChannel>();

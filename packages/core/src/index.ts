@@ -38,6 +38,7 @@ export * from "./order-edit";
 export * from "./address";
 export * from "./tasks";
 export * from "./notifications";
+export * from "./fulfilment";
 export * from "./lists";
 export * from "./packs";
 export * from "./purchasing";
