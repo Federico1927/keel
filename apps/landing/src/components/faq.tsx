@@ -1,11 +1,12 @@
 import { ChevronDown } from "lucide-react";
 import { Section } from "@/components/ui";
+import { FAQ_CLAIMS } from "@/config/claims";
 import { OVERAGE } from "@/config/pricing";
 import { PRODUCT_NAME, type LandingLocale } from "@/config/site";
 import { getTranslator } from "@/i18n/messages";
 import { formatNumber, formatPrice } from "@/lib/format";
 
-const ITEMS = ["payments", "contracts", "setup", "security", "ai", "overage", "languages"] as const;
+const ITEMS = Object.keys(FAQ_CLAIMS) as (keyof typeof FAQ_CLAIMS)[];
 
 export function Faq({ locale }: { locale: LandingLocale }) {
   const t = getTranslator(locale);
@@ -16,7 +17,7 @@ export function Faq({ locale }: { locale: LandingLocale }) {
   };
   return (
     <Section id="faq" title={t("faq.title")}>
-      <div className="mx-auto max-w-3xl divide-y divide-border rounded-2xl border border-border bg-card">
+      <div className="mx-auto max-w-3xl divide-y divide-border rounded-lg border border-border bg-card">
         {ITEMS.map((k) => (
           <details key={k} className="group px-6 py-4">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-1 text-left font-medium [&::-webkit-details-marker]:hidden">

@@ -1,12 +1,14 @@
 /**
  * Captures the product screens used by the landing from a running Keel app loaded with the demo
  * seed, as the Harbor Home owner (a tenant without add-ons, so no add-on entry appears in the
- * navigation). Viewport-only captures at 2x, written as PNG to a staging directory; run
- * `pnpm --filter @keel/landing images` afterwards to produce the WebP files the landing uses.
+ * navigation), in the light theme. Viewport-only captures at 2x, written as PNG to a staging
+ * directory; run `pnpm --filter @keel/landing images` afterwards to produce the WebP files the
+ * landing uses.
  *
  * Usage (production build of @keel/web listening on :3000, demo seed loaded):
  *   pnpm --filter @keel/landing capture:product
  *   LOCALES=en,it ONLY=dashboard,orders pnpm --filter @keel/landing capture:product
+ *   APP_BASE_URL=http://localhost:3125 pnpm --filter @keel/landing capture:product
  */
 import { chromium } from "@playwright/test";
 import { existsSync, mkdirSync } from "node:fs";
@@ -14,7 +16,7 @@ import { resolve } from "node:path";
 
 const BASE = process.env.APP_BASE_URL ?? "http://localhost:3000";
 const OUT = resolve(process.env.CAPTURE_DIR ?? "./screenshots-src");
-const LOCALES = (process.env.LOCALES ?? "en,it").split(",");
+const LOCALES = (process.env.LOCALES ?? "en,it,es").split(",");
 const PASSWORD = process.env.DEMO_PASSWORD ?? "keel-demo-2026";
 const TENANT = process.env.DEMO_TENANT ?? "harbor-home";
 const EMAIL = process.env.DEMO_EMAIL ?? "owner@harborhome.demo";
@@ -52,7 +54,10 @@ export const PAGES = [
     name: "assistant",
     list: "/assistant",
     match: "/assistant\\?thread=",
-    ask: { it: "Quali prodotti hanno venduto di più negli ultimi 30 giorni?" },
+    ask: {
+      it: "Quali prodotti hanno venduto di più negli ultimi 30 giorni?",
+      es: "¿Qué productos se vendieron más en los últimos 30 días?",
+    },
     hide: ["assistant-mock-note"],
   },
   { name: "integrations-guide-shopify", path: "/integrations/guide/shopify" },
@@ -60,8 +65,8 @@ export const PAGES = [
 
 async function login(page) {
   await page.goto(`${BASE}/login`);
-  await page.getByLabel("Email").fill(EMAIL);
-  await page.getByLabel("Password").fill(PASSWORD);
+  await page.getByLabel(/^(email|correo)/i).fill(EMAIL);
+  await page.getByLabel(/^(password|contraseña)/i).fill(PASSWORD);
   await page.getByRole("button", { name: /sign in|accedi|entrar/i }).click();
   await page.waitForURL(/\/t\//);
 }
@@ -92,8 +97,11 @@ async function shoot(page, dir, spec, locale) {
     await page.goto(`${base}${spec.path}`);
   }
   await page.waitForLoadState("networkidle");
-  for (const id of spec.hide ?? []) await page.addStyleTag({ content: `[data-testid="${id}"] { display: none !important; }` });
+  for (const id of spec.hide ?? [])
+    await page.addStyleTag({ content: `[data-testid="${id}"] { display: none !important; }` });
   await page.setViewportSize(spec.viewport ?? DEFAULT_VIEWPORT);
+  // No hover state (chart tooltips) left over from the last click.
+  await page.mouse.move(0, 0);
   // Charts animate in; give them a moment to settle.
   await page.waitForTimeout(600);
   await page.screenshot({ path: `${dir}/${spec.name}.png`, fullPage: false });
@@ -107,7 +115,12 @@ async function main() {
   for (const locale of LOCALES) {
     const dir = `${OUT}/${locale}`;
     mkdirSync(dir, { recursive: true });
-    const context = await browser.newContext({ viewport: DEFAULT_VIEWPORT, deviceScaleFactor: 2 });
+    const context = await browser.newContext({
+      viewport: DEFAULT_VIEWPORT,
+      deviceScaleFactor: 2,
+      colorScheme: "light",
+    });
+    await context.addCookies([{ name: "keel_theme", value: "light", url: BASE }]);
     await context.addCookies([{ name: "NEXT_LOCALE", value: locale, url: BASE }]);
     const page = await context.newPage();
     await login(page);

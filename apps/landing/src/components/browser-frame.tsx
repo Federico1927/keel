@@ -25,18 +25,18 @@ export function BrowserFrame({
   return (
     <figure
       className={cx(
-        "overflow-hidden rounded-xl border border-border bg-card shadow-[0_24px_60px_-24px_rgba(20,30,50,0.35)]",
+        "overflow-hidden rounded-lg border border-border bg-card shadow-frame",
         className,
       )}
     >
       <div
-        className="flex items-center gap-2 border-b border-border bg-muted px-3 py-2"
+        className="flex items-center gap-2 border-b border-border bg-secondary px-3 py-2"
         aria-hidden="true"
       >
         <span className="flex gap-1.5">
-          <i className="size-2.5 rounded-full bg-border" />
-          <i className="size-2.5 rounded-full bg-border" />
-          <i className="size-2.5 rounded-full bg-border" />
+          <i className="size-2.5 rounded-full bg-input/50" />
+          <i className="size-2.5 rounded-full bg-input/50" />
+          <i className="size-2.5 rounded-full bg-input/50" />
         </span>
         <span className="mx-auto hidden h-5 min-w-40 items-center justify-center rounded-md bg-card px-3 text-[10px] text-muted-foreground sm:flex">
           {PRODUCT_NAME} · Harbor Home

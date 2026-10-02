@@ -619,6 +619,21 @@ Fatto:
 
 Resta: voce di menu della console per `/admin/mcp` e, se serve, voce "Approvazioni" nel menu del tenant (lasciate all'integrazione); passi delle guide da verificare sulle interfacce attuali di Claude, ChatGPT e Cursor; client confidenziali (con segreto) non supportati; nessuna email per le proposte (solo notifica in-app).
 
+## Landing: direzione A, token condivisi, screenshot nuovi, spagnolo, affermazioni allineate al prodotto (issue #47)
+
+Fatto:
+- **Un solo file di tema** in `packages/ui/src/theme.css` (token chiari e scuri, mappatura Tailwind, variante `dark`, stili di base), importato dall'app (tramite `styles.css`) e dalla landing. La copia della vecchia palette, Inter e Source Serif sono stati rimossi: la landing usa Geist (`@keel/ui/font-sans`, senza il mono che non serve) e aggiunge solo due token di marketing. Un test fallisce se la landing ridefinisce un token condiviso: cambiare `--primary` in `packages/ui` cambia app e landing.
+- **Tutte le sezioni in direzione A**: superfici bianche, blu primario, angoli da 8 px, nessun serif; CTA finale sul primario; pill per badge, lingue e schede del carosello. **Tema scuro** che segue il sistema operativo con lo stesso script dell'app.
+- **Spagnolo** su `/es/` con hreflang, sitemap, immagine Open Graph (rifatta con i colori della direzione A dai token) e test di completezza dei messaggi su tre lingue.
+- **Screenshot del prodotto rifatti** dalla build di produzione con il seed attuale (Harbor Home, tema chiaro, en/it/es), più una variante 800 px per l'hero; screenshot della landing in `docs/landing/` in chiaro (desktop e mobile) e scuro (desktop) per ogni lingua.
+- **Affermazioni = prodotto**: registro `apps/landing/src/config/claims.ts` che lega ogni modulo, card, riga dei piani, add-on, risposta delle FAQ, passo e riga del confronto alle chiavi di `@keel/config`; `claims.test.ts` verifica chiavi, moduli implementati, piano minimo, presenza di ogni add-on costruito e che "In arrivo" contenga solo TikTok (#41). MCP (dal piano Growth) e dashboard personalizzabili descritti come disponibili; nuovo blocco "Anche incluso" (dashboard, MCP, pagamenti e payout, liste veloci, salute integrazioni, ruoli e audit). Nessun riferimento al pagamento online con carta.
+- **Piani**: le card seguono la gating reale del prodotto (`isModuleInPlan`): Starter con tutti i moduli del core, Growth aggiunge MCP, Scale il supporto prioritario, ogni piano mostra la conservazione dell'audit. Tolti "più negozi", "ruoli avanzati" e "accesso API", che il prodotto non ha. Prezzi invariati.
+- **Add-on**: "Campagne ai clienti" (99 USD da `@keel/config`, nel test dei prezzi) per primo, contrassegno secondo e mai in evidenza; integrazioni su misura "su preventivo" come nel catalogo; nessun add-on WhatsApp.
+- **Form di contatto**: destinazione invariata (webhook JSON o email precompilata), honeypot più tempo minimo di compilazione, informativa privacy sotto il pulsante nelle tre lingue.
+- **Prestazioni**: preload dell'immagine hero, server statico (`scripts/serve.mjs`, quello del servizio Railway) con compressione brotli/gzip e cache lunga per gli asset con hash. Lighthouse mobile: prestazioni 97–99, accessibilità 100, best practice 100, SEO 100, LCP 2,1–2,4 s.
+- Test landing: 31 (prima 14), tra cui `claims.test.ts` (13) e `theme.test.ts` (3); test dei token dell'app verde.
+
+Resta: una pagina di privacy policy completa (servono i dati della società); screenshot del prodotto anche in tema scuro se si vuole che cambino col tema; lo script `bundle-single-file.mjs` collega solo due lingue fra loro (anteprime).
 ## Fatturazione Stripe per i clienti di Keel: abbonamenti, costi di attivazione, add-on, carta salvata, webhook, solleciti, portale (issue #53)
 
 Fatto:

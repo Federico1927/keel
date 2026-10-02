@@ -25,7 +25,9 @@ export function Pricing({ locale }: { locale: LandingLocale }) {
     <section id="pricing" className="scroll-mt-20 py-16 sm:py-24">
       <div className="container-x">
         <div className="max-w-3xl">
-          <h2 className="text-3xl leading-tight sm:text-4xl">{t("title")}</h2>
+          <h2 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+            {t("title")}
+          </h2>
           <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{t("lead")}</p>
         </div>
 
@@ -43,7 +45,7 @@ export function Pricing({ locale }: { locale: LandingLocale }) {
             </BillingButton>
             <BillingButton active={annual} onClick={() => setAnnual(true)}>
               {t("annual")}
-              <span className="ml-1.5 whitespace-nowrap rounded-sm bg-success/15 px-1.5 py-0.5 text-[11px] font-medium text-success">
+              <span className="ml-1.5 whitespace-nowrap rounded-full bg-success/15 px-1.5 py-0.5 text-[11px] font-medium text-success">
                 {t("annual_note")}
               </span>
             </BillingButton>
@@ -53,11 +55,11 @@ export function Pricing({ locale }: { locale: LandingLocale }) {
               className={cx(
                 "rounded-md border px-4 py-2 text-sm transition-opacity",
                 founding
-                  ? "border-accent-foreground/30 bg-accent text-accent-foreground"
+                  ? "border-primary/30 bg-primary/5 text-foreground"
                   : "border-border text-muted-foreground opacity-70",
               )}
             >
-              <span className="mr-2 rounded-sm bg-accent-foreground px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-accent">
+              <span className="mr-2 rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary-foreground">
                 {t("founding.badge")}
               </span>
               <strong>
@@ -109,7 +111,9 @@ function BillingButton({
       onClick={onClick}
       className={cx(
         "inline-flex items-center rounded px-3 py-1.5 transition-colors",
-        active ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground",
+        active
+          ? "bg-primary text-primary-foreground"
+          : "text-muted-foreground hover:text-foreground",
       )}
     >
       {children}
@@ -140,26 +144,26 @@ function PlanCard({
   return (
     <li
       className={cx(
-        "relative flex flex-col rounded-2xl border bg-card p-6",
-        plan.recommended ? "border-primary shadow-[0_0_0_1px_hsl(205_55%_30%)]" : "border-border",
+        "relative flex flex-col rounded-lg border bg-card p-6 shadow-sm",
+        plan.recommended ? "border-primary ring-1 ring-primary" : "border-border",
       )}
     >
       {plan.recommended && (
-        <span className="absolute -top-3 left-6 rounded-sm bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
+        <span className="absolute -top-3 left-6 rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold text-primary-foreground">
           {t("recommended")}
         </span>
       )}
-      <h3 className="font-sans text-xl font-semibold tracking-normal">
-        {t(`plans.${plan.id}.name`)}
-      </h3>
+      <h3 className="text-xl font-semibold">{t(`plans.${plan.id}.name`)}</h3>
       <p className="mt-1 text-sm text-muted-foreground">{t(`plans.${plan.id}.tagline`)}</p>
       <div className="mt-5 min-h-20">
         {shown === null ? (
-          <p className="font-serif text-3xl">{t("on_quote")}</p>
+          <p className="text-3xl font-semibold tracking-tight">{t("on_quote")}</p>
         ) : (
           <>
             <p className="flex items-baseline gap-1">
-              <span className="font-serif text-4xl tabular">{formatPrice(locale, shown)}</span>
+              <span className="text-4xl font-semibold tracking-tight tabular">
+                {formatPrice(locale, shown)}
+              </span>
               <span className="text-sm text-muted-foreground">{t("per_month")}</span>
             </p>
             {founding && base !== null && (
@@ -205,9 +209,15 @@ function PlanCard({
             {t(`features.${f}` as Parameters<typeof t>[0])}
           </li>
         ))}
+        {plan.auditRetentionDays !== null && (
+          <li className="flex items-start gap-2">
+            <Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden="true" />
+            {t("features.audit_retention", { days: formatNumber(locale, plan.auditRetentionDays) })}
+          </li>
+        )}
         <li className="flex items-start gap-2">
           <Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden="true" />
-          {t("unlimited_users")}
+          {t("features.unlimited_users")}
         </li>
       </ul>
       <div className="mt-6">

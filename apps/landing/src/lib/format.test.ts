@@ -8,5 +8,7 @@ describe("format", () => {
     expect(formatNumber("en", 1000)).toBe("1,000");
     expect(formatPrice("it", 1190)).toBe("1.190 $");
     expect(formatPrice("en", 1190)).toBe("$1,190");
+    expect(formatNumber("es", 1000)).toBe("1.000");
+    expect(formatPrice("es", 1190)).toBe("1.190\u00a0$");
   });
 });

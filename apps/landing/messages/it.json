@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "{product} – Piattaforma operativa per e-commerce Shopify",
-    "description": "Ordini, spedizioni, magazzino, acquisti, resi, sconti, CRM e il P/L reale delle campagne Meta e Google, su un unico modello dati. Nessun contratto annuale, configurazione fatta dal nostro team, utenti illimitati.",
+    "description": "Ordini, spedizioni, magazzino, acquisti, resi, sconti, CRM, dashboard e il P/L reale delle campagne Meta e Google, su un solo modello dati. Nessun contratto annuale, configurazione fatta dal nostro team, utenti illimitati.",
     "og_tagline": "Una sola piattaforma operativa per e-commerce Shopify",
     "locale_name": "Italiano"
   },
@@ -20,7 +20,7 @@
   "hero": {
     "eyebrow": "Piattaforma operativa per e-commerce Shopify",
     "title": "Gestisci tutto il negozio su un solo insieme di numeri.",
-    "subtitle": "Ordini, spedizioni, magazzino, acquisti, resi, sconti, CRM e il profitto reale di ogni campagna Meta e Google. Una piattaforma e un modello dati, invece di quattro strumenti che non si parlano.",
+    "subtitle": "Ordini, spedizioni, magazzino, acquisti, resi, sconti, CRM e il profitto reale di ogni campagna Meta e Google, fino al singolo annuncio e alla singola keyword. Una piattaforma e un modello dati, invece di quattro strumenti che non si parlano.",
     "cta": "Prenota una demo",
     "secondary": "Vedi i moduli",
     "points": {
@@ -28,7 +28,7 @@
       "setup": "Configurazione fatta dal nostro team",
       "users": "Utenti illimitati"
     },
-    "screenshot_alt": "Dashboard di {product} per il negozio demo Harbor Home: vendite di oggi, ordini, valore medio ordine, tasso di annullamento, grafico delle vendite a 30 giorni ed elenco delle cose che richiedono attenzione"
+    "screenshot_alt": "Dashboard di {product} per il negozio demo Harbor Home: vendite, ordini, valore medio dell'ordine e tasso di annullamento di oggi, stato delle integrazioni, grafico delle vendite a 30 giorni, previsione di fine mese e code che richiedono attenzione"
   },
   "problem": {
     "title": "I tuoi numeri vivono in quattro strumenti. Nessuno è giusto.",
@@ -58,52 +58,52 @@
     "items": {
       "orders": {
         "title": "Ordini",
-        "body": "Uno stato canonico per ogni ordine, ricavato da tag Shopify, pagamento ed evasione con regole che controlli tu. Timeline con autore e differenze, note interne con menzioni, storico cliente e rilevamento dei duplicati.",
+        "body": "Uno stato canonico per ogni ordine, ricavato da tag Shopify, pagamento ed evasione con regole che controlli tu. Timeline con autore e differenze, note interne con menzioni, storico cliente, rilevamento dei duplicati, azioni in blocco e viste salvate.",
         "alt": "Lista ordini in {product}: ogni ordine con stato canonico, metodo e stato del pagamento, canale, assegnatario e totale"
       },
       "shipments": {
         "title": "Spedizioni",
-        "body": "Tracking, corriere, giorni in viaggio, eccezioni e spedizioni ferme oltre la tua soglia. Lo stato visibile è calcolato da tutte le fonti con precedenze esplicite.",
-        "alt": "Pagina spedizioni in {product}: contatori per in transito, in consegna, eccezioni e spedizioni ferme, con lista di ordini, corrieri e numeri di tracking"
+        "body": "Tracking, corriere, giorni in viaggio e spedizioni ferme oltre la tua soglia, più le code degli ordini in ritardo di spedizione e delle eccezioni di consegna. Lo stato visibile è calcolato da tutte le fonti con precedenze esplicite.",
+        "alt": "Pagina spedizioni in {product}: contatori per in transito, in consegna, eccezioni, ferme, consegnate e rese, con lista di ordini, corrieri e numeri di tracking"
       },
       "inventory": {
         "title": "Prodotti e magazzino",
-        "body": "Varianti con opzioni dinamiche, stock per location, velocità di vendita, giorni di copertura e suggerimenti di riordino. Modifiche di prezzo e stato scritte verso Shopify.",
+        "body": "Varianti con opzioni dinamiche, stock per location, velocità di vendita, giorni di copertura e suggerimenti di riordino. Rettifiche con causale, inventari fisici e report delle perdite non spiegate. Modifiche di prezzo e stato scritte verso Shopify.",
         "alt": "Pagina magazzino in {product}: unità in stock, valore dello stock, varianti critiche e basse, e lista delle varianti con velocità, giorni di copertura e unità da riordinare"
       },
       "purchasing": {
         "title": "Acquisti e riordini",
-        "body": "Fornitori, ordini d'acquisto dalla bozza al ricevimento, merce in arrivo visibile su ogni prodotto. Il ricevimento aggiorna il costo del prodotto, e quel costo alimenta il P/L.",
+        "body": "Fornitori, ordini d'acquisto dalla bozza al ricevimento, merce in arrivo visibile su ogni prodotto. Gli ordini senza stock restano in backorder, collegati all'ordine d'acquisto e sbloccati al ricevimento. Il ricevimento aggiorna il costo del prodotto, e quel costo alimenta il P/L.",
         "alt": "Pagina acquisti in {product}: ordini d'acquisto con fornitore, stato, data prevista, unità, totale e backorder coperti"
       },
       "returns": {
         "title": "Resi",
-        "body": "Motivi, finestre e stati del workflow configurati per negozio. Rimborso, cambio o buono, rientro a stock facoltativo per location, analisi per prodotto e motivo.",
+        "body": "Motivi, finestre e stati del workflow configurati per negozio, sincronizzati con i resi Shopify. Rimborso, cambio o buono, rientro a stock facoltativo per location, analisi per prodotto e motivo.",
         "alt": "Pagina resi in {product}: richieste di reso con ordine, motivo, esito, importo e stato del workflow"
       },
       "discounts": {
         "title": "Sconti",
-        "body": "Codici sincronizzati da Shopify, codici singoli e pool di codici unici in blocco, con ordini, ricavi e margine attribuiti a ogni codice.",
+        "body": "Codici sincronizzati con Shopify, codici singoli e pool di codici unici in blocco, con ordini, ricavi e margine attribuiti a ogni codice.",
         "alt": "Pagina sconti in {product}: codici con valore, stato, utilizzi, ordini, sconto concesso, ricavo netto e margine"
       },
       "crm": {
         "title": "CRM, segmenti e RFM",
-        "body": "Costruttore di segmenti con gruppi E/O annidati su ordini, prodotti, valore, recenza e paese, con anteprima in tempo reale. Matrice RFM con fasce. Esportazione CSV e gruppo di controllo incluso in ogni segmento.",
+        "body": "Profili cliente con valore, frequenza e ultimo ordine. Costruttore di segmenti con gruppi E/O annidati su ordini, prodotti, valore, recenza e paese, con anteprima in tempo reale. Matrice RFM con fasce ed esportazione CSV.",
         "alt": "Matrice RFM in {product}: clienti per recenza e frequenza con ricavi per cella, e fasce come campioni e fedeli"
       },
       "analytics": {
         "title": "Analisi e P/L",
-        "body": "KPI con confronto tra periodi e un P/L al netto delle tasse: costo del venduto, spedizione, commissioni di pagamento, resi e spesa ads. Ogni numero apre gli ordini che lo compongono.",
-        "alt": "Conto economico in {product}: vendite lorde, rimborsi, tasse, ricavo netto, costo del venduto, margine lordo, spedizioni, commissioni di pagamento, pubblicità e profitto operativo"
+        "body": "KPI con confronto tra periodi e un P/L al netto delle tasse: costo del venduto, spedizione, commissioni di pagamento, resi e spesa ads. Payout, commissioni effettive e report IVA. Ogni numero apre gli ordini che lo compongono.",
+        "alt": "Conto economico in {product}: vendite lorde, rimborsi, tasse, ricavo netto, costo del venduto, margine lordo, spedizioni, commissioni di pagamento, costi dei resi, margine di contribuzione, pubblicità, costi fissi e utile operativo"
       },
       "campaigns": {
         "title": "Campagne collegate allo stock",
-        "body": "Campagne Meta e Google collegate ai prodotti. Il profitto conta solo gli ordini non annullati e non resi. I consigli guardano lo stock dei prodotti collegati prima di dirti di spendere di più.",
+        "body": "Campagne Meta e Google collegate ai prodotti, fino ad ad set, annuncio, asset, keyword e termine di ricerca. Il profitto conta solo gli ordini non annullati e non resi. I suggerimenti guardano lo stock dei prodotti collegati prima di dirti di spendere di più.",
         "alt": "Pagina campagne in {product}: spesa, ordini, ricavo netto, margine, profitto, ROAS, ROI, CPA e un indicatore di salute per ogni campagna Meta e Google"
       },
       "assistant": {
         "title": "Assistente AI",
-        "body": "Chiedi di vendite, profitto, campagne, prodotti, resi, clienti a rischio o magazzino. Ogni risposta cita numeri, periodo e filtri, con il link al report. Usa la tua chiave Anthropic e può solo leggere.",
+        "body": "Chiedi di vendite, profitto, campagne, prodotti, resi, clienti a rischio o stock. Ogni risposta cita numeri, periodo e filtri, con il link al report. Usa la tua chiave Anthropic, fatturata da Anthropic, e può solo leggere.",
         "alt": "Pagina Assistente di {product}: una domanda sui prodotti più venduti e la risposta con la tabella citata di prodotti, pezzi, ricavi e margine"
       }
     },
@@ -112,7 +112,37 @@
     "next": "Modulo successivo",
     "slide": "{n} di {total}",
     "pause": "Metti in pausa lo scorrimento automatico",
-    "play": "Riprendi lo scorrimento automatico"
+    "play": "Riprendi lo scorrimento automatico",
+    "extra": {
+      "title": "Incluso anche",
+      "from_plan": "Da {plan}",
+      "items": {
+        "dashboards": {
+          "title": "Dashboard su misura",
+          "body": "Ogni team compone la propria home da un catalogo di widget, con metriche personalizzate e filtri. I widget rispettano i permessi di ogni ruolo."
+        },
+        "mcp": {
+          "title": "I tuoi strumenti AI sui tuoi dati (MCP)",
+          "body": "Collega Claude, ChatGPT, Cursor o un altro client MCP: legge i dati del negozio come l'utente collegato, con i suoi permessi. Spento finché un owner non lo attiva."
+        },
+        "money": {
+          "title": "Pagamenti e payout",
+          "body": "Pagamenti manuali e rimborsi parziali, payout e commissioni effettive del processore di pagamento, e report IVA per periodo."
+        },
+        "lists": {
+          "title": "Liste veloci",
+          "body": "Cerca tutto con ⌘K, salva le viste, esegui azioni in blocco ed esporta qualsiasi lista in CSV."
+        },
+        "health": {
+          "title": "Salute delle integrazioni",
+          "body": "Ogni collegamento mostra l'ultimo sync e l'ultimo errore. Un watchdog risincronizza le fonti ferme e avvisa gli owner quando qualcosa si blocca."
+        },
+        "roles": {
+          "title": "Ruoli e audit log",
+          "body": "Sei ruoli con permessi per pagina e per azione. Ogni modifica significativa è registrata con autore e differenze; gli owner possono esportare tutti i loro dati."
+        }
+      }
+    }
   },
   "how": {
     "title": "Come funziona",
@@ -128,7 +158,7 @@
       },
       "operate": {
         "title": "Operi da un'unica piattaforma",
-        "body": "Operations, customer care e marketing lavorano nello stesso posto, ciascuno con i propri permessi. Le modifiche che contano vengono scritte verso Shopify."
+        "body": "Operations, customer care e marketing lavorano nello stesso posto, ciascuno con i propri permessi. Le modifiche che contano vengono scritte verso Shopify, e la pagina sulla salute delle integrazioni ti avvisa quando un collegamento ha bisogno di attenzione."
       }
     },
     "guides_label": "Guide passo per passo per il collegamento, dentro il prodotto:",
@@ -166,7 +196,7 @@
   },
   "pricing": {
     "title": "Prezzi",
-    "lead": "Quattro piani in base al volume di ordini. Utenti illimitati in ogni piano. Nessun contratto annuale obbligatorio.",
+    "lead": "Quattro piani in base al volume di ordini. Tutti i moduli del core e utenti illimitati in ogni piano. Nessun contratto annuale obbligatorio.",
     "billing_label": "Periodo di fatturazione",
     "monthly": "Mensile",
     "annual": "Annuale",
@@ -180,7 +210,6 @@
     "on_quote": "Su preventivo",
     "recommended": "Consigliato",
     "everything_in": "Tutto quello di {plan}, più:",
-    "unlimited_users": "Utenti illimitati",
     "overage": "Oltre gli ordini inclusi: {price} ogni {n} ordini in più, fatturati a fine mese.",
     "cta": "Prenota una demo",
     "contact": "Parliamone",
@@ -193,36 +222,32 @@
     "plans": {
       "starter": {
         "name": "Starter",
-        "tagline": "Operatività sotto controllo"
+        "tagline": "Tutti i moduli del core"
       },
       "growth": {
         "name": "Growth",
-        "tagline": "Operatività più margine"
+        "tagline": "Più volume, più i tuoi strumenti AI"
       },
       "scale": {
         "name": "Scale",
-        "tagline": "Più negozi, una piattaforma"
+        "tagline": "Volumi alti, storico più lungo"
       },
       "enterprise": {
         "name": "Enterprise",
-        "tagline": "Volumi alti, condizioni su misura"
+        "tagline": "Oltre Scale, condizioni su misura"
       }
     },
     "features": {
-      "orders": "Ordini",
-      "shipments": "Spedizioni",
-      "products_inventory": "Prodotti e magazzino",
-      "returns": "Resi",
-      "discounts": "Sconti",
-      "kpi_dashboard": "Dashboard KPI",
-      "pnl": "P/L per ordine e per periodo",
-      "campaigns_stock": "Campagne collegate allo stock",
-      "purchasing_reorders": "Acquisti e riordini",
+      "orders_shipments": "Ordini e spedizioni",
+      "products_purchasing": "Prodotti, magazzino, acquisti e backorder",
+      "returns_discounts": "Resi e sconti",
+      "analytics_pnl": "Analisi, P/L e dashboard su misura",
+      "campaigns_stock": "Campagne Meta e Google collegate allo stock",
       "crm_segments_rfm": "CRM con segmenti e RFM",
-      "multi_store": "Più negozi",
-      "advanced_roles": "Ruoli e permessi avanzati",
-      "api": "Accesso API",
-      "ai_assistant": "Assistente AI sui tuoi dati (con la tua chiave Anthropic)",
+      "ai_assistant": "Assistente AI (con la tua chiave Anthropic)",
+      "mcp": "Client AI tramite MCP (Claude, ChatGPT, Cursor…)",
+      "audit_retention": "Audit log conservato {days} giorni",
+      "unlimited_users": "Utenti illimitati",
       "priority_support": "Supporto prioritario",
       "enterprise_volume": "Prezzi a volume",
       "enterprise_sla": "SLA contrattuale",
@@ -233,16 +258,19 @@
     "title": "Add-on e integrazioni su misura",
     "lead": "Attivati per singolo account dal nostro team. Il core funziona con qualsiasi metodo di pagamento; quello che è specifico della tua operatività vive in un add-on.",
     "per_month": "{price}/mese",
-    "from_per_month": "da {price}/mese",
     "quote": "Su preventivo",
     "items": {
+      "customer_campaigns": {
+        "title": "Campagne ai clienti",
+        "body": "Campagne ai tuoi segmenti con gruppo di controllo: un holdout stabile per cliente, l'invio registrato dallo strumento che usi già, e gli ordini, i ricavi e il margine incrementali che ogni campagna ha davvero prodotto."
+      },
       "cod": {
         "title": "Contrassegno",
-        "body": "Coda di conferma con esiti delle chiamate, assegnazione agli operatori, delivery score spiegato fattore per fattore e segnalazione dei destinatari a rischio."
+        "body": "Per chi incassa alla consegna: coda di conferma con esiti delle chiamate, assegnazione agli operatori, delivery score spiegato fattore per fattore e segnalazione dei destinatari a rischio."
       },
       "custom_integration": {
         "title": "Integrazioni su misura",
-        "body": "Un magazzino 3PL, un provider di messaggistica locale, un corriere: costruiti dietro le stesse interfacce e attivati solo per il tuo account."
+        "body": "Un magazzino 3PL, una seconda fonte di tracking, un altro sistema che usi: costruiti dietro le stesse interfacce e attivati solo per il tuo account."
       },
       "custom_development": {
         "title": "Sviluppi custom",
@@ -267,11 +295,19 @@
       },
       "security": {
         "q": "Come sono tenuti separati i miei dati da quelli degli altri clienti?",
-        "a": "Ogni tabella porta l'identificativo dell'account e il database applica l'isolamento a livello di riga su ogni query: un account non può mai leggere o scrivere le righe di un altro, e test automatici lo verificano su ogni tabella. Le credenziali delle integrazioni sono cifrate a riposo. Gli accessi del nostro supporto sono registrati e visibili a te."
+        "a": "Ogni tabella porta l'identificativo dell'account e il database applica l'isolamento a livello di riga su ogni query: un account non può mai leggere o scrivere le righe di un altro, e test automatici lo verificano su ogni tabella. Le credenziali delle integrazioni sono cifrate a riposo. Ogni azione del nostro supporto dentro il tuo account è registrata nel tuo audit log."
+      },
+      "export": {
+        "q": "Posso portare via i miei dati?",
+        "a": "Sì. Un owner può esportare in qualsiasi momento ogni tabella dell'account come file CSV in un unico archivio, e ogni lista si può esportare in CSV dalla sua pagina."
       },
       "ai": {
         "q": "Chi paga l'assistente AI, e cosa vede?",
         "a": "L'assistente è incluso in tutti i piani e usa la tua chiave API Anthropic: Anthropic ti addebita il consumo direttamente, con il limite di spesa che imposti nella loro console, e {product} non aggiunge nulla. Legge solo i report che il ruolo dell'utente può aprire, non modifica mai i dati e ogni risposta mostra i numeri che ha usato."
+      },
+      "mcp": {
+        "q": "Posso usare Claude, ChatGPT o Cursor con i dati del mio negozio?",
+        "a": "Sì, dal piano Growth. {product} include un server MCP: un owner lo attiva, ogni utente collega il proprio client AI e approva l'accesso, e il client legge solo quello che quell'utente può vedere. Non modifica mai i dati e ogni collegamento si può revocare."
       },
       "overage": {
         "q": "Cosa succede se supero gli ordini inclusi?",
@@ -312,7 +348,8 @@
     "mailto_button": "Scrivici",
     "required": "Campo obbligatorio.",
     "invalid_email": "Inserisci un indirizzo email valido.",
-    "optional": "facoltativo"
+    "optional": "facoltativo",
+    "privacy": "Usiamo questi dati solo per rispondere alla tua richiesta e darle seguito. Non li cediamo a terzi per finalità di marketing. Per consultarli o cancellarli scrivi a {email}."
   },
   "footer": {
     "tagline": "La struttura sotto il tuo negozio.",
@@ -323,5 +360,16 @@
     "sign_in": "Accedi a {product}",
     "language": "Lingua",
     "rights": "© {year} {product}. Tutti i diritti riservati."
+  },
+  "coming_soon": {
+    "badge": "In arrivo",
+    "title": "In sviluppo",
+    "lead": "Non fa parte dei piani finché non è rilasciato. Chiedici i tempi.",
+    "items": {
+      "tiktok": {
+        "title": "TikTok Ads",
+        "body": "Campagne, gruppi di annunci e annunci con le metriche giornaliere, accanto a Meta e Google nella stessa vista del profitto."
+      }
+    }
   }
 }
