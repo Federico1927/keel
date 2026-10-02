@@ -299,7 +299,8 @@
         "churnLowPct": "Churn risk low from (% probability active)",
         "churnMediumPct": "Churn risk medium from (% probability active)",
         "backorderHold": "Hold orders that need more than the available stock until an incoming purchase order covers them",
-        "backorderPlatformHold": "Also place a fulfillment hold on the store while they wait, so the warehouse does not ship them"
+        "backorderPlatformHold": "Also place a fulfillment hold on the store while they wait, so the warehouse does not ship them",
+        "markdownMinMarginBps": "Markdown minimum margin (basis points, 2000 = 20%)"
       },
       "backorders_title": "Backorders",
       "backorders_description": "What happens when an order needs more than the stock available."
@@ -1045,7 +1046,9 @@
       "return_restock": "Return restocked",
       "adjustment": "Adjustment",
       "sync": "Sync",
-      "sale": "Sale"
+      "sale": "Sale",
+      "transfer_in": "Transfer in",
+      "transfer_out": "Transfer out"
     },
     "view_orders": "View orders",
     "grid": {
@@ -1112,6 +1115,180 @@
     },
     "drift_all_locations": "All locations",
     "drift_times": "×{n}"
+  },
+  "inventory_control": {
+    "back": "Inventory",
+    "links": {
+      "stock-takes": "Stock-takes",
+      "markdowns": "Markdowns",
+      "losses": "Unexplained losses"
+    },
+    "reasons": {
+      "damaged": "Damaged",
+      "lost": "Lost",
+      "found": "Found",
+      "count_correction": "Count correction",
+      "other": "Other"
+    },
+    "errors": {
+      "zero": "Enter a quantity other than zero.",
+      "sign": "This reason does not match the direction of the change (damaged and lost remove units, found adds them).",
+      "negative_stock": "Stock cannot go below zero at this location.",
+      "note_required": "Add a note for \"Other\".",
+      "not_open": "This stock-take is no longer open.",
+      "invalid_input": "Some fields are invalid.",
+      "not_found": "Not found.",
+      "forbidden": "You are not allowed to do this."
+    },
+    "adjust": {
+      "button": "Adjust stock",
+      "title": "Adjust stock",
+      "description": "Change the stock of a variant at one location, with a reason.",
+      "variant": "Variant",
+      "location": "Location",
+      "reason": "Reason",
+      "direction": "Direction",
+      "add": "Add units",
+      "remove": "Remove units",
+      "quantity": "Units",
+      "note": "Note (optional)",
+      "note_required": "Note (required)",
+      "preview": "Available {current} → {next} ({delta}). The new level is sent to the store.",
+      "submit": "Save adjustment"
+    },
+    "stock_takes": {
+      "title": "Stock-takes",
+      "description": "Count a location, review the differences and apply them as count corrections in one batch. Variants you do not count are left unchanged.",
+      "back": "Stock-takes",
+      "new": "New stock-take",
+      "location": "Location",
+      "note": "Note",
+      "empty_title": "No stock-takes yet",
+      "empty_description": "Start one for a location, then scan or type what you count.",
+      "columns": {
+        "number": "Stock-take",
+        "location": "Location",
+        "status": "Status",
+        "lines": "Lines",
+        "movements": "Corrections",
+        "updated": "Updated",
+        "variant": "Variant",
+        "expected": "Expected",
+        "counted": "Counted",
+        "difference": "Difference"
+      },
+      "status": {
+        "open": "Open",
+        "applied": "Applied",
+        "cancelled": "Cancelled"
+      },
+      "open_description": "Scan a barcode or type a SKU and press Enter: each scan counts one unit. Partial counts are fine.",
+      "applied_description": "Applied on {at}: {n} count corrections written.",
+      "cancelled_description": "Cancelled: nothing was written.",
+      "review": {
+        "missing": "Missing",
+        "surplus": "Surplus",
+        "unknown": "Unknown SKU",
+        "match": "Match"
+      },
+      "units": "{n} units",
+      "review_title": "Review",
+      "show_all": "Show all",
+      "no_lines": "Nothing counted yet",
+      "no_lines_hint": "Scan or type the first code above.",
+      "unknown_code": "Unknown code",
+      "scan_label": "Barcode or SKU",
+      "scan_placeholder": "Scan or type, then Enter",
+      "quantity": "Units",
+      "mode": "Mode",
+      "mode_add": "Add to count",
+      "mode_set": "Replace count",
+      "count": "Count",
+      "scan_matched": "{label}: counted {n}",
+      "scan_unknown": "Unknown code {code}: counted {n} (not applied)",
+      "remove_line": "Remove line",
+      "apply_hint": "Applying sets each counted variant to its count and sends the levels to the store.",
+      "apply": "Apply {n, plural, one {# difference} other {# differences}}",
+      "apply_confirm": "Write {n, plural, one {# count correction} other {# count corrections}} and close this stock-take?",
+      "applied": "{n, plural, one {# correction} other {# corrections}} written{released, plural, =0 {} one {, # waiting order released} other {, # waiting orders released}}.",
+      "cancel": "Cancel stock-take",
+      "cancel_confirm": "Cancel this stock-take? Counts are kept but nothing is applied."
+    },
+    "losses": {
+      "title": "Unexplained losses",
+      "description": "Variants whose stock fell with no sale, cancellation, return, receipt or adjustment to explain it, found by the stock syncs.",
+      "location": "Location",
+      "all_locations": "All locations",
+      "apply": "Apply",
+      "kpi": {
+        "units": "Units lost",
+        "value": "Value at cost",
+        "value_hint": "at the variant's latest cost",
+        "without_cost": "{n, plural, one {# variant} other {# variants}} without a cost not valued",
+        "variants": "Variants"
+      },
+      "columns": {
+        "variant": "Variant",
+        "units": "Units",
+        "value": "Value",
+        "events": "Events",
+        "locations": "Locations",
+        "last": "Last found"
+      },
+      "no_cost": "No cost",
+      "empty_title": "No unexplained losses",
+      "empty_description": "No stock fell without a reason in this period.",
+      "footnote": "Each discrepancy counts once even when a sync sees it again. Record damaged or lost units as adjustments so they no longer show up here."
+    },
+    "markdowns": {
+      "title": "Markdowns",
+      "description": "Compare-at markdowns for stock without sales or with too much cover (more than {excess} days; deep markdown from {slow} days or without sales in {days} days). Prices never go below a {margin} margin on the net price.",
+      "reasons": {
+        "no_sales": "No sales",
+        "slow": "Slow mover",
+        "excess": "Excess stock"
+      },
+      "skipped": {
+        "no_cost": "{n, plural, one {# variant} other {# variants}} without a cost (no floor, no suggestion)",
+        "floor": "{n, plural, one {# variant} other {# variants}} already at the margin floor",
+        "already_marked_down": "{n, plural, one {# variant} other {# variants}} already marked down enough"
+      },
+      "columns": {
+        "variant": "Variant",
+        "reason": "Why",
+        "stock": "Stock",
+        "cover": "Cover",
+        "price": "Price",
+        "new_price": "Markdown",
+        "floor": "Floor",
+        "margin": "Margin"
+      },
+      "at_floor": "at floor",
+      "select_all": "Select all",
+      "apply": "Apply {n, plural, =0 {markdowns} one {# markdown} other {# markdowns}}",
+      "apply_confirm": "Apply {n, plural, one {# markdown} other {# markdowns}}? Prices and compare-at prices are sent to the store.",
+      "summary": "{done} applied, {skipped} skipped, {failed} failed.",
+      "empty_title": "No markdown to suggest",
+      "empty_description": "No active variant has slow or excess stock above the margin floor."
+    },
+    "price_history": {
+      "title": "Price history",
+      "markdown_description": "Markdowns applied from Keel, newest first.",
+      "empty": "No price change recorded.",
+      "system": "System",
+      "columns": {
+        "when": "When",
+        "variant": "Variant",
+        "price": "Price",
+        "compare_at": "Compare-at",
+        "by": "By"
+      },
+      "source": {
+        "markdown": "markdown",
+        "bulk": "bulk edit",
+        "manual": "manual"
+      }
+    }
   },
   "purchasing": {
     "title": "Purchasing",

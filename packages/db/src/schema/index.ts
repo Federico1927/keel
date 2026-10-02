@@ -21,3 +21,4 @@ export * from "./collab";
 export * from "./lists";
 export * from "./fulfilment";
 export * from "./email";
+export * from "./inventory-control";

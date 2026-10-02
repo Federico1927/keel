@@ -92,6 +92,7 @@ const numericFields: (keyof TenantSettings)[] = [
   "shippingCostMinor",
   "churnLowPct",
   "churnMediumPct",
+  "markdownMinMarginBps",
 ];
 
 export function OperationalSettingsForm({ slug, settings, currency }: { slug: string; settings: TenantSettings; currency: string }) {

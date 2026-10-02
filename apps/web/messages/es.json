@@ -299,7 +299,8 @@
         "churnLowPct": "Riesgo de abandono bajo desde (% probabilidad activo)",
         "churnMediumPct": "Riesgo de abandono medio desde (% probabilidad activo)",
         "backorderHold": "Retener los pedidos que necesitan más que el stock disponible hasta que una orden de compra en camino los cubra",
-        "backorderPlatformHold": "Durante la espera, bloquear también la preparación en la tienda para que el almacén no los envíe"
+        "backorderPlatformHold": "Durante la espera, bloquear también la preparación en la tienda para que el almacén no los envíe",
+        "markdownMinMarginBps": "Margen mínimo de las rebajas (puntos básicos, 2000 = 20 %)"
       },
       "backorders_title": "Pedidos pendientes de stock",
       "backorders_description": "Qué pasa cuando un pedido necesita más que el stock disponible."
@@ -1045,7 +1046,9 @@
       "return_restock": "Devolución repuesta",
       "adjustment": "Ajuste",
       "sync": "Sincronización",
-      "sale": "Venta"
+      "sale": "Venta",
+      "transfer_in": "Transferencia de entrada",
+      "transfer_out": "Transferencia de salida"
     },
     "view_orders": "Ver pedidos",
     "grid": {
@@ -1112,6 +1115,180 @@
     },
     "drift_all_locations": "Todas las ubicaciones",
     "drift_times": "×{n}"
+  },
+  "inventory_control": {
+    "back": "Inventario",
+    "links": {
+      "stock-takes": "Recuentos",
+      "markdowns": "Rebajas",
+      "losses": "Pérdidas sin explicar"
+    },
+    "reasons": {
+      "damaged": "Dañado",
+      "lost": "Perdido",
+      "found": "Encontrado",
+      "count_correction": "Corrección de recuento",
+      "other": "Otro"
+    },
+    "errors": {
+      "zero": "Introduce una cantidad distinta de cero.",
+      "sign": "El motivo no coincide con la dirección del cambio (dañado y perdido restan unidades, encontrado las suma).",
+      "negative_stock": "El stock de esta ubicación no puede bajar de cero.",
+      "note_required": "Añade una nota para \"Otro\".",
+      "not_open": "Este recuento ya no está abierto.",
+      "invalid_input": "Algunos campos no son válidos.",
+      "not_found": "No encontrado.",
+      "forbidden": "No tienes permiso para hacer esto."
+    },
+    "adjust": {
+      "button": "Ajustar stock",
+      "title": "Ajustar stock",
+      "description": "Cambia el stock de una variante en una ubicación, con un motivo.",
+      "variant": "Variante",
+      "location": "Ubicación",
+      "reason": "Motivo",
+      "direction": "Dirección",
+      "add": "Sumar unidades",
+      "remove": "Restar unidades",
+      "quantity": "Unidades",
+      "note": "Nota (opcional)",
+      "note_required": "Nota (obligatoria)",
+      "preview": "Disponible {current} → {next} ({delta}). El nuevo nivel se envía a la tienda.",
+      "submit": "Guardar ajuste"
+    },
+    "stock_takes": {
+      "title": "Recuentos",
+      "description": "Cuenta una ubicación, revisa las diferencias y aplícalas como correcciones en un solo lote. Las variantes que no cuentes no cambian.",
+      "back": "Recuentos",
+      "new": "Nuevo recuento",
+      "location": "Ubicación",
+      "note": "Nota",
+      "empty_title": "Aún no hay recuentos",
+      "empty_description": "Empieza uno para una ubicación y escanea o escribe lo que cuentes.",
+      "columns": {
+        "number": "Recuento",
+        "location": "Ubicación",
+        "status": "Estado",
+        "lines": "Líneas",
+        "movements": "Correcciones",
+        "updated": "Actualizado",
+        "variant": "Variante",
+        "expected": "Esperado",
+        "counted": "Contado",
+        "difference": "Diferencia"
+      },
+      "status": {
+        "open": "Abierto",
+        "applied": "Aplicado",
+        "cancelled": "Cancelado"
+      },
+      "open_description": "Escanea un código de barras o escribe un SKU y pulsa Intro: cada escaneo cuenta una unidad. Los recuentos parciales están bien.",
+      "applied_description": "Aplicado el {at}: {n} correcciones escritas.",
+      "cancelled_description": "Cancelado: no se escribió nada.",
+      "review": {
+        "missing": "Faltan",
+        "surplus": "Sobran",
+        "unknown": "SKU desconocido",
+        "match": "Coinciden"
+      },
+      "units": "{n} unidades",
+      "review_title": "Revisión",
+      "show_all": "Mostrar todo",
+      "no_lines": "Aún no se ha contado nada",
+      "no_lines_hint": "Escanea o escribe el primer código arriba.",
+      "unknown_code": "Código desconocido",
+      "scan_label": "Código de barras o SKU",
+      "scan_placeholder": "Escanea o escribe y pulsa Intro",
+      "quantity": "Unidades",
+      "mode": "Modo",
+      "mode_add": "Sumar al recuento",
+      "mode_set": "Sustituir recuento",
+      "count": "Contar",
+      "scan_matched": "{label}: contadas {n}",
+      "scan_unknown": "Código desconocido {code}: contadas {n} (no se aplica)",
+      "remove_line": "Quitar línea",
+      "apply_hint": "Al aplicar, cada variante contada toma su recuento y los niveles se envían a la tienda.",
+      "apply": "Aplicar {n, plural, one {# diferencia} other {# diferencias}}",
+      "apply_confirm": "¿Escribir {n, plural, one {# corrección} other {# correcciones}} y cerrar el recuento?",
+      "applied": "{n, plural, one {# corrección escrita} other {# correcciones escritas}}{released, plural, =0 {} one {, # pedido en espera liberado} other {, # pedidos en espera liberados}}.",
+      "cancel": "Cancelar recuento",
+      "cancel_confirm": "¿Cancelar el recuento? Los recuentos se conservan pero no se aplica nada."
+    },
+    "losses": {
+      "title": "Pérdidas sin explicar",
+      "description": "Variantes cuyo stock bajó sin una venta, cancelación, devolución, recepción o ajuste que lo explique, detectadas por las sincronizaciones.",
+      "location": "Ubicación",
+      "all_locations": "Todas las ubicaciones",
+      "apply": "Aplicar",
+      "kpi": {
+        "units": "Unidades perdidas",
+        "value": "Valor a coste",
+        "value_hint": "al último coste de la variante",
+        "without_cost": "{n, plural, one {# variante} other {# variantes}} sin coste no valoradas",
+        "variants": "Variantes"
+      },
+      "columns": {
+        "variant": "Variante",
+        "units": "Unidades",
+        "value": "Valor",
+        "events": "Eventos",
+        "locations": "Ubicaciones",
+        "last": "Última detección"
+      },
+      "no_cost": "Sin coste",
+      "empty_title": "Sin pérdidas sin explicar",
+      "empty_description": "En este periodo ningún stock bajó sin motivo.",
+      "footnote": "Cada discrepancia cuenta una vez aunque una sincronización la vuelva a ver. Registra las unidades dañadas o perdidas como ajustes para que no aparezcan aquí."
+    },
+    "markdowns": {
+      "title": "Rebajas",
+      "description": "Rebajas con precio tachado para stock sin ventas o con demasiada cobertura (más de {excess} días; rebaja fuerte desde {slow} días o sin ventas en {days} días). Los precios nunca bajan de un margen del {margin} sobre el precio neto.",
+      "reasons": {
+        "no_sales": "Sin ventas",
+        "slow": "Rotación lenta",
+        "excess": "Exceso de stock"
+      },
+      "skipped": {
+        "no_cost": "{n, plural, one {# variante} other {# variantes}} sin coste (sin umbral, sin sugerencia)",
+        "floor": "{n, plural, one {# variante} other {# variantes}} ya en el umbral de margen",
+        "already_marked_down": "{n, plural, one {# variante} other {# variantes}} ya rebajadas lo suficiente"
+      },
+      "columns": {
+        "variant": "Variante",
+        "reason": "Motivo",
+        "stock": "Stock",
+        "cover": "Cobertura",
+        "price": "Precio",
+        "new_price": "Rebaja",
+        "floor": "Umbral",
+        "margin": "Margen"
+      },
+      "at_floor": "en el umbral",
+      "select_all": "Seleccionar todo",
+      "apply": "Aplicar {n, plural, =0 {rebajas} one {# rebaja} other {# rebajas}}",
+      "apply_confirm": "¿Aplicar {n, plural, one {# rebaja} other {# rebajas}}? Los precios y precios tachados se envían a la tienda.",
+      "summary": "{done} aplicadas, {skipped} omitidas, {failed} fallidas.",
+      "empty_title": "No hay rebajas que sugerir",
+      "empty_description": "Ninguna variante activa tiene stock lento o en exceso por encima del umbral de margen."
+    },
+    "price_history": {
+      "title": "Historial de precios",
+      "markdown_description": "Rebajas aplicadas desde Keel, de la más reciente.",
+      "empty": "No hay cambios de precio registrados.",
+      "system": "Sistema",
+      "columns": {
+        "when": "Cuándo",
+        "variant": "Variante",
+        "price": "Precio",
+        "compare_at": "Precio tachado",
+        "by": "Por"
+      },
+      "source": {
+        "markdown": "rebaja",
+        "bulk": "edición en bloque",
+        "manual": "manual"
+      }
+    }
   },
   "purchasing": {
     "title": "Compras",

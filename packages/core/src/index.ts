@@ -9,6 +9,7 @@ export * from "./duplicates";
 export * from "./shipment-resolver";
 export * from "./mentions";
 export * from "./inventory";
+export * from "./inventory-control";
 export * from "./backorders";
 export * from "./finance";
 export * from "./costs";

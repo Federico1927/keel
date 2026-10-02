@@ -65,6 +65,8 @@ export const tenantSettingsSchema = z.object({
   reviewDays: z.number().int().min(7).max(180).default(30),
   excessCoverDays: z.number().int().min(30).max(720).default(120),
   slowCoverDays: z.number().int().min(30).max(720).default(180),
+  /** Markdown suggestions (issue #30): minimum gross margin on the net-of-tax price a markdown may leave, basis points (2000 = 20 %). */
+  markdownMinMarginBps: z.number().int().min(0).max(9500).default(2000),
   transferShortDays: z.number().int().min(1).max(90).default(14),
   transferSurplusDays: z.number().int().min(7).max(365).default(45),
   /** Notifications: a paid order still unshipped after this many hours is late to ship; a sync is late after its freshness window plus this grace. */
