@@ -5,6 +5,7 @@ import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
 import { parseTenantSettings, type TenantSettings } from "@hullwise/core";
 import { MockMessagingChannel, emailAddressHash, maskEmail, type MessagingChannel } from "@hullwise/integrations";
 import {
+  suppressedContacts,
   STALE_CLAIM_MS, activateSequence, evaluateSegment, addEmailSuppression, addPhoneSuppression, approveRetentionCampaign, campaignTick, deleteRetentionCampaign, listRetentionCampaigns, pauseSequence, previewRetentionSend, processCampaignSend, recordManualCampaign,
   rejectRetentionCampaign, reopenRetentionCampaign, RetentionCampaignError, retentionCampaignDetail, retentionCampaignResults, saveRetentionCampaign, saveSegment, scheduleRetentionCampaign, sendCampaignTest, submitRetentionCampaign, suppressAddress,
   type AnalyticsTenant, type CampaignTenant, type ServiceContext, type TenantRunner,
@@ -307,11 +308,14 @@ describe("customer campaigns: sequences", () => {
     // nothing new: the next tick enrols nobody and messages nobody twice
     expect((await campaignTick(system, ct(settings))).enrolled).toBe(0);
     // a newcomer (a customer reaching four orders) is picked up after the live refresh
-    const [newcomer] = (await run((s) => s.tx.execute<{ customer_id: string }>(sql`
-      select o.customer_id from orders o join customers c on c.id = o.customer_id
+    // earlier tests suppress some members (tenant list, platform bounce list): pick one the send would not exclude
+    const pool = (await run((s) => s.tx.execute<{ customer_id: string; email: string | null; phone_e164: string | null }>(sql`
+      select o.customer_id, c.email, c.phone_e164 from orders o join customers c on c.id = o.customer_id
       where o.tenant_id = ${tenantId} and o.replaced_by_order_id is null and c.accepts_marketing and c.email is not null
-      group by 1 having count(*) filter (where o.status in ('confirmed', 'fulfilling', 'shipped', 'delivered', 'returned_partial')) = 3 and count(*) filter (where o.status in ('new', 'pending_review', 'confirmed', 'fulfilling', 'on_hold')) = 0
-      order by 1 limit 1`))).rows;
+      group by 1, 2, 3 having count(*) filter (where o.status in ('confirmed', 'fulfilling', 'shipped', 'delivered', 'returned_partial')) = 3 and count(*) filter (where o.status in ('new', 'pending_review', 'confirmed', 'fulfilling', 'on_hold')) = 0
+      order by 1 limit 50`))).rows;
+    const blocked = await run((s) => suppressedContacts(s, pool.map((r) => ({ customerId: r.customer_id, email: r.email, phone: r.phone_e164 }))));
+    const newcomer = pool.find((r) => !blocked.has(r.customer_id));
     expect(newcomer).toBeTruthy();
     await run((s) => s.tx.insert(schema.orders).values({ tenantId, customerId: newcomer!.customer_id, orderNumber: 990201, name: "#SEQ-1", status: "delivered", placedAt: new Date(Date.now() - 864e5), currency: "EUR", shippingCountry: "IT", paymentGateways: [], platformTags: [], paymentMethod: "card", paymentStatus: "paid", totalMinor: 5000, taxMinor: 900, subtotalMinor: 4100 }));
     const { refreshLiveSegments } = await import("../src");
