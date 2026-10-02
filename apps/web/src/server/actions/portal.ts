@@ -2,7 +2,7 @@
 import { after } from "next/server";
 import { headers } from "next/headers";
 import { z } from "zod";
-import { SUPPORTED_LOCALES } from "@keel/config";
+import { SUPPORTED_LOCALES, isTenantOperational } from "@keel/config";
 import { parseTenantSettings } from "@keel/core";
 import { adminDb, eq, recordAudit, schema, withTenant } from "@keel/db";
 import { PortalError, customerTracking, deletePortalPhoto, signReturnLink, getCommercePlatformFor, getPortalConfig, portalLookup, portalOrderView, portalSubmit, savePortalPhoto, syncReturnToPlatform, verifyPortalSession, type PortalOrderView, type ServiceContext } from "@keel/services";
@@ -15,7 +15,7 @@ import { fail, ok, type ActionResult } from "@/server/action-result";
 
 async function portalTenant(slug: string) {
   const [t] = await adminDb().select({ id: schema.tenants.id, status: schema.tenants.status, orderNumberPrefix: schema.tenants.orderNumberPrefix, settings: schema.tenants.settings, currency: schema.tenants.currency, country: schema.tenants.country }).from(schema.tenants).where(eq(schema.tenants.slug, slug)).limit(1);
-  return t && t.status === "active" ? t : null;
+  return t && isTenantOperational(t.status) ? t : null;
 }
 const sys = (tenantId: string, tx: ServiceContext["tx"]): ServiceContext => ({ tenantId, tx, actor: { type: "system", userId: null } });
 

@@ -42,7 +42,12 @@ export interface PlatformWriteKinds {
   "order.create": { payload: { input: CreateOrderInput }; result: NormalizedOrder };
   "order.create_invoice": { payload: { input: CreateOrderInput }; result: { draftExternalId: string; invoiceUrl: string | null } };
   "discount.create": { payload: DiscountCodePayload; result: { externalId: string } };
-  "discount.pool": { payload: { title: string; codes: string[]; type: "percentage" | "fixed_amount"; value: number; startsAt?: string | null; endsAt?: string | null }; result: { externalId: string; imported: string[]; failed: string[] } };
+  /** A new pool, or a top-up of an existing one when `poolExternalId` is set (the codes go to that pool's discount). */
+  "discount.pool": { payload: { title: string; codes: string[]; type: "percentage" | "fixed_amount"; value: number; startsAt?: string | null; endsAt?: string | null; poolExternalId?: string | null }; result: { externalId: string; imported: string[]; failed: string[] } };
+  /** One code on or off; a pool code carries its pool's id (issue #35). */
+  "discount.status": { payload: { code: string; discountExternalId: string | null; poolExternalId: string | null; active: boolean }; result: void };
+  /** A whole pool on or off. */
+  "discount_pool.status": { payload: { poolExternalId: string; active: boolean }; result: void };
   "return.request": { payload: { orderExternalId: string; lines: PlatformReturnLineInput[]; note?: string | null }; result: { externalId: string; lines: { orderLineExternalId: string; externalId: string }[] } };
   "return.approve": { payload: { returnExternalId: string }; result: void };
   "return.decline": { payload: { returnExternalId: string; note: string | null }; result: void };

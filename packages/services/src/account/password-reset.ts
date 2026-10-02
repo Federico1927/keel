@@ -24,10 +24,10 @@ export const RESET_SUBMITS_PER_IP_PER_HOUR = 20;
 
 export const resetPasswordUrl = (raw: string) => `${appBaseUrl()}/reset-password/${raw}`;
 
-/** A person who can sign in: a super-admin or a member of at least one workspace. */
+/** A person who can sign in: not disabled (#48), and a super-admin or a member of at least one workspace. */
 async function activeAccount(db: DbExecutor, email: string) {
-  const [u] = await db.select({ id: schema.users.id, email: schema.users.email, locale: schema.users.locale, isSuperAdmin: schema.users.isSuperAdmin }).from(schema.users).where(eq(schema.users.email, email)).limit(1);
-  if (!u) return null;
+  const [u] = await db.select({ id: schema.users.id, email: schema.users.email, locale: schema.users.locale, isSuperAdmin: schema.users.isSuperAdmin, disabledAt: schema.users.disabledAt }).from(schema.users).where(eq(schema.users.email, email)).limit(1);
+  if (!u || u.disabledAt) return null;
   if (u.isSuperAdmin) return u;
   const [m] = await db.select({ id: schema.tenantMemberships.id }).from(schema.tenantMemberships).where(and(eq(schema.tenantMemberships.userId, u.id), eq(schema.tenantMemberships.isActive, true))).limit(1);
   return m ? u : null;

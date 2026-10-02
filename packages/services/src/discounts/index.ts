@@ -1,9 +1,10 @@
 import { randomInt } from "node:crypto";
 import { and, desc, eq, inArray, schema, sql, type SQL } from "@keel/db";
-import { SALE_STATUSES, discountState, generateUniqueCodes, type DiscountState, type DiscountType } from "@keel/core";
+import { SALE_STATUSES, discountState, generateUniqueCodes, poolCodeStatus, type DiscountState, type DiscountType } from "@keel/core";
 import type { ServiceContext } from "../context";
 import { orderEconomicsForPeriod, type AnalyticsTenant } from "../analytics";
-import { enqueuePlatformWrite } from "../writes";
+import { enqueuePlatformWrite, type PlatformWriteRow } from "../writes";
+import { poolSummaries } from "./pools";
 
 export class DiscountError extends Error {
   constructor(public readonly code: "code_exists" | "invalid_input" | "platform_error" | "not_found") {
@@ -79,7 +80,12 @@ export async function discountDetail(ctx: ServiceContext, tenant: AnalyticsTenan
   const saleIds = orders.filter((o) => (SALE_STATUSES as readonly string[]).includes(o.status)).map((o) => o.id);
   const economics = saleIds.length ? await orderEconomicsForPeriod(ctx, tenant, { from: new Date(0), to: new Date(Date.now() + 864e5) }, { orderIds: saleIds }) : [];
   const state = discountState({ type: d.type as DiscountType, value: d.value, usageLimit: d.usageLimit, usedCount: d.usedCount, startsAt: d.startsAt, endsAt: d.endsAt, isActive: d.isActive }, ctx.now ?? new Date());
-  return { discount: d, pool, state, orders, totals: { orders: saleIds.length, given: orders.reduce((s, o) => s + o.amountMinor, 0), netRevenueMinor: economics.reduce((s, e) => s + e.netRevenueMinor, 0), marginMinor: economics.reduce((s, e) => s + e.marginMinor, 0) } };
+  // pool codes: status, who got the code and the order that used it
+  const [redeemedOrder] = d.redeemedOrderId ? await ctx.tx.select({ id: schema.orders.id, name: schema.orders.name, placedAt: schema.orders.placedAt }).from(schema.orders).where(eq(schema.orders.id, d.redeemedOrderId)).limit(1) : [];
+  const [assignedCustomer] = d.assignedCustomerId ? await ctx.tx.select({ id: schema.customers.id, email: schema.customers.email, firstName: schema.customers.firstName, lastName: schema.customers.lastName }).from(schema.customers).where(eq(schema.customers.id, d.assignedCustomerId)).limit(1) : [];
+  const [assignedCampaign] = d.assignedCampaignId ? await ctx.tx.select({ id: schema.campaigns.id, name: schema.campaigns.name }).from(schema.campaigns).where(eq(schema.campaigns.id, d.assignedCampaignId)).limit(1) : [];
+  const poolStatus = d.poolId ? poolCodeStatus(d) : null;
+  return { discount: d, pool, state, poolStatus, redeemedOrder: redeemedOrder ?? null, assignedCustomer: assignedCustomer ?? null, assignedCampaign: assignedCampaign ?? null, orders, totals: { orders: saleIds.length, given: orders.reduce((s, o) => s + o.amountMinor, 0), netRevenueMinor: economics.reduce((s, e) => s + e.netRevenueMinor, 0), marginMinor: economics.reduce((s, e) => s + e.marginMinor, 0) } };
 }
 
 export interface CreateCodeInput {
@@ -148,10 +154,25 @@ export async function createDiscountPool(ctx: ServiceContext, input: CreatePoolI
   return { poolId: pool!.id, imported: imported.size, failed: result.failed.length };
 }
 
+/** Pools with their code counts by status (`used` = redeemed, kept for older callers). */
 export async function listDiscountPools(ctx: ServiceContext) {
-  return ctx.tx.select({ pool: schema.discountPools, codes: sql<number>`(select count(*) from discounts d where d.pool_id = ${schema.discountPools.id})::int`, used: sql<number>`(select count(*) from discounts d where d.pool_id = ${schema.discountPools.id} and d.used_count > 0)::int` }).from(schema.discountPools).where(eq(schema.discountPools.tenantId, ctx.tenantId)).orderBy(desc(schema.discountPools.createdAt));
+  return (await poolSummaries(ctx)).map((p) => ({ ...p, used: p.redeemed }));
 }
 
-export async function setDiscountActive(ctx: ServiceContext, discountId: string, isActive: boolean): Promise<void> {
-  await ctx.tx.update(schema.discounts).set({ isActive, updatedAt: ctx.now ?? new Date() }).where(and(eq(schema.discounts.tenantId, ctx.tenantId), eq(schema.discounts.id, discountId)));
+/**
+ * Turns one code on or off: locally at once, on the platform through the outbox (`discount.status`), so the
+ * code shows its sync state. A pool code goes to its pool's discount; a code whose pool was never pushed
+ * changes locally only.
+ */
+export async function setDiscountActive(ctx: ServiceContext, discountId: string, isActive: boolean): Promise<{ changed: boolean; write: PlatformWriteRow | null }> {
+  const [row] = await ctx.tx.select({ d: schema.discounts, poolExternalId: schema.discountPools.externalId }).from(schema.discounts).leftJoin(schema.discountPools, eq(schema.discountPools.id, schema.discounts.poolId)).where(and(eq(schema.discounts.tenantId, ctx.tenantId), eq(schema.discounts.id, discountId))).limit(1);
+  if (!row) throw new DiscountError("not_found");
+  if (row.d.isActive === isActive) return { changed: false, write: null };
+  await ctx.tx.update(schema.discounts).set({ isActive, updatedAt: ctx.now ?? new Date() }).where(eq(schema.discounts.id, row.d.id));
+  const onPlatform = row.d.poolId ? Boolean(row.poolExternalId) : true;
+  const write = onPlatform ? await enqueuePlatformWrite(ctx, { kind: "discount.status", entityType: "discount", entityId: row.d.id, payload: { code: row.d.code, discountExternalId: row.d.poolId ? null : row.d.externalId, poolExternalId: row.poolExternalId ?? null, active: isActive } }) : null;
+  return { changed: true, write };
 }
+
+export * from "./pools";
+export * from "./redemptions";

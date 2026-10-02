@@ -136,3 +136,40 @@ describe("fulfilment and carrier instructions on the mocks", () => {
     expect(c.instructions).toHaveLength(1);
   });
 });
+
+describe("MockCommercePlatform returns and discount lifecycle", () => {
+  it("holds returns opened on the store, sends signed returns webhooks and lists them by update time", async () => {
+    const p = platform();
+    const order = p.generateOrder();
+    const r = p.openPlatformReturn({ orderExternalId: order.externalId, lines: [{ orderLineExternalId: order.lines[0]!.externalId, quantity: 1, reason: "size_too_small" }], note: "Too small" });
+    const env = p.buildReturnWebhook("returns/request", r.externalId);
+    const verified = await p.verifyWebhook(env.headers, env.rawBody);
+    expect(verified.externalId).toBe(r.externalId);
+    expect(p.parseWebhookReturn(verified.payload)).toMatchObject({ externalId: r.externalId, status: "requested", lines: [{ quantity: 1, reason: "size_too_small" }] });
+    p.setPlatformReturnStatus(r.externalId, "open");
+    const again = p.buildReturnWebhook("returns/approve", r.externalId);
+    expect((await p.verifyWebhook(again.headers, again.rawBody)).sourceUpdatedAt).not.toBe(verified.sourceUpdatedAt);
+    expect((await p.fetchReturn(r.externalId))?.status).toBe("open");
+    expect((await p.fetchReturns({ updatedSince: new Date(Date.now() - 60_000) })).items.map((x) => x.externalId)).toEqual([r.externalId]);
+    // a return requested by Keel is visible to the reconcile too, with its lines
+    const pushed = await p.requestReturn(order.externalId, { lines: [{ orderLineExternalId: order.lines[0]!.externalId, quantity: 1, reason: "DEFECTIVE" }] });
+    expect(pushed.externalId).not.toBe(r.externalId);
+    expect((await p.fetchReturn(pushed.externalId))?.lines[0]).toMatchObject({ externalId: pushed.lines[0]!.externalId, reason: "defective" });
+  });
+
+  it("deactivates a pool and its codes, single codes and topped-up codes", async () => {
+    const p = platform();
+    const pool = await p.createDiscountPool({ title: "Pool", codes: ["P-A", "P-B"] });
+    await p.addDiscountPoolCodes(pool.externalId, ["P-C"]);
+    expect(p.discountCodeActive("P-C")).toBe(true);
+    await p.setDiscountActive({ externalId: null, code: "P-A", poolExternalId: pool.externalId }, false);
+    expect(p.discountCodeActive("P-A")).toBe(false);
+    expect(p.discountCodeActive("P-B")).toBe(true);
+    await p.setDiscountPoolActive(pool.externalId, false);
+    expect(["P-A", "P-B", "P-C"].map((c) => p.discountCodeActive(c))).toEqual([false, false, false]);
+    await p.createDiscountCode({ code: "SOLO" });
+    await p.setDiscountActive({ externalId: "mock-d-SOLO", code: "SOLO" }, false);
+    expect(p.discountCodeActive("SOLO")).toBe(false);
+    expect(p.discountCodeActive("UNKNOWN")).toBeUndefined();
+  });
+});

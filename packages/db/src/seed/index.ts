@@ -13,6 +13,7 @@ import { seedEmailLog } from "./email";
 import { seedLists } from "./lists";
 import { seedPayments } from "./payments";
 import { seedFulfilment } from "./fulfilment";
+import { seedConsoleTenants, seedDemoLifecycle } from "./console";
 import { seedInventoryControl } from "./inventory-control";
 import { createRng } from "@keel/integrations";
 import { SALE_STATUSES, allocateLandedCost, normalizePhone, runPredictionModel, type CustomerHistory } from "@keel/core";
@@ -142,6 +143,7 @@ export async function seedPlatform(db: ReturnType<typeof drizzle<typeof schema>>
   }
   await seedBilling(db, tenantIds);
   await seedInvitations(db, tenantIds, userIds);
+  await seedConsoleTenants(db);
   return { tenantIds, userIds };
 }
 
@@ -189,7 +191,11 @@ async function seedBilling(db: ReturnType<typeof drizzle<typeof schema>>, tenant
     await db.delete(schema.invoices).where(eq(schema.invoices.tenantId, tenantId));
     await db.delete(schema.subscriptions).where(eq(schema.subscriptions.tenantId, tenantId));
     const start = month(p.months);
-    const [sub] = await db.insert(schema.subscriptions).values({ tenantId, planKey: p.planKey, status: p.lastPaid ? "active" : "past_due", provider: "mock", externalCustomerId: `mock_cus_${tenantId.slice(0, 8)}`, currency: p.currency, currentPeriodStart: month(0), currentPeriodEnd: month(-1), trialEndsAt: new Date(start.getTime() + 14 * 864e5), setupFeeMinor: p.setup }).returning({ id: schema.subscriptions.id });
+    // lifecycle (#48): an unpaid last invoice makes the store past due once its due date has passed
+    const lastDue = new Date(month(0).getTime() + 7 * 864e5);
+    const pastDue = !p.lastPaid && lastDue < now;
+    await seedDemoLifecycle(db, [{ tenantId, planKey: p.planKey as "growth", addons: [...DEMO_TENANTS[key].addons], createdAt: start, status: pastDue ? "past_due" : "active", statusSince: pastDue ? lastDue : null }], now);
+    const [sub] = await db.insert(schema.subscriptions).values({ tenantId, planKey: p.planKey, status: pastDue ? "past_due" : "active", provider: "mock", externalCustomerId: `mock_cus_${tenantId.slice(0, 8)}`, currency: p.currency, currentPeriodStart: month(0), currentPeriodEnd: month(-1), trialEndsAt: new Date(start.getTime() + 14 * 864e5), setupFeeMinor: p.setup }).returning({ id: schema.subscriptions.id });
     const rows = [{ number: `INV-${start.getUTCFullYear()}-0001`, kind: "setup", amountMinor: p.setup, lines: [{ kind: "setup", key: p.planKey, amountMinor: p.setup }], issuedAt: start, dueAt: new Date(start.getTime() + 7 * 864e5), paidAt: new Date(start.getTime() + 3 * 864e5) as Date | null, periodStart: null as Date | null, periodEnd: null as Date | null }];
     for (let m = p.months - 1; m >= 0; m--) {
       const issued = month(m);
@@ -613,6 +619,8 @@ async function seedReturnsExtras(db: ReturnType<typeof drizzle<typeof schema>>, 
       } else if (i < 6 && r.status === "requested") patch.platformSyncStatus = "pending";
       else Object.assign(patch, { platformSyncStatus: "synced", platformStatus: r.status === "requested" ? "requested" : "approved", externalId: `mock-r-${1000 + i}`, platformSyncedAt: new Date(r.created) });
     }
+    // some returns were opened on the store itself and imported by webhook (issue #35)
+    if (!portal && i % 6 === 5 && patch.externalId && patch.platformSyncStatus === "synced") patch.source = "platform";
     if (Object.keys(patch).length) await db.update(schema.returnRequests).set(patch).where(eq(schema.returnRequests.id, r.id));
     if (portal && photos < 12 && i % 4 === 0) {
       await db.insert(schema.returnEvidence).values([1, 2].map((n) => ({ tenantId, returnId: r.id, sessionNonce: `seed-${i}-${n}`, contentType: "image/png", sizeBytes: DEMO_PHOTO.length, data: DEMO_PHOTO })));

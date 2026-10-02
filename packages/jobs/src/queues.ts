@@ -5,6 +5,7 @@ export const QUEUES = {
   syncCatalog: "sync.catalog",
   syncAds: "sync.ads",
   syncPayouts: "sync.payouts",
+  syncReturns: "sync.returns",
   platformWrite: "platform.write",
   tick: "scheduler.tick",
   listExport: "list.export",
@@ -35,6 +36,11 @@ export interface PlatformWriteJob {
 /** Payouts and balance transactions of the payment processor (actual fees), resumable like the other syncs. */
 export interface SyncPayoutsJob {
   tenantId: string;
+}
+/** Returns created or changed on the platform (nightly reconcile), resumable like the other syncs. */
+export interface SyncReturnsJob {
+  tenantId: string;
+  kind?: "delta" | "reconcile";
 }
 export interface SyncAdsJob {
   tenantId: string;

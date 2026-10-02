@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ChevronsUpDown, Menu, ShieldAlert } from "lucide-react";
+import { ChevronsUpDown, Menu } from "lucide-react";
 import {
   Button,
   Dialog,
@@ -30,27 +30,17 @@ interface TopbarProps {
   role: string;
   memberships: { slug: string; name: string }[];
   isSuperAdmin: boolean;
-  impersonating: boolean;
   notifications: { unread: number; items: BellItem[]; locale: string };
   /** Present when the user may write to the platform owner. */
   support: { categories: string[] } | null;
 }
 
-export function Topbar({ sidebar, user, theme, role, memberships, isSuperAdmin, impersonating, notifications, support }: TopbarProps) {
+export function Topbar({ sidebar, user, theme, role, memberships, isSuperAdmin, notifications, support }: TopbarProps) {
   const t = useTranslations();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   return (
     <>
-      {impersonating && (
-        <div className="flex items-center gap-2 bg-warning px-4 py-1.5 text-xs font-medium text-warning-foreground">
-          <ShieldAlert className="h-4 w-4" />
-          {t("shell.impersonating", { tenant: sidebar.tenantName })}
-          <a href="/admin" className="ml-auto underline">
-            {t("shell.back_to_admin")}
-          </a>
-        </div>
-      )}
       <header className="flex h-14 items-center gap-3 border-b bg-card px-4">
         <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setOpen(true)} aria-label={t("shell.open_menu")}>
           <Menu />

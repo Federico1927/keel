@@ -48,3 +48,4 @@ export * from "./orders/writes";
 export * from "./catalog/writes";
 export * from "./lists";
 export * from "./fulfilment";
+export * from "./admin";

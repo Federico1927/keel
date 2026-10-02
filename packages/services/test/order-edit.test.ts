@@ -20,18 +20,23 @@ afterAll(() => pools.close());
 
 const as = (tenant: () => string, email: string) => <T>(fn: (s: ServiceContext) => Promise<T>) => withTenant(tenant(), (tx) => fn({ tenantId: tenant(), tx, actor: { type: "user", userId: ctx.userIds[email]! } }), pools.app);
 const ops = as(() => harbor, "ops@harborhome.demo");
-const platform = () => new MockCommercePlatform({ currency: "USD", country: "US", orderNumberPrefix: "HH-", variants: [], locations: [], customers: [], startOrderNumber: 880000 });
+// each mock starts its numbering further on: orders created by earlier tests stay in the database, and a reused number would import onto them
+let nextStart = 880000;
+const platform = () => new MockCommercePlatform({ currency: "USD", country: "US", orderNumberPrefix: "HH-", variants: [], locations: [], customers: [], startOrderNumber: (nextStart += 1000) });
 const order = (id: string) => ops((s) => s.tx.select().from(schema.orders).where(eq(schema.orders.id, id)).then((r) => r[0]!));
 
 /** Puts n Harbor Home orders of distinct customers back into an open, paid, unfulfilled card state. */
+// never hand out the same order twice: an order replaced by an earlier test is still the lineage root of its replacement
+const usedOrders = new Set<string>();
 async function openCardOrders(n: number, placedAt = new Date()) {
   const rows = await ops((s) => s.tx.select({ id: schema.orders.id, customerId: schema.orders.customerId }).from(schema.orders).where(and(eq(schema.orders.tenantId, harbor), eq(schema.orders.paymentMethod, "card"))).orderBy(schema.orders.orderNumber).limit(60));
   const picked: string[] = [];
   const customers = new Set<string>();
   for (const r of rows) {
     if (picked.length >= n) break;
-    if (!r.customerId || customers.has(r.customerId)) continue;
+    if (!r.customerId || customers.has(r.customerId) || usedOrders.has(r.id)) continue;
     customers.add(r.customerId);
+    usedOrders.add(r.id);
     picked.push(r.id);
   }
   await ops(async (s) => {

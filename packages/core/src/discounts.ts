@@ -60,3 +60,20 @@ export function formatDiscountValue(type: DiscountType, value: number, formatMon
   if (type === "fixed_amount") return formatMoney(value);
   return "free shipping";
 }
+
+/* ---------- pools (issue #35) ---------- */
+
+export type PoolCodeStatus = "available" | "assigned" | "redeemed";
+export const POOL_CODE_STATUSES: readonly PoolCodeStatus[] = ["available", "assigned", "redeemed"];
+
+/** A pool code is redeemed once an order used it, assigned once handed to a customer or a campaign, available otherwise. Being active on the platform is a separate flag. */
+export function poolCodeStatus(c: { redeemedOrderId?: string | null; usedCount?: number; assignedCustomerId?: string | null; assignedCampaignId?: string | null }): PoolCodeStatus {
+  if (c.redeemedOrderId || (c.usedCount ?? 0) > 0) return "redeemed";
+  if (c.assignedCustomerId || c.assignedCampaignId) return "assigned";
+  return "available";
+}
+
+/** Codes to generate so the pool has `target` codes ready to hand out (available and active); never negative, capped per run. */
+export function poolTopUpCount(availableActive: number, target: number, maxPerRun = 10_000): number {
+  return Math.max(0, Math.min(maxPerRun, Math.round(target) - availableActive));
+}

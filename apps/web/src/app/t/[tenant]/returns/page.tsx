@@ -20,7 +20,7 @@ export default async function ReturnsPage({ params, searchParams }: { params: Pr
   const filters = { q: sp.q?.trim() || undefined, status: sp.status || undefined, reason: sp.reason || undefined, source: sp.source === "portal" || sp.source === "staff" || sp.source === "platform" ? sp.source : undefined, sync: sp.sync === "error" ? "error" : undefined, review: sp.review === "1" ? "1" : undefined };
   const page = Math.max(1, Number(sp.page ?? 1) || 1);
   const bulk = bulkActionsFor(ctx.role, "returns");
-  const { rows, total, pageSize, counts, reasons, syncErrors, portalCount, reviewCount, locations } = await ctx.run(async (tx) => {
+  const { rows, total, pageSize, counts, reasons, syncErrors, portalCount, platformCount, reviewCount, locations } = await ctx.run(async (tx) => {
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
     const list = await listReturns(s, { ...filters, page });
     const reasons = await listReturnReasons(s);
@@ -54,6 +54,7 @@ export default async function ReturnsPage({ params, searchParams }: { params: Pr
       <ReturnFiltersBar basePath={base} filters={filters} counts={counts} reasons={reasons.map((r) => ({ code: r.code, label: r.label }))} />
       <div className="mt-2 flex flex-wrap gap-2 text-xs">
         <Link href={filters.source === "portal" ? base : `${base}?source=portal`} className={`rounded-full border px-3 py-1 ${filters.source === "portal" ? "bg-primary text-primary-foreground" : "bg-card"}`} data-testid="filter-portal">{t("from_portal")} <span className="tabular opacity-70">{portalCount}</span></Link>
+        {platformCount > 0 && <Link href={filters.source === "platform" ? base : `${base}?source=platform`} className={`rounded-full border px-3 py-1 ${filters.source === "platform" ? "bg-primary text-primary-foreground" : "bg-card"}`} data-testid="filter-platform">{t("from_store")} <span className="tabular opacity-70">{platformCount}</span></Link>}
         {reviewCount > 0 && <Link href={filters.review === "1" ? base : `${base}?review=1`} className={`rounded-full border px-3 py-1 ${filters.review === "1" ? "bg-warning text-warning-foreground" : "border-warning/50 bg-card"}`} data-testid="filter-review">{t("needs_review")} <span className="tabular opacity-70">{reviewCount}</span></Link>}
         {syncErrors > 0 && <Link href={filters.sync === "error" ? base : `${base}?sync=error`} className={`rounded-full border px-3 py-1 ${filters.sync === "error" ? "bg-destructive text-destructive-foreground" : "border-destructive/50 bg-card text-destructive"}`} data-testid="filter-sync-error">{t("sync_errors")} <span className="tabular opacity-70">{syncErrors}</span></Link>}
       </div>
@@ -84,6 +85,7 @@ export default async function ReturnsPage({ params, searchParams }: { params: Pr
                       <Link href={`${base}/${r.id}`} className="font-medium hover:underline">R-{r.number}</Link>
                       {r.outOfWindow && <Badge variant="warning" className="ml-2">{t("out_of_window")}</Badge>}
                       {r.source === "portal" && <Badge variant="info" className="ml-2">{t("source.portal")}</Badge>}
+                      {r.source === "platform" && <Badge variant="muted" className="ml-2" data-testid="return-source-platform">{t("source.platform")}</Badge>}
                       {r.platformSyncStatus === "error" && <Badge variant="destructive" className="ml-2">{t("sync_error")}</Badge>}
                       {r.needsReview && <Badge variant="warning" className="ml-2">{t("needs_review")}</Badge>}
                       {r.riskLevel === "high" && <Badge variant="destructive" className="ml-2">{t("risk_high")}</Badge>}

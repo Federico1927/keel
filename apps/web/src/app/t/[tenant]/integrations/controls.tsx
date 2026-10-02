@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, cn } from "@keel/ui";
-import { connectAnthropic, connectGoogle, connectMeta, connectShopifyCustomApp, disconnectIntegration, processWebhookNow, resyncIntegration, retryWebhooks, simulateWebhook, testIntegration } from "@/server/actions/integrations";
+import { connectAnthropic, connectGoogle, connectMeta, connectShopifyCustomApp, disconnectIntegration, processWebhookNow, resyncIntegration, retryWebhooks, simulateReturnWebhook, simulateWebhook, testIntegration } from "@/server/actions/integrations";
 import type { ActionResult } from "@/server/action-result";
 
 type Provider = "shopify" | "meta" | "google" | "anthropic";
@@ -39,6 +39,9 @@ export function ProviderActions({ slug, provider, connected, mock, canManage }: 
             </Button>
             <Button size="sm" variant="secondary" disabled={pending} onClick={() => start(async () => { const r = await simulateWebhook(slug, "cancel"); say(r, r.ok && r.data ? t("simulated", { status: r.data.status, order: r.data.orderName ?? "" }) : ""); })}>
               {t("simulate_cancel")}
+            </Button>
+            <Button size="sm" variant="secondary" disabled={pending} onClick={() => start(async () => { const r = await simulateReturnWebhook(slug); say(r, r.ok && r.data ? t("simulated_return", { status: r.data.status, order: r.data.orderName }) : ""); })} data-testid="simulate-return">
+              {t("simulate_return")}
             </Button>
             <Button size="sm" variant="ghost" disabled={pending} onClick={() => start(async () => { const r = await simulateWebhook(slug, "bad_signature"); say(r, r.ok && r.data ? t("simulated_rejected", { status: r.data.status }) : ""); })}>
               {t("simulate_bad")}

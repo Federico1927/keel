@@ -1,7 +1,7 @@
 import { HttpClient, type HttpOptions } from "../http";
 import type { BalanceTransactionType, PayoutStatus } from "@keel/core";
 import { IntegrationError, type CommercePlatform, type ConnectionTest, type CreateOrderInput, type ManualPaymentInput, type NormalizedBalanceTransaction, type NormalizedPayout, type RefundOrderInput, type FulfillmentHoldInput, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type OrderDetailsPatch, type OrderDiscountPatch, type Page, type VariantPatch, type PlatformReturnLineInput, type SyncQuery, type VerifiedWebhook, type WebhookRegistration, type CreateFulfillmentInput, type NormalizedFulfillment } from "../types";
-import { ORDER_FIELDS, PRODUCT_FIELDS, gidToId, idToGid, mapGraphqlCustomer, mapGraphqlDiscount, mapGraphqlInventoryLevel, mapGraphqlLocation, mapGraphqlOrder, mapGraphqlProduct, mapRestCustomer, mapRestInventoryLevel, mapRestOrder, mapRestProduct, mapFulfillmentStatus } from "./mappers";
+import { ORDER_FIELDS, PRODUCT_FIELDS, gidToId, idToGid, mapGraphqlCustomer, mapGraphqlDiscount, mapGraphqlInventoryLevel, mapGraphqlLocation, mapGraphqlOrder, mapGraphqlProduct, mapRestCustomer, mapRestInventoryLevel, mapRestOrder, mapRestProduct, mapFulfillmentStatus, mapGraphqlReturn, mapRestReturn, RETURN_FIELDS } from "./mappers";
 import { SHOPIFY_ALL_SCOPES, SHOPIFY_API_VERSION, verifyWebhookHmac } from "./oauth";
 
 export interface ShopifyCredentials {
@@ -112,15 +112,24 @@ export class ShopifyCommercePlatform implements CommercePlatform {
     const data = await this.graphql<{ discountNodes: { nodes: Rec[]; pageInfo: { hasNextPage: boolean; endCursor: string | null } } }>(`query($first: Int!, $after: String) { discountNodes(first: $first, after: $after) { nodes { id discount { __typename ... on DiscountCodeBasic { title status startsAt endsAt usageLimit asyncUsageCount codes(first: 1) { nodes { code } } customerGets { value { __typename ... on DiscountPercentage { percentage } ... on DiscountAmount { amount { amount } } } } minimumRequirement { ... on DiscountMinimumSubtotal { greaterThanOrEqualToSubtotal { amount } } } } ... on DiscountCodeFreeShipping { title status startsAt endsAt usageLimit asyncUsageCount codes(first: 1) { nodes { code } } } ... on DiscountAutomaticBasic { title status startsAt endsAt asyncUsageCount customerGets { value { __typename ... on DiscountPercentage { percentage } ... on DiscountAmount { amount { amount } } } } } } } pageInfo { hasNextPage endCursor } } }`, { first: Math.min(q.limit ?? 50, 100), after: q.cursor ?? null });
     return { items: data.discountNodes.nodes.map(mapGraphqlDiscount).filter((d): d is NormalizedDiscount => d !== null), nextCursor: data.discountNodes.pageInfo.hasNextPage ? data.discountNodes.pageInfo.endCursor : null };
   }
+  /**
+   * Returns of the orders updated since `updatedSince` (orders without any return are filtered out by the
+   * search syntax, to verify), with their lines. The nightly reconcile walks them with the order cursor.
+   */
   async fetchReturns(q: SyncQuery): Promise<Page<NormalizedReturn>> {
-    const data = await this.graphql<{ orders: { nodes: { legacyResourceId: string; returns: { nodes: Rec[] } }[]; pageInfo: { hasNextPage: boolean; endCursor: string | null } } }>(`query($first: Int!, $after: String) { orders(first: $first, after: $after, query: "return_status:IN_PROGRESS OR return_status:RETURN_REQUESTED", sortKey: UPDATED_AT) { nodes { legacyResourceId returns(first: 5) { nodes { id status createdAt returnLineItems(first: 20) { nodes { quantity returnReason ... on ReturnLineItem { fulfillmentLineItem { lineItem { id } } } } } } } } pageInfo { hasNextPage endCursor } } }`, { first: Math.min(q.limit ?? 50, 100), after: q.cursor ?? null });
+    const since = q.updatedSince ?? q.createdSince ?? null;
+    const search = [since ? `updated_at:>='${since.toISOString()}'` : null, "-return_status:NO_RETURN"].filter(Boolean).join(" AND ");
+    const data = await this.graphql<{ orders: { nodes: { legacyResourceId: string; returns: { nodes: Rec[] } }[]; pageInfo: { hasNextPage: boolean; endCursor: string | null } } }>(`query($first: Int!, $after: String, $query: String) { orders(first: $first, after: $after, query: $query, sortKey: UPDATED_AT, reverse: true) { nodes { legacyResourceId returns(first: 10) { nodes { ${RETURN_FIELDS} } } } pageInfo { hasNextPage endCursor } } }`, { first: Math.min(q.limit ?? 50, 100), after: q.cursor ?? null, query: search });
     const items: NormalizedReturn[] = [];
-    for (const o of data.orders.nodes) {
-      for (const r of o.returns.nodes) {
-        items.push({ externalId: String(r.id).split("/").pop()!, orderExternalId: o.legacyResourceId, status: String(r.status).toLowerCase(), requestedAt: new Date(String(r.createdAt)), lines: (((r.returnLineItems as Rec).nodes as Rec[]) ?? []).map((l) => ({ orderLineExternalId: String((((l.fulfillmentLineItem as Rec | undefined)?.lineItem as Rec | undefined)?.id ?? "")).split("/").pop()!, quantity: Number(l.quantity), reason: l.returnReason ? String(l.returnReason).toLowerCase() : null })) });
-      }
+    for (const o of data.orders.nodes) for (const r of o.returns.nodes) {
+      const mapped = mapGraphqlReturn(r, o.legacyResourceId);
+      if (mapped) items.push(mapped);
     }
     return { items, nextCursor: data.orders.pageInfo.hasNextPage ? data.orders.pageInfo.endCursor : null };
+  }
+  async fetchReturn(externalId: string): Promise<NormalizedReturn | null> {
+    const data = await this.graphql<{ return: Rec | null }>(`query($id: ID!) { return(id: $id) { ${RETURN_FIELDS} } }`, { id: idToGid("Return", externalId) });
+    return data.return ? mapGraphqlReturn(data.return) : null;
   }
 
   /** Idempotent: lists existing subscriptions for the callback and creates only the missing topics. */
@@ -166,6 +175,9 @@ export class ShopifyCommercePlatform implements CommercePlatform {
   }
   parseWebhookInventoryLevel(payload: unknown): NormalizedInventoryLevel {
     return mapRestInventoryLevel(payload as Rec);
+  }
+  parseWebhookReturn(payload: unknown): NormalizedReturn | null {
+    return mapRestReturn(payload as Rec);
   }
 
   private async mutate(name: string, mutation: string, variables: Record<string, unknown>): Promise<Rec> {
@@ -307,6 +319,50 @@ export class ShopifyCommercePlatform implements CommercePlatform {
       }
     }
     return { externalId, imported, failed };
+  }
+  /** Top-up of a pool: more redeem codes on the pool's discount, in blocks of 100 (processed asynchronously by Shopify). */
+  async addDiscountPoolCodes(poolExternalId: string, codes: string[]): Promise<{ imported: string[]; failed: string[] }> {
+    const imported: string[] = [];
+    const failed: string[] = [];
+    for (let i = 0; i < codes.length; i += 100) {
+      const chunk = codes.slice(i, i + 100);
+      try {
+        await this.mutate("discountRedeemCodeBulkAdd", `mutation($id: ID!, $codes: [DiscountRedeemCodeInput!]!) { discountRedeemCodeBulkAdd(discountId: $id, codes: $codes) { bulkCreation { id } userErrors { field message } } }`, { id: idToGid("DiscountCodeNode", poolExternalId), codes: chunk.map((code) => ({ code })) });
+        imported.push(...chunk);
+      } catch (e) {
+        // a permission or rate-limit problem is not about these codes: let the outbox retry
+        if (e instanceof IntegrationError && e.code !== "invalid_request") throw e;
+        failed.push(...chunk);
+      }
+    }
+    return { imported, failed };
+  }
+  /**
+   * Standalone code: `discountCodeDeactivate` / `discountCodeActivate` on its discount (looked up by code
+   * when Keel has no id yet). Pool code: the redeem code is deleted from the pool's discount, or added back.
+   * Mutation names and the redeem-code search syntax to verify.
+   */
+  async setDiscountActive(discount: { externalId: string | null; code: string; poolExternalId?: string | null }, active: boolean): Promise<void> {
+    if (discount.poolExternalId) {
+      const id = idToGid("DiscountCodeNode", discount.poolExternalId);
+      if (active) await this.mutate("discountRedeemCodeBulkAdd", `mutation($id: ID!, $codes: [DiscountRedeemCodeInput!]!) { discountRedeemCodeBulkAdd(discountId: $id, codes: $codes) { bulkCreation { id } userErrors { field message } } }`, { id, codes: [{ code: discount.code }] });
+      else await this.mutate("discountCodeRedeemCodeBulkDelete", `mutation($id: ID!, $search: String) { discountCodeRedeemCodeBulkDelete(discountId: $id, search: $search) { job { id } userErrors { field message } } }`, { id, search: `code:${discount.code}` });
+      return;
+    }
+    let externalId = discount.externalId && /^\d+$|^gid:/.test(discount.externalId) ? discount.externalId : null;
+    if (!externalId) {
+      const found = await this.graphql<{ codeDiscountNodeByCode: { id: string } | null }>(`query($code: String!) { codeDiscountNodeByCode(code: $code) { id } }`, { code: discount.code });
+      if (!found.codeDiscountNodeByCode) throw new IntegrationError("not_found", `Discount code ${discount.code} not found`);
+      externalId = found.codeDiscountNodeByCode.id;
+    }
+    await this.setCodeDiscountActive(externalId, active);
+  }
+  async setDiscountPoolActive(poolExternalId: string, active: boolean): Promise<void> {
+    await this.setCodeDiscountActive(poolExternalId, active);
+  }
+  private async setCodeDiscountActive(externalId: string, active: boolean): Promise<void> {
+    const name = active ? "discountCodeActivate" : "discountCodeDeactivate";
+    await this.mutate(name, `mutation($id: ID!) { ${name}(id: $id) { codeDiscountNode { id } userErrors { field message } } }`, { id: idToGid("DiscountCodeNode", externalId) });
   }
   async restockInventory(lines: { inventoryItemExternalId: string; locationExternalId: string; quantity: number }[]): Promise<void> {
     if (!lines.length) return;

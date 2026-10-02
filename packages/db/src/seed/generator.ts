@@ -365,7 +365,7 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
   /* ---------- discounts ---------- */
   const discountRows = DISCOUNT_CODES.map((d, i) => ({ ...d, id: rng.uuid(), startsAt: addDays(now, -rng.int(30, 400)), endsAt: i % 4 === 0 ? addDays(now, rng.int(-10, 60)) : null, used: 0 }));
   const poolId = rng.uuid();
-  const poolCodes: { id: string; code: string; used: boolean }[] = [];
+  const poolCodes: { id: string; code: string; used: boolean; orderId?: string; at?: Date }[] = [];
   for (let i = 0; i < 200; i++) {
     const code = `${cfg.orderNumberPrefix}${rng.int(0, 0xffffff).toString(36).toUpperCase().padStart(5, "X")}${i.toString(36).toUpperCase()}`;
     poolCodes.push({ id: rng.uuid(), code, used: false });
@@ -601,6 +601,8 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
     for (const l of lines) ds.orderLines.push({ id: l.id, tenantId, orderId, externalId: l.externalId, productId: l.v.productId, variantId: l.v.id, sku: l.v.sku, title: l.v.productTitle, variantTitle: l.v.title, quantity: l.quantity, currentQuantity: cancelled ? 0 : l.quantity, unitPriceMinor: l.unitPriceMinor, discountMinor: Math.round((discountMinor * l.totalMinor) / Math.max(subtotal, 1)), totalMinor: l.totalMinor, unitCostMinor: l.v.costMinor, isAncillary: false });
     if (discountCode) {
       ds.orderDiscounts.push(t({ orderId, code: discountCode.code, type: discountCode.type, amountMinor: discountMinor }));
+      // a pool code is redeemed by the order that used it
+      if (discountCode.poolCodeIdx !== undefined) Object.assign(poolCodes[discountCode.poolCodeIdx]!, { orderId, at: placedAt });
     }
     ds.orderAttribution.push(t({ orderId, utmSource: utm.source, utmMedium: utm.medium, utmCampaign: utm.campaign, utmContent: utm.content, utmTerm: null, clickIds, campaignId: campaign?.id ?? null, channel, source: "seed", capturedAt: placedAt }));
     // touchpoints: the order's own landing visit plus 0–3 earlier visits in the 21 days before (multi-touch journeys)
@@ -678,7 +680,24 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
 
   /* ---------- discounts rows ---------- */
   for (const d of discountRows) ds.discounts.push({ id: d.id, tenantId, externalId: ext(), poolId: null, code: d.code, title: d.title, type: d.type, value: d.value, minimumAmountMinor: d.code === "FREESHIP" ? 5000 : null, usageLimit: d.code === "VIP25" ? 300 : null, usedCount: d.used, startsAt: d.startsAt, endsAt: d.endsAt, isActive: !d.endsAt || d.endsAt > now, source: "platform", syncedAt: now });
-  for (const c of poolCodes) ds.discounts.push({ id: c.id, tenantId, externalId: null, poolId, code: c.code, title: null, type: "percentage", value: 1500, minimumAmountMinor: null, usageLimit: 1, usedCount: c.used ? 1 : 0, startsAt: addDays(now, -40), endsAt: addDays(now, 50), isActive: !c.used, source: "keel", syncedAt: null });
+  for (const c of poolCodes) ds.discounts.push({ id: c.id, tenantId, externalId: null, poolId, code: c.code, title: null, type: "percentage", value: 1500, minimumAmountMinor: null, usageLimit: 1, usedCount: c.used ? 1 : 0, startsAt: addDays(now, -40), endsAt: addDays(now, 50), isActive: !c.used, source: "keel", syncedAt: null, redeemedOrderId: c.orderId ?? null, redeemedAt: c.at ?? null });
+  // a later top-up of the pool (issue #35): codes handed to campaigns and customers, the rest ready. Own RNG, so the rest of the demo data does not move.
+  {
+    const prng = createRng(cfg.seed + 35);
+    const taken = new Set(poolCodes.map((c) => c.code));
+    const topUp = isApparel ? 140 : 100;
+    const campaignIds = ds.campaigns.map((c) => c.id as string);
+    for (let i = 0; i < topUp; i++) {
+      const code = `${cfg.orderNumberPrefix}W${prng.int(0, 0xffffff).toString(36).toUpperCase().padStart(5, "X")}${i.toString(36).toUpperCase()}`;
+      if (taken.has(code)) continue;
+      taken.add(code);
+      const toCampaign = i < 24 && campaignIds.length > 0;
+      const toCustomer = !toCampaign && i < 40 && customers.length > 0;
+      ds.discounts.push({ id: prng.uuid(), tenantId, externalId: null, poolId, code, title: null, type: "percentage", value: 1500, minimumAmountMinor: null, usageLimit: 1, usedCount: 0, startsAt: addDays(now, -40), endsAt: addDays(now, 50), isActive: true, source: "keel", syncedAt: null, assignedCampaignId: toCampaign ? campaignIds[i % Math.min(4, campaignIds.length)]! : null, assignedCustomerId: toCustomer ? customers[(i * 37) % customers.length]!.id : null, assignedAt: toCampaign || toCustomer ? addDays(now, -prng.int(1, 20)) : null });
+    }
+    const pool = ds.discountPools.find((p) => p.id === poolId)!;
+    pool.targetSize = topUp - 40;
+  }
 
   /* ---------- purchasing ---------- */
   const poCount = isApparel ? 22 : 9;

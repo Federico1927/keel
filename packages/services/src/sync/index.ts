@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, isNull, schema, sql } from "@keel/db";
 import { DEFAULT_PRECEDENCE, addressKey, applyStatusMapping, type StatusMapping, deriveChannel, diffRecords, extractAttribution, hasChanges, matchCampaign, nameZipKey, normalizeEmail, normalizePhone, resolveShipmentStatus, shouldTakePlatformCost, type CampaignRef, type ShipmentStatus } from "@keel/core";
-import { IntegrationError, type AdsPlatform, type CommercePlatform, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct } from "@keel/integrations";
+import { IntegrationError, type AdsPlatform, type CommercePlatform, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 import { closeOrderBackorders, recomputeOrderStatus } from "../orders/state";
 import { checkOrderStock } from "../backorders";
@@ -9,8 +9,11 @@ import { unconfirmedWriteTargets } from "../writes";
 import { loadStatusMappings } from "../fulfilment/mappings";
 import { syncShipmentCases } from "../fulfilment/cases";
 import { applyInventoryLevels, refreshInventoryForVariants, zeroUnreportedLevels } from "./inventory";
+import { importPlatformReturn, type ReturnImportOutcome } from "./returns";
+import { linkPoolRedemptions } from "../discounts/redemptions";
 
 export * from "./inventory";
+export * from "./returns";
 export * from "./housekeeping";
 
 export type ImportSource = "webhook" | "sync" | "backfill" | "reconcile";
@@ -139,7 +142,11 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
   }
   // discounts: replace
   await ctx.tx.delete(schema.orderDiscounts).where(eq(schema.orderDiscounts.orderId, orderId));
-  if (o.discounts.length) await ctx.tx.insert(schema.orderDiscounts).values(o.discounts.map((d) => ({ tenantId: ctx.tenantId, orderId, code: d.code, type: d.type, amountMinor: d.amountMinor })));
+  if (o.discounts.length) {
+    await ctx.tx.insert(schema.orderDiscounts).values(o.discounts.map((d) => ({ tenantId: ctx.tenantId, orderId, code: d.code, type: d.type, amountMinor: d.amountMinor })));
+    // a pool code used by this order becomes redeemed, linked to it
+    await linkPoolRedemptions(ctx, { orderId });
+  }
   // attribution
   const attribution = extractAttribution({ landingSite: o.landingSite, referringSite: o.referringSite, noteAttributes: o.noteAttributes });
   const campaigns = opts.campaigns ?? (await loadCampaignRefs(ctx));
@@ -242,10 +249,11 @@ export async function importInventoryLevel(ctx: ServiceContext, lvl: NormalizedI
   return true;
 }
 
-export async function importDiscount(ctx: ServiceContext, d: NormalizedDiscount): Promise<void> {
+/** `keepActive`: a Keel on/off switch for this code is not confirmed by the platform yet, so the platform's flag is not taken. */
+export async function importDiscount(ctx: ServiceContext, d: NormalizedDiscount, opts: { keepActive?: boolean } = {}): Promise<void> {
   const now = ctx.now ?? new Date();
-  const values = { externalId: d.externalId, title: d.title, type: d.type, value: d.value, minimumAmountMinor: d.minimumAmountMinor, usageLimit: d.usageLimit, usedCount: d.usedCount, startsAt: d.startsAt, endsAt: d.endsAt, isActive: d.isActive, syncedAt: now, updatedAt: now };
-  await ctx.tx.insert(schema.discounts).values({ tenantId: ctx.tenantId, code: d.code, source: "platform", ...values }).onConflictDoUpdate({ target: [schema.discounts.tenantId, schema.discounts.code], set: values });
+  const values = { externalId: d.externalId, title: d.title, type: d.type, value: d.value, minimumAmountMinor: d.minimumAmountMinor, usageLimit: d.usageLimit, usedCount: d.usedCount, startsAt: d.startsAt, endsAt: d.endsAt, ...(opts.keepActive ? {} : { isActive: d.isActive }), syncedAt: now, updatedAt: now };
+  await ctx.tx.insert(schema.discounts).values({ tenantId: ctx.tenantId, code: d.code, source: "platform", isActive: d.isActive, ...values }).onConflictDoUpdate({ target: [schema.discounts.tenantId, schema.discounts.code], set: values });
 }
 
 /* ---------- health ---------- */
@@ -300,10 +308,19 @@ export async function processWebhookEvent(ctx: ServiceContext, platform: Commerc
     } else if (family === "customers") {
       const c = platform.parseWebhookCustomer(payload);
       if (c) await upsertCustomer(ctx, c, opts.country);
+    } else if (family === "returns") {
+      // the payload carries the lines on returns/request; other topics are read back from the platform
+      const ret = platform.parseWebhookReturn(payload) ?? (payload.id ? await platform.fetchReturn(String(payload.id)) : null);
+      if (ret) {
+        const r = await importReturnWithOrder(ctx, platform, ret, { country: opts.country, source: "webhook" });
+        if (r.imported) touchedOrderId = r.imported;
+        // the order is not on the platform (yet): failed, so the retry tick tries again
+        if (r.outcome.reason === "order_not_found") throw new Error(`order ${ret.orderExternalId} of return ${ret.externalId} not found`);
+      }
     } else if (topic === "app/uninstalled") {
       await ctx.tx.update(schema.integrations).set({ status: "not_connected", lastError: "App uninstalled from the store", credentialsEncrypted: null, updatedAt: now }).where(and(eq(schema.integrations.tenantId, ctx.tenantId), eq(schema.integrations.provider, platform.provider)));
     }
-    // returns/* and unknown topics are logged only in this version.
+    // unknown topics are logged only.
     if (touchedOrderId) await refreshOrderStock(ctx, platform, touchedOrderId);
     await ctx.tx.update(schema.webhookEvents).set({ status: "processed", attempts: ev.attempts + 1, lastError: null, processedAt: now }).where(eq(schema.webhookEvents.id, ev.id));
     await recordHealth(ctx, `${ev.source}:webhooks`, true, { rowsWritten: 1, freshnessMinutes: 30 });
@@ -339,6 +356,94 @@ export async function retryFailedWebhooks(ctx: ServiceContext, platform: Commerc
   let processed = 0;
   for (const r of rows) if ((await processWebhookEvent(ctx, platform, r.id, opts)).status === "processed") processed++;
   return { retried: rows.length, processed };
+}
+
+/** A platform return, importing its order first when Keel does not have it yet. */
+async function importReturnWithOrder(ctx: ServiceContext, platform: CommercePlatform, ret: NormalizedReturn, opts: { country: string; source: ImportSource }): Promise<{ outcome: ReturnImportOutcome; imported: string | null }> {
+  let outcome = await importPlatformReturn(ctx, ret, { source: opts.source });
+  if (outcome.reason !== "order_not_found") return { outcome, imported: null };
+  const order = await platform.fetchOrder(ret.orderExternalId);
+  if (!order) return { outcome, imported: null };
+  const imported = (await importOrder(ctx, order, { country: opts.country, source: opts.source })).id;
+  outcome = await importPlatformReturn(ctx, ret, { source: opts.source });
+  return { outcome, imported };
+}
+
+interface ReturnsCursor {
+  nextCursor: string | null;
+  updatedSince: string;
+  counts: { created: number; updated: number; linked: number; skipped: number };
+}
+
+export interface ReturnsSyncResult {
+  runId: string;
+  finished: boolean;
+  created: number;
+  updated: number;
+  linked: number;
+  skipped: number;
+  error: string | null;
+}
+
+/**
+ * Returns created or changed on the platform (nightly `reconcile`, last `reconcileDays` days; `delta` since
+ * the last successful run): each one goes through `importPlatformReturn`, so returns Keel pushed are matched
+ * by their platform id, never duplicated. Resumable like the other runs: cursor in `sync_runs` after every
+ * page, pause at the time budget, resume on the next call.
+ */
+export async function runReturnsSync(ctx: ServiceContext, platform: CommercePlatform, opts: { kind?: "delta" | "reconcile"; country: string; budgetMs?: number; pageSize?: number; reconcileDays?: number }): Promise<ReturnsSyncResult> {
+  const now = ctx.now ?? new Date();
+  const started = Date.now();
+  const kind = opts.kind ?? "reconcile";
+  const provider = platform.provider;
+  const budgetMs = opts.budgetMs ?? 20_000;
+  const [paused] = await ctx.tx.select().from(schema.syncRuns).where(and(eq(schema.syncRuns.tenantId, ctx.tenantId), eq(schema.syncRuns.provider, provider), eq(schema.syncRuns.objectType, "returns"), eq(schema.syncRuns.kind, kind), eq(schema.syncRuns.status, "paused"))).orderBy(desc(schema.syncRuns.startedAt)).limit(1);
+  let cursor: ReturnsCursor;
+  let run: { id: string; scanned: number; changed: number; durationMs: number };
+  if (paused) {
+    cursor = paused.cursor as unknown as ReturnsCursor;
+    run = { id: paused.id, scanned: paused.rowsScanned, changed: paused.rowsWritten, durationMs: paused.durationMs ?? 0 };
+    await ctx.tx.update(schema.syncRuns).set({ status: "running" }).where(eq(schema.syncRuns.id, run.id));
+  } else {
+    const [last] = kind === "delta" ? await ctx.tx.select({ startedAt: schema.syncRuns.startedAt }).from(schema.syncRuns).where(and(eq(schema.syncRuns.tenantId, ctx.tenantId), eq(schema.syncRuns.provider, provider), eq(schema.syncRuns.objectType, "returns"), eq(schema.syncRuns.status, "success"))).orderBy(desc(schema.syncRuns.startedAt)).limit(1) : [];
+    const since = last ? new Date(last.startedAt.getTime() - 5 * 60_000) : new Date(now.getTime() - (opts.reconcileDays ?? 35) * 864e5);
+    cursor = { nextCursor: null, updatedSince: since.toISOString(), counts: { created: 0, updated: 0, linked: 0, skipped: 0 } };
+    const [row] = await ctx.tx.insert(schema.syncRuns).values({ tenantId: ctx.tenantId, provider, objectType: "returns", kind, status: "running", cursor, startedAt: now }).returning({ id: schema.syncRuns.id });
+    run = { id: row!.id, scanned: 0, changed: 0, durationMs: 0 };
+  }
+  const c = cursor.counts;
+  const stats = () => ({ rowsScanned: run.scanned, rowsWritten: run.changed, durationMs: run.durationMs + (Date.now() - started), summary: { ...c } });
+  const result = (finished: boolean, error: string | null): ReturnsSyncResult => ({ runId: run.id, finished, ...c, error });
+  try {
+    for (;;) {
+      const page = await platform.fetchReturns({ cursor: cursor.nextCursor, updatedSince: new Date(cursor.updatedSince), limit: opts.pageSize ?? 50 });
+      for (const ret of page.items) {
+        const { outcome } = await importReturnWithOrder(ctx, platform, ret, { country: opts.country, source: kind === "reconcile" ? "reconcile" : "sync" });
+        run.scanned++;
+        if (outcome.outcome === "created") c.created++;
+        else if (outcome.outcome === "updated") c.updated++;
+        else if (outcome.outcome === "linked") c.linked++;
+        else if (outcome.outcome === "skipped") c.skipped++;
+        if (outcome.outcome !== "unchanged" && outcome.outcome !== "skipped") run.changed++;
+      }
+      cursor = { ...cursor, nextCursor: page.nextCursor };
+      if (!page.nextCursor) {
+        await ctx.tx.update(schema.syncRuns).set({ status: "success", cursor, ...stats(), finishedAt: new Date() }).where(eq(schema.syncRuns.id, run.id));
+        await recordHealth(ctx, `${provider}:returns`, true, { rowsWritten: run.changed, freshnessMinutes: 24 * 60, touchIntegration: false });
+        return result(true, null);
+      }
+      await ctx.tx.update(schema.syncRuns).set({ cursor, ...stats() }).where(eq(schema.syncRuns.id, run.id));
+      if (Date.now() - started > budgetMs) {
+        await ctx.tx.update(schema.syncRuns).set({ status: "paused", cursor, ...stats() }).where(eq(schema.syncRuns.id, run.id));
+        return result(false, null);
+      }
+    }
+  } catch (e) {
+    const error = errMessage(e);
+    await ctx.tx.update(schema.syncRuns).set({ status: "error", error, cursor, ...stats(), errorCount: 1, finishedAt: new Date() }).where(eq(schema.syncRuns.id, run.id));
+    await recordHealth(ctx, `${provider}:returns`, false, { error, touchIntegration: false });
+    return result(false, error);
+  }
 }
 
 /* ---------- sync runs ---------- */
@@ -516,8 +621,11 @@ export async function runCatalogSync(ctx: ServiceContext, platform: CommercePlat
     }
     while (cursor.phase === "discounts") {
       const page = await platform.fetchDiscounts({ cursor: cursor.discountCursor, limit: 100 });
+      // a Keel on/off switch the platform has not confirmed yet wins over the platform's flag (and counts as a conflict)
+      const pendingSwitch = page.items.length ? await unconfirmedWriteTargets(ctx, "discount.status", page.items.map((d) => `discount:${d.code}:status`)) : new Set<string>();
+      run.conflicts += pendingSwitch.size;
       for (const d of page.items) {
-        await importDiscount(ctx, d);
+        await importDiscount(ctx, d, { keepActive: pendingSwitch.has(`discount:${d.code}:status`) });
         c.discounts++;
       }
       run.scanned += page.items.length;
@@ -527,8 +635,9 @@ export async function runCatalogSync(ctx: ServiceContext, platform: CommercePlat
       await save();
       if (cursor.phase === "discounts" && (await outOfTime())) return result(false, null);
     }
-    // complete run: levels the platform did not report are stale
+    // complete run: levels the platform did not report are stale; pool codes used by orders are linked to them
     const z = await zeroUnreportedLevels(ctx, run.startedAt, { source, runId: run.id });
+    if (objectType === "catalog") await linkPoolRedemptions(ctx);
     c.zeroed += z.zeroed;
     run.changed += z.zeroed;
     run.conflicts += z.conflicts;

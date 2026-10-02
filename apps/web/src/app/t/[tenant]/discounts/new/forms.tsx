@@ -18,7 +18,7 @@ export function DiscountForms({ slug, currency, defaultPrefix }: { slug: string;
     if (codeState?.ok && codeState.data) router.push(`/t/${slug}/discounts/${codeState.data.id}`);
   }, [codeState, router, slug]);
   useEffect(() => {
-    if (poolState?.ok && poolState.data) router.push(`/t/${slug}/discounts?pool=${poolState.data.poolId}`);
+    if (poolState?.ok && poolState.data) router.push(`/t/${slug}/discounts/pools/${poolState.data.poolId}`);
   }, [poolState, router, slug]);
   const err = (s: { ok: boolean; error?: string } | null) => s && !s.ok && (tc.has(`errors.${s.error}`) ? tc(`errors.${s.error}`) : t(`errors.${s.error}`));
   return (

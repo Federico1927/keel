@@ -5,7 +5,7 @@ import { IntegrationError } from "../types";
 import { ShopifyCommercePlatform } from "./adapter";
 import { mapRestOrder } from "./mappers";
 import { buildInstallUrl, verifyOAuthCallback, verifyWebhookHmac } from "./oauth";
-import { graphqlCancel, graphqlDiscounts, graphqlFulfillmentOrderHold, graphqlFulfillmentOrderReleaseHold, graphqlFulfillmentOrders, graphqlInventory, graphqlInventoryItemUpdate, graphqlOrdersPage, graphqlProductsPage, graphqlShop, graphqlThrottled, graphqlVariantInventoryItem, graphqlWebhookCreate, graphqlWebhooks, restOrderWebhook, graphqlPayouts, graphqlBalanceTransactions, graphqlNoPaymentsAccount, graphqlMarkAsPaid, graphqlManualPayment } from "./__fixtures__";
+import { graphqlCancel, graphqlDiscounts, graphqlFulfillmentOrderHold, graphqlFulfillmentOrderReleaseHold, graphqlFulfillmentOrders, graphqlInventory, graphqlInventoryItemUpdate, graphqlOrdersPage, graphqlProductsPage, graphqlShop, graphqlThrottled, graphqlVariantInventoryItem, graphqlWebhookCreate, graphqlWebhooks, restOrderWebhook, graphqlPayouts, graphqlBalanceTransactions, graphqlNoPaymentsAccount, graphqlMarkAsPaid, graphqlManualPayment, graphqlReturnsPage, graphqlReturn, restReturnWebhook, restReturnApproveWebhook, graphqlDiscountDeactivate, graphqlDiscountByCode, graphqlRedeemCodeBulkDelete, graphqlRedeemCodeBulkAdd } from "./__fixtures__";
 
 const creds = { shop: "northwind-demo.myshopify.com", accessToken: "shpat_test", apiSecret: "shhh" };
 const bodyOf = (init?: { body?: string }) => (init?.body ? (JSON.parse(init.body) as { query: string; variables: Record<string, unknown> }) : { query: "", variables: {} });
@@ -347,5 +347,49 @@ describe("shopify oauth", () => {
     const hmac = createHmac("sha256", "secret").update(message).digest("hex");
     expect(verifyOAuthCallback({ ...query, hmac }, "secret")).toBe(true);
     expect(verifyOAuthCallback({ ...query, hmac }, "wrong")).toBe(false);
+  });
+});
+
+describe("shopify returns and discount lifecycle (issue #35)", () => {
+  it("reads returns of recently updated orders with lines, reasons and notes", async () => {
+    const p = platform([{ match: (_u, i) => bodyOf(i).query.includes("returns(first"), body: graphqlReturnsPage }]);
+    const page = await p.fetchReturns({ updatedSince: new Date("2026-09-25T00:00:00Z"), limit: 25 });
+    expect(page.nextCursor).toBe("eyJsYXN0X2lkIjo1Njc4OTAxMjM0NTcwfQ==");
+    expect(page.items).toHaveLength(2);
+    expect(page.items[0]).toMatchObject({ externalId: "501", orderExternalId: "5678901234567", status: "open", note: "Too tight on the shoulders", lines: [{ externalId: "601", orderLineExternalId: "1001", quantity: 1, reason: "size_too_small" }] });
+    expect(page.items[1]).toMatchObject({ externalId: "502", status: "closed", lines: [{ orderLineExternalId: "1101", quantity: 2, reason: "defective", note: "Seam open" }] });
+    expect(page.items[1]!.closedAt?.toISOString()).toBe("2026-09-27T16:00:00.000Z");
+    const sent = bodyOf({ body: p.http.calls[0]!.body! }).variables;
+    expect(sent.query).toContain("updated_at:>='2026-09-25");
+    expect(sent.query).toContain("-return_status:NO_RETURN");
+  });
+
+  it("maps a returns/request payload and leaves a payload without lines to fetchReturn", async () => {
+    const p = platform([{ match: (_u, i) => bodyOf(i).query.includes("return(id"), body: graphqlReturn }]);
+    expect(p.parseWebhookReturn(restReturnWebhook)).toMatchObject({ externalId: "501", orderExternalId: "5678901234567", status: "requested", lines: [{ externalId: "601", orderLineExternalId: "1001", quantity: 1, reason: "size_too_small", note: "Too tight on the shoulders" }] });
+    expect(p.parseWebhookReturn(restReturnApproveWebhook)).toBeNull();
+    const r = await p.fetchReturn("501");
+    expect(r).toMatchObject({ externalId: "501", orderExternalId: "5678901234567", status: "open" });
+    expect(bodyOf({ body: p.http.calls[0]!.body! }).variables).toEqual({ id: "gid://shopify/Return/501" });
+  });
+
+  it("deactivates a pool, a pool code and a standalone code found by code; tops up a pool", async () => {
+    const p = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("discountCodeDeactivate"), body: graphqlDiscountDeactivate },
+      { match: (_u, i) => bodyOf(i).query.includes("codeDiscountNodeByCode"), body: graphqlDiscountByCode },
+      { match: (_u, i) => bodyOf(i).query.includes("discountCodeRedeemCodeBulkDelete"), body: graphqlRedeemCodeBulkDelete },
+      { match: (_u, i) => bodyOf(i).query.includes("discountRedeemCodeBulkAdd"), body: graphqlRedeemCodeBulkAdd },
+    ]);
+    await p.setDiscountPoolActive("9001", false);
+    expect(bodyOf({ body: p.http.calls[0]!.body! }).variables).toEqual({ id: "gid://shopify/DiscountCodeNode/9001" });
+    await p.setDiscountActive({ externalId: null, code: "SUMMER20" }, false);
+    expect(bodyOf({ body: p.http.calls[1]!.body! }).variables).toEqual({ code: "SUMMER20" });
+    expect(bodyOf({ body: p.http.calls[2]!.body! }).variables).toEqual({ id: "gid://shopify/DiscountCodeNode/9002" });
+    await p.setDiscountActive({ externalId: "9001:NW-ABCD2345", code: "NW-ABCD2345", poolExternalId: "9001" }, false);
+    expect(bodyOf({ body: p.http.calls[3]!.body! }).variables).toEqual({ id: "gid://shopify/DiscountCodeNode/9001", search: "code:NW-ABCD2345" });
+    const codes = Array.from({ length: 150 }, (_, i) => `NW-T${String(i).padStart(4, "0")}`);
+    const r = await p.addDiscountPoolCodes("9001", codes);
+    expect(r.imported).toHaveLength(150);
+    expect(p.http.calls).toHaveLength(6);
   });
 });
