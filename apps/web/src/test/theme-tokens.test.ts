@@ -36,7 +36,7 @@ describe("design tokens", () => {
       expectAll(t["on-primary"], [t.primary], AA_TEXT, "on-primary");
       expectAll(t.primary, surfaces, AA_TEXT, "primary text");
     });
-    it.each(["success", "warning", "danger", "info"] as const)("%s as text, as badge on its tint and as fill", (k) => {
+    it.each(["success", "warning", "danger", "info", "platform"] as const)("%s as text, as badge on its tint and as fill", (k) => {
       const tints = [mixColors(t[k], t.surface, 0.15), mixColors(t[k], t.bg, 0.15)];
       expectAll(t[k], [...surfaces, ...tints], AA_TEXT, k);
       expectAll(t[`on-${k}`], [t[k]], AA_TEXT, `on-${k}`);

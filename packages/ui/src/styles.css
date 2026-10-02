@@ -33,6 +33,8 @@
   --color-warning-foreground: var(--on-warning);
   --color-info: var(--info);
   --color-info-foreground: var(--on-info);
+  --color-platform: var(--platform);
+  --color-platform-foreground: var(--on-platform);
   --color-border: var(--line);
   --color-input: var(--line-strong);
   --color-ring: var(--primary);

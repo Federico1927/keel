@@ -1,5 +1,5 @@
 import { normalizePaymentMethod, type PaymentStatus, type ShipmentStatus } from "@keel/core";
-import type { Address, NormalizedCustomer, NormalizedDiscount, NormalizedFulfillment, NormalizedInventoryLevel, NormalizedLocation, NormalizedOrder, NormalizedOrderLine, NormalizedProduct, NormalizedVariant } from "../types";
+import type { Address, NormalizedCustomer, NormalizedDiscount, NormalizedFulfillment, NormalizedInventoryLevel, NormalizedLocation, NormalizedOrder, NormalizedOrderLine, NormalizedProduct, NormalizedReturn, NormalizedVariant } from "../types";
 
 /* ---------- helpers ---------- */
 
@@ -317,4 +317,30 @@ export function mapGraphqlDiscount(n: Rec): NormalizedDiscount | null {
   }
   const min = (d.minimumRequirement as Rec | undefined)?.greaterThanOrEqualToSubtotal as Rec | undefined;
   return { externalId: String(gidToId(n.id as string)), code, title: str(d.title), type, value, minimumAmountMinor: min ? moneyToMinor(min.amount as string) : null, usageLimit: d.usageLimit === null || d.usageLimit === undefined ? null : Number(d.usageLimit), usedCount: Number(d.asyncUsageCount ?? 0), startsAt: date(d.startsAt as string), endsAt: date(d.endsAt as string), isActive: String(d.status ?? "ACTIVE").toUpperCase() === "ACTIVE" };
+}
+
+/* ---------- returns (issue #35; field names to verify against the live Admin API) ---------- */
+
+export const RETURN_FIELDS = `id status createdAt closedAt order { legacyResourceId } returnLineItems(first: 50) { nodes { id quantity returnReason returnReasonNote customerNote ... on ReturnLineItem { fulfillmentLineItem { lineItem { id } } } } }`;
+
+/** A GraphQL `Return` node; `orderExternalId` comes from the node or from the enclosing order. */
+export function mapGraphqlReturn(r: Rec, orderExternalId?: string | null): NormalizedReturn | null {
+  const order = orderExternalId ?? str((r.order as Rec | undefined)?.legacyResourceId) ?? gidToId(str((r.order as Rec | undefined)?.id));
+  if (!r.id || !order) return null;
+  const lines = (((r.returnLineItems as Rec | undefined)?.nodes as Rec[] | undefined) ?? []).map((l) => ({ externalId: gidToId(str(l.id)), orderLineExternalId: gidToId(str(((l.fulfillmentLineItem as Rec | undefined)?.lineItem as Rec | undefined)?.id)) ?? "", quantity: Number(l.quantity ?? 0), reason: l.returnReason ? String(l.returnReason).toLowerCase() : null, note: str(l.customerNote) ?? str(l.returnReasonNote) }));
+  return { externalId: gidToId(String(r.id))!, orderExternalId: order, status: String(r.status ?? "requested").toLowerCase(), requestedAt: new Date(String(r.createdAt)), closedAt: r.closedAt ? new Date(String(r.closedAt)) : null, note: lines.find((l) => l.note)?.note ?? null, lines: lines.filter((l) => l.orderLineExternalId && l.quantity > 0) };
+}
+
+/** A `returns/*` webhook payload (REST shape); null when it does not carry the order and the line items, so the caller reads the return instead. */
+export function mapRestReturn(p: Rec): NormalizedReturn | null {
+  const order = p.order as Rec | undefined;
+  const orderId = str(p.order_id) ?? str(order?.id) ?? gidToId(str(order?.admin_graphql_api_id));
+  const items = p.return_line_items as Rec[] | undefined;
+  if (!p.id || !orderId || !Array.isArray(items) || !items.length) return null;
+  const lines = items.map((l) => {
+    const li = (l.fulfillment_line_item as Rec | undefined)?.line_item as Rec | undefined;
+    return { externalId: str(l.id), orderLineExternalId: str(li?.id) ?? "", quantity: Number(l.quantity ?? 0), reason: l.return_reason ? String(l.return_reason).toLowerCase() : null, note: str(l.customer_note) ?? str(l.return_reason_note) };
+  });
+  if (lines.some((l) => !l.orderLineExternalId)) return null;
+  return { externalId: String(p.id), orderExternalId: String(orderId), status: String(p.status ?? "requested").toLowerCase(), requestedAt: new Date(String(p.created_at ?? p.updated_at ?? Date.now())), closedAt: p.closed_at ? new Date(String(p.closed_at)) : null, note: lines.find((l) => l.note)?.note ?? null, lines: lines.filter((l) => l.quantity > 0) };
 }

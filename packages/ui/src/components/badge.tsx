@@ -15,6 +15,8 @@ const badgeVariants = cva(
         destructive: "border-transparent bg-destructive/15 text-destructive",
         info: "border-transparent bg-info/15 text-info",
         muted: "border-transparent bg-muted text-muted-foreground",
+        /** Super-admin console ("platform mode", #48). */
+        platform: "border-transparent bg-platform/15 text-platform",
       },
     },
     defaultVariants: { variant: "default" },

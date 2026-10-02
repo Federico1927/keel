@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatMoney, formatNumber, formatPercent } from "@keel/core";
 import { returnsAnalytics } from "@keel/services";
-import { Card, CardContent, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";
@@ -14,6 +14,7 @@ export default async function ReturnsAnalyticsPage({ params, searchParams }: { p
   const t = await getTranslations("returns_analytics");
   const tr = await getTranslations("returns");
   const td = await getTranslations("return_detail");
+  const ts = await getTranslations("return_status");
   const period = resolvePeriod(sp, ctx.tenant.timezone, "90d");
   const a = await ctx.run((tx) => returnsAnalytics({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, period, { labelMinor: ctx.settings.returnLabelCostMinor, handlingMinor: ctx.settings.returnHandlingCostMinor }));
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
@@ -35,6 +36,42 @@ export default async function ReturnsAnalyticsPage({ params, searchParams }: { p
         <Stat label={t("kpi.exchanges")} value={formatNumber(a.exchanges, ctx.locale)} hint={a.upsellMinor ? t("kpi.upsell", { amount: money(a.upsellMinor) }) : undefined} />
         <Stat label={t("kpi.costs")} value={money(a.costs.totalMinor)} hint={ctx.settings.returnLabelCostMinor || ctx.settings.returnHandlingCostMinor ? t("kpi.costs_hint", { labels: money(a.costs.labelsMinor), handling: money(a.costs.handlingMinor), recovered: money(a.costs.recoveredMinor) }) : t("kpi.costs_unset")} href={`${base}/portal`} />
       </div>
+      <Card className="mt-6" data-testid="returns-ageing">
+        <CardHeader><CardTitle className="text-base">{t("ageing.title")}</CardTitle><CardDescription>{t("ageing.description", { days: a.ageing.staleDays })}</CardDescription></CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("ageing.state")}</TableHead>
+                <TableHead className="text-right">{t("count")}</TableHead>
+                <TableHead className="text-right">{t("ageing.avg")}</TableHead>
+                <TableHead className="hidden text-right md:table-cell">{t("ageing.median")}</TableHead>
+                <TableHead className="hidden text-right md:table-cell">{t("ageing.max")}</TableHead>
+                <TableHead className="text-right">{t("ageing.open")}</TableHead>
+                <TableHead className="text-right">{t("ageing.stale", { days: a.ageing.staleDays })}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {a.ageing.stages.map((st) => {
+                const open = a.ageing.open.find((o) => o.stage === st.stage);
+                const days = (n: number) => t("ageing.days", { n: formatNumber(n, ctx.locale, { maximumFractionDigits: 1 }) });
+                return (
+                  <TableRow key={st.stage}>
+                    <TableCell><Link href={`${base}?status=${st.stage}`} className="hover:underline">{ts(st.stage)}</Link></TableCell>
+                    <TableCell className="text-right tabular">{formatNumber(st.count, ctx.locale)}</TableCell>
+                    <TableCell className="text-right tabular">{days(st.avgDays)}</TableCell>
+                    <TableCell className="hidden text-right tabular md:table-cell">{days(st.medianDays)}</TableCell>
+                    <TableCell className="hidden text-right tabular md:table-cell">{days(st.maxDays)}</TableCell>
+                    <TableCell className="text-right tabular">{open ? `${formatNumber(open.count, ctx.locale)} · ${days(open.avgDays)}` : "—"}</TableCell>
+                    <TableCell className={`text-right tabular ${open?.stale ? "font-medium text-destructive" : ""}`}>{open ? formatNumber(open.stale, ctx.locale) : "—"}</TableCell>
+                  </TableRow>
+                );
+              })}
+              {a.ageing.stages.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">{t("ageing.empty")}</TableCell></TableRow>}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader><CardTitle className="text-base">{t("by_reason")}</CardTitle></CardHeader>

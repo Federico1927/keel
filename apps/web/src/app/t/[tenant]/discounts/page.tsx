@@ -2,11 +2,12 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { canDo } from "@keel/config";
 import { formatDate, formatDiscountValue, formatMoney, formatNumber, type DiscountState, type DiscountType } from "@keel/core";
-import { listDiscountPools, listDiscounts } from "@keel/services";
+import { latestPlatformWrites, listDiscountPools, listDiscounts } from "@keel/services";
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { DiscountFiltersBar } from "./filters";
 import { DiscountStateBadge } from "./state-badge";
+import { PlatformWriteStatus } from "@/components/platform-write-status";
 
 export default async function DiscountsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
@@ -16,9 +17,10 @@ export default async function DiscountsPage({ params, searchParams }: { params: 
   const filters = { q: sp.q?.trim() || undefined, state: sp.state || undefined, pool: /^[0-9a-f-]{36}$/i.test(sp.pool ?? "") ? sp.pool : undefined };
   const page = Math.max(1, Number(sp.page ?? 1) || 1);
   const at = { id: ctx.tenant.id, country: ctx.tenant.country, currency: ctx.tenant.currency, timezone: ctx.tenant.timezone, settings: ctx.settings };
-  const { list, pools } = await ctx.run(async (tx) => {
+  const { list, pools, poolWrites } = await ctx.run(async (tx) => {
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
-    return { list: await listDiscounts(s, at, { q: filters.q, state: (filters.state as DiscountState | undefined) ?? "all", poolId: filters.pool, hidePoolCodes: !filters.pool, page }), pools: await listDiscountPools(s) };
+    const pools = await listDiscountPools(s);
+    return { list: await listDiscounts(s, at, { q: filters.q, state: (filters.state as DiscountState | undefined) ?? "all", poolId: filters.pool, hidePoolCodes: !filters.pool, page }), pools, poolWrites: await latestPlatformWrites(s, "discount_pool", pools.map((p) => p.pool.id)) };
   });
   const base = `/t/${tenant}/discounts`;
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
@@ -40,7 +42,7 @@ export default async function DiscountsPage({ params, searchParams }: { params: 
               <CardTitle className="text-base">{pool.pool.title}</CardTitle>
               <CardDescription>{t("pool_summary", { codes: formatNumber(pool.codes, ctx.locale), used: formatNumber(pool.used, ctx.locale), value: formatDiscountValue(pool.pool.type as DiscountType, pool.pool.value, money) })}</CardDescription>
             </div>
-            <Link href={base} className="text-sm hover:underline">{t("all_codes")}</Link>
+            <div className="flex gap-3 text-sm"><Link href={`${base}/pools/${pool.pool.id}`} className="hover:underline">{t("manage_pool")}</Link><Link href={base} className="hover:underline">{t("all_codes")}</Link></div>
           </CardHeader>
         </Card>
       )}
@@ -99,7 +101,8 @@ export default async function DiscountsPage({ params, searchParams }: { params: 
                 <TableRow>
                   <TableHead>{t("columns.pool")}</TableHead>
                   <TableHead>{t("columns.value")}</TableHead>
-                  <TableHead className="text-right">{t("columns.codes")}</TableHead>
+                  <TableHead className="text-right">{t("columns.ready")}</TableHead>
+                  <TableHead className="hidden text-right md:table-cell">{t("columns.assigned")}</TableHead>
                   <TableHead className="text-right">{t("columns.used")}</TableHead>
                   <TableHead>{t("columns.state")}</TableHead>
                 </TableRow>
@@ -107,11 +110,15 @@ export default async function DiscountsPage({ params, searchParams }: { params: 
               <TableBody>
                 {pools.map((p) => (
                   <TableRow key={p.pool.id} data-testid="pool-row">
-                    <TableCell><Link href={`${base}?pool=${p.pool.id}`} className="font-medium hover:underline">{p.pool.title}</Link><div className="text-xs text-muted-foreground">{p.pool.prefix}-********</div></TableCell>
+                    <TableCell><Link href={`${base}/pools/${p.pool.id}`} className="font-medium hover:underline">{p.pool.title}</Link><div className="text-xs text-muted-foreground">{p.pool.prefix}-******** · {t("pool_codes", { n: formatNumber(p.codes, ctx.locale) })}</div></TableCell>
                     <TableCell>{formatDiscountValue(p.pool.type as DiscountType, p.pool.value, money)}</TableCell>
-                    <TableCell className="text-right tabular">{formatNumber(p.codes, ctx.locale)} / {formatNumber(p.pool.targetSize, ctx.locale)}</TableCell>
+                    <TableCell className="text-right tabular">{formatNumber(p.ready, ctx.locale)} / {formatNumber(p.pool.targetSize, ctx.locale)}</TableCell>
+                    <TableCell className="hidden text-right tabular md:table-cell">{formatNumber(p.assigned, ctx.locale)}</TableCell>
                     <TableCell className="text-right tabular">{formatNumber(p.used, ctx.locale)}</TableCell>
-                    <TableCell><Badge variant={p.pool.status === "ready" ? "success" : "warning"}>{t(`pool_status.${p.pool.status}`)}</Badge></TableCell>
+                    <TableCell>
+                      {p.pool.isActive ? <Badge variant={p.pool.status === "ready" ? "success" : "warning"}>{t(`pool_status.${p.pool.status}`)}</Badge> : <Badge variant="muted">{t("pool_status.inactive")}</Badge>}
+                      <PlatformWriteStatus slug={tenant} write={poolWrites.get(p.pool.id)} canRetry={canCreate} className="ml-1" />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

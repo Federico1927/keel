@@ -69,19 +69,23 @@ export interface AccountProfile {
   passwordChangedAt: Date | null;
   /** Email on a sign-in from a device or browser not seen before (#52). */
   notifyNewSignIn: boolean;
+  /** #48: disabled platform-wide by a super-admin (no session is valid). */
+  disabled: boolean;
 }
 
 /** Profile columns only: the avatar bytes are never read here. */
 export async function getAccountProfile(db: DbExecutor, userId: string): Promise<AccountProfile | null> {
   const u = schema.users;
   const [row] = await db
-    .select({ id: u.id, email: u.email, name: u.name, preferredName: u.preferredName, jobTitle: u.jobTitle, locale: u.locale, timeZone: u.timeZone, theme: u.theme, density: u.density, isSuperAdmin: u.isSuperAdmin, avatarUpdatedAt: u.avatarUpdatedAt, sessionVersion: u.sessionVersion, passwordChangedAt: u.passwordChangedAt, notifyNewSignIn: u.notifyNewSignIn })
+    .select({ id: u.id, email: u.email, name: u.name, preferredName: u.preferredName, jobTitle: u.jobTitle, locale: u.locale, timeZone: u.timeZone, theme: u.theme, density: u.density, isSuperAdmin: u.isSuperAdmin, avatarUpdatedAt: u.avatarUpdatedAt, sessionVersion: u.sessionVersion, passwordChangedAt: u.passwordChangedAt, notifyNewSignIn: u.notifyNewSignIn, disabledAt: u.disabledAt })
     .from(u)
     .where(eq(u.id, userId))
     .limit(1);
   if (!row) return null;
+  const { disabledAt, ...rest } = row;
   return {
-    ...row,
+    ...rest,
+    disabled: disabledAt !== null,
     theme: row.theme === "light" || row.theme === "dark" ? row.theme : "system",
     density: row.density === "compact" ? "compact" : "comfortable",
     hasAvatar: row.avatarUpdatedAt !== null,

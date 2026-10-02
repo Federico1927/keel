@@ -1,14 +1,19 @@
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@keel/ui";
 
-export default async function SuspendedPage() {
+const REASONS = ["payment", "platform", "churned"] as const;
+
+/** Where a suspended or churned tenant's users land (#48); the reason only picks the message. */
+export default async function SuspendedPage({ searchParams }: { searchParams: Promise<{ reason?: string }> }) {
   const t = await getTranslations("shell");
+  const { reason } = await searchParams;
+  const r = (REASONS as readonly string[]).includes(reason ?? "") ? (reason as (typeof REASONS)[number]) : "payment";
   return (
     <main className="flex min-h-screen items-center justify-center px-4">
-      <Card className="max-w-md">
+      <Card className="max-w-md" data-testid="suspended" data-reason={r}>
         <CardHeader>
-          <CardTitle>{t("suspended_title")}</CardTitle>
-          <CardDescription>{t("suspended_description")}</CardDescription>
+          <CardTitle>{r === "churned" ? t("churned_title") : t("suspended_title")}</CardTitle>
+          <CardDescription>{r === "payment" ? t("suspended_description") : r === "churned" ? t("churned_description") : t("suspended_platform_description")}</CardDescription>
         </CardHeader>
         <CardContent />
       </Card>

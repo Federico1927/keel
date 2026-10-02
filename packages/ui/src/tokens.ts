@@ -36,6 +36,9 @@ export interface ThemeTokens {
   "on-danger": string;
   info: string;
   "on-info": string;
+  /** Super-admin console accent ("platform mode", #48): never used inside a tenant. */
+  platform: string;
+  "on-platform": string;
   sidebar: string;
   "sidebar-fg": string;
   "sidebar-muted": string;
@@ -69,6 +72,8 @@ export const TOKENS: Record<Theme, ThemeTokens> = {
     "on-danger": "#ffffff",
     info: "#1649ff",
     "on-info": "#ffffff",
+    platform: "#6d28d9",
+    "on-platform": "#ffffff",
     sidebar: "#ffffff",
     "sidebar-fg": "#0b0d12",
     "sidebar-muted": "#5b6170",
@@ -100,6 +105,8 @@ export const TOKENS: Record<Theme, ThemeTokens> = {
     "on-danger": "#0b0d12",
     info: "#6886ff",
     "on-info": "#0b0d12",
+    platform: "#a78bfa",
+    "on-platform": "#0b0d12",
     sidebar: "#12151c",
     "sidebar-fg": "#eef0f5",
     "sidebar-muted": "#9aa1b2",
