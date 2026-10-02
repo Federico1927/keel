@@ -269,6 +269,10 @@
         "title": "Campañas a clientes",
         "body": "Campañas a tus segmentos con grupo de control: un grupo de exclusión estable por cliente, el envío registrado desde la herramienta que ya usas, y los pedidos, ingresos y margen incrementales que cada campaña produjo de verdad."
       },
+      "subscriptions": {
+        "title": "Suscripciones",
+        "body": "Para tiendas que venden recargas, cajas o membresías con Shopify Subscriptions, Recharge o Loop: beneficio real por suscriptor, bajas separadas entre voluntarias y pagos fallidos, previsión de stock para las próximas renovaciones y una cola de recuperación para las tarjetas rechazadas."
+      },
       "cod": {
         "title": "Contra reembolso",
         "body": "Para tiendas que cobran en la entrega: cola de confirmación con resultados de las llamadas, asignación a operadores, una puntuación de entrega explicada factor por factor y avisos de riesgo sobre destinatarios."

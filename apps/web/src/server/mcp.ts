@@ -1,5 +1,5 @@
 import { adminDb, appDb } from "@hullwise/db";
-import { MCP_CORE_TOOLS, appBaseUrl, ipHash, mcpResourceUrl, type HullwiseTool, type McpDeps } from "@hullwise/services";
+import { MCP_CORE_TOOLS, SUBSCRIPTION_MCP_TOOLS, appBaseUrl, ipHash, mcpResourceUrl, type HullwiseTool, type McpDeps } from "@hullwise/services";
 import { COD_MCP_TOOLS } from "@hullwise/addon-cod";
 
 /**
@@ -10,7 +10,7 @@ export function mcpDeps(): McpDeps {
   return { admin: adminDb(), app: appDb() };
 }
 
-export const MCP_TOOLS: readonly HullwiseTool[] = [...MCP_CORE_TOOLS, ...COD_MCP_TOOLS];
+export const MCP_TOOLS: readonly HullwiseTool[] = [...MCP_CORE_TOOLS, ...COD_MCP_TOOLS, ...SUBSCRIPTION_MCP_TOOLS];
 
 export const mcpOrigin = () => appBaseUrl();
 export const mcpServerUrl = () => mcpResourceUrl();

@@ -9,6 +9,7 @@ import { requirePage } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
 import { TierBadge } from "../tier-badge";
 import { ChurnBadge } from "../churn-badge";
+import { CustomerSubscriptionsCard, showsSubscriptions } from "../../subscriptions/subscription-card";
 
 export default async function CustomerDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
@@ -48,6 +49,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
               <p className="text-muted-foreground">{t("customer_since", { date: c.firstOrderAt ? formatDate(c.firstOrderAt, ctx.locale, ctx.tenant.timezone) : c.platformCreatedAt ? formatDate(c.platformCreatedAt, ctx.locale, ctx.tenant.timezone) : "—" })}</p>
             </CardContent>
           </Card>
+          {showsSubscriptions(ctx) && <CustomerSubscriptionsCard ctx={ctx} customerId={c.customerId} />}
           <Card data-testid="prediction-card">
             <CardHeader><CardTitle className="text-base">{tpr("card_title")}</CardTitle></CardHeader>
             <CardContent className="space-y-2 text-sm">

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { billingCatalog } from "@hullwise/core";
 import { login } from "./helpers";
 
 /**
@@ -36,7 +37,7 @@ test.describe("Stripe billing (mock)", () => {
     await expect(page.getByTestId("stripe-not-configured")).toBeVisible();
     await page.getByTestId("sync-catalog").click();
     await expect(page.getByTestId("catalog-sync-result")).toBeVisible();
-    await expect(page.getByTestId("catalog-row")).toHaveCount(8);
+    await expect(page.getByTestId("catalog-row")).toHaveCount(billingCatalog().length);
 
     await openTenant(page, "alpine", "Alpine Outdoor");
     await startAndComplete(page, "billing@alpine-outdoor.demo");

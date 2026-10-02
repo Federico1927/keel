@@ -1,12 +1,13 @@
 import { createHash, randomUUID } from "node:crypto";
 import { and, desc, eq, inArray, lte, ne, schema, sql } from "@hullwise/db";
-import { IntegrationError, type AdsPlatform, type CommercePlatform } from "@hullwise/integrations";
+import { IntegrationError } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import type { TenantRunner } from "../assistant";
 import type { AdPlatform } from "@hullwise/core";
 import { AdPlatformNotInPlanError, getAdsPlatformFor, getCommercePlatformFor, type PlatformTenant } from "../integrations/factory";
 import { recordHealth } from "../sync";
-import { writeHandler, type PlatformWriteKind, type PlatformWriteRow, type WritePayload, type WriteResult } from "./registry";
+import { writeHandler, type PlatformWriteKind, type PlatformWriteRow, type WriteAdapter, type WritePayload, type WriteResult } from "./registry";
+import { getSubscriptionProviderFor } from "../subscriptions/provider";
 import "./kinds";
 
 export * from "./registry";
@@ -120,7 +121,7 @@ export async function enqueuePlatformWrite<K extends PlatformWriteKind>(ctx: Ser
  * flow guards its steps). Errors are rethrown: when the caller's transaction rolls back, so does
  * the record.
  */
-export async function runPlatformWriteNow<K extends PlatformWriteKind>(ctx: ServiceContext, adapter: CommercePlatform | AdsPlatform, input: PlatformWriteInput<K>): Promise<WriteResult<K>> {
+export async function runPlatformWriteNow<K extends PlatformWriteKind>(ctx: ServiceContext, adapter: WriteAdapter, input: PlatformWriteInput<K>): Promise<WriteResult<K>> {
   const h = handlerOf(input.kind);
   // flows guard their own steps: without a caller key every call is its own record
   const p = input.idempotencyKey ? await prepare(ctx, input) : { ...(await prepare(ctx, input)), key: `sync:${randomUUID()}`, reuse: null };
@@ -181,9 +182,15 @@ export async function executePlatformWrite(run: TenantRunner, tenant: PlatformTe
       await ctx.tx.update(schema.platformWrites).set({ status: "failed", lastError: `Unknown write kind ${w.kind}`, lastErrorCode: "unsupported", completedAt: now }).where(eq(schema.platformWrites.id, w.id));
       return null;
     }
-    let adapter: CommercePlatform | AdsPlatform;
+    let adapter: WriteAdapter;
     try {
-      adapter = w.provider === "shopify" ? await getCommercePlatformFor(ctx, tenant) : await getAdsPlatformFor(ctx, tenant, w.provider as AdPlatform);
+      const subs = w.provider === "subscriptions" ? await getSubscriptionProviderFor(ctx) : null;
+      if (w.provider === "subscriptions" && !subs) {
+        // the subscription app was disconnected: the write can never run
+        await ctx.tx.update(schema.platformWrites).set({ status: "failed", lastError: "No subscription app connected", lastErrorCode: "permission", completedAt: now }).where(eq(schema.platformWrites.id, w.id));
+        return null;
+      }
+      adapter = subs ?? (w.provider === "shopify" ? await getCommercePlatformFor(ctx, tenant) : await getAdsPlatformFor(ctx, tenant, w.provider as AdPlatform));
     } catch (e) {
       // a platform the plan no longer includes: the write can never run, so it fails instead of retrying
       if (!(e instanceof AdPlatformNotInPlanError)) throw e;

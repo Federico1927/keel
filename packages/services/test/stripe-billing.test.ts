@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { MODULES, PLANS } from "@hullwise/config";
+import { billingCatalog } from "@hullwise/core";
 import { and, eq, schema, withTenant } from "@hullwise/db";
 import { testPools } from "@hullwise/db/test-utils";
 import { seedPlatform, type SeedContext } from "@hullwise/db/seed";
@@ -77,14 +78,16 @@ const asOwner = <T>(tenantId: string, fn: (s: ServiceContext) => Promise<T>) => 
 
 describe("Stripe billing (test double)", () => {
   it("catalog sync creates products and prices; a second run changes nothing", async () => {
+    // plans, setup fees and every priced, implemented add-on
+    const items = billingCatalog().length;
     const first = await syncBillingCatalog(pools.admin, { provider, actorUserId: admin, now: t0 });
-    expect(first).toMatchObject({ created: 8, updated: 0, unchanged: 0 });
-    expect(fake.products.size).toBe(8);
+    expect(first).toMatchObject({ created: items, updated: 0, unchanged: 0 });
+    expect(fake.products.size).toBe(items);
     const prices = await pools.admin.select().from(schema.billingPrices).where(eq(schema.billingPrices.provider, "stripe"));
     expect(prices.map((p) => p.lookupKey).sort()).toContain("hullwise_setup_starter");
     const posts = fake.calls.filter((c) => c.method === "POST").length;
     const second = await syncBillingCatalog(pools.admin, { provider, actorUserId: admin, now: t0 });
-    expect(second).toEqual({ created: 0, updated: 0, unchanged: 8, archived: 0 });
+    expect(second).toEqual({ created: 0, updated: 0, unchanged: items, archived: 0 });
     expect(fake.calls.filter((c) => c.method === "POST").length).toBe(posts);
     expect(await auditCount("billing.catalog_synced")).toBe(2);
   });

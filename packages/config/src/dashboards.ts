@@ -157,6 +157,11 @@ export const WIDGET_SETTINGS = {
   cod_pending: empty,
   cod_operators: empty,
   cod_mine: empty,
+  // addon.subscriptions (#67)
+  subs_mrr: empty,
+  subs_active: empty,
+  subs_churn: empty,
+  subs_at_risk: empty,
 } as const;
 export type WidgetType = keyof typeof WIDGET_SETTINGS;
 export type WidgetSettings<T extends WidgetType> = z.infer<(typeof WIDGET_SETTINGS)[T]>;
@@ -201,6 +206,11 @@ export const WIDGETS: Record<WidgetType, WidgetDefinition> = {
   cod_pending: d("cod_pending", "queues", "cod_queue", { module: "addon.cod" }),
   cod_operators: d("cod_operators", "lists", "cod_queue", { module: "addon.cod", defaultHeight: 2 }),
   cod_mine: d("cod_mine", "queues", "cod_queue", { module: "addon.cod" }),
+  // addon.subscriptions (#67): loaders in packages/services/src/subscriptions/widgets.ts
+  subs_mrr: d("subs_mrr", "metrics", "subscriptions", { module: "addon.subscriptions" }),
+  subs_active: d("subs_active", "metrics", "subscriptions", { module: "addon.subscriptions" }),
+  subs_churn: d("subs_churn", "metrics", "subscriptions", { module: "addon.subscriptions", usesPeriod: true }),
+  subs_at_risk: d("subs_at_risk", "queues", "subscriptions", { module: "addon.subscriptions" }),
 };
 export const WIDGET_TYPES = Object.keys(WIDGETS) as WidgetType[];
 

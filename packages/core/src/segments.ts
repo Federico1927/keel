@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { MAX_SEGMENT_CONDITIONS, MAX_SEGMENT_DEPTH } from "@hullwise/config";
 import { CHURN_RISKS } from "./predictions";
+import { SUBSCRIPTION_SEGMENT_FIELDS, subscriptionProfileValue, type SubscriberSignals } from "./subscriptions";
 
 /**
  * Segment rules: nested AND/OR groups of typed conditions over a customer profile.
@@ -30,7 +31,7 @@ export interface SegmentFieldDef {
   values?: readonly string[] | "dynamic";
   /** Money fields are entered in major units in the UI and stored in minor units. */
   money?: boolean;
-  group: "orders" | "value" | "recency" | "profile" | "products" | "rfm" | "predictions" | "sampling";
+  group: "orders" | "value" | "recency" | "profile" | "products" | "rfm" | "predictions" | "sampling" | "subscriptions";
   /**
    * Extra parameter on the condition: `option` (required) names a product option ("Size", "Taglia",
    * any name the catalog uses); `days` (optional) limits the field to the last N days.
@@ -78,6 +79,8 @@ export const SEGMENT_FIELDS: Record<string, SegmentFieldDef> = {
   dominant_option: { type: "enum", values: "dynamic", group: "products", param: "option" },
   /** Days since the last campaign message delivered to the customer (null: never messaged). */
   days_since_last_marketing: { type: "days", group: "recency" },
+  // addon.subscriptions (#67): defined in ./subscriptions, offered only with the add-on
+  ...SUBSCRIPTION_SEGMENT_FIELDS,
 };
 
 const extraFields: Record<string, SegmentFieldDef> = {};
@@ -209,6 +212,8 @@ export interface CustomerProfile {
   /** Option name → the value bought most units of (see `dominantOptionValues`). */
   dominantOptions?: Record<string, string>;
   daysSinceLastMarketing?: number | null;
+  /** addon.subscriptions (#67): the customer's subscription signals, when loaded. */
+  subscription?: SubscriberSignals | null;
 }
 
 export function profileValue(p: CustomerProfile, field: string, now: Date, leaf?: Pick<SegmentLeaf, "option" | "days">): unknown {
@@ -239,7 +244,7 @@ export function profileValue(p: CustomerProfile, field: string, now: Date, leaf?
     case "bought_category": return Object.entries(p.categoryLastDays ?? {}).filter(([, d]) => leaf?.days === undefined || d <= leaf.days).map(([c]) => c);
     case "dominant_option": return (leaf?.option !== undefined ? p.dominantOptions?.[leaf.option] : undefined) ?? null;
     case "days_since_last_marketing": return p.daysSinceLastMarketing ?? null;
-    default: { void now; return undefined; }
+    default: { void now; return field.startsWith("subscription_") ? subscriptionProfileValue(p.subscription, field) : undefined; }
   }
 }
 

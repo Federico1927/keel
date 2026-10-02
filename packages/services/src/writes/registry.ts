@@ -1,9 +1,11 @@
-import type { AdsPlatform, CommercePlatform, NormalizedProduct, ProductMediaOperation, ProductPatch, CreateOrderInput, FulfillmentHoldInput, ManualPaymentInput, NormalizedOrder, RefundOrderInput, OrderDetailsPatch, OrderDiscountPatch, PlatformReturnLineInput, VariantPatch, CreateFulfillmentInput, NormalizedFulfillment } from "@hullwise/integrations";
-import type { AdPlatform } from "@hullwise/core";
+import type { AdsPlatform, CommercePlatform, NormalizedSubscriptionContract, SubscriptionProvider, NormalizedProduct, ProductMediaOperation, ProductPatch, CreateOrderInput, FulfillmentHoldInput, ManualPaymentInput, NormalizedOrder, RefundOrderInput, OrderDetailsPatch, OrderDiscountPatch, PlatformReturnLineInput, VariantPatch, CreateFulfillmentInput, NormalizedFulfillment } from "@hullwise/integrations";
+import type { AdPlatform, SubscriptionInterval } from "@hullwise/core";
 import type { schema } from "@hullwise/db";
 import type { ServiceContext } from "../context";
 
-export type WriteProvider = "shopify" | AdPlatform;
+/** `subscriptions`: the tenant's subscription app (addon.subscriptions, #67). */
+export type WriteProvider = "shopify" | AdPlatform | "subscriptions";
+export type WriteAdapter = CommercePlatform | AdsPlatform | SubscriptionProvider;
 export type PlatformWriteRow = typeof schema.platformWrites.$inferSelect;
 export type PlatformWriteStatus = "pending" | "running" | "succeeded" | "failed" | "superseded";
 
@@ -64,6 +66,15 @@ export interface PlatformWriteKinds {
   "campaign.status": { payload: { provider: AdPlatform; campaignExternalId: string; status: "active" | "paused" }; result: void };
   "ad.status": { payload: { provider: AdPlatform; adExternalId: string; adSetExternalId: string | null; status: "active" | "paused" }; result: void };
   "keyword.negative": { payload: { provider: "google"; campaignExternalId: string; adSetExternalId: string | null; text: string; matchType: "exact" | "phrase" | "broad" }; result: { created: number } };
+  /* addon.subscriptions (#67): customer-care actions through the merchant's subscription app; each answers the contract afterwards. */
+  "subscription.pause": { payload: { contractExternalId: string; resumeAt?: string | null }; result: NormalizedSubscriptionContract };
+  "subscription.resume": { payload: { contractExternalId: string }; result: NormalizedSubscriptionContract };
+  "subscription.skip": { payload: { contractExternalId: string; nextBillingAt: string | null }; result: NormalizedSubscriptionContract };
+  "subscription.swap": { payload: { contractExternalId: string; lineExternalId: string; variantExternalId: string; quantity?: number }; result: NormalizedSubscriptionContract };
+  "subscription.frequency": { payload: { contractExternalId: string; unit: SubscriptionInterval; count: number }; result: NormalizedSubscriptionContract };
+  "subscription.reschedule": { payload: { contractExternalId: string; nextBillingAt: string }; result: NormalizedSubscriptionContract };
+  "subscription.cancel": { payload: { contractExternalId: string; reason: string; note?: string | null }; result: NormalizedSubscriptionContract };
+  "subscription.payment_link": { payload: { contractExternalId: string }; result: { sent: boolean } };
 }
 export type PlatformWriteKind = keyof PlatformWriteKinds;
 export type WritePayload<K extends PlatformWriteKind> = PlatformWriteKinds[K]["payload"];
@@ -75,7 +86,7 @@ export interface WriteHandler<K extends PlatformWriteKind = PlatformWriteKind> {
   target(payload: WritePayload<K>): string;
   /** Absolute values (a price, a status, a stock level): only the last one matters. Partial patches and one-shot actions keep every write. */
   supersedes: boolean;
-  execute(adapter: CommercePlatform | AdsPlatform, payload: WritePayload<K>): Promise<WriteResult<K>>;
+  execute(adapter: WriteAdapter, payload: WritePayload<K>): Promise<WriteResult<K>>;
   /** Local follow-up once the platform accepted the write (store the external id…), in the same transaction as the status. */
   onSuccess?(ctx: ServiceContext, write: PlatformWriteRow, result: WriteResult<K>): Promise<void>;
   /** Rebuilds a stored JSON result (dates) when a synchronous write is answered from the outbox. */
@@ -93,14 +104,24 @@ interface AdsDef<K extends PlatformWriteKind> extends Omit<WriteHandler<K>, "exe
   execute(platform: AdsPlatform, payload: WritePayload<K>): Promise<WriteResult<K>>;
 }
 
+interface SubscriptionDef<K extends PlatformWriteKind> extends Omit<WriteHandler<K>, "provider" | "execute" | "supersedes"> {
+  supersedes?: boolean;
+  execute(provider: SubscriptionProvider, payload: WritePayload<K>): Promise<WriteResult<K>>;
+}
+
+/** Registers a write executed through the tenant's subscription app (addon.subscriptions). */
+export function defineSubscriptionWrite<K extends PlatformWriteKind>(kind: K, def: SubscriptionDef<K>): void {
+  registry.set(kind, { ...def, supersedes: def.supersedes ?? false, provider: () => "subscriptions", execute: (a: WriteAdapter, p: WritePayload<K>) => def.execute(a as SubscriptionProvider, p) } as unknown as WriteHandler);
+}
+
 /** Registers a write executed through the tenant's `CommercePlatform` (Shopify or its mock). */
 export function defineCommerceWrite<K extends PlatformWriteKind>(kind: K, def: CommerceDef<K>): void {
-  registry.set(kind, { ...def, supersedes: def.supersedes ?? false, provider: () => "shopify", execute: (a: CommercePlatform | AdsPlatform, p: WritePayload<K>) => def.execute(a as CommercePlatform, p) } as unknown as WriteHandler);
+  registry.set(kind, { ...def, supersedes: def.supersedes ?? false, provider: () => "shopify", execute: (a: WriteAdapter, p: WritePayload<K>) => def.execute(a as CommercePlatform, p) } as unknown as WriteHandler);
 }
 
 /** Registers a write executed through an `AdsPlatform` (Meta or Google, chosen by the payload). */
 export function defineAdsWrite<K extends PlatformWriteKind>(kind: K, def: AdsDef<K>): void {
-  registry.set(kind, { ...def, supersedes: def.supersedes ?? false, execute: (a: CommercePlatform | AdsPlatform, p: WritePayload<K>) => def.execute(a as AdsPlatform, p) } as unknown as WriteHandler);
+  registry.set(kind, { ...def, supersedes: def.supersedes ?? false, execute: (a: WriteAdapter, p: WritePayload<K>) => def.execute(a as AdsPlatform, p) } as unknown as WriteHandler);
 }
 
 export function writeHandler<K extends PlatformWriteKind>(kind: K | string): WriteHandler<K> | undefined {
