@@ -9,6 +9,7 @@ import { and, eq, schema } from "@hullwise/db";
 import { requirePage } from "@/server/tenant";
 import { analyticsTenant } from "@/server/dashboards";
 import { ProviderControls } from "./controls";
+import { subscriptionSetups } from "@/server/integration-setup";
 import { MrrMovementChart } from "./mrr-chart";
 import { SubscriptionTabs, isoDay, svcOf } from "./shared";
 
@@ -127,7 +128,7 @@ export default async function SubscriptionsOverviewPage({ params, searchParams }
                       <dt className="text-muted-foreground">{t("provider.last_error")}</dt><dd className={integration.lastError ?? health?.lastError ? "text-destructive" : ""}>{integration.lastError ?? health?.lastError ?? "—"}</dd>
                     </dl>
                   )}
-                  <ProviderControls slug={tenant} connected={connected} mock={mock} provider={integration?.provider ?? null} canManage={canDo(ctx.role, "manage_integrations")} />
+                  <ProviderControls slug={tenant} connected={connected} mock={mock} provider={integration?.provider ?? null} canManage={canDo(ctx.role, "manage_integrations")} setups={subscriptionSetups(ctx.tenant.id, tenant)} />
                   <p className="text-xs"><Link href={`/t/${tenant}/integrations/guide/subscriptions`} className="underline-offset-4 hover:underline">{t("provider.guide")}</Link></p>
                 </CardContent>
               </Card>

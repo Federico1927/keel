@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { startTransition, type FormEvent, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import type { IntegrationSetupGuide } from "@hullwise/config";
 import { Alert, AlertDescription, Badge, Input, Label, cn } from "@hullwise/ui";
@@ -77,9 +77,38 @@ export function IntegrationSetupFields({ guide, idPrefix }: { guide: Integration
       {(guide.fields ?? []).map((f) => (
         <div key={f.name} className="space-y-1">
           <Label htmlFor={`${prefix}-${f.name}`}>{t(f.labelKey)}</Label>
-          <Input id={`${prefix}-${f.name}`} name={f.name} type={f.secret ? "password" : "text"} placeholder={f.placeholder} autoComplete="off" required minLength={f.minLength} maxLength={f.maxLength} />
+          <Input id={`${prefix}-${f.name}`} name={f.name} type={f.secret ? "password" : "text"} placeholder={f.placeholder} autoComplete="off" required={!f.optional} minLength={f.minLength} maxLength={f.maxLength} />
         </div>
       ))}
     </>
+  );
+}
+
+/** Submits through the action without React's automatic form reset, so a failed connect keeps what the merchant typed. */
+export const keepValues = (action: (fd: FormData) => void) => (e: FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  const fd = new FormData(e.currentTarget);
+  startTransition(() => action(fd));
+};
+
+/** The verification step's outcome: what the adapter found after a connect or a successful test (`verifiedKey`, filled with the facts). */
+export function IntegrationSetupVerified({ guide, facts }: { guide: IntegrationSetupGuide; facts: Record<string, string | number> | null | undefined }) {
+  const t = useTranslations(guide.namespace);
+  const tc = useTranslations("integration_setup.common");
+  return (
+    <Alert data-testid="setup-verified" data-provider={guide.provider}>
+      <AlertDescription className="[overflow-wrap:anywhere]">{facts && guide.verifiedKey ? t(guide.verifiedKey, facts) : tc("connected")}</AlertDescription>
+    </Alert>
+  );
+}
+
+/** The guide's plain notes (vendor limits, paths not built yet). */
+export function IntegrationSetupNotes({ guide }: { guide: IntegrationSetupGuide }) {
+  const t = useTranslations(guide.namespace);
+  if (!guide.noteKeys?.length) return null;
+  return (
+    <ul className="space-y-1 text-xs text-muted-foreground" data-testid="setup-notes">
+      {guide.noteKeys.map((k) => <li key={k} className="rounded-md border border-dashed p-2">{t(k)}</li>)}
+    </ul>
   );
 }

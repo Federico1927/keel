@@ -14,12 +14,15 @@ test.describe("GA4", () => {
     await expect(card).toBeVisible();
     await expect(card.getByTestId("ga4-status")).toHaveText(/^Connected$|^Collegata$|^Collegato$/);
     await expect(card).toContainText("312456789");
-    await expect(card.getByTestId("ga4-last-day")).not.toHaveText("—");
     await card.getByTestId("ga4-test").click();
-    await expect(card.getByTestId("ga4-msg")).toContainText(/Connection OK|Connessione OK/);
-    await card.getByTestId("ga4-properties").click();
-    await expect(card.getByTestId("ga4-property-picker").locator("option")).toHaveCount(2);
+    await expect(card.getByTestId("msg-ga4")).toContainText(/Connection OK|Connessione OK/);
     await expect(card.locator('a[href$="/integrations/guide/ga4"]')).toBeVisible();
+    // the last day read and the property picker are in the Manage sheet (#90)
+    await card.getByTestId("ga4-manage").click();
+    const sheet = page.getByTestId("integration-sheet");
+    await expect(sheet.getByTestId("ga4-last-day")).not.toHaveText("—");
+    await sheet.getByTestId("ga4-properties").click();
+    await expect(sheet.getByTestId("ga4-property-picker").locator("option")).toHaveCount(2);
   });
 
   test("Northwind: conversion rate by channel links to the orders and to the GA4 rows", async ({ page }) => {
@@ -67,12 +70,14 @@ test.describe("GA4", () => {
     await page.getByTestId("ga4-empty-cta").click();
     const card = page.getByTestId("provider-ga4");
     await expect(card.getByTestId("ga4-status")).toHaveText(/^Not connected$/);
-    await expect(card.getByTestId("setup-step")).toHaveCount(6);
-    await expect(card.getByTestId("setup-copy-serviceAccountEmail")).toHaveText(/@.+\.iam\.gserviceaccount\.com$/);
-    await card.getByTestId("ga4-setup-property").fill("111111111");
-    await card.getByTestId("ga4-setup-connect").click();
-    await expect(card.getByTestId("setup-error")).toHaveAttribute("data-code", "no_access");
-    await expect(card.getByTestId("setup-error")).toContainText(/No access to this property/);
+    // the call to action opens the GA4 setup sheet (#90)
+    const sheet = page.getByTestId("integration-sheet");
+    await expect(sheet.getByTestId("setup-step")).toHaveCount(6);
+    await expect(sheet.getByTestId("setup-copy-serviceAccountEmail")).toHaveText(/@.+\.iam\.gserviceaccount\.com$/);
+    await sheet.getByTestId("ga4-setup-property").fill("111111111");
+    await sheet.getByTestId("ga4-setup-connect").click();
+    await expect(sheet.getByTestId("setup-error")).toHaveAttribute("data-code", "no_access");
+    await expect(sheet.getByTestId("setup-error")).toContainText(/No access to this property/);
     await expect(card.getByTestId("ga4-status")).toHaveText(/^Not connected$/);
     await page.goto("/t/harbor-home/integrations/guide/ga4");
     await expect(page.getByTestId("guide-step")).toHaveCount(9);

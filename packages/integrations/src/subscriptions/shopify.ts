@@ -1,5 +1,5 @@
 import type { SubscriptionCapabilities, SubscriptionInterval, SubscriptionStatus } from "@hullwise/core";
-import { IntegrationError, type ConnectionTest, type Page, type SyncQuery } from "../types";
+import { IntegrationError, type ConnectionTest, type Page, type SyncQuery, failedConnection } from "../types";
 import type { HttpOptions } from "../http";
 import { ShopifyCommercePlatform, type ShopifyCredentials } from "../shopify/adapter";
 import { verifyWebhookHmac } from "../shopify/oauth";
@@ -104,7 +104,7 @@ export class ShopifySubscriptionProvider implements SubscriptionProvider {
       const missing = SUBSCRIPTION_SCOPES.shopify_subscriptions.slice(0, 2).filter((s) => !scopes.includes(s));
       return { ok: missing.length === 0, accountName: d.shop.name, accountId: idOf(d.shop.id), scopes, missingScopes: missing, error: missing.length ? `Missing scopes: ${missing.join(", ")}` : undefined };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : String(e) };
+      return failedConnection(e);
     }
   }
 

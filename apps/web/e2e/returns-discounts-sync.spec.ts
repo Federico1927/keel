@@ -59,6 +59,8 @@ test.describe("discount pools and platform returns (issue #35)", () => {
   test("a return opened on the store arrives by webhook and appears in the returns list", async ({ page }) => {
     await login(page, "owner@northwind.demo");
     await page.goto("/t/northwind-apparel/integrations");
+    // mock-only simulations are in the card's "…" menu (#90)
+    await page.getByTestId("shopify-simulate-menu").click();
     await page.getByTestId("simulate-return").click();
     await expect(page.getByTestId("msg-shopify")).toContainText(/HTTP 200/);
     const orderName = /(#[A-Z0-9-]+)/.exec((await page.getByTestId("msg-shopify").textContent()) ?? "")?.[1];

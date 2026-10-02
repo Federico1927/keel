@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { PRODUCT_NAME, apiEndpoint, canDo, isAdPlatformInPlan, isAnalyticsPlatformInPlan, isPageEnabled, appUrl, integrationSetup } from "@hullwise/config";
+import { PRODUCT_NAME, SUBSCRIPTION_SETUPS, apiEndpoint, canDo, isAdPlatformInPlan, isAnalyticsPlatformInPlan, isPageEnabled, appUrl, integrationSetup, type IntegrationSetupGuide } from "@hullwise/config";
 import { SPOKI_MODULE } from "@hullwise/addon-spoki";
 import { ACCOUNTING_ADDON } from "@hullwise/services";
 import { ADS_UTM_TEMPLATES } from "@hullwise/core";
@@ -10,7 +10,7 @@ import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageH
 import { requirePage } from "@/server/tenant";
 import { spokiWebhookUrl } from "@/server/spoki-webhook";
 import { resolveSetupValues } from "@/server/integration-setup";
-import { IntegrationSetupChecklist } from "@/components/integration-setup";
+import { IntegrationSetupChecklist, IntegrationSetupNotes } from "@/components/integration-setup";
 
 /** One guide per activation: the platforms (TikTok when the plan includes it), then the external providers and tracking; last, the platform email sender (super-admins only: tenants configure nothing). */
 const PROVIDERS = ["shopify", "meta", "google", "tiktok", "ga4", "anthropic", "address", "subscriptions", "tracking", "survey", "email"] as const;
@@ -42,6 +42,7 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
   if (p === "subscriptions" && !subscriptions) notFound();
   const t = await getTranslations("integration_guide");
   const ti = await getTranslations("integrations");
+  const tsc = await getTranslations("integration_setup.common");
   const steps = t.raw(`${p}.steps`) as Step[];
   const errors = t.raw(`${p}.errors`) as { symptom: string; fix: string }[];
   const base = `/t/${tenant}/integrations`;
@@ -52,11 +53,9 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
   const subscriptionsWebhookUrl = apiEndpoint(`/webhooks/subscriptions/${ctx.tenant.id}`);
   // `{product}` keeps the product name out of the texts (one constant, PRODUCT_NAME)
   const product = { product: PRODUCT_NAME };
-  // self-serve setup (#89): the same definition and copyable values as the integrations card
-  // only guides of a self-serve connect flow (credential fields); GA4's card resolves its own values
-  const found = integrationSetup(p);
-  const setup = found?.fields?.length ? found : null;
-  const setupValues = setup ? resolveSetupValues(setup) : {};
+  // self-serve setup (#89, #90): the same definitions and copyable values as the integrations cards
+  const setups = (p === "subscriptions" ? Object.values(SUBSCRIPTION_SETUPS) : [integrationSetup(p)]).filter((g): g is IntegrationSetupGuide => !!g);
+  const valueContext = { tenantId: ctx.tenant.id, canSeeSecrets: canDo(ctx.role, "manage_integrations") };
   const fill = (body: string) => body.replaceAll("{product}", PRODUCT_NAME).replace("{redirectUrl}", apiEndpoint("/integrations/shopify/oauth/callback")).replace("{appUrl}", appUrl()).replace("{complianceUrl}", apiEndpoint("/webhooks/shopify/compliance")).replace("{webhookUrl}", webhookUrl).replace("{emailWebhookUrl}", emailWebhookUrl).replace("{callbackUrl}", tiktokCallbackUrl).replace("{subscriptionsWebhookUrl}", subscriptionsWebhookUrl).replace("{utmTemplate}", ADS_UTM_TEMPLATES.tiktok).replace("{apiVersion}", p === "tiktok" ? TIKTOK_API_VERSION : GOOGLE_ADS_API_VERSION);
   return (
     <>
@@ -77,12 +76,14 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
       </nav>
       {adHoc && <p className="mb-4 rounded-md border bg-muted/40 p-3 text-sm" data-testid="ad-hoc-notice">{t("ad_hoc_notice", product)}</p>}
       <p className="mb-4 text-xs text-muted-foreground">{t("verify_legend")}</p>
-      {setup && (
-        <section className="mb-6 max-w-3xl" data-testid="guide-setup">
-          <h2 className="mb-3 text-base font-semibold">{t(`${p}.setup_title`)}</h2>
-          <IntegrationSetupChecklist guide={setup} values={setupValues} variant="guide" testId={`${setup.provider}-guide-setup`} />
+      {setups.map((setup) => (
+        <section key={setup.provider} className="mb-6 max-w-3xl space-y-3" data-testid="guide-setup" data-provider={setup.provider}>
+          <h2 className="text-base font-semibold">{setups.length > 1 ? tsc("setup_title_of", { name: ti(`providers.${setup.provider}`) }) : tsc("setup_title")}</h2>
+          <IntegrationSetupChecklist guide={setup} values={resolveSetupValues(setup, valueContext)} variant="guide" testId={`${setup.provider}-guide-setup`} />
+          <IntegrationSetupNotes guide={setup} />
+          {setup.ownerEnv && <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground" data-testid="guide-owner-prerequisite">{tsc("owner_prerequisite", { product: PRODUCT_NAME })}</p>}
         </section>
-      )}
+      ))}
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <ol className="min-w-0 space-y-3 [overflow-wrap:anywhere]">
           {steps.map((s, i) => (

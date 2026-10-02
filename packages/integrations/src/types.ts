@@ -736,6 +736,11 @@ export interface CarrierProvider {
   sendInstruction(input: CarrierInstruction): Promise<{ reference: string }>;
 }
 
+/** A failed connection test with the adapter's error code when it has one (the setup checklists explain it in plain words). */
+export function failedConnection(e: unknown): ConnectionTest {
+  return { ok: false, error: e instanceof Error ? e.message : String(e), ...(e instanceof IntegrationError ? { errorCode: e.code } : {}) };
+}
+
 export class IntegrationError extends Error {
   constructor(
     public readonly code: "rate_limited" | "token_expired" | "permission" | "invalid_request" | "not_found" | "unsupported" | "network" | "unknown",

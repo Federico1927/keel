@@ -4,9 +4,10 @@ import { z } from "zod";
 import { canDo, canWritePage } from "@hullwise/config";
 import { and, eq, recordAudit, schema } from "@hullwise/db";
 import { SUBSCRIPTION_ACTIONS, SUBSCRIPTION_INTERVALS } from "@hullwise/core";
-import { IntegrationError, SUBSCRIPTION_PROVIDERS, encryptJson, integrationMode, type ConnectionTest } from "@hullwise/integrations";
+import { IntegrationError, failedConnection, setupErrorOfTest, type ConnectionTest } from "@hullwise/integrations";
 import { SubscriptionActionError, addSubscriptionNote, assignSubscription, getSubscriptionProviderFor, mockSubscriptionsFor, refreshSubscriberRisk, runSubscriptionSync, saveCancellationReason, subscriptionAction } from "@hullwise/services";
 import { auditActor } from "@/server/audit-actor";
+import { verifySetup, type SetupFacts } from "@/server/integration-verify";
 import { ForbiddenError, requirePage, requireWrite, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 
@@ -101,17 +102,18 @@ async function requireManage(slug: string) {
   return ctx;
 }
 
-export async function testSubscriptionProviderAction(slug: string): Promise<ActionResult<ConnectionTest>> {
+/** Test connection: the subscriptions found, or the plain-words reason and its fix (#90). */
+export async function testSubscriptionProviderAction(slug: string): Promise<ActionResult<ConnectionTest & { provider?: string; setup?: string | null; verification?: SetupFacts | null }>> {
   try {
     const ctx = await requireManage(slug);
     const result = await ctx.run(async (tx) => {
       const s = svc(ctx, tx);
       const provider = await getSubscriptionProviderFor(s);
       if (!provider) return { ok: false, error: "not connected" } satisfies ConnectionTest;
-      const test = await provider.testConnection().catch((e: unknown) => ({ ok: false, error: e instanceof Error ? e.message : String(e) }) as ConnectionTest);
+      const test = await provider.testConnection().catch(failedConnection);
       await tx.update(schema.integrations).set(test.ok ? { lastSuccessAt: new Date(), lastError: null, status: "connected", updatedAt: new Date() } : { lastError: test.error ?? "connection failed", status: "error", updatedAt: new Date() }).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, provider.provider)));
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.tested", entityType: "integration", entityId: provider.provider, diff: { ok: { from: null, to: test.ok } } });
-      return test;
+      return { ...test, provider: provider.provider, setup: test.ok ? null : setupErrorOfTest(provider.provider, test), verification: test.ok ? await verifySetup(provider.provider, s, ctx.tenant) : null };
     });
     revalidate(slug);
     revalidatePath(`/t/${slug}/integrations`);
@@ -138,33 +140,6 @@ export async function resyncSubscriptionsAction(slug: string): Promise<ActionRes
     revalidate(slug);
     revalidatePath(`/t/${slug}/integrations`);
     return ok({ summary: r.error ?? `contracts:${r.contracts} attempts:${r.attempts} changed:${r.changed}`, finished: r.finished });
-  } catch (e) {
-    return handle(e);
-  }
-}
-
-const connectSchema = z.object({ provider: z.enum(SUBSCRIPTION_PROVIDERS), apiToken: z.string().trim().max(400).optional(), webhookSecret: z.string().trim().max(400).optional() });
-/**
- * Connects the subscription app. Mock mode marks it connected with the simulator; live mode stores the
- * provider's token encrypted (Shopify Subscriptions reuses the Shopify connection) after a test call.
- */
-export async function connectSubscriptionProviderAction(slug: string, input: z.input<typeof connectSchema>): Promise<ActionResult> {
-  try {
-    const parsed = connectSchema.safeParse(input);
-    if (!parsed.success) return fail("invalid_input");
-    const ctx = await requireManage(slug);
-    const live = integrationMode() === "live" && parsed.data.provider !== "shopify_subscriptions";
-    if (live && (!parsed.data.apiToken || !parsed.data.webhookSecret)) return fail("invalid_input");
-    await ctx.run(async (tx) => {
-      // one subscription app per store: connecting another disconnects the previous one
-      for (const other of SUBSCRIPTION_PROVIDERS.filter((x) => x !== parsed.data.provider)) await tx.update(schema.integrations).set({ status: "not_connected", credentialsEncrypted: null, updatedAt: new Date() }).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, other)));
-      const values = { status: "connected", mode: live ? "live" : "mock", externalAccountName: null, credentialsEncrypted: live ? encryptJson({ apiToken: parsed.data.apiToken, webhookSecret: parsed.data.webhookSecret }) : null, lastError: null, updatedAt: new Date() };
-      await tx.insert(schema.integrations).values({ tenantId: ctx.tenant.id, provider: parsed.data.provider, ...values }).onConflictDoUpdate({ target: [schema.integrations.tenantId, schema.integrations.provider], set: values });
-      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.connected", entityType: "integration", entityId: parsed.data.provider, diff: { status: { from: null, to: "connected" }, mode: { from: null, to: values.mode } } });
-    });
-    revalidate(slug);
-    revalidatePath(`/t/${slug}/integrations`);
-    return ok();
   } catch (e) {
     return handle(e);
   }

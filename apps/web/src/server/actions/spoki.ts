@@ -2,13 +2,14 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, eq, recordAudit, schema } from "@hullwise/db";
-import { MockSpokiChannel, SpokiChannel, encryptJson, integrationMode, type ConnectionTest, type SpokiDeliveryStatus } from "@hullwise/integrations";
+import { MockSpokiChannel, failedConnection, integrationMode, setupErrorOfTest, type ConnectionTest, type SpokiDeliveryStatus } from "@hullwise/integrations";
 import { SpokiError, getSpokiApiFor, saveSpokiSettings, syncSpokiTemplates } from "@hullwise/addon-spoki";
 import { getCodSettings, saveCodSettings, parseTagList } from "@hullwise/addon-cod";
 import { handleSpokiEvent } from "@hullwise/jobs";
 import { ORDER_MESSAGE_EVENTS } from "@hullwise/core";
 import { auditActor } from "@/server/audit-actor";
 import { spokiWebhookUrl } from "@/server/spoki-webhook";
+import { verifySetup, type SetupFacts } from "@/server/integration-verify";
 import { ForbiddenError, requireAction, requireWrite, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 
@@ -76,50 +77,6 @@ export async function saveCodRepliesAction(slug: string, _prev: ActionResult | n
   }
 }
 
-async function upsertIntegration(ctx: TenantContext, values: { mode: string; externalAccountId: string; externalAccountName: string; credentialsEncrypted: string | null }, diff: Record<string, unknown>) {
-  await ctx.run(async (tx) => {
-    const now = new Date();
-    const row = { status: "connected", ...values, config: { webhookUrl: spokiWebhookUrl(ctx.tenant.id) }, lastError: null, lastSuccessAt: now, updatedAt: now };
-    await tx.insert(schema.integrations).values({ tenantId: ctx.tenant.id, provider: "spoki", ...row }).onConflictDoUpdate({ target: [schema.integrations.tenantId, schema.integrations.provider], set: row });
-    await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.connected", entityType: "integration", entityId: "spoki", diff });
-    const s = svc(ctx, tx);
-    const api = await getSpokiApiFor(s);
-    if (api) await syncSpokiTemplates(s, api).catch(() => undefined);
-  });
-}
-
-const connectSchema = z.object({ apiKey: z.string().trim().min(16).max(200) });
-/** Live connection with the store's Spoki API key: tested with one template page, stored encrypted (AES-GCM), templates read. */
-export async function connectSpokiAction(slug: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
-  try {
-    const ctx = await requireManage(slug);
-    const parsed = connectSchema.safeParse(Object.fromEntries(formData.entries()));
-    if (!parsed.success) return fail("invalid_input");
-    if (integrationMode() !== "live") return fail("mock_mode");
-    const test = await new SpokiChannel({ apiKey: parsed.data.apiKey }).testConnection();
-    if (!test.ok) return fail("connection_failed", { platform: test.error ?? "" });
-    await upsertIntegration(ctx, { mode: "live", externalAccountId: "spoki", externalAccountName: test.accountName ?? "Spoki", credentialsEncrypted: encryptJson({ apiKey: parsed.data.apiKey }) }, { status: { from: null, to: "connected" }, mode: { from: null, to: "live" } });
-    paths(slug);
-    return ok();
-  } catch (e) {
-    return handle(e);
-  }
-}
-
-/** Mock mode: connects the simulated Spoki account (records sends, approved demo templates). */
-export async function connectSpokiMockAction(slug: string): Promise<ActionResult> {
-  try {
-    const ctx = await requireManage(slug);
-    const [row] = await ctx.run((tx) => tx.select().from(schema.integrations).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, "spoki"))).limit(1));
-    if (integrationMode() === "live" && row?.mode === "live" && row.status !== "not_connected") return fail("live_mode");
-    await upsertIntegration(ctx, { mode: "mock", externalAccountId: "spoki-mock", externalAccountName: "Simulated Spoki account", credentialsEncrypted: null }, { status: { from: row?.status ?? null, to: "connected" }, mode: { from: row?.mode ?? null, to: "mock" } });
-    paths(slug);
-    return ok();
-  } catch (e) {
-    return handle(e);
-  }
-}
-
 export async function disconnectSpokiAction(slug: string): Promise<ActionResult> {
   try {
     const ctx = await requireManage(slug);
@@ -134,16 +91,17 @@ export async function disconnectSpokiAction(slug: string): Promise<ActionResult>
   }
 }
 
-export async function testSpokiAction(slug: string): Promise<ActionResult<ConnectionTest>> {
+/** Test connection: what the account holds (templates) or the plain-words reason and its fix (#90). */
+export async function testSpokiAction(slug: string): Promise<ActionResult<ConnectionTest & { setup?: string | null; verification?: SetupFacts | null }>> {
   try {
     const ctx = await requireManage(slug);
     const r = await ctx.run(async (tx) => {
       const api = await getSpokiApiFor(svc(ctx, tx));
       if (!api) return { ok: false, error: "not connected" } satisfies ConnectionTest;
-      const test = await api.testConnection().catch((e: unknown) => ({ ok: false, error: e instanceof Error ? e.message : String(e) }) as ConnectionTest);
+      const test = await api.testConnection().catch(failedConnection);
       await tx.update(schema.integrations).set(test.ok ? { lastSuccessAt: new Date(), lastError: null, status: "connected", updatedAt: new Date() } : { lastError: test.error ?? "connection failed", status: "error", updatedAt: new Date() }).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, "spoki")));
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.tested", entityType: "integration", entityId: "spoki", diff: { ok: { from: null, to: test.ok } } });
-      return test;
+      return { ...test, setup: test.ok ? null : setupErrorOfTest("spoki", test), verification: test.ok ? await verifySetup("spoki", svc(ctx, tx), ctx.tenant) : null };
     });
     paths(slug);
     return ok(r);

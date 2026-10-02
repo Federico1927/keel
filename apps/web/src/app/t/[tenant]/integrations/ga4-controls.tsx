@@ -4,9 +4,9 @@ import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { GA4_SETUP } from "@hullwise/config";
 import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Textarea, cn } from "@hullwise/ui";
-import { connectGa4, connectGa4Mock, connectGa4Property, disconnectGa4, listGa4Properties, resyncGa4, setGa4Property, testGa4 } from "@/server/actions/ga4";
+import { connectGa4, connectGa4Mock, connectGa4Property, listGa4Properties, setGa4Property } from "@/server/actions/ga4";
 import type { ActionResult } from "@/server/action-result";
-import { IntegrationSetupChecklist, IntegrationSetupError } from "@/components/integration-setup";
+import { IntegrationSetupChecklist, IntegrationSetupError, IntegrationSetupVerified } from "@/components/integration-setup";
 
 type Msg = { tone: "ok" | "err"; text: string } | null;
 
@@ -14,9 +14,9 @@ type Msg = { tone: "ok" | "err"; text: string } | null;
 const setupOf = (r: ActionResult<unknown> | null) => (r && !r.ok && r.error === "ga4_setup" ? { code: r.fieldErrors?.setup ?? "unknown", detail: r.fieldErrors?.platform ?? null } : null);
 
 /**
- * Actions of the GA4 card (#86). Not connected: the self-setup checklist (add the platform's reader
+ * The GA4 sheet's setup (#86, #90). Not connected: the self-setup checklist (add the platform's reader
  * e-mail as Viewer, paste the property id, connect), the simulated property in mock mode, and the
- * advanced path with the store's own service account or OAuth. Connected: test, resync, property picker, disconnect.
+ * advanced path with the store's own service account or OAuth. Connected: the property picker.
  */
 export function Ga4Controls({ slug, connected, mock, canManage, propertyId, email, demoPropertyId }: { slug: string; connected: boolean; mock: boolean; canManage: boolean; propertyId: string | null; email: string | null; demoPropertyId: string | null }) {
   const t = useTranslations("ga4.card");
@@ -67,7 +67,7 @@ export function Ga4Controls({ slug, connected, mock, canManage, propertyId, emai
               />
               {connectSetup && <IntegrationSetupError guide={GA4_SETUP} code={connectSetup.code} values={values} detail={connectSetup.detail} />}
               {connectState && !connectState.ok && !connectSetup && <p className="text-xs text-destructive">{error(connectState)}</p>}
-              {connectState?.ok && <p className="text-sm text-success">{ti("connected_ok")}</p>}
+              {connectState?.ok && <IntegrationSetupVerified guide={GA4_SETUP} facts={connectState.data?.verification} />}
               <Button type="submit" size="sm" disabled={connecting} data-testid="ga4-setup-connect">{ts("connect")}</Button>
             </form>
           ) : <p className="text-xs text-warning" data-testid="ga4-not-configured">{ts("not_configured")}</p>}
@@ -75,14 +75,8 @@ export function Ga4Controls({ slug, connected, mock, canManage, propertyId, emai
       )}
       <div className="flex flex-wrap gap-2">
         {!connected && mock && <Button size="sm" variant="outline" disabled={pending} data-testid="ga4-connect-mock" onClick={() => start(async () => { const r = await connectGa4Mock(slug); say(r, r.ok ? t(r.data?.finished ? "backfill_done" : "backfill_running", { n: r.data?.rows ?? 0 }) : ""); })}>{t("connect_mock")}</Button>}
-        {connected && (
-          <>
-            <Button size="sm" variant="outline" disabled={pending} data-testid="ga4-test" onClick={() => start(async () => { const r = await testGa4(slug); setSetupError(r.ok && r.data && !r.data.ok ? { code: r.data.setup ?? "unknown", detail: r.data.error ?? null } : null); setMsg(r.ok && r.data?.ok ? { tone: "ok", text: ti("test_ok", { account: r.data.accountName ?? "" }) } : r.ok ? null : { tone: "err", text: error(r) }); router.refresh(); })}>{ti("test_connection")}</Button>
-            <Button size="sm" variant="outline" disabled={pending} data-testid="ga4-resync" onClick={() => start(async () => { const r = await resyncGa4(slug); say(r, r.ok ? (r.data?.queued ? t("resync_queued") : t(r.data?.finished ? "resync_done" : "backfill_running", { n: r.data?.rows ?? 0 })) : ""); })}>{ti("resync")}</Button>
-            <Button size="sm" variant="outline" disabled={pending} data-testid="ga4-properties" onClick={() => start(async () => { const r = await listGa4Properties(slug); if (r.ok) setProperties(r.data ?? []); else say(r, ""); })}>{t("choose_property")}</Button>
-            <Button size="sm" variant="ghost" disabled={pending} onClick={() => { if (window.confirm(t("disconnect_confirm"))) start(async () => say(await disconnectGa4(slug), t("disconnected"))); }}>{ti("disconnect")}</Button>
-          </>
-        )}
+        {/* Test connection is on the card, Resync and Disconnect in the sheet's status (#90) */}
+        {connected && <Button size="sm" variant="outline" disabled={pending} data-testid="ga4-properties" onClick={() => start(async () => { const r = await listGa4Properties(slug); if (r.ok) setProperties(r.data ?? []); else say(r, ""); })}>{t("choose_property")}</Button>}
         <Button size="sm" variant="ghost" disabled={pending} onClick={() => setShowAdvanced((v) => !v)} aria-expanded={showAdvanced} data-testid="ga4-advanced">{ts("advanced")}</Button>
       </div>
       {properties && (

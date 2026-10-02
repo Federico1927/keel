@@ -1,6 +1,6 @@
 import { normalizeAddress, validateAddressFormat } from "@hullwise/core";
 import { HttpClient, type HttpOptions } from "../http";
-import { IntegrationError, type Address, type AddressProvider, type AddressSuggestion, type AddressValidation, type ConnectionTest } from "../types";
+import { IntegrationError, type Address, type AddressProvider, type AddressSuggestion, type AddressValidation, type ConnectionTest, failedConnection } from "../types";
 
 /**
  * Live address provider on Google Maps Platform (issue #7): validation with the Address
@@ -115,9 +115,10 @@ export function mapGooglePlace(place: PlaceDetails, fallbackCountry: string | nu
 /** Google's error bodies → Hullwise's codes; a rejected key reads as expired credentials. */
 function mapError(e: unknown): never {
   if (e instanceof IntegrationError) {
-    if (/API_KEY_INVALID|API key not valid|API_KEY_.*_BLOCKED/i.test(e.message)) throw new IntegrationError("token_expired", "Google rejected the API key (invalid, deleted or restricted)");
-    if (/SERVICE_DISABLED|has not been used in project|is disabled/i.test(e.message)) throw new IntegrationError("permission", "The Address Validation API or Places API (New) is not enabled on the Google Cloud project");
-    if (/BILLING_DISABLED|billing/i.test(e.message) && e.code === "permission") throw new IntegrationError("permission", "Billing is not enabled on the Google Cloud project");
+    if (/API_KEY_INVALID|API key not valid/i.test(e.message)) throw new IntegrationError("token_expired", "Google rejected the API key (invalid or deleted)");
+    if (/API_KEY_\w*_BLOCKED|are blocked/i.test(e.message)) throw new IntegrationError("permission", "Google rejected the API key: it is restricted (API_KEY_SERVICE_BLOCKED or an application restriction) and does not allow this API from a server");
+    if (/BILLING_DISABLED|billing/i.test(e.message) && e.code === "permission") throw new IntegrationError("permission", "Billing is not enabled on the Google Cloud project (BILLING_DISABLED)");
+    if (/SERVICE_DISABLED|has not been used in project|is disabled/i.test(e.message)) throw new IntegrationError("permission", "The Address Validation API or Places API (New) is not enabled on the Google Cloud project (SERVICE_DISABLED)");
     throw e;
   }
   throw new IntegrationError("unknown", e instanceof Error ? e.message : String(e));
@@ -149,7 +150,7 @@ export class GoogleAddressProvider implements AddressProvider {
       try {
         mapError(e);
       } catch (m) {
-        return { ok: false, error: m instanceof Error ? m.message : String(m) };
+        return failedConnection(m);
       }
     }
   }

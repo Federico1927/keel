@@ -14,7 +14,9 @@ test.describe("integrations", () => {
     await shopify.getByRole("button", { name: /Test connection|Testa connessione/ }).click();
     await expect(page.getByTestId("msg-shopify")).toContainText(/Connection OK|Connessione OK/);
 
-    await shopify.getByRole("button", { name: /Simulate order webhook|Simula webhook ordine/ }).click();
+    // mock-only simulations are in the card's "…" menu (#90)
+    await shopify.getByTestId("shopify-simulate-menu").click();
+    await page.getByRole("menuitem", { name: /Simulate order webhook|Simula webhook ordine/ }).click();
     await expect(page.getByTestId("msg-shopify")).toContainText(/HTTP 200/);
     const text = await page.getByTestId("msg-shopify").textContent();
     const orderName = /(#[A-Z0-9-]+)/.exec(text ?? "")?.[1];
@@ -28,9 +30,12 @@ test.describe("integrations", () => {
     await expect(page.getByText(/Imported|Importato/).first()).toBeVisible();
 
     await page.goto("/t/northwind-apparel/integrations");
-    await page.getByTestId("provider-shopify").getByRole("button", { name: /Simulate bad signature|Simula firma errata/ }).click();
+    await page.getByTestId("provider-shopify").getByTestId("shopify-simulate-menu").click();
+    await page.getByRole("menuitem", { name: /Simulate bad signature|Simula firma errata/ }).click();
     await expect(page.getByTestId("msg-shopify")).toContainText(/HTTP 401/);
-    await page.getByTestId("provider-meta").getByRole("button", { name: /^Resync$|^Risincronizza$/ }).click();
+    // Resync is in the card's Manage sheet
+    await page.getByTestId("provider-meta").getByTestId("meta-manage").click();
+    await page.getByTestId("integration-sheet").getByRole("button", { name: /^Resync$|^Risincronizza$/ }).click();
     await expect(page.getByTestId("msg-meta")).toContainText(/Resync|Risincronizzazione/);
   });
 

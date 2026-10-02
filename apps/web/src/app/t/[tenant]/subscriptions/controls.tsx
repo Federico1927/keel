@@ -5,7 +5,10 @@ import { useTranslations } from "next-intl";
 import { Alert, AlertDescription, Button, Checkbox, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select, Textarea } from "@hullwise/ui";
 import type { SubscriptionAction, SubscriptionCapabilities } from "@hullwise/core";
 import type { ActionResult } from "@/server/action-result";
-import { addSubscriptionNoteAction, assignSubscriptionAction, connectSubscriptionProviderAction, resyncSubscriptionsAction, saveCancellationReasonAction, simulateRenewalAction, subscriptionActionAction, testSubscriptionProviderAction } from "@/server/actions/subscriptions";
+import { SUBSCRIPTION_SETUPS } from "@hullwise/config";
+import { IntegrationSetupError, IntegrationSetupVerified } from "@/components/integration-setup";
+import { IntegrationSetupPanel } from "@/components/integration-setup-panel";
+import { addSubscriptionNoteAction, assignSubscriptionAction, resyncSubscriptionsAction, saveCancellationReasonAction, simulateRenewalAction, subscriptionActionAction, testSubscriptionProviderAction } from "@/server/actions/subscriptions";
 
 /* Client controls of the addon.subscriptions pages (#67): every write asks for confirmation first. */
 
@@ -22,19 +25,41 @@ const newKey = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? 
 
 /* ---------- the subscription app ---------- */
 
-export function ProviderControls({ slug, connected, mock, provider, canManage }: { slug: string; connected: boolean; mock: boolean; provider: string | null; canManage: boolean }) {
+/** The self-setup data of each subscription app (#90), resolved on the server. */
+export interface SubscriptionSetups {
+  values: Record<SubscriptionSetupKey, Record<string, string>>;
+  triggers: Record<SubscriptionSetupKey, { value: string; code: string }[]>;
+  guideHref: string;
+}
+type SubscriptionSetupKey = keyof typeof SUBSCRIPTION_SETUPS;
+
+export function ProviderControls({ slug, connected, mock, provider, canManage, setups }: { slug: string; connected: boolean; mock: boolean; provider: string | null; canManage: boolean; setups: SubscriptionSetups }) {
   const t = useTranslations("subscriptions.provider");
   const router = useRouter();
   const [pending, start] = useTransition();
-  const { say, view } = useMessage();
-  const [connect, setConnect] = useState(false);
-  const [form, setForm] = useState({ provider: provider ?? "shopify_subscriptions", apiToken: "", webhookSecret: "" });
+  const { say, view, clear } = useMessage();
+  const [connect, setConnect] = useState(!connected);
+  const [setupError, setSetupError] = useState<{ provider: SubscriptionSetupKey; code: string; detail: string | null } | null>(null);
+  const [verified, setVerified] = useState<{ provider: SubscriptionSetupKey; facts: Record<string, string | number> | null } | null>(null);
   if (!canManage) return null;
   const run = (fn: () => Promise<void>) => start(async () => { await fn(); router.refresh(); });
+  const current = (provider && provider in SUBSCRIPTION_SETUPS ? provider : "shopify_subscriptions") as SubscriptionSetupKey;
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
-        {connected && <Button size="sm" variant="outline" disabled={pending} data-testid="subs-test" onClick={() => run(async () => { const r = await testSubscriptionProviderAction(slug); say(r, r.ok && r.data ? (r.data.ok ? t("test_ok", { account: r.data.accountName ?? "" }) : t("test_failed", { error: r.data.error ?? "" })) : ""); })}>{t("test")}</Button>}
+        {connected && <Button size="sm" variant="outline" disabled={pending} data-testid="subs-test" onClick={() => run(async () => {
+          const r = await testSubscriptionProviderAction(slug);
+          setSetupError(null);
+          setVerified(null);
+          // a failed test in plain words with its fix; a passed one with the subscriptions found
+          if (r.ok && r.data && !r.data.ok && r.data.setup) {
+            clear();
+            setSetupError({ provider: current, code: r.data.setup, detail: r.data.error ?? null });
+            return;
+          }
+          say(r, r.ok && r.data ? (r.data.ok ? t("test_ok", { account: r.data.accountName ?? "" }) : t("test_failed", { error: r.data.error ?? "" })) : "");
+          if (r.ok && r.data?.ok) setVerified({ provider: current, facts: r.data.verification ?? null });
+        })}>{t("test")}</Button>}
         {connected && <Button size="sm" variant="outline" disabled={pending} data-testid="subs-resync" onClick={() => run(async () => { const r = await resyncSubscriptionsAction(slug); say(r, r.ok && r.data ? t("resync_done", { summary: r.data.summary }) : ""); })}>{t("resync")}</Button>}
         {connected && mock && (
           <>
@@ -42,28 +67,41 @@ export function ProviderControls({ slug, connected, mock, provider, canManage }:
             <Button size="sm" variant="secondary" disabled={pending} data-testid="subs-simulate-failure" onClick={() => run(async () => { const r = await simulateRenewalAction(slug, "card_expired"); say(r, r.ok && r.data ? t("simulated", { summary: r.data.summary }) : ""); })}>{t("simulate_failure")}</Button>
           </>
         )}
-        <Button size="sm" variant={connected ? "ghost" : "default"} onClick={() => setConnect((v) => !v)}>{connected ? t("reconnect") : t("connect")}</Button>
+        <Button size="sm" variant={connected ? "ghost" : "default"} onClick={() => setConnect((v) => !v)} aria-expanded={connect} data-testid="subs-setup-toggle">{connected ? t("reconnect") : t("connect")}</Button>
       </div>
-      {connect && (
-        <form className="space-y-2 rounded-md border p-3" onSubmit={(e) => { e.preventDefault(); run(async () => { const r = await connectSubscriptionProviderAction(slug, { ...form, provider: form.provider as "shopify_subscriptions" }); say(r, t("connected")); if (r.ok) setConnect(false); }); }}>
-          <Label htmlFor="subs-provider">{t("app")}</Label>
-          <Select id="subs-provider" size="sm" value={form.provider} onChange={(e) => setForm({ ...form, provider: e.target.value })}>
-            {["shopify_subscriptions", "recharge", "loop"].map((p) => <option key={p} value={p}>{t(`apps.${p}`)}</option>)}
-          </Select>
-          {!mock && form.provider !== "shopify_subscriptions" && (
-            <>
-              <Label htmlFor="subs-token">{t("api_token")}</Label>
-              <Input id="subs-token" type="password" autoComplete="off" value={form.apiToken} onChange={(e) => setForm({ ...form, apiToken: e.target.value })} />
-              <Label htmlFor="subs-secret">{t("webhook_secret")}</Label>
-              <Input id="subs-secret" type="password" autoComplete="off" value={form.webhookSecret} onChange={(e) => setForm({ ...form, webhookSecret: e.target.value })} />
-            </>
-          )}
-          <p className="text-xs text-muted-foreground">{form.provider === "shopify_subscriptions" ? t("shopify_hint") : mock ? t("mock_hint") : t("token_hint")}</p>
-          <Button size="sm" type="submit" disabled={pending}>{t("save")}</Button>
-        </form>
-      )}
+      {setupError && <IntegrationSetupError guide={SUBSCRIPTION_SETUPS[setupError.provider]} code={setupError.code} values={setups.values[setupError.provider]} detail={setupError.detail} />}
+      {verified && <IntegrationSetupVerified guide={SUBSCRIPTION_SETUPS[verified.provider]} facts={verified.facts} />}
+      {connect && <SubscriptionAppPicker slug={slug} mock={mock} provider={provider} setups={setups} />}
       {view}
     </div>
+  );
+}
+
+/** The subscription app picker and the chosen app's self-setup panel (#90). */
+function SubscriptionAppPicker({ slug, mock, provider, setups }: { slug: string; mock: boolean; provider: string | null; setups: SubscriptionSetups }) {
+  const t = useTranslations("subscriptions.provider");
+  const [app, setApp] = useState<SubscriptionSetupKey>(provider && provider in SUBSCRIPTION_SETUPS ? (provider as SubscriptionSetupKey) : "shopify_subscriptions");
+  return (
+    <div className="space-y-2 rounded-md border p-3" data-testid="subs-setup">
+      <Label htmlFor="subs-provider">{t("app")}</Label>
+      <Select id="subs-provider" size="sm" value={app} onChange={(e) => setApp(e.target.value as SubscriptionSetupKey)}>
+        {(Object.keys(SUBSCRIPTION_SETUPS) as SubscriptionSetupKey[]).map((p) => <option key={p} value={p}>{t(`apps.${p}`)}</option>)}
+      </Select>
+      <p className="text-xs text-muted-foreground">{t("replace_hint")}</p>
+      <IntegrationSetupPanel key={app} slug={slug} guide={SUBSCRIPTION_SETUPS[app]} values={setups.values[app]} mock={mock} ownerReady triggers={setups.triggers[app]} guideHref={setups.guideHref} />
+    </div>
+  );
+}
+
+/** The setup part of the subscription card's sheet (integrations page): the picker, open when no app is connected, behind "Change app" otherwise. */
+export function SubscriptionAppSetup({ slug, connected, mock, provider, setups }: { slug: string; connected: boolean; mock: boolean; provider: string | null; setups: SubscriptionSetups }) {
+  const t = useTranslations("subscriptions.provider");
+  const [open, setOpen] = useState(!connected);
+  return (
+    <section className="space-y-2">
+      {connected && <Button size="sm" variant="outline" onClick={() => setOpen((v) => !v)} aria-expanded={open} data-testid="subs-setup-toggle">{t("reconnect")}</Button>}
+      {open && <SubscriptionAppPicker slug={slug} mock={mock} provider={provider} setups={setups} />}
+    </section>
   );
 }
 

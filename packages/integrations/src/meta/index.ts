@@ -1,5 +1,6 @@
+import { isMetaAdvantageLockedError } from "@hullwise/config";
 import { HttpClient, type HttpOptions } from "../http";
-import { IntegrationError, type AdEntityMetricLevel, type AdEntityStatus, type AdsCapabilities, type AdsPlatform, type ConnectionTest, type NormalizedAd, type NormalizedAdAsset, type NormalizedAdMetric, type NormalizedAdSet, type NormalizedCampaign, type NormalizedEntityMetric } from "../types";
+import { IntegrationError, type AdEntityMetricLevel, type AdEntityStatus, type AdsCapabilities, type AdsPlatform, type ConnectionTest, type NormalizedAd, type NormalizedAdAsset, type NormalizedAdMetric, type NormalizedAdSet, type NormalizedCampaign, type NormalizedEntityMetric, failedConnection } from "../types";
 
 /** Marketing API version (v26.0: the reads and status writes below are unchanged since v21 as far as the changelog says; Da verificare on a live account). */
 export const META_API_VERSION = "v26.0";
@@ -12,7 +13,7 @@ export const META_LEGACY_ADVANTAGE_TYPES = ["AUTOMATED_SHOPPING_ADS", "SMART_APP
 export const META_ADVANTAGE_LOCKED_MESSAGE = "Meta no longer lets apps pause or resume legacy Advantage+ shopping or app campaigns (Marketing API v25 and later). Change it in Ads Manager, or move it to a new Advantage+ campaign.";
 /** Meta's own refusal on such a campaign (exact wording Da verificare): mapped to the readable message. */
 export function isAdvantageLockedError(message: string): boolean {
-  return /advantage\+?\s*(shopping|app)|\b(ASC|AAC)\b|smart.?promotion|automated.?shopping/i.test(message);
+  return isMetaAdvantageLockedError(message);
 }
 /** Marketing API permissions the installer must request for the system user / app. */
 export const META_REQUIRED_PERMISSIONS = ["ads_read", "ads_management", "business_management"];
@@ -118,7 +119,7 @@ export class MetaAdsPlatform implements AdsPlatform {
       const granted = (perms.data ?? []).filter((p) => p.status === "granted").map((p) => p.permission);
       return { ok: true, accountName: String(acc.name ?? ""), accountId: String(acc.account_id ?? this.account), scopes: granted, missingScopes: META_REQUIRED_PERMISSIONS.filter((p) => granted.length && !granted.includes(p)) };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : String(e) };
+      return failedConnection(e);
     }
   }
 

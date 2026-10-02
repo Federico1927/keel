@@ -10,15 +10,17 @@ test.describe("TikTok Ads", () => {
     const card = page.getByTestId("provider-tiktok");
     await expect(card).toBeVisible();
     await expect(card.getByRole("button", { name: /Test connection|Testa connessione/ })).toBeVisible();
-    // the seed connects it: disconnect first so the connection flow runs from scratch
-    const disconnect = card.getByRole("button", { name: /^Disconnect$|^Scollega$/ });
-    if (await disconnect.count()) {
-      await disconnect.click();
+    // the seed connects it: disconnect first (Manage sheet) so the connection flow runs from scratch
+    const sheet = page.getByTestId("integration-sheet");
+    if (await card.getByTestId("tiktok-manage").count()) {
+      await card.getByTestId("tiktok-manage").click();
+      await sheet.getByRole("button", { name: /^Disconnect$|^Scollega$/ }).click();
       await expect(card.getByText(/^Not connected$|^Non collegata$/)).toBeVisible();
-    }
-    await card.getByTestId("tiktok-mock-connect").click();
+    } else await card.getByTestId("tiktok-connect-open").click();
+    await sheet.getByTestId("tiktok-mock-connect").click();
     await expect(page.getByTestId("msg-tiktok")).toContainText(/campaigns:6 ad_groups:11 ads:22/, { timeout: 60_000 });
     await expect(card.getByText(/^Connected$|^Collegata$/)).toBeVisible();
+    await page.keyboard.press("Escape");
     await card.getByRole("button", { name: /Test connection|Testa connessione/ }).click();
     await expect(page.getByTestId("msg-tiktok")).toContainText(/Connection OK|Connessione OK/);
     await expect(page.getByTestId("sync-run-row").filter({ hasText: "tiktok/" }).first()).toBeVisible();

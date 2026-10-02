@@ -20,11 +20,12 @@ DialogOverlay.displayName = "DialogOverlay";
 /**
  * `side="center"` is a centred dialog from `sm` up and a bottom sheet on phones (full width, docked
  * to the bottom, scrolls inside, clears the home bar); `side="bottom"` is a sheet at every width;
- * `side="right"` a drawer. `mobile="fullscreen"` turns the phone sheet into a full-screen page (search).
+ * `side="right"` a drawer; `side="sheet"` a bottom sheet on phones and a drawer from `sm` up (detail and
+ * setup panels). `mobile="fullscreen"` turns the phone sheet into a full-screen page (search).
  */
 export const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { side?: "center" | "right" | "bottom"; mobile?: "sheet" | "fullscreen"; closeLabel?: string }
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { side?: "center" | "right" | "bottom" | "sheet"; mobile?: "sheet" | "fullscreen"; closeLabel?: string }
 >(({ className, children, side = "center", mobile = "sheet", closeLabel = "Close", ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
@@ -38,11 +39,12 @@ export const DialogContent = React.forwardRef<
             : "inset-x-0 bottom-0 mx-auto max-h-[92dvh] max-w-lg overflow-y-auto rounded-t-2xl pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:bottom-auto sm:left-1/2 sm:right-auto sm:top-1/2 sm:mx-0 sm:max-h-[90dvh] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:pb-6"),
         side === "bottom" && "inset-x-0 bottom-0 mx-auto max-h-[92dvh] max-w-lg overflow-y-auto rounded-t-2xl pb-[max(1.5rem,env(safe-area-inset-bottom))]",
         side === "right" && "right-0 top-0 h-full max-w-md overflow-y-auto",
+        side === "sheet" && "inset-x-0 bottom-0 max-h-[92dvh] content-start overflow-y-auto rounded-t-2xl pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-0 sm:h-dvh sm:max-h-none sm:max-w-xl sm:rounded-none sm:rounded-l-lg sm:pb-6",
         className,
       )}
       {...props}
     >
-      {side !== "right" && mobile === "sheet" && <span aria-hidden className={cn("mx-auto -mt-3 mb-1 block h-1 w-10 rounded-full bg-muted-foreground/30", side === "center" && "sm:hidden")} />}
+      {side !== "right" && mobile === "sheet" && <span aria-hidden className={cn("mx-auto -mt-3 mb-1 block h-1 w-10 rounded-full bg-muted-foreground/30", (side === "center" || side === "sheet") && "sm:hidden")} />}
       {children}
       <DialogPrimitive.Close className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring pointer-coarse:h-11 pointer-coarse:w-11">
         <X className="h-4 w-4" />

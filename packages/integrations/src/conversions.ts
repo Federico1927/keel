@@ -3,6 +3,7 @@ import { HttpClient, type HttpOptions } from "./http";
 import { META_API_VERSION, mapMetaError, type MetaCredentials } from "./meta";
 import { GoogleAdsPlatform, type GoogleAdsCredentials } from "./google";
 import { FailureScript } from "./mock/failures";
+import { failedConnection, type ConnectionTest } from "./types";
 
 /**
  * Server-side conversions (Meta Conversions API, Google Ads click conversions with user
@@ -163,13 +164,13 @@ export class MetaConversionsSink implements ConversionSink {
     this.testEventCode = opts.testEventCode ?? null;
   }
   private readonly testEventCode: string | null;
-  async testConnection() {
+  async testConnection(): Promise<ConnectionTest> {
     try {
-      const res = await this.http.request<{ id?: string; error?: { message: string; code: number } }>(`${this.base}/${this.datasetId}?fields=id,name&access_token=${encodeURIComponent(this.creds.accessToken)}`);
+      const res = await this.http.request<{ id?: string; name?: string; error?: { message: string; code: number } }>(`${this.base}/${this.datasetId}?fields=id,name&access_token=${encodeURIComponent(this.creds.accessToken)}`);
       if (res.json.error) throw mapMetaError(res.json.error);
-      return { ok: true };
+      return { ok: true, accountId: res.json.id ?? this.datasetId, accountName: res.json.name ?? this.datasetId };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : String(e) };
+      return failedConnection(e);
     }
   }
   async send(events: ConversionEvent[]): Promise<ConversionResult[]> {

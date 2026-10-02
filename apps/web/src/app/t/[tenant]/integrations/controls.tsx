@@ -1,104 +1,81 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import type { IntegrationSetupGuide } from "@hullwise/config";
 import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, cn } from "@hullwise/ui";
-import { connectAddress, connectAddressMock, connectAnthropic, connectGoogle, connectMeta, connectTiktok, connectTiktokMock, disconnectIntegration, processWebhookNow, resyncIntegration, retryWebhooks, simulateReturnWebhook, simulateWebhook, testIntegration } from "@/server/actions/integrations";
-import type { ActionResult } from "@/server/action-result";
+import { connectGoogle, connectTiktok, processWebhookNow, retryWebhooks } from "@/server/actions/integrations";
+import { connectTiktokDemo } from "@/server/actions/integration-card";
+import { IntegrationSetupPanel } from "@/components/integration-setup-panel";
+import { useIntegrationCard } from "@/components/integration-card";
 
 type Provider = "shopify" | "meta" | "google" | "tiktok" | "anthropic" | "address";
-type FormProvider = Exclude<Provider, "shopify">;
+type AdvancedProvider = "google" | "tiktok";
 
-export function ProviderActions({ slug, provider, connected, mock, canManage }: { slug: string; provider: Provider; connected: boolean; mock: boolean; canManage: boolean }) {
+/** The self-setup block of a card (#90): the guide and what the server resolved for it. */
+export interface ProviderSetup {
+  guide: IntegrationSetupGuide;
+  values: Record<string, string>;
+  ownerReady: boolean;
+  triggers: { value: string; code: string }[];
+  flashError: string | null;
+  guideHref: string;
+  /** Google: the accounts of a sign-in waiting for the pick. */
+  accounts?: { customerId: string; name: string; loginCustomerId: string | null; managerName: string | null }[] | null;
+}
+
+/**
+ * The setup part of a provider's sheet (#90): the self-setup panel of its guide, open when the card is
+ * not connected (or after a sign-in, or with an error back from an OAuth redirect), behind "Change
+ * account or reconnect" when it is. TikTok's simulated account and Google's account picker live here.
+ */
+export function ProviderSetupSection({ provider, connected, mock, setup }: { provider: Provider; connected: boolean; mock: boolean; setup: ProviderSetup }) {
   const t = useTranslations("integrations");
-  const ts = useTranslations("integration_setup.shopify");
-  const tc = useTranslations("common");
-  const router = useRouter();
-  const [pending, start] = useTransition();
-  const [msg, setMsg] = useState<{ tone: "ok" | "err"; text: string } | null>(null);
-  const [showConnect, setShowConnect] = useState(false);
-  if (!canManage) return null;
-  const say = (r: ActionResult<unknown>, okText: string) => {
-    if (r.ok) setMsg({ tone: "ok", text: okText });
-    else setMsg({ tone: "err", text: (t.has(`errors.${r.error}`) ? t(`errors.${r.error}`) : tc(`errors.${r.error}`)) + (r.fieldErrors?.platform ? ` (${r.fieldErrors.platform})` : "") });
-    router.refresh();
-  };
+  const card = useIntegrationCard();
+  const [open, setOpen] = useState(!connected || !!setup.flashError || !!setup.accounts?.length);
+  // an error back from a redirect stays until this sheet connects the provider
+  const [connectedAtOpen] = useState(connected);
+  useEffect(() => {
+    if (!connected || setup.accounts?.length) setOpen(true);
+  }, [connected, setup.accounts?.length]);
+  const startUrl = `/api/integrations/${provider}/oauth/start?tenant=${card.slug}`;
+  const oauth = provider === "google" || provider === "tiktok";
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap gap-2">
-        <Button size="sm" variant="outline" disabled={pending} onClick={() => start(async () => { const r = await testIntegration(slug, provider); say(r, r.ok && r.data ? (r.data.ok ? `${t("test_ok", { account: r.data.accountName ?? "" })}${r.data.missingRequiredScopes?.length ? ` ${ts("errors.missing_scopes.message", { detail: r.data.missingRequiredScopes.join(", ") })} ${ts("errors.missing_scopes.fix", { detail: "" })}` : r.data.missingScopes?.length && provider === "shopify" ? ` ${ts("missing_optional", { scopes: r.data.missingScopes.join(", ") })}` : ""}` : t("test_failed", { error: r.data.error ?? "" })) : ""); })}>
-          {t("test_connection")}
-        </Button>
-        {connected && provider !== "anthropic" && provider !== "address" && (
-          <Button size="sm" variant="outline" disabled={pending} onClick={() => start(async () => { const r = await resyncIntegration(slug, provider); say(r, r.ok && r.data ? (r.data.queued ? t("resync_queued") : t("resync_done", { summary: r.data.summary })) : ""); })}>
-            {t("resync")}
-          </Button>
-        )}
-        {provider === "shopify" && mock && (
-          <>
-            <Button size="sm" variant="secondary" disabled={pending} onClick={() => start(async () => { const r = await simulateWebhook(slug, "order"); say(r, r.ok && r.data ? t("simulated", { status: r.data.status, order: r.data.orderName ?? "" }) : ""); })}>
-              {t("simulate_order")}
-            </Button>
-            <Button size="sm" variant="secondary" disabled={pending} onClick={() => start(async () => { const r = await simulateWebhook(slug, "cancel"); say(r, r.ok && r.data ? t("simulated", { status: r.data.status, order: r.data.orderName ?? "" }) : ""); })}>
-              {t("simulate_cancel")}
-            </Button>
-            <Button size="sm" variant="secondary" disabled={pending} onClick={() => start(async () => { const r = await simulateReturnWebhook(slug); say(r, r.ok && r.data ? t("simulated_return", { status: r.data.status, order: r.data.orderName }) : ""); })} data-testid="simulate-return">
-              {t("simulate_return")}
-            </Button>
-            <Button size="sm" variant="ghost" disabled={pending} onClick={() => start(async () => { const r = await simulateWebhook(slug, "bad_signature"); say(r, r.ok && r.data ? t("simulated_rejected", { status: r.data.status }) : ""); })}>
-              {t("simulate_bad")}
-            </Button>
-          </>
-        )}
-        {provider === "tiktok" && mock && !connected && (
-          <Button size="sm" disabled={pending} data-testid="tiktok-mock-connect" onClick={() => start(async () => { const r = await connectTiktokMock(slug); say(r, r.ok && r.data ? t(r.data.finished ? "tiktok_mock_connected" : "tiktok_mock_partial", { summary: r.data.summary }) : ""); })}>
-            {t("tiktok_mock_connect")}
-          </Button>
-        )}
-        {provider === "address" && mock && !connected && (
-          <Button size="sm" disabled={pending} data-testid="address-mock-connect" onClick={() => start(async () => say(await connectAddressMock(slug), t("address_mock_connected")))}>
-            {t("address_mock_connect")}
-          </Button>
-        )}
-        {/* Shopify connects through its own setup block (checklist + client credentials, ShopifySetup) */}
-        {provider !== "shopify" && (
-          <Button size="sm" variant={(connected && !mock) || provider === "tiktok" || provider === "address" ? "ghost" : "default"} disabled={pending} onClick={() => setShowConnect((v) => !v)}>
-            {connected && !mock ? t("reconnect") : t("connect")}
-          </Button>
-        )}
-        {/* the simulated TikTok account can be disconnected too, to show the connection flow again */}
-        {connected && (!mock || provider === "tiktok" || provider === "address" || provider === "shopify") && (
-          <Button size="sm" variant="ghost" disabled={pending} onClick={() => start(async () => say(await disconnectIntegration(slug, provider), t("disconnected")))}>
-            {t("disconnect")}
-          </Button>
-        )}
-      </div>
-      {msg && (
-        <Alert variant={msg.tone === "err" ? "destructive" : "default"}>
-          <AlertDescription data-testid={`msg-${provider}`}>{msg.text}</AlertDescription>
-        </Alert>
+    <section className="space-y-2">
+      {connected && <Button size="sm" variant="outline" onClick={() => setOpen((v) => !v)} aria-expanded={open} data-testid={`${provider}-setup-toggle`}>{open ? t("card.hide_setup") : t("reconnect")}</Button>}
+      {open && (
+        <IntegrationSetupPanel
+          slug={card.slug}
+          guide={setup.guide}
+          values={setup.values}
+          mock={mock}
+          ownerReady={setup.ownerReady}
+          triggers={setup.triggers}
+          flashError={connected && !connectedAtOpen ? null : setup.flashError}
+          guideHref={setup.guideHref}
+          accounts={setup.accounts}
+          oauthHref={oauth ? startUrl : null}
+          onMockOAuth={provider === "tiktok" && mock ? () => card.start(async () => card.show(await connectTiktokDemo(card.slug))) : undefined}
+          oauthPending={card.pending}
+          denyHref={oauth ? `${startUrl}&simulate=access_denied` : null}
+          advanced={provider === "google" || provider === "tiktok" ? <ConnectForm slug={card.slug} provider={provider} mock={mock} /> : undefined}
+        />
       )}
-      {showConnect && provider !== "shopify" && <ConnectForm slug={slug} provider={provider} mock={mock} onDone={() => setShowConnect(false)} />}
-    </div>
+    </section>
   );
 }
 
-function ConnectForm({ slug, provider, mock, onDone }: { slug: string; provider: FormProvider; mock: boolean; onDone: () => void }) {
+/** Advanced: the store's own credentials (Google Ads developer token and OAuth client; its own TikTok app). */
+function ConnectForm({ slug, provider, mock }: { slug: string; provider: AdvancedProvider; mock: boolean }) {
   const t = useTranslations("integrations");
   const tc = useTranslations("common");
-  const action = provider === "meta" ? connectMeta : provider === "anthropic" ? connectAnthropic : provider === "address" ? connectAddress : provider === "tiktok" ? connectTiktok : connectGoogle;
+  const action = provider === "tiktok" ? connectTiktok : connectGoogle;
   const [state, formAction, pending] = useActionState(action.bind(null, slug), null);
-  const fields: { name: string; label: string; type?: string; placeholder?: string }[] = provider === "anthropic"
-      ? [{ name: "apiKey", label: t("fields.api_key"), type: "password", placeholder: "sk-ant-…" }]
-      : provider === "address"
-        ? [{ name: "apiKey", label: t("fields.google_api_key"), type: "password", placeholder: "AIza…" }]
-      : provider === "meta"
-        ? [{ name: "adAccountId", label: t("fields.ad_account"), placeholder: "act_123456789" }, { name: "accessToken", label: t("fields.access_token"), type: "password" }]
-        : provider === "tiktok"
-          ? [{ name: "appId", label: t("fields.app_id") }, { name: "appSecret", label: t("fields.app_secret"), type: "password" }, { name: "authCode", label: t("fields.auth_code"), type: "password" }]
-        : [{ name: "customerId", label: t("fields.customer_id"), placeholder: "123-456-7890" }, { name: "loginCustomerId", label: t("fields.login_customer_id"), placeholder: "optional" }, { name: "developerToken", label: t("fields.developer_token"), type: "password" }, { name: "clientId", label: t("fields.client_id") }, { name: "clientSecret", label: t("fields.client_secret"), type: "password" }, { name: "refreshToken", label: t("fields.refresh_token"), type: "password" }];
+  const fields: { name: string; label: string; type?: string; placeholder?: string }[] = provider === "tiktok"
+    ? [{ name: "appId", label: t("fields.app_id") }, { name: "appSecret", label: t("fields.app_secret"), type: "password" }, { name: "authCode", label: t("fields.auth_code"), type: "password" }]
+    : [{ name: "customerId", label: t("fields.customer_id"), placeholder: "123-456-7890" }, { name: "loginCustomerId", label: t("fields.login_customer_id"), placeholder: "optional" }, { name: "developerToken", label: t("fields.developer_token"), type: "password" }, { name: "clientId", label: t("fields.client_id") }, { name: "clientSecret", label: t("fields.client_secret"), type: "password" }, { name: "refreshToken", label: t("fields.refresh_token"), type: "password" }];
   return (
-    <Card className={cn("mt-2", state?.ok && "border-success")}>
+    <Card className={cn(state?.ok && "border-success")}>
       <CardHeader>
         <CardTitle className="text-sm">{t(`connect_title.${provider}`)}</CardTitle>
         <CardDescription>{mock ? t("mock_notice") : t(`connect_description.${provider}`)}</CardDescription>
@@ -111,11 +88,6 @@ function ConnectForm({ slug, provider, mock, onDone }: { slug: string; provider:
               <Input id={`${provider}-${f.name}`} name={f.name} type={f.type ?? "text"} placeholder={f.placeholder} autoComplete="off" required={f.name !== "loginCustomerId"} />
             </div>
           ))}
-          {provider === "tiktok" && (
-            <p className="text-xs text-muted-foreground sm:col-span-2">
-              {t("tiktok_app_hint")} <a className="underline" href={`/api/integrations/tiktok/oauth/start?tenant=${slug}`}>{t("tiktok_app_link")}</a>
-            </p>
-          )}
           {state && !state.ok && (
             <Alert variant="destructive" className="sm:col-span-2">
               <AlertDescription>{t.has(`errors.${state.error}`) ? t(`errors.${state.error}`) : tc(`errors.${state.error}`)}{state.fieldErrors?.platform ? ` (${state.fieldErrors.platform})` : ""}</AlertDescription>
@@ -124,7 +96,6 @@ function ConnectForm({ slug, provider, mock, onDone }: { slug: string; provider:
           {state?.ok && <p className="text-sm text-success sm:col-span-2">{t("connected_ok")}</p>}
           <div className="flex gap-2 sm:col-span-2">
             <Button type="submit" size="sm" disabled={pending}>{t("connect")}</Button>
-            <Button type="button" size="sm" variant="ghost" onClick={onDone}>{tc("cancel")}</Button>
           </div>
         </form>
       </CardContent>

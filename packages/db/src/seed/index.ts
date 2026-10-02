@@ -9,6 +9,7 @@ import { writeDataset } from "./writer";
 import { ensureDemoProductCatalog, type DemoCatalogKey } from "./media";
 import { DEMO_COD_SETTINGS, DEMO_CUSTOMER_EMAILS, DEMO_RETURN_COSTS, REASON_LABELS, REASON_PLATFORM, demoConversionSettings, demoPixelSettings, demoPortalConfig, demoReturnPolicy, demoSurveySettings } from "./settings";
 export { ensureDemoSettings } from "./settings";
+export { ensurePlatformOwner, DEMO_SUPER_ADMINS } from "./platform-owner";
 export { ensureDemoProductCatalog, demoMediaUrl, DEMO_MEDIA_PREFIX } from "./media";
 import { seedCollab } from "./collab";
 import { seedEmailLog } from "./email";

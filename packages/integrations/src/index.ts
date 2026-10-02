@@ -6,6 +6,8 @@ export * from "./http";
 export * from "./shopify";
 export * from "./meta";
 export * from "./google";
+export * from "./google/oauth";
+export * from "./setup-errors";
 export * from "./tiktok";
 export * from "./versions";
 
