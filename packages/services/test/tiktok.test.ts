@@ -76,6 +76,8 @@ describe("TikTok on the demo tenants", () => {
 
 describe("TikTok through the adapter factory and the outbox", () => {
   it("the plan gates TikTok server side: Harbor gets no adapter and a queued TikTok write fails instead of retrying", async () => {
+    // other suites may move Harbor to another plan (billing): pin it to Starter, which has no TikTok
+    await pools.admin.update(schema.tenants).set({ planKey: "starter" }).where(eq(schema.tenants.id, T.harbor.id));
     expect(await run("harbor", (s) => adPlatformInPlan(s, "tiktok"))).toBe(false);
     expect(await run("harbor", (s) => adPlatformInPlan(s, "meta"))).toBe(true);
     await expect(run("harbor", (s) => getAdsPlatformFor(s, T.harbor.platform, "tiktok"))).rejects.toBeInstanceOf(AdPlatformNotInPlanError);
