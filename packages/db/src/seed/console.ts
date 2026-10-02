@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/node-postgres";
-import { MODULES, PLANS, PLATFORM_CURRENCY, adPlatformsForPlan, type PlanKey, type TenantStatus } from "@hullwise/config";
+import { MODULES, PLANS, PLATFORM_CURRENCY, adPlatformsForPlan, isAddonModule, releasedVersion, type PlanKey, type TenantStatus } from "@hullwise/config";
 import { monthlyChargeMinor, subscriptionStatusFor } from "@hullwise/core";
 import * as schema from "../schema";
 
@@ -114,7 +114,7 @@ export async function seedConsoleTenants(db: Db, now = new Date()): Promise<Reco
     ids[c.slug] = tenantId;
     await db.update(schema.tenants).set({ trialEndsAt: c.trialDays ? new Date(created.getTime() + c.trialDays * DAY) : new Date(created.getTime() + 14 * DAY) }).where(eq(schema.tenants.id, tenantId));
     await db.delete(schema.tenantAddons).where(eq(schema.tenantAddons.tenantId, tenantId));
-    for (const a of c.addons) await db.insert(schema.tenantAddons).values({ tenantId, moduleKey: a, note: "Enabled by seed", activatedAt: new Date(now.getTime() - 120 * DAY) });
+    for (const a of c.addons) await db.insert(schema.tenantAddons).values({ tenantId, moduleKey: a, note: "Enabled by seed", activatedAt: new Date(now.getTime() - 120 * DAY), version: isAddonModule(a) ? (releasedVersion(a)?.version ?? null) : null });
     // owner (and, for Delta Gear, a former manager disabled platform-wide): no password, never a demo login
     const people = [{ ...c.owner, role: "owner" as const, disabled: null as null | { daysAgo: number; reason: string } }, ...(c.extraUser ? [{ email: c.extraUser.email, name: c.extraUser.name, role: c.extraUser.role, lastLoginDaysAgo: 45 as number | null, disabled: { daysAgo: c.extraUser.disabledDaysAgo, reason: c.extraUser.reason } }] : [])];
     for (const p of people) {

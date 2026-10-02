@@ -68,6 +68,7 @@ export async function setAddonAction(tenantId: string, moduleKey: string, active
     await setTenantAddon(db, tenantId, moduleKey, active, user.id, note);
   } catch (e) {
     if (e instanceof Error && e.message === "addon_not_available") return fail("addon_not_available");
+    if (e instanceof Error && e.message === "addon_not_released") return fail("addon_not_released");
     if (e instanceof BillingError) return fail(e.code);
     throw e;
   }
