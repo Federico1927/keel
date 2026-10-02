@@ -125,6 +125,9 @@ test("operations finds an order by phone, changes its status, adds a note and ed
   const edit = page.getByRole("dialog");
   const apt = `Apt ${Date.now() % 1000}`;
   await edit.getByLabel(/^Address line 2$|^Indirizzo \(riga 2\)$/).fill(apt);
+  // some demo orders carry no state, which the US address check requires: fill it when it's empty
+  const province = edit.getByLabel(/^Province \/ state$|^Provincia \/ stato$/);
+  if ((await province.inputValue()) === "") await province.fill("NY");
   await edit.getByTestId("edit-save").click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.getByText(apt).first()).toBeVisible();
