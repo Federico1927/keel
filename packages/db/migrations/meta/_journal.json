@@ -239,6 +239,13 @@
       "when": 1790907561925,
       "tag": "0033_exotic_molten_man",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1790908513097,
+      "tag": "0034_flowery_whistler",
+      "breakpoints": true
     }
   ]
 }
