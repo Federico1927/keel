@@ -75,7 +75,8 @@ describe("return policy", () => {
     const risk = await run((s) => customerRiskForOrder(s, policy, any.orderId));
     expect(risk.stats.returnsCount).toBeGreaterThan(0);
     expect(risk.level).not.toBe("none");
-    expect(risk.reasons).toContain("frequent_returner");
+    // a customer who returned everything is a serial returner, anyone else above the watch rate a frequent one
+    expect(risk.reasons.some((r) => r === "frequent_returner" || r === "serial_returner")).toBe(true);
   });
 });
 
