@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { and, desc, eq, gte, isNull, recordAudit, schema, sql, type DbExecutor, type SQL } from "@hullwise/db";
-import { emailAddressHash } from "@hullwise/integrations";
+import { and, desc, eq, gte, inArray, isNull, recordAudit, schema, sql, type DbExecutor, type SQL } from "@hullwise/db";
+import { emailAddressHashes } from "@hullwise/integrations";
 import { emailSettings } from "./provider";
 import { queueEmail, type QueuedEmail } from "./mailer";
 
@@ -33,7 +33,7 @@ export async function listEmailLog(db: DbExecutor, f: EmailLogFilters = {}) {
   if (f.template) conds.push(eq(m.template, f.template));
   if (f.tenant === "platform") conds.push(isNull(m.tenantId));
   else if (f.tenant && /^[0-9a-f-]{36}$/i.test(f.tenant)) conds.push(eq(m.tenantId, f.tenant));
-  if (f.recipient?.includes("@")) conds.push(eq(m.recipientHash, emailAddressHash(f.recipient)));
+  if (f.recipient?.includes("@")) conds.push(inArray(m.recipientHash, emailAddressHashes(f.recipient)));
   const where = conds.length ? and(...conds) : undefined;
   const [rows, [count]] = await Promise.all([
     db

@@ -16,6 +16,7 @@
     "db:seed": "pnpm --filter @hullwise/db seed",
     "db:seed:settings": "pnpm --filter @hullwise/db seed:settings",
     "db:reset": "pnpm --filter @hullwise/db reset",
+    "db:rotate-key": "pnpm --filter @hullwise/db rotate-key",
     "db:deploy": "pnpm db:bootstrap && pnpm db:migrate && if [ \"$HULLWISE_SEED_ON_DEPLOY\" = 1 ]; then pnpm db:seed; fi && pnpm db:seed:settings",
     "smoke": "node scripts/smoke.mjs",
     "billing:sync-catalog": "pnpm --filter @hullwise/jobs billing:sync-catalog",
