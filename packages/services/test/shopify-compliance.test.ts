@@ -1,10 +1,10 @@
 import { createHmac } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, schema, withTenant } from "@hullwise/db";
+import { and, eq, isNotNull, ne, schema, sql, withTenant } from "@hullwise/db";
 import { testPools } from "@hullwise/db/test-utils";
 import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
 import { encryptJson } from "@hullwise/integrations";
-import { handleShopifyCompliance } from "../src";
+import { handleShopifyCompliance, redactCustomer } from "../src";
 
 /**
  * Shopify's mandatory privacy webhooks (#89): signature checked with the secret of the app the store is
@@ -55,6 +55,54 @@ describe("Shopify compliance webhooks", () => {
     const alerts = await pools.admin.select().from(schema.platformAlerts).where(and(eq(schema.platformAlerts.kind, "compliance_request"), eq(schema.platformAlerts.tenantId, tenantId)));
     expect(alerts.map((a) => a.subject)).toEqual(["shopify:customers/data_request:9999"]);
     expect(alerts[0]!.status).toBe("open");
+  });
+
+  it("customers/redact erases the customer's personal data across tables, keeps the numbers, and needs no task", async () => {
+    const tenantId = ctx.tenantIds.northwind;
+    const run = <T>(fn: (tx: Parameters<Parameters<typeof withTenant>[1]>[0]) => Promise<T>) => withTenant(tenantId, fn, pools.app);
+    const [customer] = await run((tx) => tx.select().from(schema.customers).where(and(eq(schema.customers.tenantId, tenantId), isNotNull(schema.customers.externalId), isNotNull(schema.customers.email), sql`${schema.customers.ordersCount} > 0`)).limit(1));
+    const orders = await run((tx) => tx.select().from(schema.orders).where(and(eq(schema.orders.tenantId, tenantId), eq(schema.orders.customerId, customer!.id))));
+    expect(orders.length).toBeGreaterThan(0);
+    // a guest order of the same person, listed by Shopify in orders_to_redact
+    const [guest] = await run((tx) => tx.select().from(schema.orders).where(and(eq(schema.orders.tenantId, tenantId), ne(schema.orders.customerId, customer!.id), isNotNull(schema.orders.externalId), isNotNull(schema.orders.email))).limit(1));
+    const first = orders[0]!;
+    await run(async (tx) => {
+      await tx.insert(schema.webhookEvents).values({ tenantId, source: "shopify", topic: "orders/updated", externalId: first.externalId!, sourceUpdatedAt: "redact-test", payload: { id: first.externalId, email: customer!.email }, status: "processed" });
+      await tx.insert(schema.webhookEvents).values({ tenantId, source: "shopify", topic: "refunds/create", externalId: "refund-redact-test", sourceUpdatedAt: "redact-test", payload: { id: "refund-redact-test", order_id: guest!.externalId, note: "call +39 333" }, status: "pending" });
+      await tx.insert(schema.pixelIdentities).values({ tenantId, anonymousId: "anon-redact-test", customerId: customer!.id, emailSha256: "abc" });
+    });
+
+    const payload = { shop_id: 954889, shop_domain: northwindShop, customer: { id: Number(customer!.externalId) || customer!.externalId, email: customer!.email, phone: customer!.phone }, orders_to_redact: [guest!.externalId] };
+    expect(await call("customers/redact", northwindShop, payload, PLATFORM_SECRET)).toMatchObject({ status: 200, tenantId, action: "redacted" });
+    expect(await call("customers/redact", northwindShop, payload, PLATFORM_SECRET)).toMatchObject({ status: 200, action: "duplicate" });
+
+    const after = await run(async (tx) => ({
+      customer: (await tx.select().from(schema.customers).where(eq(schema.customers.id, customer!.id)))[0]!,
+      orders: await tx.select().from(schema.orders).where(and(eq(schema.orders.tenantId, tenantId), sql`${schema.orders.id} = any(${sql.param([...orders.map((o) => o.id), guest!.id])}::uuid[])`)),
+      events: await tx.select().from(schema.webhookEvents).where(and(eq(schema.webhookEvents.tenantId, tenantId), eq(schema.webhookEvents.sourceUpdatedAt, "redact-test"))),
+      links: await tx.select().from(schema.pixelIdentities).where(and(eq(schema.pixelIdentities.tenantId, tenantId), eq(schema.pixelIdentities.anonymousId, "anon-redact-test"))),
+      audit: await tx.select().from(schema.auditLogs).where(and(eq(schema.auditLogs.tenantId, tenantId), eq(schema.auditLogs.action, "customer.redacted"))),
+    }));
+    expect(after.customer).toMatchObject({ email: null, emailNormalized: null, phone: null, phoneE164: null, firstName: null, lastName: null, city: null, zip: null, acceptsMarketing: false, externalId: customer!.externalId, ordersCount: customer!.ordersCount, totalSpentMinor: customer!.totalSpentMinor });
+    expect(after.orders).toHaveLength(orders.length + 1);
+    for (const o of after.orders) {
+      expect(o).toMatchObject({ customerName: null, email: null, phone: null, shippingAddress: null, billingAddress: null, shippingZip: null, shippingCity: null, addressKey: null, nameZipKey: null, note: null });
+      const before = [...orders, guest!].find((b) => b.id === o.id)!;
+      expect(o.totalMinor).toBe(before.totalMinor);
+      expect(o.status).toBe(before.status);
+      expect(o.shippingCountry).toBe(before.shippingCountry);
+    }
+    expect(after.events.map((e) => e.payload)).toEqual([{ redacted: true }, { redacted: true }]);
+    expect(after.events.every((e) => e.status === "processed")).toBe(true);
+    expect(after.links).toHaveLength(0);
+    expect(after.audit).toHaveLength(1);
+    expect(JSON.stringify(after.audit[0]!.metadata)).not.toContain(customer!.email!);
+    const alerts = await pools.admin.select().from(schema.platformAlerts).where(and(eq(schema.platformAlerts.kind, "compliance_request"), eq(schema.platformAlerts.tenantId, tenantId)));
+    expect(alerts.some((a) => a.subject.startsWith("shopify:customers/redact"))).toBe(false);
+
+    // idempotent: a second run (e.g. a manual request after the webhook) finds nothing left to erase
+    const again = await run((tx) => redactCustomer({ tenantId, tx, actor: { type: "system", userId: null } }, { customerId: customer!.id }));
+    expect(again).toMatchObject({ customerId: customer!.id, webhookPayloads: 0, browserLinks: 0, conversionPayloads: 0 });
   });
 
   it("verifies with the tenant's own app secret and clears the connection on shop/redact", async () => {
