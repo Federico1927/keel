@@ -4,9 +4,10 @@ import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Legend, Line, ComposedChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { Alert, AlertDescription, Button, Checkbox, Input, Label, Select } from "@hullwise/ui";
+import { Alert, AlertDescription, Button, Checkbox, DataList, Input, Label, Select } from "@hullwise/ui";
 import { applyTransferAction, deleteBundleComponentAction, deleteDemandEventAction, generateDraftsAction, saveBundleComponentAction, saveDemandEventAction, setForecastOverrideAction } from "@/server/actions/planning";
 import { AXIS_TICK, CHART_COLORS, CHART_GRID, TOOLTIP_PROPS } from "@/components/charts/theme";
+import { compactAxis, useCompactChart } from "@/components/charts/use-compact";
 
 export interface ReplenishmentView {
   variantId: string;
@@ -75,53 +76,24 @@ export function ReplenishmentTable({ slug, rows }: { slug: string; rows: Repleni
         )}
         {result && !result.ok && <Alert variant="destructive"><AlertDescription>{tc(`errors.${result.error}`)}</AlertDescription></Alert>}
       </div>
-      <div className="overflow-x-auto rounded-lg border bg-card">
-        <table className="w-full text-sm">
-          <thead className="border-b bg-muted/40 text-xs text-muted-foreground">
-            <tr>
-              <th className="w-8 p-2" />
-              <th className="p-2 text-left font-medium">{t("columns.variant")}</th>
-              <th className="hidden p-2 text-left font-medium md:table-cell">{t("columns.supplier")}</th>
-              <th className="p-2 text-right font-medium">{t("columns.position")}</th>
-              <th className="hidden p-2 text-right font-medium lg:table-cell">{t("columns.daily")}</th>
-              <th className="p-2 text-left font-medium">{t("columns.stockout")}</th>
-              <th className="hidden p-2 text-right font-medium lg:table-cell">{t("columns.safety")}</th>
-              <th className="hidden p-2 text-right font-medium lg:table-cell">{t("columns.rop")}</th>
-              <th className="p-2 text-right font-medium">{t("columns.order")}</th>
-              <th className="hidden p-2 text-right font-medium md:table-cell">{t("columns.cost")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => {
-              const canSelect = selectable.includes(r.variantId);
-              return (
-                <tr key={r.variantId} className="border-b last:border-0" data-testid="replenishment-row">
-                  <td className="p-2">{canSelect && <Checkbox aria-label={r.label} checked={selected.has(r.variantId)} onCheckedChange={() => toggle(r.variantId)} />}</td>
-                  <td className="p-2">
-                    <Link href={`/t/${slug}/products/${r.productId}`} className="font-medium hover:underline">{r.label}</Link>
-                    <p className="text-xs text-muted-foreground">{r.sku}</p>
-                  </td>
-                  <td className="hidden p-2 text-muted-foreground md:table-cell">{r.supplier ?? t("no_supplier")}</td>
-                  <td className="p-2 text-right tabular" title={t("position_hint", { available: r.available, incoming: r.incoming, backordered: r.backordered })}>
-                    {r.available}
-                    {r.incoming > 0 && <span className="text-xs text-muted-foreground"> +{r.incoming}</span>}
-                    {r.backordered > 0 && <span className="text-xs text-destructive"> −{r.backordered}</span>}
-                  </td>
-                  <td className="hidden p-2 text-right tabular lg:table-cell">{r.daily}</td>
-                  <td className={`p-2 ${r.urgent ? "font-medium text-destructive" : "text-muted-foreground"}`}>{r.stockout ?? "—"}<span className="block text-xs text-muted-foreground">{r.cover}</span></td>
-                  <td className="hidden p-2 text-right tabular lg:table-cell">{r.safetyStock}</td>
-                  <td className="hidden p-2 text-right tabular lg:table-cell">{r.reorderPoint}</td>
-                  <td className="p-2 text-right tabular">
-                    {r.shouldOrder ? <span className="font-semibold">{r.quantity}</span> : "—"}
-                    {r.constraint && <span className="block text-xs text-muted-foreground">{r.constraint}</span>}
-                    {r.inDraft > 0 && <span className="block text-xs text-info">{t("in_draft", { n: r.inDraft })}</span>}
-                  </td>
-                  <td className="hidden p-2 text-right tabular md:table-cell">{r.shouldOrder ? r.cost : "—"}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="rounded-lg border bg-card">
+        <DataList
+          rows={rows}
+          rowKey={(r) => r.variantId}
+          rowProps={() => ({ "data-testid": "replenishment-row" })}
+          columns={[
+            { key: "select", header: <span className="sr-only">{t("select_all")}</span>, mobile: "select", headClassName: "w-8", cell: (r) => (selectable.includes(r.variantId) ? <Checkbox aria-label={r.label} checked={selected.has(r.variantId)} onCheckedChange={() => toggle(r.variantId)} /> : null) },
+            { key: "variant", header: t("columns.variant"), mobile: "title", cell: (r) => <><Link href={`/t/${slug}/products/${r.productId}`} className="font-medium hover:underline">{r.label}</Link><p className="text-xs font-normal text-muted-foreground">{r.sku}</p></> },
+            { key: "supplier", header: t("columns.supplier"), priority: 2, className: "text-muted-foreground", cell: (r) => r.supplier ?? t("no_supplier") },
+            { key: "position", header: t("columns.position"), align: "right", className: "tabular", cell: (r) => <span title={t("position_hint", { available: r.available, incoming: r.incoming, backordered: r.backordered })}>{r.available}{r.incoming > 0 && <span className="text-xs text-muted-foreground"> +{r.incoming}</span>}{r.backordered > 0 && <span className="text-xs text-destructive"> −{r.backordered}</span>}</span> },
+            { key: "daily", header: t("columns.daily"), align: "right", priority: 3, className: "tabular", cell: (r) => r.daily },
+            { key: "stockout", header: t("columns.stockout"), cell: (r) => <span className={r.urgent ? "font-medium text-destructive" : "text-muted-foreground"}>{r.stockout ?? "—"}<span className="block text-xs text-muted-foreground max-md:inline max-md:before:content-['_·_']">{r.cover}</span></span> },
+            { key: "safety", header: t("columns.safety"), align: "right", priority: 3, className: "tabular", cell: (r) => r.safetyStock },
+            { key: "rop", header: t("columns.rop"), align: "right", priority: 3, className: "tabular", cell: (r) => r.reorderPoint },
+            { key: "order", header: t("columns.order"), mobile: "badge", align: "right", className: "tabular", cell: (r) => <>{r.shouldOrder ? <span className="font-semibold">{r.quantity}</span> : "—"}{r.constraint && <span className="block text-xs text-muted-foreground">{r.constraint}</span>}{r.inDraft > 0 && <span className="block text-xs text-info">{t("in_draft", { n: r.inDraft })}</span>}</> },
+            { key: "cost", header: t("columns.cost"), align: "right", priority: 2, className: "tabular", cell: (r) => (r.shouldOrder ? r.cost : "—") },
+          ]}
+        />
       </div>
     </div>
   );
@@ -130,15 +102,17 @@ export function ReplenishmentTable({ slug, rows }: { slug: string; rows: Repleni
 export function ForecastChart({ data, locale, labels }: { data: { month: string; history: number | null; forecast: number | null }[]; locale: string; labels: { history: string; forecast: string } }) {
   const fmt = new Intl.DateTimeFormat(locale, { month: "short", year: "2-digit", timeZone: "UTC" });
   const label = (m: string) => fmt.format(new Date(`${m}-01T00:00:00Z`));
+  const compact = useCompactChart();
+  const ax = compactAxis(compact);
   return (
     <div className="h-64 w-full">
       <ResponsiveContainer>
         <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} vertical={false} />
-          <XAxis dataKey="month" tickFormatter={label} tick={AXIS_TICK} stroke={CHART_GRID} minTickGap={16} />
-          <YAxis tick={AXIS_TICK} stroke={CHART_GRID} width={40} allowDecimals={false} />
+          <XAxis dataKey="month" tickFormatter={label} tick={AXIS_TICK} stroke={CHART_GRID} minTickGap={ax.x.minTickGap} />
+          <YAxis tick={AXIS_TICK} stroke={CHART_GRID} width={compact ? 32 : 40} tickCount={ax.y.tickCount} allowDecimals={false} />
           <Tooltip {...TOOLTIP_PROPS} labelFormatter={(m) => label(String(m))} />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
+          {!compact && <Legend wrapperStyle={{ fontSize: 12 }} />}
           <Bar dataKey="history" name={labels.history} fill={CHART_COLORS[0]} radius={[3, 3, 0, 0]} />
           <Line dataKey="forecast" name={labels.forecast} stroke={CHART_COLORS[1]} strokeWidth={2} strokeDasharray="5 4" dot={{ r: 2 }} />
         </ComposedChart>
@@ -151,15 +125,18 @@ export function CashChart({ data, locale, currency, labels }: { data: { month: s
   const money = new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: 0 });
   const fmt = new Intl.DateTimeFormat(locale, { month: "short", year: "2-digit", timeZone: "UTC" });
   const rows = data.map((d) => ({ month: d.month, committed: d.committedMinor / 100, planned: d.plannedMinor / 100 }));
+  const compact = useCompactChart();
+  const ax = compactAxis(compact);
+  const axisMoney = compact ? new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: 0, notation: "compact" }) : money;
   return (
     <div className="h-56 w-full">
       <ResponsiveContainer>
         <BarChart data={rows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} vertical={false} />
-          <XAxis dataKey="month" tickFormatter={(m: string) => fmt.format(new Date(`${m}-01T00:00:00Z`))} tick={AXIS_TICK} stroke={CHART_GRID} />
-          <YAxis tick={AXIS_TICK} stroke={CHART_GRID} width={64} tickFormatter={(v: number) => money.format(v)} />
+          <XAxis dataKey="month" tickFormatter={(m: string) => fmt.format(new Date(`${m}-01T00:00:00Z`))} tick={AXIS_TICK} stroke={CHART_GRID} minTickGap={ax.x.minTickGap} />
+          <YAxis tick={AXIS_TICK} stroke={CHART_GRID} width={ax.y.width} tickCount={ax.y.tickCount} tickFormatter={(v: number) => axisMoney.format(v)} />
           <Tooltip {...TOOLTIP_PROPS} formatter={(v) => money.format(Number(v))} />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
+          {!compact && <Legend wrapperStyle={{ fontSize: 12 }} />}
           <Bar dataKey="committed" name={labels.committed} stackId="a" fill={CHART_COLORS[0]} />
           <Bar dataKey="planned" name={labels.planned} stackId="a" fill={CHART_COLORS[1]} radius={[3, 3, 0, 0]} />
         </BarChart>
@@ -225,7 +202,7 @@ export function OverrideCell({ slug, variantId, month, units, overridden }: { sl
   const [editing, setEditing] = useState(false);
   if (!editing)
     return (
-      <button type="button" className={`tabular ${overridden ? "font-semibold text-primary underline decoration-dotted" : "hover:underline"}`} title={overridden ? t("overridden") : t("click_to_override")} onClick={() => setEditing(true)}>
+      <button type="button" className={`tabular pointer-coarse:min-h-11 pointer-coarse:min-w-11 ${overridden ? "font-semibold text-primary underline decoration-dotted" : "hover:underline"}`} title={overridden ? t("overridden") : t("click_to_override")} onClick={() => setEditing(true)}>
         {units}
       </button>
     );
@@ -233,7 +210,7 @@ export function OverrideCell({ slug, variantId, month, units, overridden }: { sl
     <form action={async (fd) => { await action(fd); setEditing(false); }} className="flex items-center justify-end gap-1">
       <input type="hidden" name="variantId" value={variantId} />
       <input type="hidden" name="month" value={month} />
-      <input name="units" type="number" min={0} defaultValue={overridden ? units : ""} placeholder={String(units)} aria-label={t("override_for", { month })} className="h-7 w-16 rounded border border-input bg-card px-1 text-right text-xs" autoFocus />
+      <input name="units" type="number" inputMode="numeric" min={0} defaultValue={overridden ? units : ""} placeholder={String(units)} aria-label={t("override_for", { month })} className="h-7 w-16 rounded border border-input bg-card px-1 text-right text-xs pointer-coarse:h-11 pointer-coarse:text-base" autoFocus />
       <button type="submit" disabled={pending} className="text-xs text-primary">{t("ok")}</button>
       {state && !state.ok && <span className="text-xs text-destructive">!</span>}
     </form>

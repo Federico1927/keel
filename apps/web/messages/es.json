@@ -9508,6 +9508,17 @@
       "save": "Guardar",
       "saved": "Guardado",
       "back": "Ajustes"
+    },
+    "wide": {
+      "hint": "Desliza"
+    },
+    "desktop_notice": {
+      "title": "Mejor en una pantalla más grande.",
+      "body": "Aquí puedes consultar la página y hacer cambios sencillos; editar diseños complejos es más cómodo en un ordenador o una tableta."
+    },
+    "chart": {
+      "fullscreen": "Pantalla completa",
+      "rotate": "Gira el móvil en horizontal para ver el gráfico más ancho. Toca una barra o un punto para ver sus valores."
     }
   },
   "developers": {

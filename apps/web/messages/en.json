@@ -9508,6 +9508,17 @@
       "save": "Save",
       "saved": "Saved",
       "back": "Settings"
+    },
+    "wide": {
+      "hint": "Scroll"
+    },
+    "desktop_notice": {
+      "title": "Better on a larger screen.",
+      "body": "You can read this page and make simple changes here; editing complex layouts is easier on a computer or tablet."
+    },
+    "chart": {
+      "fullscreen": "Full screen",
+      "rotate": "Turn your phone sideways for a wider chart. Tap a bar or point to see its values."
     }
   },
   "developers": {

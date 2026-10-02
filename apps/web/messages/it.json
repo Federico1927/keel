@@ -9508,6 +9508,17 @@
       "save": "Salva",
       "saved": "Salvato",
       "back": "Impostazioni"
+    },
+    "wide": {
+      "hint": "Scorri"
+    },
+    "desktop_notice": {
+      "title": "Meglio su uno schermo più grande.",
+      "body": "Qui puoi consultare la pagina e fare modifiche semplici; per modificare layout complessi è più comodo un computer o un tablet."
+    },
+    "chart": {
+      "fullscreen": "Schermo intero",
+      "rotate": "Ruota il telefono in orizzontale per un grafico più largo. Tocca una barra o un punto per vederne i valori."
     }
   },
   "developers": {

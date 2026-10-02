@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { displayName, formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
 import { adminDb, eq, schema } from "@hullwise/db";
 import { operatorAttribution, operatorEfficiency, supervisorView } from "@hullwise/addon-cod";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, EmptyState, PageHeader, cn } from "@hullwise/ui";
 import { PeriodPicker } from "@/components/period-picker";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { requirePage } from "@/server/tenant";
@@ -56,38 +56,23 @@ export default async function CodTeamPage({ params, searchParams }: { params: Pr
             <CardTitle className="text-base">{t("supervisor_title")}</CardTitle>
             <CardDescription>{t("supervisor_description", { avg: formatNumber(data.sup.teamAverage, ctx.locale) })}</CardDescription>
           </CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{tcod("columns.operator")}</TableHead>
-                  <TableHead className="text-right">{t("to_call")}</TableHead>
-                  <TableHead className="text-right">{t("overdue")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("never_contacted")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{tcod("views.planned")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{tcod("views.unreachable")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{tcod("views.escalated")}</TableHead>
-                  <TableHead className="text-right">{t("oldest")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.sup.rows.map((r) => (
-                  <TableRow key={r.userId ?? "none"} data-testid="supervisor-row">
-                    <TableCell>
-                      {r.userId ? <Link href={link({ tab: "attribution", operator: r.userId })} className="hover:underline">{name(r)}</Link> : <span className="text-muted-foreground">{tcod("unassigned")}</span>}
-                      {r.bottleneck && <Badge variant="destructive" className="ml-2" data-testid="bottleneck">{t("bottleneck")}</Badge>}
-                    </TableCell>
-                    <TableCell className="text-right tabular">{r.toCall}</TableCell>
-                    <TableCell className={cn("text-right tabular", r.overdueCallBacks > 0 && "text-destructive")}>{r.overdueCallBacks}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{r.neverContacted}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{r.planned}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{r.unreachable}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{r.escalated}</TableCell>
-                    <TableCell className="text-right tabular">{age(r.oldestHours)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <CardContent className="p-0">
+            <DataList
+              rows={data.sup.rows}
+              rowKey={(r) => r.userId ?? "none"}
+              rowProps={() => ({ "data-testid": "supervisor-row" })}
+              columns={[
+                { key: "operator", header: tcod("columns.operator"), mobile: "title", cell: (r) => (r.userId ? <Link href={link({ tab: "attribution", operator: r.userId })} className="hover:underline">{name(r)}</Link> : <span className="text-muted-foreground">{tcod("unassigned")}</span>) },
+                { key: "bottleneck", header: <span className="sr-only">{t("bottleneck")}</span>, mobile: "badge", cell: (r) => (r.bottleneck ? <Badge variant="destructive" data-testid="bottleneck">{t("bottleneck")}</Badge> : null) },
+                { key: "to_call", header: t("to_call"), align: "right", className: "tabular", cell: (r) => r.toCall },
+                { key: "overdue", header: t("overdue"), align: "right", className: "tabular", cell: (r) => <span className={cn(r.overdueCallBacks > 0 && "text-destructive")}>{r.overdueCallBacks}</span> },
+                { key: "never", header: t("never_contacted"), align: "right", className: "tabular", cell: (r) => r.neverContacted },
+                { key: "planned", header: tcod("views.planned"), align: "right", priority: 2, className: "tabular", cell: (r) => r.planned },
+                { key: "unreachable", header: tcod("views.unreachable"), align: "right", priority: 2, className: "tabular", cell: (r) => r.unreachable },
+                { key: "escalated", header: tcod("views.escalated"), align: "right", priority: 2, className: "tabular", cell: (r) => r.escalated },
+                { key: "oldest", header: t("oldest"), align: "right", className: "tabular", cell: (r) => age(r.oldestHours) },
+              ]}
+            />
           </CardContent>
         </Card>
       )}
@@ -99,37 +84,23 @@ export default async function CodTeamPage({ params, searchParams }: { params: Pr
               <CardTitle className="text-base">{t("efficiency_title")}</CardTitle>
               <CardDescription>{t("efficiency_description")}</CardDescription>
             </CardHeader>
-            <CardContent className="overflow-x-auto p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{tcod("columns.operator")}</TableHead>
-                    <TableHead className="text-right">{t("handled")}</TableHead>
-                    <TableHead className="text-right">{tcod("outcomes.confirmed")}</TableHead>
-                    <TableHead className="text-right">{t("confirmed_pct")}</TableHead>
-                    <TableHead className="hidden text-right md:table-cell">{tcod("outcomes.cancelled")}</TableHead>
-                    <TableHead className="hidden text-right md:table-cell">{tcod("columns.attempts")}</TableHead>
-                    <TableHead className="text-right">{t("attempts_per_confirmation")}</TableHead>
-                    <TableHead className="hidden text-right lg:table-cell">{t("avg_handling")}</TableHead>
-                    <TableHead className="hidden text-right lg:table-cell">{t("throughput")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.eff.map((r) => (
-                    <TableRow key={r.operatorId ?? "system"} data-testid="efficiency-row">
-                      <TableCell>{r.operatorId ? <Link href={link({ tab: "attribution", operator: r.operatorId })} className="hover:underline">{name(r)}</Link> : <span className="text-muted-foreground">{t("system")}</span>}</TableCell>
-                      <TableCell className="text-right tabular">{r.operatorId ? <Link href={link({ tab: "attribution", operator: r.operatorId, outcome: undefined })} className="hover:underline">{r.handled}</Link> : r.handled}</TableCell>
-                      <TableCell className="text-right tabular">{r.operatorId ? <Link href={link({ tab: "attribution", operator: r.operatorId, outcome: "confirmed" })} className="hover:underline" data-testid="efficiency-confirmed">{r.confirmed}</Link> : r.confirmed}</TableCell>
-                      <TableCell className="text-right tabular">{pct(r.confirmedPct)}</TableCell>
-                      <TableCell className="hidden text-right tabular md:table-cell">{r.cancelled}</TableCell>
-                      <TableCell className="hidden text-right tabular md:table-cell">{r.attempts}{r.messages ? <span className="text-xs text-muted-foreground"> ({t("messages_n", { n: r.messages })})</span> : null}</TableCell>
-                      <TableCell className="text-right tabular">{r.attemptsPerConfirmation ?? "—"}</TableCell>
-                      <TableCell className="hidden text-right tabular lg:table-cell">{r.avgHandlingMinutes === null ? "—" : r.avgHandlingMinutes >= 120 ? tcod("hours_n", { n: Math.round(r.avgHandlingMinutes / 60) }) : t("minutes_n", { n: r.avgHandlingMinutes })}</TableCell>
-                      <TableCell className="hidden text-right tabular lg:table-cell">{r.closedPerDay === null ? "—" : t("per_day", { n: formatNumber(r.closedPerDay, ctx.locale) })}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <CardContent className="p-0">
+              <DataList
+                rows={data.eff}
+                rowKey={(r) => r.operatorId ?? "system"}
+                rowProps={() => ({ "data-testid": "efficiency-row" })}
+                columns={[
+                  { key: "operator", header: tcod("columns.operator"), mobile: "title", cell: (r) => (r.operatorId ? <Link href={link({ tab: "attribution", operator: r.operatorId })} className="hover:underline">{name(r)}</Link> : <span className="text-muted-foreground">{t("system")}</span>) },
+                  { key: "confirmed_pct", header: t("confirmed_pct"), mobile: "badge", align: "right", className: "tabular", cell: (r) => pct(r.confirmedPct) },
+                  { key: "handled", header: t("handled"), align: "right", className: "tabular", cell: (r) => (r.operatorId ? <Link href={link({ tab: "attribution", operator: r.operatorId, outcome: undefined })} className="hover:underline">{r.handled}</Link> : r.handled) },
+                  { key: "confirmed", header: tcod("outcomes.confirmed"), align: "right", className: "tabular", cell: (r) => (r.operatorId ? <Link href={link({ tab: "attribution", operator: r.operatorId, outcome: "confirmed" })} className="hover:underline" data-testid="efficiency-confirmed">{r.confirmed}</Link> : r.confirmed) },
+                  { key: "cancelled", header: tcod("outcomes.cancelled"), align: "right", className: "tabular", cell: (r) => r.cancelled },
+                  { key: "attempts", header: tcod("columns.attempts"), align: "right", className: "tabular", cell: (r) => <>{r.attempts}{r.messages ? <span className="text-xs text-muted-foreground"> ({t("messages_n", { n: r.messages })})</span> : null}</> },
+                  { key: "per_confirmation", header: t("attempts_per_confirmation"), align: "right", className: "tabular", cell: (r) => r.attemptsPerConfirmation ?? "—" },
+                  { key: "avg_handling", header: t("avg_handling"), align: "right", priority: 2, className: "tabular", cell: (r) => (r.avgHandlingMinutes === null ? "—" : r.avgHandlingMinutes >= 120 ? tcod("hours_n", { n: Math.round(r.avgHandlingMinutes / 60) }) : t("minutes_n", { n: r.avgHandlingMinutes })) },
+                  { key: "throughput", header: t("throughput"), align: "right", priority: 2, className: "tabular", cell: (r) => (r.closedPerDay === null ? "—" : t("per_day", { n: formatNumber(r.closedPerDay, ctx.locale) })) },
+                ]}
+              />
             </CardContent>
           </Card>
         )
@@ -150,30 +121,19 @@ export default async function CodTeamPage({ params, searchParams }: { params: Pr
           </CardHeader>
           <CardContent className="p-0">
             {!operatorId ? <p className="p-4 text-sm text-muted-foreground">{t("pick_operator")}</p> : data.rows.length === 0 ? <p className="p-4 text-sm text-muted-foreground">{t("empty_description")}</p> : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{tcod("columns.order")}</TableHead>
-                    <TableHead className="hidden md:table-cell">{tcod("columns.customer")}</TableHead>
-                    <TableHead className="text-right">{tcod("columns.total")}</TableHead>
-                    <TableHead>{t("last_outcome")}</TableHead>
-                    <TableHead className="text-right">{tcod("columns.attempts")}</TableHead>
-                    <TableHead className="hidden md:table-cell">{t("last_at")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.rows.map((r) => (
-                    <TableRow key={r.orderId} data-testid="attribution-row">
-                      <TableCell><Link href={`/t/${tenant}/orders/${r.orderId}`} className="font-medium hover:underline">{r.orderName}</Link></TableCell>
-                      <TableCell className="hidden md:table-cell">{r.customerName ?? "—"}</TableCell>
-                      <TableCell className="text-right tabular">{formatMoney(r.totalMinor, r.currency, ctx.locale)}</TableCell>
-                      <TableCell><Badge variant={r.lastOutcome === "confirmed" ? "success" : r.lastOutcome === "cancelled" ? "destructive" : "outline"}>{tcod(`outcomes.${r.lastOutcome}`)}</Badge>{r.queueStatus && <span className="ml-1 text-xs text-muted-foreground">{tcod(`queue_status.${r.queueStatus}`)}</span>}</TableCell>
-                      <TableCell className="text-right tabular">{r.attempts}</TableCell>
-                      <TableCell className="hidden text-xs md:table-cell">{formatDateTime(r.lastAt, ctx.locale, ctx.tenant.timezone)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <DataList
+                rows={data.rows}
+                rowKey={(r) => r.orderId}
+                rowProps={() => ({ "data-testid": "attribution-row" })}
+                columns={[
+                  { key: "order", header: tcod("columns.order"), mobile: "title", cell: (r) => <Link href={`/t/${tenant}/orders/${r.orderId}`} className="font-medium hover:underline">{r.orderName}</Link> },
+                  { key: "outcome", header: t("last_outcome"), mobile: "badge", cell: (r) => <><Badge variant={r.lastOutcome === "confirmed" ? "success" : r.lastOutcome === "cancelled" ? "destructive" : "outline"}>{tcod(`outcomes.${r.lastOutcome}`)}</Badge>{r.queueStatus && <span className="ml-1 text-xs text-muted-foreground">{tcod(`queue_status.${r.queueStatus}`)}</span>}</> },
+                  { key: "customer", header: tcod("columns.customer"), mobile: "subtitle", cell: (r) => r.customerName ?? "—" },
+                  { key: "total", header: tcod("columns.total"), align: "right", className: "tabular", cell: (r) => formatMoney(r.totalMinor, r.currency, ctx.locale) },
+                  { key: "attempts", header: tcod("columns.attempts"), align: "right", className: "tabular", cell: (r) => r.attempts },
+                  { key: "last_at", header: t("last_at"), className: "text-xs", cell: (r) => formatDateTime(r.lastAt, ctx.locale, ctx.tenant.timezone) },
+                ]}
+              />
             )}
           </CardContent>
         </Card>
