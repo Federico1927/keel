@@ -94,7 +94,7 @@ export default async function AssistantPage({ params, searchParams }: { params: 
   return (
     <>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<Link href={base} className="flex items-center gap-1 text-sm text-primary hover:underline" data-testid="assistant-new"><Plus className="h-4 w-4" /> {t("new_thread")}</Link>} />
-      <div className="grid gap-4 lg:grid-cols-[16rem_1fr]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]">
         <aside className="space-y-4">
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-sm">{t("threads")}</CardTitle></CardHeader>
