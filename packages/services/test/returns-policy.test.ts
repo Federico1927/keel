@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { eq, schema, sql, withTenant } from "@keel/db";
+import { and, eq, isNotNull, schema, sql, withTenant } from "@keel/db";
 import { testPools } from "@keel/db/test-utils";
 import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
 import { parseTenantSettings, type TenantSettings } from "@keel/core";
@@ -70,11 +70,13 @@ describe("return policy", () => {
 
   it("computes an explained customer risk", async () => {
     const policy = await run((s) => saveReturnPolicy(s, { risk: { minReturns: 1, watchRateBps: 1, highRateBps: 10000 } }));
-    const any = await run(async (s) => (await s.tx.select({ orderId: schema.returnRequests.orderId }).from(schema.returnRequests).where(eq(schema.returnRequests.tenantId, tenantId)).limit(1))[0]!);
+    // a return of a known customer, in a fixed order: other suites add and change returns in the same database
+    const any = await run(async (s) => (await s.tx.select({ orderId: schema.returnRequests.orderId }).from(schema.returnRequests).innerJoin(schema.orders, eq(schema.orders.id, schema.returnRequests.orderId)).where(and(eq(schema.returnRequests.tenantId, tenantId), isNotNull(schema.orders.customerId))).orderBy(schema.returnRequests.createdAt, schema.returnRequests.id).limit(1))[0]!);
     const risk = await run((s) => customerRiskForOrder(s, policy, any.orderId));
     expect(risk.stats.returnsCount).toBeGreaterThan(0);
     expect(risk.level).not.toBe("none");
-    expect(risk.reasons).toContain("frequent_returner");
+    // a customer who returned everything is a serial returner, anyone else above the watch rate a frequent one
+    expect(risk.reasons.some((r) => r === "frequent_returner" || r === "serial_returner")).toBe(true);
   });
 });
 

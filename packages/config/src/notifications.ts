@@ -43,6 +43,8 @@ export const NOTIFICATION_TYPES = {
   export_ready: { channels: ["in_app", "email"], defaults: { in_app: true }, group: "system" },
   /** An AI client connected through MCP proposed a risky action (cancel, refund, pause, PO) for a person to approve. */
   mcp_proposal: { channels: ["in_app"], defaults: { in_app: true }, group: "collaboration" },
+  /** Customer campaigns (#34): a campaign waits for approval, was approved or sent back, finished sending. */
+  customer_campaign: { channels: ["in_app", "email"], defaults: { in_app: true }, group: "collaboration", module: "addon.customer_campaigns" },
 } as const satisfies Record<string, NotificationTypeDefinition>;
 export type NotificationType = keyof typeof NOTIFICATION_TYPES;
 

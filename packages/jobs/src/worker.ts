@@ -6,7 +6,7 @@ import { runTrackedJob } from "./dispatch";
 import type { Enqueue } from "./handlers";
 import { QUEUES, queueRetentionOptions, type QueueName, type TickJob } from "./queues";
 
-/** Nightly reconciliation at 03:00 and customer predictions and full live-segment refresh at 03:40, live segments every 10 min, pixel stitching and server-side conversions every 5 min, delta every 15 min, ads daily at 06:00, webhook retry every 10 min, platform-write retries every minute, retention daily at 04:10, backorder safety re-check and email housekeeping every 10 min, payouts daily at 05:20, integration watchdog every 10 min (UTC). */
+/** Nightly reconciliation at 03:00 and customer predictions and full live-segment refresh at 03:40, live segments every 10 min, pixel stitching and server-side conversions every 5 min, delta every 15 min, ads daily at 06:00, webhook retry every 10 min, platform-write retries every minute, retention daily at 04:10, backorder safety re-check and email housekeeping every 10 min, payouts daily at 05:20, integration watchdog every 10 min, customer campaigns every minute (UTC). */
 const SCHEDULES: { cron: string; data: TickJob }[] = [
   { cron: "*/15 * * * *", data: { kind: "delta" } },
   { cron: "*/10 * * * *", data: { kind: "retry" } },
@@ -28,6 +28,7 @@ const SCHEDULES: { cron: string; data: TickJob }[] = [
   { cron: "3,13,23,33,43,53 * * * *", data: { kind: "emails" } },
   { cron: "20 5 * * *", data: { kind: "payouts" } },
   { cron: "1,11,21,31,41,51 * * * *", data: { kind: "watchdog" } },
+  { cron: "* * * * *", data: { kind: "campaigns" } },
 ];
 
 /** Same startup rules as the web process; Sentry (errors only, no PII) when `SENTRY_DSN` is set. */
@@ -91,6 +92,7 @@ async function main() {
   await boss.work(QUEUES.emailEvent, { batchSize: 10 }, one(QUEUES.emailEvent));
   await boss.work(QUEUES.tenantExport, one(QUEUES.tenantExport));
   await boss.work(QUEUES.billingEvent, one(QUEUES.billingEvent));
+  await boss.work(QUEUES.campaignSend, { batchSize: 2 }, one(QUEUES.campaignSend));
   for (const s of SCHEDULES) await boss.schedule(QUEUES.tick, s.cron, s.data, { singletonKey: s.data.kind });
   console.info("[jobs] worker started: queues", Object.values(QUEUES).join(", "));
   const shutdown = async () => {
