@@ -1069,3 +1069,34 @@ The `holdout_percentage` and `group_name` columns stay in the data model, as §7
 **Not converted, on purpose.** Audit rows and event metadata keep the text they were written with (history). Shopify note attributes, fulfillment-hold handles, Stripe lookup keys and pixel cookies written before the rename keep their old names on the merchant's side: there are none outside the demo, and keeping read compatibility would have spread the old name through the code.
 
 **Alternatives.** Reading old and new variable names side by side (rejected: the old name would stay in the code indefinitely and a half-renamed configuration would run with mixed values). Creating new roles and re-granting everything (rejected: RLS policies are attached to the role, renaming keeps them; recreating them means rewriting every policy). Renaming the production database (left optional in DEPLOY: it needs all connections closed and changes nothing functionally). Serving console and API from separate Next.js services (rejected: three deployments of the same code; host routing in one service is enough).
+
+## 2026-10-02 · Phone-width check over every route (#79)
+
+**Decision.**
+- `apps/web/e2e/mobile.spec.ts` discovers every `page.tsx` under `src/app/t` and `src/app/admin`, as `admin-routes.spec.ts` does. It visits each page at 390 and 360 px and requires `scrollWidth - clientWidth <= 1`.
+  - Dynamic routes are filled from links collected while crawling. Parents are crawled before children, and up to three records are checked per route, since overflow can depend on the data.
+  - Links that are route handlers (exports, downloads) or static siblings of a dynamic segment are not used as samples.
+  - Filtered lists are entry points for pages that exist only for some records.
+  - An unreached route fails the test unless it is listed in `UNREACHED` with a reason.
+- The shared cause is fixed once, in the app stylesheet's base layer: `.grid { grid-template-columns: minmax(0, 1fr) }`.
+  - A grid with no column template had one implicit `auto` column, which grows to its widest unwrappable content.
+  - `minmax(0, 1fr)` is the track Tailwind's own `grid-cols-N` uses, and any `grid-cols-*` utility overrides it at its breakpoint, because utilities sit above the base layer.
+  - A one-column grid renders the same as before unless its content was wider than the container, which is the overflow case.
+  - Nothing in the app uses `grid-flow-col` or implicit columns. The rule is in `styles.css` (app only), not in `theme.css`, which the landing site shares.
+- `overflow-wrap: break-word` on `body` was tried and dropped: amounts in narrow KPI tiles wrapped mid-number on desktop ("€249.5 / 1"). Long words are wrapped only where they are expected (integration guide steps).
+
+**Alternatives.**
+- A hand-written list of pages (rejected: it missed every page fixed here, and each new page would need an edit to the test).
+- One record per dynamic route (rejected: it missed the Meta and Google guides and the tenant with a long integration error).
+- `grid-cols-[minmax(0,1fr)]` added page by page (rejected: 199 grids in 108 files, and data-dependent cases are only found when the data happens to trigger them).
+- `.grid > * { min-width: 0 }` (rejected: it changes how every grid item sizes, while the template rule only changes grids without a template).
+
+## 2026-10-02 · Seeded win-back effect is guaranteed, not drawn (#84)
+
+**Decision.** The demo win-back campaign's response orders are sized structurally.
+- Responders are treated customers without an order of their own in the 14-day window, picked by hash.
+- There are enough of them for treated conversion to reach the control group's conversion plus 8 points, with a floor of 5% of the treated group.
+
+Before, about 12% of treated customers were picked by hash, overlapping with customers who would have bought anyway. That gave about +4 pt, near the significance threshold, and a reseed at another hour produced p = 0.094, which failed `retention.spec.ts`. This applies "Demo guarantees must not depend on the clock" (2026-10-01).
+
+**Alternatives.** Raising the 12% rate (rejected: still probabilistic). Loosening the e2e assertion (rejected: the demo is meant to show a measured effect).

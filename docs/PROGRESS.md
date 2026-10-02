@@ -754,6 +754,23 @@ Fatto:
 
 Resta: le pagine non controllate dall'e2e possono avere ancora griglie con colonna implicita `auto` e contenuto senza a capo; la verifica più ampia resta in #49.
 
+## Ogni pagina controllata a larghezza telefono (issue #79) e campagna demo con effetto garantito (issue #84)
+
+Fatto:
+- **Controllo su tutte le pagine**: `mobile.spec.ts` non usa più un elenco scritto a mano. Legge le route da `apps/web/src/app` e visita ogni pagina del tenant (come owner di Northwind) e della console (come super-admin) a 390 e 360 px.
+  - Le route dinamiche si riempiono con i link trovati durante la visita, fino a tre record diversi per route, perché lo sforamento può dipendere dai dati.
+  - Due liste filtrate (ordini consegnati, ordini d'acquisto in bozza) sono punti di partenza per le pagine che esistono solo per alcuni record (nuovo reso, modifica dell'ordine d'acquisto).
+  - Una route che nessun link raggiunge fa fallire il test, salvo che sia elencata in `UNREACHED` con il motivo; oggi l'elenco è vuoto.
+  - Una pagina nuova viene controllata senza toccare il test.
+- **Causa comune corretta una volta sola**: 199 griglie in 108 file non hanno colonne per il telefono. La loro colonna implicita `auto` si allarga fino al contenuto più largo che non va a capo. Una regola nel livello base del foglio di stile dell'app (`packages/ui/src/styles.css`) dà a ogni griglia senza colonne proprie una colonna che si può restringere; ogni classe `grid-cols-*` la sostituisce al proprio breakpoint. Così si sono sistemati senza toccare le pagine:
+  - catalogo metriche: +398 px;
+  - dettaglio tenant in console: +49 px, solo sul tenant con un errore di integrazione lungo;
+  - avvisi di analisi: +11 px, solo dopo che un altro test aveva creato un avviso.
+- **Guide alle integrazioni** Meta (+45 px) e Google (+25 px): oltre alla griglia, nei passi c'erano URL e nomi di scope lunghi senza spazi; ora vanno a capo (`break-words` solo lì).
+- **Campagna demo "Win-back clienti ricorrenti"** (#84): dopo un nuovo seed l'effetto risultava non significativo (+3,9 punti, p = 0,094) e l'e2e falliva. Ora il seed crea abbastanza risposte, solo tra i clienti trattati che non avevano già comprato nella finestra, da superare il gruppo di controllo di 8 punti (almeno il 5% dei trattati, così ci sono utilizzi del codice anche nei seed piccoli dei test).
+
+Resta: comodità d'uso sul telefono (dimensione dei controlli, liste pensate per il telefono, PWA) in #49.
+
 ## Rinomina del prodotto in Hullwise (2026-10-02)
 
 Fatto, sul branch `claude/modest-mendel-t7bo1a` (non unito a `main`: l'unione cambia nomi di variabili, ruoli e domini in produzione, vedi `docs/DEPLOY.md` → "Rename cutover").
