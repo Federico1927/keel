@@ -54,7 +54,7 @@ async function pull(ctx: TenantContext, kind: TrafficSyncKind): Promise<{ queued
  * property and pastes the property id. The access is tested with the platform's key (the simulator in
  * mock mode); a failure comes back as a plain-words setup error with its fix. No store credentials are stored.
  */
-export async function connectGa4Property(slug: string, _prev: ActionResult<{ setup?: Ga4SetupError }> | null, formData: FormData): Promise<ActionResult<{ setup?: Ga4SetupError }>> {
+export async function connectGa4Property(slug: string, _prev: ActionResult<{ verification: { property: string; rows: number; queued: string } }> | null, formData: FormData): Promise<ActionResult<{ verification: { property: string; rows: number; queued: string } }>> {
   return guard(async () => {
     const ctx = await ga4Context(slug);
     const propertyId = normalizeGa4PropertyId(String(formData.get("propertyId") ?? ""));
@@ -71,9 +71,10 @@ export async function connectGa4Property(slug: string, _prev: ActionResult<{ set
       await tx.insert(schema.integrations).values({ tenantId: ctx.tenant.id, provider: "ga4", ...values }).onConflictDoUpdate({ target: [schema.integrations.tenantId, schema.integrations.provider], set: values });
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.connected", entityType: "integration", entityId: "ga4", diff: { status: { from: prev?.status ?? null, to: "connected" }, property: { from: prev?.externalAccountId ?? null, to: propertyId }, auth: { from: (prev?.config as { auth?: string } | null)?.auth ?? null, to: "platform" } } });
     });
-    await pull(ctx, "backfill");
+    // the verification step (#90): the property that answered and what the first import read
+    const r = await pull(ctx, "backfill");
     refresh(slug);
-    return ok({});
+    return ok({ verification: { property: test.accountName ?? propertyId, rows: r.rows, queued: r.queued ? "yes" : "no" } });
   });
 }
 

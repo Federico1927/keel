@@ -100,9 +100,12 @@ test.describe("daily sales summary and addon.accounting", () => {
     await page.reload();
     await expect(page.locator("#acc-lookback")).toHaveValue(next);
     await card.getByTestId("accounting-test").click();
-    await expect(card.getByTestId("accounting-message")).toBeVisible();
-    await card.getByTestId("accounting-resync").click();
-    await expect(card.getByTestId("accounting-message")).toContainText(/12/);
+    await expect(card.getByTestId("msg-accounting")).toBeVisible();
+    // Resync is in the card's Manage sheet (#90)
+    await card.getByTestId("accounting-manage").click();
+    await page.getByTestId("integration-sheet").getByTestId("accounting-resync").click();
+    await expect(page.getByTestId("msg-accounting")).toContainText(/12/);
+    await page.keyboard.press("Escape");
     await page.goto("/t/northwind-apparel/integrations");
     await expect(page.getByTestId("provider-accounting")).toBeVisible();
     await page.goto("/t/northwind-apparel/integrations/guide/accounting");

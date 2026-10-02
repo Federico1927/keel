@@ -1,7 +1,7 @@
 import { isAdPlatformInPlan, isAnalyticsPlatformInPlan, isMultiAccountAdPlatform } from "@hullwise/config";
 import type { AdPlatform } from "@hullwise/core";
 import { and, eq, gte, inArray, isNotNull, mockTrafficOrders, schema, sql, withTenant } from "@hullwise/db";
-import { Ga4AnalyticsPlatform, MockAnalyticsPlatform, requirePlatformGa4ServiceAccount, type AnalyticsPlatform, type Ga4Credentials, AnthropicLlmProvider, GoogleAddressProvider, type GoogleAddressCredentials, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, type MockAdsStructure, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, PROCESSOR_GATEWAYS, ShopifyCommercePlatform, type MockPaymentOrder, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type NormalizedProduct, type ShopifyCredentials, MockCarrierProvider, type CarrierProvider, TiktokAdsPlatform, mockDemoAdsAccount, type TiktokCredentials, encryptJson } from "@hullwise/integrations";
+import { Ga4AnalyticsPlatform, MockAnalyticsPlatform, requirePlatformGa4ServiceAccount, type AnalyticsPlatform, type Ga4Credentials, AnthropicLlmProvider, GoogleAddressProvider, type GoogleAddressCredentials, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, type MockAdsStructure, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, PROCESSOR_GATEWAYS, ShopifyCommercePlatform, type MockPaymentOrder, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, googleAdsCredentials, type StoredGoogleAdsCredentials, type MetaCredentials, type NormalizedProduct, type ShopifyCredentials, MockCarrierProvider, type CarrierProvider, TiktokAdsPlatform, mockDemoAdsAccount, type TiktokCredentials, encryptJson } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { getAdAccount, primaryAdAccountId } from "../ads/accounts";
 
@@ -175,7 +175,7 @@ export async function getAdsPlatformFor(ctx: ServiceContext, tenant: PlatformTen
   } else if (isLive(row)) {
     if (provider === "meta") return new MetaAdsPlatform(decryptJson<MetaCredentials>(row!.credentialsEncrypted!));
     if (provider === "tiktok") return new TiktokAdsPlatform(decryptJson<TiktokCredentials>(row!.credentialsEncrypted!));
-    return new GoogleAdsPlatform(decryptJson<GoogleAdsCredentials>(row!.credentialsEncrypted!), { writeEnabled: writes });
+    return new GoogleAdsPlatform(googleAdsCredentials(decryptJson<StoredGoogleAdsCredentials>(row!.credentialsEncrypted!)), { writeEnabled: writes });
   }
   const key = `${tenant.id}:${provider}:${writes ? "rw" : "ro"}${account ? `:${account.externalAccountId}` : ""}`;
   const cached = adsMocks.get(key);
@@ -396,7 +396,7 @@ export async function getConversionSinkFor(ctx: ServiceContext, provider: Conver
   const row = await integrationRow(ctx, provider);
   if (isLive(row) && settings.destinationId) {
     if (provider === "meta") return new MetaConversionsSink(decryptJson<MetaCredentials>(row!.credentialsEncrypted!), settings.destinationId, { testEventCode: settings.testEventCode });
-    return new GoogleConversionsSink(decryptJson<GoogleAdsCredentials>(row!.credentialsEncrypted!), settings.destinationId);
+    return new GoogleConversionsSink(googleAdsCredentials(decryptJson<StoredGoogleAdsCredentials>(row!.credentialsEncrypted!)), settings.destinationId);
   }
   return mockConversionSinkFor(ctx.tenantId, provider);
 }

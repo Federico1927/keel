@@ -19,7 +19,7 @@ export async function TrafficTab({ ctx, tenant, period, periodQs, fromIso, toIso
   const at = { timezone: ctx.tenant.timezone };
   const [channels, landing] = await ctx.run(async (tx) => [await conversionReport(s(tx), at, period, "channel"), await conversionReport(s(tx), at, period, "landing", { limit: 25 })] as const);
   if (!channels.state.connected) return (
-    <EmptyState title={t("empty_title")} description={t("empty_description")} className="mt-2" action={<Link href={`/t/${tenant}/integrations`} className="text-sm font-medium underline-offset-4 hover:underline" data-testid="ga4-empty-cta">{t("empty_cta")}</Link>} />
+    <EmptyState title={t("empty_title")} description={t("empty_description")} className="mt-2" action={<Link href={`/t/${tenant}/integrations?setup=ga4`} className="text-sm font-medium underline-offset-4 hover:underline" data-testid="ga4-empty-cta">{t("empty_cta")}</Link>} />
   );
   const pct = (v: number | null) => (v === null ? "—" : formatPercent(v, ctx.locale, 2));
   const num = (v: number | null) => (v === null ? "—" : formatNumber(v, ctx.locale));

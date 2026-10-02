@@ -7,7 +7,9 @@ test.describe("Shopify self-serve setup", () => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]).catch(() => undefined);
     await login(page, "owner@harborhome.demo");
     await page.goto("/t/harbor-home/integrations");
-    const card = page.getByTestId("provider-shopify");
+    // the setup lives in the card's Manage sheet (#90)
+    await page.getByTestId("provider-shopify").getByTestId("shopify-manage").click();
+    const card = page.getByTestId("integration-sheet");
     await card.getByTestId("shopify-setup-toggle").click();
     const setup = card.getByTestId("shopify-setup");
     await expect(setup.getByTestId("setup-step")).toHaveCount(5);

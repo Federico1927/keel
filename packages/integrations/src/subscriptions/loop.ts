@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { SubscriptionCapabilities, SubscriptionInterval, SubscriptionStatus } from "@hullwise/core";
 import { HttpClient, type HttpOptions } from "../http";
-import { IntegrationError, type ConnectionTest, type Page, type SyncQuery } from "../types";
+import { IntegrationError, type ConnectionTest, type Page, type SyncQuery, failedConnection } from "../types";
 import { minorFrom, normalizeInterval, normalizePaymentError, type NormalizedBillingAttempt, type NormalizedSubscriptionContract, type SubscriptionProvider, type SubscriptionWebhook } from "./types";
 
 export interface LoopCredentials {
@@ -84,7 +84,7 @@ export class LoopSubscriptionProvider implements SubscriptionProvider {
       const d = await this.call<{ shopifyDomain: string; id: number | string }>("/store");
       return { ok: true, accountName: d.shopifyDomain, accountId: String(d.id) };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : String(e) };
+      return failedConnection(e);
     }
   }
 

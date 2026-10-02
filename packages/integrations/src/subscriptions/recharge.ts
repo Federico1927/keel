@@ -1,7 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import type { SubscriptionCapabilities, SubscriptionInterval, SubscriptionStatus } from "@hullwise/core";
 import { HttpClient, type HttpOptions } from "../http";
-import { IntegrationError, type ConnectionTest, type Page, type SyncQuery } from "../types";
+import { IntegrationError, type ConnectionTest, type Page, type SyncQuery, failedConnection } from "../types";
 import { dateOrNull, minorFrom, normalizeInterval, normalizePaymentError, type NormalizedBillingAttempt, type NormalizedSubscriptionContract, type SubscriptionProvider, type SubscriptionWebhook } from "./types";
 
 export interface RechargeCredentials {
@@ -88,7 +88,7 @@ export class RechargeSubscriptionProvider implements SubscriptionProvider {
       const d = await this.call<{ store: { id: number; name: string } }>("/store");
       return { ok: true, accountName: d.store.name, accountId: String(d.store.id) };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : String(e) };
+      return failedConnection(e);
     }
   }
 

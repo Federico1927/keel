@@ -15,7 +15,10 @@ test.describe("addon.whatsapp_spoki", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("WhatsApp (Spoki)");
     const card = page.getByTestId("provider-spoki");
     await expect(card).toBeVisible();
-    await expect(card.getByTestId("spoki-webhook-url")).toContainText("/api/webhooks/spoki/");
+    // the webhook URL and Resync are in the card's Manage sheet (#90)
+    await card.getByTestId("spoki-manage").click();
+    await expect(page.getByTestId("integration-sheet").getByTestId("spoki-webhook-url")).toContainText("/api/webhooks/spoki/");
+    await page.keyboard.press("Escape");
     await expect(page.getByTestId("whatsapp-stats")).toBeVisible();
     // the demo maps a template to every event, COD confirmations included
     await expect(page.getByTestId("tpl-order_shipped")).toHaveValue("40103");
@@ -26,8 +29,10 @@ test.describe("addon.whatsapp_spoki", () => {
     await page.reload();
     await expect(page.getByTestId("wa-sender")).toHaveValue("+390212345678");
     // resync reads the simulated account's templates
-    await card.getByTestId("spoki-resync").click();
-    await expect(card.getByTestId("msg-spoki")).toContainText(/6/);
+    await card.getByTestId("spoki-manage").click();
+    await page.getByTestId("integration-sheet").getByTestId("spoki-resync").click();
+    await expect(page.getByTestId("msg-spoki")).toContainText(/6/);
+    await page.keyboard.press("Escape");
     // the log of the whole store, newest first
     await expect(page.getByTestId("whatsapp-message").first()).toBeVisible();
   });

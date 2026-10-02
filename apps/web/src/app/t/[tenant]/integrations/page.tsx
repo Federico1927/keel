@@ -1,18 +1,21 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { AD_ACCOUNT_LIMIT, SHOPIFY_SETUP, adPlatformMinPlan, canDo, isAdPlatform, isAdPlatformInPlan, isPageEnabled } from "@hullwise/config";
+import { AD_ACCOUNT_LIMIT, INTEGRATION_SETUP, SHOPIFY_SETUP, adPlatformMinPlan, canDo, isAdPlatform, isAdPlatformInPlan, isPageEnabled } from "@hullwise/config";
 import { formatDate, formatDateTime, formatNumber } from "@hullwise/core";
-import { SUBSCRIPTION_PROVIDERS, integrationMode } from "@hullwise/integrations";
+import { SUBSCRIPTION_PROVIDERS, integrationMode, setupErrorFromText } from "@hullwise/integrations";
 import { adAccountsOverview, integrationOverview, platformWritesOverview } from "@hullwise/services";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, DataList } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { PlatformWriteStatus } from "@/components/platform-write-status";
-import { ProviderActions, WebhookControls, WebhookRowAction } from "./controls";
+import { ProviderSetupSection, WebhookControls, WebhookRowAction, type ProviderSetup } from "./controls";
+import { IntegrationCard, IntegrationSheetStatus } from "@/components/integration-card";
 import { GoogleWriteAccessToggle } from "./write-access";
 import { MetaAdAccounts } from "./ad-accounts";
-import { ProviderControls as SubscriptionProviderControls } from "../subscriptions/controls";
+import { SubscriptionAppSetup } from "../subscriptions/controls";
 import { SpokiCard } from "@/components/spoki-card";
-import { resolveSetupValues } from "@/server/integration-setup";
+import { CARD_SIMULATIONS, mockSetupTriggers, resolveSetupValues, setupOwnerReady, subscriptionSetups } from "@/server/integration-setup";
+import { pendingGoogleSignInOf } from "@/server/google-signin";
+import { IntegrationSetupError } from "@/components/integration-setup";
 import { savedShopifyApp } from "@/server/shopify-connection";
 import { ShopifySetup } from "./shopify-setup";
 import { Ga4Card } from "./ga4-card";
@@ -22,9 +25,9 @@ const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic", "address"
 /** Per-account integrations activated by the Hullwise team: interface and mock in Hullwise, each with its activation guide. */
 const SLOTS = ["messaging", "warehouse", "carrier", "payment_guarantee", "return_labels", "audiences"] as const;
 
-export default async function IntegrationsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ shopify_error?: string }> }) {
+export default async function IntegrationsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ shopify_error?: string; setup?: string; setup_error?: string }> }) {
   const { tenant } = await params;
-  const { shopify_error: shopifyError } = await searchParams;
+  const { shopify_error: shopifyError, setup: setupProvider, setup_error: setupErrorParam } = await searchParams;
   const ctx = await requirePage(tenant, "integrations");
   const t = await getTranslations("integrations");
   const tw = await getTranslations("platform_writes");
@@ -37,122 +40,97 @@ export default async function IntegrationsPage({ params, searchParams }: { param
   const canManage = canDo(ctx.role, "manage_integrations");
   const globalMock = integrationMode() === "mock";
   const dt = (d: Date | null | undefined) => (d ? formatDateTime(d, ctx.locale, ctx.tenant.timezone) : "—");
-  const statusVariant = (s: string) => (s === "connected" || s === "ok" ? "success" : s === "error" || s === "stale" ? "destructive" : s === "degraded" || s === "idle" || s === "syncing" ? "warning" : "muted") as "success" | "destructive" | "warning" | "muted";
   const base = `/t/${tenant}/integrations`;
+  // the self-setup block of each card (#90): its guide, copyable values, owner prerequisite, demo triggers, an error back from an OAuth redirect
+  const setupFor = (p: string, row: { config: unknown } | undefined): ProviderSetup | null => {
+    const guide = INTEGRATION_SETUP[p];
+    if (!guide || p === "shopify") return null;
+    const flash = setupProvider === p && setupErrorParam && setupErrorParam in guide.errors ? setupErrorParam : null;
+    return { guide, values: resolveSetupValues(guide, { tenantId: ctx.tenant.id, canSeeSecrets: canManage }), ownerReady: setupOwnerReady(guide), triggers: mockSetupTriggers(p), flashError: flash, guideHref: `${base}/guide/${p}`, accounts: p === "google" ? (pendingGoogleSignInOf(row?.config)?.accounts ?? null) : null };
+  };
   return (
     <>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<><Link href={`${base}/tracking`} className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted pointer-coarse:py-2.5" data-testid="tracking-link">{t("tracking")}</Link><Link href={`${base}/guide/shopify`} className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted pointer-coarse:py-2.5">{t("guides")}</Link></>} />
       {globalMock && (
         <p className="mb-4 rounded-md border border-dashed bg-muted/40 p-3 text-sm text-muted-foreground" data-testid="mock-banner">{t("global_mock_banner")}</p>
       )}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      {/* one card structure for every provider (#90): name and one status pill, account, three meta rows, Connect or Manage + Test */}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" data-testid="integration-cards">
         {PROVIDERS.map((p) => {
           // an ad platform outside the plan (TikTok below Growth): a locked card, no actions, no guide
-          if (isAdPlatform(p) && !isAdPlatformInPlan(p, ctx.tenant.planKey)) return (
-            <Card key={p} data-testid={`provider-${p}`} data-locked="true" className="border-dashed">
-              <CardHeader>
-                <div className="flex items-center justify-between gap-2">
-                  <CardTitle className="text-base">{t(`providers.${p}`)}</CardTitle>
-                  <Badge variant="muted">{t("not_in_plan_badge")}</Badge>
-                </div>
-                <CardDescription>{t("not_in_plan", { plan: tp(adPlatformMinPlan(p) ?? "growth") })}</CardDescription>
-              </CardHeader>
-            </Card>
-          );
+          if (isAdPlatform(p) && !isAdPlatformInPlan(p, ctx.tenant.planKey)) return <IntegrationCard key={p} slug={tenant} data={{ provider: p, title: t(`providers.${p}`), status: "locked", statusLabel: t("not_in_plan_badge"), modeLabel: null, subtitle: t("not_in_plan", { plan: tp(adPlatformMinPlan(p) ?? "growth") }), lastSync: "—", lastSuccess: "—", lastError: null, connected: false, canManage: false, guideHref: null, simulations: [], testable: false, locked: true }} />;
           const row = data.integrations.find((i) => i.provider === p);
           // a further Meta account's sources (`meta:<account>`) show on the accounts card instead
           const health = data.health.filter((h) => (h.source === p || h.source.startsWith(`${p}:`)) && !metaAccounts.some((a) => !a.isPrimary && h.source.startsWith(`${p}:${a.externalAccountId}`)));
           const connected = !!row && row.status !== "not_connected";
           const mock = globalMock || !row || row.mode !== "live";
-          const cfg = (row?.config ?? {}) as { missingScopes?: string[]; missingRequiredScopes?: string[] };
-          return (
-            <Card key={p} data-testid={`provider-${p}`} className={p === "shopify" ? "md:col-span-2" : undefined}>
-              <CardHeader>
-                <div className="flex items-center justify-between gap-2">
-                  <CardTitle className="text-base">{t(`providers.${p}`)}</CardTitle>
-                  <span className="flex gap-1">
-                    <Badge variant={statusVariant(row?.status ?? "not_connected")}>{t(`status.${row?.status ?? "not_connected"}`)}</Badge>
-                    <Badge variant="outline">{mock ? t("mode.mock") : t("mode.live")}</Badge>
-                  </span>
-                </div>
-                <CardDescription>{row?.externalAccountName ?? row?.externalAccountId ?? t("no_account")}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 [&_dd]:break-words">
-                  <dt className="text-muted-foreground">{t("last_sync")}</dt><dd>{dt(row?.lastSyncAt)}</dd>
-                  <dt className="text-muted-foreground">{t("last_success")}</dt><dd>{dt(row?.lastSuccessAt)}</dd>
-                  <dt className="text-muted-foreground">{t("last_error")}</dt><dd className={row?.lastError ? "text-destructive" : ""}>{row?.lastError ?? "—"}</dd>
-                </dl>
-                {p !== "shopify" && cfg.missingScopes && cfg.missingScopes.length > 0 && <p className="text-xs text-warning">{t("missing_scopes", { scopes: cfg.missingScopes.join(", ") })}</p>}
-                {health.length > 0 && (
-                  <ul className="space-y-1 text-xs">
-                    {health.map((h) => (
-                      <li key={h.id} className="flex items-center justify-between gap-2">
-                        <span className="font-mono">{h.source}</span>
-                        <span className="flex items-center gap-2"><span className="text-muted-foreground">{t("rows_n", { n: formatNumber(h.rowsWrittenLast, ctx.locale) })}</span><Badge variant={statusVariant(h.status)}>{t(`health.${h.status}`)}</Badge></span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {p === "shopify" && data.historyImport.state !== "not_started" && (() => {
-                  // the first import of the store's order history (issue #87)
-                  const h = data.historyImport;
-                  const day = (d: Date | null) => (d ? formatDate(d, ctx.locale, ctx.tenant.timezone) : "—");
-                  return (
-                    <div className="space-y-1 rounded-md border p-2 text-xs" data-testid="history-import" data-state={h.state}>
-                      <p className="flex items-center justify-between gap-2"><span className="font-medium">{t("history_import.title")}</span><Badge variant={h.state === "done" ? "success" : h.state === "error" ? "destructive" : "warning"}>{t(`history_import.state.${h.state}`)}</Badge></p>
-                      <p className="text-muted-foreground">{t("history_import.detail", { n: formatNumber(h.ordersImported, ctx.locale), since: h.since ? day(h.since) : t("history_import.all_orders"), oldest: day(h.oldestOrderAt) })}</p>
-                      {h.state !== "done" && <p className="text-muted-foreground">{t("history_import.incomplete_hint")}</p>}
-                      {h.error && <p className="text-destructive">{h.error}</p>}
-                    </div>
-                  );
-                })()}
-                {p === "google" && connected && <GoogleWriteAccessToggle slug={tenant} enabled={(row?.config as { writeAccess?: boolean } | undefined)?.writeAccess === true} canManage={canManage} />}
-                <ProviderActions slug={tenant} provider={p} connected={connected} mock={mock} canManage={canManage} />
-                {p === "shopify" && (() => {
-                  const missingRequired = cfg.missingRequiredScopes ?? [];
-                  const app = savedShopifyApp(row?.config);
-                  return <ShopifySetup slug={tenant} definition={SHOPIFY_SETUP} values={setupValues} guideHref={`${base}/guide/shopify`} connected={connected} mock={mock} canManage={canManage} publicApp={!!process.env.SHOPIFY_API_KEY && !!process.env.SHOPIFY_API_SECRET} savedApp={app && !connected ? { shop: app.shop, clientId: app.clientId } : null} flashError={shopifyError && shopifyError in SHOPIFY_SETUP.errors ? shopifyError : null} missing={{ required: connected ? missingRequired : [], optional: connected ? (cfg.missingScopes ?? []).filter((x) => !missingRequired.includes(x)) : [] }} />;
-                })()}
-                <p className="text-xs"><Link href={`${base}/guide/${p}`} className="underline-offset-4 hover:underline">{t("open_guide")}</Link></p>
-              </CardContent>
-            </Card>
+          const cfg = (row?.config ?? {}) as { missingScopes?: string[]; missingRequiredScopes?: string[]; writeAccess?: boolean };
+          const status = row?.status ?? "not_connected";
+          const setup = canManage ? setupFor(p, row) : null;
+          const guide = INTEGRATION_SETUP[p];
+          // the last error in plain words with its fix (#90)
+          const lastCode = status === "error" && p !== "shopify" ? setupErrorFromText(p, row?.lastError) : null;
+          const sheet = (
+            <>
+              {connected && (
+                <IntegrationSheetStatus
+                  rows={[{ label: t("card.account"), value: row?.externalAccountName ?? row?.externalAccountId ?? t("no_account") }, { label: t("last_sync"), value: dt(row?.lastSyncAt) }, { label: t("last_success"), value: dt(row?.lastSuccessAt) }, { label: t("last_error"), value: row?.lastError ?? "—", tone: row?.lastError ? "error" : undefined }]}
+                  health={health.map((h) => ({ source: h.source, status: h.status, statusLabel: t(`health.${h.status}`), detail: t("rows_n", { n: formatNumber(h.rowsWrittenLast, ctx.locale) }) }))}
+                  actions={canManage ? [...(p !== "anthropic" && p !== "address" ? (["resync"] as const) : []), "disconnect"] : []}
+                >
+                  {p !== "shopify" && cfg.missingScopes && cfg.missingScopes.length > 0 && <p className="text-xs text-warning">{t("missing_scopes", { scopes: cfg.missingScopes.join(", ") })}</p>}
+                  {lastCode && guide && <div data-testid={`last-error-${p}`}><IntegrationSetupError guide={guide} code={lastCode} values={{}} showDetail={false} /></div>}
+                  {p === "google" && <GoogleWriteAccessToggle slug={tenant} enabled={cfg.writeAccess === true} canManage={canManage} />}
+                  {p === "shopify" && data.historyImport.state !== "not_started" && (() => {
+                    // the first import of the store's order history (issue #87)
+                    const h = data.historyImport;
+                    const day = (d: Date | null) => (d ? formatDate(d, ctx.locale, ctx.tenant.timezone) : "—");
+                    return (
+                      <div className="space-y-1 rounded-md border p-2 text-xs" data-testid="history-import" data-state={h.state}>
+                        <p className="flex items-center justify-between gap-2"><span className="font-medium">{t("history_import.title")}</span><Badge variant={h.state === "done" ? "success" : h.state === "error" ? "destructive" : "warning"}>{t(`history_import.state.${h.state}`)}</Badge></p>
+                        <p className="text-muted-foreground">{t("history_import.detail", { n: formatNumber(h.ordersImported, ctx.locale), since: h.since ? day(h.since) : t("history_import.all_orders"), oldest: day(h.oldestOrderAt) })}</p>
+                        {h.state !== "done" && <p className="text-muted-foreground">{t("history_import.incomplete_hint")}</p>}
+                        {h.error && <p className="text-destructive">{h.error}</p>}
+                      </div>
+                    );
+                  })()}
+                </IntegrationSheetStatus>
+              )}
+              {p === "shopify" ? (() => {
+                const missingRequired = cfg.missingRequiredScopes ?? [];
+                const app = savedShopifyApp(row?.config);
+                return <ShopifySetup slug={tenant} definition={SHOPIFY_SETUP} values={setupValues} guideHref={`${base}/guide/shopify`} connected={connected} mock={mock} canManage={canManage} publicApp={!!process.env.SHOPIFY_API_KEY && !!process.env.SHOPIFY_API_SECRET} savedApp={app && !connected ? { shop: app.shop, clientId: app.clientId } : null} flashError={shopifyError && shopifyError in SHOPIFY_SETUP.errors ? shopifyError : null} missing={{ required: connected ? missingRequired : [], optional: connected ? (cfg.missingScopes ?? []).filter((x) => !missingRequired.includes(x)) : [] }} />;
+              })() : setup && <ProviderSetupSection provider={p} connected={connected} mock={mock} setup={setup} />}
+            </>
           );
+          const openOnLoad = setupProvider === p || (p === "shopify" && !!shopifyError) || (p === "google" && !!setup?.accounts?.length);
+          return <IntegrationCard key={p} slug={tenant} sheet={sheet} data={{ provider: p, title: t(`providers.${p}`), status, statusLabel: t(`status.${status}`), modeLabel: mock ? t("mode.mock") : t("mode.live"), subtitle: connected ? (row?.externalAccountName ?? row?.externalAccountId ?? t("no_account")) : t(`about.${p}`), lastSync: dt(row?.lastSyncAt), lastSuccess: dt(row?.lastSuccessAt), lastError: row?.lastError ?? null, connected, canManage, guideHref: `${base}/guide/${p}`, simulations: mock ? (CARD_SIMULATIONS[p] ?? []) : [], testable: connected && canManage, openOnLoad }} />;
         })}
-        <Ga4Card ctx={ctx} />
-        <SpokiCard ctx={ctx} />
+        <Ga4Card ctx={ctx} openOnLoad={setupProvider === "ga4"} />
+        <SpokiCard ctx={ctx} openOnLoad={setupProvider === "spoki"} />
         <AccountingCard ctx={ctx} />
+        {isPageEnabled("subscriptions", ctx.activeAddons) && (() => {
+          // addon.subscriptions (#67): the store's subscription app (one of Shopify Subscriptions, Recharge, Loop)
+          const rows = data.integrations.filter((i) => (SUBSCRIPTION_PROVIDERS as readonly string[]).includes(i.provider));
+          const row = rows.find((i) => i.status !== "not_connected") ?? rows[0];
+          const health = row ? data.health.filter((h) => h.source === row.provider) : [];
+          const connected = !!row && row.status !== "not_connected";
+          const mock = globalMock || !row || row.mode !== "live";
+          const status = row?.status ?? "not_connected";
+          const sheet = (
+            <>
+              {connected && (
+                <IntegrationSheetStatus rows={[{ label: t("card.account"), value: row ? t(`providers.${row.provider}`) : t("no_account") }, { label: t("last_sync"), value: dt(row?.lastSyncAt) }, { label: t("last_success"), value: dt(row?.lastSuccessAt) }, { label: t("last_error"), value: row?.lastError ?? health[0]?.lastError ?? "—" }]} health={health.map((h) => ({ source: h.source, status: h.status, statusLabel: t(`health.${h.status}`), detail: t("rows_n", { n: formatNumber(h.rowsWrittenLast, ctx.locale) }) }))} actions={canManage ? ["resync"] : []}>
+                  <p className="text-xs"><Link href={`/t/${tenant}/subscriptions`} className="underline-offset-4 hover:underline">{t("open_subscriptions")}</Link></p>
+                </IntegrationSheetStatus>
+              )}
+              {canManage && <SubscriptionAppSetup slug={tenant} connected={connected} mock={mock} provider={row?.provider ?? null} setups={subscriptionSetups(ctx.tenant.id, tenant)} />}
+            </>
+          );
+          return <IntegrationCard slug={tenant} sheet={sheet} data={{ provider: "subscriptions", title: t("providers.subscriptions"), status, statusLabel: t(`status.${status}`), modeLabel: mock ? t("mode.mock") : t("mode.live"), subtitle: connected && row ? t(`providers.${row.provider}`) : t("about.subscriptions"), lastSync: dt(row?.lastSyncAt), lastSuccess: dt(row?.lastSuccessAt), lastError: row?.lastError ?? health[0]?.lastError ?? null, connected, canManage, guideHref: `${base}/guide/subscriptions`, simulations: connected && mock ? (CARD_SIMULATIONS.subscriptions ?? []) : [], testable: connected && canManage, openOnLoad: setupProvider === "subscriptions" }} />;
+        })()}
       </div>
       {metaAccounts.length > 0 && <MetaAdAccounts slug={tenant} limit={AD_ACCOUNT_LIMIT} canManage={canManage} mock={globalMock || data.integrations.find((i) => i.provider === "meta")?.mode !== "live"} accounts={metaAccounts.map((a) => ({ id: a.id, externalId: a.externalAccountId, name: a.name, primary: a.isPrimary, status: a.status, mock: globalMock || a.mode !== "live", lastSync: dt(a.lastSyncAt), lastSuccess: dt(a.lastSuccessAt), lastError: a.lastError, campaigns: a.campaigns }))} />}
-      {isPageEnabled("subscriptions", ctx.activeAddons) && (() => {
-        // addon.subscriptions (#67): the store's subscription app (one of Shopify Subscriptions, Recharge, Loop)
-        const rows = data.integrations.filter((i) => (SUBSCRIPTION_PROVIDERS as readonly string[]).includes(i.provider));
-        const row = rows.find((i) => i.status !== "not_connected") ?? rows[0];
-        const health = row ? data.health.filter((h) => h.source === row.provider) : [];
-        const connected = !!row && row.status !== "not_connected";
-        const mock = globalMock || !row || row.mode !== "live";
-        return (
-          <Card className="mt-6" data-testid="provider-subscriptions">
-            <CardHeader>
-              <div className="flex items-center justify-between gap-2">
-                <CardTitle className="text-base">{t("providers.subscriptions")}</CardTitle>
-                <span className="flex gap-1"><Badge variant={statusVariant(row?.status ?? "not_connected")}>{t(`status.${row?.status ?? "not_connected"}`)}</Badge><Badge variant="outline">{mock ? t("mode.mock") : t("mode.live")}</Badge></span>
-              </div>
-              <CardDescription>{row ? t(`providers.${row.provider}`) : t("no_account")}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 sm:grid-cols-6 [&_dd]:break-words">
-                <dt className="text-muted-foreground">{t("last_sync")}</dt><dd>{dt(row?.lastSyncAt)}</dd>
-                <dt className="text-muted-foreground">{t("last_success")}</dt><dd>{dt(row?.lastSuccessAt)}</dd>
-                <dt className="text-muted-foreground">{t("last_error")}</dt><dd className={row?.lastError ? "text-destructive" : ""}>{row?.lastError ?? health[0]?.lastError ?? "—"}</dd>
-              </dl>
-              {health.map((h) => <p key={h.id} className="flex items-center gap-2 text-xs"><span className="font-mono">{h.source}</span><Badge variant={statusVariant(h.status)}>{t(`health.${h.status}`)}</Badge><span className="text-muted-foreground">{t("rows_n", { n: formatNumber(h.rowsWrittenLast, ctx.locale) })}</span></p>)}
-              <SubscriptionProviderControls slug={tenant} connected={connected} mock={mock} provider={row?.provider ?? null} canManage={canManage} />
-              <p className="flex gap-3 text-xs"><Link href={`/t/${tenant}/subscriptions`} className="underline-offset-4 hover:underline">{t("open_subscriptions")}</Link><Link href={`${base}/guide/subscriptions`} className="underline-offset-4 hover:underline">{t("open_guide")}</Link></p>
-            </CardContent>
-          </Card>
-        );
-      })()}
       <Card className="mt-6">
         <CardHeader>
           <CardTitle className="text-base">{t("slots_title")}</CardTitle>

@@ -2818,19 +2818,13 @@
     "public_app_link": "Installa via OAuth",
     "connect_title": {
       "shopify": "App custom (token Admin API)",
-      "meta": "Token utente di sistema",
       "google": "Credenziali Google Ads API",
-      "anthropic": "Chiave API Anthropic",
-      "tiktok": "App TikTok for Business",
-      "address": "Chiave API Google Maps Platform"
+      "tiktok": "App TikTok for Business"
     },
     "connect_description": {
       "shopify": "Crea un'app custom nell'admin del negozio, concedi gli scope elencati nella guida, incolla il token Admin API e la chiave segreta usata per firmare i webhook.",
-      "meta": "Un token utente di sistema a lunga durata da Business Manager con ads_read e ads_management sull'account pubblicitario.",
       "google": "Developer token, client OAuth e un refresh token autorizzato per lo scope Google Ads; sola lettura in questa versione.",
-      "anthropic": "La chiave del negozio da console.anthropic.com. Anthropic addebita il consumo dell'assistente a quell'account; Hullwise conserva la chiave cifrata.",
-      "tiktok": "App id e secret dell'app TikTok for Business e l'auth code restituito dall'autorizzazione dell'inserzionista; Hullwise lo scambia con un token a lunga durata valido per tutti gli account inserzionista autorizzati.",
-      "address": "La chiave del negozio con Address Validation API e Places API (New) attive. Google addebita le richieste al negozio; la chiave viene conservata cifrata."
+      "tiktok": "App id e secret dell'app TikTok for Business e l'auth code restituito dall'autorizzazione dell'inserzionista; Hullwise lo scambia con un token a lunga durata valido per tutti gli account inserzionista autorizzati."
     },
     "fields": {
       "shop": "Dominio del negozio",
@@ -2843,11 +2837,9 @@
       "client_id": "OAuth client id",
       "client_secret": "OAuth client secret",
       "refresh_token": "Refresh token",
-      "api_key": "Chiave API",
       "app_id": "App id",
       "app_secret": "App secret",
-      "auth_code": "Auth code",
-      "google_api_key": "Chiave API Google"
+      "auth_code": "Auth code"
     },
     "slots_title": "Integrazioni per account",
     "slots_description": "Slot per connettori ad hoc venduti per account. Esistono interfacce e mock; il provider specifico si implementa su richiesta.",
@@ -2919,16 +2911,11 @@
     "simulated_return": "Webhook del reso accettato (HTTP {status}) per {order}.",
     "google_write_access": "Accesso in scrittura concesso",
     "google_write_access_hint": "Permette a Hullwise di mettere in pausa annunci e aggiungere parole chiave negative. Senza, Google resta in sola lettura.",
-    "tiktok_mock_connect": "Collega account demo",
     "tiktok_mock_connected": "TikTok collegato (mock): {summary}",
     "tiktok_mock_partial": "TikTok collegato (mock): {summary}. Il resto dei 90 giorni continua a importarsi in background.",
-    "tiktok_app_hint": "Usi l'app TikTok di Hullwise (TIKTOK_APP_ID configurato)?",
-    "tiktok_app_link": "Autorizza con TikTok",
     "not_in_plan_badge": "Non incluso",
     "not_in_plan": "Incluso dal piano {plan}: chiedi al gestore della piattaforma di cambiare piano.",
     "open_subscriptions": "Apri abbonamenti",
-    "address_mock_connect": "Usa il fornitore simulato",
-    "address_mock_connected": "Validazione indirizzi collegata (fornitore simulato).",
     "ad_accounts": {
       "title": "Account pubblicitari Meta",
       "description": "Ogni account si sincronizza per conto suo, con stato, ultima sincronizzazione e ultimo errore. Fino a {n} account.",
@@ -2961,6 +2948,25 @@
       "incomplete_hint": "Finché non è completa, analisi, RFM, coorti e storico clienti coprono solo una parte dello storico. Risincronizza la fa proseguire.",
       "banner": "Lo storico ordini del negozio è ancora in importazione ({n} ordini finora): periodi passati, coorti e storico clienti sono incompleti finché non termina.",
       "banner_error": "L'importazione dello storico ordini si è fermata dopo {n} ordini: periodi passati, coorti e storico clienti sono incompleti. Un owner o un admin può farla proseguire con Risincronizza in Integrazioni."
+    },
+    "card": {
+      "manage": "Gestisci",
+      "more": "Altre azioni",
+      "simulate": "Simula",
+      "close": "Chiudi",
+      "hide_setup": "Nascondi configurazione",
+      "account": "Account"
+    },
+    "about": {
+      "shopify": "Ordini, clienti, prodotti e giacenze dal tuo negozio.",
+      "meta": "Campagne, inserzioni e spesa giornaliera; pause con conferma; Conversions API.",
+      "google": "Campagne, parole chiave e termini di ricerca con costi e conversioni giornalieri.",
+      "tiktok": "Campagne, gruppi di annunci e annunci con spesa e conversioni giornaliere.",
+      "anthropic": "L'assistente AI, con la tua chiave Anthropic.",
+      "address": "Controllo e suggerimenti degli indirizzi mentre modifichi gli ordini.",
+      "spoki": "Conferme, notifiche d'ordine e campagne WhatsApp.",
+      "accounting": "Le registrazioni giornaliere delle vendite inviate al tuo gestionale contabile.",
+      "subscriptions": "Contratti, rinnovi e cancellazioni dalla tua app di abbonamenti."
     }
   },
   "integration_guide": {
@@ -3035,8 +3041,7 @@
           "symptom": "Throttled / 429",
           "fix": "Normale durante sync pesanti: {product} attende e riprova da solo; l'esecuzione riprende dal cursore."
         }
-      ],
-      "setup_title": "Configurazione del negoziante"
+      ]
     },
     "meta": {
       "title": "Collegare Meta Ads",
@@ -7099,7 +7104,8 @@
       "subscription_reschedule": "Spostamento del prossimo rinnovo",
       "subscription_cancel": "Cancellazione abbonamento",
       "subscription_payment_link": "Invio link di aggiornamento pagamento"
-    }
+    },
+    "advantage_locked": "Meta non permette più alle app di mettere in pausa o riattivare questa campagna: è una vecchia campagna Advantage+ shopping o app (Marketing API v25 e successive). Modificala in Gestione inserzioni."
   },
   "dev_inbox": {
     "title": "Posta di sviluppo",
@@ -9195,7 +9201,6 @@
       "simulated": "Simulato: {summary}",
       "connect": "Collega",
       "reconnect": "Cambia app",
-      "connected": "App di abbonamenti collegata.",
       "app": "App di abbonamenti",
       "apps": {
         "shopify_subscriptions": "Shopify Subscriptions",
@@ -9203,12 +9208,7 @@
         "loop": "Loop Subscriptions",
         "mock": "App simulata"
       },
-      "api_token": "Token API",
-      "webhook_secret": "Segreto di firma dei webhook",
-      "shopify_hint": "Usa la connessione Shopify del negozio: servono gli scope dei contratti di abbonamento (vedi la guida).",
-      "mock_hint": "Modalità mock: l'app simulata è collegata, non servono credenziali.",
-      "token_hint": "Token e segreto sono salvati cifrati.",
-      "save": "Salva"
+      "replace_hint": "Un'app di abbonamenti per negozio: collegarne un'altra sostituisce quella attuale."
     },
     "status": {
       "active": "Attivo",
@@ -9580,11 +9580,7 @@
       "webhook": "URL del webhook da incollare in Spoki (contiene il token segreto del negozio)",
       "copy": "Copia",
       "settings_link": "Impostazioni WhatsApp",
-      "mock_connect": "Collega account simulato",
-      "mock_connected": "Account Spoki simulato collegato",
-      "resynced": "{n} template letti, {approved} approvati",
-      "api_key": "Chiave API Spoki",
-      "key_help": "Spoki → Impostazioni → Sviluppatori → chiave API. Viene verificata e salvata cifrata."
+      "resynced": "{n} template letti, {approved} approvati"
     },
     "settings": {
       "title": "WhatsApp (Spoki)",
@@ -9994,7 +9990,14 @@
   "integration_setup": {
     "common": {
       "connecting": "Collegamento…",
-      "hide_setup": "Nascondi configurazione"
+      "hide_setup": "Nascondi configurazione",
+      "mock_notice": "Questo ambiente è simulato: Collega collega un account simulato e niente di quello che scrivi viene inviato. I passi sono quelli che il negozio fa su un account reale.",
+      "mock_triggers": "Valori demo che rispondono con un errore:",
+      "mock_deny": "Demo: rifiuta l'autorizzazione",
+      "connected": "Collegata.",
+      "setup_title": "Configurala passo per passo",
+      "setup_title_of": "Configura {name}",
+      "owner_prerequisite": "Questo percorso usa l'app di {product} registrata presso il fornitore. Se la scheda dice che non è ancora disponibile, il team di {product} deve ancora completare la registrazione: contatta il supporto. Nel frattempo funziona il percorso avanzato con le tue credenziali."
     },
     "shopify": {
       "intro": "Collega il negozio con una tua app Shopify: circa dieci minuti, una volta sola. Segui i passi nel tuo account Shopify, poi incolla qui tre valori.",
@@ -10092,6 +10095,589 @@
       "copy": "Copia",
       "full_guide": "Guida completa, con gli altri modi di collegarsi",
       "advanced": "Avanzate: altri modi di collegarsi"
+    },
+    "meta": {
+      "title": "Collega Meta Ads e la Conversions API",
+      "intro": "Collega i tuoi account pubblicitari e il pixel con un utente di sistema del tuo Business Manager: circa dieci minuti, una volta sola, e la connessione non scade con un accesso personale.",
+      "connect": "Collega",
+      "copy": "Copia",
+      "full_guide": "Apri la guida completa",
+      "steps": {
+        "system_user": {
+          "title": "Crea un utente di sistema nel tuo Business Manager",
+          "body": "Apri business.facebook.com → Impostazioni → Utenti → Utenti di sistema → Aggiungi. Dagli un nome, per esempio “Reporting”, con ruolo Amministratore. L'utente di sistema appartiene all'azienda: la connessione resta anche se le persone cambiano."
+        },
+        "assign_assets": {
+          "title": "Assegnagli gli account pubblicitari e il pixel",
+          "body": "Sull'utente di sistema scegli Assegna risorse. Account pubblicitari: scegli ogni account e attiva “Gestisci campagne” (serve il controllo completo per mettere in pausa le campagne da qui). Dataset/Pixel: scegli il pixel e attiva “Gestisci”. Salva."
+        },
+        "token": {
+          "title": "Genera il token con queste autorizzazioni",
+          "body": "Sempre sull'utente di sistema: Genera nuovo token → scegli un'app della tua azienda (se non ne hai, crea un'app Business su developers.facebook.com) → scadenza “Mai” → spunta le autorizzazioni qui sotto. La Conversions API usa lo stesso token: il pixel deve essere assegnato al passo precedente. Copia subito il token, Meta lo mostra una volta sola."
+        },
+        "ids": {
+          "title": "Trova gli ID dell'account e del pixel",
+          "body": "ID account pubblicitario: Gestione inserzioni → menu dell'account, un numero come act_123456789 (copia ogni account che vuoi). ID pixel: Gestione eventi → Origini dati → il tuo pixel → Impostazioni → ID dataset."
+        },
+        "url_parameters": {
+          "title": "Aggiungi i parametri URL alle inserzioni",
+          "body": "In ogni inserzione, Destinazione → Parametri URL, incolla il modello qui sotto. Gli ordini vengono collegati a campagna, gruppo di inserzioni e inserzione tramite questi parametri."
+        },
+        "connect": {
+          "title": "Incolla i valori qui e collega",
+          "body": "Incolla il token, gli ID degli account (separati da virgole; il primo è l'account principale) e l'ID del pixel, poi Collega. Token, account e pixel vengono verificati subito, poi gli ultimi 90 giorni vengono importati in background."
+        },
+        "verify": {
+          "title": "Controlla cosa è stato trovato",
+          "body": "Dopo Collega la scheda mostra gli account, le campagne e il pixel che è riuscita a leggere. “Testa connessione” ripete il controllo in qualsiasi momento."
+        }
+      },
+      "values": {
+        "permissions": "Autorizzazioni da spuntare",
+        "utm_template": "Modello dei parametri URL"
+      },
+      "fields": {
+        "accessToken": "Token dell'utente di sistema",
+        "adAccountIds": "ID degli account pubblicitari",
+        "pixelId": "ID del pixel (dataset), per la Conversions API"
+      },
+      "errors": {
+        "invalid_input": {
+          "message": "Controlla i campi.",
+          "fix": "Il token è una stringa lunga; gli ID degli account sono come act_123456789, separati da virgole; l'ID del pixel è un numero (lascialo vuoto per non usare la Conversions API)."
+        },
+        "invalid_token": {
+          "message": "Meta ha rifiutato il token: non è valido, è scaduto o è stato revocato.",
+          "fix": "Genera un nuovo token per l'utente di sistema (Impostazioni aziendali → Utenti di sistema → Genera nuovo token) con scadenza “Mai” e incollalo di nuovo."
+        },
+        "missing_permission": {
+          "message": "Al token manca un'autorizzazione.",
+          "fix": "Genera di nuovo il token e spunta ads_read, ads_management e business_management (passo 3)."
+        },
+        "account_not_assigned": {
+          "message": "L'utente di sistema non vede questo account pubblicitario.",
+          "fix": "Impostazioni aziendali → Utenti di sistema → il tuo utente → Assegna risorse → Account pubblicitari: aggiungi l'account con “Gestisci campagne”. Controlla anche l'ID (act_ seguito da cifre)."
+        },
+        "pixel_not_accessible": {
+          "message": "Il pixel non è raggiungibile con questo token.",
+          "fix": "Impostazioni aziendali → Utenti di sistema → Assegna risorse → Dataset/Pixel: aggiungi il pixel con “Gestisci” e controlla l'ID in Gestione eventi → Impostazioni. Oppure lascia vuoto il pixel per collegare senza Conversions API."
+        },
+        "rate_limited": {
+          "message": "Meta sta limitando le richieste di questo account in questo momento.",
+          "fix": "Aspetta qualche minuto e collega di nuovo: non si perde nulla."
+        },
+        "unknown": {
+          "message": "Meta ha risposto con un errore: {detail}",
+          "fix": "Ripeti i passi; la guida completa elenca gli errori comuni. Se continua, contatta il supporto con il messaggio qui sopra."
+        }
+      },
+      "verified": "{accounts, plural, one {Trovato # account pubblicitario} other {Trovati # account pubblicitari}} ({names}) con {campaigns, plural, one {# campagna} other {# campagne}}, {active} attive. {pixel, select, none {Nessun pixel indicato: la Conversions API resta spenta.} other {Pixel {pixel} raggiungibile: attiva la Conversions API in Pixel e conversioni.}}",
+      "notes": {
+        "advantage": "Meta non permette più alle app di mettere in pausa o riattivare le vecchie campagne Advantage+ shopping e app (Marketing API v25 e successive). Se provi a mettere in pausa una di queste campagne da qui lo vedrai scritto: modificala in Gestione inserzioni.",
+        "facebook_login": "In arrivo: “Continua con Facebook”, il collegamento in un clic con l'app Meta della piattaforma. Fino ad allora si collega con il token dell'utente di sistema qui sopra."
+      }
+    },
+    "google": {
+      "title": "Collega Google Ads",
+      "intro": "Accedi con l'account Google che gestisce le tue campagne e scegli l'account: nessun token o configurazione tecnica da parte tua.",
+      "copy": "Copia",
+      "full_guide": "Apri la guida completa",
+      "advanced": "Avanzate: il tuo developer token e il tuo client OAuth",
+      "sign_in": "Accedi con Google",
+      "pick_label": "Scegli l'account Google Ads",
+      "pick_manager": "Tramite {manager}",
+      "pick_button": "Usa questo account",
+      "steps": {
+        "access": {
+          "title": "Usa un account Google con accesso alle campagne",
+          "body": "L'account Google deve avere accesso all'account Google Ads (Amministratore o Standard), direttamente o tramite un account amministratore (MCC) della tua agenzia. Per importare basta la lettura; per mettere in pausa gli annunci da qui serve Standard."
+        },
+        "sign_in": {
+          "title": "Accedi con Google e consenti l'accesso",
+          "body": "Clicca “Accedi con Google”, scegli l'account e consenti l'autorizzazione Google Ads qui sotto. Se il Google Workspace della tua azienda limita le app di terze parti, l'amministratore deve consentire l'app (Console di amministrazione → Sicurezza → Controlli API); l'indirizzo di ritorno qui sotto lo aiuta a riconoscerla."
+        },
+        "pick": {
+          "title": "Scegli l'account",
+          "body": "Vengono elencati gli account che il tuo utente Google può raggiungere, quelli sotto un account amministratore raggruppati per amministratore. Scegli quello di questo negozio: viene verificato e i suoi ultimi 90 giorni vengono importati in background."
+        },
+        "tracking": {
+          "title": "Imposta il modello di monitoraggio",
+          "body": "Google Ads → Amministrazione → Impostazioni account → Monitoraggio → Modello di monitoraggio: incolla il modello qui sotto. Gli ordini vengono collegati a campagne, annunci e parole chiave tramite questo modello."
+        },
+        "enhanced_conversions": {
+          "title": "Attiva le conversioni avanzate (facoltativo)",
+          "body": "Google Ads → Obiettivi → Conversioni → Impostazioni: attiva le conversioni avanzate per il web e accetta i termini sui dati dei clienti; come metodo scegli l'API Google Ads. Poi crea (o scegli) un'azione di conversione di acquisto importata dai clic e imposta il suo ID in Pixel e conversioni."
+        },
+        "verify": {
+          "title": "Controlla cosa è stato trovato",
+          "body": "Dopo la scelta la scheda mostra l'account e le campagne lette. “Testa connessione” ripete il controllo in qualsiasi momento."
+        }
+      },
+      "values": {
+        "scope": "Autorizzazione Google Ads richiesta",
+        "redirect_url": "Indirizzo di ritorno dell'accesso (per l'amministratore del Workspace)",
+        "tracking_template": "Modello di monitoraggio"
+      },
+      "errors": {
+        "app_not_configured": {
+          "message": "Accedi con Google non è ancora disponibile su questa piattaforma.",
+          "fix": "L'app Google Ads della piattaforma è ancora in registrazione presso Google. Contatta il supporto, oppure usa il percorso avanzato con il tuo developer token e il tuo client OAuth."
+        },
+        "access_denied": {
+          "message": "L'accesso con Google è stato annullato o l'autorizzazione non è stata concessa.",
+          "fix": "Clicca di nuovo “Accedi con Google” e consenti l'autorizzazione Google Ads. Se il tuo Workspace blocca l'app, chiedi all'amministratore di consentirla (passo 2)."
+        },
+        "no_accounts": {
+          "message": "Questo utente Google non ha account Google Ads.",
+          "fix": "Accedi con l'account Google che ha accesso alle campagne, oppure chiedi al proprietario dell'account di invitarlo (Google Ads → Amministrazione → Accesso e sicurezza)."
+        },
+        "developer_token": {
+          "message": "Google non ha ancora approvato l'accesso della piattaforma agli account reali.",
+          "fix": "Dipende dalla piattaforma (developer token in approvazione): contatta il supporto. Nel frattempo funzionano gli account di test."
+        },
+        "not_enabled": {
+          "message": "Questo account Google Ads non è attivo.",
+          "fix": "L'account è stato chiuso, sospeso o non ha mai completato la configurazione (fatturazione). Scegli un altro account o riattivalo in Google Ads."
+        },
+        "no_permission": {
+          "message": "Il tuo utente Google non può leggere questo account.",
+          "fix": "Chiedi al proprietario di dare accesso al tuo utente Google (Google Ads → Amministrazione → Accesso e sicurezza), oppure accedi con l'utente che lo gestisce; gli account di un'agenzia vanno scelti sotto l'account amministratore."
+        },
+        "token_revoked": {
+          "message": "L'accesso Google è scaduto o è stato revocato.",
+          "fix": "Clicca di nuovo “Accedi con Google”."
+        },
+        "rate_limited": {
+          "message": "Google sta limitando le richieste in questo momento.",
+          "fix": "Aspetta un minuto e riprova: non si perde nulla."
+        },
+        "unknown": {
+          "message": "Google ha risposto con un errore: {detail}",
+          "fix": "Riprova l'accesso; se continua, contatta il supporto con il messaggio qui sopra."
+        }
+      },
+      "verified": "Collegata a {account}: {campaigns, plural, one {# campagna trovata} other {# campagne trovate}}, {active} attive. Gli ultimi 90 giorni vengono importati in background."
+    },
+    "tiktok": {
+      "title": "Collega TikTok Ads",
+      "intro": "Autorizza i tuoi account inserzionista con TikTok for Business: un clic, nessuna app da creare da parte tua.",
+      "copy": "Copia",
+      "full_guide": "Apri la guida completa",
+      "advanced": "Avanzate: la tua app TikTok for Business",
+      "connect_tiktok": "Collega TikTok",
+      "steps": {
+        "access": {
+          "title": "Usa un utente TikTok for Business con accesso agli account",
+          "body": "Serve un accesso da amministratore o operatore agli account inserzionista in TikTok Ads Manager o nel tuo Business Center."
+        },
+        "authorize": {
+          "title": "Collega TikTok e conferma le autorizzazioni",
+          "body": "Clicca “Collega TikTok”, accedi, seleziona gli account inserzionista di questo negozio e conferma le autorizzazioni qui sotto. Alla fine torni qui."
+        },
+        "url_parameters": {
+          "title": "Aggiungi i parametri URL alle inserzioni",
+          "body": "In ogni inserzione aggiungi i parametri qui sotto all'URL della pagina di destinazione (o al campo dei parametri URL). Gli ordini vengono collegati a campagna, gruppo di annunci e annuncio tramite questi parametri."
+        },
+        "verify": {
+          "title": "Controlla cosa è stato trovato",
+          "body": "La scheda mostra gli account autorizzati e le campagne lette; gli ultimi 90 giorni vengono importati in background."
+        }
+      },
+      "values": {
+        "permissions": "Autorizzazioni richieste",
+        "utm_template": "Modello dei parametri URL"
+      },
+      "errors": {
+        "app_not_configured": {
+          "message": "Collega TikTok non è ancora disponibile su questa piattaforma.",
+          "fix": "L'app TikTok for Business della piattaforma attende ancora l'approvazione di TikTok. Contatta il supporto, oppure usa il percorso avanzato con la tua app TikTok."
+        },
+        "access_denied": {
+          "message": "L'autorizzazione TikTok è stata annullata.",
+          "fix": "Clicca di nuovo “Collega TikTok” e conferma le autorizzazioni."
+        },
+        "no_advertisers": {
+          "message": "Non è stato selezionato nessun account inserzionista.",
+          "fix": "Collega di nuovo e spunta gli account inserzionista di questo negozio nella finestra di TikTok."
+        },
+        "missing_permission": {
+          "message": "Un'autorizzazione non è stata concessa.",
+          "fix": "Collega di nuovo e lascia spuntate tutte le autorizzazioni: campagne e report le richiedono tutte."
+        },
+        "token_expired": {
+          "message": "L'autorizzazione TikTok è scaduta o è stata revocata.",
+          "fix": "Clicca di nuovo “Collega TikTok” (un'autorizzazione dura pochi minuti e vale una volta)."
+        },
+        "rate_limited": {
+          "message": "TikTok sta limitando le richieste in questo momento.",
+          "fix": "Aspetta un minuto e riprova: non si perde nulla."
+        },
+        "unknown": {
+          "message": "TikTok ha risposto con un errore: {detail}",
+          "fix": "Riprova; se continua, contatta il supporto con il messaggio qui sopra."
+        }
+      },
+      "verified": "{advertisers, plural, one {# account inserzionista autorizzato} other {# account inserzionista autorizzati}}, {campaigns, plural, one {# campagna trovata} other {# campagne trovate}}, {active} attive."
+    },
+    "anthropic": {
+      "title": "Collega l'assistente AI",
+      "intro": "L'assistente usa la tua chiave API Anthropic: Anthropic fattura l'uso al tuo account, la chiave è conservata cifrata.",
+      "connect": "Collega",
+      "copy": "Copia",
+      "full_guide": "Apri la guida completa",
+      "steps": {
+        "account": {
+          "title": "Apri la console Anthropic",
+          "body": "Accedi all'indirizzo qui sotto (o crea l'account a nome del negozio, così le fatture vanno al negozio)."
+        },
+        "billing": {
+          "title": "Aggiungi del credito",
+          "body": "Settings → Billing: aggiungi un metodo di pagamento e acquista credito. Settings → Limits: imposta un limite di spesa mensile."
+        },
+        "key": {
+          "title": "Crea una chiave API",
+          "body": "Settings → API keys → Create key, con il nome del prodotto. Copiala subito: la console la mostra una volta sola."
+        },
+        "connect": {
+          "title": "Incolla la chiave qui e collega",
+          "body": "La chiave viene verificata leggendo i dettagli del modello (nessun token consumato) e conservata cifrata."
+        },
+        "verify": {
+          "title": "Controlla che risponda",
+          "body": "La scheda mostra il modello che ha risposto; poi apri Assistente e fai una domanda."
+        }
+      },
+      "values": {
+        "console_url": "Console Anthropic, chiavi API"
+      },
+      "fields": {
+        "apiKey": "Chiave API Anthropic"
+      },
+      "errors": {
+        "invalid_input": {
+          "message": "Non sembra una chiave API Anthropic.",
+          "fix": "Copia la chiave intera dalla console: inizia con sk-ant-."
+        },
+        "invalid_key": {
+          "message": "Anthropic ha rifiutato la chiave.",
+          "fix": "La chiave è stata copiata a metà, cancellata o appartiene a un workspace disattivato: creane una nuova in Settings → API keys e incollala di nuovo."
+        },
+        "no_credit": {
+          "message": "L'account Anthropic ha finito il credito.",
+          "fix": "Aggiungi credito nella console (Settings → Billing) o attiva la ricarica automatica, poi collega di nuovo."
+        },
+        "rate_limited": {
+          "message": "Anthropic sta limitando le richieste di questo account in questo momento.",
+          "fix": "Aspetta un minuto e riprova. I nuovi account partono con limiti bassi che crescono con l'uso: controllali in Settings → Limits."
+        },
+        "overloaded": {
+          "message": "Anthropic è sovraccarico in questo momento.",
+          "fix": "Riprova tra qualche minuto: la tua chiave è a posto."
+        },
+        "unknown": {
+          "message": "Anthropic ha risposto con un errore: {detail}",
+          "fix": "Riprova; se continua, controlla la chiave nella console o contatta il supporto con il messaggio qui sopra."
+        }
+      },
+      "verified": "La chiave funziona: ha risposto {model}. L'uso viene fatturato al tuo account Anthropic."
+    },
+    "address": {
+      "title": "Collega la verifica degli indirizzi (Google)",
+      "intro": "Controllo e suggerimenti degli indirizzi mentre modifichi un ordine, con la tua chiave Google Maps Platform: Google fattura le richieste al tuo account Cloud.",
+      "connect": "Collega",
+      "copy": "Copia",
+      "full_guide": "Apri la guida completa",
+      "steps": {
+        "project": {
+          "title": "Crea o scegli un progetto Google Cloud",
+          "body": "console.cloud.google.com → selettore progetti → Nuovo progetto, con l'account Google del negozio così le fatture vanno al negozio."
+        },
+        "billing": {
+          "title": "Attiva la fatturazione",
+          "body": "Fatturazione → Collega un account di fatturazione al progetto. Google Maps Platform richiede la fatturazione anche entro l'uso gratuito mensile; imposta un avviso di budget."
+        },
+        "enable_apis": {
+          "title": "Attiva le due API",
+          "body": "API e servizi → Libreria: attiva “Address Validation API” e “Places API (New)” (non la vecchia “Places API”)."
+        },
+        "key": {
+          "title": "Crea e limita la chiave API",
+          "body": "API e servizi → Credenziali → Crea credenziali → Chiave API. Modificala: Limitazioni API → Limita chiave → le due API qui sopra. Limitazioni delle applicazioni: Nessuna (le chiamate partono dai nostri server; una limitazione per siti web le blocca)."
+        },
+        "connect": {
+          "title": "Incolla la chiave qui e collega",
+          "body": "Le due API vengono verificate con una richiesta ciascuna, poi la chiave viene conservata cifrata."
+        },
+        "verify": {
+          "title": "Controlla cosa è stato trovato",
+          "body": "La scheda mostra l'esito di un indirizzo di prova e di una ricerca di prova. Poi apri un ordine → Modifica → indirizzo di spedizione."
+        }
+      },
+      "values": {
+        "apis": "API da attivare"
+      },
+      "fields": {
+        "apiKey": "Chiave API Google"
+      },
+      "errors": {
+        "invalid_input": {
+          "message": "Non sembra una chiave API Google.",
+          "fix": "Copia la chiave intera da Credenziali: di solito inizia con AIza."
+        },
+        "invalid_key": {
+          "message": "Google ha rifiutato la chiave API.",
+          "fix": "La chiave è stata copiata a metà o cancellata: copiala di nuovo da API e servizi → Credenziali, o creane una nuova."
+        },
+        "api_not_enabled": {
+          "message": "Una delle due API non è attiva nel progetto della chiave.",
+          "fix": "API e servizi → Libreria: attiva Address Validation API e Places API (New) nello stesso progetto della chiave, aspetta qualche minuto e collega di nuovo."
+        },
+        "key_restricted": {
+          "message": "Le limitazioni della chiave bloccano queste richieste.",
+          "fix": "Modifica la chiave: le limitazioni API devono includere Address Validation API e Places API (New); le limitazioni delle applicazioni devono essere Nessuna (niente limitazioni per siti web o app)."
+        },
+        "billing_disabled": {
+          "message": "La fatturazione non è attiva nel progetto Google Cloud.",
+          "fix": "Fatturazione → Collega un account di fatturazione al progetto, poi collega di nuovo."
+        },
+        "quota": {
+          "message": "La quota del progetto è esaurita per ora.",
+          "fix": "Controlla le quote in Google Cloud (API e servizi → l'API → Quote) o aspetta che si azzerino."
+        },
+        "unknown": {
+          "message": "Google ha risposto con un errore: {detail}",
+          "fix": "Ripeti i passi; se continua, contatta il supporto con il messaggio qui sopra."
+        }
+      },
+      "verified": "La chiave funziona: l'indirizzo di prova è stato {valid, select, yes {confermato} other {controllato}} e una ricerca di prova ha restituito {suggestions, plural, =0 {nessun suggerimento} one {# suggerimento} other {# suggerimenti}}."
+    },
+    "spoki": {
+      "title": "Collega WhatsApp con Spoki",
+      "intro": "Collega il tuo account Spoki con la chiave API e incolla in Spoki il nostro indirizzo webhook per gli stati di consegna e le risposte.",
+      "connect": "Collega",
+      "copy": "Copia",
+      "full_guide": "Apri la guida completa",
+      "steps": {
+        "account": {
+          "title": "Un account Spoki con WhatsApp",
+          "body": "Un account Spoki con un numero WhatsApp Business verificato, con un piano che include l'API."
+        },
+        "key": {
+          "title": "Crea la chiave API",
+          "body": "In Spoki: Impostazioni → Sviluppatori (o Integrazioni → API) → crea una chiave API e copiala."
+        },
+        "webhook": {
+          "title": "Incolla in Spoki il nostro indirizzo webhook",
+          "body": "Spoki → Impostazioni → Webhook (messaggi in uscita e in entrata): incolla l'indirizzo qui sotto. L'ultima parte è il segreto del tuo negozio: non condividerla."
+        },
+        "connect": {
+          "title": "Incolla la chiave qui e collega",
+          "body": "La chiave viene verificata leggendo i tuoi template, poi conservata cifrata."
+        },
+        "verify": {
+          "title": "Controlla cosa è stato trovato",
+          "body": "La scheda mostra i template trovati e quanti ne ha approvati WhatsApp; abbinali nelle impostazioni WhatsApp."
+        }
+      },
+      "values": {
+        "webhook_url": "Indirizzo webhook da incollare in Spoki"
+      },
+      "fields": {
+        "apiKey": "Chiave API Spoki"
+      },
+      "errors": {
+        "invalid_input": {
+          "message": "Non sembra una chiave API Spoki.",
+          "fix": "Copia la chiave intera da Spoki → Impostazioni → Sviluppatori."
+        },
+        "invalid_key": {
+          "message": "Spoki ha rifiutato la chiave API.",
+          "fix": "Copia di nuovo la chiave da Spoki → Impostazioni → Sviluppatori, o creane una nuova."
+        },
+        "no_api_access": {
+          "message": "Questo account Spoki non può usare l'API.",
+          "fix": "Il piano Spoki non include l'accesso API, o la chiave non ha i permessi: verifica il piano con Spoki."
+        },
+        "rate_limited": {
+          "message": "Spoki sta limitando le richieste in questo momento.",
+          "fix": "Aspetta un minuto e riprova."
+        },
+        "unknown": {
+          "message": "Spoki ha risposto con un errore: {detail}",
+          "fix": "Riprova; se continua, contatta il supporto con il messaggio qui sopra."
+        }
+      },
+      "verified": "La chiave funziona: {templates, plural, one {# template trovato} other {# template trovati}}, {approved} approvati da WhatsApp."
+    },
+    "recharge": {
+      "title": "Collega Recharge",
+      "intro": "Collega Recharge con un token API dal suo pannello: abbonamenti, addebiti e cancellazioni vengono importati, e le azioni del tuo team tornano nell'app.",
+      "connect": "Collega",
+      "copy": "Copia",
+      "full_guide": "Apri la guida completa",
+      "steps": {
+        "token": {
+          "title": "Crea il token API",
+          "body": "Recharge → App e integrazioni → Token API: crea un token con il nome del prodotto e le autorizzazioni qui sotto."
+        },
+        "secret": {
+          "title": "Copia il segreto di firma dei webhook",
+          "body": "Nella stessa pagina del token copia il client secret dell'API: Recharge firma i webhook con questo."
+        },
+        "webhook": {
+          "title": "Punta i webhook a questo indirizzo",
+          "body": "Nelle impostazioni webhook dell'app, invia gli eventi qui sotto a questo indirizzo. Gli eventi vengono verificati con il segreto di firma; la sincronizzazione ogni 15 minuti recupera quelli persi."
+        },
+        "connect": {
+          "title": "Incolla qui il token e il segreto",
+          "body": "Il token viene verificato con una richiesta, poi entrambi vengono conservati cifrati. Un'app di abbonamenti per negozio: collegare questa sostituisce la precedente."
+        },
+        "verify": {
+          "title": "Controlla cosa è stato trovato",
+          "body": "La scheda mostra gli abbonamenti trovati; l'importazione completa prosegue in background."
+        }
+      },
+      "values": {
+        "scopes": "Autorizzazioni del token",
+        "webhook_url": "Indirizzo webhook",
+        "topics": "Eventi webhook"
+      },
+      "fields": {
+        "apiToken": "Token API",
+        "webhookSecret": "Segreto di firma dei webhook"
+      },
+      "errors": {
+        "invalid_input": {
+          "message": "Controlla i campi.",
+          "fix": "Incolla il token API intero e il segreto di firma dal pannello dell'app."
+        },
+        "invalid_token": {
+          "message": "Recharge ha rifiutato il token.",
+          "fix": "Il token è stato revocato o copiato a metà: creane uno nuovo e incollalo di nuovo."
+        },
+        "missing_scopes": {
+          "message": "Al token manca un'autorizzazione.",
+          "fix": "Modifica il token in Recharge e concedi le autorizzazioni elencate al passo 1, poi collega di nuovo."
+        },
+        "rate_limited": {
+          "message": "Recharge sta limitando le richieste in questo momento.",
+          "fix": "Aspetta un minuto e riprova: non si perde nulla."
+        },
+        "unknown": {
+          "message": "Recharge ha risposto con un errore: {detail}",
+          "fix": "Riprova; se continua, contatta il supporto con il messaggio qui sopra."
+        }
+      },
+      "verified": "Collegata: {contracts, plural, =0 {ancora nessun abbonamento trovato} one {# abbonamento trovato} other {# abbonamenti trovati}}{more, select, yes { (e altri)} other {}}. L'importazione completa prosegue in background."
+    },
+    "loop": {
+      "title": "Collega Loop",
+      "intro": "Collega Loop con un token API dal suo pannello: abbonamenti, addebiti e cancellazioni vengono importati, e le azioni del tuo team tornano nell'app.",
+      "connect": "Collega",
+      "copy": "Copia",
+      "full_guide": "Apri la guida completa",
+      "steps": {
+        "token": {
+          "title": "Crea il token API",
+          "body": "Pannello Loop → Impostazioni → Accesso API: crea un token con il nome del prodotto e le autorizzazioni qui sotto."
+        },
+        "secret": {
+          "title": "Copia il segreto di firma dei webhook",
+          "body": "Pannello Loop → Impostazioni → Webhook: copia il segreto di firma."
+        },
+        "webhook": {
+          "title": "Punta i webhook a questo indirizzo",
+          "body": "Nelle impostazioni webhook dell'app, invia gli eventi qui sotto a questo indirizzo. Gli eventi vengono verificati con il segreto di firma; la sincronizzazione ogni 15 minuti recupera quelli persi."
+        },
+        "connect": {
+          "title": "Incolla qui il token e il segreto",
+          "body": "Il token viene verificato con una richiesta, poi entrambi vengono conservati cifrati. Un'app di abbonamenti per negozio: collegare questa sostituisce la precedente."
+        },
+        "verify": {
+          "title": "Controlla cosa è stato trovato",
+          "body": "La scheda mostra gli abbonamenti trovati; l'importazione completa prosegue in background."
+        }
+      },
+      "values": {
+        "scopes": "Autorizzazioni del token",
+        "webhook_url": "Indirizzo webhook",
+        "topics": "Eventi webhook"
+      },
+      "fields": {
+        "apiToken": "Token API",
+        "webhookSecret": "Segreto di firma dei webhook"
+      },
+      "errors": {
+        "invalid_input": {
+          "message": "Controlla i campi.",
+          "fix": "Incolla il token API intero e il segreto di firma dal pannello dell'app."
+        },
+        "invalid_token": {
+          "message": "Loop ha rifiutato il token.",
+          "fix": "Il token è stato revocato o copiato a metà: creane uno nuovo e incollalo di nuovo."
+        },
+        "missing_scopes": {
+          "message": "Al token manca un'autorizzazione.",
+          "fix": "Modifica il token in Loop e concedi le autorizzazioni elencate al passo 1, poi collega di nuovo."
+        },
+        "rate_limited": {
+          "message": "Loop sta limitando le richieste in questo momento.",
+          "fix": "Aspetta un minuto e riprova: non si perde nulla."
+        },
+        "unknown": {
+          "message": "Loop ha risposto con un errore: {detail}",
+          "fix": "Riprova; se continua, contatta il supporto con il messaggio qui sopra."
+        }
+      },
+      "verified": "Collegata: {contracts, plural, =0 {ancora nessun abbonamento trovato} one {# abbonamento trovato} other {# abbonamenti trovati}}{more, select, yes { (e altri)} other {}}. L'importazione completa prosegue in background."
+    },
+    "shopify_subscriptions": {
+      "title": "Collega Shopify Subscriptions",
+      "intro": "Shopify Subscriptions si legge tramite il collegamento Shopify: nessun nuovo token, solo autorizzazioni da aggiungere.",
+      "connect": "Collega",
+      "copy": "Copia",
+      "full_guide": "Apri la guida completa",
+      "steps": {
+        "shopify": {
+          "title": "Collega prima Shopify",
+          "body": "La scheda Shopify qui sopra deve essere collegata: gli abbonamenti si leggono con la stessa app."
+        },
+        "scopes": {
+          "title": "Aggiungi all'app Shopify le autorizzazioni sui contratti",
+          "body": "Nel Dev Dashboard apri la tua app → nuova versione → Accesso: aggiungi le autorizzazioni qui sotto, pubblica la versione e approva l'aggiornamento nell'admin del negozio. Shopify invia al collegamento gli eventi webhook qui sotto."
+        },
+        "approval": {
+          "title": "I contratti dell'app Shopify Subscriptions",
+          "body": "I contratti creati dall'app Shopify Subscriptions appartengono a quell'app: leggerli da un'altra app richiede l'approvazione di Shopify, chiesta dal proprietario della piattaforma. Finché non arriva il collegamento funziona ma non trova contratti."
+        },
+        "connect": {
+          "title": "Collega",
+          "body": "Clicca Collega: le autorizzazioni vengono verificate sul collegamento Shopify."
+        },
+        "verify": {
+          "title": "Controlla cosa è stato trovato",
+          "body": "La scheda mostra gli abbonamenti trovati."
+        }
+      },
+      "values": {
+        "scopes": "Autorizzazioni da aggiungere",
+        "topics": "Eventi webhook"
+      },
+      "errors": {
+        "shopify_not_connected": {
+          "message": "Shopify non è collegato.",
+          "fix": "Collega prima Shopify dalla sua scheda (Integrazioni → Shopify), poi collega Shopify Subscriptions."
+        },
+        "missing_scopes": {
+          "message": "All'app Shopify mancano le autorizzazioni sugli abbonamenti.",
+          "fix": "Aggiungi le autorizzazioni del passo 2 a una nuova versione dell'app Shopify, pubblicala, approva l'aggiornamento nell'admin del negozio e collega di nuovo."
+        },
+        "unknown": {
+          "message": "Shopify ha risposto con un errore: {detail}",
+          "fix": "Testa il collegamento Shopify e riprova; se continua, contatta il supporto con il messaggio qui sopra."
+        }
+      },
+      "verified": "Collegata: {contracts, plural, =0 {ancora nessun abbonamento trovato (vedi il passo 3)} one {# abbonamento trovato} other {# abbonamenti trovati}}{more, select, yes { (e altri)} other {}}."
     }
   },
   "ga4": {
@@ -10127,8 +10713,6 @@
       "backfill_running": "Collegato: {n} righe importate finora, il resto prosegue in background.",
       "resync_done": "Risincronizzato: {n} righe.",
       "resync_queued": "Risincronizzazione in coda.",
-      "disconnect_confirm": "Scollegare Google Analytics 4? Il traffico già importato resta.",
-      "disconnected": "Scollegato.",
       "errors": {
         "ga4_invalid_property": "Inserisci l'id numerico della proprietà GA4 (per esempio 312456789).",
         "ga4_invalid_key": "Questo non è un file di chiave di account di servizio valido.",
@@ -10220,7 +10804,7 @@
         "add_viewer": "Incolla questa e-mail, scegli il ruolo Visualizzatore, togli la spunta a “Invia notifica” e clicca Aggiungi:",
         "property_id": "Sempre in Amministrazione, apri Dettagli proprietà e copia l'ID PROPRIETÀ: un numero come 312456789 (non l'ID di misurazione G-).",
         "paste": "Incolla qui l'ID proprietà:",
-        "connect": "Clicca Collega: verifichiamo l'accesso e importiamo in background gli ultimi 12 mesi."
+        "connect": "Clicca Collega: verifichiamo l'accesso, mostriamo cosa ha restituito la proprietà e importiamo gli ultimi 12 mesi in background."
       },
       "errors": {
         "no_access": {
@@ -10247,7 +10831,12 @@
           "message": "Il test non è riuscito.",
           "fix": "Ripeti i passi qui sopra; sotto trovi i dettagli di Google. La guida elenca gli errori comuni."
         }
-      }
+      },
+      "values": {
+        "serviceAccountEmail": "E-mail del lettore"
+      },
+      "verified": "La proprietà {property} ha risposto{queued, select, yes {: l'importazione dei 12 mesi prosegue in background.} other {: {rows, plural, =0 {ancora nessuna riga di traffico} one {# riga di traffico importata} other {# righe di traffico importate}} finora.}}",
+      "full_guide": "Apri la guida completa"
     }
   },
   "daily_sales": {
@@ -10405,10 +10994,8 @@
       "connect": "Collega",
       "connect_mock": "Collega il sistema simulato",
       "connected": "Collegato: {n} conti letti.",
-      "test": "Testa connessione",
       "test_ok": "Connessione riuscita ({account}).",
       "test_failed": "Connessione non riuscita: {error}",
-      "resync": "Risincronizza conti",
       "resync_done": "{n} conti letti.",
       "simulate_failure": "Simula un rifiuto",
       "simulated": "Il prossimo invio verrà rifiutato con un limite di richieste.",

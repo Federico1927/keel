@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select, Textarea } from "@hullwise/ui";
 import type { AccountingSettings } from "@hullwise/core";
 import type { ActionResult } from "@/server/action-result";
-import { connectAccountingAction, repushAccountingDayAction, resyncAccountsAction, retryAccountingDayAction, runAccountingNowAction, saveAccountingSettingsAction, simulateAccountingFailureAction, testAccountingAction } from "@/server/actions/accounting";
+import { connectAccountingAction, repushAccountingDayAction, retryAccountingDayAction, runAccountingNowAction, saveAccountingSettingsAction } from "@/server/actions/accounting";
 
 /* Client controls of the addon.accounting pages (#85). */
 
@@ -66,7 +66,8 @@ export function DayActions({ slug, day, dayLabel, status, version }: { slug: str
 }
 
 /** Connection buttons of the integration card: connect (mock), test, resync the chart of accounts, simulate a refusal. */
-export function AccountingConnection({ slug, connected, mock, canManage }: { slug: string; connected: boolean; mock: boolean; canManage: boolean }) {
+/** The connect path of the accounting sheet (test, resync and the simulated refusal are on the shared card, #90). */
+export function AccountingConnection({ slug, mock, canManage }: { slug: string; mock: boolean; canManage: boolean }) {
   const t = useTranslations("accounting.connection");
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -75,12 +76,7 @@ export function AccountingConnection({ slug, connected, mock, canManage }: { slu
   const run = (fn: () => Promise<void>) => start(async () => { await fn(); router.refresh(); });
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap gap-2">
-        {!connected && <Button size="sm" disabled={pending} data-testid="accounting-connect" onClick={() => run(async () => { const r = await connectAccountingAction(slug); say(r, r.ok && r.data ? t("connected", { n: r.data.accounts }) : ""); })}>{mock ? t("connect_mock") : t("connect")}</Button>}
-        {connected && <Button size="sm" variant="outline" disabled={pending} data-testid="accounting-test" onClick={() => run(async () => { const r = await testAccountingAction(slug); say(r, r.ok && r.data ? (r.data.ok ? t("test_ok", { account: r.data.accountName ?? "" }) : t("test_failed", { error: r.data.error ?? "" })) : ""); })}>{t("test")}</Button>}
-        {connected && <Button size="sm" variant="outline" disabled={pending} data-testid="accounting-resync" onClick={() => run(async () => { const r = await resyncAccountsAction(slug); say(r, r.ok && r.data ? t("resync_done", { n: r.data.accounts }) : ""); })}>{t("resync")}</Button>}
-        {connected && mock && <Button size="sm" variant="secondary" disabled={pending} onClick={() => run(async () => { const r = await simulateAccountingFailureAction(slug); say(r, t("simulated")); })}>{t("simulate_failure")}</Button>}
-      </div>
+      <Button size="sm" disabled={pending} data-testid="accounting-connect" onClick={() => run(async () => { const r = await connectAccountingAction(slug); say(r, r.ok && r.data ? t("connected", { n: r.data.accounts }) : ""); })}>{mock ? t("connect_mock") : t("connect")}</Button>
       {view}
     </div>
   );

@@ -34,7 +34,7 @@ describe("tiktok adapter (fixtures)", () => {
     expect(await p.testConnection()).toMatchObject({ ok: true, accountName: "Example Apparel EU, Example Apparel Outlet", accountId: "7100000000000000001,7100000000000000002" });
     expect(p.http.calls[0]!.url).toContain(encodeURIComponent('["7100000000000000001","7100000000000000002"]'));
     const expired = make([{ match: () => true, body: F.tokenExpired }]);
-    expect(await expired.testConnection()).toEqual({ ok: false, error: "The access token is invalid or has been revoked." });
+    expect(await expired.testConnection()).toEqual({ ok: false, error: "The access token is invalid or has been revoked.", errorCode: "token_expired" });
   });
 
   it("maps campaigns of several advertisers across pages: status, daily budget in minor units, currency", async () => {

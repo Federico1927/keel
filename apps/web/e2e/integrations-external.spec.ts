@@ -13,8 +13,12 @@ test.describe("external integrations", () => {
     await expect(card).toContainText("Simulated address provider");
     await card.getByRole("button", { name: /Test connection|Testa connessione/ }).click();
     await expect(page.getByTestId("msg-address")).toContainText(/Connection OK|Connessione OK/);
-    await card.getByRole("button", { name: /^Connect$|^Collega$/ }).click();
-    await expect(card.getByLabel(/Google API key|Chiave API Google/)).toBeVisible();
+    // the key form is in the card's sheet, behind "Reconnect" once connected (#90)
+    await card.getByTestId("address-manage").click();
+    const sheet = page.getByTestId("integration-sheet");
+    await sheet.getByTestId("address-setup-toggle").click();
+    await expect(sheet.getByLabel(/Google API key|Chiave API Google/)).toBeVisible();
+    await page.keyboard.press("Escape");
 
     await card.getByRole("link", { name: /How to connect|Come collegarla/ }).click();
     await expect(page).toHaveURL(/\/integrations\/guide\/address$/);

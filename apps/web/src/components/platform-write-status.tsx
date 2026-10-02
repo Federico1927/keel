@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { isMetaAdvantageLockedError } from "@hullwise/config";
 import { Badge, Button, cn } from "@hullwise/ui";
 import { retryPlatformWriteAction } from "@/server/actions/platform-writes";
 
@@ -49,7 +50,10 @@ export function PlatformWriteStatus({ slug, write, canRetry = true, showSynced =
           {t("retry")}
         </Button>
       )}
-      {showError && write.status !== "succeeded" && write.lastError && <span className="max-w-xs truncate text-xs text-muted-foreground" title={write.lastError}>{write.lastError}</span>}
+      {write.status === "failed" && isMetaAdvantageLockedError(write.lastError) ? (
+        // Meta refuses status changes on legacy Advantage+ shopping/app campaigns since v25: say it in plain words
+        <span className="max-w-sm text-xs text-muted-foreground" data-testid="advantage-locked">{t("advantage_locked")}</span>
+      ) : showError && write.status !== "succeeded" && write.lastError && <span className="max-w-xs truncate text-xs text-muted-foreground" title={write.lastError}>{write.lastError}</span>}
       {error && <span className="text-xs text-destructive">{error}</span>}
     </span>
   );

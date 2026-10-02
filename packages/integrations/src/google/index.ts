@@ -1,5 +1,5 @@
 import { HttpClient, type HttpOptions } from "../http";
-import { IntegrationError, type AdEntityMetricLevel, type AdEntityStatus, type AdsCapabilities, type AdsPlatform, type ConnectionTest, type NegativeKeywordInput, type NormalizedAd, type NormalizedAdAsset, type NormalizedAdMetric, type NormalizedAdSet, type NormalizedCampaign, type NormalizedEntityMetric, type NormalizedKeyword } from "../types";
+import { IntegrationError, type AdEntityMetricLevel, type AdEntityStatus, type AdsCapabilities, type AdsPlatform, type ConnectionTest, type NegativeKeywordInput, type NormalizedAd, type NormalizedAdAsset, type NormalizedAdMetric, type NormalizedAdSet, type NormalizedCampaign, type NormalizedEntityMetric, type NormalizedKeyword, failedConnection } from "../types";
 
 /**
  * The one place the Google Ads API version lives (adapter, conversions sink, guide, tests). Google
@@ -114,7 +114,7 @@ export class GoogleAdsPlatform implements AdsPlatform {
       const c = (rows[0]?.customer as Rec | undefined) ?? {};
       return { ok: true, accountName: String(c.descriptiveName ?? ""), accountId: String(c.id ?? this.customer()), scopes: [GOOGLE_ADS_SCOPE] };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : String(e) };
+      return failedConnection(e);
     }
   }
 
