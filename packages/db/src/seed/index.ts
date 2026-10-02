@@ -22,6 +22,7 @@ import { seedMcp } from "./mcp";
 import { seedApi } from "./api";
 import { seedAdsDepth } from "./ads";
 import { seedTiktok } from "./tiktok";
+import { seedGa4 } from "./ga4";
 import { seedMetaAccounts } from "./meta-accounts";
 import { seedPlatformReliability, seedReliability } from "./reliability";
 import { seedSubscriptions } from "./subscriptions";
@@ -290,6 +291,8 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("tiktok", () => seedTiktok(db, DEMO_TENANTS[cfg.key as keyof typeof DEMO_TENANTS].planKey, cfg.tenantId, opts.now ?? new Date()));
     // after TikTok: the second Meta account takes its orders from those still without paid attribution
     await step("meta-accounts", () => seedMetaAccounts(db, cfg.key as "northwind" | "harbor", cfg.tenantId, opts.now ?? new Date()));
+    // after every step that touches attribution: GA4 traffic is built from the final orders (#86)
+    await step("ga4", () => seedGa4(db, cfg.key as "northwind" | "harbor", cfg.tenantId, { now: opts.now ?? new Date(), timeZone: cfg.timezone, storeName: DEMO_TENANTS[cfg.key as keyof typeof DEMO_TENANTS].name }));
     await step("subscriptions", () => seedSubscriptions(db, { tenantId: cfg.tenantId, addons: cfg.addons, now: opts.now ?? new Date(), scale: opts.scale ?? 1, careUserId: ctx.userIds["care@harborhome.demo"] ?? null, ownerUserId: ctx.userIds["owner@harborhome.demo"] ?? null }));
     await step("reliability", () => seedReliability(db, cfg.key as "northwind" | "harbor", cfg.tenantId, ctx.userIds[cfg.key === "northwind" ? "owner@northwind.demo" : "owner@harborhome.demo"] ?? null, opts.now ?? new Date()));
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);

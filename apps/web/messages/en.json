@@ -2755,7 +2755,8 @@
       "recharge": "Recharge",
       "loop": "Loop Subscriptions",
       "address": "Address validation",
-      "spoki": "WhatsApp (Spoki)"
+      "spoki": "WhatsApp (Spoki)",
+      "ga4": "Google Analytics 4"
     },
     "status": {
       "not_connected": "Not connected",
@@ -3925,6 +3926,81 @@
         {
           "symptom": "Statuses never update",
           "fix": "The webhook URL is missing or wrong in Spoki; copy it again from the integration card."
+        }
+      ]
+    },
+    "ga4": {
+      "title": "Google Analytics 4",
+      "intro": "Reads the store's GA4 sessions by day, channel, source / medium / campaign and landing page, so {product} can show the conversion rate (orders ÷ sessions) by channel, landing page and campaign next to its own pixel. Read only: {product} never changes the property. The store connects it on its own: it adds {product}'s reader e-mail as Viewer on the property and pastes the property ID. Stores that prefer their own credentials can use their own service account or OAuth.",
+      "scopes": "Scope: https://www.googleapis.com/auth/analytics.readonly (read only). The Viewer role on the GA4 property is enough.\nWhat is read: sessions, users, engaged sessions and add-to-carts per day, default channel group, source, medium, campaign and landing page. No user-level or personal data.\nAPIs: Google Analytics Data API (required); Google Analytics Admin API (optional, for the property picker and the property name).",
+      "steps": [
+        {
+          "title": "What it does in {product}",
+          "body": "Analytics → Traffic: conversion rate by channel and by landing page, GA4 next to the first-party pixel, every number linked to the orders or to the GA4 rows behind it. Campaigns: GA4 sessions next to spend and orders, matched on the UTM campaign. After connecting, {product} reads the last 12 months in the background, then every morning the days since the last read, and every night the last 3 days again (GA4 keeps adjusting recent days)."
+        },
+        {
+          "title": "Add {product}'s reader as Viewer (default, no password)",
+          "body": "Integrations → Google Analytics 4 shows the reader e-mail with a Copy button. In analytics.google.com → Admin (gear) → Property → Property access management → + → Add users: paste it, role Viewer, untick \"Notify new users\", Add. The store can remove it there at any time.",
+          "verify": true
+        },
+        {
+          "title": "Copy the property ID",
+          "body": "Admin → Property → Property details (or Property settings): the PROPERTY ID is a number such as 312456789. It is not the measurement ID of the web stream (G-XXXXXXX).",
+          "verify": true
+        },
+        {
+          "title": "Paste it and connect",
+          "body": "Paste the property ID in the card and click Connect. {product} runs a small report to check the access and starts the 12-month import. If the test fails, the card says why in plain words (no access to this property, wrong property ID, Google not reachable) and what to do. Owners and admins only. \"Choose property\" switches to another property later."
+        },
+        {
+          "title": "Advanced: a Google Cloud project with the Data API",
+          "body": "Only to use the store's own service account. console.cloud.google.com → New project → APIs & Services → Library: enable \"Google Analytics Data API\" (and \"Google Analytics Admin API\" to pick the property from a list).",
+          "verify": true
+        },
+        {
+          "title": "Advanced: create the service account and its JSON key",
+          "body": "IAM & Admin → Service accounts → Create service account (no project role needed) → Keys → Add key → Create new key → JSON. Keep the file private. If the organisation forbids keys (policy iam.disableServiceAccountKeyCreation), use the default path or OAuth.",
+          "verify": true
+        },
+        {
+          "title": "Advanced: give it Viewer access and paste the key",
+          "body": "Add the service account's client_email as Viewer on the property (as in step 2), then in the card open Advanced, paste the whole JSON file and the property ID, Connect. The key is stored encrypted (AES-GCM).",
+          "verify": true
+        },
+        {
+          "title": "Alternative: OAuth with a refresh token",
+          "body": "Create an OAuth client (APIs & Services → Credentials → OAuth client ID), authorise it with a Google account that has Viewer access to the property and the scope analytics.readonly, then paste client id, client secret and refresh token in the OAuth tab under Advanced. The token stops working if that person loses access or revokes it.",
+          "verify": true
+        },
+        {
+          "title": "Verify",
+          "body": "\"Test connection\" on the card shows the property name. Analytics → Traffic shows sessions per channel within minutes for recent days; the 12 months finish in the background. Compare one day with GA4 → Reports → Acquisition → Traffic acquisition (session default channel group): the totals match; channels and pages can differ slightly from the pixel, as the Traffic tab explains."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "User does not have sufficient permissions for this property (PERMISSION_DENIED)",
+          "fix": "The reader e-mail (or your own service account) is not on the property, or the property ID belongs to another property. Add the e-mail shown on the card as Viewer (step 2) and check the ID (step 3)."
+        },
+        {
+          "symptom": "Google Analytics Data API has not been used in project … or it is disabled",
+          "fix": "Enable the Data API in the project of the service account (step 5) and try again after a few minutes."
+        },
+        {
+          "symptom": "Invalid property ID / property not found",
+          "fix": "Use the numeric property id, not the G- measurement id or the account id."
+        },
+        {
+          "symptom": "Exhausted property tokens per hour / per day (quota)",
+          "fix": "GA4 limits requests per property. {product} pauses the import and resumes it after the wait on its own; nothing to do. A standard property has about 200,000 tokens a day [to verify]."
+        },
+        {
+          "symptom": "Google sign-in refused: invalid_grant (Invalid JWT Signature)",
+          "fix": "The key was deleted or rotated. Create a new JSON key (step 6) and connect again."
+        },
+        {
+          "symptom": "The conversion rate looks different from GA4's own",
+          "fix": "GA4 divides its purchase events by sessions; {product} divides the store's real online orders (from Shopify) by GA4 sessions. Orders are complete; GA4 purchase events miss buyers who block cookies or tracking."
         }
       ]
     }
@@ -9806,6 +9882,162 @@
       "signing": "The signature is HMAC-SHA256 of the timestamp, a dot and the raw body, keyed with the endpoint secret, in hex: t=<timestamp>,v1=<signature>. Reject timestamps older than {tolerance} seconds. After a secret rotation the previous secret signs too (a second v1) for {grace} hours.",
       "retries": "A delivery succeeds on any 2xx answer within {timeout} seconds. Anything else is retried after {schedule}; then the delivery is failed and can be redelivered by hand from the log. Redirects are not followed.",
       "security": "Endpoints must be https on a public host. Addresses that are private, loopback, link-local or cloud metadata are refused when the endpoint is saved and again at every delivery, after DNS resolution."
+    }
+  },
+  "ga4": {
+    "card": {
+      "property_line": "{name} · property {id}",
+      "not_connected_description": "Sessions by channel, landing page and campaign for conversion rates.",
+      "last_day": "Last day read",
+      "service_account": "Service account",
+      "last_run": "Last run: {kind}, {status}, {rows} rows ({since} → {until})",
+      "kind": {
+        "backfill": "12-month import",
+        "daily": "daily sync",
+        "reconcile": "nightly re-sync"
+      },
+      "open_analytics": "Open the Traffic analytics",
+      "connect_mock": "Connect the simulated property",
+      "connect_title": "Your own service account or OAuth",
+      "connect_description": "For stores that prefer their own credentials: paste the service account key (JSON) or the OAuth credentials and the numeric property ID. The key is checked on the property and stored encrypted.",
+      "auth": {
+        "service_account": "Service account (recommended)",
+        "oauth": "OAuth"
+      },
+      "property": "Property",
+      "property_id": "Property id",
+      "property_id_help": "GA4 → Admin → Property details: a number such as 312456789 (not the G- measurement id).",
+      "service_account_json": "Service account key (JSON)",
+      "service_account_help": "The whole file downloaded from Google Cloud (Keys → Add key → JSON). The service account needs Viewer access to the property.",
+      "choose_property": "Choose property",
+      "properties_empty": "The credentials cannot list properties (the Admin API may be off): type the property id.",
+      "set_property": "Use this property",
+      "property_saved": "Property set to {name}: its 12 months are being read.",
+      "backfill_done": "Connected: {n} rows of traffic imported.",
+      "backfill_running": "Connected: {n} rows imported so far, the rest continues in the background.",
+      "resync_done": "Resynced: {n} rows.",
+      "resync_queued": "Resync queued.",
+      "disconnect_confirm": "Disconnect Google Analytics 4? The traffic already imported is kept.",
+      "disconnected": "Disconnected.",
+      "errors": {
+        "ga4_invalid_property": "Enter the numeric GA4 property id (for example 312456789).",
+        "ga4_invalid_key": "This is not a valid service account key file.",
+        "not_connected": "Connect Google Analytics 4 first."
+      }
+    },
+    "analytics": {
+      "tab": "Traffic",
+      "not_in_plan": "Google Analytics 4 is not included in this plan.",
+      "empty_title": "Connect Google Analytics 4 to see conversion rates",
+      "empty_description": "With GA4 connected, this tab shows orders ÷ sessions by channel and by landing page, next to the first-party pixel.",
+      "empty_cta": "Go to Integrations",
+      "channel": "Channel",
+      "landing": "Landing page",
+      "orders": "Online orders",
+      "ga4_sessions": "GA4 sessions",
+      "ga4_cr": "Conversion rate (GA4)",
+      "pixel_sessions": "Pixel sessions",
+      "pixel_cr": "Conversion rate (pixel)",
+      "engagement": "Engaged",
+      "add_to_carts": "Add to carts",
+      "totals": "Total",
+      "cr_hint": "{orders} orders ÷ {sessions} sessions",
+      "pixel_since": "Pixel sessions since {date}",
+      "pixel_none": "No pixel sessions in the period",
+      "orders_hint": "Storefront orders of the period, any status",
+      "by_channel": "Conversion rate by channel",
+      "by_channel_description": "Online orders of the period by attribution channel ÷ GA4 sessions of the same channel. Orders link to the orders list, sessions to the GA4 rows.",
+      "why_title": "Why GA4 and the pixel give different rates",
+      "why_points": [
+        "Consent and blockers: GA4 counts only visitors who accept analytics cookies and do not block Google; the first-party pixel runs on the store's own domain and loses fewer sessions.",
+        "Different session rules: GA4 starts a new session after 30 minutes of inactivity and at midnight; the pixel keeps one session per visit and per marketing touch.",
+        "Different channel rules: GA4 groups traffic with its default channel grouping; {product} channels come from click ids and UTMs (an Instagram ad is Paid Social in both, a newsletter without UTMs can be Referral in GA4).",
+        "Coverage: the pixel counts only since it was installed and on pages where it runs; GA4 has the whole period.",
+        "Orders are the same in both rates: real online orders from the store, not GA4 purchase events."
+      ],
+      "by_landing": "Conversion rate by landing page",
+      "by_landing_description": "The 25 landing pages with most GA4 sessions; the query string (UTMs, click ids) is removed, so one page is one row.",
+      "no_rows": "No traffic in this period."
+    },
+    "rows": {
+      "back": "Traffic analytics",
+      "title": "GA4 traffic rows",
+      "description": "The daily rows read from Google Analytics 4.",
+      "description_property": "The daily rows read from {name}.",
+      "filters": {
+        "channel": "Channel",
+        "source": "Source",
+        "medium": "Medium",
+        "campaign": "Campaign",
+        "campaignId": "Matched campaign",
+        "landing": "Landing page"
+      },
+      "clear": "Clear filters",
+      "not_in_plan": "Google Analytics 4 is not included in this plan.",
+      "empty_title": "Google Analytics 4 is not connected",
+      "empty_description": "Connect the store's GA4 property to read its sessions here.",
+      "empty_cta": "Go to Integrations",
+      "totals": "{sessions} sessions · {engaged} engaged · {atc} add to carts",
+      "no_rows": "No rows match these filters.",
+      "columns": {
+        "landing": "Landing page",
+        "date": "Day",
+        "channel": "Channel group",
+        "source_medium": "Source / medium",
+        "campaign": "Campaign",
+        "sessions": "Sessions",
+        "engaged": "Engaged",
+        "users": "Users",
+        "add_to_carts": "Add to carts"
+      },
+      "summary": "{n} rows"
+    },
+    "campaigns": {
+      "sessions": "GA4 sessions",
+      "cr_title": "GA4 sessions of the campaign's UTM campaign · attributed orders ÷ sessions"
+    },
+    "setup": {
+      "title": "Connect in two minutes, no password to share",
+      "intro": "Give our read-only reader access to your GA4 property and paste the property ID.",
+      "copy": "Copy",
+      "connect": "Connect",
+      "advanced": "Advanced: your own service account or OAuth",
+      "not_configured": "The GA4 reader account is not set up on this platform yet: ask support, or use your own service account under Advanced.",
+      "demo_hint": "Demo store: the simulated property is {id}.",
+      "steps": {
+        "open_admin": "Open analytics.google.com, pick your store's property and click Admin (the gear at the bottom left).",
+        "access": "In the Property column open Property access management, then click + and Add users.",
+        "add_viewer": "Paste this e-mail, choose the Viewer role, untick “Notify new users” and click Add:",
+        "property_id": "Still in Admin, open Property details and copy the PROPERTY ID: a number like 312456789 (not the G- measurement ID).",
+        "paste": "Paste the property ID here:",
+        "connect": "Click Connect: we check the access and import your last 12 months in the background."
+      },
+      "errors": {
+        "no_access": {
+          "message": "No access to this property.",
+          "fix": "In GA4 → Admin → Property access management add {email} as Viewer (step 3), wait a minute and try again. Check that you are on the same property as the ID."
+        },
+        "wrong_property": {
+          "message": "Wrong property ID.",
+          "fix": "Copy the numeric PROPERTY ID from Admin → Property details (step 4). The G-… measurement ID and the account ID do not work."
+        },
+        "api_unreachable": {
+          "message": "Google Analytics could not be reached.",
+          "fix": "Google's Analytics Data API did not answer or is not enabled for the reader. Try again in a few minutes; if it keeps failing, contact support (own service account: enable the Analytics Data API in your Cloud project)."
+        },
+        "quota": {
+          "message": "Google's request limit for this property is reached for now.",
+          "fix": "Nothing to do: the import resumes on its own when GA4 allows it again."
+        },
+        "credentials": {
+          "message": "Google refused the sign-in.",
+          "fix": "Connect again; with your own service account create a new key, with OAuth sign in again."
+        },
+        "unknown": {
+          "message": "The test did not succeed.",
+          "fix": "Follow the steps above once more; the details from Google are below. The guide lists the common errors."
+        }
+      }
     }
   }
 }

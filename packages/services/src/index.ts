@@ -39,6 +39,7 @@ export * from "./crm/destinations";
 export * from "./tracking/pixel";
 export * from "./tracking/conversions";
 export * from "./tracking/survey";
+export * from "./traffic";
 export * from "./assistant";
 export * from "./account";
 export * from "./branding";

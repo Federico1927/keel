@@ -12,6 +12,7 @@ import { PeriodPicker } from "@/components/period-picker";
 import { resolvePeriod } from "@/server/period";
 import { DataQualityCard, OrderPnlTab, PnlPeriods, ProductsTab, UtmTab } from "./depth";
 import { FeeSourceNote, PaymentMethodsTab, TaxTab } from "./money";
+import { TrafficTab } from "./traffic";
 
 export default async function AnalyticsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
@@ -20,7 +21,8 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
   const t = await getTranslations("analytics");
   const td = await getTranslations("analytics_depth");
   const tm = await getTranslations("analytics_money");
-  const TABS = ["overview", "custom", "pnl", "orders_pnl", "payments", "tax", "attribution", "utm", "products", "cohorts", "ltv", "basket", "survey"];
+  const tg = await getTranslations("ga4.analytics");
+  const TABS = ["overview", "custom", "pnl", "orders_pnl", "payments", "tax", "attribution", "utm", "traffic", "products", "cohorts", "ltv", "basket", "survey"];
   const NEW_TABS = ["orders_pnl", "utm"];
   const MONEY_TABS = ["payments", "tax"];
   const tab = TABS.includes(sp.tab ?? "") ? sp.tab! : "overview";
@@ -47,7 +49,7 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
       <div className="mb-4 flex flex-wrap gap-1 rounded-md bg-muted p-1 text-sm">
         {TABS.map((k) => (
           <Link key={k} href={query({ tab: k })} className={cn("flex-1 rounded-sm px-3 py-1.5 text-center", tab === k ? "bg-card shadow-sm" : "text-muted-foreground")}>
-            {MONEY_TABS.includes(k) ? tm(`tabs.${k}`) : NEW_TABS.includes(k) ? td(`tabs.${k}`) : t(`tabs.${k}`)}
+            {k === "traffic" ? tg("tab") : MONEY_TABS.includes(k) ? tm(`tabs.${k}`) : NEW_TABS.includes(k) ? td(`tabs.${k}`) : t(`tabs.${k}`)}
           </Link>
         ))}
       </div>
@@ -287,6 +289,8 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
           </div>
         );
       })())}
+
+      {tab === "traffic" && <TrafficTab ctx={ctx} tenant={tenant} period={period} periodQs={new URLSearchParams(Object.entries({ preset: period.preset, from: period.preset ? undefined : sp.from, to: period.preset ? undefined : sp.to }).filter((e): e is [string, string] => Boolean(e[1]))).toString()} fromIso={fromIso} toIso={toIso} />}
 
       {tab === "attribution" && (await (async () => {
         const model = (ATTRIBUTION_MODELS as readonly string[]).includes(sp.model ?? "") ? (sp.model as AttributionModel) : "linear";

@@ -323,6 +323,8 @@ export interface ConnectionTest {
   scopes?: string[];
   missingScopes?: string[];
   error?: string;
+  /** The `IntegrationError` code behind `error`, when the adapter knows it (GA4's setup checklist explains it in plain words). */
+  errorCode?: IntegrationError["code"];
 }
 
 export interface VerifiedWebhook {
@@ -645,10 +647,41 @@ export interface AdsPlatform {
   addNegativeKeywords?(input: NegativeKeywordInput[]): Promise<{ created: number }>;
 }
 
+/**
+ * One day of web traffic for one combination of channel group, source / medium / campaign and landing
+ * page (GA4 `runReport`, #86). Strings are the vendor's values (`(not set)` when missing); `landingPath`
+ * is the normalised path of `landingPage` (`normalizeLandingPath`). `totalUsers` is not additive across rows.
+ */
+export interface NormalizedTrafficRow {
+  date: string;
+  channelGroup: string;
+  source: string;
+  medium: string;
+  campaignName: string;
+  landingPage: string;
+  landingPath: string;
+  sessions: number;
+  totalUsers: number;
+  engagedSessions: number;
+  addToCarts: number;
+}
+
+/** A GA4 property the credentials can read (the property picker). */
+export interface AnalyticsProperty {
+  propertyId: string;
+  displayName: string;
+  accountName: string | null;
+  timeZone?: string | null;
+  currencyCode?: string | null;
+}
+
 export interface AnalyticsPlatform {
   readonly provider: string;
   testConnection(): Promise<ConnectionTest>;
-  fetchDailySessions(window: { since: string; until: string }): Promise<{ date: string; sessions: number; channel: string }[]>;
+  /** Properties the credentials can read; empty when the vendor cannot list them. */
+  listProperties(): Promise<AnalyticsProperty[]>;
+  /** Daily traffic over an inclusive window, every page of the report. */
+  fetchDailyTraffic(window: { since: string; until: string }): Promise<NormalizedTrafficRow[]>;
 }
 
 /** One message to send. `meta` tells a channel that keeps its own message log what the message is about; others ignore it. */

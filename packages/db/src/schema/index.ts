@@ -28,3 +28,4 @@ export * from "./mcp";
 export * from "./subscriptions";
 export * from "./spoki";
 export * from "./api";
+export * from "./traffic";

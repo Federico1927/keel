@@ -6,7 +6,7 @@ import { runTrackedJob } from "./dispatch";
 import type { Enqueue } from "./handlers";
 import { QUEUES, queueRetentionOptions, type QueueName, type TickJob } from "./queues";
 
-/** Nightly reconciliation at 03:00 and customer predictions and full live-segment refresh at 03:40, live segments every 10 min, pixel stitching and server-side conversions every 5 min, delta every 15 min, ads daily at 06:00, webhook retry every 10 min, platform-write retries every minute, retention daily at 04:10, backorder safety re-check and email housekeeping every 10 min, payouts daily at 05:20, integration watchdog every 10 min, customer campaigns every minute, WhatsApp (Spoki add-on) every 5 min, merchant subscriptions every 15 min, outgoing webhook catch-up every minute (UTC). */
+/** Nightly reconciliation at 03:00 and customer predictions and full live-segment refresh at 03:40, live segments every 10 min, pixel stitching and server-side conversions every 5 min, delta every 15 min, ads and GA4 daily at 06:00 (GA4 re-reads its last 3 days nightly), webhook retry every 10 min, platform-write retries every minute, retention daily at 04:10, backorder safety re-check and email housekeeping every 10 min, payouts daily at 05:20, integration watchdog every 10 min, customer campaigns every minute, WhatsApp (Spoki add-on) every 5 min, merchant subscriptions every 15 min, outgoing webhook catch-up every minute (UTC). */
 const SCHEDULES: { cron: string; data: TickJob }[] = [
   { cron: "*/15 * * * *", data: { kind: "delta" } },
   { cron: "*/10 * * * *", data: { kind: "retry" } },
@@ -91,6 +91,7 @@ async function main() {
   await boss.work(QUEUES.syncAds, one(QUEUES.syncAds));
   await boss.work(QUEUES.syncPayouts, one(QUEUES.syncPayouts));
   await boss.work(QUEUES.syncReturns, one(QUEUES.syncReturns));
+  await boss.work(QUEUES.syncAnalytics, one(QUEUES.syncAnalytics));
   await boss.work(QUEUES.tick, one(QUEUES.tick));
   await boss.work(QUEUES.listExport, one(QUEUES.listExport));
   await boss.work(QUEUES.emailSend, { batchSize: 5 }, one(QUEUES.emailSend));

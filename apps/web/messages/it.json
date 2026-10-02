@@ -2755,7 +2755,8 @@
       "recharge": "Recharge",
       "loop": "Loop Subscriptions",
       "address": "Validazione indirizzi",
-      "spoki": "WhatsApp (Spoki)"
+      "spoki": "WhatsApp (Spoki)",
+      "ga4": "Google Analytics 4"
     },
     "status": {
       "not_connected": "Non collegata",
@@ -3925,6 +3926,81 @@
         {
           "symptom": "Gli stati non si aggiornano mai",
           "fix": "L'URL del webhook manca o è sbagliato in Spoki; copialo di nuovo dalla scheda dell'integrazione."
+        }
+      ]
+    },
+    "ga4": {
+      "title": "Google Analytics 4",
+      "intro": "Legge le sessioni GA4 del negozio per giorno, canale, sorgente / mezzo / campagna e pagina di destinazione, così {product} può mostrare il tasso di conversione (ordini ÷ sessioni) per canale, pagina di destinazione e campagna accanto al proprio pixel. Sola lettura: {product} non modifica mai la proprietà. Il negozio la collega da solo: aggiunge l'e-mail del lettore di {product} come Visualizzatore sulla proprietà e incolla l'ID proprietà. Chi preferisce credenziali proprie può usare un suo account di servizio o OAuth.",
+      "scopes": "Scope: https://www.googleapis.com/auth/analytics.readonly (sola lettura). Basta il ruolo Visualizzatore sulla proprietà GA4.\nCosa viene letto: sessioni, utenti, sessioni con engagement e aggiunte al carrello per giorno, gruppo di canali predefinito, sorgente, mezzo, campagna e pagina di destinazione. Nessun dato per utente né dato personale.\nAPI: Google Analytics Data API (obbligatoria); Google Analytics Admin API (facoltativa, per scegliere la proprietà da un elenco e leggerne il nome).",
+      "steps": [
+        {
+          "title": "Cosa fa in {product}",
+          "body": "Analisi → Traffico: tasso di conversione per canale e per pagina di destinazione, GA4 accanto al pixel proprietario, ogni numero collegato agli ordini o alle righe GA4 da cui nasce. Campagne: sessioni GA4 accanto a spesa e ordini, abbinate per campagna UTM. Dopo il collegamento {product} legge in background gli ultimi 12 mesi, poi ogni mattina i giorni dall'ultima lettura e ogni notte di nuovo gli ultimi 3 giorni (GA4 continua a correggere i giorni recenti)."
+        },
+        {
+          "title": "Aggiungi il lettore di {product} come Visualizzatore (predefinito, senza password)",
+          "body": "Integrazioni → Google Analytics 4 mostra l'e-mail del lettore con il pulsante Copia. In analytics.google.com → Amministrazione (ingranaggio) → Proprietà → Gestione dell'accesso alla proprietà → + → Aggiungi utenti: incollala, ruolo Visualizzatore, togli la spunta a \"Invia notifica\", Aggiungi. Il negozio può rimuoverla lì in qualsiasi momento.",
+          "verify": true
+        },
+        {
+          "title": "Copia l'ID proprietà",
+          "body": "Amministrazione → Proprietà → Dettagli proprietà (o Impostazioni proprietà): l'ID PROPRIETÀ è un numero come 312456789. Non è l'ID di misurazione dello stream web (G-XXXXXXX).",
+          "verify": true
+        },
+        {
+          "title": "Incollalo e collega",
+          "body": "Incolla l'ID proprietà nella scheda e clicca Collega. {product} esegue un piccolo report per verificare l'accesso e avvia l'importazione di 12 mesi. Se il test non riesce, la scheda spiega il motivo a parole semplici (nessun accesso alla proprietà, ID proprietà errato, Google non raggiungibile) e cosa fare. Solo owner e admin. \"Scegli proprietà\" passa in seguito a un'altra proprietà."
+        },
+        {
+          "title": "Avanzate: un progetto Google Cloud con la Data API",
+          "body": "Solo per usare un account di servizio del negozio. console.cloud.google.com → Nuovo progetto → API e servizi → Libreria: abilita \"Google Analytics Data API\" (e \"Google Analytics Admin API\" per scegliere la proprietà da un elenco).",
+          "verify": true
+        },
+        {
+          "title": "Avanzate: crea l'account di servizio e la chiave JSON",
+          "body": "IAM e amministrazione → Account di servizio → Crea account di servizio (nessun ruolo sul progetto) → Chiavi → Aggiungi chiave → Crea nuova chiave → JSON. Tieni il file riservato. Se l'organizzazione vieta le chiavi (criterio iam.disableServiceAccountKeyCreation), usa il percorso predefinito oppure OAuth.",
+          "verify": true
+        },
+        {
+          "title": "Avanzate: dagli l'accesso Visualizzatore e incolla la chiave",
+          "body": "Aggiungi il client_email dell'account di servizio come Visualizzatore sulla proprietà (come al passo 2), poi nella scheda apri Avanzate, incolla l'intero file JSON e l'ID proprietà, Collega. La chiave viene salvata cifrata (AES-GCM).",
+          "verify": true
+        },
+        {
+          "title": "Alternativa: OAuth con refresh token",
+          "body": "Crea un client OAuth (API e servizi → Credenziali → ID client OAuth), autorizzalo con un account Google che ha accesso Visualizzatore alla proprietà e lo scope analytics.readonly, poi incolla client id, client secret e refresh token nella scheda OAuth in Avanzate. Il token smette di funzionare se quella persona perde l'accesso o lo revoca.",
+          "verify": true
+        },
+        {
+          "title": "Verifica",
+          "body": "\"Testa connessione\" sulla scheda mostra il nome della proprietà. Analisi → Traffico mostra in pochi minuti le sessioni per canale dei giorni recenti; i 12 mesi terminano in background. Confronta un giorno con GA4 → Report → Acquisizione → Acquisizione di traffico (gruppo di canali predefinito della sessione): i totali coincidono; canali e pagine possono differire un po' dal pixel, come spiega la scheda Traffico."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "User does not have sufficient permissions for this property (PERMISSION_DENIED)",
+          "fix": "L'e-mail del lettore (o il tuo account di servizio) non è sulla proprietà, oppure l'ID è di un'altra proprietà. Aggiungi l'e-mail mostrata nella scheda come Visualizzatore (passo 2) e controlla l'ID (passo 3)."
+        },
+        {
+          "symptom": "Google Analytics Data API has not been used in project … or it is disabled",
+          "fix": "Abilita la Data API nel progetto dell'account di servizio (passo 5) e riprova dopo qualche minuto."
+        },
+        {
+          "symptom": "Invalid property ID / proprietà non trovata",
+          "fix": "Usa l'id numerico della proprietà, non l'ID di misurazione G- né l'id dell'account."
+        },
+        {
+          "symptom": "Exhausted property tokens per hour / per day (quota)",
+          "fix": "GA4 limita le richieste per proprietà. {product} mette in pausa l'importazione e la riprende da solo dopo l'attesa; non serve fare nulla. Una proprietà standard ha circa 200.000 token al giorno [da verificare]."
+        },
+        {
+          "symptom": "Accesso Google rifiutato: invalid_grant (Invalid JWT Signature)",
+          "fix": "La chiave è stata eliminata o ruotata. Crea una nuova chiave JSON (passo 6) e collega di nuovo."
+        },
+        {
+          "symptom": "Il tasso di conversione è diverso da quello di GA4",
+          "fix": "GA4 divide i propri eventi di acquisto per le sessioni; {product} divide gli ordini online reali del negozio (da Shopify) per le sessioni GA4. Gli ordini sono completi; gli eventi di acquisto di GA4 perdono chi blocca cookie o tracciamento."
         }
       ]
     }
@@ -9806,6 +9882,162 @@
       "signing": "La firma è l'HMAC-SHA256 del timestamp, un punto e il corpo grezzo, con il segreto dell'endpoint come chiave, in esadecimale: t=<timestamp>,v1=<firma>. Rifiuta i timestamp più vecchi di {tolerance} secondi. Dopo una rigenerazione del segreto firma anche il precedente (un secondo v1) per {grace} ore.",
       "retries": "Una consegna riesce con qualsiasi risposta 2xx entro {timeout} secondi. Altrimenti viene ritentata dopo {schedule}; poi la consegna è fallita e si può rinviare a mano dal registro. I redirect non vengono seguiti.",
       "security": "Gli endpoint devono essere https su un host pubblico. Gli indirizzi privati, di loopback, link-local o di metadati cloud vengono rifiutati al salvataggio dell'endpoint e di nuovo a ogni consegna, dopo la risoluzione DNS."
+    }
+  },
+  "ga4": {
+    "card": {
+      "property_line": "{name} · proprietà {id}",
+      "not_connected_description": "Sessioni per canale, pagina di destinazione e campagna per i tassi di conversione.",
+      "last_day": "Ultimo giorno letto",
+      "service_account": "Account di servizio",
+      "last_run": "Ultima esecuzione: {kind}, {status}, {rows} righe ({since} → {until})",
+      "kind": {
+        "backfill": "importazione di 12 mesi",
+        "daily": "sincronizzazione giornaliera",
+        "reconcile": "risincronizzazione notturna"
+      },
+      "open_analytics": "Apri l'analisi del traffico",
+      "connect_mock": "Collega la proprietà simulata",
+      "connect_title": "Il tuo account di servizio o OAuth",
+      "connect_description": "Per i negozi che preferiscono credenziali proprie: incolla la chiave dell'account di servizio (JSON) o le credenziali OAuth e l'ID numerico della proprietà. La chiave viene verificata sulla proprietà e salvata cifrata.",
+      "auth": {
+        "service_account": "Account di servizio (consigliato)",
+        "oauth": "OAuth"
+      },
+      "property": "Proprietà",
+      "property_id": "Id proprietà",
+      "property_id_help": "GA4 → Amministrazione → Dettagli proprietà: un numero come 312456789 (non l'ID di misurazione G-).",
+      "service_account_json": "Chiave dell'account di servizio (JSON)",
+      "service_account_help": "L'intero file scaricato da Google Cloud (Chiavi → Aggiungi chiave → JSON). L'account di servizio deve avere accesso Visualizzatore alla proprietà.",
+      "choose_property": "Scegli proprietà",
+      "properties_empty": "Le credenziali non possono elencare le proprietà (forse la Admin API è disattivata): digita l'id della proprietà.",
+      "set_property": "Usa questa proprietà",
+      "property_saved": "Proprietà impostata su {name}: lettura dei suoi 12 mesi in corso.",
+      "backfill_done": "Collegato: {n} righe di traffico importate.",
+      "backfill_running": "Collegato: {n} righe importate finora, il resto prosegue in background.",
+      "resync_done": "Risincronizzato: {n} righe.",
+      "resync_queued": "Risincronizzazione in coda.",
+      "disconnect_confirm": "Scollegare Google Analytics 4? Il traffico già importato resta.",
+      "disconnected": "Scollegato.",
+      "errors": {
+        "ga4_invalid_property": "Inserisci l'id numerico della proprietà GA4 (per esempio 312456789).",
+        "ga4_invalid_key": "Questo non è un file di chiave di account di servizio valido.",
+        "not_connected": "Collega prima Google Analytics 4."
+      }
+    },
+    "analytics": {
+      "tab": "Traffico",
+      "not_in_plan": "Google Analytics 4 non è incluso in questo piano.",
+      "empty_title": "Collega Google Analytics 4 per vedere i tassi di conversione",
+      "empty_description": "Con GA4 collegato, questa scheda mostra ordini ÷ sessioni per canale e per pagina di destinazione, accanto al pixel proprietario.",
+      "empty_cta": "Vai a Integrazioni",
+      "channel": "Canale",
+      "landing": "Pagina di destinazione",
+      "orders": "Ordini online",
+      "ga4_sessions": "Sessioni GA4",
+      "ga4_cr": "Tasso di conversione (GA4)",
+      "pixel_sessions": "Sessioni pixel",
+      "pixel_cr": "Tasso di conversione (pixel)",
+      "engagement": "Con engagement",
+      "add_to_carts": "Aggiunte al carrello",
+      "totals": "Totale",
+      "cr_hint": "{orders} ordini ÷ {sessions} sessioni",
+      "pixel_since": "Sessioni pixel dal {date}",
+      "pixel_none": "Nessuna sessione pixel nel periodo",
+      "orders_hint": "Ordini dal negozio online nel periodo, qualsiasi stato",
+      "by_channel": "Tasso di conversione per canale",
+      "by_channel_description": "Ordini online del periodo per canale di attribuzione ÷ sessioni GA4 dello stesso canale. Gli ordini portano all'elenco ordini, le sessioni alle righe GA4.",
+      "why_title": "Perché GA4 e il pixel danno tassi diversi",
+      "why_points": [
+        "Consenso e blocchi: GA4 conta solo i visitatori che accettano i cookie di analisi e non bloccano Google; il pixel proprietario gira sul dominio del negozio e perde meno sessioni.",
+        "Regole di sessione diverse: GA4 apre una nuova sessione dopo 30 minuti di inattività e a mezzanotte; il pixel tiene una sessione per visita e per contatto di marketing.",
+        "Regole di canale diverse: GA4 raggruppa il traffico con il suo raggruppamento predefinito; i canali di {product} nascono da click id e UTM (un annuncio Instagram è Paid Social per entrambi, una newsletter senza UTM può essere Referral in GA4).",
+        "Copertura: il pixel conta solo da quando è installato e sulle pagine dove gira; GA4 copre tutto il periodo.",
+        "Gli ordini sono gli stessi nei due tassi: ordini online reali del negozio, non eventi di acquisto di GA4."
+      ],
+      "by_landing": "Tasso di conversione per pagina di destinazione",
+      "by_landing_description": "Le 25 pagine di destinazione con più sessioni GA4; la query string (UTM, click id) viene tolta, quindi una pagina è una riga.",
+      "no_rows": "Nessun traffico in questo periodo."
+    },
+    "rows": {
+      "back": "Analisi del traffico",
+      "title": "Righe di traffico GA4",
+      "description": "Le righe giornaliere lette da Google Analytics 4.",
+      "description_property": "Le righe giornaliere lette da {name}.",
+      "filters": {
+        "channel": "Canale",
+        "source": "Sorgente",
+        "medium": "Mezzo",
+        "campaign": "Campagna",
+        "campaignId": "Campagna abbinata",
+        "landing": "Pagina di destinazione"
+      },
+      "clear": "Togli i filtri",
+      "not_in_plan": "Google Analytics 4 non è incluso in questo piano.",
+      "empty_title": "Google Analytics 4 non è collegato",
+      "empty_description": "Collega la proprietà GA4 del negozio per leggerne qui le sessioni.",
+      "empty_cta": "Vai a Integrazioni",
+      "totals": "{sessions} sessioni · {engaged} con engagement · {atc} aggiunte al carrello",
+      "no_rows": "Nessuna riga con questi filtri.",
+      "columns": {
+        "landing": "Pagina di destinazione",
+        "date": "Giorno",
+        "channel": "Gruppo di canali",
+        "source_medium": "Sorgente / mezzo",
+        "campaign": "Campagna",
+        "sessions": "Sessioni",
+        "engaged": "Con engagement",
+        "users": "Utenti",
+        "add_to_carts": "Aggiunte al carrello"
+      },
+      "summary": "{n} righe"
+    },
+    "campaigns": {
+      "sessions": "Sessioni GA4",
+      "cr_title": "Sessioni GA4 della campagna UTM · ordini attribuiti ÷ sessioni"
+    },
+    "setup": {
+      "title": "Collega in due minuti, senza condividere password",
+      "intro": "Dai al nostro lettore in sola lettura l'accesso alla tua proprietà GA4 e incolla l'ID proprietà.",
+      "copy": "Copia",
+      "connect": "Collega",
+      "advanced": "Avanzate: il tuo account di servizio o OAuth",
+      "not_configured": "L'account lettore GA4 non è ancora configurato su questa piattaforma: chiedi al supporto, oppure usa il tuo account di servizio in Avanzate.",
+      "demo_hint": "Negozio demo: la proprietà simulata è {id}.",
+      "steps": {
+        "open_admin": "Apri analytics.google.com, scegli la proprietà del negozio e clicca Amministrazione (l'ingranaggio in basso a sinistra).",
+        "access": "Nella colonna Proprietà apri Gestione dell'accesso alla proprietà, poi clicca + e Aggiungi utenti.",
+        "add_viewer": "Incolla questa e-mail, scegli il ruolo Visualizzatore, togli la spunta a “Invia notifica” e clicca Aggiungi:",
+        "property_id": "Sempre in Amministrazione, apri Dettagli proprietà e copia l'ID PROPRIETÀ: un numero come 312456789 (non l'ID di misurazione G-).",
+        "paste": "Incolla qui l'ID proprietà:",
+        "connect": "Clicca Collega: verifichiamo l'accesso e importiamo in background gli ultimi 12 mesi."
+      },
+      "errors": {
+        "no_access": {
+          "message": "Nessun accesso a questa proprietà.",
+          "fix": "In GA4 → Amministrazione → Gestione dell'accesso alla proprietà aggiungi {email} come Visualizzatore (passo 3), attendi un minuto e riprova. Controlla di essere sulla stessa proprietà dell'ID."
+        },
+        "wrong_property": {
+          "message": "ID proprietà errato.",
+          "fix": "Copia l'ID PROPRIETÀ numerico da Amministrazione → Dettagli proprietà (passo 4). L'ID di misurazione G-… e l'id dell'account non funzionano."
+        },
+        "api_unreachable": {
+          "message": "Google Analytics non è raggiungibile.",
+          "fix": "La Analytics Data API di Google non ha risposto o non è abilitata per il lettore. Riprova tra qualche minuto; se continua, contatta il supporto (con un tuo account di servizio: abilita la Analytics Data API nel tuo progetto Cloud)."
+        },
+        "quota": {
+          "message": "Per ora è raggiunto il limite di richieste di Google per questa proprietà.",
+          "fix": "Non serve fare nulla: l'importazione riprende da sola quando GA4 lo consente di nuovo."
+        },
+        "credentials": {
+          "message": "Google ha rifiutato l'accesso.",
+          "fix": "Collega di nuovo; con un tuo account di servizio crea una nuova chiave, con OAuth accedi di nuovo."
+        },
+        "unknown": {
+          "message": "Il test non è riuscito.",
+          "fix": "Ripeti i passi qui sopra; sotto trovi i dettagli di Google. La guida elenca gli errori comuni."
+        }
+      }
     }
   }
 }

@@ -1,10 +1,10 @@
-import { AD_PLATFORMS, OPERATIONAL_TENANT_STATUSES, appUrl, isAdPlatform, isAdPlatformInPlan, isTenantOperational, platformRetentionDays } from "@hullwise/config";
+import { AD_PLATFORMS, OPERATIONAL_TENANT_STATUSES, appUrl, isAdPlatform, isAdPlatformInPlan, isAnalyticsPlatformInPlan, isTenantOperational, platformRetentionDays } from "@hullwise/config";
 import { parseTenantSettings, summarizeAccountRuns } from "@hullwise/core";
 import { adminDb, and, eq, inArray, lte, schema, withTenant, appDb } from "@hullwise/db";
-import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, recheckConversionAdjustments, runAdsSyncForAccounts, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, rollupAdEntityMetrics, campaignTick, processCampaignSend, getMessagingChannelFor, resolveAddressProvider, SUBSCRIPTIONS_ADDON, getSubscriptionProviderFor, runSubscriptionSync, refreshSubscriberRisk, deliverWebhook, dueWebhookDeliveries, purgeApiRows } from "@hullwise/services";
+import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, recheckConversionAdjustments, runAdsSyncForAccounts, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, rollupAdEntityMetrics, getAnalyticsPlatformFor, runTrafficSync, campaignTick, processCampaignSend, getMessagingChannelFor, resolveAddressProvider, SUBSCRIPTIONS_ADDON, getSubscriptionProviderFor, runSubscriptionSync, refreshSubscriberRisk, deliverWebhook, dueWebhookDeliveries, purgeApiRows } from "@hullwise/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue, autoCancelReturnedToSender, getCodSettings, runScheduledConfirmations, applyCodReply, applyMessageStatus } from "@hullwise/addon-cod";
 import { SPOKI_MODULE, getSpokiApiFor, getSpokiState, processSpokiWebhookEvent, retrySpokiWebhooks, runOrderNotifications, spokiMessagingChannel, type SpokiHooks } from "@hullwise/addon-spoki";
-import { adsWindow, type CampaignSendJob, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob, resyncJobsFor, type TenantExportJob, type WebhookDeliverJob } from "./queues";
+import { adsWindow, type CampaignSendJob, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type SyncAnalyticsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob, resyncJobsFor, type TenantExportJob, type WebhookDeliverJob } from "./queues";
 
 export interface Enqueue {
   (queue: string, data: unknown, opts?: { singletonKey?: string; startAfterSeconds?: number }): Promise<void>;
@@ -139,6 +139,25 @@ export async function handleSyncAds(job: SyncAdsJob, enqueue?: Enqueue): Promise
   const s = summarizeAccountRuns(r.results);
   if (s.allFailed) throw new Error(s.failed.map((f) => (r.results.length > 1 ? `${f.account}: ${f.error}` : f.error)).join("; "));
   return { rows: r.campaigns + r.metrics, summary: { campaigns: r.campaigns, metrics: r.metrics, phase: job.phase ?? "campaigns", entitiesFinished: r.paused.length === 0, accounts: r.results.length, ...(s.failed.length ? { failedAccounts: s.failed } : {}) } };
+}
+
+/**
+ * GA4 traffic (#86): one resumable pull in its own tenant transaction. A run paused by its time budget
+ * re-enqueues itself at once, one paused by a quota error after GA4's wait; any other error fails the job.
+ */
+export async function handleSyncAnalytics(job: SyncAnalyticsJob, enqueue?: Enqueue): Promise<JobOutcome> {
+  const tenant = await tenantRow(job.tenantId);
+  if (!isAnalyticsPlatformInPlan(tenant.planKey)) return { rows: 0, summary: { skipped: "not_in_plan" } };
+  const [tz] = await adminDb().select({ timezone: schema.tenants.timezone }).from(schema.tenants).where(eq(schema.tenants.id, tenant.id)).limit(1);
+  const r = await withTenant(tenant.id, async (tx) => {
+    const ctx = sys(tenant.id)(tx);
+    const p = await getAnalyticsPlatformFor(ctx);
+    return p ? runTrafficSync(ctx, p.platform, { propertyId: p.propertyId, kind: job.kind, timeZone: tz?.timezone ?? "UTC", budgetMs: 25_000 }) : null;
+  });
+  if (!r) return { rows: 0, summary: { skipped: "not_connected" } };
+  if (!r.finished && !r.error && enqueue) await enqueue("sync.analytics", job, { singletonKey: `${job.tenantId}:ga4:${job.kind}`, ...(r.rateLimited ? { startAfterSeconds: Math.ceil((r.retryAfterMs ?? 60_000) / 1000) } : {}) });
+  if (r.error) throw new Error(r.error);
+  return { rows: r.rows, summary: { kind: job.kind, finished: r.finished, rateLimited: r.rateLimited } };
 }
 
 const addonActive = async (tenantId: string, moduleKey: string) => (await adminDb().select({ id: schema.tenantAddons.id }).from(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, tenantId), eq(schema.tenantAddons.moduleKey, moduleKey), eq(schema.tenantAddons.isActive, true))).limit(1)).length > 0;
@@ -460,7 +479,7 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<JobOut
     await applySuspensions(adminDb());
     return;
   }
-  const rows = await adminDb().select({ tenantId: schema.integrations.tenantId, provider: schema.integrations.provider }).from(schema.integrations).where(and(inArray(schema.integrations.provider, ["shopify", ...AD_PLATFORMS]), inArray(schema.integrations.status, ["connected", "error", "syncing"])));
+  const rows = await adminDb().select({ tenantId: schema.integrations.tenantId, provider: schema.integrations.provider }).from(schema.integrations).where(and(inArray(schema.integrations.provider, ["shopify", "ga4", ...AD_PLATFORMS]), inArray(schema.integrations.status, ["connected", "error", "syncing"])));
   const planOf = new Map((await adminDb().select({ id: schema.tenants.id, planKey: schema.tenants.planKey }).from(schema.tenants).where(inArray(schema.tenants.status, [...OPERATIONAL_TENANT_STATUSES]))).map((t) => [t.id, t.planKey]));
   const active = new Set(planOf.keys());
   const window = adsWindow();
@@ -481,6 +500,11 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<JobOut
           await retryFailedWebhooks(ctx, await getCommercePlatformFor(ctx, tenant), { country: tenant.country });
         });
       }
+    } else if (r.provider === "ga4") {
+      // GA4 (#86): the days since the last one read with the daily ads pull, the last 3 again nightly (GA4 settles late)
+      if (!isAnalyticsPlatformInPlan(planOf.get(r.tenantId) ?? "")) continue;
+      if (job.kind === "ads") await enqueue("sync.analytics", { tenantId: r.tenantId, kind: "daily" } satisfies SyncAnalyticsJob, { singletonKey: `${r.tenantId}:ga4:daily` });
+      if (job.kind === "reconcile") await enqueue("sync.analytics", { tenantId: r.tenantId, kind: "reconcile" } satisfies SyncAnalyticsJob, { singletonKey: `${r.tenantId}:ga4:reconcile` });
     } else if (job.kind === "ads" && isAdPlatform(r.provider) && isAdPlatformInPlan(r.provider, planOf.get(r.tenantId) ?? "")) {
       await enqueue("sync.ads", { tenantId: r.tenantId, provider: r.provider, ...window } satisfies SyncAdsJob, { singletonKey: `${r.tenantId}:${r.provider}:${window.until}` });
     }

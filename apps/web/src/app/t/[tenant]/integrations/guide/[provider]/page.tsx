@@ -1,16 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { PRODUCT_NAME, apiEndpoint, canDo, isAdPlatformInPlan, isPageEnabled } from "@hullwise/config";
+import { PRODUCT_NAME, apiEndpoint, canDo, isAdPlatformInPlan, isAnalyticsPlatformInPlan, isPageEnabled } from "@hullwise/config";
 import { SPOKI_MODULE } from "@hullwise/addon-spoki";
 import { ADS_UTM_TEMPLATES } from "@hullwise/core";
-import { GOOGLE_ADDRESS_APIS, GOOGLE_ADS_API_VERSION, LOOP_API_VERSION, META_REQUIRED_PERMISSIONS, RECHARGE_API_VERSION, SUBSCRIPTION_PROVIDERS, SUBSCRIPTION_SCOPES, SUBSCRIPTION_WEBHOOK_TOPICS, SHOPIFY_SCOPES_BY_MODULE, SHOPIFY_WEBHOOK_TOPICS, TIKTOK_API_VERSION, TIKTOK_SCOPES_BY_MODULE } from "@hullwise/integrations";
+import { GA4_ADMIN_API_BASE, GA4_DATA_API_BASE, GA4_SCOPE, GOOGLE_ADDRESS_APIS, GOOGLE_ADS_API_VERSION, LOOP_API_VERSION, META_REQUIRED_PERMISSIONS, RECHARGE_API_VERSION, SUBSCRIPTION_PROVIDERS, SUBSCRIPTION_SCOPES, SUBSCRIPTION_WEBHOOK_TOPICS, SHOPIFY_SCOPES_BY_MODULE, SHOPIFY_WEBHOOK_TOPICS, TIKTOK_API_VERSION, TIKTOK_SCOPES_BY_MODULE } from "@hullwise/integrations";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { spokiWebhookUrl } from "@/server/spoki-webhook";
 
 /** One guide per activation: the platforms (TikTok when the plan includes it), then the external providers and tracking; last, the platform email sender (super-admins only: tenants configure nothing). */
-const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic", "address", "subscriptions", "tracking", "survey", "email"] as const;
+const PROVIDERS = ["shopify", "meta", "google", "tiktok", "ga4", "anthropic", "address", "subscriptions", "tracking", "survey", "email"] as const;
 /** Ad hoc integrations sold per account: an interface and a mock in Hullwise, a live connector built and activated by the Hullwise team (issue #7). */
 const AD_HOC = ["payment_guarantee", "return_labels", "audiences", "messaging", "carrier", "warehouse"] as const;
 /** Guides of implemented add-ons, shown only to tenants with the add-on (Spoki, issue #9). */
@@ -31,6 +31,9 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
   if (p in ADDON_GUIDES && !addonGuides.includes(p as keyof typeof ADDON_GUIDES)) notFound();
   const tiktok = isAdPlatformInPlan("tiktok", ctx.tenant.planKey);
   if (p === "tiktok" && !tiktok) notFound();
+  // GA4 (#86): reachable only when the plan includes it (every plan today)
+  const ga4 = isAnalyticsPlatformInPlan(ctx.tenant.planKey);
+  if (p === "ga4" && !ga4) notFound();
   // the subscription app guide belongs to addon.subscriptions (#67): unreachable without it
   const subscriptions = isPageEnabled("subscriptions", ctx.activeAddons);
   if (p === "subscriptions" && !subscriptions) notFound();
@@ -53,7 +56,7 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
       <PageHeader eyebrow={ctx.tenant.name} title={t(`${p}.title`, product)} description={t(`${p}.intro`, product)} />
       <nav className="mb-4 space-y-2" aria-label={ti("guides")}>
         <div className="flex gap-1 overflow-x-auto rounded-md bg-muted p-1 text-sm md:flex-wrap" data-testid="guide-nav">
-          {[...PROVIDERS.filter((k) => (k !== "email" || platformAdmin) && (k !== "tiktok" || tiktok) && (k !== "subscriptions" || subscriptions)), ...addonGuides].map((k) => (
+          {[...PROVIDERS.filter((k) => (k !== "email" || platformAdmin) && (k !== "tiktok" || tiktok) && (k !== "ga4" || ga4) && (k !== "subscriptions" || subscriptions)), ...addonGuides].map((k) => (
             <Link key={k} href={`${base}/guide/${k}`} aria-current={k === p ? "page" : undefined} className={cn("shrink-0 whitespace-nowrap rounded-sm px-3 py-1.5 text-center pointer-coarse:py-2.5 md:flex-1", k === p ? "bg-card shadow-sm" : "text-muted-foreground")}>{ti(`providers.${k}`)}</Link>
           ))}
         </div>
@@ -98,6 +101,7 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
                 </>
               )}
               {p === "subscriptions" && SUBSCRIPTION_PROVIDERS.map((sp) => <div key={sp} data-testid={`subscription-scopes-${sp}`}><div className="font-medium">{ti(`providers.${sp}`)}{sp === "recharge" ? ` · API ${RECHARGE_API_VERSION}` : sp === "loop" ? ` · API ${LOOP_API_VERSION}` : ""}</div><div className="font-mono text-muted-foreground">{SUBSCRIPTION_SCOPES[sp].join(", ")}</div></div>)}
+              {p === "ga4" && <div className="font-mono text-muted-foreground" data-testid="ga4-apis">{GA4_SCOPE} · {GA4_DATA_API_BASE} · {GA4_ADMIN_API_BASE}</div>}
               {p === "address" && <div className="font-mono text-muted-foreground" data-testid="address-apis">{GOOGLE_ADDRESS_APIS.join(", ")}</div>}
               {t.has(`${p}.scopes`) && <div className="whitespace-pre-line text-muted-foreground">{t(`${p}.scopes`, product)}</div>}
             </CardContent>

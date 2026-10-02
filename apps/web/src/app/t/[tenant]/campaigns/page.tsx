@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { adPlatformsForPlan, canDo, canWritePage } from "@hullwise/config";
+import { adPlatformsForPlan, canDo, canWritePage, isAnalyticsPlatformInPlan } from "@hullwise/config";
 import { formatMoney, formatNumber, formatPercent } from "@hullwise/core";
-import { adAccountNames, campaignLinkSuggestions, campaignsWithEconomics } from "@hullwise/services";
+import { adAccountNames, campaignLinkSuggestions, campaignsWithEconomics, trafficByCampaign } from "@hullwise/services";
 import { Badge, Card, CardContent, EmptyState, PageHeader, DataList } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
@@ -18,6 +18,7 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
   const ctx = await requirePage(tenant, "campaigns");
   const t = await getTranslations("campaigns");
   const ta = await getTranslations("ads");
+  const tg = await getTranslations("ga4.campaigns");
   const period = resolvePeriod(sp, ctx.tenant.timezone);
   // ad platforms of the plan only (TikTok from Growth): a platform outside it is neither filterable nor listed
   const platforms: readonly string[] = adPlatformsForPlan(ctx.tenant.planKey);
@@ -28,10 +29,12 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
   const accounts = await ctx.run((tx) => adAccountNames({ tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } }));
   const accountFilter = accounts.find((a) => a.externalId === sp.account && platforms.includes(a.provider));
   const account = accountFilter?.externalId;
-  const [rows, suggestions] = await ctx.run(async (tx) => {
+  const [rows, suggestions, ga4Sessions] = await ctx.run(async (tx) => {
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
     const [list, sugg] = await Promise.all([campaignsWithEconomics(s, at, period, { platform, status, ...(accountFilter ? { account: { provider: accountFilter.provider, externalId: accountFilter.externalId, primary: accountFilter.primary } } : {}) }), campaignLinkSuggestions(s)]);
-    return [list.filter((r) => platforms.includes(r.platform)), sugg.filter((r) => platforms.includes(r.platform))] as const;
+    // GA4 sessions per campaign (#86), matched on the UTM campaign; null when GA4 is not connected (no column)
+    const sessions = isAnalyticsPlatformInPlan(ctx.tenant.planKey) ? await trafficByCampaign(s, { timezone: ctx.tenant.timezone }, period) : null;
+    return [list.filter((r) => platforms.includes(r.platform)), sugg.filter((r) => platforms.includes(r.platform)), sessions] as const;
   });
   const primaryOf = new Map(accounts.filter((a) => a.primary).map((a) => [a.provider, a.externalId]));
   const accountName = (r: { platform: string; accountExternalId: string | null }) => {
@@ -105,6 +108,10 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
                 { key: "status", header: t("columns.status"), priority: 2, label: "", cell: (r) => <Badge variant={r.status === "active" ? "success" : "muted"}>{t(`status.${r.status}`)}</Badge> },
                 { key: "spend", header: t("columns.spend"), align: "right", className: "tabular", cell: (r) => money(r.metrics.spendMinor) },
                 { key: "orders", header: t("columns.orders"), align: "right", className: "tabular", cell: (r) => formatNumber(r.metrics.attributedOrders, ctx.locale) },
+                ...(ga4Sessions ? [{ key: "ga4", header: tg("sessions"), align: "right" as const, className: "tabular", cell: (r: (typeof rows)[number]) => {
+                  const n = ga4Sessions.get(r.id) ?? 0;
+                  return n ? <Link href={`/t/${tenant}/analytics/traffic?${new URLSearchParams(Object.entries({ ...periodParams(period, sp), campaignId: r.id }).filter((e): e is [string, string] => Boolean(e[1])))}`} className="underline-offset-4 hover:underline" data-testid="campaign-ga4-sessions" title={tg("cr_title")}>{formatNumber(n, ctx.locale)} <span className="text-xs text-muted-foreground">· {formatPercent(r.metrics.attributedOrders / n, ctx.locale, 2)}</span></Link> : "—";
+                } }] : []),
                 { key: "revenue", header: t("columns.revenue"), mobile: "detail", align: "right", className: "tabular", cell: (r) => money(r.metrics.netRevenueMinor) },
                 { key: "margin", header: t("columns.margin"), mobile: "detail", priority: 3, align: "right", className: "tabular", cell: (r) => money(r.metrics.marginMinor) },
                 { key: "profit", header: t("columns.profit"), align: "right", className: "tabular font-medium", cell: (r) => <span className={r.metrics.profitMinor < 0 ? "text-destructive" : ""}>{money(r.metrics.profitMinor)}</span> },
