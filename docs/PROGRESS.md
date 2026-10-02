@@ -783,7 +783,11 @@ Fatto:
 - **Guide alle integrazioni** Meta (+45 px) e Google (+25 px): oltre alla griglia, nei passi c'erano URL e nomi di scope lunghi senza spazi; ora vanno a capo (`break-words` solo lì).
 - **Campagna demo "Win-back clienti ricorrenti"** (#84): dopo un nuovo seed l'effetto risultava non significativo (+3,9 punti, p = 0,094) e l'e2e falliva. Ora il seed crea abbastanza risposte, solo tra i clienti trattati che non avevano già comprato nella finestra, da superare il gruppo di controllo di 8 punti (almeno il 5% dei trattati, così ci sono utilizzi del codice anche nei seed piccoli dei test).
 
-Resta: comodità d'uso sul telefono (dimensione dei controlli, liste pensate per il telefono, PWA) in #49.
+- **Impostazioni contrassegno**: al primo disegno, prima che il JavaScript parta, la pagina era più larga di 466–496 px per circa 250 ms. Ogni riga della tabella operatori ha un `<input>` nascosto in posizione assoluta (quello che Radix affianca agli interruttori nei form), e il contenitore che scorre non era posizionato, quindi l'input ne usciva. Ora il contenitore è `relative`, come quello del componente `Table`. Altri 8 file usano lo stesso contenitore senza `relative`; il controllo non ha trovato problemi, quindi restano com'erano.
+- **e2e `analytics-pnl.spec.ts`**: il secondo accesso (customer care) a volte trovava ancora la sessione dell'owner, perché una richiesta in volo rimetteva il cookie dopo `clearCookies()`. Ora usa un contesto del browser nuovo, come `account.spec.ts`.
+- **Pagine non controllate**: le pagine di `addon.subscriptions` (arrivate con #78) sono una 404 per tutti gli utenti demo, perché nessun tenant demo ha l'add-on attivo; sono elencate in `UNREACHED` con il motivo.
+
+Resta: comodità d'uso sul telefono (dimensione dei controlli, liste pensate per il telefono, PWA) in #49. Le pagine degli abbonamenti si controlleranno quando un tenant demo avrà l'add-on.
 
 ## Rinomina del prodotto in Hullwise (2026-10-02)
 

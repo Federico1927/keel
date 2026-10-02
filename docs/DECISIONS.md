@@ -1100,6 +1100,7 @@ The `holdout_percentage` and `group_name` columns stay in the data model, as §7
   - `minmax(0, 1fr)` is the track Tailwind's own `grid-cols-N` uses, and any `grid-cols-*` utility overrides it at its breakpoint, because utilities sit above the base layer.
   - A one-column grid renders the same as before unless its content was wider than the container, which is the overflow case.
   - Nothing in the app uses `grid-flow-col` or implicit columns. The rule is in `styles.css` (app only), not in `theme.css`, which the landing site shares.
+- `UNREACHED` keys cover a route and everything under it. The test also fails on keys that no longer match an unreached route, so a stale excuse cannot hide a page. The subscriptions add-on is listed because no demo tenant has it active.
 - `overflow-wrap: break-word` on `body` was tried and dropped: amounts in narrow KPI tiles wrapped mid-number on desktop ("€249.5 / 1"). Long words are wrapped only where they are expected (integration guide steps).
 
 **Alternatives.**

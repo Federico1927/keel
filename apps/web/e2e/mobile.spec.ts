@@ -25,8 +25,13 @@ const APP = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../src/a
  */
 const ENTRY_POINTS = ["/t/[tenant]/orders?status=delivered", "/t/[tenant]/purchasing?status=draft"];
 
-/** Routes no link leads to on the demo data, with the reason. Keep this list short. */
-const UNREACHED: Record<string, string> = {};
+/**
+ * Routes the crawl cannot open on the demo data, with the reason; a key covers the route and every
+ * route under it. Keep this list short: each entry is a page whose phone layout nobody checks.
+ */
+const UNREACHED: Record<string, string> = {
+  "/t/[tenant]/subscriptions": "addon.subscriptions is not active on any demo tenant, so its pages are a 404",
+};
 
 interface Route { pattern: string; kind: "page" | "route" }
 
@@ -120,7 +125,13 @@ async function crawl(page: Page, area: "t" | "admin", fill: (pattern: string) =>
   return { failures, unreached, visited: visited.length };
 }
 
-const allowedUnreached = (area: string) => Object.keys(UNREACHED).filter((r) => r.startsWith(`/${area}/`)).map((r) => r.replace("[tenant]", TENANT));
+/** Every unreached route is explained, and every explanation still matches a route. */
+function expectExplained(area: string, unreached: string[]) {
+  const keys = Object.keys(UNREACHED).filter((r) => r.startsWith(`/${area}/`)).map((r) => r.replace("[tenant]", TENANT));
+  const covers = (k: string, r: string) => r === k || r.startsWith(`${k}/`);
+  expect(unreached.filter((r) => !keys.some((k) => covers(k, r))), "unreached routes without a reason in UNREACHED").toEqual([]);
+  expect(keys.filter((k) => !unreached.some((r) => covers(k, r))), "UNREACHED entries that the crawl now reaches").toEqual([]);
+}
 
 test.describe("mobile layout", () => {
   test("no tenant page scrolls horizontally at 390px and 360px", async ({ page }) => {
@@ -131,7 +142,7 @@ test.describe("mobile layout", () => {
     const { failures, unreached, visited } = await crawl(page, "t", (p) => p.replace("[tenant]", TENANT));
     expect(visited).toBeGreaterThanOrEqual(80);
     expect(failures).toEqual([]);
-    expect(unreached.sort()).toEqual(allowedUnreached("t").sort());
+    expectExplained("t", unreached);
   });
 
   test("no console page scrolls horizontally at 390px and 360px", async ({ page }) => {
@@ -141,7 +152,7 @@ test.describe("mobile layout", () => {
     const { failures, unreached, visited } = await crawl(page, "admin", (p) => p);
     expect(visited).toBeGreaterThanOrEqual(15);
     expect(failures).toEqual([]);
-    expect(unreached.sort()).toEqual(allowedUnreached("admin").sort());
+    expectExplained("admin", unreached);
   });
 
   test("the language choice lives in the user menu below sm, and in the header from sm up", async ({ page }) => {

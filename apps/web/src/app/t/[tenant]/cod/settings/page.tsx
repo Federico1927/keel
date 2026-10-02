@@ -33,7 +33,7 @@ export default async function CodSettingsPage({ params }: { params: Promise<{ te
             <CardDescription>{t("operators_description")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="overflow-x-auto">
+            <div className="relative overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b text-left text-xs uppercase text-muted-foreground">
