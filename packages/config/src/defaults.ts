@@ -31,6 +31,9 @@ export const ORDER_DISCOUNT_PRESETS_BPS = [500, 1000, 1500, 2000] as const;
 /** Days processed webhook events, finished platform writes, sync runs and job rows are kept (platform-wide, not per tenant). */
 export const PLATFORM_RETENTION_DAYS_DEFAULT = 14;
 
+/** Days drift rows that record lost stock (unexplained falls, unreported levels) are kept for the unexplained-loss report, whatever the platform window. */
+export const INVENTORY_LOSS_RETENTION_DAYS = 400;
+
 /** Retention window from `KEEL_RETENTION_DAYS` (1–365), the default otherwise. */
 export function platformRetentionDays(env: Record<string, string | undefined> = process.env): number {
   const n = Number(env.KEEL_RETENTION_DAYS);

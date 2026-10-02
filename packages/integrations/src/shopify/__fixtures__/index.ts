@@ -174,3 +174,34 @@ export const graphqlBalanceTransactions = {
 export const graphqlNoPaymentsAccount = { data: { shopifyPaymentsAccount: null } };
 export const graphqlMarkAsPaid = { data: { orderMarkAsPaid: { order: { id: "gid://shopify/Order/5678901234567", displayFinancialStatus: "PAID" }, userErrors: [] } } };
 export const graphqlManualPayment = { data: { orderCreateManualPayment: { order: { id: "gid://shopify/Order/5678901234567", displayFinancialStatus: "PARTIALLY_PAID" }, userErrors: [] } } };
+
+/* Returns and discount lifecycle (issue #35): recorded shapes, field names to verify against the live API. */
+export const graphqlReturnsPage = {
+  data: {
+    orders: {
+      nodes: [
+        {
+          legacyResourceId: "5678901234567",
+          returns: { nodes: [{ id: "gid://shopify/Return/501", status: "OPEN", createdAt: "2026-09-30T09:00:00Z", closedAt: null, order: { legacyResourceId: "5678901234567" }, returnLineItems: { nodes: [{ id: "gid://shopify/ReturnLineItem/601", quantity: 1, returnReason: "SIZE_TOO_SMALL", returnReasonNote: "", customerNote: "Too tight on the shoulders", fulfillmentLineItem: { lineItem: { id: "gid://shopify/LineItem/1001" } } }] } }] },
+        },
+        { legacyResourceId: "5678901234570", returns: { nodes: [{ id: "gid://shopify/Return/502", status: "CLOSED", createdAt: "2026-09-20T09:00:00Z", closedAt: "2026-09-27T16:00:00Z", order: { legacyResourceId: "5678901234570" }, returnLineItems: { nodes: [{ id: "gid://shopify/ReturnLineItem/602", quantity: 2, returnReason: "DEFECTIVE", returnReasonNote: "Seam open", customerNote: null, fulfillmentLineItem: { lineItem: { id: "gid://shopify/LineItem/1101" } } }] } }] } },
+      ],
+      pageInfo: { hasNextPage: true, endCursor: "eyJsYXN0X2lkIjo1Njc4OTAxMjM0NTcwfQ==" },
+    },
+  },
+};
+export const graphqlReturn = { data: { return: graphqlReturnsPage.data.orders.nodes[0]!.returns.nodes[0] } };
+export const restReturnWebhook = {
+  id: 501,
+  admin_graphql_api_id: "gid://shopify/Return/501",
+  status: "requested",
+  name: "#NW1042-R1",
+  created_at: "2026-09-30T09:00:00Z",
+  order: { id: 5678901234567, admin_graphql_api_id: "gid://shopify/Order/5678901234567" },
+  return_line_items: [{ id: 601, admin_graphql_api_id: "gid://shopify/ReturnLineItem/601", quantity: 1, return_reason: "size_too_small", return_reason_note: "", customer_note: "Too tight on the shoulders", fulfillment_line_item: { id: 701, line_item: { id: 1001 } } }],
+};
+export const restReturnApproveWebhook = { id: 501, admin_graphql_api_id: "gid://shopify/Return/501", status: "open", order: { id: 5678901234567 } };
+export const graphqlDiscountDeactivate = { data: { discountCodeDeactivate: { codeDiscountNode: { id: "gid://shopify/DiscountCodeNode/9001" }, userErrors: [] } } };
+export const graphqlDiscountByCode = { data: { codeDiscountNodeByCode: { id: "gid://shopify/DiscountCodeNode/9002" } } };
+export const graphqlRedeemCodeBulkDelete = { data: { discountCodeRedeemCodeBulkDelete: { job: { id: "gid://shopify/Job/77" }, userErrors: [] } } };
+export const graphqlRedeemCodeBulkAdd = { data: { discountRedeemCodeBulkAdd: { bulkCreation: { id: "gid://shopify/DiscountRedeemCodeBulkCreation/5" }, userErrors: [] } } };

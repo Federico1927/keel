@@ -1,8 +1,8 @@
 import { and, desc, eq, gte, inArray, lt, schema, sql, type SQL } from "@keel/db";
-import { RETURN_GOODS_BACK_STATUSES, SALE_STATUSES, canTransitionReturn, isReturnStatus, creditWithBonus, customerLimitReached, exchangeQuote, lineBlock, optionReturnRates, returnCostsOfPeriod, lineWindowDays, proposedReturnAmount, returnEligibility, returnableLines, returnedFractionBps, type LineBlock, type Eligibility, type Period, type ReturnStatus, type ReturnableLine, type TenantSettings } from "@keel/core";
+import { SALE_STATUSES, canTransitionReturn, isReturnStatus, creditWithBonus, customerLimitReached, exchangeQuote, lineBlock, optionReturnRates, returnCostsOfPeriod, lineWindowDays, proposedReturnAmount, returnEligibility, returnableLines, type LineBlock, type Eligibility, type Period, type ReturnStatus, type ReturnableLine, type TenantSettings, returnsAgeing, type ReturnsAgeing } from "@keel/core";
 import { syncRecordTasks } from "../tasks";
 import type { ServiceContext } from "../context";
-import { recomputeOrderStatus } from "../orders/state";
+import { applyReturnToOrder } from "./effects";
 
 import { ReturnError } from "./errors";
 import { applyReturnAutomations, customerReturnStats, getReturnPolicy } from "./policy";
@@ -294,22 +294,7 @@ export async function transitionReturn(ctx: ServiceContext, input: TransitionInp
   await ctx.tx.update(schema.returnRequests).set(patch).where(eq(schema.returnRequests.id, req.id));
 
   // Propagate to the order: returned fraction from goods that came back, refund totals, payment status, canonical status.
-  const [order] = await ctx.tx.select().from(schema.orders).where(eq(schema.orders.id, req.orderId)).limit(1);
-  if (order) {
-    const orderLines = await ctx.tx.select({ id: schema.orderLines.id, quantity: schema.orderLines.quantity }).from(schema.orderLines).where(and(eq(schema.orderLines.orderId, order.id), eq(schema.orderLines.isAncillary, false)));
-    const back = await ctx.tx.select({ orderLineId: schema.returnLines.orderLineId, qty: sql<number>`sum(${schema.returnLines.quantity})::int` }).from(schema.returnLines).innerJoin(schema.returnRequests, eq(schema.returnRequests.id, schema.returnLines.returnId)).where(and(eq(schema.returnRequests.orderId, order.id), inArray(schema.returnRequests.status, [...RETURN_GOODS_BACK_STATUSES]))).groupBy(schema.returnLines.orderLineId);
-    const fraction = returnedFractionBps(orderLines, Object.fromEntries(back.map((b) => [b.orderLineId, b.qty])));
-    const [refunds] = await ctx.tx.select({ total: sql<number>`coalesce(sum(${schema.returnRequests.refundedAmountMinor}), 0)::int` }).from(schema.returnRequests).where(and(eq(schema.returnRequests.orderId, order.id), eq(schema.returnRequests.status, "refunded")));
-    // money refunds issued from the order page add to the return refunds
-    const [manualRow] = await ctx.tx.select({ total: sql<number>`coalesce(sum(${schema.orderTransactions.amountMinor}), 0)::int` }).from(schema.orderTransactions).where(and(eq(schema.orderTransactions.orderId, order.id), eq(schema.orderTransactions.kind, "refund")));
-    const manual = manualRow?.total ?? 0;
-    const refundedMinor = Math.max(order.refundedMinor, (refunds?.total ?? 0) + manual);
-    const paymentStatus = refundedMinor <= 0 ? order.paymentStatus : refundedMinor >= order.totalMinor ? "refunded" : order.paymentStatus === "paid" || order.paymentStatus === "partially_refunded" ? "partially_refunded" : order.paymentStatus;
-    const changed = fraction !== order.returnedFraction || refundedMinor !== order.refundedMinor || paymentStatus !== order.paymentStatus;
-    if (changed) await ctx.tx.update(schema.orders).set({ returnedFraction: fraction, refundedMinor, paymentStatus, updatedAt: now }).where(eq(schema.orders.id, order.id));
-    await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: order.id, type: "return_updated", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: { returnStatus: { from: req.status, to: input.to }, ...(changed ? { returnedFraction: { from: order.returnedFraction, to: fraction }, refundedMinor: { from: order.refundedMinor, to: refundedMinor } } : {}) }, metadata: { returnId: req.id, number: req.number }, createdAt: now });
-    if (changed) await recomputeOrderStatus(ctx, order.id, { eventMetadata: { source: "return", returnId: req.id } });
-  }
+  await applyReturnToOrder(ctx, req.orderId, { returnId: req.id, number: req.number, from: req.status, to: input.to });
   await syncRecordTasks(ctx, "return", [req.id]);
   return { previous: req.status, next: input.to };
 }
@@ -344,8 +329,8 @@ export async function listReturns(ctx: ServiceContext, f: ReturnFilters = {}) {
   const rows = await ctx.tx.select({ id: schema.returnRequests.id, number: schema.returnRequests.number, status: schema.returnRequests.status, reasonCode: schema.returnRequests.reasonCode, resolution: schema.returnRequests.resolution, fault: schema.returnRequests.fault, proposedAmountMinor: schema.returnRequests.proposedAmountMinor, refundedAmountMinor: schema.returnRequests.refundedAmountMinor, requestedAt: schema.returnRequests.requestedAt, closedAt: schema.returnRequests.closedAt, outOfWindow: schema.returnRequests.outOfWindow, source: schema.returnRequests.source, platformSyncStatus: schema.returnRequests.platformSyncStatus, needsReview: schema.returnRequests.needsReview, riskLevel: schema.returnRequests.riskLevel, returnless: schema.returnRequests.returnless, orderId: schema.orders.id, orderName: schema.orders.name, customerName: schema.orders.customerName, currency: schema.orders.currency, items: sql<number>`(select coalesce(sum(l.quantity),0) from return_lines l where l.return_id = ${schema.returnRequests.id})::int` }).from(schema.returnRequests).innerJoin(schema.orders, eq(schema.orders.id, schema.returnRequests.orderId)).where(where).orderBy(desc(schema.returnRequests.requestedAt)).limit(pageSize).offset((page - 1) * pageSize);
   const [count] = await ctx.tx.select({ n: sql<number>`count(*)::int` }).from(schema.returnRequests).innerJoin(schema.orders, eq(schema.orders.id, schema.returnRequests.orderId)).where(where);
   const counts = await ctx.tx.select({ status: schema.returnRequests.status, n: sql<number>`count(*)::int` }).from(schema.returnRequests).where(eq(schema.returnRequests.tenantId, ctx.tenantId)).groupBy(schema.returnRequests.status);
-  const [extra] = await ctx.tx.select({ syncErrors: sql<number>`count(*) filter (where ${schema.returnRequests.platformSyncStatus} = 'error')::int`, portal: sql<number>`count(*) filter (where ${schema.returnRequests.source} = 'portal')::int`, review: sql<number>`count(*) filter (where ${schema.returnRequests.needsReview} and ${schema.returnRequests.status} not in ('refunded','exchanged','voucher_issued','rejected'))::int` }).from(schema.returnRequests).where(eq(schema.returnRequests.tenantId, ctx.tenantId));
-  return { rows, total: count?.n ?? 0, page, pageSize, counts: Object.fromEntries(counts.map((c) => [c.status, c.n])) as Record<string, number>, syncErrors: extra?.syncErrors ?? 0, portalCount: extra?.portal ?? 0, reviewCount: extra?.review ?? 0 };
+  const [extra] = await ctx.tx.select({ syncErrors: sql<number>`count(*) filter (where ${schema.returnRequests.platformSyncStatus} = 'error')::int`, portal: sql<number>`count(*) filter (where ${schema.returnRequests.source} = 'portal')::int`, platform: sql<number>`count(*) filter (where ${schema.returnRequests.source} = 'platform')::int`, review: sql<number>`count(*) filter (where ${schema.returnRequests.needsReview} and ${schema.returnRequests.status} not in ('refunded','exchanged','voucher_issued','rejected'))::int` }).from(schema.returnRequests).where(eq(schema.returnRequests.tenantId, ctx.tenantId));
+  return { rows, total: count?.n ?? 0, page, pageSize, counts: Object.fromEntries(counts.map((c) => [c.status, c.n])) as Record<string, number>, syncErrors: extra?.syncErrors ?? 0, portalCount: extra?.portal ?? 0, platformCount: extra?.platform ?? 0, reviewCount: extra?.review ?? 0 };
 }
 
 export async function returnDetail(ctx: ServiceContext, returnId: string) {
@@ -382,6 +367,8 @@ export interface ReturnsAnalytics {
   upsellMinor: number;
   /** Labels and handling of the returns received in the period, net of deductions. */
   costs: { labelsMinor: number; handlingMinor: number; recoveredMinor: number; totalMinor: number };
+  /** Days spent in each workflow state by the returns of the period, and how old the open ones are. */
+  ageing: ReturnsAgeing;
 }
 
 export async function returnsAnalytics(ctx: ServiceContext, period: Period, costs: { labelMinor: number; handlingMinor: number } = { labelMinor: 0, handlingMinor: 0 }): Promise<ReturnsAnalytics> {
@@ -421,7 +408,15 @@ export async function returnsAnalytics(ctx: ServiceContext, period: Period, cost
       coalesce(sum(greatest(exchange_difference_minor, 0)) filter (where exchange_order_id is not null or exchange_draft_id is not null), 0)::int as upsell
     from return_requests where tenant_id = ${t} and requested_at >= ${period.from} and requested_at < ${period.to}`).then((r) => r.rows);
   const total = totals?.total ?? 0;
+  // inspections have no column of their own: the timeline event that recorded them dates them
+  const timelines = await ctx.tx.execute<{ status: string; requested_at: Date; approved_at: Date | null; received_at: Date | null; closed_at: Date | null; inspected_at: Date | null }>(sql`
+    select rr.status, rr.requested_at, rr.approved_at, rr.received_at, rr.closed_at,
+      (select min(e.created_at) from order_events e where e.order_id = rr.order_id and e.type = 'return_updated' and e.metadata->>'returnId' = rr.id::text and e.diff->'returnStatus'->>'to' = 'inspected') as inspected_at
+    from return_requests rr where rr.tenant_id = ${t} and rr.requested_at >= ${period.from} and rr.requested_at < ${period.to}`);
+  const at = (v: Date | string | null) => (v ? new Date(v) : null);
+  const ageing = returnsAgeing(timelines.rows.map((r) => ({ status: r.status, requestedAt: new Date(r.requested_at), approvedAt: at(r.approved_at), receivedAt: at(r.received_at), closedAt: at(r.closed_at), inspectedAt: at(r.inspected_at) })), ctx.now ?? new Date());
   return {
+    ageing,
     costs: returnCostsOfPeriod(
       (await ctx.tx.select({ returnless: schema.returnRequests.returnless, deductionMinor: schema.returnRequests.deductionMinor }).from(schema.returnRequests).where(and(eq(schema.returnRequests.tenantId, t), gte(schema.returnRequests.receivedAt, period.from), lt(schema.returnRequests.receivedAt, period.to)))).map((r) => ({ goodsBack: true, returnless: r.returnless, deductionMinor: r.deductionMinor })),
       costs.labelMinor,
@@ -446,6 +441,7 @@ export async function returnsAnalytics(ctx: ServiceContext, period: Period, cost
 }
 
 export * from "./platform";
+export * from "./effects";
 export * from "./portal";
 export * from "./policy";
 export * from "./errors";

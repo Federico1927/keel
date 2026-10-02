@@ -116,8 +116,10 @@ export const inventoryMovements = pgTable(
       .notNull()
       .references(() => locations.id, { onDelete: "cascade" }),
     delta: integer("delta").notNull(),
-    /** receipt | return_restock | adjustment | sync | sale */
+    /** receipt | return_restock | adjustment | transfer_in | transfer_out | sync | sale */
     reason: text("reason").notNull(),
+    /** For `adjustment`: damaged | lost | found | count_correction | other (issue #30). */
+    reasonCode: text("reason_code"),
     referenceType: text("reference_type"),
     referenceId: text("reference_id"),
     actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),

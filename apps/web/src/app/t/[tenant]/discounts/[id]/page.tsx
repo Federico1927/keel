@@ -23,7 +23,8 @@ export default async function DiscountDetailPage({ params }: { params: Promise<{
     return [await discountDetail(s, at, id), (await latestPlatformWrites(s, "discount", [id])).get(id)] as const;
   });
   if (!detail) notFound();
-  const { discount: d, pool, state, orders, totals } = detail;
+  const { discount: d, pool, state, poolStatus, redeemedOrder, assignedCustomer, assignedCampaign, orders, totals } = detail;
+  const tp = await getTranslations("discount_pool");
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   return (
     <DetailShell
@@ -36,7 +37,8 @@ export default async function DiscountDetailPage({ params }: { params: Promise<{
           <Badge variant="outline">{d.type === "free_shipping" ? td("free_shipping") : formatDiscountValue(d.type as DiscountType, d.value, money)}</Badge>
           <Badge variant="muted">{d.source === "keel" ? "Keel" : t("platform")}</Badge>
           <PlatformWriteStatus slug={tenant} write={platformWrite} canRetry={canDo(ctx.role, "create_discount")} showError />
-          {pool && <Link href={`/t/${tenant}/discounts?pool=${pool.id}`} className="text-sm hover:underline">{t("in_pool", { title: pool.title })}</Link>}
+          {poolStatus && <Badge variant={poolStatus === "available" ? "success" : poolStatus === "assigned" ? "info" : "muted"} data-testid="pool-code-status">{tp(`status.${poolStatus}`)}</Badge>}
+          {pool && <Link href={`/t/${tenant}/discounts/pools/${pool.id}`} className="text-sm hover:underline">{t("in_pool", { title: pool.title })}</Link>}
         </>
       }
       actions={canDo(ctx.role, "create_discount") ? <DiscountToggle slug={tenant} discountId={d.id} isActive={d.isActive} /> : undefined}
@@ -48,6 +50,12 @@ export default async function DiscountDetailPage({ params }: { params: Promise<{
             <p className="flex justify-between"><span className="text-muted-foreground">{t("usage")}</span><span className="tabular">{formatNumber(d.usedCount, ctx.locale)}{d.usageLimit ? ` / ${formatNumber(d.usageLimit, ctx.locale)}` : ""}</span></p>
             <p className="flex justify-between"><span className="text-muted-foreground">{t("minimum")}</span><span>{d.minimumAmountMinor ? money(d.minimumAmountMinor) : "—"}</span></p>
             <p className="flex justify-between"><span className="text-muted-foreground">{t("external_id")}</span><span className="truncate font-mono text-xs">{d.externalId ?? "—"}</span></p>
+            {poolStatus && (
+              <>
+                <p className="flex justify-between gap-2"><span className="text-muted-foreground">{tp("columns.assigned_to")}</span><span className="truncate">{assignedCustomer ? <Link href={`/t/${tenant}/customers/${assignedCustomer.id}`} className="hover:underline">{[assignedCustomer.firstName, assignedCustomer.lastName].filter(Boolean).join(" ") || assignedCustomer.email}</Link> : assignedCampaign ? <Link href={`/t/${tenant}/campaigns/${assignedCampaign.id}`} className="hover:underline">{assignedCampaign.name}</Link> : "—"}</span></p>
+                <p className="flex justify-between gap-2"><span className="text-muted-foreground">{tp("redeemed_by")}</span><span>{redeemedOrder ? <Link href={`/t/${tenant}/orders/${redeemedOrder.id}`} className="font-medium hover:underline" data-testid="redeemed-order">{redeemedOrder.name}</Link> : "—"}</span></p>
+              </>
+            )}
           </CardContent>
         </Card>
       }

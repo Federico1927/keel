@@ -104,8 +104,8 @@ export async function bulkProducts(runner: BulkRunner, platform: CommercePlatfor
     runner.run(async (s) => {
       const r =
         input.action === "status" ? await setProductStatusWithPlatform(s, platform, item.id, input.status)
-        : input.action === "price" ? await updateProductPricesWithPlatform(s, platform, item.id, { price: input.price })
-        : input.action === "compare_at" ? await updateProductPricesWithPlatform(s, platform, item.id, { compareAt: input.compareAt })
+        : input.action === "price" ? await updateProductPricesWithPlatform(s, platform, item.id, { price: input.price }, { source: "bulk", batchId })
+        : input.action === "compare_at" ? await updateProductPricesWithPlatform(s, platform, item.id, { compareAt: input.compareAt }, { source: "bulk", batchId })
         : await updateProductTagsWithPlatform(s, platform, item.id, input.add, input.remove);
       if (r.kind !== "updated") throw new SkipItem(r.kind);
       const action = input.action === "status" ? "product.status_updated" : input.action === "tags" ? "product.tags_updated" : "variant.price_updated";

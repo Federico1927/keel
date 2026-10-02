@@ -36,6 +36,19 @@ export interface MockCatalogVariant {
   productImageUrl?: string | null;
 }
 
+/** Return statuses as the simulated store reports them (Shopify `ReturnStatus`, lower-cased). */
+export type MockReturnStatus = "requested" | "open" | "declined" | "canceled" | "closed";
+interface MockReturn {
+  externalId: string;
+  orderExternalId: string;
+  status: MockReturnStatus;
+  requestedAt: Date;
+  updatedAt: Date;
+  closedAt: Date | null;
+  note: string | null;
+  lines: { externalId: string; orderLineExternalId: string; quantity: number; reason: string | null; note: string | null }[];
+}
+
 export interface MockCommerceOptions {
   seed?: number;
   currency: string;
@@ -246,9 +259,47 @@ export class MockCommercePlatform implements CommercePlatform {
     return { items: [{ externalId: "mock-d-1", code: "WELCOME10", title: "Welcome 10%", type: "percentage", value: 1000, minimumAmountMinor: null, usageLimit: null, usedCount: 120, startsAt: null, endsAt: null, isActive: true }], nextCursor: null };
   }
 
-  async fetchReturns(): Promise<Page<NormalizedReturn>> {
+  async fetchReturns(q: SyncQuery): Promise<Page<NormalizedReturn>> {
     this.failures.check();
-    return { items: [], nextCursor: null };
+    const since = q.updatedSince ?? q.createdSince ?? null;
+    const all = [...this.returns.values()].filter((r) => !since || r.updatedAt >= since).sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+    const page = Number(q.cursor ?? 0);
+    const limit = Math.min(q.limit ?? 50, 250);
+    return { items: all.slice(page * limit, (page + 1) * limit).map((r) => this.returnOf(r)), nextCursor: (page + 1) * limit < all.length ? String(page + 1) : null };
+  }
+  async fetchReturn(externalId: string): Promise<NormalizedReturn | null> {
+    this.failures.check();
+    const r = this.returns.get(externalId);
+    return r ? this.returnOf(r) : null;
+  }
+  private returnOf(r: MockReturn): NormalizedReturn {
+    return { externalId: r.externalId, orderExternalId: r.orderExternalId, status: r.status, requestedAt: r.requestedAt, closedAt: r.closedAt, note: r.note, lines: r.lines.map((l) => ({ ...l })) };
+  }
+  /**
+   * A return opened in the store admin or by the customer on the store, behind Keel's back (tests, the
+   * "simulate return" button). Lines are order line ids of any order, also of the seeded history.
+   */
+  openPlatformReturn(input: { orderExternalId: string; lines: { orderLineExternalId: string; quantity: number; reason?: string | null }[]; note?: string | null; status?: MockReturnStatus }): NormalizedReturn {
+    const externalId = this.nextReturnId();
+    const now = new Date();
+    const r: MockReturn = { externalId, orderExternalId: input.orderExternalId, status: input.status ?? "requested", requestedAt: now, updatedAt: now, closedAt: input.status === "closed" ? now : null, note: input.note ?? null, lines: input.lines.map((l, i) => ({ externalId: `${externalId}-l${i + 1}`, orderLineExternalId: l.orderLineExternalId, quantity: l.quantity, reason: l.reason ?? null, note: null })) };
+    this.returns.set(externalId, r);
+    return this.returnOf(r);
+  }
+  /** Changes a return's status on the store (approve, decline, close in the admin). */
+  setPlatformReturnStatus(externalId: string, status: MockReturnStatus): void {
+    const r = this.returns.get(externalId);
+    if (!r) return;
+    r.status = status;
+    r.updatedAt = new Date(Math.max(Date.now(), r.updatedAt.getTime() + 1));
+    if (status === "closed" || status === "declined" || status === "canceled") r.closedAt = r.updatedAt;
+  }
+  /** Signed `returns/*` webhook for a return the simulator holds, as the platform would send it. */
+  buildReturnWebhook(topic: string, returnExternalId: string): { headers: Record<string, string>; rawBody: string } {
+    const r = this.returns.get(returnExternalId);
+    if (!r) throw new IntegrationError("not_found", `Mock: return ${returnExternalId} not found`);
+    const rawBody = JSON.stringify({ id: r.externalId, updated_at: r.updatedAt.toISOString(), __normalized: this.returnOf(r) });
+    return { headers: { "x-shopify-topic": topic, "x-shopify-hmac-sha256": this.sign(rawBody), "x-shopify-shop-domain": "mock-shop.myshopify.com" }, rawBody };
   }
 
   /** Refunds made through this simulator since it started (they show up in the next payouts). */
@@ -306,6 +357,10 @@ export class MockCommercePlatform implements CommercePlatform {
   }
   parseWebhookCustomer(payload: unknown): NormalizedCustomer | null {
     return (payload as { __normalized?: NormalizedCustomer }).__normalized ?? null;
+  }
+  parseWebhookReturn(payload: unknown): NormalizedReturn | null {
+    const r = (payload as { __normalized?: NormalizedReturn }).__normalized;
+    return r ? { ...r, requestedAt: new Date(r.requestedAt), closedAt: r.closedAt ? new Date(r.closedAt) : null } : null;
   }
   parseWebhookInventoryLevel(payload: unknown): NormalizedInventoryLevel {
     const p = payload as { inventory_item_id: string; location_id: string; available: number; updated_at: string };
@@ -449,13 +504,46 @@ export class MockCommercePlatform implements CommercePlatform {
     this.record("setInventory", { inventoryItemExternalId, locationExternalId, available });
     this.stock.set(`${inventoryItemExternalId}@${locationExternalId}`, available);
   }
+  /** Codes the store accepts: standalone codes by code, pools by their discount id with their codes. */
+  private discountActive = new Map<string, boolean>();
+  private pools = new Map<string, { active: boolean; codes: Map<string, boolean> }>();
+  private poolSeq = 0;
   async createDiscountCode(input: { code: string }) {
     this.record("createDiscountCode", input);
+    this.discountActive.set(input.code.toUpperCase(), true);
     return { externalId: `mock-d-${input.code}` };
   }
   async createDiscountPool(input: { title: string; codes: string[] }) {
     this.record("createDiscountPool", { title: input.title, count: input.codes.length });
-    return { externalId: `mock-pool-${Date.now()}`, imported: input.codes, failed: [] };
+    const externalId = `mock-pool-${Date.now().toString(36)}-${++this.poolSeq}`;
+    this.pools.set(externalId, { active: true, codes: new Map(input.codes.map((c) => [c.toUpperCase(), true])) });
+    return { externalId, imported: input.codes, failed: [] };
+  }
+  private poolOf(id: string) {
+    return this.pools.get(id) ?? this.pools.set(id, { active: true, codes: new Map() }).get(id)!;
+  }
+  async addDiscountPoolCodes(poolExternalId: string, codes: string[]) {
+    this.record("addDiscountPoolCodes", { poolExternalId, count: codes.length });
+    const pool = this.poolOf(poolExternalId);
+    for (const c of codes) pool.codes.set(c.toUpperCase(), true);
+    return { imported: codes, failed: [] };
+  }
+  async setDiscountActive(discount: { externalId: string | null; code: string; poolExternalId?: string | null }, active: boolean) {
+    this.record("setDiscountActive", { ...discount, active });
+    if (discount.poolExternalId) this.poolOf(discount.poolExternalId).codes.set(discount.code.toUpperCase(), active);
+    else this.discountActive.set(discount.code.toUpperCase(), active);
+  }
+  async setDiscountPoolActive(poolExternalId: string, active: boolean) {
+    this.record("setDiscountPoolActive", { poolExternalId, active });
+    const pool = this.poolOf(poolExternalId);
+    pool.active = active;
+    for (const c of pool.codes.keys()) pool.codes.set(c, active);
+  }
+  /** Whether the store accepts a code now (tests); undefined for codes it never saw. */
+  discountCodeActive(code: string): boolean | undefined {
+    const c = code.toUpperCase();
+    for (const p of this.pools.values()) if (p.codes.has(c)) return p.active && p.codes.get(c)!;
+    return this.discountActive.get(c);
   }
   private draftSeq = 0;
   async createInvoiceOrder(input: CreateOrderInput) {
@@ -468,17 +556,22 @@ export class MockCommercePlatform implements CommercePlatform {
     for (const l of lines) this.adjustStock(l.inventoryItemExternalId, l.locationExternalId, l.quantity);
   }
   private returnSeq = 0;
-  private returns = new Map<string, { orderExternalId: string; status: "requested" | "approved" | "declined" | "closed" }>();
+  private returns = new Map<string, MockReturn>();
+  /** Unique across simulator restarts, so a return id stored by an earlier process never matches a new one. */
+  private nextReturnId(): string {
+    return `mock-r-${Date.now().toString(36)}-${++this.returnSeq}`;
+  }
   async requestReturn(orderExternalId: string, input: { lines: PlatformReturnLineInput[]; note?: string | null }) {
     this.record("requestReturn", { orderExternalId, lines: input.lines });
-    const externalId = `mock-r-${++this.returnSeq}`;
-    this.returns.set(externalId, { orderExternalId, status: "requested" });
-    return { externalId, lines: input.lines.map((l, i) => ({ orderLineExternalId: l.orderLineExternalId, externalId: `${externalId}-l${i + 1}` })) };
+    const externalId = this.nextReturnId();
+    const now = new Date();
+    const lines = input.lines.map((l, i) => ({ externalId: `${externalId}-l${i + 1}`, orderLineExternalId: l.orderLineExternalId, quantity: l.quantity, reason: l.reason?.toLowerCase() ?? null, note: l.note ?? null }));
+    this.returns.set(externalId, { externalId, orderExternalId, status: "requested", requestedAt: now, updatedAt: now, closedAt: null, note: input.note ?? null, lines });
+    return { externalId, lines: lines.map((l) => ({ orderLineExternalId: l.orderLineExternalId, externalId: l.externalId })) };
   }
   private setReturn(id: string, status: "approved" | "declined" | "closed") {
-    const r = this.returns.get(id);
-    if (r) r.status = status;
-    else this.returns.set(id, { orderExternalId: "", status });
+    if (!this.returns.has(id)) return;
+    this.setPlatformReturnStatus(id, status === "approved" ? "open" : status);
   }
   async approveReturn(returnExternalId: string) {
     this.record("approveReturn", { returnExternalId });

@@ -14,6 +14,7 @@ import { seedLists } from "./lists";
 import { seedPayments } from "./payments";
 import { seedFulfilment } from "./fulfilment";
 import { seedConsoleTenants, seedDemoLifecycle } from "./console";
+import { seedInventoryControl } from "./inventory-control";
 import { createRng } from "@keel/integrations";
 import { SALE_STATUSES, allocateLandedCost, normalizePhone, runPredictionModel, type CustomerHistory } from "@keel/core";
 import { MODULES, PLANS, PLATFORM_CURRENCY } from "@keel/config";
@@ -263,6 +264,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("email", () => seedEmailLog(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, cfg.locale, opts.now ?? new Date()));
     await step("lists", () => seedLists(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("payments", () => seedPayments(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
+    await step("inventory-control", () => seedInventoryControl(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
   }
 }
@@ -617,6 +619,8 @@ async function seedReturnsExtras(db: ReturnType<typeof drizzle<typeof schema>>, 
       } else if (i < 6 && r.status === "requested") patch.platformSyncStatus = "pending";
       else Object.assign(patch, { platformSyncStatus: "synced", platformStatus: r.status === "requested" ? "requested" : "approved", externalId: `mock-r-${1000 + i}`, platformSyncedAt: new Date(r.created) });
     }
+    // some returns were opened on the store itself and imported by webhook (issue #35)
+    if (!portal && i % 6 === 5 && patch.externalId && patch.platformSyncStatus === "synced") patch.source = "platform";
     if (Object.keys(patch).length) await db.update(schema.returnRequests).set(patch).where(eq(schema.returnRequests.id, r.id));
     if (portal && photos < 12 && i % 4 === 0) {
       await db.insert(schema.returnEvidence).values([1, 2].map((n) => ({ tenantId, returnId: r.id, sessionNonce: `seed-${i}-${n}`, contentType: "image/png", sizeBytes: DEMO_PHOTO.length, data: DEMO_PHOTO })));

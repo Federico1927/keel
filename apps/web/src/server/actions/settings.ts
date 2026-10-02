@@ -72,6 +72,7 @@ export async function updateOperationalSettings(slug: string, _prev: ActionResul
       shippingCostMinor: num(formData.get("shippingCostMinor")) ?? current.shippingCostMinor,
       churnLowPct: num(formData.get("churnLowPct")) ?? current.churnLowPct,
       churnMediumPct: num(formData.get("churnMediumPct")) ?? current.churnMediumPct,
+      markdownMinMarginBps: num(formData.get("markdownMinMarginBps")) ?? current.markdownMinMarginBps,
       // checkboxes: only read when the backorder card was part of the submitted form
       backorderHold: formData.has("backorderSettings") ? formData.get("backorderHold") === "on" : current.backorderHold,
       backorderPlatformHold: formData.has("backorderSettings") ? formData.get("backorderPlatformHold") === "on" : current.backorderPlatformHold,

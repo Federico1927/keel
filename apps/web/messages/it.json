@@ -315,7 +315,8 @@
         "churnLowPct": "Rischio abbandono basso da (% probabilità attivo)",
         "churnMediumPct": "Rischio abbandono medio da (% probabilità attivo)",
         "backorderHold": "Metti in sospeso gli ordini che richiedono più dello stock disponibile finché un ordine d'acquisto in arrivo non li copre",
-        "backorderPlatformHold": "Durante l'attesa blocca anche l'evasione sul negozio, così il magazzino non li spedisce"
+        "backorderPlatformHold": "Durante l'attesa blocca anche l'evasione sul negozio, così il magazzino non li spedisce",
+        "markdownMinMarginBps": "Margine minimo dei ribassi (punti base, 2000 = 20%)"
       },
       "backorders_title": "Backorder",
       "backorders_description": "Cosa succede quando un ordine richiede più dello stock disponibile."
@@ -1096,7 +1097,9 @@
       "adjustment": "Rettifica",
       "sync": "Sync",
       "sale": "Vendita",
-      "refund_restock": "Rientro da rimborso"
+      "refund_restock": "Rientro da rimborso",
+      "transfer_in": "Trasferimento in entrata",
+      "transfer_out": "Trasferimento in uscita"
     },
     "view_orders": "Vedi ordini",
     "grid": {
@@ -2191,7 +2194,8 @@
     },
     "policy": "Politica e automazioni",
     "needs_review": "Da rivedere",
-    "risk_high": "rischio alto"
+    "risk_high": "rischio alto",
+    "from_store": "Dallo store"
   },
   "return_detail": {
     "order": "Ordine",
@@ -2440,7 +2444,19 @@
     "option": "Opzione",
     "sold": "Venduti",
     "returned": "Resi",
-    "no_options": "Nessuna opzione di variante nel periodo."
+    "no_options": "Nessuna opzione di variante nel periodo.",
+    "ageing": {
+      "title": "Tempo in ogni stato",
+      "description": "Giorni passati in ogni stato dai resi del periodo, e da quanto aspettano quelli aperti (oltre {days} giorni è in ritardo).",
+      "state": "Stato",
+      "avg": "Media",
+      "median": "Mediana",
+      "max": "Massimo",
+      "open": "Aperti ora",
+      "stale": "Oltre {days} giorni",
+      "days": "{n} g",
+      "empty": "Nessun reso nel periodo."
+    }
   },
   "return_reasons": {
     "title": "Motivi di reso",
@@ -2481,7 +2497,8 @@
     },
     "pool_status": {
       "ready": "Pronto",
-      "partial": "Parziale"
+      "partial": "Parziale",
+      "inactive": "Disattivato"
     },
     "columns": {
       "code": "Codice",
@@ -2495,8 +2512,12 @@
       "validity": "Validità",
       "pool": "Pool",
       "codes": "Codici",
-      "used": "Usati"
-    }
+      "used": "Usati",
+      "ready": "Pronti / obiettivo",
+      "assigned": "Assegnati"
+    },
+    "manage_pool": "Gestisci pool",
+    "pool_codes": "{n} codici"
   },
   "discount_new": {
     "title": "Nuovo sconto",
@@ -2695,7 +2716,9 @@
       "delta": "delta",
       "reconcile": "riconciliazione notturna",
       "manual": "manuale"
-    }
+    },
+    "simulate_return": "Simula reso",
+    "simulated_return": "Webhook del reso accettato (HTTP {status}) per {order}."
   },
   "integration_guide": {
     "verify_legend": "I passi segnati “Da verificare” dipendono da console dei fornitori che cambiano spesso: controllali sulla documentazione del fornitore prima della prima installazione.",
@@ -5608,7 +5631,9 @@
       "order_fulfillment_release": "Sblocco evasione",
       "order_mark_paid": "Segna ordine pagato",
       "order_refund": "Rimborso ordine",
-      "fulfillment_create": "Evasione"
+      "fulfillment_create": "Evasione",
+      "discount_status": "Attivazione sconto",
+      "discount_pool_status": "Attivazione pool di sconti"
     }
   },
   "dev_inbox": {
@@ -6103,5 +6128,237 @@
     "delete": "Elimina",
     "add": "Aggiungi",
     "unmapped_title": "Visti ma non mappati (clicca per compilare il modulo):"
+  },
+  "discount_pool": {
+    "eyebrow": "Pool di sconti",
+    "active": "Attivo",
+    "inactive": "Disattivato",
+    "all": "Tutti",
+    "export": "Esporta CSV",
+    "deactivate": "Disattiva pool",
+    "activate": "Riattiva pool",
+    "deactivate_title": "Disattivare questo pool?",
+    "deactivate_description": "Tutti i codici del pool smettono di funzionare in Keel subito e sullo store appena la modifica è sincronizzata. I codici già usati restano collegati ai loro ordini.",
+    "activate_title": "Riattivare questo pool?",
+    "activate_description": "I codici non ancora usati tornano validi, in Keel e sullo store.",
+    "top_up_title": "Ricarica",
+    "top_up_description": "Genera nuovi codici unici finché il pool ne ha questo numero pronti da distribuire. Vengono aggiunti allo stesso sconto sullo store.",
+    "top_up_target": "Codici pronti dopo la ricarica",
+    "top_up": "Ricarica",
+    "top_up_hint": "Ora ci sono {ready} codici pronti (non assegnati, non usati, attivi).",
+    "top_up_done": "{added} codici generati, {imported} accettati dallo store, {failed} rifiutati.",
+    "assign_title": "Assegna codici",
+    "assign_description": "Dai i prossimi codici disponibili a un cliente o a una campagna: non saranno più disponibili per altri.",
+    "assign_to": "Assegna a",
+    "assign_customer": "Cliente",
+    "assign_campaign": "Campagna",
+    "assign_count": "Numero di codici",
+    "customer_email": "Email del cliente",
+    "assign": "Assegna",
+    "assigned_codes": "Assegnati: {codes}",
+    "release": "Libera",
+    "redeemed_by": "Usato dall'ordine",
+    "search_placeholder": "Codice, email o ordine",
+    "empty": "Nessun codice con questi filtri.",
+    "status": {
+      "available": "Disponibile",
+      "assigned": "Assegnato",
+      "redeemed": "Riscattato"
+    },
+    "kpi": {
+      "ready": "Pronti da distribuire",
+      "target": "obiettivo {n}",
+      "validity": "Valido fino al",
+      "from": "dal {date}"
+    },
+    "columns": {
+      "code": "Codice",
+      "status": "Stato",
+      "assigned_to": "Assegnato a",
+      "order": "Ordine",
+      "redeemed_at": "Riscattato"
+    },
+    "errors": {
+      "pool_not_found": "Pool non trovato.",
+      "pool_invalid_input": "Controlla i valori e riprova.",
+      "pool_no_codes_available": "Codici disponibili insufficienti: ricarica prima il pool.",
+      "pool_platform_error": "Lo store ha rifiutato i codici. Riprova tra poco.",
+      "pool_pool_inactive": "Il pool è disattivato.",
+      "pool_recipient_not_found": "Nessun cliente con questa email."
+    }
+  },
+  "inventory_control": {
+    "back": "Magazzino",
+    "links": {
+      "stock-takes": "Inventari fisici",
+      "markdowns": "Ribassi",
+      "losses": "Ammanchi"
+    },
+    "reasons": {
+      "damaged": "Danneggiato",
+      "lost": "Smarrito",
+      "found": "Ritrovato",
+      "count_correction": "Rettifica inventario",
+      "other": "Altro"
+    },
+    "errors": {
+      "zero": "Inserisci una quantità diversa da zero.",
+      "sign": "Il motivo non corrisponde alla direzione (danneggiato e smarrito tolgono unità, ritrovato le aggiunge).",
+      "negative_stock": "Lo stock in questa location non può scendere sotto zero.",
+      "note_required": "Aggiungi una nota per \"Altro\".",
+      "not_open": "Questo inventario non è più aperto.",
+      "invalid_input": "Alcuni campi non sono validi.",
+      "not_found": "Non trovato.",
+      "forbidden": "Non hai i permessi per questa azione."
+    },
+    "adjust": {
+      "button": "Rettifica stock",
+      "title": "Rettifica stock",
+      "description": "Cambia lo stock di una variante in una location, con un motivo.",
+      "variant": "Variante",
+      "location": "Location",
+      "reason": "Motivo",
+      "direction": "Direzione",
+      "add": "Aggiungi unità",
+      "remove": "Togli unità",
+      "quantity": "Unità",
+      "note": "Nota (facoltativa)",
+      "note_required": "Nota (obbligatoria)",
+      "preview": "Disponibili {current} → {next} ({delta}). Il nuovo livello viene inviato al negozio.",
+      "submit": "Salva rettifica"
+    },
+    "stock_takes": {
+      "title": "Inventari fisici",
+      "description": "Conta una location, controlla le differenze e applicale come rettifiche in un unico lotto. Le varianti non contate restano invariate.",
+      "back": "Inventari fisici",
+      "new": "Nuovo inventario",
+      "location": "Location",
+      "note": "Nota",
+      "empty_title": "Nessun inventario",
+      "empty_description": "Avviane uno per una location, poi scansiona o digita ciò che conti.",
+      "columns": {
+        "number": "Inventario",
+        "location": "Location",
+        "status": "Stato",
+        "lines": "Righe",
+        "movements": "Rettifiche",
+        "updated": "Aggiornato",
+        "variant": "Variante",
+        "expected": "Atteso",
+        "counted": "Contato",
+        "difference": "Differenza"
+      },
+      "status": {
+        "open": "Aperto",
+        "applied": "Applicato",
+        "cancelled": "Annullato"
+      },
+      "open_description": "Scansiona un codice a barre o digita uno SKU e premi Invio: ogni scansione conta un'unità. I conteggi parziali vanno bene.",
+      "applied_description": "Applicato il {at}: {n} rettifiche scritte.",
+      "cancelled_description": "Annullato: non è stato scritto nulla.",
+      "review": {
+        "missing": "Mancanti",
+        "surplus": "In eccesso",
+        "unknown": "SKU sconosciuto",
+        "match": "Corrispondenti"
+      },
+      "units": "{n} unità",
+      "review_title": "Verifica",
+      "show_all": "Mostra tutto",
+      "no_lines": "Ancora niente contato",
+      "no_lines_hint": "Scansiona o digita il primo codice qui sopra.",
+      "unknown_code": "Codice sconosciuto",
+      "scan_label": "Codice a barre o SKU",
+      "scan_placeholder": "Scansiona o digita, poi Invio",
+      "quantity": "Unità",
+      "mode": "Modalità",
+      "mode_add": "Aggiungi al conteggio",
+      "mode_set": "Sostituisci conteggio",
+      "count": "Conta",
+      "scan_matched": "{label}: contati {n}",
+      "scan_unknown": "Codice sconosciuto {code}: contati {n} (non applicato)",
+      "remove_line": "Rimuovi riga",
+      "apply_hint": "Applicando, ogni variante contata prende il suo conteggio e i livelli vengono inviati al negozio.",
+      "apply": "Applica {n, plural, one {# differenza} other {# differenze}}",
+      "apply_confirm": "Scrivere {n, plural, one {# rettifica} other {# rettifiche}} e chiudere l'inventario?",
+      "applied": "{n, plural, one {# rettifica scritta} other {# rettifiche scritte}}{released, plural, =0 {} one {, # ordine in attesa sbloccato} other {, # ordini in attesa sbloccati}}.",
+      "cancel": "Annulla inventario",
+      "cancel_confirm": "Annullare l'inventario? I conteggi restano ma non viene applicato nulla."
+    },
+    "losses": {
+      "title": "Ammanchi",
+      "description": "Varianti il cui stock è sceso senza una vendita, un annullamento, un reso, un ricevimento o una rettifica che lo spieghi, rilevate dalle sincronizzazioni.",
+      "location": "Location",
+      "all_locations": "Tutte le location",
+      "apply": "Applica",
+      "kpi": {
+        "units": "Unità mancanti",
+        "value": "Valore a costo",
+        "value_hint": "all'ultimo costo della variante",
+        "without_cost": "{n, plural, one {# variante} other {# varianti}} senza costo non valorizzate",
+        "variants": "Varianti"
+      },
+      "columns": {
+        "variant": "Variante",
+        "units": "Unità",
+        "value": "Valore",
+        "events": "Eventi",
+        "locations": "Location",
+        "last": "Ultimo rilevamento"
+      },
+      "no_cost": "Senza costo",
+      "empty_title": "Nessun ammanco",
+      "empty_description": "In questo periodo nessuno stock è sceso senza motivo.",
+      "footnote": "Ogni discrepanza conta una volta anche se una sincronizzazione la rivede. Registra le unità danneggiate o smarrite come rettifiche perché non compaiano qui."
+    },
+    "markdowns": {
+      "title": "Ribassi",
+      "description": "Ribassi con prezzo barrato per stock senza vendite o con troppa copertura (oltre {excess} giorni; ribasso forte da {slow} giorni o senza vendite in {days} giorni). I prezzi non scendono mai sotto un margine del {margin} sul prezzo netto.",
+      "reasons": {
+        "no_sales": "Nessuna vendita",
+        "slow": "Lenta rotazione",
+        "excess": "Stock in eccesso"
+      },
+      "skipped": {
+        "no_cost": "{n, plural, one {# variante} other {# varianti}} senza costo (nessuna soglia, nessun suggerimento)",
+        "floor": "{n, plural, one {# variante} other {# varianti}} già alla soglia di margine",
+        "already_marked_down": "{n, plural, one {# variante} other {# varianti}} già ribassate abbastanza"
+      },
+      "columns": {
+        "variant": "Variante",
+        "reason": "Perché",
+        "stock": "Stock",
+        "cover": "Copertura",
+        "price": "Prezzo",
+        "new_price": "Ribasso",
+        "floor": "Soglia",
+        "margin": "Margine"
+      },
+      "at_floor": "alla soglia",
+      "select_all": "Seleziona tutto",
+      "apply": "Applica {n, plural, =0 {ribassi} one {# ribasso} other {# ribassi}}",
+      "apply_confirm": "Applicare {n, plural, one {# ribasso} other {# ribassi}}? Prezzi e prezzi barrati vengono inviati al negozio.",
+      "summary": "{done} applicati, {skipped} saltati, {failed} falliti.",
+      "empty_title": "Nessun ribasso da suggerire",
+      "empty_description": "Nessuna variante attiva ha stock lento o in eccesso sopra la soglia di margine."
+    },
+    "price_history": {
+      "title": "Storico prezzi",
+      "markdown_description": "Ribassi applicati da Keel, dal più recente.",
+      "empty": "Nessuna variazione di prezzo registrata.",
+      "system": "Sistema",
+      "columns": {
+        "when": "Quando",
+        "variant": "Variante",
+        "price": "Prezzo",
+        "compare_at": "Prezzo barrato",
+        "by": "Da"
+      },
+      "source": {
+        "markdown": "ribasso",
+        "bulk": "modifica in blocco",
+        "manual": "manuale"
+      }
+    }
   }
 }

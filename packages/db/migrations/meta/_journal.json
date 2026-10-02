@@ -218,6 +218,20 @@
       "when": 1790903166455,
       "tag": "0030_many_king_bedlam",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1790904045766,
+      "tag": "0031_jazzy_satana",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1790907033898,
+      "tag": "0032_crazy_magma",
+      "breakpoints": true
     }
   ]
 }
