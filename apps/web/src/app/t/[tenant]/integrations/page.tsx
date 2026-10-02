@@ -4,7 +4,7 @@ import { AD_ACCOUNT_LIMIT, adPlatformMinPlan, canDo, isAdPlatform, isAdPlatformI
 import { formatDateTime, formatNumber } from "@hullwise/core";
 import { SUBSCRIPTION_PROVIDERS, integrationMode } from "@hullwise/integrations";
 import { adAccountsOverview, integrationOverview, platformWritesOverview } from "@hullwise/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, DataList } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, DataList } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { ProviderActions, WebhookControls, WebhookRowAction } from "./controls";
