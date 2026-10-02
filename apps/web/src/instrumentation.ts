@@ -11,6 +11,9 @@ export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs" && process.env.NEXT_PHASE !== "phase-production-build") {
     const { assertRuntimeConfig } = await import("./instrumentation-node");
     assertRuntimeConfig();
+    // emails queued by this process go to pg-boss (worker deployed) or are delivered after the response
+    const { installEmailDispatcher } = await import("./server/email");
+    installEmailDispatcher();
   }
   if (process.env.SENTRY_DSN) {
     const [Sentry, { SENTRY_DATA_COLLECTION }] = await Promise.all([import("@sentry/nextjs"), import("@keel/config")]);

@@ -1,10 +1,12 @@
-import { and, eq, gte, inArray, isNull, lt, schema, sql } from "@keel/db";
-import { TO_SHIP_STATUSES, digestSummary, isCriticalWithoutIncoming, isLateToShip, isSyncDelayed, type TenantSettings } from "@keel/core";
+import { and, eq, inArray, isNull, schema, sql } from "@keel/db";
+import { digestSummary, isCriticalWithoutIncoming, isSyncDelayed, type TenantSettings } from "@keel/core";
+import { countLateToShip } from "../fulfilment";
 import type { TenantRole } from "@keel/config";
 import type { ServiceContext } from "../context";
 import { variantStock } from "../inventory";
 import { notifyUsers, absoluteAppLink } from "./index";
-import { appBaseUrl, sendTenantEmail } from "./mailer";
+import { queueEmail } from "../email/mailer";
+import { appBaseUrl } from "../email/unsubscribe";
 
 /** Active members with one of the roles (system notifications go to the people who can act). */
 export async function membersWithRoles(ctx: ServiceContext, roles: readonly TenantRole[]): Promise<string[]> {
@@ -45,17 +47,19 @@ export async function checkCriticalStock(ctx: ServiceContext, settings: TenantSe
   return out;
 }
 
-/** Orders still to ship after the tenant's threshold: one grouped notification a day. */
-export async function checkLateToShip(ctx: ServiceContext, settings: TenantSettings): Promise<number> {
+/**
+ * Orders ready to ship and still unshipped after the tenant's threshold in working days (tenant time
+ * zone): one grouped notification a day. The same query feeds the fulfilment queue and the alert metric.
+ */
+export async function checkLateToShip(ctx: ServiceContext, settings: TenantSettings, timezone?: string): Promise<number> {
   const now = ctx.now ?? new Date();
-  const cutoff = new Date(now.getTime() - settings.lateToShipHours * 3600e3);
-  const rows = await ctx.tx.select({ id: schema.orders.id, status: schema.orders.status, placedAt: schema.orders.placedAt }).from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenantId), inArray(schema.orders.status, [...TO_SHIP_STATUSES]), lt(schema.orders.placedAt, cutoff), gte(schema.orders.placedAt, new Date(now.getTime() - 60 * 864e5)))).limit(2000);
-  const late = rows.filter((o) => isLateToShip(o, settings.lateToShipHours, now));
-  if (late.length) {
+  const tz = timezone ?? (await ctx.tx.select({ timezone: schema.tenants.timezone }).from(schema.tenants).where(eq(schema.tenants.id, ctx.tenantId)).limit(1))[0]?.timezone ?? "UTC";
+  const late = await countLateToShip(ctx, { timezone: tz, settings, now });
+  if (late) {
     const users = await membersWithRoles(ctx, ["owner", "admin", "operations"]);
-    await notifyUsers(sys(ctx), { userIds: users, type: "late_to_ship", severity: "warning", title: String(late.length), body: `${settings.lateToShipHours}h`, link: "/orders?status=confirmed&sort=placed_asc", metadata: { count: late.length, thresholdHours: settings.lateToShipHours }, antiSpamMinutes: 24 * 60 });
+    await notifyUsers(sys(ctx), { userIds: users, type: "late_to_ship", severity: "warning", title: String(late), body: String(settings.lateToShipBusinessDays), link: "/fulfilment?view=late", metadata: { count: late, thresholdBusinessDays: settings.lateToShipBusinessDays }, antiSpamMinutes: 24 * 60 });
   }
-  return late.length;
+  return late;
 }
 
 /** Daily digest email (opt-in per user): unread in-app notifications of the last 24 hours, grouped by type. */
@@ -72,8 +76,9 @@ export async function sendDigests(ctx: ServiceContext): Promise<number> {
     if (!items.length) continue;
     const [u] = await ctx.tx.select({ email: schema.users.email, locale: schema.users.locale }).from(schema.users).where(eq(schema.users.id, userId)).limit(1);
     if (!u) continue;
-    const r = await sendTenantEmail(ctx, { to: u.email, template: "digest", data: { tenantName: tenant?.name ?? "", groups: digestSummary(items), url: absoluteAppLink("/notifications", tenant?.slug ?? "") ?? appBaseUrl() }, locale: u.locale ?? tenant?.defaultLocale, category: "digest" });
-    if (r.outcome === "sent" || r.outcome === "mock") sent++;
+    // one digest per user and day: a second run of the tick the same day is a no-op
+    const r = await queueEmail(ctx, { to: u.email, template: "digest", data: { tenantName: tenant?.name ?? "", groups: digestSummary(items), url: absoluteAppLink("/notifications", tenant?.slug ?? "") ?? appBaseUrl() }, locale: u.locale ?? tenant?.defaultLocale, event: `digest:${userId}:${now.toISOString().slice(0, 10)}` });
+    if (r.outcome === "queued") sent++;
   }
   return sent;
 }

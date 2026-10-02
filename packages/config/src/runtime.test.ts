@@ -30,10 +30,21 @@ describe("checkRuntimeConfig", () => {
   });
 
   it("accepts a complete live configuration and only warns about a missing error tracker", () => {
-    const r = checkRuntimeConfig({ ...db, ...secrets, KEEL_INTEGRATION_MODE: "live", KEEL_JOBS_QUEUE: "1" }, "web");
+    const email = { RESEND_API_KEY: "re_x", EMAIL_FROM: "Keel <no-reply@mail.keel.example>", RESEND_WEBHOOK_SECRET: "whsec_x" };
+    const r = checkRuntimeConfig({ ...db, ...secrets, ...email, KEEL_INTEGRATION_MODE: "live", KEEL_JOBS_QUEUE: "1" }, "web");
     expect(r.errors).toEqual([]);
     expect(r.warnings).toEqual(["SENTRY_DSN is not set: errors in live mode will only reach the logs."]);
-    expect(checkRuntimeConfig({ ...db, ...secrets, KEEL_INTEGRATION_MODE: "live", KEEL_JOBS_QUEUE: "1", SENTRY_DSN: "https://x" }, "web").warnings).toEqual([]);
+    expect(checkRuntimeConfig({ ...db, ...secrets, ...email, KEEL_INTEGRATION_MODE: "live", KEEL_JOBS_QUEUE: "1", SENTRY_DSN: "https://x" }, "web").warnings).toEqual([]);
+  });
+
+  it("warns, never fails, when live mode has no email provider: the mock captures the emails", () => {
+    const live = { ...db, ...secrets, KEEL_INTEGRATION_MODE: "live", KEEL_JOBS_QUEUE: "1", SENTRY_DSN: "https://x" };
+    const none = checkRuntimeConfig(live, "web");
+    expect(none.errors).toEqual([]);
+    expect(none.warnings).toEqual([expect.stringContaining("RESEND_API_KEY is not set")]);
+    const partial = checkRuntimeConfig({ ...live, RESEND_API_KEY: "re_x" }, "web").warnings;
+    expect(partial.some((w) => w.startsWith("EMAIL_FROM"))).toBe(true);
+    expect(partial.some((w) => w.startsWith("RESEND_WEBHOOK_SECRET"))).toBe(true);
   });
 
   it("requires both database URLs", () => {

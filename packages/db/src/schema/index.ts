@@ -20,3 +20,5 @@ export * from "./assistant";
 export * from "./collab";
 export * from "./lists";
 export * from "./payments";
+export * from "./fulfilment";
+export * from "./email";

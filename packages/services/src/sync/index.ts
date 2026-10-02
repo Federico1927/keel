@@ -1,11 +1,13 @@
 import { and, desc, eq, inArray, isNull, schema, sql } from "@keel/db";
-import { DEFAULT_PRECEDENCE, addressKey, deriveChannel, diffRecords, extractAttribution, hasChanges, matchCampaign, nameZipKey, normalizeEmail, normalizePhone, resolveShipmentStatus, shouldTakePlatformCost, type CampaignRef, type ShipmentStatus } from "@keel/core";
+import { DEFAULT_PRECEDENCE, addressKey, applyStatusMapping, type StatusMapping, deriveChannel, diffRecords, extractAttribution, hasChanges, matchCampaign, nameZipKey, normalizeEmail, normalizePhone, resolveShipmentStatus, shouldTakePlatformCost, type CampaignRef, type ShipmentStatus } from "@keel/core";
 import { IntegrationError, type AdsPlatform, type CommercePlatform, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 import { closeOrderBackorders, recomputeOrderStatus } from "../orders/state";
 import { checkOrderStock } from "../backorders";
 import { applyCostToOrderLines } from "../catalog/costs";
 import { unconfirmedWriteTargets } from "../writes";
+import { loadStatusMappings } from "../fulfilment/mappings";
+import { syncShipmentCases } from "../fulfilment/cases";
 import { applyInventoryLevels, refreshInventoryForVariants, zeroUnreportedLevels } from "./inventory";
 
 export * from "./inventory";
@@ -145,7 +147,8 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
   const attrValues = { utmSource: attribution.utmSource, utmMedium: attribution.utmMedium, utmCampaign: attribution.utmCampaign, utmContent: attribution.utmContent, utmTerm: attribution.utmTerm, clickIds: attribution.clickIds, campaignId: campaign?.id ?? null, channel: deriveChannel(attribution, o.referringSite, o.sourceChannel), source: opts.source, capturedAt: now };
   if (!lineage) await ctx.tx.insert(schema.orderAttribution).values({ tenantId: ctx.tenantId, orderId, ...attrValues }).onConflictDoUpdate({ target: [schema.orderAttribution.orderId], set: attrValues });
   // fulfillments → shipments with per-source state and resolver
-  for (const f of o.fulfillments) await importFulfillment(ctx, orderId, f, now);
+  const mappings = o.fulfillments.length ? await loadStatusMappings(ctx) : [];
+  for (const f of o.fulfillments) await importFulfillment(ctx, orderId, f, now, { mappings });
   // backorders: a new order is checked against stock; one cancelled or shipped on the platform stops waiting
   if (outcome === "created" && opts.stockCheck !== false) await checkOrderStock(ctx, orderId, { source: opts.source, skipRecompute: true });
   if (existing && (o.cancelledAt || ["fulfilled", "partial"].includes(o.fulfillmentStatusRaw ?? ""))) await closeOrderBackorders(ctx, orderId, o.cancelledAt ? "cancelled" : "fulfilled", o.cancelledAt ? "order_cancelled" : "order_fulfilled");
@@ -156,7 +159,15 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
   return { id: orderId, outcome };
 }
 
-async function importFulfillment(ctx: ServiceContext, orderId: string, f: NormalizedOrder["fulfillments"][number], now: Date): Promise<void> {
+/**
+ * One platform fulfilment → shipment row, the platform's source state and the resolved status. The
+ * tenant's `shipment_status_mappings` decide what the external status means (canonical status,
+ * exception, final) before the resolver runs; the work queues (exception / return to sender) follow.
+ */
+export async function importFulfillment(ctx: ServiceContext, orderId: string, f: NormalizedOrder["fulfillments"][number], now: Date, opts: { mappings?: StatusMapping[]; source?: string } = {}): Promise<{ shipmentId: string; status: ShipmentStatus; created: boolean }> {
+  const source = opts.source ?? "shopify";
+  const mappings = opts.mappings ?? (await loadStatusMappings(ctx));
+  const mapped = applyStatusMapping(mappings, source, f.externalStatus, f.status);
   const [existing] = await ctx.tx.select().from(schema.shipments).where(and(eq(schema.shipments.tenantId, ctx.tenantId), eq(schema.shipments.externalId, f.externalId))).limit(1);
   let shipmentId: string;
   if (existing) {
@@ -166,12 +177,25 @@ async function importFulfillment(ctx: ServiceContext, orderId: string, f: Normal
     const [row] = await ctx.tx.insert(schema.shipments).values({ tenantId: ctx.tenantId, orderId, externalId: f.externalId, trackingNumber: f.trackingNumber, trackingUrl: f.trackingUrl, carrier: f.carrier, status: "pending", shippedAt: f.createdAt, deliveredAt: f.deliveredAt, lastEventAt: f.updatedAt }).returning({ id: schema.shipments.id });
     shipmentId = row!.id;
   }
-  const [prevState] = await ctx.tx.select().from(schema.shipmentSourceStates).where(and(eq(schema.shipmentSourceStates.shipmentId, shipmentId), eq(schema.shipmentSourceStates.source, "shopify"))).limit(1);
-  await ctx.tx.insert(schema.shipmentSourceStates).values({ tenantId: ctx.tenantId, shipmentId, source: "shopify", status: f.status, detail: null, externalStatus: f.externalStatus, lastEventAt: f.updatedAt, raw: {}, updatedAt: now }).onConflictDoUpdate({ target: [schema.shipmentSourceStates.shipmentId, schema.shipmentSourceStates.source], set: { status: f.status, externalStatus: f.externalStatus, lastEventAt: f.updatedAt, updatedAt: now } });
-  if (!prevState || prevState.status !== f.status) await ctx.tx.insert(schema.shipmentEvents).values({ tenantId: ctx.tenantId, shipmentId, source: "shopify", status: f.status, description: f.externalStatus, location: null, occurredAt: f.updatedAt });
-  const states = await ctx.tx.select({ source: schema.shipmentSourceStates.source, status: schema.shipmentSourceStates.status, lastEventAt: schema.shipmentSourceStates.lastEventAt }).from(schema.shipmentSourceStates).where(eq(schema.shipmentSourceStates.shipmentId, shipmentId));
-  const resolved = resolveShipmentStatus({ states: states.map((s) => ({ source: s.source, status: s.status as ShipmentStatus, lastEventAt: s.lastEventAt ?? now })), previousStatus: (existing?.status as ShipmentStatus | undefined) ?? null, exceptionReason: existing?.exceptionReason ?? null, exceptionSince: existing?.exceptionSince ?? null, precedence: DEFAULT_PRECEDENCE, stickyExceptionDays: 15, now });
+  const [prevState] = await ctx.tx.select().from(schema.shipmentSourceStates).where(and(eq(schema.shipmentSourceStates.shipmentId, shipmentId), eq(schema.shipmentSourceStates.source, source))).limit(1);
+  await ctx.tx.insert(schema.shipmentSourceStates).values({ tenantId: ctx.tenantId, shipmentId, source, status: mapped.status, detail: null, externalStatus: f.externalStatus, lastEventAt: f.updatedAt, raw: {}, updatedAt: now }).onConflictDoUpdate({ target: [schema.shipmentSourceStates.shipmentId, schema.shipmentSourceStates.source], set: { status: mapped.status, externalStatus: f.externalStatus, lastEventAt: f.updatedAt, updatedAt: now } });
+  if (!prevState || prevState.status !== mapped.status) await ctx.tx.insert(schema.shipmentEvents).values({ tenantId: ctx.tenantId, shipmentId, source, status: mapped.status, description: f.externalStatus, location: null, occurredAt: f.updatedAt });
+  const states = await ctx.tx.select({ source: schema.shipmentSourceStates.source, status: schema.shipmentSourceStates.status, externalStatus: schema.shipmentSourceStates.externalStatus, lastEventAt: schema.shipmentSourceStates.lastEventAt }).from(schema.shipmentSourceStates).where(eq(schema.shipmentSourceStates.shipmentId, shipmentId));
+  const resolved = resolveShipmentStatus({
+    states: states.map((s) => {
+      const m = applyStatusMapping(mappings, s.source, s.externalStatus, s.status as ShipmentStatus);
+      return { source: s.source, status: m.status, lastEventAt: s.lastEventAt ?? now, isException: m.isException, isFinal: m.isFinal };
+    }),
+    previousStatus: (existing?.status as ShipmentStatus | undefined) ?? null,
+    exceptionReason: existing?.exceptionReason ?? null,
+    exceptionSince: existing?.exceptionSince ?? null,
+    precedence: DEFAULT_PRECEDENCE,
+    stickyExceptionDays: 15,
+    now,
+  });
   await ctx.tx.update(schema.shipments).set({ status: resolved.status, sourceOfTruth: resolved.sourceOfTruth, exceptionReason: resolved.exceptionReason, exceptionSince: resolved.exceptionSince, deliveredAt: resolved.status === "delivered" ? (f.deliveredAt ?? existing?.deliveredAt ?? f.updatedAt) : (existing?.deliveredAt ?? f.deliveredAt) }).where(eq(schema.shipments.id, shipmentId));
+  if (resolved.status !== existing?.status) await syncShipmentCases(ctx, { shipmentIds: [shipmentId] });
+  return { shipmentId, status: resolved.status, created: !existing };
 }
 
 /* ---------- catalog ---------- */

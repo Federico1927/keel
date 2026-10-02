@@ -12,6 +12,7 @@ import {
   Gauge,
   Megaphone,
   Package,
+  PackageCheck,
   PhoneCall,
   Plug,
   RotateCcw,
@@ -42,6 +43,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { page: "dashboard", href: "", labelKey: "nav.dashboard", icon: Gauge },
       { page: "orders", href: "/orders", labelKey: "nav.orders", icon: ShoppingBag },
+      { page: "shipments", href: "/fulfilment", labelKey: "nav.fulfilment", icon: PackageCheck },
       { page: "shipments", href: "/shipments", labelKey: "nav.shipments", icon: Truck },
       { page: "returns", href: "/returns", labelKey: "nav.returns", icon: RotateCcw },
       { page: "tasks", href: "/tasks", labelKey: "nav.tasks", icon: ListChecks },

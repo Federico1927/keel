@@ -1,12 +1,12 @@
 import { platformRetentionDays } from "@keel/config";
 import { parseTenantSettings } from "@keel/core";
 import { adminDb, and, eq, inArray, lte, schema, withTenant } from "@keel/db";
-import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, checkSyncDelays, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, type ServiceContext } from "@keel/services";
+import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, checkSyncDelays, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails } from "@keel/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue } from "@keel/addon-cod";
-import { adsWindow, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type TickJob, type WebhookJob } from "./queues";
+import { adsWindow, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob } from "./queues";
 
 export interface Enqueue {
-  (queue: string, data: unknown, opts?: { singletonKey?: string }): Promise<void>;
+  (queue: string, data: unknown, opts?: { singletonKey?: string; startAfterSeconds?: number }): Promise<void>;
 }
 
 async function tenantRow(tenantId: string) {
@@ -26,6 +26,23 @@ export async function handleWebhook(job: WebhookJob): Promise<void> {
     const r = await processWebhookEvent(ctx, platform, job.eventId, { country: tenant.country });
     if (r.status === "failed") throw new Error(r.error ?? "webhook failed");
   });
+}
+
+/**
+ * One email delivery. The mailer owns provider retries (backoff, rate limits): a retry is a new job
+ * delayed by what it asks. A row not visible yet (the queueing transaction has not committed) is
+ * thrown, so pg-boss tries again shortly; a rolled-back email simply never appears.
+ */
+export async function handleEmailSend(job: EmailSendJob, enqueue: Enqueue): Promise<void> {
+  const r = await deliverEmailJob(adminDb(), job);
+  if (r.status === "missing") throw new Error(`email ${job.messageId} not visible yet`);
+  if (r.retryInMs !== undefined) await enqueue("email.send", job, { startAfterSeconds: Math.ceil(r.retryInMs / 1000) });
+}
+
+/** A stored Resend event: status on the log row, bounces and complaints to the suppression list. */
+export async function handleEmailEvent(job: EmailEventJob): Promise<void> {
+  const r = await processEmailEvent(adminDb(), job.eventId);
+  if (r === "failed") throw new Error(`email event ${job.eventId} failed`);
 }
 
 /** Builds a queued CSV export, stores the file and notifies the user who asked for it. */
@@ -192,12 +209,19 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
     // platform-wide window (KEEL_RETENTION_DAYS, default 14): finished history goes, failures stay until resolved
     const days = platformRetentionDays();
     for (const t of await adminDb().select({ id: schema.tenants.id }).from(schema.tenants)) await withTenant(t.id, (tx) => purgeExpiredPlatformRows(sys(t.id)(tx), { days }));
+    await purgeEmailRows(adminDb(), { days });
+    return;
+  }
+  if (job.kind === "emails") {
+    // the platform sender's housekeeping (no tenant): events left pending after the 200, queued emails whose job was lost
+    await retryEmailEvents(adminDb());
+    await sweepLostEmails(adminDb());
     return;
   }
   if (job.kind === "tasks" || job.kind === "notify" || job.kind === "digest") {
     // tasks (every 10 min): task rules (time-based ones, orders, closing what moved on) and overdue reminders;
-    // notify (hourly): sync delays, critical stock without incoming PO, late to ship; digest (daily): opt-in summary email
-    const tenants = await adminDb().select({ id: schema.tenants.id, status: schema.tenants.status, settings: schema.tenants.settings }).from(schema.tenants);
+    // notify (hourly): sync delays, critical stock without incoming PO, late to ship, shipment case sweep; digest (daily): opt-in summary email
+    const tenants = await adminDb().select({ id: schema.tenants.id, status: schema.tenants.status, settings: schema.tenants.settings, timezone: schema.tenants.timezone }).from(schema.tenants);
     for (const t of tenants) {
       if (t.status !== "active") continue;
       await withTenant(t.id, async (tx) => {
@@ -209,7 +233,9 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
         } else if (job.kind === "notify") {
           await checkSyncDelays(ctx, settings);
           await checkCriticalStock(ctx, settings);
-          await checkLateToShip(ctx, settings);
+          await checkLateToShip(ctx, settings, t.timezone);
+          // delivery exceptions and returns to sender missed on import (a mapping changed, a carrier feed) enter their queues
+          await syncShipmentCases(ctx);
         } else await sendDigests(ctx);
       });
     }

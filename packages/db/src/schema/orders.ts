@@ -63,6 +63,9 @@ export const orders = pgTable(
     closedAt: timestamp("closed_at", { withTimezone: true }),
     assignedTo: uuid("assigned_to").references(() => users.id, { onDelete: "set null" }),
     holdReason: text("hold_reason"),
+    /** Pick/pack board (issue #28): when and by whom the parcel was packed; shipped = it has a shipment. */
+    packedAt: timestamp("packed_at", { withTimezone: true }),
+    packedBy: uuid("packed_by").references(() => users.id, { onDelete: "set null" }),
     /** Lineage of cancel-and-recreate edits: the order this one replaces, the one that replaced it, and the first order of the chain. */
     replacesOrderId: uuid("replaces_order_id"),
     replacedByOrderId: uuid("replaced_by_order_id"),

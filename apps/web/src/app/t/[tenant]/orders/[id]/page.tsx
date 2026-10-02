@@ -145,7 +145,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <p className="font-medium">{order.customerName ?? "—"}</p>
-              <p className="text-muted-foreground">{order.email}</p>
+              <p className="text-muted-foreground" data-testid="order-email">{order.email}</p>
               <p className="text-muted-foreground">{order.phone}</p>
               {addr && (
                 <address className="not-italic text-muted-foreground">

@@ -442,6 +442,31 @@ Fatto:
 
 Resta: invio reale dell'email al fornitore (oggi il link si copia a mano in modalità demo); resi al fornitore per la merce danneggiata.
 
+## Evasione e spedizioni (issue #28)
+
+Fatto:
+- Coda "da spedire in ritardo": ordini pronti da spedire (stato canonico confermato o in evasione, nessuna spedizione) oltre una soglia in giorni lavorativi nel fuso del negozio (nuove impostazioni `lateToShipBusinessDays` e `workdays`); conteggio in dashboard, notifica giornaliera (`checkLateToShip` di #33 aggiornato) e nuova metrica `late_to_ship` per le regole di avviso (una regola per negozio nel seed). Nessuna dipendenza dal metodo di pagamento.
+- Bacheca imballo/spedizione `/fulfilment`: da imballare → imballati → spediti oggi, ricerca, vista "solo in ritardo", età in giorni lavorativi, selezione con distinte in blocco e "segna imballati" in blocco (`runBatch`). "Spedisci" chiama `CommercePlatform.createFulfillment` (Shopify `fulfillmentCreate`, mock) tramite l'outbox sincrono (`fulfillment.create`): l'ordine cambia solo dopo la conferma della piattaforma, con evento "Spedito da Keel" (autore, tracking, diff) e stato ricalcolato. Distinta PDF per ordine e in blocco con il writer PDF esistente.
+- Coda eccezioni di consegna e revisione dei resi al mittente (`shipment_cases`): i casi si aprono da soli dallo stato risolto (import e passaggio orario), una sola persona li prende in carico, l'istruzione (nuovo tentativo, nuovo indirizzo, punto di ritiro, reso) parte una volta sola tramite `CarrierProvider` (mock) o email al corriere (nuovo template), il caso si chiude da solo quando la spedizione riparte. Resi al mittente con azioni suggerite (rimettere a stock, rimborsare se c'è un incasso, contattare il cliente) segnate fatte o saltate; nessuna automazione sui pagamenti.
+- Editor della mappatura degli stati in Impostazioni → Evasione (con orologio delle spedizioni ed email del corriere); il risolutore legge la tabella (stato canonico, eccezione, finale) a ogni import.
+- Migrazione 0026 (tabella `shipment_cases` con RLS e indice unico parziale; colonne nullable `orders.packed_at`, `orders.packed_by`). Seed: arretrato di ordini pagati non spediti da 5–12 giorni, alcuni pacchi imballati, almeno 3–5 eccezioni e 2–3 resi al mittente recenti per negozio con i loro casi (uno preso in carico, uno già istruito, una revisione a metà), regola di avviso sul ritardo.
+- Test: core `fulfilment.test.ts` (11, compresa la proprietà soglia/giorni lavorativi in tre fusi), integrazioni (adapter Shopify su payload registrati, mock), servizi `fulfilment.test.ts` (11: soglia in giorni lavorativi, spedizione e rifiuto della piattaforma, presa in carico esclusiva concorrente, doppio invio bloccato anche in concorrenza, chiusura automatica, mappatura); e2e `fulfilment.spec.ts` (3 scenari).
+
+Resta: spedizioni parziali dalla bacheca; calendario delle festività per i giorni lavorativi; connettori reali dei corrieri (slot `CarrierProvider`); automazione del contrassegno sui resi al mittente (issue dell'add-on).
+
+## Email transazionale di piattaforma con Resend (issue #51)
+
+Fatto:
+- Un solo percorso per le email: `queueEmail` (packages/services/src/email) scrive il registro `email_messages`, controlla le liste di soppressione e mette in coda il messaggio cifrato; l'invio avviene sempre fuori dalla richiesta (job pg-boss `email.send` col worker, consegna in processo dopo la risposta senza worker), con retry a backoff, chiave di idempotenza per (modello, destinatario, evento) inviata anche al provider, e le email di sicurezza mai inviate né ritentate dopo la scadenza del link.
+- Adapter `EmailProvider` in packages/integrations: `ResendEmailProvider` (header di idempotenza, timeout, mappatura errori rate limit / destinatario non valido / dominio non verificato / autenticazione) e `MockEmailProvider`; Resend solo con `RESEND_API_KEY` e `KEEL_INTEGRATION_MODE=live`, altrimenti mock. Test su payload registrati, nessuna rete.
+- Modelli tipizzati con testi in `email/messages/{en,it,es}.json`, HTML + testo, layout con marchio e nome da `PRODUCT_NAME`, piè di pagina con mittente legale e indirizzo di supporto, colori della direzione A con variante scura; nuovi modelli conferma/avviso cambio email e prova. Snapshot di tutti i modelli nelle tre lingue.
+- Registro di consegna senza corpo né link (destinatario come hash con chiave e mascherato), webhook Resend `/api/webhooks/email` con firma Svix, risposta immediata, coda e idempotenza per id evento; bounce permanenti e reclami nella lista di soppressione di piattaforma (le email di sicurezza ignorano preferenze e reclami ma non i bounce).
+- Spostati sulla coda: notifiche e menzioni, riepiloghi (uno per utente al giorno), email al fornitore, inviti, email degli avvisi, cambio email, magic link (stampato in console solo in sviluppo).
+- Console `/admin/email`: stato del provider ("Email non configurata" senza chiave), conteggi degli ultimi 7 giorni, registro con filtri (stato, modello, tenant/piattaforma, destinatario), invio di prova, indirizzi soppressi, guida. Guida Resend in tre lingue (account, dominio, SPF, DKIM, DMARC con badge "Da verificare", chiave di solo invio, variabili Railway, prova) anche in Integrazioni → Guida per i super-admin. Posta di sviluppo `/dev/emails` solo in sviluppo (404 in produzione).
+- Migrazione 0026 (tabella `email_messages` con RLS lettura/inserimento per tenant, tabelle di piattaforma `email_events` ed `email_address_suppressions`); seed: registro demo per i due tenant e per la piattaforma, un bounce soppresso per tenant. Test: integrations `email.test.ts` 6 (adapter, firme, eventi) e +1 su hash e maschera, 3 test email del vecchio sink rimossi da `notify.test.ts`, servizi `email.test.ts` 12 (27 snapshot) più notifiche, account e avvisi aggiornati, config +1, web +1, db isolamento verde; e2e nuovo `email.spec.ts` (3) più login, profilo, notifiche e console verdi sulla build di produzione.
+
+Resta: verificare la guida e i payload dei webhook su un account Resend reale; collegare le email di #52 (inviti, password dimenticata) ai modelli; le campagne (#34) riusano le liste di soppressione.
+
 ## Backorder dall'inizio alla fine (issue #26)
 
 Fatto:

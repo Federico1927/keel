@@ -139,6 +139,16 @@ export interface NormalizedFulfillment {
   deliveredAt: Date | null;
 }
 
+/** Fulfilment created from Keel (issue #28): lines omitted = everything still unfulfilled on the order. */
+export interface CreateFulfillmentInput {
+  orderExternalId: string;
+  lines?: { orderLineExternalId: string; quantity: number }[];
+  carrier: string;
+  trackingNumber: string;
+  trackingUrl?: string | null;
+  notifyCustomer: boolean;
+}
+
 export interface NormalizedProduct {
   externalId: string;
   title: string;
@@ -364,6 +374,8 @@ export interface CommercePlatform {
    * `refundReturn` is this call without restock.
    */
   refundOrder(externalId: string, input: RefundOrderInput): Promise<{ externalId: string; amountMinor: number }>;
+  /** Creates a fulfilment with carrier and tracking and returns it normalized, as a sync would read it. */
+  createFulfillment(input: CreateFulfillmentInput): Promise<NormalizedFulfillment>;
 }
 
 export interface FulfillmentHoldInput {
@@ -435,10 +447,23 @@ export interface WarehouseProvider {
   fetchShipmentStatus(orderExternalId: string): Promise<{ status: ShipmentStatus; externalStatus: string; at: Date } | null>;
 }
 
+/** What to do with a parcel in exception (issue #28). `reference` is Keel's idempotency key for the instruction. */
+export interface CarrierInstruction {
+  reference: string;
+  trackingNumber: string;
+  carrier: string | null;
+  resolution: "redeliver" | "new_address" | "pickup_point" | "return";
+  address?: Address | null;
+  pickupPoint?: string | null;
+  note?: string | null;
+}
+
 export interface CarrierProvider {
   readonly provider: string;
   testConnection(): Promise<ConnectionTest>;
   track(trackingNumber: string): Promise<{ status: ShipmentStatus; externalStatus: string; events: { status: ShipmentStatus; description: string; location: string | null; at: Date }[] }>;
+  /** Sends a delivery instruction for a parcel in exception; returns the carrier's reference. */
+  sendInstruction(input: CarrierInstruction): Promise<{ reference: string }>;
 }
 
 export class IntegrationError extends Error {

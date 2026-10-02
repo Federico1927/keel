@@ -41,6 +41,12 @@ export function checkRuntimeConfig(env: Env, role: RuntimeProcess): RuntimeCheck
       else if (value === devValue) errors.push(`${name} still has the development value from .env.example.`);
     }
     if (!env.SENTRY_DSN) warnings.push("SENTRY_DSN is not set: errors in live mode will only reach the logs.");
+    // the platform email sender (issue #51): without a key emails go to the mock, and the console says "Email not configured"
+    if (!env.RESEND_API_KEY) warnings.push("RESEND_API_KEY is not set: emails (sign-in links, invitations, notifications) are captured by the mock and nobody receives them.");
+    else {
+      if (!env.EMAIL_FROM) warnings.push("EMAIL_FROM is not set: Resend refuses the default sender; use an address on the verified domain.");
+      if (role === "web" && !env.RESEND_WEBHOOK_SECRET) warnings.push("RESEND_WEBHOOK_SECRET is not set: bounces and complaints are not recorded, so bounced addresses keep being emailed.");
+    }
   } else {
     for (const [name, devValue] of Object.entries(DEV_DEFAULT_SECRETS)) {
       if (env[name] === devValue) warnings.push(`${name} has the development value from .env.example; fine for a demo, not for real tenants.`);

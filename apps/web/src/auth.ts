@@ -6,10 +6,12 @@ import { adminDb, and, eq, schema } from "@keel/db";
 import { z } from "zod";
 import { cookies, headers } from "next/headers";
 import { isLocale } from "@keel/config";
-import { recordSignIn, renderEmail, sendPlatformEmail } from "@keel/services";
+import { createHash } from "node:crypto";
+import { emailSettings, queueEmail, recordSignIn } from "@keel/services";
 import { THEME_COOKIE, isThemePreference } from "@keel/ui/tokens";
 import { authConfig } from "./auth.config";
 import { LOCALE_COOKIE } from "./i18n/request";
+import "./server/email";
 
 const credentialsSchema = z.object({ email: z.string().email(), password: z.string().min(1) });
 
@@ -18,29 +20,23 @@ function db() {
 }
 
 /**
- * Magic-link "provider": the email is rendered from the `magic_link` template in the user's
- * language. A real mailer plugs in through MAGIC_LINK_WEBHOOK_URL or the platform email provider
- * (live mode with KEEL_EMAIL_API_KEY); otherwise, in development, the email text with the link is
- * printed to the console (CLAUDE.md §2).
+ * Magic-link "provider": the `magic_link` security template in the user's language, queued through
+ * the platform mailer (Resend in live mode with RESEND_API_KEY, the recording mock otherwise; never
+ * sent after the link expires). In development, with the mock, the link is also printed to the
+ * console (CLAUDE.md §2) and the email shows in /dev/emails.
  */
+const MAGIC_LINK_MINUTES = 15;
 const magicLink = {
   id: "email",
   type: "email" as const,
   name: "Email",
   from: "no-reply@keel.local",
-  maxAge: 15 * 60,
+  maxAge: MAGIC_LINK_MINUTES * 60,
   options: {},
-  async sendVerificationRequest({ identifier, url }: { identifier: string; url: string }) {
+  async sendVerificationRequest({ identifier, url, expires }: { identifier: string; url: string; expires: Date }) {
     const [user] = await db().select({ locale: schema.users.locale }).from(schema.users).where(eq(schema.users.email, identifier.toLowerCase())).limit(1);
-    const data = { url, minutes: 15 };
-    const hook = process.env.MAGIC_LINK_WEBHOOK_URL;
-    if (hook) {
-      const mail = renderEmail("magic_link", user?.locale, data);
-      await fetch(hook, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ to: identifier, url, subject: mail.subject, text: mail.text, html: mail.html }) });
-      return;
-    }
-    const sent = await sendPlatformEmail({ to: identifier, template: "magic_link", data, locale: user?.locale });
-    if (sent.outcome === "mock") console.info(`\n[auth] Magic link for ${identifier}:\n${url}\n\n--- ${sent.rendered.subject} ---\n${sent.rendered.text}\n`);
+    await queueEmail({ db: db() }, { to: identifier, template: "magic_link", data: { url, minutes: MAGIC_LINK_MINUTES }, locale: user?.locale, event: `magic:${createHash("sha256").update(url).digest("hex")}`, expiresAt: expires });
+    if (process.env.NODE_ENV === "development" && emailSettings().provider === "mock") console.info(`\n[auth] Magic link for ${identifier}:\n${url}\n`);
   },
 };
 

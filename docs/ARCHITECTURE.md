@@ -58,12 +58,13 @@ Rules the graph enforces:
 | Catalog and stock | `products`, `product_variants`, `locations`, `inventory_levels`, `inventory_movements`, `inventory_drift`, `cost_settings` | Variants carry `option_values` as a JSON map, no hard-coded size or colour, and `cost_minor` with `cost_source` (`platform`, `manual`, `import`, `po_receipt`) and `cost_updated_at`. Movements are the ledger behind stock changes. `inventory_levels.synced_at` is when Keel last read the level from the platform. `inventory_drift` logs stock changes no Keel event explains, clamped negatives and levels no longer reported (deduplicated). |
 | Customers and orders | `customers`, `orders`, `order_lines`, `order_discounts`, `order_attribution`, `order_events`, `order_notes` | `orders.status` is the canonical state written only by `recomputeOrderStatus`. `order_events` is the timeline with author and field diff. `search_blob` is a generated column with a trigram index. |
 | Payments | `order_transactions`, `payouts`, `balance_transactions` | `order_transactions` is the ledger of money Keel moved after checkout (manual payments, refunds issued from the order page, with author and platform refund id); the order row keeps the totals. `payouts` / `balance_transactions` are the processor's deposits and movements (actual fee per charge), linked to orders by external id. |
-| Shipments | `shipments`, `shipment_events`, `shipment_source_states`, `shipment_status_mappings` | One row per source per shipment; the resolver picks the visible status. |
+| Shipments | `shipments`, `shipment_events`, `shipment_source_states`, `shipment_status_mappings`, `shipment_cases` | One row per source per shipment; the resolver picks the visible status through the tenant's mappings. `shipment_cases` are the delivery-exception and return-to-sender work items (one open case per shipment and kind). `orders.packed_at` / `packed_by` hold the pick/pack stage. |
 | Rules | `state_rules` | Per tenant, ordered by priority: conditions on tags, payment method, financial and fulfillment status → canonical status. |
 | Returns and discounts | `return_reasons`, `return_requests`, `return_lines`, `discounts`, `discount_pools` | Return reasons and workflow outcomes are tenant data. Pools generate unique codes in bulk. |
 | Purchasing | `suppliers`, `supplier_variants`, `supplier_payments`, `purchase_orders`, `purchase_order_lines`, `purchase_order_charges`, `backorders`, `case_packs`, `supplier_links`, `supplier_link_views` | The primary `supplier_variants` row is a variant's default supplier (SKU, cost, MOQ, lead time) read by planning and auto-drafts. A PO line has a variant or a free-text description. Receiving records arrived, damaged and rejected units per line; only good units move stock and update the latest product cost (feeds P/L) and close backorders. Case packs hold units per value of one option (any name); `packages/core/src/packs.ts` turns them and the option mix into PO lines. Supplier links store only the token's SHA-256, expire after `SUPPLIER_LINK_TTL_DAYS`, can be revoked, and log every view; expired or revoked links get a neutral page. |
 | Marketing | `campaigns`, `ad_metrics_daily`, `campaign_product_links`, `segments`, `segment_memberships` | Segments store nested AND/OR rules as JSON plus `holdout_percentage`; memberships keep a stable group per customer. |
 | Billing | `subscriptions`, `invoices` | Keel owns the ledger; the provider only collects. |
+| Email | `email_messages`, `email_events`, `email_address_suppressions` | The platform sender's delivery log (nullable `tenant_id`, RLS read/append per tenant, advanced by the admin connection; recipient as keyed hash + masked form, never body or links), provider webhook events (unique on provider + event id) and platform-wide suppressions from hard bounces and complaints (hashed). |
 | Collaboration | `notifications`, `notification_preferences`, `email_suppressions`, `mentions`, `record_notes`, `tasks`, `task_rules`, `support_tickets`, `support_messages` | Notifications record every delivery (`in_app`, `delivered`); preferences override the type registry per user. Tasks link to a record (type + id) and remember the rule and episode that opened them. Support tickets are tenant data answered from the console through the admin connection. |
 | Add-on COD | `cod_settings`, `cod_queue_items`, `cod_attempts`, `cod_operator_capacity`, `cod_capacity_exceptions`, `cod_assignment_log`, `cod_recipient_profiles` | Only read and written by `@keel/addon-cod`. |
 
@@ -96,6 +97,14 @@ Changing lines or merging orders of the same customer is cancel-and-recreate: `c
 ### Shipment status from many sources
 
 Each source (Shopify today; a carrier or 3PL tomorrow) writes its own row in `shipment_source_states`. `resolveShipmentStatus` picks the visible status by precedence (lower priority number wins while its data is fresh), keeps exceptions sticky for a configurable number of days and records conflicts, so adding a carrier feed is a new source row, not a schema change.
+
+Before resolving, `importFulfillment` (packages/services/src/sync) maps every source's external status through the tenant's `shipment_status_mappings` (`applyStatusMapping` in core: canonical status, exception flag, final flag; unknown statuses keep the adapter's normalization). Settings → Fulfilment edits the table.
+
+### Fulfilment operations (issue #28)
+
+- **Late-to-ship queue.** "To ship" = canonical status `confirmed` or `fulfilling` (decided by the tenant's rules, so it is the same for every payment method), no shipment and not fulfilled on the platform (`toShipWhere`). Late = more than `lateToShipBusinessDays` working days (`workdays`, tenant time zone): `lateToShipCutoff` turns the threshold into one instant, so the database filters with `placed_at < cutoff` and `businessDaysElapsed` explains the same number on each card. The same count feeds the dashboard, the hourly `late_to_ship` notification and the `late_to_ship` alert metric.
+- **Pick/pack board** (`/fulfilment`): pending → packed (`orders.packed_at`, timeline event) → shipped. "Ship" calls `shipOrder`: `fulfillment.create` through `runPlatformWriteNow` (synchronous outbox write keyed per order and tracking number); only after the platform answers does Keel import the fulfilment as a shipment, mark the order fulfilled, write a `fulfilled` event with author and diff and recompute the status. Packing slips (one order or the selection) use the core PDF writer (`tablesPdf`).
+- **Cases** (`syncShipmentCases`, called by `importFulfillment` when a status changes and by the hourly `notify` tick): an exception status opens an `exception` case, a returned or failed parcel a `return_to_sender` review, within a 30-day window. `claimCase` is a conditional update (exactly one claimer); `sendCaseInstruction` marks `instruction_sent_at` with a conditional update before calling `CarrierProvider.sendInstruction` (mock) or the `carrier_instruction` email template, so a second send is refused and a failed send rolls back. Exception cases close by themselves when the shipment moves on (`planShipmentCases`); reviews close by hand once the suggested follow-ups (`suggestRtsFollowUps`: restock, refund when money was captured, contact) are done. Nothing is automated on payments.
 
 ## Integration flows
 
@@ -133,7 +142,7 @@ Failed events are retried by the `retry` tick every 10 minutes up to a maximum n
 - Each run writes `integration_health` (ok/error, last error text, rows written, freshness) which the Integrations page shows together with "Test connection" and "Resync", and the run table with scanned, changed, conflicts, errors and duration per run.
 - Retention: a daily tick deletes rows older than the platform-wide window (`KEEL_RETENTION_DAYS`, default 14, `platformRetentionDays()` in `packages/config`): processed webhook events, succeeded or superseded writes, synchronous write records, successful runs (and failed runs already followed by a success), drift not seen since. Failed webhooks and failed asynchronous writes stay until they are resolved. pg-boss queues get the same window as `deleteAfterSeconds`.
 
-Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00 (orders and the complete catalog run), billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40, task rules and overdue reminders every 10 min, system notifications (sync delay, critical stock without PO, late to ship) hourly, digest emails daily at 07:05, platform-write retries every minute, retention at 04:10, backorder safety re-check every 10 min, processor payouts daily at 05:20 (queue `sync.payouts`).
+Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00 (orders and the complete catalog run), billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40, task rules and overdue reminders every 10 min, system notifications (sync delay, critical stock without PO, late to ship) and the shipment case sweep hourly, digest emails daily at 07:05, email housekeeping (provider events left pending, lost queued emails) every 10 min, platform-write retries every minute, retention at 04:10, backorder safety re-check every 10 min, processor payouts daily at 05:20 (queue `sync.payouts`).
 
 ### Outbound writes (outbox)
 
@@ -178,6 +187,7 @@ sequenceDiagram
   - the return write-back steps (request, approve or decline, restock, refund, voucher, exchange order or invoice, close, tags), keyed per return and step;
   - discount pools, where the form shows how many codes the platform accepted;
   - order refunds from the order page (`order.refund`, keyed per dialog request), where Keel records the amount the platform accepted.
+  - ship from Keel (`fulfillment.create`, keyed per order and tracking number): the shipment is imported from the platform's answer.
 
   With a key, the same key returns the stored result (dates revived) instead of writing twice, and a failed attempt is retried on the same row. When the caller's transaction rolls back, the record goes with it, and the error is shown to the user at once.
 - **Asynchronous writes** (outbox, retried): variant price, variant cost (when the tenant enabled cost write-back; manual edits and CSV imports), product status, stock level (purchase-order receipt with "push to platform", transfers between locations), order cancellation, fulfillment hold and release (backorders), manual payment (`order.mark_paid`, keyed per payment), single discount code (the external id is filled in when the write succeeds), Meta campaign pause and resume. Google is refused up front because it is read-only in the MVP.
@@ -203,13 +213,37 @@ sequenceDiagram
 
 ## Notifications, email and tasks
 
-- `notifyUsers` (packages/services/src/notifications) is the single delivery path. Channels per recipient = `resolveNotificationChannels(type, overrides)` from the type registry in `packages/config/src/notifications.ts` and the user's `notification_preferences`. In-app rows show in the bell and `/notifications`; email is rendered by `renderEmail` (en/it/es templates) and sent by `sendTenantEmail`, which checks `email_suppressions` and adds a signed unsubscribe link (`/u/<token>`, one-click `/api/email/unsubscribe`); Slack posts once per event. Bounces come back on `/api/webhooks/email`.
+- `notifyUsers` (packages/services/src/notifications) is the single delivery path. Channels per recipient = `resolveNotificationChannels(type, overrides)` from the type registry in `packages/config/src/notifications.ts` and the user's `notification_preferences`. In-app rows show in the bell and `/notifications`; email is queued with `queueEmail` (below); Slack posts once per event.
+- Email (issue #51) has one code path, `packages/services/src/email`:
+
+```mermaid
+sequenceDiagram
+  participant S as Service (notifyUsers, digest, invite, magic link, …)
+  participant M as queueEmail
+  participant DB as email_messages
+  participant Q as pg-boss email.send (or in-process after the response)
+  participant D as deliverEmailJob
+  participant P as EmailProvider (Resend | mock)
+  participant W as /api/webhooks/email
+  S->>M: template, props, locale, event
+  M->>M: render (messages/{en,it,es}.json), check platform + tenant suppression
+  M->>DB: insert row (unique idempotency key) status queued | suppressed
+  M->>Q: { messageId, encrypted payload }
+  Q->>D: job
+  D->>DB: claim (queued → sending), expired? suppressed?
+  D->>P: send with Idempotency-Key
+  D->>DB: sent | queued + next attempt (backoff) | failed | expired
+  P-->>W: delivered / bounced / complained (Svix-signed)
+  W->>DB: email_events (unique event id), 200, then status + email_address_suppressions
+```
+
+  The provider is Resend only with `RESEND_API_KEY` and `KEEL_INTEGRATION_MODE=live`, otherwise the recording mock (`/dev/emails` in development; `/admin/email` says "Email not configured"). Templates are typed (`EMAIL_TEMPLATES`: kind `security | transactional | notification` and default category); security emails need `expiresAt` and are never sent after it. Optional emails carry a signed unsubscribe link (`/u/<token>`, one-click `/api/email/unsubscribe`) checked against the tenant's `email_suppressions`. A new email = a template in `templates.ts` + strings in the three message files + a `queueEmail` call with a stable `event`.
 - New notification types must be added to the registry (channels, defaults, group, add-on) and to `notifications.types` in the message files; emails for types whose title is data go in the template's `system` strings.
 - Task rules: `planTaskChanges` (core, pure) decides per record which rules open a task and which open tasks close; `syncRecordTasks` applies it and is called by the return and purchase-order services; the `tasks` tick sweeps orders, time-based rules and closures. Record pages show `<RecordTasks>` and, for POs and returns, `<RecordNotes>`: self-contained server components.
 
 ## Adding an adapter
 
-1. Implement one of the interfaces in `packages/integrations/src/types.ts` (`CommercePlatform`, `AdsPlatform`, `AnalyticsPlatform`, `MessagingChannel`, `WarehouseProvider`, `CarrierProvider`, `AddressProvider`). Return the normalized types; never leak provider payloads upward.
+1. Implement one of the interfaces in `packages/integrations/src/types.ts` (`CommercePlatform`, `AdsPlatform`, `AnalyticsPlatform`, `MessagingChannel`, `WarehouseProvider`, `CarrierProvider`, `AddressProvider`; `EmailProvider` lives in `src/email`). Return the normalized types; never leak provider payloads upward.
 2. Use `HttpClient` from `packages/integrations/src/http.ts`: it injects `fetch`, retries on 429/5xx with `Retry-After`, and maps errors to `IntegrationError` codes (`rate_limit`, `auth`, `permission`, `not_found`, `transient`).
 3. Record real responses as fixtures under `__fixtures__/` and test the adapter with `fixtureFetch(routes)`; no network in tests.
 4. Register the provider in `packages/services/src/integrations/factory.ts` (how to build it from decrypted credentials) and add the credential shape to `crypto.ts` consumers.

@@ -4,8 +4,8 @@ import { testPools } from "@keel/db/test-utils";
 import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
 import { parseTenantSettings } from "@keel/core";
 import {
-  EMAIL_STRINGS, addEmailSuppression, addOrderNote, addRecordNote, adminListSupportTickets, adminReplyToTicket, adminSupportAttachment, checkLateToShip, createReturn, createTask, isEmailSuppressed, listMentions, listNotificationsPage, listSupportTickets, listTasks, mockSinkFor,
-  notifyUsers, openSupportTicket, orderReturnContext, preferenceMatrix, renderEmail, returnDetail, sendTenantEmail, setMentionsRead, setNotificationPreference, setNotificationsRead, signUnsubscribeToken, supportAttachment, supportTicketThread, sweepTaskRules, tasksForRecord, transitionReturn, updateTask, verifyUnsubscribeToken,
+  EMAIL_STRINGS, addEmailSuppression, addOrderNote, addRecordNote, adminListSupportTickets, adminReplyToTicket, adminSupportAttachment, checkLateToShip, createReturn, createTask, isEmailSuppressed, listMentions, listNotificationsPage, listSupportTickets, listTasks, drainEmailJobs, mockEmailOutbox, queueEmail,
+  notifyUsers, openSupportTicket, orderReturnContext, preferenceMatrix, renderEmail, returnDetail, setMentionsRead, setNotificationPreference, setNotificationsRead, signUnsubscribeToken, supportAttachment, supportTicketThread, sweepTaskRules, tasksForRecord, transitionReturn, updateTask, verifyUnsubscribeToken,
   type ServiceContext,
 } from "../src";
 
@@ -23,7 +23,11 @@ beforeAll(async () => {
 });
 afterAll(() => pools.close());
 const run = <T>(fn: (s: ServiceContext) => Promise<T>, as = "owner@northwind.demo", tid = tenantId) => withTenant(tid, (tx) => fn({ tenantId: tid, tx, actor: { type: "user", userId: uid(as) } }), pools.app);
-const emailsTo = (address: string) => (mockSinkFor(tenantId, "email")?.sent ?? []).filter((m) => m.to.includes(address));
+/** Emails the mock provider captured for an address, after delivering what the services queued. */
+const emailsTo = async (address: string) => {
+  await drainEmailJobs(pools.admin);
+  return mockEmailOutbox().to(address);
+};
 
 describe("preferences are enforced on the server", () => {
   it("turning off mention emails stops them while in-app notifications continue", async () => {
@@ -32,11 +36,11 @@ describe("preferences are enforced on the server", () => {
     const note = (text: string) => run((s) => addOrderNote(s, { orderId: order.id, body: `@[Luca](${care}) ${text}`, allowedMentionIds: [care], link: `/t/northwind-apparel/orders/${order.id}`, orderName: order.name, authorName: "Giulia" }));
     const inApp = () => run(async (s) => (await s.tx.select({ n: sql<number>`count(*)::int` }).from(schema.notifications).where(and(eq(schema.notifications.userId, care), eq(schema.notifications.type, "mention"), eq(schema.notifications.inApp, true))))[0]!.n);
 
-    const before = emailsTo("care@northwind.demo").length;
+    const before = (await emailsTo("care@northwind.demo")).length;
     const inAppBefore = await inApp();
     await note("first");
-    expect(emailsTo("care@northwind.demo").length).toBe(before + 1);
-    const mail = emailsTo("care@northwind.demo").at(-1)!.message;
+    expect((await emailsTo("care@northwind.demo")).length).toBe(before + 1);
+    const mail = (await emailsTo("care@northwind.demo")).at(-1)!.message;
     expect(mail.subject).toContain(order.name);
     expect(mail.html).toContain("<blockquote");
     expect(mail.headers?.["List-Unsubscribe"]).toMatch(/\/api\/email\/unsubscribe\?token=/);
@@ -44,7 +48,7 @@ describe("preferences are enforced on the server", () => {
 
     await run((s) => setNotificationPreference(s, care, "mention", "email", false), "care@northwind.demo");
     await note("second");
-    expect(emailsTo("care@northwind.demo").length).toBe(before + 1);
+    expect((await emailsTo("care@northwind.demo")).length).toBe(before + 1);
     expect(await inApp()).toBe(inAppBefore + 2);
     const matrix = await run((s) => preferenceMatrix(s, care, ["mention", "digest"]), "care@northwind.demo");
     expect(matrix[0]!.channels.email).toEqual({ allowed: true, enabled: false, isDefault: false });
@@ -98,7 +102,7 @@ describe("email", () => {
     expect(await run((s) => isEmailSuppressed(s, "someone@example.com", "digest"))).toBe(false);
     expect(await run((s) => isEmailSuppressed(s, "someone@example.com", "transactional"))).toBe(false);
     await run((s) => addEmailSuppression(s, { email: "gone@example.com", reason: "bounce" }));
-    const r = await run((s) => sendTenantEmail(s, { to: "gone@example.com", template: "invite", data: { tenantName: "N", inviterName: "G", role: "viewer", url: "https://x" }, locale: "it", category: "transactional" }));
+    const r = await run((s) => queueEmail(s, { to: "gone@example.com", template: "invite", data: { tenantName: "N", inviterName: "G", role: "viewer", url: "https://x" }, locale: "it", event: "t1" }));
     expect(r.outcome).toBe("suppressed");
     // the list is per tenant
     expect(await run((s) => isEmailSuppressed(s, "gone@example.com", "mention"), "owner@harborhome.demo", harborId)).toBe(false);
@@ -190,11 +194,11 @@ describe("staff tasks", () => {
 
 describe("system notifications", () => {
   it("late to ship notifies once a day", async () => {
-    const n1 = await run((s) => checkLateToShip({ ...s, actor: { type: "system", userId: null } }, parseTenantSettings({ lateToShipHours: 1 })));
+    const n1 = await run((s) => checkLateToShip({ ...s, actor: { type: "system", userId: null } }, parseTenantSettings({ lateToShipBusinessDays: 0 })));
     if (n1 === 0) return;
     const count = () => run(async (s) => (await s.tx.select({ n: sql<number>`count(*)::int` }).from(schema.notifications).where(and(eq(schema.notifications.tenantId, tenantId), eq(schema.notifications.type, "late_to_ship"), eq(schema.notifications.userId, uid("ops@northwind.demo")))))[0]!.n);
     const c1 = await count();
-    await run((s) => checkLateToShip({ ...s, actor: { type: "system", userId: null } }, parseTenantSettings({ lateToShipHours: 1 })));
+    await run((s) => checkLateToShip({ ...s, actor: { type: "system", userId: null } }, parseTenantSettings({ lateToShipBusinessDays: 0 })));
     expect(await count()).toBe(c1);
   });
 });

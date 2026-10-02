@@ -53,10 +53,11 @@ describe("notification checks", () => {
     expect(isSyncDelayed({ lastSuccessAt: h(3), connectedAt: null, freshnessMinutes: 60, graceMinutes: 60, now })).toEqual({ delayed: true, minutesLate: 60 });
     expect(isSyncDelayed({ lastSuccessAt: null, connectedAt: null, freshnessMinutes: 60, graceMinutes: 0, now }).delayed).toBe(false);
   });
-  it("late to ship counts from payment, only for orders still to ship", () => {
-    expect(isLateToShip({ status: "confirmed", placedAt: h(100), paidAt: h(10) }, 48, now)).toBe(false);
-    expect(isLateToShip({ status: "fulfilling", placedAt: h(50) }, 48, now)).toBe(true);
-    expect(isLateToShip({ status: "shipped", placedAt: h(500) }, 48, now)).toBe(false);
+  it("late to ship counts working days, only for orders still to ship", () => {
+    const opts = { thresholdDays: 2, timeZone: "UTC" };
+    expect(isLateToShip({ status: "confirmed", placedAt: h(10) }, opts, now)).toBe(false);
+    expect(isLateToShip({ status: "fulfilling", placedAt: h(24 * 7) }, opts, now)).toBe(true);
+    expect(isLateToShip({ status: "shipped", placedAt: h(500) }, opts, now)).toBe(false);
   });
   it("critical stock only when selling and nothing incoming", () => {
     expect(isCriticalWithoutIncoming({ risk: "critical", incoming: 0, unitsSold: 4 })).toBe(true);
