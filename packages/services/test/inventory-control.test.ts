@@ -32,6 +32,7 @@ beforeAll(async () => {
 afterAll(() => pools.close());
 
 /** Seeded levels of catalogue variants known to the platform, with at least `min` units. */
+// unique SKUs only: the seed reuses one SKU on two products (data-quality demo), and a scan of it would match either
 async function stockedLevels(min: number, count: number, offset = 0) {
   return run((s) =>
     s.tx
@@ -39,7 +40,7 @@ async function stockedLevels(min: number, count: number, offset = 0) {
       .from(schema.inventoryLevels)
       .innerJoin(schema.productVariants, eq(schema.productVariants.id, schema.inventoryLevels.variantId))
       .innerJoin(schema.locations, eq(schema.locations.id, schema.inventoryLevels.locationId))
-      .where(and(eq(schema.inventoryLevels.tenantId, tenantId), sql`${schema.inventoryLevels.available} >= ${min}`, sql`${schema.productVariants.inventoryItemExternalId} is not null`, sql`${schema.locations.externalId} is not null`, sql`${schema.productVariants.sku} is not null`))
+      .where(and(eq(schema.inventoryLevels.tenantId, tenantId), sql`${schema.inventoryLevels.available} >= ${min}`, sql`${schema.productVariants.inventoryItemExternalId} is not null`, sql`${schema.locations.externalId} is not null`, sql`${schema.productVariants.sku} is not null`, sql`not exists (select 1 from product_variants v2 where v2.tenant_id = ${schema.productVariants.tenantId} and v2.sku = ${schema.productVariants.sku} and v2.id <> ${schema.productVariants.id})`))
       .orderBy(schema.productVariants.sku, schema.locations.name)
       .offset(offset)
       .limit(count),
