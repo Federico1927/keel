@@ -1,6 +1,13 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useState } from "react";
+import { startTransition, useActionState, useEffect, useState, type FormEvent } from "react";
+
+/** Submits through the action without React's automatic form reset, so a failed connect keeps what the merchant typed. */
+const keepValues = (action: (fd: FormData) => void) => (e: FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  const fd = new FormData(e.currentTarget);
+  startTransition(() => action(fd));
+};
 import { useTranslations } from "next-intl";
 import type { IntegrationSetupGuide } from "@hullwise/config";
 import { Alert, AlertDescription, Button, Input, Label } from "@hullwise/ui";
@@ -42,7 +49,7 @@ export function ShopifySetup({ slug, definition, values, guideHref, connected, m
             <div className="space-y-3 rounded-md border bg-muted/20 p-3">
               <p className="text-xs text-muted-foreground">{mock ? t("mock_notice") : t("intro")}</p>
               <IntegrationSetupChecklist guide={definition} values={values} guideHref={guideHref} />
-              <form action={formAction} className="grid gap-3 sm:grid-cols-2" data-testid="shopify-connect-form">
+              <form onSubmit={keepValues(formAction)} className="grid gap-3 sm:grid-cols-2" data-testid="shopify-connect-form">
                 <IntegrationSetupFields guide={definition} idPrefix="shopify" />
                 <div className="flex items-end sm:col-span-2">
                   <Button type="submit" size="sm" disabled={pending} data-testid="shopify-connect">{pending ? tc("connecting") : t("connect")}</Button>
@@ -96,7 +103,7 @@ function LegacyTokenForm({ slug }: { slug: string }) {
   const tc = useTranslations("common");
   const [state, formAction, pending] = useActionState(connectShopifyCustomApp.bind(null, slug), null);
   return (
-    <form action={formAction} className="space-y-2" data-testid="shopify-legacy-form">
+    <form onSubmit={keepValues(formAction)} className="space-y-2" data-testid="shopify-legacy-form">
       <p className="text-xs font-medium">{t("legacy_title")}</p>
       <p className="text-xs text-muted-foreground">{t("legacy_hint")}</p>
       <div className="grid gap-2 sm:grid-cols-3">

@@ -28,9 +28,11 @@ test.describe("Shopify self-serve setup", () => {
     await expect(err).toHaveAttribute("data-code", "missing_scopes");
     await expect(err).toContainText("read_orders");
     await expect(err).toContainText(/new version|nuova versione/);
+    // what the merchant typed survives the failed attempt
+    await expect(form.getByLabel(/Store domain|Dominio del negozio/)).toHaveValue("harbor-home.myshopify.com");
+    await expect(form.getByLabel("Client ID")).toHaveValue("missing-scopes-demo-app");
 
-    // a complete app connects the simulated store and the history import shows on the card (the form was reset)
-    await form.getByLabel(/Store domain|Dominio del negozio/).fill("harbor-home.myshopify.com");
+    // a complete app connects the simulated store and the history import shows on the card
     await form.getByLabel("Client ID").fill("simulated-client-id");
     await form.getByLabel("Client secret").fill("simulated-secret");
     await form.getByTestId("shopify-connect").click();

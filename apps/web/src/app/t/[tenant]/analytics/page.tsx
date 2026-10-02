@@ -9,7 +9,6 @@ import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataL
 import { HistoryImportBanner } from "@/components/history-import-banner";
 import { ChartFullscreen } from "@/components/mobile/chart-fullscreen";
 import { WideTable } from "@/components/mobile/wide-table";
-import { HistoryImportBanner } from "@/components/history-import-banner";
 import { requirePage } from "@/server/tenant";
 import { RevenueChart } from "@/components/charts/revenue-chart";
 import { PeriodPicker } from "@/components/period-picker";
