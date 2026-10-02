@@ -50,11 +50,15 @@ describe("tenant lifecycle and billing", () => {
       admin,
       { now, provider },
     );
-    expect(r.temporaryPassword).toBeTruthy();
+    // the owner is invited (no password anywhere): the checklist says so until they accept
+    expect(r.invitationId).toBeTruthy();
+    const [inv] = await pools.admin.select().from(schema.invitations).where(eq(schema.invitations.id, r.invitationId));
+    expect(inv).toMatchObject({ tenantId: r.tenantId, email: "owner@acme.test", role: "owner", status: "pending" });
+    expect(await pools.admin.select().from(schema.users).where(eq(schema.users.email, "owner@acme.test"))).toHaveLength(0);
     const checklist = await tenantChecklist(pools.admin, r.tenantId, now);
     const by = Object.fromEntries(checklist.map((c) => [c.key, c]));
     expect(by.company!.done).toBe(true);
-    expect(by.owner!.done).toBe(true);
+    expect(by.owner).toMatchObject({ done: false, detail: "invited" });
     expect(by.state_rules!.done).toBe(true);
     expect(by.shopify!.done).toBe(false);
     expect(by.billing!.done).toBe(true);

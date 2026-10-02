@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { PLAN_KEYS } from "@keel/config";
 import { Button, Input, Select, Switch } from "@keel/ui";
-import { markInvoicePaidAction, openAsSupportAction, setAddonAction, setPlanAction, setSuspensionAction, voidInvoiceAction } from "@/server/actions/admin";
+import { markInvoicePaidAction, openAsSupportAction, sendPasswordResetAction, setAddonAction, setPlanAction, setSuspensionAction, voidInvoiceAction } from "@/server/actions/admin";
 
 export function OpenAsSupportButton({ tenantId }: { tenantId: string }) {
   const t = useTranslations("admin.tenant");
@@ -60,6 +60,32 @@ export function InvoiceActions({ invoiceId, status }: { invoiceId: string; statu
     <span className="flex justify-end gap-1">
       <Button size="sm" variant="outline" disabled={pending} onClick={() => start(async () => { await markInvoicePaidAction(invoiceId); router.refresh(); })}>{t("mark_paid")}</Button>
       <Button size="sm" variant="ghost" disabled={pending} onClick={() => start(async () => { await voidInvoiceAction(invoiceId); router.refresh(); })}>{t("void")}</Button>
+    </span>
+  );
+}
+
+/** Sends the person the "Forgot password?" email (#52); the console never sees the link. */
+export function SendPasswordResetButton({ userId }: { userId: string }) {
+  const t = useTranslations("admin.tenant");
+  const [pending, start] = useTransition();
+  const [result, setResult] = useState<string | null>(null);
+  return (
+    <span className="flex items-center gap-2">
+      {result && <span className="text-xs text-muted-foreground" role="status">{result}</span>}
+      <Button
+        size="sm"
+        variant="ghost"
+        disabled={pending}
+        data-testid="send-password-reset"
+        onClick={() =>
+          start(async () => {
+            const r = await sendPasswordResetAction(userId);
+            setResult(r.ok ? (r.data?.sent ? t("reset_sent") : t("reset_not_active")) : r.error === "rate_limited" ? t("reset_rate_limited") : t("reset_failed"));
+          })
+        }
+      >
+        {t("send_password_reset")}
+      </Button>
     </span>
   );
 }

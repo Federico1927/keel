@@ -55,6 +55,41 @@ export const tenantMemberships = pgTable(
   ],
 ).enableRLS();
 
+/**
+ * Invitations to join a tenant (#52). The token is stored as its SHA-256 only, expires (7 days) and
+ * works once. `status` is pending | accepted | revoked; a pending row past `expires_at` is expired.
+ * Tenant data under RLS for the Users page; the accept page reads it by token hash through the
+ * admin connection (the auth layer, like tenant_memberships).
+ */
+export const invitations = pgTable(
+  "invitations",
+  {
+    id: id(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    role: text("role", { enum: ["owner", "admin", "operations", "customer_care", "marketing", "viewer"] }).notNull(),
+    /** Name suggested by the inviter, pre-filled on the accept page. */
+    name: text("name"),
+    invitedBy: uuid("invited_by").references(() => users.id, { onDelete: "set null" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    status: text("status", { enum: ["pending", "accepted", "revoked"] })
+      .notNull()
+      .default("pending"),
+    sendCount: integer("send_count").notNull().default(1),
+    lastSentAt: timestamp("last_sent_at", { withTimezone: true }).notNull().defaultNow(),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+    acceptedUserId: uuid("accepted_user_id").references(() => users.id, { onDelete: "set null" }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    revokedBy: uuid("revoked_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("invitations_tenant_status_idx").on(t.tenantId, t.status), index("invitations_tenant_email_idx").on(t.tenantId, t.email), tenantIsolation("invitations")],
+).enableRLS();
+
 /** Add-ons activated per tenant by the super-admin. */
 export const tenantAddons = pgTable(
   "tenant_addons",

@@ -74,7 +74,8 @@
       "invalid_input": "Introduce un correo y una contraseña válidos.",
       "unknown": "Algo salió mal. Inténtalo de nuevo.",
       "no_tenant": "Tu cuenta aún no está vinculada a ningún espacio de trabajo."
-    }
+    },
+    "forgot_password": "¿Olvidaste la contraseña?"
   },
   "modules": {
     "core": {
@@ -325,11 +326,33 @@
     "deactivate": "Desactivar",
     "reactivate": "Reactivar",
     "invite_title": "Invitar a un miembro",
-    "invite_description": "La persona accede con el enlace por correo; no se envía ninguna contraseña.",
+    "invite_description": "La persona recibe un correo con un enlace para unirse: caduca en 7 días y funciona una sola vez.",
     "name": "Nombre",
     "email": "Correo",
     "invite": "Invitar",
-    "invited": "Invitación creada. En desarrollo el enlace de acceso se imprime en la consola del servidor."
+    "invited": "Invitación enviada.",
+    "name_optional": "Nombre (opcional)",
+    "invitations_title": "Invitaciones",
+    "invitations_description": "Invitaciones pendientes y su caducidad. Una invitación reenviada tiene un enlace nuevo; el anterior deja de funcionar.",
+    "invitations_empty": "No hay invitaciones pendientes.",
+    "invitation_states": {
+      "pending": "Pendiente",
+      "expired": "Caducada",
+      "accepted": "Aceptada",
+      "revoked": "Revocada"
+    },
+    "invitation_expires": "caduca el {date}",
+    "invitation_expired_on": "caducó el {date}",
+    "invitation_by": "por {name}",
+    "invitation_resend": "Reenviar",
+    "invitation_revoke": "Revocar",
+    "errors": {
+      "already_member": "Esta persona ya es miembro de este espacio de trabajo.",
+      "rate_limited": "Demasiadas invitaciones en la última hora. Inténtalo más tarde.",
+      "not_pending": "Esta invitación ya no está pendiente.",
+      "forbidden": "No puedes invitar ni gestionar este rol.",
+      "invalid_input": "Escribe una dirección de correo y un rol válidos."
+    }
   },
   "audit": {
     "title": "Registro de auditoría",
@@ -3100,12 +3123,12 @@
       },
       "submit": "Crear tenant",
       "created": "Tenant creado. Comparte la contraseña temporal con el propietario una sola vez; no se volverá a mostrar.",
-      "temp_password": "Contraseña temporal:",
       "open_checklist": "Abrir la lista de configuración",
       "errors": {
         "slug_taken": "Este slug ya está en uso.",
         "invalid_slug": "Slug no válido."
-      }
+      },
+      "owner_invited": "La invitación para el propietario se envió a {email}. Elegirá su propia contraseña al aceptarla."
     },
     "tenant": {
       "open_as_support": "Abrir como soporte",
@@ -3139,7 +3162,13 @@
       "billing": "Suscripción y facturas",
       "subscription_line": "Estado {status} · proveedor {provider} · periodo actual hasta {end}",
       "no_subscription": "Sin suscripción.",
-      "recent_audit": "Actividad reciente en este tenant"
+      "recent_audit": "Actividad reciente en este tenant",
+      "send_password_reset": "Enviar restablecimiento de contraseña",
+      "reset_sent": "Correo de restablecimiento enviado",
+      "reset_not_active": "No enviado: la cuenta no está activa",
+      "reset_rate_limited": "Demasiadas solicitudes para esta dirección",
+      "reset_failed": "No se pudo enviar",
+      "owner_invited": "invitación pendiente"
     },
     "billing": {
       "title": "Facturación",
@@ -4866,7 +4895,8 @@
     "sign_in_methods": {
       "credentials": "Contraseña",
       "email": "Enlace por email",
-      "other": "Otro"
+      "other": "Otro",
+      "one_time": "Enlace de invitación o de restablecimiento"
     },
     "sessions_sign_out_others": "Cerrar todas las demás sesiones",
     "sessions_signed_out": "Se han cerrado todas las demás sesiones.",
@@ -4895,7 +4925,9 @@
       "too_common": "no una contraseña común o repetitiva",
       "personal": "no basada en tu nombre o tu email",
       "low_variety": "mezcla mayúsculas, minúsculas, números y símbolos (o usa 16+ caracteres)"
-    }
+    },
+    "sign_in_alerts": "Avisarme por correo de nuevos accesos",
+    "sign_in_alerts_hint": "Un correo de seguridad cuando tu cuenta inicia sesión desde un dispositivo o navegador que no había usado antes."
   },
   "welcome": {
     "title": "Completa tu perfil",
@@ -5326,5 +5358,72 @@
     "html": "HTML",
     "text": "Texto plano",
     "count": "{count, plural, one {# correo} other {# correos}}"
+  },
+  "account": {
+    "email": "Correo electrónico",
+    "sending": "Enviando…",
+    "back_to_login": "Volver al inicio de sesión",
+    "forgot_title": "¿Olvidaste tu contraseña?",
+    "forgot_description": "Escribe la dirección de correo de tu cuenta: te enviaremos un enlace para elegir una nueva contraseña.",
+    "forgot_submit": "Enviar el enlace",
+    "forgot_sent": "Si una cuenta activa usa esta dirección, va de camino un enlace para elegir una nueva contraseña. Caduca en 60 minutos.",
+    "new_password": "Nueva contraseña",
+    "confirm_password": "Confirma la contraseña",
+    "reset_title": "Elige una nueva contraseña",
+    "reset_description": "Para la cuenta {email}.",
+    "reset_submit": "Guardar la contraseña e iniciar sesión",
+    "reset_sessions_hint": "Se cerrarán todas las demás sesiones de esta cuenta.",
+    "reset_request_new": "Pedir un nuevo enlace",
+    "reset_expired_title": "Este enlace ha caducado",
+    "reset_expired_description": "Los enlaces de contraseña valen 60 minutos. Pide uno nuevo.",
+    "reset_used_title": "Este enlace ya se usó",
+    "reset_used_description": "Un enlace de contraseña funciona una sola vez, y una solicitud más reciente lo sustituye. Pide uno nuevo si todavía lo necesitas.",
+    "reset_invalid_title": "Este enlace no es válido",
+    "reset_invalid_description": "Comprueba que abriste el enlace completo del correo, o pide uno nuevo.",
+    "invite_title": "Únete al espacio de trabajo",
+    "invite_description": "{inviter} te invitó a {tenant} con el rol {role}.",
+    "invite_someone": "Alguien",
+    "invite_email": "Te unes con",
+    "invite_method": "¿Cómo quieres iniciar sesión?",
+    "invite_method_password": "Con una contraseña",
+    "invite_method_password_hint": "La eliges ahora.",
+    "invite_method_email_link": "Con un enlace por correo",
+    "invite_method_email_link_hint": "Sin contraseña: te enviamos un enlace cada vez.",
+    "invite_privacy": "Acepto la política de privacidad.",
+    "invite_privacy_link": "Acepto la <link>política de privacidad</link>.",
+    "invite_accept": "Aceptar y abrir el espacio de trabajo",
+    "invite_join": "Unirme a {tenant}",
+    "invite_switch_account": "Cerrar sesión y continuar",
+    "invite_other_account": "Iniciaste sesión como {email}, pero esta invitación es para {invited}. Cierra sesión para continuar con la dirección invitada.",
+    "invite_sign_in": "{email} ya tiene una cuenta. Inicia sesión con ella para aceptar la invitación.",
+    "invite_sign_in_cta": "Iniciar sesión para aceptar",
+    "invite_ask_new": "Pide a quien te invitó una nueva invitación.",
+    "invite_expired_title": "Esta invitación ha caducado",
+    "invite_expired_description": "Las invitaciones a {tenant} duran 7 días.",
+    "invite_accepted_title": "Esta invitación ya se usó",
+    "invite_accepted_description": "Ya fue aceptada. Si fuiste tú, inicia sesión.",
+    "invite_revoked_title": "Esta invitación fue retirada",
+    "invite_revoked_description": "Un administrador de {tenant} la revocó o envió una más reciente.",
+    "invite_invalid_title": "Esta invitación no es válida",
+    "invite_invalid_description": "Comprueba que abriste el enlace completo del correo.",
+    "errors": {
+      "invalid_input": "Faltan campos o no son válidos.",
+      "invalid_email": "Escribe una dirección de correo válida.",
+      "rate_limited": "Demasiadas solicitudes. Inténtalo de nuevo en una hora.",
+      "weak_password": "La contraseña es demasiado débil:",
+      "password_mismatch": "Las dos contraseñas no coinciden.",
+      "invalid_token": "Este enlace no es válido.",
+      "expired_token": "Este enlace ha caducado.",
+      "used_token": "Este enlace ya se usó.",
+      "revoked_token": "Esta invitación fue retirada.",
+      "privacy_required": "Acepta la política de privacidad para continuar.",
+      "account_exists": "Esta dirección ya tiene una cuenta: inicia sesión para aceptar.",
+      "email_mismatch": "Esta invitación es para otra dirección de correo.",
+      "not_found": "Cuenta no encontrada.",
+      "forbidden": "No tienes permiso para hacer esto.",
+      "already_member": "Esta persona ya es miembro.",
+      "not_pending": "Esta invitación ya no está pendiente.",
+      "unknown": "Algo salió mal. Inténtalo de nuevo."
+    }
   }
 }

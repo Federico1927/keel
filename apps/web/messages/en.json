@@ -74,7 +74,8 @@
       "invalid_input": "Please enter a valid email and password.",
       "unknown": "Something went wrong. Please try again.",
       "no_tenant": "Your account is not linked to any workspace yet."
-    }
+    },
+    "forgot_password": "Forgot password?"
   },
   "modules": {
     "core": {
@@ -325,11 +326,33 @@
     "deactivate": "Deactivate",
     "reactivate": "Reactivate",
     "invite_title": "Invite a member",
-    "invite_description": "The person signs in with the email link; no password is sent.",
+    "invite_description": "The person receives an email with a link to join: it expires in 7 days and works once.",
     "name": "Name",
     "email": "Email",
     "invite": "Invite",
-    "invited": "Invitation created. The sign-in link is printed in the server console in development."
+    "invited": "Invitation sent.",
+    "name_optional": "Name (optional)",
+    "invitations_title": "Invitations",
+    "invitations_description": "Pending invitations and their expiry. A resent invitation gets a new link; the old one stops working.",
+    "invitations_empty": "No pending invitations.",
+    "invitation_states": {
+      "pending": "Pending",
+      "expired": "Expired",
+      "accepted": "Accepted",
+      "revoked": "Revoked"
+    },
+    "invitation_expires": "expires {date}",
+    "invitation_expired_on": "expired {date}",
+    "invitation_by": "by {name}",
+    "invitation_resend": "Resend",
+    "invitation_revoke": "Revoke",
+    "errors": {
+      "already_member": "This person is already a member of this workspace.",
+      "rate_limited": "Too many invitations in the last hour. Try again later.",
+      "not_pending": "This invitation is no longer pending.",
+      "forbidden": "You cannot invite or manage this role.",
+      "invalid_input": "Enter a valid email address and role."
+    }
   },
   "audit": {
     "title": "Audit log",
@@ -3100,12 +3123,12 @@
       },
       "submit": "Create tenant",
       "created": "Tenant created. Share the temporary password with the owner once; it is not shown again.",
-      "temp_password": "Temporary password:",
       "open_checklist": "Open setup checklist",
       "errors": {
         "slug_taken": "This slug is already used.",
         "invalid_slug": "Invalid slug."
-      }
+      },
+      "owner_invited": "The owner invitation was sent to {email}. They set their own password when they accept."
     },
     "tenant": {
       "open_as_support": "Open as support",
@@ -3139,7 +3162,13 @@
       "billing": "Subscription and invoices",
       "subscription_line": "Status {status} · provider {provider} · current period ends {end}",
       "no_subscription": "No subscription yet.",
-      "recent_audit": "Recent activity on this tenant"
+      "recent_audit": "Recent activity on this tenant",
+      "send_password_reset": "Send password reset",
+      "reset_sent": "Reset email sent",
+      "reset_not_active": "Not sent: the account is not active",
+      "reset_rate_limited": "Too many requests for this address",
+      "reset_failed": "Could not send",
+      "owner_invited": "invitation pending"
     },
     "billing": {
       "title": "Billing",
@@ -4866,7 +4895,8 @@
     "sign_in_methods": {
       "credentials": "Password",
       "email": "Email link",
-      "other": "Other"
+      "other": "Other",
+      "one_time": "Invitation or reset link"
     },
     "sessions_sign_out_others": "Sign out of all other sessions",
     "sessions_signed_out": "All other sessions have been signed out.",
@@ -4895,7 +4925,9 @@
       "too_common": "not a common or repeated password",
       "personal": "not based on your name or email",
       "low_variety": "mix upper and lower case, numbers and symbols (or use 16+ characters)"
-    }
+    },
+    "sign_in_alerts": "Email me about new sign-ins",
+    "sign_in_alerts_hint": "A security email when your account signs in from a device or browser it has not used before."
   },
   "welcome": {
     "title": "Complete your profile",
@@ -5326,5 +5358,72 @@
     "html": "HTML",
     "text": "Plain text",
     "count": "{count, plural, one {# email} other {# emails}}"
+  },
+  "account": {
+    "email": "Email",
+    "sending": "Sending…",
+    "back_to_login": "Back to sign in",
+    "forgot_title": "Forgot your password?",
+    "forgot_description": "Enter the email address of your account: we will send you a link to choose a new password.",
+    "forgot_submit": "Send the link",
+    "forgot_sent": "If an active account uses this address, a link to choose a new password is on its way. It expires in 60 minutes.",
+    "new_password": "New password",
+    "confirm_password": "Confirm the password",
+    "reset_title": "Choose a new password",
+    "reset_description": "For the account {email}.",
+    "reset_submit": "Save the password and sign in",
+    "reset_sessions_hint": "Every other session of this account will be signed out.",
+    "reset_request_new": "Ask for a new link",
+    "reset_expired_title": "This link has expired",
+    "reset_expired_description": "Password links work for 60 minutes. Ask for a new one.",
+    "reset_used_title": "This link was already used",
+    "reset_used_description": "A password link works once, and a newer request replaces it. Ask for a new one if you still need it.",
+    "reset_invalid_title": "This link is not valid",
+    "reset_invalid_description": "Check that you opened the whole link from the email, or ask for a new one.",
+    "invite_title": "Join the workspace",
+    "invite_description": "{inviter} invited you to {tenant} as {role}.",
+    "invite_someone": "Someone",
+    "invite_email": "You are joining with",
+    "invite_method": "How do you want to sign in?",
+    "invite_method_password": "With a password",
+    "invite_method_password_hint": "Choose it now.",
+    "invite_method_email_link": "With an email link",
+    "invite_method_email_link_hint": "No password: we email you a link each time.",
+    "invite_privacy": "I accept the privacy policy.",
+    "invite_privacy_link": "I accept the <link>privacy policy</link>.",
+    "invite_accept": "Accept and open the workspace",
+    "invite_join": "Join {tenant}",
+    "invite_switch_account": "Sign out and continue",
+    "invite_other_account": "You are signed in as {email}, but this invitation is for {invited}. Sign out to continue with the invited address.",
+    "invite_sign_in": "{email} already has an account. Sign in with it to accept the invitation.",
+    "invite_sign_in_cta": "Sign in to accept",
+    "invite_ask_new": "Ask the person who invited you for a new invitation.",
+    "invite_expired_title": "This invitation has expired",
+    "invite_expired_description": "Invitations to {tenant} last 7 days.",
+    "invite_accepted_title": "This invitation was already used",
+    "invite_accepted_description": "It has been accepted. If it was you, sign in.",
+    "invite_revoked_title": "This invitation was withdrawn",
+    "invite_revoked_description": "An administrator of {tenant} revoked it, or sent a newer one.",
+    "invite_invalid_title": "This invitation is not valid",
+    "invite_invalid_description": "Check that you opened the whole link from the email.",
+    "errors": {
+      "invalid_input": "Some fields are missing or invalid.",
+      "invalid_email": "Enter a valid email address.",
+      "rate_limited": "Too many requests. Try again in an hour.",
+      "weak_password": "The password is too weak:",
+      "password_mismatch": "The two passwords do not match.",
+      "invalid_token": "This link is not valid.",
+      "expired_token": "This link has expired.",
+      "used_token": "This link was already used.",
+      "revoked_token": "This invitation was withdrawn.",
+      "privacy_required": "Accept the privacy policy to continue.",
+      "account_exists": "This address already has an account: sign in to accept.",
+      "email_mismatch": "This invitation is for another email address.",
+      "not_found": "Account not found.",
+      "forbidden": "You are not allowed to do this.",
+      "already_member": "This person is already a member.",
+      "not_pending": "This invitation is no longer pending.",
+      "unknown": "Something went wrong. Please try again."
+    }
   }
 }

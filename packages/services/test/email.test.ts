@@ -50,7 +50,13 @@ const SAMPLES: { [K in EmailTemplate]: EmailTemplateData[K] } = {
   magic_link: { url: "https://app.keel.example/api/auth/callback/email?token=abc123", minutes: 15 },
   email_change_confirm: { url: "https://app.keel.example/account/confirm-email?token=def456", hours: 24 },
   email_change_notice: { newEmail: "new@northwind.demo" },
-  invite: { tenantName: "Northwind Apparel", inviterName: "Giulia", role: "operations", url: "https://app.keel.example/login" },
+  invite: { tenantName: "Northwind Apparel", inviterName: "Giulia", role: "operations", url: "https://app.keel.example/invite/tok", days: 7 },
+  welcome: { name: "Marco", tenantName: "Northwind Apparel", dashboardUrl: "https://app.keel.example/t/northwind-apparel", profileUrl: "https://app.keel.example/t/northwind-apparel/profile", guideUrl: "https://app.keel.example/t/northwind-apparel/integrations/guide/shopify" },
+  password_reset: { url: "https://app.keel.example/reset-password/tok", minutes: 60 },
+  password_changed: { at: "2026-10-01T09:30:00.000Z", timezone: "Europe/Rome" },
+  email_changed: { newEmail: "new@northwind.demo" },
+  new_sign_in: { device: "Firefox · Windows", ip: "203.0.113.7", at: "2026-10-01T09:30:00.000Z", timezone: "Europe/Rome", profileUrl: "https://app.keel.example/t/northwind-apparel/profile" },
+  account_disabled: { tenantName: "Northwind Apparel" },
   mention: { authorName: "Giulia", recordLabel: "#NW-1042", excerpt: "Can you check the address?\nThe courier called.", url: "https://app.keel.example/t/northwind-apparel/orders/1" },
   supplier_po: { companyName: "Northwind Apparel", supplierName: "Tessitura Rossi", poNumber: "PO-0042", url: "https://app.keel.example/supplier/po/tok", expectedAt: "2026-10-20T10:00:00.000Z", timezone: "Europe/Rome" },
   digest: { tenantName: "Northwind Apparel", groups: [{ type: "mention", count: 5, titles: ["#NW-1", "#NW-2"] }, { type: "late_to_ship", count: 1, titles: ["12"] }], url: "https://app.keel.example/t/northwind-apparel/notifications" },
@@ -82,7 +88,7 @@ describe("templates", () => {
     expect(ml.subject).toBe("Il tuo link di accesso a Keel");
     expect(renderEmail("supplier_po", "it", SAMPLES.supplier_po, { sender: SENDER }).text).toContain("20 ott 2026");
     expect(renderEmail("magic_link", "es", { url: "https://x/m?<b>", minutes: 15 }, { sender: SENDER }).html).toContain("https://x/m?&lt;b&gt;");
-    expect(renderEmail("invite", "xx", SAMPLES.invite, { sender: SENDER }).subject).toBe("Giulia invited you to Northwind Apparel on Keel");
+    expect(renderEmail("invite", "xx", SAMPLES.invite, { sender: SENDER }).subject).toBe("Giulia invited you to Northwind Apparel on Keel as operations");
   });
 });
 
