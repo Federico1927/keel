@@ -289,7 +289,8 @@
         "title": "WhatsApp via Spoki",
         "body": "Your Spoki account as the WhatsApp channel: order notifications per event, cash-on-delivery confirmations answered with a reply, WhatsApp campaigns, opt-outs honoured everywhere and every message on the order."
       }
-    }
+    },
+    "coming_soon": "Coming soon"
   },
   "faq": {
     "title": "Questions we get asked",

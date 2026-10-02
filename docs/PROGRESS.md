@@ -842,3 +842,15 @@ Resta (ondate 2 e 3):
 - **Ondata 2 (Tier 2)**: clienti, acquisti (lista, editor PO, fornitori), sconti, segmenti e campagne clienti, impostazioni, utenti, integrazioni, console super-admin, profilo, supporto, export: passare a `DataList`/`FilterPanel`/foglio e togliere i file dalla allow-list; scheda campagna e annunci; conferme con `window.confirm` (applica inventario, approva proposta) da portare in un foglio.
 - **Ondata 3 (Tier 3)**: P/L e analisi, pianificazione, markdown e perdite, editor dashboard e regole di stato: layout leggibili, scorrimento solo dentro tabelle marcate, avviso "meglio da desktop" per gli editor complessi; grafici a schermo intero in orizzontale.
 - Azioni a scorrimento sulle righe e pull-to-refresh (non fatti), notifiche push web (facoltative, seguito), Lighthouse mobile (non eseguito qui: da misurare su dashboard, ordini e dettaglio ordine con obiettivo prestazioni ≥ 85 e accessibilità ≥ 95). La pausa campagne resta ai ruoli con `pause_campaign` (marketing, admin, owner): l'operations la vede in sola lettura.
+
+## Versioni degli add-on: si attiva solo una versione rilasciata (issue #77)
+
+Fatto:
+- Registro delle versioni in `packages/config/src/addon-versions.ts`: ogni add-on ha versioni `released` o `in_development`; la console ne mostra al massimo due (l'ultima rilasciata e quella in lavorazione).
+- `addon.cod`: v1 rilasciata, v2 (messaggi ai destinatari con un provider WhatsApp/SMS reale) in sviluppo. `addon.customer_campaigns`: v1 in sviluppo, quindi **non attivabile** (oggi i messaggi sono solo simulati).
+- `setTenantAddon` rifiuta l'attivazione senza versione rilasciata (`addon_not_released`); lo spegnimento è sempre possibile. Colonna `tenant_addons.version` (migrazione 0044, additiva) con la versione attivata. Le attivazioni già esistenti restano accese e la console le segnala.
+- Console: badge di versione e motivo del blocco nella scheda tenant e nella pagina Piani e add-on; l'interruttore ora mostra l'errore invece di ignorarlo.
+- Fatturazione allineata: si addebitano solo gli add-on rilasciati (fatture, voci Stripe, MRR, catalogo); quelli attivi ma non rilasciati restano usabili e nella finestra di abbonamento compaiono come "incluso, non fatturato".
+- Test: unit (`addon-versions.test.ts`), servizi (`billing.test.ts`), e2e (`addon-versions.spec.ts`).
+
+Resta: il controllo per singolo negozio (es. campagne senza provider di messaggi collegato), da aggiungere accanto al registro.

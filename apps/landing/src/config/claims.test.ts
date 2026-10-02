@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   ADDON_MODULES,
+  canActivateAddon,
   CORE_MODULES,
   MODULES,
   PLAN_KEYS,
@@ -21,7 +22,7 @@ import {
   PLAN_FEATURE_CLAIMS,
   type Claim,
 } from "./claims";
-import { ADDONS, PLANS } from "./pricing";
+import { ADDONS, PLANS, addonOnSale } from "./pricing";
 
 const modulesOf = (c: Claim): readonly ModuleKey[] => (c.kind === "module" ? c.modules : []);
 /** Enterprise is a Scale contract with custom terms: it includes what Scale includes. */
@@ -143,6 +144,14 @@ describe("add-ons", () => {
     const listed = new Set(ADDONS.flatMap((a) => modulesOf(ADDON_CLAIMS[a.id]!)));
     for (const m of ADDON_MODULES)
       if (MODULES[m].availability === "implemented") expect(listed.has(m), m).toBe(true);
+  });
+  it("an add-on is on sale only with a released version; the others show coming soon (#77)", () => {
+    for (const a of ADDONS) {
+      const key = `addon.${a.id}`;
+      if (isAddonModule(key)) expect(addonOnSale(a.id), a.id).toBe(canActivateAddon(key));
+    }
+    expect(addonOnSale("cod")).toBe(true);
+    expect(addonOnSale("customer_campaigns")).toBe(false);
   });
   it("cash on delivery is never the first add-on (payment-method neutrality)", () => {
     expect(ADDONS[0]?.id).not.toBe("cod");

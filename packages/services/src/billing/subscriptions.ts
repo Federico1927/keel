@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { and, asc, desc, eq, gte, inArray, isNotNull, lt, recordAudit, schema, sql, type Database, type DbExecutor } from "@hullwise/db";
-import { DEFAULT_PAYMENT_TERMS_DAYS, MODULES, PLANS, PLAN_KEYS, UPCOMING_RENEWAL_DAYS, isAddonModule, type PlanKey } from "@hullwise/config";
+import { DEFAULT_PAYMENT_TERMS_DAYS, MODULES, PLANS, PLAN_KEYS, UPCOMING_RENEWAL_DAYS, canActivateAddon, isAddonModule, type PlanKey } from "@hullwise/config";
 import { billingCatalog, catalogItemFor, desiredSubscriptionKeys, lookupKeyFor, mirroredMrr, monthlyChargeMinor, paymentHealth, subscriptionSignal, tablePdf, vatTreatment, type PaymentHealth, type VatTreatment } from "@hullwise/core";
 import {
   BillingProviderError,
@@ -125,9 +125,11 @@ export async function startSubscription(db: Database, tenantId: string, input: S
   const provider = opts.provider ?? getBillingProvider();
   const settings = opts.settings ?? billingSettings();
   if (!PLAN_KEYS.includes(input.planKey) || input.trialDays < 0 || input.trialDays > 365 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.billingEmail.trim())) throw new BillingError("invalid_input");
-  const addons = [...new Set(input.addons)].filter((a) => isAddonModule(a) && MODULES[a].availability === "implemented");
   const [tenant] = await db.select().from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
   if (!tenant) throw new BillingError("tenant_not_found");
+  const active = (await db.select({ k: schema.tenantAddons.moduleKey }).from(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, tenantId), eq(schema.tenantAddons.isActive, true)))).map((r) => r.k);
+  // released add-ons (#77), plus those the tenant already has: a subscription never switches on an unreleased version
+  const addons = [...new Set(input.addons)].filter((a) => isAddonModule(a) && (canActivateAddon(a) || active.includes(a)));
   const [existing] = await db.select().from(schema.subscriptions).where(eq(schema.subscriptions.tenantId, tenantId)).limit(1);
   if (existing?.externalSubscriptionId && !["canceled", "incomplete_expired"].includes(existing.externalStatus ?? "")) throw new BillingError("already_subscribed");
   // the mock catalog fills itself on first use (no processor involved); Stripe's is synced from the console
@@ -137,7 +139,6 @@ export async function startSubscription(db: Database, tenantId: string, input: S
   const oneOff = input.chargeSetupFee ? [await priceIdFor(db, provider.provider, lookupKeyFor("setup", input.planKey))] : [];
   // entitlements first: the plan and add-ons the customer is buying (each change audited)
   if (tenant.planKey !== input.planKey) await setTenantPlan(db, tenantId, input.planKey, opts.actorUserId, now, { provider });
-  const active = (await db.select({ k: schema.tenantAddons.moduleKey }).from(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, tenantId), eq(schema.tenantAddons.isActive, true)))).map((r) => r.k);
   for (const a of addons) if (!active.includes(a)) await setTenantAddon(db, tenantId, a, true, opts.actorUserId, "subscription", now, { provider });
   for (const a of active) if (!addons.includes(a) && isAddonModule(a) && MODULES[a].availability === "implemented") await setTenantAddon(db, tenantId, a, false, opts.actorUserId, "subscription", now, { provider });
   const email = input.billingEmail.trim().toLowerCase();

@@ -1,5 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { MODULES, PLANS, PLAN_KEYS, PLATFORM_CURRENCY, isAddonModule } from "@hullwise/config";
+import { MODULES, PLANS, PLAN_KEYS, PLATFORM_CURRENCY, canActivateAddon, isAddonModule, isBillableAddon } from "@hullwise/config";
 import { billingCatalog, formatDate, formatDateTime, formatMoney } from "@hullwise/core";
 import type { Database } from "@hullwise/db";
 import { billingSettings, tenantSubscriptionDetail } from "@hullwise/services";
@@ -17,7 +17,7 @@ export async function SubscriptionCard({ db, tenantId, planKey }: { db: Database
   const locale = await getLocale();
   const s = d.subscription;
   const money = (m: number) => formatMoney(m, PLATFORM_CURRENCY, locale);
-  const addons = Object.values(MODULES).filter((m) => isAddonModule(m.key) && m.availability === "implemented" && m.monthlyPriceMinor).map((m) => ({ key: m.key, label: `${tm(`addon.${m.key.replace("addon.", "")}.name`)} · ${money(m.monthlyPriceMinor!)}/m` }));
+  const addons = Object.values(MODULES).filter((m) => isAddonModule(m.key) && m.monthlyPriceMinor && (canActivateAddon(m.key) || d.activeAddons.includes(m.key))).map((m) => ({ key: m.key, billable: isBillableAddon(m.key), label: isBillableAddon(m.key) ? `${tm(`addon.${m.key.replace("addon.", "")}.name`)} · ${money(m.monthlyPriceMinor!)}/m` : tm(`addon.${m.key.replace("addon.", "")}.name`) }));
   const names = Object.fromEntries(billingCatalog().map((c) => [c.lookupKey, c.name]));
   const mock = settings.provider === "mock";
   return (

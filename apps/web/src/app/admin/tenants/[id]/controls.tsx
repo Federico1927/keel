@@ -16,15 +16,33 @@ export function OpenAsSupportButton({ tenantId }: { tenantId: string }) {
   );
 }
 
-export function AddonToggle({ tenantId, moduleKey, active, available }: { tenantId: string; moduleKey: string; active: boolean; available: boolean }) {
+/** On/off for one add-on (#77): switching on needs a released version; an active add-on can always be switched off. */
+export function AddonToggle({ tenantId, moduleKey, active, canEnable }: { tenantId: string; moduleKey: string; active: boolean; canEnable: boolean }) {
   const t = useTranslations("admin.tenant");
+  const tc = useTranslations("common");
   const router = useRouter();
   const [pending, start] = useTransition();
   const [note, setNote] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const editable = active || canEnable;
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Switch checked={active} disabled={!available || pending} aria-label={moduleKey} data-testid={`addon-${moduleKey}`} onCheckedChange={(v) => start(async () => { await setAddonAction(tenantId, moduleKey, v, note || null); router.refresh(); })} />
-      {available && <Input size="sm" value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("addon_note")} className="w-44" />}
+      <Switch
+        checked={active}
+        disabled={!editable || pending}
+        aria-label={moduleKey}
+        data-testid={`addon-${moduleKey}`}
+        onCheckedChange={(v) =>
+          start(async () => {
+            setError(null);
+            const r = await setAddonAction(tenantId, moduleKey, v, note || null);
+            if (!r.ok) setError(r.error);
+            router.refresh();
+          })
+        }
+      />
+      {editable && <Input size="sm" value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("addon_note")} className="w-44" />}
+      {error && <p className="w-full text-xs text-destructive" role="alert" data-testid={`addon-error-${moduleKey}`}>{tc.has(`errors.${error}`) ? tc(`errors.${error}`) : tc("errors.unknown")}</p>}
     </div>
   );
 }
