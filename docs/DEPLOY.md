@@ -92,6 +92,17 @@ These live in third-party dashboards; nothing in the repository can change them.
 
 ## Production
 
+### Platform owner account (before the first real store)
+
+The demo super-admin (`superadmin@hullwise.demo`) signs in with the public demo password, and the reseed resets it on every deploy. It must never see real tenants. On the web service set:
+
+- `HULLWISE_OWNER_EMAIL`: your own address (not a `.demo` one).
+- `HULLWISE_OWNER_PASSWORD`: at least 12 characters. Used only to create the account on the next deploy (`db:seed:settings`); later deploys never change it. Change it from your profile after the first sign-in, then delete the variable.
+
+From that deploy on, the demo super-admins stop being super-admins (the log says `demo super-admins removed from the console`), and they stay so: the reseed never re-promotes them. The demo tenants keep their demo users. Create real tenants from your owner account and open them with "Open as support" until the store's own users can receive their invitation email (`RESEND_API_KEY`).
+
+### Vendor prerequisites
+
 What the platform owner registers on the vendors' side before real stores connect by themselves (#90). Every card in **Integrations** carries the merchant's own step-by-step checklist; this list is only the owner's part. Nothing here is needed for the demo (`HULLWISE_INTEGRATION_MODE=mock`): the simulator answers every card, including the errors (each card lists its demo values). Vendor consoles change often: treat each step as "to verify" on the day you do it.
 
 | Integration | Merchant path (in the card) | Owner prerequisite | Variables |

@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { and, eq, sql } from "drizzle-orm";
 import * as schema from "../src/schema";
 import { testPools } from "../src/test-utils";
-import { ensureDemoSettings, seedPlatform, type SeedContext } from "../src/seed";
+import { ensureDemoSettings, ensurePlatformOwner, seedPlatform, type SeedContext } from "../src/seed";
 import { seedDomainForTests } from "./seed-for-tests";
 
 const pools = testPools();
@@ -76,5 +76,31 @@ describe("demo settings step (db:seed:settings)", () => {
     expect(p2!.descriptionHtml).toBe("<p>Edited</p>");
     const again = await ensureDemoSettings(pools.admin);
     expect(again.every((r) => r.created.length === 0)).toBe(true);
+  });
+});
+
+describe("platform owner step (db:seed:settings)", () => {
+  it("creates the owner once, keeps its password afterwards, and takes the console away from the demo super-admin", async () => {
+    const email = "owner-test@example.com";
+    const demo = "superadmin@hullwise.demo";
+    const superOf = async (e: string) => (await pools.admin.select({ s: schema.users.isSuperAdmin, h: schema.users.passwordHash }).from(schema.users).where(eq(schema.users.email, e)))[0];
+    try {
+      expect(await ensurePlatformOwner(pools.admin, {})).toEqual({ owner: "not_configured", demoted: [] });
+      expect((await superOf(demo))!.s).toBe(true);
+      expect((await ensurePlatformOwner(pools.admin, { HULLWISE_OWNER_EMAIL: email, HULLWISE_OWNER_PASSWORD: "short" })).owner).toBe("missing_password");
+      await expect(ensurePlatformOwner(pools.admin, { HULLWISE_OWNER_EMAIL: "me@x.demo", HULLWISE_OWNER_PASSWORD: "a-long-enough-password" })).rejects.toThrow(/real address/);
+
+      const first = await ensurePlatformOwner(pools.admin, { HULLWISE_OWNER_EMAIL: ` ${email.toUpperCase()} `, HULLWISE_OWNER_PASSWORD: "a-long-enough-password" });
+      expect(first).toEqual({ owner: "created", demoted: [demo] });
+      const created = await superOf(email);
+      expect(created!.s).toBe(true);
+      expect((await superOf(demo))!.s).toBe(false);
+      // a later deploy with another password value leaves the owner's password alone
+      expect(await ensurePlatformOwner(pools.admin, { HULLWISE_OWNER_EMAIL: email, HULLWISE_OWNER_PASSWORD: "another-long-password" })).toEqual({ owner: "unchanged", demoted: [] });
+      expect((await superOf(email))!.h).toBe(created!.h);
+    } finally {
+      await pools.admin.delete(schema.users).where(eq(schema.users.email, email));
+      await pools.admin.update(schema.users).set({ isSuperAdmin: true }).where(eq(schema.users.email, demo));
+    }
   });
 });

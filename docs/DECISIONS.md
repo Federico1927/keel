@@ -1313,3 +1313,11 @@ Before, about 12% of treated customers were picked by hash, overlapping with cus
 
 **Alternatives.** One OAuth for Meta now (rejected: needs App Review, Advanced Access and Business Verification first; the system-user token works today). Storing the platform's Google secrets in each tenant's credentials (rejected: a rotation would need every store to reconnect). Simulating errors with a separate mock-only API (rejected: the trigger values travel the live classification path). Keeping each card's bespoke markup with shared styles (rejected by the product owner: the buttons and rows still diverged). A popover instead of a sheet (rejected: the setup checklist is long; on a phone it needs the full width).
 
+## 2026-10-02 · Platform owner from the environment; the demo super-admin leaves the console
+
+**Context.** Before the first real store (Lorena Milano test, #88), the only super-admin was the demo one, which shares the public demo password and is reset to it by the reseed on every deploy: anyone with demo credentials could open every real tenant from `/admin`.
+
+**Decision.** `db:seed:settings` (run by every deploy) creates the owner's super-admin from `HULLWISE_OWNER_EMAIL` and `HULLWISE_OWNER_PASSWORD` (12+ characters, used only on creation, never overwritten afterwards; a `.demo` address is refused). As soon as any non-demo, enabled super-admin exists, `superadmin@hullwise.demo` (and its pre-rename address) stop being super-admins. The reseed's user upsert never touches `is_super_admin`, so the demotion sticks; super-admin rights are read from the database on every request, so it takes effect at once.
+
+**Alternatives.** Changing `HULLWISE_DEMO_PASSWORD` (rejected: it breaks the prospects' demo and the reseed would still give the console to whoever knows it). A one-off CLI to create the owner (rejected: Railway has no interactive step in the deploy; a variable is one click). Demoting the demo super-admin whenever `HULLWISE_INTEGRATION_MODE=live` (rejected: the console would be orphaned until an owner exists).
+
