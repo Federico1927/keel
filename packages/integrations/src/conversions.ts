@@ -62,10 +62,42 @@ export interface ConversionResult {
   error?: string;
 }
 
+/**
+ * A change to a conversion the platform already holds (#82): withdraw it (cancelled or fully
+ * refunded order) or restate its value (partial refund). Identified by the order id sent with the
+ * purchase, with the click id and conversion time as the fallback some platforms accept.
+ */
+export interface ConversionAdjustment {
+  /** Hullwise's id of the adjustment row (`<purchase event id>:<kind>`). */
+  eventId: string;
+  kind: "retraction" | "restatement";
+  orderExternalId: string;
+  /** When the purchase happened, as sent with it. */
+  conversionTime: Date;
+  adjustedAt: Date;
+  /** Restatement only: the value the conversion should now carry. */
+  valueMinor: number | null;
+  currency: string;
+  clickIds: { gclid?: string; gbraid?: string; wbraid?: string };
+}
+
+/**
+ * What each platform accepts after the purchase [to verify]. Google Ads conversion adjustments take
+ * RETRACTION and RESTATEMENT; Meta's Conversions API documents no way to withdraw or restate a sent
+ * Purchase, so its adjustments are logged as unsupported instead of sending an event Meta would count
+ * as a new conversion.
+ */
+export const CONVERSION_ADJUSTMENT_SUPPORT: Readonly<Record<ConversionProvider, { retraction: boolean; restatement: boolean }>> = {
+  meta: { retraction: false, restatement: false },
+  google: { retraction: true, restatement: true },
+};
+
 export interface ConversionSink {
   readonly provider: ConversionProvider;
   testConnection(): Promise<{ ok: boolean; error?: string }>;
   send(events: ConversionEvent[]): Promise<ConversionResult[]>;
+  /** Retractions and restatements; absent on a platform that supports neither. */
+  adjust?(adjustments: ConversionAdjustment[]): Promise<ConversionResult[]>;
 }
 
 const sha256 = (v: string) => createHash("sha256").update(v).digest("hex");
@@ -202,6 +234,40 @@ export class GoogleConversionsSink implements ConversionSink {
     }
     return events.map((e) => results.get(e.eventId)!);
   }
+  /** customers/{id}:uploadConversionAdjustments with partial failure: retractions and restatements matched by order id. */
+  async adjust(adjustments: ConversionAdjustment[]): Promise<ConversionResult[]> {
+    if (!adjustments.length) return [];
+    const action = `${this.ads.customerResource()}/conversionActions/${this.conversionActionId}`;
+    const res = await this.ads.post<Parameters<typeof partialFailures>[0]>(":uploadConversionAdjustments", { conversionAdjustments: adjustments.map((a) => googleAdjustmentPayload(a, action)), partialFailure: true });
+    const failed = partialFailures(res, "conversion_adjustments", "conversionAdjustments");
+    return adjustments.map((a, i) => (failed.has(i) ? { eventId: a.eventId, ok: false, error: failed.get(i) } : { eventId: a.eventId, ok: true }));
+  }
+}
+
+/** One `ConversionAdjustment` row of `uploadConversionAdjustments`, matched to the purchase by its order id. */
+export function googleAdjustmentPayload(a: ConversionAdjustment, conversionAction: string): Record<string, unknown> {
+  const click = a.clickIds.gclid ? { gclidDateTimePair: { gclid: a.clickIds.gclid, conversionDateTime: googleDateTime(a.conversionTime) } } : {};
+  return {
+    conversionAction,
+    adjustmentType: a.kind === "retraction" ? "RETRACTION" : "RESTATEMENT",
+    // Google refuses an adjustment dated before the conversion
+    adjustmentDateTime: googleDateTime(new Date(Math.max(a.adjustedAt.getTime(), a.conversionTime.getTime() + 1000))),
+    orderId: a.orderExternalId,
+    ...click,
+    ...(a.kind === "restatement" ? { restatementValue: { adjustedValue: (a.valueMinor ?? 0) / 100, currencyCode: a.currency } } : {}),
+  };
+}
+
+/** Partial-failure errors of an upload, by row index. */
+function partialFailures(res: { partialFailureError?: { message?: string; details?: { errors?: { location?: { fieldPathElements?: { fieldName: string; index?: number }[] }; message: string }[] }[] } }, ...fields: string[]): Map<number, string> {
+  const failed = new Map<number, string>();
+  for (const d of res.partialFailureError?.details ?? []) {
+    for (const err of d.errors ?? []) {
+      const idx = err.location?.fieldPathElements?.find((f) => fields.includes(f.fieldName))?.index;
+      if (idx !== undefined) failed.set(idx, err.message);
+    }
+  }
+  return failed;
 }
 
 /* ---------- mock ---------- */
@@ -209,6 +275,8 @@ export class GoogleConversionsSink implements ConversionSink {
 export class MockConversionSink implements ConversionSink {
   readonly failures = new FailureScript();
   readonly received: ConversionEvent[] = [];
+  /** Adjustments accepted, with the request body the live sink would have sent (Google). */
+  readonly adjusted: { adjustment: ConversionAdjustment; request: Record<string, unknown> }[] = [];
   constructor(readonly provider: ConversionProvider) {}
   async testConnection() {
     return { ok: true };
@@ -221,5 +289,13 @@ export class MockConversionSink implements ConversionSink {
       return { eventId: e.eventId, ok: true };
     });
   }
+  async adjust(adjustments: ConversionAdjustment[]): Promise<ConversionResult[]> {
+    this.failures.check();
+    const support = CONVERSION_ADJUSTMENT_SUPPORT[this.provider];
+    return adjustments.map((a) => {
+      if (!support[a.kind]) return { eventId: a.eventId, ok: false, skipped: true, error: "unsupported" };
+      this.adjusted.push({ adjustment: a, request: googleAdjustmentPayload(a, "customers/0000000000/conversionActions/mock") });
+      return { eventId: a.eventId, ok: true };
+    });
+  }
 }
-

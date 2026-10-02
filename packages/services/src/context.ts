@@ -4,7 +4,7 @@ import type { Transaction } from "@hullwise/db";
 export interface ServiceContext {
   tenantId: string;
   tx: Transaction;
-  /** `mcp`: an AI client acting for `userId` through the MCP server (#21). */
-  actor: { type: "user" | "system" | "integration" | "mcp"; userId: string | null };
+  /** `mcp`: an AI client acting for `userId` through the MCP server (#21); `api`: a REST API token of `userId` (#81). */
+  actor: { type: "user" | "system" | "integration" | "mcp" | "api"; userId: string | null };
   now?: Date;
 }

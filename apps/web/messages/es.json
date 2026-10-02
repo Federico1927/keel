@@ -68,7 +68,8 @@
       "cod_phone": "El pedido no tiene teléfono.",
       "cod_reason": "Escribe un motivo (al menos 3 caracteres).",
       "cod_carrier_columns": "El archivo necesita una columna de referencia (seguimiento o pedido) y una de resultado.",
-      "addon_not_released": "Este add-on aún no tiene una versión publicada: no se puede activar."
+      "addon_not_released": "Este add-on aún no tiene una versión publicada: no se puede activar.",
+      "ad_account_removed": "Esta cuenta publicitaria se quitó de Hullwise: sus campañas se conservan en el historial pero ya no se pueden pausar ni reactivar desde aquí."
     },
     "edit": "Editar"
   },
@@ -148,6 +149,10 @@
           "name": "TikTok Ads",
           "description": "Campañas, grupos de anuncios y anuncios de TikTok con métricas diarias, beneficio sobre pedidos reales y pausa/reactivación"
         }
+      },
+      "api": {
+        "name": "API REST y webhooks",
+        "description": "Una API REST versionada y webhooks firmados salientes para conectar ERP, almacenes y herramientas propias"
       }
     },
     "addon": {
@@ -183,6 +188,11 @@
         "name": "WhatsApp con Spoki",
         "description": "Confirmaciones y respuestas contra reembolso, avisos de pedido, campañas de WhatsApp y bajas con la cuenta Spoki de la tienda",
         "v1": "WhatsApp mediante Spoki: confirmaciones contra reembolso, avisos de pedidos y envíos de campañas, verificados solo con datos grabados: aún no hay una cuenta real de Spoki conectada."
+      },
+      "accounting": {
+        "name": "Envío a contabilidad",
+        "description": "Un asiento por cada día cerrado desde el resumen diario de ventas, con tu plan de cuentas, enviado solo cuando cuadra, con registro de envíos, reintento y reenvío",
+        "v1": "Asientos diarios enviados a la herramienta contable, solo para días conciliados; solo existe un proveedor simulado, aún sin conector real."
       }
     }
   },
@@ -223,7 +233,9 @@
     "notifications": "Notificaciones",
     "fulfilment": "Preparación",
     "subscriptions": "Suscripciones",
-    "whatsapp_settings": "Ajustes de WhatsApp"
+    "whatsapp_settings": "Ajustes de WhatsApp",
+    "accounting": "Envío a contabilidad",
+    "accounting_settings": "Ajustes de contabilidad"
   },
   "shell": {
     "open_menu": "Abrir menú",
@@ -386,7 +398,8 @@
     "branding_link": "Marca",
     "fulfilment_link": "Preparación",
     "ai_link": "IA y MCP",
-    "data_export_link": "Exportación de datos"
+    "data_export_link": "Exportación de datos",
+    "developers_link": "Desarrolladores"
   },
   "users": {
     "title": "Usuarios y roles",
@@ -443,7 +456,8 @@
       "system": "Sistema",
       "super_admin": "Superadministrador",
       "impersonation": "Suplantación",
-      "mcp": "Cliente de IA (MCP)"
+      "mcp": "Cliente de IA (MCP)",
+      "api": "Token de API"
     },
     "empty_title": "Aún no hay entradas",
     "empty_description": "Los cambios en ajustes, usuarios, pedidos e integraciones aparecerán aquí.",
@@ -1034,7 +1048,8 @@
       "waiting": "{n} en espera",
       "no_eta": "sin fecha"
     },
-    "via_mcp": "vía {client}"
+    "via_mcp": "vía {client}",
+    "via_api": "vía API ({client})"
   },
   "order_events": {
     "imported": "Importado",
@@ -1417,7 +1432,10 @@
           "charge_deleted": "Cargo eliminado"
         }
       }
-    }
+    },
+    "scan_hint": "Escanea los artículos al desembalarlos: cada lectura cuenta una unidad en su línea.",
+    "scan_no_match": "Ninguna línea pendiente de recibir coincide con {code}.",
+    "scan_counted": "{item}: {n} de {of}"
   },
   "po_new": {
     "back": "Compras",
@@ -1893,7 +1911,8 @@
       "light": "Semáforo",
       "action": "Recomendación",
       "stock": "Stock",
-      "platform": "Plataforma"
+      "platform": "Plataforma",
+      "account": "Cuenta publicitaria"
     },
     "status": {
       "active": "Activa",
@@ -1945,7 +1964,8 @@
       "paused": "pausada",
       "n_creatives": "{n} creatividades",
       "footnote": "Las etiquetas vienen de la convención de nombre FORMATO | HOOK | ÁNGULO, editable en la plataforma. Las miniaturas son marcadores locales hasta sincronizar las vistas previas de la cuenta."
-    }
+    },
+    "all_accounts": "Todas las cuentas"
   },
   "campaign_detail": {
     "back": "Campañas",
@@ -2508,7 +2528,9 @@
         "captured": "Cambio inmediato: mercancía no recibida, cobrados {amount}.",
         "failed": "Cambio inmediato: la retención en la tarjeta falló, envía solo cuando llegue la mercancía."
       }
-    }
+    },
+    "scan_hint": "Escanea cada artículo para marcarlo para reponer stock.",
+    "scan_no_match": "Ninguna línea de esta devolución coincide con {code}."
   },
   "return_new": {
     "title": "Devolución de {order}",
@@ -2747,7 +2769,9 @@
       "recharge": "Recharge",
       "loop": "Loop Subscriptions",
       "address": "Validación de direcciones",
-      "spoki": "WhatsApp (Spoki)"
+      "spoki": "WhatsApp (Spoki)",
+      "ga4": "Google Analytics 4",
+      "accounting": "Sistema contable"
     },
     "status": {
       "not_connected": "No conectada",
@@ -2876,7 +2900,12 @@
     "errors": {
       "connection_failed": "La plataforma rechazó las credenciales.",
       "mock_mode": "Este entorno está en modo mock: configura HULLWISE_INTEGRATION_MODE=live para conectar una cuenta real.",
-      "live_mode": "La simulación solo está disponible para integraciones mock."
+      "live_mode": "La simulación solo está disponible para integraciones mock.",
+      "ad_account_primary": "Es la cuenta principal de la conexión de Meta: gestiónala desde la tarjeta de Meta.",
+      "ad_account_limit": "Se alcanzó el número máximo de cuentas publicitarias de Meta.",
+      "ad_account_not_found": "Esta cuenta publicitaria no está conectada.",
+      "ad_account_invalid_input": "Introduce un id de cuenta válido (act_ seguido de dígitos).",
+      "ad_account_not_connected": "Conecta Meta primero: la primera cuenta es la propia conexión de Meta."
     },
     "tracking": "Píxel y conversiones",
     "duration_s": "{s} s",
@@ -2913,6 +2942,25 @@
       "incomplete_hint": "Hasta que termine, los análisis, el RFM, las cohortes y el historial de clientes solo cubren una parte del historial. Resincronizar la continúa.",
       "banner": "El historial de pedidos de la tienda aún se está importando ({n} pedidos hasta ahora): los periodos pasados, las cohortes y el historial de clientes están incompletos hasta que termine.",
       "banner_error": "La importación del historial de pedidos se detuvo tras {n} pedidos: los periodos pasados, las cohortes y el historial de clientes están incompletos. Un owner o admin puede continuarla con Resincronizar en Integraciones."
+    },
+    "ad_accounts": {
+      "title": "Cuentas publicitarias de Meta",
+      "description": "Cada cuenta se sincroniza por separado, con su estado, última sincronización y último error. Hasta {n} cuentas.",
+      "primary": "Principal",
+      "add": "Añadir cuenta publicitaria",
+      "add_mock": "Añadir una cuenta simulada",
+      "added": "{account} conectada: {summary}",
+      "remove": "Quitar",
+      "remove_title": "¿Quitar {account}?",
+      "remove_description": "Hullwise deja de sincronizar esta cuenta y elimina su token. Sus campañas y su historial se conservan, con su nombre.",
+      "removed": "Cuenta quitada.",
+      "name": "Nombre (opcional)",
+      "token_hint": "Deja el token vacío para usar el de la conexión principal de Meta (un usuario del sistema con acceso a ambas cuentas).",
+      "columns": {
+        "account": "Cuenta",
+        "status": "Estado",
+        "campaigns": "Campañas"
+      }
     }
   },
   "integration_guide": {
@@ -3017,6 +3065,11 @@
         {
           "title": "Conecta en Hullwise",
           "body": "Integraciones → Meta Ads → Conectar: pega el id de la cuenta (act_…) y el token. Probar conexión muestra el nombre y los permisos."
+        },
+        {
+          "title": "Varias cuentas publicitarias",
+          "body": "Una tienda con más de una cuenta publicitaria (marcas, países, un outlet) conecta aquí la principal y añade las demás en Integraciones → Cuentas publicitarias de Meta → Añadir cuenta publicitaria. Deja el token vacío si el mismo usuario del sistema tiene asignadas las otras cuentas (Configuración del negocio → Usuarios del sistema → Añadir activos → Cuentas publicitarias); si no, pega un token aparte. Cada cuenta se sincroniza por separado: una con error se marca en su fila y nunca detiene a las demás.",
+          "verify": true
         },
         {
           "title": "Backfill",
@@ -3198,6 +3251,11 @@
         {
           "title": "Activa y ejecuta",
           "body": "Introduce los ids, mantén \"Solo clientes que aceptan marketing\" salvo otra base legal, guarda y pulsa Ejecutar la cola ahora. El registro muestra el resultado de cada pedido; el job se repite cada 5 minutos."
+        },
+        {
+          "title": "Cancelaciones y reembolsos",
+          "body": "Cuando se cancela o se reembolsa por completo un pedido cuya compra se envió, Hullwise envía a Google Ads un ajuste RETRACTION (por id de pedido); tras un reembolso parcial, una RESTATEMENT con el valor restante. La Conversions API de Meta no ofrece forma de retirar o reformular una compra, así que esas filas aparecen en el registro como \"No admitido por la plataforma\". Google necesita el id de pedido enviado con la compra, que Hullwise siempre envía, y puede rechazar un ajuste de una conversión que aún no ha procesado: la fila se reintenta con el backoff habitual.",
+          "verify": true
         }
       ],
       "errors": [
@@ -3897,6 +3955,133 @@
         {
           "symptom": "Los estados nunca se actualizan",
           "fix": "Falta la URL del webhook en Spoki o es incorrecta; vuelve a copiarla desde la tarjeta de la integración."
+        }
+      ]
+    },
+    "ga4": {
+      "title": "Google Analytics 4",
+      "intro": "Lee las sesiones GA4 de la tienda por día, canal, fuente / medio / campaña y página de destino, para que {product} muestre la tasa de conversión (pedidos ÷ sesiones) por canal, página de destino y campaña junto a su propio píxel. Solo lectura: {product} nunca modifica la propiedad. La tienda la conecta sola: añade el correo del lector de {product} como Lector en la propiedad y pega el ID de propiedad. Quien prefiera credenciales propias puede usar su cuenta de servicio u OAuth.",
+      "scopes": "Scope: https://www.googleapis.com/auth/analytics.readonly (solo lectura). Basta el rol Lector en la propiedad GA4.\nQué se lee: sesiones, usuarios, sesiones con interacción y añadidos al carrito por día, grupo de canales predeterminado, fuente, medio, campaña y página de destino. Ningún dato por usuario ni dato personal.\nAPI: Google Analytics Data API (obligatoria); Google Analytics Admin API (opcional, para elegir la propiedad de una lista y leer su nombre).",
+      "steps": [
+        {
+          "title": "Qué hace en {product}",
+          "body": "Análisis → Tráfico: tasa de conversión por canal y por página de destino, GA4 junto al píxel propio, cada número enlazado a los pedidos o a las filas GA4 de las que sale. Campañas: sesiones GA4 junto al gasto y los pedidos, emparejadas por campaña UTM. Tras conectar, {product} lee en segundo plano los últimos 12 meses, luego cada mañana los días desde la última lectura y cada noche otra vez los últimos 3 días (GA4 sigue ajustando los días recientes)."
+        },
+        {
+          "title": "Añade el lector de {product} como Lector (predeterminado, sin contraseña)",
+          "body": "Integraciones → Google Analytics 4 muestra el correo del lector con un botón Copiar. En analytics.google.com → Administrar (engranaje) → Propiedad → Gestión del acceso a la propiedad → + → Añadir usuarios: pégalo, rol Lector, desmarca \"Notificar a los nuevos usuarios\", Añadir. La tienda puede quitarlo allí cuando quiera.",
+          "verify": true
+        },
+        {
+          "title": "Copia el ID de propiedad",
+          "body": "Administrar → Propiedad → Detalles de la propiedad (o Configuración de la propiedad): el ID DE PROPIEDAD es un número como 312456789. No es el ID de medición del flujo web (G-XXXXXXX).",
+          "verify": true
+        },
+        {
+          "title": "Pégalo y conecta",
+          "body": "Pega el ID de propiedad en la tarjeta y haz clic en Conectar. {product} ejecuta un pequeño informe para comprobar el acceso e inicia la importación de 12 meses. Si la prueba falla, la tarjeta explica el motivo con palabras sencillas (sin acceso a la propiedad, ID de propiedad incorrecto, Google no disponible) y qué hacer. Solo owners y admins. \"Elegir propiedad\" cambia después a otra propiedad."
+        },
+        {
+          "title": "Avanzado: un proyecto de Google Cloud con la Data API",
+          "body": "Solo para usar una cuenta de servicio de la tienda. console.cloud.google.com → Nuevo proyecto → API y servicios → Biblioteca: habilita \"Google Analytics Data API\" (y \"Google Analytics Admin API\" para elegir la propiedad de una lista).",
+          "verify": true
+        },
+        {
+          "title": "Avanzado: crea la cuenta de servicio y su clave JSON",
+          "body": "IAM y administración → Cuentas de servicio → Crear cuenta de servicio (sin rol en el proyecto) → Claves → Agregar clave → Crear clave nueva → JSON. Guarda el archivo en privado. Si la organización prohíbe las claves (política iam.disableServiceAccountKeyCreation), usa el camino predeterminado u OAuth.",
+          "verify": true
+        },
+        {
+          "title": "Avanzado: dale acceso de Lector y pega la clave",
+          "body": "Añade el client_email de la cuenta de servicio como Lector en la propiedad (como en el paso 2), luego en la tarjeta abre Avanzado, pega el archivo JSON completo y el ID de propiedad, Conectar. La clave se guarda cifrada (AES-GCM).",
+          "verify": true
+        },
+        {
+          "title": "Alternativa: OAuth con refresh token",
+          "body": "Crea un cliente OAuth (API y servicios → Credenciales → ID de cliente OAuth), autorízalo con una cuenta de Google con acceso de Lector a la propiedad y el scope analytics.readonly, y pega client id, client secret y refresh token en la pestaña OAuth de Avanzado. El token deja de funcionar si esa persona pierde el acceso o lo revoca.",
+          "verify": true
+        },
+        {
+          "title": "Verifica",
+          "body": "\"Probar conexión\" en la tarjeta muestra el nombre de la propiedad. Análisis → Tráfico muestra en minutos las sesiones por canal de los días recientes; los 12 meses terminan en segundo plano. Compara un día con GA4 → Informes → Adquisición → Adquisición de tráfico (grupo de canales predeterminado de la sesión): los totales coinciden; canales y páginas pueden diferir un poco del píxel, como explica la pestaña Tráfico."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "User does not have sufficient permissions for this property (PERMISSION_DENIED)",
+          "fix": "El correo del lector (o tu propia cuenta de servicio) no está en la propiedad, o el ID es de otra propiedad. Añade el correo que muestra la tarjeta como Lector (paso 2) y revisa el ID (paso 3)."
+        },
+        {
+          "symptom": "Google Analytics Data API has not been used in project … or it is disabled",
+          "fix": "Habilita la Data API en el proyecto de la cuenta de servicio (paso 5) y vuelve a intentarlo en unos minutos."
+        },
+        {
+          "symptom": "Invalid property ID / propiedad no encontrada",
+          "fix": "Usa el id numérico de la propiedad, no el ID de medición G- ni el id de la cuenta."
+        },
+        {
+          "symptom": "Exhausted property tokens per hour / per day (cuota)",
+          "fix": "GA4 limita las solicitudes por propiedad. {product} pausa la importación y la reanuda solo tras la espera; no hay que hacer nada. Una propiedad estándar tiene unos 200.000 tokens al día [por verificar]."
+        },
+        {
+          "symptom": "Acceso de Google rechazado: invalid_grant (Invalid JWT Signature)",
+          "fix": "La clave se eliminó o se rotó. Crea una clave JSON nueva (paso 6) y vuelve a conectar."
+        },
+        {
+          "symptom": "La tasa de conversión es distinta de la de GA4",
+          "fix": "GA4 divide sus eventos de compra entre las sesiones; {product} divide los pedidos online reales de la tienda (de Shopify) entre las sesiones GA4. Los pedidos están completos; los eventos de compra de GA4 pierden a quien bloquea cookies o seguimiento."
+        }
+      ]
+    },
+    "accounting": {
+      "title": "Sistema contable",
+      "intro": "Envía un asiento por cada día cerrado al sistema contable de la tienda: ventas e impuestos por tipo, envíos, descuentos, reembolsos, comisiones de pago y la cuenta puente, desde el resumen diario de ventas.",
+      "scopes": "Los conectores reales se construyen por cuenta (disponibles bajo petición): Xero (API Manual Journals, scope accounting.transactions y accounting.settings.read), QuickBooks Online (API JournalEntry, scope com.intuit.quickbooks.accounting) y Fatture in Cloud (API de prima nota). Hasta que se construya uno, el sistema simulado muestra todo el flujo.",
+      "steps": [
+        {
+          "title": "Qué hace en {product}",
+          "body": "Cada hora {product} revisa los días cerrados de la ventana. Un día se envía solo cuando cuadra: debe igual a haber, cerrado en la zona horaria de la tienda, cada línea con una cuenta y ningún pedido del día sincronizándose todavía o esperando a que un cambio llegue a la tienda. Los demás días esperan con el motivo en el registro de envíos."
+        },
+        {
+          "title": "Elige el conector",
+          "body": "Xero, QuickBooks Online y Fatture in Cloud son los conectores candidatos, construidos y activados por cuenta por el equipo de {product}. Dinos qué sistema usa la tienda y quién puede autorizar la app.",
+          "verify": true
+        },
+        {
+          "title": "Autoriza la app en el sistema contable",
+          "body": "Xero y QuickBooks usan OAuth 2.0 con una app registrada por el equipo de {product}: el asesor o el titular inicia sesión y elige la empresa. Fatture in Cloud usa una app OAuth o un token personal de la empresa.",
+          "verify": true
+        },
+        {
+          "title": "Lee el plan de cuentas",
+          "body": "Integraciones → Sistema contable → Resincronizar cuentas. Las cuentas aparecen en Ajustes de contabilidad; las archivadas no se pueden usar."
+        },
+        {
+          "title": "Asigna las cuentas",
+          "body": "Ajustes de contabilidad: una cuenta para ventas e IVA repercutido (por tipo si los registras por separado), ingresos por envíos, descuentos, reembolsos, comisiones de pago y la cuenta puente donde llegan las liquidaciones de los procesadores. Fija el primer día a enviar para no tocar los días ya contabilizados."
+        },
+        {
+          "title": "Comprueba",
+          "body": "Enviar ahora en el registro de envíos: el primer día cerrado aparece como Enviado con el número del asiento. Ábrelo en el sistema contable: líneas, referencia y totales coinciden con el resumen del día. Un día se puede reenviar: el asiento se anula y se sustituye por la versión siguiente.",
+          "verify": true
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Un día espera con \"Sin cuenta asignada\"",
+          "fix": "Asigna la línea en Ajustes de contabilidad (un tipo nuevo necesita una cuenta de ventas e impuestos o las predeterminadas)."
+        },
+        {
+          "symptom": "Un día espera porque un pedido se está sincronizando o espera una escritura",
+          "fix": "Reintenta o corrige el webhook o la escritura fallidos del pedido en la página Integraciones; la siguiente ejecución envía el día."
+        },
+        {
+          "symptom": "Envío fallido: cuenta archivada o desconocida",
+          "fix": "Resincroniza las cuentas y elige una cuenta activa; luego Reintentar ahora."
+        },
+        {
+          "symptom": "Envío fallido: límite de solicitudes",
+          "fix": "Nada que hacer: el envío se reintenta con un intervalo creciente (15 minutos, luego hasta 12 horas)."
         }
       ]
     }
@@ -5863,7 +6048,8 @@
       "require_consent": "Solo clientes que aceptan marketing",
       "stats": "7 días: {sent} enviados · {failed} fallidos · {pending} en cola · {consent} sin consentimiento · {ident} sin identificador",
       "run_now": "Ejecutar la cola ahora",
-      "retry_failed": "Reintentar fallidos"
+      "retry_failed": "Reintentar fallidos",
+      "adjustment_stats": "{adjusted} retiradas o reformulaciones enviadas · {unsupported} no admitidas por la plataforma"
     },
     "log": {
       "title": "Registro de envíos",
@@ -5883,8 +6069,21 @@
       "reasons": {
         "no_consent": "Sin consentimiento de marketing",
         "no_identifier": "Sin click id ni identificador",
-        "too_old": "Demasiado antiguo"
-      }
+        "too_old": "Demasiado antiguo",
+        "unsupported": "No admitido por la plataforma",
+        "withdrawn": "Pedido cancelado o reembolsado antes del envío",
+        "superseded": "Sustituido por la retirada"
+      },
+      "kind": "Evento",
+      "kinds": {
+        "purchase": "Compra",
+        "retraction": "Retirada",
+        "restatement": "Valor reformulado"
+      },
+      "value": "a {value}",
+      "empty": "Todavía no hay nada en el registro.",
+      "filter_all": "Todos los eventos",
+      "filter_adjustments": "Retiradas y reformulaciones"
     },
     "errors": {
       "destination_required": "Introduce el id del dataset o de la acción de conversión para activar el envío.",
@@ -7074,7 +7273,8 @@
       "matches": "Coincide con la línea de impuestos de la cuenta de resultados: {amount}.",
       "mismatch": "No coincide con la línea de impuestos de la cuenta de resultados ({amount}): los datos cambiaron al cargar, recarga la página.",
       "footnote": "Tipo = tipo efectivo del pedido (impuesto informado por la tienda sobre la mercancía con descuento, redondeado al 0,1%), o tu tipo para el país si la tienda no lo informó. País de envío; tu país si no se conoce."
-    }
+    },
+    "daily_sales_link": "Ventas diarias"
   },
   "payouts": {
     "sync": "Sincronizar pagos",
@@ -9427,6 +9627,734 @@
         "cancel": "Palabras de cancelación",
         "help": "Una respuesta de confirmación registra el resultado confirmado (escrito primero en la tienda, como el de un operador). Una respuesta de cancelación escala el pedido a un admin: nada se cancela automáticamente."
       }
+    }
+  },
+  "mobile": {
+    "close": "Cerrar",
+    "nav": {
+      "label": "Principal",
+      "more": "Más",
+      "stock_takes": "Recuentos",
+      "approvals": "Aprobaciones"
+    },
+    "filters": {
+      "label": "Filtros",
+      "title": "Filtros y orden",
+      "done": "Ver resultados",
+      "remove": "Quitar filtro"
+    },
+    "stepper": {
+      "decrement": "Disminuir",
+      "increment": "Aumentar"
+    },
+    "scan": {
+      "open": "Escanear",
+      "title": "Escanear un código",
+      "hint": "Apunta la cámara a un código de barras o QR. También puedes escribir el código en el campo.",
+      "unavailable": "La cámara no está disponible aquí (sin cámara, permiso denegado o página no segura). Escribe el código en el campo.",
+      "close": "Listo",
+      "scanned": "Leído {code}"
+    },
+    "pwa": {
+      "install_title": "Instalar {product}",
+      "install_body": "Añádela a la pantalla de inicio: se abre a pantalla completa, como una app.",
+      "install": "Instalar",
+      "dismiss": "Ahora no",
+      "offline_title": "Sin conexión",
+      "offline_body": "Esta página necesita conexión. Revisa la red e inténtalo de nuevo: no se pierde nada de lo guardado.",
+      "retry": "Reintentar"
+    },
+    "settings": {
+      "link": "Navegación móvil",
+      "title": "Navegación móvil",
+      "description": "Los cuatro destinos de la barra inferior en el móvil, para cada rol. Todo lo demás queda en «Más». Un destino que la persona no puede abrir se sustituye automáticamente.",
+      "role_hint": "Por defecto: {list}",
+      "slot": "Posición {n}",
+      "use_default": "Predeterminado del rol",
+      "save": "Guardar",
+      "saved": "Guardado",
+      "back": "Ajustes"
+    },
+    "wide": {
+      "hint": "Desliza"
+    },
+    "desktop_notice": {
+      "title": "Mejor en una pantalla más grande.",
+      "body": "Aquí puedes consultar la página y hacer cambios sencillos; editar diseños complejos es más cómodo en un ordenador o una tableta."
+    },
+    "chart": {
+      "fullscreen": "Pantalla completa",
+      "rotate": "Gira el móvil en horizontal para ver el gráfico más ancho. Toca una barra o un punto para ver sus valores."
+    }
+  },
+  "developers": {
+    "title": "Desarrolladores",
+    "description": "Tokens de la API REST, endpoints de webhook y llamadas recientes a la API de este espacio de trabajo.",
+    "deliveries_link": "Entregas de webhooks",
+    "docs_link": "Documentación de la API",
+    "base_title": "API REST",
+    "base_description": "Cada petición va a esta URL base con un token en la cabecera Authorization.",
+    "rule_auth": "Los tokens actúan como la persona que los creó: ven y cambian solo lo que su rol permite, y dejan de funcionar cuando la persona se va.",
+    "rule_permissions": "Cada token lleva los scopes elegidos al crearlo; nada es implícito (orders:write no lee pedidos).",
+    "rule_limits": "Límites: {perToken} peticiones por minuto por token, {perTenant} por espacio de trabajo. Por encima, la API responde 429 con Retry-After.",
+    "rule_pii": "Los nombres, correos, teléfonos y direcciones de los clientes se enmascaran salvo que el token tenga pii:read, el rol pueda ver datos personales y los datos completos de clientes estén activados en Ajustes → IA y MCP.",
+    "unavailable": {
+      "plan": "La API REST y los webhooks se incluyen desde el plan Growth.",
+      "killed": "La plataforma suspendió el acceso con tokens a este espacio de trabajo. Contacta con soporte.",
+      "suspended": "Este espacio de trabajo está suspendido: la API no responde.",
+      "platform_disabled": "La API no está disponible temporalmente."
+    },
+    "tokens": {
+      "title": "Tokens de API",
+      "description": "Tokens de acceso personales con scopes de API, para integraciones. Solo owners y admins los crean; actúan como la persona que los creó.",
+      "create_title": "Nuevo token de API",
+      "name": "Nombre",
+      "name_placeholder": "p. ej. Sincronización ERP",
+      "expires_in": "Caduca en",
+      "days": "{days} días",
+      "scopes": "Scopes",
+      "create": "Crear token",
+      "shown_once": "Copia el token ahora: solo se muestra una vez.",
+      "empty": "Todavía no hay tokens de API.",
+      "col_name": "Token",
+      "col_state": "Estado",
+      "col_scopes": "Scopes",
+      "col_owner": "Actúa como",
+      "col_last_used": "Último uso",
+      "col_expires": "Caducidad",
+      "state": {
+        "active": "Activo",
+        "expired": "Caducado",
+        "revoked": "Revocado"
+      },
+      "rotate": "Regenerar",
+      "rotate_confirm": "¿Emitir un nuevo secreto para este token? El actual deja de funcionar de inmediato.",
+      "revoke": "Revocar",
+      "revoke_confirm": "¿Revocar este token? Las integraciones que lo usan dejan de funcionar de inmediato."
+    },
+    "scopes": {
+      "orders_read": "Leer pedidos, sus líneas y su historial",
+      "orders_write": "Añadir notas internas y pasar pedidos a revisión o en espera",
+      "customers_read": "Leer clientes",
+      "products_read": "Leer productos y variantes",
+      "inventory_read": "Leer ubicaciones y niveles de stock",
+      "inventory_write": "Ajustar el stock con un motivo",
+      "shipments_read": "Leer envíos y sus eventos de seguimiento",
+      "returns_read": "Leer devoluciones",
+      "discounts_read": "Leer códigos de descuento",
+      "purchasing_read": "Leer pedidos de compra",
+      "webhooks_manage": "Listar, crear y eliminar endpoints de webhook",
+      "pii_read": "Ver completos los datos personales de los clientes (si el rol y el espacio de trabajo lo permiten)"
+    },
+    "events": {
+      "order_created": "Llegó un pedido nuevo de la tienda",
+      "order_updated": "Un pedido cambió (importes, pago, etiquetas, cancelación, ediciones)",
+      "order_status_changed": "Cambió el estado canónico de un pedido",
+      "shipment_updated": "Se creó un envío o cambió su estado",
+      "return_updated": "Se solicitó una devolución o cambió de estado",
+      "inventory_low_stock": "Una variante bajó al umbral de stock bajo",
+      "product_updated": "Cambió un producto o sus variantes"
+    },
+    "webhooks": {
+      "title": "Endpoints de webhook",
+      "description": "Cada endpoint recibe un POST firmado cuando ocurre un evento de los tipos elegidos.",
+      "create_title": "Nuevo endpoint",
+      "url": "URL",
+      "url_hint": "Solo https, en un host público; se rechazan las direcciones privadas e internas.",
+      "description_label": "Descripción",
+      "description_placeholder": "p. ej. Pedidos ERP",
+      "events": "Eventos",
+      "create": "Añadir endpoint",
+      "secret_once": "Copia ahora el secreto de firma: solo se muestra una vez.",
+      "secret_rotated": "Nuevo secreto de firma (se muestra una vez). El anterior sigue firmando durante 24 horas.",
+      "empty": "Todavía no hay endpoints de webhook.",
+      "col_url": "Endpoint",
+      "col_state": "Estado",
+      "col_events": "Eventos",
+      "col_24h": "Últimas 24 h",
+      "col_secret": "Secreto",
+      "active": "Activo",
+      "paused": "En pausa",
+      "health": "{ok} entregadas · {failed} con errores",
+      "grace": "Secreto anterior válido hasta {when}",
+      "send_test": "Enviar prueba",
+      "pause": "Pausar",
+      "resume": "Reanudar",
+      "rotate": "Regenerar secreto",
+      "rotate_confirm": "¿Emitir un nuevo secreto de firma? El actual sigue firmando durante 24 horas para que puedas cambiarlo.",
+      "delete": "Eliminar",
+      "delete_confirm": "¿Eliminar este endpoint y su registro de entregas?"
+    },
+    "deliveries": {
+      "title": "Entregas de webhooks",
+      "description": "Cada entrega de cada endpoint, de la más reciente, con sus intentos. Las entregas fallidas se reintentan durante unas 4 horas y luego se pueden reenviar a mano.",
+      "filter_endpoint": "Endpoint",
+      "filter_status": "Estado",
+      "filter_event": "Evento",
+      "all": "Todos",
+      "status_failed_any": "Con errores (reintentando o fallidas)",
+      "apply": "Filtrar",
+      "reset": "Restablecer",
+      "empty_title": "Sin entregas",
+      "empty_description": "Las entregas aparecen aquí cuando ocurre un evento de un tipo suscrito, o cuando envías una prueba.",
+      "col_event": "Evento",
+      "col_status": "Estado",
+      "col_endpoint": "Endpoint",
+      "col_when": "Cuándo",
+      "col_response": "Respuesta",
+      "col_attempts": "Intentos",
+      "col_next": "Próximo intento",
+      "col_error": "Error",
+      "col_duration": "Duración",
+      "test": "prueba",
+      "redelivery": "reenvío",
+      "redeliver": "Reenviar",
+      "older": "Entregas anteriores",
+      "status": {
+        "pending": "Pendiente",
+        "sending": "Enviando",
+        "retrying": "Reintentando",
+        "succeeded": "Entregada",
+        "dead": "Fallida",
+        "cancelled": "Cancelada"
+      },
+      "detail_title": "Entrega de webhook",
+      "detail_description": "Creada el {when}",
+      "summary": "Resumen",
+      "event_id": "Id del evento",
+      "delivered_at": "Entregada",
+      "response_excerpt": "Respuesta",
+      "attempts": "Intentos",
+      "no_attempts": "Aún sin intentos.",
+      "payload": "Payload"
+    },
+    "activity": {
+      "title": "Llamadas recientes a la API",
+      "description": "Las últimas llamadas de los 7 días pasados: ruta, respuesta y token, nunca los datos intercambiados.",
+      "calls": "Llamadas",
+      "errors": "Errores del servidor",
+      "denied": "Denegadas",
+      "rate_limited": "Por encima del límite",
+      "empty": "Sin llamadas a la API en los últimos 7 días.",
+      "col_route": "Ruta",
+      "col_status": "Respuesta",
+      "col_when": "Cuándo",
+      "col_token": "Token",
+      "col_duration": "Duración"
+    },
+    "errors": {
+      "generic": "Algo salió mal. Inténtalo de nuevo.",
+      "forbidden": "No puedes hacer esto aquí.",
+      "api_unavailable": "La API no está disponible para este espacio de trabajo.",
+      "invalid_input": "Revisa los campos e inténtalo de nuevo.",
+      "no_scopes": "Elige al menos un scope.",
+      "limit_reached": "Alcanzaste el número máximo de tokens o endpoints activos.",
+      "not_found": "No encontrado: puede que se haya eliminado.",
+      "invalid_url": "Usa una URL https en un host público, sin usuario, contraseña ni #fragmento.",
+      "private_address": "Esta URL apunta a una dirección privada, interna o de metadatos: no puede recibir webhooks.",
+      "unresolvable": "El nombre del host no se resuelve.",
+      "invalid_events": "Elige al menos un evento."
+    }
+  },
+  "api_docs": {
+    "title": "Documentación de la API",
+    "description": "API REST v1 y webhooks: autenticación, scopes, todas las rutas, paginación, errores, límites y firmas.",
+    "start": {
+      "title": "Primeros pasos",
+      "description": "Una API JSON sobre HTTPS para pedidos, clientes, catálogo, stock, envíos, devoluciones, descuentos y compras.",
+      "base": "URL base: {base}",
+      "auth": "Crea un token en Ajustes → Desarrolladores y envíalo como Authorization: Bearer <token>. Los mismos tokens personales sirven para el servidor MCP; la API solo lee sus scopes de API.",
+      "versioning": "La versión va en la ruta (/v1). Dentro de la v1 pueden añadirse campos a las respuestas; nada se elimina ni se renombra."
+    },
+    "scopes": {
+      "title": "Scopes",
+      "description": "Una ruta requiere su scope y el permiso en la app de la persona del token (rol).",
+      "col_scope": "Scope",
+      "col_what": "Permite"
+    },
+    "conventions": {
+      "title": "Convenciones",
+      "pagination": "Las listas se paginan con un cursor opaco: pasa limit (de 1 a {max}, por defecto {fallback}) y, para la página siguiente, el nextCursor de la respuesta anterior con los mismos filtros. hasMore indica si hay otra página.",
+      "filters": "Los filtros de las listas reflejan los de la app. Los valores de status, paymentMethod y paymentStatus pueden separarse con comas. updatedSince devuelve los registros cambiados desde una fecha y hora, para sincronizaciones incrementales. Un parámetro desconocido es un error, nunca se ignora.",
+      "formats": "Los importes son enteros en unidades menores (céntimos) junto a su moneda. Las fechas son ISO 8601 en UTC. Los ids son UUID.",
+      "pii": "Los nombres, correos, teléfonos y direcciones de los clientes se enmascaran salvo que el token tenga pii:read, el rol de la persona pueda ver datos personales y el espacio de trabajo haya activado los datos completos de clientes.",
+      "limits": "Límites: {perToken} peticiones por minuto por token y {perTenant} por espacio de trabajo, en ventanas fijas de un minuto. Por encima: 429 con Retry-After (segundos).",
+      "idempotency": "Las escrituras aceptan la cabecera Idempotency-Key (de 1 a 200 caracteres visibles). Durante {hours} horas, la misma clave con la misma petición devuelve la respuesta guardada (cabecera Idempotency-Replayed: true) sin escribir de nuevo; la misma clave con otra petición se rechaza (422). Solo se guardan las respuestas correctas."
+    },
+    "routes": {
+      "title": "Rutas",
+      "description": "Generadas desde la propia API: esta lista siempre está completa.",
+      "any_token": "cualquier token",
+      "idempotent": "Idempotency-Key",
+      "query": "Parámetros de la consulta",
+      "body": "Cuerpo JSON",
+      "items": {
+        "me": "El token, la persona por la que actúa (rol), el espacio de trabajo, el modo PII y los límites. Úsalo para probar una conexión.",
+        "orders_list": "Pedidos, del más reciente, con los filtros de las listas de la app.",
+        "orders_get": "Un pedido con sus líneas.",
+        "orders_events": "El historial del pedido: cada cambio con el tipo de autor y la diferencia de campos, del más reciente.",
+        "orders_notes_create": "Añade una nota interna al historial del pedido (nunca se muestra al cliente).",
+        "orders_status_update": "Pasa un pedido abierto a revisión o en espera (nuevo, por revisar, confirmado, en espera) mediante el motor de estados. Cancelar y reembolsar siguen en la app; los hechos de la plataforma tienen prioridad.",
+        "customers_list": "Clientes, del más reciente.",
+        "customers_get": "Un cliente con su número de pedidos y gasto total.",
+        "products_list": "Productos con sus variantes, del más reciente.",
+        "products_get": "Un producto con sus variantes y opciones dinámicas.",
+        "variants_list": "Variantes, para buscar una por SKU o código de barras.",
+        "locations_list": "Ubicaciones de stock.",
+        "inventory_list": "Niveles de stock por variante y ubicación.",
+        "inventory_adjust": "Ajusta el stock de una variante en una ubicación con un código de motivo, como el ajuste manual de la app (movimiento, auditoría, escritura en la tienda).",
+        "shipments_list": "Envíos, del más reciente.",
+        "shipments_get": "Un envío con sus eventos de seguimiento.",
+        "returns_list": "Devoluciones, de la más reciente.",
+        "returns_get": "Una devolución con sus líneas.",
+        "discounts_list": "Códigos de descuento, del más reciente.",
+        "discounts_get": "Un código de descuento.",
+        "purchase_orders_list": "Pedidos de compra, del más reciente.",
+        "purchase_orders_get": "Un pedido de compra con sus líneas.",
+        "webhook_endpoints_list": "Los endpoints de webhook del espacio de trabajo (los secretos nunca se devuelven).",
+        "webhook_endpoints_create": "Añade un endpoint de webhook; la respuesta lleva su secreto de firma, una sola vez.",
+        "webhook_endpoints_delete": "Elimina un endpoint de webhook y su registro de entregas."
+      }
+    },
+    "params": {
+      "q": "Búsqueda libre (pedidos: número, nombre, correo o teléfono; clientes: nombre o correo; productos: título o SKU)",
+      "status": "Filtro por estado; los pedidos aceptan varios estados canónicos separados por comas",
+      "paymentMethod": "Métodos de pago separados por comas (card, wallet, bank_transfer, cod, bnpl, other)",
+      "paymentStatus": "Estados de pago separados por comas (pending, paid, partially_refunded, refunded, voided)",
+      "channel": "Canal de venta",
+      "tag": "Etiqueta de la tienda",
+      "customerId": "Pedidos de un cliente",
+      "from": "Realizados este día o después (AAAA-MM-DD)",
+      "to": "Realizados este día o antes (AAAA-MM-DD)",
+      "updatedSince": "Cambiados en esta fecha y hora ISO 8601 o después",
+      "limit": "Tamaño de la página",
+      "cursor": "nextCursor de la página anterior",
+      "country": "Código de país de dos letras",
+      "acceptsMarketing": "true o false",
+      "productType": "Tipo de producto",
+      "sku": "SKU exacto",
+      "barcode": "Código de barras exacto",
+      "productId": "Variantes de un producto",
+      "variantId": "Id de la variante",
+      "locationId": "Id de la ubicación",
+      "orderId": "Registros de un pedido",
+      "code": "Código de descuento exacto (sin distinguir mayúsculas)",
+      "active": "true o false",
+      "supplierId": "Pedidos de compra de un proveedor",
+      "body": "La nota, hasta 4.000 caracteres",
+      "note": "El motivo, guardado en el historial (hasta 500 caracteres)",
+      "delta": "Unidades que añadir (positivo) o quitar (negativo)",
+      "reason": "Código de motivo: damaged, lost, found, count_correction u other",
+      "url": "URL https en un host público",
+      "eventTypes": "Tipos de evento que recibir",
+      "description": "Una etiqueta para el endpoint"
+    },
+    "errors": {
+      "title": "Errores",
+      "description": "Todos los errores tienen la misma forma y un código estable sobre el que decidir; el mensaje es para las personas.",
+      "col_code": "Código",
+      "col_status": "HTTP",
+      "col_what": "Significado",
+      "items": {
+        "unauthorized": "No se envió ningún token.",
+        "invalid_token": "El token es desconocido, caducó o se revocó.",
+        "forbidden": "La persona del token no puede hacerlo en la app (rol), o la función está desactivada.",
+        "insufficient_scope": "Al token le falta el scope de la ruta (details.requiredScope).",
+        "not_available": "El plan del espacio de trabajo no incluye la API, o el acceso está suspendido (details.reason).",
+        "not_found": "La ruta no existe, o no hay ningún registro con este id en este espacio de trabajo.",
+        "method_not_allowed": "La ruta existe con otros métodos (cabecera Allow).",
+        "conflict": "El estado del registro no permite el cambio (por ejemplo, un paso de estado).",
+        "idempotency_key_reused": "La Idempotency-Key se usó con una petición distinta.",
+        "invalid_request": "Un parámetro de la consulta o una cabecera no es válido o es desconocido.",
+        "invalid_cursor": "El cursor no pertenece a esta lista o a estos filtros.",
+        "payload_too_large": "El cuerpo JSON supera los 64 KB.",
+        "unprocessable": "El cuerpo no es válido (details.issues) o el servicio rechazó el cambio.",
+        "rate_limited": "Demasiadas peticiones: espera Retry-After segundos.",
+        "internal_error": "Un fallo de nuestra parte; el mensaje lleva un id de petición para soporte."
+      }
+    },
+    "webhooks": {
+      "title": "Webhooks",
+      "description": "Añade endpoints en Ajustes → Desarrolladores o mediante la API. Cada evento es un POST con cuerpo JSON a cada endpoint activo suscrito a su tipo.",
+      "col_event": "Evento",
+      "col_what": "Cuándo",
+      "payload": "El cuerpo lleva id (el evento, igual en reintentos y reenvíos), type, apiVersion, createdAt y data con el registro en el formato de la API, sin datos personales: lee el registro mediante la API con un token que pueda verlos.",
+      "headers": "Cabeceras: {id} (la entrega), {event} (el tipo), {timestamp} (segundos Unix) y {signature}.",
+      "signing": "La firma es el HMAC-SHA256 del timestamp, un punto y el cuerpo sin procesar, con el secreto del endpoint como clave, en hexadecimal: t=<timestamp>,v1=<firma>. Rechaza los timestamps de más de {tolerance} segundos. Tras regenerar el secreto también firma el anterior (un segundo v1) durante {grace} horas.",
+      "retries": "Una entrega tiene éxito con cualquier respuesta 2xx en {timeout} segundos. Si no, se reintenta tras {schedule}; después la entrega falla y se puede reenviar a mano desde el registro. Las redirecciones no se siguen.",
+      "security": "Los endpoints deben ser https en un host público. Las direcciones privadas, de loopback, link-local o de metadatos de la nube se rechazan al guardar el endpoint y otra vez en cada entrega, tras la resolución DNS."
+    }
+  },
+  "ga4": {
+    "card": {
+      "property_line": "{name} · propiedad {id}",
+      "not_connected_description": "Sesiones por canal, página de destino y campaña para las tasas de conversión.",
+      "last_day": "Último día leído",
+      "service_account": "Cuenta de servicio",
+      "last_run": "Última ejecución: {kind}, {status}, {rows} filas ({since} → {until})",
+      "kind": {
+        "backfill": "importación de 12 meses",
+        "daily": "sincronización diaria",
+        "reconcile": "resincronización nocturna"
+      },
+      "open_analytics": "Abrir el análisis de tráfico",
+      "connect_mock": "Conectar la propiedad simulada",
+      "connect_title": "Tu propia cuenta de servicio u OAuth",
+      "connect_description": "Para tiendas que prefieren credenciales propias: pega la clave de la cuenta de servicio (JSON) o las credenciales OAuth y el ID numérico de la propiedad. La clave se comprueba en la propiedad y se guarda cifrada.",
+      "auth": {
+        "service_account": "Cuenta de servicio (recomendado)",
+        "oauth": "OAuth"
+      },
+      "property": "Propiedad",
+      "property_id": "Id de propiedad",
+      "property_id_help": "GA4 → Administrar → Detalles de la propiedad: un número como 312456789 (no el ID de medición G-).",
+      "service_account_json": "Clave de la cuenta de servicio (JSON)",
+      "service_account_help": "El archivo completo descargado de Google Cloud (Claves → Agregar clave → JSON). La cuenta de servicio necesita acceso de Lector a la propiedad.",
+      "choose_property": "Elegir propiedad",
+      "properties_empty": "Las credenciales no pueden listar propiedades (quizá la Admin API está desactivada): escribe el id de la propiedad.",
+      "set_property": "Usar esta propiedad",
+      "property_saved": "Propiedad cambiada a {name}: se están leyendo sus 12 meses.",
+      "backfill_done": "Conectado: {n} filas de tráfico importadas.",
+      "backfill_running": "Conectado: {n} filas importadas por ahora, el resto sigue en segundo plano.",
+      "resync_done": "Resincronizado: {n} filas.",
+      "resync_queued": "Resincronización en cola.",
+      "disconnect_confirm": "¿Desconectar Google Analytics 4? El tráfico ya importado se conserva.",
+      "disconnected": "Desconectado.",
+      "errors": {
+        "ga4_invalid_property": "Introduce el id numérico de la propiedad GA4 (por ejemplo 312456789).",
+        "ga4_invalid_key": "Esto no es un archivo de clave de cuenta de servicio válido.",
+        "not_connected": "Conecta primero Google Analytics 4."
+      }
+    },
+    "analytics": {
+      "tab": "Tráfico",
+      "not_in_plan": "Google Analytics 4 no está incluido en este plan.",
+      "empty_title": "Conecta Google Analytics 4 para ver las tasas de conversión",
+      "empty_description": "Con GA4 conectado, esta pestaña muestra pedidos ÷ sesiones por canal y por página de destino, junto al píxel propio.",
+      "empty_cta": "Ir a Integraciones",
+      "channel": "Canal",
+      "landing": "Página de destino",
+      "orders": "Pedidos online",
+      "ga4_sessions": "Sesiones GA4",
+      "ga4_cr": "Tasa de conversión (GA4)",
+      "pixel_sessions": "Sesiones píxel",
+      "pixel_cr": "Tasa de conversión (píxel)",
+      "engagement": "Con interacción",
+      "add_to_carts": "Añadidos al carrito",
+      "totals": "Total",
+      "cr_hint": "{orders} pedidos ÷ {sessions} sesiones",
+      "pixel_since": "Sesiones píxel desde el {date}",
+      "pixel_none": "Ninguna sesión píxel en el periodo",
+      "orders_hint": "Pedidos de la tienda online del periodo, cualquier estado",
+      "by_channel": "Tasa de conversión por canal",
+      "by_channel_description": "Pedidos online del periodo por canal de atribución ÷ sesiones GA4 del mismo canal. Los pedidos llevan a la lista de pedidos, las sesiones a las filas GA4.",
+      "why_title": "Por qué GA4 y el píxel dan tasas distintas",
+      "why_points": [
+        "Consentimiento y bloqueos: GA4 cuenta solo a los visitantes que aceptan las cookies de análisis y no bloquean Google; el píxel propio funciona en el dominio de la tienda y pierde menos sesiones.",
+        "Reglas de sesión distintas: GA4 abre una sesión nueva tras 30 minutos de inactividad y a medianoche; el píxel mantiene una sesión por visita y por contacto de marketing.",
+        "Reglas de canal distintas: GA4 agrupa el tráfico con su agrupación predeterminada; los canales de {product} salen de los click id y las UTM (un anuncio de Instagram es Paid Social en ambos, una newsletter sin UTM puede ser Referral en GA4).",
+        "Cobertura: el píxel cuenta solo desde que se instaló y en las páginas donde funciona; GA4 cubre todo el periodo.",
+        "Los pedidos son los mismos en las dos tasas: pedidos online reales de la tienda, no eventos de compra de GA4."
+      ],
+      "by_landing": "Tasa de conversión por página de destino",
+      "by_landing_description": "Las 25 páginas de destino con más sesiones GA4; se quita la query string (UTM, click id), así que una página es una fila.",
+      "no_rows": "No hay tráfico en este periodo."
+    },
+    "rows": {
+      "back": "Análisis de tráfico",
+      "title": "Filas de tráfico GA4",
+      "description": "Las filas diarias leídas de Google Analytics 4.",
+      "description_property": "Las filas diarias leídas de {name}.",
+      "filters": {
+        "channel": "Canal",
+        "source": "Fuente",
+        "medium": "Medio",
+        "campaign": "Campaña",
+        "campaignId": "Campaña emparejada",
+        "landing": "Página de destino"
+      },
+      "clear": "Quitar filtros",
+      "not_in_plan": "Google Analytics 4 no está incluido en este plan.",
+      "empty_title": "Google Analytics 4 no está conectado",
+      "empty_description": "Conecta la propiedad GA4 de la tienda para leer aquí sus sesiones.",
+      "empty_cta": "Ir a Integraciones",
+      "totals": "{sessions} sesiones · {engaged} con interacción · {atc} añadidos al carrito",
+      "no_rows": "Ninguna fila con estos filtros.",
+      "columns": {
+        "landing": "Página de destino",
+        "date": "Día",
+        "channel": "Grupo de canales",
+        "source_medium": "Fuente / medio",
+        "campaign": "Campaña",
+        "sessions": "Sesiones",
+        "engaged": "Con interacción",
+        "users": "Usuarios",
+        "add_to_carts": "Añadidos al carrito"
+      },
+      "summary": "{n} filas"
+    },
+    "campaigns": {
+      "sessions": "Sesiones GA4",
+      "cr_title": "Sesiones GA4 de la campaña UTM · pedidos atribuidos ÷ sesiones"
+    },
+    "setup": {
+      "title": "Conecta en dos minutos, sin compartir contraseñas",
+      "intro": "Da a nuestro lector de solo lectura acceso a tu propiedad GA4 y pega el ID de propiedad.",
+      "copy": "Copiar",
+      "connect": "Conectar",
+      "advanced": "Avanzado: tu propia cuenta de servicio u OAuth",
+      "not_configured": "La cuenta lectora de GA4 aún no está configurada en esta plataforma: pide ayuda al soporte o usa tu propia cuenta de servicio en Avanzado.",
+      "demo_hint": "Tienda demo: la propiedad simulada es {id}.",
+      "steps": {
+        "open_admin": "Abre analytics.google.com, elige la propiedad de la tienda y haz clic en Administrar (el engranaje abajo a la izquierda).",
+        "access": "En la columna Propiedad abre Gestión del acceso a la propiedad, luego haz clic en + y Añadir usuarios.",
+        "add_viewer": "Pega este correo, elige el rol Lector, desmarca “Notificar a los nuevos usuarios” y haz clic en Añadir:",
+        "property_id": "En Administrar, abre Detalles de la propiedad y copia el ID DE PROPIEDAD: un número como 312456789 (no el ID de medición G-).",
+        "paste": "Pega aquí el ID de propiedad:",
+        "connect": "Haz clic en Conectar: comprobamos el acceso e importamos en segundo plano tus últimos 12 meses."
+      },
+      "errors": {
+        "no_access": {
+          "message": "Sin acceso a esta propiedad.",
+          "fix": "En GA4 → Administrar → Gestión del acceso a la propiedad añade {email} como Lector (paso 3), espera un minuto y vuelve a intentarlo. Comprueba que estás en la misma propiedad que el ID."
+        },
+        "wrong_property": {
+          "message": "ID de propiedad incorrecto.",
+          "fix": "Copia el ID DE PROPIEDAD numérico de Administrar → Detalles de la propiedad (paso 4). El ID de medición G-… y el id de la cuenta no sirven."
+        },
+        "api_unreachable": {
+          "message": "No se pudo contactar con Google Analytics.",
+          "fix": "La Analytics Data API de Google no respondió o no está habilitada para el lector. Vuelve a intentarlo en unos minutos; si sigue fallando, contacta con soporte (con tu propia cuenta de servicio: habilita la Analytics Data API en tu proyecto de Cloud)."
+        },
+        "quota": {
+          "message": "Por ahora se alcanzó el límite de solicitudes de Google para esta propiedad.",
+          "fix": "No hay que hacer nada: la importación se reanuda sola cuando GA4 lo permita de nuevo."
+        },
+        "credentials": {
+          "message": "Google rechazó el acceso.",
+          "fix": "Vuelve a conectar; con tu propia cuenta de servicio crea una clave nueva, con OAuth inicia sesión de nuevo."
+        },
+        "unknown": {
+          "message": "La prueba no tuvo éxito.",
+          "fix": "Repite los pasos de arriba; abajo están los detalles de Google. La guía enumera los errores comunes."
+        }
+      }
+    }
+  },
+  "daily_sales": {
+    "title": "Resumen diario de ventas",
+    "description": "Por día en la zona horaria de la tienda y por tipo impositivo: ventas brutas, descuentos, reembolsos, envíos e impuestos, luego comisiones de pago por método y el neto. Importes sin impuestos salvo la columna de impuestos; cada número abre los pedidos que lo forman.",
+    "back": "Análisis",
+    "export": "Exportar CSV",
+    "scope": "{from} – {to} · días en {tz} · importes en {currency}",
+    "identity": "Ventas brutas − descuentos − reembolsos = ventas netas · ventas netas + envíos + impuestos = total · total − comisiones = neto.",
+    "orders_value": "{sales, plural, one {# venta} other {# ventas}} · {refunds, plural, one {# reembolso} other {# reembolsos}}",
+    "totals": "Total",
+    "rate_label": "{country} {rate}",
+    "empty": "No hay ventas en este periodo.",
+    "empty_hint": "Los pedidos que son ventas, o cuyo pago se cobró, aparecen el día en que se hicieron; los reembolsos, el día en que ocurrieron.",
+    "days_title": "Por día",
+    "rates_title": "Por tipo impositivo",
+    "rates_description": "Ventas netas e impuestos de cada tipo, día a día. En una pantalla pequeña la cuadrícula se desplaza en horizontal dentro de su marco.",
+    "rates_region": "Ventas netas e impuestos por tipo impositivo (se desplaza en horizontal)",
+    "net_short": "Ventas netas",
+    "tax_short": "Impuestos",
+    "fees_title": "Comisiones de pago por método",
+    "fees_description": "La comisión real del procesador cuando se importa su liquidación; si no, la estimación según tus tarifas.",
+    "estimated_n": "{n} estimadas",
+    "columns": {
+      "day": "Día",
+      "orders": "Pedidos",
+      "rate": "Tipo impositivo",
+      "gross": "Ventas brutas",
+      "discounts": "Descuentos",
+      "refunds": "Reembolsos",
+      "net_sales": "Ventas netas",
+      "shipping": "Envíos",
+      "tax": "Impuestos",
+      "total": "Total",
+      "fees": "Comisiones",
+      "net": "Neto",
+      "method": "Método",
+      "estimated": "Comisiones estimadas"
+    },
+    "day": {
+      "title": "Ventas del {day}",
+      "previous": "Día anterior",
+      "next": "Día siguiente",
+      "no_sales": "No hay ventas ni reembolsos este día.",
+      "orders_title": "Pedidos detrás de los números",
+      "count": "{n, plural, one {# pedido} other {# pedidos}}",
+      "rate_filter": "tipo {rate}",
+      "method_filter": "comisiones pagadas con {method}",
+      "all": "Todos",
+      "kinds": {
+        "sale": "Venta",
+        "refund": "Reembolso",
+        "fee": "Comisión"
+      },
+      "empty": "No hay pedidos este día.",
+      "empty_filtered": "No hay pedidos detrás de este número.",
+      "columns": {
+        "order": "Pedido",
+        "kinds": "En el resumen como",
+        "placed": "Realizado"
+      }
+    }
+  },
+  "accounting": {
+    "statuses": {
+      "pushed": "Enviado",
+      "waiting": "En espera",
+      "failed": "Fallido",
+      "voided": "Anulado",
+      "empty": "Nada que registrar",
+      "pushing": "Enviando"
+    },
+    "account_types": {
+      "asset": "Activo",
+      "liability": "Pasivo",
+      "equity": "Patrimonio neto",
+      "revenue": "Ingresos",
+      "expense": "Gastos"
+    },
+    "reasons": {
+      "day_open": "El día aún no está cerrado: se podrá enviar desde el {at}.",
+      "before_start": "Anterior al primer día a enviar ({day}).",
+      "mapping_incomplete": "Sin cuenta asignada para: {lines}.",
+      "unbalanced": "El debe y el haber difieren en {difference}.",
+      "orders_syncing": "{count, plural, one {# pedido se está} other {# pedidos se están}} sincronizando todavía desde la tienda: {orders}.",
+      "orders_pending_write": "{count, plural, one {# pedido espera} other {# pedidos esperan}} a que un cambio llegue a la tienda: {orders}."
+    },
+    "errors": {
+      "accounting_disabled": "El complemento de contabilidad no está activo en esta tienda.",
+      "module_disabled": "El complemento de contabilidad no está activo en esta tienda.",
+      "accounting_not_connected": "Conecta primero el sistema contable.",
+      "accounting_not_pushed": "Este día no tiene un asiento enviado que sustituir.",
+      "accounting_not_ready": "Este día ahora no cuadra: no se puede reenviar hasta resolver los motivos del registro.",
+      "accounting_not_found": "Este día aún no tiene asiento.",
+      "accounting_unknown_account": "Estas cuentas no están en el plan de cuentas (o están archivadas): {accounts}.",
+      "accounting_invalid_input": "Algunos ajustes no son válidos.",
+      "accounting_provider": "El sistema contable rechazó la solicitud."
+    },
+    "log": {
+      "title": "Envío a contabilidad",
+      "description": "Un asiento por cada día cerrado, construido desde el resumen diario de ventas y enviado a tu sistema contable solo cuando cuadra: debe igual a haber, día cerrado en la zona horaria de la tienda y ningún pedido del día sincronizándose todavía o esperando a que un cambio llegue a la tienda.",
+      "settings_link": "Ajustes de contabilidad",
+      "not_connected": "El sistema contable no está conectado: los días no se envían.",
+      "run": "Enviar ahora",
+      "run_done": "Enviados {pushed}, en espera {waiting}, fallidos {failed}.",
+      "last_pushed": "Último día enviado",
+      "filter": "Filtrar por estado",
+      "all": "Todos",
+      "empty": "Aún no se ha evaluado ningún día.",
+      "empty_filtered": "Ningún día con este estado.",
+      "empty_hint": "La ejecución horaria evalúa cada día cerrado de la ventana; \"Enviar ahora\" lo hace al momento.",
+      "empty_day": "Sin ventas, reembolsos ni comisiones: nada que registrar.",
+      "next_attempt": "Próximo intento {at} · intento {n}",
+      "pushed_at": "Enviado {at} {id}",
+      "voided_at": "Anulado {at}, sustituido por la versión siguiente",
+      "summary": "{n, plural, one {# fila} other {# filas}}",
+      "retry": "Reintentar ahora",
+      "retry_pushed": "Enviado.",
+      "retry_failed": "Sigue fallando: mira el error.",
+      "retry_waiting": "El día sigue en espera: mira los motivos.",
+      "repush": "Reenviar día",
+      "repush_title": "¿Reenviar el {day}?",
+      "repush_description": "La versión {version} se anula en el sistema contable y se sustituye por la versión {next}, construida con el resumen de hoy. El cambio queda en el registro de auditoría.",
+      "repush_note": "Nota (opcional)",
+      "repush_confirm": "Anular y reenviar",
+      "repush_done": "Sustituido por la versión {version}.",
+      "cancel": "Cancelar",
+      "columns": {
+        "day": "Día",
+        "status": "Estado",
+        "detail": "Detalles",
+        "total": "Total",
+        "net": "Neto (cuenta puente)",
+        "debit": "Debe",
+        "action": "Acciones"
+      }
+    },
+    "day": {
+      "title": "Asiento del {day}",
+      "description": "Cada versión del asiento del día con sus líneas, tal como se envió al sistema contable.",
+      "summary_link": "Ventas de este día",
+      "empty": "Este día aún no se ha evaluado.",
+      "version": "Versión {v}",
+      "totals": "Total",
+      "columns": {
+        "account": "Cuenta",
+        "description": "Línea",
+        "debit": "Debe",
+        "credit": "Haber"
+      }
+    },
+    "connection": {
+      "accounts": "Plan de cuentas",
+      "accounts_value": "{n} cuentas · leído el {at}",
+      "connect": "Conectar",
+      "connect_mock": "Conectar el sistema simulado",
+      "connected": "Conectado: {n} cuentas leídas.",
+      "test": "Probar conexión",
+      "test_ok": "Conexión correcta ({account}).",
+      "test_failed": "La conexión falló: {error}",
+      "resync": "Resincronizar cuentas",
+      "resync_done": "{n} cuentas leídas.",
+      "simulate_failure": "Simular un rechazo",
+      "simulated": "El próximo envío se rechazará con un límite de solicitudes.",
+      "log_link": "Registro de envíos",
+      "settings_link": "Ajustes"
+    },
+    "settings": {
+      "title": "Ajustes de contabilidad",
+      "description": "El sistema contable, su plan de cuentas y la cuenta a la que va cada línea del resumen diario de ventas.",
+      "chart_title": "Plan de cuentas",
+      "chart_description": "Leído del sistema contable (Resincronizar cuentas). Las cuentas archivadas no se pueden asignar.",
+      "chart_empty": "Aún no leído: conecta el sistema y luego Resincronizar cuentas.",
+      "archived": "Archivada",
+      "columns": {
+        "code": "Código",
+        "name": "Nombre",
+        "type": "Tipo",
+        "active": "Estado"
+      },
+      "mapping_title": "Asignación de cuentas",
+      "mapping_description": "Haber: ventas e impuestos por tipo, envíos. Debe: descuentos, reembolsos, comisiones de pago y la cuenta puente para el neto que liquidan los procesadores. Un día con una línea sin cuenta queda en espera.",
+      "lines": {
+        "sales": "Ventas",
+        "tax": "IVA repercutido",
+        "shipping": "Ingresos por envíos",
+        "discounts": "Descuentos",
+        "refunds": "Reembolsos",
+        "fees": "Comisiones de pago",
+        "clearing": "Liquidaciones / cuenta puente"
+      },
+      "hints": {
+        "sales": "Por defecto para cada tipo sin cuenta propia.",
+        "tax": "Cuenta de impuestos por defecto para cada tipo sin cuenta propia.",
+        "shipping": "Envíos cobrados a los clientes, sin impuestos.",
+        "discounts": "Descuentos concedidos, sin impuestos (debe).",
+        "refunds": "Reembolsos sin impuestos (debe); su impuesto reduce la cuenta de impuestos.",
+        "fees": "Comisiones de los procesadores: reales de las liquidaciones, si no, estimadas.",
+        "clearing": "Importes pendientes de los procesadores de pago y remesas del contra reembolso: el neto del día."
+      },
+      "by_rate": "Por tipo impositivo",
+      "by_rate_hint": "Tipos vistos en los últimos 30 días y los configurados. Déjalo vacío para usar las cuentas por defecto de arriba.",
+      "use_default": "Usar la predeterminada",
+      "not_mapped": "Sin asignar",
+      "start_day": "Primer día a enviar",
+      "start_day_hint": "Los días anteriores nunca se envían (ya están en tu contabilidad).",
+      "lookback": "Días hacia atrás",
+      "close_delay": "Horas tras la medianoche",
+      "close_delay_hint": "Un día se considera cerrado este tiempo después de la medianoche local, para que se asienten los reembolsos tardíos.",
+      "journal_status": "Asientos creados como",
+      "journal_statuses": {
+        "draft": "Borrador",
+        "posted": "Contabilizado"
+      },
+      "save": "Guardar",
+      "saved": "Ajustes guardados."
     }
   }
 }

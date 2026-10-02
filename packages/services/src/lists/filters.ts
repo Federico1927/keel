@@ -1,8 +1,9 @@
-import { and, eq, gte, inArray, lte, schema, sql, type SQL } from "@hullwise/db";
-import { CHURN_RISKS, ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES, UTM_DIMENSIONS, UTM_NONE, type QueryParams, type UtmDimension } from "@hullwise/core";
+import { and, eq, gte, inArray, lte, or, schema, sql, type SQL } from "@hullwise/db";
+import { CHURN_RISKS, ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES, UTM_DIMENSIONS, UTM_NONE, parseSearchTerms, type QueryParams, type UtmDimension } from "@hullwise/core";
 import type { CustomerFilters } from "../crm";
 import type { ReturnFilters } from "../returns";
 import { awaitingStockSql, readyToReleaseSql } from "../backorders";
+import { landingPathSql } from "../traffic";
 
 /**
  * List filters parsed from the URL query, shared by the list pages, the CSV export (direct and in
@@ -34,6 +35,8 @@ export interface OrderFilters {
   /** Attribution channel and UTM values (analytics drill-down); "(none)" matches orders without the value. */
   attrChannel?: string;
   utm?: Partial<Record<UtmDimension, string>>;
+  /** Landing path of the order's first visit, normalised like GA4 rows (`normalizeLandingPath`): conversion by landing page (#86). */
+  landing?: string;
   /** Backorder views: orders waiting for stock, or ready to release (stock covers them / released, not shipped yet). */
   stock?: OrderStockView;
   /** Shipping country (tax report drill-down). */
@@ -76,6 +79,7 @@ export function parseOrderFilters(sp: QueryParams): OrderFilters {
     variant: isUuid(one(sp.variant)) ? one(sp.variant) : undefined,
     missingCost: one(sp.missingCost) === "1" || undefined,
     attrChannel: one(sp.attrChannel)?.trim() || undefined,
+    landing: one(sp.landing)?.trim().slice(0, 500) || undefined,
     utm: Object.fromEntries(UTM_DIMENSIONS.map((d) => [d, one(sp[utmParam(d)])?.trim() || undefined]).filter(([, v]) => v)),
     stock: ORDER_STOCK_VIEWS.find((v) => v === one(sp.stock)),
     country: /^[A-Za-z]{2}$/.test(one(sp.country) ?? "") ? one(sp.country)!.toUpperCase() : undefined,
@@ -97,14 +101,20 @@ export interface OrderFilterScope {
   tenantId: string;
   userId: string | null;
   orderNumberPrefix: string;
+  /** Tenant country: a phone typed without its prefix is read in this country (E.164 match). */
+  country?: string;
 }
 
 export function orderListWhere(scope: OrderFilterScope, f: OrderFilters): SQL {
   const conds: SQL[] = [eq(schema.orders.tenantId, scope.tenantId)];
   if (f.q) {
     const numeric = f.q.replace(/^#/, "").replace(new RegExp(`^${scope.orderNumberPrefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "i"), "");
-    if (/^\d{2,}$/.test(numeric)) conds.push(eq(schema.orders.orderNumber, Number(numeric)));
-    else conds.push(sql`${schema.orders.searchBlob} ilike ${"%" + f.q.toLowerCase() + "%"}`);
+    // a phone in any format matches on E.164 (#49: find an order by the number the customer calls from)
+    const phone = scope.country ? parseSearchTerms(f.q, { country: scope.country, orderNumberPrefix: scope.orderNumberPrefix }).phoneE164 : null;
+    const byPhone = phone ? [eq(schema.orders.phoneE164, phone)] : [];
+    // up to 9 digits fits the integer column; a longer run of digits is a phone or text
+    if (/^\d{2,9}$/.test(numeric)) conds.push(or(eq(schema.orders.orderNumber, Number(numeric)), ...byPhone)!);
+    else conds.push(or(sql`${schema.orders.searchBlob} ilike ${"%" + f.q.toLowerCase() + "%"}`, ...byPhone)!);
   }
   if (f.status?.length) conds.push(inArray(schema.orders.status, f.status));
   if (f.payment?.length) conds.push(inArray(schema.orders.paymentMethod, f.payment));
@@ -130,6 +140,7 @@ export function orderListWhere(scope: OrderFilterScope, f: OrderFilters): SQL {
   if (f.subscriptionContract) conds.push(eq(schema.orders.subscriptionContractId, f.subscriptionContract));
   if (f.missingCost) conds.push(sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.unit_cost_minor is null and not l.is_ancillary)`);
   if (f.attrChannel) conds.push(f.attrChannel === "unknown" ? sql`not exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.channel <> 'unknown')` : sql`exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.channel = ${f.attrChannel})`);
+  if (f.landing) conds.push(sql`${landingPathSql(sql`${schema.orders.landingSite}`)} = ${f.landing.toLowerCase()}`);
   const utm = Object.entries(f.utm ?? {}) as [UtmDimension, string][];
   // same normalisation as the drill-down: trimmed, case-insensitive, empty = (none)
   if (utm.length) conds.push(sql`coalesce((select ${sql.join(utm.map(([d, v]) => sql`lower(coalesce(nullif(trim(${sql.raw(`a.${UTM_COLUMN[d]}`)}), ''), ${UTM_NONE})) = ${v.toLowerCase()}`), sql` and `)} from order_attribution a where a.order_id = ${schema.orders.id}), ${sql.raw(utm.every(([, v]) => v === UTM_NONE) ? "true" : "false")})`);
@@ -147,7 +158,8 @@ export function parseProductFilters(sp: QueryParams): ProductFilters {
 /** SQL part of the product filters; `risk` is applied after the stock computation. */
 export function productListWhere(tenantId: string, f: ProductFilters): SQL {
   const conds: SQL[] = [eq(schema.products.tenantId, tenantId)];
-  if (f.q) conds.push(sql`(${schema.products.title} ilike ${"%" + f.q + "%"} or exists (select 1 from product_variants v where v.product_id = ${schema.products.id} and v.sku ilike ${"%" + f.q + "%"}))`);
+  // a scanned barcode finds its product too (#49 product lookup)
+  if (f.q) conds.push(sql`(${schema.products.title} ilike ${"%" + f.q + "%"} or exists (select 1 from product_variants v where v.product_id = ${schema.products.id} and (v.sku ilike ${"%" + f.q + "%"} or v.barcode = ${f.q.trim()})))`);
   if (f.type) conds.push(eq(schema.products.productType, f.type));
   if (f.status) conds.push(eq(schema.products.status, f.status));
   return and(...conds)!;

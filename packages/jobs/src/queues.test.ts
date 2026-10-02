@@ -12,11 +12,24 @@ describe("ads resyncs (watchdog, run now)", () => {
     expect(jobTypeOf(QUEUES.syncAds, { provider: "tiktok" })).toBe("sync.ads:tiktok");
     expect(runNowJob("sync.ads:tiktok", "t1", now)).toMatchObject({ queue: QUEUES.syncAds, data: { provider: "tiktok" } });
   });
+  it("a stale Meta ad account re-pulls that account alone (#82)", () => {
+    const [one] = resyncJobsFor("t1", "meta:act_200", now);
+    expect(one).toMatchObject({ data: { provider: "meta", accountExternalId: "act_200" }, singletonKey: "t1:meta:2026-10-02:act_200" });
+    for (const source of ["meta", "meta:entities", "meta:writes"]) expect(resyncJobsFor("t1", source, now)[0]!.data).not.toHaveProperty("accountExternalId");
+  });
 });
 
 describe("subscription app resync (addon.subscriptions)", () => {
   it("re-reads a stale subscription app through the add-on's tick", () => {
     for (const source of ["shopify_subscriptions", "recharge", "loop"]) expect(resyncJobsFor("t1", source)).toEqual([{ queue: QUEUES.tick, data: { kind: "subscriptions" }, singletonKey: "t1:subscriptions" }]);
     expect(runNowJob("tick:subscriptions", null)).toEqual({ queue: QUEUES.tick, data: { kind: "subscriptions" } });
+  });
+});
+
+describe("GA4 resync (#86)", () => {
+  it("a stale GA4 source re-reads the days since the last one; run now does the same", () => {
+    expect(resyncJobsFor("t1", "ga4")).toEqual([{ queue: QUEUES.syncAnalytics, data: { tenantId: "t1", kind: "daily" }, singletonKey: "t1:ga4:daily" }]);
+    expect(jobTypeOf(QUEUES.syncAnalytics, { tenantId: "t1", kind: "backfill" })).toBe("sync.analytics");
+    expect(runNowJob("sync.analytics", "t1")).toMatchObject({ queue: QUEUES.syncAnalytics, data: { kind: "daily" } });
   });
 });

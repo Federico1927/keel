@@ -4,7 +4,7 @@ import { after } from "next/server";
 import { canDo, canWritePage } from "@hullwise/config";
 import { formatDate, formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
 import { listRetentionCampaigns } from "@hullwise/services";
-import { Button, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Button, Card, CardContent, DataList, EmptyState, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { kickCampaigns } from "@/server/campaigns";
 import { SegmentTabs } from "../segment-tabs";
@@ -32,36 +32,19 @@ export default async function RetentionCampaignsPage({ params }: { params: Promi
       ) : (
         <Card>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("columns.name")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("columns.channel")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("columns.sent")}</TableHead>
-                  <TableHead className="hidden text-right lg:table-cell">{t("columns.groups")}</TableHead>
-                  <TableHead>{t("columns.uplift")}</TableHead>
-                  <TableHead className="text-right">{t("columns.net_margin")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.id} data-testid="retention-row">
-                    <TableCell>
-                      <Link href={`${base}/${r.id}`} className="font-medium hover:underline">{r.name}</Link>
-                      <div className="truncate text-xs text-muted-foreground">{r.segmentName ?? t("segment_deleted")}</div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">{t(`channels.${r.channel}`)}{r.kind === "sequence" && <div className="text-xs text-muted-foreground">{t("kinds.sequence")}</div>}</TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <CampaignStatusBadge status={r.status} label={t(`status.${r.status}`)} />
-                      <div className="text-xs text-muted-foreground">{r.status === "scheduled" && r.scheduledAt ? formatDateTime(r.scheduledAt, ctx.locale, ctx.tenant.timezone) : r.sentAt ? formatDate(r.sentAt, ctx.locale, ctx.tenant.timezone) : ""}</div>
-                    </TableCell>
-                    <TableCell className="hidden text-right tabular lg:table-cell">{r.sentAt ? `${formatNumber(r.treatedCount, ctx.locale)} / ${formatNumber(r.holdoutCount, ctx.locale)}` : "—"}</TableCell>
-                    <TableCell><UpliftBadge results={r.results} locale={ctx.locale} /></TableCell>
-                    <TableCell className="text-right tabular">{r.results?.report.netIncrementalMarginMinor != null ? money(r.results.report.netIncrementalMarginMinor) : "—"}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={rows}
+              rowKey={(r) => r.id}
+              rowProps={() => ({ "data-testid": "retention-row" })}
+              columns={[
+                { key: "name", header: t("columns.name"), mobile: "title", cell: (r) => <><Link href={`${base}/${r.id}`} className="font-medium hover:underline">{r.name}</Link><div className="truncate text-xs font-normal text-muted-foreground">{r.segmentName ?? t("segment_deleted")}</div></> },
+                { key: "sent", header: t("columns.sent"), mobile: "badge", cell: (r) => <><CampaignStatusBadge status={r.status} label={t(`status.${r.status}`)} /><div className="text-xs text-muted-foreground max-md:hidden">{r.status === "scheduled" && r.scheduledAt ? formatDateTime(r.scheduledAt, ctx.locale, ctx.tenant.timezone) : r.sentAt ? formatDate(r.sentAt, ctx.locale, ctx.tenant.timezone) : ""}</div></> },
+                { key: "channel", header: t("columns.channel"), mobile: "subtitle", cell: (r) => <>{t(`channels.${r.channel}`)}{r.kind === "sequence" && <span className="text-xs text-muted-foreground md:block"><span className="md:hidden"> · </span>{t("kinds.sequence")}</span>}<span className="text-xs md:hidden">{r.status === "scheduled" && r.scheduledAt ? ` · ${formatDateTime(r.scheduledAt, ctx.locale, ctx.tenant.timezone)}` : r.sentAt ? ` · ${formatDate(r.sentAt, ctx.locale, ctx.tenant.timezone)}` : ""}</span></> },
+                { key: "groups", header: t("columns.groups"), align: "right", priority: 2, className: "tabular", cell: (r) => (r.sentAt ? `${formatNumber(r.treatedCount, ctx.locale)} / ${formatNumber(r.holdoutCount, ctx.locale)}` : "—") },
+                { key: "uplift", header: t("columns.uplift"), label: "", cell: (r) => <UpliftBadge results={r.results} locale={ctx.locale} /> },
+                { key: "margin", header: t("columns.net_margin"), align: "right", className: "tabular", cell: (r) => (r.results?.report.netIncrementalMarginMinor != null ? money(r.results.report.netIncrementalMarginMinor) : "—") },
+              ]}
+            />
           </CardContent>
         </Card>
       )}

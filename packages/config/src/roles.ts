@@ -41,6 +41,7 @@ export const PAGES = [
   "assistant",
   "subscriptions",
   "whatsapp_settings",
+  "accounting",
 ] as const;
 export type PageKey = (typeof PAGES)[number];
 
@@ -98,6 +99,7 @@ const MATRIX: Record<Exclude<TenantRole, "owner" | "admin">, Partial<Record<Page
     cod_queue: "write",
     cod_settings: "none",
     whatsapp_settings: "none",
+    accounting: "none",
     customer_campaigns: "none",
     assistant: "write",
     subscriptions: "write",
@@ -125,6 +127,7 @@ const MATRIX: Record<Exclude<TenantRole, "owner" | "admin">, Partial<Record<Page
     cod_queue: "write",
     cod_settings: "none",
     whatsapp_settings: "none",
+    accounting: "none",
     customer_campaigns: "none",
     assistant: "write",
     subscriptions: "write",
@@ -152,6 +155,7 @@ const MATRIX: Record<Exclude<TenantRole, "owner" | "admin">, Partial<Record<Page
     cod_queue: "none",
     cod_settings: "none",
     whatsapp_settings: "none",
+    accounting: "none",
     customer_campaigns: "write",
     assistant: "write",
     subscriptions: "read",
@@ -179,6 +183,7 @@ const MATRIX: Record<Exclude<TenantRole, "owner" | "admin">, Partial<Record<Page
     cod_queue: "read",
     cod_settings: "none",
     whatsapp_settings: "none",
+    accounting: "read",
     customer_campaigns: "read",
     assistant: "write",
     subscriptions: "read",

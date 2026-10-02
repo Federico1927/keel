@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { adminDb } from "@hullwise/db";
 import { describeUserAgent, displayName, formatDateTime, initials, isTimeZone } from "@hullwise/core";
 import { getAccountProfile, listRecentSignIns, pendingEmailChange } from "@hullwise/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, PageHeader } from "@hullwise/ui";
 import type { CurrentUser } from "@/server/session";
 import { getMemberships } from "@/server/session";
 import { avatarUrl } from "@/server/avatar";
@@ -69,31 +69,21 @@ export async function ProfileView({ user, tenant, locale }: { user: CurrentUser;
               <CardDescription>{t("sessions_description")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Table data-testid="sign-ins">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("sign_in_when")}</TableHead>
-                    <TableHead>{t("sign_in_method")}</TableHead>
-                    <TableHead className="hidden sm:table-cell">{t("sign_in_device")}</TableHead>
-                    <TableHead className="hidden sm:table-cell">IP</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {signIns.map((s) => (
-                    <TableRow key={s.id}>
-                      <TableCell className="whitespace-nowrap">{formatDateTime(s.createdAt, locale, zone)}</TableCell>
-                      <TableCell>{t(`sign_in_methods.${s.method === "email" ? "email" : s.method === "credentials" ? "credentials" : s.method === "one-time" ? "one_time" : "other"}`)}</TableCell>
-                      <TableCell className="hidden sm:table-cell">{describeUserAgent(s.userAgent)?.label ?? "—"}</TableCell>
-                      <TableCell className="hidden font-mono text-xs sm:table-cell">{s.ip ?? "—"}</TableCell>
-                    </TableRow>
-                  ))}
-                  {signIns.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-muted-foreground">{tc("empty")}</TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+              {signIns.length === 0 ? (
+                <p className="text-sm text-muted-foreground" data-testid="sign-ins">{tc("empty")}</p>
+              ) : (
+                <DataList
+                  data-testid="sign-ins"
+                  rows={signIns}
+                  rowKey={(s) => s.id}
+                  columns={[
+                    { key: "when", header: t("sign_in_when"), mobile: "title", className: "whitespace-nowrap max-md:font-normal", cell: (s) => formatDateTime(s.createdAt, locale, zone) },
+                    { key: "method", header: t("sign_in_method"), mobile: "badge", cell: (s) => t(`sign_in_methods.${s.method === "email" ? "email" : s.method === "credentials" ? "credentials" : s.method === "one-time" ? "one_time" : "other"}`) },
+                    { key: "device", header: t("sign_in_device"), label: "", cell: (s) => describeUserAgent(s.userAgent)?.label ?? "—" },
+                    { key: "ip", header: "IP", className: "font-mono text-xs", cell: (s) => s.ip ?? "—" },
+                  ]}
+                />
+              )}
               <SignOutOthersButton />
               <SignInAlertsToggle enabled={account?.notifyNewSignIn ?? true} />
             </CardContent>

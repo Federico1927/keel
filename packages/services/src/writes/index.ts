@@ -4,7 +4,7 @@ import { IntegrationError } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import type { TenantRunner } from "../assistant";
 import type { AdPlatform } from "@hullwise/core";
-import { AdPlatformNotInPlanError, getAdsPlatformFor, getCommercePlatformFor, type PlatformTenant } from "../integrations/factory";
+import { AdAccountUnavailableError, AdPlatformNotInPlanError, getAdsPlatformFor, getCommercePlatformFor, type PlatformTenant } from "../integrations/factory";
 import { recordHealth } from "../sync";
 import { writeHandler, type PlatformWriteKind, type PlatformWriteRow, type WriteAdapter, type WritePayload, type WriteResult } from "./registry";
 import { getSubscriptionProviderFor } from "../subscriptions/provider";
@@ -190,10 +190,10 @@ export async function executePlatformWrite(run: TenantRunner, tenant: PlatformTe
         await ctx.tx.update(schema.platformWrites).set({ status: "failed", lastError: "No subscription app connected", lastErrorCode: "permission", completedAt: now }).where(eq(schema.platformWrites.id, w.id));
         return null;
       }
-      adapter = subs ?? (w.provider === "shopify" ? await getCommercePlatformFor(ctx, tenant) : await getAdsPlatformFor(ctx, tenant, w.provider as AdPlatform));
+      adapter = subs ?? (w.provider === "shopify" ? await getCommercePlatformFor(ctx, tenant) : await getAdsPlatformFor(ctx, tenant, w.provider as AdPlatform, { account: h.account?.(w.payload as never) }));
     } catch (e) {
-      // a platform the plan no longer includes: the write can never run, so it fails instead of retrying
-      if (!(e instanceof AdPlatformNotInPlanError)) throw e;
+      // a platform the plan no longer includes, or an ad account that was removed: the write can never run, so it fails instead of retrying
+      if (!(e instanceof AdPlatformNotInPlanError) && !(e instanceof AdAccountUnavailableError)) throw e;
       await ctx.tx.update(schema.platformWrites).set({ status: "failed", lastError: e.message, lastErrorCode: "permission", completedAt: now }).where(eq(schema.platformWrites.id, w.id));
       return null;
     }

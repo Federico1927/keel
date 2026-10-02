@@ -2,6 +2,7 @@ import { and, desc, eq, gte, inArray, lt, schema, sql, type SQL } from "@hullwis
 import { SALE_STATUSES, canTransitionReturn, isReturnStatus, creditWithBonus, customerLimitReached, exchangeQuote, lineBlock, optionReturnRates, returnCostsOfPeriod, lineWindowDays, proposedReturnAmount, returnEligibility, returnableLines, type LineBlock, type Eligibility, type Period, type ReturnStatus, type ReturnableLine, type TenantSettings, returnsAgeing, type ReturnsAgeing } from "@hullwise/core";
 import { syncRecordTasks } from "../tasks";
 import type { ServiceContext } from "../context";
+import { emitReturnWebhook } from "../webhooks/payloads";
 import { applyReturnToOrder } from "./effects";
 import { notifyReturnCustomer, returnEmailEventFor } from "./notify";
 
@@ -225,6 +226,7 @@ export async function createReturn(ctx: ServiceContext, settings: TenantSettings
     if (bonusMinor) await ctx.tx.update(schema.returnRequests).set({ creditBonusMinor: bonusMinor }).where(eq(schema.returnRequests.id, row!.id));
   }
   await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: input.orderId, type: "return_requested", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: {}, metadata: { returnId: row!.id, number, reason: reason.code, resolution: input.resolution, outOfWindow: outOfPolicy, source: input.source ?? "staff" }, createdAt: now });
+  await emitReturnWebhook(ctx, row!.id, null);
   // portal returns email the customer after the label is issued (`notifyReturnStatus` in portalSubmit), so the approval carries it
   if (input.source !== "platform") await applyReturnAutomations(ctx, settings, row!.id, (to, note) => transitionReturn({ ...ctx, actor: { type: "system", userId: null } }, { returnId: row!.id, to, note: `auto: ${note}`, notifyCustomer: input.source !== "portal" }));
   await syncRecordTasks(ctx, "return", [row!.id]);
@@ -343,7 +345,7 @@ export async function returnDetail(ctx: ServiceContext, returnId: string) {
   const [req] = await ctx.tx.select().from(schema.returnRequests).where(and(eq(schema.returnRequests.tenantId, ctx.tenantId), eq(schema.returnRequests.id, returnId))).limit(1);
   if (!req) return null;
   const [order] = await ctx.tx.select().from(schema.orders).where(eq(schema.orders.id, req.orderId)).limit(1);
-  const lines = await ctx.tx.select({ id: schema.returnLines.id, orderLineId: schema.returnLines.orderLineId, quantity: schema.returnLines.quantity, unitAmountMinor: schema.returnLines.unitAmountMinor, inspectionOutcome: schema.returnLines.inspectionOutcome, inspectionAmountMinor: schema.returnLines.inspectionAmountMinor, restocked: schema.returnLines.restocked, title: schema.orderLines.title, variantTitle: schema.orderLines.variantTitle, sku: schema.orderLines.sku, variantId: schema.orderLines.variantId, productId: schema.orderLines.productId }).from(schema.returnLines).innerJoin(schema.orderLines, eq(schema.orderLines.id, schema.returnLines.orderLineId)).where(eq(schema.returnLines.returnId, req.id));
+  const lines = await ctx.tx.select({ id: schema.returnLines.id, orderLineId: schema.returnLines.orderLineId, quantity: schema.returnLines.quantity, unitAmountMinor: schema.returnLines.unitAmountMinor, inspectionOutcome: schema.returnLines.inspectionOutcome, inspectionAmountMinor: schema.returnLines.inspectionAmountMinor, restocked: schema.returnLines.restocked, title: schema.orderLines.title, variantTitle: schema.orderLines.variantTitle, sku: schema.orderLines.sku, barcode: schema.productVariants.barcode, variantId: schema.orderLines.variantId, productId: schema.orderLines.productId }).from(schema.returnLines).innerJoin(schema.orderLines, eq(schema.orderLines.id, schema.returnLines.orderLineId)).leftJoin(schema.productVariants, eq(schema.productVariants.id, schema.orderLines.variantId)).where(eq(schema.returnLines.returnId, req.id));
   const [reason] = await ctx.tx.select().from(schema.returnReasons).where(and(eq(schema.returnReasons.tenantId, ctx.tenantId), eq(schema.returnReasons.code, req.reasonCode))).limit(1);
   const events = await ctx.tx.select().from(schema.orderEvents).where(and(eq(schema.orderEvents.orderId, req.orderId), sql`${schema.orderEvents.metadata}->>'returnId' = ${req.id}`)).orderBy(desc(schema.orderEvents.createdAt));
   const locations = await ctx.tx.select({ id: schema.locations.id, name: schema.locations.name, isDefault: schema.locations.isDefault }).from(schema.locations).where(and(eq(schema.locations.tenantId, ctx.tenantId), eq(schema.locations.isActive, true))).orderBy(desc(schema.locations.isDefault), schema.locations.name);

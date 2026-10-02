@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { canWritePage } from "@hullwise/config";
 import { formatDateTime } from "@hullwise/core";
 import { listStockTakes } from "@hullwise/services";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Card, CardContent, EmptyState, PageHeader, DataList } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { stockLocations, svcOf } from "@/server/queries/inventory-control";
 import { NewStockTakeForm } from "./controls";
@@ -27,33 +27,19 @@ export default async function StockTakesPage({ params }: { params: Promise<{ ten
       ) : (
         <Card>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("stock_takes.columns.number")}</TableHead>
-                  <TableHead>{t("stock_takes.columns.location")}</TableHead>
-                  <TableHead>{t("stock_takes.columns.status")}</TableHead>
-                  <TableHead className="text-right">{t("stock_takes.columns.lines")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("stock_takes.columns.movements")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("stock_takes.columns.updated")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {takes.map((r) => (
-                  <TableRow key={r.t.id} data-testid="stock-take-row">
-                    <TableCell>
-                      <Link href={`/t/${tenant}/inventory/stock-takes/${r.t.id}`} className="font-medium text-primary hover:underline">ST-{r.t.number}</Link>
-                      {r.t.note && <p className="text-xs text-muted-foreground">{r.t.note}</p>}
-                    </TableCell>
-                    <TableCell>{r.locationName}</TableCell>
-                    <TableCell><Badge variant={r.t.status === "open" ? "info" : r.t.status === "applied" ? "success" : "muted"}>{t(`stock_takes.status.${r.t.status}`)}</Badge></TableCell>
-                    <TableCell className="text-right tabular">{r.lines}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{r.t.appliedMovements ?? "—"}</TableCell>
-                    <TableCell className="hidden whitespace-nowrap text-xs md:table-cell">{formatDateTime(r.t.appliedAt ?? r.t.updatedAt, ctx.locale, ctx.tenant.timezone)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={takes}
+              rowKey={(r) => r.t.id}
+              rowProps={() => ({ "data-testid": "stock-take-row" })}
+              columns={[
+                { key: "number", header: t("stock_takes.columns.number"), mobile: "title", cell: (r) => <><Link href={`/t/${tenant}/inventory/stock-takes/${r.t.id}`} className="font-medium text-primary hover:underline">ST-{r.t.number}</Link>{r.t.note && <p className="text-xs font-normal text-muted-foreground">{r.t.note}</p>}</> },
+                { key: "location", header: t("stock_takes.columns.location"), mobile: "subtitle", cell: (r) => r.locationName },
+                { key: "status", header: t("stock_takes.columns.status"), mobile: "badge", cell: (r) => <Badge variant={r.t.status === "open" ? "info" : r.t.status === "applied" ? "success" : "muted"}>{t(`stock_takes.status.${r.t.status}`)}</Badge> },
+                { key: "lines", header: t("stock_takes.columns.lines"), align: "right", className: "tabular", cell: (r) => r.lines },
+                { key: "movements", header: t("stock_takes.columns.movements"), align: "right", className: "tabular", cell: (r) => r.t.appliedMovements ?? "—" },
+                { key: "updated", header: t("stock_takes.columns.updated"), className: "whitespace-nowrap text-xs", cell: (r) => formatDateTime(r.t.appliedAt ?? r.t.updatedAt, ctx.locale, ctx.tenant.timezone) },
+              ]}
+            />
           </CardContent>
         </Card>
       )}

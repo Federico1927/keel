@@ -1,4 +1,4 @@
-import type { AnalyticsPlatform, CarrierInstruction, CarrierProvider, ConnectionTest, MessageSendInput, MessagingChannel, NormalizedOrder, WarehouseProvider } from "../types";
+import type { CarrierInstruction, CarrierProvider, ConnectionTest, MessageSendInput, MessagingChannel, NormalizedOrder, WarehouseProvider } from "../types";
 import { FailureScript } from "./failures";
 
 /** Mock implementations of the per-account slots. Real connectors are sold as add-ons. */
@@ -65,17 +65,5 @@ export class MockCarrierProvider implements CarrierProvider {
         { status: "in_transit" as const, description: "Departed facility", location: "Hub", at: new Date(now.getTime() - 864e5) },
       ],
     };
-  }
-}
-
-export class MockAnalyticsPlatform implements AnalyticsPlatform {
-  readonly provider = "ga4";
-  async testConnection(): Promise<ConnectionTest> {
-    return { ok: true, accountName: "Mock GA4 property" };
-  }
-  async fetchDailySessions(window: { since: string; until: string }) {
-    const out: { date: string; sessions: number; channel: string }[] = [];
-    for (let d = new Date(window.since); d <= new Date(window.until); d.setUTCDate(d.getUTCDate() + 1)) out.push({ date: d.toISOString().slice(0, 10), sessions: 1000, channel: "paid_social" });
-    return out;
   }
 }

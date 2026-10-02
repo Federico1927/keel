@@ -37,7 +37,7 @@ Password for every demo user: `hullwise-demo-2026` locally (`HULLWISE_DEMO_PASSW
 | Email | Role | Tenant |
 | --- | --- | --- |
 | `superadmin@hullwise.demo` | Platform super-admin | `/admin` console, can open any tenant as support |
-| `owner@northwind.demo` | owner | Northwind Apparel (IT, EUR, Italian, `addon.cod` and `addon.customer_campaigns` active) |
+| `owner@northwind.demo` | owner | Northwind Apparel (IT, EUR, Italian, `addon.cod`, `addon.customer_campaigns`, `addon.whatsapp_spoki` and `addon.accounting` active) |
 | `admin@northwind.demo` | admin | Northwind Apparel |
 | `ops@northwind.demo` | operations | Northwind Apparel |
 | `care@northwind.demo`, `care2@northwind.demo` | customer_care | Northwind Apparel |

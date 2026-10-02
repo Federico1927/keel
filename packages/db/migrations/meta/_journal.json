@@ -323,6 +323,34 @@
       "when": 1790949671588,
       "tag": "0045_silly_banshee",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1790950014938,
+      "tag": "0046_smart_bill_hollister",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1790950045448,
+      "tag": "0047_rare_mister_fear",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1790955970664,
+      "tag": "0048_uneven_wiccan",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1790956208911,
+      "tag": "0049_mysterious_captain_midlands",
+      "breakpoints": true
     }
   ]
 }

@@ -7,6 +7,8 @@ import { variantStock } from "../inventory";
 export interface CampaignRow {
   id: string;
   platform: string;
+  /** Ad account (#82); null on campaigns synced before accounts (the platform's primary one). */
+  accountExternalId: string | null;
   /** What the ad platform reports for the period: its own conversions and value, to compare with attributed orders. */
   declared: { purchases: number; valueMinor: number };
   externalId: string;
@@ -25,9 +27,11 @@ export interface CampaignRow {
 }
 
 /** Campaigns with economics over a period; profit counts only in-scope orders. */
-export async function campaignsWithEconomics(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period, opts: { platform?: string; status?: string; campaignIds?: string[] } = {}): Promise<CampaignRow[]> {
+export async function campaignsWithEconomics(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period, opts: { platform?: string; status?: string; campaignIds?: string[]; account?: { provider: string; externalId: string; primary: boolean } } = {}): Promise<CampaignRow[]> {
   const conds = [eq(schema.campaigns.tenantId, ctx.tenantId)];
   if (opts.platform) conds.push(eq(schema.campaigns.platform, opts.platform));
+  // one ad account (#82): its campaigns, plus those synced before accounts when it is the primary one
+  if (opts.account) conds.push(eq(schema.campaigns.platform, opts.account.provider), opts.account.primary ? sql`(${schema.campaigns.accountExternalId} = ${opts.account.externalId} or ${schema.campaigns.accountExternalId} is null)` : eq(schema.campaigns.accountExternalId, opts.account.externalId));
   if (opts.status) conds.push(eq(schema.campaigns.status, opts.status));
   if (opts.campaignIds) conds.push(inArray(schema.campaigns.id, opts.campaignIds.length ? opts.campaignIds : ["00000000-0000-0000-0000-000000000000"]));
   const campaigns = await ctx.tx.select().from(schema.campaigns).where(and(...conds)).orderBy(schema.campaigns.name);
@@ -62,7 +66,7 @@ export async function campaignsWithEconomics(ctx: ServiceContext, tenant: Analyt
     const incoming = products.reduce((s, p) => s + p.incoming, 0);
     const stockRisk = products.length ? worstRisk(products.map((p) => p.risk)) : null;
     const rec = recommendAction({ status: c.status, light, repurchasable: products.length ? products.some((p) => p.repurchasable) : true, stock, incoming, stockThreshold: tenant.settings.campaignStockThreshold, stockRisk });
-    return { id: c.id, platform: c.platform, declared: { purchases: sp?.purchases ?? 0, valueMinor: sp?.purchaseValue ?? 0 }, externalId: c.externalId, name: c.name, status: c.status, dailyBudgetMinor: c.dailyBudgetMinor, metrics, light, action: rec.action, restock: rec.restock, reason: rec.reason, products, stock, incoming, stockRisk };
+    return { id: c.id, platform: c.platform, accountExternalId: c.accountExternalId, declared: { purchases: sp?.purchases ?? 0, valueMinor: sp?.purchaseValue ?? 0 }, externalId: c.externalId, name: c.name, status: c.status, dailyBudgetMinor: c.dailyBudgetMinor, metrics, light, action: rec.action, restock: rec.restock, reason: rec.reason, products, stock, incoming, stockRisk };
   });
 }
 

@@ -35,7 +35,7 @@ export default async function NotificationsPage({ params, searchParams }: { para
         <Chip href={href({ status: "unread", page: undefined })} active={status === "unread"} testId="filter-unread">{t("filters.unread")} <span className="tabular opacity-70">{formatNumber(data.unread, ctx.locale)}</span></Chip>
         <Chip href={href({ status: "read", page: undefined })} active={status === "read"}>{t("filters.read")}</Chip>
       </div>
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:px-0">
         <Chip href={href({ type: undefined, page: undefined })} active={!type}>{t("filters.all_types")}</Chip>
         {data.types.map((ty) => (
           <Chip key={ty.type} href={href({ type: ty.type, page: undefined })} active={type === ty.type} testId={`type-${ty.type}`}>

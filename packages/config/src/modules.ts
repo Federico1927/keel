@@ -16,6 +16,7 @@ export const CORE_MODULES = [
   "core.purchasing",
   "core.platform",
   "core.mcp",
+  "core.api",
   "core.ads.tiktok",
 ] as const;
 export type CoreModule = (typeof CORE_MODULES)[number];
@@ -24,6 +25,7 @@ export const ADDON_MODULES = [
   "addon.cod",
   "addon.customer_campaigns",
   "addon.subscriptions",
+  "addon.accounting",
   "addon.warehouse_3pl",
   "addon.whatsapp",
   "addon.whatsapp_spoki",
@@ -61,6 +63,8 @@ export const MODULES: Record<ModuleKey, ModuleDefinition> = {
   "core.platform": { key: "core.platform", nameKey: "modules.core.platform.name", descriptionKey: "modules.core.platform.description", availability: "implemented", pages: ["integrations", "settings", "users", "audit", "notifications", "tasks", "support"], monthlyPriceMinor: null },
   /** Remote MCP server: AI clients (Claude, ChatGPT, Cursor…) read the tenant's data as the connected user (#21). */
   "core.mcp": { key: "core.mcp", nameKey: "modules.core.mcp.name", descriptionKey: "modules.core.mcp.description", availability: "implemented", pages: [], monthlyPriceMinor: null, minPlan: "growth" },
+  /** Public REST API and outgoing webhooks (#81), with the same tokens as MCP: from Growth, like MCP. */
+  "core.api": { key: "core.api", nameKey: "modules.core.api.name", descriptionKey: "modules.core.api.description", availability: "implemented", pages: [], monthlyPriceMinor: null, minPlan: "growth" },
   /** TikTok Ads as an ads platform (#41): campaigns, ad groups, ads, daily metrics, pause/resume. Adjust `minPlan` to move it between plans. */
   "core.ads.tiktok": { key: "core.ads.tiktok", nameKey: "modules.core.ads.tiktok.name", descriptionKey: "modules.core.ads.tiktok.description", availability: "implemented", pages: [], monthlyPriceMinor: null, minPlan: "growth" },
   "addon.cod": { key: "addon.cod", nameKey: "modules.addon.cod.name", descriptionKey: "modules.addon.cod.description", availability: "implemented", pages: ["cod_queue", "cod_settings"], monthlyPriceMinor: 19900 },
@@ -68,6 +72,12 @@ export const MODULES: Record<ModuleKey, ModuleDefinition> = {
   "addon.customer_campaigns": { key: "addon.customer_campaigns", nameKey: "modules.addon.customer_campaigns.name", descriptionKey: "modules.addon.customer_campaigns.description", availability: "implemented", pages: ["customer_campaigns"], monthlyPriceMinor: 9900 },
   /** Analytics and operations on the merchant's own subscription products (Shopify Subscriptions, Recharge, Loop): not a billing engine (#67). Provisional price. */
   "addon.subscriptions": { key: "addon.subscriptions", nameKey: "modules.addon.subscriptions.name", descriptionKey: "modules.addon.subscriptions.description", availability: "implemented", pages: ["subscriptions"], monthlyPriceMinor: 14900 },
+  /**
+   * Accounting push (#85): one journal per closed day from the daily sales summary (which stays in the core for every
+   * tenant), mapped to the tenant's chart of accounts and pushed only when it reconciles; push log, retry and re-push.
+   * Live connectors (Xero, QuickBooks Online, Fatture in Cloud) are built per account on request behind `AccountingProvider`.
+   */
+  "addon.accounting": { key: "addon.accounting", nameKey: "modules.addon.accounting.name", descriptionKey: "modules.addon.accounting.description", availability: "implemented", pages: ["accounting"], monthlyPriceMinor: 6900 },
   "addon.warehouse_3pl": { key: "addon.warehouse_3pl", nameKey: "modules.addon.warehouse_3pl.name", descriptionKey: "modules.addon.warehouse_3pl.description", availability: "on_request", pages: [], monthlyPriceMinor: null },
   /** Other local WhatsApp providers, built per account on request; Spoki is the implemented one (`addon.whatsapp_spoki`). */
   "addon.whatsapp": { key: "addon.whatsapp", nameKey: "modules.addon.whatsapp.name", descriptionKey: "modules.addon.whatsapp.description", availability: "on_request", pages: [], monthlyPriceMinor: null },

@@ -3,6 +3,7 @@ import { OTHER_SEARCH_TERM, isNoiseTerm, normalizeSearchText, splitDateWindows, 
 import { IntegrationError, NO_ADS_CAPABILITIES, type AdsPlatform, type NormalizedEntityMetric } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { recordHealth, runAdsSync } from "../sync";
+import { adAccountHealthSource, type AdAccountScope } from "./accounts";
 
 /**
  * Ads below the campaign (issue #40): ad sets, ads, assets, keywords and search terms with daily
@@ -20,6 +21,8 @@ interface EntityCursor {
   level: number;
   window: number;
   counts: Record<string, number>;
+  /** The Meta ad account this run pulls (#82); absent: the platform's primary connection. */
+  account?: string;
 }
 
 export interface AdsEntitySyncResult {
@@ -48,6 +51,8 @@ function chunks<T>(rows: T[], size = CHUNK): T[][] {
 
 interface Lookups {
   campaign: Map<string, string>;
+  /** Campaign external id → its ad account (#82). */
+  campaignAccount: Map<string, string | null>;
   adSet: Map<string, { id: string; campaignId: string }>;
   ad: Map<string, { id: string; campaignId: string; adSetId: string | null }>;
   asset: Map<string, string>;
@@ -56,13 +61,14 @@ interface Lookups {
 
 async function loadLookups(ctx: ServiceContext, provider: string): Promise<Lookups> {
   const t = ctx.tenantId;
-  const campaigns = await ctx.tx.select({ id: schema.campaigns.id, ext: schema.campaigns.externalId }).from(schema.campaigns).where(and(eq(schema.campaigns.tenantId, t), eq(schema.campaigns.platform, provider)));
+  const campaigns = await ctx.tx.select({ id: schema.campaigns.id, ext: schema.campaigns.externalId, account: schema.campaigns.accountExternalId }).from(schema.campaigns).where(and(eq(schema.campaigns.tenantId, t), eq(schema.campaigns.platform, provider)));
   const sets = await ctx.tx.select({ id: schema.adSets.id, ext: schema.adSets.externalId, campaignId: schema.adSets.campaignId }).from(schema.adSets).where(and(eq(schema.adSets.tenantId, t), eq(schema.adSets.platform, provider)));
   const ads = await ctx.tx.select({ id: schema.adCreatives.id, ext: schema.adCreatives.externalId, campaignId: schema.adCreatives.campaignId, adSetId: schema.adCreatives.adSetId }).from(schema.adCreatives).where(and(eq(schema.adCreatives.tenantId, t), eq(schema.adCreatives.platform, provider)));
   const assets = await ctx.tx.select({ id: schema.adAssets.id, ext: schema.adAssets.externalId }).from(schema.adAssets).where(and(eq(schema.adAssets.tenantId, t), eq(schema.adAssets.platform, provider)));
   const kws = await ctx.tx.select({ id: schema.adKeywords.id, ext: schema.adKeywords.externalId, text: schema.adKeywords.text, adSetId: schema.adKeywords.adSetId }).from(schema.adKeywords).where(and(eq(schema.adKeywords.tenantId, t), eq(schema.adKeywords.platform, provider)));
   return {
     campaign: new Map(campaigns.map((c) => [c.ext, c.id])),
+    campaignAccount: new Map(campaigns.map((c) => [c.ext, c.account])),
     adSet: new Map(sets.map((s) => [s.ext, { id: s.id, campaignId: s.campaignId }])),
     ad: new Map(ads.map((a) => [a.ext, { id: a.id, campaignId: a.campaignId, adSetId: a.adSetId }])),
     asset: new Map(assets.map((a) => [a.ext, a.id])),
@@ -77,17 +83,17 @@ export async function importAdsStructure(ctx: ServiceContext, platform: AdsPlatf
   let lk = await loadLookups(ctx, provider);
   const counts = { adSets: 0, ads: 0, assets: 0, keywords: 0 };
   const sets = (await platform.fetchAdSets?.()) ?? [];
-  const setRows = sets.filter((s) => lk.campaign.has(s.campaignExternalId)).map((s) => ({ tenantId: ctx.tenantId, campaignId: lk.campaign.get(s.campaignExternalId)!, platform: provider, externalId: s.externalId, name: s.name, status: s.status, optimizationGoal: s.optimizationGoal, dailyBudgetMinor: s.dailyBudgetMinor, syncedAt: now, updatedAt: now }));
+  const setRows = sets.filter((s) => lk.campaign.has(s.campaignExternalId)).map((s) => ({ tenantId: ctx.tenantId, campaignId: lk.campaign.get(s.campaignExternalId)!, platform: provider, externalId: s.externalId, accountExternalId: lk.campaignAccount.get(s.campaignExternalId) ?? null, name: s.name, status: s.status, optimizationGoal: s.optimizationGoal, dailyBudgetMinor: s.dailyBudgetMinor, syncedAt: now, updatedAt: now }));
   const T = schema.adSets;
-  for (const c of chunks(setRows)) await ctx.tx.insert(T).values(c).onConflictDoUpdate({ target: [T.tenantId, T.platform, T.externalId], set: { campaignId: excluded(T.campaignId), name: excluded(T.name), status: excluded(T.status), optimizationGoal: excluded(T.optimizationGoal), dailyBudgetMinor: excluded(T.dailyBudgetMinor), syncedAt: excluded(T.syncedAt), updatedAt: excluded(T.updatedAt) } });
+  for (const c of chunks(setRows)) await ctx.tx.insert(T).values(c).onConflictDoUpdate({ target: [T.tenantId, T.platform, T.externalId], set: { campaignId: excluded(T.campaignId), accountExternalId: excluded(T.accountExternalId), name: excluded(T.name), status: excluded(T.status), optimizationGoal: excluded(T.optimizationGoal), dailyBudgetMinor: excluded(T.dailyBudgetMinor), syncedAt: excluded(T.syncedAt), updatedAt: excluded(T.updatedAt) } });
   counts.adSets = setRows.length;
   lk = await loadLookups(ctx, provider);
   const setName = new Map(sets.map((s) => [s.externalId, s.name]));
   const ads = (await platform.fetchAds?.()) ?? [];
   const A = schema.adCreatives;
-  const adRows = ads.filter((a) => lk.campaign.has(a.campaignExternalId)).map((a) => ({ tenantId: ctx.tenantId, campaignId: lk.campaign.get(a.campaignExternalId)!, platform: provider, externalId: a.externalId, adsetExternalId: a.adSetExternalId, adsetName: a.adSetExternalId ? (setName.get(a.adSetExternalId) ?? null) : null, adSetId: a.adSetExternalId ? (lk.adSet.get(a.adSetExternalId)?.id ?? null) : null, name: a.name, format: a.format, headline: a.headline, body: a.body, thumbnailUrl: a.thumbnailUrl, status: a.status, finalUrl: a.finalUrl, urlTags: a.urlTags, syncedAt: now, updatedAt: now }));
+  const adRows = ads.filter((a) => lk.campaign.has(a.campaignExternalId)).map((a) => ({ tenantId: ctx.tenantId, campaignId: lk.campaign.get(a.campaignExternalId)!, platform: provider, externalId: a.externalId, accountExternalId: lk.campaignAccount.get(a.campaignExternalId) ?? null, adsetExternalId: a.adSetExternalId, adsetName: a.adSetExternalId ? (setName.get(a.adSetExternalId) ?? null) : null, adSetId: a.adSetExternalId ? (lk.adSet.get(a.adSetExternalId)?.id ?? null) : null, name: a.name, format: a.format, headline: a.headline, body: a.body, thumbnailUrl: a.thumbnailUrl, status: a.status, finalUrl: a.finalUrl, urlTags: a.urlTags, syncedAt: now, updatedAt: now }));
   // hook / angle / tags are Hullwise's own grouping and are never overwritten
-  for (const c of chunks(adRows)) await ctx.tx.insert(A).values(c).onConflictDoUpdate({ target: [A.tenantId, A.platform, A.externalId], set: { campaignId: excluded(A.campaignId), adsetExternalId: excluded(A.adsetExternalId), adsetName: excluded(A.adsetName), adSetId: excluded(A.adSetId), name: excluded(A.name), format: excluded(A.format), headline: excluded(A.headline), body: excluded(A.body), thumbnailUrl: excluded(A.thumbnailUrl), status: excluded(A.status), finalUrl: excluded(A.finalUrl), urlTags: excluded(A.urlTags), syncedAt: excluded(A.syncedAt), updatedAt: excluded(A.updatedAt) } });
+  for (const c of chunks(adRows)) await ctx.tx.insert(A).values(c).onConflictDoUpdate({ target: [A.tenantId, A.platform, A.externalId], set: { campaignId: excluded(A.campaignId), accountExternalId: excluded(A.accountExternalId), adsetExternalId: excluded(A.adsetExternalId), adsetName: excluded(A.adsetName), adSetId: excluded(A.adSetId), name: excluded(A.name), format: excluded(A.format), headline: excluded(A.headline), body: excluded(A.body), thumbnailUrl: excluded(A.thumbnailUrl), status: excluded(A.status), finalUrl: excluded(A.finalUrl), urlTags: excluded(A.urlTags), syncedAt: excluded(A.syncedAt), updatedAt: excluded(A.updatedAt) } });
   counts.ads = adRows.length;
   lk = await loadLookups(ctx, provider);
   const assets = (await platform.fetchAssets?.()) ?? [];
@@ -205,14 +211,17 @@ export async function writeEntityMetrics(ctx: ServiceContext, provider: string, 
  * same provider and kind; a rate limit pauses the run with the platform's wait, a budget overrun
  * pauses it silently, any other error fails it.
  */
-export async function runAdsEntitySync(ctx: ServiceContext, platform: AdsPlatform, opts: { since: string; until: string; kind?: "delta" | "backfill"; budgetMs?: number; windowDays?: number; minImpressions?: number }): Promise<AdsEntitySyncResult> {
+export async function runAdsEntitySync(ctx: ServiceContext, platform: AdsPlatform, opts: { since: string; until: string; kind?: "delta" | "backfill"; budgetMs?: number; windowDays?: number; minImpressions?: number; account?: AdAccountScope | null }): Promise<AdsEntitySyncResult> {
   const provider = platform.provider;
+  const account = opts.account ?? null;
+  const healthSource = adAccountHealthSource(provider, account, "entities");
   const kind = opts.kind ?? "delta";
   const started = Date.now();
   const budgetMs = opts.budgetMs ?? 25_000;
   const now = ctx.now ?? new Date();
   const levels = entityLevelsFor(platform);
-  const runWhere: SQL[] = [eq(schema.syncRuns.tenantId, ctx.tenantId), eq(schema.syncRuns.provider, provider), eq(schema.syncRuns.objectType, OBJECT_TYPE), eq(schema.syncRuns.kind, kind), eq(schema.syncRuns.status, "paused")];
+  // each account resumes its own paused run (#82); runs without an account are the primary connection's
+  const runWhere: SQL[] = [eq(schema.syncRuns.tenantId, ctx.tenantId), eq(schema.syncRuns.provider, provider), eq(schema.syncRuns.objectType, OBJECT_TYPE), eq(schema.syncRuns.kind, kind), eq(schema.syncRuns.status, "paused"), account && !account.primary ? sql`${schema.syncRuns.cursor}->>'account' = ${account.externalId}` : sql`${schema.syncRuns.cursor}->>'account' is null`];
   const [paused] = await ctx.tx.select().from(schema.syncRuns).where(and(...runWhere)).orderBy(desc(schema.syncRuns.startedAt)).limit(1);
   let cursor: EntityCursor;
   let runId: string;
@@ -224,7 +233,7 @@ export async function runAdsEntitySync(ctx: ServiceContext, platform: AdsPlatfor
     rows = paused.rowsWritten;
     await ctx.tx.update(schema.syncRuns).set({ status: "running", error: null }).where(eq(schema.syncRuns.id, runId));
   } else {
-    cursor = { since: opts.since, until: opts.until, phase: "structure", level: 0, window: 0, counts: {} };
+    cursor = { since: opts.since, until: opts.until, phase: "structure", level: 0, window: 0, counts: {}, ...(account && !account.primary ? { account: account.externalId } : {}) };
     const [row] = await ctx.tx.insert(schema.syncRuns).values({ tenantId: ctx.tenantId, provider, objectType: OBJECT_TYPE, kind, status: "running", cursor, startedAt: now }).returning({ id: schema.syncRuns.id });
     runId = row!.id;
   }
@@ -258,18 +267,18 @@ export async function runAdsEntitySync(ctx: ServiceContext, platform: AdsPlatfor
       cursor.window = 0;
     }
     await save("success");
-    await recordHealth(ctx, `${provider}:entities`, true, { rowsWritten: rows, lastMetricDate: cursor.until, freshnessMinutes: provider === "google" ? 720 : 240, touchIntegration: false });
+    await recordHealth(ctx, healthSource, true, { rowsWritten: rows, lastMetricDate: cursor.until, freshnessMinutes: provider === "google" ? 720 : 240, touchIntegration: false });
     return result(true, null);
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e);
     if (e instanceof IntegrationError && e.code === "rate_limited") {
       // the cursor still points at the window that failed: the next run starts there
       await save("paused", error);
-      await recordHealth(ctx, `${provider}:entities`, false, { error, touchIntegration: false });
+      await recordHealth(ctx, healthSource, false, { error, touchIntegration: false });
       return result(false, null, true, e.retryAfterMs ?? 60_000);
     }
     await save("error", error);
-    await recordHealth(ctx, `${provider}:entities`, false, { error, touchIntegration: false });
+    await recordHealth(ctx, healthSource, false, { error, touchIntegration: false });
     return result(false, error);
   }
 }
@@ -291,12 +300,12 @@ export interface AdsBackfillResult {
  * days, then ad sets / ad groups, ads and their daily metrics in resumable 7-day windows (kind
  * `backfill`, so a paused delta run of the same platform is never confused with it).
  */
-export async function runAdsBackfill(ctx: ServiceContext, platform: AdsPlatform, opts: { days?: number; budgetMs?: number; minImpressions?: number } = {}): Promise<AdsBackfillResult> {
+export async function runAdsBackfill(ctx: ServiceContext, platform: AdsPlatform, opts: { days?: number; budgetMs?: number; minImpressions?: number; account?: AdAccountScope | null } = {}): Promise<AdsBackfillResult> {
   const now = ctx.now ?? new Date();
   const until = now.toISOString().slice(0, 10);
   const since = new Date(now.getTime() - ((opts.days ?? 90) - 1) * 864e5).toISOString().slice(0, 10);
-  const c = await runAdsSync(ctx, platform, { since, until });
+  const c = await runAdsSync(ctx, platform, { since, until }, { account: opts.account });
   if (c.error) return { campaigns: c.campaigns, metrics: c.metrics, counts: {}, finished: false, rateLimited: false, retryAfterMs: null, error: c.error };
-  const e = await runAdsEntitySync(ctx, platform, { since, until, kind: "backfill", budgetMs: opts.budgetMs ?? 20_000, minImpressions: opts.minImpressions });
+  const e = await runAdsEntitySync(ctx, platform, { since, until, kind: "backfill", budgetMs: opts.budgetMs ?? 20_000, minImpressions: opts.minImpressions, account: opts.account });
   return { campaigns: c.campaigns, metrics: c.metrics, counts: e.counts, finished: e.finished, rateLimited: e.rateLimited, retryAfterMs: e.retryAfterMs, error: e.error };
 }

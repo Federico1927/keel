@@ -24,7 +24,7 @@ export function ShipmentFiltersBar({ basePath, filters, carriers }: { basePath: 
     <div className={cn("space-y-3", pending && "opacity-70")}>
       <div className="flex flex-wrap gap-2">
         {views.map((v) => (
-          <button key={v} type="button" onClick={() => apply({ view: v, status: [] })} className={cn("rounded-full border px-3 py-1 text-xs", (filters.view ?? "all") === v && !filters.status?.length ? "bg-primary text-primary-foreground" : "bg-card")}>
+          <button key={v} type="button" onClick={() => apply({ view: v, status: [] })} className={cn("rounded-full border px-3 py-1 text-xs pointer-coarse:min-h-9", (filters.view ?? "all") === v && !filters.status?.length ? "bg-primary text-primary-foreground" : "bg-card")}>
             {t(`views.${v}`)}
           </button>
         ))}
@@ -32,7 +32,7 @@ export function ShipmentFiltersBar({ basePath, filters, carriers }: { basePath: 
       <form className="grid gap-2 sm:grid-cols-4" onSubmit={(e) => { e.preventDefault(); apply({ q }); }}>
         <div className="relative sm:col-span-2">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("search_placeholder")} className="pl-8" aria-label={t("search")} />
+          <Input type="search" enterKeyHint="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("search_placeholder")} className="pl-8" aria-label={t("search")} />
         </div>
         <Select aria-label={t("filters.status")} value={filters.status?.[0] ?? ""} onChange={(e) => apply({ status: e.target.value ? [e.target.value] : [], view: undefined })}>
           <option value="">{t("filters.status")}</option>

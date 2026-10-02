@@ -3,7 +3,7 @@ import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { allocateByShare, formatMoney, packAllocation, packGroups, type CasePackDef } from "@hullwise/core";
-import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, DataList, Input, Label, Select, cn } from "@hullwise/ui";
 import { createPoFromMixAction } from "@/server/actions/purchasing-terms";
 
 interface MixVariant {
@@ -94,29 +94,23 @@ export function MixPlanner({ slug, productId, lookbackDays, currency, variants, 
             </div>
           </div>
         )}
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("variant")}</TableHead>
-              <TableHead className="text-right">{t("quantity")}</TableHead>
-              <TableHead className="hidden text-right sm:table-cell">{t("cost")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {variants.map((v) => (
-              <TableRow key={v.id} className={cn(!(allocation[v.id] ?? 0) && "text-muted-foreground")}>
-                <TableCell>{v.title} <span className="text-xs text-muted-foreground">{v.sku}</span></TableCell>
-                <TableCell className="text-right tabular" data-testid="mix-qty">{allocation[v.id] ?? 0}</TableCell>
-                <TableCell className="hidden text-right tabular sm:table-cell">{formatMoney((allocation[v.id] ?? 0) * (v.costMinor ?? 0), currency, locale)}</TableCell>
-              </TableRow>
-            ))}
-            <TableRow>
-              <TableCell className="font-medium">{t("total")}</TableCell>
-              <TableCell className="text-right font-medium tabular" data-testid="mix-total-units">{units}</TableCell>
-              <TableCell className="hidden text-right font-medium tabular sm:table-cell">{formatMoney(value, currency, locale)}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+        <div className="-mx-(--density-card) border-y">
+          <DataList
+            rows={variants}
+            rowKey={(v) => v.id}
+            rowProps={(v) => ({ className: cn(!(allocation[v.id] ?? 0) && "text-muted-foreground") })}
+            columns={[
+              { key: "variant", header: t("variant"), mobile: "title", cell: (v) => <>{v.title} <span className="text-xs font-normal text-muted-foreground">{v.sku}</span></> },
+              { key: "quantity", header: t("quantity"), mobile: "badge", align: "right", className: "tabular", cell: (v) => <span data-testid="mix-qty">{allocation[v.id] ?? 0}</span> },
+              { key: "cost", header: t("cost"), align: "right", className: "tabular", cell: (v) => formatMoney((allocation[v.id] ?? 0) * (v.costMinor ?? 0), currency, locale) },
+            ]}
+            footer={{
+              variant: t("total"),
+              quantity: <span data-testid="mix-total-units">{units}</span>,
+              cost: formatMoney(value, currency, locale),
+            }}
+          />
+        </div>
         <form action={action} className="grid gap-3 border-t pt-4 sm:grid-cols-3">
           <input type="hidden" name="allocation" value={JSON.stringify(payload)} />
           <input type="hidden" name="lookbackDays" value={lookbackDays} />

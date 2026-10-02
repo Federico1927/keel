@@ -33,6 +33,8 @@ export const ADDON_VERSIONS: Record<AddonModule, readonly AddonVersion[]> = {
   "addon.subscriptions": [{ version: 1, status: "in_development", summaryKey: "addon.subscriptions.v1" }],
   // v1: Spoki channel, webhooks, COD confirmations, order notices and campaign sends, tested only on recorded fixtures; no live Spoki account verified yet.
   "addon.whatsapp_spoki": [{ version: 1, status: "in_development", summaryKey: "addon.whatsapp_spoki.v1" }],
+  // v1: daily journal push through the accounting provider interface; only the mock provider exists, no live connector yet.
+  "addon.accounting": [{ version: 1, status: "in_development", summaryKey: "addon.accounting.v1" }],
   "addon.warehouse_3pl": [],
   "addon.whatsapp": [],
   "addon.carrier_tracking": [],

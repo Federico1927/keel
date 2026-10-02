@@ -1,4 +1,4 @@
-import { Code2, Megaphone, MessageCircle, PhoneCall, Puzzle, Repeat } from "lucide-react";
+import { BookOpenCheck, Code2, Megaphone, MessageCircle, PhoneCall, Puzzle, Repeat } from "lucide-react";
 import { Section } from "@/components/ui";
 import { ADDONS, addonOnSale } from "@/config/pricing";
 import type { LandingLocale } from "@/config/site";
@@ -10,6 +10,7 @@ const ICONS = {
   subscriptions: Repeat,
   cod: PhoneCall,
   whatsapp_spoki: MessageCircle,
+  accounting: BookOpenCheck,
   custom_integration: Puzzle,
   custom_development: Code2,
 } as const;

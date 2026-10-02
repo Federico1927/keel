@@ -7,14 +7,20 @@ import { GeistMono, GeistSans } from "@hullwise/ui/fonts";
 import { SYSTEM_THEME_SCRIPT, THEME_COOKIE, TOKENS, isThemePreference, type Density, type ThemePreference } from "@hullwise/ui/tokens";
 import { getCurrentUser } from "@/server/session";
 import { ThemeSync } from "@/components/theme-sync";
+import { RegisterServiceWorker } from "@/components/pwa/register-sw";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: { default: PRODUCT_NAME, template: `%s · ${PRODUCT_NAME}` },
   description: "Operations platform for e-commerce teams",
+  // installable app (#49): manifest from app/manifest.ts, home-screen icon and standalone status bar on iOS
+  appleWebApp: { capable: true, title: PRODUCT_NAME, statusBarStyle: "default" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {
+  // the shell pads itself with env(safe-area-inset-*) (notch, home bar)
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: TOKENS.light.bg },
     { media: "(prefers-color-scheme: dark)", color: TOKENS.dark.bg },
@@ -47,6 +53,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>{theme === "system" && <script dangerouslySetInnerHTML={{ __html: SYSTEM_THEME_SCRIPT }} />}</head>
       <body className="min-h-screen antialiased">
         <ThemeSync theme={theme} />
+        <RegisterServiceWorker />
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
         </NextIntlClientProvider>

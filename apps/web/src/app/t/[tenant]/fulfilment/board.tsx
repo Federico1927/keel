@@ -52,18 +52,28 @@ interface BoardProps {
 }
 
 export function Board(props: BoardProps) {
+  const t = useTranslations("fulfilment");
   const ids = [...props.pending, ...props.packed].map((c) => c.id);
+  // phones and tablets: one column at a time behind a segmented switch (#49); all three from lg up
+  const [col, setCol] = useState<"pending" | "packed" | "shipped">("pending");
   return (
     <ListSelection ids={ids}>
       {props.canWrite && <BoardBulkBar slug={props.slug} />}
+      <div className="mb-3 grid grid-cols-3 gap-1 rounded-lg border bg-muted p-1 lg:hidden" role="tablist" aria-label={t("tabs.label")}>
+        {(["pending", "packed", "shipped"] as const).map((c) => (
+          <button key={c} type="button" role="tab" aria-selected={col === c} onClick={() => setCol(c)} className={cn("min-h-11 truncate rounded-md px-2 text-sm font-medium text-muted-foreground", col === c && "bg-card text-foreground shadow-sm")} data-testid={`board-tab-${c}`}>
+            {t(`columns.${c}`)} <span className="tabular text-xs opacity-70">{props.totals[c]}</span>
+          </button>
+        ))}
+      </div>
       <div className="grid gap-4 lg:grid-cols-3">
-        <Column title="pending" total={props.totals.pending} shown={props.pending.length} empty={props.view === "late" ? "empty_late" : "empty_pending"}>
+        <Column title="pending" hidden={col !== "pending"} total={props.totals.pending} shown={props.pending.length} empty={props.view === "late" ? "empty_late" : "empty_pending"}>
           {props.pending.map((c) => <OrderCard key={c.id} card={c} {...props} />)}
         </Column>
-        <Column title="packed" total={props.totals.packed} shown={props.packed.length} empty="empty_packed">
+        <Column title="packed" hidden={col !== "packed"} total={props.totals.packed} shown={props.packed.length} empty="empty_packed">
           {props.packed.map((c) => <OrderCard key={c.id} card={c} {...props} />)}
         </Column>
-        <Column title="shipped" total={props.totals.shipped} shown={props.shipped.length} empty="empty_shipped">
+        <Column title="shipped" hidden={col !== "shipped"} total={props.totals.shipped} shown={props.shipped.length} empty="empty_shipped">
           {props.shipped.map((s) => (
             <div key={`${s.orderId}-${s.trackingNumber}`} className="rounded-md border bg-card p-3 text-sm" data-testid="shipped-card">
               <div className="flex items-center justify-between gap-2">
@@ -83,10 +93,10 @@ export function Board(props: BoardProps) {
   );
 }
 
-function Column({ title, total, shown, empty, children }: { title: "pending" | "packed" | "shipped"; total: number; shown: number; empty: string; children: React.ReactNode }) {
+function Column({ title, hidden, total, shown, empty, children }: { title: "pending" | "packed" | "shipped"; hidden: boolean; total: number; shown: number; empty: string; children: React.ReactNode }) {
   const t = useTranslations("fulfilment");
   return (
-    <Card data-testid={`column-${title}`}>
+    <Card data-testid={`column-${title}`} className={cn(hidden && "max-lg:hidden")}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-base">{t(`columns.${title}`)}</CardTitle>
         <span className="text-xs text-muted-foreground tabular">{shown < total ? t("showing", { shown, total }) : total}</span>

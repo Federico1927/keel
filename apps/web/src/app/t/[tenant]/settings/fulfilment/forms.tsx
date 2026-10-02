@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Plus, Trash2 } from "lucide-react";
 import { SHIPMENT_STATUSES } from "@hullwise/core";
-import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Checkbox, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Checkbox, DataList, Input, Label, Select } from "@hullwise/ui";
 import { deleteMappingAction, saveFulfilmentSettingsAction, saveMappingAction } from "@/server/actions/fulfilment";
 import type { ActionResult } from "@/server/action-result";
 
@@ -96,44 +96,22 @@ export function MappingEditor({ slug, canEdit, rows, unmapped }: { slug: string;
         <CardDescription>{t("mappings_description")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="overflow-x-auto">
-          <Table data-testid="mapping-table">
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("source")}</TableHead>
-                <TableHead>{t("external_status")}</TableHead>
-                <TableHead>{t("canonical")}</TableHead>
-                <TableHead>{t("exception")}</TableHead>
-                <TableHead>{t("final")}</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((r) => (
-                <TableRow key={r.id} data-testid="mapping-row" data-external={r.externalStatus}>
-                  <TableCell className="text-sm">{r.source}</TableCell>
-                  <TableCell className="font-mono text-xs">{r.externalStatus}</TableCell>
-                  <TableCell>
-                    <Select aria-label={t("canonical")} value={r.canonicalStatus} disabled={!canEdit || pending} onChange={(e) => save({ ...r, canonicalStatus: e.target.value })} size="sm">
-                      {SHIPMENT_STATUSES.map((s) => <option key={s} value={s}>{ts(s)}</option>)}
-                    </Select>
-                  </TableCell>
-                  <TableCell><Checkbox checked={r.isException} disabled={!canEdit || pending} onCheckedChange={(v) => save({ ...r, isException: v === true })} aria-label={t("exception")} /></TableCell>
-                  <TableCell><Checkbox checked={r.isFinal} disabled={!canEdit || pending} onCheckedChange={(v) => save({ ...r, isFinal: v === true })} aria-label={t("final")} /></TableCell>
-                  <TableCell className="text-right">
-                    {canEdit && (
-                      <Button variant="ghost" size="icon" aria-label={t("delete")} disabled={pending} onClick={() => start(async () => { const r2 = await deleteMappingAction(slug, r.id); setError(r2.ok ? null : r2.error); router.refresh(); })}>
-                        <Trash2 />
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <DataList
+          data-testid="mapping-table"
+          rows={rows}
+          rowKey={(r) => r.id}
+          rowProps={(r) => ({ "data-testid": "mapping-row", "data-external": r.externalStatus })}
+          columns={[
+            { key: "external", header: t("external_status"), mobile: "title", className: "font-mono text-xs", cell: (r) => r.externalStatus },
+            { key: "source", header: t("source"), mobile: "subtitle", className: "text-sm", cell: (r) => r.source },
+            { key: "canonical", header: t("canonical"), label: "", cell: (r) => <Select aria-label={t("canonical")} value={r.canonicalStatus} disabled={!canEdit || pending} onChange={(e) => save({ ...r, canonicalStatus: e.target.value })} size="sm">{SHIPMENT_STATUSES.map((s) => <option key={s} value={s}>{ts(s)}</option>)}</Select> },
+            { key: "exception", header: t("exception"), cell: (r) => <Checkbox className="align-middle" checked={r.isException} disabled={!canEdit || pending} onCheckedChange={(v) => save({ ...r, isException: v === true })} aria-label={t("exception")} /> },
+            { key: "final", header: t("final"), cell: (r) => <Checkbox className="align-middle" checked={r.isFinal} disabled={!canEdit || pending} onCheckedChange={(v) => save({ ...r, isFinal: v === true })} aria-label={t("final")} /> },
+            { key: "delete", header: <span className="sr-only">{t("delete")}</span>, mobile: "badge", align: "right", cell: (r) => canEdit && <Button variant="ghost" size="icon" aria-label={t("delete")} disabled={pending} onClick={() => start(async () => { const r2 = await deleteMappingAction(slug, r.id); setError(r2.ok ? null : r2.error); router.refresh(); })}><Trash2 /></Button> },
+          ]}
+        />
         {canEdit && (
-          <form className="grid gap-2 sm:grid-cols-[8rem_minmax(0,1fr)_10rem_auto_auto_auto] sm:items-end" onSubmit={(e) => { e.preventDefault(); save(draft); }} data-testid="mapping-new">
+          <form className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-[8rem_minmax(0,1fr)_10rem_auto_auto_auto] sm:items-end" onSubmit={(e) => { e.preventDefault(); save(draft); }} data-testid="mapping-new">
             <div className="space-y-1"><Label htmlFor="m-source">{t("source")}</Label><Input id="m-source" value={draft.source} maxLength={40} onChange={(e) => setDraft({ ...draft, source: e.target.value })} /></div>
             <div className="space-y-1"><Label htmlFor="m-ext">{t("external_status")}</Label><Input id="m-ext" value={draft.externalStatus} maxLength={80} onChange={(e) => setDraft({ ...draft, externalStatus: e.target.value })} /></div>
             <div className="space-y-1">

@@ -3,7 +3,9 @@ import { useActionState, useEffect, useRef, useState, useTransition } from "reac
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Plus, Trash2 } from "lucide-react";
-import { Alert, AlertDescription, Button, Input, Label, Select } from "@hullwise/ui";
+import { Alert, AlertDescription, Button, Input, Label, ScanButton, Select, Stepper } from "@hullwise/ui";
+import { scanLabels } from "@/components/scan-labels";
+import { ConfirmButton } from "@/components/confirm-button";
 import { applyStockTakeAction, cancelStockTakeAction, createStockTakeAction, scanStockTakeAction, setStockTakeCountAction } from "@/server/actions/inventory-control";
 
 /** New session: a location and an optional note; opens the session once created. */
@@ -43,6 +45,8 @@ export function NewStockTakeForm({ slug, locations }: { slug: string; locations:
 export function StockTakeScanner({ slug, stockTakeId }: { slug: string; stockTakeId: string }) {
   const t = useTranslations("inventory_control.stock_takes");
   const te = useTranslations("inventory_control.errors");
+  const tm = useTranslations("mobile.scan");
+  const ts = useTranslations("mobile.stepper");
   const router = useRouter();
   const code = useRef<HTMLInputElement>(null);
   const queue = useRef<Promise<void>>(Promise.resolve());
@@ -50,15 +54,11 @@ export function StockTakeScanner({ slug, stockTakeId }: { slug: string; stockTak
   const [mode, setMode] = useState<"add" | "set">("add");
   const [, startRefresh] = useTransition();
   const [last, setLast] = useState<{ ok: boolean; text: string } | null>(null);
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const value = code.current?.value.trim() ?? "";
+  const send = (value: string) => {
     if (!value) return;
     const input = { code: value, quantity: Number(qty) || 0, mode };
-    if (code.current) code.current.value = "";
     setQty("1");
     setMode("add");
-    code.current?.focus();
     queue.current = queue.current.then(async () => {
       const r = await scanStockTakeAction(slug, stockTakeId, input);
       if (r.ok && r.data) setLast({ ok: r.data.kind === "matched", text: r.data.kind === "matched" ? t("scan_matched", { label: r.data.label, n: r.data.counted }) : t("scan_unknown", { code: r.data.code, n: r.data.counted }) });
@@ -66,25 +66,34 @@ export function StockTakeScanner({ slug, stockTakeId }: { slug: string; stockTak
       startRefresh(() => router.refresh());
     }, () => undefined);
   };
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const value = code.current?.value.trim() ?? "";
+    if (code.current) code.current.value = "";
+    code.current?.focus();
+    send(value);
+  };
   return (
     <form onSubmit={submit} className="space-y-2" data-testid="stock-take-scanner">
-      <div className="flex flex-wrap items-end gap-2">
-        <div className="min-w-0 flex-1 space-y-1">
+      <div className="grid grid-cols-[1fr_auto] items-end gap-2 sm:flex sm:flex-wrap">
+        <div className="min-w-0 space-y-1 sm:flex-1">
           <Label htmlFor="scan-code">{t("scan_label")}</Label>
-          <Input id="scan-code" ref={code} autoFocus autoComplete="off" placeholder={t("scan_placeholder")} data-testid="scan-code" />
+          <Input id="scan-code" ref={code} autoFocus autoComplete="off" autoCapitalize="off" enterKeyHint="send" placeholder={t("scan_placeholder")} data-testid="scan-code" />
         </div>
-        <div className="w-24 space-y-1">
+        {/* the camera counts one unit per code read, the field stays for hardware scanners and typing (#49) */}
+        <ScanButton continuous iconOnly labels={scanLabels(tm)} onScan={(c) => send(c.trim())} />
+        <div className="space-y-1">
           <Label htmlFor="scan-qty">{t("quantity")}</Label>
-          <Input id="scan-qty" type="number" min={0} value={qty} onChange={(e) => setQty(e.target.value)} data-testid="scan-qty" />
+          <Stepper id="scan-qty" min={0} value={Number(qty) || 0} onValueChange={(v) => setQty(String(v))} decrementLabel={ts("decrement")} incrementLabel={ts("increment")} data-testid="scan-qty" />
         </div>
-        <div className="w-32 space-y-1">
+        <div className="w-32 space-y-1 max-sm:w-auto">
           <Label htmlFor="scan-mode">{t("mode")}</Label>
           <Select id="scan-mode" value={mode} onChange={(e) => setMode(e.target.value as "add" | "set")} data-testid="scan-mode">
             <option value="add">{t("mode_add")}</option>
             <option value="set">{t("mode_set")}</option>
           </Select>
         </div>
-        <Button type="submit" data-testid="scan-submit">{t("count")}</Button>
+        <Button type="submit" className="max-sm:col-span-2" data-testid="scan-submit">{t("count")}</Button>
       </div>
       {last && <p className={last.ok ? "text-sm text-success" : "text-sm text-warning"} data-testid="scan-result" role="status">{last.text}</p>}
     </form>
@@ -104,7 +113,7 @@ export function CountEditor({ slug, stockTakeId, countId, counted }: { slug: str
   return (
     <div className="flex items-center justify-end gap-1">
       <Input size="sm" type="number" min={0} value={value} onChange={(e) => setValue(e.target.value)} onBlur={() => Number(value) !== counted && value !== "" && save(Math.max(0, Math.trunc(Number(value))))} className="w-20 text-right" aria-label={t("columns.counted")} disabled={pending} />
-      <button type="button" className="rounded p-1 text-muted-foreground hover:text-destructive" onClick={() => save(null)} aria-label={t("remove_line")} disabled={pending}>
+      <button type="button" className="inline-flex items-center justify-center rounded p-1 text-muted-foreground hover:text-destructive pointer-coarse:h-11 pointer-coarse:w-11" onClick={() => save(null)} aria-label={t("remove_line")} disabled={pending}>
         <Trash2 className="h-4 w-4" />
       </button>
     </div>
@@ -120,35 +129,38 @@ export function StockTakeActions({ slug, stockTakeId, differences }: { slug: str
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Button
+      <ConfirmButton
         disabled={pending}
         data-testid="apply-stock-take"
-        onClick={() => {
-          if (!window.confirm(t("apply_confirm", { n: differences }))) return;
+        title={t("apply_confirm", { n: differences })}
+        confirmLabel={t("apply", { n: differences })}
+        onConfirm={() =>
           start(async () => {
             const r = await applyStockTakeAction(slug, stockTakeId);
             setResult(r.ok ? { ok: true, text: t("applied", { n: r.data?.movements ?? 0, released: r.data?.released ?? 0 }) } : { ok: false, text: te(r.fieldErrors?.reason ?? r.error) });
             router.refresh();
-          });
-        }}
+          })
+        }
       >
         {t("apply", { n: differences })}
-      </Button>
-      <Button
+      </ConfirmButton>
+      <ConfirmButton
         variant="outline"
         disabled={pending}
         data-testid="cancel-stock-take"
-        onClick={() => {
-          if (!window.confirm(t("cancel_confirm"))) return;
+        title={t("cancel_confirm")}
+        confirmLabel={t("cancel")}
+        destructive
+        onConfirm={() =>
           start(async () => {
             const r = await cancelStockTakeAction(slug, stockTakeId);
             if (!r.ok) setResult({ ok: false, text: te(r.fieldErrors?.reason ?? r.error) });
             router.refresh();
-          });
-        }}
+          })
+        }
       >
         {t("cancel")}
-      </Button>
+      </ConfirmButton>
       {result && (result.ok ? <span className="text-sm text-success" data-testid="stock-take-result">{result.text}</span> : <Alert variant="destructive"><AlertDescription>{result.text}</AlertDescription></Alert>)}
     </div>
   );

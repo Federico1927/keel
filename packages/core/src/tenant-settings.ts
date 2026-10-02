@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { TENANT_SETTING_DEFAULTS } from "@hullwise/config";
+import { MOBILE_NAV_SLOTS, TENANT_SETTING_DEFAULTS } from "@hullwise/config";
 
 export const PAYMENT_METHODS = ["card", "wallet", "bank_transfer", "cod", "bnpl", "other"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
@@ -107,6 +107,8 @@ export const tenantSettingsSchema = z.object({
   campaignMeasurementLock: z.boolean().default(true),
   /** First Shopify import (issue #87): months of order history read when the store is connected; 0 reads every order. */
   historyImportMonths: z.number().int().min(0).max(120).default(24),
+  /** Phone bottom navigation (#49): destinations per role (keys of MOBILE_NAV_DESTINATIONS); a role left out uses its default. */
+  mobileNav: z.record(z.string().max(40), z.array(z.string().max(40)).max(MOBILE_NAV_SLOTS)).default({}),
 });
 export type TenantSettings = z.infer<typeof tenantSettingsSchema>;
 export const RETURN_EMAIL_EVENTS = ["approved", "received", "refunded", "voucher_issued", "exchange_shipped"] as const;

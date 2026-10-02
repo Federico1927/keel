@@ -2,7 +2,7 @@
 import { useActionState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
-import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Checkbox, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Checkbox, DataList, Input, Label, Select } from "@hullwise/ui";
 import { SUPPORTED_LOCALES } from "@hullwise/config";
 import { PAYMENT_METHODS, type TenantSettings } from "@hullwise/core";
 import type { ActionResult } from "@/server/action-result";
@@ -147,28 +147,15 @@ export function OperationalSettingsForm({ slug, settings, currency }: { slug: st
           <CardDescription>{t("fees_description", { currency })}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("fee_method")}</TableHead>
-                <TableHead>{t("fee_percent")}</TableHead>
-                <TableHead>{t("fee_fixed")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {PAYMENT_METHODS.map((m) => (
-                <TableRow key={m}>
-                  <TableCell className="font-medium">{tp(m)}</TableCell>
-                  <TableCell>
-                    <Input name={`fee_bps_${m}`} type="number" step="1" defaultValue={settings.paymentFeeBps[m]} className="max-w-[8rem]" aria-label={`${tp(m)} bps`} />
-                  </TableCell>
-                  <TableCell>
-                    <Input name={`fee_fixed_${m}`} type="number" step="1" defaultValue={settings.paymentFeeFixedMinor[m]} className="max-w-[8rem]" aria-label={`${tp(m)} fixed`} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataList
+            rows={[...PAYMENT_METHODS]}
+            rowKey={(m) => m}
+            columns={[
+              { key: "method", header: t("fee_method"), mobile: "title", className: "font-medium", cell: (m) => tp(m) },
+              { key: "bps", header: t("fee_percent"), cell: (m) => <Input name={`fee_bps_${m}`} type="number" step="1" defaultValue={settings.paymentFeeBps[m]} className="max-w-[8rem]" aria-label={`${tp(m)} bps`} /> },
+              { key: "fixed", header: t("fee_fixed"), cell: (m) => <Input name={`fee_fixed_${m}`} type="number" step="1" defaultValue={settings.paymentFeeFixedMinor[m]} className="max-w-[8rem]" aria-label={`${tp(m)} fixed`} /> },
+            ]}
+          />
         </CardContent>
       </Card>
       <div className="flex items-center justify-between gap-4">
@@ -193,38 +180,22 @@ export function TaxRatesSection({ slug, rates }: { slug: string; rates: { countr
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("country")}</TableHead>
-              <TableHead>{t("rate")}</TableHead>
-              <TableHead>{t("prices_include_tax")}</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rates.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={4} className="text-muted-foreground">
-                  {tc("empty")}
-                </TableCell>
-              </TableRow>
-            )}
-            {rates.map((r) => (
-              <TableRow key={r.country}>
-                <TableCell className="font-medium">{r.country}</TableCell>
-                <TableCell className="tabular">{(r.rateBps / 100).toFixed(2)}%</TableCell>
-                <TableCell>{r.pricesIncludeTax ? tc("yes") : tc("no")}</TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" aria-label={tc("delete")} onClick={() => start(() => void deleteTaxRate(slug, r.country))}>
-                    <Trash2 />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <form action={action} className="grid items-end gap-3 sm:grid-cols-4">
+        {rates.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{tc("empty")}</p>
+        ) : (
+          <DataList
+            rows={rates}
+            rowKey={(r) => r.country}
+            rowProps={() => ({ "data-testid": "tax-rate-row" })}
+            columns={[
+              { key: "country", header: t("country"), mobile: "title", className: "font-medium", cell: (r) => r.country },
+              { key: "rate", header: t("rate"), mobile: "badge", className: "tabular", cell: (r) => `${(r.rateBps / 100).toFixed(2)}%` },
+              { key: "incl", header: t("prices_include_tax"), cell: (r) => (r.pricesIncludeTax ? tc("yes") : tc("no")) },
+              { key: "delete", header: <span className="sr-only">{tc("delete")}</span>, mobile: "badge", align: "right", cell: (r) => <Button type="button" variant="ghost" size="icon" aria-label={tc("delete")} onClick={() => start(() => void deleteTaxRate(slug, r.country))}><Trash2 /></Button> },
+            ]}
+          />
+        )}
+        <form action={action} className="grid grid-cols-[minmax(0,1fr)] items-end gap-3 sm:grid-cols-4">
           <div className="space-y-2">
             <Label htmlFor="tax-country">{t("country")}</Label>
             <Input id="tax-country" name="country" maxLength={2} placeholder="IT" required />

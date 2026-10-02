@@ -191,6 +191,8 @@ export const orderAttribution = pgTable(
     utmTerm: text("utm_term"),
     clickIds: jsonb("click_ids").notNull().default(sql`'{}'::jsonb`),
     campaignId: uuid("campaign_id"),
+    /** Ad account of the matched campaign (#82); null when unmatched or synced before accounts. */
+    adAccountExternalId: text("ad_account_external_id"),
     channel: text("channel").notNull().default("unknown"),
     /** webhook | sync | backfill | seed */
     source: text("source").notNull().default("sync"),

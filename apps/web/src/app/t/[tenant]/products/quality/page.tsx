@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { PAGE_SIZE, canWritePage } from "@hullwise/config";
 import { CATALOG_ISSUES, formatMoney, formatNumber, type CatalogIssue } from "@hullwise/core";
 import { catalogQualityReport } from "@hullwise/services";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Badge, Card, CardContent, DataList, EmptyState, PageHeader, Pagination, Stat, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 
 /** Catalog data quality: variants with missing cost, SKU, barcode or image, and duplicate SKUs. */
@@ -37,37 +37,18 @@ export default async function CatalogQualityPage({ params, searchParams }: { par
       ) : (
         <Card className="mt-4">
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("columns.product")}</TableHead>
-                  <TableHead className="hidden sm:table-cell">{t("columns.sku")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("columns.barcode")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("columns.cost")}</TableHead>
-                  <TableHead>{t("columns.issues")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.id} data-testid="quality-row">
-                    <TableCell>
-                      <Link href={`/t/${tenant}/products/${r.productId}`} className="font-medium text-primary hover:underline">{r.productTitle}</Link>
-                      <p className="text-xs text-muted-foreground">{r.title}</p>
-                    </TableCell>
-                    <TableCell className="hidden text-xs sm:table-cell">{r.sku ?? "—"}</TableCell>
-                    <TableCell className="hidden text-xs text-muted-foreground md:table-cell">{r.barcode ?? "—"}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{r.costMinor !== null ? formatMoney(r.costMinor, ctx.tenant.currency, ctx.locale) : "—"}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {r.issues.map((i) => (
-                          <Badge key={i} variant={i === "missing_cost" || i === "duplicate_sku" ? "warning" : "muted"}>{t(`issue.${i}`)}</Badge>
-                        ))}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={rows}
+              rowKey={(r) => r.id}
+              rowProps={() => ({ "data-testid": "quality-row" })}
+              columns={[
+                { key: "product", header: t("columns.product"), mobile: "title", cell: (r) => <><Link href={`/t/${tenant}/products/${r.productId}`} className="font-medium text-primary hover:underline">{r.productTitle}</Link><p className="text-xs font-normal text-muted-foreground">{r.title}</p></> },
+                { key: "sku", header: t("columns.sku"), className: "text-xs", cell: (r) => r.sku ?? "—" },
+                { key: "barcode", header: t("columns.barcode"), className: "text-xs text-muted-foreground", cell: (r) => r.barcode ?? "—" },
+                { key: "cost", header: t("columns.cost"), align: "right", className: "tabular", cell: (r) => (r.costMinor !== null ? formatMoney(r.costMinor, ctx.tenant.currency, ctx.locale) : "—") },
+                { key: "issues", header: t("columns.issues"), mobile: "subtitle", cell: (r) => <div className="flex flex-wrap gap-1">{r.issues.map((i) => <Badge key={i} variant={i === "missing_cost" || i === "duplicate_sku" ? "warning" : "muted"}>{t(`issue.${i}`)}</Badge>)}</div> },
+              ]}
+            />
           </CardContent>
         </Card>
       )}

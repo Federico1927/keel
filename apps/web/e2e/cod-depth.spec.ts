@@ -119,7 +119,11 @@ test.describe("addon.cod depth (#8)", () => {
     await expect(page.getByTestId("templates-editor").getByTestId("template-row").first()).toBeVisible();
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${NW}/cod`);
-    await expect(page.getByTestId("queue-card").first()).toBeVisible();
+    // one list for every width (#49): on a phone each queue row is laid out as a card
+    const card = page.getByTestId("queue-row").first();
+    await expect(card).toBeVisible();
+    expect(await card.evaluate((el) => getComputedStyle(el).display)).toBe("flex");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   });
 
   test("Harbor Home (no add-on): console and webhook unreachable", async ({ page, request }) => {

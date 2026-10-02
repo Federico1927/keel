@@ -1,16 +1,18 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { canDo } from "@hullwise/config";
-import { formatDateTime, formatNumber, formatPercent } from "@hullwise/core";
+import { formatDateTime, formatMoney, formatNumber, formatPercent } from "@hullwise/core";
 import { integrationMode } from "@hullwise/integrations";
 import { conversionLog, conversionStats, getConversionSettings, integrationOverview, pixelOverview } from "@hullwise/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, PageHeader, Stat } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { collectUrlFor, shopifyCustomPixel } from "@/server/pixel-snippets";
 import { ConversionForm, CopyBlock, PixelControls, RunConversions } from "./controls";
 
-export default async function TrackingPage({ params }: { params: Promise<{ tenant: string }> }) {
+export default async function TrackingPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ log?: string }> }) {
   const { tenant } = await params;
+  // the log: every event, or the retractions and restatements alone (#82)
+  const adjustmentsOnly = (await searchParams).log === "adjustments";
   const ctx = await requirePage(tenant, "integrations");
   const t = await getTranslations("tracking");
   const s = { tenantId: ctx.tenant.id, actor: { type: "user" as const, userId: ctx.user.id } };
@@ -18,7 +20,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ tenan
     pixel: await pixelOverview({ ...s, tx }),
     settings: await getConversionSettings({ ...s, tx }),
     stats: await conversionStats({ ...s, tx }),
-    log: await conversionLog({ ...s, tx }, 30),
+    log: await conversionLog({ ...s, tx }, 30, adjustmentsOnly ? { kinds: "adjustments" } : {}),
     integrations: (await integrationOverview({ ...s, tx })).integrations,
   }));
   const canManage = canDo(ctx.role, "manage_integrations");
@@ -78,6 +80,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ tenan
                     <span className="font-medium">{t(`conversions.name_${cs.provider}`)}</span>
                     <Badge variant={live(cs.provider) ? "success" : "muted"}>{live(cs.provider) ? t("live") : t("mock")}</Badge>
                     <span className="text-xs text-muted-foreground" data-testid={`conversions-stats-${cs.provider}`}>{t("conversions.stats", { sent: st.sent, failed: st.failed, pending: st.pending, consent: st.skippedConsent, ident: st.skippedIdentifier })}</span>
+                    {(st.adjusted > 0 || st.unsupported > 0) && <span className="text-xs text-muted-foreground" data-testid={`conversions-adjustments-${cs.provider}`}>{t("conversions.adjustment_stats", { adjusted: st.adjusted, unsupported: st.unsupported })}</span>}
                   </div>
                   <ConversionForm slug={tenant} provider={cs.provider} value={cs} canManage={canManage} />
                 </div>
@@ -88,33 +91,34 @@ export default async function TrackingPage({ params }: { params: Promise<{ tenan
         </Card>
       </div>
       <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="text-base">{t("log.title")}</CardTitle>
-          <CardDescription>{t("log.description")}</CardDescription>
+        <CardHeader className="flex-row flex-wrap items-start justify-between gap-2 space-y-0">
+          <div>
+            <CardTitle className="text-base">{t("log.title")}</CardTitle>
+            <CardDescription>{t("log.description")}</CardDescription>
+          </div>
+          <div className="flex gap-1 text-sm" data-testid="conversion-log-filter">
+            <Link href={`/t/${tenant}/integrations/tracking`} className={`rounded-md border px-2 py-1 ${adjustmentsOnly ? "hover:bg-muted" : "bg-muted font-medium"}`}>{t("log.filter_all")}</Link>
+            <Link href={`/t/${tenant}/integrations/tracking?log=adjustments`} className={`rounded-md border px-2 py-1 ${adjustmentsOnly ? "bg-muted font-medium" : "hover:bg-muted"}`} data-testid="conversion-log-adjustments">{t("log.filter_adjustments")}</Link>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("log.order")}</TableHead>
-                <TableHead>{t("log.platform")}</TableHead>
-                <TableHead>{t("log.status")}</TableHead>
-                <TableHead className="hidden md:table-cell">{t("log.detail")}</TableHead>
-                <TableHead className="hidden md:table-cell">{t("log.when")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {log.map((r) => (
-                <TableRow key={r.id} data-testid="conversion-row">
-                  <TableCell><Link href={`/t/${tenant}/orders/${r.orderId}`} className="hover:underline">{r.orderName}</Link></TableCell>
-                  <TableCell>{t(`conversions.name_${r.provider}`)}</TableCell>
-                  <TableCell><Badge variant={r.status === "sent" ? "success" : r.status === "failed" ? "destructive" : r.status === "pending" ? "info" : "muted"}>{t(`log.statuses.${r.status}`)}</Badge></TableCell>
-                  <TableCell className="hidden text-xs md:table-cell">{r.reason ? t(`log.reasons.${r.reason}`) : r.lastError ?? (r.attempts > 1 ? t("log.attempts", { n: r.attempts }) : "")}</TableCell>
-                  <TableCell className="hidden text-xs md:table-cell">{dt(r.sentAt ?? r.createdAt)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          {log.length === 0 ? (
+            <p className="p-4 text-sm text-muted-foreground">{t("log.empty")}</p>
+          ) : (
+            <DataList
+              rows={log}
+              rowKey={(r) => r.id}
+              rowProps={(r) => ({ "data-testid": "conversion-row", "data-kind": r.kind, "data-status": r.status, "data-provider": r.provider })}
+              columns={[
+                { key: "order", header: t("log.order"), mobile: "title", cell: (r) => <Link href={`/t/${tenant}/orders/${r.orderId}`} className="hover:underline">{r.orderName}</Link> },
+                { key: "status", header: t("log.status"), mobile: "badge", label: "", cell: (r) => <Badge variant={r.status === "sent" ? "success" : r.status === "failed" ? "destructive" : r.status === "pending" ? "info" : "muted"}>{t(`log.statuses.${r.status}`)}</Badge> },
+                { key: "kind", header: t("log.kind"), cell: (r) => <span className={r.kind === "purchase" ? "" : "font-medium"}>{t(`log.kinds.${r.kind}`)}{r.kind === "restatement" && r.valueMinor !== null ? ` · ${t("log.value", { value: formatMoney(r.valueMinor, r.currency, ctx.locale) })}` : ""}</span> },
+                { key: "platform", header: t("log.platform"), cell: (r) => t(`conversions.name_${r.provider}`) },
+                { key: "detail", header: t("log.detail"), priority: 2, cell: (r) => <span className="text-xs">{r.reason ? t(`log.reasons.${r.reason}`) : r.lastError ?? (r.attempts > 1 ? t("log.attempts", { n: r.attempts }) : "")}</span> },
+                { key: "when", header: t("log.when"), mobile: "detail", cell: (r) => <span className="whitespace-nowrap text-xs">{dt(r.sentAt ?? r.createdAt)}</span> },
+              ]}
+            />
+          )}
         </CardContent>
       </Card>
     </>

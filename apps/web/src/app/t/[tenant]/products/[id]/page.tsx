@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
 import { canViewPage, canWritePage } from "@hullwise/config";
 import { formatDate, formatDateTime, formatMoney, formatNumber, sanitizeProductHtml, shopifyAdminProductUrl } from "@hullwise/core";
-import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Skeleton, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardHeader, CardTitle, DataList, DetailShell, Skeleton, Stat } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { getProductDetail } from "@/server/queries/catalog";
 import { RiskBadge } from "@/components/risk-badge";
@@ -181,55 +181,35 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           title={t("variants")}
           rows={variants.filter((v) => v.isActive).map((v) => ({ id: v.id, title: v.title, price: (v.priceMinor / 100).toFixed(2), compareAt: v.compareAtMinor !== null ? (v.compareAtMinor / 100).toFixed(2) : "", sku: v.sku ?? "", barcode: v.barcode ?? "", weight: v.weightGrams !== null ? String(v.weightGrams) : "", inventoryPolicy: v.inventoryPolicy ?? "deny" }))}
         >
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("variant.title")}</TableHead>
-                <TableHead className="text-right">{t("variant.price")}</TableHead>
-                <TableHead className="hidden text-right md:table-cell">{t("variant.cost")}</TableHead>
-                {locations.map((l) => (
-                  <TableHead key={l.id} className="hidden text-right lg:table-cell">{l.name}</TableHead>
-                ))}
-                <TableHead className="text-right">{t("variant.available")}</TableHead>
-                <TableHead className="hidden text-right md:table-cell">{t("variant.incoming")}</TableHead>
-                <TableHead className="hidden text-right md:table-cell">{t("variant.velocity")}</TableHead>
-                <TableHead>{t("variant.risk")}</TableHead>
-                <TableHead className="text-right">{t("variant.reorder")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {variants.map((v) => {
-                const s = stock.find((r) => r.variantId === v.id);
-                return (
-                  <TableRow key={v.id} data-testid="variant-row">
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <ProductThumb src={(v.imageMediaId && mediaUrl.get(v.imageMediaId)) || product.imageUrl} alt={v.title} size="xs" />
-                        <div className="min-w-0">
-                          <div className="font-medium">{canViewPage(ctx.role, "orders") ? <Link href={`/t/${tenant}/orders?variant=${v.id}`} className="hover:underline" title={t("view_orders")}>{v.title}</Link> : v.title}{!v.isActive && <Badge variant="outline" className="ml-1">{tm("variants.inactive")}</Badge>}</div>
-                          <div className="text-xs text-muted-foreground">{v.sku}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right tabular">
-                      {fmt(v.priceMinor)}
-                      {v.compareAtMinor !== null && <div className="text-xs text-muted-foreground line-through">{fmt(v.compareAtMinor)}</div>}
-                      <PlatformWriteStatus slug={tenant} write={writes.price.get(v.id)} canRetry={canEdit} className="justify-end" />
-                    </TableCell>
-                    <TableCell className="hidden text-right tabular text-muted-foreground md:table-cell">{v.costMinor !== null ? fmt(v.costMinor) : "—"}</TableCell>
-                    {locations.map((l) => (
-                      <TableCell key={l.id} className="hidden text-right tabular lg:table-cell">{s?.byLocation.find((x) => x.locationId === l.id)?.available ?? 0}</TableCell>
-                    ))}
-                    <TableCell className="text-right tabular font-medium">{s?.available ?? 0}<PlatformWriteStatus slug={tenant} write={writes.stock.get(v.id)} canRetry={canEdit} className="justify-end" /></TableCell>
-                    <TableCell className="hidden text-right tabular text-muted-foreground md:table-cell">{s?.incoming ? `+${s.incoming}` : "—"}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{s ? s.velocityPerDay.toFixed(2) : "—"}</TableCell>
-                    <TableCell>{s && <RiskBadge risk={s.risk} days={s.daysOfCover} />}</TableCell>
-                    <TableCell className="text-right tabular">{s?.suggestedReorder ? s.suggestedReorder : "—"}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+          <DataList
+            rows={variants.map((v) => ({ v, s: stock.find((r) => r.variantId === v.id) }))}
+            rowKey={({ v }) => v.id}
+            rowProps={() => ({ "data-testid": "variant-row" })}
+            columns={[
+              {
+                key: "title",
+                header: t("variant.title"),
+                mobile: "title",
+                cell: ({ v }) => (
+                  <div className="flex items-center gap-2">
+                    <ProductThumb src={(v.imageMediaId && mediaUrl.get(v.imageMediaId)) || product.imageUrl} alt={v.title} size="xs" />
+                    <div className="min-w-0">
+                      <div className="font-medium">{canViewPage(ctx.role, "orders") ? <Link href={`/t/${tenant}/orders?variant=${v.id}`} className="hover:underline" title={t("view_orders")}>{v.title}</Link> : v.title}{!v.isActive && <Badge variant="outline" className="ml-1">{tm("variants.inactive")}</Badge>}</div>
+                      <div className="text-xs font-normal text-muted-foreground">{v.sku}</div>
+                    </div>
+                  </div>
+                ),
+              },
+              { key: "price", header: t("variant.price"), align: "right", className: "tabular", cell: ({ v }) => <>{fmt(v.priceMinor)}{v.compareAtMinor !== null && <div className="text-xs text-muted-foreground line-through max-md:ml-1 max-md:inline">{fmt(v.compareAtMinor)}</div>}<PlatformWriteStatus slug={tenant} write={writes.price.get(v.id)} canRetry={canEdit} className="justify-end" /></> },
+              { key: "cost", header: t("variant.cost"), align: "right", className: "tabular text-muted-foreground", cell: ({ v }) => (v.costMinor !== null ? fmt(v.costMinor) : "—") },
+              ...locations.map((l) => ({ key: `loc-${l.id}`, header: l.name, priority: 2 as const, align: "right" as const, className: "tabular", cell: ({ s }: { s: (typeof stock)[number] | undefined }) => s?.byLocation.find((x) => x.locationId === l.id)?.available ?? 0 })),
+              { key: "available", header: t("variant.available"), mobile: "badge", align: "right", className: "tabular font-medium", cell: ({ v, s }) => <>{s?.available ?? 0}<PlatformWriteStatus slug={tenant} write={writes.stock.get(v.id)} canRetry={canEdit} className="justify-end" /></> },
+              { key: "incoming", header: t("variant.incoming"), align: "right", className: "tabular text-muted-foreground", cell: ({ s }) => (s?.incoming ? `+${s.incoming}` : "—") },
+              { key: "velocity", header: t("variant.velocity"), align: "right", className: "tabular", cell: ({ s }) => (s ? s.velocityPerDay.toFixed(2) : "—") },
+              { key: "risk", header: t("variant.risk"), label: "", cell: ({ s }) => s && <RiskBadge risk={s.risk} days={s.daysOfCover} /> },
+              { key: "reorder", header: t("variant.reorder"), align: "right", className: "tabular", cell: ({ s }) => (s?.suggestedReorder ? s.suggestedReorder : "—") },
+            ]}
+          />
           <details className="border-t px-4 py-3 text-sm" data-testid="variant-fields">
             <summary className="cursor-pointer text-muted-foreground">{tm("variants.more_fields")}</summary>
             <div className="mt-2 overflow-x-auto">

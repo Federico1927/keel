@@ -2,7 +2,7 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { formatMoney } from "@hullwise/core";
-import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Stat, Switch, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, Input, Label, Select, Stat, Switch } from "@hullwise/ui";
 import { confirmCostImportAction, previewCostImportAction, saveCostWriteBackAction, type CostImportPreviewView } from "@/server/actions/catalog";
 
 const STATUSES = ["matched", "unchanged", "unmatched", "ambiguous", "invalid"] as const;
@@ -88,29 +88,19 @@ export function CostImportForm({ slug, currency, locale }: { slug: string; curre
                 <Stat key={s} label={t(`status.${s}`)} value={preview.counts![s]} />
               ))}
             </div>
-            <div className="-mx-6 overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("columns.line")}</TableHead>
-                    <TableHead>{t("columns.sku")}</TableHead>
-                    <TableHead className="hidden md:table-cell">{t("columns.variant")}</TableHead>
-                    <TableHead className="text-right">{t("columns.cost")}</TableHead>
-                    <TableHead>{t("columns.status")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {preview.rows.map((r) => (
-                    <TableRow key={r.line} data-testid={`preview-${r.status}`}>
-                      <TableCell className="tabular text-muted-foreground">{r.line}</TableCell>
-                      <TableCell className="text-xs">{r.sku ?? r.supplierSku ?? "—"}</TableCell>
-                      <TableCell className="hidden text-xs md:table-cell">{r.label ?? (r.error ? t(`row_error.${r.error}`) : "—")}</TableCell>
-                      <TableCell className="text-right tabular text-xs">{r.status === "matched" ? `${money(r.fromMinor)} → ${money(r.costMinor)}` : r.costMinor !== null ? money(r.costMinor) : r.rawCost || "—"}</TableCell>
-                      <TableCell><Badge variant={BADGE[r.status]}>{t(`status.${r.status}`)}</Badge></TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <div className="-mx-(--density-card) border-y">
+              <DataList
+                rows={preview.rows}
+                rowKey={(r) => String(r.line)}
+                rowProps={(r) => ({ "data-testid": `preview-${r.status}` })}
+                columns={[
+                  { key: "line", header: t("columns.line"), className: "tabular text-muted-foreground", cell: (r) => r.line },
+                  { key: "sku", header: t("columns.sku"), mobile: "title", className: "text-xs", cell: (r) => r.sku ?? r.supplierSku ?? "—" },
+                  { key: "status", header: t("columns.status"), mobile: "badge", cell: (r) => <Badge variant={BADGE[r.status]}>{t(`status.${r.status}`)}</Badge> },
+                  { key: "variant", header: t("columns.variant"), mobile: "subtitle", className: "text-xs", cell: (r) => r.label ?? (r.error ? t(`row_error.${r.error}`) : "—") },
+                  { key: "cost", header: t("columns.cost"), align: "right", className: "tabular text-xs", cell: (r) => (r.status === "matched" ? `${money(r.fromMinor)} → ${money(r.costMinor)}` : r.costMinor !== null ? money(r.costMinor) : r.rawCost || "—") },
+                ]}
+              />
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <Button type="button" disabled={pending || preview.counts.matched === 0} onClick={confirm} data-testid="cost-confirm">{t("confirm", { n: preview.counts.matched })}</Button>

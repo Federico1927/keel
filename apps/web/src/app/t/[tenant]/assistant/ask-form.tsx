@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Loader2, Send, Trash2 } from "lucide-react";
 import { Button, Textarea } from "@hullwise/ui";
 import { askAssistantAction, deleteAssistantThreadAction } from "@/server/actions/assistant";
+import { ConfirmButton } from "@/components/confirm-button";
 
 const MAX_CHARS = 2000;
 
@@ -91,20 +92,22 @@ export function DeleteThreadButton({ slug, threadId }: { slug: string; threadId:
   const router = useRouter();
   const [pending, start] = useTransition();
   return (
-    <Button
+    <ConfirmButton
       size="sm"
       variant="ghost"
       disabled={pending}
       data-testid="assistant-delete"
-      onClick={() => {
-        if (!window.confirm(t("delete_confirm"))) return;
+      title={t("delete_confirm")}
+      confirmLabel={t("delete")}
+      destructive
+      onConfirm={() =>
         start(async () => {
           const r = await deleteAssistantThreadAction(slug, threadId);
           if (r.ok) router.push(`/t/${slug}/assistant`);
-        });
-      }}
+        })
+      }
     >
       <Trash2 /> {t("delete")}
-    </Button>
+    </ConfirmButton>
   );
 }

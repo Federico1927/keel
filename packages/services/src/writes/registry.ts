@@ -63,8 +63,9 @@ export interface PlatformWriteKinds {
   "return.refund": { payload: { orderExternalId: string; lines: { orderLineExternalId: string; quantity: number }[]; amountMinor: number; currency: string; note?: string | null; notify: boolean }; result: { externalId: string; amountMinor: number } };
   "return.close": { payload: { returnExternalId: string }; result: void };
   "fulfillment.create": { payload: { input: CreateFulfillmentInput }; result: NormalizedFulfillment };
-  "campaign.status": { payload: { provider: AdPlatform; campaignExternalId: string; status: "active" | "paused" }; result: void };
-  "ad.status": { payload: { provider: AdPlatform; adExternalId: string; adSetExternalId: string | null; status: "active" | "paused" }; result: void };
+  /** `accountExternalId` (#82): the Meta ad account the campaign lives in; absent on writes queued before accounts (the primary one). */
+  "campaign.status": { payload: { provider: AdPlatform; campaignExternalId: string; status: "active" | "paused"; accountExternalId?: string | null }; result: void };
+  "ad.status": { payload: { provider: AdPlatform; adExternalId: string; adSetExternalId: string | null; status: "active" | "paused"; accountExternalId?: string | null }; result: void };
   "keyword.negative": { payload: { provider: "google"; campaignExternalId: string; adSetExternalId: string | null; text: string; matchType: "exact" | "phrase" | "broad" }; result: { created: number } };
   /* addon.subscriptions (#67): customer-care actions through the merchant's subscription app; each answers the contract afterwards. */
   "subscription.pause": { payload: { contractExternalId: string; resumeAt?: string | null }; result: NormalizedSubscriptionContract };
@@ -86,6 +87,8 @@ export interface WriteHandler<K extends PlatformWriteKind = PlatformWriteKind> {
   target(payload: WritePayload<K>): string;
   /** Absolute values (a price, a status, a stock level): only the last one matters. Partial patches and one-shot actions keep every write. */
   supersedes: boolean;
+  /** Ads writes: the ad account to address on a platform with several (#82); null or absent: the primary one. */
+  account?(payload: WritePayload<K>): string | null | undefined;
   execute(adapter: WriteAdapter, payload: WritePayload<K>): Promise<WriteResult<K>>;
   /** Local follow-up once the platform accepted the write (store the external id…), in the same transaction as the status. */
   onSuccess?(ctx: ServiceContext, write: PlatformWriteRow, result: WriteResult<K>): Promise<void>;

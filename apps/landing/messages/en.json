@@ -288,6 +288,10 @@
       "whatsapp_spoki": {
         "title": "WhatsApp via Spoki",
         "body": "Your Spoki account as the WhatsApp channel: order notifications per event, cash-on-delivery confirmations answered with a reply, WhatsApp campaigns, opt-outs honoured everywhere and every message on the order."
+      },
+      "accounting": {
+        "title": "Accounting push",
+        "body": "One journal per day to your accounting system from the daily sales summary: sales and tax per rate, shipping, discounts, refunds and fees on your own chart of accounts, pushed only when the day reconciles, with a push log and re-push."
       }
     },
     "coming_soon": "Coming soon"

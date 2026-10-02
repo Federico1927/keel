@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { canWritePage } from "@hullwise/config";
 import { formatDateTime, formatNumber } from "@hullwise/core";
 import { InventoryControlError, stockTakeDetail } from "@hullwise/services";
-import { Badge, Card, CardContent, CardHeader, CardTitle, EmptyState, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardHeader, CardTitle, EmptyState, PageHeader, Stat, DataList, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { svcOf } from "@/server/queries/inventory-control";
 import { CountEditor, StockTakeActions, StockTakeScanner } from "../controls";
@@ -40,7 +40,7 @@ export default async function StockTakePage({ params, searchParams }: { params: 
         actions={<Badge variant={open ? "info" : take.status === "applied" ? "success" : "muted"} data-testid="stock-take-status">{t(`stock_takes.status.${take.status}`)}</Badge>}
       />
       {take.note && <p className="-mt-4 mb-4 text-sm text-muted-foreground">{take.note}</p>}
-      <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {(["missing", "surplus", "unknown", "match"] as const).map((k) => (
           <Stat key={k} label={t(`stock_takes.review.${k}`)} value={n(summary[k])} hint={k === "missing" ? t("stock_takes.units", { n: summary.unitsMissing }) : k === "surplus" ? t("stock_takes.units", { n: summary.unitsSurplus }) : undefined} href={`${base}?status=${k}`} className={cn(filter === k && "ring-2 ring-ring")} />
         ))}
@@ -65,31 +65,18 @@ export default async function StockTakePage({ params, searchParams }: { params: 
           {shown.length === 0 ? (
             <EmptyState title={t("stock_takes.no_lines")} description={open ? t("stock_takes.no_lines_hint") : undefined} />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("stock_takes.columns.variant")}</TableHead>
-                  <TableHead>{t("stock_takes.columns.status")}</TableHead>
-                  <TableHead className="text-right">{t("stock_takes.columns.expected")}</TableHead>
-                  <TableHead className="text-right">{t("stock_takes.columns.counted")}</TableHead>
-                  <TableHead className="text-right">{t("stock_takes.columns.difference")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {shown.map((l) => (
-                  <TableRow key={l.id} data-testid="stock-take-line" data-status={l.status}>
-                    <TableCell>
-                      {l.productId ? <Link href={`/t/${tenant}/products/${l.productId}`} className="font-medium text-primary hover:underline">{l.productTitle}</Link> : <span className="font-medium">{t("stock_takes.unknown_code")}</span>}
-                      <p className="text-xs text-muted-foreground">{l.variantTitle ? `${l.variantTitle} · ` : ""}{l.sku ?? l.code}</p>
-                    </TableCell>
-                    <TableCell><Badge variant={STATUS_BADGE[l.status]}>{t(`stock_takes.review.${l.status}`)}</Badge></TableCell>
-                    <TableCell className="text-right tabular">{l.expected === null ? "—" : n(l.expected)}</TableCell>
-                    <TableCell className="text-right tabular">{canWrite ? <CountEditor slug={tenant} stockTakeId={id} countId={l.id} counted={l.counted} /> : n(l.counted)}</TableCell>
-                    <TableCell className={cn("text-right tabular font-medium", l.delta < 0 && "text-destructive", l.delta > 0 && "text-warning")}>{l.status === "unknown" ? "—" : `${l.delta > 0 ? "+" : ""}${n(l.delta)}`}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={shown}
+              rowKey={(l) => l.id}
+              rowProps={(l) => ({ "data-testid": "stock-take-line", "data-status": l.status })}
+              columns={[
+                { key: "variant", header: t("stock_takes.columns.variant"), mobile: "title", cell: (l) => <>{l.productId ? <Link href={`/t/${tenant}/products/${l.productId}`} className="font-medium text-primary hover:underline">{l.productTitle}</Link> : <span className="font-medium">{t("stock_takes.unknown_code")}</span>}<p className="text-xs font-normal text-muted-foreground">{l.variantTitle ? `${l.variantTitle} · ` : ""}{l.sku ?? l.code}</p></> },
+                { key: "status", header: t("stock_takes.columns.status"), mobile: "badge", cell: (l) => <Badge variant={STATUS_BADGE[l.status]}>{t(`stock_takes.review.${l.status}`)}</Badge> },
+                { key: "expected", header: t("stock_takes.columns.expected"), align: "right", className: "tabular", cell: (l) => (l.expected === null ? "—" : n(l.expected)) },
+                { key: "counted", header: t("stock_takes.columns.counted"), align: "right", className: "tabular", mobile: canWrite ? "action" : "meta", cell: (l) => (canWrite ? <div className="flex items-center gap-2 md:block"><span className="mr-auto text-xs text-muted-foreground md:hidden">{t("stock_takes.columns.counted")}</span><CountEditor slug={tenant} stockTakeId={id} countId={l.id} counted={l.counted} /></div> : n(l.counted)) },
+                { key: "difference", header: t("stock_takes.columns.difference"), align: "right", className: cn("tabular font-medium"), cell: (l) => <span className={cn(l.delta < 0 && "text-destructive", l.delta > 0 && "text-warning")}>{l.status === "unknown" ? "—" : `${l.delta > 0 ? "+" : ""}${n(l.delta)}`}</span> },
+              ]}
+            />
           )}
         </CardContent>
       </Card>

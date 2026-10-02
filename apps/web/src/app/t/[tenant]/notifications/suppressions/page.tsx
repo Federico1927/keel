@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { canDo, isPageEnabled } from "@hullwise/config";
 import { formatDateTime } from "@hullwise/core";
 import { listEmailSuppressions } from "@hullwise/services";
-import { Badge, Card, CardContent, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Card, CardContent, DataList, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { NotificationTabs } from "../tabs";
 import { AddSuppressionForm, RemoveSuppressionButton } from "./forms";
@@ -22,33 +22,20 @@ export default async function SuppressionsPage({ params }: { params: Promise<{ t
       <AddSuppressionForm slug={tenant} marketing={isPageEnabled("customer_campaigns", ctx.activeAddons)} />
       <Card className="mt-4">
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("suppressions.email")}</TableHead>
-                <TableHead>{t("suppressions.reason")}</TableHead>
-                <TableHead className="hidden md:table-cell">{t("suppressions.category")}</TableHead>
-                <TableHead className="hidden md:table-cell">{t("suppressions.when")}</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((r) => (
-                <TableRow key={r.id} data-testid="suppression-row">
-                  <TableCell className="break-all text-sm">{r.email}{r.identityType === "phone" && <Badge variant="muted" className="ml-2">{t("suppressions.phone")}</Badge>}{r.note && <p className="text-xs text-muted-foreground">{r.note}</p>}</TableCell>
-                  <TableCell><Badge variant={r.reason === "bounce" || r.reason === "complaint" ? "destructive" : "muted"}>{t(`suppressions.reasons.${r.reason}`)}</Badge></TableCell>
-                  <TableCell className="hidden text-sm md:table-cell">{category(r.category)}</TableCell>
-                  <TableCell className="hidden text-sm text-muted-foreground md:table-cell">{formatDateTime(r.createdAt, ctx.locale, ctx.tenant.timezone)}</TableCell>
-                  <TableCell className="text-right"><RemoveSuppressionButton slug={tenant} id={r.id} label={t("suppressions.remove")} /></TableCell>
-                </TableRow>
-              ))}
-              {rows.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-sm text-muted-foreground">{t("suppressions.empty")}</TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+          {rows.length === 0 ? <p className="p-4 text-sm text-muted-foreground">{t("suppressions.empty")}</p> : (
+            <DataList
+              rows={rows}
+              rowKey={(r) => r.id}
+              rowProps={() => ({ "data-testid": "suppression-row" })}
+              columns={[
+                { key: "email", header: t("suppressions.email"), mobile: "title", className: "break-all text-sm", cell: (r) => <>{r.email}{r.identityType === "phone" && <Badge variant="muted" className="ml-2">{t("suppressions.phone")}</Badge>}{r.note && <p className="text-xs font-normal text-muted-foreground">{r.note}</p>}</> },
+                { key: "reason", header: t("suppressions.reason"), mobile: "badge", cell: (r) => <Badge variant={r.reason === "bounce" || r.reason === "complaint" ? "destructive" : "muted"}>{t(`suppressions.reasons.${r.reason}`)}</Badge> },
+                { key: "category", header: t("suppressions.category"), className: "text-sm", cell: (r) => category(r.category) },
+                { key: "when", header: t("suppressions.when"), className: "text-sm text-muted-foreground", cell: (r) => formatDateTime(r.createdAt, ctx.locale, ctx.tenant.timezone) },
+                { key: "remove", header: <span className="sr-only">{t("suppressions.remove")}</span>, mobile: "action", align: "right", cell: (r) => <RemoveSuppressionButton slug={tenant} id={r.id} label={t("suppressions.remove")} /> },
+              ]}
+            />
+          )}
         </CardContent>
       </Card>
     </>

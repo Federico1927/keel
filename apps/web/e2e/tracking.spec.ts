@@ -28,6 +28,6 @@ test.describe("tracking: first-party pixel and server-side conversions", () => {
     await page.getByTestId("conversions-run").click();
     await expect(page.getByTestId("conversion-row").first()).toBeVisible();
     await page.goto("/t/northwind-apparel/integrations/guide/tracking");
-    await expect(page.getByTestId("guide-step")).toHaveCount(8);
+    await expect(page.getByTestId("guide-step")).toHaveCount(9);
   });
 });

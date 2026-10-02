@@ -1,7 +1,9 @@
 "use client";
 import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Checkbox, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, Button, Checkbox, DataList, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Label, ScanButton, Select, Stepper } from "@hullwise/ui";
+import { matchScanCode } from "@hullwise/core";
+import { scanLabels } from "@/components/scan-labels";
 import { addSupplierPayment, receivePo, transitionPo } from "@/server/actions/purchasing";
 
 export function PoActions({ slug, poId, status, transitions, supplierId, balanceMinor }: { slug: string; poId: string; status: string; transitions: readonly string[]; supplierId: string; balanceMinor: number }) {
@@ -61,53 +63,57 @@ export function PoActions({ slug, poId, status, transitions, supplierId, balance
   );
 }
 
-export function ReceiveForm({ slug, poId, locations, defaultLocationId, lines }: { slug: string; poId: string; locations: { id: string; name: string; isDefault: boolean }[]; defaultLocationId: string | null; lines: { id: string; label: string; sku: string | null; quantity: number; receivedQuantity: number; damagedQuantity: number; rejectedQuantity: number; unitCost: string }[] }) {
+export function ReceiveForm({ slug, poId, locations, defaultLocationId, lines }: { slug: string; poId: string; locations: { id: string; name: string; isDefault: boolean }[]; defaultLocationId: string | null; lines: { id: string; label: string; sku: string | null; codes?: (string | null)[]; quantity: number; receivedQuantity: number; damagedQuantity: number; rejectedQuantity: number; unitCost: string }[] }) {
   const t = useTranslations("po_detail");
   const tc = useTranslations("common");
+  const tm = useTranslations("mobile.scan");
+  const ts = useTranslations("mobile.stepper");
   const [state, action, pending] = useActionState(receivePo.bind(null, slug, poId), null);
+  const remainingOf = (l: (typeof lines)[number]) => l.quantity - l.receivedQuantity;
+  const [qty, setQty] = useState<Record<string, number>>(() => Object.fromEntries(lines.map((l) => [l.id, remainingOf(l)])));
+  // scanning counts what is in the box: the first scan of a line starts it from 1 (#49)
+  const [scanCounts, setScanCounts] = useState<Record<string, number>>({});
+  const [scanned, setScanned] = useState<{ ok: boolean; text: string } | null>(null);
+  const onScan = (code: string) => {
+    const hit = matchScanCode(code, lines.map((l) => ({ ...l, codes: l.codes ?? [l.sku], open: (scanCounts[l.id] ?? 0) < remainingOf(l) })));
+    if (!hit || remainingOf(hit) === 0) return setScanned({ ok: false, text: t("scan_no_match", { code }) });
+    const n = Math.min(remainingOf(hit), (scanCounts[hit.id] ?? 0) + 1);
+    setScanCounts((c) => ({ ...c, [hit.id]: n }));
+    setQty((q) => ({ ...q, [hit.id]: n }));
+    setScanned({ ok: true, text: t("scan_counted", { item: hit.label, n, of: remainingOf(hit) }) });
+  };
   return (
     <form action={action}>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{t("line.item")}</TableHead>
-            <TableHead className="text-right">{t("line.ordered")}</TableHead>
-            <TableHead className="text-right">{t("line.received")}</TableHead>
-            <TableHead className="text-right">{t("line.unit_cost")}</TableHead>
-            <TableHead className="text-right">{t("line.receive_now")}</TableHead>
-            <TableHead className="text-right">{t("inspection.damaged")}</TableHead>
-            <TableHead className="text-right">{t("inspection.rejected")}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {lines.map((l) => {
-            const remaining = l.quantity - l.receivedQuantity;
-            return (
-              <TableRow key={l.id}>
-                <TableCell>
-                  <p className="font-medium">{l.label}</p>
-                  <p className="text-xs text-muted-foreground">{l.sku}</p>
-                </TableCell>
-                <TableCell className="text-right tabular">{l.quantity}</TableCell>
-                <TableCell className="text-right tabular">
-                  {l.receivedQuantity}
-                  {l.damagedQuantity + l.rejectedQuantity > 0 && <span className="block text-xs text-destructive">{t("inspection.short", { damaged: l.damagedQuantity, rejected: l.rejectedQuantity })}</span>}
-                </TableCell>
-                <TableCell className="text-right tabular">{l.unitCost}</TableCell>
-                <TableCell className="text-right">
-                  <Input size="sm" name={`qty_${l.id}`} type="number" min={0} max={remaining} defaultValue={remaining} className="ml-auto w-20 text-right" aria-label={t("line.receive_now")} disabled={remaining === 0} />
-                </TableCell>
-                <TableCell className="text-right">
-                  <Input size="sm" name={`dmg_${l.id}`} type="number" min={0} max={remaining} defaultValue={0} className="ml-auto w-16 text-right" aria-label={t("inspection.damaged")} disabled={remaining === 0} />
-                </TableCell>
-                <TableCell className="text-right">
-                  <Input size="sm" name={`rej_${l.id}`} type="number" min={0} max={remaining} defaultValue={0} className="ml-auto w-16 text-right" aria-label={t("inspection.rejected")} disabled={remaining === 0} />
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
+        <p className="text-sm text-muted-foreground">{t("scan_hint")}</p>
+        <ScanButton size="sm" continuous labels={scanLabels(tm)} onScan={onScan} />
+        {scanned && <p className={scanned.ok ? "w-full text-sm text-success" : "w-full text-sm text-warning"} role="status" data-testid="po-scan-result">{scanned.text}</p>}
+      </div>
+      <DataList
+        rows={lines}
+        rowKey={(l) => l.id}
+        rowProps={(l) => ({ "data-testid": "receive-line", className: scanCounts[l.id] ? "bg-success/5" : undefined })}
+        columns={[
+          { key: "item", header: t("line.item"), mobile: "title", cell: (l) => <><p className="font-medium">{l.label}</p><p className="text-xs font-normal text-muted-foreground">{l.sku}</p></> },
+          { key: "ordered", header: t("line.ordered"), align: "right", className: "tabular", cell: (l) => l.quantity },
+          { key: "received", header: t("line.received"), align: "right", className: "tabular", cell: (l) => <>{l.receivedQuantity}{l.damagedQuantity + l.rejectedQuantity > 0 && <span className="block text-xs text-destructive max-md:ml-1 max-md:inline">{t("inspection.short", { damaged: l.damagedQuantity, rejected: l.rejectedQuantity })}</span>}</> },
+          { key: "cost", header: t("line.unit_cost"), align: "right", className: "tabular", cell: (l) => l.unitCost },
+          {
+            key: "now",
+            header: t("line.receive_now"),
+            mobile: "action",
+            align: "right",
+            cell: (l) => (
+              <label className="flex items-center justify-between gap-2 md:justify-end">
+                <span className="text-xs text-muted-foreground md:sr-only">{t("line.receive_now")}</span>
+                <Stepper size="sm" name={`qty_${l.id}`} min={0} max={remainingOf(l)} value={qty[l.id] ?? 0} onValueChange={(v) => setQty((q) => ({ ...q, [l.id]: v }))} disabled={remainingOf(l) === 0} decrementLabel={ts("decrement")} incrementLabel={ts("increment")} aria-label={t("line.receive_now")} />
+              </label>
+            ),
+          },
+          { key: "damaged", header: t("inspection.damaged"), mobile: "action", align: "right", className: "max-md:basis-[calc(50%-0.375rem)]", cell: (l) => <label className="flex items-center gap-2 md:justify-end"><span className="text-xs text-muted-foreground md:sr-only">{t("inspection.damaged")}</span><Input size="sm" name={`dmg_${l.id}`} type="number" min={0} max={remainingOf(l)} defaultValue={0} className="w-16 text-right max-md:ml-auto" aria-label={t("inspection.damaged")} disabled={remainingOf(l) === 0} /></label> },
+          { key: "rejected", header: t("inspection.rejected"), mobile: "action", align: "right", className: "max-md:basis-[calc(50%-0.375rem)]", cell: (l) => <label className="flex items-center gap-2 md:justify-end"><span className="text-xs text-muted-foreground md:sr-only">{t("inspection.rejected")}</span><Input size="sm" name={`rej_${l.id}`} type="number" min={0} max={remainingOf(l)} defaultValue={0} className="w-16 text-right max-md:ml-auto" aria-label={t("inspection.rejected")} disabled={remainingOf(l) === 0} /></label> },
+        ]}
+      />
       <p className="border-t px-4 pt-3 text-xs text-muted-foreground">{t("inspection.hint")}</p>
       <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-wrap items-end gap-3">
@@ -126,7 +132,7 @@ export function ReceiveForm({ slug, poId, locations, defaultLocationId, lines }:
         <div className="flex items-center gap-3">
           {state && !state.ok && <span className="text-sm text-destructive">{tc(`errors.${state.error}`)}</span>}
           {state?.ok && <span className="text-sm text-success">{t("received_ok", { released: state.data?.released ?? 0 })}</span>}
-          <Button type="submit" disabled={pending}>{t("receive")}</Button>
+          <Button type="submit" disabled={pending} className="max-sm:w-full">{t("receive")}</Button>
         </div>
       </div>
     </form>

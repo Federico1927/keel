@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { canViewPage } from "@hullwise/config";
 import { formatDate, formatNumber } from "@hullwise/core";
 import { renewalStock } from "@hullwise/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, EmptyState, PageHeader, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { SubscriptionTabs, svcOf } from "../shared";
 
@@ -35,24 +35,23 @@ export default async function RenewalStockPage({ params, searchParams }: { param
       {rows.length === 0 ? <EmptyState title={t("empty_title")} description={t("empty_description")} /> : (
         <Card>
           <CardHeader><CardTitle className="text-base">{t("table_title", { n: weeks })}</CardTitle><CardDescription>{t("table_description")}</CardDescription></CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <Table data-testid="renewal-stock">
-              <TableHeader><TableRow><TableHead>{t("variant")}</TableHead><TableHead className="text-right">{t("renewals")}</TableHead><TableHead className="text-right">{t("units")}</TableHead><TableHead className="text-right">{t("available")}</TableHead><TableHead className="text-right">{t("incoming")}</TableHead><TableHead>{t("runs_out")}</TableHead><TableHead className="text-right">{t("suggested")}</TableHead><TableHead className="hidden md:table-cell">{t("by_week")}</TableHead></TableRow></TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.variantId} data-testid="renewal-stock-row" data-short={r.runOutAt ? "true" : "false"}>
-                    <TableCell className="max-w-64"><span className="block truncate">{products ? <Link href={`/t/${tenant}/products/${r.productId}`} className="hover:underline">{r.label}</Link> : r.label}</span>{r.sku && <span className="font-mono text-xs text-muted-foreground">{r.sku}</span>}</TableCell>
-                    <TableCell className="text-right tabular"><Link href={`/t/${tenant}/subscriptions/subscribers?status=active&variant=${r.variantId}`} className="hover:underline">{n(r.renewals)}</Link></TableCell>
-                    <TableCell className="text-right tabular">{n(r.units)}</TableCell>
-                    <TableCell className={cn("text-right tabular", r.available < r.units && "text-destructive")}>{n(r.available)}</TableCell>
-                    <TableCell className="text-right tabular">{n(r.incoming)}</TableCell>
-                    <TableCell>{r.runOutAt ? <Badge variant="destructive">{formatDate(r.runOutAt, ctx.locale, ctx.tenant.timezone)}</Badge> : <span className="text-muted-foreground">{t("covered")}</span>}</TableCell>
-                    <TableCell className="text-right font-medium tabular" data-testid="suggested-qty">{r.suggestedQuantity ? n(r.suggestedQuantity) : "—"}</TableCell>
-                    <TableCell className="hidden text-xs text-muted-foreground tabular md:table-cell">{r.weekly.join(" · ")}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <CardContent className="p-0">
+            <DataList
+              data-testid="renewal-stock"
+              rows={rows}
+              rowKey={(r) => r.variantId}
+              rowProps={(r) => ({ "data-testid": "renewal-stock-row", "data-short": r.runOutAt ? "true" : "false" })}
+              columns={[
+                { key: "variant", header: t("variant"), mobile: "title", className: "md:max-w-64", cell: (r) => <><span className="block truncate">{products ? <Link href={`/t/${tenant}/products/${r.productId}`} className="hover:underline">{r.label}</Link> : r.label}</span>{r.sku && <span className="font-mono text-xs font-normal text-muted-foreground">{r.sku}</span>}</> },
+                { key: "runs_out", header: t("runs_out"), mobile: "badge", cell: (r) => (r.runOutAt ? <Badge variant="destructive">{formatDate(r.runOutAt, ctx.locale, ctx.tenant.timezone)}</Badge> : <span className="text-muted-foreground">{t("covered")}</span>) },
+                { key: "renewals", header: t("renewals"), align: "right", className: "tabular", cell: (r) => <Link href={`/t/${tenant}/subscriptions/subscribers?status=active&variant=${r.variantId}`} className="hover:underline">{n(r.renewals)}</Link> },
+                { key: "units", header: t("units"), align: "right", className: "tabular", cell: (r) => n(r.units) },
+                { key: "available", header: t("available"), align: "right", cell: (r) => <span className={cn("tabular", r.available < r.units && "text-destructive")}>{n(r.available)}</span> },
+                { key: "incoming", header: t("incoming"), align: "right", className: "tabular", cell: (r) => n(r.incoming) },
+                { key: "suggested", header: t("suggested"), align: "right", className: "font-medium tabular", cell: (r) => <span data-testid="suggested-qty">{r.suggestedQuantity ? n(r.suggestedQuantity) : "—"}</span> },
+                { key: "weekly", header: t("by_week"), priority: 2, className: "text-xs text-muted-foreground tabular", cell: (r) => r.weekly.join(" · ") },
+              ]}
+            />
           </CardContent>
         </Card>
       )}

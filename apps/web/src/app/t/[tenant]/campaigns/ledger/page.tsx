@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatDate, formatMoney, formatNumber } from "@hullwise/core";
 import { campaignDailyLedger } from "@hullwise/services";
-import { Badge, Button, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Button, Card, CardContent, DataList, EmptyState, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";
@@ -40,43 +40,23 @@ export default async function CampaignLedgerPage({ params, searchParams }: { par
       ) : (
         <Card>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{td("ledger.date")}</TableHead>
-                  <TableHead>{t("campaign")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("platform")}</TableHead>
-                  <TableHead className="text-right">{td("ledger.spend")}</TableHead>
-                  <TableHead className="hidden text-right lg:table-cell">{td("ledger.impressions")}</TableHead>
-                  <TableHead className="hidden text-right lg:table-cell">{td("ledger.clicks")}</TableHead>
-                  <TableHead className="text-right">{td("ledger.orders")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{td("ledger.revenue")}</TableHead>
-                  <TableHead className="text-right">{td("ledger.profit")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{td("ledger.roas")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.slice(0, 500).map((r) => (
-                  <TableRow key={`${r.date}|${r.campaignId}`}>
-                    <TableCell className="whitespace-nowrap">{formatDate(new Date(`${r.date}T12:00:00Z`), ctx.locale, ctx.tenant.timezone)}</TableCell>
-                    <TableCell className="max-w-[16rem]">
-                      <Link href={`${base}/${r.campaignId}?${qs}`} className="block truncate hover:underline">{r.campaignName}</Link>
-                      {r.flags.map((f) => (
-                        <Badge key={f} variant="muted" className="mr-1">{td(`ledger.flags.${f}`)}</Badge>
-                      ))}
-                    </TableCell>
-                    <TableCell className="hidden uppercase md:table-cell">{r.platform}</TableCell>
-                    <TableCell className="text-right tabular">{money(r.spendMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular lg:table-cell">{formatNumber(r.impressions, ctx.locale)}</TableCell>
-                    <TableCell className="hidden text-right tabular lg:table-cell">{formatNumber(r.clicks, ctx.locale)}</TableCell>
-                    <TableCell className="text-right tabular">{formatNumber(r.orders, ctx.locale)}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{money(r.netRevenueMinor)}</TableCell>
-                    <TableCell className={`text-right tabular ${r.profitMinor < 0 ? "text-destructive" : ""}`}>{money(r.profitMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{r.roas === null ? "—" : `${r.roas.toFixed(2)}×`}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={rows.slice(0, 500)}
+              rowKey={(r) => `${r.date}|${r.campaignId}`}
+              rowProps={() => ({ "data-testid": "ledger-row" })}
+              columns={[
+                { key: "date", header: td("ledger.date"), mobile: "subtitle", className: "whitespace-nowrap", cell: (r) => <>{formatDate(new Date(`${r.date}T12:00:00Z`), ctx.locale, ctx.tenant.timezone)}<span className="uppercase md:hidden"> · {r.platform}</span></> },
+                { key: "campaign", header: t("campaign"), mobile: "title", className: "md:max-w-[16rem]", cell: (r) => <><Link href={`${base}/${r.campaignId}?${qs}`} className="block truncate hover:underline">{r.campaignName}</Link>{r.flags.map((f) => <Badge key={f} variant="muted" className="mr-1 font-normal">{td(`ledger.flags.${f}`)}</Badge>)}</> },
+                { key: "platform", header: t("platform"), className: "uppercase max-md:hidden", cell: (r) => r.platform },
+                { key: "spend", header: td("ledger.spend"), align: "right", className: "tabular", cell: (r) => money(r.spendMinor) },
+                { key: "impressions", header: td("ledger.impressions"), align: "right", priority: 3, className: "tabular", cell: (r) => formatNumber(r.impressions, ctx.locale) },
+                { key: "clicks", header: td("ledger.clicks"), align: "right", priority: 3, className: "tabular", cell: (r) => formatNumber(r.clicks, ctx.locale) },
+                { key: "orders", header: td("ledger.orders"), align: "right", className: "tabular", cell: (r) => formatNumber(r.orders, ctx.locale) },
+                { key: "revenue", header: td("ledger.revenue"), align: "right", className: "tabular", cell: (r) => money(r.netRevenueMinor) },
+                { key: "profit", header: td("ledger.profit"), mobile: "badge", align: "right", className: "tabular", cell: (r) => <span className={r.profitMinor < 0 ? "text-destructive" : ""}>{money(r.profitMinor)}</span> },
+                { key: "roas", header: td("ledger.roas"), align: "right", className: "tabular", cell: (r) => (r.roas === null ? "—" : `${r.roas.toFixed(2)}×`) },
+              ]}
+            />
           </CardContent>
         </Card>
       )}

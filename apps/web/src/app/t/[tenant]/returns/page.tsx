@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { bulkActionsFor, canWritePage } from "@hullwise/config";
 import { formatDate, formatMoney, formatNumber } from "@hullwise/core";
 import { listReturnReasons, listReturns } from "@hullwise/services";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, DataList } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
 import { ReturnFiltersBar } from "./filters";
@@ -35,6 +35,7 @@ export default async function ReturnsPage({ params, searchParams }: { params: Pr
     return `${base}?${u}`;
   };
   const canWrite = canWritePage(ctx.role, "returns");
+  type Row = (typeof rows)[number];
   return (
     <>
       <PageHeader
@@ -64,24 +65,18 @@ export default async function ReturnsPage({ params, searchParams }: { params: Pr
         <ListSelection ids={rows.map((r) => r.id)}>
         <Card className="mt-4">
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {bulk.length > 0 && <TableHead className="w-8"><SelectAllCheckbox /></TableHead>}
-                  <TableHead>{t("columns.return")}</TableHead>
-                  <TableHead>{t("columns.order")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("columns.reason")}</TableHead>
-                  <TableHead className="hidden lg:table-cell">{t("columns.resolution")}</TableHead>
-                  <TableHead className="text-right">{t("columns.amount")}</TableHead>
-                  <TableHead>{t("columns.status")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("columns.requested")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.id} data-testid="return-row">
-                    {bulk.length > 0 && <TableCell><RowCheckbox id={r.id} label={`R-${r.number}`} /></TableCell>}
-                    <TableCell>
+            <DataList
+              rows={rows}
+              rowKey={(r) => r.id}
+              rowProps={() => ({ "data-testid": "return-row" })}
+              columns={[
+                ...(bulk.length > 0 ? [{ key: "select", header: <SelectAllCheckbox />, mobile: "select" as const, headClassName: "w-8", cell: (r: Row) => <RowCheckbox id={r.id} label={`R-${r.number}`} /> }] : []),
+                {
+                  key: "return",
+                  header: t("columns.return"),
+                  mobile: "title",
+                  cell: (r) => (
+                    <>
                       <Link href={`${base}/${r.id}`} className="font-medium hover:underline">R-{r.number}</Link>
                       {r.outOfWindow && <Badge variant="warning" className="ml-2">{t("out_of_window")}</Badge>}
                       {r.source === "portal" && <Badge variant="info" className="ml-2">{t("source.portal")}</Badge>}
@@ -89,21 +84,18 @@ export default async function ReturnsPage({ params, searchParams }: { params: Pr
                       {r.platformSyncStatus === "error" && <Badge variant="destructive" className="ml-2">{t("sync_error")}</Badge>}
                       {r.needsReview && <Badge variant="warning" className="ml-2">{t("needs_review")}</Badge>}
                       {r.riskLevel === "high" && <Badge variant="destructive" className="ml-2">{t("risk_high")}</Badge>}
-                      <div className="text-xs text-muted-foreground">{t("items_n", { n: formatNumber(r.items, ctx.locale) })}</div>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/t/${tenant}/orders/${r.orderId}`} className="hover:underline">{r.orderName}</Link>
-                      <div className="truncate text-xs text-muted-foreground">{r.customerName}</div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">{reasons.find((x) => x.code === r.reasonCode)?.label ?? r.reasonCode}</TableCell>
-                    <TableCell className="hidden lg:table-cell">{t(`resolution.${r.resolution}`)}</TableCell>
-                    <TableCell className="text-right tabular">{formatMoney(r.refundedAmountMinor ?? r.proposedAmountMinor, r.currency, ctx.locale)}</TableCell>
-                    <TableCell><StatusBadge status={r.status} namespace="return_status" /></TableCell>
-                    <TableCell className="hidden md:table-cell">{formatDate(r.requestedAt, ctx.locale, ctx.tenant.timezone)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      <div className="text-xs font-normal text-muted-foreground">{t("items_n", { n: formatNumber(r.items, ctx.locale) })}</div>
+                    </>
+                  ),
+                },
+                { key: "order", header: t("columns.order"), mobile: "subtitle", cell: (r) => <><Link href={`/t/${tenant}/orders/${r.orderId}`} className="hover:underline max-md:text-foreground">{r.orderName}</Link><div className="truncate text-xs text-muted-foreground max-md:ml-1 max-md:inline">{r.customerName}</div></> },
+                { key: "reason", header: t("columns.reason"), cell: (r) => reasons.find((x) => x.code === r.reasonCode)?.label ?? r.reasonCode },
+                { key: "resolution", header: t("columns.resolution"), priority: 2, cell: (r) => t(`resolution.${r.resolution}`) },
+                { key: "amount", header: t("columns.amount"), align: "right", className: "tabular", cell: (r) => formatMoney(r.refundedAmountMinor ?? r.proposedAmountMinor, r.currency, ctx.locale) },
+                { key: "status", header: t("columns.status"), mobile: "badge", cell: (r) => <StatusBadge status={r.status} namespace="return_status" /> },
+                { key: "requested", header: t("columns.requested"), cell: (r) => formatDate(r.requestedAt, ctx.locale, ctx.tenant.timezone) },
+              ]}
+            />
           </CardContent>
         </Card>
         <BulkBar slug={tenant} list="returns" actions={bulk} locations={locations} />

@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { canWritePage } from "@hullwise/config";
 import { RFM_FREQUENCY_BANDS, RFM_RECENCY_BANDS, buildRfmMatrix, formatMoney, formatNumber, rulesForRfmCell, rulesForRfmTier } from "@hullwise/core";
 import { customerProfiles } from "@hullwise/services";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { CustomerTabs } from "../customer-tabs";
 import { encodeRulesParam } from "@/server/queries/crm";
@@ -72,32 +72,20 @@ export default async function RfmPage({ params }: { params: Promise<{ tenant: st
           <CardDescription>{t("tiers_description")}</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("tier_col")}</TableHead>
-                <TableHead>{t("tier_rule")}</TableHead>
-                <TableHead className="text-right">{tc("columns.customers")}</TableHead>
-                <TableHead className="hidden text-right md:table-cell">{t("contactable")}</TableHead>
-                <TableHead className="text-right">{t("revenue")}</TableHead>
-                <TableHead className="hidden text-right md:table-cell">{t("share")}</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {matrix.tiers.map((x) => (
-                <TableRow key={x.tier}>
-                  <TableCell><TierBadge tier={x.tier} /></TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{t(`tier_rules.${x.tier}`)}</TableCell>
-                  <TableCell className="text-right tabular"><Link href={`${base}?tier=${x.tier}`} className="hover:underline">{formatNumber(x.customers, ctx.locale)}</Link></TableCell>
-                  <TableCell className="hidden text-right tabular md:table-cell">{formatNumber(x.contactable, ctx.locale)}</TableCell>
-                  <TableCell className="text-right tabular">{money(x.revenueMinor)}</TableCell>
-                  <TableCell className="hidden text-right tabular md:table-cell">{matrix.total ? `${((x.customers / matrix.total) * 100).toFixed(1)}%` : "—"}</TableCell>
-                  <TableCell className="text-right">{canSegment && x.customers > 0 && <Link href={segmentHref(rulesForRfmTier(x.tier))} className="text-sm hover:underline">{t("make_segment")}</Link>}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataList
+            rows={matrix.tiers}
+            rowKey={(x) => x.tier}
+            rowProps={() => ({ "data-testid": "rfm-tier-row" })}
+            columns={[
+              { key: "tier", header: t("tier_col"), mobile: "title", cell: (x) => <TierBadge tier={x.tier} /> },
+              { key: "customers", header: tc("columns.customers"), mobile: "badge", align: "right", className: "tabular", cell: (x) => <Link href={`${base}?tier=${x.tier}`} className="hover:underline">{formatNumber(x.customers, ctx.locale)}</Link> },
+              { key: "rule", header: t("tier_rule"), mobile: "subtitle", className: "text-xs text-muted-foreground", cell: (x) => t(`tier_rules.${x.tier}`) },
+              { key: "contactable", header: t("contactable"), align: "right", className: "tabular", cell: (x) => formatNumber(x.contactable, ctx.locale) },
+              { key: "revenue", header: t("revenue"), align: "right", className: "tabular", cell: (x) => money(x.revenueMinor) },
+              { key: "share", header: t("share"), align: "right", className: "tabular", cell: (x) => (matrix.total ? `${((x.customers / matrix.total) * 100).toFixed(1)}%` : "—") },
+              { key: "segment", header: <span className="sr-only">{t("make_segment")}</span>, mobile: "action", align: "right", cell: (x) => canSegment && x.customers > 0 && <Link href={segmentHref(rulesForRfmTier(x.tier))} className="text-sm hover:underline">{t("make_segment")}</Link> },
+            ]}
+          />
         </CardContent>
       </Card>
     </>

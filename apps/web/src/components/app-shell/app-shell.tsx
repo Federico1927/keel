@@ -1,8 +1,10 @@
-import { PAGES, canViewPage, canWritePage, isPageEnabled } from "@hullwise/config";
+import { MOBILE_NAV_DESTINATIONS, PAGES, canViewPage, canWritePage, isModuleInPlan, isPageEnabled, resolveMobileNav, type MobileNavDestination } from "@hullwise/config";
 import type { TenantContext } from "@/server/tenant";
 import { getMemberships } from "@/server/session";
 import { SidebarNav } from "./sidebar";
 import { Topbar } from "./topbar";
+import { BottomNav } from "./bottom-nav";
+import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { ImpersonationBanner } from "./impersonation-banner";
 import { SUPPORT_CATEGORIES, listNotifications, tenantBillingBanner, unreadCount } from "@hullwise/services";
 import { BillingBanner } from "./billing-banner";
@@ -23,6 +25,11 @@ export async function AppShell({ ctx, children }: { ctx: TenantContext; children
   });
   // nav badges: only modules the viewer can open (COD queue count, C.16)
   const badges: Record<string, number> = codToCall ? { "/cod": codToCall } : {};
+  const approvals = isModuleInPlan("core.mcp", ctx.tenant.planKey);
+  const mobileNav = resolveMobileNav(ctx.role, (k) => {
+    const d: MobileNavDestination = MOBILE_NAV_DESTINATIONS[k];
+    return allowedPages.includes(d.page) && (!d.planModule || isModuleInPlan(d.planModule, ctx.tenant.planKey));
+  }, ctx.settings.mobileNav[ctx.role]);
   const sidebar = { tenantSlug: ctx.tenant.slug, tenantName: ctx.tenant.name, allowedPages: [...allowedPages], logoLight: brand.logoLight, logoDark: brand.logoDark, badges };
   return (
     <>
@@ -46,9 +53,12 @@ export async function AppShell({ ctx, children }: { ctx: TenantContext; children
           support={canWritePage(ctx.role, "support") ? { categories: [...SUPPORT_CATEGORIES] } : null}
           notifications={{ unread, items: items.map((n) => ({ id: n.id, type: n.type, title: n.title, body: n.body, link: n.link, severity: n.severity, readAt: n.readAt?.toISOString() ?? null, createdAt: n.createdAt.toISOString() })), locale: ctx.locale }}
         />
-        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+        {/* below lg the bottom bar covers the last 4rem (plus the home bar): the page keeps that room */}
+        <main className="flex-1 px-4 py-6 [--bottom-nav-h:4rem] max-lg:pb-[calc(var(--bottom-nav-h)+env(safe-area-inset-bottom)+1.5rem)] sm:px-6 lg:px-8 lg:[--bottom-nav-h:0px]">{children}</main>
       </div>
     </div>
+    <BottomNav items={mobileNav} sidebar={sidebar} support={canWritePage(ctx.role, "support") ? { categories: [...SUPPORT_CATEGORIES] } : null} approvals={approvals} />
+    <InstallPrompt />
     </>
   );
 }
