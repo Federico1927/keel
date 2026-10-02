@@ -63,6 +63,7 @@ packages/integrations    Adapter interfaces + Shopify / Meta / Google live adapt
 packages/services        Use cases on top of db + core, shared by web and jobs (orders, sync, analytics, billing, ...)
 packages/jobs            pg-boss worker: webhook processing, syncs, reconciliation, billing and add-on ticks
 packages/addon-cod       Cash-on-delivery add-on: confirmation queue, operator assignment, delivery score, recipient risk
+packages/addon-spoki     WhatsApp add-on via Spoki: message log, COD confirmations and replies, order notifications, opt-outs
 packages/ui              Shared Tailwind + shadcn-style components
 docs/                    ARCHITECTURE, DECISIONS, PROGRESS, EVALUATION (Italian), reference study, screenshots
 ```

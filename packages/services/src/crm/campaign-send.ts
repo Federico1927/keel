@@ -312,7 +312,7 @@ export async function processCampaignSend(run: TenantRunner, tenant: CampaignTen
       }
       try {
         const vars = { first_name: r.firstName ?? "", code: c.discountCode ?? "" };
-        const { messageId } = await channel.sendMessage({ to: r.to, template: renderMessage(c.message, vars), variables: vars, idempotencyKey: r.key });
+        const { messageId } = await channel.sendMessage({ to: r.to, template: renderMessage(c.message, vars), variables: vars, idempotencyKey: r.key, meta: { purpose: "campaign", campaignId: c.id, customerId: r.customerId } });
         results.push({ id: r.id, ok: true, messageId });
       } catch (e) {
         const code = e instanceof IntegrationError ? e.code : "unknown";
@@ -395,7 +395,7 @@ export async function sendCampaignTest(ctx: ServiceContext, campaignId: string, 
   for (const r of recipients) {
     const vars = { first_name: r.firstName, code: c.discountCode ?? "" };
     try {
-      await channel.sendMessage({ to: r.to, template: renderMessage(c.message, vars), variables: vars, idempotencyKey: `rc-test:${c.id}:${r.to}:${now.getTime()}` });
+      await channel.sendMessage({ to: r.to, template: renderMessage(c.message, vars), variables: vars, idempotencyKey: `rc-test:${c.id}:${r.to}:${now.getTime()}`, meta: { purpose: "test", campaignId: c.id } });
       sent++;
     } catch {
       failed++;

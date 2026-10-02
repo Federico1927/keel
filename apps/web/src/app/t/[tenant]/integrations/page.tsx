@@ -10,6 +10,7 @@ import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { ProviderActions, WebhookControls, WebhookRowAction } from "./controls";
 import { GoogleWriteAccessToggle } from "./write-access";
 import { ProviderControls as SubscriptionProviderControls } from "../subscriptions/controls";
+import { SpokiCard } from "@/components/spoki-card";
 
 const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic", "address"] as const;
 /** Per-account integrations activated by the Hullwise team: interface and mock in Hullwise, each with its activation guide. */
@@ -91,6 +92,7 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
             </Card>
           );
         })}
+        <SpokiCard ctx={ctx} />
       </div>
       {isPageEnabled("subscriptions", ctx.activeAddons) && (() => {
         // addon.subscriptions (#67): the store's subscription app (one of Shopify Subscriptions, Recharge, Loop)

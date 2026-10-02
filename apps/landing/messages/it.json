@@ -284,6 +284,10 @@
       "custom_development": {
         "title": "Sviluppi custom",
         "body": "Un modulo che serve alla tua operatività e a nessun altro. Analizzato e preventivato."
+      },
+      "whatsapp_spoki": {
+        "title": "WhatsApp con Spoki",
+        "body": "Il tuo account Spoki come canale WhatsApp: notifiche d'ordine per evento, conferme del contrassegno con una risposta, campagne WhatsApp, disiscrizioni rispettate ovunque e ogni messaggio sull'ordine."
       }
     }
   },

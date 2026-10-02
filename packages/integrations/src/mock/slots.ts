@@ -1,16 +1,16 @@
-import type { AnalyticsPlatform, CarrierInstruction, CarrierProvider, ConnectionTest, MessagingChannel, NormalizedOrder, WarehouseProvider } from "../types";
+import type { AnalyticsPlatform, CarrierInstruction, CarrierProvider, ConnectionTest, MessageSendInput, MessagingChannel, NormalizedOrder, WarehouseProvider } from "../types";
 import { FailureScript } from "./failures";
 
 /** Mock implementations of the per-account slots. Real connectors are sold as add-ons. */
 export class MockMessagingChannel implements MessagingChannel {
   readonly provider = "messaging-mock";
-  readonly sent: { to: string; template: string; variables: Record<string, string>; idempotencyKey?: string }[] = [];
+  readonly sent: MessageSendInput[] = [];
   /** Keys already delivered → message id: a repeated key is answered without sending again, like a provider with idempotency keys. */
   private readonly byKey = new Map<string, string>();
   async testConnection(): Promise<ConnectionTest> {
     return { ok: true, accountName: "Mock messaging" };
   }
-  async sendMessage(input: { to: string; template: string; variables: Record<string, string>; idempotencyKey?: string }) {
+  async sendMessage(input: MessageSendInput) {
     const known = input.idempotencyKey ? this.byKey.get(input.idempotencyKey) : undefined;
     if (known) return { messageId: known };
     this.sent.push(input);

@@ -7,6 +7,7 @@ import { CodError, TAG_WRITE_EVENTS, assignQueueItem, bulkAssign, bulkOutcome, d
 import { and, eq, schema, sql } from "@hullwise/db";
 import { displayName } from "@hullwise/core";
 import { getMessagingChannelFor, resolveAddressProvider } from "@hullwise/services";
+import { SPOKI_MODULE, getSpokiApiFor, spokiChannelInTx } from "@hullwise/addon-spoki";
 import { getCommercePlatform } from "@/server/integrations";
 import { auditActor } from "@/server/audit-actor";
 import { ForbiddenError, requirePage, type TenantContext } from "@/server/tenant";
@@ -345,13 +346,16 @@ export async function bulkQueueAction(slug: string, input: unknown): Promise<Act
   }
 }
 
-/** Sends a confirmation template through the tenant's messaging channel (C.17). */
+/** Sends a confirmation template through the tenant's messaging channel (C.17): Spoki when `addon.whatsapp_spoki` is on and connected. */
 export async function sendCodMessageAction(slug: string, orderId: string, templateKey: string): Promise<ActionResult<{ attemptNumber: number }>> {
   try {
     const ctx = await requireQueueWrite(slug);
     if (!uuid.safeParse(orderId).success) return fail("invalid_input");
     const r = await ctx.run(async (tx) => {
-      const res = await sendCodMessage(svc(ctx, tx), getMessagingChannelFor(ctx.tenant.id), { orderId, templateKey: String(templateKey) }, { shopName: ctx.tenant.name, locale: ctx.locale, operatorName: displayName(ctx.user) });
+      const s = svc(ctx, tx);
+      // with the WhatsApp add-on connected the confirmation goes through Spoki (message log, mapped template), else the mock channel
+      const channel = ctx.activeAddons.includes(SPOKI_MODULE) && (await getSpokiApiFor(s)) ? await spokiChannelInTx(s, { purpose: "cod", orderId, country: ctx.tenant.country }) : getMessagingChannelFor(ctx.tenant.id);
+      const res = await sendCodMessage(s, channel, { orderId, templateKey: String(templateKey) }, { shopName: ctx.tenant.name, locale: ctx.locale, operatorName: displayName(ctx.user) });
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "cod.message_sent", entityType: "order", entityId: orderId, metadata: { template: templateKey, attemptNumber: res.attemptNumber } });
       return res;
     });

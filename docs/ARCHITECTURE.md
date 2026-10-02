@@ -10,6 +10,7 @@ flowchart TD
   jobs["packages/jobs<br/>pg-boss worker"]
   cod["packages/addon-cod<br/>COD queue · assignment · score · risk"]
   %% addon.subscriptions lives in core/services/integrations behind its module flag
+  spoki["packages/addon-spoki<br/>WhatsApp via Spoki · message log · notifications"]
   services["packages/services<br/>use cases: orders, sync, analytics, campaigns, crm, returns, discounts, purchasing, inventory, billing, notifications, tasks, support"]
   core["packages/core<br/>pure domain: statuses, state rules, economics, segments, returns, discounts, billing math, task rules"]
   db["packages/db<br/>Drizzle schema · migrations · RLS · withTenant · seed"]
@@ -19,6 +20,9 @@ flowchart TD
 
   web --> services
   web --> cod
+  web --> spoki
+  jobs --> spoki
+  spoki --> services
   web --> ui
   jobs --> services
   jobs --> cod
@@ -36,7 +40,7 @@ Rules the graph enforces:
 
 - `core` has no I/O. Every economic number (margin, profit, ROAS, P/L, RFM bands, delivery score) is a pure function with tests.
 - `services` is the only layer that combines `db`, `core` and `integrations`. Web pages and job handlers call services; they never write SQL for domain tables.
-- `addon-cod` imports the core packages, never the other way round. Deleting the package leaves the core compiling.
+- `addon-cod` and `addon-spoki` import the core packages, never the other way round, and never each other at runtime (only addon-spoki's tests use addon-cod): the job runner wires them (Spoki hands COD its receipts and replies through hooks). Deleting either package leaves the core compiling.
 - `integrations` knows nothing about tenants or the database. It receives credentials and returns normalized records.
 
 ## Hosts and URLs
@@ -65,6 +69,7 @@ One Next.js service answers on three hosts; every absolute URL comes from the en
 ## Data model
 
 132 tables, grouped. All domain tables carry `tenant_id`, `created_at`, `updated_at`.
+129 tables, grouped. All domain tables carry `tenant_id`, `created_at`, `updated_at`.
 
 | Group | Tables | Notes |
 | --- | --- | --- |
@@ -86,6 +91,7 @@ One Next.js service answers on three hosts; every absolute URL comes from the en
 | Collaboration | `notifications`, `notification_preferences`, `email_suppressions`, `mentions`, `record_notes`, `tasks`, `task_rules`, `support_tickets`, `support_messages` | Notifications record every delivery (`in_app`, `delivered`); preferences override the type registry per user. Tasks link to a record (type + id) and remember the rule and episode that opened them. Support tickets are tenant data answered from the console through the admin connection. |
 | MCP | `oauth_clients`, `mcp_authorization_codes`, `mcp_tokens`, `mcp_request_log`, `mcp_rate_buckets`, `mcp_pending_actions` | OAuth clients are platform rows; codes, tokens (HMAC with pepper, one user + one tenant), the request log (null tenant for unknown tokens), rate windows and proposals are tenant tables, read by token hash only through the admin connection. `tenants.mcp_disabled_at` is the super-admin kill switch. |
 | Add-on subscriptions (#67) | `subscription_contracts`, `subscription_contract_lines`, `subscription_billing_attempts`, `subscription_events`, `subscription_cancellation_reasons` | The merchant's subscription contracts as their subscription app holds them (Hullwise is not the billing engine): status, price and normalized MRR, interval, next billing, pause/end, cancellation kind + normalized reason (raw text kept), failing-payment state, recovery assignee, churn risk; charges with the normalized decline reason and the cycle retries share; the contract timeline with author (customer, staff, system, provider) and diff; the tenant's editable reason list. Orders carry `subscription_contract_id` (no FK), `is_first_subscription_order` and `renewal_number` so P/L and attribution can split them. Populated for tenants with the add-on only. |
+| Add-on WhatsApp via Spoki (#9) | `spoki_settings`, `spoki_messages` | Only read and written by `@hullwise/addon-spoki`. Settings = zod config (sender, template language, template per event, notification switches, opt-out keywords), cached templates and the order-notification cursor. `spoki_messages` is the message log (outbound and inbound, purpose, provider id and idempotency key both unique per tenant, links to customer/order/campaign, forward-only status, error code). Inbound webhooks are `webhook_events` rows with source `spoki`. |
 | Add-on COD | `cod_settings`, `cod_queue_items`, `cod_attempts`, `cod_operator_capacity`, `cod_capacity_exceptions`, `cod_assignment_log`, `cod_recipient_profiles`, `cod_messages`, `cod_carrier_outcomes` | Only read and written by `@hullwise/addon-cod`. Queue items carry the scheduled confirmation day (`scheduled_confirm_on`, last failed run and error) and the escalation (`escalated_at/_by`, reason); `cod_messages` are confirmation messages sent through the `MessagingChannel` with their delivery status; `cod_carrier_outcomes` are delivered/refused outcomes imported from carrier files, preferred over the order's own outcome for recipient risk. |
 
 ### Canonical order status
@@ -186,6 +192,7 @@ Failed events are retried by the `retry` tick every 10 minutes up to a maximum n
 - Retention: a daily tick deletes rows older than the platform-wide window (`HULLWISE_RETENTION_DAYS`, default 14, `platformRetentionDays()` in `packages/config`): processed webhook events, succeeded or superseded writes, synchronous write records, successful runs (and failed runs already followed by a success), drift not seen since (drift recording lost stock is kept for `INVENTORY_LOSS_RETENTION_DAYS`, 400, for the unexplained-loss report). Failed webhooks and failed asynchronous writes stay until they are resolved. pg-boss queues get the same window as `deleteAfterSeconds`.
 
 Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00 (orders, the complete catalog run and platform returns, queue `sync.returns`), billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40, task rules and overdue reminders every 10 min, system notifications (sync delay, critical stock without PO, late to ship) and the shipment case sweep hourly, digest emails daily at 07:05, email housekeeping (provider events left pending, lost queued emails, Stripe billing events left pending) every 10 min, platform-write retries every minute, retention at 04:10, backorder safety re-check every 10 min, processor payouts daily at 05:20 (queue `sync.payouts`), merchant subscriptions (`addon.subscriptions`: delta sync of the subscription app and churn risk) every 15 min.
+Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00 (orders, the complete catalog run and platform returns, queue `sync.returns`), billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40, task rules and overdue reminders every 10 min, system notifications (sync delay, critical stock without PO, late to ship) and the shipment case sweep hourly, digest emails daily at 07:05, email housekeeping (provider events left pending, lost queued emails, Stripe billing events left pending) every 10 min, platform-write retries every minute, retention at 04:10, backorder safety re-check every 10 min, processor payouts daily at 05:20 (queue `sync.payouts`), WhatsApp (Spoki add-on: webhook retries and order notifications) every 5 min.
 
 ### Webhook (Stripe billing, #53)
 
@@ -400,6 +407,32 @@ flowchart LR
 - **Planning**: `renewalStock` projects scheduled renewals per variant against stock and incoming POs; `replenishmentPlan` merges the shortfall (`mergeRenewalDemand`) when the add-on is on.
 - **Segments**: `SUBSCRIPTION_SEGMENT_FIELDS` (core) and `SUBSCRIPTION_FIELD_SQL` (services) are spread into the core catalogs; the builder hides the `subscriptions` group without the add-on.
 - **Gating**: page key `subscriptions` in `modules.ts`/`roles.ts`; widgets `subs_*` carry the module; MCP tools carry `module: "addon.subscriptions"`; services refuse writes without the add-on.
+## The WhatsApp add-on via Spoki (issue #9)
+
+An approved exception to the no-specific-provider rule, activated per account (`addon.whatsapp_spoki`). Everything lives in `packages/addon-spoki`, the adapter in `packages/integrations/src/spoki`, pages under `/t/[tenant]/whatsapp/settings`, the route `/api/webhooks/spoki/[tenantId]/[token]`.
+
+```mermaid
+sequenceDiagram
+  participant K as Hullwise (COD card, campaign queue, whatsapp tick)
+  participant C as spokiMessagingChannel
+  participant S as Spoki
+  participant W as /api/webhooks/spoki/<tenant>/<token>
+  participant DB as webhook_events + spoki_messages
+  participant H as hooks (addon-cod, when active)
+  K->>C: sendMessage(to, template key, variables, idempotency key, meta)
+  C->>DB: key already sent? → same message id, no call
+  C->>S: template id + custom fields (or free text)
+  C->>DB: spoki_messages row (sent | failed) + order event
+  S-->>W: message.outbound (Sent/Delivered/Read/Error) · message.inbound
+  W->>DB: insert once (message id + status), 200
+  W->>DB: process (queue or after the response): status forward only · reply linked, opt-out → suppression list
+  DB->>H: onStatus → cod_messages · onReply → confirm attempt / escalation
+```
+
+- **Channel.** `spokiMessagingChannel(run, api, settings, defaults)` is a `MessagingChannel`, so the COD card (`sendCodMessage`) and the campaign send queue (`processCampaignSend`, WhatsApp campaigns in `handleCampaignSend`) use it unchanged; `spokiChannelInTx(ctx, …)` for code inside a tenant transaction. Template per key: `cod:<template key>`, `order_confirmed|order_shipped|order_delivered`, `campaign` (test sends too).
+- **Receipts and replies.** `recordSpokiWebhook` (parse → `webhook_events`) and `processSpokiWebhookEvent(ctx, id, hooks)` (savepoint, failures recorded and retried by the `whatsapp` tick; `retrySpokiWebhooks`). `handleSpokiEvent` in `packages/jobs` builds the hooks with `spokiHooksFor` (COD's `applyMessageStatus` and `applyCodReply` when `addon.cod` is active) and is what the route, the queue and the Integrations replay call.
+- **Order notifications.** `runOrderNotifications` reads `status_changed` events after `spoki_settings.notified_until`, sends the switched-on events once per order (`order:<id>:<event>`).
+- **Rules in core** (`messaging.ts`): status precedence, template rendering (`{{var}}`, `%%FIELD%%`), custom fields, reply keyword matching, 24-hour window, which status change notifies.
 
 ## Adding an add-on
 

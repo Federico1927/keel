@@ -62,5 +62,6 @@ describe("landing pricing matches the product plan config", () => {
     };
     expect(price("cod")).toBe(MODULES["addon.cod"].monthlyPriceMinor);
     expect(price("customer_campaigns")).toBe(MODULES["addon.customer_campaigns"].monthlyPriceMinor);
+    expect(price("whatsapp_spoki")).toBe(MODULES["addon.whatsapp_spoki"].monthlyPriceMinor);
   });
 });
