@@ -288,8 +288,13 @@
       "whatsapp_spoki": {
         "title": "WhatsApp con Spoki",
         "body": "Il tuo account Spoki come canale WhatsApp: notifiche d'ordine per evento, conferme del contrassegno con una risposta, campagne WhatsApp, disiscrizioni rispettate ovunque e ogni messaggio sull'ordine."
+      },
+      "accounting": {
+        "title": "Invio in contabilità",
+        "body": "Una scrittura al giorno nel tuo sistema contabile dal riepilogo vendite giornaliero: vendite e IVA per aliquota, spedizioni, sconti, rimborsi e commissioni sul tuo piano dei conti, inviata solo quando il giorno quadra, con registro invii e reinvio."
       }
-    }
+    },
+    "coming_soon": "In arrivo"
   },
   "faq": {
     "title": "Le domande che ci fanno",

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { ADDON_MODULES, CHURN_RETENTION_DAYS, isAdPlatform, MODULES, PLATFORM_CURRENCY, TENANT_EXPORT_TTL_DAYS, isTenantStatus } from "@hullwise/config";
+import { ADDON_MODULES, CHURN_RETENTION_DAYS, canActivateAddon, displayedVersions, isAdPlatform, MODULES, PLATFORM_CURRENCY, TENANT_EXPORT_TTL_DAYS, isTenantStatus } from "@hullwise/config";
 import { LIFECYCLE_TRANSITIONS, formatDate, formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
 import { listTenantExports, tenantAdminDetail } from "@hullwise/services";
 import {
@@ -183,6 +183,7 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
               const def = MODULES[key];
               const row = d.addons.find((a) => a.moduleKey === key);
               const available = def.availability === "implemented";
+              const versions = displayedVersions(key);
               return (
                 <li
                   key={key}
@@ -198,10 +199,25 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
                         {t("tenant.on_request")}
                       </Badge>
                     )}
+                    {versions.map((v) => (
+                      <Badge key={v.version} variant={v.status === "released" ? "success" : "warning"} className="ml-2" data-testid={`addon-version-${key}-${v.version}`}>
+                        {t(`tenant.version_${v.status}`, { version: v.version })}
+                      </Badge>
+                    ))}
                     {def.monthlyPriceMinor && (
                       <Badge variant="outline" className="ml-2">
                         {money(def.monthlyPriceMinor, PLATFORM_CURRENCY)}/m
                       </Badge>
+                    )}
+                    {versions.length > 0 && (
+                      <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+                        {versions.map((v) => (
+                          <li key={v.version}>v{v.version}: {tm(v.summaryKey)}</li>
+                        ))}
+                      </ul>
+                    )}
+                    {available && !canActivateAddon(key) && !row?.isActive && (
+                      <div className="text-xs text-muted-foreground" data-testid={`addon-locked-${key}`}>{t("tenant.not_released")}</div>
                     )}
                     {row && (
                       <div className="text-xs text-muted-foreground">
@@ -214,6 +230,8 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
                                 date: formatDate(row.deactivatedAt, locale, "UTC"),
                               })
                             : ""}
+                        {row.isActive && row.version ? ` · ${t("tenant.active_version", { version: row.version })}` : ""}
+                        {row.isActive && !canActivateAddon(key) ? ` · ${t("tenant.active_unreleased")}` : ""}
                         {row.note ? ` · ${row.note}` : ""}
                       </div>
                     )}
@@ -222,7 +240,7 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
                     tenantId={d.tenant.id}
                     moduleKey={key}
                     active={row?.isActive ?? false}
-                    available={available}
+                    canEnable={canActivateAddon(key)}
                   />
                 </li>
               );

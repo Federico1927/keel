@@ -1,7 +1,7 @@
 import { AD_PLATFORMS, OPERATIONAL_TENANT_STATUSES, appUrl, isAdPlatform, isAdPlatformInPlan, isAnalyticsPlatformInPlan, isTenantOperational, platformRetentionDays } from "@hullwise/config";
 import { parseTenantSettings, summarizeAccountRuns } from "@hullwise/core";
 import { adminDb, and, eq, inArray, lte, schema, withTenant, appDb } from "@hullwise/db";
-import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, recheckConversionAdjustments, runAdsSyncForAccounts, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, rollupAdEntityMetrics, getAnalyticsPlatformFor, runTrafficSync, campaignTick, processCampaignSend, getMessagingChannelFor, resolveAddressProvider, SUBSCRIPTIONS_ADDON, getSubscriptionProviderFor, runSubscriptionSync, refreshSubscriberRisk, deliverWebhook, dueWebhookDeliveries, purgeApiRows } from "@hullwise/services";
+import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, recheckConversionAdjustments, runAdsSyncForAccounts, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, rollupAdEntityMetrics, getAnalyticsPlatformFor, runTrafficSync, campaignTick, processCampaignSend, getMessagingChannelFor, resolveAddressProvider, SUBSCRIPTIONS_ADDON, getSubscriptionProviderFor, runSubscriptionSync, refreshSubscriberRisk, deliverWebhook, dueWebhookDeliveries, purgeApiRows, ACCOUNTING_ADDON, runAccountingPush } from "@hullwise/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue, autoCancelReturnedToSender, getCodSettings, runScheduledConfirmations, applyCodReply, applyMessageStatus } from "@hullwise/addon-cod";
 import { SPOKI_MODULE, getSpokiApiFor, getSpokiState, processSpokiWebhookEvent, retrySpokiWebhooks, runOrderNotifications, spokiMessagingChannel, type SpokiHooks } from "@hullwise/addon-spoki";
 import { adsWindow, type CampaignSendJob, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type SyncAnalyticsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob, resyncJobsFor, type TenantExportJob, type WebhookDeliverJob } from "./queues";
@@ -382,6 +382,20 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<JobOut
       });
     }
     return;
+  }
+  if (job.kind === "accounting") {
+    // addon.accounting (#85): only tenants with the add-on; every closed day of the window that reconciles is pushed once (per tenant, day and version)
+    const addons = await adminDb().select({ tenantId: schema.tenantAddons.tenantId }).from(schema.tenantAddons).where(and(eq(schema.tenantAddons.moduleKey, ACCOUNTING_ADDON), eq(schema.tenantAddons.isActive, true)));
+    let pushed = 0, waiting = 0, failed = 0;
+    for (const a of addons) {
+      const [t] = await adminDb().select({ id: schema.tenants.id, status: schema.tenants.status, country: schema.tenants.country, currency: schema.tenants.currency, timezone: schema.tenants.timezone, settings: schema.tenants.settings }).from(schema.tenants).where(eq(schema.tenants.id, a.tenantId)).limit(1);
+      if (!t || !isTenantOperational(t.status)) continue;
+      const r = await withTenant(t.id, (tx) => runAccountingPush(sys(t.id)(tx), { id: t.id, country: t.country, currency: t.currency, timezone: t.timezone, settings: parseTenantSettings(t.settings) }));
+      pushed += r.pushed;
+      waiting += r.waiting;
+      failed += r.failed;
+    }
+    return { rows: pushed, summary: { tenants: addons.length, pushed, waiting, failed } };
   }
   if (job.kind === "whatsapp") {
     // Spoki add-on: failed or stuck webhook events (5 min old, 5 attempts at most), then order notifications since the cursor

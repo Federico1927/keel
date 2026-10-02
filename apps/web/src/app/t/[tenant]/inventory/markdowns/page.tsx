@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { canWritePage } from "@hullwise/config";
 import { formatDateTime, formatMoney, formatPercent } from "@hullwise/core";
 import { markdownSuggestions, priceHistory } from "@hullwise/services";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, EmptyState, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { svcOf } from "@/server/queries/inventory-control";
 import { MarkdownTable, type MarkdownView } from "./controls";
@@ -55,31 +55,18 @@ export default async function MarkdownsPage({ params }: { params: Promise<{ tena
           {history.length === 0 ? (
             <p className="p-4 text-sm text-muted-foreground">{t("price_history.empty")}</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("price_history.columns.when")}</TableHead>
-                  <TableHead>{t("price_history.columns.variant")}</TableHead>
-                  <TableHead className="text-right">{t("price_history.columns.price")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("price_history.columns.compare_at")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("price_history.columns.by")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {history.map((h) => (
-                  <TableRow key={h.c.id} data-testid="price-change-row">
-                    <TableCell className="whitespace-nowrap text-xs">{formatDateTime(h.c.createdAt, ctx.locale, ctx.tenant.timezone)}</TableCell>
-                    <TableCell>
-                      <Link href={`/t/${tenant}/products/${h.productId}`} className="font-medium text-primary hover:underline">{h.productTitle}</Link>
-                      <p className="text-xs text-muted-foreground">{h.variantTitle}{h.sku ? ` · ${h.sku}` : ""}</p>
-                    </TableCell>
-                    <TableCell className="text-right tabular">{money(h.c.priceBeforeMinor)} → <span className="font-medium">{money(h.c.priceAfterMinor)}</span></TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{h.c.compareAtBeforeMinor === null ? "—" : money(h.c.compareAtBeforeMinor)} → {h.c.compareAtAfterMinor === null ? "—" : money(h.c.compareAtAfterMinor)}</TableCell>
-                    <TableCell className="hidden text-sm md:table-cell">{h.actorName ?? t("price_history.system")}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={history}
+              rowKey={(h) => h.c.id}
+              rowProps={() => ({ "data-testid": "price-change-row" })}
+              columns={[
+                { key: "when", header: t("price_history.columns.when"), className: "whitespace-nowrap text-xs", cell: (h) => formatDateTime(h.c.createdAt, ctx.locale, ctx.tenant.timezone) },
+                { key: "variant", header: t("price_history.columns.variant"), mobile: "title", cell: (h) => <><Link href={`/t/${tenant}/products/${h.productId}`} className="font-medium text-primary hover:underline">{h.productTitle}</Link><p className="text-xs font-normal text-muted-foreground">{h.variantTitle}{h.sku ? ` · ${h.sku}` : ""}</p></> },
+                { key: "price", header: t("price_history.columns.price"), mobile: "subtitle", align: "right", className: "tabular", cell: (h) => <>{money(h.c.priceBeforeMinor)} → <span className="font-medium max-md:text-foreground">{money(h.c.priceAfterMinor)}</span></> },
+                { key: "compare_at", header: t("price_history.columns.compare_at"), align: "right", priority: 2, className: "tabular", cell: (h) => <>{h.c.compareAtBeforeMinor === null ? "—" : money(h.c.compareAtBeforeMinor)} → {h.c.compareAtAfterMinor === null ? "—" : money(h.c.compareAtAfterMinor)}</> },
+                { key: "by", header: t("price_history.columns.by"), className: "text-sm", cell: (h) => h.actorName ?? t("price_history.system") },
+              ]}
+            />
           )}
         </CardContent>
       </Card>

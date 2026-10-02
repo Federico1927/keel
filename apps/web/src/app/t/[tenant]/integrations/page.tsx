@@ -13,6 +13,7 @@ import { MetaAdAccounts } from "./ad-accounts";
 import { ProviderControls as SubscriptionProviderControls } from "../subscriptions/controls";
 import { SpokiCard } from "@/components/spoki-card";
 import { Ga4Card } from "./ga4-card";
+import { AccountingCard } from "@/components/accounting-card";
 
 const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic", "address"] as const;
 /** Per-account integrations activated by the Hullwise team: interface and mock in Hullwise, each with its activation guide. */
@@ -97,6 +98,7 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
         })}
         <Ga4Card ctx={ctx} />
         <SpokiCard ctx={ctx} />
+        <AccountingCard ctx={ctx} />
       </div>
       {metaAccounts.length > 0 && <MetaAdAccounts slug={tenant} limit={AD_ACCOUNT_LIMIT} canManage={canManage} mock={globalMock || data.integrations.find((i) => i.provider === "meta")?.mode !== "live"} accounts={metaAccounts.map((a) => ({ id: a.id, externalId: a.externalAccountId, name: a.name, primary: a.isPrimary, status: a.status, mock: globalMock || a.mode !== "live", lastSync: dt(a.lastSyncAt), lastSuccess: dt(a.lastSuccessAt), lastError: a.lastError, campaigns: a.campaigns }))} />}
       {isPageEnabled("subscriptions", ctx.activeAddons) && (() => {

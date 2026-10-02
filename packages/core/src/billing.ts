@@ -1,4 +1,4 @@
-import { MODULES, PLANS, type PlanKey } from "@hullwise/config";
+import { MODULES, PLANS, isBillableAddon, type PlanKey } from "@hullwise/config";
 
 export interface InvoiceLine {
   kind: "plan" | "addon" | "setup";
@@ -6,13 +6,13 @@ export interface InvoiceLine {
   amountMinor: number;
 }
 
-/** Monthly charge for a plan plus its active, priced add-ons. */
+/** Monthly charge for a plan plus its active add-ons that are billable (released and priced, #77). */
 export function monthlyInvoiceLines(planKey: PlanKey, activeAddons: readonly string[]): InvoiceLine[] {
   const plan = PLANS[planKey];
   const lines: InvoiceLine[] = [{ kind: "plan", key: planKey, amountMinor: plan.monthlyPriceMinor }];
   for (const key of activeAddons) {
     const def = MODULES[key as keyof typeof MODULES];
-    if (def && def.monthlyPriceMinor) lines.push({ kind: "addon", key, amountMinor: def.monthlyPriceMinor });
+    if (def && def.monthlyPriceMinor && isBillableAddon(key)) lines.push({ kind: "addon", key, amountMinor: def.monthlyPriceMinor });
   }
   return lines;
 }

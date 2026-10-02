@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
 import { formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
 import { unexplainedLosses } from "@hullwise/services";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Button, Card, CardContent, DataList, EmptyState, PageHeader, Select, Stat } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";
@@ -35,7 +35,7 @@ export default async function LossesPage({ params, searchParams }: { params: Pro
             <option key={l.id} value={l.id}>{l.name}</option>
           ))}
         </Select>
-        <button type="submit" className="h-8 rounded-md border bg-secondary px-3 text-sm">{t("losses.apply")}</button>
+        <Button type="submit" size="sm" variant="secondary">{t("losses.apply")}</Button>
       </form>
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
         <Stat label={t("losses.kpi.units")} value={formatNumber(r.totalUnits, ctx.locale)} />
@@ -47,33 +47,19 @@ export default async function LossesPage({ params, searchParams }: { params: Pro
       ) : (
         <Card data-testid="loss-report">
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("losses.columns.variant")}</TableHead>
-                  <TableHead className="text-right">{t("losses.columns.units")}</TableHead>
-                  <TableHead className="text-right">{t("losses.columns.value")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("losses.columns.events")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("losses.columns.locations")}</TableHead>
-                  <TableHead className="hidden lg:table-cell">{t("losses.columns.last")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {r.rows.map((row) => (
-                  <TableRow key={row.variantId} data-testid="loss-row">
-                    <TableCell>
-                      <Link href={`/t/${tenant}/products/${row.productId}`} className="font-medium text-primary hover:underline">{row.productTitle}</Link>
-                      <p className="text-xs text-muted-foreground">{row.variantTitle}{row.sku ? ` · ${row.sku}` : ""}</p>
-                    </TableCell>
-                    <TableCell className="text-right tabular font-medium text-destructive">−{formatNumber(row.units, ctx.locale)}</TableCell>
-                    <TableCell className="text-right tabular">{row.costMissing ? <Badge variant="muted">{t("losses.no_cost")}</Badge> : money(row.valueMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{row.events}</TableCell>
-                    <TableCell className="hidden text-sm md:table-cell">{row.locations.map((l) => (l === "*" ? t("losses.all_locations") : l)).join(", ")}</TableCell>
-                    <TableCell className="hidden whitespace-nowrap text-xs lg:table-cell">{formatDateTime(row.lastDetectedAt, ctx.locale, ctx.tenant.timezone)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={r.rows}
+              rowKey={(row) => row.variantId}
+              rowProps={() => ({ "data-testid": "loss-row" })}
+              columns={[
+                { key: "variant", header: t("losses.columns.variant"), mobile: "title", cell: (row) => <><Link href={`/t/${tenant}/products/${row.productId}`} className="font-medium text-primary hover:underline">{row.productTitle}</Link><p className="text-xs font-normal text-muted-foreground">{row.variantTitle}{row.sku ? ` · ${row.sku}` : ""}</p></> },
+                { key: "units", header: t("losses.columns.units"), mobile: "badge", align: "right", className: "tabular font-medium text-destructive", cell: (row) => `−${formatNumber(row.units, ctx.locale)}` },
+                { key: "value", header: t("losses.columns.value"), align: "right", className: "tabular", cell: (row) => (row.costMissing ? <Badge variant="muted">{t("losses.no_cost")}</Badge> : money(row.valueMinor)) },
+                { key: "events", header: t("losses.columns.events"), align: "right", className: "tabular", cell: (row) => row.events },
+                { key: "locations", header: t("losses.columns.locations"), className: "text-sm", cell: (row) => row.locations.map((l) => (l === "*" ? t("losses.all_locations") : l)).join(", ") },
+                { key: "last", header: t("losses.columns.last"), priority: 2, className: "whitespace-nowrap text-xs", cell: (row) => formatDateTime(row.lastDetectedAt, ctx.locale, ctx.tenant.timezone) },
+              ]}
+            />
           </CardContent>
         </Card>
       )}

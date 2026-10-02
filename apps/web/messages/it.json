@@ -68,7 +68,8 @@
       "cod_phone": "L'ordine non ha un numero di telefono.",
       "cod_reason": "Scrivi un motivo (almeno 3 caratteri).",
       "cod_carrier_columns": "Il file deve avere una colonna riferimento (tracking o ordine) e una colonna esito.",
-      "ad_account_removed": "Questo account pubblicitario è stato rimosso da Hullwise: le sue campagne restano nello storico ma non si possono più mettere in pausa o riattivare da qui."
+      "ad_account_removed": "Questo account pubblicitario è stato rimosso da Hullwise: le sue campagne restano nello storico ma non si possono più mettere in pausa o riattivare da qui.",
+      "addon_not_released": "Questo add-on non ha ancora una versione rilasciata: non si può attivare."
     },
     "edit": "Modifica"
   },
@@ -157,7 +158,9 @@
     "addon": {
       "cod": {
         "name": "Contrassegno",
-        "description": "Coda di conferma, assegnazione operatori, delivery score"
+        "description": "Coda di conferma, assegnazione operatori, delivery score",
+        "v1": "Coda di conferma, esiti e tentativi, assegnazione agli operatori, delivery score e rischio destinatario.",
+        "v2": "Messaggi ai destinatari tramite un vero provider WhatsApp o SMS (oggi solo simulati)."
       },
       "warehouse_3pl": {
         "name": "Connettore magazzino 3PL",
@@ -173,15 +176,23 @@
       },
       "customer_campaigns": {
         "name": "Campagne clienti",
-        "description": "Campagne email, SMS e WhatsApp ai segmenti con gruppo di controllo: controllo sui segmenti e margine incrementale misurato."
+        "description": "Campagne email, SMS e WhatsApp ai segmenti con gruppo di controllo: controllo sui segmenti e margine incrementale misurato.",
+        "v1": "Approvazione, pianificazione, coda di invio e gruppi di controllo; i messaggi sono solo simulati, nessun provider li invia ancora."
       },
       "subscriptions": {
         "name": "Abbonamenti",
-        "description": "MRR, churn, coorti, recupero pagamenti non riusciti e stock per i rinnovi dei tuoi prodotti in abbonamento (Shopify Subscriptions, Recharge, Loop)"
+        "description": "MRR, churn, coorti, recupero pagamenti non riusciti e stock per i rinnovi dei tuoi prodotti in abbonamento (Shopify Subscriptions, Recharge, Loop)",
+        "v1": "Connettori Shopify Subscriptions, Recharge e Loop, verificati solo su dati registrati: nessun negozio reale collegato."
       },
       "whatsapp_spoki": {
         "name": "WhatsApp con Spoki",
-        "description": "Conferme e risposte del contrassegno, notifiche ordine, campagne WhatsApp e disiscrizioni tramite l'account Spoki del negozio"
+        "description": "Conferme e risposte del contrassegno, notifiche ordine, campagne WhatsApp e disiscrizioni tramite l'account Spoki del negozio",
+        "v1": "WhatsApp tramite Spoki: conferme in contrassegno, avvisi sugli ordini e invii delle campagne, verificati solo su dati registrati: nessun account Spoki reale collegato."
+      },
+      "accounting": {
+        "name": "Invio in contabilità",
+        "description": "Una scrittura per ogni giorno chiuso dal riepilogo vendite giornaliero, sul tuo piano dei conti, inviata solo quando quadra, con registro invii, nuovo tentativo e reinvio",
+        "v1": "Prime note giornaliere inviate al gestionale contabile, solo per i giorni riconciliati; esiste solo un provider simulato, nessun connettore reale."
       }
     }
   },
@@ -222,7 +233,9 @@
     "notifications": "Notifiche",
     "fulfilment": "Evasione",
     "subscriptions": "Abbonamenti",
-    "whatsapp_settings": "Impostazioni WhatsApp"
+    "whatsapp_settings": "Impostazioni WhatsApp",
+    "accounting": "Invio in contabilità",
+    "accounting_settings": "Impostazioni contabilità"
   },
   "shell": {
     "open_menu": "Apri menu",
@@ -2756,7 +2769,8 @@
       "loop": "Loop Subscriptions",
       "address": "Validazione indirizzi",
       "spoki": "WhatsApp (Spoki)",
-      "ga4": "Google Analytics 4"
+      "ga4": "Google Analytics 4",
+      "accounting": "Sistema contabile"
     },
     "status": {
       "not_connected": "Non collegata",
@@ -4003,6 +4017,58 @@
           "fix": "GA4 divide i propri eventi di acquisto per le sessioni; {product} divide gli ordini online reali del negozio (da Shopify) per le sessioni GA4. Gli ordini sono completi; gli eventi di acquisto di GA4 perdono chi blocca cookie o tracciamento."
         }
       ]
+    },
+    "accounting": {
+      "title": "Sistema contabile",
+      "intro": "Invia una scrittura per ogni giorno chiuso al sistema contabile del negozio: vendite e imposte per aliquota, spedizioni, sconti, rimborsi, commissioni di pagamento e conto transitorio, dal riepilogo vendite giornaliero.",
+      "scopes": "I connettori reali si costruiscono per singolo account (disponibili su richiesta): Xero (API Manual Journals, scope accounting.transactions e accounting.settings.read), QuickBooks Online (API JournalEntry, scope com.intuit.quickbooks.accounting) e Fatture in Cloud (API prima nota). Finché non ne viene costruito uno, il sistema simulato mostra tutto il flusso.",
+      "steps": [
+        {
+          "title": "Cosa fa in {product}",
+          "body": "Ogni ora {product} guarda i giorni chiusi della finestra. Un giorno viene inviato solo quando quadra: dare uguale ad avere, chiuso nel fuso orario del negozio, ogni riga con un conto e nessun ordine del giorno ancora in sincronizzazione o in attesa che una modifica arrivi al negozio. Gli altri giorni attendono con la causa nel registro invii."
+        },
+        {
+          "title": "Scegli il connettore",
+          "body": "Xero, QuickBooks Online e Fatture in Cloud sono i connettori candidati, costruiti e attivati per singolo account dal team {product}. Indicaci quale sistema usa il negozio e chi può autorizzare l'app.",
+          "verify": true
+        },
+        {
+          "title": "Autorizza l'app nel sistema contabile",
+          "body": "Xero e QuickBooks usano OAuth 2.0 con un'app registrata dal team {product}: il commercialista o il titolare accede e sceglie l'azienda. Fatture in Cloud usa un'app OAuth o un token personale dell'azienda.",
+          "verify": true
+        },
+        {
+          "title": "Leggi il piano dei conti",
+          "body": "Integrazioni → Sistema contabile → Risincronizza conti. I conti compaiono in Impostazioni contabilità; quelli archiviati non si possono usare."
+        },
+        {
+          "title": "Associa i conti",
+          "body": "Impostazioni contabilità: un conto per vendite e IVA a debito (per aliquota se le registri separate), ricavi da spedizioni, sconti, rimborsi, commissioni di pagamento e il conto transitorio su cui arrivano gli accrediti dei processori. Imposta il primo giorno da inviare per lasciare stare i giorni già registrati."
+        },
+        {
+          "title": "Verifica",
+          "body": "Invia ora nel registro invii: il primo giorno chiuso compare come Inviato con il numero della scrittura. Aprila nel sistema contabile: righe, riferimento e totali corrispondono al riepilogo del giorno. Un giorno si può reinviare: la scrittura viene annullata e sostituita dalla versione successiva.",
+          "verify": true
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Un giorno attende con \"Nessun conto associato\"",
+          "fix": "Associa la riga in Impostazioni contabilità (una nuova aliquota vuole un conto vendite e imposte o i predefiniti)."
+        },
+        {
+          "symptom": "Un giorno attende perché un ordine è in sincronizzazione o attende una scrittura",
+          "fix": "Riprova o correggi il webhook o la scrittura non riusciti dell'ordine nella pagina Integrazioni; l'esecuzione successiva invia il giorno."
+        },
+        {
+          "symptom": "Invio non riuscito: conto archiviato o sconosciuto",
+          "fix": "Risincronizza i conti e scegli un conto attivo; poi Riprova ora."
+        },
+        {
+          "symptom": "Invio non riuscito: limite di richieste",
+          "fix": "Niente da fare: l'invio viene ritentato con un intervallo crescente (15 minuti, poi fino a 12 ore)."
+        }
+      ]
     }
   },
   "admin": {
@@ -4176,7 +4242,13 @@
       "no_logo": "Nessun logo caricato",
       "brand_updated": "Aggiornato il {date}",
       "data_export": "Esportazione dati",
-      "data_export_description": "Tutte le tabelle del tenant in file CSV dentro uno zip, generato in background; il link scade dopo {days} giorni. Richieste e download finiscono nell'audit."
+      "data_export_description": "Tutte le tabelle del tenant in file CSV dentro uno zip, generato in background; il link scade dopo {days} giorni. Richieste e download finiscono nell'audit.",
+      "version_released": "v{version} · rilasciata",
+      "version_in_development": "v{version} · in sviluppo",
+      "active_version": "attiva: v{version}",
+      "active_unreleased": "attivato prima del rilascio: si può spegnere, non riattivare",
+      "not_released": "Non si può attivare finché non c'è una versione rilasciata.",
+      "in_development": "in sviluppo"
     },
     "billing": {
       "title": "Fatturazione",
@@ -7185,7 +7257,8 @@
       "matches": "Coincide con la riga imposte del conto economico: {amount}.",
       "mismatch": "Non coincide con la riga imposte del conto economico ({amount}): i dati sono cambiati durante il caricamento, ricarica la pagina.",
       "footnote": "Aliquota = aliquota effettiva dell'ordine (imposta indicata dal negozio sulla merce scontata, arrotondata allo 0,1%), oppure la tua aliquota per il paese se il negozio non ne ha indicata. Paese di spedizione; il tuo paese se non noto."
-    }
+    },
+    "daily_sales_link": "Vendite giornaliere"
   },
   "payouts": {
     "sync": "Sincronizza versamenti",
@@ -8639,7 +8712,8 @@
     "synced": "Sincronizzato",
     "none": "Ancora nessun abbonamento sul processore.",
     "catalog_missing": "Sincronizza prima il catalogo (Fatturazione → Abbonamenti).",
-    "cancel_at_period_end": "termina a fine periodo"
+    "cancel_at_period_end": "termina a fine periodo",
+    "addon_not_billed": "incluso, non fatturato: nessuna versione rilasciata"
   },
   "data_export": {
     "title": "Esportazione dati",
@@ -9584,6 +9658,17 @@
       "save": "Salva",
       "saved": "Salvato",
       "back": "Impostazioni"
+    },
+    "wide": {
+      "hint": "Scorri"
+    },
+    "desktop_notice": {
+      "title": "Meglio su uno schermo più grande.",
+      "body": "Qui puoi consultare la pagina e fare modifiche semplici; per modificare layout complessi è più comodo un computer o un tablet."
+    },
+    "chart": {
+      "fullscreen": "Schermo intero",
+      "rotate": "Ruota il telefono in orizzontale per un grafico più largo. Tocca una barra o un punto per vederne i valori."
     }
   },
   "developers": {
@@ -10038,6 +10123,222 @@
           "fix": "Ripeti i passi qui sopra; sotto trovi i dettagli di Google. La guida elenca gli errori comuni."
         }
       }
+    }
+  },
+  "daily_sales": {
+    "title": "Riepilogo vendite giornaliero",
+    "description": "Per giorno nel fuso orario del negozio e per aliquota: vendite lorde, sconti, rimborsi, spedizioni e imposte, poi commissioni di pagamento per metodo e il netto. Importi al netto delle imposte tranne la colonna imposte; ogni numero apre gli ordini che lo compongono.",
+    "back": "Analisi",
+    "export": "Esporta CSV",
+    "scope": "{from} – {to} · giorni in {tz} · importi in {currency}",
+    "identity": "Vendite lorde − sconti − rimborsi = vendite nette · vendite nette + spedizioni + imposte = totale · totale − commissioni = netto.",
+    "orders_value": "{sales, plural, one {# vendita} other {# vendite}} · {refunds, plural, one {# rimborso} other {# rimborsi}}",
+    "totals": "Totale",
+    "rate_label": "{country} {rate}",
+    "empty": "Nessuna vendita nel periodo.",
+    "empty_hint": "Gli ordini che sono vendite, o di cui è stato incassato il pagamento, compaiono nel giorno in cui sono stati effettuati; i rimborsi nel giorno in cui sono avvenuti.",
+    "days_title": "Per giorno",
+    "rates_title": "Per aliquota",
+    "rates_description": "Vendite nette e imposte di ogni aliquota, giorno per giorno. Su uno schermo piccolo la griglia scorre in orizzontale dentro la sua cornice.",
+    "rates_region": "Vendite nette e imposte per aliquota (scorre in orizzontale)",
+    "net_short": "Vendite nette",
+    "tax_short": "Imposte",
+    "fees_title": "Commissioni di pagamento per metodo",
+    "fees_description": "La commissione reale del processore quando il suo accredito è importato, altrimenti la stima dalle tue tariffe.",
+    "estimated_n": "{n} stimate",
+    "columns": {
+      "day": "Giorno",
+      "orders": "Ordini",
+      "rate": "Aliquota",
+      "gross": "Vendite lorde",
+      "discounts": "Sconti",
+      "refunds": "Rimborsi",
+      "net_sales": "Vendite nette",
+      "shipping": "Spedizioni",
+      "tax": "Imposte",
+      "total": "Totale",
+      "fees": "Commissioni",
+      "net": "Netto",
+      "method": "Metodo",
+      "estimated": "Commissioni stimate"
+    },
+    "day": {
+      "title": "Vendite del {day}",
+      "previous": "Giorno precedente",
+      "next": "Giorno successivo",
+      "no_sales": "Nessuna vendita o rimborso in questo giorno.",
+      "orders_title": "Ordini dietro i numeri",
+      "count": "{n, plural, one {# ordine} other {# ordini}}",
+      "rate_filter": "aliquota {rate}",
+      "method_filter": "commissioni pagate con {method}",
+      "all": "Tutti",
+      "kinds": {
+        "sale": "Vendita",
+        "refund": "Rimborso",
+        "fee": "Commissione"
+      },
+      "empty": "Nessun ordine in questo giorno.",
+      "empty_filtered": "Nessun ordine dietro questo numero.",
+      "columns": {
+        "order": "Ordine",
+        "kinds": "Nel riepilogo come",
+        "placed": "Effettuato"
+      }
+    }
+  },
+  "accounting": {
+    "statuses": {
+      "pushed": "Inviato",
+      "waiting": "In attesa",
+      "failed": "Non riuscito",
+      "voided": "Annullato",
+      "empty": "Niente da registrare",
+      "pushing": "In invio"
+    },
+    "account_types": {
+      "asset": "Attività",
+      "liability": "Passività",
+      "equity": "Patrimonio netto",
+      "revenue": "Ricavi",
+      "expense": "Costi"
+    },
+    "reasons": {
+      "day_open": "Il giorno non è ancora chiuso: si potrà inviare dal {at}.",
+      "before_start": "Precedente al primo giorno da inviare ({day}).",
+      "mapping_incomplete": "Nessun conto associato per: {lines}.",
+      "unbalanced": "Dare e avere differiscono di {difference}.",
+      "orders_syncing": "{count, plural, one {# ordine è} other {# ordini sono}} ancora in sincronizzazione dal negozio: {orders}.",
+      "orders_pending_write": "{count, plural, one {# ordine attende} other {# ordini attendono}} che una modifica arrivi al negozio: {orders}."
+    },
+    "errors": {
+      "accounting_disabled": "L'add-on contabilità non è attivo per questo negozio.",
+      "module_disabled": "L'add-on contabilità non è attivo per questo negozio.",
+      "accounting_not_connected": "Collega prima il sistema contabile.",
+      "accounting_not_pushed": "Questo giorno non ha una scrittura inviata da sostituire.",
+      "accounting_not_ready": "Questo giorno ora non quadra: non si può reinviare finché le cause nel registro non sono risolte.",
+      "accounting_not_found": "Questo giorno non ha ancora una scrittura.",
+      "accounting_unknown_account": "Questi conti non sono nel piano dei conti (o sono archiviati): {accounts}.",
+      "accounting_invalid_input": "Alcune impostazioni non sono valide.",
+      "accounting_provider": "Il sistema contabile ha rifiutato la richiesta."
+    },
+    "log": {
+      "title": "Invio in contabilità",
+      "description": "Una scrittura per ogni giorno chiuso, costruita dal riepilogo vendite giornaliero e inviata al tuo sistema contabile solo quando quadra: dare uguale ad avere, giorno chiuso nel fuso orario del negozio e nessun ordine del giorno ancora in sincronizzazione o in attesa che una modifica arrivi al negozio.",
+      "settings_link": "Impostazioni contabilità",
+      "not_connected": "Il sistema contabile non è collegato: i giorni non vengono inviati.",
+      "run": "Invia ora",
+      "run_done": "Inviati {pushed}, in attesa {waiting}, non riusciti {failed}.",
+      "last_pushed": "Ultimo giorno inviato",
+      "filter": "Filtra per stato",
+      "all": "Tutti",
+      "empty": "Nessun giorno ancora valutato.",
+      "empty_filtered": "Nessun giorno con questo stato.",
+      "empty_hint": "L'esecuzione oraria valuta ogni giorno chiuso della finestra; \"Invia ora\" lo fa subito.",
+      "empty_day": "Nessuna vendita, rimborso o commissione: niente da registrare.",
+      "next_attempt": "Prossimo tentativo {at} · tentativo {n}",
+      "pushed_at": "Inviato {at} {id}",
+      "voided_at": "Annullato {at}, sostituito dalla versione successiva",
+      "summary": "{n, plural, one {# riga} other {# righe}}",
+      "retry": "Riprova ora",
+      "retry_pushed": "Inviato.",
+      "retry_failed": "Ancora non riuscito: vedi l'errore.",
+      "retry_waiting": "Il giorno è ancora in attesa: vedi le cause.",
+      "repush": "Reinvia giorno",
+      "repush_title": "Reinviare il {day}?",
+      "repush_description": "La versione {version} viene annullata nel sistema contabile e sostituita dalla versione {next}, costruita dal riepilogo di oggi. La modifica resta nel registro attività.",
+      "repush_note": "Nota (facoltativa)",
+      "repush_confirm": "Annulla e reinvia",
+      "repush_done": "Sostituito dalla versione {version}.",
+      "cancel": "Annulla",
+      "columns": {
+        "day": "Giorno",
+        "status": "Stato",
+        "detail": "Dettagli",
+        "total": "Totale",
+        "net": "Netto (transitorio)",
+        "debit": "Dare",
+        "action": "Azioni"
+      }
+    },
+    "day": {
+      "title": "Scrittura del {day}",
+      "description": "Ogni versione della scrittura del giorno con le sue righe, come inviata al sistema contabile.",
+      "summary_link": "Vendite di questo giorno",
+      "empty": "Questo giorno non è ancora stato valutato.",
+      "version": "Versione {v}",
+      "totals": "Totale",
+      "columns": {
+        "account": "Conto",
+        "description": "Riga",
+        "debit": "Dare",
+        "credit": "Avere"
+      }
+    },
+    "connection": {
+      "accounts": "Piano dei conti",
+      "accounts_value": "{n} conti · letto il {at}",
+      "connect": "Collega",
+      "connect_mock": "Collega il sistema simulato",
+      "connected": "Collegato: {n} conti letti.",
+      "test": "Testa connessione",
+      "test_ok": "Connessione riuscita ({account}).",
+      "test_failed": "Connessione non riuscita: {error}",
+      "resync": "Risincronizza conti",
+      "resync_done": "{n} conti letti.",
+      "simulate_failure": "Simula un rifiuto",
+      "simulated": "Il prossimo invio verrà rifiutato con un limite di richieste.",
+      "log_link": "Registro invii",
+      "settings_link": "Impostazioni"
+    },
+    "settings": {
+      "title": "Impostazioni contabilità",
+      "description": "Il sistema contabile, il suo piano dei conti e il conto su cui va ogni riga del riepilogo vendite giornaliero.",
+      "chart_title": "Piano dei conti",
+      "chart_description": "Letto dal sistema contabile (Risincronizza conti). I conti archiviati non si possono associare.",
+      "chart_empty": "Non ancora letto: collega il sistema, poi Risincronizza conti.",
+      "archived": "Archiviato",
+      "columns": {
+        "code": "Codice",
+        "name": "Nome",
+        "type": "Tipo",
+        "active": "Stato"
+      },
+      "mapping_title": "Associazione dei conti",
+      "mapping_description": "Avere: vendite e imposte per aliquota, spedizioni. Dare: sconti, rimborsi, commissioni di pagamento e il conto transitorio per il netto che i processori accreditano. Un giorno con una riga senza conto resta in attesa.",
+      "lines": {
+        "sales": "Vendite",
+        "tax": "IVA a debito",
+        "shipping": "Ricavi da spedizioni",
+        "discounts": "Sconti",
+        "refunds": "Rimborsi",
+        "fees": "Commissioni di pagamento",
+        "clearing": "Accrediti / transitorio"
+      },
+      "hints": {
+        "sales": "Predefinito per ogni aliquota senza un conto proprio.",
+        "tax": "Conto imposte predefinito per ogni aliquota senza un conto proprio.",
+        "shipping": "Spedizioni addebitate ai clienti, al netto delle imposte.",
+        "discounts": "Sconti concessi, al netto delle imposte (dare).",
+        "refunds": "Rimborsi al netto delle imposte (dare); la loro imposta riduce il conto imposte.",
+        "fees": "Commissioni dei processori: reali dagli accrediti, altrimenti stimate.",
+        "clearing": "Somme dovute dai processori di pagamento e rimesse del contrassegno: il netto del giorno."
+      },
+      "by_rate": "Per aliquota",
+      "by_rate_hint": "Aliquote viste negli ultimi 30 giorni e quelle configurate. Lascia vuoto per usare i conti predefiniti sopra.",
+      "use_default": "Usa il predefinito",
+      "not_mapped": "Non associato",
+      "start_day": "Primo giorno da inviare",
+      "start_day_hint": "I giorni precedenti non vengono mai inviati (sono già nella tua contabilità).",
+      "lookback": "Giorni indietro",
+      "close_delay": "Ore dopo la mezzanotte",
+      "close_delay_hint": "Un giorno è chiuso questo tempo dopo la mezzanotte locale, così i rimborsi tardivi si assestano.",
+      "journal_status": "Scritture create come",
+      "journal_statuses": {
+        "draft": "Bozza",
+        "posted": "Registrata"
+      },
+      "save": "Salva",
+      "saved": "Impostazioni salvate."
     }
   }
 }

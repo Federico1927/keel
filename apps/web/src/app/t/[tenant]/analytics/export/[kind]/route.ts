@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { PAYMENT_METHODS, UTM_DIMENSIONS, defaultGranularity, isGranularity, isUtmDimension, type UtmDimension } from "@hullwise/core";
-import { ORDER_PNL_SORTS, PRODUCT_PROFIT_SORTS, orderPnlTable, paymentMethodReport, pnlBreakdown, productProfitTable, taxReportForPeriod, utmReport, type OrderPnlSort, type ProductProfitSort } from "@hullwise/services";
+import { PAYMENT_METHODS, UTM_DIMENSIONS, defaultGranularity, isGranularity, isUtmDimension, summaryDayRange, type UtmDimension } from "@hullwise/core";
+import { ORDER_PNL_SORTS, PRODUCT_PROFIT_SORTS, dailySalesSummaryFor, orderPnlTable, paymentMethodReport, pnlBreakdown, productProfitTable, taxReportForPeriod, utmReport, type OrderPnlSort, type ProductProfitSort } from "@hullwise/services";
 import { ForbiddenError, requirePage } from "@/server/tenant";
 import { resolvePeriod } from "@/server/period";
 import { analyticsTenant, csvCell, minorToDecimal as m, runAnalytics } from "@/server/analytics";
@@ -58,6 +58,21 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ tena
     const r = await runAnalytics(ctx, (s) => paymentMethodReport(s, at, period));
     header = ["method", "placed_orders", "orders", "gross", "net_revenue", "aov", "cancelled", "returned", "cancel_rate", "return_rate", "fees", "actual_fees", "estimated_fees", "estimated_fee_orders", "fee_rate"];
     rows = r.rows.map((x) => [x.method, x.placedOrders, x.orders, m(x.grossRevenueMinor), m(x.netRevenueMinor), x.aovMinor === null ? null : m(x.aovMinor), x.cancelledOrders, x.returnedOrders, x.cancelRate?.toFixed(4) ?? null, x.returnRate?.toFixed(4) ?? null, m(x.feesMinor), m(x.actualFeesMinor), m(x.estimatedFeesMinor), x.estimatedFeeOrders, x.feeRate?.toFixed(4) ?? null]);
+  } else if (kind === "daily_sales") {
+    // daily sales summary (#85): local days of the tenant, one row per day and tax rate, one per day and payment method (fees), one total per day
+    const range = summaryDayRange(sp, ctx.tenant.timezone, new Date());
+    const s = await runAnalytics(ctx, (svc) => dailySalesSummaryFor(svc, at, range));
+    header = ["day", "line", "country", "rate_percent", "method", "orders", "refund_orders", "gross_sales", "discounts", "refunds", "net_sales", "shipping", "tax", "total", "fees", "net"];
+    rows = [];
+    for (const d of s.days) {
+      for (const r of d.rates) rows.push([d.day, "rate", r.country, (r.rateBps / 100).toFixed(2), null, r.saleOrders, r.refundOrders, m(r.grossSalesMinor), m(r.discountsMinor), m(r.refundsMinor), m(r.netSalesMinor), m(r.shippingMinor), m(r.taxMinor), m(r.totalMinor), null, null]);
+      for (const f of d.fees) rows.push([d.day, "fees", null, null, f.method, f.orders, null, null, null, null, null, null, null, null, m(f.feeMinor), null]);
+      rows.push([d.day, "day_total", null, null, null, d.saleOrders, d.refundOrders, m(d.grossSalesMinor), m(d.discountsMinor), m(d.refundsMinor), m(d.netSalesMinor), m(d.shippingMinor), m(d.taxMinor), m(d.totalMinor), m(d.feesMinor), m(d.netMinor)]);
+    }
+    const x = s.totals;
+    rows.push(["TOTAL", "period_total", null, null, null, x.saleOrders, x.refundOrders, m(x.grossSalesMinor), m(x.discountsMinor), m(x.refundsMinor), m(x.netSalesMinor), m(x.shippingMinor), m(x.taxMinor), m(x.totalMinor), m(x.feesMinor), m(x.netMinor)]);
+    const body = [header.join(","), ...rows.map((r) => r.map(csvCell).join(","))].join("\n");
+    return new NextResponse(body, { headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": `attachment; filename="daily-sales-${range.fromDay}-${range.toDay}.csv"` } });
   } else {
     return new NextResponse("not found", { status: 404 });
   }

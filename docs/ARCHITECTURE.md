@@ -11,7 +11,7 @@ flowchart TD
   cod["packages/addon-cod<br/>COD queue · assignment · score · risk"]
   %% addon.subscriptions lives in core/services/integrations behind its module flag
   spoki["packages/addon-spoki<br/>WhatsApp via Spoki · message log · notifications"]
-  services["packages/services<br/>use cases: orders, sync, analytics, campaigns, crm, returns, discounts, purchasing, inventory, billing, notifications, tasks, support"]
+  services["packages/services<br/>use cases: orders, sync, analytics, campaigns, crm, returns, discounts, purchasing, inventory, billing, notifications, tasks, support, accounting"]
   core["packages/core<br/>pure domain: statuses, state rules, economics, segments, returns, discounts, billing math, task rules"]
   db["packages/db<br/>Drizzle schema · migrations · RLS · withTenant · seed"]
   integrations["packages/integrations<br/>interfaces · Shopify/Meta/Google/TikTok · mocks · AES-GCM"]
@@ -68,7 +68,7 @@ One Next.js service answers on three hosts; every absolute URL comes from the en
 
 ## Data model
 
-132 tables, grouped. All domain tables carry `tenant_id`, `created_at`, `updated_at`.
+134 tables, grouped. All domain tables carry `tenant_id`, `created_at`, `updated_at`.
 129 tables, grouped. All domain tables carry `tenant_id`, `created_at`, `updated_at`.
 
 | Group | Tables | Notes |
@@ -93,6 +93,7 @@ One Next.js service answers on three hosts; every absolute URL comes from the en
 | API and webhooks | `webhook_endpoints`, `webhook_deliveries`, `api_idempotency_keys`, `api_request_log` | Tokens are the MCP ones (API scopes in `mcp_tokens.scopes`), rate windows reuse `mcp_rate_buckets` (`api:` buckets). Endpoints hold the AES-GCM secret (and the previous one during a rotation); a delivery is one event for one endpoint with its attempts; idempotency answers and the request log are per token. All tenant tables under RLS. |
 | Add-on subscriptions (#67) | `subscription_contracts`, `subscription_contract_lines`, `subscription_billing_attempts`, `subscription_events`, `subscription_cancellation_reasons` | The merchant's subscription contracts as their subscription app holds them (Hullwise is not the billing engine): status, price and normalized MRR, interval, next billing, pause/end, cancellation kind + normalized reason (raw text kept), failing-payment state, recovery assignee, churn risk; charges with the normalized decline reason and the cycle retries share; the contract timeline with author (customer, staff, system, provider) and diff; the tenant's editable reason list. Orders carry `subscription_contract_id` (no FK), `is_first_subscription_order` and `renewal_number` so P/L and attribution can split them. Populated for tenants with the add-on only. |
 | Add-on WhatsApp via Spoki (#9) | `spoki_settings`, `spoki_messages` | Only read and written by `@hullwise/addon-spoki`. Settings = zod config (sender, template language, template per event, notification switches, opt-out keywords), cached templates and the order-notification cursor. `spoki_messages` is the message log (outbound and inbound, purpose, provider id and idempotency key both unique per tenant, links to customer/order/campaign, forward-only status, error code). Inbound webhooks are `webhook_events` rows with source `spoki`. |
+| Add-on accounting (#85) | `accounting_settings`, `accounting_journals` | Settings = zod config (account per summary line and per tax rate, start day, look-back, close delay, journal status) and the cached chart of accounts. The push log is one row per local day and journal version (`waiting` with reasons, `pushed` with the system's id and read-back status, `failed` with error and next attempt, `voided` when replaced, `empty`); the idempotency key at the system is tenant + day + version. Populated for tenants with the add-on only. |
 | Add-on COD | `cod_settings`, `cod_queue_items`, `cod_attempts`, `cod_operator_capacity`, `cod_capacity_exceptions`, `cod_assignment_log`, `cod_recipient_profiles`, `cod_messages`, `cod_carrier_outcomes` | Only read and written by `@hullwise/addon-cod`. Queue items carry the scheduled confirmation day (`scheduled_confirm_on`, last failed run and error) and the escalation (`escalated_at/_by`, reason); `cod_messages` are confirmation messages sent through the `MessagingChannel` with their delivery status; `cod_carrier_outcomes` are delivered/refused outcomes imported from carrier files, preferred over the order's own outcome for recipient risk. |
 
 ### Canonical order status
@@ -104,6 +105,8 @@ One Next.js service answers on three hosts; every absolute URL comes from the en
 ### Economics
 
 `orderEconomics` in `packages/core/src/finance.ts` is the single source for revenue net of tax (rate by tenant country), product cost (the variant cost snapshotted on each order line at import; lines sold without a cost are filled when the variant gets one), shipping, payment fees (the processor's actual fee from the order's balance transactions once a charge was imported, else basis points + fixed per method, with `paymentFeeSource` on every row and actual/estimated totals in the P/L), returns and ad spend. The sale scope used everywhere (dashboard, P/L, campaigns, discounts) is `confirmed, fulfilling, shipped, delivered, returned_partial`. Money is stored in integer minor units; rates in basis points.
+
+The **daily sales summary** (`packages/core/src/daily-sales.ts`, issue #85, every tenant) is the money view of the same orders per local day and tax rate: an order is booked when it is a sale or money was taken, its sale and fee on the placed day (tenant time zone), each refund on its own day (order events that raised `refundedMinor`, else processor refunds); gross, discounts, refunds and shipping net of tax, then tax, total, fees by method and net, exact in minor units. Page `/analytics/daily-sales` (numbers open `/analytics/daily-sales/<day>` with the orders behind them), CSV `analytics/export/daily_sales`; loader `packages/services/src/accounting/summary.ts`.
 
 Views built on it reconcile by construction (`packages/core/src/pnl-periods.ts`): the per-order P/L table sums to the period P/L with the period-only items (carrier invoice vs estimates, return costs by receipt date, ads, fixed costs) on their own reconciliation lines; the P/L by day/week/month/quarter/year (UTC buckets, partial ones flagged) allocates every period amount with an exact largest-remainder split; the product table splits each campaign's spend over its linked products and keeps unlinked spend on an "unattributed" row, so the product spend adds up to the period ad spend. Services in `packages/services/src/analytics/pnl-depth.ts`; CSV at `/t/[tenant]/analytics/export/{orders|products|utm|pnl}`.
 
@@ -195,6 +198,8 @@ Failed events are retried by the `retry` tick every 10 minutes up to a maximum n
 
 Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads and GA4 daily at 06:00 (GA4's last 3 days again with the nightly reconcile), reconcile nightly at 03:00 (orders, the complete catalog run and platform returns, queue `sync.returns`), billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40, task rules and overdue reminders every 10 min, system notifications (sync delay, critical stock without PO, late to ship) and the shipment case sweep hourly, digest emails daily at 07:05, email housekeeping (provider events left pending, lost queued emails, Stripe billing events left pending) every 10 min, platform-write retries every minute, retention at 04:10, backorder safety re-check every 10 min, processor payouts daily at 05:20 (queue `sync.payouts`), merchant subscriptions (`addon.subscriptions`: delta sync of the subscription app and churn risk) every 15 min.
 Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00 (orders, the complete catalog run and platform returns, queue `sync.returns`), billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40, task rules and overdue reminders every 10 min, system notifications (sync delay, critical stock without PO, late to ship) and the shipment case sweep hourly, digest emails daily at 07:05, email housekeeping (provider events left pending, lost queued emails, Stripe billing events left pending) every 10 min, platform-write retries every minute, retention at 04:10, backorder safety re-check every 10 min, processor payouts daily at 05:20 (queue `sync.payouts`), WhatsApp (Spoki add-on: webhook retries and order notifications) every 5 min.
+Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00 (orders, the complete catalog run and platform returns, queue `sync.returns`), billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40, task rules and overdue reminders every 10 min, system notifications (sync delay, critical stock without PO, late to ship) and the shipment case sweep hourly, digest emails daily at 07:05, email housekeeping (provider events left pending, lost queued emails, Stripe billing events left pending) every 10 min, platform-write retries every minute, retention at 04:10, backorder safety re-check every 10 min, processor payouts daily at 05:20 (queue `sync.payouts`), merchant subscriptions (`addon.subscriptions`: delta sync of the subscription app and churn risk) every 15 min, accounting journals (`addon.accounting`) hourly at :35.
+Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00 (orders, the complete catalog run and platform returns, queue `sync.returns`), billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40, task rules and overdue reminders every 10 min, system notifications (sync delay, critical stock without PO, late to ship) and the shipment case sweep hourly, digest emails daily at 07:05, email housekeeping (provider events left pending, lost queued emails, Stripe billing events left pending) every 10 min, platform-write retries every minute, retention at 04:10, backorder safety re-check every 10 min, processor payouts daily at 05:20 (queue `sync.payouts`), WhatsApp (Spoki add-on: webhook retries and order notifications) every 5 min, accounting journals (add-on) hourly at :35.
 
 ### Webhook (Stripe billing, #53)
 
@@ -464,6 +469,26 @@ sequenceDiagram
 - **Receipts and replies.** `recordSpokiWebhook` (parse → `webhook_events`) and `processSpokiWebhookEvent(ctx, id, hooks)` (savepoint, failures recorded and retried by the `whatsapp` tick; `retrySpokiWebhooks`). `handleSpokiEvent` in `packages/jobs` builds the hooks with `spokiHooksFor` (COD's `applyMessageStatus` and `applyCodReply` when `addon.cod` is active) and is what the route, the queue and the Integrations replay call.
 - **Order notifications.** `runOrderNotifications` reads `status_changed` events after `spoki_settings.notified_until`, sends the switched-on events once per order (`order:<id>:<event>`).
 - **Rules in core** (`messaging.ts`): status precedence, template rendering (`{{var}}`, `%%FIELD%%`), custom fields, reply keyword matching, 24-hour window, which status change notifies.
+
+## The accounting add-on (issue #85)
+
+`addon.accounting` pushes one journal per closed day to the store's accounting system, built from the core daily sales summary. Like subscriptions it lives in the core packages behind its flag: rules in `packages/core/src/accounting.ts`, adapter interface and mock in `packages/integrations/src/accounting`, services in `packages/services/src/accounting/push.ts`, pages `/t/[tenant]/accounting` (push log), `/accounting/[day]` (versions and lines) and `/accounting/settings` (connection, chart, mapping), the integration card `components/accounting-card.tsx`, the guide `integrations/guide/accounting`.
+
+```mermaid
+flowchart LR
+  orders["orders · order_events · balance_transactions"] --> summary["dailySalesSummary (core)<br/>day × tax rate · fees · net"]
+  summary --> journal["buildDailyJournal (core)<br/>mapping → balanced lines"]
+  journal --> gate{"dayReadiness<br/>start day · closed in tz · mapped<br/>balanced · no order syncing / pending write"}
+  gate -- no --> waiting["accounting_journals: waiting + reasons"]
+  gate -- yes --> push["AccountingProvider.pushJournal<br/>key tenant:day:vN · read back"]
+  push --> pushed["pushed (external id)"]
+  push -- error --> failed["failed · next attempt (15 min × 2^n)"]
+  pushed -- "re-push (confirmed, audited)" --> void["voidJournal → voided, push vN+1"]
+```
+
+- **Tick** `accounting` hourly at :35 for tenants with the add-on: the window is the closed days of the look-back (or from the start day); pushed and empty days are final, failed ones wait for their next attempt; manual "Retry now" and "Push now" force it. Health source `accounting:writes`.
+- **Gating**: page key `accounting` in `modules.ts`/`roles.ts` (404 without the add-on, owners/admins write, viewers read), actions `requireWrite("accounting")` (+ `manage_integrations` for the connection), services refuse without the add-on (`AccountingError("disabled")`), MCP tool `get_accounting_push_status` carries `module: "addon.accounting"`.
+- **A live connector** (Xero Manual Journals, QuickBooks JournalEntry, Fatture in Cloud) implements `AccountingProvider`, is returned by `getAccountingProviderFor` for live integration rows, and should push outside the tenant transaction (the mock is in memory).
 
 ## Adding an add-on
 

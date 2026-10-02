@@ -5,7 +5,7 @@ import { canDo, canViewPage, isPageEnabled } from "@hullwise/config";
 import { formatMoney } from "@hullwise/core";
 import { asc, eq, schema } from "@hullwise/db";
 import { listSupplierTerms, packsForProduct } from "@hullwise/services";
-import { Badge, Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardHeader, CardTitle, DataList } from "@hullwise/ui";
 import type { TenantContext } from "@/server/tenant";
 import { BulkSupplierForm, VariantSupplierButton } from "./supplier-forms";
 
@@ -41,40 +41,22 @@ export async function SupplierPacksSection({ ctx, slug, productId }: { ctx: Tena
         </div>
       </CardHeader>
       <CardContent className="space-y-4 p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("columns.variant")}</TableHead>
-              <TableHead>{t("columns.supplier")}</TableHead>
-              <TableHead className="hidden md:table-cell">{t("columns.supplier_sku")}</TableHead>
-              <TableHead className="text-right">{t("columns.cost")}</TableHead>
-              <TableHead className="hidden text-right sm:table-cell">{t("columns.moq")}</TableHead>
-              <TableHead className="hidden text-right sm:table-cell">{t("columns.lead_time")}</TableHead>
-              {canWrite && <TableHead className="w-10"><span className="sr-only">{t("edit")}</span></TableHead>}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {terms.map((v) => (
-              <TableRow key={v.variantId}>
-                <TableCell>
-                  <p className="font-medium">{v.title}</p>
-                  <p className="text-xs text-muted-foreground">{v.sku}</p>
-                </TableCell>
-                <TableCell>{v.supplierName ?? <Badge variant="warning">{t("none")}</Badge>}</TableCell>
-                <TableCell className="hidden font-mono text-xs md:table-cell">{v.supplierSku ?? "—"}</TableCell>
-                <TableCell className="text-right tabular">{fmt(v.unitCostMinor ?? v.costMinor)}</TableCell>
-                <TableCell className="hidden text-right tabular sm:table-cell">{v.moq ?? "—"}</TableCell>
-                <TableCell className="hidden text-right tabular sm:table-cell">{v.leadTimeDays !== null ? t("days", { n: v.leadTimeDays }) : "—"}</TableCell>
-                {canWrite && (
-                  <TableCell>
-                    <VariantSupplierButton slug={slug} suppliers={suppliers} variant={{ id: v.variantId, title: v.title, supplierId: v.supplierId, supplierSku: v.supplierSku, unitCost: v.unitCostMinor !== null ? (v.unitCostMinor / 100).toFixed(2) : "", moq: v.moq, orderMultiple: v.orderMultiple, leadTimeDays: v.leadTimeDays }} />
-                  </TableCell>
-                )}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <div className="space-y-2 px-6 pb-6">
+        <DataList
+          className="border-y"
+          rows={terms}
+          rowKey={(v) => v.variantId}
+          rowProps={() => ({ "data-testid": "supplier-term-row" })}
+          columns={[
+            { key: "variant", header: t("columns.variant"), mobile: "title", cell: (v) => <><p className="font-medium">{v.title}</p><p className="text-xs font-normal text-muted-foreground">{v.sku}</p></> },
+            { key: "supplier", header: t("columns.supplier"), mobile: "subtitle", cell: (v) => <span className="max-md:text-foreground">{v.supplierName ?? <Badge variant="warning">{t("none")}</Badge>}</span> },
+            { key: "supplier_sku", header: t("columns.supplier_sku"), priority: 2, className: "font-mono text-xs", cell: (v) => v.supplierSku ?? "—" },
+            { key: "cost", header: t("columns.cost"), align: "right", className: "tabular", cell: (v) => fmt(v.unitCostMinor ?? v.costMinor) },
+            { key: "moq", header: t("columns.moq"), align: "right", className: "tabular", cell: (v) => v.moq ?? "—" },
+            { key: "lead_time", header: t("columns.lead_time"), align: "right", className: "tabular", cell: (v) => (v.leadTimeDays !== null ? t("days", { n: v.leadTimeDays }) : "—") },
+            ...(canWrite ? [{ key: "edit", header: <span className="sr-only">{t("edit")}</span>, mobile: "action" as const, headClassName: "w-10", cell: (v: (typeof terms)[number]) => <VariantSupplierButton slug={slug} suppliers={suppliers} variant={{ id: v.variantId, title: v.title, supplierId: v.supplierId, supplierSku: v.supplierSku, unitCost: v.unitCostMinor !== null ? (v.unitCostMinor / 100).toFixed(2) : "", moq: v.moq, orderMultiple: v.orderMultiple, leadTimeDays: v.leadTimeDays }} /> }] : []),
+          ]}
+        />
+        <div className="space-y-2 px-(--density-card) pb-(--density-card)">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("packs")}</p>
           {packs.length === 0 ? (
             <p className="text-sm text-muted-foreground">

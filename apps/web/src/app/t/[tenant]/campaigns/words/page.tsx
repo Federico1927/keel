@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatMoney, formatNumber, formatPercent, type NgramRow } from "@hullwise/core";
 import { WORD_SOURCES, adsWords, type WordSource } from "@hullwise/services";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, EmptyState, PageHeader, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";
@@ -28,39 +28,27 @@ export default async function WordsPage({ params, searchParams }: { params: Prom
   const href = (patch: Record<string, string | undefined>) => `/t/${tenant}/campaigns/words?${new URLSearchParams(Object.entries({ ...keep, ...patch }).filter((e): e is [string, string] => Boolean(e[1])))}`;
   const qs = new URLSearchParams(Object.entries(periodParams(period, sp)).filter((e): e is [string, string] => Boolean(e[1]))).toString();
   const tabs = (items: readonly (readonly [string, string | undefined, string])[], current: string | undefined, key: string) => (
-    <div className="flex flex-wrap gap-1 rounded-md bg-muted p-1 text-sm">
-      {items.map(([label, value, testId]) => <Link key={label} href={href({ [key]: value })} className={cn("rounded-sm px-3 py-1.5", current === value ? "bg-card shadow-sm" : "text-muted-foreground")} data-testid={testId}>{label}</Link>)}
+    <div className="flex max-w-full gap-1 overflow-x-auto rounded-md bg-muted p-1 text-sm md:flex-wrap">
+      {items.map(([label, value, testId]) => <Link key={label} href={href({ [key]: value })} className={cn("shrink-0 whitespace-nowrap rounded-sm px-3 py-1.5 pointer-coarse:py-2.5", current === value ? "bg-card shadow-sm" : "text-muted-foreground")} data-testid={testId}>{label}</Link>)}
     </div>
   );
   const table = (rows: NgramRow[], testId: string) => (
-    <Table data-testid={testId}>
-      <TableHeader>
-        <TableRow>
-          <TableHead>{t("cols.phrase")}</TableHead>
-          <TableHead className="hidden text-right sm:table-cell">{t("cols.items")}</TableHead>
-          <TableHead className="text-right">{t("cols.spend")}</TableHead>
-          <TableHead className="hidden text-right md:table-cell">{t("cols.ctr")}</TableHead>
-          <TableHead className="hidden text-right lg:table-cell">{t("cols.platform_conv")}</TableHead>
-          <TableHead className="hidden text-right md:table-cell">{t("cols.hullwise_orders")}</TableHead>
-          <TableHead className="text-right">{t("cols.profit")}</TableHead>
-          <TableHead className="text-right">{t("cols.roas")}</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {rows.map((r) => (
-          <TableRow key={r.phrase} data-testid="word-row">
-            <TableCell className="font-medium" data-testid="word-phrase">{r.phrase}</TableCell>
-            <TableCell className="hidden text-right tabular sm:table-cell">{formatNumber(r.items, ctx.locale)}</TableCell>
-            <TableCell className="text-right tabular">{money(r.spendMinor)}</TableCell>
-            <TableCell className="hidden text-right tabular md:table-cell">{formatPercent(r.ctr, ctx.locale, 2)}</TableCell>
-            <TableCell className="hidden text-right tabular lg:table-cell">{formatNumber(Math.round(r.conversions), ctx.locale)}</TableCell>
-            <TableCell className="hidden text-right tabular md:table-cell">{formatNumber(r.orders, ctx.locale)}</TableCell>
-            <TableCell className={cn("text-right tabular font-medium", r.profitMinor < 0 && "text-destructive")}>{money(r.profitMinor)}</TableCell>
-            <TableCell className="text-right tabular">{r.roas === null ? "—" : `${r.roas.toFixed(2)}×`}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <DataList
+      data-testid={testId}
+      rows={rows}
+      rowKey={(r) => r.phrase}
+      rowProps={() => ({ "data-testid": "word-row" })}
+      columns={[
+        { key: "phrase", header: t("cols.phrase"), mobile: "title", cell: (r) => <span data-testid="word-phrase">{r.phrase}</span> },
+        { key: "items", header: t("cols.items"), align: "right", priority: 2, className: "tabular", cell: (r) => formatNumber(r.items, ctx.locale) },
+        { key: "spend", header: t("cols.spend"), align: "right", className: "tabular", cell: (r) => money(r.spendMinor) },
+        { key: "ctr", header: t("cols.ctr"), align: "right", priority: 2, className: "tabular", cell: (r) => formatPercent(r.ctr, ctx.locale, 2) },
+        { key: "conv", header: t("cols.platform_conv"), align: "right", priority: 3, className: "tabular", cell: (r) => formatNumber(Math.round(r.conversions), ctx.locale) },
+        { key: "orders", header: t("cols.hullwise_orders"), align: "right", priority: 2, className: "tabular", cell: (r) => formatNumber(r.orders, ctx.locale) },
+        { key: "profit", header: t("cols.profit"), mobile: "badge", align: "right", className: "tabular font-medium", cell: (r) => <span className={cn(r.profitMinor < 0 && "text-destructive")}>{money(r.profitMinor)}</span> },
+        { key: "roas", header: t("cols.roas"), align: "right", className: "tabular", cell: (r) => (r.roas === null ? "—" : `${r.roas.toFixed(2)}×`) },
+      ]}
+    />
   );
   return (
     <>
@@ -72,7 +60,7 @@ export default async function WordsPage({ params, searchParams }: { params: Prom
         {tabs([[t("sort.profit"), "profit", "words-sort-profit"], [t("sort.roas"), "roas", "words-sort-roas"]] as const, sort, "sort")}
       </div>
       {data.rows.length === 0 ? <EmptyState title={t("no_words")} description={t("no_words_hint")} /> : (
-        <div className="grid gap-4 xl:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
           <Card>
             <CardHeader><CardTitle className="text-base">{t("winners")}</CardTitle><CardDescription>{t("winners_description")}</CardDescription></CardHeader>
             <CardContent className="p-0">{data.winners.length ? table(data.winners, "words-winners") : <EmptyState title={t("no_winners")} className="m-4" />}</CardContent>
