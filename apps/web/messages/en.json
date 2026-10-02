@@ -182,6 +182,10 @@
       "whatsapp_spoki": {
         "name": "WhatsApp via Spoki",
         "description": "COD confirmations and replies, order notifications, WhatsApp campaigns and opt-outs through the store's Spoki account"
+      },
+      "accounting": {
+        "name": "Accounting push",
+        "description": "One journal per closed day from the daily sales summary, mapped to your chart of accounts and pushed only when it reconciles, with push log, retry and re-push"
       }
     }
   },
@@ -222,7 +226,9 @@
     "notifications": "Notifications",
     "fulfilment": "Fulfilment",
     "subscriptions": "Subscriptions",
-    "whatsapp_settings": "WhatsApp settings"
+    "whatsapp_settings": "WhatsApp settings",
+    "accounting": "Accounting push",
+    "accounting_settings": "Accounting settings"
   },
   "shell": {
     "open_menu": "Open menu",
@@ -2755,7 +2761,8 @@
       "recharge": "Recharge",
       "loop": "Loop Subscriptions",
       "address": "Address validation",
-      "spoki": "WhatsApp (Spoki)"
+      "spoki": "WhatsApp (Spoki)",
+      "accounting": "Accounting system"
     },
     "status": {
       "not_connected": "Not connected",
@@ -3925,6 +3932,58 @@
         {
           "symptom": "Statuses never update",
           "fix": "The webhook URL is missing or wrong in Spoki; copy it again from the integration card."
+        }
+      ]
+    },
+    "accounting": {
+      "title": "Accounting system",
+      "intro": "Pushes one journal per closed day to the store's accounting system: sales and tax per rate, shipping, discounts, refunds, payment fees and the clearing account, built from the daily sales summary.",
+      "scopes": "Live connectors are built per account on request (available on request): Xero (Manual Journals API, scope accounting.transactions and accounting.settings.read), QuickBooks Online (JournalEntry API, scope com.intuit.quickbooks.accounting) and Fatture in Cloud (prima nota / accounting entries API). Until one is built the simulated system shows the whole flow.",
+      "steps": [
+        {
+          "title": "What it does in {product}",
+          "body": "Every hour {product} looks at the closed days of the window. A day is pushed only when it reconciles: debits equal credits, it is closed in the store's time zone, every line has an account and no order of the day is still syncing or waiting for a change to reach the store. Other days wait with the reason in the push log."
+        },
+        {
+          "title": "Choose the connector",
+          "body": "Xero, QuickBooks Online and Fatture in Cloud are the candidate connectors, built and activated per account by the {product} team. Tell us which system the store uses and who can authorize the app.",
+          "verify": true
+        },
+        {
+          "title": "Authorize the app in the accounting system",
+          "body": "Xero and QuickBooks use OAuth 2.0 with an app registered by the {product} team: the store's adviser or owner signs in and picks the organisation. Fatture in Cloud uses an OAuth app or a personal token of the company.",
+          "verify": true
+        },
+        {
+          "title": "Read the chart of accounts",
+          "body": "Integrations → Accounting system → Resync accounts. The accounts appear in Accounting settings; archived ones cannot be used."
+        },
+        {
+          "title": "Map the accounts",
+          "body": "Accounting settings: an account for sales and output tax (per tax rate if you post them separately), shipping income, discounts, refunds, payment fees and the clearing account where the processors' payouts arrive. Set the first day to push so the days already in the books are left alone."
+        },
+        {
+          "title": "Verify",
+          "body": "Push now on the push log: the first closed day appears as Pushed with the journal number. Open it in the accounting system: lines, reference and totals match the day's summary. A day can be re-pushed: the journal is voided and replaced by the next version.",
+          "verify": true
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "A day waits with \"No account mapped\"",
+          "fix": "Map the line in Accounting settings (a new tax rate needs a sales and tax account or the defaults)."
+        },
+        {
+          "symptom": "A day waits because an order is syncing or waiting for a write",
+          "fix": "Retry or fix the order's failed webhook or write on the Integrations page; the next run pushes the day."
+        },
+        {
+          "symptom": "Push failed: account archived or unknown",
+          "fix": "Resync accounts and choose an active account; then Retry now."
+        },
+        {
+          "symptom": "Push failed: rate limit",
+          "fix": "Nothing to do: the push is retried with a growing delay (15 minutes, then up to 12 hours)."
         }
       ]
     }
@@ -7109,7 +7168,8 @@
       "matches": "Matches the P/L tax line: {amount}.",
       "mismatch": "Does not match the P/L tax line ({amount}): data changed while loading, reload the page.",
       "footnote": "Rate = the order's effective rate (tax reported by the store over the goods after discounts, rounded to 0.1%), or your rate for the country when the store reported none. Shipping country; your country when unknown."
-    }
+    },
+    "daily_sales_link": "Daily sales"
   },
   "payouts": {
     "sync": "Sync payouts",
@@ -9806,6 +9866,222 @@
       "signing": "The signature is HMAC-SHA256 of the timestamp, a dot and the raw body, keyed with the endpoint secret, in hex: t=<timestamp>,v1=<signature>. Reject timestamps older than {tolerance} seconds. After a secret rotation the previous secret signs too (a second v1) for {grace} hours.",
       "retries": "A delivery succeeds on any 2xx answer within {timeout} seconds. Anything else is retried after {schedule}; then the delivery is failed and can be redelivered by hand from the log. Redirects are not followed.",
       "security": "Endpoints must be https on a public host. Addresses that are private, loopback, link-local or cloud metadata are refused when the endpoint is saved and again at every delivery, after DNS resolution."
+    }
+  },
+  "daily_sales": {
+    "title": "Daily sales summary",
+    "description": "Per day in the store's time zone and per tax rate: gross sales, discounts, refunds, shipping and tax, then payment fees by method and the net. Amounts are net of tax except the tax column; every number opens the orders behind it.",
+    "back": "Analytics",
+    "export": "Export CSV",
+    "scope": "{from} – {to} · days in {tz} · amounts in {currency}",
+    "identity": "Gross sales − discounts − refunds = net sales · net sales + shipping + tax = total · total − fees = net.",
+    "orders_value": "{sales, plural, one {# sale} other {# sales}} · {refunds, plural, one {# refund} other {# refunds}}",
+    "totals": "Total",
+    "rate_label": "{country} {rate}",
+    "empty": "No sales in this period.",
+    "empty_hint": "Orders that are sales, or whose payment was taken, appear on the day they were placed; refunds on the day they happened.",
+    "days_title": "By day",
+    "rates_title": "By tax rate",
+    "rates_description": "Net sales and tax of each rate, day by day. On a small screen the grid scrolls sideways inside its frame.",
+    "rates_region": "Net sales and tax by tax rate (scrolls sideways)",
+    "net_short": "Net sales",
+    "tax_short": "Tax",
+    "fees_title": "Payment fees by method",
+    "fees_description": "The processor's actual fee once its payout is imported, otherwise the estimate from your rates.",
+    "estimated_n": "{n} estimated",
+    "columns": {
+      "day": "Day",
+      "orders": "Orders",
+      "rate": "Tax rate",
+      "gross": "Gross sales",
+      "discounts": "Discounts",
+      "refunds": "Refunds",
+      "net_sales": "Net sales",
+      "shipping": "Shipping",
+      "tax": "Tax",
+      "total": "Total",
+      "fees": "Fees",
+      "net": "Net",
+      "method": "Method",
+      "estimated": "Estimated fees"
+    },
+    "day": {
+      "title": "Sales of {day}",
+      "previous": "Previous day",
+      "next": "Next day",
+      "no_sales": "No sales or refunds on this day.",
+      "orders_title": "Orders behind the numbers",
+      "count": "{n, plural, one {# order} other {# orders}}",
+      "rate_filter": "tax rate {rate}",
+      "method_filter": "fees paid by {method}",
+      "all": "All",
+      "kinds": {
+        "sale": "Sale",
+        "refund": "Refund",
+        "fee": "Fee"
+      },
+      "empty": "No orders on this day.",
+      "empty_filtered": "No orders behind this number.",
+      "columns": {
+        "order": "Order",
+        "kinds": "In the summary as",
+        "placed": "Placed"
+      }
+    }
+  },
+  "accounting": {
+    "statuses": {
+      "pushed": "Pushed",
+      "waiting": "Waiting",
+      "failed": "Failed",
+      "voided": "Voided",
+      "empty": "Nothing to post",
+      "pushing": "Pushing"
+    },
+    "account_types": {
+      "asset": "Asset",
+      "liability": "Liability",
+      "equity": "Equity",
+      "revenue": "Revenue",
+      "expense": "Expense"
+    },
+    "reasons": {
+      "day_open": "The day is not closed yet: it can be pushed from {at}.",
+      "before_start": "Before the first day to push ({day}).",
+      "mapping_incomplete": "No account mapped for: {lines}.",
+      "unbalanced": "Debits and credits differ by {difference}.",
+      "orders_syncing": "{count, plural, one {# order is} other {# orders are}} still syncing from the store: {orders}.",
+      "orders_pending_write": "{count, plural, one {# order is} other {# orders are}} waiting for a change to reach the store: {orders}."
+    },
+    "errors": {
+      "accounting_disabled": "The accounting add-on is not active for this store.",
+      "module_disabled": "The accounting add-on is not active for this store.",
+      "accounting_not_connected": "Connect the accounting system first.",
+      "accounting_not_pushed": "This day has no pushed journal to replace.",
+      "accounting_not_ready": "This day does not reconcile now: it cannot be re-pushed until the reasons in the log are solved.",
+      "accounting_not_found": "This day has no journal yet.",
+      "accounting_unknown_account": "These accounts are not in the chart of accounts (or are archived): {accounts}.",
+      "accounting_invalid_input": "Some settings are not valid.",
+      "accounting_provider": "The accounting system refused the request."
+    },
+    "log": {
+      "title": "Accounting push",
+      "description": "One journal per closed day, built from the daily sales summary and pushed to your accounting system only when it reconciles: debits equal credits, the day is closed in the store's time zone, and no order of the day is still syncing or waiting for a change to reach the store.",
+      "settings_link": "Accounting settings",
+      "not_connected": "The accounting system is not connected: days are not pushed.",
+      "run": "Push now",
+      "run_done": "Pushed {pushed}, waiting {waiting}, failed {failed}.",
+      "last_pushed": "Last day pushed",
+      "filter": "Filter by status",
+      "all": "All",
+      "empty": "No day evaluated yet.",
+      "empty_filtered": "No day with this status.",
+      "empty_hint": "The hourly run evaluates every closed day of the window; \"Push now\" does it at once.",
+      "empty_day": "No sales, refunds or fees: nothing to post.",
+      "next_attempt": "Next attempt {at} · attempt {n}",
+      "pushed_at": "Pushed {at} {id}",
+      "voided_at": "Voided {at}, replaced by the next version",
+      "summary": "{n, plural, one {# row} other {# rows}}",
+      "retry": "Retry now",
+      "retry_pushed": "Pushed.",
+      "retry_failed": "Still failing: see the error.",
+      "retry_waiting": "The day still waits: see the reasons.",
+      "repush": "Re-push day",
+      "repush_title": "Re-push {day}?",
+      "repush_description": "Version {version} is voided in the accounting system and replaced by version {next}, built from today's summary. The change is recorded in the audit log.",
+      "repush_note": "Note (optional)",
+      "repush_confirm": "Void and re-push",
+      "repush_done": "Replaced by version {version}.",
+      "cancel": "Cancel",
+      "columns": {
+        "day": "Day",
+        "status": "Status",
+        "detail": "Details",
+        "total": "Total",
+        "net": "Net (clearing)",
+        "debit": "Debits",
+        "action": "Actions"
+      }
+    },
+    "day": {
+      "title": "Journal of {day}",
+      "description": "Every version of the day's journal with its lines, as pushed to the accounting system.",
+      "summary_link": "Daily sales of this day",
+      "empty": "This day has not been evaluated yet.",
+      "version": "Version {v}",
+      "totals": "Total",
+      "columns": {
+        "account": "Account",
+        "description": "Line",
+        "debit": "Debit",
+        "credit": "Credit"
+      }
+    },
+    "connection": {
+      "accounts": "Chart of accounts",
+      "accounts_value": "{n} accounts · read {at}",
+      "connect": "Connect",
+      "connect_mock": "Connect the simulated system",
+      "connected": "Connected: {n} accounts read.",
+      "test": "Test connection",
+      "test_ok": "Connection OK ({account}).",
+      "test_failed": "Connection failed: {error}",
+      "resync": "Resync accounts",
+      "resync_done": "{n} accounts read.",
+      "simulate_failure": "Simulate a refusal",
+      "simulated": "The next push will be refused with a rate limit.",
+      "log_link": "Push log",
+      "settings_link": "Settings"
+    },
+    "settings": {
+      "title": "Accounting settings",
+      "description": "The accounting system, its chart of accounts and the account each line of the daily sales summary is posted to.",
+      "chart_title": "Chart of accounts",
+      "chart_description": "Read from the accounting system (Resync accounts). Archived accounts cannot be mapped.",
+      "chart_empty": "Not read yet: connect the system, then Resync accounts.",
+      "archived": "Archived",
+      "columns": {
+        "code": "Code",
+        "name": "Name",
+        "type": "Type",
+        "active": "State"
+      },
+      "mapping_title": "Account mapping",
+      "mapping_description": "Credits: sales and tax per rate, shipping. Debits: discounts, refunds, payment fees and the clearing account for the net that the processors pay out. A day with a line left unmapped waits.",
+      "lines": {
+        "sales": "Sales",
+        "tax": "Output tax",
+        "shipping": "Shipping income",
+        "discounts": "Discounts",
+        "refunds": "Refunds",
+        "fees": "Payment fees",
+        "clearing": "Payouts / clearing"
+      },
+      "hints": {
+        "sales": "Default for every tax rate without its own account.",
+        "tax": "Default tax account for every rate without its own.",
+        "shipping": "Shipping charged to customers, net of tax.",
+        "discounts": "Discounts given, net of tax (debit).",
+        "refunds": "Refunds net of tax (debit); their tax reduces the tax account.",
+        "fees": "Processor fees: actual from payouts, estimated otherwise.",
+        "clearing": "Money due from payment processors and cash on delivery remittances: the day's net."
+      },
+      "by_rate": "Per tax rate",
+      "by_rate_hint": "Rates seen in the last 30 days and the configured ones. Leave empty to use the defaults above.",
+      "use_default": "Use the default",
+      "not_mapped": "Not mapped",
+      "start_day": "First day to push",
+      "start_day_hint": "Earlier days are never pushed (they are already in your books).",
+      "lookback": "Days looked back",
+      "close_delay": "Hours after midnight",
+      "close_delay_hint": "A day counts as closed this long after local midnight, so late refunds settle.",
+      "journal_status": "Journals created as",
+      "journal_statuses": {
+        "draft": "Draft",
+        "posted": "Posted"
+      },
+      "save": "Save",
+      "saved": "Settings saved."
     }
   }
 }

@@ -3,6 +3,8 @@ import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
   Bell,
+  BookOpenCheck,
+  Landmark,
   LifeBuoy,
   ListChecks,
   MessageCircle,
@@ -84,6 +86,8 @@ export const NAV_SECTIONS: NavSection[] = [
       // add-on settings sit with the store settings, not with the daily work (issue #69)
       { page: "cod_settings", href: "/cod/settings", labelKey: "nav.cod_settings", icon: PhoneCall },
       { page: "whatsapp_settings", href: "/whatsapp/settings", labelKey: "nav.whatsapp_settings", icon: MessageCircle },
+      { page: "accounting", href: "/accounting", labelKey: "nav.accounting", icon: BookOpenCheck },
+      { page: "accounting", href: "/accounting/settings", labelKey: "nav.accounting_settings", icon: Landmark },
       { page: "audit", href: "/audit", labelKey: "nav.audit", icon: ScrollText },
       { page: "notifications", href: "/notifications", labelKey: "nav.notifications", icon: Bell },
       { page: "support", href: "/support", labelKey: "nav.support", icon: LifeBuoy },

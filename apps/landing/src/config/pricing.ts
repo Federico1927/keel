@@ -99,6 +99,7 @@ export const ADDONS: readonly AddonPricing[] = [
   { id: "subscriptions", kind: "monthly", price: 149 },
   { id: "cod", kind: "monthly", price: 199 },
   { id: "whatsapp_spoki", kind: "monthly", price: 49 },
+  { id: "accounting", kind: "monthly", price: 69 },
   { id: "custom_integration", kind: "quote" },
   { id: "custom_development", kind: "quote" },
 ];

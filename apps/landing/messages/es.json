@@ -288,6 +288,10 @@
       "whatsapp_spoki": {
         "title": "WhatsApp con Spoki",
         "body": "Tu cuenta Spoki como canal de WhatsApp: avisos de pedido por evento, confirmaciones contra reembolso con una respuesta, campañas de WhatsApp, bajas respetadas en todas partes y cada mensaje en el pedido."
+      },
+      "accounting": {
+        "title": "Envío a contabilidad",
+        "body": "Un asiento al día en tu sistema contable desde el resumen diario de ventas: ventas e impuestos por tipo, envíos, descuentos, reembolsos y comisiones en tu propio plan de cuentas, enviado solo cuando el día cuadra, con registro de envíos y reenvío."
       }
     }
   },

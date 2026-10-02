@@ -182,6 +182,10 @@
       "whatsapp_spoki": {
         "name": "WhatsApp con Spoki",
         "description": "Confirmaciones y respuestas contra reembolso, avisos de pedido, campañas de WhatsApp y bajas con la cuenta Spoki de la tienda"
+      },
+      "accounting": {
+        "name": "Envío a contabilidad",
+        "description": "Un asiento por cada día cerrado desde el resumen diario de ventas, con tu plan de cuentas, enviado solo cuando cuadra, con registro de envíos, reintento y reenvío"
       }
     }
   },
@@ -222,7 +226,9 @@
     "notifications": "Notificaciones",
     "fulfilment": "Preparación",
     "subscriptions": "Suscripciones",
-    "whatsapp_settings": "Ajustes de WhatsApp"
+    "whatsapp_settings": "Ajustes de WhatsApp",
+    "accounting": "Envío a contabilidad",
+    "accounting_settings": "Ajustes de contabilidad"
   },
   "shell": {
     "open_menu": "Abrir menú",
@@ -2755,7 +2761,8 @@
       "recharge": "Recharge",
       "loop": "Loop Subscriptions",
       "address": "Validación de direcciones",
-      "spoki": "WhatsApp (Spoki)"
+      "spoki": "WhatsApp (Spoki)",
+      "accounting": "Sistema contable"
     },
     "status": {
       "not_connected": "No conectada",
@@ -3925,6 +3932,58 @@
         {
           "symptom": "Los estados nunca se actualizan",
           "fix": "Falta la URL del webhook en Spoki o es incorrecta; vuelve a copiarla desde la tarjeta de la integración."
+        }
+      ]
+    },
+    "accounting": {
+      "title": "Sistema contable",
+      "intro": "Envía un asiento por cada día cerrado al sistema contable de la tienda: ventas e impuestos por tipo, envíos, descuentos, reembolsos, comisiones de pago y la cuenta puente, desde el resumen diario de ventas.",
+      "scopes": "Los conectores reales se construyen por cuenta (disponibles bajo petición): Xero (API Manual Journals, scope accounting.transactions y accounting.settings.read), QuickBooks Online (API JournalEntry, scope com.intuit.quickbooks.accounting) y Fatture in Cloud (API de prima nota). Hasta que se construya uno, el sistema simulado muestra todo el flujo.",
+      "steps": [
+        {
+          "title": "Qué hace en {product}",
+          "body": "Cada hora {product} revisa los días cerrados de la ventana. Un día se envía solo cuando cuadra: debe igual a haber, cerrado en la zona horaria de la tienda, cada línea con una cuenta y ningún pedido del día sincronizándose todavía o esperando a que un cambio llegue a la tienda. Los demás días esperan con el motivo en el registro de envíos."
+        },
+        {
+          "title": "Elige el conector",
+          "body": "Xero, QuickBooks Online y Fatture in Cloud son los conectores candidatos, construidos y activados por cuenta por el equipo de {product}. Dinos qué sistema usa la tienda y quién puede autorizar la app.",
+          "verify": true
+        },
+        {
+          "title": "Autoriza la app en el sistema contable",
+          "body": "Xero y QuickBooks usan OAuth 2.0 con una app registrada por el equipo de {product}: el asesor o el titular inicia sesión y elige la empresa. Fatture in Cloud usa una app OAuth o un token personal de la empresa.",
+          "verify": true
+        },
+        {
+          "title": "Lee el plan de cuentas",
+          "body": "Integraciones → Sistema contable → Resincronizar cuentas. Las cuentas aparecen en Ajustes de contabilidad; las archivadas no se pueden usar."
+        },
+        {
+          "title": "Asigna las cuentas",
+          "body": "Ajustes de contabilidad: una cuenta para ventas e IVA repercutido (por tipo si los registras por separado), ingresos por envíos, descuentos, reembolsos, comisiones de pago y la cuenta puente donde llegan las liquidaciones de los procesadores. Fija el primer día a enviar para no tocar los días ya contabilizados."
+        },
+        {
+          "title": "Comprueba",
+          "body": "Enviar ahora en el registro de envíos: el primer día cerrado aparece como Enviado con el número del asiento. Ábrelo en el sistema contable: líneas, referencia y totales coinciden con el resumen del día. Un día se puede reenviar: el asiento se anula y se sustituye por la versión siguiente.",
+          "verify": true
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Un día espera con \"Sin cuenta asignada\"",
+          "fix": "Asigna la línea en Ajustes de contabilidad (un tipo nuevo necesita una cuenta de ventas e impuestos o las predeterminadas)."
+        },
+        {
+          "symptom": "Un día espera porque un pedido se está sincronizando o espera una escritura",
+          "fix": "Reintenta o corrige el webhook o la escritura fallidos del pedido en la página Integraciones; la siguiente ejecución envía el día."
+        },
+        {
+          "symptom": "Envío fallido: cuenta archivada o desconocida",
+          "fix": "Resincroniza las cuentas y elige una cuenta activa; luego Reintentar ahora."
+        },
+        {
+          "symptom": "Envío fallido: límite de solicitudes",
+          "fix": "Nada que hacer: el envío se reintenta con un intervalo creciente (15 minutos, luego hasta 12 horas)."
         }
       ]
     }
@@ -7109,7 +7168,8 @@
       "matches": "Coincide con la línea de impuestos de la cuenta de resultados: {amount}.",
       "mismatch": "No coincide con la línea de impuestos de la cuenta de resultados ({amount}): los datos cambiaron al cargar, recarga la página.",
       "footnote": "Tipo = tipo efectivo del pedido (impuesto informado por la tienda sobre la mercancía con descuento, redondeado al 0,1%), o tu tipo para el país si la tienda no lo informó. País de envío; tu país si no se conoce."
-    }
+    },
+    "daily_sales_link": "Ventas diarias"
   },
   "payouts": {
     "sync": "Sincronizar pagos",
@@ -9806,6 +9866,222 @@
       "signing": "La firma es el HMAC-SHA256 del timestamp, un punto y el cuerpo sin procesar, con el secreto del endpoint como clave, en hexadecimal: t=<timestamp>,v1=<firma>. Rechaza los timestamps de más de {tolerance} segundos. Tras regenerar el secreto también firma el anterior (un segundo v1) durante {grace} horas.",
       "retries": "Una entrega tiene éxito con cualquier respuesta 2xx en {timeout} segundos. Si no, se reintenta tras {schedule}; después la entrega falla y se puede reenviar a mano desde el registro. Las redirecciones no se siguen.",
       "security": "Los endpoints deben ser https en un host público. Las direcciones privadas, de loopback, link-local o de metadatos de la nube se rechazan al guardar el endpoint y otra vez en cada entrega, tras la resolución DNS."
+    }
+  },
+  "daily_sales": {
+    "title": "Resumen diario de ventas",
+    "description": "Por día en la zona horaria de la tienda y por tipo impositivo: ventas brutas, descuentos, reembolsos, envíos e impuestos, luego comisiones de pago por método y el neto. Importes sin impuestos salvo la columna de impuestos; cada número abre los pedidos que lo forman.",
+    "back": "Análisis",
+    "export": "Exportar CSV",
+    "scope": "{from} – {to} · días en {tz} · importes en {currency}",
+    "identity": "Ventas brutas − descuentos − reembolsos = ventas netas · ventas netas + envíos + impuestos = total · total − comisiones = neto.",
+    "orders_value": "{sales, plural, one {# venta} other {# ventas}} · {refunds, plural, one {# reembolso} other {# reembolsos}}",
+    "totals": "Total",
+    "rate_label": "{country} {rate}",
+    "empty": "No hay ventas en este periodo.",
+    "empty_hint": "Los pedidos que son ventas, o cuyo pago se cobró, aparecen el día en que se hicieron; los reembolsos, el día en que ocurrieron.",
+    "days_title": "Por día",
+    "rates_title": "Por tipo impositivo",
+    "rates_description": "Ventas netas e impuestos de cada tipo, día a día. En una pantalla pequeña la cuadrícula se desplaza en horizontal dentro de su marco.",
+    "rates_region": "Ventas netas e impuestos por tipo impositivo (se desplaza en horizontal)",
+    "net_short": "Ventas netas",
+    "tax_short": "Impuestos",
+    "fees_title": "Comisiones de pago por método",
+    "fees_description": "La comisión real del procesador cuando se importa su liquidación; si no, la estimación según tus tarifas.",
+    "estimated_n": "{n} estimadas",
+    "columns": {
+      "day": "Día",
+      "orders": "Pedidos",
+      "rate": "Tipo impositivo",
+      "gross": "Ventas brutas",
+      "discounts": "Descuentos",
+      "refunds": "Reembolsos",
+      "net_sales": "Ventas netas",
+      "shipping": "Envíos",
+      "tax": "Impuestos",
+      "total": "Total",
+      "fees": "Comisiones",
+      "net": "Neto",
+      "method": "Método",
+      "estimated": "Comisiones estimadas"
+    },
+    "day": {
+      "title": "Ventas del {day}",
+      "previous": "Día anterior",
+      "next": "Día siguiente",
+      "no_sales": "No hay ventas ni reembolsos este día.",
+      "orders_title": "Pedidos detrás de los números",
+      "count": "{n, plural, one {# pedido} other {# pedidos}}",
+      "rate_filter": "tipo {rate}",
+      "method_filter": "comisiones pagadas con {method}",
+      "all": "Todos",
+      "kinds": {
+        "sale": "Venta",
+        "refund": "Reembolso",
+        "fee": "Comisión"
+      },
+      "empty": "No hay pedidos este día.",
+      "empty_filtered": "No hay pedidos detrás de este número.",
+      "columns": {
+        "order": "Pedido",
+        "kinds": "En el resumen como",
+        "placed": "Realizado"
+      }
+    }
+  },
+  "accounting": {
+    "statuses": {
+      "pushed": "Enviado",
+      "waiting": "En espera",
+      "failed": "Fallido",
+      "voided": "Anulado",
+      "empty": "Nada que registrar",
+      "pushing": "Enviando"
+    },
+    "account_types": {
+      "asset": "Activo",
+      "liability": "Pasivo",
+      "equity": "Patrimonio neto",
+      "revenue": "Ingresos",
+      "expense": "Gastos"
+    },
+    "reasons": {
+      "day_open": "El día aún no está cerrado: se podrá enviar desde el {at}.",
+      "before_start": "Anterior al primer día a enviar ({day}).",
+      "mapping_incomplete": "Sin cuenta asignada para: {lines}.",
+      "unbalanced": "El debe y el haber difieren en {difference}.",
+      "orders_syncing": "{count, plural, one {# pedido se está} other {# pedidos se están}} sincronizando todavía desde la tienda: {orders}.",
+      "orders_pending_write": "{count, plural, one {# pedido espera} other {# pedidos esperan}} a que un cambio llegue a la tienda: {orders}."
+    },
+    "errors": {
+      "accounting_disabled": "El complemento de contabilidad no está activo en esta tienda.",
+      "module_disabled": "El complemento de contabilidad no está activo en esta tienda.",
+      "accounting_not_connected": "Conecta primero el sistema contable.",
+      "accounting_not_pushed": "Este día no tiene un asiento enviado que sustituir.",
+      "accounting_not_ready": "Este día ahora no cuadra: no se puede reenviar hasta resolver los motivos del registro.",
+      "accounting_not_found": "Este día aún no tiene asiento.",
+      "accounting_unknown_account": "Estas cuentas no están en el plan de cuentas (o están archivadas): {accounts}.",
+      "accounting_invalid_input": "Algunos ajustes no son válidos.",
+      "accounting_provider": "El sistema contable rechazó la solicitud."
+    },
+    "log": {
+      "title": "Envío a contabilidad",
+      "description": "Un asiento por cada día cerrado, construido desde el resumen diario de ventas y enviado a tu sistema contable solo cuando cuadra: debe igual a haber, día cerrado en la zona horaria de la tienda y ningún pedido del día sincronizándose todavía o esperando a que un cambio llegue a la tienda.",
+      "settings_link": "Ajustes de contabilidad",
+      "not_connected": "El sistema contable no está conectado: los días no se envían.",
+      "run": "Enviar ahora",
+      "run_done": "Enviados {pushed}, en espera {waiting}, fallidos {failed}.",
+      "last_pushed": "Último día enviado",
+      "filter": "Filtrar por estado",
+      "all": "Todos",
+      "empty": "Aún no se ha evaluado ningún día.",
+      "empty_filtered": "Ningún día con este estado.",
+      "empty_hint": "La ejecución horaria evalúa cada día cerrado de la ventana; \"Enviar ahora\" lo hace al momento.",
+      "empty_day": "Sin ventas, reembolsos ni comisiones: nada que registrar.",
+      "next_attempt": "Próximo intento {at} · intento {n}",
+      "pushed_at": "Enviado {at} {id}",
+      "voided_at": "Anulado {at}, sustituido por la versión siguiente",
+      "summary": "{n, plural, one {# fila} other {# filas}}",
+      "retry": "Reintentar ahora",
+      "retry_pushed": "Enviado.",
+      "retry_failed": "Sigue fallando: mira el error.",
+      "retry_waiting": "El día sigue en espera: mira los motivos.",
+      "repush": "Reenviar día",
+      "repush_title": "¿Reenviar el {day}?",
+      "repush_description": "La versión {version} se anula en el sistema contable y se sustituye por la versión {next}, construida con el resumen de hoy. El cambio queda en el registro de auditoría.",
+      "repush_note": "Nota (opcional)",
+      "repush_confirm": "Anular y reenviar",
+      "repush_done": "Sustituido por la versión {version}.",
+      "cancel": "Cancelar",
+      "columns": {
+        "day": "Día",
+        "status": "Estado",
+        "detail": "Detalles",
+        "total": "Total",
+        "net": "Neto (cuenta puente)",
+        "debit": "Debe",
+        "action": "Acciones"
+      }
+    },
+    "day": {
+      "title": "Asiento del {day}",
+      "description": "Cada versión del asiento del día con sus líneas, tal como se envió al sistema contable.",
+      "summary_link": "Ventas de este día",
+      "empty": "Este día aún no se ha evaluado.",
+      "version": "Versión {v}",
+      "totals": "Total",
+      "columns": {
+        "account": "Cuenta",
+        "description": "Línea",
+        "debit": "Debe",
+        "credit": "Haber"
+      }
+    },
+    "connection": {
+      "accounts": "Plan de cuentas",
+      "accounts_value": "{n} cuentas · leído el {at}",
+      "connect": "Conectar",
+      "connect_mock": "Conectar el sistema simulado",
+      "connected": "Conectado: {n} cuentas leídas.",
+      "test": "Probar conexión",
+      "test_ok": "Conexión correcta ({account}).",
+      "test_failed": "La conexión falló: {error}",
+      "resync": "Resincronizar cuentas",
+      "resync_done": "{n} cuentas leídas.",
+      "simulate_failure": "Simular un rechazo",
+      "simulated": "El próximo envío se rechazará con un límite de solicitudes.",
+      "log_link": "Registro de envíos",
+      "settings_link": "Ajustes"
+    },
+    "settings": {
+      "title": "Ajustes de contabilidad",
+      "description": "El sistema contable, su plan de cuentas y la cuenta a la que va cada línea del resumen diario de ventas.",
+      "chart_title": "Plan de cuentas",
+      "chart_description": "Leído del sistema contable (Resincronizar cuentas). Las cuentas archivadas no se pueden asignar.",
+      "chart_empty": "Aún no leído: conecta el sistema y luego Resincronizar cuentas.",
+      "archived": "Archivada",
+      "columns": {
+        "code": "Código",
+        "name": "Nombre",
+        "type": "Tipo",
+        "active": "Estado"
+      },
+      "mapping_title": "Asignación de cuentas",
+      "mapping_description": "Haber: ventas e impuestos por tipo, envíos. Debe: descuentos, reembolsos, comisiones de pago y la cuenta puente para el neto que liquidan los procesadores. Un día con una línea sin cuenta queda en espera.",
+      "lines": {
+        "sales": "Ventas",
+        "tax": "IVA repercutido",
+        "shipping": "Ingresos por envíos",
+        "discounts": "Descuentos",
+        "refunds": "Reembolsos",
+        "fees": "Comisiones de pago",
+        "clearing": "Liquidaciones / cuenta puente"
+      },
+      "hints": {
+        "sales": "Por defecto para cada tipo sin cuenta propia.",
+        "tax": "Cuenta de impuestos por defecto para cada tipo sin cuenta propia.",
+        "shipping": "Envíos cobrados a los clientes, sin impuestos.",
+        "discounts": "Descuentos concedidos, sin impuestos (debe).",
+        "refunds": "Reembolsos sin impuestos (debe); su impuesto reduce la cuenta de impuestos.",
+        "fees": "Comisiones de los procesadores: reales de las liquidaciones, si no, estimadas.",
+        "clearing": "Importes pendientes de los procesadores de pago y remesas del contra reembolso: el neto del día."
+      },
+      "by_rate": "Por tipo impositivo",
+      "by_rate_hint": "Tipos vistos en los últimos 30 días y los configurados. Déjalo vacío para usar las cuentas por defecto de arriba.",
+      "use_default": "Usar la predeterminada",
+      "not_mapped": "Sin asignar",
+      "start_day": "Primer día a enviar",
+      "start_day_hint": "Los días anteriores nunca se envían (ya están en tu contabilidad).",
+      "lookback": "Días hacia atrás",
+      "close_delay": "Horas tras la medianoche",
+      "close_delay_hint": "Un día se considera cerrado este tiempo después de la medianoche local, para que se asienten los reembolsos tardíos.",
+      "journal_status": "Asientos creados como",
+      "journal_statuses": {
+        "draft": "Borrador",
+        "posted": "Contabilizado"
+      },
+      "save": "Guardar",
+      "saved": "Ajustes guardados."
     }
   }
 }

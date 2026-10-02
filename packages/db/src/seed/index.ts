@@ -26,6 +26,7 @@ import { seedMetaAccounts } from "./meta-accounts";
 import { seedPlatformReliability, seedReliability } from "./reliability";
 import { seedSubscriptions } from "./subscriptions";
 import { seedSpoki } from "./spoki";
+import { seedAccounting } from "./accounting";
 import { createRng } from "@hullwise/integrations";
 import { SALE_STATUSES, allocateLandedCost, assignHoldout, campaignMessageKey, normalizePhone, runPredictionModel, type CustomerHistory } from "@hullwise/core";
 import { MODULES, PLANS, PLATFORM_CURRENCY } from "@hullwise/config";
@@ -45,7 +46,7 @@ export const DEMO_TENANTS = {
     defaultLocale: "it",
     orderNumberPrefix: "NW-",
     planKey: "growth",
-    addons: ["addon.cod", "addon.customer_campaigns", "addon.whatsapp_spoki"],
+    addons: ["addon.cod", "addon.customer_campaigns", "addon.whatsapp_spoki", "addon.accounting"],
     taxRates: [
       { country: "IT", rateBps: 2200 },
       { country: "DE", rateBps: 1900 },
@@ -195,7 +196,7 @@ async function seedBilling(db: ReturnType<typeof drizzle<typeof schema>>, tenant
   const now = new Date();
   const month = (n: number) => new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - n, 1));
   const plans: Record<keyof typeof DEMO_TENANTS, { planKey: string; monthly: number; setup: number; currency: string; months: number; lastPaid: boolean }> = {
-    northwind: { planKey: "growth", monthly: PLANS.growth.monthlyPriceMinor + MODULES["addon.cod"].monthlyPriceMinor! + MODULES["addon.customer_campaigns"].monthlyPriceMinor! + MODULES["addon.whatsapp_spoki"].monthlyPriceMinor!, setup: PLANS.growth.setupFeeMinor, currency: PLATFORM_CURRENCY, months: 6, lastPaid: true },
+    northwind: { planKey: "growth", monthly: PLANS.growth.monthlyPriceMinor + MODULES["addon.cod"].monthlyPriceMinor! + MODULES["addon.customer_campaigns"].monthlyPriceMinor! + MODULES["addon.whatsapp_spoki"].monthlyPriceMinor! + MODULES["addon.accounting"].monthlyPriceMinor!, setup: PLANS.growth.setupFeeMinor, currency: PLATFORM_CURRENCY, months: 6, lastPaid: true },
     harbor: { planKey: "starter", monthly: PLANS.starter.monthlyPriceMinor + MODULES["addon.subscriptions"].monthlyPriceMinor!, setup: PLANS.starter.setupFeeMinor, currency: PLATFORM_CURRENCY, months: 3, lastPaid: false },
   };
   for (const key of Object.keys(plans) as (keyof typeof DEMO_TENANTS)[]) {
@@ -253,7 +254,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
   const log = opts.log ?? (() => {});
   for (const cfg of tenantSeedConfigs(ctx, opts)) {
     // Wipe previous domain rows of this tenant (cascade from the parent tables).
-    for (const table of [schema.casePacks, schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.metricTargets, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.platformWrites, schema.inventoryDrift, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.codCarrierOutcomes, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels, schema.segmentDestinations, schema.pixelSettings, schema.pixelEvents, schema.pixelIdentities, schema.conversionSettings, schema.adAccounts, schema.surveySettings, schema.assistantThreads, schema.subscriptionContracts, schema.subscriptionCancellationReasons, schema.spokiMessages, schema.spokiSettings]) {
+    for (const table of [schema.casePacks, schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.metricTargets, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.platformWrites, schema.inventoryDrift, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.codCarrierOutcomes, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels, schema.segmentDestinations, schema.pixelSettings, schema.pixelEvents, schema.pixelIdentities, schema.conversionSettings, schema.adAccounts, schema.surveySettings, schema.assistantThreads, schema.subscriptionContracts, schema.subscriptionCancellationReasons, schema.spokiMessages, schema.spokiSettings, schema.accountingJournals, schema.accountingSettings]) {
       await db.delete(table).where(eq(table.tenantId, cfg.tenantId));
     }
     const started = Date.now();
@@ -292,6 +293,8 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("meta-accounts", () => seedMetaAccounts(db, cfg.key as "northwind" | "harbor", cfg.tenantId, opts.now ?? new Date()));
     await step("subscriptions", () => seedSubscriptions(db, { tenantId: cfg.tenantId, addons: cfg.addons, now: opts.now ?? new Date(), scale: opts.scale ?? 1, careUserId: ctx.userIds["care@harborhome.demo"] ?? null, ownerUserId: ctx.userIds["owner@harborhome.demo"] ?? null }));
     await step("reliability", () => seedReliability(db, cfg.key as "northwind" | "harbor", cfg.tenantId, ctx.userIds[cfg.key === "northwind" ? "owner@northwind.demo" : "owner@harborhome.demo"] ?? null, opts.now ?? new Date()));
+    // last: the push log is built from the finished orders, refunds and processor fees
+    if ((DEMO_TENANTS[cfg.key as keyof typeof DEMO_TENANTS].addons as readonly string[]).includes("addon.accounting")) await step("accounting", () => seedAccounting(db, cfg.tenantId, opts.now ?? new Date()));
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
   }
 }

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { PRODUCT_NAME, apiEndpoint, canDo, isAdPlatformInPlan, isPageEnabled } from "@hullwise/config";
 import { SPOKI_MODULE } from "@hullwise/addon-spoki";
+import { ACCOUNTING_ADDON } from "@hullwise/services";
 import { ADS_UTM_TEMPLATES } from "@hullwise/core";
 import { GOOGLE_ADDRESS_APIS, GOOGLE_ADS_API_VERSION, LOOP_API_VERSION, META_REQUIRED_PERMISSIONS, RECHARGE_API_VERSION, SUBSCRIPTION_PROVIDERS, SUBSCRIPTION_SCOPES, SUBSCRIPTION_WEBHOOK_TOPICS, SHOPIFY_SCOPES_BY_MODULE, SHOPIFY_WEBHOOK_TOPICS, TIKTOK_API_VERSION, TIKTOK_SCOPES_BY_MODULE } from "@hullwise/integrations";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, cn } from "@hullwise/ui";
@@ -13,8 +14,8 @@ import { spokiWebhookUrl } from "@/server/spoki-webhook";
 const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic", "address", "subscriptions", "tracking", "survey", "email"] as const;
 /** Ad hoc integrations sold per account: an interface and a mock in Hullwise, a live connector built and activated by the Hullwise team (issue #7). */
 const AD_HOC = ["payment_guarantee", "return_labels", "audiences", "messaging", "carrier", "warehouse"] as const;
-/** Guides of implemented add-ons, shown only to tenants with the add-on (Spoki, issue #9). */
-const ADDON_GUIDES = { spoki: SPOKI_MODULE } as const;
+/** Guides of implemented add-ons, shown only to tenants with the add-on (Spoki, issue #9; accounting, issue #85). */
+const ADDON_GUIDES = { spoki: SPOKI_MODULE, accounting: ACCOUNTING_ADDON } as const;
 type Provider = (typeof PROVIDERS)[number] | (typeof AD_HOC)[number] | keyof typeof ADDON_GUIDES;
 const isGuide = (p: string): p is Provider => (PROVIDERS as readonly string[]).includes(p) || (AD_HOC as readonly string[]).includes(p) || p in ADDON_GUIDES;
 interface Step { title: string; body: string; verify?: boolean }
