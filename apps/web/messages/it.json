@@ -349,6 +349,7 @@
         "roiMedium": "ROI medio (rapporto)",
         "campaignStockThreshold": "Soglia stock campagne (pezzi)",
         "duplicateOrderWindowDays": "Finestra ordini duplicati (giorni)",
+        "historyImportMonths": "Storico ordini letto al collegamento di Shopify (mesi, 0 = tutti)",
         "shipmentStuckDays": "Spedizione ferma dopo (giorni)",
         "returnWindowDays": "Finestra resi (giorni)",
         "shippingCostMinor": "Costo spedizione predefinito (centesimi)",
@@ -2888,7 +2889,16 @@
     "not_in_plan": "Incluso dal piano {plan}: chiedi al gestore della piattaforma di cambiare piano.",
     "open_subscriptions": "Apri abbonamenti",
     "address_mock_connect": "Usa il fornitore simulato",
-    "address_mock_connected": "Validazione indirizzi collegata (fornitore simulato)."
+    "address_mock_connected": "Validazione indirizzi collegata (fornitore simulato).",
+    "history_import": {
+      "title": "Importazione dello storico ordini",
+      "state": { "running": "In corso", "paused": "In corso", "error": "Non riuscita", "done": "Completata" },
+      "detail": "{n} ordini importati · ordini dal {since} · ordine più vecchio in Hullwise {oldest}",
+      "all_orders": "primo ordine",
+      "incomplete_hint": "Finché non è completa, analisi, RFM, coorti e storico clienti coprono solo una parte dello storico. Risincronizza la fa proseguire.",
+      "banner": "Lo storico ordini del negozio è ancora in importazione ({n} ordini finora): periodi passati, coorti e storico clienti sono incompleti finché non termina.",
+      "banner_error": "L'importazione dello storico ordini si è fermata dopo {n} ordini: periodi passati, coorti e storico clienti sono incompleti. Un owner o un admin può farla proseguire con Risincronizza in Integrazioni."
+    }
   },
   "integration_guide": {
     "verify_legend": "I passi segnati “Da verificare” dipendono da console dei fornitori che cambiano spesso: controllali sulla documentazione del fornitore prima della prima installazione.",
@@ -3952,7 +3962,8 @@
         "state_rules": "Regole di stato",
         "costs": "Costi configurati",
         "billing": "Pagamenti in regola",
-        "tiktok": "TikTok Ads collegato"
+        "tiktok": "TikTok Ads collegato",
+        "history_import": "Storico ordini importato"
       },
       "members": "Utenti",
       "open_balance": "Saldo aperto",

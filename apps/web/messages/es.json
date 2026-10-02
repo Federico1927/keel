@@ -349,6 +349,7 @@
         "roiMedium": "ROI medio (ratio)",
         "campaignStockThreshold": "Umbral de stock para campañas (unidades)",
         "duplicateOrderWindowDays": "Ventana de pedidos duplicados (días)",
+        "historyImportMonths": "Historial de pedidos leído al conectar Shopify (meses, 0 = todos)",
         "shipmentStuckDays": "Envío detenido tras (días)",
         "returnWindowDays": "Plazo de devolución (días)",
         "shippingCostMinor": "Coste de envío predeterminado (céntimos)",
@@ -2888,7 +2889,16 @@
     "not_in_plan": "Incluido desde el plan {plan}: pide al gestor de la plataforma que cambie el plan.",
     "open_subscriptions": "Abrir suscripciones",
     "address_mock_connect": "Usar el proveedor simulado",
-    "address_mock_connected": "Validación de direcciones conectada (proveedor simulado)."
+    "address_mock_connected": "Validación de direcciones conectada (proveedor simulado).",
+    "history_import": {
+      "title": "Importación del historial de pedidos",
+      "state": { "running": "En curso", "paused": "En curso", "error": "Fallida", "done": "Completada" },
+      "detail": "{n} pedidos importados · pedidos desde {since} · pedido más antiguo en Hullwise {oldest}",
+      "all_orders": "el primero",
+      "incomplete_hint": "Hasta que termine, los análisis, el RFM, las cohortes y el historial de clientes solo cubren una parte del historial. Resincronizar la continúa.",
+      "banner": "El historial de pedidos de la tienda aún se está importando ({n} pedidos hasta ahora): los periodos pasados, las cohortes y el historial de clientes están incompletos hasta que termine.",
+      "banner_error": "La importación del historial de pedidos se detuvo tras {n} pedidos: los periodos pasados, las cohortes y el historial de clientes están incompletos. Un owner o admin puede continuarla con Resincronizar en Integraciones."
+    }
   },
   "integration_guide": {
     "verify_legend": "Los pasos marcados “Por verificar” dependen de consolas de proveedores que cambian a menudo: compruébalos en la documentación del proveedor antes de la primera instalación.",
@@ -3952,7 +3962,8 @@
         "state_rules": "Reglas de estado",
         "costs": "Costes configurados",
         "billing": "Pagos al corriente",
-        "tiktok": "TikTok Ads conectado"
+        "tiktok": "TikTok Ads conectado",
+        "history_import": "Historial de pedidos importado"
       },
       "members": "Miembros",
       "open_balance": "Saldo pendiente",
