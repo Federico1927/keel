@@ -47,6 +47,28 @@ describe("MockCommercePlatform", () => {
     expect(p.writeLog.at(-1)).toEqual({ op: "updateVariantCost", args: { variantExternalId: "v2", inventoryItemExternalId: "i2", costMinor: 1250 } });
     expect((await p.fetchProducts()).items[0]!.variants.map((v) => v.costMinor)).toEqual([1100, 1250]);
   });
+  it("holds full products: writes change them, move updatedAt forward and answer the product (issue #19)", async () => {
+    const base = platform();
+    const [tee] = (await base.fetchProducts()).items;
+    const p = new MockCommercePlatform({ currency: "EUR", country: "IT", orderNumberPrefix: "T-", startOrderNumber: 1, locations: [], customers: [], variants: [], products: [{ ...tee!, platformUpdatedAt: new Date("2026-09-01T00:00:00Z"), media: [{ externalId: "m1", type: "image", url: "/a.svg", alt: null, width: null, height: null }, { externalId: "m2", type: "image", url: "/b.svg", alt: null, width: null, height: null }] }] });
+    const updated = await p.updateProduct("p1", { title: "Tee 2", seo: { title: "SEO", description: "" } });
+    expect(updated).toMatchObject({ title: "Tee 2", seo: { title: "SEO", description: null } });
+    expect(updated.platformUpdatedAt!.getTime()).toBeGreaterThan(new Date("2026-09-01T00:00:00Z").getTime());
+    const reordered = await p.updateProductMedia("p1", { type: "reorder", mediaExternalIds: ["m2", "m1"] });
+    expect(reordered.media!.map((m) => m.externalId)).toEqual(["m2", "m1"]);
+    expect(reordered.imageUrl).toBe("/b.svg");
+    expect(reordered.platformUpdatedAt!.getTime()).toBeGreaterThan(updated.platformUpdatedAt!.getTime());
+    const added = await p.updateProductMedia("p1", { type: "create", url: "/c.svg", alt: "C" });
+    expect(added.media).toHaveLength(3);
+    await p.updateVariant("v1", { sku: "NEW", compareAtMinor: 3900 });
+    expect((await p.fetchProduct("p1"))!.variants[0]).toMatchObject({ sku: "NEW", compareAtMinor: 3900 });
+    const outside = p.simulateExternalEdit("p1", { title: "Edited in the store" });
+    expect(outside.title).toBe("Edited in the store");
+    expect(await p.fetchProduct("nope")).toBeNull();
+    await expect(p.updateProduct("nope", { title: "x" })).rejects.toBeInstanceOf(IntegrationError);
+    expect(p.writeLog.map((w) => w.op)).toEqual(["updateProduct", "updateProductMedia", "updateProductMedia", "updateVariant", "updateProduct"]);
+    expect((await p.fetchProducts({ limit: 1 })).nextCursor).toBeNull();
+  });
   it("injects failures once", async () => {
     const p = platform();
     p.failures.failNext("rate_limited");

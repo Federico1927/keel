@@ -6,8 +6,10 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "../schema";
 import { generateTenantDataset, type TenantSeedConfig } from "./generator";
 import { writeDataset } from "./writer";
+import { ensureDemoProductCatalog, type DemoCatalogKey } from "./media";
 import { DEMO_COD_SETTINGS, DEMO_RETURN_COSTS, REASON_LABELS, REASON_PLATFORM, demoConversionSettings, demoPixelSettings, demoPortalConfig, demoReturnPolicy, demoSurveySettings } from "./settings";
 export { ensureDemoSettings } from "./settings";
+export { ensureDemoProductCatalog, demoMediaUrl, DEMO_MEDIA_PREFIX } from "./media";
 import { seedCollab } from "./collab";
 import { seedEmailLog } from "./email";
 import { seedLists } from "./lists";
@@ -253,6 +255,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     const step = async (name: string, fn: () => Promise<unknown>) => { const t0 = Date.now(); await fn(); if (process.env.SEED_TIMING) log(`[db:seed]   ${name} ${Date.now() - t0}ms`); };
     let counts: Record<string, number> = {};
     await step("write", async () => { counts = await writeDataset(db, ds); });
+    await step("media", () => ensureDemoProductCatalog(db, cfg.tenantId, cfg.key as DemoCatalogKey, opts.now ?? new Date()));
     if (cfg.key === "northwind") await step("cod", () => seedCod(db, ctx, cfg.tenantId, opts.now ?? new Date()));
     await step("analytics", () => seedAnalyticsExtras(db, ctx, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("planning", () => seedPlanningExtras(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));

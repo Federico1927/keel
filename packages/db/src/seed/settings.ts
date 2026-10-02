@@ -3,6 +3,7 @@ import type { drizzle } from "drizzle-orm/node-postgres";
 import { DEFAULT_SURVEY_CONFIG } from "@keel/core";
 import * as schema from "../schema";
 import { enableDemoMcp } from "./mcp";
+import { ensureDemoProductCatalog } from "./media";
 
 /**
  * Configuration rows of the demo tenants (portal, return policy, tracking, survey, COD tags, the AI
@@ -176,6 +177,10 @@ export async function ensureDemoSettings(db: Db, now = new Date()): Promise<Sett
       await db.insert(schema.codSettings).values({ tenantId, config: DEMO_COD_SETTINGS }).onConflictDoNothing();
       created.push("cod_settings");
     }
+    // demo gallery and Shopify field mirror (issue #19): only products without media / empty fields
+    const catalog = await ensureDemoProductCatalog(db, tenantId, key, now);
+    if (catalog.media) created.push(`product_media:${catalog.media}`);
+    if (catalog.products) created.push(`product_mirror:${catalog.products}`);
     if (await missing("integrations", sql`provider = 'anthropic'`)) {
       await db.insert(schema.integrations).values(demoAnthropicIntegration(tenantId, now)).onConflictDoNothing();
       created.push("integrations:anthropic");

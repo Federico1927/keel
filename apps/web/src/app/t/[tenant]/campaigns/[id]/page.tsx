@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { ProductThumb } from "@/components/product-thumb";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { canDo, canWritePage } from "@keel/config";
 import { ADS_UTM_TEMPLATES, UTM_NONE, formatDate, formatMoney, formatNumber, formatPercent } from "@keel/core";
 import { and, eq, schema } from "@keel/db";
-import { adRows, campaignAdSets, campaignDailyLedger, campaignLinkSuggestions, campaignsWithEconomics, latestPlatformWrites, summarizeByProduct, variantStock } from "@keel/services";
+import { adRows, campaignAdSets, catalogThumbnails, campaignDailyLedger, campaignLinkSuggestions, campaignsWithEconomics, latestPlatformWrites, summarizeByProduct, variantStock } from "@keel/services";
 import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DetailShell, EmptyState, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
@@ -39,10 +40,11 @@ export default async function CampaignDetailPage({ params, searchParams }: { par
     const productIds = row.products.map((p) => p.id);
     const stock = productIds.length ? summarizeByProduct(await variantStock(s, ctx.settings, { productIds })) : new Map();
     const platformWrite = (await latestPlatformWrites(s, "campaign", [id], { kinds: ["campaign.status"] })).get(id);
-    return { row, ledger, suggestions: suggestions.find((g) => g.campaignId === id)?.suggestions ?? [], products, stock, platformWrite, adSets, ads };
+    const thumbs = (await catalogThumbnails(s, { productIds })).products;
+    return { row, ledger, suggestions: suggestions.find((g) => g.campaignId === id)?.suggestions ?? [], products, stock, platformWrite, adSets, ads, thumbs };
   });
   if (!data) notFound();
-  const { row, ledger, suggestions, products, stock, platformWrite, adSets, ads } = data;
+  const { row, ledger, suggestions, products, stock, platformWrite, adSets, ads, thumbs } = data;
   const missingUtm = ads.rows.filter((a) => !a.utm.ok);
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   const base = `/t/${tenant}/campaigns`;
@@ -86,7 +88,8 @@ export default async function CampaignDetailPage({ params, searchParams }: { par
               <ul className="divide-y text-sm">
                 {row.products.map((p) => (
                   <li key={p.id} className="flex items-center justify-between gap-2 py-2">
-                    <span className="min-w-0">
+                    <ProductThumb src={thumbs.get(p.id)} alt={p.title} />
+                    <span className="min-w-0 flex-1">
                       <Link href={`/t/${tenant}/products/${p.id}`} className="block truncate font-medium hover:underline">{p.title}</Link>
                       <span className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
                         {p.isPrimary && <Badge variant="outline">{t("primary")}</Badge>}

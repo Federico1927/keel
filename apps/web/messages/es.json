@@ -2805,6 +2805,11 @@
           "body": "Haz clic en Resincronizar: se importan ubicaciones, productos, inventario y descuentos, luego los pedidos página a página con cursor reanudable. Las tiendas grandes continúan en varias ejecuciones; el progreso se ve en “Ejecuciones recientes”."
         },
         {
+          "title": "Productos: qué edita Keel",
+          "body": "Keel refleja en lectura todos los campos del producto (multimedia, descripción, estado y canales, organización, variantes, SEO, metacampos) y solo escribe título, descripción, vendor, tipo, etiquetas, estado, SEO, categoría, precio y precio de comparación de las variantes, SKU, código de barras, peso, política sin stock y multimedia (añadir desde URL, ordenar, quitar, texto alternativo). Scopes: read_products y write_products; read_publications para mostrar los canales de venta. Todo lo demás abre el producto en el admin de Shopify. Una edición abierta antes de un cambio hecho en Shopify se rechaza con “cambiado en Shopify, recarga”.",
+          "verify": true
+        },
+        {
           "title": "Reglas de estado",
           "body": "Keel nunca deriva el estado del pedido de etiquetas fijas. Abre Ajustes → Estados de pedido y asigna etiquetas, métodos de pago y estados financieros/de preparación a los estados canónicos; previsualiza sobre los últimos 50 pedidos."
         },
@@ -5823,7 +5828,10 @@
       "discount_status": "Activación de descuento",
       "discount_pool_status": "Activación de lote de descuentos",
       "ad_status": "Estado del anuncio",
-      "keyword_negative": "Palabra clave negativa"
+      "keyword_negative": "Palabra clave negativa",
+      "product_update": "Detalles del producto",
+      "variant_details": "Detalles de la variante",
+      "product_media": "Multimedia del producto"
     }
   },
   "dev_inbox": {
@@ -7661,6 +7669,137 @@
         "campaign": "Campaña",
         "ad_group": "Grupo de anuncios"
       }
+    }
+  },
+  "product_mirror": {
+    "edit": "Editar",
+    "cancel": "Cancelar",
+    "save": "Guardar en Shopify",
+    "saving": "Guardando…",
+    "yes": "Sí",
+    "no": "No",
+    "last_synced": "Sincronizado desde Shopify {when}",
+    "never_synced": "Nunca sincronizado desde Shopify",
+    "edit_in_shopify": "Editar en Shopify",
+    "errors": {
+      "stale": "Este producto cambió en Shopify después de abrirlo. Recarga para ver la versión actual y vuelve a editar.",
+      "reload": "Recargar",
+      "platform": "Shopify rechazó el cambio: {message}",
+      "generic": "No se pudo guardar el cambio.",
+      "not_found": "Producto no encontrado.",
+      "forbidden": "No puedes editar productos.",
+      "invalid_input": "Revisa los valores introducidos.",
+      "invalid_variant": "Revisa el precio, el precio de comparación y el peso de {variant}.",
+      "invalid": {
+        "title_required": "El título es obligatorio.",
+        "too_long": "Un campo supera la longitud que permite Shopify.",
+        "invalid_price": "Los precios deben ser cero o más.",
+        "invalid_weight": "El peso debe ser un número entero de gramos.",
+        "invalid_status": "Estado desconocido."
+      }
+    },
+    "details": {
+      "title": "Título y descripción",
+      "no_description": "Sin descripción en Shopify.",
+      "field_title": "Título",
+      "field_description": "Descripción (HTML)",
+      "html_hint": "Shopify guarda la descripción en HTML; Keel la muestra solo con formato (sin scripts ni contenido incrustado)."
+    },
+    "status": {
+      "title": "Estado y canales",
+      "channels": "Canales de venta",
+      "no_channels": "Aún no se ha leído ningún canal.",
+      "published": "Publicado",
+      "not_published": "No publicado",
+      "channels_hint": "La publicación en canales se gestiona en Shopify."
+    },
+    "organisation": {
+      "title": "Organización",
+      "vendor": "Proveedor (vendor)",
+      "type": "Tipo de producto",
+      "category": "Categoría",
+      "collections": "Colecciones",
+      "tags": "Etiquetas",
+      "category_id": "Id de categoría (taxonomía de Shopify)",
+      "tags_hint": "Separadas por comas. Las colecciones se gestionan en Shopify."
+    },
+    "seo": {
+      "title": "Vista previa en buscadores",
+      "no_description": "Sin descripción: los buscadores usarán texto de la página.",
+      "field_title": "Título de la página",
+      "field_description": "Meta descripción"
+    },
+    "variants": {
+      "variant": "Variante",
+      "price": "Precio",
+      "compare_at": "Precio de comparación",
+      "sku": "SKU",
+      "barcode": "Código de barras",
+      "weight": "Peso (g)",
+      "policy": "Sin stock",
+      "policy_deny": "Dejar de vender",
+      "policy_continue": "Seguir vendiendo",
+      "edit": "Editar variantes",
+      "inactive": "eliminada",
+      "more_fields": "Más campos de las variantes (de Shopify)",
+      "tracked": "Inventario controlado",
+      "requires_shipping": "Producto físico",
+      "taxable": "Cobrar impuestos",
+      "hs_code": "Código SA",
+      "origin": "País de origen"
+    },
+    "sync": {
+      "product": "Sincronizar desde Shopify",
+      "done": "{changed, plural, =0 {Ya está al día} one {# campo actualizado} other {# campos actualizados}}",
+      "catalog": "Sincronizar catálogo desde Shopify",
+      "queued": "Sincronización del catálogo iniciada en segundo plano.",
+      "failed": "La sincronización falló: {error}",
+      "catalog_done": "Catálogo sincronizado: {products} productos.",
+      "catalog_progress": "Sincronizando… {products} productos hasta ahora",
+      "last": "Última sincronización del catálogo {when}",
+      "never": "Catálogo nunca sincronizado",
+      "running": "Sincronizando: {products} de {total} productos"
+    },
+    "gallery": {
+      "title": "Multimedia",
+      "done": "Listo",
+      "manage": "Gestionar",
+      "empty": "Sin multimedia en Shopify.",
+      "open": "Abrir imagen {n}",
+      "move_left": "Mover a la izquierda",
+      "move_right": "Mover a la derecha",
+      "alt": "Texto alternativo",
+      "delete": "Quitar",
+      "delete_confirm": "¿Quitar este contenido del producto en Shopify?",
+      "add_url": "URL de la imagen",
+      "add": "Añadir desde URL",
+      "save_alt": "Guardar texto alternativo",
+      "cancel": "Cancelar",
+      "hint": "Los cambios se escriben en Shopify al instante. Para subir archivos desde tu equipo usa Shopify.",
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "no_alt": "Sin texto alternativo",
+      "type": {
+        "video": "Vídeo",
+        "model": "Modelo 3D"
+      }
+    },
+    "metafields": {
+      "title": "Metacampos",
+      "read_only": "Solo lectura",
+      "empty": "Sin metacampos."
+    },
+    "pnl": {
+      "title": "P/L, últimos 30 días",
+      "open": "Analítica",
+      "empty": "Sin ventas ni gasto publicitario en los últimos 30 días.",
+      "units": "Unidades vendidas",
+      "net_revenue": "Ingresos netos",
+      "cogs": "Coste de la mercancía",
+      "gross_margin": "Margen bruto",
+      "ad_spend": "Gasto en anuncios (campañas vinculadas)",
+      "profit": "Beneficio",
+      "missing_cost": "{units} unidades vendidas sin coste: el margen está sobrestimado."
     }
   }
 }
