@@ -5,7 +5,7 @@ import { z } from "zod";
 import { and, desc, eq, recordAudit, schema, sql } from "@hullwise/db";
 import { apiEndpoint, isAdPlatform, isAdPlatformInPlan } from "@hullwise/config";
 import { AnthropicLlmProvider, GoogleAddressProvider, GoogleAdsPlatform, MOCK_ACCOUNT_IDS, MetaAdsPlatform, ShopifyCommercePlatform, SHOPIFY_WEBHOOK_TOPICS, TiktokAdsPlatform, encryptJson, exchangeTiktokAuthCode, integrationMode, isValidShopDomain, type ConnectionTest } from "@hullwise/integrations";
-import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, resolveAddressProvider, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsBackfill, runAdsSync, runCatalogSync, runOrdersSync, runReturnsSync } from "@hullwise/services";
+import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, resolveAddressProvider, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsBackfill, runAdsSync, runAdsSyncForAccounts, runCatalogSync, runOrdersSync, runReturnsSync } from "@hullwise/services";
 import { SPOKI_MODULE, retrySpokiWebhooks } from "@hullwise/addon-spoki";
 import { handleSpokiEvent, spokiHooksFor } from "@hullwise/jobs";
 import { enqueue } from "@/server/jobs";
@@ -261,6 +261,11 @@ export async function resyncIntegration(slug: string, provider: string): Promise
           const catalog = await runCatalogSync(s, platform);
           const returns = await runReturnsSync(s, platform, { kind: "delta", country: ctx.tenant.country, budgetMs: 10_000 });
           return orders.error ?? catalog.error ?? returns.error ?? `orders:${orders.rowsWritten} products:${catalog.products} inventory:${catalog.inventory} discounts:${catalog.discounts} returns:${returns.created + returns.updated + returns.linked}`;
+        }
+        // Meta: every connected ad account in turn (#82); a failing one does not stop the others
+        if (p.data === "meta") {
+          const r = await runAdsSyncForAccounts((fn) => fn(s), ctx.tenant, "meta", { since, until, entities: false });
+          return r.results.find((x) => !x.ok)?.error ?? `campaigns:${r.campaigns} metrics:${r.metrics}`;
         }
         const r = await runAdsSync(s, await getAdsPlatformFor(s, ctx.tenant, p.data), { since, until });
         return r.error ?? `campaigns:${r.campaigns} metrics:${r.metrics}`;

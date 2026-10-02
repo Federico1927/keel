@@ -1,7 +1,7 @@
 import { AD_PLATFORMS, OPERATIONAL_TENANT_STATUSES, appUrl, isAdPlatform, isAdPlatformInPlan, isTenantOperational, platformRetentionDays } from "@hullwise/config";
-import { parseTenantSettings } from "@hullwise/core";
+import { parseTenantSettings, summarizeAccountRuns } from "@hullwise/core";
 import { adminDb, and, eq, inArray, lte, schema, withTenant } from "@hullwise/db";
-import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, runAdsEntitySync, rollupAdEntityMetrics, campaignTick, processCampaignSend, getMessagingChannelFor, resolveAddressProvider, SUBSCRIPTIONS_ADDON, getSubscriptionProviderFor, runSubscriptionSync, refreshSubscriberRisk } from "@hullwise/services";
+import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, recheckConversionAdjustments, runAdsSyncForAccounts, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, rollupAdEntityMetrics, campaignTick, processCampaignSend, getMessagingChannelFor, resolveAddressProvider, SUBSCRIPTIONS_ADDON, getSubscriptionProviderFor, runSubscriptionSync, refreshSubscriberRisk } from "@hullwise/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue, autoCancelReturnedToSender, getCodSettings, runScheduledConfirmations, applyCodReply, applyMessageStatus } from "@hullwise/addon-cod";
 import { SPOKI_MODULE, getSpokiApiFor, getSpokiState, processSpokiWebhookEvent, retrySpokiWebhooks, runOrderNotifications, spokiMessagingChannel, type SpokiHooks } from "@hullwise/addon-spoki";
 import { adsWindow, type CampaignSendJob, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob, resyncJobsFor, type TenantExportJob } from "./queues";
@@ -120,29 +120,25 @@ export async function handlePlatformWrite(job: PlatformWriteJob): Promise<void> 
 /**
  * Campaigns and daily insights, then the levels below the campaign (issue #40) in resumable 7-day
  * windows. A paused entity run (time budget, rate limit) re-enqueues itself, after the platform's wait.
+ * On Meta every connected ad account is pulled in turn (#82), each in its own transactions: a failing
+ * account is recorded on its row and health source and never blocks the others; the job fails only
+ * when every account failed.
  */
 export async function handleSyncAds(job: SyncAdsJob, enqueue?: Enqueue): Promise<JobOutcome> {
   const tenant = await tenantRow(job.tenantId);
   // a platform outside the tenant's plan (TikTok below Growth) is never pulled, whoever queued the job
   if (!isAdPlatformInPlan(job.provider, tenant.planKey)) return { rows: 0, summary: { skipped: "not_in_plan", provider: job.provider } };
-  let campaigns = 0, metrics = 0;
-  if (job.phase !== "entities") {
-    const r = await withTenant(tenant.id, async (tx) => {
-      const ctx = sys(tenant.id)(tx);
-      return runAdsSync(ctx, await getAdsPlatformFor(ctx, tenant, job.provider), { since: job.since, until: job.until });
-    });
-    if (r.error) throw new Error(r.error);
-    campaigns = r.campaigns;
-    metrics = r.metrics;
-  }
   const settings = parseTenantSettings((await adminDb().select({ settings: schema.tenants.settings }).from(schema.tenants).where(eq(schema.tenants.id, tenant.id)).limit(1))[0]?.settings);
-  const e = await withTenant(tenant.id, async (tx) => {
-    const ctx = sys(tenant.id)(tx);
-    return runAdsEntitySync(ctx, await getAdsPlatformFor(ctx, tenant, job.provider), { since: job.since, until: job.until, kind: job.kind ?? "delta", budgetMs: 25_000, minImpressions: settings.adsSearchTermMinImpressions });
-  });
-  if (!e.finished && !e.error && enqueue) await enqueue("sync.ads", { ...job, phase: "entities" } satisfies SyncAdsJob, { singletonKey: `${job.tenantId}:${job.provider}:entities${job.kind === "backfill" ? ":backfill" : ""}`, ...(e.rateLimited ? { startAfterSeconds: Math.ceil((e.retryAfterMs ?? 60_000) / 1000) } : {}) });
-  if (e.error) throw new Error(e.error);
-  return { rows: campaigns + metrics, summary: { campaigns, metrics, phase: job.phase ?? "campaigns", entitiesFinished: e.finished } };
+  const r = await runAdsSyncForAccounts(runner(tenant.id), tenant, job.provider, { since: job.since, until: job.until, phase: job.phase, kind: job.kind, account: job.accountExternalId, minImpressions: settings.adsSearchTermMinImpressions, budgetMs: 25_000 });
+  if (r.skipped) return { rows: 0, summary: { skipped: r.skipped, provider: job.provider, account: job.accountExternalId ?? null } };
+  // a paused entity run resumes alone, after the platform's wait
+  for (const p of r.paused) {
+    const acc = p.account?.externalId;
+    if (enqueue) await enqueue("sync.ads", { ...job, phase: "entities", ...(acc ? { accountExternalId: acc } : {}) } satisfies SyncAdsJob, { singletonKey: `${job.tenantId}:${job.provider}:entities${job.kind === "backfill" ? ":backfill" : ""}${acc && !p.account?.primary ? `:${acc}` : ""}`, ...(p.rateLimited ? { startAfterSeconds: Math.ceil((p.retryAfterMs ?? 60_000) / 1000) } : {}) });
+  }
+  const s = summarizeAccountRuns(r.results);
+  if (s.allFailed) throw new Error(s.failed.map((f) => (r.results.length > 1 ? `${f.account}: ${f.error}` : f.error)).join("; "));
+  return { rows: r.campaigns + r.metrics, summary: { campaigns: r.campaigns, metrics: r.metrics, phase: job.phase ?? "campaigns", entitiesFinished: r.paused.length === 0, accounts: r.results.length, ...(s.failed.length ? { failedAccounts: s.failed } : {}) } };
 }
 
 const addonActive = async (tenantId: string, moduleKey: string) => (await adminDb().select({ id: schema.tenantAddons.id }).from(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, tenantId), eq(schema.tenantAddons.moduleKey, moduleKey), eq(schema.tenantAddons.isActive, true))).limit(1)).length > 0;
@@ -266,6 +262,8 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<JobOut
         if (withPixel.has(t.id)) await stitchPixelSessions(ctx, { orderSinceHours: 2 });
         if (withConversions.has(t.id)) {
           await enqueueConversions(ctx);
+          // safety net for retractions and restatements (#82): the order paths queue them as they happen
+          await recheckConversionAdjustments(ctx);
           await sendDueConversions(ctx, (provider, settings) => getConversionSinkFor(ctx, provider, settings));
         }
       });

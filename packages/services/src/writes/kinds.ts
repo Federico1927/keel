@@ -181,6 +181,7 @@ defineCommerceWrite("fulfillment.create", {
 
 defineAdsWrite("campaign.status", {
   provider: (p) => p.provider,
+  account: (p) => p.accountExternalId,
   target: (p) => `campaign:${p.provider}:${p.campaignExternalId}:status`,
   supersedes: true,
   execute: (platform, p) => platform.setCampaignStatus(p.campaignExternalId, p.status),
@@ -192,6 +193,7 @@ defineAdsWrite("campaign.status", {
 // ads below the campaign (issue #40): pausing an ad is an absolute value; a negative keyword is one-shot
 defineAdsWrite("ad.status", {
   provider: (p) => p.provider,
+  account: (p) => p.accountExternalId,
   target: (p) => `ad:${p.provider}:${p.adExternalId}:status`,
   supersedes: true,
   execute: async (platform, p) => {

@@ -58,6 +58,8 @@ export * from "./subscription-billing";
 export * from "./reliability";
 export * from "./ngrams";
 export * from "./ads";
+export * from "./ad-accounts";
+export * from "./conversions";
 export * from "./product-edit";
 export * from "./subscriptions";
 export * from "./messaging";

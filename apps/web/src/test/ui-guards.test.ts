@@ -51,7 +51,6 @@ const HIDDEN_CELL_ALLOWLIST = new Set([
   "app/t/[tenant]/discounts/pools/[id]/page.tsx",
   "app/t/[tenant]/exports/page.tsx",
   "app/t/[tenant]/integrations/page.tsx",
-  "app/t/[tenant]/integrations/tracking/page.tsx",
   "app/t/[tenant]/inventory/losses/page.tsx",
   "app/t/[tenant]/inventory/markdowns/controls.tsx",
   "app/t/[tenant]/inventory/markdowns/page.tsx",

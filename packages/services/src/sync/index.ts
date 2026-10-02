@@ -13,6 +13,8 @@ import { applyInventoryLevels, refreshInventoryForVariants, zeroUnreportedLevels
 import { importPlatformReturn, type ReturnImportOutcome } from "./returns";
 import { notifyExchangeShipped } from "../returns/notify";
 import { linkPoolRedemptions } from "../discounts/redemptions";
+import { queueConversionAdjustments } from "../tracking/conversions";
+import { adAccountHealthSource, recordAdAccountRun, type AdAccountScope } from "../ads/accounts";
 
 export * from "./inventory";
 export * from "./returns";
@@ -62,7 +64,7 @@ export async function upsertCustomer(ctx: ServiceContext, c: NormalizedCustomer,
 const ORDER_DIFF_FIELDS = ["paymentStatus", "financialStatusRaw", "fulfillmentStatusRaw", "totalMinor", "refundedMinor", "cancelledAt", "platformTags", "note", "email", "phone"] as const;
 
 async function loadCampaignRefs(ctx: ServiceContext): Promise<CampaignRef[]> {
-  return ctx.tx.select({ id: schema.campaigns.id, externalId: schema.campaigns.externalId, name: schema.campaigns.name, platform: schema.campaigns.platform }).from(schema.campaigns).where(eq(schema.campaigns.tenantId, ctx.tenantId));
+  return ctx.tx.select({ id: schema.campaigns.id, externalId: schema.campaigns.externalId, name: schema.campaigns.name, platform: schema.campaigns.platform, accountExternalId: schema.campaigns.accountExternalId }).from(schema.campaigns).where(eq(schema.campaigns.tenantId, ctx.tenantId));
 }
 
 /**
@@ -155,7 +157,7 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
   const attribution = extractAttribution({ landingSite: o.landingSite, referringSite: o.referringSite, noteAttributes: o.noteAttributes });
   const campaigns = opts.campaigns ?? (await loadCampaignRefs(ctx));
   const campaign = matchCampaign(attribution, campaigns);
-  const attrValues = { utmSource: attribution.utmSource, utmMedium: attribution.utmMedium, utmCampaign: attribution.utmCampaign, utmContent: attribution.utmContent, utmTerm: attribution.utmTerm, clickIds: attribution.clickIds, campaignId: campaign?.id ?? null, channel: deriveChannel(attribution, o.referringSite, o.sourceChannel), source: opts.source, capturedAt: now };
+  const attrValues = { utmSource: attribution.utmSource, utmMedium: attribution.utmMedium, utmCampaign: attribution.utmCampaign, utmContent: attribution.utmContent, utmTerm: attribution.utmTerm, clickIds: attribution.clickIds, campaignId: campaign?.id ?? null, adAccountExternalId: campaign?.accountExternalId ?? null, channel: deriveChannel(attribution, o.referringSite, o.sourceChannel), source: opts.source, capturedAt: now };
   if (!lineage) await ctx.tx.insert(schema.orderAttribution).values({ tenantId: ctx.tenantId, orderId, ...attrValues }).onConflictDoUpdate({ target: [schema.orderAttribution.orderId], set: attrValues });
   // fulfillments → shipments with per-source state and resolver
   const mappings = o.fulfillments.length ? await loadStatusMappings(ctx) : [];
@@ -164,6 +166,8 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
   if (outcome === "created" && opts.stockCheck !== false) await checkOrderStock(ctx, orderId, { source: opts.source, skipRecompute: true });
   if (existing && (o.cancelledAt || ["fulfilled", "partial"].includes(o.fulfillmentStatusRaw ?? ""))) await closeOrderBackorders(ctx, orderId, o.cancelledAt ? "cancelled" : "fulfilled", o.cancelledAt ? "order_cancelled" : "order_fulfilled");
   await recomputeOrderStatus(ctx, orderId, { eventMetadata: { source: opts.source } });
+  // cancelled or refunded on the platform: retract or restate the conversion the ad platforms got (#82)
+  if (existing && (values.refundedMinor !== existing.refundedMinor || (o.cancelledAt && !existing.cancelledAt) || values.paymentStatus !== existing.paymentStatus)) await queueConversionAdjustments(ctx, [orderId]);
   // an exchange order paid through the invoice links back to its return
   const exchangeFor = o.noteAttributes?.find((a) => a.name === "hullwise_return_id")?.value;
   if (exchangeFor && /^[0-9a-f-]{36}$/i.test(exchangeFor)) await ctx.tx.update(schema.returnRequests).set({ exchangeOrderId: orderId }).where(and(eq(schema.returnRequests.tenantId, ctx.tenantId), eq(schema.returnRequests.id, exchangeFor), isNull(schema.returnRequests.exchangeOrderId)));
@@ -707,39 +711,48 @@ export async function runCatalogSync(ctx: ServiceContext, platform: CommercePlat
   }
 }
 
-/** Campaigns and daily metrics for a window; metrics are upserted per (campaign, day) so re-runs are idempotent. */
-export async function runAdsSync(ctx: ServiceContext, platform: AdsPlatform, window: { since: string; until: string }): Promise<{ campaigns: number; metrics: number; error: string | null }> {
+/**
+ * Campaigns and daily metrics for a window; metrics are upserted per (campaign, day) so re-runs are
+ * idempotent. With `account` (#82) the run is one Meta ad account's: rows are stamped with it, its
+ * health has its own source, and its row in `ad_accounts` gets the outcome and the cursor.
+ */
+export async function runAdsSync(ctx: ServiceContext, platform: AdsPlatform, window: { since: string; until: string }, opts: { account?: AdAccountScope | null } = {}): Promise<{ campaigns: number; metrics: number; error: string | null }> {
   const now = ctx.now ?? new Date();
   const provider = platform.provider;
-  const [run] = await ctx.tx.insert(schema.syncRuns).values({ tenantId: ctx.tenantId, provider, objectType: "metrics", kind: "delta", status: "running", cursor: window, startedAt: now }).returning({ id: schema.syncRuns.id });
+  const account = opts.account ?? null;
+  const source = adAccountHealthSource(provider, account);
+  const [run] = await ctx.tx.insert(schema.syncRuns).values({ tenantId: ctx.tenantId, provider, objectType: "metrics", kind: "delta", status: "running", cursor: account ? { ...window, account: account.externalId } : window, startedAt: now }).returning({ id: schema.syncRuns.id });
   let campaigns = 0;
   let metrics = 0;
   try {
     const remote = await platform.fetchCampaigns();
-    const idByExternal = new Map<string, string>();
+    const idByExternal = new Map<string, { id: string; account: string | null }>();
     for (const c of remote) {
-      const values = { accountExternalId: c.accountExternalId, name: c.name, status: c.status, objective: c.objective, dailyBudgetMinor: c.dailyBudgetMinor, currency: c.currency, platformCreatedAt: c.platformCreatedAt, syncedAt: now, updatedAt: now };
+      const accountExternalId = c.accountExternalId || account?.externalId || null;
+      const values = { accountExternalId, name: c.name, status: c.status, objective: c.objective, dailyBudgetMinor: c.dailyBudgetMinor, currency: c.currency, platformCreatedAt: c.platformCreatedAt, syncedAt: now, updatedAt: now };
       const [row] = await ctx.tx.insert(schema.campaigns).values({ tenantId: ctx.tenantId, platform: provider, externalId: c.externalId, ...values }).onConflictDoUpdate({ target: [schema.campaigns.tenantId, schema.campaigns.platform, schema.campaigns.externalId], set: values }).returning({ id: schema.campaigns.id });
-      idByExternal.set(c.externalId, row!.id);
+      idByExternal.set(c.externalId, { id: row!.id, account: accountExternalId });
       campaigns++;
     }
     const rows = await platform.fetchDailyMetrics(window);
     let lastDate: string | null = null;
     for (const m of rows) {
-      const campaignId = idByExternal.get(m.campaignExternalId);
-      if (!campaignId) continue;
-      const values = { spendMinor: m.spendMinor, impressions: m.impressions, clicks: m.clicks, viewContent: m.viewContent, purchases: m.purchases, purchaseValueMinor: m.purchaseValueMinor };
-      await ctx.tx.insert(schema.adMetricsDaily).values({ tenantId: ctx.tenantId, campaignId, date: m.date, ...values }).onConflictDoUpdate({ target: [schema.adMetricsDaily.campaignId, schema.adMetricsDaily.date], set: values });
+      const campaign = idByExternal.get(m.campaignExternalId);
+      if (!campaign) continue;
+      const values = { accountExternalId: campaign.account, spendMinor: m.spendMinor, impressions: m.impressions, clicks: m.clicks, viewContent: m.viewContent, purchases: m.purchases, purchaseValueMinor: m.purchaseValueMinor };
+      await ctx.tx.insert(schema.adMetricsDaily).values({ tenantId: ctx.tenantId, campaignId: campaign.id, date: m.date, ...values }).onConflictDoUpdate({ target: [schema.adMetricsDaily.campaignId, schema.adMetricsDaily.date], set: values });
       metrics++;
       if (!lastDate || m.date > lastDate) lastDate = m.date;
     }
     await ctx.tx.update(schema.syncRuns).set({ status: "success", rowsWritten: campaigns + metrics, finishedAt: new Date() }).where(eq(schema.syncRuns.id, run!.id));
-    await recordHealth(ctx, provider, true, { rowsWritten: metrics, lastMetricDate: lastDate, freshnessMinutes: provider === "google" ? 720 : 120 });
+    await recordHealth(ctx, source, true, { rowsWritten: metrics, lastMetricDate: lastDate, freshnessMinutes: provider === "google" ? 720 : 120, touchIntegration: !account || account.primary });
+    if (account) await recordAdAccountRun(ctx, provider, account.externalId, { ok: true, window, lastMetricDate: lastDate });
     return { campaigns, metrics, error: null };
   } catch (e) {
     const error = errMessage(e);
     await ctx.tx.update(schema.syncRuns).set({ status: "error", error, rowsWritten: campaigns + metrics, finishedAt: new Date() }).where(eq(schema.syncRuns.id, run!.id));
-    await recordHealth(ctx, provider, false, { error });
+    await recordHealth(ctx, source, false, { error, touchIntegration: !account || account.primary });
+    if (account) await recordAdAccountRun(ctx, provider, account.externalId, { ok: false, error, window });
     return { campaigns, metrics, error };
   }
 }

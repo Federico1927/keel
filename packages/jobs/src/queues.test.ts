@@ -12,6 +12,11 @@ describe("ads resyncs (watchdog, run now)", () => {
     expect(jobTypeOf(QUEUES.syncAds, { provider: "tiktok" })).toBe("sync.ads:tiktok");
     expect(runNowJob("sync.ads:tiktok", "t1", now)).toMatchObject({ queue: QUEUES.syncAds, data: { provider: "tiktok" } });
   });
+  it("a stale Meta ad account re-pulls that account alone (#82)", () => {
+    const [one] = resyncJobsFor("t1", "meta:act_200", now);
+    expect(one).toMatchObject({ data: { provider: "meta", accountExternalId: "act_200" }, singletonKey: "t1:meta:2026-10-02:act_200" });
+    for (const source of ["meta", "meta:entities", "meta:writes"]) expect(resyncJobsFor("t1", source, now)[0]!.data).not.toHaveProperty("accountExternalId");
+  });
 });
 
 describe("subscription app resync (addon.subscriptions)", () => {

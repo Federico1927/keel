@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { createdAt, tenantIsolation, updatedAt } from "./_common";
 import { tenantColumns } from "./_tenant";
 
@@ -22,6 +22,36 @@ export const integrations = pgTable(
     updatedAt: updatedAt(),
   },
   (t) => [uniqueIndex("integrations_tenant_provider_uq").on(t.tenantId, t.provider), tenantIsolation("integrations")],
+).enableRLS();
+
+/**
+ * Ad accounts of a platform that allows several per store (Meta, #82). The integration row stays the
+ * platform connection; its account is mirrored here as the primary one (`is_primary`), the others are
+ * added from the integrations card. Each account has its own credentials reference (null: the
+ * integration's token, which a Business Manager system user shares across accounts), sync cursor,
+ * status and last error. Removing an account keeps the row as `not_connected`, so its campaigns keep a name.
+ */
+export const adAccounts = pgTable(
+  "ad_accounts",
+  {
+    ...tenantColumns(),
+    provider: text("provider").notNull(),
+    externalAccountId: text("external_account_id").notNull(),
+    name: text("name").notNull(),
+    isPrimary: boolean("is_primary").notNull().default(false),
+    /** not_connected | connected | error | syncing */
+    status: text("status").notNull().default("connected"),
+    mode: text("mode").notNull().default("mock"),
+    credentialsEncrypted: text("credentials_encrypted"),
+    /** Last window pulled `{ since, until }` and the last metric day: the account's own sync cursor. */
+    cursor: jsonb("cursor").notNull().default(sql`'{}'::jsonb`),
+    lastSyncAt: timestamp("last_sync_at", { withTimezone: true }),
+    lastSuccessAt: timestamp("last_success_at", { withTimezone: true }),
+    lastError: text("last_error"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("ad_accounts_uq").on(t.tenantId, t.provider, t.externalAccountId), index("ad_accounts_tenant_idx").on(t.tenantId, t.provider, t.status), tenantIsolation("ad_accounts")],
 ).enableRLS();
 
 export const integrationHealth = pgTable(

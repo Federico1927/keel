@@ -57,6 +57,8 @@ export interface SyncAdsJob {
   phase?: "campaigns" | "entities";
   /** "backfill": the first import after connecting (e.g. TikTok's 90 days), resumed as its own run. */
   kind?: "delta" | "backfill";
+  /** One Meta ad account (#82); absent: every connected account of the platform. */
+  accountExternalId?: string;
 }
 /** A CSV export too large for a direct download (packages/services `requestListExport`). */
 export interface ListExportJob {
@@ -120,7 +122,9 @@ export function resyncJobsFor(tenantId: string, source: string, now = new Date()
   const [provider, part] = source.split(":");
   if (isAdPlatform(provider)) {
     const w = adsWindow(now);
-    return [{ queue: QUEUES.syncAds, data: { tenantId, provider, ...w } satisfies SyncAdsJob, singletonKey: `${tenantId}:${provider}:${w.until}` }];
+    // `meta:<account>` (#82): only that ad account; `meta`, `meta:entities`, `meta:writes`: every account
+    const account = part && part !== "entities" && part !== "writes" ? part : undefined;
+    return [{ queue: QUEUES.syncAds, data: { tenantId, provider, ...w, ...(account ? { accountExternalId: account } : {}) } satisfies SyncAdsJob, singletonKey: `${tenantId}:${provider}:${w.until}${account ? `:${account}` : ""}` }];
   }
   // addon.subscriptions: the subscription app is re-read by the add-on's tick
   if (provider === "shopify_subscriptions" || provider === "recharge" || provider === "loop") return [{ queue: QUEUES.tick, data: { kind: "subscriptions" } satisfies TickJob, singletonKey: `${tenantId}:subscriptions` }];

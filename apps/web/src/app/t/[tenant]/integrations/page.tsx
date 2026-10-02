@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { adPlatformMinPlan, canDo, isAdPlatform, isAdPlatformInPlan, isPageEnabled } from "@hullwise/config";
+import { AD_ACCOUNT_LIMIT, adPlatformMinPlan, canDo, isAdPlatform, isAdPlatformInPlan, isPageEnabled } from "@hullwise/config";
 import { formatDateTime, formatNumber } from "@hullwise/core";
 import { SUBSCRIPTION_PROVIDERS, integrationMode } from "@hullwise/integrations";
-import { integrationOverview, platformWritesOverview } from "@hullwise/services";
+import { adAccountsOverview, integrationOverview, platformWritesOverview } from "@hullwise/services";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { ProviderActions, WebhookControls, WebhookRowAction } from "./controls";
 import { GoogleWriteAccessToggle } from "./write-access";
+import { MetaAdAccounts } from "./ad-accounts";
 import { ProviderControls as SubscriptionProviderControls } from "../subscriptions/controls";
 import { SpokiCard } from "@/components/spoki-card";
 
@@ -22,9 +23,9 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
   const t = await getTranslations("integrations");
   const tw = await getTranslations("platform_writes");
   const tp = await getTranslations("plans");
-  const { data, writes } = await ctx.run(async (tx) => {
+  const { data, writes, metaAccounts } = await ctx.run(async (tx) => {
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
-    return { data: await integrationOverview(s), writes: await platformWritesOverview(s, { limit: 15 }) };
+    return { data: await integrationOverview(s), writes: await platformWritesOverview(s, { limit: 15 }), metaAccounts: await adAccountsOverview(s, "meta") };
   });
   const canManage = canDo(ctx.role, "manage_integrations");
   const globalMock = integrationMode() === "mock";
@@ -52,7 +53,8 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
             </Card>
           );
           const row = data.integrations.find((i) => i.provider === p);
-          const health = data.health.filter((h) => h.source === p || h.source.startsWith(`${p}:`));
+          // a further Meta account's sources (`meta:<account>`) show on the accounts card instead
+          const health = data.health.filter((h) => (h.source === p || h.source.startsWith(`${p}:`)) && !metaAccounts.some((a) => !a.isPrimary && h.source.startsWith(`${p}:${a.externalAccountId}`)));
           const connected = !!row && row.status !== "not_connected";
           const mock = globalMock || !row || row.mode !== "live";
           const cfg = (row?.config ?? {}) as { missingScopes?: string[] };
@@ -94,6 +96,7 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
         })}
         <SpokiCard ctx={ctx} />
       </div>
+      {metaAccounts.length > 0 && <MetaAdAccounts slug={tenant} limit={AD_ACCOUNT_LIMIT} canManage={canManage} mock={globalMock || data.integrations.find((i) => i.provider === "meta")?.mode !== "live"} accounts={metaAccounts.map((a) => ({ id: a.id, externalId: a.externalAccountId, name: a.name, primary: a.isPrimary, status: a.status, mock: globalMock || a.mode !== "live", lastSync: dt(a.lastSyncAt), lastSuccess: dt(a.lastSuccessAt), lastError: a.lastError, campaigns: a.campaigns }))} />}
       {isPageEnabled("subscriptions", ctx.activeAddons) && (() => {
         // addon.subscriptions (#67): the store's subscription app (one of Shopify Subscriptions, Recharge, Loop)
         const rows = data.integrations.filter((i) => (SUBSCRIPTION_PROVIDERS as readonly string[]).includes(i.provider));

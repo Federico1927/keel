@@ -35,3 +35,16 @@ export function adPlatformMinPlan(platform: AdPlatform): PlanKey | null {
 
 /** Brand names as the platforms write them (not translated). */
 export const AD_PLATFORM_LABELS: Readonly<Record<AdPlatform, string>> = { meta: "Meta", google: "Google Ads", tiktok: "TikTok Ads" };
+
+/**
+ * Platforms where a store can connect more than one ad account (#82): each account has its own
+ * credentials reference, sync cursor and health. Google and TikTok stay one connection each
+ * (TikTok's token already spans every authorized advertiser).
+ */
+export const MULTI_ACCOUNT_AD_PLATFORMS = ["meta"] as const satisfies readonly AdPlatform[];
+export type MultiAccountAdPlatform = (typeof MULTI_ACCOUNT_AD_PLATFORMS)[number];
+export function isMultiAccountAdPlatform(value: unknown): value is MultiAccountAdPlatform {
+  return typeof value === "string" && (MULTI_ACCOUNT_AD_PLATFORMS as readonly string[]).includes(value);
+}
+/** Connected accounts per platform and store; more is a support request. */
+export const AD_ACCOUNT_LIMIT = 10;

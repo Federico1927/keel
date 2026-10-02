@@ -80,7 +80,11 @@ export const conversionSettings = pgTable(
   (t) => [uniqueIndex("conversion_settings_uq").on(t.tenantId, t.provider), tenantIsolation("conversion_settings")],
 ).enableRLS();
 
-/** Delivery log and retry queue: one row per order and platform. Payload holds hashed identifiers only. */
+/**
+ * Delivery log and retry queue: one row per order, platform and kind (`purchase`, then a `retraction`
+ * or a `restatement` when the order is cancelled or refunded, #82; the event id carries the kind).
+ * Payload holds hashed identifiers only.
+ */
 export const conversionEvents = pgTable(
   "conversion_events",
   {
@@ -90,9 +94,13 @@ export const conversionEvents = pgTable(
       .notNull()
       .references(() => orders.id, { onDelete: "cascade" }),
     eventId: text("event_id").notNull(),
+    /** purchase | retraction | restatement (#82) */
+    kind: text("kind").notNull().default("purchase"),
+    /** Restatement: the conversion value the platform should hold after a partial refund (minor units). */
+    valueMinor: integer("value_minor"),
     /** pending | sent | failed | skipped */
     status: text("status").notNull().default("pending"),
-    /** no_consent | no_identifier | too_old when skipped */
+    /** no_consent | no_identifier | too_old | unsupported | withdrawn | superseded when skipped */
     reason: text("reason"),
     attempts: integer("attempts").notNull().default(0),
     nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true }),
@@ -101,7 +109,7 @@ export const conversionEvents = pgTable(
     sentAt: timestamp("sent_at", { withTimezone: true }),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex("conversion_events_uq").on(t.tenantId, t.provider, t.eventId), index("conversion_events_due_idx").on(t.tenantId, t.status, t.nextAttemptAt), tenantIsolation("conversion_events")],
+  (t) => [uniqueIndex("conversion_events_uq").on(t.tenantId, t.provider, t.eventId), index("conversion_events_due_idx").on(t.tenantId, t.status, t.nextAttemptAt), index("conversion_events_order_idx").on(t.tenantId, t.orderId), tenantIsolation("conversion_events")],
 ).enableRLS();
 
 /** Post-purchase survey of a store: texts and options (packages/core/src/survey.ts) and the secret that signs links. */

@@ -67,7 +67,8 @@
       "cod_template": "Unknown message template.",
       "cod_phone": "The order has no phone number.",
       "cod_reason": "Write a reason (at least 3 characters).",
-      "cod_carrier_columns": "The file needs a reference column (tracking or order) and an outcome column."
+      "cod_carrier_columns": "The file needs a reference column (tracking or order) and an outcome column.",
+      "ad_account_removed": "This ad account was removed from Hullwise: its campaigns are kept for history but can no longer be paused or resumed from here."
     },
     "edit": "Edit"
   },
@@ -1889,7 +1890,8 @@
       "light": "Health",
       "action": "Recommendation",
       "stock": "Stock",
-      "platform": "Platform"
+      "platform": "Platform",
+      "account": "Ad account"
     },
     "status": {
       "active": "Active",
@@ -1941,7 +1943,8 @@
       "paused": "paused",
       "n_creatives": "{n} creatives",
       "footnote": "Tags come from the naming convention FORMAT | HOOK | ANGLE, editable on the platform. Thumbnails are local placeholders until the ad account's previews are synced."
-    }
+    },
+    "all_accounts": "All ad accounts"
   },
   "campaign_detail": {
     "back": "Campaigns",
@@ -2874,7 +2877,12 @@
     "errors": {
       "connection_failed": "The platform refused the credentials.",
       "mock_mode": "This environment is in mock mode: set HULLWISE_INTEGRATION_MODE=live to connect a real account.",
-      "live_mode": "Simulation is only available for mock integrations."
+      "live_mode": "Simulation is only available for mock integrations.",
+      "ad_account_primary": "This is the main account of the Meta connection: manage it from the Meta card.",
+      "ad_account_limit": "The maximum number of Meta ad accounts is reached.",
+      "ad_account_not_found": "This ad account is not connected.",
+      "ad_account_invalid_input": "Enter a valid ad account id (act_ followed by digits).",
+      "ad_account_not_connected": "Connect Meta first: the first account is the Meta connection itself."
     },
     "tracking": "Pixel & conversions",
     "duration_s": "{s} s",
@@ -2897,7 +2905,26 @@
     "not_in_plan": "Included from the {plan} plan: ask the platform owner to change the plan.",
     "open_subscriptions": "Open subscriptions",
     "address_mock_connect": "Use the simulated provider",
-    "address_mock_connected": "Address validation connected (simulated provider)."
+    "address_mock_connected": "Address validation connected (simulated provider).",
+    "ad_accounts": {
+      "title": "Meta ad accounts",
+      "description": "Each account syncs on its own, with its status, last sync and last error. Up to {n} accounts.",
+      "primary": "Main",
+      "add": "Add ad account",
+      "add_mock": "Add a simulated account",
+      "added": "{account} connected: {summary}",
+      "remove": "Remove",
+      "remove_title": "Remove {account}?",
+      "remove_description": "Hullwise stops syncing this account and drops its token. Its campaigns and history stay, under its name.",
+      "removed": "Account removed.",
+      "name": "Name (optional)",
+      "token_hint": "Leave the token empty to use the main Meta connection's token (a system user with access to both accounts).",
+      "columns": {
+        "account": "Account",
+        "status": "Status",
+        "campaigns": "Campaigns"
+      }
+    }
   },
   "integration_guide": {
     "verify_legend": "Steps marked “To verify” depend on vendor consoles that change often: check them against the vendor documentation before the first install.",
@@ -3001,6 +3028,11 @@
         {
           "title": "Connect in Hullwise",
           "body": "Integrations → Meta Ads → Connect: paste the ad account id (act_…) and the token. Test connection shows the account name and granted permissions."
+        },
+        {
+          "title": "Several ad accounts",
+          "body": "A store with more than one ad account (brands, countries, an outlet) connects the main one here, then adds the others under Integrations → Meta ad accounts → Add ad account. Leave the token empty when the same system user has the other accounts assigned (Business Settings → System users → Add assets → Ad accounts); paste a separate token otherwise. Each account syncs on its own: a failing one is flagged on its row and never stops the others.",
+          "verify": true
         },
         {
           "title": "Backfill",
@@ -3182,6 +3214,11 @@
         {
           "title": "Enable and run",
           "body": "Enter the ids, keep \"Only customers who accept marketing\" unless your legal basis says otherwise, save, then Run queue now. The delivery log shows each order's outcome; the job repeats every 5 minutes."
+        },
+        {
+          "title": "Cancellations and refunds",
+          "body": "When an order whose purchase was sent is cancelled or fully refunded, Hullwise sends Google Ads a RETRACTION adjustment for it (by order id); after a partial refund, a RESTATEMENT with the remaining value. Meta's Conversions API offers no way to withdraw or restate a purchase, so those rows show as \"Not supported by the platform\" in the log. Google needs the order id sent with the purchase, which Hullwise always does, and may refuse an adjustment for a conversion it has not processed yet: the row retries with the usual backoff.",
+          "verify": true
         }
       ],
       "errors": [
@@ -5840,7 +5877,8 @@
       "require_consent": "Only customers who accept marketing",
       "stats": "7 days: {sent} sent · {failed} failed · {pending} queued · {consent} no consent · {ident} no identifier",
       "run_now": "Run queue now",
-      "retry_failed": "Retry failed"
+      "retry_failed": "Retry failed",
+      "adjustment_stats": "{adjusted} retractions or restatements sent · {unsupported} not supported by the platform"
     },
     "log": {
       "title": "Delivery log",
@@ -5860,8 +5898,21 @@
       "reasons": {
         "no_consent": "No marketing consent",
         "no_identifier": "No click id or identifier",
-        "too_old": "Too old"
-      }
+        "too_old": "Too old",
+        "unsupported": "Not supported by the platform",
+        "withdrawn": "Order cancelled or refunded before sending",
+        "superseded": "Replaced by the retraction"
+      },
+      "kind": "Event",
+      "kinds": {
+        "purchase": "Purchase",
+        "retraction": "Retraction",
+        "restatement": "Value restated"
+      },
+      "value": "to {value}",
+      "empty": "Nothing in the log yet.",
+      "filter_all": "All events",
+      "filter_adjustments": "Retractions and restatements"
     },
     "errors": {
       "destination_required": "Enter the dataset or conversion action id to enable sending.",

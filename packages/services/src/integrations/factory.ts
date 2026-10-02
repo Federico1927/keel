@@ -1,8 +1,9 @@
-import { isAdPlatformInPlan } from "@hullwise/config";
+import { isAdPlatformInPlan, isMultiAccountAdPlatform } from "@hullwise/config";
 import type { AdPlatform } from "@hullwise/core";
 import { and, eq, gte, inArray, isNotNull, schema, sql } from "@hullwise/db";
 import { AnthropicLlmProvider, GoogleAddressProvider, type GoogleAddressCredentials, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, type MockAdsStructure, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, PROCESSOR_GATEWAYS, ShopifyCommercePlatform, type MockPaymentOrder, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type NormalizedProduct, type ShopifyCredentials, MockCarrierProvider, type CarrierProvider, TiktokAdsPlatform, mockDemoAdsAccount, type TiktokCredentials } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
+import { getAdAccount, primaryAdAccountId } from "../ads/accounts";
 
 export interface PlatformTenant {
   id: string;
@@ -130,35 +131,59 @@ export class AdPlatformNotInPlanError extends Error {
   }
 }
 
-export async function getAdsPlatformFor(ctx: ServiceContext, tenant: PlatformTenant, provider: AdPlatform): Promise<AdsPlatform> {
+/** Refused when a write or a sync addresses an ad account that was removed or never added (#82). */
+export class AdAccountUnavailableError extends Error {
+  constructor(readonly provider: string, readonly account: string) {
+    super(`${provider} ad account ${account} is not connected`);
+    this.name = "AdAccountUnavailableError";
+  }
+}
+
+/**
+ * The tenant's adapter for an ad platform. On Meta, `account` picks one of several connected ad
+ * accounts (#82): its own token when it has one, the integration's otherwise. Without it (or with
+ * the primary account) the adapter is the integration's own, as before accounts existed; in mock
+ * mode each account is a simulator over its own campaigns.
+ */
+export async function getAdsPlatformFor(ctx: ServiceContext, tenant: PlatformTenant, provider: AdPlatform, opts: { account?: string | null } = {}): Promise<AdsPlatform> {
   if (!(await adPlatformInPlan(ctx, provider))) throw new AdPlatformNotInPlanError(provider);
   const row = await integrationRow(ctx, provider);
   const writes = adsWriteAccess(provider, row);
-  if (isLive(row)) {
+  const multi = isMultiAccountAdPlatform(provider);
+  const primary = multi ? await primaryAdAccountId(ctx, provider) : null;
+  const account = multi && opts.account && opts.account !== primary ? await getAdAccount(ctx, provider, { externalId: opts.account }) : null;
+  if (multi && opts.account && opts.account !== primary && (!account || account.status === "not_connected")) throw new AdAccountUnavailableError(provider, opts.account);
+  if (account) {
+    const token = account.credentialsEncrypted ?? row?.credentialsEncrypted ?? null;
+    if (integrationMode() === "live" && account.mode === "live" && token) return new MetaAdsPlatform({ ...decryptJson<MetaCredentials>(token), adAccountId: account.externalAccountId });
+  } else if (isLive(row)) {
     if (provider === "meta") return new MetaAdsPlatform(decryptJson<MetaCredentials>(row!.credentialsEncrypted!));
     if (provider === "tiktok") return new TiktokAdsPlatform(decryptJson<TiktokCredentials>(row!.credentialsEncrypted!));
     return new GoogleAdsPlatform(decryptJson<GoogleAdsCredentials>(row!.credentialsEncrypted!), { writeEnabled: writes });
   }
-  const key = `${tenant.id}:${provider}:${writes ? "rw" : "ro"}`;
+  const key = `${tenant.id}:${provider}:${writes ? "rw" : "ro"}${account ? `:${account.externalAccountId}` : ""}`;
   const cached = adsMocks.get(key);
   if (cached) return cached;
-  const campaigns = await ctx.tx.select().from(schema.campaigns).where(and(eq(schema.campaigns.tenantId, tenant.id), eq(schema.campaigns.platform, provider)));
-  let mock: { campaigns: ConstructorParameters<typeof MockAdsPlatform>[0]["campaigns"]; structure: MockAdsStructure } = { campaigns: campaigns.map((c) => ({ externalId: c.externalId, accountExternalId: c.accountExternalId ?? "", name: c.name, status: c.status as "active" | "paused" | "archived", objective: c.objective, dailyBudgetMinor: c.dailyBudgetMinor, currency: c.currency, platformCreatedAt: c.platformCreatedAt })), structure: await mockAdsStructure(ctx, tenant.id, provider) };
-  // a store connecting TikTok in mock mode without any TikTok data gets a small simulated account to sync
-  if (!campaigns.length && provider === "tiktok") mock = mockDemoAdsAccount(provider, { key: tenant.id, currency: tenant.currency, landingBase: "https://shop.example" });
-  const platform = new MockAdsPlatform({ provider, currency: tenant.currency, readOnly: provider === "google", adWrites: writes, budgetSpend: provider === "tiktok", ...mock });
+  // one simulator per account: the primary one keeps the campaigns without an account (synced before accounts)
+  const scope = account ? sql`${schema.campaigns.accountExternalId} = ${account.externalAccountId}` : primary ? sql`(${schema.campaigns.accountExternalId} = ${primary} or ${schema.campaigns.accountExternalId} is null)` : sql`true`;
+  const campaigns = await ctx.tx.select().from(schema.campaigns).where(and(eq(schema.campaigns.tenantId, tenant.id), eq(schema.campaigns.platform, provider), scope));
+  let mock: { campaigns: ConstructorParameters<typeof MockAdsPlatform>[0]["campaigns"]; structure: MockAdsStructure } = { campaigns: campaigns.map((c) => ({ externalId: c.externalId, accountExternalId: c.accountExternalId ?? account?.externalAccountId ?? primary ?? "", name: c.name, status: c.status as "active" | "paused" | "archived", objective: c.objective, dailyBudgetMinor: c.dailyBudgetMinor, currency: c.currency, platformCreatedAt: c.platformCreatedAt })), structure: await mockAdsStructure(ctx, tenant.id, provider, new Set(campaigns.map((c) => c.id))) };
+  // a store connecting TikTok, or a further Meta account, in mock mode without any data gets a small simulated account to sync
+  if (!campaigns.length && (provider === "tiktok" || account)) mock = mockDemoAdsAccount(provider, { key: tenant.id, currency: tenant.currency, landingBase: "https://shop.example", ...(account ? { accountExternalId: account.externalAccountId } : {}) });
+  const platform = new MockAdsPlatform({ provider, currency: tenant.currency, readOnly: provider === "google", adWrites: writes, budgetSpend: provider === "tiktok", ...(account ? { accountExternalId: account.externalAccountId, accountName: account.name } : primary ? { accountExternalId: primary, accountName: row?.externalAccountName ?? undefined } : {}), ...mock });
   adsMocks.set(key, platform);
   return platform;
 }
 
-/** The simulated ads platform of a tenant, when one is cached (tests, failure injection). */
-export function mockAdsFor(tenantId: string, provider: AdPlatform): MockAdsPlatform | undefined {
-  return adsMocks.get(`${tenantId}:${provider}:rw`) ?? adsMocks.get(`${tenantId}:${provider}:ro`);
+/** The simulated ads platform of a tenant, when one is cached (tests, failure injection); `account` for a further Meta account. */
+export function mockAdsFor(tenantId: string, provider: AdPlatform, account?: string): MockAdsPlatform | undefined {
+  const suffix = account ? `:${account}` : "";
+  return adsMocks.get(`${tenantId}:${provider}:rw${suffix}`) ?? adsMocks.get(`${tenantId}:${provider}:ro${suffix}`);
 }
 
 /** The tenant's ad sets, ads, assets, keywords and search terms as the simulator reports them, so a mock sync updates the same rows. */
-async function mockAdsStructure(ctx: ServiceContext, tenantId: string, provider: string): Promise<MockAdsStructure> {
-  const camps = new Map((await ctx.tx.select({ id: schema.campaigns.id, ext: schema.campaigns.externalId }).from(schema.campaigns).where(and(eq(schema.campaigns.tenantId, tenantId), eq(schema.campaigns.platform, provider)))).map((c) => [c.id, c.ext]));
+async function mockAdsStructure(ctx: ServiceContext, tenantId: string, provider: string, campaignIds?: Set<string>): Promise<MockAdsStructure> {
+  const camps = new Map((await ctx.tx.select({ id: schema.campaigns.id, ext: schema.campaigns.externalId }).from(schema.campaigns).where(and(eq(schema.campaigns.tenantId, tenantId), eq(schema.campaigns.platform, provider)))).filter((c) => !campaignIds || campaignIds.has(c.id)).map((c) => [c.id, c.ext]));
   const sets = await ctx.tx.select().from(schema.adSets).where(and(eq(schema.adSets.tenantId, tenantId), eq(schema.adSets.platform, provider)));
   const setExt = new Map(sets.map((s) => [s.id, s.externalId]));
   const ads = await ctx.tx.select().from(schema.adCreatives).where(and(eq(schema.adCreatives.tenantId, tenantId), eq(schema.adCreatives.platform, provider)));
@@ -169,10 +194,10 @@ async function mockAdsStructure(ctx: ServiceContext, tenantId: string, provider:
   const terms = await ctx.tx.select({ keywordId: schema.adSearchTerms.keywordId, text: schema.adSearchTerms.text }).from(schema.adSearchTerms).where(and(and(eq(schema.adSearchTerms.tenantId, tenantId), eq(schema.adSearchTerms.platform, provider)), eq(schema.adSearchTerms.isOther, false)));
   const st = (s: string) => (s === "paused" ? "paused" : s === "archived" ? "archived" : "active") as "active" | "paused" | "archived";
   return {
-    adSets: sets.map((s) => ({ externalId: s.externalId, campaignExternalId: camps.get(s.campaignId) ?? "", name: s.name, status: st(s.status), optimizationGoal: s.optimizationGoal, dailyBudgetMinor: s.dailyBudgetMinor })),
-    ads: ads.map((a) => ({ externalId: a.externalId, adSetExternalId: a.adSetId ? (setExt.get(a.adSetId) ?? null) : a.adsetExternalId, campaignExternalId: camps.get(a.campaignId) ?? "", name: a.name, status: st(a.status), format: a.format, headline: a.headline, body: a.body, finalUrl: a.finalUrl, urlTags: a.urlTags, thumbnailUrl: a.thumbnailUrl })),
-    assets: assets.map((a) => ({ assetExternalId: a.assetExternalId, adExternalId: a.creativeId ? (adExt.get(a.creativeId) ?? null) : null, adSetExternalId: a.adSetId ? (setExt.get(a.adSetId) ?? null) : null, campaignExternalId: camps.get(a.campaignId) ?? "", type: a.type as "text" | "image" | "video", fieldType: a.fieldType, text: a.textContent, url: a.url, performanceLabel: a.performanceLabel })),
-    keywords: keywords.map((k) => ({ externalId: k.externalId, adSetExternalId: k.adSetId ? (setExt.get(k.adSetId) ?? null) : null, campaignExternalId: camps.get(k.campaignId) ?? "", text: k.text, matchType: k.matchType as "exact" | "phrase" | "broad", qualityScore: k.qualityScore, status: st(k.status), negative: k.negative })),
+    adSets: sets.filter((s) => camps.has(s.campaignId)).map((s) => ({ externalId: s.externalId, campaignExternalId: camps.get(s.campaignId) ?? "", name: s.name, status: st(s.status), optimizationGoal: s.optimizationGoal, dailyBudgetMinor: s.dailyBudgetMinor })),
+    ads: ads.filter((a) => camps.has(a.campaignId)).map((a) => ({ externalId: a.externalId, adSetExternalId: a.adSetId ? (setExt.get(a.adSetId) ?? null) : a.adsetExternalId, campaignExternalId: camps.get(a.campaignId) ?? "", name: a.name, status: st(a.status), format: a.format, headline: a.headline, body: a.body, finalUrl: a.finalUrl, urlTags: a.urlTags, thumbnailUrl: a.thumbnailUrl })),
+    assets: assets.filter((a) => camps.has(a.campaignId)).map((a) => ({ assetExternalId: a.assetExternalId, adExternalId: a.creativeId ? (adExt.get(a.creativeId) ?? null) : null, adSetExternalId: a.adSetId ? (setExt.get(a.adSetId) ?? null) : null, campaignExternalId: camps.get(a.campaignId) ?? "", type: a.type as "text" | "image" | "video", fieldType: a.fieldType, text: a.textContent, url: a.url, performanceLabel: a.performanceLabel })),
+    keywords: keywords.filter((k) => camps.has(k.campaignId)).map((k) => ({ externalId: k.externalId, adSetExternalId: k.adSetId ? (setExt.get(k.adSetId) ?? null) : null, campaignExternalId: camps.get(k.campaignId) ?? "", text: k.text, matchType: k.matchType as "exact" | "phrase" | "broad", qualityScore: k.qualityScore, status: st(k.status), negative: k.negative })),
     searchTerms: terms.filter((t) => t.keywordId && kwExt.has(t.keywordId)).map((t) => ({ keywordExternalId: kwExt.get(t.keywordId!)!, text: t.text })),
   };
 }

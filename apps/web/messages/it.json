@@ -67,7 +67,8 @@
       "cod_template": "Modello di messaggio sconosciuto.",
       "cod_phone": "L'ordine non ha un numero di telefono.",
       "cod_reason": "Scrivi un motivo (almeno 3 caratteri).",
-      "cod_carrier_columns": "Il file deve avere una colonna riferimento (tracking o ordine) e una colonna esito."
+      "cod_carrier_columns": "Il file deve avere una colonna riferimento (tracking o ordine) e una colonna esito.",
+      "ad_account_removed": "Questo account pubblicitario è stato rimosso da Hullwise: le sue campagne restano nello storico ma non si possono più mettere in pausa o riattivare da qui."
     },
     "edit": "Modifica"
   },
@@ -1889,7 +1890,8 @@
       "light": "Semaforo",
       "action": "Consiglio",
       "stock": "Stock",
-      "platform": "Piattaforma"
+      "platform": "Piattaforma",
+      "account": "Account pubblicitario"
     },
     "status": {
       "active": "Attiva",
@@ -1941,7 +1943,8 @@
       "paused": "in pausa",
       "n_creatives": "{n} creatività",
       "footnote": "I tag vengono dalla convenzione di nome FORMATO | HOOK | ANGOLO, modificabile sulla piattaforma. Le miniature sono segnaposto locali finché non si sincronizzano le anteprime dell'account."
-    }
+    },
+    "all_accounts": "Tutti gli account"
   },
   "campaign_detail": {
     "back": "Campagne",
@@ -2874,7 +2877,12 @@
     "errors": {
       "connection_failed": "La piattaforma ha rifiutato le credenziali.",
       "mock_mode": "Questo ambiente è in modalità mock: imposta HULLWISE_INTEGRATION_MODE=live per collegare un account reale.",
-      "live_mode": "La simulazione è disponibile solo per le integrazioni mock."
+      "live_mode": "La simulazione è disponibile solo per le integrazioni mock.",
+      "ad_account_primary": "È l'account principale della connessione Meta: gestiscilo dalla scheda Meta.",
+      "ad_account_limit": "Hai raggiunto il numero massimo di account pubblicitari Meta.",
+      "ad_account_not_found": "Questo account pubblicitario non è collegato.",
+      "ad_account_invalid_input": "Inserisci un id account valido (act_ seguito da cifre).",
+      "ad_account_not_connected": "Collega prima Meta: il primo account è la connessione Meta stessa."
     },
     "tracking": "Pixel e conversioni",
     "duration_s": "{s} s",
@@ -2897,7 +2905,26 @@
     "not_in_plan": "Incluso dal piano {plan}: chiedi al gestore della piattaforma di cambiare piano.",
     "open_subscriptions": "Apri abbonamenti",
     "address_mock_connect": "Usa il fornitore simulato",
-    "address_mock_connected": "Validazione indirizzi collegata (fornitore simulato)."
+    "address_mock_connected": "Validazione indirizzi collegata (fornitore simulato).",
+    "ad_accounts": {
+      "title": "Account pubblicitari Meta",
+      "description": "Ogni account si sincronizza per conto suo, con stato, ultima sincronizzazione e ultimo errore. Fino a {n} account.",
+      "primary": "Principale",
+      "add": "Aggiungi account pubblicitario",
+      "add_mock": "Aggiungi un account simulato",
+      "added": "{account} collegato: {summary}",
+      "remove": "Rimuovi",
+      "remove_title": "Rimuovere {account}?",
+      "remove_description": "Hullwise smette di sincronizzare questo account e ne elimina il token. Le campagne e lo storico restano, con il suo nome.",
+      "removed": "Account rimosso.",
+      "name": "Nome (facoltativo)",
+      "token_hint": "Lascia vuoto il token per usare quello della connessione Meta principale (un utente di sistema con accesso a entrambi gli account).",
+      "columns": {
+        "account": "Account",
+        "status": "Stato",
+        "campaigns": "Campagne"
+      }
+    }
   },
   "integration_guide": {
     "verify_legend": "I passi segnati “Da verificare” dipendono da console dei fornitori che cambiano spesso: controllali sulla documentazione del fornitore prima della prima installazione.",
@@ -3001,6 +3028,11 @@
         {
           "title": "Collega in Hullwise",
           "body": "Integrazioni → Meta Ads → Collega: incolla l'id dell'account (act_…) e il token. Testa connessione mostra nome account e permessi concessi."
+        },
+        {
+          "title": "Più account pubblicitari",
+          "body": "Un negozio con più account pubblicitari (marchi, paesi, un outlet) collega qui quello principale, poi aggiunge gli altri da Integrazioni → Account pubblicitari Meta → Aggiungi account pubblicitario. Lascia vuoto il token se lo stesso utente di sistema ha gli altri account assegnati (Impostazioni aziendali → Utenti di sistema → Aggiungi risorse → Account pubblicitari); altrimenti incolla un token separato. Ogni account si sincronizza per conto suo: uno in errore viene segnalato nella sua riga e non blocca gli altri.",
+          "verify": true
         },
         {
           "title": "Backfill",
@@ -3182,6 +3214,11 @@
         {
           "title": "Attiva ed esegui",
           "body": "Inserisci gli id, lascia \"Solo clienti con consenso marketing\" salvo diversa base giuridica, salva, poi Esegui la coda ora. Il registro mostra l'esito di ogni ordine; il job si ripete ogni 5 minuti."
+        },
+        {
+          "title": "Annullamenti e rimborsi",
+          "body": "Quando un ordine il cui acquisto è stato inviato viene annullato o rimborsato per intero, Hullwise invia a Google Ads una rettifica RETRACTION (per id ordine); dopo un rimborso parziale, una RESTATEMENT con il valore rimasto. La Conversions API di Meta non offre modo di ritirare o rettificare un acquisto, quindi quelle righe compaiono nel registro come \"Non supportato dalla piattaforma\". Google richiede l'id ordine inviato con l'acquisto, che Hullwise invia sempre, e può rifiutare una rettifica per una conversione non ancora elaborata: la riga riprova con il solito backoff.",
+          "verify": true
         }
       ],
       "errors": [
@@ -5840,7 +5877,8 @@
       "require_consent": "Solo clienti con consenso marketing",
       "stats": "7 giorni: {sent} inviati · {failed} falliti · {pending} in coda · {consent} senza consenso · {ident} senza identificativo",
       "run_now": "Esegui la coda ora",
-      "retry_failed": "Riprova i falliti"
+      "retry_failed": "Riprova i falliti",
+      "adjustment_stats": "{adjusted} ritiri o rettifiche inviati · {unsupported} non supportati dalla piattaforma"
     },
     "log": {
       "title": "Registro invii",
@@ -5860,8 +5898,21 @@
       "reasons": {
         "no_consent": "Senza consenso marketing",
         "no_identifier": "Senza click id né identificativo",
-        "too_old": "Troppo vecchio"
-      }
+        "too_old": "Troppo vecchio",
+        "unsupported": "Non supportato dalla piattaforma",
+        "withdrawn": "Ordine annullato o rimborsato prima dell'invio",
+        "superseded": "Sostituito dal ritiro"
+      },
+      "kind": "Evento",
+      "kinds": {
+        "purchase": "Acquisto",
+        "retraction": "Ritiro",
+        "restatement": "Valore rettificato"
+      },
+      "value": "a {value}",
+      "empty": "Ancora nulla nel registro.",
+      "filter_all": "Tutti gli eventi",
+      "filter_adjustments": "Ritiri e rettifiche"
     },
     "errors": {
       "destination_required": "Inserisci l'id del dataset o dell'azione di conversione per attivare l'invio.",

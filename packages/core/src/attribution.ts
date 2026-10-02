@@ -103,6 +103,8 @@ export interface CampaignRef {
   externalId: string;
   name: string;
   platform: string;
+  /** Ad account of the campaign (#82), stamped on the order's attribution. */
+  accountExternalId?: string | null;
 }
 
 export function normalizeCampaignName(s: string): string {

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { adPlatformsForPlan, canDo, canWritePage } from "@hullwise/config";
 import { formatMoney, formatNumber, formatPercent } from "@hullwise/core";
-import { campaignLinkSuggestions, campaignsWithEconomics } from "@hullwise/services";
+import { adAccountNames, campaignLinkSuggestions, campaignsWithEconomics } from "@hullwise/services";
 import { Badge, Card, CardContent, EmptyState, PageHeader, DataList } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
@@ -12,7 +12,7 @@ import { SuggestionsPanel } from "./suggestions";
 import { LightBadge, ActionBadge } from "./badges";
 import { CampaignStatusButton } from "./[id]/campaign-actions";
 
-export default async function CampaignsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string; platform?: string; status?: string }> }) {
+export default async function CampaignsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string; platform?: string; status?: string; account?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "campaigns");
@@ -24,15 +24,25 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
   const platform = platforms.includes(sp.platform ?? "") ? sp.platform : undefined;
   const status = ["active", "paused", "archived"].includes(sp.status ?? "") ? sp.status : undefined;
   const at = { id: ctx.tenant.id, country: ctx.tenant.country, currency: ctx.tenant.currency, timezone: ctx.tenant.timezone, settings: ctx.settings };
+  // ad accounts (#82): named on every row, filterable once a platform has more than one
+  const accounts = await ctx.run((tx) => adAccountNames({ tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } }));
+  const accountFilter = accounts.find((a) => a.externalId === sp.account && platforms.includes(a.provider));
+  const account = accountFilter?.externalId;
   const [rows, suggestions] = await ctx.run(async (tx) => {
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
-    const [list, sugg] = await Promise.all([campaignsWithEconomics(s, at, period, { platform, status }), campaignLinkSuggestions(s)]);
+    const [list, sugg] = await Promise.all([campaignsWithEconomics(s, at, period, { platform, status, ...(accountFilter ? { account: { provider: accountFilter.provider, externalId: accountFilter.externalId, primary: accountFilter.primary } } : {}) }), campaignLinkSuggestions(s)]);
     return [list.filter((r) => platforms.includes(r.platform)), sugg.filter((r) => platforms.includes(r.platform))] as const;
   });
+  const primaryOf = new Map(accounts.filter((a) => a.primary).map((a) => [a.provider, a.externalId]));
+  const accountName = (r: { platform: string; accountExternalId: string | null }) => {
+    const ext = r.accountExternalId ?? primaryOf.get(r.platform);
+    return accounts.find((a) => a.provider === r.platform && a.externalId === ext)?.name ?? null;
+  };
+  const multiAccount = accounts.filter((a) => platforms.includes(a.provider)).length > 1;
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   const ratio = (r: number | null) => (r === null ? "—" : `${r.toFixed(2)}×`);
   const base = `/t/${tenant}/campaigns`;
-  const keep = { ...periodParams(period, sp), platform, status };
+  const keep = { ...periodParams(period, sp), platform, status, account };
   const qs = new URLSearchParams(Object.entries(keep).filter((e): e is [string, string] => Boolean(e[1]))).toString();
   const totals = rows.reduce((a, r) => ({ spend: a.spend + r.metrics.spendMinor, orders: a.orders + r.metrics.attributedOrders, revenue: a.revenue + r.metrics.netRevenueMinor, profit: a.profit + r.metrics.profitMinor }), { spend: 0, orders: 0, revenue: 0, profit: 0 });
   const canEdit = canWritePage(ctx.role, "campaigns");
@@ -46,7 +56,7 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
         description={t("description")}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <PeriodPicker basePath={base} keep={{ platform, status }} preset={period.preset} from={sp.from} to={sp.to} />
+            <PeriodPicker basePath={base} keep={{ platform, status, account }} preset={period.preset} from={sp.from} to={sp.to} />
             <Link href={`${base}/ledger?${qs}`} className="text-sm underline-offset-4 hover:underline">{t("ledger")}</Link>
             <Link href={`${base}/creatives?${qs}`} className="text-sm underline-offset-4 hover:underline" data-testid="creatives-link">{t("creatives_link")}</Link>
             <Link href={`${base}/keywords?${qs}`} className="text-sm underline-offset-4 hover:underline" data-testid="keywords-link">{ta("nav.keywords")}</Link>
@@ -55,7 +65,7 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
           </div>
         }
       />
-      <CampaignFilters basePath={base} keep={periodParams(period, sp)} platform={platform} status={status} platforms={platforms} />
+      <CampaignFilters basePath={base} keep={periodParams(period, sp)} platform={platform} status={status} platforms={platforms} account={account} accounts={multiAccount ? accounts.filter((a) => platforms.includes(a.provider) && (a.connected || rows.some((r) => r.accountExternalId === a.externalId))).map((a) => ({ value: a.externalId, label: a.name })) : []} />
       {rows.length > 0 && (() => {
         const byPlatform = platforms.map((p) => {
           const rs = rows.filter((r) => r.platform === p);
@@ -91,7 +101,7 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
               rowProps={() => ({ "data-testid": "campaign-row" })}
               footer={{ campaign: t("totals"), spend: money(totals.spend), orders: formatNumber(totals.orders, ctx.locale), revenue: money(totals.revenue), profit: <span className={totals.profit < 0 ? "text-destructive" : ""}>{money(totals.profit)}</span> }}
               columns={[
-                { key: "campaign", header: t("columns.campaign"), mobile: "title", className: "md:max-w-[18rem]", cell: (r) => <><Link href={`${base}/${r.id}?${qs}`} className="block truncate font-medium hover:underline">{r.name}</Link><span className="text-xs font-normal uppercase text-muted-foreground">{r.platform} · {t("linked_n", { n: r.products.length })}</span></> },
+                { key: "campaign", header: t("columns.campaign"), mobile: "title", className: "md:max-w-[18rem]", cell: (r) => <><Link href={`${base}/${r.id}?${qs}`} className="block truncate font-medium hover:underline">{r.name}</Link><span className="text-xs font-normal text-muted-foreground"><span className="uppercase">{r.platform}</span>{accountName(r) && <span data-testid="campaign-account"> · {accountName(r)}</span>} · {t("linked_n", { n: r.products.length })}</span></> },
                 { key: "status", header: t("columns.status"), priority: 2, label: "", cell: (r) => <Badge variant={r.status === "active" ? "success" : "muted"}>{t(`status.${r.status}`)}</Badge> },
                 { key: "spend", header: t("columns.spend"), align: "right", className: "tabular", cell: (r) => money(r.metrics.spendMinor) },
                 { key: "orders", header: t("columns.orders"), align: "right", className: "tabular", cell: (r) => formatNumber(r.metrics.attributedOrders, ctx.locale) },

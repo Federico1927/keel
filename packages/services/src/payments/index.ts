@@ -3,6 +3,7 @@ import { PAYMENT_METHODS, diffRecords, outstandingMinor, paymentStatusAfterRefun
 import type { CommercePlatform } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { recomputeOrderStatus } from "../orders/state";
+import { queueConversionAdjustments } from "../tracking/conversions";
 import { enqueuePlatformWrite, runPlatformWriteNow, type PlatformWriteRow } from "../writes";
 
 export * from "./payouts";
@@ -229,6 +230,8 @@ export async function refundOrder(ctx: ServiceContext, platform: CommercePlatfor
     createdAt: now,
   });
   if (paymentStatus !== order.paymentStatus) await recomputeOrderStatus(ctx, order.id, { eventMetadata: { source: "refund", transactionId: txn!.id } });
+  // a refund withdraws or restates the purchase the ad platforms received (#82)
+  await queueConversionAdjustments(ctx, [order.id]);
   return { orderId: order.id, transactionId: txn!.id, requestedMinor: input.amountMinor, amountMinor: accepted, refundedMinor: nextRefunded, paymentStatus, previousRefundedMinor: order.refundedMinor, previousPaymentStatus: order.paymentStatus, restocked, duplicate: false };
 }
 

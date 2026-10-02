@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { recordAudit } from "@hullwise/db";
 import { CONVERSION_PROVIDERS } from "@hullwise/integrations";
-import { enqueueConversions, getConversionSinkFor, ingestPixelBatch, retryFailedConversions, saveConversionSettings, savePixelSettings, sendDueConversions, type SendSummary } from "@hullwise/services";
+import { enqueueConversions, getConversionSinkFor, ingestPixelBatch, recheckConversionAdjustments, retryFailedConversions, saveConversionSettings, savePixelSettings, sendDueConversions, type SendSummary } from "@hullwise/services";
 import { ForbiddenError, requireAction } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 
@@ -74,6 +74,7 @@ export async function runConversionsNowAction(slug: string, retryFailed: boolean
       const s = { tenantId: ctx.tenant.id, tx, actor: actor(ctx) };
       if (retryFailed) for (const p of CONVERSION_PROVIDERS) await retryFailedConversions(s, p);
       await enqueueConversions(s);
+      await recheckConversionAdjustments(s);
       return sendDueConversions(s, (provider, settings) => getConversionSinkFor(s, provider, settings));
     });
     revalidatePath(`/t/${slug}/integrations/tracking`);

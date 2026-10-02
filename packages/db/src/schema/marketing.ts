@@ -23,7 +23,7 @@ export const campaigns = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [uniqueIndex("campaigns_tenant_platform_external_uq").on(t.tenantId, t.platform, t.externalId), index("campaigns_tenant_status_idx").on(t.tenantId, t.status), tenantIsolation("campaigns")],
+  (t) => [uniqueIndex("campaigns_tenant_platform_external_uq").on(t.tenantId, t.platform, t.externalId), index("campaigns_tenant_status_idx").on(t.tenantId, t.status), index("campaigns_tenant_account_idx").on(t.tenantId, t.platform, t.accountExternalId), tenantIsolation("campaigns")],
 ).enableRLS();
 
 export const adMetricsDaily = pgTable(
@@ -34,6 +34,8 @@ export const adMetricsDaily = pgTable(
       .notNull()
       .references(() => campaigns.id, { onDelete: "cascade" }),
     date: text("date").notNull(),
+    /** Ad account of the campaign (#82); null on rows synced before accounts: the platform's primary account. */
+    accountExternalId: text("account_external_id"),
     spendMinor: integer("spend_minor").notNull().default(0),
     impressions: integer("impressions").notNull().default(0),
     clicks: integer("clicks").notNull().default(0),
@@ -168,6 +170,8 @@ export const adSets = pgTable(
       .references(() => campaigns.id, { onDelete: "cascade" }),
     platform: text("platform").notNull(),
     externalId: text("external_id").notNull(),
+    /** Ad account (#82); null: the platform's primary account. */
+    accountExternalId: text("account_external_id"),
     name: text("name").notNull(),
     status: text("status").notNull().default("active"),
     optimizationGoal: text("optimization_goal"),
@@ -189,6 +193,8 @@ export const adCreatives = pgTable(
       .references(() => campaigns.id, { onDelete: "cascade" }),
     platform: text("platform").notNull(),
     externalId: text("external_id").notNull(),
+    /** Ad account (#82); null: the platform's primary account. */
+    accountExternalId: text("account_external_id"),
     adsetExternalId: text("adset_external_id"),
     adsetName: text("adset_name"),
     name: text("name").notNull(),

@@ -1,6 +1,7 @@
 import { isAdPlatform } from "@hullwise/core";
 import { and, eq, recordAudit, schema, type AuditInput } from "@hullwise/db";
 import type { ServiceContext } from "../context";
+import { getAdAccount } from "./accounts";
 import { adPlatformInPlan, adsWriteAccess, integrationRow } from "../integrations/factory";
 import { enqueuePlatformWrite } from "../writes";
 import type { PlatformWriteRow } from "../writes/registry";
@@ -8,7 +9,14 @@ import type { PlatformWriteRow } from "../writes/registry";
 /** Who acts, as the web layer records it (impersonation included); defaults to the context actor. */
 export type AdsAuditActor = Pick<AuditInput, "actorUserId" | "actorType" | "impersonatedBy">;
 
-export type AdsWriteOutcome = { ok: true; write: PlatformWriteRow | null } | { ok: false; error: "not_found" | "ads_read_only" | "invalid_input" };
+export type AdsWriteOutcome = { ok: true; write: PlatformWriteRow | null } | { ok: false; error: "not_found" | "ads_read_only" | "invalid_input" | "ad_account_removed" };
+
+/** A campaign of an ad account that was removed (#82) is kept for its history but can no longer be written to. */
+async function accountRemoved(ctx: ServiceContext, provider: string, account: string | null | undefined): Promise<boolean> {
+  if (!account) return false;
+  const row = await getAdAccount(ctx, provider, { externalId: account });
+  return !!row && !row.isPrimary && row.status === "not_connected";
+}
 
 /** Whether the tenant lets Hullwise write to this ads platform below the campaign (Meta and TikTok always; Google once the write scope is granted). */
 export async function canWriteAds(ctx: ServiceContext, provider: string): Promise<boolean> {
@@ -26,9 +34,10 @@ export async function requestCampaignStatus(ctx: ServiceContext, campaignId: str
   if (!isAdPlatform(provider) || !(await adPlatformInPlan(ctx, provider))) return { ok: false, error: "invalid_input" };
   if (c.status === status) return { ok: true, write: null };
   if (provider === "google") return { ok: false, error: "ads_read_only" };
+  if (await accountRemoved(ctx, provider, c.accountExternalId)) return { ok: false, error: "ad_account_removed" };
   await ctx.tx.update(schema.campaigns).set({ status, updatedAt: ctx.now ?? new Date() }).where(eq(schema.campaigns.id, c.id));
   await recordAudit(ctx.tx, { tenantId: ctx.tenantId, ...(actor ?? { actorUserId: ctx.actor.userId }), action: status === "paused" ? "campaign.paused" : "campaign.resumed", entityType: "campaign", entityId: c.id, diff: { status: { from: c.status, to: status } } });
-  const write = await enqueuePlatformWrite(ctx, { kind: "campaign.status", entityType: "campaign", entityId: c.id, payload: { provider, campaignExternalId: c.externalId, status } });
+  const write = await enqueuePlatformWrite(ctx, { kind: "campaign.status", entityType: "campaign", entityId: c.id, payload: { provider, campaignExternalId: c.externalId, status, ...(c.accountExternalId ? { accountExternalId: c.accountExternalId } : {}) } });
   return { ok: true, write };
 }
 
@@ -37,15 +46,16 @@ export async function requestCampaignStatus(ctx: ServiceContext, campaignId: str
  * transaction (the caller dispatches the write after the commit).
  */
 export async function requestAdStatus(ctx: ServiceContext, adId: string, status: "active" | "paused", actor?: AdsAuditActor): Promise<AdsWriteOutcome> {
-  const [ad] = await ctx.tx.select({ a: schema.adCreatives, adSetExt: schema.adSets.externalId }).from(schema.adCreatives).leftJoin(schema.adSets, eq(schema.adSets.id, schema.adCreatives.adSetId)).where(and(eq(schema.adCreatives.tenantId, ctx.tenantId), eq(schema.adCreatives.id, adId))).limit(1);
+  const [ad] = await ctx.tx.select({ a: schema.adCreatives, adSetExt: schema.adSets.externalId, campaignAccount: schema.campaigns.accountExternalId }).from(schema.adCreatives).leftJoin(schema.adSets, eq(schema.adSets.id, schema.adCreatives.adSetId)).leftJoin(schema.campaigns, eq(schema.campaigns.id, schema.adCreatives.campaignId)).where(and(eq(schema.adCreatives.tenantId, ctx.tenantId), eq(schema.adCreatives.id, adId))).limit(1);
   if (!ad) return { ok: false, error: "not_found" };
   const provider = ad.a.platform;
   if (!isAdPlatform(provider) || !(await adPlatformInPlan(ctx, provider))) return { ok: false, error: "invalid_input" };
   if (!(await canWriteAds(ctx, provider))) return { ok: false, error: "ads_read_only" };
   if (ad.a.status === status) return { ok: true, write: null };
+  if (await accountRemoved(ctx, provider, ad.a.accountExternalId ?? ad.campaignAccount)) return { ok: false, error: "ad_account_removed" };
   await ctx.tx.update(schema.adCreatives).set({ status, updatedAt: ctx.now ?? new Date() }).where(eq(schema.adCreatives.id, adId));
   await recordAudit(ctx.tx, { tenantId: ctx.tenantId, ...(actor ?? { actorUserId: ctx.actor.userId }), action: status === "paused" ? "ad.paused" : "ad.resumed", entityType: "ad", entityId: adId, diff: { status: { from: ad.a.status, to: status } } });
-  const write = await enqueuePlatformWrite(ctx, { kind: "ad.status", entityType: "ad", entityId: adId, payload: { provider, adExternalId: ad.a.externalId, adSetExternalId: ad.adSetExt ?? ad.a.adsetExternalId, status } });
+  const write = await enqueuePlatformWrite(ctx, { kind: "ad.status", entityType: "ad", entityId: adId, payload: { provider, adExternalId: ad.a.externalId, adSetExternalId: ad.adSetExt ?? ad.a.adsetExternalId, status, ...((ad.a.accountExternalId ?? ad.campaignAccount) ? { accountExternalId: ad.a.accountExternalId ?? ad.campaignAccount } : {}) } });
   return { ok: true, write };
 }
 
