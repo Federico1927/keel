@@ -4275,7 +4275,8 @@
       "active_version": "active: v{version}",
       "active_unreleased": "switched on before release: it can be switched off, not on again",
       "not_released": "Can't be switched on until a version is released.",
-      "in_development": "in development"
+      "in_development": "in development",
+      "runbook": "Onboarding runbook: every step and how to check it"
     },
     "billing": {
       "title": "Billing",

@@ -4275,7 +4275,8 @@
       "active_version": "attiva: v{version}",
       "active_unreleased": "attivato prima del rilascio: si può spegnere, non riattivare",
       "not_released": "Non si può attivare finché non c'è una versione rilasciata.",
-      "in_development": "in sviluppo"
+      "in_development": "in sviluppo",
+      "runbook": "Runbook di onboarding: ogni passo e come verificarlo"
     },
     "billing": {
       "title": "Fatturazione",

@@ -4275,7 +4275,8 @@
       "active_version": "activa: v{version}",
       "active_unreleased": "activado antes de publicarse: se puede desactivar, no volver a activar",
       "not_released": "No se puede activar hasta que haya una versión publicada.",
-      "in_development": "en desarrollo"
+      "in_development": "en desarrollo",
+      "runbook": "Guía de incorporación: cada paso y cómo comprobarlo"
     },
     "billing": {
       "title": "Facturación",

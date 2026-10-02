@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { and, eq, inArray, isNull, lt, lte, or, schema, sql, type DbExecutor } from "@hullwise/db";
-import { EmailSendError, decryptJson, emailAddressHash, encryptJson, maskEmail, normalizeEmailAddress, type EmailProvider } from "@hullwise/integrations";
+import { EmailSendError, decryptJson, emailAddressHash, emailAddressHashes, encryptJson, maskEmail, normalizeEmailAddress, type EmailProvider } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { emailSettings, getEmailProvider, type EmailSettings } from "./provider";
 import { SECURITY_EMAIL, TRANSACTIONAL_EMAIL, isAddressSuppressed, isEmailSuppressed } from "./suppressions";
@@ -75,6 +75,16 @@ export function senderWithName(from: string, name: string): string {
   return clean ? `"${clean}" <${address}>` : from;
 }
 
+/**
+ * Domains that can never receive mail (RFC 2606 / 6761: `example.*`, `.test`, `.example`, `.invalid`,
+ * `.localhost`) and the seed's `.demo` addresses. The demo tenants share the database of a live
+ * deployment: their emails stay in the log instead of bouncing on the real provider.
+ */
+export function isReservedEmailDomain(address: string): boolean {
+  const domain = address.trim().toLowerCase().split("@").pop() ?? "";
+  return /(^|\.)(example\.(com|net|org)|[^.]+\.(test|example|invalid|localhost|demo))$/.test(domain) || /^(test|example|invalid|localhost|demo)$/.test(domain);
+}
+
 export function emailIdempotencyKey(tenantId: string | null, template: string, to: string, event: string): string {
   return createHash("sha256").update(`${tenantId ?? "platform"}|${template}|${normalizeEmailAddress(to)}|${event}`).digest("hex");
 }
@@ -137,7 +147,7 @@ export async function queueEmail<K extends EmailTemplate>(target: EmailTarget, i
   const to = normalizeEmailAddress(input.to);
   const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to) && to.length <= 254;
   const recipientHash = emailAddressHash(to);
-  const suppressed = valid && ((await isAddressSuppressed(db, recipientHash, def.kind)) || (isTenant && (await isEmailSuppressed(target, to, def.kind === "security" ? SECURITY_EMAIL : category))));
+  const suppressed = valid && ((await isAddressSuppressed(db, emailAddressHashes(to), def.kind)) || (isTenant && (await isEmailSuppressed(target, to, def.kind === "security" ? SECURITY_EMAIL : category))));
   const status = !valid ? "failed" : suppressed ? "suppressed" : "queued";
   const unsub = isTenant && def.kind !== "security" && category !== TRANSACTIONAL_EMAIL ? { tenantId: target.tenantId, email: to, category } : null;
   const rendered = status === "queued" ? renderEmail(input.template, input.locale, input.data, { unsubscribeUrl: unsub ? unsubscribeUrl(unsub) : undefined, ...(input.sender ? { sender: input.sender } : {}) }) : null;
@@ -196,14 +206,19 @@ export async function deliverEmailJob(db: DbExecutor, job: EmailJob, opts: Deliv
     if (row.status === "queued" && row.nextAttemptAt && row.nextAttemptAt > now) return { ...base, status: "queued", retryInMs: row.nextAttemptAt.getTime() - now.getTime() };
     return { ...base, status: row.status };
   }
-  // the address may have bounced since the email was queued
-  if (await isAddressSuppressed(db, claimed.recipientHash, claimed.kind as EmailKind)) {
+  const payload = decryptJson<EmailPayload>(job.payload);
+  // the address may have bounced since the email was queued (hashes under both keys during a key rotation)
+  if (await isAddressSuppressed(db, [claimed.recipientHash, ...emailAddressHashes(payload.to)], claimed.kind as EmailKind)) {
     await set({ status: "suppressed", claimedAt: null });
     return { ...base, status: "suppressed" };
   }
   const settings = opts.settings ?? emailSettings();
   const provider = opts.provider ?? getEmailProvider();
-  const payload = decryptJson<EmailPayload>(job.payload);
+  // demo data on a live deployment (docs/DEPLOY.md, "Shared demo + live deployment"): never hand a provider an address that cannot exist
+  if (provider.name !== "mock" && isReservedEmailDomain(payload.to)) {
+    await set({ status: "suppressed", claimedAt: null, lastErrorCode: "reserved_domain", lastError: "Reserved or demo domain: not sent through a real provider" });
+    return { ...base, status: "suppressed" };
+  }
   try {
     const { id } = await provider.send({ from: payload.fromName ? senderWithName(settings.from, payload.fromName) : settings.from, replyTo: payload.replyTo ?? settings.replyTo, to: payload.to, subject: payload.subject, html: payload.html, text: payload.text, headers: payload.headers, tags: { template: claimed.template, message_id: claimed.id, ...(claimed.tenantId ? { tenant_id: claimed.tenantId } : {}) }, idempotencyKey: claimed.idempotencyKey });
     await set({ status: "sent", provider: provider.name, providerMessageId: id, sentAt: now, claimedAt: null, nextAttemptAt: null, lastErrorCode: null, lastError: null });

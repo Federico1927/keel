@@ -1,5 +1,5 @@
 import { and, desc, eq, inArray, recordAudit, schema, sql, type DbExecutor } from "@hullwise/db";
-import { emailAddressHash, maskEmail, normalizeEmailAddress } from "@hullwise/integrations";
+import { emailAddressHash, emailAddressHashes, maskEmail, normalizeEmailAddress } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import type { EmailKind } from "./templates";
 
@@ -52,7 +52,8 @@ export async function suppressedContacts(ctx: ServiceContext, contacts: readonly
   for (const c of contacts) {
     if (c.email) {
       push(byIdentity, norm(c.email), c.customerId);
-      push(byHash, emailAddressHash(c.email), c.customerId);
+      // both keys during an APP_ENCRYPTION_KEY rotation window
+      for (const h of emailAddressHashes(c.email)) push(byHash, h, c.customerId);
     }
     if (c.phone) push(byIdentity, c.phone, c.customerId);
   }
@@ -106,9 +107,14 @@ export async function clearUnsubscribes(ctx: ServiceContext, email: string): Pro
 
 /* ---------- platform-wide (provider reports) ---------- */
 
-/** Whether the provider reported this address (by hash) in a way that blocks this kind of email. */
-export async function isAddressSuppressed(db: DbExecutor, recipientHash: string, kind: EmailKind): Promise<boolean> {
-  const rows = await db.select({ reason: schema.emailAddressSuppressions.reason }).from(schema.emailAddressSuppressions).where(eq(schema.emailAddressSuppressions.emailHash, recipientHash));
+/**
+ * Whether the provider reported this address (by hash) in a way that blocks this kind of email. Several
+ * hashes: the same address under the current and the previous APP_ENCRYPTION_KEY (`emailAddressHashes`).
+ */
+export async function isAddressSuppressed(db: DbExecutor, recipientHash: string | readonly string[], kind: EmailKind): Promise<boolean> {
+  const hashes = typeof recipientHash === "string" ? [recipientHash] : [...new Set(recipientHash)];
+  if (!hashes.length) return false;
+  const rows = await db.select({ reason: schema.emailAddressSuppressions.reason }).from(schema.emailAddressSuppressions).where(inArray(schema.emailAddressSuppressions.emailHash, hashes));
   return rows.some((r) => r.reason === "bounce" || (r.reason === "complaint" && kind !== "security"));
 }
 
