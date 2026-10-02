@@ -353,8 +353,8 @@
     "order_states_link": "Order state rules",
     "branding_link": "Branding",
     "fulfilment_link": "Fulfilment",
-    "data_export_link": "Data export",
-    "ai_link": "AI & MCP"
+    "ai_link": "AI & MCP",
+    "data_export_link": "Data export"
   },
   "users": {
     "title": "Users & roles",
@@ -555,8 +555,8 @@
       "digest": "Daily digest email",
       "export_ready": "CSV export ready",
       "other": "Other",
-      "platform_failure": "Failing background jobs",
-      "mcp_proposal": "Proposal from an AI client"
+      "mcp_proposal": "Proposal from an AI client",
+      "platform_failure": "Failing background jobs"
     },
     "rendered": {
       "stock_critical_no_po": "{title} selling variants at critical stock with nothing on order",
@@ -3215,9 +3215,10 @@
         "support": "Support",
         "audit": "Audit"
       },
+      "mcp": "MCP",
+      "subscriptions": "Subscriptions",
       "jobs": "Job runs",
-      "alerts": "Failure alerts",
-      "mcp": "MCP"
+      "alerts": "Failure alerts"
     },
     "plans": {
       "starter": "Starter",
@@ -3528,6 +3529,40 @@
       "remove": "Remove",
       "guide_title": "Setup guide"
     },
+    "mcp": {
+      "title": "MCP usage",
+      "description": "Calls of AI clients per tenant over the last 30 days, and the kill switch. Every switch is written to the tenant's audit log.",
+      "platform_disabled": "KEEL_MCP_DISABLED=1: the MCP server refuses every call on this deployment.",
+      "stat_calls": "Calls (30 days)",
+      "stat_errors": "Errors",
+      "stat_rate_limited": "Rate limited",
+      "stat_connections": "Active connections",
+      "stat_unknown_tokens": "Unknown tokens",
+      "tenants_title": "Tenants",
+      "tenants_description": "Plan, state, usage and the kill switch per tenant.",
+      "col_tenant": "Tenant",
+      "col_status": "State",
+      "col_calls": "Calls",
+      "col_errors": "Errors",
+      "col_users": "People",
+      "col_connections": "Connections",
+      "col_last_call": "Last call",
+      "col_kill": "Kill switch",
+      "pending": "{count} to approve",
+      "denied_rl": "{denied} refused · {limited} limited",
+      "kill": "Suspend MCP",
+      "kill_confirm": "Suspend MCP for this tenant? Every call is refused until you restore it.",
+      "restore": "Restore MCP",
+      "note_placeholder": "Reason (audited)",
+      "availability": {
+        "ok": "Active",
+        "plan": "Not in plan",
+        "tenant_disabled": "Off (tenant)",
+        "killed": "Suspended",
+        "platform_disabled": "Platform off",
+        "suspended": "Tenant suspended"
+      }
+    },
     "platform_label": "Platform",
     "export_csv": "Export CSV",
     "filters": {
@@ -3757,40 +3792,6 @@
       "close": "Close",
       "empty_title": "No alerts",
       "empty_description": "Nothing is failing right now."
-    },
-    "mcp": {
-      "title": "MCP usage",
-      "description": "Calls of AI clients per tenant over the last 30 days, and the kill switch. Every switch is written to the tenant's audit log.",
-      "platform_disabled": "KEEL_MCP_DISABLED=1: the MCP server refuses every call on this deployment.",
-      "stat_calls": "Calls (30 days)",
-      "stat_errors": "Errors",
-      "stat_rate_limited": "Rate limited",
-      "stat_connections": "Active connections",
-      "stat_unknown_tokens": "Unknown tokens",
-      "tenants_title": "Tenants",
-      "tenants_description": "Plan, state, usage and the kill switch per tenant.",
-      "col_tenant": "Tenant",
-      "col_status": "State",
-      "col_calls": "Calls",
-      "col_errors": "Errors",
-      "col_users": "People",
-      "col_connections": "Connections",
-      "col_last_call": "Last call",
-      "col_kill": "Kill switch",
-      "pending": "{count} to approve",
-      "denied_rl": "{denied} refused · {limited} limited",
-      "kill": "Suspend MCP",
-      "kill_confirm": "Suspend MCP for this tenant? Every call is refused until you restore it.",
-      "restore": "Restore MCP",
-      "note_placeholder": "Reason (audited)",
-      "availability": {
-        "ok": "Active",
-        "plan": "Not in plan",
-        "tenant_disabled": "Off (tenant)",
-        "killed": "Suspended",
-        "platform_disabled": "Platform off",
-        "suspended": "Tenant suspended"
-      }
     }
   },
   "cod": {
@@ -6550,37 +6551,249 @@
       }
     }
   },
-  "data_export": {
-    "title": "Data export",
-    "description": "Download everything Keel holds for this store.",
-    "what_title": "Full export of the store's data",
-    "what_description": "One CSV file per table (orders, customers, products, returns, campaigns, settings and more) in a zip archive, built in the background. You are notified when it is ready; the download link expires after {days} days. Secrets such as integration credentials are never included.",
-    "request": "Export all data",
-    "requesting": "Starting…",
+  "mcp": {
+    "copy": "Copy",
+    "copied": "Copied",
+    "scopes": {
+      "read": "Read orders, customers, analytics, products, purchasing, returns, segments and integration health your role can see",
+      "write_notes": "Add internal notes to orders",
+      "write_orders": "Assign orders, move them through review or hold, propose cancellations and refunds",
+      "write_campaigns": "Propose pausing ad campaigns",
+      "write_purchasing": "Propose draft purchase orders"
+    },
+    "unavailable": {
+      "plan": "AI clients (MCP) are included from the Growth plan.",
+      "tenant_disabled": "MCP is switched off for this workspace: an owner or admin can switch it on in Settings → AI & MCP.",
+      "killed": "MCP access to this workspace was suspended by the platform.",
+      "platform_disabled": "MCP is temporarily unavailable on the platform.",
+      "suspended": "This workspace is suspended."
+    },
     "errors": {
-      "in_progress": "An export is already running.",
-      "generic": "The export could not be started."
+      "generic": "Something went wrong. Try again.",
+      "invalid_input": "Check the fields and try again.",
+      "limit_reached": "You reached the maximum number of active tokens: revoke one first.",
+      "not_found": "Not found: it may have been removed.",
+      "forbidden": "You cannot do this.",
+      "mcp_unavailable": "MCP is not available for this workspace.",
+      "not_pending": "This proposal was already decided.",
+      "expired": "This proposal expired."
     },
-    "empty_title": "No exports yet",
-    "empty_description": "Exports you start appear here with their download link.",
-    "columns": {
-      "requested": "Requested",
-      "status": "Status",
-      "rows": "Rows",
-      "expires": "Link expires",
-      "file": "File"
+    "consent": {
+      "title": "Connect an AI client",
+      "heading": "{client} wants to access Keel",
+      "description": "Signed in as {user}. The client will act as you, with your role, in the workspace you choose.",
+      "workspace": "Workspace",
+      "no_workspace": "You are not a member of any workspace.",
+      "scopes": "Permissions",
+      "scopes_hint": "Untick what you do not want to allow. Reading is always included.",
+      "note_role": "It sees only what your role can see in Keel; disabled modules expose nothing.",
+      "note_pii": "Customer emails, phones and addresses are masked unless your workspace enabled full personal data for AI clients.",
+      "note_proposals": "Cancellations, refunds, campaign pauses and purchase orders are only proposals: a person approves them in Keel.",
+      "note_redirect": "After approval you go back to {host}. You can revoke the access any time from your profile → Connections.",
+      "approve": "Allow access",
+      "deny": "Cancel",
+      "invalid_request": "This connection request is not valid.",
+      "unavailable": {
+        "plan": "Not included in the plan",
+        "tenant_disabled": "MCP switched off by an owner or admin",
+        "killed": "Suspended by the platform",
+        "platform_disabled": "Temporarily unavailable",
+        "suspended": "Workspace suspended"
+      }
     },
-    "by_platform": "Keel support",
-    "statuses": {
-      "pending": "Queued",
-      "running": "Running",
-      "done": "Ready",
-      "failed": "Failed",
-      "expired": "Expired"
+    "connections": {
+      "server_url": "MCP server URL",
+      "server_url_hint": "Paste it in Claude, ChatGPT, Cursor or any MCP client: they connect with OAuth, you sign in and approve.",
+      "connection": "Connection",
+      "user": "User",
+      "scopes": "Permissions",
+      "last_used": "Last used",
+      "expires": "Expires",
+      "never": "Never",
+      "empty": "No AI client connected yet.",
+      "kind": {
+        "oauth": "OAuth",
+        "pat": "Token"
+      },
+      "state": {
+        "active": "Active",
+        "expired": "Expired",
+        "revoked": "Revoked"
+      },
+      "create_title": "New personal access token",
+      "token_name": "Name",
+      "token_name_placeholder": "e.g. Cursor on my laptop",
+      "expires_in": "Expires in",
+      "days": "{days} days",
+      "create": "Create token",
+      "shown_once": "Copy the token now: it is shown only once and Keel keeps only a fingerprint of it.",
+      "rotate": "Rotate",
+      "rotate_confirm": "Create a new secret for this token? The current one stops working at once.",
+      "revoke": "Revoke",
+      "revoke_confirm": "Revoke this connection? The client loses access at once.",
+      "how_to": "How to connect Claude, ChatGPT or Cursor",
+      "open_settings": "Open AI & MCP settings"
     },
-    "tables_n": "{n} tables",
-    "download": "Download",
-    "downloads": "{n, plural, one {downloaded once} other {downloaded # times}}"
+    "settings": {
+      "title": "AI & MCP",
+      "description": "Let your team use Claude, ChatGPT, Cursor and other AI clients on this workspace's data, with their own permissions.",
+      "server_title": "MCP server",
+      "server_description": "One URL for every client. Each person connects with their own account; tokens are bound to one person and one workspace.",
+      "enabled": "Allow AI clients (MCP)",
+      "enabled_hint": "When off, every MCP call to this workspace is refused; connections are kept.",
+      "full_pii": "Show customer personal data",
+      "full_pii_hint": "Names, emails, phones and addresses in full, only to roles that may see them (never marketing or viewer). Off: always masked.",
+      "rule_auth": "OAuth 2.1 with PKCE, or personal access tokens; secrets are stored only as keyed hashes.",
+      "rule_permissions": "Every tool runs with the person's role and the workspace's modules; nothing a role cannot see in Keel is exposed.",
+      "rule_writes": "Direct writes are reversible (notes, assignee, review or hold); risky actions wait for approval.",
+      "rule_limits": "Limits: {perToken} calls per minute per connection, {perTenant} per workspace.",
+      "guides_title": "Connect a client",
+      "guides_description": "Steps for the most common clients.",
+      "connections_title": "Connected clients",
+      "connections_description": "Every active connection of the workspace, with its last use. Owners and admins can revoke any of them.",
+      "activity_title": "Recent activity",
+      "activity_description": "The last calls of the past 7 days (tool, person, client, outcome). Arguments and results are never stored.",
+      "activity_empty": "No calls yet.",
+      "stat_calls": "Calls (7 days)",
+      "stat_errors": "Errors",
+      "stat_denied": "Refused",
+      "stat_rate_limited": "Rate limited",
+      "col_when": "When",
+      "col_tool": "Tool",
+      "col_who": "Who",
+      "col_outcome": "Outcome",
+      "col_duration": "Duration",
+      "outcome": {
+        "ok": "OK",
+        "error": "Error",
+        "denied": "Refused",
+        "invalid_input": "Invalid input",
+        "not_found": "Not found",
+        "rate_limited": "Rate limited",
+        "auth_failed": "Auth failed",
+        "disabled": "Disabled"
+      },
+      "approvals_link": "Approvals ({count})",
+      "approvals_link_empty": "Approvals",
+      "own_tokens_link": "Your own personal access tokens are in your profile → Connections."
+    },
+    "approvals": {
+      "title": "Approvals",
+      "description": "Actions AI clients proposed through MCP. Nothing happens until someone who may do it approves; approving runs it as you.",
+      "empty_title": "Nothing to approve",
+      "empty_description": "Proposals from AI clients (cancellations, refunds, campaign pauses, purchase orders) appear here.",
+      "requested_by": "{client} for {user} · {when}",
+      "order_total": "Order total",
+      "restock": "Restock",
+      "refund": "Refund the payment",
+      "amount": "Amount",
+      "refundable": "Still refundable",
+      "lines": "Lines",
+      "expires": "Expires",
+      "yes": "Yes",
+      "no": "No",
+      "cannot_approve": "Your role cannot approve this: someone who can will see it here.",
+      "note_placeholder": "Note (optional)",
+      "approve": "Approve and run",
+      "approve_confirm": "Approve and run this action now, as you?",
+      "reject": "Reject",
+      "failed": "The action failed: {error}",
+      "history": "History",
+      "history_empty": "No decided proposals yet.",
+      "col_proposal": "Proposal",
+      "col_requested": "Requested",
+      "col_status": "Status",
+      "col_decided": "Decided by",
+      "kinds": {
+        "order_cancel": "Cancel order",
+        "order_refund": "Refund",
+        "campaign_pause": "Pause campaign",
+        "purchase_order_create": "Draft purchase order"
+      },
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "failed": "Failed",
+        "expired": "Expired"
+      }
+    },
+    "guides": {
+      "verify_legend": "Steps marked “To verify” depend on the AI vendor's interface, which changes often: check the vendor's documentation before the first installation.",
+      "verify_badge": "To verify",
+      "pat_note": "Clients without OAuth: create a personal access token in your profile → Connections and send it as the header Authorization: Bearer kpat_…",
+      "claude": {
+        "name": "Claude",
+        "steps": [
+          {
+            "title": "Open the connectors",
+            "body": "In Claude (web or desktop app) open Settings → Connectors and choose “Add custom connector”. On team plans an owner may have to allow custom connectors first.",
+            "verify": true
+          },
+          {
+            "title": "Paste the server URL",
+            "body": "Give it a name (e.g. Keel) and paste:\n{serverUrl}\nLeave the advanced OAuth fields empty: Claude registers itself with Keel.",
+            "verify": true
+          },
+          {
+            "title": "Sign in and approve",
+            "body": "Claude opens Keel: sign in, pick the workspace, keep or remove the permissions and approve. You return to Claude connected."
+          },
+          {
+            "title": "Try it",
+            "body": "In a chat, enable the connector from the tools menu and ask: “How did sales go last week compared with the week before?” Claude cites the figures with a link to Keel.",
+            "verify": true
+          }
+        ]
+      },
+      "chatgpt": {
+        "name": "ChatGPT",
+        "steps": [
+          {
+            "title": "Allow custom connectors",
+            "body": "In ChatGPT open Settings → Connectors (Apps). Depending on the plan, custom MCP connectors need developer mode under Advanced settings, or an admin of the workspace.",
+            "verify": true
+          },
+          {
+            "title": "Create the connector",
+            "body": "Choose Create, give it a name, paste {serverUrl} and pick OAuth as the authentication.",
+            "verify": true
+          },
+          {
+            "title": "Sign in and approve",
+            "body": "ChatGPT opens Keel: sign in, pick the workspace and the permissions, approve."
+          },
+          {
+            "title": "Try it",
+            "body": "Start a chat, add the connector from the tools menu and ask for example: “Which campaigns lost money this month and what does Keel suggest?”",
+            "verify": true
+          }
+        ]
+      },
+      "cursor": {
+        "name": "Cursor",
+        "steps": [
+          {
+            "title": "Open the MCP settings",
+            "body": "In Cursor open Settings → MCP (Tools & Integrations) → “Add custom MCP server”: it opens ~/.cursor/mcp.json.",
+            "verify": true
+          },
+          {
+            "title": "Add Keel",
+            "body": "Add this server and save:\n{ \"mcpServers\": { \"keel\": { \"url\": \"{serverUrl}\" } } }",
+            "verify": true
+          },
+          {
+            "title": "Sign in",
+            "body": "Cursor shows the server as needing login: click it, sign in to Keel and approve. Without OAuth, create a personal access token and add \"headers\": { \"Authorization\": \"Bearer kpat_…\" } to the server entry."
+          },
+          {
+            "title": "Try it",
+            "body": "In the agent chat ask: “List the products at risk of stock-out with their suggested reorder.”"
+          }
+        ]
+      }
+    }
   },
   "dashboards": {
     "title": "Dashboards",
@@ -7003,6 +7216,249 @@
       "google": "Google"
     }
   },
+  "billing": {
+    "title": "Billing",
+    "description": "Your plan, payment method and invoices.",
+    "settings_link": "Billing",
+    "plan_title": "Plan",
+    "plan_monthly": "{amount} per month, VAT excluded",
+    "addons_title": "Add-ons",
+    "no_addons": "No add-ons",
+    "next_invoice": "Next invoice",
+    "next_invoice_value": "{date} · about {amount}",
+    "cancel_at_period_end": "Ends on {date}",
+    "payment_title": "Payment",
+    "payment_status": {
+      "ok": "Up to date",
+      "past_due": "Payment overdue",
+      "suspended": "Suspended for non-payment",
+      "none": "No invoices yet"
+    },
+    "days_overdue": "{n, plural, one {# day overdue} other {# days overdue}}",
+    "payment_method": "Payment method",
+    "payment_method_none": "No card on file",
+    "collection": {
+      "send_invoice": "Bank transfer, invoices due in {days} days"
+    },
+    "manage_payment": "Manage payment method",
+    "manage_payment_hint": "Opens Stripe's secure portal: change the card, the billing details and the VAT number, download invoices.",
+    "not_managed": "Payments for this workspace are arranged with our team. Write to support to set up a card.",
+    "portal_error": "The payment portal could not be opened. Try again in a minute.",
+    "portal_mock": "Mock mode: with Stripe configured this button opens Stripe's customer portal.",
+    "checkout_success": "Thank you: the payment method is saved. The subscription becomes active as soon as Stripe confirms the first payment.",
+    "checkout_cancelled": "The payment page was closed before the end. Use the link in the email to try again.",
+    "checkout_mock": "Mock mode: there is no payment page. The console can simulate the completed checkout.",
+    "invoices_title": "Invoices",
+    "invoices_empty": "No invoices yet.",
+    "columns": {
+      "number": "Number",
+      "date": "Date",
+      "amount": "Amount",
+      "status": "Status",
+      "document": "Document"
+    },
+    "status": {
+      "open": "Open",
+      "paid": "Paid",
+      "void": "Void",
+      "uncollectible": "Unpaid"
+    },
+    "download": "PDF",
+    "pay_now": "Pay",
+    "banner": {
+      "past_due": "Your last payment did not go through. Pay the open invoice to keep using {product}.",
+      "past_due_days": "The workspace is suspended in {n, plural, one {# day} other {# days}} if it stays unpaid.",
+      "action_required": "Your bank asks you to confirm the latest payment.",
+      "pay": "Pay now",
+      "confirm": "Confirm the payment",
+      "details": "Billing"
+    },
+    "pdf": {
+      "title": "Invoice",
+      "issued": "Issued",
+      "due": "Due",
+      "item": "Item",
+      "amount": "Amount",
+      "total": "Total",
+      "status": "Status",
+      "kinds": {
+        "plan": "plan",
+        "addon": "add-on",
+        "setup": "setup fee",
+        "other": "other"
+      }
+    }
+  },
+  "admin_billing": {
+    "mode": {
+      "mock": "Mock",
+      "test": "Stripe TEST",
+      "live": "Stripe LIVE"
+    },
+    "not_configured": "Stripe not configured: billing runs on the mock. Set STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET as Railway variables to collect with Stripe.",
+    "webhook_missing": "STRIPE_WEBHOOK_SECRET is not set: Stripe's events are refused and the mirror does not update.",
+    "subscriptions_title": "Subscriptions",
+    "subscriptions_description": "What Stripe collects: subscriptions and invoices mirrored from Stripe's webhooks, failed payments, past-due tenants and renewals.",
+    "subscriptions_table": "Processor subscriptions",
+    "sync_catalog": "Sync catalog to Stripe",
+    "sync_catalog_mock": "Sync catalog (mock)",
+    "sync_done": "{created} created, {updated} updated, {unchanged} unchanged.",
+    "errors": {
+      "provider_failed": "Stripe refused the request or could not be reached. Details are in the server log.",
+      "catalog_not_synced": "Sync the catalog first (Billing → Subscriptions).",
+      "already_subscribed": "This tenant already has a subscription.",
+      "invalid_input": "Check the fields.",
+      "no_customer": "This tenant has no customer at the processor yet.",
+      "no_checkout": "No pending checkout.",
+      "not_mock": "Only available in mock mode.",
+      "not_managed": "No subscription at the processor.",
+      "no_subscription": "No subscription.",
+      "tenant_not_found": "Tenant not found.",
+      "failed": "Something went wrong."
+    },
+    "mrr": "MRR (from Stripe)",
+    "mrr_hint": "{n, plural, one {# subscription} other {# subscriptions}}",
+    "failed_payments": "Failed payments",
+    "past_due": "Past-due tenants",
+    "renewals": "Upcoming renewals",
+    "renewals_hint": "Next {days} days",
+    "last_webhook": "Last webhook",
+    "no_webhook": "None received yet",
+    "failed_events": "{n} failed",
+    "nothing": "Nothing here.",
+    "action_required": "Authentication required",
+    "attempts": "{n, plural, one {# attempt} other {# attempts}}",
+    "next_attempt": "next retry {date}",
+    "days_overdue": "{n} days overdue · suspended after {limit}",
+    "tax_title": "VAT",
+    "tax_automatic": "Stripe Tax computes VAT; VAT numbers are collected at Checkout and verified EU businesses abroad are invoiced with reverse charge.",
+    "tax_manual": "Stripe Tax is off: Keel sets the reverse charge on customers with a verified EU VAT number. Seller country: {country}.",
+    "einvoicing_title": "Italian e-invoicing (SDI)",
+    "einvoicing_body": "Invoices to Italian customers must also reach SDI through an accredited intermediary. The connector slot exists (InvoicingProvider) but no service is connected: a prerequisite before billing Italian customers.",
+    "einvoicing_state": {
+      "none": "No connector",
+      "mock": "Mock connector"
+    },
+    "verify_badge": "To verify",
+    "empty": "No tenant has a subscription at the processor yet.",
+    "table": {
+      "tenant": "Tenant",
+      "status": "Status",
+      "collection": "Collection",
+      "monthly": "Monthly",
+      "period_end": "Period ends",
+      "synced": "Synced"
+    },
+    "catalog_title": "Catalog",
+    "catalog_description": "Plans (monthly), setup fees (one-off) and add-ons (monthly) from the configuration, matched in Stripe by lookup key. A changed amount creates a new price and archives the old one.",
+    "catalog_columns": {
+      "item": "Item",
+      "lookup_key": "Lookup key",
+      "amount": "Amount",
+      "price": "Price id",
+      "synced": "State"
+    },
+    "kind": {
+      "plan": "Plan",
+      "setup": "Setup fee",
+      "addon": "Add-on"
+    },
+    "in_step": "In step",
+    "out_of_step": "To sync",
+    "external": {
+      "trialing": "Trial",
+      "active": "Active",
+      "past_due": "Past due",
+      "unpaid": "Unpaid",
+      "canceled": "Cancelled",
+      "incomplete": "Incomplete",
+      "incomplete_expired": "Expired",
+      "paused": "Paused"
+    },
+    "collection": {
+      "charge_automatically": "Card on file",
+      "send_invoice": "Bank transfer"
+    },
+    "vat": {
+      "domestic": "Domestic VAT",
+      "reverse_charge": "Reverse charge",
+      "eu_b2c": "EU consumer VAT",
+      "export": "Outside the EU",
+      "unknown": "VAT unknown"
+    },
+    "resync": "Resync from Stripe",
+    "resync_done": "{invoices} invoices read.",
+    "card_title": "Subscription at the processor",
+    "card_description": "Stripe collects (card, retries, dunning); Keel mirrors the subscription and the invoices from its webhooks.",
+    "start": "Start subscription",
+    "start_title": "Start subscription",
+    "start_description": "Applies the plan and add-ons to the tenant, creates the payment link (Stripe Checkout) and emails it to the billing contact in the tenant's language.",
+    "plan": "Plan",
+    "addons": "Add-ons",
+    "setup_fee": "Setup fee on the first invoice ({amount})",
+    "trial_days": "Trial days",
+    "billing_email": "Billing email",
+    "collection_label": "Collection",
+    "collection_checkout": "Card on file (payment link)",
+    "collection_invoice": "Bank transfer (invoice with payment terms)",
+    "terms_days": "Payment terms (days)",
+    "submit": "Create",
+    "cancel": "Cancel",
+    "close": "Close",
+    "link_ready": "Payment link",
+    "email_sent": "Emailed to {email}.",
+    "email_not_sent": "The email was not sent ({reason}): share the link yourself.",
+    "invoice_started": "Subscription created: Stripe emails every invoice with the payment terms.",
+    "checkout_pending": "Checkout pending",
+    "expires": "expires {date}",
+    "simulate_checkout": "Simulate paid checkout",
+    "simulate_renewal": "Simulate renewal",
+    "simulate_failed": "Simulate declined renewal",
+    "simulate_payment": "Simulate payment",
+    "simulate_hint": "Mock mode: these buttons play Stripe's webhooks through the same processing.",
+    "simulated": "{n} events processed.",
+    "drift": "The subscription items differ from the plan and add-ons in Keel. Change the plan or an add-on to realign them, or resync.",
+    "items": "Items",
+    "period_end": "Period ends",
+    "customer": "Customer",
+    "status": "Status",
+    "synced": "Synced",
+    "none": "No subscription at the processor yet.",
+    "catalog_missing": "Sync the catalog first (Billing → Subscriptions).",
+    "cancel_at_period_end": "ends at period end"
+  },
+  "data_export": {
+    "title": "Data export",
+    "description": "Download everything Keel holds for this store.",
+    "what_title": "Full export of the store's data",
+    "what_description": "One CSV file per table (orders, customers, products, returns, campaigns, settings and more) in a zip archive, built in the background. You are notified when it is ready; the download link expires after {days} days. Secrets such as integration credentials are never included.",
+    "request": "Export all data",
+    "requesting": "Starting…",
+    "errors": {
+      "in_progress": "An export is already running.",
+      "generic": "The export could not be started."
+    },
+    "empty_title": "No exports yet",
+    "empty_description": "Exports you start appear here with their download link.",
+    "columns": {
+      "requested": "Requested",
+      "status": "Status",
+      "rows": "Rows",
+      "expires": "Link expires",
+      "file": "File"
+    },
+    "by_platform": "Keel support",
+    "statuses": {
+      "pending": "Queued",
+      "running": "Running",
+      "done": "Ready",
+      "failed": "Failed",
+      "expired": "Expired"
+    },
+    "tables_n": "{n} tables",
+    "download": "Download",
+    "downloads": "{n, plural, one {downloaded once} other {downloaded # times}}"
+  },
   "ads": {
     "nav": {
       "label": "Campaign analysis",
@@ -7204,250 +7660,6 @@
       "levels": {
         "campaign": "Campaign",
         "ad_group": "Ad group"
-      }
-    }
-  },
-  "mcp": {
-    "copy": "Copy",
-    "copied": "Copied",
-    "scopes": {
-      "read": "Read orders, customers, analytics, products, purchasing, returns, segments and integration health your role can see",
-      "write_notes": "Add internal notes to orders",
-      "write_orders": "Assign orders, move them through review or hold, propose cancellations and refunds",
-      "write_campaigns": "Propose pausing ad campaigns",
-      "write_purchasing": "Propose draft purchase orders"
-    },
-    "unavailable": {
-      "plan": "AI clients (MCP) are included from the Growth plan.",
-      "tenant_disabled": "MCP is switched off for this workspace: an owner or admin can switch it on in Settings → AI & MCP.",
-      "killed": "MCP access to this workspace was suspended by the platform.",
-      "platform_disabled": "MCP is temporarily unavailable on the platform.",
-      "suspended": "This workspace is suspended."
-    },
-    "errors": {
-      "generic": "Something went wrong. Try again.",
-      "invalid_input": "Check the fields and try again.",
-      "limit_reached": "You reached the maximum number of active tokens: revoke one first.",
-      "not_found": "Not found: it may have been removed.",
-      "forbidden": "You cannot do this.",
-      "mcp_unavailable": "MCP is not available for this workspace.",
-      "not_pending": "This proposal was already decided.",
-      "expired": "This proposal expired."
-    },
-    "consent": {
-      "title": "Connect an AI client",
-      "heading": "{client} wants to access Keel",
-      "description": "Signed in as {user}. The client will act as you, with your role, in the workspace you choose.",
-      "workspace": "Workspace",
-      "no_workspace": "You are not a member of any workspace.",
-      "scopes": "Permissions",
-      "scopes_hint": "Untick what you do not want to allow. Reading is always included.",
-      "note_role": "It sees only what your role can see in Keel; disabled modules expose nothing.",
-      "note_pii": "Customer emails, phones and addresses are masked unless your workspace enabled full personal data for AI clients.",
-      "note_proposals": "Cancellations, refunds, campaign pauses and purchase orders are only proposals: a person approves them in Keel.",
-      "note_redirect": "After approval you go back to {host}. You can revoke the access any time from your profile → Connections.",
-      "approve": "Allow access",
-      "deny": "Cancel",
-      "invalid_request": "This connection request is not valid.",
-      "unavailable": {
-        "plan": "Not included in the plan",
-        "tenant_disabled": "MCP switched off by an owner or admin",
-        "killed": "Suspended by the platform",
-        "platform_disabled": "Temporarily unavailable",
-        "suspended": "Workspace suspended"
-      }
-    },
-    "connections": {
-      "server_url": "MCP server URL",
-      "server_url_hint": "Paste it in Claude, ChatGPT, Cursor or any MCP client: they connect with OAuth, you sign in and approve.",
-      "connection": "Connection",
-      "user": "User",
-      "scopes": "Permissions",
-      "last_used": "Last used",
-      "expires": "Expires",
-      "never": "Never",
-      "empty": "No AI client connected yet.",
-      "kind": {
-        "oauth": "OAuth",
-        "pat": "Token"
-      },
-      "state": {
-        "active": "Active",
-        "expired": "Expired",
-        "revoked": "Revoked"
-      },
-      "create_title": "New personal access token",
-      "token_name": "Name",
-      "token_name_placeholder": "e.g. Cursor on my laptop",
-      "expires_in": "Expires in",
-      "days": "{days} days",
-      "create": "Create token",
-      "shown_once": "Copy the token now: it is shown only once and Keel keeps only a fingerprint of it.",
-      "rotate": "Rotate",
-      "rotate_confirm": "Create a new secret for this token? The current one stops working at once.",
-      "revoke": "Revoke",
-      "revoke_confirm": "Revoke this connection? The client loses access at once.",
-      "how_to": "How to connect Claude, ChatGPT or Cursor",
-      "open_settings": "Open AI & MCP settings"
-    },
-    "settings": {
-      "title": "AI & MCP",
-      "description": "Let your team use Claude, ChatGPT, Cursor and other AI clients on this workspace's data, with their own permissions.",
-      "server_title": "MCP server",
-      "server_description": "One URL for every client. Each person connects with their own account; tokens are bound to one person and one workspace.",
-      "enabled": "Allow AI clients (MCP)",
-      "enabled_hint": "When off, every MCP call to this workspace is refused; connections are kept.",
-      "full_pii": "Show customer personal data",
-      "full_pii_hint": "Names, emails, phones and addresses in full, only to roles that may see them (never marketing or viewer). Off: always masked.",
-      "rule_auth": "OAuth 2.1 with PKCE, or personal access tokens; secrets are stored only as keyed hashes.",
-      "rule_permissions": "Every tool runs with the person's role and the workspace's modules; nothing a role cannot see in Keel is exposed.",
-      "rule_writes": "Direct writes are reversible (notes, assignee, review or hold); risky actions wait for approval.",
-      "rule_limits": "Limits: {perToken} calls per minute per connection, {perTenant} per workspace.",
-      "guides_title": "Connect a client",
-      "guides_description": "Steps for the most common clients.",
-      "connections_title": "Connected clients",
-      "connections_description": "Every active connection of the workspace, with its last use. Owners and admins can revoke any of them.",
-      "activity_title": "Recent activity",
-      "activity_description": "The last calls of the past 7 days (tool, person, client, outcome). Arguments and results are never stored.",
-      "activity_empty": "No calls yet.",
-      "stat_calls": "Calls (7 days)",
-      "stat_errors": "Errors",
-      "stat_denied": "Refused",
-      "stat_rate_limited": "Rate limited",
-      "col_when": "When",
-      "col_tool": "Tool",
-      "col_who": "Who",
-      "col_outcome": "Outcome",
-      "col_duration": "Duration",
-      "outcome": {
-        "ok": "OK",
-        "error": "Error",
-        "denied": "Refused",
-        "invalid_input": "Invalid input",
-        "not_found": "Not found",
-        "rate_limited": "Rate limited",
-        "auth_failed": "Auth failed",
-        "disabled": "Disabled"
-      },
-      "approvals_link": "Approvals ({count})",
-      "approvals_link_empty": "Approvals",
-      "own_tokens_link": "Your own personal access tokens are in your profile → Connections."
-    },
-    "approvals": {
-      "title": "Approvals",
-      "description": "Actions AI clients proposed through MCP. Nothing happens until someone who may do it approves; approving runs it as you.",
-      "empty_title": "Nothing to approve",
-      "empty_description": "Proposals from AI clients (cancellations, refunds, campaign pauses, purchase orders) appear here.",
-      "requested_by": "{client} for {user} · {when}",
-      "order_total": "Order total",
-      "restock": "Restock",
-      "refund": "Refund the payment",
-      "amount": "Amount",
-      "refundable": "Still refundable",
-      "lines": "Lines",
-      "expires": "Expires",
-      "yes": "Yes",
-      "no": "No",
-      "cannot_approve": "Your role cannot approve this: someone who can will see it here.",
-      "note_placeholder": "Note (optional)",
-      "approve": "Approve and run",
-      "approve_confirm": "Approve and run this action now, as you?",
-      "reject": "Reject",
-      "failed": "The action failed: {error}",
-      "history": "History",
-      "history_empty": "No decided proposals yet.",
-      "col_proposal": "Proposal",
-      "col_requested": "Requested",
-      "col_status": "Status",
-      "col_decided": "Decided by",
-      "kinds": {
-        "order_cancel": "Cancel order",
-        "order_refund": "Refund",
-        "campaign_pause": "Pause campaign",
-        "purchase_order_create": "Draft purchase order"
-      },
-      "status": {
-        "pending": "Pending",
-        "approved": "Approved",
-        "rejected": "Rejected",
-        "failed": "Failed",
-        "expired": "Expired"
-      }
-    },
-    "guides": {
-      "verify_legend": "Steps marked “To verify” depend on the AI vendor's interface, which changes often: check the vendor's documentation before the first installation.",
-      "verify_badge": "To verify",
-      "pat_note": "Clients without OAuth: create a personal access token in your profile → Connections and send it as the header Authorization: Bearer kpat_…",
-      "claude": {
-        "name": "Claude",
-        "steps": [
-          {
-            "title": "Open the connectors",
-            "body": "In Claude (web or desktop app) open Settings → Connectors and choose “Add custom connector”. On team plans an owner may have to allow custom connectors first.",
-            "verify": true
-          },
-          {
-            "title": "Paste the server URL",
-            "body": "Give it a name (e.g. Keel) and paste:\n{serverUrl}\nLeave the advanced OAuth fields empty: Claude registers itself with Keel.",
-            "verify": true
-          },
-          {
-            "title": "Sign in and approve",
-            "body": "Claude opens Keel: sign in, pick the workspace, keep or remove the permissions and approve. You return to Claude connected."
-          },
-          {
-            "title": "Try it",
-            "body": "In a chat, enable the connector from the tools menu and ask: “How did sales go last week compared with the week before?” Claude cites the figures with a link to Keel.",
-            "verify": true
-          }
-        ]
-      },
-      "chatgpt": {
-        "name": "ChatGPT",
-        "steps": [
-          {
-            "title": "Allow custom connectors",
-            "body": "In ChatGPT open Settings → Connectors (Apps). Depending on the plan, custom MCP connectors need developer mode under Advanced settings, or an admin of the workspace.",
-            "verify": true
-          },
-          {
-            "title": "Create the connector",
-            "body": "Choose Create, give it a name, paste {serverUrl} and pick OAuth as the authentication.",
-            "verify": true
-          },
-          {
-            "title": "Sign in and approve",
-            "body": "ChatGPT opens Keel: sign in, pick the workspace and the permissions, approve."
-          },
-          {
-            "title": "Try it",
-            "body": "Start a chat, add the connector from the tools menu and ask for example: “Which campaigns lost money this month and what does Keel suggest?”",
-            "verify": true
-          }
-        ]
-      },
-      "cursor": {
-        "name": "Cursor",
-        "steps": [
-          {
-            "title": "Open the MCP settings",
-            "body": "In Cursor open Settings → MCP (Tools & Integrations) → “Add custom MCP server”: it opens ~/.cursor/mcp.json.",
-            "verify": true
-          },
-          {
-            "title": "Add Keel",
-            "body": "Add this server and save:\n{ \"mcpServers\": { \"keel\": { \"url\": \"{serverUrl}\" } } }",
-            "verify": true
-          },
-          {
-            "title": "Sign in",
-            "body": "Cursor shows the server as needing login: click it, sign in to Keel and approve. Without OAuth, create a personal access token and add \"headers\": { \"Authorization\": \"Bearer kpat_…\" } to the server entry."
-          },
-          {
-            "title": "Try it",
-            "body": "In the agent chat ask: “List the products at risk of stock-out with their suggested reorder.”"
-          }
-        ]
       }
     }
   }

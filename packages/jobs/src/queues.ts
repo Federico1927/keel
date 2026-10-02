@@ -11,6 +11,7 @@ export const QUEUES = {
   listExport: "list.export",
   emailSend: "email.send",
   emailEvent: "email.event",
+  billingEvent: "billing.event",
   tenantExport: "tenant.export",
 } as const;
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];
@@ -63,6 +64,10 @@ export interface EmailSendJob {
 }
 /** One stored provider delivery event (`email_events`) to apply. */
 export interface EmailEventJob {
+  eventId: string;
+}
+/** One stored Stripe webhook event (`billing_events`) to apply (#53). */
+export interface BillingEventJob {
   eventId: string;
 }
 /** A full data export of one tenant (packages/services `requestTenantExport`). */

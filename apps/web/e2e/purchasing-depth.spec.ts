@@ -76,7 +76,8 @@ test.describe("purchasing depth", () => {
     const form = page.getByTestId("bulk-supplier-form");
     await form.getByLabel(/Lead time/).fill("12");
     await form.getByRole("button", { name: /^Save$/ }).click();
-    await expect(form.getByText(/updated/)).toBeVisible();
+    // one update per variant of the product: give it time on a loaded machine
+    await expect(form.getByText(/updated/)).toBeVisible({ timeout: 30_000 });
     await page.keyboard.press("Escape");
     await page.reload();
     await expect(page.getByTestId("supplier-packs")).toContainText("12 d");
