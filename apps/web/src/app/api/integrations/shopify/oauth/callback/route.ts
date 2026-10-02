@@ -4,6 +4,7 @@ import { appUrl, cookieDomain } from "@hullwise/config";
 import { encryptJson, exchangeOAuthCode, verifyOAuthCallback } from "@hullwise/integrations";
 import { recordAudit, schema } from "@hullwise/db";
 import { requireAction } from "@/server/tenant";
+import { startHistoryImport } from "@/server/history-import";
 
 /** Shopify redirects here with code/hmac/shop/state; we verify, exchange the code and store encrypted credentials. */
 export async function GET(req: NextRequest) {
@@ -23,5 +24,7 @@ export async function GET(req: NextRequest) {
     await tx.insert(schema.integrations).values({ tenantId: ctx.tenant.id, provider: "shopify", ...values }).onConflictDoUpdate({ target: [schema.integrations.tenantId, schema.integrations.provider], set: values });
     await recordAudit(tx, { tenantId: ctx.tenant.id, actorUserId: ctx.user.id, action: "integration.connected", entityType: "integration", entityId: "shopify", diff: { status: { from: null, to: "connected" }, shop: { from: null, to: saved.shop } } });
   });
+  // the store's order history (issue #87); the connection stays saved if starting it fails, "Resync" retries
+  await startHistoryImport(ctx).catch((e: unknown) => console.error("[web] history import not started:", e instanceof Error ? e.message : e));
   return NextResponse.redirect(new URL(`/t/${saved.slug}/integrations?connected=shopify`, appUrl()));
 }

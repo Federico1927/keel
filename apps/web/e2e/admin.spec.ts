@@ -68,7 +68,7 @@ test.describe("super-admin console", () => {
     await expect(page.getByTestId("owner-invited")).toBeVisible();
     await page.getByRole("button", { name: /Open setup checklist|Apri la checklist/ }).click();
     await expect(page).toHaveURL(/\/admin\/tenants\/[0-9a-f-]{36}$/);
-    await expect(page.getByTestId("checklist")).toContainText(/[234] of 9|[234] su 9/);
+    await expect(page.getByTestId("checklist")).toContainText(/[234] of 10|[234] su 10/);
     await expect(page.getByTestId("invoice-row").first()).toContainText(/Setup fee|Fee di attivazione/);
   });
 
