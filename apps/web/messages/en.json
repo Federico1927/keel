@@ -571,7 +571,8 @@
       "export_ready": "CSV export ready",
       "other": "Other",
       "mcp_proposal": "Proposal from an AI client",
-      "platform_failure": "Failing background jobs"
+      "platform_failure": "Failing background jobs",
+      "customer_campaign": "Customer campaigns: approvals and sends"
     },
     "rendered": {
       "stock_critical_no_po": "{title} selling variants at critical stock with nothing on order",
@@ -582,7 +583,11 @@
       "platform_failure": "Background job {title} keeps failing",
       "source_idle": "{title} has synced nothing in its last runs",
       "data_export_ready": "Your full data export is ready ({title} rows)",
-      "data_export_failed": "Your full data export failed"
+      "data_export_failed": "Your full data export failed",
+      "customer_campaign_approval_requested": "Campaign to approve: {title}",
+      "customer_campaign_approved": "Campaign approved: {title}",
+      "customer_campaign_rejected": "Campaign sent back: {title}",
+      "customer_campaign_sent": "Campaign sent: {title}"
     },
     "groups": {
       "collaboration": "Collaboration",
@@ -619,9 +624,9 @@
       }
     },
     "suppressions": {
-      "title": "Email suppressions",
-      "description": "Addresses that do not receive email from this store: bounces and complaints block every email, unsubscribes block their category.",
-      "email": "Email",
+      "title": "Suppression list",
+      "description": "Addresses and phone numbers this store never contacts: bounces and complaints block every email, unsubscribes block their category; customer campaigns skip anyone listed on any channel.",
+      "email": "Email or phone",
       "category": "Category",
       "reason": "Reason",
       "when": "When",
@@ -637,7 +642,10 @@
         "manual": "Added by hand"
       },
       "supplier_po": "Purchase orders to suppliers",
-      "return_updates": "Return updates to customers"
+      "return_updates": "Return updates to customers",
+      "marketing": "Customer campaigns (marketing)",
+      "phone": "phone",
+      "identity_placeholder": "name@example.com or +39…"
     },
     "export_lists": {
       "orders": "orders",
@@ -2118,6 +2126,27 @@
       "members": "Members",
       "holdout": "Holdout",
       "evaluated": "Last evaluated"
+    },
+    "insights": {
+      "title": "What members buy",
+      "description": "Confirmed, non-cancelled orders of every member (both groups).",
+      "avg_spent": "Average spend per member",
+      "buyers": "{n} of {of} have bought",
+      "aov": "Average order value",
+      "avg_orders": "Orders per member",
+      "reachable": "Reachable: email / phone",
+      "reachable_hint": "With marketing consent",
+      "top_products": "Top products",
+      "top_categories": "Top categories",
+      "top_options": "Top option values",
+      "channels_title": "Sales channels",
+      "units": "{n} units",
+      "customers_n": "{n} customers",
+      "channels": {
+        "web": "Online store",
+        "pos": "Point of sale",
+        "draft": "Manual orders"
+      }
     }
   },
   "segment_builder": {
@@ -2185,7 +2214,12 @@
       "churn_risk": "Churn risk",
       "p_alive": "Probability still active (%)",
       "predicted_value": "Predicted value, next 12 months",
-      "days_to_next_order": "Days to expected next order"
+      "days_to_next_order": "Days to expected next order",
+      "open_order": "Has an open order",
+      "bought_in_window": "Ordered in a period",
+      "bought_category": "Bought category",
+      "dominant_option": "Most bought option value",
+      "days_since_last_marketing": "Days since last campaign message"
     },
     "ops": {
       "gte": "is at least",
@@ -2212,6 +2246,14 @@
       "invalid_shape": "Rules are malformed.",
       "invalid_rules": "Rules are not valid.",
       "forbidden": "You are not allowed to do this."
+    },
+    "option": "Option",
+    "within_days": "in the last",
+    "ever": "ever",
+    "days_ago": "days ago",
+    "ops_window": {
+      "any": "has an order",
+      "none": "has no order"
     }
   },
   "return_status": {
@@ -5317,7 +5359,7 @@
     "description": "Messages to a segment, measured against the segment's control group: what each campaign added over doing nothing.",
     "new": "New campaign",
     "new_for_segment": "New campaign",
-    "new_description": "Pick a segment with a control group, write the message, then send from the draft.",
+    "new_description": "Pick a segment with a control group and write the message; the draft is tested, approved and then scheduled.",
     "empty_title": "No campaigns yet",
     "empty_description": "Create one from a segment with a holdout to measure its real effect.",
     "no_segments_title": "No segments",
@@ -5350,7 +5392,13 @@
     },
     "status": {
       "draft": "Draft",
-      "sent": "Sent"
+      "sent": "Sent",
+      "pending_approval": "Waiting for approval",
+      "approved": "Approved",
+      "scheduled": "Scheduled",
+      "sending": "Sending",
+      "active": "Active",
+      "paused": "Paused"
     },
     "verdict": {
       "no_control": "No control group",
@@ -5365,30 +5413,31 @@
       "message": "Message",
       "discount_code": "Discount code (optional)",
       "cost": "Cost per message ({currency})",
-      "attribution_days": "Attribution window (days)"
+      "attribution_days": "Attribution window (days)",
+      "kind": "Type",
+      "exclude_open_orders": "Leave out customers with an open order"
     },
     "holdout_hint": "{pct}% of the segment is the control group and will not be contacted.",
     "no_holdout_warning": "This segment has no control group: the campaign can be sent but its effect cannot be measured. Set a holdout on the segment first.",
     "message_hint": "{first_name} and {code} are replaced for each customer.",
     "create": "Create draft",
     "save_draft": "Save draft",
-    "send": "Send…",
-    "confirm_title": "Send this campaign?",
-    "confirm_description": "{treated} customers receive it, {holdout} are kept as control group. Only customers who accept marketing are included.",
+    "confirm_title": "Submit this campaign for approval?",
+    "confirm_description": "Now {treated} customers would receive it and {holdout} would be kept as control group.",
     "mde": "Over a comparable past window {baseline} of these customers bought. With these group sizes the test can detect an effect of about {mde} or more.",
-    "confirm_send": "Send now",
-    "draft_title": "Draft",
-    "draft_description": "Editable until sent. Sending re-evaluates the segment and fixes the groups.",
     "delivery_title": "Delivery",
     "sent_on": "Sent {at}",
     "exposure": {
       "sent": "Delivered (treated)",
       "failed": "Failed (treated)",
       "skipped": "No address (treated)",
-      "held_out": "Control group"
+      "held_out": "Control group",
+      "queued": "In the queue (treated)",
+      "sending": "Being sent (treated)",
+      "suppressed": "Blocked at send (treated)"
     },
     "method_title": "How it is measured",
-    "method_note": "Every customer in the segment who accepts marketing is either treated or control, fixed before sending. Results compare confirmed, non-cancelled orders in the {days} days after sending, counting every treated customer even when the message failed, so the comparison stays fair. Incremental = difference per customer × treated customers.",
+    "method_note": "Every eligible customer in the segment is either treated or control, fixed when the send starts; members left out (no consent, suppressed, over the cap, open order, in another measurement) are in neither group. Results compare confirmed, non-cancelled orders in the {days} days after exposure, counting every treated customer even when the message failed, so the comparison stays fair. Incremental = difference per customer × treated customers.",
     "window_open": "Attribution window open until {at}: results are still moving.",
     "window_closed": "Final: window closed on {at}.",
     "no_holdout_result": "No control group: the numbers below show what the treated customers did, not what the campaign caused.",
@@ -5410,10 +5459,133 @@
     "code_redemptions": "{n} orders used the code {code}.",
     "errors": {
       "not_found": "Campaign not found.",
-      "already_sent": "The campaign was already sent.",
       "no_segment": "Choose a segment.",
       "empty_segment": "Nobody in the segment accepts marketing.",
-      "invalid_input": "Check the fields."
+      "invalid_input": "Check the fields.",
+      "not_editable": "Only a draft can be changed: move it back to draft first.",
+      "invalid_transition": "This step is not possible in the campaign's current state.",
+      "not_allowed": "Your role cannot approve campaigns.",
+      "own_campaign": "You cannot approve a campaign you created or submitted.",
+      "sequence_needs_holdout": "A sequence needs a segment with a control group (holdout above 0%).",
+      "manual_channel": "A campaign sent from another tool is recorded, not approved or tested.",
+      "no_recipients": "Choose at least one recipient (at most 10).",
+      "note_required": "Write a note for the author."
+    },
+    "kinds": {
+      "one_off": "One-off",
+      "sequence": "Always-on sequence"
+    },
+    "kind_hint": {
+      "one_off": "Sent once to the segment, at the time you schedule after approval.",
+      "sequence": "Runs by itself: each customer who enters the segment (for example 120 days after their last order) gets the message once. The segment's control group is permanent."
+    },
+    "exclude_open_orders_hint": "Customers whose order is still being processed are not invited to buy again; they are left out of both groups.",
+    "confirm_record_title": "Record this campaign as sent?",
+    "exclusions": {
+      "title": "{members} members now, left out by reason:",
+      "no_consent": "No marketing consent",
+      "suppressed": "On the suppression list",
+      "over_cap": "Over the frequency cap",
+      "open_order": "Open order",
+      "in_measurement": "In another campaign's measurement",
+      "holdout": "Control group (not contacted)",
+      "no_address": "Treated without an address for the channel",
+      "waiting_title": "Waiting to enter",
+      "left_out_title": "Left out at send"
+    },
+    "workflow": {
+      "test": "Test send…",
+      "submit": "Preview and submit…",
+      "record": "Record as sent…",
+      "approve": "Approve",
+      "reject": "Send back…",
+      "schedule": "Schedule…",
+      "activate": "Activate",
+      "pause": "Pause",
+      "unschedule": "Unschedule",
+      "reopen": "Back to draft",
+      "submit_hint": "An owner, an admin or another marketing user approves it; then it is scheduled and the queue sends it within the send window and the per-minute limit.",
+      "record_confirm": "Record now",
+      "submit_confirm": "Submit for approval",
+      "test_title": "Test send",
+      "test_description": "Only to people of the store, never to customers. The message is rendered with their first name and the code.",
+      "test_phone": "Your phone number",
+      "test_sent": "{n} test messages sent.",
+      "test_send": "Send test",
+      "close": "Close",
+      "reject_title": "Send back to the author",
+      "reject_description": "The campaign goes back to draft with your note.",
+      "note": "Note",
+      "reject_confirm": "Send back",
+      "schedule_title": "Schedule the send",
+      "schedule_description": "Messages go out only between {window}; a time outside it starts at the next opening.",
+      "schedule_at": "Send at (store time)",
+      "schedule_hint": "Leave empty to start as soon as the send window allows.",
+      "schedule_confirm": "Schedule",
+      "schedule_now": "Send as soon as possible",
+      "title": "Workflow",
+      "approval_you": "You can approve it or send it back.",
+      "approval_waiting": "Waiting for an approver: you cannot approve your own campaign.",
+      "approval_others": "Waiting for an owner, admin or marketing user to approve it.",
+      "starts_at": "Starts {at} (send window {window}).",
+      "review_note": "Reviewer: {note}",
+      "sent_back": "Sent back for changes: {note}",
+      "steps": {
+        "created": "Created",
+        "tested": "Test sent",
+        "submitted": "Submitted for approval",
+        "approved": "Approved",
+        "scheduled": "Scheduled for",
+        "started": "Send started",
+        "activated": "Activated",
+        "completed": "Last message sent"
+      }
+    },
+    "stage": {
+      "draft": {
+        "title": "Draft",
+        "description": "Editable until submitted. Test it, preview who would receive it, then submit it for approval."
+      },
+      "pending_approval": {
+        "title": "Waiting for approval",
+        "description": "Locked while it is reviewed. Back to draft to change it."
+      },
+      "approved": {
+        "title": "Approved",
+        "description": "Ready to schedule (one-off) or to activate (sequence)."
+      },
+      "scheduled": {
+        "title": "Scheduled",
+        "description": "At the scheduled time the job re-evaluates the segment, fixes the groups and sends within the send window and the per-minute limit."
+      }
+    },
+    "activated_on": "Active since {at}",
+    "progress": {
+      "sending": "Sending",
+      "done": "Done",
+      "throttle": "Up to {n} messages a minute, between {window}."
+    },
+    "settings": {
+      "link": "Campaign settings",
+      "title": "Campaign settings",
+      "description": "Rules every campaign of the store follows. Hours are in the store's time zone ({timezone}).",
+      "cap_title": "Frequency cap",
+      "cap_description": "Nobody receives more than this many campaign messages in this many days; who is over it is left out and counted.",
+      "window_title": "Send window",
+      "window_description": "Messages go out only between these hours; a send that reaches the end waits for the next morning.",
+      "throttle_title": "Messages per minute",
+      "throttle_description": "Per channel, for all campaigns together: the provider's limit or less.",
+      "lock_hint": "While a campaign's attribution window is open, its treated and control customers are kept out of other campaigns, so its effect is not mixed with theirs.",
+      "fields": {
+        "campaignFrequencyCap": "Messages at most",
+        "campaignFrequencyDays": "In days",
+        "campaignSendStartHour": "From hour (0–23)",
+        "campaignSendEndHour": "To hour (1–24)",
+        "throttleEmail": "Email",
+        "throttleSms": "SMS",
+        "throttleWhatsapp": "WhatsApp",
+        "campaignMeasurementLock": "Lock customers being measured"
+      }
     }
   },
   "destinations": {

@@ -7,7 +7,7 @@ import { addSuppressionAction, removeSuppressionAction } from "@/server/actions/
 
 const EMAIL_TYPES = (Object.keys(NOTIFICATION_TYPES) as (keyof typeof NOTIFICATION_TYPES)[]).filter((k) => (NOTIFICATION_TYPES[k].channels as readonly string[]).includes("email"));
 
-export function AddSuppressionForm({ slug }: { slug: string }) {
+export function AddSuppressionForm({ slug, marketing }: { slug: string; marketing: boolean }) {
   const t = useTranslations("notifications");
   const tc = useTranslations("common");
   const [state, action, pending] = useActionState(addSuppressionAction.bind(null, slug), null);
@@ -17,12 +17,13 @@ export function AddSuppressionForm({ slug }: { slug: string }) {
         <form action={action} className="grid gap-3 sm:grid-cols-[2fr_1fr_2fr_auto] sm:items-end">
           <div className="space-y-1">
             <Label htmlFor="sup-email">{t("suppressions.email")}</Label>
-            <Input id="sup-email" name="email" type="email" required />
+            <Input id="sup-email" name="email" required maxLength={254} placeholder={t("suppressions.identity_placeholder")} />
           </div>
           <div className="space-y-1">
             <Label htmlFor="sup-category">{t("suppressions.category")}</Label>
             <Select id="sup-category" name="category" defaultValue="all">
               <option value="all">{t("suppressions.all_categories")}</option>
+              {marketing && <option value="marketing">{t("suppressions.marketing")}</option>}
               {EMAIL_TYPES.map((k) => (
                 <option key={k} value={k}>{t(`types.${k}`)}</option>
               ))}
