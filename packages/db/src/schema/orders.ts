@@ -132,7 +132,7 @@ export const orderEvents = pgTable(
       .references(() => orders.id, { onDelete: "cascade" }),
     type: text("type").notNull(),
     actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
-    /** user | system | integration */
+    /** user | system | integration | mcp (an AI client acting for `actor_user_id`; client in metadata.mcpClient) */
     actorType: text("actor_type").notNull().default("system"),
     diff: jsonb("diff").notNull().default(sql`'{}'::jsonb`),
     metadata: jsonb("metadata").notNull().default(sql`'{}'::jsonb`),

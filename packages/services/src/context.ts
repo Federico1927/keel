@@ -4,6 +4,7 @@ import type { Transaction } from "@keel/db";
 export interface ServiceContext {
   tenantId: string;
   tx: Transaction;
-  actor: { type: "user" | "system" | "integration"; userId: string | null };
+  /** `mcp`: an AI client acting for `userId` through the MCP server (#21). */
+  actor: { type: "user" | "system" | "integration" | "mcp"; userId: string | null };
   now?: Date;
 }

@@ -128,6 +128,10 @@
       "platform": {
         "name": "Plataforma",
         "description": "Usuarios, ajustes, integraciones y auditoría"
+      },
+      "mcp": {
+        "name": "Clientes de IA (MCP)",
+        "description": "Claude, ChatGPT, Cursor y otros clientes de IA leen los datos de la tienda como el usuario conectado"
       }
     },
     "addon": {
@@ -755,7 +759,8 @@
     },
     "order_states_link": "Reglas de estado de pedido",
     "branding_link": "Marca",
-    "fulfilment_link": "Preparación"
+    "fulfilment_link": "Preparación",
+    "ai_link": "IA y MCP"
   },
   "users": {
     "title": "Usuarios y roles",
@@ -811,7 +816,8 @@
       "user": "Usuario",
       "system": "Sistema",
       "super_admin": "Superadministrador",
-      "impersonation": "Suplantación"
+      "impersonation": "Suplantación",
+      "mcp": "Cliente de IA (MCP)"
     },
     "empty_title": "Aún no hay entradas",
     "empty_description": "Los cambios en ajustes, usuarios, pedidos e integraciones aparecerán aquí.",
@@ -938,7 +944,8 @@
       "cod_assigned": "Pedido contra reembolso asignado",
       "digest": "Correo de resumen diario",
       "export_ready": "Exportación CSV lista",
-      "other": "Otros"
+      "other": "Otros",
+      "mcp_proposal": "Propuesta de un cliente de IA"
     },
     "rendered": {
       "stock_critical_no_po": "{title} variantes en venta con stock crítico y ninguna orden de compra",
@@ -1369,7 +1376,8 @@
       "incoming": "En camino (OC · estado · llegada)",
       "waiting": "{n} en espera",
       "no_eta": "sin fecha"
-    }
+    },
+    "via_mcp": "vía {client}"
   },
   "order_events": {
     "imported": "Importado",
@@ -3763,7 +3771,8 @@
         "operations": "Operaciones",
         "support": "Soporte",
         "audit": "Auditoría"
-      }
+      },
+      "mcp": "MCP"
     },
     "plans": {
       "starter": "Starter",
@@ -4240,6 +4249,40 @@
       "failures": "{n} fallos seguidos",
       "failed_runs": "Sincronizaciones fallidas",
       "failed_runs_hint": "Las 30 más recientes primero."
+    },
+    "mcp": {
+      "title": "Uso de MCP",
+      "description": "Llamadas de clientes de IA por tenant en los últimos 30 días y el interruptor de emergencia. Cada cambio se registra en el log de auditoría del tenant.",
+      "platform_disabled": "KEEL_MCP_DISABLED=1: el servidor MCP rechaza toda llamada en este despliegue.",
+      "stat_calls": "Llamadas (30 días)",
+      "stat_errors": "Errores",
+      "stat_rate_limited": "Limitadas",
+      "stat_connections": "Conexiones activas",
+      "stat_unknown_tokens": "Tokens desconocidos",
+      "tenants_title": "Tenants",
+      "tenants_description": "Plan, estado, uso e interruptor por tenant.",
+      "col_tenant": "Tenant",
+      "col_status": "Estado",
+      "col_calls": "Llamadas",
+      "col_errors": "Errores",
+      "col_users": "Personas",
+      "col_connections": "Conexiones",
+      "col_last_call": "Última llamada",
+      "col_kill": "Interruptor",
+      "pending": "{count} por aprobar",
+      "denied_rl": "{denied} rechazadas · {limited} limitadas",
+      "kill": "Suspender MCP",
+      "kill_confirm": "¿Suspender MCP para este tenant? Toda llamada se rechaza hasta que lo restablezcas.",
+      "restore": "Restablecer MCP",
+      "note_placeholder": "Motivo (auditado)",
+      "availability": {
+        "ok": "Activo",
+        "plan": "No incluido",
+        "tenant_disabled": "Desactivado (tenant)",
+        "killed": "Suspendido",
+        "platform_disabled": "Plataforma desactivada",
+        "suspended": "Tenant suspendido"
+      }
     }
   },
   "cod": {
@@ -5843,7 +5886,9 @@
       "low_variety": "mezcla mayúsculas, minúsculas, números y símbolos (o usa 16+ caracteres)"
     },
     "sign_in_alerts": "Avisarme por correo de nuevos accesos",
-    "sign_in_alerts_hint": "Un correo de seguridad cuando tu cuenta inicia sesión desde un dispositivo o navegador que no había usado antes."
+    "sign_in_alerts_hint": "Un correo de seguridad cuando tu cuenta inicia sesión desde un dispositivo o navegador que no había usado antes.",
+    "connections": "Conexiones",
+    "connections_description": "Clientes de IA y tokens de acceso personales que actúan como tú en este espacio de trabajo a través del servidor MCP."
   },
   "welcome": {
     "title": "Completa tu perfil",
@@ -7024,6 +7069,250 @@
       "levels": {
         "campaign": "Campaña",
         "ad_group": "Grupo de anuncios"
+      }
+    }
+  },
+  "mcp": {
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "scopes": {
+      "read": "Leer pedidos, clientes, análisis, productos, compras, devoluciones, segmentos y estado de las integraciones que tu rol puede ver",
+      "write_notes": "Añadir notas internas a los pedidos",
+      "write_orders": "Asignar pedidos, pasarlos a revisión o espera, proponer cancelaciones y reembolsos",
+      "write_campaigns": "Proponer pausar campañas publicitarias",
+      "write_purchasing": "Proponer borradores de pedidos de compra"
+    },
+    "unavailable": {
+      "plan": "Los clientes de IA (MCP) se incluyen desde el plan Growth.",
+      "tenant_disabled": "MCP está desactivado en este espacio de trabajo: un propietario o administrador puede activarlo en Ajustes → IA y MCP.",
+      "killed": "La plataforma ha suspendido el acceso MCP a este espacio de trabajo.",
+      "platform_disabled": "MCP no está disponible temporalmente en la plataforma.",
+      "suspended": "Este espacio de trabajo está suspendido."
+    },
+    "errors": {
+      "generic": "Algo salió mal. Inténtalo de nuevo.",
+      "invalid_input": "Revisa los campos e inténtalo de nuevo.",
+      "limit_reached": "Has alcanzado el número máximo de tokens activos: revoca uno antes.",
+      "not_found": "No encontrado: puede que se haya eliminado.",
+      "forbidden": "No puedes hacer esto.",
+      "mcp_unavailable": "MCP no está disponible para este espacio de trabajo.",
+      "not_pending": "Esta propuesta ya se decidió.",
+      "expired": "Esta propuesta ha caducado."
+    },
+    "consent": {
+      "title": "Conectar un cliente de IA",
+      "heading": "{client} quiere acceder a Keel",
+      "description": "Sesión iniciada como {user}. El cliente actuará como tú, con tu rol, en el espacio de trabajo que elijas.",
+      "workspace": "Espacio de trabajo",
+      "no_workspace": "No eres miembro de ningún espacio de trabajo.",
+      "scopes": "Permisos",
+      "scopes_hint": "Desmarca lo que no quieras permitir. La lectura siempre está incluida.",
+      "note_role": "Solo ve lo que tu rol ve en Keel; los módulos desactivados no exponen nada.",
+      "note_pii": "Los correos, teléfonos y direcciones de los clientes se enmascaran, salvo que tu espacio de trabajo haya activado los datos personales completos para clientes de IA.",
+      "note_proposals": "Cancelaciones, reembolsos, pausas de campañas y pedidos de compra son solo propuestas: las aprueba una persona en Keel.",
+      "note_redirect": "Tras autorizar vuelves a {host}. Puedes revocar el acceso cuando quieras desde tu perfil → Conexiones.",
+      "approve": "Permitir el acceso",
+      "deny": "Cancelar",
+      "invalid_request": "Esta solicitud de conexión no es válida.",
+      "unavailable": {
+        "plan": "No incluido en el plan",
+        "tenant_disabled": "MCP desactivado por un propietario o administrador",
+        "killed": "Suspendido por la plataforma",
+        "platform_disabled": "No disponible temporalmente",
+        "suspended": "Espacio de trabajo suspendido"
+      }
+    },
+    "connections": {
+      "server_url": "URL del servidor MCP",
+      "server_url_hint": "Pégala en Claude, ChatGPT, Cursor o cualquier cliente MCP: se conectan con OAuth, tú inicias sesión y autorizas.",
+      "connection": "Conexión",
+      "user": "Usuario",
+      "scopes": "Permisos",
+      "last_used": "Último uso",
+      "expires": "Caduca",
+      "never": "Nunca",
+      "empty": "Aún no hay clientes de IA conectados.",
+      "kind": {
+        "oauth": "OAuth",
+        "pat": "Token"
+      },
+      "state": {
+        "active": "Activa",
+        "expired": "Caducada",
+        "revoked": "Revocada"
+      },
+      "create_title": "Nuevo token de acceso personal",
+      "token_name": "Nombre",
+      "token_name_placeholder": "p. ej. Cursor en mi portátil",
+      "expires_in": "Caduca en",
+      "days": "{days} días",
+      "create": "Crear token",
+      "shown_once": "Copia el token ahora: se muestra una sola vez y Keel solo guarda una huella.",
+      "rotate": "Regenerar",
+      "rotate_confirm": "¿Crear un nuevo secreto para este token? El actual deja de funcionar de inmediato.",
+      "revoke": "Revocar",
+      "revoke_confirm": "¿Revocar esta conexión? El cliente pierde el acceso de inmediato.",
+      "how_to": "Cómo conectar Claude, ChatGPT o Cursor",
+      "open_settings": "Abrir los ajustes de IA y MCP"
+    },
+    "settings": {
+      "title": "IA y MCP",
+      "description": "Permite que tu equipo use Claude, ChatGPT, Cursor y otros clientes de IA sobre los datos de este espacio de trabajo, con sus propios permisos.",
+      "server_title": "Servidor MCP",
+      "server_description": "Una sola URL para todos los clientes. Cada persona se conecta con su cuenta; los tokens están ligados a una persona y a un espacio de trabajo.",
+      "enabled": "Permitir clientes de IA (MCP)",
+      "enabled_hint": "Si está desactivado, se rechaza toda llamada MCP a este espacio de trabajo; las conexiones se conservan.",
+      "full_pii": "Mostrar datos personales de clientes",
+      "full_pii_hint": "Nombres, correos, teléfonos y direcciones completos, solo a los roles que pueden verlos (nunca marketing ni lector). Desactivado: siempre enmascarados.",
+      "rule_auth": "OAuth 2.1 con PKCE, o tokens de acceso personales; los secretos se guardan solo como hash con clave.",
+      "rule_permissions": "Cada herramienta usa el rol de la persona y los módulos del espacio de trabajo; no se expone nada que el rol no vea en Keel.",
+      "rule_writes": "Las escrituras directas son reversibles (notas, asignación, revisión o espera); las acciones arriesgadas esperan aprobación.",
+      "rule_limits": "Límites: {perToken} llamadas por minuto por conexión, {perTenant} por espacio de trabajo.",
+      "guides_title": "Conectar un cliente",
+      "guides_description": "Los pasos para los clientes más usados.",
+      "connections_title": "Clientes conectados",
+      "connections_description": "Todas las conexiones activas del espacio de trabajo, con su último uso. Propietarios y administradores pueden revocarlas.",
+      "activity_title": "Actividad reciente",
+      "activity_description": "Las últimas llamadas de los últimos 7 días (herramienta, persona, cliente, resultado). Nunca se guardan argumentos ni resultados.",
+      "activity_empty": "Aún no hay llamadas.",
+      "stat_calls": "Llamadas (7 días)",
+      "stat_errors": "Errores",
+      "stat_denied": "Rechazadas",
+      "stat_rate_limited": "Limitadas",
+      "col_when": "Cuándo",
+      "col_tool": "Herramienta",
+      "col_who": "Quién",
+      "col_outcome": "Resultado",
+      "col_duration": "Duración",
+      "outcome": {
+        "ok": "OK",
+        "error": "Error",
+        "denied": "Rechazada",
+        "invalid_input": "Entrada no válida",
+        "not_found": "No encontrado",
+        "rate_limited": "Limitada",
+        "auth_failed": "Autenticación fallida",
+        "disabled": "Desactivado"
+      },
+      "approvals_link": "Aprobaciones ({count})",
+      "approvals_link_empty": "Aprobaciones",
+      "own_tokens_link": "Tus tokens de acceso personales están en tu perfil → Conexiones."
+    },
+    "approvals": {
+      "title": "Aprobaciones",
+      "description": "Acciones que los clientes de IA propusieron por MCP. No ocurre nada hasta que alguien que puede hacerlo las aprueba; al aprobar se ejecutan en tu nombre.",
+      "empty_title": "Nada que aprobar",
+      "empty_description": "Aquí aparecen las propuestas de los clientes de IA (cancelaciones, reembolsos, pausas de campañas, pedidos de compra).",
+      "requested_by": "{client} para {user} · {when}",
+      "order_total": "Total del pedido",
+      "restock": "Reponer stock",
+      "refund": "Reembolsar el pago",
+      "amount": "Importe",
+      "refundable": "Aún reembolsable",
+      "lines": "Líneas",
+      "expires": "Caduca",
+      "yes": "Sí",
+      "no": "No",
+      "cannot_approve": "Tu rol no puede aprobarla: quien pueda la verá aquí.",
+      "note_placeholder": "Nota (opcional)",
+      "approve": "Aprobar y ejecutar",
+      "approve_confirm": "¿Aprobar y ejecutar ahora esta acción en tu nombre?",
+      "reject": "Rechazar",
+      "failed": "La acción falló: {error}",
+      "history": "Historial",
+      "history_empty": "Aún no hay propuestas decididas.",
+      "col_proposal": "Propuesta",
+      "col_requested": "Solicitada",
+      "col_status": "Estado",
+      "col_decided": "Decidida por",
+      "kinds": {
+        "order_cancel": "Cancelar pedido",
+        "order_refund": "Reembolso",
+        "campaign_pause": "Pausar campaña",
+        "purchase_order_create": "Borrador de pedido de compra"
+      },
+      "status": {
+        "pending": "Pendiente",
+        "approved": "Aprobada",
+        "rejected": "Rechazada",
+        "failed": "Fallida",
+        "expired": "Caducada"
+      }
+    },
+    "guides": {
+      "verify_legend": "Los pasos marcados «Por verificar» dependen de la interfaz del proveedor de IA, que cambia a menudo: compruébalos en su documentación antes de la primera instalación.",
+      "verify_badge": "Por verificar",
+      "pat_note": "Clientes sin OAuth: crea un token de acceso personal en tu perfil → Conexiones y envíalo en la cabecera Authorization: Bearer kpat_…",
+      "claude": {
+        "name": "Claude",
+        "steps": [
+          {
+            "title": "Abre los conectores",
+            "body": "En Claude (web o app de escritorio) abre Ajustes → Conectores y elige «Añadir conector personalizado». En planes de equipo puede que un propietario deba permitirlos antes.",
+            "verify": true
+          },
+          {
+            "title": "Pega la URL del servidor",
+            "body": "Ponle un nombre (p. ej. Keel) y pega:\n{serverUrl}\nDeja vacíos los campos OAuth avanzados: Claude se registra solo en Keel.",
+            "verify": true
+          },
+          {
+            "title": "Inicia sesión y autoriza",
+            "body": "Claude abre Keel: inicia sesión, elige el espacio de trabajo, mantén o quita permisos y autoriza. Vuelves a Claude ya conectado."
+          },
+          {
+            "title": "Pruébalo",
+            "body": "En un chat activa el conector desde el menú de herramientas y pregunta: «¿Cómo fueron las ventas la semana pasada frente a la anterior?» Claude cita las cifras con el enlace a Keel.",
+            "verify": true
+          }
+        ]
+      },
+      "chatgpt": {
+        "name": "ChatGPT",
+        "steps": [
+          {
+            "title": "Permite conectores personalizados",
+            "body": "En ChatGPT abre Ajustes → Conectores (Apps). Según el plan, los conectores MCP personalizados requieren el modo desarrollador en los ajustes avanzados, o un administrador del espacio de trabajo.",
+            "verify": true
+          },
+          {
+            "title": "Crea el conector",
+            "body": "Elige Crear, ponle un nombre, pega {serverUrl} y elige OAuth como autenticación.",
+            "verify": true
+          },
+          {
+            "title": "Inicia sesión y autoriza",
+            "body": "ChatGPT abre Keel: inicia sesión, elige el espacio de trabajo y los permisos, autoriza."
+          },
+          {
+            "title": "Pruébalo",
+            "body": "Abre un chat, añade el conector desde el menú de herramientas y pregunta por ejemplo: «¿Qué campañas perdieron dinero este mes y qué sugiere Keel?»",
+            "verify": true
+          }
+        ]
+      },
+      "cursor": {
+        "name": "Cursor",
+        "steps": [
+          {
+            "title": "Abre los ajustes MCP",
+            "body": "En Cursor abre Settings → MCP (Tools & Integrations) → «Add custom MCP server»: se abre ~/.cursor/mcp.json.",
+            "verify": true
+          },
+          {
+            "title": "Añade Keel",
+            "body": "Añade este servidor y guarda:\n{ \"mcpServers\": { \"keel\": { \"url\": \"{serverUrl}\" } } }",
+            "verify": true
+          },
+          {
+            "title": "Inicia sesión",
+            "body": "Cursor indica que el servidor necesita inicio de sesión: haz clic, entra en Keel y autoriza. Sin OAuth, crea un token de acceso personal y añade \"headers\": { \"Authorization\": \"Bearer kpat_…\" } al servidor."
+          },
+          {
+            "title": "Pruébalo",
+            "body": "En el chat del agente pregunta: «Lista los productos con riesgo de rotura de stock y el pedido sugerido.»"
+          }
+        ]
       }
     }
   }

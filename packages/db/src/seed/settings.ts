@@ -2,6 +2,7 @@ import { and, eq, inArray, sql } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/node-postgres";
 import { DEFAULT_SURVEY_CONFIG } from "@keel/core";
 import * as schema from "../schema";
+import { enableDemoMcp } from "./mcp";
 
 /**
  * Configuration rows of the demo tenants (portal, return policy, tracking, survey, COD tags, the AI
@@ -156,6 +157,7 @@ export async function ensureDemoSettings(db: Db, now = new Date()): Promise<Sett
     }
     const costs = await db.execute<{ id: string }>(sql`update tenants set settings = ${JSON.stringify(DEMO_RETURN_COSTS[key])}::jsonb || coalesce(settings, '{}'::jsonb) where id = ${tenantId} and not (coalesce(settings, '{}'::jsonb) ?& ${sql.param(Object.keys(DEMO_RETURN_COSTS[key]))}::text[]) returning id`);
     if (costs.rows.length) created.push("tenant_settings:return_costs");
+    if (key === "northwind" && (await enableDemoMcp(db, tenantId))) created.push("tenant_settings:mcp");
     if (await missing("pixel_settings")) {
       await db.insert(schema.pixelSettings).values(demoPixelSettings(key, tenantId)).onConflictDoNothing();
       created.push("pixel_settings");
