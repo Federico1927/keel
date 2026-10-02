@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, doublePrecision, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { createdAt, tenantIsolation, updatedAt } from "./_common";
 import { tenantColumns } from "./_tenant";
 import { products } from "./catalog";
@@ -263,6 +263,12 @@ export const customMetrics = pgTable(
     /** money | ratio | percent | number */
     format: text("format").notNull().default("number"),
     description: text("description"),
+    /** Order filters the bases are computed over (channel, country, payment method, product, campaign, platform, new/returning): `MetricFilters` in @keel/config. */
+    filters: jsonb("filters").notNull().default(sql`'{}'::jsonb`),
+    /** Drives the colour of the trend. */
+    higherIsBetter: boolean("higher_is_better").notNull().default(true),
+    /** Optional label per locale (`{ "it": "…" }`); `label` is shown otherwise. */
+    translations: jsonb("translations").notNull().default(sql`'{}'::jsonb`),
     createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
@@ -270,21 +276,50 @@ export const customMetrics = pgTable(
   (t) => [uniqueIndex("custom_metrics_uq").on(t.tenantId, t.key), tenantIsolation("custom_metrics")],
 ).enableRLS();
 
-/** Per-user dashboards: an ordered list of metric widgets (base or custom). */
+/** Monthly targets per metric (base key or `custom:<key>`); a month without its own row carries the latest earlier one. */
+export const metricTargets = pgTable(
+  "metric_targets",
+  {
+    ...tenantColumns(),
+    metric: text("metric").notNull(),
+    /** `YYYY-MM` in the tenant time zone. */
+    month: text("month").notNull(),
+    /** In the metric's unit: minor units for money, a fraction for percent. */
+    target: doublePrecision("target").notNull(),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("metric_targets_uq").on(t.tenantId, t.metric, t.month), tenantIsolation("metric_targets")],
+).enableRLS();
+
+/**
+ * Dashboards (issue #43). `scope`: `tenant` (the home or an extra dashboard everyone, or the roles
+ * listed, can open), `role` (a home variant for the roles listed), `personal` (one user's copy;
+ * `user_id` set). `layout_version` 1 rows are the old per-user `[{ metric }]` lists; version 2 stores
+ * widgets (`DashboardWidget` in @keel/config). `draft_widgets` holds unpublished edits.
+ */
 export const dashboards = pgTable(
   "dashboards",
   {
     ...tenantColumns(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+    scope: text("scope").notNull().default("personal"),
+    roles: text("roles").array().notNull().default(sql`'{}'::text[]`),
+    isHome: boolean("is_home").notNull().default(false),
+    layoutVersion: integer("layout_version").notNull().default(1),
     name: text("name").notNull(),
     widgets: jsonb("widgets").notNull().default(sql`'[]'::jsonb`),
+    draftWidgets: jsonb("draft_widgets"),
+    /** `{ period }`: the dashboard period widgets follow unless they have their own. */
+    settings: jsonb("settings").notNull().default(sql`'{}'::jsonb`),
     isDefault: boolean("is_default").notNull().default(false),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    updatedBy: uuid("updated_by").references(() => users.id, { onDelete: "set null" }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index("dashboards_user_idx").on(t.tenantId, t.userId), tenantIsolation("dashboards")],
+  (t) => [index("dashboards_user_idx").on(t.tenantId, t.userId), index("dashboards_scope_idx").on(t.tenantId, t.scope, t.isHome), tenantIsolation("dashboards")],
 ).enableRLS();
 
 /**
