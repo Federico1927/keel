@@ -10,7 +10,7 @@ import { resyncBillingAction, simulateBillingAction, startSubscriptionAction } f
 const ERRORS = ["provider_failed", "catalog_not_synced", "already_subscribed", "invalid_input", "no_customer", "no_checkout", "not_mock", "not_managed", "no_subscription", "tenant_not_found"];
 
 /** Console "Start subscription" (#53): plan, add-ons, setup fee, trial, billing email, card (Checkout link, emailed) or bank transfer. */
-export function StartSubscriptionDialog({ tenantId, planKey, activeAddons, addons, setupFees, defaultEmail }: { tenantId: string; planKey: string; activeAddons: string[]; addons: { key: string; label: string }[]; setupFees: Record<string, string>; defaultEmail: string }) {
+export function StartSubscriptionDialog({ tenantId, planKey, activeAddons, addons, setupFees, defaultEmail }: { tenantId: string; planKey: string; activeAddons: string[]; addons: { key: string; label: string; billable: boolean }[]; setupFees: Record<string, string>; defaultEmail: string }) {
   const t = useTranslations("admin_billing");
   const tp = useTranslations("admin.plans");
   const router = useRouter();
@@ -73,9 +73,10 @@ export function StartSubscriptionDialog({ tenantId, planKey, activeAddons, addon
               <fieldset className="space-y-1.5">
                 <legend className="text-sm font-medium">{t("addons")}</legend>
                 {addons.map((a) => (
-                  <label key={a.key} className="flex items-center gap-2 text-sm">
-                    <Checkbox checked={chosen.includes(a.key)} onCheckedChange={(v) => setChosen((c) => (v ? [...c, a.key] : c.filter((x) => x !== a.key)))} aria-label={a.label} />
+                  <label key={a.key} className="flex flex-wrap items-center gap-2 text-sm" data-testid={`subscription-addon-${a.key}`}>
+                    <Checkbox checked={chosen.includes(a.key)} disabled={!a.billable} onCheckedChange={(v) => setChosen((c) => (v ? [...c, a.key] : c.filter((x) => x !== a.key)))} aria-label={a.label} />
                     {a.label}
+                    {!a.billable && <span className="text-xs text-muted-foreground">{t("addon_not_billed")}</span>}
                   </label>
                 ))}
               </fieldset>

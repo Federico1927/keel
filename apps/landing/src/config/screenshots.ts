@@ -25,12 +25,18 @@ export const SCREENSHOTS: Record<string, ScreenshotRole> = {
   assistant: "card",
 };
 
+/**
+ * Bumped whenever the screenshots are regenerated: the files keep their names, so browsers and the
+ * CDN would otherwise keep serving the previous images.
+ */
+export const SCREENSHOTS_VERSION = "2026-10-02";
+
 export function screenshotSrcSet(
   locale: string,
   name: string,
   role: ScreenshotRole,
 ): { src: string; srcSet: string } {
   const widths = SCREENSHOT_ROLES[role].widths;
-  const url = (w: number) => `/screenshots/${locale}/${name}-${w}.webp`;
+  const url = (w: number) => `/screenshots/${locale}/${name}-${w}.webp?v=${SCREENSHOTS_VERSION}`;
   return { src: url(widths[0]), srcSet: widths.map((w) => `${url(w)} ${w}w`).join(", ") };
 }
