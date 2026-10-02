@@ -9,7 +9,7 @@ import type { ActionResult } from "@/server/action-result";
 
 const PLATFORM_LABEL: Readonly<Record<string, string>> = AD_PLATFORM_LABELS;
 
-export function CampaignStatusButton({ slug, campaignId, platform, status, canPause, readOnly }: { slug: string; campaignId: string; platform: string; status: string; canPause: boolean; readOnly: boolean }) {
+export function CampaignStatusButton({ slug, campaignId, platform, status, canPause, readOnly, size = "default", className }: { slug: string; campaignId: string; platform: string; status: string; canPause: boolean; readOnly: boolean; size?: "default" | "sm"; className?: string }) {
   const t = useTranslations("campaign_detail");
   const tc = useTranslations("common");
   const [open, setOpen] = useState(false);
@@ -26,7 +26,7 @@ export function CampaignStatusButton({ slug, campaignId, platform, status, canPa
           <AlertDescription>{tc(`errors.${result.error}`) + (result.fieldErrors?.platform ? ` (${result.fieldErrors.platform})` : "")}</AlertDescription>
         </Alert>
       )}
-      <Button variant={next === "paused" ? "destructive" : "default"} disabled={pending} onClick={() => setOpen(true)}>
+      <Button variant={next === "paused" ? "destructive" : "default"} size={size} className={className} disabled={pending} onClick={() => setOpen(true)}>
         {next === "paused" ? <Pause /> : <Play />} {next === "paused" ? t("pause") : t("resume")}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>

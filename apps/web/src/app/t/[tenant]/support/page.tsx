@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatDateTime, formatNumber } from "@hullwise/core";
 import { SUPPORT_STATUSES, listSupportTickets } from "@hullwise/services";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Card, CardContent, DataList, EmptyState, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { Chip } from "../notifications/tabs";
 import { STATUS_VARIANT } from "./status";
@@ -18,7 +18,7 @@ export default async function SupportPage({ params, searchParams }: { params: Pr
   return (
     <>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} />
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:px-0 [&>*]:shrink-0">
         <Chip href={base} active={!status}>{t("all")}</Chip>
         {SUPPORT_STATUSES.map((s) => (
           <Chip key={s} href={`${base}?status=${s}`} active={status === s}>{t(`statuses.${s}`)}</Chip>
@@ -29,29 +29,17 @@ export default async function SupportPage({ params, searchParams }: { params: Pr
       ) : (
         <Card>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("columns.ticket")}</TableHead>
-                  <TableHead>{t("columns.status")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("columns.author")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("columns.updated")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.t.id} data-testid="ticket-row">
-                    <TableCell>
-                      <Link href={`${base}/${r.t.id}`} className="font-medium hover:underline">#{r.t.number} · {r.t.subject}</Link>
-                      <p className="text-xs text-muted-foreground">{t(`categories.${r.t.category}`)} · {t("messages_n", { n: formatNumber(r.messages, ctx.locale) })}</p>
-                    </TableCell>
-                    <TableCell><Badge variant={STATUS_VARIANT[r.t.status] ?? "muted"}>{t(`statuses.${r.t.status}`)}</Badge></TableCell>
-                    <TableCell className="hidden text-sm md:table-cell">{r.authorName ?? r.authorEmail ?? "—"}</TableCell>
-                    <TableCell className="hidden text-sm text-muted-foreground md:table-cell">{formatDateTime(r.t.lastMessageAt, ctx.locale, ctx.tenant.timezone)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={rows}
+              rowKey={(r) => r.t.id}
+              rowProps={() => ({ "data-testid": "ticket-row" })}
+              columns={[
+                { key: "ticket", header: t("columns.ticket"), mobile: "title", cell: (r) => <><Link href={`${base}/${r.t.id}`} className="font-medium hover:underline">#{r.t.number} · {r.t.subject}</Link><p className="text-xs font-normal text-muted-foreground">{t(`categories.${r.t.category}`)} · {t("messages_n", { n: formatNumber(r.messages, ctx.locale) })}</p></> },
+                { key: "status", header: t("columns.status"), mobile: "badge", cell: (r) => <Badge variant={STATUS_VARIANT[r.t.status] ?? "muted"}>{t(`statuses.${r.t.status}`)}</Badge> },
+                { key: "author", header: t("columns.author"), label: "", className: "text-sm", cell: (r) => r.authorName ?? r.authorEmail ?? "—" },
+                { key: "updated", header: t("columns.updated"), label: "", className: "text-sm text-muted-foreground", cell: (r) => formatDateTime(r.t.lastMessageAt, ctx.locale, ctx.tenant.timezone) },
+              ]}
+            />
           </CardContent>
         </Card>
       )}

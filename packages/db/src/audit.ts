@@ -1,8 +1,8 @@
 import type { DbExecutor } from "./client";
 import { auditLogs } from "./schema";
 
-/** `mcp`: a write made by an AI client through the MCP server, on behalf of `actorUserId` (client name in metadata). */
-export type ActorType = "user" | "system" | "super_admin" | "impersonation" | "mcp";
+/** `mcp`: a write made by an AI client through the MCP server, on behalf of `actorUserId` (client name in metadata); `api`: a REST API call with a token of `actorUserId` (#81). */
+export type ActorType = "user" | "system" | "super_admin" | "impersonation" | "mcp" | "api";
 
 export interface AuditInput {
   tenantId: string | null;

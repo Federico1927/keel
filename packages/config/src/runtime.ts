@@ -46,6 +46,8 @@ export function checkRuntimeConfig(env: Env, role: RuntimeProcess): RuntimeCheck
       else if (value === devValue) errors.push(`${name} still has the development value from .env.example.`);
     }
     if (!env.SENTRY_DSN) warnings.push("SENTRY_DSN is not set: errors in live mode will only reach the logs.");
+    // outgoing webhooks (#81): the loopback escape hatch exists for test receivers only and is ignored here
+    if (env.HULLWISE_WEBHOOKS_ALLOW_LOOPBACK === "1") warnings.push("HULLWISE_WEBHOOKS_ALLOW_LOOPBACK is ignored in live mode: webhooks never go to loopback or private addresses.");
     // the platform email sender (issue #51): without a key emails go to the mock, and the console says "Email not configured"
     if (!env.RESEND_API_KEY) warnings.push("RESEND_API_KEY is not set: emails (sign-in links, invitations, notifications) are captured by the mock and nobody receives them.");
     else {

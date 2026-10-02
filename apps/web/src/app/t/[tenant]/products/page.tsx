@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, DataList } from "@hullwise/ui";
 import { formatDateTime, formatNumber } from "@hullwise/core";
 import { bulkActionsFor, canWritePage } from "@hullwise/config";
 import { catalogQualityReport, catalogSyncStatus } from "@hullwise/services";
@@ -29,6 +30,9 @@ export default async function ProductsPage({ params, searchParams }: { params: P
   // a run that has not moved for 15 minutes is not shown as running (an inline run left paused, a crashed worker)
   const syncRunning = sync.latest !== null && (sync.latest.status === "running" || sync.latest.status === "paused") && Date.now() - sync.latest.updatedAt.getTime() < 15 * 60_000;
   const base = `/t/${tenant}/products`;
+  type Row = (typeof rows)[number];
+  // a scanned code that identifies one product opens it (#49)
+  if (sp.scan === "1" && total === 1 && rows[0]) redirect(`${base}/${rows[0].id}`);
   const bulk = bulkActionsFor(ctx.role, "products");
   const hrefFor = (p: number) => {
     const u = new URLSearchParams();
@@ -60,48 +64,35 @@ export default async function ProductsPage({ params, searchParams }: { params: P
         <ListSelection ids={rows.map((p) => p.id)}>
         <Card className="mt-4">
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {bulk.length > 0 && <TableHead className="w-8"><SelectAllCheckbox /></TableHead>}
-                  <TableHead>{t("columns.product")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("columns.type")}</TableHead>
-                  <TableHead>{t("columns.status")}</TableHead>
-                  <TableHead className="text-right">{t("columns.variants")}</TableHead>
-                  <TableHead className="text-right">{t("columns.available")}</TableHead>
-                  <TableHead className="hidden text-right lg:table-cell">{t("columns.incoming")}</TableHead>
-                  <TableHead className="hidden text-right lg:table-cell">{t("columns.sold", { days: ctx.settings.salesVelocityLookbackDays })}</TableHead>
-                  <TableHead>{t("columns.risk")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((p) => (
-                  <TableRow key={p.id}>
-                    {bulk.length > 0 && <TableCell><RowCheckbox id={p.id} label={p.title} /></TableCell>}
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <ProductThumb src={p.imageUrl} alt={p.title} />
-                        <div className="min-w-0">
-                          <Link href={`${base}/${p.id}`} className="font-medium text-primary hover:underline">
-                            {p.title}
-                          </Link>
-                          <p className="text-xs text-muted-foreground">{p.vendor}</p>
-                        </div>
+            <DataList
+              rows={rows}
+              rowKey={(p) => p.id}
+              rowProps={() => ({ "data-testid": "product-row" })}
+              columns={[
+                ...(bulk.length > 0 ? [{ key: "select", header: <SelectAllCheckbox />, mobile: "select" as const, headClassName: "w-8", cell: (p: Row) => <RowCheckbox id={p.id} label={p.title} /> }] : []),
+                {
+                  key: "product",
+                  header: t("columns.product"),
+                  mobile: "title",
+                  cell: (p) => (
+                    <div className="flex items-center gap-3">
+                      <ProductThumb src={p.imageUrl} alt={p.title} />
+                      <div className="min-w-0">
+                        <Link href={`${base}/${p.id}`} className="font-medium text-primary hover:underline max-md:after:absolute max-md:after:inset-0">{p.title}</Link>
+                        <p className="text-xs font-normal text-muted-foreground">{p.vendor}</p>
                       </div>
-                    </TableCell>
-                    <TableCell className="hidden text-sm text-muted-foreground md:table-cell">{p.productType}</TableCell>
-                    <TableCell>
-                      <Badge variant={p.status === "active" ? "success" : "muted"}>{t(`status.${p.status}`)}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right tabular">{p.variants}</TableCell>
-                    <TableCell className="text-right tabular">{formatNumber(p.stock?.available ?? 0, ctx.locale)}</TableCell>
-                    <TableCell className="hidden text-right tabular text-muted-foreground lg:table-cell">{p.stock?.incoming ? `+${p.stock.incoming}` : "—"}</TableCell>
-                    <TableCell className="hidden text-right tabular lg:table-cell">{formatNumber(p.stock?.unitsSold ?? 0, ctx.locale)}</TableCell>
-                    <TableCell>{p.stock && <RiskBadge risk={p.stock.risk} days={p.stock.worstDaysOfCover} />}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </div>
+                  ),
+                },
+                { key: "type", header: t("columns.type"), className: "text-sm text-muted-foreground", cell: (p) => p.productType },
+                { key: "status", header: t("columns.status"), mobile: "badge", cell: (p) => <Badge variant={p.status === "active" ? "success" : "muted"}>{t(`status.${p.status}`)}</Badge> },
+                { key: "variants", header: t("columns.variants"), align: "right", className: "tabular", cell: (p) => p.variants },
+                { key: "available", header: t("columns.available"), align: "right", className: "tabular max-md:font-medium", cell: (p) => formatNumber(p.stock?.available ?? 0, ctx.locale) },
+                { key: "incoming", header: t("columns.incoming"), priority: 2, align: "right", className: "tabular text-muted-foreground", cell: (p) => (p.stock?.incoming ? `+${p.stock.incoming}` : "—") },
+                { key: "sold", header: t("columns.sold", { days: ctx.settings.salesVelocityLookbackDays }), priority: 2, align: "right", className: "tabular", cell: (p) => formatNumber(p.stock?.unitsSold ?? 0, ctx.locale) },
+                { key: "risk", header: t("columns.risk"), label: "", cell: (p) => p.stock && <RiskBadge risk={p.stock.risk} days={p.stock.worstDaysOfCover} /> },
+              ]}
+            />
           </CardContent>
         </Card>
         <BulkBar slug={tenant} list="products" actions={bulk} />

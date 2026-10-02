@@ -7,6 +7,7 @@ export const QUEUES = {
   syncAds: "sync.ads",
   syncPayouts: "sync.payouts",
   syncReturns: "sync.returns",
+  syncAnalytics: "sync.analytics",
   platformWrite: "platform.write",
   tick: "scheduler.tick",
   listExport: "list.export",
@@ -15,6 +16,7 @@ export const QUEUES = {
   billingEvent: "billing.event",
   tenantExport: "tenant.export",
   campaignSend: "campaign.send",
+  webhookDeliver: "webhook.deliver",
 } as const;
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];
 
@@ -57,6 +59,16 @@ export interface SyncAdsJob {
   phase?: "campaigns" | "entities";
   /** "backfill": the first import after connecting (e.g. TikTok's 90 days), resumed as its own run. */
   kind?: "delta" | "backfill";
+  /** One Meta ad account (#82); absent: every connected account of the platform. */
+  accountExternalId?: string;
+}
+/**
+ * GA4 traffic (#86): `backfill` (12 months after connecting), `daily` (since the last day read) or
+ * `reconcile` (the last 3 days, nightly: GA4 settles late). Resumable in 7-day slices like the ads sync.
+ */
+export interface SyncAnalyticsJob {
+  tenantId: string;
+  kind: "backfill" | "daily" | "reconcile";
 }
 /** A CSV export too large for a direct download (packages/services `requestListExport`). */
 export interface ListExportJob {
@@ -86,9 +98,14 @@ export interface CampaignSendJob {
   tenantId: string;
   campaignId: string;
 }
-export const TICK_KINDS = ["delta", "ads", "reconcile", "retry", "billing", "cod", "alerts", "returns", "crm", "segments", "tracking", "tasks", "notify", "digest", "writes", "retention", "backorders", "emails", "payouts", "watchdog", "campaigns", "subscriptions", "whatsapp"] as const;
+/** One outgoing webhook delivery (#81): an attempt now, its retry scheduled by the handler. */
+export interface WebhookDeliverJob {
+  tenantId: string;
+  deliveryId: string;
+}
+export const TICK_KINDS = ["delta", "ads", "reconcile", "retry", "billing", "cod", "alerts", "returns", "crm", "segments", "tracking", "tasks", "notify", "digest", "writes", "retention", "backorders", "emails", "payouts", "watchdog", "campaigns", "subscriptions", "whatsapp", "webhooks", "accounting"] as const;
 export interface TickJob {
-  /** delta (every 15 min) | ads (daily) | reconcile (nightly) | retry (every 10 min) | billing (daily) | writes (every minute: outbox retries) | retention (daily: platform rows, audit retention, expired exports, job history) | backorders (every 10 min: safety re-check) | emails (every 10 min: provider events left behind, lost queued emails) | payouts (daily: processor payouts and actual fees) | watchdog (every 10 min: stale and idle integration sources) | campaigns (every minute: scheduled customer campaigns start, sequences enrol, send queues resume) | whatsapp (every 5 min: Spoki webhook retries and order notifications, add-on tenants only) | subscriptions (every 15 min: addon.subscriptions sync and churn risk) */
+  /** delta (every 15 min) | ads (daily) | reconcile (nightly) | retry (every 10 min) | billing (daily) | writes (every minute: outbox retries) | retention (daily: platform rows, audit retention, expired exports, job history) | backorders (every 10 min: safety re-check) | emails (every 10 min: provider events left behind, lost queued emails) | payouts (daily: processor payouts and actual fees) | watchdog (every 10 min: stale and idle integration sources) | campaigns (every minute: scheduled customer campaigns start, sequences enrol, send queues resume) | whatsapp (every 5 min: Spoki webhook retries and order notifications, add-on tenants only) | subscriptions (every 15 min: addon.subscriptions sync and churn risk) | webhooks (every minute: outgoing webhook deliveries whose attempt is due and was not picked up) | accounting (hourly: addon.accounting pushes the closed days that reconcile, retries failed pushes) */
   kind: (typeof TICK_KINDS)[number];
 }
 
@@ -120,9 +137,12 @@ export function resyncJobsFor(tenantId: string, source: string, now = new Date()
   const [provider, part] = source.split(":");
   if (isAdPlatform(provider)) {
     const w = adsWindow(now);
-    return [{ queue: QUEUES.syncAds, data: { tenantId, provider, ...w } satisfies SyncAdsJob, singletonKey: `${tenantId}:${provider}:${w.until}` }];
+    // `meta:<account>` (#82): only that ad account; `meta`, `meta:entities`, `meta:writes`: every account
+    const account = part && part !== "entities" && part !== "writes" ? part : undefined;
+    return [{ queue: QUEUES.syncAds, data: { tenantId, provider, ...w, ...(account ? { accountExternalId: account } : {}) } satisfies SyncAdsJob, singletonKey: `${tenantId}:${provider}:${w.until}${account ? `:${account}` : ""}` }];
   }
   // addon.subscriptions: the subscription app is re-read by the add-on's tick
+  if (provider === "ga4") return [{ queue: QUEUES.syncAnalytics, data: { tenantId, kind: "daily" } satisfies SyncAnalyticsJob, singletonKey: `${tenantId}:ga4:daily` }];
   if (provider === "shopify_subscriptions" || provider === "recharge" || provider === "loop") return [{ queue: QUEUES.tick, data: { kind: "subscriptions" } satisfies TickJob, singletonKey: `${tenantId}:subscriptions` }];
   if (provider !== "shopify") return [];
   if (!part) return [{ queue: QUEUES.syncOrders, data: { tenantId, kind: "delta" } satisfies SyncOrdersJob, singletonKey: `${tenantId}:delta` }];
@@ -143,7 +163,7 @@ export function runNowJob(jobType: string, tenantId: string | null, now = new Da
     return (TICK_KINDS as readonly string[]).includes(kind) ? { queue: QUEUES.tick, data: { kind } as TickJob } : null;
   }
   if (!tenantId) return null;
-  const source = jobType === QUEUES.syncOrders ? "shopify" : jobType === QUEUES.syncCatalog ? "shopify:catalog" : jobType === QUEUES.syncReturns ? "shopify:returns" : jobType === QUEUES.syncPayouts ? "shopify:payouts" : jobType.startsWith(`${QUEUES.syncAds}:`) ? jobType.slice(QUEUES.syncAds.length + 1) : null;
+  const source = jobType === QUEUES.syncOrders ? "shopify" : jobType === QUEUES.syncCatalog ? "shopify:catalog" : jobType === QUEUES.syncReturns ? "shopify:returns" : jobType === QUEUES.syncPayouts ? "shopify:payouts" : jobType === QUEUES.syncAnalytics ? "ga4" : jobType.startsWith(`${QUEUES.syncAds}:`) ? jobType.slice(QUEUES.syncAds.length + 1) : null;
   return source ? (resyncJobsFor(tenantId, source, now)[0] ?? null) : null;
 }
 

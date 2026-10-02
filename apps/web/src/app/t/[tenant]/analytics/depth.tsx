@@ -4,11 +4,13 @@ import { CheckCircle2, Download } from "lucide-react";
 import { GRANULARITIES, SALE_STATUSES, UTM_DIMENSIONS, UTM_NONE, formatDate, formatMoney, formatNumber, formatPercent, isUtmDimension, nextUtmDimension, type BucketPnl, type Granularity, type PeriodBucket, type UtmDimension } from "@hullwise/core";
 import { ORDER_PNL_SORTS, PRODUCT_PROFIT_SORTS, catalogQualityReport, orderPnlTable, productProfitTable, utmReport, type OrderPnlSort, type PnlReport, type ProductProfitSort } from "@hullwise/services";
 import { PAYMENT_METHODS } from "@hullwise/core";
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, Input, Pagination, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, EmptyState, Input, Pagination, Select, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import type { TenantContext } from "@/server/tenant";
 import { analyticsTenant, runAnalytics } from "@/server/analytics";
 import { utmParam } from "@/server/queries/orders";
 import { PnlChart, TrendChart } from "@/components/charts/pnl-chart";
+import { ChartFullscreen } from "@/components/mobile/chart-fullscreen";
+import { WideTable } from "@/components/mobile/wide-table";
 import { LightBadge } from "../campaigns/badges";
 
 type Sp = Record<string, string | undefined>;
@@ -71,36 +73,35 @@ export async function PnlPeriods({ ctx, tenant, pnl, buckets, granularity, query
         </div>
       </div>
       <div className="px-2 pt-3 sm:px-4">
-        <PnlChart data={chart} series={series} profitLabel={tp("operating")} partialLabel={t("periods.partial")} locale={ctx.locale} currency={ctx.tenant.currency} />
+        <ChartFullscreen title={t("periods.title")}><PnlChart data={chart} series={series} profitLabel={tp("operating")} partialLabel={t("periods.partial")} locale={ctx.locale} currency={ctx.tenant.currency} /></ChartFullscreen>
         <p className="pt-1 text-xs text-muted-foreground">{t("periods.chart_hint")}</p>
       </div>
-      <div className="overflow-x-auto [&_td.tabular]:whitespace-nowrap">
-        <Table>
+      <WideTable label={t("periods.title")} stickyFirst data-testid="pnl-periods-table">
           <TableHeader>
             <TableRow>
               <TableHead>{t(`granularity.${granularity}`)}</TableHead>
               <TableHead className="text-right">{tp("orders")}</TableHead>
               <TableHead className="text-right">{tp("net")}</TableHead>
-              <TableHead className="hidden text-right 2xl:table-cell">{tp("cogs")}</TableHead>
+              <TableHead className="text-right">{tp("cogs")}</TableHead>
               <TableHead className="text-right">{tp("contribution")}</TableHead>
-              <TableHead className="hidden text-right md:table-cell">{tp("ads")}</TableHead>
-              <TableHead className="hidden text-right 2xl:table-cell">{tp("fixed")}</TableHead>
+              <TableHead className="text-right">{tp("ads")}</TableHead>
+              <TableHead className="text-right">{tp("fixed")}</TableHead>
               <TableHead className="text-right">{tp("operating")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {shown.map((b) => (
               <TableRow key={b.bucket.key} data-testid="pnl-bucket">
-                <TableCell className="whitespace-nowrap">
+                <TableCell className="whitespace-nowrap!">
                   <Link href={query({ tab: "orders_pnl", preset: undefined, from: day(b.bucket.from), to: lastDay(b.bucket.to) })} className="hover:underline">{bucketLabel(b.bucket, granularity, ctx.locale)}</Link>
                   {b.bucket.partial && <Badge variant="outline" className="ml-1 text-[10px]" title={t("periods.partial_hint")}>{t("periods.partial")}</Badge>}
                 </TableCell>
                 <TableCell className="text-right tabular"><Link href={orders(b.bucket)} className="hover:underline">{formatNumber(b.orders, ctx.locale)}</Link></TableCell>
                 <TableCell className="text-right tabular">{money(b.netRevenueMinor)}</TableCell>
-                <TableCell className="hidden text-right tabular 2xl:table-cell">{money(b.cogsMinor)}</TableCell>
+                <TableCell className="text-right tabular">{money(b.cogsMinor)}</TableCell>
                 <TableCell className="text-right tabular">{money(b.contributionMinor)}</TableCell>
-                <TableCell className="hidden text-right tabular md:table-cell">{money(b.adSpendMinor)}</TableCell>
-                <TableCell className="hidden text-right tabular 2xl:table-cell">{money(b.fixedCostsMinor)}</TableCell>
+                <TableCell className="text-right tabular">{money(b.adSpendMinor)}</TableCell>
+                <TableCell className="text-right tabular">{money(b.fixedCostsMinor)}</TableCell>
                 <TableCell className={cn("text-right tabular font-medium", b.operatingProfitMinor < 0 && "text-destructive")}>{money(b.operatingProfitMinor)}</TableCell>
               </TableRow>
             ))}
@@ -108,15 +109,14 @@ export async function PnlPeriods({ ctx, tenant, pnl, buckets, granularity, query
               <TableCell>{t("total")}</TableCell>
               <TableCell className="text-right tabular">{formatNumber(pnl.orders, ctx.locale)}</TableCell>
               <TableCell className="text-right tabular">{money(pnl.netRevenueMinor)}</TableCell>
-              <TableCell className="hidden text-right tabular 2xl:table-cell">{money(pnl.cogsMinor)}</TableCell>
+              <TableCell className="text-right tabular">{money(pnl.cogsMinor)}</TableCell>
               <TableCell className="text-right tabular">{money(pnl.contributionMinor)}</TableCell>
-              <TableCell className="hidden text-right tabular md:table-cell">{money(pnl.adSpendMinor)}</TableCell>
-              <TableCell className="hidden text-right tabular 2xl:table-cell">{money(pnl.fixedCostsMinor)}</TableCell>
+              <TableCell className="text-right tabular">{money(pnl.adSpendMinor)}</TableCell>
+              <TableCell className="text-right tabular">{money(pnl.fixedCostsMinor)}</TableCell>
               <TableCell className={cn("text-right tabular", pnl.operatingProfitMinor < 0 && "text-destructive")}>{money(pnl.operatingProfitMinor)}</TableCell>
             </TableRow>
           </TableBody>
-        </Table>
-      </div>
+      </WideTable>
       {pages > 1 && <Pagination className="p-3" page={page} pageSize={size} total={buckets.length} hrefFor={(p) => query({ tab: "pnl", gran: granularity, bpage: String(p) })} summary={t("periods.pages", { n: buckets.length })} />}
     </div>
   );
@@ -222,52 +222,31 @@ export async function OrderPnlTab({ ctx, tenant, period, query, sp, keep }: { ct
           {data.rows.length === 0 ? (
             <EmptyState title={t("orders_pnl.empty")} className="m-4" />
           ) : (
-            <div className="overflow-x-auto [&_td.tabular]:whitespace-nowrap">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("orders_pnl.order")}</TableHead>
-                    <TableHead className="hidden md:table-cell">{t("orders_pnl.payment")}</TableHead>
-                    <TableHead className="hidden lg:table-cell">{t("orders_pnl.channel")}</TableHead>
-                    <TableHead className="text-right">{tp("net")}</TableHead>
-                    <TableHead className="hidden text-right md:table-cell">{tp("cogs")}</TableHead>
-                    <TableHead className="hidden text-right lg:table-cell">{tp("shipping")}</TableHead>
-                    <TableHead className="hidden text-right lg:table-cell">{t("orders_pnl.fee_estimated")}</TableHead>
-                    <TableHead className="hidden text-right lg:table-cell">{tp("return_costs")}</TableHead>
-                    <TableHead className="text-right">{tp("contribution")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.rows.map((o) => (
-                    <TableRow key={o.orderId} data-testid="order-pnl-row">
-                      <TableCell>
-                        <Link href={`/t/${tenant}/orders/${o.orderId}`} className="font-medium text-primary hover:underline">{o.name}</Link>
-                        <p className="text-xs text-muted-foreground">{formatDate(o.placedAt, ctx.locale, ctx.tenant.timezone)} · {tst(o.status)}</p>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">{tpm(o.paymentMethod)}</TableCell>
-                      <TableCell className="hidden lg:table-cell">{t.has(`channels.${o.channel}`) ? t(`channels.${o.channel}`) : o.channel}</TableCell>
-                      <TableCell className="text-right tabular">{money(o.netRevenueMinor)}</TableCell>
-                      <TableCell className="hidden text-right tabular md:table-cell">{money(o.cogsMinor)}{!o.cogsComplete && <Badge variant="warning" className="ml-1 text-[10px]">{t("orders_pnl.no_cost")}</Badge>}</TableCell>
-                      <TableCell className="hidden text-right tabular lg:table-cell">{money(o.shippingCostMinor)}</TableCell>
-                      <TableCell className="hidden text-right tabular lg:table-cell">{money(o.paymentFeeMinor)}</TableCell>
-                      <TableCell className="hidden text-right tabular lg:table-cell">{money(o.returnCostMinor)}</TableCell>
-                      <TableCell className={cn("text-right tabular font-medium", o.contributionMinor < 0 && "text-destructive")}>{money(o.contributionMinor)}</TableCell>
-                    </TableRow>
-                  ))}
-                  <TableRow className="bg-muted/40 font-medium" data-testid="order-pnl-total">
-                    <TableCell><Link href={ordersHref} className="hover:underline">{t("orders_pnl.total", { n: formatNumber(tot.orders, ctx.locale) })}</Link></TableCell>
-                    <TableCell className="hidden md:table-cell" />
-                    <TableCell className="hidden lg:table-cell" />
-                    <TableCell className="text-right tabular">{money(tot.netRevenueMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{money(tot.cogsMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular lg:table-cell">{money(tot.shippingCostMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular lg:table-cell">{money(tot.paymentFeeMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular lg:table-cell">{money(tot.returnCostMinor)}</TableCell>
-                    <TableCell className={cn("text-right tabular", tot.contributionMinor < 0 && "text-destructive")}>{money(tot.contributionMinor)}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </div>
+            <DataList
+              rows={data.rows}
+              rowKey={(o) => o.orderId}
+              rowProps={() => ({ "data-testid": "order-pnl-row" })}
+              columns={[
+                { key: "order", header: t("orders_pnl.order"), mobile: "title", cell: (o) => <><Link href={`/t/${tenant}/orders/${o.orderId}`} className="font-medium text-primary hover:underline">{o.name}</Link><p className="text-xs font-normal text-muted-foreground">{formatDate(o.placedAt, ctx.locale, ctx.tenant.timezone)} · {tst(o.status)}</p></> },
+                { key: "payment", header: t("orders_pnl.payment"), cell: (o) => tpm(o.paymentMethod) },
+                { key: "channel", header: t("orders_pnl.channel"), priority: 2, cell: (o) => (t.has(`channels.${o.channel}`) ? t(`channels.${o.channel}`) : o.channel) },
+                { key: "net", header: tp("net"), align: "right", className: "tabular whitespace-nowrap", cell: (o) => money(o.netRevenueMinor) },
+                { key: "cogs", header: tp("cogs"), align: "right", className: "tabular whitespace-nowrap", cell: (o) => <>{money(o.cogsMinor)}{!o.cogsComplete && <Badge variant="warning" className="ml-1 text-[10px]">{t("orders_pnl.no_cost")}</Badge>}</> },
+                { key: "shipping", header: tp("shipping"), align: "right", priority: 2, className: "tabular whitespace-nowrap", cell: (o) => money(o.shippingCostMinor) },
+                { key: "fee", header: t("orders_pnl.fee_estimated"), align: "right", priority: 2, className: "tabular whitespace-nowrap", cell: (o) => money(o.paymentFeeMinor) },
+                { key: "returns", header: tp("return_costs"), align: "right", priority: 3, className: "tabular whitespace-nowrap", cell: (o) => money(o.returnCostMinor) },
+                { key: "contribution", header: tp("contribution"), mobile: "badge", align: "right", className: "tabular whitespace-nowrap font-medium", cell: (o) => <span className={cn(o.contributionMinor < 0 && "text-destructive")}>{money(o.contributionMinor)}</span> },
+              ]}
+              footer={{
+                order: <Link href={ordersHref} className="hover:underline" data-testid="order-pnl-total">{t("orders_pnl.total", { n: formatNumber(tot.orders, ctx.locale) })}</Link>,
+                contribution: <span className={cn(tot.contributionMinor < 0 && "text-destructive")}>{money(tot.contributionMinor)}</span>,
+                net: money(tot.netRevenueMinor),
+                cogs: money(tot.cogsMinor),
+                shipping: money(tot.shippingCostMinor),
+                fee: money(tot.paymentFeeMinor),
+                returns: money(tot.returnCostMinor),
+              }}
+            />
           )}
           <Pagination className="p-3" page={data.page} pageSize={data.pageSize} total={data.total} hrefFor={(p) => query({ tab: "orders_pnl", ...filters, missingCost: filters.missingCost ? "1" : undefined, loss: filters.loss ? "1" : undefined, sort: sort === "placed_desc" ? undefined : sort, page: String(p) })} summary={t("orders_pnl.summary", { n: formatNumber(data.total, ctx.locale) })} />
         </CardContent>
@@ -331,57 +310,55 @@ export async function ProductsTab({ ctx, tenant, period, query, sp, keep }: { ct
         {data.rows.length === 0 ? (
           <EmptyState title={tp("empty")} className="m-4" />
         ) : (
-          <div className="overflow-x-auto [&_td.tabular]:whitespace-nowrap">
-            <Table>
+          <WideTable label={tp("title")} stickyFirst data-testid="product-profit-table">
               <TableHeader>
                 <TableRow>
                   <TableHead>{tp("product")}</TableHead>
                   <TableHead className="text-right">{tp("units")}</TableHead>
                   <TableHead className="text-right">{t("products.net")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{tp("cogs")}</TableHead>
+                  <TableHead className="text-right">{tp("cogs")}</TableHead>
                   <TableHead className="text-right">{t("products.ad_spend")}</TableHead>
                   <TableHead className="text-right">{t("products.profit")}</TableHead>
-                  <TableHead className="hidden text-right lg:table-cell">ROAS · ROI</TableHead>
-                  <TableHead className="hidden lg:table-cell">{t("products.light")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("products.stock")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("products.cover")}</TableHead>
+                  <TableHead className="text-right">ROAS · ROI</TableHead>
+                  <TableHead>{t("products.light")}</TableHead>
+                  <TableHead className="text-right">{t("products.stock")}</TableHead>
+                  <TableHead className="text-right">{t("products.cover")}</TableHead>
                   <TableHead>{t("products.action")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {data.rows.map((r) => (
                   <TableRow key={r.productId} data-testid="product-profit-row">
-                    <TableCell><Link href={`/t/${tenant}/products/${r.productId}`} className="font-medium text-primary hover:underline">{r.title}</Link>{r.unitsWithoutCost > 0 && <Badge variant="warning" className="ml-1 text-[10px]">{t("orders_pnl.no_cost")}</Badge>}</TableCell>
+                    <TableCell className="min-w-36"><Link href={`/t/${tenant}/products/${r.productId}`} className="font-medium text-primary hover:underline">{r.title}</Link>{r.unitsWithoutCost > 0 && <Badge variant="warning" className="ml-1 text-[10px]">{t("orders_pnl.no_cost")}</Badge>}</TableCell>
                     <TableCell className="text-right tabular"><Link href={ordersOf(r.productId)} className="hover:underline">{formatNumber(r.units, ctx.locale)}</Link></TableCell>
                     <TableCell className="text-right tabular"><Link href={ordersOf(r.productId)} className="hover:underline">{money(r.netRevenueMinor)}</Link></TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{money(r.cogsMinor)}</TableCell>
+                    <TableCell className="text-right tabular">{money(r.cogsMinor)}</TableCell>
                     <TableCell className="text-right tabular">{r.adSpendMinor ? <Link href={`/t/${tenant}/campaigns?from=${fromIso}&to=${toIso}`} className="hover:underline" title={t("products.campaigns", { n: r.campaigns })}>{money(r.adSpendMinor)}</Link> : "—"}</TableCell>
                     <TableCell className={cn("text-right tabular font-medium", r.profitMinor < 0 && "text-destructive")}>{money(r.profitMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular lg:table-cell">{ratio(r.roas)} · {r.roi === null ? "—" : formatPercent(r.roi, ctx.locale, 0)}</TableCell>
-                    <TableCell className="hidden lg:table-cell">{r.light === "none" ? <span className="text-muted-foreground">—</span> : <LightBadge light={r.light} />}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{formatNumber(r.available, ctx.locale)}{r.incoming > 0 && <span className="text-xs text-muted-foreground"> +{formatNumber(r.incoming, ctx.locale)}</span>}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{r.coverDays === null ? "—" : t("products.days", { n: Math.round(r.coverDays) })}</TableCell>
+                    <TableCell className="text-right tabular">{ratio(r.roas)} · {r.roi === null ? "—" : formatPercent(r.roi, ctx.locale, 0)}</TableCell>
+                    <TableCell>{r.light === "none" ? <span className="text-muted-foreground">—</span> : <LightBadge light={r.light} />}</TableCell>
+                    <TableCell className="text-right tabular">{formatNumber(r.available, ctx.locale)}{r.incoming > 0 && <span className="text-xs text-muted-foreground"> +{formatNumber(r.incoming, ctx.locale)}</span>}</TableCell>
+                    <TableCell className="text-right tabular">{r.coverDays === null ? "—" : t("products.days", { n: Math.round(r.coverDays) })}</TableCell>
                     <TableCell className="whitespace-nowrap"><Badge variant={actionVariant(r.action)}>{t(`products.actions.${r.action}`)}</Badge>{r.reorderUnits > 0 && <span className="ml-1 text-xs text-muted-foreground tabular">{t("products.reorder_units", { n: r.reorderUnits })}</span>}</TableCell>
                   </TableRow>
                 ))}
                 <TableRow className="bg-muted/40" data-testid="unattributed-row">
-                  <TableCell colSpan={4} className="text-sm">{t("products.unattributed", { n: data.unlinkedCampaigns })} <Link href={`/t/${tenant}/campaigns`} className="text-xs underline-offset-4 hover:underline">{t("products.link_campaigns")}</Link></TableCell>
+                  <TableCell colSpan={4} className="text-sm whitespace-normal!">{t("products.unattributed", { n: data.unlinkedCampaigns })} <Link href={`/t/${tenant}/campaigns`} className="text-xs underline-offset-4 hover:underline">{t("products.link_campaigns")}</Link></TableCell>
                   <TableCell className="text-right tabular">{money(data.unattributedMinor)}</TableCell>
                   <TableCell className="text-right tabular text-destructive">{money(0 - data.unattributedMinor || 0)}</TableCell>
-                  <TableCell colSpan={5} className="hidden lg:table-cell" />
+                  <TableCell colSpan={5} />
                 </TableRow>
                 <TableRow className="bg-muted/40 font-medium" data-testid="product-profit-total">
                   <TableCell>{t("total")}</TableCell>
                   <TableCell className="text-right tabular">{formatNumber(data.totals.units, ctx.locale)}</TableCell>
                   <TableCell className="text-right tabular">{money(data.totals.netRevenueMinor)}</TableCell>
-                  <TableCell className="hidden text-right tabular md:table-cell">{money(data.totals.cogsMinor)}</TableCell>
+                  <TableCell className="text-right tabular">{money(data.totals.cogsMinor)}</TableCell>
                   <TableCell className="text-right tabular" data-testid="product-ad-spend-total">{money(data.totals.adSpendMinor + data.unattributedMinor)}</TableCell>
                   <TableCell className={cn("text-right tabular", data.totals.profitMinor - data.unattributedMinor < 0 && "text-destructive")}>{money(data.totals.profitMinor - data.unattributedMinor)}</TableCell>
-                  <TableCell colSpan={5} className="hidden text-xs font-normal text-muted-foreground lg:table-cell">{t("products.spend_matches", { spend: money(data.adSpendMinor) })}</TableCell>
+                  <TableCell colSpan={5} className="text-xs font-normal text-muted-foreground">{t("products.spend_matches", { spend: money(data.adSpendMinor) })}</TableCell>
                 </TableRow>
               </TableBody>
-            </Table>
-          </div>
+          </WideTable>
         )}
         <Pagination className="p-3" page={data.page} pageSize={data.pageSize} total={data.total} hrefFor={(p) => query({ tab: "products", q: sp.q, action, sort: sort === "net_desc" ? undefined : sort, page: String(p) })} summary={t("products.summary", { n: data.total })} />
       </CardContent>
@@ -442,16 +419,15 @@ export async function UtmTab({ ctx, tenant, period, granularity, query, sp, keep
           {data.groups.length === 0 ? (
             <EmptyState title={t("utm.empty")} className="m-4" />
           ) : (
-            <div className="overflow-x-auto [&_td.tabular]:whitespace-nowrap">
-              <Table>
+            <WideTable label={t("utm.title")} stickyFirst data-testid="utm-table">
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t(`utm.dims.${dim}`)}</TableHead>
                     <TableHead className="text-right">{t("utm.orders")}</TableHead>
                     <TableHead className="text-right">{t("utm.revenue")}</TableHead>
-                    <TableHead className="hidden text-right md:table-cell">{t("utm.net")}</TableHead>
+                    <TableHead className="text-right">{t("utm.net")}</TableHead>
                     <TableHead className="text-right">{t("utm.aov")}</TableHead>
-                    <TableHead className="hidden text-right md:table-cell">{t("utm.share")}</TableHead>
+                    <TableHead className="text-right">{t("utm.share")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -462,9 +438,9 @@ export async function UtmTab({ ctx, tenant, period, granularity, query, sp, keep
                         <TableCell>{next ? <Link href={query({ tab: "utm", dim: next, ...filterParams, [utmParam(dim)]: g.value })} className="font-medium text-primary hover:underline">{label(g.value)}</Link> : <span className="font-medium">{label(g.value)}</span>}</TableCell>
                         <TableCell className="text-right tabular"><Link href={orders} className="hover:underline">{formatNumber(g.orders, ctx.locale)}</Link></TableCell>
                         <TableCell className="text-right tabular"><Link href={orders} className="hover:underline">{money(g.grossRevenueMinor)}</Link></TableCell>
-                        <TableCell className="hidden text-right tabular md:table-cell">{money(g.netRevenueMinor)}</TableCell>
+                        <TableCell className="text-right tabular">{money(g.netRevenueMinor)}</TableCell>
                         <TableCell className="text-right tabular">{g.aovMinor === null ? "—" : money(g.aovMinor)}</TableCell>
-                        <TableCell className="hidden text-right tabular md:table-cell">{formatPercent(g.revenueShare, ctx.locale)}</TableCell>
+                        <TableCell className="text-right tabular">{formatPercent(g.revenueShare, ctx.locale)}</TableCell>
                       </TableRow>
                     );
                   })}
@@ -472,13 +448,12 @@ export async function UtmTab({ ctx, tenant, period, granularity, query, sp, keep
                     <TableCell>{t("total")}</TableCell>
                     <TableCell className="text-right tabular"><Link href={ordersOf({})} className="hover:underline">{formatNumber(data.orders, ctx.locale)}</Link></TableCell>
                     <TableCell className="text-right tabular">{money(data.grossRevenueMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{money(data.netRevenueMinor)}</TableCell>
+                    <TableCell className="text-right tabular">{money(data.netRevenueMinor)}</TableCell>
                     <TableCell className="text-right tabular">{data.orders ? money(Math.round(data.grossRevenueMinor / data.orders)) : "—"}</TableCell>
-                    <TableCell className="hidden md:table-cell" />
+                    <TableCell />
                   </TableRow>
                 </TableBody>
-              </Table>
-            </div>
+            </WideTable>
           )}
           {pages > 1 && <Pagination className="p-3" page={page} pageSize={per} total={data.groups.length} hrefFor={(p) => query({ tab: "utm", dim, ...filterParams, page: String(p) })} summary={t("utm.summary", { n: data.groups.length })} />}
         </CardContent>
@@ -498,7 +473,7 @@ export async function UtmTab({ ctx, tenant, period, granularity, query, sp, keep
           </div>
         </CardHeader>
         <CardContent>
-          <TrendChart data={data.trend.points.map((p) => ({ label: bucketLabel(p.bucket, granularity, ctx.locale), values: Object.fromEntries(Object.entries(p.values).map(([k, v]) => [k, v.netRevenueMinor])) }))} keys={data.trend.keys} labels={channelLabels} locale={ctx.locale} currency={ctx.tenant.currency} />
+          <ChartFullscreen title={t("utm.trend_title")}><TrendChart data={data.trend.points.map((p) => ({ label: bucketLabel(p.bucket, granularity, ctx.locale), values: Object.fromEntries(Object.entries(p.values).map(([k, v]) => [k, v.netRevenueMinor])) }))} keys={data.trend.keys} labels={channelLabels} locale={ctx.locale} currency={ctx.tenant.currency} /></ChartFullscreen>
           <div className="mt-3 flex flex-wrap gap-2 text-xs">
             {data.trend.keys.filter((k) => k !== "other").map((k) => (
               <Link key={k} href={`/t/${tenant}/orders?${new URLSearchParams({ from: fromIso, to: toIso, status: SALE, attrChannel: k })}`} className="rounded-full border px-2 py-0.5 hover:bg-muted/40" data-testid="channel-link">

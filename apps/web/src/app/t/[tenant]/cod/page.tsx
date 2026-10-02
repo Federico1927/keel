@@ -5,7 +5,7 @@ import { formatDate, formatDateTime, formatMoney, formatNumber, displayName } fr
 import { adminDb, eq, inArray, schema } from "@hullwise/db";
 import { QUEUE_VIEWS, getCodSettings, operatorKpis, queueItems, queueTiles, rowAging, syncQueue, type QueueView } from "@hullwise/addon-cod";
 import { getCommercePlatform } from "@/server/integrations";
-import { Badge, Card, CardContent, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardHeader, CardTitle, EmptyState, PageHeader, DataList, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { ClaimButton, OutcomeDialog, QueueToolbar, ScoreBadge } from "./queue-controls";
 import { AutoRefresh, BulkBar, QueueSelection, SelectAll, SelectBox } from "./queue-extras";
@@ -42,57 +42,64 @@ export default async function CodQueuePage({ params, searchParams }: { params: P
   const decorated = rows.map((r) => ({ ...r, aging: rowAging(r.item, now, settings) }));
   const ageBadge = (a: (typeof decorated)[number]["aging"], status: string) =>
     a.neverContacted && status === "pending" ? <Badge variant={a.level === "alert" ? "destructive" : a.level === "warn" ? "warning" : "muted"} className="ml-1" data-testid="never-contacted">{t("never_contacted", { age: fmtAge(a.hours) })}</Badge> : null;
+  type Row = (typeof decorated)[number];
+  // one list: a table from md up, a card per order on phones (#49, replaces the separate C.16 cards)
   const table = (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>{supervisor && <span className="mr-2 inline-block align-middle"><SelectAll orderIds={rows.map((r) => r.order.id)} label={t("bulk.select_all")} /></span>}{t("columns.order")}</TableHead>
-          <TableHead>{t("columns.customer")}</TableHead>
-          <TableHead className="text-right">{t("columns.total")}</TableHead>
-          <TableHead>{t("columns.score")}</TableHead>
-          <TableHead className="hidden md:table-cell">{t("columns.attempts")}</TableHead>
-          <TableHead className="hidden lg:table-cell">{t("columns.assigned")}</TableHead>
-          <TableHead className="hidden md:table-cell">{t("columns.waiting")}</TableHead>
-          <TableHead />
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {decorated.map(({ item, order, aging }) => {
-          const overdue = item.callBackAt && item.callBackAt <= now;
-          return (
-            <TableRow key={item.id} data-testid="queue-row" data-aging={aging.level} className={overdue ? "bg-warning/10" : AGING_ROW[aging.level]}>
-              <TableCell>
-                {supervisor && <SelectBox orderId={order.id} label={order.name} />}
+    <DataList
+      rows={decorated}
+      rowKey={(r) => r.item.id}
+      rowProps={({ item, aging }) => ({ "data-testid": "queue-row", "data-aging": aging.level, className: item.callBackAt && item.callBackAt <= now ? "bg-warning/10" : AGING_ROW[aging.level] })}
+      columns={[
+        {
+          key: "order",
+          header: <>{supervisor && <span className="mr-2 inline-block align-middle"><SelectAll orderIds={rows.map((r) => r.order.id)} label={t("bulk.select_all")} /></span>}{t("columns.order")}</>,
+          mobile: "title",
+          cell: ({ item, order }: Row) => {
+            const overdue = item.callBackAt && item.callBackAt <= now;
+            return (
+              <>
+                {supervisor && <span className="relative z-10"><SelectBox orderId={order.id} label={order.name} /></span>}
                 <Link href={`/t/${tenant}/orders/${order.id}${ctxQuery}`} className="font-medium hover:underline">{order.name}</Link>
-                <div className="text-xs text-muted-foreground">{formatDateTime(order.placedAt, ctx.locale, ctx.tenant.timezone)}</div>
+                <div className="text-xs font-normal text-muted-foreground">{formatDateTime(order.placedAt, ctx.locale, ctx.tenant.timezone)}</div>
                 {item.entryTag && <Badge variant="secondary" className="mt-1" data-testid="entry-tag">{item.entryTag}</Badge>}
                 {item.callBackAt && <Badge variant={overdue ? "warning" : "outline"} className="mt-1">{t("call_back_badge", { at: formatDateTime(item.callBackAt, ctx.locale, ctx.tenant.timezone) })}</Badge>}
                 {item.scheduledConfirmOn && <Badge variant="info" className="mt-1" data-testid="planned-badge">{t("planned_badge", { date: formatDate(new Date(`${item.scheduledConfirmOn}T12:00:00Z`), ctx.locale, ctx.tenant.timezone) })}</Badge>}
                 {item.scheduledConfirmError && <Badge variant="destructive" className="mt-1" title={item.scheduledConfirmError}>{t("planned_failed")}</Badge>}
                 {item.escalatedAt && <Badge variant="destructive" className="mt-1" title={item.escalationReason ?? ""} data-testid="escalated-badge">{t("escalated")}</Badge>}
-              </TableCell>
-              <TableCell>
-                <div className="truncate">{order.customerName ?? "—"}</div>
-                <div className="text-xs text-muted-foreground">{order.phone ?? order.email ?? "—"} · {order.shippingCity ?? ""} {order.shippingCountry ?? ""}</div>
-              </TableCell>
-              <TableCell className="text-right tabular">{formatMoney(order.totalMinor, order.currency, ctx.locale)}</TableCell>
-              <TableCell><ScoreBadge score={item.score} tier={item.riskTier} /></TableCell>
-              <TableCell className="hidden md:table-cell tabular">{item.attemptsCount}{item.status === "unreachable" && <Badge variant="destructive" className="ml-1">{t("views.unreachable")}</Badge>}</TableCell>
-              <TableCell className="hidden lg:table-cell text-xs">{who(item.assignedTo) ?? <span className="text-muted-foreground">{t("unassigned")}</span>}</TableCell>
-              <TableCell className="hidden md:table-cell text-xs tabular">{t("hours_n", { n: Math.round((now.getTime() - item.enteredAt.getTime()) / 3600e3) })}{ageBadge(aging, item.status)}</TableCell>
-              <TableCell className="text-right">
-                {canWrite && (
-                  <span className="flex justify-end gap-1">
-                    <ClaimButton slug={tenant} orderId={order.id} assignedToMe={item.assignedTo === ctx.user.id} assigned={Boolean(item.assignedTo)} canRelease={isAdmin || item.attemptsCount === 0} />
-                    <OutcomeDialog slug={tenant} orderId={order.id} orderName={order.name} compact />
-                  </span>
-                )}
-              </TableCell>
-            </TableRow>
-          );
-        })}
-      </TableBody>
-    </Table>
+              </>
+            );
+          },
+        },
+        {
+          key: "customer",
+          header: t("columns.customer"),
+          mobile: "subtitle",
+          cell: ({ order }: Row) => (
+            <>
+              <div className="truncate max-md:text-foreground">{order.customerName ?? "—"}</div>
+              <div className="text-xs text-muted-foreground">{order.phone ? <a href={`tel:${order.phone}`} className="text-primary underline-offset-4 hover:underline" data-testid="call-customer">{order.phone}</a> : (order.email ?? "—")} · {order.shippingCity ?? ""} {order.shippingCountry ?? ""}</div>
+            </>
+          ),
+        },
+        { key: "total", header: t("columns.total"), mobile: "badge", align: "right", className: "tabular", cell: ({ order }: Row) => formatMoney(order.totalMinor, order.currency, ctx.locale) },
+        { key: "score", header: t("columns.score"), label: "", cell: ({ item }: Row) => <ScoreBadge score={item.score} tier={item.riskTier} /> },
+        { key: "attempts", header: t("columns.attempts"), className: "tabular", cell: ({ item }: Row) => <>{item.attemptsCount}{item.status === "unreachable" && <Badge variant="destructive" className="ml-1">{t("views.unreachable")}</Badge>}</> },
+        { key: "assigned", header: t("columns.assigned"), priority: 2, className: "text-xs", cell: ({ item }: Row) => who(item.assignedTo) ?? <span className="text-muted-foreground">{t("unassigned")}</span> },
+        { key: "waiting", header: t("columns.waiting"), className: "text-xs tabular", cell: ({ item, aging }: Row) => <>{t("hours_n", { n: Math.round((now.getTime() - item.enteredAt.getTime()) / 3600e3) })}{ageBadge(aging, item.status)}</> },
+        {
+          key: "actions",
+          header: "",
+          mobile: "action",
+          align: "right",
+          cell: ({ item, order }: Row) => canWrite && (
+            <span className="flex justify-end gap-1 max-md:[&>*]:flex-1">
+              <ClaimButton slug={tenant} orderId={order.id} assignedToMe={item.assignedTo === ctx.user.id} assigned={Boolean(item.assignedTo)} canRelease={isAdmin || item.attemptsCount === 0} />
+              <OutcomeDialog slug={tenant} orderId={order.id} orderName={order.name} compact />
+            </span>
+          ),
+        },
+      ]}
+    />
   );
   return (
     <>
@@ -121,37 +128,9 @@ export default async function CodQueuePage({ params, searchParams }: { params: P
       ) : (
         <QueueSelection>
           {supervisor && <BulkBar slug={tenant} operators={operators} />}
-          <Card className="hidden md:block">
+          <Card data-testid="queue-cards">
             <CardContent className="p-0">{table}</CardContent>
           </Card>
-          {/* phones: one card per order (C.16) */}
-          <ul className="space-y-2 md:hidden" data-testid="queue-cards">
-            {decorated.map(({ item, order, aging }) => (
-              <li key={item.id} className={cn("rounded-lg border bg-card p-3 text-sm shadow-sm", AGING_ROW[aging.level])} data-testid="queue-card">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    {supervisor && <SelectBox orderId={order.id} label={order.name} />}
-                    <Link href={`/t/${tenant}/orders/${order.id}${ctxQuery}`} className="font-medium hover:underline">{order.name}</Link>
-                    <p className="truncate text-muted-foreground">{order.customerName ?? "—"} · {order.shippingCity ?? ""}</p>
-                  </div>
-                  <span className="shrink-0 tabular">{formatMoney(order.totalMinor, order.currency, ctx.locale)}</span>
-                </div>
-                <div className="mt-2 flex flex-wrap items-center gap-1">
-                  <ScoreBadge score={item.score} tier={item.riskTier} />
-                  <Badge variant="outline">{t("attempts_n", { n: item.attemptsCount })}</Badge>
-                  {ageBadge(aging, item.status)}
-                  {item.callBackAt && <Badge variant={item.callBackAt <= now ? "warning" : "outline"}>{t("call_back_badge", { at: formatDateTime(item.callBackAt, ctx.locale, ctx.tenant.timezone) })}</Badge>}
-                  {item.escalatedAt && <Badge variant="destructive">{t("escalated")}</Badge>}
-                </div>
-                {canWrite && (
-                  <div className="mt-2 flex flex-wrap justify-end gap-1">
-                    <ClaimButton slug={tenant} orderId={order.id} assignedToMe={item.assignedTo === ctx.user.id} assigned={Boolean(item.assignedTo)} canRelease={isAdmin || item.attemptsCount === 0} />
-                    <OutcomeDialog slug={tenant} orderId={order.id} orderName={order.name} compact />
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
         </QueueSelection>
       )}
       <Card className="mt-6">

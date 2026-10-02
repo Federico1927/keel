@@ -224,3 +224,14 @@ describe("csv export", () => {
     expect((await run((s) => takeExportFile(s, id, owner())))?.content).toBe(csv);
   });
 });
+
+describe("order list search by phone (#49)", () => {
+  it("matches the phone in E.164, international and local format when the tenant country is known", async () => {
+    const [o] = await run((s) => s.tx.select({ id: schema.orders.id, phone: schema.orders.phoneE164 }).from(schema.orders).where(and(eq(schema.orders.tenantId, tenantId), sql`${schema.orders.phoneE164} like '+39%'`)).limit(1));
+    const local = o!.phone!.replace(/^\+39/, "");
+    const ids = (q: string, country?: string) => run(async (s) => (await s.tx.select({ id: schema.orders.id }).from(schema.orders).where(orderListWhere({ ...scope(), country }, parseOrderFilters({ q })))).map((r) => r.id));
+    for (const q of [o!.phone!, `+39 ${local.slice(0, 3)} ${local.slice(3)}`, local]) expect(await ids(q, "IT"), q).toContain(o!.id);
+    // without the country only the text match is left: the local digits read as an order number find nothing
+    expect(await ids(local)).not.toContain(o!.id);
+  });
+});

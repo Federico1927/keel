@@ -108,7 +108,7 @@ export function BulkBar({ slug, list, actions, members = [], locations = [] }: {
   return (
     <>
       {selected.size > 0 && (
-        <div className="sticky bottom-3 z-30 mt-3 flex flex-wrap items-center gap-2 rounded-lg border bg-card p-2 shadow-lg" data-testid="bulk-bar">
+        <div className="sticky bottom-[calc(var(--bottom-nav-h,0px)+env(safe-area-inset-bottom)+0.75rem)] z-30 mt-3 flex flex-wrap items-center gap-2 rounded-lg border bg-card p-2 shadow-lg" data-testid="bulk-bar">
           <span className="px-2 text-sm font-medium" data-testid="bulk-count">{t("selected", { count: selected.size })}</span>
           {actions.map((a) => (
             <Button key={a} size="sm" variant={a === "cancel" || a === "reject" ? "destructive" : "outline"} disabled={pending} onClick={() => open(a)} data-testid={`bulk-${a}`}>

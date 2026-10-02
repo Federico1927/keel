@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { MCP_LIMITS } from "@hullwise/config";
 import { formatDateTime, formatNumber } from "@hullwise/core";
 import { listMcpConnections, mcpRecentActivity, pendingProposalCount } from "@hullwise/services";
-import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, PageHeader, Stat } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { mcpServerUrl } from "@/server/mcp";
 import { CopyField } from "@/components/mcp/copy-field";
@@ -85,33 +85,22 @@ export default async function AiSettingsPage({ params }: { params: Promise<{ ten
               <Stat label={t("stat_denied")} value={formatNumber(activity.counts.denied, ctx.locale)} />
               <Stat label={t("stat_rate_limited")} value={formatNumber(activity.counts.rateLimited, ctx.locale)} />
             </div>
-            <Table data-testid="mcp-activity">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("col_when")}</TableHead>
-                  <TableHead>{t("col_tool")}</TableHead>
-                  <TableHead className="hidden sm:table-cell">{t("col_who")}</TableHead>
-                  <TableHead>{t("col_outcome")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("col_duration")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {activity.rows.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell className="whitespace-nowrap text-sm">{formatDateTime(r.createdAt, ctx.locale, tz)}</TableCell>
-                    <TableCell className="font-mono text-xs">{r.tool ?? r.method}</TableCell>
-                    <TableCell className="hidden text-sm sm:table-cell">{r.userName ?? r.userEmail ?? "—"}{r.clientName && <span className="text-muted-foreground"> · {r.clientName}</span>}</TableCell>
-                    <TableCell><Badge variant={r.outcome === "ok" ? "success" : r.outcome === "error" ? "destructive" : "warning"}>{t(`outcome.${r.outcome}`)}</Badge></TableCell>
-                    <TableCell className="hidden text-right text-sm md:table-cell">{formatNumber(r.durationMs, ctx.locale)} ms</TableCell>
-                  </TableRow>
-                ))}
-                {activity.rows.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-muted-foreground">{t("activity_empty")}</TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+            {activity.rows.length === 0 ? (
+              <p className="text-sm text-muted-foreground" data-testid="mcp-activity">{t("activity_empty")}</p>
+            ) : (
+              <DataList
+                data-testid="mcp-activity"
+                rows={activity.rows}
+                rowKey={(r) => r.id}
+                columns={[
+                  { key: "tool", header: t("col_tool"), mobile: "title", className: "font-mono text-xs", cell: (r) => r.tool ?? r.method },
+                  { key: "outcome", header: t("col_outcome"), mobile: "badge", cell: (r) => <Badge variant={r.outcome === "ok" ? "success" : r.outcome === "error" ? "destructive" : "warning"}>{t(`outcome.${r.outcome}`)}</Badge> },
+                  { key: "when", header: t("col_when"), mobile: "subtitle", className: "whitespace-nowrap text-sm", cell: (r) => formatDateTime(r.createdAt, ctx.locale, tz) },
+                  { key: "who", header: t("col_who"), label: "", className: "text-sm", cell: (r) => <>{r.userName ?? r.userEmail ?? "—"}{r.clientName && <span className="text-muted-foreground"> · {r.clientName}</span>}</> },
+                  { key: "duration", header: t("col_duration"), align: "right", className: "text-sm", cell: (r) => `${formatNumber(r.durationMs, ctx.locale)} ms` },
+                ]}
+              />
+            )}
           </CardContent>
         </Card>
       </div>

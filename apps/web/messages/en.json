@@ -68,7 +68,8 @@
       "cod_phone": "The order has no phone number.",
       "cod_reason": "Write a reason (at least 3 characters).",
       "cod_carrier_columns": "The file needs a reference column (tracking or order) and an outcome column.",
-      "addon_not_released": "This add-on has no released version yet: it can't be switched on."
+      "addon_not_released": "This add-on has no released version yet: it can't be switched on.",
+      "ad_account_removed": "This ad account was removed from Hullwise: its campaigns are kept for history but can no longer be paused or resumed from here."
     },
     "edit": "Edit"
   },
@@ -148,6 +149,10 @@
           "name": "TikTok Ads",
           "description": "TikTok campaigns, ad groups and ads with daily metrics, profit on real orders and pause/resume"
         }
+      },
+      "api": {
+        "name": "REST API and webhooks",
+        "description": "A versioned REST API and signed outgoing webhooks to connect ERPs, warehouses and your own tools"
       }
     },
     "addon": {
@@ -183,6 +188,11 @@
         "name": "WhatsApp via Spoki",
         "description": "COD confirmations and replies, order notifications, WhatsApp campaigns and opt-outs through the store's Spoki account",
         "v1": "WhatsApp through Spoki: COD confirmations, order notices and campaign sends, verified only on recorded data: no live Spoki account connected yet."
+      },
+      "accounting": {
+        "name": "Accounting push",
+        "description": "One journal per closed day from the daily sales summary, mapped to your chart of accounts and pushed only when it reconciles, with push log, retry and re-push",
+        "v1": "Daily journals pushed to the accounting tool, only for reconciled days; only a simulated provider exists, no live connector yet."
       }
     }
   },
@@ -223,7 +233,9 @@
     "notifications": "Notifications",
     "fulfilment": "Fulfilment",
     "subscriptions": "Subscriptions",
-    "whatsapp_settings": "WhatsApp settings"
+    "whatsapp_settings": "WhatsApp settings",
+    "accounting": "Accounting push",
+    "accounting_settings": "Accounting settings"
   },
   "shell": {
     "open_menu": "Open menu",
@@ -386,7 +398,8 @@
     "branding_link": "Branding",
     "fulfilment_link": "Fulfilment",
     "ai_link": "AI & MCP",
-    "data_export_link": "Data export"
+    "data_export_link": "Data export",
+    "developers_link": "Developers"
   },
   "users": {
     "title": "Users & roles",
@@ -443,7 +456,8 @@
       "system": "System",
       "super_admin": "Super-admin",
       "impersonation": "Impersonation",
-      "mcp": "AI client (MCP)"
+      "mcp": "AI client (MCP)",
+      "api": "API token"
     },
     "empty_title": "No audit entries yet",
     "empty_description": "Changes to settings, users, orders and integrations will appear here.",
@@ -1034,7 +1048,8 @@
       "waiting": "{n} waiting",
       "no_eta": "no date"
     },
-    "via_mcp": "via {client}"
+    "via_mcp": "via {client}",
+    "via_api": "via API ({client})"
   },
   "order_events": {
     "imported": "Imported",
@@ -1417,7 +1432,10 @@
           "charge_deleted": "Charge removed"
         }
       }
-    }
+    },
+    "scan_hint": "Scan the items as you unpack them: each scan counts one unit on its line.",
+    "scan_no_match": "No line still to receive matches {code}.",
+    "scan_counted": "{item}: {n} of {of}"
   },
   "po_new": {
     "back": "Purchasing",
@@ -1893,7 +1911,8 @@
       "light": "Health",
       "action": "Recommendation",
       "stock": "Stock",
-      "platform": "Platform"
+      "platform": "Platform",
+      "account": "Ad account"
     },
     "status": {
       "active": "Active",
@@ -1945,7 +1964,8 @@
       "paused": "paused",
       "n_creatives": "{n} creatives",
       "footnote": "Tags come from the naming convention FORMAT | HOOK | ANGLE, editable on the platform. Thumbnails are local placeholders until the ad account's previews are synced."
-    }
+    },
+    "all_accounts": "All ad accounts"
   },
   "campaign_detail": {
     "back": "Campaigns",
@@ -2508,7 +2528,9 @@
         "captured": "Instant exchange: goods not received, {amount} charged.",
         "failed": "Instant exchange: the card hold failed, ship only after the goods arrive."
       }
-    }
+    },
+    "scan_hint": "Scan each item to tick it for restock.",
+    "scan_no_match": "No line of this return matches {code}."
   },
   "return_new": {
     "title": "Return for {order}",
@@ -2747,7 +2769,9 @@
       "recharge": "Recharge",
       "loop": "Loop Subscriptions",
       "address": "Address validation",
-      "spoki": "WhatsApp (Spoki)"
+      "spoki": "WhatsApp (Spoki)",
+      "ga4": "Google Analytics 4",
+      "accounting": "Accounting system"
     },
     "status": {
       "not_connected": "Not connected",
@@ -2876,7 +2900,12 @@
     "errors": {
       "connection_failed": "The platform refused the credentials.",
       "mock_mode": "This environment is in mock mode: set HULLWISE_INTEGRATION_MODE=live to connect a real account.",
-      "live_mode": "Simulation is only available for mock integrations."
+      "live_mode": "Simulation is only available for mock integrations.",
+      "ad_account_primary": "This is the main account of the Meta connection: manage it from the Meta card.",
+      "ad_account_limit": "The maximum number of Meta ad accounts is reached.",
+      "ad_account_not_found": "This ad account is not connected.",
+      "ad_account_invalid_input": "Enter a valid ad account id (act_ followed by digits).",
+      "ad_account_not_connected": "Connect Meta first: the first account is the Meta connection itself."
     },
     "tracking": "Pixel & conversions",
     "duration_s": "{s} s",
@@ -2913,6 +2942,25 @@
       "incomplete_hint": "Until it completes, analytics, RFM, cohorts and customer history only cover part of the history. Resync continues it.",
       "banner": "The store's order history is still being imported ({n} orders so far): past periods, cohorts and customer history are incomplete until it finishes.",
       "banner_error": "The import of the store's order history stopped after {n} orders: past periods, cohorts and customer history are incomplete. An owner or admin can continue it with Resync in Integrations."
+    },
+    "ad_accounts": {
+      "title": "Meta ad accounts",
+      "description": "Each account syncs on its own, with its status, last sync and last error. Up to {n} accounts.",
+      "primary": "Main",
+      "add": "Add ad account",
+      "add_mock": "Add a simulated account",
+      "added": "{account} connected: {summary}",
+      "remove": "Remove",
+      "remove_title": "Remove {account}?",
+      "remove_description": "Hullwise stops syncing this account and drops its token. Its campaigns and history stay, under its name.",
+      "removed": "Account removed.",
+      "name": "Name (optional)",
+      "token_hint": "Leave the token empty to use the main Meta connection's token (a system user with access to both accounts).",
+      "columns": {
+        "account": "Account",
+        "status": "Status",
+        "campaigns": "Campaigns"
+      }
     }
   },
   "integration_guide": {
@@ -3017,6 +3065,11 @@
         {
           "title": "Connect in Hullwise",
           "body": "Integrations → Meta Ads → Connect: paste the ad account id (act_…) and the token. Test connection shows the account name and granted permissions."
+        },
+        {
+          "title": "Several ad accounts",
+          "body": "A store with more than one ad account (brands, countries, an outlet) connects the main one here, then adds the others under Integrations → Meta ad accounts → Add ad account. Leave the token empty when the same system user has the other accounts assigned (Business Settings → System users → Add assets → Ad accounts); paste a separate token otherwise. Each account syncs on its own: a failing one is flagged on its row and never stops the others.",
+          "verify": true
         },
         {
           "title": "Backfill",
@@ -3198,6 +3251,11 @@
         {
           "title": "Enable and run",
           "body": "Enter the ids, keep \"Only customers who accept marketing\" unless your legal basis says otherwise, save, then Run queue now. The delivery log shows each order's outcome; the job repeats every 5 minutes."
+        },
+        {
+          "title": "Cancellations and refunds",
+          "body": "When an order whose purchase was sent is cancelled or fully refunded, Hullwise sends Google Ads a RETRACTION adjustment for it (by order id); after a partial refund, a RESTATEMENT with the remaining value. Meta's Conversions API offers no way to withdraw or restate a purchase, so those rows show as \"Not supported by the platform\" in the log. Google needs the order id sent with the purchase, which Hullwise always does, and may refuse an adjustment for a conversion it has not processed yet: the row retries with the usual backoff.",
+          "verify": true
         }
       ],
       "errors": [
@@ -3897,6 +3955,133 @@
         {
           "symptom": "Statuses never update",
           "fix": "The webhook URL is missing or wrong in Spoki; copy it again from the integration card."
+        }
+      ]
+    },
+    "ga4": {
+      "title": "Google Analytics 4",
+      "intro": "Reads the store's GA4 sessions by day, channel, source / medium / campaign and landing page, so {product} can show the conversion rate (orders ÷ sessions) by channel, landing page and campaign next to its own pixel. Read only: {product} never changes the property. The store connects it on its own: it adds {product}'s reader e-mail as Viewer on the property and pastes the property ID. Stores that prefer their own credentials can use their own service account or OAuth.",
+      "scopes": "Scope: https://www.googleapis.com/auth/analytics.readonly (read only). The Viewer role on the GA4 property is enough.\nWhat is read: sessions, users, engaged sessions and add-to-carts per day, default channel group, source, medium, campaign and landing page. No user-level or personal data.\nAPIs: Google Analytics Data API (required); Google Analytics Admin API (optional, for the property picker and the property name).",
+      "steps": [
+        {
+          "title": "What it does in {product}",
+          "body": "Analytics → Traffic: conversion rate by channel and by landing page, GA4 next to the first-party pixel, every number linked to the orders or to the GA4 rows behind it. Campaigns: GA4 sessions next to spend and orders, matched on the UTM campaign. After connecting, {product} reads the last 12 months in the background, then every morning the days since the last read, and every night the last 3 days again (GA4 keeps adjusting recent days)."
+        },
+        {
+          "title": "Add {product}'s reader as Viewer (default, no password)",
+          "body": "Integrations → Google Analytics 4 shows the reader e-mail with a Copy button. In analytics.google.com → Admin (gear) → Property → Property access management → + → Add users: paste it, role Viewer, untick \"Notify new users\", Add. The store can remove it there at any time.",
+          "verify": true
+        },
+        {
+          "title": "Copy the property ID",
+          "body": "Admin → Property → Property details (or Property settings): the PROPERTY ID is a number such as 312456789. It is not the measurement ID of the web stream (G-XXXXXXX).",
+          "verify": true
+        },
+        {
+          "title": "Paste it and connect",
+          "body": "Paste the property ID in the card and click Connect. {product} runs a small report to check the access and starts the 12-month import. If the test fails, the card says why in plain words (no access to this property, wrong property ID, Google not reachable) and what to do. Owners and admins only. \"Choose property\" switches to another property later."
+        },
+        {
+          "title": "Advanced: a Google Cloud project with the Data API",
+          "body": "Only to use the store's own service account. console.cloud.google.com → New project → APIs & Services → Library: enable \"Google Analytics Data API\" (and \"Google Analytics Admin API\" to pick the property from a list).",
+          "verify": true
+        },
+        {
+          "title": "Advanced: create the service account and its JSON key",
+          "body": "IAM & Admin → Service accounts → Create service account (no project role needed) → Keys → Add key → Create new key → JSON. Keep the file private. If the organisation forbids keys (policy iam.disableServiceAccountKeyCreation), use the default path or OAuth.",
+          "verify": true
+        },
+        {
+          "title": "Advanced: give it Viewer access and paste the key",
+          "body": "Add the service account's client_email as Viewer on the property (as in step 2), then in the card open Advanced, paste the whole JSON file and the property ID, Connect. The key is stored encrypted (AES-GCM).",
+          "verify": true
+        },
+        {
+          "title": "Alternative: OAuth with a refresh token",
+          "body": "Create an OAuth client (APIs & Services → Credentials → OAuth client ID), authorise it with a Google account that has Viewer access to the property and the scope analytics.readonly, then paste client id, client secret and refresh token in the OAuth tab under Advanced. The token stops working if that person loses access or revokes it.",
+          "verify": true
+        },
+        {
+          "title": "Verify",
+          "body": "\"Test connection\" on the card shows the property name. Analytics → Traffic shows sessions per channel within minutes for recent days; the 12 months finish in the background. Compare one day with GA4 → Reports → Acquisition → Traffic acquisition (session default channel group): the totals match; channels and pages can differ slightly from the pixel, as the Traffic tab explains."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "User does not have sufficient permissions for this property (PERMISSION_DENIED)",
+          "fix": "The reader e-mail (or your own service account) is not on the property, or the property ID belongs to another property. Add the e-mail shown on the card as Viewer (step 2) and check the ID (step 3)."
+        },
+        {
+          "symptom": "Google Analytics Data API has not been used in project … or it is disabled",
+          "fix": "Enable the Data API in the project of the service account (step 5) and try again after a few minutes."
+        },
+        {
+          "symptom": "Invalid property ID / property not found",
+          "fix": "Use the numeric property id, not the G- measurement id or the account id."
+        },
+        {
+          "symptom": "Exhausted property tokens per hour / per day (quota)",
+          "fix": "GA4 limits requests per property. {product} pauses the import and resumes it after the wait on its own; nothing to do. A standard property has about 200,000 tokens a day [to verify]."
+        },
+        {
+          "symptom": "Google sign-in refused: invalid_grant (Invalid JWT Signature)",
+          "fix": "The key was deleted or rotated. Create a new JSON key (step 6) and connect again."
+        },
+        {
+          "symptom": "The conversion rate looks different from GA4's own",
+          "fix": "GA4 divides its purchase events by sessions; {product} divides the store's real online orders (from Shopify) by GA4 sessions. Orders are complete; GA4 purchase events miss buyers who block cookies or tracking."
+        }
+      ]
+    },
+    "accounting": {
+      "title": "Accounting system",
+      "intro": "Pushes one journal per closed day to the store's accounting system: sales and tax per rate, shipping, discounts, refunds, payment fees and the clearing account, built from the daily sales summary.",
+      "scopes": "Live connectors are built per account on request (available on request): Xero (Manual Journals API, scope accounting.transactions and accounting.settings.read), QuickBooks Online (JournalEntry API, scope com.intuit.quickbooks.accounting) and Fatture in Cloud (prima nota / accounting entries API). Until one is built the simulated system shows the whole flow.",
+      "steps": [
+        {
+          "title": "What it does in {product}",
+          "body": "Every hour {product} looks at the closed days of the window. A day is pushed only when it reconciles: debits equal credits, it is closed in the store's time zone, every line has an account and no order of the day is still syncing or waiting for a change to reach the store. Other days wait with the reason in the push log."
+        },
+        {
+          "title": "Choose the connector",
+          "body": "Xero, QuickBooks Online and Fatture in Cloud are the candidate connectors, built and activated per account by the {product} team. Tell us which system the store uses and who can authorize the app.",
+          "verify": true
+        },
+        {
+          "title": "Authorize the app in the accounting system",
+          "body": "Xero and QuickBooks use OAuth 2.0 with an app registered by the {product} team: the store's adviser or owner signs in and picks the organisation. Fatture in Cloud uses an OAuth app or a personal token of the company.",
+          "verify": true
+        },
+        {
+          "title": "Read the chart of accounts",
+          "body": "Integrations → Accounting system → Resync accounts. The accounts appear in Accounting settings; archived ones cannot be used."
+        },
+        {
+          "title": "Map the accounts",
+          "body": "Accounting settings: an account for sales and output tax (per tax rate if you post them separately), shipping income, discounts, refunds, payment fees and the clearing account where the processors' payouts arrive. Set the first day to push so the days already in the books are left alone."
+        },
+        {
+          "title": "Verify",
+          "body": "Push now on the push log: the first closed day appears as Pushed with the journal number. Open it in the accounting system: lines, reference and totals match the day's summary. A day can be re-pushed: the journal is voided and replaced by the next version.",
+          "verify": true
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "A day waits with \"No account mapped\"",
+          "fix": "Map the line in Accounting settings (a new tax rate needs a sales and tax account or the defaults)."
+        },
+        {
+          "symptom": "A day waits because an order is syncing or waiting for a write",
+          "fix": "Retry or fix the order's failed webhook or write on the Integrations page; the next run pushes the day."
+        },
+        {
+          "symptom": "Push failed: account archived or unknown",
+          "fix": "Resync accounts and choose an active account; then Retry now."
+        },
+        {
+          "symptom": "Push failed: rate limit",
+          "fix": "Nothing to do: the push is retried with a growing delay (15 minutes, then up to 12 hours)."
         }
       ]
     }
@@ -5863,7 +6048,8 @@
       "require_consent": "Only customers who accept marketing",
       "stats": "7 days: {sent} sent · {failed} failed · {pending} queued · {consent} no consent · {ident} no identifier",
       "run_now": "Run queue now",
-      "retry_failed": "Retry failed"
+      "retry_failed": "Retry failed",
+      "adjustment_stats": "{adjusted} retractions or restatements sent · {unsupported} not supported by the platform"
     },
     "log": {
       "title": "Delivery log",
@@ -5883,8 +6069,21 @@
       "reasons": {
         "no_consent": "No marketing consent",
         "no_identifier": "No click id or identifier",
-        "too_old": "Too old"
-      }
+        "too_old": "Too old",
+        "unsupported": "Not supported by the platform",
+        "withdrawn": "Order cancelled or refunded before sending",
+        "superseded": "Replaced by the retraction"
+      },
+      "kind": "Event",
+      "kinds": {
+        "purchase": "Purchase",
+        "retraction": "Retraction",
+        "restatement": "Value restated"
+      },
+      "value": "to {value}",
+      "empty": "Nothing in the log yet.",
+      "filter_all": "All events",
+      "filter_adjustments": "Retractions and restatements"
     },
     "errors": {
       "destination_required": "Enter the dataset or conversion action id to enable sending.",
@@ -7074,7 +7273,8 @@
       "matches": "Matches the P/L tax line: {amount}.",
       "mismatch": "Does not match the P/L tax line ({amount}): data changed while loading, reload the page.",
       "footnote": "Rate = the order's effective rate (tax reported by the store over the goods after discounts, rounded to 0.1%), or your rate for the country when the store reported none. Shipping country; your country when unknown."
-    }
+    },
+    "daily_sales_link": "Daily sales"
   },
   "payouts": {
     "sync": "Sync payouts",
@@ -9427,6 +9627,734 @@
         "cancel": "Cancel keywords",
         "help": "A confirm reply records a confirmed outcome (written to the store first, like an operator's). A cancel reply escalates the order to an admin: nothing is cancelled automatically."
       }
+    }
+  },
+  "mobile": {
+    "close": "Close",
+    "nav": {
+      "label": "Main",
+      "more": "More",
+      "stock_takes": "Stock-takes",
+      "approvals": "Approvals"
+    },
+    "filters": {
+      "label": "Filters",
+      "title": "Filters and sort",
+      "done": "Show results",
+      "remove": "Remove filter"
+    },
+    "stepper": {
+      "decrement": "Decrease",
+      "increment": "Increase"
+    },
+    "scan": {
+      "open": "Scan",
+      "title": "Scan a barcode",
+      "hint": "Point the camera at a barcode or QR code. You can also type the code in the field.",
+      "unavailable": "The camera is not available here (no camera, permission refused or not a secure page). Type the code in the field instead.",
+      "close": "Done",
+      "scanned": "Scanned {code}"
+    },
+    "pwa": {
+      "install_title": "Install {product}",
+      "install_body": "Add it to your home screen: it opens full screen, like an app.",
+      "install": "Install",
+      "dismiss": "Not now",
+      "offline_title": "You're offline",
+      "offline_body": "This page needs a connection. Check your network and try again: nothing you have saved is lost.",
+      "retry": "Try again"
+    },
+    "settings": {
+      "link": "Mobile navigation",
+      "title": "Mobile navigation",
+      "description": "The four destinations in the bottom bar on phones, for each role. Everything else stays under “More”. A destination the person cannot open is replaced automatically.",
+      "role_hint": "Default: {list}",
+      "slot": "Slot {n}",
+      "use_default": "Role default",
+      "save": "Save",
+      "saved": "Saved",
+      "back": "Settings"
+    },
+    "wide": {
+      "hint": "Scroll"
+    },
+    "desktop_notice": {
+      "title": "Better on a larger screen.",
+      "body": "You can read this page and make simple changes here; editing complex layouts is easier on a computer or tablet."
+    },
+    "chart": {
+      "fullscreen": "Full screen",
+      "rotate": "Turn your phone sideways for a wider chart. Tap a bar or point to see its values."
+    }
+  },
+  "developers": {
+    "title": "Developers",
+    "description": "REST API tokens, webhook endpoints and recent API calls of this workspace.",
+    "deliveries_link": "Webhook deliveries",
+    "docs_link": "API documentation",
+    "base_title": "REST API",
+    "base_description": "Every request goes to this base URL with a token in the Authorization header.",
+    "rule_auth": "Tokens act as the person who created them: they see and change only what that person's role allows, and stop working when the person leaves.",
+    "rule_permissions": "Each token carries the scopes chosen at creation; nothing is implied (orders:write does not read orders).",
+    "rule_limits": "Limits: {perToken} requests per minute per token, {perTenant} per workspace. Above them the API answers 429 with Retry-After.",
+    "rule_pii": "Customer names, emails, phones and addresses are masked unless the token has pii:read, the role may see personal data and full customer data is switched on in Settings → AI & MCP.",
+    "unavailable": {
+      "plan": "The REST API and webhooks are included from the Growth plan.",
+      "killed": "Token access to this workspace was suspended by the platform. Contact support.",
+      "suspended": "This workspace is suspended: the API does not answer.",
+      "platform_disabled": "The API is temporarily unavailable."
+    },
+    "tokens": {
+      "title": "API tokens",
+      "description": "Personal access tokens with API scopes, for integrations. Only owners and admins create them; they act as the person who created them.",
+      "create_title": "New API token",
+      "name": "Name",
+      "name_placeholder": "e.g. ERP sync",
+      "expires_in": "Expires in",
+      "days": "{days} days",
+      "scopes": "Scopes",
+      "create": "Create token",
+      "shown_once": "Copy the token now: it is shown only once.",
+      "empty": "No API tokens yet.",
+      "col_name": "Token",
+      "col_state": "State",
+      "col_scopes": "Scopes",
+      "col_owner": "Acts as",
+      "col_last_used": "Last used",
+      "col_expires": "Expires",
+      "state": {
+        "active": "Active",
+        "expired": "Expired",
+        "revoked": "Revoked"
+      },
+      "rotate": "Rotate",
+      "rotate_confirm": "Issue a new secret for this token? The current one stops working at once.",
+      "revoke": "Revoke",
+      "revoke_confirm": "Revoke this token? Integrations using it stop working at once."
+    },
+    "scopes": {
+      "orders_read": "Read orders, their lines and timeline",
+      "orders_write": "Add internal notes and move orders through review or hold",
+      "customers_read": "Read customers",
+      "products_read": "Read products and variants",
+      "inventory_read": "Read locations and stock levels",
+      "inventory_write": "Adjust stock with a reason",
+      "shipments_read": "Read shipments and their tracking events",
+      "returns_read": "Read returns",
+      "discounts_read": "Read discount codes",
+      "purchasing_read": "Read purchase orders",
+      "webhooks_manage": "List, create and delete webhook endpoints",
+      "pii_read": "See customer personal data in full (when the role and the workspace allow it)"
+    },
+    "events": {
+      "order_created": "A new order arrived from the store",
+      "order_updated": "An order changed (amounts, payment, tags, cancellation, edits)",
+      "order_status_changed": "The canonical status of an order changed",
+      "shipment_updated": "A shipment was created or its status changed",
+      "return_updated": "A return was requested or moved to another status",
+      "inventory_low_stock": "A variant fell to the low-stock threshold",
+      "product_updated": "A product or its variants changed"
+    },
+    "webhooks": {
+      "title": "Webhook endpoints",
+      "description": "Each endpoint receives a signed POST when an event of the chosen types happens.",
+      "create_title": "New endpoint",
+      "url": "URL",
+      "url_hint": "https only, on a public host; private and internal addresses are refused.",
+      "description_label": "Description",
+      "description_placeholder": "e.g. ERP orders",
+      "events": "Events",
+      "create": "Add endpoint",
+      "secret_once": "Copy the signing secret now: it is shown only once.",
+      "secret_rotated": "New signing secret (shown once). The previous one keeps signing for 24 hours.",
+      "empty": "No webhook endpoints yet.",
+      "col_url": "Endpoint",
+      "col_state": "State",
+      "col_events": "Events",
+      "col_24h": "Last 24 h",
+      "col_secret": "Secret",
+      "active": "Active",
+      "paused": "Paused",
+      "health": "{ok} delivered · {failed} failing",
+      "grace": "Previous secret valid until {when}",
+      "send_test": "Send test",
+      "pause": "Pause",
+      "resume": "Resume",
+      "rotate": "Rotate secret",
+      "rotate_confirm": "Issue a new signing secret? The current one keeps signing for 24 hours so you can switch.",
+      "delete": "Delete",
+      "delete_confirm": "Delete this endpoint and its delivery log?"
+    },
+    "deliveries": {
+      "title": "Webhook deliveries",
+      "description": "Every delivery of every endpoint, newest first, with its attempts. Failed deliveries are retried for about 4 hours, then can be redelivered by hand.",
+      "filter_endpoint": "Endpoint",
+      "filter_status": "Status",
+      "filter_event": "Event",
+      "all": "All",
+      "status_failed_any": "Failing (retrying or failed)",
+      "apply": "Filter",
+      "reset": "Reset",
+      "empty_title": "No deliveries",
+      "empty_description": "Deliveries appear here when an event of a subscribed type happens, or when you send a test.",
+      "col_event": "Event",
+      "col_status": "Status",
+      "col_endpoint": "Endpoint",
+      "col_when": "When",
+      "col_response": "Response",
+      "col_attempts": "Attempts",
+      "col_next": "Next attempt",
+      "col_error": "Error",
+      "col_duration": "Duration",
+      "test": "test",
+      "redelivery": "redelivery",
+      "redeliver": "Redeliver",
+      "older": "Older deliveries",
+      "status": {
+        "pending": "Pending",
+        "sending": "Sending",
+        "retrying": "Retrying",
+        "succeeded": "Delivered",
+        "dead": "Failed",
+        "cancelled": "Cancelled"
+      },
+      "detail_title": "Webhook delivery",
+      "detail_description": "Created {when}",
+      "summary": "Summary",
+      "event_id": "Event id",
+      "delivered_at": "Delivered",
+      "response_excerpt": "Response",
+      "attempts": "Attempts",
+      "no_attempts": "Not attempted yet.",
+      "payload": "Payload"
+    },
+    "activity": {
+      "title": "Recent API calls",
+      "description": "The last calls of the past 7 days: route, answer and token, never the data exchanged.",
+      "calls": "Calls",
+      "errors": "Server errors",
+      "denied": "Denied",
+      "rate_limited": "Rate limited",
+      "empty": "No API calls in the last 7 days.",
+      "col_route": "Route",
+      "col_status": "Answer",
+      "col_when": "When",
+      "col_token": "Token",
+      "col_duration": "Duration"
+    },
+    "errors": {
+      "generic": "Something went wrong. Try again.",
+      "forbidden": "You cannot do this here.",
+      "api_unavailable": "The API is not available for this workspace.",
+      "invalid_input": "Check the fields and try again.",
+      "no_scopes": "Choose at least one scope.",
+      "limit_reached": "You reached the maximum number of active tokens or endpoints.",
+      "not_found": "Not found: it may have been deleted.",
+      "invalid_url": "Use an https URL on a public host, without user name, password or #fragment.",
+      "private_address": "This URL points to a private, internal or metadata address: it cannot receive webhooks.",
+      "unresolvable": "The host name does not resolve.",
+      "invalid_events": "Choose at least one event."
+    }
+  },
+  "api_docs": {
+    "title": "API documentation",
+    "description": "REST API v1 and webhooks: authentication, scopes, every route, pagination, errors, limits and signatures.",
+    "start": {
+      "title": "Getting started",
+      "description": "A JSON API over HTTPS for orders, customers, catalog, stock, shipments, returns, discounts and purchasing.",
+      "base": "Base URL: {base}",
+      "auth": "Create a token in Settings → Developers and send it as Authorization: Bearer <token>. The same personal tokens work for the MCP server; the API reads only their API scopes.",
+      "versioning": "The version is in the path (/v1). Fields may be added to responses within v1; nothing is removed or renamed."
+    },
+    "scopes": {
+      "title": "Scopes",
+      "description": "A route needs its scope and the permission of the token's person in the app (role).",
+      "col_scope": "Scope",
+      "col_what": "Grants"
+    },
+    "conventions": {
+      "title": "Conventions",
+      "pagination": "Lists are paginated with an opaque cursor: pass limit (1 to {max}, default {fallback}) and, for the next page, the nextCursor of the previous answer with the same filters. hasMore tells whether there is a next page.",
+      "filters": "List filters mirror the app's lists. Values of status, paymentMethod and paymentStatus can be comma-separated. updatedSince returns records changed since a date-time, for incremental syncs. An unknown query parameter is an error, never ignored.",
+      "formats": "Amounts are integers in minor units (cents) next to their currency. Dates are ISO 8601 in UTC. Ids are UUIDs.",
+      "pii": "Customer names, emails, phones and street addresses are masked unless the token has pii:read, the person's role may see personal data and the workspace switched full customer data on.",
+      "limits": "Rate limits: {perToken} requests per minute per token and {perTenant} per workspace, in fixed one-minute windows. Above them: 429 with Retry-After (seconds).",
+      "idempotency": "Writes accept an Idempotency-Key header (1 to 200 visible characters). Within {hours} hours the same key with the same request returns the stored answer (header Idempotency-Replayed: true) without writing again; the same key with another request is refused (422). Only successful answers are stored."
+    },
+    "routes": {
+      "title": "Routes",
+      "description": "Generated from the API itself: this list is always complete.",
+      "any_token": "any token",
+      "idempotent": "Idempotency-Key",
+      "query": "Query parameters",
+      "body": "JSON body",
+      "items": {
+        "me": "The token, the person it acts as (role), the workspace, the PII mode and the rate limits. Use it to test a connection.",
+        "orders_list": "Orders, newest first, with the list filters of the app.",
+        "orders_get": "One order with its lines.",
+        "orders_events": "The order timeline: every change with its author type and field diff, newest first.",
+        "orders_notes_create": "Adds an internal note to the order timeline (never shown to the customer).",
+        "orders_status_update": "Moves an open order through review or hold (new, pending review, confirmed, on hold) through the status engine. Cancelling and refunding stay in the app; platform facts keep precedence.",
+        "customers_list": "Customers, newest first.",
+        "customers_get": "One customer with order count and total spent.",
+        "products_list": "Products with their variants, newest first.",
+        "products_get": "One product with its variants and dynamic options.",
+        "variants_list": "Variants, to look one up by SKU or barcode.",
+        "locations_list": "Stock locations.",
+        "inventory_list": "Stock levels per variant and location.",
+        "inventory_adjust": "Adjusts the stock of a variant at a location with a reason code, like the manual adjustment in the app (movement, audit, write to the store).",
+        "shipments_list": "Shipments, newest first.",
+        "shipments_get": "One shipment with its tracking events.",
+        "returns_list": "Returns, newest first.",
+        "returns_get": "One return with its lines.",
+        "discounts_list": "Discount codes, newest first.",
+        "discounts_get": "One discount code.",
+        "purchase_orders_list": "Purchase orders, newest first.",
+        "purchase_orders_get": "One purchase order with its lines.",
+        "webhook_endpoints_list": "The workspace's webhook endpoints (secrets are never returned).",
+        "webhook_endpoints_create": "Adds a webhook endpoint; the answer carries its signing secret, once.",
+        "webhook_endpoints_delete": "Deletes a webhook endpoint and its delivery log."
+      }
+    },
+    "params": {
+      "q": "Free-text search (orders: number, name, email or phone; customers: name or email; products: title or SKU)",
+      "status": "Status filter; orders accept several canonical statuses, comma-separated",
+      "paymentMethod": "Payment methods, comma-separated (card, wallet, bank_transfer, cod, bnpl, other)",
+      "paymentStatus": "Payment statuses, comma-separated (pending, paid, partially_refunded, refunded, voided)",
+      "channel": "Sales channel",
+      "tag": "Store tag",
+      "customerId": "Orders of one customer",
+      "from": "Placed on or after this day (YYYY-MM-DD)",
+      "to": "Placed on or before this day (YYYY-MM-DD)",
+      "updatedSince": "Changed at or after this ISO 8601 date-time",
+      "limit": "Page size",
+      "cursor": "nextCursor of the previous page",
+      "country": "Two-letter country code",
+      "acceptsMarketing": "true or false",
+      "productType": "Product type",
+      "sku": "Exact SKU",
+      "barcode": "Exact barcode",
+      "productId": "Variants of one product",
+      "variantId": "Variant id",
+      "locationId": "Location id",
+      "orderId": "Records of one order",
+      "code": "Exact discount code (case-insensitive)",
+      "active": "true or false",
+      "supplierId": "Purchase orders of one supplier",
+      "body": "The note, up to 4,000 characters",
+      "note": "Why, kept on the timeline (up to 500 characters)",
+      "delta": "Units to add (positive) or remove (negative)",
+      "reason": "Reason code: damaged, lost, found, count_correction or other",
+      "url": "https URL on a public host",
+      "eventTypes": "Event types to receive",
+      "description": "A label for the endpoint"
+    },
+    "errors": {
+      "title": "Errors",
+      "description": "Every error has the same shape and a stable code to branch on; the message is for people.",
+      "col_code": "Code",
+      "col_status": "HTTP",
+      "col_what": "Meaning",
+      "items": {
+        "unauthorized": "No token was sent.",
+        "invalid_token": "The token is unknown, expired or revoked.",
+        "forbidden": "The token's person may not do this in the app (role), or the feature is off.",
+        "insufficient_scope": "The token lacks the route's scope (details.requiredScope).",
+        "not_available": "The workspace's plan does not include the API, or access is suspended (details.reason).",
+        "not_found": "No such route, or no record with this id in this workspace.",
+        "method_not_allowed": "The route exists with other methods (Allow header).",
+        "conflict": "The record's state does not allow the change (for example a status transition).",
+        "idempotency_key_reused": "The Idempotency-Key was used with a different request.",
+        "invalid_request": "A query parameter or header is invalid or unknown.",
+        "invalid_cursor": "The cursor does not belong to this list or these filters.",
+        "payload_too_large": "The JSON body is larger than 64 KB.",
+        "unprocessable": "The body is invalid (details.issues) or the change was refused by the service.",
+        "rate_limited": "Too many requests: wait Retry-After seconds.",
+        "internal_error": "A failure on our side; the message carries a request id for support."
+      }
+    },
+    "webhooks": {
+      "title": "Webhooks",
+      "description": "Add endpoints in Settings → Developers or through the API. Each event is a POST with a JSON body to every active endpoint subscribed to its type.",
+      "col_event": "Event",
+      "col_what": "When",
+      "payload": "The body carries id (the event, the same across retries and redeliveries), type, apiVersion, createdAt and data with the record in the API's format, without personal data: fetch the record through the API with a token that may see it.",
+      "headers": "Headers: {id} (the delivery), {event} (the type), {timestamp} (Unix seconds) and {signature}.",
+      "signing": "The signature is HMAC-SHA256 of the timestamp, a dot and the raw body, keyed with the endpoint secret, in hex: t=<timestamp>,v1=<signature>. Reject timestamps older than {tolerance} seconds. After a secret rotation the previous secret signs too (a second v1) for {grace} hours.",
+      "retries": "A delivery succeeds on any 2xx answer within {timeout} seconds. Anything else is retried after {schedule}; then the delivery is failed and can be redelivered by hand from the log. Redirects are not followed.",
+      "security": "Endpoints must be https on a public host. Addresses that are private, loopback, link-local or cloud metadata are refused when the endpoint is saved and again at every delivery, after DNS resolution."
+    }
+  },
+  "ga4": {
+    "card": {
+      "property_line": "{name} · property {id}",
+      "not_connected_description": "Sessions by channel, landing page and campaign for conversion rates.",
+      "last_day": "Last day read",
+      "service_account": "Service account",
+      "last_run": "Last run: {kind}, {status}, {rows} rows ({since} → {until})",
+      "kind": {
+        "backfill": "12-month import",
+        "daily": "daily sync",
+        "reconcile": "nightly re-sync"
+      },
+      "open_analytics": "Open the Traffic analytics",
+      "connect_mock": "Connect the simulated property",
+      "connect_title": "Your own service account or OAuth",
+      "connect_description": "For stores that prefer their own credentials: paste the service account key (JSON) or the OAuth credentials and the numeric property ID. The key is checked on the property and stored encrypted.",
+      "auth": {
+        "service_account": "Service account (recommended)",
+        "oauth": "OAuth"
+      },
+      "property": "Property",
+      "property_id": "Property id",
+      "property_id_help": "GA4 → Admin → Property details: a number such as 312456789 (not the G- measurement id).",
+      "service_account_json": "Service account key (JSON)",
+      "service_account_help": "The whole file downloaded from Google Cloud (Keys → Add key → JSON). The service account needs Viewer access to the property.",
+      "choose_property": "Choose property",
+      "properties_empty": "The credentials cannot list properties (the Admin API may be off): type the property id.",
+      "set_property": "Use this property",
+      "property_saved": "Property set to {name}: its 12 months are being read.",
+      "backfill_done": "Connected: {n} rows of traffic imported.",
+      "backfill_running": "Connected: {n} rows imported so far, the rest continues in the background.",
+      "resync_done": "Resynced: {n} rows.",
+      "resync_queued": "Resync queued.",
+      "disconnect_confirm": "Disconnect Google Analytics 4? The traffic already imported is kept.",
+      "disconnected": "Disconnected.",
+      "errors": {
+        "ga4_invalid_property": "Enter the numeric GA4 property id (for example 312456789).",
+        "ga4_invalid_key": "This is not a valid service account key file.",
+        "not_connected": "Connect Google Analytics 4 first."
+      }
+    },
+    "analytics": {
+      "tab": "Traffic",
+      "not_in_plan": "Google Analytics 4 is not included in this plan.",
+      "empty_title": "Connect Google Analytics 4 to see conversion rates",
+      "empty_description": "With GA4 connected, this tab shows orders ÷ sessions by channel and by landing page, next to the first-party pixel.",
+      "empty_cta": "Go to Integrations",
+      "channel": "Channel",
+      "landing": "Landing page",
+      "orders": "Online orders",
+      "ga4_sessions": "GA4 sessions",
+      "ga4_cr": "Conversion rate (GA4)",
+      "pixel_sessions": "Pixel sessions",
+      "pixel_cr": "Conversion rate (pixel)",
+      "engagement": "Engaged",
+      "add_to_carts": "Add to carts",
+      "totals": "Total",
+      "cr_hint": "{orders} orders ÷ {sessions} sessions",
+      "pixel_since": "Pixel sessions since {date}",
+      "pixel_none": "No pixel sessions in the period",
+      "orders_hint": "Storefront orders of the period, any status",
+      "by_channel": "Conversion rate by channel",
+      "by_channel_description": "Online orders of the period by attribution channel ÷ GA4 sessions of the same channel. Orders link to the orders list, sessions to the GA4 rows.",
+      "why_title": "Why GA4 and the pixel give different rates",
+      "why_points": [
+        "Consent and blockers: GA4 counts only visitors who accept analytics cookies and do not block Google; the first-party pixel runs on the store's own domain and loses fewer sessions.",
+        "Different session rules: GA4 starts a new session after 30 minutes of inactivity and at midnight; the pixel keeps one session per visit and per marketing touch.",
+        "Different channel rules: GA4 groups traffic with its default channel grouping; {product} channels come from click ids and UTMs (an Instagram ad is Paid Social in both, a newsletter without UTMs can be Referral in GA4).",
+        "Coverage: the pixel counts only since it was installed and on pages where it runs; GA4 has the whole period.",
+        "Orders are the same in both rates: real online orders from the store, not GA4 purchase events."
+      ],
+      "by_landing": "Conversion rate by landing page",
+      "by_landing_description": "The 25 landing pages with most GA4 sessions; the query string (UTMs, click ids) is removed, so one page is one row.",
+      "no_rows": "No traffic in this period."
+    },
+    "rows": {
+      "back": "Traffic analytics",
+      "title": "GA4 traffic rows",
+      "description": "The daily rows read from Google Analytics 4.",
+      "description_property": "The daily rows read from {name}.",
+      "filters": {
+        "channel": "Channel",
+        "source": "Source",
+        "medium": "Medium",
+        "campaign": "Campaign",
+        "campaignId": "Matched campaign",
+        "landing": "Landing page"
+      },
+      "clear": "Clear filters",
+      "not_in_plan": "Google Analytics 4 is not included in this plan.",
+      "empty_title": "Google Analytics 4 is not connected",
+      "empty_description": "Connect the store's GA4 property to read its sessions here.",
+      "empty_cta": "Go to Integrations",
+      "totals": "{sessions} sessions · {engaged} engaged · {atc} add to carts",
+      "no_rows": "No rows match these filters.",
+      "columns": {
+        "landing": "Landing page",
+        "date": "Day",
+        "channel": "Channel group",
+        "source_medium": "Source / medium",
+        "campaign": "Campaign",
+        "sessions": "Sessions",
+        "engaged": "Engaged",
+        "users": "Users",
+        "add_to_carts": "Add to carts"
+      },
+      "summary": "{n} rows"
+    },
+    "campaigns": {
+      "sessions": "GA4 sessions",
+      "cr_title": "GA4 sessions of the campaign's UTM campaign · attributed orders ÷ sessions"
+    },
+    "setup": {
+      "title": "Connect in two minutes, no password to share",
+      "intro": "Give our read-only reader access to your GA4 property and paste the property ID.",
+      "copy": "Copy",
+      "connect": "Connect",
+      "advanced": "Advanced: your own service account or OAuth",
+      "not_configured": "The GA4 reader account is not set up on this platform yet: ask support, or use your own service account under Advanced.",
+      "demo_hint": "Demo store: the simulated property is {id}.",
+      "steps": {
+        "open_admin": "Open analytics.google.com, pick your store's property and click Admin (the gear at the bottom left).",
+        "access": "In the Property column open Property access management, then click + and Add users.",
+        "add_viewer": "Paste this e-mail, choose the Viewer role, untick “Notify new users” and click Add:",
+        "property_id": "Still in Admin, open Property details and copy the PROPERTY ID: a number like 312456789 (not the G- measurement ID).",
+        "paste": "Paste the property ID here:",
+        "connect": "Click Connect: we check the access and import your last 12 months in the background."
+      },
+      "errors": {
+        "no_access": {
+          "message": "No access to this property.",
+          "fix": "In GA4 → Admin → Property access management add {email} as Viewer (step 3), wait a minute and try again. Check that you are on the same property as the ID."
+        },
+        "wrong_property": {
+          "message": "Wrong property ID.",
+          "fix": "Copy the numeric PROPERTY ID from Admin → Property details (step 4). The G-… measurement ID and the account ID do not work."
+        },
+        "api_unreachable": {
+          "message": "Google Analytics could not be reached.",
+          "fix": "Google's Analytics Data API did not answer or is not enabled for the reader. Try again in a few minutes; if it keeps failing, contact support (own service account: enable the Analytics Data API in your Cloud project)."
+        },
+        "quota": {
+          "message": "Google's request limit for this property is reached for now.",
+          "fix": "Nothing to do: the import resumes on its own when GA4 allows it again."
+        },
+        "credentials": {
+          "message": "Google refused the sign-in.",
+          "fix": "Connect again; with your own service account create a new key, with OAuth sign in again."
+        },
+        "unknown": {
+          "message": "The test did not succeed.",
+          "fix": "Follow the steps above once more; the details from Google are below. The guide lists the common errors."
+        }
+      }
+    }
+  },
+  "daily_sales": {
+    "title": "Daily sales summary",
+    "description": "Per day in the store's time zone and per tax rate: gross sales, discounts, refunds, shipping and tax, then payment fees by method and the net. Amounts are net of tax except the tax column; every number opens the orders behind it.",
+    "back": "Analytics",
+    "export": "Export CSV",
+    "scope": "{from} – {to} · days in {tz} · amounts in {currency}",
+    "identity": "Gross sales − discounts − refunds = net sales · net sales + shipping + tax = total · total − fees = net.",
+    "orders_value": "{sales, plural, one {# sale} other {# sales}} · {refunds, plural, one {# refund} other {# refunds}}",
+    "totals": "Total",
+    "rate_label": "{country} {rate}",
+    "empty": "No sales in this period.",
+    "empty_hint": "Orders that are sales, or whose payment was taken, appear on the day they were placed; refunds on the day they happened.",
+    "days_title": "By day",
+    "rates_title": "By tax rate",
+    "rates_description": "Net sales and tax of each rate, day by day. On a small screen the grid scrolls sideways inside its frame.",
+    "rates_region": "Net sales and tax by tax rate (scrolls sideways)",
+    "net_short": "Net sales",
+    "tax_short": "Tax",
+    "fees_title": "Payment fees by method",
+    "fees_description": "The processor's actual fee once its payout is imported, otherwise the estimate from your rates.",
+    "estimated_n": "{n} estimated",
+    "columns": {
+      "day": "Day",
+      "orders": "Orders",
+      "rate": "Tax rate",
+      "gross": "Gross sales",
+      "discounts": "Discounts",
+      "refunds": "Refunds",
+      "net_sales": "Net sales",
+      "shipping": "Shipping",
+      "tax": "Tax",
+      "total": "Total",
+      "fees": "Fees",
+      "net": "Net",
+      "method": "Method",
+      "estimated": "Estimated fees"
+    },
+    "day": {
+      "title": "Sales of {day}",
+      "previous": "Previous day",
+      "next": "Next day",
+      "no_sales": "No sales or refunds on this day.",
+      "orders_title": "Orders behind the numbers",
+      "count": "{n, plural, one {# order} other {# orders}}",
+      "rate_filter": "tax rate {rate}",
+      "method_filter": "fees paid by {method}",
+      "all": "All",
+      "kinds": {
+        "sale": "Sale",
+        "refund": "Refund",
+        "fee": "Fee"
+      },
+      "empty": "No orders on this day.",
+      "empty_filtered": "No orders behind this number.",
+      "columns": {
+        "order": "Order",
+        "kinds": "In the summary as",
+        "placed": "Placed"
+      }
+    }
+  },
+  "accounting": {
+    "statuses": {
+      "pushed": "Pushed",
+      "waiting": "Waiting",
+      "failed": "Failed",
+      "voided": "Voided",
+      "empty": "Nothing to post",
+      "pushing": "Pushing"
+    },
+    "account_types": {
+      "asset": "Asset",
+      "liability": "Liability",
+      "equity": "Equity",
+      "revenue": "Revenue",
+      "expense": "Expense"
+    },
+    "reasons": {
+      "day_open": "The day is not closed yet: it can be pushed from {at}.",
+      "before_start": "Before the first day to push ({day}).",
+      "mapping_incomplete": "No account mapped for: {lines}.",
+      "unbalanced": "Debits and credits differ by {difference}.",
+      "orders_syncing": "{count, plural, one {# order is} other {# orders are}} still syncing from the store: {orders}.",
+      "orders_pending_write": "{count, plural, one {# order is} other {# orders are}} waiting for a change to reach the store: {orders}."
+    },
+    "errors": {
+      "accounting_disabled": "The accounting add-on is not active for this store.",
+      "module_disabled": "The accounting add-on is not active for this store.",
+      "accounting_not_connected": "Connect the accounting system first.",
+      "accounting_not_pushed": "This day has no pushed journal to replace.",
+      "accounting_not_ready": "This day does not reconcile now: it cannot be re-pushed until the reasons in the log are solved.",
+      "accounting_not_found": "This day has no journal yet.",
+      "accounting_unknown_account": "These accounts are not in the chart of accounts (or are archived): {accounts}.",
+      "accounting_invalid_input": "Some settings are not valid.",
+      "accounting_provider": "The accounting system refused the request."
+    },
+    "log": {
+      "title": "Accounting push",
+      "description": "One journal per closed day, built from the daily sales summary and pushed to your accounting system only when it reconciles: debits equal credits, the day is closed in the store's time zone, and no order of the day is still syncing or waiting for a change to reach the store.",
+      "settings_link": "Accounting settings",
+      "not_connected": "The accounting system is not connected: days are not pushed.",
+      "run": "Push now",
+      "run_done": "Pushed {pushed}, waiting {waiting}, failed {failed}.",
+      "last_pushed": "Last day pushed",
+      "filter": "Filter by status",
+      "all": "All",
+      "empty": "No day evaluated yet.",
+      "empty_filtered": "No day with this status.",
+      "empty_hint": "The hourly run evaluates every closed day of the window; \"Push now\" does it at once.",
+      "empty_day": "No sales, refunds or fees: nothing to post.",
+      "next_attempt": "Next attempt {at} · attempt {n}",
+      "pushed_at": "Pushed {at} {id}",
+      "voided_at": "Voided {at}, replaced by the next version",
+      "summary": "{n, plural, one {# row} other {# rows}}",
+      "retry": "Retry now",
+      "retry_pushed": "Pushed.",
+      "retry_failed": "Still failing: see the error.",
+      "retry_waiting": "The day still waits: see the reasons.",
+      "repush": "Re-push day",
+      "repush_title": "Re-push {day}?",
+      "repush_description": "Version {version} is voided in the accounting system and replaced by version {next}, built from today's summary. The change is recorded in the audit log.",
+      "repush_note": "Note (optional)",
+      "repush_confirm": "Void and re-push",
+      "repush_done": "Replaced by version {version}.",
+      "cancel": "Cancel",
+      "columns": {
+        "day": "Day",
+        "status": "Status",
+        "detail": "Details",
+        "total": "Total",
+        "net": "Net (clearing)",
+        "debit": "Debits",
+        "action": "Actions"
+      }
+    },
+    "day": {
+      "title": "Journal of {day}",
+      "description": "Every version of the day's journal with its lines, as pushed to the accounting system.",
+      "summary_link": "Daily sales of this day",
+      "empty": "This day has not been evaluated yet.",
+      "version": "Version {v}",
+      "totals": "Total",
+      "columns": {
+        "account": "Account",
+        "description": "Line",
+        "debit": "Debit",
+        "credit": "Credit"
+      }
+    },
+    "connection": {
+      "accounts": "Chart of accounts",
+      "accounts_value": "{n} accounts · read {at}",
+      "connect": "Connect",
+      "connect_mock": "Connect the simulated system",
+      "connected": "Connected: {n} accounts read.",
+      "test": "Test connection",
+      "test_ok": "Connection OK ({account}).",
+      "test_failed": "Connection failed: {error}",
+      "resync": "Resync accounts",
+      "resync_done": "{n} accounts read.",
+      "simulate_failure": "Simulate a refusal",
+      "simulated": "The next push will be refused with a rate limit.",
+      "log_link": "Push log",
+      "settings_link": "Settings"
+    },
+    "settings": {
+      "title": "Accounting settings",
+      "description": "The accounting system, its chart of accounts and the account each line of the daily sales summary is posted to.",
+      "chart_title": "Chart of accounts",
+      "chart_description": "Read from the accounting system (Resync accounts). Archived accounts cannot be mapped.",
+      "chart_empty": "Not read yet: connect the system, then Resync accounts.",
+      "archived": "Archived",
+      "columns": {
+        "code": "Code",
+        "name": "Name",
+        "type": "Type",
+        "active": "State"
+      },
+      "mapping_title": "Account mapping",
+      "mapping_description": "Credits: sales and tax per rate, shipping. Debits: discounts, refunds, payment fees and the clearing account for the net that the processors pay out. A day with a line left unmapped waits.",
+      "lines": {
+        "sales": "Sales",
+        "tax": "Output tax",
+        "shipping": "Shipping income",
+        "discounts": "Discounts",
+        "refunds": "Refunds",
+        "fees": "Payment fees",
+        "clearing": "Payouts / clearing"
+      },
+      "hints": {
+        "sales": "Default for every tax rate without its own account.",
+        "tax": "Default tax account for every rate without its own.",
+        "shipping": "Shipping charged to customers, net of tax.",
+        "discounts": "Discounts given, net of tax (debit).",
+        "refunds": "Refunds net of tax (debit); their tax reduces the tax account.",
+        "fees": "Processor fees: actual from payouts, estimated otherwise.",
+        "clearing": "Money due from payment processors and cash on delivery remittances: the day's net."
+      },
+      "by_rate": "Per tax rate",
+      "by_rate_hint": "Rates seen in the last 30 days and the configured ones. Leave empty to use the defaults above.",
+      "use_default": "Use the default",
+      "not_mapped": "Not mapped",
+      "start_day": "First day to push",
+      "start_day_hint": "Earlier days are never pushed (they are already in your books).",
+      "lookback": "Days looked back",
+      "close_delay": "Hours after midnight",
+      "close_delay_hint": "A day counts as closed this long after local midnight, so late refunds settle.",
+      "journal_status": "Journals created as",
+      "journal_statuses": {
+        "draft": "Draft",
+        "posted": "Posted"
+      },
+      "save": "Save",
+      "saved": "Settings saved."
     }
   }
 }

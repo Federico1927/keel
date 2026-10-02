@@ -173,3 +173,15 @@ export function suggestMarkdown(i: MarkdownInput): MarkdownSuggestion {
   if (price >= i.priceMinor) return { kind: "skip", reason: floor >= i.priceMinor ? "floor" : "already_marked_down", floorPriceMinor: floor };
   return { kind: "suggest", reason, regularPriceMinor: regular, priceMinor: price, compareAtMinor: regular, targetDepthBps: depth, discountBps: Math.round(((regular - price) * 10_000) / regular), floorPriceMinor: floor, marginBps: marginBpsAt(price, i.costMinor, tax), clampedByFloor: target < floor };
 }
+
+/**
+ * The line a scanned code belongs to (#49: receiving a purchase order or a return by scanning):
+ * the first candidate whose SKU or barcode equals the code, case and spacing ignored; the first
+ * one still needing units when several lines share the code. Null when nothing matches.
+ */
+export function matchScanCode<T extends { codes: readonly (string | null | undefined)[]; open?: boolean }>(code: string, lines: readonly T[]): T | null {
+  const norm = normalizeScanCode(code);
+  if (!norm) return null;
+  const hits = lines.filter((l) => l.codes.some((c) => c && normalizeScanCode(c) === norm));
+  return hits.find((l) => l.open !== false) ?? hits[0] ?? null;
+}

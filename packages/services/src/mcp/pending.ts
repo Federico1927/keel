@@ -168,7 +168,7 @@ export async function decideProposal(ctx: ServiceContext, input: DecideInput): P
         if (c.status === "paused") throw new Error("The campaign is already paused");
         await sp.update(schema.campaigns).set({ status: "paused" }).where(eq(schema.campaigns.id, c.id));
         await recordAudit(sp, { tenantId: ctx.tenantId, actorUserId: ctx.actor.userId, action: "campaign.paused", entityType: "campaign", entityId: c.id, diff: { status: { from: c.status, to: "paused" } }, metadata: meta });
-        writes.push(await enqueuePlatformWrite(s, { kind: "campaign.status", entityType: "campaign", entityId: c.id, payload: { provider: "meta", campaignExternalId: c.externalId, status: "paused" } }));
+        writes.push(await enqueuePlatformWrite(s, { kind: "campaign.status", entityType: "campaign", entityId: c.id, payload: { provider: "meta", campaignExternalId: c.externalId, status: "paused", ...(c.accountExternalId ? { accountExternalId: c.accountExternalId } : {}) } }));
         result = { campaignId: c.id, status: "paused" };
       } else if (row.kind === "purchase_order.create") {
         const lines = (Array.isArray(payload.lines) ? payload.lines : []) as PoLineInput[];

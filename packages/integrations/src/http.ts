@@ -8,6 +8,8 @@ export interface HttpOptions {
   /** Retries on 429 and 5xx; each attempt honours Retry-After (seconds) when present. */
   maxRetries?: number;
   minIntervalMs?: number;
+  /** Vendor error bodies → a readable `IntegrationError` (GA4: `{ error: { status, message } }`); null falls back to the status mapping. */
+  mapError?: (status: number, text: string, retryAfterMs?: number) => IntegrationError | null;
 }
 
 /**
@@ -19,6 +21,7 @@ export class HttpClient {
   readonly sleep: (ms: number) => Promise<void>;
   private readonly maxRetries: number;
   private readonly minIntervalMs: number;
+  private readonly mapError: HttpOptions["mapError"];
   private lastCallAt = 0;
   readonly calls: { url: string; method: string; body?: string }[] = [];
 
@@ -27,6 +30,7 @@ export class HttpClient {
     this.sleep = opts.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
     this.maxRetries = opts.maxRetries ?? 3;
     this.minIntervalMs = opts.minIntervalMs ?? 0;
+    this.mapError = opts.mapError;
   }
 
   async request<T>(url: string, init: { method?: string; headers?: Record<string, string>; body?: string; /** accept a plain-text body (json = null) */ textOk?: boolean } = {}): Promise<{ status: number; headers: { get(name: string): string | null }; json: T; text: string }> {
@@ -58,7 +62,11 @@ export class HttpClient {
           await this.sleep(ms);
           continue;
         }
-        throw new IntegrationError(res.status === 429 ? "rate_limited" : "network", `HTTP ${res.status}: ${text.slice(0, 200)}`, ms);
+        throw this.mapError?.(res.status, text, ms) ?? new IntegrationError(res.status === 429 ? "rate_limited" : "network", `HTTP ${res.status}: ${text.slice(0, 200)}`, ms);
+      }
+      if (res.status >= 400 && this.mapError) {
+        const mapped = this.mapError(res.status, text);
+        if (mapped) throw mapped;
       }
       if (res.status === 401) throw new IntegrationError("token_expired", `HTTP 401: ${text.slice(0, 200)}`);
       if (res.status === 403) throw new IntegrationError("permission", `HTTP 403: ${text.slice(0, 200)}`);

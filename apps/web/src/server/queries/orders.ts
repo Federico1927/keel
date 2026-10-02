@@ -6,7 +6,7 @@ import type { TenantContext } from "@/server/tenant";
 
 export { parseOrderFilters, utmParam, type OrderFilters } from "@hullwise/services";
 
-const buildWhere = (ctx: TenantContext, f: OrderFilters): SQL => orderListWhere({ tenantId: ctx.tenant.id, userId: ctx.user.id, orderNumberPrefix: ctx.tenant.orderNumberPrefix }, f);
+const buildWhere = (ctx: TenantContext, f: OrderFilters): SQL => orderListWhere({ tenantId: ctx.tenant.id, userId: ctx.user.id, orderNumberPrefix: ctx.tenant.orderNumberPrefix, country: ctx.tenant.country }, f);
 
 /** Label of the product / variant drill-down filter (`?product=` / `?variant=`), for the filter chip. */
 export async function orderDrillLabel(ctx: TenantContext, f: OrderFilters): Promise<{ kind: "product" | "variant"; label: string } | null> {

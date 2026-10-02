@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, ImagePlus, Pencil, Pl
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Dialog, DialogContent, DialogDescription, DialogTitle, Input, cn } from "@hullwise/ui";
 import { productMediaAction } from "@/server/actions/product-edit";
 import { SaveError } from "./product-edit";
+import { ConfirmDialog } from "@/components/confirm-button";
 
 export interface GalleryMedia {
   id: string;
@@ -27,6 +28,7 @@ export function ProductGallery({ slug, productId, version, media, title, canEdit
   const [url, setUrl] = useState("");
   const [altEdit, setAltEdit] = useState<{ id: string; alt: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [toDelete, setToDelete] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const run = (op: Record<string, unknown>, after?: () => void) =>
     start(async () => {
@@ -69,7 +71,7 @@ export function ProductGallery({ slug, productId, version, media, title, canEdit
                     <Button type="button" size="sm" variant="ghost" className="h-7 px-1.5" disabled={pending || i === 0} onClick={() => move(i, -1)} aria-label={t("move_left")}><ArrowLeft className="h-3.5 w-3.5" /></Button>
                     <Button type="button" size="sm" variant="ghost" className="h-7 px-1.5" disabled={pending || i === media.length - 1} onClick={() => move(i, 1)} aria-label={t("move_right")} data-testid="media-move-right"><ArrowRight className="h-3.5 w-3.5" /></Button>
                     <Button type="button" size="sm" variant="ghost" className="h-7 px-1.5" disabled={pending} onClick={() => setAltEdit({ id: m.id, alt: m.alt ?? "" })} aria-label={t("alt")}><Pencil className="h-3.5 w-3.5" /></Button>
-                    <Button type="button" size="sm" variant="ghost" className="h-7 px-1.5 text-destructive" disabled={pending} onClick={() => { if (window.confirm(t("delete_confirm"))) run({ type: "delete", mediaIds: [m.id] }); }} aria-label={t("delete")}><Trash2 className="h-3.5 w-3.5" /></Button>
+                    <Button type="button" size="sm" variant="ghost" className="h-7 px-1.5 text-destructive" disabled={pending} onClick={() => setToDelete(m.id)} aria-label={t("delete")}><Trash2 className="h-3.5 w-3.5" /></Button>
                   </div>
                 )}
               </div>
@@ -116,6 +118,7 @@ export function ProductGallery({ slug, productId, version, media, title, canEdit
           )}
         </DialogContent>
       </Dialog>
+      <ConfirmDialog open={toDelete !== null} onOpenChange={(o) => !o && setToDelete(null)} title={t("delete_confirm")} confirmLabel={t("delete")} destructive pending={pending} onConfirm={() => toDelete && run({ type: "delete", mediaIds: [toDelete] })} />
     </Card>
   );
 }

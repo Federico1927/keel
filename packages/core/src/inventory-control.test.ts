@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { driftLossUnits, marginBpsAt, marginFloorPrice, normalizeScanCode, reviewStockTake, suggestMarkdown, validateAdjustment, type MarkdownInput } from "./inventory-control";
+import { driftLossUnits, marginBpsAt, marginFloorPrice, matchScanCode, normalizeScanCode, reviewStockTake, suggestMarkdown, validateAdjustment, type MarkdownInput } from "./inventory-control";
 
 describe("stock adjustments", () => {
   it("damaged and lost take units away, found brings them back, other needs a note", () => {
@@ -98,5 +98,20 @@ describe("markdown margin floor", () => {
                 expect(r.marginBps!).toBeGreaterThanOrEqual(minMarginBps);
               }
     expect(suggested).toBeGreaterThan(100);
+  });
+});
+
+describe("scan matching (#49)", () => {
+  const lines = [
+    { id: "a", codes: ["TS-01-M", "8001234567890"], open: false },
+    { id: "b", codes: ["ts-01-m", null], open: true },
+    { id: "c", codes: [null, "4006381333931"] },
+  ];
+  it("matches SKU or barcode ignoring case and spaces, preferring a line still open", () => {
+    expect(matchScanCode(" ts-01-M ", lines)?.id).toBe("b");
+    expect(matchScanCode("8001234567890", lines)?.id).toBe("a");
+    expect(matchScanCode("4006381333931", lines)?.id).toBe("c");
+    expect(matchScanCode("nope", lines)).toBeNull();
+    expect(matchScanCode("   ", lines)).toBeNull();
   });
 });

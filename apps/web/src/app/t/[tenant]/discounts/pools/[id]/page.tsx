@@ -5,7 +5,7 @@ import { canDo, canExportList } from "@hullwise/config";
 import { formatDate, formatDiscountValue, formatMoney, formatNumber, POOL_CODE_STATUSES, type DiscountType, type PoolCodeStatus } from "@hullwise/core";
 import { latestPlatformWrites, listPoolCodes, poolSummaries } from "@hullwise/services";
 import { and, asc, eq, schema } from "@hullwise/db";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DetailShell, EmptyState, Pagination, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, DetailShell, EmptyState, Input, Pagination, Stat, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { AssignForm, PoolActiveToggle, ReleaseButton, TopUpForm } from "./controls";
@@ -84,21 +84,24 @@ export default async function DiscountPoolPage({ params, searchParams }: { param
         ) : undefined
       }
     >
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-testid="pool-counts">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-testid="pool-counts">
         <Stat label={t("kpi.ready")} value={formatNumber(summary.ready, ctx.locale)} hint={t("kpi.target", { n: formatNumber(pool.targetSize, ctx.locale) })} />
         <Stat label={t("status.assigned")} value={formatNumber(summary.assigned, ctx.locale)} />
         <Stat label={t("status.redeemed")} value={formatNumber(summary.redeemed, ctx.locale)} />
         <Stat label={t("kpi.validity")} value={pool.endsAt ? formatDate(pool.endsAt, ctx.locale, ctx.tenant.timezone) : "∞"} hint={pool.startsAt ? t("kpi.from", { date: formatDate(pool.startsAt, ctx.locale, ctx.tenant.timezone) }) : undefined} />
       </div>
-      <div className="mt-6 flex flex-wrap gap-2 text-xs">
-        {chips.map((c) => (
-          <Link key={c.key ?? "all"} href={`${base}${qs({ status: c.key, page: undefined })}`} className={cn("rounded-full border px-3 py-1", status === c.key ? "bg-primary text-primary-foreground" : "bg-card")} data-testid={`pool-filter-${c.key ?? "all"}`}>
-            {c.label} <span className="tabular opacity-70">{formatNumber(c.n, ctx.locale)}</span>
-          </Link>
-        ))}
-        <form className="ml-auto" action={base}>
+      <div className="mt-6 flex flex-col gap-2 md:flex-row md:items-center">
+        {/* status views: one scrolling row on phones (#49) */}
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 text-xs sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:px-0 md:pb-0">
+          {chips.map((c) => (
+            <Link key={c.key ?? "all"} href={`${base}${qs({ status: c.key, page: undefined })}`} className={cn("shrink-0 rounded-full border px-3 py-1 pointer-coarse:py-2", status === c.key ? "bg-primary text-primary-foreground" : "bg-card")} data-testid={`pool-filter-${c.key ?? "all"}`}>
+              {c.label} <span className="tabular opacity-70">{formatNumber(c.n, ctx.locale)}</span>
+            </Link>
+          ))}
+        </div>
+        <form className="md:ml-auto md:w-56" action={base}>
           {status && <input type="hidden" name="status" value={status} />}
-          <input name="q" defaultValue={q} placeholder={t("search_placeholder")} aria-label={t("search_placeholder")} className="h-7 rounded-md border bg-card px-2 text-xs" />
+          <Input size="sm" name="q" enterKeyHint="search" defaultValue={q} placeholder={t("search_placeholder")} aria-label={t("search_placeholder")} />
         </form>
       </div>
       {codes.rows.length === 0 ? (
@@ -106,38 +109,19 @@ export default async function DiscountPoolPage({ params, searchParams }: { param
       ) : (
         <Card className="mt-3">
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("columns.code")}</TableHead>
-                  <TableHead>{t("columns.status")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("columns.assigned_to")}</TableHead>
-                  <TableHead>{t("columns.order")}</TableHead>
-                  <TableHead className="hidden lg:table-cell">{t("columns.redeemed_at")}</TableHead>
-                  {canWrite && <TableHead className="w-0" />}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {codes.rows.map((c) => (
-                  <TableRow key={c.id} data-testid="pool-code-row">
-                    <TableCell>
-                      <Link href={`/t/${tenant}/discounts/${c.id}`} className="font-mono text-sm hover:underline">{c.code}</Link>
-                      <PlatformWriteStatus slug={tenant} write={codeWrites.get(c.id)} canRetry={canWrite} className="ml-2" />
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={STATUS_VARIANT[c.status]} data-testid="pool-code-status">{t(`status.${c.status}`)}</Badge>
-                      {!c.isActive && <Badge variant="outline" className="ml-1">{t("inactive")}</Badge>}
-                    </TableCell>
-                    <TableCell className="hidden text-sm md:table-cell">
-                      {c.assignedCustomerId ? <Link href={`/t/${tenant}/customers/${c.assignedCustomerId}`} className="hover:underline">{c.assignedCustomerName ?? c.assignedCustomerEmail}</Link> : c.assignedCampaignId ? <Link href={`/t/${tenant}/campaigns/${c.assignedCampaignId}`} className="hover:underline">{c.assignedCampaignName}</Link> : <span className="text-muted-foreground">—</span>}
-                    </TableCell>
-                    <TableCell>{c.redeemedOrderId ? <Link href={`/t/${tenant}/orders/${c.redeemedOrderId}`} className="font-medium hover:underline" data-testid="pool-code-order">{c.redeemedOrderName}</Link> : <span className="text-muted-foreground">—</span>}</TableCell>
-                    <TableCell className="hidden text-xs text-muted-foreground lg:table-cell">{c.redeemedAt ? formatDate(c.redeemedAt, ctx.locale, ctx.tenant.timezone) : "—"}</TableCell>
-                    {canWrite && <TableCell>{c.status === "assigned" && <ReleaseButton slug={tenant} poolId={id} discountId={c.id} />}</TableCell>}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={codes.rows}
+              rowKey={(c) => c.id}
+              rowProps={() => ({ "data-testid": "pool-code-row" })}
+              columns={[
+                { key: "code", header: t("columns.code"), mobile: "title", cell: (c) => <><Link href={`/t/${tenant}/discounts/${c.id}`} className="font-mono text-sm hover:underline">{c.code}</Link><PlatformWriteStatus slug={tenant} write={codeWrites.get(c.id)} canRetry={canWrite} className="ml-2" /></> },
+                { key: "status", header: t("columns.status"), mobile: "badge", cell: (c) => <><Badge variant={STATUS_VARIANT[c.status]} data-testid="pool-code-status">{t(`status.${c.status}`)}</Badge>{!c.isActive && <Badge variant="outline" className="ml-1">{t("inactive")}</Badge>}</> },
+                { key: "assigned", header: t("columns.assigned_to"), className: "text-sm", cell: (c) => (c.assignedCustomerId ? <Link href={`/t/${tenant}/customers/${c.assignedCustomerId}`} className="hover:underline">{c.assignedCustomerName ?? c.assignedCustomerEmail}</Link> : c.assignedCampaignId ? <Link href={`/t/${tenant}/campaigns/${c.assignedCampaignId}`} className="hover:underline">{c.assignedCampaignName}</Link> : <span className="text-muted-foreground">—</span>) },
+                { key: "order", header: t("columns.order"), cell: (c) => (c.redeemedOrderId ? <Link href={`/t/${tenant}/orders/${c.redeemedOrderId}`} className="font-medium hover:underline" data-testid="pool-code-order">{c.redeemedOrderName}</Link> : <span className="text-muted-foreground">—</span>) },
+                { key: "redeemed", header: t("columns.redeemed_at"), priority: 2, className: "text-xs text-muted-foreground", cell: (c) => (c.redeemedAt ? formatDate(c.redeemedAt, ctx.locale, ctx.tenant.timezone) : "—") },
+                ...(canWrite ? [{ key: "release", header: <span className="sr-only">{t("columns.status")}</span>, mobile: "action" as const, headClassName: "w-0", cell: (c: (typeof codes.rows)[number]) => (c.status === "assigned" ? <ReleaseButton slug={tenant} poolId={id} discountId={c.id} /> : null) }] : []),
+              ]}
+            />
           </CardContent>
         </Card>
       )}

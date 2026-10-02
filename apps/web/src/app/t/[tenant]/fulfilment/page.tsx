@@ -36,7 +36,7 @@ export default async function FulfilmentPage({ params, searchParams }: { params:
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-2" role="group" aria-label={t("views.label")}>
           {(["all", "late"] as const).map((v) => (
-            <Link key={v} href={href(v)} data-testid={`view-${v}`} className={cn("rounded-full border px-3 py-1 text-xs", filters.view === v ? "bg-primary text-primary-foreground" : "bg-card")}>
+            <Link key={v} href={href(v)} data-testid={`view-${v}`} className={cn("rounded-full border px-3 py-1 text-xs pointer-coarse:min-h-9 pointer-coarse:py-2", filters.view === v ? "bg-primary text-primary-foreground" : "bg-card")}>
               {t(`views.${v}`)}
             </Link>
           ))}
@@ -44,7 +44,7 @@ export default async function FulfilmentPage({ params, searchParams }: { params:
         </div>
         <form className="flex gap-2" action={base}>
           {filters.view === "late" && <input type="hidden" name="view" value="late" />}
-          <Input name="q" defaultValue={filters.q ?? ""} placeholder={t("search_placeholder")} aria-label={t("search")} className="sm:w-64" />
+          <Input type="search" enterKeyHint="search" name="q" defaultValue={filters.q ?? ""} placeholder={t("search_placeholder")} aria-label={t("search")} className="sm:w-64" />
           <Button type="submit" variant="outline">{t("search")}</Button>
         </form>
       </div>

@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { canDo } from "@hullwise/config";
 import { formatDate, formatDiscountValue, formatMoney, formatNumber, type DiscountType } from "@hullwise/core";
 import { discountDetail, latestPlatformWrites } from "@hullwise/services";
-import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardHeader, CardTitle, DataList, DetailShell, Stat } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
 import { PlatformWriteStatus } from "@/components/platform-write-status";
@@ -60,7 +60,7 @@ export default async function DiscountDetailPage({ params }: { params: Promise<{
         </Card>
       }
     >
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label={t("kpi.orders")} value={formatNumber(totals.orders, ctx.locale)} hint={t("kpi.orders_hint")} />
         <Stat label={t("kpi.given")} value={money(totals.given)} />
         <Stat label={t("kpi.revenue")} value={money(totals.netRevenueMinor)} />
@@ -69,30 +69,18 @@ export default async function DiscountDetailPage({ params }: { params: Promise<{
       <Card className="mt-6">
         <CardHeader><CardTitle className="text-base">{t("orders_title")}</CardTitle></CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("order")}</TableHead>
-                <TableHead>{t("date")}</TableHead>
-                <TableHead>{t("customer")}</TableHead>
-                <TableHead>{t("status")}</TableHead>
-                <TableHead className="text-right">{t("discount")}</TableHead>
-                <TableHead className="text-right">{t("total")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map((o) => (
-                <TableRow key={o.id}>
-                  <TableCell><Link href={`/t/${tenant}/orders/${o.id}`} className="font-medium hover:underline">{o.name}</Link></TableCell>
-                  <TableCell>{formatDate(o.placedAt, ctx.locale, ctx.tenant.timezone)}</TableCell>
-                  <TableCell>{o.customerName}</TableCell>
-                  <TableCell><StatusBadge status={o.status} /></TableCell>
-                  <TableCell className="text-right tabular">{formatMoney(o.amountMinor, o.currency, ctx.locale)}</TableCell>
-                  <TableCell className="text-right tabular">{formatMoney(o.totalMinor, o.currency, ctx.locale)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataList
+            rows={orders}
+            rowKey={(o) => o.id}
+            columns={[
+              { key: "order", header: t("order"), mobile: "title", cell: (o) => <Link href={`/t/${tenant}/orders/${o.id}`} className="font-medium hover:underline">{o.name}</Link> },
+              { key: "total", header: t("total"), mobile: "badge", align: "right", className: "tabular max-md:font-semibold", cell: (o) => formatMoney(o.totalMinor, o.currency, ctx.locale) },
+              { key: "customer", header: t("customer"), mobile: "subtitle", cell: (o) => o.customerName },
+              { key: "date", header: t("date"), cell: (o) => formatDate(o.placedAt, ctx.locale, ctx.tenant.timezone) },
+              { key: "status", header: t("status"), label: "", cell: (o) => <StatusBadge status={o.status} /> },
+              { key: "discount", header: t("discount"), align: "right", className: "tabular", cell: (o) => formatMoney(o.amountMinor, o.currency, ctx.locale) },
+            ]}
+          />
         </CardContent>
       </Card>
     </DetailShell>

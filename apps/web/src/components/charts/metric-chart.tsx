@@ -2,6 +2,7 @@
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { MetricFormat } from "@hullwise/config";
 import { AXIS_TICK, CHART_COLORS, CHART_GRID, TOOLTIP_PROPS } from "./theme";
+import { compactAxis, useCompactChart } from "./use-compact";
 
 export interface MetricChartSeries {
   key: string;
@@ -11,8 +12,8 @@ export interface MetricChartSeries {
   values: (number | null)[];
 }
 
-function formatter(format: MetricFormat, locale: string, currency: string) {
-  const money = new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: 0 });
+function formatter(format: MetricFormat, locale: string, currency: string, compact = false) {
+  const money = new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: 0, ...(compact ? { notation: "compact" as const } : {}) });
   const pct = new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 1 });
   const num = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 });
   return (v: number) => (format === "money" ? money.format(v) : format === "percent" ? pct.format(v) : format === "ratio" ? `${num.format(v)}×` : num.format(v));
@@ -29,16 +30,18 @@ export function MetricChart({ labels, series, chart, locale, currency, height = 
   const rows = labels.map((label, i) => ({ label, ...Object.fromEntries(series.map((s) => [s.key, s.values[i] === null || s.values[i] === undefined ? null : s.format === "money" ? s.values[i]! / 100 : s.values[i]])) }));
   const fmt = Object.fromEntries(series.map((s) => [s.key, formatter(s.format, locale, currency)]));
   const names = Object.fromEntries(series.map((s) => [s.key, s.label]));
+  const compact = useCompactChart();
+  const ax = compactAxis(compact);
   return (
     <div className="w-full" style={{ height }} data-testid="metric-chart">
       <ResponsiveContainer>
         <ComposedChart data={rows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} vertical={false} />
-          <XAxis dataKey="label" tick={AXIS_TICK} stroke={CHART_GRID} minTickGap={16} />
-          <YAxis yAxisId="left" tick={AXIS_TICK} stroke={CHART_GRID} width={64} tickFormatter={formatter(leftFormat, locale, currency)} />
-          {rightFormat && <YAxis yAxisId="right" orientation="right" tick={AXIS_TICK} stroke={CHART_GRID} width={48} tickFormatter={formatter(rightFormat, locale, currency)} />}
+          <XAxis dataKey="label" tick={AXIS_TICK} stroke={CHART_GRID} minTickGap={ax.x.minTickGap} />
+          <YAxis yAxisId="left" tick={AXIS_TICK} stroke={CHART_GRID} width={ax.y.width} tickCount={ax.y.tickCount} tickFormatter={formatter(leftFormat, locale, currency, compact)} />
+          {rightFormat && <YAxis yAxisId="right" orientation="right" tick={AXIS_TICK} stroke={CHART_GRID} width={compact ? 36 : 48} tickCount={ax.y.tickCount} tickFormatter={formatter(rightFormat, locale, currency, compact)} />}
           <Tooltip {...TOOLTIP_PROPS} formatter={(v, name) => [v === null || v === undefined ? "—" : fmt[String(name)]!(Number(v)), names[String(name)] ?? String(name)]} />
-          {series.length > 1 && <Legend formatter={(v: string) => names[v] ?? v} wrapperStyle={{ fontSize: 12 }} />}
+          {series.length > 1 && !compact && <Legend formatter={(v: string) => names[v] ?? v} wrapperStyle={{ fontSize: 12 }} />}
           {series.map((s, i) =>
             chart === "bar" ? (
               <Bar key={s.key} yAxisId={axisOf(s)} dataKey={s.key} fill={CHART_COLORS[i % CHART_COLORS.length]} radius={[3, 3, 0, 0]} />

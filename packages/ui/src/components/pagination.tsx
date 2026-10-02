@@ -28,23 +28,23 @@ export function Pagination({ page, pageSize, total, hrefFor, summary, className 
       <p className="text-sm text-muted-foreground">{summary}</p>
       <ul className="flex items-center gap-1 text-sm">
         <li>
-          <a aria-disabled={page <= 1} className={cn("inline-flex h-8 min-w-8 items-center justify-center rounded-md border px-2", page <= 1 && "pointer-events-none opacity-40")} href={hrefFor(Math.max(1, page - 1))}>
+          <a aria-disabled={page <= 1} className={cn("inline-flex h-8 min-w-8 items-center justify-center rounded-md border px-2 pointer-coarse:h-11 pointer-coarse:min-w-11", page <= 1 && "pointer-events-none opacity-40")} href={hrefFor(Math.max(1, page - 1))}>
             ‹
           </a>
         </li>
         {getPageRange(page, pages).map((p, i) => (
-          <li key={`${p}-${i}`}>
+          <li key={`${p}-${i}`} className={p === page ? undefined : "max-sm:hidden"}>
             {p === "…" ? (
               <span className="px-1 text-muted-foreground">…</span>
             ) : (
-              <a aria-current={p === page ? "page" : undefined} className={cn("inline-flex h-8 min-w-8 items-center justify-center rounded-md border px-2 tabular", p === page && "bg-primary text-primary-foreground")} href={hrefFor(p)}>
+              <a aria-current={p === page ? "page" : undefined} className={cn("inline-flex h-8 min-w-8 items-center justify-center rounded-md border px-2 tabular pointer-coarse:h-11 pointer-coarse:min-w-11", p === page && "bg-primary text-primary-foreground")} href={hrefFor(p)}>
                 {p}
               </a>
             )}
           </li>
         ))}
         <li>
-          <a aria-disabled={page >= pages} className={cn("inline-flex h-8 min-w-8 items-center justify-center rounded-md border px-2", page >= pages && "pointer-events-none opacity-40")} href={hrefFor(Math.min(pages, page + 1))}>
+          <a aria-disabled={page >= pages} className={cn("inline-flex h-8 min-w-8 items-center justify-center rounded-md border px-2 pointer-coarse:h-11 pointer-coarse:min-w-11", page >= pages && "pointer-events-none opacity-40")} href={hrefFor(Math.min(pages, page + 1))}>
             ›
           </a>
         </li>

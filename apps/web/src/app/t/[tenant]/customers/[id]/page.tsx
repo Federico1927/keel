@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { isPageEnabled } from "@hullwise/config";
 import { formatDate, formatMoney, formatNumber, formatPercent } from "@hullwise/core";
 import { customerDetail } from "@hullwise/services";
-import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardHeader, CardTitle, DataList, DetailShell, Stat } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
 import { WhatsappLog } from "@/components/whatsapp-log";
@@ -45,8 +45,8 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
           <Card>
             <CardHeader><CardTitle className="text-base">{t("contact")}</CardTitle></CardHeader>
             <CardContent className="space-y-1 text-sm">
-              <p>{c.email ?? "—"}</p>
-              <p>{c.phone ?? "—"}</p>
+              <p className="break-all">{c.email ? <a href={`mailto:${c.email}`} className="hover:underline">{c.email}</a> : "—"}</p>
+              <p>{c.phone ? <a href={`tel:${c.phone}`} className="hover:underline" data-testid="customer-phone">{c.phone}</a> : "—"}</p>
               <p className="text-muted-foreground">{t("customer_since", { date: c.firstOrderAt ? formatDate(c.firstOrderAt, ctx.locale, ctx.tenant.timezone) : c.platformCreatedAt ? formatDate(c.platformCreatedAt, ctx.locale, ctx.tenant.timezone) : "—" })}</p>
             </CardContent>
           </Card>
@@ -89,7 +89,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
         </div>
       }
     >
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label={t("kpi.orders")} value={formatNumber(c.ordersCount, ctx.locale)} hint={t("kpi.orders_hint", { cancelled: c.cancelledCount, returned: c.returnsCount })} href={`/t/${tenant}/orders?customer=${c.customerId}`} />
         <Stat label={t("kpi.total_spent")} value={money(c.totalSpentMinor)} />
         <Stat label={t("kpi.aov")} value={c.aovMinor === null ? "—" : money(c.aovMinor)} />
@@ -98,28 +98,17 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
       <Card className="mt-6">
         <CardHeader><CardTitle className="text-base">{t("orders_title")}</CardTitle></CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("order")}</TableHead>
-                <TableHead>{t("date")}</TableHead>
-                <TableHead>{t("status")}</TableHead>
-                <TableHead className="hidden md:table-cell">{t("payment")}</TableHead>
-                <TableHead className="text-right">{t("total")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map((o) => (
-                <TableRow key={o.id}>
-                  <TableCell><Link href={`/t/${tenant}/orders/${o.id}`} className="font-medium hover:underline">{o.name}</Link></TableCell>
-                  <TableCell>{formatDate(o.placedAt, ctx.locale, ctx.tenant.timezone)}</TableCell>
-                  <TableCell><StatusBadge status={o.status} /></TableCell>
-                  <TableCell className="hidden md:table-cell">{tp.has(o.paymentMethod) ? tp(o.paymentMethod) : o.paymentMethod}</TableCell>
-                  <TableCell className="text-right tabular">{formatMoney(o.totalMinor, o.currency, ctx.locale)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataList
+            rows={orders}
+            rowKey={(o) => o.id}
+            columns={[
+              { key: "order", header: t("order"), mobile: "title", cell: (o) => <Link href={`/t/${tenant}/orders/${o.id}`} className="font-medium hover:underline">{o.name}</Link> },
+              { key: "total", header: t("total"), mobile: "badge", align: "right", className: "tabular max-md:font-semibold", cell: (o) => formatMoney(o.totalMinor, o.currency, ctx.locale) },
+              { key: "date", header: t("date"), mobile: "subtitle", cell: (o) => formatDate(o.placedAt, ctx.locale, ctx.tenant.timezone) },
+              { key: "status", header: t("status"), label: "", cell: (o) => <StatusBadge status={o.status} /> },
+              { key: "payment", header: t("payment"), label: "", cell: (o) => (tp.has(o.paymentMethod) ? tp(o.paymentMethod) : o.paymentMethod) },
+            ]}
+          />
         </CardContent>
       </Card>
       <div className="mt-6"><WhatsappLog ctx={ctx} customerId={id} /></div>

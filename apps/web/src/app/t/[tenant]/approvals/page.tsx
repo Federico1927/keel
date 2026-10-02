@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { isModuleInPlan } from "@hullwise/config";
 import { formatDateTime, formatMoney } from "@hullwise/core";
 import { canApproveProposal, listProposals, type ProposalRow } from "@hullwise/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, DataList } from "@hullwise/ui";
 import { getTenantContext } from "@/server/tenant";
 import { ProposalActions } from "./actions";
 
@@ -93,31 +93,21 @@ export default async function ApprovalsPage({ params }: { params: Promise<{ tena
             <CardTitle>{t("history")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table data-testid="proposals-history">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("col_proposal")}</TableHead>
-                  <TableHead className="hidden sm:table-cell">{t("col_requested")}</TableHead>
-                  <TableHead>{t("col_status")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("col_decided")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {decided.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell><div className="text-xs text-muted-foreground">{kind(p.kind)}</div>{target(p)}</TableCell>
-                    <TableCell className="hidden text-sm sm:table-cell">{p.clientName ?? "AI"} · {p.requestedByName ?? "—"}<div className="text-xs text-muted-foreground">{formatDateTime(p.createdAt, ctx.locale, tz)}</div></TableCell>
-                    <TableCell><Badge variant={STATUS_VARIANT[p.status] ?? "muted"}>{t(`status.${p.status}`)}</Badge>{p.error && <div className="mt-1 text-xs text-destructive">{p.error}</div>}</TableCell>
-                    <TableCell className="hidden text-sm md:table-cell">{p.decidedByName ?? "—"}{p.decisionNote && <div className="text-xs italic text-muted-foreground">“{p.decisionNote}”</div>}</TableCell>
-                  </TableRow>
-                ))}
-                {decided.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-muted-foreground">{t("history_empty")}</TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+            {decided.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t("history_empty")}</p>
+            ) : (
+              <DataList
+                data-testid="proposals-history"
+                rows={decided}
+                rowKey={(p) => p.id}
+                columns={[
+                  { key: "proposal", header: t("col_proposal"), mobile: "title", cell: (p) => <><div className="text-xs font-normal text-muted-foreground">{kind(p.kind)}</div>{target(p)}</> },
+                  { key: "requested", header: t("col_requested"), mobile: "subtitle", className: "text-sm", cell: (p) => <>{p.clientName ?? "AI"} · {p.requestedByName ?? "—"}<div className="text-xs text-muted-foreground max-md:ml-1 max-md:inline">{formatDateTime(p.createdAt, ctx.locale, tz)}</div></> },
+                  { key: "status", header: t("col_status"), mobile: "badge", cell: (p) => <><Badge variant={STATUS_VARIANT[p.status] ?? "muted"}>{t(`status.${p.status}`)}</Badge>{p.error && <div className="mt-1 text-xs text-destructive">{p.error}</div>}</> },
+                  { key: "decided", header: t("col_decided"), className: "text-sm", cell: (p) => <>{p.decidedByName ?? "—"}{p.decisionNote && <div className="text-xs italic text-muted-foreground">“{p.decisionNote}”</div>}</> },
+                ]}
+              />
+            )}
           </CardContent>
         </Card>
       </div>

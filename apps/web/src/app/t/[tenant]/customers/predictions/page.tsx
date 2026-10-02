@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { canWritePage } from "@hullwise/config";
 import { formatDate, formatDateTime, formatMoney, formatNumber, formatPercent, type ChurnRisk, type SegmentGroup } from "@hullwise/core";
 import { predictionOverview, type PredictionListRow } from "@hullwise/services";
-import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, EmptyState, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { encodeRulesParam } from "@/server/queries/crm";
 import { CustomerTabs } from "../customer-tabs";
@@ -30,7 +30,7 @@ export default async function PredictionsPage({ params }: { params: Promise<{ te
 
   const list = (title: string, description: string, rows: PredictionListRow[], testId: string, segment?: SegmentGroup) => (
     <Card data-testid={testId}>
-      <CardHeader className="flex flex-row items-start justify-between gap-2">
+      <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <CardTitle className="text-base">{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
@@ -43,31 +43,17 @@ export default async function PredictionsPage({ params }: { params: Promise<{ te
         {rows.length === 0 ? (
           <p className="px-6 pb-6 text-sm text-muted-foreground">{t("list_empty")}</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{tc("columns.customer")}</TableHead>
-                <TableHead className="text-right">{tc("columns.total_spent")}</TableHead>
-                <TableHead className="hidden text-right md:table-cell">{t("columns.p_alive")}</TableHead>
-                <TableHead className="text-right">{t("columns.predicted_value")}</TableHead>
-                <TableHead className="hidden md:table-cell">{t("columns.next_order")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((r) => (
-                <TableRow key={r.customerId}>
-                  <TableCell>
-                    <Link href={`${base}/${r.customerId}`} className="font-medium hover:underline">{r.name}</Link>
-                    <div className="text-xs text-muted-foreground">{t("orders_n", { n: r.ordersCount })} · <ChurnBadge risk={r.churnRisk} /></div>
-                  </TableCell>
-                  <TableCell className="text-right tabular">{money(r.totalSpentMinor)}</TableCell>
-                  <TableCell className="hidden text-right tabular md:table-cell">{formatPercent(r.pAlive, ctx.locale, 0)}</TableCell>
-                  <TableCell className="text-right tabular">{money(r.predictedValue365Minor)}</TableCell>
-                  <TableCell className="hidden md:table-cell">{r.nextOrderAt ? formatDate(r.nextOrderAt, ctx.locale, ctx.tenant.timezone) : "—"}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataList
+            rows={rows}
+            rowKey={(r) => r.customerId}
+            columns={[
+              { key: "customer", header: tc("columns.customer"), mobile: "title", cell: (r) => <><Link href={`${base}/${r.customerId}`} className="font-medium hover:underline">{r.name}</Link><div className="text-xs font-normal text-muted-foreground">{t("orders_n", { n: r.ordersCount })} · <ChurnBadge risk={r.churnRisk} /></div></> },
+              { key: "predicted", header: t("columns.predicted_value"), mobile: "badge", align: "right", className: "tabular max-md:font-semibold", cell: (r) => money(r.predictedValue365Minor) },
+              { key: "spent", header: tc("columns.total_spent"), align: "right", className: "tabular", cell: (r) => money(r.totalSpentMinor) },
+              { key: "alive", header: t("columns.p_alive"), align: "right", className: "tabular", cell: (r) => formatPercent(r.pAlive, ctx.locale, 0) },
+              { key: "next", header: t("columns.next_order"), cell: (r) => (r.nextOrderAt ? formatDate(r.nextOrderAt, ctx.locale, ctx.tenant.timezone) : "—") },
+            ]}
+          />
         )}
       </CardContent>
     </Card>
@@ -83,7 +69,7 @@ export default async function PredictionsPage({ params }: { params: Promise<{ te
         <Alert><AlertDescription>{t("insufficient_data", { n: o.model.customers })}</AlertDescription></Alert>
       ) : (
         <>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <Stat label={t("kpi.expected_orders_90")} value={num(o.expectedOrders90)} hint={t("kpi.from_existing")} />
             <Stat label={t("kpi.expected_orders_365")} value={num(o.expectedOrders365)} hint={t("kpi.from_existing")} />
             <Stat label={t("kpi.predicted_value")} value={money(o.predictedValue365Minor)} hint={t("kpi.next_12_months")} />
@@ -97,28 +83,18 @@ export default async function PredictionsPage({ params }: { params: Promise<{ te
                 <CardDescription>{t("risk_description")}</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("columns.risk")}</TableHead>
-                      <TableHead className="text-right">{tc("columns.customers")}</TableHead>
-                      <TableHead className="hidden text-right sm:table-cell">{t("columns.historical")}</TableHead>
-                      <TableHead className="text-right">{t("columns.predicted_value")}</TableHead>
-                      {canSegment && <TableHead />}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {o.byRisk.map((b) => (
-                      <TableRow key={b.risk} data-testid="risk-row">
-                        <TableCell><Link href={`${base}?churn=${b.risk}`} className="hover:underline"><ChurnBadge risk={b.risk} /></Link></TableCell>
-                        <TableCell className="text-right tabular">{num(b.customers)}</TableCell>
-                        <TableCell className="hidden text-right tabular sm:table-cell">{money(b.historicalMinor)}</TableCell>
-                        <TableCell className="text-right tabular">{money(b.predictedMinor)}</TableCell>
-                        {canSegment && <TableCell className="text-right"><Link href={segmentHref(riskRules(b.risk))} className="text-sm text-primary hover:underline">{t("segment_short")}</Link></TableCell>}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataList
+                  rows={o.byRisk}
+                  rowKey={(b) => b.risk}
+                  rowProps={() => ({ "data-testid": "risk-row" })}
+                  columns={[
+                    { key: "risk", header: t("columns.risk"), mobile: "title", cell: (b) => <Link href={`${base}?churn=${b.risk}`} className="hover:underline"><ChurnBadge risk={b.risk} /></Link> },
+                    { key: "customers", header: tc("columns.customers"), mobile: "badge", align: "right", className: "tabular", cell: (b) => num(b.customers) },
+                    { key: "historical", header: t("columns.historical"), align: "right", className: "tabular", cell: (b) => money(b.historicalMinor) },
+                    { key: "predicted", header: t("columns.predicted_value"), align: "right", className: "tabular", cell: (b) => money(b.predictedMinor) },
+                    ...(canSegment ? [{ key: "segment", header: <span className="sr-only">{t("segment_short")}</span>, mobile: "action" as const, align: "right" as const, cell: (b: (typeof o.byRisk)[number]) => <Link href={segmentHref(riskRules(b.risk))} className="text-sm text-primary hover:underline">{t("segment_short")}</Link> }] : []),
+                  ]}
+                />
               </CardContent>
             </Card>
 

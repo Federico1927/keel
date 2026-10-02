@@ -5,8 +5,11 @@ import { canWritePage } from "@hullwise/config";
 import { formatDate, formatMoney, formatNumber, formatPercent } from "@hullwise/core";
 import { and, eq, schema } from "@hullwise/db";
 import { bundleReport, cashFlowPlan, listDemandEvents, materialRequirements, productForecast, replenishmentPlan, revenueTargetPlan, stockAnalysisReport, transferPlan, type ServiceContext } from "@hullwise/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, EmptyState, PageHeader, Select, Stat, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
+import { ChartFullscreen } from "@/components/mobile/chart-fullscreen";
+import { DesktopNotice } from "@/components/mobile/desktop-notice";
+import { WideTable } from "@/components/mobile/wide-table";
 import { BundleForm, CashChart, DeleteComponentButton, DeleteEventButton, DemandEventForm, ForecastChart, OverrideCell, ReplenishmentTable, TransferButton } from "./controls";
 
 const TABS = ["replenishment", "forecast", "analysis", "transfers", "cashflow", "target", "bundles"] as const;
@@ -37,9 +40,9 @@ export default async function PlanningPage({ params, searchParams }: { params: P
         <ArrowLeft className="h-4 w-4" /> {t("back")}
       </Link>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description", { level: formatPercent(ctx.settings.serviceLevelBps / 10000, ctx.locale), review: ctx.settings.reviewDays })} />
-      <div className="mb-4 flex flex-wrap gap-1 rounded-md bg-muted p-1 text-sm">
+      <div className="mb-4 flex gap-1 overflow-x-auto rounded-md bg-muted p-1 text-sm md:flex-wrap">
         {TABS.map((k) => (
-          <Link key={k} href={href({ tab: k })} className={cn("flex-1 whitespace-nowrap rounded-sm px-3 py-1.5 text-center", tab === k ? "bg-card shadow-sm" : "text-muted-foreground")} data-testid={`planning-tab-${k}`}>
+          <Link key={k} href={href({ tab: k })} className={cn("shrink-0 whitespace-nowrap rounded-sm px-3 py-1.5 text-center pointer-coarse:py-2.5 md:flex-1", tab === k ? "bg-card shadow-sm" : "text-muted-foreground")} data-testid={`planning-tab-${k}`}>
             {t(`tabs.${k}`)}
           </Link>
         ))}
@@ -94,26 +97,17 @@ export default async function PlanningPage({ params, searchParams }: { params: P
             ) : (
               <Card>
                 <CardContent className="p-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>{t("replenishment.columns.variant")}</TableHead>
-                        <TableHead className="text-right">{t("replenishment.columns.position")}</TableHead>
-                        <TableHead>{t("replenishment.columns.stockout")}</TableHead>
-                        <TableHead className="text-right">{t("replenishment.columns.order")}</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {rows.slice(0, 300).map((r) => (
-                        <TableRow key={r.variantId}>
-                          <TableCell>{r.label}</TableCell>
-                          <TableCell className="text-right tabular">{r.position}</TableCell>
-                          <TableCell>{r.stockoutDate ? date(r.stockoutDate) : "—"}</TableCell>
-                          <TableCell className="text-right tabular">{r.shouldOrder ? r.quantity : "—"}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <DataList
+                    rows={rows.slice(0, 300)}
+                    rowKey={(r) => r.variantId}
+                    rowProps={() => ({ "data-testid": "replenishment-row" })}
+                    columns={[
+                      { key: "variant", header: t("replenishment.columns.variant"), mobile: "title", cell: (r) => r.label },
+                      { key: "order", header: t("replenishment.columns.order"), mobile: "badge", align: "right", className: "tabular", cell: (r) => (r.shouldOrder ? r.quantity : "—") },
+                      { key: "position", header: t("replenishment.columns.position"), align: "right", className: "tabular", cell: (r) => r.position },
+                      { key: "stockout", header: t("replenishment.columns.stockout"), cell: (r) => (r.stockoutDate ? date(r.stockoutDate) : "—") },
+                    ]}
+                  />
                 </CardContent>
               </Card>
             )}
@@ -136,7 +130,7 @@ export default async function PlanningPage({ params, searchParams }: { params: P
         const wapes = fc?.variants.filter((v) => v.wape !== null).map((v) => v.wape!) ?? [];
         const histTotal = fc?.series.filter((x) => x.history !== null).reduce((n, x) => n + (x.history ?? 0), 0) ?? 0;
         return (
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="space-y-4">
               <form method="get" className="flex flex-wrap items-center gap-2">
                 <input type="hidden" name="tab" value="forecast" />
@@ -153,7 +147,7 @@ export default async function PlanningPage({ params, searchParams }: { params: P
                       <CardDescription>{t("forecast.chart_hint", { history: formatNumber(histTotal, ctx.locale) })}{wapes.length ? ` · ${t("forecast.accuracy", { wape: formatPercent(wapes.reduce((a, b) => a + b, 0) / wapes.length, ctx.locale) })}` : ""}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <ForecastChart data={fc.series} locale={ctx.locale} labels={{ history: t("forecast.history"), forecast: t("forecast.forecast") }} />
+                      <ChartFullscreen title={products.find((p) => p.id === productId)?.title ?? t("tabs.forecast")}><ForecastChart data={fc.series} locale={ctx.locale} labels={{ history: t("forecast.history"), forecast: t("forecast.forecast") }} /></ChartFullscreen>
                     </CardContent>
                   </Card>
                   <Card>
@@ -161,8 +155,9 @@ export default async function PlanningPage({ params, searchParams }: { params: P
                       <CardTitle className="text-base">{t("forecast.by_variant")}</CardTitle>
                       <CardDescription>{canWrite ? t("forecast.override_hint") : ""}</CardDescription>
                     </CardHeader>
-                    <CardContent className="overflow-x-auto p-0">
-                      <Table>
+                    <CardContent className="p-0">
+                      {canWrite && <DesktopNotice className="mx-4">{t("forecast.override_hint")}</DesktopNotice>}
+                      <WideTable label={t("forecast.by_variant")} stickyFirst data-testid="forecast-grid">
                         <TableHeader>
                           <TableRow>
                             <TableHead>{t("forecast.variant")}</TableHead>
@@ -173,7 +168,7 @@ export default async function PlanningPage({ params, searchParams }: { params: P
                         <TableBody>
                           {fc.variants.map((v) => (
                             <TableRow key={v.variantId}>
-                              <TableCell className="whitespace-nowrap">{v.label}<span className="block text-xs text-muted-foreground">{v.sku}</span></TableCell>
+                              <TableCell className="min-w-32">{v.label}<span className="block text-xs text-muted-foreground">{v.sku}</span></TableCell>
                               {v.forecast.slice(0, 6).map((p) => (
                                 <TableCell key={p.month} className="text-right" title={p.uplift ? t("forecast.uplift", { pct: formatPercent(p.uplift, ctx.locale) }) : undefined}>
                                   {canWrite ? <OverrideCell slug={tenant} variantId={v.variantId} month={p.month} units={p.units} overridden={p.overridden} /> : <span className="tabular">{p.units}</span>}
@@ -184,7 +179,7 @@ export default async function PlanningPage({ params, searchParams }: { params: P
                             </TableRow>
                           ))}
                         </TableBody>
-                      </Table>
+                      </WideTable>
                     </CardContent>
                   </Card>
                 </>
@@ -228,7 +223,7 @@ export default async function PlanningPage({ params, searchParams }: { params: P
               <Stat label={t("analysis.kpi.slow")} value={money(r.slowValueMinor)} hint={t("analysis.kpi.slow_hint", { days: ctx.settings.slowCoverDays })} />
               <Stat label={t("analysis.kpi.variants")} value={formatNumber(r.rows.length, ctx.locale)} />
             </div>
-            <div className="grid gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
               <Card className="h-fit">
                 <CardHeader>
                   <CardTitle className="text-base">{t("analysis.matrix")}</CardTitle>
@@ -266,34 +261,23 @@ export default async function PlanningPage({ params, searchParams }: { params: P
                 <CardHeader>
                   <CardTitle className="text-base">{cell ? t("analysis.cell_title", { cell }) : t("analysis.attention")}</CardTitle>
                 </CardHeader>
-                <CardContent className="overflow-x-auto p-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>{t("analysis.columns.variant")}</TableHead>
-                        <TableHead>{t("analysis.columns.class")}</TableHead>
-                        <TableHead className="text-right">{t("analysis.columns.on_hand")}</TableHead>
-                        <TableHead className="text-right">{t("analysis.columns.value")}</TableHead>
-                        <TableHead className="hidden text-right md:table-cell">{t("analysis.columns.cover")}</TableHead>
-                        <TableHead className="hidden text-right md:table-cell">{t("analysis.columns.turnover")}</TableHead>
-                        <TableHead className="text-right">{t("analysis.columns.excess")}</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {list.map((x) => (
-                        <TableRow key={x.id}>
-                          <TableCell><Link href={`/t/${tenant}/products/${x.productId}`} className="hover:underline">{x.label}</Link><span className="block text-xs text-muted-foreground">{x.sku}</span></TableCell>
-                          <TableCell><Badge variant="outline">{x.abc}{x.xyz}</Badge>{x.slowMover && <Badge variant="warning" className="ml-1">{t("analysis.slow")}</Badge>}</TableCell>
-                          <TableCell className="text-right tabular">{x.onHand}</TableCell>
-                          <TableCell className="text-right tabular">{money(x.stockValueMinor)}</TableCell>
-                          <TableCell className="hidden text-right tabular md:table-cell">{x.coverDays === null ? "—" : x.coverDays === Infinity ? "∞" : t("analysis.days", { n: x.coverDays })}</TableCell>
-                          <TableCell className="hidden text-right tabular md:table-cell">{x.turnover ?? "—"}</TableCell>
-                          <TableCell className="text-right tabular">{x.excessUnits || "—"}</TableCell>
-                        </TableRow>
-                      ))}
-                      {list.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">{t("analysis.empty")}</TableCell></TableRow>}
-                    </TableBody>
-                  </Table>
+                <CardContent className="p-0">
+                  {list.length === 0 ? <p className="p-4 text-center text-sm text-muted-foreground">{t("analysis.empty")}</p> : (
+                    <DataList
+                      rows={list}
+                      rowKey={(x) => x.id}
+                      rowProps={() => ({ "data-testid": "analysis-row" })}
+                      columns={[
+                        { key: "variant", header: t("analysis.columns.variant"), mobile: "title", cell: (x) => <><Link href={`/t/${tenant}/products/${x.productId}`} className="hover:underline">{x.label}</Link><span className="block text-xs font-normal text-muted-foreground">{x.sku}</span></> },
+                        { key: "class", header: t("analysis.columns.class"), mobile: "badge", cell: (x) => <><Badge variant="outline">{x.abc}{x.xyz}</Badge>{x.slowMover && <Badge variant="warning" className="ml-1">{t("analysis.slow")}</Badge>}</> },
+                        { key: "on_hand", header: t("analysis.columns.on_hand"), align: "right", className: "tabular", cell: (x) => x.onHand },
+                        { key: "value", header: t("analysis.columns.value"), align: "right", className: "tabular", cell: (x) => money(x.stockValueMinor) },
+                        { key: "cover", header: t("analysis.columns.cover"), align: "right", className: "tabular", cell: (x) => (x.coverDays === null ? "—" : x.coverDays === Infinity ? "∞" : t("analysis.days", { n: x.coverDays })) },
+                        { key: "turnover", header: t("analysis.columns.turnover"), align: "right", priority: 2, className: "tabular", cell: (x) => x.turnover ?? "—" },
+                        { key: "excess", header: t("analysis.columns.excess"), align: "right", className: "tabular", cell: (x) => x.excessUnits || "—" },
+                      ]}
+                    />
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -310,28 +294,18 @@ export default async function PlanningPage({ params, searchParams }: { params: P
             <p className="mb-3 text-sm text-muted-foreground">{t("transfers.hint", { short: ctx.settings.transferShortDays, surplus: ctx.settings.transferSurplusDays })}</p>
             <Card>
               <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("transfers.columns.variant")}</TableHead>
-                      <TableHead>{t("transfers.columns.from")}</TableHead>
-                      <TableHead>{t("transfers.columns.to")}</TableHead>
-                      <TableHead className="text-right">{t("transfers.columns.units")}</TableHead>
-                      {canWrite && <TableHead />}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rows.slice(0, 200).map((r, i) => (
-                      <TableRow key={`${r.variantId}-${i}`} data-testid="transfer-row">
-                        <TableCell>{r.label}<span className="block text-xs text-muted-foreground">{r.sku}</span></TableCell>
-                        <TableCell>{r.from.name}</TableCell>
-                        <TableCell>{r.to.name}</TableCell>
-                        <TableCell className="text-right tabular">{r.units}</TableCell>
-                        {canWrite && <TableCell className="text-right"><TransferButton slug={tenant} input={{ variantId: r.variantId, fromLocationId: r.from.id, toLocationId: r.to.id, units: r.units }} /></TableCell>}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataList
+                  rows={rows.slice(0, 200)}
+                  rowKey={(r, i) => `${r.variantId}-${i}`}
+                  rowProps={() => ({ "data-testid": "transfer-row" })}
+                  columns={[
+                    { key: "variant", header: t("transfers.columns.variant"), mobile: "title", cell: (r) => <>{r.label}<span className="block text-xs font-normal text-muted-foreground">{r.sku}</span></> },
+                    { key: "units", header: t("transfers.columns.units"), mobile: "badge", align: "right", className: "tabular", cell: (r) => r.units },
+                    { key: "from", header: t("transfers.columns.from"), cell: (r) => r.from.name },
+                    { key: "to", header: t("transfers.columns.to"), cell: (r) => r.to.name },
+                    ...(canWrite ? [{ key: "apply", header: <span className="sr-only">{t("transfers.columns.units")}</span>, mobile: "action" as const, align: "right" as const, cell: (r: (typeof rows)[number]) => <TransferButton slug={tenant} input={{ variantId: r.variantId, fromLocationId: r.from.id, toLocationId: r.to.id, units: r.units }} /> }] : []),
+                  ]}
+                />
               </CardContent>
             </Card>
           </>
@@ -347,12 +321,12 @@ export default async function PlanningPage({ params, searchParams }: { params: P
               <Stat label={t("cashflow.planned")} value={money(r.plannedMinor)} hint={t("cashflow.planned_hint")} />
               <Stat label={t("cashflow.total")} value={money(r.committedMinor + r.plannedMinor)} />
             </div>
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
               <Card>
                 <CardHeader><CardTitle className="text-base">{t("cashflow.by_month")}</CardTitle></CardHeader>
                 <CardContent>
-                  <CashChart data={r.byMonth} locale={ctx.locale} currency={ctx.tenant.currency} labels={{ committed: t("cashflow.committed"), planned: t("cashflow.planned") }} />
-                  <Table>
+                  <ChartFullscreen title={t("cashflow.by_month")}><CashChart data={r.byMonth} locale={ctx.locale} currency={ctx.tenant.currency} labels={{ committed: t("cashflow.committed"), planned: t("cashflow.planned") }} /></ChartFullscreen>
+                  <WideTable label={t("cashflow.by_month")} stickyFirst>
                     <TableHeader>
                       <TableRow>
                         <TableHead>{t("cashflow.month")}</TableHead>
@@ -371,7 +345,7 @@ export default async function PlanningPage({ params, searchParams }: { params: P
                         </TableRow>
                       ))}
                     </TableBody>
-                  </Table>
+                  </WideTable>
                 </CardContent>
               </Card>
               <Card className="h-fit">
@@ -425,30 +399,19 @@ export default async function PlanningPage({ params, searchParams }: { params: P
                 </div>
                 <Card>
                   <CardContent className="p-0">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{t("target.columns.variant")}</TableHead>
-                          <TableHead className="text-right">{t("target.columns.forecast")}</TableHead>
-                          <TableHead className="text-right">{t("target.columns.planned")}</TableHead>
-                          <TableHead className="text-right">{t("target.columns.stock")}</TableHead>
-                          <TableHead className="text-right">{t("target.columns.gap")}</TableHead>
-                          <TableHead className="text-right">{t("target.columns.gap_cost")}</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {r.rows.slice(0, 100).map((x) => (
-                          <TableRow key={x.variantId} data-testid="target-row">
-                            <TableCell>{x.label}<span className="block text-xs text-muted-foreground">{x.sku}</span></TableCell>
-                            <TableCell className="text-right tabular">{x.forecastUnits}</TableCell>
-                            <TableCell className="text-right tabular">{x.plannedUnits}</TableCell>
-                            <TableCell className="text-right tabular">{x.stockUnits}</TableCell>
-                            <TableCell className={cn("text-right tabular", x.gapUnits > 0 && "font-medium text-destructive")}>{x.gapUnits || "—"}</TableCell>
-                            <TableCell className="text-right tabular">{x.gapCostMinor ? money(x.gapCostMinor) : "—"}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                    <DataList
+                      rows={r.rows.slice(0, 100)}
+                      rowKey={(x) => x.variantId}
+                      rowProps={() => ({ "data-testid": "target-row" })}
+                      columns={[
+                        { key: "variant", header: t("target.columns.variant"), mobile: "title", cell: (x) => <>{x.label}<span className="block text-xs font-normal text-muted-foreground">{x.sku}</span></> },
+                        { key: "forecast", header: t("target.columns.forecast"), align: "right", className: "tabular", cell: (x) => x.forecastUnits },
+                        { key: "planned", header: t("target.columns.planned"), align: "right", className: "tabular", cell: (x) => x.plannedUnits },
+                        { key: "stock", header: t("target.columns.stock"), align: "right", className: "tabular", cell: (x) => x.stockUnits },
+                        { key: "gap", header: t("target.columns.gap"), align: "right", className: "tabular", cell: (x) => <span className={cn(x.gapUnits > 0 && "font-medium text-destructive")}>{x.gapUnits || "—"}</span> },
+                        { key: "gap_cost", header: t("target.columns.gap_cost"), align: "right", className: "tabular", cell: (x) => (x.gapCostMinor ? money(x.gapCostMinor) : "—") },
+                      ]}
+                    />
                   </CardContent>
                 </Card>
               </>
@@ -464,7 +427,7 @@ export default async function PlanningPage({ params, searchParams }: { params: P
           variants: canWrite ? (await tx.select({ id: schema.productVariants.id, title: schema.productVariants.title, product: schema.products.title, sku: schema.productVariants.sku }).from(schema.productVariants).innerJoin(schema.products, eq(schema.products.id, schema.productVariants.productId)).where(eq(schema.productVariants.tenantId, ctx.tenant.id)).orderBy(schema.products.title, schema.productVariants.title)).map((v) => ({ id: v.id, label: `${v.product} ${v.title}${v.sku ? ` (${v.sku})` : ""}` })) : [],
         }));
         return (
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
             <div className="space-y-4">
               {bundles.length === 0 && <EmptyState title={t("bundles.empty_title")} description={t("bundles.empty_description")} />}
               {bundles.map((b) => (
@@ -496,26 +459,16 @@ export default async function PlanningPage({ params, searchParams }: { params: P
                     <CardDescription>{t("bundles.mrp_hint")}</CardDescription>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{t("bundles.component")}</TableHead>
-                          <TableHead className="text-right">{t("bundles.required")}</TableHead>
-                          <TableHead className="text-right">{t("bundles.stock")}</TableHead>
-                          <TableHead className="text-right">{t("bundles.shortfall")}</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {mrp.map((m) => (
-                          <TableRow key={m.variantId}>
-                            <TableCell>{m.label}</TableCell>
-                            <TableCell className="text-right tabular">{m.requiredUnits}</TableCell>
-                            <TableCell className="text-right tabular">{m.availableUnits}</TableCell>
-                            <TableCell className={cn("text-right tabular", m.shortfall > 0 && "font-medium text-destructive")}>{m.shortfall || "—"}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                    <DataList
+                      rows={mrp}
+                      rowKey={(m) => m.variantId}
+                      columns={[
+                        { key: "component", header: t("bundles.component"), mobile: "title", cell: (m) => m.label },
+                        { key: "required", header: t("bundles.required"), align: "right", className: "tabular", cell: (m) => m.requiredUnits },
+                        { key: "stock", header: t("bundles.stock"), align: "right", className: "tabular", cell: (m) => m.availableUnits },
+                        { key: "shortfall", header: t("bundles.shortfall"), align: "right", className: "tabular", cell: (m) => <span className={cn(m.shortfall > 0 && "font-medium text-destructive")}>{m.shortfall || "—"}</span> },
+                      ]}
+                    />
                   </CardContent>
                 </Card>
               )}

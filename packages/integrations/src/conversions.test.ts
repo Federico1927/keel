@@ -2,7 +2,8 @@ import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { fixtureFetch } from "./http";
 import { GOOGLE_ADS_API_BASE } from "./google";
-import { GoogleConversionsSink, MetaConversionsSink, MockConversionSink, fbcFromClickId, googleConversionPayload, hashUserData, metaEventPayload, type ConversionEvent } from "./conversions";
+import { CONVERSION_ADJUSTMENT_SUPPORT, GoogleConversionsSink, MetaConversionsSink, MockConversionSink, fbcFromClickId, googleAdjustmentPayload, googleConversionPayload, hashUserData, metaEventPayload, type ConversionAdjustment, type ConversionEvent, type ConversionSink } from "./conversions";
+import { adjustmentPartialFailure, adjustmentRequest } from "./google/__fixtures__/conversion-adjustments";
 
 const at = (key: string, body: unknown) => fixtureFetch([{ match: (url, init) => `${init?.method ?? "GET"} ${url.split("?")[0]}` === key, body }]);
 const sha = (v: string) => createHash("sha256").update(v).digest("hex");
@@ -70,5 +71,38 @@ describe("MockConversionSink", () => {
     expect(m.received).toHaveLength(1);
     m.failures.failNext("rate_limited");
     await expect(m.send([event])).rejects.toThrow();
+  });
+});
+
+describe("conversion adjustments (#82)", () => {
+  const creds = { developerToken: "d", clientId: "c", clientSecret: "s", refreshToken: "r", customerId: "123-456-7890" };
+  const retraction: ConversionAdjustment = { eventId: "order-5001:retraction", kind: "retraction", orderExternalId: "5001", conversionTime: new Date("2026-09-30T10:00:00Z"), adjustedAt: new Date("2026-10-01T09:30:00Z"), valueMinor: null, currency: "EUR", clickIds: { gclid: "Cj0K" } };
+  const restatement: ConversionAdjustment = { eventId: "order-5002:restatement", kind: "restatement", orderExternalId: "5002", conversionTime: new Date("2026-09-30T10:00:00Z"), adjustedAt: new Date("2026-10-01T09:30:00Z"), valueMinor: 7990, currency: "EUR", clickIds: {} };
+  it("Google takes retractions and restatements, Meta neither", () => {
+    expect(CONVERSION_ADJUSTMENT_SUPPORT.google).toEqual({ retraction: true, restatement: true });
+    expect(CONVERSION_ADJUSTMENT_SUPPORT.meta).toEqual({ retraction: false, restatement: false });
+    expect((new MetaConversionsSink({ accessToken: "t", adAccountId: "act_1" }, "999") as ConversionSink).adjust).toBeUndefined();
+  });
+  it("builds the recorded request shape, never dating an adjustment before its conversion", () => {
+    const action = "customers/1234567890/conversionActions/777";
+    expect([googleAdjustmentPayload(retraction, action), googleAdjustmentPayload(restatement, action)]).toEqual(adjustmentRequest.conversionAdjustments);
+    const early = googleAdjustmentPayload({ ...retraction, adjustedAt: new Date("2026-09-30T09:00:00Z") }, action);
+    expect(early.adjustmentDateTime).toBe("2026-09-30 10:00:01+00:00");
+  });
+  it("posts to uploadConversionAdjustments with partial failure and maps errors per row", async () => {
+    const sink = new GoogleConversionsSink(creds, "777", { accessToken: "at", fetchImpl: at(`POST ${GOOGLE_ADS_API_BASE}/customers/1234567890:uploadConversionAdjustments`, adjustmentPartialFailure) });
+    const r = await sink.adjust([retraction, restatement]);
+    expect(r[0]).toEqual({ eventId: "order-5001:retraction", ok: true });
+    expect(r[1]).toMatchObject({ ok: false, error: "The conversion for this adjustment was not found." });
+    expect(JSON.parse(sink.http.calls[0]!.body!)).toEqual(adjustmentRequest);
+  });
+  it("the mock records what the live sink would send and skips what the platform cannot take", async () => {
+    const g = new MockConversionSink("google");
+    expect(await g.adjust([retraction])).toEqual([{ eventId: "order-5001:retraction", ok: true }]);
+    expect(g.adjusted[0]!.request).toMatchObject({ adjustmentType: "RETRACTION", orderId: "5001" });
+    const m = new MockConversionSink("meta");
+    expect(await m.adjust([retraction])).toEqual([{ eventId: "order-5001:retraction", ok: false, skipped: true, error: "unsupported" }]);
+    g.failures.failNext("rate_limited");
+    await expect(g.adjust([retraction])).rejects.toMatchObject({ code: "rate_limited" });
   });
 });

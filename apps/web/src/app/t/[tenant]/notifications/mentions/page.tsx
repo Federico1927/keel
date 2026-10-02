@@ -26,7 +26,7 @@ export default async function MentionsPage({ params, searchParams }: { params: P
     <>
       <PageHeader eyebrow={ctx.tenant.name} title={t("mentions.title")} description={t("mentions.description")} actions={data.unread > 0 ? <MarkAllButton slug={tenant} label={t("mentions.mark_all_read")} kind="mention" /> : undefined} />
       <NotificationTabs ctx={ctx} active="mentions" />
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div className="-mx-4 mb-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:px-0">
         <Chip href={href({ status: undefined, page: undefined })} active={!status}>{t("filters.all")}</Chip>
         <Chip href={href({ status: "unread", page: undefined })} active={status === "unread"}>{t("filters.unread")} <span className="tabular opacity-70">{formatNumber(data.unread, ctx.locale)}</span></Chip>
         <Chip href={href({ status: "read", page: undefined })} active={status === "read"}>{t("filters.read")}</Chip>

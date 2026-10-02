@@ -2,10 +2,11 @@
 import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Pencil, Plus, Trash2 } from "lucide-react";
-import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Checkbox, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Checkbox, DataList, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, Label, Select } from "@hullwise/ui";
 import { PAYMENT_METHODS } from "@hullwise/core";
 import { deleteStateRule, saveStateRule, type PreviewRow } from "@/server/actions/state-rules";
 import { StatusBadge } from "@/components/status-badge";
+import { DesktopNotice } from "@/components/mobile/desktop-notice";
 
 interface RuleRow { id: string; name: string; priority: number; resultStatus: string; isActive: boolean; conditions: Record<string, unknown> }
 
@@ -31,9 +32,10 @@ export function StateRulesEditor({ slug, statuses, rules, preview }: { slug: str
   const [editing, setEditing] = useState<RuleRow | null | "new">(null);
   const [pending, start] = useTransition();
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_28rem]">
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_28rem]">
+      <DesktopNotice className="mb-0 xl:col-span-2" />
       <Card>
-        <CardHeader className="flex-row items-start justify-between space-y-0">
+        <CardHeader className="flex-row flex-wrap items-start justify-between gap-2 space-y-0">
           <div>
             <CardTitle>{t("rules_title")}</CardTitle>
             <CardDescription>{t("rules_description")}</CardDescription>
@@ -43,53 +45,35 @@ export function StateRulesEditor({ slug, statuses, rules, preview }: { slug: str
           </Button>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-16">{t("priority")}</TableHead>
-                <TableHead>{t("rule")}</TableHead>
-                <TableHead>{t("conditions")}</TableHead>
-                <TableHead>{t("result")}</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rules.map((r) => (
-                <TableRow key={r.id} className={r.isActive ? "" : "opacity-50"}>
-                  <TableCell className="tabular">{r.priority}</TableCell>
-                  <TableCell className="font-medium">
-                    {r.name}
-                    {!r.isActive && <Badge variant="muted" className="ml-2">{t("inactive")}</Badge>}
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {conditionSummary(r.conditions, t).map((s) => (
-                      <span key={s} className="mr-2 inline-block rounded bg-muted px-1.5 py-0.5">
-                        {s}
-                      </span>
-                    ))}
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={r.resultStatus} />
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap text-right">
-                    <Button variant="ghost" size="icon" aria-label={tc("edit")} onClick={() => setEditing(r)}>
-                      <Pencil />
-                    </Button>
-                    <Button variant="ghost" size="icon" aria-label={tc("delete")} disabled={pending} onClick={() => start(() => void deleteStateRule(slug, r.id))}>
-                      <Trash2 />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {rules.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-muted-foreground">
-                    {t("no_rules")}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+          {rules.length === 0 ? <p className="p-4 text-sm text-muted-foreground">{t("no_rules")}</p> : (
+            <DataList
+              rows={rules}
+              rowKey={(r) => r.id}
+              rowProps={(r) => ({ className: r.isActive ? "" : "opacity-50", "data-testid": "state-rule-row" })}
+              columns={[
+                { key: "priority", header: t("priority"), headClassName: "w-16", className: "tabular", cell: (r) => r.priority },
+                { key: "rule", header: t("rule"), mobile: "title", cell: (r) => <>{r.name}{!r.isActive && <Badge variant="muted" className="ml-2">{t("inactive")}</Badge>}</> },
+                { key: "result", header: t("result"), mobile: "badge", cell: (r) => <StatusBadge status={r.resultStatus} /> },
+                { key: "conditions", header: t("conditions"), mobile: "subtitle", className: "text-xs text-muted-foreground", cell: (r) => conditionSummary(r.conditions, t).map((x) => <span key={x} className="mb-1 mr-2 inline-block rounded bg-muted px-1.5 py-0.5">{x}</span>) },
+                {
+                  key: "actions",
+                  header: <span className="sr-only">{tc("edit")}</span>,
+                  mobile: "action",
+                  className: "whitespace-nowrap md:text-right",
+                  cell: (r) => (
+                    <div className="flex gap-1 md:justify-end">
+                      <Button variant="ghost" size="icon" aria-label={tc("edit")} onClick={() => setEditing(r)}>
+                        <Pencil />
+                      </Button>
+                      <Button variant="ghost" size="icon" aria-label={tc("delete")} disabled={pending} onClick={() => start(() => void deleteStateRule(slug, r.id))}>
+                        <Trash2 />
+                      </Button>
+                    </div>
+                  ),
+                },
+              ]}
+            />
+          )}
           <div className="border-t p-4 text-xs text-muted-foreground">{t("overrides_note")}</div>
         </CardContent>
       </Card>
@@ -100,29 +84,16 @@ export function StateRulesEditor({ slug, statuses, rules, preview }: { slug: str
           <CardDescription>{t("preview_description", { n: preview.rows.length, changed: preview.changed })}</CardDescription>
         </CardHeader>
         <CardContent className="max-h-[32rem] overflow-y-auto p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("order")}</TableHead>
-                <TableHead>{t("current")}</TableHead>
-                <TableHead>{t("would_be")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {preview.rows.map((r) => (
-                <TableRow key={r.id} className={r.changed ? "bg-warning/10" : ""}>
-                  <TableCell className="text-xs">{r.name}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={r.current} />
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={r.next} />
-                    <span className="ml-1 block text-[10px] text-muted-foreground">{r.reason}</span>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataList
+            rows={preview.rows}
+            rowKey={(r) => r.id}
+            rowProps={(r) => ({ className: r.changed ? "bg-warning/10" : "", "data-testid": "state-preview-row" })}
+            columns={[
+              { key: "order", header: t("order"), mobile: "title", className: "text-xs", cell: (r) => r.name },
+              { key: "current", header: t("current"), label: t("current"), cell: (r) => <StatusBadge status={r.current} /> },
+              { key: "next", header: t("would_be"), label: t("would_be"), cell: (r) => <><StatusBadge status={r.next} /><span className="ml-1 block text-[10px] text-muted-foreground max-md:inline">{r.reason}</span></> },
+            ]}
+          />
         </CardContent>
       </Card>
 

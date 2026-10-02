@@ -3,7 +3,7 @@ import { useActionState, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { SlidersHorizontal } from "lucide-react";
 import { ADJUSTMENT_REASONS, type AdjustmentReason } from "@hullwise/core";
-import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, Label, Select, Textarea } from "@hullwise/ui";
+import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Label, Select, Stepper, Textarea } from "@hullwise/ui";
 import { adjustStockAction } from "@/server/actions/inventory-control";
 
 export interface AdjustVariant {
@@ -22,6 +22,7 @@ export function AdjustStockDialog({ slug, variants, locations, defaultLocationId
   const t = useTranslations("inventory_control.adjust");
   const tr = useTranslations("inventory_control.reasons");
   const te = useTranslations("inventory_control.errors");
+  const tm = useTranslations("mobile.stepper");
   const [open, setOpen] = useState(false);
   const [variantId, setVariantId] = useState(variants[0]?.id ?? "");
   const [locationId, setLocationId] = useState(defaultLocationId ?? locations[0]?.id ?? "");
@@ -93,7 +94,7 @@ export function AdjustStockDialog({ slug, variants, locations, defaultLocationId
               )}
               <div className="space-y-1">
                 <Label htmlFor="adj-qty">{t("quantity")}</Label>
-                <Input id="adj-qty" type="number" min={1} step={1} value={qty} onChange={(e) => setQty(e.target.value)} data-testid="adjust-qty" required />
+                <Stepper id="adj-qty" min={1} value={Math.max(1, Math.trunc(Number(qty) || 1))} onValueChange={(v) => setQty(String(v))} decrementLabel={tm("decrement")} incrementLabel={tm("increment")} className="w-full [&>input]:flex-1" data-testid="adjust-qty" required />
               </div>
             </div>
             <div className="space-y-1">

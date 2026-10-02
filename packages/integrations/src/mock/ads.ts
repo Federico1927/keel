@@ -1,4 +1,4 @@
-import { splitExact, type AdPlatform } from "@hullwise/core";
+import { ADS_UTM_TEMPLATES, splitExact, type AdPlatform } from "@hullwise/core";
 import { IntegrationError, type AdEntityMetricLevel, type AdsCapabilities, type AdsPlatform, type ConnectionTest, type NegativeKeywordInput, type NormalizedAd, type NormalizedAdAsset, type NormalizedAdMetric, type NormalizedAdSet, type NormalizedCampaign, type NormalizedEntityMetric, type NormalizedKeyword } from "../types";
 import { FailureScript } from "./failures";
 
@@ -26,6 +26,9 @@ export interface MockAdsOptions {
   structure?: MockAdsStructure;
   /** Google: the tenant granted the write scope (pause ads, negative keywords). Meta and TikTok can always write. */
   adWrites?: boolean;
+  /** The ad account this simulator stands for (#82: one per connected Meta account); default `MOCK_ACCOUNT_IDS[provider]`. */
+  accountExternalId?: string;
+  accountName?: string;
 }
 
 /** Stable value in [0, 1) for a key: metrics do not depend on call order, so levels reconcile across calls. */
@@ -48,10 +51,12 @@ export const MOCK_ACCOUNT_IDS: Readonly<Record<AdPlatform, string>> = { meta: "a
  * TikTok in mock mode): four campaigns, two ad groups each, two video ads per ad group, deterministic
  * per tenant so a second connection shows the same account.
  */
-export function mockDemoAdsAccount(provider: AdPlatform, opts: { key: string; currency: string; landingBase: string }): { campaigns: NormalizedCampaign[]; structure: MockAdsStructure } {
-  const base = 1780000000000000 + Math.floor(unit(`${opts.key}|${provider}`) * 1e9) * 1000;
-  const names = ["Spark Ads – bestsellers", "Prospecting – broad", "Retargeting 14d", "New arrivals – Smart+"];
-  const campaigns: NormalizedCampaign[] = names.map((name, i) => ({ externalId: String(base + 100 + i), accountExternalId: MOCK_ACCOUNT_IDS[provider], name, status: i === 2 ? "paused" : "active", objective: "WEB_CONVERSIONS", dailyBudgetMinor: 3000 + i * 1500, currency: opts.currency, platformCreatedAt: new Date(Date.UTC(2026, 0, 10 + i * 7)) }));
+export function mockDemoAdsAccount(provider: AdPlatform, opts: { key: string; currency: string; landingBase: string; accountExternalId?: string }): { campaigns: NormalizedCampaign[]; structure: MockAdsStructure } {
+  // a further account of the same platform (#82) gets its own id range
+  const base = 1780000000000000 + Math.floor(unit(`${opts.key}|${provider}${opts.accountExternalId ? `|${opts.accountExternalId}` : ""}`) * 1e9) * 1000;
+  const names = provider === "meta" ? ["Advantage+ shopping – bestsellers", "Prospecting – broad", "Retargeting 14d", "New arrivals – catalog"] : ["Spark Ads – bestsellers", "Prospecting – broad", "Retargeting 14d", "New arrivals – Smart+"];
+  const tags = ADS_UTM_TEMPLATES[provider].replace(/^\{lpurl\}\?/, "");
+  const campaigns: NormalizedCampaign[] = names.map((name, i) => ({ externalId: String(base + 100 + i), accountExternalId: opts.accountExternalId ?? MOCK_ACCOUNT_IDS[provider], name, status: i === 2 ? "paused" : "active", objective: "WEB_CONVERSIONS", dailyBudgetMinor: 3000 + i * 1500, currency: opts.currency, platformCreatedAt: new Date(Date.UTC(2026, 0, 10 + i * 7)) }));
   const structure: MockAdsStructure = { adSets: [], ads: [], assets: [], keywords: [] };
   campaigns.forEach((c, i) => {
     for (let g = 0; g < 2; g++) {
@@ -60,7 +65,7 @@ export function mockDemoAdsAccount(provider: AdPlatform, opts: { key: string; cu
       for (let a = 0; a < 2; a++) {
         const adId = String(base + 2000 + i * 100 + g * 10 + a);
         const videoId = `v-mock-${adId}`;
-        structure.ads.push({ externalId: adId, adSetExternalId: setId, campaignExternalId: c.externalId, name: `${a ? "UGC review" : "Try-on haul"} | hook ${g + 1}`, status: "active", format: "video", headline: null, body: a ? "Real customers, real fit. Free returns." : "See it moving before you buy. Ships in 24h.", finalUrl: `${opts.landingBase}/collections/new?utm_source=tiktok&utm_medium=paid_social&utm_campaign=__CAMPAIGN_ID__&utm_content=__CID__&utm_term=__AID__`, urlTags: "utm_source=tiktok&utm_medium=paid_social&utm_campaign=__CAMPAIGN_ID__&utm_content=__CID__&utm_term=__AID__", thumbnailUrl: null });
+        structure.ads.push({ externalId: adId, adSetExternalId: setId, campaignExternalId: c.externalId, name: `${a ? "UGC review" : "Try-on haul"} | hook ${g + 1}`, status: "active", format: "video", headline: null, body: a ? "Real customers, real fit. Free returns." : "See it moving before you buy. Ships in 24h.", finalUrl: `${opts.landingBase}/collections/new?${tags}`, urlTags: tags, thumbnailUrl: null });
         structure.assets.push({ assetExternalId: videoId, adExternalId: adId, adSetExternalId: setId, campaignExternalId: c.externalId, type: "video", fieldType: "video", text: null, url: null, performanceLabel: null });
       }
     }
@@ -89,7 +94,7 @@ export class MockAdsPlatform implements AdsPlatform {
   }
   async testConnection(): Promise<ConnectionTest> {
     this.failures.check();
-    return { ok: true, accountName: `Mock ${this.opts.provider} account`, accountId: MOCK_ACCOUNT_IDS[this.opts.provider] };
+    return { ok: true, accountName: this.opts.accountName ?? `Mock ${this.opts.provider} account`, accountId: this.opts.accountExternalId ?? MOCK_ACCOUNT_IDS[this.opts.provider] };
   }
   async fetchCampaigns(): Promise<NormalizedCampaign[]> {
     this.failures.check();
