@@ -5,6 +5,8 @@
  */
 const COUNTED = new Set(["stock_critical_no_po", "late_to_ship"]);
 const EXPORT_LISTS = new Set(["orders", "products", "returns", "customers"]);
+/** Customer campaigns (#34): title = campaign name, body = event. */
+const CAMPAIGN_EVENTS = new Set(["approval_requested", "approved", "rejected", "sent"]);
 
 export function usesRenderedText(n: { type: string; title: string; body?: string | null }): boolean {
   return n.type === "sync_delay" || (n.type === "integration_health" && n.body === "idle") || (COUNTED.has(n.type) && /^\d+$/.test(n.title));
@@ -21,6 +23,7 @@ export function notificationText(t: (key: string, values?: Record<string, string
   if (n.type === "export_ready" && n.body === "tenant_data") return { title: /^\d+$/.test(n.title) ? t("rendered.data_export_ready", { title: n.title }) : t("rendered.data_export_failed"), body: null };
   // a background job of the store keeps failing (#32): title = job type, body = last error
   if (n.type === "platform_failure") return { title: t("rendered.platform_failure", { title: n.title }), body: n.body };
+  if (n.type === "customer_campaign" && CAMPAIGN_EVENTS.has(n.body ?? "")) return { title: t(`rendered.customer_campaign_${n.body}`, { title: n.title }), body: null };
   if (n.type === "integration_health" && n.body === "idle") return { title: t("rendered.source_idle", { title: n.title }), body: null };
   if (usesRenderedText(n)) return { title: t(`rendered.${n.type}`, { title: n.title, body: n.body ?? "" }), body: null };
   // mentions store the raw note: show @Name instead of the inline id

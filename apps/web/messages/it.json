@@ -368,8 +368,8 @@
     "order_states_link": "Regole di stato ordine",
     "branding_link": "Branding",
     "fulfilment_link": "Evasione",
-    "ai_link": "AI e MCP",
-    "data_export_link": "Esportazione dati"
+    "data_export_link": "Esportazione dati",
+    "ai_link": "AI e MCP"
   },
   "users": {
     "title": "Utenti e ruoli",
@@ -570,8 +570,9 @@
       "digest": "Email di riepilogo giornaliero",
       "export_ready": "Esportazione CSV pronta",
       "other": "Altro",
+      "platform_failure": "Lavori in background che falliscono",
       "mcp_proposal": "Proposta da un client AI",
-      "platform_failure": "Lavori in background che falliscono"
+      "customer_campaign": "Campagne clienti: approvazioni e invii"
     },
     "rendered": {
       "stock_critical_no_po": "{title} varianti in vendita con stock critico e nessun ordine d'acquisto",
@@ -582,7 +583,11 @@
       "platform_failure": "Il lavoro in background {title} continua a fallire",
       "source_idle": "{title} non ha sincronizzato nulla negli ultimi giri",
       "data_export_ready": "L'esportazione completa dei dati è pronta ({title} righe)",
-      "data_export_failed": "L'esportazione completa dei dati non è riuscita"
+      "data_export_failed": "L'esportazione completa dei dati non è riuscita",
+      "customer_campaign_approval_requested": "Campagna da approvare: {title}",
+      "customer_campaign_approved": "Campagna approvata: {title}",
+      "customer_campaign_rejected": "Campagna rimandata indietro: {title}",
+      "customer_campaign_sent": "Campagna inviata: {title}"
     },
     "groups": {
       "collaboration": "Collaborazione",
@@ -619,9 +624,9 @@
       }
     },
     "suppressions": {
-      "title": "Email bloccate",
-      "description": "Indirizzi che non ricevono email da questo negozio: rimbalzi e segnalazioni bloccano tutte le email, le disiscrizioni bloccano la loro categoria.",
-      "email": "Email",
+      "title": "Lista di esclusione",
+      "description": "Indirizzi e numeri che questo negozio non contatta mai: bounce e reclami bloccano ogni email, le disiscrizioni la loro categoria; le campagne clienti saltano chiunque sia in lista, su qualsiasi canale.",
+      "email": "Email o telefono",
       "category": "Categoria",
       "reason": "Motivo",
       "when": "Quando",
@@ -636,7 +641,10 @@
         "unsubscribe": "Disiscritto",
         "manual": "Aggiunto a mano"
       },
-      "supplier_po": "Ordini d'acquisto ai fornitori"
+      "supplier_po": "Ordini d'acquisto ai fornitori",
+      "marketing": "Campagne clienti (marketing)",
+      "phone": "telefono",
+      "identity_placeholder": "nome@esempio.it o +39…"
     },
     "export_lists": {
       "orders": "ordini",
@@ -1879,11 +1887,11 @@
     "declared": {
       "title_meta": "Meta: dichiarato vs reale",
       "title_google": "Google: dichiarato vs reale",
+      "title_tiktok": "TikTok: dichiarato vs reale",
       "platform_says": "La piattaforma dichiara (acquisti · valore · ROAS)",
       "real": "Ordini reali attribuiti (ordini · netto · ROAS)",
       "gap": "Scarto",
-      "help": "Le piattaforme contano le conversioni con le proprie finestre e modelli; gli ordini reali sono gli ordini di vendita attribuiti da Keel. Uno scarto molto negativo vuol dire che la piattaforma sovrastima.",
-      "title_tiktok": "TikTok: dichiarato vs reale"
+      "help": "Le piattaforme contano le conversioni con le proprie finestre e modelli; gli ordini reali sono gli ordini di vendita attribuiti da Keel. Uno scarto molto negativo vuol dire che la piattaforma sovrastima."
     },
     "creatives_link": "Creatività",
     "creatives": {
@@ -2116,6 +2124,27 @@
       "members": "Membri",
       "holdout": "Gruppo di controllo",
       "evaluated": "Ultima valutazione"
+    },
+    "insights": {
+      "title": "Cosa comprano i membri",
+      "description": "Ordini confermati e non annullati di tutti i membri (entrambi i gruppi).",
+      "avg_spent": "Spesa media per membro",
+      "buyers": "{n} su {of} hanno acquistato",
+      "aov": "Valore medio dell'ordine",
+      "avg_orders": "Ordini per membro",
+      "reachable": "Raggiungibili: email / telefono",
+      "reachable_hint": "Con consenso marketing",
+      "top_products": "Prodotti più acquistati",
+      "top_categories": "Categorie più acquistate",
+      "top_options": "Valori di opzione più acquistati",
+      "channels_title": "Canali di vendita",
+      "units": "{n} pezzi",
+      "customers_n": "{n} clienti",
+      "channels": {
+        "web": "Negozio online",
+        "pos": "Punto vendita",
+        "draft": "Ordini manuali"
+      }
     }
   },
   "segment_builder": {
@@ -2183,7 +2212,12 @@
       "churn_risk": "Rischio abbandono",
       "p_alive": "Probabilità ancora attivo (%)",
       "predicted_value": "Valore previsto, prossimi 12 mesi",
-      "days_to_next_order": "Giorni al prossimo ordine atteso"
+      "days_to_next_order": "Giorni al prossimo ordine atteso",
+      "open_order": "Ha un ordine aperto",
+      "bought_in_window": "Ha ordinato in un periodo",
+      "bought_category": "Categoria acquistata",
+      "dominant_option": "Valore di opzione più acquistato",
+      "days_since_last_marketing": "Giorni dall'ultimo messaggio di campagna"
     },
     "ops": {
       "gte": "è almeno",
@@ -2210,6 +2244,14 @@
       "invalid_shape": "Regole malformate.",
       "invalid_rules": "Regole non valide.",
       "forbidden": "Non hai i permessi."
+    },
+    "option": "Opzione",
+    "within_days": "negli ultimi",
+    "ever": "sempre",
+    "days_ago": "giorni fa",
+    "ops_window": {
+      "any": "ha un ordine",
+      "none": "non ha ordini"
     }
   },
   "return_status": {
@@ -2658,11 +2700,11 @@
       "shopify": "Shopify",
       "meta": "Meta Ads",
       "google": "Google Ads",
+      "tiktok": "TikTok Ads",
       "tracking": "Pixel e conversioni",
       "survey": "Sondaggio post-acquisto",
       "anthropic": "AI (Anthropic)",
-      "email": "Email di piattaforma",
-      "tiktok": "TikTok Ads"
+      "email": "Email di piattaforma"
     },
     "status": {
       "not_connected": "Non collegata",
@@ -2711,15 +2753,15 @@
       "shopify": "App custom (token Admin API)",
       "meta": "Token utente di sistema",
       "google": "Credenziali Google Ads API",
-      "anthropic": "Chiave API Anthropic",
-      "tiktok": "App TikTok for Business"
+      "tiktok": "App TikTok for Business",
+      "anthropic": "Chiave API Anthropic"
     },
     "connect_description": {
       "shopify": "Crea un'app custom nell'admin del negozio, concedi gli scope elencati nella guida, incolla il token Admin API e la chiave segreta usata per firmare i webhook.",
       "meta": "Un token utente di sistema a lunga durata da Business Manager con ads_read e ads_management sull'account pubblicitario.",
       "google": "Developer token, client OAuth e un refresh token autorizzato per lo scope Google Ads; sola lettura in questa versione.",
-      "anthropic": "La chiave del negozio da console.anthropic.com. Anthropic addebita il consumo dell'assistente a quell'account; Keel conserva la chiave cifrata.",
-      "tiktok": "App id e secret dell'app TikTok for Business e l'auth code restituito dall'autorizzazione dell'inserzionista; Keel lo scambia con un token a lunga durata valido per tutti gli account inserzionista autorizzati."
+      "tiktok": "App id e secret dell'app TikTok for Business e l'auth code restituito dall'autorizzazione dell'inserzionista; Keel lo scambia con un token a lunga durata valido per tutti gli account inserzionista autorizzati.",
+      "anthropic": "La chiave del negozio da console.anthropic.com. Anthropic addebita il consumo dell'assistente a quell'account; Keel conserva la chiave cifrata."
     },
     "fields": {
       "shop": "Dominio del negozio",
@@ -2989,6 +3031,73 @@
       ],
       "scopes": "Lettura: scope adwords con accesso in lettura e developer token Basic. Facoltativo, solo per pausa annunci e parole chiave negative: lo stesso scope con un utente che può modificare l'account."
     },
+    "tiktok": {
+      "title": "Collegare TikTok Ads",
+      "intro": "Campagne, gruppi di annunci e annunci (testo, video, miniatura) con spesa giornaliera, impression, clic, conversioni, valore delle conversioni e visualizzazioni video, da tutti gli account inserzionista autorizzati. Pausa e riattivazione di campagne e annunci chiedono conferma e passano dalla coda di scrittura. Incluso dal piano Growth.",
+      "steps": [
+        {
+          "title": "Creare l’app TikTok for Business",
+          "body": "Sul portale sviluppatori TikTok API for Business crea un’app (oppure usa quella di Keel, se TIKTOK_APP_ID è configurato). Imposta come redirect URL dell’inserzionista:\n{callbackUrl}",
+          "verify": true
+        },
+        {
+          "title": "Permessi",
+          "body": "Richiedi i gruppi di permessi che servono ai moduli attivi (riquadro a destra): Ad Account Management, Ads Management e Reporting per campagne e metriche; Creative Management per le miniature dei video. TikTok revisiona l’app prima che possa essere usata su account diversi dal tuo.",
+          "verify": true
+        },
+        {
+          "title": "Autorizzare gli account inserzionista",
+          "body": "Il titolare del negozio (o un admin del suo Business Center) apre il link di autorizzazione, sceglie gli account inserzionista e conferma. TikTok reindirizza con un auth_code valido pochi minuti e utilizzabile una sola volta.",
+          "verify": true
+        },
+        {
+          "title": "Collegare in Keel",
+          "body": "Integrazioni → TikTok Ads → Collega: app id, app secret e l’auth code (oppure “Autorizza con TikTok” con l’app di Keel). Keel scambia il codice con un token a lunga durata, lo salva cifrato (AES-GCM) e importa tutti gli inserzionisti coperti."
+        },
+        {
+          "title": "Template UTM",
+          "body": "In ogni annuncio, nei parametri URL (o in coda all’URL della landing page):\n{utmTemplate}\nTikTok compila __CAMPAIGN_ID__, __AID__ (gruppo di annunci) e __CID__ (annuncio). Insieme al click id ttclid collegano gli ordini a campagne, gruppi e annunci; gli annunci senza vengono segnalati nella pagina Suggerimenti.",
+          "verify": true
+        },
+        {
+          "title": "Versione dell’API",
+          "body": "Keel chiama la TikTok API for Business {apiVersion} (reporting: report/integrated/get, righe giornaliere in finestre fino a 30 giorni). Controlla il changelog prima di ogni rilascio.",
+          "verify": true
+        },
+        {
+          "title": "Verificare",
+          "body": "Testa connessione legge gli account inserzionista; Risincronizza importa campagne e metriche giornaliere, poi gruppi di annunci e annunci in finestre di 7 giorni (riprendibile, rispetta i limiti di frequenza). Il primo import copre gli ultimi 90 giorni."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "40105 / 40102 token non valido o scaduto",
+          "fix": "L’inserzionista ha revocato l’autorizzazione o il token è stato rigenerato: autorizza di nuovo e ricollega."
+        },
+        {
+          "symptom": "40001 permesso negato",
+          "fix": "All’app manca un gruppo di permessi, oppure l’account inserzionista non è stato selezionato durante l’autorizzazione."
+        },
+        {
+          "symptom": "40100 troppe richieste",
+          "fix": "Limite di frequenza: Keel mette in pausa la sincronizzazione e riparte dalla stessa finestra dopo l’attesa."
+        },
+        {
+          "symptom": "Auth code scaduto o già usato",
+          "fix": "L’auth code dura pochi minuti e vale una volta sola: ripeti l’autorizzazione."
+        },
+        {
+          "symptom": "Gli ordini non mostrano l’annuncio TikTok",
+          "fix": "Nei parametri URL mancano utm_content=__CID__ / utm_term=__AID__, oppure il negozio perde ttclid dall’URL di arrivo."
+        }
+      ],
+      "scopes": "L’analisi in sola lettura richiede Ad Account Management e Reporting; pausa e riattivazione richiedono anche Ads Management. Senza Creative Management funziona tutto tranne le miniature.",
+      "modules": {
+        "campaigns": "Campagne, gruppi, annunci e metriche",
+        "creatives": "Miniature dei video",
+        "pause": "Pausa / riattivazione"
+      }
+    },
     "anthropic": {
       "title": "Collega l'assistente AI (Anthropic)",
       "intro": "L'assistente usa la tua chiave API Anthropic: Anthropic addebita il consumo al tuo account, Keel conserva solo la chiave, cifrata. Senza chiave la pagina Assistente chiede di collegarne una.",
@@ -3226,73 +3335,6 @@
           "fix": "RESEND_WEBHOOK_SECRET manca o è diversa dal signing secret dell'endpoint: il webhook risponde 401 o 503."
         }
       ]
-    },
-    "tiktok": {
-      "title": "Collegare TikTok Ads",
-      "intro": "Campagne, gruppi di annunci e annunci (testo, video, miniatura) con spesa giornaliera, impression, clic, conversioni, valore delle conversioni e visualizzazioni video, da tutti gli account inserzionista autorizzati. Pausa e riattivazione di campagne e annunci chiedono conferma e passano dalla coda di scrittura. Incluso dal piano Growth.",
-      "steps": [
-        {
-          "title": "Creare l’app TikTok for Business",
-          "body": "Sul portale sviluppatori TikTok API for Business crea un’app (oppure usa quella di Keel, se TIKTOK_APP_ID è configurato). Imposta come redirect URL dell’inserzionista:\n{callbackUrl}",
-          "verify": true
-        },
-        {
-          "title": "Permessi",
-          "body": "Richiedi i gruppi di permessi che servono ai moduli attivi (riquadro a destra): Ad Account Management, Ads Management e Reporting per campagne e metriche; Creative Management per le miniature dei video. TikTok revisiona l’app prima che possa essere usata su account diversi dal tuo.",
-          "verify": true
-        },
-        {
-          "title": "Autorizzare gli account inserzionista",
-          "body": "Il titolare del negozio (o un admin del suo Business Center) apre il link di autorizzazione, sceglie gli account inserzionista e conferma. TikTok reindirizza con un auth_code valido pochi minuti e utilizzabile una sola volta.",
-          "verify": true
-        },
-        {
-          "title": "Collegare in Keel",
-          "body": "Integrazioni → TikTok Ads → Collega: app id, app secret e l’auth code (oppure “Autorizza con TikTok” con l’app di Keel). Keel scambia il codice con un token a lunga durata, lo salva cifrato (AES-GCM) e importa tutti gli inserzionisti coperti."
-        },
-        {
-          "title": "Template UTM",
-          "body": "In ogni annuncio, nei parametri URL (o in coda all’URL della landing page):\n{utmTemplate}\nTikTok compila __CAMPAIGN_ID__, __AID__ (gruppo di annunci) e __CID__ (annuncio). Insieme al click id ttclid collegano gli ordini a campagne, gruppi e annunci; gli annunci senza vengono segnalati nella pagina Suggerimenti.",
-          "verify": true
-        },
-        {
-          "title": "Versione dell’API",
-          "body": "Keel chiama la TikTok API for Business {apiVersion} (reporting: report/integrated/get, righe giornaliere in finestre fino a 30 giorni). Controlla il changelog prima di ogni rilascio.",
-          "verify": true
-        },
-        {
-          "title": "Verificare",
-          "body": "Testa connessione legge gli account inserzionista; Risincronizza importa campagne e metriche giornaliere, poi gruppi di annunci e annunci in finestre di 7 giorni (riprendibile, rispetta i limiti di frequenza). Il primo import copre gli ultimi 90 giorni."
-        }
-      ],
-      "errors": [
-        {
-          "symptom": "40105 / 40102 token non valido o scaduto",
-          "fix": "L’inserzionista ha revocato l’autorizzazione o il token è stato rigenerato: autorizza di nuovo e ricollega."
-        },
-        {
-          "symptom": "40001 permesso negato",
-          "fix": "All’app manca un gruppo di permessi, oppure l’account inserzionista non è stato selezionato durante l’autorizzazione."
-        },
-        {
-          "symptom": "40100 troppe richieste",
-          "fix": "Limite di frequenza: Keel mette in pausa la sincronizzazione e riparte dalla stessa finestra dopo l’attesa."
-        },
-        {
-          "symptom": "Auth code scaduto o già usato",
-          "fix": "L’auth code dura pochi minuti e vale una volta sola: ripeti l’autorizzazione."
-        },
-        {
-          "symptom": "Gli ordini non mostrano l’annuncio TikTok",
-          "fix": "Nei parametri URL mancano utm_content=__CID__ / utm_term=__AID__, oppure il negozio perde ttclid dall’URL di arrivo."
-        }
-      ],
-      "scopes": "L’analisi in sola lettura richiede Ad Account Management e Reporting; pausa e riattivazione richiedono anche Ads Management. Senza Creative Management funziona tutto tranne le miniature.",
-      "modules": {
-        "campaigns": "Campagne, gruppi, annunci e metriche",
-        "creatives": "Miniature dei video",
-        "pause": "Pausa / riattivazione"
-      }
     }
   },
   "admin": {
@@ -3320,10 +3362,10 @@
         "support": "Supporto",
         "audit": "Audit"
       },
-      "mcp": "MCP",
-      "subscriptions": "Abbonamenti",
       "jobs": "Esecuzioni dei job",
-      "alerts": "Avvisi di errore"
+      "alerts": "Avvisi di errore",
+      "mcp": "MCP",
+      "subscriptions": "Abbonamenti"
     },
     "plans": {
       "starter": "Starter",
@@ -3429,10 +3471,10 @@
         "shopify": "Shopify collegato",
         "meta": "Meta Ads collegato",
         "google": "Google Ads collegato",
+        "tiktok": "TikTok Ads collegato",
         "state_rules": "Regole di stato",
         "costs": "Costi configurati",
-        "billing": "Pagamenti in regola",
-        "tiktok": "TikTok Ads collegato"
+        "billing": "Pagamenti in regola"
       },
       "members": "Utenti",
       "open_balance": "Saldo aperto",
@@ -3634,40 +3676,6 @@
       },
       "remove": "Rimuovi",
       "guide_title": "Guida alla configurazione"
-    },
-    "mcp": {
-      "title": "Uso MCP",
-      "description": "Chiamate dei client AI per tenant negli ultimi 30 giorni e kill switch. Ogni intervento è scritto nell'audit log del tenant.",
-      "platform_disabled": "KEEL_MCP_DISABLED=1: il server MCP rifiuta ogni chiamata su questa installazione.",
-      "stat_calls": "Chiamate (30 giorni)",
-      "stat_errors": "Errori",
-      "stat_rate_limited": "Limitate",
-      "stat_connections": "Connessioni attive",
-      "stat_unknown_tokens": "Token sconosciuti",
-      "tenants_title": "Tenant",
-      "tenants_description": "Piano, stato, uso e kill switch per tenant.",
-      "col_tenant": "Tenant",
-      "col_status": "Stato",
-      "col_calls": "Chiamate",
-      "col_errors": "Errori",
-      "col_users": "Persone",
-      "col_connections": "Connessioni",
-      "col_last_call": "Ultima chiamata",
-      "col_kill": "Kill switch",
-      "pending": "{count} da approvare",
-      "denied_rl": "{denied} rifiutate · {limited} limitate",
-      "kill": "Sospendi MCP",
-      "kill_confirm": "Sospendere MCP per questo tenant? Ogni chiamata viene rifiutata finché non lo ripristini.",
-      "restore": "Ripristina MCP",
-      "note_placeholder": "Motivo (in audit)",
-      "availability": {
-        "ok": "Attivo",
-        "plan": "Non nel piano",
-        "tenant_disabled": "Spento (tenant)",
-        "killed": "Sospeso",
-        "platform_disabled": "Piattaforma spenta",
-        "suspended": "Tenant sospeso"
-      }
     },
     "platform_label": "Piattaforma",
     "export_csv": "Esporta CSV",
@@ -3898,6 +3906,40 @@
       "close": "Chiudi",
       "empty_title": "Nessun avviso",
       "empty_description": "Al momento non fallisce nulla."
+    },
+    "mcp": {
+      "title": "Uso MCP",
+      "description": "Chiamate dei client AI per tenant negli ultimi 30 giorni e kill switch. Ogni intervento è scritto nell'audit log del tenant.",
+      "platform_disabled": "KEEL_MCP_DISABLED=1: il server MCP rifiuta ogni chiamata su questa installazione.",
+      "stat_calls": "Chiamate (30 giorni)",
+      "stat_errors": "Errori",
+      "stat_rate_limited": "Limitate",
+      "stat_connections": "Connessioni attive",
+      "stat_unknown_tokens": "Token sconosciuti",
+      "tenants_title": "Tenant",
+      "tenants_description": "Piano, stato, uso e kill switch per tenant.",
+      "col_tenant": "Tenant",
+      "col_status": "Stato",
+      "col_calls": "Chiamate",
+      "col_errors": "Errori",
+      "col_users": "Persone",
+      "col_connections": "Connessioni",
+      "col_last_call": "Ultima chiamata",
+      "col_kill": "Kill switch",
+      "pending": "{count} da approvare",
+      "denied_rl": "{denied} rifiutate · {limited} limitate",
+      "kill": "Sospendi MCP",
+      "kill_confirm": "Sospendere MCP per questo tenant? Ogni chiamata viene rifiutata finché non lo ripristini.",
+      "restore": "Ripristina MCP",
+      "note_placeholder": "Motivo (in audit)",
+      "availability": {
+        "ok": "Attivo",
+        "plan": "Non nel piano",
+        "tenant_disabled": "Spento (tenant)",
+        "killed": "Sospeso",
+        "platform_disabled": "Piattaforma spenta",
+        "suspended": "Tenant sospeso"
+      }
     }
   },
   "cod": {
@@ -4929,7 +4971,7 @@
     "description": "Messaggi a un segmento, misurati contro il gruppo di controllo del segmento: quanto ogni campagna ha aggiunto rispetto a non fare niente.",
     "new": "Nuova campagna",
     "new_for_segment": "Nuova campagna",
-    "new_description": "Scegli un segmento con gruppo di controllo, scrivi il messaggio, poi invia dalla bozza.",
+    "new_description": "Scegli un segmento con gruppo di controllo e scrivi il messaggio; la bozza si prova, si approva e poi si programma.",
     "empty_title": "Nessuna campagna",
     "empty_description": "Creane una da un segmento con gruppo di controllo per misurarne l'effetto reale.",
     "no_segments_title": "Nessun segmento",
@@ -4962,7 +5004,13 @@
     },
     "status": {
       "draft": "Bozza",
-      "sent": "Inviata"
+      "sent": "Inviata",
+      "pending_approval": "In approvazione",
+      "approved": "Approvata",
+      "scheduled": "Programmata",
+      "sending": "In invio",
+      "active": "Attiva",
+      "paused": "In pausa"
     },
     "verdict": {
       "no_control": "Senza controllo",
@@ -4977,30 +5025,31 @@
       "message": "Messaggio",
       "discount_code": "Codice sconto (facoltativo)",
       "cost": "Costo per messaggio ({currency})",
-      "attribution_days": "Finestra di attribuzione (giorni)"
+      "attribution_days": "Finestra di attribuzione (giorni)",
+      "kind": "Tipo",
+      "exclude_open_orders": "Escludi i clienti con un ordine aperto"
     },
     "holdout_hint": "Il {pct}% del segmento è il gruppo di controllo e non verrà contattato.",
     "no_holdout_warning": "Questo segmento non ha gruppo di controllo: la campagna si può inviare ma il suo effetto non si può misurare. Imposta prima un controllo sul segmento.",
     "message_hint": "{first_name} e {code} vengono sostituiti per ogni cliente.",
     "create": "Crea bozza",
     "save_draft": "Salva bozza",
-    "send": "Invia…",
-    "confirm_title": "Inviare questa campagna?",
-    "confirm_description": "{treated} clienti la ricevono, {holdout} restano come gruppo di controllo. Sono inclusi solo i clienti con consenso marketing.",
+    "confirm_title": "Inviare la campagna in approvazione?",
+    "confirm_description": "Oggi la riceverebbero {treated} clienti e {holdout} resterebbero nel gruppo di controllo.",
     "mde": "In una finestra passata comparabile ha comprato il {baseline} di questi clienti. Con questi gruppi il test può rilevare un effetto di circa {mde} o più.",
-    "confirm_send": "Invia ora",
-    "draft_title": "Bozza",
-    "draft_description": "Modificabile fino all'invio. L'invio rivaluta il segmento e fissa i gruppi.",
     "delivery_title": "Consegna",
     "sent_on": "Inviata il {at}",
     "exposure": {
       "sent": "Consegnati (trattati)",
       "failed": "Falliti (trattati)",
       "skipped": "Senza indirizzo (trattati)",
-      "held_out": "Gruppo di controllo"
+      "held_out": "Gruppo di controllo",
+      "queued": "In coda (trattati)",
+      "sending": "In invio (trattati)",
+      "suppressed": "Bloccati all'invio (trattati)"
     },
     "method_title": "Come si misura",
-    "method_note": "Ogni cliente del segmento con consenso marketing è trattato o di controllo, deciso prima dell'invio. I risultati confrontano gli ordini confermati e non annullati nei {days} giorni dopo l'invio, contando ogni cliente trattato anche se il messaggio non è arrivato, così il confronto resta corretto. Incrementale = differenza per cliente × clienti trattati.",
+    "method_note": "Ogni cliente idoneo del segmento è trattato o di controllo, fissato all'avvio dell'invio; gli esclusi (senza consenso, in lista di esclusione, oltre il limite, con ordine aperto, in un'altra misurazione) non sono in nessun gruppo. I risultati confrontano gli ordini confermati e non annullati nei {days} giorni dopo l'esposizione, contando ogni trattato anche se il messaggio è fallito, così il confronto resta corretto. Incrementale = differenza per cliente × clienti trattati.",
     "window_open": "Finestra di attribuzione aperta fino al {at}: i risultati possono ancora cambiare.",
     "window_closed": "Definitivo: finestra chiusa il {at}.",
     "no_holdout_result": "Nessun gruppo di controllo: i numeri sotto mostrano cosa hanno fatto i clienti trattati, non cosa ha causato la campagna.",
@@ -5022,10 +5071,133 @@
     "code_redemptions": "{n} ordini hanno usato il codice {code}.",
     "errors": {
       "not_found": "Campagna non trovata.",
-      "already_sent": "La campagna è già stata inviata.",
       "no_segment": "Scegli un segmento.",
       "empty_segment": "Nessun cliente del segmento ha il consenso marketing.",
-      "invalid_input": "Controlla i campi."
+      "invalid_input": "Controlla i campi.",
+      "not_editable": "Si può modificare solo una bozza: riportala prima in bozza.",
+      "invalid_transition": "Questo passaggio non è possibile nello stato attuale della campagna.",
+      "not_allowed": "Il tuo ruolo non può approvare campagne.",
+      "own_campaign": "Non puoi approvare una campagna che hai creato o inviato in approvazione.",
+      "sequence_needs_holdout": "Una sequenza richiede un segmento con gruppo di controllo (holdout sopra lo 0%).",
+      "manual_channel": "Una campagna inviata da un altro strumento si registra, non si approva né si prova.",
+      "no_recipients": "Scegli almeno un destinatario (al massimo 10).",
+      "note_required": "Scrivi una nota per l'autore."
+    },
+    "kinds": {
+      "one_off": "Invio singolo",
+      "sequence": "Sequenza automatica"
+    },
+    "kind_hint": {
+      "one_off": "Inviata una volta al segmento, all'ora che programmi dopo l'approvazione.",
+      "sequence": "Va da sola: ogni cliente che entra nel segmento (per esempio 120 giorni dopo l'ultimo ordine) riceve il messaggio una volta. Il gruppo di controllo del segmento è permanente."
+    },
+    "exclude_open_orders_hint": "Chi ha un ordine ancora in lavorazione non viene invitato a ricomprare; resta fuori da entrambi i gruppi.",
+    "confirm_record_title": "Registrare la campagna come inviata?",
+    "exclusions": {
+      "title": "{members} membri oggi, esclusi per motivo:",
+      "no_consent": "Senza consenso marketing",
+      "suppressed": "Nella lista di esclusione",
+      "over_cap": "Oltre il limite di frequenza",
+      "open_order": "Ordine aperto",
+      "in_measurement": "In misurazione per un'altra campagna",
+      "holdout": "Gruppo di controllo (non contattati)",
+      "no_address": "Trattati senza recapito per il canale",
+      "waiting_title": "In attesa di entrare",
+      "left_out_title": "Esclusi all'invio"
+    },
+    "workflow": {
+      "test": "Invio di prova…",
+      "submit": "Anteprima e invio in approvazione…",
+      "record": "Registra come inviata…",
+      "approve": "Approva",
+      "reject": "Rimanda indietro…",
+      "schedule": "Programma…",
+      "activate": "Attiva",
+      "pause": "Metti in pausa",
+      "unschedule": "Annulla programmazione",
+      "reopen": "Torna in bozza",
+      "submit_hint": "La approva un owner, un admin o un altro utente marketing; poi si programma e la coda la invia nella fascia oraria e nel limite al minuto.",
+      "record_confirm": "Registra ora",
+      "submit_confirm": "Invia in approvazione",
+      "test_title": "Invio di prova",
+      "test_description": "Solo a persone del negozio, mai ai clienti. Il messaggio usa il loro nome e il codice.",
+      "test_phone": "Il tuo numero di telefono",
+      "test_sent": "{n} messaggi di prova inviati.",
+      "test_send": "Invia prova",
+      "close": "Chiudi",
+      "reject_title": "Rimanda all'autore",
+      "reject_description": "La campagna torna in bozza con la tua nota.",
+      "note": "Nota",
+      "reject_confirm": "Rimanda indietro",
+      "schedule_title": "Programma l'invio",
+      "schedule_description": "I messaggi partono solo tra {window}; un orario fuori fascia parte all'apertura successiva.",
+      "schedule_at": "Invia alle (ora del negozio)",
+      "schedule_hint": "Lascia vuoto per partire appena la fascia oraria lo consente.",
+      "schedule_confirm": "Programma",
+      "schedule_now": "Invia appena possibile",
+      "title": "Flusso",
+      "approval_you": "Puoi approvarla o rimandarla indietro.",
+      "approval_waiting": "In attesa di chi approva: non puoi approvare una tua campagna.",
+      "approval_others": "In attesa dell'approvazione di un owner, un admin o un utente marketing.",
+      "starts_at": "Parte {at} (fascia di invio {window}).",
+      "review_note": "Revisione: {note}",
+      "sent_back": "Rimandata per modifiche: {note}",
+      "steps": {
+        "created": "Creata",
+        "tested": "Prova inviata",
+        "submitted": "Inviata in approvazione",
+        "approved": "Approvata",
+        "scheduled": "Programmata per",
+        "started": "Invio iniziato",
+        "activated": "Attivata",
+        "completed": "Ultimo messaggio inviato"
+      }
+    },
+    "stage": {
+      "draft": {
+        "title": "Bozza",
+        "description": "Modificabile finché non la invii in approvazione. Provala, guarda chi la riceverebbe, poi inviala in approvazione."
+      },
+      "pending_approval": {
+        "title": "In approvazione",
+        "description": "Bloccata durante la revisione. Torna in bozza per modificarla."
+      },
+      "approved": {
+        "title": "Approvata",
+        "description": "Pronta da programmare (invio singolo) o da attivare (sequenza)."
+      },
+      "scheduled": {
+        "title": "Programmata",
+        "description": "All'ora programmata il job rivaluta il segmento, fissa i gruppi e invia nella fascia oraria e nel limite al minuto."
+      }
+    },
+    "activated_on": "Attiva dal {at}",
+    "progress": {
+      "sending": "In invio",
+      "done": "Completato",
+      "throttle": "Fino a {n} messaggi al minuto, tra {window}."
+    },
+    "settings": {
+      "link": "Impostazioni campagne",
+      "title": "Impostazioni campagne",
+      "description": "Regole che ogni campagna del negozio rispetta. Gli orari sono nel fuso del negozio ({timezone}).",
+      "cap_title": "Limite di frequenza",
+      "cap_description": "Nessuno riceve più di questi messaggi di campagna in questi giorni; chi è oltre viene escluso e contato.",
+      "window_title": "Fascia di invio",
+      "window_description": "I messaggi partono solo tra questi orari; un invio che arriva alla fine riprende la mattina dopo.",
+      "throttle_title": "Messaggi al minuto",
+      "throttle_description": "Per canale, per tutte le campagne insieme: il limite del fornitore o meno.",
+      "lock_hint": "Finché la finestra di attribuzione di una campagna è aperta, i suoi clienti trattati e di controllo restano fuori dalle altre campagne, così il suo effetto non si mescola.",
+      "fields": {
+        "campaignFrequencyCap": "Messaggi al massimo",
+        "campaignFrequencyDays": "In giorni",
+        "campaignSendStartHour": "Dalle ore (0–23)",
+        "campaignSendEndHour": "Alle ore (1–24)",
+        "throttleEmail": "Email",
+        "throttleSms": "SMS",
+        "throttleWhatsapp": "WhatsApp",
+        "campaignMeasurementLock": "Blocca i clienti in misurazione"
+      }
     }
   },
   "destinations": {
@@ -5241,6 +5413,7 @@
       "roas": "ROAS",
       "meta": "Meta",
       "google": "Google",
+      "tiktok": "TikTok",
       "slipping": "clienti di valore a rischio",
       "due_soon": "prossimi al riacquisto",
       "top": "valore previsto più alto",
@@ -5250,8 +5423,7 @@
       "consider_pause": "Valuta la pausa",
       "consider_resume": "Valuta la riattivazione",
       "pause_stock": "Pausa: stock basso",
-      "consider_stock": "Controlla lo stock",
-      "tiktok": "TikTok"
+      "consider_stock": "Controlla lo stock"
     },
     "open_source": "Apri la pagina",
     "figures": {
@@ -6861,249 +7033,37 @@
       }
     }
   },
-  "mcp": {
-    "copy": "Copia",
-    "copied": "Copiato",
-    "scopes": {
-      "read": "Leggere ordini, clienti, analisi, prodotti, acquisti, resi, segmenti e stato delle integrazioni che il tuo ruolo può vedere",
-      "write_notes": "Aggiungere note interne agli ordini",
-      "write_orders": "Assegnare ordini, metterli in revisione o in attesa, proporre annullamenti e rimborsi",
-      "write_campaigns": "Proporre la pausa delle campagne pubblicitarie",
-      "write_purchasing": "Proporre bozze di ordini d'acquisto"
-    },
-    "unavailable": {
-      "plan": "I client AI (MCP) sono inclusi dal piano Growth.",
-      "tenant_disabled": "MCP è spento per questo workspace: un owner o un admin può accenderlo in Impostazioni → AI e MCP.",
-      "killed": "L'accesso MCP a questo workspace è stato sospeso dalla piattaforma.",
-      "platform_disabled": "MCP è temporaneamente non disponibile sulla piattaforma.",
-      "suspended": "Questo workspace è sospeso."
-    },
+  "data_export": {
+    "title": "Esportazione dati",
+    "description": "Scarica tutto ciò che Keel conserva per questo negozio.",
+    "what_title": "Esportazione completa dei dati del negozio",
+    "what_description": "Un file CSV per tabella (ordini, clienti, prodotti, resi, campagne, impostazioni e altro) in un archivio zip, generato in background. Ricevi una notifica quando è pronto; il link di download scade dopo {days} giorni. Le credenziali delle integrazioni e gli altri segreti non sono mai inclusi.",
+    "request": "Esporta tutti i dati",
+    "requesting": "Avvio…",
     "errors": {
-      "generic": "Qualcosa è andato storto. Riprova.",
-      "invalid_input": "Controlla i campi e riprova.",
-      "limit_reached": "Hai raggiunto il numero massimo di token attivi: revocane uno prima.",
-      "not_found": "Non trovato: potrebbe essere stato rimosso.",
-      "forbidden": "Non puoi farlo.",
-      "mcp_unavailable": "MCP non è disponibile per questo workspace.",
-      "not_pending": "Questa proposta è già stata decisa.",
-      "expired": "Questa proposta è scaduta."
+      "in_progress": "C'è già un'esportazione in corso.",
+      "generic": "Non è stato possibile avviare l'esportazione."
     },
-    "consent": {
-      "title": "Collega un client AI",
-      "heading": "{client} chiede di accedere a Keel",
-      "description": "Accesso come {user}. Il client agirà come te, con il tuo ruolo, nel workspace che scegli.",
-      "workspace": "Workspace",
-      "no_workspace": "Non sei membro di alcun workspace.",
-      "scopes": "Permessi",
-      "scopes_hint": "Togli la spunta a ciò che non vuoi consentire. La lettura è sempre inclusa.",
-      "note_role": "Vede solo ciò che il tuo ruolo vede in Keel; i moduli spenti non espongono nulla.",
-      "note_pii": "Email, telefoni e indirizzi dei clienti sono mascherati, salvo che il tuo workspace abbia attivato i dati personali completi per i client AI.",
-      "note_proposals": "Annullamenti, rimborsi, pause delle campagne e ordini d'acquisto sono solo proposte: le approva una persona in Keel.",
-      "note_redirect": "Dopo l'autorizzazione torni su {host}. Puoi revocare l'accesso in qualsiasi momento dal profilo → Connessioni.",
-      "approve": "Consenti l'accesso",
-      "deny": "Annulla",
-      "invalid_request": "Questa richiesta di collegamento non è valida.",
-      "unavailable": {
-        "plan": "Non incluso nel piano",
-        "tenant_disabled": "MCP spento da un owner o admin",
-        "killed": "Sospeso dalla piattaforma",
-        "platform_disabled": "Temporaneamente non disponibile",
-        "suspended": "Workspace sospeso"
-      }
+    "empty_title": "Nessuna esportazione",
+    "empty_description": "Le esportazioni che avvii compaiono qui con il link di download.",
+    "columns": {
+      "requested": "Richiesta",
+      "status": "Stato",
+      "rows": "Righe",
+      "expires": "Scadenza link",
+      "file": "File"
     },
-    "connections": {
-      "server_url": "URL del server MCP",
-      "server_url_hint": "Incollalo in Claude, ChatGPT, Cursor o qualsiasi client MCP: si collegano con OAuth, tu accedi e autorizzi.",
-      "connection": "Connessione",
-      "user": "Utente",
-      "scopes": "Permessi",
-      "last_used": "Ultimo uso",
-      "expires": "Scade",
-      "never": "Mai",
-      "empty": "Nessun client AI collegato.",
-      "kind": {
-        "oauth": "OAuth",
-        "pat": "Token"
-      },
-      "state": {
-        "active": "Attiva",
-        "expired": "Scaduta",
-        "revoked": "Revocata"
-      },
-      "create_title": "Nuovo token di accesso personale",
-      "token_name": "Nome",
-      "token_name_placeholder": "es. Cursor sul mio portatile",
-      "expires_in": "Scade tra",
-      "days": "{days} giorni",
-      "create": "Crea token",
-      "shown_once": "Copia il token ora: viene mostrato una sola volta e Keel ne conserva solo un'impronta.",
-      "rotate": "Rigenera",
-      "rotate_confirm": "Creare un nuovo segreto per questo token? Quello attuale smette subito di funzionare.",
-      "revoke": "Revoca",
-      "revoke_confirm": "Revocare questa connessione? Il client perde subito l'accesso.",
-      "how_to": "Come collegare Claude, ChatGPT o Cursor",
-      "open_settings": "Apri le impostazioni AI e MCP"
+    "by_platform": "Supporto Keel",
+    "statuses": {
+      "pending": "In coda",
+      "running": "In corso",
+      "done": "Pronta",
+      "failed": "Non riuscita",
+      "expired": "Scaduta"
     },
-    "settings": {
-      "title": "AI e MCP",
-      "description": "Consenti al team di usare Claude, ChatGPT, Cursor e altri client AI sui dati di questo workspace, con i propri permessi.",
-      "server_title": "Server MCP",
-      "server_description": "Un solo URL per tutti i client. Ogni persona si collega con il proprio account; i token sono legati a una persona e a un workspace.",
-      "enabled": "Consenti i client AI (MCP)",
-      "enabled_hint": "Se spento, ogni chiamata MCP a questo workspace viene rifiutata; le connessioni restano.",
-      "full_pii": "Mostra i dati personali dei clienti",
-      "full_pii_hint": "Nomi, email, telefoni e indirizzi completi, solo ai ruoli che possono vederli (mai marketing o viewer). Spento: sempre mascherati.",
-      "rule_auth": "OAuth 2.1 con PKCE, oppure token di accesso personali; i segreti sono salvati solo come hash con chiave.",
-      "rule_permissions": "Ogni strumento usa il ruolo della persona e i moduli del workspace; nulla che il ruolo non veda in Keel viene esposto.",
-      "rule_writes": "Le scritture dirette sono reversibili (note, assegnatario, revisione o attesa); le azioni rischiose attendono l'approvazione.",
-      "rule_limits": "Limiti: {perToken} chiamate al minuto per connessione, {perTenant} per workspace.",
-      "guides_title": "Collega un client",
-      "guides_description": "I passi per i client più usati.",
-      "connections_title": "Client collegati",
-      "connections_description": "Tutte le connessioni attive del workspace, con l'ultimo uso. Owner e admin possono revocarle.",
-      "activity_title": "Attività recente",
-      "activity_description": "Le ultime chiamate degli ultimi 7 giorni (strumento, persona, client, esito). Argomenti e risultati non vengono mai salvati.",
-      "activity_empty": "Ancora nessuna chiamata.",
-      "stat_calls": "Chiamate (7 giorni)",
-      "stat_errors": "Errori",
-      "stat_denied": "Rifiutate",
-      "stat_rate_limited": "Limitate",
-      "col_when": "Quando",
-      "col_tool": "Strumento",
-      "col_who": "Chi",
-      "col_outcome": "Esito",
-      "col_duration": "Durata",
-      "outcome": {
-        "ok": "OK",
-        "error": "Errore",
-        "denied": "Rifiutata",
-        "invalid_input": "Input non valido",
-        "not_found": "Non trovato",
-        "rate_limited": "Limitata",
-        "auth_failed": "Autenticazione fallita",
-        "disabled": "Disattivato"
-      },
-      "approvals_link": "Approvazioni ({count})",
-      "approvals_link_empty": "Approvazioni",
-      "own_tokens_link": "I tuoi token di accesso personali sono nel profilo → Connessioni."
-    },
-    "approvals": {
-      "title": "Approvazioni",
-      "description": "Azioni proposte dai client AI tramite MCP. Non succede nulla finché qualcuno che può farlo non approva; approvando, l'azione viene eseguita a tuo nome.",
-      "empty_title": "Niente da approvare",
-      "empty_description": "Qui compaiono le proposte dei client AI (annullamenti, rimborsi, pause delle campagne, ordini d'acquisto).",
-      "requested_by": "{client} per {user} · {when}",
-      "order_total": "Totale ordine",
-      "restock": "Rimetti a stock",
-      "refund": "Rimborsa il pagamento",
-      "amount": "Importo",
-      "refundable": "Ancora rimborsabile",
-      "lines": "Righe",
-      "expires": "Scade",
-      "yes": "Sì",
-      "no": "No",
-      "cannot_approve": "Il tuo ruolo non può approvarla: chi può la vedrà qui.",
-      "note_placeholder": "Nota (facoltativa)",
-      "approve": "Approva ed esegui",
-      "approve_confirm": "Approvare ed eseguire ora questa azione a tuo nome?",
-      "reject": "Rifiuta",
-      "failed": "L'azione non è riuscita: {error}",
-      "history": "Storico",
-      "history_empty": "Ancora nessuna proposta decisa.",
-      "col_proposal": "Proposta",
-      "col_requested": "Richiesta",
-      "col_status": "Stato",
-      "col_decided": "Decisa da",
-      "kinds": {
-        "order_cancel": "Annulla ordine",
-        "order_refund": "Rimborso",
-        "campaign_pause": "Pausa campagna",
-        "purchase_order_create": "Bozza ordine d'acquisto"
-      },
-      "status": {
-        "pending": "In attesa",
-        "approved": "Approvata",
-        "rejected": "Rifiutata",
-        "failed": "Fallita",
-        "expired": "Scaduta"
-      }
-    },
-    "guides": {
-      "verify_legend": "I passi segnati “Da verificare” dipendono dall'interfaccia del fornitore AI, che cambia spesso: controllali sulla sua documentazione prima della prima installazione.",
-      "verify_badge": "Da verificare",
-      "pat_note": "Client senza OAuth: crea un token di accesso personale nel tuo profilo → Connessioni e invialo nell'header Authorization: Bearer kpat_…",
-      "claude": {
-        "name": "Claude",
-        "steps": [
-          {
-            "title": "Apri i connettori",
-            "body": "In Claude (web o app desktop) apri Impostazioni → Connettori e scegli “Aggiungi connettore personalizzato”. Nei piani team un owner potrebbe doverli prima consentire.",
-            "verify": true
-          },
-          {
-            "title": "Incolla l'URL del server",
-            "body": "Dagli un nome (es. Keel) e incolla:\n{serverUrl}\nLascia vuoti i campi OAuth avanzati: Claude si registra da solo su Keel.",
-            "verify": true
-          },
-          {
-            "title": "Accedi e autorizza",
-            "body": "Claude apre Keel: accedi, scegli il workspace, tieni o togli i permessi e autorizza. Torni su Claude già collegato."
-          },
-          {
-            "title": "Provalo",
-            "body": "In una chat attiva il connettore dal menu degli strumenti e chiedi: “Come sono andate le vendite la settimana scorsa rispetto a quella prima?” Claude cita i numeri con il link a Keel.",
-            "verify": true
-          }
-        ]
-      },
-      "chatgpt": {
-        "name": "ChatGPT",
-        "steps": [
-          {
-            "title": "Consenti i connettori personalizzati",
-            "body": "In ChatGPT apri Impostazioni → Connettori (App). A seconda del piano, i connettori MCP personalizzati richiedono la modalità sviluppatore nelle impostazioni avanzate, o un amministratore del workspace.",
-            "verify": true
-          },
-          {
-            "title": "Crea il connettore",
-            "body": "Scegli Crea, dagli un nome, incolla {serverUrl} e scegli OAuth come autenticazione.",
-            "verify": true
-          },
-          {
-            "title": "Accedi e autorizza",
-            "body": "ChatGPT apre Keel: accedi, scegli il workspace e i permessi, autorizza."
-          },
-          {
-            "title": "Provalo",
-            "body": "Apri una chat, aggiungi il connettore dal menu degli strumenti e chiedi per esempio: “Quali campagne hanno perso soldi questo mese e cosa suggerisce Keel?”",
-            "verify": true
-          }
-        ]
-      },
-      "cursor": {
-        "name": "Cursor",
-        "steps": [
-          {
-            "title": "Apri le impostazioni MCP",
-            "body": "In Cursor apri Settings → MCP (Tools & Integrations) → “Add custom MCP server”: si apre ~/.cursor/mcp.json.",
-            "verify": true
-          },
-          {
-            "title": "Aggiungi Keel",
-            "body": "Aggiungi questo server e salva:\n{ \"mcpServers\": { \"keel\": { \"url\": \"{serverUrl}\" } } }",
-            "verify": true
-          },
-          {
-            "title": "Accedi",
-            "body": "Cursor mostra che il server richiede l'accesso: cliccalo, accedi a Keel e autorizza. Senza OAuth, crea un token di accesso personale e aggiungi \"headers\": { \"Authorization\": \"Bearer kpat_…\" } al server."
-          },
-          {
-            "title": "Provalo",
-            "body": "Nella chat dell'agente chiedi: “Elenca i prodotti a rischio esaurimento con il riordino suggerito.”"
-          }
-        ]
-      }
-    }
+    "tables_n": "{n} tabelle",
+    "download": "Scarica",
+    "downloads": "{n, plural, one {scaricata una volta} other {scaricata # volte}}"
   },
   "dashboards": {
     "title": "Dashboard",
@@ -7543,6 +7503,456 @@
       "tiktok": "TikTok"
     }
   },
+  "ads": {
+    "nav": {
+      "label": "Analisi campagne",
+      "campaigns": "Campagne",
+      "creatives": "Creatività",
+      "keywords": "Parole chiave e ricerche",
+      "words": "Parole",
+      "recommendations": "Suggerimenti"
+    },
+    "cols": {
+      "name": "Nome",
+      "spend": "Spesa",
+      "impressions": "Impression",
+      "ctr": "CTR",
+      "platform_conv": "Conv. piattaforma",
+      "keel_orders": "Ordini Keel",
+      "revenue": "Ricavo netto",
+      "profit": "Profitto",
+      "roas": "ROAS",
+      "frequency": "Frequenza",
+      "match": "Corrispondenza",
+      "quality": "Qualità",
+      "campaign": "Campagna",
+      "action": "Azione",
+      "phrase": "Frase",
+      "items": "Usata in",
+      "margin": "Margine",
+      "cpa": "CPA",
+      "field": "Campo",
+      "asset": "Asset",
+      "keel_orders_allocated": "Ordini Keel (ripartiti)",
+      "date": "Data",
+      "search_term": "Termine di ricerca",
+      "clicks": "Clic",
+      "reason": "Perché",
+      "ad": "Annuncio"
+    },
+    "excluded_n": "+{n} annullati/resi",
+    "ad_sets_title": "Gruppi di inserzioni",
+    "ad_groups_title": "Gruppi di annunci",
+    "ad_sets_description": "I numeri della piattaforma accanto a quelli di Keel: ordini, ricavi e profitto contano solo gli ordini non annullati e non resi.",
+    "utm_missing": "{n} annunci su {total} non hanno {params}: i loro ordini arrivano a Keel senza annuncio. Aggiungi questo modello agli annunci:",
+    "no_ad_sets": "Ancora nessun gruppo",
+    "no_ad_sets_hint": "Arrivano con la prossima sincronizzazione delle ads.",
+    "keel_not_visible": "Keel non vede gli ordini di questa riga (il modello UTM non la nomina).",
+    "n_ads": "{n} annunci",
+    "n_keywords": "{n} parole chiave",
+    "unassigned_orders": "{n} ordini della campagna non sono legati a un gruppo",
+    "open_orders": "Apri gli ordini",
+    "reconciliation": "Spesa degli annunci {ads} su {campaign} · non allocata {unallocated}",
+    "ad_set": "Gruppo di inserzioni",
+    "ad_group": "Gruppo di annunci",
+    "status": {
+      "active": "Attivo",
+      "paused": "In pausa",
+      "archived": "Archiviato"
+    },
+    "ads_title": "Annunci",
+    "ads_description": "Affaticamento: la frequenza sale mentre il CTR scende. I suggerimenti sono in sola lettura: decide una persona.",
+    "no_ads": "Nessun annuncio in questo gruppo",
+    "keywords_title": "Parole chiave",
+    "no_keywords": "Nessuna parola chiave",
+    "search_terms_title": "Termini di ricerca",
+    "all_search_terms": "Tutti i termini della campagna",
+    "no_search_terms": "Nessun termine di ricerca",
+    "other_terms": "Altri termini (sotto le impression minime)",
+    "via_keyword": "da “{keyword}”",
+    "negative_reason": {
+      "only_cancelled": "Solo ordini annullati",
+      "no_orders": "Spesa senza ordini",
+      "unprofitable_orders": "Ordini in perdita",
+      "no_conversions": "Spesa senza conversioni"
+    },
+    "excluded": "Escluso",
+    "keel_footnote": "Keel lega gli ordini a gruppi, annunci e parole chiave tramite il modello UTM; dove la piattaforma non li lega compare un trattino.",
+    "match": {
+      "exact": "Esatta",
+      "phrase": "Frase",
+      "broad": "Generica"
+    },
+    "fatigue": {
+      "watch": "Attenzione: CTR in calo",
+      "fatigued": "Affaticato"
+    },
+    "utm_badge": "UTM mancanti",
+    "pause_reason": {
+      "losing": "In perdita",
+      "fatigued": "Affaticato e in perdita",
+      "low_label": "Valutato BASSO",
+      "low_ctr": "Metà del CTR degli altri"
+    },
+    "ctr_change": "CTR {change} dall'inizio",
+    "copy_title": "Testi e tracciamento",
+    "utm_missing_ad": "Questo annuncio non ha {params}: i suoi ordini arrivano a Keel senza annuncio. Modello:",
+    "assets_title": "Asset",
+    "no_assets": "Nessun dettaglio per asset",
+    "no_assets_meta": "Meta riporta gli asset solo per le inserzioni con creatività dinamica o Advantage+.",
+    "no_assets_google": "Google riporta gli asset per gli annunci adattabili.",
+    "no_assets_tiktok": "TikTok non riporta metriche per singolo asset: il video dell’annuncio è elencato con il suo id.",
+    "field": {
+      "headline": "Titolo",
+      "description": "Descrizione",
+      "body": "Testo principale",
+      "title": "Titolo breve",
+      "image": "Immagine",
+      "video": "Video",
+      "other": "Altro"
+    },
+    "assets_footnote": "Le piattaforme riportano gli asset, non gli ordini: Keel ripartisce gli ordini dell'annuncio sui suoi asset in base alla quota di spesa in ogni campo.",
+    "daily_title": "Per giorno",
+    "no_days": "Nessun dato giornaliero nel periodo",
+    "keywords_page_title": "Parole chiave e termini di ricerca",
+    "keywords_page_description": "Le parole chiave di Google Ads e le ricerche che hanno attivato gli annunci, con gli ordini di Keel dove il modello UTM le nomina.",
+    "tabs": {
+      "keywords": "Parole chiave",
+      "search_terms": "Termini di ricerca"
+    },
+    "search_placeholder": "Cerca testo",
+    "all_campaigns": "Tutte le campagne",
+    "sort_label": "Ordina",
+    "sort": {
+      "spend": "Spesa",
+      "profit": "Profitto",
+      "roas": "ROAS",
+      "conversions": "Conversioni"
+    },
+    "candidates_only": "Solo candidati a parola chiave negativa",
+    "apply": "Applica",
+    "google_only": "Parole chiave e termini di ricerca arrivano da Google Ads; Meta non li ha.",
+    "rows_total": "{n} righe",
+    "prev": "Precedente",
+    "next": "Successiva",
+    "page_of": "Pagina {page} di {pages}",
+    "keywords_footnote": "Gli ordini Keel arrivano da utm_term impostato sulla parola chiave dal modello di monitoraggio.",
+    "search_terms_footnote": "Keel vede gli ordini di un termine quando il termine è una parola chiave (corrispondenza esatta); per gli altri decidono le conversioni della piattaforma. I termini sotto le impression minime sono raggruppati in “Altri termini”.",
+    "words_title": "Parole",
+    "words_description": "Parole e frasi (1–3 parole) vincenti e perdenti nei testi degli annunci, nei termini di ricerca e nelle parole chiave, con il profitto degli ordini Keel.",
+    "word_source": {
+      "copy": "Testi degli annunci",
+      "search_terms": "Termini di ricerca",
+      "keywords": "Parole chiave"
+    },
+    "ngram": {
+      "all": "Tutte",
+      "n1": "1 parola",
+      "n2": "2 parole",
+      "n3": "3 parole"
+    },
+    "no_words": "Volume insufficiente",
+    "no_words_hint": "Una frase deve comparire in almeno due annunci o termini con un po' di spesa.",
+    "winners": "Parole vincenti",
+    "winners_description": "Frasi di elementi che hanno fatto profitto, le migliori prima.",
+    "no_winners": "Nessuna frase in profitto nel periodo",
+    "losers": "Parole perdenti",
+    "losers_description": "Frasi di elementi in perdita, le peggiori prima.",
+    "no_losers": "Nessuna frase in perdita nel periodo",
+    "words_footnote": "{items} elementi analizzati. Ogni frase somma i numeri completi di ogni elemento che la contiene, quindi le frasi si sovrappongono.",
+    "recommendations_title": "Suggerimenti ads",
+    "recommendations_description": "Suggerimenti in sola lettura: una persona li valuta e agisce; le scritture verso le piattaforme chiedono sempre conferma.",
+    "in_items": "in {n}",
+    "rec": {
+      "negatives_title": "Candidati a parola chiave negativa",
+      "negatives_description": "{n} termini di ricerca spendono senza ordini in profitto.",
+      "google_read_only": "Google è in sola lettura per questo negozio: concedi l'accesso in scrittura in Integrazioni per escludere i termini da qui.",
+      "none": "Niente da suggerire",
+      "all_candidates": "Tutti i candidati",
+      "ads_title": "Annunci da mettere in pausa",
+      "ads_description": "Annunci attivi in perdita nel periodo, oppure affaticati e in perdita.",
+      "words_title": "Parole vincenti da riusare nei testi",
+      "words_description": "Frasi degli annunci che hanno fatto più profitto.",
+      "open_words": "Apri Parole",
+      "assets_title": "Asset deboli",
+      "assets_description": "Asset valutati BASSO dalla piattaforma o con metà del CTR degli altri.",
+      "utm_title": "Modelli UTM",
+      "utm_description": "Senza questi parametri Keel non può legare gli ordini ad annunci, gruppi e parole chiave.",
+      "utm_ok": "Tutte le campagne attive hanno i modelli.",
+      "utm_row": "{missing} annunci su {ads} senza {params}",
+      "template_meta": "Meta: parametri URL dell'annuncio",
+      "template_google": "Google: modello di monitoraggio dell'account",
+      "template_tiktok": "TikTok: parametri URL dell’annuncio"
+    },
+    "actions": {
+      "read_only": "{platform} è in sola lettura per questo negozio.",
+      "read_only_short": "Sola lettura",
+      "pause_ad": "Metti in pausa l'annuncio",
+      "resume_ad": "Riattiva l'annuncio",
+      "pause_title": "Mettere in pausa questo annuncio su {platform}?",
+      "resume_title": "Riattivare questo annuncio su {platform}?",
+      "write_description": "Keel cambia lo stato qui e lo invia alla piattaforma; se non è raggiungibile la modifica viene ritentata e mostrata come in attesa.",
+      "confirm": "Conferma",
+      "exclude": "Escludi",
+      "negative_title": "Aggiungere “{text}” come parola chiave negativa?",
+      "negative_description": "Google smette di mostrare gli annunci per questa ricerca. La modifica passa dalla coda delle scritture.",
+      "match_type": "Corrispondenza",
+      "match": {
+        "exact": "Esatta",
+        "phrase": "Frase",
+        "broad": "Generica"
+      },
+      "level": "Livello",
+      "levels": {
+        "campaign": "Campagna",
+        "ad_group": "Gruppo di annunci"
+      }
+    }
+  },
+  "mcp": {
+    "copy": "Copia",
+    "copied": "Copiato",
+    "scopes": {
+      "read": "Leggere ordini, clienti, analisi, prodotti, acquisti, resi, segmenti e stato delle integrazioni che il tuo ruolo può vedere",
+      "write_notes": "Aggiungere note interne agli ordini",
+      "write_orders": "Assegnare ordini, metterli in revisione o in attesa, proporre annullamenti e rimborsi",
+      "write_campaigns": "Proporre la pausa delle campagne pubblicitarie",
+      "write_purchasing": "Proporre bozze di ordini d'acquisto"
+    },
+    "unavailable": {
+      "plan": "I client AI (MCP) sono inclusi dal piano Growth.",
+      "tenant_disabled": "MCP è spento per questo workspace: un owner o un admin può accenderlo in Impostazioni → AI e MCP.",
+      "killed": "L'accesso MCP a questo workspace è stato sospeso dalla piattaforma.",
+      "platform_disabled": "MCP è temporaneamente non disponibile sulla piattaforma.",
+      "suspended": "Questo workspace è sospeso."
+    },
+    "errors": {
+      "generic": "Qualcosa è andato storto. Riprova.",
+      "invalid_input": "Controlla i campi e riprova.",
+      "limit_reached": "Hai raggiunto il numero massimo di token attivi: revocane uno prima.",
+      "not_found": "Non trovato: potrebbe essere stato rimosso.",
+      "forbidden": "Non puoi farlo.",
+      "mcp_unavailable": "MCP non è disponibile per questo workspace.",
+      "not_pending": "Questa proposta è già stata decisa.",
+      "expired": "Questa proposta è scaduta."
+    },
+    "consent": {
+      "title": "Collega un client AI",
+      "heading": "{client} chiede di accedere a Keel",
+      "description": "Accesso come {user}. Il client agirà come te, con il tuo ruolo, nel workspace che scegli.",
+      "workspace": "Workspace",
+      "no_workspace": "Non sei membro di alcun workspace.",
+      "scopes": "Permessi",
+      "scopes_hint": "Togli la spunta a ciò che non vuoi consentire. La lettura è sempre inclusa.",
+      "note_role": "Vede solo ciò che il tuo ruolo vede in Keel; i moduli spenti non espongono nulla.",
+      "note_pii": "Email, telefoni e indirizzi dei clienti sono mascherati, salvo che il tuo workspace abbia attivato i dati personali completi per i client AI.",
+      "note_proposals": "Annullamenti, rimborsi, pause delle campagne e ordini d'acquisto sono solo proposte: le approva una persona in Keel.",
+      "note_redirect": "Dopo l'autorizzazione torni su {host}. Puoi revocare l'accesso in qualsiasi momento dal profilo → Connessioni.",
+      "approve": "Consenti l'accesso",
+      "deny": "Annulla",
+      "invalid_request": "Questa richiesta di collegamento non è valida.",
+      "unavailable": {
+        "plan": "Non incluso nel piano",
+        "tenant_disabled": "MCP spento da un owner o admin",
+        "killed": "Sospeso dalla piattaforma",
+        "platform_disabled": "Temporaneamente non disponibile",
+        "suspended": "Workspace sospeso"
+      }
+    },
+    "connections": {
+      "server_url": "URL del server MCP",
+      "server_url_hint": "Incollalo in Claude, ChatGPT, Cursor o qualsiasi client MCP: si collegano con OAuth, tu accedi e autorizzi.",
+      "connection": "Connessione",
+      "user": "Utente",
+      "scopes": "Permessi",
+      "last_used": "Ultimo uso",
+      "expires": "Scade",
+      "never": "Mai",
+      "empty": "Nessun client AI collegato.",
+      "kind": {
+        "oauth": "OAuth",
+        "pat": "Token"
+      },
+      "state": {
+        "active": "Attiva",
+        "expired": "Scaduta",
+        "revoked": "Revocata"
+      },
+      "create_title": "Nuovo token di accesso personale",
+      "token_name": "Nome",
+      "token_name_placeholder": "es. Cursor sul mio portatile",
+      "expires_in": "Scade tra",
+      "days": "{days} giorni",
+      "create": "Crea token",
+      "shown_once": "Copia il token ora: viene mostrato una sola volta e Keel ne conserva solo un'impronta.",
+      "rotate": "Rigenera",
+      "rotate_confirm": "Creare un nuovo segreto per questo token? Quello attuale smette subito di funzionare.",
+      "revoke": "Revoca",
+      "revoke_confirm": "Revocare questa connessione? Il client perde subito l'accesso.",
+      "how_to": "Come collegare Claude, ChatGPT o Cursor",
+      "open_settings": "Apri le impostazioni AI e MCP"
+    },
+    "settings": {
+      "title": "AI e MCP",
+      "description": "Consenti al team di usare Claude, ChatGPT, Cursor e altri client AI sui dati di questo workspace, con i propri permessi.",
+      "server_title": "Server MCP",
+      "server_description": "Un solo URL per tutti i client. Ogni persona si collega con il proprio account; i token sono legati a una persona e a un workspace.",
+      "enabled": "Consenti i client AI (MCP)",
+      "enabled_hint": "Se spento, ogni chiamata MCP a questo workspace viene rifiutata; le connessioni restano.",
+      "full_pii": "Mostra i dati personali dei clienti",
+      "full_pii_hint": "Nomi, email, telefoni e indirizzi completi, solo ai ruoli che possono vederli (mai marketing o viewer). Spento: sempre mascherati.",
+      "rule_auth": "OAuth 2.1 con PKCE, oppure token di accesso personali; i segreti sono salvati solo come hash con chiave.",
+      "rule_permissions": "Ogni strumento usa il ruolo della persona e i moduli del workspace; nulla che il ruolo non veda in Keel viene esposto.",
+      "rule_writes": "Le scritture dirette sono reversibili (note, assegnatario, revisione o attesa); le azioni rischiose attendono l'approvazione.",
+      "rule_limits": "Limiti: {perToken} chiamate al minuto per connessione, {perTenant} per workspace.",
+      "guides_title": "Collega un client",
+      "guides_description": "I passi per i client più usati.",
+      "connections_title": "Client collegati",
+      "connections_description": "Tutte le connessioni attive del workspace, con l'ultimo uso. Owner e admin possono revocarle.",
+      "activity_title": "Attività recente",
+      "activity_description": "Le ultime chiamate degli ultimi 7 giorni (strumento, persona, client, esito). Argomenti e risultati non vengono mai salvati.",
+      "activity_empty": "Ancora nessuna chiamata.",
+      "stat_calls": "Chiamate (7 giorni)",
+      "stat_errors": "Errori",
+      "stat_denied": "Rifiutate",
+      "stat_rate_limited": "Limitate",
+      "col_when": "Quando",
+      "col_tool": "Strumento",
+      "col_who": "Chi",
+      "col_outcome": "Esito",
+      "col_duration": "Durata",
+      "outcome": {
+        "ok": "OK",
+        "error": "Errore",
+        "denied": "Rifiutata",
+        "invalid_input": "Input non valido",
+        "not_found": "Non trovato",
+        "rate_limited": "Limitata",
+        "auth_failed": "Autenticazione fallita",
+        "disabled": "Disattivato"
+      },
+      "approvals_link": "Approvazioni ({count})",
+      "approvals_link_empty": "Approvazioni",
+      "own_tokens_link": "I tuoi token di accesso personali sono nel profilo → Connessioni."
+    },
+    "approvals": {
+      "title": "Approvazioni",
+      "description": "Azioni proposte dai client AI tramite MCP. Non succede nulla finché qualcuno che può farlo non approva; approvando, l'azione viene eseguita a tuo nome.",
+      "empty_title": "Niente da approvare",
+      "empty_description": "Qui compaiono le proposte dei client AI (annullamenti, rimborsi, pause delle campagne, ordini d'acquisto).",
+      "requested_by": "{client} per {user} · {when}",
+      "order_total": "Totale ordine",
+      "restock": "Rimetti a stock",
+      "refund": "Rimborsa il pagamento",
+      "amount": "Importo",
+      "refundable": "Ancora rimborsabile",
+      "lines": "Righe",
+      "expires": "Scade",
+      "yes": "Sì",
+      "no": "No",
+      "cannot_approve": "Il tuo ruolo non può approvarla: chi può la vedrà qui.",
+      "note_placeholder": "Nota (facoltativa)",
+      "approve": "Approva ed esegui",
+      "approve_confirm": "Approvare ed eseguire ora questa azione a tuo nome?",
+      "reject": "Rifiuta",
+      "failed": "L'azione non è riuscita: {error}",
+      "history": "Storico",
+      "history_empty": "Ancora nessuna proposta decisa.",
+      "col_proposal": "Proposta",
+      "col_requested": "Richiesta",
+      "col_status": "Stato",
+      "col_decided": "Decisa da",
+      "kinds": {
+        "order_cancel": "Annulla ordine",
+        "order_refund": "Rimborso",
+        "campaign_pause": "Pausa campagna",
+        "purchase_order_create": "Bozza ordine d'acquisto"
+      },
+      "status": {
+        "pending": "In attesa",
+        "approved": "Approvata",
+        "rejected": "Rifiutata",
+        "failed": "Fallita",
+        "expired": "Scaduta"
+      }
+    },
+    "guides": {
+      "verify_legend": "I passi segnati “Da verificare” dipendono dall'interfaccia del fornitore AI, che cambia spesso: controllali sulla sua documentazione prima della prima installazione.",
+      "verify_badge": "Da verificare",
+      "pat_note": "Client senza OAuth: crea un token di accesso personale nel tuo profilo → Connessioni e invialo nell'header Authorization: Bearer kpat_…",
+      "claude": {
+        "name": "Claude",
+        "steps": [
+          {
+            "title": "Apri i connettori",
+            "body": "In Claude (web o app desktop) apri Impostazioni → Connettori e scegli “Aggiungi connettore personalizzato”. Nei piani team un owner potrebbe doverli prima consentire.",
+            "verify": true
+          },
+          {
+            "title": "Incolla l'URL del server",
+            "body": "Dagli un nome (es. Keel) e incolla:\n{serverUrl}\nLascia vuoti i campi OAuth avanzati: Claude si registra da solo su Keel.",
+            "verify": true
+          },
+          {
+            "title": "Accedi e autorizza",
+            "body": "Claude apre Keel: accedi, scegli il workspace, tieni o togli i permessi e autorizza. Torni su Claude già collegato."
+          },
+          {
+            "title": "Provalo",
+            "body": "In una chat attiva il connettore dal menu degli strumenti e chiedi: “Come sono andate le vendite la settimana scorsa rispetto a quella prima?” Claude cita i numeri con il link a Keel.",
+            "verify": true
+          }
+        ]
+      },
+      "chatgpt": {
+        "name": "ChatGPT",
+        "steps": [
+          {
+            "title": "Consenti i connettori personalizzati",
+            "body": "In ChatGPT apri Impostazioni → Connettori (App). A seconda del piano, i connettori MCP personalizzati richiedono la modalità sviluppatore nelle impostazioni avanzate, o un amministratore del workspace.",
+            "verify": true
+          },
+          {
+            "title": "Crea il connettore",
+            "body": "Scegli Crea, dagli un nome, incolla {serverUrl} e scegli OAuth come autenticazione.",
+            "verify": true
+          },
+          {
+            "title": "Accedi e autorizza",
+            "body": "ChatGPT apre Keel: accedi, scegli il workspace e i permessi, autorizza."
+          },
+          {
+            "title": "Provalo",
+            "body": "Apri una chat, aggiungi il connettore dal menu degli strumenti e chiedi per esempio: “Quali campagne hanno perso soldi questo mese e cosa suggerisce Keel?”",
+            "verify": true
+          }
+        ]
+      },
+      "cursor": {
+        "name": "Cursor",
+        "steps": [
+          {
+            "title": "Apri le impostazioni MCP",
+            "body": "In Cursor apri Settings → MCP (Tools & Integrations) → “Add custom MCP server”: si apre ~/.cursor/mcp.json.",
+            "verify": true
+          },
+          {
+            "title": "Aggiungi Keel",
+            "body": "Aggiungi questo server e salva:\n{ \"mcpServers\": { \"keel\": { \"url\": \"{serverUrl}\" } } }",
+            "verify": true
+          },
+          {
+            "title": "Accedi",
+            "body": "Cursor mostra che il server richiede l'accesso: cliccalo, accedi a Keel e autorizza. Senza OAuth, crea un token di accesso personale e aggiungi \"headers\": { \"Authorization\": \"Bearer kpat_…\" } al server."
+          },
+          {
+            "title": "Provalo",
+            "body": "Nella chat dell'agente chiedi: “Elenca i prodotti a rischio esaurimento con il riordino suggerito.”"
+          }
+        ]
+      }
+    }
+  },
   "billing": {
     "title": "Fatturazione",
     "description": "Il tuo piano, il metodo di pagamento e le fatture.",
@@ -7753,244 +8163,6 @@
     "none": "Ancora nessun abbonamento sul processore.",
     "catalog_missing": "Sincronizza prima il catalogo (Fatturazione → Abbonamenti).",
     "cancel_at_period_end": "termina a fine periodo"
-  },
-  "data_export": {
-    "title": "Esportazione dati",
-    "description": "Scarica tutto ciò che Keel conserva per questo negozio.",
-    "what_title": "Esportazione completa dei dati del negozio",
-    "what_description": "Un file CSV per tabella (ordini, clienti, prodotti, resi, campagne, impostazioni e altro) in un archivio zip, generato in background. Ricevi una notifica quando è pronto; il link di download scade dopo {days} giorni. Le credenziali delle integrazioni e gli altri segreti non sono mai inclusi.",
-    "request": "Esporta tutti i dati",
-    "requesting": "Avvio…",
-    "errors": {
-      "in_progress": "C'è già un'esportazione in corso.",
-      "generic": "Non è stato possibile avviare l'esportazione."
-    },
-    "empty_title": "Nessuna esportazione",
-    "empty_description": "Le esportazioni che avvii compaiono qui con il link di download.",
-    "columns": {
-      "requested": "Richiesta",
-      "status": "Stato",
-      "rows": "Righe",
-      "expires": "Scadenza link",
-      "file": "File"
-    },
-    "by_platform": "Supporto Keel",
-    "statuses": {
-      "pending": "In coda",
-      "running": "In corso",
-      "done": "Pronta",
-      "failed": "Non riuscita",
-      "expired": "Scaduta"
-    },
-    "tables_n": "{n} tabelle",
-    "download": "Scarica",
-    "downloads": "{n, plural, one {scaricata una volta} other {scaricata # volte}}"
-  },
-  "ads": {
-    "nav": {
-      "label": "Analisi campagne",
-      "campaigns": "Campagne",
-      "creatives": "Creatività",
-      "keywords": "Parole chiave e ricerche",
-      "words": "Parole",
-      "recommendations": "Suggerimenti"
-    },
-    "cols": {
-      "name": "Nome",
-      "spend": "Spesa",
-      "impressions": "Impression",
-      "ctr": "CTR",
-      "platform_conv": "Conv. piattaforma",
-      "keel_orders": "Ordini Keel",
-      "revenue": "Ricavo netto",
-      "profit": "Profitto",
-      "roas": "ROAS",
-      "frequency": "Frequenza",
-      "match": "Corrispondenza",
-      "quality": "Qualità",
-      "campaign": "Campagna",
-      "action": "Azione",
-      "phrase": "Frase",
-      "items": "Usata in",
-      "margin": "Margine",
-      "cpa": "CPA",
-      "field": "Campo",
-      "asset": "Asset",
-      "keel_orders_allocated": "Ordini Keel (ripartiti)",
-      "date": "Data",
-      "search_term": "Termine di ricerca",
-      "clicks": "Clic",
-      "reason": "Perché",
-      "ad": "Annuncio"
-    },
-    "excluded_n": "+{n} annullati/resi",
-    "ad_sets_title": "Gruppi di inserzioni",
-    "ad_groups_title": "Gruppi di annunci",
-    "ad_sets_description": "I numeri della piattaforma accanto a quelli di Keel: ordini, ricavi e profitto contano solo gli ordini non annullati e non resi.",
-    "utm_missing": "{n} annunci su {total} non hanno {params}: i loro ordini arrivano a Keel senza annuncio. Aggiungi questo modello agli annunci:",
-    "no_ad_sets": "Ancora nessun gruppo",
-    "no_ad_sets_hint": "Arrivano con la prossima sincronizzazione delle ads.",
-    "keel_not_visible": "Keel non vede gli ordini di questa riga (il modello UTM non la nomina).",
-    "n_ads": "{n} annunci",
-    "n_keywords": "{n} parole chiave",
-    "unassigned_orders": "{n} ordini della campagna non sono legati a un gruppo",
-    "open_orders": "Apri gli ordini",
-    "reconciliation": "Spesa degli annunci {ads} su {campaign} · non allocata {unallocated}",
-    "ad_set": "Gruppo di inserzioni",
-    "ad_group": "Gruppo di annunci",
-    "status": {
-      "active": "Attivo",
-      "paused": "In pausa",
-      "archived": "Archiviato"
-    },
-    "ads_title": "Annunci",
-    "ads_description": "Affaticamento: la frequenza sale mentre il CTR scende. I suggerimenti sono in sola lettura: decide una persona.",
-    "no_ads": "Nessun annuncio in questo gruppo",
-    "keywords_title": "Parole chiave",
-    "no_keywords": "Nessuna parola chiave",
-    "search_terms_title": "Termini di ricerca",
-    "all_search_terms": "Tutti i termini della campagna",
-    "no_search_terms": "Nessun termine di ricerca",
-    "other_terms": "Altri termini (sotto le impression minime)",
-    "via_keyword": "da “{keyword}”",
-    "negative_reason": {
-      "only_cancelled": "Solo ordini annullati",
-      "no_orders": "Spesa senza ordini",
-      "unprofitable_orders": "Ordini in perdita",
-      "no_conversions": "Spesa senza conversioni"
-    },
-    "excluded": "Escluso",
-    "keel_footnote": "Keel lega gli ordini a gruppi, annunci e parole chiave tramite il modello UTM; dove la piattaforma non li lega compare un trattino.",
-    "match": {
-      "exact": "Esatta",
-      "phrase": "Frase",
-      "broad": "Generica"
-    },
-    "fatigue": {
-      "watch": "Attenzione: CTR in calo",
-      "fatigued": "Affaticato"
-    },
-    "utm_badge": "UTM mancanti",
-    "pause_reason": {
-      "losing": "In perdita",
-      "fatigued": "Affaticato e in perdita",
-      "low_label": "Valutato BASSO",
-      "low_ctr": "Metà del CTR degli altri"
-    },
-    "ctr_change": "CTR {change} dall'inizio",
-    "copy_title": "Testi e tracciamento",
-    "utm_missing_ad": "Questo annuncio non ha {params}: i suoi ordini arrivano a Keel senza annuncio. Modello:",
-    "assets_title": "Asset",
-    "no_assets": "Nessun dettaglio per asset",
-    "no_assets_meta": "Meta riporta gli asset solo per le inserzioni con creatività dinamica o Advantage+.",
-    "no_assets_google": "Google riporta gli asset per gli annunci adattabili.",
-    "field": {
-      "headline": "Titolo",
-      "description": "Descrizione",
-      "body": "Testo principale",
-      "title": "Titolo breve",
-      "image": "Immagine",
-      "video": "Video",
-      "other": "Altro"
-    },
-    "assets_footnote": "Le piattaforme riportano gli asset, non gli ordini: Keel ripartisce gli ordini dell'annuncio sui suoi asset in base alla quota di spesa in ogni campo.",
-    "daily_title": "Per giorno",
-    "no_days": "Nessun dato giornaliero nel periodo",
-    "keywords_page_title": "Parole chiave e termini di ricerca",
-    "keywords_page_description": "Le parole chiave di Google Ads e le ricerche che hanno attivato gli annunci, con gli ordini di Keel dove il modello UTM le nomina.",
-    "tabs": {
-      "keywords": "Parole chiave",
-      "search_terms": "Termini di ricerca"
-    },
-    "search_placeholder": "Cerca testo",
-    "all_campaigns": "Tutte le campagne",
-    "sort_label": "Ordina",
-    "sort": {
-      "spend": "Spesa",
-      "profit": "Profitto",
-      "roas": "ROAS",
-      "conversions": "Conversioni"
-    },
-    "candidates_only": "Solo candidati a parola chiave negativa",
-    "apply": "Applica",
-    "google_only": "Parole chiave e termini di ricerca arrivano da Google Ads; Meta non li ha.",
-    "rows_total": "{n} righe",
-    "prev": "Precedente",
-    "next": "Successiva",
-    "page_of": "Pagina {page} di {pages}",
-    "keywords_footnote": "Gli ordini Keel arrivano da utm_term impostato sulla parola chiave dal modello di monitoraggio.",
-    "search_terms_footnote": "Keel vede gli ordini di un termine quando il termine è una parola chiave (corrispondenza esatta); per gli altri decidono le conversioni della piattaforma. I termini sotto le impression minime sono raggruppati in “Altri termini”.",
-    "words_title": "Parole",
-    "words_description": "Parole e frasi (1–3 parole) vincenti e perdenti nei testi degli annunci, nei termini di ricerca e nelle parole chiave, con il profitto degli ordini Keel.",
-    "word_source": {
-      "copy": "Testi degli annunci",
-      "search_terms": "Termini di ricerca",
-      "keywords": "Parole chiave"
-    },
-    "ngram": {
-      "all": "Tutte",
-      "n1": "1 parola",
-      "n2": "2 parole",
-      "n3": "3 parole"
-    },
-    "no_words": "Volume insufficiente",
-    "no_words_hint": "Una frase deve comparire in almeno due annunci o termini con un po' di spesa.",
-    "winners": "Parole vincenti",
-    "winners_description": "Frasi di elementi che hanno fatto profitto, le migliori prima.",
-    "no_winners": "Nessuna frase in profitto nel periodo",
-    "losers": "Parole perdenti",
-    "losers_description": "Frasi di elementi in perdita, le peggiori prima.",
-    "no_losers": "Nessuna frase in perdita nel periodo",
-    "words_footnote": "{items} elementi analizzati. Ogni frase somma i numeri completi di ogni elemento che la contiene, quindi le frasi si sovrappongono.",
-    "recommendations_title": "Suggerimenti ads",
-    "recommendations_description": "Suggerimenti in sola lettura: una persona li valuta e agisce; le scritture verso le piattaforme chiedono sempre conferma.",
-    "in_items": "in {n}",
-    "rec": {
-      "negatives_title": "Candidati a parola chiave negativa",
-      "negatives_description": "{n} termini di ricerca spendono senza ordini in profitto.",
-      "google_read_only": "Google è in sola lettura per questo negozio: concedi l'accesso in scrittura in Integrazioni per escludere i termini da qui.",
-      "none": "Niente da suggerire",
-      "all_candidates": "Tutti i candidati",
-      "ads_title": "Annunci da mettere in pausa",
-      "ads_description": "Annunci attivi in perdita nel periodo, oppure affaticati e in perdita.",
-      "words_title": "Parole vincenti da riusare nei testi",
-      "words_description": "Frasi degli annunci che hanno fatto più profitto.",
-      "open_words": "Apri Parole",
-      "assets_title": "Asset deboli",
-      "assets_description": "Asset valutati BASSO dalla piattaforma o con metà del CTR degli altri.",
-      "utm_title": "Modelli UTM",
-      "utm_description": "Senza questi parametri Keel non può legare gli ordini ad annunci, gruppi e parole chiave.",
-      "utm_ok": "Tutte le campagne attive hanno i modelli.",
-      "utm_row": "{missing} annunci su {ads} senza {params}",
-      "template_meta": "Meta: parametri URL dell'annuncio",
-      "template_google": "Google: modello di monitoraggio dell'account",
-      "template_tiktok": "TikTok: parametri URL dell’annuncio"
-    },
-    "actions": {
-      "read_only": "{platform} è in sola lettura per questo negozio.",
-      "read_only_short": "Sola lettura",
-      "pause_ad": "Metti in pausa l'annuncio",
-      "resume_ad": "Riattiva l'annuncio",
-      "pause_title": "Mettere in pausa questo annuncio su {platform}?",
-      "resume_title": "Riattivare questo annuncio su {platform}?",
-      "write_description": "Keel cambia lo stato qui e lo invia alla piattaforma; se non è raggiungibile la modifica viene ritentata e mostrata come in attesa.",
-      "confirm": "Conferma",
-      "exclude": "Escludi",
-      "negative_title": "Aggiungere “{text}” come parola chiave negativa?",
-      "negative_description": "Google smette di mostrare gli annunci per questa ricerca. La modifica passa dalla coda delle scritture.",
-      "match_type": "Corrispondenza",
-      "match": {
-        "exact": "Esatta",
-        "phrase": "Frase",
-        "broad": "Generica"
-      },
-      "level": "Livello",
-      "levels": {
-        "campaign": "Campagna",
-        "ad_group": "Gruppo di annunci"
-      }
-    },
-    "no_assets_tiktok": "TikTok non riporta metriche per singolo asset: il video dell’annuncio è elencato con il suo id."
   },
   "product_mirror": {
     "edit": "Modifica",

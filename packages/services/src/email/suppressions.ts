@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, recordAudit, schema, type DbExecutor } from "@keel/db";
+import { and, desc, eq, inArray, recordAudit, schema, sql, type DbExecutor } from "@keel/db";
 import { emailAddressHash, maskEmail, normalizeEmailAddress } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 import type { EmailKind } from "./templates";
@@ -33,6 +33,52 @@ export async function suppressedAmong(ctx: ServiceContext, emails: string[], cat
 }
 
 export const SUPPRESSION_REASONS = ["bounce", "complaint", "unsubscribe", "manual"] as const;
+
+/** Suppression category of customer campaigns (#34): an unsubscribe or manual entry in `marketing` or `all` blocks them. */
+export const MARKETING_CATEGORY = "marketing";
+
+/**
+ * Customers the shared suppression list blocks from marketing, on every channel: any of their
+ * identities (email, E.164 phone) has a tenant entry that blocks the category (bounces and
+ * complaints always do), or the platform sender reported their email address (bounce, complaint).
+ * One list for transactional email and campaigns, so an unsubscribe or a bounce is honoured everywhere.
+ */
+export async function suppressedContacts(ctx: ServiceContext, contacts: readonly { customerId: string; email: string | null; phone: string | null }[], category: EmailCategory = MARKETING_CATEGORY): Promise<Set<string>> {
+  const out = new Set<string>();
+  if (!contacts.length) return out;
+  const byIdentity = new Map<string, string[]>();
+  const byHash = new Map<string, string[]>();
+  const push = (m: Map<string, string[]>, k: string, id: string) => m.set(k, [...(m.get(k) ?? []), id]);
+  for (const c of contacts) {
+    if (c.email) {
+      push(byIdentity, norm(c.email), c.customerId);
+      push(byHash, emailAddressHash(c.email), c.customerId);
+    }
+    if (c.phone) push(byIdentity, c.phone, c.customerId);
+  }
+  const identities = [...byIdentity.keys()];
+  for (let i = 0; i < identities.length; i += 1000) {
+    const chunk = identities.slice(i, i + 1000);
+    const rows = await ctx.tx.select({ email: schema.emailSuppressions.email, reason: schema.emailSuppressions.reason, category: schema.emailSuppressions.category }).from(schema.emailSuppressions).where(and(eq(schema.emailSuppressions.tenantId, ctx.tenantId), inArray(schema.emailSuppressions.email, chunk)));
+    for (const r of rows) if (blocks(r, category)) for (const id of byIdentity.get(r.email) ?? []) out.add(id);
+  }
+  const hashes = [...byHash.keys()];
+  for (let i = 0; i < hashes.length; i += 1000) {
+    const rows = await ctx.tx.execute<{ email_hash: string }>(sql`select distinct email_hash from email_address_suppressions where email_hash = any(${sql.param(hashes.slice(i, i + 1000))}::text[])`);
+    for (const r of rows.rows) for (const id of byHash.get(r.email_hash) ?? []) out.add(id);
+  }
+  return out;
+}
+
+/** A phone number (E.164) on the shared list: SMS and WhatsApp campaigns never reach it. */
+export async function addPhoneSuppression(ctx: ServiceContext, input: { phone: string; reason: (typeof SUPPRESSION_REASONS)[number]; category?: string; source?: string; note?: string | null }): Promise<boolean> {
+  const phone = input.phone.trim();
+  if (!/^\+[1-9]\d{6,14}$/.test(phone)) throw new Error("invalid_phone");
+  const category = input.reason === "bounce" || input.reason === "complaint" ? "all" : (input.category ?? "all");
+  const rows = await ctx.tx.insert(schema.emailSuppressions).values({ tenantId: ctx.tenantId, email: phone, identityType: "phone", reason: input.reason, category, source: input.source ?? "app", note: input.note ?? null, createdBy: ctx.actor.userId, createdAt: ctx.now ?? new Date() }).onConflictDoNothing().returning({ id: schema.emailSuppressions.id });
+  if (rows.length) await recordAudit(ctx.tx, { tenantId: ctx.tenantId, actorUserId: ctx.actor.userId, actorType: ctx.actor.userId ? "user" : "system", action: "contact.suppressed", entityType: "email_suppression", entityId: rows[0]!.id, diff: { suppressed: { from: false, to: true } }, metadata: { identityType: "phone", phone, reason: input.reason, category, source: input.source ?? "app" } });
+  return rows.length > 0;
+}
 
 export async function addEmailSuppression(ctx: ServiceContext, input: { email: string; reason: (typeof SUPPRESSION_REASONS)[number]; category?: string; source?: string; note?: string | null }): Promise<boolean> {
   const email = norm(input.email);

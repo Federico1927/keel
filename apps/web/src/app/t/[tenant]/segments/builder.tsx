@@ -15,6 +15,8 @@ export interface BuilderOptions {
   tags: string[];
   products: { id: string; title: string }[];
   paymentMethods: string[];
+  /** Product option names of the catalog ("Size", "Taglia"…) and their values, for `dominant_option`. */
+  optionValues: Record<string, string[]>;
 }
 export interface BuilderSegment {
   id?: string;
@@ -32,6 +34,8 @@ function defaultValue(field: string, op: SegmentOp): unknown {
   if (op === "is_null" || op === "not_null") return undefined;
   if (op === "between") return [0, 100];
   switch (def.type) {
+    case "day_window":
+      return [0, 30];
     case "number":
     case "days":
       return 1;
@@ -216,7 +220,7 @@ function LeafEditor({ leaf, options, currency, disabled, onChange, onRemove }: {
   const setField = (field: string) => {
     const d = SEGMENT_FIELDS[field]!;
     const op = OPS_BY_TYPE[d.type][0]!;
-    onChange({ field, op, value: defaultValue(field, op) });
+    onChange({ field, op, value: defaultValue(field, op), ...(d.param === "option" ? { option: Object.keys(options.optionValues)[0] ?? "" } : {}) });
   };
   const setOp = (op: SegmentOp) => onChange({ ...leaf, op, value: op === "between" || op === "is_null" || op === "not_null" || leaf.op === "between" || leaf.op === "is_null" || leaf.op === "not_null" ? defaultValue(leaf.field, op) : leaf.value });
   const grouped = FIELD_ORDER.reduce<Record<string, string[]>>((acc, f) => ((acc[SEGMENT_FIELDS[f]!.group] ??= []).push(f), acc), {});
@@ -233,10 +237,24 @@ function LeafEditor({ leaf, options, currency, disabled, onChange, onRemove }: {
       </Select>
       <Select size="sm" value={leaf.op} onChange={(e) => setOp(e.target.value as SegmentOp)} disabled={disabled} className="w-40" aria-label={t("operator")}>
         {ops.map((o) => (
-          <option key={o} value={o}>{t(`ops.${o}`)}</option>
+          <option key={o} value={o}>{t(def.type === "day_window" ? `ops_window.${o}` : `ops.${o}`)}</option>
         ))}
       </Select>
+      {def.param === "option" && (
+        <Select size="sm" value={leaf.option ?? ""} onChange={(e) => onChange({ ...leaf, option: e.target.value, value: [] })} disabled={disabled} className="w-36" aria-label={t("option")}>
+          {[...new Set([...(leaf.option ? [leaf.option] : []), ...Object.keys(options.optionValues)])].map((o) => (
+            <option key={o} value={o}>{o}</option>
+          ))}
+        </Select>
+      )}
       <ValueEditor leaf={leaf} options={options} currency={currency} disabled={disabled} onChange={(value) => onChange({ ...leaf, value })} />
+      {def.param === "days" && (
+        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+          {t("within_days")}
+          <Input size="sm" type="number" min={1} max={3650} className="w-20" value={leaf.days ?? ""} placeholder={t("ever")} onChange={(e) => { const { days: _drop, ...rest } = leaf; void _drop; onChange(e.target.value ? { ...rest, days: Math.round(Number(e.target.value)) } : rest); }} disabled={disabled} aria-label={t("within_days")} />
+          {t("days")}
+        </span>
+      )}
       <Button type="button" size="sm" variant="ghost" disabled={disabled} onClick={onRemove} aria-label={t("remove_condition")} className="ml-auto">
         <X />
       </Button>
@@ -253,6 +271,17 @@ function ValueEditor({ leaf, options, currency, disabled, onChange }: { leaf: Se
   if (leaf.op === "is_null" || leaf.op === "not_null") return null;
   const num = (v: unknown) => (typeof v === "number" ? v : 0);
   const scale = def.money ? 100 : 1;
+  if (def.type === "day_window") {
+    const [a, b] = Array.isArray(leaf.value) ? (leaf.value as number[]) : [0, 30];
+    return (
+      <span className="flex items-center gap-1 text-xs">
+        <Input size="sm" type="number" min={0} className="w-20" value={num(a)} onChange={(e) => onChange([Math.max(0, Math.round(Number(e.target.value))), b])} disabled={disabled} aria-label={t("from")} />
+        <span>–</span>
+        <Input size="sm" type="number" min={0} className="w-20" value={num(b)} onChange={(e) => onChange([a, Math.max(0, Math.round(Number(e.target.value)))])} disabled={disabled} aria-label={t("to")} />
+        <span className="text-muted-foreground">{t("days_ago")}</span>
+      </span>
+    );
+  }
   if (leaf.op === "between") {
     const [a, b] = Array.isArray(leaf.value) ? (leaf.value as number[]) : [0, 0];
     return (
@@ -288,6 +317,8 @@ function ValueEditor({ leaf, options, currency, disabled, onChange }: { leaf: Se
       case "payment_methods": return options.paymentMethods.map((v) => ({ value: v, label: tp.has(v) ? tp(v) : v }));
       case "bought_product": return options.products.map((p) => ({ value: p.id, label: p.title }));
       case "bought_product_type": return options.productTypes.map((v) => ({ value: v, label: v }));
+      case "bought_category": return options.productTypes.map((v) => ({ value: v, label: v }));
+      case "dominant_option": return (options.optionValues[leaf.option ?? ""] ?? []).map((v) => ({ value: v, label: v }));
       case "rfm_recency": return (def.values as readonly string[]).map((v) => ({ value: v, label: tr(`recency.${v}`) }));
       case "rfm_frequency": return (def.values as readonly string[]).map((v) => ({ value: v, label: tr(`frequency.${v}`) }));
       case "rfm_tier": return (def.values as readonly string[]).map((v) => ({ value: v, label: tr(`tier.${v}`) }));

@@ -90,6 +90,16 @@ export const tenantSettingsSchema = z.object({
   adsSearchTermMinImpressions: z.number().int().min(0).max(100_000).default(10),
   /** Spend an ad, asset or search term must reach in the period before Keel suggests pausing it or excluding it. */
   adsMinSpendMinor: z.number().int().min(0).default(2000),
+  /** Customer campaigns (add-on, #34): nobody gets more than `campaignFrequencyCap` campaign messages in `campaignFrequencyDays` days. */
+  campaignFrequencyCap: z.number().int().min(1).max(100).default(3),
+  campaignFrequencyDays: z.number().int().min(1).max(365).default(14),
+  /** Campaign messages go out only between these local hours of the tenant's time zone ([start, end), 0–24). */
+  campaignSendStartHour: z.number().int().min(0).max(23).default(9),
+  campaignSendEndHour: z.number().int().min(1).max(24).default(20),
+  /** Maximum campaign messages per minute and channel (the provider's limit, or less). */
+  campaignThrottlePerMinute: z.object({ email: z.number().int().min(1).max(100_000), sms: z.number().int().min(1).max(100_000), whatsapp: z.number().int().min(1).max(100_000) }).default({ email: 600, sms: 60, whatsapp: 60 }),
+  /** While a campaign's measurement window is open, its treated and control customers stay out of other campaigns. */
+  campaignMeasurementLock: z.boolean().default(true),
 });
 export type TenantSettings = z.infer<typeof tenantSettingsSchema>;
 
