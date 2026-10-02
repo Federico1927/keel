@@ -181,7 +181,8 @@
       },
       "whatsapp_spoki": {
         "name": "WhatsApp con Spoki",
-        "description": "Conferme e risposte del contrassegno, notifiche ordine, campagne WhatsApp e disiscrizioni tramite l'account Spoki del negozio"
+        "description": "Conferme e risposte del contrassegno, notifiche ordine, campagne WhatsApp e disiscrizioni tramite l'account Spoki del negozio",
+        "v1": "WhatsApp tramite Spoki: conferme in contrassegno, avvisi sugli ordini e invii delle campagne, verificati solo su dati registrati: nessun account Spoki reale collegato."
       }
     }
   },

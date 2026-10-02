@@ -316,6 +316,13 @@
       "when": 1790941918907,
       "tag": "0044_addon_versions",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1790949671588,
+      "tag": "0045_silly_banshee",
+      "breakpoints": true
     }
   ]
 }

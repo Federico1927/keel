@@ -181,7 +181,8 @@
       },
       "whatsapp_spoki": {
         "name": "WhatsApp con Spoki",
-        "description": "Confirmaciones y respuestas contra reembolso, avisos de pedido, campañas de WhatsApp y bajas con la cuenta Spoki de la tienda"
+        "description": "Confirmaciones y respuestas contra reembolso, avisos de pedido, campañas de WhatsApp y bajas con la cuenta Spoki de la tienda",
+        "v1": "WhatsApp mediante Spoki: confirmaciones contra reembolso, avisos de pedidos y envíos de campañas, verificados solo con datos grabados: aún no hay una cuenta real de Spoki conectada."
       }
     }
   },

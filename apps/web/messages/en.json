@@ -181,7 +181,8 @@
       },
       "whatsapp_spoki": {
         "name": "WhatsApp via Spoki",
-        "description": "COD confirmations and replies, order notifications, WhatsApp campaigns and opt-outs through the store's Spoki account"
+        "description": "COD confirmations and replies, order notifications, WhatsApp campaigns and opt-outs through the store's Spoki account",
+        "v1": "WhatsApp through Spoki: COD confirmations, order notices and campaign sends, verified only on recorded data: no live Spoki account connected yet."
       }
     }
   },
