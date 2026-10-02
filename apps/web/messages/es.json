@@ -191,7 +191,8 @@
       },
       "accounting": {
         "name": "Envío a contabilidad",
-        "description": "Un asiento por cada día cerrado desde el resumen diario de ventas, con tu plan de cuentas, enviado solo cuando cuadra, con registro de envíos, reintento y reenvío"
+        "description": "Un asiento por cada día cerrado desde el resumen diario de ventas, con tu plan de cuentas, enviado solo cuando cuadra, con registro de envíos, reintento y reenvío",
+        "v1": "Asientos diarios enviados a la herramienta contable, solo para días conciliados; solo existe un proveedor simulado, aún sin conector real."
       }
     }
   },

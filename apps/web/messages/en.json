@@ -191,7 +191,8 @@
       },
       "accounting": {
         "name": "Accounting push",
-        "description": "One journal per closed day from the daily sales summary, mapped to your chart of accounts and pushed only when it reconciles, with push log, retry and re-push"
+        "description": "One journal per closed day from the daily sales summary, mapped to your chart of accounts and pushed only when it reconciles, with push log, retry and re-push",
+        "v1": "Daily journals pushed to the accounting tool, only for reconciled days; only a simulated provider exists, no live connector yet."
       }
     }
   },

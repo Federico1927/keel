@@ -191,7 +191,8 @@
       },
       "accounting": {
         "name": "Invio in contabilità",
-        "description": "Una scrittura per ogni giorno chiuso dal riepilogo vendite giornaliero, sul tuo piano dei conti, inviata solo quando quadra, con registro invii, nuovo tentativo e reinvio"
+        "description": "Una scrittura per ogni giorno chiuso dal riepilogo vendite giornaliero, sul tuo piano dei conti, inviata solo quando quadra, con registro invii, nuovo tentativo e reinvio",
+        "v1": "Prime note giornaliere inviate al gestionale contabile, solo per i giorni riconciliati; esiste solo un provider simulato, nessun connettore reale."
       }
     }
   },
