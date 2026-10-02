@@ -232,13 +232,6 @@
       "when": 1790907033898,
       "tag": "0032_crazy_magma",
       "breakpoints": true
-    },
-    {
-      "idx": 33,
-      "version": "7",
-      "when": 1790908169114,
-      "tag": "0033_dark_jocasta",
-      "breakpoints": true
     }
   ]
 }
