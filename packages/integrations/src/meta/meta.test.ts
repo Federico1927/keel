@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { fixtureFetch } from "../http";
 import { MetaAdsPlatform } from "./index";
+import * as F from "./__fixtures__/entities";
 
 const campaigns = { data: [{ id: "120210000000001", name: "Summer Sale – Prospecting", status: "ACTIVE", effective_status: "ACTIVE", objective: "OUTCOME_SALES", daily_budget: "5000", created_time: "2026-05-01T10:00:00+0000", account_id: "123" }, { id: "120210000000002", name: "Retargeting", status: "PAUSED", effective_status: "PAUSED", objective: "OUTCOME_SALES", daily_budget: "2000", created_time: "2026-04-01T10:00:00+0000", account_id: "123" }], paging: { cursors: { before: "a", after: "b" } } };
 const insightsPage1 = { data: [{ campaign_id: "120210000000001", campaign_name: "Summer Sale – Prospecting", spend: "48.37", impressions: "12000", clicks: "310", actions: [{ action_type: "omni_view_content", value: "140" }, { action_type: "omni_purchase", value: "7" }], action_values: [{ action_type: "omni_purchase", value: "612.50" }], date_start: "2026-09-28", date_stop: "2026-09-28" }], paging: { cursors: { after: "next1" }, next: "https://graph.facebook.com/next" } };
@@ -36,5 +37,65 @@ describe("meta adapter", () => {
     const p = make([{ match: (u, i) => u.endsWith("/120210000000001") && i?.method === "POST", body: { success: true } }]);
     await p.setCampaignStatus("120210000000001", "paused");
     expect(p.http.calls[0]!.body).toContain("status=PAUSED");
+  });
+});
+
+describe("meta adapter below the campaign (fixtures)", () => {
+  const make = (routes: Parameters<typeof fixtureFetch>[0]) => new MetaAdsPlatform({ accessToken: "tok", adAccountId: "123" }, { fetchImpl: fixtureFetch(routes), sleep: async () => undefined, minIntervalMs: 0 });
+  const window = { since: "2026-09-28", until: "2026-09-28" };
+
+  it("declares what it reports", () => {
+    expect(make([]).capabilities).toEqual({ supportsKeywords: false, supportsSearchTerms: false, supportsAssetBreakdown: true, supportsAdWrites: true });
+  });
+
+  it("maps ad sets and ads with copy, URL parameters and dynamic-creative copy", async () => {
+    const p = make([
+      { match: (u) => u.includes("/act_123/adsets"), body: F.adSetsPage },
+      { match: (u) => u.includes("/act_123/ads?"), body: F.adsPage },
+    ]);
+    const sets = await p.fetchAdSets();
+    expect(sets).toEqual([
+      { externalId: "120210000000101", campaignExternalId: "120210000000001", name: "Prospecting – broad 25-45", status: "active", optimizationGoal: "OFFSITE_CONVERSIONS", dailyBudgetMinor: 3000 },
+      { externalId: "120210000000102", campaignExternalId: "120210000000001", name: "Retargeting 30d", status: "paused", optimizationGoal: "OFFSITE_CONVERSIONS", dailyBudgetMinor: null },
+    ]);
+    const ads = await p.fetchAds();
+    expect(ads[0]).toMatchObject({ externalId: "120210000001001", adSetExternalId: "120210000000101", format: "video", headline: "Natural linen shirt", finalUrl: "https://shop.example/products/linen-shirt", status: "active" });
+    expect(ads[0]!.urlTags).toContain("utm_content={{ad.id}}");
+    expect(ads[1]).toMatchObject({ status: "paused", headline: "Natural linen", body: "Linen that breathes Made in Portugal", finalUrl: "https://shop.example/collections/linen" });
+    expect(decodeURIComponent(p.http.calls[1]!.url)).toContain("creative{id,title,body");
+  });
+
+  it("reads ad-set and ad insights per day, with reach and video views", async () => {
+    const p = make([
+      { match: (u) => u.includes("/insights") && u.includes("level=adset"), body: F.adSetInsights },
+      { match: (u) => u.includes("/insights") && u.includes("level=ad&"), body: F.adInsights },
+    ]);
+    const sets = await p.fetchEntityMetrics("ad_set", window);
+    expect(sets).toEqual([expect.objectContaining({ level: "ad_set", entityExternalId: "120210000000101", campaignExternalId: "120210000000001", date: "2026-09-28", spendMinor: 3010, conversions: 4, conversionValueMinor: 24000, reach: 4000 })]);
+    const ads = await p.fetchEntityMetrics("ad", window);
+    expect(ads[0]).toMatchObject({ level: "ad", entityExternalId: "120210000001001", adSetExternalId: "120210000000101", spendMinor: 2140, impressions: 5400, clicks: 120, reach: 3100, conversions: 3, conversionValueMinor: 18900, videoViews3s: 1500, videoCompletions: 220 });
+    expect(await p.fetchEntityMetrics("keyword", window)).toEqual([]);
+    expect(await p.fetchEntityMetrics("search_term", window)).toEqual([]);
+  });
+
+  it("reads assets from the four breakdowns, one call each", async () => {
+    const p = make([
+      { match: (u) => u.includes("breakdowns=body_asset"), body: F.bodyAssetInsights },
+      { match: (u) => u.includes("breakdowns=image_asset"), body: F.imageAssetInsights },
+      { match: (u) => u.includes("breakdowns=title_asset") || u.includes("breakdowns=video_asset"), body: F.emptyInsights },
+    ]);
+    const assets = await p.fetchAssets();
+    expect(assets.map((a) => [a.assetExternalId, a.type, a.fieldType, a.text ?? a.url])).toEqual([["6001", "text", "body", "Linen that breathes"], ["6002", "text", "body", "Made in Portugal"], ["7001", "image", "image", "https://cdn.example/img.jpg"]]);
+    const metrics = await p.fetchEntityMetrics("asset", window);
+    expect(metrics.find((m) => m.entityExternalId === "6001")).toMatchObject({ level: "asset", adExternalId: "120210000001002", fieldType: "body", spendMinor: 420, conversions: 1 });
+    expect(p.http.calls.filter((c) => c.url.includes("breakdowns=")).length).toBe(8);
+  });
+
+  it("pauses an ad with a POST on the ad id and maps rate limits", async () => {
+    const p = make([{ match: (u, i) => u.endsWith("/120210000001001") && i?.method === "POST", body: { success: true } }]);
+    await p.setAdStatus({ adExternalId: "120210000001001" }, "paused");
+    expect(p.http.calls[0]!.body).toContain("status=PAUSED");
+    const limited = make([{ match: () => true, body: { error: { message: "Application request limit reached", code: 4 } } }]);
+    await expect(limited.fetchEntityMetrics("ad", window)).rejects.toMatchObject({ code: "rate_limited" });
   });
 });

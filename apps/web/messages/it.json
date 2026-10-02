@@ -515,12 +515,18 @@
     "top_entities": {
       "products": "Prodotti migliori",
       "campaigns": "Campagne migliori per profitto",
-      "customers": "Clienti migliori"
+      "customers": "Clienti migliori",
+      "ads": "Annunci migliori per profitto",
+      "keywords": "Parole chiave migliori per profitto",
+      "search_terms": "Termini di ricerca per spesa"
     },
     "top_secondary": {
       "products": "{v} pezzi",
       "campaigns": "ROAS {v}",
-      "customers": "{v} ordini"
+      "customers": "{v} ordini",
+      "ads": "ROAS {v}",
+      "keywords": "ROAS {v}",
+      "search_terms": "{v} ordini"
     },
     "granularity": {
       "day": "Giorno",
@@ -731,7 +737,10 @@
         "churnMediumPct": "Rischio abbandono medio da (% probabilità attivo)",
         "backorderHold": "Metti in sospeso gli ordini che richiedono più dello stock disponibile finché un ordine d'acquisto in arrivo non li copre",
         "backorderPlatformHold": "Durante l'attesa blocca anche l'evasione sul negozio, così il magazzino non li spedisce",
-        "markdownMinMarginBps": "Margine minimo dei ribassi (punti base, 2000 = 20%)"
+        "markdownMinMarginBps": "Margine minimo dei ribassi (punti base, 2000 = 20%)",
+        "adsDailyRetentionDays": "Ads: dettaglio giornaliero conservato (giorni)",
+        "adsSearchTermMinImpressions": "Ads: termini di ricerca raggruppati sotto (impression)",
+        "adsMinSpendMinor": "Ads: spesa minima per i suggerimenti (centesimi)"
       },
       "backorders_title": "Backorder",
       "backorders_description": "Cosa succede quando un ordine richiede più dello stock disponibile."
@@ -3307,7 +3316,9 @@
       "manual": "manuale"
     },
     "simulate_return": "Simula reso",
-    "simulated_return": "Webhook del reso accettato (HTTP {status}) per {order}."
+    "simulated_return": "Webhook del reso accettato (HTTP {status}) per {order}.",
+    "google_write_access": "Accesso in scrittura concesso",
+    "google_write_access_hint": "Permette a Keel di mettere in pausa annunci e aggiungere parole chiave negative. Senza, Google resta in sola lettura."
   },
   "integration_guide": {
     "verify_legend": "I passi segnati “Da verificare” dipendono da console dei fornitori che cambiano spesso: controllali sulla documentazione del fornitore prima della prima installazione.",
@@ -3377,7 +3388,7 @@
     },
     "meta": {
       "title": "Collegare Meta Ads",
-      "intro": "Keel legge campagne e insight giornalieri e può mettere in pausa o riattivare campagne con conferma esplicita. Un token utente di sistema mantiene il collegamento senza login personali.",
+      "intro": "Keel legge campagne, gruppi di inserzioni, annunci e dettagli per asset con gli insight giornalieri, e può mettere in pausa o riattivare campagne e annunci con conferma esplicita. Un token utente di sistema mantiene il collegamento senza login personali.",
       "steps": [
         {
           "title": "Crea un utente di sistema",
@@ -3390,7 +3401,17 @@
         },
         {
           "title": "Genera il token",
-          "body": "Genera nuovo token → scegli l'app → permessi ads_read, ads_management, business_management → senza scadenza. Copialo una sola volta.",
+          "body": "Genera nuovo token → scegli l'app → permessi ads_read e business_management, più ads_management solo per mettere in pausa da Keel → senza scadenza. Copialo una sola volta.",
+          "verify": true
+        },
+        {
+          "title": "Parametri URL",
+          "body": "In ogni annuncio (Destinazione → Parametri URL) imposta:\nutm_source=facebook&utm_medium=paid&utm_campaign={{campaign.id}}&utm_content={{ad.id}}&utm_term={{adset.id}}\nKeel lega così gli ordini all'annuncio e al gruppo; gli annunci senza parametri sono segnalati.",
+          "verify": true
+        },
+        {
+          "title": "Dettaglio per asset",
+          "body": "I dettagli per titolo, testo, immagine e video esistono solo per le inserzioni con creatività dinamica o Advantage+; gli altri annunci non mostrano asset.",
           "verify": true
         },
         {
@@ -3399,7 +3420,7 @@
         },
         {
           "title": "Backfill",
-          "body": "Risincronizza scarica gli ultimi 30 giorni a finestre di 7; il job notturno riaggiorna gli ultimi 3 giorni perché Meta corregge gli insight recenti."
+          "body": "Risincronizza scarica gli ultimi 30 giorni a finestre di 7 per campagne, gruppi, annunci e asset; il job notturno riaggiorna gli ultimi 3 giorni perché Meta corregge gli insight recenti."
         }
       ],
       "errors": [
@@ -3409,17 +3430,18 @@
         },
         {
           "symptom": "Codice 17 / 32 / 613",
-          "fix": "Rate limit sull'account: Keel attende e riprova; riduci le finestre di backfill se persiste."
+          "fix": "Rate limit sull'account: Keel mette in pausa il backfill e lo riprende più tardi dalla stessa finestra."
         },
         {
           "symptom": "Errore di permesso (10/200)",
           "fix": "All'utente di sistema manca l'asset account o il permesso; sistemalo nelle Impostazioni Business."
         }
-      ]
+      ],
+      "scopes": "Lettura: ads_read e business_management. Facoltativo, solo per mettere in pausa campagne e annunci da Keel: ads_management."
     },
     "google": {
       "title": "Collegare Google Ads",
-      "intro": "Sola lettura in questa versione: campagne e, per giorno, costo, impression, clic e conversioni tramite Google Ads API.",
+      "intro": "Sola lettura di base: campagne, gruppi di annunci, annunci, asset degli annunci adattabili, parole chiave e termini di ricerca con costo, clic e conversioni giornalieri. Pausa degli annunci e parole chiave negative richiedono l'accesso in scrittura concesso dal negozio.",
       "steps": [
         {
           "title": "Developer token",
@@ -3433,15 +3455,29 @@
         },
         {
           "title": "Refresh token",
-          "body": "Autorizza lo scope https://www.googleapis.com/auth/adwords con un utente che accede all'account cliente e conserva il refresh token."
+          "body": "Autorizza lo scope https://www.googleapis.com/auth/adwords con un utente che accede all'account cliente e conserva il refresh token. Usa un utente con accesso standard (modifica) solo se il negozio vuole che Keel metta in pausa annunci e aggiunga parole chiave negative."
+        },
+        {
+          "title": "Versione API",
+          "body": "Keel chiama Google Ads API {apiVersion}. Google ritira ogni versione circa un anno dopo l'uscita: controlla la pagina delle date di dismissione e pianifica l'aggiornamento prima di quella data.",
+          "verify": true
+        },
+        {
+          "title": "Modello di monitoraggio",
+          "body": "Impostazioni account → Monitoraggio → modello di monitoraggio:\n{lpurl}?utm_source=google&utm_medium=cpc&utm_campaign={campaignid}&utm_content={creative}&utm_term={keyword}\nKeel lega gli ordini agli annunci ({creative}) e alle parole chiave ({keyword}); le campagne senza modello sono segnalate nei Suggerimenti.",
+          "verify": true
         },
         {
           "title": "Collega in Keel",
           "body": "Integrazioni → Google Ads → Collega: customer id (cifre), id manager se si passa da un MCC, developer token, client id/secret, refresh token."
         },
         {
+          "title": "Accesso in scrittura (facoltativo)",
+          "body": "Se il negozio vuole parole chiave negative e pause degli annunci da Keel, spunta “Accesso in scrittura concesso” sulla scheda Google Ads. Ogni scrittura chiede conferma e passa dalla coda delle scritture."
+        },
+        {
           "title": "Verifica",
-          "body": "Testa connessione esegue una query GAQL di una riga; Risincronizza importa campagne e gli ultimi 30 giorni di metriche."
+          "body": "Testa connessione esegue una query GAQL di una riga; Risincronizza importa le campagne, poi gruppi, annunci, asset, parole chiave e termini di ricerca a finestre di 7 giorni (riprendibile, nel rispetto dei limiti)."
         }
       ],
       "errors": [
@@ -3452,8 +3488,17 @@
         {
           "symptom": "invalid_grant al refresh del token",
           "fix": "Il refresh token è stato revocato; autorizza di nuovo e ricollega."
+        },
+        {
+          "symptom": "UNSUPPORTED_VERSION o 404 su ogni chiamata",
+          "fix": "La versione API è stata ritirata: Keel va aggiornato nella costante della versione."
+        },
+        {
+          "symptom": "Ordini Keel con trattino sulle parole chiave",
+          "fix": "Manca il modello di monitoraggio oppure non ha utm_term con il parametro della parola chiave."
         }
-      ]
+      ],
+      "scopes": "Lettura: scope adwords con accesso in lettura e developer token Basic. Facoltativo, solo per pausa annunci e parole chiave negative: lo stesso scope con un utente che può modificare l'account."
     },
     "anthropic": {
       "title": "Collega l'assistente AI (Anthropic)",
@@ -6222,7 +6267,9 @@
       "order_mark_paid": "Segna ordine pagato",
       "order_refund": "Rimborso ordine",
       "discount_status": "Attivazione sconto",
-      "discount_pool_status": "Attivazione pool di sconti"
+      "discount_pool_status": "Attivazione pool di sconti",
+      "ad_status": "Stato annuncio",
+      "keyword_negative": "Parola chiave negativa"
     }
   },
   "fulfilment": {
@@ -6774,6 +6821,210 @@
       "pool_platform_error": "Lo store ha rifiutato i codici. Riprova tra poco.",
       "pool_pool_inactive": "Il pool è disattivato.",
       "pool_recipient_not_found": "Nessun cliente con questa email."
+    }
+  },
+  "ads": {
+    "nav": {
+      "label": "Analisi campagne",
+      "campaigns": "Campagne",
+      "creatives": "Creatività",
+      "keywords": "Parole chiave e ricerche",
+      "words": "Parole",
+      "recommendations": "Suggerimenti"
+    },
+    "cols": {
+      "name": "Nome",
+      "spend": "Spesa",
+      "impressions": "Impression",
+      "ctr": "CTR",
+      "platform_conv": "Conv. piattaforma",
+      "keel_orders": "Ordini Keel",
+      "revenue": "Ricavo netto",
+      "profit": "Profitto",
+      "roas": "ROAS",
+      "frequency": "Frequenza",
+      "match": "Corrispondenza",
+      "quality": "Qualità",
+      "campaign": "Campagna",
+      "action": "Azione",
+      "phrase": "Frase",
+      "items": "Usata in",
+      "margin": "Margine",
+      "cpa": "CPA",
+      "field": "Campo",
+      "asset": "Asset",
+      "keel_orders_allocated": "Ordini Keel (ripartiti)",
+      "date": "Data",
+      "search_term": "Termine di ricerca",
+      "clicks": "Clic",
+      "reason": "Perché",
+      "ad": "Annuncio"
+    },
+    "excluded_n": "+{n} annullati/resi",
+    "ad_sets_title": "Gruppi di inserzioni",
+    "ad_groups_title": "Gruppi di annunci",
+    "ad_sets_description": "I numeri della piattaforma accanto a quelli di Keel: ordini, ricavi e profitto contano solo gli ordini non annullati e non resi.",
+    "utm_missing": "{n} annunci su {total} non hanno {params}: i loro ordini arrivano a Keel senza annuncio. Aggiungi questo modello agli annunci:",
+    "no_ad_sets": "Ancora nessun gruppo",
+    "no_ad_sets_hint": "Arrivano con la prossima sincronizzazione delle ads.",
+    "keel_not_visible": "Keel non vede gli ordini di questa riga (il modello UTM non la nomina).",
+    "n_ads": "{n} annunci",
+    "n_keywords": "{n} parole chiave",
+    "unassigned_orders": "{n} ordini della campagna non sono legati a un gruppo",
+    "open_orders": "Apri gli ordini",
+    "reconciliation": "Spesa degli annunci {ads} su {campaign} · non allocata {unallocated}",
+    "ad_set": "Gruppo di inserzioni",
+    "ad_group": "Gruppo di annunci",
+    "status": {
+      "active": "Attivo",
+      "paused": "In pausa",
+      "archived": "Archiviato"
+    },
+    "ads_title": "Annunci",
+    "ads_description": "Affaticamento: la frequenza sale mentre il CTR scende. I suggerimenti sono in sola lettura: decide una persona.",
+    "no_ads": "Nessun annuncio in questo gruppo",
+    "keywords_title": "Parole chiave",
+    "no_keywords": "Nessuna parola chiave",
+    "search_terms_title": "Termini di ricerca",
+    "all_search_terms": "Tutti i termini della campagna",
+    "no_search_terms": "Nessun termine di ricerca",
+    "other_terms": "Altri termini (sotto le impression minime)",
+    "via_keyword": "da “{keyword}”",
+    "negative_reason": {
+      "only_cancelled": "Solo ordini annullati",
+      "no_orders": "Spesa senza ordini",
+      "unprofitable_orders": "Ordini in perdita",
+      "no_conversions": "Spesa senza conversioni"
+    },
+    "excluded": "Escluso",
+    "keel_footnote": "Keel lega gli ordini a gruppi, annunci e parole chiave tramite il modello UTM; dove la piattaforma non li lega compare un trattino.",
+    "match": {
+      "exact": "Esatta",
+      "phrase": "Frase",
+      "broad": "Generica"
+    },
+    "fatigue": {
+      "watch": "Attenzione: CTR in calo",
+      "fatigued": "Affaticato"
+    },
+    "utm_badge": "UTM mancanti",
+    "pause_reason": {
+      "losing": "In perdita",
+      "fatigued": "Affaticato e in perdita",
+      "low_label": "Valutato BASSO",
+      "low_ctr": "Metà del CTR degli altri"
+    },
+    "ctr_change": "CTR {change} dall'inizio",
+    "copy_title": "Testi e tracciamento",
+    "utm_missing_ad": "Questo annuncio non ha {params}: i suoi ordini arrivano a Keel senza annuncio. Modello:",
+    "assets_title": "Asset",
+    "no_assets": "Nessun dettaglio per asset",
+    "no_assets_meta": "Meta riporta gli asset solo per le inserzioni con creatività dinamica o Advantage+.",
+    "no_assets_google": "Google riporta gli asset per gli annunci adattabili.",
+    "field": {
+      "headline": "Titolo",
+      "description": "Descrizione",
+      "body": "Testo principale",
+      "title": "Titolo breve",
+      "image": "Immagine",
+      "video": "Video",
+      "other": "Altro"
+    },
+    "assets_footnote": "Le piattaforme riportano gli asset, non gli ordini: Keel ripartisce gli ordini dell'annuncio sui suoi asset in base alla quota di spesa in ogni campo.",
+    "daily_title": "Per giorno",
+    "no_days": "Nessun dato giornaliero nel periodo",
+    "keywords_page_title": "Parole chiave e termini di ricerca",
+    "keywords_page_description": "Le parole chiave di Google Ads e le ricerche che hanno attivato gli annunci, con gli ordini di Keel dove il modello UTM le nomina.",
+    "tabs": {
+      "keywords": "Parole chiave",
+      "search_terms": "Termini di ricerca"
+    },
+    "search_placeholder": "Cerca testo",
+    "all_campaigns": "Tutte le campagne",
+    "sort_label": "Ordina",
+    "sort": {
+      "spend": "Spesa",
+      "profit": "Profitto",
+      "roas": "ROAS",
+      "conversions": "Conversioni"
+    },
+    "candidates_only": "Solo candidati a parola chiave negativa",
+    "apply": "Applica",
+    "google_only": "Parole chiave e termini di ricerca arrivano da Google Ads; Meta non li ha.",
+    "rows_total": "{n} righe",
+    "prev": "Precedente",
+    "next": "Successiva",
+    "page_of": "Pagina {page} di {pages}",
+    "keywords_footnote": "Gli ordini Keel arrivano da utm_term impostato sulla parola chiave dal modello di monitoraggio.",
+    "search_terms_footnote": "Keel vede gli ordini di un termine quando il termine è una parola chiave (corrispondenza esatta); per gli altri decidono le conversioni della piattaforma. I termini sotto le impression minime sono raggruppati in “Altri termini”.",
+    "words_title": "Parole",
+    "words_description": "Parole e frasi (1–3 parole) vincenti e perdenti nei testi degli annunci, nei termini di ricerca e nelle parole chiave, con il profitto degli ordini Keel.",
+    "word_source": {
+      "copy": "Testi degli annunci",
+      "search_terms": "Termini di ricerca",
+      "keywords": "Parole chiave"
+    },
+    "ngram": {
+      "all": "Tutte",
+      "n1": "1 parola",
+      "n2": "2 parole",
+      "n3": "3 parole"
+    },
+    "no_words": "Volume insufficiente",
+    "no_words_hint": "Una frase deve comparire in almeno due annunci o termini con un po' di spesa.",
+    "winners": "Parole vincenti",
+    "winners_description": "Frasi di elementi che hanno fatto profitto, le migliori prima.",
+    "no_winners": "Nessuna frase in profitto nel periodo",
+    "losers": "Parole perdenti",
+    "losers_description": "Frasi di elementi in perdita, le peggiori prima.",
+    "no_losers": "Nessuna frase in perdita nel periodo",
+    "words_footnote": "{items} elementi analizzati. Ogni frase somma i numeri completi di ogni elemento che la contiene, quindi le frasi si sovrappongono.",
+    "recommendations_title": "Suggerimenti ads",
+    "recommendations_description": "Suggerimenti in sola lettura: una persona li valuta e agisce; le scritture verso le piattaforme chiedono sempre conferma.",
+    "in_items": "in {n}",
+    "rec": {
+      "negatives_title": "Candidati a parola chiave negativa",
+      "negatives_description": "{n} termini di ricerca spendono senza ordini in profitto.",
+      "google_read_only": "Google è in sola lettura per questo negozio: concedi l'accesso in scrittura in Integrazioni per escludere i termini da qui.",
+      "none": "Niente da suggerire",
+      "all_candidates": "Tutti i candidati",
+      "ads_title": "Annunci da mettere in pausa",
+      "ads_description": "Annunci attivi in perdita nel periodo, oppure affaticati e in perdita.",
+      "words_title": "Parole vincenti da riusare nei testi",
+      "words_description": "Frasi degli annunci che hanno fatto più profitto.",
+      "open_words": "Apri Parole",
+      "assets_title": "Asset deboli",
+      "assets_description": "Asset valutati BASSO dalla piattaforma o con metà del CTR degli altri.",
+      "utm_title": "Modelli UTM",
+      "utm_description": "Senza questi parametri Keel non può legare gli ordini ad annunci, gruppi e parole chiave.",
+      "utm_ok": "Tutte le campagne attive hanno i modelli.",
+      "utm_row": "{missing} annunci su {ads} senza {params}",
+      "template_meta": "Meta: parametri URL dell'annuncio",
+      "template_google": "Google: modello di monitoraggio dell'account"
+    },
+    "actions": {
+      "read_only": "{platform} è in sola lettura per questo negozio.",
+      "read_only_short": "Sola lettura",
+      "pause_ad": "Metti in pausa l'annuncio",
+      "resume_ad": "Riattiva l'annuncio",
+      "pause_title": "Mettere in pausa questo annuncio su {platform}?",
+      "resume_title": "Riattivare questo annuncio su {platform}?",
+      "write_description": "Keel cambia lo stato qui e lo invia alla piattaforma; se non è raggiungibile la modifica viene ritentata e mostrata come in attesa.",
+      "confirm": "Conferma",
+      "exclude": "Escludi",
+      "negative_title": "Aggiungere “{text}” come parola chiave negativa?",
+      "negative_description": "Google smette di mostrare gli annunci per questa ricerca. La modifica passa dalla coda delle scritture.",
+      "match_type": "Corrispondenza",
+      "match": {
+        "exact": "Esatta",
+        "phrase": "Frase",
+        "broad": "Generica"
+      },
+      "level": "Livello",
+      "levels": {
+        "campaign": "Campagna",
+        "ad_group": "Gruppo di annunci"
+      }
     }
   }
 }

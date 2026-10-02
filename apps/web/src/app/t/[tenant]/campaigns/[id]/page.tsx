@@ -2,9 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { canDo, canWritePage } from "@keel/config";
-import { formatDate, formatMoney, formatNumber, formatPercent } from "@keel/core";
+import { ADS_UTM_TEMPLATES, UTM_NONE, formatDate, formatMoney, formatNumber, formatPercent } from "@keel/core";
 import { and, eq, schema } from "@keel/db";
-import { campaignDailyLedger, campaignLinkSuggestions, campaignsWithEconomics, latestPlatformWrites, summarizeByProduct, variantStock } from "@keel/services";
+import { adRows, campaignAdSets, campaignDailyLedger, campaignLinkSuggestions, campaignsWithEconomics, latestPlatformWrites, summarizeByProduct, variantStock } from "@keel/services";
 import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DetailShell, EmptyState, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
@@ -14,6 +14,7 @@ import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { ActionBadge, LightBadge } from "../badges";
 import { CampaignStatusButton, LinkProductForm, LinkedProductControls } from "./campaign-actions";
 import { SuggestionLinkButtons } from "./suggestion-buttons";
+import { AdsTable, ordersHref } from "../ads-table";
 
 export default async function CampaignDetailPage({ params, searchParams }: { params: Promise<{ tenant: string; id: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string }> }) {
   const { tenant, id } = await params;
@@ -21,24 +22,28 @@ export default async function CampaignDetailPage({ params, searchParams }: { par
   const ctx = await requirePage(tenant, "campaigns");
   const t = await getTranslations("campaign_detail");
   const tl = await getTranslations("campaigns");
+  const ta = await getTranslations("ads");
   const period = resolvePeriod(sp, ctx.tenant.timezone);
   const at = { id: ctx.tenant.id, country: ctx.tenant.country, currency: ctx.tenant.currency, timezone: ctx.tenant.timezone, settings: ctx.settings };
   const data = await ctx.run(async (tx) => {
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
     const [row] = await campaignsWithEconomics(s, at, period, { campaignIds: [id] });
     if (!row) return null;
-    const [ledger, suggestions, products] = await Promise.all([
+    const [ledger, suggestions, products, adSets, ads] = await Promise.all([
       campaignDailyLedger(s, at, period, [id]),
       campaignLinkSuggestions(s),
       tx.select({ id: schema.products.id, title: schema.products.title }).from(schema.products).where(and(eq(schema.products.tenantId, ctx.tenant.id), eq(schema.products.status, "active"))).orderBy(schema.products.title).limit(400),
+      campaignAdSets(s, at, period, id),
+      adRows(s, at, period, { campaignId: id }),
     ]);
     const productIds = row.products.map((p) => p.id);
     const stock = productIds.length ? summarizeByProduct(await variantStock(s, ctx.settings, { productIds })) : new Map();
     const platformWrite = (await latestPlatformWrites(s, "campaign", [id], { kinds: ["campaign.status"] })).get(id);
-    return { row, ledger, suggestions: suggestions.find((g) => g.campaignId === id)?.suggestions ?? [], products, stock, platformWrite };
+    return { row, ledger, suggestions: suggestions.find((g) => g.campaignId === id)?.suggestions ?? [], products, stock, platformWrite, adSets, ads };
   });
   if (!data) notFound();
-  const { row, ledger, suggestions, products, stock, platformWrite } = data;
+  const { row, ledger, suggestions, products, stock, platformWrite, adSets, ads } = data;
+  const missingUtm = ads.rows.filter((a) => !a.utm.ok);
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   const base = `/t/${tenant}/campaigns`;
   const qs = new URLSearchParams(Object.entries(periodParams(period, sp)).filter((e): e is [string, string] => Boolean(e[1]))).toString();
@@ -127,6 +132,39 @@ export default async function CampaignDetailPage({ params, searchParams }: { par
         <Stat label={t("kpi.cpc")} value={m.cpcMinor === null ? "—" : money(m.cpcMinor)} />
         <Stat label={t("kpi.cr")} value={m.conversionRate === null ? "—" : formatPercent(m.conversionRate, ctx.locale)} />
       </div>
+
+      <Card className="mt-6" data-testid="ad-sets">
+        <CardHeader>
+          <CardTitle className="text-base">{ta(row.platform === "google" ? "ad_groups_title" : "ad_sets_title")}</CardTitle>
+          <CardDescription>{ta("ad_sets_description")}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3 p-0">
+          {missingUtm.length > 0 && (
+            <Alert className="mx-4" data-testid="utm-missing">
+              <AlertDescription className="space-y-1">
+                <p>{ta("utm_missing", { n: missingUtm.length, total: ads.rows.length, params: [...new Set(missingUtm.flatMap((a) => a.utm.missing))].join(", ") })}</p>
+                <code className="block break-all rounded bg-muted p-2 text-xs">{ADS_UTM_TEMPLATES[row.platform as "meta" | "google"] ?? ""}</code>
+              </AlertDescription>
+            </Alert>
+          )}
+          {adSets.rows.length === 0 ? (
+            <EmptyState title={ta("no_ad_sets")} description={ta("no_ad_sets_hint")} className="m-4" />
+          ) : (
+            <AdsTable
+              testId="ad-sets-table"
+              rowTestId="ad-set-row"
+              currency={ctx.tenant.currency}
+              locale={ctx.locale}
+              emptyKeel={ta("keel_not_visible")}
+              rows={adSets.rows.map((s) => ({ key: s.id, name: <Link href={`${base}/${id}/adsets/${s.id}?${qs}`} className="hover:underline">{s.name}</Link>, sub: <>{ta("n_ads", { n: s.ads })}{s.keywords > 0 && <> · {ta("n_keywords", { n: s.keywords })}</>}{s.status !== "active" && <Badge variant="muted">{tl(`status.${s.status}`)}</Badge>}</>, metrics: s.metrics, economics: s.economics, ordersHref: ordersHref(tenant, s.orders, period, ctx.tenant.timezone) }))}
+            />
+          )}
+          <div className="flex flex-wrap justify-between gap-2 border-t px-4 py-3 text-xs text-muted-foreground">
+            {adSets.unassigned && <span data-testid="unassigned-orders">{ta("unassigned_orders", { n: adSets.unassigned.keel.allOrders })} · <Link className="underline-offset-4 hover:underline" href={ordersHref(tenant, row.platform === "meta" ? { campaign: id, utmTerm: UTM_NONE } : { campaign: id, utmContent: UTM_NONE }, period, ctx.tenant.timezone)!}>{ta("open_orders")}</Link></span>}
+            <span data-testid="unallocated">{ta("reconciliation", { ads: money(adSets.reconciliation.childrenMinor), campaign: money(adSets.reconciliation.campaignMinor), unallocated: money(adSets.reconciliation.unallocatedMinor) })}</span>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="mt-6">
         <CardHeader>

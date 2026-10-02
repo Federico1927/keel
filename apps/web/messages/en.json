@@ -515,12 +515,18 @@
     "top_entities": {
       "products": "Top products",
       "campaigns": "Top campaigns by profit",
-      "customers": "Top customers"
+      "customers": "Top customers",
+      "ads": "Top ads by profit",
+      "keywords": "Top keywords by profit",
+      "search_terms": "Top search terms by spend"
     },
     "top_secondary": {
       "products": "{v} units",
       "campaigns": "ROAS {v}",
-      "customers": "{v} orders"
+      "customers": "{v} orders",
+      "ads": "ROAS {v}",
+      "keywords": "ROAS {v}",
+      "search_terms": "{v} orders"
     },
     "granularity": {
       "day": "Day",
@@ -731,7 +737,10 @@
         "churnMediumPct": "Churn risk medium from (% probability active)",
         "backorderHold": "Hold orders that need more than the available stock until an incoming purchase order covers them",
         "backorderPlatformHold": "Also place a fulfillment hold on the store while they wait, so the warehouse does not ship them",
-        "markdownMinMarginBps": "Markdown minimum margin (basis points, 2000 = 20%)"
+        "markdownMinMarginBps": "Markdown minimum margin (basis points, 2000 = 20%)",
+        "adsDailyRetentionDays": "Ads: daily detail kept (days)",
+        "adsSearchTermMinImpressions": "Ads: search terms grouped under (impressions)",
+        "adsMinSpendMinor": "Ads: minimum spend for suggestions (cents)"
       },
       "backorders_title": "Backorders",
       "backorders_description": "What happens when an order needs more than the stock available."
@@ -3307,7 +3316,9 @@
       "manual": "manual"
     },
     "simulate_return": "Simulate return",
-    "simulated_return": "Return webhook accepted (HTTP {status}) for {order}."
+    "simulated_return": "Return webhook accepted (HTTP {status}) for {order}.",
+    "google_write_access": "Write access granted",
+    "google_write_access_hint": "Lets Keel pause ads and add negative keywords. Without it Google stays read-only."
   },
   "integration_guide": {
     "verify_legend": "Steps marked “To verify” depend on vendor consoles that change often: check them against the vendor documentation before the first install.",
@@ -3377,7 +3388,7 @@
     },
     "meta": {
       "title": "Connect Meta Ads",
-      "intro": "Keel reads campaigns and daily insights and can pause or resume campaigns with an explicit confirmation. A system user token keeps the connection alive without personal logins.",
+      "intro": "Keel reads campaigns, ad sets, ads and asset breakdowns with daily insights, and can pause or resume campaigns and ads with an explicit confirmation. A system user token keeps the connection alive without personal logins.",
       "steps": [
         {
           "title": "Create a system user",
@@ -3390,7 +3401,17 @@
         },
         {
           "title": "Generate the token",
-          "body": "Generate new token → choose the app → permissions ads_read, ads_management, business_management → never expires. Copy it once.",
+          "body": "Generate new token → choose the app → permissions ads_read and business_management, plus ads_management only to pause from Keel → never expires. Copy it once.",
+          "verify": true
+        },
+        {
+          "title": "URL parameters",
+          "body": "In each ad (Destination → URL parameters) set:\nutm_source=facebook&utm_medium=paid&utm_campaign={{campaign.id}}&utm_content={{ad.id}}&utm_term={{adset.id}}\nKeel ties orders to the ad and the ad set through them; ads without them are flagged.",
+          "verify": true
+        },
+        {
+          "title": "Asset breakdowns",
+          "body": "Headline, text, image and video breakdowns exist only for dynamic creative and Advantage+ creative ads; other ads show no assets.",
           "verify": true
         },
         {
@@ -3399,7 +3420,7 @@
         },
         {
           "title": "Backfill",
-          "body": "Resync pulls the last 30 days in 7-day windows; the nightly job refreshes the last 3 days because Meta restates recent insights."
+          "body": "Resync pulls the last 30 days in 7-day windows for campaigns, ad sets, ads and assets; the nightly job refreshes the last 3 days because Meta restates recent insights."
         }
       ],
       "errors": [
@@ -3409,17 +3430,18 @@
         },
         {
           "symptom": "Error code 17 / 32 / 613",
-          "fix": "Rate limit on the ad account: Keel backs off and retries; reduce backfill windows if it persists."
+          "fix": "Rate limit on the ad account: Keel pauses the backfill and resumes it later from the same window."
         },
         {
           "symptom": "Permission error (10/200)",
           "fix": "The system user lacks the ad account asset or the permission; fix it in Business Settings."
         }
-      ]
+      ],
+      "scopes": "Reading: ads_read and business_management. Optional, only to pause campaigns and ads from Keel: ads_management."
     },
     "google": {
       "title": "Connect Google Ads",
-      "intro": "Read-only in this version: campaigns and daily cost, impressions, clicks and conversions through the Google Ads API.",
+      "intro": "Read-only by default: campaigns, ad groups, ads, responsive ad assets, keywords and search terms with daily cost, clicks and conversions. Pausing ads and negative keywords need write access, granted by the store.",
       "steps": [
         {
           "title": "Developer token",
@@ -3433,15 +3455,29 @@
         },
         {
           "title": "Refresh token",
-          "body": "Authorise the scope https://www.googleapis.com/auth/adwords with a user who can access the customer account and keep the refresh token."
+          "body": "Authorise the scope https://www.googleapis.com/auth/adwords with a user who can access the customer account and keep the refresh token. Use a user with standard (edit) access only if the store wants Keel to pause ads and add negative keywords."
+        },
+        {
+          "title": "API version",
+          "body": "Keel calls the Google Ads API {apiVersion}. Google retires each version about a year after release: check the sunset dates page and plan the update before that date.",
+          "verify": true
+        },
+        {
+          "title": "Tracking template",
+          "body": "Account settings → Tracking → tracking template:\n{lpurl}?utm_source=google&utm_medium=cpc&utm_campaign={campaignid}&utm_content={creative}&utm_term={keyword}\nKeel ties orders to ads ({creative}) and keywords ({keyword}) through it; campaigns without it are flagged on the Suggestions page.",
+          "verify": true
         },
         {
           "title": "Connect in Keel",
           "body": "Integrations → Google Ads → Connect: customer id (digits), manager id when accessed through an MCC, developer token, client id/secret, refresh token."
         },
         {
+          "title": "Write access (optional)",
+          "body": "If the store wants negative keywords and ad pauses from Keel, tick “Write access granted” on the Google Ads card. Every write asks for confirmation and goes through the write queue."
+        },
+        {
           "title": "Verify",
-          "body": "Test connection runs a one-row GAQL query; Resync imports campaigns and the last 30 days of metrics."
+          "body": "Test connection runs a one-row GAQL query; Resync imports campaigns, then ad groups, ads, assets, keywords and search terms in 7-day windows (resumable, rate limits respected)."
         }
       ],
       "errors": [
@@ -3452,8 +3488,17 @@
         {
           "symptom": "invalid_grant on token refresh",
           "fix": "The refresh token was revoked; authorise again and reconnect."
+        },
+        {
+          "symptom": "UNSUPPORTED_VERSION or 404 on every call",
+          "fix": "The API version was retired: Keel needs an update of the version constant."
+        },
+        {
+          "symptom": "Keel orders show a dash on keywords",
+          "fix": "The tracking template is missing or lacks utm_term with the keyword parameter."
         }
-      ]
+      ],
+      "scopes": "Reading: the adwords scope with read access and a Basic developer token. Optional, only to pause ads and add negative keywords: the same scope with a user who can edit the account."
     },
     "anthropic": {
       "title": "Connect the AI assistant (Anthropic)",
@@ -6222,7 +6267,9 @@
       "order_mark_paid": "Mark order paid",
       "order_refund": "Order refund",
       "discount_status": "Discount on/off",
-      "discount_pool_status": "Discount pool on/off"
+      "discount_pool_status": "Discount pool on/off",
+      "ad_status": "Ad status",
+      "keyword_negative": "Negative keyword"
     }
   },
   "fulfilment": {
@@ -6774,6 +6821,210 @@
       "pool_platform_error": "The store refused the codes. Try again in a moment.",
       "pool_pool_inactive": "The pool is deactivated.",
       "pool_recipient_not_found": "No customer with this email."
+    }
+  },
+  "ads": {
+    "nav": {
+      "label": "Campaign analysis",
+      "campaigns": "Campaigns",
+      "creatives": "Creatives",
+      "keywords": "Keywords & search terms",
+      "words": "Words",
+      "recommendations": "Suggestions"
+    },
+    "cols": {
+      "name": "Name",
+      "spend": "Spend",
+      "impressions": "Impressions",
+      "ctr": "CTR",
+      "platform_conv": "Platform conv.",
+      "keel_orders": "Keel orders",
+      "revenue": "Net revenue",
+      "profit": "Profit",
+      "roas": "ROAS",
+      "frequency": "Frequency",
+      "match": "Match",
+      "quality": "Quality",
+      "campaign": "Campaign",
+      "action": "Action",
+      "phrase": "Phrase",
+      "items": "Used in",
+      "margin": "Margin",
+      "cpa": "CPA",
+      "field": "Field",
+      "asset": "Asset",
+      "keel_orders_allocated": "Keel orders (allocated)",
+      "date": "Date",
+      "search_term": "Search term",
+      "clicks": "Clicks",
+      "reason": "Why",
+      "ad": "Ad"
+    },
+    "excluded_n": "+{n} cancelled/returned",
+    "ad_sets_title": "Ad sets",
+    "ad_groups_title": "Ad groups",
+    "ad_sets_description": "Platform numbers next to Keel's: orders, revenue and profit count only orders that were not cancelled or returned.",
+    "utm_missing": "{n} of {total} ads do not carry {params}: their orders reach Keel without an ad. Add this template to the ads:",
+    "no_ad_sets": "No ad sets yet",
+    "no_ad_sets_hint": "They arrive with the next ads sync.",
+    "keel_not_visible": "Keel cannot see this row's orders (the UTM template does not name it).",
+    "n_ads": "{n} ads",
+    "n_keywords": "{n} keywords",
+    "unassigned_orders": "{n} campaign orders are not tied to an ad set",
+    "open_orders": "Open orders",
+    "reconciliation": "Spend by ads {ads} of {campaign} · unallocated {unallocated}",
+    "ad_set": "Ad set",
+    "ad_group": "Ad group",
+    "status": {
+      "active": "Active",
+      "paused": "Paused",
+      "archived": "Archived"
+    },
+    "ads_title": "Ads",
+    "ads_description": "Fatigue means frequency is rising while CTR falls. Suggestions are read-only: a person decides.",
+    "no_ads": "No ads in this ad set",
+    "keywords_title": "Keywords",
+    "no_keywords": "No keywords",
+    "search_terms_title": "Search terms",
+    "all_search_terms": "All search terms of the campaign",
+    "no_search_terms": "No search terms",
+    "other_terms": "Other terms (under the minimum impressions)",
+    "via_keyword": "via “{keyword}”",
+    "negative_reason": {
+      "only_cancelled": "Only cancelled orders",
+      "no_orders": "Spend, no orders",
+      "unprofitable_orders": "Orders at a loss",
+      "no_conversions": "Spend, no conversions"
+    },
+    "excluded": "Excluded",
+    "keel_footnote": "Keel ties orders to ad sets, ads and keywords through the UTM template; numbers the platform cannot tie show a dash.",
+    "match": {
+      "exact": "Exact",
+      "phrase": "Phrase",
+      "broad": "Broad"
+    },
+    "fatigue": {
+      "watch": "Watch: CTR falling",
+      "fatigued": "Fatigued"
+    },
+    "utm_badge": "UTM missing",
+    "pause_reason": {
+      "losing": "Losing money",
+      "fatigued": "Fatigued and losing",
+      "low_label": "Rated LOW",
+      "low_ctr": "Half the CTR of its siblings"
+    },
+    "ctr_change": "CTR {change} since the start",
+    "copy_title": "Copy and tracking",
+    "utm_missing_ad": "This ad does not carry {params}: its orders reach Keel without the ad. Template:",
+    "assets_title": "Assets",
+    "no_assets": "No asset breakdown",
+    "no_assets_meta": "Meta reports assets only for dynamic creative and Advantage+ creative ads.",
+    "no_assets_google": "Google reports assets for responsive ads.",
+    "field": {
+      "headline": "Headline",
+      "description": "Description",
+      "body": "Primary text",
+      "title": "Title",
+      "image": "Image",
+      "video": "Video",
+      "other": "Other"
+    },
+    "assets_footnote": "Platforms report assets, not orders: Keel spreads the ad's orders over its assets by spend share within each field.",
+    "daily_title": "By day",
+    "no_days": "No daily data in the period",
+    "keywords_page_title": "Keywords and search terms",
+    "keywords_page_description": "Google Ads keywords and the queries that triggered the ads, with Keel's own orders where the UTM template names them.",
+    "tabs": {
+      "keywords": "Keywords",
+      "search_terms": "Search terms"
+    },
+    "search_placeholder": "Search text",
+    "all_campaigns": "All campaigns",
+    "sort_label": "Sort",
+    "sort": {
+      "spend": "Spend",
+      "profit": "Profit",
+      "roas": "ROAS",
+      "conversions": "Conversions"
+    },
+    "candidates_only": "Negative-keyword candidates only",
+    "apply": "Apply",
+    "google_only": "Keywords and search terms come from Google Ads; Meta has none.",
+    "rows_total": "{n} rows",
+    "prev": "Previous",
+    "next": "Next",
+    "page_of": "Page {page} of {pages}",
+    "keywords_footnote": "Keel orders come from utm_term set to the keyword by the tracking template.",
+    "search_terms_footnote": "Keel sees a search term's orders when the term is a keyword (exact match); for the others the platform's conversions decide. Terms under the minimum impressions are grouped under “Other terms”.",
+    "words_title": "Words",
+    "words_description": "Winning and losing words and phrases (1–3 words) in ad copy, search terms and keywords, with the profit of Keel's orders.",
+    "word_source": {
+      "copy": "Ad copy",
+      "search_terms": "Search terms",
+      "keywords": "Keywords"
+    },
+    "ngram": {
+      "all": "All",
+      "n1": "1 word",
+      "n2": "2 words",
+      "n3": "3 words"
+    },
+    "no_words": "Not enough volume",
+    "no_words_hint": "A phrase needs at least two ads or terms and some spend.",
+    "winners": "Winning words",
+    "winners_description": "Phrases in items that made a profit, best first.",
+    "no_winners": "No profitable phrase in the period",
+    "losers": "Losing words",
+    "losers_description": "Phrases in items that lost money, worst first.",
+    "no_losers": "No losing phrase in the period",
+    "words_footnote": "{items} items analysed. Each phrase sums the full numbers of every item that contains it, so phrases overlap.",
+    "recommendations_title": "Ads suggestions",
+    "recommendations_description": "Read-only suggestions: a person reviews them and acts; writes to the platforms always ask for confirmation.",
+    "in_items": "in {n}",
+    "rec": {
+      "negatives_title": "Negative keyword candidates",
+      "negatives_description": "{n} search terms spend without profitable orders.",
+      "google_read_only": "Google is read-only for this store: grant write access in Integrations to exclude terms from here.",
+      "none": "Nothing to suggest",
+      "all_candidates": "All candidates",
+      "ads_title": "Ads to pause",
+      "ads_description": "Active ads losing money in the period, or fatigued and losing.",
+      "words_title": "Winning words to reuse in copy",
+      "words_description": "Phrases of the ads that made the most profit.",
+      "open_words": "Open Words",
+      "assets_title": "Weak assets",
+      "assets_description": "Assets rated LOW by the platform or with half the CTR of their siblings.",
+      "utm_title": "UTM templates",
+      "utm_description": "Without these parameters Keel cannot tie orders to ads, ad sets and keywords.",
+      "utm_ok": "Every active campaign carries the templates.",
+      "utm_row": "{missing} of {ads} ads miss {params}",
+      "template_meta": "Meta: URL parameters of the ad",
+      "template_google": "Google: account tracking template"
+    },
+    "actions": {
+      "read_only": "{platform} is read-only for this store.",
+      "read_only_short": "Read-only",
+      "pause_ad": "Pause ad",
+      "resume_ad": "Resume ad",
+      "pause_title": "Pause this ad on {platform}?",
+      "resume_title": "Resume this ad on {platform}?",
+      "write_description": "Keel changes the status here and sends it to the platform; if the platform is unreachable the change is retried and shown as pending.",
+      "confirm": "Confirm",
+      "exclude": "Exclude",
+      "negative_title": "Add “{text}” as a negative keyword?",
+      "negative_description": "Google stops showing the ads for this query. The change is sent through the write queue.",
+      "match_type": "Match type",
+      "match": {
+        "exact": "Exact",
+        "phrase": "Phrase",
+        "broad": "Broad"
+      },
+      "level": "Level",
+      "levels": {
+        "campaign": "Campaign",
+        "ad_group": "Ad group"
+      }
     }
   }
 }

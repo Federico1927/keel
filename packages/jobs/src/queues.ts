@@ -47,6 +47,8 @@ export interface SyncAdsJob {
   provider: "meta" | "google";
   since: string;
   until: string;
+  /** "entities": the campaign pull is done, resume the levels below the campaign (issue #40). */
+  phase?: "campaigns" | "entities";
 }
 /** A CSV export too large for a direct download (packages/services `requestListExport`). */
 export interface ListExportJob {

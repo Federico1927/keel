@@ -1,5 +1,5 @@
 import { and, eq, schema } from "@keel/db";
-import type { NormalizedFulfillment, NormalizedOrder } from "@keel/integrations";
+import { IntegrationError, type NormalizedFulfillment, type NormalizedOrder } from "@keel/integrations";
 import { defineAdsWrite, defineCommerceWrite } from "./registry";
 
 /* The platform writes Keel makes today. Each is one registration: provider, target, execution, optional follow-up. */
@@ -162,5 +162,28 @@ defineAdsWrite("campaign.status", {
   execute: (platform, p) => platform.setCampaignStatus(p.campaignExternalId, p.status),
   onSuccess: async (ctx, write) => {
     if (write.entityType === "campaign" && write.entityId) await ctx.tx.update(schema.campaigns).set({ syncedAt: ctx.now ?? new Date() }).where(and(eq(schema.campaigns.tenantId, ctx.tenantId), eq(schema.campaigns.id, write.entityId)));
+  },
+});
+
+// ads below the campaign (issue #40): pausing an ad is an absolute value; a negative keyword is one-shot
+defineAdsWrite("ad.status", {
+  provider: (p) => p.provider,
+  target: (p) => `ad:${p.provider}:${p.adExternalId}:status`,
+  supersedes: true,
+  execute: async (platform, p) => {
+    if (!platform.setAdStatus) throw new IntegrationError("unsupported", `${platform.provider} cannot pause ads`);
+    await platform.setAdStatus({ adExternalId: p.adExternalId, adSetExternalId: p.adSetExternalId }, p.status);
+  },
+  onSuccess: async (ctx, write) => {
+    if (write.entityType === "ad" && write.entityId) await ctx.tx.update(schema.adCreatives).set({ syncedAt: ctx.now ?? new Date() }).where(and(eq(schema.adCreatives.tenantId, ctx.tenantId), eq(schema.adCreatives.id, write.entityId)));
+  },
+});
+
+defineAdsWrite("keyword.negative", {
+  provider: (p) => p.provider,
+  target: (p) => `negative:${p.provider}:${p.campaignExternalId}:${p.adSetExternalId ?? "-"}:${p.matchType}:${p.text}`,
+  execute: async (platform, p) => {
+    if (!platform.addNegativeKeywords) throw new IntegrationError("unsupported", `${platform.provider} has no keywords`);
+    return platform.addNegativeKeywords([{ campaignExternalId: p.campaignExternalId, adSetExternalId: p.adSetExternalId, text: p.text, matchType: p.matchType }]);
   },
 });

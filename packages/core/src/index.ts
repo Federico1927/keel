@@ -52,3 +52,5 @@ export * from "./utm-report";
 export * from "./account";
 export * from "./dashboards";
 export * from "./platform";
+export * from "./ngrams";
+export * from "./ads";

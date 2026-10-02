@@ -55,6 +55,8 @@ export interface PlatformWriteKinds {
   "return.close": { payload: { returnExternalId: string }; result: void };
   "fulfillment.create": { payload: { input: CreateFulfillmentInput }; result: NormalizedFulfillment };
   "campaign.status": { payload: { provider: "meta" | "google"; campaignExternalId: string; status: "active" | "paused" }; result: void };
+  "ad.status": { payload: { provider: "meta" | "google"; adExternalId: string; adSetExternalId: string | null; status: "active" | "paused" }; result: void };
+  "keyword.negative": { payload: { provider: "google"; campaignExternalId: string; adSetExternalId: string | null; text: string; matchType: "exact" | "phrase" | "broad" }; result: { created: number } };
 }
 export type PlatformWriteKind = keyof PlatformWriteKinds;
 export type WritePayload<K extends PlatformWriteKind> = PlatformWriteKinds[K]["payload"];

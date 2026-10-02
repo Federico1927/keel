@@ -23,6 +23,7 @@ export * from "./analytics/ltv";
 export * from "./analytics/advanced";
 export * from "./analytics/pnl-depth";
 export * from "./campaigns";
+export * from "./ads";
 export * from "./crm";
 export * from "./returns";
 export * from "./discounts";

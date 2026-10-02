@@ -80,7 +80,7 @@ async function main() {
   await boss.work<SyncOrdersJob>(QUEUES.syncOrders, one((d: SyncOrdersJob) => handleSyncOrders(d, enqueue)));
   await boss.work<SyncCatalogJob>(QUEUES.syncCatalog, one((d: SyncCatalogJob) => handleSyncCatalog(d, enqueue)));
   await boss.work<PlatformWriteJob>(QUEUES.platformWrite, { batchSize: 5 }, one((d: PlatformWriteJob) => handlePlatformWrite(d)));
-  await boss.work<SyncAdsJob>(QUEUES.syncAds, one((d: SyncAdsJob) => handleSyncAds(d)));
+  await boss.work<SyncAdsJob>(QUEUES.syncAds, one((d: SyncAdsJob) => handleSyncAds(d, enqueue)));
   await boss.work<SyncPayoutsJob>(QUEUES.syncPayouts, one((d: SyncPayoutsJob) => handleSyncPayouts(d, enqueue)));
   await boss.work<SyncReturnsJob>(QUEUES.syncReturns, one((d: SyncReturnsJob) => handleSyncReturns(d, enqueue)));
   await boss.work<TickJob>(QUEUES.tick, one((d: TickJob) => handleTick(d, enqueue)));

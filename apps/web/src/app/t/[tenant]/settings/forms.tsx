@@ -93,6 +93,9 @@ const numericFields: (keyof TenantSettings)[] = [
   "churnLowPct",
   "churnMediumPct",
   "markdownMinMarginBps",
+  "adsDailyRetentionDays",
+  "adsSearchTermMinImpressions",
+  "adsMinSpendMinor",
 ];
 
 export function OperationalSettingsForm({ slug, settings, currency }: { slug: string; settings: TenantSettings; currency: string }) {
