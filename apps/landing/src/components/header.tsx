@@ -15,7 +15,11 @@ import { buttonClass } from "@/components/ui";
 import { Logo } from "@/components/logo";
 import { cx } from "@/lib/cx";
 
-const LOCALE_NAMES: Record<LandingLocale, string> = { en: "English", it: "Italiano" };
+const LOCALE_NAMES: Record<LandingLocale, string> = {
+  en: "English",
+  it: "Italiano",
+  es: "Español",
+};
 
 export function Header({ locale }: { locale: LandingLocale }) {
   const t = useTranslations();
@@ -39,10 +43,10 @@ export function Header({ locale }: { locale: LandingLocale }) {
       <div className="container-x flex h-16 items-center justify-between gap-6">
         <a
           href={base}
-          className="flex items-center gap-2 font-serif text-xl tracking-tight"
+          className="flex items-center gap-2 text-lg font-semibold tracking-tight"
           aria-label={PRODUCT_NAME}
         >
-          <Logo className="size-7" />
+          <Logo className="size-7 text-primary" />
           {PRODUCT_NAME}
         </a>
         <nav className="hidden items-center gap-7 text-sm md:flex" aria-label="Main">
@@ -141,13 +145,14 @@ export function LocaleSwitch({
           lang={l}
           aria-current={l === current ? "page" : undefined}
           className={cx(
-            "rounded px-2 py-1 transition-colors",
+            "rounded px-2 py-1 font-medium uppercase transition-colors",
             l === current
-              ? "bg-foreground text-background"
+              ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:text-foreground",
           )}
         >
-          {LOCALE_NAMES[l]}
+          <span aria-hidden="true">{l}</span>
+          <span className="sr-only">{LOCALE_NAMES[l]}</span>
         </a>
       ))}
     </nav>

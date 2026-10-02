@@ -90,6 +90,7 @@ async function main() {
   await boss.work(QUEUES.emailSend, { batchSize: 5 }, one(QUEUES.emailSend));
   await boss.work(QUEUES.emailEvent, { batchSize: 10 }, one(QUEUES.emailEvent));
   await boss.work(QUEUES.tenantExport, one(QUEUES.tenantExport));
+  await boss.work(QUEUES.billingEvent, one(QUEUES.billingEvent));
   for (const s of SCHEDULES) await boss.schedule(QUEUES.tick, s.cron, s.data, { singletonKey: s.data.kind });
   console.info("[jobs] worker started: queues", Object.values(QUEUES).join(", "));
   const shutdown = async () => {

@@ -30,7 +30,7 @@ export function ModulesCarousel({
   slides: ModuleSlide[];
 }) {
   const t = useTranslations("modules");
-  const trackRef = useRef<HTMLUListElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const [autoplay, setAutoplay] = useState(true);
   const [paused, setPaused] = useState(false);
@@ -127,7 +127,7 @@ export function ModulesCarousel({
               className={cx(
                 "whitespace-nowrap rounded-full border px-3 py-1.5 text-sm transition-colors",
                 i === index
-                  ? "border-foreground bg-foreground text-background"
+                  ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-card text-muted-foreground hover:text-foreground",
               )}
             >
@@ -155,13 +155,15 @@ export function ModulesCarousel({
         </div>
       </div>
 
-      <ul
+      {/* Slides are groups, not list items: a list of role="group" children fails the ARIA list rules. */}
+      <div
         ref={trackRef}
+        data-carousel-track
         className="mt-6 flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         aria-live={autoplay ? "off" : "polite"}
       >
         {slides.map((s, i) => (
-          <li
+          <div
             key={s.key}
             id={`module-slide-${s.key}`}
             role="group"
@@ -169,23 +171,22 @@ export function ModulesCarousel({
             aria-label={t("slide", { n: i + 1, total })}
             className="w-full shrink-0 snap-start md:w-[88%] lg:w-[80%]"
           >
-            <article className="grid h-full gap-6 rounded-2xl border border-border bg-card p-5 sm:p-6 lg:grid-cols-[3fr_2fr] lg:items-center">
+            <article className="grid h-full gap-6 rounded-lg border border-border bg-card p-5 sm:p-6 lg:grid-cols-[3fr_2fr] lg:items-center">
               <BrowserFrame
                 locale={locale}
                 name={s.shot}
                 role="card"
                 alt={s.alt}
-                priority={i === 0}
                 sizes="(min-width: 1100px) 600px, (min-width: 768px) 80vw, 100vw"
               />
               <div>
-                <h3 className="text-2xl sm:text-3xl">{s.title}</h3>
+                <h3 className="text-2xl font-semibold tracking-tight sm:text-3xl">{s.title}</h3>
                 <p className="mt-3 leading-relaxed text-muted-foreground">{s.body}</p>
               </div>
             </article>
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
 
       <div className="mt-4 flex justify-center gap-1.5" aria-hidden="true">
         {slides.map((s, i) => (
@@ -196,7 +197,7 @@ export function ModulesCarousel({
             onClick={() => go(i)}
             className={cx(
               "h-1.5 rounded-full transition-all",
-              i === index ? "w-6 bg-foreground" : "w-1.5 bg-border hover:bg-muted-foreground",
+              i === index ? "w-6 bg-primary" : "w-1.5 bg-border hover:bg-muted-foreground",
             )}
           />
         ))}

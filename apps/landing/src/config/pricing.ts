@@ -21,7 +21,13 @@ export interface Plan {
   /** One-off setup fee; null means "on quote". `setupFeeFrom` marks "from" pricing. */
   setupFee: number | null;
   setupFeeFrom?: boolean;
-  /** Feature identifiers, translated under `pricing.features.<id>`. */
+  /** Days the audit log is kept (mirrors `auditRetentionDays` in @keel/config); null = per contract. */
+  auditRetentionDays: number | null;
+  /**
+   * Feature identifiers, translated under `pricing.features.<id>`. Each one maps to module keys of
+   * @keel/config in `claims.ts`; a test checks that a plan lists a module exactly from the plan
+   * that includes it (`isModuleInPlan`), so the cards never promise what the product does not gate.
+   */
   features: readonly string[];
   /** Features of the previous tier are included; the plan card shows "Everything in <previous>". */
   inheritsFrom?: PlanId;
@@ -34,13 +40,14 @@ export const PLANS: readonly Plan[] = [
     monthlyPrice: 249,
     includedOrdersPerMonth: 1000,
     setupFee: 490,
+    auditRetentionDays: 180,
     features: [
-      "orders",
-      "shipments",
-      "products_inventory",
-      "returns",
-      "discounts",
-      "kpi_dashboard",
+      "orders_shipments",
+      "products_purchasing",
+      "returns_discounts",
+      "analytics_pnl",
+      "campaigns_stock",
+      "crm_segments_rfm",
       "ai_assistant",
     ],
   },
@@ -49,8 +56,9 @@ export const PLANS: readonly Plan[] = [
     monthlyPrice: 599,
     includedOrdersPerMonth: 5000,
     setupFee: 1500,
+    auditRetentionDays: 365,
     inheritsFrom: "starter",
-    features: ["pnl", "campaigns_stock", "purchasing_reorders", "crm_segments_rfm"],
+    features: ["mcp", "tiktok_ads"],
     recommended: true,
   },
   {
@@ -59,14 +67,16 @@ export const PLANS: readonly Plan[] = [
     includedOrdersPerMonth: 20000,
     setupFee: 3000,
     setupFeeFrom: true,
+    auditRetentionDays: 730,
     inheritsFrom: "growth",
-    features: ["multi_store", "advanced_roles", "api", "priority_support"],
+    features: ["priority_support"],
   },
   {
     id: "enterprise",
     monthlyPrice: null,
     includedOrdersPerMonth: null,
     setupFee: null,
+    auditRetentionDays: null,
     inheritsFrom: "scale",
     features: ["enterprise_volume", "enterprise_sla", "enterprise_custom"],
   },
@@ -75,14 +85,19 @@ export const PLANS: readonly Plan[] = [
 /** Overage above the included orders: price per block of `blockSize` orders. */
 export const OVERAGE = { pricePerBlock: 49, blockSize: 1000 } as const;
 
-/** Add-ons and tailored integrations, priced per account. */
+/**
+ * Add-ons and tailored integrations, priced per account. Monthly prices mirror
+ * `monthlyPriceMinor` of the add-on modules in @keel/config (test in pricing.test.ts); add-ons the
+ * product lists as "on request" have no price and show "on quote". An add-on is listed here only
+ * once it is built.
+ */
 export type AddonPricing =
-  | { id: string; kind: "monthly"; price: number; from?: boolean }
-  | { id: string; kind: "quote" };
+  { id: string; kind: "monthly"; price: number } | { id: string; kind: "quote" };
 
 export const ADDONS: readonly AddonPricing[] = [
+  { id: "customer_campaigns", kind: "monthly", price: 99 },
   { id: "cod", kind: "monthly", price: 199 },
-  { id: "custom_integration", kind: "monthly", price: 99, from: true },
+  { id: "custom_integration", kind: "quote" },
   { id: "custom_development", kind: "quote" },
 ];
 

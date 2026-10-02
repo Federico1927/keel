@@ -47,10 +47,20 @@ describe("landing pricing matches the product plan config", () => {
       expect(product.currency).toBe(PRICING_CURRENCY);
     }
   });
-  it("overage and the cash-on-delivery add-on agree with @keel/config", () => {
+  it("audit retention agrees with @keel/config", () => {
+    for (const plan of PLANS) {
+      if (plan.id === "enterprise") continue;
+      expect(plan.auditRetentionDays).toBe(PRODUCT_PLANS[plan.id].auditRetentionDays);
+    }
+  });
+  it("overage and the priced add-ons agree with @keel/config", () => {
     expect(PRODUCT_OVERAGE.pricePerBlockMinor).toBe(OVERAGE.pricePerBlock * 100);
     expect(PRODUCT_OVERAGE.blockOrders).toBe(OVERAGE.blockSize);
-    const cod = ADDONS.find((a) => a.id === "cod");
-    expect(cod?.kind === "monthly" && cod.price * 100).toBe(MODULES["addon.cod"].monthlyPriceMinor);
+    const price = (id: string) => {
+      const a = ADDONS.find((x) => x.id === id);
+      return a?.kind === "monthly" ? a.price * 100 : null;
+    };
+    expect(price("cod")).toBe(MODULES["addon.cod"].monthlyPriceMinor);
+    expect(price("customer_campaigns")).toBe(MODULES["addon.customer_campaigns"].monthlyPriceMinor);
   });
 });

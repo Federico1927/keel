@@ -62,6 +62,7 @@ const SAMPLES: { [K in EmailTemplate]: EmailTemplateData[K] } = {
   digest: { tenantName: "Northwind Apparel", groups: [{ type: "mention", count: 5, titles: ["#NW-1", "#NW-2"] }, { type: "late_to_ship", count: 1, titles: ["12"] }], url: "https://app.keel.example/t/northwind-apparel/notifications" },
   notification: { title: "4", body: "SKU-1", url: "https://app.keel.example/t/northwind-apparel/inventory", type: "stock_critical_no_po" },
   test: { provider: "mock", sentAt: "2026-10-01T09:30:00.000Z" },
+  billing_checkout: { tenantName: "Harbor Home", planName: "Growth", lines: [{ kind: "plan", key: "growth", amountMinor: 59900 }, { kind: "addon", key: "addon.cod", amountMinor: 19900 }, { kind: "setup", key: "growth", amountMinor: 150000 }], currency: "USD", trialDays: 14, url: "https://checkout.stripe.com/c/pay/cs_test_a1", expiresAt: "2026-10-02T09:30:00.000Z", timezone: "Europe/Rome" },
   carrier_instruction: { companyName: "Northwind Apparel", carrier: "Carrier", trackingNumber: "TRK123", orderName: "#NW-1042", resolution: "new_address", address: { name: "Giulia Rossi", address1: "Via Roma 1", zip: "20121", city: "Milano", country: "IT" }, pickupPoint: null, note: "Ring twice" },
 };
 

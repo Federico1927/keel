@@ -1,4 +1,4 @@
-import { Code2, PhoneCall, Puzzle } from "lucide-react";
+import { Code2, Megaphone, PhoneCall, Puzzle } from "lucide-react";
 import { Section } from "@/components/ui";
 import { ADDONS } from "@/config/pricing";
 import type { LandingLocale } from "@/config/site";
@@ -6,6 +6,7 @@ import { getTranslator } from "@/i18n/messages";
 import { formatPrice } from "@/lib/format";
 
 const ICONS = {
+  customer_campaigns: Megaphone,
   cod: PhoneCall,
   custom_integration: Puzzle,
   custom_development: Code2,
@@ -16,22 +17,23 @@ export function Addons({ locale }: { locale: LandingLocale }) {
   const t = getTranslator(locale);
   return (
     <Section id="addons" title={t("addons.title")} lead={t("addons.lead")} tone="muted">
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid gap-4 sm:grid-cols-2">
         {ADDONS.map((a) => {
           const key = a.id as AddonKey;
           const Icon = ICONS[key];
           const price =
             a.kind === "monthly"
-              ? t(a.from ? "addons.from_per_month" : "addons.per_month", {
-                  price: formatPrice(locale, a.price),
-                })
+              ? t("addons.per_month", { price: formatPrice(locale, a.price) })
               : t("addons.quote");
           return (
-            <li key={a.id} className="flex flex-col rounded-xl border border-border bg-card p-6">
-              <Icon className="size-6 text-primary" aria-hidden="true" />
-              <h3 className="mt-4 font-sans text-lg font-semibold tracking-normal">
-                {t(`addons.items.${key}.title`)}
-              </h3>
+            <li
+              key={a.id}
+              className="flex flex-col rounded-lg border border-border bg-background p-6"
+            >
+              <span className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Icon className="size-5" aria-hidden="true" />
+              </span>
+              <h3 className="mt-4 text-lg font-semibold">{t(`addons.items.${key}.title`)}</h3>
               <p className="mt-2 flex-1 leading-relaxed text-muted-foreground">
                 {t(`addons.items.${key}.body`)}
               </p>

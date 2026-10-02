@@ -3305,7 +3305,8 @@
       },
       "jobs": "Job runs",
       "alerts": "Failure alerts",
-      "mcp": "MCP"
+      "mcp": "MCP",
+      "subscriptions": "Subscriptions"
     },
     "plans": {
       "starter": "Starter",
@@ -7547,5 +7548,216 @@
         ]
       }
     }
+  },
+  "billing": {
+    "title": "Billing",
+    "description": "Your plan, payment method and invoices.",
+    "settings_link": "Billing",
+    "plan_title": "Plan",
+    "plan_monthly": "{amount} per month, VAT excluded",
+    "addons_title": "Add-ons",
+    "no_addons": "No add-ons",
+    "next_invoice": "Next invoice",
+    "next_invoice_value": "{date} · about {amount}",
+    "cancel_at_period_end": "Ends on {date}",
+    "payment_title": "Payment",
+    "payment_status": {
+      "ok": "Up to date",
+      "past_due": "Payment overdue",
+      "suspended": "Suspended for non-payment",
+      "none": "No invoices yet"
+    },
+    "days_overdue": "{n, plural, one {# day overdue} other {# days overdue}}",
+    "payment_method": "Payment method",
+    "payment_method_none": "No card on file",
+    "collection": {
+      "send_invoice": "Bank transfer, invoices due in {days} days"
+    },
+    "manage_payment": "Manage payment method",
+    "manage_payment_hint": "Opens Stripe's secure portal: change the card, the billing details and the VAT number, download invoices.",
+    "not_managed": "Payments for this workspace are arranged with our team. Write to support to set up a card.",
+    "portal_error": "The payment portal could not be opened. Try again in a minute.",
+    "portal_mock": "Mock mode: with Stripe configured this button opens Stripe's customer portal.",
+    "checkout_success": "Thank you: the payment method is saved. The subscription becomes active as soon as Stripe confirms the first payment.",
+    "checkout_cancelled": "The payment page was closed before the end. Use the link in the email to try again.",
+    "checkout_mock": "Mock mode: there is no payment page. The console can simulate the completed checkout.",
+    "invoices_title": "Invoices",
+    "invoices_empty": "No invoices yet.",
+    "columns": {
+      "number": "Number",
+      "date": "Date",
+      "amount": "Amount",
+      "status": "Status",
+      "document": "Document"
+    },
+    "status": {
+      "open": "Open",
+      "paid": "Paid",
+      "void": "Void",
+      "uncollectible": "Unpaid"
+    },
+    "download": "PDF",
+    "pay_now": "Pay",
+    "banner": {
+      "past_due": "Your last payment did not go through. Pay the open invoice to keep using {product}.",
+      "past_due_days": "The workspace is suspended in {n, plural, one {# day} other {# days}} if it stays unpaid.",
+      "action_required": "Your bank asks you to confirm the latest payment.",
+      "pay": "Pay now",
+      "confirm": "Confirm the payment",
+      "details": "Billing"
+    },
+    "pdf": {
+      "title": "Invoice",
+      "issued": "Issued",
+      "due": "Due",
+      "item": "Item",
+      "amount": "Amount",
+      "total": "Total",
+      "status": "Status",
+      "kinds": {
+        "plan": "plan",
+        "addon": "add-on",
+        "setup": "setup fee",
+        "other": "other"
+      }
+    }
+  },
+  "admin_billing": {
+    "mode": {
+      "mock": "Mock",
+      "test": "Stripe TEST",
+      "live": "Stripe LIVE"
+    },
+    "not_configured": "Stripe not configured: billing runs on the mock. Set STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET as Railway variables to collect with Stripe.",
+    "webhook_missing": "STRIPE_WEBHOOK_SECRET is not set: Stripe's events are refused and the mirror does not update.",
+    "subscriptions_title": "Subscriptions",
+    "subscriptions_description": "What Stripe collects: subscriptions and invoices mirrored from Stripe's webhooks, failed payments, past-due tenants and renewals.",
+    "subscriptions_table": "Processor subscriptions",
+    "sync_catalog": "Sync catalog to Stripe",
+    "sync_catalog_mock": "Sync catalog (mock)",
+    "sync_done": "{created} created, {updated} updated, {unchanged} unchanged.",
+    "errors": {
+      "provider_failed": "Stripe refused the request or could not be reached. Details are in the server log.",
+      "catalog_not_synced": "Sync the catalog first (Billing → Subscriptions).",
+      "already_subscribed": "This tenant already has a subscription.",
+      "invalid_input": "Check the fields.",
+      "no_customer": "This tenant has no customer at the processor yet.",
+      "no_checkout": "No pending checkout.",
+      "not_mock": "Only available in mock mode.",
+      "not_managed": "No subscription at the processor.",
+      "no_subscription": "No subscription.",
+      "tenant_not_found": "Tenant not found.",
+      "failed": "Something went wrong."
+    },
+    "mrr": "MRR (from Stripe)",
+    "mrr_hint": "{n, plural, one {# subscription} other {# subscriptions}}",
+    "failed_payments": "Failed payments",
+    "past_due": "Past-due tenants",
+    "renewals": "Upcoming renewals",
+    "renewals_hint": "Next {days} days",
+    "last_webhook": "Last webhook",
+    "no_webhook": "None received yet",
+    "failed_events": "{n} failed",
+    "nothing": "Nothing here.",
+    "action_required": "Authentication required",
+    "attempts": "{n, plural, one {# attempt} other {# attempts}}",
+    "next_attempt": "next retry {date}",
+    "days_overdue": "{n} days overdue · suspended after {limit}",
+    "tax_title": "VAT",
+    "tax_automatic": "Stripe Tax computes VAT; VAT numbers are collected at Checkout and verified EU businesses abroad are invoiced with reverse charge.",
+    "tax_manual": "Stripe Tax is off: Keel sets the reverse charge on customers with a verified EU VAT number. Seller country: {country}.",
+    "einvoicing_title": "Italian e-invoicing (SDI)",
+    "einvoicing_body": "Invoices to Italian customers must also reach SDI through an accredited intermediary. The connector slot exists (InvoicingProvider) but no service is connected: a prerequisite before billing Italian customers.",
+    "einvoicing_state": {
+      "none": "No connector",
+      "mock": "Mock connector"
+    },
+    "verify_badge": "To verify",
+    "empty": "No tenant has a subscription at the processor yet.",
+    "table": {
+      "tenant": "Tenant",
+      "status": "Status",
+      "collection": "Collection",
+      "monthly": "Monthly",
+      "period_end": "Period ends",
+      "synced": "Synced"
+    },
+    "catalog_title": "Catalog",
+    "catalog_description": "Plans (monthly), setup fees (one-off) and add-ons (monthly) from the configuration, matched in Stripe by lookup key. A changed amount creates a new price and archives the old one.",
+    "catalog_columns": {
+      "item": "Item",
+      "lookup_key": "Lookup key",
+      "amount": "Amount",
+      "price": "Price id",
+      "synced": "State"
+    },
+    "kind": {
+      "plan": "Plan",
+      "setup": "Setup fee",
+      "addon": "Add-on"
+    },
+    "in_step": "In step",
+    "out_of_step": "To sync",
+    "external": {
+      "trialing": "Trial",
+      "active": "Active",
+      "past_due": "Past due",
+      "unpaid": "Unpaid",
+      "canceled": "Cancelled",
+      "incomplete": "Incomplete",
+      "incomplete_expired": "Expired",
+      "paused": "Paused"
+    },
+    "collection": {
+      "charge_automatically": "Card on file",
+      "send_invoice": "Bank transfer"
+    },
+    "vat": {
+      "domestic": "Domestic VAT",
+      "reverse_charge": "Reverse charge",
+      "eu_b2c": "EU consumer VAT",
+      "export": "Outside the EU",
+      "unknown": "VAT unknown"
+    },
+    "resync": "Resync from Stripe",
+    "resync_done": "{invoices} invoices read.",
+    "card_title": "Subscription at the processor",
+    "card_description": "Stripe collects (card, retries, dunning); Keel mirrors the subscription and the invoices from its webhooks.",
+    "start": "Start subscription",
+    "start_title": "Start subscription",
+    "start_description": "Applies the plan and add-ons to the tenant, creates the payment link (Stripe Checkout) and emails it to the billing contact in the tenant's language.",
+    "plan": "Plan",
+    "addons": "Add-ons",
+    "setup_fee": "Setup fee on the first invoice ({amount})",
+    "trial_days": "Trial days",
+    "billing_email": "Billing email",
+    "collection_label": "Collection",
+    "collection_checkout": "Card on file (payment link)",
+    "collection_invoice": "Bank transfer (invoice with payment terms)",
+    "terms_days": "Payment terms (days)",
+    "submit": "Create",
+    "cancel": "Cancel",
+    "close": "Close",
+    "link_ready": "Payment link",
+    "email_sent": "Emailed to {email}.",
+    "email_not_sent": "The email was not sent ({reason}): share the link yourself.",
+    "invoice_started": "Subscription created: Stripe emails every invoice with the payment terms.",
+    "checkout_pending": "Checkout pending",
+    "expires": "expires {date}",
+    "simulate_checkout": "Simulate paid checkout",
+    "simulate_renewal": "Simulate renewal",
+    "simulate_failed": "Simulate declined renewal",
+    "simulate_payment": "Simulate payment",
+    "simulate_hint": "Mock mode: these buttons play Stripe's webhooks through the same processing.",
+    "simulated": "{n} events processed.",
+    "drift": "The subscription items differ from the plan and add-ons in Keel. Change the plan or an add-on to realign them, or resync.",
+    "items": "Items",
+    "period_end": "Period ends",
+    "customer": "Customer",
+    "status": "Status",
+    "synced": "Synced",
+    "none": "No subscription at the processor yet.",
+    "catalog_missing": "Sync the catalog first (Billing → Subscriptions).",
+    "cancel_at_period_end": "ends at period end"
   }
 }

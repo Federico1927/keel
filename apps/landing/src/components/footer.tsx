@@ -16,8 +16,8 @@ export function Footer({ locale }: { locale: LandingLocale }) {
     <footer className="border-t border-border bg-background py-12">
       <div className="container-x flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
         <div>
-          <a href={base} className="flex items-center gap-2 font-serif text-xl">
-            <Logo className="size-6" />
+          <a href={base} className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+            <Logo className="size-6 text-primary" />
             {PRODUCT_NAME}
           </a>
           <p className="mt-2 text-sm text-muted-foreground">{t("footer.tagline")}</p>
