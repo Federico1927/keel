@@ -1321,3 +1321,11 @@ Before, about 12% of treated customers were picked by hash, overlapping with cus
 
 **Alternatives.** Changing `HULLWISE_DEMO_PASSWORD` (rejected: it breaks the prospects' demo and the reseed would still give the console to whoever knows it). A one-off CLI to create the owner (rejected: Railway has no interactive step in the deploy; a variable is one click). Demoting the demo super-admin whenever `HULLWISE_INTEGRATION_MODE=live` (rejected: the console would be orphaned until an owner exists).
 
+
+## 2026-10-02 · INVENTORY.md status is kept by the PRs that change it (#36)
+
+**Context.** `docs/reference/INVENTORY.md` lists the features of the two reference platforms (Control Room / Command Center, Rehaus). Its first status column was checked at `64771f5`; since then #81, #82, #85, #86, #87, #89, #90, #9, #67 and #49 merged, and the document still named the product Keel.
+
+**Decision.** The column is renamed "Hullwise status" and rechecked against the code at `5ce9718` (schema, core, services, integrations, config, routes and pages; docs only to find issue numbers). Values stay `done (#N)` / `partial` / `missing` / `discarded`, with "v1 in development" for add-ons whose code is merged but whose version is not released (#77: Spoki, accounting, customer campaigns, subscriptions). Add-ons that issue #36 lists but that are not in the module registry (`addon.ai_content`, `addon.supplier_portal`, `addon.delivery_scheduling`) say so in the row. **Every merged PR updates the status of its rows**, and adds a row when it ships a reference feature that is not listed.
+
+**Alternatives.** Generating the status from issue labels (rejected: issues say what was asked, not what the code does). A separate status file (rejected: two documents drift apart).
