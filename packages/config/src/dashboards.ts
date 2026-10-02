@@ -126,7 +126,10 @@ const title = z.string().trim().max(80).optional();
 const metricRef = z.string().trim().min(1).max(60);
 export const BREAKDOWN_DIMENSIONS = ["channel", "country", "payment_method", "product", "campaign", "platform"] as const;
 export const BREAKDOWN_METRICS = ["net_revenue", "orders", "contribution", "ad_spend"] as const;
-export const TOP_LIST_ENTITIES = ["products", "campaigns", "customers"] as const;
+export const TOP_LIST_ENTITIES = ["products", "campaigns", "customers", "ads", "keywords", "search_terms"] as const;
+export type TopListEntity = (typeof TOP_LIST_ENTITIES)[number];
+/** Page a top list needs: ads, keywords and search terms live under Campaigns (issue #40). */
+export const TOP_LIST_PAGE: Record<TopListEntity, PageKey> = { products: "products", campaigns: "campaigns", customers: "customers", ads: "campaigns", keywords: "campaigns", search_terms: "campaigns" };
 export const SERIES_GRANULARITIES = ["day", "week", "month"] as const;
 
 const empty = z.object({}).strip();
@@ -282,7 +285,7 @@ export function isWidgetVisible(w: Pick<DashboardWidget, "type" | "settings">, r
   if (w.type === "breakdown" && ["campaign", "platform"].includes(String((w.settings as { by?: unknown }).by)) && !canViewPage(role, "campaigns")) return false;
   if (w.type === "top_list") {
     const entity = String((w.settings as { entity?: unknown }).entity ?? "products");
-    if (!canViewPage(role, (TOP_LIST_ENTITIES as readonly string[]).includes(entity) ? (entity as PageKey) : "analytics")) return false;
+    if (!canViewPage(role, (TOP_LIST_ENTITIES as readonly string[]).includes(entity) ? TOP_LIST_PAGE[entity as TopListEntity] : "analytics")) return false;
   }
   return widgetMetricRefs(w).every((ref) => metricPages(ref, basesOf).every((p) => canViewPage(role, p)));
 }

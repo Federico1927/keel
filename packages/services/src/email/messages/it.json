@@ -142,7 +142,8 @@
     "stock_critical_no_po": "{title} varianti in vendita con stock critico e nessun ordine d'acquisto",
     "late_to_ship": "{title} ordini ancora da spedire dopo {body} giorni lavorativi",
     "sync_delay": "La sincronizzazione di {title} è in ritardo ({body})",
-    "export_ready": "Il tuo export CSV è pronto: {title} righe ({body})"
+    "export_ready": "Il tuo export CSV è pronto: {title} righe ({body})",
+    "platform_failure": "Il lavoro in background {title} continua a fallire"
   },
   "roles": {
     "owner": "titolare",
@@ -168,6 +169,7 @@
     "po_supplier_problem": "Problemi dei fornitori",
     "integration_health": "Integrazioni",
     "cod_assigned": "Assegnazioni contrassegno",
-    "other": "Altro"
+    "other": "Altro",
+    "platform_failure": "Errori della piattaforma"
   }
 }

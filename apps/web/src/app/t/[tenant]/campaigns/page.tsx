@@ -16,6 +16,7 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "campaigns");
   const t = await getTranslations("campaigns");
+  const ta = await getTranslations("ads");
   const period = resolvePeriod(sp, ctx.tenant.timezone);
   const platform = ["meta", "google"].includes(sp.platform ?? "") ? sp.platform : undefined;
   const status = ["active", "paused", "archived"].includes(sp.status ?? "") ? sp.status : undefined;
@@ -43,6 +44,9 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
             <PeriodPicker basePath={base} keep={{ platform, status }} preset={period.preset} from={sp.from} to={sp.to} />
             <Link href={`${base}/ledger?${qs}`} className="text-sm underline-offset-4 hover:underline">{t("ledger")}</Link>
             <Link href={`${base}/creatives?${qs}`} className="text-sm underline-offset-4 hover:underline" data-testid="creatives-link">{t("creatives_link")}</Link>
+            <Link href={`${base}/keywords?${qs}`} className="text-sm underline-offset-4 hover:underline" data-testid="keywords-link">{ta("nav.keywords")}</Link>
+            <Link href={`${base}/words?${qs}`} className="text-sm underline-offset-4 hover:underline" data-testid="words-link">{ta("nav.words")}</Link>
+            <Link href={`${base}/recommendations?${qs}`} className="text-sm underline-offset-4 hover:underline" data-testid="recommendations-link">{ta("nav.recommendations")}</Link>
           </div>
         }
       />

@@ -1,9 +1,9 @@
 import { OPERATIONAL_TENANT_STATUSES, isTenantOperational, platformRetentionDays } from "@keel/config";
 import { parseTenantSettings } from "@keel/core";
 import { adminDb, and, eq, inArray, lte, schema, withTenant } from "@keel/db";
-import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, checkSyncDelays, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents } from "@keel/services";
+import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, runAdsEntitySync, rollupAdEntityMetrics } from "@keel/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue } from "@keel/addon-cod";
-import { adsWindow, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob } from "./queues";
+import { adsWindow, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob, resyncJobsFor, type TenantExportJob } from "./queues";
 
 export interface Enqueue {
   (queue: string, data: unknown, opts?: { singletonKey?: string; startAfterSeconds?: number }): Promise<void>;
@@ -56,7 +56,14 @@ export async function handleListExport(job: ListExportJob): Promise<void> {
   await withTenant(job.tenantId, (tx) => runListExport(sys(job.tenantId)(tx), job.exportId));
 }
 
-export async function handleSyncOrders(job: SyncOrdersJob, enqueue: Enqueue): Promise<void> {
+/** Builds a tenant's full data export (#32) inside its RLS transaction. */
+export async function handleTenantExport(job: TenantExportJob): Promise<JobOutcome> {
+  const r = await withTenant(job.tenantId, (tx) => runTenantExport(sys(job.tenantId)(tx), job.exportId));
+  if (r.status === "failed") throw new Error(`tenant export ${job.exportId} failed`);
+  return { rows: r.rows, summary: { tables: r.tables, status: r.status } };
+}
+
+export async function handleSyncOrders(job: SyncOrdersJob, enqueue: Enqueue): Promise<JobOutcome> {
   const tenant = await tenantRow(job.tenantId);
   const result = await withTenant(tenant.id, async (tx) => {
     const ctx = sys(tenant.id)(tx);
@@ -66,6 +73,7 @@ export async function handleSyncOrders(job: SyncOrdersJob, enqueue: Enqueue): Pr
   // Resumable: a paused run re-enqueues itself with the saved cursor.
   if (!result.finished && !result.error) await enqueue("sync.orders", job, { singletonKey: `${job.tenantId}:${job.kind}` });
   if (result.error) throw new Error(result.error);
+  return { rows: result.rowsWritten, summary: { finished: result.finished } };
 }
 
 export async function handleSyncCatalog(job: SyncCatalogJob, enqueue?: Enqueue): Promise<void> {
@@ -107,17 +115,54 @@ export async function handlePlatformWrite(job: PlatformWriteJob): Promise<void> 
   await executePlatformWrite(runner(tenant.id), tenant, job.writeId);
 }
 
-export async function handleSyncAds(job: SyncAdsJob): Promise<void> {
+/**
+ * Campaigns and daily insights, then the levels below the campaign (issue #40) in resumable 7-day
+ * windows. A paused entity run (time budget, rate limit) re-enqueues itself, after the platform's wait.
+ */
+export async function handleSyncAds(job: SyncAdsJob, enqueue?: Enqueue): Promise<JobOutcome> {
   const tenant = await tenantRow(job.tenantId);
-  const r = await withTenant(tenant.id, async (tx) => {
+  let campaigns = 0, metrics = 0;
+  if (job.phase !== "entities") {
+    const r = await withTenant(tenant.id, async (tx) => {
+      const ctx = sys(tenant.id)(tx);
+      return runAdsSync(ctx, await getAdsPlatformFor(ctx, tenant, job.provider), { since: job.since, until: job.until });
+    });
+    if (r.error) throw new Error(r.error);
+    campaigns = r.campaigns;
+    metrics = r.metrics;
+  }
+  const settings = parseTenantSettings((await adminDb().select({ settings: schema.tenants.settings }).from(schema.tenants).where(eq(schema.tenants.id, tenant.id)).limit(1))[0]?.settings);
+  const e = await withTenant(tenant.id, async (tx) => {
     const ctx = sys(tenant.id)(tx);
-    return runAdsSync(ctx, await getAdsPlatformFor(ctx, tenant, job.provider), { since: job.since, until: job.until });
+    return runAdsEntitySync(ctx, await getAdsPlatformFor(ctx, tenant, job.provider), { since: job.since, until: job.until, budgetMs: 25_000, minImpressions: settings.adsSearchTermMinImpressions });
   });
-  if (r.error) throw new Error(r.error);
+  if (!e.finished && !e.error && enqueue) await enqueue("sync.ads", { ...job, phase: "entities" } satisfies SyncAdsJob, { singletonKey: `${job.tenantId}:${job.provider}:entities`, ...(e.rateLimited ? { startAfterSeconds: Math.ceil((e.retryAfterMs ?? 60_000) / 1000) } : {}) });
+  if (e.error) throw new Error(e.error);
+  return { rows: campaigns + metrics, summary: { campaigns, metrics, phase: job.phase ?? "campaigns", entitiesFinished: e.finished } };
 }
 
 /** Fan-out: one job per connected tenant/provider, deduplicated by singleton key. */
-export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> {
+export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<JobOutcome | void> {
+  if (job.kind === "watchdog") {
+    // stale and idle integration sources (#32): status, automatic resync, owner/admin notice, platform alert
+    const tenants = await adminDb().select({ id: schema.tenants.id, status: schema.tenants.status, settings: schema.tenants.settings }).from(schema.tenants);
+    let checked = 0, stale = 0, idle = 0, resyncs = 0;
+    for (const t of tenants) {
+      if (!isTenantOperational(t.status)) continue;
+      const r = await withTenant(t.id, (tx) => runWatchdog(sys(t.id)(tx), parseTenantSettings(t.settings)));
+      checked += r.checked;
+      stale += r.stale.length;
+      idle += r.idle.length;
+      for (const s of r.resync) for (const q of resyncJobsFor(t.id, s.source)) {
+        await enqueue(q.queue, q.data, { singletonKey: q.singletonKey });
+        resyncs++;
+      }
+      // the tenant side of a stale source is the watchdog notice above: the alert goes to the super-admins
+      for (const s of r.stale) await raisePlatformAlert(adminDb(), { kind: "sync_stale", tenantId: t.id, subject: s.source, error: null, meta: { minutesLate: s.minutesLate } }, { notifyTenant: false });
+      await resolveRecoveredSourceAlerts(adminDb(), t.id, r.stale.map((s) => s.source));
+    }
+    return { rows: stale + idle, summary: { checked, stale, idle, resyncs } };
+  }
   if (job.kind === "alerts") {
     // alert rules of every active tenant: threshold and anomaly checks on yesterday's closed day
     const tenants = await adminDb().select({ id: schema.tenants.id, slug: schema.tenants.slug, country: schema.tenants.country, currency: schema.tenants.currency, timezone: schema.tenants.timezone, settings: schema.tenants.settings, status: schema.tenants.status }).from(schema.tenants);
@@ -225,10 +270,20 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
   if (job.kind === "retention") {
     // platform-wide window (KEEL_RETENTION_DAYS, default 14): finished history goes, failures stay until resolved
     const days = platformRetentionDays();
-    for (const t of await adminDb().select({ id: schema.tenants.id }).from(schema.tenants)) await withTenant(t.id, (tx) => purgeExpiredPlatformRows(sys(t.id)(tx), { days }));
+    for (const t of await adminDb().select({ id: schema.tenants.id, settings: schema.tenants.settings }).from(schema.tenants)) {
+      await withTenant(t.id, (tx) => purgeExpiredPlatformRows(sys(t.id)(tx), { days }));
+      // ads volume control (issue #40): daily rows past the tenant's window become months, rare search terms "(other)"
+      const settings = parseTenantSettings(t.settings);
+      await withTenant(t.id, (tx) => rollupAdEntityMetrics(sys(t.id)(tx), { retentionDays: settings.adsDailyRetentionDays, minImpressions: settings.adsSearchTermMinImpressions }));
+    }
     await purgeEmailRows(adminDb(), { days });
     await purgeBillingEvents(adminDb(), { days });
-    return;
+    // #32: audit rows past each plan's window (batched, one job_runs row per tenant), expired export files, old job history
+    const audit = await purgeExpiredAudit(adminDb());
+    const exports = await purgeExpiredTenantExports(adminDb());
+    const jobRuns = await purgeJobRuns(adminDb(), { days });
+    const auditDeleted = audit.reduce((n, a) => n + a.deleted, 0);
+    return { rows: auditDeleted + exports + jobRuns, summary: { auditDeleted, exportsExpired: exports, jobRunsDeleted: jobRuns } };
   }
   if (job.kind === "emails") {
     // the platform sender's housekeeping (no tenant): events left pending after the 200, queued emails whose job was lost
@@ -240,7 +295,7 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
   }
   if (job.kind === "tasks" || job.kind === "notify" || job.kind === "digest") {
     // tasks (every 10 min): task rules (time-based ones, orders, closing what moved on) and overdue reminders;
-    // notify (hourly): sync delays, critical stock without incoming PO, late to ship, shipment case sweep; digest (daily): opt-in summary email
+    // notify (hourly): critical stock without incoming PO, late to ship, shipment case sweep; digest (daily): opt-in summary email
     const tenants = await adminDb().select({ id: schema.tenants.id, status: schema.tenants.status, settings: schema.tenants.settings, timezone: schema.tenants.timezone }).from(schema.tenants);
     for (const t of tenants) {
       if (!isTenantOperational(t.status)) continue;
@@ -251,7 +306,7 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
           await sweepTaskRules(ctx);
           await remindOverdueTasks(ctx);
         } else if (job.kind === "notify") {
-          await checkSyncDelays(ctx, settings);
+          // sync delays moved to the watchdog tick (#32)
           await checkCriticalStock(ctx, settings);
           await checkLateToShip(ctx, settings, t.timezone);
           // delivery exceptions and returns to sender missed on import (a mapping changed, a carrier feed) enter their queues

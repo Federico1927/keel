@@ -137,7 +137,7 @@ export async function WidgetView({ widget, result, period, env }: { widget: Dash
       const d = data as TopListData;
       const entity = String(s.entity);
       return (
-        <Frame title={s.title || t(`top_entities.${entity}`)} href={`${base}/${entity === "products" ? "products" : entity === "campaigns" ? "campaigns" : "customers"}`} linkLabel={open} testId="widget-top-list">
+        <Frame title={s.title || t(`top_entities.${entity}`)} href={`${base}/${entity === "products" ? "products" : entity === "campaigns" ? "campaigns" : entity === "ads" ? "campaigns/recommendations" : entity === "keywords" ? "campaigns/keywords" : entity === "search_terms" ? "campaigns/keywords?tab=search_terms" : "customers"}`} linkLabel={open} testId="widget-top-list">
           {d.rows.length === 0 ? <p className="text-sm text-muted-foreground">{t("widget.empty")}</p> : (
             <ol className="space-y-1">
               {d.rows.map((r, i) => (

@@ -1,5 +1,5 @@
 import { HttpClient, type HttpOptions } from "../http";
-import { IntegrationError, type AdsPlatform, type ConnectionTest, type NormalizedAdMetric, type NormalizedCampaign } from "../types";
+import { IntegrationError, type AdEntityMetricLevel, type AdEntityStatus, type AdsCapabilities, type AdsPlatform, type ConnectionTest, type NormalizedAd, type NormalizedAdAsset, type NormalizedAdMetric, type NormalizedAdSet, type NormalizedCampaign, type NormalizedEntityMetric } from "../types";
 
 export const META_API_VERSION = "v21.0";
 /** Marketing API permissions the installer must request for the system user / app. */
@@ -35,9 +35,28 @@ function actionValue(actions: Rec[] | undefined, types: string[]): number {
   return 0;
 }
 
-/** Live Meta Marketing API adapter (campaigns + daily insights + pause/resume). */
+const PURCHASE = ["omni_purchase", "purchase", "offsite_conversion.fb_pixel_purchase"];
+const entityStatus = (r: Rec): AdEntityStatus => {
+  const s = String(r.effective_status ?? r.status ?? "").toUpperCase();
+  return s === "ACTIVE" ? "active" : s.includes("PAUSED") || s === "PENDING_REVIEW" || s === "IN_PROCESS" || s === "WITH_ISSUES" ? "paused" : "archived";
+};
+const rec = (v: unknown): Rec => (v && typeof v === "object" ? (v as Rec) : {});
+
+/**
+ * Asset breakdowns: one per insights call (Meta refuses two asset breakdowns together). They exist only
+ * for dynamic creative / Advantage+ creative ads [to verify]; other ads return no rows.
+ */
+export const META_ASSET_BREAKDOWNS = [
+  { breakdown: "body_asset", type: "text", fieldType: "body" },
+  { breakdown: "title_asset", type: "text", fieldType: "title" },
+  { breakdown: "image_asset", type: "image", fieldType: "image" },
+  { breakdown: "video_asset", type: "video", fieldType: "video" },
+] as const;
+
+/** Live Meta Marketing API adapter (campaigns, ad sets, ads, asset breakdowns, daily insights, pause/resume of campaigns and ads). */
 export class MetaAdsPlatform implements AdsPlatform {
   readonly provider = "meta";
+  readonly capabilities: AdsCapabilities = { supportsKeywords: false, supportsSearchTerms: false, supportsAssetBreakdown: true, supportsAdWrites: true };
   readonly http: HttpClient;
   private readonly base: string;
   private readonly account: string;
@@ -106,10 +125,84 @@ export class MetaAdsPlatform implements AdsPlatform {
   }
 
   async setCampaignStatus(externalId: string, status: "active" | "paused"): Promise<void> {
-    const u = new URL(`${this.base}/${externalId}`);
+    await this.postStatus(externalId, status);
+  }
+
+  private async postStatus(objectId: string, status: "active" | "paused"): Promise<void> {
+    const u = new URL(`${this.base}/${objectId}`);
     const body = new URLSearchParams({ status: status === "active" ? "ACTIVE" : "PAUSED", access_token: this.creds.accessToken }).toString();
     const res = await this.http.request<{ success?: boolean; error?: { message: string; code: number } }>(u.toString(), { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body });
     if (res.json?.error) throw mapMetaError(res.json.error);
     if (res.json?.success === false) throw new IntegrationError("invalid_request", "Meta refused the status change");
+  }
+
+  async setAdStatus(ad: { adExternalId: string }, status: "active" | "paused"): Promise<void> {
+    await this.postStatus(ad.adExternalId, status);
+  }
+
+  async fetchAdSets(): Promise<NormalizedAdSet[]> {
+    const rows = await this.all<Rec>(`${this.account}/adsets`, { fields: "id,name,status,effective_status,campaign_id,optimization_goal,daily_budget", limit: "200" });
+    return rows.map((a) => ({ externalId: String(a.id), campaignExternalId: String(a.campaign_id), name: String(a.name ?? ""), status: entityStatus(a), optimizationGoal: a.optimization_goal ? String(a.optimization_goal) : null, dailyBudgetMinor: a.daily_budget ? Number(a.daily_budget) : null }));
+  }
+
+  /** Ads with their creative: copy, URL parameters (where the UTM template lives), format. */
+  async fetchAds(): Promise<NormalizedAd[]> {
+    const rows = await this.all<Rec>(`${this.account}/ads`, { fields: "id,name,status,effective_status,adset_id,campaign_id,creative{id,title,body,object_type,thumbnail_url,url_tags,link_url,asset_feed_spec{bodies,titles,link_urls}}", limit: "200" });
+    return rows.map((a) => {
+      const c = rec(a.creative);
+      const feed = rec(c.asset_feed_spec);
+      const bodies = Array.isArray(feed.bodies) ? feed.bodies.map((b) => String(rec(b).text ?? "")).filter(Boolean) : [];
+      const titles = Array.isArray(feed.titles) ? feed.titles.map((b) => String(rec(b).text ?? "")).filter(Boolean) : [];
+      const links = Array.isArray(feed.link_urls) ? feed.link_urls.map((l) => String(rec(l).website_url ?? "")).filter(Boolean) : [];
+      const type = String(c.object_type ?? "").toUpperCase();
+      return { externalId: String(a.id), adSetExternalId: a.adset_id ? String(a.adset_id) : null, campaignExternalId: String(a.campaign_id), name: String(a.name ?? ""), status: entityStatus(a), format: type === "VIDEO" ? "video" : type === "SHARE" || type === "PHOTO" ? "image" : type.includes("CAROUSEL") ? "carousel" : "other", headline: (c.title ? String(c.title) : titles[0]) ?? null, body: (c.body ? String(c.body) : bodies.join(" ")) || null, finalUrl: (c.link_url ? String(c.link_url) : links[0]) ?? null, urlTags: c.url_tags ? String(c.url_tags) : null, thumbnailUrl: c.thumbnail_url ? String(c.thumbnail_url) : null };
+    });
+  }
+
+  private assetOf(r: Rec, b: (typeof META_ASSET_BREAKDOWNS)[number]): NormalizedAdAsset | null {
+    const a = rec(r[b.breakdown]);
+    if (!a.id) return null;
+    return { assetExternalId: String(a.id), adExternalId: r.ad_id ? String(r.ad_id) : null, adSetExternalId: r.adset_id ? String(r.adset_id) : null, campaignExternalId: String(r.campaign_id), type: b.type, fieldType: b.fieldType, text: a.text ? String(a.text) : null, url: a.url ? String(a.url) : a.thumbnail_url ? String(a.thumbnail_url) : null, performanceLabel: null };
+  }
+
+  /** Assets of dynamic-creative ads, read from the asset breakdowns of the last 90 days. */
+  async fetchAssets(): Promise<NormalizedAdAsset[]> {
+    const out = new Map<string, NormalizedAdAsset>();
+    for (const b of META_ASSET_BREAKDOWNS) {
+      const rows = await this.all<Rec>(`${this.account}/insights`, { level: "ad", breakdowns: b.breakdown, date_preset: "last_90d", fields: "ad_id,adset_id,campaign_id,impressions", limit: "500" });
+      for (const r of rows) {
+        const a = this.assetOf(r, b);
+        if (a) out.set(`${a.adExternalId}|${a.fieldType}|${a.assetExternalId}`, a);
+      }
+    }
+    return [...out.values()];
+  }
+
+  private insightRow(level: AdEntityMetricLevel, r: Rec, entityExternalId: string, extra: Partial<NormalizedEntityMetric> = {}): NormalizedEntityMetric {
+    const actions = r.actions as Rec[] | undefined;
+    return { level, entityExternalId, campaignExternalId: String(r.campaign_id), adSetExternalId: r.adset_id ? String(r.adset_id) : null, adExternalId: r.ad_id ? String(r.ad_id) : null, date: String(r.date_start), spendMinor: Math.round(Number(r.spend ?? 0) * 100), impressions: Number(r.impressions ?? 0), clicks: Number(r.clicks ?? 0), reach: Number(r.reach ?? 0), conversions: actionValue(actions, PURCHASE), conversionValueMinor: Math.round(actionValue(r.action_values as Rec[], PURCHASE) * 100), videoViews3s: actionValue(actions, ["video_view"]), videoCompletions: actionValue(r.video_p100_watched_actions as Rec[], ["video_view"]), ...extra };
+  }
+
+  /** Daily insights per ad set, ad or asset (asset rows come from the four breakdowns); Meta has no keywords or search terms. */
+  async fetchEntityMetrics(level: AdEntityMetricLevel, window: { since: string; until: string }): Promise<NormalizedEntityMetric[]> {
+    if (level === "keyword" || level === "search_term") return [];
+    const base = { time_increment: "1", time_range: JSON.stringify({ since: window.since, until: window.until }), limit: "500" };
+    if (level === "ad_set") {
+      const rows = await this.all<Rec>(`${this.account}/insights`, { ...base, level: "adset", fields: "adset_id,campaign_id,spend,impressions,clicks,reach,actions,action_values,date_start" });
+      return rows.map((r) => this.insightRow(level, r, String(r.adset_id)));
+    }
+    if (level === "ad") {
+      const rows = await this.all<Rec>(`${this.account}/insights`, { ...base, level: "ad", fields: "ad_id,adset_id,campaign_id,spend,impressions,clicks,reach,actions,action_values,video_p100_watched_actions,date_start" });
+      return rows.map((r) => this.insightRow(level, r, String(r.ad_id)));
+    }
+    const out: NormalizedEntityMetric[] = [];
+    for (const b of META_ASSET_BREAKDOWNS) {
+      const rows = await this.all<Rec>(`${this.account}/insights`, { ...base, level: "ad", breakdowns: b.breakdown, fields: "ad_id,adset_id,campaign_id,spend,impressions,clicks,actions,action_values,date_start" });
+      for (const r of rows) {
+        const a = this.assetOf(r, b);
+        if (a) out.push(this.insightRow(level, r, a.assetExternalId, { fieldType: b.fieldType, reach: 0 }));
+      }
+    }
+    return out;
   }
 }

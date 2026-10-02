@@ -1,12 +1,15 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { MANUAL_LIFECYCLE_REASONS, PLAN_KEYS, TENANT_STATUSES } from "@keel/config";
 import { eq, recordAudit, schema } from "@keel/db";
-import { AccountError, AdminUserError, BillingError, LifecycleError, revokeUserSessions, setTrialEnd, setUserDisabled, transitionTenant, applySuspensions, createTenant, requestPasswordReset, emailSettings, issueDueInvoices, recordInvoicePayment, removeAddressSuppression, sendTestEmail, setTenantAddon, setTenantPlan, setTenantSuspension, voidInvoice } from "@keel/services";
+import { AccountError, AdminUserError, BillingError, LifecycleError, revokeUserSessions, setTrialEnd, setUserDisabled, transitionTenant, applySuspensions, createTenant, requestPasswordReset, emailSettings, issueDueInvoices, recordInvoicePayment, removeAddressSuppression, sendTestEmail, setTenantAddon, setTenantPlan, setTenantSuspension, voidInvoice, TenantExportError, closePlatformAlert, requestTenantExportAsAdmin } from "@keel/services";
+import { runNowJob } from "@keel/jobs";
 import { requireSuperAdmin } from "@/server/admin";
 import { fail, ok, type ActionResult } from "@/server/action-result";
+import { enqueue, runJobInline } from "@/server/jobs";
 import "@/server/email";
 
 const uuid = z.string().uuid();
@@ -220,4 +223,53 @@ export async function revokeUserSessionsAction(userId: string): Promise<ActionRe
   }
   revalidatePath(`/admin/users/${userId}`);
   return ok();
+}
+
+/**
+ * "Run now" from the job history (#32): a scheduler tick or a tenant's pull, queued for the worker
+ * (or run in this process after the response when no worker is deployed). Audited; the run is
+ * recorded with the super-admin as requester.
+ */
+export async function runJobNowAction(jobType: string, tenantId: string | null): Promise<ActionResult<{ queued: boolean }>> {
+  const { user, db } = await requireSuperAdmin();
+  if (tenantId !== null && !uuid.safeParse(tenantId).success) return fail("invalid_input");
+  if (tenantId) {
+    const [t] = await db.select({ id: schema.tenants.id }).from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
+    if (!t) return fail("not_found");
+  }
+  const job = runNowJob(jobType, tenantId);
+  if (!job) return fail("not_runnable");
+  await recordAudit(db, { tenantId, actorUserId: user.id, actorType: "super_admin", action: "admin.job_run_now", entityType: "job", entityId: jobType, metadata: { queue: job.queue } });
+  const data = { ...job.data, requestedBy: user.id };
+  const queued = await enqueue(job.queue, data);
+  if (!queued) after(() => runJobInline(job.queue, data, user.id));
+  revalidatePath("/admin/jobs");
+  return ok({ queued });
+}
+
+/** Closes a platform failure alert by hand (audited by the service). */
+export async function closeAlertAction(alertId: string): Promise<ActionResult> {
+  const { user, db } = await requireSuperAdmin();
+  if (!uuid.safeParse(alertId).success) return fail("invalid_input");
+  if (!(await closePlatformAlert(db, alertId, user.id))) return fail("not_found");
+  revalidatePath("/admin/alerts");
+  return ok();
+}
+
+/** Full data export of a tenant asked from the console (#32): background job, audited on the tenant. */
+export async function requestTenantDataExportAction(tenantId: string): Promise<ActionResult<{ exportId: string; queued: boolean }>> {
+  const { user, db } = await requireSuperAdmin();
+  if (!uuid.safeParse(tenantId).success) return fail("invalid_input");
+  const [t] = await db.select({ id: schema.tenants.id }).from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
+  if (!t) return fail("not_found");
+  try {
+    const exportId = await requestTenantExportAsAdmin(db, tenantId, user.id);
+    const queued = await enqueue("tenant.export", { tenantId, exportId });
+    if (!queued) after(() => runJobInline("tenant.export", { tenantId, exportId }, user.id));
+    revalidatePath(`/admin/tenants/${tenantId}`);
+    return ok({ exportId, queued });
+  } catch (e) {
+    if (e instanceof TenantExportError) return fail(e.code);
+    throw e;
+  }
 }

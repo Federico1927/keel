@@ -5,6 +5,7 @@ import {
   defaultStateRules,
   deriveOrderStatus,
   nameZipKey,
+  splitExact,
   normalizeEmail,
   normalizePhone,
   type OrderStatus,
@@ -349,6 +350,8 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
         const ageDays = (d.getTime() - c.startedAt.getTime()) / 864e5;
         const weights = crs.map((cr) => cr.weight);
         const wsum = weights.reduce((a, b) => a + b, 0);
+        // exact split: the ads of a campaign add up to its daily spend (reconciliation, issue #40)
+        const spendShares = splitExact(spend, weights);
         crs.forEach((cr, k) => {
           const share = weights[k]! / wsum;
           const imp = Math.round(impressions * share);
@@ -356,7 +359,7 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
           const clk = Math.round(imp * (c.platform === "meta" ? 0.012 : 0.03) * ctrFactor * (0.8 + rng.next() * 0.4));
           const pur = Math.round(clk * 0.025 * c.efficiency * (0.6 + rng.next() * 0.8));
           const reach = Math.max(1, Math.round(imp / (1.2 + (cr.fatigues ? Math.min(3, ageDays * 0.03) : 0.4))));
-          ds.adCreativeMetricsDaily.push(t({ creativeId: cr.id, date: iso(d), spendMinor: Math.round(spend * share), impressions: imp, reach, clicks: clk, purchases: pur, purchaseValueMinor: Math.round(pur * (isApparel ? 7600 : 11200) * (0.8 + rng.next() * 0.4)), videoViews3s: cr.format === "video" ? Math.round(imp * 0.28) : 0 }));
+          ds.adCreativeMetricsDaily.push(t({ creativeId: cr.id, date: iso(d), spendMinor: spendShares[k]!, impressions: imp, reach, clicks: clk, purchases: pur, purchaseValueMinor: Math.round(pur * (isApparel ? 7600 : 11200) * (0.8 + rng.next() * 0.4)), videoViews3s: cr.format === "video" ? Math.round(imp * 0.28) : 0 }));
         });
       }
     }
@@ -801,7 +804,7 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
   /* ---------- integrations, health, runs, webhooks ---------- */
   const providers: [string, string, string][] = [["shopify", `${cfg.key}-demo.myshopify.com`, `${cfg.key} demo store`], ["meta", "act_demo", `${cfg.key} Meta account`], ["google", "123-456-7890", `${cfg.key} Google Ads`]];
   for (const [provider, accId, accName] of providers) {
-    ds.integrations.push(t({ provider, status: "connected", mode: "mock", externalAccountId: accId, externalAccountName: accName, credentialsEncrypted: null, config: provider === "shopify" ? { webhooksRegistered: true, apiVersion: "2025-07" } : {}, lastSyncAt: addHours(now, -1), lastSuccessAt: addHours(now, -1), lastError: null }));
+    ds.integrations.push(t({ provider, status: "connected", mode: "mock", externalAccountId: accId, externalAccountName: accName, credentialsEncrypted: null, config: provider === "shopify" ? { webhooksRegistered: true, apiVersion: "2025-07" } : provider === "google" && cfg.key === "northwind" ? { writeAccess: true } : {}, lastSyncAt: addHours(now, -1), lastSuccessAt: addHours(now, -1), lastError: null }));
     ds.integrationHealth.push(t({ source: provider, status: "ok", lastSuccessAt: addHours(now, -1), lastAttemptAt: addHours(now, -1), lastMetricDate: iso(addDays(now, -1)), consecutiveFailures: 0, rowsWrittenLast: provider === "shopify" ? 42 : 310, freshnessMinutes: provider === "shopify" ? 30 : provider === "meta" ? 60 : 720, lastError: null, meta: {} }));
     ds.syncRuns.push(t({ provider, objectType: provider === "shopify" ? "orders" : "metrics", kind: "delta", status: "success", cursor: {}, rowsWritten: 42, rowsScanned: provider === "shopify" ? 57 : 310, conflicts: 0, errorCount: 0, durationMs: provider === "shopify" ? 4200 : 9800, error: null, startedAt: addHours(now, -1), finishedAt: addHours(now, -0.98) }));
   }

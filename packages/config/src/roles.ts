@@ -60,6 +60,7 @@ export const ACTIONS = [
   "edit_order",
   "record_payment",
   "refund_order",
+  "export_tenant_data",
   "manage_dashboard",
 ] as const;
 export type ActionKey = (typeof ACTIONS)[number];
@@ -195,6 +196,8 @@ const ACTION_PAGE: Record<ActionKey, PageKey> = {
   record_payment: "orders",
   /** Money refund from the order page (goodwill, price adjustment, lines with restock). */
   refund_order: "orders",
+  /** Full data export of the tenant (GDPR, leaving the platform): owner only. */
+  export_tenant_data: "settings",
   /** The tenant's dashboards (home, role variants, extra dashboards), custom metrics and targets: issue #43's `dashboard.manage`. */
   manage_dashboard: "dashboard",
 };
@@ -206,6 +209,9 @@ const ADMIN_ONLY_ACTIONS: ReadonlySet<ActionKey> = new Set([
   "manage_settings",
   "manage_dashboard",
 ]);
+
+/** Actions only the owner may take (an impersonating super-admin acts as owner). */
+const OWNER_ONLY_ACTIONS: ReadonlySet<ActionKey> = new Set(["export_tenant_data"]);
 
 export function pageLevel(role: TenantRole, page: PageKey): Level {
   if (role === "owner" || role === "admin") return "write";
@@ -221,6 +227,7 @@ export function canWritePage(role: TenantRole, page: PageKey): boolean {
 }
 
 export function canDo(role: TenantRole, action: ActionKey): boolean {
+  if (OWNER_ONLY_ACTIONS.has(action)) return role === "owner";
   if (ADMIN_ONLY_ACTIONS.has(action)) return role === "owner" || role === "admin";
   if (action === "view") return true;
   return canWritePage(role, ACTION_PAGE[action]);

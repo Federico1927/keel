@@ -7,6 +7,7 @@ import { requirePage } from "@/server/tenant";
 import { CHART_COLORS } from "@/components/charts/theme";
 import { PeriodPicker } from "@/components/period-picker";
 import { periodParams, resolvePeriod } from "@/server/period";
+import { AdsNav } from "../ads-table";
 
 /** Local placeholder thumbnail: platform previews need the ad account's CDN; this keeps the demo offline. */
 function CreativeThumb({ format, label }: { format: string | null; label: string }) {
@@ -41,6 +42,7 @@ export default async function CreativesPage({ params, searchParams }: { params: 
     <>
       <p className="mb-2 text-sm text-muted-foreground"><Link href={`/t/${tenant}/campaigns`} className="hover:underline">← {t("back")}</Link></p>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<PeriodPicker basePath={base} keep={{ by, platform: sp.platform }} preset={period.preset} from={sp.from} to={sp.to} />} />
+      <AdsNav tenant={tenant} active="creatives" qs={new URLSearchParams(Object.entries(periodParams(period, sp)).filter((e): e is [string, string] => Boolean(e[1]))).toString()} />
       <div className="mb-4 flex flex-wrap gap-1 rounded-md bg-muted p-1 text-sm">
         {(["creative", "format", "hook", "angle"] as const).map((b) => <Link key={b} href={qs({ by: b })} className={cn("flex-1 rounded-sm px-3 py-1.5 text-center", by === b ? "bg-card shadow-sm" : "text-muted-foreground")}>{t(`by.${b}`)}</Link>)}
       </div>

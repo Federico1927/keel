@@ -142,7 +142,8 @@
     "stock_critical_no_po": "{title} selling variants at critical stock with nothing on order",
     "late_to_ship": "{title} orders still to ship after {body} working days",
     "sync_delay": "The {title} sync is late ({body})",
-    "export_ready": "Your CSV export is ready: {title} rows ({body})"
+    "export_ready": "Your CSV export is ready: {title} rows ({body})",
+    "platform_failure": "Background job {title} keeps failing"
   },
   "roles": {
     "owner": "owner",
@@ -168,6 +169,7 @@
     "po_supplier_problem": "Supplier problems",
     "integration_health": "Integrations",
     "cod_assigned": "COD assignments",
-    "other": "Other"
+    "other": "Other",
+    "platform_failure": "Platform failures"
   }
 }

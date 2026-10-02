@@ -285,9 +285,11 @@ export function renderEmail<K extends EmailTemplate>(template: K, rawLocale: str
       const d = data as EmailTemplateData["notification"];
       // system types carry data in title/body (a count, a source): phrase them, unless another emitter sent plain text
       const sys = s.system as Record<string, string>;
-      const system = d.type in sys && (d.type === "sync_delay" || /^\d+$/.test(d.title)) ? fill(sys[d.type]!, { title: d.title, body: d.body ?? "" }) : null;
+      const system = d.type in sys && (d.type === "sync_delay" || d.type === "platform_failure" || /^\d+$/.test(d.title)) ? fill(sys[d.type]!, { title: d.title, body: d.body ?? "" }) : null;
       const title = system ?? d.title;
-      return out(fill(tpl.notification.subject, { title }), { paragraphs: [title, ...(!system && d.body ? [d.body] : [])], ...(d.url ? { cta: { label: fill(tpl.notification.cta, { product }), url: d.url } } : {}) });
+      // a failing job keeps its last error under the phrase (#32)
+      const detail = d.body && (!system || d.type === "platform_failure") ? [d.body] : [];
+      return out(fill(tpl.notification.subject, { title }), { paragraphs: [title, ...detail], ...(d.url ? { cta: { label: fill(tpl.notification.cta, { product }), url: d.url } } : {}) });
     }
   }
 }
