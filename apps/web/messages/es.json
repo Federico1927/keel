@@ -636,7 +636,8 @@
         "unsubscribe": "Dado de baja",
         "manual": "Añadido a mano"
       },
-      "supplier_po": "Órdenes de compra a proveedores"
+      "supplier_po": "Órdenes de compra a proveedores",
+      "return_updates": "Novedades de devoluciones a clientes"
     },
     "export_lists": {
       "orders": "pedidos",
@@ -1041,7 +1042,8 @@
     "delivery_instruction_sent": "Instrucción de entrega enviada",
     "cod_escalated": "Escalado contra reembolso",
     "cod_message": "Mensaje de confirmación enviado",
-    "payment_method_changed": "Método de pago cambiado"
+    "payment_method_changed": "Método de pago cambiado",
+    "customer_email": "Correo al cliente"
   },
   "shipments": {
     "title": "Envíos",
@@ -2662,7 +2664,8 @@
       "survey": "Encuesta poscompra",
       "anthropic": "IA (Anthropic)",
       "email": "Email de plataforma",
-      "tiktok": "TikTok Ads"
+      "tiktok": "TikTok Ads",
+      "address": "Validación de direcciones"
     },
     "status": {
       "not_connected": "No conectada",
@@ -2712,14 +2715,16 @@
       "meta": "Token de usuario del sistema",
       "google": "Credenciales de Google Ads API",
       "anthropic": "Clave API de Anthropic",
-      "tiktok": "App de TikTok for Business"
+      "tiktok": "App de TikTok for Business",
+      "address": "Clave API de Google Maps Platform"
     },
     "connect_description": {
       "shopify": "Crea una app personalizada en el admin de la tienda, concede los permisos de la guía, pega el token de Admin API y la clave secreta usada para firmar webhooks.",
       "meta": "Un token de usuario del sistema de larga duración de Business Manager con ads_read y ads_management sobre la cuenta publicitaria.",
       "google": "Developer token, cliente OAuth y un refresh token autorizado para el ámbito de Google Ads; solo lectura en esta versión.",
       "anthropic": "La clave de la tienda desde console.anthropic.com. Anthropic factura el uso del asistente a esa cuenta; Keel guarda la clave cifrada.",
-      "tiktok": "App id y secret de la app de TikTok for Business y el auth code que devuelve la autorización del anunciante; Keel lo canjea por un token de larga duración válido para todas las cuentas de anunciante autorizadas."
+      "tiktok": "App id y secret de la app de TikTok for Business y el auth code que devuelve la autorización del anunciante; Keel lo canjea por un token de larga duración válido para todas las cuentas de anunciante autorizadas.",
+      "address": "La clave de la propia tienda con Address Validation API y Places API (New) activadas. Google factura las solicitudes a la tienda; la clave se guarda cifrada."
     },
     "fields": {
       "shop": "Dominio de la tienda",
@@ -2735,19 +2740,26 @@
       "api_key": "Clave API",
       "app_id": "App id",
       "app_secret": "App secret",
-      "auth_code": "Auth code"
+      "auth_code": "Auth code",
+      "google_api_key": "Clave API de Google"
     },
     "slots_title": "Integraciones por cuenta",
     "slots_description": "Espacios para conectores a medida vendidos por cuenta. Existen interfaces y mocks; el proveedor concreto se implementa bajo pedido.",
     "slots": {
       "messaging": "Canal de mensajería",
       "warehouse": "Almacén / 3PL",
-      "carrier": "Seguimiento de transportista"
+      "carrier": "Seguimiento de transportista",
+      "payment_guarantee": "Retención en tarjeta (cambio inmediato)",
+      "return_labels": "Etiquetas de devolución",
+      "audiences": "Audiencias publicitarias"
     },
     "slots_hint": {
       "messaging": "Proveedores de WhatsApp o SMS para campañas CRM.",
       "warehouse": "Envío de pedidos y lectura de stock desde un operador logístico externo.",
-      "carrier": "Una segunda fuente para el resolutor de estado de envío."
+      "carrier": "Una segunda fuente para el resolutor de estado de envío.",
+      "payment_guarantee": "Una retención en la tarjeta del cliente mientras vuelve el artículo cambiado.",
+      "return_labels": "Etiquetas prepagadas o códigos QR del transportista o servicio de etiquetas de la tienda.",
+      "audiences": "Segmentos sincronizados con públicos personalizados de Meta, Customer Match de Google o una herramienta de email."
     },
     "on_request": "Disponible bajo pedido",
     "runs_title": "Ejecuciones recientes",
@@ -2802,7 +2814,9 @@
     "tiktok_app_hint": "¿Usas la app de TikTok de Keel (TIKTOK_APP_ID configurado)?",
     "tiktok_app_link": "Autorizar con TikTok",
     "not_in_plan_badge": "No incluido",
-    "not_in_plan": "Incluido desde el plan {plan}: pide al gestor de la plataforma que cambie el plan."
+    "not_in_plan": "Incluido desde el plan {plan}: pide al gestor de la plataforma que cambie el plan.",
+    "address_mock_connect": "Usar el proveedor simulado",
+    "address_mock_connected": "Validación de direcciones conectada (proveedor simulado)."
   },
   "integration_guide": {
     "verify_legend": "Los pasos marcados “Por verificar” dependen de consolas de proveedores que cambian a menudo: compruébalos en la documentación del proveedor antes de la primera instalación.",
@@ -3293,6 +3307,371 @@
         "creatives": "Miniaturas de vídeo",
         "pause": "Pausa / reactivación"
       }
+    },
+    "ad_hoc_title": "Integraciones a medida",
+    "ad_hoc_notice": "Integración a medida: {product} ya tiene la interfaz y un proveedor simulado, así que todas las pantallas funcionan en la demo. El conector real para el proveedor de la tienda lo desarrolla y activa el equipo de {product} en esta cuenta (presupuesto aparte). La tienda solo aporta la cuenta y las credenciales indicadas abajo.",
+    "address": {
+      "title": "Validación de direcciones (Google)",
+      "intro": "Comprueba las direcciones de envío y sugiere direcciones completas mientras el equipo edita un pedido; el add-on de contra reembolso usa la misma comprobación en la puntuación de entrega. {product} usa la clave de Google Maps Platform de la propia tienda: Google factura las solicitudes a la cuenta de Google Cloud de la tienda. Sin clave se mantiene la comprobación de formato (campos obligatorios, formato del código postal por país).",
+      "scopes": "Sin scopes OAuth: una clave API del proyecto de Google Cloud de la tienda, con dos API activadas. Restringe la clave a esas dos API.\nQué se envía a Google: las líneas de dirección, ciudad, código postal, provincia y país de la dirección que se comprueba, o el texto escrito en la búsqueda. Nunca el nombre, el correo ni el teléfono del cliente.",
+      "steps": [
+        {
+          "title": "Qué hace en {product}",
+          "body": "Ficha del pedido → Editar → dirección de envío: mientras escribes, hasta 3 sugerencias con la dirección completa; al guardar, la dirección se valida y los problemas aparecen por campo (falta el número, código postal que no corresponde a la ciudad, calle no encontrada). El equipo puede guardar igualmente tras leer el aviso. Con el add-on de contra reembolso, el factor de calidad de la dirección de la puntuación de entrega usa la misma respuesta."
+        },
+        {
+          "title": "Crea o elige un proyecto de Google Cloud",
+          "body": "console.cloud.google.com → selector de proyectos → Proyecto nuevo, con el nombre de la tienda (p. ej. \"Tienda – {product}\"). Usa la cuenta de Google de la tienda, para que las facturas vayan a la tienda.",
+          "verify": true
+        },
+        {
+          "title": "Activa la facturación",
+          "body": "Facturación → Vincular una cuenta de facturación al proyecto. Google Maps Platform exige facturación incluso dentro del uso gratuito mensual. Crea una alerta de presupuesto (Facturación → Presupuestos y alertas), por ejemplo con el coste mensual previsto.",
+          "verify": true
+        },
+        {
+          "title": "Habilita las dos API",
+          "body": "API y servicios → Biblioteca: habilita \"Address Validation API\" y \"Places API (New)\". La antigua \"Places API\" es otro producto: {product} llama a Places API (New).",
+          "verify": true
+        },
+        {
+          "title": "Crea y restringe la clave API",
+          "body": "API y servicios → Credenciales → Crear credenciales → Clave de API. Después Editar clave de API → Restricciones de API → Restringir clave → selecciona Address Validation API y Places API (New). Restricciones de aplicaciones: \"Ninguna\" ({product} llama a Google desde sus servidores, no desde un navegador); no uses restricciones por referente HTTP, bloquean las llamadas de servidor.",
+          "verify": true
+        },
+        {
+          "title": "Pégala en {product}",
+          "body": "Integraciones → Validación de direcciones → Conectar, pega la clave (empieza por AIza), Conectar. {product} valida una dirección conocida para comprobar la clave y las API, y guarda la clave cifrada. Solo owners y admins."
+        },
+        {
+          "title": "Comprueba",
+          "body": "Abre un pedido → Editar → dirección de envío y escribe una calle de tu ciudad: las sugerencias aparecen en un segundo. Cambia el código postal por uno incorrecto y guarda: el diálogo muestra el aviso del código postal. \"Probar conexión\" en la tarjeta repite la comprobación cuando quieras."
+        },
+        {
+          "title": "Costes previstos",
+          "body": "Cada validación es una solicitud de Address Validation; cada búsqueda muestra hasta 3 sugerencias = una solicitud de Autocomplete más una de Place Details por sugerencia. Consulta los precios y el uso gratuito mensual actualizados en la página de precios de Google Maps Platform antes de pasar a producción.",
+          "verify": true
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Probar conexión: \"Google rejected the API key\"",
+          "fix": "La clave se copió incompleta, se eliminó o está restringida a otras API. Revisa las restricciones de API de la clave o crea una nueva."
+        },
+        {
+          "symptom": "\"API is not enabled on the Google Cloud project\"",
+          "fix": "Habilita Address Validation API y Places API (New) en el mismo proyecto que la clave; puede tardar unos minutos."
+        },
+        {
+          "symptom": "La facturación no está activada",
+          "fix": "Vincula una cuenta de facturación al proyecto (Facturación → Vincular una cuenta de facturación)."
+        },
+        {
+          "symptom": "No hay sugerencias, pero la validación funciona",
+          "fix": "Places API (New) no está habilitada o no la permiten las restricciones de API de la clave."
+        },
+        {
+          "symptom": "El diálogo de edición solo muestra avisos de formato",
+          "fix": "Google no respondió (cuota, incidencia): {product} recurre a la comprobación de formato para no bloquear al equipo. Revisa la página de cuotas en Google Cloud y el último error de la tarjeta."
+        }
+      ]
+    },
+    "payment_guarantee": {
+      "title": "Retención en tarjeta para cambios inmediatos",
+      "intro": "Con el cambio inmediato activo (Devoluciones → Política y automatizaciones), el artículo de cambio sale en cuanto se aprueba la devolución. Para cubrir el riesgo, {product} retiene en la tarjeta del cliente el valor de los artículos que aún deben volver: la retención se libera cuando llegan y se cobra si no llegan en los días configurados. Hoy la retención es simulada; la real pasa por el proveedor de pagos de la tienda.",
+      "scopes": "Stripe (captura manual): una clave restringida con escritura en PaymentIntents y lectura en Customers y PaymentMethods; eventos de webhook payment_intent.amount_capturable_updated, payment_intent.canceled, payment_intent.succeeded.\nShopify Payments: la tarjeta guardada solo se puede cobrar con los flujos propios de Shopify; confirma con el equipo de {product} cuáles aplican al plan de la tienda antes de venderlo.\nEn todos los casos, el consentimiento del cliente a la retención debe figurar en el texto del portal de devoluciones.",
+      "steps": [
+        {
+          "title": "Qué hace en {product}",
+          "body": "En un cambio inmediato aprobado, {product} pide al proveedor que autorice el valor de los artículos devueltos, muestra la retención en la devolución (autorizada, liberada, cobrada), la libera al recibir la mercancía y la cobra desde el proceso de devoluciones tras los días configurados, marcando la devolución para revisión. Si la retención falla, no se envía nada por adelantado y la devolución queda marcada."
+        },
+        {
+          "title": "Qué necesita la tienda",
+          "body": "Un proveedor de pagos que permita retenciones sobre una tarjeta guardada: normalmente Stripe con captura manual (tarjetas autorizadas en el checkout o guardadas para uso futuro). Las retenciones caducan según las reglas de las redes de tarjetas (a menudo 7 días en pagos online): la ventana del cambio inmediato no debe superar lo que permite el proveedor.",
+          "verify": true
+        },
+        {
+          "title": "Crea las credenciales",
+          "body": "Panel de Stripe → Desarrolladores → Claves de API → Crear clave restringida, llamada \"{product} retenciones\", con los permisos indicados a la derecha. Cópiala en ese momento: Stripe solo la muestra al crearla.",
+          "verify": true
+        },
+        {
+          "title": "Envíalas al equipo de {product}",
+          "body": "Envía la clave por el canal seguro acordado con el equipo de {product} (nunca por correo en claro). {product} la guarda cifrada (AES-GCM) en la integración y conecta la cuenta de la tienda; la tienda no tiene que pegar nada en {product}."
+        },
+        {
+          "title": "Política y texto del portal",
+          "body": "Devoluciones → Política y automatizaciones → Cambio inmediato: fija los días en que la mercancía debe volver. Devoluciones → Portal: añade al texto de confirmación que la tienda retendrá temporalmente en la tarjeta el valor de los artículos."
+        },
+        {
+          "title": "Comprueba",
+          "body": "Con el equipo de {product}, haz un cambio inmediato sobre un pedido de prueba en el modo de pruebas del proveedor: la devolución muestra \"retención autorizada\" y el proveedor un pago no capturado del mismo importe; marca la devolución como recibida y la retención se libera."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "\"Retención fallida\" en la devolución",
+          "fix": "La tarjeta rechazó la autorización o requiere la confirmación del cliente (3-D Secure). El cambio no sale por adelantado; contacta con el cliente o aprueba un cambio normal."
+        },
+        {
+          "symptom": "Retención cobrada aunque la mercancía llegó",
+          "fix": "La devolución se marcó como recibida después de la fecha de cobro. Reembolsa el importe desde el proveedor y acorta el tiempo de recepción, o alarga los días del cambio inmediato."
+        },
+        {
+          "symptom": "La retención caducó antes de que llegara la mercancía",
+          "fix": "La red de tarjetas la liberó antes de los días configurados: reduce los días del cambio inmediato a lo que permite el proveedor."
+        }
+      ]
+    },
+    "return_labels": {
+      "title": "Etiquetas de devolución prepagadas",
+      "intro": "Da al cliente una etiqueta prepagada (o un código QR para entregar en un punto) cuando envía la devolución desde el portal. Hoy {product} emite una etiqueta simulada e imprime el PDF por sí mismo; el conector real pide una etiqueta al transportista o al servicio de etiquetas de la tienda y guarda el seguimiento en la devolución.",
+      "scopes": "Agregadores de etiquetas (EasyPost, Shippo y similares): una clave API de la cuenta de la tienda, con etiquetas de devolución activadas y un método de pago.\nAPI de un transportista: número de cliente de la tienda, credenciales API y el servicio de devoluciones activado en el contrato (\"etiqueta de devolución\" / \"pago por uso\").\n{product} necesita: la dirección de destino de las devoluciones (Devoluciones → Portal → Etiqueta de devolución prepagada) y el peso por defecto del paquete.",
+      "steps": [
+        {
+          "title": "Qué hace en {product}",
+          "body": "Devoluciones → Portal → \"Dar al cliente una etiqueta de devolución prepagada\". Al recibir una devolución, {product} pide al proveedor una etiqueta desde la dirección del cliente hasta el destino configurado, guarda transportista y seguimiento en la devolución, muestra el enlace a la etiqueta en la confirmación y en el correo de aprobación, y usa el seguimiento para seguir el paquete de vuelta."
+        },
+        {
+          "title": "Qué necesita la tienda",
+          "body": "Un contrato con un transportista que ofrezca etiquetas de devolución, o una cuenta en un agregador de etiquetas, a ser posible con pago por uso (solo pagas las etiquetas escaneadas).",
+          "verify": true
+        },
+        {
+          "title": "Crea las credenciales",
+          "body": "En el panel del proveedor crea una clave API de producción (y otra de pruebas) para {product}. Con la API de un transportista, pide a tu gestor que active las etiquetas de devolución en el número de cliente.",
+          "verify": true
+        },
+        {
+          "title": "Envíalas al equipo de {product}",
+          "body": "Envía las claves y, para un transportista, el número de cliente por el canal seguro acordado con el equipo de {product}. {product} las guarda cifradas y activa el conector en la cuenta de la tienda."
+        },
+        {
+          "title": "Fija el destino",
+          "body": "Devoluciones → Portal: activa la etiqueta prepagada y escribe la dirección de destino (una línea por fila). El coste de la etiqueta por devolución (Devoluciones → Portal → Reembolsos y tienda) alimenta la cuenta de resultados."
+        },
+        {
+          "title": "Comprueba",
+          "body": "Envía una devolución de prueba desde el portal (/r/<tienda>): la confirmación muestra \"Descargar la etiqueta\" y la devolución muestra transportista y seguimiento. En el panel del proveedor la etiqueta aparece con la clave de pruebas."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "No hay etiqueta en la confirmación",
+          "fix": "La etiqueta prepagada está desactivada en los ajustes del portal o la dirección de destino está vacía."
+        },
+        {
+          "symptom": "El proveedor rechaza la dirección del cliente",
+          "fix": "La dirección está incompleta o en un país que el servicio de devoluciones no cubre; la devolución se crea igualmente y el equipo puede enviar instrucciones por correo."
+        },
+        {
+          "symptom": "Etiquetas cobradas pero nunca usadas",
+          "fix": "Elige etiquetas de devolución con pago por uso cuando el proveedor las ofrezca."
+        }
+      ]
+    },
+    "audiences": {
+      "title": "Segmentos hacia audiencias publicitarias",
+      "intro": "Envía un segmento del CRM a Meta como público personalizado, a Google Ads como lista de Customer Match o a una herramienta de email como lista, y lo mantiene al día: quien entra en el segmento se añade y quien sale se elimina. Hoy los destinos son simulados; los conectores reales usan las cuentas publicitarias de la tienda.",
+      "scopes": "Públicos personalizados de Meta: token de un usuario del sistema con ads_management en la cuenta publicitaria y las condiciones de públicos personalizados aceptadas en esa cuenta.\nCustomer Match de Google: el scope OAuth de la conexión de Google Ads (https://www.googleapis.com/auth/adwords) en una cuenta que cumpla la política de Customer Match de Google (historial y gasto), con las condiciones de datos de clientes aceptadas.\nHerramienta de email: una clave API que pueda gestionar listas o audiencias.\nSolo se envían clientes con consentimiento de marketing; las plataformas publicitarias reciben solo hashes SHA-256 del correo y el teléfono normalizados.",
+      "steps": [
+        {
+          "title": "Qué hace en {product}",
+          "body": "Segmentos → un segmento → Actualización continua y destinos → Añadir destino: elige Meta, Google o la herramienta de email. {product} crea la audiencia la primera vez y después sincroniza las diferencias tras cada cambio del segmento (o a petición), con estado y error legible por destino."
+        },
+        {
+          "title": "Meta: acepta las condiciones",
+          "body": "Configuración del negocio → la cuenta publicitaria → condiciones de públicos personalizados, o Administrador de anuncios → Públicos → Crear público → Público personalizado → Lista de clientes, y acepta las condiciones una vez.",
+          "verify": true
+        },
+        {
+          "title": "Meta: da el permiso al token",
+          "body": "Configuración del negocio → Usuarios → Usuarios del sistema → el usuario del sistema de {product} → Asignar activos → la cuenta publicitaria con \"Administrar campañas\" (ads_management). Se puede reutilizar el token de Meta Ads.",
+          "verify": true
+        },
+        {
+          "title": "Google: comprueba que la cuenta es apta",
+          "body": "Google Ads → Herramientas → Biblioteca compartida → Gestor de audiencias → Tus segmentos de datos: si Customer Match está disponible, la cuenta es apta. Acepta las condiciones de datos de clientes cuando se pidan.",
+          "verify": true
+        },
+        {
+          "title": "Herramienta de email",
+          "body": "Crea una clave API que pueda gestionar listas (audiencias, contactos) y anota el id de la lista o audiencia si ya existe.",
+          "verify": true
+        },
+        {
+          "title": "Envíalas al equipo de {product}",
+          "body": "Meta y Google reutilizan las conexiones que ya están en Integraciones cuando el equipo de {product} activa el destino; la clave de la herramienta de email va por el canal seguro acordado con el equipo de {product} y se guarda cifrada."
+        },
+        {
+          "title": "Comprueba",
+          "body": "Envía un segmento pequeño: tras la sincronización el destino muestra el número enviado; en Públicos de Meta o en el Gestor de audiencias de Google la lista aparece \"rellenándose\" y, unas horas después, con el porcentaje de coincidencia.",
+          "verify": true
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Meta: \"condiciones no aceptadas\"",
+          "fix": "Acepta las condiciones de públicos personalizados en la misma cuenta publicitaria que usa el token."
+        },
+        {
+          "symptom": "Google: Customer Match no disponible",
+          "fix": "La cuenta aún no cumple la política de Google (historial, gasto, cumplimiento); consulta al soporte de Google o usa otra cuenta."
+        },
+        {
+          "symptom": "Audiencia demasiado pequeña para usarla",
+          "fix": "Las plataformas exigen un mínimo de personas coincidentes: amplía el segmento o espera a que crezca."
+        },
+        {
+          "symptom": "Menos miembros que el segmento",
+          "fix": "Solo se envían clientes con consentimiento de marketing y con correo o teléfono."
+        }
+      ]
+    },
+    "messaging": {
+      "title": "Canales de mensajería (email, SMS, WhatsApp)",
+      "intro": "El canal que envía las campañas del CRM a los segmentos (add-on de campañas a clientes) y, si la tienda lo desea, mensajes sobre pedidos. {product} tiene la interfaz y un canal simulado que registra cada mensaje; el conector real para el proveedor de la tienda lo desarrolla el equipo de {product}. Los correos de estado de las devoluciones no lo necesitan: salen por el remitente de la plataforma {product}.",
+      "scopes": "Proveedor de email marketing: una clave API con permiso de envío (y de gestión de listas, si las campañas usan sus listas), un dominio de envío verificado (SPF, DKIM, DMARC).\nProveedor de SMS: una clave API, un remitente o número registrado y los registros por país que exija el proveedor.\nWhatsApp Business: una cuenta con un WhatsApp Business Solution Provider o la Cloud API, una empresa verificada, un número de teléfono y plantillas de mensaje aprobadas para cada mensaje de campaña.\nWebhook de estado de entrega: {product} facilita la URL que hay que pegar en el proveedor al activar el conector.",
+      "steps": [
+        {
+          "title": "Qué hace en {product}",
+          "body": "Con el add-on de campañas a clientes: una campaña elige un segmento, un canal y una plantilla, envía al grupo tratado y deja fuera el grupo de control, y después mide la diferencia. Cada mensaje tiene un estado (enviado, entregado, leído, fallido) a partir del webhook del proveedor."
+        },
+        {
+          "title": "Elige el proveedor",
+          "body": "Si es posible, usa el proveedor que la tienda ya paga: el equipo de {product} desarrolla un conector por proveedor. Indica al equipo el nombre del proveedor y los canales que quieres (email, SMS, WhatsApp)."
+        },
+        {
+          "title": "Prepara la cuenta",
+          "body": "Email: verifica el dominio de envío. SMS: registra el remitente. WhatsApp: verifica la empresa en Meta Business Manager, conecta el número y consigue la aprobación de las plantillas (las plantillas de marketing requieren consentimiento).",
+          "verify": true
+        },
+        {
+          "title": "Crea las credenciales",
+          "body": "Crea en el panel del proveedor una clave API dedicada a {product}, solo con permiso de envío cuando sea posible.",
+          "verify": true
+        },
+        {
+          "title": "Envíalas al equipo de {product}",
+          "body": "Envía la clave, el remitente (dominio, remitente SMS o número) y los nombres de las plantillas por el canal seguro acordado con el equipo de {product}. {product} los guarda cifrados y registra el webhook de entrega."
+        },
+        {
+          "title": "Comprueba",
+          "body": "Con el equipo de {product}, envía una campaña de prueba a un segmento que solo contenga tu contacto: el mensaje llega y la campaña lo muestra como entregado (y leído, en WhatsApp)."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Mensajes de WhatsApp rechazados",
+          "fix": "La plantilla no está aprobada, o el cliente no dio su consentimiento a mensajes de marketing."
+        },
+        {
+          "symptom": "SMS no entregados en un país",
+          "fix": "El remitente no está registrado en ese país; revisa las reglas por país del proveedor."
+        },
+        {
+          "symptom": "Los correos llegan a spam",
+          "fix": "Completa SPF, DKIM y DMARC en el dominio de envío y caliéntalo con volúmenes pequeños."
+        },
+        {
+          "symptom": "Estados parados en \"enviado\"",
+          "fix": "El webhook de entrega del proveedor no está configurado o apunta a una URL antigua."
+        }
+      ]
+    },
+    "carrier": {
+      "title": "Seguimiento del transportista e instrucciones de entrega",
+      "intro": "Una segunda fuente para el estado de los envíos, junto a los eventos de preparación de Shopify: los eventos de seguimiento del propio transportista (en tránsito, en reparto, intento fallido, incidencia) y el canal para enviar instrucciones de entrega de un paquete con incidencia (nuevo intento, nueva dirección, punto de recogida, devolución). Hoy el transportista es simulado; en modo real, mientras no haya un conector activo, las instrucciones salen por correo a la dirección del transportista configurada en Ajustes → Preparación.",
+      "scopes": "API del transportista: número de cliente de la tienda y credenciales API con acceso al seguimiento (y, para las instrucciones, el servicio de gestión o cambio de entrega activado en el contrato).\nAgregador de seguimiento: una clave API de la cuenta de la tienda que cubra los transportistas que usa.\n{product} necesita: la lista de transportistas y servicios con los que envía la tienda.",
+      "steps": [
+        {
+          "title": "Qué hace en {product}",
+          "body": "Envíos: el estado de cada paquete se calcula a partir de todas las fuentes con precedencias (el evento del transportista gana a un estado de Shopify más antiguo). Las incidencias y los paquetes parados abren tareas; desde un paquete con incidencia el equipo envía una instrucción al transportista y la respuesta queda en la cronología del pedido."
+        },
+        {
+          "title": "Qué necesita la tienda",
+          "body": "Acceso API en el contrato del transportista: muchos lo dan a clientes empresa bajo petición, a veces como opción de pago. Con varios transportistas, un agregador de seguimiento los cubre todos con una sola clave.",
+          "verify": true
+        },
+        {
+          "title": "Crea las credenciales",
+          "body": "Pide a tu gestor del transportista credenciales API para el seguimiento (y las instrucciones de entrega), o crea la clave en el panel del agregador.",
+          "verify": true
+        },
+        {
+          "title": "Envíalas al equipo de {product}",
+          "body": "Envía las credenciales y el número de cliente por el canal seguro acordado con el equipo de {product}. {product} las guarda cifradas y activa el conector; mientras tanto, las instrucciones desde Preparación → Incidencias siguen saliendo por correo."
+        },
+        {
+          "title": "Correspondencia de estados",
+          "body": "Ajustes → Preparación → correspondencia de estados: revisa cómo se traducen los estados del transportista a los de {product} (en tránsito, incidencia, entregado). El equipo de {product} los rellena para el transportista."
+        },
+        {
+          "title": "Comprueba",
+          "body": "Abre un paquete reciente: la cronología muestra eventos con fuente = transportista. Envía una instrucción sobre un paquete de prueba con incidencia: la cronología del pedido muestra \"Instrucción de entrega enviada\" con la referencia del transportista."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Ningún evento del transportista en los paquetes",
+          "fix": "Los números de seguimiento que llegan de Shopify son de otro transportista o servicio distinto del conectado; revisa el nombre del transportista en las preparaciones."
+        },
+        {
+          "symptom": "Instrucción rechazada",
+          "fix": "El paquete ya está entregado o devuelto, o el servicio de cambio de entrega no está en el contrato."
+        },
+        {
+          "symptom": "El estado va y viene",
+          "fix": "Dos fuentes no coinciden: revisa la correspondencia de estados en Ajustes → Preparación."
+        }
+      ]
+    },
+    "warehouse": {
+      "title": "Almacén externo / 3PL",
+      "intro": "Conecta un operador logístico externo: {product} le envía los pedidos que hay que enviar, lee su stock y el estado de los envíos que comunica. Hoy el almacén es simulado; el conector real para el 3PL de la tienda lo desarrolla el equipo de {product}.",
+      "scopes": "API del 3PL: credenciales de la cuenta de la tienda con permiso para crear pedidos de salida, leer el stock por SKU y leer el estado de los envíos; el código o códigos de almacén.\nLos SKU deben coincidir entre Shopify y el 3PL: {product} cruza stock y líneas de pedido por SKU.\nSi el 3PL ya está conectado directamente a Shopify, decide con el equipo de {product} qué sistema envía los pedidos, para que no salgan dos veces.",
+      "steps": [
+        {
+          "title": "Qué hace en {product}",
+          "body": "Los pedidos listos para enviar se mandan al 3PL; su stock por SKU actualiza el inventario de una ubicación dedicada en {product}; el estado de envío que comunica pasa a ser una fuente del cálculo del estado. Las diferencias de stock se ven en Inventario."
+        },
+        {
+          "title": "Qué necesita la tienda",
+          "body": "Un 3PL con API, y el SKU de cada variante de Shopify igual al código de artículo del 3PL.",
+          "verify": true
+        },
+        {
+          "title": "Crea las credenciales",
+          "body": "Pide al 3PL credenciales API para {product} (pruebas y producción) y el código de almacén.",
+          "verify": true
+        },
+        {
+          "title": "Envíalas al equipo de {product}",
+          "body": "Envía las credenciales y el código de almacén por el canal seguro acordado con el equipo de {product}. {product} las guarda cifradas, crea la ubicación del 3PL y activa el conector."
+        },
+        {
+          "title": "Revisa los SKU",
+          "body": "Productos → Calidad de datos del catálogo → \"Falta el SKU\": cada variante que envía el 3PL necesita uno; los duplicados se rechazan."
+        },
+        {
+          "title": "Comprueba",
+          "body": "Con el equipo de {product}: un pedido creado en la tienda de pruebas llega al entorno de pruebas del 3PL; un cambio de stock en el 3PL aparece en Inventario para la ubicación del 3PL tras la siguiente sincronización."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "El 3PL no acepta el pedido",
+          "fix": "Una línea no tiene SKU, o el 3PL no conoce el SKU."
+        },
+        {
+          "symptom": "El stock no cuadra",
+          "fix": "El 3PL cuenta de otra forma las unidades reservadas; compara con Inventario y acordad qué cifra muestra {product}."
+        },
+        {
+          "symptom": "Pedidos enviados dos veces",
+          "fix": "Envían pedidos tanto la app 3PL de Shopify como {product}: deja un solo emisor."
+        }
+      ]
     }
   },
   "admin": {
@@ -4647,7 +5026,16 @@
       "tags_hint": "Etiquetas añadidas al pedido en la tienda cuando la devolución llega a ese estado (separadas por comas).",
       "label_cost": "Coste de la etiqueta de devolución ({currency})",
       "handling_cost": "Coste de gestión por devolución ({currency})",
-      "costs_hint": "Cada devolución con mercancía recibida cuesta una etiqueta y su gestión; el P/L lo muestra como costes de devolución, neto del envío cobrado a los clientes."
+      "costs_hint": "Cada devolución con mercancía recibida cuesta una etiqueta y su gestión; el P/L lo muestra como costes de devolución, neto del envío cobrado a los clientes.",
+      "customer_emails": "Correos de estado al cliente",
+      "customer_emails_hint": "Se envían en el idioma del cliente con el nombre de tu tienda como remitente y la dirección de soporte del portal para las respuestas. Con el correo de reembolso activo, no se pide a Shopify que envíe su propia notificación de reembolso.",
+      "customer_email_events": {
+        "approved": "Devolución aprobada (con la etiqueta prepagada, si la hay)",
+        "received": "Devolución recibida en el almacén",
+        "refunded": "Reembolso realizado",
+        "voucher_issued": "Saldo emitido",
+        "exchange_shipped": "Cambio enviado"
+      }
     },
     "tracking_page": "Página pública de seguimiento de pedidos",
     "label_enabled": "Dar al cliente una etiqueta de devolución prepagada",

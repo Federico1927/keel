@@ -636,7 +636,8 @@
         "unsubscribe": "Unsubscribed",
         "manual": "Added by hand"
       },
-      "supplier_po": "Purchase orders to suppliers"
+      "supplier_po": "Purchase orders to suppliers",
+      "return_updates": "Return updates to customers"
     },
     "export_lists": {
       "orders": "orders",
@@ -1041,7 +1042,8 @@
     "delivery_instruction_sent": "Delivery instruction sent",
     "cod_escalated": "COD escalation",
     "cod_message": "Confirmation message sent",
-    "payment_method_changed": "Payment method changed"
+    "payment_method_changed": "Payment method changed",
+    "customer_email": "Email to customer"
   },
   "shipments": {
     "title": "Shipments",
@@ -2662,7 +2664,8 @@
       "survey": "Post-purchase survey",
       "anthropic": "AI (Anthropic)",
       "email": "Platform email",
-      "tiktok": "TikTok Ads"
+      "tiktok": "TikTok Ads",
+      "address": "Address validation"
     },
     "status": {
       "not_connected": "Not connected",
@@ -2712,14 +2715,16 @@
       "meta": "System user token",
       "google": "Google Ads API credentials",
       "anthropic": "Anthropic API key",
-      "tiktok": "TikTok for Business app"
+      "tiktok": "TikTok for Business app",
+      "address": "Google Maps Platform API key"
     },
     "connect_description": {
       "shopify": "Create a custom app in the store admin, grant the scopes listed in the guide, paste the Admin API access token and the API secret key used to sign webhooks.",
       "meta": "A long-lived system user token from Business Manager with ads_read and ads_management on the ad account.",
       "google": "Developer token, OAuth client and a refresh token authorised for the Google Ads scope; read-only in this version.",
       "anthropic": "The store's own key from console.anthropic.com. Anthropic bills the assistant's usage to that account; Keel stores the key encrypted.",
-      "tiktok": "App id and secret of the TikTok for Business app and the auth code returned by the advertiser authorization; Keel exchanges it for a long-lived token covering every authorized advertiser account."
+      "tiktok": "App id and secret of the TikTok for Business app and the auth code returned by the advertiser authorization; Keel exchanges it for a long-lived token covering every authorized advertiser account.",
+      "address": "The store's own key with Address Validation API and Places API (New) enabled. Google bills the requests to the store; the key is stored encrypted."
     },
     "fields": {
       "shop": "Shop domain",
@@ -2735,19 +2740,26 @@
       "api_key": "API key",
       "app_id": "App id",
       "app_secret": "App secret",
-      "auth_code": "Auth code"
+      "auth_code": "Auth code",
+      "google_api_key": "Google API key"
     },
     "slots_title": "Per-account integrations",
     "slots_description": "Slots for ad hoc connectors sold per account. Interfaces and mocks exist; a specific provider is implemented on request.",
     "slots": {
       "messaging": "Messaging channel",
       "warehouse": "Warehouse / 3PL",
-      "carrier": "Carrier tracking"
+      "carrier": "Carrier tracking",
+      "payment_guarantee": "Card hold (instant exchange)",
+      "return_labels": "Return labels",
+      "audiences": "Ad audiences"
     },
     "slots_hint": {
       "messaging": "WhatsApp or SMS providers for CRM campaigns.",
       "warehouse": "Push orders and read stock from an external logistics provider.",
-      "carrier": "A second source for the shipment status resolver."
+      "carrier": "A second source for the shipment status resolver.",
+      "payment_guarantee": "A hold on the customer's card while an exchanged item comes back.",
+      "return_labels": "Prepaid labels or QR codes from the store's carrier or label service.",
+      "audiences": "Segments synced to Meta Custom Audiences, Google Customer Match or an email tool."
     },
     "on_request": "Available on request",
     "runs_title": "Recent sync runs",
@@ -2802,7 +2814,9 @@
     "tiktok_app_hint": "Using Keel's own TikTok app (TIKTOK_APP_ID configured)?",
     "tiktok_app_link": "Authorize with TikTok",
     "not_in_plan_badge": "Not in plan",
-    "not_in_plan": "Included from the {plan} plan: ask the platform owner to change the plan."
+    "not_in_plan": "Included from the {plan} plan: ask the platform owner to change the plan.",
+    "address_mock_connect": "Use the simulated provider",
+    "address_mock_connected": "Address validation connected (simulated provider)."
   },
   "integration_guide": {
     "verify_legend": "Steps marked “To verify” depend on vendor consoles that change often: check them against the vendor documentation before the first install.",
@@ -3293,6 +3307,371 @@
         "creatives": "Video thumbnails",
         "pause": "Pause / resume"
       }
+    },
+    "ad_hoc_title": "Ad hoc integrations",
+    "ad_hoc_notice": "Ad hoc integration: {product} already has the interface and a simulated provider, so every screen works in the demo. The live connector for the store's provider is built and switched on by the {product} team for this account (it is quoted separately). The store only provides the account and the credentials listed below.",
+    "address": {
+      "title": "Address validation (Google)",
+      "intro": "Checks shipping addresses and suggests complete ones while the team edits an order; the COD add-on uses the same check in the delivery score. {product} uses the store's own Google Maps Platform key: Google bills the requests to the store's Google Cloud account. Without a key {product} keeps a format check (required fields, postal code pattern per country).",
+      "scopes": "No OAuth scopes: one API key from the store's Google Cloud project, with two APIs enabled. Restrict the key to these two APIs.\nWhat is sent to Google: the address lines, city, postal code, province and country of the address being checked or the text typed in the search box. Never the customer's name, email or phone.",
+      "steps": [
+        {
+          "title": "What it does in {product}",
+          "body": "Order page → Edit → shipping address: while typing, up to 3 suggestions with the full structured address; on save, the address is validated and problems are shown per field (missing house number, postal code that does not match the city, street not found). The team can still save after reading the warning. With the COD add-on the address quality factor of the delivery score uses the same answer."
+        },
+        {
+          "title": "Create or choose a Google Cloud project",
+          "body": "console.cloud.google.com → project picker → New project, named after the store (e.g. \"Store – {product}\"). Use the store's own Google account so the invoices go to the store.",
+          "verify": true
+        },
+        {
+          "title": "Turn on billing",
+          "body": "Billing → Link a billing account to the project. Google Maps Platform needs billing even within the monthly free usage. Set a budget alert (Billing → Budgets & alerts), for example at the expected monthly cost.",
+          "verify": true
+        },
+        {
+          "title": "Enable the two APIs",
+          "body": "APIs & Services → Library: enable \"Address Validation API\" and \"Places API (New)\". The old \"Places API\" is not the same product: {product} calls Places API (New).",
+          "verify": true
+        },
+        {
+          "title": "Create and restrict the API key",
+          "body": "APIs & Services → Credentials → Create credentials → API key. Then Edit API key → API restrictions → Restrict key → select Address Validation API and Places API (New). Application restrictions: \"None\" ({product} calls Google from its servers, not from a browser); do not use HTTP referrer restrictions, they block server calls.",
+          "verify": true
+        },
+        {
+          "title": "Paste the key in {product}",
+          "body": "Integrations → Address validation → Connect, paste the key (it starts with AIza), Connect. {product} validates one known address to check the key and the APIs, then stores the key encrypted. Owners and admins only."
+        },
+        {
+          "title": "Verify",
+          "body": "Open an order → Edit → shipping address, type a street of your city: suggestions appear in a second. Change the postal code to a wrong one and save: the dialog shows the postal code warning. \"Test connection\" on the card repeats the check at any time."
+        },
+        {
+          "title": "Costs to expect",
+          "body": "Each validation is one Address Validation request; each search shows up to 3 suggestions = one Autocomplete request plus one Place Details request per suggestion. Check the current prices and the monthly free usage on the Google Maps Platform pricing page before going live.",
+          "verify": true
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Test connection: \"Google rejected the API key\"",
+          "fix": "The key was copied incompletely, deleted or restricted to other APIs. Check API restrictions on the key, or create a new one."
+        },
+        {
+          "symptom": "\"API is not enabled on the Google Cloud project\"",
+          "fix": "Enable Address Validation API and Places API (New) in the same project as the key; it can take a few minutes to apply."
+        },
+        {
+          "symptom": "Billing is not enabled",
+          "fix": "Link a billing account to the project (Billing → Link a billing account)."
+        },
+        {
+          "symptom": "No suggestions, but validation works",
+          "fix": "Places API (New) is not enabled or not allowed by the key's API restrictions."
+        },
+        {
+          "symptom": "The edit dialog shows only format warnings",
+          "fix": "Google did not answer (quota, outage): {product} falls back to the format check so the team is never blocked. Look at the quotas page in Google Cloud and at the card's last error."
+        }
+      ]
+    },
+    "payment_guarantee": {
+      "title": "Card hold for instant exchanges",
+      "intro": "With instant exchange on (Returns → Policy and automations), the replacement ships as soon as the return is approved. To cover the risk, {product} places a hold on the customer's card for the value of the items still to come back: it is released when they arrive and captured if they do not arrive within the configured days. Today the hold is simulated; the live hold runs on the store's payment provider.",
+      "scopes": "Stripe (manual capture): a restricted key with write access to PaymentIntents and read access to Customers and PaymentMethods; webhook events payment_intent.amount_capturable_updated, payment_intent.canceled, payment_intent.succeeded.\nShopify Payments: the vaulted card can be charged only through Shopify's own flows; check with the {product} team which ones apply to the store's plan before selling it.\nIn every case the customer's consent to the hold must be part of the return portal text.",
+      "steps": [
+        {
+          "title": "What it does in {product}",
+          "body": "On an approved instant exchange {product} asks the provider to authorise the value of the returned items, shows the hold on the return (authorised, released, captured), releases it when the goods are received and captures it from the returns job after the configured days, flagging the return for review. A failed hold ships nothing early and flags the return."
+        },
+        {
+          "title": "What the store needs",
+          "body": "A payment provider that supports holds on a saved card: typically Stripe with manual capture (cards authorised at checkout or saved for later use). Holds expire on the card network's terms (often 7 days for online card payments): the instant exchange window must not be longer than what the provider allows.",
+          "verify": true
+        },
+        {
+          "title": "Create the credentials",
+          "body": "Stripe dashboard → Developers → API keys → Create restricted key, named \"{product} holds\", with the permissions listed on the right. Copy it once; Stripe shows it only at creation.",
+          "verify": true
+        },
+        {
+          "title": "Send them to the {product} team",
+          "body": "Send the key through the secure channel agreed with the {product} team (never by plain email). {product} stores it encrypted (AES-GCM) in the integration and connects the store's account; the store does not paste anything in {product}."
+        },
+        {
+          "title": "Policy and portal text",
+          "body": "Returns → Policy and automations → Instant exchange: set the days within which the goods must come back. Returns → Portal: add to the confirmation text that the store will place a temporary hold of the items' value on the card."
+        },
+        {
+          "title": "Verify",
+          "body": "With the {product} team, run one instant exchange on a test order in the provider's test mode: the return shows \"hold authorised\", the provider shows an uncaptured payment of the same amount; mark the return received and the hold is released."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "\"Hold failed\" on the return",
+          "fix": "The card declined the authorisation or needs the customer's confirmation (3-D Secure). The replacement is not shipped early; contact the customer or approve a normal exchange."
+        },
+        {
+          "symptom": "Hold captured although the goods arrived",
+          "fix": "The return was marked received after the capture date. Refund the captured amount from the provider and shorten the receiving time, or lengthen the instant exchange days."
+        },
+        {
+          "symptom": "Hold expired before the goods arrived",
+          "fix": "The card network released it before the configured days: lower the instant exchange days to what the provider allows."
+        }
+      ]
+    },
+    "return_labels": {
+      "title": "Prepaid return labels",
+      "intro": "Gives the customer a prepaid label (or a QR code for drop-off) when the return is submitted from the portal. Today {product} issues a simulated label and prints the PDF itself; the live connector asks the store's carrier or label service for a real one and stores the tracking code on the return.",
+      "scopes": "Shipping label aggregators (EasyPost, Shippo and similar): an API key of the store's account, with return labels enabled and a payment method on file.\nA carrier's own API: the store's customer number, API credentials and the return product enabled on the contract (\"return label\" / \"pay on use\").\n{product} needs: the return destination address (Returns → Portal → Prepaid return label) and the parcel's default weight.",
+      "steps": [
+        {
+          "title": "What it does in {product}",
+          "body": "Returns → Portal → \"Give the customer a prepaid return label\". When a return is submitted, {product} asks the provider for a label from the customer's address to the destination you set, stores carrier and tracking code on the return, shows the label link on the confirmation page and in the approval email, and uses the tracking code to follow the parcel back."
+        },
+        {
+          "title": "What the store needs",
+          "body": "A contract with a carrier that offers return labels, or an account with a label aggregator, with return labels paid on use if possible (you pay only for labels actually scanned).",
+          "verify": true
+        },
+        {
+          "title": "Create the credentials",
+          "body": "In the provider's dashboard create a production API key (and a test key) for {product}. With a carrier API, ask the account manager to enable return labels on the customer number.",
+          "verify": true
+        },
+        {
+          "title": "Send them to the {product} team",
+          "body": "Send the keys and, for a carrier, the customer number through the secure channel agreed with the {product} team. {product} stores them encrypted and activates the connector on the store's account."
+        },
+        {
+          "title": "Set the destination",
+          "body": "Returns → Portal: enable the prepaid label and write the destination address (one line per row). The label cost per return (Returns → Portal → Refunds and the store) feeds the P/L."
+        },
+        {
+          "title": "Verify",
+          "body": "Submit a test return from the portal (/r/<store>): the confirmation shows \"Download the label\" and the return shows carrier and tracking code. In the provider's dashboard the label appears under the test key."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "No label on the confirmation page",
+          "fix": "The prepaid label is off in the portal settings or the destination address is empty."
+        },
+        {
+          "symptom": "The provider refuses the customer's address",
+          "fix": "The address is incomplete or in a country the return product does not cover; the return is created anyway and the team can send instructions by email."
+        },
+        {
+          "symptom": "Labels charged but never used",
+          "fix": "Choose \"pay on use\" return labels where the provider offers them."
+        }
+      ]
+    },
+    "audiences": {
+      "title": "Segments to ad audiences",
+      "intro": "Sends a CRM segment to Meta as a Custom Audience, to Google Ads as a Customer Match list, or to an email tool as a list, and keeps it in step: customers who enter the segment are added, those who leave are removed. Today the destinations are simulated; the live connectors use the store's own ad accounts.",
+      "scopes": "Meta Custom Audiences: a system user token with ads_management on the ad account, and the Custom Audience terms accepted on that ad account.\nGoogle Customer Match: the Google Ads connection's OAuth scope (https://www.googleapis.com/auth/adwords) on an account that meets Google's Customer Match policy (account history and spend), customer data terms accepted.\nEmail tool: an API key allowed to manage lists or audiences.\nOnly customers with marketing consent are sent; ad platforms receive only SHA-256 hashes of normalized email and phone.",
+      "steps": [
+        {
+          "title": "What it does in {product}",
+          "body": "Segments → a segment → Live updates and destinations → Add destination: choose Meta, Google or the email tool. {product} creates the audience the first time, then syncs differences after every change of the segment (or on request), with status and readable error per destination."
+        },
+        {
+          "title": "Meta: accept the terms",
+          "body": "Business Settings → the ad account → Custom Audiences terms, or Ads Manager → Audiences → Create audience → Custom audience → Customer list, and accept the terms once.",
+          "verify": true
+        },
+        {
+          "title": "Meta: give the token the permission",
+          "body": "Business Settings → Users → System users → the {product} system user → Assign assets → the ad account with \"Manage campaigns\" (ads_management). The same token used for Meta Ads can be reused.",
+          "verify": true
+        },
+        {
+          "title": "Google: check eligibility",
+          "body": "Google Ads → Tools → Shared library → Audience manager → Your data segments: if Customer Match is available, the account is eligible. Accept the customer data terms when asked.",
+          "verify": true
+        },
+        {
+          "title": "Email tool",
+          "body": "Create an API key that can manage lists (audiences, contacts) and note the list or audience id if one already exists.",
+          "verify": true
+        },
+        {
+          "title": "Send them to the {product} team",
+          "body": "Meta and Google reuse the connections already in Integrations once the {product} team activates the destination; the email tool key goes through the secure channel agreed with the {product} team and is stored encrypted."
+        },
+        {
+          "title": "Verify",
+          "body": "Push a small segment: after the sync the destination shows the number sent; in Meta Audiences or Google's Audience manager the list appears with \"populating\" and the match rate after a few hours.",
+          "verify": true
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Meta: \"terms not accepted\"",
+          "fix": "Accept the Custom Audience terms on the same ad account the token uses."
+        },
+        {
+          "symptom": "Google: Customer Match not available",
+          "fix": "The account does not meet Google's policy yet (history, spend, compliance); ask Google support or use another account."
+        },
+        {
+          "symptom": "Audience too small to use",
+          "fix": "Ad platforms need a minimum number of matched people: widen the segment or wait for it to grow."
+        },
+        {
+          "symptom": "Fewer members than the segment",
+          "fix": "Only customers with marketing consent and an email or phone are sent."
+        }
+      ]
+    },
+    "messaging": {
+      "title": "Messaging channels (email, SMS, WhatsApp)",
+      "intro": "The channel that sends CRM campaigns to segments (customer campaigns add-on) and, where the store wants it, order messages. {product} has the interface and a simulated channel that records every message; the live connector for the store's provider is built by the {product} team. Status emails about returns do not need this: they go through {product}'s platform sender.",
+      "scopes": "Email marketing provider: an API key allowed to send (and manage lists, if campaigns use its lists), a verified sending domain (SPF, DKIM, DMARC).\nSMS provider: an API key, a registered sender id or number, and the country registrations the provider requires.\nWhatsApp Business: an account with a WhatsApp Business Solution Provider or the Cloud API, a verified business, a phone number, and approved message templates for each campaign message.\nWebhook for delivery status: {product} gives the URL to paste in the provider when it activates the connector.",
+      "steps": [
+        {
+          "title": "What it does in {product}",
+          "body": "With the customer campaigns add-on: a campaign picks a segment, a channel and a template, sends to the treated group and keeps the control group out, then measures the difference. Each message has a status (sent, delivered, read, failed) from the provider's webhook."
+        },
+        {
+          "title": "Choose the provider",
+          "body": "Use the provider the store already pays for if possible: the {product} team builds one connector per provider. Tell the team the provider name and the channels you want (email, SMS, WhatsApp)."
+        },
+        {
+          "title": "Prepare the account",
+          "body": "Email: verify the sending domain. SMS: register the sender id. WhatsApp: verify the business in Meta Business Manager, connect the number and get the message templates approved (marketing templates need opt-in).",
+          "verify": true
+        },
+        {
+          "title": "Create the credentials",
+          "body": "Create an API key dedicated to {product} in the provider's dashboard, with send permission only where possible.",
+          "verify": true
+        },
+        {
+          "title": "Send them to the {product} team",
+          "body": "Send the key, the sender (domain, sender id or number) and the template names through the secure channel agreed with the {product} team. {product} stores them encrypted and registers the delivery webhook."
+        },
+        {
+          "title": "Verify",
+          "body": "With the {product} team, send a test campaign to a segment with only your own contact: the message arrives, and the campaign shows it as delivered (and read for WhatsApp)."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "WhatsApp messages rejected",
+          "fix": "The template is not approved, or the customer did not opt in for marketing messages."
+        },
+        {
+          "symptom": "SMS not delivered in a country",
+          "fix": "The sender id is not registered there; check the provider's country rules."
+        },
+        {
+          "symptom": "Emails land in spam",
+          "fix": "Complete SPF, DKIM and DMARC on the sending domain and warm it up with small volumes."
+        },
+        {
+          "symptom": "Statuses stuck at \"sent\"",
+          "fix": "The provider's delivery webhook is not configured or points to an old URL."
+        }
+      ]
+    },
+    "carrier": {
+      "title": "Carrier tracking and delivery instructions",
+      "intro": "A second source for the shipment status, next to Shopify's fulfilment events: the carrier's own tracking events (in transit, out for delivery, failed attempt, exception) and the channel to send delivery instructions for a parcel in exception (redeliver, new address, pickup point, return). Today the carrier is simulated; in live mode, until a connector is active, instructions go by email to the carrier address set in Settings → Fulfilment.",
+      "scopes": "Carrier API: the store's customer number and API credentials with tracking access (and, for instructions, the parcel management / delivery change service enabled on the contract).\nTracking aggregator: an API key of the store's account that covers the carriers the store uses.\n{product} needs: the list of carriers and services the store ships with.",
+      "steps": [
+        {
+          "title": "What it does in {product}",
+          "body": "Shipments: each parcel's status is resolved from every source with precedences (the carrier's event wins over an older Shopify state). Exceptions and stuck parcels open work items; from a parcel in exception the team sends an instruction to the carrier, and the answer is logged on the order timeline."
+        },
+        {
+          "title": "What the store needs",
+          "body": "API access on the carrier contract: many carriers give it on request to business customers, sometimes as a paid option. With several carriers, a tracking aggregator covers all of them with one key.",
+          "verify": true
+        },
+        {
+          "title": "Create the credentials",
+          "body": "Ask the carrier's account manager for API credentials for tracking (and delivery instructions), or create the key in the aggregator's dashboard.",
+          "verify": true
+        },
+        {
+          "title": "Send them to the {product} team",
+          "body": "Send the credentials and the customer number through the secure channel agreed with the {product} team. {product} stores them encrypted and activates the connector; meanwhile, instructions from Fulfilment → Exceptions go by email."
+        },
+        {
+          "title": "Status mappings",
+          "body": "Settings → Fulfilment → status mappings: check how the carrier's statuses map to {product}'s (in transit, exception, delivered). The {product} team pre-fills them for the carrier."
+        },
+        {
+          "title": "Verify",
+          "body": "Open a recent parcel: the timeline shows events with source = carrier. Send an instruction on a test parcel in exception: the order timeline shows \"Delivery instruction sent\" with the carrier's reference."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "No carrier events on parcels",
+          "fix": "The tracking numbers from Shopify are for another carrier or service than the one connected; check the carrier name on the fulfilments."
+        },
+        {
+          "symptom": "Instruction refused",
+          "fix": "The parcel is already delivered or returned, or the delivery change service is not on the contract."
+        },
+        {
+          "symptom": "Status jumps back and forth",
+          "fix": "Two sources disagree: review the status mappings in Settings → Fulfilment."
+        }
+      ]
+    },
+    "warehouse": {
+      "title": "Warehouse / 3PL",
+      "intro": "Connects an external logistics provider: {product} sends it the orders to ship, reads its stock and the shipment status it reports. Today the warehouse is simulated; the live connector for the store's 3PL is built by the {product} team.",
+      "scopes": "3PL API: credentials of the store's account with permission to create outbound orders, read stock per SKU and read shipment status; the warehouse code(s) to use.\nSKUs must match between Shopify and the 3PL: {product} matches stock and order lines by SKU.\nIf the 3PL already connects to Shopify directly, decide with the {product} team which system sends the orders, so they are not sent twice.",
+      "steps": [
+        {
+          "title": "What it does in {product}",
+          "body": "Orders ready to ship are pushed to the 3PL; its stock per SKU updates the location's inventory in {product} (a dedicated location); its shipment status becomes a source of the shipment resolver. Stock differences show up in Inventory."
+        },
+        {
+          "title": "What the store needs",
+          "body": "A 3PL with an API, and the SKU on every Shopify variant matching the 3PL's article code.",
+          "verify": true
+        },
+        {
+          "title": "Create the credentials",
+          "body": "Ask the 3PL for API credentials for {product} (test and production) and the warehouse code.",
+          "verify": true
+        },
+        {
+          "title": "Send them to the {product} team",
+          "body": "Send the credentials and the warehouse code through the secure channel agreed with the {product} team. {product} stores them encrypted, creates the 3PL location and activates the connector."
+        },
+        {
+          "title": "Check the SKUs",
+          "body": "Products → Catalog data quality → \"Missing SKU\": every variant shipped by the 3PL needs one; duplicates are refused."
+        },
+        {
+          "title": "Verify",
+          "body": "With the {product} team: an order created in the test store reaches the 3PL's test environment; a stock change at the 3PL appears in Inventory for the 3PL location after the next sync."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Order not accepted by the 3PL",
+          "fix": "A line has no SKU, or the SKU is unknown at the 3PL."
+        },
+        {
+          "symptom": "Stock does not match",
+          "fix": "The 3PL counts reserved units differently; compare with Inventory and agree which figure {product} shows."
+        },
+        {
+          "symptom": "Orders shipped twice",
+          "fix": "Both Shopify's own 3PL app and {product} send orders: keep only one sender."
+        }
+      ]
     }
   },
   "admin": {
@@ -4647,7 +5026,16 @@
       "tags_hint": "Tags added to the order on the store when a return reaches that status (comma separated).",
       "label_cost": "Return label cost ({currency})",
       "handling_cost": "Handling cost per return ({currency})",
-      "costs_hint": "Each return whose goods come back costs a label and handling; the P/L shows it as return costs, net of the shipping charged to customers."
+      "costs_hint": "Each return whose goods come back costs a label and handling; the P/L shows it as return costs, net of the shipping charged to customers.",
+      "customer_emails": "Status emails to the customer",
+      "customer_emails_hint": "Sent in the customer's language with your store name as sender and the portal support address for replies. When the refund email is on, Shopify's own refund notification is not requested.",
+      "customer_email_events": {
+        "approved": "Return approved (with the prepaid label when there is one)",
+        "received": "Return received at the warehouse",
+        "refunded": "Refund issued",
+        "voucher_issued": "Store credit issued",
+        "exchange_shipped": "Replacement shipped"
+      }
     },
     "tracking_page": "Public order tracking page",
     "label_enabled": "Give the customer a prepaid return label",

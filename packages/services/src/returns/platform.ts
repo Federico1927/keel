@@ -81,9 +81,10 @@ export async function syncReturnToPlatform(ctx: ServiceContext, platform: Commer
         steps.push("restocked");
       }
     }
-    // 4. refund (vouchers and exchanges move no money on the original payment)
+    // 4. refund (vouchers and exchanges move no money on the original payment); the platform emails
+    // the customer only when Keel does not send its own refund email
     if (req.status === "refunded" && !state.platformRefundId && withExt.length) {
-      const r = await write("refund", "return.refund", { orderExternalId: order.externalId, lines: withExt.map((l) => ({ orderLineExternalId: l.orderLineExternalId!, quantity: l.quantity })), amountMinor: req.refundedAmountMinor ?? 0, currency: order.currency, note: `R-${req.number}`, notify: true });
+      const r = await write("refund", "return.refund", { orderExternalId: order.externalId, lines: withExt.map((l) => ({ orderLineExternalId: l.orderLineExternalId!, quantity: l.quantity })), amountMinor: req.refundedAmountMinor ?? 0, currency: order.currency, note: `R-${req.number}`, notify: !settings.returnCustomerEmails.refunded });
       state.platformRefundId = r.externalId;
       await save({ platformRefundId: r.externalId });
       steps.push("refunded");

@@ -136,6 +136,46 @@
         "cod": "Contra reembolso",
         "customer_campaigns": "Campañas a clientes"
       }
+    },
+    "return_status": {
+      "greeting": "Hola {name}:",
+      "greeting_anonymous": "Hola:",
+      "item": "{title} × {quantity}",
+      "footer": "Recibes este correo por una devolución que solicitaste a {store}.",
+      "approved": {
+        "subject": "Tu devolución {return} está aprobada",
+        "preheader": "{store} aprobó la devolución del pedido {order}.",
+        "intro": "{store} aprobó tu devolución {return} del pedido {order}.",
+        "label": "Tu etiqueta de devolución prepagada está lista: imprímela y pégala en el paquete.",
+        "no_label": "Empaqueta los artículos de abajo y envíalos de vuelta como se indica:",
+        "cta": "Descargar la etiqueta de devolución"
+      },
+      "received": {
+        "subject": "Hemos recibido tu devolución {return}",
+        "preheader": "Tu paquete llegó a {store}.",
+        "intro": "Tu devolución {return} del pedido {order} llegó a {store}. Estamos revisando los artículos y te escribiremos con el resultado."
+      },
+      "refunded": {
+        "subject": "Reembolso realizado para tu devolución {return}",
+        "preheader": "{store} te reembolsó {amount}.",
+        "intro": "{store} te reembolsó {amount} por tu devolución {return} (pedido {order}).",
+        "hint": "Según tu banco o método de pago, el reembolso puede tardar unos días hábiles en aparecer."
+      },
+      "voucher_issued": {
+        "subject": "Tu saldo para la devolución {return}",
+        "preheader": "Saldo de {amount} de {store}.",
+        "intro": "Por tu devolución {return} (pedido {order}), {store} emitió un saldo de {amount}.",
+        "code": "Tu código: {code}",
+        "hint": "Introduce el código al pagar en la tienda online de {store}."
+      },
+      "exchange_shipped": {
+        "subject": "El cambio de tu devolución {return} está en camino",
+        "preheader": "{store} envió tu cambio.",
+        "intro": "El cambio de tu devolución {return} ha sido enviado (pedido {exchange}).",
+        "intro_no_order": "El cambio de tu devolución {return} ha sido enviado.",
+        "tracking": "Transportista: {carrier} · Número de seguimiento: {tracking}",
+        "cta": "Seguir el paquete"
+      }
     }
   },
   "system": {

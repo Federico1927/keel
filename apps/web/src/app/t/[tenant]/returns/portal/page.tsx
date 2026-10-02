@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { headers } from "next/headers";
 import { ArrowLeft } from "lucide-react";
 import { SUPPORTED_LOCALES, canDo, canWritePage } from "@keel/config";
-import { PAYMENT_METHODS, RETURN_STATUSES } from "@keel/core";
+import { PAYMENT_METHODS, RETURN_EMAIL_EVENTS, RETURN_STATUSES } from "@keel/core";
 import { getPortalConfig, listReturnReasons } from "@keel/services";
 import { notFound } from "next/navigation";
 import { Alert, AlertDescription, PageHeader } from "@keel/ui";
@@ -34,7 +34,7 @@ export default async function ReturnPortalSettingsPage({ params }: { params: Pro
       )}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <PortalConfigForm slug={tenant} url={`${origin}/r/${tenant}`} config={config} locales={[...SUPPORTED_LOCALES]} defaultLocale={ctx.tenant.defaultLocale} reasons={reasons.map((r) => ({ code: r.code, label: r.label }))} paymentMethods={[...PAYMENT_METHODS]} />
-        <BehaviourForm slug={tenant} canEdit={canDo(ctx.role, "manage_settings")} currency={ctx.tenant.currency} statuses={[...RETURN_STATUSES]} initial={{ returnShippingCostMinor: ctx.settings.returnShippingCostMinor, returnsWriteBack: ctx.settings.returnsWriteBack, returnPlatformTags: ctx.settings.returnPlatformTags, returnLabelCostMinor: ctx.settings.returnLabelCostMinor, returnHandlingCostMinor: ctx.settings.returnHandlingCostMinor }} />
+        <BehaviourForm slug={tenant} canEdit={canDo(ctx.role, "manage_settings")} currency={ctx.tenant.currency} statuses={[...RETURN_STATUSES]} emailEvents={[...RETURN_EMAIL_EVENTS]} initial={{ returnShippingCostMinor: ctx.settings.returnShippingCostMinor, returnsWriteBack: ctx.settings.returnsWriteBack, returnPlatformTags: ctx.settings.returnPlatformTags, returnLabelCostMinor: ctx.settings.returnLabelCostMinor, returnHandlingCostMinor: ctx.settings.returnHandlingCostMinor, returnCustomerEmails: ctx.settings.returnCustomerEmails }} />
       </div>
     </>
   );

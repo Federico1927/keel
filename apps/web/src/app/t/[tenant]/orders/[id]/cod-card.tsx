@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { displayName, formatDate, formatDateTime, formatMoney } from "@keel/core";
 import { QUEUE_VIEWS, getCodSettings, listOrderMessages, mergeCandidates, orderPrecheck, queueItemDetail, queueNeighbours, renderOrderTemplates, riskPanel, transfersToday, type QueueView, type ScoreFactor } from "@keel/addon-cod";
 import { adminDb, and, eq, schema } from "@keel/db";
-import { getAddressProviderFor } from "@keel/services";
+import { resolveAddressProvider } from "@keel/services";
 import type { Address } from "@keel/integrations";
 import { EditOrderDialog } from "./edit-order";
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@keel/ui";
@@ -28,7 +28,7 @@ export async function CodCard({ ctx, orderId, orderName, canWrite, queue }: { ct
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
     const settings = await getCodSettings(s);
     // the pre-check refreshes a stale score first (C.7), so the factors below are current
-    const precheck = await orderPrecheck(s, orderId, { timezone: ctx.tenant.timezone, settings, addressProvider: getAddressProviderFor(ctx.tenant.id) });
+    const precheck = await orderPrecheck(s, orderId, { timezone: ctx.tenant.timezone, settings, addressProvider: await resolveAddressProvider(s) });
     const detail = await queueItemDetail(s, orderId);
     if (!detail || !precheck) return null;
     const breakdown = detail.item.scoreBreakdown as { factors?: ScoreFactor[] };

@@ -3,6 +3,7 @@ import { SALE_STATUSES, canTransitionReturn, isReturnStatus, creditWithBonus, cu
 import { syncRecordTasks } from "../tasks";
 import type { ServiceContext } from "../context";
 import { applyReturnToOrder } from "./effects";
+import { notifyReturnCustomer, returnEmailEventFor } from "./notify";
 
 import { ReturnError } from "./errors";
 import { applyReturnAutomations, customerReturnStats, getReturnPolicy } from "./policy";
@@ -224,7 +225,8 @@ export async function createReturn(ctx: ServiceContext, settings: TenantSettings
     if (bonusMinor) await ctx.tx.update(schema.returnRequests).set({ creditBonusMinor: bonusMinor }).where(eq(schema.returnRequests.id, row!.id));
   }
   await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: input.orderId, type: "return_requested", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: {}, metadata: { returnId: row!.id, number, reason: reason.code, resolution: input.resolution, outOfWindow: outOfPolicy, source: input.source ?? "staff" }, createdAt: now });
-  if (input.source !== "platform") await applyReturnAutomations(ctx, settings, row!.id, (to, note) => transitionReturn({ ...ctx, actor: { type: "system", userId: null } }, { returnId: row!.id, to, note: `auto: ${note}` }));
+  // portal returns email the customer after the label is issued (`notifyReturnStatus` in portalSubmit), so the approval carries it
+  if (input.source !== "platform") await applyReturnAutomations(ctx, settings, row!.id, (to, note) => transitionReturn({ ...ctx, actor: { type: "system", userId: null } }, { returnId: row!.id, to, note: `auto: ${note}`, notifyCustomer: input.source !== "portal" }));
   await syncRecordTasks(ctx, "return", [row!.id]);
   return { id: row!.id, number };
 }
@@ -243,6 +245,8 @@ export interface TransitionInput {
   refundAmountMinor?: number | null;
   voucherCode?: string | null;
   fault?: "merchant" | "customer" | "undetermined";
+  /** Status email to the customer when the store switched it on (default true). */
+  notifyCustomer?: boolean;
 }
 
 export async function transitionReturn(ctx: ServiceContext, input: TransitionInput): Promise<{ previous: string; next: string }> {
@@ -296,6 +300,8 @@ export async function transitionReturn(ctx: ServiceContext, input: TransitionInp
   // Propagate to the order: returned fraction from goods that came back, refund totals, payment status, canonical status.
   await applyReturnToOrder(ctx, req.orderId, { returnId: req.id, number: req.number, from: req.status, to: input.to });
   await syncRecordTasks(ctx, "return", [req.id]);
+  const emailEvent = input.notifyCustomer === false ? null : returnEmailEventFor(input.to);
+  if (emailEvent) await notifyReturnCustomer(ctx, req.id, emailEvent);
   return { previous: req.status, next: input.to };
 }
 
@@ -446,3 +452,4 @@ export * from "./portal";
 export * from "./policy";
 export * from "./errors";
 export * from "./customer";
+export * from "./notify";

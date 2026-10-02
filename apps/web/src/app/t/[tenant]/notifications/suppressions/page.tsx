@@ -14,7 +14,7 @@ export default async function SuppressionsPage({ params }: { params: Promise<{ t
   if (!canDo(ctx.role, "manage_settings")) notFound();
   const t = await getTranslations("notifications");
   const rows = await ctx.run((tx) => listEmailSuppressions({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }));
-  const category = (c: string) => (c === "all" ? t("suppressions.all_categories") : c === "supplier_po" ? t("suppressions.supplier_po") : t.has(`types.${c}`) ? t(`types.${c}`) : c);
+  const category = (c: string) => (c === "all" ? t("suppressions.all_categories") : c === "supplier_po" || c === "return_updates" ? t(`suppressions.${c}`) : t.has(`types.${c}`) ? t(`types.${c}`) : c);
   return (
     <>
       <PageHeader eyebrow={ctx.tenant.name} title={t("suppressions.title")} description={t("suppressions.description")} />

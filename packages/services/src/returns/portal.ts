@@ -8,6 +8,7 @@ import { notifyUsers } from "../notifications";
 import { ReturnError, createReturn, exchangeOptions, listReturnReasons, orderReturnContext } from "./index";
 import { getReturnPolicy } from "./policy";
 import { createReturnLabel } from "./customer";
+import { notifyReturnStatus } from "./notify";
 import { getReturnLabelProviderFor } from "../integrations/factory";
 
 /* ---------- configuration ---------- */
@@ -279,6 +280,8 @@ export async function portalSubmit(ctx: ServiceContext, settings: TenantSettings
   // prepaid label: the provider's tracking replaces whatever the customer typed
   if (config.returnLabel.enabled && config.returnLabel.destination.trim()) await createReturnLabel(ctx, getReturnLabelProviderFor(ctx.tenantId), created.id, config.returnLabel.destination);
   await ctx.tx.update(schema.returnEvidence).set({ returnId: created.id }).where(and(eq(schema.returnEvidence.tenantId, ctx.tenantId), eq(schema.returnEvidence.sessionNonce, session.nonce), isNull(schema.returnEvidence.returnId)));
+  // an automation may have approved (or closed) it: the customer's email now carries the label
+  await notifyReturnStatus(ctx, created.id);
   // the team that handles returns hears about it
   const members = await ctx.tx.select({ userId: schema.tenantMemberships.userId, role: schema.tenantMemberships.role }).from(schema.tenantMemberships).where(eq(schema.tenantMemberships.tenantId, ctx.tenantId));
   const userIds = members.filter((m) => isTenantRole(m.role) && canWritePage(m.role, "returns")).map((m) => m.userId);

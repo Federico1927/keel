@@ -810,6 +810,8 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
   }
   // the AI assistant runs on the store's own Anthropic key; in the demo the key is a mock connection
   ds.integrations.push(t({ provider: "anthropic", status: "connected", mode: "mock", externalAccountId: "claude-opus-5-5", externalAccountName: "Claude (mock)", credentialsEncrypted: null, config: {}, lastSyncAt: null, lastSuccessAt: addHours(now, -2), lastError: null }));
+  // address validation (issue #7): the simulated provider, connected; a live Google key replaces it per store
+  ds.integrations.push(t({ provider: "address", status: "connected", mode: "mock", externalAccountId: "address-mock", externalAccountName: "Simulated address provider", credentialsEncrypted: null, config: {}, lastSyncAt: null, lastSuccessAt: addHours(now, -2), lastError: null }));
   for (const [p, i] of [["messaging", 0], ["warehouse", 1], ["carrier", 2]] as const) ds.integrations.push(t({ provider: p, status: "not_connected", mode: "mock", externalAccountId: null, externalAccountName: null, credentialsEncrypted: null, config: {}, lastSyncAt: null, lastSuccessAt: null, lastError: i === 2 ? null : null }));
   const lastOrders = ds.orders.slice(-5);
   for (const o of lastOrders) ds.webhookEvents.push(t({ source: "shopify", topic: "orders/updated", externalId: String(o.externalId), sourceUpdatedAt: (o.platformUpdatedAt as Date).toISOString(), payload: { id: o.externalId, note: "seeded" }, status: "processed", attempts: 1, lastError: null, processedAt: now, receivedAt: addHours(now, -2) }));

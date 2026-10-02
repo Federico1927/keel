@@ -1,22 +1,26 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { isAdPlatformInPlan } from "@keel/config";
+import { PRODUCT_NAME, isAdPlatformInPlan } from "@keel/config";
 import { ADS_UTM_TEMPLATES } from "@keel/core";
-import { GOOGLE_ADS_API_VERSION, META_REQUIRED_PERMISSIONS, SHOPIFY_SCOPES_BY_MODULE, SHOPIFY_WEBHOOK_TOPICS, TIKTOK_API_VERSION, TIKTOK_SCOPES_BY_MODULE } from "@keel/integrations";
+import { GOOGLE_ADDRESS_APIS, GOOGLE_ADS_API_VERSION, META_REQUIRED_PERMISSIONS, SHOPIFY_SCOPES_BY_MODULE, SHOPIFY_WEBHOOK_TOPICS, TIKTOK_API_VERSION, TIKTOK_SCOPES_BY_MODULE } from "@keel/integrations";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, cn } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 
 /** One guide per activation: the platforms (TikTok when the plan includes it), then the external providers and tracking; last, the platform email sender (super-admins only: tenants configure nothing). */
-const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic", "tracking", "survey", "email"] as const;
-type Provider = (typeof PROVIDERS)[number];
+const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic", "address", "tracking", "survey", "email"] as const;
+/** Ad hoc integrations sold per account: an interface and a mock in Keel, a live connector built and activated by the Keel team (issue #7). */
+const AD_HOC = ["payment_guarantee", "return_labels", "audiences", "messaging", "carrier", "warehouse"] as const;
+type Provider = (typeof PROVIDERS)[number] | (typeof AD_HOC)[number];
+const isGuide = (p: string): p is Provider => (PROVIDERS as readonly string[]).includes(p) || (AD_HOC as readonly string[]).includes(p);
 interface Step { title: string; body: string; verify?: boolean }
 
 export default async function IntegrationGuidePage({ params }: { params: Promise<{ tenant: string; provider: string }> }) {
   const { tenant, provider } = await params;
   const ctx = await requirePage(tenant, "integrations");
-  if (!PROVIDERS.includes(provider as Provider)) notFound();
-  const p = provider as Provider;
+  if (!isGuide(provider)) notFound();
+  const p = provider;
+  const adHoc = (AD_HOC as readonly string[]).includes(p);
   const platformAdmin = ctx.user.isSuperAdmin;
   if (p === "email" && !platformAdmin) notFound();
   const tiktok = isAdPlatformInPlan("tiktok", ctx.tenant.planKey);
@@ -29,16 +33,27 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
   const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/webhooks/shopify`;
   const emailWebhookUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/webhooks/email`;
   const tiktokCallbackUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/integrations/tiktok/oauth/callback`;
-  const fill = (body: string) => body.replace("{webhookUrl}", webhookUrl).replace("{emailWebhookUrl}", emailWebhookUrl).replace("{callbackUrl}", tiktokCallbackUrl).replace("{utmTemplate}", ADS_UTM_TEMPLATES.tiktok).replace("{apiVersion}", p === "tiktok" ? TIKTOK_API_VERSION : GOOGLE_ADS_API_VERSION);
+  // `{product}` keeps the product name out of the texts (one constant, PRODUCT_NAME)
+  const product = { product: PRODUCT_NAME };
+  const fill = (body: string) => body.replaceAll("{product}", PRODUCT_NAME).replace("{webhookUrl}", webhookUrl).replace("{emailWebhookUrl}", emailWebhookUrl).replace("{callbackUrl}", tiktokCallbackUrl).replace("{utmTemplate}", ADS_UTM_TEMPLATES.tiktok).replace("{apiVersion}", p === "tiktok" ? TIKTOK_API_VERSION : GOOGLE_ADS_API_VERSION);
   return (
     <>
       <p className="mb-2 text-sm text-muted-foreground"><Link href={base} className="hover:underline">← {ti("title")}</Link></p>
-      <PageHeader eyebrow={ctx.tenant.name} title={t(`${p}.title`)} description={t(`${p}.intro`)} />
-      <div className="mb-4 flex flex-wrap gap-1 rounded-md bg-muted p-1 text-sm">
-        {PROVIDERS.filter((k) => (k !== "email" || platformAdmin) && (k !== "tiktok" || tiktok)).map((k) => (
-          <Link key={k} href={`${base}/guide/${k}`} className={cn("flex-1 rounded-sm px-3 py-1.5 text-center", k === p ? "bg-card shadow-sm" : "text-muted-foreground")}>{ti(`providers.${k}`)}</Link>
-        ))}
-      </div>
+      <PageHeader eyebrow={ctx.tenant.name} title={t(`${p}.title`, product)} description={t(`${p}.intro`, product)} />
+      <nav className="mb-4 space-y-2" aria-label={ti("guides")}>
+        <div className="flex flex-wrap gap-1 rounded-md bg-muted p-1 text-sm">
+          {PROVIDERS.filter((k) => (k !== "email" || platformAdmin) && (k !== "tiktok" || tiktok)).map((k) => (
+            <Link key={k} href={`${base}/guide/${k}`} aria-current={k === p ? "page" : undefined} className={cn("flex-1 whitespace-nowrap rounded-sm px-3 py-1.5 text-center", k === p ? "bg-card shadow-sm" : "text-muted-foreground")}>{ti(`providers.${k}`)}</Link>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-1 rounded-md border border-dashed p-1 text-sm" data-testid="guide-ad-hoc-nav">
+          <span className="px-2 text-xs font-medium text-muted-foreground">{t("ad_hoc_title")}</span>
+          {AD_HOC.map((k) => (
+            <Link key={k} href={`${base}/guide/${k}`} aria-current={k === p ? "page" : undefined} className={cn("whitespace-nowrap rounded-sm px-3 py-1.5 text-center", k === p ? "bg-card shadow-sm" : "text-muted-foreground")}>{ti(`slots.${k}`)}</Link>
+          ))}
+        </div>
+      </nav>
+      {adHoc && <p className="mb-4 rounded-md border bg-muted/40 p-3 text-sm" data-testid="ad-hoc-notice">{t("ad_hoc_notice", product)}</p>}
       <p className="mb-4 text-xs text-muted-foreground">{t("verify_legend")}</p>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <ol className="space-y-3">
@@ -46,7 +61,7 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
             <li key={i} className="rounded-lg border bg-card p-4" data-testid="guide-step">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">{i + 1}</span>
-                <h3 className="font-medium">{s.title}</h3>
+                <h3 className="font-medium">{fill(s.title)}</h3>
                 {s.verify && <Badge variant="warning">{t("verify_badge")}</Badge>}
               </div>
               <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{fill(s.body)}</p>
@@ -71,7 +86,8 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
                   <div className="font-mono text-muted-foreground" data-testid="tiktok-api-version">TikTok API for Business {TIKTOK_API_VERSION} · {tiktokCallbackUrl}</div>
                 </>
               )}
-              {t.has(`${p}.scopes`) && <div className="whitespace-pre-line text-muted-foreground">{t(`${p}.scopes`)}</div>}
+              {p === "address" && <div className="font-mono text-muted-foreground" data-testid="address-apis">{GOOGLE_ADDRESS_APIS.join(", ")}</div>}
+              {t.has(`${p}.scopes`) && <div className="whitespace-pre-line text-muted-foreground">{t(`${p}.scopes`, product)}</div>}
             </CardContent>
           </Card>
           {p === "shopify" && (
@@ -88,7 +104,7 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
             <CardContent>
               <ul className="space-y-2 text-xs">
                 {errors.map((e, i) => (
-                  <li key={i}><span className="font-medium">{e.symptom}</span><br /><span className="text-muted-foreground">{e.fix}</span></li>
+                  <li key={i}><span className="font-medium">{fill(e.symptom)}</span><br /><span className="text-muted-foreground">{fill(e.fix)}</span></li>
                 ))}
               </ul>
             </CardContent>

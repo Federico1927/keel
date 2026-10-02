@@ -73,6 +73,9 @@ export function demoReturnPolicy(key: DemoKey, types: string[]) {
 };
 }
 
+/** Return status emails to customers (issue #7): off by default for a real store, every event on in the demo. */
+export const DEMO_CUSTOMER_EMAILS = { returnCustomerEmails: { approved: true, received: true, refunded: true, voucher_issued: true, exchange_shipped: true } };
+
 /** What a return costs the store (label and handling), for the P/L; merged into the tenant settings. */
 export const DEMO_RETURN_COSTS: Record<DemoKey, Record<string, number>> = {
   northwind: { returnLabelCostMinor: 650, returnHandlingCostMinor: 250, returnShippingCostMinor: 590 },
@@ -123,6 +126,11 @@ export function demoAnthropicIntegration(tenantId: string, now: Date) {
   return { tenantId, provider: "anthropic", status: "connected", mode: "mock", externalAccountId: "claude-opus-5-5", externalAccountName: "Claude (mock)", credentialsEncrypted: null, config: {}, lastSuccessAt: new Date(now.getTime() - 2 * 3600e3) };
 }
 
+/** Address validation in the demo: the simulated provider, connected (issue #7). */
+export function demoAddressIntegration(tenantId: string, now: Date) {
+  return { tenantId, provider: "address", status: "connected", mode: "mock", externalAccountId: "address-mock", externalAccountName: "Simulated address provider", credentialsEncrypted: null, config: {}, lastSuccessAt: new Date(now.getTime() - 2 * 3600e3) };
+}
+
 export interface SettingsReport {
   tenant: string;
   created: string[];
@@ -165,6 +173,8 @@ export async function ensureDemoSettings(db: Db, now = new Date()): Promise<Sett
     }
     const costs = await db.execute<{ id: string }>(sql`update tenants set settings = ${JSON.stringify(DEMO_RETURN_COSTS[key])}::jsonb || coalesce(settings, '{}'::jsonb) where id = ${tenantId} and not (coalesce(settings, '{}'::jsonb) ?& ${sql.param(Object.keys(DEMO_RETURN_COSTS[key]))}::text[]) returning id`);
     if (costs.rows.length) created.push("tenant_settings:return_costs");
+    const emails = await db.execute<{ id: string }>(sql`update tenants set settings = ${JSON.stringify(DEMO_CUSTOMER_EMAILS)}::jsonb || coalesce(settings, '{}'::jsonb) where id = ${tenantId} and not (coalesce(settings, '{}'::jsonb) ? 'returnCustomerEmails') returning id`);
+    if (emails.rows.length) created.push("tenant_settings:customer_emails");
     if (key === "northwind" && (await enableDemoMcp(db, tenantId))) created.push("tenant_settings:mcp");
     if (await missing("pixel_settings")) {
       await db.insert(schema.pixelSettings).values(demoPixelSettings(key, tenantId)).onConflictDoNothing();
@@ -191,6 +201,10 @@ export async function ensureDemoSettings(db: Db, now = new Date()): Promise<Sett
     if (await missing("integrations", sql`provider = 'anthropic'`)) {
       await db.insert(schema.integrations).values(demoAnthropicIntegration(tenantId, now)).onConflictDoNothing();
       created.push("integrations:anthropic");
+    }
+    if (await missing("integrations", sql`provider = 'address'`)) {
+      await db.insert(schema.integrations).values(demoAddressIntegration(tenantId, now)).onConflictDoNothing();
+      created.push("integrations:address");
     }
     out.push({ tenant: DEMO_SLUGS[key], created });
   }

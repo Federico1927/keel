@@ -7,7 +7,7 @@ import * as schema from "../schema";
 import { generateTenantDataset, type TenantSeedConfig } from "./generator";
 import { writeDataset } from "./writer";
 import { ensureDemoProductCatalog, type DemoCatalogKey } from "./media";
-import { DEMO_COD_SETTINGS, DEMO_RETURN_COSTS, REASON_LABELS, REASON_PLATFORM, demoConversionSettings, demoPixelSettings, demoPortalConfig, demoReturnPolicy, demoSurveySettings } from "./settings";
+import { DEMO_COD_SETTINGS, DEMO_CUSTOMER_EMAILS, DEMO_RETURN_COSTS, REASON_LABELS, REASON_PLATFORM, demoConversionSettings, demoPixelSettings, demoPortalConfig, demoReturnPolicy, demoSurveySettings } from "./settings";
 export { ensureDemoSettings } from "./settings";
 export { ensureDemoProductCatalog, demoMediaUrl, DEMO_MEDIA_PREFIX } from "./media";
 import { seedCollab } from "./collab";
@@ -599,7 +599,7 @@ async function seedReturnsExtras(db: ReturnType<typeof drizzle<typeof schema>>, 
   await db.insert(schema.returnPortalSettings).values({ tenantId, config: demoPortalConfig(key) });
   await db.insert(schema.publicRateLimits).values({ tenantId, key: "lookup:ip:demo", windowStart: now, count: 1 });
   // what a return costs the store (label and handling), for the P/L; merged into existing settings
-  await db.execute(sql`update tenants set settings = coalesce(settings, '{}'::jsonb) || ${JSON.stringify(DEMO_RETURN_COSTS[key])}::jsonb where id = ${tenantId}`);
+  await db.execute(sql`update tenants set settings = coalesce(settings, '{}'::jsonb) || ${JSON.stringify({ ...DEMO_RETURN_COSTS[key], ...DEMO_CUSTOMER_EMAILS })}::jsonb where id = ${tenantId}`);
   // recent returns: a share from the portal, with the store write-back state
   const recent = await db.execute<{ id: string; status: string; resolution: string; payment_method: string; external_id: string | null; created: Date }>(sql`
     select r.id, r.status, r.resolution, o.payment_method, o.external_id, r.requested_at as created

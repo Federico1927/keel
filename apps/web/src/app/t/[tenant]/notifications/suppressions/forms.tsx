@@ -27,6 +27,7 @@ export function AddSuppressionForm({ slug }: { slug: string }) {
                 <option key={k} value={k}>{t(`types.${k}`)}</option>
               ))}
               <option value="supplier_po">{t("suppressions.supplier_po")}</option>
+              <option value="return_updates">{t("suppressions.return_updates")}</option>
             </Select>
           </div>
           <div className="space-y-1">

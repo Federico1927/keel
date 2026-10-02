@@ -6,7 +6,7 @@ import { recordAudit } from "@keel/db";
 import { CodError, TAG_WRITE_EVENTS, assignQueueItem, bulkAssign, bulkOutcome, distributeEqually, escalateQueueItem, getCodSettings, importCarrierOutcomes, messageTemplateSchema, modifyCodOrder, deleteCapacityException, distributeUnassigned, parseCarrierCsv, parseTagList, recomputeRecipientProfiles, recordAttempt, releaseQueueItem, resolveEscalation, saveCapacity, saveCapacityException, saveCodSettings, scorePendingItems, scoreQueueItem, sendCodMessage, setRecipientOverride, syncQueue, transferQueueItem, warehouseLines, type ScoreFactor } from "@keel/addon-cod";
 import { and, eq, schema, sql } from "@keel/db";
 import { displayName } from "@keel/core";
-import { getAddressProviderFor, getMessagingChannelFor } from "@keel/services";
+import { getMessagingChannelFor, resolveAddressProvider } from "@keel/services";
 import { getCommercePlatform } from "@/server/integrations";
 import { auditActor } from "@/server/audit-actor";
 import { ForbiddenError, requirePage, type TenantContext } from "@/server/tenant";
@@ -408,7 +408,7 @@ export async function previewScoreAction(slug: string, orderName: string): Promi
     const r = await ctx.run(async (tx) => {
       const [o] = await tx.select({ id: schema.orders.id, name: schema.orders.name }).from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenant.id), sql`lower(${schema.orders.name}) in (${q.toLowerCase()}, ${`#${q.toLowerCase()}`})`)).limit(1);
       if (!o) return null;
-      const s = await scoreQueueItem(svc(ctx, tx), o.id, { timezone: ctx.tenant.timezone, addressProvider: getAddressProviderFor(ctx.tenant.id), preview: true });
+      const s = await scoreQueueItem(svc(ctx, tx), o.id, { timezone: ctx.tenant.timezone, addressProvider: await resolveAddressProvider(svc(ctx, tx)), preview: true });
       return { orderId: o.id, name: o.name, score: s.score, base: s.base, riskTier: s.riskTier, factors: s.factors };
     });
     return r ? ok(r) : fail("cod_not_found");

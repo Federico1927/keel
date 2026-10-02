@@ -64,6 +64,11 @@ const SAMPLES: { [K in EmailTemplate]: EmailTemplateData[K] } = {
   test: { provider: "mock", sentAt: "2026-10-01T09:30:00.000Z" },
   billing_checkout: { tenantName: "Harbor Home", planName: "Growth", lines: [{ kind: "plan", key: "growth", amountMinor: 59900 }, { kind: "addon", key: "addon.cod", amountMinor: 19900 }, { kind: "setup", key: "growth", amountMinor: 150000 }], currency: "USD", trialDays: 14, url: "https://checkout.stripe.com/c/pay/cs_test_a1", expiresAt: "2026-10-02T09:30:00.000Z", timezone: "Europe/Rome" },
   carrier_instruction: { companyName: "Northwind Apparel", carrier: "Carrier", trackingNumber: "TRK123", orderName: "#NW-1042", resolution: "new_address", address: { name: "Giulia Rossi", address1: "Via Roma 1", zip: "20121", city: "Milano", country: "IT" }, pickupPoint: null, note: "Ring twice" },
+  return_approved: { ...{ storeName: "Northwind Apparel", customerName: "Giulia", returnNumber: "R-1042", orderName: "#NW-1042", items: [{ title: "Linen shirt · M", quantity: 1 }, { title: "Canvas sneaker · 40", quantity: 2 }] }, labelUrl: "https://app.keel.example/r/northwind-apparel/label/1?sig=abc", instructions: "Ship to: Returns, Via Roma 1, Milano.\nWrite R-1042 on the box." },
+  return_received: { storeName: "Northwind Apparel", customerName: "Giulia", returnNumber: "R-1042", orderName: "#NW-1042", items: [{ title: "Linen shirt · M", quantity: 1 }, { title: "Canvas sneaker · 40", quantity: 2 }] },
+  return_refunded: { ...{ storeName: "Northwind Apparel", customerName: "Giulia", returnNumber: "R-1042", orderName: "#NW-1042", items: [{ title: "Linen shirt · M", quantity: 1 }, { title: "Canvas sneaker · 40", quantity: 2 }] }, amountMinor: 4990, currency: "EUR" },
+  return_voucher_issued: { ...{ storeName: "Northwind Apparel", customerName: "Giulia", returnNumber: "R-1042", orderName: "#NW-1042", items: [{ title: "Linen shirt · M", quantity: 1 }, { title: "Canvas sneaker · 40", quantity: 2 }] }, amountMinor: 5489, currency: "EUR", code: "V-1042-AB12C" },
+  return_exchange_shipped: { ...{ storeName: "Northwind Apparel", customerName: "Giulia", returnNumber: "R-1042", orderName: "#NW-1042", items: [{ title: "Linen shirt · M", quantity: 1 }, { title: "Canvas sneaker · 40", quantity: 2 }] }, customerName: null, exchangeOrderName: "#NW-2210", carrier: "DHL", trackingNumber: "JD0123", trackingUrl: "https://track.example/JD0123" },
 };
 
 describe("templates", () => {
@@ -91,6 +96,26 @@ describe("templates", () => {
     expect(renderEmail("supplier_po", "it", SAMPLES.supplier_po, { sender: SENDER }).text).toContain("20 ott 2026");
     expect(renderEmail("magic_link", "es", { url: "https://x/m?<b>", minutes: 15 }, { sender: SENDER }).html).toContain("https://x/m?&lt;b&gt;");
     expect(renderEmail("invite", "xx", SAMPLES.invite, { sender: SENDER }).subject).toBe("Giulia invited you to Northwind Apparel on Keel as operations");
+  });
+});
+
+describe("store emails to their customers (return updates)", () => {
+  it("carry the store's name, colour, logo and customer footer instead of the product's", () => {
+    const store = { product: "Northwind Apparel", legalName: "Northwind Apparel", legalAddress: null, supportEmail: "help@northwind.example", brand: { primary: "#7a1f5c", onPrimary: "#ffffff", primaryDark: "#e3a6cc", onPrimaryDark: "#000000", logoUrl: "https://app.keel.example/brand/northwind-apparel/light?v=1" } };
+    const mail = renderEmail("return_refunded", "it", SAMPLES.return_refunded, { sender: store, unsubscribeUrl: "https://app.keel.example/u/x" });
+    expect(mail.subject).toBe("Rimborso effettuato per il reso R-1042");
+    expect(mail.text).toContain("49,90");
+    expect(mail.text).toContain("Ricevi questa email per un reso che hai richiesto a Northwind Apparel.");
+    expect(mail.html).toContain('<img src="https://app.keel.example/brand/northwind-apparel/light?v=1"');
+    expect(mail.html).toContain(".k-btn{background:#e3a6cc!important;color:#000000!important}");
+    expect(renderEmail("return_approved", "it", SAMPLES.return_approved, { sender: store }).html).toContain('<td class="k-btn" style="background:#7a1f5c');
+    expect(mail.html).toContain("help@northwind.example");
+    expect(`${mail.text}${mail.html}`).not.toMatch(/Keel\b/);
+    // without a label the approval says how to ship; the anonymous greeting has no name
+    const noLabel = renderEmail("return_approved", "en", { ...SAMPLES.return_approved, labelUrl: null, customerName: null }, { sender: store });
+    expect(noLabel.text).toContain("Hello,");
+    expect(noLabel.text).toContain("send them back as described here");
+    expect(noLabel.text).not.toContain("Download the return label");
   });
 });
 
