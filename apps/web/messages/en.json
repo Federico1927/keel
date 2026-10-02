@@ -6044,7 +6044,7 @@
       "shopify_title": "Shopify: custom pixel",
       "shopify_help": "Paste in Shopify admin → Settings → Customer events → Add custom pixel, then Connect.",
       "script_title": "Any other storefront: script tag",
-      "script_help": "Put it in the <head> of every page. Call hullwise.identify(email) after login or newsletter sign-up.",
+      "script_help": "Put it in the '<head>' of every page. Call hullwise.identify(email) after login or newsletter sign-up.",
       "enabled": "Collect events",
       "origins": "Allowed store origins (one per line, empty = any)",
       "origins_help": "Events from other origins are refused. The public key alone is not a secret.",
@@ -9881,7 +9881,7 @@
       "title": "Getting started",
       "description": "A JSON API over HTTPS for orders, customers, catalog, stock, shipments, returns, discounts and purchasing.",
       "base": "Base URL: {base}",
-      "auth": "Create a token in Settings → Developers and send it as Authorization: Bearer <token>. The same personal tokens work for the MCP server; the API reads only their API scopes.",
+      "auth": "Create a token in Settings → Developers and send it as Authorization: Bearer '<token>'. The same personal tokens work for the MCP server; the API reads only their API scopes.",
       "versioning": "The version is in the path (/v1). Fields may be added to responses within v1; nothing is removed or renamed."
     },
     "scopes": {
@@ -9998,7 +9998,7 @@
       "col_what": "When",
       "payload": "The body carries id (the event, the same across retries and redeliveries), type, apiVersion, createdAt and data with the record in the API's format, without personal data: fetch the record through the API with a token that may see it.",
       "headers": "Headers: {id} (the delivery), {event} (the type), {timestamp} (Unix seconds) and {signature}.",
-      "signing": "The signature is HMAC-SHA256 of the timestamp, a dot and the raw body, keyed with the endpoint secret, in hex: t=<timestamp>,v1=<signature>. Reject timestamps older than {tolerance} seconds. After a secret rotation the previous secret signs too (a second v1) for {grace} hours.",
+      "signing": "The signature is HMAC-SHA256 of the timestamp, a dot and the raw body, keyed with the endpoint secret, in hex: t='<timestamp>',v1='<signature>'. Reject timestamps older than {tolerance} seconds. After a secret rotation the previous secret signs too (a second v1) for {grace} hours.",
       "retries": "A delivery succeeds on any 2xx answer within {timeout} seconds. Anything else is retried after {schedule}; then the delivery is failed and can be redelivered by hand from the log. Redirects are not followed.",
       "security": "Endpoints must be https on a public host. Addresses that are private, loopback, link-local or cloud metadata are refused when the endpoint is saved and again at every delivery, after DNS resolution."
     }
