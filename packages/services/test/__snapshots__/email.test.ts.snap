@@ -2739,6 +2739,1080 @@ Keel Labs S.r.l. · Via Example 1, 20100 Milano",
 }
 `;
 
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > return_approved.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Your return R-1042 is approved</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Northwind Apparel approved your return for order #NW-1042.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Hello Giulia,</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Northwind Apparel approved your return R-1042 for order #NW-1042.</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Your prepaid return label is ready: print it and stick it on the parcel.</p>
+<blockquote class="k-quote" style="margin:0 0 16px;padding:8px 12px;border-left:3px solid #8391a8;color:#0b0d12;white-space:pre-wrap;font-size:14px;line-height:1.5">Ship to: Returns, Via Roma 1, Milano.
+Write R-1042 on the box.</blockquote>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Linen shirt · M × 1</li><li>Canvas sneaker · 40 × 2</li></ul>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/r/northwind-apparel/label/1?sig=abc" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Download the return label</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">If the button does not work, copy this link into your browser:<br><a class="k-link" href="https://app.keel.example/r/northwind-apparel/label/1?sig=abc" style="color:#2b59ff;word-break:break-all">https://app.keel.example/r/northwind-apparel/label/1?sig=abc</a></p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+You receive this email about a return you requested from Northwind Apparel.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Unsubscribe from these emails</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Your return R-1042 is approved",
+  "text": "Hello Giulia,
+
+Northwind Apparel approved your return R-1042 for order #NW-1042.
+
+Your prepaid return label is ready: print it and stick it on the parcel.
+
+> Ship to: Returns, Via Roma 1, Milano.
+> Write R-1042 on the box.
+
+- Linen shirt · M × 1
+- Canvas sneaker · 40 × 2
+
+Download the return label: https://app.keel.example/r/northwind-apparel/label/1?sig=abc
+
+--
+
+You receive this email about a return you requested from Northwind Apparel.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Unsubscribe from these emails: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > return_approved.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Tu devolución R-1042 está aprobada</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Northwind Apparel aprobó la devolución del pedido #NW-1042.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Hola Giulia:</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Northwind Apparel aprobó tu devolución R-1042 del pedido #NW-1042.</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Tu etiqueta de devolución prepagada está lista: imprímela y pégala en el paquete.</p>
+<blockquote class="k-quote" style="margin:0 0 16px;padding:8px 12px;border-left:3px solid #8391a8;color:#0b0d12;white-space:pre-wrap;font-size:14px;line-height:1.5">Ship to: Returns, Via Roma 1, Milano.
+Write R-1042 on the box.</blockquote>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Linen shirt · M × 1</li><li>Canvas sneaker · 40 × 2</li></ul>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/r/northwind-apparel/label/1?sig=abc" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Descargar la etiqueta de devolución</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Si el botón no funciona, copia este enlace en el navegador:<br><a class="k-link" href="https://app.keel.example/r/northwind-apparel/label/1?sig=abc" style="color:#2b59ff;word-break:break-all">https://app.keel.example/r/northwind-apparel/label/1?sig=abc</a></p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Recibes este correo por una devolución que solicitaste a Northwind Apparel.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Dejar de recibir estos correos</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Tu devolución R-1042 está aprobada",
+  "text": "Hola Giulia:
+
+Northwind Apparel aprobó tu devolución R-1042 del pedido #NW-1042.
+
+Tu etiqueta de devolución prepagada está lista: imprímela y pégala en el paquete.
+
+> Ship to: Returns, Via Roma 1, Milano.
+> Write R-1042 on the box.
+
+- Linen shirt · M × 1
+- Canvas sneaker · 40 × 2
+
+Descargar la etiqueta de devolución: https://app.keel.example/r/northwind-apparel/label/1?sig=abc
+
+--
+
+Recibes este correo por una devolución que solicitaste a Northwind Apparel.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Dejar de recibir estos correos: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > return_approved.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Il tuo reso R-1042 è stato approvato</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Northwind Apparel ha approvato il reso dell&#39;ordine #NW-1042.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Ciao Giulia,</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Northwind Apparel ha approvato il tuo reso R-1042 per l&#39;ordine #NW-1042.</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">La tua etichetta di reso prepagata è pronta: stampala e attaccala sul pacco.</p>
+<blockquote class="k-quote" style="margin:0 0 16px;padding:8px 12px;border-left:3px solid #8391a8;color:#0b0d12;white-space:pre-wrap;font-size:14px;line-height:1.5">Ship to: Returns, Via Roma 1, Milano.
+Write R-1042 on the box.</blockquote>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Linen shirt · M × 1</li><li>Canvas sneaker · 40 × 2</li></ul>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/r/northwind-apparel/label/1?sig=abc" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Scarica l&#39;etichetta di reso</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Se il pulsante non funziona, copia questo link nel browser:<br><a class="k-link" href="https://app.keel.example/r/northwind-apparel/label/1?sig=abc" style="color:#2b59ff;word-break:break-all">https://app.keel.example/r/northwind-apparel/label/1?sig=abc</a></p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Ricevi questa email per un reso che hai richiesto a Northwind Apparel.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Non ricevere più queste email</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Il tuo reso R-1042 è stato approvato",
+  "text": "Ciao Giulia,
+
+Northwind Apparel ha approvato il tuo reso R-1042 per l'ordine #NW-1042.
+
+La tua etichetta di reso prepagata è pronta: stampala e attaccala sul pacco.
+
+> Ship to: Returns, Via Roma 1, Milano.
+> Write R-1042 on the box.
+
+- Linen shirt · M × 1
+- Canvas sneaker · 40 × 2
+
+Scarica l'etichetta di reso: https://app.keel.example/r/northwind-apparel/label/1?sig=abc
+
+--
+
+Ricevi questa email per un reso che hai richiesto a Northwind Apparel.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Non ricevere più queste email: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > return_exchange_shipped.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Your replacement for return R-1042 is on its way</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Northwind Apparel shipped your replacement.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Hello,</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">The replacement for your return R-1042 has shipped (order #NW-2210).</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Carrier: DHL · Tracking number: JD0123</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Linen shirt · M × 1</li><li>Canvas sneaker · 40 × 2</li></ul>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://track.example/JD0123" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Track the parcel</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">If the button does not work, copy this link into your browser:<br><a class="k-link" href="https://track.example/JD0123" style="color:#2b59ff;word-break:break-all">https://track.example/JD0123</a></p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+You receive this email about a return you requested from Northwind Apparel.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Unsubscribe from these emails</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Your replacement for return R-1042 is on its way",
+  "text": "Hello,
+
+The replacement for your return R-1042 has shipped (order #NW-2210).
+
+Carrier: DHL · Tracking number: JD0123
+
+- Linen shirt · M × 1
+- Canvas sneaker · 40 × 2
+
+Track the parcel: https://track.example/JD0123
+
+--
+
+You receive this email about a return you requested from Northwind Apparel.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Unsubscribe from these emails: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > return_exchange_shipped.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>El cambio de tu devolución R-1042 está en camino</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Northwind Apparel envió tu cambio.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Hola:</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">El cambio de tu devolución R-1042 ha sido enviado (pedido #NW-2210).</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Transportista: DHL · Número de seguimiento: JD0123</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Linen shirt · M × 1</li><li>Canvas sneaker · 40 × 2</li></ul>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://track.example/JD0123" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Seguir el paquete</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Si el botón no funciona, copia este enlace en el navegador:<br><a class="k-link" href="https://track.example/JD0123" style="color:#2b59ff;word-break:break-all">https://track.example/JD0123</a></p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Recibes este correo por una devolución que solicitaste a Northwind Apparel.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Dejar de recibir estos correos</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "El cambio de tu devolución R-1042 está en camino",
+  "text": "Hola:
+
+El cambio de tu devolución R-1042 ha sido enviado (pedido #NW-2210).
+
+Transportista: DHL · Número de seguimiento: JD0123
+
+- Linen shirt · M × 1
+- Canvas sneaker · 40 × 2
+
+Seguir el paquete: https://track.example/JD0123
+
+--
+
+Recibes este correo por una devolución que solicitaste a Northwind Apparel.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Dejar de recibir estos correos: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > return_exchange_shipped.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Il cambio per il reso R-1042 è in viaggio</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Northwind Apparel ha spedito il tuo cambio.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Ciao,</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Il cambio per il tuo reso R-1042 è stato spedito (ordine #NW-2210).</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Corriere: DHL · Numero di tracking: JD0123</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Linen shirt · M × 1</li><li>Canvas sneaker · 40 × 2</li></ul>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://track.example/JD0123" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Segui il pacco</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Se il pulsante non funziona, copia questo link nel browser:<br><a class="k-link" href="https://track.example/JD0123" style="color:#2b59ff;word-break:break-all">https://track.example/JD0123</a></p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Ricevi questa email per un reso che hai richiesto a Northwind Apparel.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Non ricevere più queste email</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Il cambio per il reso R-1042 è in viaggio",
+  "text": "Ciao,
+
+Il cambio per il tuo reso R-1042 è stato spedito (ordine #NW-2210).
+
+Corriere: DHL · Numero di tracking: JD0123
+
+- Linen shirt · M × 1
+- Canvas sneaker · 40 × 2
+
+Segui il pacco: https://track.example/JD0123
+
+--
+
+Ricevi questa email per un reso che hai richiesto a Northwind Apparel.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Non ricevere più queste email: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > return_received.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>We received your return R-1042</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Your parcel reached Northwind Apparel.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Hello Giulia,</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Your return R-1042 for order #NW-1042 reached Northwind Apparel. We are checking the items and will write to you with the outcome.</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Linen shirt · M × 1</li><li>Canvas sneaker · 40 × 2</li></ul>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+You receive this email about a return you requested from Northwind Apparel.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Unsubscribe from these emails</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "We received your return R-1042",
+  "text": "Hello Giulia,
+
+Your return R-1042 for order #NW-1042 reached Northwind Apparel. We are checking the items and will write to you with the outcome.
+
+- Linen shirt · M × 1
+- Canvas sneaker · 40 × 2
+
+--
+
+You receive this email about a return you requested from Northwind Apparel.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Unsubscribe from these emails: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > return_received.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Hemos recibido tu devolución R-1042</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Tu paquete llegó a Northwind Apparel.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Hola Giulia:</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Tu devolución R-1042 del pedido #NW-1042 llegó a Northwind Apparel. Estamos revisando los artículos y te escribiremos con el resultado.</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Linen shirt · M × 1</li><li>Canvas sneaker · 40 × 2</li></ul>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Recibes este correo por una devolución que solicitaste a Northwind Apparel.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Dejar de recibir estos correos</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Hemos recibido tu devolución R-1042",
+  "text": "Hola Giulia:
+
+Tu devolución R-1042 del pedido #NW-1042 llegó a Northwind Apparel. Estamos revisando los artículos y te escribiremos con el resultado.
+
+- Linen shirt · M × 1
+- Canvas sneaker · 40 × 2
+
+--
+
+Recibes este correo por una devolución que solicitaste a Northwind Apparel.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Dejar de recibir estos correos: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > return_received.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Abbiamo ricevuto il tuo reso R-1042</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Il tuo pacco è arrivato a Northwind Apparel.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Ciao Giulia,</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Il tuo reso R-1042 per l&#39;ordine #NW-1042 è arrivato a Northwind Apparel. Stiamo controllando gli articoli e ti scriveremo con l&#39;esito.</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Linen shirt · M × 1</li><li>Canvas sneaker · 40 × 2</li></ul>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Ricevi questa email per un reso che hai richiesto a Northwind Apparel.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Non ricevere più queste email</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Abbiamo ricevuto il tuo reso R-1042",
+  "text": "Ciao Giulia,
+
+Il tuo reso R-1042 per l'ordine #NW-1042 è arrivato a Northwind Apparel. Stiamo controllando gli articoli e ti scriveremo con l'esito.
+
+- Linen shirt · M × 1
+- Canvas sneaker · 40 × 2
+
+--
+
+Ricevi questa email per un reso che hai richiesto a Northwind Apparel.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Non ricevere più queste email: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > return_refunded.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Refund issued for your return R-1042</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Northwind Apparel refunded €49.90.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Hello Giulia,</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Northwind Apparel refunded €49.90 for your return R-1042 (order #NW-1042).</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Linen shirt · M × 1</li><li>Canvas sneaker · 40 × 2</li></ul>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Depending on your bank or payment method, the refund can take a few business days to appear.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+You receive this email about a return you requested from Northwind Apparel.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Unsubscribe from these emails</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Refund issued for your return R-1042",
+  "text": "Hello Giulia,
+
+Northwind Apparel refunded €49.90 for your return R-1042 (order #NW-1042).
+
+- Linen shirt · M × 1
+- Canvas sneaker · 40 × 2
+
+Depending on your bank or payment method, the refund can take a few business days to appear.
+
+--
+
+You receive this email about a return you requested from Northwind Apparel.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Unsubscribe from these emails: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > return_refunded.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Reembolso realizado para tu devolución R-1042</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Northwind Apparel te reembolsó 49,90 €.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Hola Giulia:</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Northwind Apparel te reembolsó 49,90 € por tu devolución R-1042 (pedido #NW-1042).</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Linen shirt · M × 1</li><li>Canvas sneaker · 40 × 2</li></ul>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Según tu banco o método de pago, el reembolso puede tardar unos días hábiles en aparecer.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Recibes este correo por una devolución que solicitaste a Northwind Apparel.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Dejar de recibir estos correos</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Reembolso realizado para tu devolución R-1042",
+  "text": "Hola Giulia:
+
+Northwind Apparel te reembolsó 49,90 € por tu devolución R-1042 (pedido #NW-1042).
+
+- Linen shirt · M × 1
+- Canvas sneaker · 40 × 2
+
+Según tu banco o método de pago, el reembolso puede tardar unos días hábiles en aparecer.
+
+--
+
+Recibes este correo por una devolución que solicitaste a Northwind Apparel.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Dejar de recibir estos correos: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > return_refunded.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Rimborso effettuato per il reso R-1042</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Northwind Apparel ti ha rimborsato 49,90 €.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Ciao Giulia,</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Northwind Apparel ti ha rimborsato 49,90 € per il reso R-1042 (ordine #NW-1042).</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Linen shirt · M × 1</li><li>Canvas sneaker · 40 × 2</li></ul>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">A seconda della banca o del metodo di pagamento, il rimborso può richiedere alcuni giorni lavorativi per comparire.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Ricevi questa email per un reso che hai richiesto a Northwind Apparel.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Non ricevere più queste email</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Rimborso effettuato per il reso R-1042",
+  "text": "Ciao Giulia,
+
+Northwind Apparel ti ha rimborsato 49,90 € per il reso R-1042 (ordine #NW-1042).
+
+- Linen shirt · M × 1
+- Canvas sneaker · 40 × 2
+
+A seconda della banca o del metodo di pagamento, il rimborso può richiedere alcuni giorni lavorativi per comparire.
+
+--
+
+Ricevi questa email per un reso che hai richiesto a Northwind Apparel.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Non ricevere più queste email: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > return_voucher_issued.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Your store credit for return R-1042</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Store credit of €54.89 from Northwind Apparel.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Hello Giulia,</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">For your return R-1042 (order #NW-1042), Northwind Apparel issued store credit of €54.89.</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Your code: V-1042-AB12C</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Linen shirt · M × 1</li><li>Canvas sneaker · 40 × 2</li></ul>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Enter the code at checkout on the Northwind Apparel online store.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+You receive this email about a return you requested from Northwind Apparel.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Unsubscribe from these emails</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Your store credit for return R-1042",
+  "text": "Hello Giulia,
+
+For your return R-1042 (order #NW-1042), Northwind Apparel issued store credit of €54.89.
+
+Your code: V-1042-AB12C
+
+- Linen shirt · M × 1
+- Canvas sneaker · 40 × 2
+
+Enter the code at checkout on the Northwind Apparel online store.
+
+--
+
+You receive this email about a return you requested from Northwind Apparel.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Unsubscribe from these emails: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > return_voucher_issued.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Tu saldo para la devolución R-1042</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Saldo de 54,89 € de Northwind Apparel.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Hola Giulia:</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Por tu devolución R-1042 (pedido #NW-1042), Northwind Apparel emitió un saldo de 54,89 €.</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Tu código: V-1042-AB12C</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Linen shirt · M × 1</li><li>Canvas sneaker · 40 × 2</li></ul>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Introduce el código al pagar en la tienda online de Northwind Apparel.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Recibes este correo por una devolución que solicitaste a Northwind Apparel.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Dejar de recibir estos correos</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Tu saldo para la devolución R-1042",
+  "text": "Hola Giulia:
+
+Por tu devolución R-1042 (pedido #NW-1042), Northwind Apparel emitió un saldo de 54,89 €.
+
+Tu código: V-1042-AB12C
+
+- Linen shirt · M × 1
+- Canvas sneaker · 40 × 2
+
+Introduce el código al pagar en la tienda online de Northwind Apparel.
+
+--
+
+Recibes este correo por una devolución que solicitaste a Northwind Apparel.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Dejar de recibir estos correos: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > return_voucher_issued.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Il tuo buono per il reso R-1042</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Buono di 54,89 € da Northwind Apparel.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Ciao Giulia,</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Per il tuo reso R-1042 (ordine #NW-1042) Northwind Apparel ha emesso un buono di 54,89 €.</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Il tuo codice: V-1042-AB12C</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Linen shirt · M × 1</li><li>Canvas sneaker · 40 × 2</li></ul>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Inserisci il codice al checkout sul negozio online di Northwind Apparel.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Ricevi questa email per un reso che hai richiesto a Northwind Apparel.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Non ricevere più queste email</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Il tuo buono per il reso R-1042",
+  "text": "Ciao Giulia,
+
+Per il tuo reso R-1042 (ordine #NW-1042) Northwind Apparel ha emesso un buono di 54,89 €.
+
+Il tuo codice: V-1042-AB12C
+
+- Linen shirt · M × 1
+- Canvas sneaker · 40 × 2
+
+Inserisci il codice al checkout sul negozio online di Northwind Apparel.
+
+--
+
+Ricevi questa email per un reso che hai richiesto a Northwind Apparel.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Non ricevere più queste email: https://app.keel.example/u/signed",
+}
+`;
+
 exports[`templates > every template renders in en, it and es (HTML and text snapshot) > supplier_po.en 1`] = `
 {
   "html": "<!doctype html>

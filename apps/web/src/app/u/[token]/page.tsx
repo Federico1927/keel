@@ -17,7 +17,7 @@ export default async function UnsubscribePage({ params }: { params: Promise<{ to
   const locale: Locale = tenant && isLocale(tenant.defaultLocale) ? tenant.defaultLocale : DEFAULT_LOCALE;
   const messages = await loadMessages(locale);
   const t = createTranslator({ locale, messages }) as unknown as ((k: string, v?: Record<string, string>) => string) & { has: (k: string) => boolean };
-  const category = p ? (p.category === "all" ? t("unsubscribe.all") : t.has(`notifications.types.${p.category}`) ? t(`notifications.types.${p.category}`) : p.category === "supplier_po" ? t("notifications.suppressions.supplier_po") : p.category) : "";
+  const category = p ? (p.category === "all" ? t("unsubscribe.all") : t.has(`notifications.types.${p.category}`) ? t(`notifications.types.${p.category}`) : p.category === "supplier_po" || p.category === "return_updates" ? t(`notifications.suppressions.${p.category}`) : p.category) : "";
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md rounded-lg border bg-card p-6 shadow-sm">

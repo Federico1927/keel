@@ -179,7 +179,7 @@ export function PortalConfigForm({ slug, url, config: initial, locales, defaultL
 }
 
 /** Return shipping deduction, write-back switch and order tags per status. */
-export function BehaviourForm({ slug, canEdit, currency, statuses, initial }: { slug: string; canEdit: boolean; currency: string; statuses: string[]; initial: { returnShippingCostMinor: number; returnsWriteBack: boolean; returnPlatformTags: Record<string, string[]>; returnLabelCostMinor: number; returnHandlingCostMinor: number } }) {
+export function BehaviourForm({ slug, canEdit, currency, statuses, emailEvents, initial }: { slug: string; canEdit: boolean; currency: string; statuses: string[]; emailEvents: string[]; initial: { returnShippingCostMinor: number; returnsWriteBack: boolean; returnPlatformTags: Record<string, string[]>; returnLabelCostMinor: number; returnHandlingCostMinor: number; returnCustomerEmails: Record<string, boolean> } }) {
   const t = useTranslations("return_portal_settings.behaviour");
   const tc = useTranslations("common");
   const ts = useTranslations("return_status");
@@ -188,11 +188,12 @@ export function BehaviourForm({ slug, canEdit, currency, statuses, initial }: { 
   const [label, setLabel] = useState((initial.returnLabelCostMinor / 100).toFixed(2));
   const [handling, setHandling] = useState((initial.returnHandlingCostMinor / 100).toFixed(2));
   const [tags, setTags] = useState<Record<string, string>>(Object.fromEntries(statuses.map((s) => [s, (initial.returnPlatformTags[s] ?? []).join(", ")])));
+  const [emails, setEmails] = useState<Record<string, boolean>>({ ...initial.returnCustomerEmails });
   const [pending, start] = useTransition();
   const [result, setResult] = useState<{ ok: boolean; error?: string } | null>(null);
   const save = () =>
     start(async () => {
-      const r = await saveReturnBehaviourAction(slug, { returnShippingCostMinor: Math.round(Number(cost.replace(",", ".")) * 100) || 0, returnsWriteBack: writeBack, returnLabelCostMinor: Math.round(Number(label.replace(",", ".")) * 100) || 0, returnHandlingCostMinor: Math.round(Number(handling.replace(",", ".")) * 100) || 0, returnPlatformTags: Object.fromEntries(Object.entries(tags).map(([k, v]) => [k, v.split(",").map((x) => x.trim()).filter(Boolean).slice(0, 5)])) });
+      const r = await saveReturnBehaviourAction(slug, { returnShippingCostMinor: Math.round(Number(cost.replace(",", ".")) * 100) || 0, returnsWriteBack: writeBack, returnLabelCostMinor: Math.round(Number(label.replace(",", ".")) * 100) || 0, returnHandlingCostMinor: Math.round(Number(handling.replace(",", ".")) * 100) || 0, returnPlatformTags: Object.fromEntries(Object.entries(tags).map(([k, v]) => [k, v.split(",").map((x) => x.trim()).filter(Boolean).slice(0, 5)])), returnCustomerEmails: Object.fromEntries(emailEvents.map((e) => [e, emails[e] === true])) });
       setResult(r.ok ? { ok: true } : { ok: false, error: r.error });
     });
   return (
@@ -214,6 +215,13 @@ export function BehaviourForm({ slug, canEdit, currency, statuses, initial }: { 
         <p className="text-xs text-muted-foreground">{t("costs_hint")}</p>
         <label className="flex items-center gap-2"><input type="checkbox" checked={writeBack} onChange={(e) => setWriteBack(e.target.checked)} disabled={!canEdit} /> {t("write_back")}</label>
         <p className="text-xs text-muted-foreground">{t("write_back_hint")}</p>
+        <div className="space-y-2 border-t pt-3" data-testid="customer-emails">
+          <p className="font-medium">{t("customer_emails")}</p>
+          <p className="text-xs text-muted-foreground">{t("customer_emails_hint")}</p>
+          {emailEvents.map((e) => (
+            <label key={e} className="flex items-center gap-2"><input type="checkbox" name={`email-${e}`} checked={emails[e] === true} onChange={(ev) => setEmails({ ...emails, [e]: ev.target.checked })} disabled={!canEdit} /> {t(`customer_email_events.${e}`)}</label>
+          ))}
+        </div>
         <div className="space-y-2 border-t pt-3">
           <p className="font-medium">{t("tags")}</p>
           <p className="text-xs text-muted-foreground">{t("tags_hint")}</p>

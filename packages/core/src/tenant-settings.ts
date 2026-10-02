@@ -47,6 +47,11 @@ export const tenantSettingsSchema = z.object({
   backorderHold: z.boolean().default(true),
   /** While an order waits for stock, also place a fulfillment hold on the commerce platform so the warehouse does not ship it. */
   backorderPlatformHold: z.boolean().default(true),
+  /**
+   * Status emails to the customer who asked for a return (issue #7), one switch per event. Off by
+   * default: the store opts in (Returns → Portal settings), since Shopify may already send its own.
+   */
+  returnCustomerEmails: z.object({ approved: z.boolean().default(false), received: z.boolean().default(false), refunded: z.boolean().default(false), voucher_issued: z.boolean().default(false), exchange_shipped: z.boolean().default(false) }).default({ approved: false, received: false, refunded: false, voucher_issued: false, exchange_shipped: false }),
   /** Order tags written on the platform when a return reaches a status (e.g. refunded → "REFUNDED"). */
   returnPlatformTags: z.record(z.string(), z.array(z.string().max(40)).max(5)).default({}),
   paymentFeeBps: feeMap.default({ ...TENANT_SETTING_DEFAULTS.paymentFeeBps }),
@@ -102,6 +107,8 @@ export const tenantSettingsSchema = z.object({
   campaignMeasurementLock: z.boolean().default(true),
 });
 export type TenantSettings = z.infer<typeof tenantSettingsSchema>;
+export const RETURN_EMAIL_EVENTS = ["approved", "received", "refunded", "voucher_issued", "exchange_shipped"] as const;
+export type ReturnEmailEvent = (typeof RETURN_EMAIL_EVENTS)[number];
 
 /** True when the tenant switched this feature on. Unknown keys are off. */
 export function hasFeature(settings: Pick<TenantSettings, "featureFlags">, key: string): boolean {

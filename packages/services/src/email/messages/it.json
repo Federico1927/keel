@@ -136,6 +136,46 @@
         "cod": "Contrassegno",
         "customer_campaigns": "Campagne clienti"
       }
+    },
+    "return_status": {
+      "greeting": "Ciao {name},",
+      "greeting_anonymous": "Ciao,",
+      "item": "{title} × {quantity}",
+      "footer": "Ricevi questa email per un reso che hai richiesto a {store}.",
+      "approved": {
+        "subject": "Il tuo reso {return} è stato approvato",
+        "preheader": "{store} ha approvato il reso dell'ordine {order}.",
+        "intro": "{store} ha approvato il tuo reso {return} per l'ordine {order}.",
+        "label": "La tua etichetta di reso prepagata è pronta: stampala e attaccala sul pacco.",
+        "no_label": "Imballa gli articoli qui sotto e rispediscili come indicato:",
+        "cta": "Scarica l'etichetta di reso"
+      },
+      "received": {
+        "subject": "Abbiamo ricevuto il tuo reso {return}",
+        "preheader": "Il tuo pacco è arrivato a {store}.",
+        "intro": "Il tuo reso {return} per l'ordine {order} è arrivato a {store}. Stiamo controllando gli articoli e ti scriveremo con l'esito."
+      },
+      "refunded": {
+        "subject": "Rimborso effettuato per il reso {return}",
+        "preheader": "{store} ti ha rimborsato {amount}.",
+        "intro": "{store} ti ha rimborsato {amount} per il reso {return} (ordine {order}).",
+        "hint": "A seconda della banca o del metodo di pagamento, il rimborso può richiedere alcuni giorni lavorativi per comparire."
+      },
+      "voucher_issued": {
+        "subject": "Il tuo buono per il reso {return}",
+        "preheader": "Buono di {amount} da {store}.",
+        "intro": "Per il tuo reso {return} (ordine {order}) {store} ha emesso un buono di {amount}.",
+        "code": "Il tuo codice: {code}",
+        "hint": "Inserisci il codice al checkout sul negozio online di {store}."
+      },
+      "exchange_shipped": {
+        "subject": "Il cambio per il reso {return} è in viaggio",
+        "preheader": "{store} ha spedito il tuo cambio.",
+        "intro": "Il cambio per il tuo reso {return} è stato spedito (ordine {exchange}).",
+        "intro_no_order": "Il cambio per il tuo reso {return} è stato spedito.",
+        "tracking": "Corriere: {carrier} · Numero di tracking: {tracking}",
+        "cta": "Segui il pacco"
+      }
     }
   },
   "system": {

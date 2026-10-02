@@ -22,7 +22,7 @@ export class MockAddressProvider implements AddressProvider {
   readonly provider = "address-mock";
   readonly calls: { op: "autocomplete" | "validate"; input: unknown }[] = [];
   async testConnection(): Promise<ConnectionTest> {
-    return { ok: true, accountName: "Mock address provider" };
+    return { ok: true, accountName: "Simulated address provider" };
   }
   async autocomplete(query: string, opts: { country: string | null; limit?: number }): Promise<AddressSuggestion[]> {
     this.calls.push({ op: "autocomplete", input: { query, country: opts.country } });
