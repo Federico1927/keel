@@ -3,7 +3,7 @@ import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { recordAudit } from "@hullwise/db";
-import { PAYMENT_METHODS } from "@hullwise/core";
+import { PAYMENT_METHODS, manualPaymentInstant } from "@hullwise/core";
 import { PaymentError, recordManualPayment, refundOrder, runPayoutsSync } from "@hullwise/services";
 import { getCommercePlatform } from "@/server/integrations";
 import { dispatchPlatformWrites } from "@/server/platform-writes";
@@ -28,7 +28,7 @@ export async function recordPaymentAction(slug: string, input: unknown): Promise
     if (!parsed.success) return fail("invalid_input");
     const d = parsed.data;
     // a date without time: noon in UTC keeps the day the same in every timezone the team works in
-    const occurredAt = d.occurredAt === new Date().toISOString().slice(0, 10) ? new Date() : new Date(`${d.occurredAt}T12:00:00Z`);
+    const occurredAt = manualPaymentInstant(d.occurredAt, ctx.tenant.timezone, new Date());
     const r = await ctx.run(async (tx) => {
       const res = await recordManualPayment({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { orderId: d.orderId, amountMinor: d.amountMinor, occurredAt, method: d.method, note: d.note ?? null });
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "order.payment_recorded", entityType: "order", entityId: d.orderId, diff: res.paymentStatus !== res.previousPaymentStatus ? { paymentStatus: { from: res.previousPaymentStatus, to: res.paymentStatus } } : {}, metadata: { amountMinor: res.amountMinor, method: d.method, occurredAt: occurredAt.toISOString(), transactionId: res.transactionId } });

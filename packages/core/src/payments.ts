@@ -1,3 +1,4 @@
+import { localDateKey } from "./fulfilment";
 import { safeDiv } from "./money";
 import { PAYMENT_METHODS, type PaymentMethod } from "./tenant-settings";
 import type { PaymentStatus } from "./domain";
@@ -267,4 +268,13 @@ export function paymentMethodBreakdown(rows: readonly MethodBreakdownInput[]): M
     row.revenueShare = safeDiv(row.netRevenueMinor, totalNet);
   }
   return [...out.values()];
+}
+
+/**
+ * The instant a manual payment is recorded at, from the date picked in the form (`YYYY-MM-DD`, the
+ * tenant's calendar). Today in the tenant's time zone is "now"; an earlier day is noon UTC of that day,
+ * which is never in the future for a past local date.
+ */
+export function manualPaymentInstant(dateKey: string, timeZone: string, now: Date): Date {
+  return dateKey === localDateKey(now, timeZone) ? now : new Date(`${dateKey}T12:00:00Z`);
 }

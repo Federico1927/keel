@@ -20,12 +20,15 @@ test.describe("backorders", () => {
     for (const href of hrefs) {
       await page.goto(href);
       await expect(page.getByTestId("backorder-card")).toBeVisible();
-      if ((await page.getByTestId("backorder-po").count()) > 0) {
+      // receiving one PO must release the whole order: every waiting line covered, all by the same PO
+      const rows = await page.getByTestId("backorder-row").count();
+      const pos = await page.getByTestId("backorder-po").allTextContents();
+      if (rows > 0 && pos.length === rows && new Set(pos).size === 1) {
         found = href;
         break;
       }
     }
-    expect(found, "a seeded waiting order covered by an incoming PO").not.toBeNull();
+    expect(found, "a seeded waiting order fully covered by one incoming PO").not.toBeNull();
     const card = page.getByTestId("backorder-card");
     await expect(card).toContainText("Waiting for stock");
     await expect(card.getByTestId("backorder-eta")).toContainText(/ETA/);
