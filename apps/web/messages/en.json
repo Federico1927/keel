@@ -270,6 +270,421 @@
       "waiting": "{n} waiting"
     }
   },
+  "dashboards": {
+    "title": "Dashboards",
+    "description": "The home your team sees, home variants per role, extra dashboards and personal copies.",
+    "home_description": "Your team's dashboard, designed by the store's owners.",
+    "edit": "Edit dashboard",
+    "customise": "Customise",
+    "home_name": "Home",
+    "preview_as": "Preview as…",
+    "preview_banner": "Preview as {role}",
+    "draft_banner": "unpublished draft",
+    "exit_preview": "Exit preview",
+    "draft_badge": "Unpublished changes",
+    "template_badge": "Keel template",
+    "customised_badge": "Customised",
+    "open": "Open",
+    "home": "Home",
+    "home_template": "Your home is Keel's template: it follows Keel's updates until you customise it.",
+    "home_custom": "Customised home: {name}.",
+    "reset_home": "Reset home to Keel template",
+    "reset_home_confirm": "The tenant home goes back to Keel's template. Role variants are kept. Continue?",
+    "reset_all": "Reset home and role variants",
+    "reset_all_confirm": "The home and every role variant go back to Keel's template. Continue?",
+    "personal_toggle": "Personal dashboards",
+    "personal_toggle_hint": "When on, anyone can copy a dashboard into a personal one. The tenant's dashboards stay the reference.",
+    "name": "Name",
+    "kind": "Kind",
+    "scope_new": {
+      "tenant": "Extra dashboard",
+      "role": "Home variant for roles",
+      "personal": "Personal copy of my home"
+    },
+    "roles_variant": "Roles that see this home",
+    "roles_visible": "Roles that can open it",
+    "roles_all_hint": "None selected: everyone in the store.",
+    "create": "Create",
+    "copy_of": "Copy of {name}",
+    "duplicate": "Make a personal copy",
+    "delete": "Delete",
+    "delete_confirm": "Delete this dashboard?",
+    "scope": {
+      "tenant": "Store dashboard",
+      "role": "Home variant",
+      "personal": "Personal dashboard"
+    },
+    "personal_description": "Only you see it.",
+    "visible_to": "Visible to: {roles}",
+    "visible_all": "Visible to everyone in the store",
+    "widgets_n": "{n, plural, one {# widget} other {# widgets}}",
+    "variants": "Home variants by role",
+    "variants_description": "A role with a variant sees it instead of the store home.",
+    "variants_empty": "No variants: every role sees the store home.",
+    "extras": "Other dashboards",
+    "extras_description": "Named dashboards, for example a weekly review.",
+    "extras_empty": "No other dashboards yet.",
+    "personal": "My dashboards",
+    "personal_hint": "Your own copies: change them freely.",
+    "personal_empty": "No personal dashboards.",
+    "new_dashboard": "New dashboard",
+    "settings": "Settings",
+    "metrics_page": "Metrics and targets",
+    "metrics_description": "The metrics your dashboards can show: Keel's catalog and your own formulas, with monthly targets.",
+    "custom_metrics": "Custom metrics",
+    "custom_metrics_hint": "Formulas over the base metrics, optionally over filtered orders. Every change goes to the audit log.",
+    "custom_metrics_empty": "No custom metrics yet.",
+    "this_month": "This month",
+    "targets": "Monthly targets",
+    "targets_hint": "A month without its own target uses the latest earlier one.",
+    "catalog": "Metric catalog",
+    "catalog_hint": "Base metrics computed by Keel's services: they agree with the P/L, the campaigns and the stock pages.",
+    "catalog_group": "Group",
+    "catalog_flags": "Use",
+    "flag_snapshot": "now",
+    "flag_filterable": "filters",
+    "flag_series": "time series",
+    "catalog_pending": "Sessions and conversion rate arrive with the GA4 connection; TikTok ads and search terms with their integrations.",
+    "periods": {
+      "today": "Today",
+      "7d": "7 days",
+      "30d": "30 days",
+      "90d": "90 days",
+      "mtd": "Month to date",
+      "last_month": "Last month",
+      "ytd": "Year to date",
+      "follow": "Dashboard period"
+    },
+    "widget": {
+      "error": "This widget could not load. The rest of the dashboard is fine.",
+      "forbidden": "Not available for your role.",
+      "unavailable": "This widget is not available on your plan.",
+      "days_unit": "days",
+      "open_list": "Open",
+      "now": "now",
+      "vs_previous": "vs previous period",
+      "filtered": "filtered",
+      "unknown": "Unknown",
+      "empty": "Nothing in this period.",
+      "breakdown_title": "{metric} by {by}",
+      "target_title": "{metric}: monthly target",
+      "no_target": "No target set for this month.",
+      "of_target": "of {target}",
+      "projected": "Month-end projection {value} (day {elapsed} of {days})",
+      "no_alerts": "No alerts fired recently.",
+      "empty_note": "Empty note."
+    },
+    "widget_groups": {
+      "metrics": "Metrics",
+      "charts": "Charts",
+      "lists": "Lists",
+      "queues": "Work queues",
+      "content": "Content",
+      "keel": "Keel home tiles"
+    },
+    "widget_types": {
+      "kpi": {
+        "name": "KPI tile",
+        "description": "One metric with comparison and trend."
+      },
+      "timeseries": {
+        "name": "Time series",
+        "description": "1–3 metrics by day, week or month."
+      },
+      "breakdown": {
+        "name": "Breakdown",
+        "description": "A metric by channel, country, payment, product, campaign or platform."
+      },
+      "top_list": {
+        "name": "Top list",
+        "description": "Best products, campaigns or customers."
+      },
+      "target": {
+        "name": "Target",
+        "description": "Month to date against the monthly target, with projection."
+      },
+      "alerts": {
+        "name": "Alerts",
+        "description": "The latest alerts that fired."
+      },
+      "note": {
+        "name": "Note",
+        "description": "Text for the team (markdown)."
+      },
+      "queue_review": {
+        "name": "Orders to review",
+        "description": "Orders pending review."
+      },
+      "queue_late": {
+        "name": "Late to ship",
+        "description": "Ready orders past the shipping deadline."
+      },
+      "queue_awaiting_stock": {
+        "name": "Awaiting stock",
+        "description": "Orders held for missing stock."
+      },
+      "queue_exceptions": {
+        "name": "Delivery exceptions",
+        "description": "Open shipment exception cases."
+      },
+      "queue_integrations": {
+        "name": "Integration health",
+        "description": "Connections or syncs in error and failed webhooks."
+      },
+      "today_kpis": {
+        "name": "Today's KPIs",
+        "description": "Sales, orders, AOV and cancellations today."
+      },
+      "sales_30d": {
+        "name": "Sales, last 30 days",
+        "description": "Daily sales and orders."
+      },
+      "month_forecast": {
+        "name": "Month forecast",
+        "description": "Projected revenue, orders and ad spend."
+      },
+      "work_queue": {
+        "name": "Needs attention",
+        "description": "Everything open, with counts."
+      },
+      "stock_backorders": {
+        "name": "Stock and backorders",
+        "description": "Orders waiting for stock, best sellers running low."
+      },
+      "today_by_status": {
+        "name": "Today's orders by status",
+        "description": "Today's orders per canonical status."
+      },
+      "cod_queue": {
+        "name": "COD to confirm",
+        "description": "Cash-on-delivery orders waiting for a call."
+      }
+    },
+    "metrics": {
+      "net_revenue": "Net revenue",
+      "gross_revenue": "Gross sales",
+      "orders": "Orders",
+      "aov": "Average order value",
+      "ad_spend": "Ad spend",
+      "cogs": "Cost of goods",
+      "gross_margin": "Gross margin",
+      "shipping": "Shipping costs",
+      "fees": "Payment fees",
+      "fixed_costs": "Fixed costs",
+      "contribution": "Contribution margin",
+      "operating_profit": "Operating profit",
+      "refunds": "Refunds",
+      "new_customers": "New customers",
+      "mer": "MER",
+      "nc_roas": "nc-ROAS",
+      "cac": "Blended CAC",
+      "poas": "POAS",
+      "cancel_rate": "Cancellation rate",
+      "returns_rate": "Return rate",
+      "return_cost": "Return costs",
+      "repeat_customer_rate": "Repeat customer rate",
+      "stock_value_cost": "Stock value at cost",
+      "coverage_days": "Days of cover",
+      "out_of_stock_variants": "Out-of-stock variants",
+      "incoming_po_value": "Incoming PO value",
+      "meta_spend": "Meta spend",
+      "meta_roas": "Meta ROAS",
+      "meta_cpa": "Meta CPA",
+      "meta_ctr": "Meta CTR",
+      "google_spend": "Google spend",
+      "google_roas": "Google ROAS",
+      "google_cpa": "Google CPA",
+      "google_ctr": "Google CTR"
+    },
+    "metric_groups": {
+      "finance": "Finance",
+      "orders": "Orders and returns",
+      "customers": "Customers",
+      "inventory": "Inventory",
+      "ads": "Ads by platform",
+      "custom": "Custom metrics"
+    },
+    "breakdown_dims": {
+      "channel": "channel",
+      "country": "country",
+      "payment_method": "payment method",
+      "product": "product",
+      "campaign": "campaign",
+      "platform": "platform"
+    },
+    "top_entities": {
+      "products": "Top products",
+      "campaigns": "Top campaigns by profit",
+      "customers": "Top customers"
+    },
+    "top_secondary": {
+      "products": "{v} units",
+      "campaigns": "ROAS {v}",
+      "customers": "{v} orders"
+    },
+    "granularity": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    },
+    "channels": {
+      "paid_social": "Paid social",
+      "paid_search": "Paid search",
+      "organic_search": "Organic search",
+      "email": "Email",
+      "social": "Social",
+      "direct": "Direct",
+      "referral": "Referral",
+      "unknown": "Unknown"
+    },
+    "queue_parts": {
+      "connections": "{n} connections",
+      "sources": "{n} syncs",
+      "webhooks": "{n} webhooks",
+      "unassigned": "{n} unassigned"
+    },
+    "editor": {
+      "title": "Edit: {name}",
+      "description": "Changes are saved as a draft: preview them as a role, then publish.",
+      "published": "Published.",
+      "saved": "Draft saved.",
+      "none": "— none —",
+      "title_field": "Title (optional)",
+      "title_placeholder": "Automatic",
+      "width": "Width",
+      "height": "Height",
+      "columns": "{n, plural, one {# column} other {# columns}}",
+      "rows": "{n, plural, one {# row} other {# rows}}",
+      "period": "Period",
+      "metric": "Metric",
+      "compare": "Compare with",
+      "compare_previous": "Previous period",
+      "compare_none": "Nothing",
+      "sparkline": "Show the trend line",
+      "series_n": "Metric {n}",
+      "chart": "Chart",
+      "chart_line": "Lines",
+      "chart_bar": "Bars",
+      "granularity": "By",
+      "by": "Split by",
+      "limit": "Rows",
+      "entity": "List",
+      "note_text": "Text",
+      "note_hint": "Headings (#), lists (-), **bold**, *italic*, [links](https://…). HTML is shown as text.",
+      "note_translation": "Text in {locale} (optional)",
+      "dashboard_period": "Dashboard period",
+      "save_draft": "Save draft",
+      "publish": "Publish",
+      "preview_as": "Save and preview as…",
+      "discard": "Discard draft",
+      "reset_confirm": "Replace the widgets with Keel's template? Publish to apply.",
+      "reset_template": "Reset to Keel template",
+      "count": "{n} of {max} widgets",
+      "drag_hint": "Drag the widgets to reorder them, or use the arrows. Click a widget to configure it.",
+      "configure": "Configure",
+      "move_up": "Move up",
+      "move_down": "Move down",
+      "remove": "Remove",
+      "size": "{w}×{h}",
+      "empty": "No widgets: add one from the catalog.",
+      "settings": "Widget settings",
+      "add_widget": "Add a widget",
+      "done": "Done"
+    },
+    "errors": {
+      "generic": "Something went wrong.",
+      "forbidden": "You cannot change this dashboard.",
+      "not_found": "Dashboard not found.",
+      "invalid_layout": "Some widgets are not valid.",
+      "too_many_widgets": "Too many widgets for one dashboard.",
+      "module_disabled": "A widget needs a module your store does not have.",
+      "role_taken": "A selected role already has a home variant.",
+      "home_exists": "The store home already exists.",
+      "invalid_input": "Check the fields.",
+      "personal_off": "Personal dashboards are switched off for this store.",
+      "invalid_formula": "The formula is not valid.",
+      "invalid_filters": "The filters are not valid.",
+      "invalid_key": "Choose another key: this one is empty or a base metric.",
+      "not_filterable": "With filters, use only metrics computed from the orders (not fixed costs, operating profit, new customers or stock)."
+    },
+    "builder": {
+      "saved": "Metric saved.",
+      "label": "Name",
+      "label_placeholder": "Contribution per order",
+      "key": "Key",
+      "key_placeholder": "from the name",
+      "formula": "Formula",
+      "formula_ok": "Valid formula.",
+      "formula_error": "Not valid",
+      "formula_help": "Combine base metrics with + − × ÷ and parentheses, e.g. contribution / orders.",
+      "available": "Available metrics",
+      "filters": "Computed over",
+      "filters_hint": "Leave empty for the whole store. Filters keep only the matching orders.",
+      "f_channel": "Channel",
+      "f_country": "Country",
+      "f_payment": "Payment method",
+      "f_platform": "Ad platform",
+      "f_campaign": "Campaign",
+      "f_product": "Product",
+      "f_product_type": "Product type",
+      "f_customer": "Customers",
+      "f_customer_all": "All",
+      "f_customer_new": "New (first order)",
+      "f_customer_returning": "Returning",
+      "format": "Format",
+      "formats": {
+        "money": "Money",
+        "percent": "Percent",
+        "ratio": "Ratio (×)",
+        "number": "Number"
+      },
+      "direction": "Trend",
+      "higher_better": "Higher is better",
+      "lower_better": "Lower is better",
+      "translation": "Name in {locale}",
+      "description_field": "Description",
+      "preview": "Preview this month",
+      "save": "Save metric",
+      "cancel": "Cancel",
+      "preview_value": "This month: {value} (previous period {previous})",
+      "delete": "Delete",
+      "delete_confirm": "Delete this metric? Widgets using it will show a dash.",
+      "invalid_target": "Target not valid.",
+      "target_saved": "Target saved.",
+      "target_metric": "Metric",
+      "target_month": "Month",
+      "target_value_money": "Target (currency)",
+      "target_value_percent": "Target (%)",
+      "target_value_number": "Target",
+      "target_clear": "empty = remove",
+      "target_save": "Set target",
+      "edit_title": "Edit {name}",
+      "new_title": "New metric",
+      "hint": "Only owners and admins create or change metrics.",
+      "filter_names": {
+        "channel": "Channel",
+        "country": "Country",
+        "paymentMethod": "Payment",
+        "productIds": "Products",
+        "productType": "Product type",
+        "campaignIds": "Campaigns",
+        "platform": "Platform",
+        "customerType": "Customers"
+      }
+    },
+    "payment_methods": {
+      "card": "Card",
+      "wallet": "Wallet",
+      "bank_transfer": "Bank transfer",
+      "cod": "Cash on delivery",
+      "bnpl": "Buy now pay later",
+      "other": "Other"
+    },
+    "platforms": {
+      "meta": "Meta",
+      "google": "Google"
+    }
+  },
   "settings": {
     "title": "Settings",
     "description": "Country, currency, timezone, thresholds and fees used by every calculation.",
@@ -969,14 +1384,14 @@
     "replaces": "Created as replacement",
     "replaced": "Replaced by a new order",
     "discount_applied": "Discount applied",
-    "backorder_created": "Waiting for stock",
-    "backorder_closed": "Stock wait closed",
-    "payment_recorded": "Payment recorded",
-    "refund_issued": "Refund issued",
     "fulfilled": "Shipped from Keel",
     "packed": "Packed",
     "unpacked": "Back to pending",
-    "delivery_instruction_sent": "Delivery instruction sent"
+    "delivery_instruction_sent": "Delivery instruction sent",
+    "backorder_created": "Waiting for stock",
+    "backorder_closed": "Stock wait closed",
+    "payment_recorded": "Payment recorded",
+    "refund_issued": "Refund issued"
   },
   "shipments": {
     "title": "Shipments",
@@ -1097,9 +1512,9 @@
       "adjustment": "Adjustment",
       "sync": "Sync",
       "sale": "Sale",
-      "refund_restock": "Refund restocked",
       "transfer_in": "Transfer in",
-      "transfer_out": "Transfer out"
+      "transfer_out": "Transfer out",
+      "refund_restock": "Refund restocked"
     },
     "view_orders": "View orders",
     "grid": {
@@ -1166,6 +1581,180 @@
     },
     "drift_all_locations": "All locations",
     "drift_times": "×{n}"
+  },
+  "inventory_control": {
+    "back": "Inventory",
+    "links": {
+      "stock-takes": "Stock-takes",
+      "markdowns": "Markdowns",
+      "losses": "Unexplained losses"
+    },
+    "reasons": {
+      "damaged": "Damaged",
+      "lost": "Lost",
+      "found": "Found",
+      "count_correction": "Count correction",
+      "other": "Other"
+    },
+    "errors": {
+      "zero": "Enter a quantity other than zero.",
+      "sign": "This reason does not match the direction of the change (damaged and lost remove units, found adds them).",
+      "negative_stock": "Stock cannot go below zero at this location.",
+      "note_required": "Add a note for \"Other\".",
+      "not_open": "This stock-take is no longer open.",
+      "invalid_input": "Some fields are invalid.",
+      "not_found": "Not found.",
+      "forbidden": "You are not allowed to do this."
+    },
+    "adjust": {
+      "button": "Adjust stock",
+      "title": "Adjust stock",
+      "description": "Change the stock of a variant at one location, with a reason.",
+      "variant": "Variant",
+      "location": "Location",
+      "reason": "Reason",
+      "direction": "Direction",
+      "add": "Add units",
+      "remove": "Remove units",
+      "quantity": "Units",
+      "note": "Note (optional)",
+      "note_required": "Note (required)",
+      "preview": "Available {current} → {next} ({delta}). The new level is sent to the store.",
+      "submit": "Save adjustment"
+    },
+    "stock_takes": {
+      "title": "Stock-takes",
+      "description": "Count a location, review the differences and apply them as count corrections in one batch. Variants you do not count are left unchanged.",
+      "back": "Stock-takes",
+      "new": "New stock-take",
+      "location": "Location",
+      "note": "Note",
+      "empty_title": "No stock-takes yet",
+      "empty_description": "Start one for a location, then scan or type what you count.",
+      "columns": {
+        "number": "Stock-take",
+        "location": "Location",
+        "status": "Status",
+        "lines": "Lines",
+        "movements": "Corrections",
+        "updated": "Updated",
+        "variant": "Variant",
+        "expected": "Expected",
+        "counted": "Counted",
+        "difference": "Difference"
+      },
+      "status": {
+        "open": "Open",
+        "applied": "Applied",
+        "cancelled": "Cancelled"
+      },
+      "open_description": "Scan a barcode or type a SKU and press Enter: each scan counts one unit. Partial counts are fine.",
+      "applied_description": "Applied on {at}: {n} count corrections written.",
+      "cancelled_description": "Cancelled: nothing was written.",
+      "review": {
+        "missing": "Missing",
+        "surplus": "Surplus",
+        "unknown": "Unknown SKU",
+        "match": "Match"
+      },
+      "units": "{n} units",
+      "review_title": "Review",
+      "show_all": "Show all",
+      "no_lines": "Nothing counted yet",
+      "no_lines_hint": "Scan or type the first code above.",
+      "unknown_code": "Unknown code",
+      "scan_label": "Barcode or SKU",
+      "scan_placeholder": "Scan or type, then Enter",
+      "quantity": "Units",
+      "mode": "Mode",
+      "mode_add": "Add to count",
+      "mode_set": "Replace count",
+      "count": "Count",
+      "scan_matched": "{label}: counted {n}",
+      "scan_unknown": "Unknown code {code}: counted {n} (not applied)",
+      "remove_line": "Remove line",
+      "apply_hint": "Applying sets each counted variant to its count and sends the levels to the store.",
+      "apply": "Apply {n, plural, one {# difference} other {# differences}}",
+      "apply_confirm": "Write {n, plural, one {# count correction} other {# count corrections}} and close this stock-take?",
+      "applied": "{n, plural, one {# correction} other {# corrections}} written{released, plural, =0 {} one {, # waiting order released} other {, # waiting orders released}}.",
+      "cancel": "Cancel stock-take",
+      "cancel_confirm": "Cancel this stock-take? Counts are kept but nothing is applied."
+    },
+    "losses": {
+      "title": "Unexplained losses",
+      "description": "Variants whose stock fell with no sale, cancellation, return, receipt or adjustment to explain it, found by the stock syncs.",
+      "location": "Location",
+      "all_locations": "All locations",
+      "apply": "Apply",
+      "kpi": {
+        "units": "Units lost",
+        "value": "Value at cost",
+        "value_hint": "at the variant's latest cost",
+        "without_cost": "{n, plural, one {# variant} other {# variants}} without a cost not valued",
+        "variants": "Variants"
+      },
+      "columns": {
+        "variant": "Variant",
+        "units": "Units",
+        "value": "Value",
+        "events": "Events",
+        "locations": "Locations",
+        "last": "Last found"
+      },
+      "no_cost": "No cost",
+      "empty_title": "No unexplained losses",
+      "empty_description": "No stock fell without a reason in this period.",
+      "footnote": "Each discrepancy counts once even when a sync sees it again. Record damaged or lost units as adjustments so they no longer show up here."
+    },
+    "markdowns": {
+      "title": "Markdowns",
+      "description": "Compare-at markdowns for stock without sales or with too much cover (more than {excess} days; deep markdown from {slow} days or without sales in {days} days). Prices never go below a {margin} margin on the net price.",
+      "reasons": {
+        "no_sales": "No sales",
+        "slow": "Slow mover",
+        "excess": "Excess stock"
+      },
+      "skipped": {
+        "no_cost": "{n, plural, one {# variant} other {# variants}} without a cost (no floor, no suggestion)",
+        "floor": "{n, plural, one {# variant} other {# variants}} already at the margin floor",
+        "already_marked_down": "{n, plural, one {# variant} other {# variants}} already marked down enough"
+      },
+      "columns": {
+        "variant": "Variant",
+        "reason": "Why",
+        "stock": "Stock",
+        "cover": "Cover",
+        "price": "Price",
+        "new_price": "Markdown",
+        "floor": "Floor",
+        "margin": "Margin"
+      },
+      "at_floor": "at floor",
+      "select_all": "Select all",
+      "apply": "Apply {n, plural, =0 {markdowns} one {# markdown} other {# markdowns}}",
+      "apply_confirm": "Apply {n, plural, one {# markdown} other {# markdowns}}? Prices and compare-at prices are sent to the store.",
+      "summary": "{done} applied, {skipped} skipped, {failed} failed.",
+      "empty_title": "No markdown to suggest",
+      "empty_description": "No active variant has slow or excess stock above the margin floor."
+    },
+    "price_history": {
+      "title": "Price history",
+      "markdown_description": "Markdowns applied from Keel, newest first.",
+      "empty": "No price change recorded.",
+      "system": "System",
+      "columns": {
+        "when": "When",
+        "variant": "Variant",
+        "price": "Price",
+        "compare_at": "Compare-at",
+        "by": "By"
+      },
+      "source": {
+        "markdown": "markdown",
+        "bulk": "bulk edit",
+        "manual": "manual"
+      }
+    }
   },
   "purchasing": {
     "title": "Purchasing",
@@ -5627,14 +6216,257 @@
       "order_discount": "Order discount",
       "variant_prices": "Variant prices",
       "product_tags": "Product tags",
+      "fulfillment_create": "Fulfilment",
       "order_fulfillment_hold": "Fulfillment hold",
       "order_fulfillment_release": "Fulfillment hold release",
       "order_mark_paid": "Mark order paid",
       "order_refund": "Order refund",
-      "fulfillment_create": "Fulfilment",
       "discount_status": "Discount on/off",
       "discount_pool_status": "Discount pool on/off"
     }
+  },
+  "fulfilment": {
+    "title": "Fulfilment",
+    "description": "Orders ready to ship, oldest first. Pack, print the packing slip and ship: the store creates the fulfilment and Keel updates only after it confirms. Late means more than {days} working days.",
+    "tabs": {
+      "label": "Fulfilment areas",
+      "board": "To ship",
+      "exceptions": "Delivery exceptions",
+      "returned": "Returns to sender"
+    },
+    "kpi": {
+      "late": "Late (> {days} working days)",
+      "to_pack": "To pack",
+      "packed": "Packed",
+      "shipped_today": "Shipped today"
+    },
+    "views": {
+      "label": "View",
+      "all": "All to ship",
+      "late": "Late only"
+    },
+    "threshold": "Late = ready to ship for more than {days} working days ({tz}).",
+    "search": "Search",
+    "search_placeholder": "Order, customer, email",
+    "columns": {
+      "pending": "To pack",
+      "packed": "Packed",
+      "shipped": "Shipped today"
+    },
+    "showing": "{shown} of {total}",
+    "empty_pending": "Nothing waiting to be packed.",
+    "empty_late": "No order is late: everything ready shipped on time.",
+    "empty_packed": "No packed parcel waiting for the carrier.",
+    "empty_shipped": "Nothing shipped yet today.",
+    "card": {
+      "late": "Late",
+      "units": "{units} units · {lines} lines",
+      "age": "{days} working days",
+      "packed_at": "Packed {time}"
+    },
+    "actions": {
+      "packing_slip": "Packing slip",
+      "pack": "Mark packed",
+      "unpack": "Back to pending",
+      "ship": "Ship",
+      "packing_slips": "Packing slips ({count})",
+      "pack_selected": "Mark packed ({count})",
+      "unpack_selected": "Back to pending ({count})",
+      "clear": "Clear selection"
+    },
+    "selected": "{count} selected",
+    "bulk_result": "{done} updated, {skipped} skipped, {failed} failed",
+    "ship_dialog": {
+      "title": "Ship {order}",
+      "description": "Creates the fulfilment on the store with the carrier and tracking number. The order changes in Keel only once the store confirms.",
+      "carrier": "Carrier",
+      "carrier_placeholder": "e.g. UPS, DHL, national post",
+      "tracking": "Tracking number",
+      "tracking_url": "Tracking link (optional)",
+      "notify": "Email the tracking to the customer",
+      "cancel": "Cancel",
+      "submit": "Ship order"
+    },
+    "errors": {
+      "not_found": "Order not found.",
+      "not_to_ship": "This order is no longer waiting to ship (shipped, cancelled or on hold).",
+      "invalid_input": "Some fields are invalid.",
+      "no_platform_order": "This order is not on the store, so it cannot be fulfilled from Keel.",
+      "platform_error": "The store refused the fulfilment; nothing changed in Keel.",
+      "forbidden": "You are not allowed to do this.",
+      "unknown": "Something went wrong.",
+      "field_required": "Required.",
+      "field_too_long": "Too long.",
+      "field_invalid": "Not valid."
+    },
+    "packing_slip": {
+      "title": "Packing slip",
+      "order": "Order",
+      "placed": "Placed",
+      "ship_to": "Ship to",
+      "sku": "SKU",
+      "item": "Item",
+      "variant": "Variant",
+      "quantity": "Qty",
+      "units": "Units",
+      "note": "Note"
+    }
+  },
+  "fulfilment_cases": {
+    "exceptions_title": "Delivery exceptions",
+    "exceptions_description": "Parcels the carrier could not deliver. Each enters the queue by itself, one person claims it and sends the carrier an instruction once; the case closes by itself when the parcel moves on.",
+    "returned_title": "Returns to sender",
+    "returned_description": "Parcels on their way back or back at the warehouse. Review each one: restock, refund what was paid, contact the customer.",
+    "scopes": {
+      "open": "Open",
+      "unclaimed": "Unclaimed",
+      "mine": "Mine",
+      "closed": "Closed"
+    },
+    "search": "Search",
+    "search_placeholder": "Order, customer, tracking",
+    "empty_title": "Nothing here",
+    "empty_exceptions": "No delivery exception in this view.",
+    "empty_returned": "No parcel to review in this view.",
+    "columns": {
+      "order": "Order",
+      "shipment": "Shipment",
+      "status": "Status",
+      "opened": "Opened",
+      "owner": "Owner"
+    },
+    "you": "You",
+    "unclaimed": "Unclaimed",
+    "pagination": "{from}–{to} of {total} cases",
+    "resolutions": {
+      "redeliver": "Redeliver",
+      "new_address": "New address",
+      "pickup_point": "Pickup point",
+      "return": "Return to sender"
+    },
+    "close_reasons": {
+      "moved_on": "closed: the shipment moved on",
+      "resolved": "closed: done",
+      "dismissed": "closed without action"
+    },
+    "channels": {
+      "carrier": "Carrier connector",
+      "email": "Email to the carrier"
+    },
+    "follow_ups": {
+      "restock": "Restock",
+      "refund": "Refund",
+      "contact": "Contact the customer"
+    },
+    "follow_up_reasons": {
+      "units_back": "The units come back: put them back in stock when the parcel arrives.",
+      "money_captured": "Money was captured and not refunded yet.",
+      "nothing_captured": "Nothing was captured: there is nothing to refund.",
+      "already_refunded": "Already refunded.",
+      "tell_customer": "Tell the customer what happened and offer to ship again.",
+      "no_contact": "No email or phone on the order."
+    },
+    "outcomes": {
+      "done": "Done",
+      "skipped": "Skipped"
+    },
+    "suggested": "Suggested",
+    "not_needed": "Not needed",
+    "mark_done": "Mark done",
+    "skip": "Skip",
+    "undo": "Undo",
+    "links": {
+      "restock": "Record the return",
+      "order": "Open the order"
+    },
+    "address": {
+      "name": "Name",
+      "address1": "Address",
+      "address2": "Address line 2",
+      "zip": "Postal code",
+      "city": "City",
+      "province": "State / province",
+      "country": "Country (ISO)"
+    },
+    "detail": {
+      "title_exception": "Delivery exception · {order}",
+      "title_rts": "Return to sender · {order}",
+      "opened": "Opened {time}",
+      "shipment": "Shipment",
+      "shipped": "Shipped {time}",
+      "order": "Order and customer",
+      "owner": "Owner",
+      "closed": "{reason} · {time}",
+      "claimed_by_you": "Claimed by you.",
+      "claimed_by_other": "Claimed by {name}: only they can act on it.",
+      "claim": "Claim",
+      "release": "Release",
+      "follow_ups_title": "Follow-ups",
+      "follow_ups_hint": "Suggestions from the order: Keel never refunds or cancels by itself.",
+      "cod_note": "Payments that were never captured stay as they are here: what to do with them belongs to the flow that owns that payment method.",
+      "close_review": "Close review",
+      "dismiss": "Close without action",
+      "instruction_title": "Delivery instruction",
+      "sent": "Sent {time} by {name} via {channel}.",
+      "waiting": "The case closes by itself when the carrier reports the next status.",
+      "claim_first": "Claim the case to send an instruction.",
+      "resolution": "What should the carrier do?",
+      "pickup_point": "Pickup point (name and address)",
+      "note": "Note for the carrier",
+      "channel": "Send through",
+      "email_to": "Carrier email",
+      "send": "Send instruction"
+    },
+    "errors": {
+      "not_found": "Case not found.",
+      "closed": "This case is closed.",
+      "claimed_by_other": "Someone else claimed this case.",
+      "not_claimed": "Claim the case first.",
+      "already_sent": "An instruction was already sent for this case: it cannot be sent twice.",
+      "invalid_input": "Check the fields: address, pickup point or email.",
+      "no_channel": "No carrier connector is available: send it by email.",
+      "send_failed": "The instruction could not be sent; nothing was recorded.",
+      "wrong_kind": "This action does not apply to this case.",
+      "forbidden": "You are not allowed to do this."
+    }
+  },
+  "settings_fulfilment": {
+    "back": "Settings",
+    "title": "Fulfilment",
+    "description": "When an order counts as late to ship, where delivery instructions go by email, and what each carrier or platform status means.",
+    "clock_title": "Shipping clock",
+    "clock_description": "Working days are counted in the store's time zone ({tz}). An order placed on a working day counts from the next one.",
+    "threshold": "Late after (working days)",
+    "carrier_email": "Carrier email for delivery instructions",
+    "carrier_email_hint": "Used when no carrier connector is available.",
+    "workdays": "Working days",
+    "weekdays": {
+      "1": "Mon",
+      "2": "Tue",
+      "3": "Wed",
+      "4": "Thu",
+      "5": "Fri",
+      "6": "Sat",
+      "7": "Sun"
+    },
+    "saved": "Saved.",
+    "save": "Save",
+    "errors": {
+      "invalid_input": "Some values are not valid.",
+      "forbidden": "Only owners and admins can change this.",
+      "duplicate": "This source already maps this status.",
+      "not_found": "Not found."
+    },
+    "mappings_title": "Shipment status mappings",
+    "mappings_description": "What a status reported by a source (the store, a carrier, a 3PL) means in Keel: canonical status, exception (opens a case) and final. The status of every shipment is resolved from this table.",
+    "source": "Source",
+    "external_status": "External status",
+    "canonical": "Canonical status",
+    "exception": "Exception",
+    "final": "Final",
+    "delete": "Delete",
+    "add": "Add mapping",
+    "unmapped_title": "Seen but not mapped (click to fill the form):"
   },
   "dev_inbox": {
     "title": "Dev inbox",
@@ -5886,249 +6718,6 @@
     },
     "total": "Total"
   },
-  "fulfilment": {
-    "title": "Fulfilment",
-    "description": "Orders ready to ship, oldest first. Pack, print the packing slip and ship: the store creates the fulfilment and Keel updates only after it confirms. Late means more than {days} working days.",
-    "tabs": {
-      "label": "Fulfilment areas",
-      "board": "To ship",
-      "exceptions": "Delivery exceptions",
-      "returned": "Returns to sender"
-    },
-    "kpi": {
-      "late": "Late (> {days} working days)",
-      "to_pack": "To pack",
-      "packed": "Packed",
-      "shipped_today": "Shipped today"
-    },
-    "views": {
-      "label": "View",
-      "all": "All to ship",
-      "late": "Late only"
-    },
-    "threshold": "Late = ready to ship for more than {days} working days ({tz}).",
-    "search": "Search",
-    "search_placeholder": "Order, customer, email",
-    "columns": {
-      "pending": "To pack",
-      "packed": "Packed",
-      "shipped": "Shipped today"
-    },
-    "showing": "{shown} of {total}",
-    "empty_pending": "Nothing waiting to be packed.",
-    "empty_late": "No order is late: everything ready shipped on time.",
-    "empty_packed": "No packed parcel waiting for the carrier.",
-    "empty_shipped": "Nothing shipped yet today.",
-    "card": {
-      "late": "Late",
-      "units": "{units} units · {lines} lines",
-      "age": "{days} working days",
-      "packed_at": "Packed {time}"
-    },
-    "actions": {
-      "packing_slip": "Packing slip",
-      "pack": "Mark packed",
-      "unpack": "Back to pending",
-      "ship": "Ship",
-      "packing_slips": "Packing slips ({count})",
-      "pack_selected": "Mark packed ({count})",
-      "unpack_selected": "Back to pending ({count})",
-      "clear": "Clear selection"
-    },
-    "selected": "{count} selected",
-    "bulk_result": "{done} updated, {skipped} skipped, {failed} failed",
-    "ship_dialog": {
-      "title": "Ship {order}",
-      "description": "Creates the fulfilment on the store with the carrier and tracking number. The order changes in Keel only once the store confirms.",
-      "carrier": "Carrier",
-      "carrier_placeholder": "e.g. UPS, DHL, national post",
-      "tracking": "Tracking number",
-      "tracking_url": "Tracking link (optional)",
-      "notify": "Email the tracking to the customer",
-      "cancel": "Cancel",
-      "submit": "Ship order"
-    },
-    "errors": {
-      "not_found": "Order not found.",
-      "not_to_ship": "This order is no longer waiting to ship (shipped, cancelled or on hold).",
-      "invalid_input": "Some fields are invalid.",
-      "no_platform_order": "This order is not on the store, so it cannot be fulfilled from Keel.",
-      "platform_error": "The store refused the fulfilment; nothing changed in Keel.",
-      "forbidden": "You are not allowed to do this.",
-      "unknown": "Something went wrong.",
-      "field_required": "Required.",
-      "field_too_long": "Too long.",
-      "field_invalid": "Not valid."
-    },
-    "packing_slip": {
-      "title": "Packing slip",
-      "order": "Order",
-      "placed": "Placed",
-      "ship_to": "Ship to",
-      "sku": "SKU",
-      "item": "Item",
-      "variant": "Variant",
-      "quantity": "Qty",
-      "units": "Units",
-      "note": "Note"
-    }
-  },
-  "fulfilment_cases": {
-    "exceptions_title": "Delivery exceptions",
-    "exceptions_description": "Parcels the carrier could not deliver. Each enters the queue by itself, one person claims it and sends the carrier an instruction once; the case closes by itself when the parcel moves on.",
-    "returned_title": "Returns to sender",
-    "returned_description": "Parcels on their way back or back at the warehouse. Review each one: restock, refund what was paid, contact the customer.",
-    "scopes": {
-      "open": "Open",
-      "unclaimed": "Unclaimed",
-      "mine": "Mine",
-      "closed": "Closed"
-    },
-    "search": "Search",
-    "search_placeholder": "Order, customer, tracking",
-    "empty_title": "Nothing here",
-    "empty_exceptions": "No delivery exception in this view.",
-    "empty_returned": "No parcel to review in this view.",
-    "columns": {
-      "order": "Order",
-      "shipment": "Shipment",
-      "status": "Status",
-      "opened": "Opened",
-      "owner": "Owner"
-    },
-    "you": "You",
-    "unclaimed": "Unclaimed",
-    "pagination": "{from}–{to} of {total} cases",
-    "resolutions": {
-      "redeliver": "Redeliver",
-      "new_address": "New address",
-      "pickup_point": "Pickup point",
-      "return": "Return to sender"
-    },
-    "close_reasons": {
-      "moved_on": "closed: the shipment moved on",
-      "resolved": "closed: done",
-      "dismissed": "closed without action"
-    },
-    "channels": {
-      "carrier": "Carrier connector",
-      "email": "Email to the carrier"
-    },
-    "follow_ups": {
-      "restock": "Restock",
-      "refund": "Refund",
-      "contact": "Contact the customer"
-    },
-    "follow_up_reasons": {
-      "units_back": "The units come back: put them back in stock when the parcel arrives.",
-      "money_captured": "Money was captured and not refunded yet.",
-      "nothing_captured": "Nothing was captured: there is nothing to refund.",
-      "already_refunded": "Already refunded.",
-      "tell_customer": "Tell the customer what happened and offer to ship again.",
-      "no_contact": "No email or phone on the order."
-    },
-    "outcomes": {
-      "done": "Done",
-      "skipped": "Skipped"
-    },
-    "suggested": "Suggested",
-    "not_needed": "Not needed",
-    "mark_done": "Mark done",
-    "skip": "Skip",
-    "undo": "Undo",
-    "links": {
-      "restock": "Record the return",
-      "order": "Open the order"
-    },
-    "address": {
-      "name": "Name",
-      "address1": "Address",
-      "address2": "Address line 2",
-      "zip": "Postal code",
-      "city": "City",
-      "province": "State / province",
-      "country": "Country (ISO)"
-    },
-    "detail": {
-      "title_exception": "Delivery exception · {order}",
-      "title_rts": "Return to sender · {order}",
-      "opened": "Opened {time}",
-      "shipment": "Shipment",
-      "shipped": "Shipped {time}",
-      "order": "Order and customer",
-      "owner": "Owner",
-      "closed": "{reason} · {time}",
-      "claimed_by_you": "Claimed by you.",
-      "claimed_by_other": "Claimed by {name}: only they can act on it.",
-      "claim": "Claim",
-      "release": "Release",
-      "follow_ups_title": "Follow-ups",
-      "follow_ups_hint": "Suggestions from the order: Keel never refunds or cancels by itself.",
-      "cod_note": "Payments that were never captured stay as they are here: what to do with them belongs to the flow that owns that payment method.",
-      "close_review": "Close review",
-      "dismiss": "Close without action",
-      "instruction_title": "Delivery instruction",
-      "sent": "Sent {time} by {name} via {channel}.",
-      "waiting": "The case closes by itself when the carrier reports the next status.",
-      "claim_first": "Claim the case to send an instruction.",
-      "resolution": "What should the carrier do?",
-      "pickup_point": "Pickup point (name and address)",
-      "note": "Note for the carrier",
-      "channel": "Send through",
-      "email_to": "Carrier email",
-      "send": "Send instruction"
-    },
-    "errors": {
-      "not_found": "Case not found.",
-      "closed": "This case is closed.",
-      "claimed_by_other": "Someone else claimed this case.",
-      "not_claimed": "Claim the case first.",
-      "already_sent": "An instruction was already sent for this case: it cannot be sent twice.",
-      "invalid_input": "Check the fields: address, pickup point or email.",
-      "no_channel": "No carrier connector is available: send it by email.",
-      "send_failed": "The instruction could not be sent; nothing was recorded.",
-      "wrong_kind": "This action does not apply to this case.",
-      "forbidden": "You are not allowed to do this."
-    }
-  },
-  "settings_fulfilment": {
-    "back": "Settings",
-    "title": "Fulfilment",
-    "description": "When an order counts as late to ship, where delivery instructions go by email, and what each carrier or platform status means.",
-    "clock_title": "Shipping clock",
-    "clock_description": "Working days are counted in the store's time zone ({tz}). An order placed on a working day counts from the next one.",
-    "threshold": "Late after (working days)",
-    "carrier_email": "Carrier email for delivery instructions",
-    "carrier_email_hint": "Used when no carrier connector is available.",
-    "workdays": "Working days",
-    "weekdays": {
-      "1": "Mon",
-      "2": "Tue",
-      "3": "Wed",
-      "4": "Thu",
-      "5": "Fri",
-      "6": "Sat",
-      "7": "Sun"
-    },
-    "saved": "Saved.",
-    "save": "Save",
-    "errors": {
-      "invalid_input": "Some values are not valid.",
-      "forbidden": "Only owners and admins can change this.",
-      "duplicate": "This source already maps this status.",
-      "not_found": "Not found."
-    },
-    "mappings_title": "Shipment status mappings",
-    "mappings_description": "What a status reported by a source (the store, a carrier, a 3PL) means in Keel: canonical status, exception (opens a case) and final. The status of every shipment is resolved from this table.",
-    "source": "Source",
-    "external_status": "External status",
-    "canonical": "Canonical status",
-    "exception": "Exception",
-    "final": "Final",
-    "delete": "Delete",
-    "add": "Add mapping",
-    "unmapped_title": "Seen but not mapped (click to fill the form):"
-  },
   "discount_pool": {
     "eyebrow": "Discount pool",
     "active": "Active",
@@ -6185,180 +6774,6 @@
       "pool_platform_error": "The store refused the codes. Try again in a moment.",
       "pool_pool_inactive": "The pool is deactivated.",
       "pool_recipient_not_found": "No customer with this email."
-    }
-  },
-  "inventory_control": {
-    "back": "Inventory",
-    "links": {
-      "stock-takes": "Stock-takes",
-      "markdowns": "Markdowns",
-      "losses": "Unexplained losses"
-    },
-    "reasons": {
-      "damaged": "Damaged",
-      "lost": "Lost",
-      "found": "Found",
-      "count_correction": "Count correction",
-      "other": "Other"
-    },
-    "errors": {
-      "zero": "Enter a quantity other than zero.",
-      "sign": "This reason does not match the direction of the change (damaged and lost remove units, found adds them).",
-      "negative_stock": "Stock cannot go below zero at this location.",
-      "note_required": "Add a note for \"Other\".",
-      "not_open": "This stock-take is no longer open.",
-      "invalid_input": "Some fields are invalid.",
-      "not_found": "Not found.",
-      "forbidden": "You are not allowed to do this."
-    },
-    "adjust": {
-      "button": "Adjust stock",
-      "title": "Adjust stock",
-      "description": "Change the stock of a variant at one location, with a reason.",
-      "variant": "Variant",
-      "location": "Location",
-      "reason": "Reason",
-      "direction": "Direction",
-      "add": "Add units",
-      "remove": "Remove units",
-      "quantity": "Units",
-      "note": "Note (optional)",
-      "note_required": "Note (required)",
-      "preview": "Available {current} → {next} ({delta}). The new level is sent to the store.",
-      "submit": "Save adjustment"
-    },
-    "stock_takes": {
-      "title": "Stock-takes",
-      "description": "Count a location, review the differences and apply them as count corrections in one batch. Variants you do not count are left unchanged.",
-      "back": "Stock-takes",
-      "new": "New stock-take",
-      "location": "Location",
-      "note": "Note",
-      "empty_title": "No stock-takes yet",
-      "empty_description": "Start one for a location, then scan or type what you count.",
-      "columns": {
-        "number": "Stock-take",
-        "location": "Location",
-        "status": "Status",
-        "lines": "Lines",
-        "movements": "Corrections",
-        "updated": "Updated",
-        "variant": "Variant",
-        "expected": "Expected",
-        "counted": "Counted",
-        "difference": "Difference"
-      },
-      "status": {
-        "open": "Open",
-        "applied": "Applied",
-        "cancelled": "Cancelled"
-      },
-      "open_description": "Scan a barcode or type a SKU and press Enter: each scan counts one unit. Partial counts are fine.",
-      "applied_description": "Applied on {at}: {n} count corrections written.",
-      "cancelled_description": "Cancelled: nothing was written.",
-      "review": {
-        "missing": "Missing",
-        "surplus": "Surplus",
-        "unknown": "Unknown SKU",
-        "match": "Match"
-      },
-      "units": "{n} units",
-      "review_title": "Review",
-      "show_all": "Show all",
-      "no_lines": "Nothing counted yet",
-      "no_lines_hint": "Scan or type the first code above.",
-      "unknown_code": "Unknown code",
-      "scan_label": "Barcode or SKU",
-      "scan_placeholder": "Scan or type, then Enter",
-      "quantity": "Units",
-      "mode": "Mode",
-      "mode_add": "Add to count",
-      "mode_set": "Replace count",
-      "count": "Count",
-      "scan_matched": "{label}: counted {n}",
-      "scan_unknown": "Unknown code {code}: counted {n} (not applied)",
-      "remove_line": "Remove line",
-      "apply_hint": "Applying sets each counted variant to its count and sends the levels to the store.",
-      "apply": "Apply {n, plural, one {# difference} other {# differences}}",
-      "apply_confirm": "Write {n, plural, one {# count correction} other {# count corrections}} and close this stock-take?",
-      "applied": "{n, plural, one {# correction} other {# corrections}} written{released, plural, =0 {} one {, # waiting order released} other {, # waiting orders released}}.",
-      "cancel": "Cancel stock-take",
-      "cancel_confirm": "Cancel this stock-take? Counts are kept but nothing is applied."
-    },
-    "losses": {
-      "title": "Unexplained losses",
-      "description": "Variants whose stock fell with no sale, cancellation, return, receipt or adjustment to explain it, found by the stock syncs.",
-      "location": "Location",
-      "all_locations": "All locations",
-      "apply": "Apply",
-      "kpi": {
-        "units": "Units lost",
-        "value": "Value at cost",
-        "value_hint": "at the variant's latest cost",
-        "without_cost": "{n, plural, one {# variant} other {# variants}} without a cost not valued",
-        "variants": "Variants"
-      },
-      "columns": {
-        "variant": "Variant",
-        "units": "Units",
-        "value": "Value",
-        "events": "Events",
-        "locations": "Locations",
-        "last": "Last found"
-      },
-      "no_cost": "No cost",
-      "empty_title": "No unexplained losses",
-      "empty_description": "No stock fell without a reason in this period.",
-      "footnote": "Each discrepancy counts once even when a sync sees it again. Record damaged or lost units as adjustments so they no longer show up here."
-    },
-    "markdowns": {
-      "title": "Markdowns",
-      "description": "Compare-at markdowns for stock without sales or with too much cover (more than {excess} days; deep markdown from {slow} days or without sales in {days} days). Prices never go below a {margin} margin on the net price.",
-      "reasons": {
-        "no_sales": "No sales",
-        "slow": "Slow mover",
-        "excess": "Excess stock"
-      },
-      "skipped": {
-        "no_cost": "{n, plural, one {# variant} other {# variants}} without a cost (no floor, no suggestion)",
-        "floor": "{n, plural, one {# variant} other {# variants}} already at the margin floor",
-        "already_marked_down": "{n, plural, one {# variant} other {# variants}} already marked down enough"
-      },
-      "columns": {
-        "variant": "Variant",
-        "reason": "Why",
-        "stock": "Stock",
-        "cover": "Cover",
-        "price": "Price",
-        "new_price": "Markdown",
-        "floor": "Floor",
-        "margin": "Margin"
-      },
-      "at_floor": "at floor",
-      "select_all": "Select all",
-      "apply": "Apply {n, plural, =0 {markdowns} one {# markdown} other {# markdowns}}",
-      "apply_confirm": "Apply {n, plural, one {# markdown} other {# markdowns}}? Prices and compare-at prices are sent to the store.",
-      "summary": "{done} applied, {skipped} skipped, {failed} failed.",
-      "empty_title": "No markdown to suggest",
-      "empty_description": "No active variant has slow or excess stock above the margin floor."
-    },
-    "price_history": {
-      "title": "Price history",
-      "markdown_description": "Markdowns applied from Keel, newest first.",
-      "empty": "No price change recorded.",
-      "system": "System",
-      "columns": {
-        "when": "When",
-        "variant": "Variant",
-        "price": "Price",
-        "compare_at": "Compare-at",
-        "by": "By"
-      },
-      "source": {
-        "markdown": "markdown",
-        "bulk": "bulk edit",
-        "manual": "manual"
-      }
     }
   }
 }

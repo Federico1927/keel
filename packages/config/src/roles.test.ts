@@ -7,3 +7,9 @@ describe("edit_order permission", () => {
     expect(allowed).toEqual(["owner", "admin", "operations", "customer_care"]);
   });
 });
+
+describe("manage_dashboard permission", () => {
+  it("is owner and admin only: everyone else reads the tenant's dashboards", () => {
+    expect(TENANT_ROLES.filter((r) => canDo(r, "manage_dashboard"))).toEqual(["owner", "admin"]);
+  });
+});

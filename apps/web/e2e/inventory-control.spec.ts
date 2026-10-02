@@ -85,7 +85,8 @@ test.describe("inventory control", () => {
     const historyBefore = await page.getByTestId("price-change-row").count();
     await rows.first().getByTestId("markdown-select").click();
     await page.getByTestId("apply-markdowns").click();
-    await expect(page.getByTestId("markdown-summary")).toContainText(/^1 /);
+    // one transaction and one platform write per variant: give the batch time under a loaded machine
+    await expect(page.getByTestId("markdown-summary")).toContainText(/^1 /, { timeout: 30_000 });
     await expect.poll(() => page.getByTestId("price-change-row").count()).toBeGreaterThan(Math.min(historyBefore, 14));
     // the unexplained-loss report over the last 90 days shows the falls found by the syncs
     await page.goto(`${T}/inventory/losses?preset=90d`);

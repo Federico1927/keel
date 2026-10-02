@@ -6,4 +6,5 @@ export * from "./defaults";
 export * from "./runtime";
 export * from "./notifications";
 export * from "./lists";
+export * from "./dashboards";
 export * from "./lifecycle";
