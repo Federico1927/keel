@@ -50,4 +50,5 @@ export * from "./pnl-periods";
 export * from "./product-profit";
 export * from "./utm-report";
 export * from "./account";
+export * from "./dashboards";
 export * from "./platform";

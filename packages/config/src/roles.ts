@@ -60,6 +60,7 @@ export const ACTIONS = [
   "edit_order",
   "record_payment",
   "refund_order",
+  "manage_dashboard",
 ] as const;
 export type ActionKey = (typeof ACTIONS)[number];
 
@@ -194,6 +195,8 @@ const ACTION_PAGE: Record<ActionKey, PageKey> = {
   record_payment: "orders",
   /** Money refund from the order page (goodwill, price adjustment, lines with restock). */
   refund_order: "orders",
+  /** The tenant's dashboards (home, role variants, extra dashboards), custom metrics and targets: issue #43's `dashboard.manage`. */
+  manage_dashboard: "dashboard",
 };
 
 /** Actions restricted to owner/admin regardless of page level. */
@@ -201,6 +204,7 @@ const ADMIN_ONLY_ACTIONS: ReadonlySet<ActionKey> = new Set([
   "manage_integrations",
   "manage_users",
   "manage_settings",
+  "manage_dashboard",
 ]);
 
 export function pageLevel(role: TenantRole, page: PageKey): Level {
