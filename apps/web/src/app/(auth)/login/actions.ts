@@ -32,8 +32,8 @@ export async function sendMagicLink(_prev: LoginState, formData: FormData): Prom
   const parsed = emailSchema.safeParse({ email: formData.get("email") });
   if (!parsed.success) return { error: "invalid_input" };
   const email = parsed.data.email.trim().toLowerCase();
-  const [user] = await adminDb().select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, email)).limit(1);
-  if (!user) return { sent: true };
+  const [user] = await adminDb().select({ id: schema.users.id, disabledAt: schema.users.disabledAt }).from(schema.users).where(eq(schema.users.email, email)).limit(1);
+  if (!user || user.disabledAt) return { sent: true };
   try {
     await signIn("email", { email, redirect: false, redirectTo: safeNextPath(formData.get("next")) });
     return { sent: true };

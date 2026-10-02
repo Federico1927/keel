@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
-import { DEFAULT_LOCALE, PRODUCT_NAME, SUPPORTED_LOCALES, isLocale, type Locale } from "@keel/config";
+import { DEFAULT_LOCALE, PRODUCT_NAME, SUPPORTED_LOCALES, isLocale, isTenantOperational, type Locale } from "@keel/config";
 import { pickLocalized } from "@keel/core";
 import { adminDb, eq, schema, withTenant } from "@keel/db";
 import { getPortalConfig, listReturnReasons } from "@keel/services";
@@ -21,7 +21,7 @@ export default async function ReturnPortalPage({ params, searchParams }: { param
   const { slug } = await params;
   const sp = await searchParams;
   const [tenant] = await adminDb().select({ id: schema.tenants.id, name: schema.tenants.name, status: schema.tenants.status, defaultLocale: schema.tenants.defaultLocale }).from(schema.tenants).where(eq(schema.tenants.slug, slug)).limit(1);
-  if (!tenant || tenant.status !== "active") notFound();
+  if (!tenant || !isTenantOperational(tenant.status)) notFound();
   const { config, reasons } = await withTenant(tenant.id, async (tx) => {
     const ctx = { tenantId: tenant.id, tx, actor: { type: "system" as const, userId: null } };
     return { config: await getPortalConfig(ctx), reasons: await listReturnReasons(ctx, true) };

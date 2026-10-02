@@ -13,7 +13,9 @@ import { seedEmailLog } from "./email";
 import { seedLists } from "./lists";
 import { seedPayments } from "./payments";
 import { seedFulfilment } from "./fulfilment";
+import { seedConsoleTenants, seedDemoLifecycle } from "./console";
 import { seedInventoryControl } from "./inventory-control";
+import { seedDashboards } from "./dashboards";
 import { seedMcp } from "./mcp";
 import { createRng } from "@keel/integrations";
 import { SALE_STATUSES, allocateLandedCost, normalizePhone, runPredictionModel, type CustomerHistory } from "@keel/core";
@@ -143,6 +145,7 @@ export async function seedPlatform(db: ReturnType<typeof drizzle<typeof schema>>
   }
   await seedBilling(db, tenantIds);
   await seedInvitations(db, tenantIds, userIds);
+  await seedConsoleTenants(db);
   return { tenantIds, userIds };
 }
 
@@ -190,7 +193,11 @@ async function seedBilling(db: ReturnType<typeof drizzle<typeof schema>>, tenant
     await db.delete(schema.invoices).where(eq(schema.invoices.tenantId, tenantId));
     await db.delete(schema.subscriptions).where(eq(schema.subscriptions.tenantId, tenantId));
     const start = month(p.months);
-    const [sub] = await db.insert(schema.subscriptions).values({ tenantId, planKey: p.planKey, status: p.lastPaid ? "active" : "past_due", provider: "mock", externalCustomerId: `mock_cus_${tenantId.slice(0, 8)}`, currency: p.currency, currentPeriodStart: month(0), currentPeriodEnd: month(-1), trialEndsAt: new Date(start.getTime() + 14 * 864e5), setupFeeMinor: p.setup }).returning({ id: schema.subscriptions.id });
+    // lifecycle (#48): an unpaid last invoice makes the store past due once its due date has passed
+    const lastDue = new Date(month(0).getTime() + 7 * 864e5);
+    const pastDue = !p.lastPaid && lastDue < now;
+    await seedDemoLifecycle(db, [{ tenantId, planKey: p.planKey as "growth", addons: [...DEMO_TENANTS[key].addons], createdAt: start, status: pastDue ? "past_due" : "active", statusSince: pastDue ? lastDue : null }], now);
+    const [sub] = await db.insert(schema.subscriptions).values({ tenantId, planKey: p.planKey, status: pastDue ? "past_due" : "active", provider: "mock", externalCustomerId: `mock_cus_${tenantId.slice(0, 8)}`, currency: p.currency, currentPeriodStart: month(0), currentPeriodEnd: month(-1), trialEndsAt: new Date(start.getTime() + 14 * 864e5), setupFeeMinor: p.setup }).returning({ id: schema.subscriptions.id });
     const rows = [{ number: `INV-${start.getUTCFullYear()}-0001`, kind: "setup", amountMinor: p.setup, lines: [{ kind: "setup", key: p.planKey, amountMinor: p.setup }], issuedAt: start, dueAt: new Date(start.getTime() + 7 * 864e5), paidAt: new Date(start.getTime() + 3 * 864e5) as Date | null, periodStart: null as Date | null, periodEnd: null as Date | null }];
     for (let m = p.months - 1; m >= 0; m--) {
       const issued = month(m);
@@ -234,7 +241,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
   const log = opts.log ?? (() => {});
   for (const cfg of tenantSeedConfigs(ctx, opts)) {
     // Wipe previous domain rows of this tenant (cascade from the parent tables).
-    for (const table of [schema.casePacks, schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.platformWrites, schema.inventoryDrift, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels, schema.segmentDestinations, schema.pixelSettings, schema.pixelEvents, schema.pixelIdentities, schema.conversionSettings, schema.surveySettings, schema.assistantThreads]) {
+    for (const table of [schema.casePacks, schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.metricTargets, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.platformWrites, schema.inventoryDrift, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels, schema.segmentDestinations, schema.pixelSettings, schema.pixelEvents, schema.pixelIdentities, schema.conversionSettings, schema.surveySettings, schema.assistantThreads]) {
       await db.delete(table).where(eq(table.tenantId, cfg.tenantId));
     }
     const started = Date.now();
@@ -260,6 +267,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("lists", () => seedLists(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("payments", () => seedPayments(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("inventory-control", () => seedInventoryControl(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
+    await step("dashboards", () => seedDashboards(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("mcp", () => seedMcp(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
   }

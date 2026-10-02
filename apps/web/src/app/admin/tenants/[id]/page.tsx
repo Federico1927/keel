@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { ADDON_MODULES, MODULES, PLATFORM_CURRENCY } from "@keel/config";
-import { formatDate, formatDateTime, formatMoney, formatNumber } from "@keel/core";
+import { ADDON_MODULES, CHURN_RETENTION_DAYS, MODULES, PLATFORM_CURRENCY, isTenantStatus } from "@keel/config";
+import { LIFECYCLE_TRANSITIONS, formatDate, formatDateTime, formatMoney, formatNumber } from "@keel/core";
 import { tenantAdminDetail } from "@keel/services";
 import {
   Badge,
@@ -21,13 +21,16 @@ import {
   TableRow,
 } from "@keel/ui";
 import { requireSuperAdmin } from "@/server/admin";
+import { toBrand } from "@/server/branding";
+import { LifecycleBadge, PaymentBadge } from "../../_components/badges";
 import {
   AddonToggle,
   InvoiceActions,
+  LifecycleControl,
   OpenAsSupportButton,
   PlanSelect,
   SendPasswordResetButton,
-  SuspensionButton,
+  TrialEndControl,
 } from "./controls";
 
 export default async function AdminTenantPage({ params }: { params: Promise<{ id: string }> }) {
@@ -41,6 +44,9 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
   const locale = await getLocale();
   const money = (m: number, c = d.tenant.currency) => formatMoney(m, c, locale);
   const done = d.checklist.filter((c) => c.done).length;
+  const status = isTenantStatus(d.tenant.status) ? d.tenant.status : "active";
+  const brand = toBrand(d.tenant.slug, d.branding);
+  const blocked = status === "suspended" || status === "churned";
   return (
     <DetailShell
       back={
@@ -52,37 +58,15 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
       title={d.tenant.name}
       chips={
         <>
-          <Badge
-            variant={
-              d.tenant.status === "active"
-                ? "success"
-                : d.tenant.status === "suspended"
-                  ? "destructive"
-                  : "warning"
-            }
-          >
-            {t(`tenants.status.${d.tenant.status}`)}
-          </Badge>
+          <LifecycleBadge status={status} label={t(`tenants.status.${status}`)} />
           <Badge variant="outline">{t(`plans.${d.tenant.planKey}`)}</Badge>
-          <Badge
-            variant={
-              d.payment.health === "ok"
-                ? "success"
-                : d.payment.health === "past_due"
-                  ? "warning"
-                  : d.payment.health === "suspended"
-                    ? "destructive"
-                    : "muted"
-            }
-          >
-            {t(`payment.${d.payment.health}`)}
-          </Badge>
+          <PaymentBadge health={d.payment.health} label={t(`payment.${d.payment.health}`)} />
         </>
       }
       actions={
         <div className="flex flex-wrap gap-2">
           <OpenAsSupportButton tenantId={d.tenant.id} />
-          <SuspensionButton tenantId={d.tenant.id} suspended={d.tenant.status === "suspended"} />
+          <LifecycleControl tenantId={d.tenant.id} allowed={LIFECYCLE_TRANSITIONS[status]} />
         </div>
       }
       aside={
@@ -115,7 +99,7 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
               <ul className="space-y-1 text-sm">
                 {d.members.map((m) => (
                   <li key={m.id} className="flex flex-wrap items-center justify-between gap-2" data-testid="admin-member">
-                    <span className="min-w-0 flex-1 truncate">{m.email}</span>
+                    <Link href={`/admin/users/${m.id}`} className="min-w-0 flex-1 truncate hover:underline">{m.email}</Link>
                     <Badge variant="outline">{m.role}</Badge>
                     <SendPasswordResetButton userId={m.id} />
                   </li>
@@ -126,6 +110,34 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
         </div>
       }
     >
+      <Card className="mb-6" data-testid="lifecycle-card">
+        <CardHeader>
+          <CardTitle className="text-base">{t("lifecycle.title")}</CardTitle>
+          <CardDescription>{t("lifecycle.description")}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm">
+          {blocked && <p className="rounded-md bg-destructive/10 px-3 py-2 text-destructive" data-testid="lifecycle-blocked">{t("lifecycle.blocked_now")}</p>}
+          <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-[auto_minmax(0,1fr)]">
+            <dt className="text-muted-foreground">{t("lifecycle.current")}</dt>
+            <dd className="flex flex-wrap items-center gap-2"><LifecycleBadge status={status} label={t(`tenants.status.${status}`)} />{d.tenant.statusChangedAt && <span className="text-xs text-muted-foreground">{t("lifecycle.since", { date: formatDateTime(d.tenant.statusChangedAt, locale, "UTC") })}</span>}</dd>
+            {d.tenant.statusReason && <><dt className="text-muted-foreground">{t("lifecycle.reason")}</dt><dd data-testid="lifecycle-reason-current">{t(`lifecycle.reasons.${d.tenant.statusReason}`)}{d.tenant.statusNote ? ` — ${d.tenant.statusNote}` : ""}</dd></>}
+            <dt className="text-muted-foreground">{t("lifecycle.trial_end")}</dt>
+            <dd>{status === "trial" ? <TrialEndControl tenantId={d.tenant.id} value={d.tenant.trialEndsAt ? d.tenant.trialEndsAt.toISOString().slice(0, 10) : ""} /> : d.tenant.trialEndsAt ? formatDate(d.tenant.trialEndsAt, locale, "UTC") : "—"}</dd>
+            {d.retainedUntil && <><dt className="text-muted-foreground">{t("lifecycle.retained_until")}</dt><dd data-testid="retained-until">{formatDate(d.retainedUntil, locale, "UTC")} <span className="text-xs text-muted-foreground">{t("lifecycle.retention_hint", { days: CHURN_RETENTION_DAYS })}</span></dd></>}
+          </dl>
+          {d.lifecycle.length > 0 && (
+            <ol className="space-y-1.5 border-l pl-4" data-testid="lifecycle-history">
+              {d.lifecycle.map(({ event: e, actorEmail }) => (
+                <li key={e.id} className="text-xs">
+                  <span className="text-muted-foreground tabular">{formatDateTime(e.createdAt, locale, "UTC")}</span>{" "}
+                  <span className="font-medium">{e.fromStatus && e.fromStatus !== e.toStatus ? `${t(`tenants.status.${e.fromStatus}`)} → ` : ""}{t(`tenants.status.${e.toStatus}`)}</span>{" "}
+                  · {t(`lifecycle.reasons.${e.reason}`)}{e.note ? ` — ${e.note}` : ""} · {t(`plans.${e.planKey}`)} {formatMoney(e.monthlyMinor, PLATFORM_CURRENCY, locale)}/m · <span className="text-muted-foreground">{actorEmail ?? t("lifecycle.system")}</span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </CardContent>
+      </Card>
       <div className="grid gap-3 sm:grid-cols-3">
         <Stat label={t("tenants.columns.orders30")} value={formatNumber(d.ordersLast30, locale)} />
         <Stat
@@ -207,7 +219,7 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
       </Card>
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle className="text-base">{t("tenant.integrations")}</CardTitle>
+          <CardTitle className="flex items-center justify-between gap-2 text-base">{t("tenant.integrations")} <Link href={`/admin/integrations?tenant=${d.tenant.id}`} className="text-xs font-normal text-primary hover:underline">{t("tenant.integration_issues")}</Link></CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="grid gap-2 text-sm sm:grid-cols-3">
@@ -239,6 +251,25 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
                 </li>
               ))}
           </ul>
+        </CardContent>
+      </Card>
+      <Card className="mt-6" data-testid="branding-card">
+        <CardHeader>
+          <CardTitle className="text-base">{t("tenant.branding")}</CardTitle>
+          <CardDescription>{t("tenant.branding_description")}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center gap-6 text-sm">
+          <span className="flex items-center gap-2">
+            <span className="h-8 w-8 rounded-md border" style={{ background: brand.light.primary }} aria-hidden />
+            <span><span className="block font-mono text-xs">{brand.brandColor ?? t("tenant.brand_default")}</span>{brand.light.adjusted && <span className="block text-xs text-muted-foreground">{t("tenant.brand_adjusted", { color: brand.light.primary })}</span>}</span>
+          </span>
+          {brand.logoLight ? <span className="light rounded-md border bg-card p-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={brand.logoLight} alt={t("tenant.logo_light")} className="h-8 w-auto" /></span> : <span className="text-xs text-muted-foreground">{t("tenant.no_logo")}</span>}
+          {d.branding.logoDark && brand.logoDark && <span className="dark rounded-md border bg-card p-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={brand.logoDark} alt={t("tenant.logo_dark")} className="h-8 w-auto" /></span>}
+          {d.branding.updatedAt && <span className="text-xs text-muted-foreground">{t("tenant.brand_updated", { date: formatDate(d.branding.updatedAt, locale, "UTC") })}</span>}
         </CardContent>
       </Card>
       <Card className="mt-6">

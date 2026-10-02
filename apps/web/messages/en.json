@@ -198,13 +198,18 @@
     "open_menu": "Open menu",
     "switch_tenant": "Switch workspace",
     "admin_console": "Super-admin console",
-    "impersonating": "You are viewing {tenant} as a super-admin. Every action is audited.",
+    "impersonating": "You are viewing <b>{tenant}</b> as a super-admin. Every action is audited.",
     "back_to_admin": "Back to console",
     "suspended_title": "Workspace suspended",
     "suspended_description": "This workspace is suspended for unpaid invoices. Contact the platform administrator.",
     "not_found_title": "Page not available",
     "not_found_description": "This page does not exist, or your role or plan does not include it.",
-    "support": "Help"
+    "support": "Help",
+    "support_mode": "Support mode",
+    "exit_impersonation": "Exit",
+    "churned_title": "Workspace closed",
+    "churned_description": "This workspace has been closed. Contact the platform administrator if you need your data.",
+    "suspended_platform_description": "The platform administrator suspended this workspace. Contact them to restore access."
   },
   "roles": {
     "owner": "Owner",
@@ -3112,13 +3117,28 @@
     "console": "Super-admin console",
     "sign_out": "Sign out",
     "nav": {
-      "dashboard": "Dashboard",
+      "dashboard": "Overview",
       "tenants": "Tenants",
       "billing": "Billing",
       "audit": "Audit log",
       "support": "Support",
       "styleguide": "Style guide",
-      "email": "Email"
+      "email": "Email",
+      "label": "Console",
+      "metrics": "Metrics",
+      "plans": "Plans and add-ons",
+      "users": "Users",
+      "integrations": "Integrations",
+      "groups": {
+        "overview": "Overview",
+        "tenants": "Tenants",
+        "users": "Users",
+        "billing": "Billing",
+        "operations": "Operations",
+        "support": "Support",
+        "audit": "Audit"
+      },
+      "mcp": "MCP"
     },
     "plans": {
       "starter": "Starter",
@@ -3146,7 +3166,16 @@
       "subscriptions": "Subscriptions: {trialing} trialing · {active} active · {pastDue} past due",
       "paid_30": "Collected in the last 30 days: {amount}",
       "tenants": "Tenants",
-      "recent_audit": "Recent platform activity"
+      "recent_audit": "Recent platform activity",
+      "find_user": "Find a user by name or email",
+      "find": "Find",
+      "attention": "Needs attention",
+      "attention_description": "Tenants whose health score is below 70: integration errors, failed jobs, overdue invoices or a team that stopped signing in.",
+      "attention_none": "Every tenant looks healthy.",
+      "see_all": "See all",
+      "why": "Why",
+      "past_retention": "{n, plural, one {# churned tenant is} other {# churned tenants are}} past the data-retention window",
+      "past_retention_hint": "The data-export and delete flow (#32) will take over; nothing is deleted automatically yet."
     },
     "tenants": {
       "title": "Tenants",
@@ -3156,7 +3185,8 @@
         "active": "Active",
         "trial": "Trial",
         "suspended": "Suspended",
-        "churned": "Churned"
+        "churned": "Churned",
+        "past_due": "Past due"
       },
       "columns": {
         "tenant": "Tenant",
@@ -3165,8 +3195,16 @@
         "integrations": "Integrations",
         "orders30": "Orders / 30d",
         "last_login": "Last login",
-        "payment": "Payment"
-      }
+        "payment": "Payment",
+        "status": "Status",
+        "health": "Health",
+        "mrr": "MRR"
+      },
+      "needs_attention": "Needs attention",
+      "search_placeholder": "Name or slug",
+      "count": "{shown} of {total} tenants",
+      "empty": "No tenants match these filters.",
+      "trial_ends": "Trial ends {date}"
     },
     "new_tenant": {
       "title": "New tenant",
@@ -3231,7 +3269,16 @@
       "reset_not_active": "Not sent: the account is not active",
       "reset_rate_limited": "Too many requests for this address",
       "reset_failed": "Could not send",
-      "owner_invited": "invitation pending"
+      "owner_invited": "invitation pending",
+      "integration_issues": "Errors drill-down",
+      "branding": "Branding",
+      "branding_description": "Read-only view of the tenant's brand colour and logos (the tenant edits them in Settings → Branding).",
+      "brand_default": "Product default",
+      "brand_adjusted": "Adjusted for contrast to {color}",
+      "logo_light": "Logo for light backgrounds",
+      "logo_dark": "Logo for dark backgrounds",
+      "no_logo": "No logo uploaded",
+      "brand_updated": "Updated {date}"
     },
     "billing": {
       "title": "Billing",
@@ -3259,7 +3306,12 @@
         "issued": "Issued",
         "due": "Due",
         "status": "Status"
-      }
+      },
+      "search_placeholder": "Invoice number or tenant",
+      "due_filter": "Due",
+      "overdue_only": "Overdue only",
+      "empty": "No invoices match these filters.",
+      "summary": "{from}–{to} of {total} · {amount}"
     },
     "audit": {
       "title": "Platform audit log",
@@ -3268,7 +3320,10 @@
       "tenant": "Tenant",
       "actor": "Actor",
       "action": "Action",
-      "details": "Details"
+      "details": "Details",
+      "platform": "Platform (no tenant)",
+      "actor_type": "Actor type",
+      "summary": "{from}–{to} of {total}"
     },
     "support": {
       "title": "Support",
@@ -3421,6 +3476,179 @@
         "platform_disabled": "Platform off",
         "suspended": "Tenant suspended"
       }
+    },
+    "platform_label": "Platform",
+    "export_csv": "Export CSV",
+    "filters": {
+      "search": "Search",
+      "all": "All",
+      "apply": "Filter",
+      "reset": "Reset"
+    },
+    "health": {
+      "integrations": "Integration errors",
+      "jobs": "Failed jobs",
+      "invoices": "Overdue invoices",
+      "login": "No recent sign-in"
+    },
+    "lifecycle": {
+      "title": "Lifecycle",
+      "description": "Trial → active → past due → suspended → churned. Every change keeps a reason and a note; suspended and churned keep the tenant's users out.",
+      "blocked_now": "The tenant's users cannot sign in to this workspace right now.",
+      "current": "Current state",
+      "since": "since {date}",
+      "reason": "Reason",
+      "trial_end": "Trial end",
+      "retained_until": "Data kept until",
+      "retention_hint": "({days} days after churn, then the export/delete flow)",
+      "system": "billing run",
+      "change": "Change state",
+      "change_title": "Change lifecycle state",
+      "change_description": "Only the moves the lifecycle allows are listed. The change is audited with your reason and note.",
+      "to": "New state",
+      "blocks_access": "The tenant's users lose access as soon as you confirm.",
+      "note": "Note (required)",
+      "cancel": "Cancel",
+      "confirm": "Confirm change",
+      "save_trial_end": "Save",
+      "errors": {
+        "invalid_input": "Pick a state and a reason, and write a note.",
+        "invalid_transition": "This move is not allowed from the current state.",
+        "failed": "The change could not be saved."
+      },
+      "reasons": {
+        "tenant_created": "Tenant created",
+        "trial_converted": "Trial converted",
+        "trial_expired": "Trial expired",
+        "payment_overdue": "Payment overdue",
+        "unpaid_invoice": "Unpaid invoice",
+        "payment_recovered": "Payment received",
+        "customer_request": "Customer request",
+        "terms_violation": "Terms violation",
+        "win_back": "Win-back",
+        "manual": "Manual",
+        "other": "Other",
+        "plan_changed": "Plan changed",
+        "addons_changed": "Add-ons changed"
+      }
+    },
+    "users": {
+      "title": "Users",
+      "description": "Everyone across tenants: memberships, last sign-in, super-admin flag. Disable, send a password reset or end sessions; passwords are never shown or set here.",
+      "search": "Name or email",
+      "search_placeholder": "e.g. giulia@ or Ferri",
+      "kind": "Show",
+      "kinds": {
+        "active": "Active",
+        "disabled": "Disabled",
+        "super_admin": "Super-admins",
+        "no_tenant": "Without a tenant"
+      },
+      "empty": "No users match these filters.",
+      "columns": {
+        "user": "User",
+        "tenants": "Tenants and roles",
+        "last_login": "Last sign-in",
+        "status": "Status"
+      },
+      "never": "Never",
+      "super_admin": "Super-admin",
+      "disabled": "Disabled",
+      "active": "Active",
+      "summary": "{from}–{to} of {total}"
+    },
+    "user": {
+      "account": "Account",
+      "created": "Created",
+      "email_verified": "Email verified",
+      "password_changed": "Password changed",
+      "language": "Language",
+      "no_passwords": "The console never shows or sets passwords: a reset link goes to the person's own email.",
+      "disabled_since": "Disabled since {date}",
+      "no_reason": "No reason given",
+      "disabled_by": "by {email}",
+      "no_tenants": "Not a member of any tenant.",
+      "role": "Role",
+      "since": "Member since",
+      "membership_inactive": "inactive",
+      "sign_ins": "Recent sign-ins",
+      "sign_ins_hint": "Method and device of the last ten sign-ins.",
+      "activity": "Account activity",
+      "self_hint": "You cannot disable your own account.",
+      "enable": "Enable",
+      "disable": "Disable",
+      "enable_title": "Enable this account?",
+      "disable_title": "Disable this account on the whole platform?",
+      "enable_description": "The person can sign in again with their password or a link. Sessions ended earlier stay ended.",
+      "disable_description": "Every session ends at once, sign-in is refused with any method and the person receives a security email. Memberships are kept.",
+      "note": "Note (optional)",
+      "reason": "Reason (shown to platform admins only)",
+      "cancel": "Cancel",
+      "errors": {
+        "self": "You cannot disable your own account.",
+        "failed": "The change could not be saved."
+      },
+      "sessions_revoked": "Sessions ended",
+      "revoke_sessions": "End all sessions"
+    },
+    "metrics": {
+      "title": "Metrics",
+      "description": "MRR and paying tenants by month, new versus churned, add-on adoption, rebuilt from the lifecycle history. Every number opens the tenants behind it.",
+      "series": {
+        "mrr": "MRR",
+        "active": "Paying tenants",
+        "trial": "In trial",
+        "new": "New",
+        "churned": "Churned"
+      },
+      "trial_hint": "{n} in trial",
+      "new_vs_churned": "New / churned",
+      "this_month": "This month",
+      "arr": "Run-rate (ARR)",
+      "arr_hint": "MRR × 12",
+      "chart_title": "MRR and paying tenants",
+      "chart_description": "State at the end of each month (the running month: today).",
+      "table_title": "By month",
+      "table_description": "Click a number to list its tenants.",
+      "month": "Month",
+      "behind": "{metric} · {month}",
+      "behind_count": "{n, plural, one {# tenant} other {# tenants}}",
+      "none": "No tenants."
+    },
+    "plans_page": {
+      "title": "Plans and add-ons",
+      "description": "Prices, limits and adoption of the plans and add-ons defined in the code.",
+      "read_only": "Read-only: plans and prices live in @keel/config (packages/config/src/plans.ts and modules.ts). Editing them stays a code change for now, so billing, the landing page and tests change together.",
+      "tenants_n": "{n, plural, one {# tenant} other {# tenants}}",
+      "monthly": "Monthly",
+      "setup": "Setup fee",
+      "orders_limit": "Orders per month",
+      "users_limit": "Users",
+      "unlimited": "Unlimited",
+      "overage": "Above the plan limit: {price} per block of {orders} orders.",
+      "addons": "Add-ons",
+      "addon": "Add-on",
+      "availability": "Availability",
+      "tenants": "Tenants",
+      "availability_implemented": "Available",
+      "availability_on_request": "On request"
+    },
+    "integrations": {
+      "title": "Integrations",
+      "description": "Integration errors across tenants, by tenant and source, with the latest failed sync runs.",
+      "sources_in_error": "Sources with problems",
+      "failed_webhooks": "Failed webhooks",
+      "failed_writes": "Failed platform writes",
+      "source": "Source",
+      "status": "Status",
+      "status_problems": "Error or degraded",
+      "status_all": "All",
+      "empty": "No integration problems.",
+      "last_success": "Last success",
+      "error": "Last error",
+      "failures": "{n} consecutive failures",
+      "failed_runs": "Failed sync runs",
+      "failed_runs_hint": "The latest 30, newest first."
     }
   },
   "cod": {
@@ -6420,6 +6648,421 @@
           }
         ]
       }
+    }
+  },
+  "dashboards": {
+    "title": "Dashboards",
+    "description": "The home your team sees, home variants per role, extra dashboards and personal copies.",
+    "home_description": "Your team's dashboard, designed by the store's owners.",
+    "edit": "Edit dashboard",
+    "customise": "Customise",
+    "home_name": "Home",
+    "preview_as": "Preview as…",
+    "preview_banner": "Preview as {role}",
+    "draft_banner": "unpublished draft",
+    "exit_preview": "Exit preview",
+    "draft_badge": "Unpublished changes",
+    "template_badge": "Keel template",
+    "customised_badge": "Customised",
+    "open": "Open",
+    "home": "Home",
+    "home_template": "Your home is Keel's template: it follows Keel's updates until you customise it.",
+    "home_custom": "Customised home: {name}.",
+    "reset_home": "Reset home to Keel template",
+    "reset_home_confirm": "The tenant home goes back to Keel's template. Role variants are kept. Continue?",
+    "reset_all": "Reset home and role variants",
+    "reset_all_confirm": "The home and every role variant go back to Keel's template. Continue?",
+    "personal_toggle": "Personal dashboards",
+    "personal_toggle_hint": "When on, anyone can copy a dashboard into a personal one. The tenant's dashboards stay the reference.",
+    "name": "Name",
+    "kind": "Kind",
+    "scope_new": {
+      "tenant": "Extra dashboard",
+      "role": "Home variant for roles",
+      "personal": "Personal copy of my home"
+    },
+    "roles_variant": "Roles that see this home",
+    "roles_visible": "Roles that can open it",
+    "roles_all_hint": "None selected: everyone in the store.",
+    "create": "Create",
+    "copy_of": "Copy of {name}",
+    "duplicate": "Make a personal copy",
+    "delete": "Delete",
+    "delete_confirm": "Delete this dashboard?",
+    "scope": {
+      "tenant": "Store dashboard",
+      "role": "Home variant",
+      "personal": "Personal dashboard"
+    },
+    "personal_description": "Only you see it.",
+    "visible_to": "Visible to: {roles}",
+    "visible_all": "Visible to everyone in the store",
+    "widgets_n": "{n, plural, one {# widget} other {# widgets}}",
+    "variants": "Home variants by role",
+    "variants_description": "A role with a variant sees it instead of the store home.",
+    "variants_empty": "No variants: every role sees the store home.",
+    "extras": "Other dashboards",
+    "extras_description": "Named dashboards, for example a weekly review.",
+    "extras_empty": "No other dashboards yet.",
+    "personal": "My dashboards",
+    "personal_hint": "Your own copies: change them freely.",
+    "personal_empty": "No personal dashboards.",
+    "new_dashboard": "New dashboard",
+    "settings": "Settings",
+    "metrics_page": "Metrics and targets",
+    "metrics_description": "The metrics your dashboards can show: Keel's catalog and your own formulas, with monthly targets.",
+    "custom_metrics": "Custom metrics",
+    "custom_metrics_hint": "Formulas over the base metrics, optionally over filtered orders. Every change goes to the audit log.",
+    "custom_metrics_empty": "No custom metrics yet.",
+    "this_month": "This month",
+    "targets": "Monthly targets",
+    "targets_hint": "A month without its own target uses the latest earlier one.",
+    "catalog": "Metric catalog",
+    "catalog_hint": "Base metrics computed by Keel's services: they agree with the P/L, the campaigns and the stock pages.",
+    "catalog_group": "Group",
+    "catalog_flags": "Use",
+    "flag_snapshot": "now",
+    "flag_filterable": "filters",
+    "flag_series": "time series",
+    "catalog_pending": "Sessions and conversion rate arrive with the GA4 connection; TikTok ads and search terms with their integrations.",
+    "periods": {
+      "today": "Today",
+      "7d": "7 days",
+      "30d": "30 days",
+      "90d": "90 days",
+      "mtd": "Month to date",
+      "last_month": "Last month",
+      "ytd": "Year to date",
+      "follow": "Dashboard period"
+    },
+    "widget": {
+      "error": "This widget could not load. The rest of the dashboard is fine.",
+      "forbidden": "Not available for your role.",
+      "unavailable": "This widget is not available on your plan.",
+      "days_unit": "days",
+      "open_list": "Open",
+      "now": "now",
+      "vs_previous": "vs previous period",
+      "filtered": "filtered",
+      "unknown": "Unknown",
+      "empty": "Nothing in this period.",
+      "breakdown_title": "{metric} by {by}",
+      "target_title": "{metric}: monthly target",
+      "no_target": "No target set for this month.",
+      "of_target": "of {target}",
+      "projected": "Month-end projection {value} (day {elapsed} of {days})",
+      "no_alerts": "No alerts fired recently.",
+      "empty_note": "Empty note."
+    },
+    "widget_groups": {
+      "metrics": "Metrics",
+      "charts": "Charts",
+      "lists": "Lists",
+      "queues": "Work queues",
+      "content": "Content",
+      "keel": "Keel home tiles"
+    },
+    "widget_types": {
+      "kpi": {
+        "name": "KPI tile",
+        "description": "One metric with comparison and trend."
+      },
+      "timeseries": {
+        "name": "Time series",
+        "description": "1–3 metrics by day, week or month."
+      },
+      "breakdown": {
+        "name": "Breakdown",
+        "description": "A metric by channel, country, payment, product, campaign or platform."
+      },
+      "top_list": {
+        "name": "Top list",
+        "description": "Best products, campaigns or customers."
+      },
+      "target": {
+        "name": "Target",
+        "description": "Month to date against the monthly target, with projection."
+      },
+      "alerts": {
+        "name": "Alerts",
+        "description": "The latest alerts that fired."
+      },
+      "note": {
+        "name": "Note",
+        "description": "Text for the team (markdown)."
+      },
+      "queue_review": {
+        "name": "Orders to review",
+        "description": "Orders pending review."
+      },
+      "queue_late": {
+        "name": "Late to ship",
+        "description": "Ready orders past the shipping deadline."
+      },
+      "queue_awaiting_stock": {
+        "name": "Awaiting stock",
+        "description": "Orders held for missing stock."
+      },
+      "queue_exceptions": {
+        "name": "Delivery exceptions",
+        "description": "Open shipment exception cases."
+      },
+      "queue_integrations": {
+        "name": "Integration health",
+        "description": "Connections or syncs in error and failed webhooks."
+      },
+      "today_kpis": {
+        "name": "Today's KPIs",
+        "description": "Sales, orders, AOV and cancellations today."
+      },
+      "sales_30d": {
+        "name": "Sales, last 30 days",
+        "description": "Daily sales and orders."
+      },
+      "month_forecast": {
+        "name": "Month forecast",
+        "description": "Projected revenue, orders and ad spend."
+      },
+      "work_queue": {
+        "name": "Needs attention",
+        "description": "Everything open, with counts."
+      },
+      "stock_backorders": {
+        "name": "Stock and backorders",
+        "description": "Orders waiting for stock, best sellers running low."
+      },
+      "today_by_status": {
+        "name": "Today's orders by status",
+        "description": "Today's orders per canonical status."
+      },
+      "cod_queue": {
+        "name": "COD to confirm",
+        "description": "Cash-on-delivery orders waiting for a call."
+      }
+    },
+    "metrics": {
+      "net_revenue": "Net revenue",
+      "gross_revenue": "Gross sales",
+      "orders": "Orders",
+      "aov": "Average order value",
+      "ad_spend": "Ad spend",
+      "cogs": "Cost of goods",
+      "gross_margin": "Gross margin",
+      "shipping": "Shipping costs",
+      "fees": "Payment fees",
+      "fixed_costs": "Fixed costs",
+      "contribution": "Contribution margin",
+      "operating_profit": "Operating profit",
+      "refunds": "Refunds",
+      "new_customers": "New customers",
+      "mer": "MER",
+      "nc_roas": "nc-ROAS",
+      "cac": "Blended CAC",
+      "poas": "POAS",
+      "cancel_rate": "Cancellation rate",
+      "returns_rate": "Return rate",
+      "return_cost": "Return costs",
+      "repeat_customer_rate": "Repeat customer rate",
+      "stock_value_cost": "Stock value at cost",
+      "coverage_days": "Days of cover",
+      "out_of_stock_variants": "Out-of-stock variants",
+      "incoming_po_value": "Incoming PO value",
+      "meta_spend": "Meta spend",
+      "meta_roas": "Meta ROAS",
+      "meta_cpa": "Meta CPA",
+      "meta_ctr": "Meta CTR",
+      "google_spend": "Google spend",
+      "google_roas": "Google ROAS",
+      "google_cpa": "Google CPA",
+      "google_ctr": "Google CTR"
+    },
+    "metric_groups": {
+      "finance": "Finance",
+      "orders": "Orders and returns",
+      "customers": "Customers",
+      "inventory": "Inventory",
+      "ads": "Ads by platform",
+      "custom": "Custom metrics"
+    },
+    "breakdown_dims": {
+      "channel": "channel",
+      "country": "country",
+      "payment_method": "payment method",
+      "product": "product",
+      "campaign": "campaign",
+      "platform": "platform"
+    },
+    "top_entities": {
+      "products": "Top products",
+      "campaigns": "Top campaigns by profit",
+      "customers": "Top customers"
+    },
+    "top_secondary": {
+      "products": "{v} units",
+      "campaigns": "ROAS {v}",
+      "customers": "{v} orders"
+    },
+    "granularity": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    },
+    "channels": {
+      "paid_social": "Paid social",
+      "paid_search": "Paid search",
+      "organic_search": "Organic search",
+      "email": "Email",
+      "social": "Social",
+      "direct": "Direct",
+      "referral": "Referral",
+      "unknown": "Unknown"
+    },
+    "queue_parts": {
+      "connections": "{n} connections",
+      "sources": "{n} syncs",
+      "webhooks": "{n} webhooks",
+      "unassigned": "{n} unassigned"
+    },
+    "editor": {
+      "title": "Edit: {name}",
+      "description": "Changes are saved as a draft: preview them as a role, then publish.",
+      "published": "Published.",
+      "saved": "Draft saved.",
+      "none": "— none —",
+      "title_field": "Title (optional)",
+      "title_placeholder": "Automatic",
+      "width": "Width",
+      "height": "Height",
+      "columns": "{n, plural, one {# column} other {# columns}}",
+      "rows": "{n, plural, one {# row} other {# rows}}",
+      "period": "Period",
+      "metric": "Metric",
+      "compare": "Compare with",
+      "compare_previous": "Previous period",
+      "compare_none": "Nothing",
+      "sparkline": "Show the trend line",
+      "series_n": "Metric {n}",
+      "chart": "Chart",
+      "chart_line": "Lines",
+      "chart_bar": "Bars",
+      "granularity": "By",
+      "by": "Split by",
+      "limit": "Rows",
+      "entity": "List",
+      "note_text": "Text",
+      "note_hint": "Headings (#), lists (-), **bold**, *italic*, [links](https://…). HTML is shown as text.",
+      "note_translation": "Text in {locale} (optional)",
+      "dashboard_period": "Dashboard period",
+      "save_draft": "Save draft",
+      "publish": "Publish",
+      "preview_as": "Save and preview as…",
+      "discard": "Discard draft",
+      "reset_confirm": "Replace the widgets with Keel's template? Publish to apply.",
+      "reset_template": "Reset to Keel template",
+      "count": "{n} of {max} widgets",
+      "drag_hint": "Drag the widgets to reorder them, or use the arrows. Click a widget to configure it.",
+      "configure": "Configure",
+      "move_up": "Move up",
+      "move_down": "Move down",
+      "remove": "Remove",
+      "size": "{w}×{h}",
+      "empty": "No widgets: add one from the catalog.",
+      "settings": "Widget settings",
+      "add_widget": "Add a widget",
+      "done": "Done"
+    },
+    "errors": {
+      "generic": "Something went wrong.",
+      "forbidden": "You cannot change this dashboard.",
+      "not_found": "Dashboard not found.",
+      "invalid_layout": "Some widgets are not valid.",
+      "too_many_widgets": "Too many widgets for one dashboard.",
+      "module_disabled": "A widget needs a module your store does not have.",
+      "role_taken": "A selected role already has a home variant.",
+      "home_exists": "The store home already exists.",
+      "invalid_input": "Check the fields.",
+      "personal_off": "Personal dashboards are switched off for this store.",
+      "invalid_formula": "The formula is not valid.",
+      "invalid_filters": "The filters are not valid.",
+      "invalid_key": "Choose another key: this one is empty or a base metric.",
+      "not_filterable": "With filters, use only metrics computed from the orders (not fixed costs, operating profit, new customers or stock)."
+    },
+    "builder": {
+      "saved": "Metric saved.",
+      "label": "Name",
+      "label_placeholder": "Contribution per order",
+      "key": "Key",
+      "key_placeholder": "from the name",
+      "formula": "Formula",
+      "formula_ok": "Valid formula.",
+      "formula_error": "Not valid",
+      "formula_help": "Combine base metrics with + − × ÷ and parentheses, e.g. contribution / orders.",
+      "available": "Available metrics",
+      "filters": "Computed over",
+      "filters_hint": "Leave empty for the whole store. Filters keep only the matching orders.",
+      "f_channel": "Channel",
+      "f_country": "Country",
+      "f_payment": "Payment method",
+      "f_platform": "Ad platform",
+      "f_campaign": "Campaign",
+      "f_product": "Product",
+      "f_product_type": "Product type",
+      "f_customer": "Customers",
+      "f_customer_all": "All",
+      "f_customer_new": "New (first order)",
+      "f_customer_returning": "Returning",
+      "format": "Format",
+      "formats": {
+        "money": "Money",
+        "percent": "Percent",
+        "ratio": "Ratio (×)",
+        "number": "Number"
+      },
+      "direction": "Trend",
+      "higher_better": "Higher is better",
+      "lower_better": "Lower is better",
+      "translation": "Name in {locale}",
+      "description_field": "Description",
+      "preview": "Preview this month",
+      "save": "Save metric",
+      "cancel": "Cancel",
+      "preview_value": "This month: {value} (previous period {previous})",
+      "delete": "Delete",
+      "delete_confirm": "Delete this metric? Widgets using it will show a dash.",
+      "invalid_target": "Target not valid.",
+      "target_saved": "Target saved.",
+      "target_metric": "Metric",
+      "target_month": "Month",
+      "target_value_money": "Target (currency)",
+      "target_value_percent": "Target (%)",
+      "target_value_number": "Target",
+      "target_clear": "empty = remove",
+      "target_save": "Set target",
+      "edit_title": "Edit {name}",
+      "new_title": "New metric",
+      "hint": "Only owners and admins create or change metrics.",
+      "filter_names": {
+        "channel": "Channel",
+        "country": "Country",
+        "paymentMethod": "Payment",
+        "productIds": "Products",
+        "productType": "Product type",
+        "campaignIds": "Campaigns",
+        "platform": "Platform",
+        "customerType": "Customers"
+      }
+    },
+    "payment_methods": {
+      "card": "Card",
+      "wallet": "Wallet",
+      "bank_transfer": "Bank transfer",
+      "cod": "Cash on delivery",
+      "bnpl": "Buy now pay later",
+      "other": "Other"
+    },
+    "platforms": {
+      "meta": "Meta",
+      "google": "Google"
     }
   }
 }

@@ -1,4 +1,4 @@
-import { platformRetentionDays } from "@keel/config";
+import { OPERATIONAL_TENANT_STATUSES, isTenantOperational, platformRetentionDays } from "@keel/config";
 import { parseTenantSettings } from "@keel/core";
 import { adminDb, and, eq, inArray, lte, schema, withTenant } from "@keel/db";
 import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, checkSyncDelays, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails } from "@keel/services";
@@ -116,7 +116,7 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
     // alert rules of every active tenant: threshold and anomaly checks on yesterday's closed day
     const tenants = await adminDb().select({ id: schema.tenants.id, slug: schema.tenants.slug, country: schema.tenants.country, currency: schema.tenants.currency, timezone: schema.tenants.timezone, settings: schema.tenants.settings, status: schema.tenants.status }).from(schema.tenants);
     for (const t of tenants) {
-      if (t.status !== "active") continue;
+      if (!isTenantOperational(t.status)) continue;
       await withTenant(t.id, async (tx) => {
         await evaluateAlertRules(sys(t.id)(tx), { id: t.id, country: t.country, currency: t.currency, timezone: t.timezone, settings: parseTenantSettings(t.settings) }, { appUrl: process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/t/${t.slug}` : undefined });
       });
@@ -129,7 +129,7 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
     const withPixel = new Set((await adminDb().select({ tenantId: schema.pixelSettings.tenantId }).from(schema.pixelSettings)).map((r) => r.tenantId));
     const withConversions = new Set((await adminDb().select({ tenantId: schema.conversionSettings.tenantId }).from(schema.conversionSettings).where(eq(schema.conversionSettings.enabled, true))).map((r) => r.tenantId));
     for (const t of tenants) {
-      if (t.status !== "active" || (!withPixel.has(t.id) && !withConversions.has(t.id))) continue;
+      if (!isTenantOperational(t.status) || (!withPixel.has(t.id) && !withConversions.has(t.id))) continue;
       await withTenant(t.id, async (tx) => {
         const ctx = sys(t.id)(tx);
         if (withPixel.has(t.id)) await stitchPixelSessions(ctx, { orderSinceHours: 2 });
@@ -150,7 +150,7 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
     const tenants = await adminDb().select({ id: schema.tenants.id, status: schema.tenants.status, settings: schema.tenants.settings }).from(schema.tenants);
     const campaigns = new Set((await adminDb().select({ tenantId: schema.tenantAddons.tenantId }).from(schema.tenantAddons).where(and(eq(schema.tenantAddons.moduleKey, "addon.customer_campaigns"), eq(schema.tenantAddons.isActive, true)))).map((a) => a.tenantId));
     for (const t of tenants) {
-      if (t.status !== "active") continue;
+      if (!isTenantOperational(t.status)) continue;
       await withTenant(t.id, async (tx) => {
         const ctx = sys(t.id)(tx);
         if (full) await recomputePredictions(ctx, parseTenantSettings(t.settings));
@@ -166,7 +166,7 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
     const pending = await adminDb().selectDistinct({ tenantId: schema.returnRequests.tenantId }).from(schema.returnRequests).where(inArray(schema.returnRequests.platformSyncStatus, ["pending", "error"]));
     for (const p of pending) {
       const [t] = await adminDb().select({ id: schema.tenants.id, status: schema.tenants.status, currency: schema.tenants.currency, country: schema.tenants.country, orderNumberPrefix: schema.tenants.orderNumberPrefix, settings: schema.tenants.settings }).from(schema.tenants).where(eq(schema.tenants.id, p.tenantId)).limit(1);
-      if (!t || t.status !== "active") continue;
+      if (!t || !isTenantOperational(t.status)) continue;
       const settings = parseTenantSettings(t.settings);
       const ids = await withTenant(t.id, (tx) => returnsToSync(sys(t.id)(tx)));
       for (const id of ids) await withTenant(t.id, async (tx) => syncReturnToPlatform(sys(t.id)(tx), await getCommercePlatformFor(sys(t.id)(tx), t), settings, id, { country: t.country }));
@@ -184,7 +184,7 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
     const addons = await adminDb().select({ tenantId: schema.tenantAddons.tenantId }).from(schema.tenantAddons).where(and(eq(schema.tenantAddons.moduleKey, "addon.cod"), eq(schema.tenantAddons.isActive, true)));
     for (const a of addons) {
       const [t] = await adminDb().select({ id: schema.tenants.id, timezone: schema.tenants.timezone, country: schema.tenants.country, status: schema.tenants.status, currency: schema.tenants.currency, orderNumberPrefix: schema.tenants.orderNumberPrefix }).from(schema.tenants).where(eq(schema.tenants.id, a.tenantId)).limit(1);
-      if (!t || t.status !== "active") continue;
+      if (!t || !isTenantOperational(t.status)) continue;
       await withTenant(t.id, async (tx) => {
         const ctx = sys(t.id)(tx);
         await syncQueue(ctx, undefined, { platform: await getCommercePlatformFor(ctx, t) });
@@ -200,7 +200,7 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
     const due = await adminDb().selectDistinct({ tenantId: schema.platformWrites.tenantId }).from(schema.platformWrites).where(and(eq(schema.platformWrites.mode, "async"), inArray(schema.platformWrites.status, ["pending", "running"]), lte(schema.platformWrites.nextAttemptAt, new Date())));
     for (const d of due) {
       const tenant = await tenantRow(d.tenantId);
-      if (tenant.status !== "active") continue;
+      if (!isTenantOperational(tenant.status)) continue;
       await processDuePlatformWrites(runner(tenant.id), tenant);
     }
     return;
@@ -211,7 +211,7 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
     const open = await adminDb().selectDistinct({ tenantId: schema.backorders.tenantId }).from(schema.backorders).where(inArray(schema.backorders.status, ["pending", "covered"]));
     for (const o of open) {
       const tenant = await tenantRow(o.tenantId);
-      if (tenant.status !== "active") continue;
+      if (!isTenantOperational(tenant.status)) continue;
       await withTenant(tenant.id, (tx) => recheckOpenBackorders(sys(tenant.id)(tx)));
     }
     return;
@@ -234,7 +234,7 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
     // notify (hourly): sync delays, critical stock without incoming PO, late to ship, shipment case sweep; digest (daily): opt-in summary email
     const tenants = await adminDb().select({ id: schema.tenants.id, status: schema.tenants.status, settings: schema.tenants.settings, timezone: schema.tenants.timezone }).from(schema.tenants);
     for (const t of tenants) {
-      if (t.status !== "active") continue;
+      if (!isTenantOperational(t.status)) continue;
       await withTenant(t.id, async (tx) => {
         const ctx = sys(t.id)(tx);
         const settings = parseTenantSettings(t.settings);
@@ -258,7 +258,7 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<void> 
     return;
   }
   const rows = await adminDb().select({ tenantId: schema.integrations.tenantId, provider: schema.integrations.provider }).from(schema.integrations).where(and(inArray(schema.integrations.provider, ["shopify", "meta", "google"]), inArray(schema.integrations.status, ["connected", "error", "syncing"])));
-  const active = new Set((await adminDb().select({ id: schema.tenants.id }).from(schema.tenants).where(eq(schema.tenants.status, "active"))).map((t) => t.id));
+  const active = new Set((await adminDb().select({ id: schema.tenants.id }).from(schema.tenants).where(inArray(schema.tenants.status, [...OPERATIONAL_TENANT_STATUSES]))).map((t) => t.id));
   const window = adsWindow();
   for (const r of rows) {
     if (!active.has(r.tenantId)) continue;

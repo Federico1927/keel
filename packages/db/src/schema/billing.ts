@@ -57,3 +57,28 @@ export const invoices = pgTable(
   },
   (t) => [uniqueIndex("invoices_tenant_number_uq").on(t.tenantId, t.number), index("invoices_tenant_status_idx").on(t.tenantId, t.status, t.dueAt), tenantIsolation("invoices")],
 ).enableRLS();
+
+/**
+ * Tenant lifecycle history (#48): one row per state change, with reason and note, plus a snapshot
+ * of plan, add-ons and monthly charge so the console can rebuild MRR, active tenants and add-on
+ * adoption month by month. Plan and add-on changes write a row with an unchanged status.
+ */
+export const tenantLifecycleEvents = pgTable(
+  "tenant_lifecycle_events",
+  {
+    ...tenantColumns(),
+    /** null on the first row (creation). */
+    fromStatus: text("from_status"),
+    toStatus: text("to_status").notNull(),
+    reason: text("reason").notNull(),
+    note: text("note"),
+    planKey: text("plan_key").notNull(),
+    addons: jsonb("addons").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    monthlyMinor: integer("monthly_minor").notNull().default(0),
+    actorUserId: uuid("actor_user_id"),
+    /** super_admin | system */
+    actorType: text("actor_type").notNull().default("system"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("tenant_lifecycle_events_tenant_idx").on(t.tenantId, t.createdAt), index("tenant_lifecycle_events_created_idx").on(t.createdAt), tenantIsolation("tenant_lifecycle_events")],
+).enableRLS();

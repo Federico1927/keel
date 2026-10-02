@@ -11,6 +11,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"
   },
+  "dependencies": {
+    "zod": "^4.0.0"
+  },
   "devDependencies": {
     "@keel/eslint-config": "workspace:*",
     "eslint": "^9.39.0",

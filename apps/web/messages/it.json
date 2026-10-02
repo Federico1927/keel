@@ -198,13 +198,18 @@
     "open_menu": "Apri menu",
     "switch_tenant": "Cambia workspace",
     "admin_console": "Console super-admin",
-    "impersonating": "Stai vedendo {tenant} come super-admin. Ogni azione è registrata.",
+    "impersonating": "Stai vedendo <b>{tenant}</b> come super-admin. Ogni azione è registrata.",
     "back_to_admin": "Torna alla console",
     "suspended_title": "Workspace sospeso",
     "suspended_description": "Questo workspace è sospeso per fatture non pagate. Contatta l'amministratore della piattaforma.",
     "not_found_title": "Pagina non disponibile",
     "not_found_description": "La pagina non esiste, oppure il tuo ruolo o il tuo piano non la includono.",
-    "support": "Aiuto"
+    "support": "Aiuto",
+    "support_mode": "Modalità supporto",
+    "exit_impersonation": "Esci",
+    "churned_title": "Workspace chiuso",
+    "churned_description": "Questo workspace è stato chiuso. Contatta l'amministratore della piattaforma se ti servono i dati.",
+    "suspended_platform_description": "L'amministratore della piattaforma ha sospeso questo workspace. Contattalo per ripristinare l'accesso."
   },
   "roles": {
     "owner": "Titolare",
@@ -3112,13 +3117,28 @@
     "console": "Console super-admin",
     "sign_out": "Esci",
     "nav": {
-      "dashboard": "Dashboard",
+      "dashboard": "Panoramica",
       "tenants": "Tenant",
       "billing": "Fatturazione",
       "audit": "Registro attività",
       "support": "Supporto",
       "styleguide": "Guida di stile",
-      "email": "Email"
+      "email": "Email",
+      "label": "Console",
+      "metrics": "Metriche",
+      "plans": "Piani e add-on",
+      "users": "Utenti",
+      "integrations": "Integrazioni",
+      "groups": {
+        "overview": "Panoramica",
+        "tenants": "Tenant",
+        "users": "Utenti",
+        "billing": "Fatturazione",
+        "operations": "Operazioni",
+        "support": "Supporto",
+        "audit": "Audit"
+      },
+      "mcp": "MCP"
     },
     "plans": {
       "starter": "Starter",
@@ -3146,7 +3166,16 @@
       "subscriptions": "Abbonamenti: {trialing} in prova · {active} attivi · {pastDue} scaduti",
       "paid_30": "Incassato negli ultimi 30 giorni: {amount}",
       "tenants": "Tenant",
-      "recent_audit": "Attività recente della piattaforma"
+      "recent_audit": "Attività recente della piattaforma",
+      "find_user": "Cerca un utente per nome o email",
+      "find": "Cerca",
+      "attention": "Da controllare",
+      "attention_description": "Tenant con punteggio di salute sotto 70: errori di integrazione, job falliti, fatture scadute o un team che non accede più.",
+      "attention_none": "Tutti i tenant sono in salute.",
+      "see_all": "Vedi tutti",
+      "why": "Perché",
+      "past_retention": "{n, plural, one {# tenant chiuso ha} other {# tenant chiusi hanno}} superato il periodo di conservazione dei dati",
+      "past_retention_hint": "Se ne occuperà il flusso di esportazione e cancellazione (#32); per ora non si cancella nulla in automatico."
     },
     "tenants": {
       "title": "Tenant",
@@ -3156,7 +3185,8 @@
         "active": "Attivo",
         "trial": "In prova",
         "suspended": "Sospeso",
-        "churned": "Cessato"
+        "churned": "Cessato",
+        "past_due": "Pagamento scaduto"
       },
       "columns": {
         "tenant": "Tenant",
@@ -3165,8 +3195,16 @@
         "integrations": "Integrazioni",
         "orders30": "Ordini / 30 gg",
         "last_login": "Ultimo accesso",
-        "payment": "Pagamento"
-      }
+        "payment": "Pagamento",
+        "status": "Stato",
+        "health": "Salute",
+        "mrr": "MRR"
+      },
+      "needs_attention": "Da controllare",
+      "search_placeholder": "Nome o slug",
+      "count": "{shown} di {total} tenant",
+      "empty": "Nessun tenant corrisponde ai filtri.",
+      "trial_ends": "Prova fino al {date}"
     },
     "new_tenant": {
       "title": "Nuovo tenant",
@@ -3231,7 +3269,16 @@
       "reset_not_active": "Non inviata: l'account non è attivo",
       "reset_rate_limited": "Troppe richieste per questo indirizzo",
       "reset_failed": "Invio non riuscito",
-      "owner_invited": "invito in attesa"
+      "owner_invited": "invito in attesa",
+      "integration_issues": "Dettaglio errori",
+      "branding": "Branding",
+      "branding_description": "Vista in sola lettura del colore e dei loghi del tenant (il tenant li modifica in Impostazioni → Branding).",
+      "brand_default": "Predefinito del prodotto",
+      "brand_adjusted": "Regolato per il contrasto a {color}",
+      "logo_light": "Logo per sfondi chiari",
+      "logo_dark": "Logo per sfondi scuri",
+      "no_logo": "Nessun logo caricato",
+      "brand_updated": "Aggiornato il {date}"
     },
     "billing": {
       "title": "Fatturazione",
@@ -3259,7 +3306,12 @@
         "issued": "Emessa",
         "due": "Scadenza",
         "status": "Stato"
-      }
+      },
+      "search_placeholder": "Numero fattura o tenant",
+      "due_filter": "Scadenza",
+      "overdue_only": "Solo scadute",
+      "empty": "Nessuna fattura corrisponde ai filtri.",
+      "summary": "{from}–{to} di {total} · {amount}"
     },
     "audit": {
       "title": "Registro attività della piattaforma",
@@ -3268,7 +3320,10 @@
       "tenant": "Tenant",
       "actor": "Autore",
       "action": "Azione",
-      "details": "Dettagli"
+      "details": "Dettagli",
+      "platform": "Piattaforma (nessun tenant)",
+      "actor_type": "Tipo di autore",
+      "summary": "{from}–{to} di {total}"
     },
     "support": {
       "title": "Supporto",
@@ -3421,6 +3476,179 @@
         "platform_disabled": "Piattaforma spenta",
         "suspended": "Tenant sospeso"
       }
+    },
+    "platform_label": "Piattaforma",
+    "export_csv": "Esporta CSV",
+    "filters": {
+      "search": "Cerca",
+      "all": "Tutti",
+      "apply": "Filtra",
+      "reset": "Azzera"
+    },
+    "health": {
+      "integrations": "Errori di integrazione",
+      "jobs": "Job falliti",
+      "invoices": "Fatture scadute",
+      "login": "Nessun accesso recente"
+    },
+    "lifecycle": {
+      "title": "Ciclo di vita",
+      "description": "Prova → attivo → pagamento scaduto → sospeso → chiuso. Ogni cambio conserva motivo e nota; sospeso e chiuso tengono fuori gli utenti del tenant.",
+      "blocked_now": "In questo momento gli utenti del tenant non possono accedere al workspace.",
+      "current": "Stato attuale",
+      "since": "dal {date}",
+      "reason": "Motivo",
+      "trial_end": "Fine prova",
+      "retained_until": "Dati conservati fino al",
+      "retention_hint": "({days} giorni dalla chiusura, poi il flusso di esportazione/cancellazione)",
+      "system": "job di fatturazione",
+      "change": "Cambia stato",
+      "change_title": "Cambia lo stato del ciclo di vita",
+      "change_description": "Sono elencati solo i passaggi consentiti. Il cambio viene registrato nell'audit con motivo e nota.",
+      "to": "Nuovo stato",
+      "blocks_access": "Gli utenti del tenant perdono l'accesso appena confermi.",
+      "note": "Nota (obbligatoria)",
+      "cancel": "Annulla",
+      "confirm": "Conferma",
+      "save_trial_end": "Salva",
+      "errors": {
+        "invalid_input": "Scegli stato e motivo e scrivi una nota.",
+        "invalid_transition": "Questo passaggio non è consentito dallo stato attuale.",
+        "failed": "Impossibile salvare il cambio."
+      },
+      "reasons": {
+        "tenant_created": "Tenant creato",
+        "trial_converted": "Prova convertita",
+        "trial_expired": "Prova scaduta",
+        "payment_overdue": "Pagamento in ritardo",
+        "unpaid_invoice": "Fattura non pagata",
+        "payment_recovered": "Pagamento ricevuto",
+        "customer_request": "Richiesta del cliente",
+        "terms_violation": "Violazione dei termini",
+        "win_back": "Riattivazione",
+        "manual": "Manuale",
+        "other": "Altro",
+        "plan_changed": "Piano cambiato",
+        "addons_changed": "Add-on cambiati"
+      }
+    },
+    "users": {
+      "title": "Utenti",
+      "description": "Tutte le persone di tutti i tenant: appartenenze, ultimo accesso, flag super-admin. Disattiva, invia il reset della password o chiudi le sessioni; le password non si vedono né si impostano qui.",
+      "search": "Nome o email",
+      "search_placeholder": "es. giulia@ o Ferri",
+      "kind": "Mostra",
+      "kinds": {
+        "active": "Attivi",
+        "disabled": "Disattivati",
+        "super_admin": "Super-admin",
+        "no_tenant": "Senza tenant"
+      },
+      "empty": "Nessun utente corrisponde ai filtri.",
+      "columns": {
+        "user": "Utente",
+        "tenants": "Tenant e ruoli",
+        "last_login": "Ultimo accesso",
+        "status": "Stato"
+      },
+      "never": "Mai",
+      "super_admin": "Super-admin",
+      "disabled": "Disattivato",
+      "active": "Attivo",
+      "summary": "{from}–{to} di {total}"
+    },
+    "user": {
+      "account": "Account",
+      "created": "Creato",
+      "email_verified": "Email verificata",
+      "password_changed": "Password cambiata",
+      "language": "Lingua",
+      "no_passwords": "La console non mostra né imposta password: il link di reset arriva all'email della persona.",
+      "disabled_since": "Disattivato dal {date}",
+      "no_reason": "Nessun motivo indicato",
+      "disabled_by": "da {email}",
+      "no_tenants": "Non appartiene a nessun tenant.",
+      "role": "Ruolo",
+      "since": "Membro dal",
+      "membership_inactive": "non attivo",
+      "sign_ins": "Accessi recenti",
+      "sign_ins_hint": "Metodo e dispositivo degli ultimi dieci accessi.",
+      "activity": "Attività dell'account",
+      "self_hint": "Non puoi disattivare il tuo account.",
+      "enable": "Riattiva",
+      "disable": "Disattiva",
+      "enable_title": "Riattivare questo account?",
+      "disable_title": "Disattivare questo account su tutta la piattaforma?",
+      "enable_description": "La persona potrà di nuovo accedere con password o link. Le sessioni chiuse restano chiuse.",
+      "disable_description": "Tutte le sessioni si chiudono subito, l'accesso viene rifiutato con qualsiasi metodo e la persona riceve un'email di sicurezza. Le appartenenze restano.",
+      "note": "Nota (facoltativa)",
+      "reason": "Motivo (visibile solo agli admin della piattaforma)",
+      "cancel": "Annulla",
+      "errors": {
+        "self": "Non puoi disattivare il tuo account.",
+        "failed": "Impossibile salvare il cambio."
+      },
+      "sessions_revoked": "Sessioni chiuse",
+      "revoke_sessions": "Chiudi tutte le sessioni"
+    },
+    "metrics": {
+      "title": "Metriche",
+      "description": "MRR e tenant paganti per mese, nuovi contro chiusi, adozione degli add-on, ricostruiti dallo storico del ciclo di vita. Ogni numero apre i tenant che lo compongono.",
+      "series": {
+        "mrr": "MRR",
+        "active": "Tenant paganti",
+        "trial": "In prova",
+        "new": "Nuovi",
+        "churned": "Chiusi"
+      },
+      "trial_hint": "{n} in prova",
+      "new_vs_churned": "Nuovi / chiusi",
+      "this_month": "Questo mese",
+      "arr": "Run-rate (ARR)",
+      "arr_hint": "MRR × 12",
+      "chart_title": "MRR e tenant paganti",
+      "chart_description": "Stato a fine mese (per il mese in corso: oggi).",
+      "table_title": "Per mese",
+      "table_description": "Clicca un numero per vederne i tenant.",
+      "month": "Mese",
+      "behind": "{metric} · {month}",
+      "behind_count": "{n, plural, one {# tenant} other {# tenant}}",
+      "none": "Nessun tenant."
+    },
+    "plans_page": {
+      "title": "Piani e add-on",
+      "description": "Prezzi, limiti e adozione dei piani e degli add-on definiti nel codice.",
+      "read_only": "Sola lettura: piani e prezzi stanno in @keel/config (packages/config/src/plans.ts e modules.ts). Per ora modificarli resta una modifica al codice, così fatturazione, landing e test cambiano insieme.",
+      "tenants_n": "{n, plural, one {# tenant} other {# tenant}}",
+      "monthly": "Mensile",
+      "setup": "Fee di attivazione",
+      "orders_limit": "Ordini al mese",
+      "users_limit": "Utenti",
+      "unlimited": "Illimitati",
+      "overage": "Oltre il limite del piano: {price} per blocco di {orders} ordini.",
+      "addons": "Add-on",
+      "addon": "Add-on",
+      "availability": "Disponibilità",
+      "tenants": "Tenant",
+      "availability_implemented": "Disponibile",
+      "availability_on_request": "Su richiesta"
+    },
+    "integrations": {
+      "title": "Integrazioni",
+      "description": "Errori di integrazione di tutti i tenant, per tenant e fonte, con gli ultimi sync falliti.",
+      "sources_in_error": "Fonti con problemi",
+      "failed_webhooks": "Webhook falliti",
+      "failed_writes": "Scritture fallite",
+      "source": "Fonte",
+      "status": "Stato",
+      "status_problems": "Errore o degradato",
+      "status_all": "Tutti",
+      "empty": "Nessun problema di integrazione.",
+      "last_success": "Ultimo successo",
+      "error": "Ultimo errore",
+      "failures": "{n} errori consecutivi",
+      "failed_runs": "Sync falliti",
+      "failed_runs_hint": "Gli ultimi 30, dal più recente."
     }
   },
   "cod": {
@@ -6420,6 +6648,421 @@
           }
         ]
       }
+    }
+  },
+  "dashboards": {
+    "title": "Dashboard",
+    "description": "La home che vede il team, le varianti per ruolo, le dashboard aggiuntive e le copie personali.",
+    "home_description": "La dashboard del team, disegnata dai titolari del negozio.",
+    "edit": "Modifica dashboard",
+    "customise": "Personalizza",
+    "home_name": "Home",
+    "preview_as": "Anteprima come…",
+    "preview_banner": "Anteprima come {role}",
+    "draft_banner": "bozza non pubblicata",
+    "exit_preview": "Esci dall'anteprima",
+    "draft_badge": "Modifiche non pubblicate",
+    "template_badge": "Modello Keel",
+    "customised_badge": "Personalizzata",
+    "open": "Apri",
+    "home": "Home",
+    "home_template": "La home è il modello Keel: segue gli aggiornamenti di Keel finché non la personalizzi.",
+    "home_custom": "Home personalizzata: {name}.",
+    "reset_home": "Ripristina il modello Keel",
+    "reset_home_confirm": "La home torna al modello Keel. Le varianti per ruolo restano. Continuare?",
+    "reset_all": "Ripristina home e varianti",
+    "reset_all_confirm": "La home e tutte le varianti per ruolo tornano al modello Keel. Continuare?",
+    "personal_toggle": "Dashboard personali",
+    "personal_toggle_hint": "Se attive, chiunque può copiare una dashboard in una personale. Le dashboard del negozio restano il riferimento.",
+    "name": "Nome",
+    "kind": "Tipo",
+    "scope_new": {
+      "tenant": "Dashboard aggiuntiva",
+      "role": "Variante della home per ruoli",
+      "personal": "Copia personale della mia home"
+    },
+    "roles_variant": "Ruoli che vedono questa home",
+    "roles_visible": "Ruoli che possono aprirla",
+    "roles_all_hint": "Nessuno selezionato: tutto il team.",
+    "create": "Crea",
+    "copy_of": "Copia di {name}",
+    "duplicate": "Crea una copia personale",
+    "delete": "Elimina",
+    "delete_confirm": "Eliminare questa dashboard?",
+    "scope": {
+      "tenant": "Dashboard del negozio",
+      "role": "Variante della home",
+      "personal": "Dashboard personale"
+    },
+    "personal_description": "La vedi solo tu.",
+    "visible_to": "Visibile a: {roles}",
+    "visible_all": "Visibile a tutto il team",
+    "widgets_n": "{n, plural, one {# widget} other {# widget}}",
+    "variants": "Varianti della home per ruolo",
+    "variants_description": "Un ruolo con una variante vede quella al posto della home del negozio.",
+    "variants_empty": "Nessuna variante: tutti i ruoli vedono la home del negozio.",
+    "extras": "Altre dashboard",
+    "extras_description": "Dashboard con un nome, per esempio la revisione settimanale.",
+    "extras_empty": "Ancora nessuna altra dashboard.",
+    "personal": "Le mie dashboard",
+    "personal_hint": "Le tue copie: modificale come vuoi.",
+    "personal_empty": "Nessuna dashboard personale.",
+    "new_dashboard": "Nuova dashboard",
+    "settings": "Impostazioni",
+    "metrics_page": "Metriche e obiettivi",
+    "metrics_description": "Le metriche che le dashboard possono mostrare: il catalogo di Keel e le tue formule, con gli obiettivi mensili.",
+    "custom_metrics": "Metriche personalizzate",
+    "custom_metrics_hint": "Formule sulle metriche di base, anche su ordini filtrati. Ogni modifica finisce nel registro attività.",
+    "custom_metrics_empty": "Ancora nessuna metrica personalizzata.",
+    "this_month": "Questo mese",
+    "targets": "Obiettivi mensili",
+    "targets_hint": "Un mese senza obiettivo proprio usa l'ultimo precedente.",
+    "catalog": "Catalogo metriche",
+    "catalog_hint": "Metriche di base calcolate dai servizi di Keel: tornano con il P/L, le campagne e il magazzino.",
+    "catalog_group": "Gruppo",
+    "catalog_flags": "Uso",
+    "flag_snapshot": "adesso",
+    "flag_filterable": "filtri",
+    "flag_series": "serie",
+    "catalog_pending": "Sessioni e tasso di conversione arriveranno con il collegamento GA4; TikTok e termini di ricerca con le loro integrazioni.",
+    "periods": {
+      "today": "Oggi",
+      "7d": "7 giorni",
+      "30d": "30 giorni",
+      "90d": "90 giorni",
+      "mtd": "Mese in corso",
+      "last_month": "Mese scorso",
+      "ytd": "Anno in corso",
+      "follow": "Periodo della dashboard"
+    },
+    "widget": {
+      "error": "Questo widget non si è caricato. Il resto della dashboard funziona.",
+      "forbidden": "Non disponibile per il tuo ruolo.",
+      "unavailable": "Questo widget non è disponibile per il tuo piano.",
+      "days_unit": "giorni",
+      "open_list": "Apri",
+      "now": "adesso",
+      "vs_previous": "vs periodo precedente",
+      "filtered": "filtrata",
+      "unknown": "Sconosciuto",
+      "empty": "Niente in questo periodo.",
+      "breakdown_title": "{metric} per {by}",
+      "target_title": "{metric}: obiettivo del mese",
+      "no_target": "Nessun obiettivo per questo mese.",
+      "of_target": "su {target}",
+      "projected": "Proiezione a fine mese {value} (giorno {elapsed} di {days})",
+      "no_alerts": "Nessun avviso recente.",
+      "empty_note": "Nota vuota."
+    },
+    "widget_groups": {
+      "metrics": "Metriche",
+      "charts": "Grafici",
+      "lists": "Elenchi",
+      "queues": "Code di lavoro",
+      "content": "Contenuti",
+      "keel": "Riquadri della home Keel"
+    },
+    "widget_types": {
+      "kpi": {
+        "name": "Riquadro KPI",
+        "description": "Una metrica con confronto e andamento."
+      },
+      "timeseries": {
+        "name": "Serie temporale",
+        "description": "1–3 metriche per giorno, settimana o mese."
+      },
+      "breakdown": {
+        "name": "Ripartizione",
+        "description": "Una metrica per canale, paese, pagamento, prodotto, campagna o piattaforma."
+      },
+      "top_list": {
+        "name": "Classifica",
+        "description": "Migliori prodotti, campagne o clienti."
+      },
+      "target": {
+        "name": "Obiettivo",
+        "description": "Mese in corso rispetto all'obiettivo, con proiezione."
+      },
+      "alerts": {
+        "name": "Avvisi",
+        "description": "Gli ultimi avvisi scattati."
+      },
+      "note": {
+        "name": "Nota",
+        "description": "Testo per il team (markdown)."
+      },
+      "queue_review": {
+        "name": "Ordini da verificare",
+        "description": "Ordini in attesa di verifica."
+      },
+      "queue_late": {
+        "name": "In ritardo di spedizione",
+        "description": "Ordini pronti oltre la scadenza di spedizione."
+      },
+      "queue_awaiting_stock": {
+        "name": "In attesa di stock",
+        "description": "Ordini fermi per stock mancante."
+      },
+      "queue_exceptions": {
+        "name": "Eccezioni di consegna",
+        "description": "Casi di eccezione aperti."
+      },
+      "queue_integrations": {
+        "name": "Salute integrazioni",
+        "description": "Collegamenti o sync in errore e webhook falliti."
+      },
+      "today_kpis": {
+        "name": "KPI di oggi",
+        "description": "Vendite, ordini, valore medio e annullamenti di oggi."
+      },
+      "sales_30d": {
+        "name": "Vendite, ultimi 30 giorni",
+        "description": "Vendite e ordini al giorno."
+      },
+      "month_forecast": {
+        "name": "Previsione del mese",
+        "description": "Ricavi, ordini e spesa ads previsti."
+      },
+      "work_queue": {
+        "name": "Da gestire",
+        "description": "Tutto ciò che è aperto, con i conteggi."
+      },
+      "stock_backorders": {
+        "name": "Stock e backorder",
+        "description": "Ordini in attesa di stock, più venduti in esaurimento."
+      },
+      "today_by_status": {
+        "name": "Ordini di oggi per stato",
+        "description": "Gli ordini di oggi per stato."
+      },
+      "cod_queue": {
+        "name": "Contrassegni da confermare",
+        "description": "Ordini in contrassegno in attesa di chiamata."
+      }
+    },
+    "metrics": {
+      "net_revenue": "Ricavi netti",
+      "gross_revenue": "Vendite lorde",
+      "orders": "Ordini",
+      "aov": "Valore medio ordine",
+      "ad_spend": "Spesa ads",
+      "cogs": "Costo del venduto",
+      "gross_margin": "Margine lordo",
+      "shipping": "Costi di spedizione",
+      "fees": "Commissioni di pagamento",
+      "fixed_costs": "Costi fissi",
+      "contribution": "Margine di contribuzione",
+      "operating_profit": "Utile operativo",
+      "refunds": "Rimborsi",
+      "new_customers": "Nuovi clienti",
+      "mer": "MER",
+      "nc_roas": "nc-ROAS",
+      "cac": "CAC complessivo",
+      "poas": "POAS",
+      "cancel_rate": "Tasso di annullamento",
+      "returns_rate": "Tasso di reso",
+      "return_cost": "Costi dei resi",
+      "repeat_customer_rate": "Clienti ricorrenti",
+      "stock_value_cost": "Valore magazzino al costo",
+      "coverage_days": "Giorni di copertura",
+      "out_of_stock_variants": "Varianti esaurite",
+      "incoming_po_value": "Valore merce in arrivo",
+      "meta_spend": "Spesa Meta",
+      "meta_roas": "ROAS Meta",
+      "meta_cpa": "CPA Meta",
+      "meta_ctr": "CTR Meta",
+      "google_spend": "Spesa Google",
+      "google_roas": "ROAS Google",
+      "google_cpa": "CPA Google",
+      "google_ctr": "CTR Google"
+    },
+    "metric_groups": {
+      "finance": "Economia",
+      "orders": "Ordini e resi",
+      "customers": "Clienti",
+      "inventory": "Magazzino",
+      "ads": "Ads per piattaforma",
+      "custom": "Metriche personalizzate"
+    },
+    "breakdown_dims": {
+      "channel": "canale",
+      "country": "paese",
+      "payment_method": "metodo di pagamento",
+      "product": "prodotto",
+      "campaign": "campagna",
+      "platform": "piattaforma"
+    },
+    "top_entities": {
+      "products": "Prodotti migliori",
+      "campaigns": "Campagne migliori per profitto",
+      "customers": "Clienti migliori"
+    },
+    "top_secondary": {
+      "products": "{v} pezzi",
+      "campaigns": "ROAS {v}",
+      "customers": "{v} ordini"
+    },
+    "granularity": {
+      "day": "Giorno",
+      "week": "Settimana",
+      "month": "Mese"
+    },
+    "channels": {
+      "paid_social": "Social a pagamento",
+      "paid_search": "Ricerca a pagamento",
+      "organic_search": "Ricerca organica",
+      "email": "Email",
+      "social": "Social",
+      "direct": "Diretto",
+      "referral": "Referral",
+      "unknown": "Sconosciuto"
+    },
+    "queue_parts": {
+      "connections": "{n} collegamenti",
+      "sources": "{n} sync",
+      "webhooks": "{n} webhook",
+      "unassigned": "{n} non assegnati"
+    },
+    "editor": {
+      "title": "Modifica: {name}",
+      "description": "Le modifiche restano in bozza: guardale in anteprima come un ruolo, poi pubblica.",
+      "published": "Pubblicata.",
+      "saved": "Bozza salvata.",
+      "none": "— nessuna —",
+      "title_field": "Titolo (facoltativo)",
+      "title_placeholder": "Automatico",
+      "width": "Larghezza",
+      "height": "Altezza",
+      "columns": "{n, plural, one {# colonna} other {# colonne}}",
+      "rows": "{n, plural, one {# riga} other {# righe}}",
+      "period": "Periodo",
+      "metric": "Metrica",
+      "compare": "Confronta con",
+      "compare_previous": "Periodo precedente",
+      "compare_none": "Niente",
+      "sparkline": "Mostra l'andamento",
+      "series_n": "Metrica {n}",
+      "chart": "Grafico",
+      "chart_line": "Linee",
+      "chart_bar": "Barre",
+      "granularity": "Per",
+      "by": "Ripartisci per",
+      "limit": "Righe",
+      "entity": "Elenco",
+      "note_text": "Testo",
+      "note_hint": "Titoli (#), elenchi (-), **grassetto**, *corsivo*, [link](https://…). L'HTML viene mostrato come testo.",
+      "note_translation": "Testo in {locale} (facoltativo)",
+      "dashboard_period": "Periodo della dashboard",
+      "save_draft": "Salva bozza",
+      "publish": "Pubblica",
+      "preview_as": "Salva e guarda come…",
+      "discard": "Scarta bozza",
+      "reset_confirm": "Sostituire i widget con il modello Keel? Pubblica per applicare.",
+      "reset_template": "Ripristina modello Keel",
+      "count": "{n} di {max} widget",
+      "drag_hint": "Trascina i widget per riordinarli, o usa le frecce. Clicca un widget per configurarlo.",
+      "configure": "Configura",
+      "move_up": "Sposta su",
+      "move_down": "Sposta giù",
+      "remove": "Rimuovi",
+      "size": "{w}×{h}",
+      "empty": "Nessun widget: aggiungine uno dal catalogo.",
+      "settings": "Impostazioni widget",
+      "add_widget": "Aggiungi un widget",
+      "done": "Fatto"
+    },
+    "errors": {
+      "generic": "Qualcosa è andato storto.",
+      "forbidden": "Non puoi modificare questa dashboard.",
+      "not_found": "Dashboard non trovata.",
+      "invalid_layout": "Alcuni widget non sono validi.",
+      "too_many_widgets": "Troppi widget per una dashboard.",
+      "module_disabled": "Un widget richiede un modulo che il negozio non ha.",
+      "role_taken": "Un ruolo selezionato ha già una variante della home.",
+      "home_exists": "La home del negozio esiste già.",
+      "invalid_input": "Controlla i campi.",
+      "personal_off": "Le dashboard personali sono disattivate per questo negozio.",
+      "invalid_formula": "La formula non è valida.",
+      "invalid_filters": "I filtri non sono validi.",
+      "invalid_key": "Scegli un'altra chiave: è vuota o è una metrica di base.",
+      "not_filterable": "Con i filtri usa solo metriche calcolate dagli ordini (non costi fissi, utile operativo, nuovi clienti o magazzino)."
+    },
+    "builder": {
+      "saved": "Metrica salvata.",
+      "label": "Nome",
+      "label_placeholder": "Contribuzione per ordine",
+      "key": "Chiave",
+      "key_placeholder": "dal nome",
+      "formula": "Formula",
+      "formula_ok": "Formula valida.",
+      "formula_error": "Non valida",
+      "formula_help": "Combina le metriche di base con + − × ÷ e parentesi, es. contribution / orders.",
+      "available": "Metriche disponibili",
+      "filters": "Calcolata su",
+      "filters_hint": "Lascia vuoto per tutto il negozio. I filtri tengono solo gli ordini corrispondenti.",
+      "f_channel": "Canale",
+      "f_country": "Paese",
+      "f_payment": "Metodo di pagamento",
+      "f_platform": "Piattaforma ads",
+      "f_campaign": "Campagna",
+      "f_product": "Prodotto",
+      "f_product_type": "Tipo di prodotto",
+      "f_customer": "Clienti",
+      "f_customer_all": "Tutti",
+      "f_customer_new": "Nuovi (primo ordine)",
+      "f_customer_returning": "Ricorrenti",
+      "format": "Formato",
+      "formats": {
+        "money": "Valuta",
+        "percent": "Percentuale",
+        "ratio": "Rapporto (×)",
+        "number": "Numero"
+      },
+      "direction": "Andamento",
+      "higher_better": "Più alto è meglio",
+      "lower_better": "Più basso è meglio",
+      "translation": "Nome in {locale}",
+      "description_field": "Descrizione",
+      "preview": "Anteprima del mese",
+      "save": "Salva metrica",
+      "cancel": "Annulla",
+      "preview_value": "Questo mese: {value} (periodo precedente {previous})",
+      "delete": "Elimina",
+      "delete_confirm": "Eliminare la metrica? I widget che la usano mostreranno un trattino.",
+      "invalid_target": "Obiettivo non valido.",
+      "target_saved": "Obiettivo salvato.",
+      "target_metric": "Metrica",
+      "target_month": "Mese",
+      "target_value_money": "Obiettivo (valuta)",
+      "target_value_percent": "Obiettivo (%)",
+      "target_value_number": "Obiettivo",
+      "target_clear": "vuoto = rimuovi",
+      "target_save": "Imposta obiettivo",
+      "edit_title": "Modifica {name}",
+      "new_title": "Nuova metrica",
+      "hint": "Solo titolari e amministratori creano o modificano le metriche.",
+      "filter_names": {
+        "channel": "Canale",
+        "country": "Paese",
+        "paymentMethod": "Pagamento",
+        "productIds": "Prodotti",
+        "productType": "Tipo prodotto",
+        "campaignIds": "Campagne",
+        "platform": "Piattaforma",
+        "customerType": "Clienti"
+      }
+    },
+    "payment_methods": {
+      "card": "Carta",
+      "wallet": "Wallet",
+      "bank_transfer": "Bonifico",
+      "cod": "Contrassegno",
+      "bnpl": "Paga dopo (BNPL)",
+      "other": "Altro"
+    },
+    "platforms": {
+      "meta": "Meta",
+      "google": "Google"
     }
   }
 }

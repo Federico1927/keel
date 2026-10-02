@@ -7,3 +7,5 @@ export * from "./runtime";
 export * from "./notifications";
 export * from "./lists";
 export * from "./mcp";
+export * from "./dashboards";
+export * from "./lifecycle";

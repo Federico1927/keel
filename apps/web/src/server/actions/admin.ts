@@ -2,9 +2,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { PLAN_KEYS } from "@keel/config";
+import { MANUAL_LIFECYCLE_REASONS, PLAN_KEYS, TENANT_STATUSES } from "@keel/config";
 import { eq, recordAudit, schema } from "@keel/db";
-import { AccountError, applySuspensions, createTenant, requestPasswordReset, emailSettings, issueDueInvoices, recordInvoicePayment, removeAddressSuppression, sendTestEmail, setTenantAddon, setTenantPlan, setTenantSuspension, voidInvoice } from "@keel/services";
+import { AccountError, AdminUserError, LifecycleError, revokeUserSessions, setTrialEnd, setUserDisabled, transitionTenant, applySuspensions, createTenant, requestPasswordReset, emailSettings, issueDueInvoices, recordInvoicePayment, removeAddressSuppression, sendTestEmail, setTenantAddon, setTenantPlan, setTenantSuspension, voidInvoice } from "@keel/services";
 import { requireSuperAdmin } from "@/server/admin";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 import "@/server/email";
@@ -142,5 +142,75 @@ export async function removeAddressSuppressionAction(id: string): Promise<Action
   if (!uuid.safeParse(id).success) return fail("invalid_input");
   if (!(await removeAddressSuppression(db, id, user.id))) return fail("not_found");
   revalidatePath("/admin/email");
+  return ok();
+}
+
+/** Leaves support mode (#48): audited, back to the console. */
+export async function exitImpersonationAction(slug: string): Promise<never> {
+  const { user, db } = await requireSuperAdmin();
+  const [tenant] = await db.select({ id: schema.tenants.id }).from(schema.tenants).where(eq(schema.tenants.slug, String(slug))).limit(1);
+  if (tenant) await recordAudit(db, { tenantId: tenant.id, actorUserId: user.id, actorType: "super_admin", action: "impersonation.ended", entityType: "tenant", entityId: tenant.id });
+  redirect("/admin");
+}
+
+const lifecycleSchema = z.object({ to: z.enum(TENANT_STATUSES), reason: z.enum(MANUAL_LIFECYCLE_REASONS), note: z.string().trim().min(3).max(1000) });
+
+/** Lifecycle change from the console: reason and note are required; `suspended` and `churned` lock the tenant's users out. */
+export async function transitionTenantAction(tenantId: string, input: { to: string; reason: string; note: string }): Promise<ActionResult> {
+  const { user, db } = await requireSuperAdmin();
+  const parsed = lifecycleSchema.safeParse(input);
+  if (!uuid.safeParse(tenantId).success || !parsed.success) return fail("invalid_input");
+  try {
+    const r = await transitionTenant(db, tenantId, { ...parsed.data, actorUserId: user.id, manual: parsed.data.to === "suspended" });
+    if (!r.changed) return fail("unchanged");
+  } catch (e) {
+    if (e instanceof LifecycleError) return fail(e.code);
+    throw e;
+  }
+  revalidatePath(`/admin/tenants/${tenantId}`);
+  revalidatePath("/admin/tenants");
+  revalidatePath("/admin");
+  return ok();
+}
+
+export async function setTrialEndAction(tenantId: string, date: string, note: string): Promise<ActionResult> {
+  const { user, db } = await requireSuperAdmin();
+  const d = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).safeParse(date);
+  if (!uuid.safeParse(tenantId).success || !d.success) return fail("invalid_input");
+  try {
+    await setTrialEnd(db, tenantId, new Date(`${d.data}T23:59:59Z`), user.id, note || null);
+  } catch (e) {
+    if (e instanceof LifecycleError) return fail(e.code);
+    throw e;
+  }
+  revalidatePath(`/admin/tenants/${tenantId}`);
+  return ok();
+}
+
+/** Platform-wide disable or enable of a person (#48): sessions end, sign-in refused, audited; never a password. */
+export async function setUserDisabledAction(userId: string, disabled: boolean, reason: string): Promise<ActionResult> {
+  const { user, db } = await requireSuperAdmin();
+  if (!uuid.safeParse(userId).success) return fail("invalid_input");
+  try {
+    await setUserDisabled(db, { userId, disabled: Boolean(disabled), reason: String(reason ?? "").slice(0, 500), actorUserId: user.id });
+  } catch (e) {
+    if (e instanceof AdminUserError) return fail(e.code);
+    throw e;
+  }
+  revalidatePath(`/admin/users/${userId}`);
+  revalidatePath("/admin/users");
+  return ok();
+}
+
+export async function revokeUserSessionsAction(userId: string): Promise<ActionResult> {
+  const { user, db } = await requireSuperAdmin();
+  if (!uuid.safeParse(userId).success) return fail("invalid_input");
+  try {
+    await revokeUserSessions(db, { userId, actorUserId: user.id });
+  } catch (e) {
+    if (e instanceof AdminUserError) return fail(e.code);
+    throw e;
+  }
+  revalidatePath(`/admin/users/${userId}`);
   return ok();
 }

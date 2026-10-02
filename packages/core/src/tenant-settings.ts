@@ -82,6 +82,8 @@ export const tenantSettingsSchema = z.object({
   mcpEnabled: z.boolean().default(false),
   /** MCP: show customer names, emails, phones and addresses unmasked to roles allowed to see them (off = always masked). */
   mcpFullPii: z.boolean().default(false),
+  /** Dashboards (issue #43): users may copy a tenant dashboard into a personal one; the tenant's dashboards stay the reference. */
+  personalDashboards: z.boolean().default(true),
 });
 export type TenantSettings = z.infer<typeof tenantSettingsSchema>;
 

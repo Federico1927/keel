@@ -58,7 +58,7 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
         if (!parsed.success) return null;
         const email = parsed.data.email.toLowerCase().trim();
         const [user] = await db().select().from(schema.users).where(eq(schema.users.email, email)).limit(1);
-        if (!user?.passwordHash) return null;
+        if (!user?.passwordHash || user.disabledAt) return null;
         const ok = await bcrypt.compare(parsed.data.password, user.passwordHash);
         if (!ok) return null;
         await db().update(schema.users).set({ lastLoginAt: new Date() }).where(eq(schema.users.id, user.id));
@@ -74,7 +74,7 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
         const grant = verifySignInGrant((raw as { grant?: unknown } | undefined)?.grant);
         if (!grant) return null;
         const [user] = await db().select().from(schema.users).where(eq(schema.users.id, grant.userId)).limit(1);
-        if (!user || user.sessionVersion !== grant.sessionVersion) return null;
+        if (!user || user.disabledAt || user.sessionVersion !== grant.sessionVersion) return null;
         return { id: user.id, email: user.email, name: user.name, isSuperAdmin: user.isSuperAdmin, locale: user.locale, sessionVersion: user.sessionVersion };
       },
     }),
@@ -91,8 +91,9 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
       if (account?.provider !== "email") return true;
       const email = user.email?.toLowerCase().trim();
       if (!email) return false;
-      const [row] = await db().select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, email)).limit(1);
-      return Boolean(row);
+      const [row] = await db().select({ id: schema.users.id, disabledAt: schema.users.disabledAt }).from(schema.users).where(eq(schema.users.email, email)).limit(1);
+      // a disabled account (#48) gets no session from a link either
+      return Boolean(row) && !row!.disabledAt;
     },
   },
   events: {

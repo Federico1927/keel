@@ -303,7 +303,8 @@ export interface DashboardWidget {
 }
 
 export async function userDashboard(ctx: ServiceContext, userId: string) {
-  const [row] = await ctx.tx.select().from(schema.dashboards).where(and(eq(schema.dashboards.tenantId, ctx.tenantId), eq(schema.dashboards.userId, userId))).orderBy(desc(schema.dashboards.isDefault)).limit(1);
+  // the Analytics "My dashboard" list: layout version 1 personal rows (tenant dashboards and personal copies are issue #43's)
+  const [row] = await ctx.tx.select().from(schema.dashboards).where(and(eq(schema.dashboards.tenantId, ctx.tenantId), eq(schema.dashboards.userId, userId), eq(schema.dashboards.scope, "personal"), eq(schema.dashboards.layoutVersion, 1))).orderBy(desc(schema.dashboards.isDefault)).limit(1);
   return row ?? null;
 }
 

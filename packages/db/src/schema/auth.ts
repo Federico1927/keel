@@ -36,6 +36,10 @@ export const users = pgTable(
     notifyNewSignIn: boolean("notify_new_sign_in").notNull().default(true),
     /** #52: when the person accepted the privacy policy (first access from an invitation). */
     privacyAcceptedAt: timestamp("privacy_accepted_at", { withTimezone: true }),
+    /** #48: platform-wide disable by a super-admin (no sign-in at all while set). */
+    disabledAt: timestamp("disabled_at", { withTimezone: true }),
+    disabledReason: text("disabled_reason"),
+    disabledBy: uuid("disabled_by"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
