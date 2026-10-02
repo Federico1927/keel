@@ -1,6 +1,6 @@
 import { splitDateWindows } from "@hullwise/core";
 import { HttpClient, type HttpOptions } from "../http";
-import { IntegrationError, type AdEntityMetricLevel, type AdEntityStatus, type AdsCapabilities, type AdsPlatform, type ConnectionTest, type NormalizedAd, type NormalizedAdAsset, type NormalizedAdMetric, type NormalizedAdSet, type NormalizedCampaign, type NormalizedEntityMetric } from "../types";
+import { IntegrationError, type AdEntityMetricLevel, type AdEntityStatus, type AdsCapabilities, type AdsPlatform, type ConnectionTest, type NormalizedAd, type NormalizedAdAsset, type NormalizedAdMetric, type NormalizedAdSet, type NormalizedCampaign, type NormalizedEntityMetric, failedConnection } from "../types";
 
 /**
  * TikTok Marketing API (TikTok for Business). The one place the version, endpoints and metric names
@@ -153,7 +153,7 @@ export class TiktokAdsPlatform implements AdsPlatform {
       const list = data.list ?? [];
       return { ok: true, accountName: list.map((a) => String(a.name ?? a.advertiser_id)).join(", "), accountId: this.creds.advertiserIds.join(","), scopes: [] };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : String(e) };
+      return failedConnection(e);
     }
   }
 

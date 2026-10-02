@@ -2818,19 +2818,13 @@
     "public_app_link": "Install via OAuth",
     "connect_title": {
       "shopify": "Custom app (Admin API token)",
-      "meta": "System user token",
       "google": "Google Ads API credentials",
-      "anthropic": "Anthropic API key",
-      "tiktok": "TikTok for Business app",
-      "address": "Google Maps Platform API key"
+      "tiktok": "TikTok for Business app"
     },
     "connect_description": {
       "shopify": "Create a custom app in the store admin, grant the scopes listed in the guide, paste the Admin API access token and the API secret key used to sign webhooks.",
-      "meta": "A long-lived system user token from Business Manager with ads_read and ads_management on the ad account.",
       "google": "Developer token, OAuth client and a refresh token authorised for the Google Ads scope; read-only in this version.",
-      "anthropic": "The store's own key from console.anthropic.com. Anthropic bills the assistant's usage to that account; Hullwise stores the key encrypted.",
-      "tiktok": "App id and secret of the TikTok for Business app and the auth code returned by the advertiser authorization; Hullwise exchanges it for a long-lived token covering every authorized advertiser account.",
-      "address": "The store's own key with Address Validation API and Places API (New) enabled. Google bills the requests to the store; the key is stored encrypted."
+      "tiktok": "App id and secret of the TikTok for Business app and the auth code returned by the advertiser authorization; Hullwise exchanges it for a long-lived token covering every authorized advertiser account."
     },
     "fields": {
       "shop": "Shop domain",
@@ -2843,11 +2837,9 @@
       "client_id": "OAuth client id",
       "client_secret": "OAuth client secret",
       "refresh_token": "Refresh token",
-      "api_key": "API key",
       "app_id": "App id",
       "app_secret": "App secret",
-      "auth_code": "Auth code",
-      "google_api_key": "Google API key"
+      "auth_code": "Auth code"
     },
     "slots_title": "Per-account integrations",
     "slots_description": "Slots for ad hoc connectors sold per account. Interfaces and mocks exist; a specific provider is implemented on request.",
@@ -2919,16 +2911,11 @@
     "simulated_return": "Return webhook accepted (HTTP {status}) for {order}.",
     "google_write_access": "Write access granted",
     "google_write_access_hint": "Lets Hullwise pause ads and add negative keywords. Without it Google stays read-only.",
-    "tiktok_mock_connect": "Connect demo account",
     "tiktok_mock_connected": "TikTok connected (mock): {summary}",
     "tiktok_mock_partial": "TikTok connected (mock): {summary}. The rest of the 90 days keeps importing in the background.",
-    "tiktok_app_hint": "Using Hullwise's own TikTok app (TIKTOK_APP_ID configured)?",
-    "tiktok_app_link": "Authorize with TikTok",
     "not_in_plan_badge": "Not in plan",
     "not_in_plan": "Included from the {plan} plan: ask the platform owner to change the plan.",
     "open_subscriptions": "Open subscriptions",
-    "address_mock_connect": "Use the simulated provider",
-    "address_mock_connected": "Address validation connected (simulated provider).",
     "ad_accounts": {
       "title": "Meta ad accounts",
       "description": "Each account syncs on its own, with its status, last sync and last error. Up to {n} accounts.",
@@ -2961,6 +2948,25 @@
       "incomplete_hint": "Until it completes, analytics, RFM, cohorts and customer history only cover part of the history. Resync continues it.",
       "banner": "The store's order history is still being imported ({n} orders so far): past periods, cohorts and customer history are incomplete until it finishes.",
       "banner_error": "The import of the store's order history stopped after {n} orders: past periods, cohorts and customer history are incomplete. An owner or admin can continue it with Resync in Integrations."
+    },
+    "card": {
+      "manage": "Manage",
+      "more": "More actions",
+      "simulate": "Simulate",
+      "close": "Close",
+      "hide_setup": "Hide setup",
+      "account": "Account"
+    },
+    "about": {
+      "shopify": "Orders, customers, products and stock from your store.",
+      "meta": "Campaigns, ads and daily spend; pauses with confirmation; Conversions API.",
+      "google": "Campaigns, keywords and search terms with daily cost and conversions.",
+      "tiktok": "Campaigns, ad groups and ads with daily spend and conversions.",
+      "anthropic": "The AI assistant, on your own Anthropic key.",
+      "address": "Address checks and suggestions while editing orders.",
+      "spoki": "WhatsApp confirmations, order notifications and campaigns.",
+      "accounting": "Daily sales entries pushed to your accounting system.",
+      "subscriptions": "Contracts, renewals and cancellations from your subscription app."
     }
   },
   "integration_guide": {
@@ -3035,8 +3041,7 @@
           "symptom": "Throttled / 429",
           "fix": "Normal under heavy sync: {product} waits and retries automatically; the run resumes from its cursor."
         }
-      ],
-      "setup_title": "Merchant setup"
+      ]
     },
     "meta": {
       "title": "Connect Meta Ads",
@@ -7099,7 +7104,8 @@
       "subscription_reschedule": "Move next renewal",
       "subscription_cancel": "Cancel subscription",
       "subscription_payment_link": "Send payment update link"
-    }
+    },
+    "advantage_locked": "Meta no longer lets apps pause or resume this campaign: it is a legacy Advantage+ shopping or app campaign (Marketing API v25 and later). Change it in Ads Manager."
   },
   "dev_inbox": {
     "title": "Dev inbox",
@@ -9195,7 +9201,6 @@
       "simulated": "Simulated: {summary}",
       "connect": "Connect",
       "reconnect": "Change app",
-      "connected": "Subscription app connected.",
       "app": "Subscription app",
       "apps": {
         "shopify_subscriptions": "Shopify Subscriptions",
@@ -9203,12 +9208,7 @@
         "loop": "Loop Subscriptions",
         "mock": "Simulated app"
       },
-      "api_token": "API token",
-      "webhook_secret": "Webhook signing secret",
-      "shopify_hint": "Uses the store's Shopify connection: it needs the subscription contract scopes (see the guide).",
-      "mock_hint": "Mock mode: the simulated app is connected, no credentials needed.",
-      "token_hint": "The token and secret are stored encrypted.",
-      "save": "Save"
+      "replace_hint": "One subscription app per store: connecting another one replaces it."
     },
     "status": {
       "active": "Active",
@@ -9580,11 +9580,7 @@
       "webhook": "Webhook URL to paste in Spoki (it contains the store's secret token)",
       "copy": "Copy",
       "settings_link": "WhatsApp settings",
-      "mock_connect": "Connect simulated account",
-      "mock_connected": "Simulated Spoki account connected",
-      "resynced": "{n} templates read, {approved} approved",
-      "api_key": "Spoki API key",
-      "key_help": "Spoki → Settings → Developers → API key. It is tested, then stored encrypted."
+      "resynced": "{n} templates read, {approved} approved"
     },
     "settings": {
       "title": "WhatsApp (Spoki)",
@@ -9994,7 +9990,14 @@
   "integration_setup": {
     "common": {
       "connecting": "Connecting…",
-      "hide_setup": "Hide setup"
+      "hide_setup": "Hide setup",
+      "mock_notice": "This environment is simulated: Connect links a simulated account and nothing you type is sent anywhere. The steps are what the merchant does on a real account.",
+      "mock_triggers": "Demo values that answer with an error:",
+      "mock_deny": "Demo: refuse the authorization",
+      "connected": "Connected.",
+      "setup_title": "Set it up step by step",
+      "setup_title_of": "Set up {name}",
+      "owner_prerequisite": "This path uses {product}'s own app registered with the vendor. If the card says it is not available yet, the {product} team still has to finish that registration: contact support. Until then the advanced path with your own credentials works."
     },
     "shopify": {
       "intro": "Connect your store with your own Shopify app: it takes about ten minutes, once. Follow the steps in your Shopify account, then paste three values here.",
@@ -10092,6 +10095,589 @@
       "copy": "Copy",
       "full_guide": "Full guide, with the other ways to connect",
       "advanced": "Advanced: other ways to connect"
+    },
+    "meta": {
+      "title": "Connect Meta Ads and the Conversions API",
+      "intro": "Connect your ad accounts and your pixel with a system user of your Business Manager: about ten minutes, once, and the connection never expires with a personal login.",
+      "connect": "Connect",
+      "copy": "Copy",
+      "full_guide": "Open the full guide",
+      "steps": {
+        "system_user": {
+          "title": "Create a system user in your Business Manager",
+          "body": "Open business.facebook.com → Settings → Users → System users → Add. Name it after the product, for example “Reporting”, with the Admin role. A system user belongs to the business, so the connection survives people leaving."
+        },
+        "assign_assets": {
+          "title": "Give it your ad accounts and your pixel",
+          "body": "On the system user choose Assign assets. Ad accounts: pick each account and turn on “Manage campaigns” (full control is needed to pause campaigns from here). Datasets/Pixels: pick your pixel and turn on “Manage”. Save."
+        },
+        "token": {
+          "title": "Generate the token with these permissions",
+          "body": "Still on the system user: Generate new token → choose an app of your business (create a Business app in developers.facebook.com if you have none) → token expiration “Never” → tick the permissions below. The Conversions API uses the same token: the pixel must be assigned in the previous step. Copy the token now, Meta shows it once."
+        },
+        "ids": {
+          "title": "Find the ad account and pixel ids",
+          "body": "Ad account id: Ads Manager → account menu, a number like act_123456789 (copy each account you want). Pixel id: Events Manager → Data sources → your pixel → Settings → Dataset ID."
+        },
+        "url_parameters": {
+          "title": "Add the URL parameters to your ads",
+          "body": "In each ad, Destination → URL parameters, paste the template below. Orders are tied to the campaign, the ad set and the ad through it."
+        },
+        "connect": {
+          "title": "Paste the values here and connect",
+          "body": "Paste the token, the ad account ids (separated by commas; the first one is the main account) and the pixel id, then Connect. The token, each account and the pixel are checked at once, then the last 90 days are imported in the background."
+        },
+        "verify": {
+          "title": "Check what was found",
+          "body": "After Connect the card shows the accounts, the campaigns and the pixel it could read. “Test connection” repeats the check at any time."
+        }
+      },
+      "values": {
+        "permissions": "Permissions to tick",
+        "utm_template": "URL parameters template"
+      },
+      "fields": {
+        "accessToken": "System user token",
+        "adAccountIds": "Ad account ids",
+        "pixelId": "Pixel (dataset) id, for the Conversions API"
+      },
+      "errors": {
+        "invalid_input": {
+          "message": "Check the fields.",
+          "fix": "The token is a long string; the ad account ids look like act_123456789, separated by commas; the pixel id is a number (leave it empty to skip the Conversions API)."
+        },
+        "invalid_token": {
+          "message": "Meta refused the token: it is invalid, expired or was revoked.",
+          "fix": "Generate a new token for the system user (Business settings → System users → Generate new token) with expiration “Never”, then paste it again."
+        },
+        "missing_permission": {
+          "message": "The token is missing a permission.",
+          "fix": "Generate the token again and tick ads_read, ads_management and business_management (step 3)."
+        },
+        "account_not_assigned": {
+          "message": "The system user cannot see this ad account.",
+          "fix": "Business settings → System users → your system user → Assign assets → Ad accounts: add the account with “Manage campaigns”. Check the id too (act_ followed by digits)."
+        },
+        "pixel_not_accessible": {
+          "message": "The pixel is not reachable with this token.",
+          "fix": "Business settings → System users → Assign assets → Datasets/Pixels: add the pixel with “Manage”, and check the id in Events Manager → Settings. Or leave the pixel empty to connect without the Conversions API."
+        },
+        "rate_limited": {
+          "message": "Meta is limiting the requests of this ad account right now.",
+          "fix": "Wait a few minutes and connect again: nothing is lost."
+        },
+        "unknown": {
+          "message": "Meta answered with an error: {detail}",
+          "fix": "Follow the steps again; the full guide lists the common errors. If it keeps failing, contact support with the message above."
+        }
+      },
+      "verified": "Found {accounts, plural, one {# ad account} other {# ad accounts}} ({names}) with {campaigns, plural, one {# campaign} other {# campaigns}}, {active} active. {pixel, select, none {No pixel given: the Conversions API stays off.} other {Pixel {pixel} reachable: switch on the Conversions API under Pixel and conversions.}}",
+      "notes": {
+        "advantage": "Meta no longer lets apps pause or resume legacy Advantage+ shopping and app campaigns (Marketing API v25 and later). Pausing those campaigns from here will say so: change them in Ads Manager.",
+        "facebook_login": "Coming later: “Continue with Facebook”, a one-click connection with the platform's own Meta app. Until then the system user token above is the way to connect."
+      }
+    },
+    "google": {
+      "title": "Connect Google Ads",
+      "intro": "Sign in with the Google account that manages your ads and pick the account: no token or developer setup on your side.",
+      "copy": "Copy",
+      "full_guide": "Open the full guide",
+      "advanced": "Advanced: your own developer token and OAuth client",
+      "sign_in": "Sign in with Google",
+      "pick_label": "Choose the Google Ads account",
+      "pick_manager": "Through {manager}",
+      "pick_button": "Use this account",
+      "steps": {
+        "access": {
+          "title": "Use a Google account with access to the ads",
+          "body": "The Google account must have access to the Google Ads account (Admin or Standard), directly or through a manager (MCC) account of your agency. Read access is enough to import; pausing ads from here needs Standard."
+        },
+        "sign_in": {
+          "title": "Sign in with Google and allow access",
+          "body": "Click “Sign in with Google”, choose the account and allow the Google Ads permission below. If your company's Google Workspace restricts third-party apps, your administrator must allow the app (Admin console → Security → API controls); the return address below helps them recognise it."
+        },
+        "pick": {
+          "title": "Pick the account",
+          "body": "The accounts your Google user can reach are listed, those under a manager account grouped by manager. Pick the one of this store: it is checked and its last 90 days are imported in the background."
+        },
+        "tracking": {
+          "title": "Set the tracking template",
+          "body": "Google Ads → Admin → Account settings → Tracking → Tracking template: paste the template below. Orders are tied to campaigns, ads and keywords through it."
+        },
+        "enhanced_conversions": {
+          "title": "Turn on Enhanced Conversions (optional)",
+          "body": "Google Ads → Goals → Conversions → Settings: turn on Enhanced conversions for web and accept the customer data terms; as method choose the Google Ads API. Then create (or pick) a purchase conversion action imported from clicks and set its id under Pixel and conversions."
+        },
+        "verify": {
+          "title": "Check what was found",
+          "body": "After the pick the card shows the account and the campaigns it read. “Test connection” repeats the check at any time."
+        }
+      },
+      "values": {
+        "scope": "Google Ads permission requested",
+        "redirect_url": "Return address of the sign-in (for your Workspace administrator)",
+        "tracking_template": "Tracking template"
+      },
+      "errors": {
+        "app_not_configured": {
+          "message": "Sign in with Google is not available yet on this platform.",
+          "fix": "The platform's Google Ads app is still being registered with Google. Contact support, or use the advanced path with your own developer token and OAuth client."
+        },
+        "access_denied": {
+          "message": "Google sign-in was cancelled or the permission was not allowed.",
+          "fix": "Click “Sign in with Google” again and allow the Google Ads permission. If your Workspace blocks the app, ask your administrator to allow it (step 2)."
+        },
+        "no_accounts": {
+          "message": "This Google user has no Google Ads account.",
+          "fix": "Sign in with the Google account that has access to the ads, or ask the account owner to invite it (Google Ads → Admin → Access and security)."
+        },
+        "developer_token": {
+          "message": "Google has not approved the platform's access to production accounts yet.",
+          "fix": "This is on the platform's side (developer token pending): contact support. Test accounts work in the meantime."
+        },
+        "not_enabled": {
+          "message": "This Google Ads account is not active.",
+          "fix": "The account was cancelled, suspended or never finished its setup (billing). Pick another account, or reactivate it in Google Ads."
+        },
+        "no_permission": {
+          "message": "Your Google user cannot read this account.",
+          "fix": "Ask the account owner to give your Google user access (Google Ads → Admin → Access and security), or sign in with the user that manages it; for an agency's accounts pick them under the manager account."
+        },
+        "token_revoked": {
+          "message": "The Google access expired or was revoked.",
+          "fix": "Click “Sign in with Google” again."
+        },
+        "rate_limited": {
+          "message": "Google is limiting the requests right now.",
+          "fix": "Wait a minute and try again: nothing is lost."
+        },
+        "unknown": {
+          "message": "Google answered with an error: {detail}",
+          "fix": "Try the sign-in again; if it keeps failing, contact support with the message above."
+        }
+      },
+      "verified": "Connected to {account}: {campaigns, plural, one {# campaign} other {# campaigns}} found, {active} active. The last 90 days are imported in the background."
+    },
+    "tiktok": {
+      "title": "Connect TikTok Ads",
+      "intro": "Authorize your advertiser accounts with TikTok for Business: one click, no app to create on your side.",
+      "copy": "Copy",
+      "full_guide": "Open the full guide",
+      "advanced": "Advanced: your own TikTok for Business app",
+      "connect_tiktok": "Connect TikTok",
+      "steps": {
+        "access": {
+          "title": "Use a TikTok for Business user with access to the accounts",
+          "body": "You need admin or operator access to the advertiser accounts in TikTok Ads Manager or in your Business Center."
+        },
+        "authorize": {
+          "title": "Connect TikTok and confirm the permissions",
+          "body": "Click “Connect TikTok”, sign in, select the advertiser accounts of this store and confirm the permissions below. You come back here when it is done."
+        },
+        "url_parameters": {
+          "title": "Add the URL parameters to your ads",
+          "body": "In every ad, add the parameters below to the landing page URL (or the URL parameters field). Orders are tied to the campaign, the ad group and the ad through them."
+        },
+        "verify": {
+          "title": "Check what was found",
+          "body": "The card shows the authorized accounts and the campaigns it read; the last 90 days are imported in the background."
+        }
+      },
+      "values": {
+        "permissions": "Permissions requested",
+        "utm_template": "URL parameters template"
+      },
+      "errors": {
+        "app_not_configured": {
+          "message": "Connect TikTok is not available yet on this platform.",
+          "fix": "The platform's TikTok for Business app is still waiting for TikTok's approval. Contact support, or use the advanced path with your own TikTok app."
+        },
+        "access_denied": {
+          "message": "The TikTok authorization was cancelled.",
+          "fix": "Click “Connect TikTok” again and confirm the permissions."
+        },
+        "no_advertisers": {
+          "message": "No advertiser account was selected.",
+          "fix": "Connect again and tick the advertiser accounts of this store in the TikTok window."
+        },
+        "missing_permission": {
+          "message": "A permission was not granted.",
+          "fix": "Connect again and leave every permission ticked: campaigns and reports need all of them."
+        },
+        "token_expired": {
+          "message": "The TikTok authorization expired or was revoked.",
+          "fix": "Click “Connect TikTok” again (an authorization lasts a few minutes and works once)."
+        },
+        "rate_limited": {
+          "message": "TikTok is limiting the requests right now.",
+          "fix": "Wait a minute and try again: nothing is lost."
+        },
+        "unknown": {
+          "message": "TikTok answered with an error: {detail}",
+          "fix": "Try again; if it keeps failing, contact support with the message above."
+        }
+      },
+      "verified": "{advertisers, plural, one {# advertiser account} other {# advertiser accounts}} authorized, {campaigns, plural, one {# campaign} other {# campaigns}} found, {active} active."
+    },
+    "anthropic": {
+      "title": "Connect the AI assistant",
+      "intro": "The assistant runs on your own Anthropic API key: Anthropic bills the usage to your account, the key is stored encrypted.",
+      "connect": "Connect",
+      "copy": "Copy",
+      "full_guide": "Open the full guide",
+      "steps": {
+        "account": {
+          "title": "Open the Anthropic console",
+          "body": "Sign in at the address below (or create the account in the store's name, so invoices go to the store)."
+        },
+        "billing": {
+          "title": "Add credits",
+          "body": "Settings → Billing: add a payment method and buy credits. Settings → Limits: set a monthly spend limit."
+        },
+        "key": {
+          "title": "Create an API key",
+          "body": "Settings → API keys → Create key, named after the product. Copy it now: the console shows it only once."
+        },
+        "connect": {
+          "title": "Paste the key here and connect",
+          "body": "The key is checked by reading the model's details (no tokens spent) and stored encrypted."
+        },
+        "verify": {
+          "title": "Check that it answers",
+          "body": "The card shows the model that answered; then open Assistant and ask a question."
+        }
+      },
+      "values": {
+        "console_url": "Anthropic console, API keys"
+      },
+      "fields": {
+        "apiKey": "Anthropic API key"
+      },
+      "errors": {
+        "invalid_input": {
+          "message": "This does not look like an Anthropic API key.",
+          "fix": "Copy the whole key from the console: it starts with sk-ant-."
+        },
+        "invalid_key": {
+          "message": "Anthropic refused the key.",
+          "fix": "The key was copied incompletely, deleted, or belongs to a disabled workspace: create a new key in Settings → API keys and paste it again."
+        },
+        "no_credit": {
+          "message": "The Anthropic account has no credit left.",
+          "fix": "Add credits in the console (Settings → Billing) or turn on auto-reload, then connect again."
+        },
+        "rate_limited": {
+          "message": "Anthropic is limiting the requests of this account right now.",
+          "fix": "Wait a minute and try again. New accounts start with low limits that rise with usage: check them in Settings → Limits."
+        },
+        "overloaded": {
+          "message": "Anthropic is overloaded right now.",
+          "fix": "Try again in a few minutes: nothing is wrong with your key."
+        },
+        "unknown": {
+          "message": "Anthropic answered with an error: {detail}",
+          "fix": "Try again; if it keeps failing, check the key in the console or contact support with the message above."
+        }
+      },
+      "verified": "The key works: {model} answered. Usage is billed to your Anthropic account."
+    },
+    "address": {
+      "title": "Connect address validation (Google)",
+      "intro": "Address checks and suggestions while editing an order, with your own Google Maps Platform key: Google bills the requests to your Cloud account.",
+      "connect": "Connect",
+      "copy": "Copy",
+      "full_guide": "Open the full guide",
+      "steps": {
+        "project": {
+          "title": "Create or choose a Google Cloud project",
+          "body": "console.cloud.google.com → project picker → New project, with the store's own Google account so invoices go to the store."
+        },
+        "billing": {
+          "title": "Turn on billing",
+          "body": "Billing → Link a billing account to the project. Google Maps Platform needs billing even within the free monthly usage; set a budget alert."
+        },
+        "enable_apis": {
+          "title": "Enable the two APIs",
+          "body": "APIs & Services → Library: enable “Address Validation API” and “Places API (New)” (not the old “Places API”)."
+        },
+        "key": {
+          "title": "Create and restrict the API key",
+          "body": "APIs & Services → Credentials → Create credentials → API key. Edit it: API restrictions → Restrict key → the two APIs above. Application restrictions: None (the calls come from our servers; a website restriction blocks them)."
+        },
+        "connect": {
+          "title": "Paste the key here and connect",
+          "body": "Both APIs are checked with one request each, then the key is stored encrypted."
+        },
+        "verify": {
+          "title": "Check what was found",
+          "body": "The card shows the result of a test address and a test search. Then open an order → Edit → shipping address."
+        }
+      },
+      "values": {
+        "apis": "APIs to enable"
+      },
+      "fields": {
+        "apiKey": "Google API key"
+      },
+      "errors": {
+        "invalid_input": {
+          "message": "This does not look like a Google API key.",
+          "fix": "Copy the whole key from Credentials: it usually starts with AIza."
+        },
+        "invalid_key": {
+          "message": "Google refused the API key.",
+          "fix": "The key was copied incompletely or deleted: copy it again from APIs & Services → Credentials, or create a new one."
+        },
+        "api_not_enabled": {
+          "message": "One of the two APIs is not enabled on the key's project.",
+          "fix": "APIs & Services → Library: enable Address Validation API and Places API (New) in the same project as the key, wait a few minutes, then connect again."
+        },
+        "key_restricted": {
+          "message": "The key's restrictions block these requests.",
+          "fix": "Edit the key: API restrictions must include Address Validation API and Places API (New); Application restrictions must be None (no website or app restriction)."
+        },
+        "billing_disabled": {
+          "message": "Billing is not enabled on the Google Cloud project.",
+          "fix": "Billing → Link a billing account to the project, then connect again."
+        },
+        "quota": {
+          "message": "The project's quota is used up for now.",
+          "fix": "Check the quotas in Google Cloud (APIs & Services → the API → Quotas) or wait for them to reset."
+        },
+        "unknown": {
+          "message": "Google answered with an error: {detail}",
+          "fix": "Follow the steps again; if it keeps failing, contact support with the message above."
+        }
+      },
+      "verified": "The key works: the test address was {valid, select, yes {confirmed} other {checked}} and a test search returned {suggestions, plural, =0 {no suggestions} one {# suggestion} other {# suggestions}}."
+    },
+    "spoki": {
+      "title": "Connect WhatsApp with Spoki",
+      "intro": "Connect your Spoki account with its API key and paste our webhook address in Spoki for delivery statuses and replies.",
+      "connect": "Connect",
+      "copy": "Copy",
+      "full_guide": "Open the full guide",
+      "steps": {
+        "account": {
+          "title": "Have a Spoki account with WhatsApp",
+          "body": "A Spoki account with a verified WhatsApp Business number, on a plan that includes the API."
+        },
+        "key": {
+          "title": "Create the API key",
+          "body": "In Spoki: Settings → Developers (or Integrations → API) → create an API key and copy it."
+        },
+        "webhook": {
+          "title": "Paste our webhook address in Spoki",
+          "body": "Spoki → Settings → Webhook (outbound and inbound messages): paste the address below. Its last part is your store's secret: do not share it."
+        },
+        "connect": {
+          "title": "Paste the key here and connect",
+          "body": "The key is checked by reading your templates, then stored encrypted."
+        },
+        "verify": {
+          "title": "Check what was found",
+          "body": "The card shows the templates found and how many WhatsApp approved; map them in WhatsApp settings."
+        }
+      },
+      "values": {
+        "webhook_url": "Webhook address to paste in Spoki"
+      },
+      "fields": {
+        "apiKey": "Spoki API key"
+      },
+      "errors": {
+        "invalid_input": {
+          "message": "This does not look like a Spoki API key.",
+          "fix": "Copy the whole key from Spoki → Settings → Developers."
+        },
+        "invalid_key": {
+          "message": "Spoki refused the API key.",
+          "fix": "Copy the key again from Spoki → Settings → Developers, or create a new one."
+        },
+        "no_api_access": {
+          "message": "This Spoki account cannot use the API.",
+          "fix": "The Spoki plan does not include API access, or the key lacks permissions: check the plan with Spoki."
+        },
+        "rate_limited": {
+          "message": "Spoki is limiting the requests right now.",
+          "fix": "Wait a minute and try again."
+        },
+        "unknown": {
+          "message": "Spoki answered with an error: {detail}",
+          "fix": "Try again; if it keeps failing, contact support with the message above."
+        }
+      },
+      "verified": "The key works: {templates, plural, one {# template} other {# templates}} found, {approved} approved by WhatsApp."
+    },
+    "recharge": {
+      "title": "Connect Recharge",
+      "intro": "Connect Recharge with an API token from its admin: subscriptions, charges and cancellations are imported, and your team's actions go back through the app.",
+      "connect": "Connect",
+      "copy": "Copy",
+      "full_guide": "Open the full guide",
+      "steps": {
+        "token": {
+          "title": "Create the API token",
+          "body": "Recharge → Apps & integrations → API tokens: create a token named after the product with the permissions below."
+        },
+        "secret": {
+          "title": "Copy the webhook signing secret",
+          "body": "On the same token page copy the API client secret: Recharge signs the webhooks with it."
+        },
+        "webhook": {
+          "title": "Point the webhooks to this address",
+          "body": "In the app's webhook settings, send the topics below to this address. Events are checked with the signing secret; the sync every 15 minutes catches anything missed."
+        },
+        "connect": {
+          "title": "Paste the token and the secret here",
+          "body": "The token is checked with one request, then both are stored encrypted. One subscription app per store: connecting this one replaces the previous one."
+        },
+        "verify": {
+          "title": "Check what was found",
+          "body": "The card shows the subscriptions found; the full import runs in the background."
+        }
+      },
+      "values": {
+        "scopes": "Permissions of the token",
+        "webhook_url": "Webhook address",
+        "topics": "Webhook topics"
+      },
+      "fields": {
+        "apiToken": "API token",
+        "webhookSecret": "Webhook signing secret"
+      },
+      "errors": {
+        "invalid_input": {
+          "message": "Check the fields.",
+          "fix": "Paste the whole API token and the signing secret from the app's admin."
+        },
+        "invalid_token": {
+          "message": "Recharge refused the token.",
+          "fix": "The token was revoked or copied incompletely: create a new one and paste it again."
+        },
+        "missing_scopes": {
+          "message": "The token is missing a permission.",
+          "fix": "Edit the token in Recharge and grant the permissions listed in step 1, then connect again."
+        },
+        "rate_limited": {
+          "message": "Recharge is limiting the requests right now.",
+          "fix": "Wait a minute and try again: nothing is lost."
+        },
+        "unknown": {
+          "message": "Recharge answered with an error: {detail}",
+          "fix": "Try again; if it keeps failing, contact support with the message above."
+        }
+      },
+      "verified": "Connected: {contracts, plural, =0 {no subscriptions yet} one {# subscription} other {# subscriptions}}{more, select, yes { (and more)} other {}} found. The full import runs in the background."
+    },
+    "loop": {
+      "title": "Connect Loop",
+      "intro": "Connect Loop with an API token from its admin: subscriptions, charges and cancellations are imported, and your team's actions go back through the app.",
+      "connect": "Connect",
+      "copy": "Copy",
+      "full_guide": "Open the full guide",
+      "steps": {
+        "token": {
+          "title": "Create the API token",
+          "body": "Loop admin → Settings → API access: create a token named after the product with the permissions below."
+        },
+        "secret": {
+          "title": "Copy the webhook signing secret",
+          "body": "Loop admin → Settings → Webhooks: copy the signing secret."
+        },
+        "webhook": {
+          "title": "Point the webhooks to this address",
+          "body": "In the app's webhook settings, send the topics below to this address. Events are checked with the signing secret; the sync every 15 minutes catches anything missed."
+        },
+        "connect": {
+          "title": "Paste the token and the secret here",
+          "body": "The token is checked with one request, then both are stored encrypted. One subscription app per store: connecting this one replaces the previous one."
+        },
+        "verify": {
+          "title": "Check what was found",
+          "body": "The card shows the subscriptions found; the full import runs in the background."
+        }
+      },
+      "values": {
+        "scopes": "Permissions of the token",
+        "webhook_url": "Webhook address",
+        "topics": "Webhook topics"
+      },
+      "fields": {
+        "apiToken": "API token",
+        "webhookSecret": "Webhook signing secret"
+      },
+      "errors": {
+        "invalid_input": {
+          "message": "Check the fields.",
+          "fix": "Paste the whole API token and the signing secret from the app's admin."
+        },
+        "invalid_token": {
+          "message": "Loop refused the token.",
+          "fix": "The token was revoked or copied incompletely: create a new one and paste it again."
+        },
+        "missing_scopes": {
+          "message": "The token is missing a permission.",
+          "fix": "Edit the token in Loop and grant the permissions listed in step 1, then connect again."
+        },
+        "rate_limited": {
+          "message": "Loop is limiting the requests right now.",
+          "fix": "Wait a minute and try again: nothing is lost."
+        },
+        "unknown": {
+          "message": "Loop answered with an error: {detail}",
+          "fix": "Try again; if it keeps failing, contact support with the message above."
+        }
+      },
+      "verified": "Connected: {contracts, plural, =0 {no subscriptions yet} one {# subscription} other {# subscriptions}}{more, select, yes { (and more)} other {}} found. The full import runs in the background."
+    },
+    "shopify_subscriptions": {
+      "title": "Connect Shopify Subscriptions",
+      "intro": "Shopify Subscriptions is read through your Shopify connection: no new token, only permissions to add.",
+      "connect": "Connect",
+      "copy": "Copy",
+      "full_guide": "Open the full guide",
+      "steps": {
+        "shopify": {
+          "title": "Connect Shopify first",
+          "body": "The Shopify card above must be connected: subscriptions are read with the same app."
+        },
+        "scopes": {
+          "title": "Add the contract permissions to your Shopify app",
+          "body": "In the Dev Dashboard open your app → new version → Access: add the permissions below, release the version and approve the update in the store admin. Shopify sends the webhook topics below to the connection."
+        },
+        "approval": {
+          "title": "Contracts of the Shopify Subscriptions app",
+          "body": "Contracts created by the Shopify Subscriptions app belong to that app: reading them from another app needs Shopify's approval, requested by the platform owner. Until it is granted the connection works but finds no contracts."
+        },
+        "connect": {
+          "title": "Connect",
+          "body": "Click Connect: the permissions are checked on your Shopify connection."
+        },
+        "verify": {
+          "title": "Check what was found",
+          "body": "The card shows the subscriptions found."
+        }
+      },
+      "values": {
+        "scopes": "Permissions to add",
+        "topics": "Webhook topics"
+      },
+      "errors": {
+        "shopify_not_connected": {
+          "message": "Shopify is not connected.",
+          "fix": "Connect Shopify on its card first (Integrations → Shopify), then connect Shopify Subscriptions."
+        },
+        "missing_scopes": {
+          "message": "Your Shopify app is missing the subscription permissions.",
+          "fix": "Add the permissions of step 2 to a new version of your Shopify app, release it, approve the update in the store admin, then connect again."
+        },
+        "unknown": {
+          "message": "Shopify answered with an error: {detail}",
+          "fix": "Test the Shopify connection, then try again; if it keeps failing, contact support with the message above."
+        }
+      },
+      "verified": "Connected: {contracts, plural, =0 {no subscriptions found yet (see step 3)} one {# subscription found} other {# subscriptions found}}{more, select, yes { (and more)} other {}}."
     }
   },
   "ga4": {
@@ -10127,8 +10713,6 @@
       "backfill_running": "Connected: {n} rows imported so far, the rest continues in the background.",
       "resync_done": "Resynced: {n} rows.",
       "resync_queued": "Resync queued.",
-      "disconnect_confirm": "Disconnect Google Analytics 4? The traffic already imported is kept.",
-      "disconnected": "Disconnected.",
       "errors": {
         "ga4_invalid_property": "Enter the numeric GA4 property id (for example 312456789).",
         "ga4_invalid_key": "This is not a valid service account key file.",
@@ -10220,7 +10804,7 @@
         "add_viewer": "Paste this e-mail, choose the Viewer role, untick “Notify new users” and click Add:",
         "property_id": "Still in Admin, open Property details and copy the PROPERTY ID: a number like 312456789 (not the G- measurement ID).",
         "paste": "Paste the property ID here:",
-        "connect": "Click Connect: we check the access and import your last 12 months in the background."
+        "connect": "Click Connect: we check the access, show what the property returned and import your last 12 months in the background."
       },
       "errors": {
         "no_access": {
@@ -10247,7 +10831,12 @@
           "message": "The test did not succeed.",
           "fix": "Follow the steps above once more; the details from Google are below. The guide lists the common errors."
         }
-      }
+      },
+      "values": {
+        "serviceAccountEmail": "Reader e-mail"
+      },
+      "verified": "Property {property} answered{queued, select, yes {: the 12-month import runs in the background.} other {: {rows, plural, =0 {no traffic rows yet} one {# row of traffic} other {# rows of traffic}} imported so far.}}",
+      "full_guide": "Open the full guide"
     }
   },
   "daily_sales": {
@@ -10405,10 +10994,8 @@
       "connect": "Connect",
       "connect_mock": "Connect the simulated system",
       "connected": "Connected: {n} accounts read.",
-      "test": "Test connection",
       "test_ok": "Connection OK ({account}).",
       "test_failed": "Connection failed: {error}",
-      "resync": "Resync accounts",
       "resync_done": "{n} accounts read.",
       "simulate_failure": "Simulate a refusal",
       "simulated": "The next push will be refused with a rate limit.",

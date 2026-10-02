@@ -159,6 +159,27 @@ test("users: invite a teammate from the phone and revoke the invitation", async 
   await noSideScroll(page, "users");
 });
 
+test("integrations: one card structure on a phone, Manage opens a bottom sheet (#90)", async ({ page }) => {
+  await login(page, "owner@northwind.demo");
+  await page.goto(`${NW}/integrations`);
+  const card = page.getByTestId("provider-shopify");
+  await expect(card.getByTestId("shopify-status")).toBeVisible();
+  // the header stays on one line: the title truncates instead of wrapping
+  const title = await card.locator("h3").first().evaluate((el) => getComputedStyle(el).whiteSpace);
+  expect(title).toBe("nowrap");
+  await noSideScroll(page, "integrations");
+  await card.getByTestId("shopify-manage").click();
+  const sheet = page.getByTestId("integration-sheet");
+  await expect(sheet).toBeVisible();
+  const box = (await sheet.boundingBox())!;
+  const viewport = page.viewportSize()!;
+  expect(Math.round(box.y + box.height)).toBeGreaterThanOrEqual(viewport.height - 2);
+  expect(box.width).toBeGreaterThanOrEqual(viewport.width - 2);
+  await expect(sheet.getByTestId("integration-sheet-status")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(sheet).toHaveCount(0);
+});
+
 test("integrations: open a provider guide from its card", async ({ page }) => {
   await login(page, "owner@northwind.demo");
   await page.goto(`${NW}/integrations`);

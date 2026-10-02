@@ -1,12 +1,13 @@
 "use client";
-import { useActionState, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Switch } from "@hullwise/ui";
+import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Switch } from "@hullwise/ui";
 import type { SpokiSettings } from "@hullwise/addon-spoki";
 import type { SpokiTemplate } from "@hullwise/integrations";
-import { connectSpokiAction, connectSpokiMockAction, disconnectSpokiAction, resyncSpokiAction, saveCodRepliesAction, saveSpokiSettingsAction, testSpokiAction } from "@/server/actions/spoki";
+import { saveCodRepliesAction, saveSpokiSettingsAction } from "@/server/actions/spoki";
 import type { ActionResult } from "@/server/action-result";
+import { SPOKI_SETUP } from "@hullwise/config";
+import { IntegrationSetupPanel } from "@/components/integration-setup-panel";
 
 export interface TemplateRow {
   key: string;
@@ -141,46 +142,21 @@ export function CodRepliesForm({ slug, confirm, cancel }: { slug: string; confir
 }
 
 /** Integration card actions: test, resync templates, connect (API key, or the simulated account in mock mode), disconnect. */
-export function SpokiConnection({ slug, connected, mock, canManage }: { slug: string; connected: boolean; mock: boolean; canManage: boolean }) {
-  const t = useTranslations("whatsapp.connection");
+/**
+ * The setup part of the Spoki sheet (issue #9; self-setup #90): the checklist with the webhook URL to
+ * copy and the API key form (any key connects the simulated account in mock mode, demo values answer
+ * with each mapped error), open when not connected, behind "Change key or reconnect" when it is.
+ */
+export function SpokiConnection({ slug, connected, mock, values, triggers, guideHref }: { slug: string; connected: boolean; mock: boolean; values: Record<string, string>; triggers: { value: string; code: string }[]; guideHref: string }) {
   const ti = useTranslations("integrations");
-  const tc = useTranslations("common");
-  const router = useRouter();
-  const [pending, start] = useTransition();
-  const [msg, setMsg] = useState<{ tone: "ok" | "err"; text: string } | null>(null);
-  const [showKey, setShowKey] = useState(false);
-  const [state, action, saving] = useActionState(connectSpokiAction.bind(null, slug), null);
-  if (!canManage) return null;
-  const say = (r: ActionResult<unknown>, text: string) => {
-    setMsg(r.ok ? { tone: "ok", text } : { tone: "err", text: (ti.has(`errors.${r.error}`) ? ti(`errors.${r.error}`) : tc.has(`errors.${r.error}`) ? tc(`errors.${r.error}`) : r.error) + (r.fieldErrors?.platform ? ` (${r.fieldErrors.platform})` : "") });
-    router.refresh();
-  };
+  const [showSetup, setShowSetup] = useState(!connected);
+  useEffect(() => {
+    if (!connected) setShowSetup(true);
+  }, [connected]);
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap gap-2">
-        {connected && (
-          <>
-            <Button size="sm" variant="outline" disabled={pending} data-testid="spoki-test" onClick={() => start(async () => { const r = await testSpokiAction(slug); say(r, r.ok && r.data ? (r.data.ok ? ti("test_ok", { account: r.data.accountName ?? "" }) : ti("test_failed", { error: r.data.error ?? "" })) : ""); })}>{ti("test_connection")}</Button>
-            <Button size="sm" variant="outline" disabled={pending} data-testid="spoki-resync" onClick={() => start(async () => { const r = await resyncSpokiAction(slug); say(r, r.ok && r.data ? t("resynced", { n: r.data.templates, approved: r.data.approved }) : ""); })}>{ti("resync")}</Button>
-          </>
-        )}
-        {mock && !connected && <Button size="sm" disabled={pending} data-testid="spoki-mock-connect" onClick={() => start(async () => say(await connectSpokiMockAction(slug), t("mock_connected")))}>{t("mock_connect")}</Button>}
-        <Button size="sm" variant={connected || mock ? "ghost" : "default"} disabled={pending} onClick={() => setShowKey((v) => !v)}>{connected && !mock ? ti("reconnect") : ti("connect")}</Button>
-        {connected && <Button size="sm" variant="ghost" disabled={pending} data-testid="spoki-disconnect" onClick={() => start(async () => say(await disconnectSpokiAction(slug), ti("disconnected")))}>{ti("disconnect")}</Button>}
-      </div>
-      {msg && <Alert variant={msg.tone === "err" ? "destructive" : "default"}><AlertDescription data-testid="msg-spoki">{msg.text}</AlertDescription></Alert>}
-      {showKey && (
-        <form action={action} className="space-y-2 rounded-md border p-3">
-          <p className="text-xs text-muted-foreground">{mock ? ti("mock_notice") : t("key_help")}</p>
-          <Label htmlFor="spoki-key">{t("api_key")}</Label>
-          <Input id="spoki-key" name="apiKey" type="password" autoComplete="off" required />
-          <div className="flex items-center gap-2">
-            <Button type="submit" size="sm" disabled={saving}>{ti("connect")}</Button>
-            {state?.ok && <Badge variant="success">{ti("connected_ok")}</Badge>}
-            {state && !state.ok && <span className="text-sm text-destructive">{ti.has(`errors.${state.error}`) ? ti(`errors.${state.error}`) : tc(`errors.${state.error}`)}{state.fieldErrors?.platform ? ` (${state.fieldErrors.platform})` : ""}</span>}
-          </div>
-        </form>
-      )}
-    </div>
+    <section className="space-y-2">
+      {connected && <Button size="sm" variant="outline" onClick={() => setShowSetup((v) => !v)} aria-expanded={showSetup} data-testid="spoki-setup-toggle">{showSetup ? ti("card.hide_setup") : ti("reconnect")}</Button>}
+      {showSetup && <IntegrationSetupPanel slug={slug} guide={SPOKI_SETUP} values={values} mock={mock} ownerReady triggers={triggers} guideHref={guideHref} />}
+    </section>
   );
 }

@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, desc, eq, recordAudit, schema, sql } from "@hullwise/db";
 import { apiEndpoint, isAdPlatform, isAdPlatformInPlan } from "@hullwise/config";
-import { AnthropicLlmProvider, GoogleAddressProvider, GoogleAdsPlatform, MOCK_ACCOUNT_IDS, MetaAdsPlatform, TiktokAdsPlatform, encryptJson, exchangeTiktokAuthCode, integrationMode, type ConnectionTest } from "@hullwise/integrations";
+import { GoogleAdsPlatform, MOCK_ACCOUNT_IDS, TiktokAdsPlatform, encryptJson, exchangeTiktokAuthCode, failedConnection, integrationMode, setupErrorOfTest, type ConnectionTest } from "@hullwise/integrations";
+import { verifySetup, type SetupFacts } from "@/server/integration-verify";
 import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, resolveAddressProvider, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsBackfill, runAdsSync, runAdsSyncForAccounts, runCatalogSync, runOrdersSync, runReturnsSync, historyImportStatus } from "@hullwise/services";
 import { SPOKI_MODULE, retrySpokiWebhooks } from "@hullwise/addon-spoki";
 import { handleSpokiEvent, spokiHooksFor } from "@hullwise/jobs";
@@ -35,20 +36,6 @@ async function saveConnection(slug: string, provider: Provider, test: Connection
   });
   revalidatePath(`/t/${slug}/integrations`);
   return ok();
-}
-
-const metaSchema = z.object({ accessToken: z.string().trim().min(10), adAccountId: z.string().trim().min(3) });
-export async function connectMeta(slug: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
-  try {
-    const parsed = metaSchema.safeParse(Object.fromEntries(formData.entries()));
-    if (!parsed.success) return fail("invalid_input");
-    if (integrationMode() !== "live") return fail("mock_mode");
-    const test = await new MetaAdsPlatform(parsed.data).testConnection();
-    return saveConnection(slug, "meta", test, parsed.data, parsed.data.adAccountId.startsWith("act_") ? parsed.data.adAccountId : `act_${parsed.data.adAccountId}`);
-  } catch (e) {
-    if (e instanceof ForbiddenError) return fail("forbidden");
-    throw e;
-  }
 }
 
 const googleSchema = z.object({ developerToken: z.string().trim().min(5), clientId: z.string().trim().min(5), clientSecret: z.string().trim().min(5), refreshToken: z.string().trim().min(5), customerId: z.string().trim().min(8), loginCustomerId: z.string().trim().optional().nullable() });
@@ -103,7 +90,7 @@ async function queueTiktokBackfill(ctx: TenantContext): Promise<boolean> {
  * Mock mode: connects the simulated TikTok account (the tenant's own TikTok data, or a small demo
  * account) and runs the first import inline: campaigns, ad groups, ads and 90 days of metrics.
  */
-export async function connectTiktokMock(slug: string): Promise<ActionResult<{ summary: string; finished: boolean }>> {
+export async function connectTiktokMock(slug: string): Promise<ActionResult<{ summary: string; finished: boolean; verification: SetupFacts | null }>> {
   try {
     const ctx = await requireAction(slug, "manage_integrations", "integrations");
     requireProviderInPlan(ctx, "tiktok");
@@ -120,59 +107,8 @@ export async function connectTiktokMock(slug: string): Promise<ActionResult<{ su
     revalidatePath(`/t/${slug}/integrations`);
     revalidatePath(`/t/${slug}/campaigns`, "layout");
     if (r.error) return fail("connection_failed", { platform: r.error });
-    return ok({ summary: `campaigns:${r.campaigns} ad_groups:${r.counts.adSets ?? 0} ads:${r.counts.ads ?? 0} metrics:${r.metrics + (r.counts.ad_set ?? 0) + (r.counts.ad ?? 0)}`, finished: r.finished });
-  } catch (e) {
-    if (e instanceof ForbiddenError) return fail("forbidden");
-    throw e;
-  }
-}
-
-const anthropicSchema = z.object({ apiKey: z.string().trim().min(20) });
-/** The store's own Anthropic key for the AI assistant; the store pays its usage to Anthropic directly. */
-export async function connectAnthropic(slug: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
-  try {
-    const parsed = anthropicSchema.safeParse(Object.fromEntries(formData.entries()));
-    if (!parsed.success) return fail("invalid_input");
-    if (integrationMode() !== "live") return fail("mock_mode");
-    const test = await new AnthropicLlmProvider({ apiKey: parsed.data.apiKey }).testConnection();
-    return saveConnection(slug, "anthropic", test, { apiKey: parsed.data.apiKey }, test.accountId ?? "anthropic");
-  } catch (e) {
-    if (e instanceof ForbiddenError) return fail("forbidden");
-    throw e;
-  }
-}
-
-const addressSchema = z.object({ apiKey: z.string().trim().min(20).max(200) });
-/**
- * Address validation with the store's own Google Maps Platform key (Address Validation API +
- * Places API (New)); the key is checked with one validation and stored encrypted (AES-GCM).
- */
-export async function connectAddress(slug: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
-  try {
-    const parsed = addressSchema.safeParse(Object.fromEntries(formData.entries()));
-    if (!parsed.success) return fail("invalid_input");
-    if (integrationMode() !== "live") return fail("mock_mode");
-    const test = await new GoogleAddressProvider({ apiKey: parsed.data.apiKey }).testConnection();
-    return saveConnection(slug, "address", test, { apiKey: parsed.data.apiKey }, "google-address", { vendor: "google" });
-  } catch (e) {
-    if (e instanceof ForbiddenError) return fail("forbidden");
-    throw e;
-  }
-}
-
-/** Mock mode: connects the simulated address provider (format checks, suggestions in a few cities). */
-export async function connectAddressMock(slug: string): Promise<ActionResult> {
-  try {
-    const ctx = await requireAction(slug, "manage_integrations", "integrations");
-    const existing = await ctx.run((tx) => tx.select().from(schema.integrations).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, "address"))).limit(1));
-    if (integrationMode() === "live" && existing[0]?.mode === "live" && existing[0].status !== "not_connected") return fail("live_mode");
-    await ctx.run(async (tx) => {
-      const values = { status: "connected", mode: "mock", externalAccountId: "address-mock", externalAccountName: "Simulated address provider", credentialsEncrypted: null, config: {}, lastError: null, lastSuccessAt: new Date(), updatedAt: new Date() };
-      await tx.insert(schema.integrations).values({ tenantId: ctx.tenant.id, provider: "address", ...values }).onConflictDoUpdate({ target: [schema.integrations.tenantId, schema.integrations.provider], set: values });
-      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.connected", entityType: "integration", entityId: "address", diff: { status: { from: existing[0]?.status ?? null, to: "connected" }, mode: { from: existing[0]?.mode ?? null, to: "mock" } } });
-    });
-    revalidatePath(`/t/${slug}/integrations`);
-    return ok();
+    const verification = await ctx.run((tx) => verifySetup("tiktok", { tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, ctx.tenant));
+    return ok({ summary: `campaigns:${r.campaigns} ad_groups:${r.counts.adSets ?? 0} ads:${r.counts.ads ?? 0} metrics:${r.metrics + (r.counts.ad_set ?? 0) + (r.counts.ad ?? 0)}`, finished: r.finished, verification });
   } catch (e) {
     if (e instanceof ForbiddenError) return fail("forbidden");
     throw e;
@@ -197,7 +133,8 @@ export async function disconnectIntegration(slug: string, provider: string): Pro
   }
 }
 
-export async function testIntegration(slug: string, provider: string): Promise<ActionResult<ConnectionTest>> {
+/** Test connection: the vendor answers (then what the adapter reads, for the card's verification line), or the plain-words reason and its fix (#90). */
+export async function testIntegration(slug: string, provider: string): Promise<ActionResult<ConnectionTest & { setup: string | null; verification: SetupFacts | null }>> {
   try {
     const p = providerSchema.safeParse(provider);
     if (!p.success) return fail("invalid_input");
@@ -206,13 +143,13 @@ export async function testIntegration(slug: string, provider: string): Promise<A
     const result = await ctx.run(async (tx) => {
       const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
       const platform = p.data === "shopify" ? await getCommercePlatformFor(s, ctx.tenant) : p.data === "anthropic" ? await getLlmProviderFor(s) : p.data === "address" ? await resolveAddressProvider(s) : await getAdsPlatformFor(s, ctx.tenant, p.data);
-      if (!platform) return { ok: false, error: "not connected" } satisfies ConnectionTest;
-      const test = await platform.testConnection().catch((e: unknown) => ({ ok: false, error: e instanceof Error ? e.message : String(e) }) as ConnectionTest);
+      if (!platform) return { ok: false, error: "not connected", setup: null, verification: null };
+      const test = await platform.testConnection().catch(failedConnection);
       // Shopify: the scopes the app version grants now, so the card says what is still missing (#89)
       const scopes = test.ok && test.scopes ? { config: sql`coalesce(${schema.integrations.config}, '{}'::jsonb) || ${JSON.stringify({ scopes: test.scopes, missingScopes: test.missingScopes ?? [], missingRequiredScopes: test.missingRequiredScopes ?? [], missingScopesByModule: test.missingScopesByModule ?? {} })}::jsonb` } : {};
-      await tx.update(schema.integrations).set(test.ok ? { lastSuccessAt: new Date(), lastError: null, status: "connected", externalAccountName: test.accountName ?? undefined, updatedAt: new Date(), ...scopes } : { lastError: test.error ?? "connection failed", status: "error", updatedAt: new Date() }).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, p.data)));
+      await tx.update(schema.integrations).set(test.ok ? { lastSuccessAt: new Date(), lastError: null, status: "connected", externalAccountName: test.accountName ?? undefined, updatedAt: new Date(), ...scopes } : { lastError: `${test.errorCode ? `[${test.errorCode}] ` : ""}${test.error ?? "connection failed"}`, status: "error", updatedAt: new Date() }).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, p.data)));
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.tested", entityType: "integration", entityId: p.data, diff: { ok: { from: null, to: test.ok } } });
-      return test;
+      return { ...test, setup: test.ok ? null : setupErrorOfTest(p.data, test), verification: test.ok ? await verifySetup(p.data, s, ctx.tenant) : null };
     });
     revalidatePath(`/t/${slug}/integrations`);
     return ok(result);

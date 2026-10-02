@@ -172,6 +172,26 @@ flowchart LR
 - Privacy webhooks (`customers/data_request`, `customers/redact`, `shop/redact`): `/api/webhooks/shopify/compliance` → `handleShopifyCompliance` (packages/services/src/integrations/compliance.ts): signature with the store's app secret, one `webhook_events` row (source `shopify_compliance`), audit, a `compliance_request` platform alert as the console task; `shop/redact` clears the connection.
 - Pinned vendor versions and their last supported day: `API_VERSION_SUPPORT` (packages/integrations/src/versions.ts), checked by a unit test.
 
+### Merchant self-setup of every integration (issue #90)
+
+```mermaid
+flowchart LR
+  def["IntegrationSetupGuide<br/>(packages/config: META_SETUP, GOOGLE_ADS_SETUP, …)"] --> card["IntegrationCard<br/>(one card structure)"]
+  card -->|Connect / Manage| sheet["Sheet: IntegrationSetupPanel<br/>checklist, copy values, fields or sign-in"]
+  sheet -->|fields| cs["connectSetup<br/>validateSetupFields"]
+  sheet -->|Sign in with Google| oauth["/api/integrations/google/oauth/start → callback<br/>pending accounts → pickGoogleAdsAccount"]
+  cs -->|mock| sim["simulateSetupCheck (trigger values)"]
+  cs -->|live| vendor["adapter testConnection"]
+  sim --> cls["classifySetupError → guide error + fix"]
+  vendor --> cls
+  cs -->|ok| save["saveSetupConnection (encrypted, audited)"] --> verify["verifySetup: what the adapter reads"]
+```
+
+- **Definitions** (`packages/config/src/integration-setup.ts`): one `IntegrationSetupGuide` per provider (GA4, Shopify, Meta + Conversions API, Google Ads, TikTok, Anthropic, address validation, Spoki, Recharge, Loop, Shopify Subscriptions) with steps (vendor-UI steps `verify: true` → "To verify" badge), copy values, credential `fields`, connect `strategy`, the error map, `verifiedKey`, `ownerEnv` (owner prerequisites of OAuth paths: the card says "not available yet" until they are set) and notes.
+- **Errors**: `packages/integrations/src/setup-errors.ts` classifies a failure (adapter `errorCode` from `failedConnection`, the vendor's words, the failed step) into the guide's code; `mock/setup.ts` holds the deterministic trigger values the simulator answers with in each vendor's own words, so mock and live share the classifier (unit test: every trigger reaches its code, every guide error is simulated).
+- **Connect**: `apps/web/src/server/actions/integration-setup.ts` (`connectSetup` for field-based cards, `pickGoogleAdsAccount` after the sign-in); OAuth routes for Google (`/api/integrations/google/oauth/*`, pending accounts in `integrations.config.pendingSignIn` for 30 minutes) and TikTok (errors back to the card as `?setup=<provider>&setup_error=<code>`). `verifySetup` (`apps/web/src/server/integration-verify.ts`) reads real data through the tenant's adapter for the verification line, after a connect and after a passed test.
+- **Card**: every provider renders through `IntegrationCard` (`apps/web/src/components/integration-card.tsx`): one-line header with one status pill, mode as muted text, the account or what it does, the same three meta rows (last sync, last success, last error), a footer with Connect, or Manage + Test connection, the guide link and a mock-only "…" menu of simulations. Connect and Manage open the provider's sheet (`DialogContent side="sheet"`: bottom sheet on phones, drawer from `sm`) with status, health, Resync/Disconnect (`IntegrationSheetStatus`) and the setup panel. All card operations go through `runIntegrationCardOp` (`apps/web/src/server/actions/integration-card.ts`), which calls each provider's own action. Adding a provider: a definition and its messages, resolvers in `server/integration-setup.ts`, a classifier and mock triggers, a branch in `connectSetup`/`verifySetup` and in the card dispatcher.
+
 ### Webhook (Shopify)
 
 ```mermaid

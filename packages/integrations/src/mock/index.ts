@@ -8,3 +8,4 @@ export * from "./audience";
 export * from "./address";
 export * from "./payouts";
 export * from "./analytics";
+export * from "./setup";

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { HttpClient, type HttpOptions } from "../http";
 import { FailureScript } from "../mock/failures";
-import { IntegrationError, type ConnectionTest, type MessageSendInput, type MessagingChannel } from "../types";
+import { IntegrationError, type ConnectionTest, type MessageSendInput, type MessagingChannel, failedConnection } from "../types";
 
 /**
  * Spoki (WhatsApp Business Solution Provider) as a `MessagingChannel` (issue #9, add-on
@@ -191,7 +191,7 @@ export class SpokiChannel implements SpokiApi {
       const r = await this.call<{ count?: number; results?: unknown[] }>("/templates/?page_size=1");
       return { ok: true, accountName: `Spoki (${r.count ?? r.results?.length ?? 0} templates)` };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : String(e) };
+      return failedConnection(e);
     }
   }
 

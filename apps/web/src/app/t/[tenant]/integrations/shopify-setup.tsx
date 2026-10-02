@@ -1,17 +1,10 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { startTransition, useActionState, useEffect, useState, type FormEvent } from "react";
-
-/** Submits through the action without React's automatic form reset, so a failed connect keeps what the merchant typed. */
-const keepValues = (action: (fd: FormData) => void) => (e: FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  const fd = new FormData(e.currentTarget);
-  startTransition(() => action(fd));
-};
+import { useActionState, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { IntegrationSetupGuide } from "@hullwise/config";
 import { Alert, AlertDescription, Button, Input, Label } from "@hullwise/ui";
-import { IntegrationSetupChecklist, IntegrationSetupError, IntegrationSetupFields } from "@/components/integration-setup";
+import { IntegrationSetupChecklist, IntegrationSetupError, IntegrationSetupFields, keepValues } from "@/components/integration-setup";
 import { CopyButton } from "../cod/queue-extras";
 import { connectShopifyApp, connectShopifyCustomApp } from "@/server/actions/shopify";
 

@@ -52,6 +52,9 @@ A static site (Next.js export) served by its own small Node server; a third serv
 | `SENTRY_ENVIRONMENT` | e.g. `demo`, `production` | Optional |
 | `STRIPE_SECRET_KEY` | empty for the demo | |
 | `SHOPIFY_API_KEY`, `SHOPIFY_API_SECRET` | empty unless the platform has its own public Shopify app | Client ID and secret of the platform app (Advanced → "Install the platform app"). Merchants' own Dev Dashboard apps need no variable: their credentials are stored per tenant, encrypted with `APP_ENCRYPTION_KEY` |
+| `HULLWISE_GOOGLE_ADS_CLIENT_ID`, `HULLWISE_GOOGLE_ADS_CLIENT_SECRET`, `HULLWISE_GOOGLE_ADS_DEVELOPER_TOKEN` | empty for the demo | The platform's Google Ads app behind "Sign in with Google" (see **Production** below). Without them the card says the sign-in is not available yet and the advanced path (the store's own credentials) still works |
+| `TIKTOK_APP_ID`, `TIKTOK_APP_SECRET` | empty for the demo | The platform's approved TikTok for Business app behind "Connect TikTok" (see **Production**) |
+| `HULLWISE_GA4_SERVICE_ACCOUNT_KEY`, `HULLWISE_GA4_SERVICE_ACCOUNT_EMAIL` | empty for the demo | The platform's read-only GA4 service account (see **Production**) |
 
 If the Railway Postgres URL requires TLS, append `?sslmode=require` to the three database URLs.
 
@@ -76,8 +79,8 @@ These live in third-party dashboards; nothing in the repository can change them.
 | | Allowed redirection URL(s) | `https://api.hullwise.app/integrations/shopify/oauth/callback` (only for "Install on your store" and the platform app; the client credentials path needs none) |
 | | Compliance (privacy) webhooks: `customers/data_request`, `customers/redact`, `shop/redact` | `https://api.hullwise.app/webhooks/shopify/compliance` |
 | Each connected store | Order, product, inventory, fulfillment, return, customer webhooks | Registered by Hullwise itself when a store is connected (any path: own app, OAuth, legacy token), to `https://api.hullwise.app/webhooks/shopify`. A resync does not re-register them: after a domain change, **reconnect Shopify on every tenant** (Integrations → Shopify) so the subscriptions point at the new URL; deliveries to the old host fail and Shopify eventually removes those subscriptions |
-| Meta (developers.facebook.com) | OAuth redirect | None today: Meta connects with a system-user token pasted in Integrations, there is no OAuth redirect to update. If Facebook Login is added later, the redirect will be `https://api.hullwise.app/integrations/meta/oauth/callback` |
-| Google Cloud console / Google Ads | OAuth redirect and authorized origins | None today: Google Ads connects with a developer token and refresh token pasted in Integrations. If an OAuth flow is added later: redirect `https://api.hullwise.app/integrations/google/oauth/callback`, authorized origin `https://my.hullwise.app` |
+| Meta (developers.facebook.com) | OAuth redirect | None today: Meta connects with a system-user token pasted in Integrations, there is no OAuth redirect to update. If "Continue with Facebook" is added later, the redirect will be `https://api.hullwise.app/integrations/meta/oauth/callback` |
+| Google Cloud console → APIs & Services → Credentials → the platform's OAuth client (Web application) | Authorized redirect URI and JavaScript origin | Redirect `https://api.hullwise.app/integrations/google/oauth/callback` ("Sign in with Google" for Google Ads, #90), origin `https://my.hullwise.app`. Stores using the advanced path (their own developer token and refresh token) need nothing here |
 | TikTok for Business → your app | Redirect URL | `https://api.hullwise.app/integrations/tiktok/oauth/callback` |
 | Stripe dashboard → Developers → Webhooks | Endpoint URL | `https://api.hullwise.app/webhooks/stripe` (the signing secret stays in `STRIPE_WEBHOOK_SECRET`) |
 | WhatsApp / messaging provider of the COD add-on | Delivery webhook | Per tenant: copy it again from **COD → Settings** (it starts with `https://api.hullwise.app/webhooks/cod-messaging/…`) |
@@ -86,6 +89,26 @@ These live in third-party dashboards; nothing in the repository can change them.
 | MCP clients (Claude, ChatGPT, Cursor…) | Server URL | `https://api.hullwise.app/mcp`. Clients connected to an old URL must remove and re-add the connector: tokens are bound to the resource URL they were issued for |
 | Merchants' storefronts | First-party pixel script | `https://api.hullwise.app/px/<key>/script.js` and the Shopify custom-pixel code shown in **Integrations → Pixel and conversions**; stores that installed an older snippet must paste the new one |
 | Post-purchase survey | Link in Shopify's order confirmation email | Copy it again from **Analytics → Survey** (it starts with `https://my.hullwise.app/s/…`) |
+
+## Production
+
+What the platform owner registers on the vendors' side before real stores connect by themselves (#90). Every card in **Integrations** carries the merchant's own step-by-step checklist; this list is only the owner's part. Nothing here is needed for the demo (`HULLWISE_INTEGRATION_MODE=mock`): the simulator answers every card, including the errors (each card lists its demo values). Vendor consoles change often: treat each step as "to verify" on the day you do it.
+
+| Integration | Merchant path (in the card) | Owner prerequisite | Variables |
+| --- | --- | --- | --- |
+| Shopify | Own Dev Dashboard app, Client ID + secret (#89) | None for the main path. Optional: a public Shopify app (Partner dashboard, App Store review) for "Install the platform app" | `SHOPIFY_API_KEY`, `SHOPIFY_API_SECRET` (optional) |
+| Meta Ads + Conversions API | System user in their Business Manager, never-expiring token with `ads_read`, `ads_management`, `business_management`, ad account id(s) and pixel id pasted | None for the pilot path: the token is the merchant's, made with an app of their own business. Later path "Continue with Facebook" (not built): a Hullwise Meta app (type Business), App Review for `ads_read` / `ads_management` / `business_management` with Advanced Access, Business Verification of the Hullwise company, then the redirect in the table above | none today |
+| Google Ads (+ Enhanced Conversions) | "Sign in with Google", pick the account (manager accounts expanded) | 1. A Google Ads manager account (MCC) for Hullwise → Admin → API Center → apply for a developer token with **Basic access** (the token starts as test-only: production accounts answer "developer token pending" until approved). 2. A Google Cloud project with the Google Ads API enabled. 3. OAuth consent screen (External, app name, support e-mail, privacy policy and terms URLs on the landing site, authorized domain `hullwise.app`) with the scope `https://www.googleapis.com/auth/adwords`; this scope is **sensitive**: submit the app for verification (demo video of the sign-in and the use of the data) before going past 100 test users. 4. An OAuth client of type Web application with the redirect URI and origin in the table above | `HULLWISE_GOOGLE_ADS_CLIENT_ID`, `HULLWISE_GOOGLE_ADS_CLIENT_SECRET`, `HULLWISE_GOOGLE_ADS_DEVELOPER_TOKEN` |
+| TikTok Ads | "Connect TikTok", pick the advertiser accounts | A TikTok for Business developer app (business-api.tiktok.com → My apps) with the permission groups Ad Account Management, Ads Management, Reporting (Creative Management for thumbnails), the advertiser redirect URL `https://api.hullwise.app/integrations/tiktok/oauth/callback`, submitted and **approved** by TikTok | `TIKTOK_APP_ID`, `TIKTOK_APP_SECRET` |
+| Google Analytics 4 | Add our reader e-mail as Viewer on their property, paste the property ID (#86) | A Google Cloud service account (no roles needed) with a JSON key, the Google Analytics Data API and Admin API enabled in its project | `HULLWISE_GA4_SERVICE_ACCOUNT_KEY` (JSON or base64), `HULLWISE_GA4_SERVICE_ACCOUNT_EMAIL` (optional) |
+| AI assistant (Anthropic) | Their own API key from console.anthropic.com | None: each store pays Anthropic directly | none |
+| Address validation (Google) | Their own Google Maps Platform key with Address Validation API and Places API (New) | None: each store pays Google directly | none |
+| WhatsApp (Spoki), `addon.whatsapp_spoki` | Their Spoki API key; our per-tenant webhook URL pasted in Spoki | None (the add-on is switched on per tenant in the console). The webhook URL is built from `API_URL` and `APP_ENCRYPTION_KEY`: changing either means every Spoki store pastes it again | none |
+| Recharge / Loop, `addon.subscriptions` | Their API token and webhook signing secret; our per-tenant webhook URL pasted in the app | None | none |
+| Shopify Subscriptions, `addon.subscriptions` | Contract scopes added to their Shopify app version, then Connect | Contracts created by the Shopify Subscriptions app belong to that app: ask Shopify (Partner support) for access to subscription contracts of other apps for the stores' apps or the platform app; without it the connection works and finds no contracts | none |
+| Accounting, audiences, email tools | No live provider yet | Nothing to register | none |
+
+Before switching a deployment to `HULLWISE_INTEGRATION_MODE=live`, open each card as a tenant owner: an OAuth path whose variables are missing says so on the card ("not available yet") instead of failing at the vendor.
 
 ## Rename cutover
 
