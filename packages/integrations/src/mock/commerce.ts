@@ -17,7 +17,7 @@ import {
   type SyncQuery,
   type VerifiedWebhook,
   type WebhookRegistration,
- type CreateOrderInput, type FulfillmentHoldInput, type OrderDetailsPatch, type OrderDiscountPatch, type VariantPatch } from "../types";
+ type CreateFulfillmentInput, type NormalizedFulfillment, type CreateOrderInput, type OrderDetailsPatch, type OrderDiscountPatch, type VariantPatch, type FulfillmentHoldInput } from "../types";
 import { FailureScript } from "./failures";
 
 export interface MockCatalogVariant {
@@ -470,5 +470,25 @@ export class MockCommercePlatform implements CommercePlatform {
   async closeReturn(returnExternalId: string) {
     this.record("closeReturn", { returnExternalId });
     this.setReturn(returnExternalId, "closed");
+  }
+  private fulfillmentSeq = 0;
+  /**
+   * Fulfils the order (all remaining lines or the given ones). Orders the simulator does not hold
+   * (the seeded history) are acknowledged too, as the store would for an order it knows.
+   */
+  async createFulfillment(input: CreateFulfillmentInput): Promise<NormalizedFulfillment> {
+    this.record("createFulfillment", { ...input });
+    const o = this.orders.get(input.orderExternalId);
+    if (o?.cancelledAt) throw new IntegrationError("invalid_request", `Mock: order ${input.orderExternalId} is cancelled`);
+    if (o && o.fulfillmentStatusRaw === "fulfilled") throw new IntegrationError("invalid_request", `Mock: order ${input.orderExternalId} is already fulfilled`);
+    const now = new Date();
+    const f: NormalizedFulfillment = { externalId: `mock-f-${Date.now().toString(36)}-${++this.fulfillmentSeq}`, status: "label_created", externalStatus: "confirmed", trackingNumber: input.trackingNumber, trackingUrl: input.trackingUrl ?? null, carrier: input.carrier, createdAt: now, updatedAt: now, deliveredAt: null };
+    if (o) {
+      const partial = input.lines?.length && input.lines.some((l) => (o.lines.find((x) => x.externalId === l.orderLineExternalId)?.currentQuantity ?? 0) > l.quantity);
+      o.fulfillments = [...o.fulfillments, f];
+      o.fulfillmentStatusRaw = partial ? "partial" : "fulfilled";
+      o.platformUpdatedAt = now;
+    }
+    return f;
   }
 }

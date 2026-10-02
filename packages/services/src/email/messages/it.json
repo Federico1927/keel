@@ -65,11 +65,22 @@
       "preheader": "L'invio delle email funziona.",
       "intro": "Questa è un'email di prova inviata dalla console di {product}. Se la stai leggendo, mittente, dominio e provider funzionano.",
       "detail": "Provider: {provider} · inviata alle {time} (UTC)"
+    },
+    "carrier_instruction": {
+      "subject": "Istruzione di consegna per la spedizione {tracking} ({company})",
+      "preheader": "Istruzione per la spedizione {tracking}.",
+      "intro": "Buongiorno, {company} invia un'istruzione per la spedizione {tracking} (ordine {order}, corriere {carrier}).",
+      "redeliver": "Vi chiediamo di ritentare la consegna.",
+      "new_address": "Vi chiediamo di consegnare a questo nuovo indirizzo:",
+      "pickup_point": "Vi chiediamo di lasciare il pacco in giacenza presso questo punto di ritiro:",
+      "return": "Vi chiediamo di rendere il pacco al mittente.",
+      "note": "Nota: {note}",
+      "hint": "Vi preghiamo di confermare rispondendo a questa email."
     }
   },
   "system": {
     "stock_critical_no_po": "{title} varianti in vendita con stock critico e nessun ordine d'acquisto",
-    "late_to_ship": "{title} ordini ancora da spedire dopo {body}",
+    "late_to_ship": "{title} ordini ancora da spedire dopo {body} giorni lavorativi",
     "sync_delay": "La sincronizzazione di {title} è in ritardo ({body})",
     "export_ready": "Il tuo export CSV è pronto: {title} righe ({body})"
   },

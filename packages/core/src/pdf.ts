@@ -114,6 +114,16 @@ export interface TableDocument {
 
 /** Lays out a titled table over as many A4 pages as needed. */
 export function tablePdf(doc: TableDocument): Uint8Array {
+  return renderPdf(tablePages(doc), { title: doc.title });
+}
+
+/** Several documents in one file (bulk packing slips): each starts on a new page. */
+export function tablesPdf(docs: readonly TableDocument[], meta: { title?: string } = {}): Uint8Array {
+  return renderPdf(docs.flatMap(tablePages), { title: meta.title ?? docs[0]?.title });
+}
+
+/** The pages of one table document, for `renderPdf`. */
+export function tablePages(doc: TableDocument): PdfItem[][] {
   const margin = 48;
   const lineH = 15;
   const pages: PdfItem[][] = [];
@@ -175,5 +185,5 @@ export function tablePdf(doc: TableDocument): Uint8Array {
     }
   }
   newPage();
-  return renderPdf(pages, { title: doc.title });
+  return pages;
 }

@@ -1,3 +1,5 @@
+import { TO_SHIP_STATUSES, businessDaysElapsed, type LateToShipOptions } from "./fulfilment";
+
 /** Pure checks behind the system notifications (sync delay, late to ship, critical stock without incoming PO). */
 
 /** A source is late when its last success is older than its freshness window plus the tenant's grace; never-synced sources count from when they were connected. */
@@ -9,14 +11,16 @@ export function isSyncDelayed(i: { lastSuccessAt: Date | null; connectedAt: Date
   return { delayed: age > limit, minutesLate: Math.max(0, Math.round((age - limit) / 60e3)) };
 }
 
-/** Statuses in which an order is expected to leave the warehouse. */
-export const TO_SHIP_STATUSES = ["confirmed", "fulfilling"] as const;
+export { TO_SHIP_STATUSES };
 
-/** An order still to ship whose wait (from payment or placement) is over the threshold. */
-export function isLateToShip(o: { status: string; placedAt: Date; paidAt?: Date | null }, thresholdHours: number, now: Date): boolean {
+/**
+ * An order still to ship whose wait is over the tenant's threshold, in working days of the tenant's
+ * time zone (`businessDaysElapsed`). The clock starts when the order was placed: "ready to ship" is
+ * the canonical status, the same for every payment method.
+ */
+export function isLateToShip(o: { status: string; placedAt: Date }, opts: LateToShipOptions, now: Date): boolean {
   if (!(TO_SHIP_STATUSES as readonly string[]).includes(o.status)) return false;
-  const from = o.paidAt ?? o.placedAt;
-  return now.getTime() - from.getTime() > thresholdHours * 3600e3;
+  return businessDaysElapsed(o.placedAt, now, opts.timeZone, opts.workdays) > opts.thresholdDays;
 }
 
 /** Critical stock that nobody is fixing: selling, at risk, and nothing on order. */

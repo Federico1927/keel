@@ -65,11 +65,22 @@
       "preheader": "Email sending works.",
       "intro": "This is a test email sent from the {product} console. If you are reading it, the sender, the domain and the provider work.",
       "detail": "Provider: {provider} · sent at {time} (UTC)"
+    },
+    "carrier_instruction": {
+      "subject": "Delivery instruction for parcel {tracking} ({company})",
+      "preheader": "Instruction for parcel {tracking}.",
+      "intro": "Hello, {company} sends an instruction for parcel {tracking} (order {order}, carrier {carrier}).",
+      "redeliver": "Please attempt delivery again.",
+      "new_address": "Please deliver to this new address:",
+      "pickup_point": "Please hold the parcel at this pickup point:",
+      "return": "Please return the parcel to the sender.",
+      "note": "Note: {note}",
+      "hint": "Please reply to this email to confirm."
     }
   },
   "system": {
     "stock_critical_no_po": "{title} selling variants at critical stock with nothing on order",
-    "late_to_ship": "{title} orders still to ship after {body}",
+    "late_to_ship": "{title} orders still to ship after {body} working days",
     "sync_delay": "The {title} sync is late ({body})",
     "export_ready": "Your CSV export is ready: {title} rows ({body})"
   },
