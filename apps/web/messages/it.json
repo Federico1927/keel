@@ -33,7 +33,6 @@
       "ads_platform_error": "La piattaforma pubblicitaria ha rifiutato la richiesta.",
       "invalid_rules": "Le regole del segmento non sono valide.",
       "addon_not_available": "Questo add-on non è ancora disponibile.",
-      "addon_not_released": "Questo add-on non ha ancora una versione rilasciata: non si può attivare.",
       "cod_not_in_queue": "Questo ordine non è nella coda di conferma.",
       "cod_invalid_outcome": "Esito non valido.",
       "cod_operator_unavailable": "Nessun operatore disponibile oggi.",
@@ -68,7 +67,8 @@
       "cod_template": "Modello di messaggio sconosciuto.",
       "cod_phone": "L'ordine non ha un numero di telefono.",
       "cod_reason": "Scrivi un motivo (almeno 3 caratteri).",
-      "cod_carrier_columns": "Il file deve avere una colonna riferimento (tracking o ordine) e una colonna esito."
+      "cod_carrier_columns": "Il file deve avere una colonna riferimento (tracking o ordine) e una colonna esito.",
+      "addon_not_released": "Questo add-on non ha ancora una versione rilasciata: non si può attivare."
     },
     "edit": "Modifica"
   },
@@ -162,8 +162,8 @@
         "description": "Collega un magazzino esterno"
       },
       "whatsapp": {
-        "name": "Provider WhatsApp",
-        "description": "Collega un provider WhatsApp locale"
+        "name": "Altro provider WhatsApp",
+        "description": "Un provider WhatsApp locale diverso da Spoki, realizzato su richiesta"
       },
       "carrier_tracking": {
         "name": "Tracking corrieri",
@@ -178,6 +178,11 @@
         "name": "Abbonamenti",
         "description": "MRR, churn, coorti, recupero pagamenti non riusciti e stock per i rinnovi dei tuoi prodotti in abbonamento (Shopify Subscriptions, Recharge, Loop)",
         "v1": "Connettori Shopify Subscriptions, Recharge e Loop, verificati solo su dati registrati: nessun negozio reale collegato."
+      },
+      "whatsapp_spoki": {
+        "name": "WhatsApp con Spoki",
+        "description": "Conferme e risposte del contrassegno, notifiche ordine, campagne WhatsApp e disiscrizioni tramite l'account Spoki del negozio",
+        "v1": "WhatsApp tramite Spoki: conferme in contrassegno, avvisi sugli ordini e invii delle campagne, verificati solo su dati registrati: nessun account Spoki reale collegato."
       }
     }
   },
@@ -217,7 +222,8 @@
     "support": "Supporto",
     "notifications": "Notifiche",
     "fulfilment": "Evasione",
-    "subscriptions": "Abbonamenti"
+    "subscriptions": "Abbonamenti",
+    "whatsapp_settings": "Impostazioni WhatsApp"
   },
   "shell": {
     "open_menu": "Apri menu",
@@ -349,7 +355,6 @@
         "roiMedium": "ROI medio (rapporto)",
         "campaignStockThreshold": "Soglia stock campagne (pezzi)",
         "duplicateOrderWindowDays": "Finestra ordini duplicati (giorni)",
-        "historyImportMonths": "Storico ordini letto al collegamento di Shopify (mesi, 0 = tutti)",
         "shipmentStuckDays": "Spedizione ferma dopo (giorni)",
         "returnWindowDays": "Finestra resi (giorni)",
         "shippingCostMinor": "Costo spedizione predefinito (centesimi)",
@@ -363,7 +368,8 @@
         "markdownMinMarginBps": "Margine minimo dei ribassi (punti base, 2000 = 20%)",
         "adsDailyRetentionDays": "Ads: dettaglio giornaliero conservato (giorni)",
         "adsSearchTermMinImpressions": "Ads: termini di ricerca raggruppati sotto (impression)",
-        "adsMinSpendMinor": "Ads: spesa minima per i suggerimenti (centesimi)"
+        "adsMinSpendMinor": "Ads: spesa minima per i suggerimenti (centesimi)",
+        "historyImportMonths": "Storico ordini letto al collegamento di Shopify (mesi, 0 = tutti)"
       },
       "backorders_title": "Backorder",
       "backorders_description": "Cosa succede quando un ordine richiede più dello stock disponibile."
@@ -993,7 +999,8 @@
       "refund": "{amount} restituiti al cliente",
       "refund_capped": "{amount} richiesti, limitati dal negozio",
       "restocked": "{n} unità rimesse a magazzino",
-      "queued_platform": "In coda per il negozio"
+      "queued_platform": "In coda per il negozio",
+      "whatsapp_opt_out": "disiscritto"
     },
     "backorders": {
       "title_open": "In attesa di stock",
@@ -1062,7 +1069,9 @@
     "cod_escalated": "Segnalazione contrassegno",
     "cod_message": "Messaggio di conferma inviato",
     "payment_method_changed": "Metodo di pagamento cambiato",
-    "customer_email": "Email al cliente"
+    "customer_email": "Email al cliente",
+    "whatsapp_message": "Messaggio WhatsApp inviato",
+    "whatsapp_reply": "Risposta WhatsApp ricevuta"
   },
   "shipments": {
     "title": "Spedizioni",
@@ -2737,7 +2746,8 @@
       "shopify_subscriptions": "Shopify Subscriptions",
       "recharge": "Recharge",
       "loop": "Loop Subscriptions",
-      "address": "Validazione indirizzi"
+      "address": "Validazione indirizzi",
+      "spoki": "WhatsApp (Spoki)"
     },
     "status": {
       "not_connected": "Non collegata",
@@ -2892,7 +2902,12 @@
     "address_mock_connected": "Validazione indirizzi collegata (fornitore simulato).",
     "history_import": {
       "title": "Importazione dello storico ordini",
-      "state": { "running": "In corso", "paused": "In corso", "error": "Non riuscita", "done": "Completata" },
+      "state": {
+        "running": "In corso",
+        "paused": "In corso",
+        "error": "Non riuscita",
+        "done": "Completata"
+      },
       "detail": "{n} ordini importati · ordini dal {since} · ordine più vecchio in Hullwise {oldest}",
       "all_orders": "primo ordine",
       "incomplete_hint": "Finché non è completa, analisi, RFM, coorti e storico clienti coprono solo una parte dello storico. Risincronizza la fa proseguire.",
@@ -3821,6 +3836,67 @@
         {
           "symptom": "Ordini spediti due volte",
           "fix": "Inviano gli ordini sia l'app 3PL di Shopify sia {product}: tieni un solo mittente."
+        }
+      ]
+    },
+    "spoki": {
+      "title": "WhatsApp con Spoki",
+      "intro": "Collega l'account Spoki del negozio (un WhatsApp Business Solution Provider): conferme e risposte del contrassegno, notifiche ordine, campagne WhatsApp e disiscrizioni, con ogni messaggio nelle pagine di ordine e cliente.",
+      "scopes": "Un account Spoki con un numero WhatsApp Business verificato e una chiave API (Impostazioni → Sviluppatori).\nTemplate WhatsApp approvati per ogni evento da inviare fuori dalle 24 ore (utility per i messaggi d'ordine, marketing per le campagne).\nL'URL del webhook di questa pagina nelle impostazioni webhook di Spoki, per stati, risposte e disiscrizioni.",
+      "webhook_hidden": "(visibile a owner e admin)",
+      "steps": [
+        {
+          "title": "Cosa fa in {product}",
+          "body": "Add-on contrassegno: il messaggio di conferma parte da Spoki e una risposta come “sì” conferma l'ordine in coda (un “no” lo segnala a un admin). Notifiche ordine: confermato, spedito e consegnato, ognuna con il suo template e interruttore. Campagne clienti: le campagne WhatsApp partono da Spoki. Una risposta “STOP” mette il numero nella lista di soppressione condivisa."
+        },
+        {
+          "title": "Crea la chiave API",
+          "body": "In Spoki: Impostazioni → Sviluppatori (o Integrazioni → API) → crea una chiave API per {product}.",
+          "verify": true
+        },
+        {
+          "title": "Collegala in {product}",
+          "body": "Integrazioni → WhatsApp (Spoki) → Collega → incolla la chiave. {product} la verifica leggendo i template e la salva cifrata."
+        },
+        {
+          "title": "Incolla l'URL del webhook in Spoki",
+          "body": "Spoki → Impostazioni → Webhook (messaggi in uscita e in entrata) → incolla:\n{webhookUrl}\nL'ultima parte dell'URL è il segreto del negozio: non condividerla. Spoki reinvia lo stesso messaggio a ogni nuovo stato (inviato, consegnato, letto, errore).",
+          "verify": true
+        },
+        {
+          "title": "Fai approvare i template",
+          "body": "In Spoki crea i template (uno per evento, con campi personalizzati come FIRST_NAME o ORDER_NAME) e inviali a WhatsApp. L'approvazione richiede di solito da pochi minuti a un giorno.",
+          "verify": true
+        },
+        {
+          "title": "Associa i template",
+          "body": "Integrazioni → WhatsApp (Spoki) → Risincronizza legge i template approvati. In Impostazioni WhatsApp scegli un template per evento, associa i campi personalizzati alle variabili di {product} e attiva le notifiche che vuoi."
+        },
+        {
+          "title": "Verifica",
+          "body": "Invia una conferma contrassegno da un ordine al tuo numero: il registro mostra Inviato, poi Consegnato e Letto man mano che Spoki li comunica. Rispondi “sì”: l'ordine è confermato in coda."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Messaggi non riusciti con whatsapp::131026",
+          "fix": "Il numero non è su WhatsApp o non può ricevere messaggi; controlla il telefono dell'ordine."
+        },
+        {
+          "symptom": "Non riuscito con whatsapp::131050",
+          "fix": "Il cliente ha bloccato i messaggi di marketing: {product} aggiunge il numero alla lista di soppressione."
+        },
+        {
+          "symptom": "spoki::1029 credito esaurito",
+          "fix": "Ricarica l'account Spoki; fino ad allora gli invii falliscono."
+        },
+        {
+          "symptom": "I messaggi di testo libero vengono rifiutati",
+          "fix": "Oltre 24 ore dall'ultimo messaggio del cliente WhatsApp accetta solo template approvati: associane uno all'evento."
+        },
+        {
+          "symptom": "Gli stati non si aggiornano mai",
+          "fix": "L'URL del webhook manca o è sbagliato in Spoki; copialo di nuovo dalla scheda dell'integrazione."
         }
       ]
     }
@@ -9249,6 +9325,108 @@
       "active_hint": "{paused} in pausa · {new} nuovi in 30 giorni",
       "churn_hint": "{voluntary} volontari · {involuntary} involontari",
       "at_risk_hint": "{n} a rischio · {failing} pagamenti in errore · {high} ad alto rischio di churn"
+    }
+  },
+  "whatsapp": {
+    "errors": {
+      "spoki_not_connected": "Spoki non è collegato: collegalo prima dalla scheda dell'integrazione.",
+      "spoki_invalid_input": "Alcuni valori non sono validi",
+      "spoki_provider_error": "Spoki ha risposto con un errore",
+      "spoki_no_phone": "L'ordine non ha un numero di telefono",
+      "spoki_no_template": "Nessun template associato a questo evento",
+      "spoki_not_found": "Non trovato",
+      "module_disabled": "L'add-on WhatsApp non è attivo"
+    },
+    "log": {
+      "title": "Messaggi WhatsApp",
+      "description": "Inviati e ricevuti tramite Spoki, con lo stato di consegna.",
+      "empty": "Ancora nessun messaggio WhatsApp.",
+      "purpose": {
+        "cod": "Conferma contrassegno",
+        "order_confirmed": "Ordine confermato",
+        "order_shipped": "Ordine spedito",
+        "order_delivered": "Ordine consegnato",
+        "campaign": "Campagna",
+        "test": "Messaggio di prova",
+        "reply": "Risposta del cliente",
+        "external": "Inviato fuori da {product}"
+      },
+      "status": {
+        "queued": "In coda",
+        "sent": "Inviato",
+        "delivered": "Consegnato",
+        "read": "Letto",
+        "replied": "Ha risposto",
+        "failed": "Non riuscito",
+        "received": "Ricevuto"
+      },
+      "simulate": "Simula",
+      "simulate_delivered": "Conferma di consegna",
+      "simulate_read": "Conferma di lettura",
+      "simulate_failed_receipt": "Invio non riuscito",
+      "simulate_reply": "Il cliente risponde “{text}”",
+      "simulate_stop": "Il cliente risponde STOP",
+      "sample_reply": "Sì",
+      "simulated": "Webhook inviato",
+      "simulate_failed": "Simulazione non riuscita"
+    },
+    "connection": {
+      "webhook": "URL del webhook da incollare in Spoki (contiene il token segreto del negozio)",
+      "copy": "Copia",
+      "settings_link": "Impostazioni WhatsApp",
+      "mock_connect": "Collega account simulato",
+      "mock_connected": "Account Spoki simulato collegato",
+      "resynced": "{n} template letti, {approved} approvati",
+      "api_key": "Chiave API Spoki",
+      "key_help": "Spoki → Impostazioni → Sviluppatori → chiave API. Viene verificata e salvata cifrata."
+    },
+    "settings": {
+      "title": "WhatsApp (Spoki)",
+      "description": "Quale template approvato invia ogni evento, notifiche ordine, parole di disiscrizione e registro dei messaggi.",
+      "form_title": "Template e notifiche",
+      "form_description": "Fuori dalle 24 ore dall'ultimo messaggio del cliente WhatsApp accetta solo template approvati: associane uno a ogni evento che usi.",
+      "sender": "Numero mittente",
+      "sender_help": "Il numero WhatsApp dell'account Spoki (E.164), mostrato al team.",
+      "language": "Lingua dei template",
+      "language_help": "Vuoto = la lingua del negozio.",
+      "templates_title": "Template per evento",
+      "templates_help": "{n} template approvati nell'account. Senza template il messaggio parte come testo libero (solo entro 24 ore).",
+      "templates_none": "Nessun template approvato letto: usa Risincronizza sulla scheda dell'integrazione.",
+      "template": "Template Spoki",
+      "free_text": "Testo libero (solo entro 24 ore)",
+      "fields": "Campi personalizzati",
+      "fields_help": "CAMPO=variabile, separati da virgole. Vuoto = ogni variabile in maiuscolo. Variabili: {vars}",
+      "notify": "Invia automaticamente",
+      "notify_label": "Invia automaticamente “{event}”",
+      "opt_out": "Parole di disiscrizione",
+      "opt_out_help": "Una risposta uguale a una di queste (o che inizia così) mette il numero nella lista di soppressione condivisa: niente più campagne WhatsApp o SMS.",
+      "recent": "Ultimi messaggi",
+      "events": {
+        "order_confirmed": "Ordine confermato",
+        "order_shipped": "Ordine spedito",
+        "order_delivered": "Ordine consegnato",
+        "campaign": "Messaggio delle campagne",
+        "cod": "Conferma contrassegno: {name}"
+      },
+      "stats": {
+        "sent": "Inviati",
+        "delivered": "Consegnati",
+        "read": "Letti",
+        "replied": "Risposte",
+        "failed": "Non riusciti",
+        "received": "Ricevuti",
+        "opt_outs": "Disiscrizioni",
+        "templates": "Template approvati",
+        "days": "ultimi {n} giorni",
+        "never": "mai letti"
+      },
+      "cod": {
+        "title": "Risposte alle conferme del contrassegno",
+        "description": "Cosa fa nella coda contrassegno la risposta del cliente al messaggio di conferma.",
+        "confirm": "Parole di conferma",
+        "cancel": "Parole di annullamento",
+        "help": "Una risposta di conferma registra l'esito confermato (scritto prima sul negozio, come quello di un operatore). Una risposta di annullamento segnala l'ordine a un admin: nulla viene annullato in automatico."
+      }
     }
   }
 }

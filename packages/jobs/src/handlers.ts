@@ -2,7 +2,8 @@ import { AD_PLATFORMS, OPERATIONAL_TENANT_STATUSES, appUrl, isAdPlatform, isAdPl
 import { historyImportSince, parseTenantSettings } from "@hullwise/core";
 import { adminDb, and, eq, inArray, lte, schema, withTenant } from "@hullwise/db";
 import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, runAdsEntitySync, rollupAdEntityMetrics, campaignTick, processCampaignSend, getMessagingChannelFor, resolveAddressProvider, SUBSCRIPTIONS_ADDON, getSubscriptionProviderFor, runSubscriptionSync, refreshSubscriberRisk } from "@hullwise/services";
-import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue, autoCancelReturnedToSender, getCodSettings, runScheduledConfirmations } from "@hullwise/addon-cod";
+import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue, autoCancelReturnedToSender, getCodSettings, runScheduledConfirmations, applyCodReply, applyMessageStatus } from "@hullwise/addon-cod";
+import { SPOKI_MODULE, getSpokiApiFor, getSpokiState, processSpokiWebhookEvent, retrySpokiWebhooks, runOrderNotifications, spokiMessagingChannel, type SpokiHooks } from "@hullwise/addon-spoki";
 import { adsWindow, type CampaignSendJob, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob, resyncJobsFor, type TenantExportJob } from "./queues";
 
 export interface Enqueue {
@@ -19,6 +20,7 @@ const sys = (tenantId: string) => (tx: ServiceContext["tx"]): ServiceContext => 
 const runner = (tenantId: string) => <T>(fn: (ctx: ServiceContext) => Promise<T>) => withTenant(tenantId, (tx) => fn(sys(tenantId)(tx)));
 
 export async function handleWebhook(job: WebhookJob): Promise<void> {
+  if (job.source === "spoki") return handleSpokiEvent(job.tenantId, job.eventId);
   const tenant = await tenantRow(job.tenantId);
   await withTenant(tenant.id, async (tx) => {
     const ctx = sys(tenant.id)(tx);
@@ -153,6 +155,30 @@ export async function handleSyncAds(job: SyncAdsJob, enqueue?: Enqueue): Promise
   return { rows: campaigns + metrics, summary: { campaigns, metrics, phase: job.phase ?? "campaigns", entitiesFinished: e.finished } };
 }
 
+const addonActive = async (tenantId: string, moduleKey: string) => (await adminDb().select({ id: schema.tenantAddons.id }).from(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, tenantId), eq(schema.tenantAddons.moduleKey, moduleKey), eq(schema.tenantAddons.isActive, true))).limit(1)).length > 0;
+
+/**
+ * What the Spoki add-on hands to other add-ons when a message status or a reply arrives (#9): with
+ * `addon.cod` active too, receipts keep the COD message rows in step and replies to confirmation
+ * messages become queue outcomes (platform first). Without it, no hook: Spoki only logs.
+ */
+export async function spokiHooksFor(tenant: { id: string; currency: string; country: string; orderNumberPrefix: string }): Promise<SpokiHooks> {
+  if (!(await addonActive(tenant.id, "addon.cod"))) return {};
+  return {
+    onStatus: (ctx, e) => applyMessageStatus(ctx, e.providerMessageId, e.status, e.at),
+    onReply: async (ctx, e) => applyCodReply(ctx, e, { platform: await getCommercePlatformFor(ctx, tenant) }),
+  };
+}
+
+/** One stored Spoki webhook event (queue `webhook.process` with `source: "spoki"`, or inline from the route). Add-on off: nothing happens. */
+export async function handleSpokiEvent(tenantId: string, eventId: string): Promise<void> {
+  const tenant = await tenantRow(tenantId);
+  if (!(await addonActive(tenant.id, SPOKI_MODULE))) return;
+  const hooks = await spokiHooksFor(tenant);
+  const r = await withTenant(tenant.id, (tx) => processSpokiWebhookEvent({ tenantId: tenant.id, tx, actor: { type: "integration", userId: null } }, eventId, hooks));
+  if (r.status === "failed") throw new Error(r.error ?? "spoki webhook failed");
+}
+
 async function campaignTenant(tenantId: string) {
   const [t] = await adminDb().select({ id: schema.tenants.id, timezone: schema.tenants.timezone, settings: schema.tenants.settings, status: schema.tenants.status }).from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
   return t ? { id: t.id, timezone: t.timezone, settings: parseTenantSettings(t.settings), status: t.status } : null;
@@ -168,8 +194,24 @@ const hasCampaignsAddon = async (tenantId: string) => (await adminDb().select({ 
 export async function handleCampaignSend(job: CampaignSendJob): Promise<JobOutcome> {
   const tenant = await campaignTenant(job.tenantId);
   if (!tenant || !isTenantOperational(tenant.status) || !(await hasCampaignsAddon(tenant.id))) return { rows: 0, summary: { skipped: "not_enabled" } };
-  const r = await processCampaignSend(runner(tenant.id), tenant, job.campaignId, getMessagingChannelFor(tenant.id));
+  const r = await processCampaignSend(runner(tenant.id), tenant, job.campaignId, await campaignChannelFor(tenant.id, job.campaignId));
   return { rows: r.sent, summary: { status: r.status, sent: r.sent, failed: r.failed, suppressed: r.suppressed, remaining: r.remaining } };
+}
+
+/**
+ * The channel of one campaign: WhatsApp campaigns go through Spoki (message log, template mapped to
+ * `campaign`) when `addon.whatsapp_spoki` is active and connected; everything else uses the mock.
+ */
+async function campaignChannelFor(tenantId: string, campaignId: string) {
+  if (!(await addonActive(tenantId, SPOKI_MODULE))) return getMessagingChannelFor(tenantId);
+  const run = runner(tenantId);
+  const spoki = await run(async (ctx) => {
+    const [c] = await ctx.tx.select({ channel: schema.retentionCampaigns.channel }).from(schema.retentionCampaigns).where(eq(schema.retentionCampaigns.id, campaignId)).limit(1);
+    if (c?.channel !== "whatsapp") return null;
+    const api = await getSpokiApiFor(ctx);
+    return api ? { api, state: await getSpokiState(ctx) } : null;
+  });
+  return spoki ? spokiMessagingChannel(run, spoki.api, spoki.state.settings, { purpose: "campaign", campaignId }, { templates: spoki.state.templates }) : getMessagingChannelFor(tenantId);
 }
 
 /** Fan-out: one job per connected tenant/provider, deduplicated by singleton key. */
@@ -315,6 +357,23 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<JobOut
       });
     }
     return;
+  }
+  if (job.kind === "whatsapp") {
+    // Spoki add-on: failed or stuck webhook events (5 min old, 5 attempts at most), then order notifications since the cursor
+    const addons = await adminDb().select({ tenantId: schema.tenantAddons.tenantId }).from(schema.tenantAddons).where(and(eq(schema.tenantAddons.moduleKey, SPOKI_MODULE), eq(schema.tenantAddons.isActive, true)));
+    let retried = 0, sent = 0;
+    for (const a of addons) {
+      const [t] = await adminDb().select({ id: schema.tenants.id, name: schema.tenants.name, defaultLocale: schema.tenants.defaultLocale, country: schema.tenants.country, status: schema.tenants.status, currency: schema.tenants.currency, orderNumberPrefix: schema.tenants.orderNumberPrefix }).from(schema.tenants).where(eq(schema.tenants.id, a.tenantId)).limit(1);
+      if (!t || !isTenantOperational(t.status)) continue;
+      const hooks = await spokiHooksFor(t);
+      const run = runner(t.id);
+      const api = await run(async (ctx) => {
+        retried += (await retrySpokiWebhooks(ctx, hooks, { maxAttempts: 5, minAgeMs: 5 * 60e3 })).processed;
+        return getSpokiApiFor(ctx);
+      });
+      if (api) sent += (await runOrderNotifications(run, api, { shopName: t.name, locale: t.defaultLocale, country: t.country })).sent;
+    }
+    return { rows: retried + sent, summary: { tenants: addons.length, retried, sent } };
   }
   if (job.kind === "writes") {
     // outbox retries: tenants with writes due (rescheduled after a rate limit or a network error, or left running by a restart)

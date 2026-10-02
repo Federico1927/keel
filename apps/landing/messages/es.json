@@ -264,7 +264,6 @@
     "lead": "Nuestro equipo los activa por cuenta. El núcleo funciona con cualquier método de pago; lo que es específico de tu operación vive en un complemento.",
     "per_month": "{price}/mes",
     "quote": "Bajo presupuesto",
-    "coming_soon": "Próximamente",
     "items": {
       "customer_campaigns": {
         "title": "Campañas a clientes",
@@ -285,8 +284,13 @@
       "custom_development": {
         "title": "Desarrollo a medida",
         "body": "Un módulo que necesita tu operación y nadie más. Analizado y presupuestado."
+      },
+      "whatsapp_spoki": {
+        "title": "WhatsApp con Spoki",
+        "body": "Tu cuenta Spoki como canal de WhatsApp: avisos de pedido por evento, confirmaciones contra reembolso con una respuesta, campañas de WhatsApp, bajas respetadas en todas partes y cada mensaje en el pedido."
       }
-    }
+    },
+    "coming_soon": "Próximamente"
   },
   "faq": {
     "title": "Las preguntas que nos hacen",

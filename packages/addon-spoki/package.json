@@ -1,0 +1,36 @@
+{
+  "name": "@hullwise/addon-spoki",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "lint": "eslint src test",
+    "typecheck": "tsc --noEmit",
+    "test": "dotenv -e ../../.env -- vitest run"
+  },
+  "dependencies": {
+    "@hullwise/config": "workspace:*",
+    "@hullwise/core": "workspace:*",
+    "@hullwise/db": "workspace:*",
+    "@hullwise/integrations": "workspace:*",
+    "@hullwise/services": "workspace:*",
+    "drizzle-orm": "^0.45.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@hullwise/addon-cod": "workspace:*",
+    "@hullwise/eslint-config": "workspace:*",
+    "@types/pg": "^8.15.0",
+    "dotenv-cli": "^11.0.0",
+    "eslint": "^9.39.0",
+    "pg": "^8.16.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.0"
+  }
+}

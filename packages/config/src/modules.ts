@@ -26,6 +26,7 @@ export const ADDON_MODULES = [
   "addon.subscriptions",
   "addon.warehouse_3pl",
   "addon.whatsapp",
+  "addon.whatsapp_spoki",
   "addon.carrier_tracking",
 ] as const;
 export type AddonModule = (typeof ADDON_MODULES)[number];
@@ -68,7 +69,14 @@ export const MODULES: Record<ModuleKey, ModuleDefinition> = {
   /** Analytics and operations on the merchant's own subscription products (Shopify Subscriptions, Recharge, Loop): not a billing engine (#67). Provisional price. */
   "addon.subscriptions": { key: "addon.subscriptions", nameKey: "modules.addon.subscriptions.name", descriptionKey: "modules.addon.subscriptions.description", availability: "implemented", pages: ["subscriptions"], monthlyPriceMinor: 14900 },
   "addon.warehouse_3pl": { key: "addon.warehouse_3pl", nameKey: "modules.addon.warehouse_3pl.name", descriptionKey: "modules.addon.warehouse_3pl.description", availability: "on_request", pages: [], monthlyPriceMinor: null },
+  /** Other local WhatsApp providers, built per account on request; Spoki is the implemented one (`addon.whatsapp_spoki`). */
   "addon.whatsapp": { key: "addon.whatsapp", nameKey: "modules.addon.whatsapp.name", descriptionKey: "modules.addon.whatsapp.description", availability: "on_request", pages: [], monthlyPriceMinor: null },
+  /**
+   * Spoki as the WhatsApp channel (issue #9, approved exception to the no-specific-provider rule): COD confirmations and
+   * reply handling (with `addon.cod`), order notifications per event, WhatsApp campaigns (with `addon.customer_campaigns`),
+   * opt-outs on the shared suppression list, message log on orders and customers. The core never depends on it.
+   */
+  "addon.whatsapp_spoki": { key: "addon.whatsapp_spoki", nameKey: "modules.addon.whatsapp_spoki.name", descriptionKey: "modules.addon.whatsapp_spoki.description", availability: "implemented", pages: ["whatsapp_settings"], monthlyPriceMinor: 4900 },
   "addon.carrier_tracking": { key: "addon.carrier_tracking", nameKey: "modules.addon.carrier_tracking.name", descriptionKey: "modules.addon.carrier_tracking.description", availability: "on_request", pages: [], monthlyPriceMinor: null },
 };
 

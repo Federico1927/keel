@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { outcomeOfText, parseAmount, parseCarrierCsv, parseDay } from "./carrier-import";
 import { isBottleneck, riskEconomics } from "./economics";
-import { renderTemplate, templateVariablesIn, warehouseLines } from "./messages";
+import { classifyCodReply, renderTemplate, templateVariablesIn, warehouseLines } from "./messages";
 import { applyOutcome, bucketStats, rowAging, splitEvenly } from "./queue";
 import { computeDeliveryScore, type ScoreInput } from "./scoring";
 import { parseCodSettings } from "./settings";
@@ -39,6 +39,20 @@ describe("messages", () => {
     expect(renderTemplate("Ciao {{first_name}}, ordine {{ order_name }} da {{total}}. {{unknown}}", { first_name: "Anna", order_name: "#1001", total: "€ 49,00" })).toBe("Ciao Anna, ordine #1001 da € 49,00.");
     expect(templateVariablesIn("{{a}} {{b}} {{a}}")).toEqual(["a", "b"]);
     expect(warehouseLines([{ sku: "TS-01-M", title: "T-shirt", quantity: 2 }, { sku: null, title: "Gift card", variantTitle: "50", quantity: 1 }, { sku: "FEE", title: "Fee", quantity: 1, isAncillary: true }, { sku: "X", title: "Removed", quantity: 0 }])).toBe("TS-01-M × 2\nGift card 50 × 1");
+  });
+});
+
+describe("messaging replies", () => {
+  it("turns a reply into confirm or cancel with the tenant's keywords, cancel first, nothing otherwise", () => {
+    expect(settings.messagingReplies).toEqual({ confirm: ["yes", "confirm"], cancel: ["no", "cancel"] });
+    expect(classifyCodReply("Yes!", settings.messagingReplies)).toBe("confirm");
+    expect(classifyCodReply("No, cancel", settings.messagingReplies)).toBe("cancel");
+    expect(classifyCodReply("When will it arrive?", settings.messagingReplies)).toBeNull();
+    const it = parseCodSettings({ messagingReplies: { confirm: ["sì", "confermo"], cancel: ["annulla"] } }).messagingReplies;
+    expect(classifyCodReply("SI", it)).toBe("confirm");
+    expect(classifyCodReply("Confermo grazie", it)).toBe("confirm");
+    expect(classifyCodReply("annulla l'ordine", it)).toBe("cancel");
+    expect(classifyCodReply("yes", it)).toBeNull();
   });
 });
 

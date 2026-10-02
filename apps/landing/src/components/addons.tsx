@@ -1,4 +1,4 @@
-import { Code2, Megaphone, PhoneCall, Puzzle, Repeat } from "lucide-react";
+import { Code2, Megaphone, MessageCircle, PhoneCall, Puzzle, Repeat } from "lucide-react";
 import { Section } from "@/components/ui";
 import { ADDONS, addonOnSale } from "@/config/pricing";
 import type { LandingLocale } from "@/config/site";
@@ -9,6 +9,7 @@ const ICONS = {
   customer_campaigns: Megaphone,
   subscriptions: Repeat,
   cod: PhoneCall,
+  whatsapp_spoki: MessageCircle,
   custom_integration: Puzzle,
   custom_development: Code2,
 } as const;

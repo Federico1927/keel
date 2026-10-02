@@ -33,7 +33,6 @@
       "ads_platform_error": "The ads platform rejected the request.",
       "invalid_rules": "The segment rules are not valid.",
       "addon_not_available": "This add-on is not available yet.",
-      "addon_not_released": "This add-on has no released version yet: it can't be switched on.",
       "cod_not_in_queue": "This order is not in the confirmation queue.",
       "cod_invalid_outcome": "Invalid outcome.",
       "cod_operator_unavailable": "No operator available today.",
@@ -68,7 +67,8 @@
       "cod_template": "Unknown message template.",
       "cod_phone": "The order has no phone number.",
       "cod_reason": "Write a reason (at least 3 characters).",
-      "cod_carrier_columns": "The file needs a reference column (tracking or order) and an outcome column."
+      "cod_carrier_columns": "The file needs a reference column (tracking or order) and an outcome column.",
+      "addon_not_released": "This add-on has no released version yet: it can't be switched on."
     },
     "edit": "Edit"
   },
@@ -162,8 +162,8 @@
         "description": "Connect an external warehouse"
       },
       "whatsapp": {
-        "name": "WhatsApp provider",
-        "description": "Connect a local WhatsApp provider"
+        "name": "Other WhatsApp provider",
+        "description": "A local WhatsApp provider other than Spoki, built on request"
       },
       "carrier_tracking": {
         "name": "Carrier tracking",
@@ -178,6 +178,11 @@
         "name": "Subscriptions",
         "description": "MRR, churn, cohorts, failed payment recovery and stock for renewals of your subscription products (Shopify Subscriptions, Recharge, Loop)",
         "v1": "Shopify Subscriptions, Recharge and Loop connectors, verified only on recorded data: no live store connected yet."
+      },
+      "whatsapp_spoki": {
+        "name": "WhatsApp via Spoki",
+        "description": "COD confirmations and replies, order notifications, WhatsApp campaigns and opt-outs through the store's Spoki account",
+        "v1": "WhatsApp through Spoki: COD confirmations, order notices and campaign sends, verified only on recorded data: no live Spoki account connected yet."
       }
     }
   },
@@ -217,7 +222,8 @@
     "support": "Support",
     "notifications": "Notifications",
     "fulfilment": "Fulfilment",
-    "subscriptions": "Subscriptions"
+    "subscriptions": "Subscriptions",
+    "whatsapp_settings": "WhatsApp settings"
   },
   "shell": {
     "open_menu": "Open menu",
@@ -349,7 +355,6 @@
         "roiMedium": "ROI medium (ratio)",
         "campaignStockThreshold": "Campaign stock threshold (units)",
         "duplicateOrderWindowDays": "Duplicate order window (days)",
-        "historyImportMonths": "Order history read when Shopify is connected (months, 0 = all)",
         "shipmentStuckDays": "Shipment stuck after (days)",
         "returnWindowDays": "Return window (days)",
         "shippingCostMinor": "Default shipping cost (minor units)",
@@ -363,7 +368,8 @@
         "markdownMinMarginBps": "Markdown minimum margin (basis points, 2000 = 20%)",
         "adsDailyRetentionDays": "Ads: daily detail kept (days)",
         "adsSearchTermMinImpressions": "Ads: search terms grouped under (impressions)",
-        "adsMinSpendMinor": "Ads: minimum spend for suggestions (cents)"
+        "adsMinSpendMinor": "Ads: minimum spend for suggestions (cents)",
+        "historyImportMonths": "Order history read when Shopify is connected (months, 0 = all)"
       },
       "backorders_title": "Backorders",
       "backorders_description": "What happens when an order needs more than the stock available."
@@ -993,7 +999,8 @@
       "refund": "{amount} back to the customer",
       "refund_capped": "{amount} asked, capped by the store",
       "restocked": "{n} units back in stock",
-      "queued_platform": "Queued for the store"
+      "queued_platform": "Queued for the store",
+      "whatsapp_opt_out": "opted out"
     },
     "backorders": {
       "title_open": "Waiting for stock",
@@ -1062,7 +1069,9 @@
     "cod_escalated": "COD escalation",
     "cod_message": "Confirmation message sent",
     "payment_method_changed": "Payment method changed",
-    "customer_email": "Email to customer"
+    "customer_email": "Email to customer",
+    "whatsapp_message": "WhatsApp message sent",
+    "whatsapp_reply": "WhatsApp reply received"
   },
   "shipments": {
     "title": "Shipments",
@@ -2737,7 +2746,8 @@
       "shopify_subscriptions": "Shopify Subscriptions",
       "recharge": "Recharge",
       "loop": "Loop Subscriptions",
-      "address": "Address validation"
+      "address": "Address validation",
+      "spoki": "WhatsApp (Spoki)"
     },
     "status": {
       "not_connected": "Not connected",
@@ -2892,7 +2902,12 @@
     "address_mock_connected": "Address validation connected (simulated provider).",
     "history_import": {
       "title": "Order history import",
-      "state": { "running": "In progress", "paused": "In progress", "error": "Failed", "done": "Complete" },
+      "state": {
+        "running": "In progress",
+        "paused": "In progress",
+        "error": "Failed",
+        "done": "Complete"
+      },
       "detail": "{n} orders imported · orders since {since} · oldest order in Hullwise {oldest}",
       "all_orders": "the first one",
       "incomplete_hint": "Until it completes, analytics, RFM, cohorts and customer history only cover part of the history. Resync continues it.",
@@ -3821,6 +3836,67 @@
         {
           "symptom": "Orders shipped twice",
           "fix": "Both Shopify's own 3PL app and {product} send orders: keep only one sender."
+        }
+      ]
+    },
+    "spoki": {
+      "title": "WhatsApp with Spoki",
+      "intro": "Connects the store's Spoki account (a WhatsApp Business Solution Provider): COD confirmations and replies, order notifications, WhatsApp campaigns and opt-outs, with every message on the order and customer pages.",
+      "scopes": "A Spoki account with a verified WhatsApp Business number and an API key (Settings → Developers).\nApproved WhatsApp templates for every event you want to send outside the 24-hour window (utility for order messages, marketing for campaigns).\nThe webhook URL of this page in Spoki's webhook settings, for message status, replies and opt-outs.",
+      "webhook_hidden": "(visible to owners and admins)",
+      "steps": [
+        {
+          "title": "What it does in {product}",
+          "body": "COD add-on: the confirmation message goes through Spoki and a reply such as “yes” confirms the order in the queue (a “no” escalates it to an admin). Order notifications: confirmed, shipped and delivered, each with its own template and switch. Customer campaigns: WhatsApp campaigns are sent through Spoki. A “STOP” reply puts the number on the shared suppression list."
+        },
+        {
+          "title": "Create the API key",
+          "body": "In Spoki: Settings → Developers (or Integrations → API) → create an API key for {product}.",
+          "verify": true
+        },
+        {
+          "title": "Connect it in {product}",
+          "body": "Integrations → WhatsApp (Spoki) → Connect → paste the key. {product} tests it by reading the templates and stores it encrypted."
+        },
+        {
+          "title": "Paste the webhook URL in Spoki",
+          "body": "Spoki → Settings → Webhook (outbound and inbound messages) → paste:\n{webhookUrl}\nThe last part of the URL is the store's secret: do not share it. Spoki sends the same message again for each new status (sent, delivered, read, error).",
+          "verify": true
+        },
+        {
+          "title": "Get the templates approved",
+          "body": "In Spoki create the templates (one per event, with custom fields such as FIRST_NAME or ORDER_NAME) and submit them to WhatsApp. Approval usually takes minutes to a day.",
+          "verify": true
+        },
+        {
+          "title": "Map the templates",
+          "body": "Integrations → WhatsApp (Spoki) → Resync reads the approved templates. In WhatsApp settings choose a template per event, map its custom fields to {product}'s variables and switch on the notifications you want."
+        },
+        {
+          "title": "Verify",
+          "body": "Send a COD confirmation from an order to your own number: the message log shows Sent, then Delivered and Read as Spoki reports them. Reply “yes”: the order is confirmed in the queue."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Messages fail with whatsapp::131026",
+          "fix": "The number is not on WhatsApp or cannot receive messages; check the phone on the order."
+        },
+        {
+          "symptom": "Failed with whatsapp::131050",
+          "fix": "The customer stopped marketing messages: {product} adds the number to the suppression list."
+        },
+        {
+          "symptom": "spoki::1029 credit exhausted",
+          "fix": "Top up the Spoki account; sends fail until then."
+        },
+        {
+          "symptom": "Free-text messages are rejected",
+          "fix": "Outside 24 hours from the customer's last message WhatsApp accepts only approved templates: map one to the event."
+        },
+        {
+          "symptom": "Statuses never update",
+          "fix": "The webhook URL is missing or wrong in Spoki; copy it again from the integration card."
         }
       ]
     }
@@ -9249,6 +9325,108 @@
       "active_hint": "{paused} paused · {new} new in 30 days",
       "churn_hint": "{voluntary} voluntary · {involuntary} involuntary",
       "at_risk_hint": "{n} at risk · {failing} failing payments · {high} high churn risk"
+    }
+  },
+  "whatsapp": {
+    "errors": {
+      "spoki_not_connected": "Spoki is not connected: connect it on the integration card first.",
+      "spoki_invalid_input": "Some values are not valid",
+      "spoki_provider_error": "Spoki answered with an error",
+      "spoki_no_phone": "The order has no phone number",
+      "spoki_no_template": "No template mapped for this event",
+      "spoki_not_found": "Not found",
+      "module_disabled": "The WhatsApp add-on is not active"
+    },
+    "log": {
+      "title": "WhatsApp messages",
+      "description": "Sent and received through Spoki, with the delivery status.",
+      "empty": "No WhatsApp message yet.",
+      "purpose": {
+        "cod": "COD confirmation",
+        "order_confirmed": "Order confirmed",
+        "order_shipped": "Order shipped",
+        "order_delivered": "Order delivered",
+        "campaign": "Campaign",
+        "test": "Test message",
+        "reply": "Customer reply",
+        "external": "Sent outside {product}"
+      },
+      "status": {
+        "queued": "Queued",
+        "sent": "Sent",
+        "delivered": "Delivered",
+        "read": "Read",
+        "replied": "Replied",
+        "failed": "Failed",
+        "received": "Received"
+      },
+      "simulate": "Simulate",
+      "simulate_delivered": "Delivered receipt",
+      "simulate_read": "Read receipt",
+      "simulate_failed_receipt": "Failed receipt",
+      "simulate_reply": "Customer replies “{text}”",
+      "simulate_stop": "Customer replies STOP",
+      "sample_reply": "Yes",
+      "simulated": "Webhook sent",
+      "simulate_failed": "Simulation failed"
+    },
+    "connection": {
+      "webhook": "Webhook URL to paste in Spoki (it contains the store's secret token)",
+      "copy": "Copy",
+      "settings_link": "WhatsApp settings",
+      "mock_connect": "Connect simulated account",
+      "mock_connected": "Simulated Spoki account connected",
+      "resynced": "{n} templates read, {approved} approved",
+      "api_key": "Spoki API key",
+      "key_help": "Spoki → Settings → Developers → API key. It is tested, then stored encrypted."
+    },
+    "settings": {
+      "title": "WhatsApp (Spoki)",
+      "description": "Which approved template each event sends, order notifications, opt-out keywords and the message log.",
+      "form_title": "Templates and notifications",
+      "form_description": "WhatsApp only accepts approved templates outside the 24 hours after the customer's last message: map one to every event you use.",
+      "sender": "Sender number",
+      "sender_help": "The WhatsApp number of the Spoki account (E.164), shown to the team.",
+      "language": "Template language",
+      "language_help": "Empty = the store's language.",
+      "templates_title": "Template per event",
+      "templates_help": "{n} approved templates in the account. Without a template the message is sent as free text (24-hour window only).",
+      "templates_none": "No approved template read yet: use Resync on the integration card.",
+      "template": "Spoki template",
+      "free_text": "Free text (24-hour window only)",
+      "fields": "Custom fields",
+      "fields_help": "FIELD=variable, separated by commas. Empty = every variable in upper case. Variables: {vars}",
+      "notify": "Send automatically",
+      "notify_label": "Send “{event}” automatically",
+      "opt_out": "Opt-out keywords",
+      "opt_out_help": "A reply equal to one of these (or starting with it) puts the number on the shared suppression list: no more WhatsApp or SMS campaigns.",
+      "recent": "Latest messages",
+      "events": {
+        "order_confirmed": "Order confirmed",
+        "order_shipped": "Order shipped",
+        "order_delivered": "Order delivered",
+        "campaign": "Campaign message",
+        "cod": "COD confirmation: {name}"
+      },
+      "stats": {
+        "sent": "Sent",
+        "delivered": "Delivered",
+        "read": "Read",
+        "replied": "Replied",
+        "failed": "Failed",
+        "received": "Received",
+        "opt_outs": "Opt-outs",
+        "templates": "Approved templates",
+        "days": "last {n} days",
+        "never": "never read"
+      },
+      "cod": {
+        "title": "Replies to COD confirmations",
+        "description": "What the customer's answer to a confirmation message does in the COD queue.",
+        "confirm": "Confirm keywords",
+        "cancel": "Cancel keywords",
+        "help": "A confirm reply records a confirmed outcome (written to the store first, like an operator's). A cancel reply escalates the order to an admin: nothing is cancelled automatically."
+      }
     }
   }
 }

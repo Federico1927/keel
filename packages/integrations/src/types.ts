@@ -651,6 +651,15 @@ export interface AnalyticsPlatform {
   fetchDailySessions(window: { since: string; until: string }): Promise<{ date: string; sessions: number; channel: string }[]>;
 }
 
+/** One message to send. `meta` tells a channel that keeps its own message log what the message is about; others ignore it. */
+export interface MessageSendInput {
+  to: string;
+  template: string;
+  variables: Record<string, string>;
+  idempotencyKey?: string;
+  meta?: { purpose?: string; orderId?: string | null; customerId?: string | null; campaignId?: string | null };
+}
+
 /** Slots for per-account integrations: interfaces + mock only (CLAUDE.md §6.1). */
 export interface MessagingChannel {
   readonly provider: string;
@@ -660,7 +669,7 @@ export interface MessagingChannel {
    * accept one must deliver a repeated key once and answer with the first message id; a send queue
    * resumed after a crash resends its unconfirmed messages with the same key.
    */
-  sendMessage(input: { to: string; template: string; variables: Record<string, string>; idempotencyKey?: string }): Promise<{ messageId: string }>;
+  sendMessage(input: MessageSendInput): Promise<{ messageId: string }>;
   verifyWebhook(headers: Record<string, string | undefined>, rawBody: string): Promise<{ messageId: string; status: "sent" | "delivered" | "read" | "failed"; raw: unknown }>;
 }
 

@@ -1,11 +1,12 @@
-import { and, desc, eq, schema, sql } from "@hullwise/db";
+import { and, desc, eq, inArray, schema, sql } from "@hullwise/db";
 import { formatMoney } from "@hullwise/core";
-import type { MessagingChannel } from "@hullwise/integrations";
+import type { CommercePlatform, MessagingChannel } from "@hullwise/integrations";
 import type { ServiceContext } from "@hullwise/services";
-import { renderTemplate } from "../messages";
+import { classifyCodReply, renderTemplate } from "../messages";
 import { OPEN_QUEUE_STATUSES, type QueueStatus } from "../queue";
 import type { CodSettings, TemplateVariable } from "../settings";
-import { CodError, getCodSettings } from "./index";
+import { CodError, getCodSettings, recordAttempt } from "./index";
+import { escalateQueueItem } from "./operations";
 
 /**
  * Confirmation messages (C.17): tenant templates filled with the order's data, copied by the
@@ -87,4 +88,49 @@ export async function applyMessageStatus(ctx: ServiceContext, providerMessageId:
 
 export async function listOrderMessages(ctx: ServiceContext, orderId: string) {
   return ctx.tx.select({ m: schema.codMessages, sender: sql<string | null>`coalesce(${schema.users.preferredName}, ${schema.users.name}, ${schema.users.email})` }).from(schema.codMessages).leftJoin(schema.users, eq(schema.users.id, schema.codMessages.sentBy)).where(and(eq(schema.codMessages.tenantId, ctx.tenantId), eq(schema.codMessages.orderId, orderId))).orderBy(desc(schema.codMessages.createdAt)).limit(50);
+}
+
+export interface CodReplyInput {
+  /** The provider id of the customer's message (idempotency of the attempt note). */
+  providerMessageId: string;
+  /** The confirmation message the customer answered, when the provider says so. */
+  replyToMessageId: string | null;
+  phone: string;
+  text: string;
+  /** The order the channel linked the reply to, if any. */
+  orderId: string | null;
+}
+
+/**
+ * A customer's reply to a confirmation message (WhatsApp channel add-on). The queue item is the one
+ * of the answered `cod_messages` row, else the order the channel linked, else the latest open item
+ * messaged at that number in the last 7 days. "Confirm" keywords record a `confirmed` attempt by the
+ * channel (platform first, like an operator's); "cancel" keywords escalate the item to a person,
+ * never cancelling by themselves; anything else is only on the timeline.
+ */
+export async function applyCodReply(ctx: ServiceContext, input: CodReplyInput, opts: { platform?: CommercePlatform; settings?: CodSettings } = {}): Promise<{ orderId: string; action: "confirmed" | "escalated" } | null> {
+  const s = opts.settings ?? (await getCodSettings(ctx));
+  const kind = classifyCodReply(input.text, s.messagingReplies);
+  if (!kind) return null;
+  let orderId: string | null = null;
+  if (input.replyToMessageId) {
+    const [m] = await ctx.tx.select({ orderId: schema.codMessages.orderId }).from(schema.codMessages).where(and(eq(schema.codMessages.tenantId, ctx.tenantId), eq(schema.codMessages.providerMessageId, input.replyToMessageId))).limit(1);
+    orderId = m?.orderId ?? null;
+  }
+  orderId ??= input.orderId;
+  if (!orderId) {
+    const digits = input.phone.replace(/\D/g, "");
+    const [m] = await ctx.tx.select({ orderId: schema.codMessages.orderId }).from(schema.codMessages).innerJoin(schema.codQueueItems, eq(schema.codQueueItems.orderId, schema.codMessages.orderId)).where(and(eq(schema.codMessages.tenantId, ctx.tenantId), sql`regexp_replace(${schema.codMessages.recipient}, '\\D', '', 'g') = ${digits}`, inArray(schema.codQueueItems.status, [...OPEN_QUEUE_STATUSES]), sql`${schema.codMessages.createdAt} > now() - interval '7 days'`)).orderBy(desc(schema.codMessages.createdAt)).limit(1);
+    orderId = m?.orderId ?? null;
+  }
+  if (!orderId) return null;
+  const [item] = await ctx.tx.select().from(schema.codQueueItems).where(and(eq(schema.codQueueItems.tenantId, ctx.tenantId), eq(schema.codQueueItems.orderId, orderId))).limit(1);
+  if (!item || !OPEN_QUEUE_STATUSES.includes(item.status as QueueStatus)) return null;
+  const note = `“${input.text.slice(0, 120)}”`;
+  if (kind === "confirm") {
+    await recordAttempt(ctx, { orderId, outcome: "confirmed", channel: "whatsapp", note }, s, { platform: opts.platform });
+    return { orderId, action: "confirmed" };
+  }
+  if (!item.escalatedAt) await escalateQueueItem(ctx, orderId, note);
+  return { orderId, action: "escalated" };
 }

@@ -4,6 +4,8 @@ import { DEFAULT_SURVEY_CONFIG } from "@hullwise/core";
 import * as schema from "../schema";
 import { enableDemoMcp } from "./mcp";
 import { ensureDemoProductCatalog } from "./media";
+import { DEMO_SPOKI_SETTINGS, demoSpokiIntegration } from "./spoki";
+import { MOCK_SPOKI_TEMPLATES } from "@hullwise/integrations";
 
 /**
  * Configuration rows of the demo tenants (portal, return policy, tracking, survey, COD tags, the AI
@@ -104,6 +106,7 @@ export const DEMO_COD_SETTINGS = { queueCutoffDays: 60, tags: {
     { key: "consegna_programmata", name: "Consegna programmata", body: "Ciao {{first_name}}, come concordato confermeremo l'ordine {{order_name}} il {{scheduled_date}}. Grazie da {{shop_name}}!" },
   ],
   feeLineMatch: ["COD-FEE", "Contrassegno*"],
+  messagingReplies: { confirm: ["sì", "si", "confermo", "ok"], cancel: ["no", "annulla", "annullare"] },
 };
 
 export function demoSurveySettings(key: DemoKey, tenantId: string) {
@@ -189,6 +192,14 @@ export async function ensureDemoSettings(db: Db, now = new Date()): Promise<Sett
     if (await missing("survey_settings")) {
       await db.insert(schema.surveySettings).values(demoSurveySettings(key, tenantId)).onConflictDoNothing();
       created.push("survey_settings");
+    }
+    if (addons.some((a) => a.tenantId === tenantId && a.key === "addon.whatsapp_spoki") && (await missing("spoki_settings"))) {
+      await db.insert(schema.spokiSettings).values({ tenantId, config: DEMO_SPOKI_SETTINGS, templates: MOCK_SPOKI_TEMPLATES, templatesSyncedAt: now, notifiedUntil: now }).onConflictDoNothing();
+      created.push("spoki_settings");
+      if (await missing("integrations", sql`provider = 'spoki'`)) {
+        await db.insert(schema.integrations).values(demoSpokiIntegration(tenantId, now)).onConflictDoNothing();
+        created.push("integrations:spoki");
+      }
     }
     if (addons.some((a) => a.tenantId === tenantId && a.key === "addon.cod") && (await missing("cod_settings"))) {
       await db.insert(schema.codSettings).values({ tenantId, config: DEMO_COD_SETTINGS }).onConflictDoNothing();

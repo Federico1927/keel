@@ -264,7 +264,6 @@
     "lead": "Activated per account by our team. The core works for any payment method; what is specific to your operation lives in an add-on.",
     "per_month": "{price}/month",
     "quote": "On quote",
-    "coming_soon": "Coming soon",
     "items": {
       "customer_campaigns": {
         "title": "Customer campaigns",
@@ -285,8 +284,13 @@
       "custom_development": {
         "title": "Custom development",
         "body": "A module your operation needs and nobody else has. Scoped and quoted."
+      },
+      "whatsapp_spoki": {
+        "title": "WhatsApp via Spoki",
+        "body": "Your Spoki account as the WhatsApp channel: order notifications per event, cash-on-delivery confirmations answered with a reply, WhatsApp campaigns, opt-outs honoured everywhere and every message on the order."
       }
-    }
+    },
+    "coming_soon": "Coming soon"
   },
   "faq": {
     "title": "Questions we get asked",

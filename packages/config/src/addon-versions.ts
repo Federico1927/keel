@@ -31,6 +31,8 @@ export const ADDON_VERSIONS: Record<AddonModule, readonly AddonVersion[]> = {
   "addon.customer_campaigns": [{ version: 1, status: "in_development", summaryKey: "addon.customer_campaigns.v1" }],
   // v1: Shopify Subscriptions, Recharge and Loop adapters tested only on recorded fixtures; no live provider verified yet.
   "addon.subscriptions": [{ version: 1, status: "in_development", summaryKey: "addon.subscriptions.v1" }],
+  // v1: Spoki channel, webhooks, COD confirmations, order notices and campaign sends, tested only on recorded fixtures; no live Spoki account verified yet.
+  "addon.whatsapp_spoki": [{ version: 1, status: "in_development", summaryKey: "addon.whatsapp_spoki.v1" }],
   "addon.warehouse_3pl": [],
   "addon.whatsapp": [],
   "addon.carrier_tracking": [],

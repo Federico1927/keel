@@ -16,6 +16,7 @@
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.0",
     "@hullwise/addon-cod": "workspace:*",
+    "@hullwise/addon-spoki": "workspace:*",
     "@hullwise/config": "workspace:*",
     "@hullwise/core": "workspace:*",
     "@hullwise/db": "workspace:*",

@@ -17,6 +17,7 @@ import { Timeline } from "./timeline";
 import { NotesPanel } from "./notes";
 import { CodCard } from "./cod-card";
 import { OrderSubscriptionCard, showsSubscriptions } from "../../subscriptions/subscription-card";
+import { WhatsappLog } from "@/components/whatsapp-log";
 import { EditOrderDialog, type AddressForm } from "./edit-order";
 import { DiscountOrderDialog } from "./discount-order";
 import { RecordTasks } from "@/components/record-tasks";
@@ -399,6 +400,7 @@ export default async function OrderDetailPage({ params, searchParams }: { params
 
       {order.subscriptionContractId && showsSubscriptions(ctx) && <OrderSubscriptionCard ctx={ctx} orderId={order.id} />}
       {order.paymentMethod === "cod" && isPageEnabled("cod_queue", ctx.activeAddons) && canViewPage(ctx.role, "cod_queue") && <CodCard ctx={ctx} orderId={order.id} orderName={order.name} canWrite={canWritePage(ctx.role, "cod_queue")} queue={{ view: sp.queue, tag: sp.tag }} />}
+      <WhatsappLog ctx={ctx} orderId={order.id} />
       {(returns.length > 0 || canRequestReturn) && (
         <Card>
           <CardHeader className="flex-row items-center justify-between space-y-0">

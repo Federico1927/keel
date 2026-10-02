@@ -6,6 +6,8 @@ import { and, desc, eq, recordAudit, schema, sql } from "@hullwise/db";
 import { apiEndpoint, isAdPlatform, isAdPlatformInPlan } from "@hullwise/config";
 import { AnthropicLlmProvider, GoogleAddressProvider, GoogleAdsPlatform, MOCK_ACCOUNT_IDS, MetaAdsPlatform, ShopifyCommercePlatform, SHOPIFY_WEBHOOK_TOPICS, TiktokAdsPlatform, encryptJson, exchangeTiktokAuthCode, integrationMode, isValidShopDomain, type ConnectionTest } from "@hullwise/integrations";
 import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, resolveAddressProvider, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsBackfill, runAdsSync, runCatalogSync, runOrdersSync, runReturnsSync, historyImportStatus } from "@hullwise/services";
+import { SPOKI_MODULE, retrySpokiWebhooks } from "@hullwise/addon-spoki";
+import { handleSpokiEvent, spokiHooksFor } from "@hullwise/jobs";
 import { enqueue } from "@/server/jobs";
 import { startHistoryImport } from "@/server/history-import";
 import { ForbiddenError, requireAction, type TenantContext } from "@/server/tenant";
@@ -356,6 +358,12 @@ export async function retryWebhooks(slug: string): Promise<ActionResult<{ retrie
       const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
       return retryFailedWebhooks(s, await getCommercePlatformFor(s, ctx.tenant), { country: ctx.tenant.country, maxAttempts: 10 });
     });
+    if (ctx.activeAddons.includes(SPOKI_MODULE)) {
+      const hooks = await spokiHooksFor(ctx.tenant);
+      const w = await ctx.run((tx) => retrySpokiWebhooks({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, hooks, { maxAttempts: 10 }));
+      r.retried += w.retried;
+      r.processed += w.processed;
+    }
     revalidatePath(`/t/${slug}/integrations`);
     return ok(r);
   } catch (e) {
@@ -368,6 +376,13 @@ export async function processWebhookNow(slug: string, eventId: string): Promise<
   try {
     const ctx = await requireAction(slug, "manage_integrations", "integrations");
     if (!z.string().uuid().safeParse(eventId).success) return fail("invalid_input");
+    // events of the WhatsApp add-on (#9) have their own processor (a no-op when the add-on is off)
+    const [ev] = await ctx.run((tx) => tx.select({ source: schema.webhookEvents.source }).from(schema.webhookEvents).where(and(eq(schema.webhookEvents.tenantId, ctx.tenant.id), eq(schema.webhookEvents.id, eventId))).limit(1));
+    if (ev?.source === "spoki") {
+      await handleSpokiEvent(ctx.tenant.id, eventId).catch(() => undefined);
+      revalidatePath(`/t/${slug}/integrations`);
+      return ok({ status: "replayed" });
+    }
     const r = await ctx.run(async (tx) => {
       const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
       return processWebhookEvent(s, await getCommercePlatformFor(s, ctx.tenant), eventId, { country: ctx.tenant.country });

@@ -7,6 +7,7 @@ import { customerDetail } from "@hullwise/services";
 import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
+import { WhatsappLog } from "@/components/whatsapp-log";
 import { TierBadge } from "../tier-badge";
 import { ChurnBadge } from "../churn-badge";
 import { CustomerSubscriptionsCard, showsSubscriptions } from "../../subscriptions/subscription-card";
@@ -121,6 +122,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
           </Table>
         </CardContent>
       </Card>
+      <div className="mt-6"><WhatsappLog ctx={ctx} customerId={id} /></div>
     </DetailShell>
   );
 }
