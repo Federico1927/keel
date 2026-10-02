@@ -2963,67 +2963,71 @@
     "errors_title": "Errores comunes",
     "shopify": {
       "title": "Conectar Shopify",
-      "intro": "Dos vías: una app personalizada creada en el admin de la tienda (más rápida, una sola tienda) o una app pública con OAuth (un único flujo de instalación para todos los clientes).",
+      "intro": "El comerciante conecta la tienda con su propia app de Shopify del Dev Dashboard (la configuración de abajo, unos diez minutos). Las agencias y las instalaciones de la plataforma tienen sus propios caminos más abajo.",
       "steps": [
         {
-          "title": "Crea la app personalizada",
-          "body": "En el admin de la tienda abre Configuración → Apps y canales de venta → Desarrollar apps → Crear una app. Llámala “Hullwise”.",
-          "verify": true
+          "title": "Tres formas de conectar",
+          "body": "1. Misma organización (recomendado): la app y la tienda pertenecen a la misma organización de Shopify. Conectar usa la concesión client credentials con el Client ID y el secret; no hace falta URL de redirección y el token de 24 horas se renueva solo.\n2. Tienda de un cliente (agencia): la app está en otra organización. Conectar responde que la tienda está fuera de la organización de la app; añade la URL de redirección a la versión de la app y usa “Instalar en tu tienda” (authorization code grant, mismos Client ID y secret).\n3. App de la plataforma: una app pública de la plataforma (SHOPIFY_API_KEY / SHOPIFY_API_SECRET), en Avanzado."
         },
         {
-          "title": "Concede los permisos de Admin API",
-          "body": "En Configuración → Integración Admin API selecciona los permisos listados a la derecha para los módulos contratados. Guarda."
-        },
-        {
-          "title": "Instala y copia el token",
-          "body": "Instala la app, luego muestra una sola vez el token de Admin API (shpat_…) y la clave secreta de la API. Pégalos en Hullwise → Integraciones → Shopify → Conectar. Hullwise los guarda cifrados (AES-GCM).",
+          "title": "Agencia: distribución personalizada",
+          "body": "En el Dev Dashboard abre la app → Distribución → Distribución personalizada, introduce el dominio de la tienda del cliente y genera el enlace de instalación. En la versión de la app añade la URL de redirección {redirectUrl} a las URL permitidas y pon {appUrl} como URL de la app; publica la versión. Después guarda el Client ID y el secret en Integraciones → Shopify → Conectar y pulsa “Instalar en tu tienda”.",
           "verify": true
         },
         {
           "title": "Webhooks",
-          "body": "Hullwise registra sus suscripciones de webhooks por API al conectar hacia {webhookUrl}. Para una app personalizada el secreto de firma es la clave secreta de la API. El endpoint responde 200 en milisegundos, guarda el evento y lo procesa en segundo plano; los duplicados se ignoran por (topic, id, updated_at)."
+          "body": "{product} registra sus suscripciones de webhooks por API cuando la tienda se conecta, hacia {webhookUrl}. Se firman con el Client secret de la app (apps personalizadas antiguas: la clave secreta de API). El endpoint responde 200 en milisegundos, guarda el evento y lo procesa en segundo plano; los duplicados se ignoran por (topic, id, updated_at). Los webhooks de privacidad (customers/data_request, customers/redact, shop/redact) van a {complianceUrl}."
         },
         {
-          "title": "Importación inicial",
-          "body": "Haz clic en Resincronizar: se importan ubicaciones, productos, inventario y descuentos, luego los pedidos página a página con cursor reanudable. Las tiendas grandes continúan en varias ejecuciones; el progreso se ve en “Ejecuciones recientes”."
+          "title": "Historial de pedidos",
+          "body": "Al conectar empieza la importación del historial de pedidos dentro de la ventana configurada (Configuración → Operativa, 24 meses por defecto), y después del catálogo y las devoluciones de esos pedidos. El worker la continúa por bloques; sin worker la continúa Resincronizar. El avance aparece en la tarjeta de Shopify y los paneles muestran un aviso hasta que termina."
         },
         {
-          "title": "Productos: qué edita Hullwise",
-          "body": "Hullwise refleja en lectura todos los campos del producto (multimedia, descripción, estado y canales, organización, variantes, SEO, metacampos) y solo escribe título, descripción, vendor, tipo, etiquetas, estado, SEO, categoría, precio y precio de comparación de las variantes, SKU, código de barras, peso, política sin stock y multimedia (añadir desde URL, ordenar, quitar, texto alternativo). Scopes: read_products y write_products; read_publications para mostrar los canales de venta. Todo lo demás abre el producto en el admin de Shopify. Una edición abierta antes de un cambio hecho en Shopify se rechaza con “cambiado en Shopify, recarga”.",
+          "title": "Productos: qué edita {product}",
+          "body": "{product} refleja en lectura todos los campos del producto (multimedia, descripción, estado y canales, organización, variantes, SEO, metacampos) y solo escribe título, descripción, proveedor, tipo, etiquetas, estado, SEO, categoría, precio y precio de comparación de las variantes, SKU, código de barras, peso, política de inventario y multimedia (añadir desde URL, reordenar, eliminar, texto alternativo). Scopes: read_products y write_products; read_publications para mostrar los canales de venta. Todo lo demás abre el producto en el admin de Shopify. Una edición abierta antes de un cambio hecho en Shopify se rechaza con “cambiado en Shopify, recarga”.",
           "verify": true
         },
         {
           "title": "Reglas de estado",
-          "body": "Hullwise nunca deriva el estado del pedido de etiquetas fijas. Abre Ajustes → Estados de pedido y asigna etiquetas, métodos de pago y estados financieros/de preparación a los estados canónicos; previsualiza sobre los últimos 50 pedidos."
+          "body": "{product} nunca deduce el estado del pedido de etiquetas fijas. Abre Configuración → Estados de pedido y asigna etiquetas, métodos de pago y estados financieros/de preparación de la tienda a los estados canónicos; previsualiza el resultado en los últimos 50 pedidos."
         },
         {
-          "title": "Verifica",
-          "body": "Probar conexión muestra el nombre de la tienda y los permisos concedidos; haz un pedido de prueba y míralo aparecer en Pedidos en segundos, con el evento “importado” en su cronología."
+          "title": "Verificar",
+          "body": "Probar conexión muestra el nombre de la tienda y dice con palabras qué permisos faltan y cómo añadirlos (nueva versión → publicar → aprobar en el admin de la tienda). Haz un pedido de prueba en la tienda y míralo aparecer en Pedidos en segundos, con un evento “importado” en su historial."
         },
         {
-          "title": "App pública (opcional)",
-          "body": "Crea la app en el panel de Partners, configura la URL de redirección en /api/integrations/shopify/oauth/callback, pon el client id y el secret en SHOPIFY_API_KEY y SHOPIFY_API_SECRET, y usa “Instalar vía OAuth”.",
+          "title": "App de la plataforma (opcional)",
+          "body": "Para una app pública de la plataforma: créala en el Dev Dashboard con distribución pública, pon la URL de redirección {redirectUrl}, guarda su Client ID y su secret en SHOPIFY_API_KEY y SHOPIFY_API_SECRET; los comerciantes usan Avanzado → “Instalar la app de la plataforma”.",
           "verify": true
+        },
+        {
+          "title": "App personalizada existente (antes de 2026)",
+          "body": "Desde el 1 de enero de 2026 Shopify ya no permite crear apps en el admin de la tienda. Una tienda que ya tenga una puede conectarse en Avanzado con su token de acceso de Admin API (shpat_…) y su clave secreta de API."
         }
       ],
       "errors": [
         {
-          "symptom": "Conexión fallida con HTTP 401",
-          "fix": "El token fue revocado o copiado incompleto. Genera un token nuevo en la app y reconecta."
+          "symptom": "“La tienda no está en la misma organización de Shopify que la app”",
+          "fix": "Usa “Instalar en tu tienda” tras añadir la URL de redirección a la versión de la app, o crea la app desde la organización propietaria de la tienda."
         },
         {
-          "symptom": "Acceso denegado en una consulta",
-          "fix": "Falta un permiso: la tarjeta muestra cuál. Añádelo en la configuración de la app y reinstala."
+          "symptom": "“Shopify ha rechazado el Client ID o el Client secret”",
+          "fix": "Cópialos de nuevo desde la Configuración de la app; un secret regenerado invalida el anterior."
+        },
+        {
+          "symptom": "Faltan permisos",
+          "fix": "Crea una nueva versión con los scopes indicados, publícala y aprueba la actualización en el admin de la tienda."
         },
         {
           "symptom": "Webhooks rechazados con 401",
-          "fix": "El secreto de firma difiere del guardado en Hullwise. Reconecta con la clave secreta actual."
+          "fix": "El secreto de firma es distinto del guardado: vuelve a conectar con el Client secret actual."
         },
         {
           "symptom": "Throttled / 429",
-          "fix": "Normal durante sincronizaciones pesadas: Hullwise espera y reintenta solo; la ejecución continúa desde el cursor."
+          "fix": "Normal con sincronizaciones intensas: {product} espera y reintenta solo; la ejecución sigue desde su cursor."
         }
-      ]
+      ],
+      "setup_title": "Configuración del comerciante"
     },
     "meta": {
       "title": "Conectar Meta Ads",
@@ -3466,7 +3470,7 @@
         },
         {
           "title": "Shopify Subscriptions: añade los scopes de contratos",
-          "body": "En la app personalizada de la conexión de Shopify (Configuración → Apps y canales de venta → Desarrollar apps → tu app → Configuración), añade read_own_subscription_contracts, write_own_subscription_contracts y read_customer_payment_methods, guarda y reinstala la app para que el token los reciba.",
+          "body": "En la app de Shopify de la conexión (Dev Dashboard → tu app → nueva versión → Acceso; una app personalizada antigua: Configuración → Apps y canales de venta → Desarrollar apps → Configuración), añade read_own_subscription_contracts, write_own_subscription_contracts y read_customer_payment_methods, publica la versión y aprueba la actualización en el admin de la tienda para que el token los reciba.",
           "verify": true
         },
         {
@@ -3948,7 +3952,9 @@
           "fix": "Falta la URL del webhook en Spoki o es incorrecta; vuelve a copiarla desde la tarjeta de la integración."
         }
       ]
-    }
+    },
+    "scope_required": "Obligatorio",
+    "scope_optional": "Opcional"
   },
   "admin": {
     "console": "Consola de superadministrador",
@@ -9835,6 +9841,111 @@
       "signing": "La firma es el HMAC-SHA256 del timestamp, un punto y el cuerpo sin procesar, con el secreto del endpoint como clave, en hexadecimal: t=<timestamp>,v1=<firma>. Rechaza los timestamps de más de {tolerance} segundos. Tras regenerar el secreto también firma el anterior (un segundo v1) durante {grace} horas.",
       "retries": "Una entrega tiene éxito con cualquier respuesta 2xx en {timeout} segundos. Si no, se reintenta tras {schedule}; después la entrega falla y se puede reenviar a mano desde el registro. Las redirecciones no se siguen.",
       "security": "Los endpoints deben ser https en un host público. Las direcciones privadas, de loopback, link-local o de metadatos de la nube se rechazan al guardar el endpoint y otra vez en cada entrega, tras la resolución DNS."
+    }
+  },
+  "integration_setup": {
+    "common": {
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "verify_badge": "Por verificar",
+      "full_guide": "Guía completa, con las otras formas de conectar",
+      "unknown_error": "Algo ha fallado.",
+      "advanced": "Avanzado: otras formas de conectar",
+      "connecting": "Conectando…",
+      "hide_setup": "Ocultar configuración"
+    },
+    "shopify": {
+      "intro": "Conecta tu tienda con tu propia app de Shopify: unos diez minutos, una sola vez. Sigue los pasos en tu cuenta de Shopify y pega aquí tres valores.",
+      "mock_notice": "Este entorno es simulado: Conectar vincula una tienda simulada y los valores que escribas no se envían a ningún sitio. Los pasos de abajo son los que hace el comerciante en una tienda real.",
+      "connect": "Conectar",
+      "reconnect": "Cambiar app o reconectar",
+      "connected": "Conectado a {shop}. La importación del historial de pedidos ha empezado: su avance aparece en esta tarjeta.",
+      "connected_no_import": "Conectado a {shop}. El historial de pedidos ya estaba importado.",
+      "missing_optional": "Permisos opcionales aún no concedidos: {scopes}. Las funciones que los usan siguen apagadas hasta que los añadas a una nueva versión de la app, la publiques y la apruebes en el admin de la tienda.",
+      "saved_app": "App guardada: Client ID {clientId} para {shop}.",
+      "install_hint": "Tu tienda no está en la misma organización de Shopify que la app (por ejemplo, la creó una agencia). Añade la URL de redirección de abajo a las URL de redirección permitidas de la versión de la app, publica la versión e instala la app en tu tienda desde aquí.",
+      "install": "Instalar en tu tienda",
+      "public_app_hint": "App de la plataforma: si este espacio ofrece una app pública de Shopify, escribe el dominio de tu tienda y aprueba la instalación en Shopify.",
+      "public_app_link": "Instalar la app de la plataforma",
+      "legacy_title": "App personalizada existente (creada en el admin de Shopify antes de 2026)",
+      "legacy_hint": "Shopify ya no permite crear estas apps. Si tu tienda ya tiene una, pega su token de acceso de Admin API (shpat_…) y su clave secreta de API.",
+      "legacy_connect": "Conectar con el token",
+      "steps": {
+        "create_app": {
+          "title": "Crea una app en el Dev Dashboard de Shopify",
+          "body": "Inicia sesión en dev.shopify.com con la cuenta propietaria de la tienda. Abre Apps → Crear app → Empezar desde el Dev Dashboard y ponle un nombre (por ejemplo el de tu tienda). La app y la tienda deben pertenecer a la misma organización."
+        },
+        "scopes": {
+          "title": "Crea una versión con estos permisos",
+          "body": "En la app abre Versiones → Nueva versión. En Acceso pega los scopes obligatorios; añade los opcionales para las funciones que quieras (descuentos, devoluciones, edición de pedidos, pagos de Shopify Payments). Deja vacías las URL de redirección por ahora. La URL de webhooks de cumplimiento de abajo va en los webhooks de privacidad (RGPD) de la versión, si el formulario la pide."
+        },
+        "release_install": {
+          "title": "Publica la versión e instala la app en tu tienda",
+          "body": "Pulsa Publicar y, desde la página de la app, elige Instalar app, selecciona tu tienda y aprueba los permisos en el admin de la tienda. Cada cambio posterior de permisos necesita una nueva versión, su publicación y la aprobación en el admin de la tienda."
+        },
+        "credentials": {
+          "title": "Copia el Client ID y el Client secret",
+          "body": "En la Configuración de la app (o en Resumen) copia el Client ID y muestra el Client secret. Mantén el secret en privado: aquí se guarda cifrado y no vuelve a mostrarse."
+        },
+        "connect": {
+          "title": "Pégalos aquí y conecta",
+          "body": "Escribe el dominio de tu tienda (nombre.myshopify.com), el Client ID y el Client secret y pulsa Conectar. La conexión se comprueba al momento, se registran los webhooks y empieza la importación de tu historial de pedidos. Si Shopify responde que la tienda no está en la organización de la app, añade la URL de redirección de abajo a la versión de la app y usa “Instalar en tu tienda”."
+        }
+      },
+      "values": {
+        "scopes_required": "Scopes obligatorios",
+        "scopes_optional": "Scopes opcionales",
+        "compliance_url": "URL de webhooks de cumplimiento (RGPD)",
+        "redirect_url": "URL de redirección (solo para “Instalar en tu tienda”)",
+        "app_url": "URL de la app"
+      },
+      "fields": {
+        "shop": "Dominio de la tienda",
+        "clientId": "Client ID",
+        "clientSecret": "Client secret"
+      },
+      "errors": {
+        "invalid_input": {
+          "message": "Revisa los campos.",
+          "fix": "El dominio de la tienda es del tipo nombre.myshopify.com; el Client ID y el secret están en la Configuración de la app en el Dev Dashboard."
+        },
+        "wrong_credentials": {
+          "message": "Shopify ha rechazado el Client ID o el Client secret.",
+          "fix": "Cópialos de nuevo desde la Configuración de la app en el Dev Dashboard (puede que el secret se haya regenerado) y vuelve a conectar."
+        },
+        "not_in_organization": {
+          "message": "Esta tienda no está en la misma organización de Shopify que la app.",
+          "fix": "Añade la URL de redirección a las URL permitidas de la versión de la app, publica la versión y usa “Instalar en tu tienda”. O crea la app desde la organización propietaria de la tienda."
+        },
+        "not_installed": {
+          "message": "La app no está instalada en esta tienda.",
+          "fix": "En el Dev Dashboard abre la app, elige Instalar app y selecciona esta tienda, y vuelve a conectar. “Instalar en tu tienda” también la instala."
+        },
+        "shop_not_found": {
+          "message": "Shopify no conoce este dominio.",
+          "fix": "Usa el dominio myshopify.com de la tienda (admin de Shopify → Configuración → Dominios), no el dominio público."
+        },
+        "version_not_released": {
+          "message": "La app no tiene una versión publicada con permisos en esta tienda.",
+          "fix": "Crea una versión con los scopes obligatorios, publícala y apruébala en el admin de la tienda, y vuelve a conectar."
+        },
+        "missing_scopes": {
+          "message": "Faltan permisos: {detail}.",
+          "fix": "En el Dev Dashboard crea una nueva versión de la app con estos scopes, publícala y aprueba la actualización en el admin de la tienda (Apps). Después vuelve a conectar o a probar la conexión."
+        },
+        "token_refresh_failed": {
+          "message": "No se ha podido renovar el acceso a la tienda.",
+          "fix": "Probablemente se regeneró el Client secret o se desinstaló la app: vuelve a conectar con el Client ID y el secret actuales."
+        },
+        "install_not_ready": {
+          "message": "Guarda antes la app.",
+          "fix": "Rellena el dominio de la tienda, el Client ID y el Client secret y pulsa Conectar: el botón de instalación aparece si Shopify lo pide."
+        },
+        "unknown": {
+          "message": "Shopify ha respondido con un error: {detail}",
+          "fix": "Revisa los pasos de arriba; si continúa, prueba de nuevo en unos minutos."
+        }
+      }
     }
   }
 }

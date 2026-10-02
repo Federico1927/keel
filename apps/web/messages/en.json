@@ -2963,67 +2963,71 @@
     "errors_title": "Common errors",
     "shopify": {
       "title": "Connect Shopify",
-      "intro": "Two ways: a custom app created in the store admin (fastest, one store) or a public app with OAuth (one install flow for every customer).",
+      "intro": "The merchant connects the store with their own Shopify app from the Dev Dashboard (the setup below, about ten minutes). Agencies and platform-wide installs have their own paths further down.",
       "steps": [
         {
-          "title": "Create the custom app",
-          "body": "In the store admin open Settings → Apps and sales channels → Develop apps → Create an app. Name it “Hullwise”.",
-          "verify": true
+          "title": "Three ways to connect",
+          "body": "1. Own organization (recommended): the app and the store belong to the same Shopify organization. Connect uses the client credentials grant with the Client ID and secret; no redirect URL is needed and the 24-hour token renews itself.\n2. A client's store (agency): the app lives in another organization. Connect answers that the store is outside the app's organization; add the redirect URL to the app version and use “Install on your store” (authorization code grant, same Client ID and secret).\n3. Platform app: a public app of the platform (SHOPIFY_API_KEY / SHOPIFY_API_SECRET), under Advanced."
         },
         {
-          "title": "Grant Admin API scopes",
-          "body": "In Configuration → Admin API integration select the scopes listed on the right for the modules the customer bought. Save."
-        },
-        {
-          "title": "Install and copy the token",
-          "body": "Install the app, then reveal the Admin API access token once (shpat_…) and the API secret key. Paste both in Hullwise → Integrations → Shopify → Connect. Hullwise stores them encrypted (AES-GCM).",
+          "title": "Agency: custom distribution",
+          "body": "In the Dev Dashboard open the app → Distribution → Custom distribution, enter the client's store domain and generate the install link. In the app version add the redirect URL {redirectUrl} to the allowed redirection URLs and set the app URL to {appUrl}; release the version. Then save the Client ID and secret in Integrations → Shopify → Connect and click “Install on your store”.",
           "verify": true
         },
         {
           "title": "Webhooks",
-          "body": "Hullwise registers its webhook subscriptions through the API at connect time against {webhookUrl}. For a custom app the signing secret is the app's API secret key. The endpoint answers 200 within milliseconds, stores the event and processes it in the background; duplicates are ignored by (topic, id, updated_at)."
+          "body": "{product} registers its webhook subscriptions through the API when the store connects, against {webhookUrl}. They are signed with the app's Client secret (legacy custom apps: the API secret key). The endpoint answers 200 within milliseconds, stores the event and processes it in the background; duplicates are ignored by (topic, id, updated_at). The privacy webhooks (customers/data_request, customers/redact, shop/redact) go to {complianceUrl}."
         },
         {
-          "title": "Initial import",
-          "body": "Click Resync: locations, products, inventory and discounts are imported, then orders page by page with a resumable cursor. Large stores continue across several worker runs; progress is visible under “Recent sync runs”."
+          "title": "Order history",
+          "body": "Connecting starts the import of the store's order history inside the history window (Settings → Operational, 24 months by default), then the catalog and the returns of those orders. The worker continues it in slices; without a worker, Resync continues it. Progress shows on the Shopify card, the dashboards show a banner until it finishes."
         },
         {
-          "title": "Products: what Hullwise edits",
-          "body": "Hullwise mirrors every product field on read (media, description, status and channels, organisation, variants, SEO, metafields) and writes back only title, description, vendor, type, tags, status, SEO, category, variant price, compare-at price, SKU, barcode, weight, inventory policy and media (add from URL, reorder, remove, alt text). Scopes: read_products and write_products; read_publications to show the sales channels. Everything else opens the product in the Shopify admin. An edit opened before a change made in Shopify is refused with “changed in Shopify, reload”.",
+          "title": "Products: what {product} edits",
+          "body": "{product} mirrors every product field on read (media, description, status and channels, organisation, variants, SEO, metafields) and writes back only title, description, vendor, type, tags, status, SEO, category, variant price, compare-at price, SKU, barcode, weight, inventory policy and media (add from URL, reorder, remove, alt text). Scopes: read_products and write_products; read_publications to show the sales channels. Everything else opens the product in the Shopify admin. An edit opened before a change made in Shopify is refused with “changed in Shopify, reload”.",
           "verify": true
         },
         {
           "title": "Order state rules",
-          "body": "Hullwise never derives the order status from fixed tags. Open Settings → Order states and map the store's tags, payment methods and financial/fulfillment statuses to the canonical states; preview the result on the last 50 orders."
+          "body": "{product} never derives the order status from fixed tags. Open Settings → Order states and map the store's tags, payment methods and financial/fulfillment statuses to the canonical states; preview the result on the last 50 orders."
         },
         {
           "title": "Verify",
-          "body": "Test connection shows the shop name and the granted scopes; place a test order in the store and watch it appear in Orders within seconds, with an “imported” event in its timeline."
+          "body": "Test connection shows the shop name and says in plain words which permissions are missing and how to add them (new version → release → approve in the store admin). Place a test order in the store and watch it appear in Orders within seconds, with an “imported” event in its timeline."
         },
         {
-          "title": "Public app (optional)",
-          "body": "Create the app in the Partner dashboard, set the redirect URL to /api/integrations/shopify/oauth/callback, put the client id and secret in SHOPIFY_API_KEY and SHOPIFY_API_SECRET, then use “Install via OAuth”.",
+          "title": "Platform app (optional)",
+          "body": "For a public app of the platform: create it in the Dev Dashboard with public distribution, set the redirect URL to {redirectUrl}, put its Client ID and secret in SHOPIFY_API_KEY and SHOPIFY_API_SECRET, then merchants use Advanced → “Install the platform app”.",
           "verify": true
+        },
+        {
+          "title": "Existing custom app (before 2026)",
+          "body": "Shopify no longer lets anyone create apps in the store admin (since 1 January 2026). A store that already has one can still connect under Advanced with its Admin API access token (shpat_…) and API secret key."
         }
       ],
       "errors": [
         {
-          "symptom": "Connection failed with HTTP 401",
-          "fix": "The token was revoked or copied incompletely. Create a new token in the app and reconnect."
+          "symptom": "“The store is not in the same Shopify organization as the app”",
+          "fix": "Use “Install on your store” after adding the redirect URL to the app version, or create the app from the organization that owns the store."
         },
         {
-          "symptom": "Access denied on a query",
-          "fix": "A scope is missing: the card shows which. Add it in the app configuration and reinstall."
+          "symptom": "“Shopify refused the Client ID or the Client secret”",
+          "fix": "Copy both again from the app's Settings; a rotated secret invalidates the old one."
+        },
+        {
+          "symptom": "Permissions missing",
+          "fix": "Create a new version with the scopes listed, release it and approve the update in the store admin."
         },
         {
           "symptom": "Webhooks rejected with 401",
-          "fix": "The signing secret differs from the one saved in Hullwise. Reconnect with the current API secret key."
+          "fix": "The signing secret differs from the one saved: connect again with the current Client secret."
         },
         {
           "symptom": "Throttled / 429",
-          "fix": "Normal under heavy sync: Hullwise waits and retries automatically; the run resumes from its cursor."
+          "fix": "Normal under heavy sync: {product} waits and retries automatically; the run resumes from its cursor."
         }
-      ]
+      ],
+      "setup_title": "Merchant setup"
     },
     "meta": {
       "title": "Connect Meta Ads",
@@ -3466,7 +3470,7 @@
         },
         {
           "title": "Shopify Subscriptions: add the contract scopes",
-          "body": "In the custom app of the Shopify connection (Settings → Apps and sales channels → Develop apps → your app → Configuration), add read_own_subscription_contracts, write_own_subscription_contracts and read_customer_payment_methods, save and reinstall the app so the token gets them.",
+          "body": "In the Shopify app of the connection (Dev Dashboard → your app → new version → Access; a legacy custom app: Settings → Apps and sales channels → Develop apps → Configuration), add read_own_subscription_contracts, write_own_subscription_contracts and read_customer_payment_methods, release the version and approve the update in the store admin so the token gets them.",
           "verify": true
         },
         {
@@ -3948,7 +3952,9 @@
           "fix": "The webhook URL is missing or wrong in Spoki; copy it again from the integration card."
         }
       ]
-    }
+    },
+    "scope_required": "Required",
+    "scope_optional": "Optional"
   },
   "admin": {
     "console": "Super-admin console",
@@ -9835,6 +9841,111 @@
       "signing": "The signature is HMAC-SHA256 of the timestamp, a dot and the raw body, keyed with the endpoint secret, in hex: t=<timestamp>,v1=<signature>. Reject timestamps older than {tolerance} seconds. After a secret rotation the previous secret signs too (a second v1) for {grace} hours.",
       "retries": "A delivery succeeds on any 2xx answer within {timeout} seconds. Anything else is retried after {schedule}; then the delivery is failed and can be redelivered by hand from the log. Redirects are not followed.",
       "security": "Endpoints must be https on a public host. Addresses that are private, loopback, link-local or cloud metadata are refused when the endpoint is saved and again at every delivery, after DNS resolution."
+    }
+  },
+  "integration_setup": {
+    "common": {
+      "copy": "Copy",
+      "copied": "Copied",
+      "verify_badge": "To verify",
+      "full_guide": "Full guide, with the other ways to connect",
+      "unknown_error": "Something went wrong.",
+      "advanced": "Advanced: other ways to connect",
+      "connecting": "Connecting…",
+      "hide_setup": "Hide setup"
+    },
+    "shopify": {
+      "intro": "Connect your store with your own Shopify app: it takes about ten minutes, once. Follow the steps in your Shopify account, then paste three values here.",
+      "mock_notice": "This environment is simulated: Connect links a simulated store and the values you type are not sent anywhere. The steps below are what the merchant does on a real store.",
+      "connect": "Connect",
+      "reconnect": "Change app or reconnect",
+      "connected": "Connected to {shop}. The import of the order history has started: its progress shows on this card.",
+      "connected_no_import": "Connected to {shop}. The order history was already imported.",
+      "missing_optional": "Optional permissions not granted yet: {scopes}. The features that use them stay off until you add them to a new version of the app, release it and approve it in the store admin.",
+      "saved_app": "App saved: Client ID {clientId} for {shop}.",
+      "install_hint": "Your store is not in the same Shopify organization as the app (for example, an agency created the app). Add the redirect URL below to the app version's allowed redirection URLs, release the version, then install the app on your store from here.",
+      "install": "Install on your store",
+      "public_app_hint": "Platform app: if this workspace offers a public Shopify app, type your store domain and approve the installation on Shopify.",
+      "public_app_link": "Install the platform app",
+      "legacy_title": "Existing custom app (created in the Shopify admin before 2026)",
+      "legacy_hint": "Shopify no longer lets you create these apps. If your store already has one, paste its Admin API access token (shpat_…) and its API secret key.",
+      "legacy_connect": "Connect with the token",
+      "steps": {
+        "create_app": {
+          "title": "Create an app in the Shopify Dev Dashboard",
+          "body": "Sign in to dev.shopify.com with the account that owns the store. Open Apps → Create app → Start from Dev Dashboard, and name it (for example after your store). The app and your store must belong to the same organization."
+        },
+        "scopes": {
+          "title": "Create a version with these permissions",
+          "body": "In the app, open Versions → New version. Under Access, paste the required scopes; add the optional ones for the features you want (discounts, returns, order editing, Shopify Payments payouts). Leave the redirect URLs empty for now. The compliance webhook URL below goes in the version's privacy (GDPR) webhooks, if the form asks for it."
+        },
+        "release_install": {
+          "title": "Release the version and install the app on your store",
+          "body": "Click Release, then from the app's home choose Install app, pick your store and approve the permissions in the store admin. Every later change of permissions needs a new version, a release and an approval in the store admin."
+        },
+        "credentials": {
+          "title": "Copy the Client ID and the Client secret",
+          "body": "In the app's Settings (or Overview), copy the Client ID and reveal the Client secret. Keep the secret private: it is stored here encrypted and never shown again."
+        },
+        "connect": {
+          "title": "Paste them here and connect",
+          "body": "Type your store domain (name.myshopify.com), the Client ID and the Client secret, then Connect. The connection is checked at once, the webhooks are registered and the import of your order history starts. If Shopify answers that the store is not in the app's organization, add the redirect URL below to the app version and use “Install on your store”."
+        }
+      },
+      "values": {
+        "scopes_required": "Required scopes",
+        "scopes_optional": "Optional scopes",
+        "compliance_url": "Compliance (GDPR) webhook URL",
+        "redirect_url": "Redirect URL (only for “Install on your store”)",
+        "app_url": "App URL"
+      },
+      "fields": {
+        "shop": "Store domain",
+        "clientId": "Client ID",
+        "clientSecret": "Client secret"
+      },
+      "errors": {
+        "invalid_input": {
+          "message": "Check the fields.",
+          "fix": "The store domain looks like name.myshopify.com; the Client ID and the secret come from the app's Settings in the Dev Dashboard."
+        },
+        "wrong_credentials": {
+          "message": "Shopify refused the Client ID or the Client secret.",
+          "fix": "Copy both again from the app's Settings in the Dev Dashboard (the secret may have been rotated) and connect again."
+        },
+        "not_in_organization": {
+          "message": "This store is not in the same Shopify organization as the app.",
+          "fix": "Add the redirect URL to the app version's allowed redirection URLs, release the version, then use “Install on your store”. Or create the app from the organization that owns the store."
+        },
+        "not_installed": {
+          "message": "The app is not installed on this store.",
+          "fix": "In the Dev Dashboard open the app, choose Install app and pick this store, then connect again. “Install on your store” also installs it."
+        },
+        "shop_not_found": {
+          "message": "Shopify does not know this store domain.",
+          "fix": "Use the store's myshopify.com domain (Shopify admin → Settings → Domains), not the public domain."
+        },
+        "version_not_released": {
+          "message": "The app has no released version with permissions on this store.",
+          "fix": "Create a version with the required scopes, release it and approve it in the store admin, then connect again."
+        },
+        "missing_scopes": {
+          "message": "Permissions missing: {detail}.",
+          "fix": "In the Dev Dashboard create a new version of the app with these scopes, release it, then approve the update in the store admin (Apps). Then connect or test the connection again."
+        },
+        "token_refresh_failed": {
+          "message": "The access to the store could not be renewed.",
+          "fix": "The Client secret was probably rotated or the app was uninstalled: connect again with the current Client ID and secret."
+        },
+        "install_not_ready": {
+          "message": "Save the app first.",
+          "fix": "Fill in the store domain, the Client ID and the Client secret and click Connect: the install button appears if Shopify asks for it."
+        },
+        "unknown": {
+          "message": "Shopify answered with an error: {detail}",
+          "fix": "Check the steps above; if it persists, test again in a few minutes."
+        }
+      }
     }
   }
 }

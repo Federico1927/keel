@@ -22,6 +22,8 @@ export interface ComplianceInput {
   /** The platform app's secret (`SHOPIFY_API_SECRET`), for stores connected through the public app. */
   platformSecret?: string | null;
   now?: Date;
+  /** Connection for the tenant's RLS transaction (default: the app connection; tests pass theirs). */
+  tenantDb?: Database;
 }
 export interface ComplianceResult {
   status: 200 | 400 | 401;
@@ -39,7 +41,9 @@ const isTopic = (t: string): t is ShopifyComplianceTopic => (SHOPIFY_COMPLIANCE_
 async function candidateSecrets(db: Database, shop: string, platformSecret: string | null | undefined): Promise<{ tenantId: string | null; secret: string }[]> {
   const rows = await db.select({ tenantId: schema.integrations.tenantId, credentials: schema.integrations.credentialsEncrypted, config: schema.integrations.config }).from(schema.integrations).where(and(eq(schema.integrations.provider, "shopify"), or(eq(schema.integrations.externalAccountId, shop), sql`${schema.integrations.config} -> 'app' ->> 'shop' = ${shop}`)));
   const out: { tenantId: string | null; secret: string }[] = [];
+  const withoutOwnApp: string[] = [];
   for (const r of rows) {
+    const before = out.length;
     try {
       if (r.credentials) out.push({ tenantId: r.tenantId, secret: decryptJson<ShopifyCredentials>(r.credentials).apiSecret });
     } catch {
@@ -51,9 +55,10 @@ async function candidateSecrets(db: Database, shop: string, platformSecret: stri
     } catch {
       /* idem */
     }
+    if (out.length === before) withoutOwnApp.push(r.tenantId);
   }
-  // the platform app signs for any store it is installed on: the tenant is the one connected with that shop
-  if (platformSecret) out.push({ tenantId: rows.length === 1 ? rows[0]!.tenantId : null, secret: platformSecret });
+  // the platform app signs for the stores without an app of their own (a store with its own app never accepts it)
+  if (platformSecret && (rows.length === 0 || withoutOwnApp.length)) out.push({ tenantId: withoutOwnApp.length === 1 ? withoutOwnApp[0]! : null, secret: platformSecret });
   return out;
 }
 
@@ -94,7 +99,7 @@ export async function handleShopifyCompliance(db: Database, input: ComplianceInp
     await recordAudit(tx, { tenantId, actorType: "system", action: `integration.compliance.${topic.replace("/", ".")}`, entityType: customer ? "customer" : "integration", entityId: customer?.id ?? "shopify", metadata: { ...minimal, customerFound: !!customer } });
     await tx.update(schema.webhookEvents).set({ status: "processed", processedAt: now, attempts: 1 }).where(eq(schema.webhookEvents.id, recorded.id));
     return { duplicate: false, customerId: customer?.id ?? null };
-  });
+  }, input.tenantDb);
   if (outcome.duplicate) return { status: 200, tenantId, action: "duplicate" };
   await raisePlatformAlert(db, { kind: "compliance_request", tenantId, subject: `shopify:${topic}:${ref}`, error: topic === "shop/redact" ? "Delete the tenant's data (lifecycle: churn, then retention purge) within 30 days." : topic === "customers/redact" ? "Erase this customer's personal data within 30 days." : "Send this customer's data to the merchant within 30 days.", now, meta: { ...minimal, customerId: outcome.customerId } }, { notifyTenant: false });
   return { status: 200, tenantId, action: "logged" };

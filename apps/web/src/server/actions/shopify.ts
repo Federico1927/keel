@@ -80,7 +80,9 @@ export async function connectShopifyApp(slug: string, _prev: ActionResult<Shopif
  */
 async function connectSimulated(ctx: TenantContext, shop: string, clientId: string): Promise<ActionResult<ShopifyConnected>> {
   if (clientId.includes(MOCK_MISSING_SCOPES_MARKER)) return fail("missing_scopes", { scopes: missingShopifyScopes([...SHOPIFY_SCOPES_BY_MODULE["core.catalog"]!, ...SHOPIFY_SCOPES_BY_MODULE["core.crm"]!]).required.join(", ") });
-  const domain = `mock-${ctx.tenant.slug}.myshopify.com`;
+  // a store already simulated keeps its domain (webhooks resolve the tenant by it); a new one gets its own
+  const [row] = await ctx.run((tx) => tx.select({ shop: schema.integrations.externalAccountId, mode: schema.integrations.mode }).from(schema.integrations).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, "shopify"))).limit(1));
+  const domain = row?.shop && row.mode === "mock" ? row.shop : `mock-${ctx.tenant.slug}.myshopify.com`;
   await save(ctx, { mode: "mock", shop: domain, name: `${shop} (simulated)`, credentials: null, test: { ok: true }, config: { installedVia: "mock" } });
   const history = await importHistory(ctx);
   revalidate(ctx.tenant.slug);
