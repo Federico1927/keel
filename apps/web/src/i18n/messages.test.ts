@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import en from "../../messages/en.json";
 import itMessages from "../../messages/it.json";
 import es from "../../messages/es.json";
+import { EMAIL_TEMPLATE_NAMES } from "@hullwise/services";
 
 function flatten(obj: Record<string, unknown>, prefix = ""): string[] {
   return Object.entries(obj).flatMap(([k, v]) =>
@@ -28,5 +29,9 @@ describe("translation files", () => {
       const empty = flatten(m).filter((k) => k.split(".").reduce<unknown>((o, p) => (o as Record<string, unknown>)?.[p], m) === "");
       expect(empty).toEqual([]);
     }
+  });
+  it("labels every email template in the console's email log", () => {
+    const labels = Object.keys(en.admin.email.templates);
+    expect(EMAIL_TEMPLATE_NAMES.filter((n) => !labels.includes(n))).toEqual([]);
   });
 });
