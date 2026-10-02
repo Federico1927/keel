@@ -27,11 +27,15 @@ export function sumLines(lines: readonly InvoiceLine[]): number {
 
 export type PaymentHealth = "ok" | "past_due" | "suspended" | "none";
 
-/** Payment health from open invoices: past due when any open invoice is overdue, suspended beyond the grace period. */
-export function paymentHealth(invoices: readonly { status: string; dueAt: Date }[], now: Date, suspendAfterDays: number): { health: PaymentHealth; daysOverdue: number } {
-  const open = invoices.filter((i) => i.status === "open");
+/**
+ * Payment health from unpaid invoices: past due when an open invoice is overdue, or when a charge
+ * on it failed (Stripe retries it: the tenant is told at once), or when Stripe marked it
+ * uncollectible; suspended once the worst one is overdue beyond the grace period.
+ */
+export function paymentHealth(invoices: readonly { status: string; dueAt: Date; paymentFailedAt?: Date | null }[], now: Date, suspendAfterDays: number): { health: PaymentHealth; daysOverdue: number } {
   if (invoices.length === 0) return { health: "none", daysOverdue: 0 };
-  const overdue = open.map((i) => Math.floor((now.getTime() - i.dueAt.getTime()) / 864e5)).filter((d) => d > 0);
+  const days = (i: { dueAt: Date }) => Math.floor((now.getTime() - i.dueAt.getTime()) / 864e5);
+  const overdue = invoices.filter((i) => (i.status === "open" || i.status === "uncollectible") && (days(i) > 0 || Boolean(i.paymentFailedAt) || i.status === "uncollectible")).map((i) => Math.max(0, days(i)));
   if (!overdue.length) return { health: "ok", daysOverdue: 0 };
   const worst = Math.max(...overdue);
   return { health: worst > suspendAfterDays ? "suspended" : "past_due", daysOverdue: worst };

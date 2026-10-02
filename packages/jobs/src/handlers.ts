@@ -1,9 +1,9 @@
 import { OPERATIONAL_TENANT_STATUSES, isTenantOperational, platformRetentionDays } from "@keel/config";
 import { parseTenantSettings } from "@keel/core";
 import { adminDb, and, eq, inArray, lte, schema, withTenant } from "@keel/db";
-import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, runAdsEntitySync, rollupAdEntityMetrics } from "@keel/services";
+import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, runAdsEntitySync, rollupAdEntityMetrics } from "@keel/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue } from "@keel/addon-cod";
-import { adsWindow, resyncJobsFor, type TenantExportJob, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob } from "./queues";
+import { adsWindow, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob, resyncJobsFor, type TenantExportJob } from "./queues";
 
 export interface Enqueue {
   (queue: string, data: unknown, opts?: { singletonKey?: string; startAfterSeconds?: number }): Promise<void>;
@@ -43,6 +43,12 @@ export async function handleEmailSend(job: EmailSendJob, enqueue: Enqueue): Prom
 export async function handleEmailEvent(job: EmailEventJob): Promise<void> {
   const r = await processEmailEvent(adminDb(), job.eventId);
   if (r === "failed") throw new Error(`email event ${job.eventId} failed`);
+}
+
+/** A stored Stripe event (#53): subscription and invoice mirror, tenant lifecycle. */
+export async function handleBillingEvent(job: BillingEventJob): Promise<void> {
+  const r = await processBillingEvent(adminDb(), job.eventId);
+  if (r === "failed") throw new Error(`billing event ${job.eventId} failed`);
 }
 
 /** Builds a queued CSV export, stores the file and notifies the user who asked for it. */
@@ -271,6 +277,7 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<JobOut
       await withTenant(t.id, (tx) => rollupAdEntityMetrics(sys(t.id)(tx), { retentionDays: settings.adsDailyRetentionDays, minImpressions: settings.adsSearchTermMinImpressions }));
     }
     await purgeEmailRows(adminDb(), { days });
+    await purgeBillingEvents(adminDb(), { days });
     // #32: audit rows past each plan's window (batched, one job_runs row per tenant), expired export files, old job history
     const audit = await purgeExpiredAudit(adminDb());
     const exports = await purgeExpiredTenantExports(adminDb());
@@ -282,6 +289,8 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<JobOut
     // the platform sender's housekeeping (no tenant): events left pending after the 200, queued emails whose job was lost
     await retryEmailEvents(adminDb());
     await sweepLostEmails(adminDb());
+    // Stripe webhook events left pending after the 200 (#53) share the 10-minute housekeeping
+    await retryBillingEvents(adminDb());
     return;
   }
   if (job.kind === "tasks" || job.kind === "notify" || job.kind === "digest") {
@@ -308,6 +317,8 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<JobOut
     return;
   }
   if (job.kind === "billing") {
+    // Stripe events left pending or failed first, so the suspension rule sees the latest payments
+    await retryBillingEvents(adminDb());
     await issueDueInvoices(adminDb());
     await applySuspensions(adminDb());
     return;

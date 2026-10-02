@@ -58,12 +58,15 @@ test.describe("ads below the campaign", () => {
     // exclude another candidate (the demo term stays for the next run)
     const other = page.getByTestId("search-term-row").filter({ hasNotText: "vestiti gratis" }).filter({ has: page.getByTestId("add-negative") }).last();
     const text = (await other.locator("td").first().locator("div").first().textContent())!.trim();
+    // the same term can be searched in several ad groups: excluding it in one removes that row only
+    const exact = new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`);
+    const rowsOf = () => page.getByTestId("search-term-row").locator("td:first-child > div:first-child").filter({ hasText: exact });
+    const before = await rowsOf().count();
     await other.getByTestId("add-negative").click();
     await expect(page.getByRole("dialog")).toContainText(text);
     await page.getByRole("dialog").getByRole("button", { name: /Confirm|Conferma/ }).click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    const exact = new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`);
-    await expect(page.getByTestId("search-term-row").locator("td:first-child > div:first-child").filter({ hasText: exact })).toHaveCount(0);
+    await expect(rowsOf()).toHaveCount(before - 1);
   });
 
   test("Words tab ranks the phrase common to profitable ads first; suggestions list negatives, words and UTM gaps", async ({ page }) => {

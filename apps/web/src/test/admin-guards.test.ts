@@ -10,7 +10,7 @@ import { ADMIN_NAV } from "@/app/admin/nav-items";
  * `admin-routes.spec.ts` checks the same routes over HTTP as a tenant owner.
  */
 const ADMIN = path.resolve(__dirname, "../app/admin");
-const ACTIONS = path.resolve(__dirname, "../server/actions/admin.ts");
+const ACTIONS = [path.resolve(__dirname, "../server/actions/admin.ts"), path.resolve(__dirname, "../server/actions/admin-billing.ts")];
 
 function files(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
@@ -48,9 +48,9 @@ describe("super-admin console guards", () => {
   });
 
   it("every console server action starts with requireSuperAdmin", () => {
-    const src = readFileSync(ACTIONS, "utf8");
+    const src = ACTIONS.map((f) => readFileSync(f, "utf8")).join("\n");
     const actions = [...src.matchAll(/export async function (\w+)\([^]*?\{\n([^\n]*)/g)].map((m) => ({ name: m[1]!, first: m[2]! }));
-    expect(actions.length).toBeGreaterThanOrEqual(15);
+    expect(actions.length).toBeGreaterThanOrEqual(19);
     for (const a of actions) expect(a.first, a.name).toMatch(/await requireSuperAdmin\(\)/);
   });
 

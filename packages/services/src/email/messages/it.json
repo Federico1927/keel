@@ -119,6 +119,23 @@
       "return": "Vi chiediamo di rendere il pacco al mittente.",
       "note": "Nota: {note}",
       "hint": "Vi preghiamo di confermare rispondendo a questa email."
+    },
+    "billing_checkout": {
+      "subject": "Attiva l'abbonamento {product} per {tenant}",
+      "preheader": "Aggiungi un metodo di pagamento per attivare l'abbonamento {product}.",
+      "intro": "Buongiorno, ecco il link per attivare l'abbonamento {product} per {tenant}.",
+      "how": "Inserirai i dati di pagamento su una pagina sicura di Stripe. La carta salvata viene addebitata automaticamente ogni mese e puoi cambiarla in qualsiasi momento da Impostazioni → Fatturazione.",
+      "line_plan": "Piano {plan}, mensile: {amount}",
+      "line_addon": "Add-on {addon}, mensile: {amount}",
+      "line_setup": "Costo di attivazione una tantum, sulla prima fattura: {amount}",
+      "line_trial": "Prova gratuita: {days} giorni, poi il primo addebito mensile",
+      "cta": "Imposta il pagamento",
+      "hint": "Il link funziona fino al {date}. Prezzi IVA esclusa dove applicabile.",
+      "hint_no_expiry": "Prezzi IVA esclusa dove applicabile.",
+      "addons": {
+        "cod": "Contrassegno",
+        "customer_campaigns": "Campagne clienti"
+      }
     }
   },
   "system": {

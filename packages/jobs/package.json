@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "dotenv -e ../../.env -- tsx watch src/worker.ts",
     "start": "dotenv -e ../../.env -- tsx src/worker.ts",
+    "billing:sync-catalog": "dotenv -e ../../.env -- tsx src/billing-catalog.ts",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"
