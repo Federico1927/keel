@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MODULES, PLANS, type PlanKey, type TenantStatus } from "@hullwise/config";
+import { MODULES, PLANS, type PlanKey, type TenantStatus, isBillableAddon } from "@hullwise/config";
 import { mrr } from "./billing";
 import { canTransition, lastMonths, monthlyChargeMinor, platformSeries, subscriptionStatusFor, tenantHealth, type LifecycleSnapshot } from "./platform";
 
@@ -56,7 +56,8 @@ describe("platform series", () => {
   });
 
   it("matches the hand count", () => {
-    const growthAll = PLANS.growth.monthlyPriceMinor + MODULES["addon.cod"].monthlyPriceMinor! + MODULES["addon.customer_campaigns"].monthlyPriceMinor!;
+    // customer campaigns has no released version yet (#77): active but not billed
+    const growthAll = PLANS.growth.monthlyPriceMinor + MODULES["addon.cod"].monthlyPriceMinor! + (isBillableAddon("addon.customer_campaigns") ? MODULES["addon.customer_campaigns"].monthlyPriceMinor! : 0);
     const growthCod = PLANS.growth.monthlyPriceMinor + MODULES["addon.cod"].monthlyPriceMinor!;
     const by = Object.fromEntries(series.map((p) => [p.month, p]));
     // January: e (growth + both add-ons) and a (converted on the 24th)

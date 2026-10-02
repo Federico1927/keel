@@ -811,3 +811,15 @@ pnpm dev
 ```
 
 Utenti demo: elenco nel README. Cambiano solo `superadmin@hullwise.demo` e `multi@hullwise.demo`; gli utenti dei tenant (`@northwind.demo`, `@harborhome.demo`) restano uguali. Password `hullwise-demo-2026`. Nel browser va rifatto l'accesso.
+
+## Versioni degli add-on: si attiva solo una versione rilasciata (issue #77)
+
+Fatto:
+- Registro delle versioni in `packages/config/src/addon-versions.ts`: ogni add-on ha versioni `released` o `in_development`; la console ne mostra al massimo due (l'ultima rilasciata e quella in lavorazione).
+- `addon.cod`: v1 rilasciata, v2 (messaggi ai destinatari con un provider WhatsApp/SMS reale) in sviluppo. `addon.customer_campaigns`: v1 in sviluppo, quindi **non attivabile** (oggi i messaggi sono solo simulati).
+- `setTenantAddon` rifiuta l'attivazione senza versione rilasciata (`addon_not_released`); lo spegnimento è sempre possibile. Colonna `tenant_addons.version` (migrazione 0044, additiva) con la versione attivata. Le attivazioni già esistenti restano accese e la console le segnala.
+- Console: badge di versione e motivo del blocco nella scheda tenant e nella pagina Piani e add-on; l'interruttore ora mostra l'errore invece di ignorarlo.
+- Fatturazione allineata: si addebitano solo gli add-on rilasciati (fatture, voci Stripe, MRR, catalogo); quelli attivi ma non rilasciati restano usabili e nella finestra di abbonamento compaiono come "incluso, non fatturato".
+- Test: unit (`addon-versions.test.ts`), servizi (`billing.test.ts`), e2e (`addon-versions.spec.ts`).
+
+Resta: il controllo per singolo negozio (es. campagne senza provider di messaggi collegato), da aggiungere accanto al registro.
