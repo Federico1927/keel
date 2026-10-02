@@ -81,7 +81,7 @@ test.describe("returns and discounts", () => {
     await page.getByLabel(/^Title$|^Titolo$/).fill(`E2E pool ${Date.now()}`);
     await page.getByLabel(/Number of codes|Numero di codici/).fill("25");
     await page.getByRole("button", { name: /Create pool|Crea pool/ }).click();
-    await expect(page).toHaveURL(/\/discounts\?pool=/);
-    await expect(page.getByTestId("discount-row")).toHaveCount(25);
+    await expect(page).toHaveURL(/\/discounts\/pools\/[0-9a-f-]{36}$/);
+    await expect(page.getByTestId("pool-code-row")).toHaveCount(25);
   });
 });

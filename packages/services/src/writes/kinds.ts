@@ -114,8 +114,23 @@ defineCommerceWrite("discount.create", {
 });
 
 defineCommerceWrite("discount.pool", {
-  target: (p) => `discount_pool:${p.title}:${p.codes[0] ?? ""}:${p.codes.length}`,
-  execute: (platform, p) => platform.createDiscountPool({ title: p.title, codes: p.codes, type: p.type, value: p.value, startsAt: date(p.startsAt), endsAt: date(p.endsAt) }),
+  target: (p) => `discount_pool:${p.poolExternalId ?? p.title}:${p.codes[0] ?? ""}:${p.codes.length}`,
+  execute: async (platform, p) => (p.poolExternalId ? { externalId: p.poolExternalId, ...(await platform.addDiscountPoolCodes(p.poolExternalId, p.codes)) } : platform.createDiscountPool({ title: p.title, codes: p.codes, type: p.type, value: p.value, startsAt: date(p.startsAt), endsAt: date(p.endsAt) })),
+});
+
+// on/off is an absolute value: a newer switch on the same code or pool replaces an older one still waiting
+defineCommerceWrite("discount.status", {
+  target: (p) => `discount:${p.code}:status`,
+  supersedes: true,
+  execute: (platform, p) => platform.setDiscountActive({ externalId: p.discountExternalId, code: p.code, poolExternalId: p.poolExternalId }, p.active),
+  onSuccess: async (ctx, write) => {
+    if (write.entityType === "discount" && write.entityId) await ctx.tx.update(schema.discounts).set({ syncedAt: ctx.now ?? new Date() }).where(and(eq(schema.discounts.tenantId, ctx.tenantId), eq(schema.discounts.id, write.entityId)));
+  },
+});
+defineCommerceWrite("discount_pool.status", {
+  target: (p) => `discount_pool:${p.poolExternalId}:status`,
+  supersedes: true,
+  execute: (platform, p) => platform.setDiscountPoolActive(p.poolExternalId, p.active),
 });
 
 defineCommerceWrite("return.request", {

@@ -26,8 +26,6 @@ export const WRITE_ORDER: [keyof TenantDataset, PgTable][] = [
   ["adCreatives", schema.adCreatives],
   ["adCreativeMetricsDaily", schema.adCreativeMetricsDaily],
   ["campaignProductLinks", schema.campaignProductLinks],
-  ["discountPools", schema.discountPools],
-  ["discounts", schema.discounts],
   ["stateRules", schema.stateRules],
   ["shipmentStatusMappings", schema.shipmentStatusMappings],
   ["costSettings", schema.costSettings],
@@ -39,6 +37,9 @@ export const WRITE_ORDER: [keyof TenantDataset, PgTable][] = [
   ["orderEvents", schema.orderEvents],
   ["orderNotes", schema.orderNotes],
   ["orderDiscounts", schema.orderDiscounts],
+  // pool codes point at the order that redeemed them
+  ["discountPools", schema.discountPools],
+  ["discounts", schema.discounts],
   ["orderAttribution", schema.orderAttribution],
   ["touchpoints", schema.touchpoints],
   ["shipments", schema.shipments],

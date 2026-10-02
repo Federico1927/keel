@@ -2,6 +2,9 @@ import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex, uuid } 
 import { createdAt, tenantIsolation, updatedAt } from "./_common";
 import { tenantColumns } from "./_tenant";
 import { users } from "./auth";
+import { customers } from "./customers";
+import { campaigns } from "./marketing";
+import { orders } from "./orders";
 
 export const discountPools = pgTable(
   "discount_pools",
@@ -13,6 +16,8 @@ export const discountPools = pgTable(
     value: integer("value").notNull(),
     targetSize: integer("target_size").notNull(),
     status: text("status").notNull().default("ready"),
+    /** Deactivated pools stop accepting all their codes on the platform (issue #35). */
+    isActive: boolean("is_active").notNull().default(true),
     externalId: text("external_id"),
     startsAt: timestamp("starts_at", { withTimezone: true }),
     endsAt: timestamp("ends_at", { withTimezone: true }),
@@ -44,6 +49,12 @@ export const discounts = pgTable(
     /** platform | keel */
     source: text("source").notNull().default("platform"),
     syncedAt: timestamp("synced_at", { withTimezone: true }),
+    /** Pool codes: handed to a customer or a campaign (status `assigned`), and the first order that used it (status `redeemed`). */
+    assignedCustomerId: uuid("assigned_customer_id").references(() => customers.id, { onDelete: "set null" }),
+    assignedCampaignId: uuid("assigned_campaign_id").references(() => campaigns.id, { onDelete: "set null" }),
+    assignedAt: timestamp("assigned_at", { withTimezone: true }),
+    redeemedOrderId: uuid("redeemed_order_id").references(() => orders.id, { onDelete: "set null" }),
+    redeemedAt: timestamp("redeemed_at", { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

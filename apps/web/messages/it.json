@@ -2186,7 +2186,8 @@
     },
     "policy": "Politica e automazioni",
     "needs_review": "Da rivedere",
-    "risk_high": "rischio alto"
+    "risk_high": "rischio alto",
+    "from_store": "Dallo store"
   },
   "return_detail": {
     "order": "Ordine",
@@ -2435,7 +2436,19 @@
     "option": "Opzione",
     "sold": "Venduti",
     "returned": "Resi",
-    "no_options": "Nessuna opzione di variante nel periodo."
+    "no_options": "Nessuna opzione di variante nel periodo.",
+    "ageing": {
+      "title": "Tempo in ogni stato",
+      "description": "Giorni passati in ogni stato dai resi del periodo, e da quanto aspettano quelli aperti (oltre {days} giorni è in ritardo).",
+      "state": "Stato",
+      "avg": "Media",
+      "median": "Mediana",
+      "max": "Massimo",
+      "open": "Aperti ora",
+      "stale": "Oltre {days} giorni",
+      "days": "{n} g",
+      "empty": "Nessun reso nel periodo."
+    }
   },
   "return_reasons": {
     "title": "Motivi di reso",
@@ -2476,7 +2489,8 @@
     },
     "pool_status": {
       "ready": "Pronto",
-      "partial": "Parziale"
+      "partial": "Parziale",
+      "inactive": "Disattivato"
     },
     "columns": {
       "code": "Codice",
@@ -2490,8 +2504,12 @@
       "validity": "Validità",
       "pool": "Pool",
       "codes": "Codici",
-      "used": "Usati"
-    }
+      "used": "Usati",
+      "ready": "Pronti / obiettivo",
+      "assigned": "Assegnati"
+    },
+    "manage_pool": "Gestisci pool",
+    "pool_codes": "{n} codici"
   },
   "discount_new": {
     "title": "Nuovo sconto",
@@ -2690,7 +2708,9 @@
       "delta": "delta",
       "reconcile": "riconciliazione notturna",
       "manual": "manuale"
-    }
+    },
+    "simulate_return": "Simula reso",
+    "simulated_return": "Webhook del reso accettato (HTTP {status}) per {order}."
   },
   "integration_guide": {
     "verify_legend": "I passi segnati “Da verificare” dipendono da console dei fornitori che cambiano spesso: controllali sulla documentazione del fornitore prima della prima installazione.",
@@ -5381,7 +5401,9 @@
       "order_fulfillment_release": "Sblocco evasione",
       "order_mark_paid": "Segna ordine pagato",
       "order_refund": "Rimborso ordine",
-      "fulfillment_create": "Evasione"
+      "fulfillment_create": "Evasione",
+      "discount_status": "Attivazione sconto",
+      "discount_pool_status": "Attivazione pool di sconti"
     }
   },
   "dev_inbox": {
@@ -5876,5 +5898,63 @@
     "delete": "Elimina",
     "add": "Aggiungi",
     "unmapped_title": "Visti ma non mappati (clicca per compilare il modulo):"
+  },
+  "discount_pool": {
+    "eyebrow": "Pool di sconti",
+    "active": "Attivo",
+    "inactive": "Disattivato",
+    "all": "Tutti",
+    "export": "Esporta CSV",
+    "deactivate": "Disattiva pool",
+    "activate": "Riattiva pool",
+    "deactivate_title": "Disattivare questo pool?",
+    "deactivate_description": "Tutti i codici del pool smettono di funzionare in Keel subito e sullo store appena la modifica è sincronizzata. I codici già usati restano collegati ai loro ordini.",
+    "activate_title": "Riattivare questo pool?",
+    "activate_description": "I codici non ancora usati tornano validi, in Keel e sullo store.",
+    "top_up_title": "Ricarica",
+    "top_up_description": "Genera nuovi codici unici finché il pool ne ha questo numero pronti da distribuire. Vengono aggiunti allo stesso sconto sullo store.",
+    "top_up_target": "Codici pronti dopo la ricarica",
+    "top_up": "Ricarica",
+    "top_up_hint": "Ora ci sono {ready} codici pronti (non assegnati, non usati, attivi).",
+    "top_up_done": "{added} codici generati, {imported} accettati dallo store, {failed} rifiutati.",
+    "assign_title": "Assegna codici",
+    "assign_description": "Dai i prossimi codici disponibili a un cliente o a una campagna: non saranno più disponibili per altri.",
+    "assign_to": "Assegna a",
+    "assign_customer": "Cliente",
+    "assign_campaign": "Campagna",
+    "assign_count": "Numero di codici",
+    "customer_email": "Email del cliente",
+    "assign": "Assegna",
+    "assigned_codes": "Assegnati: {codes}",
+    "release": "Libera",
+    "redeemed_by": "Usato dall'ordine",
+    "search_placeholder": "Codice, email o ordine",
+    "empty": "Nessun codice con questi filtri.",
+    "status": {
+      "available": "Disponibile",
+      "assigned": "Assegnato",
+      "redeemed": "Riscattato"
+    },
+    "kpi": {
+      "ready": "Pronti da distribuire",
+      "target": "obiettivo {n}",
+      "validity": "Valido fino al",
+      "from": "dal {date}"
+    },
+    "columns": {
+      "code": "Codice",
+      "status": "Stato",
+      "assigned_to": "Assegnato a",
+      "order": "Ordine",
+      "redeemed_at": "Riscattato"
+    },
+    "errors": {
+      "pool_not_found": "Pool non trovato.",
+      "pool_invalid_input": "Controlla i valori e riprova.",
+      "pool_no_codes_available": "Codici disponibili insufficienti: ricarica prima il pool.",
+      "pool_platform_error": "Lo store ha rifiutato i codici. Riprova tra poco.",
+      "pool_pool_inactive": "Il pool è disattivato.",
+      "pool_recipient_not_found": "Nessun cliente con questa email."
+    }
   }
 }

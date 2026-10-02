@@ -211,9 +211,14 @@ export interface NormalizedDiscount {
 export interface NormalizedReturn {
   externalId: string;
   orderExternalId: string;
+  /** Platform status, lower-cased (Shopify `ReturnStatus`: requested, open, declined, canceled, closed). */
   status: string;
   requestedAt: Date;
-  lines: { orderLineExternalId: string; quantity: number; reason: string | null }[];
+  closedAt?: Date | null;
+  /** The customer's note on the request (first line note when the platform keeps notes per line). */
+  note?: string | null;
+  /** `externalId`: the platform's return line id; `reason`: platform reason code, lower-cased. */
+  lines: { externalId?: string | null; orderLineExternalId: string; quantity: number; reason: string | null; note?: string | null }[];
 }
 
 export interface Page<T> {
@@ -319,7 +324,9 @@ export interface CommercePlatform {
   fetchLocations(): Promise<NormalizedLocation[]>;
   fetchInventoryLevels(inventoryItemExternalIds: string[]): Promise<NormalizedInventoryLevel[]>;
   fetchDiscounts(q: SyncQuery): Promise<Page<NormalizedDiscount>>;
+  /** Returns of orders updated since `updatedSince` (any status), newest first; the nightly reconcile reads them. */
   fetchReturns(q: SyncQuery): Promise<Page<NormalizedReturn>>;
+  fetchReturn(externalId: string): Promise<NormalizedReturn | null>;
   /** Payouts of the platform's payment processor issued since `createdSince`, newest first. */
   fetchPayouts(q: SyncQuery): Promise<Page<NormalizedPayout>>;
   /** Balance transactions (charges, refunds, adjustments with their actual fees) of one payout. */
@@ -331,6 +338,8 @@ export interface CommercePlatform {
   parseWebhookProduct(payload: unknown): NormalizedProduct;
   parseWebhookCustomer(payload: unknown): NormalizedCustomer | null;
   parseWebhookInventoryLevel(payload: unknown): NormalizedInventoryLevel;
+  /** A `returns/*` payload normalized, or null when it lacks the lines (the caller then reads the return with `fetchReturn`). */
+  parseWebhookReturn(payload: unknown): NormalizedReturn | null;
   // Writes
   cancelOrder(externalId: string, opts: { reason?: string; restock: boolean; refund: boolean }): Promise<void>;
   /** Contact and note changes on an open order (address, phone, email, note). Line changes go through `createOrder` + `cancelOrder`. */
@@ -356,6 +365,15 @@ export interface CommercePlatform {
   setInventory(inventoryItemExternalId: string, locationExternalId: string, available: number): Promise<void>;
   createDiscountCode(input: { code: string; title: string; type: "percentage" | "fixed_amount" | "free_shipping"; value: number; startsAt?: Date | null; endsAt?: Date | null; usageLimit?: number | null; minimumAmountMinor?: number | null }): Promise<{ externalId: string }>;
   createDiscountPool(input: { title: string; codes: string[]; type: "percentage" | "fixed_amount"; value: number; startsAt?: Date | null; endsAt?: Date | null }): Promise<{ externalId: string; imported: string[]; failed: string[] }>;
+  /** Adds codes to an existing pool discount (top-up); codes the platform refused are returned in `failed`. */
+  addDiscountPoolCodes(poolExternalId: string, codes: string[]): Promise<{ imported: string[]; failed: string[] }>;
+  /**
+   * Turns one code on or off on the platform. A standalone code is found by id (or by code when the id is
+   * not known yet); a code of a pool is removed from (or added back to) the pool's discount.
+   */
+  setDiscountActive(discount: { externalId: string | null; code: string; poolExternalId?: string | null }, active: boolean): Promise<void>;
+  /** Turns a whole pool on or off: every code of the pool's discount stops (or starts) being accepted. */
+  setDiscountPoolActive(poolExternalId: string, active: boolean): Promise<void>;
   /** Adds returned units back to stock at a location (inventory item ids, not order lines). */
   restockInventory(lines: { inventoryItemExternalId: string; locationExternalId: string; quantity: number }[]): Promise<void>;
   // Returns write-back: request → approve or decline → (restock) → refund → close.

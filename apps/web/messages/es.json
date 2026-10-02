@@ -2186,7 +2186,8 @@
     },
     "policy": "Política y automatizaciones",
     "needs_review": "Por revisar",
-    "risk_high": "riesgo alto"
+    "risk_high": "riesgo alto",
+    "from_store": "Desde la tienda"
   },
   "return_detail": {
     "order": "Pedido",
@@ -2435,7 +2436,19 @@
     "option": "Opción",
     "sold": "Vendidos",
     "returned": "Devueltos",
-    "no_options": "Sin opciones de variante en el periodo."
+    "no_options": "Sin opciones de variante en el periodo.",
+    "ageing": {
+      "title": "Tiempo en cada estado",
+      "description": "Días que las devoluciones del periodo pasaron en cada estado, y cuánto llevan esperando las abiertas (más de {days} días es un retraso).",
+      "state": "Estado",
+      "avg": "Media",
+      "median": "Mediana",
+      "max": "Máximo",
+      "open": "Abiertas ahora",
+      "stale": "Más de {days} días",
+      "days": "{n} d",
+      "empty": "No hay devoluciones en este periodo."
+    }
   },
   "return_reasons": {
     "title": "Motivos de devolución",
@@ -2476,7 +2489,8 @@
     },
     "pool_status": {
       "ready": "Listo",
-      "partial": "Parcial"
+      "partial": "Parcial",
+      "inactive": "Desactivado"
     },
     "columns": {
       "code": "Código",
@@ -2490,8 +2504,12 @@
       "validity": "Validez",
       "pool": "Lote",
       "codes": "Códigos",
-      "used": "Usados"
-    }
+      "used": "Usados",
+      "ready": "Listos / objetivo",
+      "assigned": "Asignados"
+    },
+    "manage_pool": "Gestionar lote",
+    "pool_codes": "{n} códigos"
   },
   "discount_new": {
     "title": "Nuevo descuento",
@@ -2690,7 +2708,9 @@
       "delta": "delta",
       "reconcile": "conciliación nocturna",
       "manual": "manual"
-    }
+    },
+    "simulate_return": "Simular devolución",
+    "simulated_return": "Webhook de devolución aceptado (HTTP {status}) para {order}."
   },
   "integration_guide": {
     "verify_legend": "Los pasos marcados “Por verificar” dependen de consolas de proveedores que cambian a menudo: compruébalos en la documentación del proveedor antes de la primera instalación.",
@@ -5381,7 +5401,9 @@
       "order_fulfillment_release": "Liberación del bloqueo",
       "order_mark_paid": "Marcar pedido pagado",
       "order_refund": "Reembolso de pedido",
-      "fulfillment_create": "Preparación"
+      "fulfillment_create": "Preparación",
+      "discount_status": "Activación de descuento",
+      "discount_pool_status": "Activación de lote de descuentos"
     }
   },
   "dev_inbox": {
@@ -5876,5 +5898,63 @@
     "delete": "Eliminar",
     "add": "Añadir",
     "unmapped_title": "Vistos pero sin mapear (haz clic para rellenar el formulario):"
+  },
+  "discount_pool": {
+    "eyebrow": "Lote de descuentos",
+    "active": "Activo",
+    "inactive": "Desactivado",
+    "all": "Todos",
+    "export": "Exportar CSV",
+    "deactivate": "Desactivar lote",
+    "activate": "Reactivar lote",
+    "deactivate_title": "¿Desactivar este lote?",
+    "deactivate_description": "Todos los códigos del lote dejan de funcionar en Keel ahora y en la tienda en cuanto se sincroniza el cambio. Los códigos ya usados siguen vinculados a sus pedidos.",
+    "activate_title": "¿Reactivar este lote?",
+    "activate_description": "Los códigos que nadie ha usado vuelven a funcionar, en Keel y en la tienda.",
+    "top_up_title": "Recargar",
+    "top_up_description": "Genera nuevos códigos únicos hasta que el lote tenga este número listos para repartir. Se añaden al mismo descuento en la tienda.",
+    "top_up_target": "Códigos listos tras la recarga",
+    "top_up": "Recargar",
+    "top_up_hint": "Ahora hay {ready} códigos listos (sin asignar, sin usar, activos).",
+    "top_up_done": "{added} códigos generados, {imported} aceptados por la tienda, {failed} rechazados.",
+    "assign_title": "Asignar códigos",
+    "assign_description": "Entrega los siguientes códigos disponibles a un cliente o a una campaña: dejan de estar disponibles para los demás.",
+    "assign_to": "Asignar a",
+    "assign_customer": "Cliente",
+    "assign_campaign": "Campaña",
+    "assign_count": "Número de códigos",
+    "customer_email": "Email del cliente",
+    "assign": "Asignar",
+    "assigned_codes": "Asignados: {codes}",
+    "release": "Liberar",
+    "redeemed_by": "Usado por el pedido",
+    "search_placeholder": "Código, email o pedido",
+    "empty": "Ningún código coincide con estos filtros.",
+    "status": {
+      "available": "Disponible",
+      "assigned": "Asignado",
+      "redeemed": "Canjeado"
+    },
+    "kpi": {
+      "ready": "Listos para repartir",
+      "target": "objetivo {n}",
+      "validity": "Válido hasta",
+      "from": "desde {date}"
+    },
+    "columns": {
+      "code": "Código",
+      "status": "Estado",
+      "assigned_to": "Asignado a",
+      "order": "Pedido",
+      "redeemed_at": "Canjeado"
+    },
+    "errors": {
+      "pool_not_found": "Lote no encontrado.",
+      "pool_invalid_input": "Revisa los valores e inténtalo de nuevo.",
+      "pool_no_codes_available": "No hay suficientes códigos disponibles: recarga primero el lote.",
+      "pool_platform_error": "La tienda rechazó los códigos. Inténtalo de nuevo en un momento.",
+      "pool_pool_inactive": "El lote está desactivado.",
+      "pool_recipient_not_found": "Ningún cliente con este email."
+    }
   }
 }

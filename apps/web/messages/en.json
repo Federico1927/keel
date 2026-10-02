@@ -2186,7 +2186,8 @@
     },
     "policy": "Policy and automations",
     "needs_review": "To review",
-    "risk_high": "high risk"
+    "risk_high": "high risk",
+    "from_store": "From the store"
   },
   "return_detail": {
     "order": "Order",
@@ -2435,7 +2436,19 @@
     "option": "Option",
     "sold": "Sold",
     "returned": "Returned",
-    "no_options": "No variant options in this period."
+    "no_options": "No variant options in this period.",
+    "ageing": {
+      "title": "Time in each state",
+      "description": "Days the returns of the period spent in each state, and how long the open ones have been waiting (over {days} days counts as late).",
+      "state": "State",
+      "avg": "Average",
+      "median": "Median",
+      "max": "Longest",
+      "open": "Open now",
+      "stale": "Over {days} days",
+      "days": "{n} d",
+      "empty": "No returns in this period."
+    }
   },
   "return_reasons": {
     "title": "Return reasons",
@@ -2476,7 +2489,8 @@
     },
     "pool_status": {
       "ready": "Ready",
-      "partial": "Partial"
+      "partial": "Partial",
+      "inactive": "Deactivated"
     },
     "columns": {
       "code": "Code",
@@ -2490,8 +2504,12 @@
       "validity": "Validity",
       "pool": "Pool",
       "codes": "Codes",
-      "used": "Used"
-    }
+      "used": "Used",
+      "ready": "Ready / target",
+      "assigned": "Assigned"
+    },
+    "manage_pool": "Manage pool",
+    "pool_codes": "{n} codes"
   },
   "discount_new": {
     "title": "New discount",
@@ -2690,7 +2708,9 @@
       "delta": "delta",
       "reconcile": "nightly reconcile",
       "manual": "manual"
-    }
+    },
+    "simulate_return": "Simulate return",
+    "simulated_return": "Return webhook accepted (HTTP {status}) for {order}."
   },
   "integration_guide": {
     "verify_legend": "Steps marked “To verify” depend on vendor consoles that change often: check them against the vendor documentation before the first install.",
@@ -5381,7 +5401,9 @@
       "order_fulfillment_release": "Fulfillment hold release",
       "order_mark_paid": "Mark order paid",
       "order_refund": "Order refund",
-      "fulfillment_create": "Fulfilment"
+      "fulfillment_create": "Fulfilment",
+      "discount_status": "Discount on/off",
+      "discount_pool_status": "Discount pool on/off"
     }
   },
   "dev_inbox": {
@@ -5876,5 +5898,63 @@
     "delete": "Delete",
     "add": "Add mapping",
     "unmapped_title": "Seen but not mapped (click to fill the form):"
+  },
+  "discount_pool": {
+    "eyebrow": "Discount pool",
+    "active": "Active",
+    "inactive": "Deactivated",
+    "all": "All",
+    "export": "Export CSV",
+    "deactivate": "Deactivate pool",
+    "activate": "Reactivate pool",
+    "deactivate_title": "Deactivate this pool?",
+    "deactivate_description": "Every code of the pool stops working in Keel now and on the store as soon as the change is synced. Codes already used stay linked to their orders.",
+    "activate_title": "Reactivate this pool?",
+    "activate_description": "Codes nobody has used yet work again, in Keel and on the store.",
+    "top_up_title": "Top up",
+    "top_up_description": "Generate new unique codes so the pool has this many ready to hand out. They are added to the same discount on the store.",
+    "top_up_target": "Codes ready after the top-up",
+    "top_up": "Top up",
+    "top_up_hint": "{ready} codes are ready now (not assigned, not used, active).",
+    "top_up_done": "{added} codes generated, {imported} accepted by the store, {failed} refused.",
+    "assign_title": "Assign codes",
+    "assign_description": "Hand the next available codes to a customer or a campaign: they stop being available to anyone else.",
+    "assign_to": "Assign to",
+    "assign_customer": "Customer",
+    "assign_campaign": "Campaign",
+    "assign_count": "Number of codes",
+    "customer_email": "Customer email",
+    "assign": "Assign",
+    "assigned_codes": "Assigned: {codes}",
+    "release": "Release",
+    "redeemed_by": "Used by order",
+    "search_placeholder": "Code, email or order",
+    "empty": "No codes match these filters.",
+    "status": {
+      "available": "Available",
+      "assigned": "Assigned",
+      "redeemed": "Redeemed"
+    },
+    "kpi": {
+      "ready": "Ready to hand out",
+      "target": "target {n}",
+      "validity": "Valid until",
+      "from": "from {date}"
+    },
+    "columns": {
+      "code": "Code",
+      "status": "Status",
+      "assigned_to": "Assigned to",
+      "order": "Order",
+      "redeemed_at": "Redeemed"
+    },
+    "errors": {
+      "pool_not_found": "Pool not found.",
+      "pool_invalid_input": "Check the values and try again.",
+      "pool_no_codes_available": "Not enough available codes: top up the pool first.",
+      "pool_platform_error": "The store refused the codes. Try again in a moment.",
+      "pool_pool_inactive": "The pool is deactivated.",
+      "pool_recipient_not_found": "No customer with this email."
+    }
   }
 }

@@ -2,9 +2,9 @@
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { and, eq, recordAudit, schema } from "@keel/db";
+import { and, desc, eq, recordAudit, schema, sql } from "@keel/db";
 import { AnthropicLlmProvider, GoogleAdsPlatform, MetaAdsPlatform, ShopifyCommercePlatform, SHOPIFY_WEBHOOK_TOPICS, encryptJson, integrationMode, isValidShopDomain, type ConnectionTest } from "@keel/integrations";
-import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync } from "@keel/services";
+import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runReturnsSync } from "@keel/services";
 import { enqueue } from "@/server/jobs";
 import { ForbiddenError, requireAction } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
@@ -140,7 +140,7 @@ export async function resyncIntegration(slug: string, provider: string): Promise
     await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.resync_requested", entityType: "integration", entityId: p.data }));
     const since = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
     const until = new Date().toISOString().slice(0, 10);
-    const queued = p.data === "shopify" ? (await enqueue("sync.orders", { tenantId: ctx.tenant.id, kind: "delta" }, { singletonKey: `${ctx.tenant.id}:delta` })) && (await enqueue("sync.catalog", { tenantId: ctx.tenant.id }, { singletonKey: `${ctx.tenant.id}:catalog` })) : await enqueue("sync.ads", { tenantId: ctx.tenant.id, provider: p.data, since, until }, { singletonKey: `${ctx.tenant.id}:${p.data}:${until}` });
+    const queued = p.data === "shopify" ? (await enqueue("sync.orders", { tenantId: ctx.tenant.id, kind: "delta" }, { singletonKey: `${ctx.tenant.id}:delta` })) && (await enqueue("sync.catalog", { tenantId: ctx.tenant.id }, { singletonKey: `${ctx.tenant.id}:catalog` })) && (await enqueue("sync.returns", { tenantId: ctx.tenant.id, kind: "delta" }, { singletonKey: `${ctx.tenant.id}:returns` })) : await enqueue("sync.ads", { tenantId: ctx.tenant.id, provider: p.data, since, until }, { singletonKey: `${ctx.tenant.id}:${p.data}:${until}` });
     let summary = "queued";
     if (!queued) {
       summary = await ctx.run(async (tx) => {
@@ -149,7 +149,8 @@ export async function resyncIntegration(slug: string, provider: string): Promise
           const platform = await getCommercePlatformFor(s, ctx.tenant);
           const orders = await runOrdersSync(s, platform, { kind: "delta", country: ctx.tenant.country, budgetMs: 15_000 });
           const catalog = await runCatalogSync(s, platform);
-          return orders.error ?? catalog.error ?? `orders:${orders.rowsWritten} products:${catalog.products} inventory:${catalog.inventory} discounts:${catalog.discounts}`;
+          const returns = await runReturnsSync(s, platform, { kind: "delta", country: ctx.tenant.country, budgetMs: 10_000 });
+          return orders.error ?? catalog.error ?? returns.error ?? `orders:${orders.rowsWritten} products:${catalog.products} inventory:${catalog.inventory} discounts:${catalog.discounts} returns:${returns.created + returns.updated + returns.linked}`;
         }
         const r = await runAdsSync(s, await getAdsPlatformFor(s, ctx.tenant, p.data), { since, until });
         return r.error ?? `campaigns:${r.campaigns} metrics:${r.metrics}`;
@@ -184,6 +185,44 @@ export async function simulateWebhook(slug: string, scenario: "order" | "cancel"
     revalidatePath(`/t/${slug}/integrations`);
     revalidatePath(`/t/${slug}/orders`);
     return ok({ status: res.status, orderName: scenario === "bad_signature" ? null : order.name });
+  } catch (e) {
+    if (e instanceof ForbiddenError) return fail("forbidden");
+    throw e;
+  }
+}
+
+/**
+ * Mock mode only: a customer opens a return on the store for a recently delivered order (with nothing
+ * returned yet), and the store sends the signed `returns/request` webhook to our own endpoint.
+ */
+export async function simulateReturnWebhook(slug: string): Promise<ActionResult<{ status: number; orderName: string }>> {
+  try {
+    const ctx = await requireAction(slug, "manage_integrations", "integrations");
+    const row = await ctx.run((tx) => tx.select().from(schema.integrations).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, "shopify"))).limit(1));
+    if (integrationMode() === "live" && row[0]?.mode === "live") return fail("live_mode");
+    const candidate = await ctx.run(async (tx) => {
+      await getCommercePlatformFor({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, ctx.tenant);
+      const [order] = await tx
+        .select({ id: schema.orders.id, name: schema.orders.name, externalId: schema.orders.externalId })
+        .from(schema.orders)
+        .where(and(eq(schema.orders.tenantId, ctx.tenant.id), eq(schema.orders.status, "delivered"), sql`${schema.orders.externalId} is not null`, sql`not exists (select 1 from return_requests r where r.order_id = ${schema.orders.id})`, sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.external_id is not null and l.is_ancillary = false)`))
+        .orderBy(desc(schema.orders.placedAt))
+        .limit(1);
+      if (!order) return null;
+      const [line] = await tx.select({ externalId: schema.orderLines.externalId }).from(schema.orderLines).where(and(eq(schema.orderLines.orderId, order.id), eq(schema.orderLines.isAncillary, false), sql`${schema.orderLines.externalId} is not null`)).limit(1);
+      return { order, line: line! };
+    });
+    const mock = mockCommerceFor(ctx.tenant.id);
+    if (!mock || !candidate) return fail("unknown");
+    const ret = mock.openPlatformReturn({ orderExternalId: candidate.order.externalId!, lines: [{ orderLineExternalId: candidate.line.externalId!, quantity: 1, reason: "other" }], note: "Simulated return" });
+    const env = mock.buildReturnWebhook("returns/request", ret.externalId);
+    const headers: Record<string, string> = { ...env.headers, "x-shopify-shop-domain": row[0]?.externalAccountId ?? env.headers["x-shopify-shop-domain"]!, "content-type": "application/json" };
+    const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const res = await fetch(`${base}/api/webhooks/shopify`, { method: "POST", headers, body: env.rawBody });
+    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.webhook_simulated", entityType: "integration", entityId: "shopify", diff: { scenario: { from: null, to: "return" }, status: { from: null, to: res.status } }, metadata: { returnExternalId: ret.externalId, orderId: candidate.order.id } }));
+    revalidatePath(`/t/${slug}/integrations`);
+    revalidatePath(`/t/${slug}/returns`);
+    return ok({ status: res.status, orderName: candidate.order.name });
   } catch (e) {
     if (e instanceof ForbiddenError) return fail("forbidden");
     throw e;

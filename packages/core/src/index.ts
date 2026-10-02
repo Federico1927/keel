@@ -21,6 +21,7 @@ export * from "./planning";
 export * from "./campaigns";
 export * from "./segments";
 export * from "./returns";
+export * from "./returns-sync";
 export * from "./discounts";
 export * from "./attribution";
 export * from "./billing";
