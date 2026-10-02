@@ -36,9 +36,18 @@ export interface OrderFilters {
   utm?: Partial<Record<UtmDimension, string>>;
   /** Backorder views: orders waiting for stock, or ready to release (stock covers them / released, not shipped yet). */
   stock?: OrderStockView;
+  /** Shipping country (tax report drill-down). */
+  country?: string;
+  /** Payment fee from a payout (`actual`) or still the tenant's estimate (`estimated`): P/L and payment-method drill-downs. */
+  feeSource?: OrderFeeSource;
+  /** Orders with a balance transaction in this payout (payouts page drill-down). */
+  payout?: string;
   sort?: "placed_desc" | "placed_asc" | "total_desc";
   page?: number;
 }
+
+export const ORDER_FEE_SOURCES = ["actual", "estimated"] as const;
+export type OrderFeeSource = (typeof ORDER_FEE_SOURCES)[number];
 
 export const ORDER_STOCK_VIEWS = ["awaiting", "ready"] as const;
 export type OrderStockView = (typeof ORDER_STOCK_VIEWS)[number];
@@ -63,6 +72,9 @@ export function parseOrderFilters(sp: QueryParams): OrderFilters {
     attrChannel: one(sp.attrChannel)?.trim() || undefined,
     utm: Object.fromEntries(UTM_DIMENSIONS.map((d) => [d, one(sp[utmParam(d)])?.trim() || undefined]).filter(([, v]) => v)),
     stock: ORDER_STOCK_VIEWS.find((v) => v === one(sp.stock)),
+    country: /^[A-Za-z]{2}$/.test(one(sp.country) ?? "") ? one(sp.country)!.toUpperCase() : undefined,
+    feeSource: ORDER_FEE_SOURCES.find((v) => v === one(sp.feeSource)),
+    payout: isUuid(one(sp.payout)) ? one(sp.payout) : undefined,
     sort: sort === "placed_asc" || sort === "total_desc" ? sort : "placed_desc",
     page: Math.max(1, Number(one(sp.page) ?? 1) || 1),
   };
@@ -102,6 +114,10 @@ export function orderListWhere(scope: OrderFilterScope, f: OrderFilters): SQL {
   if (f.variant) conds.push(sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.tenant_id = ${scope.tenantId} and l.variant_id = ${f.variant} and l.current_quantity > 0)`);
   if (f.stock === "awaiting") conds.push(awaitingStockSql(schema.orders.id));
   if (f.stock === "ready") conds.push(readyToReleaseSql(schema.orders.id, schema.orders.status));
+  if (f.country) conds.push(eq(schema.orders.shippingCountry, f.country));
+  // same rule as the P/L: the fee is actual once a charge of the order was imported from a payout
+  if (f.feeSource) conds.push(sql`${sql.raw(f.feeSource === "actual" ? "" : "not ")}exists (select 1 from balance_transactions b where b.order_id = ${schema.orders.id} and b.tenant_id = ${scope.tenantId} and b.type = 'charge')`);
+  if (f.payout) conds.push(sql`exists (select 1 from balance_transactions b where b.order_id = ${schema.orders.id} and b.tenant_id = ${scope.tenantId} and b.payout_id = ${f.payout})`);
   if (f.missingCost) conds.push(sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.unit_cost_minor is null and not l.is_ancillary)`);
   if (f.attrChannel) conds.push(f.attrChannel === "unknown" ? sql`not exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.channel <> 'unknown')` : sql`exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.channel = ${f.attrChannel})`);
   const utm = Object.entries(f.utm ?? {}) as [UtmDimension, string][];

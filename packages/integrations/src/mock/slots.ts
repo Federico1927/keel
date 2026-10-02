@@ -1,4 +1,5 @@
-import type { AnalyticsPlatform, CarrierProvider, ConnectionTest, MessagingChannel, NormalizedOrder, WarehouseProvider } from "../types";
+import type { AnalyticsPlatform, CarrierInstruction, CarrierProvider, ConnectionTest, MessagingChannel, NormalizedOrder, WarehouseProvider } from "../types";
+import { FailureScript } from "./failures";
 
 /** Mock implementations of the per-account slots. Real connectors are sold as add-ons. */
 export class MockMessagingChannel implements MessagingChannel {
@@ -37,6 +38,14 @@ export class MockWarehouseProvider implements WarehouseProvider {
 
 export class MockCarrierProvider implements CarrierProvider {
   readonly provider = "carrier-mock";
+  readonly failures = new FailureScript();
+  /** Instructions received, in order (tests and the demo). */
+  readonly instructions: CarrierInstruction[] = [];
+  async sendInstruction(input: CarrierInstruction) {
+    this.failures.check();
+    this.instructions.push(input);
+    return { reference: `mock-instr-${this.instructions.length}` };
+  }
   async testConnection(): Promise<ConnectionTest> {
     return { ok: true, accountName: "Mock carrier" };
   }

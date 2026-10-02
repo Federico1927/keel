@@ -140,3 +140,37 @@ export const graphqlVariantInventoryItem = { data: { productVariant: { inventory
 export const graphqlFulfillmentOrders = { data: { order: { fulfillmentOrders: { nodes: [{ id: "gid://shopify/FulfillmentOrder/701", status: "OPEN", fulfillmentHolds: [] }, { id: "gid://shopify/FulfillmentOrder/702", status: "ON_HOLD", fulfillmentHolds: [{ id: "gid://shopify/FulfillmentHold/81", handle: "keel-awaiting-stock" }, { id: "gid://shopify/FulfillmentHold/82", handle: null }] }, { id: "gid://shopify/FulfillmentOrder/703", status: "CLOSED", fulfillmentHolds: [] }] } } } };
 export const graphqlFulfillmentOrderHold = { data: { fulfillmentOrderHold: { fulfillmentHold: { id: "gid://shopify/FulfillmentHold/83" }, userErrors: [] } } };
 export const graphqlFulfillmentOrderReleaseHold = { data: { fulfillmentOrderReleaseHold: { fulfillmentOrder: { id: "gid://shopify/FulfillmentOrder/702", status: "ON_HOLD" }, userErrors: [] } } };
+
+/* Shopify Payments (issue #27). Shapes follow the 2025-07 Admin API docs; to verify on a real account (no live recording yet). */
+export const graphqlPayouts = {
+  data: {
+    shopifyPaymentsAccount: {
+      payouts: {
+        nodes: [
+          { id: "gid://shopify/ShopifyPaymentsPayout/88001", legacyResourceId: "88001", issuedAt: "2026-09-29T08:00:00Z", status: "PAID", net: { amount: "176.02", currencyCode: "EUR" }, summary: { chargesGross: { amount: "226.00" }, chargesFee: { amount: "3.98" }, refundsFeeGross: { amount: "45.00" }, refundsFee: { amount: "0.00" }, adjustmentsGross: { amount: "-1.00" }, adjustmentsFee: { amount: "0.00" }, reservedFundsGross: { amount: "0.00" }, reservedFundsFee: { amount: "0.00" }, retriedPayoutsGross: { amount: "0.00" }, retriedPayoutsFee: { amount: "0.00" } } },
+          { id: "gid://shopify/ShopifyPaymentsPayout/88002", legacyResourceId: "88002", issuedAt: "2026-10-01T08:00:00Z", status: "IN_TRANSIT", net: { amount: "48.99", currencyCode: "EUR" }, summary: { chargesGross: { amount: "50.00" }, chargesFee: { amount: "1.01" }, refundsFeeGross: { amount: "0.00" }, refundsFee: { amount: "0.00" }, adjustmentsGross: { amount: "0.00" }, adjustmentsFee: { amount: "0.00" }, reservedFundsGross: { amount: "0.00" }, reservedFundsFee: { amount: "0.00" }, retriedPayoutsGross: { amount: "0.00" }, retriedPayoutsFee: { amount: "0.00" } } },
+        ],
+        pageInfo: { hasNextPage: true, endCursor: "eyJsYXN0X2lkIjo4ODAwMn0=" },
+      },
+    },
+  },
+};
+export const graphqlBalanceTransactions = {
+  data: {
+    shopifyPaymentsAccount: {
+      balanceTransactions: {
+        nodes: [
+          { id: "gid://shopify/ShopifyPaymentsBalanceTransaction/71001", type: "CHARGE", test: false, transactionDate: "2026-09-27T10:15:02Z", amount: { amount: "176.00", currencyCode: "EUR" }, fee: { amount: "2.89" }, net: { amount: "173.11" }, associatedOrder: { id: "gid://shopify/Order/5678901234567" }, associatedPayout: { id: "gid://shopify/ShopifyPaymentsPayout/88001" } },
+          { id: "gid://shopify/ShopifyPaymentsBalanceTransaction/71002", type: "CHARGE", test: false, transactionDate: "2026-09-27T11:40:00Z", amount: { amount: "50.00", currencyCode: "EUR" }, fee: { amount: "1.09" }, net: { amount: "48.91" }, associatedOrder: { id: "gid://shopify/Order/5678901234568" }, associatedPayout: { id: "gid://shopify/ShopifyPaymentsPayout/88001" } },
+          { id: "gid://shopify/ShopifyPaymentsBalanceTransaction/71003", type: "REFUND", test: false, transactionDate: "2026-09-27T16:00:00Z", amount: { amount: "-45.00", currencyCode: "EUR" }, fee: { amount: "0.00" }, net: { amount: "-45.00" }, associatedOrder: { id: "gid://shopify/Order/5678901230001" }, associatedPayout: { id: "gid://shopify/ShopifyPaymentsPayout/88001" } },
+          { id: "gid://shopify/ShopifyPaymentsBalanceTransaction/71004", type: "ADJUSTMENT", test: false, transactionDate: "2026-09-28T07:00:00Z", amount: { amount: "-1.00", currencyCode: "EUR" }, fee: { amount: "0.00" }, net: { amount: "-1.00" }, associatedOrder: null, associatedPayout: { id: "gid://shopify/ShopifyPaymentsPayout/88001" } },
+          { id: "gid://shopify/ShopifyPaymentsBalanceTransaction/71005", type: "CHARGE", test: true, transactionDate: "2026-09-28T09:00:00Z", amount: { amount: "10.00", currencyCode: "EUR" }, fee: { amount: "0.40" }, net: { amount: "9.60" }, associatedOrder: { id: "gid://shopify/Order/1" }, associatedPayout: { id: "gid://shopify/ShopifyPaymentsPayout/88001" } },
+        ],
+        pageInfo: { hasNextPage: false, endCursor: null },
+      },
+    },
+  },
+};
+export const graphqlNoPaymentsAccount = { data: { shopifyPaymentsAccount: null } };
+export const graphqlMarkAsPaid = { data: { orderMarkAsPaid: { order: { id: "gid://shopify/Order/5678901234567", displayFinancialStatus: "PAID" }, userErrors: [] } } };
+export const graphqlManualPayment = { data: { orderCreateManualPayment: { order: { id: "gid://shopify/Order/5678901234567", displayFinancialStatus: "PARTIALLY_PAID" }, userErrors: [] } } };

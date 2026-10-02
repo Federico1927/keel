@@ -5,7 +5,7 @@ import { IntegrationError } from "../types";
 import { ShopifyCommercePlatform } from "./adapter";
 import { mapRestOrder } from "./mappers";
 import { buildInstallUrl, verifyOAuthCallback, verifyWebhookHmac } from "./oauth";
-import { graphqlCancel, graphqlDiscounts, graphqlFulfillmentOrderHold, graphqlFulfillmentOrderReleaseHold, graphqlFulfillmentOrders, graphqlInventory, graphqlInventoryItemUpdate, graphqlOrdersPage, graphqlProductsPage, graphqlShop, graphqlThrottled, graphqlVariantInventoryItem, graphqlWebhookCreate, graphqlWebhooks, restOrderWebhook } from "./__fixtures__";
+import { graphqlCancel, graphqlDiscounts, graphqlFulfillmentOrderHold, graphqlFulfillmentOrderReleaseHold, graphqlFulfillmentOrders, graphqlInventory, graphqlInventoryItemUpdate, graphqlOrdersPage, graphqlProductsPage, graphqlShop, graphqlThrottled, graphqlVariantInventoryItem, graphqlWebhookCreate, graphqlWebhooks, restOrderWebhook, graphqlPayouts, graphqlBalanceTransactions, graphqlNoPaymentsAccount, graphqlMarkAsPaid, graphqlManualPayment } from "./__fixtures__";
 
 const creds = { shop: "northwind-demo.myshopify.com", accessToken: "shpat_test", apiSecret: "shhh" };
 const bodyOf = (init?: { body?: string }) => (init?.body ? (JSON.parse(init.body) as { query: string; variables: Record<string, unknown> }) : { query: "", variables: {} });
@@ -244,6 +244,83 @@ describe("shopify returns write-back", () => {
     const r = await p.refundReturn("5678901234567", { lines: [{ orderLineExternalId: "12", quantity: 1 }], amountMinor: 4500, currency: "EUR", notify: false });
     expect(r.amountMinor).toBe(0);
     expect((bodyOf({ body: p.http.calls[1]!.body! }).variables as { input: { transactions: unknown[] } }).input.transactions).toEqual([]);
+  });
+});
+
+describe("shopify payments: refunds, manual payments, payouts", () => {
+  const transactions = { data: { order: { transactions: [{ id: "gid://shopify/OrderTransaction/1", kind: "SALE", status: "SUCCESS", gateway: "shopify_payments", amountSet: { shopMoney: { amount: "50.00" } } }] } } };
+  it("refunds part of an order with restock at a location", async () => {
+    const p = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("transactions(first"), body: transactions },
+      { match: (_u, i) => bodyOf(i).query.includes("refundCreate"), body: { data: { refundCreate: { refund: { id: "gid://shopify/Refund/79", totalRefundedSet: { shopMoney: { amount: "10.00" } } }, userErrors: [] } } } },
+    ]);
+    const r = await p.refundOrder("5678901234567", { lines: [{ orderLineExternalId: "12", quantity: 1, restock: true }], locationExternalId: "6100001", amountMinor: 1000, currency: "EUR", note: "Goodwill", notify: false });
+    expect(r).toEqual({ externalId: "79", amountMinor: 1000 });
+    const sent = bodyOf({ body: p.http.calls[1]!.body! }).variables as { input: { note: string; transactions: { amount: string }[]; refundLineItems: unknown[] } };
+    expect(sent.input.note).toBe("Goodwill");
+    expect(sent.input.transactions[0]!.amount).toBe("10.00");
+    expect(sent.input.refundLineItems).toEqual([{ lineItemId: "gid://shopify/LineItem/12", quantity: 1, restockType: "RETURN", locationId: "gid://shopify/Location/6100001" }]);
+  });
+  it("marks the whole balance paid, or records a partial manual payment", async () => {
+    const p = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("orderMarkAsPaid"), body: graphqlMarkAsPaid },
+      { match: (_u, i) => bodyOf(i).query.includes("orderCreateManualPayment"), body: graphqlManualPayment },
+    ]);
+    await p.markOrderPaid("5678901234567", { amountMinor: 5000, currency: "EUR", method: "bank_transfer", fullBalance: true });
+    expect(bodyOf({ body: p.http.calls[0]!.body! }).variables).toEqual({ input: { id: "gid://shopify/Order/5678901234567" } });
+    await p.markOrderPaid("5678901234567", { amountMinor: 2000, currency: "EUR", method: "bank_transfer", fullBalance: false });
+    expect(bodyOf({ body: p.http.calls[1]!.body! }).variables).toEqual({ id: "gid://shopify/Order/5678901234567", amount: { amount: "20.00", currencyCode: "EUR" }, paymentMethodName: "bank_transfer" });
+  });
+  it("reads payouts with their totals and the balance transactions with actual fees", async () => {
+    const p = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("payouts(first"), body: graphqlPayouts },
+      { match: (_u, i) => bodyOf(i).query.includes("balanceTransactions(first"), body: graphqlBalanceTransactions },
+    ]);
+    const page = await p.fetchPayouts({ createdSince: new Date("2026-09-01T00:00:00Z"), limit: 2 });
+    expect(bodyOf({ body: p.http.calls[0]!.body! }).variables).toMatchObject({ first: 2, query: "issued_at:>=2026-09-01" });
+    expect(page.nextCursor).toBe("eyJsYXN0X2lkIjo4ODAwMn0=");
+    expect(page.items[0]).toEqual({ externalId: "88001", status: "paid", issuedAt: new Date("2026-09-29T08:00:00Z"), currency: "EUR", grossMinor: 22600, refundsMinor: -4500, adjustmentsMinor: -100, feeMinor: 398, netMinor: 17602 });
+    expect(page.items[0]!.grossMinor + page.items[0]!.refundsMinor + page.items[0]!.adjustmentsMinor - page.items[0]!.feeMinor).toBe(page.items[0]!.netMinor);
+    expect(page.items[1]!.status).toBe("in_transit");
+    const txns = await p.fetchBalanceTransactions({ payoutExternalId: "88001" });
+    expect(bodyOf({ body: p.http.calls[1]!.body! }).variables).toMatchObject({ query: "payout_id:88001" });
+    // test-mode transactions are not money
+    expect(txns.items.map((t) => [t.type, t.orderExternalId, t.amountMinor, t.feeMinor, t.netMinor])).toEqual([["charge", "5678901234567", 17600, 289, 17311], ["charge", "5678901234568", 5000, 109, 4891], ["refund", "5678901230001", -4500, 0, -4500], ["adjustment", null, -100, 0, -100]]);
+    expect(txns.items.reduce((s, t) => s + t.feeMinor, 0)).toBe(page.items[0]!.feeMinor);
+    expect(txns.items[0]!.payoutExternalId).toBe("88001");
+  });
+  it("a shop without Shopify Payments has no payouts", async () => {
+    const p = platform([{ match: () => true, body: graphqlNoPaymentsAccount }]);
+    expect(await p.fetchPayouts({})).toEqual({ items: [], nextCursor: null });
+    expect(await p.fetchBalanceTransactions({ payoutExternalId: "1" })).toEqual({ items: [], nextCursor: null });
+  });
+});
+
+describe("shopify fulfilment from Keel", () => {
+  const fulfillmentOrders = { data: { order: { fulfillmentOrders: { nodes: [
+    { id: "gid://shopify/FulfillmentOrder/71", status: "OPEN", lineItems: { nodes: [{ id: "gid://shopify/FulfillmentOrderLineItem/81", remainingQuantity: 1, lineItem: { id: "gid://shopify/LineItem/11" } }, { id: "gid://shopify/FulfillmentOrderLineItem/82", remainingQuantity: 2, lineItem: { id: "gid://shopify/LineItem/12" } }] } },
+    { id: "gid://shopify/FulfillmentOrder/72", status: "CLOSED", lineItems: { nodes: [{ id: "gid://shopify/FulfillmentOrderLineItem/83", remainingQuantity: 0, lineItem: { id: "gid://shopify/LineItem/13" } }] } },
+  ] } } } };
+  const created = { data: { fulfillmentCreate: { fulfillment: { id: "gid://shopify/Fulfillment/91", legacyResourceId: "91", status: "SUCCESS", displayStatus: "CONFIRMED", createdAt: "2026-10-01T09:00:00Z", updatedAt: "2026-10-01T09:00:00Z", trackingInfo: [{ number: "1Z999", url: "https://track.example/1Z999", company: "UPS" }] }, userErrors: [] } } };
+  it("fulfils every open line of the order with the tracking info and maps the result", async () => {
+    const p = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("fulfillmentOrders(first"), body: fulfillmentOrders },
+      { match: (_u, i) => bodyOf(i).query.includes("fulfillmentCreate"), body: created },
+    ]);
+    const f = await p.createFulfillment({ orderExternalId: "5678901234567", carrier: "UPS", trackingNumber: "1Z999", trackingUrl: "https://track.example/1Z999", notifyCustomer: true });
+    expect(f).toMatchObject({ externalId: "91", status: "label_created", externalStatus: "confirmed", trackingNumber: "1Z999", carrier: "UPS" });
+    const sent = bodyOf({ body: p.http.calls[1]!.body! }).variables;
+    expect(sent).toEqual({ fulfillment: { lineItemsByFulfillmentOrder: [{ fulfillmentOrderId: "gid://shopify/FulfillmentOrder/71" }], notifyCustomer: true, trackingInfo: { company: "UPS", number: "1Z999", url: "https://track.example/1Z999" } } });
+  });
+  it("fulfils only the requested lines and refuses an order with nothing left", async () => {
+    const p = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("fulfillmentOrders(first"), body: fulfillmentOrders },
+      { match: (_u, i) => bodyOf(i).query.includes("fulfillmentCreate"), body: created },
+    ]);
+    await p.createFulfillment({ orderExternalId: "5678901234567", lines: [{ orderLineExternalId: "12", quantity: 1 }], carrier: "UPS", trackingNumber: "1Z999", notifyCustomer: false });
+    expect((bodyOf({ body: p.http.calls[1]!.body! }).variables as { fulfillment: { lineItemsByFulfillmentOrder: unknown[] } }).fulfillment.lineItemsByFulfillmentOrder).toEqual([{ fulfillmentOrderId: "gid://shopify/FulfillmentOrder/71", fulfillmentOrderLineItems: [{ id: "gid://shopify/FulfillmentOrderLineItem/82", quantity: 1 }] }]);
+    const none = platform([{ match: (_u, i) => bodyOf(i).query.includes("fulfillmentOrders(first"), body: { data: { order: { fulfillmentOrders: { nodes: [] } } } } }]);
+    await expect(none.createFulfillment({ orderExternalId: "1", carrier: "UPS", trackingNumber: "1", notifyCustomer: false })).rejects.toMatchObject({ code: "invalid_request" });
   });
 });
 

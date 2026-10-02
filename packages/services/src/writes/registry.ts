@@ -1,4 +1,4 @@
-import type { AdsPlatform, CommercePlatform, CreateOrderInput, FulfillmentHoldInput, NormalizedOrder, OrderDetailsPatch, OrderDiscountPatch, PlatformReturnLineInput, VariantPatch } from "@keel/integrations";
+import type { AdsPlatform, CommercePlatform, CreateOrderInput, FulfillmentHoldInput, ManualPaymentInput, NormalizedOrder, RefundOrderInput, OrderDetailsPatch, OrderDiscountPatch, PlatformReturnLineInput, VariantPatch, CreateFulfillmentInput, NormalizedFulfillment } from "@keel/integrations";
 import type { schema } from "@keel/db";
 import type { ServiceContext } from "../context";
 
@@ -37,6 +37,8 @@ export interface PlatformWriteKinds {
   "order.tags": { payload: { orderExternalId: string; add: string[]; remove: string[] }; result: void };
   "order.fulfillment_hold": { payload: { orderExternalId: string; hold: FulfillmentHoldInput }; result: void };
   "order.fulfillment_release": { payload: { orderExternalId: string }; result: void };
+  "order.mark_paid": { payload: { orderExternalId: string } & ManualPaymentInput; result: void };
+  "order.refund": { payload: { orderExternalId: string } & RefundOrderInput; result: { externalId: string; amountMinor: number } };
   "order.create": { payload: { input: CreateOrderInput }; result: NormalizedOrder };
   "order.create_invoice": { payload: { input: CreateOrderInput }; result: { draftExternalId: string; invoiceUrl: string | null } };
   "discount.create": { payload: DiscountCodePayload; result: { externalId: string } };
@@ -46,6 +48,7 @@ export interface PlatformWriteKinds {
   "return.decline": { payload: { returnExternalId: string; note: string | null }; result: void };
   "return.refund": { payload: { orderExternalId: string; lines: { orderLineExternalId: string; quantity: number }[]; amountMinor: number; currency: string; note?: string | null; notify: boolean }; result: { externalId: string; amountMinor: number } };
   "return.close": { payload: { returnExternalId: string }; result: void };
+  "fulfillment.create": { payload: { input: CreateFulfillmentInput }; result: NormalizedFulfillment };
   "campaign.status": { payload: { provider: "meta" | "google"; campaignExternalId: string; status: "active" | "paused" }; result: void };
 }
 export type PlatformWriteKind = keyof PlatformWriteKinds;

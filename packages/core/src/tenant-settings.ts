@@ -69,6 +69,12 @@ export const tenantSettingsSchema = z.object({
   transferSurplusDays: z.number().int().min(7).max(365).default(45),
   /** Notifications: a paid order still unshipped after this many hours is late to ship; a sync is late after its freshness window plus this grace. */
   lateToShipHours: z.number().int().min(1).max(720).default(48),
+  /** Fulfilment (issue #28): an order ready to ship is late after this many working days (tenant time zone); `lateToShipHours` is kept for old rows only. */
+  lateToShipBusinessDays: z.number().int().min(0).max(30).default(2),
+  /** Working days for the shipping clock, ISO weekdays (1 = Monday … 7 = Sunday). */
+  workdays: z.array(z.number().int().min(1).max(7)).min(1).max(7).default([1, 2, 3, 4, 5]),
+  /** Where delivery-exception instructions go by email when no carrier connector is available (the carrier's customer service). */
+  carrierInstructionEmail: z.string().email().max(200).nullable().default(null),
   syncDelayGraceMinutes: z.number().int().min(0).max(10_080).default(60),
 });
 export type TenantSettings = z.infer<typeof tenantSettingsSchema>;

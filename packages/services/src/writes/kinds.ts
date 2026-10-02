@@ -1,5 +1,5 @@
 import { and, eq, schema } from "@keel/db";
-import type { NormalizedOrder } from "@keel/integrations";
+import type { NormalizedFulfillment, NormalizedOrder } from "@keel/integrations";
 import { defineAdsWrite, defineCommerceWrite } from "./registry";
 
 /* The platform writes Keel makes today. Each is one registration: provider, target, execution, optional follow-up. */
@@ -84,6 +84,16 @@ defineCommerceWrite("order.fulfillment_release", {
   execute: (platform, p) => platform.releaseFulfillment(p.orderExternalId),
 });
 
+// payments (issue #27): each manual payment and each refund is one-shot, keyed by the caller
+defineCommerceWrite("order.mark_paid", {
+  target: (p) => `order:${p.orderExternalId}:payment`,
+  execute: (platform, p) => platform.markOrderPaid(p.orderExternalId, { amountMinor: p.amountMinor, currency: p.currency, method: p.method, fullBalance: p.fullBalance, note: p.note ?? null }),
+});
+defineCommerceWrite("order.refund", {
+  target: (p) => `order:${p.orderExternalId}:refund`,
+  execute: (platform, p) => platform.refundOrder(p.orderExternalId, { lines: p.lines, locationExternalId: p.locationExternalId ?? null, amountMinor: p.amountMinor, currency: p.currency, note: p.note ?? null, notify: p.notify }),
+});
+
 defineCommerceWrite("order.create", {
   target: (p) => `order:create:${p.input.replacesOrderName ?? p.input.noteAttributes.find((a) => a.name === "keel_return_id")?.value ?? "new"}`,
   execute: (platform, p) => platform.createOrder(p.input),
@@ -116,6 +126,19 @@ defineCommerceWrite("return.approve", { target: (p) => `return:${p.returnExterna
 defineCommerceWrite("return.decline", { target: (p) => `return:${p.returnExternalId}:decline`, execute: (platform, p) => platform.declineReturn(p.returnExternalId, p.note) });
 defineCommerceWrite("return.refund", { target: (p) => `order:${p.orderExternalId}:refund`, execute: (platform, p) => platform.refundReturn(p.orderExternalId, { lines: p.lines, amountMinor: p.amountMinor, currency: p.currency, note: p.note, notify: p.notify }) });
 defineCommerceWrite("return.close", { target: (p) => `return:${p.returnExternalId}:close`, execute: (platform, p) => platform.closeReturn(p.returnExternalId) });
+
+/** A `NormalizedFulfillment` read back from JSON. */
+export function reviveFulfillment(raw: unknown): NormalizedFulfillment {
+  const f = raw as NormalizedFulfillment;
+  return { ...f, createdAt: new Date(f.createdAt), updatedAt: new Date(f.updatedAt), deliveredAt: d(f.deliveredAt) };
+}
+
+// ship from Keel (issue #28): one fulfilment per order and tracking number; executed synchronously, the shipment is imported from the answer
+defineCommerceWrite("fulfillment.create", {
+  target: (p) => `order:${p.input.orderExternalId}:fulfillment:${p.input.trackingNumber}`,
+  execute: (platform, p) => platform.createFulfillment(p.input),
+  revive: reviveFulfillment,
+});
 
 defineAdsWrite("campaign.status", {
   provider: (p) => p.provider,

@@ -300,7 +300,10 @@ export async function transitionReturn(ctx: ServiceContext, input: TransitionInp
     const back = await ctx.tx.select({ orderLineId: schema.returnLines.orderLineId, qty: sql<number>`sum(${schema.returnLines.quantity})::int` }).from(schema.returnLines).innerJoin(schema.returnRequests, eq(schema.returnRequests.id, schema.returnLines.returnId)).where(and(eq(schema.returnRequests.orderId, order.id), inArray(schema.returnRequests.status, [...RETURN_GOODS_BACK_STATUSES]))).groupBy(schema.returnLines.orderLineId);
     const fraction = returnedFractionBps(orderLines, Object.fromEntries(back.map((b) => [b.orderLineId, b.qty])));
     const [refunds] = await ctx.tx.select({ total: sql<number>`coalesce(sum(${schema.returnRequests.refundedAmountMinor}), 0)::int` }).from(schema.returnRequests).where(and(eq(schema.returnRequests.orderId, order.id), eq(schema.returnRequests.status, "refunded")));
-    const refundedMinor = Math.max(order.refundedMinor, refunds?.total ?? 0);
+    // money refunds issued from the order page add to the return refunds
+    const [manualRow] = await ctx.tx.select({ total: sql<number>`coalesce(sum(${schema.orderTransactions.amountMinor}), 0)::int` }).from(schema.orderTransactions).where(and(eq(schema.orderTransactions.orderId, order.id), eq(schema.orderTransactions.kind, "refund")));
+    const manual = manualRow?.total ?? 0;
+    const refundedMinor = Math.max(order.refundedMinor, (refunds?.total ?? 0) + manual);
     const paymentStatus = refundedMinor <= 0 ? order.paymentStatus : refundedMinor >= order.totalMinor ? "refunded" : order.paymentStatus === "paid" || order.paymentStatus === "partially_refunded" ? "partially_refunded" : order.paymentStatus;
     const changed = fraction !== order.returnedFraction || refundedMinor !== order.refundedMinor || paymentStatus !== order.paymentStatus;
     if (changed) await ctx.tx.update(schema.orders).set({ returnedFraction: fraction, refundedMinor, paymentStatus, updatedAt: now }).where(eq(schema.orders.id, order.id));

@@ -48,7 +48,17 @@
       "not_editable": "Questo ordine non si può più modificare: è evaso, annullato o sostituito.",
       "invalid_address": "L'indirizzo non è valido: controlla i campi evidenziati.",
       "merge_invalid": "Questi ordini non si possono unire: cliente o pagamento diversi, oppure già evasi.",
-      "nothing_to_change": "Niente da modificare."
+      "nothing_to_change": "Niente da modificare.",
+      "not_pending": "Il pagamento di questo ordine non è in attesa.",
+      "cancelled": "L'ordine è annullato.",
+      "amount_invalid": "Inserisci un importo maggiore di zero.",
+      "exceeds_outstanding": "L'importo supera quanto resta da incassare.",
+      "date_invalid": "La data non può essere nel futuro.",
+      "replaced": "L'ordine è stato sostituito da una modifica: usa il nuovo ordine.",
+      "not_paid": "Si possono rimborsare solo ordini pagati.",
+      "exceeds_refundable": "Il rimborso supera quanto resta rimborsabile sull'ordine.",
+      "line_invalid": "Controlla le unità da rimborsare: più di quante restano su una riga.",
+      "location_required": "Scegli dove rimettere a magazzino le unità."
     },
     "edit": "Modifica"
   },
@@ -177,7 +187,8 @@
     "assistant": "Assistente",
     "tasks": "Attività",
     "support": "Supporto",
-    "notifications": "Notifiche"
+    "notifications": "Notifiche",
+    "fulfilment": "Evasione"
   },
   "shell": {
     "open_menu": "Apri menu",
@@ -232,7 +243,8 @@
       "returns_requested": "Richieste di reso",
       "critical_variants": "Varianti sotto soglia",
       "failed_webhooks": "Webhook falliti",
-      "catalog_quality": "Varianti senza costo o SKU"
+      "catalog_quality": "Varianti senza costo o SKU",
+      "late_to_ship": "Spedizioni in ritardo"
     },
     "forecast": {
       "title": "Previsione {month}",
@@ -312,7 +324,8 @@
       "add": "Aggiungi o aggiorna"
     },
     "order_states_link": "Regole di stato ordine",
-    "branding_link": "Branding"
+    "branding_link": "Branding",
+    "fulfilment_link": "Evasione"
   },
   "users": {
     "title": "Utenti e ruoli",
@@ -499,7 +512,7 @@
     },
     "rendered": {
       "stock_critical_no_po": "{title} varianti in vendita con stock critico e nessun ordine d'acquisto",
-      "late_to_ship": "{title} ordini ancora da spedire dopo {body}",
+      "late_to_ship": "{title} ordini ancora da spedire dopo {body} giorni lavorativi",
       "sync_delay": "La sincronizzazione di {title} è in ritardo ({body})",
       "export_ready": "L'esportazione di {body} è pronta ({title} righe)",
       "export_failed": "L'esportazione di {body} è fallita"
@@ -761,7 +774,11 @@
       "tag": "Tag",
       "missing_cost": "Prodotti senza costo",
       "product": "Prodotto: {name}",
-      "variant": "Variante: {name}"
+      "variant": "Variante: {name}",
+      "country": "Paese: {country}",
+      "fee_actual": "Commissione effettiva (dai versamenti)",
+      "fee_estimated": "Commissione stimata",
+      "payout": "In un versamento"
     },
     "sort": {
       "placed_desc": "Più recenti",
@@ -883,7 +900,13 @@
         "order_cancelled": "Ordine annullato",
         "order_replaced": "Ordine sostituito",
         "order_fulfilled": "Evaso sul negozio"
-      }
+      },
+      "payment": "{amount} con {method}",
+      "payment_outstanding": "ancora da incassare {amount}",
+      "refund": "{amount} restituiti al cliente",
+      "refund_capped": "{amount} richiesti, limitati dal negozio",
+      "restocked": "{n} unità rimesse a magazzino",
+      "queued_platform": "In coda per il negozio"
     },
     "backorders": {
       "title_open": "In attesa di stock",
@@ -941,7 +964,13 @@
     "replaced": "Sostituito da un nuovo ordine",
     "discount_applied": "Sconto applicato",
     "backorder_created": "In attesa di stock",
-    "backorder_closed": "Attesa di stock chiusa"
+    "backorder_closed": "Attesa di stock chiusa",
+    "payment_recorded": "Pagamento registrato",
+    "refund_issued": "Rimborso emesso",
+    "fulfilled": "Spedito da Keel",
+    "packed": "Imballato",
+    "unpacked": "Tornato da imballare",
+    "delivery_instruction_sent": "Istruzione di consegna inviata"
   },
   "shipments": {
     "title": "Spedizioni",
@@ -978,7 +1007,8 @@
     "filters": {
       "status": "Stato",
       "carrier": "Corriere"
-    }
+    },
+    "work_queue": "Coda eccezioni"
   },
   "stock_risk": {
     "critical": "Critico",
@@ -1060,7 +1090,8 @@
       "return_restock": "Rientro da reso",
       "adjustment": "Rettifica",
       "sync": "Sync",
-      "sale": "Vendita"
+      "sale": "Vendita",
+      "refund_restock": "Rientro da rimborso"
     },
     "view_orders": "Vedi ordini",
     "grid": {
@@ -1697,7 +1728,8 @@
         "cancel_rate": "Tasso di annullamento",
         "stockouts": "Varianti esaurite",
         "roas": "ROAS dichiarato",
-        "conversion_rate": "Tasso di conversione"
+        "conversion_rate": "Tasso di conversione",
+        "late_to_ship": "Ordini in ritardo di spedizione"
       }
     }
   },
@@ -5163,7 +5195,8 @@
       "incomplete": "incompleto",
       "estimated": "stima",
       "fee_source": {
-        "estimated": "stima"
+        "estimated": "stima",
+        "actual": "effettiva"
       },
       "lines": {
         "gross": "Vendite lorde",
@@ -5345,7 +5378,10 @@
       "variant_prices": "Prezzi variante",
       "product_tags": "Tag prodotto",
       "order_fulfillment_hold": "Blocco evasione",
-      "order_fulfillment_release": "Sblocco evasione"
+      "order_fulfillment_release": "Sblocco evasione",
+      "order_mark_paid": "Segna ordine pagato",
+      "order_refund": "Rimborso ordine",
+      "fulfillment_create": "Evasione"
     }
   },
   "dev_inbox": {
@@ -5425,5 +5461,420 @@
       "not_pending": "Questo invito non è più in attesa.",
       "unknown": "Qualcosa è andato storto. Riprova."
     }
+  },
+  "order_payments": {
+    "mark_paid": "Segna come pagato",
+    "payment_title": "Registra un pagamento su {order}",
+    "payment_description": "Denaro ricevuto fuori dal checkout (bonifico, contanti, assegno…). Ancora da incassare: {amount}. Viene aggiornato anche il negozio.",
+    "amount": "Importo ({currency})",
+    "date": "Data di incasso",
+    "method": "Metodo",
+    "note": "Nota",
+    "note_placeholder": "Riferimento bancario, numero ricevuta…",
+    "preview_paid": "L'ordine sarà segnato come pagato.",
+    "preview_partial": "Pagamento parziale: resteranno da incassare {rest} e l'ordine resta in attesa di pagamento.",
+    "save_payment": "Registra pagamento",
+    "refund": "Rimborsa",
+    "refund_title": "Rimborso su {order}",
+    "refund_description": "Denaro restituito al cliente sul pagamento originale, scritto prima sul negozio. Ancora rimborsabile: {amount}.",
+    "lines": "Articoli (facoltativo)",
+    "line_qty": "Unità di {item} da rimborsare",
+    "lines_hint": "Scegliendo le unità si compila il loro prezzo meno lo sconto dell'ordine; l'importo resta modificabile.",
+    "restock": "Rimetti le unità a magazzino",
+    "location": "Magazzino",
+    "reason": "Motivo",
+    "reason_placeholder": "Gesto commerciale, adeguamento prezzo, articolo danneggiato…",
+    "notify": "Avvisa il cliente via email",
+    "too_much": "Più di quanto resta da rimborsare ({amount}).",
+    "refund_preview": "{amount} restituiti al cliente; resteranno rimborsabili {left}.",
+    "refund_save": "Rimborsa",
+    "card_title": "Pagamenti e rimborsi",
+    "kind": {
+      "manual_payment": "Pagamento manuale",
+      "refund": "Rimborso"
+    },
+    "system": "Sistema",
+    "accepted_of": "accettato dal negozio su {amount} richiesti",
+    "processor": "Processore di pagamento",
+    "balance_type": {
+      "charge": "Addebito",
+      "refund": "Rimborso",
+      "adjustment": "Rettifica",
+      "dispute": "Contestazione",
+      "reserve": "Riserva",
+      "other": "Altro"
+    },
+    "fee": "commissione {amount}",
+    "payout_of": "Versamento del {date}",
+    "payout_status": {
+      "scheduled": "programmato",
+      "in_transit": "in transito",
+      "paid": "versato",
+      "failed": "fallito",
+      "canceled": "annullato"
+    },
+    "not_paid_out": "non ancora versato"
+  },
+  "analytics_money": {
+    "payouts_link": "Versamenti",
+    "tabs": {
+      "payments": "Metodi di pagamento",
+      "tax": "Imposte"
+    },
+    "export": "Esporta CSV",
+    "fees": {
+      "actual": "Commissioni dai versamenti: {amount} su {n} ordini",
+      "estimated": "stimate dalle tue tariffe: {amount} su {n} ordini",
+      "payouts": "Vedi versamenti"
+    },
+    "methods": {
+      "empty": "Nessun ordine nel periodo.",
+      "title": "Metodi di pagamento",
+      "description": "Ordini, ricavi, annullamenti, resi e commissioni per ogni metodo di pagamento, a confronto.",
+      "method": "Metodo",
+      "placed": "Ricevuti",
+      "orders": "Vendite",
+      "net_revenue": "Ricavi netti",
+      "share": "Quota",
+      "aov": "Scontrino medio",
+      "cancel_rate": "Annullati",
+      "return_rate": "Resi",
+      "fees": "Commissioni",
+      "fee_rate": "Incidenza",
+      "partly_estimated": "{n} stimate",
+      "estimated": "stimate",
+      "actual": "dai versamenti",
+      "footnote": "Commissioni dai versamenti: {actual}. Stimate dalle tue tariffe (Impostazioni → commissioni): {estimated}. Tasso di annullamento = annullati / ricevuti; tasso di reso = resi / (vendite + resi), come nella dashboard."
+    },
+    "tax": {
+      "empty": "Nessuna vendita nel periodo.",
+      "title": "Report imposte",
+      "description": "Imposte sulle vendite del periodo per paese e aliquota. Il totale è la riga imposte del conto economico.",
+      "country": "Paese",
+      "rate": "Aliquota",
+      "orders": "Ordini",
+      "gross": "Vendite lorde",
+      "taxable": "Imponibile",
+      "tax": "Imposta",
+      "refunded_tax": "Imposta sui rimborsi",
+      "net_tax": "Al netto dei rimborsi",
+      "total": "Totale",
+      "matches": "Coincide con la riga imposte del conto economico: {amount}.",
+      "mismatch": "Non coincide con la riga imposte del conto economico ({amount}): i dati sono cambiati durante il caricamento, ricarica la pagina.",
+      "footnote": "Aliquota = aliquota effettiva dell'ordine (imposta indicata dal negozio sulla merce scontata, arrotondata allo 0,1%), oppure la tua aliquota per il paese se il negozio non ne ha indicata. Paese di spedizione; il tuo paese se non noto."
+    }
+  },
+  "payouts": {
+    "sync": "Sincronizza versamenti",
+    "synced": "Letti {payouts} versamenti e {transactions} movimenti.",
+    "sync_paused": "Letti {payouts} versamenti e {transactions} movimenti; il resto prosegue in background.",
+    "back": "Analisi",
+    "back_list": "Versamenti",
+    "title": "Versamenti",
+    "description": "Versamenti del processore di pagamento sul tuo conto: ognuno con addebiti, rimborsi, rettifiche, commissioni e netto. Il conto economico prende da qui la commissione effettiva di un ordine.",
+    "totals": {
+      "gross": "Addebiti",
+      "refunds": "Rimborsi",
+      "adjustments": "Rettifiche",
+      "fees": "Commissioni",
+      "net": "Netto versato",
+      "count": "{n} versamenti"
+    },
+    "filters": {
+      "status": "Stato",
+      "all_statuses": "Tutti gli stati",
+      "from": "Dal",
+      "to": "Al",
+      "apply": "Filtra",
+      "clear": "Azzera"
+    },
+    "status": {
+      "scheduled": "Programmato",
+      "in_transit": "In transito",
+      "paid": "Versato",
+      "failed": "Fallito",
+      "canceled": "Annullato"
+    },
+    "empty": "Nessun versamento",
+    "empty_filtered": "Nessun versamento corrisponde ai filtri",
+    "empty_hint": "I versamenti arrivano con la sincronizzazione giornaliera se il negozio usa il processore di pagamento della piattaforma (Shopify Payments). Altrimenti le commissioni restano stimate.",
+    "columns": {
+      "date": "Data",
+      "status": "Stato",
+      "transactions": "Movimenti",
+      "gross": "Addebiti",
+      "refunds": "Rimborsi",
+      "adjustments": "Rettifiche",
+      "fees": "Commissioni",
+      "net": "Netto",
+      "when": "Quando",
+      "type": "Tipo",
+      "order": "Ordine",
+      "amount": "Importo",
+      "fee": "Commissione"
+    },
+    "summary": "{n} versamenti",
+    "last_sync": "Ultima sincronizzazione: {at}",
+    "last_sync_error": "Ultima sincronizzazione non riuscita: {error}",
+    "detail_eyebrow": "Versamento",
+    "detail_title": "Versamento del {date}",
+    "detail_description": "Riferimento del processore {id}. Ogni addebito, rimborso e commissione del versamento, collegato al suo ordine.",
+    "orders_charged": "{n} ordini addebitati",
+    "orders_refunded": "{n} ordini rimborsati",
+    "mismatch": "I {n} movimenti importati sommano {net}, non il netto del versamento: ne mancano ancora alcuni. Sincronizza di nuovo.",
+    "unmatched": "{n} movimenti si riferiscono a ordini non ancora importati in Keel.",
+    "transactions_title": "Movimenti ({n})",
+    "type": {
+      "charge": "Addebito",
+      "refund": "Rimborso",
+      "adjustment": "Rettifica",
+      "dispute": "Contestazione",
+      "reserve": "Riserva",
+      "other": "Altro"
+    },
+    "total": "Totale"
+  },
+  "fulfilment": {
+    "title": "Evasione",
+    "description": "Ordini pronti da spedire, dal più vecchio. Imballa, stampa la distinta e spedisci: il negozio crea l'evasione e Keel si aggiorna solo dopo la sua conferma. In ritardo vuol dire oltre {days} giorni lavorativi.",
+    "tabs": {
+      "label": "Aree dell'evasione",
+      "board": "Da spedire",
+      "exceptions": "Eccezioni di consegna",
+      "returned": "Resi al mittente"
+    },
+    "kpi": {
+      "late": "In ritardo (> {days} giorni lavorativi)",
+      "to_pack": "Da imballare",
+      "packed": "Imballati",
+      "shipped_today": "Spediti oggi"
+    },
+    "views": {
+      "label": "Vista",
+      "all": "Tutti da spedire",
+      "late": "Solo in ritardo"
+    },
+    "threshold": "In ritardo = pronto da spedire da più di {days} giorni lavorativi ({tz}).",
+    "search": "Cerca",
+    "search_placeholder": "Ordine, cliente, email",
+    "columns": {
+      "pending": "Da imballare",
+      "packed": "Imballati",
+      "shipped": "Spediti oggi"
+    },
+    "showing": "{shown} di {total}",
+    "empty_pending": "Niente da imballare.",
+    "empty_late": "Nessun ordine in ritardo: tutto ciò che era pronto è partito in tempo.",
+    "empty_packed": "Nessun pacco imballato in attesa del corriere.",
+    "empty_shipped": "Ancora nessuna spedizione oggi.",
+    "card": {
+      "late": "In ritardo",
+      "units": "{units} pezzi · {lines} righe",
+      "age": "{days} giorni lavorativi",
+      "packed_at": "Imballato {time}"
+    },
+    "actions": {
+      "packing_slip": "Distinta",
+      "pack": "Segna imballato",
+      "unpack": "Torna da imballare",
+      "ship": "Spedisci",
+      "packing_slips": "Distinte ({count})",
+      "pack_selected": "Segna imballati ({count})",
+      "unpack_selected": "Torna da imballare ({count})",
+      "clear": "Annulla selezione"
+    },
+    "selected": "{count} selezionati",
+    "bulk_result": "{done} aggiornati, {skipped} saltati, {failed} non riusciti",
+    "ship_dialog": {
+      "title": "Spedisci {order}",
+      "description": "Crea l'evasione sul negozio con corriere e numero di tracking. L'ordine cambia in Keel solo dopo la conferma del negozio.",
+      "carrier": "Corriere",
+      "carrier_placeholder": "es. UPS, DHL, Poste",
+      "tracking": "Numero di tracking",
+      "tracking_url": "Link di tracking (facoltativo)",
+      "notify": "Invia il tracking al cliente via email",
+      "cancel": "Annulla",
+      "submit": "Spedisci ordine"
+    },
+    "errors": {
+      "not_found": "Ordine non trovato.",
+      "not_to_ship": "Questo ordine non è più da spedire (spedito, annullato o in attesa).",
+      "invalid_input": "Alcuni campi non sono validi.",
+      "no_platform_order": "Questo ordine non è sul negozio: non si può evadere da Keel.",
+      "platform_error": "Il negozio ha rifiutato l'evasione; in Keel non è cambiato nulla.",
+      "forbidden": "Non hai i permessi per farlo.",
+      "unknown": "Qualcosa è andato storto.",
+      "field_required": "Obbligatorio.",
+      "field_too_long": "Troppo lungo.",
+      "field_invalid": "Non valido."
+    },
+    "packing_slip": {
+      "title": "Distinta di imballaggio",
+      "order": "Ordine",
+      "placed": "Data ordine",
+      "ship_to": "Spedire a",
+      "sku": "SKU",
+      "item": "Articolo",
+      "variant": "Variante",
+      "quantity": "Qtà",
+      "units": "Pezzi",
+      "note": "Nota"
+    }
+  },
+  "fulfilment_cases": {
+    "exceptions_title": "Eccezioni di consegna",
+    "exceptions_description": "Pacchi che il corriere non è riuscito a consegnare. Entrano in coda da soli, una persona prende in carico il caso e manda al corriere un'istruzione una sola volta; il caso si chiude da solo quando il pacco riparte.",
+    "returned_title": "Resi al mittente",
+    "returned_description": "Pacchi in rientro o già tornati in magazzino. Rivedi ciascuno: rimetti a stock, rimborsa quanto pagato, contatta il cliente.",
+    "scopes": {
+      "open": "Aperti",
+      "unclaimed": "Non assegnati",
+      "mine": "Miei",
+      "closed": "Chiusi"
+    },
+    "search": "Cerca",
+    "search_placeholder": "Ordine, cliente, tracking",
+    "empty_title": "Niente qui",
+    "empty_exceptions": "Nessuna eccezione di consegna in questa vista.",
+    "empty_returned": "Nessun pacco da rivedere in questa vista.",
+    "columns": {
+      "order": "Ordine",
+      "shipment": "Spedizione",
+      "status": "Stato",
+      "opened": "Aperto",
+      "owner": "In carico a"
+    },
+    "you": "Tu",
+    "unclaimed": "Non assegnato",
+    "pagination": "{from}–{to} di {total} casi",
+    "resolutions": {
+      "redeliver": "Nuovo tentativo",
+      "new_address": "Nuovo indirizzo",
+      "pickup_point": "Punto di ritiro",
+      "return": "Reso al mittente"
+    },
+    "close_reasons": {
+      "moved_on": "chiuso: la spedizione è ripartita",
+      "resolved": "chiuso: fatto",
+      "dismissed": "chiuso senza azioni"
+    },
+    "channels": {
+      "carrier": "Connettore del corriere",
+      "email": "Email al corriere"
+    },
+    "follow_ups": {
+      "restock": "Rimettere a stock",
+      "refund": "Rimborsare",
+      "contact": "Contattare il cliente"
+    },
+    "follow_up_reasons": {
+      "units_back": "I pezzi rientrano: rimettili a stock quando arriva il pacco.",
+      "money_captured": "Il pagamento è stato incassato e non ancora rimborsato.",
+      "nothing_captured": "Non è stato incassato nulla: non c'è niente da rimborsare.",
+      "already_refunded": "Già rimborsato.",
+      "tell_customer": "Spiega al cliente cosa è successo e proponi una nuova spedizione.",
+      "no_contact": "Nessuna email o telefono sull'ordine."
+    },
+    "outcomes": {
+      "done": "Fatto",
+      "skipped": "Saltato"
+    },
+    "suggested": "Consigliato",
+    "not_needed": "Non serve",
+    "mark_done": "Segna fatto",
+    "skip": "Salta",
+    "undo": "Annulla",
+    "links": {
+      "restock": "Registra il reso",
+      "order": "Apri l'ordine"
+    },
+    "address": {
+      "name": "Nome",
+      "address1": "Indirizzo",
+      "address2": "Indirizzo (riga 2)",
+      "zip": "CAP",
+      "city": "Città",
+      "province": "Provincia",
+      "country": "Paese (ISO)"
+    },
+    "detail": {
+      "title_exception": "Eccezione di consegna · {order}",
+      "title_rts": "Reso al mittente · {order}",
+      "opened": "Aperto {time}",
+      "shipment": "Spedizione",
+      "shipped": "Spedito {time}",
+      "order": "Ordine e cliente",
+      "owner": "In carico",
+      "closed": "{reason} · {time}",
+      "claimed_by_you": "In carico a te.",
+      "claimed_by_other": "In carico a {name}: solo questa persona può agire.",
+      "claim": "Prendi in carico",
+      "release": "Rilascia",
+      "follow_ups_title": "Azioni da fare",
+      "follow_ups_hint": "Suggerimenti in base all'ordine: Keel non rimborsa né annulla da solo.",
+      "cod_note": "I pagamenti mai incassati restano come sono: cosa farne spetta al flusso che gestisce quel metodo di pagamento.",
+      "close_review": "Chiudi la revisione",
+      "dismiss": "Chiudi senza azioni",
+      "instruction_title": "Istruzione di consegna",
+      "sent": "Inviata {time} da {name} tramite {channel}.",
+      "waiting": "Il caso si chiude da solo quando il corriere comunica il prossimo stato.",
+      "claim_first": "Prendi in carico il caso per inviare un'istruzione.",
+      "resolution": "Cosa deve fare il corriere?",
+      "pickup_point": "Punto di ritiro (nome e indirizzo)",
+      "note": "Nota per il corriere",
+      "channel": "Invia tramite",
+      "email_to": "Email del corriere",
+      "send": "Invia istruzione"
+    },
+    "errors": {
+      "not_found": "Caso non trovato.",
+      "closed": "Questo caso è chiuso.",
+      "claimed_by_other": "Il caso è già in carico a un'altra persona.",
+      "not_claimed": "Prima prendi in carico il caso.",
+      "already_sent": "Per questo caso è già stata inviata un'istruzione: non si può inviare due volte.",
+      "invalid_input": "Controlla i campi: indirizzo, punto di ritiro o email.",
+      "no_channel": "Nessun connettore del corriere disponibile: inviala via email.",
+      "send_failed": "Non è stato possibile inviare l'istruzione; non è stato registrato nulla.",
+      "wrong_kind": "Questa azione non vale per questo caso.",
+      "forbidden": "Non hai i permessi per farlo."
+    }
+  },
+  "settings_fulfilment": {
+    "back": "Impostazioni",
+    "title": "Evasione",
+    "description": "Quando un ordine è in ritardo di spedizione, dove vanno via email le istruzioni di consegna e cosa significa ogni stato del corriere o della piattaforma.",
+    "clock_title": "Orologio delle spedizioni",
+    "clock_description": "I giorni lavorativi si contano nel fuso orario del negozio ({tz}). Un ordine fatto in un giorno lavorativo conta dal giorno dopo.",
+    "threshold": "In ritardo dopo (giorni lavorativi)",
+    "carrier_email": "Email del corriere per le istruzioni di consegna",
+    "carrier_email_hint": "Usata quando non c'è un connettore del corriere.",
+    "workdays": "Giorni lavorativi",
+    "weekdays": {
+      "1": "Lun",
+      "2": "Mar",
+      "3": "Mer",
+      "4": "Gio",
+      "5": "Ven",
+      "6": "Sab",
+      "7": "Dom"
+    },
+    "saved": "Salvato.",
+    "save": "Salva",
+    "errors": {
+      "invalid_input": "Alcuni valori non sono validi.",
+      "forbidden": "Solo titolari e amministratori possono modificarlo.",
+      "duplicate": "Questa fonte mappa già questo stato.",
+      "not_found": "Non trovato."
+    },
+    "mappings_title": "Mappatura degli stati di spedizione",
+    "mappings_description": "Cosa significa in Keel uno stato comunicato da una fonte (il negozio, un corriere, un 3PL): stato canonico, eccezione (apre un caso) e finale. Lo stato di ogni spedizione si calcola da questa tabella.",
+    "source": "Fonte",
+    "external_status": "Stato esterno",
+    "canonical": "Stato canonico",
+    "exception": "Eccezione",
+    "final": "Finale",
+    "delete": "Elimina",
+    "add": "Aggiungi",
+    "unmapped_title": "Visti ma non mappati (clicca per compilare il modulo):"
   }
 }

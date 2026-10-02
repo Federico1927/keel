@@ -34,6 +34,8 @@ export interface EmailTemplateData {
   digest: { tenantName: string; groups: { type: string; count: number; titles: string[] }[]; url: string };
   notification: { title: string; body: string | null; url: string | null; type: string };
   test: { provider: string; sentAt: Date | string };
+  /** Delivery instruction for a parcel in exception, to the carrier's customer service (issue #28). */
+  carrier_instruction: { companyName: string; carrier: string | null; trackingNumber: string; orderName: string; resolution: "redeliver" | "new_address" | "pickup_point" | "return"; address: { name?: string | null; address1?: string | null; address2?: string | null; zip?: string | null; city?: string | null; province?: string | null; country?: string | null; phone?: string | null } | null; pickupPoint: string | null; note: string | null };
 }
 export type EmailTemplate = keyof EmailTemplateData;
 
@@ -51,6 +53,7 @@ export const EMAIL_TEMPLATES: { [K in EmailTemplate]: { kind: EmailKind; categor
   account_disabled: { kind: "security", category: "security" },
   test: { kind: "transactional", category: "transactional" },
   supplier_po: { kind: "transactional", category: "supplier_po" },
+  carrier_instruction: { kind: "transactional", category: "transactional" },
   mention: { kind: "notification", category: "mention" },
   digest: { kind: "notification", category: "digest" },
   notification: { kind: "notification", category: "notification" },
@@ -252,6 +255,14 @@ export function renderEmail<K extends EmailTemplate>(template: K, rawLocale: str
       const types = s.types as Record<string, string>;
       const list = d.groups.map((g) => `${types[g.type] ?? types.other} (${formatNumber(g.count, locale)}): ${g.titles.join(" · ")}${g.count > g.titles.length ? ` ${fill(tpl.digest.more, { n: formatNumber(g.count - g.titles.length, locale) })}` : ""}`);
       return out(fill(tpl.digest.subject, { tenant: d.tenantName }), { preheader: tpl.digest.preheader, paragraphs: [tpl.digest.intro], list, cta: { label: tpl.digest.cta, url: d.url } });
+    }
+    case "carrier_instruction": {
+      const d = data as EmailTemplateData["carrier_instruction"];
+      const vars = { tracking: d.trackingNumber, company: d.companyName, order: d.orderName, carrier: d.carrier ?? "—" };
+      const a = d.address;
+      const list = d.resolution === "new_address" && a ? [a.name, a.address1, a.address2, [a.zip, a.city, a.province].filter(Boolean).join(" "), a.country, a.phone].filter((x): x is string => Boolean(x && x.trim())) : d.resolution === "pickup_point" && d.pickupPoint ? [d.pickupPoint] : undefined;
+      const t = tpl.carrier_instruction;
+      return out(fill(t.subject, vars), { preheader: fill(t.preheader, vars), paragraphs: [fill(t.intro, vars), t[d.resolution], ...(d.note ? [fill(t.note, { note: d.note })] : [])], list, hint: t.hint });
     }
     case "test": {
       const d = data as EmailTemplateData["test"];

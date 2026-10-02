@@ -11,10 +11,8 @@ async function deliveredOrders(page: Page): Promise<{ name: string; email: strin
   const out: { name: string; email: string }[] = [];
   for (const href of hrefs) {
     await page.goto(href);
-    const html = await page.content();
     const name = /#NW-\d+/.exec(await page.locator("h1").first().innerText())?.[0];
-    // the first customer address on the page; demo staff addresses (*.demo) can appear in the shell
-    const email = [...html.matchAll(/[\w.+-]+@[\w-]+\.[\w.]+/g)].map((m) => m[0]).find((e) => !e.endsWith(".demo"));
+    const email = (await page.getByTestId("order-email").innerText()).trim() || undefined;
     if (name && email) out.push({ name, email });
   }
   return out;

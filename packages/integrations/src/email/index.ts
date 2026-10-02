@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 
 /**
  * Platform transactional email (issue #51). One sender owned by the platform: the provider
@@ -72,7 +72,8 @@ export class MockEmailProvider implements EmailProvider {
     const failure = this.failures.shift();
     if (failure && !failure.acceptFirst) throw new EmailSendError(failure.code, `mock ${failure.code}`);
     const known = this.byKey.get(message.idempotencyKey);
-    const id = known ?? `mock_${String(this.byKey.size + 1).padStart(6, "0")}`;
+    // unique across processes like a real provider id: the delivery log and provider events are shared
+    const id = known ?? `mock_${randomUUID()}`;
     if (!known) {
       this.byKey.set(message.idempotencyKey, id);
       const captured = { id, message, sentAt: new Date() };

@@ -108,11 +108,22 @@
       "preheader": "Un administrador desactivó tu acceso.",
       "intro": "Un administrador de {tenant} desactivó tu acceso en {product}. Ya no puedes abrir ese espacio de trabajo.",
       "hint": "Si crees que es un error, contacta con un administrador de {tenant}."
+    },
+    "carrier_instruction": {
+      "subject": "Instrucción de entrega para el envío {tracking} ({company})",
+      "preheader": "Instrucción para el envío {tracking}.",
+      "intro": "Hola, {company} envía una instrucción para el envío {tracking} (pedido {order}, transportista {carrier}).",
+      "redeliver": "Por favor, intentad la entrega de nuevo.",
+      "new_address": "Por favor, entregad en esta nueva dirección:",
+      "pickup_point": "Por favor, dejad el paquete en este punto de recogida:",
+      "return": "Por favor, devolved el paquete al remitente.",
+      "note": "Nota: {note}",
+      "hint": "Por favor, confirmad respondiendo a este correo."
     }
   },
   "system": {
     "stock_critical_no_po": "{title} variantes en venta con stock crítico y ninguna orden de compra",
-    "late_to_ship": "{title} pedidos aún sin enviar después de {body}",
+    "late_to_ship": "{title} pedidos aún sin enviar después de {body} días laborables",
     "sync_delay": "La sincronización de {title} va con retraso ({body})",
     "export_ready": "Tu exportación CSV está lista: {title} filas ({body})"
   },
