@@ -1014,3 +1014,12 @@ The `holdout_percentage` and `group_name` columns stay in the data model, as §7
 - **Thumbnails** (variant image, else product cover; `catalogThumbnails`, `variantStock.imageUrl`) in the products list, inventory, purchase order lines, order lines and campaign product links.
 
 **Alternatives.** Editing every field in Keel (rejected by the issue: two editors for the same data, and Shopify's admin covers the long tail). Optimistic local updates with the asynchronous outbox (rejected: the page would show values Shopify may refuse, and conflicts would be silent). A `product_collections` link table (see above). Storing media files or proxying Shopify's CDN (rejected: Shopify serves its images; demo images are generated). An external placeholder CDN (forbidden by the issue).
+
+## 2026-10-02 · Phone-width layout (#72): language in the user menu, cards that shrink
+
+**Decision.**
+- Below `sm` the topbar keeps the tenant switcher (truncated), search, support, notifications and the user menu. The language picker moves into the user menu (`UserMenu languageHiddenFrom="sm"`). The admin console's mobile header passes `"lg"`, matching where its sidebar picker appears.
+- `Card` carries `min-w-0`. As a grid or flex item, a card fits its track, and wide tables scroll inside their own `overflow-auto` wrapper. Single-column grids that hold a card next to an aside use `grid-cols-[minmax(0,1fr)]` (`DetailShell`, assistant).
+- Guarded by `apps/web/e2e/mobile.spec.ts` at 390 and 360 px.
+
+**Alternatives.** Hiding support or search below `sm` (rejected: both are primary actions on a phone). Shrinking the language `<Select>` (rejected: it still leaves seven controls in one row at 360 px, and the language is changed rarely). Adding `grid-cols-1`/`min-w-0` page by page (rejected: dozens of grids share the pattern, and fixing `Card` once fixes them all). `overflow-x: hidden` on `body` (rejected: it hides the overflow instead of fixing it, and clips content).
