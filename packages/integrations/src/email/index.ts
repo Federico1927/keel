@@ -60,7 +60,8 @@ export class MockEmailProvider implements EmailProvider {
   readonly sent: CapturedEmail[] = [];
   private readonly byKey = new Map<string, string>();
   private failures: { code: EmailErrorCode; acceptFirst: boolean }[] = [];
-  constructor(private readonly opts: { capacity?: number } = {}) {}
+  /** `onCapture` sees every newly recorded message (the e2e outbox writes it to disk). */
+  constructor(private readonly opts: { capacity?: number; onCapture?: (captured: CapturedEmail) => void } = {}) {}
 
   /** The next `times` sends fail with `code`; `acceptFirst` records the message before failing (a timeout after the provider accepted it). */
   failNext(code: EmailErrorCode, times = 1, acceptFirst = false): void {
@@ -75,7 +76,9 @@ export class MockEmailProvider implements EmailProvider {
     const id = known ?? `mock_${randomUUID()}`;
     if (!known) {
       this.byKey.set(message.idempotencyKey, id);
-      this.sent.push({ id, message, sentAt: new Date() });
+      const captured = { id, message, sentAt: new Date() };
+      this.sent.push(captured);
+      this.opts.onCapture?.(captured);
       const cap = this.opts.capacity ?? 500;
       if (this.sent.length > cap) this.sent.splice(0, this.sent.length - cap);
     }

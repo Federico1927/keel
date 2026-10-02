@@ -1,56 +1,61 @@
 "use server";
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
-import { randomBytes } from "node:crypto";
-import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { adminDb, and, eq, recordAudit, schema } from "@keel/db";
 import { TENANT_ROLES, canManageRole, isTenantRole } from "@keel/config";
-import { appBaseUrl, queueEmail } from "@keel/services";
+import { AccountError, createInvitation, resendInvitation, revokeInvitation, sendAccessDisabledNotice } from "@keel/services";
 import { requireAction, ForbiddenError } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 import { displayName } from "@keel/core";
+import "@/server/email";
 
-const inviteSchema = z.object({ email: z.string().email().toLowerCase(), name: z.string().trim().min(1).max(80), role: z.enum(TENANT_ROLES) });
+const inviteSchema = z.object({ email: z.string().trim().email().max(254), name: z.string().trim().max(120).optional(), role: z.enum(TENANT_ROLES) });
+
+function failFrom(e: unknown): ActionResult<never> {
+  if (e instanceof ForbiddenError) return fail("forbidden");
+  if (e instanceof AccountError) return fail(e.code);
+  throw e;
+}
 
 /**
- * Invites a user: creates the platform user if needed (random password, the person
- * signs in through the magic link) and the membership. Platform tables → admin connection.
+ * Invites a person (#52): an `invitations` row and the invitation email with the accept link.
+ * No account or membership exists until the person accepts.
  */
 export async function inviteMember(slug: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   try {
     const ctx = await requireAction(slug, "manage_users", "users");
     const parsed = inviteSchema.safeParse(Object.fromEntries(formData));
     if (!parsed.success) return fail("invalid_input");
-    if (!canManageRole(ctx.role, parsed.data.role)) return fail("forbidden");
-    const db = adminDb();
-    const [existing] = await db.select({ id: schema.users.id, name: schema.users.name }).from(schema.users).where(eq(schema.users.email, parsed.data.email)).limit(1);
-    let userId = existing?.id;
-    // an account without a name (created by a magic link) gets the one given in the invitation
-    if (existing && !existing.name?.trim()) await db.update(schema.users).set({ name: parsed.data.name }).where(eq(schema.users.id, existing.id));
-    if (!userId) {
-      const [created] = await db
-        .insert(schema.users)
-        .values({ email: parsed.data.email, name: parsed.data.name, passwordHash: await bcrypt.hash(randomBytes(24).toString("hex"), 10) })
-        .returning({ id: schema.users.id });
-      userId = created!.id;
-    }
-    await db
-      .insert(schema.tenantMemberships)
-      .values({ tenantId: ctx.tenant.id, userId, role: parsed.data.role })
-      .onConflictDoUpdate({ target: [schema.tenantMemberships.tenantId, schema.tenantMemberships.userId], set: { role: parsed.data.role, isActive: true } });
-    const [invitee] = await db.select({ locale: schema.users.locale }).from(schema.users).where(eq(schema.users.id, userId)).limit(1);
-    const delivery = await ctx.run(async (tx) => {
-      const sent = await queueEmail({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { to: parsed.data.email, template: "invite", data: { tenantName: ctx.tenant.name, inviterName: displayName(ctx.user), role: parsed.data.role, url: `${appBaseUrl()}/login` }, locale: invitee?.locale ?? ctx.tenant.defaultLocale, event: `invite:${userId}:${Date.now()}` });
-      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "membership.invited", entityType: "user", entityId: userId, metadata: { email: parsed.data.email, role: parsed.data.role, email_delivery: sent.outcome } });
-      return sent;
-    });
-    console.info(`[users] invited ${parsed.data.email} to ${slug} as ${parsed.data.role} (invite email: ${delivery.outcome}); sign-in via magic link at /login`);
+    await ctx.run((tx) => createInvitation({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { email: parsed.data.email, role: parsed.data.role, name: parsed.data.name ?? null, inviterName: displayName(ctx.user), tenantName: ctx.tenant.name, tenantLocale: ctx.tenant.defaultLocale }, { auditAs: auditActor(ctx), actorRole: ctx.role }));
     revalidatePath(`/t/${slug}/users`);
     return ok();
   } catch (e) {
-    if (e instanceof ForbiddenError) return fail("forbidden");
-    throw e;
+    return failFrom(e);
+  }
+}
+
+export async function resendInvitationAction(slug: string, invitationId: string): Promise<ActionResult> {
+  try {
+    const ctx = await requireAction(slug, "manage_users", "users");
+    if (!z.string().uuid().safeParse(invitationId).success) return fail("invalid_input");
+    await ctx.run((tx) => resendInvitation({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, invitationId, { inviterName: displayName(ctx.user), tenantName: ctx.tenant.name, tenantLocale: ctx.tenant.defaultLocale }, { auditAs: auditActor(ctx), actorRole: ctx.role }));
+    revalidatePath(`/t/${slug}/users`);
+    return ok();
+  } catch (e) {
+    return failFrom(e);
+  }
+}
+
+export async function revokeInvitationAction(slug: string, invitationId: string): Promise<ActionResult> {
+  try {
+    const ctx = await requireAction(slug, "manage_users", "users");
+    if (!z.string().uuid().safeParse(invitationId).success) return fail("invalid_input");
+    await ctx.run((tx) => revokeInvitation({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, invitationId, { auditAs: auditActor(ctx), actorRole: ctx.role }));
+    revalidatePath(`/t/${slug}/users`);
+    return ok();
+  } catch (e) {
+    return failFrom(e);
   }
 }
 
@@ -82,7 +87,11 @@ export async function setMemberActive(slug: string, userId: string, isActive: bo
     if (!m) return fail("not_found");
     if (!canManageRole(ctx.role, m.role)) return fail("forbidden");
     await db.update(schema.tenantMemberships).set({ isActive }).where(eq(schema.tenantMemberships.id, m.id));
-    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: isActive ? "membership.reactivated" : "membership.deactivated", entityType: "user", entityId: userId }));
+    await ctx.run(async (tx) => {
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: isActive ? "membership.reactivated" : "membership.deactivated", entityType: "user", entityId: userId, diff: { isActive: { from: m.isActive, to: isActive } } });
+      // the person learns their access ended (security notice, #52)
+      if (!isActive && m.isActive) await sendAccessDisabledNotice({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { userId, tenantName: ctx.tenant.name, membershipId: m.id });
+    });
     revalidatePath(`/t/${slug}/users`);
     return ok();
   } catch (e) {

@@ -87,7 +87,8 @@ export function defaultStatus(input: StateInput): OrderStatus {
   const f = norm(input.fulfillmentStatusRaw ?? "");
   if (f === "fulfilled") return "shipped";
   if (f === "partial" || f === "in_progress") return "fulfilling";
-  if (input.paymentStatus === "paid") return "confirmed";
+  // a partial refund leaves money captured: still a paid order
+  if (input.paymentStatus === "paid" || input.paymentStatus === "partially_refunded") return "confirmed";
   return "new";
 }
 

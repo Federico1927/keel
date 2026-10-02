@@ -1,8 +1,9 @@
 import { getTranslations } from "next-intl/server";
 import { adminDb, eq, schema } from "@keel/db";
 import { PageHeader } from "@keel/ui";
+import { listInvitations } from "@keel/services";
 import { requirePage } from "@/server/tenant";
-import { InviteForm, MembersTable } from "./members";
+import { InviteForm, InvitationsList, MembersTable } from "./members";
 
 export default async function UsersPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
@@ -21,10 +22,12 @@ export default async function UsersPage({ params }: { params: Promise<{ tenant: 
     .innerJoin(schema.users, eq(schema.users.id, schema.tenantMemberships.userId))
     .where(eq(schema.tenantMemberships.tenantId, ctx.tenant.id))
     .orderBy(schema.users.name);
+  const invitations = await ctx.run((tx) => listInvitations({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }));
   return (
     <>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="min-w-0 space-y-6">
         <MembersTable
           slug={ctx.tenant.slug}
           currentUserId={ctx.user.id}
@@ -33,6 +36,8 @@ export default async function UsersPage({ params }: { params: Promise<{ tenant: 
           timezone={ctx.tenant.timezone}
           members={members.map((m) => ({ ...m, lastLoginAt: m.lastLoginAt?.toISOString() ?? null }))}
         />
+        <InvitationsList slug={ctx.tenant.slug} actorRole={ctx.role} locale={ctx.locale} timezone={ctx.tenant.timezone} invitations={invitations.map((i) => ({ ...i, expiresAt: i.expiresAt.toISOString(), lastSentAt: i.lastSentAt.toISOString() }))} />
+        </div>
         <InviteForm slug={ctx.tenant.slug} actorRole={ctx.role} />
       </div>
     </>

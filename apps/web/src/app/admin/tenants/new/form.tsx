@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { PLAN_KEYS } from "@keel/config";
 import { Alert, AlertDescription, Button, Card, CardContent, Input, Label, Select } from "@keel/ui";
@@ -14,17 +14,14 @@ export function NewTenantForm() {
   const [state, action, pending] = useActionState(createTenantAction, null);
   const [name, setName] = useState("");
   const slug = name.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  useEffect(() => {
-    if (state?.ok && state.data && !state.data.temporaryPassword) router.push(`/admin/tenants/${state.data.tenantId}`);
-  }, [state, router]);
-  if (state?.ok && state.data?.temporaryPassword) {
+  if (state?.ok && state.data) {
     return (
       <Card>
         <CardContent className="space-y-3 pt-6">
           <Alert>
             <AlertDescription>
               <p className="font-medium">{t("created")}</p>
-              <p className="mt-1 text-sm">{t("temp_password")} <code className="rounded bg-muted px-1 py-0.5" data-testid="temp-password">{state.data.temporaryPassword}</code></p>
+              <p className="mt-1 text-sm" data-testid="owner-invited">{t("owner_invited", { email: state.data.ownerEmail })}</p>
             </AlertDescription>
           </Alert>
           <Button onClick={() => router.push(`/admin/tenants/${state.data!.tenantId}`)}>{t("open_checklist")}</Button>

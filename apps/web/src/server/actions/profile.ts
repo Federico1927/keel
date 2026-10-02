@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { adminDb, eq, schema } from "@keel/db";
 import { DEFAULT_LOCALE, isLocale } from "@keel/config";
-import { AccountError, cancelEmailChange, changePassword, confirmEmailChange, requestEmailChange, setAvatar, signOutOtherSessions, updatePreferences, updateProfile, type AccountContext } from "@keel/services";
+import { AccountError, appBaseUrl, cancelEmailChange, setSignInNotifications, changePassword, confirmEmailChange, requestEmailChange, setAvatar, signOutOtherSessions, updatePreferences, updateProfile, type AccountContext } from "@keel/services";
 import { THEME_COOKIE, isThemePreference } from "@keel/ui/tokens";
 import { unstable_update } from "@/auth";
 import { LOCALE_COOKIE } from "@/i18n/request";
@@ -137,18 +137,24 @@ export async function signOutOtherSessionsAction(): Promise<ActionResult> {
   }
 }
 
-function appUrl(h: Headers): string {
-  const env = process.env.NEXT_PUBLIC_APP_URL ?? process.env.AUTH_URL;
-  if (env) return env.replace(/\/$/, "");
-  return `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host") ?? "localhost:3000"}`;
-}
-
 export async function requestEmailChangeAction(_prev: ActionResult | null, fd: FormData): Promise<ActionResult> {
   const email = z.string().trim().email().max(200).safeParse(text(fd, "email"));
   if (!email.success) return fail("invalid_input");
-  const base = appUrl(await headers());
+  // links always use NEXT_PUBLIC_APP_URL, never the request's Host header (#52)
+  const base = appBaseUrl();
   try {
     await requestEmailChange(await account(), email.data, (token) => `${base}/account/confirm-email?token=${encodeURIComponent(token)}`);
+  } catch (e) {
+    return failFrom(e);
+  }
+  revalidatePath("/", "layout");
+  return ok();
+}
+
+/** The "new sign-in" notice toggle (#52). */
+export async function setSignInAlertsAction(enabled: boolean): Promise<ActionResult> {
+  try {
+    await setSignInNotifications(await account(), Boolean(enabled));
   } catch (e) {
     return failFrom(e);
   }

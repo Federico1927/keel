@@ -11,6 +11,7 @@ import { RevenueChart } from "@/components/charts/revenue-chart";
 import { PeriodPicker } from "@/components/period-picker";
 import { resolvePeriod } from "@/server/period";
 import { DataQualityCard, OrderPnlTab, PnlPeriods, ProductsTab, UtmTab } from "./depth";
+import { FeeSourceNote, PaymentMethodsTab, TaxTab } from "./money";
 
 export default async function AnalyticsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
@@ -18,8 +19,10 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
   const ctx = await requirePage(tenant, "analytics");
   const t = await getTranslations("analytics");
   const td = await getTranslations("analytics_depth");
-  const TABS = ["overview", "custom", "pnl", "orders_pnl", "attribution", "utm", "products", "cohorts", "ltv", "basket", "survey"];
+  const tm = await getTranslations("analytics_money");
+  const TABS = ["overview", "custom", "pnl", "orders_pnl", "payments", "tax", "attribution", "utm", "products", "cohorts", "ltv", "basket", "survey"];
   const NEW_TABS = ["orders_pnl", "utm"];
+  const MONEY_TABS = ["payments", "tax"];
   const tab = TABS.includes(sp.tab ?? "") ? sp.tab! : "overview";
   const period = resolvePeriod(sp, ctx.tenant.timezone);
   const at = { id: ctx.tenant.id, country: ctx.tenant.country, currency: ctx.tenant.currency, timezone: ctx.tenant.timezone, settings: ctx.settings };
@@ -40,11 +43,11 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
 
   return (
     <>
-      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<div className="flex flex-wrap items-center gap-2"><PeriodPicker basePath={base} keep={{ tab }} preset={period.preset} from={sp.from} to={sp.to} /><Link href={`${base}/alerts`} className="text-sm underline-offset-4 hover:underline" data-testid="alerts-link">{t("alerts_link")}</Link><Link href={`${base}/costs`} className="text-sm underline-offset-4 hover:underline">{t("costs_link")}</Link></div>} />
+      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<div className="flex flex-wrap items-center gap-2"><PeriodPicker basePath={base} keep={{ tab }} preset={period.preset} from={sp.from} to={sp.to} /><Link href={`${base}/alerts`} className="text-sm underline-offset-4 hover:underline" data-testid="alerts-link">{t("alerts_link")}</Link><Link href={`${base}/costs`} className="text-sm underline-offset-4 hover:underline">{t("costs_link")}</Link><Link href={`${base}/payouts`} className="text-sm underline-offset-4 hover:underline" data-testid="payouts-link">{tm("payouts_link")}</Link></div>} />
       <div className="mb-4 flex flex-wrap gap-1 rounded-md bg-muted p-1 text-sm">
         {TABS.map((k) => (
           <Link key={k} href={query({ tab: k })} className={cn("flex-1 rounded-sm px-3 py-1.5 text-center", tab === k ? "bg-card shadow-sm" : "text-muted-foreground")}>
-            {NEW_TABS.includes(k) ? td(`tabs.${k}`) : t(`tabs.${k}`)}
+            {MONEY_TABS.includes(k) ? tm(`tabs.${k}`) : NEW_TABS.includes(k) ? td(`tabs.${k}`) : t(`tabs.${k}`)}
           </Link>
         ))}
       </div>
@@ -171,6 +174,7 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
                 <p className="border-t p-3 text-xs text-muted-foreground" data-testid="cost-sources">
                   {t("pnl.cost_sources", { shipping: t(`pnl.source.${pnl.costSources.shipping}`), fixed: t(`pnl.source.${pnl.costSources.fixed}`) })} <Link href={`${base}/costs`} className="underline-offset-4 hover:underline">{t("pnl.edit_costs")}</Link>
                 </p>
+                <FeeSourceNote ctx={ctx} tenant={tenant} pnl={pnl} />
                 <PnlPeriods ctx={ctx} tenant={tenant} pnl={pnl} buckets={buckets} granularity={granularity} query={query} sp={sp} />
               </CardContent>
             </Card>
@@ -186,6 +190,10 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
       })())}
 
       {tab === "products" && <ProductsTab ctx={ctx} tenant={tenant} period={period} query={query} sp={sp} keep={keep} />}
+
+      {tab === "payments" && <PaymentMethodsTab ctx={ctx} tenant={tenant} period={period} keep={keep} />}
+
+      {tab === "tax" && <TaxTab ctx={ctx} tenant={tenant} period={period} keep={keep} />}
 
       {tab === "orders_pnl" && <OrderPnlTab ctx={ctx} tenant={tenant} period={period} query={query} sp={sp} keep={keep} />}
 

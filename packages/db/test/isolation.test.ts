@@ -17,7 +17,7 @@ import { testPools } from "../src/test-utils";
 import { seedPlatform } from "../src/seed";
 import { seedDomainForTests } from "./seed-for-tests";
 
-const PLATFORM_TABLES = new Set(["users", "accounts", "sessions", "verification_tokens", "user_sign_ins", "tenants", "tenant_memberships", "tenant_addons", "email_events", "email_address_suppressions"]);
+const PLATFORM_TABLES = new Set(["users", "accounts", "sessions", "verification_tokens", "user_sign_ins", "tenants", "tenant_memberships", "tenant_addons", "email_events", "email_address_suppressions", "password_resets"]);
 /** Tenant tables the seed may legitimately leave empty for one tenant. */
 const EMPTY_ALLOWED = new Set<string>(["tenant_addons"]);
 /** Add-on tables: only tenants with the add-on carry rows, so the seed populates tenant A alone. */

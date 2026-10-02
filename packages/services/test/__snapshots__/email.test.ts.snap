@@ -1,5 +1,185 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > account_disabled.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Your access to Northwind Apparel was disabled</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">An administrator disabled your access.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">An administrator of Northwind Apparel disabled your access on Keel. You can no longer open that workspace.</p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">If you think this is a mistake, contact an administrator of Northwind Apparel.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+This is a security email about your Keel account: it is sent even if you turned off other emails.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Your access to Northwind Apparel was disabled",
+  "text": "An administrator of Northwind Apparel disabled your access on Keel. You can no longer open that workspace.
+
+If you think this is a mistake, contact an administrator of Northwind Apparel.
+
+--
+
+This is a security email about your Keel account: it is sent even if you turned off other emails.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > account_disabled.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Se desactivó tu acceso a Northwind Apparel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Un administrador desactivó tu acceso.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Un administrador de Northwind Apparel desactivó tu acceso en Keel. Ya no puedes abrir ese espacio de trabajo.</p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Si crees que es un error, contacta con un administrador de Northwind Apparel.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Este es un correo de seguridad sobre tu cuenta de Keel: llega aunque hayas desactivado los demás correos.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Se desactivó tu acceso a Northwind Apparel",
+  "text": "Un administrador de Northwind Apparel desactivó tu acceso en Keel. Ya no puedes abrir ese espacio de trabajo.
+
+Si crees que es un error, contacta con un administrador de Northwind Apparel.
+
+--
+
+Este es un correo de seguridad sobre tu cuenta de Keel: llega aunque hayas desactivado los demás correos.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > account_disabled.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Il tuo accesso a Northwind Apparel è stato disattivato</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Un amministratore ha disattivato il tuo accesso.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Un amministratore di Northwind Apparel ha disattivato il tuo accesso su Keel. Non puoi più aprire quello spazio di lavoro.</p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Se pensi che sia un errore, contatta un amministratore di Northwind Apparel.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Questa è un&#39;email di sicurezza sul tuo account Keel: arriva anche se hai disattivato le altre email.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Il tuo accesso a Northwind Apparel è stato disattivato",
+  "text": "Un amministratore di Northwind Apparel ha disattivato il tuo accesso su Keel. Non puoi più aprire quello spazio di lavoro.
+
+Se pensi che sia un errore, contatta un amministratore di Northwind Apparel.
+
+--
+
+Questa è un'email di sicurezza sul tuo account Keel: arriva anche se hai disattivato le altre email.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
 exports[`templates > every template renders in en, it and es (HTML and text snapshot) > carrier_instruction.en 1`] = `
 {
   "html": "<!doctype html>
@@ -795,6 +975,186 @@ Keel Labs S.r.l. · Via Example 1, 20100 Milano",
 }
 `;
 
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > email_changed.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Your Keel sign-in address was changed</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">The new address is new@northwind.demo.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">The sign-in address of your Keel account is now new@northwind.demo. This address will no longer receive account emails.</p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">If it was not you, contact support at once.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+This is a security email about your Keel account: it is sent even if you turned off other emails.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Your Keel sign-in address was changed",
+  "text": "The sign-in address of your Keel account is now new@northwind.demo. This address will no longer receive account emails.
+
+If it was not you, contact support at once.
+
+--
+
+This is a security email about your Keel account: it is sent even if you turned off other emails.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > email_changed.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Se cambió tu dirección de acceso a Keel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">La nueva dirección es new@northwind.demo.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">La dirección de acceso de tu cuenta de Keel ahora es new@northwind.demo. Esta dirección ya no recibirá los correos de la cuenta.</p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Si no fuiste tú, contacta con soporte ahora.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Este es un correo de seguridad sobre tu cuenta de Keel: llega aunque hayas desactivado los demás correos.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Se cambió tu dirección de acceso a Keel",
+  "text": "La dirección de acceso de tu cuenta de Keel ahora es new@northwind.demo. Esta dirección ya no recibirá los correos de la cuenta.
+
+Si no fuiste tú, contacta con soporte ahora.
+
+--
+
+Este es un correo de seguridad sobre tu cuenta de Keel: llega aunque hayas desactivado los demás correos.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > email_changed.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>L&#39;indirizzo di accesso a Keel è cambiato</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Il nuovo indirizzo è new@northwind.demo.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">L&#39;indirizzo di accesso del tuo account Keel ora è new@northwind.demo. Questo indirizzo non riceverà più le email dell&#39;account.</p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Se non sei stato tu, contatta subito l&#39;assistenza.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Questa è un&#39;email di sicurezza sul tuo account Keel: arriva anche se hai disattivato le altre email.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "L'indirizzo di accesso a Keel è cambiato",
+  "text": "L'indirizzo di accesso del tuo account Keel ora è new@northwind.demo. Questo indirizzo non riceverà più le email dell'account.
+
+Se non sei stato tu, contatta subito l'assistenza.
+
+--
+
+Questa è un'email di sicurezza sul tuo account Keel: arriva anche se hai disattivato le altre email.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
 exports[`templates > every template renders in en, it and es (HTML and text snapshot) > invite.en 1`] = `
 {
   "html": "<!doctype html>
@@ -804,7 +1164,7 @@ exports[`templates > every template renders in en, it and es (HTML and text snap
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta name="supported-color-schemes" content="light dark">
-<title>Giulia invited you to Northwind Apparel on Keel</title>
+<title>Giulia invited you to Northwind Apparel on Keel as operations</title>
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
 @media (prefers-color-scheme:dark){
@@ -831,10 +1191,10 @@ exports[`templates > every template renders in en, it and es (HTML and text snap
 </tr></table>
 </td></tr>
 <tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
-<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Giulia added you to Northwind Apparel as operations.</p>
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/login" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Sign in</a></td></tr></table>
-<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">If the button does not work, copy this link into your browser:<br><a class="k-link" href="https://app.keel.example/login" style="color:#2b59ff;word-break:break-all">https://app.keel.example/login</a></p>
-<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Sign in with this email address: we will send you a link, no password needed.</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Giulia invited you to join Northwind Apparel on Keel with the role operations.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/invite/tok" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Accept the invitation</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">If the button does not work, copy this link into your browser:<br><a class="k-link" href="https://app.keel.example/invite/tok" style="color:#2b59ff;word-break:break-all">https://app.keel.example/invite/tok</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">The invitation expires in 7 days and works once. If you did not expect it, ignore this email.</p>
 </td></tr>
 <tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
 You receive this email because you use Keel.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Unsubscribe from these emails</a>
@@ -844,12 +1204,12 @@ You receive this email because you use Keel.<br>Questions? Write to support@keel
 </table>
 </body>
 </html>",
-  "subject": "Giulia invited you to Northwind Apparel on Keel",
-  "text": "Giulia added you to Northwind Apparel as operations.
+  "subject": "Giulia invited you to Northwind Apparel on Keel as operations",
+  "text": "Giulia invited you to join Northwind Apparel on Keel with the role operations.
 
-Sign in: https://app.keel.example/login
+Accept the invitation: https://app.keel.example/invite/tok
 
-Sign in with this email address: we will send you a link, no password needed.
+The invitation expires in 7 days and works once. If you did not expect it, ignore this email.
 
 --
 
@@ -870,7 +1230,7 @@ exports[`templates > every template renders in en, it and es (HTML and text snap
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta name="supported-color-schemes" content="light dark">
-<title>Giulia te invitó a Northwind Apparel en Keel</title>
+<title>Giulia te invitó a Northwind Apparel en Keel como operaciones</title>
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
 @media (prefers-color-scheme:dark){
@@ -897,10 +1257,10 @@ exports[`templates > every template renders in en, it and es (HTML and text snap
 </tr></table>
 </td></tr>
 <tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
-<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Giulia te añadió a Northwind Apparel con el rol operaciones.</p>
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/login" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Iniciar sesión</a></td></tr></table>
-<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Si el botón no funciona, copia este enlace en el navegador:<br><a class="k-link" href="https://app.keel.example/login" style="color:#2b59ff;word-break:break-all">https://app.keel.example/login</a></p>
-<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Inicia sesión con esta dirección de correo: te enviamos un enlace, sin contraseña.</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Giulia te invitó a unirte a Northwind Apparel en Keel con el rol operaciones.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/invite/tok" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Aceptar la invitación</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Si el botón no funciona, copia este enlace en el navegador:<br><a class="k-link" href="https://app.keel.example/invite/tok" style="color:#2b59ff;word-break:break-all">https://app.keel.example/invite/tok</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">La invitación caduca en 7 días y funciona una sola vez. Si no la esperabas, ignora este correo.</p>
 </td></tr>
 <tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
 Recibes este correo porque usas Keel.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Dejar de recibir estos correos</a>
@@ -910,12 +1270,12 @@ Recibes este correo porque usas Keel.<br>¿Preguntas? Escribe a support@keel.exa
 </table>
 </body>
 </html>",
-  "subject": "Giulia te invitó a Northwind Apparel en Keel",
-  "text": "Giulia te añadió a Northwind Apparel con el rol operaciones.
+  "subject": "Giulia te invitó a Northwind Apparel en Keel como operaciones",
+  "text": "Giulia te invitó a unirte a Northwind Apparel en Keel con el rol operaciones.
 
-Iniciar sesión: https://app.keel.example/login
+Aceptar la invitación: https://app.keel.example/invite/tok
 
-Inicia sesión con esta dirección de correo: te enviamos un enlace, sin contraseña.
+La invitación caduca en 7 días y funciona una sola vez. Si no la esperabas, ignora este correo.
 
 --
 
@@ -936,7 +1296,7 @@ exports[`templates > every template renders in en, it and es (HTML and text snap
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta name="supported-color-schemes" content="light dark">
-<title>Giulia ti ha invitato in Northwind Apparel su Keel</title>
+<title>Giulia ti ha invitato in Northwind Apparel su Keel come operazioni</title>
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
 @media (prefers-color-scheme:dark){
@@ -963,10 +1323,10 @@ exports[`templates > every template renders in en, it and es (HTML and text snap
 </tr></table>
 </td></tr>
 <tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
-<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Giulia ti ha aggiunto a Northwind Apparel con il ruolo operazioni.</p>
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/login" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Accedi</a></td></tr></table>
-<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Se il pulsante non funziona, copia questo link nel browser:<br><a class="k-link" href="https://app.keel.example/login" style="color:#2b59ff;word-break:break-all">https://app.keel.example/login</a></p>
-<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Accedi con questo indirizzo email: ti mandiamo un link, senza password.</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Giulia ti ha invitato a entrare in Northwind Apparel su Keel con il ruolo operazioni.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/invite/tok" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Accetta l&#39;invito</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Se il pulsante non funziona, copia questo link nel browser:<br><a class="k-link" href="https://app.keel.example/invite/tok" style="color:#2b59ff;word-break:break-all">https://app.keel.example/invite/tok</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">L&#39;invito scade tra 7 giorni e funziona una volta sola. Se non te lo aspettavi, ignora questa email.</p>
 </td></tr>
 <tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
 Ricevi questa email perché usi Keel.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Non ricevere più queste email</a>
@@ -976,12 +1336,12 @@ Ricevi questa email perché usi Keel.<br>Domande? Scrivi a support@keel.example.
 </table>
 </body>
 </html>",
-  "subject": "Giulia ti ha invitato in Northwind Apparel su Keel",
-  "text": "Giulia ti ha aggiunto a Northwind Apparel con il ruolo operazioni.
+  "subject": "Giulia ti ha invitato in Northwind Apparel su Keel come operazioni",
+  "text": "Giulia ti ha invitato a entrare in Northwind Apparel su Keel con il ruolo operazioni.
 
-Accedi: https://app.keel.example/login
+Accetta l'invito: https://app.keel.example/invite/tok
 
-Accedi con questo indirizzo email: ti mandiamo un link, senza password.
+L'invito scade tra 7 giorni e funziona una volta sola. Se non te lo aspettavi, ignora questa email.
 
 --
 
@@ -1389,6 +1749,213 @@ Non ricevere più queste email: https://app.keel.example/u/signed",
 }
 `;
 
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > new_sign_in.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>New sign-in to your Keel account</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Firefox · Windows on Oct 1, 2026, 11:30 AM.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Your Keel account was just used to sign in from a device or browser we had not seen before:</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Device: Firefox · Windows</li><li>IP address: 203.0.113.7</li><li>When: Oct 1, 2026, 11:30 AM</li></ul>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/t/northwind-apparel/profile" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Review your sessions</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">If the button does not work, copy this link into your browser:<br><a class="k-link" href="https://app.keel.example/t/northwind-apparel/profile" style="color:#2b59ff;word-break:break-all">https://app.keel.example/t/northwind-apparel/profile</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">If it was you, there is nothing to do. If not, change your password and sign out of the other sessions from your profile. You can turn these emails off on your profile.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+This is a security email about your Keel account: it is sent even if you turned off other emails.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "New sign-in to your Keel account",
+  "text": "Your Keel account was just used to sign in from a device or browser we had not seen before:
+
+- Device: Firefox · Windows
+- IP address: 203.0.113.7
+- When: Oct 1, 2026, 11:30 AM
+
+Review your sessions: https://app.keel.example/t/northwind-apparel/profile
+
+If it was you, there is nothing to do. If not, change your password and sign out of the other sessions from your profile. You can turn these emails off on your profile.
+
+--
+
+This is a security email about your Keel account: it is sent even if you turned off other emails.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > new_sign_in.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Nuevo acceso a tu cuenta de Keel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Firefox · Windows el 1 oct 2026, 11:30.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Tu cuenta de Keel se acaba de usar para iniciar sesión desde un dispositivo o navegador que no habíamos visto antes:</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Dispositivo: Firefox · Windows</li><li>Dirección IP: 203.0.113.7</li><li>Cuándo: 1 oct 2026, 11:30</li></ul>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/t/northwind-apparel/profile" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Revisar tus sesiones</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Si el botón no funciona, copia este enlace en el navegador:<br><a class="k-link" href="https://app.keel.example/t/northwind-apparel/profile" style="color:#2b59ff;word-break:break-all">https://app.keel.example/t/northwind-apparel/profile</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Si fuiste tú, no tienes que hacer nada. Si no, cambia la contraseña y cierra las demás sesiones desde tu perfil. Puedes desactivar estos correos en tu perfil.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Este es un correo de seguridad sobre tu cuenta de Keel: llega aunque hayas desactivado los demás correos.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Nuevo acceso a tu cuenta de Keel",
+  "text": "Tu cuenta de Keel se acaba de usar para iniciar sesión desde un dispositivo o navegador que no habíamos visto antes:
+
+- Dispositivo: Firefox · Windows
+- Dirección IP: 203.0.113.7
+- Cuándo: 1 oct 2026, 11:30
+
+Revisar tus sesiones: https://app.keel.example/t/northwind-apparel/profile
+
+Si fuiste tú, no tienes que hacer nada. Si no, cambia la contraseña y cierra las demás sesiones desde tu perfil. Puedes desactivar estos correos en tu perfil.
+
+--
+
+Este es un correo de seguridad sobre tu cuenta de Keel: llega aunque hayas desactivado los demás correos.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > new_sign_in.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Nuovo accesso al tuo account Keel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Firefox · Windows il 1 ott 2026, 11:30.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Il tuo account Keel è appena stato usato per accedere da un dispositivo o browser mai visto prima:</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Dispositivo: Firefox · Windows</li><li>Indirizzo IP: 203.0.113.7</li><li>Quando: 1 ott 2026, 11:30</li></ul>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/t/northwind-apparel/profile" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Controlla le sessioni</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Se il pulsante non funziona, copia questo link nel browser:<br><a class="k-link" href="https://app.keel.example/t/northwind-apparel/profile" style="color:#2b59ff;word-break:break-all">https://app.keel.example/t/northwind-apparel/profile</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Se sei stato tu, non devi fare nulla. Altrimenti cambia la password e chiudi le altre sessioni dal tuo profilo. Puoi disattivare queste email dal profilo.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Questa è un&#39;email di sicurezza sul tuo account Keel: arriva anche se hai disattivato le altre email.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Nuovo accesso al tuo account Keel",
+  "text": "Il tuo account Keel è appena stato usato per accedere da un dispositivo o browser mai visto prima:
+
+- Dispositivo: Firefox · Windows
+- Indirizzo IP: 203.0.113.7
+- Quando: 1 ott 2026, 11:30
+
+Controlla le sessioni: https://app.keel.example/t/northwind-apparel/profile
+
+Se sei stato tu, non devi fare nulla. Altrimenti cambia la password e chiudi le altre sessioni dal tuo profilo. Puoi disattivare queste email dal profilo.
+
+--
+
+Questa è un'email di sicurezza sul tuo account Keel: arriva anche se hai disattivato le altre email.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
 exports[`templates > every template renders in en, it and es (HTML and text snapshot) > notification.en 1`] = `
 {
   "html": "<!doctype html>
@@ -1572,6 +2139,378 @@ Domande? Scrivi a support@keel.example.
 Keel Labs S.r.l. · Via Example 1, 20100 Milano
 
 Non ricevere più queste email: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > password_changed.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Your Keel password was changed</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Changed on Oct 1, 2026, 11:30 AM.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">The password of your Keel account was changed on Oct 1, 2026, 11:30 AM. Every other session was signed out.</p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">If it was not you, reset your password from the sign-in page at once and contact support.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+This is a security email about your Keel account: it is sent even if you turned off other emails.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Your Keel password was changed",
+  "text": "The password of your Keel account was changed on Oct 1, 2026, 11:30 AM. Every other session was signed out.
+
+If it was not you, reset your password from the sign-in page at once and contact support.
+
+--
+
+This is a security email about your Keel account: it is sent even if you turned off other emails.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > password_changed.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Se cambió tu contraseña de Keel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Cambiada el 1 oct 2026, 11:30.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">La contraseña de tu cuenta de Keel se cambió el 1 oct 2026, 11:30. Se cerraron todas las demás sesiones.</p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Si no fuiste tú, restablece tu contraseña ahora desde la página de acceso y contacta con soporte.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Este es un correo de seguridad sobre tu cuenta de Keel: llega aunque hayas desactivado los demás correos.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Se cambió tu contraseña de Keel",
+  "text": "La contraseña de tu cuenta de Keel se cambió el 1 oct 2026, 11:30. Se cerraron todas las demás sesiones.
+
+Si no fuiste tú, restablece tu contraseña ahora desde la página de acceso y contacta con soporte.
+
+--
+
+Este es un correo de seguridad sobre tu cuenta de Keel: llega aunque hayas desactivado los demás correos.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > password_changed.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>La password di Keel è stata cambiata</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Cambiata il 1 ott 2026, 11:30.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">La password del tuo account Keel è stata cambiata il 1 ott 2026, 11:30. Tutte le altre sessioni sono state chiuse.</p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Se non sei stato tu, reimposta subito la password dalla pagina di accesso e contatta l&#39;assistenza.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Questa è un&#39;email di sicurezza sul tuo account Keel: arriva anche se hai disattivato le altre email.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "La password di Keel è stata cambiata",
+  "text": "La password del tuo account Keel è stata cambiata il 1 ott 2026, 11:30. Tutte le altre sessioni sono state chiuse.
+
+Se non sei stato tu, reimposta subito la password dalla pagina di accesso e contatta l'assistenza.
+
+--
+
+Questa è un'email di sicurezza sul tuo account Keel: arriva anche se hai disattivato le altre email.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > password_reset.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Reset your Keel password</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">The link expires in 60 minutes.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Someone asked to reset the password of your Keel account. Choose a new password with this link: it expires in 60 minutes and works once.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/reset-password/tok" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Choose a new password</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">If the button does not work, copy this link into your browser:<br><a class="k-link" href="https://app.keel.example/reset-password/tok" style="color:#2b59ff;word-break:break-all">https://app.keel.example/reset-password/tok</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">If it was not you, ignore this email: your password does not change.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+This is a security email about your Keel account: it is sent even if you turned off other emails.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Reset your Keel password",
+  "text": "Someone asked to reset the password of your Keel account. Choose a new password with this link: it expires in 60 minutes and works once.
+
+Choose a new password: https://app.keel.example/reset-password/tok
+
+If it was not you, ignore this email: your password does not change.
+
+--
+
+This is a security email about your Keel account: it is sent even if you turned off other emails.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > password_reset.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Restablece tu contraseña de Keel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">El enlace caduca en 60 minutos.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Alguien pidió restablecer la contraseña de tu cuenta de Keel. Elige una nueva contraseña con este enlace: caduca en 60 minutos y funciona una sola vez.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/reset-password/tok" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Elegir una nueva contraseña</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Si el botón no funciona, copia este enlace en el navegador:<br><a class="k-link" href="https://app.keel.example/reset-password/tok" style="color:#2b59ff;word-break:break-all">https://app.keel.example/reset-password/tok</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Si no fuiste tú, ignora este correo: tu contraseña no cambia.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Este es un correo de seguridad sobre tu cuenta de Keel: llega aunque hayas desactivado los demás correos.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Restablece tu contraseña de Keel",
+  "text": "Alguien pidió restablecer la contraseña de tu cuenta de Keel. Elige una nueva contraseña con este enlace: caduca en 60 minutos y funciona una sola vez.
+
+Elegir una nueva contraseña: https://app.keel.example/reset-password/tok
+
+Si no fuiste tú, ignora este correo: tu contraseña no cambia.
+
+--
+
+Este es un correo de seguridad sobre tu cuenta de Keel: llega aunque hayas desactivado los demás correos.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > password_reset.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Reimposta la password di Keel</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Il link scade tra 60 minuti.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">È stato chiesto di reimpostare la password del tuo account Keel. Scegli una nuova password con questo link: scade tra 60 minuti e funziona una volta sola.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/reset-password/tok" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Scegli una nuova password</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Se il pulsante non funziona, copia questo link nel browser:<br><a class="k-link" href="https://app.keel.example/reset-password/tok" style="color:#2b59ff;word-break:break-all">https://app.keel.example/reset-password/tok</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Se non sei stato tu, ignora questa email: la password non cambia.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Questa è un&#39;email di sicurezza sul tuo account Keel: arriva anche se hai disattivato le altre email.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Reimposta la password di Keel",
+  "text": "È stato chiesto di reimpostare la password del tuo account Keel. Scegli una nuova password con questo link: scade tra 60 minuti e funziona una volta sola.
+
+Scegli una nuova password: https://app.keel.example/reset-password/tok
+
+Se non sei stato tu, ignora questa email: la password non cambia.
+
+--
+
+Questa è un'email di sicurezza sul tuo account Keel: arriva anche se hai disattivato le altre email.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano",
 }
 `;
 
@@ -1957,6 +2896,207 @@ Ricevi questa email perché usi Keel.<br>Domande? Scrivi a support@keel.example.
   "text": "Questa è un'email di prova inviata dalla console di Keel. Se la stai leggendo, mittente, dominio e provider funzionano.
 
 Provider: mock · inviata alle 1 ott 2026, 09:30 (UTC)
+
+--
+
+Ricevi questa email perché usi Keel.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Non ricevere più queste email: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > welcome.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Welcome to Keel, Marco</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Your Northwind Apparel workspace is ready.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">You now have access to Northwind Apparel on Keel. A few things to start with:</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Complete your profile: photo, language, time zone and security notices. https://app.keel.example/t/northwind-apparel/profile</li><li>Connect your store and ad accounts with the integration guide. https://app.keel.example/t/northwind-apparel/integrations/guide/shopify</li></ul>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/t/northwind-apparel" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Open Northwind Apparel</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">If the button does not work, copy this link into your browser:<br><a class="k-link" href="https://app.keel.example/t/northwind-apparel" style="color:#2b59ff;word-break:break-all">https://app.keel.example/t/northwind-apparel</a></p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+You receive this email because you use Keel.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Unsubscribe from these emails</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Welcome to Keel, Marco",
+  "text": "You now have access to Northwind Apparel on Keel. A few things to start with:
+
+- Complete your profile: photo, language, time zone and security notices. https://app.keel.example/t/northwind-apparel/profile
+- Connect your store and ad accounts with the integration guide. https://app.keel.example/t/northwind-apparel/integrations/guide/shopify
+
+Open Northwind Apparel: https://app.keel.example/t/northwind-apparel
+
+--
+
+You receive this email because you use Keel.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Unsubscribe from these emails: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > welcome.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Te damos la bienvenida a Keel, Marco</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Tu espacio Northwind Apparel está listo.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Ya tienes acceso a Northwind Apparel en Keel. Algunas cosas para empezar:</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Completa tu perfil: foto, idioma, zona horaria y avisos de seguridad. https://app.keel.example/t/northwind-apparel/profile</li><li>Conecta tu tienda y tus cuentas publicitarias con la guía de integraciones. https://app.keel.example/t/northwind-apparel/integrations/guide/shopify</li></ul>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/t/northwind-apparel" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Abrir Northwind Apparel</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Si el botón no funciona, copia este enlace en el navegador:<br><a class="k-link" href="https://app.keel.example/t/northwind-apparel" style="color:#2b59ff;word-break:break-all">https://app.keel.example/t/northwind-apparel</a></p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Recibes este correo porque usas Keel.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Dejar de recibir estos correos</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Te damos la bienvenida a Keel, Marco",
+  "text": "Ya tienes acceso a Northwind Apparel en Keel. Algunas cosas para empezar:
+
+- Completa tu perfil: foto, idioma, zona horaria y avisos de seguridad. https://app.keel.example/t/northwind-apparel/profile
+- Conecta tu tienda y tus cuentas publicitarias con la guía de integraciones. https://app.keel.example/t/northwind-apparel/integrations/guide/shopify
+
+Abrir Northwind Apparel: https://app.keel.example/t/northwind-apparel
+
+--
+
+Recibes este correo porque usas Keel.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Dejar de recibir estos correos: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > welcome.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Benvenuto in Keel, Marco</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Il tuo spazio Northwind Apparel è pronto.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Ora hai accesso a Northwind Apparel su Keel. Qualche cosa per cominciare:</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Completa il tuo profilo: foto, lingua, fuso orario e avvisi di sicurezza. https://app.keel.example/t/northwind-apparel/profile</li><li>Collega il negozio e gli account pubblicitari con la guida alle integrazioni. https://app.keel.example/t/northwind-apparel/integrations/guide/shopify</li></ul>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://app.keel.example/t/northwind-apparel" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Apri Northwind Apparel</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Se il pulsante non funziona, copia questo link nel browser:<br><a class="k-link" href="https://app.keel.example/t/northwind-apparel" style="color:#2b59ff;word-break:break-all">https://app.keel.example/t/northwind-apparel</a></p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Ricevi questa email perché usi Keel.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Non ricevere più queste email</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Benvenuto in Keel, Marco",
+  "text": "Ora hai accesso a Northwind Apparel su Keel. Qualche cosa per cominciare:
+
+- Completa il tuo profilo: foto, lingua, fuso orario e avvisi di sicurezza. https://app.keel.example/t/northwind-apparel/profile
+- Collega il negozio e gli account pubblicitari con la guida alle integrazioni. https://app.keel.example/t/northwind-apparel/integrations/guide/shopify
+
+Apri Northwind Apparel: https://app.keel.example/t/northwind-apparel
 
 --
 

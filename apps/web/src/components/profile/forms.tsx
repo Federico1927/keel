@@ -2,7 +2,7 @@
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Avatar, Button, Input, Label, Select } from "@keel/ui";
+import { Alert, AlertDescription, Avatar, Button, Input, Label, Select, Switch } from "@keel/ui";
 import { SUPPORTED_LOCALES } from "@keel/config";
 import type { ActionResult } from "@/server/action-result";
 import { ImageUpload } from "@/components/image-upload";
@@ -11,6 +11,7 @@ import {
   changePasswordAction,
   removeAvatarAction,
   requestEmailChangeAction,
+  setSignInAlertsAction,
   signOutOtherSessionsAction,
   updatePreferencesAction,
   updateProfileAction,
@@ -224,6 +225,36 @@ export function SignOutOthersButton() {
         {t("sessions_sign_out_others")}
       </Button>
       <Result state={state} okKey="sessions_signed_out" />
+    </div>
+  );
+}
+
+/** "Email me on a sign-in from a new device or browser" (#52). */
+export function SignInAlertsToggle({ enabled }: { enabled: boolean }) {
+  const t = useTranslations("profile");
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [on, setOn] = useState(enabled);
+  return (
+    <div className="flex items-start justify-between gap-4 rounded-md border p-3">
+      <div className="space-y-0.5">
+        <Label htmlFor="sign-in-alerts">{t("sign_in_alerts")}</Label>
+        <p className="text-xs text-muted-foreground">{t("sign_in_alerts_hint")}</p>
+      </div>
+      <Switch
+        id="sign-in-alerts"
+        checked={on}
+        disabled={pending}
+        data-testid="sign-in-alerts"
+        onCheckedChange={(v) =>
+          start(async () => {
+            setOn(v);
+            const r = await setSignInAlertsAction(v);
+            if (!r.ok) setOn(!v);
+            router.refresh();
+          })
+        }
+      />
     </div>
   );
 }

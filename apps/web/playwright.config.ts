@@ -1,9 +1,17 @@
 import { defineConfig, devices } from "@playwright/test";
 import { existsSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 /** Reuse a preinstalled Chromium when PW_CHROMIUM_PATH (or the cloud default) exists. */
 const chromiumPath = process.env.PW_CHROMIUM_PATH ?? "/opt/pw-browsers/chromium";
 const launchOptions = existsSync(chromiumPath) ? { executablePath: chromiumPath } : {};
+
+/**
+ * Where the server's mock email provider writes what it captures (#52): the account spec reads
+ * invitation and reset links from there. With E2E_NO_SERVER, start the server with the same variable.
+ */
+process.env.KEEL_EMAIL_OUTBOX_DIR ??= join(tmpdir(), "keel-e2e-outbox");
 
 export default defineConfig({
   testDir: "./e2e",
@@ -26,6 +34,7 @@ export default defineConfig({
         command: "pnpm start",
         url: "http://localhost:3000/login",
         reuseExistingServer: true,
+        env: { KEEL_EMAIL_OUTBOX_DIR: process.env.KEEL_EMAIL_OUTBOX_DIR },
         timeout: 120_000,
       },
 });

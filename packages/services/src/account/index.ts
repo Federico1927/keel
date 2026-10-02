@@ -1,10 +1,20 @@
-import { createHash, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { and, desc, eq, gte, inArray, like, lt, schema, sql, recordAudit, type DbExecutor } from "@keel/db";
 import { SUPPORTED_LOCALES } from "@keel/config";
-import { checkPassword, diffRecords, hasChanges, isTimeZone, normalizeEmail, type PasswordIssue } from "@keel/core";
+import { checkPassword, describeUserAgent, diffRecords, hasChanges, isNewDevice, isTimeZone, normalizeEmail } from "@keel/core";
 import { queueEmail } from "../email/mailer";
+import { appBaseUrl } from "../email/unsubscribe";
+import { AccountError } from "./errors";
+import { hashAccountToken, sameTokenHash } from "./tokens";
+import { queueAccountNotice, userTimeZone } from "./notices";
+
+export * from "./errors";
+export * from "./notices";
+export * from "./tokens";
+export * from "./invitations";
+export * from "./password-reset";
 
 /**
  * The signed-in person's own account (#45): profile, preferences, password, email, sessions.
@@ -17,16 +27,6 @@ export interface AccountContext {
   userId: string;
   ip?: string | null;
   now?: Date;
-}
-
-export class AccountError extends Error {
-  constructor(
-    readonly code: "not_found" | "invalid_input" | "rate_limited" | "wrong_password" | "weak_password" | "email_taken" | "same_email" | "invalid_token" | "expired_token",
-    readonly issues: PasswordIssue[] = [],
-  ) {
-    super(code);
-    this.name = "AccountError";
-  }
 }
 
 const THEME_VALUES = ["light", "dark", "system"] as const;
@@ -67,13 +67,15 @@ export interface AccountProfile {
   avatarVersion: number | null;
   sessionVersion: number;
   passwordChangedAt: Date | null;
+  /** Email on a sign-in from a device or browser not seen before (#52). */
+  notifyNewSignIn: boolean;
 }
 
 /** Profile columns only: the avatar bytes are never read here. */
 export async function getAccountProfile(db: DbExecutor, userId: string): Promise<AccountProfile | null> {
   const u = schema.users;
   const [row] = await db
-    .select({ id: u.id, email: u.email, name: u.name, preferredName: u.preferredName, jobTitle: u.jobTitle, locale: u.locale, timeZone: u.timeZone, theme: u.theme, density: u.density, isSuperAdmin: u.isSuperAdmin, avatarUpdatedAt: u.avatarUpdatedAt, sessionVersion: u.sessionVersion, passwordChangedAt: u.passwordChangedAt })
+    .select({ id: u.id, email: u.email, name: u.name, preferredName: u.preferredName, jobTitle: u.jobTitle, locale: u.locale, timeZone: u.timeZone, theme: u.theme, density: u.density, isSuperAdmin: u.isSuperAdmin, avatarUpdatedAt: u.avatarUpdatedAt, sessionVersion: u.sessionVersion, passwordChangedAt: u.passwordChangedAt, notifyNewSignIn: u.notifyNewSignIn })
     .from(u)
     .where(eq(u.id, userId))
     .limit(1);
@@ -175,6 +177,8 @@ export async function changePassword(ac: AccountContext, currentPassword: string
     .where(eq(schema.users.id, ac.userId))
     .returning({ sessionVersion: schema.users.sessionVersion });
   await audit(ac, "profile.password_changed", { password: { from: "***", to: "***" }, sessionVersion: { from: profile.sessionVersion, to: updated!.sessionVersion } });
+  const now = ac.now ?? new Date();
+  await queueAccountNotice({ db: ac.db, now }, { to: profile.email, template: "password_changed", data: { at: now, timezone: await userTimeZone(ac.db, ac.userId) }, locale: profile.locale, event: `password-changed:${ac.userId}:${updated!.sessionVersion}` });
   return { sessionVersion: updated!.sessionVersion };
 }
 
@@ -191,7 +195,6 @@ export async function signOutOtherSessions(ac: AccountContext): Promise<{ sessio
 
 const EMAIL_TOKEN_PREFIX = "email-change:";
 export const EMAIL_CHANGE_TTL_MS = 24 * 3600_000;
-const hashToken = (raw: string) => createHash("sha256").update(raw).digest("hex");
 
 
 /**
@@ -212,8 +215,8 @@ export async function requestEmailChange(ac: AccountContext, rawEmail: string, c
   const now = ac.now ?? new Date();
   await ac.db.delete(schema.verificationTokens).where(like(schema.verificationTokens.identifier, `${EMAIL_TOKEN_PREFIX}${ac.userId}:%`));
   const expires = new Date(now.getTime() + EMAIL_CHANGE_TTL_MS);
-  await ac.db.insert(schema.verificationTokens).values({ identifier: `${EMAIL_TOKEN_PREFIX}${ac.userId}:${email}`, token: hashToken(raw), expires });
-  const event = `email-change:${hashToken(raw)}`;
+  await ac.db.insert(schema.verificationTokens).values({ identifier: `${EMAIL_TOKEN_PREFIX}${ac.userId}:${email}`, token: hashAccountToken(raw), expires });
+  const event = `email-change:${hashAccountToken(raw)}`;
   await queueEmail({ db: ac.db, now }, { to: email, template: "email_change_confirm", data: { url: confirmUrl(raw), hours: EMAIL_CHANGE_TTL_MS / 3600_000 }, locale: profile.locale, event, expiresAt: expires });
   await queueEmail({ db: ac.db, now }, { to: profile.email, template: "email_change_notice", data: { newEmail: email }, locale: profile.locale, event, expiresAt: expires });
   await audit(ac, "profile.email_change_requested", {}, { newEmail: email });
@@ -236,8 +239,8 @@ export async function cancelEmailChange(ac: AccountContext): Promise<void> {
 export async function confirmEmailChange(db: DbExecutor, rawToken: string, now = new Date()): Promise<{ userId: string; email: string }> {
   if (!rawToken || rawToken.length > 200) throw new AccountError("invalid_token");
   const vt = schema.verificationTokens;
-  const [row] = await db.select().from(vt).where(and(eq(vt.token, hashToken(rawToken)), like(vt.identifier, `${EMAIL_TOKEN_PREFIX}%`))).limit(1);
-  if (!row) throw new AccountError("invalid_token");
+  const [row] = await db.select().from(vt).where(and(eq(vt.token, hashAccountToken(rawToken)), like(vt.identifier, `${EMAIL_TOKEN_PREFIX}%`))).limit(1);
+  if (!row || !sameTokenHash(row.token, hashAccountToken(rawToken))) throw new AccountError("invalid_token");
   await db.delete(vt).where(and(eq(vt.identifier, row.identifier), eq(vt.token, row.token)));
   if (row.expires <= now) throw new AccountError("expired_token");
   const rest = row.identifier.slice(EMAIL_TOKEN_PREFIX.length);
@@ -249,6 +252,8 @@ export async function confirmEmailChange(db: DbExecutor, rawToken: string, now =
   if (!before) throw new AccountError("invalid_token");
   await db.update(schema.users).set({ email, emailVerified: now }).where(eq(schema.users.id, userId));
   await recordAudit(db, { tenantId: null, actorUserId: userId, actorType: "user", action: "profile.email_changed", entityType: "user", entityId: userId, diff: { email: { from: before.email, to: email } } });
+  // the old address learns the change happened (it no longer receives account emails)
+  await queueAccountNotice({ db, now }, { to: before.email, template: "email_changed", data: { newEmail: email }, locale: before.locale, event: `email-changed:${row.token}` });
   return { userId, email };
 }
 
@@ -256,10 +261,32 @@ export async function confirmEmailChange(db: DbExecutor, rawToken: string, now =
 
 const SIGN_INS_KEPT = 50;
 
-export async function recordSignIn(db: DbExecutor, input: { userId: string; method: string; ip?: string | null; userAgent?: string | null; now?: Date }): Promise<void> {
-  await db.insert(schema.userSignIns).values({ userId: input.userId, method: input.method.slice(0, 20), ip: input.ip?.slice(0, 64) ?? null, userAgent: input.userAgent?.slice(0, 300) ?? null, createdAt: input.now ?? new Date() });
+/**
+ * Records a sign-in. With `notifyNewDevice`, a sign-in from a browser and OS family none of the
+ * earlier sign-ins had sends the "new sign-in" notice, unless the person turned it off.
+ */
+export async function recordSignIn(db: DbExecutor, input: { userId: string; method: string; ip?: string | null; userAgent?: string | null; now?: Date; notifyNewDevice?: boolean }): Promise<{ newDeviceNotice: boolean }> {
+  const now = input.now ?? new Date();
+  const previous = input.notifyNewDevice ? await db.select({ ua: schema.userSignIns.userAgent }).from(schema.userSignIns).where(eq(schema.userSignIns.userId, input.userId)).orderBy(desc(schema.userSignIns.createdAt)).limit(SIGN_INS_KEPT) : [];
+  const [inserted] = await db.insert(schema.userSignIns).values({ userId: input.userId, method: input.method.slice(0, 20), ip: input.ip?.slice(0, 64) ?? null, userAgent: input.userAgent?.slice(0, 300) ?? null, createdAt: now }).returning({ id: schema.userSignIns.id });
   const keep = await db.select({ createdAt: schema.userSignIns.createdAt }).from(schema.userSignIns).where(eq(schema.userSignIns.userId, input.userId)).orderBy(desc(schema.userSignIns.createdAt)).offset(SIGN_INS_KEPT - 1).limit(1);
   if (keep[0]) await db.delete(schema.userSignIns).where(and(eq(schema.userSignIns.userId, input.userId), lt(schema.userSignIns.createdAt, keep[0].createdAt)));
+  if (!input.notifyNewDevice || !isNewDevice(input.userAgent, previous.map((p) => p.ua))) return { newDeviceNotice: false };
+  const [user] = await db.select({ email: schema.users.email, locale: schema.users.locale, notify: schema.users.notifyNewSignIn }).from(schema.users).where(eq(schema.users.id, input.userId)).limit(1);
+  if (!user?.notify) return { newDeviceNotice: false };
+  const timezone = await userTimeZone(db, input.userId);
+  const [first] = await db.select({ slug: schema.tenants.slug }).from(schema.tenantMemberships).innerJoin(schema.tenants, eq(schema.tenants.id, schema.tenantMemberships.tenantId)).where(and(eq(schema.tenantMemberships.userId, input.userId), eq(schema.tenantMemberships.isActive, true))).orderBy(schema.tenants.name).limit(1);
+  const profileUrl = `${appBaseUrl()}${first ? `/t/${first.slug}/profile` : "/admin/profile"}`;
+  await queueAccountNotice({ db, now }, { to: user.email, template: "new_sign_in", data: { device: describeUserAgent(input.userAgent)?.label ?? "—", ip: input.ip?.slice(0, 64) ?? null, at: now, timezone, profileUrl }, locale: user.locale, event: `sign-in:${inserted!.id}` });
+  return { newDeviceNotice: true };
+}
+
+/** The per-user toggle of the "new sign-in" notice. */
+export async function setSignInNotifications(ac: AccountContext, enabled: boolean): Promise<void> {
+  const before = await current(ac);
+  if (before.notifyNewSignIn === enabled) return;
+  await ac.db.update(schema.users).set({ notifyNewSignIn: enabled }).where(eq(schema.users.id, ac.userId));
+  await audit(ac, "profile.sign_in_alerts_updated", { notifyNewSignIn: { from: before.notifyNewSignIn, to: enabled } });
 }
 
 export async function listRecentSignIns(ac: AccountContext, limit = 10) {

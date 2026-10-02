@@ -29,11 +29,11 @@
       "hint": "If it was not you, sign in and change your password, then cancel the request from your profile."
     },
     "invite": {
-      "subject": "{inviter} invited you to {tenant} on {product}",
+      "subject": "{inviter} invited you to {tenant} on {product} as {role}",
       "preheader": "Join {tenant} as {role}.",
-      "intro": "{inviter} added you to {tenant} as {role}.",
-      "cta": "Sign in",
-      "hint": "Sign in with this email address: we will send you a link, no password needed."
+      "intro": "{inviter} invited you to join {tenant} on {product} with the role {role}.",
+      "cta": "Accept the invitation",
+      "hint": "The invitation expires in {days} days and works once. If you did not expect it, ignore this email."
     },
     "mention": {
       "subject": "{author} mentioned you on {record}",
@@ -65,6 +65,49 @@
       "preheader": "Email sending works.",
       "intro": "This is a test email sent from the {product} console. If you are reading it, the sender, the domain and the provider work.",
       "detail": "Provider: {provider} · sent at {time} (UTC)"
+    },
+    "welcome": {
+      "subject": "Welcome to {product}, {name}",
+      "preheader": "Your {tenant} workspace is ready.",
+      "intro": "You now have access to {tenant} on {product}. A few things to start with:",
+      "profile": "Complete your profile: photo, language, time zone and security notices.",
+      "guide": "Connect your store and ad accounts with the integration guide.",
+      "cta": "Open {tenant}"
+    },
+    "password_reset": {
+      "subject": "Reset your {product} password",
+      "preheader": "The link expires in {minutes} minutes.",
+      "intro": "Someone asked to reset the password of your {product} account. Choose a new password with this link: it expires in {minutes} minutes and works once.",
+      "cta": "Choose a new password",
+      "hint": "If it was not you, ignore this email: your password does not change."
+    },
+    "password_changed": {
+      "subject": "Your {product} password was changed",
+      "preheader": "Changed on {time}.",
+      "intro": "The password of your {product} account was changed on {time}. Every other session was signed out.",
+      "hint": "If it was not you, reset your password from the sign-in page at once and contact support."
+    },
+    "email_changed": {
+      "subject": "Your {product} sign-in address was changed",
+      "preheader": "The new address is {email}.",
+      "intro": "The sign-in address of your {product} account is now {email}. This address will no longer receive account emails.",
+      "hint": "If it was not you, contact support at once."
+    },
+    "new_sign_in": {
+      "subject": "New sign-in to your {product} account",
+      "preheader": "{device} on {time}.",
+      "intro": "Your {product} account was just used to sign in from a device or browser we had not seen before:",
+      "device": "Device: {device}",
+      "ip": "IP address: {ip}",
+      "time": "When: {time}",
+      "cta": "Review your sessions",
+      "hint": "If it was you, there is nothing to do. If not, change your password and sign out of the other sessions from your profile. You can turn these emails off on your profile."
+    },
+    "account_disabled": {
+      "subject": "Your access to {tenant} was disabled",
+      "preheader": "An administrator disabled your access.",
+      "intro": "An administrator of {tenant} disabled your access on {product}. You can no longer open that workspace.",
+      "hint": "If you think this is a mistake, contact an administrator of {tenant}."
     },
     "carrier_instruction": {
       "subject": "Delivery instruction for parcel {tracking} ({company})",

@@ -1,21 +1,13 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { adminDb } from "@keel/db";
-import { displayName, formatDateTime, initials, isTimeZone } from "@keel/core";
-import { listRecentSignIns, pendingEmailChange } from "@keel/services";
+import { describeUserAgent, displayName, formatDateTime, initials, isTimeZone } from "@keel/core";
+import { getAccountProfile, listRecentSignIns, pendingEmailChange } from "@keel/services";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import type { CurrentUser } from "@/server/session";
 import { getMemberships } from "@/server/session";
 import { avatarUrl } from "@/server/avatar";
-import { AvatarField, EmailForm, IdentityForm, PasswordForm, PreferencesForm, SignOutOthersButton } from "./forms";
-
-/** Short, readable device description from a user agent (no parsing library: browser and OS family only). */
-function device(ua: string | null): string {
-  if (!ua) return "—";
-  const browser = /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : /HeadlessChrome|Playwright/.test(ua) ? "Chromium" : "Browser";
-  const os = /iPhone|iPad/.test(ua) ? "iOS" : /Android/.test(ua) ? "Android" : /Mac OS X/.test(ua) ? "macOS" : /Windows/.test(ua) ? "Windows" : /Linux/.test(ua) ? "Linux" : "";
-  return os ? `${browser} · ${os}` : browser;
-}
+import { AvatarField, EmailForm, IdentityForm, PasswordForm, PreferencesForm, SignInAlertsToggle, SignOutOthersButton } from "./forms";
 
 /**
  * The signed-in person's profile (#45), shared by /t/<tenant>/profile and /admin/profile: identity,
@@ -26,7 +18,7 @@ export async function ProfileView({ user, tenant, locale }: { user: CurrentUser;
   const tc = await getTranslations("common");
   const tr = await getTranslations("roles");
   const db = adminDb();
-  const [memberships, signIns, pending] = await Promise.all([getMemberships(user.id), listRecentSignIns({ db, userId: user.id }, 8), pendingEmailChange(db, user.id)]);
+  const [memberships, signIns, pending, account] = await Promise.all([getMemberships(user.id), listRecentSignIns({ db, userId: user.id }, 8), pendingEmailChange(db, user.id), getAccountProfile(db, user.id)]);
   const zone = user.timeZone && isTimeZone(user.timeZone) ? user.timeZone : (tenant?.timezone ?? "UTC");
   const timeZones = Intl.supportedValuesOf("timeZone");
   const tenantLocaleLabel = tenant && ["en", "it", "es"].includes(tenant.defaultLocale) ? tc(`locales.${tenant.defaultLocale as "en"}`) : null;
@@ -89,8 +81,8 @@ export async function ProfileView({ user, tenant, locale }: { user: CurrentUser;
                   {signIns.map((s) => (
                     <TableRow key={s.id}>
                       <TableCell className="whitespace-nowrap">{formatDateTime(s.createdAt, locale, zone)}</TableCell>
-                      <TableCell>{t(`sign_in_methods.${s.method === "email" ? "email" : s.method === "credentials" ? "credentials" : "other"}`)}</TableCell>
-                      <TableCell className="hidden sm:table-cell">{device(s.userAgent)}</TableCell>
+                      <TableCell>{t(`sign_in_methods.${s.method === "email" ? "email" : s.method === "credentials" ? "credentials" : s.method === "one-time" ? "one_time" : "other"}`)}</TableCell>
+                      <TableCell className="hidden sm:table-cell">{describeUserAgent(s.userAgent)?.label ?? "—"}</TableCell>
                       <TableCell className="hidden font-mono text-xs sm:table-cell">{s.ip ?? "—"}</TableCell>
                     </TableRow>
                   ))}
@@ -102,6 +94,7 @@ export async function ProfileView({ user, tenant, locale }: { user: CurrentUser;
                 </TableBody>
               </Table>
               <SignOutOthersButton />
+              <SignInAlertsToggle enabled={account?.notifyNewSignIn ?? true} />
             </CardContent>
           </Card>
           <Card>

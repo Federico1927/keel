@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { PAYMENT_METHODS, UTM_DIMENSIONS, defaultGranularity, isGranularity, isUtmDimension, type UtmDimension } from "@keel/core";
-import { ORDER_PNL_SORTS, PRODUCT_PROFIT_SORTS, orderPnlTable, pnlBreakdown, productProfitTable, utmReport, type OrderPnlSort, type ProductProfitSort } from "@keel/services";
+import { ORDER_PNL_SORTS, PRODUCT_PROFIT_SORTS, orderPnlTable, paymentMethodReport, pnlBreakdown, productProfitTable, taxReportForPeriod, utmReport, type OrderPnlSort, type ProductProfitSort } from "@keel/services";
 import { ForbiddenError, requirePage } from "@/server/tenant";
 import { resolvePeriod } from "@/server/period";
 import { analyticsTenant, csvCell, minorToDecimal as m, runAnalytics } from "@/server/analytics";
@@ -49,10 +49,19 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ tena
     rows = b.buckets.map((x) => [x.bucket.key, x.bucket.from.toISOString(), x.bucket.to.toISOString(), x.bucket.partial ? "yes" : "no", x.orders, m(x.grossRevenueMinor), m(x.refundedMinor), m(x.taxMinor), m(x.netRevenueMinor), m(x.cogsMinor), m(x.shippingCostMinor), m(x.paymentFeeMinor), m(x.returnCostsMinor), m(x.contributionMinor), m(x.adSpendMinor), m(x.fixedCostsMinor), m(x.operatingProfitMinor)]);
     const p = b.pnl;
     rows.push(["TOTAL", period.from.toISOString(), period.to.toISOString(), null, p.orders, m(p.grossRevenueMinor), m(p.refundedMinor), m(p.taxMinor), m(p.netRevenueMinor), m(p.cogsMinor), m(p.shippingCostMinor), m(p.paymentFeeMinor), m(p.returnCostsMinor), m(p.contributionMinor), m(p.adSpendMinor), m(p.fixedCostsMinor), m(p.operatingProfitMinor)]);
+  } else if (kind === "tax") {
+    const r = await runAnalytics(ctx, (s) => taxReportForPeriod(s, at, period));
+    header = ["country", "rate_percent", "orders", "gross", "taxable", "tax", "refunded_tax", "net_tax"];
+    rows = r.rows.map((x) => [x.country, (x.rateBps / 100).toFixed(2), x.orders, m(x.grossMinor), m(x.taxableMinor), m(x.taxMinor), m(x.refundedTaxMinor), m(x.netTaxMinor)]);
+    rows.push(["TOTAL", null, r.totals.orders, m(r.totals.grossMinor), m(r.totals.taxableMinor), m(r.totals.taxMinor), m(r.totals.refundedTaxMinor), m(r.totals.netTaxMinor)]);
+  } else if (kind === "payment_methods") {
+    const r = await runAnalytics(ctx, (s) => paymentMethodReport(s, at, period));
+    header = ["method", "placed_orders", "orders", "gross", "net_revenue", "aov", "cancelled", "returned", "cancel_rate", "return_rate", "fees", "actual_fees", "estimated_fees", "estimated_fee_orders", "fee_rate"];
+    rows = r.rows.map((x) => [x.method, x.placedOrders, x.orders, m(x.grossRevenueMinor), m(x.netRevenueMinor), x.aovMinor === null ? null : m(x.aovMinor), x.cancelledOrders, x.returnedOrders, x.cancelRate?.toFixed(4) ?? null, x.returnRate?.toFixed(4) ?? null, m(x.feesMinor), m(x.actualFeesMinor), m(x.estimatedFeesMinor), x.estimatedFeeOrders, x.feeRate?.toFixed(4) ?? null]);
   } else {
     return new NextResponse("not found", { status: 404 });
   }
   const body = [header.join(","), ...rows.map((r) => r.map(csvCell).join(","))].join("\n");
-  const name = `${kind === "orders" ? "order-pnl" : kind === "products" ? "product-profit" : kind === "utm" ? "utm" : "pnl-periods"}-${period.from.toISOString().slice(0, 10)}-${new Date(period.to.getTime() - 1).toISOString().slice(0, 10)}.csv`;
+  const name = `${kind === "orders" ? "order-pnl" : kind === "products" ? "product-profit" : kind === "utm" ? "utm" : kind === "tax" ? "tax-report" : kind === "payment_methods" ? "payment-methods" : "pnl-periods"}-${period.from.toISOString().slice(0, 10)}-${new Date(period.to.getTime() - 1).toISOString().slice(0, 10)}.csv`;
   return new NextResponse(body, { headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": `attachment; filename="${name}"` } });
 }

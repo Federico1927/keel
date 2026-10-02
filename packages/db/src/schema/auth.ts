@@ -32,6 +32,10 @@ export const users = pgTable(
     /** Bumped by "sign out of other sessions" and password changes: older JWTs stop working. */
     sessionVersion: integer("session_version").notNull().default(0),
     passwordChangedAt: timestamp("password_changed_at", { withTimezone: true }),
+    /** #52: email the person when someone signs in from a device or browser not seen before (toggle on the profile). */
+    notifyNewSignIn: boolean("notify_new_sign_in").notNull().default(true),
+    /** #52: when the person accepted the privacy policy (first access from an invitation). */
+    privacyAcceptedAt: timestamp("privacy_accepted_at", { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -91,4 +95,28 @@ export const userSignIns = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("user_sign_ins_user_idx").on(t.userId, t.createdAt)],
+);
+
+/**
+ * Forgotten-password requests (#52). Platform table (no tenant). Every request is a row, also for
+ * addresses without an active account (user null, no token), so the per-email and per-IP rate
+ * limits count them alike. Email and IP are keyed hashes; the token is stored as its SHA-256, works
+ * once, expires, and is invalidated by a newer request or a successful reset.
+ */
+export const passwordResets = pgTable(
+  "password_resets",
+  {
+    id: id(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+    emailHash: text("email_hash").notNull(),
+    ipHash: text("ip_hash"),
+    tokenHash: text("token_hash").unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    invalidatedAt: timestamp("invalidated_at", { withTimezone: true }),
+    /** Set when a super-admin sent the reset from the console. */
+    requestedBy: uuid("requested_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("password_resets_email_idx").on(t.emailHash, t.createdAt), index("password_resets_ip_idx").on(t.ipHash, t.createdAt), index("password_resets_user_idx").on(t.userId)],
 );

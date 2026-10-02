@@ -11,6 +11,7 @@ import { emailSettings, queueEmail, recordSignIn } from "@keel/services";
 import { THEME_COOKIE, isThemePreference } from "@keel/ui/tokens";
 import { authConfig } from "./auth.config";
 import { LOCALE_COOKIE } from "./i18n/request";
+import { verifySignInGrant } from "./server/sign-in-grant";
 import "./server/email";
 
 const credentialsSchema = z.object({ email: z.string().email(), password: z.string().min(1) });
@@ -64,14 +65,43 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
         return { id: user.id, email: user.email, name: user.name, isSuperAdmin: user.isSuperAdmin, locale: user.locale, sessionVersion: user.sessionVersion };
       },
     }),
+    // one-time grant minted by the invitation and password-reset actions (never sent to the browser)
+    Credentials({
+      id: "one-time",
+      name: "One-time",
+      credentials: { grant: {} },
+      async authorize(raw) {
+        const grant = verifySignInGrant((raw as { grant?: unknown } | undefined)?.grant);
+        if (!grant) return null;
+        const [user] = await db().select().from(schema.users).where(eq(schema.users.id, grant.userId)).limit(1);
+        if (!user || user.sessionVersion !== grant.sessionVersion) return null;
+        return { id: user.id, email: user.email, name: user.name, isSuperAdmin: user.isSuperAdmin, locale: user.locale, sessionVersion: user.sessionVersion };
+      },
+    }),
     magicLink,
   ],
+  callbacks: {
+    ...authConfig.callbacks,
+    /**
+     * Email links sign in existing accounts only (#52): a link for an unknown address never creates
+     * an account (people join through invitations). The login action already answers "sent" without
+     * sending; this is the second lock.
+     */
+    async signIn({ user, account }) {
+      if (account?.provider !== "email") return true;
+      const email = user.email?.toLowerCase().trim();
+      if (!email) return false;
+      const [row] = await db().select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, email)).limit(1);
+      return Boolean(row);
+    },
+  },
   events: {
     async signIn({ user, account }) {
       if (!user.id) return;
       await db().update(schema.users).set({ lastLoginAt: new Date() }).where(eq(schema.users.id, user.id));
       const h = await headers();
-      await recordSignIn(db(), { userId: user.id, method: account?.provider ?? "unknown", ip: h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? h.get("x-real-ip"), userAgent: h.get("user-agent") });
+      // the first sign-in after an invitation or a reset comes from the grant: no "new device" notice for it
+      await recordSignIn(db(), { userId: user.id, method: account?.provider ?? "unknown", ip: h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? h.get("x-real-ip"), userAgent: h.get("user-agent"), notifyNewDevice: account?.provider !== "one-time" });
       const jar = await cookies();
       const year = { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" as const };
       // a language chosen on the profile (or with the picker) follows the user to every device;

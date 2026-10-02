@@ -25,7 +25,8 @@ test.describe("analytics depth: P/L per order, periods, products with ads, UTM",
     await row.getByRole("link").first().click();
     await expect(page.getByTestId("order-economics")).toBeVisible();
     await expect(page.getByTestId("economics-contribution")).toContainText(contribution);
-    await expect(page.getByTestId("economics-fee")).toContainText(/estimated|stima/);
+    // the fee is the payout's actual one when imported, the estimate otherwise (issue #27)
+    await expect(page.getByTestId("economics-fee")).toContainText(/estimated|stima|actual|effettiva/);
   });
 
   test("P/L by period with granularity, partial periods and a chart", async ({ page }) => {

@@ -32,18 +32,18 @@ export interface OrderPnlDetail {
   pnl: OrderPnl | null;
   /** Replaced by an edit: lineage, never counted. */
   replaced: boolean;
-  /** Payment fee from the tenant's rate per method, not from the gateway (actual fees arrive with payments). */
-  paymentFeeSource: "estimated";
+  /** Payment fee from the payout's balance transactions (actual) or the tenant's rate per method (estimated). */
+  paymentFeeSource: "estimated" | "actual";
 }
 
 export async function orderPnlDetail(ctx: ServiceContext, tenant: AnalyticsTenant, orderId: string): Promise<OrderPnlDetail | null> {
   const [o] = await ctx.tx.select({ name: schema.orders.name, placedAt: schema.orders.placedAt, replacedBy: schema.orders.replacedByOrderId }).from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenantId), eq(schema.orders.id, orderId))).limit(1);
   if (!o) return null;
-  if (o.replacedBy) return { name: o.name, placedAt: o.placedAt, pnl: null, replaced: true, paymentFeeSource: "estimated" };
+  if (o.replacedBy) return { name: o.name, placedAt: o.placedAt, pnl: null, replaced: true, paymentFeeSource: "estimated" as const };
   const [eco] = await orderEconomicsForPeriod(ctx, tenant, { from: o.placedAt, to: new Date(o.placedAt.getTime() + 1) }, { orderIds: [orderId] });
   if (!eco) return null;
   const rc = await returnCostsByOrder(ctx, tenant, [orderId]);
-  return { name: o.name, placedAt: o.placedAt, pnl: orderPnl(eco, rc.get(orderId) ?? 0), replaced: false, paymentFeeSource: "estimated" };
+  return { name: o.name, placedAt: o.placedAt, pnl: orderPnl(eco, rc.get(orderId) ?? 0), replaced: false, paymentFeeSource: eco.paymentFeeSource === "actual" ? "actual" : "estimated" };
 }
 
 /* ---------- per-order P/L table ---------- */
