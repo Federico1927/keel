@@ -27,6 +27,9 @@ export const tenants = pgTable(
     settings: jsonb("settings").notNull().default(sql`'{}'::jsonb`),
     suspendAfterDays: integer("suspend_after_days").notNull().default(14),
     suspendedAt: timestamp("suspended_at", { withTimezone: true }),
+    /** MCP kill switch (#21): set by a super-admin, every MCP call of the tenant is refused until cleared. */
+    mcpDisabledAt: timestamp("mcp_disabled_at", { withTimezone: true }),
+    mcpDisabledNote: text("mcp_disabled_note"),
     /** #48: end of the trial (lifecycle, independent of the billing provider). */
     trialEndsAt: timestamp("trial_ends_at", { withTimezone: true }),
     churnedAt: timestamp("churned_at", { withTimezone: true }),

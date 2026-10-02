@@ -8,6 +8,7 @@ import type { CurrentUser } from "@/server/session";
 import { getMemberships } from "@/server/session";
 import { avatarUrl } from "@/server/avatar";
 import { AvatarField, EmailForm, IdentityForm, PasswordForm, PreferencesForm, SignInAlertsToggle, SignOutOthersButton } from "./forms";
+import { McpConnectionsSection } from "@/components/mcp/connections";
 
 /**
  * The signed-in person's profile (#45), shared by /t/<tenant>/profile and /admin/profile: identity,
@@ -115,6 +116,17 @@ export async function ProfileView({ user, tenant, locale }: { user: CurrentUser;
             </CardContent>
           </Card>
         </div>
+        {tenant && (
+          <Card className="xl:col-span-2" id="connections">
+            <CardHeader>
+              <CardTitle>{t("connections")}</CardTitle>
+              <CardDescription>{t("connections_description")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <McpConnectionsSection slug={tenant.slug} locale={locale} />
+            </CardContent>
+          </Card>
+        )}
       </div>
     </>
   );

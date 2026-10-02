@@ -27,6 +27,9 @@ export default async function SettingsPage({ params }: { params: Promise<{ tenan
             <Button asChild variant="outline">
               <Link href={`/t/${tenant}/settings/fulfilment`} data-testid="fulfilment-settings-link">{t("fulfilment_link")}</Link>
             </Button>
+            <Button asChild variant="outline">
+              <Link href={`/t/${tenant}/settings/ai`} data-testid="ai-settings-link">{t("ai_link")}</Link>
+            </Button>
           </>
         }
       />

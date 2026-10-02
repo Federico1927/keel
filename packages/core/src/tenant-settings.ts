@@ -78,6 +78,10 @@ export const tenantSettingsSchema = z.object({
   /** Where delivery-exception instructions go by email when no carrier connector is available (the carrier's customer service). */
   carrierInstructionEmail: z.string().email().max(200).nullable().default(null),
   syncDelayGraceMinutes: z.number().int().min(0).max(10_080).default(60),
+  /** MCP server (#21): AI clients may connect to this workspace (opt-in by an owner or admin; the plan must include `core.mcp`). */
+  mcpEnabled: z.boolean().default(false),
+  /** MCP: show customer names, emails, phones and addresses unmasked to roles allowed to see them (off = always masked). */
+  mcpFullPii: z.boolean().default(false),
   /** Dashboards (issue #43): users may copy a tenant dashboard into a personal one; the tenant's dashboards stay the reference. */
   personalDashboards: z.boolean().default(true),
 });

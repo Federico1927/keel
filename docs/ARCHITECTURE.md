@@ -50,7 +50,7 @@ Rules the graph enforces:
 
 ## Data model
 
-60 tables, grouped. All domain tables carry `tenant_id`, `created_at`, `updated_at`.
+126 tables, grouped. All domain tables carry `tenant_id`, `created_at`, `updated_at`.
 
 | Group | Tables | Notes |
 | --- | --- | --- |
@@ -68,6 +68,7 @@ Rules the graph enforces:
 | Billing | `subscriptions`, `invoices`, `tenant_lifecycle_events` | Keel owns the ledger; the provider only collects. The tenant lifecycle (trial → active → past_due → suspended → churned, `tenants.status` with reason, note, trial end, churn date) is Keel's too; `tenant_lifecycle_events` keeps every change with a plan/add-on/monthly-charge snapshot, from which the console rebuilds MRR and adoption by month. |
 | Email | `email_messages`, `email_events`, `email_address_suppressions` | The platform sender's delivery log (nullable `tenant_id`, RLS read/append per tenant, advanced by the admin connection; recipient as keyed hash + masked form, never body or links), provider webhook events (unique on provider + event id) and platform-wide suppressions from hard bounces and complaints (hashed). |
 | Collaboration | `notifications`, `notification_preferences`, `email_suppressions`, `mentions`, `record_notes`, `tasks`, `task_rules`, `support_tickets`, `support_messages` | Notifications record every delivery (`in_app`, `delivered`); preferences override the type registry per user. Tasks link to a record (type + id) and remember the rule and episode that opened them. Support tickets are tenant data answered from the console through the admin connection. |
+| MCP | `oauth_clients`, `mcp_authorization_codes`, `mcp_tokens`, `mcp_request_log`, `mcp_rate_buckets`, `mcp_pending_actions` | OAuth clients are platform rows; codes, tokens (HMAC with pepper, one user + one tenant), the request log (null tenant for unknown tokens), rate windows and proposals are tenant tables, read by token hash only through the admin connection. `tenants.mcp_disabled_at` is the super-admin kill switch. |
 | Add-on COD | `cod_settings`, `cod_queue_items`, `cod_attempts`, `cod_operator_capacity`, `cod_capacity_exceptions`, `cod_assignment_log`, `cod_recipient_profiles` | Only read and written by `@keel/addon-cod`. |
 
 ### Canonical order status
@@ -272,7 +273,42 @@ sequenceDiagram
 
 ### AI assistant
 
-`askAssistant` (packages/services/src/assistant) runs a manual tool loop over the `LlmProvider` interface (packages/integrations/src/llm.ts). The provider comes from the store's own `anthropic` integration (`getLlmProviderFor`): its encrypted API key in live mode, the deterministic mock in mock mode, nothing when not connected. The tools are read-only wrappers of the analytics services (KPIs, P/L, products, campaigns, returns, predictions, stock to reorder), offered only when the user's role can view the page they read. All tool results of a model turn go back in one user message; the loop stops on an answer, a refusal, the output limit or 6 steps. Every turn is stored in `assistant_messages` with its tokens; the model's own blocks (thinking included) are kept in `provider_content` and sent back verbatim. The loop opens a short tenant transaction per read or write and never holds one across a model call. The Anthropic adapter uses the official SDK with adaptive thinking, `effort: medium`, prompt caching on the system prompt and server-side fallbacks on refusals; it is tested on recorded responses through an injected `fetch`.
+`askAssistant` (packages/services/src/assistant) runs a manual tool loop over the `LlmProvider` interface (packages/integrations/src/llm.ts). The provider comes from the store's own `anthropic` integration (`getLlmProviderFor`): its encrypted API key in live mode, the deterministic mock in mock mode, nothing when not connected. The tools are read-only wrappers of the analytics services (KPIs, P/L, products, campaigns, returns, predictions, stock to reorder) on the shared tool layer (`packages/services/src/tools`, also used by the MCP server), offered only when the user's role can view the page they read. All tool results of a model turn go back in one user message; the loop stops on an answer, a refusal, the output limit or 6 steps. Every turn is stored in `assistant_messages` with its tokens; the model's own blocks (thinking included) are kept in `provider_content` and sent back verbatim. The loop opens a short tenant transaction per read or write and never holds one across a model call. The Anthropic adapter uses the official SDK with adaptive thinking, `effort: medium`, prompt caching on the system prompt and server-side fallbacks on refusals; it is tested on recorded responses through an injected `fetch`.
+
+### MCP server
+
+Remote MCP (#21) at `POST /api/mcp` (Streamable HTTP, stateless, JSON responses, official SDK). Code: `packages/services/src/mcp` (auth, limits, proposals, server, tools), the shared tool layer `packages/services/src/tools`, routes under `apps/web/src/app/api/{mcp,oauth}` and `apps/web/src/app/oauth/authorize`.
+
+```mermaid
+sequenceDiagram
+  participant C as AI client
+  participant W as apps/web
+  participant A as admin connection
+  participant T as withTenant (RLS)
+  C->>W: POST /api/mcp (no token)
+  W-->>C: 401 WWW-Authenticate resource_metadata=/.well-known/oauth-protected-resource/api/mcp
+  C->>W: GET well-known metadata, POST /api/oauth/register (public client)
+  C->>W: browser → /oauth/authorize (PKCE S256, scope, resource)
+  W->>W: sign in, pick workspace, narrow scopes → code (5 min, single use)
+  C->>W: POST /api/oauth/token (code + verifier) → access 1 h + rotating refresh 30 d
+  C->>W: POST /api/mcp Bearer kat_… / kpat_…
+  W->>A: token by HMAC → user, tenant, role, scopes; plan core.mcp, tenant switch, kill switch
+  W->>T: rate buckets (token, tenant) — fail closed
+  W->>T: tools/list | tools/call → KeelTool.run(rt) as actor mcp → services
+  W->>W: maskPii unless full PII (tenant switch + PII role)
+  W->>T: mcp_request_log (tool, user, client, duration, outcome)
+```
+
+- **Gates per request:** token known, not revoked or expired; membership active; `core.mcp` in the plan (Growth+); `settings.mcpEnabled`; no kill switch (`tenants.mcp_disabled_at`); tenant not suspended; `KEEL_MCP_DISABLED` unset. Then rate limits (60/min per token, 300/min per tenant).
+- **Per tool:** `toolDenial(tool, { role, activeAddons, scopes })` → scope, role (view for reads, `action` or page write for writes) and module (page module + `tool.module`). Unavailable tools are not listed; calls to them are refused and logged as `denied`.
+- **Writes:** direct writes are reversible (note, assignee, review/hold status); risky actions create `mcp_pending_actions` rows that a person approves at `/t/[tenant]/approvals` (`decideProposal` runs the service as the approver in a savepoint). Order events and audit entries carry `actor_type = mcp`, the user and `mcpClient`.
+
+**Adding a tool.**
+
+1. Write a `KeelTool` next to the services it uses: in `packages/services/src/mcp/read-tools.ts` / `write-tools.ts` for core, or in the add-on package (see `packages/addon-cod/src/mcp.ts`). Declare `page`, `effect` (`read` | `write` | `proposal`), `scope`, `action` for writes, `module` for add-on features, `piiNameKeys` if the output has person names under other keys than `customerName`/`firstName`/…; give a description with an example call.
+2. In `run(rt, input)` use `rt.ctx` (tenant transaction, actor `mcp`), resolve references inside the tenant (`resolveOrderRef`), sanitise free text (`sanitizeSearch`, `sanitizeFreeText`), throw `ToolError("not_found" | "invalid_input" | "conflict", message)` for answers the model can act on, return amounts with `majorUnits` and dates with `localDateTime` (store time zone), links with `keelLink(rt, path)`.
+3. Writes: call the existing service with `eventMetadata: mcpMeta(rt)` and record an audit entry with `actorType: "mcp"` and the diff. Anything not reversible must be a proposal: add a kind to `PROPOSAL_KINDS`, its permission to `PROPOSAL_ACTION`, its execution in `decideProposal` and its label under `mcp.approvals.kinds`.
+4. Register it in `MCP_READ_TOOLS` / `MCP_WRITE_TOOLS` (core) or export it from the add-on and append it in `apps/web/src/server/mcp.ts`. Add it to the isolation loop of `packages/services/test/mcp.test.ts` if it takes a reference.
 
 ## Adding an add-on
 
