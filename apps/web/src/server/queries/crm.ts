@@ -1,4 +1,6 @@
 import { and, eq, schema, sql } from "@hullwise/db";
+import { isPageEnabled } from "@hullwise/config";
+import { SUBSCRIPTION_SEGMENT_GROUP } from "@hullwise/core";
 import type { TenantContext } from "@/server/tenant";
 
 /** Option lists the segment builder needs for dynamic enum/array fields. */
@@ -13,7 +15,9 @@ export async function segmentBuilderOptions(ctx: TenantContext) {
     const opts = await tx.execute<{ k: string; v: string }>(sql`select distinct e.key as k, e.value as v from product_variants pv cross join lateral jsonb_each_text(case when jsonb_typeof(pv.option_values) = 'object' then pv.option_values else '{}'::jsonb end) e where pv.tenant_id = ${ctx.tenant.id} order by 1, 2 limit 2000`);
     const optionValues: Record<string, string[]> = {};
     for (const r of opts.rows) (optionValues[r.k] ??= []).push(r.v);
-    return { countries: countries.rows.map((r) => r.v), productTypes: types.rows.map((r) => r.v), tags: tags.rows.map((r) => r.v), products, paymentMethods: methods.rows.map((r) => r.v), optionValues };
+    // addon.subscriptions (#67): its fields are offered only with the add-on
+    const hiddenGroups = isPageEnabled("subscriptions", ctx.activeAddons) ? [] : [SUBSCRIPTION_SEGMENT_GROUP];
+    return { countries: countries.rows.map((r) => r.v), productTypes: types.rows.map((r) => r.v), tags: tags.rows.map((r) => r.v), products, paymentMethods: methods.rows.map((r) => r.v), optionValues, hiddenGroups };
   });
 }
 

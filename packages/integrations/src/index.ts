@@ -19,4 +19,5 @@ export * from "./audience";
 export * from "./conversions";
 export * from "./llm";
 export * from "./billing";
+export * from "./subscriptions";
 export * from "./address";

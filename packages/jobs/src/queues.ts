@@ -84,9 +84,9 @@ export interface CampaignSendJob {
   tenantId: string;
   campaignId: string;
 }
-export const TICK_KINDS = ["delta", "ads", "reconcile", "retry", "billing", "cod", "alerts", "returns", "crm", "segments", "tracking", "tasks", "notify", "digest", "writes", "retention", "backorders", "emails", "payouts", "watchdog", "campaigns"] as const;
+export const TICK_KINDS = ["delta", "ads", "reconcile", "retry", "billing", "cod", "alerts", "returns", "crm", "segments", "tracking", "tasks", "notify", "digest", "writes", "retention", "backorders", "emails", "payouts", "watchdog", "campaigns", "subscriptions"] as const;
 export interface TickJob {
-  /** delta (every 15 min) | ads (daily) | reconcile (nightly) | retry (every 10 min) | billing (daily) | writes (every minute: outbox retries) | retention (daily: platform rows, audit retention, expired exports, job history) | backorders (every 10 min: safety re-check) | emails (every 10 min: provider events left behind, lost queued emails) | payouts (daily: processor payouts and actual fees) | watchdog (every 10 min: stale and idle integration sources) | campaigns (every minute: scheduled customer campaigns start, sequences enrol, send queues resume) */
+  /** delta (every 15 min) | ads (daily) | reconcile (nightly) | retry (every 10 min) | billing (daily) | writes (every minute: outbox retries) | retention (daily: platform rows, audit retention, expired exports, job history) | backorders (every 10 min: safety re-check) | emails (every 10 min: provider events left behind, lost queued emails) | payouts (daily: processor payouts and actual fees) | watchdog (every 10 min: stale and idle integration sources) | campaigns (every minute: scheduled customer campaigns start, sequences enrol, send queues resume) | subscriptions (every 15 min: addon.subscriptions sync and churn risk) */
   kind: (typeof TICK_KINDS)[number];
 }
 
@@ -120,6 +120,8 @@ export function resyncJobsFor(tenantId: string, source: string, now = new Date()
     const w = adsWindow(now);
     return [{ queue: QUEUES.syncAds, data: { tenantId, provider, ...w } satisfies SyncAdsJob, singletonKey: `${tenantId}:${provider}:${w.until}` }];
   }
+  // addon.subscriptions: the subscription app is re-read by the add-on's tick
+  if (provider === "shopify_subscriptions" || provider === "recharge" || provider === "loop") return [{ queue: QUEUES.tick, data: { kind: "subscriptions" } satisfies TickJob, singletonKey: `${tenantId}:subscriptions` }];
   if (provider !== "shopify") return [];
   if (!part) return [{ queue: QUEUES.syncOrders, data: { tenantId, kind: "delta" } satisfies SyncOrdersJob, singletonKey: `${tenantId}:delta` }];
   if (part === "inventory") return [{ queue: QUEUES.syncCatalog, data: { tenantId, kind: "manual", scope: "inventory" } satisfies SyncCatalogJob, singletonKey: `${tenantId}:catalog:inventory` }];

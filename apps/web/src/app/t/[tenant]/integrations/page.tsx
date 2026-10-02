@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { adPlatformMinPlan, canDo, isAdPlatform, isAdPlatformInPlan } from "@hullwise/config";
+import { adPlatformMinPlan, canDo, isAdPlatform, isAdPlatformInPlan, isPageEnabled } from "@hullwise/config";
 import { formatDateTime, formatNumber } from "@hullwise/core";
-import { integrationMode } from "@hullwise/integrations";
+import { SUBSCRIPTION_PROVIDERS, integrationMode } from "@hullwise/integrations";
 import { integrationOverview, platformWritesOverview } from "@hullwise/services";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { ProviderActions, WebhookControls, WebhookRowAction } from "./controls";
 import { GoogleWriteAccessToggle } from "./write-access";
+import { ProviderControls as SubscriptionProviderControls } from "../subscriptions/controls";
 
 const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic", "address"] as const;
 /** Per-account integrations activated by the Hullwise team: interface and mock in Hullwise, each with its activation guide. */
@@ -91,6 +92,35 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
           );
         })}
       </div>
+      {isPageEnabled("subscriptions", ctx.activeAddons) && (() => {
+        // addon.subscriptions (#67): the store's subscription app (one of Shopify Subscriptions, Recharge, Loop)
+        const rows = data.integrations.filter((i) => (SUBSCRIPTION_PROVIDERS as readonly string[]).includes(i.provider));
+        const row = rows.find((i) => i.status !== "not_connected") ?? rows[0];
+        const health = row ? data.health.filter((h) => h.source === row.provider) : [];
+        const connected = !!row && row.status !== "not_connected";
+        const mock = globalMock || !row || row.mode !== "live";
+        return (
+          <Card className="mt-6" data-testid="provider-subscriptions">
+            <CardHeader>
+              <div className="flex items-center justify-between gap-2">
+                <CardTitle className="text-base">{t("providers.subscriptions")}</CardTitle>
+                <span className="flex gap-1"><Badge variant={statusVariant(row?.status ?? "not_connected")}>{t(`status.${row?.status ?? "not_connected"}`)}</Badge><Badge variant="outline">{mock ? t("mode.mock") : t("mode.live")}</Badge></span>
+              </div>
+              <CardDescription>{row ? t(`providers.${row.provider}`) : t("no_account")}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <dl className="grid grid-cols-2 gap-x-3 gap-y-1 sm:grid-cols-6">
+                <dt className="text-muted-foreground">{t("last_sync")}</dt><dd>{dt(row?.lastSyncAt)}</dd>
+                <dt className="text-muted-foreground">{t("last_success")}</dt><dd>{dt(row?.lastSuccessAt)}</dd>
+                <dt className="text-muted-foreground">{t("last_error")}</dt><dd className={row?.lastError ? "text-destructive" : ""}>{row?.lastError ?? health[0]?.lastError ?? "—"}</dd>
+              </dl>
+              {health.map((h) => <p key={h.id} className="flex items-center gap-2 text-xs"><span className="font-mono">{h.source}</span><Badge variant={statusVariant(h.status)}>{t(`health.${h.status}`)}</Badge><span className="text-muted-foreground">{t("rows_n", { n: formatNumber(h.rowsWrittenLast, ctx.locale) })}</span></p>)}
+              <SubscriptionProviderControls slug={tenant} connected={connected} mock={mock} provider={row?.provider ?? null} canManage={canManage} />
+              <p className="flex gap-3 text-xs"><Link href={`/t/${tenant}/subscriptions`} className="underline-offset-4 hover:underline">{t("open_subscriptions")}</Link><Link href={`${base}/guide/subscriptions`} className="underline-offset-4 hover:underline">{t("open_guide")}</Link></p>
+            </CardContent>
+          </Card>
+        );
+      })()}
       <Card className="mt-6">
         <CardHeader>
           <CardTitle className="text-base">{t("slots_title")}</CardTitle>

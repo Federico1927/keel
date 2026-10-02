@@ -42,12 +42,18 @@ export interface OrderFilters {
   feeSource?: OrderFeeSource;
   /** Orders with a balance transaction in this payout (payouts page drill-down). */
   payout?: string;
+  /** addon.subscriptions (#67): orders created by a subscription (any, first orders, renewals) or by one contract. */
+  subscription?: OrderSubscriptionView;
+  subscriptionContract?: string;
   sort?: "placed_desc" | "placed_asc" | "total_desc";
   page?: number;
 }
 
 export const ORDER_FEE_SOURCES = ["actual", "estimated"] as const;
 export type OrderFeeSource = (typeof ORDER_FEE_SOURCES)[number];
+
+export const ORDER_SUBSCRIPTION_VIEWS = ["any", "first", "renewal"] as const;
+export type OrderSubscriptionView = (typeof ORDER_SUBSCRIPTION_VIEWS)[number];
 
 export const ORDER_STOCK_VIEWS = ["awaiting", "ready"] as const;
 export type OrderStockView = (typeof ORDER_STOCK_VIEWS)[number];
@@ -75,6 +81,8 @@ export function parseOrderFilters(sp: QueryParams): OrderFilters {
     country: /^[A-Za-z]{2}$/.test(one(sp.country) ?? "") ? one(sp.country)!.toUpperCase() : undefined,
     feeSource: ORDER_FEE_SOURCES.find((v) => v === one(sp.feeSource)),
     payout: isUuid(one(sp.payout)) ? one(sp.payout) : undefined,
+    subscription: ORDER_SUBSCRIPTION_VIEWS.find((v) => v === one(sp.subscription)),
+    subscriptionContract: isUuid(one(sp.subscriptionContract)) ? one(sp.subscriptionContract) : undefined,
     sort: sort === "placed_asc" || sort === "total_desc" ? sort : "placed_desc",
     page: Math.max(1, Number(one(sp.page) ?? 1) || 1),
   };
@@ -118,6 +126,8 @@ export function orderListWhere(scope: OrderFilterScope, f: OrderFilters): SQL {
   // same rule as the P/L: the fee is actual once a charge of the order was imported from a payout
   if (f.feeSource) conds.push(sql`${sql.raw(f.feeSource === "actual" ? "" : "not ")}exists (select 1 from balance_transactions b where b.order_id = ${schema.orders.id} and b.tenant_id = ${scope.tenantId} and b.type = 'charge')`);
   if (f.payout) conds.push(sql`exists (select 1 from balance_transactions b where b.order_id = ${schema.orders.id} and b.tenant_id = ${scope.tenantId} and b.payout_id = ${f.payout})`);
+  if (f.subscription) conds.push(f.subscription === "first" ? sql`${schema.orders.isFirstSubscriptionOrder}` : f.subscription === "renewal" ? sql`${schema.orders.renewalNumber} > 0` : sql`${schema.orders.subscriptionContractId} is not null`);
+  if (f.subscriptionContract) conds.push(eq(schema.orders.subscriptionContractId, f.subscriptionContract));
   if (f.missingCost) conds.push(sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.unit_cost_minor is null and not l.is_ancillary)`);
   if (f.attrChannel) conds.push(f.attrChannel === "unknown" ? sql`not exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.channel <> 'unknown')` : sql`exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.channel = ${f.attrChannel})`);
   const utm = Object.entries(f.utm ?? {}) as [UtmDimension, string][];

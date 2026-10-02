@@ -1,6 +1,6 @@
 import { and, eq, schema } from "@hullwise/db";
-import { IntegrationError, type NormalizedFulfillment, type NormalizedOrder, type NormalizedProduct } from "@hullwise/integrations";
-import { defineAdsWrite, defineCommerceWrite } from "./registry";
+import { IntegrationError, type NormalizedFulfillment, type NormalizedOrder, type NormalizedProduct, type NormalizedSubscriptionContract } from "@hullwise/integrations";
+import { defineAdsWrite, defineCommerceWrite, defineSubscriptionWrite } from "./registry";
 
 /* The platform writes Hullwise makes today. Each is one registration: provider, target, execution, optional follow-up. */
 
@@ -210,4 +210,54 @@ defineAdsWrite("keyword.negative", {
     if (!platform.addNegativeKeywords) throw new IntegrationError("unsupported", `${platform.provider} has no keywords`);
     return platform.addNegativeKeywords([{ campaignExternalId: p.campaignExternalId, adSetExternalId: p.adSetExternalId, text: p.text, matchType: p.matchType }]);
   },
+});
+
+/* ---------- addon.subscriptions (#67): customer-care actions through the subscription app ---------- */
+
+/** A `NormalizedSubscriptionContract` read back from JSON (dates were serialized). */
+export function reviveContract(raw: unknown): NormalizedSubscriptionContract {
+  const c = raw as NormalizedSubscriptionContract;
+  return { ...c, nextBillingAt: d(c.nextBillingAt), createdAt: new Date(c.createdAt), endedAt: d(c.endedAt), pausedAt: d(c.pausedAt), updatedAt: new Date(c.updatedAt) };
+}
+const unsupported = (what: string) => new IntegrationError("unsupported", `The subscription app does not support ${what}`);
+
+defineSubscriptionWrite("subscription.pause", {
+  target: (p) => `subscription:${p.contractExternalId}:status`,
+  execute: (s, p) => (s.pause ? s.pause(p.contractExternalId, { resumeAt: date(p.resumeAt) }) : Promise.reject(unsupported("pausing"))),
+  revive: reviveContract,
+});
+defineSubscriptionWrite("subscription.resume", {
+  target: (p) => `subscription:${p.contractExternalId}:status`,
+  execute: (s, p) => (s.resume ? s.resume(p.contractExternalId) : Promise.reject(unsupported("resuming"))),
+  revive: reviveContract,
+});
+defineSubscriptionWrite("subscription.skip", {
+  // the billing date being skipped is part of the target: skipping twice means two different renewals
+  target: (p) => `subscription:${p.contractExternalId}:skip:${p.nextBillingAt ?? "-"}`,
+  execute: (s, p) => (s.skipNext ? s.skipNext(p.contractExternalId) : Promise.reject(unsupported("skipping"))),
+  revive: reviveContract,
+});
+defineSubscriptionWrite("subscription.swap", {
+  target: (p) => `subscription:${p.contractExternalId}:line:${p.lineExternalId}`,
+  execute: (s, p) => (s.swapVariant ? s.swapVariant(p.contractExternalId, { lineExternalId: p.lineExternalId, variantExternalId: p.variantExternalId, quantity: p.quantity }) : Promise.reject(unsupported("variant swaps"))),
+  revive: reviveContract,
+});
+defineSubscriptionWrite("subscription.frequency", {
+  target: (p) => `subscription:${p.contractExternalId}:frequency`,
+  execute: (s, p) => (s.changeFrequency ? s.changeFrequency(p.contractExternalId, { unit: p.unit, count: p.count }) : Promise.reject(unsupported("frequency changes"))),
+  revive: reviveContract,
+});
+defineSubscriptionWrite("subscription.reschedule", {
+  target: (p) => `subscription:${p.contractExternalId}:next_billing`,
+  execute: (s, p) => (s.reschedule ? s.reschedule(p.contractExternalId, new Date(p.nextBillingAt)) : Promise.reject(unsupported("rescheduling"))),
+  revive: reviveContract,
+});
+defineSubscriptionWrite("subscription.cancel", {
+  target: (p) => `subscription:${p.contractExternalId}:status`,
+  execute: (s, p) => (s.cancel ? s.cancel(p.contractExternalId, { reason: p.reason, note: p.note }) : Promise.reject(unsupported("cancelling"))),
+  revive: reviveContract,
+});
+defineSubscriptionWrite("subscription.payment_link", {
+  target: (p) => `subscription:${p.contractExternalId}:payment_link`,
+  execute: (s, p) => (s.sendPaymentUpdateLink ? s.sendPaymentUpdateLink(p.contractExternalId) : Promise.reject(unsupported("payment update links"))),
 });

@@ -7,6 +7,7 @@
 export const BILLING_PRODUCT_NAMES: Record<string, string> = {
   "addon.cod": "Cash on delivery",
   "addon.customer_campaigns": "Customer campaigns",
+  "addon.subscriptions": "Subscription analytics",
 };
 
 /** Trial days offered by default when a super-admin starts a subscription (editable in the dialog). */

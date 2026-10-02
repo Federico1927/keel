@@ -1,12 +1,12 @@
 import { cache } from "react";
 import { dashboardPeriod, type Period } from "@hullwise/core";
 import { COD_WIDGET_LOADERS } from "@hullwise/addon-cod";
-import { CORE_WIDGET_LOADERS, listTenantMetrics, loadWidgetData, type CustomMetricRow, type Memo, type WidgetEnv, type WidgetLoader, type WidgetResult } from "@hullwise/services";
+import { CORE_WIDGET_LOADERS, SUBSCRIPTION_WIDGET_LOADERS, listTenantMetrics, loadWidgetData, type CustomMetricRow, type Memo, type WidgetEnv, type WidgetLoader, type WidgetResult } from "@hullwise/services";
 import { WIDGETS, type DashboardPeriod, type DashboardWidget, type TenantRole, type WidgetType } from "@hullwise/config";
 import type { TenantContext } from "./tenant";
 
 /** Core loaders plus the add-ons' (COD lives in its package); `loadWidgetData` refuses an add-on widget the tenant lacks. */
-export const WIDGET_LOADERS: Partial<Record<WidgetType, WidgetLoader>> = { ...CORE_WIDGET_LOADERS, ...COD_WIDGET_LOADERS };
+export const WIDGET_LOADERS: Partial<Record<WidgetType, WidgetLoader>> = { ...CORE_WIDGET_LOADERS, ...COD_WIDGET_LOADERS, ...SUBSCRIPTION_WIDGET_LOADERS };
 
 /**
  * Short per-process cache shared by the widgets of a page and the requests right after it: the same

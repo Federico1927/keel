@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, isNull, schema, sql } from "@hullwise/db";
 import { DEFAULT_PRECEDENCE, addressKey, applyStatusMapping, type StatusMapping, deriveChannel, diffRecords, extractAttribution, hasChanges, matchCampaign, nameZipKey, nextZeroRowRuns, sourceStatus, normalizeEmail, normalizePhone, resolveShipmentStatus, shouldTakePlatformCost, type CampaignRef, type ShipmentStatus } from "@hullwise/core";
 import { IntegrationError, type AdsPlatform, type CommercePlatform, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
+import { linkSubscriptionOrderOnImport } from "../subscriptions/link";
 import { closeOrderBackorders, recomputeOrderStatus } from "../orders/state";
 import { checkOrderStock } from "../backorders";
 import { applyCostToOrderLines } from "../catalog/costs";
@@ -148,6 +149,8 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
     // a pool code used by this order becomes redeemed, linked to it
     await linkPoolRedemptions(ctx, { orderId });
   }
+  // addon.subscriptions (#67): an order the subscription app already reported is flagged on import
+  if (outcome === "created") await linkSubscriptionOrderOnImport(ctx, orderId, o.externalId);
   // attribution
   const attribution = extractAttribution({ landingSite: o.landingSite, referringSite: o.referringSite, noteAttributes: o.noteAttributes });
   const campaigns = opts.campaigns ?? (await loadCampaignRefs(ctx));

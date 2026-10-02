@@ -169,6 +169,10 @@
       "customer_campaigns": {
         "name": "Campagne clienti",
         "description": "Campagne email, SMS e WhatsApp ai segmenti con gruppo di controllo: controllo sui segmenti e margine incrementale misurato."
+      },
+      "subscriptions": {
+        "name": "Abbonamenti",
+        "description": "MRR, churn, coorti, recupero pagamenti non riusciti e stock per i rinnovi dei tuoi prodotti in abbonamento (Shopify Subscriptions, Recharge, Loop)"
       }
     }
   },
@@ -207,7 +211,8 @@
     "tasks": "Attività",
     "support": "Supporto",
     "notifications": "Notifiche",
-    "fulfilment": "Evasione"
+    "fulfilment": "Evasione",
+    "subscriptions": "Abbonamenti"
   },
   "shell": {
     "open_menu": "Apri menu",
@@ -642,10 +647,10 @@
         "manual": "Aggiunto a mano"
       },
       "supplier_po": "Ordini d'acquisto ai fornitori",
-      "return_updates": "Aggiornamenti sui resi ai clienti",
       "marketing": "Campagne clienti (marketing)",
       "phone": "telefono",
-      "identity_placeholder": "nome@esempio.it o +39…"
+      "identity_placeholder": "nome@esempio.it o +39…",
+      "return_updates": "Aggiornamenti sui resi ai clienti"
     },
     "export_lists": {
       "orders": "ordini",
@@ -2191,7 +2196,8 @@
       "products": "Prodotti",
       "rfm": "RFM",
       "sampling": "Campionamento",
-      "predictions": "Previsioni"
+      "predictions": "Previsioni",
+      "subscriptions": "Abbonamenti"
     },
     "fields": {
       "orders_count": "Ordini",
@@ -2215,6 +2221,12 @@
       "p_alive": "Probabilità ancora attivo (%)",
       "predicted_value": "Valore previsto, prossimi 12 mesi",
       "days_to_next_order": "Giorni al prossimo ordine atteso",
+      "subscription_status": "Stato dell'abbonamento",
+      "subscription_paused_days": "Giorni in pausa",
+      "subscription_payment_failed": "Pagamento dell'abbonamento in errore",
+      "subscription_renewals": "Rinnovi completati",
+      "subscription_next_renewal_days": "Giorni al prossimo rinnovo",
+      "subscription_churn_risk": "Rischio di churn dell'abbonamento",
       "open_order": "Ha un ordine aperto",
       "bought_in_window": "Ha ordinato in un periodo",
       "bought_category": "Categoria acquistata",
@@ -2246,6 +2258,14 @@
       "invalid_shape": "Regole malformate.",
       "invalid_rules": "Regole non valide.",
       "forbidden": "Non hai i permessi."
+    },
+    "subscription_values": {
+      "active": "Attivo",
+      "paused": "In pausa",
+      "cancelled": "Cancellato",
+      "expired": "Scaduto",
+      "failed": "Fallito",
+      "none": "Nessun abbonamento"
     },
     "option": "Opzione",
     "within_days": "negli ultimi",
@@ -2707,6 +2727,10 @@
       "anthropic": "AI (Anthropic)",
       "email": "Email di piattaforma",
       "tiktok": "TikTok Ads",
+      "subscriptions": "App di abbonamenti",
+      "shopify_subscriptions": "Shopify Subscriptions",
+      "recharge": "Recharge",
+      "loop": "Loop Subscriptions",
       "address": "Validazione indirizzi"
     },
     "status": {
@@ -2857,6 +2881,7 @@
     "tiktok_app_link": "Autorizza con TikTok",
     "not_in_plan_badge": "Non incluso",
     "not_in_plan": "Incluso dal piano {plan}: chiedi al gestore della piattaforma di cambiare piano.",
+    "open_subscriptions": "Apri abbonamenti",
     "address_mock_connect": "Usa il fornitore simulato",
     "address_mock_connected": "Validazione indirizzi collegata (fornitore simulato)."
   },
@@ -3349,6 +3374,75 @@
         "creatives": "Miniature dei video",
         "pause": "Pausa / riattivazione"
       }
+    },
+    "subscriptions": {
+      "title": "Collega la tua app di abbonamenti",
+      "intro": "Gli abbonamenti vengono letti dall'app che li fattura: Shopify Subscriptions, Recharge o Loop. Si importano contratti, addebiti di rinnovo e cancellazioni; pause, salti, cambi e cancellazioni fatti dal vostro team tornano all'app. Qui non si addebitano mai carte e i piani di vendita si modificano nell'app.",
+      "scopes": "Shopify Subscriptions: gli scope dei contratti sono di tipo \"own\", quindi un'app legge solo i contratti che ha creato; i contratti creati dall'app Shopify Subscriptions richiedono l'approvazione di Shopify per l'accesso di terze parti. Recharge e Loop: un token API con i permessi elencati sopra.",
+      "steps": [
+        {
+          "title": "Scegli l'app usata dal negozio",
+          "body": "Verifica dove si vendono oggi gli abbonamenti (App nell'admin di Shopify). Un'app di abbonamenti per negozio: collegarne un'altra la sostituisce.",
+          "verify": false
+        },
+        {
+          "title": "Shopify Subscriptions: aggiungi gli scope dei contratti",
+          "body": "Nell'app personalizzata della connessione Shopify (Impostazioni → App e canali di vendita → Sviluppa app → la tua app → Configurazione), aggiungi read_own_subscription_contracts, write_own_subscription_contracts e read_customer_payment_methods, salva e reinstalla l'app perché il token li riceva.",
+          "verify": true
+        },
+        {
+          "title": "Shopify Subscriptions: contratti dell'app Shopify",
+          "body": "I contratti creati dall'app Shopify Subscriptions appartengono a quell'app. Chiedi al supporto Shopify (o verifica nella dashboard Partner) l'accesso ai contratti di altre app prima di andare in produzione; senza, la sincronizzazione non vede contratti.",
+          "verify": true
+        },
+        {
+          "title": "Recharge: crea il token API",
+          "body": "Recharge → Apps & integrations → API tokens → crea un token con lettura e scrittura su abbonamenti, addebiti e clienti e lettura sugli ordini. Copia il token e l'API client secret.",
+          "verify": true
+        },
+        {
+          "title": "Loop: crea il token API",
+          "body": "Admin di Loop → Impostazioni → Accesso API → crea un token con abbonamenti in lettura/scrittura, ordini e clienti in lettura. Copia il token e il segreto di firma dei webhook.",
+          "verify": true
+        },
+        {
+          "title": "Collega da Abbonamenti o Integrazioni",
+          "body": "Integrazioni → App di abbonamenti → Collega: scegli l'app; per Recharge e Loop incolla token e segreto (salvati cifrati). Shopify Subscriptions riusa la connessione Shopify.",
+          "verify": false
+        },
+        {
+          "title": "Registra i webhook",
+          "body": "Nelle impostazioni webhook dell'app, punta gli argomenti elencati a destra verso {subscriptionsWebhookUrl}. Gli eventi sono verificati con il segreto di firma e importati una sola volta; la sincronizzazione ogni 15 minuti recupera quelli persi.",
+          "verify": true
+        },
+        {
+          "title": "Verifica che funzioni",
+          "body": "Premi Testa connessione, poi Risincronizza: abbonati, MRR e addebiti compaiono in Abbonamenti. Prova una pausa su un abbonamento di test e controlla che l'app lo mostri in pausa.",
+          "verify": false
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Scope mancanti: read_own_subscription_contracts",
+          "fix": "Aggiungi gli scope all'app personalizzata Shopify e reinstallala, poi riprova il test."
+        },
+        {
+          "symptom": "La sincronizzazione non trova contratti (Shopify)",
+          "fix": "I contratti appartengono a un'altra app: chiedi a Shopify l'accesso ai contratti di altre app, oppure collega l'app che li fattura (Recharge, Loop)."
+        },
+        {
+          "symptom": "[token_expired] HTTP 401",
+          "fix": "Il token è stato revocato o ruotato: creane uno nuovo nell'app e ricollegala."
+        },
+        {
+          "symptom": "[rate_limited] HTTP 429",
+          "fix": "L'app ha limitato le richieste: la sincronizzazione si ferma e riprende da dove era rimasta al giro successivo."
+        },
+        {
+          "symptom": "Un'azione non viene proposta",
+          "fix": "L'app non la supporta (Recharge, per esempio, non ha la pausa): usa l'admin dell'app."
+        }
+      ]
     },
     "ad_hoc_title": "Integrazioni ad hoc",
     "ad_hoc_notice": "Integrazione ad hoc: {product} ha già l'interfaccia e un fornitore simulato, quindi ogni schermata funziona nella demo. Il connettore reale per il fornitore del negozio viene realizzato e attivato dal team {product} su questo account (preventivo a parte). Il negozio fornisce solo l'account e le credenziali elencate qui sotto.",
@@ -6693,7 +6787,15 @@
       "keyword_negative": "Parola chiave negativa",
       "product_update": "Dettagli prodotto",
       "variant_details": "Dettagli variante",
-      "product_media": "Contenuti del prodotto"
+      "product_media": "Contenuti del prodotto",
+      "subscription_pause": "Pausa abbonamento",
+      "subscription_resume": "Ripresa abbonamento",
+      "subscription_skip": "Salto del prossimo rinnovo",
+      "subscription_swap": "Cambio variante dell'abbonamento",
+      "subscription_frequency": "Cambio frequenza dell'abbonamento",
+      "subscription_reschedule": "Spostamento del prossimo rinnovo",
+      "subscription_cancel": "Cancellazione abbonamento",
+      "subscription_payment_link": "Invio link di aggiornamento pagamento"
     }
   },
   "dev_inbox": {
@@ -7865,6 +7967,22 @@
       "cod_mine": {
         "name": "La mia coda contrassegno",
         "description": "I tuoi ordini assegnati: da chiamare, richiami scaduti, mai chiamati, programmati, irraggiungibili."
+      },
+      "subs_mrr": {
+        "name": "MRR abbonamenti",
+        "description": "Ricavo ricorrente mensile degli abbonamenti, rispetto a 30 giorni fa."
+      },
+      "subs_active": {
+        "name": "Abbonati attivi",
+        "description": "Abbonati attivi e in pausa, nuovi negli ultimi 30 giorni."
+      },
+      "subs_churn": {
+        "name": "Churn abbonamenti",
+        "description": "Tasso di churn nel periodo, volontario e involontario."
+      },
+      "subs_at_risk": {
+        "name": "Abbonamenti a rischio",
+        "description": "Valore di rinnovo degli abbonati con un pagamento in errore o un alto rischio di churn."
       }
     },
     "metrics": {
@@ -8681,6 +8799,433 @@
       "ad_spend": "Spesa ads (campagne collegate)",
       "profit": "Profitto",
       "missing_cost": "{units} unità vendute senza costo: il margine è sovrastimato."
+    }
+  },
+  "subscriptions": {
+    "title": "Abbonamenti",
+    "description": "Abbonati, MRR e churn dei prodotti che vendi in abbonamento tramite la tua app di abbonamenti. La fatturazione resta nell'app: qui analizzi e intervieni.",
+    "period_days": "{days} giorni",
+    "empty_title": "Ancora nessun dato sugli abbonamenti",
+    "empty_description": "Collega la tua app di abbonamenti e avvia una sincronizzazione: contratti, addebiti e cancellazioni compaiono qui.",
+    "tabs": {
+      "overview": "Panoramica",
+      "subscribers": "Abbonati",
+      "recovery": "Recupero pagamenti",
+      "stock": "Stock per i rinnovi",
+      "cancellations": "Motivi di cancellazione"
+    },
+    "kpi": {
+      "mrr": "MRR",
+      "mrr_hint": "{previous} all'inizio",
+      "active": "Abbonati attivi",
+      "paused_hint": "{n} in pausa",
+      "new": "Nuovi abbonati",
+      "vs_previous": "{n} nel periodo precedente",
+      "churn": "Tasso di churn",
+      "voluntary": "{n} volontari",
+      "involuntary": "{n} involontari",
+      "success_rate": "Rinnovi riusciti",
+      "success_hint": "Addebiti di rinnovo pagati, tentativi inclusi",
+      "value_at_risk": "Valore a rischio",
+      "failing": "{n} in errore ora",
+      "recovery_rate": "Tasso di recupero",
+      "recovery_hint": "{recovered} recuperati · {lost} persi",
+      "avg_profit": "Profitto per abbonato",
+      "avg_profit_hint": "Realizzato finora"
+    },
+    "movement": {
+      "title": "Movimento dell'MRR",
+      "description": "Ricavo ricorrente mensile per mese: nuovi abbonati, aumenti, riattivazioni, riduzioni e pause, cancellazioni. Clicca un numero per vedere gli abbonati che lo compongono.",
+      "month": "Mese",
+      "start": "Inizio",
+      "new": "Nuovi",
+      "expansion": "Espansione",
+      "contraction": "Contrazione",
+      "churned": "Persi",
+      "reactivated": "Riattivati",
+      "end": "Fine"
+    },
+    "cohorts": {
+      "title": "Sopravvivenza per mese di attivazione",
+      "description": "Quota di abbonati ancora attivi n mesi dopo l'inizio, per mese di inizio.",
+      "cohort": "Coorte",
+      "size": "Iniziati",
+      "month_n": "M{n}"
+    },
+    "forecast": {
+      "title": "Previsione ricavi",
+      "description": "Rinnovi programmati degli abbonati attivi × il tasso di rinnovi riusciti ({rate}).",
+      "days": "{days} giorni",
+      "renewals": "{n, plural, one {# rinnovo} other {# rinnovi}}"
+    },
+    "provider": {
+      "title": "App di abbonamenti",
+      "none": "Nessuna app di abbonamenti collegata: collega Shopify Subscriptions, Recharge o Loop per importare contratti, addebiti e cancellazioni.",
+      "none_short": "Non collegata",
+      "mock": "simulata",
+      "status": {
+        "connected": "Collegata",
+        "error": "Errore",
+        "not_connected": "Non collegata"
+      },
+      "last_sync": "Ultima sincronizzazione",
+      "health": "Stato",
+      "health_status": {
+        "ok": "OK",
+        "degraded": "Degradato",
+        "stale": "Non aggiornato",
+        "error": "Errore",
+        "idle": "Inattivo",
+        "unknown": "Sconosciuto"
+      },
+      "last_error": "Ultimo errore",
+      "guide": "Guida all'attivazione",
+      "test": "Testa connessione",
+      "resync": "Risincronizza",
+      "test_ok": "Collegata: {account}",
+      "test_failed": "Connessione non riuscita: {error}",
+      "resync_done": "Sincronizzato: {summary}",
+      "simulate_success": "Simula un rinnovo",
+      "simulate_failure": "Simula una carta rifiutata",
+      "simulated": "Simulato: {summary}",
+      "connect": "Collega",
+      "reconnect": "Cambia app",
+      "connected": "App di abbonamenti collegata.",
+      "app": "App di abbonamenti",
+      "apps": {
+        "shopify_subscriptions": "Shopify Subscriptions",
+        "recharge": "Recharge",
+        "loop": "Loop Subscriptions",
+        "mock": "App simulata"
+      },
+      "api_token": "Token API",
+      "webhook_secret": "Segreto di firma dei webhook",
+      "shopify_hint": "Usa la connessione Shopify del negozio: servono gli scope dei contratti di abbonamento (vedi la guida).",
+      "mock_hint": "Modalità mock: l'app simulata è collegata, non servono credenziali.",
+      "token_hint": "Token e segreto sono salvati cifrati.",
+      "save": "Salva"
+    },
+    "status": {
+      "active": "Attivo",
+      "paused": "In pausa",
+      "cancelled": "Cancellato",
+      "expired": "Scaduto",
+      "failed": "Fallito"
+    },
+    "risk": {
+      "low": "Rischio basso",
+      "medium": "Rischio medio",
+      "high": "Rischio alto"
+    },
+    "interval": {
+      "day": "{count, plural, one {ogni giorno} other {ogni # giorni}}",
+      "week": "{count, plural, one {ogni settimana} other {ogni # settimane}}",
+      "month": "{count, plural, one {ogni mese} other {ogni # mesi}}",
+      "year": "{count, plural, one {ogni anno} other {ogni # anni}}"
+    },
+    "errors": {
+      "subscription_not_found": "Abbonamento non trovato.",
+      "subscription_not_allowed": "La tua app di abbonamenti non consente questa azione per questo abbonamento.",
+      "subscription_no_provider": "Nessuna app di abbonamenti collegata.",
+      "subscription_invalid_input": "Controlla i valori e riprova.",
+      "subscription_disabled": "L'add-on abbonamenti non è attivo.",
+      "subscription_provider": "L'app di abbonamenti ha rifiutato la richiesta",
+      "module_disabled": "L'add-on abbonamenti non è attivo.",
+      "forbidden": "Non hai i permessi per farlo.",
+      "invalid_input": "Controlla i valori e riprova."
+    },
+    "profit": {
+      "title": "Profitto per abbonato",
+      "description": "Dagli ordini creati da ogni abbonamento: ricavo netto dopo rimborsi e resi, meno costo prodotto, spedizione e commissioni di pagamento (quelle effettive quando il processore le ha comunicate).",
+      "orders": "Ordini",
+      "revenue": "Ricavo netto",
+      "costs": "Costo prodotto, spedizione, commissioni",
+      "profit": "Profitto",
+      "order_n": "Ordine",
+      "avg_profit": "Profitto medio",
+      "first_order": "Primo ordine",
+      "renewal_n": "Rinnovo {n}"
+    },
+    "acquisition": {
+      "title": "LTV e costo di acquisizione",
+      "description": "Profitto realizzato per abbonato in base alla campagna o al canale del primo ordine in abbonamento, confrontato con il costo per ordine della campagna.",
+      "source": "Campagna o canale",
+      "subscribers": "Abbonati",
+      "ltv": "LTV",
+      "cac": "Costo di acquisizione",
+      "ratio": "LTV / CAC",
+      "channels": {
+        "paid_social": "Social a pagamento",
+        "paid_search": "Ricerca a pagamento",
+        "organic_search": "Ricerca organica",
+        "social": "Social",
+        "email": "Email",
+        "referral": "Referral",
+        "direct": "Diretto",
+        "marketplace": "Marketplace",
+        "unknown": "Sconosciuto"
+      }
+    },
+    "subscribers": {
+      "title": "Abbonati",
+      "description": "Tutti i contratti di abbonamento, con stato, prossimo rinnovo e rischio di churn.",
+      "search": "Nome, email o contratto",
+      "status": "Stato",
+      "all_statuses": "Tutti gli stati",
+      "live": "Attivi o in pausa",
+      "risk": "Rischio",
+      "any_risk": "Qualsiasi rischio",
+      "failing": "Pagamento in errore",
+      "apply": "Applica",
+      "clear": "Azzera filtri",
+      "f_cohort": "Iniziati a {v}",
+      "f_movement": "{bucket} a {month}",
+      "f_reason": "Motivo: {v}",
+      "f_voluntary": "Churn volontario",
+      "f_involuntary": "Churn involontario",
+      "f_activated": "Iniziati dal {from}",
+      "f_ended": "Terminati dal {from}",
+      "empty_title": "Nessun abbonato corrisponde",
+      "empty_description": "Cambia i filtri o collega la tua app di abbonamenti.",
+      "next": "Prossimo {date}",
+      "payment_failing": "Pagamento in errore",
+      "customer": "Cliente",
+      "products": "Prodotti",
+      "price": "Prezzo",
+      "frequency": "Frequenza",
+      "next_billing": "Prossimo rinnovo",
+      "renewals": "Rinnovi",
+      "ended": "Terminato il {date}",
+      "summary": "{n, plural, one {# abbonato} other {# abbonati}}"
+    },
+    "ready": {
+      "title": "Segmenti pronti",
+      "description": "Apri un segmento con le condizioni sugli abbonamenti già impostate, poi salvalo o invialo a una destinazione.",
+      "paused_30": "In pausa da più di 30 giorni",
+      "payment_failed": "Pagamento non riuscito",
+      "renewal_n": "Vicini al 3° rinnovo",
+      "high_churn_risk": "Alto rischio di churn"
+    },
+    "detail": {
+      "unknown_customer": "Cliente sconosciuto",
+      "failing_since": "Pagamento in errore dal {date}",
+      "actions": "Assistenza clienti",
+      "read_only": "Il tuo ruolo può solo consultare questo abbonamento.",
+      "customer": "Cliente",
+      "assignee": "Seguito da: {name}",
+      "last_contact": "Ultimo contatto: {date}",
+      "risk_title": "Rischio di churn",
+      "retention": "Probabilità di restare: {pct}",
+      "factors": {
+        "p_alive": "Abitudini d'acquisto (modello CRM)",
+        "payment_failing": "Pagamento in errore",
+        "skips": "Salti recenti",
+        "paused": "In pausa",
+        "hazard": "Abbandono al prossimo rinnovo",
+        "frequency": "Frequenza allungata"
+      },
+      "price": "Prezzo per rinnovo",
+      "mrr": "MRR",
+      "next_billing": "Prossimo rinnovo",
+      "renewals": "Rinnovi",
+      "since": "Dal {date}",
+      "cancelled_voluntary": "Cancellato il {date}",
+      "cancelled_involuntary": "Terminato il {date} dopo pagamenti non riusciti",
+      "lines": "Prodotti",
+      "product": "Prodotto",
+      "quantity": "Quantità",
+      "unit_price": "Prezzo unitario",
+      "timeline": "Cronologia",
+      "charges": "Addebiti",
+      "when": "Quando",
+      "outcome": "Esito",
+      "amount": "Importo",
+      "failed": "Non riuscito",
+      "retry": "nuovo tentativo {date}",
+      "attempt_success": "Pagato",
+      "attempt_pending": "In attesa",
+      "attempt_failed": "Non riuscito",
+      "orders": "Ordini"
+    },
+    "events": {
+      "created": "Abbonamento iniziato",
+      "paused": "Messo in pausa",
+      "resumed": "Ripreso",
+      "skipped": "Rinnovo saltato",
+      "swapped": "Variante cambiata",
+      "frequency_changed": "Frequenza cambiata",
+      "rescheduled": "Prossimo rinnovo spostato",
+      "cancelled": "Cancellato",
+      "reactivated": "Riattivato",
+      "price_changed": "Prezzo cambiato",
+      "payment_failed": "Pagamento non riuscito",
+      "payment_recovered": "Pagamento recuperato",
+      "payment_link_sent": "Link di aggiornamento pagamento inviato",
+      "note": "Nota",
+      "assigned": "Follow-up assegnato"
+    },
+    "authors": {
+      "customer": "Cliente",
+      "staff": "Team",
+      "system": "Sistema",
+      "provider": "App di abbonamenti"
+    },
+    "payment_errors": {
+      "card_expired": "Carta scaduta",
+      "insufficient_funds": "Fondi insufficienti",
+      "card_declined": "Carta rifiutata",
+      "authentication_required": "Autenticazione richiesta",
+      "processing_error": "Errore di elaborazione",
+      "other": "Errore di pagamento"
+    },
+    "actions": {
+      "pause": "Metti in pausa",
+      "resume": "Riprendi",
+      "skip": "Salta il prossimo",
+      "swap": "Cambia variante",
+      "frequency": "Cambia frequenza",
+      "reschedule": "Sposta il prossimo rinnovo",
+      "cancel": "Cancella",
+      "payment_link": "Invia link di aggiornamento pagamento",
+      "none": "Nessuna azione disponibile per questo abbonamento.",
+      "unsupported": "Non supportato dalla tua app di abbonamenti: {actions}",
+      "confirm_title": {
+        "pause": "Mettere in pausa questo abbonamento?",
+        "resume": "Riprendere questo abbonamento?",
+        "skip": "Saltare il prossimo rinnovo?",
+        "swap": "Cambiare la variante?",
+        "frequency": "Cambiare la frequenza?",
+        "reschedule": "Spostare il prossimo rinnovo?",
+        "cancel": "Cancellare questo abbonamento?",
+        "payment_link": "Inviare il link di aggiornamento pagamento?"
+      },
+      "confirm_description": "La modifica viene inviata alla tua app di abbonamenti e applicata lì; l'app può avvisare il cliente.",
+      "line": "Prodotto",
+      "new_variant": "Nuova variante",
+      "every": "Ogni",
+      "unit": "Unità",
+      "units": {
+        "day": "giorni",
+        "week": "settimane",
+        "month": "mesi"
+      },
+      "next_billing": "Prossimo rinnovo il",
+      "reason": "Motivo",
+      "note_optional": "Nota (facoltativa)",
+      "back": "Indietro",
+      "confirm": "Conferma",
+      "already_done": "Già fatto: questa richiesta era già stata inviata.",
+      "done": {
+        "pause": "Abbonamento messo in pausa.",
+        "resume": "Abbonamento ripreso.",
+        "skip": "Prossimo rinnovo saltato.",
+        "swap": "Variante cambiata.",
+        "frequency": "Frequenza cambiata.",
+        "reschedule": "Prossimo rinnovo spostato.",
+        "cancel": "Abbonamento cancellato.",
+        "payment_link": "Link di aggiornamento pagamento inviato."
+      }
+    },
+    "recovery": {
+      "title": "Recupero pagamenti non riusciti",
+      "description": "Abbonati il cui ultimo addebito di rinnovo non è riuscito, dal valore a rischio più alto, con i nuovi tentativi dell'app e il vostro follow-up.",
+      "value_at_risk": "Valore a rischio",
+      "open": "{n, plural, one {# abbonato in errore} other {# abbonati in errore}}",
+      "rate": "Tasso di recupero (90 giorni)",
+      "rate_hint": "{recovered} recuperati · {lost} persi",
+      "recovered_30": "Recuperato in 30 giorni",
+      "lost": "Persi per pagamenti non riusciti",
+      "lost_hint": "Terminati dall'app dopo l'ultimo tentativo",
+      "view_all": "Tutti",
+      "view_me": "Miei",
+      "view_none": "Non assegnati",
+      "empty_title": "Nessun pagamento in errore",
+      "empty_description": "Tutti gli addebiti di rinnovo sono andati a buon fine.",
+      "failures": "{n, plural, one {# addebito non riuscito} other {# addebiti non riusciti}}",
+      "failing_since": "in errore dal {date}",
+      "next_retry": "nuovo tentativo {date}",
+      "no_retry": "nessun tentativo rimasto",
+      "last_contact": "ultimo contatto {date}",
+      "send_link": "Invia link di pagamento",
+      "send_link_title": "Inviare il link di aggiornamento pagamento?",
+      "send_link_description": "La tua app di abbonamenti invia al cliente il proprio link per aggiornare la carta.",
+      "link_sent": "Link di aggiornamento pagamento inviato.",
+      "add_note": "Aggiungi nota",
+      "note_description": "Visibile nella cronologia dell'abbonamento.",
+      "contacted": "Ho contattato il cliente",
+      "save": "Salva",
+      "note_saved": "Nota salvata.",
+      "assignee": "Follow-up",
+      "unassigned": "Non assegnato",
+      "assigned": "Follow-up assegnato.",
+      "back": "Indietro"
+    },
+    "stock": {
+      "title": "Stock per i rinnovi",
+      "description": "Unità richieste dai rinnovi programmati degli abbonati attivi, per variante, rispetto a stock e ordini d'acquisto in arrivo. I suggerimenti compaiono anche nella pianificazione dei riordini.",
+      "weeks": "{n, plural, one {# settimana} other {# settimane}}",
+      "alert": "si esaurisce il {date}: mancano {units} unità, ordine suggerito {suggested}",
+      "open_planning": "Apri la pianificazione riordini",
+      "empty_title": "Nessun rinnovo programmato",
+      "empty_description": "Qui compaiono i rinnovi degli abbonati attivi nel periodo.",
+      "table_title": "Rinnovi {n, plural, one {della prossima settimana} other {delle prossime # settimane}}",
+      "table_description": "Le unità in arrivo contano dalla data prevista; il suggerimento copre l'ammanco, arrotondato al multiplo e al minimo del fornitore.",
+      "variant": "Variante",
+      "renewals": "Rinnovi",
+      "units": "Unità richieste",
+      "available": "Disponibili",
+      "incoming": "In arrivo",
+      "runs_out": "Esaurimento",
+      "suggested": "Ordine suggerito",
+      "by_week": "Unità per settimana",
+      "covered": "Coperto"
+    },
+    "cancellations": {
+      "title": "Motivi di cancellazione",
+      "description": "Perché gli abbonati se ne vanno: i motivi dell'app ricondotti alla vostra lista (il testo originale resta), per prodotto, coorte o canale, con l'andamento mensile.",
+      "empty_title": "Nessuna cancellazione negli ultimi 12 mesi",
+      "empty_description": "Qui compaiono le cancellazioni con i loro motivi.",
+      "by_reason": "Per motivo",
+      "split": "{voluntary} volontarie · {involuntary} involontarie",
+      "matrix": "Motivi per",
+      "dimension": {
+        "product": "Prodotto",
+        "cohort": "Coorte",
+        "channel": "Canale"
+      },
+      "total": "Totale",
+      "trend": "Andamento",
+      "trend_description": "Cancellazioni al mese per motivo.",
+      "month": "Mese",
+      "list_title": "I vostri motivi",
+      "list_description": "La lista su cui vengono ricondotte le cancellazioni. Le parole chiave riconoscono il testo libero dell'app (in qualsiasi lingua).",
+      "kind": {
+        "voluntary": "Volontario",
+        "involuntary": "Involontario"
+      },
+      "deactivate": "Disattiva",
+      "activate": "Attiva",
+      "label": "Motivo",
+      "keywords": "Parole chiave, separate da virgola",
+      "add": "Aggiungi motivo",
+      "saved": "Motivi salvati."
+    },
+    "card": {
+      "title": "Abbonamenti",
+      "order_title": "Abbonamento",
+      "contract": "Abbonamento",
+      "renewals": "{n, plural, =0 {nessun rinnovo ancora} one {# rinnovo} other {# rinnovi}}",
+      "next": "Prossimo {date}",
+      "failing": "Pagamento in errore",
+      "first_order": "Primo ordine di questo abbonamento",
+      "renewal_order": "Rinnovo {n} di questo abbonamento"
+    },
+    "widgets": {
+      "mrr_hint": "{delta} rispetto a 30 giorni fa",
+      "mrr_no_previous": "Nessun MRR 30 giorni fa",
+      "active_hint": "{paused} in pausa · {new} nuovi in 30 giorni",
+      "churn_hint": "{voluntary} volontari · {involuntary} involontari",
+      "at_risk_hint": "{n} a rischio · {failing} pagamenti in errore · {high} ad alto rischio di churn"
     }
   }
 }

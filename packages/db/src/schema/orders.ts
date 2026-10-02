@@ -70,6 +70,10 @@ export const orders = pgTable(
     replacesOrderId: uuid("replaces_order_id"),
     replacedByOrderId: uuid("replaced_by_order_id"),
     lineageRootOrderId: uuid("lineage_root_order_id"),
+    /** addon.subscriptions (#67): the subscription contract that created the order (no FK: contracts live in the add-on's tables), whether it is the contract's first order, and which renewal it is (1 = first renewal). */
+    subscriptionContractId: uuid("subscription_contract_id"),
+    isFirstSubscriptionOrder: boolean("is_first_subscription_order").notNull().default(false),
+    renewalNumber: integer("renewal_number"),
     platformUpdatedAt: timestamp("platform_updated_at", { withTimezone: true }),
     syncedAt: timestamp("synced_at", { withTimezone: true }),
     searchBlob: text("search_blob")
@@ -86,6 +90,7 @@ export const orders = pgTable(
     index("orders_tenant_email_idx").on(t.tenantId, t.emailNormalized),
     index("orders_tenant_phone_idx").on(t.tenantId, t.phoneE164),
     index("orders_tenant_address_idx").on(t.tenantId, t.addressKey),
+    index("orders_tenant_subscription_idx").on(t.tenantId, t.subscriptionContractId),
     index("orders_search_trgm_idx").using("gin", sql`${t.searchBlob} gin_trgm_ops`),
     tenantIsolation("orders"),
   ],

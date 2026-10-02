@@ -13,3 +13,10 @@ describe("ads resyncs (watchdog, run now)", () => {
     expect(runNowJob("sync.ads:tiktok", "t1", now)).toMatchObject({ queue: QUEUES.syncAds, data: { provider: "tiktok" } });
   });
 });
+
+describe("subscription app resync (addon.subscriptions)", () => {
+  it("re-reads a stale subscription app through the add-on's tick", () => {
+    for (const source of ["shopify_subscriptions", "recharge", "loop"]) expect(resyncJobsFor("t1", source)).toEqual([{ queue: QUEUES.tick, data: { kind: "subscriptions" }, singletonKey: "t1:subscriptions" }]);
+    expect(runNowJob("tick:subscriptions", null)).toEqual({ queue: QUEUES.tick, data: { kind: "subscriptions" } });
+  });
+});

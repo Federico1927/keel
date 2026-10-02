@@ -96,6 +96,7 @@ export type AddonPricing =
 
 export const ADDONS: readonly AddonPricing[] = [
   { id: "customer_campaigns", kind: "monthly", price: 99 },
+  { id: "subscriptions", kind: "monthly", price: 149 },
   { id: "cod", kind: "monthly", price: 199 },
   { id: "custom_integration", kind: "quote" },
   { id: "custom_development", kind: "quote" },

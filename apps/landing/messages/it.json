@@ -269,6 +269,10 @@
         "title": "Campagne ai clienti",
         "body": "Campagne ai tuoi segmenti con gruppo di controllo: un holdout stabile per cliente, l'invio registrato dallo strumento che usi già, e gli ordini, i ricavi e il margine incrementali che ogni campagna ha davvero prodotto."
       },
+      "subscriptions": {
+        "title": "Abbonamenti",
+        "body": "Per chi vende ricariche, box o membership con Shopify Subscriptions, Recharge o Loop: profitto reale per abbonato, abbandoni divisi tra volontari e pagamenti falliti, previsione di stock per i rinnovi in arrivo e una coda di recupero per le carte rifiutate."
+      },
       "cod": {
         "title": "Contrassegno",
         "body": "Per chi incassa alla consegna: coda di conferma con esiti delle chiamate, assegnazione agli operatori, delivery score spiegato fattore per fattore e segnalazione dei destinatari a rischio."

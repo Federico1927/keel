@@ -1,4 +1,4 @@
-import { Code2, Megaphone, PhoneCall, Puzzle } from "lucide-react";
+import { Code2, Megaphone, PhoneCall, Puzzle, Repeat } from "lucide-react";
 import { Section } from "@/components/ui";
 import { ADDONS } from "@/config/pricing";
 import type { LandingLocale } from "@/config/site";
@@ -7,6 +7,7 @@ import { formatPrice } from "@/lib/format";
 
 const ICONS = {
   customer_campaigns: Megaphone,
+  subscriptions: Repeat,
   cod: PhoneCall,
   custom_integration: Puzzle,
   custom_development: Code2,

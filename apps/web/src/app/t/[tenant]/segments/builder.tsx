@@ -15,6 +15,8 @@ export interface BuilderOptions {
   tags: string[];
   products: { id: string; title: string }[];
   paymentMethods: string[];
+  /** Field groups not offered (add-on fields without the add-on). */
+  hiddenGroups?: string[];
   /** Product option names of the catalog ("Size", "Taglia"…) and their values, for `dominant_option`. */
   optionValues: Record<string, string[]>;
 }
@@ -223,7 +225,8 @@ function LeafEditor({ leaf, options, currency, disabled, onChange, onRemove }: {
     onChange({ field, op, value: defaultValue(field, op), ...(d.param === "option" ? { option: Object.keys(options.optionValues)[0] ?? "" } : {}) });
   };
   const setOp = (op: SegmentOp) => onChange({ ...leaf, op, value: op === "between" || op === "is_null" || op === "not_null" || leaf.op === "between" || leaf.op === "is_null" || leaf.op === "not_null" ? defaultValue(leaf.field, op) : leaf.value });
-  const grouped = FIELD_ORDER.reduce<Record<string, string[]>>((acc, f) => ((acc[SEGMENT_FIELDS[f]!.group] ??= []).push(f), acc), {});
+  const hidden = new Set((options.hiddenGroups ?? []).filter((g) => g !== def.group));
+  const grouped = FIELD_ORDER.filter((f) => !hidden.has(SEGMENT_FIELDS[f]!.group)).reduce<Record<string, string[]>>((acc, f) => ((acc[SEGMENT_FIELDS[f]!.group] ??= []).push(f), acc), {});
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-md border bg-card p-2" data-testid="rule-leaf">
       <Select size="sm" value={leaf.field} onChange={(e) => setField(e.target.value)} disabled={disabled} className="w-52" aria-label={t("field")}>
@@ -323,6 +326,9 @@ function ValueEditor({ leaf, options, currency, disabled, onChange }: { leaf: Se
       case "rfm_frequency": return (def.values as readonly string[]).map((v) => ({ value: v, label: tr(`frequency.${v}`) }));
       case "rfm_tier": return (def.values as readonly string[]).map((v) => ({ value: v, label: tr(`tier.${v}`) }));
       case "churn_risk": return (def.values as readonly string[]).map((v) => ({ value: v, label: tpr(`risk.${v}`) }));
+      // addon.subscriptions (#67)
+      case "subscription_status": return (def.values as readonly string[]).map((v) => ({ value: v, label: t(`subscription_values.${v}`) }));
+      case "subscription_churn_risk": return (def.values as readonly string[]).map((v) => ({ value: v, label: tpr(`risk.${v}`) }));
       default: return [];
     }
   })();
