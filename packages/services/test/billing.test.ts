@@ -170,3 +170,28 @@ describe("tenant lifecycle and billing", () => {
     expect(sub.tenantId).toBe(acme.id);
   });
 });
+
+describe("add-on versions (#77)", () => {
+  const acme = async () => (await pools.admin.select({ id: schema.tenants.id }).from(schema.tenants).where(eq(schema.tenants.slug, "acme-bikes")))[0]!.id;
+  const row = async (tenantId: string, key: string) => (await pools.admin.select().from(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, tenantId), eq(schema.tenantAddons.moduleKey, key))))[0];
+
+  it("switches on only a released version and records which one", async () => {
+    const tenantId = await acme();
+    expect((await row(tenantId, "addon.cod"))?.version).toBe(1);
+    await expect(setTenantAddon(pools.admin, tenantId, "addon.customer_campaigns", true, admin, "try")).rejects.toThrow("addon_not_released");
+    expect(await row(tenantId, "addon.customer_campaigns")).toBeUndefined();
+    const audits = await pools.admin.select().from(schema.auditLogs).where(and(eq(schema.auditLogs.tenantId, tenantId), eq(schema.auditLogs.entityId, "addon.customer_campaigns")));
+    expect(audits).toHaveLength(0);
+  });
+
+  it("an add-on active before its release can be switched off, and not on again", async () => {
+    const tenantId = await acme();
+    await pools.admin.insert(schema.tenantAddons).values({ tenantId, moduleKey: "addon.customer_campaigns", note: "preview" });
+    // saving the note of the active add-on is not an activation
+    await setTenantAddon(pools.admin, tenantId, "addon.customer_campaigns", true, admin, "still preview");
+    await setTenantAddon(pools.admin, tenantId, "addon.customer_campaigns", false, admin, "off");
+    expect((await row(tenantId, "addon.customer_campaigns"))?.isActive).toBe(false);
+    await expect(setTenantAddon(pools.admin, tenantId, "addon.customer_campaigns", true, admin, null)).rejects.toThrow("addon_not_released");
+    expect((await row(tenantId, "addon.customer_campaigns"))?.isActive).toBe(false);
+  });
+});

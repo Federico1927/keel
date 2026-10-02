@@ -828,3 +828,15 @@ Fatto (eccezione approvata dal committente alla regola §12, issue #9 e chat del
 
 Resta (facoltativo, fuori dalla prima versione): trigger di flussi/automazioni Spoki, creazione dei template da Hullwise, invio di media e pulsanti interattivi, risposte automatiche e passaggio a operatore, tabella dei contatti con link alla chat, finestra di 24 ore mostrata nell'interfaccia; verificare su un account Spoki vero i passi "Da verificare" (percorsi di contatti, liste e ticket, formato del webhook).
 
+
+## Versioni degli add-on: si attiva solo una versione rilasciata (issue #77)
+
+Fatto:
+- Registro delle versioni in `packages/config/src/addon-versions.ts`: ogni add-on ha versioni `released` o `in_development`; la console ne mostra al massimo due (l'ultima rilasciata e quella in lavorazione).
+- `addon.cod`: v1 rilasciata, v2 (messaggi ai destinatari con un provider WhatsApp/SMS reale) in sviluppo. `addon.customer_campaigns`: v1 in sviluppo, quindi **non attivabile** (oggi i messaggi sono solo simulati).
+- `setTenantAddon` rifiuta l'attivazione senza versione rilasciata (`addon_not_released`); lo spegnimento è sempre possibile. Colonna `tenant_addons.version` (migrazione 0044, additiva) con la versione attivata. Le attivazioni già esistenti restano accese e la console le segnala.
+- Console: badge di versione e motivo del blocco nella scheda tenant e nella pagina Piani e add-on; l'interruttore ora mostra l'errore invece di ignorarlo.
+- Fatturazione allineata: si addebitano solo gli add-on rilasciati (fatture, voci Stripe, MRR, catalogo); quelli attivi ma non rilasciati restano usabili e nella finestra di abbonamento compaiono come "incluso, non fatturato".
+- Test: unit (`addon-versions.test.ts`), servizi (`billing.test.ts`), e2e (`addon-versions.spec.ts`).
+
+Resta: il controllo per singolo negozio (es. campagne senza provider di messaggi collegato), da aggiungere accanto al registro.

@@ -1,0 +1,1 @@
+ALTER TABLE "tenant_addons" ADD COLUMN "version" integer;

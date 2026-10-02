@@ -30,9 +30,9 @@ const mockPlatform = () => new MockCommercePlatform({ currency: "EUR", country: 
 const db = <T>(fn: (tx: Parameters<Parameters<typeof withTenant>[1]>[0]) => Promise<T>) => withTenant(tenantId, fn, pools.app);
 
 let offset = 0;
-/** Fresh open COD orders, out of every queue, never reused across tests. */
+/** Fresh open COD orders, out of every queue, never reused across tests; only orders that still have a line to ship (other test files may have emptied some). */
 async function freshCodOrders(n: number, extra: Partial<typeof schema.orders.$inferInsert> = {}): Promise<string[]> {
-  const rows = await db((tx) => tx.select({ id: schema.orders.id }).from(schema.orders).where(and(eq(schema.orders.tenantId, tenantId), eq(schema.orders.paymentMethod, "cod"), sql`${schema.orders.replacedByOrderId} is null`, sql`${schema.orders.replacesOrderId} is null`)).orderBy(sql`${schema.orders.orderNumber} desc`).limit(n).offset(offset));
+  const rows = await db((tx) => tx.select({ id: schema.orders.id }).from(schema.orders).where(and(eq(schema.orders.tenantId, tenantId), eq(schema.orders.paymentMethod, "cod"), sql`${schema.orders.replacedByOrderId} is null`, sql`${schema.orders.replacesOrderId} is null`, sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.current_quantity > 0)`)).orderBy(sql`${schema.orders.orderNumber} desc`).limit(n).offset(offset));
   offset += n;
   for (const o of rows) {
     await db((tx) => tx.update(schema.orders).set({ status: "pending_review", cancelledAt: null, cancelReason: null, placedAt: new Date(), manualStatus: null, assignedTo: null, platformTags: ["cod"], fulfillmentStatusRaw: null, paymentStatus: "pending", financialStatusRaw: "pending", returnedFraction: 0, refundedMinor: 0, ...extra }).where(eq(schema.orders.id, o.id)));

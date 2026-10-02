@@ -115,6 +115,8 @@ export const tenantAddons = pgTable(
     deactivatedAt: timestamp("deactivated_at", { withTimezone: true }),
     note: text("note"),
     activatedBy: uuid("activated_by").references(() => users.id, { onDelete: "set null" }),
+    /** Released version switched on (#77); null for activations made before versions existed. */
+    version: integer("version"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

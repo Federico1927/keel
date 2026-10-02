@@ -67,7 +67,8 @@
       "cod_template": "Unknown message template.",
       "cod_phone": "The order has no phone number.",
       "cod_reason": "Write a reason (at least 3 characters).",
-      "cod_carrier_columns": "The file needs a reference column (tracking or order) and an outcome column."
+      "cod_carrier_columns": "The file needs a reference column (tracking or order) and an outcome column.",
+      "addon_not_released": "This add-on has no released version yet: it can't be switched on."
     },
     "edit": "Edit"
   },
@@ -152,7 +153,9 @@
     "addon": {
       "cod": {
         "name": "Cash on delivery",
-        "description": "Confirmation queue, operator assignment, delivery score"
+        "description": "Confirmation queue, operator assignment, delivery score",
+        "v1": "Confirmation queue, outcomes and attempts, operator assignment, delivery score and recipient risk.",
+        "v2": "Messages to recipients through a real WhatsApp or SMS provider (today only simulated)."
       },
       "warehouse_3pl": {
         "name": "3PL warehouse connector",
@@ -168,11 +171,13 @@
       },
       "customer_campaigns": {
         "name": "Customer campaigns",
-        "description": "Email, SMS and WhatsApp campaigns to segments with a control group: holdout on segments and measured incremental margin."
+        "description": "Email, SMS and WhatsApp campaigns to segments with a control group: holdout on segments and measured incremental margin.",
+        "v1": "Approval, scheduling, send queue and control groups; messages are only simulated, no provider sends them yet."
       },
       "subscriptions": {
         "name": "Subscriptions",
-        "description": "MRR, churn, cohorts, failed payment recovery and stock for renewals of your subscription products (Shopify Subscriptions, Recharge, Loop)"
+        "description": "MRR, churn, cohorts, failed payment recovery and stock for renewals of your subscription products (Shopify Subscriptions, Recharge, Loop)",
+        "v1": "Shopify Subscriptions, Recharge and Loop connectors, verified only on recorded data: no live store connected yet."
       },
       "whatsapp_spoki": {
         "name": "WhatsApp via Spoki",
@@ -4051,7 +4056,13 @@
       "no_logo": "No logo uploaded",
       "brand_updated": "Updated {date}",
       "data_export": "Data export",
-      "data_export_description": "Every table of this tenant as CSV files in a zip, built in the background; the link expires after {days} days. Requests and downloads are audited."
+      "data_export_description": "Every table of this tenant as CSV files in a zip, built in the background; the link expires after {days} days. Requests and downloads are audited.",
+      "version_released": "v{version} · released",
+      "version_in_development": "v{version} · in development",
+      "active_version": "active: v{version}",
+      "active_unreleased": "switched on before release: it can be switched off, not on again",
+      "not_released": "Can't be switched on until a version is released.",
+      "in_development": "in development"
     },
     "billing": {
       "title": "Billing",
@@ -8500,7 +8511,8 @@
     "synced": "Synced",
     "none": "No subscription at the processor yet.",
     "catalog_missing": "Sync the catalog first (Billing → Subscriptions).",
-    "cancel_at_period_end": "ends at period end"
+    "cancel_at_period_end": "ends at period end",
+    "addon_not_billed": "included, not billed: no released version yet"
   },
   "data_export": {
     "title": "Data export",

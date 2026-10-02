@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { OVERAGE, PLATFORM_CURRENCY } from "@hullwise/config";
+import { OVERAGE, PLATFORM_CURRENCY, displayedVersions, isAddonModule } from "@hullwise/config";
 import { formatMoney, formatNumber } from "@hullwise/core";
 import { planUsage } from "@hullwise/services";
 import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
@@ -48,7 +48,15 @@ export default async function AdminPlansPage() {
                 <TableRow key={m.key} data-testid="addon-row">
                   <TableCell><span className="font-medium">{tm(`addon.${m.key.replace("addon.", "")}.name`)}</span> <span className="font-mono text-xs text-muted-foreground">{m.key}</span></TableCell>
                   <TableCell className="text-right tabular">{money(m.monthlyPriceMinor)}</TableCell>
-                  <TableCell><Badge variant={m.availability === "implemented" ? "success" : "muted"}>{t(`plans_page.availability_${m.availability}`)}</Badge></TableCell>
+                  <TableCell>
+                    {m.availability === "implemented" && isAddonModule(m.key) ? (
+                      <span className="flex flex-wrap gap-1">
+                        {displayedVersions(m.key).map((v) => <Badge key={v.version} variant={v.status === "released" ? "success" : "warning"}>{t(`tenant.version_${v.status}`, { version: v.version })}</Badge>)}
+                      </span>
+                    ) : (
+                      <Badge variant="muted">{t(`plans_page.availability_${m.availability}`)}</Badge>
+                    )}
+                  </TableCell>
                   <TableCell className="text-right">{m.availability === "implemented" ? <Link href={`/admin/tenants?addon=${m.key}`} className="tabular hover:underline">{formatNumber(tenants, locale)}</Link> : "—"}</TableCell>
                 </TableRow>
               ))}
