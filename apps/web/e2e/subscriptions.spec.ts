@@ -90,8 +90,10 @@ test("subscribers show as cards on a phone", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await login(page, "owner@harborhome.demo");
   await page.goto(`${H}/subscribers`);
-  await expect(page.getByTestId("subscriber-card").first()).toBeVisible();
-  await expect(page.getByTestId("subscriber-table")).toBeHidden();
+  // one DataList (#49): the table's rows are laid out as cards, with no header and no sideways scroll
+  await expect(page.getByTestId("subscriber-row").first()).toBeVisible();
+  await expect(page.getByTestId("subscriber-table").locator("thead")).toBeHidden();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
 
 test("with the add-on off (Northwind) every page, the guide, the webhook and the MCP tools are unreachable", async ({ page, request }) => {
