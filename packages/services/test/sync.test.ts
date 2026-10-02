@@ -74,6 +74,16 @@ describe("order import", () => {
   });
 });
 
+describe("order phone", () => {
+  it("an imported order gets the E.164 key that phone search, duplicates and history match on", async () => {
+    const o = platform.generateOrder(new Date());
+    o.phone = "333 123 4567";
+    const r = await run((s) => importOrder(s, o, { ...opts, source: "webhook" }));
+    const [row] = await withTenant(tenantId, (tx) => tx.select({ phone: schema.orders.phone, phoneE164: schema.orders.phoneE164 }).from(schema.orders).where(eq(schema.orders.id, r.id)), pools.app);
+    expect(row).toEqual({ phone: "+393331234567", phoneE164: "+393331234567" });
+  });
+});
+
 describe("webhooks", () => {
   it("dedups by (source, topic, external id, updated_at), processes idempotently and retries failures", async () => {
     const o = platform.generateOrder(new Date());
