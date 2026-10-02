@@ -52,7 +52,10 @@ export async function listOrders(ctx: TenantContext, f: OrderFilters) {
       .offset((page - 1) * PAGE_SIZE);
     const [{ total }] = (await tx.select({ total: sql<number>`count(*)::int` }).from(schema.orders).where(where)) as [{ total: number }];
     const counts = await tx.select({ status: schema.orders.status, n: sql<number>`count(*)::int` }).from(schema.orders).where(buildWhere(ctx, { ...f, status: [] })).groupBy(schema.orders.status);
-    return { rows, total, counts: Object.fromEntries(counts.map((c) => [c.status, c.n])) as Record<string, number>, page, pageSize: PAGE_SIZE };
+    // backorder views: how many orders each would show with the other filters kept
+    const stockCount = async (stock: "awaiting" | "ready") => ((await tx.select({ n: sql<number>`count(*)::int` }).from(schema.orders).where(buildWhere(ctx, { ...f, status: [], stock }))) as [{ n: number }])[0].n;
+    const stockViews = { awaiting: await stockCount("awaiting"), ready: await stockCount("ready") };
+    return { rows, total, counts: Object.fromEntries(counts.map((c) => [c.status, c.n])) as Record<string, number>, stockViews, page, pageSize: PAGE_SIZE };
   });
 }
 

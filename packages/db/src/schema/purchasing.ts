@@ -122,7 +122,7 @@ export const backorders = pgTable(
     resolvedAt: timestamp("resolved_at", { withTimezone: true }),
     createdAt: createdAt(),
   },
-  (t) => [index("backorders_variant_idx").on(t.tenantId, t.variantId, t.status), tenantIsolation("backorders")],
+  (t) => [index("backorders_variant_idx").on(t.tenantId, t.variantId, t.status), index("backorders_order_idx").on(t.orderId, t.status), index("backorders_po_line_idx").on(t.purchaseOrderLineId), tenantIsolation("backorders")],
 ).enableRLS();
 
 

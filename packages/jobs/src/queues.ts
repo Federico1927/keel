@@ -52,8 +52,8 @@ export interface EmailEventJob {
   eventId: string;
 }
 export interface TickJob {
-  /** delta (every 15 min) | ads (daily) | reconcile (nightly) | retry (every 10 min) | billing (daily) | writes (every minute: outbox retries) | retention (daily) | emails (every 10 min: provider events left behind, lost queued emails) */
-  kind: "delta" | "ads" | "reconcile" | "retry" | "billing" | "cod" | "alerts" | "returns" | "crm" | "segments" | "tracking" | "tasks" | "notify" | "digest" | "writes" | "retention" | "emails";
+  /** delta (every 15 min) | ads (daily) | reconcile (nightly) | retry (every 10 min) | billing (daily) | writes (every minute: outbox retries) | retention (daily) | backorders (every 10 min: safety re-check) | emails (every 10 min: provider events left behind, lost queued emails) */
+  kind: "delta" | "ads" | "reconcile" | "retry" | "billing" | "cod" | "alerts" | "returns" | "crm" | "segments" | "tracking" | "tasks" | "notify" | "digest" | "writes" | "retention" | "backorders" | "emails";
 }
 
 /** pg-boss keeps finished jobs for the same platform retention window as webhooks and writes. */

@@ -242,7 +242,15 @@
       "hint": "Giorno {elapsed} di {days}, run rate per giorno della settimana.",
       "more": "Dettagli"
     },
-    "greeting_line": "{count, plural, =0 {Ancora nessun ordine oggi} one {# ordine finora oggi} other {# ordini finora oggi}}"
+    "greeting_line": "{count, plural, =0 {Ancora nessun ordine oggi} one {# ordine finora oggi} other {# ordini finora oggi}}",
+    "stock_tile": {
+      "title": "Stock e backorder",
+      "holding": "Ordini in attesa di stock ({units} unità)",
+      "best_sellers_low": "Più venduti in esaurimento (30 giorni)",
+      "none_low": "Nessun prodotto più venduto è sotto la soglia.",
+      "cell": "{sold} venduti · {available} rimasti · +{incoming}",
+      "waiting": "{n} in attesa"
+    }
   },
   "settings": {
     "title": "Impostazioni",
@@ -287,8 +295,12 @@
         "returnExcludedProductTypes": "Tipi di prodotto esclusi dai resi",
         "returnExcludedProductTypes_placeholder": "Gift card, Intimo",
         "churnLowPct": "Rischio abbandono basso da (% probabilità attivo)",
-        "churnMediumPct": "Rischio abbandono medio da (% probabilità attivo)"
-      }
+        "churnMediumPct": "Rischio abbandono medio da (% probabilità attivo)",
+        "backorderHold": "Metti in sospeso gli ordini che richiedono più dello stock disponibile finché un ordine d'acquisto in arrivo non li copre",
+        "backorderPlatformHold": "Durante l'attesa blocca anche l'evasione sul negozio, così il magazzino non li spedisce"
+      },
+      "backorders_title": "Backorder",
+      "backorders_description": "Cosa succede quando un ordine richiede più dello stock disponibile."
     },
     "taxes": {
       "title": "Aliquote per paese",
@@ -732,6 +744,10 @@
       "placed_desc": "Più recenti",
       "placed_asc": "Più vecchi",
       "total_desc": "Totale più alto"
+    },
+    "views": {
+      "awaiting": "In attesa di stock",
+      "ready": "Pronti da sbloccare"
     }
   },
   "order_detail": {
@@ -835,7 +851,48 @@
       "discount": "{code}: −{amount}",
       "balance_due": "Il cliente deve {amount}",
       "balance_refund": "Rimborsa {amount} al cliente",
-      "written_to": "Scritto su {platform}"
+      "written_to": "Scritto su {platform}",
+      "backorder_line": "{qty}× {item}: nessun ordine d'acquisto in arrivo",
+      "backorder_line_po": "{qty}× {item}: {po}, arrivo previsto {eta}",
+      "backorder_reason": {
+        "stock_available": "Stock arrivato",
+        "wait_cancelled": "Attesa annullata dallo staff",
+        "order_cancelled": "Ordine annullato",
+        "order_replaced": "Ordine sostituito",
+        "order_fulfilled": "Evaso sul negozio"
+      }
+    },
+    "backorders": {
+      "title_open": "In attesa di stock",
+      "title_closed": "Attese di stock",
+      "description_open": "{units, plural, one {# unità non è} other {# unità non sono}} a magazzino. L'ordine resta in sospeso finché non arriva l'ordine d'acquisto.",
+      "description_closed": "Questo ordine ha atteso lo stock; l'attesa è finita.",
+      "cancel_wait": "Annulla attesa",
+      "cancel_wait_title": "Smettere di attendere lo stock?",
+      "cancel_wait_description": "L'ordine viene sbloccato subito (qui e sul negozio) anche se lo stock non è arrivato. Usalo se spedisci da un'altra fonte o se modifichi l'ordine.",
+      "cancel_wait_confirm": "Sblocca l'ordine",
+      "note_optional": "Nota (facoltativa)",
+      "eta": "Arrivo previsto {date}",
+      "no_eta": "senza data",
+      "no_po": "Nessun ordine d'acquisto in arrivo lo copre ancora",
+      "units": "{n, plural, one {# unità} other {# unità}}",
+      "closed_status": {
+        "fulfilled": "Sbloccato",
+        "cancelled": "Annullato",
+        "pending": "In attesa",
+        "covered": "Coperto"
+      }
+    },
+    "stock_check": {
+      "title": "Verifica stock",
+      "description": "Per riga, su tutte le location: disponibile ora, impegnato in ordini non evasi e ordini d'acquisto in arrivo.",
+      "line": "Riga",
+      "ordered": "Ordinati",
+      "available": "Disponibili",
+      "committed": "Impegnati",
+      "incoming": "In arrivo (OdA · stato · arrivo)",
+      "waiting": "{n} in attesa",
+      "no_eta": "senza data"
     }
   },
   "order_events": {
@@ -859,7 +916,9 @@
     "modified": "Ordine modificato",
     "replaces": "Creato in sostituzione",
     "replaced": "Sostituito da un nuovo ordine",
-    "discount_applied": "Sconto applicato"
+    "discount_applied": "Sconto applicato",
+    "backorder_created": "In attesa di stock",
+    "backorder_closed": "Attesa di stock chiusa"
   },
   "shipments": {
     "title": "Spedizioni",
@@ -980,7 +1039,17 @@
       "sync": "Sync",
       "sale": "Vendita"
     },
-    "view_orders": "Vedi ordini"
+    "view_orders": "Vedi ordini",
+    "grid": {
+      "title": "Stock per opzione",
+      "legend": "Ogni cella: disponibile, +in arrivo dagli ordini d'acquisto, −impegnato in ordini non evasi.",
+      "rows": "Righe",
+      "cols": "Colonne",
+      "total": "Totale",
+      "none": "(nessuno)",
+      "all": "Tutte",
+      "folded": "Sommate in ogni cella: {options}"
+    }
   },
   "inventory": {
     "title": "Magazzino",
@@ -4728,7 +4797,8 @@
         "customers": "Clienti",
         "products": "Prodotti",
         "purchase_orders": "Ordini d'acquisto"
-      }
+      },
+      "open_label": "Cerca in tutto"
     }
   },
   "theme": {
@@ -5241,7 +5311,9 @@
       "variant_cost": "Costo variante",
       "order_discount": "Sconto sull'ordine",
       "variant_prices": "Prezzi variante",
-      "product_tags": "Tag prodotto"
+      "product_tags": "Tag prodotto",
+      "order_fulfillment_hold": "Blocco evasione",
+      "order_fulfillment_release": "Sblocco evasione"
     }
   },
   "dev_inbox": {

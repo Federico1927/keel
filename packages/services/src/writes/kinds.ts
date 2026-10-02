@@ -74,6 +74,16 @@ defineCommerceWrite("order.tags", {
   execute: (platform, p) => platform.updateOrderTags(p.orderExternalId, p.add, p.remove),
 });
 
+// backorders: callers key each hold by its episode and each release by the hold it lifts, so hold → release → hold is three writes
+defineCommerceWrite("order.fulfillment_hold", {
+  target: (p) => `order:${p.orderExternalId}:fulfillment_hold`,
+  execute: (platform, p) => platform.holdFulfillment(p.orderExternalId, p.hold),
+});
+defineCommerceWrite("order.fulfillment_release", {
+  target: (p) => `order:${p.orderExternalId}:fulfillment_release`,
+  execute: (platform, p) => platform.releaseFulfillment(p.orderExternalId),
+});
+
 defineCommerceWrite("order.create", {
   target: (p) => `order:create:${p.input.replacesOrderName ?? p.input.noteAttributes.find((a) => a.name === "keel_return_id")?.value ?? "new"}`,
   execute: (platform, p) => platform.createOrder(p.input),

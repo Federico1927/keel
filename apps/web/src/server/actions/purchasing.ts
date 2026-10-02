@@ -63,9 +63,11 @@ export async function receivePo(slug: string, poId: string, _prev: ActionResult<
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "purchase_order.received", entityType: "purchase_order", entityId: poId, metadata: { status: r.status, received: r.received.map((x) => ({ variantId: x.variantId, quantity: x.quantity, cost: x.newCostMinor })), inspection: r.inspected.map((x) => ({ lineId: x.lineId, variantId: x.variantId, description: x.description, received: x.received, good: x.good, damaged: x.damaged, rejected: x.rejected })), releasedOrders: r.releasedOrders, pushToPlatform: push } });
       return r;
     });
-    await dispatchPlatformWrites(ctx, writes);
+    // stock pushes, then the platform holds lifted for the orders the receipt released
+    await dispatchPlatformWrites(ctx, [...writes, ...result.platformWrites]);
     revalidatePath(`/t/${slug}/purchasing/${poId}`);
     revalidatePath(`/t/${slug}/inventory`);
+    if (result.releasedOrders.length) revalidatePath(`/t/${slug}/orders`);
     return ok({ status: result.status, released: result.releasedOrders.length });
   } catch (e) {
     return mapError(e) as ActionResult<{ status: string; released: number }>;

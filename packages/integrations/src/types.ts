@@ -277,6 +277,10 @@ export interface CommercePlatform {
   /** Adds a manual discount to an open, unfulfilled order (order edit on the platform). */
   applyOrderDiscount(externalId: string, discount: OrderDiscountPatch): Promise<void>;
   addOrderNote(externalId: string, note: string): Promise<void>;
+  /** Puts the order's open fulfillment orders on hold (e.g. waiting for stock) so the warehouse does not ship it. Idempotent. */
+  holdFulfillment(externalId: string, hold: FulfillmentHoldInput): Promise<void>;
+  /** Releases the holds Keel placed on the order; holds placed by others stay. A no-op when there is none. */
+  releaseFulfillment(externalId: string): Promise<void>;
   updateOrderTags(externalId: string, add: string[], remove: string[]): Promise<void>;
   /** Price and compare-at price of a variant; `compareAtMinor: null` removes the compare-at price. */
   updateVariant(variantExternalId: string, patch: VariantPatch): Promise<void>;
@@ -297,6 +301,12 @@ export interface CommercePlatform {
   /** Refunds returned lines; the amount is capped by what was actually captured. Unpaid orders get a refund without money movement. */
   refundReturn(orderExternalId: string, input: { lines: { orderLineExternalId: string; quantity: number }[]; amountMinor: number; currency: string; note?: string | null; notify: boolean }): Promise<{ externalId: string; amountMinor: number }>;
   closeReturn(returnExternalId: string): Promise<void>;
+}
+
+export interface FulfillmentHoldInput {
+  /** Why the order waits; mapped to the platform's reason codes (Shopify `FulfillmentHoldReason`). */
+  reason: "awaiting_stock" | "other";
+  note?: string | null;
 }
 
 export interface PlatformReturnLineInput {

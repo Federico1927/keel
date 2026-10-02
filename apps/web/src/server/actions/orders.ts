@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { adminDb, and, eq, recordAudit, schema } from "@keel/db";
 import { ORDER_STATUSES, type OrderStatus, displayName } from "@keel/core";
-import { OrderEditError, addOrderNote, applyCancellation, applyOrderDiscount, clearManualStatus, deleteOrderNote, editOrder, enqueuePlatformWrite, getAddressProviderFor, setManualStatus } from "@keel/services";
+import { OrderEditError, addOrderNote, applyCancellation, cancelBackorderWait, applyOrderDiscount, clearManualStatus, deleteOrderNote, editOrder, enqueuePlatformWrite, getAddressProviderFor, setManualStatus } from "@keel/services";
 import type { AddressSuggestion, AddressValidation } from "@keel/integrations";
 import { getCommercePlatform } from "@/server/integrations";
 import { dispatchPlatformWrites } from "@/server/platform-writes";
@@ -61,6 +61,26 @@ export async function cancelOrder(slug: string, orderId: string, input: { reason
     await dispatchPlatformWrites(ctx, [write]);
     revalidatePath(`/t/${slug}/orders/${orderId}`);
     return ok();
+  } catch (e) {
+    if (e instanceof ForbiddenError) return fail("forbidden");
+    throw e;
+  }
+}
+
+/** "Cancel wait": the order stops waiting for stock (backorders cancelled, hold released here and on the platform). */
+export async function cancelBackorderWaitAction(slug: string, orderId: string, note?: string): Promise<ActionResult<{ cancelled: number }>> {
+  try {
+    const ctx = await requireAction(slug, "change_order_state", "orders");
+    if (!idSchema.safeParse(orderId).success) return fail("invalid_input");
+    const r = await ctx.run(async (tx) => {
+      const res = await cancelBackorderWait({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, orderId, note?.slice(0, 500));
+      if (res.cancelled) await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "order.backorder_wait_cancelled", entityType: "order", entityId: orderId, diff: { awaitingStock: { from: true, to: false } }, metadata: { backorders: res.cancelled, note: note ?? null } });
+      return res;
+    });
+    if (!r.cancelled) return fail("not_found");
+    await dispatchPlatformWrites(ctx, [r.write]);
+    revalidatePath(`/t/${slug}/orders/${orderId}`);
+    return ok({ cancelled: r.cancelled });
   } catch (e) {
     if (e instanceof ForbiddenError) return fail("forbidden");
     throw e;
@@ -158,6 +178,7 @@ export async function editOrderAction(slug: string, input: unknown): Promise<Act
       return res;
     });
     revalidatePath(`/t/${slug}/orders/${parsed.data.orderId}`);
+    if (r.kind === "replaced") await dispatchPlatformWrites(ctx, [r.holdWrite]);
     if (r.kind === "replaced") {
       revalidatePath(`/t/${slug}/orders/${r.newOrderId}`);
       return ok({ kind: "replaced", newOrderId: r.newOrderId, newOrderName: r.newOrderName, warning: r.warning, balanceMinor: r.balanceMinor });

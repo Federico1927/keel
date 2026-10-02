@@ -242,7 +242,15 @@
       "hint": "Día {elapsed} de {days}, ritmo por día de la semana.",
       "more": "Detalles"
     },
-    "greeting_line": "{count, plural, =0 {Todavía no hay pedidos hoy} one {# pedido hasta ahora hoy} other {# pedidos hasta ahora hoy}}"
+    "greeting_line": "{count, plural, =0 {Todavía no hay pedidos hoy} one {# pedido hasta ahora hoy} other {# pedidos hasta ahora hoy}}",
+    "stock_tile": {
+      "title": "Stock y pedidos pendientes",
+      "holding": "Pedidos en espera de stock ({units} unidades)",
+      "best_sellers_low": "Más vendidos con poco stock (30 días)",
+      "none_low": "Ningún más vendido tiene poco stock.",
+      "cell": "{sold} vendidas · quedan {available} · +{incoming}",
+      "waiting": "{n} en espera"
+    }
   },
   "settings": {
     "title": "Ajustes",
@@ -287,8 +295,12 @@
         "returnExcludedProductTypes": "Tipos de producto excluidos de devoluciones",
         "returnExcludedProductTypes_placeholder": "Tarjeta regalo, Ropa interior",
         "churnLowPct": "Riesgo de abandono bajo desde (% probabilidad activo)",
-        "churnMediumPct": "Riesgo de abandono medio desde (% probabilidad activo)"
-      }
+        "churnMediumPct": "Riesgo de abandono medio desde (% probabilidad activo)",
+        "backorderHold": "Retener los pedidos que necesitan más que el stock disponible hasta que una orden de compra en camino los cubra",
+        "backorderPlatformHold": "Durante la espera, bloquear también la preparación en la tienda para que el almacén no los envíe"
+      },
+      "backorders_title": "Pedidos pendientes de stock",
+      "backorders_description": "Qué pasa cuando un pedido necesita más que el stock disponible."
     },
     "taxes": {
       "title": "Tipos impositivos por país",
@@ -732,6 +744,10 @@
       "placed_desc": "Más recientes",
       "placed_asc": "Más antiguos",
       "total_desc": "Mayor total"
+    },
+    "views": {
+      "awaiting": "En espera de stock",
+      "ready": "Listos para liberar"
     }
   },
   "order_detail": {
@@ -835,7 +851,48 @@
       "discount": "{code}: −{amount}",
       "balance_due": "El cliente debe {amount}",
       "balance_refund": "Reembolsa {amount} al cliente",
-      "written_to": "Escrito en {platform}"
+      "written_to": "Escrito en {platform}",
+      "backorder_line": "{qty}× {item}: aún sin orden de compra en camino",
+      "backorder_line_po": "{qty}× {item}: {po}, llegada prevista {eta}",
+      "backorder_reason": {
+        "stock_available": "Llegó el stock",
+        "wait_cancelled": "Espera cancelada por el equipo",
+        "order_cancelled": "Pedido cancelado",
+        "order_replaced": "Pedido sustituido",
+        "order_fulfilled": "Preparado en la tienda"
+      }
+    },
+    "backorders": {
+      "title_open": "En espera de stock",
+      "title_closed": "Esperas de stock",
+      "description_open": "{units, plural, one {# unidad no está} other {# unidades no están}} en stock. El pedido queda en espera hasta que llegue la orden de compra.",
+      "description_closed": "Este pedido esperó stock; la espera terminó.",
+      "cancel_wait": "Cancelar espera",
+      "cancel_wait_title": "¿Dejar de esperar el stock?",
+      "cancel_wait_description": "El pedido se libera ahora (aquí y en la tienda) aunque el stock no haya llegado. Úsalo si lo envías desde otro sitio o vas a modificar el pedido.",
+      "cancel_wait_confirm": "Liberar el pedido",
+      "note_optional": "Nota (opcional)",
+      "eta": "Llegada prevista {date}",
+      "no_eta": "sin fecha",
+      "no_po": "Ninguna orden de compra en camino lo cubre todavía",
+      "units": "{n, plural, one {# unidad} other {# unidades}}",
+      "closed_status": {
+        "fulfilled": "Liberado",
+        "cancelled": "Cancelado",
+        "pending": "En espera",
+        "covered": "Cubierto"
+      }
+    },
+    "stock_check": {
+      "title": "Comprobación de stock",
+      "description": "Por línea, en todas las ubicaciones: disponible ahora, comprometido en pedidos sin preparar y órdenes de compra en camino.",
+      "line": "Línea",
+      "ordered": "Pedidas",
+      "available": "Disponibles",
+      "committed": "Comprometidas",
+      "incoming": "En camino (OC · estado · llegada)",
+      "waiting": "{n} en espera",
+      "no_eta": "sin fecha"
     }
   },
   "order_events": {
@@ -859,7 +916,9 @@
     "modified": "Pedido modificado",
     "replaces": "Creado como sustitución",
     "replaced": "Sustituido por un pedido nuevo",
-    "discount_applied": "Descuento aplicado"
+    "discount_applied": "Descuento aplicado",
+    "backorder_created": "En espera de stock",
+    "backorder_closed": "Espera de stock cerrada"
   },
   "shipments": {
     "title": "Envíos",
@@ -980,7 +1039,17 @@
       "sync": "Sincronización",
       "sale": "Venta"
     },
-    "view_orders": "Ver pedidos"
+    "view_orders": "Ver pedidos",
+    "grid": {
+      "title": "Stock por opción",
+      "legend": "Cada celda: disponible, +en camino de órdenes de compra, −comprometido en pedidos sin preparar.",
+      "rows": "Filas",
+      "cols": "Columnas",
+      "total": "Total",
+      "none": "(ninguno)",
+      "all": "Todas",
+      "folded": "Sumadas en cada celda: {options}"
+    }
   },
   "inventory": {
     "title": "Inventario",
@@ -4728,7 +4797,8 @@
         "customers": "Clientes",
         "products": "Productos",
         "purchase_orders": "Órdenes de compra"
-      }
+      },
+      "open_label": "Buscar en todo"
     }
   },
   "theme": {
@@ -5241,7 +5311,9 @@
       "variant_cost": "Coste de variante",
       "order_discount": "Descuento del pedido",
       "variant_prices": "Precios de variante",
-      "product_tags": "Etiquetas de producto"
+      "product_tags": "Etiquetas de producto",
+      "order_fulfillment_hold": "Bloqueo de preparación",
+      "order_fulfillment_release": "Liberación del bloqueo"
     }
   },
   "dev_inbox": {

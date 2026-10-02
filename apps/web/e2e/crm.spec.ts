@@ -9,8 +9,8 @@ test.describe("crm: customers, segments, rfm", () => {
     const rows = page.getByTestId("customer-row");
     await expect(rows.first()).toBeVisible();
     const email = (await rows.first().locator("div.text-xs").textContent())!.trim();
-    await page.getByLabel(/Search|Cerca/).fill(email.slice(0, 10));
-    await page.getByLabel(/Search|Cerca/).press("Enter");
+    await page.getByRole("textbox", { name: /Search|Cerca/ }).fill(email.slice(0, 10));
+    await page.getByRole("textbox", { name: /Search|Cerca/ }).press("Enter");
     await expect(page).toHaveURL(/q=/);
     await expect(rows.first()).toContainText(email.slice(0, 10));
     await page.goto("/t/northwind-apparel/customers?tier=champions");
