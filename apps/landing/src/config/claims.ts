@@ -62,6 +62,7 @@ export const PLAN_FEATURE_CLAIMS: Record<string, Claim> = {
 /** Add-on cards (`ADDONS` in pricing.ts) → add-on modules. Tailored work maps to the catalog slots. */
 export const ADDON_CLAIMS: Record<string, Claim> = {
   customer_campaigns: mod("addon.customer_campaigns"),
+  subscriptions: mod("addon.subscriptions"),
   cod: mod("addon.cod"),
   custom_integration: mod("addon.warehouse_3pl", "addon.carrier_tracking"),
   custom_development: { kind: "service" },

@@ -22,6 +22,7 @@ import { seedMcp } from "./mcp";
 import { seedAdsDepth } from "./ads";
 import { seedTiktok } from "./tiktok";
 import { seedPlatformReliability, seedReliability } from "./reliability";
+import { seedSubscriptions } from "./subscriptions";
 import { createRng } from "@hullwise/integrations";
 import { SALE_STATUSES, allocateLandedCost, assignHoldout, campaignMessageKey, normalizePhone, runPredictionModel, type CustomerHistory } from "@hullwise/core";
 import { MODULES, PLANS, PLATFORM_CURRENCY } from "@hullwise/config";
@@ -58,7 +59,8 @@ export const DEMO_TENANTS = {
     defaultLocale: "en",
     orderNumberPrefix: "HH-",
     planKey: "starter",
-    addons: [] as string[],
+    // merchant subscriptions (#67): Harbor sells refills on subscription through Shopify Subscriptions
+    addons: ["addon.subscriptions"] as string[],
     taxRates: [{ country: "US", rateBps: 0, pricesIncludeTax: false }],
   },
 } as const;
@@ -75,6 +77,7 @@ export const DEMO_USERS = [
   { email: "owner@harborhome.demo", name: "Emily Carter", memberships: [{ tenant: "harbor", role: "owner" }] },
   { email: "ops@harborhome.demo", name: "James Walker", memberships: [{ tenant: "harbor", role: "operations" }] },
   { email: "marketing@harborhome.demo", name: "Olivia Brooks", memberships: [{ tenant: "harbor", role: "marketing" }] },
+  { email: "care@harborhome.demo", name: "Ava Mitchell", memberships: [{ tenant: "harbor", role: "customer_care" }] },
   { email: "multi@hullwise.demo", name: "Alex Multi", memberships: [{ tenant: "northwind", role: "admin" }, { tenant: "harbor", role: "viewer" }] },
 ] as const;
 
@@ -190,7 +193,7 @@ async function seedBilling(db: ReturnType<typeof drizzle<typeof schema>>, tenant
   const month = (n: number) => new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - n, 1));
   const plans: Record<keyof typeof DEMO_TENANTS, { planKey: string; monthly: number; setup: number; currency: string; months: number; lastPaid: boolean }> = {
     northwind: { planKey: "growth", monthly: PLANS.growth.monthlyPriceMinor + MODULES["addon.cod"].monthlyPriceMinor! + MODULES["addon.customer_campaigns"].monthlyPriceMinor!, setup: PLANS.growth.setupFeeMinor, currency: PLATFORM_CURRENCY, months: 6, lastPaid: true },
-    harbor: { planKey: "starter", monthly: PLANS.starter.monthlyPriceMinor, setup: PLANS.starter.setupFeeMinor, currency: PLATFORM_CURRENCY, months: 3, lastPaid: false },
+    harbor: { planKey: "starter", monthly: PLANS.starter.monthlyPriceMinor + MODULES["addon.subscriptions"].monthlyPriceMinor!, setup: PLANS.starter.setupFeeMinor, currency: PLATFORM_CURRENCY, months: 3, lastPaid: false },
   };
   for (const key of Object.keys(plans) as (keyof typeof DEMO_TENANTS)[]) {
     const tenantId = tenantIds[key];
@@ -208,7 +211,7 @@ async function seedBilling(db: ReturnType<typeof drizzle<typeof schema>>, tenant
     for (let m = p.months - 1; m >= 0; m--) {
       const issued = month(m);
       const isLast = m === 0;
-      rows.push({ number: `INV-${issued.getUTCFullYear()}-${String(rows.length + 1).padStart(4, "0")}`, kind: "subscription", amountMinor: p.monthly, lines: p.planKey === "growth" ? [{ kind: "plan", key: "growth", amountMinor: PLANS.growth.monthlyPriceMinor }, { kind: "addon", key: "addon.cod", amountMinor: MODULES["addon.cod"].monthlyPriceMinor! }] : [{ kind: "plan", key: "starter", amountMinor: PLANS.starter.monthlyPriceMinor }], issuedAt: issued, dueAt: new Date(issued.getTime() + 7 * 864e5), paidAt: isLast && !p.lastPaid ? null : new Date(issued.getTime() + 2 * 864e5), periodStart: issued, periodEnd: month(m - 1) });
+      rows.push({ number: `INV-${issued.getUTCFullYear()}-${String(rows.length + 1).padStart(4, "0")}`, kind: "subscription", amountMinor: p.monthly, lines: p.planKey === "growth" ? [{ kind: "plan", key: "growth", amountMinor: PLANS.growth.monthlyPriceMinor }, { kind: "addon", key: "addon.cod", amountMinor: MODULES["addon.cod"].monthlyPriceMinor! }] : [{ kind: "plan", key: "starter", amountMinor: PLANS.starter.monthlyPriceMinor }, { kind: "addon", key: "addon.subscriptions", amountMinor: MODULES["addon.subscriptions"].monthlyPriceMinor! }], issuedAt: issued, dueAt: new Date(issued.getTime() + 7 * 864e5), paidAt: isLast && !p.lastPaid ? null : new Date(issued.getTime() + 2 * 864e5), periodStart: issued, periodEnd: month(m - 1) });
     }
     for (const r of rows) await db.insert(schema.invoices).values({ tenantId, subscriptionId: sub!.id, number: r.number, provider: "mock", externalId: `mock_in_${r.number}`, status: r.paidAt ? "paid" : "open", kind: r.kind, amountMinor: r.amountMinor, currency: p.currency, lines: r.lines, periodStart: r.periodStart, periodEnd: r.periodEnd, issuedAt: r.issuedAt, dueAt: r.dueAt, paidAt: r.paidAt }).onConflictDoNothing();
   }
@@ -247,7 +250,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
   const log = opts.log ?? (() => {});
   for (const cfg of tenantSeedConfigs(ctx, opts)) {
     // Wipe previous domain rows of this tenant (cascade from the parent tables).
-    for (const table of [schema.casePacks, schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.metricTargets, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.platformWrites, schema.inventoryDrift, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.codCarrierOutcomes, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels, schema.segmentDestinations, schema.pixelSettings, schema.pixelEvents, schema.pixelIdentities, schema.conversionSettings, schema.surveySettings, schema.assistantThreads]) {
+    for (const table of [schema.casePacks, schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.metricTargets, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.platformWrites, schema.inventoryDrift, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.codCarrierOutcomes, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels, schema.segmentDestinations, schema.pixelSettings, schema.pixelEvents, schema.pixelIdentities, schema.conversionSettings, schema.surveySettings, schema.assistantThreads, schema.subscriptionContracts, schema.subscriptionCancellationReasons]) {
       await db.delete(table).where(eq(table.tenantId, cfg.tenantId));
     }
     const started = Date.now();
@@ -278,6 +281,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("mcp", () => seedMcp(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("ads", () => seedAdsDepth(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("tiktok", () => seedTiktok(db, DEMO_TENANTS[cfg.key as keyof typeof DEMO_TENANTS].planKey, cfg.tenantId, opts.now ?? new Date()));
+    await step("subscriptions", () => seedSubscriptions(db, { tenantId: cfg.tenantId, addons: cfg.addons, now: opts.now ?? new Date(), scale: opts.scale ?? 1, careUserId: ctx.userIds["care@harborhome.demo"] ?? null, ownerUserId: ctx.userIds["owner@harborhome.demo"] ?? null }));
     await step("reliability", () => seedReliability(db, cfg.key as "northwind" | "harbor", cfg.tenantId, ctx.userIds[cfg.key === "northwind" ? "owner@northwind.demo" : "owner@harborhome.demo"] ?? null, opts.now ?? new Date()));
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
   }

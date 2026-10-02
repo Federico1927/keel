@@ -39,6 +39,7 @@ export const PAGES = [
   "cod_settings",
   "customer_campaigns",
   "assistant",
+  "subscriptions",
 ] as const;
 export type PageKey = (typeof PAGES)[number];
 
@@ -97,6 +98,7 @@ const MATRIX: Record<Exclude<TenantRole, "owner" | "admin">, Partial<Record<Page
     cod_settings: "none",
     customer_campaigns: "none",
     assistant: "write",
+    subscriptions: "write",
   },
   customer_care: {
     dashboard: "read",
@@ -122,6 +124,7 @@ const MATRIX: Record<Exclude<TenantRole, "owner" | "admin">, Partial<Record<Page
     cod_settings: "none",
     customer_campaigns: "none",
     assistant: "write",
+    subscriptions: "write",
   },
   marketing: {
     dashboard: "read",
@@ -147,6 +150,7 @@ const MATRIX: Record<Exclude<TenantRole, "owner" | "admin">, Partial<Record<Page
     cod_settings: "none",
     customer_campaigns: "write",
     assistant: "write",
+    subscriptions: "read",
   },
   viewer: {
     dashboard: "read",
@@ -172,6 +176,7 @@ const MATRIX: Record<Exclude<TenantRole, "owner" | "admin">, Partial<Record<Page
     cod_settings: "none",
     customer_campaigns: "read",
     assistant: "write",
+    subscriptions: "read",
   },
 };
 

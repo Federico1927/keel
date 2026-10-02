@@ -43,9 +43,10 @@ Password for every demo user: `hullwise-demo-2026` locally (`HULLWISE_DEMO_PASSW
 | `care@northwind.demo`, `care2@northwind.demo` | customer_care | Northwind Apparel |
 | `marketing@northwind.demo` | marketing | Northwind Apparel |
 | `viewer@northwind.demo` | viewer | Northwind Apparel |
-| `owner@harborhome.demo` | owner | Harbor Home (US, USD, English, no add-ons) |
+| `owner@harborhome.demo` | owner | Harbor Home (US, USD, English, subscriptions add-on) |
 | `ops@harborhome.demo` | operations | Harbor Home |
 | `marketing@harborhome.demo` | marketing | Harbor Home |
+| `care@harborhome.demo` | customer care | Harbor Home |
 | `multi@hullwise.demo` | admin + viewer | Both tenants (tenant switcher) |
 
 Tenant URLs: `/t/northwind-apparel` and `/t/harbor-home`. Magic links are printed to the server console in development.

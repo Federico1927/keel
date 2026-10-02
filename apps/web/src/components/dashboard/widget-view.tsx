@@ -9,6 +9,7 @@ import { MetricChart, Sparkline } from "@/components/charts/metric-chart";
 import { StatusBadge } from "@/components/status-badge";
 import { formatMetric, metricHref, periodParams, trendOf } from "./format";
 import { CodWidget } from "@/app/t/[tenant]/cod/widgets";
+import { SubscriptionWidget } from "@/app/t/[tenant]/subscriptions/widgets";
 
 export interface WidgetViewEnv {
   base: string;
@@ -223,6 +224,13 @@ export async function WidgetView({ widget, result, period, env }: { widget: Dash
     case "cod_operators":
     case "cod_mine":
       return <CodWidget type={widget.type} data={data} base={base} locale={locale} />;
+
+    // addon.subscriptions widgets render in the add-on's component
+    case "subs_mrr":
+    case "subs_active":
+    case "subs_churn":
+    case "subs_at_risk":
+      return <SubscriptionWidget type={widget.type} data={data} base={base} locale={locale} />;
 
     /* ---------- Hullwise's template tiles ---------- */
     case "today_kpis": {

@@ -9,6 +9,7 @@ import {
   forecastDemand,
   planFromRevenueTarget,
   reorderPlan,
+  mergeRenewalDemand,
   seasonalityIndices,
   stockAnalysis,
   stockoutDate,
@@ -24,6 +25,7 @@ import {
 } from "@hullwise/core";
 import { enqueuePlatformWrite, type PlatformWriteRow } from "../writes";
 import type { ServiceContext } from "../context";
+import { renewalDemandForPlanning } from "../subscriptions/operations";
 import { createPurchaseOrder, nextPoNumber } from "../purchasing";
 import { issueSupplierLink } from "../purchasing/links";
 
@@ -239,6 +241,9 @@ export interface ReplenishmentRow extends ReorderPlan {
   stockoutDate: string | null;
   /** Units already in an open auto draft PO for this variant. */
   inDraft: number;
+  /** addon.subscriptions (#67): units scheduled renewals need in the next weeks, and the first renewal the stock cannot serve. */
+  renewalUnits?: number;
+  renewalRunOutAt?: Date | null;
 }
 
 /**
@@ -281,6 +286,14 @@ export async function replenishmentPlan(ctx: ServiceContext, tenant: PlanningTen
     const so = stockoutDate(lv.get(v.id) ?? 0, dailyMean, today);
     return { ...plan, variantId: v.id, productId: v.productId, label: `${v.productTitle} ${v.title}`.trim(), sku: v.sku, available: lv.get(v.id) ?? 0, incoming: inc.get(v.id) ?? 0, backordered: bo.get(v.id) ?? 0, dailyMean: Math.round(dailyMean * 100) / 100, supplierId: supplier?.id ?? null, supplierName: supplier?.name ?? null, leadTimeDays, unitCostMinor, moq, multiple, stockoutDate: so.date ? so.date.toISOString().slice(0, 10) : null, inDraft: dr.get(v.id) ?? 0 };
   });
+  // known renewal demand (addon.subscriptions): the suggestion covers at least the renewals' shortfall
+  const renewals = await renewalDemandForPlanning(ctx, ids);
+  if (renewals.size) for (let i = 0; i < rows.length; i++) {
+    const r = renewals.get(rows[i]!.variantId);
+    if (!r) continue;
+    const merged = mergeRenewalDemand(rows[i]!, r);
+    rows[i] = { ...merged, costMinor: merged.unitCostMinor != null ? merged.quantity * merged.unitCostMinor : merged.costMinor };
+  }
   const filtered = opts.onlyToOrder ? rows.filter((r) => r.shouldOrder) : rows;
   return filtered.sort((a, b) => Number(b.shouldOrder) - Number(a.shouldOrder) || (a.daysOfCover ?? Infinity) - (b.daysOfCover ?? Infinity));
 }

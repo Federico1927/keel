@@ -9,6 +9,7 @@ flowchart TD
   web["apps/web<br/>Next.js 15 · App Router<br/>/t/[tenant] · /admin · /api"]
   jobs["packages/jobs<br/>pg-boss worker"]
   cod["packages/addon-cod<br/>COD queue · assignment · score · risk"]
+  %% addon.subscriptions lives in core/services/integrations behind its module flag
   services["packages/services<br/>use cases: orders, sync, analytics, campaigns, crm, returns, discounts, purchasing, inventory, billing, notifications, tasks, support"]
   core["packages/core<br/>pure domain: statuses, state rules, economics, segments, returns, discounts, billing math, task rules"]
   db["packages/db<br/>Drizzle schema · migrations · RLS · withTenant · seed"]
@@ -63,7 +64,7 @@ One Next.js service answers on three hosts; every absolute URL comes from the en
 
 ## Data model
 
-127 tables, grouped. All domain tables carry `tenant_id`, `created_at`, `updated_at`.
+132 tables, grouped. All domain tables carry `tenant_id`, `created_at`, `updated_at`.
 
 | Group | Tables | Notes |
 | --- | --- | --- |
@@ -84,6 +85,7 @@ One Next.js service answers on three hosts; every absolute URL comes from the en
 | Email | `email_messages`, `email_events`, `email_address_suppressions` | The platform sender's delivery log (nullable `tenant_id`, RLS read/append per tenant, advanced by the admin connection; recipient as keyed hash + masked form, never body or links), provider webhook events (unique on provider + event id) and platform-wide suppressions from hard bounces and complaints (hashed). |
 | Collaboration | `notifications`, `notification_preferences`, `email_suppressions`, `mentions`, `record_notes`, `tasks`, `task_rules`, `support_tickets`, `support_messages` | Notifications record every delivery (`in_app`, `delivered`); preferences override the type registry per user. Tasks link to a record (type + id) and remember the rule and episode that opened them. Support tickets are tenant data answered from the console through the admin connection. |
 | MCP | `oauth_clients`, `mcp_authorization_codes`, `mcp_tokens`, `mcp_request_log`, `mcp_rate_buckets`, `mcp_pending_actions` | OAuth clients are platform rows; codes, tokens (HMAC with pepper, one user + one tenant), the request log (null tenant for unknown tokens), rate windows and proposals are tenant tables, read by token hash only through the admin connection. `tenants.mcp_disabled_at` is the super-admin kill switch. |
+| Add-on subscriptions (#67) | `subscription_contracts`, `subscription_contract_lines`, `subscription_billing_attempts`, `subscription_events`, `subscription_cancellation_reasons` | The merchant's subscription contracts as their subscription app holds them (Hullwise is not the billing engine): status, price and normalized MRR, interval, next billing, pause/end, cancellation kind + normalized reason (raw text kept), failing-payment state, recovery assignee, churn risk; charges with the normalized decline reason and the cycle retries share; the contract timeline with author (customer, staff, system, provider) and diff; the tenant's editable reason list. Orders carry `subscription_contract_id` (no FK), `is_first_subscription_order` and `renewal_number` so P/L and attribution can split them. Populated for tenants with the add-on only. |
 | Add-on COD | `cod_settings`, `cod_queue_items`, `cod_attempts`, `cod_operator_capacity`, `cod_capacity_exceptions`, `cod_assignment_log`, `cod_recipient_profiles`, `cod_messages`, `cod_carrier_outcomes` | Only read and written by `@hullwise/addon-cod`. Queue items carry the scheduled confirmation day (`scheduled_confirm_on`, last failed run and error) and the escalation (`escalated_at/_by`, reason); `cod_messages` are confirmation messages sent through the `MessagingChannel` with their delivery status; `cod_carrier_outcomes` are delivered/refused outcomes imported from carrier files, preferred over the order's own outcome for recipient risk. |
 
 ### Canonical order status
@@ -183,7 +185,7 @@ Failed events are retried by the `retry` tick every 10 minutes up to a maximum n
 - Ads volume: the same daily tick runs `rollupAdEntityMetrics` per tenant with its `adsDailyRetentionDays` and `adsSearchTermMinImpressions`.
 - Retention: a daily tick deletes rows older than the platform-wide window (`HULLWISE_RETENTION_DAYS`, default 14, `platformRetentionDays()` in `packages/config`): processed webhook events, succeeded or superseded writes, synchronous write records, successful runs (and failed runs already followed by a success), drift not seen since (drift recording lost stock is kept for `INVENTORY_LOSS_RETENTION_DAYS`, 400, for the unexplained-loss report). Failed webhooks and failed asynchronous writes stay until they are resolved. pg-boss queues get the same window as `deleteAfterSeconds`.
 
-Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00 (orders, the complete catalog run and platform returns, queue `sync.returns`), billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40, task rules and overdue reminders every 10 min, system notifications (sync delay, critical stock without PO, late to ship) and the shipment case sweep hourly, digest emails daily at 07:05, email housekeeping (provider events left pending, lost queued emails, Stripe billing events left pending) every 10 min, platform-write retries every minute, retention at 04:10, backorder safety re-check every 10 min, processor payouts daily at 05:20 (queue `sync.payouts`).
+Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00 (orders, the complete catalog run and platform returns, queue `sync.returns`), billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40, task rules and overdue reminders every 10 min, system notifications (sync delay, critical stock without PO, late to ship) and the shipment case sweep hourly, digest emails daily at 07:05, email housekeeping (provider events left pending, lost queued emails, Stripe billing events left pending) every 10 min, platform-write retries every minute, retention at 04:10, backorder safety re-check every 10 min, processor payouts daily at 05:20 (queue `sync.payouts`), merchant subscriptions (`addon.subscriptions`: delta sync of the subscription app and churn risk) every 15 min.
 
 ### Webhook (Stripe billing, #53)
 
@@ -249,6 +251,7 @@ sequenceDiagram
   - discount pools and their top-ups (`discount.pool`, with the pool's id for a top-up → `addDiscountPoolCodes`), where the form shows how many codes the platform accepted;
   - order refunds from the order page (`order.refund`, keyed per dialog request), where Hullwise records the amount the platform accepted.
   - ship from Hullwise (`fulfillment.create`, keyed per order and tracking number): the shipment is imported from the platform's answer.
+  - customer-care actions of `addon.subscriptions` (`subscription.pause`, `.resume`, `.skip`, `.swap`, `.frequency`, `.reschedule`, `.cancel`, `.payment_link`; provider `subscriptions`, executed through the tenant's `SubscriptionProvider`), keyed per contract, action and confirmation dialog: the contract is rewritten from the subscription app's answer.
   - product page edits (issue #19): `product.update` (title, description, vendor, type, tags, status, SEO, category), `variant.details` (price, compare-at, SKU, barcode, weight, inventory policy) and `product.media` (add from URL, reorder, delete, alt text). Before writing, the product is read: a Shopify `updatedAt` newer than the version the form was opened on refuses the edit ("changed in Shopify, reload") and refreshes the mirror. The local rows come from the platform's answer through `importProduct`, never from the form; one audit entry per edit (`packages/services/src/catalog/edit.ts`).
 
   With a key, the same key returns the stored result (dates revived) instead of writing twice, and a failed attempt is retried on the same row. When the caller's transaction rolls back, the record goes with it, and the error is shown to the user at once.
@@ -373,6 +376,30 @@ Everything lives in `packages/addon-cod` and the add-on's pages (`/t/[tenant]/co
 - **Carrier outcomes** (`carrier-import.ts`, `services/carrier.ts`): generic CSV (header names in en/it/es, separator detected, day-first dates, decimal comma), matched by tracking number then order name, upserted by reference; `recomputeRecipientProfiles` prefers them.
 - **Return to sender**: behind `rtsAutoCancel` (off by default) the tick cancels unpaid COD orders with an open return-to-sender case on the platform without restock (Shopify voids a pending payment on cancel, so no separate void write) and records the cancellation (`voided`); the review case stays open.
 - **Home widgets** `cod_pending`, `cod_operators`, `cod_mine` (definitions gated by `addon.cod` in `packages/config/src/dashboards.ts`, loaders in `COD_WIDGET_LOADERS`, views in `apps/web/src/app/t/[tenant]/cod/widgets.tsx`); the sidebar shows the to-call count next to the queue.
+
+## The subscriptions add-on (issue #67)
+
+Analytics and operations on the subscription products a store sells through its subscription app; billing stays in the app. Unlike COD it lives in the core packages behind the `addon.subscriptions` flag, because it extends core flows (order import, reorder planning, the segment engine, the outbox).
+
+```mermaid
+flowchart LR
+  app["Subscription app<br/>Shopify Subscriptions · Recharge · Loop"]
+  adapter["SubscriptionProvider<br/>packages/integrations/src/subscriptions<br/>(capabilities, mock)"]
+  sync["runSubscriptionSync · webhook<br/>services/subscriptions/sync.ts"]
+  tables["subscription_* tables<br/>orders.subscription_contract_id"]
+  core["core/subscriptions.ts<br/>MRR movement · churn split · cohorts<br/>forecast · profit · renewal stock · risk"]
+  ui["/subscriptions pages · widgets · MCP tools<br/>customer and order cards · segments · planning"]
+  outbox["platform_writes (subscription.*)<br/>runPlatformWriteNow"]
+  app --> adapter --> sync --> tables --> core --> ui
+  ui -- "care action (confirmed)" --> outbox --> adapter --> app
+```
+
+- **Adapters**: `SubscriptionProvider` with explicit capabilities (`canPause` … `canSendPaymentLink`) and optional action methods; Shopify (Admin GraphQL subscription contracts, draft → commit for swaps and frequency), Recharge (REST 2021-11, no pause), Loop (admin REST), and `MockSubscriptionProvider` (built from the tenant's rows, records calls, fails on request: rate limit, expired token, declined renewals). Recorded-shape fixtures in `__fixtures__`. Credentials: Recharge/Loop token + webhook secret encrypted on the integration row; Shopify Subscriptions reuses the Shopify connection.
+- **Sync** (`runSubscriptionSync`, resumable on `sync_runs` with object type `subscriptions`): contracts then billing attempts; import upserts contracts and lines, normalizes the cancellation reason onto the tenant's list, links the orders (origin order + successful charges, renewal number in date order), writes provider events for changes seen first time, keeps `payment_failing_since`; health on the provider's source. Webhooks at `POST /api/webhooks/subscriptions/<tenant id>` (404 without the add-on), stored once in `webhook_events`, contract read back. The core order import flags an order the app already reported (`linkSubscriptionOrderOnImport`). Tick `subscriptions` every 15 minutes: delta sync (reconcile at 03:xx UTC) and churn risk.
+- **Care actions** (`subscriptionAction`): capability check, one synchronous outbox write per confirmation (key `subscription:<contract>:<action>:<request key>`), contract rewritten from the app's answer, staff event with diff, audit row. Notes, assignment and the payment-update link feed the recovery queue (`recoveryQueue`).
+- **Planning**: `renewalStock` projects scheduled renewals per variant against stock and incoming POs; `replenishmentPlan` merges the shortfall (`mergeRenewalDemand`) when the add-on is on.
+- **Segments**: `SUBSCRIPTION_SEGMENT_FIELDS` (core) and `SUBSCRIPTION_FIELD_SQL` (services) are spread into the core catalogs; the builder hides the `subscriptions` group without the add-on.
+- **Gating**: page key `subscriptions` in `modules.ts`/`roles.ts`; widgets `subs_*` carry the module; MCP tools carry `module: "addon.subscriptions"`; services refuse writes without the add-on.
 
 ## Adding an add-on
 

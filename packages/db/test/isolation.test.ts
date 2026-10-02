@@ -21,6 +21,8 @@ const PLATFORM_TABLES = new Set(["users", "accounts", "sessions", "verification_
 /** Tenant tables the seed may legitimately leave empty for one tenant. */
 const EMPTY_ALLOWED = new Set<string>(["tenant_addons"]);
 /** Add-on and plan-gated tables: only tenants with the add-on (or the plan: MCP is Growth and up) carry rows, so the seed populates tenant A alone. */
+/** Add-on tables populated for tenant B alone (Harbor Home has `addon.subscriptions`, Northwind does not): the checks run with the roles swapped. */
+const ADDON_ONLY_B = new Set<string>(["subscription_contracts", "subscription_contract_lines", "subscription_billing_attempts", "subscription_events", "subscription_cancellation_reasons"]);
 const ADDON_ONLY = new Set<string>(["mcp_authorization_codes", "mcp_tokens", "mcp_request_log", "mcp_rate_buckets", "mcp_pending_actions", "cod_settings", "cod_queue_items", "cod_attempts", "cod_operator_capacity", "cod_capacity_exceptions", "cod_assignment_log", "cod_recipient_profiles", "cod_messages", "cod_carrier_outcomes", "retention_campaigns", "retention_exposures"]);
 
 const pools = testPools();
@@ -50,6 +52,9 @@ describe("schema inventory", () => {
 });
 
 describe.each(tenantTables.map((t) => [getTableName(t), t] as const))("isolation: %s", (name) => {
+  // the owner of the rows and the other tenant (swapped for add-on tables only tenant B populates)
+  const own = () => (ADDON_ONLY_B.has(name) ? tenantB : tenantA);
+  const other = () => (ADDON_ONLY_B.has(name) ? tenantA : tenantB);
   it("has RLS enabled with a policy", async () => {
     const r = await pools.admin.execute<{ relrowsecurity: boolean; policies: number }>(sql`
       select c.relrowsecurity, (select count(*) from pg_policies p where p.tablename = c.relname and p.schemaname = 'public')::int as policies
@@ -65,36 +70,36 @@ describe.each(tenantTables.map((t) => [getTableName(t), t] as const))("isolation
       select count(*) filter (where tenant_id = ${tenantA}::uuid)::int as a,
              count(*) filter (where tenant_id = ${tenantB}::uuid)::int as b
       from ${sql.identifier(name)}`);
-    expect(r.rows[0]?.a, `${name}: no rows for tenant A`).toBeGreaterThan(0);
+    if (!ADDON_ONLY_B.has(name)) expect(r.rows[0]?.a, `${name}: no rows for tenant A`).toBeGreaterThan(0);
     if (!ADDON_ONLY.has(name)) expect(r.rows[0]?.b, `${name}: no rows for tenant B`).toBeGreaterThan(0);
   });
 
   it("tenant A sees exactly its rows, tenant B none of A's", async () => {
-    const adminCount = await pools.admin.execute<{ n: number }>(sql`select count(*)::int as n from ${sql.identifier(name)} where tenant_id = ${tenantA}::uuid`);
-    const asA = await withTenant(tenantA, (tx) => tx.execute<{ n: number }>(sql`select count(*)::int as n from ${sql.identifier(name)}`), pools.app);
+    const adminCount = await pools.admin.execute<{ n: number }>(sql`select count(*)::int as n from ${sql.identifier(name)} where tenant_id = ${own()}::uuid`);
+    const asA = await withTenant(own(), (tx) => tx.execute<{ n: number }>(sql`select count(*)::int as n from ${sql.identifier(name)}`), pools.app);
     const asBCross = await withTenant(
-      tenantB,
-      (tx) => tx.execute<{ n: number }>(sql`select count(*)::int as n from ${sql.identifier(name)} where tenant_id = ${tenantA}::uuid`),
+      other(),
+      (tx) => tx.execute<{ n: number }>(sql`select count(*)::int as n from ${sql.identifier(name)} where tenant_id = ${own()}::uuid`),
       pools.app,
     );
-    const asBOwn = await withTenant(tenantB, (tx) => tx.execute<{ n: number }>(sql`select count(*)::int as n from ${sql.identifier(name)} where tenant_id <> ${tenantB}::uuid`), pools.app);
+    const asBOwn = await withTenant(other(), (tx) => tx.execute<{ n: number }>(sql`select count(*)::int as n from ${sql.identifier(name)} where tenant_id <> ${other()}::uuid`), pools.app);
     expect(asA.rows[0]?.n).toBe(adminCount.rows[0]?.n);
     expect(asBCross.rows[0]?.n).toBe(0);
     expect(asBOwn.rows[0]?.n).toBe(0);
   });
 
   it("tenant B cannot update or delete tenant A rows", async () => {
-    const upd = await withTenant(tenantB, (tx) => tx.execute(sql`update ${sql.identifier(name)} set tenant_id = tenant_id where tenant_id = ${tenantA}::uuid`), pools.app);
+    const upd = await withTenant(other(), (tx) => tx.execute(sql`update ${sql.identifier(name)} set tenant_id = tenant_id where tenant_id = ${own()}::uuid`), pools.app);
     expect(upd.rowCount ?? 0).toBe(0);
-    const del = await withTenant(tenantB, (tx) => tx.execute(sql`delete from ${sql.identifier(name)} where tenant_id = ${tenantA}::uuid`), pools.app);
+    const del = await withTenant(other(), (tx) => tx.execute(sql`delete from ${sql.identifier(name)} where tenant_id = ${own()}::uuid`), pools.app);
     expect(del.rowCount ?? 0).toBe(0);
     // Nothing changed for A.
-    const stillThere = await pools.admin.execute<{ n: number }>(sql`select count(*)::int as n from ${sql.identifier(name)} where tenant_id = ${tenantA}::uuid`);
+    const stillThere = await pools.admin.execute<{ n: number }>(sql`select count(*)::int as n from ${sql.identifier(name)} where tenant_id = ${own()}::uuid`);
     expect(stillThere.rows[0]?.n).toBeGreaterThan(0);
   });
 
   it("tenant B cannot insert a row for tenant A", async () => {
-    const sample = await pools.admin.execute<{ row: Record<string, unknown> }>(sql`select to_jsonb(t) as row from ${sql.identifier(name)} t where tenant_id = ${tenantA}::uuid limit 1`);
+    const sample = await pools.admin.execute<{ row: Record<string, unknown> }>(sql`select to_jsonb(t) as row from ${sql.identifier(name)} t where tenant_id = ${own()}::uuid limit 1`);
     const row = sample.rows[0]?.row;
     if (!row) return;
     const clone = { ...row, id: crypto.randomUUID() };
@@ -103,7 +108,7 @@ describe.each(tenantTables.map((t) => [getTableName(t), t] as const))("isolation
     const colList = sql.join(cols.rows.map((c) => sql.identifier(c.column_name)), sql`, `);
     await expect(
       withTenant(
-        tenantB,
+        other(),
         (tx) => tx.execute(sql`insert into ${sql.identifier(name)} (${colList}) select ${colList} from jsonb_populate_record(null::${sql.identifier(name)}, ${JSON.stringify(clone)}::jsonb)`),
         pools.app,
       ),

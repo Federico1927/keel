@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, schema, sql, type SQL } from "@hullwise/db";
 import { OPEN_STATUSES, SALE_STATUSES, assignHoldout, isGroup, rfmTier, segmentFieldCatalog, validateSegmentRules, type CustomerProfile, type RfmTier, type SegmentGroup, type SegmentLeaf } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { customerPrediction, type CustomerPredictionView } from "./predictions";
+import { SUBSCRIPTION_FIELD_SQL } from "../subscriptions/segments";
 
 const SALE = SALE_STATUSES as readonly string[];
 const OPEN = OPEN_STATUSES as readonly string[];
@@ -151,6 +152,8 @@ const FIELD_SQL: Record<string, SQL> = {
   random_pct: sql`p.random_pct`,
   open_order: sql`(p.open_orders > 0)`,
   days_since_last_marketing: sql`p.days_since_last_marketing`,
+  // addon.subscriptions (#67): subscription signals, SQL kept in ../subscriptions/segments
+  ...SUBSCRIPTION_FIELD_SQL,
 };
 
 /** Expression for a leaf: the static column, or one built from the leaf's parameter (option name, look-back days). */

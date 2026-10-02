@@ -269,6 +269,10 @@
         "title": "Customer campaigns",
         "body": "Campaigns to your segments with a control group: a stable holdout per customer, the send recorded from the tool you already use, and the incremental orders, revenue and margin each campaign really produced."
       },
+      "subscriptions": {
+        "title": "Subscriptions",
+        "body": "For stores that sell refills, boxes or memberships through Shopify Subscriptions, Recharge or Loop: real profit per subscriber, churn split into voluntary and failed payments, stock forecast for upcoming renewals and a recovery queue for declined cards."
+      },
       "cod": {
         "title": "Cash on delivery",
         "body": "For stores that collect on delivery: confirmation queue with call outcomes, operator assignment, a delivery score explained factor by factor and risk flags on recipients."

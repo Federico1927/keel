@@ -169,6 +169,10 @@
       "customer_campaigns": {
         "name": "Campañas a clientes",
         "description": "Campañas por email, SMS y WhatsApp a segmentos con grupo de control: control en los segmentos y margen incremental medido."
+      },
+      "subscriptions": {
+        "name": "Suscripciones",
+        "description": "MRR, churn, cohortes, recuperación de pagos fallidos y stock para renovaciones de tus productos de suscripción (Shopify Subscriptions, Recharge, Loop)"
       }
     }
   },
@@ -207,7 +211,8 @@
     "tasks": "Tareas",
     "support": "Soporte",
     "notifications": "Notificaciones",
-    "fulfilment": "Preparación"
+    "fulfilment": "Preparación",
+    "subscriptions": "Suscripciones"
   },
   "shell": {
     "open_menu": "Abrir menú",
@@ -642,10 +647,10 @@
         "manual": "Añadido a mano"
       },
       "supplier_po": "Órdenes de compra a proveedores",
-      "return_updates": "Novedades de devoluciones a clientes",
       "marketing": "Campañas a clientes (marketing)",
       "phone": "teléfono",
-      "identity_placeholder": "nombre@ejemplo.com o +34…"
+      "identity_placeholder": "nombre@ejemplo.com o +34…",
+      "return_updates": "Novedades de devoluciones a clientes"
     },
     "export_lists": {
       "orders": "pedidos",
@@ -2191,7 +2196,8 @@
       "products": "Productos",
       "rfm": "RFM",
       "sampling": "Muestreo",
-      "predictions": "Predicciones"
+      "predictions": "Predicciones",
+      "subscriptions": "Suscripciones"
     },
     "fields": {
       "orders_count": "Pedidos",
@@ -2215,6 +2221,12 @@
       "p_alive": "Probabilidad de seguir activo (%)",
       "predicted_value": "Valor previsto, próximos 12 meses",
       "days_to_next_order": "Días hasta el próximo pedido esperado",
+      "subscription_status": "Estado de la suscripción",
+      "subscription_paused_days": "Días en pausa",
+      "subscription_payment_failed": "Pago de la suscripción con error",
+      "subscription_renewals": "Renovaciones completadas",
+      "subscription_next_renewal_days": "Días para la próxima renovación",
+      "subscription_churn_risk": "Riesgo de churn de la suscripción",
       "open_order": "Tiene un pedido abierto",
       "bought_in_window": "Pidió en un periodo",
       "bought_category": "Categoría comprada",
@@ -2246,6 +2258,14 @@
       "invalid_shape": "Reglas mal formadas.",
       "invalid_rules": "Reglas no válidas.",
       "forbidden": "No tienes permiso."
+    },
+    "subscription_values": {
+      "active": "Activa",
+      "paused": "En pausa",
+      "cancelled": "Cancelada",
+      "expired": "Caducada",
+      "failed": "Fallida",
+      "none": "Sin suscripción"
     },
     "option": "Opción",
     "within_days": "en los últimos",
@@ -2707,6 +2727,10 @@
       "anthropic": "IA (Anthropic)",
       "email": "Email de plataforma",
       "tiktok": "TikTok Ads",
+      "subscriptions": "App de suscripciones",
+      "shopify_subscriptions": "Shopify Subscriptions",
+      "recharge": "Recharge",
+      "loop": "Loop Subscriptions",
       "address": "Validación de direcciones"
     },
     "status": {
@@ -2857,6 +2881,7 @@
     "tiktok_app_link": "Autorizar con TikTok",
     "not_in_plan_badge": "No incluido",
     "not_in_plan": "Incluido desde el plan {plan}: pide al gestor de la plataforma que cambie el plan.",
+    "open_subscriptions": "Abrir suscripciones",
     "address_mock_connect": "Usar el proveedor simulado",
     "address_mock_connected": "Validación de direcciones conectada (proveedor simulado)."
   },
@@ -3349,6 +3374,75 @@
         "creatives": "Miniaturas de vídeo",
         "pause": "Pausa / reactivación"
       }
+    },
+    "subscriptions": {
+      "title": "Conecta tu app de suscripciones",
+      "intro": "Las suscripciones se leen de la app que las factura: Shopify Subscriptions, Recharge o Loop. Se importan contratos, cobros de renovación y cancelaciones; las pausas, omisiones, cambios y cancelaciones que hace tu equipo vuelven a la app. Aquí nunca se cobran tarjetas y los planes de venta se editan en la app.",
+      "scopes": "Shopify Subscriptions: los scopes de contratos son de tipo \"own\", así que una app solo lee los contratos que ha creado; los contratos creados por la app Shopify Subscriptions requieren la aprobación de Shopify para el acceso de terceros. Recharge y Loop: un token de API con los permisos indicados arriba.",
+      "steps": [
+        {
+          "title": "Elige la app que usa la tienda",
+          "body": "Comprueba dónde se venden hoy las suscripciones (Apps en el admin de Shopify). Una app de suscripciones por tienda: conectar otra la sustituye.",
+          "verify": false
+        },
+        {
+          "title": "Shopify Subscriptions: añade los scopes de contratos",
+          "body": "En la app personalizada de la conexión de Shopify (Configuración → Apps y canales de venta → Desarrollar apps → tu app → Configuración), añade read_own_subscription_contracts, write_own_subscription_contracts y read_customer_payment_methods, guarda y reinstala la app para que el token los reciba.",
+          "verify": true
+        },
+        {
+          "title": "Shopify Subscriptions: contratos de la app de Shopify",
+          "body": "Los contratos creados por la app Shopify Subscriptions pertenecen a esa app. Pide al soporte de Shopify (o revisa el panel de Partners) acceso a los contratos de otras apps antes de pasar a producción; sin él, la sincronización no ve contratos.",
+          "verify": true
+        },
+        {
+          "title": "Recharge: crea el token de API",
+          "body": "Recharge → Apps & integrations → API tokens → crea un token con lectura y escritura en suscripciones, cobros y clientes, y lectura en pedidos. Copia el token y el API client secret.",
+          "verify": true
+        },
+        {
+          "title": "Loop: crea el token de API",
+          "body": "Admin de Loop → Configuración → Acceso a la API → crea un token con suscripciones en lectura/escritura, pedidos y clientes en lectura. Copia el token y el secreto de firma de los webhooks.",
+          "verify": true
+        },
+        {
+          "title": "Conecta desde Suscripciones o Integraciones",
+          "body": "Integraciones → App de suscripciones → Conectar: elige la app; para Recharge y Loop pega el token y el secreto (se guardan cifrados). Shopify Subscriptions reutiliza la conexión de Shopify.",
+          "verify": false
+        },
+        {
+          "title": "Registra los webhooks",
+          "body": "En la configuración de webhooks de la app, dirige los temas de la derecha a {subscriptionsWebhookUrl}. Los eventos se verifican con el secreto de firma y se importan una sola vez; la sincronización cada 15 minutos recupera los que falten.",
+          "verify": true
+        },
+        {
+          "title": "Comprueba que funciona",
+          "body": "Pulsa Probar conexión y luego Resincronizar: suscriptores, MRR y cobros aparecen en Suscripciones. Prueba una pausa en una suscripción de prueba y comprueba que la app la muestra en pausa.",
+          "verify": false
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Faltan scopes: read_own_subscription_contracts",
+          "fix": "Añade los scopes a la app personalizada de Shopify y reinstálala; luego vuelve a probar."
+        },
+        {
+          "symptom": "La sincronización no encuentra contratos (Shopify)",
+          "fix": "Los contratos pertenecen a otra app: pide a Shopify acceso a los contratos de otras apps o conecta la app que los factura (Recharge, Loop)."
+        },
+        {
+          "symptom": "[token_expired] HTTP 401",
+          "fix": "El token se revocó o se rotó: crea uno nuevo en la app y vuelve a conectar."
+        },
+        {
+          "symptom": "[rate_limited] HTTP 429",
+          "fix": "La app limitó las solicitudes: la sincronización se detiene y continúa donde se quedó en la siguiente ejecución."
+        },
+        {
+          "symptom": "No se ofrece una acción",
+          "fix": "La app no la admite (Recharge, por ejemplo, no tiene pausa): usa el admin de la app."
+        }
+      ]
     },
     "ad_hoc_title": "Integraciones a medida",
     "ad_hoc_notice": "Integración a medida: {product} ya tiene la interfaz y un proveedor simulado, así que todas las pantallas funcionan en la demo. El conector real para el proveedor de la tienda lo desarrolla y activa el equipo de {product} en esta cuenta (presupuesto aparte). La tienda solo aporta la cuenta y las credenciales indicadas abajo.",
@@ -6693,7 +6787,15 @@
       "keyword_negative": "Palabra clave negativa",
       "product_update": "Detalles del producto",
       "variant_details": "Detalles de la variante",
-      "product_media": "Multimedia del producto"
+      "product_media": "Multimedia del producto",
+      "subscription_pause": "Pausar suscripción",
+      "subscription_resume": "Reanudar suscripción",
+      "subscription_skip": "Omitir la próxima renovación",
+      "subscription_swap": "Cambiar variante de la suscripción",
+      "subscription_frequency": "Cambiar frecuencia de la suscripción",
+      "subscription_reschedule": "Mover la próxima renovación",
+      "subscription_cancel": "Cancelar suscripción",
+      "subscription_payment_link": "Enviar enlace de actualización de pago"
     }
   },
   "dev_inbox": {
@@ -7865,6 +7967,22 @@
       "cod_mine": {
         "name": "Mi cola contra reembolso",
         "description": "Tus pedidos asignados: por llamar, rellamadas vencidas, nunca llamados, programados, ilocalizables."
+      },
+      "subs_mrr": {
+        "name": "MRR de suscripciones",
+        "description": "Ingreso recurrente mensual de las suscripciones, frente a hace 30 días."
+      },
+      "subs_active": {
+        "name": "Suscriptores activos",
+        "description": "Suscriptores activos y en pausa, nuevos en 30 días."
+      },
+      "subs_churn": {
+        "name": "Churn de suscripciones",
+        "description": "Tasa de churn en el periodo, voluntaria e involuntaria."
+      },
+      "subs_at_risk": {
+        "name": "Suscripciones en riesgo",
+        "description": "Valor de renovación de los suscriptores con un pago con error o un alto riesgo de churn."
       }
     },
     "metrics": {
@@ -8681,6 +8799,433 @@
       "ad_spend": "Gasto en anuncios (campañas vinculadas)",
       "profit": "Beneficio",
       "missing_cost": "{units} unidades vendidas sin coste: el margen está sobrestimado."
+    }
+  },
+  "subscriptions": {
+    "title": "Suscripciones",
+    "description": "Suscriptores, MRR y churn de los productos que vendes por suscripción con tu app de suscripciones. La facturación sigue en la app: aquí analizas y actúas.",
+    "period_days": "{days} días",
+    "empty_title": "Aún no hay datos de suscripciones",
+    "empty_description": "Conecta tu app de suscripciones y sincroniza: contratos, cobros y cancelaciones aparecen aquí.",
+    "tabs": {
+      "overview": "Resumen",
+      "subscribers": "Suscriptores",
+      "recovery": "Recuperación de pagos",
+      "stock": "Stock para renovaciones",
+      "cancellations": "Motivos de cancelación"
+    },
+    "kpi": {
+      "mrr": "MRR",
+      "mrr_hint": "{previous} al inicio",
+      "active": "Suscriptores activos",
+      "paused_hint": "{n} en pausa",
+      "new": "Nuevos suscriptores",
+      "vs_previous": "{n} en el periodo anterior",
+      "churn": "Tasa de churn",
+      "voluntary": "{n} voluntarios",
+      "involuntary": "{n} involuntarios",
+      "success_rate": "Renovaciones cobradas",
+      "success_hint": "Cobros de renovación pagados, reintentos incluidos",
+      "value_at_risk": "Valor en riesgo",
+      "failing": "{n} con error ahora",
+      "recovery_rate": "Tasa de recuperación",
+      "recovery_hint": "{recovered} recuperados · {lost} perdidos",
+      "avg_profit": "Beneficio por suscriptor",
+      "avg_profit_hint": "Realizado hasta ahora"
+    },
+    "movement": {
+      "title": "Movimiento del MRR",
+      "description": "Ingreso recurrente mensual por mes: nuevos suscriptores, aumentos, reactivaciones, reducciones y pausas, cancelaciones. Haz clic en un número para ver los suscriptores que lo forman.",
+      "month": "Mes",
+      "start": "Inicio",
+      "new": "Nuevos",
+      "expansion": "Expansión",
+      "contraction": "Contracción",
+      "churned": "Perdidos",
+      "reactivated": "Reactivados",
+      "end": "Fin"
+    },
+    "cohorts": {
+      "title": "Supervivencia por mes de activación",
+      "description": "Proporción de suscriptores que siguen suscritos n meses después de empezar, por mes de inicio.",
+      "cohort": "Cohorte",
+      "size": "Iniciados",
+      "month_n": "M{n}"
+    },
+    "forecast": {
+      "title": "Previsión de ingresos",
+      "description": "Renovaciones programadas de los suscriptores activos × la tasa de renovaciones cobradas ({rate}).",
+      "days": "{days} días",
+      "renewals": "{n, plural, one {# renovación} other {# renovaciones}}"
+    },
+    "provider": {
+      "title": "App de suscripciones",
+      "none": "No hay ninguna app de suscripciones conectada: conecta Shopify Subscriptions, Recharge o Loop para importar contratos, cobros y cancelaciones.",
+      "none_short": "No conectada",
+      "mock": "simulada",
+      "status": {
+        "connected": "Conectada",
+        "error": "Error",
+        "not_connected": "No conectada"
+      },
+      "last_sync": "Última sincronización",
+      "health": "Estado",
+      "health_status": {
+        "ok": "OK",
+        "degraded": "Degradado",
+        "stale": "Desactualizado",
+        "error": "Error",
+        "idle": "Inactivo",
+        "unknown": "Desconocido"
+      },
+      "last_error": "Último error",
+      "guide": "Guía de activación",
+      "test": "Probar conexión",
+      "resync": "Resincronizar",
+      "test_ok": "Conectada: {account}",
+      "test_failed": "La conexión falló: {error}",
+      "resync_done": "Sincronizado: {summary}",
+      "simulate_success": "Simular una renovación",
+      "simulate_failure": "Simular una tarjeta rechazada",
+      "simulated": "Simulado: {summary}",
+      "connect": "Conectar",
+      "reconnect": "Cambiar app",
+      "connected": "App de suscripciones conectada.",
+      "app": "App de suscripciones",
+      "apps": {
+        "shopify_subscriptions": "Shopify Subscriptions",
+        "recharge": "Recharge",
+        "loop": "Loop Subscriptions",
+        "mock": "App simulada"
+      },
+      "api_token": "Token de API",
+      "webhook_secret": "Secreto de firma de los webhooks",
+      "shopify_hint": "Usa la conexión de Shopify de la tienda: necesita los scopes de contratos de suscripción (ver la guía).",
+      "mock_hint": "Modo mock: la app simulada está conectada, no hacen falta credenciales.",
+      "token_hint": "El token y el secreto se guardan cifrados.",
+      "save": "Guardar"
+    },
+    "status": {
+      "active": "Activa",
+      "paused": "En pausa",
+      "cancelled": "Cancelada",
+      "expired": "Caducada",
+      "failed": "Fallida"
+    },
+    "risk": {
+      "low": "Riesgo bajo",
+      "medium": "Riesgo medio",
+      "high": "Riesgo alto"
+    },
+    "interval": {
+      "day": "{count, plural, one {cada día} other {cada # días}}",
+      "week": "{count, plural, one {cada semana} other {cada # semanas}}",
+      "month": "{count, plural, one {cada mes} other {cada # meses}}",
+      "year": "{count, plural, one {cada año} other {cada # años}}"
+    },
+    "errors": {
+      "subscription_not_found": "Suscripción no encontrada.",
+      "subscription_not_allowed": "Tu app de suscripciones no permite esta acción para esta suscripción.",
+      "subscription_no_provider": "No hay ninguna app de suscripciones conectada.",
+      "subscription_invalid_input": "Revisa los valores e inténtalo de nuevo.",
+      "subscription_disabled": "El add-on de suscripciones no está activo.",
+      "subscription_provider": "La app de suscripciones rechazó la solicitud",
+      "module_disabled": "El add-on de suscripciones no está activo.",
+      "forbidden": "No tienes permiso para hacerlo.",
+      "invalid_input": "Revisa los valores e inténtalo de nuevo."
+    },
+    "profit": {
+      "title": "Beneficio por suscriptor",
+      "description": "De los pedidos que creó cada suscripción: ingreso neto tras reembolsos y devoluciones, menos coste de producto, envío y comisiones de pago (las reales cuando el procesador las ha informado).",
+      "orders": "Pedidos",
+      "revenue": "Ingreso neto",
+      "costs": "Coste de producto, envío, comisiones",
+      "profit": "Beneficio",
+      "order_n": "Pedido",
+      "avg_profit": "Beneficio medio",
+      "first_order": "Primer pedido",
+      "renewal_n": "Renovación {n}"
+    },
+    "acquisition": {
+      "title": "LTV frente a coste de adquisición",
+      "description": "Beneficio realizado por suscriptor según la campaña o el canal de su primer pedido de suscripción, frente al coste por pedido de la campaña.",
+      "source": "Campaña o canal",
+      "subscribers": "Suscriptores",
+      "ltv": "LTV",
+      "cac": "Coste de adquisición",
+      "ratio": "LTV / CAC",
+      "channels": {
+        "paid_social": "Social de pago",
+        "paid_search": "Búsqueda de pago",
+        "organic_search": "Búsqueda orgánica",
+        "social": "Social",
+        "email": "Email",
+        "referral": "Referido",
+        "direct": "Directo",
+        "marketplace": "Marketplace",
+        "unknown": "Desconocido"
+      }
+    },
+    "subscribers": {
+      "title": "Suscriptores",
+      "description": "Todos los contratos de suscripción, con su estado, próxima renovación y riesgo de churn.",
+      "search": "Nombre, email o contrato",
+      "status": "Estado",
+      "all_statuses": "Todos los estados",
+      "live": "Activas o en pausa",
+      "risk": "Riesgo",
+      "any_risk": "Cualquier riesgo",
+      "failing": "Pago con error",
+      "apply": "Aplicar",
+      "clear": "Quitar filtros",
+      "f_cohort": "Iniciadas en {v}",
+      "f_movement": "{bucket} en {month}",
+      "f_reason": "Motivo: {v}",
+      "f_voluntary": "Churn voluntario",
+      "f_involuntary": "Churn involuntario",
+      "f_activated": "Iniciadas desde {from}",
+      "f_ended": "Terminadas desde {from}",
+      "empty_title": "Ningún suscriptor coincide",
+      "empty_description": "Cambia los filtros o conecta tu app de suscripciones.",
+      "next": "Próxima {date}",
+      "payment_failing": "Pago con error",
+      "customer": "Cliente",
+      "products": "Productos",
+      "price": "Precio",
+      "frequency": "Frecuencia",
+      "next_billing": "Próxima renovación",
+      "renewals": "Renovaciones",
+      "ended": "Terminada el {date}",
+      "summary": "{n, plural, one {# suscriptor} other {# suscriptores}}"
+    },
+    "ready": {
+      "title": "Segmentos listos",
+      "description": "Abre un segmento con las condiciones de suscripción ya puestas y luego guárdalo o envíalo a un destino.",
+      "paused_30": "En pausa desde hace más de 30 días",
+      "payment_failed": "Pago fallido",
+      "renewal_n": "A punto de su 3.ª renovación",
+      "high_churn_risk": "Alto riesgo de churn"
+    },
+    "detail": {
+      "unknown_customer": "Cliente desconocido",
+      "failing_since": "Pago con error desde el {date}",
+      "actions": "Atención al cliente",
+      "read_only": "Tu rol solo puede consultar esta suscripción.",
+      "customer": "Cliente",
+      "assignee": "Seguimiento: {name}",
+      "last_contact": "Último contacto: {date}",
+      "risk_title": "Riesgo de churn",
+      "retention": "Probabilidad de quedarse: {pct}",
+      "factors": {
+        "p_alive": "Patrón de compra (modelo CRM)",
+        "payment_failing": "Pago con error",
+        "skips": "Saltos recientes",
+        "paused": "En pausa",
+        "hazard": "Abandono en la próxima renovación",
+        "frequency": "Frecuencia alargada"
+      },
+      "price": "Precio por renovación",
+      "mrr": "MRR",
+      "next_billing": "Próxima renovación",
+      "renewals": "Renovaciones",
+      "since": "Desde el {date}",
+      "cancelled_voluntary": "Cancelada el {date}",
+      "cancelled_involuntary": "Terminada el {date} tras pagos fallidos",
+      "lines": "Productos",
+      "product": "Producto",
+      "quantity": "Cantidad",
+      "unit_price": "Precio unitario",
+      "timeline": "Cronología",
+      "charges": "Cobros",
+      "when": "Cuándo",
+      "outcome": "Resultado",
+      "amount": "Importe",
+      "failed": "Fallido",
+      "retry": "reintento {date}",
+      "attempt_success": "Pagado",
+      "attempt_pending": "Pendiente",
+      "attempt_failed": "Fallido",
+      "orders": "Pedidos"
+    },
+    "events": {
+      "created": "Suscripción iniciada",
+      "paused": "Puesta en pausa",
+      "resumed": "Reanudada",
+      "skipped": "Renovación omitida",
+      "swapped": "Variante cambiada",
+      "frequency_changed": "Frecuencia cambiada",
+      "rescheduled": "Próxima renovación movida",
+      "cancelled": "Cancelada",
+      "reactivated": "Reactivada",
+      "price_changed": "Precio cambiado",
+      "payment_failed": "Pago fallido",
+      "payment_recovered": "Pago recuperado",
+      "payment_link_sent": "Enlace de actualización de pago enviado",
+      "note": "Nota",
+      "assigned": "Seguimiento asignado"
+    },
+    "authors": {
+      "customer": "Cliente",
+      "staff": "Equipo",
+      "system": "Sistema",
+      "provider": "App de suscripciones"
+    },
+    "payment_errors": {
+      "card_expired": "Tarjeta caducada",
+      "insufficient_funds": "Fondos insuficientes",
+      "card_declined": "Tarjeta rechazada",
+      "authentication_required": "Autenticación necesaria",
+      "processing_error": "Error de procesamiento",
+      "other": "Error de pago"
+    },
+    "actions": {
+      "pause": "Pausar",
+      "resume": "Reanudar",
+      "skip": "Omitir la próxima",
+      "swap": "Cambiar variante",
+      "frequency": "Cambiar frecuencia",
+      "reschedule": "Mover la próxima renovación",
+      "cancel": "Cancelar",
+      "payment_link": "Enviar enlace de actualización de pago",
+      "none": "No hay acciones disponibles para esta suscripción.",
+      "unsupported": "Tu app de suscripciones no lo admite: {actions}",
+      "confirm_title": {
+        "pause": "¿Pausar esta suscripción?",
+        "resume": "¿Reanudar esta suscripción?",
+        "skip": "¿Omitir la próxima renovación?",
+        "swap": "¿Cambiar la variante?",
+        "frequency": "¿Cambiar la frecuencia?",
+        "reschedule": "¿Mover la próxima renovación?",
+        "cancel": "¿Cancelar esta suscripción?",
+        "payment_link": "¿Enviar el enlace de actualización de pago?"
+      },
+      "confirm_description": "El cambio se envía a tu app de suscripciones y se aplica allí; la app puede avisar al cliente.",
+      "line": "Producto",
+      "new_variant": "Nueva variante",
+      "every": "Cada",
+      "unit": "Unidad",
+      "units": {
+        "day": "días",
+        "week": "semanas",
+        "month": "meses"
+      },
+      "next_billing": "Próxima renovación el",
+      "reason": "Motivo",
+      "note_optional": "Nota (opcional)",
+      "back": "Volver",
+      "confirm": "Confirmar",
+      "already_done": "Ya hecho: esta solicitud ya se había enviado.",
+      "done": {
+        "pause": "Suscripción pausada.",
+        "resume": "Suscripción reanudada.",
+        "skip": "Próxima renovación omitida.",
+        "swap": "Variante cambiada.",
+        "frequency": "Frecuencia cambiada.",
+        "reschedule": "Próxima renovación movida.",
+        "cancel": "Suscripción cancelada.",
+        "payment_link": "Enlace de actualización de pago enviado."
+      }
+    },
+    "recovery": {
+      "title": "Recuperación de pagos fallidos",
+      "description": "Suscriptores cuyo último cobro de renovación falló, empezando por el mayor valor en riesgo, con los reintentos de la app y vuestro seguimiento.",
+      "value_at_risk": "Valor en riesgo",
+      "open": "{n, plural, one {# suscriptor con error} other {# suscriptores con error}}",
+      "rate": "Tasa de recuperación (90 días)",
+      "rate_hint": "{recovered} recuperados · {lost} perdidos",
+      "recovered_30": "Recuperado en 30 días",
+      "lost": "Perdidos por pagos fallidos",
+      "lost_hint": "Terminados por la app tras el último reintento",
+      "view_all": "Todos",
+      "view_me": "Míos",
+      "view_none": "Sin asignar",
+      "empty_title": "No hay pagos con error",
+      "empty_description": "Todos los cobros de renovación se han realizado.",
+      "failures": "{n, plural, one {# cobro fallido} other {# cobros fallidos}}",
+      "failing_since": "con error desde el {date}",
+      "next_retry": "próximo reintento {date}",
+      "no_retry": "sin reintentos",
+      "last_contact": "último contacto {date}",
+      "send_link": "Enviar enlace de pago",
+      "send_link_title": "¿Enviar el enlace de actualización de pago?",
+      "send_link_description": "Tu app de suscripciones envía al cliente su propio enlace para actualizar la tarjeta.",
+      "link_sent": "Enlace de actualización de pago enviado.",
+      "add_note": "Añadir nota",
+      "note_description": "Visible en la cronología de la suscripción.",
+      "contacted": "He contactado con el cliente",
+      "save": "Guardar",
+      "note_saved": "Nota guardada.",
+      "assignee": "Seguimiento",
+      "unassigned": "Sin asignar",
+      "assigned": "Seguimiento asignado.",
+      "back": "Volver"
+    },
+    "stock": {
+      "title": "Stock para renovaciones",
+      "description": "Unidades que necesitan las renovaciones programadas de los suscriptores activos, por variante, frente al stock y las órdenes de compra en camino. Las sugerencias también aparecen en la planificación de reposición.",
+      "weeks": "{n, plural, one {# semana} other {# semanas}}",
+      "alert": "se agota el {date}: faltan {units} unidades, pedido sugerido {suggested}",
+      "open_planning": "Abrir la planificación de reposición",
+      "empty_title": "No hay renovaciones programadas",
+      "empty_description": "Aquí aparecen las renovaciones de los suscriptores activos en el periodo.",
+      "table_title": "Renovaciones {n, plural, one {de la próxima semana} other {de las próximas # semanas}}",
+      "table_description": "Las unidades en camino cuentan desde su fecha prevista; la sugerencia cubre la falta, redondeada al múltiplo y al mínimo del proveedor.",
+      "variant": "Variante",
+      "renewals": "Renovaciones",
+      "units": "Unidades necesarias",
+      "available": "Disponibles",
+      "incoming": "En camino",
+      "runs_out": "Agotamiento",
+      "suggested": "Pedido sugerido",
+      "by_week": "Unidades por semana",
+      "covered": "Cubierto"
+    },
+    "cancellations": {
+      "title": "Motivos de cancelación",
+      "description": "Por qué se van los suscriptores: los motivos de la app asignados a vuestra lista (el texto original se conserva), por producto, cohorte o canal, con la tendencia mensual.",
+      "empty_title": "No hay cancelaciones en los últimos 12 meses",
+      "empty_description": "Aquí aparecen las cancelaciones con sus motivos.",
+      "by_reason": "Por motivo",
+      "split": "{voluntary} voluntarias · {involuntary} involuntarias",
+      "matrix": "Motivos por",
+      "dimension": {
+        "product": "Producto",
+        "cohort": "Cohorte",
+        "channel": "Canal"
+      },
+      "total": "Total",
+      "trend": "Tendencia",
+      "trend_description": "Cancelaciones por mes y motivo.",
+      "month": "Mes",
+      "list_title": "Vuestros motivos",
+      "list_description": "La lista a la que se asignan las cancelaciones. Las palabras clave reconocen el texto libre de la app (en cualquier idioma).",
+      "kind": {
+        "voluntary": "Voluntario",
+        "involuntary": "Involuntario"
+      },
+      "deactivate": "Desactivar",
+      "activate": "Activar",
+      "label": "Motivo",
+      "keywords": "Palabras clave, separadas por comas",
+      "add": "Añadir motivo",
+      "saved": "Motivos guardados."
+    },
+    "card": {
+      "title": "Suscripciones",
+      "order_title": "Suscripción",
+      "contract": "Suscripción",
+      "renewals": "{n, plural, =0 {aún sin renovaciones} one {# renovación} other {# renovaciones}}",
+      "next": "Próxima {date}",
+      "failing": "Pago con error",
+      "first_order": "Primer pedido de esta suscripción",
+      "renewal_order": "Renovación {n} de esta suscripción"
+    },
+    "widgets": {
+      "mrr_hint": "{delta} frente a hace 30 días",
+      "mrr_no_previous": "Sin MRR hace 30 días",
+      "active_hint": "{paused} en pausa · {new} nuevos en 30 días",
+      "churn_hint": "{voluntary} voluntarios · {involuntary} involuntarios",
+      "at_risk_hint": "{n} en riesgo · {failing} pagos con error · {high} con alto riesgo de churn"
     }
   }
 }
