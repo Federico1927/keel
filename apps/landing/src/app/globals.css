@@ -1,49 +1,22 @@
 @import "tailwindcss";
-@import "@fontsource-variable/inter";
-@import "@fontsource-variable/source-serif-4";
-
 /*
- * Same colour tokens as packages/ui/src/styles.css (the product design system), with a few
- * marketing-only additions (ink, surface tints). Kept as a copy so the landing deploys on its own.
+ * The product's direction A theme (tokens, light and dark, Tailwind mapping, base layer) from
+ * packages/ui: one file shared with apps/web, so changing a token there changes both (#47).
+ * Only marketing-specific tokens are declared below; a test fails if this file redefines a
+ * shared one.
  */
-@theme {
-  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Source Serif 4 Variable", ui-serif, Georgia, serif;
+@import "@keel/ui/theme.css";
 
-  --color-background: hsl(40 20% 98%);
-  --color-foreground: hsl(220 15% 14%);
-  --color-card: hsl(0 0% 100%);
-  --color-primary: hsl(205 55% 30%);
-  --color-primary-strong: hsl(205 60% 24%);
-  --color-primary-foreground: hsl(0 0% 100%);
-  --color-secondary: hsl(40 15% 93%);
-  --color-muted: hsl(40 15% 94%);
-  --color-muted-foreground: hsl(220 10% 42%);
-  --color-accent: hsl(28 70% 92%);
-  --color-accent-foreground: hsl(28 60% 25%);
-  --color-success: hsl(150 35% 36%);
-  --color-warning: hsl(36 70% 42%);
-  --color-destructive: hsl(4 60% 45%);
-  --color-border: hsl(40 12% 86%);
-  --color-ring: hsl(205 55% 40%);
-  --color-ink: hsl(220 18% 12%);
-  --color-ink-foreground: hsl(40 20% 92%);
-  --color-ink-muted: hsl(220 10% 62%);
-  --color-ink-accent: hsl(220 16% 18%);
-
-  --radius-sm: 0.25rem;
-  --radius-md: 0.4rem;
-  --radius-lg: 0.6rem;
-  --radius-xl: 0.9rem;
-  --radius-2xl: 1.25rem;
+@theme inline {
+  /* Soft wash behind the hero and the frame shadow of the product screenshots. */
+  --color-hero-glow: color-mix(in srgb, var(--primary) 12%, transparent);
+  --shadow-frame:
+    0 24px 60px -28px hsl(var(--shadow-color) / 0.35),
+    0 2px 6px -2px hsl(var(--shadow-color) / 0.08);
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
   html {
-    -webkit-font-smoothing: antialiased;
     scroll-behavior: smooth;
     scroll-padding-top: 5rem;
   }
@@ -52,23 +25,16 @@
       scroll-behavior: auto;
     }
   }
-  body {
-    @apply bg-background text-foreground font-sans;
-    font-feature-settings: "cv11", "ss01", "tnum";
-  }
   h1,
   h2,
   h3 {
-    @apply font-serif tracking-tight text-balance;
+    @apply text-balance;
   }
   :focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background rounded-sm;
   }
-  .tabular {
-    font-variant-numeric: tabular-nums;
-  }
 }
 
 @utility container-x {
-  @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-8;
 }

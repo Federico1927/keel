@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { TOKENS } from "@keel/ui/tokens";
 import {
   LANDING_LOCALES,
   PRODUCT_NAME,
@@ -8,7 +9,7 @@ import {
 } from "@/config/site";
 import { getTranslator } from "@/i18n/messages";
 
-const OG_LOCALE: Record<LandingLocale, string> = { en: "en_US", it: "it_IT" };
+const OG_LOCALE: Record<LandingLocale, string> = { en: "en_US", it: "it_IT", es: "es_ES" };
 
 export function landingMetadata(locale: LandingLocale): Metadata {
   const t = getTranslator(locale);
@@ -37,3 +38,12 @@ export function landingMetadata(locale: LandingLocale): Metadata {
     icons: { icon: "/favicon.svg" },
   };
 }
+
+/** Browser chrome colour per OS theme, from the shared tokens. */
+export const landingViewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: TOKENS.light.bg },
+    { media: "(prefers-color-scheme: dark)", color: TOKENS.dark.bg },
+  ],
+  colorScheme: "light dark",
+};

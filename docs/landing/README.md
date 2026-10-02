@@ -1,15 +1,21 @@
 # Keel landing page (`apps/landing`)
 
 Static marketing site for the product, built with Next.js (static export) and Tailwind in the same
-monorepo as the app. English at `/`, Italian at `/it/`, same i18n approach as the product
-(next-intl, one JSON file per language, a test that fails when a key is missing in one language).
+monorepo as the app. English at `/`, Italian at `/it/`, Spanish at `/es/`, same i18n approach as the
+product (next-intl, one JSON file per language, a test that fails when a key is missing in one language).
+
+It uses the product's direction A theme: `@import "@keel/ui/theme.css"` in `src/app/globals.css`
+(tokens, Tailwind mapping, dark variant, base layer) and Geist from `@keel/ui/font-sans`. Only two
+marketing tokens are declared locally; `src/landing/theme.test.ts` fails if a shared one is redefined.
+The theme follows the OS setting (the app's `SYSTEM_THEME_SCRIPT`).
 
 The screenshots in this folder are the landing itself, captured by `pnpm --filter @keel/landing screenshots`:
 
-| File                               | What                    |
-| ---------------------------------- | ----------------------- |
-| `en-desktop.png`, `it-desktop.png` | Full page at 1440px     |
-| `en-mobile.png`, `it-mobile.png`   | Full page at 390px (2x) |
+| File                        | What                             |
+| --------------------------- | -------------------------------- |
+| `<locale>-desktop.png`      | Full page at 1440px, light theme |
+| `<locale>-mobile.png`       | Full page at 390px (2x), light   |
+| `<locale>-desktop-dark.png` | Full page at 1440px, dark theme  |
 
 ## Run it locally
 
@@ -45,7 +51,8 @@ public (`NEXT_PUBLIC_*`) because the site is static and the browser needs them.
 | `NEXT_PUBLIC_APP_URL`             | URL of the Keel app, for "Sign in" and the links to the integration guides.                  | `http://localhost:3000`                  |
 
 Contact form payload: `{ name, email, store, orders, message, locale, source: "landing", submittedAt }`.
-A hidden honeypot field drops bot submissions client-side.
+A hidden honeypot field and a minimum fill time (3 s) drop bot submissions client-side; the webhook
+should still rate-limit. A privacy notice (`contact.privacy`) is shown under the button in every language.
 
 ## Change prices, plans and the founding offer
 
@@ -55,7 +62,8 @@ Everything numeric lives in **one file**: `apps/landing/src/config/pricing.ts`.
   identifiers, `recommended` flag, `inheritsFrom` (renders "Everything in X, plus:").
 - `OVERAGE`: price per block of extra orders.
 - `ANNUAL_MONTHS_CHARGED`: 10 means two months free on annual billing.
-- `ADDONS`: monthly price (with `from`), usage-based or on quote.
+- `ADDONS`: monthly price (must equal `monthlyPriceMinor` of the add-on module in `@keel/config`) or
+  on quote. An add-on is listed only once it is built.
 - `FOUNDING_OFFER`: `enabled`, `discountPercent`, `months`, `seats`. Set `enabled: false` to remove
   every mention of the offer. The discount applies to monthly billing; the annual toggle shows list
   prices with the two free months.
@@ -66,29 +74,43 @@ and `it.json` under `pricing.*`, `addons.*` and `faq.*`. Feature identifiers in 
 `pricing.features.<id>`; adding a feature means one line in the config and one key per language
 (the test `messages.test.ts` fails if a language is missing it).
 
-Unit tests for the pricing helpers: `apps/landing/src/config/pricing.test.ts`.
+Unit tests for the pricing helpers and the mirror of `@keel/config` (plans, overage, audit retention,
+add-on prices): `apps/landing/src/config/pricing.test.ts`.
+
+## Claims must match the product
+
+`src/config/claims.ts` maps every feature the page names (module slides, "also included" cards, plan
+lines, add-ons, FAQ answers, how-it-works steps, comparison lines) to module keys of `@keel/config`,
+or marks it as a service or a commercial term. The components read their item lists from it.
+`claims.test.ts` fails when a key does not exist or is not implemented, when a plan lists a module the
+plan does not include (`isModuleInPlan`), when a built add-on is missing, or when a "Coming soon"
+feature (`COMING_SOON`, with its issue) is claimed anywhere else. To ship a feature that was coming
+soon: remove it from `COMING_SOON`, add its claim and copy.
 
 ## Change the copy or add a language
 
 - Copy: `apps/landing/messages/<locale>.json`. No visible string is hardcoded in components.
 - New language: add `messages/<locale>.json`, add the code to `LANDING_LOCALES` in
-  `src/config/site.ts`, register it in `src/i18n/messages.ts`, and create a route group
-  `src/app/(<locale>)/<locale>/` with the three one-line files you find in `src/app/(it)/it/`
-  (layout, page, opengraph-image). Hreflang, sitemap and the language switch pick it up.
+  `src/config/site.ts`, register it in `src/i18n/messages.ts` and `src/i18n/messages.test.ts`, add
+  the `Intl` locale in `src/lib/format.ts` and the Open Graph locale in `src/landing/metadata.ts`,
+  and create a route group `src/app/(<locale>)/<locale>/` with the three one-line files you find in
+  `src/app/(it)/it/` (layout, page, opengraph-image). Hreflang, sitemap and the language switch pick it up.
 
 ## Modules carousel
 
 The modules section is a horizontal carousel (`src/components/modules-carousel.tsx`): scroll-snap
 track, tab strip with the module names, previous/next buttons and auto-advance every 6 seconds that
-stops on the first interaction. Order and screenshots per module: `MODULES` in
-`src/components/modules.tsx`. Interval: `AUTOPLAY_MS` in the carousel component.
+stops on the first interaction. Order and screenshots per module: `MODULE_SLIDES` in
+`src/config/claims.ts`. Interval: `AUTOPLAY_MS` in the carousel component.
 
 ## Product screenshots
 
 The landing shows real screens of the demo tenant **Harbor Home** (no add-ons, so nothing
-payment-specific appears in the navigation). Only demo data is shown. The assistant screen opens
-Harbor's seeded conversation in English; for Italian the capture asks the same question in Italian,
-and it hides the "simulated connection" notice, which only exists in the mock demo.
+payment-specific appears in the navigation), in the light theme, in en/it/es. Only demo data is
+shown. The assistant screen opens Harbor's seeded conversation in English; for Italian and Spanish
+the capture asks the same question in that language (delete those threads before capturing again,
+or they show up in the conversation list), and it hides the "simulated connection" notice, which
+only exists in the mock demo.
 
 To regenerate after a product change:
 
@@ -97,6 +119,7 @@ To regenerate after a product change:
 pnpm --filter @keel/web build && pnpm --filter @keel/web start
 
 # 2. Capture the screens (PNG, 2x, viewport only) into apps/landing/screenshots-src (git-ignored)
+#    APP_BASE_URL=http://localhost:<port> if the app is not on :3000
 pnpm --filter @keel/landing capture:product
 
 # 3. Convert to the WebP sizes the page uses (apps/landing/public/screenshots/<locale>/)
@@ -119,7 +142,9 @@ message files.
    and long cache headers on the screenshots.
 
 Any other static host works too: upload the contents of `apps/landing/out` after `pnpm --filter @keel/landing build`.
-The server in `scripts/serve.mjs` mirrors the expected routing (`/it/` → `it/index.html`, `404.html`).
+The server in `scripts/serve.mjs` mirrors the expected routing (`/it/` → `it/index.html`, `404.html`),
+compresses text with brotli or gzip and caches the hashed `/_next/static` files for a year. Lighthouse
+mobile on that server: performance 97–99, accessibility 100, best practices 100, SEO 100.
 
 ## Single-file preview
 

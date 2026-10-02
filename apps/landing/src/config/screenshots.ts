@@ -3,7 +3,7 @@
  * `scripts/optimize-images.mjs` turns each capture into the WebP widths listed per role.
  */
 export const SCREENSHOT_ROLES = {
-  hero: { widths: [1440, 2400] },
+  hero: { widths: [800, 1440, 2400] },
   card: { widths: [800, 1440] },
 } as const;
 export type ScreenshotRole = keyof typeof SCREENSHOT_ROLES;

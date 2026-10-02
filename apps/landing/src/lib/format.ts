@@ -1,7 +1,7 @@
 import { PRICING_CURRENCY } from "@/config/pricing";
 import type { LandingLocale } from "@/config/site";
 
-const INTL_LOCALE: Record<LandingLocale, string> = { en: "en-US", it: "it-IT" };
+const INTL_LOCALE: Record<LandingLocale, string> = { en: "en-US", it: "it-IT", es: "es-ES" };
 
 /**
  * `useGrouping: "always"` matters: Italian CLDR data groups 4-digit numbers only from some ICU

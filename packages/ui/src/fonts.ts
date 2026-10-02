@@ -4,5 +4,5 @@
  * glyphs (Latin and Latin Extended, enough for en/it/es). Apply both `variable` classes on
  * <html>; tokens.css reads `--font-geist-sans` and `--font-geist-mono`.
  */
-export { GeistSans } from "geist/font/sans";
+export { GeistSans } from "./font-sans";
 export { GeistMono } from "geist/font/mono";
