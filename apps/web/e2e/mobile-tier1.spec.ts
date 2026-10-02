@@ -88,8 +88,9 @@ test("operations finds an order by phone, changes its status, adds a note and ed
     break;
   }
   expect(name).not.toBe("");
-  // search the list with the local number, as the customer would dictate it
-  await page.goto(`${HH}/orders`);
+  // search the list with the local number, as the customer would dictate it; from the same filtered list,
+  // because a subscriber's phone also matches every renewal order and this one may not be on the first page
+  await page.goto(`${HH}/orders?status=confirmed&payment=card&paymentStatus=paid`);
   const local = phone.replace(/^\+1/, "");
   await page.getByRole("searchbox").fill(`${local.slice(0, 3)} ${local.slice(3, 6)} ${local.slice(6)}`);
   await page.getByRole("button", { name: /^Search$|^Cerca$/ }).click();
