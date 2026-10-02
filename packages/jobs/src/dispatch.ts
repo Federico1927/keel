@@ -9,7 +9,7 @@ export async function runJob(queue: QueueName, data: unknown, enqueue: Enqueue):
     case QUEUES.webhookProcess: return handleWebhook(data as WebhookJob);
     case QUEUES.syncOrders: return handleSyncOrders(data as SyncOrdersJob, enqueue);
     case QUEUES.syncCatalog: return handleSyncCatalog(data as SyncCatalogJob, enqueue);
-    case QUEUES.syncAds: return handleSyncAds(data as SyncAdsJob);
+    case QUEUES.syncAds: return handleSyncAds(data as SyncAdsJob, enqueue);
     case QUEUES.syncPayouts: return handleSyncPayouts(data as SyncPayoutsJob, enqueue);
     case QUEUES.syncReturns: return handleSyncReturns(data as SyncReturnsJob, enqueue);
     case QUEUES.platformWrite: return handlePlatformWrite(data as PlatformWriteJob);

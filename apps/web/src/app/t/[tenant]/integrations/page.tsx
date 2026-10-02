@@ -8,6 +8,7 @@ import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageH
 import { requirePage } from "@/server/tenant";
 import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { ProviderActions, WebhookControls, WebhookRowAction } from "./controls";
+import { GoogleWriteAccessToggle } from "./write-access";
 
 const PROVIDERS = ["shopify", "meta", "google", "anthropic"] as const;
 const SLOTS = ["messaging", "warehouse", "carrier"] as const;
@@ -68,6 +69,7 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
                     ))}
                   </ul>
                 )}
+                {p === "google" && connected && <GoogleWriteAccessToggle slug={tenant} enabled={(row?.config as { writeAccess?: boolean } | undefined)?.writeAccess === true} canManage={canManage} />}
                 <ProviderActions slug={tenant} provider={p} connected={connected} mock={mock} canManage={canManage} />
                 <p className="text-xs"><Link href={`${base}/guide/${p}`} className="underline-offset-4 hover:underline">{t("open_guide")}</Link></p>
               </CardContent>

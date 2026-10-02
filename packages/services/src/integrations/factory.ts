@@ -1,5 +1,5 @@
 import { and, eq, gte, inArray, isNotNull, schema, sql } from "@keel/db";
-import { AnthropicLlmProvider, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, PROCESSOR_GATEWAYS, ShopifyCommercePlatform, type MockPaymentOrder, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials, MockCarrierProvider, type CarrierProvider } from "@keel/integrations";
+import { AnthropicLlmProvider, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, type MockAdsStructure, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, PROCESSOR_GATEWAYS, ShopifyCommercePlatform, type MockPaymentOrder, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type ShopifyCredentials, MockCarrierProvider, type CarrierProvider } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 
 export interface PlatformTenant {
@@ -80,19 +80,47 @@ async function mockPaymentOrders(ctx: ServiceContext, tenantId: string): Promise
   return rows.map((o) => ({ externalId: o.externalId!, placedAt: o.placedAt, totalMinor: o.totalMinor, refundedMinor: o.paymentStatus === "refunded" ? o.totalMinor : o.refundedMinor, refundedAt: o.cancelledAt ?? (o.refundedAt ? new Date(o.refundedAt) : null), gateways: o.gateways }));
 }
 
+/** Whether Keel may write to the ads platform below the campaign: always on Meta, on Google only once the tenant granted the write scope (`integrations.config.writeAccess`). */
+export function adsWriteAccess(provider: string, row: { config: unknown } | null): boolean {
+  if (provider === "meta") return true;
+  return provider === "google" && (row?.config as { writeAccess?: unknown } | null)?.writeAccess === true;
+}
+
 export async function getAdsPlatformFor(ctx: ServiceContext, tenant: PlatformTenant, provider: "meta" | "google"): Promise<AdsPlatform> {
   const row = await integrationRow(ctx, provider);
+  const writes = adsWriteAccess(provider, row);
   if (isLive(row)) {
     if (provider === "meta") return new MetaAdsPlatform(decryptJson<MetaCredentials>(row!.credentialsEncrypted!));
-    return new GoogleAdsPlatform(decryptJson<GoogleAdsCredentials>(row!.credentialsEncrypted!));
+    return new GoogleAdsPlatform(decryptJson<GoogleAdsCredentials>(row!.credentialsEncrypted!), { writeEnabled: writes });
   }
-  const key = `${tenant.id}:${provider}`;
+  const key = `${tenant.id}:${provider}:${writes ? "rw" : "ro"}`;
   const cached = adsMocks.get(key);
   if (cached) return cached;
   const campaigns = await ctx.tx.select().from(schema.campaigns).where(and(eq(schema.campaigns.tenantId, tenant.id), eq(schema.campaigns.platform, provider)));
-  const platform = new MockAdsPlatform({ provider, currency: tenant.currency, readOnly: provider === "google", campaigns: campaigns.map((c) => ({ externalId: c.externalId, accountExternalId: c.accountExternalId ?? "", name: c.name, status: c.status as "active" | "paused" | "archived", objective: c.objective, dailyBudgetMinor: c.dailyBudgetMinor, currency: c.currency, platformCreatedAt: c.platformCreatedAt })) });
+  const platform = new MockAdsPlatform({ provider, currency: tenant.currency, readOnly: provider === "google", adWrites: writes, structure: await mockAdsStructure(ctx, tenant.id, provider), campaigns: campaigns.map((c) => ({ externalId: c.externalId, accountExternalId: c.accountExternalId ?? "", name: c.name, status: c.status as "active" | "paused" | "archived", objective: c.objective, dailyBudgetMinor: c.dailyBudgetMinor, currency: c.currency, platformCreatedAt: c.platformCreatedAt })) });
   adsMocks.set(key, platform);
   return platform;
+}
+
+/** The tenant's ad sets, ads, assets, keywords and search terms as the simulator reports them, so a mock sync updates the same rows. */
+async function mockAdsStructure(ctx: ServiceContext, tenantId: string, provider: string): Promise<MockAdsStructure> {
+  const camps = new Map((await ctx.tx.select({ id: schema.campaigns.id, ext: schema.campaigns.externalId }).from(schema.campaigns).where(and(eq(schema.campaigns.tenantId, tenantId), eq(schema.campaigns.platform, provider)))).map((c) => [c.id, c.ext]));
+  const sets = await ctx.tx.select().from(schema.adSets).where(and(eq(schema.adSets.tenantId, tenantId), eq(schema.adSets.platform, provider)));
+  const setExt = new Map(sets.map((s) => [s.id, s.externalId]));
+  const ads = await ctx.tx.select().from(schema.adCreatives).where(and(eq(schema.adCreatives.tenantId, tenantId), eq(schema.adCreatives.platform, provider)));
+  const adExt = new Map(ads.map((a) => [a.id, a.externalId]));
+  const assets = await ctx.tx.select().from(schema.adAssets).where(and(eq(schema.adAssets.tenantId, tenantId), eq(schema.adAssets.platform, provider)));
+  const keywords = await ctx.tx.select().from(schema.adKeywords).where(and(eq(schema.adKeywords.tenantId, tenantId), eq(schema.adKeywords.platform, provider)));
+  const kwExt = new Map(keywords.map((k) => [k.id, k.externalId]));
+  const terms = await ctx.tx.select({ keywordId: schema.adSearchTerms.keywordId, text: schema.adSearchTerms.text }).from(schema.adSearchTerms).where(and(and(eq(schema.adSearchTerms.tenantId, tenantId), eq(schema.adSearchTerms.platform, provider)), eq(schema.adSearchTerms.isOther, false)));
+  const st = (s: string) => (s === "paused" ? "paused" : s === "archived" ? "archived" : "active") as "active" | "paused" | "archived";
+  return {
+    adSets: sets.map((s) => ({ externalId: s.externalId, campaignExternalId: camps.get(s.campaignId) ?? "", name: s.name, status: st(s.status), optimizationGoal: s.optimizationGoal, dailyBudgetMinor: s.dailyBudgetMinor })),
+    ads: ads.map((a) => ({ externalId: a.externalId, adSetExternalId: a.adSetId ? (setExt.get(a.adSetId) ?? null) : a.adsetExternalId, campaignExternalId: camps.get(a.campaignId) ?? "", name: a.name, status: st(a.status), format: a.format, headline: a.headline, body: a.body, finalUrl: a.finalUrl, urlTags: a.urlTags, thumbnailUrl: a.thumbnailUrl })),
+    assets: assets.map((a) => ({ assetExternalId: a.assetExternalId, adExternalId: a.creativeId ? (adExt.get(a.creativeId) ?? null) : null, adSetExternalId: a.adSetId ? (setExt.get(a.adSetId) ?? null) : null, campaignExternalId: camps.get(a.campaignId) ?? "", type: a.type as "text" | "image" | "video", fieldType: a.fieldType, text: a.textContent, url: a.url, performanceLabel: a.performanceLabel })),
+    keywords: keywords.map((k) => ({ externalId: k.externalId, adSetExternalId: k.adSetId ? (setExt.get(k.adSetId) ?? null) : null, campaignExternalId: camps.get(k.campaignId) ?? "", text: k.text, matchType: k.matchType as "exact" | "phrase" | "broad", qualityScore: k.qualityScore, status: st(k.status), negative: k.negative })),
+    searchTerms: terms.filter((t) => t.keywordId && kwExt.has(t.keywordId)).map((t) => ({ keywordExternalId: kwExt.get(t.keywordId!)!, text: t.text })),
+  };
 }
 
 /** The mock commerce simulator for a tenant, when one is cached (webhook simulation, tests). */

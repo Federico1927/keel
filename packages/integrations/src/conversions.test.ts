@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { fixtureFetch } from "./http";
+import { GOOGLE_ADS_API_BASE } from "./google";
 import { GoogleConversionsSink, MetaConversionsSink, MockConversionSink, fbcFromClickId, googleConversionPayload, hashUserData, metaEventPayload, type ConversionEvent } from "./conversions";
 
 const at = (key: string, body: unknown) => fixtureFetch([{ match: (url, init) => `${init?.method ?? "GET"} ${url.split("?")[0]}` === key, body }]);
@@ -49,7 +50,7 @@ describe("Google click conversions", () => {
     const empty = { ...event, eventId: "keel-order-5003", clickIds: {}, user: {} };
     const sink = new GoogleConversionsSink({ developerToken: "d", clientId: "c", clientSecret: "s", refreshToken: "r", customerId: "123-456-7890" }, "777", {
       accessToken: "at",
-      fetchImpl: at("POST https://googleads.googleapis.com/v18/customers/1234567890:uploadClickConversions", { partialFailureError: { message: "1 failed", details: [{ errors: [{ message: "The click was too old", location: { fieldPathElements: [{ fieldName: "conversions", index: 1 }] } }] }] } }),
+      fetchImpl: at(`POST ${GOOGLE_ADS_API_BASE}/customers/1234567890:uploadClickConversions`, { partialFailureError: { message: "1 failed", details: [{ errors: [{ message: "The click was too old", location: { fieldPathElements: [{ fieldName: "conversions", index: 1 }] } }] }] } }),
     });
     const r = await sink.send([event, second, empty]);
     expect(r[0]).toEqual({ eventId: "keel-order-5001", ok: true });

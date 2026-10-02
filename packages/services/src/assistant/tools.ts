@@ -1,54 +1,33 @@
 import { z } from "zod";
-import { canViewPage, isPageEnabled, type PageKey, type TenantRole } from "@keel/config";
-import { assistantPeriod, type AssistantCitation, type CitationFigure, type CitationRow } from "@keel/core";
-import type { ServiceContext } from "../context";
-import { kpisForPeriod, pnlForPeriod, productPerformance, type AnalyticsTenant } from "../analytics";
+import type { TenantRole } from "@keel/config";
+import { assistantPeriod, type CitationFigure, type CitationRow } from "@keel/core";
+import { kpisForPeriod, pnlForPeriod, productPerformance } from "../analytics";
 import { campaignsWithEconomics } from "../campaigns";
 import { returnsAnalytics } from "../returns";
 import { predictionOverview } from "../crm/predictions";
 import { replenishmentPlan } from "../planning";
+import { majorUnits, queryString, roundTo, toolAllowed, toolInputSchema, type KeelTool, type ToolResult, type ToolRuntime } from "../tools";
 
 /**
- * Read-only tools of the AI assistant. Each one wraps an existing analytics service, is
- * reachable only when the user's role can see the page it reads and the page's module is on,
- * and returns two things: compact data for the model (amounts in major units of the store
- * currency) and a citation for the user (figures, period, filters and the page they come from).
+ * Read-only analytics tools of the AI assistant, on the shared tool layer (`../tools`): the remote
+ * MCP server offers the same tools. Each one wraps an existing analytics service, is reachable only
+ * when the user's role can see the page it reads and the page's module is on, and returns two
+ * things: compact data for the model (amounts in major units of the store currency) and a citation
+ * for the user (figures, period, filters and the page they come from).
  */
 
-export interface AssistantToolRuntime {
-  ctx: ServiceContext;
-  tenant: AnalyticsTenant;
-  slug: string;
-  today: Date;
-}
+export type AssistantToolRuntime = ToolRuntime;
+export type AssistantToolResult = ToolResult;
+export type AssistantTool<S extends z.ZodType = z.ZodType> = KeelTool<S>;
 
-export interface AssistantToolResult {
-  data: unknown;
-  citation: AssistantCitation;
-}
-
-export interface AssistantTool<S extends z.ZodType = z.ZodType> {
-  name: string;
-  page: PageKey;
-  description: string;
-  input: S;
-  run(rt: AssistantToolRuntime, input: z.infer<S>): Promise<AssistantToolResult>;
-}
+const major = majorUnits;
+const round = roundTo;
+const qs = queryString;
+const readTool = { scope: "read", effect: "read" } as const;
 
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).describe("Date as YYYY-MM-DD, inclusive");
 const periodInput = { from: day.optional().describe("First day, inclusive (YYYY-MM-DD). Defaults to 29 days before `to`."), to: day.optional().describe("Last day, inclusive (YYYY-MM-DD). Defaults to today.") };
 const limit = (max: number, fallback: number) => z.number().int().min(1).max(max).default(fallback).describe(`How many rows, 1 to ${max}`);
-
-function fractionDigits(currency: string): number {
-  return new Intl.NumberFormat("en", { style: "currency", currency }).resolvedOptions().maximumFractionDigits ?? 2;
-}
-/** Minor units to the decimal amount the model reads (and repeats) as money. */
-function major(minor: number | null | undefined, currency: string): number | null {
-  if (minor === null || minor === undefined) return null;
-  return Math.round(minor) / 10 ** fractionDigits(currency);
-}
-const round = (v: number | null | undefined, digits = 4) => (v === null || v === undefined || !Number.isFinite(v) ? null : Math.round(v * 10 ** digits) / 10 ** digits);
-const qs = (p: Record<string, string | undefined>) => new URLSearchParams(Object.entries(p).filter((e): e is [string, string] => !!e[1])).toString();
 
 function periodOf(rt: AssistantToolRuntime, input: { from?: string; to?: string }) {
   const p = assistantPeriod(input, rt.today);
@@ -57,6 +36,7 @@ function periodOf(rt: AssistantToolRuntime, input: { from?: string; to?: string 
 
 const getKpis: AssistantTool<z.ZodObject<typeof periodInput>> = {
   name: "get_kpis",
+  ...readTool,
   page: "analytics",
   description: "Sales KPIs for a period, each with its change against the previous period of the same length: net revenue (after tax and refunds), orders, average order value, contribution margin, cancellation rate, return rate, new and returning customers. Use it for questions on how sales or the business went.",
   input: z.object(periodInput),
@@ -98,6 +78,7 @@ const getKpis: AssistantTool<z.ZodObject<typeof periodInput>> = {
 
 const getPnl: AssistantTool<z.ZodObject<typeof periodInput>> = {
   name: "get_profit_and_loss",
+  ...readTool,
   page: "analytics",
   description: "Profit and loss for a period, counting only orders that were not cancelled or returned: gross revenue, tax, net revenue, cost of goods, gross margin, shipping, payment fees, return costs, contribution margin, ad spend, fixed costs and operating profit. Use it for questions on profit, margin or costs.",
   input: z.object(periodInput),
@@ -142,6 +123,7 @@ const getPnl: AssistantTool<z.ZodObject<typeof periodInput>> = {
 const productsInput = z.object({ ...periodInput, sort: z.enum(["revenue", "units", "margin", "return_rate"]).default("revenue").describe("Ranking"), limit: limit(20, 10) });
 const getTopProducts: AssistantTool<typeof productsInput> = {
   name: "get_top_products",
+  ...readTool,
   page: "analytics",
   description: "Products ranked over a period by revenue, units sold, gross margin or return rate, with units, orders, revenue, margin and returned units each. Use it for best or worst sellers, or which products earn or lose the most.",
   input: productsInput,
@@ -169,6 +151,7 @@ const getTopProducts: AssistantTool<typeof productsInput> = {
 const campaignsInput = z.object({ ...periodInput, platform: z.enum(["meta", "google"]).optional().describe("Only one ad platform"), sort: z.enum(["profit", "loss", "spend", "roas"]).default("spend").describe("Ranking: profit = most profitable first, loss = least profitable first"), limit: limit(25, 10) });
 const getCampaigns: AssistantTool<typeof campaignsInput> = {
   name: "get_campaigns",
+  ...readTool,
   page: "campaigns",
   description: "Ad campaigns (Meta, Google) over a period with spend, attributed orders and revenue, profit after product costs (only orders not cancelled or returned), ROAS, the suggested action (ok, pause, resume, consider_pause, consider_resume, pause_stock = pause because the products are running out, consider_stock) with its reason, and the stock of the linked products. Use it for questions on ads, ROAS, which campaigns lose money or what to pause.",
   input: campaignsInput,
@@ -207,6 +190,7 @@ const getCampaigns: AssistantTool<typeof campaignsInput> = {
 
 const getReturns: AssistantTool<z.ZodObject<typeof periodInput>> = {
   name: "get_returns_summary",
+  ...readTool,
   page: "returns",
   description: "Returns requested in a period: count, return rate on orders, amount refunded, value kept through exchanges and store credit, the reasons and the products with the highest return rate. Use it for questions on returns, refunds or why customers send items back.",
   input: z.object(periodInput),
@@ -232,6 +216,8 @@ const getReturns: AssistantTool<z.ZodObject<typeof periodInput>> = {
 const predictionsInput = z.object({ list: z.enum(["slipping", "due_soon", "top"]).default("slipping").describe("slipping = valuable customers at risk of churning; due_soon = expected to order within 14 days; top = highest predicted value next year"), limit: limit(15, 5) });
 const getPredictions: AssistantTool<typeof predictionsInput> = {
   name: "get_customer_predictions",
+  ...readTool,
+  piiNameKeys: ["name"],
   page: "customers",
   description: "Customer predictions from the purchase model (refreshed nightly): customers by churn risk, orders and value expected over the next year, and a list of customers — valuable ones at risk, those due to order soon, or those with the highest predicted value. Use it for churn, retention or who to contact.",
   input: predictionsInput,
@@ -266,6 +252,7 @@ const getPredictions: AssistantTool<typeof predictionsInput> = {
 const stockInput = z.object({ limit: limit(25, 10) });
 const getStockRisk: AssistantTool<typeof stockInput> = {
   name: "get_stock_risk",
+  ...readTool,
   page: "inventory",
   description: "Variants that should be reordered now, soonest stock-out first: units available and incoming, days of cover at the current sales pace, expected stock-out date, suggested reorder quantity and supplier. Use it for stock, stock-outs or what to reorder.",
   input: stockInput,
@@ -292,11 +279,9 @@ export const ASSISTANT_TOOLS: readonly AssistantTool[] = [getKpis, getPnl, getTo
 
 /** The tools a user may call: their role must see the page the tool reads, and the page's module must be on. */
 export function assistantToolsFor(role: TenantRole, activeAddons: readonly string[]): AssistantTool[] {
-  return ASSISTANT_TOOLS.filter((t) => isPageEnabled(t.page, activeAddons) && canViewPage(role, t.page));
+  return ASSISTANT_TOOLS.filter((t) => toolAllowed(t, { role, activeAddons }));
 }
 
 export function toolDefinition(t: AssistantTool): { name: string; description: string; inputSchema: Record<string, unknown> } {
-  const schema = z.toJSONSchema(t.input, { io: "input" }) as Record<string, unknown>;
-  delete schema.$schema;
-  return { name: t.name, description: t.description, inputSchema: schema };
+  return { name: t.name, description: t.description, inputSchema: toolInputSchema(t) };
 }

@@ -28,6 +28,9 @@ export default async function SettingsPage({ params }: { params: Promise<{ tenan
             <Button asChild variant="outline">
               <Link href={`/t/${tenant}/settings/fulfilment`} data-testid="fulfilment-settings-link">{t("fulfilment_link")}</Link>
             </Button>
+            <Button asChild variant="outline">
+              <Link href={`/t/${tenant}/settings/ai`} data-testid="ai-settings-link">{t("ai_link")}</Link>
+            </Button>
             {canDo(ctx.role, "export_tenant_data") && (
               <Button asChild variant="outline">
                 <Link href={`/t/${tenant}/settings/data-export`} data-testid="data-export-link">{t("data_export_link")}</Link>

@@ -61,6 +61,7 @@ export const ACTIONS = [
   "record_payment",
   "refund_order",
   "export_tenant_data",
+  "manage_dashboard",
 ] as const;
 export type ActionKey = (typeof ACTIONS)[number];
 
@@ -197,6 +198,8 @@ const ACTION_PAGE: Record<ActionKey, PageKey> = {
   refund_order: "orders",
   /** Full data export of the tenant (GDPR, leaving the platform): owner only. */
   export_tenant_data: "settings",
+  /** The tenant's dashboards (home, role variants, extra dashboards), custom metrics and targets: issue #43's `dashboard.manage`. */
+  manage_dashboard: "dashboard",
 };
 
 /** Actions restricted to owner/admin regardless of page level. */
@@ -204,6 +207,7 @@ const ADMIN_ONLY_ACTIONS: ReadonlySet<ActionKey> = new Set([
   "manage_integrations",
   "manage_users",
   "manage_settings",
+  "manage_dashboard",
 ]);
 
 /** Actions only the owner may take (an impersonating super-admin acts as owner). */

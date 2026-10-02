@@ -12,7 +12,7 @@ async function chunked<T>(ids: string[], fn: (chunk: string[]) => Promise<T[]>):
 }
 
 /** Return costs per order: labels and handling of its returns whose goods came back, net of deductions. */
-async function returnCostsByOrder(ctx: ServiceContext, tenant: AnalyticsTenant, orderIds: string[]): Promise<Map<string, number>> {
+export async function returnCostsByOrder(ctx: ServiceContext, tenant: AnalyticsTenant, orderIds: string[]): Promise<Map<string, number>> {
   const rows = await chunked(orderIds, (chunk) => ctx.tx.select({ orderId: schema.returnRequests.orderId, returnless: schema.returnRequests.returnless, deductionMinor: schema.returnRequests.deductionMinor }).from(schema.returnRequests).where(and(eq(schema.returnRequests.tenantId, ctx.tenantId), isNotNull(schema.returnRequests.receivedAt), inArray(schema.returnRequests.orderId, chunk))));
   const byOrder = new Map<string, { goodsBack: boolean; returnless: boolean; deductionMinor: number }[]>();
   for (const r of rows) byOrder.set(r.orderId, [...(byOrder.get(r.orderId) ?? []), { goodsBack: true, returnless: r.returnless, deductionMinor: r.deductionMinor }]);

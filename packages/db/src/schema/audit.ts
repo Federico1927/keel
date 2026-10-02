@@ -17,7 +17,7 @@ export const auditLogs = pgTable(
     id: id(),
     tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
     actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
-    /** `user` | `system` | `super_admin` | `impersonation` */
+    /** `user` | `system` | `super_admin` | `impersonation` | `mcp` */
     actorType: text("actor_type").notNull().default("user"),
     impersonatedBy: uuid("impersonated_by").references(() => users.id, { onDelete: "set null" }),
     action: text("action").notNull(),

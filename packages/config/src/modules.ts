@@ -1,6 +1,8 @@
+import { PLAN_KEYS, type PlanKey } from "./plans";
+
 /**
- * Module registry. `core.*` modules are always on for every plan; `addon.*`
- * modules are activated per tenant by the super-admin.
+ * Module registry. `core.*` modules are on for every plan from their `minPlan` (most: every plan);
+ * `addon.*` modules are activated per tenant by the super-admin.
  */
 export const CORE_MODULES = [
   "core.orders",
@@ -13,6 +15,7 @@ export const CORE_MODULES = [
   "core.discounts",
   "core.purchasing",
   "core.platform",
+  "core.mcp",
 ] as const;
 export type CoreModule = (typeof CORE_MODULES)[number];
 
@@ -38,6 +41,8 @@ export interface ModuleDefinition {
   pages: readonly string[];
   /** Monthly price in minor units for add-ons (null for core). */
   monthlyPriceMinor: number | null;
+  /** Lowest plan that includes a core module (checked server side); absent = every plan. */
+  minPlan?: PlanKey;
 }
 
 export const MODULES: Record<ModuleKey, ModuleDefinition> = {
@@ -51,6 +56,8 @@ export const MODULES: Record<ModuleKey, ModuleDefinition> = {
   "core.discounts": { key: "core.discounts", nameKey: "modules.core.discounts.name", descriptionKey: "modules.core.discounts.description", availability: "implemented", pages: ["discounts"], monthlyPriceMinor: null },
   "core.purchasing": { key: "core.purchasing", nameKey: "modules.core.purchasing.name", descriptionKey: "modules.core.purchasing.description", availability: "implemented", pages: ["purchasing"], monthlyPriceMinor: null },
   "core.platform": { key: "core.platform", nameKey: "modules.core.platform.name", descriptionKey: "modules.core.platform.description", availability: "implemented", pages: ["integrations", "settings", "users", "audit", "notifications", "tasks", "support"], monthlyPriceMinor: null },
+  /** Remote MCP server: AI clients (Claude, ChatGPT, Cursor…) read the tenant's data as the connected user (#21). */
+  "core.mcp": { key: "core.mcp", nameKey: "modules.core.mcp.name", descriptionKey: "modules.core.mcp.description", availability: "implemented", pages: [], monthlyPriceMinor: null, minPlan: "growth" },
   "addon.cod": { key: "addon.cod", nameKey: "modules.addon.cod.name", descriptionKey: "modules.addon.cod.description", availability: "implemented", pages: ["cod_queue", "cod_settings"], monthlyPriceMinor: 19900 },
   /** Messages to segments with a control group: holdout on segments, treated/control groups, uplift. WhatsApp providers (e.g. Spoki) plug in as its channel. */
   "addon.customer_campaigns": { key: "addon.customer_campaigns", nameKey: "modules.addon.customer_campaigns.name", descriptionKey: "modules.addon.customer_campaigns.description", availability: "implemented", pages: ["customer_campaigns"], monthlyPriceMinor: 9900 },
@@ -77,4 +84,13 @@ export function isPageEnabled(page: string, activeAddons: readonly string[]): bo
   if (!mod) return true;
   if (!isAddonModule(mod)) return true;
   return activeAddons.includes(mod);
+}
+
+/** A module is part of a plan when it is core and the plan is at or above its `minPlan`; unknown plans get only plan-less modules. */
+export function isModuleInPlan(key: ModuleKey, planKey: string): boolean {
+  const def = MODULES[key];
+  if (isAddonModule(key)) return false;
+  if (!def.minPlan) return true;
+  const at = PLAN_KEYS.indexOf(planKey as PlanKey);
+  return at >= 0 && at >= PLAN_KEYS.indexOf(def.minPlan);
 }

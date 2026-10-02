@@ -78,6 +78,18 @@ export const tenantSettingsSchema = z.object({
   /** Where delivery-exception instructions go by email when no carrier connector is available (the carrier's customer service). */
   carrierInstructionEmail: z.string().email().max(200).nullable().default(null),
   syncDelayGraceMinutes: z.number().int().min(0).max(10_080).default(60),
+  /** MCP server (#21): AI clients may connect to this workspace (opt-in by an owner or admin; the plan must include `core.mcp`). */
+  mcpEnabled: z.boolean().default(false),
+  /** MCP: show customer names, emails, phones and addresses unmasked to roles allowed to see them (off = always masked). */
+  mcpFullPii: z.boolean().default(false),
+  /** Dashboards (issue #43): users may copy a tenant dashboard into a personal one; the tenant's dashboards stay the reference. */
+  personalDashboards: z.boolean().default(true),
+  /** Ads below the campaign (issue #40): daily rows of ad sets, assets, keywords and search terms are kept this many days, then rolled up to months. */
+  adsDailyRetentionDays: z.number().int().min(30).max(730).default(90),
+  /** Search terms under this many impressions (per day without spend, per month at roll-up) are grouped under "(other)". */
+  adsSearchTermMinImpressions: z.number().int().min(0).max(100_000).default(10),
+  /** Spend an ad, asset or search term must reach in the period before Keel suggests pausing it or excluding it. */
+  adsMinSpendMinor: z.number().int().min(0).default(2000),
 });
 export type TenantSettings = z.infer<typeof tenantSettingsSchema>;
 

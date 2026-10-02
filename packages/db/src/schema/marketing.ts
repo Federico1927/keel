@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, doublePrecision, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { createdAt, tenantIsolation, updatedAt } from "./_common";
 import { tenantColumns } from "./_tenant";
 import { products } from "./catalog";
@@ -158,7 +158,28 @@ export const touchpoints = pgTable(
   (t) => [index("touchpoints_tenant_order_idx").on(t.tenantId, t.orderId), index("touchpoints_tenant_customer_idx").on(t.tenantId, t.customerId, t.occurredAt), index("touchpoints_tenant_time_idx").on(t.tenantId, t.occurredAt), tenantIsolation("touchpoints")],
 ).enableRLS();
 
-/** One ad / creative per row (Meta ad, Google ad), with the naming-convention tags used for grouping. */
+/** Meta ad set or Google ad group (issue #40). */
+export const adSets = pgTable(
+  "ad_sets",
+  {
+    ...tenantColumns(),
+    campaignId: uuid("campaign_id")
+      .notNull()
+      .references(() => campaigns.id, { onDelete: "cascade" }),
+    platform: text("platform").notNull(),
+    externalId: text("external_id").notNull(),
+    name: text("name").notNull(),
+    status: text("status").notNull().default("active"),
+    optimizationGoal: text("optimization_goal"),
+    dailyBudgetMinor: integer("daily_budget_minor"),
+    syncedAt: timestamp("synced_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("ad_sets_uq").on(t.tenantId, t.platform, t.externalId), index("ad_sets_campaign_idx").on(t.tenantId, t.campaignId), tenantIsolation("ad_sets")],
+).enableRLS();
+
+/** One ad / creative per row (Meta ad, Google ad), with the naming-convention tags used for grouping. Issue #40 made it the `ads` level (ad set link, URL, UTM template). */
 export const adCreatives = pgTable(
   "ad_creatives",
   {
@@ -180,6 +201,10 @@ export const adCreatives = pgTable(
     thumbnailUrl: text("thumbnail_url"),
     status: text("status").notNull().default("active"),
     tags: jsonb("tags").notNull().default(sql`'[]'::jsonb`),
+    adSetId: uuid("ad_set_id").references(() => adSets.id, { onDelete: "set null" }),
+    finalUrl: text("final_url"),
+    /** Meta URL parameters / Google tracking template: where the UTM template lives (checked by `checkUtmTemplate`). */
+    urlTags: text("url_tags"),
     syncedAt: timestamp("synced_at", { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
@@ -205,6 +230,115 @@ export const adCreativeMetricsDaily = pgTable(
     createdAt: createdAt(),
   },
   (t) => [uniqueIndex("ad_creative_metrics_daily_uq").on(t.creativeId, t.date), index("ad_creative_metrics_tenant_date_idx").on(t.tenantId, t.date), tenantIsolation("ad_creative_metrics_daily")],
+).enableRLS();
+
+/** Text, image or video piece of an ad the platform reports on: RSA headline/description, dynamic-creative body/title/image/video. */
+export const adAssets = pgTable(
+  "ad_assets",
+  {
+    ...tenantColumns(),
+    campaignId: uuid("campaign_id")
+      .notNull()
+      .references(() => campaigns.id, { onDelete: "cascade" }),
+    adSetId: uuid("ad_set_id").references(() => adSets.id, { onDelete: "set null" }),
+    creativeId: uuid("creative_id").references(() => adCreatives.id, { onDelete: "cascade" }),
+    platform: text("platform").notNull(),
+    /** `<ad id>|<field type>|<asset id>`: the same asset in two ads (or two fields) is two rows. */
+    externalId: text("external_id").notNull(),
+    assetExternalId: text("asset_external_id").notNull(),
+    /** text | image | video */
+    type: text("type").notNull().default("text"),
+    /** headline | description | body | title | image | video | other */
+    fieldType: text("field_type").notNull().default("other"),
+    textContent: text("text_content"),
+    url: text("url"),
+    performanceLabel: text("performance_label"),
+    syncedAt: timestamp("synced_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("ad_assets_uq").on(t.tenantId, t.platform, t.externalId), index("ad_assets_creative_idx").on(t.tenantId, t.creativeId), index("ad_assets_campaign_idx").on(t.tenantId, t.campaignId), tenantIsolation("ad_assets")],
+).enableRLS();
+
+/** Google keywords (ad group criteria). */
+export const adKeywords = pgTable(
+  "ad_keywords",
+  {
+    ...tenantColumns(),
+    campaignId: uuid("campaign_id")
+      .notNull()
+      .references(() => campaigns.id, { onDelete: "cascade" }),
+    adSetId: uuid("ad_set_id").references(() => adSets.id, { onDelete: "set null" }),
+    platform: text("platform").notNull(),
+    /** `adGroupId~criterionId` */
+    externalId: text("external_id").notNull(),
+    text: text("text").notNull(),
+    /** exact | phrase | broad */
+    matchType: text("match_type").notNull().default("broad"),
+    qualityScore: integer("quality_score"),
+    status: text("status").notNull().default("active"),
+    negative: boolean("negative").notNull().default(false),
+    syncedAt: timestamp("synced_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("ad_keywords_uq").on(t.tenantId, t.platform, t.externalId), index("ad_keywords_campaign_idx").on(t.tenantId, t.campaignId), tenantIsolation("ad_keywords")],
+).enableRLS();
+
+/** Queries that triggered the ads (Google search terms); `is_other` marks the bucket of terms under the minimum impressions. */
+export const adSearchTerms = pgTable(
+  "ad_search_terms",
+  {
+    ...tenantColumns(),
+    campaignId: uuid("campaign_id")
+      .notNull()
+      .references(() => campaigns.id, { onDelete: "cascade" }),
+    adSetId: uuid("ad_set_id").references(() => adSets.id, { onDelete: "set null" }),
+    keywordId: uuid("keyword_id").references(() => adKeywords.id, { onDelete: "set null" }),
+    platform: text("platform").notNull(),
+    /** `<ad group id>|<normalized text>` (campaign id when the platform reports no ad group). */
+    externalId: text("external_id").notNull(),
+    text: text("text").notNull(),
+    matchType: text("match_type"),
+    /** added | excluded | none: whether the term is already a keyword or a negative. */
+    status: text("status").notNull().default("none"),
+    isOther: boolean("is_other").notNull().default(false),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("ad_search_terms_uq").on(t.tenantId, t.platform, t.externalId), index("ad_search_terms_campaign_idx").on(t.tenantId, t.campaignId), index("ad_search_terms_text_idx").on(t.tenantId, t.text), tenantIsolation("ad_search_terms")],
+).enableRLS();
+
+/**
+ * Daily metrics of ad sets, assets, keywords and search terms (ads keep `ad_creative_metrics_daily`).
+ * `entity_id` points to the row of `entity_type`'s table (no foreign key: one table, four parents;
+ * the sync and the roll-up delete orphans). Daily rows older than the tenant's retention become one
+ * `grain = month` row per entity (date = first day of the month).
+ */
+export const adEntityMetricsDaily = pgTable(
+  "ad_entity_metrics_daily",
+  {
+    ...tenantColumns(),
+    /** ad_set | asset | keyword | search_term */
+    entityType: text("entity_type").notNull(),
+    entityId: uuid("entity_id").notNull(),
+    campaignId: uuid("campaign_id")
+      .notNull()
+      .references(() => campaigns.id, { onDelete: "cascade" }),
+    date: text("date").notNull(),
+    /** day | month */
+    grain: text("grain").notNull().default("day"),
+    spendMinor: integer("spend_minor").notNull().default(0),
+    impressions: integer("impressions").notNull().default(0),
+    clicks: integer("clicks").notNull().default(0),
+    reach: integer("reach").notNull().default(0),
+    conversions: doublePrecision("conversions").notNull().default(0),
+    conversionValueMinor: integer("conversion_value_minor").notNull().default(0),
+    videoViews3s: integer("video_views_3s").notNull().default(0),
+    videoCompletions: integer("video_completions").notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("ad_entity_metrics_daily_uq").on(t.entityType, t.entityId, t.grain, t.date), index("ad_entity_metrics_tenant_idx").on(t.tenantId, t.entityType, t.date), index("ad_entity_metrics_campaign_idx").on(t.tenantId, t.campaignId, t.date), tenantIsolation("ad_entity_metrics_daily")],
 ).enableRLS();
 
 /** Alert rules on a metric (threshold or anomaly), delivered in-app and optionally by email or Slack. */
@@ -263,6 +397,12 @@ export const customMetrics = pgTable(
     /** money | ratio | percent | number */
     format: text("format").notNull().default("number"),
     description: text("description"),
+    /** Order filters the bases are computed over (channel, country, payment method, product, campaign, platform, new/returning): `MetricFilters` in @keel/config. */
+    filters: jsonb("filters").notNull().default(sql`'{}'::jsonb`),
+    /** Drives the colour of the trend. */
+    higherIsBetter: boolean("higher_is_better").notNull().default(true),
+    /** Optional label per locale (`{ "it": "…" }`); `label` is shown otherwise. */
+    translations: jsonb("translations").notNull().default(sql`'{}'::jsonb`),
     createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
@@ -270,21 +410,50 @@ export const customMetrics = pgTable(
   (t) => [uniqueIndex("custom_metrics_uq").on(t.tenantId, t.key), tenantIsolation("custom_metrics")],
 ).enableRLS();
 
-/** Per-user dashboards: an ordered list of metric widgets (base or custom). */
+/** Monthly targets per metric (base key or `custom:<key>`); a month without its own row carries the latest earlier one. */
+export const metricTargets = pgTable(
+  "metric_targets",
+  {
+    ...tenantColumns(),
+    metric: text("metric").notNull(),
+    /** `YYYY-MM` in the tenant time zone. */
+    month: text("month").notNull(),
+    /** In the metric's unit: minor units for money, a fraction for percent. */
+    target: doublePrecision("target").notNull(),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("metric_targets_uq").on(t.tenantId, t.metric, t.month), tenantIsolation("metric_targets")],
+).enableRLS();
+
+/**
+ * Dashboards (issue #43). `scope`: `tenant` (the home or an extra dashboard everyone, or the roles
+ * listed, can open), `role` (a home variant for the roles listed), `personal` (one user's copy;
+ * `user_id` set). `layout_version` 1 rows are the old per-user `[{ metric }]` lists; version 2 stores
+ * widgets (`DashboardWidget` in @keel/config). `draft_widgets` holds unpublished edits.
+ */
 export const dashboards = pgTable(
   "dashboards",
   {
     ...tenantColumns(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+    scope: text("scope").notNull().default("personal"),
+    roles: text("roles").array().notNull().default(sql`'{}'::text[]`),
+    isHome: boolean("is_home").notNull().default(false),
+    layoutVersion: integer("layout_version").notNull().default(1),
     name: text("name").notNull(),
     widgets: jsonb("widgets").notNull().default(sql`'[]'::jsonb`),
+    draftWidgets: jsonb("draft_widgets"),
+    /** `{ period }`: the dashboard period widgets follow unless they have their own. */
+    settings: jsonb("settings").notNull().default(sql`'{}'::jsonb`),
     isDefault: boolean("is_default").notNull().default(false),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    updatedBy: uuid("updated_by").references(() => users.id, { onDelete: "set null" }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index("dashboards_user_idx").on(t.tenantId, t.userId), tenantIsolation("dashboards")],
+  (t) => [index("dashboards_user_idx").on(t.tenantId, t.userId), index("dashboards_scope_idx").on(t.tenantId, t.scope, t.isHome), tenantIsolation("dashboards")],
 ).enableRLS();
 
 /**

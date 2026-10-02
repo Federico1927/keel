@@ -91,7 +91,8 @@ export function Timeline({ events, locale, timezone, currency }: { events: Timel
               <div className="flex flex-wrap items-baseline gap-x-2">
                 <span className="font-medium">{te.has(e.type) ? te(e.type) : e.type}</span>
                 <span className="text-xs text-muted-foreground">
-                  {e.actorName ?? t(e.actorType === "integration" ? "integration" : "system")} · {formatDateTime(e.createdAt, locale, timezone)}
+                  {e.actorName ?? t(e.actorType === "integration" ? "integration" : "system")}
+                  {e.actorType === "mcp" && <> {t("via_mcp", { client: typeof e.metadata.mcpClient === "string" ? e.metadata.mcpClient : "AI" })}</>} · {formatDateTime(e.createdAt, locale, timezone)}
                 </span>
               </div>
               <DiffList diff={e.diff} />

@@ -1,7 +1,7 @@
 import { OPERATIONAL_TENANT_STATUSES, isTenantOperational, platformRetentionDays } from "@keel/config";
 import { parseTenantSettings } from "@keel/core";
 import { adminDb, and, eq, inArray, lte, schema, withTenant } from "@keel/db";
-import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome } from "@keel/services";
+import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, runAdsEntitySync, rollupAdEntityMetrics } from "@keel/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue } from "@keel/addon-cod";
 import { adsWindow, resyncJobsFor, type TenantExportJob, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob } from "./queues";
 
@@ -109,14 +109,30 @@ export async function handlePlatformWrite(job: PlatformWriteJob): Promise<void> 
   await executePlatformWrite(runner(tenant.id), tenant, job.writeId);
 }
 
-export async function handleSyncAds(job: SyncAdsJob): Promise<JobOutcome> {
+/**
+ * Campaigns and daily insights, then the levels below the campaign (issue #40) in resumable 7-day
+ * windows. A paused entity run (time budget, rate limit) re-enqueues itself, after the platform's wait.
+ */
+export async function handleSyncAds(job: SyncAdsJob, enqueue?: Enqueue): Promise<JobOutcome> {
   const tenant = await tenantRow(job.tenantId);
-  const r = await withTenant(tenant.id, async (tx) => {
+  let campaigns = 0, metrics = 0;
+  if (job.phase !== "entities") {
+    const r = await withTenant(tenant.id, async (tx) => {
+      const ctx = sys(tenant.id)(tx);
+      return runAdsSync(ctx, await getAdsPlatformFor(ctx, tenant, job.provider), { since: job.since, until: job.until });
+    });
+    if (r.error) throw new Error(r.error);
+    campaigns = r.campaigns;
+    metrics = r.metrics;
+  }
+  const settings = parseTenantSettings((await adminDb().select({ settings: schema.tenants.settings }).from(schema.tenants).where(eq(schema.tenants.id, tenant.id)).limit(1))[0]?.settings);
+  const e = await withTenant(tenant.id, async (tx) => {
     const ctx = sys(tenant.id)(tx);
-    return runAdsSync(ctx, await getAdsPlatformFor(ctx, tenant, job.provider), { since: job.since, until: job.until });
+    return runAdsEntitySync(ctx, await getAdsPlatformFor(ctx, tenant, job.provider), { since: job.since, until: job.until, budgetMs: 25_000, minImpressions: settings.adsSearchTermMinImpressions });
   });
-  if (r.error) throw new Error(r.error);
-  return { rows: r.campaigns + r.metrics, summary: { campaigns: r.campaigns, metrics: r.metrics } };
+  if (!e.finished && !e.error && enqueue) await enqueue("sync.ads", { ...job, phase: "entities" } satisfies SyncAdsJob, { singletonKey: `${job.tenantId}:${job.provider}:entities`, ...(e.rateLimited ? { startAfterSeconds: Math.ceil((e.retryAfterMs ?? 60_000) / 1000) } : {}) });
+  if (e.error) throw new Error(e.error);
+  return { rows: campaigns + metrics, summary: { campaigns, metrics, phase: job.phase ?? "campaigns", entitiesFinished: e.finished } };
 }
 
 /** Fan-out: one job per connected tenant/provider, deduplicated by singleton key. */
@@ -248,7 +264,12 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<JobOut
   if (job.kind === "retention") {
     // platform-wide window (KEEL_RETENTION_DAYS, default 14): finished history goes, failures stay until resolved
     const days = platformRetentionDays();
-    for (const t of await adminDb().select({ id: schema.tenants.id }).from(schema.tenants)) await withTenant(t.id, (tx) => purgeExpiredPlatformRows(sys(t.id)(tx), { days }));
+    for (const t of await adminDb().select({ id: schema.tenants.id, settings: schema.tenants.settings }).from(schema.tenants)) {
+      await withTenant(t.id, (tx) => purgeExpiredPlatformRows(sys(t.id)(tx), { days }));
+      // ads volume control (issue #40): daily rows past the tenant's window become months, rare search terms "(other)"
+      const settings = parseTenantSettings(t.settings);
+      await withTenant(t.id, (tx) => rollupAdEntityMetrics(sys(t.id)(tx), { retentionDays: settings.adsDailyRetentionDays, minImpressions: settings.adsSearchTermMinImpressions }));
+    }
     await purgeEmailRows(adminDb(), { days });
     // #32: audit rows past each plan's window (batched, one job_runs row per tenant), expired export files, old job history
     const audit = await purgeExpiredAudit(adminDb());

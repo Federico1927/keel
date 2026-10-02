@@ -50,7 +50,7 @@ Rules the graph enforces:
 
 ## Data model
 
-60 tables, grouped. All domain tables carry `tenant_id`, `created_at`, `updated_at`.
+126 tables, grouped. All domain tables carry `tenant_id`, `created_at`, `updated_at`.
 
 | Group | Tables | Notes |
 | --- | --- | --- |
@@ -64,9 +64,12 @@ Rules the graph enforces:
 | Returns and discounts | `return_reasons`, `return_requests`, `return_lines`, `discounts`, `discount_pools` | Return reasons and workflow outcomes are tenant data; `source = platform` marks returns opened on the store (matched by `external_id`). Pools generate unique codes in bulk; a pool code is `redeemed` (`redeemed_order_id`), `assigned` (`assigned_customer_id` / `assigned_campaign_id`) or `available` (`poolCodeStatus`), and `discount_pools.is_active` switches the whole pool. |
 | Purchasing | `suppliers`, `supplier_variants`, `supplier_payments`, `purchase_orders`, `purchase_order_lines`, `purchase_order_charges`, `backorders`, `case_packs`, `supplier_links`, `supplier_link_views` | The primary `supplier_variants` row is a variant's default supplier (SKU, cost, MOQ, lead time) read by planning and auto-drafts. A PO line has a variant or a free-text description. Receiving records arrived, damaged and rejected units per line; only good units move stock and update the latest product cost (feeds P/L) and close backorders. Case packs hold units per value of one option (any name); `packages/core/src/packs.ts` turns them and the option mix into PO lines. Supplier links store only the token's SHA-256, expire after `SUPPLIER_LINK_TTL_DAYS`, can be revoked, and log every view; expired or revoked links get a neutral page. |
 | Marketing | `campaigns`, `ad_metrics_daily`, `campaign_product_links`, `segments`, `segment_memberships` | Segments store nested AND/OR rules as JSON plus `holdout_percentage`; memberships keep a stable group per customer. |
+| Ads below the campaign (#40) | `ad_sets`, `ad_creatives` (the ad level, with `ad_set_id`, `final_url`, `url_tags`), `ad_creative_metrics_daily`, `ad_assets`, `ad_keywords`, `ad_search_terms`, `ad_entity_metrics_daily` | Generic daily metrics for ad sets, assets, keywords and search terms (`entity_type`, `entity_id`, `grain` day or month); ads keep their own daily table. Daily rows past `adsDailyRetentionDays` become monthly rows; rare search terms of closed months move into the `(other)` term of their ad group. |
+| Dashboards | `dashboards`, `custom_metrics`, `metric_targets` | `dashboards.scope` is `tenant` (home or extra dashboard, `roles` = who opens it), `role` (home variant for `roles`) or `personal` (`user_id`); `layout_version` 1 = old `[{metric}]`, 2 = widgets; `draft_widgets` = unpublished edits. Custom metrics are formulas over the metric catalog with optional order `filters`; targets are per metric and month. |
 | Billing | `subscriptions`, `invoices`, `tenant_lifecycle_events` | Keel owns the ledger; the provider only collects. The tenant lifecycle (trial → active → past_due → suspended → churned, `tenants.status` with reason, note, trial end, churn date) is Keel's too; `tenant_lifecycle_events` keeps every change with a plan/add-on/monthly-charge snapshot, from which the console rebuilds MRR and adoption by month. |
 | Email | `email_messages`, `email_events`, `email_address_suppressions` | The platform sender's delivery log (nullable `tenant_id`, RLS read/append per tenant, advanced by the admin connection; recipient as keyed hash + masked form, never body or links), provider webhook events (unique on provider + event id) and platform-wide suppressions from hard bounces and complaints (hashed). |
 | Collaboration | `notifications`, `notification_preferences`, `email_suppressions`, `mentions`, `record_notes`, `tasks`, `task_rules`, `support_tickets`, `support_messages` | Notifications record every delivery (`in_app`, `delivered`); preferences override the type registry per user. Tasks link to a record (type + id) and remember the rule and episode that opened them. Support tickets are tenant data answered from the console through the admin connection. |
+| MCP | `oauth_clients`, `mcp_authorization_codes`, `mcp_tokens`, `mcp_request_log`, `mcp_rate_buckets`, `mcp_pending_actions` | OAuth clients are platform rows; codes, tokens (HMAC with pepper, one user + one tenant), the request log (null tenant for unknown tokens), rate windows and proposals are tenant tables, read by token hash only through the admin connection. `tenants.mcp_disabled_at` is the super-admin kill switch. |
 | Add-on COD | `cod_settings`, `cod_queue_items`, `cod_attempts`, `cod_operator_capacity`, `cod_capacity_exceptions`, `cod_assignment_log`, `cod_recipient_profiles` | Only read and written by `@keel/addon-cod`. |
 
 ### Canonical order status
@@ -116,6 +119,13 @@ Before resolving, `importFulfillment` (packages/services/src/sync) maps every so
 - **Pick/pack board** (`/fulfilment`): pending → packed (`orders.packed_at`, timeline event) → shipped. "Ship" calls `shipOrder`: `fulfillment.create` through `runPlatformWriteNow` (synchronous outbox write keyed per order and tracking number); only after the platform answers does Keel import the fulfilment as a shipment, mark the order fulfilled, write a `fulfilled` event with author and diff and recompute the status. Packing slips (one order or the selection) use the core PDF writer (`tablesPdf`).
 - **Cases** (`syncShipmentCases`, called by `importFulfillment` when a status changes and by the hourly `notify` tick): an exception status opens an `exception` case, a returned or failed parcel a `return_to_sender` review, within a 30-day window. `claimCase` is a conditional update (exactly one claimer); `sendCaseInstruction` marks `instruction_sent_at` with a conditional update before calling `CarrierProvider.sendInstruction` (mock) or the `carrier_instruction` email template, so a second send is refused and a failed send rolls back. Exception cases close by themselves when the shipment moves on (`planShipmentCases`); reviews close by hand once the suggested follow-ups (`suggestRtsFollowUps`: restock, refund when money was captured, contact) are done. Nothing is automated on payments.
 
+### Tenant dashboards (issue #43)
+
+- **Catalogs** in `packages/config/src/dashboards.ts`: `WIDGETS` (type → zod settings, widths, page, module or add-on, period) and `METRICS` (base metrics with format, period or snapshot, series, filterable, page, list link). `KEEL_TEMPLATE` is today's home as widgets.
+- **Services** (`packages/services/src/dashboards`): `metrics.ts` computes base metrics from the P/L, blended, stock, purchasing and campaign services, custom metrics (filtered ones like the per-order P/L table), series from `pnlBreakdown`, targets; `widgets.ts` has one loader per widget type and `loadWidgetData` (module and role checks first, a throwing loader becomes an error result); `store.ts` resolves the home (role variant → tenant home → template), saves drafts, publishes and resets. Add-on loaders live in their package (`COD_WIDGET_LOADERS`) and are merged by the app (`apps/web/src/server/dashboards.ts`).
+- **Rendering**: `DashboardGrid` gives every widget its own Suspense boundary and tenant transaction; a 60-second per-process promise cache shares computations between widgets. Renderers in `components/dashboard/widget-view.tsx`; editor (`editor.tsx`, HTML5 drag and drop + arrows) and metric builder (`metric-builder.tsx`); routes `/t/[tenant]` (home, `?as=<role>&draft=1` preview for managers), `/dashboards`, `/dashboards/[id]`, `/dashboards/[id]/edit`, `/dashboards/metrics`.
+- **Adding a widget type**: settings schema and definition in `WIDGETS`, a loader (core or the add-on's package), a renderer case, i18n `dashboards.widget_types.<type>`.
+
 ## Integration flows
 
 ### Webhook (Shopify)
@@ -151,7 +161,10 @@ Failed events are retried by the `retry` tick every 10 minutes up to a maximum n
 - Returns opened or changed on the store (#35) arrive by `returns/*` webhook (payload normalized by `parseWebhookReturn`, else read back with `fetchReturn`) and through the nightly `runReturnsSync` (same cursor/budget/resume pattern, `object_type = returns`). Both call `importPlatformReturn`: match by platform id, else adopt a Keel return of the same order with the same lines and no platform id yet (a push still committing), else create it with `source = platform`; an advisory lock per platform return serialises concurrent imports. The platform status only moves a return forward (`nextReturnStatusFromPlatform`); money never comes from the platform return (refunds arrive with the order), and `applyReturnToOrder` keeps the order's returned fraction and refund total consistent.
 - Order import links pool codes to the order that used them (`linkPoolRedemptions`), and the nightly catalog run does it for everything.
 - `runAdsSync(provider, window)` pulls campaigns and daily insights in resumable date windows; recent days are re-pulled because platforms restate them.
+- `runAdsEntitySync(platform, window)` (`packages/services/src/ads/sync.ts`, issue #40) follows: structure (ad sets, ads, assets, keywords), then each level the adapter declares in `capabilities` (`ad_set`, `ad`, `asset`, `keyword`, `search_term`) over 7-day windows; the cursor `{phase, level, window}` lives in `sync_runs` (`object_type = ads_entities`), the run pauses at its budget or on a rate limit (same window next time) and the `sync.ads` job re-enqueues itself with `phase: "entities"` after the platform's wait. Search-term days under the minimum impressions without clicks or spend go to `(other)` at ingestion.
+- Ads analysis (`packages/services/src/ads/analysis.ts`) ties orders to entities through the UTM templates (`ADS_UTM_TEMPLATES`, `orderAdKeys` in core: ad by `utm_content`, Meta ad set and Google keyword by `utm_term`), computes Keel's numbers with `orderEconomicsForPeriod` (sale scope only) next to the platform's, reconciles ad spend with campaign spend (`campaignSpendReconciliation`, gap shown as unallocated), and feeds the n-gram engine (`ngramStats` in core) and the read-only suggestions.
 - Each run writes `integration_health` (ok/error, last error text, rows written, freshness) which the Integrations page shows together with "Test connection" and "Resync", and the run table with scanned, changed, conflicts, errors and duration per run.
+- Ads volume: the same daily tick runs `rollupAdEntityMetrics` per tenant with its `adsDailyRetentionDays` and `adsSearchTermMinImpressions`.
 - Retention: a daily tick deletes rows older than the platform-wide window (`KEEL_RETENTION_DAYS`, default 14, `platformRetentionDays()` in `packages/config`): processed webhook events, succeeded or superseded writes, synchronous write records, successful runs (and failed runs already followed by a success), drift not seen since (drift recording lost stock is kept for `INVENTORY_LOSS_RETENTION_DAYS`, 400, for the unexplained-loss report). Failed webhooks and failed asynchronous writes stay until they are resolved. pg-boss queues get the same window as `deleteAfterSeconds`.
 
 Worker schedule (`packages/jobs/src/worker.ts`): delta every 15 min, retry every 10 min, ads daily at 06:00, reconcile nightly at 03:00 (orders, the complete catalog run and platform returns, queue `sync.returns`), billing at 04:30, COD tick every 10 min, alerts hourly, returns every 10 min, customer predictions nightly at 03:40, task rules and overdue reminders every 10 min, system notifications (sync delay, critical stock without PO, late to ship) and the shipment case sweep hourly, digest emails daily at 07:05, email housekeeping (provider events left pending, lost queued emails) every 10 min, platform-write retries every minute, retention at 04:10, backorder safety re-check every 10 min, processor payouts daily at 05:20 (queue `sync.payouts`).
@@ -202,7 +215,7 @@ sequenceDiagram
   - ship from Keel (`fulfillment.create`, keyed per order and tracking number): the shipment is imported from the platform's answer.
 
   With a key, the same key returns the stored result (dates revived) instead of writing twice, and a failed attempt is retried on the same row. When the caller's transaction rolls back, the record goes with it, and the error is shown to the user at once.
-- **Asynchronous writes** (outbox, retried): variant price, variant price + compare-at (markdowns), variant cost (when the tenant enabled cost write-back; manual edits and CSV imports), product status, stock level (purchase-order receipt with "push to platform", transfers between locations, adjustments and stock-takes), order cancellation, fulfillment hold and release (backorders), manual payment (`order.mark_paid`, keyed per payment), single discount code (the external id is filled in when the write succeeds), discount code and pool on/off (`discount.status`, `discount_pool.status`, absolute values that supersede older ones), Meta campaign pause and resume. Google is refused up front because it is read-only in the MVP.
+- **Asynchronous writes** (outbox, retried): variant price, variant price + compare-at (markdowns), variant cost (when the tenant enabled cost write-back; manual edits and CSV imports), product status, stock level (purchase-order receipt with "push to platform", transfers between locations, adjustments and stock-takes), order cancellation, fulfillment hold and release (backorders), manual payment (`order.mark_paid`, keyed per payment), single discount code (the external id is filled in when the write succeeds), discount code and pool on/off (`discount.status`, `discount_pool.status`, absolute values that supersede older ones), Meta campaign pause and resume (Google campaigns are refused up front), ad pause and resume (`ad.status`, absolute) and negative keywords (`keyword.negative`, one-shot). Ad-level writes go to Meta always and to Google only when the tenant granted write access (`integrations.config.writeAccess`, `adsWriteAccess`); otherwise they are refused before anything changes.
 
 ### Adding a platform write
 
@@ -264,7 +277,42 @@ sequenceDiagram
 
 ### AI assistant
 
-`askAssistant` (packages/services/src/assistant) runs a manual tool loop over the `LlmProvider` interface (packages/integrations/src/llm.ts). The provider comes from the store's own `anthropic` integration (`getLlmProviderFor`): its encrypted API key in live mode, the deterministic mock in mock mode, nothing when not connected. The tools are read-only wrappers of the analytics services (KPIs, P/L, products, campaigns, returns, predictions, stock to reorder), offered only when the user's role can view the page they read. All tool results of a model turn go back in one user message; the loop stops on an answer, a refusal, the output limit or 6 steps. Every turn is stored in `assistant_messages` with its tokens; the model's own blocks (thinking included) are kept in `provider_content` and sent back verbatim. The loop opens a short tenant transaction per read or write and never holds one across a model call. The Anthropic adapter uses the official SDK with adaptive thinking, `effort: medium`, prompt caching on the system prompt and server-side fallbacks on refusals; it is tested on recorded responses through an injected `fetch`.
+`askAssistant` (packages/services/src/assistant) runs a manual tool loop over the `LlmProvider` interface (packages/integrations/src/llm.ts). The provider comes from the store's own `anthropic` integration (`getLlmProviderFor`): its encrypted API key in live mode, the deterministic mock in mock mode, nothing when not connected. The tools are read-only wrappers of the analytics services (KPIs, P/L, products, campaigns, returns, predictions, stock to reorder) on the shared tool layer (`packages/services/src/tools`, also used by the MCP server), offered only when the user's role can view the page they read. All tool results of a model turn go back in one user message; the loop stops on an answer, a refusal, the output limit or 6 steps. Every turn is stored in `assistant_messages` with its tokens; the model's own blocks (thinking included) are kept in `provider_content` and sent back verbatim. The loop opens a short tenant transaction per read or write and never holds one across a model call. The Anthropic adapter uses the official SDK with adaptive thinking, `effort: medium`, prompt caching on the system prompt and server-side fallbacks on refusals; it is tested on recorded responses through an injected `fetch`.
+
+### MCP server
+
+Remote MCP (#21) at `POST /api/mcp` (Streamable HTTP, stateless, JSON responses, official SDK). Code: `packages/services/src/mcp` (auth, limits, proposals, server, tools), the shared tool layer `packages/services/src/tools`, routes under `apps/web/src/app/api/{mcp,oauth}` and `apps/web/src/app/oauth/authorize`.
+
+```mermaid
+sequenceDiagram
+  participant C as AI client
+  participant W as apps/web
+  participant A as admin connection
+  participant T as withTenant (RLS)
+  C->>W: POST /api/mcp (no token)
+  W-->>C: 401 WWW-Authenticate resource_metadata=/.well-known/oauth-protected-resource/api/mcp
+  C->>W: GET well-known metadata, POST /api/oauth/register (public client)
+  C->>W: browser → /oauth/authorize (PKCE S256, scope, resource)
+  W->>W: sign in, pick workspace, narrow scopes → code (5 min, single use)
+  C->>W: POST /api/oauth/token (code + verifier) → access 1 h + rotating refresh 30 d
+  C->>W: POST /api/mcp Bearer kat_… / kpat_…
+  W->>A: token by HMAC → user, tenant, role, scopes; plan core.mcp, tenant switch, kill switch
+  W->>T: rate buckets (token, tenant) — fail closed
+  W->>T: tools/list | tools/call → KeelTool.run(rt) as actor mcp → services
+  W->>W: maskPii unless full PII (tenant switch + PII role)
+  W->>T: mcp_request_log (tool, user, client, duration, outcome)
+```
+
+- **Gates per request:** token known, not revoked or expired; membership active; `core.mcp` in the plan (Growth+); `settings.mcpEnabled`; no kill switch (`tenants.mcp_disabled_at`); tenant not suspended; `KEEL_MCP_DISABLED` unset. Then rate limits (60/min per token, 300/min per tenant).
+- **Per tool:** `toolDenial(tool, { role, activeAddons, scopes })` → scope, role (view for reads, `action` or page write for writes) and module (page module + `tool.module`). Unavailable tools are not listed; calls to them are refused and logged as `denied`.
+- **Writes:** direct writes are reversible (note, assignee, review/hold status); risky actions create `mcp_pending_actions` rows that a person approves at `/t/[tenant]/approvals` (`decideProposal` runs the service as the approver in a savepoint). Order events and audit entries carry `actor_type = mcp`, the user and `mcpClient`.
+
+**Adding a tool.**
+
+1. Write a `KeelTool` next to the services it uses: in `packages/services/src/mcp/read-tools.ts` / `write-tools.ts` for core, or in the add-on package (see `packages/addon-cod/src/mcp.ts`). Declare `page`, `effect` (`read` | `write` | `proposal`), `scope`, `action` for writes, `module` for add-on features, `piiNameKeys` if the output has person names under other keys than `customerName`/`firstName`/…; give a description with an example call.
+2. In `run(rt, input)` use `rt.ctx` (tenant transaction, actor `mcp`), resolve references inside the tenant (`resolveOrderRef`), sanitise free text (`sanitizeSearch`, `sanitizeFreeText`), throw `ToolError("not_found" | "invalid_input" | "conflict", message)` for answers the model can act on, return amounts with `majorUnits` and dates with `localDateTime` (store time zone), links with `keelLink(rt, path)`.
+3. Writes: call the existing service with `eventMetadata: mcpMeta(rt)` and record an audit entry with `actorType: "mcp"` and the diff. Anything not reversible must be a proposal: add a kind to `PROPOSAL_KINDS`, its permission to `PROPOSAL_ACTION`, its execution in `decideProposal` and its label under `mcp.approvals.kinds`.
+4. Register it in `MCP_READ_TOOLS` / `MCP_WRITE_TOOLS` (core) or export it from the add-on and append it in `apps/web/src/server/mcp.ts`. Add it to the isolation loop of `packages/services/test/mcp.test.ts` if it takes a reference.
 
 ## Adding an add-on
 
@@ -323,4 +371,4 @@ Issue #32. Every pg-boss job goes through `runTrackedJob` (`packages/jobs/src/di
 | db | Vitest + PostgreSQL | Migrations apply, seed runs, one isolation test per tenant table |
 | services, addon-cod services | Vitest + PostgreSQL | Use cases on the seeded test database |
 | web | Vitest | Translation parity, helpers |
-| e2e | Playwright | 39 scenarios against the production build: login in three languages, permissions and 404 on disabled modules, every module's main flow, the console |
+| e2e | Playwright | 44 scenarios against the production build: login in three languages, permissions and 404 on disabled modules, every module's main flow, the console |

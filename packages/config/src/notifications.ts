@@ -41,6 +41,8 @@ export const NOTIFICATION_TYPES = {
   cod_assigned: { channels: ["in_app", "email"], defaults: { in_app: true }, group: "operations", module: "addon.cod" },
   digest: { channels: ["email"], defaults: { email: false }, group: "system" },
   export_ready: { channels: ["in_app", "email"], defaults: { in_app: true }, group: "system" },
+  /** An AI client connected through MCP proposed a risky action (cancel, refund, pause, PO) for a person to approve. */
+  mcp_proposal: { channels: ["in_app"], defaults: { in_app: true }, group: "collaboration" },
 } as const satisfies Record<string, NotificationTypeDefinition>;
 export type NotificationType = keyof typeof NOTIFICATION_TYPES;
 

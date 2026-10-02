@@ -128,6 +128,10 @@
       "platform": {
         "name": "Plataforma",
         "description": "Usuarios, ajustes, integraciones y auditoría"
+      },
+      "mcp": {
+        "name": "Clientes de IA (MCP)",
+        "description": "Claude, ChatGPT, Cursor y otros clientes de IA leen los datos de la tienda como el usuario conectado"
       }
     },
     "addon": {
@@ -330,7 +334,10 @@
         "churnMediumPct": "Riesgo de abandono medio desde (% probabilidad activo)",
         "backorderHold": "Retener los pedidos que necesitan más que el stock disponible hasta que una orden de compra en camino los cubra",
         "backorderPlatformHold": "Durante la espera, bloquear también la preparación en la tienda para que el almacén no los envíe",
-        "markdownMinMarginBps": "Margen mínimo de las rebajas (puntos básicos, 2000 = 20 %)"
+        "markdownMinMarginBps": "Margen mínimo de las rebajas (puntos básicos, 2000 = 20 %)",
+        "adsDailyRetentionDays": "Anuncios: detalle diario conservado (días)",
+        "adsSearchTermMinImpressions": "Anuncios: términos agrupados por debajo de (impresiones)",
+        "adsMinSpendMinor": "Anuncios: gasto mínimo para sugerencias (céntimos)"
       },
       "backorders_title": "Pedidos pendientes de stock",
       "backorders_description": "Qué pasa cuando un pedido necesita más que el stock disponible."
@@ -346,7 +353,8 @@
     "order_states_link": "Reglas de estado de pedido",
     "branding_link": "Marca",
     "fulfilment_link": "Preparación",
-    "data_export_link": "Exportación de datos"
+    "data_export_link": "Exportación de datos",
+    "ai_link": "IA y MCP"
   },
   "users": {
     "title": "Usuarios y roles",
@@ -402,7 +410,8 @@
       "user": "Usuario",
       "system": "Sistema",
       "super_admin": "Superadministrador",
-      "impersonation": "Suplantación"
+      "impersonation": "Suplantación",
+      "mcp": "Cliente de IA (MCP)"
     },
     "empty_title": "Aún no hay entradas",
     "empty_description": "Los cambios en ajustes, usuarios, pedidos e integraciones aparecerán aquí.",
@@ -546,7 +555,8 @@
       "digest": "Correo de resumen diario",
       "export_ready": "Exportación CSV lista",
       "other": "Otros",
-      "platform_failure": "Trabajos en segundo plano que fallan"
+      "platform_failure": "Trabajos en segundo plano que fallan",
+      "mcp_proposal": "Propuesta de un cliente de IA"
     },
     "rendered": {
       "stock_critical_no_po": "{title} variantes en venta con stock crítico y ninguna orden de compra",
@@ -981,7 +991,8 @@
       "incoming": "En camino (OC · estado · llegada)",
       "waiting": "{n} en espera",
       "no_eta": "sin fecha"
-    }
+    },
+    "via_mcp": "vía {client}"
   },
   "order_events": {
     "imported": "Importado",
@@ -2756,7 +2767,9 @@
       "manual": "manual"
     },
     "simulate_return": "Simular devolución",
-    "simulated_return": "Webhook de devolución aceptado (HTTP {status}) para {order}."
+    "simulated_return": "Webhook de devolución aceptado (HTTP {status}) para {order}.",
+    "google_write_access": "Acceso de escritura concedido",
+    "google_write_access_hint": "Permite a Keel pausar anuncios y añadir palabras clave negativas. Sin él, Google sigue en solo lectura."
   },
   "integration_guide": {
     "verify_legend": "Los pasos marcados “Por verificar” dependen de consolas de proveedores que cambian a menudo: compruébalos en la documentación del proveedor antes de la primera instalación.",
@@ -2826,7 +2839,7 @@
     },
     "meta": {
       "title": "Conectar Meta Ads",
-      "intro": "Keel lee campañas e insights diarios y puede pausar o reanudar campañas con confirmación explícita. Un token de usuario del sistema mantiene la conexión sin inicios de sesión personales.",
+      "intro": "Keel lee campañas, conjuntos de anuncios, anuncios y desgloses por recurso con insights diarios, y puede pausar o reanudar campañas y anuncios con confirmación explícita. Un token de usuario del sistema mantiene la conexión sin inicios de sesión personales.",
       "steps": [
         {
           "title": "Crea un usuario del sistema",
@@ -2839,7 +2852,17 @@
         },
         {
           "title": "Genera el token",
-          "body": "Generar nuevo token → elige la app → permisos ads_read, ads_management, business_management → sin caducidad. Cópialo una vez.",
+          "body": "Generar nuevo token → elige la app → permisos ads_read y business_management, más ads_management solo para pausar desde Keel → sin caducidad. Cópialo una vez.",
+          "verify": true
+        },
+        {
+          "title": "Parámetros de URL",
+          "body": "En cada anuncio (Destino → Parámetros de URL) indica:\nutm_source=facebook&utm_medium=paid&utm_campaign={{campaign.id}}&utm_content={{ad.id}}&utm_term={{adset.id}}\nAsí Keel liga los pedidos al anuncio y al conjunto; los anuncios sin ellos se señalan.",
+          "verify": true
+        },
+        {
+          "title": "Desglose por recurso",
+          "body": "Los desgloses por título, texto, imagen y vídeo solo existen en anuncios con creatividad dinámica o Advantage+; los demás anuncios no muestran recursos.",
           "verify": true
         },
         {
@@ -2848,7 +2871,7 @@
         },
         {
           "title": "Backfill",
-          "body": "Resincronizar descarga los últimos 30 días en ventanas de 7; el trabajo nocturno refresca los últimos 3 días porque Meta corrige insights recientes."
+          "body": "Resincronizar descarga los últimos 30 días en ventanas de 7 para campañas, conjuntos, anuncios y recursos; el trabajo nocturno refresca los últimos 3 días porque Meta corrige insights recientes."
         }
       ],
       "errors": [
@@ -2858,17 +2881,18 @@
         },
         {
           "symptom": "Código 17 / 32 / 613",
-          "fix": "Límite de uso en la cuenta: Keel espera y reintenta; reduce las ventanas de backfill si persiste."
+          "fix": "Límite de uso en la cuenta: Keel pausa el backfill y lo reanuda más tarde desde la misma ventana."
         },
         {
           "symptom": "Error de permiso (10/200)",
           "fix": "Al usuario del sistema le falta el activo o el permiso; corrígelo en la Configuración del negocio."
         }
-      ]
+      ],
+      "scopes": "Lectura: ads_read y business_management. Opcional, solo para pausar campañas y anuncios desde Keel: ads_management."
     },
     "google": {
       "title": "Conectar Google Ads",
-      "intro": "Solo lectura en esta versión: campañas y, por día, coste, impresiones, clics y conversiones vía Google Ads API.",
+      "intro": "Solo lectura por defecto: campañas, grupos de anuncios, anuncios, recursos de anuncios adaptables, palabras clave y términos de búsqueda con coste, clics y conversiones diarios. Pausar anuncios y añadir palabras clave negativas requiere acceso de escritura concedido por la tienda.",
       "steps": [
         {
           "title": "Developer token",
@@ -2882,15 +2906,29 @@
         },
         {
           "title": "Refresh token",
-          "body": "Autoriza el ámbito https://www.googleapis.com/auth/adwords con un usuario con acceso a la cuenta y guarda el refresh token."
+          "body": "Autoriza el ámbito https://www.googleapis.com/auth/adwords con un usuario con acceso a la cuenta y guarda el refresh token. Usa un usuario con acceso estándar (edición) solo si la tienda quiere que Keel pause anuncios y añada palabras clave negativas."
+        },
+        {
+          "title": "Versión de la API",
+          "body": "Keel llama a Google Ads API {apiVersion}. Google retira cada versión aproximadamente un año después de publicarla: revisa la página de fechas de retirada y planifica la actualización antes.",
+          "verify": true
+        },
+        {
+          "title": "Plantilla de seguimiento",
+          "body": "Configuración de la cuenta → Seguimiento → plantilla de seguimiento:\n{lpurl}?utm_source=google&utm_medium=cpc&utm_campaign={campaignid}&utm_content={creative}&utm_term={keyword}\nKeel liga los pedidos a los anuncios ({creative}) y a las palabras clave ({keyword}); las campañas sin plantilla se señalan en Sugerencias.",
+          "verify": true
         },
         {
           "title": "Conecta en Keel",
           "body": "Integraciones → Google Ads → Conectar: customer id (dígitos), id de administrador si se accede vía MCC, developer token, client id/secret, refresh token."
         },
         {
+          "title": "Acceso de escritura (opcional)",
+          "body": "Si la tienda quiere palabras clave negativas y pausas de anuncios desde Keel, marca “Acceso de escritura concedido” en la tarjeta de Google Ads. Cada escritura pide confirmación y pasa por la cola de escrituras."
+        },
+        {
           "title": "Verifica",
-          "body": "Probar conexión ejecuta una consulta GAQL de una fila; Resincronizar importa campañas y los últimos 30 días de métricas."
+          "body": "Probar conexión ejecuta una consulta GAQL de una fila; Resincronizar importa campañas y luego grupos, anuncios, recursos, palabras clave y términos de búsqueda en ventanas de 7 días (reanudable, respetando los límites)."
         }
       ],
       "errors": [
@@ -2901,8 +2939,17 @@
         {
           "symptom": "invalid_grant al refrescar el token",
           "fix": "El refresh token fue revocado; autoriza de nuevo y reconecta."
+        },
+        {
+          "symptom": "UNSUPPORTED_VERSION o 404 en cada llamada",
+          "fix": "La versión de la API se retiró: Keel necesita actualizar la constante de versión."
+        },
+        {
+          "symptom": "Pedidos Keel con guion en las palabras clave",
+          "fix": "Falta la plantilla de seguimiento o no tiene utm_term con el parámetro de la palabra clave."
         }
-      ]
+      ],
+      "scopes": "Lectura: ámbito adwords con acceso de lectura y developer token Básico. Opcional, solo para pausar anuncios y añadir palabras clave negativas: el mismo ámbito con un usuario que pueda editar la cuenta."
     },
     "anthropic": {
       "title": "Conecta el asistente de IA (Anthropic)",
@@ -3169,7 +3216,8 @@
         "audit": "Auditoría"
       },
       "jobs": "Ejecuciones de trabajos",
-      "alerts": "Alertas de fallos"
+      "alerts": "Alertas de fallos",
+      "mcp": "MCP"
     },
     "plans": {
       "starter": "Starter",
@@ -3709,6 +3757,40 @@
       "close": "Cerrar",
       "empty_title": "Sin alertas",
       "empty_description": "Ahora mismo no falla nada."
+    },
+    "mcp": {
+      "title": "Uso de MCP",
+      "description": "Llamadas de clientes de IA por tenant en los últimos 30 días y el interruptor de emergencia. Cada cambio se registra en el log de auditoría del tenant.",
+      "platform_disabled": "KEEL_MCP_DISABLED=1: el servidor MCP rechaza toda llamada en este despliegue.",
+      "stat_calls": "Llamadas (30 días)",
+      "stat_errors": "Errores",
+      "stat_rate_limited": "Limitadas",
+      "stat_connections": "Conexiones activas",
+      "stat_unknown_tokens": "Tokens desconocidos",
+      "tenants_title": "Tenants",
+      "tenants_description": "Plan, estado, uso e interruptor por tenant.",
+      "col_tenant": "Tenant",
+      "col_status": "Estado",
+      "col_calls": "Llamadas",
+      "col_errors": "Errores",
+      "col_users": "Personas",
+      "col_connections": "Conexiones",
+      "col_last_call": "Última llamada",
+      "col_kill": "Interruptor",
+      "pending": "{count} por aprobar",
+      "denied_rl": "{denied} rechazadas · {limited} limitadas",
+      "kill": "Suspender MCP",
+      "kill_confirm": "¿Suspender MCP para este tenant? Toda llamada se rechaza hasta que lo restablezcas.",
+      "restore": "Restablecer MCP",
+      "note_placeholder": "Motivo (auditado)",
+      "availability": {
+        "ok": "Activo",
+        "plan": "No incluido",
+        "tenant_disabled": "Desactivado (tenant)",
+        "killed": "Suspendido",
+        "platform_disabled": "Plataforma desactivada",
+        "suspended": "Tenant suspendido"
+      }
     }
   },
   "cod": {
@@ -5312,7 +5394,9 @@
       "low_variety": "mezcla mayúsculas, minúsculas, números y símbolos (o usa 16+ caracteres)"
     },
     "sign_in_alerts": "Avisarme por correo de nuevos accesos",
-    "sign_in_alerts_hint": "Un correo de seguridad cuando tu cuenta inicia sesión desde un dispositivo o navegador que no había usado antes."
+    "sign_in_alerts_hint": "Un correo de seguridad cuando tu cuenta inicia sesión desde un dispositivo o navegador que no había usado antes.",
+    "connections": "Conexiones",
+    "connections_description": "Clientes de IA y tokens de acceso personales que actúan como tú en este espacio de trabajo a través del servidor MCP."
   },
   "welcome": {
     "title": "Completa tu perfil",
@@ -5736,7 +5820,9 @@
       "order_refund": "Reembolso de pedido",
       "fulfillment_create": "Preparación",
       "discount_status": "Activación de descuento",
-      "discount_pool_status": "Activación de lote de descuentos"
+      "discount_pool_status": "Activación de lote de descuentos",
+      "ad_status": "Estado del anuncio",
+      "keyword_negative": "Palabra clave negativa"
     }
   },
   "dev_inbox": {
@@ -6495,5 +6581,874 @@
     "tables_n": "{n} tablas",
     "download": "Descargar",
     "downloads": "{n, plural, one {descargada una vez} other {descargada # veces}}"
+  },
+  "dashboards": {
+    "title": "Paneles",
+    "description": "La página de inicio que ve tu equipo, variantes por rol, paneles adicionales y copias personales.",
+    "home_description": "El panel de tu equipo, diseñado por los responsables de la tienda.",
+    "edit": "Editar panel",
+    "customise": "Personalizar",
+    "home_name": "Inicio",
+    "preview_as": "Vista previa como…",
+    "preview_banner": "Vista previa como {role}",
+    "draft_banner": "borrador sin publicar",
+    "exit_preview": "Salir de la vista previa",
+    "draft_badge": "Cambios sin publicar",
+    "template_badge": "Plantilla de Keel",
+    "customised_badge": "Personalizada",
+    "open": "Abrir",
+    "home": "Inicio",
+    "home_template": "Tu inicio es la plantilla de Keel: sigue las actualizaciones de Keel hasta que lo personalices.",
+    "home_custom": "Inicio personalizado: {name}.",
+    "reset_home": "Restablecer la plantilla de Keel",
+    "reset_home_confirm": "El inicio vuelve a la plantilla de Keel. Las variantes por rol se mantienen. ¿Continuar?",
+    "reset_all": "Restablecer inicio y variantes",
+    "reset_all_confirm": "El inicio y todas las variantes por rol vuelven a la plantilla de Keel. ¿Continuar?",
+    "personal_toggle": "Paneles personales",
+    "personal_toggle_hint": "Si está activo, cualquiera puede copiar un panel en uno personal. Los paneles de la tienda siguen siendo la referencia.",
+    "name": "Nombre",
+    "kind": "Tipo",
+    "scope_new": {
+      "tenant": "Panel adicional",
+      "role": "Variante del inicio por roles",
+      "personal": "Copia personal de mi inicio"
+    },
+    "roles_variant": "Roles que ven este inicio",
+    "roles_visible": "Roles que pueden abrirlo",
+    "roles_all_hint": "Ninguno seleccionado: todo el equipo.",
+    "create": "Crear",
+    "copy_of": "Copia de {name}",
+    "duplicate": "Crear una copia personal",
+    "delete": "Eliminar",
+    "delete_confirm": "¿Eliminar este panel?",
+    "scope": {
+      "tenant": "Panel de la tienda",
+      "role": "Variante del inicio",
+      "personal": "Panel personal"
+    },
+    "personal_description": "Solo tú lo ves.",
+    "visible_to": "Visible para: {roles}",
+    "visible_all": "Visible para todo el equipo",
+    "widgets_n": "{n, plural, one {# widget} other {# widgets}}",
+    "variants": "Variantes del inicio por rol",
+    "variants_description": "Un rol con una variante la ve en lugar del inicio de la tienda.",
+    "variants_empty": "Sin variantes: todos los roles ven el inicio de la tienda.",
+    "extras": "Otros paneles",
+    "extras_description": "Paneles con nombre, por ejemplo una revisión semanal.",
+    "extras_empty": "Todavía no hay otros paneles.",
+    "personal": "Mis paneles",
+    "personal_hint": "Tus copias: cámbialas libremente.",
+    "personal_empty": "Sin paneles personales.",
+    "new_dashboard": "Nuevo panel",
+    "settings": "Ajustes",
+    "metrics_page": "Métricas y objetivos",
+    "metrics_description": "Las métricas que tus paneles pueden mostrar: el catálogo de Keel y tus fórmulas, con objetivos mensuales.",
+    "custom_metrics": "Métricas personalizadas",
+    "custom_metrics_hint": "Fórmulas sobre las métricas base, opcionalmente sobre pedidos filtrados. Cada cambio queda en el registro de actividad.",
+    "custom_metrics_empty": "Todavía no hay métricas personalizadas.",
+    "this_month": "Este mes",
+    "targets": "Objetivos mensuales",
+    "targets_hint": "Un mes sin objetivo propio usa el último anterior.",
+    "catalog": "Catálogo de métricas",
+    "catalog_hint": "Métricas base calculadas por los servicios de Keel: coinciden con el P/L, las campañas y el inventario.",
+    "catalog_group": "Grupo",
+    "catalog_flags": "Uso",
+    "flag_snapshot": "ahora",
+    "flag_filterable": "filtros",
+    "flag_series": "series",
+    "catalog_pending": "Sesiones y tasa de conversión llegarán con la conexión de GA4; TikTok y los términos de búsqueda con sus integraciones.",
+    "periods": {
+      "today": "Hoy",
+      "7d": "7 días",
+      "30d": "30 días",
+      "90d": "90 días",
+      "mtd": "Mes en curso",
+      "last_month": "Mes pasado",
+      "ytd": "Año en curso",
+      "follow": "Periodo del panel"
+    },
+    "widget": {
+      "error": "Este widget no se pudo cargar. El resto del panel funciona.",
+      "forbidden": "No disponible para tu rol.",
+      "unavailable": "Este widget no está disponible en tu plan.",
+      "days_unit": "días",
+      "open_list": "Abrir",
+      "now": "ahora",
+      "vs_previous": "vs periodo anterior",
+      "filtered": "filtrada",
+      "unknown": "Desconocido",
+      "empty": "Nada en este periodo.",
+      "breakdown_title": "{metric} por {by}",
+      "target_title": "{metric}: objetivo mensual",
+      "no_target": "Sin objetivo para este mes.",
+      "of_target": "de {target}",
+      "projected": "Proyección a fin de mes {value} (día {elapsed} de {days})",
+      "no_alerts": "Sin alertas recientes.",
+      "empty_note": "Nota vacía."
+    },
+    "widget_groups": {
+      "metrics": "Métricas",
+      "charts": "Gráficos",
+      "lists": "Listas",
+      "queues": "Colas de trabajo",
+      "content": "Contenido",
+      "keel": "Bloques del inicio de Keel"
+    },
+    "widget_types": {
+      "kpi": {
+        "name": "Indicador KPI",
+        "description": "Una métrica con comparación y tendencia."
+      },
+      "timeseries": {
+        "name": "Serie temporal",
+        "description": "1–3 métricas por día, semana o mes."
+      },
+      "breakdown": {
+        "name": "Desglose",
+        "description": "Una métrica por canal, país, pago, producto, campaña o plataforma."
+      },
+      "top_list": {
+        "name": "Ranking",
+        "description": "Mejores productos, campañas o clientes."
+      },
+      "target": {
+        "name": "Objetivo",
+        "description": "Mes en curso frente al objetivo, con proyección."
+      },
+      "alerts": {
+        "name": "Alertas",
+        "description": "Las últimas alertas disparadas."
+      },
+      "note": {
+        "name": "Nota",
+        "description": "Texto para el equipo (markdown)."
+      },
+      "queue_review": {
+        "name": "Pedidos por revisar",
+        "description": "Pedidos pendientes de revisión."
+      },
+      "queue_late": {
+        "name": "Envío atrasado",
+        "description": "Pedidos listos pasado el plazo de envío."
+      },
+      "queue_awaiting_stock": {
+        "name": "Esperando stock",
+        "description": "Pedidos retenidos por falta de stock."
+      },
+      "queue_exceptions": {
+        "name": "Incidencias de entrega",
+        "description": "Casos de incidencia abiertos."
+      },
+      "queue_integrations": {
+        "name": "Salud de integraciones",
+        "description": "Conexiones o sincronizaciones con error y webhooks fallidos."
+      },
+      "today_kpis": {
+        "name": "KPI de hoy",
+        "description": "Ventas, pedidos, ticket medio y cancelaciones de hoy."
+      },
+      "sales_30d": {
+        "name": "Ventas, últimos 30 días",
+        "description": "Ventas y pedidos por día."
+      },
+      "month_forecast": {
+        "name": "Previsión del mes",
+        "description": "Ingresos, pedidos y gasto en anuncios previstos."
+      },
+      "work_queue": {
+        "name": "Requiere atención",
+        "description": "Todo lo abierto, con recuentos."
+      },
+      "stock_backorders": {
+        "name": "Stock y pedidos pendientes",
+        "description": "Pedidos esperando stock, más vendidos con poco stock."
+      },
+      "today_by_status": {
+        "name": "Pedidos de hoy por estado",
+        "description": "Pedidos de hoy por estado."
+      },
+      "cod_queue": {
+        "name": "Contra reembolso por confirmar",
+        "description": "Pedidos contra reembolso esperando llamada."
+      }
+    },
+    "metrics": {
+      "net_revenue": "Ingresos netos",
+      "gross_revenue": "Ventas brutas",
+      "orders": "Pedidos",
+      "aov": "Ticket medio",
+      "ad_spend": "Gasto en anuncios",
+      "cogs": "Coste de la mercancía",
+      "gross_margin": "Margen bruto",
+      "shipping": "Costes de envío",
+      "fees": "Comisiones de pago",
+      "fixed_costs": "Costes fijos",
+      "contribution": "Margen de contribución",
+      "operating_profit": "Beneficio operativo",
+      "refunds": "Reembolsos",
+      "new_customers": "Clientes nuevos",
+      "mer": "MER",
+      "nc_roas": "nc-ROAS",
+      "cac": "CAC combinado",
+      "poas": "POAS",
+      "cancel_rate": "Tasa de cancelación",
+      "returns_rate": "Tasa de devolución",
+      "return_cost": "Costes de devoluciones",
+      "repeat_customer_rate": "Clientes recurrentes",
+      "stock_value_cost": "Valor del stock al coste",
+      "coverage_days": "Días de cobertura",
+      "out_of_stock_variants": "Variantes agotadas",
+      "incoming_po_value": "Valor de mercancía en camino",
+      "meta_spend": "Gasto en Meta",
+      "meta_roas": "ROAS de Meta",
+      "meta_cpa": "CPA de Meta",
+      "meta_ctr": "CTR de Meta",
+      "google_spend": "Gasto en Google",
+      "google_roas": "ROAS de Google",
+      "google_cpa": "CPA de Google",
+      "google_ctr": "CTR de Google"
+    },
+    "metric_groups": {
+      "finance": "Finanzas",
+      "orders": "Pedidos y devoluciones",
+      "customers": "Clientes",
+      "inventory": "Inventario",
+      "ads": "Anuncios por plataforma",
+      "custom": "Métricas personalizadas"
+    },
+    "breakdown_dims": {
+      "channel": "canal",
+      "country": "país",
+      "payment_method": "método de pago",
+      "product": "producto",
+      "campaign": "campaña",
+      "platform": "plataforma"
+    },
+    "top_entities": {
+      "products": "Mejores productos",
+      "campaigns": "Mejores campañas por beneficio",
+      "customers": "Mejores clientes",
+      "ads": "Mejores anuncios por beneficio",
+      "keywords": "Mejores palabras clave por beneficio",
+      "search_terms": "Términos de búsqueda por gasto"
+    },
+    "top_secondary": {
+      "products": "{v} uds.",
+      "campaigns": "ROAS {v}",
+      "customers": "{v} pedidos",
+      "ads": "ROAS {v}",
+      "keywords": "ROAS {v}",
+      "search_terms": "{v} pedidos"
+    },
+    "granularity": {
+      "day": "Día",
+      "week": "Semana",
+      "month": "Mes"
+    },
+    "channels": {
+      "paid_social": "Social de pago",
+      "paid_search": "Búsqueda de pago",
+      "organic_search": "Búsqueda orgánica",
+      "email": "Email",
+      "social": "Social",
+      "direct": "Directo",
+      "referral": "Referido",
+      "unknown": "Desconocido"
+    },
+    "queue_parts": {
+      "connections": "{n} conexiones",
+      "sources": "{n} sincronizaciones",
+      "webhooks": "{n} webhooks",
+      "unassigned": "{n} sin asignar"
+    },
+    "editor": {
+      "title": "Editar: {name}",
+      "description": "Los cambios se guardan como borrador: revísalos como un rol y luego publica.",
+      "published": "Publicado.",
+      "saved": "Borrador guardado.",
+      "none": "— ninguna —",
+      "title_field": "Título (opcional)",
+      "title_placeholder": "Automático",
+      "width": "Ancho",
+      "height": "Alto",
+      "columns": "{n, plural, one {# columna} other {# columnas}}",
+      "rows": "{n, plural, one {# fila} other {# filas}}",
+      "period": "Periodo",
+      "metric": "Métrica",
+      "compare": "Comparar con",
+      "compare_previous": "Periodo anterior",
+      "compare_none": "Nada",
+      "sparkline": "Mostrar la tendencia",
+      "series_n": "Métrica {n}",
+      "chart": "Gráfico",
+      "chart_line": "Líneas",
+      "chart_bar": "Barras",
+      "granularity": "Por",
+      "by": "Desglosar por",
+      "limit": "Filas",
+      "entity": "Lista",
+      "note_text": "Texto",
+      "note_hint": "Títulos (#), listas (-), **negrita**, *cursiva*, [enlaces](https://…). El HTML se muestra como texto.",
+      "note_translation": "Texto en {locale} (opcional)",
+      "dashboard_period": "Periodo del panel",
+      "save_draft": "Guardar borrador",
+      "publish": "Publicar",
+      "preview_as": "Guardar y ver como…",
+      "discard": "Descartar borrador",
+      "reset_confirm": "¿Sustituir los widgets por la plantilla de Keel? Publica para aplicar.",
+      "reset_template": "Restablecer plantilla de Keel",
+      "count": "{n} de {max} widgets",
+      "drag_hint": "Arrastra los widgets para reordenarlos o usa las flechas. Haz clic en un widget para configurarlo.",
+      "configure": "Configurar",
+      "move_up": "Subir",
+      "move_down": "Bajar",
+      "remove": "Quitar",
+      "size": "{w}×{h}",
+      "empty": "Sin widgets: añade uno del catálogo.",
+      "settings": "Ajustes del widget",
+      "add_widget": "Añadir un widget",
+      "done": "Hecho"
+    },
+    "errors": {
+      "generic": "Algo salió mal.",
+      "forbidden": "No puedes modificar este panel.",
+      "not_found": "Panel no encontrado.",
+      "invalid_layout": "Algunos widgets no son válidos.",
+      "too_many_widgets": "Demasiados widgets para un panel.",
+      "module_disabled": "Un widget requiere un módulo que tu tienda no tiene.",
+      "role_taken": "Un rol seleccionado ya tiene una variante del inicio.",
+      "home_exists": "El inicio de la tienda ya existe.",
+      "invalid_input": "Revisa los campos.",
+      "personal_off": "Los paneles personales están desactivados para esta tienda.",
+      "invalid_formula": "La fórmula no es válida.",
+      "invalid_filters": "Los filtros no son válidos.",
+      "invalid_key": "Elige otra clave: está vacía o es una métrica base.",
+      "not_filterable": "Con filtros, usa solo métricas calculadas a partir de los pedidos (no costes fijos, beneficio operativo, clientes nuevos ni stock)."
+    },
+    "builder": {
+      "saved": "Métrica guardada.",
+      "label": "Nombre",
+      "label_placeholder": "Contribución por pedido",
+      "key": "Clave",
+      "key_placeholder": "del nombre",
+      "formula": "Fórmula",
+      "formula_ok": "Fórmula válida.",
+      "formula_error": "No válida",
+      "formula_help": "Combina métricas base con + − × ÷ y paréntesis, p. ej. contribution / orders.",
+      "available": "Métricas disponibles",
+      "filters": "Calculada sobre",
+      "filters_hint": "Déjalo vacío para toda la tienda. Los filtros mantienen solo los pedidos que coinciden.",
+      "f_channel": "Canal",
+      "f_country": "País",
+      "f_payment": "Método de pago",
+      "f_platform": "Plataforma de anuncios",
+      "f_campaign": "Campaña",
+      "f_product": "Producto",
+      "f_product_type": "Tipo de producto",
+      "f_customer": "Clientes",
+      "f_customer_all": "Todos",
+      "f_customer_new": "Nuevos (primer pedido)",
+      "f_customer_returning": "Recurrentes",
+      "format": "Formato",
+      "formats": {
+        "money": "Moneda",
+        "percent": "Porcentaje",
+        "ratio": "Ratio (×)",
+        "number": "Número"
+      },
+      "direction": "Tendencia",
+      "higher_better": "Más alto es mejor",
+      "lower_better": "Más bajo es mejor",
+      "translation": "Nombre en {locale}",
+      "description_field": "Descripción",
+      "preview": "Vista previa del mes",
+      "save": "Guardar métrica",
+      "cancel": "Cancelar",
+      "preview_value": "Este mes: {value} (periodo anterior {previous})",
+      "delete": "Eliminar",
+      "delete_confirm": "¿Eliminar esta métrica? Los widgets que la usan mostrarán un guion.",
+      "invalid_target": "Objetivo no válido.",
+      "target_saved": "Objetivo guardado.",
+      "target_metric": "Métrica",
+      "target_month": "Mes",
+      "target_value_money": "Objetivo (moneda)",
+      "target_value_percent": "Objetivo (%)",
+      "target_value_number": "Objetivo",
+      "target_clear": "vacío = quitar",
+      "target_save": "Fijar objetivo",
+      "edit_title": "Editar {name}",
+      "new_title": "Nueva métrica",
+      "hint": "Solo los responsables y administradores crean o cambian métricas.",
+      "filter_names": {
+        "channel": "Canal",
+        "country": "País",
+        "paymentMethod": "Pago",
+        "productIds": "Productos",
+        "productType": "Tipo de producto",
+        "campaignIds": "Campañas",
+        "platform": "Plataforma",
+        "customerType": "Clientes"
+      }
+    },
+    "payment_methods": {
+      "card": "Tarjeta",
+      "wallet": "Monedero",
+      "bank_transfer": "Transferencia",
+      "cod": "Contra reembolso",
+      "bnpl": "Compra ahora, paga después",
+      "other": "Otro"
+    },
+    "platforms": {
+      "meta": "Meta",
+      "google": "Google"
+    }
+  },
+  "ads": {
+    "nav": {
+      "label": "Análisis de campañas",
+      "campaigns": "Campañas",
+      "creatives": "Creatividades",
+      "keywords": "Palabras clave y búsquedas",
+      "words": "Palabras",
+      "recommendations": "Sugerencias"
+    },
+    "cols": {
+      "name": "Nombre",
+      "spend": "Gasto",
+      "impressions": "Impresiones",
+      "ctr": "CTR",
+      "platform_conv": "Conv. plataforma",
+      "keel_orders": "Pedidos Keel",
+      "revenue": "Ingreso neto",
+      "profit": "Beneficio",
+      "roas": "ROAS",
+      "frequency": "Frecuencia",
+      "match": "Concordancia",
+      "quality": "Calidad",
+      "campaign": "Campaña",
+      "action": "Acción",
+      "phrase": "Frase",
+      "items": "Usada en",
+      "margin": "Margen",
+      "cpa": "CPA",
+      "field": "Campo",
+      "asset": "Recurso",
+      "keel_orders_allocated": "Pedidos Keel (repartidos)",
+      "date": "Fecha",
+      "search_term": "Término de búsqueda",
+      "clicks": "Clics",
+      "reason": "Por qué",
+      "ad": "Anuncio"
+    },
+    "excluded_n": "+{n} cancelados/devueltos",
+    "ad_sets_title": "Conjuntos de anuncios",
+    "ad_groups_title": "Grupos de anuncios",
+    "ad_sets_description": "Las cifras de la plataforma junto a las de Keel: pedidos, ingresos y beneficio cuentan solo los pedidos no cancelados ni devueltos.",
+    "utm_missing": "{n} de {total} anuncios no llevan {params}: sus pedidos llegan a Keel sin anuncio. Añade esta plantilla a los anuncios:",
+    "no_ad_sets": "Aún no hay conjuntos",
+    "no_ad_sets_hint": "Llegan con la próxima sincronización de anuncios.",
+    "keel_not_visible": "Keel no ve los pedidos de esta fila (la plantilla UTM no la nombra).",
+    "n_ads": "{n} anuncios",
+    "n_keywords": "{n} palabras clave",
+    "unassigned_orders": "{n} pedidos de la campaña no están ligados a un conjunto",
+    "open_orders": "Abrir pedidos",
+    "reconciliation": "Gasto de los anuncios {ads} de {campaign} · sin asignar {unallocated}",
+    "ad_set": "Conjunto de anuncios",
+    "ad_group": "Grupo de anuncios",
+    "status": {
+      "active": "Activo",
+      "paused": "En pausa",
+      "archived": "Archivado"
+    },
+    "ads_title": "Anuncios",
+    "ads_description": "Fatiga: la frecuencia sube mientras el CTR baja. Las sugerencias son de solo lectura: decide una persona.",
+    "no_ads": "No hay anuncios en este conjunto",
+    "keywords_title": "Palabras clave",
+    "no_keywords": "No hay palabras clave",
+    "search_terms_title": "Términos de búsqueda",
+    "all_search_terms": "Todos los términos de la campaña",
+    "no_search_terms": "No hay términos de búsqueda",
+    "other_terms": "Otros términos (bajo las impresiones mínimas)",
+    "via_keyword": "por “{keyword}”",
+    "negative_reason": {
+      "only_cancelled": "Solo pedidos cancelados",
+      "no_orders": "Gasto sin pedidos",
+      "unprofitable_orders": "Pedidos con pérdida",
+      "no_conversions": "Gasto sin conversiones"
+    },
+    "excluded": "Excluido",
+    "keel_footnote": "Keel liga los pedidos a conjuntos, anuncios y palabras clave mediante la plantilla UTM; donde la plataforma no los liga aparece un guion.",
+    "match": {
+      "exact": "Exacta",
+      "phrase": "Frase",
+      "broad": "Amplia"
+    },
+    "fatigue": {
+      "watch": "Atención: CTR en descenso",
+      "fatigued": "Fatigado"
+    },
+    "utm_badge": "Faltan UTM",
+    "pause_reason": {
+      "losing": "Con pérdidas",
+      "fatigued": "Fatigado y con pérdidas",
+      "low_label": "Calificado BAJO",
+      "low_ctr": "Mitad del CTR de los demás"
+    },
+    "ctr_change": "CTR {change} desde el inicio",
+    "copy_title": "Textos y seguimiento",
+    "utm_missing_ad": "Este anuncio no lleva {params}: sus pedidos llegan a Keel sin el anuncio. Plantilla:",
+    "assets_title": "Recursos",
+    "no_assets": "Sin desglose por recurso",
+    "no_assets_meta": "Meta solo informa de recursos en anuncios con creatividad dinámica o Advantage+.",
+    "no_assets_google": "Google informa de recursos en los anuncios adaptables.",
+    "field": {
+      "headline": "Título",
+      "description": "Descripción",
+      "body": "Texto principal",
+      "title": "Título corto",
+      "image": "Imagen",
+      "video": "Vídeo",
+      "other": "Otro"
+    },
+    "assets_footnote": "Las plataformas informan de recursos, no de pedidos: Keel reparte los pedidos del anuncio entre sus recursos según la cuota de gasto en cada campo.",
+    "daily_title": "Por día",
+    "no_days": "Sin datos diarios en el periodo",
+    "keywords_page_title": "Palabras clave y términos de búsqueda",
+    "keywords_page_description": "Las palabras clave de Google Ads y las búsquedas que activaron los anuncios, con los pedidos de Keel donde la plantilla UTM las nombra.",
+    "tabs": {
+      "keywords": "Palabras clave",
+      "search_terms": "Términos de búsqueda"
+    },
+    "search_placeholder": "Buscar texto",
+    "all_campaigns": "Todas las campañas",
+    "sort_label": "Ordenar",
+    "sort": {
+      "spend": "Gasto",
+      "profit": "Beneficio",
+      "roas": "ROAS",
+      "conversions": "Conversiones"
+    },
+    "candidates_only": "Solo candidatos a palabra clave negativa",
+    "apply": "Aplicar",
+    "google_only": "Las palabras clave y los términos de búsqueda vienen de Google Ads; Meta no los tiene.",
+    "rows_total": "{n} filas",
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "page_of": "Página {page} de {pages}",
+    "keywords_footnote": "Los pedidos Keel vienen de utm_term con la palabra clave que pone la plantilla de seguimiento.",
+    "search_terms_footnote": "Keel ve los pedidos de un término cuando el término es una palabra clave (concordancia exacta); para los demás deciden las conversiones de la plataforma. Los términos bajo las impresiones mínimas se agrupan en “Otros términos”.",
+    "words_title": "Palabras",
+    "words_description": "Palabras y frases (1–3 palabras) ganadoras y perdedoras en los textos de los anuncios, los términos de búsqueda y las palabras clave, con el beneficio de los pedidos Keel.",
+    "word_source": {
+      "copy": "Textos de anuncios",
+      "search_terms": "Términos de búsqueda",
+      "keywords": "Palabras clave"
+    },
+    "ngram": {
+      "all": "Todas",
+      "n1": "1 palabra",
+      "n2": "2 palabras",
+      "n3": "3 palabras"
+    },
+    "no_words": "Volumen insuficiente",
+    "no_words_hint": "Una frase necesita al menos dos anuncios o términos y algo de gasto.",
+    "winners": "Palabras ganadoras",
+    "winners_description": "Frases de elementos con beneficio, las mejores primero.",
+    "no_winners": "Ninguna frase con beneficio en el periodo",
+    "losers": "Palabras perdedoras",
+    "losers_description": "Frases de elementos con pérdidas, las peores primero.",
+    "no_losers": "Ninguna frase con pérdidas en el periodo",
+    "words_footnote": "{items} elementos analizados. Cada frase suma las cifras completas de cada elemento que la contiene, así que las frases se solapan.",
+    "recommendations_title": "Sugerencias de anuncios",
+    "recommendations_description": "Sugerencias de solo lectura: una persona las revisa y actúa; las escrituras en las plataformas siempre piden confirmación.",
+    "in_items": "en {n}",
+    "rec": {
+      "negatives_title": "Candidatos a palabra clave negativa",
+      "negatives_description": "{n} términos de búsqueda gastan sin pedidos con beneficio.",
+      "google_read_only": "Google es de solo lectura para esta tienda: concede acceso de escritura en Integraciones para excluir términos desde aquí.",
+      "none": "Nada que sugerir",
+      "all_candidates": "Todos los candidatos",
+      "ads_title": "Anuncios para pausar",
+      "ads_description": "Anuncios activos con pérdidas en el periodo, o fatigados y con pérdidas.",
+      "words_title": "Palabras ganadoras para reutilizar",
+      "words_description": "Frases de los anuncios con más beneficio.",
+      "open_words": "Abrir Palabras",
+      "assets_title": "Recursos débiles",
+      "assets_description": "Recursos calificados BAJO por la plataforma o con la mitad del CTR de los demás.",
+      "utm_title": "Plantillas UTM",
+      "utm_description": "Sin estos parámetros Keel no puede ligar los pedidos a anuncios, conjuntos y palabras clave.",
+      "utm_ok": "Todas las campañas activas llevan las plantillas.",
+      "utm_row": "{missing} de {ads} anuncios sin {params}",
+      "template_meta": "Meta: parámetros de URL del anuncio",
+      "template_google": "Google: plantilla de seguimiento de la cuenta"
+    },
+    "actions": {
+      "read_only": "{platform} es de solo lectura para esta tienda.",
+      "read_only_short": "Solo lectura",
+      "pause_ad": "Pausar anuncio",
+      "resume_ad": "Reanudar anuncio",
+      "pause_title": "¿Pausar este anuncio en {platform}?",
+      "resume_title": "¿Reanudar este anuncio en {platform}?",
+      "write_description": "Keel cambia el estado aquí y lo envía a la plataforma; si no responde, el cambio se reintenta y se muestra como pendiente.",
+      "confirm": "Confirmar",
+      "exclude": "Excluir",
+      "negative_title": "¿Añadir “{text}” como palabra clave negativa?",
+      "negative_description": "Google deja de mostrar los anuncios para esta búsqueda. El cambio pasa por la cola de escrituras.",
+      "match_type": "Concordancia",
+      "match": {
+        "exact": "Exacta",
+        "phrase": "Frase",
+        "broad": "Amplia"
+      },
+      "level": "Nivel",
+      "levels": {
+        "campaign": "Campaña",
+        "ad_group": "Grupo de anuncios"
+      }
+    }
+  },
+  "mcp": {
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "scopes": {
+      "read": "Leer pedidos, clientes, análisis, productos, compras, devoluciones, segmentos y estado de las integraciones que tu rol puede ver",
+      "write_notes": "Añadir notas internas a los pedidos",
+      "write_orders": "Asignar pedidos, pasarlos a revisión o espera, proponer cancelaciones y reembolsos",
+      "write_campaigns": "Proponer pausar campañas publicitarias",
+      "write_purchasing": "Proponer borradores de pedidos de compra"
+    },
+    "unavailable": {
+      "plan": "Los clientes de IA (MCP) se incluyen desde el plan Growth.",
+      "tenant_disabled": "MCP está desactivado en este espacio de trabajo: un propietario o administrador puede activarlo en Ajustes → IA y MCP.",
+      "killed": "La plataforma ha suspendido el acceso MCP a este espacio de trabajo.",
+      "platform_disabled": "MCP no está disponible temporalmente en la plataforma.",
+      "suspended": "Este espacio de trabajo está suspendido."
+    },
+    "errors": {
+      "generic": "Algo salió mal. Inténtalo de nuevo.",
+      "invalid_input": "Revisa los campos e inténtalo de nuevo.",
+      "limit_reached": "Has alcanzado el número máximo de tokens activos: revoca uno antes.",
+      "not_found": "No encontrado: puede que se haya eliminado.",
+      "forbidden": "No puedes hacer esto.",
+      "mcp_unavailable": "MCP no está disponible para este espacio de trabajo.",
+      "not_pending": "Esta propuesta ya se decidió.",
+      "expired": "Esta propuesta ha caducado."
+    },
+    "consent": {
+      "title": "Conectar un cliente de IA",
+      "heading": "{client} quiere acceder a Keel",
+      "description": "Sesión iniciada como {user}. El cliente actuará como tú, con tu rol, en el espacio de trabajo que elijas.",
+      "workspace": "Espacio de trabajo",
+      "no_workspace": "No eres miembro de ningún espacio de trabajo.",
+      "scopes": "Permisos",
+      "scopes_hint": "Desmarca lo que no quieras permitir. La lectura siempre está incluida.",
+      "note_role": "Solo ve lo que tu rol ve en Keel; los módulos desactivados no exponen nada.",
+      "note_pii": "Los correos, teléfonos y direcciones de los clientes se enmascaran, salvo que tu espacio de trabajo haya activado los datos personales completos para clientes de IA.",
+      "note_proposals": "Cancelaciones, reembolsos, pausas de campañas y pedidos de compra son solo propuestas: las aprueba una persona en Keel.",
+      "note_redirect": "Tras autorizar vuelves a {host}. Puedes revocar el acceso cuando quieras desde tu perfil → Conexiones.",
+      "approve": "Permitir el acceso",
+      "deny": "Cancelar",
+      "invalid_request": "Esta solicitud de conexión no es válida.",
+      "unavailable": {
+        "plan": "No incluido en el plan",
+        "tenant_disabled": "MCP desactivado por un propietario o administrador",
+        "killed": "Suspendido por la plataforma",
+        "platform_disabled": "No disponible temporalmente",
+        "suspended": "Espacio de trabajo suspendido"
+      }
+    },
+    "connections": {
+      "server_url": "URL del servidor MCP",
+      "server_url_hint": "Pégala en Claude, ChatGPT, Cursor o cualquier cliente MCP: se conectan con OAuth, tú inicias sesión y autorizas.",
+      "connection": "Conexión",
+      "user": "Usuario",
+      "scopes": "Permisos",
+      "last_used": "Último uso",
+      "expires": "Caduca",
+      "never": "Nunca",
+      "empty": "Aún no hay clientes de IA conectados.",
+      "kind": {
+        "oauth": "OAuth",
+        "pat": "Token"
+      },
+      "state": {
+        "active": "Activa",
+        "expired": "Caducada",
+        "revoked": "Revocada"
+      },
+      "create_title": "Nuevo token de acceso personal",
+      "token_name": "Nombre",
+      "token_name_placeholder": "p. ej. Cursor en mi portátil",
+      "expires_in": "Caduca en",
+      "days": "{days} días",
+      "create": "Crear token",
+      "shown_once": "Copia el token ahora: se muestra una sola vez y Keel solo guarda una huella.",
+      "rotate": "Regenerar",
+      "rotate_confirm": "¿Crear un nuevo secreto para este token? El actual deja de funcionar de inmediato.",
+      "revoke": "Revocar",
+      "revoke_confirm": "¿Revocar esta conexión? El cliente pierde el acceso de inmediato.",
+      "how_to": "Cómo conectar Claude, ChatGPT o Cursor",
+      "open_settings": "Abrir los ajustes de IA y MCP"
+    },
+    "settings": {
+      "title": "IA y MCP",
+      "description": "Permite que tu equipo use Claude, ChatGPT, Cursor y otros clientes de IA sobre los datos de este espacio de trabajo, con sus propios permisos.",
+      "server_title": "Servidor MCP",
+      "server_description": "Una sola URL para todos los clientes. Cada persona se conecta con su cuenta; los tokens están ligados a una persona y a un espacio de trabajo.",
+      "enabled": "Permitir clientes de IA (MCP)",
+      "enabled_hint": "Si está desactivado, se rechaza toda llamada MCP a este espacio de trabajo; las conexiones se conservan.",
+      "full_pii": "Mostrar datos personales de clientes",
+      "full_pii_hint": "Nombres, correos, teléfonos y direcciones completos, solo a los roles que pueden verlos (nunca marketing ni lector). Desactivado: siempre enmascarados.",
+      "rule_auth": "OAuth 2.1 con PKCE, o tokens de acceso personales; los secretos se guardan solo como hash con clave.",
+      "rule_permissions": "Cada herramienta usa el rol de la persona y los módulos del espacio de trabajo; no se expone nada que el rol no vea en Keel.",
+      "rule_writes": "Las escrituras directas son reversibles (notas, asignación, revisión o espera); las acciones arriesgadas esperan aprobación.",
+      "rule_limits": "Límites: {perToken} llamadas por minuto por conexión, {perTenant} por espacio de trabajo.",
+      "guides_title": "Conectar un cliente",
+      "guides_description": "Los pasos para los clientes más usados.",
+      "connections_title": "Clientes conectados",
+      "connections_description": "Todas las conexiones activas del espacio de trabajo, con su último uso. Propietarios y administradores pueden revocarlas.",
+      "activity_title": "Actividad reciente",
+      "activity_description": "Las últimas llamadas de los últimos 7 días (herramienta, persona, cliente, resultado). Nunca se guardan argumentos ni resultados.",
+      "activity_empty": "Aún no hay llamadas.",
+      "stat_calls": "Llamadas (7 días)",
+      "stat_errors": "Errores",
+      "stat_denied": "Rechazadas",
+      "stat_rate_limited": "Limitadas",
+      "col_when": "Cuándo",
+      "col_tool": "Herramienta",
+      "col_who": "Quién",
+      "col_outcome": "Resultado",
+      "col_duration": "Duración",
+      "outcome": {
+        "ok": "OK",
+        "error": "Error",
+        "denied": "Rechazada",
+        "invalid_input": "Entrada no válida",
+        "not_found": "No encontrado",
+        "rate_limited": "Limitada",
+        "auth_failed": "Autenticación fallida",
+        "disabled": "Desactivado"
+      },
+      "approvals_link": "Aprobaciones ({count})",
+      "approvals_link_empty": "Aprobaciones",
+      "own_tokens_link": "Tus tokens de acceso personales están en tu perfil → Conexiones."
+    },
+    "approvals": {
+      "title": "Aprobaciones",
+      "description": "Acciones que los clientes de IA propusieron por MCP. No ocurre nada hasta que alguien que puede hacerlo las aprueba; al aprobar se ejecutan en tu nombre.",
+      "empty_title": "Nada que aprobar",
+      "empty_description": "Aquí aparecen las propuestas de los clientes de IA (cancelaciones, reembolsos, pausas de campañas, pedidos de compra).",
+      "requested_by": "{client} para {user} · {when}",
+      "order_total": "Total del pedido",
+      "restock": "Reponer stock",
+      "refund": "Reembolsar el pago",
+      "amount": "Importe",
+      "refundable": "Aún reembolsable",
+      "lines": "Líneas",
+      "expires": "Caduca",
+      "yes": "Sí",
+      "no": "No",
+      "cannot_approve": "Tu rol no puede aprobarla: quien pueda la verá aquí.",
+      "note_placeholder": "Nota (opcional)",
+      "approve": "Aprobar y ejecutar",
+      "approve_confirm": "¿Aprobar y ejecutar ahora esta acción en tu nombre?",
+      "reject": "Rechazar",
+      "failed": "La acción falló: {error}",
+      "history": "Historial",
+      "history_empty": "Aún no hay propuestas decididas.",
+      "col_proposal": "Propuesta",
+      "col_requested": "Solicitada",
+      "col_status": "Estado",
+      "col_decided": "Decidida por",
+      "kinds": {
+        "order_cancel": "Cancelar pedido",
+        "order_refund": "Reembolso",
+        "campaign_pause": "Pausar campaña",
+        "purchase_order_create": "Borrador de pedido de compra"
+      },
+      "status": {
+        "pending": "Pendiente",
+        "approved": "Aprobada",
+        "rejected": "Rechazada",
+        "failed": "Fallida",
+        "expired": "Caducada"
+      }
+    },
+    "guides": {
+      "verify_legend": "Los pasos marcados «Por verificar» dependen de la interfaz del proveedor de IA, que cambia a menudo: compruébalos en su documentación antes de la primera instalación.",
+      "verify_badge": "Por verificar",
+      "pat_note": "Clientes sin OAuth: crea un token de acceso personal en tu perfil → Conexiones y envíalo en la cabecera Authorization: Bearer kpat_…",
+      "claude": {
+        "name": "Claude",
+        "steps": [
+          {
+            "title": "Abre los conectores",
+            "body": "En Claude (web o app de escritorio) abre Ajustes → Conectores y elige «Añadir conector personalizado». En planes de equipo puede que un propietario deba permitirlos antes.",
+            "verify": true
+          },
+          {
+            "title": "Pega la URL del servidor",
+            "body": "Ponle un nombre (p. ej. Keel) y pega:\n{serverUrl}\nDeja vacíos los campos OAuth avanzados: Claude se registra solo en Keel.",
+            "verify": true
+          },
+          {
+            "title": "Inicia sesión y autoriza",
+            "body": "Claude abre Keel: inicia sesión, elige el espacio de trabajo, mantén o quita permisos y autoriza. Vuelves a Claude ya conectado."
+          },
+          {
+            "title": "Pruébalo",
+            "body": "En un chat activa el conector desde el menú de herramientas y pregunta: «¿Cómo fueron las ventas la semana pasada frente a la anterior?» Claude cita las cifras con el enlace a Keel.",
+            "verify": true
+          }
+        ]
+      },
+      "chatgpt": {
+        "name": "ChatGPT",
+        "steps": [
+          {
+            "title": "Permite conectores personalizados",
+            "body": "En ChatGPT abre Ajustes → Conectores (Apps). Según el plan, los conectores MCP personalizados requieren el modo desarrollador en los ajustes avanzados, o un administrador del espacio de trabajo.",
+            "verify": true
+          },
+          {
+            "title": "Crea el conector",
+            "body": "Elige Crear, ponle un nombre, pega {serverUrl} y elige OAuth como autenticación.",
+            "verify": true
+          },
+          {
+            "title": "Inicia sesión y autoriza",
+            "body": "ChatGPT abre Keel: inicia sesión, elige el espacio de trabajo y los permisos, autoriza."
+          },
+          {
+            "title": "Pruébalo",
+            "body": "Abre un chat, añade el conector desde el menú de herramientas y pregunta por ejemplo: «¿Qué campañas perdieron dinero este mes y qué sugiere Keel?»",
+            "verify": true
+          }
+        ]
+      },
+      "cursor": {
+        "name": "Cursor",
+        "steps": [
+          {
+            "title": "Abre los ajustes MCP",
+            "body": "En Cursor abre Settings → MCP (Tools & Integrations) → «Add custom MCP server»: se abre ~/.cursor/mcp.json.",
+            "verify": true
+          },
+          {
+            "title": "Añade Keel",
+            "body": "Añade este servidor y guarda:\n{ \"mcpServers\": { \"keel\": { \"url\": \"{serverUrl}\" } } }",
+            "verify": true
+          },
+          {
+            "title": "Inicia sesión",
+            "body": "Cursor indica que el servidor necesita inicio de sesión: haz clic, entra en Keel y autoriza. Sin OAuth, crea un token de acceso personal y añade \"headers\": { \"Authorization\": \"Bearer kpat_…\" } al servidor."
+          },
+          {
+            "title": "Pruébalo",
+            "body": "En el chat del agente pregunta: «Lista los productos con riesgo de rotura de stock y el pedido sugerido.»"
+          }
+        ]
+      }
+    }
   }
 }
