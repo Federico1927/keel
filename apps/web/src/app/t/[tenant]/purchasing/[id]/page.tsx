@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
 import { canDo } from "@hullwise/config";
 import { PO_TRANSITIONS, canDeletePo, canEditPo, formatDate, formatDateTime, formatMoney, displayName } from "@hullwise/core";
-import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardHeader, CardTitle, DataList, DetailShell } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { catalogThumbnails } from "@hullwise/services";
 import { ProductThumb } from "@/components/product-thumb";
@@ -138,41 +138,18 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
           {canWrite && receivable ? (
             <ReceiveForm slug={tenant} poId={po.id} locations={locations.map((l) => ({ id: l.id, name: l.name, isDefault: l.isDefault }))} defaultLocationId={po.destinationLocationId} lines={lines.map((l) => ({ id: l.id, label: l.productTitle ? `${l.productTitle} · ${l.variantTitle ?? ""}` : (l.description ?? ""), sku: l.sku ?? (l.variantId ? null : t("free_text_line")), codes: [l.sku, l.barcode], quantity: l.quantity, receivedQuantity: l.receivedQuantity, damagedQuantity: l.damagedQuantity, rejectedQuantity: l.rejectedQuantity, unitCost: l.landedUnitCostMinor !== null ? `${fmt(l.unitCostMinor)} → ${fmt(l.landedUnitCostMinor)}` : fmt(l.unitCostMinor) }))} />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("line.item")}</TableHead>
-                  <TableHead className="text-right">{t("line.ordered")}</TableHead>
-                  <TableHead className="text-right">{t("line.received")}</TableHead>
-                  <TableHead className="text-right">{t("line.unit_cost")}</TableHead>
-                  {hasLanded && <TableHead className="text-right">{t("line.landed")}</TableHead>}
-                  <TableHead className="text-right">{t("line.total")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {lines.map((l) => (
-                  <TableRow key={l.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {l.variantId && <ProductThumb src={thumbs.variants.get(l.variantId)} alt={`${l.productTitle ?? ""} ${l.variantTitle ?? ""}`} size="xs" />}
-                        <div className="min-w-0">
-                          {l.productId ? <Link href={`/t/${tenant}/products/${l.productId}`} className="font-medium hover:underline">{l.productTitle}</Link> : <span className="font-medium">{l.description}</span>}
-                          <p className="text-xs text-muted-foreground">{l.variantId ? `${l.variantTitle ?? ""} ${l.sku ? `· ${l.sku}` : ""}` : t("free_text_line")}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right tabular">{l.quantity}</TableCell>
-                    <TableCell className="text-right tabular">
-                      {l.receivedQuantity}
-                      {l.damagedQuantity + l.rejectedQuantity > 0 && <span className="block text-xs text-destructive">{t("inspection.short", { damaged: l.damagedQuantity, rejected: l.rejectedQuantity })}</span>}
-                    </TableCell>
-                    <TableCell className="text-right tabular">{fmt(l.unitCostMinor)}</TableCell>
-                    {hasLanded && <TableCell className="text-right tabular">{l.landedUnitCostMinor !== null ? fmt(l.landedUnitCostMinor) : "—"}</TableCell>}
-                    <TableCell className="text-right tabular">{fmt(l.unitCostMinor * l.quantity)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={lines}
+              rowKey={(l) => l.id}
+              columns={[
+                { key: "item", header: t("line.item"), mobile: "title", cell: (l) => <div className="flex items-center gap-2">{l.variantId && <ProductThumb src={thumbs.variants.get(l.variantId)} alt={`${l.productTitle ?? ""} ${l.variantTitle ?? ""}`} size="xs" />}<div className="min-w-0">{l.productId ? <Link href={`/t/${tenant}/products/${l.productId}`} className="font-medium hover:underline">{l.productTitle}</Link> : <span className="font-medium">{l.description}</span>}<p className="text-xs font-normal text-muted-foreground">{l.variantId ? `${l.variantTitle ?? ""} ${l.sku ? `· ${l.sku}` : ""}` : t("free_text_line")}</p></div></div> },
+                { key: "total", header: t("line.total"), mobile: "badge", align: "right", className: "tabular max-md:font-semibold", cell: (l) => fmt(l.unitCostMinor * l.quantity) },
+                { key: "ordered", header: t("line.ordered"), align: "right", className: "tabular", cell: (l) => l.quantity },
+                { key: "received", header: t("line.received"), align: "right", className: "tabular", cell: (l) => <>{l.receivedQuantity}{l.damagedQuantity + l.rejectedQuantity > 0 && <span className="block text-xs text-destructive max-md:ml-1 max-md:inline">{t("inspection.short", { damaged: l.damagedQuantity, rejected: l.rejectedQuantity })}</span>}</> },
+                { key: "unit", header: t("line.unit_cost"), align: "right", className: "tabular", cell: (l) => fmt(l.unitCostMinor) },
+                ...(hasLanded ? [{ key: "landed", header: t("line.landed"), align: "right" as const, className: "tabular", cell: (l: (typeof lines)[number]) => (l.landedUnitCostMinor !== null ? fmt(l.landedUnitCostMinor) : "—") }] : []),
+              ]}
+            />
           )}
         </CardContent>
       </Card>

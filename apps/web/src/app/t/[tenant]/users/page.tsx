@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { adminDb, eq, schema } from "@hullwise/db";
-import { PageHeader } from "@hullwise/ui";
+import { Button, PageHeader } from "@hullwise/ui";
+import { canManageRole } from "@hullwise/config";
 import { listInvitations } from "@hullwise/services";
 import { requirePage } from "@/server/tenant";
 import { InviteForm, InvitationsList, MembersTable } from "./members";
@@ -25,7 +26,7 @@ export default async function UsersPage({ params }: { params: Promise<{ tenant: 
   const invitations = await ctx.run((tx) => listInvitations({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }));
   return (
     <>
-      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} />
+      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={canManageRole(ctx.role, "viewer") ? <Button asChild className="lg:hidden"><a href="#invite" data-testid="invite-jump">{t("invite")}</a></Button> : undefined} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0 space-y-6">
         <MembersTable

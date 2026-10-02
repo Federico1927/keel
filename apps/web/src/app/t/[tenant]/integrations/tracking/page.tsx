@@ -4,7 +4,7 @@ import { canDo } from "@hullwise/config";
 import { formatDateTime, formatNumber, formatPercent } from "@hullwise/core";
 import { integrationMode } from "@hullwise/integrations";
 import { conversionLog, conversionStats, getConversionSettings, integrationOverview, pixelOverview } from "@hullwise/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, PageHeader, Stat } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { collectUrlFor, shopifyCustomPixel } from "@/server/pixel-snippets";
 import { ConversionForm, CopyBlock, PixelControls, RunConversions } from "./controls";
@@ -93,28 +93,18 @@ export default async function TrackingPage({ params }: { params: Promise<{ tenan
           <CardDescription>{t("log.description")}</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("log.order")}</TableHead>
-                <TableHead>{t("log.platform")}</TableHead>
-                <TableHead>{t("log.status")}</TableHead>
-                <TableHead className="hidden md:table-cell">{t("log.detail")}</TableHead>
-                <TableHead className="hidden md:table-cell">{t("log.when")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {log.map((r) => (
-                <TableRow key={r.id} data-testid="conversion-row">
-                  <TableCell><Link href={`/t/${tenant}/orders/${r.orderId}`} className="hover:underline">{r.orderName}</Link></TableCell>
-                  <TableCell>{t(`conversions.name_${r.provider}`)}</TableCell>
-                  <TableCell><Badge variant={r.status === "sent" ? "success" : r.status === "failed" ? "destructive" : r.status === "pending" ? "info" : "muted"}>{t(`log.statuses.${r.status}`)}</Badge></TableCell>
-                  <TableCell className="hidden text-xs md:table-cell">{r.reason ? t(`log.reasons.${r.reason}`) : r.lastError ?? (r.attempts > 1 ? t("log.attempts", { n: r.attempts }) : "")}</TableCell>
-                  <TableCell className="hidden text-xs md:table-cell">{dt(r.sentAt ?? r.createdAt)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataList
+            rows={log}
+            rowKey={(r) => r.id}
+            rowProps={() => ({ "data-testid": "conversion-row" })}
+            columns={[
+              { key: "order", header: t("log.order"), mobile: "title", cell: (r) => <Link href={`/t/${tenant}/orders/${r.orderId}`} className="hover:underline">{r.orderName}</Link> },
+              { key: "status", header: t("log.status"), mobile: "badge", cell: (r) => <Badge variant={r.status === "sent" ? "success" : r.status === "failed" ? "destructive" : r.status === "pending" ? "info" : "muted"}>{t(`log.statuses.${r.status}`)}</Badge> },
+              { key: "platform", header: t("log.platform"), mobile: "subtitle", cell: (r) => t(`conversions.name_${r.provider}`) },
+              { key: "detail", header: t("log.detail"), label: "", className: "text-xs", cell: (r) => (r.reason ? t(`log.reasons.${r.reason}`) : r.lastError ?? (r.attempts > 1 ? t("log.attempts", { n: r.attempts }) : "")) },
+              { key: "when", header: t("log.when"), label: "", className: "text-xs", cell: (r) => dt(r.sentAt ?? r.createdAt) },
+            ]}
+          />
         </CardContent>
       </Card>
     </>

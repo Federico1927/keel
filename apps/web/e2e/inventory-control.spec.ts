@@ -42,7 +42,6 @@ test.describe("inventory control", () => {
   });
 
   test("stock-take: scan, unknown code, review and apply in one batch", async ({ page }) => {
-    page.on("dialog", (d) => void d.accept());
     await login(page, "ops@northwind.demo");
     const sku = await stockedSku(page);
     await page.goto(`${T}/inventory`);
@@ -68,6 +67,7 @@ test.describe("inventory control", () => {
     await expect(counted).toHaveAttribute("data-status", /missing|surplus|match/);
     // apply: one batch, the session closes
     await page.getByTestId("apply-stock-take").click();
+    await page.getByTestId("confirm-accept").click();
     await expect(page.getByTestId("stock-take-status")).toHaveText(/Applied|Applicato/);
     await expect(page.getByTestId("scan-code")).toHaveCount(0);
     await page.goto(`${T}/inventory/stock-takes`);

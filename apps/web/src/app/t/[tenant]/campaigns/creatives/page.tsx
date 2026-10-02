@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { adPlatformsForPlan } from "@hullwise/config";
 import { formatMoney, formatNumber, formatPercent } from "@hullwise/core";
 import { creativePerformance } from "@hullwise/services";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Badge, Card, CardContent, EmptyState, PageHeader, cn, DataList } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { CHART_COLORS } from "@/components/charts/theme";
 import { PeriodPicker } from "@/components/period-picker";
@@ -44,52 +44,29 @@ export default async function CreativesPage({ params, searchParams }: { params: 
       <p className="mb-2 text-sm text-muted-foreground"><Link href={`/t/${tenant}/campaigns`} className="hover:underline">← {t("back")}</Link></p>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<PeriodPicker basePath={base} keep={{ by, platform: sp.platform }} preset={period.preset} from={sp.from} to={sp.to} />} />
       <AdsNav tenant={tenant} active="creatives" qs={new URLSearchParams(Object.entries(periodParams(period, sp)).filter((e): e is [string, string] => Boolean(e[1]))).toString()} />
-      <div className="mb-4 flex flex-wrap gap-1 rounded-md bg-muted p-1 text-sm">
-        {(["creative", "format", "hook", "angle"] as const).map((b) => <Link key={b} href={qs({ by: b })} className={cn("flex-1 rounded-sm px-3 py-1.5 text-center", by === b ? "bg-card shadow-sm" : "text-muted-foreground")}>{t(`by.${b}`)}</Link>)}
+      <div className="mb-4 flex gap-1 overflow-x-auto rounded-md bg-muted p-1 text-sm">
+        {(["creative", "format", "hook", "angle"] as const).map((b) => <Link key={b} href={qs({ by: b })} className={cn("flex-1 shrink-0 whitespace-nowrap rounded-sm px-3 py-1.5 text-center pointer-coarse:py-2.5", by === b ? "bg-card shadow-sm" : "text-muted-foreground")}>{t(`by.${b}`)}</Link>)}
       </div>
       {rows.length === 0 ? <EmptyState title={t("empty")} /> : (
         <Card>
           <CardContent className="p-0">
-            <Table data-testid="creatives-table">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t(`by.${by}`)}</TableHead>
-                  <TableHead className="text-right">{t("spend")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("ctr")}</TableHead>
-                  <TableHead className="hidden text-right lg:table-cell">{t("cpc")}</TableHead>
-                  <TableHead className="hidden text-right xl:table-cell">{t("thumbstop")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("declared")}</TableHead>
-                  <TableHead className="text-right">{t("real")}</TableHead>
-                  <TableHead className="text-right">{t("roas")}</TableHead>
-                  {by === "creative" && <TableHead>{t("fatigue")}</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.key} data-testid="creative-row">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <CreativeThumb format={r.format} label={r.label} />
-                        <div className="min-w-0">
-                          <div className="truncate font-medium">{r.label}</div>
-                          <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
-                            {by === "creative" ? <>{r.campaignId && <Link href={`/t/${tenant}/campaigns/${r.campaignId}`} className="hover:underline">{r.campaignName}</Link>}{r.format && <Badge variant="outline">{r.format}</Badge>}{r.status === "paused" && <Badge variant="muted">{t("paused")}</Badge>}</> : t("n_creatives", { n: r.creatives })}
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right tabular">{money(r.spendMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{formatPercent(r.ctr, ctx.locale, 2)}</TableCell>
-                    <TableCell className="hidden text-right tabular lg:table-cell">{r.cpcMinor !== null ? money(r.cpcMinor) : "—"}</TableCell>
-                    <TableCell className="hidden text-right tabular xl:table-cell">{formatPercent(r.thumbStopRate, ctx.locale, 0)}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{formatNumber(r.declaredPurchases, ctx.locale)} · {money(r.declaredValueMinor)}</TableCell>
-                    <TableCell className="text-right tabular">{formatNumber(r.orders, ctx.locale)} · {money(r.netMinor)}</TableCell>
-                    <TableCell className={cn("text-right tabular font-medium", r.roas !== null && r.roas < 1 && "text-destructive")}>{ratio(r.roas)}</TableCell>
-                    {by === "creative" && <TableCell>{r.fatigue && r.fatigue.level !== "no_data" ? <Badge variant={r.fatigue.level === "fatigued" ? "destructive" : r.fatigue.level === "watch" ? "warning" : "success"} title={t("fatigue_hint", { change: formatPercent(r.fatigue.ctrChange, ctx.locale, 0), freq: r.fatigue.frequency?.toFixed(1) ?? "—" })}>{t(`fatigue_levels.${r.fatigue.level}`)}</Badge> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              data-testid="creatives-table"
+              rows={rows}
+              rowKey={(r) => r.key}
+              rowProps={() => ({ "data-testid": "creative-row" })}
+              columns={[
+                { key: "label", header: t(`by.${by}`), mobile: "title", cell: (r) => <div className="flex items-center gap-3"><CreativeThumb format={r.format} label={r.label} /><div className="min-w-0"><div className="truncate font-medium">{r.label}</div><div className="flex flex-wrap gap-1 text-xs font-normal text-muted-foreground">{by === "creative" ? <>{r.campaignId && <Link href={`/t/${tenant}/campaigns/${r.campaignId}`} className="relative z-10 hover:underline">{r.campaignName}</Link>}{r.format && <Badge variant="outline">{r.format}</Badge>}{r.status === "paused" && <Badge variant="muted">{t("paused")}</Badge>}</> : t("n_creatives", { n: r.creatives })}</div></div></div> },
+                { key: "roas", header: t("roas"), mobile: "badge", align: "right", className: "tabular font-medium", cell: (r) => <span className={cn(r.roas !== null && r.roas < 1 && "text-destructive")}>{ratio(r.roas)}</span> },
+                { key: "spend", header: t("spend"), align: "right", className: "tabular", cell: (r) => money(r.spendMinor) },
+                { key: "ctr", header: t("ctr"), align: "right", className: "tabular", cell: (r) => formatPercent(r.ctr, ctx.locale, 2) },
+                { key: "cpc", header: t("cpc"), align: "right", priority: 2, className: "tabular", cell: (r) => (r.cpcMinor !== null ? money(r.cpcMinor) : "—") },
+                { key: "thumbstop", header: t("thumbstop"), align: "right", priority: 3, className: "tabular", cell: (r) => formatPercent(r.thumbStopRate, ctx.locale, 0) },
+                { key: "declared", header: t("declared"), align: "right", className: "tabular", cell: (r) => <>{formatNumber(r.declaredPurchases, ctx.locale)} · {money(r.declaredValueMinor)}</> },
+                { key: "real", header: t("real"), align: "right", className: "tabular", cell: (r) => <>{formatNumber(r.orders, ctx.locale)} · {money(r.netMinor)}</> },
+                ...(by === "creative" ? [{ key: "fatigue", header: t("fatigue"), label: "", cell: (r: (typeof rows)[number]) => (r.fatigue && r.fatigue.level !== "no_data" ? <Badge variant={r.fatigue.level === "fatigued" ? "destructive" : r.fatigue.level === "watch" ? "warning" : "success"} title={t("fatigue_hint", { change: formatPercent(r.fatigue.ctrChange, ctx.locale, 0), freq: r.fatigue.frequency?.toFixed(1) ?? "—" })}>{t(`fatigue_levels.${r.fatigue.level}`)}</Badge> : <span className="text-xs text-muted-foreground max-md:hidden">—</span>) }] : []),
+              ]}
+            />
             <p className="border-t p-3 text-xs text-muted-foreground">{t("footnote")}</p>
           </CardContent>
         </Card>

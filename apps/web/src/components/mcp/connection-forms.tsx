@@ -7,6 +7,7 @@ import { MCP_PAT_DAYS, MCP_SCOPES } from "@hullwise/config";
 import type { ActionResult } from "@/server/action-result";
 import { createMcpTokenAction, revokeMcpTokenAction, rotateMcpTokenAction } from "@/server/actions/mcp";
 import { CopyField } from "./copy-field";
+import { ConfirmButton } from "../confirm-button";
 
 /** The secret, once: it is never shown again (only its HMAC is stored). */
 function ShownOnce({ token }: { token: string }) {
@@ -85,9 +86,9 @@ export function TokenActions({ slug, tokenId, canRotate }: { slug: string; token
     <div className="space-y-2">
       <div className="flex flex-wrap justify-end gap-2">
         {canRotate && (
-          <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => { if (window.confirm(t("rotate_confirm"))) run(() => rotateMcpTokenAction(slug, tokenId)); }}>{t("rotate")}</Button>
+          <ConfirmButton size="sm" variant="outline" disabled={pending} title={t("rotate_confirm")} confirmLabel={t("rotate")} onConfirm={() => run(() => rotateMcpTokenAction(slug, tokenId))}>{t("rotate")}</ConfirmButton>
         )}
-        <Button type="button" size="sm" variant="outline" disabled={pending} data-testid="mcp-revoke" onClick={() => { if (window.confirm(t("revoke_confirm"))) run(() => revokeMcpTokenAction(slug, tokenId)); }}>{t("revoke")}</Button>
+        <ConfirmButton size="sm" variant="outline" disabled={pending} data-testid="mcp-revoke" title={t("revoke_confirm")} confirmLabel={t("revoke")} destructive onConfirm={() => run(() => revokeMcpTokenAction(slug, tokenId))}>{t("revoke")}</ConfirmButton>
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
       {token && <ShownOnce token={token} />}

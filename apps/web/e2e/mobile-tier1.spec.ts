@@ -222,8 +222,8 @@ test("operations counts a location's stock by scanning", async ({ page }) => {
   await expect(page.getByTestId("scan-result")).toContainText(/2/);
   await expect(page.getByTestId("stock-take-line").first()).toBeVisible();
   // leave the demo stock as it was
-  page.once("dialog", (d) => d.accept());
   await page.getByTestId("cancel-stock-take").click();
+  await page.getByRole("dialog").getByTestId("confirm-accept").click();
   await expect(page.getByTestId("stock-take-status")).toHaveText(/Cancelled|Annullat/);
 });
 

@@ -842,3 +842,20 @@ Resta (ondate 2 e 3):
 - **Ondata 2 (Tier 2)**: clienti, acquisti (lista, editor PO, fornitori), sconti, segmenti e campagne clienti, impostazioni, utenti, integrazioni, console super-admin, profilo, supporto, export: passare a `DataList`/`FilterPanel`/foglio e togliere i file dalla allow-list; scheda campagna e annunci; conferme con `window.confirm` (applica inventario, approva proposta) da portare in un foglio.
 - **Ondata 3 (Tier 3)**: P/L e analisi, pianificazione, markdown e perdite, editor dashboard e regole di stato: layout leggibili, scorrimento solo dentro tabelle marcate, avviso "meglio da desktop" per gli editor complessi; grafici a schermo intero in orizzontale.
 - Azioni a scorrimento sulle righe e pull-to-refresh (non fatti), notifiche push web (facoltative, seguito), Lighthouse mobile (non eseguito qui: da misurare su dashboard, ordini e dettaglio ordine con obiettivo prestazioni ≥ 85 e accessibilità ≥ 95). La pausa campagne resta ai ruoli con `pause_campaign` (marketing, admin, owner): l'operations la vede in sola lettura.
+
+## Mobile first, ondata 2: pagine Tier 2 del tenant (issue #49)
+
+Fatto:
+- **Pagine migrate a `DataList`** (schede sul telefono, tabella da `md`, nessuna colonna nascosta): clienti (lista, dettaglio, RFM, previsioni), acquisti (lista, editor PO, righe del PO, fornitori), sconti (lista, pool, dettaglio codice), segmenti (lista, dettaglio, destinazioni) e campagne clienti (lista, dettaglio), impostazioni (commissioni, aliquote, AI e MCP, fatturazione, mappature evasione, export dati), utenti, integrazioni (pagina, tracciamento, guide), profilo, supporto, export, scheda campagna, scheda annuncio, tabella annunci condivisa (gruppi, annunci, parole chiave, termini di ricerca) e creatività. 27 file tolti da `HIDDEN_CELL_ALLOWLIST`.
+- **Filtri nel foglio** con chip rimovibili per clienti e ordini d'acquisto; viste a chip in una riga scorrevole per ordini d'acquisto, sconti, pool e supporto; righe di schede scorrevoli per guide integrazioni, analisi annunci, creatività e sottopagine delle impostazioni.
+- **Azioni sempre raggiungibili**: "Modifica condizioni" del fornitore (prima in una colonna nascosta) sulla scheda e modulo in alto sul telefono, auto-sync delle destinazioni, azioni dei segmenti, revoca connessioni MCP, download fatture ed export; "Invita" in alto nella pagina utenti.
+- **Azione principale fissa in basso** sul telefono: salvataggio dell'editor PO con il totale, salvataggio del segmento con il conteggio in tempo reale, workflow delle campagne clienti, pausa/riattivazione di campagne e annunci.
+- **Conferme in un foglio** al posto di `window.confirm`: approva proposta, applica e annulla inventario, elimina conversazione dell'assistente, ruota/revoca token MCP, elimina media del prodotto (`ConfirmDialog`/`ConfirmButton`).
+- Testi lunghi senza spazi (template UTM, URL, scope) vanno a capo invece di allargare la pagina.
+- **Controlli**: `e2e/mobile-tier2.spec.ts` (8 test × 4 progetti mobili: nessuno scorrimento laterale su 32 pagine Tier 2 e i loro dettagli, schede con azioni, crea fornitore, filtro sconti, salva impostazioni, invita e revoca utente, apri una guida, azioni fisse); spec desktop delle aree toccate verdi; screenshot mobili Tier 2 in `docs/screenshots/mobile/{en,it}/` (`TIER=2 node scripts/screenshots-mobile.mjs`).
+- Nessuna migrazione, nessun SQL scritto a mano, seed invariato.
+
+Resta:
+- **Ondata 3 (Tier 3)**: P/L e analisi, pianificazione e mix, markdown e perdite, editor dashboard, regole di stato (`settings/order-states`), registro/parole/raccomandazioni campagne, analisi resi, qualità e costi prodotto, soppressioni notifiche, impostazioni e team contrassegno, audit; conferme ancora native su dashboard (reset, elimina, metriche) e markdown.
+- Console super-admin (`/admin`): in carico a un'altra sessione.
+- Il test mobile Tier 1 "ordine trovato per telefono → indirizzo" può fallire se sceglie un ordine demo senza provincia (la validazione indirizzi la richiede): dipende dai dati, non da questa ondata.

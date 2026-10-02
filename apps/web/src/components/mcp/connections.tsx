@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatDateTime } from "@hullwise/core";
 import { listMcpConnections, mcpAvailabilityFor, type McpConnectionRow } from "@hullwise/services";
-import { Alert, AlertDescription, Badge, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, Badge, DataList } from "@hullwise/ui";
 import { mcpServerUrl } from "@/server/mcp";
 import { getTenantContext, type TenantContext } from "@/server/tenant";
 import { CopyField } from "./copy-field";
@@ -17,43 +17,22 @@ export function tenantMcpAvailability(ctx: TenantContext) {
 export async function ConnectionsTable({ slug, rows, locale, timezone, showUser, viewerId, canRevokeOthers }: { slug: string; rows: McpConnectionRow[]; locale: string; timezone: string; showUser: boolean; viewerId: string; canRevokeOthers: boolean }) {
   const t = await getTranslations("mcp.connections");
   const tc = await getTranslations("common");
+  if (rows.length === 0) return <p className="text-sm text-muted-foreground" data-testid="mcp-connections-table">{t("empty")}</p>;
   return (
-    <Table data-testid="mcp-connections-table">
-      <TableHeader>
-        <TableRow>
-          <TableHead>{t("connection")}</TableHead>
-          {showUser && <TableHead>{t("user")}</TableHead>}
-          <TableHead className="hidden md:table-cell">{t("scopes")}</TableHead>
-          <TableHead>{t("last_used")}</TableHead>
-          <TableHead className="hidden sm:table-cell">{t("expires")}</TableHead>
-          <TableHead className="text-right"><span className="sr-only">{tc("actions")}</span></TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {rows.map((r) => (
-          <TableRow key={r.id} data-testid="mcp-connection-row">
-            <TableCell>
-              <div className="font-medium">{r.clientName ?? r.name}</div>
-              <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                <Badge variant={r.kind === "oauth" ? "info" : "secondary"}>{t(`kind.${r.kind === "oauth" ? "oauth" : "pat"}`)}</Badge>
-                <span className="font-mono">{r.displayPrefix}…</span>
-                {r.state !== "active" && <Badge variant="muted">{t(`state.${r.state}`)}</Badge>}
-              </div>
-            </TableCell>
-            {showUser && <TableCell className="text-sm">{r.userName ?? r.userEmail}</TableCell>}
-            <TableCell className="hidden font-mono text-xs md:table-cell">{r.scopes.join(" ")}</TableCell>
-            <TableCell className="whitespace-nowrap text-sm">{r.lastUsedAt ? formatDateTime(r.lastUsedAt, locale, timezone) : t("never")}</TableCell>
-            <TableCell className="hidden whitespace-nowrap text-sm sm:table-cell">{formatDateTime(r.kind === "oauth" && r.refreshExpiresAt ? r.refreshExpiresAt : r.expiresAt, locale, timezone)}</TableCell>
-            <TableCell className="text-right">{r.state === "active" && (r.userId === viewerId || canRevokeOthers) && <TokenActions slug={slug} tokenId={r.id} canRotate={r.kind === "pat" && r.userId === viewerId} />}</TableCell>
-          </TableRow>
-        ))}
-        {rows.length === 0 && (
-          <TableRow>
-            <TableCell colSpan={showUser ? 6 : 5} className="text-muted-foreground">{t("empty")}</TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+    <DataList
+      data-testid="mcp-connections-table"
+      rows={rows}
+      rowKey={(r) => r.id}
+      rowProps={() => ({ "data-testid": "mcp-connection-row" })}
+      columns={[
+        { key: "connection", header: t("connection"), mobile: "title", cell: (r) => <><div className="font-medium">{r.clientName ?? r.name}</div><div className="flex flex-wrap items-center gap-1.5 text-xs font-normal text-muted-foreground"><Badge variant={r.kind === "oauth" ? "info" : "secondary"}>{t(`kind.${r.kind === "oauth" ? "oauth" : "pat"}`)}</Badge><span className="font-mono">{r.displayPrefix}…</span>{r.state !== "active" && <Badge variant="muted">{t(`state.${r.state}`)}</Badge>}</div></> },
+        ...(showUser ? [{ key: "user", header: t("user"), mobile: "subtitle" as const, className: "text-sm", cell: (r: McpConnectionRow) => r.userName ?? r.userEmail }] : []),
+        { key: "scopes", header: t("scopes"), label: "", className: "break-all font-mono text-xs", cell: (r) => r.scopes.join(" ") },
+        { key: "last", header: t("last_used"), className: "whitespace-nowrap text-sm", cell: (r) => (r.lastUsedAt ? formatDateTime(r.lastUsedAt, locale, timezone) : t("never")) },
+        { key: "expires", header: t("expires"), className: "whitespace-nowrap text-sm", cell: (r) => formatDateTime(r.kind === "oauth" && r.refreshExpiresAt ? r.refreshExpiresAt : r.expiresAt, locale, timezone) },
+        { key: "actions", header: <span className="sr-only">{tc("actions")}</span>, mobile: "action", align: "right", cell: (r) => r.state === "active" && (r.userId === viewerId || canRevokeOthers) && <TokenActions slug={slug} tokenId={r.id} canRotate={r.kind === "pat" && r.userId === viewerId} /> },
+      ]}
+    />
   );
 }
 

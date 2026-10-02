@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Textarea } from "@hullwise/ui";
 import { decideProposalAction } from "@/server/actions/mcp";
+import { ConfirmButton } from "@/components/confirm-button";
 
 /** Approve (runs the action as you) or reject a proposal, with an optional note. */
 export function ProposalActions({ slug, id }: { slug: string; id: string }) {
@@ -26,7 +27,7 @@ export function ProposalActions({ slug, id }: { slug: string; id: string }) {
       <Textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={2} placeholder={t("note_placeholder")} aria-label={t("note_placeholder")} />
       <div className="flex flex-wrap justify-end gap-2 max-sm:[&>button]:flex-1">
         <Button type="button" variant="outline" size="sm" disabled={pending} onClick={() => decide("reject")} data-testid="proposal-reject">{t("reject")}</Button>
-        <Button type="button" size="sm" disabled={pending} onClick={() => { if (window.confirm(t("approve_confirm"))) decide("approve"); }} data-testid="proposal-approve">{t("approve")}</Button>
+        <ConfirmButton size="sm" disabled={pending} title={t("approve_confirm")} confirmLabel={t("approve")} onConfirm={() => decide("approve")} data-testid="proposal-approve">{t("approve")}</ConfirmButton>
       </div>
       {message && <p className="text-xs text-destructive">{message}</p>}
     </div>

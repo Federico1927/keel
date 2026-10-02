@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { canDo, isAdPlatformInPlan } from "@hullwise/config";
 import { ADS_UTM_TEMPLATES, type AdPlatform, formatDate, formatMoney, formatNumber, formatPercent } from "@hullwise/core";
 import { adDetail, canWriteAds, latestPlatformWrites } from "@hullwise/services";
-import { Alert, AlertDescription, Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, EmptyState, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Alert, AlertDescription, Badge, Card, CardContent, CardHeader, CardTitle, DataList, DetailShell, EmptyState, Stat, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";
@@ -40,9 +40,11 @@ export default async function AdPage({ params, searchParams }: { params: Promise
       eyebrow={`${ad.platform.toUpperCase()} · ${ad.campaignName} · ${ad.externalId}`}
       title={ad.name}
       chips={<><AdBadges ad={ad} /><PlatformWriteStatus slug={tenant} write={write} canRetry={canPause} showError /></>}
-      actions={<div className="flex flex-col items-end gap-2"><PeriodPicker basePath={`${base}/${id}/ads/${adId}`} preset={period.preset} from={sp.from} to={sp.to} />{canPause && <AdStatusButton slug={tenant} adId={ad.id} platform={ad.platform} status={ad.status} canWrite={canWrite} />}</div>}
+      actions={<><PeriodPicker basePath={`${base}/${id}/ads/${adId}`} preset={period.preset} from={sp.from} to={sp.to} />{canPause && !canWrite && <AdStatusButton slug={tenant} adId={ad.id} platform={ad.platform} status={ad.status} canWrite={false} />}</>}
+      // pause / resume: docked at the bottom on phones (#49)
+      primaryActions={canPause && canWrite && ad.status !== "archived" ? <AdStatusButton slug={tenant} adId={ad.id} platform={ad.platform} status={ad.status} canWrite /> : undefined}
     >
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Stat label={t("cols.spend")} value={money(ad.metrics.spendMinor)} />
         <Stat label={t("cols.ctr")} value={formatPercent(e.ctr, ctx.locale, 2)} hint={`${formatNumber(ad.metrics.impressions, ctx.locale)} · ${formatNumber(ad.metrics.clicks, ctx.locale)}`} />
         <Stat label={t("cols.frequency")} value={ad.frequency === null ? "—" : ad.frequency.toFixed(1)} hint={ad.fatigue?.ctrChange != null ? t("ctr_change", { change: formatPercent(ad.fatigue.ctrChange, ctx.locale, 0) }) : undefined} />
@@ -71,38 +73,22 @@ export default async function AdPage({ params, searchParams }: { params: Promise
         <CardHeader><CardTitle className="text-base">{t("assets_title")}</CardTitle></CardHeader>
         <CardContent className="p-0">
           {assets.length === 0 ? <EmptyState title={t("no_assets")} description={t(`no_assets_${ad.platform === "meta" || ad.platform === "tiktok" ? ad.platform : "google"}`)} className="m-4" /> : (
-            <Table data-testid="assets-table">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("cols.field")}</TableHead>
-                  <TableHead>{t("cols.asset")}</TableHead>
-                  <TableHead className="text-right">{t("cols.spend")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("cols.impressions")}</TableHead>
-                  <TableHead className="text-right">{t("cols.ctr")}</TableHead>
-                  <TableHead className="hidden text-right lg:table-cell">{t("cols.platform_conv")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("cols.hullwise_orders_allocated")}</TableHead>
-                  <TableHead className="text-right">{t("cols.profit")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {assets.map((a) => (
-                  <TableRow key={a.id} data-testid="asset-row">
-                    <TableCell><Badge variant="outline">{t(`field.${a.fieldType}`)}</Badge></TableCell>
-                    <TableCell className="max-w-[18rem]">
-                      <div className="truncate">{a.text ?? a.url ?? a.assetExternalId}</div>
-                      {a.type === "video" && a.url && <div className="truncate font-mono text-xs text-muted-foreground">{a.assetExternalId}</div>}
-                      <div className="flex flex-wrap gap-1">{a.performanceLabel && <Badge variant={a.performanceLabel === "LOW" ? "destructive" : a.performanceLabel === "BEST" ? "success" : "muted"}>{a.performanceLabel}</Badge>}{a.suggestion && <Badge variant="warning">{t(`pause_reason.${a.suggestion}`)}</Badge>}</div>
-                    </TableCell>
-                    <TableCell className="text-right tabular">{money(a.metrics.spendMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{formatNumber(a.metrics.impressions, ctx.locale)}</TableCell>
-                    <TableCell className="text-right tabular">{formatPercent(a.economics.ctr, ctx.locale, 2)}</TableCell>
-                    <TableCell className="hidden text-right tabular lg:table-cell">{formatNumber(Math.round(a.metrics.conversions), ctx.locale)}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{formatNumber(a.economics.attributedOrders, ctx.locale)}</TableCell>
-                    <TableCell className={cn("text-right tabular", a.economics.profitMinor < 0 && "text-destructive")}>{money(a.economics.profitMinor)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              data-testid="assets-table"
+              rows={assets}
+              rowKey={(a) => a.id}
+              rowProps={() => ({ "data-testid": "asset-row" })}
+              columns={[
+                { key: "asset", header: t("cols.asset"), mobile: "title", className: "md:max-w-[18rem] max-md:font-normal", cell: (a) => <><div className="truncate">{a.text ?? a.url ?? a.assetExternalId}</div>{a.type === "video" && a.url && <div className="truncate font-mono text-xs text-muted-foreground">{a.assetExternalId}</div>}<div className="flex flex-wrap gap-1">{a.performanceLabel && <Badge variant={a.performanceLabel === "LOW" ? "destructive" : a.performanceLabel === "BEST" ? "success" : "muted"}>{a.performanceLabel}</Badge>}{a.suggestion && <Badge variant="warning">{t(`pause_reason.${a.suggestion}`)}</Badge>}</div></> },
+                { key: "field", header: t("cols.field"), mobile: "badge", cell: (a) => <Badge variant="outline">{t(`field.${a.fieldType}`)}</Badge> },
+                { key: "spend", header: t("cols.spend"), align: "right", className: "tabular", cell: (a) => money(a.metrics.spendMinor) },
+                { key: "impressions", header: t("cols.impressions"), align: "right", className: "tabular", cell: (a) => formatNumber(a.metrics.impressions, ctx.locale) },
+                { key: "ctr", header: t("cols.ctr"), align: "right", className: "tabular", cell: (a) => formatPercent(a.economics.ctr, ctx.locale, 2) },
+                { key: "conv", header: t("cols.platform_conv"), align: "right", priority: 2, className: "tabular", cell: (a) => formatNumber(Math.round(a.metrics.conversions), ctx.locale) },
+                { key: "orders", header: t("cols.hullwise_orders_allocated"), align: "right", className: "tabular", cell: (a) => formatNumber(a.economics.attributedOrders, ctx.locale) },
+                { key: "profit", header: t("cols.profit"), align: "right", className: "tabular max-md:font-semibold", cell: (a) => <span className={cn(a.economics.profitMinor < 0 && "text-destructive")}>{money(a.economics.profitMinor)}</span> },
+              ]}
+            />
           )}
           <p className="border-t p-3 text-xs text-muted-foreground">{t("assets_footnote")}</p>
         </CardContent>
@@ -112,21 +98,18 @@ export default async function AdPage({ params, searchParams }: { params: Promise
         <CardHeader><CardTitle className="text-base">{t("daily_title")}</CardTitle></CardHeader>
         <CardContent className="p-0">
           {days.length === 0 ? <EmptyState title={t("no_days")} className="m-4" /> : (
-            <Table>
-              <TableHeader><TableRow><TableHead>{t("cols.date")}</TableHead><TableHead className="text-right">{t("cols.spend")}</TableHead><TableHead className="hidden text-right md:table-cell">{t("cols.impressions")}</TableHead><TableHead className="text-right">{t("cols.ctr")}</TableHead><TableHead className="hidden text-right md:table-cell">{t("cols.frequency")}</TableHead><TableHead className="hidden text-right lg:table-cell">{t("cols.platform_conv")}</TableHead></TableRow></TableHeader>
-              <TableBody>
-                {[...days].reverse().slice(0, 60).map((d) => (
-                  <TableRow key={d.date}>
-                    <TableCell>{formatDate(new Date(`${d.date}T12:00:00Z`), ctx.locale, ctx.tenant.timezone)}</TableCell>
-                    <TableCell className="text-right tabular">{money(d.spendMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{formatNumber(d.impressions, ctx.locale)}</TableCell>
-                    <TableCell className="text-right tabular">{formatPercent(d.impressions ? d.clicks / d.impressions : null, ctx.locale, 2)}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{d.reach ? (d.impressions / d.reach).toFixed(1) : "—"}</TableCell>
-                    <TableCell className="hidden text-right tabular lg:table-cell">{formatNumber(d.purchases, ctx.locale)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={[...days].reverse().slice(0, 60)}
+              rowKey={(d) => d.date}
+              columns={[
+                { key: "date", header: t("cols.date"), mobile: "title", className: "max-md:font-normal", cell: (d) => formatDate(new Date(`${d.date}T12:00:00Z`), ctx.locale, ctx.tenant.timezone) },
+                { key: "spend", header: t("cols.spend"), mobile: "badge", align: "right", className: "tabular", cell: (d) => money(d.spendMinor) },
+                { key: "impressions", header: t("cols.impressions"), align: "right", className: "tabular", cell: (d) => formatNumber(d.impressions, ctx.locale) },
+                { key: "ctr", header: t("cols.ctr"), align: "right", className: "tabular", cell: (d) => formatPercent(d.impressions ? d.clicks / d.impressions : null, ctx.locale, 2) },
+                { key: "frequency", header: t("cols.frequency"), align: "right", className: "tabular", cell: (d) => (d.reach ? (d.impressions / d.reach).toFixed(1) : "—") },
+                { key: "conv", header: t("cols.platform_conv"), align: "right", priority: 2, className: "tabular", cell: (d) => formatNumber(d.purchases, ctx.locale) },
+              ]}
+            />
           )}
         </CardContent>
       </Card>
