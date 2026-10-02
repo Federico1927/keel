@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { DASHBOARD_PERIODS, TENANT_ROLES, type DashboardPeriod, type TenantRole } from "@hullwise/config";
 import { Button, Input, Label, Select, Switch, cn } from "@hullwise/ui";
+import { ConfirmButton } from "@/components/confirm-button";
 import { createDashboardAction, customiseHomeAction, deleteDashboardAction, resetHomeAction, setPersonalDashboardsAction } from "@/server/actions/dashboards";
 
 function useRun() {
@@ -86,7 +87,7 @@ export function ResetHomeButton({ slug, scope }: { slug: string; scope: "tenant"
   const { pending, error, run } = useRun();
   return (
     <span className="inline-flex flex-col">
-      <Button size="sm" variant="outline" disabled={pending} data-testid={`reset-home-${scope}`} onClick={() => { if (window.confirm(t(scope === "all" ? "reset_all_confirm" : "reset_home_confirm"))) run(() => resetHomeAction(slug, scope)); }}>{t(scope === "all" ? "reset_all" : "reset_home")}</Button>
+      <ConfirmButton size="sm" variant="outline" disabled={pending} data-testid={`reset-home-${scope}`} title={t(scope === "all" ? "reset_all_confirm" : "reset_home_confirm")} confirmLabel={t(scope === "all" ? "reset_all" : "reset_home")} destructive onConfirm={() => run(() => resetHomeAction(slug, scope))}>{t(scope === "all" ? "reset_all" : "reset_home")}</ConfirmButton>
       <ErrorText code={error} />
     </span>
   );
@@ -145,7 +146,7 @@ export function DeleteDashboardButton({ slug, id, back }: { slug: string; id: st
   const { pending, error, run, router } = useRun();
   return (
     <span className="inline-flex flex-col">
-      <Button size="sm" variant="ghost" className="text-destructive" disabled={pending} onClick={() => { if (window.confirm(t("delete_confirm"))) run(() => deleteDashboardAction(slug, id), () => (back ? router.push(back) : router.refresh())); }}>{t("delete")}</Button>
+      <ConfirmButton size="sm" variant="ghost" className="text-destructive" disabled={pending} title={t("delete_confirm")} confirmLabel={t("delete")} destructive onConfirm={() => run(() => deleteDashboardAction(slug, id), () => (back ? router.push(back) : router.refresh()))} data-testid="delete-dashboard">{t("delete")}</ConfirmButton>
       <ErrorText code={error} />
     </span>
   );

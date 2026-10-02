@@ -25,3 +25,11 @@ describe("subscription app resync (addon.subscriptions)", () => {
     expect(runNowJob("tick:subscriptions", null)).toEqual({ queue: QUEUES.tick, data: { kind: "subscriptions" } });
   });
 });
+
+describe("GA4 resync (#86)", () => {
+  it("a stale GA4 source re-reads the days since the last one; run now does the same", () => {
+    expect(resyncJobsFor("t1", "ga4")).toEqual([{ queue: QUEUES.syncAnalytics, data: { tenantId: "t1", kind: "daily" }, singletonKey: "t1:ga4:daily" }]);
+    expect(jobTypeOf(QUEUES.syncAnalytics, { tenantId: "t1", kind: "backfill" })).toBe("sync.analytics");
+    expect(runNowJob("sync.analytics", "t1")).toMatchObject({ queue: QUEUES.syncAnalytics, data: { kind: "daily" } });
+  });
+});

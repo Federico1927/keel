@@ -1,7 +1,7 @@
 import { adminDb } from "@hullwise/db";
 import { trackJobRun, type JobTrigger } from "@hullwise/services";
-import { handleCampaignSend, handleEmailEvent, handleEmailSend, handleListExport, handlePlatformWrite, handleSyncAds, handleSyncCatalog, handleSyncOrders, handleSyncPayouts, handleSyncReturns, handleTenantExport, handleTick, handleWebhook, handleWebhookDeliver, type Enqueue } from "./handlers";
-import { QUEUES, jobTenantOf, jobTypeOf, type CampaignSendJob, type EmailEventJob, type EmailSendJob, type ListExportJob, type PlatformWriteJob, type QueueName, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TenantExportJob, type TickJob, type WebhookDeliverJob, type WebhookJob } from "./queues";
+import { handleCampaignSend, handleEmailEvent, handleEmailSend, handleListExport, handlePlatformWrite, handleSyncAds, handleSyncAnalytics, handleSyncCatalog, handleSyncOrders, handleSyncPayouts, handleSyncReturns, handleTenantExport, handleTick, handleWebhook, handleWebhookDeliver, type Enqueue } from "./handlers";
+import { QUEUES, jobTenantOf, jobTypeOf, type CampaignSendJob, type EmailEventJob, type EmailSendJob, type ListExportJob, type PlatformWriteJob, type QueueName, type SyncAdsJob, type SyncAnalyticsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TenantExportJob, type TickJob, type WebhookDeliverJob, type WebhookJob } from "./queues";
 
 /** Queue → handler: the single routing table of the worker and of inline runs from the web ("run now" without a worker). */
 export async function runJob(queue: QueueName, data: unknown, enqueue: Enqueue): Promise<unknown> {
@@ -12,6 +12,7 @@ export async function runJob(queue: QueueName, data: unknown, enqueue: Enqueue):
     case QUEUES.syncAds: return handleSyncAds(data as SyncAdsJob, enqueue);
     case QUEUES.syncPayouts: return handleSyncPayouts(data as SyncPayoutsJob, enqueue);
     case QUEUES.syncReturns: return handleSyncReturns(data as SyncReturnsJob, enqueue);
+    case QUEUES.syncAnalytics: return handleSyncAnalytics(data as SyncAnalyticsJob, enqueue);
     case QUEUES.platformWrite: return handlePlatformWrite(data as PlatformWriteJob);
     case QUEUES.tick: return handleTick(data as TickJob, enqueue);
     case QUEUES.listExport: return handleListExport(data as ListExportJob);

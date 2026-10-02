@@ -17,4 +17,5 @@ export * from "./reliability";
 export * from "./urls";
 export * from "./legacy";
 export * from "./mobile-nav";
+export * from "./analytics-platform";
 export * from "./integration-setup";

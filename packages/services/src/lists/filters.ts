@@ -3,6 +3,7 @@ import { CHURN_RISKS, ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES, UTM_DIM
 import type { CustomerFilters } from "../crm";
 import type { ReturnFilters } from "../returns";
 import { awaitingStockSql, readyToReleaseSql } from "../backorders";
+import { landingPathSql } from "../traffic";
 
 /**
  * List filters parsed from the URL query, shared by the list pages, the CSV export (direct and in
@@ -34,6 +35,8 @@ export interface OrderFilters {
   /** Attribution channel and UTM values (analytics drill-down); "(none)" matches orders without the value. */
   attrChannel?: string;
   utm?: Partial<Record<UtmDimension, string>>;
+  /** Landing path of the order's first visit, normalised like GA4 rows (`normalizeLandingPath`): conversion by landing page (#86). */
+  landing?: string;
   /** Backorder views: orders waiting for stock, or ready to release (stock covers them / released, not shipped yet). */
   stock?: OrderStockView;
   /** Shipping country (tax report drill-down). */
@@ -76,6 +79,7 @@ export function parseOrderFilters(sp: QueryParams): OrderFilters {
     variant: isUuid(one(sp.variant)) ? one(sp.variant) : undefined,
     missingCost: one(sp.missingCost) === "1" || undefined,
     attrChannel: one(sp.attrChannel)?.trim() || undefined,
+    landing: one(sp.landing)?.trim().slice(0, 500) || undefined,
     utm: Object.fromEntries(UTM_DIMENSIONS.map((d) => [d, one(sp[utmParam(d)])?.trim() || undefined]).filter(([, v]) => v)),
     stock: ORDER_STOCK_VIEWS.find((v) => v === one(sp.stock)),
     country: /^[A-Za-z]{2}$/.test(one(sp.country) ?? "") ? one(sp.country)!.toUpperCase() : undefined,
@@ -136,6 +140,7 @@ export function orderListWhere(scope: OrderFilterScope, f: OrderFilters): SQL {
   if (f.subscriptionContract) conds.push(eq(schema.orders.subscriptionContractId, f.subscriptionContract));
   if (f.missingCost) conds.push(sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.unit_cost_minor is null and not l.is_ancillary)`);
   if (f.attrChannel) conds.push(f.attrChannel === "unknown" ? sql`not exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.channel <> 'unknown')` : sql`exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.channel = ${f.attrChannel})`);
+  if (f.landing) conds.push(sql`${landingPathSql(sql`${schema.orders.landingSite}`)} = ${f.landing.toLowerCase()}`);
   const utm = Object.entries(f.utm ?? {}) as [UtmDimension, string][];
   // same normalisation as the drill-down: trimmed, case-insensitive, empty = (none)
   if (utm.length) conds.push(sql`coalesce((select ${sql.join(utm.map(([d, v]) => sql`lower(coalesce(nullif(trim(${sql.raw(`a.${UTM_COLUMN[d]}`)}), ''), ${UTM_NONE})) = ${v.toLowerCase()}`), sql` and `)} from order_attribution a where a.order_id = ${schema.orders.id}), ${sql.raw(utm.every(([, v]) => v === UTM_NONE) ? "true" : "false")})`);

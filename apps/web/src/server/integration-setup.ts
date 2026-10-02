@@ -1,4 +1,4 @@
-import { apiEndpoint, appUrl, type IntegrationSetupDefinition } from "@hullwise/config";
+import { apiEndpoint, appUrl, setupCopyValues, type IntegrationSetupGuide } from "@hullwise/config";
 import { SHOPIFY_OPTIONAL_SCOPES, SHOPIFY_REQUIRED_SCOPES } from "@hullwise/integrations";
 
 /**
@@ -14,9 +14,9 @@ const RESOLVERS: Record<string, () => string> = {
   "shopify.compliance_url": () => apiEndpoint("/webhooks/shopify/compliance"),
 };
 
-export function resolveSetupValues(def: IntegrationSetupDefinition): Record<string, string> {
-  return Object.fromEntries(def.copyValues.flatMap((id) => {
-    const r = RESOLVERS[`${def.provider}.${id}`];
+export function resolveSetupValues(guide: IntegrationSetupGuide): Record<string, string> {
+  return Object.fromEntries(setupCopyValues(guide).flatMap((id) => {
+    const r = RESOLVERS[`${guide.provider}.${id}`];
     return r ? [[id, r()]] : [];
   }));
 }

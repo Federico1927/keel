@@ -337,6 +337,20 @@
       "when": 1790950045448,
       "tag": "0047_rare_mister_fear",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1790955970664,
+      "tag": "0048_uneven_wiccan",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1790956208911,
+      "tag": "0049_mysterious_captain_midlands",
+      "breakpoints": true
     }
   ]
 }

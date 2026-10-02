@@ -2,9 +2,10 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import type { IntegrationSetupDefinition } from "@hullwise/config";
+import type { IntegrationSetupGuide } from "@hullwise/config";
 import { Alert, AlertDescription, Button, Input, Label } from "@hullwise/ui";
-import { CopyValue, IntegrationSetupSteps, SetupErrorMessage, SetupFields } from "@/components/integrations/integration-setup";
+import { IntegrationSetupChecklist, IntegrationSetupError, IntegrationSetupFields } from "@/components/integration-setup";
+import { CopyButton } from "../cod/queue-extras";
 import { connectShopifyApp, connectShopifyCustomApp } from "@/server/actions/shopify";
 
 /** Errors after which "Install on your store" (authorization code grant with the saved app) is the way forward. */
@@ -16,7 +17,7 @@ const INSTALL_ERRORS = new Set(["not_in_organization", "not_installed"]);
  * fallback with the redirect URL to add to the app version, plain-language errors, and the advanced paths
  * (platform public app, legacy pasted token).
  */
-export function ShopifySetup({ slug, definition, values, guideHref, connected, mock, canManage, publicApp, savedApp, flashError, missing }: { slug: string; definition: IntegrationSetupDefinition; values: Record<string, string>; guideHref: string; connected: boolean; mock: boolean; canManage: boolean; publicApp: boolean; savedApp: { shop: string; clientId: string } | null; flashError: string | null; missing: { required: string[]; optional: string[] } }) {
+export function ShopifySetup({ slug, definition, values, guideHref, connected, mock, canManage, publicApp, savedApp, flashError, missing }: { slug: string; definition: IntegrationSetupGuide; values: Record<string, string>; guideHref: string; connected: boolean; mock: boolean; canManage: boolean; publicApp: boolean; savedApp: { shop: string; clientId: string } | null; flashError: string | null; missing: { required: string[]; optional: string[] } }) {
   const t = useTranslations("integration_setup.shopify");
   const tc = useTranslations("integration_setup.common");
   const [open, setOpen] = useState(!connected);
@@ -29,8 +30,8 @@ export function ShopifySetup({ slug, definition, values, guideHref, connected, m
   const detail = state && !state.ok ? (state.fieldErrors?.scopes ?? state.fieldErrors?.platform ?? null) : null;
   const installHref = `/api/integrations/shopify/oauth/start?tenant=${slug}&app=tenant`;
   return (
-    <div className="space-y-3" data-testid="shopify-setup">
-      {missing.required.length > 0 && <SetupErrorMessage provider="shopify" code="missing_scopes" detail={missing.required.join(", ")} testId="shopify-missing-required" />}
+    <div className="space-y-3" data-testid="shopify-setup-block">
+      {missing.required.length > 0 && <div data-testid="shopify-missing-required"><IntegrationSetupError guide={definition} code="missing_scopes" values={values} detail={missing.required.join(", ")} showDetail={false} /></div>}
       {missing.required.length === 0 && missing.optional.length > 0 && (
         <p className="rounded-md border border-warning/40 bg-warning/10 p-2 text-xs" data-testid="shopify-missing-optional">{t("missing_optional", { scopes: missing.optional.join(", ") })}</p>
       )}
@@ -40,9 +41,9 @@ export function ShopifySetup({ slug, definition, values, guideHref, connected, m
           {open && (
             <div className="space-y-3 rounded-md border bg-muted/20 p-3">
               <p className="text-xs text-muted-foreground">{mock ? t("mock_notice") : t("intro")}</p>
-              <IntegrationSetupSteps definition={definition} values={values} guideHref={guideHref} />
+              <IntegrationSetupChecklist guide={definition} values={values} guideHref={guideHref} />
               <form action={formAction} className="grid gap-3 sm:grid-cols-2" data-testid="shopify-connect-form">
-                <SetupFields definition={definition} idPrefix="shopify" />
+                <IntegrationSetupFields guide={definition} idPrefix="shopify" />
                 <div className="flex items-end sm:col-span-2">
                   <Button type="submit" size="sm" disabled={pending} data-testid="shopify-connect">{pending ? tc("connecting") : t("connect")}</Button>
                 </div>
@@ -51,18 +52,23 @@ export function ShopifySetup({ slug, definition, values, guideHref, connected, m
               {state?.ok && state.data && (
                 <Alert data-testid="shopify-connected"><AlertDescription>{t(state.data.history === "already_done" ? "connected_no_import" : "connected", { shop: state.data.shop })}{state.data.missingOptional.length > 0 ? ` ${t("missing_optional", { scopes: state.data.missingOptional.join(", ") })}` : ""}</AlertDescription></Alert>
               )}
-              {error && <SetupErrorMessage provider="shopify" code={error} detail={detail} />}
+              {error && <IntegrationSetupError guide={definition} code={error} values={values} detail={detail} showDetail={error !== "missing_scopes"} />}
               {(error && INSTALL_ERRORS.has(error)) || savedApp ? (
                 <div className="space-y-2 rounded-md border border-dashed p-3" data-testid="shopify-install">
                   <p className="text-xs">{t("install_hint")}</p>
-                  {values.redirect_url && <CopyValue label={t("values.redirect_url")} value={values.redirect_url} testId="install-redirect-url" />}
+                  {values.redirect_url && (
+                    <div className="flex items-center gap-2">
+                      <code className="min-w-0 flex-1 break-all rounded bg-muted px-2 py-1 text-xs" data-testid="install-redirect-url">{values.redirect_url}</code>
+                      <CopyButton text={values.redirect_url} label={t("copy")} testId="install-redirect-url-copy" />
+                    </div>
+                  )}
                   <Button size="sm" variant={error && INSTALL_ERRORS.has(error) ? "default" : "outline"} asChild={!mock} disabled={mock}>
                     {mock ? <span>{t("install")}</span> : <a href={installHref} data-testid="shopify-install-link">{t("install")}</a>}
                   </Button>
                 </div>
               ) : null}
               <details className="rounded-md border p-3 text-sm" data-testid="shopify-advanced">
-                <summary className="cursor-pointer text-xs font-medium">{tc("advanced")}</summary>
+                <summary className="cursor-pointer text-xs font-medium">{t("advanced")}</summary>
                 <div className="mt-3 space-y-4">
                   {publicApp && (
                     <form method="get" action="/api/integrations/shopify/oauth/start" className="space-y-2">

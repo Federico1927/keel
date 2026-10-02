@@ -1,7 +1,7 @@
-import { isAdPlatformInPlan, isMultiAccountAdPlatform } from "@hullwise/config";
+import { isAdPlatformInPlan, isAnalyticsPlatformInPlan, isMultiAccountAdPlatform } from "@hullwise/config";
 import type { AdPlatform } from "@hullwise/core";
-import { and, eq, gte, inArray, isNotNull, schema, sql, withTenant } from "@hullwise/db";
-import { AnthropicLlmProvider, GoogleAddressProvider, type GoogleAddressCredentials, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, type MockAdsStructure, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, PROCESSOR_GATEWAYS, ShopifyCommercePlatform, type MockPaymentOrder, SlackWebhookSink, decryptJson, encryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type NormalizedProduct, type ShopifyCredentials, MockCarrierProvider, type CarrierProvider, TiktokAdsPlatform, mockDemoAdsAccount, type TiktokCredentials } from "@hullwise/integrations";
+import { and, eq, gte, inArray, isNotNull, mockTrafficOrders, schema, sql, withTenant } from "@hullwise/db";
+import { Ga4AnalyticsPlatform, MockAnalyticsPlatform, requirePlatformGa4ServiceAccount, type AnalyticsPlatform, type Ga4Credentials, AnthropicLlmProvider, GoogleAddressProvider, type GoogleAddressCredentials, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, type MockAdsStructure, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, PROCESSOR_GATEWAYS, ShopifyCommercePlatform, type MockPaymentOrder, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type NormalizedProduct, type ShopifyCredentials, MockCarrierProvider, type CarrierProvider, TiktokAdsPlatform, mockDemoAdsAccount, type TiktokCredentials, encryptJson } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { getAdAccount, primaryAdAccountId } from "../ads/accounts";
 
@@ -232,6 +232,7 @@ export function forgetCommercePlatform(tenantId: string): void {
 export function resetMockPlatforms(): void {
   commerceMocks.clear();
   adsMocks.clear();
+  analyticsMocks.clear();
   liveCommerce.clear();
 }
 
@@ -425,4 +426,45 @@ export async function getLlmProviderFor(ctx: ServiceContext): Promise<LlmProvide
   const cached = llmMocks.get(ctx.tenantId) ?? new MockLlmProvider();
   llmMocks.set(ctx.tenantId, cached);
   return cached;
+}
+
+/* ---------- web analytics (GA4, #86) ---------- */
+
+const analyticsMocks = new Map<string, MockAnalyticsPlatform>();
+
+/** Refused before any adapter is built when the plan does not include GA4 (pages, actions and jobs check it too). */
+export class AnalyticsNotInPlanError extends Error {
+  constructor() {
+    super("GA4 is not included in the tenant's plan");
+    this.name = "AnalyticsNotInPlanError";
+  }
+}
+
+/**
+ * The store's GA4 property and its adapter: live with the platform's reader (`auth: "platform"`, the
+ * default) or the store's own encrypted service account / OAuth when the integration is live, otherwise the simulator over the store's own orders (one per property, cached
+ * per process like the other mocks). Null when GA4 is not connected or has no property yet.
+ */
+export async function getAnalyticsPlatformFor(ctx: ServiceContext, opts: { propertyId?: string } = {}): Promise<{ platform: AnalyticsPlatform; propertyId: string } | null> {
+  const [t] = await ctx.tx.select({ planKey: schema.tenants.planKey, timezone: schema.tenants.timezone, name: schema.tenants.name }).from(schema.tenants).where(eq(schema.tenants.id, ctx.tenantId)).limit(1);
+  if (!t || !isAnalyticsPlatformInPlan(t.planKey)) throw new AnalyticsNotInPlanError();
+  const row = await integrationRow(ctx, "ga4");
+  const propertyId = opts.propertyId ?? row?.externalAccountId ?? null;
+  if (!row || row.status === "not_connected" || !propertyId) return null;
+  // default path: the platform's own reader, added by the store as Viewer on its property (no store credentials)
+  if (integrationMode() === "live" && row.mode === "live" && (row.config as { auth?: string } | null)?.auth === "platform") return { platform: new Ga4AnalyticsPlatform({ kind: "service_account", serviceAccount: requirePlatformGa4ServiceAccount() }, { propertyId }), propertyId };
+  if (isLive(row)) return { platform: new Ga4AnalyticsPlatform(decryptJson<Ga4Credentials>(row.credentialsEncrypted!), { propertyId }), propertyId };
+  const key = `${ctx.tenantId}:${propertyId}`;
+  let mock = analyticsMocks.get(key);
+  if (!mock) {
+    const orders = await mockTrafficOrders(ctx.tx, ctx.tenantId, new Date((ctx.now ?? new Date()).getTime() - 400 * 864e5));
+    mock = new MockAnalyticsPlatform({ orders, timeZone: t.timezone, storeName: t.name, propertyId });
+    analyticsMocks.set(key, mock);
+  }
+  return { platform: mock, propertyId };
+}
+
+/** The GA4 simulator of a tenant's property, when one is cached (tests, failure injection). */
+export function mockAnalyticsFor(tenantId: string, propertyId: string): MockAnalyticsPlatform | undefined {
+  return analyticsMocks.get(`${tenantId}:${propertyId}`);
 }

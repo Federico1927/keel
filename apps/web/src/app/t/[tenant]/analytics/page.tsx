@@ -5,7 +5,9 @@ import { ATTRIBUTION_MODELS, BASE_METRICS, attributionReport, getSurveySettings,
 import { appUrl, canWritePage } from "@hullwise/config";
 import { CustomMetricForm, DashboardEditor, DeleteMetricButton } from "./advanced-controls";
 import { SurveySettings } from "./survey-settings";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, EmptyState, PageHeader, Stat, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { ChartFullscreen } from "@/components/mobile/chart-fullscreen";
+import { WideTable } from "@/components/mobile/wide-table";
 import { HistoryImportBanner } from "@/components/history-import-banner";
 import { requirePage } from "@/server/tenant";
 import { RevenueChart } from "@/components/charts/revenue-chart";
@@ -13,6 +15,7 @@ import { PeriodPicker } from "@/components/period-picker";
 import { resolvePeriod } from "@/server/period";
 import { DataQualityCard, OrderPnlTab, PnlPeriods, ProductsTab, UtmTab } from "./depth";
 import { FeeSourceNote, PaymentMethodsTab, TaxTab } from "./money";
+import { TrafficTab } from "./traffic";
 
 export default async function AnalyticsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
@@ -21,7 +24,8 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
   const t = await getTranslations("analytics");
   const td = await getTranslations("analytics_depth");
   const tm = await getTranslations("analytics_money");
-  const TABS = ["overview", "custom", "pnl", "orders_pnl", "payments", "tax", "attribution", "utm", "products", "cohorts", "ltv", "basket", "survey"];
+  const tg = await getTranslations("ga4.analytics");
+  const TABS = ["overview", "custom", "pnl", "orders_pnl", "payments", "tax", "attribution", "utm", "traffic", "products", "cohorts", "ltv", "basket", "survey"];
   const NEW_TABS = ["orders_pnl", "utm"];
   const MONEY_TABS = ["payments", "tax"];
   const tab = TABS.includes(sp.tab ?? "") ? sp.tab! : "overview";
@@ -44,15 +48,15 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
 
   return (
     <>
-      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<div className="flex flex-wrap items-center gap-2"><PeriodPicker basePath={base} keep={{ tab }} preset={period.preset} from={sp.from} to={sp.to} /><Link href={`${base}/alerts`} className="text-sm underline-offset-4 hover:underline" data-testid="alerts-link">{t("alerts_link")}</Link><Link href={`${base}/costs`} className="text-sm underline-offset-4 hover:underline">{t("costs_link")}</Link><Link href={`${base}/payouts`} className="text-sm underline-offset-4 hover:underline" data-testid="payouts-link">{tm("payouts_link")}</Link></div>} />
+      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<div className="flex flex-wrap items-center gap-2"><PeriodPicker basePath={base} keep={{ tab }} preset={period.preset} from={sp.from} to={sp.to} /><Link href={`${base}/alerts`} className="text-sm underline-offset-4 hover:underline" data-testid="alerts-link">{t("alerts_link")}</Link><Link href={`${base}/costs`} className="text-sm underline-offset-4 hover:underline">{t("costs_link")}</Link><Link href={`${base}/daily-sales`} className="text-sm underline-offset-4 hover:underline" data-testid="daily-sales-link">{tm("daily_sales_link")}</Link><Link href={`${base}/payouts`} className="text-sm underline-offset-4 hover:underline" data-testid="payouts-link">{tm("payouts_link")}</Link></div>} />
       <HistoryImportBanner ctx={ctx} />
-      <div className="mb-4 flex flex-wrap gap-1 rounded-md bg-muted p-1 text-sm">
+      <nav className="mb-4 flex gap-1 overflow-x-auto rounded-md bg-muted p-1 text-sm md:flex-wrap" aria-label={t("title")} data-testid="analytics-tabs">
         {TABS.map((k) => (
-          <Link key={k} href={query({ tab: k })} className={cn("flex-1 rounded-sm px-3 py-1.5 text-center", tab === k ? "bg-card shadow-sm" : "text-muted-foreground")}>
-            {MONEY_TABS.includes(k) ? tm(`tabs.${k}`) : NEW_TABS.includes(k) ? td(`tabs.${k}`) : t(`tabs.${k}`)}
+          <Link key={k} href={query({ tab: k })} aria-current={tab === k ? "page" : undefined} className={cn("shrink-0 whitespace-nowrap rounded-sm px-3 py-1.5 text-center pointer-coarse:py-2.5 md:flex-1", tab === k ? "bg-card shadow-sm" : "text-muted-foreground")}>
+            {k === "traffic" ? tg("tab") : MONEY_TABS.includes(k) ? tm(`tabs.${k}`) : NEW_TABS.includes(k) ? td(`tabs.${k}`) : t(`tabs.${k}`)}
           </Link>
         ))}
-      </div>
+      </nav>
 
       {tab === "overview" && (await (async () => {
         const { kpis, series, blended, forecast } = await ctx.run(async (tx) => ({ kpis: await kpisForPeriod(s(tx), at, period), series: await dailySeries(s(tx), at, period), blended: await blendedForPeriod(s(tx), at, period), forecast: await monthEndForecast(s(tx), at) }));
@@ -109,7 +113,7 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
                 <CardTitle className="text-base">{t("series_title")}</CardTitle>
               </CardHeader>
               <CardContent>
-                <RevenueChart data={series} locale={ctx.locale} currency={ctx.tenant.currency} ordersLabel={t("orders_series")} />
+                <ChartFullscreen title={t("series_title")}><RevenueChart data={series} locale={ctx.locale} currency={ctx.tenant.currency} ordersLabel={t("orders_series")} /></ChartFullscreen>
               </CardContent>
             </Card>
             <div className="mt-6"><DataQualityCard ctx={ctx} tenant={tenant} pnl={c} fromIso={fromIso} toIso={toIso} /></div>
@@ -136,14 +140,14 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
           { key: "operating", value: pnl.operatingProfitMinor, bold: true },
         ];
         return (
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
             <Card className="min-w-0">
               <CardHeader>
                 <CardTitle className="text-base">{t("pnl.title")}</CardTitle>
                 <CardDescription>{t("pnl.description")}</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <Table>
+                <WideTable label={t("pnl.title")} data-testid="pnl-lines">
                   <TableHeader>
                     <TableRow>
                       <TableHead>{t("pnl.line")}</TableHead>
@@ -160,7 +164,7 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
+                </WideTable>
                 {pnl.cogsIncompleteOrders > 0 && (
                   <p className="border-t p-3 text-xs text-warning" data-testid="cogs-incomplete">
                     <Link href={ordersLink("&status=confirmed,fulfilling,shipped,delivered,returned_partial&missingCost=1")} className="underline-offset-4 hover:underline">{t("pnl.cogs_incomplete", { n: pnl.cogsIncompleteOrders, share: formatPercent(pnl.netRevenueMinor ? pnl.cogsIncompleteRevenueMinor / pnl.netRevenueMinor : null, ctx.locale) })}</Link>{" "}
@@ -212,7 +216,7 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
               <CardDescription>{t("cohorts.description")}</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
+              <WideTable label={t("cohorts.title")} stickyFirst data-testid="cohort-table">
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t("cohorts.cohort")}</TableHead>
@@ -235,7 +239,7 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
+              </WideTable>
             </CardContent>
           </Card>
         );
@@ -290,6 +294,8 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
         );
       })())}
 
+      {tab === "traffic" && <TrafficTab ctx={ctx} tenant={tenant} period={period} periodQs={new URLSearchParams(Object.entries({ preset: period.preset, from: period.preset ? undefined : sp.from, to: period.preset ? undefined : sp.to }).filter((e): e is [string, string] => Boolean(e[1]))).toString()} fromIso={fromIso} toIso={toIso} />}
+
       {tab === "attribution" && (await (async () => {
         const model = (ATTRIBUTION_MODELS as readonly string[]).includes(sp.model ?? "") ? (sp.model as AttributionModel) : "linear";
         const by = sp.by === "campaign" ? "campaign" : "channel";
@@ -314,34 +320,34 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
             </CardHeader>
             <CardContent className="p-0">
               {rows.length === 0 ? <EmptyState title={t("products.empty")} /> : (
-                <Table>
+                <WideTable label={t("attribution.title")} stickyFirst>
                   <TableHeader>
                     <TableRow>
                       <TableHead>{t(`attribution.by.${by}`)}</TableHead>
                       <TableHead className="text-right">{t("attribution.orders")}</TableHead>
                       <TableHead className="text-right">{t("attribution.revenue")}</TableHead>
-                      <TableHead className="hidden text-right md:table-cell">{t("attribution.spend")}</TableHead>
+                      <TableHead className="text-right">{t("attribution.spend")}</TableHead>
                       <TableHead className="text-right">{t("attribution.roas")}</TableHead>
-                      <TableHead className="hidden text-right lg:table-cell">{t("attribution.last_click")}</TableHead>
-                      <TableHead className="hidden text-right lg:table-cell">{t("attribution.platform_claim")}</TableHead>
-                      <TableHead className="hidden text-right xl:table-cell">{t("attribution.declared")}</TableHead>
+                      <TableHead className="text-right">{t("attribution.last_click")}</TableHead>
+                      <TableHead className="text-right">{t("attribution.platform_claim")}</TableHead>
+                      <TableHead className="text-right">{t("attribution.declared")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {rows.slice(0, 60).map((r) => (
                       <TableRow key={r.key} data-testid="attribution-row">
-                        <TableCell className="max-w-[18rem] truncate font-medium">{by === "channel" ? t(`ltv.channel.${r.key}`, { default: r.key }) : <Link href={`/t/${tenant}/campaigns/${r.key}`} className="hover:underline">{r.label}</Link>}{r.platform && <Badge variant="outline" className="ml-1">{r.platform}</Badge>}</TableCell>
+                        <TableCell className="max-w-[18rem] truncate font-medium max-md:max-w-[9rem]">{by === "channel" ? t(`ltv.channel.${r.key}`, { default: r.key }) : <Link href={`/t/${tenant}/campaigns/${r.key}`} className="hover:underline">{r.label}</Link>}{r.platform && <Badge variant="outline" className="ml-1">{r.platform}</Badge>}</TableCell>
                         <TableCell className="text-right tabular">{formatNumber(r.orders, ctx.locale)}</TableCell>
                         <TableCell className="text-right tabular">{money(r.netMinor)}</TableCell>
-                        <TableCell className="hidden text-right tabular md:table-cell">{r.spendMinor !== null ? money(r.spendMinor) : "—"}</TableCell>
+                        <TableCell className="text-right tabular">{r.spendMinor !== null ? money(r.spendMinor) : "—"}</TableCell>
                         <TableCell className="text-right tabular font-medium">{ratio(r.roas)}</TableCell>
-                        <TableCell className="hidden text-right tabular lg:table-cell">{money(r.lastClick.netMinor)}</TableCell>
-                        <TableCell className="hidden text-right tabular lg:table-cell">{money(r.platformClaim.netMinor)}</TableCell>
-                        <TableCell className="hidden text-right tabular xl:table-cell">{r.declared ? `${formatNumber(r.declared.purchases, ctx.locale)} · ${money(r.declared.valueMinor)}` : "—"}</TableCell>
+                        <TableCell className="text-right tabular">{money(r.lastClick.netMinor)}</TableCell>
+                        <TableCell className="text-right tabular">{money(r.platformClaim.netMinor)}</TableCell>
+                        <TableCell className="text-right tabular">{r.declared ? `${formatNumber(r.declared.purchases, ctx.locale)} · ${money(r.declared.valueMinor)}` : "—"}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
+                </WideTable>
               )}
               <p className="border-t p-3 text-xs text-muted-foreground">{t("attribution.footnote")}</p>
             </CardContent>
@@ -368,34 +374,34 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
             </CardHeader>
             <CardContent className="p-0">
               {rows.length === 0 ? <EmptyState title={t("cohorts.empty")} /> : (
-                <Table>
+                <WideTable label={t("ltv.title")} stickyFirst>
                   <TableHeader>
                     <TableRow>
                       <TableHead>{t(`ltv.by.${by}`)}</TableHead>
                       <TableHead className="text-right">{t("cohorts.customers")}</TableHead>
-                      <TableHead className="hidden text-right md:table-cell">{t("ltv.first_order")}</TableHead>
+                      <TableHead className="text-right">{t("ltv.first_order")}</TableHead>
                       {windows.map((w) => <TableHead key={w} className="text-right">{t("ltv.window", { d: w })}</TableHead>)}
-                      <TableHead className="hidden text-right lg:table-cell">{t("ltv.repeat_90")}</TableHead>
-                      <TableHead className="hidden text-right lg:table-cell">{t("ltv.days_to_second")}</TableHead>
-                      {by === "cohort" && <TableHead className="hidden text-right xl:table-cell">{t("ltv.cac")}</TableHead>}
-                      {by === "cohort" && <TableHead className="hidden text-right xl:table-cell">{t("ltv.payback")}</TableHead>}
+                      <TableHead className="text-right">{t("ltv.repeat_90")}</TableHead>
+                      <TableHead className="text-right">{t("ltv.days_to_second")}</TableHead>
+                      {by === "cohort" && <TableHead className="text-right">{t("ltv.cac")}</TableHead>}
+                      {by === "cohort" && <TableHead className="text-right">{t("ltv.payback")}</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {rows.map((r) => (
                       <TableRow key={r.key}>
-                        <TableCell className="max-w-[16rem] truncate font-medium">{by === "channel" ? t(`ltv.channel.${r.key}`, { default: r.key }) : r.key}</TableCell>
+                        <TableCell className="max-w-[16rem] truncate font-medium max-md:max-w-[9rem]">{by === "channel" ? t(`ltv.channel.${r.key}`, { default: r.key }) : r.key}</TableCell>
                         <TableCell className="text-right tabular">{formatNumber(r.customers, ctx.locale)}</TableCell>
-                        <TableCell className="hidden text-right tabular md:table-cell">{r.firstOrderAvgNetMinor !== null ? money(r.firstOrderAvgNetMinor) : "—"}</TableCell>
+                        <TableCell className="text-right tabular">{r.firstOrderAvgNetMinor !== null ? money(r.firstOrderAvgNetMinor) : "—"}</TableCell>
                         {r.windows.map((w) => <TableCell key={w.window} className="text-right tabular" title={t("ltv.matured", { n: w.matured })}>{w.avgNetMinor !== null ? money(w.avgNetMinor) : <span className="text-muted-foreground">·</span>}</TableCell>)}
-                        <TableCell className="hidden text-right tabular lg:table-cell">{formatPercent(r.windows.find((w) => w.window === 90)?.repeatRate ?? null, ctx.locale, 0)}</TableCell>
-                        <TableCell className="hidden text-right tabular lg:table-cell">{r.medianDaysToSecond ?? "—"}</TableCell>
-                        {by === "cohort" && <TableCell className="hidden text-right tabular xl:table-cell">{r.cacMinor !== null ? money(r.cacMinor) : "—"}</TableCell>}
-                        {by === "cohort" && <TableCell className="hidden text-right tabular xl:table-cell">{r.paybackDays !== null ? t("ltv.days", { n: r.paybackDays }) : "—"}</TableCell>}
+                        <TableCell className="text-right tabular">{formatPercent(r.windows.find((w) => w.window === 90)?.repeatRate ?? null, ctx.locale, 0)}</TableCell>
+                        <TableCell className="text-right tabular">{r.medianDaysToSecond ?? "—"}</TableCell>
+                        {by === "cohort" && <TableCell className="text-right tabular">{r.cacMinor !== null ? money(r.cacMinor) : "—"}</TableCell>}
+                        {by === "cohort" && <TableCell className="text-right tabular">{r.paybackDays !== null ? t("ltv.days", { n: r.paybackDays }) : "—"}</TableCell>}
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
+                </WideTable>
               )}
               <p className="border-t p-3 text-xs text-muted-foreground">{t("ltv.footnote")}</p>
             </CardContent>
@@ -406,33 +412,24 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
       {tab === "basket" && (await (async () => {
         const { entries, pairs, paths } = await ctx.run(async (tx) => ({ entries: await entryProducts(s(tx), at), pairs: await boughtTogether(s(tx), period), paths: await secondPurchasePaths(s(tx)) }));
         return (
-          <div className="grid gap-6 xl:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
             <Card className="xl:col-span-2" data-testid="entry-products">
               <CardHeader>
                 <CardTitle className="text-base">{t("basket.entry_title")}</CardTitle>
                 <CardDescription>{t("basket.entry_description")}</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("products.product")}</TableHead>
-                      <TableHead className="text-right">{t("basket.acquired")}</TableHead>
-                      <TableHead className="text-right">{t("basket.ltv365")}</TableHead>
-                      <TableHead className="text-right">{t("basket.repeat")}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {[...entries].sort((a, b) => (b.avgLtv365Minor ?? -1) - (a.avgLtv365Minor ?? -1)).map((r) => (
-                      <TableRow key={r.title}>
-                        <TableCell className="font-medium">{r.productId ? <Link href={`/t/${tenant}/products/${r.productId}`} className="hover:underline">{r.title}</Link> : r.title}</TableCell>
-                        <TableCell className="text-right tabular">{formatNumber(r.customers, ctx.locale)}</TableCell>
-                        <TableCell className="text-right tabular" title={t("ltv.matured", { n: r.matured })}>{r.avgLtv365Minor !== null ? money(r.avgLtv365Minor) : "—"}</TableCell>
-                        <TableCell className="text-right tabular">{formatPercent(r.repeatRate, ctx.locale, 0)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataList
+                  rows={[...entries].sort((a, b) => (b.avgLtv365Minor ?? -1) - (a.avgLtv365Minor ?? -1))}
+                  rowKey={(r) => r.title}
+                  rowProps={() => ({ "data-testid": "entry-product-row" })}
+                  columns={[
+                    { key: "product", header: t("products.product"), mobile: "title", cell: (r) => (r.productId ? <Link href={`/t/${tenant}/products/${r.productId}`} className="hover:underline">{r.title}</Link> : r.title) },
+                    { key: "acquired", header: t("basket.acquired"), align: "right", className: "tabular", cell: (r) => formatNumber(r.customers, ctx.locale) },
+                    { key: "ltv365", header: t("basket.ltv365"), align: "right", className: "tabular", cell: (r) => <span title={t("ltv.matured", { n: r.matured })}>{r.avgLtv365Minor !== null ? money(r.avgLtv365Minor) : "—"}</span> },
+                    { key: "repeat", header: t("basket.repeat"), align: "right", className: "tabular", cell: (r) => formatPercent(r.repeatRate, ctx.locale, 0) },
+                  ]}
+                />
               </CardContent>
             </Card>
             <Card data-testid="bought-together">
@@ -488,18 +485,21 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
               <Stat label={ts("kpi.rate")} value={share(results.responses, results.orders)} hint={ts("kpi.rate_hint", { orders: formatNumber(results.orders, ctx.locale) })} />
               <Stat label={ts("kpi.invisible")} value={share(results.crosstab.reduce((a, c) => a + c.invisible, 0), results.responses)} hint={ts("kpi.invisible_hint")} />
             </div>
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <Card>
                 <CardHeader><CardTitle className="text-base">{ts("answers_title")}</CardTitle></CardHeader>
                 <CardContent className="p-0">
-                  <Table>
-                    <TableHeader><TableRow><TableHead>{ts("answer")}</TableHead><TableHead className="text-right">{ts("responses")}</TableHead><TableHead className="text-right">{ts("share")}</TableHead><TableHead className="text-right">{ts("revenue")}</TableHead></TableRow></TableHeader>
-                    <TableBody>
-                      {results.answers.map((a) => (
-                        <TableRow key={a.key} data-testid="survey-answer"><TableCell>{a.label}</TableCell><TableCell className="text-right tabular">{formatNumber(a.responses, ctx.locale)}</TableCell><TableCell className="text-right tabular">{share(a.responses, results.responses)}</TableCell><TableCell className="text-right tabular">{money(a.revenueMinor)}</TableCell></TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <DataList
+                    rows={results.answers}
+                    rowKey={(a) => a.key}
+                    rowProps={() => ({ "data-testid": "survey-answer" })}
+                    columns={[
+                      { key: "answer", header: ts("answer"), mobile: "title", cell: (a) => a.label },
+                      { key: "responses", header: ts("responses"), align: "right", className: "tabular", cell: (a) => formatNumber(a.responses, ctx.locale) },
+                      { key: "share", header: ts("share"), align: "right", className: "tabular", cell: (a) => share(a.responses, results.responses) },
+                      { key: "revenue", header: ts("revenue"), align: "right", className: "tabular", cell: (a) => money(a.revenueMinor) },
+                    ]}
+                  />
                 </CardContent>
               </Card>
               <Card>
@@ -508,14 +508,16 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
                   <CardDescription>{ts("crosstab_description")}</CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <Table>
-                    <TableHeader><TableRow><TableHead>{ts("reported")}</TableHead><TableHead className="text-right">{ts("responses")}</TableHead><TableHead className="text-right">{ts("agree")}</TableHead><TableHead className="text-right">{ts("invisible")}</TableHead></TableRow></TableHeader>
-                    <TableBody>
-                      {results.crosstab.map((c) => (
-                        <TableRow key={c.channel}><TableCell>{t(`ltv.channel.${c.channel}`, { default: c.channel })}</TableCell><TableCell className="text-right tabular">{formatNumber(c.answers, ctx.locale)}</TableCell><TableCell className="text-right tabular">{share(c.agree, c.answers)}</TableCell><TableCell className="text-right tabular">{share(c.invisible, c.answers)}</TableCell></TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <DataList
+                    rows={results.crosstab}
+                    rowKey={(c) => c.channel}
+                    columns={[
+                      { key: "reported", header: ts("reported"), mobile: "title", cell: (c) => t(`ltv.channel.${c.channel}`, { default: c.channel }) },
+                      { key: "responses", header: ts("responses"), align: "right", className: "tabular", cell: (c) => formatNumber(c.answers, ctx.locale) },
+                      { key: "agree", header: ts("agree"), align: "right", className: "tabular", cell: (c) => share(c.agree, c.answers) },
+                      { key: "invisible", header: ts("invisible"), align: "right", className: "tabular", cell: (c) => share(c.invisible, c.answers) },
+                    ]}
+                  />
                 </CardContent>
               </Card>
             </div>

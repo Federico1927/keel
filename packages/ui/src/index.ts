@@ -28,3 +28,4 @@ export * from "./components/stepper";
 export * from "./components/sticky-action-bar";
 export * from "./components/section";
 export * from "./components/scanner";
+export * from "./components/scroll-table";

@@ -19,7 +19,6 @@ async function as(browser: Browser, email: string): Promise<Page> {
 
 test.describe("tenant dashboards (issue #43)", () => {
   test("the Northwind owner adds a weekly series and a filtered custom metric, publishes; operations sees them with the same value", async ({ page, browser }) => {
-    page.on("dialog", (d) => d.accept());
     await login(page, "owner@northwind.demo");
 
     // custom metric: contribution / orders over paid-social orders, validated and previewed before saving
@@ -46,6 +45,7 @@ test.describe("tenant dashboards (issue #43)", () => {
     await expect(page.getByTestId("dashboard-editor")).toBeVisible();
     homeEditUrl = new URL(page.url()).pathname;
     await page.getByTestId("editor-reset-template").click();
+    await page.getByTestId("confirm-accept").click();
     await expect(page.getByTestId("editor-widget")).toHaveCount(6);
     // COD is active on Northwind: its widget is in the catalog
     await expect(page.getByTestId("add-widget-cod_queue")).toBeVisible();

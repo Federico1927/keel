@@ -11,8 +11,8 @@ import type * as Integrations from "@hullwise/integrations";
 process.env.APP_ENCRYPTION_KEY = Buffer.alloc(32, 3).toString("base64");
 
 const h = vi.hoisted(() => ({
-  startHistoryImport: vi.fn(async () => "queued"),
-  saveShopifyConnection: vi.fn(async () => undefined),
+  startHistoryImport: vi.fn(async (..._args: unknown[]) => "queued"),
+  saveShopifyConnection: vi.fn(async (..._args: unknown[]) => undefined),
   grant: vi.fn(),
   exchange: vi.fn(),
   test: vi.fn(),

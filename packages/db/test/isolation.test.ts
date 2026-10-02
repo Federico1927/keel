@@ -23,7 +23,10 @@ const EMPTY_ALLOWED = new Set<string>(["tenant_addons"]);
 /** Add-on and plan-gated tables: only tenants with the add-on (or the plan: MCP is Growth and up) carry rows, so the seed populates tenant A alone. */
 /** Add-on tables populated for tenant B alone (Harbor Home has `addon.subscriptions`, Northwind does not): the checks run with the roles swapped. */
 const ADDON_ONLY_B = new Set<string>(["subscription_contracts", "subscription_contract_lines", "subscription_billing_attempts", "subscription_events", "subscription_cancellation_reasons"]);
-const ADDON_ONLY = new Set<string>(["webhook_endpoints", "webhook_deliveries", "api_idempotency_keys", "api_request_log", "mcp_authorization_codes", "mcp_tokens", "mcp_request_log", "mcp_rate_buckets", "mcp_pending_actions", "cod_settings", "cod_queue_items", "cod_attempts", "cod_operator_capacity", "cod_capacity_exceptions", "cod_assignment_log", "cod_recipient_profiles", "cod_messages", "cod_carrier_outcomes", "retention_campaigns", "retention_exposures", "spoki_settings", "spoki_messages"]);
+const ADDON_ONLY = new Set<string>(["webhook_endpoints", "webhook_deliveries", "api_idempotency_keys", "api_request_log", "mcp_authorization_codes", "mcp_tokens", "mcp_request_log", "mcp_rate_buckets", "mcp_pending_actions", "cod_settings", "cod_queue_items", "cod_attempts", "cod_operator_capacity", "cod_capacity_exceptions", "cod_assignment_log", "cod_recipient_profiles", "cod_messages", "cod_carrier_outcomes", "retention_campaigns", "retention_exposures", "spoki_settings", "spoki_messages", "accounting_settings", "accounting_journals"]);
+
+/** Tables filled only once the tenant connects the integration (#86: GA4 traffic; Harbor Home stays unconnected so its empty state shows): tenant A's rows carry every check. */
+const CONNECTED_ONLY = new Set<string>(["analytics_traffic_daily"]);
 
 const pools = testPools();
 let tenantA = "";
@@ -71,7 +74,7 @@ describe.each(tenantTables.map((t) => [getTableName(t), t] as const))("isolation
              count(*) filter (where tenant_id = ${tenantB}::uuid)::int as b
       from ${sql.identifier(name)}`);
     if (!ADDON_ONLY_B.has(name)) expect(r.rows[0]?.a, `${name}: no rows for tenant A`).toBeGreaterThan(0);
-    if (!ADDON_ONLY.has(name)) expect(r.rows[0]?.b, `${name}: no rows for tenant B`).toBeGreaterThan(0);
+    if (!ADDON_ONLY.has(name) && !CONNECTED_ONLY.has(name)) expect(r.rows[0]?.b, `${name}: no rows for tenant B`).toBeGreaterThan(0);
   });
 
   it("tenant A sees exactly its rows, tenant B none of A's", async () => {

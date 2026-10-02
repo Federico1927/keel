@@ -15,6 +15,8 @@ import { SpokiCard } from "@/components/spoki-card";
 import { resolveSetupValues } from "@/server/integration-setup";
 import { savedShopifyApp } from "@/server/shopify-connection";
 import { ShopifySetup } from "./shopify-setup";
+import { Ga4Card } from "./ga4-card";
+import { AccountingCard } from "@/components/accounting-card";
 
 const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic", "address"] as const;
 /** Per-account integrations activated by the Hullwise team: interface and mock in Hullwise, each with its activation guide. */
@@ -110,14 +112,16 @@ export default async function IntegrationsPage({ params, searchParams }: { param
                 {p === "shopify" && (() => {
                   const missingRequired = cfg.missingRequiredScopes ?? [];
                   const app = savedShopifyApp(row?.config);
-                  return <ShopifySetup slug={tenant} definition={SHOPIFY_SETUP} values={setupValues} guideHref={`${base}/guide/shopify`} connected={connected} mock={mock} canManage={canManage} publicApp={!!process.env.SHOPIFY_API_KEY && !!process.env.SHOPIFY_API_SECRET} savedApp={app && !connected ? { shop: app.shop, clientId: app.clientId } : null} flashError={shopifyError && SHOPIFY_SETUP.errors.includes(shopifyError) ? shopifyError : null} missing={{ required: connected ? missingRequired : [], optional: connected ? (cfg.missingScopes ?? []).filter((x) => !missingRequired.includes(x)) : [] }} />;
+                  return <ShopifySetup slug={tenant} definition={SHOPIFY_SETUP} values={setupValues} guideHref={`${base}/guide/shopify`} connected={connected} mock={mock} canManage={canManage} publicApp={!!process.env.SHOPIFY_API_KEY && !!process.env.SHOPIFY_API_SECRET} savedApp={app && !connected ? { shop: app.shop, clientId: app.clientId } : null} flashError={shopifyError && shopifyError in SHOPIFY_SETUP.errors ? shopifyError : null} missing={{ required: connected ? missingRequired : [], optional: connected ? (cfg.missingScopes ?? []).filter((x) => !missingRequired.includes(x)) : [] }} />;
                 })()}
                 <p className="text-xs"><Link href={`${base}/guide/${p}`} className="underline-offset-4 hover:underline">{t("open_guide")}</Link></p>
               </CardContent>
             </Card>
           );
         })}
+        <Ga4Card ctx={ctx} />
         <SpokiCard ctx={ctx} />
+        <AccountingCard ctx={ctx} />
       </div>
       {metaAccounts.length > 0 && <MetaAdAccounts slug={tenant} limit={AD_ACCOUNT_LIMIT} canManage={canManage} mock={globalMock || data.integrations.find((i) => i.provider === "meta")?.mode !== "live"} accounts={metaAccounts.map((a) => ({ id: a.id, externalId: a.externalAccountId, name: a.name, primary: a.isPrimary, status: a.status, mock: globalMock || a.mode !== "live", lastSync: dt(a.lastSyncAt), lastSuccess: dt(a.lastSuccessAt), lastError: a.lastError, campaigns: a.campaigns }))} />}
       {isPageEnabled("subscriptions", ctx.activeAddons) && (() => {

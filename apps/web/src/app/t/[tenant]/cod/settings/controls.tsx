@@ -4,6 +4,7 @@ import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Switch } from "@hullwise/ui";
 import type { CodSettings, ScoreFactorKey, TagWriteEvent } from "@hullwise/addon-cod";
+import { WideTable } from "@/components/mobile/wide-table";
 import { deleteExceptionAction, recomputeRiskAction, saveCapacityAction, saveCodSettingsAction, saveCodTagSettingsAction, saveExceptionAction, setOverrideAction } from "@/server/actions/cod";
 
 export function ScoringSettingsForm({ slug, settings, factors }: { slug: string; settings: CodSettings; factors: readonly ScoreFactorKey[] }) {
@@ -200,8 +201,7 @@ export function TagSettingsForm({ slug, settings, events }: { slug: string; sett
           <div>
             <p className="mb-2 text-sm font-medium">{t("tags_write_title")}</p>
             <p className="mb-2 text-xs text-muted-foreground">{t("tags_write_help")}</p>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <WideTable label={t("tags_write_title")} stickyFirst>
                 <thead>
                   <tr className="border-b text-left text-xs uppercase text-muted-foreground">
                     <th className="px-3 py-2">{t("tags_event")}</th>
@@ -213,13 +213,12 @@ export function TagSettingsForm({ slug, settings, events }: { slug: string; sett
                   {events.map((e) => (
                     <tr key={e} className="border-b">
                       <td className="px-3 py-2 whitespace-nowrap">{e === "entered" ? t("tags_event_entered") : e === "replaced" ? t("tags_event_replaced") : e === "unreachable" ? to("queue_status.unreachable") : to(`outcomes.${e}`)}</td>
-                      <td className="px-3 py-2"><Input name={`w_add_${e}`} aria-label={`${t("tags_add")} ${e}`} defaultValue={join(settings.tags.write[e].add)} /></td>
-                      <td className="px-3 py-2"><Input name={`w_remove_${e}`} aria-label={`${t("tags_remove")} ${e}`} defaultValue={join(settings.tags.write[e].remove)} /></td>
+                      <td className="min-w-40 px-3 py-2"><Input name={`w_add_${e}`} aria-label={`${t("tags_add")} ${e}`} defaultValue={join(settings.tags.write[e].add)} /></td>
+                      <td className="min-w-40 px-3 py-2"><Input name={`w_remove_${e}`} aria-label={`${t("tags_remove")} ${e}`} defaultValue={join(settings.tags.write[e].remove)} /></td>
                     </tr>
                   ))}
                 </tbody>
-              </table>
-            </div>
+            </WideTable>
           </div>
           <div className="flex flex-wrap gap-6 text-sm">
             <label className="flex items-center gap-2"><input type="checkbox" name="clearQueueTagsOnClose" defaultChecked={settings.tags.clearQueueTagsOnClose} className="h-4 w-4" /> {t("tags_clear_on_close")}</label>

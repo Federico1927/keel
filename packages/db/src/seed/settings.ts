@@ -5,7 +5,8 @@ import * as schema from "../schema";
 import { enableDemoMcp } from "./mcp";
 import { ensureDemoProductCatalog } from "./media";
 import { DEMO_SPOKI_SETTINGS, demoSpokiIntegration } from "./spoki";
-import { MOCK_SPOKI_TEMPLATES } from "@hullwise/integrations";
+import { demoAccountingIntegration, demoAccountingSettings } from "./accounting";
+import { MOCK_CHART_OF_ACCOUNTS, MOCK_SPOKI_TEMPLATES } from "@hullwise/integrations";
 
 /**
  * Configuration rows of the demo tenants (portal, return policy, tracking, survey, COD tags, the AI
@@ -199,6 +200,14 @@ export async function ensureDemoSettings(db: Db, now = new Date()): Promise<Sett
       if (await missing("integrations", sql`provider = 'spoki'`)) {
         await db.insert(schema.integrations).values(demoSpokiIntegration(tenantId, now)).onConflictDoNothing();
         created.push("integrations:spoki");
+      }
+    }
+    if (addons.some((a) => a.tenantId === tenantId && a.key === "addon.accounting") && (await missing("accounting_settings"))) {
+      await db.insert(schema.accountingSettings).values({ tenantId, config: demoAccountingSettings(null), accounts: [...MOCK_CHART_OF_ACCOUNTS], accountsSyncedAt: now }).onConflictDoNothing();
+      created.push("accounting_settings");
+      if (await missing("integrations", sql`provider = 'accounting'`)) {
+        await db.insert(schema.integrations).values(demoAccountingIntegration(tenantId, now)).onConflictDoNothing();
+        created.push("integrations:accounting");
       }
     }
     if (addons.some((a) => a.tenantId === tenantId && a.key === "addon.cod") && (await missing("cod_settings"))) {

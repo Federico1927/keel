@@ -66,6 +66,7 @@ export const ADDON_CLAIMS: Record<string, Claim> = {
   subscriptions: mod("addon.subscriptions"),
   cod: mod("addon.cod"),
   whatsapp_spoki: mod("addon.whatsapp_spoki"),
+  accounting: mod("addon.accounting"),
   custom_integration: mod("addon.warehouse_3pl", "addon.carrier_tracking"),
   custom_development: { kind: "service" },
 };

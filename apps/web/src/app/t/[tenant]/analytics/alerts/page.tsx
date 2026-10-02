@@ -4,7 +4,7 @@ import { canWritePage } from "@hullwise/config";
 import { formatDateTime, displayName } from "@hullwise/core";
 import { adminDb, eq, schema } from "@hullwise/db";
 import { ALERT_METRIC_OPTIONS, integrationRow, listAlertRules, recentAlertEvents } from "@hullwise/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, EmptyState, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { AlertRuleControls, AlertRuleForm, RunAlertsButton, SlackWebhookForm } from "../advanced-controls";
 
@@ -25,34 +25,25 @@ export default async function AlertsPage({ params }: { params: Promise<{ tenant:
     <>
       <p className="mb-2 text-sm text-muted-foreground"><Link href={`/t/${tenant}/analytics`} className="hover:underline">← {t("back")}</Link></p>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={canWrite ? <RunAlertsButton slug={tenant} /> : undefined} />
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="space-y-6">
           <Card>
             <CardHeader><CardTitle className="text-base">{t("rules")}</CardTitle></CardHeader>
             <CardContent className="p-0">
               {rules.length === 0 ? <EmptyState title={t("no_rules")} /> : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("name")}</TableHead>
-                      <TableHead>{t("condition")}</TableHead>
-                      <TableHead className="hidden md:table-cell">{t("channels_label")}</TableHead>
-                      <TableHead className="hidden lg:table-cell">{t("last_fired")}</TableHead>
-                      <TableHead />
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rules.map((r) => (
-                      <TableRow key={r.id} data-testid="alert-rule">
-                        <TableCell className="font-medium">{r.name}{!r.isActive && <Badge variant="muted" className="ml-2">{t("inactive")}</Badge>}<div className="text-xs text-muted-foreground">{t(`metrics.${r.metric}`)}</div></TableCell>
-                        <TableCell className="text-sm">{describe(r.condition as Cond)}</TableCell>
-                        <TableCell className="hidden md:table-cell">{(r.channels as string[]).map((c) => <Badge key={c} variant="outline" className="mr-1">{t(`channels.${c}`)}</Badge>)}</TableCell>
-                        <TableCell className="hidden text-xs lg:table-cell">{r.lastFiredAt ? formatDateTime(r.lastFiredAt, ctx.locale, ctx.tenant.timezone) : "—"}</TableCell>
-                        <TableCell>{canWrite && <AlertRuleControls slug={tenant} id={r.id} active={r.isActive} />}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataList
+                  rows={rules}
+                  rowKey={(r) => r.id}
+                  rowProps={() => ({ "data-testid": "alert-rule" })}
+                  columns={[
+                    { key: "name", header: t("name"), mobile: "title", cell: (r) => <>{r.name}<div className="text-xs font-normal text-muted-foreground">{t(`metrics.${r.metric}`)}</div></> },
+                    { key: "active", header: <span className="sr-only">{t("inactive")}</span>, mobile: "badge", cell: (r) => (!r.isActive ? <Badge variant="muted">{t("inactive")}</Badge> : null) },
+                    { key: "condition", header: t("condition"), mobile: "subtitle", className: "text-sm", cell: (r) => describe(r.condition as Cond) },
+                    { key: "channels", header: t("channels_label"), cell: (r) => (r.channels as string[]).map((c) => <Badge key={c} variant="outline" className="mr-1">{t(`channels.${c}`)}</Badge>) },
+                    { key: "last", header: t("last_fired"), priority: 2, className: "text-xs", cell: (r) => (r.lastFiredAt ? formatDateTime(r.lastFiredAt, ctx.locale, ctx.tenant.timezone) : "—") },
+                    ...(canWrite ? [{ key: "controls", header: <span className="sr-only">{t("rules")}</span>, mobile: "action" as const, cell: (r: (typeof rules)[number]) => <AlertRuleControls slug={tenant} id={r.id} active={r.isActive} /> }] : []),
+                  ]}
+                />
               )}
             </CardContent>
           </Card>

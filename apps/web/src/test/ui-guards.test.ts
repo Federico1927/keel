@@ -12,7 +12,8 @@ function files(dir: string): string[] {
 }
 
 /**
- * Tier 2/3 pages (#49) still hiding table columns on phones, to move to <DataList> in waves 2 and 3.
+ * Pages (#49) still hiding table columns on phones, to move to <DataList>: since wave 3 only the
+ * super-admin console, migrated separately.
  * Shrink this list, never grow it: a new list renders through DataList, which shows every column on
  * the phone card instead of hiding it.
  */
@@ -28,30 +29,6 @@ const HIDDEN_CELL_ALLOWLIST = new Set([
   "app/admin/tenants/page.tsx",
   "app/admin/users/[id]/page.tsx",
   "app/admin/users/page.tsx",
-  "app/t/[tenant]/analytics/alerts/page.tsx",
-  "app/t/[tenant]/analytics/depth.tsx",
-  "app/t/[tenant]/analytics/money.tsx",
-  "app/t/[tenant]/analytics/page.tsx",
-  "app/t/[tenant]/analytics/payouts/page.tsx",
-  "app/t/[tenant]/audit/page.tsx",
-  "app/t/[tenant]/campaigns/ledger/page.tsx",
-  "app/t/[tenant]/campaigns/recommendations/page.tsx",
-  "app/t/[tenant]/campaigns/words/page.tsx",
-  "app/t/[tenant]/cod/settings/page.tsx",
-  "app/t/[tenant]/cod/team/page.tsx",
-  "app/t/[tenant]/inventory/losses/page.tsx",
-  "app/t/[tenant]/inventory/markdowns/controls.tsx",
-  "app/t/[tenant]/inventory/markdowns/page.tsx",
-  "app/t/[tenant]/inventory/planning/controls.tsx",
-  "app/t/[tenant]/inventory/planning/page.tsx",
-  "app/t/[tenant]/notifications/suppressions/page.tsx",
-  "app/t/[tenant]/products/[id]/costs-form.tsx",
-  "app/t/[tenant]/products/[id]/supplier-section.tsx",
-  "app/t/[tenant]/products/import-costs/import-form.tsx",
-  "app/t/[tenant]/products/quality/page.tsx",
-  "app/t/[tenant]/purchasing/mix/[productId]/page.tsx",
-  "app/t/[tenant]/purchasing/mix/[productId]/planner.tsx",
-  "app/t/[tenant]/returns/analytics/page.tsx",
 ]);
 
 describe("UI guards", () => {

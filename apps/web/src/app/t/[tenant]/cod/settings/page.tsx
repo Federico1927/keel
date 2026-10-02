@@ -4,7 +4,8 @@ import { formatDate, formatDateTime, displayName } from "@hullwise/core";
 import { adminDb, eq, schema } from "@hullwise/db";
 import { SCORE_FACTORS, TAG_WRITE_EVENTS, TEMPLATE_VARIABLES, carrierImportSummary, getCodSettings, listCapacity, listRiskyRecipients } from "@hullwise/addon-cod";
 import { codMessagingWebhookUrl } from "@/server/cod-webhook";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, PageHeader } from "@hullwise/ui";
+import { WideTable } from "@/components/mobile/wide-table";
 import { requirePage } from "@/server/tenant";
 import { CapacityRow, DeleteExceptionButton, ExceptionForm, OverrideControls, RecomputeRiskButton, ScoringSettingsForm, TagSettingsForm } from "./controls";
 import { CarrierImportForm, OperationsForm, ScorePreview, TemplatesEditor } from "./extras";
@@ -33,8 +34,7 @@ export default async function CodSettingsPage({ params }: { params: Promise<{ te
             <CardDescription>{t("operators_description")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <WideTable label={t("operators_title")} stickyFirst data-testid="capacity-grid">
                 <thead>
                   <tr className="border-b text-left text-xs uppercase text-muted-foreground">
                     <th className="px-3 py-2">{t("operator")}</th>
@@ -50,15 +50,14 @@ export default async function CodSettingsPage({ params }: { params: Promise<{ te
                     return <CapacityRow key={o.id} slug={tenant} userId={o.id} label={o.label} dailyHours={cap?.dailyHours ?? [0, 0, 0, 0, 0, 0, 0]} isActive={cap ? cap.isActive === 1 : false} allowedTags={cap?.allowedTags ?? []} />;
                   })}
                 </tbody>
-              </table>
-            </div>
+            </WideTable>
             <div>
               <p className="mb-2 text-sm font-medium">{t("exceptions_title")}</p>
               <ExceptionForm slug={tenant} operators={operators} />
               {capacity.exceptions.length > 0 && (
                 <ul className="mt-2 divide-y text-sm">
                   {capacity.exceptions.map((e) => (
-                    <li key={e.id} className="flex items-center justify-between py-1">
+                    <li key={e.id} className="flex items-center justify-between gap-2 py-1">
                       <span>{formatDate(new Date(`${e.date}T12:00:00Z`), ctx.locale, ctx.tenant.timezone)} · {operators.find((o) => o.id === e.userId)?.label ?? e.userId.slice(0, 8)} · <Badge variant={e.kind === "off" ? "muted" : "info"}>{t(`kinds.${e.kind}`)}{e.hours ? ` ${e.hours}h` : ""}</Badge> {e.note && <span className="text-muted-foreground">{e.note}</span>}</span>
                       <DeleteExceptionButton slug={tenant} id={e.id} />
                     </li>
@@ -75,7 +74,7 @@ export default async function CodSettingsPage({ params }: { params: Promise<{ te
         <ScoringSettingsForm slug={tenant} settings={settings} factors={SCORE_FACTORS} />
         <CarrierImportForm slug={tenant} batches={batches.map((b) => ({ batch: b.batch, at: formatDateTime(b.at instanceof Date ? b.at : new Date(b.at), ctx.locale, ctx.tenant.timezone), rows: b.rows, matched: b.matched, refused: b.refused }))} />
         <Card>
-          <CardHeader className="flex-row items-start justify-between space-y-0">
+          <CardHeader className="flex-row flex-wrap items-start justify-between gap-2 space-y-0">
             <div>
               <CardTitle className="text-base">{t("recipients_title")}</CardTitle>
               <CardDescription>{t("recipients_description")}</CardDescription>
@@ -83,32 +82,20 @@ export default async function CodSettingsPage({ params }: { params: Promise<{ te
             <RecomputeRiskButton slug={tenant} />
           </CardHeader>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("recipient")}</TableHead>
-                  <TableHead>{t("tier")}</TableHead>
-                  <TableHead className="text-right">{t("returns")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("delivered")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("last_return")}</TableHead>
-                  <TableHead>{t("suggestion")}</TableHead>
-                  <TableHead />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {risky.map((r) => (
-                  <TableRow key={r.id} data-testid="risk-row">
-                    <TableCell className="font-mono text-xs">{mask(r.recipientKey)}</TableCell>
-                    <TableCell><Badge variant={r.tier === "blacklisted" ? "destructive" : r.tier === "high_risk" ? "warning" : "muted"}>{tcod(`risk.${r.tier}`)}</Badge>{r.override && <Badge variant="outline" className="ml-1">{t(`overrides.${r.override}`)}</Badge>}</TableCell>
-                    <TableCell className="text-right tabular">{r.ordersReturned} <span className="text-xs text-muted-foreground">({r.weightedReturns})</span></TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{r.ordersDelivered}</TableCell>
-                    <TableCell className="hidden md:table-cell">{r.lastReturnAt ? formatDate(r.lastReturnAt, ctx.locale, ctx.tenant.timezone) : "—"}</TableCell>
-                    <TableCell className="text-xs">{r.tier === "blacklisted" && r.override !== "force_blacklist" ? t("suggest_blacklist") : r.tier === "high_risk" ? t("suggest_verify") : "—"}</TableCell>
-                    <TableCell><OverrideControls slug={tenant} recipientKey={r.recipientKey} override={r.override} /></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={risky}
+              rowKey={(r) => r.id}
+              rowProps={() => ({ "data-testid": "risk-row" })}
+              columns={[
+                { key: "recipient", header: t("recipient"), mobile: "title", className: "font-mono text-xs break-all", cell: (r) => mask(r.recipientKey) },
+                { key: "tier", header: t("tier"), mobile: "badge", cell: (r) => <><Badge variant={r.tier === "blacklisted" ? "destructive" : r.tier === "high_risk" ? "warning" : "muted"}>{tcod(`risk.${r.tier}`)}</Badge>{r.override && <Badge variant="outline" className="ml-1">{t(`overrides.${r.override}`)}</Badge>}</> },
+                { key: "returns", header: t("returns"), align: "right", className: "tabular", cell: (r) => <>{r.ordersReturned} <span className="text-xs text-muted-foreground">({r.weightedReturns})</span></> },
+                { key: "delivered", header: t("delivered"), align: "right", className: "tabular", cell: (r) => r.ordersDelivered },
+                { key: "last_return", header: t("last_return"), priority: 2, cell: (r) => (r.lastReturnAt ? formatDate(r.lastReturnAt, ctx.locale, ctx.tenant.timezone) : "—") },
+                { key: "suggestion", header: t("suggestion"), mobile: "subtitle", className: "text-xs", cell: (r) => (r.tier === "blacklisted" && r.override !== "force_blacklist" ? t("suggest_blacklist") : r.tier === "high_risk" ? t("suggest_verify") : "—") },
+                { key: "override", header: <span className="sr-only">{t("tier")}</span>, mobile: "action", cell: (r) => <OverrideControls slug={tenant} recipientKey={r.recipientKey} override={r.override} /> },
+              ]}
+            />
           </CardContent>
         </Card>
       </div>
