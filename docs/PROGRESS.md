@@ -745,3 +745,11 @@ Stato delle integrazioni esterne a fine issue #7 (cosa è reale, cosa è simulat
 Resta: verificare su account veri i passi segnati "Da verificare" delle nuove guide e i prezzi di Google; i connettori reali delle integrazioni ad hoc si realizzano per account quando vengono venduti.
 
 - 2026-10-02 · `docs/reference/INVENTORY.md` aggiornato (issue #36): colonna di stato su ogni tabella verificata sul codice al commit `64771f5`, 43 funzionalità aggiunte dagli studi, corrette le affermazioni errate su MCP, outbox delle scritture e riconciliazione.
+## Nessuno scorrimento orizzontale a larghezza telefono (issue #72)
+
+Fatto:
+- **Barra superiore** a 360–390 px: il nome del tenant si accorcia con i puntini, gli spazi si stringono e sotto `sm` il selettore lingua passa nel menu utente (sezione "Lingua"). Da `sm` in su la barra resta com'era. Anche la console `/admin` sotto `lg` ha ora la lingua nel menu utente (prima a quella larghezza non c'era).
+- **Causa sistemica fuori dalla barra**: le griglie senza colonne per il mobile (`grid gap-6 lg:grid-cols-…`) creavano una colonna implicita `auto` che si allargava fino alla larghezza minima del contenuto di una card con una tabella larga (dettaglio ordine +325 px, integrazioni +107 px, profilo, assistente). `Card` ha ora `min-w-0`; `DetailShell` e la griglia dell'assistente usano colonne `minmax(0,1fr)`; i filtri ordini e il selettore di periodo vanno a capo a 360 px.
+- e2e nuovo `mobile.spec.ts`: 16 pagine principali del tenant più dettaglio ordine, prodotto e cliente a 390 e 360 px con `scrollWidth - clientWidth <= 1`; lingua nel menu sotto `sm` e nella barra da `sm` in su. Suite e2e completa verde sulla build di produzione.
+
+Resta: le pagine non controllate dall'e2e possono avere ancora griglie con colonna implicita `auto` e contenuto senza a capo; la verifica più ampia resta in #49.

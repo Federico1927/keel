@@ -80,7 +80,7 @@ export function OrderFiltersBar({ basePath, filters, counts, stockViews, members
         ))}
       </div>
       <form
-        className="grid gap-2 sm:grid-cols-2 lg:grid-cols-6"
+        className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2 lg:grid-cols-6"
         onSubmit={(e) => {
           e.preventDefault();
           apply({ q });
@@ -121,10 +121,10 @@ export function OrderFiltersBar({ basePath, filters, counts, stockViews, members
           <option value="placed_asc">{t("sort.placed_asc")}</option>
           <option value="total_desc">{t("sort.total_desc")}</option>
         </Select>
-        <div className="flex gap-2 lg:col-span-3">
-          <Input type="date" aria-label={t("filters.from")} defaultValue={filters.from ?? ""} onChange={(e) => apply({ from: e.target.value || undefined })} />
-          <Input type="date" aria-label={t("filters.to")} defaultValue={filters.to ?? ""} onChange={(e) => apply({ to: e.target.value || undefined })} />
-          <Input aria-label={t("filters.tag")} placeholder={t("filters.tag")} defaultValue={filters.tag ?? ""} onBlur={(e) => e.target.value !== (filters.tag ?? "") && apply({ tag: e.target.value || undefined })} />
+        <div className="grid grid-cols-2 gap-2 sm:col-span-2 lg:col-span-3 lg:flex">
+          <Input type="date" className="min-w-0" aria-label={t("filters.from")} defaultValue={filters.from ?? ""} onChange={(e) => apply({ from: e.target.value || undefined })} />
+          <Input type="date" className="min-w-0" aria-label={t("filters.to")} defaultValue={filters.to ?? ""} onChange={(e) => apply({ to: e.target.value || undefined })} />
+          <Input className="col-span-2 min-w-0" aria-label={t("filters.tag")} placeholder={t("filters.tag")} defaultValue={filters.tag ?? ""} onBlur={(e) => e.target.value !== (filters.tag ?? "") && apply({ tag: e.target.value || undefined })} />
         </div>
         <div className="flex items-center gap-2 lg:col-span-3 lg:justify-end">
           <Button type="submit" variant="secondary" size="sm">

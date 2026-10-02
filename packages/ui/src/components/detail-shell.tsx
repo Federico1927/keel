@@ -14,7 +14,7 @@ export function DetailShell({ back, eyebrow, title, chips, actions, aside, child
         </div>
         {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
-      <div className={cn("grid gap-6", aside && "lg:grid-cols-[1fr_22rem]")}>
+      <div className={cn("grid grid-cols-[minmax(0,1fr)] gap-6", aside && "lg:grid-cols-[minmax(0,1fr)_22rem]")}>
         <div className="min-w-0 space-y-6">{children}</div>
         {aside && <div className="space-y-6">{aside}</div>}
       </div>
