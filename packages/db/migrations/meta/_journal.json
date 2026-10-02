@@ -218,13 +218,6 @@
       "when": 1790903166455,
       "tag": "0030_many_king_bedlam",
       "breakpoints": true
-    },
-    {
-      "idx": 31,
-      "version": "7",
-      "when": 1790903827461,
-      "tag": "0031_mighty_master_chief",
-      "breakpoints": true
     }
   ]
 }
