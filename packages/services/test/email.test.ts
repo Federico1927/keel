@@ -23,6 +23,9 @@ import {
   type EmailJob,
   type EmailTemplate,
   type EmailTemplateData,
+  isReservedEmailDomain,
+  signUnsubscribeToken,
+  verifyUnsubscribeToken,
   type ServiceContext,
 } from "../src";
 
@@ -168,6 +171,22 @@ describe("queue and delivery", () => {
     expect(final.providerMessageId).toBe(outbox.to("retry@example.com")[0]!.id);
   });
 
+  it("a real provider never receives the demo data's reserved addresses: the row is suppressed instead", async () => {
+    expect(["owner@northwind.demo", "giulia.rossi@example.com", "a@mail.example", "b@demo.test", "c@x.invalid", "d@sub.example.org"].every(isReservedEmailDomain)).toBe(true);
+    expect(["owner@shop.com", "a@example.co", "b@demonstration.io", "c@test.it", "d@examples.com"].some(isReservedEmailDomain)).toBe(false);
+    const q = await queueEmail(platform, { to: "owner@northwind.demo", template: "test", data: SAMPLES.test, locale: "en", event: "reserved-1" });
+    const job = takeJob();
+    let sent = 0;
+    const resend = { name: "resend" as const, send: async () => { sent += 1; return { id: "re_1" }; } };
+    expect((await deliverEmailJob(pools.admin, job, { provider: resend })).status).toBe("suppressed");
+    expect(sent).toBe(0);
+    expect(await row(q.id)).toMatchObject({ status: "suppressed", lastErrorCode: "reserved_domain" });
+    const ok = await queueEmail(platform, { to: "merchant@shop-real.com", template: "test", data: SAMPLES.test, locale: "en", event: "reserved-2" });
+    expect((await deliverEmailJob(pools.admin, takeJob(), { provider: resend })).status).toBe("sent");
+    expect(sent).toBe(1);
+    expect((await row(ok.id)).providerMessageId).toBe("re_1");
+  });
+
   it("gives up after permanent errors and the maximum attempts", async () => {
     const outbox = mockEmailOutbox();
     const a = await queueEmail(platform, { to: "dead@example.com", template: "test", data: SAMPLES.test, locale: "en", event: "perm" });
@@ -251,6 +270,40 @@ describe("bounces, complaints and the suppression list", () => {
     const delayed = parseResendEvent({ type: "email.delivery_delayed", data: { email_id: (await row(d.id)).providerMessageId, to: ["fine@example.com"] } })!;
     await processEmailEvent(pools.admin, (await recordEmailEvent(pools.admin, { provider: "resend", eventId: "msg_delayed_1", event: delayed })).id!);
     expect((await row(d.id)).status).toBe("delivered");
+  });
+});
+
+describe("APP_ENCRYPTION_KEY rotation window", () => {
+  it("old-key suppressions keep blocking and old unsubscribe links keep working while the previous key is set", async () => {
+    const OLD = process.env.APP_ENCRYPTION_KEY!;
+    const NEW = Buffer.alloc(32, 9).toString("base64");
+    const setKeys = (current: string, previous?: string) => {
+      process.env.APP_ENCRYPTION_KEY = current;
+      if (previous) process.env.APP_ENCRYPTION_KEY_PREVIOUS = previous;
+      else delete process.env.APP_ENCRYPTION_KEY_PREVIOUS;
+    };
+    try {
+      await pools.admin.insert(schema.emailAddressSuppressions).values({ emailHash: emailAddressHash("rotated@example.com"), emailMasked: "ro•••@ex•••.com", reason: "bounce" });
+      const unsub = signUnsubscribeToken({ tenantId, email: "rotated@example.com", category: "digest" });
+      setKeys(NEW, OLD);
+      expect((await queueEmail(platform, { to: "rotated@example.com", template: "test", data: SAMPLES.test, locale: "en", event: "rot1" })).outcome).toBe("suppressed");
+      expect(verifyUnsubscribeToken(unsub)?.email).toBe("rotated@example.com");
+      // queued under the new key, bounced under the old one before delivery: still caught at delivery
+      const q = await queueEmail(platform, { to: "rotated-late@example.com", template: "test", data: SAMPLES.test, locale: "en", event: "rot2" });
+      const job = takeJob();
+      setKeys(OLD);
+      await pools.admin.insert(schema.emailAddressSuppressions).values({ emailHash: emailAddressHash("rotated-late@example.com"), emailMasked: "ro•••@ex•••.com", reason: "bounce" });
+      setKeys(NEW, OLD);
+      expect((await deliverEmailJob(pools.admin, job)).status).toBe("suppressed");
+      expect((await row(q.id)).status).toBe("suppressed");
+      // once the previous key is removed, only re-hashed rows (pnpm db:rotate-key) still match
+      setKeys(NEW);
+      expect(verifyUnsubscribeToken(unsub)).toBeNull();
+      expect((await queueEmail(platform, { to: "rotated@example.com", template: "test", data: SAMPLES.test, locale: "en", event: "rot3" })).outcome).toBe("queued");
+      takeJob();
+    } finally {
+      setKeys(OLD);
+    }
   });
 });
 

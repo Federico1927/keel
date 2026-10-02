@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { ADDON_MODULES, CHURN_RETENTION_DAYS, canActivateAddon, displayedVersions, isAdPlatform, MODULES, PLATFORM_CURRENCY, TENANT_EXPORT_TTL_DAYS, isTenantStatus } from "@hullwise/config";
+import { ADDON_MODULES, CHURN_RETENTION_DAYS, canActivateAddon, displayedVersions, isAdPlatform, MODULES, PLATFORM_CURRENCY, TENANT_EXPORT_TTL_DAYS, isTenantStatus, onboardingRunbookUrl } from "@hullwise/config";
 import { LIFECYCLE_TRANSITIONS, formatDate, formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
 import { listTenantExports, tenantAdminDetail } from "@hullwise/services";
 import {
@@ -93,6 +93,7 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
                   </li>
                 ))}
               </ul>
+              <a href={onboardingRunbookUrl(locale)} target="_blank" rel="noreferrer" className="mt-3 inline-block text-sm text-primary underline-offset-2 hover:underline" data-testid="onboarding-runbook">{t("tenant.runbook")} ↗</a>
             </CardContent>
           </Card>
           <Card>

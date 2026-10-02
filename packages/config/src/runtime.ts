@@ -24,6 +24,15 @@ export interface RuntimeCheck {
 
 type Env = Record<string, string | undefined>;
 
+/** Bytes a base64 string decodes to, or -1 when it is not base64 (atob: no Node-only Buffer in this package). */
+function decodedLength(b64: string): number {
+  try {
+    return atob(b64).length;
+  } catch {
+    return -1;
+  }
+}
+
 export function checkRuntimeConfig(env: Env, role: RuntimeProcess): RuntimeCheck {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -58,6 +67,14 @@ export function checkRuntimeConfig(env: Env, role: RuntimeProcess): RuntimeCheck
     for (const [name, devValue] of Object.entries(DEV_DEFAULT_SECRETS)) {
       if (env[name] === devValue) warnings.push(`${name} has the development value from .env.example; fine for a demo, not for real tenants.`);
     }
+  }
+
+  // key rotation window (docs/DEPLOY.md, "Rotating secrets"): old payloads decrypt with the previous key
+  const previousKey = env.APP_ENCRYPTION_KEY_PREVIOUS?.trim();
+  if (previousKey) {
+    if (decodedLength(previousKey) !== 32) errors.push("APP_ENCRYPTION_KEY_PREVIOUS must decode to 32 bytes (base64), like APP_ENCRYPTION_KEY.");
+    else if (previousKey === env.APP_ENCRYPTION_KEY?.trim()) warnings.push("APP_ENCRYPTION_KEY_PREVIOUS equals APP_ENCRYPTION_KEY: the new key goes in APP_ENCRYPTION_KEY.");
+    else warnings.push("APP_ENCRYPTION_KEY_PREVIOUS is set: an encryption key rotation is in progress. Run `pnpm db:rotate-key`, check the report, then remove the variable.");
   }
 
   if (role === "worker" && !queued) {

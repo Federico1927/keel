@@ -4224,6 +4224,7 @@
       "reactivate": "Riattiva",
       "checklist": "Checklist di setup",
       "checklist_progress": "{done} su {total} completati",
+      "runbook": "Runbook di onboarding: ogni passo e come verificarlo",
       "checklist_items": {
         "company": "Dati azienda",
         "owner": "Account owner",
