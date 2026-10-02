@@ -743,3 +743,5 @@ Stato delle integrazioni esterne a fine issue #7 (cosa è reale, cosa è simulat
 | Magazzino / 3PL (`WarehouseProvider`) | Solo mock | Adapter del 3PL, location dedicata, SKU allineati. |
 
 Resta: verificare su account veri i passi segnati "Da verificare" delle nuove guide e i prezzi di Google; i connettori reali delle integrazioni ad hoc si realizzano per account quando vengono venduti.
+
+- 2026-10-02 · `docs/reference/INVENTORY.md` aggiornato (issue #36): colonna di stato su ogni tabella verificata sul codice al commit `64771f5`, 43 funzionalità aggiunte dagli studi, corrette le affermazioni errate su MCP, outbox delle scritture e riconciliazione.
