@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ORDER_STATUSES, type OrderStatus, type PaymentStatus, type ShipmentStatus } from "./domain";
 import { PAYMENT_METHODS, type PaymentMethod } from "./tenant-settings";
+import { AWAITING_STOCK_REASON } from "./backorders";
 
 /**
  * Configurable mapping from platform facts to the canonical status (CLAUDE.md §4).
@@ -50,6 +51,8 @@ export interface StateInput {
   manualStatus?: OrderStatus | null;
   /** Set when the order was cancelled and recreated (line change or merge): a final state. */
   replacedByOrderId?: string | null;
+  /** Some line waits for stock (an open backorder): the order is held until it arrives or the wait is cancelled. */
+  awaitingStock?: boolean;
   now?: Date;
 }
 
@@ -104,10 +107,12 @@ export function deriveOrderStatus(input: StateInput, rules: readonly StateRule[]
   if (input.shipmentStatus && ["in_transit", "out_for_delivery", "attempted", "exception", "label_created"].includes(input.shipmentStatus)) {
     return { status: "shipped", reason: "override:shipment" };
   }
-  // 4. Tenant rules.
+  // 4. Waiting for stock holds an order nothing has shipped yet (a fact Keel keeps, not a platform tag).
+  if (input.awaitingStock && !["fulfilled", "partial"].includes(norm(input.fulfillmentStatusRaw ?? ""))) return { status: "on_hold", reason: AWAITING_STOCK_REASON };
+  // 5. Tenant rules.
   const ordered = [...rules].filter((r) => r.isActive).sort((a, b) => a.priority - b.priority);
   for (const rule of ordered) if (ruleMatches(rule, input)) return { status: rule.resultStatus, reason: `rule:${rule.id}` };
-  // 5. Platform default.
+  // 6. Platform default.
   return { status: defaultStatus(input), reason: "default" };
 }
 

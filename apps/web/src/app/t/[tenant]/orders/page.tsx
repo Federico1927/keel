@@ -19,7 +19,7 @@ export default async function OrdersPage({ params, searchParams }: { params: Pro
   const t = await getTranslations("orders");
   const tp = await getTranslations("payment_methods");
   const filters = parseOrderFilters(sp);
-  const { rows, total, counts, page, pageSize } = await listOrders(ctx, filters);
+  const { rows, total, counts, stockViews, page, pageSize } = await listOrders(ctx, filters);
   const drill = await orderDrillLabel(ctx, filters);
   const bulk = bulkActionsFor(ctx.role, "orders");
   const members = await adminDb().select({ id: schema.users.id, name: schema.users.name, email: schema.users.email }).from(schema.tenantMemberships).innerJoin(schema.users, eq(schema.users.id, schema.tenantMemberships.userId)).where(eq(schema.tenantMemberships.tenantId, ctx.tenant.id));
@@ -38,7 +38,7 @@ export default async function OrdersPage({ params, searchParams }: { params: Pro
   return (
     <>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<ListToolbar ctx={ctx} list="orders" basePath={base} />} />
-      <OrderFiltersBar basePath={base} filters={filters} counts={counts} members={members.map((m) => ({ id: m.id, name: displayName(m) }))} drill={drill} />
+      <OrderFiltersBar basePath={base} filters={filters} counts={counts} stockViews={stockViews} members={members.map((m) => ({ id: m.id, name: displayName(m) }))} drill={drill} />
       {rows.length === 0 ? (
         <EmptyState title={t("empty_title")} description={t("empty_description")} className="mt-4" />
       ) : (

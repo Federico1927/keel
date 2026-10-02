@@ -242,7 +242,15 @@
       "hint": "Day {elapsed} of {days}, run rate by weekday.",
       "more": "Details"
     },
-    "greeting_line": "{count, plural, =0 {No orders yet today} one {# order so far today} other {# orders so far today}}"
+    "greeting_line": "{count, plural, =0 {No orders yet today} one {# order so far today} other {# orders so far today}}",
+    "stock_tile": {
+      "title": "Stock and backorders",
+      "holding": "Orders waiting for stock ({units} units)",
+      "best_sellers_low": "Best sellers running low (30 days)",
+      "none_low": "No best seller is low on stock.",
+      "cell": "{sold} sold · {available} left · +{incoming}",
+      "waiting": "{n} waiting"
+    }
   },
   "settings": {
     "title": "Settings",
@@ -287,8 +295,12 @@
         "returnExcludedProductTypes": "Product types excluded from returns",
         "returnExcludedProductTypes_placeholder": "Gift card, Underwear",
         "churnLowPct": "Churn risk low from (% probability active)",
-        "churnMediumPct": "Churn risk medium from (% probability active)"
-      }
+        "churnMediumPct": "Churn risk medium from (% probability active)",
+        "backorderHold": "Hold orders that need more than the available stock until an incoming purchase order covers them",
+        "backorderPlatformHold": "Also place a fulfillment hold on the store while they wait, so the warehouse does not ship them"
+      },
+      "backorders_title": "Backorders",
+      "backorders_description": "What happens when an order needs more than the stock available."
     },
     "taxes": {
       "title": "Tax rates by country",
@@ -732,6 +744,10 @@
       "placed_desc": "Newest first",
       "placed_asc": "Oldest first",
       "total_desc": "Highest total"
+    },
+    "views": {
+      "awaiting": "Awaiting stock",
+      "ready": "Ready to release"
     }
   },
   "order_detail": {
@@ -835,7 +851,48 @@
       "discount": "{code}: −{amount}",
       "balance_due": "Customer owes {amount}",
       "balance_refund": "Refund {amount} to the customer",
-      "written_to": "Written to {platform}"
+      "written_to": "Written to {platform}",
+      "backorder_line": "{qty}× {item}: no incoming purchase order yet",
+      "backorder_line_po": "{qty}× {item}: {po}, ETA {eta}",
+      "backorder_reason": {
+        "stock_available": "Stock arrived",
+        "wait_cancelled": "Wait cancelled by staff",
+        "order_cancelled": "Order cancelled",
+        "order_replaced": "Order replaced",
+        "order_fulfilled": "Fulfilled on the store"
+      }
+    },
+    "backorders": {
+      "title_open": "Waiting for stock",
+      "title_closed": "Stock waits",
+      "description_open": "{units, plural, one {# unit is} other {# units are}} not in stock. The order is on hold until the purchase order arrives.",
+      "description_closed": "This order waited for stock; the wait is over.",
+      "cancel_wait": "Cancel wait",
+      "cancel_wait_title": "Stop waiting for stock?",
+      "cancel_wait_description": "The order is released now (here and on the store) even though the stock has not arrived. Use it when you will ship from elsewhere or change the order.",
+      "cancel_wait_confirm": "Release the order",
+      "note_optional": "Note (optional)",
+      "eta": "ETA {date}",
+      "no_eta": "no date",
+      "no_po": "No incoming purchase order covers it yet",
+      "units": "{n, plural, one {# unit} other {# units}}",
+      "closed_status": {
+        "fulfilled": "Released",
+        "cancelled": "Cancelled",
+        "pending": "Waiting",
+        "covered": "Covered"
+      }
+    },
+    "stock_check": {
+      "title": "Stock check",
+      "description": "Per line, across all locations: available now, committed to unfulfilled orders, and incoming purchase orders.",
+      "line": "Line",
+      "ordered": "Ordered",
+      "available": "Available",
+      "committed": "Committed",
+      "incoming": "Incoming (PO · status · ETA)",
+      "waiting": "{n} waiting",
+      "no_eta": "no date"
     }
   },
   "order_events": {
@@ -859,7 +916,9 @@
     "modified": "Order modified",
     "replaces": "Created as replacement",
     "replaced": "Replaced by a new order",
-    "discount_applied": "Discount applied"
+    "discount_applied": "Discount applied",
+    "backorder_created": "Waiting for stock",
+    "backorder_closed": "Stock wait closed"
   },
   "shipments": {
     "title": "Shipments",
@@ -980,7 +1039,17 @@
       "sync": "Sync",
       "sale": "Sale"
     },
-    "view_orders": "View orders"
+    "view_orders": "View orders",
+    "grid": {
+      "title": "Stock by option",
+      "legend": "Each cell: available, +incoming from purchase orders, −committed to unfulfilled orders.",
+      "rows": "Rows",
+      "cols": "Columns",
+      "total": "Total",
+      "none": "(none)",
+      "all": "All",
+      "folded": "Summed in each cell: {options}"
+    }
   },
   "inventory": {
     "title": "Inventory",
@@ -5068,7 +5137,9 @@
       "variant_cost": "Variant cost",
       "order_discount": "Order discount",
       "variant_prices": "Variant prices",
-      "product_tags": "Product tags"
+      "product_tags": "Product tags",
+      "order_fulfillment_hold": "Fulfillment hold",
+      "order_fulfillment_release": "Fulfillment hold release"
     }
   }
 }

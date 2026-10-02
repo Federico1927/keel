@@ -6,6 +6,7 @@ export * from "./orders/notes";
 export * from "./orders/edit";
 export * from "./notifications";
 export * from "./purchasing";
+export * from "./backorders";
 export * from "./purchasing/edit";
 export * from "./purchasing/supplier-terms";
 export * from "./purchasing/packs";

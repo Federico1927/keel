@@ -1,5 +1,5 @@
-import { and, eq, schema } from "@keel/db";
-import { ORDER_STATUSES, deriveOrderStatus, diffRecords, type OrderStatus, type PaymentMethod, type PaymentStatus, type ShipmentStatus, type StateInput, type StateRule } from "@keel/core";
+import { and, eq, inArray, schema } from "@keel/db";
+import { OPEN_BACKORDER_STATUSES, ORDER_STATUSES, deriveOrderStatus, diffRecords, type OrderStatus, type PaymentMethod, type PaymentStatus, type ShipmentStatus, type StateInput, type StateRule } from "@keel/core";
 import type { ServiceContext } from "../context";
 
 export async function loadStateRules(ctx: ServiceContext): Promise<StateRule[]> {
@@ -7,7 +7,7 @@ export async function loadStateRules(ctx: ServiceContext): Promise<StateRule[]> 
   return rows.map((r) => ({ id: r.id, name: r.name, priority: r.priority, conditions: r.conditions as StateRule["conditions"], resultStatus: r.resultStatus as OrderStatus, isActive: r.isActive }));
 }
 
-export function stateInputFromOrder(o: typeof schema.orders.$inferSelect, shipmentStatus: ShipmentStatus | null, now?: Date): StateInput {
+export function stateInputFromOrder(o: typeof schema.orders.$inferSelect, shipmentStatus: ShipmentStatus | null, now?: Date, awaitingStock = false): StateInput {
   return {
     platformTags: o.platformTags,
     paymentMethod: o.paymentMethod as PaymentMethod,
@@ -21,6 +21,7 @@ export function stateInputFromOrder(o: typeof schema.orders.$inferSelect, shipme
     returnedFraction: o.returnedFraction / 10000,
     manualStatus: (o.manualStatus as OrderStatus | null) ?? null,
     replacedByOrderId: o.replacedByOrderId,
+    awaitingStock,
     now,
   };
 }
@@ -28,6 +29,23 @@ export function stateInputFromOrder(o: typeof schema.orders.$inferSelect, shipme
 async function currentShipmentStatus(ctx: ServiceContext, orderId: string): Promise<ShipmentStatus | null> {
   const [s] = await ctx.tx.select({ status: schema.shipments.status }).from(schema.shipments).where(and(eq(schema.shipments.tenantId, ctx.tenantId), eq(schema.shipments.orderId, orderId))).orderBy(schema.shipments.createdAt).limit(1);
   return (s?.status as ShipmentStatus | undefined) ?? null;
+}
+
+/** True while some line of the order waits for stock (an open backorder): a fact for the state engine. */
+export async function isAwaitingStock(ctx: ServiceContext, orderId: string): Promise<boolean> {
+  const [b] = await ctx.tx.select({ id: schema.backorders.id }).from(schema.backorders).where(and(eq(schema.backorders.tenantId, ctx.tenantId), eq(schema.backorders.orderId, orderId), inArray(schema.backorders.status, [...OPEN_BACKORDER_STATUSES]))).limit(1);
+  return Boolean(b);
+}
+
+/**
+ * Closes the open backorders of an order that no longer waits (cancelled, replaced, fulfilled on the
+ * platform), with a timeline event. Returns how many were closed; the caller recomputes the status.
+ */
+export async function closeOrderBackorders(ctx: ServiceContext, orderId: string, to: "cancelled" | "fulfilled", reason: string): Promise<number> {
+  const now = ctx.now ?? new Date();
+  const closed = await ctx.tx.update(schema.backorders).set({ status: to, resolvedAt: now }).where(and(eq(schema.backorders.tenantId, ctx.tenantId), eq(schema.backorders.orderId, orderId), inArray(schema.backorders.status, [...OPEN_BACKORDER_STATUSES]))).returning({ id: schema.backorders.id, quantity: schema.backorders.quantity });
+  if (closed.length) await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId, type: "backorder_closed", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: { awaitingUnits: { from: closed.reduce((s, b) => s + b.quantity, 0), to: 0 } }, metadata: { reason, status: to, backorders: closed.map((b) => b.id) }, createdAt: now });
+  return closed.length;
 }
 
 export interface RecomputeResult {
@@ -46,7 +64,7 @@ export async function recomputeOrderStatus(ctx: ServiceContext, orderId: string,
   if (!order) throw new Error("order_not_found");
   const rules = opts.rules ?? (await loadStateRules(ctx));
   const shipmentStatus = await currentShipmentStatus(ctx, orderId);
-  const derived = deriveOrderStatus(stateInputFromOrder(order, shipmentStatus, ctx.now), rules);
+  const derived = deriveOrderStatus(stateInputFromOrder(order, shipmentStatus, ctx.now, await isAwaitingStock(ctx, orderId)), rules);
   const previous = order.status as OrderStatus;
   const changed = derived.status !== previous;
   const source = derived.reason === "manual" ? "manual" : "rules";
@@ -95,5 +113,7 @@ export async function applyCancellation(ctx: ServiceContext, orderId: string, in
   const paymentStatus = input.refund && order.paymentStatus === "paid" ? "refunded" : order.paymentStatus === "pending" ? "voided" : order.paymentStatus;
   await ctx.tx.update(schema.orders).set({ cancelledAt: now, cancelReason: input.reason, paymentStatus, financialStatusRaw: paymentStatus }).where(eq(schema.orders.id, orderId));
   await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId, type: "cancelled", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: diffRecords<Record<string, unknown>>({ cancelledAt: null, paymentStatus: order.paymentStatus }, { cancelledAt: now, paymentStatus }), metadata: { reason: input.reason, restock: input.restock, refund: input.refund, source: input.source ?? null, ...(input.eventMetadata ?? {}) }, createdAt: now });
+  // a cancelled order no longer waits for stock: its units go back to the queue
+  await closeOrderBackorders(ctx, orderId, "cancelled", "order_cancelled");
   return recomputeOrderStatus(ctx, orderId);
 }

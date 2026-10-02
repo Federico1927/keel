@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatMoney, formatNumber } from "@keel/core";
-import { catalogQualityReport, dashboardSummary, monthEndForecast } from "@keel/services";
+import { backorderSummary, catalogQualityReport, dashboardSummary, monthEndForecast } from "@keel/services";
+import { canViewPage } from "@keel/config";
 import { Card, CardContent, CardHeader, CardTitle, PageHeader, Stat } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 import { RevenueChart } from "@/components/charts/revenue-chart";
@@ -13,7 +14,8 @@ export default async function DashboardPage({ params }: { params: Promise<{ tena
   const ctx = await requirePage(tenant, "dashboard");
   const t = await getTranslations("dashboard");
   const at = { id: ctx.tenant.id, country: ctx.tenant.country, currency: ctx.tenant.currency, timezone: ctx.tenant.timezone, settings: ctx.settings };
-  const { summary, forecast, quality } = await ctx.run(async (tx) => ({ summary: await dashboardSummary({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, at), forecast: await monthEndForecast({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, at), quality: await catalogQualityReport({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }) }));
+  const { summary, forecast, quality, stock } = await ctx.run(async (tx) => ({ summary: await dashboardSummary({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, at), forecast: await monthEndForecast({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, at), quality: await catalogQualityReport({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }), stock: await backorderSummary({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { lowStockThreshold: ctx.settings.lowStockThreshold }) }));
+  const ts = await getTranslations("dashboard.stock_tile");
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   const pctChange = (cur: number, prev: number) => (prev ? { value: (cur - prev) / prev } : null);
   const base = `/t/${tenant}`;
@@ -73,6 +75,36 @@ export default async function DashboardPage({ params }: { params: Promise<{ tena
                   <span className={`tabular font-medium ${i.value > 0 && (i.key === "shipment_exceptions" || i.key === "failed_webhooks" || i.key === "critical_variants") ? "text-destructive" : i.value > 0 && i.key === "catalog_quality" ? "text-warning" : ""}`}>{i.value}</span>
                 </Link>
               ))}
+            </CardContent>
+          </Card>
+          <Card data-testid="stock-tile">
+            <CardHeader>
+              <CardTitle className="text-base">{ts("title")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              {canViewPage(ctx.role, "orders") ? (
+                <Link href={`${base}/orders?stock=awaiting`} className="flex items-center justify-between rounded-md px-2 py-1.5 hover:bg-muted/50" data-testid="stock-tile-holding">
+                  <span>{ts("holding", { units: stock.holdingUnits })}</span>
+                  <span className={`tabular font-medium ${stock.holdingOrders > 0 ? "text-warning" : ""}`}>{stock.holdingOrders}</span>
+                </Link>
+              ) : (
+                <p className="flex items-center justify-between px-2">{ts("holding", { units: stock.holdingUnits })} <span className="tabular font-medium">{stock.holdingOrders}</span></p>
+              )}
+              <p className="px-2 pt-1 text-xs font-medium text-muted-foreground">{ts("best_sellers_low")}</p>
+              {stock.lowStockBestSellers.length === 0 && <p className="px-2 text-xs text-muted-foreground">{ts("none_low")}</p>}
+              {stock.lowStockBestSellers.map((v) => {
+                const body = (
+                  <>
+                    <span className="min-w-0 truncate">{v.label}</span>
+                    <span className="shrink-0 text-xs tabular text-muted-foreground">{ts("cell", { sold: v.unitsSold, available: v.available, incoming: v.incoming })}{v.backordered > 0 ? ` · ${ts("waiting", { n: v.backordered })}` : ""}</span>
+                  </>
+                );
+                return canViewPage(ctx.role, "products") ? (
+                  <Link key={v.variantId} href={`${base}/products/${v.productId}`} className="flex items-center justify-between gap-2 rounded-md px-2 py-1 hover:bg-muted/50">{body}</Link>
+                ) : (
+                  <div key={v.variantId} className="flex items-center justify-between gap-2 px-2 py-1">{body}</div>
+                );
+              })}
             </CardContent>
           </Card>
           <Card>

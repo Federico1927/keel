@@ -1,5 +1,6 @@
 import { createRng, type Rng } from "@keel/integrations/rng";
 import {
+  AWAITING_STOCK_REASON,
   addressKey,
   defaultStateRules,
   deriveOrderStatus,
@@ -656,7 +657,7 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
       sysEvent(orderId, "return_requested", returnInfo.requestedAt, { metadata: { returnId: rid, reason: returnInfo.reason.code } });
     }
     // backorder candidates: open orders with lines on low-stock variants
-    if (!cancelled && !fulfilledAt && status !== "on_hold") for (const l of lines) if (l.v.isLow && l.v.stockTotal < l.quantity + 2) openOrdersForBackorder.push({ orderId, lineId: l.id, variant: l.v, qty: l.quantity });
+    if (!cancelled && !fulfilledAt && !partialFulfilment && ["new", "pending_review", "confirmed"].includes(status)) for (const l of lines) if (l.v.isLow && l.v.stockTotal < l.quantity + 2) openOrdersForBackorder.push({ orderId, lineId: l.id, variant: l.v, qty: l.quantity });
     // customer aggregates
     if (!cancelled) {
       customer.ordersCount += 1;
@@ -710,17 +711,42 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
     else if (status === "received" && rng.chance(0.5)) ds.supplierPayments.push(t({ supplierId: supplier.id, purchaseOrderId: poId, amountMinor: Math.round(total / 2), paidAt: addDays(receivedAt!, 10), method: "bank_transfer", note: `${number} deposit` }));
   }
   if (ds.supplierPayments.length === 0 && suppliers[0]) ds.supplierPayments.push(t({ supplierId: suppliers[0].id, purchaseOrderId: null, amountMinor: 120000, paidAt: addDays(now, -30), method: "bank_transfer", note: "Deposit" }));
-  // backorders
-  const seenBackorderOrders = new Set<string>();
-  for (const b of openOrdersForBackorder.slice(0, 40)) {
+  // backorders (issue #26): open orders on low-stock variants wait for stock. The variant is out of stock
+  // (those orders took what was left), the order is held by the state engine (on_hold, awaiting stock)
+  // and the backorder waits for the in-transit PO line of the variant when there is one.
+  const chosen = openOrdersForBackorder.slice(0, 40).filter((b, i, all) => all.findIndex((x) => x.lineId === b.lineId) === i);
+  // demo guarantee: at least one waiting order shows a PO and an ETA (append a line to an incoming PO if needed)
+  const incomingPo = ds.purchaseOrders.find((po) => po.status === "in_transit") ?? ds.purchaseOrders.find((po) => po.status === "confirmed");
+  if (chosen.length && incomingPo && !chosen.some((b) => inTransitLines.some((l) => l.variant.id === b.variant.id))) {
+    const b = chosen[0]!;
+    const lineId = rng.uuid();
+    const unitCost = b.variant.costMinor;
+    ds.purchaseOrderLines.push({ id: lineId, tenantId, purchaseOrderId: incomingPo.id, variantId: b.variant.id, description: null, quantity: 24, receivedQuantity: 0, unitCostMinor: unitCost });
+    incomingPo.totalMinor = (incomingPo.totalMinor as number) + 24 * unitCost;
+    inTransitLines.push({ lineId, variant: b.variant });
+  }
+  const outOfStock = new Set(chosen.map((b) => b.variant.id));
+  for (const lvl of ds.inventoryLevels) if (outOfStock.has(lvl.variantId as string)) Object.assign(lvl, { available: 0, onHand: lvl.committed });
+  for (const v of variants) if (outOfStock.has(v.id)) v.stockTotal = 0;
+  const heldOrders = new Map<string, { quantity: number; sku: string; title: string; poNumber: string | null; expectedAt: string | null }[]>();
+  for (const b of chosen) {
     const cover = inTransitLines.find((l) => l.variant.id === b.variant.id);
-    if (seenBackorderOrders.has(b.lineId)) continue;
-    seenBackorderOrders.add(b.lineId);
+    const po = cover ? ds.purchaseOrders.find((x) => ds.purchaseOrderLines.some((l) => l.id === cover.lineId && l.purchaseOrderId === x.id)) : undefined;
     ds.backorders.push(t({ orderLineId: b.lineId, orderId: b.orderId, variantId: b.variant.id, quantity: b.qty, purchaseOrderLineId: cover?.lineId ?? null, status: cover ? "covered" : "pending", resolvedAt: null }));
+    heldOrders.set(b.orderId, [...(heldOrders.get(b.orderId) ?? []), { quantity: b.qty, sku: b.variant.sku, title: `${b.variant.productTitle} ${b.variant.title}`, poNumber: (po?.number as string | undefined) ?? null, expectedAt: po?.expectedAt ? (po.expectedAt as Date).toISOString().slice(0, 10) : null }]);
+  }
+  for (const [orderId, described] of heldOrders) {
+    const o = ds.orders.find((x) => x.id === orderId)!;
+    const at = addHours(o.placedAt as Date, 0.05);
+    const previous = o.status;
+    Object.assign(o, { status: "on_hold", statusSource: "rules", statusReason: AWAITING_STOCK_REASON, manualStatus: null, holdReason: null, statusChangedAt: at });
+    sysEvent(orderId, "backorder_created", at, { diff: { awaitingUnits: { from: 0, to: described.reduce((s, d) => s + d.quantity, 0) } }, metadata: { lines: described, source: "sync" } });
+    sysEvent(orderId, "status_changed", at, { diff: { status: { from: previous, to: "on_hold" } }, metadata: { reason: AWAITING_STOCK_REASON } });
   }
   if (ds.backorders.length === 0) {
+    // isolation suite: every tenant has a row; a closed wait changes nothing on the order
     const anyLine = ds.orderLines[0]!;
-    ds.backorders.push(t({ orderLineId: anyLine.id, orderId: anyLine.orderId, variantId: anyLine.variantId, quantity: 1, purchaseOrderLineId: null, status: "pending", resolvedAt: null }));
+    ds.backorders.push(t({ orderLineId: anyLine.id, orderId: anyLine.orderId, variantId: anyLine.variantId, quantity: 1, purchaseOrderLineId: null, status: "cancelled", resolvedAt: now }));
   }
 
   /* ---------- cost settings ---------- */

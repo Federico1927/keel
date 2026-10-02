@@ -441,3 +441,18 @@ Fatto:
 - Migrazione 0020 (3 tabelle con RLS: `case_packs`, `supplier_links`, `supplier_link_views`; 2 colonne con default su `purchase_order_lines`); test core 176, servizi `purchasing-depth` 7 (più `planning` e `purchasing` aggiornati), db 529; e2e `purchasing-depth` (6) più `inventory` e `planning` verdi sulla build di produzione.
 
 Resta: invio reale dell'email al fornitore (oggi il link si copia a mano in modalità demo); resi al fornitore per la merce danneggiata.
+
+## Backorder dall'inizio alla fine (issue #26)
+
+Fatto:
+- Verifica dello stock per riga su ogni nuovo ordine importato e sull'ordine sostitutivo di una modifica (#22): le unità che lo stock non copre diventano un backorder collegato alla prima riga d'ordine d'acquisto in arrivo che le copre (stato "coperto"), altrimenti restano "in attesa" e si collegano quando un ordine d'acquisto viene confermato. Regole pure in `packages/core/src/backorders.ts`.
+- L'ordine va in sospeso con motivo `hold:awaiting_stock` tramite il motore di stato (fatto `awaitingStock`, nessun tag), con evento in timeline; se il negozio lo vuole (impostazione, attiva di default) parte un blocco dell'evasione su Shopify via outbox (`order.fulfillment_hold` / `order.fulfillment_release`, `CommercePlatform.holdFulfillment` / `releaseFulfillment`, mock incluso).
+- Dettaglio ordine: scheda "In attesa di stock" con ordine d'acquisto, fornitore, data prevista e quantità, e azione "Annulla attesa" (con nota, evento con autore e diff, blocco tolto anche sul negozio); scheda "Verifica stock" per riga con disponibile, impegnato, in arrivo (ordine d'acquisto, stato, data).
+- Scheda prodotto: griglia opzione × opzione (disponibile, +in arrivo, −impegnato per cella) su qualsiasi coppia di opzioni scelta dall'utente, le altre sommate nella cella; i totali coincidono con i livelli di stock.
+- Lista ordini: viste "In attesa di stock" e "Pronti da sbloccare" (filtro `stock` in `orderListWhere`, quindi valide anche per esportazione CSV e viste salvate) con conteggi. Dashboard: riquadro con ordini in attesa di stock e prodotti più venduti sotto la soglia di stock.
+- Sblocco: al ricevimento di un ordine d'acquisto, alla conferma/annullamento/modifica di un ordine d'acquisto e con il nuovo job di sicurezza ogni 10 minuti (`backorders`), gli ordini coperti dallo stock vengono sbloccati con evento, notifica `stock_available` (assegnatario o team operativo) e rimozione del blocco sul negozio. Ordini annullati, sostituiti o evasi sul negozio smettono di attendere.
+- Impostazioni → operative: due interruttori (metti in sospeso gli ordini senza stock; blocca anche l'evasione sul negozio). Scope Shopify `read/write_merchant_managed_fulfillment_orders` aggiunti al modulo ordini.
+- Seed: gli ordini demo in backorder sono in sospeso con i loro eventi, la variante è esaurita e su ogni negozio almeno uno attende un ordine d'acquisto in arrivo con data prevista.
+- Migrazione 0026 (due indici su `backorders`, additiva). Test: core +9 (`backorders.test.ts`), integrazioni +3 (fixture Shopify e mock), servizi `backorders.test.ts` (7: sospensione → ricevimento → sblocco con notifica e blocco tolto sul mock, stock parziale, ordini non ancora riflessi nel livello, annullamento, modifica d'ordine, griglia = livelli, riquadro), e2e `backorders.spec.ts` (3) più orders, order-edit, purchasing-depth, inventory, lists, state-rules, platform-writes, tenancy, notifications verdi sulla build di produzione.
+
+Resta: verificare su un negozio reale handle e blocchi multipli di `fulfillmentOrderHold` (API 2025-01+); il blocco su Shopify riguarda tutto il fulfillment order, non la singola riga; nessuna verifica retroattiva sugli ordini aperti già importati.

@@ -19,6 +19,7 @@ import { EditOrderDialog, type AddressForm } from "./edit-order";
 import { DiscountOrderDialog } from "./discount-order";
 import { RecordTasks } from "@/components/record-tasks";
 import { EconomicsCard } from "./economics-card";
+import { BackorderCard, StockCheckCard } from "./backorder-cards";
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
@@ -257,6 +258,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
           </AlertDescription>
         </Alert>
       )}
+      <BackorderCard ctx={ctx} orderId={order.id} lines={lines} />
       {order.holdReason && (
         <Alert variant="info">
           <AlertDescription>{t("on_hold_reason", { reason: order.holdReason })}</AlertDescription>
@@ -327,6 +329,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
           </dl>
         </CardContent>
       </Card>
+
+      <StockCheckCard ctx={ctx} orderId={order.id} status={order.status} lines={lines} />
 
       {shipments.length > 0 && (
         <Card>
