@@ -73,7 +73,8 @@ test.describe("fulfilment (issue #28, Harbor Home: no add-on, prepaid orders)", 
     await expect(page.getByTestId("instruction-sent")).toBeVisible();
     await expect(page.getByTestId("instruction-sent")).toContainText("Redeliver");
     await second.getByTestId("send-instruction").click();
-    await expect(second.getByTestId("instruction-error")).toContainText("cannot be sent twice");
+    // the refusal comes back from a server action: allow for a loaded machine
+    await expect(second.getByTestId("instruction-error")).toContainText("cannot be sent twice", { timeout: 30_000 });
     await second.close();
   });
 

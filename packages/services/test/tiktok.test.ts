@@ -37,7 +37,8 @@ describe("TikTok on the demo tenants", () => {
   });
 
   it("campaigns vs stock: a winning and a losing TikTok campaign, profit only on orders not cancelled or returned, ad groups that add up", async () => {
-    const rows = await run("northwind", (s) => campaignsWithEconomics(s, T.northwind.tenant, last(90), { platform: "tiktok" }));
+    // over the campaigns' whole life: the test seed has few orders, so a shorter window can miss a winner's sales
+    const rows = await run("northwind", (s) => campaignsWithEconomics(s, T.northwind.tenant, last(365), { platform: "tiktok" }));
     expect(rows.every((r) => r.platform === "tiktok")).toBe(true);
     const winner = rows.find((r) => r.name.startsWith("Spark Ads"))!;
     const loser = rows.find((r) => r.name.startsWith("UGC try-on"))!;
