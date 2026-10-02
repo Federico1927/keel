@@ -3,10 +3,10 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Plus, Trash2, X } from "lucide-react";
-import { MAX_SEGMENT_CONDITIONS, MAX_SEGMENT_DEPTH } from "@keel/config";
-import { OPS_BY_TYPE, SEGMENT_FIELDS, countLeaves, depthOf, formatMoney, formatNumber, isGroup, validateSegmentRules, type SegmentGroup, type SegmentLeaf, type SegmentNode, type SegmentOp } from "@keel/core";
-import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Textarea, cn } from "@keel/ui";
-import type { SegmentPreview } from "@keel/services";
+import { MAX_SEGMENT_CONDITIONS, MAX_SEGMENT_DEPTH } from "@hullwise/config";
+import { OPS_BY_TYPE, SEGMENT_FIELDS, countLeaves, depthOf, formatMoney, formatNumber, isGroup, validateSegmentRules, type SegmentGroup, type SegmentLeaf, type SegmentNode, type SegmentOp } from "@hullwise/core";
+import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Textarea, cn } from "@hullwise/ui";
+import type { SegmentPreview } from "@hullwise/services";
 import { previewSegmentAction, saveSegmentAction } from "@/server/actions/segments";
 
 export interface BuilderOptions {

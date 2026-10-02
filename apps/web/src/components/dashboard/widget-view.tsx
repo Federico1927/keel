@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDate, formatMoney, formatNumber, formatRelative, parseNoteMarkdown, type MdInline, type Period } from "@keel/core";
-import { canViewPage, isCustomMetricRef, type DashboardWidget, type TenantRole } from "@keel/config";
-import { customMetricBases, type AlertsData, type BackorderSummary, type BreakdownData, type CustomMetricRow, type DashboardSummary, type KpiData, type MetricSeries, type MonthForecast, type QueueData, type TargetData, type TopListData, type WidgetResult, type WorkQueueData } from "@keel/services";
-import { Card, CardContent, CardHeader, CardTitle, Stat, cn } from "@keel/ui";
+import { formatDate, formatMoney, formatNumber, formatRelative, parseNoteMarkdown, type MdInline, type Period } from "@hullwise/core";
+import { canViewPage, isCustomMetricRef, type DashboardWidget, type TenantRole } from "@hullwise/config";
+import { customMetricBases, type AlertsData, type BackorderSummary, type BreakdownData, type CustomMetricRow, type DashboardSummary, type KpiData, type MetricSeries, type MonthForecast, type QueueData, type TargetData, type TopListData, type WidgetResult, type WorkQueueData } from "@hullwise/services";
+import { Card, CardContent, CardHeader, CardTitle, Stat, cn } from "@hullwise/ui";
 import { RevenueChart } from "@/components/charts/revenue-chart";
 import { MetricChart, Sparkline } from "@/components/charts/metric-chart";
 import { StatusBadge } from "@/components/status-badge";
@@ -67,7 +67,7 @@ function Inline({ parts }: { parts: MdInline[] }) {
   );
 }
 
-/** Renders one widget's data. Keel's template tiles keep the exact markup of the former home page. */
+/** Renders one widget's data. Hullwise's template tiles keep the exact markup of the former home page. */
 export async function WidgetView({ widget, result, period, env }: { widget: DashboardWidget; result: WidgetResult; period: Period; env: WidgetViewEnv }) {
   if (!result.ok) return <WidgetError reason={result.reason} />;
   const t = await getTranslations("dashboards");
@@ -217,7 +217,7 @@ export async function WidgetView({ widget, result, period, env }: { widget: Dash
       );
     }
 
-    /* ---------- Keel's template tiles ---------- */
+    /* ---------- Hullwise's template tiles ---------- */
     case "today_kpis": {
       const summary = data as DashboardSummary;
       const pctChange = (cur: number, prev: number) => (prev ? { value: (cur - prev) / prev } : null);

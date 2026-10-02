@@ -1,8 +1,8 @@
 "use client";
 import { useActionState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Card, CardContent, Input, Label, Select } from "@keel/ui";
-import { NOTIFICATION_TYPES } from "@keel/config";
+import { Alert, AlertDescription, Button, Card, CardContent, Input, Label, Select } from "@hullwise/ui";
+import { NOTIFICATION_TYPES } from "@hullwise/config";
 import { addSuppressionAction, removeSuppressionAction } from "@/server/actions/notifications";
 
 const EMAIL_TYPES = (Object.keys(NOTIFICATION_TYPES) as (keyof typeof NOTIFICATION_TYPES)[]).filter((k) => (NOTIFICATION_TYPES[k].channels as readonly string[]).includes("email"));

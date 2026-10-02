@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, desc, eq, schema, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { parseTenantSettings } from "@keel/core";
-import { MockCommercePlatform, type NormalizedOrder } from "@keel/integrations";
+import { and, desc, eq, schema, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { parseTenantSettings } from "@hullwise/core";
+import { MockCommercePlatform, type NormalizedOrder } from "@hullwise/integrations";
 import { applyCostImport, catalogQualityReport, createTenant, importOrder, pnlForPeriod, previewCostImport, runCatalogSync, setVariantCosts, type AnalyticsTenant, type ServiceContext } from "../src";
 
 /**
@@ -22,7 +22,7 @@ const period = { from, to };
 beforeAll(async () => {
   seed = await seedPlatform(pools.admin);
   await seedDomain(pools.admin, seed, { scale: 0.01 });
-  const created = await createTenant(pools.admin, { name: "Fresh Store", slug: "fresh-store-costs", country: "IT", currency: "EUR", timezone: "Europe/Rome", defaultLocale: "en", orderNumberPrefix: "FS-", planKey: "starter", taxRateBps: 2200, ownerEmail: "owner@fresh.test", ownerName: "Fresh Owner" }, seed.userIds["superadmin@keel.demo"]!);
+  const created = await createTenant(pools.admin, { name: "Fresh Store", slug: "fresh-store-costs", country: "IT", currency: "EUR", timezone: "Europe/Rome", defaultLocale: "en", orderNumberPrefix: "FS-", planKey: "starter", taxRateBps: 2200, ownerEmail: "owner@fresh.test", ownerName: "Fresh Owner" }, seed.userIds["superadmin@hullwise.demo"]!);
   tenantId = created.tenantId;
   tenant = { id: tenantId, country: "IT", currency: "EUR", timezone: "Europe/Rome", settings: parseTenantSettings({ shippingCostMinor: 500, paymentFeeBps: { card: 180, wallet: 250, bank_transfer: 0, cod: 0, bnpl: 0, other: 0 }, paymentFeeFixedMinor: { card: 25, wallet: 25, bank_transfer: 0, cod: 0, bnpl: 0, other: 0 } }) };
   platform = new MockCommercePlatform({
@@ -99,7 +99,7 @@ describe("product cost on a tenant synced from the platform", () => {
   });
 
   it("a manual edit writes an audit diff, fills the lines sold without a cost and the next P/L reflects it", async () => {
-    const owner = seed.userIds["superadmin@keel.demo"]!;
+    const owner = seed.userIds["superadmin@hullwise.demo"]!;
     const v3 = await variant("FS-3");
     const res = await run((s) => setVariantCosts(s, [{ variantId: v3.id, costMinor: 4000 }], { source: "manual" }), owner);
     expect(res.changed).toHaveLength(1);
@@ -139,7 +139,7 @@ describe("product cost on a tenant synced from the platform", () => {
     expect(await variant("FS-1")).toMatchObject({ costMinor: 2100, costSource: "po_receipt" });
     expect((await run((s) => previewCostImport(s, "name,price\nx,1"))).error).toBe("missing_columns");
 
-    const applied = await run((s) => applyCostImport(s, csv, { fileName: "costs.csv" }), seed.userIds["superadmin@keel.demo"]!);
+    const applied = await run((s) => applyCostImport(s, csv, { fileName: "costs.csv" }), seed.userIds["superadmin@hullwise.demo"]!);
     expect(applied.result!.changed.map((c) => [c.sku, c.fromMinor, c.toMinor])).toEqual([["FS-1", 2100, 2500]]);
     expect(await variant("FS-1")).toMatchObject({ costMinor: 2500, costSource: "import" });
     // lines that already had a cost keep it unless the import restates them

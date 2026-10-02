@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@keel/ui";
+import { Button } from "@hullwise/ui";
 import type { ActionResult } from "@/server/action-result";
 
 /** Downscales in the browser (alpha kept, WebP) so phone photos fit the server-action body limit. */

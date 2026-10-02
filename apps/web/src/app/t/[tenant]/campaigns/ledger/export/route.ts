@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { campaignDailyLedger } from "@keel/services";
+import { campaignDailyLedger } from "@hullwise/services";
 import { ForbiddenError, requirePage } from "@/server/tenant";
 import { resolvePeriod } from "@/server/period";
 

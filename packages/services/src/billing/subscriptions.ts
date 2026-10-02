@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
-import { and, asc, desc, eq, gte, inArray, isNotNull, lt, recordAudit, schema, sql, type Database, type DbExecutor } from "@keel/db";
-import { DEFAULT_PAYMENT_TERMS_DAYS, MODULES, PLANS, PLAN_KEYS, UPCOMING_RENEWAL_DAYS, isAddonModule, type PlanKey } from "@keel/config";
-import { billingCatalog, catalogItemFor, desiredSubscriptionKeys, lookupKeyFor, mirroredMrr, monthlyChargeMinor, paymentHealth, subscriptionSignal, tablePdf, vatTreatment, type PaymentHealth, type VatTreatment } from "@keel/core";
+import { and, asc, desc, eq, gte, inArray, isNotNull, lt, recordAudit, schema, sql, type Database, type DbExecutor } from "@hullwise/db";
+import { DEFAULT_PAYMENT_TERMS_DAYS, MODULES, PLANS, PLAN_KEYS, UPCOMING_RENEWAL_DAYS, isAddonModule, type PlanKey } from "@hullwise/config";
+import { billingCatalog, catalogItemFor, desiredSubscriptionKeys, lookupKeyFor, mirroredMrr, monthlyChargeMinor, paymentHealth, subscriptionSignal, tablePdf, vatTreatment, type PaymentHealth, type VatTreatment } from "@hullwise/core";
 import {
   BillingProviderError,
   parseMockPriceId,
@@ -19,7 +19,7 @@ import {
   type InvoicingProvider,
   type StripeEvent,
   type StripeSignatureCheck,
-} from "@keel/integrations";
+} from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { queueEmail } from "../email/mailer";
 import { transitionTenant } from "./lifecycle";
@@ -29,9 +29,9 @@ import { setTenantAddon, setTenantPlan } from "./plan";
 import { billingSettings, getBillingProvider, getInvoicingProvider, type BillingSettings } from "./provider";
 
 /**
- * Stripe billing for Keel's customers (#53). Stripe subscriptions are the source of truth for
- * collection: card on file, automatic charges, Smart Retries, dunning emails, proration. Keel
- * keeps the catalog (@keel/config), decides entitlements and the tenant lifecycle, and mirrors
+ * Stripe billing for Hullwise's customers (#53). Stripe subscriptions are the source of truth for
+ * collection: card on file, automatic charges, Smart Retries, dunning emails, proration. Hullwise
+ * keeps the catalog (@hullwise/config), decides entitlements and the tenant lifecycle, and mirrors
  * subscriptions and invoices from webhooks. Everything here runs on the admin connection except
  * the owner's billing page and portal, which read through the tenant transaction (RLS).
  */
@@ -153,7 +153,7 @@ export async function startSubscription(db: Database, tenantId: string, input: S
     if (existing) await db.update(schema.subscriptions).set({ ...base, ...extra }).where(eq(schema.subscriptions.id, existing.id));
     else await db.insert(schema.subscriptions).values({ ...base, status: tenant.status === "trial" ? "trialing" : "active", currentPeriodStart: now, currentPeriodEnd: now, ...extra });
   };
-  const idempotencyKey = `keel-start-${tenantId}-${hash(`${JSON.stringify(input)}|${now.toISOString()}`)}`;
+  const idempotencyKey = `hullwise-start-${tenantId}-${hash(`${JSON.stringify(input)}|${now.toISOString()}`)}`;
   const start = { customerId, tenantId, priceIds: recurring, oneOffPriceIds: oneOff, trialDays: input.trialDays || null, automaticTax: settings.automaticTax, idempotencyKey };
   try {
     if (input.collection === "invoice") {
@@ -184,7 +184,7 @@ export type WebhookReceipt = { ok: true; id: string | null; duplicate: boolean; 
 async function resolveTenant(db: DbExecutor, event: StripeEvent): Promise<string | null> {
   const o = event.object;
   const meta = (o.metadata ?? {}) as Record<string, unknown>;
-  const fromMeta = typeof meta.keel_tenant_id === "string" ? meta.keel_tenant_id : event.type.startsWith("invoice.") ? toInvoiceSnapshot(o).subscriptionTenantId : event.type === "checkout.session.completed" ? toCheckoutSnapshot(o).clientReferenceId : null;
+  const fromMeta = typeof meta.hullwise_tenant_id === "string" ? meta.hullwise_tenant_id : event.type.startsWith("invoice.") ? toInvoiceSnapshot(o).subscriptionTenantId : event.type === "checkout.session.completed" ? toCheckoutSnapshot(o).clientReferenceId : null;
   const valid = async (id: string | null) => (id && /^[0-9a-f-]{36}$/i.test(id) && (await db.select({ id: schema.tenants.id }).from(schema.tenants).where(eq(schema.tenants.id, id)).limit(1)).length ? id : null);
   const byMeta = await valid(fromMeta);
   if (byMeta) return byMeta;
@@ -312,7 +312,7 @@ async function applyEvent(tx: DbExecutor, tenantId: string, event: StripeEvent, 
     const after = { billingEmail: c.email ?? sub.billingEmail, customerCountry: c.country, taxIds: JSON.stringify(c.taxIds), taxExempt: c.taxExempt };
     const diff = Object.fromEntries(Object.entries(after).filter(([k, v]) => before[k as keyof typeof before] !== v).map(([k, v]) => [k, { from: before[k as keyof typeof before], to: v }]));
     if (Object.keys(diff).length) await audit(tx, null, tenantId, "billing.customer_updated", { entityType: "subscription", entityId: sub.id, diff });
-    // without Stripe Tax, Keel sets the reverse charge itself from the verified VAT id
+    // without Stripe Tax, Hullwise sets the reverse charge itself from the verified VAT id
     if (!opts.settings.automaticTax && opts.billingProvider.provider === "stripe" && c.id) {
       const treatment = vatTreatment({ sellerCountry: opts.settings.sellerCountry, customerCountry: c.country, vatIdVerified: c.taxIds.some((t) => t.verified && t.type === "eu_vat") });
       const want = treatment === "reverse_charge" ? "reverse" : treatment === "unknown" ? null : "none";
@@ -580,7 +580,7 @@ export async function consoleBillingOverview(db: Database, now = new Date(), set
   };
 }
 
-/** Console tenant page: the Stripe side of one tenant, with drift between Keel's entitlements and the subscription items. */
+/** Console tenant page: the Stripe side of one tenant, with drift between Hullwise's entitlements and the subscription items. */
 export async function tenantSubscriptionDetail(db: Database, tenantId: string, settings = billingSettings()) {
   const [sub] = await db.select().from(schema.subscriptions).where(eq(schema.subscriptions.tenantId, tenantId)).limit(1);
   const [tenant] = await db.select({ planKey: schema.tenants.planKey }).from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
@@ -600,7 +600,7 @@ export async function tenantSubscriptionDetail(db: Database, tenantId: string, s
   };
 }
 
-/** PDF of a Keel-ledger invoice (mock model, no processor document): Stripe invoices link to Stripe's own PDF. */
+/** PDF of a Hullwise-ledger invoice (mock model, no processor document): Stripe invoices link to Stripe's own PDF. */
 export function ledgerInvoicePdf(inv: typeof schema.invoices.$inferSelect, input: { sellerName: string; customerName: string; labels: { title: string; issued: string; due: string; item: string; amount: string; total: string; status: string; kinds: Record<string, string> }; money: (minor: number, currency: string) => string; date: (d: Date) => string }): { bytes: Uint8Array; filename: string } {
   const lines = inv.lines as { kind: string; key: string; amountMinor: number }[];
   const name = (l: { kind: string; key: string }) => (l.kind === "plan" || l.kind === "setup" || l.kind === "addon" ? (catalogItemFor(lookupKeyFor(l.kind, l.key))?.name ?? l.key) : l.key);

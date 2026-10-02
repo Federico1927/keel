@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { displayName, formatDate, greetingKey, isTimeZone, type PersonName } from "@keel/core";
+import { displayName, formatDate, greetingKey, isTimeZone, type PersonName } from "@hullwise/core";
 
 /**
  * "Good morning, Giulia" with today's date, computed on the server in the user's time zone (else

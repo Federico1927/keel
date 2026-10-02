@@ -1,3 +1,5 @@
+> Historical document: the product was formerly called Keel.
+
 # Codebase di riferimento (sola lettura)
 
 Federico: compila prima di avviare Claude Code. In una sessione cloud servono gli URL GitHub (repository privati accessibili dallo stesso account GitHub collegato a Claude); in locale bastano i percorsi delle cartelle.

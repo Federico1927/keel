@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canDo } from "@keel/config";
-import { cn } from "@keel/ui";
+import { canDo } from "@hullwise/config";
+import { cn } from "@hullwise/ui";
 import type { TenantContext } from "@/server/tenant";
 
 /** Sub-navigation shared by the notification pages. */

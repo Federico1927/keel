@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { canDo, canWritePage, isAdPlatformInPlan } from "@keel/config";
-import { ADS_UTM_TEMPLATES, UTM_NONE, type AdPlatform, formatDate, formatMoney, formatNumber, formatPercent } from "@keel/core";
-import { and, eq, schema } from "@keel/db";
-import { adRows, campaignAdSets, campaignDailyLedger, campaignLinkSuggestions, campaignsWithEconomics, latestPlatformWrites, summarizeByProduct, variantStock } from "@keel/services";
-import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DetailShell, EmptyState, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { canDo, canWritePage, isAdPlatformInPlan } from "@hullwise/config";
+import { ADS_UTM_TEMPLATES, UTM_NONE, type AdPlatform, formatDate, formatMoney, formatNumber, formatPercent } from "@hullwise/core";
+import { and, eq, schema } from "@hullwise/db";
+import { adRows, campaignAdSets, campaignDailyLedger, campaignLinkSuggestions, campaignsWithEconomics, latestPlatformWrites, summarizeByProduct, variantStock } from "@hullwise/services";
+import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DetailShell, EmptyState, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";
@@ -156,12 +156,12 @@ export default async function CampaignDetailPage({ params, searchParams }: { par
               rowTestId="ad-set-row"
               currency={ctx.tenant.currency}
               locale={ctx.locale}
-              emptyKeel={ta("keel_not_visible")}
+              emptyHullwise={ta("hullwise_not_visible")}
               rows={adSets.rows.map((s) => ({ key: s.id, name: <Link href={`${base}/${id}/adsets/${s.id}?${qs}`} className="hover:underline">{s.name}</Link>, sub: <>{ta("n_ads", { n: s.ads })}{s.keywords > 0 && <> · {ta("n_keywords", { n: s.keywords })}</>}{s.status !== "active" && <Badge variant="muted">{tl(`status.${s.status}`)}</Badge>}</>, metrics: s.metrics, economics: s.economics, ordersHref: ordersHref(tenant, s.orders, period, ctx.tenant.timezone) }))}
             />
           )}
           <div className="flex flex-wrap justify-between gap-2 border-t px-4 py-3 text-xs text-muted-foreground">
-            {adSets.unassigned && <span data-testid="unassigned-orders">{ta("unassigned_orders", { n: adSets.unassigned.keel.allOrders })} · <Link className="underline-offset-4 hover:underline" href={ordersHref(tenant, row.platform === "meta" ? { campaign: id, utmTerm: UTM_NONE } : { campaign: id, utmContent: UTM_NONE }, period, ctx.tenant.timezone)!}>{ta("open_orders")}</Link></span>}
+            {adSets.unassigned && <span data-testid="unassigned-orders">{ta("unassigned_orders", { n: adSets.unassigned.hullwise.allOrders })} · <Link className="underline-offset-4 hover:underline" href={ordersHref(tenant, row.platform === "meta" ? { campaign: id, utmTerm: UTM_NONE } : { campaign: id, utmContent: UTM_NONE }, period, ctx.tenant.timezone)!}>{ta("open_orders")}</Link></span>}
             <span data-testid="unallocated">{ta("reconciliation", { ads: money(adSets.reconciliation.childrenMinor), campaign: money(adSets.reconciliation.campaignMinor), unallocated: money(adSets.reconciliation.unallocatedMinor) })}</span>
           </div>
         </CardContent>

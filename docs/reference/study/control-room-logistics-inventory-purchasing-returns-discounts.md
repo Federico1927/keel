@@ -1,3 +1,5 @@
+> Historical document: the product was formerly called Keel.
+
 # Control Room (Lorena Milano) — Ops study: logistics, inventory, reorders, purchases, returns, discounts
 
 Source: `/home/user/lorena-control-center` (read-only). React + Supabase (Postgres + Edge Functions in Deno). 582 SQL migrations under `supabase/migrations/`, edge functions under `supabase/functions/`, pure helpers in `supabase/functions/_shared/` and `src/lib/`. The `drizzle/` folder only holds video/AI/COD-queue migrations (`drizzle/migrations/0000..0026`) and is not the source of truth for the tables below; the Supabase migrations are.

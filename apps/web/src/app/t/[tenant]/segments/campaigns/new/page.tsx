@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { canWritePage } from "@keel/config";
-import { listSegments } from "@keel/services";
-import { Card, CardContent, EmptyState, PageHeader } from "@keel/ui";
+import { canWritePage } from "@hullwise/config";
+import { listSegments } from "@hullwise/services";
+import { Card, CardContent, EmptyState, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { CampaignForm } from "../campaign-form";
 

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, desc, eq, schema, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
+import { and, desc, eq, schema, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
 import { customerOrderHistory, duplicateSiblings, addOrderNote, recomputeOrderStatus, setManualStatus, clearManualStatus, unreadCount } from "../src";
 import type { ServiceContext } from "../src";
 

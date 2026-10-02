@@ -1,4 +1,4 @@
-import type { Period } from "@keel/core";
+import type { Period } from "@hullwise/core";
 
 export interface PeriodParams {
   from?: string;

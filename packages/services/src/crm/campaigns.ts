@@ -1,6 +1,6 @@
-import { and, desc, eq, schema, sql } from "@keel/db";
-import { RETENTION_CHANNELS, campaignUplift, minimumDetectableUplift, renderMessage, type CustomerOutcome, type RetentionChannel, type UpliftReport } from "@keel/core";
-import type { MessagingChannel } from "@keel/integrations";
+import { and, desc, eq, schema, sql } from "@hullwise/db";
+import { RETENTION_CHANNELS, campaignUplift, minimumDetectableUplift, renderMessage, type CustomerOutcome, type RetentionChannel, type UpliftReport } from "@hullwise/core";
+import type { MessagingChannel } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { orderEconomicsForPeriod, type AnalyticsTenant } from "../analytics";
 import { evaluateSegment } from "./index";

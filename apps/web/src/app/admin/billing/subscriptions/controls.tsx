@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@keel/ui";
+import { Button } from "@hullwise/ui";
 import { resyncBillingAction, syncCatalogAction } from "@/server/actions/admin-billing";
 
 const ERRORS = ["provider_failed", "catalog_not_synced", "no_customer", "invalid_input"];

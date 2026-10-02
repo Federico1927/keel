@@ -1,4 +1,4 @@
-import { Badge } from "@keel/ui";
+import { Badge } from "@hullwise/ui";
 
 type Variant = "success" | "warning" | "destructive" | "muted" | "info";
 

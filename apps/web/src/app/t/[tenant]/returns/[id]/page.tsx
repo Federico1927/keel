@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { canDo } from "@keel/config";
-import { formatDate, formatDateTime, formatMoney } from "@keel/core";
-import { getPortalConfig, returnDetail, returnEvidenceList, signReturnLink } from "@keel/services";
-import { pickLocalized } from "@keel/core";
-import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { canDo } from "@hullwise/config";
+import { formatDate, formatDateTime, formatMoney } from "@hullwise/core";
+import { getPortalConfig, returnDetail, returnEvidenceList, signReturnLink } from "@hullwise/services";
+import { pickLocalized } from "@hullwise/core";
+import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
 import { ReturnWorkflow } from "./workflow";

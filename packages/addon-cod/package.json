@@ -1,5 +1,5 @@
 {
-  "name": "@keel/addon-cod",
+  "name": "@hullwise/addon-cod",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,16 +15,16 @@
     "test": "dotenv -e ../../.env -- vitest run"
   },
   "dependencies": {
-    "@keel/config": "workspace:*",
-    "@keel/core": "workspace:*",
-    "@keel/db": "workspace:*",
-    "@keel/integrations": "workspace:*",
-    "@keel/services": "workspace:*",
+    "@hullwise/config": "workspace:*",
+    "@hullwise/core": "workspace:*",
+    "@hullwise/db": "workspace:*",
+    "@hullwise/integrations": "workspace:*",
+    "@hullwise/services": "workspace:*",
     "drizzle-orm": "^0.45.0",
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@keel/eslint-config": "workspace:*",
+    "@hullwise/eslint-config": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.31.0",
     "@types/pg": "^8.15.0",
     "dotenv-cli": "^11.0.0",

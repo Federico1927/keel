@@ -1,5 +1,5 @@
-import { and, asc, desc, eq, gte, inArray, lt, or, recordAudit, schema, sql } from "@keel/db";
-import { driftLossUnits, normalizeScanCode, reviewStockTake, suggestMarkdown, validateAdjustment, type AdjustmentReason, type MarkdownSkipReason, type MarkdownSuggestion, type StockTakeReview, type TenantSettings } from "@keel/core";
+import { and, asc, desc, eq, gte, inArray, lt, or, recordAudit, schema, sql } from "@hullwise/db";
+import { driftLossUnits, normalizeScanCode, reviewStockTake, suggestMarkdown, validateAdjustment, type AdjustmentReason, type MarkdownSkipReason, type MarkdownSuggestion, type StockTakeReview, type TenantSettings } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import type { AuditIdentity } from "../catalog/costs";
 import { recordPriceChanges } from "../catalog/price-history";

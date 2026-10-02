@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { METRICS, availableWidgetTypes, canEditDashboard, canViewPage, isTenantRole, keelTemplate, metricPages, type TenantRole } from "@keel/config";
-import { basesLookup, customLabel, dashboardView, getDashboard, isSeriesRef } from "@keel/services";
-import { PageHeader } from "@keel/ui";
+import { METRICS, availableWidgetTypes, canEditDashboard, canViewPage, isTenantRole, hullwiseTemplate, metricPages, type TenantRole } from "@hullwise/config";
+import { basesLookup, customLabel, dashboardView, getDashboard, isSeriesRef } from "@hullwise/services";
+import { PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { tenantCustoms } from "@/server/dashboards";
 import { DashboardEditor, type MetricOption } from "@/components/dashboard/editor";
@@ -40,7 +40,7 @@ export default async function EditDashboardPage({ params }: { params: Promise<{ 
         hasDraft={view.draft !== null}
         availableTypes={availableWidgetTypes(ctx.activeAddons)}
         metrics={metrics}
-        template={keelTemplate(ctx.activeAddons)}
+        template={hullwiseTemplate(ctx.activeAddons)}
         previewPath={row.isHome ? base : `${base}/dashboards/${row.id}`}
         backPath={row.scope === "role" ? `${base}?as=${row.roles[0] ?? ""}` : homeBack}
       />

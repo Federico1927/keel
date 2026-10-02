@@ -1,4 +1,4 @@
-import { checkRuntimeConfig } from "@keel/config";
+import { checkRuntimeConfig } from "@hullwise/config";
 
 /** Node-only startup check, kept out of `instrumentation.ts` so the edge bundle never sees `process.exit`. */
 export function assertRuntimeConfig() {

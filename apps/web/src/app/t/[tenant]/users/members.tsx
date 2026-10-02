@@ -1,9 +1,9 @@
 "use client";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
-import { TENANT_ROLES, canManageRole, type TenantRole } from "@keel/config";
-import { formatDateTime } from "@keel/core";
+import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { TENANT_ROLES, canManageRole, type TenantRole } from "@hullwise/config";
+import { formatDateTime } from "@hullwise/core";
 import { changeMemberRole, inviteMember, resendInvitationAction, revokeInvitationAction, setMemberActive } from "@/server/actions/users";
 import type { ActionResult } from "@/server/action-result";
 

@@ -1,4 +1,4 @@
-import { and, eq, schema, sql } from "@keel/db";
+import { and, eq, schema, sql } from "@hullwise/db";
 import type { TenantContext } from "@/server/tenant";
 
 /** Option lists the segment builder needs for dynamic enum/array fields. */

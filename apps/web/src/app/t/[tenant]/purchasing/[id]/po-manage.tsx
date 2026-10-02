@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Copy, Pencil, Trash2 } from "lucide-react";
-import { Alert, AlertDescription, Badge, Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@keel/ui";
+import { Alert, AlertDescription, Badge, Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@hullwise/ui";
 import { deletePo, duplicatePo, revokeSupplierLinksAction } from "@/server/actions/purchasing";
 
 /** Edit (draft and sent), duplicate (any) and delete (draft or cancelled) a purchase order. */

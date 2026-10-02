@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { canDo } from "@keel/config";
-import { formatDate, formatDiscountValue, formatMoney, formatNumber, type DiscountType } from "@keel/core";
-import { discountDetail, latestPlatformWrites } from "@keel/services";
-import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { canDo } from "@hullwise/config";
+import { formatDate, formatDiscountValue, formatMoney, formatNumber, type DiscountType } from "@hullwise/core";
+import { discountDetail, latestPlatformWrites } from "@hullwise/services";
+import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
 import { PlatformWriteStatus } from "@/components/platform-write-status";
@@ -35,7 +35,7 @@ export default async function DiscountDetailPage({ params }: { params: Promise<{
         <>
           <DiscountStateBadge state={state} />
           <Badge variant="outline">{d.type === "free_shipping" ? td("free_shipping") : formatDiscountValue(d.type as DiscountType, d.value, money)}</Badge>
-          <Badge variant="muted">{d.source === "keel" ? "Keel" : t("platform")}</Badge>
+          <Badge variant="muted">{d.source === "hullwise" ? "Hullwise" : t("platform")}</Badge>
           <PlatformWriteStatus slug={tenant} write={platformWrite} canRetry={canDo(ctx.role, "create_discount")} showError />
           {poolStatus && <Badge variant={poolStatus === "available" ? "success" : poolStatus === "assigned" ? "info" : "muted"} data-testid="pool-code-status">{tp(`status.${poolStatus}`)}</Badge>}
           {pool && <Link href={`/t/${tenant}/discounts/pools/${pool.id}`} className="text-sm hover:underline">{t("in_pool", { title: pool.title })}</Link>}

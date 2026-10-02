@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { SUPPORTED_LOCALES, canWritePage } from "@keel/config";
-import { SHOPIFY_RETURN_REASONS } from "@keel/integrations";
-import { listReturnReasons } from "@keel/services";
-import { Badge, Card, CardContent, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { SUPPORTED_LOCALES, canWritePage } from "@hullwise/config";
+import { SHOPIFY_RETURN_REASONS } from "@hullwise/integrations";
+import { listReturnReasons } from "@hullwise/services";
+import { Badge, Card, CardContent, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { ReasonForm, ReasonToggle } from "./reason-form";
 

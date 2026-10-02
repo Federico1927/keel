@@ -34,9 +34,9 @@ export const PLATFORM_RETENTION_DAYS_DEFAULT = 14;
 /** Days drift rows that record lost stock (unexplained falls, unreported levels) are kept for the unexplained-loss report, whatever the platform window. */
 export const INVENTORY_LOSS_RETENTION_DAYS = 400;
 
-/** Retention window from `KEEL_RETENTION_DAYS` (1–365), the default otherwise. */
+/** Retention window from `HULLWISE_RETENTION_DAYS` (1–365), the default otherwise. */
 export function platformRetentionDays(env: Record<string, string | undefined> = process.env): number {
-  const n = Number(env.KEEL_RETENTION_DAYS);
+  const n = Number(env.HULLWISE_RETENTION_DAYS);
   return Number.isInteger(n) && n >= 1 && n <= 365 ? n : PLATFORM_RETENTION_DAYS_DEFAULT;
 }
 

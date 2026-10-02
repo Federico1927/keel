@@ -1,4 +1,4 @@
-import { and, eq, schema } from "@keel/db";
+import { and, eq, schema } from "@hullwise/db";
 import type { ServiceContext } from "../context";
 import { queueEmail, type QueueOutcome } from "../email/mailer";
 

@@ -1,4 +1,4 @@
-import { schema, sql } from "@keel/db";
+import { schema, sql } from "@hullwise/db";
 import type { ServiceContext } from "../context";
 
 /**

@@ -1,4 +1,4 @@
-import next from "@keel/eslint-config/next";
+import next from "@hullwise/eslint-config/next";
 export default [
   ...next,
   {

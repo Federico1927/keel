@@ -44,7 +44,7 @@ export interface StockTakeCount {
 }
 
 export interface StockTakeReviewRow extends StockTakeCount {
-  /** Units Keel has at the location (null for an unknown code). */
+  /** Units Hullwise has at the location (null for an unknown code). */
   expected: number | null;
   /** counted − expected (0 for an unknown code: nothing to apply). */
   delta: number;

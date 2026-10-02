@@ -1,6 +1,6 @@
-import { and, desc, eq, inArray, schema, sql } from "@keel/db";
-import { PAYMENT_METHODS, diffRecords, outstandingMinor, paymentStatusAfterRefund, refundableMinor, validateManualPayment, validateRefund, type ManualPaymentError, type PaymentMethod, type RefundError, type RefundableLine } from "@keel/core";
-import type { CommercePlatform } from "@keel/integrations";
+import { and, desc, eq, inArray, schema, sql } from "@hullwise/db";
+import { PAYMENT_METHODS, diffRecords, outstandingMinor, paymentStatusAfterRefund, refundableMinor, validateManualPayment, validateRefund, type ManualPaymentError, type PaymentMethod, type RefundError, type RefundableLine } from "@hullwise/core";
+import type { CommercePlatform } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { recomputeOrderStatus } from "../orders/state";
 import { enqueuePlatformWrite, runPlatformWriteNow, type PlatformWriteRow } from "../writes";
@@ -13,7 +13,7 @@ export * from "./reports";
  * - a manual payment (bank transfer received, cash, cheque) on an order whose payment is pending,
  *   pushed to the platform through the outbox;
  * - a money refund (goodwill, price adjustment, optionally on lines with restock) through
- *   `CommercePlatform.refundOrder`, synchronously: Keel records the amount the platform accepted.
+ *   `CommercePlatform.refundOrder`, synchronously: Hullwise records the amount the platform accepted.
  * Both write an `order_transactions` row (the ledger), an order event with author and diff, and
  * recompute the canonical status. The caller audits.
  */
@@ -48,7 +48,7 @@ async function transactionsOf(ctx: ServiceContext, orderId: string): Promise<Ord
 
 const paidSoFar = (txns: readonly OrderTransactionRow[]) => txns.filter((t) => t.kind === "manual_payment").reduce((s, t) => s + t.amountMinor, 0);
 
-/** Units of each line refunded by Keel without restock (restocked units already left the line's current quantity). */
+/** Units of each line refunded by Hullwise without restock (restocked units already left the line's current quantity). */
 function refundedQuantities(txns: readonly OrderTransactionRow[]): Map<string, number> {
   const out = new Map<string, number>();
   for (const t of txns) if (t.kind === "refund") for (const l of (t.lines as RefundLineRecord[]) ?? []) if (!l.restock) out.set(l.orderLineId, (out.get(l.orderLineId) ?? 0) + l.quantity);
@@ -134,7 +134,7 @@ export interface RefundInput {
   orderId: string;
   amountMinor: number;
   lines?: { orderLineId: string; quantity: number }[];
-  /** Put the refunded units back in stock (Keel and the platform) at `locationId` (default location when omitted). */
+  /** Put the refunded units back in stock (Hullwise and the platform) at `locationId` (default location when omitted). */
   restock?: boolean;
   locationId?: string | null;
   note?: string | null;
@@ -157,7 +157,7 @@ export interface RefundResult {
 
 /**
  * Refunds money on a paid order: never more than what remains refundable, optionally on lines, with
- * optional restock. Platform first (`order.refund`, synchronous): Keel records the amount the
+ * optional restock. Platform first (`order.refund`, synchronous): Hullwise records the amount the
  * platform accepted, which feeds `refunded_minor` and so the P/L net revenue.
  */
 export async function refundOrder(ctx: ServiceContext, platform: CommercePlatform | undefined, input: RefundInput): Promise<RefundResult> {
@@ -232,7 +232,7 @@ export async function refundOrder(ctx: ServiceContext, platform: CommercePlatfor
   return { orderId: order.id, transactionId: txn!.id, requestedMinor: input.amountMinor, amountMinor: accepted, refundedMinor: nextRefunded, paymentStatus, previousRefundedMinor: order.refundedMinor, previousPaymentStatus: order.paymentStatus, restocked, duplicate: false };
 }
 
-/** Refunds Keel issued from the order page, per order: the returns module adds them to its own refunds. */
+/** Refunds Hullwise issued from the order page, per order: the returns module adds them to its own refunds. */
 export async function manualRefundTotals(ctx: ServiceContext, orderIds: string[]): Promise<Map<string, number>> {
   if (!orderIds.length) return new Map();
   const rows = await ctx.tx.select({ orderId: schema.orderTransactions.orderId, total: sql<number>`coalesce(sum(${schema.orderTransactions.amountMinor}), 0)::int` }).from(schema.orderTransactions).where(and(eq(schema.orderTransactions.tenantId, ctx.tenantId), eq(schema.orderTransactions.kind, "refund"), inArray(schema.orderTransactions.orderId, orderIds))).groupBy(schema.orderTransactions.orderId);

@@ -1,12 +1,12 @@
-import { and, eq, gte, inArray, lt, or, schema, sql, type SQL } from "@keel/db";
+import { and, eq, gte, inArray, lt, or, schema, sql, type SQL } from "@hullwise/db";
 import {
-  EMPTY_KEEL,
+  EMPTY_HULLWISE,
   OTHER_SEARCH_TERM,
   ZERO_METRICS,
   adEntityEconomics,
   adPauseSuggestions,
   addMetrics,
-  allocateKeel,
+  allocateHullwise,
   assetPauseSuggestions,
   checkUtmTemplate,
   creativeFatigue,
@@ -19,19 +19,19 @@ import {
   type AdEntityEconomics,
   type AdMetricValues,
   type FatigueResult,
-  type KeelNumbers,
+  type HullwiseNumbers,
   type NegativeReason,
   type NgramRow,
   type NgramSort,
   type PauseReason,
   type Period,
   type UtmCheck,
-} from "@keel/core";
+} from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { orderEconomicsForPeriod, type AnalyticsTenant } from "../analytics";
 
 /**
- * Ads below the campaign (issue #40): platform numbers next to Keel's own for every level. An order
+ * Ads below the campaign (issue #40): platform numbers next to Hullwise's own for every level. An order
  * is tied to an ad by `utm_content` (Meta `{{ad.id}}`, Google `{creative}`), to a Meta ad set by
  * `utm_term` (`{{adset.id}}`) or through its ad, to a Google keyword by `utm_term` (`{keyword}`), and
  * to a search term when that keyword text is the term (exact-match traffic). Revenue, margin and
@@ -44,21 +44,21 @@ const ids = (xs: readonly string[]) => (xs.length ? [...xs] : [UUID0]);
 
 interface CampaignInfo { id: string; platform: string; externalId: string; name: string; status: string }
 
-/** Keel numbers of the period's attributed orders, indexed by campaign, ad set, ad and keyword text. */
-interface KeelIndex {
+/** Hullwise numbers of the period's attributed orders, indexed by campaign, ad set, ad and keyword text. */
+interface HullwiseIndex {
   campaigns: Map<string, CampaignInfo>;
-  byCampaign: Map<string, KeelNumbers>;
-  byAdSet: Map<string, KeelNumbers>;
-  byAd: Map<string, KeelNumbers>;
+  byCampaign: Map<string, HullwiseNumbers>;
+  byAdSet: Map<string, HullwiseNumbers>;
+  byAd: Map<string, HullwiseNumbers>;
   /** `<campaign id>|<normalized utm_term>` (Google). */
-  byTerm: Map<string, KeelNumbers>;
+  byTerm: Map<string, HullwiseNumbers>;
   /** Campaign orders with no ad set / no ad resolved (missing UTM template). */
-  noAdSet: Map<string, KeelNumbers>;
-  noAd: Map<string, KeelNumbers>;
+  noAdSet: Map<string, HullwiseNumbers>;
+  noAd: Map<string, HullwiseNumbers>;
 }
 
-function addKeel(m: Map<string, KeelNumbers>, key: string, e: { inScope: boolean; netRevenueMinor: number; marginMinor: number }) {
-  const cur = m.get(key) ?? { ...EMPTY_KEEL };
+function addHullwise(m: Map<string, HullwiseNumbers>, key: string, e: { inScope: boolean; netRevenueMinor: number; marginMinor: number }) {
+  const cur = m.get(key) ?? { ...EMPTY_HULLWISE };
   cur.allOrders++;
   if (e.inScope) {
     cur.orders++;
@@ -75,8 +75,8 @@ async function campaignsOf(ctx: ServiceContext, scope: { campaignIds?: string[];
   return ctx.tx.select({ id: schema.campaigns.id, platform: schema.campaigns.platform, externalId: schema.campaigns.externalId, name: schema.campaigns.name, status: schema.campaigns.status }).from(schema.campaigns).where(and(...conds));
 }
 
-async function keelIndex(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period, campaigns: CampaignInfo[]): Promise<KeelIndex> {
-  const index: KeelIndex = { campaigns: new Map(campaigns.map((c) => [c.id, c])), byCampaign: new Map(), byAdSet: new Map(), byAd: new Map(), byTerm: new Map(), noAdSet: new Map(), noAd: new Map() };
+async function hullwiseIndex(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period, campaigns: CampaignInfo[]): Promise<HullwiseIndex> {
+  const index: HullwiseIndex = { campaigns: new Map(campaigns.map((c) => [c.id, c])), byCampaign: new Map(), byAdSet: new Map(), byAd: new Map(), byTerm: new Map(), noAdSet: new Map(), noAd: new Map() };
   if (!campaigns.length) return index;
   const cids = campaigns.map((c) => c.id);
   const attribution = await ctx.tx
@@ -94,15 +94,15 @@ async function keelIndex(ctx: ServiceContext, tenant: AnalyticsTenant, period: P
     const e = economics.get(a.orderId);
     const c = a.campaignId ? index.campaigns.get(a.campaignId) : undefined;
     if (!e || !c) continue;
-    addKeel(index.byCampaign, c.id, e);
+    addHullwise(index.byCampaign, c.id, e);
     const keys = orderAdKeys(c.platform, a);
     const ad = keys.adExternalId ? adBy.get(`${c.id}|${keys.adExternalId}`) : undefined;
     const adSetId = ad?.adSetId ?? (keys.adSetExternalId ? setBy.get(`${c.id}|${keys.adSetExternalId}`)?.id : undefined);
-    if (ad) addKeel(index.byAd, ad.id, e);
-    else addKeel(index.noAd, c.id, e);
-    if (adSetId) addKeel(index.byAdSet, adSetId, e);
-    else addKeel(index.noAdSet, c.id, e);
-    if (keys.termText) addKeel(index.byTerm, `${c.id}|${keys.termText}`, e);
+    if (ad) addHullwise(index.byAd, ad.id, e);
+    else addHullwise(index.noAd, c.id, e);
+    if (adSetId) addHullwise(index.byAdSet, adSetId, e);
+    else addHullwise(index.noAdSet, c.id, e);
+    if (keys.termText) addHullwise(index.byTerm, `${c.id}|${keys.termText}`, e);
   }
   return index;
 }
@@ -169,9 +169,9 @@ export interface AdRow extends AdLevelRow {
   suggestion: PauseReason | null;
 }
 
-export interface UnassignedRow { keel: KeelNumbers; economics: AdEntityEconomics }
+export interface UnassignedRow { hullwise: HullwiseNumbers; economics: AdEntityEconomics }
 
-const econ = (m: AdMetricValues, k: KeelNumbers | undefined) => adEntityEconomics(m, k ?? EMPTY_KEEL);
+const econ = (m: AdMetricValues, k: HullwiseNumbers | undefined) => adEntityEconomics(m, k ?? EMPTY_HULLWISE);
 
 export interface SpendReconciliation { campaignMinor: number; childrenMinor: number; unallocatedMinor: number; days: { date: string; parentMinor: number; childrenMinor: number; unallocatedMinor: number }[] }
 
@@ -188,14 +188,14 @@ export async function campaignSpendReconciliation(ctx: ServiceContext, campaignI
 
 const sumMetrics = (xs: Iterable<AdMetricValues>) => [...xs].reduce((a, b) => addMetrics(a, b), { ...ZERO_METRICS });
 
-/** Ad sets (ad groups) of a campaign with platform and Keel numbers, the orders no ad set claims, and the spend reconciliation. */
+/** Ad sets (ad groups) of a campaign with platform and Hullwise numbers, the orders no ad set claims, and the spend reconciliation. */
 export async function campaignAdSets(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period, campaignId: string): Promise<{ rows: AdSetRow[]; unassigned: UnassignedRow | null; reconciliation: SpendReconciliation }> {
   const campaigns = await campaignsOf(ctx, { campaignIds: [campaignId] });
   const c = campaigns[0];
   if (!c) return { rows: [], unassigned: null, reconciliation: { campaignMinor: 0, childrenMinor: 0, unallocatedMinor: 0, days: [] } };
   const sets = await ctx.tx.select().from(schema.adSets).where(and(eq(schema.adSets.tenantId, ctx.tenantId), eq(schema.adSets.campaignId, campaignId))).orderBy(schema.adSets.name);
-  const [keel, metrics, counts, kwCounts, reconciliation] = await Promise.all([
-    keelIndex(ctx, tenant, period, campaigns),
+  const [hullwise, metrics, counts, kwCounts, reconciliation] = await Promise.all([
+    hullwiseIndex(ctx, tenant, period, campaigns),
     entityMetrics(ctx, "ad_set", period, { campaignIds: [campaignId] }),
     ctx.tx.select({ adSetId: schema.adCreatives.adSetId, n: sql<number>`count(*)::int` }).from(schema.adCreatives).where(and(eq(schema.adCreatives.tenantId, ctx.tenantId), eq(schema.adCreatives.campaignId, campaignId))).groupBy(schema.adCreatives.adSetId),
     ctx.tx.select({ adSetId: schema.adKeywords.adSetId, n: sql<number>`count(*)::int` }).from(schema.adKeywords).where(and(eq(schema.adKeywords.tenantId, ctx.tenantId), eq(schema.adKeywords.campaignId, campaignId))).groupBy(schema.adKeywords.adSetId),
@@ -203,13 +203,13 @@ export async function campaignAdSets(ctx: ServiceContext, tenant: AnalyticsTenan
   ]);
   const rows: AdSetRow[] = sets.map((s) => {
     const m = metrics.get(s.id) ?? { ...ZERO_METRICS };
-    return { id: s.id, externalId: s.externalId, name: s.name, status: s.status, platform: s.platform, campaignId: c.id, campaignName: c.name, metrics: m, economics: econ(m, keel.byAdSet.get(s.id)), orders: c.platform === "meta" ? { campaign: c.id, utmTerm: s.externalId } : null, ads: counts.find((x) => x.adSetId === s.id)?.n ?? 0, optimizationGoal: s.optimizationGoal, keywords: kwCounts.find((x) => x.adSetId === s.id)?.n ?? 0 };
+    return { id: s.id, externalId: s.externalId, name: s.name, status: s.status, platform: s.platform, campaignId: c.id, campaignName: c.name, metrics: m, economics: econ(m, hullwise.byAdSet.get(s.id)), orders: c.platform === "meta" ? { campaign: c.id, utmTerm: s.externalId } : null, ads: counts.find((x) => x.adSetId === s.id)?.n ?? 0, optimizationGoal: s.optimizationGoal, keywords: kwCounts.find((x) => x.adSetId === s.id)?.n ?? 0 };
   });
-  const lost = keel.noAdSet.get(c.id);
-  return { rows: rows.sort((a, b) => b.metrics.spendMinor - a.metrics.spendMinor), unassigned: lost ? { keel: lost, economics: econ({ ...ZERO_METRICS }, lost) } : null, reconciliation };
+  const lost = hullwise.noAdSet.get(c.id);
+  return { rows: rows.sort((a, b) => b.metrics.spendMinor - a.metrics.spendMinor), unassigned: lost ? { hullwise: lost, economics: econ({ ...ZERO_METRICS }, lost) } : null, reconciliation };
 }
 
-/** Ads with platform and Keel numbers, fatigue (frequency up while CTR falls), the UTM check and a pause suggestion. */
+/** Ads with platform and Hullwise numbers, fatigue (frequency up while CTR falls), the UTM check and a pause suggestion. */
 export async function adRows(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period, scope: { campaignId?: string; adSetId?: string; platform?: string; adIds?: string[] } = {}): Promise<{ rows: AdRow[]; unassigned: UnassignedRow | null }> {
   const conds: SQL[] = [eq(schema.adCreatives.tenantId, ctx.tenantId)];
   if (scope.campaignId) conds.push(eq(schema.adCreatives.campaignId, scope.campaignId));
@@ -218,16 +218,16 @@ export async function adRows(ctx: ServiceContext, tenant: AnalyticsTenant, perio
   if (scope.adIds) conds.push(inArray(schema.adCreatives.id, ids(scope.adIds)));
   const ads = await ctx.tx.select({ a: schema.adCreatives, adSetName: schema.adSets.name }).from(schema.adCreatives).leftJoin(schema.adSets, eq(schema.adSets.id, schema.adCreatives.adSetId)).where(and(...conds));
   const campaigns = await campaignsOf(ctx, { campaignIds: [...new Set(ads.map((a) => a.a.campaignId))] });
-  const keel = await keelIndex(ctx, tenant, period, campaigns);
+  const hullwise = await hullwiseIndex(ctx, tenant, period, campaigns);
   const days = await adDays(ctx, period, ads.map((a) => a.a.id));
   const byAd = new Map<string, AdDay[]>();
   for (const d of days) byAd.set(d.creativeId, [...(byAd.get(d.creativeId) ?? []), d]);
   const pre = ads.map(({ a, adSetName }) => {
     const ds = byAd.get(a.id) ?? [];
     const m = sumMetrics(ds.map(fromAdDay));
-    const c = keel.campaigns.get(a.campaignId)!;
+    const c = hullwise.campaigns.get(a.campaignId)!;
     const fatigue = ds.length ? creativeFatigue(ds.map((d) => ({ date: d.date, impressions: d.impressions, clicks: d.clicks, spendMinor: d.spendMinor, reach: d.reach }))) : null;
-    return { a, adSetName, m, c, fatigue, economics: econ(m, keel.byAd.get(a.id)) };
+    return { a, adSetName, m, c, fatigue, economics: econ(m, hullwise.byAd.get(a.id)) };
   });
   const suggestions = new Map(adPauseSuggestions(pre.map((p) => ({ id: p.a.id, status: p.a.status, spendMinor: p.m.spendMinor, economics: p.economics, fatigue: p.fatigue?.level ?? null })), { minSpendMinor: tenant.settings.adsMinSpendMinor, roiMedium: tenant.settings.roiMedium }).map((s) => [s.id, s.reason]));
   const rows: AdRow[] = pre.map(({ a, adSetName, m, c, fatigue, economics }) => ({
@@ -238,8 +238,8 @@ export async function adRows(ctx: ServiceContext, tenant: AnalyticsTenant, perio
   }));
   let unassigned: UnassignedRow | null = null;
   if (scope.campaignId && !scope.adSetId) {
-    const lost = keel.noAd.get(scope.campaignId);
-    if (lost) unassigned = { keel: lost, economics: econ({ ...ZERO_METRICS }, lost) };
+    const lost = hullwise.noAd.get(scope.campaignId);
+    if (lost) unassigned = { hullwise: lost, economics: econ({ ...ZERO_METRICS }, lost) };
   }
   return { rows: rows.sort((x, y) => y.metrics.spendMinor - x.metrics.spendMinor), unassigned };
 }
@@ -254,23 +254,23 @@ export interface AssetRow {
   url: string | null;
   performanceLabel: string | null;
   metrics: AdMetricValues;
-  /** The ad's Keel numbers spread by the asset's spend share within its field type. */
+  /** The ad's Hullwise numbers spread by the asset's spend share within its field type. */
   economics: AdEntityEconomics;
   suggestion: PauseReason | null;
 }
 
-/** One ad with its assets (allocated Keel numbers, weak-asset suggestions) and its daily series. */
+/** One ad with its assets (allocated Hullwise numbers, weak-asset suggestions) and its daily series. */
 export async function adDetail(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period, adId: string) {
   const { rows } = await adRows(ctx, tenant, period, { adIds: [adId] });
   const ad = rows[0];
   if (!ad) return null;
   const assets = await ctx.tx.select().from(schema.adAssets).where(and(eq(schema.adAssets.tenantId, ctx.tenantId), eq(schema.adAssets.creativeId, adId)));
   const metrics = await entityMetrics(ctx, "asset", period, { entityIds: assets.map((a) => a.id) });
-  const keel = { orders: ad.economics.attributedOrders, netRevenueMinor: ad.economics.netRevenueMinor, marginMinor: ad.economics.marginMinor, allOrders: ad.economics.attributedOrders + ad.economics.excludedOrders };
-  const allocated = new Map<string, KeelNumbers>();
+  const hullwise = { orders: ad.economics.attributedOrders, netRevenueMinor: ad.economics.netRevenueMinor, marginMinor: ad.economics.marginMinor, allOrders: ad.economics.attributedOrders + ad.economics.excludedOrders };
+  const allocated = new Map<string, HullwiseNumbers>();
   for (const field of new Set(assets.map((a) => a.fieldType))) {
     const group = assets.filter((a) => a.fieldType === field);
-    for (const [id, k] of allocateKeel(keel, new Map(group.map((a) => [a.id, metrics.get(a.id)?.spendMinor ?? 0])))) allocated.set(id, k);
+    for (const [id, k] of allocateHullwise(hullwise, new Map(group.map((a) => [a.id, metrics.get(a.id)?.spendMinor ?? 0])))) allocated.set(id, k);
   }
   const weak = new Map(assetPauseSuggestions(assets.map((a) => ({ id: a.id, adId, fieldType: a.fieldType, performanceLabel: a.performanceLabel, impressions: metrics.get(a.id)?.impressions ?? 0, clicks: metrics.get(a.id)?.clicks ?? 0 })), { minImpressions: 200 }).map((s) => [s.id, s.reason]));
   const assetRows: AssetRow[] = assets.map((a) => {
@@ -300,7 +300,7 @@ function pageOf<T>(rows: T[], page: number, all = false) {
   return { rows: rows.slice((p - 1) * ADS_PAGE_SIZE, p * ADS_PAGE_SIZE), total: rows.length, page: p, pages };
 }
 
-/** Keywords (Google) with platform numbers and Keel's orders through `utm_term={keyword}`. */
+/** Keywords (Google) with platform numbers and Hullwise's orders through `utm_term={keyword}`. */
 export async function keywordRows(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period, f: { campaignId?: string; adSetId?: string; q?: string; sort?: AdsTableSort; page?: number; all?: boolean } = {}) {
   const conds: SQL[] = [eq(schema.adKeywords.tenantId, ctx.tenantId), eq(schema.adKeywords.negative, false)];
   if (f.campaignId) conds.push(eq(schema.adKeywords.campaignId, f.campaignId));
@@ -308,11 +308,11 @@ export async function keywordRows(ctx: ServiceContext, tenant: AnalyticsTenant, 
   if (f.q) conds.push(sql`${schema.adKeywords.text} ilike ${`%${f.q.replace(/[%_\\]/g, (m) => `\\${m}`)}%`}`);
   const kws = await ctx.tx.select({ k: schema.adKeywords, adSetName: schema.adSets.name }).from(schema.adKeywords).leftJoin(schema.adSets, eq(schema.adSets.id, schema.adKeywords.adSetId)).where(and(...conds));
   const campaigns = await campaignsOf(ctx, { campaignIds: [...new Set(kws.map((k) => k.k.campaignId))] });
-  const [keel, metrics] = await Promise.all([keelIndex(ctx, tenant, period, campaigns), entityMetrics(ctx, "keyword", period, { entityIds: kws.map((k) => k.k.id) })]);
+  const [hullwise, metrics] = await Promise.all([hullwiseIndex(ctx, tenant, period, campaigns), entityMetrics(ctx, "keyword", period, { entityIds: kws.map((k) => k.k.id) })]);
   const rows: KeywordRow[] = kws.map(({ k, adSetName }) => {
     const m = metrics.get(k.id) ?? { ...ZERO_METRICS };
-    const c = keel.campaigns.get(k.campaignId)!;
-    return { id: k.id, externalId: k.externalId, name: k.text, text: k.text, status: k.status, platform: k.platform, campaignId: k.campaignId, campaignName: c?.name ?? "", metrics: m, economics: econ(m, keel.byTerm.get(`${k.campaignId}|${normalizeSearchText(k.text)}`)), orders: { campaign: k.campaignId, utmTerm: k.text }, matchType: k.matchType, qualityScore: k.qualityScore, adSetId: k.adSetId, adSetName };
+    const c = hullwise.campaigns.get(k.campaignId)!;
+    return { id: k.id, externalId: k.externalId, name: k.text, text: k.text, status: k.status, platform: k.platform, campaignId: k.campaignId, campaignName: c?.name ?? "", metrics: m, economics: econ(m, hullwise.byTerm.get(`${k.campaignId}|${normalizeSearchText(k.text)}`)), orders: { campaign: k.campaignId, utmTerm: k.text }, matchType: k.matchType, qualityScore: k.qualityScore, adSetId: k.adSetId, adSetName };
   });
   const key = sorters[f.sort ?? "spend"];
   return pageOf(rows.sort((a, b) => key(b) - key(a) || a.text.localeCompare(b.text)), f.page ?? 1, f.all);
@@ -326,12 +326,12 @@ export interface SearchTermRow extends AdLevelRow {
   keywordText: string | null;
   adSetId: string | null;
   adSetName: string | null;
-  /** Keel sees this term's orders (it equals a keyword of the campaign). */
-  keelMatchable: boolean;
+  /** Hullwise sees this term's orders (it equals a keyword of the campaign). */
+  hullwiseMatchable: boolean;
   candidate: NegativeReason | null;
 }
 
-/** Search terms with platform numbers, Keel's orders where the term is a keyword, and negative-keyword candidates. */
+/** Search terms with platform numbers, Hullwise's orders where the term is a keyword, and negative-keyword candidates. */
 export async function searchTermRows(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period, f: { campaignId?: string; adSetId?: string; q?: string; sort?: AdsTableSort; page?: number; candidatesOnly?: boolean; minImpressions?: number } = {}) {
   const T = schema.adSearchTerms;
   const conds: SQL[] = [eq(T.tenantId, ctx.tenantId)];
@@ -341,8 +341,8 @@ export async function searchTermRows(ctx: ServiceContext, tenant: AnalyticsTenan
   const terms = await ctx.tx.select({ t: T, adSetName: schema.adSets.name, keywordText: schema.adKeywords.text }).from(T).leftJoin(schema.adSets, eq(schema.adSets.id, T.adSetId)).leftJoin(schema.adKeywords, eq(schema.adKeywords.id, T.keywordId)).where(and(...conds));
   const campaignIds = [...new Set(terms.map((x) => x.t.campaignId))];
   const campaigns = await campaignsOf(ctx, { campaignIds });
-  const [keel, metrics, keywords] = await Promise.all([
-    keelIndex(ctx, tenant, period, campaigns),
+  const [hullwise, metrics, keywords] = await Promise.all([
+    hullwiseIndex(ctx, tenant, period, campaigns),
     entityMetrics(ctx, "search_term", period, { campaignIds }),
     ctx.tx.select({ campaignId: schema.adKeywords.campaignId, text: schema.adKeywords.text }).from(schema.adKeywords).where(and(eq(schema.adKeywords.tenantId, ctx.tenantId), inArray(schema.adKeywords.campaignId, ids(campaignIds)), eq(schema.adKeywords.negative, false))),
   ]);
@@ -350,11 +350,11 @@ export async function searchTermRows(ctx: ServiceContext, tenant: AnalyticsTenan
   const pre = terms.map(({ t, adSetName, keywordText }) => {
     const m = metrics.get(t.id) ?? { ...ZERO_METRICS };
     const key = `${t.campaignId}|${normalizeSearchText(t.text)}`;
-    const keelMatchable = !t.isOther && keywordTexts.has(key);
-    return { t, adSetName, keywordText, m, keelMatchable, keel: keelMatchable ? (keel.byTerm.get(key) ?? { ...EMPTY_KEEL }) : undefined };
+    const hullwiseMatchable = !t.isOther && keywordTexts.has(key);
+    return { t, adSetName, keywordText, m, hullwiseMatchable, hullwise: hullwiseMatchable ? (hullwise.byTerm.get(key) ?? { ...EMPTY_HULLWISE }) : undefined };
   }).filter((p) => p.m.impressions >= (f.minImpressions ?? 0) || p.m.spendMinor > 0);
-  const candidates = new Map(negativeKeywordCandidates(pre.map((p) => ({ id: p.t.id, text: p.t.text, status: p.t.status, isOther: p.t.isOther, spendMinor: p.m.spendMinor, clicks: p.m.clicks, conversions: p.m.conversions, keel: p.keel ?? { ...EMPTY_KEEL }, keelMatchable: p.keelMatchable })), { minSpendMinor: tenant.settings.adsMinSpendMinor, minClicks: 5 }).map((c) => [c.id, c.reason]));
-  let rows: SearchTermRow[] = pre.map((p) => ({ id: p.t.id, externalId: p.t.externalId, name: p.t.text, text: p.t.text, status: p.t.status, platform: p.t.platform, campaignId: p.t.campaignId, campaignName: keel.campaigns.get(p.t.campaignId)?.name ?? "", metrics: p.m, economics: econ(p.m, p.keel), orders: p.keelMatchable ? { campaign: p.t.campaignId, utmTerm: p.t.text } : null, matchType: p.t.matchType, termStatus: p.t.status, isOther: p.t.isOther, keywordText: p.keywordText, adSetId: p.t.adSetId, adSetName: p.adSetName, keelMatchable: p.keelMatchable, candidate: candidates.get(p.t.id) ?? null }));
+  const candidates = new Map(negativeKeywordCandidates(pre.map((p) => ({ id: p.t.id, text: p.t.text, status: p.t.status, isOther: p.t.isOther, spendMinor: p.m.spendMinor, clicks: p.m.clicks, conversions: p.m.conversions, hullwise: p.hullwise ?? { ...EMPTY_HULLWISE }, hullwiseMatchable: p.hullwiseMatchable })), { minSpendMinor: tenant.settings.adsMinSpendMinor, minClicks: 5 }).map((c) => [c.id, c.reason]));
+  let rows: SearchTermRow[] = pre.map((p) => ({ id: p.t.id, externalId: p.t.externalId, name: p.t.text, text: p.t.text, status: p.t.status, platform: p.t.platform, campaignId: p.t.campaignId, campaignName: hullwise.campaigns.get(p.t.campaignId)?.name ?? "", metrics: p.m, economics: econ(p.m, p.hullwise), orders: p.hullwiseMatchable ? { campaign: p.t.campaignId, utmTerm: p.t.text } : null, matchType: p.t.matchType, termStatus: p.t.status, isOther: p.t.isOther, keywordText: p.keywordText, adSetId: p.t.adSetId, adSetName: p.adSetName, hullwiseMatchable: p.hullwiseMatchable, candidate: candidates.get(p.t.id) ?? null }));
   if (f.candidatesOnly) rows = rows.filter((r) => r.candidate);
   const key = sorters[f.sort ?? "spend"];
   return pageOf(rows.sort((a, b) => key(b) - key(a) || a.text.localeCompare(b.text)), f.page ?? 1);
@@ -363,7 +363,7 @@ export async function searchTermRows(ctx: ServiceContext, tenant: AnalyticsTenan
 export const WORD_SOURCES = ["copy", "search_terms", "keywords"] as const;
 export type WordSource = (typeof WORD_SOURCES)[number];
 
-/** Winning and losing 1–3 word phrases from ad copy (both platforms), search terms or keywords, with Keel profit. */
+/** Winning and losing 1–3 word phrases from ad copy (both platforms), search terms or keywords, with Hullwise profit. */
 export async function adsWords(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period, f: { source?: WordSource; n?: 1 | 2 | 3 | null; sort?: NgramSort; platform?: string; langs: readonly string[]; limit?: number }): Promise<{ rows: NgramRow[]; winners: NgramRow[]; losers: NgramRow[]; items: number }> {
   const source = f.source ?? "copy";
   let items: { text: string; m: AdMetricValues; e: AdEntityEconomics }[] = [];
@@ -377,10 +377,10 @@ export async function adsWords(ctx: ServiceContext, tenant: AnalyticsTenant, per
     const T = schema.adSearchTerms;
     const terms = await ctx.tx.select({ id: T.id, text: T.text, campaignId: T.campaignId, isOther: T.isOther }).from(T).where(eq(T.tenantId, ctx.tenantId));
     const campaigns = await campaignsOf(ctx, { campaignIds: [...new Set(terms.map((t) => t.campaignId))] });
-    const [keel, metrics] = await Promise.all([keelIndex(ctx, tenant, period, campaigns), entityMetrics(ctx, "search_term", period, { campaignIds: campaigns.map((c) => c.id) })]);
+    const [hullwise, metrics] = await Promise.all([hullwiseIndex(ctx, tenant, period, campaigns), entityMetrics(ctx, "search_term", period, { campaignIds: campaigns.map((c) => c.id) })]);
     items = terms.filter((t) => !t.isOther && metrics.has(t.id)).map((t) => {
       const m = metrics.get(t.id)!;
-      return { text: t.text, m, e: econ(m, keel.byTerm.get(`${t.campaignId}|${normalizeSearchText(t.text)}`)) };
+      return { text: t.text, m, e: econ(m, hullwise.byTerm.get(`${t.campaignId}|${normalizeSearchText(t.text)}`)) };
     });
   }
   const all = ngramStats(items.filter((i) => i.m.spendMinor > 0 || i.e.attributedOrders > 0).map((i) => ({ text: i.text, spendMinor: i.m.spendMinor, impressions: i.m.impressions, clicks: i.m.clicks, conversions: i.m.conversions, orders: i.e.attributedOrders, netRevenueMinor: i.e.netRevenueMinor, marginMinor: i.e.marginMinor })), { langs: f.langs, minItems: 2, minSpendMinor: tenant.settings.adsMinSpendMinor / 2 });
@@ -389,7 +389,7 @@ export async function adsWords(ctx: ServiceContext, tenant: AnalyticsTenant, per
   return { rows, ...ranked, items: items.length };
 }
 
-/** Campaigns whose ads do not carry the UTM template Keel needs, with how many ads miss it. */
+/** Campaigns whose ads do not carry the UTM template Hullwise needs, with how many ads miss it. */
 export async function utmTemplateIssues(ctx: ServiceContext): Promise<{ campaignId: string; campaignName: string; platform: string; ads: number; missing: number; params: string[] }[]> {
   const ads = await ctx.tx.select({ campaignId: schema.adCreatives.campaignId, platform: schema.adCreatives.platform, urlTags: schema.adCreatives.urlTags, finalUrl: schema.adCreatives.finalUrl, status: schema.adCreatives.status, campaignName: schema.campaigns.name, campaignStatus: schema.campaigns.status }).from(schema.adCreatives).innerJoin(schema.campaigns, eq(schema.campaigns.id, schema.adCreatives.campaignId)).where(and(eq(schema.adCreatives.tenantId, ctx.tenantId), sql`${schema.campaigns.status} <> 'archived'`));
   const by = new Map<string, { campaignId: string; campaignName: string; platform: string; ads: number; missing: number; params: Set<string> }>();
@@ -422,7 +422,7 @@ export async function adsRecommendations(ctx: ServiceContext, tenant: AnalyticsT
   return { negatives: negatives.rows.slice(0, 20), negativeTotal: negatives.total, ads: toPause, assets, words: words.winners.slice(0, 8), utm };
 }
 
-/** Top search terms by spend for the dashboard widget, with Keel orders where visible. */
+/** Top search terms by spend for the dashboard widget, with Hullwise orders where visible. */
 export async function topSearchTerms(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period, limit: number) {
   const r = await searchTermRows(ctx, tenant, period, { sort: "spend" });
   return r.rows.filter((x) => !x.isOther).slice(0, limit);

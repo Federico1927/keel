@@ -1,3 +1,5 @@
+> Historical document: the product was formerly called Keel.
+
 # Study: REHAUS Ops Studio — what a generic Shopify back-office SaaS can reuse
 
 Source: `/home/user/rehaus-ops-studio-533b1b8f` (read-only). Stack: React 18 + TS + Vite + Tailwind/shadcn + TanStack Query; Supabase (Postgres 15 + RLS on all 147 tables, 384 SQL functions, 183 triggers, 156 Deno edge functions, pg_cron + pg_net, Storage, Vault). Single-tenant, single Shopify store, GBP-only, UK consignment business.

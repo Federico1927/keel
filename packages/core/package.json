@@ -1,5 +1,5 @@
 {
-  "name": "@keel/core",
+  "name": "@hullwise/core",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,12 +12,12 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@keel/config": "workspace:*",
+    "@hullwise/config": "workspace:*",
     "libphonenumber-js": "^1.12.0",
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@keel/eslint-config": "workspace:*",
+    "@hullwise/eslint-config": "workspace:*",
     "eslint": "^9.39.0",
     "typescript": "^5.9.3",
     "vitest": "^3.2.0"

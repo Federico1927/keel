@@ -3,8 +3,8 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Badge, Button, Checkbox } from "@keel/ui";
-import type { BatchSummary } from "@keel/services";
+import { Alert, AlertDescription, Badge, Button, Checkbox } from "@hullwise/ui";
+import type { BatchSummary } from "@hullwise/services";
 import { applyMarkdownsAction } from "@/server/actions/inventory-control";
 
 export interface MarkdownView {

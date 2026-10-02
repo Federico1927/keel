@@ -1,7 +1,7 @@
 "use client";
 import { useTransition } from "react";
 import { Check, CheckCheck, Undo2 } from "lucide-react";
-import { Button } from "@keel/ui";
+import { Button } from "@hullwise/ui";
 import { markNotificationsRead, setMentionsReadAction, setNotificationsReadAction } from "@/server/actions/notifications";
 
 export function ReadToggle({ slug, id, read, labels, kind = "notification" }: { slug: string; id: string; read: boolean; labels: { read: string; unread: string }; kind?: "notification" | "mention" }) {

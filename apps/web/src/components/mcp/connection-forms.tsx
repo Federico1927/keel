@@ -2,8 +2,8 @@
 import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Input, Label, Select } from "@keel/ui";
-import { MCP_PAT_DAYS, MCP_SCOPES } from "@keel/config";
+import { Alert, AlertDescription, Button, Input, Label, Select } from "@hullwise/ui";
+import { MCP_PAT_DAYS, MCP_SCOPES } from "@hullwise/config";
 import type { ActionResult } from "@/server/action-result";
 import { createMcpTokenAction, revokeMcpTokenAction, rotateMcpTokenAction } from "@/server/actions/mcp";
 import { CopyField } from "./copy-field";

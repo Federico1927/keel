@@ -1,6 +1,6 @@
 import { NextResponse, after, type NextRequest } from "next/server";
-import { adminDb } from "@keel/db";
-import { processBillingEvent, receiveStripeWebhook } from "@keel/services";
+import { adminDb } from "@hullwise/db";
+import { processBillingEvent, receiveStripeWebhook } from "@hullwise/services";
 import { enqueue } from "@/server/jobs";
 
 /**

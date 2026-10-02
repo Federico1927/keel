@@ -2,7 +2,7 @@
 import { useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { LogOut, ShieldAlert } from "lucide-react";
-import { Button } from "@keel/ui";
+import { Button } from "@hullwise/ui";
 import { exitImpersonationAction } from "@/server/actions/admin";
 
 /**

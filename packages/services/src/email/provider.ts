@@ -1,12 +1,12 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { PRODUCT_NAME } from "@keel/config";
-import { MockEmailProvider, ResendEmailProvider, type CapturedEmail, type EmailProvider } from "@keel/integrations";
+import { PRODUCT_NAME } from "@hullwise/config";
+import { MockEmailProvider, ResendEmailProvider, type CapturedEmail, type EmailProvider } from "@hullwise/integrations";
 
 /**
- * The platform sender (issue #51): one Resend account owned by Keel, configured with environment
+ * The platform sender (issue #51): one Resend account owned by Hullwise, configured with environment
  * variables, never per tenant. Resend only when `RESEND_API_KEY` is set AND
- * `KEEL_INTEGRATION_MODE=live`; otherwise the recording mock (dev inbox, tests, CI, demos).
+ * `HULLWISE_INTEGRATION_MODE=live`; otherwise the recording mock (dev inbox, tests, CI, demos).
  */
 export type EmailProviderState = "configured" | "not_configured" | "mock_mode";
 
@@ -24,7 +24,7 @@ type Env = Record<string, string | undefined>;
 
 export function emailSettings(env: Env = process.env): EmailSettings {
   const key = Boolean(env.RESEND_API_KEY?.trim());
-  const live = env.KEEL_INTEGRATION_MODE === "live";
+  const live = env.HULLWISE_INTEGRATION_MODE === "live";
   const state: EmailProviderState = !key ? "not_configured" : live ? "configured" : "mock_mode";
   return {
     provider: state === "configured" ? "resend" : "mock",
@@ -36,10 +36,10 @@ export function emailSettings(env: Env = process.env): EmailSettings {
   };
 }
 
-const store = globalThis as typeof globalThis & { __keelEmailMock?: MockEmailProvider };
+const store = globalThis as typeof globalThis & { __hullwiseEmailMock?: MockEmailProvider };
 
 /**
- * E2E outbox (#52): with `KEEL_EMAIL_OUTBOX_DIR` set, every email the mock captures is also written
+ * E2E outbox (#52): with `HULLWISE_EMAIL_OUTBOX_DIR` set, every email the mock captures is also written
  * there as one JSON file, so browser tests against a production build (where the dev inbox does
  * not exist) can read invitation and reset links from disk. No HTTP surface; never set in a deployment.
  */
@@ -55,9 +55,9 @@ function writeToOutboxDir(dir: string, captured: CapturedEmail) {
 
 /** The process-wide recording mock: the dev inbox reads it, tests inspect it. */
 export function mockEmailOutbox(): MockEmailProvider {
-  const dir = process.env.KEEL_EMAIL_OUTBOX_DIR?.trim();
-  store.__keelEmailMock ??= new MockEmailProvider({ capacity: 200, ...(dir ? { onCapture: (c: CapturedEmail) => writeToOutboxDir(dir, c) } : {}) });
-  return store.__keelEmailMock;
+  const dir = process.env.HULLWISE_EMAIL_OUTBOX_DIR?.trim();
+  store.__hullwiseEmailMock ??= new MockEmailProvider({ capacity: 200, ...(dir ? { onCapture: (c: CapturedEmail) => writeToOutboxDir(dir, c) } : {}) });
+  return store.__hullwiseEmailMock;
 }
 
 /** Provider for the next send, from the current environment. */

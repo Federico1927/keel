@@ -1,8 +1,8 @@
-import { and, eq, schema } from "@keel/db";
-import { IntegrationError, type NormalizedFulfillment, type NormalizedOrder } from "@keel/integrations";
+import { and, eq, schema } from "@hullwise/db";
+import { IntegrationError, type NormalizedFulfillment, type NormalizedOrder } from "@hullwise/integrations";
 import { defineAdsWrite, defineCommerceWrite } from "./registry";
 
-/* The platform writes Keel makes today. Each is one registration: provider, target, execution, optional follow-up. */
+/* The platform writes Hullwise makes today. Each is one registration: provider, target, execution, optional follow-up. */
 
 const date = (v: string | null | undefined) => (v ? new Date(v) : null);
 const d = (v: unknown) => (v ? new Date(v as string) : null);
@@ -95,13 +95,13 @@ defineCommerceWrite("order.refund", {
 });
 
 defineCommerceWrite("order.create", {
-  target: (p) => `order:create:${p.input.replacesOrderName ?? p.input.noteAttributes.find((a) => a.name === "keel_return_id")?.value ?? "new"}`,
+  target: (p) => `order:create:${p.input.replacesOrderName ?? p.input.noteAttributes.find((a) => a.name === "hullwise_return_id")?.value ?? "new"}`,
   execute: (platform, p) => platform.createOrder(p.input),
   revive: reviveOrder,
 });
 
 defineCommerceWrite("order.create_invoice", {
-  target: (p) => `draft:create:${p.input.noteAttributes.find((a) => a.name === "keel_return_id")?.value ?? "new"}`,
+  target: (p) => `draft:create:${p.input.noteAttributes.find((a) => a.name === "hullwise_return_id")?.value ?? "new"}`,
   execute: (platform, p) => platform.createInvoiceOrder(p.input),
 });
 
@@ -148,7 +148,7 @@ export function reviveFulfillment(raw: unknown): NormalizedFulfillment {
   return { ...f, createdAt: new Date(f.createdAt), updatedAt: new Date(f.updatedAt), deliveredAt: d(f.deliveredAt) };
 }
 
-// ship from Keel (issue #28): one fulfilment per order and tracking number; executed synchronously, the shipment is imported from the answer
+// ship from Hullwise (issue #28): one fulfilment per order and tracking number; executed synchronously, the shipment is imported from the answer
 defineCommerceWrite("fulfillment.create", {
   target: (p) => `order:${p.input.orderExternalId}:fulfillment:${p.input.trackingNumber}`,
   execute: (platform, p) => platform.createFulfillment(p.input),

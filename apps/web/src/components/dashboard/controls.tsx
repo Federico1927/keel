@@ -3,8 +3,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { DASHBOARD_PERIODS, TENANT_ROLES, type DashboardPeriod, type TenantRole } from "@keel/config";
-import { Button, Input, Label, Select, Switch, cn } from "@keel/ui";
+import { DASHBOARD_PERIODS, TENANT_ROLES, type DashboardPeriod, type TenantRole } from "@hullwise/config";
+import { Button, Input, Label, Select, Switch, cn } from "@hullwise/ui";
 import { createDashboardAction, customiseHomeAction, deleteDashboardAction, resetHomeAction, setPersonalDashboardsAction } from "@/server/actions/dashboards";
 
 function useRun() {
@@ -28,7 +28,7 @@ function ErrorText({ code }: { code: string | null }) {
   return <p className="text-xs text-destructive" role="alert">{t.has(code) ? t(code) : t("generic")}</p>;
 }
 
-/** Creates the tenant home from Keel's template and opens the editor. */
+/** Creates the tenant home from Hullwise's template and opens the editor. */
 export function CustomiseHomeButton({ slug }: { slug: string }) {
   const t = useTranslations("dashboards");
   const { pending, error, run, router } = useRun();
@@ -80,7 +80,7 @@ export function PreviewBanner({ base, role, draft, name, path = "" }: { base: st
   );
 }
 
-/** Reset the home to Keel's template (tenant home, or also every role variant). */
+/** Reset the home to Hullwise's template (tenant home, or also every role variant). */
 export function ResetHomeButton({ slug, scope }: { slug: string; scope: "tenant" | "all" }) {
   const t = useTranslations("dashboards");
   const { pending, error, run } = useRun();

@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { AA_TEXT, AA_UI, brandColorsFor, contrastRatio, mixColors } from "@keel/core";
-import { BRAND_SURFACES, THEMES, TOKENS, type Theme, type ThemeTokens } from "@keel/ui/tokens";
+import { AA_TEXT, AA_UI, brandColorsFor, contrastRatio, mixColors } from "@hullwise/core";
+import { BRAND_SURFACES, THEMES, TOKENS, type Theme, type ThemeTokens } from "@hullwise/ui/tokens";
 
 /** Parses the custom properties of one rule block of tokens.css. */
 function cssBlock(css: string, selector: string): Record<string, string> {

@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
-import type { AdRow } from "@keel/services";
-import { Badge } from "@keel/ui";
+import type { AdRow } from "@hullwise/services";
+import { Badge } from "@hullwise/ui";
 
 /** Format, status, fatigue (frequency up while CTR falls), missing UTM template and the pause suggestion of one ad. */
 export async function AdBadges({ ad }: { ad: Pick<AdRow, "format" | "status" | "fatigue" | "utm" | "suggestion" | "hook" | "angle"> }) {

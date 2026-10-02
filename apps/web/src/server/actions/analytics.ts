@@ -1,10 +1,10 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { canWritePage } from "@keel/config";
-import { and, eq, recordAudit, schema } from "@keel/db";
-import { encryptJson } from "@keel/integrations";
-import { MetricError, deleteAlertRule, deleteCustomMetric, evaluateAlertRules, saveAlertRule, saveCustomMetric, saveUserDashboard } from "@keel/services";
+import { appUrl, canWritePage } from "@hullwise/config";
+import { and, eq, recordAudit, schema } from "@hullwise/db";
+import { encryptJson } from "@hullwise/integrations";
+import { MetricError, deleteAlertRule, deleteCustomMetric, evaluateAlertRules, saveAlertRule, saveCustomMetric, saveUserDashboard } from "@hullwise/services";
 import { auditActor } from "@/server/audit-actor";
 import { ForbiddenError, requirePage, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
@@ -130,7 +130,7 @@ export async function deleteAlertRuleAction(slug: string, id: string): Promise<A
 export async function runAlertsNowAction(slug: string): Promise<ActionResult<{ evaluated: number; fired: number }>> {
   try {
     const ctx = await requireAnalyticsWrite(slug);
-    const r = await ctx.run((tx) => evaluateAlertRules(svc(ctx, tx), at(ctx), { force: true, appUrl: process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/t/${slug}` : undefined }));
+    const r = await ctx.run((tx) => evaluateAlertRules(svc(ctx, tx), at(ctx), { force: true, appUrl: `${appUrl()}/t/${slug}` }));
     revalidatePath(`/t/${slug}/analytics/alerts`);
     return ok({ evaluated: r.evaluated, fired: r.fired.length });
   } catch (e) {
@@ -145,7 +145,7 @@ export async function saveSlackWebhookAction(slug: string, _prev: ActionResult |
     const url = String(formData.get("webhookUrl") ?? "").trim();
     if (url && !/^https:\/\/hooks\.slack\.com\//.test(url)) return fail("invalid_input");
     await ctx.run(async (tx) => {
-      const values = { tenantId: ctx.tenant.id, provider: "slack", status: url ? "connected" : "not_connected", mode: url && process.env.KEEL_INTEGRATION_MODE === "live" ? "live" : "mock", credentialsEncrypted: url ? encryptJson({ webhookUrl: url }) : null, externalAccountName: url ? "Slack webhook" : null };
+      const values = { tenantId: ctx.tenant.id, provider: "slack", status: url ? "connected" : "not_connected", mode: url && process.env.HULLWISE_INTEGRATION_MODE === "live" ? "live" : "mock", credentialsEncrypted: url ? encryptJson({ webhookUrl: url }) : null, externalAccountName: url ? "Slack webhook" : null };
       await tx.insert(schema.integrations).values(values).onConflictDoUpdate({ target: [schema.integrations.tenantId, schema.integrations.provider], set: { status: values.status, mode: values.mode, credentialsEncrypted: values.credentialsEncrypted, externalAccountName: values.externalAccountName } });
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: url ? "integration.slack_connected" : "integration.slack_disconnected", entityType: "integration" });
     });

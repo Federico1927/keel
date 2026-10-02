@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { IntegrationError } from "@keel/integrations";
+import { IntegrationError } from "@hullwise/integrations";
 
 /** Outcome of one record in a bulk action. */
 export type BatchItemStatus = "done" | "skipped" | "failed";

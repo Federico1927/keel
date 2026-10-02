@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, desc, eq, inArray, isNull, schema, sql, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import type { MockAdsPlatform } from "@keel/integrations";
-import { failureAlertSignature, parseTenantSettings } from "@keel/core";
+import { and, desc, eq, inArray, isNull, schema, sql, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import type { MockAdsPlatform } from "@hullwise/integrations";
+import { failureAlertSignature, parseTenantSettings } from "@hullwise/core";
 import { TenantExportError, auditFilterConditions, emailIdempotencyKey, getAdsPlatformFor, listPlatformAlerts, parseAuditFilters, platformAlertSink, purgeExpiredAudit, purgeExpiredTenantExports, raisePlatformAlert, requestTenantExport, runAdsSync, runTenantExport, runWatchdog, sourcesNeedingAttention, takeTenantExportFile, tenantsOverview, trackJobRun, unzipFiles, type ServiceContext } from "../src";
 
 const pools = testPools();

@@ -2,9 +2,9 @@
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { recordAudit } from "@keel/db";
-import { RETENTION_CHANNELS } from "@keel/core";
-import { deleteRetentionCampaign, getMessagingChannelFor, previewRetentionSend, RetentionCampaignError, saveRetentionCampaign, sendRetentionCampaign, type SendPreview, type SendResult } from "@keel/services";
+import { recordAudit } from "@hullwise/db";
+import { RETENTION_CHANNELS } from "@hullwise/core";
+import { deleteRetentionCampaign, getMessagingChannelFor, previewRetentionSend, RetentionCampaignError, saveRetentionCampaign, sendRetentionCampaign, type SendPreview, type SendResult } from "@hullwise/services";
 import { ForbiddenError, requireWrite } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 

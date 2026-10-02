@@ -98,7 +98,7 @@ export class FakeStripe {
     }
     if (path === "customers" && method === "POST") {
       const id = this.next("cus");
-      this.customers.set(id, { id, tenantId: String((body.metadata as Obj | undefined)?.keel_tenant_id ?? ""), name: String(body.name ?? ""), email: (body.email as string) ?? null, country: null, taxExempt: "none", taxIds: [] });
+      this.customers.set(id, { id, tenantId: String((body.metadata as Obj | undefined)?.hullwise_tenant_id ?? ""), name: String(body.name ?? ""), email: (body.email as string) ?? null, country: null, taxExempt: "none", taxIds: [] });
       return [200, this.customerJson(id)];
     }
     if (seg[0] === "customers" && seg[1] && method === "POST") {
@@ -145,7 +145,7 @@ export class FakeStripe {
       return [200, { ...stripeCheckoutObject({ id, customerId: String(body.customer), subscriptionId: null, tenantId: String(body.client_reference_id), status: "open", paymentStatus: "unpaid", url: `https://checkout.stripe.com/c/pay/${id}`, expiresAt: new Date(this.now.getTime() + 24 * 3600_000) }) }];
     }
     if (path === "subscriptions" && method === "POST") {
-      const tenantId = String((body.metadata as Obj | undefined)?.keel_tenant_id ?? "");
+      const tenantId = String((body.metadata as Obj | undefined)?.hullwise_tenant_id ?? "");
       const recurring = formList<Obj>(body.items).map((i) => String(i.price));
       const oneOff = formList<Obj>(body.add_invoice_items).map((i) => String(i.price));
       const sub = this.createSub(String(body.customer), tenantId, recurring, Number(body.trial_period_days ?? 0), "send_invoice");
@@ -211,7 +211,7 @@ export class FakeStripe {
       const price = this.prices.get(p);
       return { priceId: p, description: `1 × ${price?.product ?? p}`, amountMinor: sub.status === "trialing" && price?.interval ? 0 : (price?.unitAmount ?? 0) };
     });
-    const inv: FakeInvoice = { id, number: `KEEL-${String(n).padStart(4, "0")}`, customer: sub.customer, subscription: sub.id, tenantId: sub.tenantId, status, billingReason: reason, lines, created: new Date(this.now), dueDate: sub.collection === "send_invoice" ? new Date(this.now.getTime() + (daysUntilDue ?? 14) * 864e5) : null, paidAt: status === "paid" ? new Date(this.now) : null, attemptCount: status === "paid" ? 1 : 0, nextAttempt: null, collection: sub.collection };
+    const inv: FakeInvoice = { id, number: `HULLWISE-${String(n).padStart(4, "0")}`, customer: sub.customer, subscription: sub.id, tenantId: sub.tenantId, status, billingReason: reason, lines, created: new Date(this.now), dueDate: sub.collection === "send_invoice" ? new Date(this.now.getTime() + (daysUntilDue ?? 14) * 864e5) : null, paidAt: status === "paid" ? new Date(this.now) : null, attemptCount: status === "paid" ? 1 : 0, nextAttempt: null, collection: sub.collection };
     this.invoices.set(id, inv);
     return inv;
   }

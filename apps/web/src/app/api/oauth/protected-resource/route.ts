@@ -1,4 +1,4 @@
-import { MCP_SCOPES, PRODUCT_NAME } from "@keel/config";
+import { MCP_SCOPES, PRODUCT_NAME } from "@hullwise/config";
 import { corsPreflight, mcpOrigin, mcpServerUrl, oauthJson } from "@/server/mcp";
 
 export const dynamic = "force-dynamic";

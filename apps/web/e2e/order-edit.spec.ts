@@ -78,9 +78,9 @@ test.describe("core order editing (addon.cod off)", () => {
     await page.getByTestId("discount-save").click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
     const event = page.locator("li", { hasText: "Discount applied" }).first();
-    await expect(event).toContainText("KEEL-10%");
+    await expect(event).toContainText("HULLWISE-10%");
     await expect(event).toContainText("James Walker");
-    await expect(page.getByText(/KEEL-10%/).first()).toBeVisible();
+    await expect(page.getByText(/HULLWISE-10%/).first()).toBeVisible();
   });
 
   test("marketing and viewer roles cannot edit orders", async ({ page }) => {

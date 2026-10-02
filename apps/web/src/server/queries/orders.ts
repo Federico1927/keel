@@ -1,10 +1,10 @@
-import { and, asc, desc, eq, inArray, schema, sql, type SQL } from "@keel/db";
-import { PAGE_SIZE, isPageEnabled } from "@keel/config";
-import { orderLineage, orderListWhere, orderMergeCandidates, type OrderFilters } from "@keel/services";
-import { OPEN_QUEUE_STATUSES } from "@keel/addon-cod";
+import { and, asc, desc, eq, inArray, schema, sql, type SQL } from "@hullwise/db";
+import { PAGE_SIZE, isPageEnabled } from "@hullwise/config";
+import { orderLineage, orderListWhere, orderMergeCandidates, type OrderFilters } from "@hullwise/services";
+import { OPEN_QUEUE_STATUSES } from "@hullwise/addon-cod";
 import type { TenantContext } from "@/server/tenant";
 
-export { parseOrderFilters, utmParam, type OrderFilters } from "@keel/services";
+export { parseOrderFilters, utmParam, type OrderFilters } from "@hullwise/services";
 
 const buildWhere = (ctx: TenantContext, f: OrderFilters): SQL => orderListWhere({ tenantId: ctx.tenant.id, userId: ctx.user.id, orderNumberPrefix: ctx.tenant.orderNumberPrefix }, f);
 

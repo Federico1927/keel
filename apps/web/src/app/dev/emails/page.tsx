@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { formatDateTime } from "@keel/core";
-import { mockEmailOutbox } from "@keel/services";
-import { Badge, Card, CardContent, EmptyState, PageHeader, cn } from "@keel/ui";
+import { formatDateTime } from "@hullwise/core";
+import { mockEmailOutbox } from "@hullwise/services";
+import { Badge, Card, CardContent, EmptyState, PageHeader, cn } from "@hullwise/ui";
 import { isDevInboxEnabled } from "@/server/dev-inbox";
 
 export const dynamic = "force-dynamic";

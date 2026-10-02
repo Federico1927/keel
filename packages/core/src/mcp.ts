@@ -1,4 +1,4 @@
-import { MCP_DEFAULT_SCOPES, MCP_LIMITS, MCP_PII_ROLES, MCP_SCOPES, isMcpScope, type McpScope, type TenantRole } from "@keel/config";
+import { MCP_DEFAULT_SCOPES, MCP_LIMITS, MCP_PII_ROLES, MCP_SCOPES, isMcpScope, type McpScope, type TenantRole } from "@hullwise/config";
 import type { OrderStatus } from "./domain";
 
 /**

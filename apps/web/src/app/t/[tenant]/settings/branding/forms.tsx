@@ -2,9 +2,9 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { brandColorsFor, isHexColor } from "@keel/core";
-import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from "@keel/ui";
-import { BRAND_SURFACES, TOKENS } from "@keel/ui/tokens";
+import { brandColorsFor, isHexColor } from "@hullwise/core";
+import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from "@hullwise/ui";
+import { BRAND_SURFACES, TOKENS } from "@hullwise/ui/tokens";
 import { ImageUpload } from "@/components/image-upload";
 import type { ActionResult } from "@/server/action-result";
 import { removeBrandLogoAction, saveBrandColorAction, uploadBrandLogoAction } from "@/server/actions/branding";

@@ -1,4 +1,4 @@
-import { Badge } from "@keel/ui";
+import { Badge } from "@hullwise/ui";
 
 /** Stripe TEST / LIVE (from the key prefix) or mock; the key itself is never shown (#53). */
 export function BillingModeBadge({ mode, label }: { mode: "mock" | "test" | "live"; label: string }) {

@@ -1,10 +1,10 @@
-import { PLATFORM_CURRENCY, TENANT_STATUSES } from "@keel/config";
+import { PLATFORM_CURRENCY, TENANT_STATUSES } from "@hullwise/config";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { desc, schema } from "@keel/db";
-import { formatDateTime, formatMoney, formatNumber } from "@keel/core";
-import { churnedPastRetention, platformMetrics, tenantsOverview } from "@keel/services";
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { desc, schema } from "@hullwise/db";
+import { formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
+import { churnedPastRetention, platformMetrics, tenantsOverview } from "@hullwise/services";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { BillingRunButton } from "./billing/controls";
 import { HealthBadge, LifecycleBadge } from "./_components/badges";

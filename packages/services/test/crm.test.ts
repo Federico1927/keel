@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { eq, schema, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { buildRfmMatrix, evaluateRules, type SegmentGroup } from "@keel/core";
+import { eq, schema, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { buildRfmMatrix, evaluateRules, type SegmentGroup } from "@hullwise/core";
 import { customerDetail, customerProfiles, evaluateSegment, listCustomers, previewSegment, saveSegment, segmentMembers, SegmentRuleError, type ServiceContext } from "../src";
 
 const pools = testPools();

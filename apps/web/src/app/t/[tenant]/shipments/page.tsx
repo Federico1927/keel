@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { daysInTransit, formatDateTime } from "@keel/core";
-import { Button, Card, CardContent, EmptyState, PageHeader, Pagination, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { daysInTransit, formatDateTime } from "@hullwise/core";
+import { Button, Card, CardContent, EmptyState, PageHeader, Pagination, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { listShipments, parseShipmentFilters } from "@/server/queries/shipments";
 import { StatusBadge } from "@/components/status-badge";

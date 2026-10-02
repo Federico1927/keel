@@ -2,9 +2,9 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { SUPPORTED_LOCALES } from "@keel/config";
-import type { SurveyConfig } from "@keel/core";
-import { Button, Input, Label } from "@keel/ui";
+import { SUPPORTED_LOCALES } from "@hullwise/config";
+import type { SurveyConfig } from "@hullwise/core";
+import { Button, Input, Label } from "@hullwise/ui";
 import { saveSurveySettingsAction } from "@/server/actions/survey";
 
 /** Survey on/off, blend weight, and the question and option labels in every supported language. */

@@ -1,9 +1,9 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { TASK_ENTITY_TYPES, TASK_STATUSES, type TaskRuleInput } from "@keel/core";
-import { TaskError, createTask, deleteTaskRule, ensureDefaultTaskRules, saveTaskRule, updateTask, type ServiceContext } from "@keel/services";
-import type { Transaction } from "@keel/db";
+import { TASK_ENTITY_TYPES, TASK_STATUSES, type TaskRuleInput } from "@hullwise/core";
+import { TaskError, createTask, deleteTaskRule, ensureDefaultTaskRules, saveTaskRule, updateTask, type ServiceContext } from "@hullwise/services";
+import type { Transaction } from "@hullwise/db";
 import { ForbiddenError, requireAction, requireWrite, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 

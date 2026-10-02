@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { payoutTotals } from "@keel/core";
+import { payoutTotals } from "@hullwise/core";
 import { MockCommercePlatform } from "./commerce";
 import { buildMockPayouts, isProcessorGateway } from "./payouts";
 
@@ -25,7 +25,7 @@ describe("mock payouts", () => {
     expect(a.transactions.some((t) => t.orderExternalId === "1003")).toBe(false);
     const charges = a.transactions.filter((t) => t.type === "charge");
     expect(charges.map((t) => t.orderExternalId).sort()).toEqual(["1001", "1002", "1004"]);
-    // fees are the processor's own (domestic 1.5 % + 0.25 or international 2.9 % + 0.25 in EUR), not Keel's estimate
+    // fees are the processor's own (domestic 1.5 % + 0.25 or international 2.9 % + 0.25 in EUR), not Hullwise's estimate
     for (const c of charges) expect([Math.round(c.amountMinor * 0.015) + 25, Math.round(c.amountMinor * 0.029) + 25]).toContain(c.feeMinor);
     expect(a.transactions.find((t) => t.type === "refund")).toMatchObject({ orderExternalId: "1002", amountMinor: -1000, feeMinor: 0 });
     for (const p of a.payouts) {

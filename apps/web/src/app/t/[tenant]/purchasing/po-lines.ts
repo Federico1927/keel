@@ -1,4 +1,4 @@
-import type { PoVariantOption } from "@keel/services";
+import type { PoVariantOption } from "@hullwise/services";
 
 /** Line model of the PO editor; shared by the server pages that pre-fill it and the client editor. */
 export interface EditorLine {

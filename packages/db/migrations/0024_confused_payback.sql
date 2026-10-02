@@ -36,4 +36,4 @@ ALTER TABLE "tenant_branding" ADD CONSTRAINT "tenant_branding_tenant_id_tenants_
 ALTER TABLE "tenant_branding" ADD CONSTRAINT "tenant_branding_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "user_sign_ins_user_idx" ON "user_sign_ins" USING btree ("user_id","created_at");--> statement-breakpoint
 CREATE UNIQUE INDEX "tenant_branding_tenant_uq" ON "tenant_branding" USING btree ("tenant_id");--> statement-breakpoint
-CREATE POLICY "tenant_branding_tenant_isolation" ON "tenant_branding" AS PERMISSIVE FOR ALL TO "keel_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid) WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);
+CREATE POLICY "tenant_branding_tenant_isolation" ON "tenant_branding" AS PERMISSIVE FOR ALL TO "hullwise_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid) WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);

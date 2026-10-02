@@ -1,6 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { BrandingError, saveBrandColor, saveBrandLogo, type LogoVariant } from "@keel/services";
+import { BrandingError, saveBrandColor, saveBrandLogo, type LogoVariant } from "@hullwise/services";
 import { ForbiddenError, requireAction } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 import { processImage } from "@/server/images";

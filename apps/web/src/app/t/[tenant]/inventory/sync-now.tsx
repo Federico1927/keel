@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@keel/ui";
+import { Button } from "@hullwise/ui";
 import { syncInventoryNow } from "@/server/actions/platform-writes";
 
 /** Re-reads stock from the commerce platform for every variant, with the run summary inline. */

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canWritePage } from "@keel/config";
-import { formatDate, formatMoney, formatNumber } from "@keel/core";
-import { listRetentionCampaigns } from "@keel/services";
-import { Badge, Button, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { canWritePage } from "@hullwise/config";
+import { formatDate, formatMoney, formatNumber } from "@hullwise/core";
+import { listRetentionCampaigns } from "@hullwise/services";
+import { Badge, Button, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { SegmentTabs } from "../segment-tabs";
 import { UpliftBadge } from "./uplift-badge";

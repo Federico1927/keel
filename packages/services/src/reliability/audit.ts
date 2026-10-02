@@ -1,6 +1,6 @@
-import { and, eq, inArray, isNull, lt, or, recordAudit, schema, sql, type Database, type SQL } from "@keel/db";
-import { PLATFORM_AUDIT_RETENTION_DAYS, auditRetentionDays } from "@keel/config";
-import { retentionCutoff } from "@keel/core";
+import { and, eq, inArray, isNull, lt, or, recordAudit, schema, sql, type Database, type SQL } from "@hullwise/db";
+import { PLATFORM_AUDIT_RETENTION_DAYS, auditRetentionDays } from "@hullwise/config";
+import { retentionCutoff } from "@hullwise/core";
 import { finishJobRun, startJobRun } from "./jobs";
 
 /* ---------- viewer filters (owner page and console page share them) ---------- */

@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import bcrypt from "bcryptjs";
-import { and, desc, eq, like, schema, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedPlatform, type SeedContext } from "@keel/db/seed";
+import { and, desc, eq, like, schema, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedPlatform, type SeedContext } from "@hullwise/db/seed";
 import {
   type AccountError,
   changePassword,

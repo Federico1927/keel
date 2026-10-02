@@ -2,8 +2,8 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { DEFAULT_PAYMENT_TERMS_DAYS, PLAN_KEYS } from "@keel/config";
-import { Button, Checkbox, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Input, Label, Select } from "@keel/ui";
+import { DEFAULT_PAYMENT_TERMS_DAYS, PLAN_KEYS } from "@hullwise/config";
+import { Button, Checkbox, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Input, Label, Select } from "@hullwise/ui";
 import { CopyField } from "@/components/mcp/copy-field";
 import { resyncBillingAction, simulateBillingAction, startSubscriptionAction } from "@/server/actions/admin-billing";
 

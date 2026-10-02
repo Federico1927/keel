@@ -1,6 +1,6 @@
 import { getRequestConfig } from "next-intl/server";
 import { cookies } from "next/headers";
-import { DEFAULT_LOCALE, isLocale, type Locale } from "@keel/config";
+import { DEFAULT_LOCALE, isLocale, type Locale } from "@hullwise/config";
 import { loadMessages } from "./messages";
 
 export const LOCALE_COOKIE = "NEXT_LOCALE";

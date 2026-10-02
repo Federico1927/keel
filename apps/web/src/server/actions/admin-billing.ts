@@ -1,8 +1,8 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { PLAN_KEYS } from "@keel/config";
-import { BillingError, appBaseUrl, resyncTenantBilling, simulateMockCheckout, simulateMockPayment, simulateMockRenewal, startSubscription, syncBillingCatalog, type CatalogSyncSummary, type StartSubscriptionResult } from "@keel/services";
+import { PLAN_KEYS } from "@hullwise/config";
+import { BillingError, appBaseUrl, resyncTenantBilling, simulateMockCheckout, simulateMockPayment, simulateMockRenewal, startSubscription, syncBillingCatalog, type CatalogSyncSummary, type StartSubscriptionResult } from "@hullwise/services";
 import { requireSuperAdmin } from "@/server/admin";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 import "@/server/email";

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canWritePage, isPageEnabled } from "@keel/config";
-import { validateSegmentRules, type SegmentGroup } from "@keel/core";
-import { PageHeader } from "@keel/ui";
+import { canWritePage, isPageEnabled } from "@hullwise/config";
+import { validateSegmentRules, type SegmentGroup } from "@hullwise/core";
+import { PageHeader } from "@hullwise/ui";
 import { notFound } from "next/navigation";
 import { requirePage } from "@/server/tenant";
 import { decodeRulesParam, segmentBuilderOptions } from "@/server/queries/crm";

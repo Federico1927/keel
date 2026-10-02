@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { MCP_LIMITS } from "@keel/config";
-import { formatDateTime, formatNumber } from "@keel/core";
-import { listMcpConnections, mcpRecentActivity, pendingProposalCount } from "@keel/services";
-import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { MCP_LIMITS } from "@hullwise/config";
+import { formatDateTime, formatNumber } from "@hullwise/core";
+import { listMcpConnections, mcpRecentActivity, pendingProposalCount } from "@hullwise/services";
+import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { mcpServerUrl } from "@/server/mcp";
 import { CopyField } from "@/components/mcp/copy-field";

@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Select } from "@keel/ui";
+import { Select } from "@hullwise/ui";
 
 export function CampaignFilters({ basePath, keep, platform, status, platforms }: { basePath: string; keep: Record<string, string | undefined>; platform?: string; status?: string; platforms: readonly string[] }) {
   const t = useTranslations("campaigns");

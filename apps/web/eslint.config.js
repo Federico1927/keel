@@ -1,4 +1,4 @@
-import next from "@keel/eslint-config/next";
+import next from "@hullwise/eslint-config/next";
 
 /**
  * Colours come only from the design tokens (packages/ui/src/tokens.css, issue #44): no Tailwind

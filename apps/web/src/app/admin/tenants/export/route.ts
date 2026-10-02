@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { tenantsCsv } from "@keel/services";
+import { tenantsCsv } from "@hullwise/services";
 import { requireSuperAdmin } from "@/server/admin";
 
 /** CSV of the tenants list with the page's filters and sort (#48); audited as `admin.export_csv`. */

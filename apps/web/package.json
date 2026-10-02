@@ -1,5 +1,5 @@
 {
-  "name": "@keel/web",
+  "name": "@hullwise/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,14 +15,14 @@
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.0",
-    "@keel/addon-cod": "workspace:*",
-    "@keel/config": "workspace:*",
-    "@keel/core": "workspace:*",
-    "@keel/db": "workspace:*",
-    "@keel/integrations": "workspace:*",
-    "@keel/jobs": "workspace:*",
-    "@keel/services": "workspace:*",
-    "@keel/ui": "workspace:*",
+    "@hullwise/addon-cod": "workspace:*",
+    "@hullwise/config": "workspace:*",
+    "@hullwise/core": "workspace:*",
+    "@hullwise/db": "workspace:*",
+    "@hullwise/integrations": "workspace:*",
+    "@hullwise/jobs": "workspace:*",
+    "@hullwise/services": "workspace:*",
+    "@hullwise/ui": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.31.0",
     "@sentry/nextjs": "^11.2.0",
     "bcryptjs": "^3.0.2",
@@ -37,7 +37,7 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@keel/eslint-config": "workspace:*",
+    "@hullwise/eslint-config": "workspace:*",
     "@playwright/test": "^1.55.0",
     "@tailwindcss/postcss": "^4.1.0",
     "@types/node": "^22.19.0",

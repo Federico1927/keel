@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canWritePage } from "@keel/config";
-import { formatMoney, formatNumber, usedAmount } from "@keel/core";
-import { costMonths, listPeriodCosts } from "@keel/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader } from "@keel/ui";
+import { canWritePage } from "@hullwise/config";
+import { formatMoney, formatNumber, usedAmount } from "@hullwise/core";
+import { costMonths, listPeriodCosts } from "@hullwise/services";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { CostLineForm, DeleteCostButton } from "./costs-form";
 

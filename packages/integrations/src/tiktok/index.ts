@@ -1,4 +1,4 @@
-import { splitDateWindows } from "@keel/core";
+import { splitDateWindows } from "@hullwise/core";
 import { HttpClient, type HttpOptions } from "../http";
 import { IntegrationError, type AdEntityMetricLevel, type AdEntityStatus, type AdsCapabilities, type AdsPlatform, type ConnectionTest, type NormalizedAd, type NormalizedAdAsset, type NormalizedAdMetric, type NormalizedAdSet, type NormalizedCampaign, type NormalizedEntityMetric } from "../types";
 
@@ -11,7 +11,7 @@ export const TIKTOK_API_VERSION = "v1.3";
 export const TIKTOK_API_BASE = `https://business-api.tiktok.com/open_api/${TIKTOK_API_VERSION}`;
 /** Advertiser authorization page the store owner is sent to [to verify]. */
 export const TIKTOK_AUTH_URL = "https://business-api.tiktok.com/portal/auth";
-/** Permission groups the TikTok for Business app needs, by Keel module [to verify: names in the developer portal]. */
+/** Permission groups the TikTok for Business app needs, by Hullwise module [to verify: names in the developer portal]. */
 export const TIKTOK_REQUIRED_SCOPES = ["Ad Account Management", "Ads Management", "Reporting", "Creative Management"] as const;
 export const TIKTOK_SCOPES_BY_MODULE: Readonly<Record<string, readonly string[]>> = {
   campaigns: ["Ad Account Management", "Ads Management", "Reporting"],
@@ -29,7 +29,7 @@ export interface TiktokCredentials {
   appSecret: string;
   /** Long-lived advertiser access token from the auth-code exchange (valid until the advertiser revokes it). */
   accessToken: string;
-  /** Advertiser accounts the authorization covers; Keel imports all of them. */
+  /** Advertiser accounts the authorization covers; Hullwise imports all of them. */
   advertiserIds: string[];
 }
 

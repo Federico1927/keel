@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { createTranslator } from "next-intl";
-import { DEFAULT_LOCALE, PRODUCT_NAME, isLocale, type Locale } from "@keel/config";
-import { eq, schema, withTenant } from "@keel/db";
-import { verifyUnsubscribeToken } from "@keel/services";
+import { DEFAULT_LOCALE, PRODUCT_NAME, isLocale, type Locale } from "@hullwise/config";
+import { eq, schema, withTenant } from "@hullwise/db";
+import { verifyUnsubscribeToken } from "@hullwise/services";
 import { loadMessages } from "@/i18n/messages";
 import { UnsubscribeForm } from "./form";
 

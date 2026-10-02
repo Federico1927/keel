@@ -46,7 +46,7 @@ export const discounts = pgTable(
     startsAt: timestamp("starts_at", { withTimezone: true }),
     endsAt: timestamp("ends_at", { withTimezone: true }),
     isActive: boolean("is_active").notNull().default(true),
-    /** platform | keel */
+    /** platform | hullwise */
     source: text("source").notNull().default("platform"),
     syncedAt: timestamp("synced_at", { withTimezone: true }),
     /** Pool codes: handed to a customer or a campaign (status `assigned`), and the first order that used it (status `redeemed`). */

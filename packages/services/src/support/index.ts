@@ -1,5 +1,5 @@
-import { and, asc, desc, eq, inArray, recordAudit, schema, sql, withTenant, type Database, type SQL } from "@keel/db";
-import { SUPPORT_ATTACHMENT_MAX_BYTES, SUPPORT_ATTACHMENT_TYPES } from "@keel/config";
+import { and, asc, desc, eq, inArray, recordAudit, schema, sql, withTenant, type Database, type SQL } from "@hullwise/db";
+import { SUPPORT_ATTACHMENT_MAX_BYTES, SUPPORT_ATTACHMENT_TYPES } from "@hullwise/config";
 import type { ServiceContext } from "../context";
 import { notifyUsers } from "../notifications";
 

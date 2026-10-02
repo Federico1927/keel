@@ -1,6 +1,6 @@
-import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, or, recordAudit, schema, sql, type SQL } from "@keel/db";
-import { RETURN_TO_SENDER_STATUSES, EXCEPTION_LIKE, planShipmentCases, suggestRtsFollowUps, validateResolution, type CaseKind, type ExceptionResolution, type InstructionChannel, type ResolutionIssue, type RtsFollowUp, type ShipmentStatus } from "@keel/core";
-import type { Address, CarrierProvider } from "@keel/integrations";
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, or, recordAudit, schema, sql, type SQL } from "@hullwise/db";
+import { RETURN_TO_SENDER_STATUSES, EXCEPTION_LIKE, planShipmentCases, suggestRtsFollowUps, validateResolution, type CaseKind, type ExceptionResolution, type InstructionChannel, type ResolutionIssue, type RtsFollowUp, type ShipmentStatus } from "@hullwise/core";
+import type { Address, CarrierProvider } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { queueEmail } from "../email/mailer";
 import { TRANSACTIONAL_EMAIL } from "../email/suppressions";
@@ -205,7 +205,7 @@ export async function recordFollowUp(ctx: ServiceContext, caseId: string, kind: 
   return row!;
 }
 
-/** Closes a case by hand: a reviewed return to sender, or an exception handled outside Keel. */
+/** Closes a case by hand: a reviewed return to sender, or an exception handled outside Hullwise. */
 export async function closeCase(ctx: ServiceContext, caseId: string, input: { reason: "resolved" | "dismissed"; note?: string | null }): Promise<CaseRow> {
   const cur = await ensureMine(ctx, caseId);
   const now = ctx.now ?? new Date();

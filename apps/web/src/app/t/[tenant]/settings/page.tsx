@@ -1,8 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { Button, PageHeader, Tabs, TabsContent, TabsList, TabsTrigger } from "@keel/ui";
-import { schema } from "@keel/db";
-import { canDo } from "@keel/config";
+import { Button, PageHeader, Tabs, TabsContent, TabsList, TabsTrigger } from "@hullwise/ui";
+import { schema } from "@hullwise/db";
+import { canDo } from "@hullwise/config";
 import { requirePage } from "@/server/tenant";
 import { GeneralSettingsForm, OperationalSettingsForm, TaxRatesSection } from "./forms";
 

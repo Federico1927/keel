@@ -1,21 +1,21 @@
-import { stripeKeyMode } from "@keel/core";
-import { MockBillingProvider, MockInvoicingProvider, StripeBillingProvider, type BillingProvider, type InvoicingProvider } from "@keel/integrations";
+import { stripeKeyMode } from "@hullwise/core";
+import { MockBillingProvider, MockInvoicingProvider, StripeBillingProvider, type BillingProvider, type InvoicingProvider } from "@hullwise/integrations";
 
-export { MockBillingProvider, StripeBillingProvider, type BillingProvider, type BillingInvoiceInput } from "@keel/integrations";
+export { MockBillingProvider, StripeBillingProvider, type BillingProvider, type BillingInvoiceInput } from "@hullwise/integrations";
 
 /**
  * Billing configuration from the environment (#53). Keys are Railway variables only, never in the
  * repository: STRIPE_SECRET_KEY (a restricted `rk_` key is enough), STRIPE_WEBHOOK_SECRET.
- * Without a key Keel bills through the mock (default for dev, tests and the demo).
+ * Without a key Hullwise bills through the mock (default for dev, tests and the demo).
  */
 export interface BillingSettings {
   provider: "mock" | "stripe";
   /** mock | test | live, from the key prefix: the console shows it as a badge. */
   mode: "mock" | "test" | "live";
   webhookConfigured: boolean;
-  /** Stripe Tax on Checkout and subscriptions (`STRIPE_TAX=off` turns it off: Keel then sets reverse charge itself). */
+  /** Stripe Tax on Checkout and subscriptions (`STRIPE_TAX=off` turns it off: Hullwise then sets reverse charge itself). */
   automaticTax: boolean;
-  /** Country of the company that issues Keel's invoices, for the VAT treatment; no default. */
+  /** Country of the company that issues Hullwise's invoices, for the VAT treatment; no default. */
   sellerCountry: string | null;
   /** Italian e-invoicing connector (InvoicingProvider): none unless BILLING_EINVOICING is set. */
   einvoicing: "none" | "mock";

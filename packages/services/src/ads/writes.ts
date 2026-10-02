@@ -1,5 +1,5 @@
-import { isAdPlatform } from "@keel/core";
-import { and, eq, recordAudit, schema, type AuditInput } from "@keel/db";
+import { isAdPlatform } from "@hullwise/core";
+import { and, eq, recordAudit, schema, type AuditInput } from "@hullwise/db";
 import type { ServiceContext } from "../context";
 import { adPlatformInPlan, adsWriteAccess, integrationRow } from "../integrations/factory";
 import { enqueuePlatformWrite } from "../writes";
@@ -10,7 +10,7 @@ export type AdsAuditActor = Pick<AuditInput, "actorUserId" | "actorType" | "impe
 
 export type AdsWriteOutcome = { ok: true; write: PlatformWriteRow | null } | { ok: false; error: "not_found" | "ads_read_only" | "invalid_input" };
 
-/** Whether the tenant lets Keel write to this ads platform below the campaign (Meta and TikTok always; Google once the write scope is granted). */
+/** Whether the tenant lets Hullwise write to this ads platform below the campaign (Meta and TikTok always; Google once the write scope is granted). */
 export async function canWriteAds(ctx: ServiceContext, provider: string): Promise<boolean> {
   return adsWriteAccess(provider, await integrationRow(ctx, provider));
 }

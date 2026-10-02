@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { eq, schema } from "@keel/db";
-import { ORDER_STATUSES } from "@keel/core";
-import { Button, PageHeader } from "@keel/ui";
+import { eq, schema } from "@hullwise/db";
+import { ORDER_STATUSES } from "@hullwise/core";
+import { Button, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { previewStateRules } from "@/server/actions/state-rules";
 import { StateRulesEditor } from "./editor";

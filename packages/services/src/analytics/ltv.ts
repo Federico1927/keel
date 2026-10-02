@@ -1,5 +1,5 @@
-import { eq, schema, sql } from "@keel/db";
-import { cacPaybackDays, cohortLtv, pairLift, type CustomerTimeline, type LtvCohortRow } from "@keel/core";
+import { eq, schema, sql } from "@hullwise/db";
+import { cacPaybackDays, cohortLtv, pairLift, type CustomerTimeline, type LtvCohortRow } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import type { AnalyticsTenant } from "./index";
 

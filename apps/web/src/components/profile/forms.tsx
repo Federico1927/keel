@@ -2,8 +2,8 @@
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Avatar, Button, Input, Label, Select, Switch } from "@keel/ui";
-import { SUPPORTED_LOCALES } from "@keel/config";
+import { Alert, AlertDescription, Avatar, Button, Input, Label, Select, Switch } from "@hullwise/ui";
+import { SUPPORTED_LOCALES } from "@hullwise/config";
 import type { ActionResult } from "@/server/action-result";
 import { ImageUpload } from "@/components/image-upload";
 import {

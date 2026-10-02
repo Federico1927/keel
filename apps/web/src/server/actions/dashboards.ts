@@ -1,10 +1,10 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { adminDb, eq, recordAudit, schema } from "@keel/db";
-import { dashboardPeriod, previousPeriod, tenantSettingsSchema } from "@keel/core";
-import { DASHBOARD_PERIODS, TENANT_ROLES, canEditDashboard, canSeeDashboard } from "@keel/config";
-import { DashboardError, MetricDefinitionError, createDashboard, customiseHome, dashboardView, deleteDashboard, deleteTenantMetric, discardDashboardDraft, duplicateToPersonal, getDashboard, publishDashboard, resetHomeToTemplate, resolveHomeDashboard, saveDashboard, saveTenantMetric, setMetricTarget, tenantHomeView, tenantMetricValues, validateTenantMetric, type CustomMetricRow, type ServiceContext } from "@keel/services";
+import { adminDb, eq, recordAudit, schema } from "@hullwise/db";
+import { dashboardPeriod, previousPeriod, tenantSettingsSchema } from "@hullwise/core";
+import { DASHBOARD_PERIODS, TENANT_ROLES, canEditDashboard, canSeeDashboard } from "@hullwise/config";
+import { DashboardError, MetricDefinitionError, createDashboard, customiseHome, dashboardView, deleteDashboard, deleteTenantMetric, discardDashboardDraft, duplicateToPersonal, getDashboard, publishDashboard, resetHomeToTemplate, resolveHomeDashboard, saveDashboard, saveTenantMetric, setMetricTarget, tenantHomeView, tenantMetricValues, validateTenantMetric, type CustomMetricRow, type ServiceContext } from "@hullwise/services";
 import { auditActor } from "@/server/audit-actor";
 import { ForbiddenError, requireAction, requirePage, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
@@ -127,7 +127,7 @@ export async function deleteDashboardAction(slug: string, id: string): Promise<A
 }
 
 /**
- * Back to Keel's template: `tenant` resets the tenant home, `all` also the role variants. Reached by
+ * Back to Hullwise's template: `tenant` resets the tenant home, `all` also the role variants. Reached by
  * owners and admins, and by a super-admin through impersonation (audited as impersonation) for support.
  */
 export async function resetHomeAction(slug: string, scope: "tenant" | "all"): Promise<ActionResult<{ removed: number }>> {

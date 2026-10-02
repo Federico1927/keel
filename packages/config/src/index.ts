@@ -12,3 +12,5 @@ export * from "./dashboards";
 export * from "./lifecycle";
 export * from "./billing";
 export * from "./reliability";
+export * from "./urls";
+export * from "./legacy";

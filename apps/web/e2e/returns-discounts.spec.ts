@@ -74,7 +74,7 @@ test.describe("returns and discounts", () => {
     await page.getByRole("button", { name: /Create code|Crea codice/ }).click();
     await expect(page).toHaveURL(/\/discounts\/[0-9a-f-]{36}$/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(code);
-    await expect(page.getByText(/^Keel$/).last()).toBeVisible();
+    await expect(page.getByText(/^Hullwise$/).last()).toBeVisible();
 
     await page.goto("/t/northwind-apparel/discounts/new");
     await page.getByRole("button", { name: /Bulk pool|Pool in blocco/ }).click();

@@ -102,7 +102,7 @@ export const TO_SHIP_STATUSES = ["confirmed", "fulfilling"] as const;
 export interface ToShipFacts {
   status: string;
   fulfillmentStatusRaw: string | null;
-  /** The order already has a shipment (from the platform or shipped from Keel). */
+  /** The order already has a shipment (from the platform or shipped from Hullwise). */
   hasShipment: boolean;
 }
 

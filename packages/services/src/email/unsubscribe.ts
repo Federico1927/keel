@@ -1,7 +1,9 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { appUrl } from "@hullwise/config";
 
+/** Origin of the tenant app for links in emails and notifications (APP_URL, see @hullwise/config urls). */
 export function appBaseUrl(): string {
-  return (process.env.NEXT_PUBLIC_APP_URL ?? process.env.AUTH_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  return appUrl();
 }
 
 /* ---------- signed unsubscribe links ---------- */

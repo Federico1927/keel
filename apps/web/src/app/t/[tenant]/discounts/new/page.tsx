@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { PageHeader } from "@keel/ui";
+import { PageHeader } from "@hullwise/ui";
 import { requireAction } from "@/server/tenant";
 import { DiscountForms } from "./forms";
 
@@ -13,7 +13,7 @@ export default async function NewDiscountPage({ params }: { params: Promise<{ te
     <>
       <p className="mb-2 text-sm text-muted-foreground"><Link href={`/t/${tenant}/discounts`} className="hover:underline">← {td("title")}</Link></p>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} />
-      <DiscountForms slug={tenant} currency={ctx.tenant.currency} defaultPrefix={ctx.tenant.orderNumberPrefix.replace(/[^A-Za-z0-9]/g, "").toUpperCase() || "KEEL"} />
+      <DiscountForms slug={tenant} currency={ctx.tenant.currency} defaultPrefix={ctx.tenant.orderNumberPrefix.replace(/[^A-Za-z0-9]/g, "").toUpperCase() || "HULLWISE"} />
     </>
   );
 }

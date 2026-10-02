@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, schema } from "@keel/db";
+import { and, desc, eq, inArray, schema } from "@hullwise/db";
 import type { ServiceContext } from "../context";
 
 export type PriceChangeSource = "markdown" | "bulk" | "manual";
@@ -11,7 +11,7 @@ export interface PriceChangeInput {
   compareAtAfterMinor: number | null;
 }
 
-/** Appends price history rows for the price changes Keel makes (unchanged rows are skipped). */
+/** Appends price history rows for the price changes Hullwise makes (unchanged rows are skipped). */
 export async function recordPriceChanges(ctx: ServiceContext, rows: readonly PriceChangeInput[], opts: { source: PriceChangeSource; batchId?: string | null; note?: string | null }): Promise<number> {
   const changed = rows.filter((r) => r.priceBeforeMinor !== r.priceAfterMinor || r.compareAtBeforeMinor !== r.compareAtAfterMinor);
   if (!changed.length) return 0;

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { canDo, isPageEnabled } from "@keel/config";
-import { and, eq, schema } from "@keel/db";
-import { segmentMembers } from "@keel/services";
+import { canDo, isPageEnabled } from "@hullwise/config";
+import { and, eq, schema } from "@hullwise/db";
+import { segmentMembers } from "@hullwise/services";
 import { ForbiddenError, requirePage } from "@/server/tenant";
 
 function cell(v: string | number | boolean | null | undefined): string {

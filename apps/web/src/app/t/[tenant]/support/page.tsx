@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDateTime, formatNumber } from "@keel/core";
-import { SUPPORT_STATUSES, listSupportTickets } from "@keel/services";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { formatDateTime, formatNumber } from "@hullwise/core";
+import { SUPPORT_STATUSES, listSupportTickets } from "@hullwise/services";
+import { Badge, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { Chip } from "../notifications/tabs";
 import { STATUS_VARIANT } from "./status";

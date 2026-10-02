@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Checkbox } from "@keel/ui";
+import { Checkbox } from "@hullwise/ui";
 
 interface SelectionState {
   ids: string[];

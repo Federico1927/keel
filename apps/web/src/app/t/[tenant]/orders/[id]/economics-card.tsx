@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatMoney, formatPercent } from "@keel/core";
-import { orderPnlDetail } from "@keel/services";
-import { canViewPage } from "@keel/config";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, cn } from "@keel/ui";
+import { formatMoney, formatPercent } from "@hullwise/core";
+import { orderPnlDetail } from "@hullwise/services";
+import { canViewPage } from "@hullwise/config";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, cn } from "@hullwise/ui";
 import type { TenantContext } from "@/server/tenant";
 import { analyticsTenant, runAnalytics } from "@/server/analytics";
 

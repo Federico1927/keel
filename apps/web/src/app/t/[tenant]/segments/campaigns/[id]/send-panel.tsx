@@ -3,8 +3,8 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Send, Trash2 } from "lucide-react";
-import type { SendPreview } from "@keel/services";
-import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@keel/ui";
+import type { SendPreview } from "@hullwise/services";
+import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@hullwise/ui";
 import { deleteRetentionCampaignAction, previewRetentionSendAction, sendRetentionCampaignAction } from "@/server/actions/retention";
 
 /** Draft actions: preview the groups and the detectable uplift, confirm, send; or delete the draft. */

@@ -2,8 +2,8 @@
 import { useActionState, useMemo, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Plus, Trash2 } from "lucide-react";
-import { packUnits } from "@keel/core";
-import { Alert, AlertDescription, Button, Checkbox, Input, Label, Select } from "@keel/ui";
+import { packUnits } from "@hullwise/core";
+import { Alert, AlertDescription, Button, Checkbox, Input, Label, Select } from "@hullwise/ui";
 import { deleteCasePackAction, saveCasePackAction } from "@/server/actions/purchasing-terms";
 
 interface PackInput {

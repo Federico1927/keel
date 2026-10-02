@@ -1,8 +1,8 @@
 import { cache, type CSSProperties } from "react";
-import { brandColorsFor, isHexColor, type BrandColors } from "@keel/core";
-import { withTenant } from "@keel/db";
-import { getTenantBranding, type TenantBranding } from "@keel/services";
-import { BRAND_SURFACES, TOKENS } from "@keel/ui/tokens";
+import { brandColorsFor, isHexColor, type BrandColors } from "@hullwise/core";
+import { withTenant } from "@hullwise/db";
+import { getTenantBranding, type TenantBranding } from "@hullwise/services";
+import { BRAND_SURFACES, TOKENS } from "@hullwise/ui/tokens";
 
 /**
  * Tenant branding as the web app uses it: the brand colour made AA-safe for each theme (core

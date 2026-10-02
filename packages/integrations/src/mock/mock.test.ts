@@ -93,7 +93,7 @@ describe("order edits on the mock platform", () => {
     const o = await p.createOrder({ lines: [{ variantExternalId: "v1", sku: null, title: "Tee", quantity: 2, unitPriceMinor: 2900 }], currency: "EUR", email: "a@b.it", phone: null, customerExternalId: "c1", shippingAddress: null, billingAddress: null, shippingMinor: 500, discountMinor: 0, note: null, tags: [], noteAttributes: [], replacesOrderName: "#T-1", payment: { method: "card", status: "paid", gateways: ["shopify_payments"] } });
     expect(o).toMatchObject({ paymentMethod: "card", paymentStatus: "paid", totalMinor: 6300, paymentGateways: ["shopify_payments"] });
     expect(o.noteAttributes).toContainEqual({ name: "replaces_order", value: "#T-1" });
-    await p.applyOrderDiscount(o.externalId, { type: "percentage", value: 1000, amountMinor: 580, currency: "EUR", code: "KEEL-10%" });
+    await p.applyOrderDiscount(o.externalId, { type: "percentage", value: 1000, amountMinor: 580, currency: "EUR", code: "HULLWISE-10%" });
     const after = await p.fetchOrder(o.externalId);
     expect(after).toMatchObject({ discountMinor: 580, totalMinor: 5720 });
     expect(p.writeLog.map((w) => w.op)).toEqual(["createOrder", "applyOrderDiscount"]);
@@ -151,7 +151,7 @@ describe("MockCommercePlatform returns and discount lifecycle", () => {
     expect((await p.verifyWebhook(again.headers, again.rawBody)).sourceUpdatedAt).not.toBe(verified.sourceUpdatedAt);
     expect((await p.fetchReturn(r.externalId))?.status).toBe("open");
     expect((await p.fetchReturns({ updatedSince: new Date(Date.now() - 60_000) })).items.map((x) => x.externalId)).toEqual([r.externalId]);
-    // a return requested by Keel is visible to the reconcile too, with its lines
+    // a return requested by Hullwise is visible to the reconcile too, with its lines
     const pushed = await p.requestReturn(order.externalId, { lines: [{ orderLineExternalId: order.lines[0]!.externalId, quantity: 1, reason: "DEFECTIVE" }] });
     expect(pushed.externalId).not.toBe(r.externalId);
     expect((await p.fetchReturn(pushed.externalId))?.lines[0]).toMatchObject({ externalId: pushed.lines[0]!.externalId, reason: "defective" });

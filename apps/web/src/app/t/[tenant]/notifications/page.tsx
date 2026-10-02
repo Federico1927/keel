@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDateTime, formatNumber } from "@keel/core";
-import { listNotificationsPage } from "@keel/services";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination } from "@keel/ui";
+import { formatDateTime, formatNumber } from "@hullwise/core";
+import { listNotificationsPage } from "@hullwise/services";
+import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { notificationText } from "@/components/notification-text";
 import { Chip, NotificationTabs } from "./tabs";

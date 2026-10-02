@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { asc, schema } from "@keel/db";
-import { FAILURE_ALERT_WINDOW_HOURS, JOB_FAILURES_BEFORE_ALERT } from "@keel/config";
-import { formatDateTime, formatNumber } from "@keel/core";
-import { listPlatformAlerts } from "@keel/services";
-import { Badge, Button, Card, CardContent, EmptyState, Label, PageHeader, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { asc, schema } from "@hullwise/db";
+import { FAILURE_ALERT_WINDOW_HOURS, JOB_FAILURES_BEFORE_ALERT } from "@hullwise/config";
+import { formatDateTime, formatNumber } from "@hullwise/core";
+import { listPlatformAlerts } from "@hullwise/services";
+import { Badge, Button, Card, CardContent, EmptyState, Label, PageHeader, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { flatParams, queryHref } from "../_components/table-query";
 import { CloseAlertButton } from "./controls";

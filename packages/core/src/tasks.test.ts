@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveNotificationChannels, notificationTypesFor } from "@keel/config";
+import { resolveNotificationChannels, notificationTypesFor } from "@hullwise/config";
 import { DEFAULT_TASK_RULES, isTaskOverdue, pickAssignee, planTaskChanges, taskRuleMatches, taskRuleSchema, type TaskRecordState, type TaskRule } from "./tasks";
 import { digestSummary, isCriticalWithoutIncoming, isLateToShip, isSyncDelayed } from "./notifications";
 

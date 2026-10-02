@@ -10,7 +10,7 @@ export type ProductCostSource = (typeof PRODUCT_COST_SOURCES)[number];
 
 /**
  * A cost read from the commerce platform (Shopify `inventoryItem.unitCost`) fills the variant only
- * when Keel has none, or when the current one came from the platform itself (kept in step with it).
+ * when Hullwise has none, or when the current one came from the platform itself (kept in step with it).
  * A manual, imported or purchase-order cost is never overwritten by a sync.
  */
 export function shouldTakePlatformCost(current: { costMinor: number | null; costSource: string | null }, platformCostMinor: number | null | undefined): boolean {

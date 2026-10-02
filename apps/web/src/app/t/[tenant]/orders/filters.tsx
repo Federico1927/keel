@@ -3,8 +3,8 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { Search, X } from "lucide-react";
-import { Button, Input, Select, cn } from "@keel/ui";
-import { ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES } from "@keel/core";
+import { Button, Input, Select, cn } from "@hullwise/ui";
+import { ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES } from "@hullwise/core";
 import type { OrderFilters } from "@/server/queries/orders";
 
 const utmKey = (d: string) => `utm${d[0]!.toUpperCase()}${d.slice(1)}`;

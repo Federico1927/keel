@@ -1,6 +1,6 @@
 import { eq, sql } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/node-postgres";
-import { PROCESSOR_GATEWAYS, buildMockPayouts } from "@keel/integrations";
+import { PROCESSOR_GATEWAYS, buildMockPayouts } from "@hullwise/integrations";
 import * as schema from "../schema";
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;

@@ -40,7 +40,7 @@ test.describe("tenant dashboards (issue #43)", () => {
     const metricValue = digits(await row.getByTestId("custom-metric-value").textContent());
     expect(metricValue.length).toBeGreaterThan(0);
 
-    // the home editor: start from Keel's template, add the series and the KPI, publish
+    // the home editor: start from Hullwise's template, add the series and the KPI, publish
     await page.goto(NW);
     await page.getByTestId("edit-home").click();
     await expect(page.getByTestId("dashboard-editor")).toBeVisible();
@@ -87,7 +87,7 @@ test.describe("tenant dashboards (issue #43)", () => {
     // every number clicks through: the filtered metric opens the paid-social orders
     await kpi.click();
     await expect(ops).toHaveURL(/\/orders\?.*attrChannel=paid_social/);
-    // Keel's tiles are still there
+    // Hullwise's tiles are still there
     await ops.goto(NW);
     await expect(ops.getByTestId("stock-tile")).toBeVisible();
     await expect(ops.getByTestId("forecast-card")).toBeVisible();
@@ -123,7 +123,7 @@ test.describe("tenant dashboards (issue #43)", () => {
     expect(metrics?.status()).toBe(404);
   });
 
-  test("Harbor Home keeps Keel's template, and without addon.cod the COD widget is never offered", async ({ page }) => {
+  test("Harbor Home keeps Hullwise's template, and without addon.cod the COD widget is never offered", async ({ page }) => {
     await login(page, "owner@harborhome.demo");
     await page.goto(HB);
     const grid = page.getByTestId("dashboard-grid");

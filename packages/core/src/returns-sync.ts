@@ -1,20 +1,20 @@
 import type { ReturnStatus } from "./domain";
 import { RETURN_CLOSED_STATUSES } from "./returns";
 
-/* Returns created on the commerce platform (issue #35): what Keel makes of the platform's status, and how long returns sit in each state. */
+/* Returns created on the commerce platform (issue #35): what Hullwise makes of the platform's status, and how long returns sit in each state. */
 
-/** Status Keel gives a return the platform reports; `needsReview` when staff has to decide the outcome. */
+/** Status Hullwise gives a return the platform reports; `needsReview` when staff has to decide the outcome. */
 export interface PlatformReturnTarget {
   status: ReturnStatus;
   needsReview: boolean;
-  /** Last state on the platform as Keel stores it (`return_requests.platform_status`). */
+  /** Last state on the platform as Hullwise stores it (`return_requests.platform_status`). */
   platformStatus: "requested" | "approved" | "declined" | "closed";
 }
 
 /**
- * Platform return status (Shopify `ReturnStatus`: REQUESTED, OPEN, DECLINED, CANCELED, CLOSED, lower-cased) → Keel status.
+ * Platform return status (Shopify `ReturnStatus`: REQUESTED, OPEN, DECLINED, CANCELED, CLOSED, lower-cased) → Hullwise status.
  * A closed return is refunded when the order carries a refund; otherwise the goods are back but the outcome
- * (exchange, credit) was settled outside Keel, so it stays `received` and is flagged for review.
+ * (exchange, credit) was settled outside Hullwise, so it stays `received` and is flagged for review.
  */
 export function platformReturnTarget(platformStatus: string, facts: { orderRefunded: boolean }): PlatformReturnTarget {
   switch (platformStatus.toLowerCase()) {
@@ -37,9 +37,9 @@ export function platformReturnTarget(platformStatus: string, facts: { orderRefun
 const RANK: Record<ReturnStatus, number> = { requested: 0, approved: 1, received: 2, inspected: 3, refunded: 4, exchanged: 4, voucher_issued: 4, rejected: 4 };
 
 /**
- * The status a platform update moves a Keel return to, or null when Keel keeps its own. The platform only
- * moves a return forward: Keel may be ahead (received, inspected in Keel while the platform still says open),
- * and a closed return never reopens. A decline or cancel rejects a return that is still open in Keel.
+ * The status a platform update moves a Hullwise return to, or null when Hullwise keeps its own. The platform only
+ * moves a return forward: Hullwise may be ahead (received, inspected in Hullwise while the platform still says open),
+ * and a closed return never reopens. A decline or cancel rejects a return that is still open in Hullwise.
  */
 export function nextReturnStatusFromPlatform(current: string, target: ReturnStatus): ReturnStatus | null {
   if (current === target) return null;

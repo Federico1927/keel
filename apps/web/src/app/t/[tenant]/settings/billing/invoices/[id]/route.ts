@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { getTranslations } from "next-intl/server";
-import { PRODUCT_NAME } from "@keel/config";
-import { formatDate, formatMoney } from "@keel/core";
-import { eq, schema } from "@keel/db";
-import { ledgerInvoicePdf } from "@keel/services";
+import { PRODUCT_NAME } from "@hullwise/config";
+import { formatDate, formatMoney } from "@hullwise/core";
+import { eq, schema } from "@hullwise/db";
+import { ledgerInvoicePdf } from "@hullwise/services";
 import { getTenantContext } from "@/server/tenant";
 
-/** Invoice download (owner, #53): Stripe's PDF when Stripe issued it, else a PDF of the Keel ledger row. Read through RLS. */
+/** Invoice download (owner, #53): Stripe's PDF when Stripe issued it, else a PDF of the Hullwise ledger row. Read through RLS. */
 export async function GET(_req: Request, { params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
   const ctx = await getTenantContext(tenant);

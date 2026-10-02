@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import type { Address, ReturnLabelProvider } from "../types";
 
-/** Deterministic tracking code per reference; no label URL, so Keel renders the PDF itself. */
+/** Deterministic tracking code per reference; no label URL, so Hullwise renders the PDF itself. */
 export class MockReturnLabelProvider implements ReturnLabelProvider {
   readonly provider = "mock";
   readonly calls: { reference: string; to: string }[] = [];

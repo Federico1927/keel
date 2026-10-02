@@ -30,5 +30,5 @@ export function sameTokenHash(a: string, b: string): boolean {
 export function ipHash(ip: string | null | undefined): string | null {
   const v = ip?.trim();
   if (!v) return null;
-  return createHmac("sha256", `ip:${process.env.AUTH_SECRET ?? process.env.APP_ENCRYPTION_KEY ?? "keel"}`).update(v).digest("hex");
+  return createHmac("sha256", `ip:${process.env.AUTH_SECRET ?? process.env.APP_ENCRYPTION_KEY ?? "hullwise"}`).update(v).digest("hex");
 }

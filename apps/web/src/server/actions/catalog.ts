@@ -2,9 +2,9 @@
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { adminDb, and, eq, recordAudit, schema } from "@keel/db";
-import { diffRecords, parseAmountToMinor, tenantSettingsSchema, type CostCsvFileError, type CostMatchRow, type CostMatchStatus } from "@keel/core";
-import { CostError, applyCostImport, enqueuePlatformWrite, recordPriceChanges, previewCostImport, setVariantCosts, variantCostRows, type PlatformWriteRow, type ServiceContext } from "@keel/services";
+import { adminDb, and, eq, recordAudit, schema } from "@hullwise/db";
+import { diffRecords, parseAmountToMinor, tenantSettingsSchema, type CostCsvFileError, type CostMatchRow, type CostMatchStatus } from "@hullwise/core";
+import { CostError, applyCostImport, enqueuePlatformWrite, recordPriceChanges, previewCostImport, setVariantCosts, variantCostRows, type PlatformWriteRow, type ServiceContext } from "@hullwise/services";
 import { dispatchPlatformWrites } from "@/server/platform-writes";
 import { ForbiddenError, requireAction, requireWrite, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
@@ -175,7 +175,7 @@ export async function confirmCostImportAction(slug: string, input: unknown): Pro
   }
 }
 
-/** Tenant switch: costs edited or imported in Keel are also written to the platform (owner and admin). */
+/** Tenant switch: costs edited or imported in Hullwise are also written to the platform (owner and admin). */
 export async function saveCostWriteBackAction(slug: string, enabled: boolean): Promise<ActionResult> {
   try {
     const ctx = await requireAction(slug, "manage_settings", "settings");

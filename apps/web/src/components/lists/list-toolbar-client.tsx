@@ -3,9 +3,9 @@ import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Bookmark, ChevronDown, Download, Trash2, Users } from "lucide-react";
-import { Alert, AlertDescription, Button, Checkbox, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Label, cn } from "@keel/ui";
-import { canonicalQuery } from "@keel/core";
-import type { SavedView } from "@keel/services";
+import { Alert, AlertDescription, Button, Checkbox, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Label, cn } from "@hullwise/ui";
+import { canonicalQuery } from "@hullwise/core";
+import type { SavedView } from "@hullwise/services";
 import { deleteViewAction, saveViewAction } from "@/server/actions/lists";
 
 export function ListToolbarClient({ slug, list, basePath, views, canExport, exportHref, canManageShared }: { slug: string; list: string; basePath: string; views: SavedView[]; canExport: boolean; exportHref: string; canManageShared: boolean }) {

@@ -1,5 +1,5 @@
-import { and, desc, eq, inArray, recordAudit, schema, type DbExecutor } from "@keel/db";
-import { emailAddressHash, maskEmail, normalizeEmailAddress } from "@keel/integrations";
+import { and, desc, eq, inArray, recordAudit, schema, type DbExecutor } from "@hullwise/db";
+import { emailAddressHash, maskEmail, normalizeEmailAddress } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import type { EmailKind } from "./templates";
 

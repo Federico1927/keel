@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
-import { canDo } from "@keel/config";
-import { formatMoney } from "@keel/core";
-import { Card, CardContent, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { canDo } from "@hullwise/config";
+import { formatMoney } from "@hullwise/core";
+import { Card, CardContent, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { listSuppliers } from "@/server/queries/purchasing";
-import { bulkSupplierFacets } from "@keel/services";
+import { bulkSupplierFacets } from "@hullwise/services";
 import { SupplierForm } from "./form";
 import { BulkSupplierCard } from "./bulk";
 

@@ -1,6 +1,6 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { adminDb, and, eq, schema, sql } from "@keel/db";
-import { DEFAULT_SURVEY_CONFIG, SALE_STATUSES, surveyConfigSchema, surveyCrosstab, surveyText, type Period, type SurveyConfig } from "@keel/core";
+import { adminDb, and, eq, schema, sql } from "@hullwise/db";
+import { DEFAULT_SURVEY_CONFIG, SALE_STATUSES, surveyConfigSchema, surveyCrosstab, surveyText, type Period, type SurveyConfig } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 
 const SALE = SALE_STATUSES as readonly string[];
@@ -14,7 +14,7 @@ export class SurveyError extends Error {
 /**
  * Survey link signature: HMAC-SHA256 of the platform order id with the store's secret, as hex.
  * It matches what Shopify's Liquid `hmac_sha256` filter produces in the order confirmation email,
- * so the link can be built there without Keel being called (to verify against current Liquid docs).
+ * so the link can be built there without Hullwise being called (to verify against current Liquid docs).
  */
 export function surveySignature(secret: string, orderExternalId: string): string {
   return createHmac("sha256", secret).update(orderExternalId).digest("hex");

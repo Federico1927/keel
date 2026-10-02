@@ -12,7 +12,7 @@ const window = { since: "2026-09-28", until: "2026-09-29" };
 
 describe("tiktok oauth", () => {
   it("builds the advertiser authorization URL and exchanges the auth code for a long-lived token and advertisers", async () => {
-    const url = new URL(tiktokAuthorizeUrl("app-1", "https://keel.example/api/integrations/tiktok/oauth/callback", "st4te"));
+    const url = new URL(tiktokAuthorizeUrl("app-1", "https://hullwise.example/api/integrations/tiktok/oauth/callback", "st4te"));
     expect(url.origin + url.pathname).toBe("https://business-api.tiktok.com/portal/auth");
     expect(url.searchParams.get("app_id")).toBe("app-1");
     expect(url.searchParams.get("state")).toBe("st4te");

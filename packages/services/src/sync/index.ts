@@ -1,6 +1,6 @@
-import { and, desc, eq, inArray, isNull, schema, sql } from "@keel/db";
-import { DEFAULT_PRECEDENCE, addressKey, applyStatusMapping, type StatusMapping, deriveChannel, diffRecords, extractAttribution, hasChanges, matchCampaign, nameZipKey, nextZeroRowRuns, sourceStatus, normalizeEmail, normalizePhone, resolveShipmentStatus, shouldTakePlatformCost, type CampaignRef, type ShipmentStatus } from "@keel/core";
-import { IntegrationError, type AdsPlatform, type CommercePlatform, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn } from "@keel/integrations";
+import { and, desc, eq, inArray, isNull, schema, sql } from "@hullwise/db";
+import { DEFAULT_PRECEDENCE, addressKey, applyStatusMapping, type StatusMapping, deriveChannel, diffRecords, extractAttribution, hasChanges, matchCampaign, nameZipKey, nextZeroRowRuns, sourceStatus, normalizeEmail, normalizePhone, resolveShipmentStatus, shouldTakePlatformCost, type CampaignRef, type ShipmentStatus } from "@hullwise/core";
+import { IntegrationError, type AdsPlatform, type CommercePlatform, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { closeOrderBackorders, recomputeOrderStatus } from "../orders/state";
 import { checkOrderStock } from "../backorders";
@@ -161,7 +161,7 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
   if (existing && (o.cancelledAt || ["fulfilled", "partial"].includes(o.fulfillmentStatusRaw ?? ""))) await closeOrderBackorders(ctx, orderId, o.cancelledAt ? "cancelled" : "fulfilled", o.cancelledAt ? "order_cancelled" : "order_fulfilled");
   await recomputeOrderStatus(ctx, orderId, { eventMetadata: { source: opts.source } });
   // an exchange order paid through the invoice links back to its return
-  const exchangeFor = o.noteAttributes?.find((a) => a.name === "keel_return_id")?.value;
+  const exchangeFor = o.noteAttributes?.find((a) => a.name === "hullwise_return_id")?.value;
   if (exchangeFor && /^[0-9a-f-]{36}$/i.test(exchangeFor)) await ctx.tx.update(schema.returnRequests).set({ exchangeOrderId: orderId }).where(and(eq(schema.returnRequests.tenantId, ctx.tenantId), eq(schema.returnRequests.id, exchangeFor), isNull(schema.returnRequests.exchangeOrderId)));
   return { id: orderId, outcome };
 }
@@ -243,13 +243,13 @@ export async function importInventoryLevel(ctx: ServiceContext, lvl: NormalizedI
   const [variant] = await ctx.tx.select({ id: schema.productVariants.id }).from(schema.productVariants).where(and(eq(schema.productVariants.tenantId, ctx.tenantId), eq(schema.productVariants.inventoryItemExternalId, lvl.inventoryItemExternalId))).limit(1);
   const [location] = await ctx.tx.select({ id: schema.locations.id }).from(schema.locations).where(and(eq(schema.locations.tenantId, ctx.tenantId), eq(schema.locations.externalId, lvl.locationExternalId))).limit(1);
   if (!variant || !location) return false;
-  // synced_at is when Keel read the level: a complete run zeroes the levels it did not see
+  // synced_at is when Hullwise read the level: a complete run zeroes the levels it did not see
   const values = { available: lvl.available, onHand: lvl.onHand ?? lvl.available, committed: lvl.committed ?? 0, syncedAt: now, updatedAt: now };
   await ctx.tx.insert(schema.inventoryLevels).values({ tenantId: ctx.tenantId, variantId: variant.id, locationId: location.id, ...values }).onConflictDoUpdate({ target: [schema.inventoryLevels.variantId, schema.inventoryLevels.locationId], set: values });
   return true;
 }
 
-/** `keepActive`: a Keel on/off switch for this code is not confirmed by the platform yet, so the platform's flag is not taken. */
+/** `keepActive`: a Hullwise on/off switch for this code is not confirmed by the platform yet, so the platform's flag is not taken. */
 export async function importDiscount(ctx: ServiceContext, d: NormalizedDiscount, opts: { keepActive?: boolean } = {}): Promise<void> {
   const now = ctx.now ?? new Date();
   const values = { externalId: d.externalId, title: d.title, type: d.type, value: d.value, minimumAmountMinor: d.minimumAmountMinor, usageLimit: d.usageLimit, usedCount: d.usedCount, startsAt: d.startsAt, endsAt: d.endsAt, ...(opts.keepActive ? {} : { isActive: d.isActive }), syncedAt: now, updatedAt: now };
@@ -364,7 +364,7 @@ export async function retryFailedWebhooks(ctx: ServiceContext, platform: Commerc
   return { retried: rows.length, processed };
 }
 
-/** A platform return, importing its order first when Keel does not have it yet. */
+/** A platform return, importing its order first when Hullwise does not have it yet. */
 async function importReturnWithOrder(ctx: ServiceContext, platform: CommercePlatform, ret: NormalizedReturn, opts: { country: string; source: ImportSource }): Promise<{ outcome: ReturnImportOutcome; imported: string | null }> {
   let outcome = await importPlatformReturn(ctx, ret, { source: opts.source });
   if (outcome.reason !== "order_not_found") return { outcome, imported: null };
@@ -393,7 +393,7 @@ export interface ReturnsSyncResult {
 
 /**
  * Returns created or changed on the platform (nightly `reconcile`, last `reconcileDays` days; `delta` since
- * the last successful run): each one goes through `importPlatformReturn`, so returns Keel pushed are matched
+ * the last successful run): each one goes through `importPlatformReturn`, so returns Hullwise pushed are matched
  * by their platform id, never duplicated. Resumable like the other runs: cursor in `sync_runs` after every
  * page, pause at the time budget, resume on the next call.
  */
@@ -502,7 +502,7 @@ export async function runOrdersSync(ctx: ServiceContext, platform: CommercePlatf
     for (;;) {
       const page = await platform.fetchOrders({ cursor: cursor.nextCursor ?? null, updatedSince: cursor.updatedSince ? new Date(cursor.updatedSince) : null, createdSince: cursor.createdSince ? new Date(cursor.createdSince) : null, limit: opts.pageSize ?? 50 });
       scanned += page.items.length;
-      // a Keel change to these orders the platform has not confirmed yet: the platform's answer disagrees with Keel
+      // a Hullwise change to these orders the platform has not confirmed yet: the platform's answer disagrees with Hullwise
       if (page.items.length) conflicts += (await unconfirmedWriteTargets(ctx, ["order.cancel", "order.update_details", "order.tags"], page.items.flatMap((o) => [`order:${o.externalId}:cancel`, `order:${o.externalId}:details`, `order:${o.externalId}:tags`]))).size;
       for (const o of page.items) {
         const r = await importOrder(ctx, o, { country: opts.country, source: opts.kind === "reconcile" ? "reconcile" : opts.kind === "initial" ? "backfill" : "sync", campaigns });
@@ -627,7 +627,7 @@ export async function runCatalogSync(ctx: ServiceContext, platform: CommercePlat
     }
     while (cursor.phase === "discounts") {
       const page = await platform.fetchDiscounts({ cursor: cursor.discountCursor, limit: 100 });
-      // a Keel on/off switch the platform has not confirmed yet wins over the platform's flag (and counts as a conflict)
+      // a Hullwise on/off switch the platform has not confirmed yet wins over the platform's flag (and counts as a conflict)
       const pendingSwitch = page.items.length ? await unconfirmedWriteTargets(ctx, "discount.status", page.items.map((d) => `discount:${d.code}:status`)) : new Set<string>();
       run.conflicts += pendingSwitch.size;
       for (const d of page.items) {

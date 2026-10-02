@@ -1,9 +1,9 @@
-import { adminDb } from "@keel/db";
-import { billingSettings, syncBillingCatalog } from "@keel/services";
+import { adminDb } from "@hullwise/db";
+import { billingSettings, syncBillingCatalog } from "@hullwise/services";
 
 /**
  * `pnpm billing:sync-catalog` (#53): creates or updates the Stripe product and price of every plan,
- * setup fee and add-on in @keel/config (same as the console button). Idempotent; with no
+ * setup fee and add-on in @hullwise/config (same as the console button). Idempotent; with no
  * STRIPE_SECRET_KEY it fills the mock catalog. Prints counts only, never the key.
  */
 async function main() {

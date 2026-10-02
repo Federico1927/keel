@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
-import { formatDateTime, formatNumber } from "@keel/core";
-import type { listTenantExports } from "@keel/services";
-import { Badge, EmptyState, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { formatDateTime, formatNumber } from "@hullwise/core";
+import type { listTenantExports } from "@hullwise/services";
+import { Badge, EmptyState, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 
 type Row = Awaited<ReturnType<typeof listTenantExports>>[number];
 

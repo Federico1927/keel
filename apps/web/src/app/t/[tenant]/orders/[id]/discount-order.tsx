@@ -3,8 +3,8 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Percent } from "lucide-react";
-import { orderDiscountAmount, type OrderAmounts, type OrderDiscountKind } from "@keel/core";
-import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select } from "@keel/ui";
+import { orderDiscountAmount, type OrderAmounts, type OrderDiscountKind } from "@hullwise/core";
+import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select } from "@hullwise/ui";
 import { applyOrderDiscountAction } from "@/server/actions/orders";
 import type { ActionResult } from "@/server/action-result";
 

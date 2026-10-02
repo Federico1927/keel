@@ -1,3 +1,5 @@
+> Historical document: the product was formerly called Keel.
+
 # Control Room (Lorena Milano) — COD modules study
 
 Source: `/home/user/lorena-control-center` (read-only). Scope: COD confirmation queue, operator assignment, delivery score, recipient risk. Everything below is taken from the migrations (`supabase/migrations/*.sql`, `drizzle/migrations/*.sql`), edge functions (`supabase/functions/*`), client code (`src/*`) and the team docs; where the docs and the code disagree, the code wins and the discrepancy is flagged.

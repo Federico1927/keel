@@ -1,4 +1,4 @@
-import { revokeOAuthToken } from "@keel/services";
+import { revokeOAuthToken } from "@hullwise/services";
 import { corsPreflight, mcpDeps, oauthJson, readOAuthBody } from "@/server/mcp";
 
 export const runtime = "nodejs";

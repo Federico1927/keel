@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { supportAttachment } from "@keel/services";
+import { supportAttachment } from "@hullwise/services";
 import { requirePage } from "@/server/tenant";
 
 /** A file attached to a support message; RLS limits it to the tenant's own tickets. */

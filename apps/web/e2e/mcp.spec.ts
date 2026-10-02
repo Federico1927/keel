@@ -15,7 +15,7 @@ const SLUG = "northwind-apparel";
 const base = () => (process.env.E2E_BASE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
 async function sdkClient(token: string): Promise<Client> {
-  const client = new Client({ name: "keel-e2e", version: "1.0.0" });
+  const client = new Client({ name: "hullwise-e2e", version: "1.0.0" });
   await client.connect(new StreamableHTTPClientTransport(new URL(`${base()}/api/mcp`), { requestInit: { headers: { Authorization: `Bearer ${token}` } } }));
   return client;
 }
@@ -97,7 +97,7 @@ test("OAuth 2.1: discovery, dynamic registration, consent in the browser, code w
   await page.goto(authorize);
   // not signed in: the login page keeps the authorize request as `next`
   await page.getByLabel("Email").fill("care@northwind.demo");
-  await page.getByLabel("Password").fill("keel-demo-2026");
+  await page.getByLabel("Password").fill("hullwise-demo-2026");
   await page.getByRole("button", { name: /sign in|accedi|entrar/i }).click();
   await expect(page.getByTestId("mcp-consent-client")).toContainText("E2E Agent");
   await expect(page.getByTestId("mcp-consent-scope-write:notes")).toBeChecked();
@@ -138,7 +138,7 @@ test("settings show the server URL, guides and connections; the console shows us
   await expect(page.getByTestId("mcp-activity")).toBeVisible();
 
   const adminPage = await (await browser.newContext()).newPage();
-  await login(adminPage, "superadmin@keel.demo");
+  await login(adminPage, "superadmin@hullwise.demo");
   await adminPage.goto("/admin/mcp");
   await expect(adminPage.getByTestId("admin-mcp-row").filter({ hasText: "Northwind Apparel" })).toBeVisible();
   await expect(adminPage.getByTestId("admin-mcp-row").filter({ hasText: "Harbor Home" })).toBeVisible();

@@ -13,7 +13,7 @@ export const tenants = pgTable(
     id: id(),
     slug: text("slug").notNull().unique(),
     name: text("name").notNull(),
-    /** Lifecycle (#48): trial → active → past_due → suspended → churned; see @keel/config lifecycle. */
+    /** Lifecycle (#48): trial → active → past_due → suspended → churned; see @hullwise/config lifecycle. */
     status: text("status", { enum: ["active", "suspended", "trial", "churned", "past_due"] })
       .notNull()
       .default("active"),
@@ -23,7 +23,7 @@ export const tenants = pgTable(
     timezone: text("timezone").notNull(),
     defaultLocale: text("default_locale").notNull().default("en"),
     orderNumberPrefix: text("order_number_prefix").notNull().default(""),
-    /** Typed settings blob; keys documented in @keel/core tenant-settings. */
+    /** Typed settings blob; keys documented in @hullwise/core tenant-settings. */
     settings: jsonb("settings").notNull().default(sql`'{}'::jsonb`),
     suspendAfterDays: integer("suspend_after_days").notNull().default(14),
     suspendedAt: timestamp("suspended_at", { withTimezone: true }),

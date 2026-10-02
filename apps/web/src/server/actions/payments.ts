@@ -2,9 +2,9 @@
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { recordAudit } from "@keel/db";
-import { PAYMENT_METHODS } from "@keel/core";
-import { PaymentError, recordManualPayment, refundOrder, runPayoutsSync } from "@keel/services";
+import { recordAudit } from "@hullwise/db";
+import { PAYMENT_METHODS } from "@hullwise/core";
+import { PaymentError, recordManualPayment, refundOrder, runPayoutsSync } from "@hullwise/services";
 import { getCommercePlatform } from "@/server/integrations";
 import { dispatchPlatformWrites } from "@/server/platform-writes";
 import { ForbiddenError, requireAction } from "@/server/tenant";
@@ -44,7 +44,7 @@ export async function recordPaymentAction(slug: string, input: unknown): Promise
 
 const refundSchema = z.object({ orderId: idSchema, amountMinor: z.number().int().positive().max(1_000_000_000), lines: z.array(z.object({ orderLineId: idSchema, quantity: z.number().int().positive().max(100_000) })).max(200).default([]), restock: z.boolean().default(false), locationId: idSchema.nullish(), note: z.string().max(500).nullish(), notify: z.boolean().default(false), requestId: z.string().uuid().nullish() });
 
-/** Money refund on a paid order, written to the platform first; Keel records what the platform accepted. */
+/** Money refund on a paid order, written to the platform first; Hullwise records what the platform accepted. */
 export async function refundOrderAction(slug: string, input: unknown): Promise<ActionResult<{ amountMinor: number; requestedMinor: number; refundedMinor: number }>> {
   try {
     const ctx = await requireAction(slug, "refund_order", "orders");

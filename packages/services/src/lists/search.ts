@@ -1,5 +1,5 @@
-import { and, desc, eq, or, schema, sql, type SQL } from "@keel/db";
-import { parseSearchTerms } from "@keel/core";
+import { and, desc, eq, or, schema, sql, type SQL } from "@hullwise/db";
+import { parseSearchTerms } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 
 export type SearchArea = "orders" | "customers" | "products" | "purchasing";

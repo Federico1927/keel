@@ -1,4 +1,4 @@
-import { OAuthError, exchangeAuthorizationCode, refreshOAuthToken } from "@keel/services";
+import { OAuthError, exchangeAuthorizationCode, refreshOAuthToken } from "@hullwise/services";
 import { corsPreflight, mcpDeps, oauthJson, readOAuthBody } from "@/server/mcp";
 
 export const runtime = "nodejs";

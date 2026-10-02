@@ -5,7 +5,7 @@
  * Next assets are cached for a year: the Railway service serves the site with this file, and
  * uncompressed HTML and JS cost the page its mobile LCP.
  *
- *   pnpm --filter @keel/landing build && pnpm --filter @keel/landing start   # http://localhost:3100
+ *   pnpm --filter @hullwise/landing build && pnpm --filter @hullwise/landing start   # http://localhost:3100
  */
 import { createServer } from "node:http";
 import { existsSync, readFileSync, statSync } from "node:fs";

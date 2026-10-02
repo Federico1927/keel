@@ -1,4 +1,4 @@
-import { normalizePaymentMethod, type PaymentStatus, type ShipmentStatus } from "@keel/core";
+import { normalizePaymentMethod, type PaymentStatus, type ShipmentStatus } from "@hullwise/core";
 import type { Address, NormalizedCustomer, NormalizedDiscount, NormalizedFulfillment, NormalizedInventoryLevel, NormalizedLocation, NormalizedOrder, NormalizedOrderLine, NormalizedProduct, NormalizedReturn, NormalizedVariant } from "../types";
 
 /* ---------- helpers ---------- */

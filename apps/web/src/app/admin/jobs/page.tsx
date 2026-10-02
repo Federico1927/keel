@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { asc, schema } from "@keel/db";
-import { formatDateTime, formatNumber } from "@keel/core";
-import { jobRunsOverview } from "@keel/services";
-import { runNowJob } from "@keel/jobs";
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, Label, PageHeader, Pagination, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { asc, schema } from "@hullwise/db";
+import { formatDateTime, formatNumber } from "@hullwise/core";
+import { jobRunsOverview } from "@hullwise/services";
+import { runNowJob } from "@hullwise/jobs";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, Label, PageHeader, Pagination, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { flatParams, queryHref } from "../_components/table-query";
 import { RunNowButton } from "./controls";

@@ -1,5 +1,5 @@
-import { and, eq, inArray, schema, sql } from "@keel/db";
-import { canTransitionPo, inspectReceipt, movingAverageCost, type PurchaseOrderStatus } from "@keel/core";
+import { and, eq, inArray, schema, sql } from "@hullwise/db";
+import { canTransitionPo, inspectReceipt, movingAverageCost, type PurchaseOrderStatus } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { refreshBackorderCoverage, type RefreshResult } from "../backorders";
 import { applyCostToOrderLines } from "../catalog/costs";

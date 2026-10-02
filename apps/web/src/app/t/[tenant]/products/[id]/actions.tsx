@@ -1,7 +1,7 @@
 "use client";
 import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Button, Input, Select, Switch } from "@keel/ui";
+import { Button, Input, Select, Switch } from "@hullwise/ui";
 import { toggleRepurchasable, updateProductStatus, updateVariantPrice } from "@/server/actions/catalog";
 
 export function ProductActions({ slug, productId, status, isRepurchasable }: { slug: string; productId: string; status: string; isRepurchasable: boolean }) {

@@ -130,7 +130,7 @@ export const inventoryMovements = pgTable(
 ).enableRLS();
 
 /**
- * Stock drift: a platform read changed stock in a way Keel did not expect (no sale, return,
+ * Stock drift: a platform read changed stock in a way Hullwise did not expect (no sale, return,
  * receipt or adjustment explains it), a negative level was clamped, or a level was no longer
  * reported. Deduplicated on `dedupe_key`: the same discrepancy seen again bumps `occurrences`.
  */

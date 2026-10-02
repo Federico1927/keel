@@ -75,7 +75,7 @@ export function renderPdf(pages: readonly (readonly PdfItem[])[], meta: { title?
   objects[1] = "<< /Type /Catalog /Pages 2 0 R >>";
   objects[3] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>";
   objects[4] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>";
-  objects[5] = `<< /Producer (Keel) /Title (${pdfString(meta.title ?? "")}) >>`;
+  objects[5] = `<< /Producer (Hullwise) /Title (${pdfString(meta.title ?? "")}) >>`;
   let next = 6;
   for (const items of pages.length ? pages : [[]]) {
     const pageId = next++;

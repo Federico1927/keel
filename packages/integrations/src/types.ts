@@ -1,4 +1,4 @@
-import type { BalanceTransactionType, PaymentMethod, PaymentStatus, PayoutStatus, ShipmentStatus } from "@keel/core";
+import type { BalanceTransactionType, PaymentMethod, PaymentStatus, PayoutStatus, ShipmentStatus } from "@hullwise/core";
 
 /** Normalized shapes every commerce adapter returns. Platform-specific fields never leak past the adapter. */
 export interface Address {
@@ -86,7 +86,7 @@ export interface NormalizedOrder {
 
 export interface OrderDetailsPatch {
   shippingAddress?: Address | null;
-  /** Not every platform can change it after checkout (Shopify's orderUpdate cannot): adapters that can't ignore it and Keel keeps it locally. */
+  /** Not every platform can change it after checkout (Shopify's orderUpdate cannot): adapters that can't ignore it and Hullwise keeps it locally. */
   billingAddress?: Address | null;
   email?: string | null;
   phone?: string | null;
@@ -98,7 +98,7 @@ export interface OrderDiscountPatch {
   type: "percentage" | "fixed_amount";
   /** Basis points for a percentage, minor units for a fixed amount. */
   value: number;
-  /** Amount in minor units as Keel computed it (the adapter may spread it across lines). */
+  /** Amount in minor units as Hullwise computed it (the adapter may spread it across lines). */
   amountMinor: number;
   currency: string;
   code: string;
@@ -139,7 +139,7 @@ export interface NormalizedFulfillment {
   deliveredAt: Date | null;
 }
 
-/** Fulfilment created from Keel (issue #28): lines omitted = everything still unfulfilled on the order. */
+/** Fulfilment created from Hullwise (issue #28): lines omitted = everything still unfulfilled on the order. */
 export interface CreateFulfillmentInput {
   orderExternalId: string;
   lines?: { orderLineExternalId: string; quantity: number }[];
@@ -353,7 +353,7 @@ export interface CommercePlatform {
   addOrderNote(externalId: string, note: string): Promise<void>;
   /** Puts the order's open fulfillment orders on hold (e.g. waiting for stock) so the warehouse does not ship it. Idempotent. */
   holdFulfillment(externalId: string, hold: FulfillmentHoldInput): Promise<void>;
-  /** Releases the holds Keel placed on the order; holds placed by others stay. A no-op when there is none. */
+  /** Releases the holds Hullwise placed on the order; holds placed by others stay. A no-op when there is none. */
   releaseFulfillment(externalId: string): Promise<void>;
   updateOrderTags(externalId: string, add: string[], remove: string[]): Promise<void>;
   /** Price and compare-at price of a variant; `compareAtMinor: null` removes the compare-at price. */
@@ -522,7 +522,7 @@ export interface NormalizedEntityMetric {
   videoCompletions: number;
 }
 
-/** What a platform can report below the campaign; Keel hides the tabs a platform cannot fill. */
+/** What a platform can report below the campaign; Hullwise hides the tabs a platform cannot fill. */
 export interface AdsCapabilities {
   supportsKeywords: boolean;
   supportsSearchTerms: boolean;
@@ -581,7 +581,7 @@ export interface WarehouseProvider {
   fetchShipmentStatus(orderExternalId: string): Promise<{ status: ShipmentStatus; externalStatus: string; at: Date } | null>;
 }
 
-/** What to do with a parcel in exception (issue #28). `reference` is Keel's idempotency key for the instruction. */
+/** What to do with a parcel in exception (issue #28). `reference` is Hullwise's idempotency key for the instruction. */
 export interface CarrierInstruction {
   reference: string;
   trackingNumber: string;
@@ -647,7 +647,7 @@ export interface PaymentGuarantee {
 
 /**
  * Return labels (prepaid shipping label or QR code for drop-off). Live providers (EasyPost,
- * Shippo, a carrier's own API) plug in here; the mock returns a tracking code and lets Keel
+ * Shippo, a carrier's own API) plug in here; the mock returns a tracking code and lets Hullwise
  * render the label itself.
  */
 export interface ReturnLabelProvider {

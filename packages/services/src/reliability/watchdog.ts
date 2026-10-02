@@ -1,6 +1,6 @@
-import { and, eq, inArray, recordAudit, schema, sql } from "@keel/db";
-import { SOURCE_PROBLEM_STATUSES, WATCHDOG_NOTIFY_EVERY_HOURS } from "@keel/config";
-import { isSyncDelayed, sourceStaleness, sourceStatus, windowElapsed, type TenantSettings } from "@keel/core";
+import { and, eq, inArray, recordAudit, schema, sql } from "@hullwise/db";
+import { SOURCE_PROBLEM_STATUSES, WATCHDOG_NOTIFY_EVERY_HOURS } from "@hullwise/config";
+import { isSyncDelayed, sourceStaleness, sourceStatus, windowElapsed, type TenantSettings } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { membersWithRoles, notifyUsers } from "../notifications";
 

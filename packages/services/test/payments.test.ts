@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, inArray, isNull, schema, sql, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { MockCommercePlatform } from "@keel/integrations";
-import { PAYMENT_METHODS, SALE_STATUSES, monthRange, parseTenantSettings } from "@keel/core";
+import { and, eq, inArray, isNull, schema, sql, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { MockCommercePlatform } from "@hullwise/integrations";
+import { PAYMENT_METHODS, SALE_STATUSES, monthRange, parseTenantSettings } from "@hullwise/core";
 import { PaymentError, getCommercePlatformFor, orderEconomicsForPeriod, orderListWhere, parseOrderFilters, paymentMethodReport, payoutDetail, pnlForPeriod, recordManualPayment, refundOrder, resetMockPlatforms, runPayoutsSync, taxReportForPeriod, type AnalyticsTenant, type ServiceContext } from "../src";
 
 const pools = testPools();

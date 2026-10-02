@@ -1,11 +1,11 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { RECORD_NOTE_TYPES, addRecordNote, deleteRecordNote, type RecordNoteType } from "@keel/services";
+import { RECORD_NOTE_TYPES, addRecordNote, deleteRecordNote, type RecordNoteType } from "@hullwise/services";
 import { ForbiddenError, requireWrite } from "@/server/tenant";
 import { tenantPeople } from "@/server/people";
 import { fail, ok, type ActionResult } from "@/server/action-result";
-import { displayName } from "@keel/core";
+import { displayName } from "@hullwise/core";
 
 const PAGE: Record<RecordNoteType, "purchasing" | "returns"> = { purchase_order: "purchasing", return: "returns" };
 const PATH: Record<RecordNoteType, string> = { purchase_order: "purchasing", return: "returns" };

@@ -1,5 +1,5 @@
-import { canExportList, isExportList, type ListKey } from "@keel/config";
-import { listSavedViews } from "@keel/services";
+import { canExportList, isExportList, type ListKey } from "@hullwise/config";
+import { listSavedViews } from "@hullwise/services";
 import type { TenantContext } from "@/server/tenant";
 import { ListToolbarClient } from "./list-toolbar-client";
 

@@ -3,8 +3,8 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { RefreshCw, Trash2 } from "lucide-react";
-import { AUDIENCE_PROVIDERS } from "@keel/integrations/types";
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { AUDIENCE_PROVIDERS } from "@hullwise/integrations/types";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { addDestinationAction, removeDestinationAction, setDestinationAutoSyncAction, setSegmentLiveAction, syncDestinationAction } from "@/server/actions/destinations";
 
 export interface DestinationRow {

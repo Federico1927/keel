@@ -1,6 +1,6 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/node-postgres";
-import { DEFAULT_SURVEY_CONFIG } from "@keel/core";
+import { DEFAULT_SURVEY_CONFIG } from "@hullwise/core";
 import * as schema from "../schema";
 import { enableDemoMcp } from "./mcp";
 

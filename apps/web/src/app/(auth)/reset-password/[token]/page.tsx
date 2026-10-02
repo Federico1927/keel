@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { adminDb } from "@keel/db";
-import { inspectPasswordReset } from "@keel/services";
-import { Button } from "@keel/ui";
+import { adminDb } from "@hullwise/db";
+import { inspectPasswordReset } from "@hullwise/services";
+import { Button } from "@hullwise/ui";
 import { AuthShell } from "@/components/account/auth-shell";
 import { ResetPasswordForm } from "./form";
 

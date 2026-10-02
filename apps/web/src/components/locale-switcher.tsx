@@ -2,8 +2,8 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { SUPPORTED_LOCALES } from "@keel/config";
-import { Select } from "@keel/ui";
+import { SUPPORTED_LOCALES } from "@hullwise/config";
+import { Select } from "@hullwise/ui";
 import { setLocaleAction } from "@/i18n/locale-actions";
 
 export function LocaleSwitcher({ className }: { className?: string }) {

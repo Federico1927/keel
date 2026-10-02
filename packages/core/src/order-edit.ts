@@ -72,11 +72,11 @@ export function applyDiscountToAmounts(order: OrderAmounts, amountMinor: number)
   return { ...order, discountMinor: order.discountMinor + amount, totalMinor: Math.max(0, order.totalMinor - amount) };
 }
 
-/** Code shown on the platform and in Keel for a manual discount, e.g. `KEEL-10%` or `KEEL-5.00`. */
+/** Code shown on the platform and in Hullwise for a manual discount, e.g. `HULLWISE-10%` or `HULLWISE-5.00`. */
 export function orderDiscountCode(d: OrderDiscountInput, code?: string | null): string {
   const custom = (code ?? "").trim();
   if (custom) return custom.slice(0, 60);
-  return d.type === "percentage" ? `KEEL-${+(d.value / 100).toFixed(2)}%` : `KEEL-${(d.value / 100).toFixed(2)}`;
+  return d.type === "percentage" ? `HULLWISE-${+(d.value / 100).toFixed(2)}%` : `HULLWISE-${(d.value / 100).toFixed(2)}`;
 }
 
 /* ---------- replacement lines and merges ---------- */

@@ -3,8 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Boxes, Package, Search, ShoppingBag, Truck, User } from "lucide-react";
-import { Button, Dialog, DialogContent, DialogTitle, Input, cn } from "@keel/ui";
-import type { GlobalSearchResult } from "@keel/services";
+import { Button, Dialog, DialogContent, DialogTitle, Input, cn } from "@hullwise/ui";
+import type { GlobalSearchResult } from "@hullwise/services";
 import { globalSearchAction } from "@/server/actions/lists";
 
 type Hit = { key: string; href: string; group: "orders" | "customers" | "products" | "purchase_orders"; title: string; detail: string };

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { and, desc, eq, inArray, isNotNull, isNull, schema, sql, type SQL } from "@keel/db";
-import { NOTIFICATION_CHANNELS, resolveNotificationChannels, type NotificationChannel } from "@keel/config";
+import { and, desc, eq, inArray, isNotNull, isNull, schema, sql, type SQL } from "@hullwise/db";
+import { NOTIFICATION_CHANNELS, resolveNotificationChannels, type NotificationChannel } from "@hullwise/config";
 import type { ServiceContext } from "../context";
 import { getNotificationSinks } from "../integrations/factory";
 import type { EmailTemplateData } from "../email/templates";

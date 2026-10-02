@@ -2,7 +2,7 @@ import { MODULES, isModuleInPlan, type ModuleKey } from "./modules";
 import type { PlanKey } from "./plans";
 
 /**
- * Ad platforms Keel imports spend from (each one is an `AdsPlatform` adapter). Every per-platform list
+ * Ad platforms Hullwise imports spend from (each one is an `AdsPlatform` adapter). Every per-platform list
  * in core, services, the seed and the UI derives from this constant: adding a platform starts here.
  */
 export const AD_PLATFORMS = ["meta", "google", "tiktok"] as const;

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
-import { brandColorsFor, contrastRatio, formatMoney, formatNumber } from "@keel/core";
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, Input, Label, PageHeader, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
-import { BRAND_SURFACES, THEMES, TOKENS, type Theme, type ThemeTokens } from "@keel/ui/tokens";
+import { brandColorsFor, contrastRatio, formatMoney, formatNumber } from "@hullwise/core";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, Input, Label, PageHeader, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { BRAND_SURFACES, THEMES, TOKENS, type Theme, type ThemeTokens } from "@hullwise/ui/tokens";
 import { requireSuperAdmin } from "@/server/admin";
 import { RevenueChart } from "@/components/charts/revenue-chart";
 import { StatusBadge } from "@/components/status-badge";

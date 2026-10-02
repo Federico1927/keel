@@ -1,9 +1,9 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { canWritePage } from "@keel/config";
-import { recordAudit } from "@keel/db";
-import { CodError, TAG_WRITE_EVENTS, assignQueueItem, modifyCodOrder, deleteCapacityException, distributeUnassigned, parseTagList, recomputeRecipientProfiles, recordAttempt, releaseQueueItem, saveCapacity, saveCapacityException, saveCodSettings, scorePendingItems, scoreQueueItem, setRecipientOverride, syncQueue } from "@keel/addon-cod";
+import { canWritePage } from "@hullwise/config";
+import { recordAudit } from "@hullwise/db";
+import { CodError, TAG_WRITE_EVENTS, assignQueueItem, modifyCodOrder, deleteCapacityException, distributeUnassigned, parseTagList, recomputeRecipientProfiles, recordAttempt, releaseQueueItem, saveCapacity, saveCapacityException, saveCodSettings, scorePendingItems, scoreQueueItem, setRecipientOverride, syncQueue } from "@hullwise/addon-cod";
 import { getCommercePlatform } from "@/server/integrations";
 import { auditActor } from "@/server/audit-actor";
 import { ForbiddenError, requirePage, type TenantContext } from "@/server/tenant";

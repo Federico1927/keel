@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ExternalLink, Plus } from "lucide-react";
-import { canDo, canWritePage } from "@keel/config";
-import { formatDate, formatDateTime, formatMoney, formatNumber, formatPercent, type AssistantCitation, type CitationFigure } from "@keel/core";
-import { assistantThread, assistantToolsFor, assistantUsage, getLlmProviderFor, listAssistantThreads } from "@keel/services";
-import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { canDo, canWritePage } from "@hullwise/config";
+import { formatDate, formatDateTime, formatMoney, formatNumber, formatPercent, type AssistantCitation, type CitationFigure } from "@hullwise/core";
+import { assistantThread, assistantToolsFor, assistantUsage, getLlmProviderFor, listAssistantThreads } from "@hullwise/services";
+import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { AskForm, DeleteThreadButton } from "./ask-form";
 

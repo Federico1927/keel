@@ -1,6 +1,6 @@
 "use client";
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import type { MetricFormat } from "@keel/config";
+import type { MetricFormat } from "@hullwise/config";
 import { AXIS_TICK, CHART_COLORS, CHART_GRID, TOOLTIP_PROPS } from "./theme";
 
 export interface MetricChartSeries {

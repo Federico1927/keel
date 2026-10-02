@@ -1,6 +1,6 @@
-import { and, desc, eq, inArray, lte, schema, sql } from "@keel/db";
-import { SALE_STATUSES } from "@keel/core";
-import { CONVERSION_PROVIDERS, fbcFromClickId, hashUserData, type ConversionEvent, type ConversionProvider, type ConversionSink } from "@keel/integrations";
+import { and, desc, eq, inArray, lte, schema, sql } from "@hullwise/db";
+import { SALE_STATUSES } from "@hullwise/core";
+import { CONVERSION_PROVIDERS, fbcFromClickId, hashUserData, type ConversionEvent, type ConversionProvider, type ConversionSink } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 
 const SALE = SALE_STATUSES as readonly string[];

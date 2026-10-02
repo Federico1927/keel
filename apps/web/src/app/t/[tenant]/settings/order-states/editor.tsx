@@ -2,8 +2,8 @@
 import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Pencil, Plus, Trash2 } from "lucide-react";
-import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Checkbox, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
-import { PAYMENT_METHODS } from "@keel/core";
+import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Checkbox, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { PAYMENT_METHODS } from "@hullwise/core";
 import { deleteStateRule, saveStateRule, type PreviewRow } from "@/server/actions/state-rules";
 import { StatusBadge } from "@/components/status-badge";
 

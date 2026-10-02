@@ -2,10 +2,10 @@
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { canDo, isPageEnabled } from "@keel/config";
-import { and, eq, recordAudit, schema } from "@keel/db";
-import { AUDIENCE_PROVIDERS, type AudienceProvider } from "@keel/integrations";
-import { addSegmentDestination, DestinationError, evaluateSegment, getAudienceDestinationFor, removeSegmentDestination, setDestinationAutoSync, syncSegmentDestination, type DestinationSyncResult } from "@keel/services";
+import { canDo, isPageEnabled } from "@hullwise/config";
+import { and, eq, recordAudit, schema } from "@hullwise/db";
+import { AUDIENCE_PROVIDERS, type AudienceProvider } from "@hullwise/integrations";
+import { addSegmentDestination, DestinationError, evaluateSegment, getAudienceDestinationFor, removeSegmentDestination, setDestinationAutoSync, syncSegmentDestination, type DestinationSyncResult } from "@hullwise/services";
 import { ForbiddenError, requireWrite } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 

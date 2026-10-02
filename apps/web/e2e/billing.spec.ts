@@ -30,7 +30,7 @@ async function startAndComplete(page: Page, email: string) {
 
 test.describe("Stripe billing (mock)", () => {
   test("console: catalog, start subscription with the emailed link, simulated checkout, subscriptions page", async ({ page }) => {
-    await login(page, "superadmin@keel.demo");
+    await login(page, "superadmin@hullwise.demo");
     await page.goto("/admin/billing/subscriptions");
     await expect(page.getByTestId("billing-mode")).toHaveAttribute("data-mode", "mock");
     await expect(page.getByTestId("stripe-not-configured")).toBeVisible();
@@ -49,7 +49,7 @@ test.describe("Stripe billing (mock)", () => {
   });
 
   test("owner: billing page, mock portal, invoice download and the past-due banner; other roles see neither", async ({ page, browser }) => {
-    await login(page, "superadmin@keel.demo");
+    await login(page, "superadmin@hullwise.demo");
     await openTenant(page, "harbor", "Harbor Home");
     await startAndComplete(page, "billing@harborhome.demo");
     // a declined renewal: past due at once

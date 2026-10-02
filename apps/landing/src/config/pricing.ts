@@ -21,11 +21,11 @@ export interface Plan {
   /** One-off setup fee; null means "on quote". `setupFeeFrom` marks "from" pricing. */
   setupFee: number | null;
   setupFeeFrom?: boolean;
-  /** Days the audit log is kept (mirrors `auditRetentionDays` in @keel/config); null = per contract. */
+  /** Days the audit log is kept (mirrors `auditRetentionDays` in @hullwise/config); null = per contract. */
   auditRetentionDays: number | null;
   /**
    * Feature identifiers, translated under `pricing.features.<id>`. Each one maps to module keys of
-   * @keel/config in `claims.ts`; a test checks that a plan lists a module exactly from the plan
+   * @hullwise/config in `claims.ts`; a test checks that a plan lists a module exactly from the plan
    * that includes it (`isModuleInPlan`), so the cards never promise what the product does not gate.
    */
   features: readonly string[];
@@ -87,7 +87,7 @@ export const OVERAGE = { pricePerBlock: 49, blockSize: 1000 } as const;
 
 /**
  * Add-ons and tailored integrations, priced per account. Monthly prices mirror
- * `monthlyPriceMinor` of the add-on modules in @keel/config (test in pricing.test.ts); add-ons the
+ * `monthlyPriceMinor` of the add-on modules in @hullwise/config (test in pricing.test.ts); add-ons the
  * product lists as "on request" have no price and show "on quote". An add-on is listed here only
  * once it is built.
  */

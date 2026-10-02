@@ -1,9 +1,9 @@
 import { createHmac } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, schema, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { DEFAULT_SURVEY_CONFIG, parseTenantSettings } from "@keel/core";
+import { and, eq, schema, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { DEFAULT_SURVEY_CONFIG, parseTenantSettings } from "@hullwise/core";
 import { attributionReport, getSurveySettings, publicSurveyView, saveSurveySettings, submitSurveyAnswer, SurveyError, surveyResults, surveySignature, type ServiceContext } from "../src";
 
 const pools = testPools();

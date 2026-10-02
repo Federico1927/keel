@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Check, LogOut, Monitor, Moon, Sun, UserRound } from "lucide-react";
-import { Avatar, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@keel/ui";
-import type { ThemePreference } from "@keel/ui/tokens";
+import { Avatar, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@hullwise/ui";
+import type { ThemePreference } from "@hullwise/ui/tokens";
 import { signOutAction } from "@/server/actions/auth";
 import { setThemeAction } from "@/server/actions/profile";
 

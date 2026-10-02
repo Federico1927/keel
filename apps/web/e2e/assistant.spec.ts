@@ -73,7 +73,7 @@ test.describe("AI assistant (core, on the store's own Anthropic key)", () => {
   });
 
   test("a store without a key is asked to connect one", async ({ page }) => {
-    await login(page, "superadmin@keel.demo");
+    await login(page, "superadmin@hullwise.demo");
     await page.goto("/admin/tenants/new");
     const stamp = Date.now().toString().slice(-6);
     await page.getByLabel(/Company name|Nome azienda/).fill(`AI Shop ${stamp}`);

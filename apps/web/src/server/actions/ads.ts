@@ -2,8 +2,8 @@
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { and, eq, recordAudit, schema } from "@keel/db";
-import { requestAdStatus, requestNegativeKeyword } from "@keel/services";
+import { and, eq, recordAudit, schema } from "@hullwise/db";
+import { requestAdStatus, requestNegativeKeyword } from "@hullwise/services";
 import { dispatchPlatformWrites } from "@/server/platform-writes";
 import { ForbiddenError, requireAction } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";

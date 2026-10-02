@@ -1,6 +1,6 @@
-import { and, eq, gte, isNull, lt, schema, sql } from "@keel/db";
-import { dashboardPeriod, orderPnl, previousPeriod, projectMonthEnd, type Granularity, type Period } from "@keel/core";
-import { AD_PLATFORMS, WIDGETS, WIDGET_SETTINGS, isCustomMetricRef, isWidgetAvailable, isWidgetVisible, metricDefinition, type DashboardWidget, type MetricFormat, type TenantRole, type WidgetSettings, type WidgetType } from "@keel/config";
+import { and, eq, gte, isNull, lt, schema, sql } from "@hullwise/db";
+import { dashboardPeriod, orderPnl, previousPeriod, projectMonthEnd, type Granularity, type Period } from "@hullwise/core";
+import { AD_PLATFORMS, WIDGETS, WIDGET_SETTINGS, isCustomMetricRef, isWidgetAvailable, isWidgetVisible, metricDefinition, type DashboardWidget, type MetricFormat, type TenantRole, type WidgetSettings, type WidgetType } from "@hullwise/config";
 import type { ServiceContext } from "../context";
 import { dashboardSummary, productPerformance, orderEconomicsForPeriod, type AnalyticsTenant, type DashboardSummary } from "../analytics";
 import { monthEndForecast, type MonthForecast } from "../analytics/depth";
@@ -116,10 +116,10 @@ const topList: WidgetLoader = async (ctx, env, { settings, period }) => {
     const perf = await productPerformance(ctx, period, s.limit);
     return { rows: perf.map((p) => ({ id: p.productId, label: p.title, value: p.grossRevenueMinor, secondary: p.units, path: `products/${p.productId}` })), format: "money", secondaryFormat: "number" } satisfies TopListData;
   }
-  // ads below the campaign (issue #40): search terms by spend with Keel orders, ads and keywords by Keel profit
+  // ads below the campaign (issue #40): search terms by spend with Hullwise orders, ads and keywords by Hullwise profit
   if (s.entity === "search_terms") {
     const terms = await topSearchTerms(ctx, env.tenant, period, s.limit);
-    return { rows: terms.map((t) => ({ id: t.id, label: t.text, value: t.metrics.spendMinor, secondary: t.keelMatchable ? t.economics.attributedOrders : null, path: `campaigns/keywords?tab=search_terms&q=${encodeURIComponent(t.text)}` })), format: "money", secondaryFormat: "number" } satisfies TopListData;
+    return { rows: terms.map((t) => ({ id: t.id, label: t.text, value: t.metrics.spendMinor, secondary: t.hullwiseMatchable ? t.economics.attributedOrders : null, path: `campaigns/keywords?tab=search_terms&q=${encodeURIComponent(t.text)}` })), format: "money", secondaryFormat: "number" } satisfies TopListData;
   }
   if (s.entity === "ads") {
     const { rows } = await adRows(ctx, env.tenant, period, {});
@@ -177,7 +177,7 @@ const queueReview: WidgetLoader = async (ctx) => {
 const queueLate: WidgetLoader = async (ctx, env) => ({ count: await countLateToShip(ctx, { timezone: env.tenant.timezone, settings: env.tenant.settings, now: env.now }), path: "fulfilment?view=late" }) satisfies QueueData;
 const queueAwaiting: WidgetLoader = async (ctx, env) => ({ count: (await backordersOf(ctx, env)).holdingOrders, path: "orders?stock=awaiting" }) satisfies QueueData;
 const queueExceptions: WidgetLoader = async (ctx) => ({ count: (await shipmentCaseCounts(ctx)).exceptionsOpen, path: "fulfilment/exceptions" }) satisfies QueueData;
-/** Integration health from what Keel records today: connections in error, sync sources in error, failed webhooks (the #32 watchdog will add more sources). */
+/** Integration health from what Hullwise records today: connections in error, sync sources in error, failed webhooks (the #32 watchdog will add more sources). */
 const queueIntegrations: WidgetLoader = async (ctx) => {
   const [i] = await ctx.tx.select({ n: sql<number>`count(*)::int` }).from(schema.integrations).where(and(eq(schema.integrations.tenantId, ctx.tenantId), eq(schema.integrations.status, "error")));
   const [h] = await ctx.tx.select({ n: sql<number>`count(*)::int` }).from(schema.integrationHealth).where(and(eq(schema.integrationHealth.tenantId, ctx.tenantId), eq(schema.integrationHealth.status, "error")));

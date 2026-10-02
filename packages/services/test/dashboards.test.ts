@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, schema, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { parseTenantSettings } from "@keel/core";
-import { normalizeLayout, type TenantRole } from "@keel/config";
+import { and, eq, schema, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { parseTenantSettings } from "@hullwise/core";
+import { normalizeLayout, type TenantRole } from "@hullwise/config";
 import {
   CORE_WIDGET_LOADERS,
   DashboardError,
@@ -124,7 +124,7 @@ describe("custom metrics over filtered orders", () => {
 });
 
 describe("dashboards", () => {
-  it("each role sees its home: the marketing variant, the tenant home, or Keel's template for Harbor", async () => {
+  it("each role sees its home: the marketing variant, the tenant home, or Hullwise's template for Harbor", async () => {
     const mk = await runA((s) => resolveHomeDashboard(s, "marketing", ["addon.cod"]));
     expect(mk.scope).toBe("role");
     expect(mk.widgets.some((w) => w.settings.metric === "meta_roas")).toBe(true);

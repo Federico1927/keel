@@ -3,7 +3,7 @@ import { useActionState, useEffect, useRef, useState, useTransition } from "reac
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Plus, Trash2 } from "lucide-react";
-import { Alert, AlertDescription, Button, Input, Label, Select } from "@keel/ui";
+import { Alert, AlertDescription, Button, Input, Label, Select } from "@hullwise/ui";
 import { applyStockTakeAction, cancelStockTakeAction, createStockTakeAction, scanStockTakeAction, setStockTakeCountAction } from "@/server/actions/inventory-control";
 
 /** New session: a location and an optional note; opens the session once created. */

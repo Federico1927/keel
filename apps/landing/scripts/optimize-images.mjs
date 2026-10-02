@@ -1,8 +1,8 @@
 /**
  * Converts the product captures (PNG, 2x) into the WebP sizes the landing serves, per locale.
  *
- *   pnpm --filter @keel/landing images
- *   CAPTURE_DIR=/path/to/pngs pnpm --filter @keel/landing images
+ *   pnpm --filter @hullwise/landing images
+ *   CAPTURE_DIR=/path/to/pngs pnpm --filter @hullwise/landing images
  *
  * Reads `<CAPTURE_DIR>/<locale>/<name>.png` for every entry of src/config/screenshots.ts and writes
  * `public/screenshots/<locale>/<name>-<width>.webp`.

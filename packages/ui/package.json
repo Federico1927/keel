@@ -1,5 +1,5 @@
 {
-  "name": "@keel/ui",
+  "name": "@hullwise/ui",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -40,7 +40,7 @@
     "react-dom": "^19"
   },
   "devDependencies": {
-    "@keel/eslint-config": "workspace:*",
+    "@hullwise/eslint-config": "workspace:*",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "eslint": "^9.39.0",

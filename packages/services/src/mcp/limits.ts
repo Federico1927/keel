@@ -1,6 +1,6 @@
-import { and, desc, eq, gte, lt, schema, sql, withTenant } from "@keel/db";
+import { and, desc, eq, gte, lt, schema, sql, withTenant } from "@hullwise/db";
 import type { ServiceContext } from "../context";
-import { MCP_LIMITS } from "@keel/config";
+import { MCP_LIMITS } from "@hullwise/config";
 import type { McpDeps } from "./auth";
 
 /**

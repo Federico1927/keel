@@ -1,6 +1,6 @@
-import { and, desc, eq, inArray, schema, sql, type SQL } from "@keel/db";
-import { OTHER_SEARCH_TERM, isNoiseTerm, normalizeSearchText, splitDateWindows, type AdEntityLevel } from "@keel/core";
-import { IntegrationError, NO_ADS_CAPABILITIES, type AdsPlatform, type NormalizedEntityMetric } from "@keel/integrations";
+import { and, desc, eq, inArray, schema, sql, type SQL } from "@hullwise/db";
+import { OTHER_SEARCH_TERM, isNoiseTerm, normalizeSearchText, splitDateWindows, type AdEntityLevel } from "@hullwise/core";
+import { IntegrationError, NO_ADS_CAPABILITIES, type AdsPlatform, type NormalizedEntityMetric } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { recordHealth, runAdsSync } from "../sync";
 
@@ -86,7 +86,7 @@ export async function importAdsStructure(ctx: ServiceContext, platform: AdsPlatf
   const ads = (await platform.fetchAds?.()) ?? [];
   const A = schema.adCreatives;
   const adRows = ads.filter((a) => lk.campaign.has(a.campaignExternalId)).map((a) => ({ tenantId: ctx.tenantId, campaignId: lk.campaign.get(a.campaignExternalId)!, platform: provider, externalId: a.externalId, adsetExternalId: a.adSetExternalId, adsetName: a.adSetExternalId ? (setName.get(a.adSetExternalId) ?? null) : null, adSetId: a.adSetExternalId ? (lk.adSet.get(a.adSetExternalId)?.id ?? null) : null, name: a.name, format: a.format, headline: a.headline, body: a.body, thumbnailUrl: a.thumbnailUrl, status: a.status, finalUrl: a.finalUrl, urlTags: a.urlTags, syncedAt: now, updatedAt: now }));
-  // hook / angle / tags are Keel's own grouping and are never overwritten
+  // hook / angle / tags are Hullwise's own grouping and are never overwritten
   for (const c of chunks(adRows)) await ctx.tx.insert(A).values(c).onConflictDoUpdate({ target: [A.tenantId, A.platform, A.externalId], set: { campaignId: excluded(A.campaignId), adsetExternalId: excluded(A.adsetExternalId), adsetName: excluded(A.adsetName), adSetId: excluded(A.adSetId), name: excluded(A.name), format: excluded(A.format), headline: excluded(A.headline), body: excluded(A.body), thumbnailUrl: excluded(A.thumbnailUrl), status: excluded(A.status), finalUrl: excluded(A.finalUrl), urlTags: excluded(A.urlTags), syncedAt: excluded(A.syncedAt), updatedAt: excluded(A.updatedAt) } });
   counts.ads = adRows.length;
   lk = await loadLookups(ctx, provider);

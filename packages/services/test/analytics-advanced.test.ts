@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { eq, schema, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { parseTenantSettings } from "@keel/core";
+import { eq, schema, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { parseTenantSettings } from "@hullwise/core";
 import { attributionReport, blendedForPeriod, creativePerformance, evaluateAlertRules, listCustomMetrics, ltvReport, metricValues, drainEmailJobs, mockEmailOutbox, mockSinkFor, saveAlertRule, saveCustomMetric, upsertPeriodCost, pnlForPeriod, type AnalyticsTenant, type ServiceContext } from "../src";
 
 const pools = testPools();

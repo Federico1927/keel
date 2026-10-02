@@ -1,6 +1,6 @@
-import { and, eq, schema } from "@keel/db";
-import { planTagChange } from "@keel/core";
-import type { CommercePlatform } from "@keel/integrations";
+import { and, eq, schema } from "@hullwise/db";
+import { planTagChange } from "@hullwise/core";
+import type { CommercePlatform } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { runPlatformWriteNow } from "../writes";
 import { applyCancellation, recomputeOrderStatus, type RecomputeResult } from "./state";
@@ -40,7 +40,7 @@ export async function updateOrderTagsWithPlatform(ctx: ServiceContext, platform:
 
 export type AssignOutcome = { kind: "not_found" } | { kind: "unchanged"; name: string } | { kind: "assigned"; name: string; previous: string | null };
 
-/** Local only (assignment is a Keel concept). The caller checks that the user is an active member. */
+/** Local only (assignment is a Hullwise concept). The caller checks that the user is an active member. */
 export async function assignOrderTo(ctx: ServiceContext, orderId: string, userId: string | null, opts: { eventMetadata?: Record<string, unknown> } = {}): Promise<AssignOutcome> {
   const [order] = await ctx.tx.select({ name: schema.orders.name, assignedTo: schema.orders.assignedTo }).from(schema.orders).where(and(eq(schema.orders.tenantId, ctx.tenantId), eq(schema.orders.id, orderId))).limit(1);
   if (!order) return { kind: "not_found" };

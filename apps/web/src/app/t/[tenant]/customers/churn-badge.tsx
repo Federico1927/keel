@@ -1,6 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { Badge } from "@keel/ui";
+import { Badge } from "@hullwise/ui";
 
 const VARIANT: Record<string, "success" | "warning" | "destructive"> = { low: "success", medium: "warning", high: "destructive" };
 

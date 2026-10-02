@@ -2,8 +2,8 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
-import { PLAN_KEYS } from "@keel/config";
-import { Alert, AlertDescription, Button, Card, CardContent, Input, Label, Select } from "@keel/ui";
+import { PLAN_KEYS } from "@hullwise/config";
+import { Alert, AlertDescription, Button, Card, CardContent, Input, Label, Select } from "@hullwise/ui";
 import { createTenantAction } from "@/server/actions/admin";
 
 export function NewTenantForm() {

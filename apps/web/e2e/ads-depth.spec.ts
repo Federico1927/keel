@@ -3,7 +3,7 @@ import { login } from "./helpers";
 
 /** Issue #40: below the campaign — ad sets, ads, assets, keywords, search terms, words and suggestions. */
 test.describe("ads below the campaign", () => {
-  test("drill-down campaign → ad set → ad → assets, with Keel orders clickable and spend reconciled", async ({ page }) => {
+  test("drill-down campaign → ad set → ad → assets, with Hullwise orders clickable and spend reconciled", async ({ page }) => {
     await login(page, "marketing@northwind.demo");
     await page.goto("/t/northwind-apparel/campaigns?preset=30d&platform=google&status=active");
     await page.getByTestId("campaign-row").first().getByRole("link").first().click();
@@ -20,8 +20,8 @@ test.describe("ads below the campaign", () => {
     await expect(page).toHaveURL(/\/ads\/[0-9a-f-]{36}/);
     await expect(page.getByTestId("asset-row").first()).toBeVisible();
     expect(await page.getByTestId("asset-row").count()).toBeGreaterThan(2);
-    // the Keel orders number opens the orders behind it
-    const ordersStat = page.getByRole("link", { name: /Keel orders|Ordini Keel/ }).first();
+    // the Hullwise orders number opens the orders behind it
+    const ordersStat = page.getByRole("link", { name: /Hullwise orders|Ordini Hullwise/ }).first();
     if (await ordersStat.count()) {
       await ordersStat.click();
       await expect(page).toHaveURL(/\/orders\?.*utmContent=/);

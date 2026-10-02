@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { eq, schema, sql, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedPlatform, type SeedContext } from "@keel/db/seed";
-import { EmailSendError, emailAddressHash, parseResendEvent } from "@keel/integrations";
+import { eq, schema, sql, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { EmailSendError, emailAddressHash, parseResendEvent } from "@hullwise/integrations";
 import {
   EMAIL_LOCALES,
   EMAIL_STRINGS,
@@ -45,22 +45,22 @@ const takeJob = (): EmailJob => {
 const row = async (id: string) => (await pools.admin.select().from(schema.emailMessages).where(eq(schema.emailMessages.id, id)))[0]!;
 const inMinutes = (n: number) => new Date(Date.now() + n * 60_000);
 
-const SENDER = { product: "Keel", legalName: "Keel Labs S.r.l.", legalAddress: "Via Example 1, 20100 Milano", supportEmail: "support@keel.example" };
+const SENDER = { product: "Hullwise", legalName: "Hullwise Labs S.r.l.", legalAddress: "Via Example 1, 20100 Milano", supportEmail: "support@hullwise.example" };
 const SAMPLES: { [K in EmailTemplate]: EmailTemplateData[K] } = {
-  magic_link: { url: "https://app.keel.example/api/auth/callback/email?token=abc123", minutes: 15 },
-  email_change_confirm: { url: "https://app.keel.example/account/confirm-email?token=def456", hours: 24 },
+  magic_link: { url: "https://app.hullwise.example/api/auth/callback/email?token=abc123", minutes: 15 },
+  email_change_confirm: { url: "https://app.hullwise.example/account/confirm-email?token=def456", hours: 24 },
   email_change_notice: { newEmail: "new@northwind.demo" },
-  invite: { tenantName: "Northwind Apparel", inviterName: "Giulia", role: "operations", url: "https://app.keel.example/invite/tok", days: 7 },
-  welcome: { name: "Marco", tenantName: "Northwind Apparel", dashboardUrl: "https://app.keel.example/t/northwind-apparel", profileUrl: "https://app.keel.example/t/northwind-apparel/profile", guideUrl: "https://app.keel.example/t/northwind-apparel/integrations/guide/shopify" },
-  password_reset: { url: "https://app.keel.example/reset-password/tok", minutes: 60 },
+  invite: { tenantName: "Northwind Apparel", inviterName: "Giulia", role: "operations", url: "https://app.hullwise.example/invite/tok", days: 7 },
+  welcome: { name: "Marco", tenantName: "Northwind Apparel", dashboardUrl: "https://app.hullwise.example/t/northwind-apparel", profileUrl: "https://app.hullwise.example/t/northwind-apparel/profile", guideUrl: "https://app.hullwise.example/t/northwind-apparel/integrations/guide/shopify" },
+  password_reset: { url: "https://app.hullwise.example/reset-password/tok", minutes: 60 },
   password_changed: { at: "2026-10-01T09:30:00.000Z", timezone: "Europe/Rome" },
   email_changed: { newEmail: "new@northwind.demo" },
-  new_sign_in: { device: "Firefox · Windows", ip: "203.0.113.7", at: "2026-10-01T09:30:00.000Z", timezone: "Europe/Rome", profileUrl: "https://app.keel.example/t/northwind-apparel/profile" },
+  new_sign_in: { device: "Firefox · Windows", ip: "203.0.113.7", at: "2026-10-01T09:30:00.000Z", timezone: "Europe/Rome", profileUrl: "https://app.hullwise.example/t/northwind-apparel/profile" },
   account_disabled: { tenantName: "Northwind Apparel" },
-  mention: { authorName: "Giulia", recordLabel: "#NW-1042", excerpt: "Can you check the address?\nThe courier called.", url: "https://app.keel.example/t/northwind-apparel/orders/1" },
-  supplier_po: { companyName: "Northwind Apparel", supplierName: "Tessitura Rossi", poNumber: "PO-0042", url: "https://app.keel.example/supplier/po/tok", expectedAt: "2026-10-20T10:00:00.000Z", timezone: "Europe/Rome" },
-  digest: { tenantName: "Northwind Apparel", groups: [{ type: "mention", count: 5, titles: ["#NW-1", "#NW-2"] }, { type: "late_to_ship", count: 1, titles: ["12"] }], url: "https://app.keel.example/t/northwind-apparel/notifications" },
-  notification: { title: "4", body: "SKU-1", url: "https://app.keel.example/t/northwind-apparel/inventory", type: "stock_critical_no_po" },
+  mention: { authorName: "Giulia", recordLabel: "#NW-1042", excerpt: "Can you check the address?\nThe courier called.", url: "https://app.hullwise.example/t/northwind-apparel/orders/1" },
+  supplier_po: { companyName: "Northwind Apparel", supplierName: "Tessitura Rossi", poNumber: "PO-0042", url: "https://app.hullwise.example/supplier/po/tok", expectedAt: "2026-10-20T10:00:00.000Z", timezone: "Europe/Rome" },
+  digest: { tenantName: "Northwind Apparel", groups: [{ type: "mention", count: 5, titles: ["#NW-1", "#NW-2"] }, { type: "late_to_ship", count: 1, titles: ["12"] }], url: "https://app.hullwise.example/t/northwind-apparel/notifications" },
+  notification: { title: "4", body: "SKU-1", url: "https://app.hullwise.example/t/northwind-apparel/inventory", type: "stock_critical_no_po" },
   test: { provider: "mock", sentAt: "2026-10-01T09:30:00.000Z" },
   billing_checkout: { tenantName: "Harbor Home", planName: "Growth", lines: [{ kind: "plan", key: "growth", amountMinor: 59900 }, { kind: "addon", key: "addon.cod", amountMinor: 19900 }, { kind: "setup", key: "growth", amountMinor: 150000 }], currency: "USD", trialDays: 14, url: "https://checkout.stripe.com/c/pay/cs_test_a1", expiresAt: "2026-10-02T09:30:00.000Z", timezone: "Europe/Rome" },
   carrier_instruction: { companyName: "Northwind Apparel", carrier: "Carrier", trackingNumber: "TRK123", orderName: "#NW-1042", resolution: "new_address", address: { name: "Giulia Rossi", address1: "Via Roma 1", zip: "20121", city: "Milano", country: "IT" }, pickupPoint: null, note: "Ring twice" },
@@ -73,12 +73,12 @@ describe("templates", () => {
     expect(keys(EMAIL_STRINGS.es)).toEqual(keys(EMAIL_STRINGS.en));
     for (const template of EMAIL_TEMPLATE_NAMES)
       for (const locale of EMAIL_LOCALES) {
-        const mail = renderEmail(template, locale, SAMPLES[template] as never, { sender: SENDER, unsubscribeUrl: "https://app.keel.example/u/signed" });
+        const mail = renderEmail(template, locale, SAMPLES[template] as never, { sender: SENDER, unsubscribeUrl: "https://app.hullwise.example/u/signed" });
         expect(mail.subject, `${template}/${locale}`).not.toMatch(/\{\w+\}/);
         expect(mail.text, `${template}/${locale}`).not.toMatch(/\{\w+\}/);
         expect(mail.html).toContain(`<html lang="${locale}">`);
-        expect(mail.html).toContain("Keel Labs S.r.l. · Via Example 1, 20100 Milano");
-        expect(mail.html).toContain("support@keel.example");
+        expect(mail.html).toContain("Hullwise Labs S.r.l. · Via Example 1, 20100 Milano");
+        expect(mail.html).toContain("support@hullwise.example");
         expect(mail.html).toContain("prefers-color-scheme:dark");
         expect({ subject: mail.subject, text: mail.text, html: mail.html }).toMatchSnapshot(`${template}.${locale}`);
       }
@@ -87,19 +87,19 @@ describe("templates", () => {
   it("security emails carry no unsubscribe link; numbers and dates follow the locale", () => {
     const ml = renderEmail("magic_link", "it", SAMPLES.magic_link, { sender: SENDER, unsubscribeUrl: "https://x/u/1" });
     expect(ml.html).not.toContain("https://x/u/1");
-    expect(ml.subject).toBe("Il tuo link di accesso a Keel");
+    expect(ml.subject).toBe("Il tuo link di accesso a Hullwise");
     expect(renderEmail("supplier_po", "it", SAMPLES.supplier_po, { sender: SENDER }).text).toContain("20 ott 2026");
     expect(renderEmail("magic_link", "es", { url: "https://x/m?<b>", minutes: 15 }, { sender: SENDER }).html).toContain("https://x/m?&lt;b&gt;");
-    expect(renderEmail("invite", "xx", SAMPLES.invite, { sender: SENDER }).subject).toBe("Giulia invited you to Northwind Apparel on Keel as operations");
+    expect(renderEmail("invite", "xx", SAMPLES.invite, { sender: SENDER }).subject).toBe("Giulia invited you to Northwind Apparel on Hullwise as operations");
   });
 });
 
 describe("provider selection", () => {
   it("uses Resend only with a key in live mode, and says when email is not configured", () => {
-    expect(emailSettings({ KEEL_INTEGRATION_MODE: "live" })).toMatchObject({ provider: "mock", state: "not_configured" });
-    expect(emailSettings({ KEEL_INTEGRATION_MODE: "live", NODE_ENV: "production" })).toMatchObject({ provider: "mock", state: "not_configured" });
-    expect(emailSettings({ KEEL_INTEGRATION_MODE: "mock", RESEND_API_KEY: "re_x" })).toMatchObject({ provider: "mock", state: "mock_mode" });
-    expect(emailSettings({ KEEL_INTEGRATION_MODE: "live", RESEND_API_KEY: "re_x", EMAIL_FROM: "Keel <no-reply@keel.example>", EMAIL_REPLY_TO: "support@keel.example" })).toMatchObject({ provider: "resend", state: "configured", from: "Keel <no-reply@keel.example>", replyTo: "support@keel.example", fromConfigured: true });
+    expect(emailSettings({ HULLWISE_INTEGRATION_MODE: "live" })).toMatchObject({ provider: "mock", state: "not_configured" });
+    expect(emailSettings({ HULLWISE_INTEGRATION_MODE: "live", NODE_ENV: "production" })).toMatchObject({ provider: "mock", state: "not_configured" });
+    expect(emailSettings({ HULLWISE_INTEGRATION_MODE: "mock", RESEND_API_KEY: "re_x" })).toMatchObject({ provider: "mock", state: "mock_mode" });
+    expect(emailSettings({ HULLWISE_INTEGRATION_MODE: "live", RESEND_API_KEY: "re_x", EMAIL_FROM: "Hullwise <no-reply@hullwise.example>", EMAIL_REPLY_TO: "support@hullwise.example" })).toMatchObject({ provider: "resend", state: "configured", from: "Hullwise <no-reply@hullwise.example>", replyTo: "support@hullwise.example", fromConfigured: true });
   });
 });
 
@@ -232,7 +232,7 @@ describe("bounces, complaints and the suppression list", () => {
 describe("delivery log", () => {
   it("never contains a token, a link or the address", async () => {
     const token = "SECRET-TOKEN-0123456789abcdefghijklmnop";
-    const url = `https://app.keel.example/api/auth/callback/email?token=${token}&email=owner%40northwind.demo`;
+    const url = `https://app.hullwise.example/api/auth/callback/email?token=${token}&email=owner%40northwind.demo`;
     const q = await queueEmail(platform, { to: "Owner@Northwind.demo", template: "magic_link", data: { url, minutes: 15 }, locale: "it", event: `magic:${token}`, expiresAt: inMinutes(15) });
     // the provider error echoes the link and the address: it is sanitized before it is stored
     const job = takeJob();
@@ -251,11 +251,11 @@ describe("delivery log", () => {
   });
 
   it("console: test email, last 7 days counts and log filters by tenant, status and recipient", async () => {
-    const admin = ctx.userIds["superadmin@keel.demo"]!;
+    const admin = ctx.userIds["superadmin@hullwise.demo"]!;
     const r = await sendTestEmail(pools.admin, { to: "console-test@example.com", locale: "it", actorUserId: admin });
     expect(r.outcome).toBe("queued");
     await drainEmailJobs(pools.admin);
-    expect(mockEmailOutbox().to("console-test@example.com")[0]!.message.subject).toBe("Email di prova di Keel");
+    expect(mockEmailOutbox().to("console-test@example.com")[0]!.message.subject).toBe("Email di prova di Hullwise");
     const stats = await emailStats(pools.admin);
     expect(stats.sent).toBeGreaterThan(0);
     expect(stats.bounced).toBeGreaterThan(0);

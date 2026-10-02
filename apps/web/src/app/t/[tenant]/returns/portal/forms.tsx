@@ -2,10 +2,10 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Plus, Trash2 } from "lucide-react";
-import type { PortalField, ReturnPortalConfig } from "@keel/core";
-import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Textarea, cn } from "@keel/ui";
+import type { PortalField, ReturnPortalConfig } from "@hullwise/core";
+import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Textarea, cn } from "@hullwise/ui";
 import { saveReturnBehaviourAction, savePortalConfigAction } from "@/server/actions/returns";
-import { TOKENS } from "@keel/ui/tokens";
+import { TOKENS } from "@hullwise/ui/tokens";
 
 type Localized = Record<string, string>;
 const TEXTS = ["title", "intro", "instructions", "successMessage", "confirmText"] as const;

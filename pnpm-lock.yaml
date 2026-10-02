@@ -23,10 +23,10 @@ importers:
 
   apps/landing:
     dependencies:
-      '@keel/config':
+      '@hullwise/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@keel/ui':
+      '@hullwise/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       lucide-react:
@@ -45,7 +45,7 @@ importers:
         specifier: ^19.1.0
         version: 19.3.0(react@19.3.0)
     devDependencies:
-      '@keel/eslint-config':
+      '@hullwise/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
       '@playwright/test':
@@ -87,28 +87,28 @@ importers:
       '@auth/drizzle-adapter':
         specifier: ^1.11.0
         version: 1.11.3
-      '@keel/addon-cod':
+      '@hullwise/addon-cod':
         specifier: workspace:*
         version: link:../../packages/addon-cod
-      '@keel/config':
+      '@hullwise/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@keel/core':
+      '@hullwise/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@keel/db':
+      '@hullwise/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@keel/integrations':
+      '@hullwise/integrations':
         specifier: workspace:*
         version: link:../../packages/integrations
-      '@keel/jobs':
+      '@hullwise/jobs':
         specifier: workspace:*
         version: link:../../packages/jobs
-      '@keel/services':
+      '@hullwise/services':
         specifier: workspace:*
         version: link:../../packages/services
-      '@keel/ui':
+      '@hullwise/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@modelcontextprotocol/sdk':
@@ -148,7 +148,7 @@ importers:
         specifier: ^4.0.0
         version: 4.6.5
     devDependencies:
-      '@keel/eslint-config':
+      '@hullwise/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
       '@playwright/test':
@@ -187,19 +187,19 @@ importers:
 
   packages/addon-cod:
     dependencies:
-      '@keel/config':
+      '@hullwise/config':
         specifier: workspace:*
         version: link:../config
-      '@keel/core':
+      '@hullwise/core':
         specifier: workspace:*
         version: link:../core
-      '@keel/db':
+      '@hullwise/db':
         specifier: workspace:*
         version: link:../db
-      '@keel/integrations':
+      '@hullwise/integrations':
         specifier: workspace:*
         version: link:../integrations
-      '@keel/services':
+      '@hullwise/services':
         specifier: workspace:*
         version: link:../services
       drizzle-orm:
@@ -209,7 +209,7 @@ importers:
         specifier: ^4.0.0
         version: 4.6.5
     devDependencies:
-      '@keel/eslint-config':
+      '@hullwise/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
       '@modelcontextprotocol/sdk':
@@ -240,7 +240,7 @@ importers:
         specifier: ^4.0.0
         version: 4.6.5
     devDependencies:
-      '@keel/eslint-config':
+      '@hullwise/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
       eslint:
@@ -255,7 +255,7 @@ importers:
 
   packages/core:
     dependencies:
-      '@keel/config':
+      '@hullwise/config':
         specifier: workspace:*
         version: link:../config
       libphonenumber-js:
@@ -265,7 +265,7 @@ importers:
         specifier: ^4.0.0
         version: 4.6.5
     devDependencies:
-      '@keel/eslint-config':
+      '@hullwise/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
       eslint:
@@ -280,13 +280,13 @@ importers:
 
   packages/db:
     dependencies:
-      '@keel/config':
+      '@hullwise/config':
         specifier: workspace:*
         version: link:../config
-      '@keel/core':
+      '@hullwise/core':
         specifier: workspace:*
         version: link:../core
-      '@keel/integrations':
+      '@hullwise/integrations':
         specifier: workspace:*
         version: link:../integrations
       bcryptjs:
@@ -299,7 +299,7 @@ importers:
         specifier: ^8.16.0
         version: 8.23.1
     devDependencies:
-      '@keel/eslint-config':
+      '@hullwise/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
       '@types/pg':
@@ -353,17 +353,17 @@ importers:
       '@anthropic-ai/sdk':
         specifier: ^0.131.0
         version: 0.131.0(zod@4.6.5)
-      '@keel/config':
+      '@hullwise/config':
         specifier: workspace:*
         version: link:../config
-      '@keel/core':
+      '@hullwise/core':
         specifier: workspace:*
         version: link:../core
       zod:
         specifier: ^4.0.0
         version: 4.6.5
     devDependencies:
-      '@keel/eslint-config':
+      '@hullwise/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
       eslint:
@@ -378,22 +378,22 @@ importers:
 
   packages/jobs:
     dependencies:
-      '@keel/addon-cod':
+      '@hullwise/addon-cod':
         specifier: workspace:*
         version: link:../addon-cod
-      '@keel/config':
+      '@hullwise/config':
         specifier: workspace:*
         version: link:../config
-      '@keel/core':
+      '@hullwise/core':
         specifier: workspace:*
         version: link:../core
-      '@keel/db':
+      '@hullwise/db':
         specifier: workspace:*
         version: link:../db
-      '@keel/integrations':
+      '@hullwise/integrations':
         specifier: workspace:*
         version: link:../integrations
-      '@keel/services':
+      '@hullwise/services':
         specifier: workspace:*
         version: link:../services
       '@sentry/node':
@@ -403,7 +403,7 @@ importers:
         specifier: ^12.0.0
         version: 12.35.1
     devDependencies:
-      '@keel/eslint-config':
+      '@hullwise/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
       dotenv-cli:
@@ -424,19 +424,19 @@ importers:
 
   packages/services:
     dependencies:
-      '@keel/config':
+      '@hullwise/config':
         specifier: workspace:*
         version: link:../config
-      '@keel/core':
+      '@hullwise/core':
         specifier: workspace:*
         version: link:../core
-      '@keel/db':
+      '@hullwise/db':
         specifier: workspace:*
         version: link:../db
-      '@keel/integrations':
+      '@hullwise/integrations':
         specifier: workspace:*
         version: link:../integrations
-      '@keel/ui':
+      '@hullwise/ui':
         specifier: workspace:*
         version: link:../ui
       '@modelcontextprotocol/sdk':
@@ -452,7 +452,7 @@ importers:
         specifier: ^4.0.0
         version: 4.6.5
     devDependencies:
-      '@keel/eslint-config':
+      '@hullwise/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
       '@types/pg':
@@ -522,7 +522,7 @@ importers:
         specifier: ^3.3.0
         version: 3.7.0
     devDependencies:
-      '@keel/eslint-config':
+      '@hullwise/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
       '@types/react':

@@ -1,11 +1,11 @@
 import { getTranslations } from "next-intl/server";
-import { formatDateTime } from "@keel/core";
-import { mergeCandidates, queueItemDetail, scoreQueueItem, type ScoreFactor } from "@keel/addon-cod";
-import { and, eq, schema } from "@keel/db";
-import { formatMoney } from "@keel/core";
-import type { Address } from "@keel/integrations";
+import { formatDateTime } from "@hullwise/core";
+import { mergeCandidates, queueItemDetail, scoreQueueItem, type ScoreFactor } from "@hullwise/addon-cod";
+import { and, eq, schema } from "@hullwise/db";
+import { formatMoney } from "@hullwise/core";
+import type { Address } from "@hullwise/integrations";
 import { EditOrderDialog } from "./edit-order";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@keel/ui";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@hullwise/ui";
 import type { TenantContext } from "@/server/tenant";
 import { OutcomeDialog, ScoreBadge } from "../../cod/queue-controls";
 

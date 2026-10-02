@@ -1,6 +1,6 @@
 import { randomInt } from "node:crypto";
-import { and, asc, eq, ilike, inArray, isNotNull, isNull, or, schema, sql, type SQL } from "@keel/db";
-import { generateUniqueCodes, poolTopUpCount, type PoolCodeStatus } from "@keel/core";
+import { and, asc, eq, ilike, inArray, isNotNull, isNull, or, schema, sql, type SQL } from "@hullwise/db";
+import { generateUniqueCodes, poolTopUpCount, type PoolCodeStatus } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { enqueuePlatformWrite, type PlatformWriteRow } from "../writes";
 import { linkPoolRedemptions } from "./redemptions";
@@ -188,7 +188,7 @@ export async function topUpDiscountPool(ctx: ServiceContext, poolId: string, tar
   }
   const imported = new Set(result.imported);
   for (let i = 0; i < codes.length; i += 500) {
-    await ctx.tx.insert(d).values(codes.slice(i, i + 500).map((code) => ({ tenantId: ctx.tenantId, externalId: imported.has(code) ? `${result.externalId}:${code}` : null, poolId: pool.id, code, title: null, type: pool.type, value: pool.value, usageLimit: 1, usedCount: 0, startsAt: pool.startsAt, endsAt: pool.endsAt, isActive: imported.has(code), source: "keel", syncedAt: now })));
+    await ctx.tx.insert(d).values(codes.slice(i, i + 500).map((code) => ({ tenantId: ctx.tenantId, externalId: imported.has(code) ? `${result.externalId}:${code}` : null, poolId: pool.id, code, title: null, type: pool.type, value: pool.value, usageLimit: 1, usedCount: 0, startsAt: pool.startsAt, endsAt: pool.endsAt, isActive: imported.has(code), source: "hullwise", syncedAt: now })));
   }
   await ctx.tx.update(schema.discountPools).set({ targetSize: Math.round(target), externalId: pool.externalId ?? result.externalId, status: result.failed.length ? "partial" : pool.status, updatedAt: now }).where(eq(schema.discountPools.id, pool.id));
   return { added: codes.length, imported: imported.size, failed: result.failed.length, target: Math.round(target) };

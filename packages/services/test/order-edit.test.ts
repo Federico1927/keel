@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, inArray, schema, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { MockCommercePlatform, type NormalizedOrder } from "@keel/integrations";
-import { parseTenantSettings } from "@keel/core";
+import { and, eq, inArray, schema, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { MockCommercePlatform, type NormalizedOrder } from "@hullwise/integrations";
+import { parseTenantSettings } from "@hullwise/core";
 import { OrderEditError, applyOrderDiscount, customerOrderHistory, editOrder, editOrderDetails, importOrder, orderLineage, orderMergeCandidates, pnlForPeriod, recomputeOrderStatus, replaceOrder, type AnalyticsTenant, type ServiceContext } from "../src";
 
 const pools = testPools();
@@ -173,13 +173,13 @@ describe("core order edit: discount on an existing order", () => {
     const p = platform();
     const r = await ops((s) => applyOrderDiscount(s, p, { orderId: id!, type: "percentage", value: 1000, reason: "late delivery" }));
     const expected = Math.round(((before.subtotalMinor - before.discountMinor) * 1000) / 10000);
-    expect(r).toMatchObject({ code: "KEEL-10%", amountMinor: expected, totalMinor: before.totalMinor - expected, refundDueMinor: expected });
-    expect(p.writeLog[0]).toMatchObject({ op: "applyOrderDiscount", args: { externalId: before.externalId, type: "percentage", value: 1000, amountMinor: expected, code: "KEEL-10%" } });
+    expect(r).toMatchObject({ code: "HULLWISE-10%", amountMinor: expected, totalMinor: before.totalMinor - expected, refundDueMinor: expected });
+    expect(p.writeLog[0]).toMatchObject({ op: "applyOrderDiscount", args: { externalId: before.externalId, type: "percentage", value: 1000, amountMinor: expected, code: "HULLWISE-10%" } });
     const after = await order(id!);
     expect(after.discountMinor).toBe(before.discountMinor + expected);
     expect(after.totalMinor).toBe(before.totalMinor - expected);
     const discounts = await ops((s) => s.tx.select().from(schema.orderDiscounts).where(eq(schema.orderDiscounts.orderId, id!)));
-    expect(discounts.some((d) => d.code === "KEEL-10%" && d.amountMinor === expected)).toBe(true);
+    expect(discounts.some((d) => d.code === "HULLWISE-10%" && d.amountMinor === expected)).toBe(true);
     const [ev] = await ops((s) => s.tx.select().from(schema.orderEvents).where(and(eq(schema.orderEvents.orderId, id!), eq(schema.orderEvents.type, "discount_applied"))));
     expect(ev!.diff).toEqual({ discountMinor: { from: before.discountMinor, to: before.discountMinor + expected }, totalMinor: { from: before.totalMinor, to: before.totalMinor - expected } });
     expect(ev!.actorUserId).toBe(ctx.userIds["ops@harborhome.demo"]);

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { asc, schema } from "@keel/db";
-import { formatDateTime, formatNumber } from "@keel/core";
-import { integrationIssues } from "@keel/services";
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, Label, PageHeader, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { asc, schema } from "@hullwise/db";
+import { formatDateTime, formatNumber } from "@hullwise/core";
+import { integrationIssues } from "@hullwise/services";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, Label, PageHeader, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 
 /** Integration errors across tenants, per tenant and source (#48); "Open as support" leads to the tenant's own integrations page. */

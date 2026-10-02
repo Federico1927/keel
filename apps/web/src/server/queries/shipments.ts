@@ -1,6 +1,6 @@
-import { and, desc, eq, inArray, schema, sql, type SQL } from "@keel/db";
-import { SHIPMENT_FINAL_STATUSES, SHIPMENT_STATUSES } from "@keel/core";
-import { PAGE_SIZE } from "@keel/config";
+import { and, desc, eq, inArray, schema, sql, type SQL } from "@hullwise/db";
+import { SHIPMENT_FINAL_STATUSES, SHIPMENT_STATUSES } from "@hullwise/core";
+import { PAGE_SIZE } from "@hullwise/config";
 import type { TenantContext } from "@/server/tenant";
 
 export interface ShipmentFilters {

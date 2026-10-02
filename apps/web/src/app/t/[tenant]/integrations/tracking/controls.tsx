@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Copy, Play, RefreshCw } from "lucide-react";
-import { Button, Input, Label } from "@keel/ui";
+import { Button, Input, Label } from "@hullwise/ui";
 import { runConversionsNowAction, saveConversionSettingsAction, savePixelSettingsAction, sendTestPixelEventAction } from "@/server/actions/tracking";
 
 function useAct() {

@@ -7,6 +7,8 @@
  * production build in `mock` mode with the development defaults of `.env.example`.
  */
 
+import { legacyEnvVars } from "./legacy";
+
 /** Values shipped in `.env.example`; a live deployment must not run with them. */
 export const DEV_DEFAULT_SECRETS = {
   AUTH_SECRET: "dev-only-change-me-please-32-bytes-min",
@@ -25,8 +27,11 @@ type Env = Record<string, string | undefined>;
 export function checkRuntimeConfig(env: Env, role: RuntimeProcess): RuntimeCheck {
   const errors: string[] = [];
   const warnings: string[] = [];
-  const live = env.KEEL_INTEGRATION_MODE === "live";
-  const queued = env.KEEL_JOBS_QUEUE === "1";
+  const live = env.HULLWISE_INTEGRATION_MODE === "live";
+  const queued = env.HULLWISE_JOBS_QUEUE === "1";
+
+  // variables still named with the pre-rename prefix would be ignored and replaced by defaults: refuse to start
+  for (const v of legacyEnvVars(env)) errors.push(`${v.legacy} uses the old product prefix and is ignored: rename it to ${v.rename} (docs/DEPLOY.md, "Rename cutover").`);
 
   if (!env.DATABASE_URL) errors.push("DATABASE_URL is not set.");
   if (!env.DATABASE_ADMIN_URL) errors.push("DATABASE_ADMIN_URL is not set.");
@@ -34,7 +39,7 @@ export function checkRuntimeConfig(env: Env, role: RuntimeProcess): RuntimeCheck
   if (live) {
     // Without the queue, webhooks and resyncs run inside the web process: a burst of
     // orders from one tenant would stall every tenant's requests.
-    if (!queued) errors.push("KEEL_INTEGRATION_MODE=live requires KEEL_JOBS_QUEUE=1 and a running worker (pnpm --filter @keel/jobs start).");
+    if (!queued) errors.push("HULLWISE_INTEGRATION_MODE=live requires HULLWISE_JOBS_QUEUE=1 and a running worker (pnpm --filter @hullwise/jobs start).");
     for (const [name, devValue] of Object.entries(DEV_DEFAULT_SECRETS)) {
       const value = env[name];
       if (!value) errors.push(`${name} is not set.`);
@@ -54,17 +59,17 @@ export function checkRuntimeConfig(env: Env, role: RuntimeProcess): RuntimeCheck
   }
 
   if (role === "worker" && !queued) {
-    warnings.push("The worker is running but KEEL_JOBS_QUEUE is not 1: the web process will not enqueue jobs, only schedules will run here.");
+    warnings.push("The worker is running but HULLWISE_JOBS_QUEUE is not 1: the web process will not enqueue jobs, only schedules will run here.");
   }
 
   return { errors, warnings };
 }
 
 /**
- * Sentry `dataCollection` for every Keel process (web server, browser, worker). Tenants' orders
+ * Sentry `dataCollection` for every Hullwise process (web server, browser, worker). Tenants' orders
  * and customers carry personal data, and Sentry's defaults would send request bodies, cookies,
  * headers, query parameters, database parameters, queue payloads and stack-frame variables.
- * Keel sends the error, its stack trace and source context, nothing else.
+ * Hullwise sends the error, its stack trace and source context, nothing else.
  */
 export const SENTRY_DATA_COLLECTION = {
   userInfo: false,

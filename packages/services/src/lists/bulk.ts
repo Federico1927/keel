@@ -1,6 +1,6 @@
-import { and, eq, inArray, recordAudit, schema } from "@keel/db";
-import { canTransitionReturn, type BulkCompareAtChange, type BulkPriceChange, type OrderStatus, type TenantSettings } from "@keel/core";
-import type { CommercePlatform } from "@keel/integrations";
+import { and, eq, inArray, recordAudit, schema } from "@hullwise/db";
+import { canTransitionReturn, type BulkCompareAtChange, type BulkPriceChange, type OrderStatus, type TenantSettings } from "@hullwise/core";
+import type { CommercePlatform } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import type { AuditIdentity } from "../catalog/costs";
 import { setManualStatus } from "../orders/state";

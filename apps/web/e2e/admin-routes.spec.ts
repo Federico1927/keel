@@ -31,7 +31,7 @@ async function hrefOf(page: Page, url: string, selector: string): Promise<string
 test.describe("console routes are for super-admins only", () => {
   test("each route renders for the super-admin and is a 404 for a tenant owner", async ({ page, browser }) => {
     expect(ALL.length).toBeGreaterThanOrEqual(15);
-    await login(page, "superadmin@keel.demo");
+    await login(page, "superadmin@hullwise.demo");
     const dynamic: Record<string, string | null> = {
       "/admin/tenants/[id]": await hrefOf(page, "/admin/tenants?q=northwind", '[data-testid="tenant-row"] a[href^="/admin/tenants/"]'),
       "/admin/users/[id]": await hrefOf(page, "/admin/users?q=owner@northwind.demo", '[data-testid="user-row"] a[href^="/admin/users/"]'),

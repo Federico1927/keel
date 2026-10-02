@@ -1,5 +1,5 @@
-import { eq, recordAudit, schema } from "@keel/db";
-import { diffRecords, hasChanges, isHexColor } from "@keel/core";
+import { eq, recordAudit, schema } from "@hullwise/db";
+import { diffRecords, hasChanges, isHexColor } from "@hullwise/core";
 import type { ServiceContext } from "./context";
 
 /**

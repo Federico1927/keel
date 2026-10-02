@@ -1,6 +1,6 @@
 "use server";
-import { withTenant } from "@keel/db";
-import { addEmailSuppression, applyUnsubscribeToPreferences, verifyUnsubscribeToken } from "@keel/services";
+import { withTenant } from "@hullwise/db";
+import { addEmailSuppression, applyUnsubscribeToPreferences, verifyUnsubscribeToken } from "@hullwise/services";
 
 /**
  * Public unsubscribe (no session): the signed token names tenant, address and category. The

@@ -1,7 +1,7 @@
 "use client";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Badge, Button, Card, CardContent, Checkbox, Input, Label, Select, Textarea } from "@keel/ui";
+import { Alert, AlertDescription, Badge, Button, Card, CardContent, Checkbox, Input, Label, Select, Textarea } from "@hullwise/ui";
 import { deleteTaskRuleAction, restoreDefaultRulesAction, saveTaskRuleAction } from "@/server/actions/tasks";
 
 export interface RuleView {

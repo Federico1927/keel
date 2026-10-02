@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { ADDON_MODULES, CHURN_RETENTION_DAYS, isAdPlatform, MODULES, PLATFORM_CURRENCY, TENANT_EXPORT_TTL_DAYS, isTenantStatus } from "@keel/config";
-import { LIFECYCLE_TRANSITIONS, formatDate, formatDateTime, formatMoney, formatNumber } from "@keel/core";
-import { listTenantExports, tenantAdminDetail } from "@keel/services";
+import { ADDON_MODULES, CHURN_RETENTION_DAYS, isAdPlatform, MODULES, PLATFORM_CURRENCY, TENANT_EXPORT_TTL_DAYS, isTenantStatus } from "@hullwise/config";
+import { LIFECYCLE_TRANSITIONS, formatDate, formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
+import { listTenantExports, tenantAdminDetail } from "@hullwise/services";
 import {
   Badge,
   Card,
@@ -19,7 +19,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@keel/ui";
+} from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { DataExportTable } from "@/components/data-export/export-table";
 import { RequestDataExportButton } from "@/components/data-export/request-button";

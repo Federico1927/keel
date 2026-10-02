@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { canWritePage } from "@keel/config";
-import { formatDate, formatDateTime, formatMoney, formatNumber, formatPercent } from "@keel/core";
-import { listSegments, retentionCampaignDetail } from "@keel/services";
-import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { canWritePage } from "@hullwise/config";
+import { formatDate, formatDateTime, formatMoney, formatNumber, formatPercent } from "@hullwise/core";
+import { listSegments, retentionCampaignDetail } from "@hullwise/services";
+import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { CampaignForm } from "../campaign-form";
 import { UpliftBadge } from "../uplift-badge";

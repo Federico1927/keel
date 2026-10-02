@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { and, eq, schema, withTenant, type Database } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { MCP_CORE_TOOLS, createMcpServer, createPersonalAccessToken, resolveMcpBearer, type McpDeps } from "@keel/services";
+import { and, eq, schema, withTenant, type Database } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { MCP_CORE_TOOLS, createMcpServer, createPersonalAccessToken, resolveMcpBearer, type McpDeps } from "@hullwise/services";
 import { COD_MCP_TOOLS } from "../src";
 
 const pools = testPools();
@@ -26,7 +26,7 @@ async function client(): Promise<Client> {
   const issued = await withTenant(tenantId, (tx) => createPersonalAccessToken({ tenantId, tx, actor: { type: "user", userId } }, { userId, name: "cod test", scopes: ["read"], days: 7 }), pools.app);
   const auth = await resolveMcpBearer(deps, issued.token);
   if (!auth.ok) throw new Error(auth.code);
-  const server = createMcpServer({ deps, principal: auth.principal, tools: [...MCP_CORE_TOOLS, ...COD_MCP_TOOLS], linkBase: "https://keel.test" });
+  const server = createMcpServer({ deps, principal: auth.principal, tools: [...MCP_CORE_TOOLS, ...COD_MCP_TOOLS], linkBase: "https://hullwise.test" });
   const [ct, st] = InMemoryTransport.createLinkedPair();
   await server.connect(st);
   const c = new Client({ name: "vitest", version: "1" });

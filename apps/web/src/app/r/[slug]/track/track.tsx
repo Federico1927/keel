@@ -1,7 +1,7 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from "@keel/ui";
+import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from "@hullwise/ui";
 import { portalTrackAction, type TrackingView } from "@/server/actions/portal";
 
 export function TrackApp({ slug, locale, timezone, primaryColor, onPrimary, returnsHref, lookupBy }: { slug: string; locale: string; timezone: string; primaryColor: string; onPrimary: string; returnsHref: string; lookupBy: "email" | "email_or_phone" }) {

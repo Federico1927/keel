@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
-import { canDo } from "@keel/config";
-import { asc, eq, schema } from "@keel/db";
-import { listCasePacks } from "@keel/services";
-import { Badge, Card, CardContent, CardHeader, CardTitle, EmptyState } from "@keel/ui";
+import { canDo } from "@hullwise/config";
+import { asc, eq, schema } from "@hullwise/db";
+import { listCasePacks } from "@hullwise/services";
+import { Badge, Card, CardContent, CardHeader, CardTitle, EmptyState } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { CasePackForm, DeletePackButton } from "./form";
 

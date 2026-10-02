@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { and, desc, eq, gte, isNull, recordAudit, schema, sql, type DbExecutor, type SQL } from "@keel/db";
-import { emailAddressHash } from "@keel/integrations";
+import { and, desc, eq, gte, isNull, recordAudit, schema, sql, type DbExecutor, type SQL } from "@hullwise/db";
+import { emailAddressHash } from "@hullwise/integrations";
 import { emailSettings } from "./provider";
 import { queueEmail, type QueuedEmail } from "./mailer";
 

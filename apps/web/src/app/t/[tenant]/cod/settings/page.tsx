@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDate, displayName } from "@keel/core";
-import { adminDb, eq, schema } from "@keel/db";
-import { SCORE_FACTORS, TAG_WRITE_EVENTS, getCodSettings, listCapacity, listRiskyRecipients } from "@keel/addon-cod";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { formatDate, displayName } from "@hullwise/core";
+import { adminDb, eq, schema } from "@hullwise/db";
+import { SCORE_FACTORS, TAG_WRITE_EVENTS, getCodSettings, listCapacity, listRiskyRecipients } from "@hullwise/addon-cod";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { CapacityRow, DeleteExceptionButton, ExceptionForm, OverrideControls, RecomputeRiskButton, ScoringSettingsForm, TagSettingsForm } from "./controls";
 

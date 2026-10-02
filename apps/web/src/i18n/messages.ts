@@ -1,4 +1,4 @@
-import type { Locale } from "@keel/config";
+import type { Locale } from "@hullwise/config";
 
 export async function loadMessages(locale: Locale): Promise<Record<string, unknown>> {
   switch (locale) {

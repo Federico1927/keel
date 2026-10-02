@@ -23,7 +23,7 @@ test.describe("dropdowns are never clipped", () => {
   });
 
   test("admin plan select", async ({ page }) => {
-    await login(page, "superadmin@keel.demo");
+    await login(page, "superadmin@hullwise.demo");
     await page.goto("/admin/tenants");
     await page.getByRole("link", { name: "Harbor Home" }).first().click();
     const plan = page.locator('select[aria-label="plan"]');

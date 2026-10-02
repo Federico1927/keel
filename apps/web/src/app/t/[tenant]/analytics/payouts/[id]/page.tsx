@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { formatDate, formatDateTime, formatMoney } from "@keel/core";
-import { payoutDetail } from "@keel/services";
-import { Alert, AlertDescription, Badge, Card, CardContent, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { formatDate, formatDateTime, formatMoney } from "@hullwise/core";
+import { payoutDetail } from "@hullwise/services";
+import { Alert, AlertDescription, Badge, Card, CardContent, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { PAYOUT_STATUS_VARIANT as STATUS_VARIANT } from "../status";
 

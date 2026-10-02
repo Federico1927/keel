@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { METRICS, canDo, normalizeMetricFilters, type MetricFilters, type MetricFormat } from "@keel/config";
-import { dashboardPeriod, localMonthKey } from "@keel/core";
-import { customLabel, listMetricTargets, metricFilterOptions, tenantMetricValues } from "@keel/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { METRICS, canDo, normalizeMetricFilters, type MetricFilters, type MetricFormat } from "@hullwise/config";
+import { dashboardPeriod, localMonthKey } from "@hullwise/core";
+import { customLabel, listMetricTargets, metricFilterOptions, tenantMetricValues } from "@hullwise/services";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { analyticsTenant, pageNow, sharedMemo, tenantCustoms } from "@/server/dashboards";
 import { formatMetric } from "@/components/dashboard/format";

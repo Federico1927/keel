@@ -2,7 +2,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, Input } from "@keel/ui";
+import { Button, Input } from "@hullwise/ui";
 import { setMcpKillSwitchAction } from "@/server/actions/mcp";
 
 /** Suspend or restore MCP access for one tenant (audited on the tenant). */

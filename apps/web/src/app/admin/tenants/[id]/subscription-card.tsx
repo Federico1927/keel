@@ -1,9 +1,9 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { MODULES, PLANS, PLAN_KEYS, PLATFORM_CURRENCY, isAddonModule } from "@keel/config";
-import { billingCatalog, formatDate, formatDateTime, formatMoney } from "@keel/core";
-import type { Database } from "@keel/db";
-import { billingSettings, tenantSubscriptionDetail } from "@keel/services";
-import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@keel/ui";
+import { MODULES, PLANS, PLAN_KEYS, PLATFORM_CURRENCY, isAddonModule } from "@hullwise/config";
+import { billingCatalog, formatDate, formatDateTime, formatMoney } from "@hullwise/core";
+import type { Database } from "@hullwise/db";
+import { billingSettings, tenantSubscriptionDetail } from "@hullwise/services";
+import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@hullwise/ui";
 import { CopyField } from "@/components/mcp/copy-field";
 import { BillingModeBadge } from "../../_components/billing-mode";
 import { StartSubscriptionDialog, SubscriptionActions } from "./billing-controls";

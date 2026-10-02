@@ -3,7 +3,7 @@ import { login } from "./helpers";
 
 test.describe("platform email", () => {
   test("console: 'not configured' without a Resend key, counts, log filters and a test email through the queue", async ({ page }) => {
-    await login(page, "superadmin@keel.demo");
+    await login(page, "superadmin@hullwise.demo");
     await page.goto("/admin/email");
     // the e2e build runs without RESEND_API_KEY: the mock captures emails and the console says so
     await expect(page.getByTestId("email-not-configured")).toBeVisible();

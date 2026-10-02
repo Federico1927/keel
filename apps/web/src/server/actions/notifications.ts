@@ -1,9 +1,9 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { NOTIFICATION_CHANNELS, isNotificationType } from "@keel/config";
-import { addEmailSuppression, markAllRead, removeEmailSuppression, resetNotificationPreferences, setMentionsRead, setNotificationPreference, setNotificationsRead, type ServiceContext } from "@keel/services";
-import type { Transaction } from "@keel/db";
+import { NOTIFICATION_CHANNELS, isNotificationType } from "@hullwise/config";
+import { addEmailSuppression, markAllRead, removeEmailSuppression, resetNotificationPreferences, setMentionsRead, setNotificationPreference, setNotificationsRead, type ServiceContext } from "@hullwise/services";
+import type { Transaction } from "@hullwise/db";
 import { ForbiddenError, getTenantContext, requireAction, requirePage, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 

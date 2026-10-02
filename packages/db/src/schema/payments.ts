@@ -6,7 +6,7 @@ import { users } from "./auth";
 import { orders } from "./orders";
 
 /**
- * Money Keel moved on an order after checkout (issue #27): manual payments recorded by staff and
+ * Money Hullwise moved on an order after checkout (issue #27): manual payments recorded by staff and
  * refunds issued from the order page. The order row keeps the totals (`refunded_minor`,
  * `payment_status`); these rows are the ledger behind them, with author and platform reference.
  */

@@ -1,6 +1,6 @@
-import { PRODUCT_NAME } from "@keel/config";
-import { formatDate, formatDateTime, formatMoney, formatNumber } from "@keel/core";
-import { TOKENS } from "@keel/ui/tokens";
+import { PRODUCT_NAME } from "@hullwise/config";
+import { formatDate, formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
+import { TOKENS } from "@hullwise/ui/tokens";
 import en from "./messages/en.json";
 import es from "./messages/es.json";
 import it from "./messages/it.json";
@@ -9,7 +9,7 @@ import it from "./messages/it.json";
  * Typed email templates (issue #51): props per template, subject and body in en/it/es from the
  * translation files in ./messages (a test keeps their keys identical), HTML and plain text,
  * one layout with the product mark, the product name from PRODUCT_NAME and a footer with the
- * legal sender and the support address. Colours are direction A tokens (@keel/ui/tokens), with a
+ * legal sender and the support address. Colours are direction A tokens (@hullwise/ui/tokens), with a
  * dark-scheme override for clients that honour `prefers-color-scheme`.
  */
 export const EMAIL_LOCALES = ["en", "it", "es"] as const;
@@ -35,7 +35,7 @@ export interface EmailTemplateData {
   notification: { title: string; body: string | null; url: string | null; type: string };
   test: { provider: string; sentAt: Date | string };
   /** Delivery instruction for a parcel in exception, to the carrier's customer service (issue #28). */
-  /** Link to start the Keel subscription (Stripe Checkout), to the customer's billing contact (issue #53). */
+  /** Link to start the Hullwise subscription (Stripe Checkout), to the customer's billing contact (issue #53). */
   billing_checkout: { tenantName: string; planName: string; lines: { kind: "plan" | "addon" | "setup"; key: string; amountMinor: number }[]; currency: string; trialDays: number; url: string; expiresAt: Date | string | null; timezone: string };
   carrier_instruction: { companyName: string; carrier: string | null; trackingNumber: string; orderName: string; resolution: "redeliver" | "new_address" | "pickup_point" | "return"; address: { name?: string | null; address1?: string | null; address2?: string | null; zip?: string | null; city?: string | null; province?: string | null; country?: string | null; phone?: string | null } | null; pickupPoint: string | null; note: string | null };
 }

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canWritePage } from "@keel/config";
-import { formatNumber } from "@keel/core";
-import { fulfilmentBoard, parseBoardFilters, shipmentCaseCounts } from "@keel/services";
-import { Button, Input, PageHeader, Stat, cn } from "@keel/ui";
+import { canWritePage } from "@hullwise/config";
+import { formatNumber } from "@hullwise/core";
+import { fulfilmentBoard, parseBoardFilters, shipmentCaseCounts } from "@hullwise/services";
+import { Button, Input, PageHeader, Stat, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { FulfilmentTabs } from "./tabs";
 import { Board } from "./board";

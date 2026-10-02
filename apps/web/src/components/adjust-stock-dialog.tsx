@@ -2,8 +2,8 @@
 import { useActionState, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { SlidersHorizontal } from "lucide-react";
-import { ADJUSTMENT_REASONS, type AdjustmentReason } from "@keel/core";
-import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, Label, Select, Textarea } from "@keel/ui";
+import { ADJUSTMENT_REASONS, type AdjustmentReason } from "@hullwise/core";
+import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, Label, Select, Textarea } from "@hullwise/ui";
 import { adjustStockAction } from "@/server/actions/inventory-control";
 
 export interface AdjustVariant {

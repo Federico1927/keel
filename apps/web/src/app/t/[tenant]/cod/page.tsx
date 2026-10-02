@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canWritePage } from "@keel/config";
-import { formatDateTime, formatMoney, formatNumber, displayName } from "@keel/core";
-import { adminDb, eq, inArray, schema } from "@keel/db";
-import { getCodSettings, operatorKpis, queueItems, syncQueue } from "@keel/addon-cod";
+import { canWritePage } from "@hullwise/config";
+import { formatDateTime, formatMoney, formatNumber, displayName } from "@hullwise/core";
+import { adminDb, eq, inArray, schema } from "@hullwise/db";
+import { getCodSettings, operatorKpis, queueItems, syncQueue } from "@hullwise/addon-cod";
 import { getCommercePlatform } from "@/server/integrations";
-import { Badge, Card, CardContent, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { Badge, Card, CardContent, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { ClaimButton, OutcomeDialog, QueueToolbar, ScoreBadge } from "./queue-controls";
 

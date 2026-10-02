@@ -1,6 +1,6 @@
-import { and, eq, inArray, schema } from "@keel/db";
-import type { Address, CommercePlatform } from "@keel/integrations";
-import { OrderEditError, editOrderDetails, orderMergeCandidates, replaceOrder, type ContactPatch, type DesiredLine, type MergeCandidate, type ServiceContext } from "@keel/services";
+import { and, eq, inArray, schema } from "@hullwise/db";
+import type { Address, CommercePlatform } from "@hullwise/integrations";
+import { OrderEditError, editOrderDetails, orderMergeCandidates, replaceOrder, type ContactPatch, type DesiredLine, type MergeCandidate, type ServiceContext } from "@hullwise/services";
 import { OPEN_QUEUE_STATUSES } from "../queue";
 import { classifyTags } from "../tags";
 import type { CodSettings } from "../settings";
@@ -8,7 +8,7 @@ import { CodError, applyTagEvent, getCodSettings, recordAttempt } from "./index"
 
 /**
  * Pre-confirmation changes agreed on the phone. The edit itself is the core order-edit service
- * (`@keel/services` orders/edit, issue #22): contact changes in place, line changes and merges as
+ * (`@hullwise/services` orders/edit, issue #22): contact changes in place, line changes and merges as
  * cancel-and-recreate with lineage. This module only adds the COD extras: the order must be in
  * the confirmation queue, the call is registered as a `modified` attempt, queue tags are written,
  * and the replacement takes the queue item over with the same operator.

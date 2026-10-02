@@ -1,10 +1,10 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { BULK_CONCURRENCY, BULK_MAX_ITEMS } from "@keel/config";
-import { EXCEPTION_RESOLUTIONS, INSTRUCTION_CHANNELS, RTS_FOLLOW_UPS, SHIPMENT_STATUSES, diffRecords, tenantSettingsSchema } from "@keel/core";
-import { adminDb, eq, recordAudit, schema } from "@keel/db";
-import { CaseError, FulfilmentError, MappingError, bulkSetPacked, claimCase, closeCase, deleteStatusMapping, getCarrierProviderFor, recordFollowUp, releaseCase, saveStatusMapping, sendCaseInstruction, setOrderPacked, shipOrder, type BatchSummary, type ServiceContext } from "@keel/services";
+import { BULK_CONCURRENCY, BULK_MAX_ITEMS } from "@hullwise/config";
+import { EXCEPTION_RESOLUTIONS, INSTRUCTION_CHANNELS, RTS_FOLLOW_UPS, SHIPMENT_STATUSES, diffRecords, tenantSettingsSchema } from "@hullwise/core";
+import { adminDb, eq, recordAudit, schema } from "@hullwise/db";
+import { CaseError, FulfilmentError, MappingError, bulkSetPacked, claimCase, closeCase, deleteStatusMapping, getCarrierProviderFor, recordFollowUp, releaseCase, saveStatusMapping, sendCaseInstruction, setOrderPacked, shipOrder, type BatchSummary, type ServiceContext } from "@hullwise/services";
 import { auditActor } from "@/server/audit-actor";
 import { getCommercePlatform } from "@/server/integrations";
 import { ForbiddenError, requireAction, requireWrite, type TenantContext } from "@/server/tenant";
@@ -57,7 +57,7 @@ export async function bulkPackAction(slug: string, orderIds: unknown, packed: bo
 
 const shipSchema = z.object({ carrier: z.string().max(60), trackingNumber: z.string().max(80), trackingUrl: z.string().max(500).nullish(), notifyCustomer: z.boolean() });
 
-/** Ship from Keel: the store creates the fulfilment first (outbox, synchronous); Keel changes only once it answered. */
+/** Ship from Hullwise: the store creates the fulfilment first (outbox, synchronous); Hullwise changes only once it answered. */
 export async function shipOrderAction(slug: string, orderId: string, input: unknown): Promise<ActionResult<{ name: string; orderStatus: string }>> {
   try {
     const ctx = await requireWrite(slug, "shipments");

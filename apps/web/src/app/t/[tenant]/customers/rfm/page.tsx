@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canWritePage } from "@keel/config";
-import { RFM_FREQUENCY_BANDS, RFM_RECENCY_BANDS, buildRfmMatrix, formatMoney, formatNumber, rulesForRfmCell, rulesForRfmTier } from "@keel/core";
-import { customerProfiles } from "@keel/services";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { canWritePage } from "@hullwise/config";
+import { RFM_FREQUENCY_BANDS, RFM_RECENCY_BANDS, buildRfmMatrix, formatMoney, formatNumber, rulesForRfmCell, rulesForRfmTier } from "@hullwise/core";
+import { customerProfiles } from "@hullwise/services";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { CustomerTabs } from "../customer-tabs";
 import { encodeRulesParam } from "@/server/queries/crm";

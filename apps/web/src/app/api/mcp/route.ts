@@ -1,5 +1,5 @@
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
-import { checkMcpRateLimit, createMcpServer, logMcpRequest, resolveMcpBearer } from "@keel/services";
+import { checkMcpRateLimit, createMcpServer, logMcpRequest, resolveMcpBearer } from "@hullwise/services";
 import { MCP_TOOLS, corsPreflight, mcpDeps, mcpOrigin, protectedResourceMetadataUrl, withCors } from "@/server/mcp";
 
 export const runtime = "nodejs";

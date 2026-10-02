@@ -1,5 +1,5 @@
-import { and, asc, desc, eq, gt, inArray, isNull, lt, not, schema, sql, type SQL } from "@keel/db";
-import { INCOMING_PO_STATUSES, OPEN_BACKORDER_STATUSES, allocateRelease, diffRecords, lineShortage, openBackorderStatus, parseTenantSettings, pickIncomingLine } from "@keel/core";
+import { and, asc, desc, eq, gt, inArray, isNull, lt, not, schema, sql, type SQL } from "@hullwise/db";
+import { INCOMING_PO_STATUSES, OPEN_BACKORDER_STATUSES, allocateRelease, diffRecords, lineShortage, openBackorderStatus, parseTenantSettings, pickIncomingLine } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { notifyUsers, membersWithRoles } from "../notifications";
 import { recomputeOrderStatus } from "../orders/state";
@@ -11,7 +11,7 @@ import { enqueuePlatformWrite, type PlatformWriteRow } from "../writes";
  * the order (`on_hold`, reason `hold:awaiting_stock`) and, when the tenant wants it, a fulfillment
  * hold goes to the platform through the outbox. Receiving a PO, the 10-minute safety tick and any
  * stock change re-check open backorders: what stock now covers is released (event, notification,
- * platform hold lifted). The rules are pure functions in `@keel/core/backorders`.
+ * platform hold lifted). The rules are pure functions in `@hullwise/core/backorders`.
  */
 
 const OPEN = [...OPEN_BACKORDER_STATUSES];
@@ -33,7 +33,7 @@ interface Supply {
   available: number;
   onHand: number;
   committed: number;
-  /** When Keel last read the level (latest location); null = never read from the platform. */
+  /** When Hullwise last read the level (latest location); null = never read from the platform. */
   syncedAt: Date | null;
 }
 
@@ -85,7 +85,7 @@ export interface StockCheckOptions {
   settings?: BackorderSettings;
   /** Units given back per variant before checking (a replaced order cancelled with restock). */
   credit?: Map<string, number>;
-  /** The order was just created on the platform: Keel's level cannot reflect it yet. */
+  /** The order was just created on the platform: Hullwise's level cannot reflect it yet. */
   assumeUnreflected?: boolean;
   /** Skip the status recompute (the caller recomputes right after, e.g. the import). */
   skipRecompute?: boolean;
@@ -151,7 +151,7 @@ export async function checkOrderStock(ctx: ServiceContext, orderId: string, opts
   return { created, write };
 }
 
-/** The last platform fulfillment hold Keel enqueued for the order, if any. */
+/** The last platform fulfillment hold Hullwise enqueued for the order, if any. */
 async function lastHoldWrite(ctx: ServiceContext, orderId: string) {
   const [w] = await ctx.tx.select().from(schema.platformWrites).where(and(eq(schema.platformWrites.tenantId, ctx.tenantId), eq(schema.platformWrites.entityType, "order"), eq(schema.platformWrites.entityId, orderId), eq(schema.platformWrites.kind, "order.fulfillment_hold"))).orderBy(desc(schema.platformWrites.createdAt)).limit(1);
   return w ?? null;
@@ -159,7 +159,7 @@ async function lastHoldWrite(ctx: ServiceContext, orderId: string) {
 
 /**
  * An order no longer waits for stock: timeline event, status recomputed by the engine (the hold
- * goes), and the platform hold lifted when Keel placed one (keyed by that hold, so it is lifted once).
+ * goes), and the platform hold lifted when Hullwise placed one (keyed by that hold, so it is lifted once).
  */
 export async function releaseOrderHold(ctx: ServiceContext, orderId: string, reason: "stock_available" | "wait_cancelled", metadata: Record<string, unknown> = {}): Promise<PlatformWriteRow | null> {
   const now = ctx.now ?? new Date();

@@ -1,9 +1,9 @@
 import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { and, desc, eq, gte, inArray, like, lt, schema, sql, recordAudit, type DbExecutor } from "@keel/db";
-import { SUPPORTED_LOCALES } from "@keel/config";
-import { checkPassword, describeUserAgent, diffRecords, hasChanges, isNewDevice, isTimeZone, normalizeEmail } from "@keel/core";
+import { and, desc, eq, gte, inArray, like, lt, schema, sql, recordAudit, type DbExecutor } from "@hullwise/db";
+import { SUPPORTED_LOCALES } from "@hullwise/config";
+import { checkPassword, describeUserAgent, diffRecords, hasChanges, isNewDevice, isTimeZone, normalizeEmail } from "@hullwise/core";
 import { queueEmail } from "../email/mailer";
 import { appBaseUrl } from "../email/unsubscribe";
 import { AccountError } from "./errors";

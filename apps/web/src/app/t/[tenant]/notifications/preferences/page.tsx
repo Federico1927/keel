@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
-import { notificationTypesFor } from "@keel/config";
-import { preferenceMatrix } from "@keel/services";
-import { PageHeader } from "@keel/ui";
+import { notificationTypesFor } from "@hullwise/config";
+import { preferenceMatrix } from "@hullwise/services";
+import { PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { NotificationTabs } from "../tabs";
 import { PreferencesMatrix } from "./matrix";

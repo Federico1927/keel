@@ -1,19 +1,19 @@
 import { z } from "zod";
-import { and, eq, inArray, recordAudit, schema, sql } from "@keel/db";
-import { MCP_LIMITS } from "@keel/config";
-import { MCP_ORDER_TRANSITIONS, canMcpSetOrderStatus, sanitizeFreeText, type OrderStatus } from "@keel/core";
+import { and, eq, inArray, recordAudit, schema, sql } from "@hullwise/db";
+import { MCP_LIMITS } from "@hullwise/config";
+import { MCP_ORDER_TRANSITIONS, canMcpSetOrderStatus, sanitizeFreeText, type OrderStatus } from "@hullwise/core";
 import { addOrderNote } from "../orders/notes";
 import { setManualStatus } from "../orders/state";
 import { assignOrderTo } from "../orders/writes";
 import { normalizePoInput } from "../purchasing";
-import { ToolError, keelLink, majorUnits, minorUnits, type KeelTool, type ToolRuntime } from "../tools";
+import { ToolError, hullwiseLink, majorUnits, minorUnits, type HullwiseTool, type ToolRuntime } from "../tools";
 import { createProposal } from "./pending";
 import { resolveOrderRef } from "./read-tools";
 
 /**
  * Write tools of the MCP server (#21). Safe by construction: the direct writes are reversible and
  * low-risk (an internal note, an assignee, a review or hold status); everything risky is a
- * proposal a person approves in Keel. Every write leaves an order event and an audit entry with
+ * proposal a person approves in Hullwise. Every write leaves an order event and an audit entry with
  * actor type `mcp`, the user, the client name and the field diff.
  */
 
@@ -32,7 +32,7 @@ function audit(rt: ToolRuntime, input: { action: string; entityType: string; ent
 /* ---------- direct, reversible writes ---------- */
 
 const noteInput = z.object({ order: orderRef, body: z.string().min(1).max(4000).describe(`The note (internal, never shown to the customer; at most ${MCP_LIMITS.textMaxChars} characters are kept)`) });
-const addNote: KeelTool<typeof noteInput> = {
+const addNote: HullwiseTool<typeof noteInput> = {
   name: "add_order_note",
   title: "Add an internal note to an order",
   page: "orders",
@@ -47,12 +47,12 @@ const addNote: KeelTool<typeof noteInput> = {
     if (!body) throw new ToolError("invalid_input", "The note is empty.");
     const r = await addOrderNote(rt.ctx, { orderId: order.id, body, allowedMentionIds: [], link: `/t/${rt.slug}/orders/${order.id}`, orderName: order.name, authorName: rt.mcp?.clientName ?? "AI", eventMetadata: mcpMeta(rt) });
     await audit(rt, { action: "order.note_added", entityType: "order", entityId: order.id, diff: { noteId: { from: null, to: r.noteId } }, metadata: { length: body.length } });
-    return { data: { ok: true, order: order.name, noteId: r.noteId, link: keelLink(rt, `/orders/${order.id}`) } };
+    return { data: { ok: true, order: order.name, noteId: r.noteId, link: hullwiseLink(rt, `/orders/${order.id}`) } };
   },
 };
 
 const assignInput = z.object({ order: orderRef, assignee: z.string().min(1).max(200).nullable().describe("\"me\" for the connected user, a team member's email, or null to unassign") });
-const assign: KeelTool<typeof assignInput> = {
+const assign: HullwiseTool<typeof assignInput> = {
   name: "assign_order",
   title: "Assign an order to a team member",
   page: "orders",
@@ -74,13 +74,13 @@ const assign: KeelTool<typeof assignInput> = {
     const r = await assignOrderTo(rt.ctx, order.id, userId, { eventMetadata: mcpMeta(rt) });
     if (r.kind === "not_found") throw new ToolError("not_found", "Order not found.");
     if (r.kind === "assigned") await audit(rt, { action: "order.assigned", entityType: "order", entityId: order.id, diff: { assignedTo: { from: r.previous, to: userId } } });
-    return { data: { ok: true, order: order.name, changed: r.kind === "assigned", link: keelLink(rt, `/orders/${order.id}`) } };
+    return { data: { ok: true, order: order.name, changed: r.kind === "assigned", link: hullwiseLink(rt, `/orders/${order.id}`) } };
   },
 };
 
 const TARGETS = [...new Set(Object.values(MCP_ORDER_TRANSITIONS).flat())] as [OrderStatus, ...OrderStatus[]];
 const statusInput = z.object({ order: orderRef, status: z.enum(TARGETS).describe("Target status"), note: z.string().max(1000).optional().describe("Why (kept on the timeline)") });
-const setStatus: KeelTool<typeof statusInput> = {
+const setStatus: HullwiseTool<typeof statusInput> = {
   name: "set_order_status",
   title: "Move an order through review or hold",
   page: "orders",
@@ -95,25 +95,25 @@ const setStatus: KeelTool<typeof statusInput> = {
     const note = sanitizeFreeText(input.note ?? "", 500) || undefined;
     const r = await setManualStatus(rt.ctx, order.id, input.status, note, { eventMetadata: mcpMeta(rt) });
     await audit(rt, { action: "order.status_changed", entityType: "order", entityId: order.id, diff: { status: { from: r.previous, to: r.next } }, metadata: { note: note ?? null } });
-    return { data: { ok: true, order: order.name, previous: r.previous, status: r.next, note: r.next === input.status ? undefined : `The status engine kept ${r.next} (a platform fact takes precedence).`, link: keelLink(rt, `/orders/${order.id}`) } };
+    return { data: { ok: true, order: order.name, previous: r.previous, status: r.next, note: r.next === input.status ? undefined : `The status engine kept ${r.next} (a platform fact takes precedence).`, link: hullwiseLink(rt, `/orders/${order.id}`) } };
   },
 };
 
 /* ---------- proposals ---------- */
 
 function proposalAnswer(rt: ToolRuntime, id: string, expiresAt: Date, what: string) {
-  return { data: { ok: true, proposalId: id, status: "pending_approval", message: `${what} is waiting for a person to approve it in Keel; nothing has changed yet. It expires on ${expiresAt.toISOString().slice(0, 10)} if nobody decides.`, approvalLink: keelLink(rt, "/approvals") } };
+  return { data: { ok: true, proposalId: id, status: "pending_approval", message: `${what} is waiting for a person to approve it in Hullwise; nothing has changed yet. It expires on ${expiresAt.toISOString().slice(0, 10)} if nobody decides.`, approvalLink: hullwiseLink(rt, "/approvals") } };
 }
 
 const cancelInput = z.object({ order: orderRef, reason: reasonText, restock: z.boolean().default(true).describe("Put the items back in stock"), refund: z.boolean().default(false).describe("Refund the payment, if captured") });
-const proposeCancel: KeelTool<typeof cancelInput> = {
+const proposeCancel: HullwiseTool<typeof cancelInput> = {
   name: "propose_order_cancellation",
   title: "Propose cancelling an order",
   page: "orders",
   action: "cancel_order",
   scope: "write:orders",
   effect: "proposal",
-  description: "Proposes cancelling an order. Nothing happens until a team member who may cancel orders approves it in Keel. Example: { \"order\": \"NW-1042\", \"reason\": \"The customer asked to cancel by email\", \"restock\": true, \"refund\": true }.",
+  description: "Proposes cancelling an order. Nothing happens until a team member who may cancel orders approves it in Hullwise. Example: { \"order\": \"NW-1042\", \"reason\": \"The customer asked to cancel by email\", \"restock\": true, \"refund\": true }.",
   input: cancelInput,
   async run(rt, input) {
     const order = await resolveOrderRef(rt, input.order);
@@ -126,14 +126,14 @@ const proposeCancel: KeelTool<typeof cancelInput> = {
 };
 
 const refundInput = z.object({ order: orderRef, amount: z.number().positive().describe("Amount to refund, in the order's currency (major units, e.g. 19.90)"), reason: reasonText });
-const proposeRefund: KeelTool<typeof refundInput> = {
+const proposeRefund: HullwiseTool<typeof refundInput> = {
   name: "propose_refund",
   title: "Propose a refund",
   page: "orders",
   action: "refund_order",
   scope: "write:orders",
   effect: "proposal",
-  description: "Proposes refunding money on a paid order (never more than what is still refundable). Nothing happens until a team member who may refund approves it in Keel. Example: { \"order\": \"NW-1042\", \"amount\": 15, \"reason\": \"Late delivery goodwill\" }.",
+  description: "Proposes refunding money on a paid order (never more than what is still refundable). Nothing happens until a team member who may refund approves it in Hullwise. Example: { \"order\": \"NW-1042\", \"amount\": 15, \"reason\": \"Late delivery goodwill\" }.",
   input: refundInput,
   async run(rt, input) {
     const order = await resolveOrderRef(rt, input.order);
@@ -148,14 +148,14 @@ const proposeRefund: KeelTool<typeof refundInput> = {
 };
 
 const pauseInput = z.object({ campaign: z.string().min(1).max(200).describe("Campaign id or exact name"), reason: reasonText });
-const proposePause: KeelTool<typeof pauseInput> = {
+const proposePause: HullwiseTool<typeof pauseInput> = {
   name: "propose_campaign_pause",
   title: "Propose pausing an ad campaign",
   page: "campaigns",
   action: "pause_campaign",
   scope: "write:campaigns",
   effect: "proposal",
-  description: "Proposes pausing an active Meta campaign (Google is read-only in Keel). Nothing happens until a team member who may pause campaigns approves it in Keel. Use get_campaigns first to see the suggested action. Example: { \"campaign\": \"Summer linen – prospecting\", \"reason\": \"Losing money for 14 days and the product is low on stock\" }.",
+  description: "Proposes pausing an active Meta campaign (Google is read-only in Hullwise). Nothing happens until a team member who may pause campaigns approves it in Hullwise. Use get_campaigns first to see the suggested action. Example: { \"campaign\": \"Summer linen – prospecting\", \"reason\": \"Losing money for 14 days and the product is low on stock\" }.",
   input: pauseInput,
   async run(rt, input) {
     const ref = exact(input.campaign);
@@ -163,7 +163,7 @@ const proposePause: KeelTool<typeof pauseInput> = {
     const isId = z.string().uuid().safeParse(ref).success;
     const [campaign] = await rt.ctx.tx.select().from(c).where(and(eq(c.tenantId, rt.ctx.tenantId), isId ? eq(c.id, ref) : eq(sql`lower(${c.name})`, ref.toLowerCase()))).limit(1);
     if (!campaign) throw new ToolError("not_found", `No campaign "${ref}".`);
-    if (campaign.platform !== "meta") throw new ToolError("conflict", "Only Meta campaigns can be paused from Keel; Google is read-only.");
+    if (campaign.platform !== "meta") throw new ToolError("conflict", "Only Meta campaigns can be paused from Hullwise; Google is read-only.");
     if (campaign.status !== "active") throw new ToolError("conflict", `The campaign is ${campaign.status}.`);
     const reason = sanitizeFreeText(input.reason, 500);
     const p = await createProposal(rt, { kind: "campaign.pause", entityType: "campaign", entityId: campaign.id, summary: { campaignName: campaign.name, platform: campaign.platform }, payload: { campaignId: campaign.id }, reason });
@@ -177,13 +177,13 @@ const poInput = z.object({
   expectedDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe("Expected arrival, YYYY-MM-DD"),
   reason: reasonText,
 });
-const proposePo: KeelTool<typeof poInput> = {
+const proposePo: HullwiseTool<typeof poInput> = {
   name: "propose_purchase_order",
   title: "Propose a draft purchase order",
   page: "purchasing",
   scope: "write:purchasing",
   effect: "proposal",
-  description: "Proposes a draft purchase order to a supplier (lines by SKU and quantity, e.g. from get_stock_risk). Once a team member with purchasing access approves it, Keel creates the draft; sending it to the supplier stays a separate human step. Example: { \"supplier\": \"Lanificio Rossi\", \"lines\": [{ \"sku\": \"LS-001-M\", \"quantity\": 40 }], \"reason\": \"Stock-out in 6 days\" }.",
+  description: "Proposes a draft purchase order to a supplier (lines by SKU and quantity, e.g. from get_stock_risk). Once a team member with purchasing access approves it, Hullwise creates the draft; sending it to the supplier stays a separate human step. Example: { \"supplier\": \"Lanificio Rossi\", \"lines\": [{ \"sku\": \"LS-001-M\", \"quantity\": 40 }], \"reason\": \"Stock-out in 6 days\" }.",
   input: poInput,
   async run(rt, input) {
     const s = schema.suppliers;
@@ -211,4 +211,4 @@ const proposePo: KeelTool<typeof poInput> = {
   },
 };
 
-export const MCP_WRITE_TOOLS: readonly KeelTool[] = [addNote, assign, setStatus, proposeCancel, proposeRefund, proposePause, proposePo] as unknown as KeelTool[];
+export const MCP_WRITE_TOOLS: readonly HullwiseTool[] = [addNote, assign, setStatus, proposeCancel, proposeRefund, proposePause, proposePo] as unknown as HullwiseTool[];

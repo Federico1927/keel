@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { RefreshCw } from "lucide-react";
-import { Button } from "@keel/ui";
+import { Button } from "@hullwise/ui";
 import { recomputePredictionsAction } from "@/server/actions/predictions";
 
 export function RecomputeButton({ slug }: { slug: string }) {

@@ -1,4 +1,4 @@
-# Keel — cartella di progetto
+# Hullwise — cartella di progetto
 
 1. Estrai questa cartella sul Desktop.
 2. Compila i percorsi dei repository di Control Room e Rehaus in `docs/reference/SOURCES.md`.

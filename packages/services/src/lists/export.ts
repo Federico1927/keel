@@ -1,6 +1,6 @@
-import { and, asc, desc, eq, recordAudit, schema, sql } from "@keel/db";
-import { EXPORT_MAX_ROWS, type ExportListKey } from "@keel/config";
-import { csvAmount, csvLine, parseTenantSettings, queryParams, type QueryParams, type TenantSettings } from "@keel/core";
+import { and, asc, desc, eq, recordAudit, schema, sql } from "@hullwise/db";
+import { EXPORT_MAX_ROWS, type ExportListKey } from "@hullwise/config";
+import { csvAmount, csvLine, parseTenantSettings, queryParams, type QueryParams, type TenantSettings } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { listCustomers } from "../crm";
 import { listReturns } from "../returns";

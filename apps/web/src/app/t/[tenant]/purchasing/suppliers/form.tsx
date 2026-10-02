@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from "@keel/ui";
+import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from "@hullwise/ui";
 import { saveSupplier } from "@/server/actions/purchasing";
 
 export interface SupplierFormValues {

@@ -1,6 +1,6 @@
-import { eq, schema, type DbExecutor as AdminDb } from "@keel/db";
-import { DEFAULT_SUSPEND_AFTER_DAYS } from "@keel/config";
-import { paymentHealth, subscriptionSignal, type PaymentHealth } from "@keel/core";
+import { eq, schema, type DbExecutor as AdminDb } from "@hullwise/db";
+import { DEFAULT_SUSPEND_AFTER_DAYS } from "@hullwise/config";
+import { paymentHealth, subscriptionSignal, type PaymentHealth } from "@hullwise/core";
 import { transitionTenant } from "./lifecycle";
 
 export async function tenantPaymentStatus(db: AdminDb, tenantId: string, now = new Date()): Promise<{ health: PaymentHealth; daysOverdue: number; openMinor: number }> {

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
-import { formatDateTime, formatMoney, formatNumber } from "@keel/core";
-import { unexplainedLosses } from "@keel/services";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
+import { unexplainedLosses } from "@hullwise/services";
+import { Badge, Card, CardContent, EmptyState, PageHeader, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";

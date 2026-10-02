@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adEntityEconomics, adPauseSuggestions, allocateKeel, assetPauseSuggestions, checkUtmTemplate, groupRareTerms, isNoiseTerm, keelByKey, negativeKeywordCandidates, normalizeSearchText, orderAdKeys, reconcileSpend, rollupMetricRows, splitExact, ADS_UTM_TEMPLATES, ZERO_METRICS, type MetricRow } from "./ads";
+import { adEntityEconomics, adPauseSuggestions, allocateHullwise, assetPauseSuggestions, checkUtmTemplate, groupRareTerms, isNoiseTerm, hullwiseByKey, negativeKeywordCandidates, normalizeSearchText, orderAdKeys, reconcileSpend, rollupMetricRows, splitExact, ADS_UTM_TEMPLATES, ZERO_METRICS, type MetricRow } from "./ads";
 
 describe("UTM templates", () => {
   it("accepts the documented templates and names what is missing", () => {
@@ -21,9 +21,9 @@ describe("UTM templates", () => {
   });
 });
 
-describe("Keel numbers per entity", () => {
+describe("Hullwise numbers per entity", () => {
   it("counts revenue and margin only for sale orders; cancelled ones are kept apart", () => {
-    const m = keelByKey([
+    const m = hullwiseByKey([
       { key: "a", inScope: true, netRevenueMinor: 5000, marginMinor: 2000 },
       { key: "a", inScope: false, netRevenueMinor: 9000, marginMinor: 4000 },
       { key: "b", inScope: false, netRevenueMinor: 1000, marginMinor: 300 },
@@ -37,7 +37,7 @@ describe("Keel numbers per entity", () => {
   it("splits exactly and allocates an ad's numbers to its assets by spend share", () => {
     expect(splitExact(100, [1, 1, 1])).toEqual([34, 33, 33]);
     expect(splitExact(7, [0, 0])).toEqual([7, 0]);
-    const parts = allocateKeel({ orders: 3, allOrders: 4, netRevenueMinor: 10001, marginMinor: 3000 }, new Map([["x", 300], ["y", 100]]));
+    const parts = allocateHullwise({ orders: 3, allOrders: 4, netRevenueMinor: 10001, marginMinor: 3000 }, new Map([["x", 300], ["y", 100]]));
     expect(parts.get("x")!.orders + parts.get("y")!.orders).toBe(3);
     expect(parts.get("x")!.netRevenueMinor + parts.get("y")!.netRevenueMinor).toBe(10001);
     expect(parts.get("x")!.marginMinor).toBe(2250);
@@ -53,14 +53,14 @@ describe("spend reconciliation", () => {
 });
 
 describe("suggestions", () => {
-  const term = (id: string, o: Partial<Parameters<typeof negativeKeywordCandidates>[0][number]> = {}) => ({ id, text: id, status: "none", isOther: false, spendMinor: 5000, clicks: 40, conversions: 0, keel: { orders: 0, netRevenueMinor: 0, marginMinor: 0, allOrders: 0 }, keelMatchable: true, ...o });
+  const term = (id: string, o: Partial<Parameters<typeof negativeKeywordCandidates>[0][number]> = {}) => ({ id, text: id, status: "none", isOther: false, spendMinor: 5000, clicks: 40, conversions: 0, hullwise: { orders: 0, netRevenueMinor: 0, marginMinor: 0, allOrders: 0 }, hullwiseMatchable: true, ...o });
 
   it("a search term with spend and only cancelled orders is a negative-keyword candidate", () => {
     const c = negativeKeywordCandidates([
-      term("free shoes", { keel: { orders: 0, netRevenueMinor: 0, marginMinor: 0, allOrders: 3 } }),
-      term("linen shirt", { keel: { orders: 4, netRevenueMinor: 20000, marginMinor: 8000, allOrders: 4 } }),
-      term("cheap sofa", { keelMatchable: false, conversions: 0, spendMinor: 9000 }),
-      term("sofa outlet", { keelMatchable: false, conversions: 2 }),
+      term("free shoes", { hullwise: { orders: 0, netRevenueMinor: 0, marginMinor: 0, allOrders: 3 } }),
+      term("linen shirt", { hullwise: { orders: 4, netRevenueMinor: 20000, marginMinor: 8000, allOrders: 4 } }),
+      term("cheap sofa", { hullwiseMatchable: false, conversions: 0, spendMinor: 9000 }),
+      term("sofa outlet", { hullwiseMatchable: false, conversions: 2 }),
       term("tiny", { spendMinor: 50 }),
       term("(other)", { isOther: true }),
       term("already", { status: "excluded" }),

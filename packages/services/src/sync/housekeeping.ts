@@ -1,5 +1,5 @@
-import { and, eq, inArray, lt, schema, sql } from "@keel/db";
-import { INVENTORY_LOSS_RETENTION_DAYS } from "@keel/config";
+import { and, eq, inArray, lt, schema, sql } from "@hullwise/db";
+import { INVENTORY_LOSS_RETENTION_DAYS } from "@hullwise/config";
 import type { ServiceContext } from "../context";
 
 export interface PurgeResult {

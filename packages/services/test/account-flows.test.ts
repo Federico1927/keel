@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import bcrypt from "bcryptjs";
-import { and, eq, schema, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedPlatform, type SeedContext } from "@keel/db/seed";
+import { and, eq, schema, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedPlatform, type SeedContext } from "@hullwise/db/seed";
 import {
   RESETS_PER_EMAIL_PER_HOUR,
   RESETS_PER_IP_PER_HOUR,
@@ -53,7 +53,7 @@ describe("invitations", () => {
     const created = await run(A, (s) => createInvitation(s, { email: email.toUpperCase(), role: "marketing", ...names }, { actorRole: "owner" }));
     expect(created.email).toBe(email);
     const mail = await lastMail(email);
-    expect(mail!.message.subject).toBe("Giulia ti ha invitato in Northwind Apparel su Keel come marketing");
+    expect(mail!.message.subject).toBe("Giulia ti ha invitato in Northwind Apparel su Hullwise come marketing");
     const raw = tokenIn(mail!.message.text, "invite")!;
     expect(raw.length).toBeGreaterThanOrEqual(43);
     // only the hash is stored, never the token
@@ -135,13 +135,13 @@ describe("invitations", () => {
   });
 
   it("an existing account accepts after signing in, only for its own address; members cannot be invited twice; admins cannot invite owners", async () => {
-    const multi = ctx.userIds["multi@keel.demo"]!;
-    await expect(run(B, (s) => createInvitation(s, { email: "multi@keel.demo", role: "viewer", ...names }))).rejects.toMatchObject({ code: "already_member" });
+    const multi = ctx.userIds["multi@hullwise.demo"]!;
+    await expect(run(B, (s) => createInvitation(s, { email: "multi@hullwise.demo", role: "viewer", ...names }))).rejects.toMatchObject({ code: "already_member" });
     await expect(run(A, (s) => createInvitation(s, { email: "x@test.local", role: "owner", ...names }, { actorRole: "admin" }))).rejects.toMatchObject({ code: "forbidden" });
     await pools.admin.update(schema.tenantMemberships).set({ isActive: false }).where(and(eq(schema.tenantMemberships.tenantId, B), eq(schema.tenantMemberships.userId, multi)));
     try {
-      await run(B, (s) => createInvitation(s, { email: "multi@keel.demo", role: "marketing", ...names }));
-      const raw = tokenIn((await lastMail("multi@keel.demo"))!.message.text, "invite")!;
+      await run(B, (s) => createInvitation(s, { email: "multi@hullwise.demo", role: "marketing", ...names }));
+      const raw = tokenIn((await lastMail("multi@hullwise.demo"))!.message.text, "invite")!;
       expect((await findInvitationByToken(pools.admin, raw))?.existingUserId).toBe(multi);
       await expect(acceptInvitationAsUser(pools.admin, raw, ownerA)).rejects.toMatchObject({ code: "email_mismatch" });
       await expect(acceptInvitationAsNewUser(pools.admin, raw, { name: "Dup", password: null, privacyAccepted: true })).rejects.toMatchObject({ code: "account_exists" });
@@ -232,7 +232,7 @@ describe("security notices", () => {
     expect(await recordSignIn(pools.admin, { userId, method: "credentials", userAgent: MAC, notifyNewDevice: true })).toEqual({ newDeviceNotice: false });
     expect(await recordSignIn(pools.admin, { userId, method: "credentials", userAgent: WIN, ip: "203.0.113.5", notifyNewDevice: true })).toEqual({ newDeviceNotice: true });
     const mail = await lastMail(email);
-    expect(mail!.message.subject).toBe("New sign-in to your Keel account");
+    expect(mail!.message.subject).toBe("New sign-in to your Hullwise account");
     expect(mail!.message.text).toContain("Firefox · Windows");
     await setSignInNotifications({ db: pools.admin, userId }, false);
     expect(await recordSignIn(pools.admin, { userId, method: "credentials", userAgent: "Mozilla/5.0 (Linux; Android 14) Chrome/129.0 Mobile Safari/537.36", notifyNewDevice: true })).toEqual({ newDeviceNotice: false });

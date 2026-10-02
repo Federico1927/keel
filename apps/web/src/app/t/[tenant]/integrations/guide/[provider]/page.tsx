@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { isAdPlatformInPlan } from "@keel/config";
-import { ADS_UTM_TEMPLATES } from "@keel/core";
-import { GOOGLE_ADS_API_VERSION, META_REQUIRED_PERMISSIONS, SHOPIFY_SCOPES_BY_MODULE, SHOPIFY_WEBHOOK_TOPICS, TIKTOK_API_VERSION, TIKTOK_SCOPES_BY_MODULE } from "@keel/integrations";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, cn } from "@keel/ui";
+import { apiEndpoint, isAdPlatformInPlan } from "@hullwise/config";
+import { ADS_UTM_TEMPLATES } from "@hullwise/core";
+import { GOOGLE_ADS_API_VERSION, META_REQUIRED_PERMISSIONS, SHOPIFY_SCOPES_BY_MODULE, SHOPIFY_WEBHOOK_TOPICS, TIKTOK_API_VERSION, TIKTOK_SCOPES_BY_MODULE } from "@hullwise/integrations";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 
 /** One guide per activation: the platforms (TikTok when the plan includes it), then the external providers and tracking; last, the platform email sender (super-admins only: tenants configure nothing). */
@@ -26,9 +26,9 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
   const steps = t.raw(`${p}.steps`) as Step[];
   const errors = t.raw(`${p}.errors`) as { symptom: string; fix: string }[];
   const base = `/t/${tenant}/integrations`;
-  const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/webhooks/shopify`;
-  const emailWebhookUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/webhooks/email`;
-  const tiktokCallbackUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/integrations/tiktok/oauth/callback`;
+  const webhookUrl = apiEndpoint("/webhooks/shopify");
+  const emailWebhookUrl = apiEndpoint("/webhooks/email");
+  const tiktokCallbackUrl = apiEndpoint("/integrations/tiktok/oauth/callback");
   const fill = (body: string) => body.replace("{webhookUrl}", webhookUrl).replace("{emailWebhookUrl}", emailWebhookUrl).replace("{callbackUrl}", tiktokCallbackUrl).replace("{utmTemplate}", ADS_UTM_TEMPLATES.tiktok).replace("{apiVersion}", p === "tiktok" ? TIKTOK_API_VERSION : GOOGLE_ADS_API_VERSION);
   return (
     <>

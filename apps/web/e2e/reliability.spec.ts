@@ -42,7 +42,7 @@ test.describe("reliability", () => {
   });
 
   test("super-admin: job runs with run now, failure alerts, tenant data export card", async ({ page }) => {
-    await login(page, "superadmin@keel.demo");
+    await login(page, "superadmin@hullwise.demo");
     await page.goto("/admin/alerts");
     const open = page.locator('[data-testid="alert-row"][data-status="open"]');
     await expect(open.filter({ hasText: "Coral Beauty" }).first()).toBeVisible();

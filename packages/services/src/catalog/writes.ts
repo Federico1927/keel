@@ -1,6 +1,6 @@
-import { and, asc, eq, schema } from "@keel/db";
-import { applyBulkCompareAt, applyBulkPrice, planTagChange, type BulkCompareAtChange, type BulkPriceChange } from "@keel/core";
-import type { CommercePlatform } from "@keel/integrations";
+import { and, asc, eq, schema } from "@hullwise/db";
+import { applyBulkCompareAt, applyBulkPrice, planTagChange, type BulkCompareAtChange, type BulkPriceChange } from "@hullwise/core";
+import type { CommercePlatform } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { runPlatformWriteNow } from "../writes";
 import { recordPriceChanges, type PriceChangeSource } from "./price-history";

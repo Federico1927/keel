@@ -2,9 +2,9 @@
 import { useActionState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
-import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Checkbox, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
-import { SUPPORTED_LOCALES } from "@keel/config";
-import { PAYMENT_METHODS, type TenantSettings } from "@keel/core";
+import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Checkbox, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { SUPPORTED_LOCALES } from "@hullwise/config";
+import { PAYMENT_METHODS, type TenantSettings } from "@hullwise/core";
 import type { ActionResult } from "@/server/action-result";
 import { deleteTaxRate, updateGeneralSettings, updateOperationalSettings, upsertTaxRate } from "@/server/actions/settings";
 

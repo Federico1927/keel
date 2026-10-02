@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { PLATFORM_CURRENCY, UPCOMING_RENEWAL_DAYS } from "@keel/config";
-import { formatDate, formatDateTime, formatMoney } from "@keel/core";
-import { consoleBillingOverview } from "@keel/services";
-import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { PLATFORM_CURRENCY, UPCOMING_RENEWAL_DAYS } from "@hullwise/config";
+import { formatDate, formatDateTime, formatMoney } from "@hullwise/core";
+import { consoleBillingOverview } from "@hullwise/services";
+import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { BillingModeBadge } from "../../_components/billing-mode";
 import { CatalogSyncButton, TenantResyncButton } from "./controls";

@@ -1,4 +1,4 @@
-import { MODULES, PLANS, type PlanKey } from "@keel/config";
+import { MODULES, PLANS, type PlanKey } from "@hullwise/config";
 
 export interface InvoiceLine {
   kind: "plan" | "addon" | "setup";

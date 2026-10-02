@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, inArray, lt, sql } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/node-postgres";
-import { DEFAULT_TASK_RULES, localizedDefault } from "@keel/core";
+import { DEFAULT_TASK_RULES, localizedDefault } from "@hullwise/core";
 import * as schema from "../schema";
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;
@@ -24,7 +24,7 @@ export async function seedCollab(db: Db, userIds: Record<string, string>, key: "
   // Harbor Home has no customer care user: the owner takes that part
   const care = u("care") ?? owner;
   const marketing = u("marketing") ?? owner;
-  const platform = userIds["superadmin@keel.demo"] ?? null;
+  const platform = userIds["superadmin@hullwise.demo"] ?? null;
   const h = (n: number) => new Date(now.getTime() - n * 3600e3);
   const L = (en: string, itText: string) => (it ? itText : en);
 
@@ -65,7 +65,7 @@ export async function seedCollab(db: Db, userIds: Record<string, string>, key: "
   const manual: (typeof schema.tasks.$inferInsert)[] = [
     { tenantId, entityType: "product", entityId: product?.id ?? null, entityLabel: product?.title ?? null, title: L("Refresh the product photos and the size guide", "Aggiorna le foto prodotto e la guida taglie"), assigneeId: marketing, dueAt: new Date(now.getTime() + 3 * 864e5), createdBy: owner, createdAt: h(30), updatedAt: h(30) },
     { tenantId, entityType: "order", entityId: recent?.id ?? null, entityLabel: recent?.name ?? null, title: L("Call the customer back about the delivery address", "Richiama il cliente per l'indirizzo di consegna"), status: "done", closedReason: "done", completedAt: h(2), completedBy: care, assigneeId: care, dueAt: h(1), createdBy: ops, createdAt: h(20), updatedAt: h(2) },
-    { tenantId, title: L("Prepare the monthly stock count", "Prepara l'inventario di fine mese"), description: L("Count the fast movers in every location and compare with Keel.", "Conta gli articoli più venduti in ogni magazzino e confronta con Keel."), assigneeId: ops, dueAt: h(6), createdBy: owner, createdAt: h(24 * 5), updatedAt: h(24 * 5) },
+    { tenantId, title: L("Prepare the monthly stock count", "Prepara l'inventario di fine mese"), description: L("Count the fast movers in every location and compare with Hullwise.", "Conta gli articoli più venduti in ogni magazzino e confronta con Hullwise."), assigneeId: ops, dueAt: h(6), createdBy: owner, createdAt: h(24 * 5), updatedAt: h(24 * 5) },
   ];
   await db.insert(schema.tasks).values(manual);
 
@@ -120,7 +120,7 @@ export async function seedCollab(db: Db, userIds: Record<string, string>, key: "
   ]);
   await db.insert(schema.notifications).values({ tenantId, userId: owner, type: "support_reply", title: L("#1 · How do I connect a Google Ads manager account?", "#1 · Come collego un account manager di Google Ads?"), body: null, link: `/support/${t1!.id}`, metadata: { ticketId: t1!.id }, createdAt: h(26) });
   const [t2] = await db.insert(schema.supportTickets).values({ tenantId, number: 2, subject: L("Stock export does not match the warehouse count", "L'export dello stock non coincide con il conteggio del magazzino"), category: "problem", status: "open", createdBy: ops, lastMessageAt: h(3), createdAt: h(3), updatedAt: h(3) }).returning({ id: schema.supportTickets.id });
-  const csv = Buffer.from(L("sku,keel,warehouse\nSKU-001,12,10\nSKU-002,4,4\n", "sku,keel,magazzino\nSKU-001,12,10\nSKU-002,4,4\n"), "utf8");
+  const csv = Buffer.from(L("sku,hullwise,warehouse\nSKU-001,12,10\nSKU-002,4,4\n", "sku,hullwise,magazzino\nSKU-001,12,10\nSKU-002,4,4\n"), "utf8");
   await db.insert(schema.supportMessages).values({ tenantId, ticketId: t2!.id, authorId: ops, side: "tenant", body: L("Two SKUs differ after yesterday's receipt, file attached.", "Due SKU non tornano dopo il ricevimento di ieri, file allegato."), attachmentName: "stock-diff.csv", attachmentType: "text/csv", attachmentSize: csv.length, attachmentData: csv, createdAt: h(3) });
 
   /* suppression list */

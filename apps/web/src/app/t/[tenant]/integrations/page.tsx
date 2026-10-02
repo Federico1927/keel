@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { adPlatformMinPlan, canDo, isAdPlatform, isAdPlatformInPlan } from "@keel/config";
-import { formatDateTime, formatNumber } from "@keel/core";
-import { integrationMode } from "@keel/integrations";
-import { integrationOverview, platformWritesOverview } from "@keel/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { adPlatformMinPlan, canDo, isAdPlatform, isAdPlatformInPlan } from "@hullwise/config";
+import { formatDateTime, formatNumber } from "@hullwise/core";
+import { integrationMode } from "@hullwise/integrations";
+import { integrationOverview, platformWritesOverview } from "@hullwise/services";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { ProviderActions, WebhookControls, WebhookRowAction } from "./controls";

@@ -2,10 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
-import { canWritePage } from "@keel/config";
-import { getReturnPolicy, listReturnReasons } from "@keel/services";
-import { and, eq, schema, sql } from "@keel/db";
-import { PageHeader } from "@keel/ui";
+import { canWritePage } from "@hullwise/config";
+import { getReturnPolicy, listReturnReasons } from "@hullwise/services";
+import { and, eq, schema, sql } from "@hullwise/db";
+import { PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { PolicyForm } from "./form";
 

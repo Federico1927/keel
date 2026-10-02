@@ -1,3 +1,5 @@
+> Historical document: the product was formerly called Keel.
+
 # Control Center (Lorena Milano) — Study: Orders core, Shopify sync, webhooks, timeline, customer history, customer care, dashboard, state derivation
 
 Reference repo (read-only): `/home/user/lorena-control-center`

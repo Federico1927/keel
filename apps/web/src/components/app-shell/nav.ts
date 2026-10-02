@@ -1,4 +1,4 @@
-import type { PageKey } from "@keel/config";
+import type { PageKey } from "@hullwise/config";
 import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,

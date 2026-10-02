@@ -2,7 +2,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle } from "@keel/ui";
+import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle } from "@hullwise/ui";
 import { retryReturnSyncAction, revealBankDetailsAction, setReturnReviewAction } from "@/server/actions/returns";
 
 /** Where the return stands on the commerce platform, with a retry when the last write failed. */

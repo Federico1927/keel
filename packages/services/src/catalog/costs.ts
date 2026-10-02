@@ -1,5 +1,5 @@
-import { and, eq, inArray, isNull, recordAudit, schema, sql, type ActorType } from "@keel/db";
-import { catalogQuality, matchCostRows, parseCostCsv, type CatalogIssue, type CostCatalogVariant, type CostCsvFileError, type CostImportPreview, type ProductCostSource } from "@keel/core";
+import { and, eq, inArray, isNull, recordAudit, schema, sql, type ActorType } from "@hullwise/db";
+import { catalogQuality, matchCostRows, parseCostCsv, type CatalogIssue, type CostCatalogVariant, type CostCsvFileError, type CostImportPreview, type ProductCostSource } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 
 /** Who the audit rows name; the web layer passes it to mark super-admin impersonation. */

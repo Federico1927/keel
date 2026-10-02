@@ -1,5 +1,5 @@
 {
-  "name": "@keel/landing",
+  "name": "@hullwise/landing",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,8 +15,8 @@
     "screenshots": "node scripts/screenshots.mjs"
   },
   "dependencies": {
-    "@keel/config": "workspace:*",
-    "@keel/ui": "workspace:*",
+    "@hullwise/config": "workspace:*",
+    "@hullwise/ui": "workspace:*",
     "lucide-react": "^0.540.0",
     "next": "^15.5.0",
     "next-intl": "^4.3.0",
@@ -24,7 +24,7 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
-    "@keel/eslint-config": "workspace:*",
+    "@hullwise/eslint-config": "workspace:*",
     "@playwright/test": "^1.55.0",
     "@tailwindcss/postcss": "^4.1.0",
     "@types/node": "^22.19.0",

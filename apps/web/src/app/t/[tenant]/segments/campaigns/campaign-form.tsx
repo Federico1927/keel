@@ -2,8 +2,8 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { RETENTION_CHANNELS } from "@keel/core";
-import { Alert, AlertDescription, Button, Input, Label, Select, Textarea } from "@keel/ui";
+import { RETENTION_CHANNELS } from "@hullwise/core";
+import { Alert, AlertDescription, Button, Input, Label, Select, Textarea } from "@hullwise/ui";
 import { saveRetentionCampaignAction } from "@/server/actions/retention";
 
 export interface CampaignFormValues {

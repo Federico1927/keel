@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { OPEN_STATUSES, formatDate, formatNumber, isBackorderOpen } from "@keel/core";
-import { orderBackorders, orderLineStock } from "@keel/services";
-import { canDo, canViewPage } from "@keel/config";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
-import type { Transaction } from "@keel/db";
+import { OPEN_STATUSES, formatDate, formatNumber, isBackorderOpen } from "@hullwise/core";
+import { orderBackorders, orderLineStock } from "@hullwise/services";
+import { canDo, canViewPage } from "@hullwise/config";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import type { Transaction } from "@hullwise/db";
 import type { TenantContext } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
 import { CancelWaitButton } from "./cancel-wait";

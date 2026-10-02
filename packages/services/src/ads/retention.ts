@@ -1,5 +1,5 @@
-import { and, eq, inArray, lt, schema, sql } from "@keel/db";
-import { OTHER_SEARCH_TERM, ZERO_METRICS, groupRareTerms, rollupMetricRows, type MetricRow } from "@keel/core";
+import { and, eq, inArray, lt, schema, sql } from "@hullwise/db";
+import { OTHER_SEARCH_TERM, ZERO_METRICS, groupRareTerms, rollupMetricRows, type MetricRow } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 
 export interface AdsRollupResult {

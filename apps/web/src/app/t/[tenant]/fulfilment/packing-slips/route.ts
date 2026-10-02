@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getTranslations } from "next-intl/server";
-import { formatDate } from "@keel/core";
-import { packingSlipsPdf } from "@keel/services";
+import { formatDate } from "@hullwise/core";
+import { packingSlipsPdf } from "@hullwise/services";
 import { ForbiddenError, requirePage } from "@/server/tenant";
 
 /** Packing slips as one PDF: `?ids=<order id>[,<order id>…]` (one order or the board selection), in the user's language. */

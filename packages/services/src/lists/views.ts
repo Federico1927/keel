@@ -1,6 +1,6 @@
-import { and, asc, eq, or, schema } from "@keel/db";
+import { and, asc, eq, or, schema } from "@hullwise/db";
 import type { ServiceContext } from "../context";
-import { canonicalQuery } from "@keel/core";
+import { canonicalQuery } from "@hullwise/core";
 
 export interface SavedView {
   id: string;

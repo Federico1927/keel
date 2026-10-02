@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Label, Textarea } from "@keel/ui";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Label, Textarea } from "@hullwise/ui";
 import { revokeUserSessionsAction, setUserDisabledAction } from "@/server/actions/admin";
 
 /** Disable (with a reason) or enable a person platform-wide (#48); the result shows inline. */

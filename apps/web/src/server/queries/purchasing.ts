@@ -1,6 +1,6 @@
-import { and, asc, desc, eq, inArray, schema, sql, type SQL } from "@keel/db";
-import { PAGE_SIZE } from "@keel/config";
-import { listSupplierLinks, supplierBalances, variantStock } from "@keel/services";
+import { and, asc, desc, eq, inArray, schema, sql, type SQL } from "@hullwise/db";
+import { PAGE_SIZE } from "@hullwise/config";
+import { listSupplierLinks, supplierBalances, variantStock } from "@hullwise/services";
 import type { TenantContext } from "@/server/tenant";
 
 export interface PoListFilters {

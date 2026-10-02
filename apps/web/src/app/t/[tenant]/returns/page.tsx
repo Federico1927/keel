@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { bulkActionsFor, canWritePage } from "@keel/config";
-import { formatDate, formatMoney, formatNumber } from "@keel/core";
-import { listReturnReasons, listReturns } from "@keel/services";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { bulkActionsFor, canWritePage } from "@hullwise/config";
+import { formatDate, formatMoney, formatNumber } from "@hullwise/core";
+import { listReturnReasons, listReturns } from "@hullwise/services";
+import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
 import { ReturnFiltersBar } from "./filters";
-import { schema, eq } from "@keel/db";
+import { schema, eq } from "@hullwise/db";
 import { ListToolbar } from "@/components/lists/list-toolbar";
 import { BulkBar } from "@/components/lists/bulk-bar";
 import { ListSelection, RowCheckbox, SelectAllCheckbox } from "@/components/lists/selection";

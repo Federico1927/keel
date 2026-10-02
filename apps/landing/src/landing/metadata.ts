@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { TOKENS } from "@keel/ui/tokens";
+import { TOKENS } from "@hullwise/ui/tokens";
 import {
   LANDING_LOCALES,
   PRODUCT_NAME,

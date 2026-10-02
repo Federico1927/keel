@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { cn } from "@keel/ui";
+import { cn } from "@hullwise/ui";
 
 const TABS = [
   { key: "list", path: "" },

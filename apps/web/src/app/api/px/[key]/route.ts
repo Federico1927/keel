@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { withTenant } from "@keel/db";
-import { pixelBatchSchema } from "@keel/core";
-import { ingestPixelBatch, originAllowed, PixelError, pixelTenantForKey } from "@keel/services";
+import { withTenant } from "@hullwise/db";
+import { pixelBatchSchema } from "@hullwise/core";
+import { ingestPixelBatch, originAllowed, PixelError, pixelTenantForKey } from "@hullwise/services";
 
 /**
  * Public collect endpoint of the first-party pixel. Accepts text/plain JSON (sendBeacon, no CORS

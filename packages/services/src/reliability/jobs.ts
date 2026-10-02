@@ -1,6 +1,6 @@
-import { and, desc, eq, gte, inArray, lt, schema, sql, type Database, type DbExecutor, type SQL } from "@keel/db";
-import { JOB_FAILURES_BEFORE_ALERT } from "@keel/config";
-import { failedInARow, failureAlertSignature } from "@keel/core";
+import { and, desc, eq, gte, inArray, lt, schema, sql, type Database, type DbExecutor, type SQL } from "@hullwise/db";
+import { JOB_FAILURES_BEFORE_ALERT } from "@hullwise/config";
+import { failedInARow, failureAlertSignature } from "@hullwise/core";
 import { raisePlatformAlert, resolvePlatformAlert, type TenantTxRunner } from "./alerts";
 
 /**

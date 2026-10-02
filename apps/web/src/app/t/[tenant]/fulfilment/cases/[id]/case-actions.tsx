@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Check, Hand, Send, SkipForward, Undo2, X } from "lucide-react";
-import { EXCEPTION_RESOLUTIONS, formatDateTime, type ExceptionResolution, type RtsSuggestion } from "@keel/core";
-import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select, Textarea } from "@keel/ui";
+import { EXCEPTION_RESOLUTIONS, formatDateTime, type ExceptionResolution, type RtsSuggestion } from "@hullwise/core";
+import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select, Textarea } from "@hullwise/ui";
 import { claimCaseAction, closeCaseAction, followUpAction, releaseCaseAction, sendInstructionAction } from "@/server/actions/fulfilment";
 import type { ActionResult } from "@/server/action-result";
 

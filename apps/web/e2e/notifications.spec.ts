@@ -88,7 +88,7 @@ test.describe("notifications, tasks and support", () => {
     const ticketUrl = page.url();
 
     await page.context().clearCookies();
-    await login(page, "superadmin@keel.demo");
+    await login(page, "superadmin@hullwise.demo");
     await page.goto("/admin/support?status=open");
     await page.getByRole("link", { name: new RegExp(subject) }).click();
     await page.getByLabel(/^Reply$|^Rispondi$/).fill("Thanks, we are looking into it.");

@@ -1,7 +1,7 @@
 "use client";
 import { useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@keel/ui";
+import { Button } from "@hullwise/ui";
 import { linkProduct } from "@/server/actions/campaigns";
 
 export function SuggestionLinkButtons({ slug, campaignId, suggestions }: { slug: string; campaignId: string; suggestions: { productId: string; title: string; kind: string; confidence: number }[] }) {

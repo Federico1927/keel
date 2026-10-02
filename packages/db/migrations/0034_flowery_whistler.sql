@@ -27,4 +27,4 @@ ALTER TABLE "metric_targets" ADD CONSTRAINT "metric_targets_created_by_users_id_
 CREATE UNIQUE INDEX "metric_targets_uq" ON "metric_targets" USING btree ("tenant_id","metric","month");--> statement-breakpoint
 ALTER TABLE "dashboards" ADD CONSTRAINT "dashboards_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "dashboards_scope_idx" ON "dashboards" USING btree ("tenant_id","scope","is_home");--> statement-breakpoint
-CREATE POLICY "metric_targets_tenant_isolation" ON "metric_targets" AS PERMISSIVE FOR ALL TO "keel_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid) WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);
+CREATE POLICY "metric_targets_tenant_isolation" ON "metric_targets" AS PERMISSIVE FOR ALL TO "hullwise_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid) WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);

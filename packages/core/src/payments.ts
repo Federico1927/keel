@@ -54,7 +54,7 @@ export interface RefundableLine {
   id: string;
   currentQuantity: number;
   unitPriceMinor: number;
-  /** Units of the line already refunded by Keel. */
+  /** Units of the line already refunded by Hullwise. */
   refundedQuantity: number;
 }
 export interface RefundLineRequest {

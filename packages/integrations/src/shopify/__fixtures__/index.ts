@@ -128,7 +128,7 @@ export const graphqlDiscounts = {
 
 export const graphqlInventory = { data: { nodes: [{ id: "gid://shopify/InventoryItem/4500001", legacyResourceId: "4500001", inventoryLevels: { nodes: [{ updatedAt: "2026-09-29T06:00:00Z", location: { id: "gid://shopify/Location/6100001", legacyResourceId: "6100001" }, quantities: [{ name: "available", quantity: 12 }, { name: "on_hand", quantity: 15 }, { name: "committed", quantity: 3 }] }] } }] } };
 
-export const graphqlWebhooks = { data: { webhookSubscriptions: { nodes: [{ topic: "ORDERS_CREATE", endpoint: { __typename: "WebhookHttpEndpoint", callbackUrl: "https://keel.example/api/webhooks/shopify" } }] } } };
+export const graphqlWebhooks = { data: { webhookSubscriptions: { nodes: [{ topic: "ORDERS_CREATE", endpoint: { __typename: "WebhookHttpEndpoint", callbackUrl: "https://hullwise.example/api/webhooks/shopify" } }] } } };
 export const graphqlWebhookCreate = { data: { webhookSubscriptionCreate: { userErrors: [] } } };
 export const graphqlCancel = { data: { orderCancel: { job: { id: "gid://shopify/Job/1" }, orderCancelUserErrors: [], userErrors: [] } } };
 
@@ -136,8 +136,8 @@ export const graphqlCancel = { data: { orderCancel: { job: { id: "gid://shopify/
 export const graphqlInventoryItemUpdate = { data: { inventoryItemUpdate: { inventoryItem: { id: "gid://shopify/InventoryItem/4500001", unitCost: { amount: "52.0" } }, userErrors: [] } } };
 export const graphqlVariantInventoryItem = { data: { productVariant: { inventoryItem: { id: "gid://shopify/InventoryItem/4500004" } } } };
 
-/** `order.fulfillmentOrders` with holds (recorded shape, Admin API 2025-07): one open, one already held by Keel, one closed. */
-export const graphqlFulfillmentOrders = { data: { order: { fulfillmentOrders: { nodes: [{ id: "gid://shopify/FulfillmentOrder/701", status: "OPEN", fulfillmentHolds: [] }, { id: "gid://shopify/FulfillmentOrder/702", status: "ON_HOLD", fulfillmentHolds: [{ id: "gid://shopify/FulfillmentHold/81", handle: "keel-awaiting-stock" }, { id: "gid://shopify/FulfillmentHold/82", handle: null }] }, { id: "gid://shopify/FulfillmentOrder/703", status: "CLOSED", fulfillmentHolds: [] }] } } } };
+/** `order.fulfillmentOrders` with holds (recorded shape, Admin API 2025-07): one open, one already held by Hullwise, one closed. */
+export const graphqlFulfillmentOrders = { data: { order: { fulfillmentOrders: { nodes: [{ id: "gid://shopify/FulfillmentOrder/701", status: "OPEN", fulfillmentHolds: [] }, { id: "gid://shopify/FulfillmentOrder/702", status: "ON_HOLD", fulfillmentHolds: [{ id: "gid://shopify/FulfillmentHold/81", handle: "hullwise-awaiting-stock" }, { id: "gid://shopify/FulfillmentHold/82", handle: null }] }, { id: "gid://shopify/FulfillmentOrder/703", status: "CLOSED", fulfillmentHolds: [] }] } } } };
 export const graphqlFulfillmentOrderHold = { data: { fulfillmentOrderHold: { fulfillmentHold: { id: "gid://shopify/FulfillmentHold/83" }, userErrors: [] } } };
 export const graphqlFulfillmentOrderReleaseHold = { data: { fulfillmentOrderReleaseHold: { fulfillmentOrder: { id: "gid://shopify/FulfillmentOrder/702", status: "ON_HOLD" }, userErrors: [] } } };
 

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { PRODUCT_NAME } from "@keel/config";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@keel/ui";
+import { PRODUCT_NAME } from "@hullwise/config";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@hullwise/ui";
 import { requireUser } from "@/server/session";
 import { BrandMark } from "@/components/brand-mark";
 import { CompleteProfileForm } from "./form";

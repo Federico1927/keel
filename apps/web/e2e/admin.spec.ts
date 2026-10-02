@@ -3,7 +3,7 @@ import { DEMO_PASSWORD, login } from "./helpers";
 
 test.describe("super-admin console", () => {
   test("dashboard, tenants, add-on toggle gates the tenant page, billing and impersonation are audited", async ({ page, browser }) => {
-    await login(page, "superadmin@keel.demo");
+    await login(page, "superadmin@hullwise.demo");
     await expect(page).toHaveURL(/\/admin$/);
     await expect(page.getByText("MRR").first()).toBeVisible();
     await page.goto("/admin/tenants");
@@ -55,7 +55,7 @@ test.describe("super-admin console", () => {
   });
 
   test("creates a tenant with a checklist and a setup invoice", async ({ page }) => {
-    await login(page, "superadmin@keel.demo");
+    await login(page, "superadmin@hullwise.demo");
     await page.goto("/admin/tenants/new");
     const stamp = Date.now().toString().slice(-6);
     await page.getByLabel(/Company name|Nome azienda/).fill(`E2E Shop ${stamp}`);
@@ -73,7 +73,7 @@ test.describe("super-admin console", () => {
   });
 
   test("platform mode: violet accent, Platform label and the grouped navigation", async ({ page }) => {
-    await login(page, "superadmin@keel.demo");
+    await login(page, "superadmin@hullwise.demo");
     await expect(page.getByTestId("platform-mode")).toBeVisible();
     await expect(page.getByTestId("platform-label")).toHaveText(/Platform|Piattaforma|Plataforma/);
     for (const g of ["overview", "tenants", "users", "billing", "operations", "support", "audit"]) await expect(page.getByTestId(`admin-nav-${g}`)).toBeAttached();
@@ -89,7 +89,7 @@ test.describe("super-admin console", () => {
 
   test("finds a user by email in under 3 clicks and disables them; audited; the person cannot sign in until enabled", async ({ page, browser }) => {
     const email = "care2@northwind.demo";
-    await login(page, "superadmin@keel.demo");
+    await login(page, "superadmin@hullwise.demo");
     // typing in the dashboard search and pressing Enter, then one click on the result
     await page.getByTestId("dashboard-user-search").fill(email);
     await page.getByTestId("dashboard-user-search").press("Enter");
@@ -106,7 +106,7 @@ test.describe("super-admin console", () => {
     await expect(page.getByTestId("user-disabled-alert")).toContainText("E2E: left the team");
     await page.goto("/admin/audit?action=user.disabled");
     await expect(page.getByTestId("audit-row").first()).toContainText("user.disabled");
-    await expect(page.getByTestId("audit-row").first()).toContainText("superadmin@keel.demo");
+    await expect(page.getByTestId("audit-row").first()).toContainText("superadmin@hullwise.demo");
 
     const ctx = await browser.newContext();
     const p = await ctx.newPage();
@@ -129,7 +129,7 @@ test.describe("super-admin console", () => {
   });
 
   test("impersonation shows the banner on every tenant page and Exit returns to /admin (audited)", async ({ page }) => {
-    await login(page, "superadmin@keel.demo");
+    await login(page, "superadmin@hullwise.demo");
     await page.goto("/admin/tenants?q=harbor");
     await page.getByTestId("tenant-row").filter({ hasText: "Harbor Home" }).getByRole("button", { name: /Open as support|Apri come supporto/ }).click();
     await expect(page).toHaveURL(/\/t\/harbor-home/);
@@ -148,7 +148,7 @@ test.describe("super-admin console", () => {
   });
 
   test("moving a tenant to suspended blocks its users with the reason recorded; reactivating restores access", async ({ page, browser }) => {
-    await login(page, "superadmin@keel.demo");
+    await login(page, "superadmin@hullwise.demo");
     const ownerCtx = await browser.newContext();
     const owner = await ownerCtx.newPage();
     await login(owner, "owner@harborhome.demo");
@@ -183,7 +183,7 @@ test.describe("super-admin console", () => {
   });
 
   test("console tables keep filters and sort in the URL and export them as CSV; metrics link to their tenants", async ({ page }) => {
-    await login(page, "superadmin@keel.demo");
+    await login(page, "superadmin@hullwise.demo");
     await page.goto("/admin/tenants?status=churned&sort=name&dir=desc");
     const slugs = await page.getByTestId("tenant-row").evaluateAll((rows) => rows.map((r) => r.getAttribute("data-slug")));
     expect(slugs).toEqual(["maple-kids", "fjord-home"]);

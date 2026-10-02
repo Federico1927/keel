@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canDo, canWritePage, isPageEnabled } from "@keel/config";
-import { countLeaves, formatDateTime, formatNumber, type SegmentGroup } from "@keel/core";
-import { listSegments } from "@keel/services";
-import { Button, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { canDo, canWritePage, isPageEnabled } from "@hullwise/config";
+import { countLeaves, formatDateTime, formatNumber, type SegmentGroup } from "@hullwise/core";
+import { listSegments } from "@hullwise/services";
+import { Button, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { SegmentRowActions } from "./row-actions";
 import { SegmentTabs } from "./segment-tabs";

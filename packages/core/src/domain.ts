@@ -54,8 +54,8 @@ export type PurchaseOrderStatus = (typeof PURCHASE_ORDER_STATUSES)[number];
 /** Purchase orders counted as incoming stock. */
 export const INCOMING_PO_STATUSES: readonly PurchaseOrderStatus[] = ["confirmed", "in_transit", "partially_received"];
 
-/** The canonical list lives in @keel/config (plan modules gate some platforms); re-exported for domain code. */
-export { AD_PLATFORMS, isAdPlatform, type AdPlatform } from "@keel/config";
+/** The canonical list lives in @hullwise/config (plan modules gate some platforms); re-exported for domain code. */
+export { AD_PLATFORMS, isAdPlatform, type AdPlatform } from "@hullwise/config";
 export const CAMPAIGN_STATUSES = ["active", "paused", "archived"] as const;
 export type CampaignStatus = (typeof CAMPAIGN_STATUSES)[number];
 

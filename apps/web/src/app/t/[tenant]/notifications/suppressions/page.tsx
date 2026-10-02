@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { canDo } from "@keel/config";
-import { formatDateTime } from "@keel/core";
-import { listEmailSuppressions } from "@keel/services";
-import { Badge, Card, CardContent, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { canDo } from "@hullwise/config";
+import { formatDateTime } from "@hullwise/core";
+import { listEmailSuppressions } from "@hullwise/services";
+import { Badge, Card, CardContent, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { NotificationTabs } from "../tabs";
 import { AddSuppressionForm, RemoveSuppressionButton } from "./forms";

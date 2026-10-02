@@ -1,5 +1,5 @@
-import { and, eq, gte, inArray, isNull, lte, ne, or, schema } from "@keel/db";
-import { findDuplicateOrders, type DuplicateMatch } from "@keel/core";
+import { and, eq, gte, inArray, isNull, lte, ne, or, schema } from "@hullwise/db";
+import { findDuplicateOrders, type DuplicateMatch } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 
 /** Loads sibling candidates from the database and delegates the decision to core. */

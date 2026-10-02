@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDateTime, formatNumber } from "@keel/core";
-import { listMyExports } from "@keel/services";
-import { Alert, AlertDescription, Badge, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { formatDateTime, formatNumber } from "@hullwise/core";
+import { listMyExports } from "@hullwise/services";
+import { Alert, AlertDescription, Badge, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { getTenantContext } from "@/server/tenant";
 import { AutoRefresh } from "@/components/lists/auto-refresh";
 

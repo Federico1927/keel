@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, inArray, schema, sql, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import type { MockCommercePlatform, NormalizedOrder } from "@keel/integrations";
-import { AWAITING_STOCK_REASON, optionStockGrid, parseTenantSettings } from "@keel/core";
+import { and, eq, inArray, schema, sql, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import type { MockCommercePlatform, NormalizedOrder } from "@hullwise/integrations";
+import { AWAITING_STOCK_REASON, optionStockGrid, parseTenantSettings } from "@hullwise/core";
 import { applyCancellation, backorderSummary, cancelBackorderWait, createPurchaseOrder, executePlatformWrite, getCommercePlatformFor, importOrder, mockCommerceFor, orderBackorders, orderLineStock, orderListWhere, parseOrderFilters, processDuePlatformWrites, receivePurchaseOrder, recheckOpenBackorders, replaceOrder, resetMockPlatforms, transitionPurchaseOrder, variantStock, type PlatformTenant, type ServiceContext } from "../src";
 
 const pools = testPools();

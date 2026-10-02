@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useId, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select } from "@keel/ui";
+import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select } from "@hullwise/ui";
 import { deletePeriodCostAction, savePeriodCostAction } from "@/server/actions/costs";
 
 /** One cost line: inline "add" form, or a dialog ("edit") when compact. */

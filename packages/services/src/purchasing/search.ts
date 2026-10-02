@@ -1,5 +1,5 @@
-import { and, asc, eq, ilike, or, schema } from "@keel/db";
-import type { TenantSettings } from "@keel/core";
+import { and, asc, eq, ilike, or, schema } from "@hullwise/db";
+import type { TenantSettings } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { variantStock } from "../inventory";
 import { listSupplierTerms } from "./supplier-terms";

@@ -1,2 +1,2 @@
-import browser from "@keel/eslint-config/browser";
+import browser from "@hullwise/eslint-config/browser";
 export default browser;

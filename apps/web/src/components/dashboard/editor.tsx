@@ -2,8 +2,8 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { BREAKDOWN_DIMENSIONS, BREAKDOWN_METRICS, DASHBOARD_PERIODS, DASHBOARD_WIDGET_CAP, SERIES_GRANULARITIES, SUPPORTED_LOCALES, TENANT_ROLES, TOP_LIST_ENTITIES, WIDGETS, newWidget, type DashboardPeriod, type DashboardWidget, type TenantRole, type WidgetType } from "@keel/config";
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select, Textarea, cn } from "@keel/ui";
+import { BREAKDOWN_DIMENSIONS, BREAKDOWN_METRICS, DASHBOARD_PERIODS, DASHBOARD_WIDGET_CAP, SERIES_GRANULARITIES, SUPPORTED_LOCALES, TENANT_ROLES, TOP_LIST_ENTITIES, WIDGETS, newWidget, type DashboardPeriod, type DashboardWidget, type TenantRole, type WidgetType } from "@hullwise/config";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select, Textarea, cn } from "@hullwise/ui";
 import { discardDashboardDraftAction, saveDashboardLayoutAction } from "@/server/actions/dashboards";
 
 export interface MetricOption {
@@ -14,13 +14,13 @@ export interface MetricOption {
 }
 
 const WIDTH: Record<number, string> = { 1: "", 2: "sm:col-span-2 lg:col-span-2", 3: "sm:col-span-2 lg:col-span-3", 4: "sm:col-span-2 lg:col-span-4" };
-const GROUPS = ["metrics", "charts", "lists", "queues", "content", "keel"] as const;
+const GROUPS = ["metrics", "charts", "lists", "queues", "content", "hullwise"] as const;
 const uid = () => `w${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
 /**
  * Layout editor of a dashboard: add widgets from the catalog, set each one's settings, size and
  * period, reorder by drag and drop (desktop) or with the arrows (any screen, the list order on phones),
- * save as a draft, preview as a role, publish, or start again from Keel's template.
+ * save as a draft, preview as a role, publish, or start again from Hullwise's template.
  */
 export function DashboardEditor(props: {
   slug: string;

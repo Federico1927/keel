@@ -11,7 +11,7 @@ export * from "./tiktok";
 export const INTEGRATION_MODES = ["mock", "live"] as const;
 export type IntegrationMode = (typeof INTEGRATION_MODES)[number];
 export function integrationMode(): IntegrationMode {
-  return process.env.KEEL_INTEGRATION_MODE === "live" ? "live" : "mock";
+  return process.env.HULLWISE_INTEGRATION_MODE === "live" ? "live" : "mock";
 }
 export * from "./notify";
 export * from "./email";

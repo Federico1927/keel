@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, schema, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { parseTenantSettings, type AssistantCitation } from "@keel/core";
-import { AnthropicLlmProvider, LlmError, MockLlmProvider, encryptJson, type ConnectionTest, type LlmProvider, type LlmRequest, type LlmTurn } from "@keel/integrations";
-import type { TenantRole } from "@keel/config";
+import { and, eq, schema, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { parseTenantSettings, type AssistantCitation } from "@hullwise/core";
+import { AnthropicLlmProvider, LlmError, MockLlmProvider, encryptJson, type ConnectionTest, type LlmProvider, type LlmRequest, type LlmTurn } from "@hullwise/integrations";
+import type { TenantRole } from "@hullwise/config";
 import { AssistantError, askAssistant, assistantThread, assistantToolsFor, assistantUsage, deleteAssistantThread, getLlmProviderFor, kpisForPeriod, listAssistantThreads, repairHistory, type AssistantScope, type ServiceContext, type TenantRunner } from "../src";
 
 const pools = testPools();
@@ -204,16 +204,16 @@ describe("AI assistant", () => {
     expect(await run((s) => getLlmProviderFor(s))).toBeNull();
     await setRow({});
     expect((await run((s) => getLlmProviderFor(s)))?.provider).toBe("mock");
-    const env = { mode: process.env.KEEL_INTEGRATION_MODE, key: process.env.APP_ENCRYPTION_KEY };
+    const env = { mode: process.env.HULLWISE_INTEGRATION_MODE, key: process.env.APP_ENCRYPTION_KEY };
     process.env.APP_ENCRYPTION_KEY ||= Buffer.alloc(32, 7).toString("base64");
-    process.env.KEEL_INTEGRATION_MODE = "live";
+    process.env.HULLWISE_INTEGRATION_MODE = "live";
     try {
       await setRow({ mode: "live", credentialsEncrypted: encryptJson({ apiKey: "sk-ant-test" }) });
       const live = await run((s) => getLlmProviderFor(s));
       expect(live).toBeInstanceOf(AnthropicLlmProvider);
     } finally {
-      if (env.mode === undefined) delete process.env.KEEL_INTEGRATION_MODE;
-      else process.env.KEEL_INTEGRATION_MODE = env.mode;
+      if (env.mode === undefined) delete process.env.HULLWISE_INTEGRATION_MODE;
+      else process.env.HULLWISE_INTEGRATION_MODE = env.mode;
       if (env.key === undefined) delete process.env.APP_ENCRYPTION_KEY;
       await setRow({});
     }

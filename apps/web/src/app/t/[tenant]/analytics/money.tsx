@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
 import { Download } from "lucide-react";
-import { SALE_STATUSES, formatMoney, formatNumber, formatPercent } from "@keel/core";
-import { paymentMethodReport, pnlForPeriod, taxReportForPeriod, type PnlReport } from "@keel/services";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { SALE_STATUSES, formatMoney, formatNumber, formatPercent } from "@hullwise/core";
+import { paymentMethodReport, pnlForPeriod, taxReportForPeriod, type PnlReport } from "@hullwise/services";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import type { TenantContext } from "@/server/tenant";
 import { analyticsTenant, runAnalytics } from "@/server/analytics";
 

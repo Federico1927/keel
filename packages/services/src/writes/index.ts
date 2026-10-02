@@ -1,9 +1,9 @@
 import { createHash, randomUUID } from "node:crypto";
-import { and, desc, eq, inArray, lte, ne, schema, sql } from "@keel/db";
-import { IntegrationError, type AdsPlatform, type CommercePlatform } from "@keel/integrations";
+import { and, desc, eq, inArray, lte, ne, schema, sql } from "@hullwise/db";
+import { IntegrationError, type AdsPlatform, type CommercePlatform } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import type { TenantRunner } from "../assistant";
-import type { AdPlatform } from "@keel/core";
+import type { AdPlatform } from "@hullwise/core";
 import { AdPlatformNotInPlanError, getAdsPlatformFor, getCommercePlatformFor, type PlatformTenant } from "../integrations/factory";
 import { recordHealth } from "../sync";
 import { writeHandler, type PlatformWriteKind, type PlatformWriteRow, type WritePayload, type WriteResult } from "./registry";
@@ -13,7 +13,7 @@ export * from "./registry";
 export { reviveOrder } from "./kinds";
 
 /**
- * Outbound write outbox. A user action changes Keel and enqueues the platform write in the same
+ * Outbound write outbox. A user action changes Hullwise and enqueues the platform write in the same
  * transaction; the write runs right after (a pg-boss job, or inline when no worker is deployed)
  * and is retried with backoff on rate limits and network errors. The same request repeated
  * (double click, retry) maps to the same row, so it reaches the platform once.
@@ -29,7 +29,7 @@ const STALE_RUNNING_MS = 10 * 60_000;
 
 export interface PlatformWriteInput<K extends PlatformWriteKind> {
   kind: K;
-  /** Keel record the write belongs to: the status badge reads it. */
+  /** Hullwise record the write belongs to: the status badge reads it. */
   entityType: string;
   entityId?: string | null;
   payload: WritePayload<K>;
@@ -279,7 +279,7 @@ export async function platformWritesOverview(ctx: ServiceContext, opts: { limit?
   return { rows, counts: counts ?? { pending: 0, failed: 0, succeeded24h: 0 } };
 }
 
-/** Targets with a Keel write not yet confirmed by the platform: a sync must not overwrite them with the old value. */
+/** Targets with a Hullwise write not yet confirmed by the platform: a sync must not overwrite them with the old value. */
 export async function unconfirmedWriteTargets(ctx: ServiceContext, kinds: PlatformWriteKind | PlatformWriteKind[], targetKeys?: string[]): Promise<Set<string>> {
   const where = [eq(schema.platformWrites.tenantId, ctx.tenantId), inArray(schema.platformWrites.kind, Array.isArray(kinds) ? kinds : [kinds]), inArray(schema.platformWrites.status, ["pending", "running", "failed"])];
   if (targetKeys) {

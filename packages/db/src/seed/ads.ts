@@ -1,7 +1,7 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/node-postgres";
-import { createRng } from "@keel/integrations/rng";
-import { ADS_UTM_TEMPLATES, OTHER_SEARCH_TERM, SALE_STATUSES, ZERO_METRICS, groupRareTerms, rollupMetricRows, splitExact, type MetricRow } from "@keel/core";
+import { createRng } from "@hullwise/integrations/rng";
+import { ADS_UTM_TEMPLATES, OTHER_SEARCH_TERM, SALE_STATUSES, ZERO_METRICS, groupRareTerms, rollupMetricRows, splitExact, type MetricRow } from "@hullwise/core";
 import * as schema from "../schema";
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;
@@ -142,7 +142,7 @@ export async function seedAdsDepth(db: Db, key: "northwind" | "harbor", tenantId
     const rows = await db.execute<{ id: string; v: number }>(sql`select o.id, ((o.total_minor - o.refunded_minor) * 0.8 - coalesce((select sum(l.current_quantity * coalesce(l.unit_cost_minor, 0)) from order_lines l where l.order_id = o.id), 0) - 900)::int as v from orders o where o.id in ${sql`(${sql.join(orderIds.map((i) => sql`${i}::uuid`), sql`, `)})`}`);
     for (const r of rows.rows) approx.set(r.id, Number(r.v));
   }
-  // one Meta campaign (the one whose recent orders earn the least) has ads without utm_content / utm_term: its orders reach Keel without an ad
+  // one Meta campaign (the one whose recent orders earn the least) has ads without utm_content / utm_term: its orders reach Hullwise without an ad
   const campaignMargin = new Map<string, number>();
   for (const a of attribution) if (approx.has(a.orderId)) campaignMargin.set(a.campaignId!, (campaignMargin.get(a.campaignId!) ?? 0) + approx.get(a.orderId)!);
   const metaWithAds = campaigns.filter((c) => c.platform === "meta" && (adsByCampaign.get(c.id)?.length ?? 0) > 0).sort((x, y) => (campaignMargin.get(x.id) ?? 0) - (campaignMargin.get(y.id) ?? 0) || x.externalId.localeCompare(y.externalId));
@@ -245,7 +245,7 @@ export async function seedAdsDepth(db: Db, key: "northwind" | "harbor", tenantId
   const loserIds = new Set(losers.map((l) => l.id));
   void spend90;
 
-  // one Meta campaign (not a winner's) whose ads miss utm_content / utm_term: its orders reach Keel without an ad
+  // one Meta campaign (not a winner's) whose ads miss utm_content / utm_term: its orders reach Hullwise without an ad
   const updates = attribution.filter((a) => utm.has(a.id)).map((a) => ({ id: a.id, ...utm.get(a.id)! }));
   await chunked(updates, (c) => db.execute(sql`update order_attribution oa set utm_content = v.c, utm_term = v.t from (values ${sql.join(c.map((u) => sql`(${u.id}::uuid, ${u.content}::text, ${u.term}::text)`), sql`, `)}) as v(id, c, t) where oa.id = v.id`));
 

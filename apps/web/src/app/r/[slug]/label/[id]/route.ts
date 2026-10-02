@@ -1,8 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createTranslator } from "next-intl";
-import { DEFAULT_LOCALE, isLocale, isTenantOperational, type Locale } from "@keel/config";
-import { adminDb, eq, schema, withTenant } from "@keel/db";
-import { getPortalConfig, returnLabelPdf, verifyReturnLink } from "@keel/services";
+import { DEFAULT_LOCALE, isLocale, isTenantOperational, type Locale } from "@hullwise/config";
+import { adminDb, eq, schema, withTenant } from "@hullwise/db";
+import { getPortalConfig, returnLabelPdf, verifyReturnLink } from "@hullwise/services";
 import { loadMessages } from "@/i18n/messages";
 
 /** The prepaid return label as a PDF, reachable only through the signed link given to the customer. */

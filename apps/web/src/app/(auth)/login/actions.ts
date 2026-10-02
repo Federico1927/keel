@@ -1,8 +1,8 @@
 "use server";
 import { AuthError } from "next-auth";
 import { z } from "zod";
-import { adminDb, eq, schema } from "@keel/db";
-import { safeNextPath } from "@keel/core";
+import { adminDb, eq, schema } from "@hullwise/db";
+import { safeNextPath } from "@hullwise/core";
 import { signIn } from "@/auth";
 
 export type LoginState = { error?: "invalid_credentials" | "invalid_input" | "unknown"; sent?: boolean } | null;

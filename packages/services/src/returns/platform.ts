@@ -1,6 +1,6 @@
-import { and, eq, inArray, schema, sql } from "@keel/db";
-import { RETURN_CLOSED_STATUSES, RETURN_GOODS_BACK_STATUSES, type TenantSettings } from "@keel/core";
-import type { Address, CommercePlatform, PaymentGuarantee } from "@keel/integrations";
+import { and, eq, inArray, schema, sql } from "@hullwise/db";
+import { RETURN_CLOSED_STATUSES, RETURN_GOODS_BACK_STATUSES, type TenantSettings } from "@hullwise/core";
+import type { Address, CommercePlatform, PaymentGuarantee } from "@hullwise/integrations";
 import { getPaymentGuaranteeFor } from "../integrations/factory";
 import { importOrder } from "../sync";
 import { getReturnPolicy } from "./policy";
@@ -14,7 +14,7 @@ export interface ReturnSyncResult {
 }
 
 /**
- * Brings the platform in line with the return as Keel sees it, one idempotent step at a time:
+ * Brings the platform in line with the return as Hullwise sees it, one idempotent step at a time:
  * request → approve (or decline) → restock → refund → close, plus the tenant's order tags for the
  * current status. Each step is saved as soon as it succeeds, so a failure halfway is resumed by
  * the next call (the retry button or the background job) without repeating what already happened.
@@ -71,7 +71,7 @@ export async function syncReturnToPlatform(ctx: ServiceContext, platform: Commer
       await save({ platformStatus: "approved" });
       steps.push("approved");
     }
-    // 3. restock what was put back on the shelf in Keel
+    // 3. restock what was put back on the shelf in Hullwise
     const toRestock = lines.filter((l) => l.restocked && !l.platformRestocked && l.inventoryItemExternalId);
     if (toRestock.length && req.restockLocationId) {
       const [loc] = await ctx.tx.select({ externalId: schema.locations.externalId }).from(schema.locations).where(eq(schema.locations.id, req.restockLocationId)).limit(1);
@@ -122,7 +122,7 @@ export async function syncReturnToPlatform(ctx: ServiceContext, platform: Commer
         discountMinor: Math.max(0, Math.min(newItems, credit)),
         note: `Exchange for return R-${req.number} (${order.name})`,
         tags: ["exchange"],
-        noteAttributes: [{ name: "keel_return_id", value: req.id }],
+        noteAttributes: [{ name: "hullwise_return_id", value: req.id }],
         replacesOrderName: null,
       };
       if ((req.exchangeDifferenceMinor ?? 0) > 0) {

@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Boxes } from "lucide-react";
-import { canDo, canViewPage, isPageEnabled } from "@keel/config";
-import { formatMoney } from "@keel/core";
-import { asc, eq, schema } from "@keel/db";
-import { listSupplierTerms, packsForProduct } from "@keel/services";
-import { Badge, Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { canDo, canViewPage, isPageEnabled } from "@hullwise/config";
+import { formatMoney } from "@hullwise/core";
+import { asc, eq, schema } from "@hullwise/db";
+import { listSupplierTerms, packsForProduct } from "@hullwise/services";
+import { Badge, Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import type { TenantContext } from "@/server/tenant";
 import { BulkSupplierForm, VariantSupplierButton } from "./supplier-forms";
 

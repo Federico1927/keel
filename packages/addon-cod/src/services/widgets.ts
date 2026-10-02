@@ -1,5 +1,5 @@
-import { and, eq, inArray, schema, sql } from "@keel/db";
-import type { QueueData, WidgetLoader } from "@keel/services";
+import { and, eq, inArray, schema, sql } from "@hullwise/db";
+import type { QueueData, WidgetLoader } from "@hullwise/services";
 
 /**
  * The add-on's dashboard widget (issue #43): COD orders waiting for a confirmation call. Registered

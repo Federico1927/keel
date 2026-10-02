@@ -1,5 +1,5 @@
-import { and, eq, inArray, schema } from "@keel/db";
-import { executePlatformWrite, type PlatformWriteRow, type ServiceContext, type TenantRunner } from "@keel/services";
+import { and, eq, inArray, schema } from "@hullwise/db";
+import { executePlatformWrite, type PlatformWriteRow, type ServiceContext, type TenantRunner } from "@hullwise/services";
 import { enqueue } from "./jobs";
 import type { TenantContext } from "./tenant";
 
@@ -13,7 +13,7 @@ export function tenantRunner(ctx: TenantContext): TenantRunner {
 
 /**
  * Runs the platform writes an action enqueued, once its transaction has committed: handed to the
- * worker when one is deployed (`KEEL_JOBS_QUEUE=1`), executed inline otherwise, with one short
+ * worker when one is deployed (`HULLWISE_JOBS_QUEUE=1`), executed inline otherwise, with one short
  * retry when the platform asks to wait under two seconds. Whatever is left (a longer rate limit,
  * an outage) stays pending with its badge and goes out on the next retry tick or manual retry.
  */

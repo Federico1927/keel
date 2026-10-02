@@ -11,7 +11,7 @@ const launchOptions = existsSync(chromiumPath) ? { executablePath: chromiumPath 
  * Where the server's mock email provider writes what it captures (#52): the account spec reads
  * invitation and reset links from there. With E2E_NO_SERVER, start the server with the same variable.
  */
-process.env.KEEL_EMAIL_OUTBOX_DIR ??= join(tmpdir(), "keel-e2e-outbox");
+process.env.HULLWISE_EMAIL_OUTBOX_DIR ??= join(tmpdir(), "hullwise-e2e-outbox");
 
 export default defineConfig({
   testDir: "./e2e",
@@ -34,7 +34,7 @@ export default defineConfig({
         command: "pnpm start",
         url: "http://localhost:3000/login",
         reuseExistingServer: true,
-        env: { KEEL_EMAIL_OUTBOX_DIR: process.env.KEEL_EMAIL_OUTBOX_DIR },
+        env: { HULLWISE_EMAIL_OUTBOX_DIR: process.env.HULLWISE_EMAIL_OUTBOX_DIR },
         timeout: 120_000,
       },
 });

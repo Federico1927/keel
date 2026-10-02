@@ -1,5 +1,5 @@
-import { and, desc, eq, schema, sql } from "@keel/db";
-import { CHURN_RISKS, SALE_STATUSES, churnThresholdsFromPct, runPredictionModel, type CalibrationReport, type ChurnRisk, type CustomerHistory, type GammaGammaParams, type MbgParams } from "@keel/core";
+import { and, desc, eq, schema, sql } from "@hullwise/db";
+import { CHURN_RISKS, SALE_STATUSES, churnThresholdsFromPct, runPredictionModel, type CalibrationReport, type ChurnRisk, type CustomerHistory, type GammaGammaParams, type MbgParams } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 
 const SALE = SALE_STATUSES as readonly string[];

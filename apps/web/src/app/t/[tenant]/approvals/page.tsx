@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { isModuleInPlan } from "@keel/config";
-import { formatDateTime, formatMoney } from "@keel/core";
-import { canApproveProposal, listProposals, type ProposalRow } from "@keel/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { isModuleInPlan } from "@hullwise/config";
+import { formatDateTime, formatMoney } from "@hullwise/core";
+import { canApproveProposal, listProposals, type ProposalRow } from "@hullwise/services";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { getTenantContext } from "@/server/tenant";
 import { ProposalActions } from "./actions";
 

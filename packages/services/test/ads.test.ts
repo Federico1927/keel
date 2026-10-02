@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, schema, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { parseTenantSettings, type Period } from "@keel/core";
-import type { MockAdsPlatform } from "@keel/integrations";
+import { and, eq, schema, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { parseTenantSettings, type Period } from "@hullwise/core";
+import type { MockAdsPlatform } from "@hullwise/integrations";
 import { loadWidgetData, adDetail, adRows, adsRecommendations, adsWords, campaignAdSets, campaignSpendReconciliation, executePlatformWrite, getAdsPlatformFor, keywordRows, requestAdStatus, requestNegativeKeyword, rollupAdEntityMetrics, runAdsEntitySync, searchTermRows, type AnalyticsTenant, type ServiceContext } from "../src";
 
 const pools = testPools();
@@ -46,7 +46,7 @@ describe.each(["northwind", "harbor"] as const)("ads below the campaign on the d
     expect(terms.losers.some((r) => r.phrase === (key === "northwind" ? "gratis" : "free"))).toBe(true);
   });
 
-  it("ad-level spend equals campaign spend day by day; ad sets, ads and assets carry Keel numbers", async () => {
+  it("ad-level spend equals campaign spend day by day; ad sets, ads and assets carry Hullwise numbers", async () => {
     const period = last(60);
     const campaigns = await run(key, (s) => s.tx.select().from(schema.campaigns).where(eq(schema.campaigns.tenantId, T[key].id)));
     let checked = 0;
@@ -82,7 +82,7 @@ describe.each(["northwind", "harbor"] as const)("ads below the campaign on the d
 });
 
 describe("dashboard top lists below the campaign", () => {
-  it("lists top search terms by spend, ads and keywords by Keel profit; viewers without Campaigns are refused", async () => {
+  it("lists top search terms by spend, ads and keywords by Hullwise profit; viewers without Campaigns are refused", async () => {
     const env = (role: "marketing" | "customer_care") => ({ tenant: T.northwind.tenant, role, activeAddons: [], userId: null, customs: [] });
     const terms = await run("northwind", (s) => loadWidgetData(s, env("marketing"), { type: "top_list", settings: { entity: "search_terms", limit: 5 } }, last(30)));
     expect(terms.ok).toBe(true);

@@ -2,8 +2,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { cn } from "@keel/ui";
-import { PRODUCT_NAME } from "@keel/config";
+import { cn } from "@hullwise/ui";
+import { PRODUCT_NAME } from "@hullwise/config";
 import { BrandMark } from "@/components/brand-mark";
 import { NAV_SECTIONS } from "./nav";
 

@@ -1,8 +1,8 @@
 import { cache } from "react";
-import { dashboardPeriod, type Period } from "@keel/core";
-import { COD_WIDGET_LOADERS } from "@keel/addon-cod";
-import { CORE_WIDGET_LOADERS, listTenantMetrics, loadWidgetData, type CustomMetricRow, type Memo, type WidgetEnv, type WidgetLoader, type WidgetResult } from "@keel/services";
-import { WIDGETS, type DashboardPeriod, type DashboardWidget, type TenantRole, type WidgetType } from "@keel/config";
+import { dashboardPeriod, type Period } from "@hullwise/core";
+import { COD_WIDGET_LOADERS } from "@hullwise/addon-cod";
+import { CORE_WIDGET_LOADERS, listTenantMetrics, loadWidgetData, type CustomMetricRow, type Memo, type WidgetEnv, type WidgetLoader, type WidgetResult } from "@hullwise/services";
+import { WIDGETS, type DashboardPeriod, type DashboardWidget, type TenantRole, type WidgetType } from "@hullwise/config";
 import type { TenantContext } from "./tenant";
 
 /** Core loaders plus the add-ons' (COD lives in its package); `loadWidgetData` refuses an add-on widget the tenant lacks. */

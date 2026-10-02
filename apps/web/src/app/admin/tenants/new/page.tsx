@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { PageHeader } from "@keel/ui";
+import { PageHeader } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { NewTenantForm } from "./form";
 

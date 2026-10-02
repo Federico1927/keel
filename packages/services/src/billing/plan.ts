@@ -1,22 +1,22 @@
-import { and, asc, eq, recordAudit, schema, type DbExecutor } from "@keel/db";
-import { MODULES, isAddonModule, type PlanKey } from "@keel/config";
-import { desiredSubscriptionKeys, hasItemChanges, subscriptionItemChanges } from "@keel/core";
-import { BillingProviderError, type BillingProvider } from "@keel/integrations";
+import { and, asc, eq, recordAudit, schema, type DbExecutor } from "@hullwise/db";
+import { MODULES, isAddonModule, type PlanKey } from "@hullwise/config";
+import { desiredSubscriptionKeys, hasItemChanges, subscriptionItemChanges } from "@hullwise/core";
+import { BillingProviderError, type BillingProvider } from "@hullwise/integrations";
 import { recordLifecycleEvent } from "./lifecycle";
 import { applySubscriptionSnapshot, BillingError, priceIdFor } from "./mirror";
 import { getBillingProvider } from "./provider";
 
 /**
- * Plans and add-ons (#48, #53). Keel decides entitlements; when the tenant has a Stripe
+ * Plans and add-ons (#48, #53). Hullwise decides entitlements; when the tenant has a Stripe
  * subscription its items follow, with proration: the processor is written first, so a refused
- * change leaves Keel untouched (the console shows the error).
+ * change leaves Hullwise untouched (the console shows the error).
  */
 
 async function activeAddons(db: DbExecutor, tenantId: string): Promise<string[]> {
   return (await db.select({ k: schema.tenantAddons.moduleKey }).from(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, tenantId), eq(schema.tenantAddons.isActive, true))).orderBy(asc(schema.tenantAddons.moduleKey))).map((r) => r.k);
 }
 
-/** Pushes the plan and add-ons Keel wants onto the Stripe subscription items (no-op without a live subscription or when in step). */
+/** Pushes the plan and add-ons Hullwise wants onto the Stripe subscription items (no-op without a live subscription or when in step). */
 export async function syncSubscriptionItems(db: DbExecutor, tenantId: string, want: { planKey: PlanKey; addons: readonly string[] }, opts: { provider?: BillingProvider; actorUserId: string | null; now?: Date }): Promise<{ changed: boolean }> {
   const now = opts.now ?? new Date();
   const [sub] = await db.select().from(schema.subscriptions).where(eq(schema.subscriptions.tenantId, tenantId)).limit(1);
@@ -28,7 +28,7 @@ export async function syncSubscriptionItems(db: DbExecutor, tenantId: string, wa
   const add = await Promise.all(changes.add.map(price));
   const swap = await Promise.all(changes.swap.map(async (s) => ({ itemId: s.itemId, priceId: await price(s.lookupKey) })));
   try {
-    const snap = await provider.updateSubscriptionItems(sub.externalSubscriptionId, { add, remove: changes.remove, swap, currentItems: sub.items }, `keel-items-${sub.externalSubscriptionId}-${[...changes.add, ...changes.remove, ...changes.swap.map((s) => s.lookupKey)].join("+")}-${now.getTime()}`);
+    const snap = await provider.updateSubscriptionItems(sub.externalSubscriptionId, { add, remove: changes.remove, swap, currentItems: sub.items }, `hullwise-items-${sub.externalSubscriptionId}-${[...changes.add, ...changes.remove, ...changes.swap.map((s) => s.lookupKey)].join("+")}-${now.getTime()}`);
     // the mock answers with the items only (empty status): the rest stays as mirrored
     const merged = snap.status ? snap : { ...snap, customerId: sub.externalCustomerId ?? "", status: sub.externalStatus ?? "active", collectionMethod: sub.collectionMethod === "send_invoice" ? ("send_invoice" as const) : ("charge_automatically" as const), currentPeriodStart: sub.currentPeriodStart, currentPeriodEnd: sub.currentPeriodEnd, trialEnd: sub.trialEndsAt, cancelAtPeriodEnd: sub.cancelAtPeriodEnd };
     await applySubscriptionSnapshot(db, tenantId, merged, { provider: sub.provider, now, actorUserId: opts.actorUserId });

@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { Search } from "lucide-react";
-import { Input, cn } from "@keel/ui";
+import { Input, cn } from "@hullwise/ui";
 
 const STATES = ["all", "active", "scheduled", "expired", "exhausted", "disabled"] as const;
 

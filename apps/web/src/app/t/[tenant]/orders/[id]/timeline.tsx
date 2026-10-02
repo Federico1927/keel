@@ -1,7 +1,7 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { Card, CardContent, CardHeader, CardTitle } from "@keel/ui";
-import { formatDateTime } from "@keel/core";
+import { Card, CardContent, CardHeader, CardTitle } from "@hullwise/ui";
+import { formatDateTime } from "@hullwise/core";
 
 export interface TimelineEvent {
   id: string;

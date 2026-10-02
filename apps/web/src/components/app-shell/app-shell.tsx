@@ -1,12 +1,12 @@
-import { PAGES, canViewPage, canWritePage, isPageEnabled } from "@keel/config";
+import { PAGES, canViewPage, canWritePage, isPageEnabled } from "@hullwise/config";
 import type { TenantContext } from "@/server/tenant";
 import { getMemberships } from "@/server/session";
 import { SidebarNav } from "./sidebar";
 import { Topbar } from "./topbar";
 import { ImpersonationBanner } from "./impersonation-banner";
-import { SUPPORT_CATEGORIES, listNotifications, tenantBillingBanner, unreadCount } from "@keel/services";
+import { SUPPORT_CATEGORIES, listNotifications, tenantBillingBanner, unreadCount } from "@hullwise/services";
 import { BillingBanner } from "./billing-banner";
-import { displayName, initials } from "@keel/core";
+import { displayName, initials } from "@hullwise/core";
 import { brandCss, loadBrand } from "@/server/branding";
 import { avatarUrl } from "@/server/avatar";
 

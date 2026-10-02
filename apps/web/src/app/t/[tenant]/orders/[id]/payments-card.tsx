@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDate, formatDateTime, formatMoney } from "@keel/core";
-import { orderBalanceTransactions, type OrderMoney } from "@keel/services";
-import { canViewPage } from "@keel/config";
-import { Badge, Card, CardContent, CardHeader, CardTitle } from "@keel/ui";
+import { formatDate, formatDateTime, formatMoney } from "@hullwise/core";
+import { orderBalanceTransactions, type OrderMoney } from "@hullwise/services";
+import { canViewPage } from "@hullwise/config";
+import { Badge, Card, CardContent, CardHeader, CardTitle } from "@hullwise/ui";
 import type { TenantContext } from "@/server/tenant";
 
-/** Money on the order after checkout: manual payments and refunds recorded in Keel, and the processor's view (actual fee, deposits). */
+/** Money on the order after checkout: manual payments and refunds recorded in Hullwise, and the processor's view (actual fee, deposits). */
 export async function PaymentsCard({ ctx, orderId, currency, money: m, nameOf }: { ctx: TenantContext; orderId: string; currency: string; money: OrderMoney; nameOf: (id: string | null) => string | null }) {
   const t = await getTranslations("order_payments");
   const tp = await getTranslations("payment_methods");

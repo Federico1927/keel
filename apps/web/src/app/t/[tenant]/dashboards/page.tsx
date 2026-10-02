@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canDo, isTenantRole } from "@keel/config";
-import { formatDateTime } from "@keel/core";
-import { listDashboards, tenantHomeView, type DashboardView } from "@keel/services";
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader } from "@keel/ui";
+import { canDo, isTenantRole } from "@hullwise/config";
+import { formatDateTime } from "@hullwise/core";
+import { listDashboards, tenantHomeView, type DashboardView } from "@hullwise/services";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { CreateDashboardForm, CustomiseHomeButton, DuplicateButton, PersonalToggle, ResetHomeButton } from "@/components/dashboard/controls";
 

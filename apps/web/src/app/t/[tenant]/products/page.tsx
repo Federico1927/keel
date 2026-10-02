@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
-import { formatNumber } from "@keel/core";
-import { bulkActionsFor, canWritePage } from "@keel/config";
-import { catalogQualityReport } from "@keel/services";
+import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { formatNumber } from "@hullwise/core";
+import { bulkActionsFor, canWritePage } from "@hullwise/config";
+import { catalogQualityReport } from "@hullwise/services";
 import { requirePage } from "@/server/tenant";
 import { listProducts, parseProductFilters } from "@/server/queries/catalog";
 import { RiskBadge } from "@/components/risk-badge";

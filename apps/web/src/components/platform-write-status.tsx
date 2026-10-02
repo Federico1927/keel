@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Badge, Button, cn } from "@keel/ui";
+import { Badge, Button, cn } from "@hullwise/ui";
 import { retryPlatformWriteAction } from "@/server/actions/platform-writes";
 
 /** What the badge needs from a `platform_writes` row (see `latestPlatformWrites`). */

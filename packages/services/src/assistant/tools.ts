@@ -1,12 +1,12 @@
 import { z } from "zod";
-import type { TenantRole } from "@keel/config";
-import { AD_PLATFORMS, assistantPeriod, type CitationFigure, type CitationRow } from "@keel/core";
+import type { TenantRole } from "@hullwise/config";
+import { AD_PLATFORMS, assistantPeriod, type CitationFigure, type CitationRow } from "@hullwise/core";
 import { kpisForPeriod, pnlForPeriod, productPerformance } from "../analytics";
 import { campaignsWithEconomics } from "../campaigns";
 import { returnsAnalytics } from "../returns";
 import { predictionOverview } from "../crm/predictions";
 import { replenishmentPlan } from "../planning";
-import { majorUnits, queryString, roundTo, toolAllowed, toolInputSchema, type KeelTool, type ToolResult, type ToolRuntime } from "../tools";
+import { majorUnits, queryString, roundTo, toolAllowed, toolInputSchema, type HullwiseTool, type ToolResult, type ToolRuntime } from "../tools";
 
 /**
  * Read-only analytics tools of the AI assistant, on the shared tool layer (`../tools`): the remote
@@ -18,7 +18,7 @@ import { majorUnits, queryString, roundTo, toolAllowed, toolInputSchema, type Ke
 
 export type AssistantToolRuntime = ToolRuntime;
 export type AssistantToolResult = ToolResult;
-export type AssistantTool<S extends z.ZodType = z.ZodType> = KeelTool<S>;
+export type AssistantTool<S extends z.ZodType = z.ZodType> = HullwiseTool<S>;
 
 const major = majorUnits;
 const round = roundTo;

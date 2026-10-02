@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canWritePage } from "@keel/config";
-import { formatDate, formatDateTime, formatMoney, formatNumber, formatPercent, type ChurnRisk, type SegmentGroup } from "@keel/core";
-import { predictionOverview, type PredictionListRow } from "@keel/services";
-import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { canWritePage } from "@hullwise/config";
+import { formatDate, formatDateTime, formatMoney, formatNumber, formatPercent, type ChurnRisk, type SegmentGroup } from "@hullwise/core";
+import { predictionOverview, type PredictionListRow } from "@hullwise/services";
+import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { encodeRulesParam } from "@/server/queries/crm";
 import { CustomerTabs } from "../customer-tabs";

@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { Search, X } from "lucide-react";
-import { Button, Input, Select, cn } from "@keel/ui";
+import { Button, Input, Select, cn } from "@hullwise/ui";
 import type { ProductFilters } from "@/server/queries/catalog";
 
 export function ProductFiltersBar({ basePath, filters, types, riskCounts }: { basePath: string; filters: ProductFilters; types: string[]; riskCounts: Record<string, number> }) {

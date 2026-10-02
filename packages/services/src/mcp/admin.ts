@@ -1,5 +1,5 @@
-import { and, eq, gt, gte, isNull, recordAudit, schema, sql, type Database } from "@keel/db";
-import { parseTenantSettings } from "@keel/core";
+import { and, eq, gt, gte, isNull, recordAudit, schema, sql, type Database } from "@hullwise/db";
+import { parseTenantSettings } from "@hullwise/core";
 import { mcpAvailabilityFor, type McpAvailability } from "./auth";
 
 /**
@@ -43,7 +43,7 @@ export async function mcpUsageByTenant(admin: Database, opts: { days?: number; n
     admin.select({ n: sql<number>`count(*)::int` }).from(l).where(and(isNull(l.tenantId), gte(l.createdAt, since))),
   ]);
   return {
-    platformDisabled: process.env.KEEL_MCP_DISABLED === "1",
+    platformDisabled: process.env.HULLWISE_MCP_DISABLED === "1",
     unknownTokenFailures: unknown[0]?.n ?? 0,
     tenants: tenants.map((t) => {
       const u = usage.find((x) => x.tenantId === t.id);

@@ -1,8 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
-import { PRODUCT_NAME } from "@keel/config";
-import { safeNextPath } from "@keel/core";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@keel/ui";
+import { PRODUCT_NAME } from "@hullwise/config";
+import { safeNextPath } from "@hullwise/core";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@hullwise/ui";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { getCurrentUser } from "@/server/session";
 import { LoginForm } from "./login-form";

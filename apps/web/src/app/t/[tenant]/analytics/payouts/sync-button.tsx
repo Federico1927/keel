@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { RefreshCw } from "lucide-react";
-import { Button } from "@keel/ui";
+import { Button } from "@hullwise/ui";
 import { syncPayoutsAction } from "@/server/actions/payments";
 
 /** One pass of the payouts sync (the daily job runs the same, resumable). */

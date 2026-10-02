@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canWritePage } from "@keel/config";
-import { formatDateTime, displayName } from "@keel/core";
-import { adminDb, eq, schema } from "@keel/db";
-import { ALERT_METRIC_OPTIONS, integrationRow, listAlertRules, recentAlertEvents } from "@keel/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { canWritePage } from "@hullwise/config";
+import { formatDateTime, displayName } from "@hullwise/core";
+import { adminDb, eq, schema } from "@hullwise/db";
+import { ALERT_METRIC_OPTIONS, integrationRow, listAlertRules, recentAlertEvents } from "@hullwise/services";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { AlertRuleControls, AlertRuleForm, RunAlertsButton, SlackWebhookForm } from "../advanced-controls";
 

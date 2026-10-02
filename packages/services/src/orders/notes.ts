@@ -1,5 +1,5 @@
-import { and, eq, schema } from "@keel/db";
-import { extractMentions } from "@keel/core";
+import { and, eq, schema } from "@hullwise/db";
+import { extractMentions } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { notifyUsers, recordMentions } from "../notifications";
 

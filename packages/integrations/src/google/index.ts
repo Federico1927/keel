@@ -7,7 +7,7 @@ import { IntegrationError, type AdEntityMetricLevel, type AdEntityStatus, type A
  * Google's "Sunset dates" page before each release]; bump it here and re-record the fixtures.
  */
 export const GOOGLE_ADS_API_VERSION = "v23";
-/** Oldest version Keel accepts: a test fails if the constant drops below it. */
+/** Oldest version Hullwise accepts: a test fails if the constant drops below it. */
 export const GOOGLE_ADS_MIN_SUPPORTED_VERSION = 21;
 export const GOOGLE_ADS_API_BASE = `https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}`;
 /** Version number of a `vNN` string (NaN when malformed). */

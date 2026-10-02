@@ -42,13 +42,13 @@ describe("Anthropic LLM provider (recorded responses)", () => {
     const { calls, fetchImpl } = recorder([{ status: 200, body: TOOL_TURN }, { status: 200, body: FINAL_TURN }]);
     const llm = new AnthropicLlmProvider({ apiKey: "test-key", fetch: fetchImpl, maxRetries: 0 });
     const question: LlmMessage = { role: "user", content: [{ type: "text", text: "How did revenue go in September?" }] };
-    const first = await llm.complete({ system: "You are Keel's analyst.", messages: [question], tools });
+    const first = await llm.complete({ system: "You are Hullwise's analyst.", messages: [question], tools });
     const req = calls[0]!;
     expect(req.url).toContain("/v1/messages");
     expect(req.headers.get("x-api-key")).toBe("test-key");
     expect(req.headers.get("anthropic-beta")).toContain("server-side-fallback-2026-07-01");
     expect(req.body).toMatchObject({ model: "claude-opus-5-5", fallbacks: "default", thinking: { type: "adaptive" }, output_config: { effort: "medium" } });
-    expect(req.body.system).toEqual([{ type: "text", text: "You are Keel's analyst.", cache_control: { type: "ephemeral" } }]);
+    expect(req.body.system).toEqual([{ type: "text", text: "You are Hullwise's analyst.", cache_control: { type: "ephemeral" } }]);
     expect(req.body.tools).toEqual([{ name: "get_kpis", description: "KPIs for a period", input_schema: tools[0]!.inputSchema }]);
     expect(first.stopReason).toBe("tool_use");
     expect(first.content).toEqual([
@@ -59,7 +59,7 @@ describe("Anthropic LLM provider (recorded responses)", () => {
 
     // the next request carries the assistant turn verbatim (thinking and signature) and every tool result in one user message
     const history: LlmMessage[] = [question, { role: "assistant", content: first.content, providerContent: first.providerContent }, { role: "user", content: [{ type: "tool_result", toolUseId: "toolu_01", content: "{\"netRevenueMinor\":12000000}" }] }];
-    const second = await llm.complete({ system: "You are Keel's analyst.", messages: history, tools });
+    const second = await llm.complete({ system: "You are Hullwise's analyst.", messages: history, tools });
     const sent = calls[1]!.body.messages as { role: string; content: { type: string; signature?: string; tool_use_id?: string; is_error?: boolean }[] }[];
     expect(sent[1]!.content[0]).toMatchObject({ type: "thinking", signature: "sig-abc" });
     expect(sent[2]!.content).toEqual([{ type: "tool_result", tool_use_id: "toolu_01", content: "{\"netRevenueMinor\":12000000}", is_error: false }]);

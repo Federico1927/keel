@@ -18,27 +18,27 @@ describe("checkRuntimeConfig", () => {
   });
 
   it("rejects live mode without the job queue", () => {
-    const r = checkRuntimeConfig({ ...db, ...secrets, KEEL_INTEGRATION_MODE: "live" }, "web");
-    expect(r.errors.some((e) => e.includes("KEEL_JOBS_QUEUE=1"))).toBe(true);
+    const r = checkRuntimeConfig({ ...db, ...secrets, HULLWISE_INTEGRATION_MODE: "live" }, "web");
+    expect(r.errors.some((e) => e.includes("HULLWISE_JOBS_QUEUE=1"))).toBe(true);
   });
 
   it("rejects live mode with development or missing secrets", () => {
-    const dev = checkRuntimeConfig({ ...db, ...DEV_DEFAULT_SECRETS, KEEL_INTEGRATION_MODE: "live", KEEL_JOBS_QUEUE: "1" }, "web");
+    const dev = checkRuntimeConfig({ ...db, ...DEV_DEFAULT_SECRETS, HULLWISE_INTEGRATION_MODE: "live", HULLWISE_JOBS_QUEUE: "1" }, "web");
     expect(dev.errors).toHaveLength(2);
-    const missing = checkRuntimeConfig({ ...db, KEEL_INTEGRATION_MODE: "live", KEEL_JOBS_QUEUE: "1" }, "web");
+    const missing = checkRuntimeConfig({ ...db, HULLWISE_INTEGRATION_MODE: "live", HULLWISE_JOBS_QUEUE: "1" }, "web");
     expect(missing.errors).toEqual(["AUTH_SECRET is not set.", "APP_ENCRYPTION_KEY is not set."]);
   });
 
   it("accepts a complete live configuration and only warns about a missing error tracker", () => {
-    const email = { RESEND_API_KEY: "re_x", EMAIL_FROM: "Keel <no-reply@mail.keel.example>", RESEND_WEBHOOK_SECRET: "whsec_x" };
-    const r = checkRuntimeConfig({ ...db, ...secrets, ...email, KEEL_INTEGRATION_MODE: "live", KEEL_JOBS_QUEUE: "1" }, "web");
+    const email = { RESEND_API_KEY: "re_x", EMAIL_FROM: "Hullwise <no-reply@mail.hullwise.example>", RESEND_WEBHOOK_SECRET: "whsec_x" };
+    const r = checkRuntimeConfig({ ...db, ...secrets, ...email, HULLWISE_INTEGRATION_MODE: "live", HULLWISE_JOBS_QUEUE: "1" }, "web");
     expect(r.errors).toEqual([]);
     expect(r.warnings).toEqual(["SENTRY_DSN is not set: errors in live mode will only reach the logs."]);
-    expect(checkRuntimeConfig({ ...db, ...secrets, ...email, KEEL_INTEGRATION_MODE: "live", KEEL_JOBS_QUEUE: "1", SENTRY_DSN: "https://x" }, "web").warnings).toEqual([]);
+    expect(checkRuntimeConfig({ ...db, ...secrets, ...email, HULLWISE_INTEGRATION_MODE: "live", HULLWISE_JOBS_QUEUE: "1", SENTRY_DSN: "https://x" }, "web").warnings).toEqual([]);
   });
 
   it("warns, never fails, when live mode has no email provider: the mock captures the emails", () => {
-    const live = { ...db, ...secrets, KEEL_INTEGRATION_MODE: "live", KEEL_JOBS_QUEUE: "1", SENTRY_DSN: "https://x" };
+    const live = { ...db, ...secrets, HULLWISE_INTEGRATION_MODE: "live", HULLWISE_JOBS_QUEUE: "1", SENTRY_DSN: "https://x" };
     const none = checkRuntimeConfig(live, "web");
     expect(none.errors).toEqual([]);
     expect(none.warnings).toEqual([expect.stringContaining("RESEND_API_KEY is not set")]);
@@ -53,6 +53,6 @@ describe("checkRuntimeConfig", () => {
 
   it("warns when a worker runs without the queue enabled", () => {
     const r = checkRuntimeConfig({ ...db, ...secrets }, "worker");
-    expect(r.warnings.some((w) => w.includes("KEEL_JOBS_QUEUE"))).toBe(true);
+    expect(r.warnings.some((w) => w.includes("HULLWISE_JOBS_QUEUE"))).toBe(true);
   });
 });

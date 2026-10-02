@@ -1,5 +1,5 @@
-import { asc, desc, eq, schema } from "@keel/db";
-import type { ServiceContext } from "@keel/services";
+import { asc, desc, eq, schema } from "@hullwise/db";
+import type { ServiceContext } from "@hullwise/services";
 import type { TenantContext } from "@/server/tenant";
 
 /** Service context for the signed-in user inside a tenant transaction. */

@@ -1,10 +1,10 @@
 /**
  * Captures the landing in every locale, desktop and mobile in the light theme plus desktop in the
  * dark theme (the page follows the OS setting), into docs/landing/.
- * Builds nothing: run `pnpm --filter @keel/landing build` first. Starts its own static server.
+ * Builds nothing: run `pnpm --filter @hullwise/landing build` first. Starts its own static server.
  *
- *   pnpm --filter @keel/landing screenshots
- *   OUT_DIR=/tmp/shots LOCALES=en pnpm --filter @keel/landing screenshots
+ *   pnpm --filter @hullwise/landing screenshots
+ *   OUT_DIR=/tmp/shots LOCALES=en pnpm --filter @hullwise/landing screenshots
  */
 import { chromium } from "@playwright/test";
 import sharp from "sharp";

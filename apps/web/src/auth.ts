@@ -2,13 +2,13 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import bcrypt from "bcryptjs";
-import { adminDb, and, eq, schema } from "@keel/db";
+import { adminDb, and, eq, schema } from "@hullwise/db";
 import { z } from "zod";
 import { cookies, headers } from "next/headers";
-import { isLocale } from "@keel/config";
+import { isLocale } from "@hullwise/config";
 import { createHash } from "node:crypto";
-import { emailSettings, queueEmail, recordSignIn } from "@keel/services";
-import { THEME_COOKIE, isThemePreference } from "@keel/ui/tokens";
+import { emailSettings, queueEmail, recordSignIn } from "@hullwise/services";
+import { THEME_COOKIE, isThemePreference } from "@hullwise/ui/tokens";
 import { authConfig } from "./auth.config";
 import { LOCALE_COOKIE } from "./i18n/request";
 import { verifySignInGrant } from "./server/sign-in-grant";
@@ -31,7 +31,7 @@ const magicLink = {
   id: "email",
   type: "email" as const,
   name: "Email",
-  from: "no-reply@keel.local",
+  from: "no-reply@hullwise.local",
   maxAge: MAGIC_LINK_MINUTES * 60,
   options: {},
   async sendVerificationRequest({ identifier, url, expires }: { identifier: string; url: string; expires: Date }) {

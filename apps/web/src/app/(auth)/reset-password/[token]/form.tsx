@@ -2,7 +2,7 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Button } from "@keel/ui";
+import { Button } from "@hullwise/ui";
 import { NewPasswordFields } from "@/components/account/password-fields";
 import { resetPasswordAction } from "@/server/actions/account";
 import { AccountErrorMessage } from "@/components/account/error-message";

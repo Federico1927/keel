@@ -108,7 +108,7 @@ export function deriveOrderStatus(input: StateInput, rules: readonly StateRule[]
   if (input.shipmentStatus && ["in_transit", "out_for_delivery", "attempted", "exception", "label_created"].includes(input.shipmentStatus)) {
     return { status: "shipped", reason: "override:shipment" };
   }
-  // 4. Waiting for stock holds an order nothing has shipped yet (a fact Keel keeps, not a platform tag).
+  // 4. Waiting for stock holds an order nothing has shipped yet (a fact Hullwise keeps, not a platform tag).
   if (input.awaitingStock && !["fulfilled", "partial"].includes(norm(input.fulfillmentStatusRaw ?? ""))) return { status: "on_hold", reason: AWAITING_STOCK_REASON };
   // 5. Tenant rules.
   const ordered = [...rules].filter((r) => r.isActive).sort((a, b) => a.priority - b.priority);

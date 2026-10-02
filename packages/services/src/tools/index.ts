@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { canDo, canViewPage, canWritePage, isAddonModule, isPageEnabled, type ActionKey, type McpScope, type ModuleKey, type PageKey, type TenantRole } from "@keel/config";
-import type { AssistantCitation } from "@keel/core";
+import { canDo, canViewPage, canWritePage, isAddonModule, isPageEnabled, type ActionKey, type McpScope, type ModuleKey, type PageKey, type TenantRole } from "@hullwise/config";
+import type { AssistantCitation } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import type { AnalyticsTenant } from "../analytics";
 
@@ -26,7 +26,7 @@ export interface ToolRuntime {
   userId: string;
   role: TenantRole;
   activeAddons: readonly string[];
-  /** Prefix of the Keel links tools return: "" in the app (relative), the public origin for MCP clients. */
+  /** Prefix of the Hullwise links tools return: "" in the app (relative), the public origin for MCP clients. */
   linkBase?: string;
   /** Set when an AI client calls through MCP: recorded in the audit log and the order timeline. */
   mcp?: { tokenId: string; clientName: string };
@@ -35,13 +35,13 @@ export interface ToolRuntime {
 export interface ToolResult {
   /** Compact data for the model: amounts in major units of the store currency, dates in the store time zone. */
   data: unknown;
-  /** Figures, period, filters and the Keel page they come from (shown under assistant answers). */
+  /** Figures, period, filters and the Hullwise page they come from (shown under assistant answers). */
   citation?: AssistantCitation;
 }
 
 export type ToolEffect = "read" | "write" | "proposal";
 
-export interface KeelTool<S extends z.ZodType = z.ZodType> {
+export interface HullwiseTool<S extends z.ZodType = z.ZodType> {
   name: string;
   /** Short human title (MCP clients show it in their tool list). */
   title?: string;
@@ -80,7 +80,7 @@ export interface ToolAccess {
 }
 
 /** Why a tool is not available to a caller, or null when it is. */
-export function toolDenial(t: KeelTool, a: ToolAccess): "module" | "role" | "scope" | null {
+export function toolDenial(t: HullwiseTool, a: ToolAccess): "module" | "role" | "scope" | null {
   if (!isPageEnabled(t.page, a.activeAddons)) return "module";
   if (t.module && isAddonModule(t.module) && !a.activeAddons.includes(t.module)) return "module";
   if (t.effect === "read") {
@@ -90,12 +90,12 @@ export function toolDenial(t: KeelTool, a: ToolAccess): "module" | "role" | "sco
   return null;
 }
 
-export function toolAllowed(t: KeelTool, a: ToolAccess): boolean {
+export function toolAllowed(t: HullwiseTool, a: ToolAccess): boolean {
   return toolDenial(t, a) === null;
 }
 
 /** JSON Schema of a tool's input, as LLM APIs and MCP clients expect it. */
-export function toolInputSchema(t: KeelTool): Record<string, unknown> {
+export function toolInputSchema(t: HullwiseTool): Record<string, unknown> {
   const schema = z.toJSONSchema(t.input, { io: "input" }) as Record<string, unknown>;
   delete schema.$schema;
   return schema;
@@ -128,7 +128,7 @@ export function localDate(d: Date | null | undefined, timeZone: string): string 
   return localDateTime(d, timeZone)?.slice(0, 10) ?? null;
 }
 
-/** A link to a Keel page for the caller: relative in the app, absolute for MCP clients. */
-export function keelLink(rt: Pick<ToolRuntime, "linkBase" | "slug">, path: string): string {
+/** A link to a Hullwise page for the caller: relative in the app, absolute for MCP clients. */
+export function hullwiseLink(rt: Pick<ToolRuntime, "linkBase" | "slug">, path: string): string {
   return `${rt.linkBase ?? ""}/t/${rt.slug}${path}`;
 }

@@ -1,3 +1,5 @@
+> Historical document: the product was formerly called Keel.
+
 > **Nota per Claude Code: questo documento è CONTESTO, non specifica.**
 > Descrive la piattaforma originale, single-tenant e costruita per un e-commerce che vende molto in contrassegno. Per questo l'analisi dà molto peso al contrassegno. **Per Keel quel peso non vale:** il core è indipendente dal metodo di pagamento, e tutto ciò che riguarda conferma degli ordini, assegnazione degli operatori, delivery score e rischio destinatario appartiene solo all'add-on `addon.cod`.
 > La sezione "Proposta di core e tier" di questo documento è **superata**: i tier e i moduli validi sono quelli di `CLAUDE.md`. In caso di conflitto vale sempre `CLAUDE.md`.

@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { Button, Input, cn } from "@keel/ui";
+import { Button, Input, cn } from "@hullwise/ui";
 
 /** Preset + custom range picker; `keep` are the other search params to preserve. */
 export function PeriodPicker({ basePath, keep = {}, preset, from, to }: { basePath: string; keep?: Record<string, string | undefined>; preset?: string; from?: string; to?: string }) {

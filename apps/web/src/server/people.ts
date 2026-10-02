@@ -1,6 +1,6 @@
-import { and, asc, eq, schema } from "@keel/db";
+import { and, asc, eq, schema } from "@hullwise/db";
 import type { TenantContext } from "./tenant";
-import { displayName } from "@keel/core";
+import { displayName } from "@hullwise/core";
 
 export interface Person {
   id: string;

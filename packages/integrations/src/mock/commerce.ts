@@ -1,4 +1,4 @@
-import { normalizePaymentMethod } from "@keel/core";
+import { normalizePaymentMethod } from "@hullwise/core";
 import { createHmac } from "node:crypto";
 import { createRng, type Rng } from "../rng";
 import {
@@ -93,7 +93,7 @@ export class MockCommercePlatform implements CommercePlatform {
   stockOf(inventoryItemExternalId: string, locationExternalId: string): number | undefined {
     return this.stock.get(`${inventoryItemExternalId}@${locationExternalId}`);
   }
-  /** Changes stock behind Keel's back, as a manual edit in the store admin would (tests, drift). */
+  /** Changes stock behind Hullwise's back, as a manual edit in the store admin would (tests, drift). */
   adjustStock(inventoryItemExternalId: string, locationExternalId: string, delta: number): void {
     const key = `${inventoryItemExternalId}@${locationExternalId}`;
     this.stock.set(key, (this.stock.get(key) ?? 0) + delta);
@@ -276,7 +276,7 @@ export class MockCommercePlatform implements CommercePlatform {
     return { externalId: r.externalId, orderExternalId: r.orderExternalId, status: r.status, requestedAt: r.requestedAt, closedAt: r.closedAt, note: r.note, lines: r.lines.map((l) => ({ ...l })) };
   }
   /**
-   * A return opened in the store admin or by the customer on the store, behind Keel's back (tests, the
+   * A return opened in the store admin or by the customer on the store, behind Hullwise's back (tests, the
    * "simulate return" button). Lines are order line ids of any order, also of the seeded history.
    */
   openPlatformReturn(input: { orderExternalId: string; lines: { orderLineExternalId: string; quantity: number; reason?: string | null }[]; note?: string | null; status?: MockReturnStatus }): NormalizedReturn {
@@ -470,9 +470,9 @@ export class MockCommercePlatform implements CommercePlatform {
     const tags = [...kept, ...add.filter((t) => !have.has(t.trim().toLowerCase()))];
     this.orders.set(externalId, { ...o, tags, platformUpdatedAt: new Date() });
   }
-  /** Fulfillment holds per order (Keel's own), as the store would show them. */
+  /** Fulfillment holds per order (Hullwise's own), as the store would show them. */
   private holds = new Map<string, FulfillmentHoldInput>();
-  /** Current Keel hold on an order (tests). */
+  /** Current Hullwise hold on an order (tests). */
   fulfillmentHoldOf(externalId: string): FulfillmentHoldInput | undefined {
     return this.holds.get(externalId);
   }
