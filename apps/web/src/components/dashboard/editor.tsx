@@ -1,10 +1,12 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { BREAKDOWN_DIMENSIONS, BREAKDOWN_METRICS, DASHBOARD_PERIODS, DASHBOARD_WIDGET_CAP, SERIES_GRANULARITIES, SUPPORTED_LOCALES, TENANT_ROLES, TOP_LIST_ENTITIES, WIDGETS, newWidget, type DashboardPeriod, type DashboardWidget, type TenantRole, type WidgetType } from "@hullwise/config";
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select, Textarea, cn } from "@hullwise/ui";
 import { discardDashboardDraftAction, saveDashboardLayoutAction } from "@/server/actions/dashboards";
+import { ConfirmButton } from "@/components/confirm-button";
+import { DesktopNotice } from "@/components/mobile/desktop-notice";
 
 export interface MetricOption {
   ref: string;
@@ -51,6 +53,11 @@ export function DashboardEditor(props: {
   const [pending, start] = useTransition();
   const metricLabel = useMemo(() => new Map(props.metrics.map((m) => [m.ref, m.label])), [props.metrics]);
   const sel = widgets.find((w) => w.id === selected) ?? null;
+  const panelRef = useRef<HTMLDivElement>(null);
+  // below lg the settings panel sits under the widget list: bring it into view when a widget is picked (#49)
+  useEffect(() => {
+    if (selected && window.matchMedia("(max-width: 1023px)").matches) panelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [selected]);
 
   const update = (id: string, patch: Partial<DashboardWidget>) => setWidgets((ws) => ws.map((w) => (w.id === id ? { ...w, ...patch } : w)));
   const setSetting = (id: string, key: string, value: unknown) => setWidgets((ws) => ws.map((w) => (w.id === id ? { ...w, settings: { ...w.settings, [key]: value } } : w)));
@@ -174,6 +181,7 @@ export function DashboardEditor(props: {
 
   return (
     <div className="space-y-4" data-testid="dashboard-editor">
+      <DesktopNotice className="mb-0" />
       <Card>
         <CardContent className="grid gap-3 pt-4 sm:grid-cols-[minmax(0,1fr)_12rem]">
           <div className="space-y-1"><Label htmlFor="editor-name">{t("name")}</Label><Input id="editor-name" value={name} maxLength={80} onChange={(e) => setName(e.target.value)} /></div>
@@ -191,7 +199,7 @@ export function DashboardEditor(props: {
               {TENANT_ROLES.map((r) => <option key={r} value={r}>{tr(r)}</option>)}
             </Select>
             {props.hasDraft && <Button size="sm" variant="ghost" disabled={pending} onClick={() => start(async () => { await discardDashboardDraftAction(props.slug, props.id); router.refresh(); })}>{t("editor.discard")}</Button>}
-            <Button size="sm" variant="ghost" disabled={pending} onClick={() => { if (window.confirm(t("editor.reset_confirm"))) { setWidgets(props.template.map((w) => ({ ...w, id: `${w.id}-${uid()}` }))); setSelected(null); } }} data-testid="editor-reset-template">{t("editor.reset_template")}</Button>
+            <ConfirmButton size="sm" variant="ghost" disabled={pending} title={t("editor.reset_confirm")} confirmLabel={t("editor.reset_template")} onConfirm={() => { setWidgets(props.template.map((w) => ({ ...w, id: `${w.id}-${uid()}` }))); setSelected(null); }} data-testid="editor-reset-template">{t("editor.reset_template")}</ConfirmButton>
             <span className="text-xs text-muted-foreground">{t("editor.count", { n: widgets.length, max: DASHBOARD_WIDGET_CAP })}</span>
             {props.hasDraft && <Badge variant="warning">{t("draft_badge")}</Badge>}
             {message && <span className={cn("text-xs", message.kind === "error" ? "text-destructive" : "text-success")} role="status" data-testid="editor-message">{message.text}</span>}
@@ -221,9 +229,9 @@ export function DashboardEditor(props: {
                     <span className="break-words">{titleOf(w)}</span>
                   </button>
                   <span className="flex shrink-0 gap-0.5">
-                    <Button size="sm" variant="ghost" className="h-6 px-1.5" onClick={() => move(w.id, -1)} disabled={i === 0} aria-label={t("editor.move_up")}>↑</Button>
-                    <Button size="sm" variant="ghost" className="h-6 px-1.5" onClick={() => move(w.id, 1)} disabled={i === widgets.length - 1} aria-label={t("editor.move_down")}>↓</Button>
-                    <Button size="sm" variant="ghost" className="h-6 px-1.5 text-destructive" onClick={() => { setWidgets((ws) => ws.filter((x) => x.id !== w.id)); if (selected === w.id) setSelected(null); }} aria-label={t("editor.remove")}>✕</Button>
+                    <Button size="sm" variant="ghost" className="h-6 px-1.5 pointer-coarse:h-11 pointer-coarse:min-w-11" onClick={() => move(w.id, -1)} disabled={i === 0} aria-label={t("editor.move_up")}>↑</Button>
+                    <Button size="sm" variant="ghost" className="h-6 px-1.5 pointer-coarse:h-11 pointer-coarse:min-w-11" onClick={() => move(w.id, 1)} disabled={i === widgets.length - 1} aria-label={t("editor.move_down")}>↓</Button>
+                    <Button size="sm" variant="ghost" className="h-6 px-1.5 text-destructive pointer-coarse:h-11 pointer-coarse:min-w-11" onClick={() => { setWidgets((ws) => ws.filter((x) => x.id !== w.id)); if (selected === w.id) setSelected(null); }} aria-label={t("editor.remove")}>✕</Button>
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">{t(`widget_types.${w.type}.name`)} · {t("editor.size", { w: w.w, h: w.h })}{w.period ? ` · ${t(`periods.${w.period}`)}` : ""}</p>
@@ -232,7 +240,7 @@ export function DashboardEditor(props: {
             {widgets.length === 0 && <li className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground sm:col-span-2 lg:col-span-4">{t("editor.empty")}</li>}
           </ol>
         </div>
-        <div className="space-y-4">
+        <div className="scroll-mt-20 space-y-4" ref={panelRef}>
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-base">{sel ? t("editor.settings") : t("editor.add_widget")}</CardTitle></CardHeader>
             <CardContent>

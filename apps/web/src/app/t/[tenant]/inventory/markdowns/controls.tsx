@@ -3,9 +3,10 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Badge, Button, Checkbox } from "@hullwise/ui";
+import { Alert, AlertDescription, Badge, Button, Checkbox, DataList } from "@hullwise/ui";
 import type { BatchSummary } from "@hullwise/services";
 import { applyMarkdownsAction } from "@/server/actions/inventory-control";
+import { ConfirmDialog } from "@/components/confirm-button";
 
 export interface MarkdownView {
   variantId: string;
@@ -41,73 +42,53 @@ export function MarkdownTable({ slug, rows, canApply }: { slug: string; rows: Ma
       return n;
     });
   const all = selected.size === rows.length && rows.length > 0;
+  const [confirming, setConfirming] = useState(false);
+  const apply = () =>
+    start(async () => {
+      const r = await applyMarkdownsAction(slug, [...selected]);
+      if (!r.ok) return setError(te(r.error));
+      setError(null);
+      setSummary(r.data ?? null);
+      setSelected(new Set());
+      router.refresh();
+    });
   return (
     <div className="space-y-3">
       {canApply && (
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            size="sm"
-            disabled={pending || selected.size === 0}
-            data-testid="apply-markdowns"
-            onClick={() => {
-              if (!window.confirm(t("apply_confirm", { n: selected.size }))) return;
-              start(async () => {
-                const r = await applyMarkdownsAction(slug, [...selected]);
-                if (!r.ok) return setError(te(r.error));
-                setError(null);
-                setSummary(r.data ?? null);
-                setSelected(new Set());
-                router.refresh();
-              });
-            }}
-          >
+          <Button size="sm" disabled={pending || selected.size === 0} data-testid="apply-markdowns" onClick={() => setConfirming(true)}>
             {t("apply", { n: selected.size })}
           </Button>
+          <label className="flex items-center gap-2 text-sm md:hidden">
+            <Checkbox checked={all} onCheckedChange={() => setSelected(all ? new Set() : new Set(rows.map((r) => r.variantId)))} aria-label={t("select_all")} />
+            {t("select_all")}
+          </label>
           {summary && (
             <span className="text-sm" data-testid="markdown-summary" role="status">
               {t("summary", { done: summary.done, skipped: summary.skipped, failed: summary.failed })}
             </span>
           )}
           {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
+          <ConfirmDialog open={confirming} onOpenChange={setConfirming} title={t("apply_confirm", { n: selected.size })} confirmLabel={t("apply", { n: selected.size })} onConfirm={apply} pending={pending} />
         </div>
       )}
-      <div className="overflow-x-auto rounded-lg border bg-card">
-        <table className="w-full text-sm">
-          <thead className="border-b bg-muted/40 text-xs text-muted-foreground">
-            <tr>
-              {canApply && <th className="w-8 p-2"><Checkbox checked={all} onCheckedChange={() => setSelected(all ? new Set() : new Set(rows.map((r) => r.variantId)))} aria-label={t("select_all")} data-testid="markdown-select-all" /></th>}
-              <th className="p-2 text-left font-medium">{t("columns.variant")}</th>
-              <th className="hidden p-2 text-left font-medium md:table-cell">{t("columns.reason")}</th>
-              <th className="p-2 text-right font-medium">{t("columns.stock")}</th>
-              <th className="hidden p-2 text-right font-medium lg:table-cell">{t("columns.cover")}</th>
-              <th className="p-2 text-right font-medium">{t("columns.price")}</th>
-              <th className="p-2 text-right font-medium">{t("columns.new_price")}</th>
-              <th className="hidden p-2 text-right font-medium md:table-cell">{t("columns.floor")}</th>
-              <th className="hidden p-2 text-right font-medium md:table-cell">{t("columns.margin")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.variantId} className="border-b last:border-0" data-testid="markdown-row">
-                {canApply && <td className="p-2"><Checkbox checked={selected.has(r.variantId)} onCheckedChange={() => toggle(r.variantId)} aria-label={r.label} data-testid="markdown-select" /></td>}
-                <td className="p-2">
-                  <Link href={`/t/${slug}/products/${r.productId}`} className="font-medium text-primary hover:underline">{r.label}</Link>
-                  <p className="text-xs text-muted-foreground">{r.detail}</p>
-                </td>
-                <td className="hidden p-2 md:table-cell"><Badge variant={r.reason === "excess" ? "warning" : "destructive"}>{t(`reasons.${r.reason}`)}</Badge></td>
-                <td className="p-2 text-right tabular">{r.available}</td>
-                <td className="hidden p-2 text-right tabular lg:table-cell">{r.cover === null ? "—" : `${r.cover}d`}</td>
-                <td className="p-2 text-right tabular text-muted-foreground">{r.price}</td>
-                <td className="p-2 text-right tabular">
-                  <span className="font-medium">{r.newPrice}</span> <span className="text-xs text-muted-foreground">(−{r.discount})</span>
-                  <p className="text-xs text-muted-foreground line-through">{r.compareAt}</p>
-                </td>
-                <td className="hidden p-2 text-right tabular md:table-cell">{r.floor}{r.clamped && <Badge variant="info" className="ml-1">{t("at_floor")}</Badge>}</td>
-                <td className="hidden p-2 text-right tabular md:table-cell">{r.margin}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="rounded-lg border bg-card">
+        <DataList
+          rows={rows}
+          rowKey={(r) => r.variantId}
+          rowProps={() => ({ "data-testid": "markdown-row" })}
+          columns={[
+            ...(canApply ? [{ key: "select", header: <Checkbox checked={all} onCheckedChange={() => setSelected(all ? new Set() : new Set(rows.map((r) => r.variantId)))} aria-label={t("select_all")} data-testid="markdown-select-all" />, mobile: "select" as const, headClassName: "w-8", cell: (r: MarkdownView) => <Checkbox checked={selected.has(r.variantId)} onCheckedChange={() => toggle(r.variantId)} aria-label={r.label} data-testid="markdown-select" /> }] : []),
+            { key: "variant", header: t("columns.variant"), mobile: "title", cell: (r) => <><Link href={`/t/${slug}/products/${r.productId}`} className="font-medium text-primary hover:underline">{r.label}</Link><p className="text-xs font-normal text-muted-foreground">{r.detail}</p></> },
+            { key: "reason", header: t("columns.reason"), mobile: "badge", cell: (r) => <Badge variant={r.reason === "excess" ? "warning" : "destructive"}>{t(`reasons.${r.reason}`)}</Badge> },
+            { key: "stock", header: t("columns.stock"), align: "right", className: "tabular", cell: (r) => r.available },
+            { key: "cover", header: t("columns.cover"), align: "right", priority: 2, className: "tabular", cell: (r) => (r.cover === null ? "—" : `${r.cover}d`) },
+            { key: "price", header: t("columns.price"), align: "right", className: "tabular text-muted-foreground max-md:hidden", cell: (r) => r.price },
+            { key: "new_price", header: t("columns.new_price"), mobile: "subtitle", align: "right", className: "tabular", cell: (r) => <><span className="text-xs text-muted-foreground line-through md:hidden">{r.price}</span> <span className="font-medium max-md:text-foreground">{r.newPrice}</span> <span className="text-xs text-muted-foreground">(−{r.discount})</span><p className="text-xs text-muted-foreground line-through max-md:hidden">{r.compareAt}</p></> },
+            { key: "floor", header: t("columns.floor"), align: "right", className: "tabular", cell: (r) => <>{r.floor}{r.clamped && <Badge variant="info" className="ml-1">{t("at_floor")}</Badge>}</> },
+            { key: "margin", header: t("columns.margin"), align: "right", className: "tabular", cell: (r) => r.margin },
+          ]}
+        />
       </div>
     </div>
   );

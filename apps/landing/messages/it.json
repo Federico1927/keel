@@ -293,7 +293,8 @@
         "title": "Invio in contabilità",
         "body": "Una scrittura al giorno nel tuo sistema contabile dal riepilogo vendite giornaliero: vendite e IVA per aliquota, spedizioni, sconti, rimborsi e commissioni sul tuo piano dei conti, inviata solo quando il giorno quadra, con registro invii e reinvio."
       }
-    }
+    },
+    "coming_soon": "In arrivo"
   },
   "faq": {
     "title": "Le domande che ci fanno",

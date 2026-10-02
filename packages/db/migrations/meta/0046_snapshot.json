@@ -1,6 +1,6 @@
 {
-  "id": "b8fb4477-bc91-401b-9f67-20494d01e554",
-  "prevId": "0d69c3c8-10c1-4071-9582-2a99f1172dca",
+  "id": "acecf11c-659b-408d-b8bf-70b92b837c87",
+  "prevId": "398578bc-9151-4a9d-975a-38ee2a7c3379",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -934,6 +934,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -1744,196 +1750,6 @@
           "to": [
             "hullwise_app"
           ],
-          "withCheck": "tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid"
-        }
-      },
-      "checkConstraints": {},
-      "isRLSEnabled": true
-    },
-    "public.ad_accounts": {
-      "name": "ad_accounts",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "tenant_id": {
-          "name": "tenant_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "provider": {
-          "name": "provider",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "external_account_id": {
-          "name": "external_account_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "is_primary": {
-          "name": "is_primary",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "status": {
-          "name": "status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'connected'"
-        },
-        "mode": {
-          "name": "mode",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'mock'"
-        },
-        "credentials_encrypted": {
-          "name": "credentials_encrypted",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cursor": {
-          "name": "cursor",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'::jsonb"
-        },
-        "last_sync_at": {
-          "name": "last_sync_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "last_success_at": {
-          "name": "last_success_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "last_error": {
-          "name": "last_error",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "ad_accounts_uq": {
-          "name": "ad_accounts_uq",
-          "columns": [
-            {
-              "expression": "tenant_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "provider",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "external_account_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "ad_accounts_tenant_idx": {
-          "name": "ad_accounts_tenant_idx",
-          "columns": [
-            {
-              "expression": "tenant_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "provider",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "status",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "ad_accounts_tenant_id_tenants_id_fk": {
-          "name": "ad_accounts_tenant_id_tenants_id_fk",
-          "tableFrom": "ad_accounts",
-          "tableTo": "tenants",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {
-        "ad_accounts_tenant_isolation": {
-          "name": "ad_accounts_tenant_isolation",
-          "as": "PERMISSIVE",
-          "for": "ALL",
-          "to": [
-            "hullwise_app"
-          ],
-          "using": "tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid",
           "withCheck": "tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid"
         }
       },
@@ -4942,12 +4758,6 @@
         "campaign_id": {
           "name": "campaign_id",
           "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "ad_account_external_id": {
-          "name": "ad_account_external_id",
-          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -11875,12 +11685,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "account_external_id": {
-          "name": "account_external_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "adset_external_id": {
           "name": "adset_external_id",
           "type": "text",
@@ -12575,12 +12379,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "account_external_id": {
-          "name": "account_external_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "spend_minor": {
           "name": "spend_minor",
           "type": "integer",
@@ -12984,12 +12782,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
-        },
-        "account_external_id": {
-          "name": "account_external_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         },
         "name": {
           "name": "name",
@@ -13729,33 +13521,6 @@
             },
             {
               "expression": "status",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "campaigns_tenant_account_idx": {
-          "name": "campaigns_tenant_account_idx",
-          "columns": [
-            {
-              "expression": "tenant_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "platform",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "account_external_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -18511,19 +18276,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "kind": {
-          "name": "kind",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'purchase'"
-        },
-        "value_minor": {
-          "name": "value_minor",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
         "status": {
           "name": "status",
           "type": "text",
@@ -18621,27 +18373,6 @@
             },
             {
               "expression": "next_attempt_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "conversion_events_order_idx": {
-          "name": "conversion_events_order_idx",
-          "columns": [
-            {
-              "expression": "tenant_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "order_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"

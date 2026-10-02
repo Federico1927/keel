@@ -897,3 +897,32 @@ Fatto:
 
 Resta:
 - Connettori reali (Xero, QuickBooks Online, Fatture in Cloud) su richiesta; rilevamento automatico dei giorni cambiati dopo l'invio (oggi si reinvia a mano); aliquota per riga d'ordine se una fonte la fornisce; scrittura del costo del venduto (COGS) e degli accrediti dei processori.
+## Versioni degli add-on: si attiva solo una versione rilasciata (issue #77)
+
+Fatto:
+- Registro delle versioni in `packages/config/src/addon-versions.ts`: ogni add-on ha versioni `released` o `in_development`; la console ne mostra al massimo due (l'ultima rilasciata e quella in lavorazione).
+- `addon.cod`: v1 rilasciata, v2 (messaggi ai destinatari con un provider WhatsApp/SMS reale) in sviluppo. `addon.customer_campaigns`: v1 in sviluppo, quindi **non attivabile** (oggi i messaggi sono solo simulati).
+- `setTenantAddon` rifiuta l'attivazione senza versione rilasciata (`addon_not_released`); lo spegnimento è sempre possibile. Colonna `tenant_addons.version` (migrazione 0044, additiva) con la versione attivata. Le attivazioni già esistenti restano accese e la console le segnala.
+- Console: badge di versione e motivo del blocco nella scheda tenant e nella pagina Piani e add-on; l'interruttore ora mostra l'errore invece di ignorarlo.
+- Fatturazione allineata: si addebitano solo gli add-on rilasciati (fatture, voci Stripe, MRR, catalogo); quelli attivi ma non rilasciati restano usabili e nella finestra di abbonamento compaiono come "incluso, non fatturato".
+- Test: unit (`addon-versions.test.ts`), servizi (`billing.test.ts`), e2e (`addon-versions.spec.ts`).
+
+Resta: il controllo per singolo negozio (es. campagne senza provider di messaggi collegato), da aggiungere accanto al registro.
+
+## Mobile first, ondata 3: pagine Tier 3 di analisi e configurazione (issue #49)
+
+Fatto:
+- **Liste come schede** (`DataList`) dove le righe sono record: P/L per ordine (con riga dei totali), payout, regole di alert, perdite, suggerimenti di markdown e storico prezzi, qualità catalogo, riordino e trasferimenti, analisi ABC/XYZ, obiettivo di ricavo, distinta base, registro giornaliero campagne, raccomandazioni e parole, destinatari a rischio e console team del contrassegno, soppressioni, audit, regole di stato e anteprima, mix opzioni e pianificatore PO, costi per variante, fornitori della variante, anteprima dell'import costi, analisi resi per motivo, prodotto e opzione.
+- **Tabelle di analisi larghe** (P/L per periodo e voci del P/L, prodotti con ads e stock, UTM, metodi di pagamento, imposte, attribuzione, LTV, coorti, anzianità dei resi, previsione per variante, cassa per mese, ore operatori e tag del contrassegno) restano tabelle dentro un'area di scorrimento marcata (`ScrollTable`/`WideTable`): regione con etichetta e focus da tastiera, ombre ai bordi, indicazione "Scorri →" solo quando la tabella non entra, prima colonna fissa. Tutte le colonne tornano visibili; la pagina non scorre mai di lato.
+- **Avviso "Meglio su uno schermo più grande"** sul telefono per editor dashboard, regole di stato e griglia di previsione; le azioni semplici restano possibili (regola in un foglio, frecce dei widget da 44 px, celle di previsione modificabili al tocco).
+- **Grafici** compatti sul telefono (P/L, trend canali, previsione, cassa) e **vista a schermo intero** con pulsante sotto `lg`: lo stesso grafico in un foglio che riempie lo schermo, da girare in orizzontale.
+- **Conferme in un foglio** al posto di `window.confirm`: applica markdown, reset e eliminazione dashboard, ripartenza dal modello nell'editor, eliminazione metrica personalizzata.
+- Righe di schede scorrevoli (analisi, pianificazione, filtri delle parole), griglie con `grid-cols-1` sul telefono.
+- **Allow-list**: tutte le pagine del tenant tolte da `HIDDEN_CELL_ALLOWLIST`; restano solo le pagine della console super-admin.
+- **Controlli**: `e2e/mobile-tier3.spec.ts` (7 test × 4 progetti mobili: nessuno scorrimento laterale su 45 stati di pagina Tier 3, tabelle che scorrono nella loro regione con prima colonna fissa, schede per le liste, avviso desktop, grafico a schermo intero, salva e ripristina un costo, applica un markdown con conferma, salva le impostazioni del contrassegno, aggiungi e rimuovi una soppressione); spec desktop delle aree toccate verdi; screenshot mobili Tier 3 in `docs/screenshots/mobile/{en,it}/` (`TIER=3 node scripts/screenshots-mobile.mjs`).
+- Nessuna migrazione, nessun SQL scritto a mano, seed invariato.
+
+Resta:
+- Console super-admin (`/admin`): ultime pagine nella allow-list, in carico a un'altra sessione.
+- Conferme native ancora nelle impostazioni sviluppatori (token API, endpoint webhook, #81).
+- Azioni a scorrimento sulle righe, pull-to-refresh, notifiche push web e misure Lighthouse restano come nelle ondate precedenti.

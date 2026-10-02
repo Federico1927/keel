@@ -1,12 +1,14 @@
 /**
- * Phone screenshots of the Tier 1 and Tier 2 pages (#49) into docs/screenshots/mobile/<locale>/<name>.png,
+ * Phone screenshots of the Tier 1, 2 and 3 pages (#49) into docs/screenshots/mobile/<locale>/<name>.png,
  * at the iPhone 15 viewport (393×852) with touch, as the operations user (marketing for campaigns, the
- * owner for the Tier 2 pages: customers, purchasing, discounts, segments, settings, users, integrations…).
+ * owner for the Tier 2 pages: customers, purchasing, discounts, segments, settings, users, integrations…,
+ * and for the Tier 3 analysis and configuration pages).
  *
  * Usage (production server with the demo seed loaded):
  *   E2E_BASE_URL=http://localhost:3000 node scripts/screenshots-mobile.mjs        # en + it
  *   LOCALES=en,it,es THEME=dark node scripts/screenshots-mobile.mjs
  *   TIER=2 node scripts/screenshots-mobile.mjs                                   # only the Tier 2 pages
+ *   TIER=3 node scripts/screenshots-mobile.mjs                                   # only the Tier 3 pages
  */
 import { chromium, devices } from "@playwright/test";
 import { existsSync, mkdirSync } from "node:fs";
@@ -61,6 +63,27 @@ const PAGES = [
   { user: "owner", tier: 2, name: "integration-guide", path: "/integrations/guide/shopify" },
   { user: "owner", tier: 2, name: "campaign-detail", list: "/campaigns?preset=90d", match: /\/campaigns\/[0-9a-f-]{36}(\?|$)/ },
   { user: "owner", tier: 2, name: "profile", path: "/profile" },
+  // Tier 3 (wave 3): readable analysis and configuration, wide tables scroll inside their region
+  { user: "owner", tier: 3, name: "analytics", path: "/analytics?preset=90d" },
+  { user: "owner", tier: 3, name: "analytics-pnl", path: "/analytics?tab=pnl&preset=90d&gran=week" },
+  { user: "owner", tier: 3, name: "analytics-chart-fullscreen", path: "/analytics?tab=pnl&preset=90d", action: async (page) => page.getByTestId("chart-fullscreen").first().click() },
+  { user: "owner", tier: 3, name: "analytics-orders-pnl", path: "/analytics?tab=orders_pnl&preset=30d" },
+  { user: "owner", tier: 3, name: "analytics-products", path: "/analytics?tab=products&preset=30d" },
+  { user: "owner", tier: 3, name: "analytics-cohorts", path: "/analytics?tab=cohorts" },
+  { user: "owner", tier: 3, name: "payouts", path: "/analytics/payouts" },
+  { user: "owner", tier: 3, name: "returns-analytics", path: "/returns/analytics" },
+  { user: "owner", tier: 3, name: "planning", path: "/inventory/planning" },
+  { user: "owner", tier: 3, name: "planning-forecast", path: "/inventory/planning?tab=forecast" },
+  { user: "owner", tier: 3, name: "markdowns", path: "/inventory/markdowns" },
+  { user: "owner", tier: 3, name: "losses", path: "/inventory/losses?preset=90d" },
+  { user: "owner", tier: 3, name: "catalog-quality", path: "/products/quality" },
+  { user: "owner", tier: 3, name: "campaign-ledger", path: "/campaigns/ledger?preset=7d" },
+  { user: "owner", tier: 3, name: "campaign-words", path: "/campaigns/words" },
+  { user: "owner", tier: 3, name: "cod-settings", path: "/cod/settings" },
+  { user: "owner", tier: 3, name: "cod-team", path: "/cod/team?tab=efficiency" },
+  { user: "owner", tier: 3, name: "suppressions", path: "/notifications/suppressions" },
+  { user: "owner", tier: 3, name: "audit", path: "/audit" },
+  { user: "owner", tier: 3, name: "state-rules", path: "/settings/order-states" },
 ];
 const TIER = process.env.TIER ? Number(process.env.TIER) : null;
 const SELECTED = PAGES.filter((p) => TIER === null || (p.tier ?? 1) === TIER);

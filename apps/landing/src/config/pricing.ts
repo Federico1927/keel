@@ -1,3 +1,4 @@
+import { canActivateAddon, isAddonModule } from "@hullwise/config";
 /**
  * Every price, threshold and pricing flag of the landing lives here. Translated copy for the
  * plans (names, feature lines, FAQ) lives in `messages/<locale>.json` under `pricing.*`, keyed by
@@ -93,6 +94,15 @@ export const OVERAGE = { pricePerBlock: 49, blockSize: 1000 } as const;
  */
 export type AddonPricing =
   { id: string; kind: "monthly"; price: number } | { id: string; kind: "quote" };
+
+/**
+ * Whether a monthly add-on can be sold today (#77): only when the product has a released version.
+ * Built add-ons still in development stay on the page as "coming soon", without a price.
+ */
+export function addonOnSale(id: string): boolean {
+  const key = `addon.${id}`;
+  return !isAddonModule(key) || canActivateAddon(key);
+}
 
 export const ADDONS: readonly AddonPricing[] = [
   { id: "customer_campaigns", kind: "monthly", price: 99 },

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, Input, Select } from "@hullwise/ui";
 import { saveVariantCosts } from "@/server/actions/catalog";
 
 export interface CostVariant {
@@ -37,38 +37,24 @@ export function VariantCostsForm({ slug, productId, variants, canEdit, writeBack
       <CardContent className="space-y-3">
         {canEdit && variants.length > 1 && (
           <div className="flex flex-wrap items-end gap-2">
-            <Input type="text" inputMode="decimal" value={bulk} onChange={(e) => setBulk(e.target.value)} placeholder="0.00" className="h-9 w-32 text-right" aria-label={t("bulk_label")} data-testid="cost-bulk" />
+            <Input type="text" inputMode="decimal" size="sm" value={bulk} onChange={(e) => setBulk(e.target.value)} placeholder="0.00" className="w-32 text-right" aria-label={t("bulk_label")} data-testid="cost-bulk" />
             <Button type="button" variant="outline" size="sm" disabled={!bulk.trim()} onClick={() => setValues(Object.fromEntries(variants.map((v) => [v.id, bulk.trim()])))}>
               {t("bulk_apply")}
             </Button>
           </div>
         )}
-        <div className="-mx-6 overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("variant")}</TableHead>
-                <TableHead className="hidden sm:table-cell">{t("sku")}</TableHead>
-                <TableHead className="text-right">{t("cost")}</TableHead>
-                <TableHead>{t("source_label")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {variants.map((v) => (
-                <TableRow key={v.id} data-testid="cost-row">
-                  <TableCell className="font-medium">{v.title}</TableCell>
-                  <TableCell className="hidden text-xs text-muted-foreground sm:table-cell">{v.sku ?? "—"}</TableCell>
-                  <TableCell className="text-right">
-                    {canEdit ? <Input type="text" inputMode="decimal" value={values[v.id] ?? ""} onChange={(e) => setValues((x) => ({ ...x, [v.id]: e.target.value }))} placeholder="—" className="ml-auto h-8 w-24 text-right" aria-label={t("cost_of", { variant: v.title })} data-testid="cost-input" /> : <span className="tabular">{v.cost || "—"}</span>}
-                  </TableCell>
-                  <TableCell>
-                    {v.cost ? <Badge variant={v.source === "po_receipt" ? "success" : v.source ? "secondary" : "outline"}>{t(`source.${v.source ?? "unknown"}`)}</Badge> : <Badge variant="warning">{t("missing")}</Badge>}
-                    {v.updated && <span className="ml-2 hidden text-xs text-muted-foreground md:inline">{v.updated}</span>}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <div className="-mx-(--density-card) border-y">
+          <DataList
+            rows={variants}
+            rowKey={(v) => v.id}
+            rowProps={() => ({ "data-testid": "cost-row" })}
+            columns={[
+              { key: "variant", header: t("variant"), mobile: "title", cell: (v) => v.title },
+              { key: "source", header: t("source_label"), mobile: "badge", cell: (v) => <>{v.cost ? <Badge variant={v.source === "po_receipt" ? "success" : v.source ? "secondary" : "outline"}>{t(`source.${v.source ?? "unknown"}`)}</Badge> : <Badge variant="warning">{t("missing")}</Badge>}</> },
+              { key: "sku", header: t("sku"), className: "text-xs text-muted-foreground", cell: (v) => <>{v.sku ?? "—"}{v.updated && <span className="ml-2">{v.updated}</span>}</> },
+              { key: "cost", header: t("cost"), mobile: canEdit ? "action" : "meta", align: "right", cell: (v) => (canEdit ? <div className="flex items-center gap-2 md:block"><span className="mr-auto text-xs text-muted-foreground md:hidden">{t("cost")}</span><Input type="text" inputMode="decimal" size="sm" value={values[v.id] ?? ""} onChange={(e) => setValues((x) => ({ ...x, [v.id]: e.target.value }))} placeholder="—" className="ml-auto w-28 text-right md:w-24" aria-label={t("cost_of", { variant: v.title })} data-testid="cost-input" /></div> : <span className="tabular">{v.cost || "—"}</span>) },
+            ]}
+          />
         </div>
         {canEdit && (
           <div className="flex flex-wrap items-center gap-2">

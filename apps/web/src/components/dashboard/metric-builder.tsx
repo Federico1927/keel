@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { compileFormula } from "@hullwise/core";
 import { SUPPORTED_LOCALES, type MetricFilters } from "@hullwise/config";
 import { Button, Input, Label, Select, Textarea, cn } from "@hullwise/ui";
+import { ConfirmButton } from "@/components/confirm-button";
 import { deleteTenantMetricAction, previewMetricAction, saveTenantMetricAction, setMetricTargetAction } from "@/server/actions/dashboards";
 
 export interface BaseOption {
@@ -142,7 +143,7 @@ export function DeleteMetricButton({ slug, id }: { slug: string; id: string }) {
   const t = useTranslations("dashboards.builder");
   const router = useRouter();
   const [pending, start] = useTransition();
-  return <Button size="sm" variant="ghost" className="text-destructive" disabled={pending} onClick={() => { if (window.confirm(t("delete_confirm"))) start(async () => { await deleteTenantMetricAction(slug, id); router.refresh(); }); }}>{t("delete")}</Button>;
+  return <ConfirmButton size="sm" variant="ghost" className="text-destructive" disabled={pending} title={t("delete_confirm")} confirmLabel={t("delete")} destructive onConfirm={() => start(async () => { await deleteTenantMetricAction(slug, id); router.refresh(); })}>{t("delete")}</ConfirmButton>;
 }
 
 /** Monthly target of a metric: the value in the metric's display unit (currency units for money, % for percent). */

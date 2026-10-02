@@ -293,7 +293,8 @@
         "title": "Accounting push",
         "body": "One journal per day to your accounting system from the daily sales summary: sales and tax per rate, shipping, discounts, refunds and fees on your own chart of accounts, pushed only when the day reconciles, with a push log and re-push."
       }
-    }
+    },
+    "coming_soon": "Coming soon"
   },
   "faq": {
     "title": "Questions we get asked",
