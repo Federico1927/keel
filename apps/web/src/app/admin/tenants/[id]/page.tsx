@@ -32,6 +32,7 @@ import {
   SendPasswordResetButton,
   TrialEndControl,
 } from "./controls";
+import { SubscriptionCard } from "./subscription-card";
 
 export default async function AdminTenantPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -272,6 +273,7 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
           {d.branding.updatedAt && <span className="text-xs text-muted-foreground">{t("tenant.brand_updated", { date: formatDate(d.branding.updatedAt, locale, "UTC") })}</span>}
         </CardContent>
       </Card>
+      <SubscriptionCard db={db} tenantId={d.tenant.id} planKey={d.tenant.planKey} />
       <Card className="mt-6">
         <CardHeader>
           <CardTitle className="text-base">{t("tenant.billing")}</CardTitle>
@@ -322,7 +324,7 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <InvoiceActions invoiceId={i.id} status={i.status} />
+                    <InvoiceActions invoiceId={i.id} status={i.status} provider={i.provider} />
                   </TableCell>
                 </TableRow>
               ))}

@@ -253,6 +253,13 @@
       "when": 1790912531759,
       "tag": "0035_absurd_moon_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1790913808346,
+      "tag": "0036_famous_mojo",
+      "breakpoints": true
     }
   ]
 }

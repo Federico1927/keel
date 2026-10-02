@@ -18,6 +18,7 @@
     "db:reset": "pnpm --filter @keel/db reset",
     "db:deploy": "pnpm db:bootstrap && pnpm db:migrate && if [ \"$KEEL_SEED_ON_DEPLOY\" = 1 ]; then pnpm db:seed; fi && pnpm db:seed:settings",
     "smoke": "node scripts/smoke.mjs",
+    "billing:sync-catalog": "pnpm --filter @keel/jobs billing:sync-catalog",
     "format": "prettier --write \"**/*.{ts,tsx,json,md,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md,css}\""
   },

@@ -1,5 +1,5 @@
 import { PRODUCT_NAME } from "@keel/config";
-import { formatDate, formatDateTime, formatNumber } from "@keel/core";
+import { formatDate, formatDateTime, formatMoney, formatNumber } from "@keel/core";
 import { TOKENS } from "@keel/ui/tokens";
 import en from "./messages/en.json";
 import es from "./messages/es.json";
@@ -35,6 +35,8 @@ export interface EmailTemplateData {
   notification: { title: string; body: string | null; url: string | null; type: string };
   test: { provider: string; sentAt: Date | string };
   /** Delivery instruction for a parcel in exception, to the carrier's customer service (issue #28). */
+  /** Link to start the Keel subscription (Stripe Checkout), to the customer's billing contact (issue #53). */
+  billing_checkout: { tenantName: string; planName: string; lines: { kind: "plan" | "addon" | "setup"; key: string; amountMinor: number }[]; currency: string; trialDays: number; url: string; expiresAt: Date | string | null; timezone: string };
   carrier_instruction: { companyName: string; carrier: string | null; trackingNumber: string; orderName: string; resolution: "redeliver" | "new_address" | "pickup_point" | "return"; address: { name?: string | null; address1?: string | null; address2?: string | null; zip?: string | null; city?: string | null; province?: string | null; country?: string | null; phone?: string | null } | null; pickupPoint: string | null; note: string | null };
 }
 export type EmailTemplate = keyof EmailTemplateData;
@@ -54,6 +56,7 @@ export const EMAIL_TEMPLATES: { [K in EmailTemplate]: { kind: EmailKind; categor
   test: { kind: "transactional", category: "transactional" },
   supplier_po: { kind: "transactional", category: "supplier_po" },
   carrier_instruction: { kind: "transactional", category: "transactional" },
+  billing_checkout: { kind: "transactional", category: "transactional" },
   mention: { kind: "notification", category: "mention" },
   digest: { kind: "notification", category: "digest" },
   notification: { kind: "notification", category: "notification" },
@@ -263,6 +266,15 @@ export function renderEmail<K extends EmailTemplate>(template: K, rawLocale: str
       const list = d.resolution === "new_address" && a ? [a.name, a.address1, a.address2, [a.zip, a.city, a.province].filter(Boolean).join(" "), a.country, a.phone].filter((x): x is string => Boolean(x && x.trim())) : d.resolution === "pickup_point" && d.pickupPoint ? [d.pickupPoint] : undefined;
       const t = tpl.carrier_instruction;
       return out(fill(t.subject, vars), { preheader: fill(t.preheader, vars), paragraphs: [fill(t.intro, vars), t[d.resolution], ...(d.note ? [fill(t.note, { note: d.note })] : [])], list, hint: t.hint });
+    }
+    case "billing_checkout": {
+      const d = data as EmailTemplateData["billing_checkout"];
+      const t = tpl.billing_checkout;
+      const names = t.addons as Record<string, string>;
+      const vars = { product, tenant: d.tenantName };
+      const money = (m: number) => formatMoney(m, d.currency, locale);
+      const list = [...d.lines.map((l) => (l.kind === "plan" ? fill(t.line_plan, { plan: d.planName, amount: money(l.amountMinor) }) : l.kind === "addon" ? fill(t.line_addon, { addon: names[l.key.replace(/^addon\./, "")] ?? l.key, amount: money(l.amountMinor) }) : fill(t.line_setup, { amount: money(l.amountMinor) }))), ...(d.trialDays > 0 ? [fill(t.line_trial, { days: formatNumber(d.trialDays, locale) })] : [])];
+      return out(fill(t.subject, vars), { preheader: fill(t.preheader, vars), paragraphs: [fill(t.intro, vars), t.how], list, cta: { label: t.cta, url: d.url }, hint: d.expiresAt ? fill(t.hint, { date: formatDateTime(new Date(d.expiresAt), locale, d.timezone) }) : t.hint_no_expiry });
     }
     case "test": {
       const d = data as EmailTemplateData["test"];

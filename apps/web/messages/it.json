@@ -3138,7 +3138,8 @@
         "support": "Supporto",
         "audit": "Audit"
       },
-      "mcp": "MCP"
+      "mcp": "MCP",
+      "subscriptions": "Abbonamenti"
     },
     "plans": {
       "starter": "Starter",
@@ -7064,5 +7065,216 @@
       "meta": "Meta",
       "google": "Google"
     }
+  },
+  "billing": {
+    "title": "Fatturazione",
+    "description": "Il tuo piano, il metodo di pagamento e le fatture.",
+    "settings_link": "Fatturazione",
+    "plan_title": "Piano",
+    "plan_monthly": "{amount} al mese, IVA esclusa",
+    "addons_title": "Add-on",
+    "no_addons": "Nessun add-on",
+    "next_invoice": "Prossima fattura",
+    "next_invoice_value": "{date} · circa {amount}",
+    "cancel_at_period_end": "Termina il {date}",
+    "payment_title": "Pagamento",
+    "payment_status": {
+      "ok": "In regola",
+      "past_due": "Pagamento scaduto",
+      "suspended": "Sospeso per mancato pagamento",
+      "none": "Ancora nessuna fattura"
+    },
+    "days_overdue": "{n, plural, one {# giorno di ritardo} other {# giorni di ritardo}}",
+    "payment_method": "Metodo di pagamento",
+    "payment_method_none": "Nessuna carta salvata",
+    "collection": {
+      "send_invoice": "Bonifico, fatture a {days} giorni"
+    },
+    "manage_payment": "Gestisci il metodo di pagamento",
+    "manage_payment_hint": "Apre il portale sicuro di Stripe: cambia la carta, i dati di fatturazione e la partita IVA, scarica le fatture.",
+    "not_managed": "I pagamenti di questo spazio di lavoro sono concordati con il nostro team. Scrivi al supporto per impostare una carta.",
+    "portal_error": "Non è stato possibile aprire il portale di pagamento. Riprova tra un minuto.",
+    "portal_mock": "Modalità mock: con Stripe configurato questo pulsante apre il portale clienti di Stripe.",
+    "checkout_success": "Grazie: il metodo di pagamento è salvato. L'abbonamento diventa attivo appena Stripe conferma il primo pagamento.",
+    "checkout_cancelled": "La pagina di pagamento è stata chiusa prima della fine. Usa il link nell'email per riprovare.",
+    "checkout_mock": "Modalità mock: non esiste una pagina di pagamento. La console può simulare il checkout completato.",
+    "invoices_title": "Fatture",
+    "invoices_empty": "Ancora nessuna fattura.",
+    "columns": {
+      "number": "Numero",
+      "date": "Data",
+      "amount": "Importo",
+      "status": "Stato",
+      "document": "Documento"
+    },
+    "status": {
+      "open": "Aperta",
+      "paid": "Pagata",
+      "void": "Annullata",
+      "uncollectible": "Non pagata"
+    },
+    "download": "PDF",
+    "pay_now": "Paga",
+    "banner": {
+      "past_due": "L'ultimo pagamento non è andato a buon fine. Paga la fattura aperta per continuare a usare {product}.",
+      "past_due_days": "Lo spazio di lavoro viene sospeso tra {n, plural, one {# giorno} other {# giorni}} se resta non pagata.",
+      "action_required": "La tua banca chiede di confermare l'ultimo pagamento.",
+      "pay": "Paga ora",
+      "confirm": "Conferma il pagamento",
+      "details": "Fatturazione"
+    },
+    "pdf": {
+      "title": "Fattura",
+      "issued": "Emessa",
+      "due": "Scadenza",
+      "item": "Voce",
+      "amount": "Importo",
+      "total": "Totale",
+      "status": "Stato",
+      "kinds": {
+        "plan": "piano",
+        "addon": "add-on",
+        "setup": "attivazione",
+        "other": "altro"
+      }
+    }
+  },
+  "admin_billing": {
+    "mode": {
+      "mock": "Mock",
+      "test": "Stripe TEST",
+      "live": "Stripe LIVE"
+    },
+    "not_configured": "Stripe non configurato: la fatturazione usa il mock. Imposta STRIPE_SECRET_KEY e STRIPE_WEBHOOK_SECRET come variabili su Railway per incassare con Stripe.",
+    "webhook_missing": "STRIPE_WEBHOOK_SECRET non è impostato: gli eventi di Stripe vengono rifiutati e lo specchio non si aggiorna.",
+    "subscriptions_title": "Abbonamenti",
+    "subscriptions_description": "Cosa incassa Stripe: abbonamenti e fatture rispecchiati dai webhook di Stripe, pagamenti falliti, tenant in ritardo e rinnovi.",
+    "subscriptions_table": "Abbonamenti sul processore",
+    "sync_catalog": "Sincronizza il catalogo su Stripe",
+    "sync_catalog_mock": "Sincronizza il catalogo (mock)",
+    "sync_done": "{created} creati, {updated} aggiornati, {unchanged} invariati.",
+    "errors": {
+      "provider_failed": "Stripe ha rifiutato la richiesta o non è raggiungibile. I dettagli sono nel log del server.",
+      "catalog_not_synced": "Sincronizza prima il catalogo (Fatturazione → Abbonamenti).",
+      "already_subscribed": "Questo tenant ha già un abbonamento.",
+      "invalid_input": "Controlla i campi.",
+      "no_customer": "Questo tenant non ha ancora un cliente sul processore.",
+      "no_checkout": "Nessun checkout in sospeso.",
+      "not_mock": "Disponibile solo in modalità mock.",
+      "not_managed": "Nessun abbonamento sul processore.",
+      "no_subscription": "Nessun abbonamento.",
+      "tenant_not_found": "Tenant non trovato.",
+      "failed": "Qualcosa è andato storto."
+    },
+    "mrr": "MRR (da Stripe)",
+    "mrr_hint": "{n, plural, one {# abbonamento} other {# abbonamenti}}",
+    "failed_payments": "Pagamenti falliti",
+    "past_due": "Tenant in ritardo",
+    "renewals": "Prossimi rinnovi",
+    "renewals_hint": "Prossimi {days} giorni",
+    "last_webhook": "Ultimo webhook",
+    "no_webhook": "Ancora nessuno ricevuto",
+    "failed_events": "{n} falliti",
+    "nothing": "Niente da mostrare.",
+    "action_required": "Autenticazione richiesta",
+    "attempts": "{n, plural, one {# tentativo} other {# tentativi}}",
+    "next_attempt": "nuovo tentativo {date}",
+    "days_overdue": "{n} giorni di ritardo · sospeso dopo {limit}",
+    "tax_title": "IVA",
+    "tax_automatic": "Stripe Tax calcola l'IVA; la partita IVA si raccoglie al Checkout e le aziende UE estere verificate vengono fatturate in reverse charge.",
+    "tax_manual": "Stripe Tax è disattivato: Keel imposta il reverse charge sui clienti con partita IVA UE verificata. Paese del venditore: {country}.",
+    "einvoicing_title": "Fatturazione elettronica (SDI)",
+    "einvoicing_body": "Le fatture ai clienti italiani devono arrivare anche allo SDI tramite un intermediario accreditato. Lo slot del connettore esiste (InvoicingProvider) ma nessun servizio è collegato: è un prerequisito prima di fatturare clienti italiani.",
+    "einvoicing_state": {
+      "none": "Nessun connettore",
+      "mock": "Connettore mock"
+    },
+    "verify_badge": "Da verificare",
+    "empty": "Nessun tenant ha ancora un abbonamento sul processore.",
+    "table": {
+      "tenant": "Tenant",
+      "status": "Stato",
+      "collection": "Incasso",
+      "monthly": "Mensile",
+      "period_end": "Fine periodo",
+      "synced": "Sincronizzato"
+    },
+    "catalog_title": "Catalogo",
+    "catalog_description": "Piani (mensili), costi di attivazione (una tantum) e add-on (mensili) dalla configurazione, abbinati in Stripe per lookup key. Un importo cambiato crea un nuovo prezzo e archivia il vecchio.",
+    "catalog_columns": {
+      "item": "Voce",
+      "lookup_key": "Lookup key",
+      "amount": "Importo",
+      "price": "Id prezzo",
+      "synced": "Stato"
+    },
+    "kind": {
+      "plan": "Piano",
+      "setup": "Attivazione",
+      "addon": "Add-on"
+    },
+    "in_step": "Allineato",
+    "out_of_step": "Da sincronizzare",
+    "external": {
+      "trialing": "Prova",
+      "active": "Attivo",
+      "past_due": "In ritardo",
+      "unpaid": "Non pagato",
+      "canceled": "Annullato",
+      "incomplete": "Incompleto",
+      "incomplete_expired": "Scaduto",
+      "paused": "In pausa"
+    },
+    "collection": {
+      "charge_automatically": "Carta salvata",
+      "send_invoice": "Bonifico"
+    },
+    "vat": {
+      "domestic": "IVA nazionale",
+      "reverse_charge": "Reverse charge",
+      "eu_b2c": "IVA consumatore UE",
+      "export": "Fuori UE",
+      "unknown": "IVA non nota"
+    },
+    "resync": "Risincronizza da Stripe",
+    "resync_done": "{invoices} fatture lette.",
+    "card_title": "Abbonamento sul processore",
+    "card_description": "Stripe incassa (carta, nuovi tentativi, solleciti); Keel rispecchia abbonamento e fatture dai suoi webhook.",
+    "start": "Avvia abbonamento",
+    "start_title": "Avvia abbonamento",
+    "start_description": "Applica piano e add-on al tenant, crea il link di pagamento (Stripe Checkout) e lo invia per email al contatto di fatturazione nella lingua del tenant.",
+    "plan": "Piano",
+    "addons": "Add-on",
+    "setup_fee": "Costo di attivazione sulla prima fattura ({amount})",
+    "trial_days": "Giorni di prova",
+    "billing_email": "Email di fatturazione",
+    "collection_label": "Incasso",
+    "collection_checkout": "Carta salvata (link di pagamento)",
+    "collection_invoice": "Bonifico (fattura con termini di pagamento)",
+    "terms_days": "Termini di pagamento (giorni)",
+    "submit": "Crea",
+    "cancel": "Annulla",
+    "close": "Chiudi",
+    "link_ready": "Link di pagamento",
+    "email_sent": "Inviato per email a {email}.",
+    "email_not_sent": "L'email non è stata inviata ({reason}): condividi tu il link.",
+    "invoice_started": "Abbonamento creato: Stripe invia ogni fattura per email con i termini di pagamento.",
+    "checkout_pending": "Checkout in sospeso",
+    "expires": "scade {date}",
+    "simulate_checkout": "Simula checkout pagato",
+    "simulate_renewal": "Simula rinnovo",
+    "simulate_failed": "Simula rinnovo rifiutato",
+    "simulate_payment": "Simula pagamento",
+    "simulate_hint": "Modalità mock: questi pulsanti riproducono i webhook di Stripe con la stessa elaborazione.",
+    "simulated": "{n} eventi elaborati.",
+    "drift": "Le voci dell'abbonamento non corrispondono a piano e add-on in Keel. Cambia il piano o un add-on per riallinearle, oppure risincronizza.",
+    "items": "Voci",
+    "period_end": "Fine periodo",
+    "customer": "Cliente",
+    "status": "Stato",
+    "synced": "Sincronizzato",
+    "none": "Ancora nessun abbonamento sul processore.",
+    "catalog_missing": "Sincronizza prima il catalogo (Fatturazione → Abbonamenti).",
+    "cancel_at_period_end": "termina a fine periodo"
   }
 }

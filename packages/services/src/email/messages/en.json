@@ -119,6 +119,23 @@
       "return": "Please return the parcel to the sender.",
       "note": "Note: {note}",
       "hint": "Please reply to this email to confirm."
+    },
+    "billing_checkout": {
+      "subject": "Start your {product} subscription for {tenant}",
+      "preheader": "Add a payment method to activate the {product} subscription.",
+      "intro": "Hello, here is the link to start the {product} subscription for {tenant}.",
+      "how": "You will enter the payment details on a secure Stripe page. The card on file is charged automatically each month and you can change it at any time from Settings → Billing.",
+      "line_plan": "{plan} plan, monthly: {amount}",
+      "line_addon": "{addon} add-on, monthly: {amount}",
+      "line_setup": "One-off setup fee, on the first invoice: {amount}",
+      "line_trial": "Free trial: {days} days, then the first monthly charge",
+      "cta": "Set up payment",
+      "hint": "The link works until {date}. Prices exclude VAT where applicable.",
+      "hint_no_expiry": "Prices exclude VAT where applicable.",
+      "addons": {
+        "cod": "Cash on delivery",
+        "customer_campaigns": "Customer campaigns"
+      }
     }
   },
   "system": {

@@ -91,7 +91,7 @@ export default async function AdminBillingPage({ searchParams }: { searchParams:
                     <TableCell className="hidden md:table-cell">{formatDate(i.issuedAt, locale, "UTC")}</TableCell>
                     <TableCell>{formatDate(i.dueAt, locale, "UTC")}</TableCell>
                     <TableCell><Badge variant={i.status === "paid" ? "success" : i.status === "open" ? (i.dueAt < now ? "destructive" : "warning") : "muted"}>{t(`billing.status.${i.status}`)}</Badge></TableCell>
-                    <TableCell><InvoiceActions invoiceId={i.id} status={i.status} /></TableCell>
+                    <TableCell><InvoiceActions invoiceId={i.id} status={i.status} provider={i.provider} /></TableCell>
                   </TableRow>
                 ))}
               </TableBody>

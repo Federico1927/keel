@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { MANUAL_LIFECYCLE_REASONS, PLAN_KEYS, TENANT_STATUSES } from "@keel/config";
 import { eq, recordAudit, schema } from "@keel/db";
-import { AccountError, AdminUserError, LifecycleError, revokeUserSessions, setTrialEnd, setUserDisabled, transitionTenant, applySuspensions, createTenant, requestPasswordReset, emailSettings, issueDueInvoices, recordInvoicePayment, removeAddressSuppression, sendTestEmail, setTenantAddon, setTenantPlan, setTenantSuspension, voidInvoice } from "@keel/services";
+import { AccountError, AdminUserError, BillingError, LifecycleError, revokeUserSessions, setTrialEnd, setUserDisabled, transitionTenant, applySuspensions, createTenant, requestPasswordReset, emailSettings, issueDueInvoices, recordInvoicePayment, removeAddressSuppression, sendTestEmail, setTenantAddon, setTenantPlan, setTenantSuspension, voidInvoice } from "@keel/services";
 import { requireSuperAdmin } from "@/server/admin";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 import "@/server/email";
@@ -61,9 +61,11 @@ export async function setAddonAction(tenantId: string, moduleKey: string, active
   const { user, db } = await requireSuperAdmin();
   if (!uuid.safeParse(tenantId).success) return fail("invalid_input");
   try {
+    // with a Stripe subscription the items follow (prorated); a refused change leaves Keel untouched
     await setTenantAddon(db, tenantId, moduleKey, active, user.id, note);
   } catch (e) {
     if (e instanceof Error && e.message === "addon_not_available") return fail("addon_not_available");
+    if (e instanceof BillingError) return fail(e.code);
     throw e;
   }
   revalidatePath(`/admin/tenants/${tenantId}`);
@@ -75,7 +77,12 @@ export async function setPlanAction(tenantId: string, planKey: string): Promise<
   const { user, db } = await requireSuperAdmin();
   const p = z.enum(PLAN_KEYS).safeParse(planKey);
   if (!uuid.safeParse(tenantId).success || !p.success) return fail("invalid_input");
-  await setTenantPlan(db, tenantId, p.data, user.id);
+  try {
+    await setTenantPlan(db, tenantId, p.data, user.id);
+  } catch (e) {
+    if (e instanceof BillingError) return fail(e.code);
+    throw e;
+  }
   revalidatePath(`/admin/tenants/${tenantId}`);
   return ok();
 }

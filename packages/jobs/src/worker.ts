@@ -2,8 +2,8 @@ import * as Sentry from "@sentry/node";
 import { checkRuntimeConfig, platformRetentionDays, SENTRY_DATA_COLLECTION } from "@keel/config";
 import { setEmailDispatcher } from "@keel/services";
 import { createBoss } from "./boss";
-import { handleListExport, handlePlatformWrite, handleSyncAds, handleSyncCatalog, handleSyncOrders, handleSyncPayouts, handleSyncReturns, handleTick, handleWebhook, type Enqueue, handleEmailEvent, handleEmailSend } from "./handlers";
-import { QUEUES, queueRetentionOptions, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob } from "./queues";
+import { handleListExport, handlePlatformWrite, handleSyncAds, handleSyncCatalog, handleSyncOrders, handleSyncPayouts, handleSyncReturns, handleTick, handleWebhook, type Enqueue, handleEmailEvent, handleEmailSend, handleBillingEvent } from "./handlers";
+import { QUEUES, queueRetentionOptions, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob } from "./queues";
 
 /** Nightly reconciliation at 03:00 and customer predictions and full live-segment refresh at 03:40, live segments every 10 min, pixel stitching and server-side conversions every 5 min, delta every 15 min, ads daily at 06:00, webhook retry every 10 min, platform-write retries every minute, retention daily at 04:10, backorder safety re-check and email housekeeping every 10 min, payouts daily at 05:20 (UTC). */
 const SCHEDULES: { cron: string; data: TickJob }[] = [
@@ -87,6 +87,7 @@ async function main() {
   await boss.work<ListExportJob>(QUEUES.listExport, one((d: ListExportJob) => handleListExport(d)));
   await boss.work<EmailSendJob>(QUEUES.emailSend, { batchSize: 5 }, one((d: EmailSendJob) => handleEmailSend(d, enqueue)));
   await boss.work<EmailEventJob>(QUEUES.emailEvent, { batchSize: 10 }, one((d: EmailEventJob) => handleEmailEvent(d)));
+  await boss.work<BillingEventJob>(QUEUES.billingEvent, one((d: BillingEventJob) => handleBillingEvent(d)));
   for (const s of SCHEDULES) await boss.schedule(QUEUES.tick, s.cron, s.data, { singletonKey: s.data.kind });
   console.info("[jobs] worker started: queues", Object.values(QUEUES).join(", "));
   const shutdown = async () => {

@@ -83,7 +83,7 @@ Integration tests run against a real PostgreSQL (`keel_test`), including one iso
 
 - `KEEL_INTEGRATION_MODE=mock` (default): every adapter is an in-memory simulator seeded with the demo data; no network call ever leaves the process. Webhooks and failures (rate limit, expired token) can be simulated from the Integrations page.
 - `KEEL_INTEGRATION_MODE=live`: tenants whose integration row is in `live` mode with stored credentials use the real Shopify Admin GraphQL, Meta Marketing and Google Ads APIs.
-- `STRIPE_SECRET_KEY` empty: `MockBillingProvider`. Set to a test key: `StripeBillingProvider`.
+- `STRIPE_SECRET_KEY` empty: `MockBillingProvider` (the console simulates Stripe's webhooks). Set (Railway variable only, a restricted `rk_test_…` key is enough) with `STRIPE_WEBHOOK_SECRET`: Stripe subscriptions collect and `/api/webhooks/stripe` keeps Keel's mirror up to date; run `pnpm billing:sync-catalog` (or the console button) once to create products and prices.
 - `KEEL_JOBS_QUEUE=1`: web enqueues work through pg-boss for the worker; unset, it processes inline after the response.
 
 Hosting a demo on Railway or Vercel: `docs/DEPLOY.md`.

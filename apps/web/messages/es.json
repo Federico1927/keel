@@ -3138,7 +3138,8 @@
         "support": "Soporte",
         "audit": "Auditoría"
       },
-      "mcp": "MCP"
+      "mcp": "MCP",
+      "subscriptions": "Suscripciones"
     },
     "plans": {
       "starter": "Starter",
@@ -7064,5 +7065,216 @@
       "meta": "Meta",
       "google": "Google"
     }
+  },
+  "billing": {
+    "title": "Facturación",
+    "description": "Tu plan, el método de pago y las facturas.",
+    "settings_link": "Facturación",
+    "plan_title": "Plan",
+    "plan_monthly": "{amount} al mes, sin IVA",
+    "addons_title": "Complementos",
+    "no_addons": "Sin complementos",
+    "next_invoice": "Próxima factura",
+    "next_invoice_value": "{date} · unos {amount}",
+    "cancel_at_period_end": "Termina el {date}",
+    "payment_title": "Pago",
+    "payment_status": {
+      "ok": "Al día",
+      "past_due": "Pago vencido",
+      "suspended": "Suspendido por impago",
+      "none": "Aún no hay facturas"
+    },
+    "days_overdue": "{n, plural, one {# día de retraso} other {# días de retraso}}",
+    "payment_method": "Método de pago",
+    "payment_method_none": "Sin tarjeta guardada",
+    "collection": {
+      "send_invoice": "Transferencia, facturas a {days} días"
+    },
+    "manage_payment": "Gestionar el método de pago",
+    "manage_payment_hint": "Abre el portal seguro de Stripe: cambia la tarjeta, los datos de facturación y el NIF-IVA, descarga las facturas.",
+    "not_managed": "Los pagos de este espacio de trabajo se acuerdan con nuestro equipo. Escribe a soporte para configurar una tarjeta.",
+    "portal_error": "No se pudo abrir el portal de pago. Inténtalo de nuevo en un minuto.",
+    "portal_mock": "Modo mock: con Stripe configurado este botón abre el portal de clientes de Stripe.",
+    "checkout_success": "Gracias: el método de pago está guardado. La suscripción se activa en cuanto Stripe confirme el primer pago.",
+    "checkout_cancelled": "La página de pago se cerró antes de terminar. Usa el enlace del correo para volver a intentarlo.",
+    "checkout_mock": "Modo mock: no existe página de pago. La consola puede simular el checkout completado.",
+    "invoices_title": "Facturas",
+    "invoices_empty": "Aún no hay facturas.",
+    "columns": {
+      "number": "Número",
+      "date": "Fecha",
+      "amount": "Importe",
+      "status": "Estado",
+      "document": "Documento"
+    },
+    "status": {
+      "open": "Abierta",
+      "paid": "Pagada",
+      "void": "Anulada",
+      "uncollectible": "Impagada"
+    },
+    "download": "PDF",
+    "pay_now": "Pagar",
+    "banner": {
+      "past_due": "Tu último pago no se ha completado. Paga la factura abierta para seguir usando {product}.",
+      "past_due_days": "El espacio de trabajo se suspende en {n, plural, one {# día} other {# días}} si sigue impagada.",
+      "action_required": "Tu banco pide confirmar el último pago.",
+      "pay": "Pagar ahora",
+      "confirm": "Confirmar el pago",
+      "details": "Facturación"
+    },
+    "pdf": {
+      "title": "Factura",
+      "issued": "Emitida",
+      "due": "Vencimiento",
+      "item": "Concepto",
+      "amount": "Importe",
+      "total": "Total",
+      "status": "Estado",
+      "kinds": {
+        "plan": "plan",
+        "addon": "complemento",
+        "setup": "alta",
+        "other": "otro"
+      }
+    }
+  },
+  "admin_billing": {
+    "mode": {
+      "mock": "Mock",
+      "test": "Stripe TEST",
+      "live": "Stripe LIVE"
+    },
+    "not_configured": "Stripe no configurado: la facturación usa el mock. Define STRIPE_SECRET_KEY y STRIPE_WEBHOOK_SECRET como variables en Railway para cobrar con Stripe.",
+    "webhook_missing": "STRIPE_WEBHOOK_SECRET no está definido: los eventos de Stripe se rechazan y el espejo no se actualiza.",
+    "subscriptions_title": "Suscripciones",
+    "subscriptions_description": "Lo que cobra Stripe: suscripciones y facturas reflejadas desde los webhooks de Stripe, pagos fallidos, tenants con retraso y renovaciones.",
+    "subscriptions_table": "Suscripciones en el procesador",
+    "sync_catalog": "Sincronizar el catálogo con Stripe",
+    "sync_catalog_mock": "Sincronizar el catálogo (mock)",
+    "sync_done": "{created} creados, {updated} actualizados, {unchanged} sin cambios.",
+    "errors": {
+      "provider_failed": "Stripe rechazó la solicitud o no está disponible. Los detalles están en el log del servidor.",
+      "catalog_not_synced": "Sincroniza primero el catálogo (Facturación → Suscripciones).",
+      "already_subscribed": "Este tenant ya tiene una suscripción.",
+      "invalid_input": "Revisa los campos.",
+      "no_customer": "Este tenant aún no tiene cliente en el procesador.",
+      "no_checkout": "No hay ningún checkout pendiente.",
+      "not_mock": "Solo disponible en modo mock.",
+      "not_managed": "Sin suscripción en el procesador.",
+      "no_subscription": "Sin suscripción.",
+      "tenant_not_found": "Tenant no encontrado.",
+      "failed": "Algo salió mal."
+    },
+    "mrr": "MRR (de Stripe)",
+    "mrr_hint": "{n, plural, one {# suscripción} other {# suscripciones}}",
+    "failed_payments": "Pagos fallidos",
+    "past_due": "Tenants con retraso",
+    "renewals": "Próximas renovaciones",
+    "renewals_hint": "Próximos {days} días",
+    "last_webhook": "Último webhook",
+    "no_webhook": "Aún no se ha recibido ninguno",
+    "failed_events": "{n} fallidos",
+    "nothing": "Nada que mostrar.",
+    "action_required": "Autenticación requerida",
+    "attempts": "{n, plural, one {# intento} other {# intentos}}",
+    "next_attempt": "nuevo intento {date}",
+    "days_overdue": "{n} días de retraso · suspendido tras {limit}",
+    "tax_title": "IVA",
+    "tax_automatic": "Stripe Tax calcula el IVA; el NIF-IVA se recoge en el Checkout y las empresas UE extranjeras verificadas se facturan con inversión del sujeto pasivo.",
+    "tax_manual": "Stripe Tax está desactivado: Keel aplica la inversión del sujeto pasivo a los clientes con NIF-IVA UE verificado. País del vendedor: {country}.",
+    "einvoicing_title": "Facturación electrónica italiana (SDI)",
+    "einvoicing_body": "Las facturas a clientes italianos también deben llegar al SDI a través de un intermediario acreditado. El hueco del conector existe (InvoicingProvider) pero no hay ningún servicio conectado: es un requisito previo para facturar a clientes italianos.",
+    "einvoicing_state": {
+      "none": "Sin conector",
+      "mock": "Conector mock"
+    },
+    "verify_badge": "Por verificar",
+    "empty": "Ningún tenant tiene aún una suscripción en el procesador.",
+    "table": {
+      "tenant": "Tenant",
+      "status": "Estado",
+      "collection": "Cobro",
+      "monthly": "Mensual",
+      "period_end": "Fin del periodo",
+      "synced": "Sincronizado"
+    },
+    "catalog_title": "Catálogo",
+    "catalog_description": "Planes (mensuales), cuotas de alta (únicas) y complementos (mensuales) de la configuración, emparejados en Stripe por lookup key. Un importe distinto crea un precio nuevo y archiva el anterior.",
+    "catalog_columns": {
+      "item": "Concepto",
+      "lookup_key": "Lookup key",
+      "amount": "Importe",
+      "price": "Id de precio",
+      "synced": "Estado"
+    },
+    "kind": {
+      "plan": "Plan",
+      "setup": "Alta",
+      "addon": "Complemento"
+    },
+    "in_step": "Alineado",
+    "out_of_step": "Por sincronizar",
+    "external": {
+      "trialing": "Prueba",
+      "active": "Activa",
+      "past_due": "Con retraso",
+      "unpaid": "Impagada",
+      "canceled": "Cancelada",
+      "incomplete": "Incompleta",
+      "incomplete_expired": "Caducada",
+      "paused": "En pausa"
+    },
+    "collection": {
+      "charge_automatically": "Tarjeta guardada",
+      "send_invoice": "Transferencia"
+    },
+    "vat": {
+      "domestic": "IVA nacional",
+      "reverse_charge": "Inversión del sujeto pasivo",
+      "eu_b2c": "IVA consumidor UE",
+      "export": "Fuera de la UE",
+      "unknown": "IVA desconocido"
+    },
+    "resync": "Resincronizar desde Stripe",
+    "resync_done": "{invoices} facturas leídas.",
+    "card_title": "Suscripción en el procesador",
+    "card_description": "Stripe cobra (tarjeta, reintentos, avisos); Keel refleja la suscripción y las facturas desde sus webhooks.",
+    "start": "Iniciar suscripción",
+    "start_title": "Iniciar suscripción",
+    "start_description": "Aplica el plan y los complementos al tenant, crea el enlace de pago (Stripe Checkout) y lo envía por correo al contacto de facturación en el idioma del tenant.",
+    "plan": "Plan",
+    "addons": "Complementos",
+    "setup_fee": "Cuota de alta en la primera factura ({amount})",
+    "trial_days": "Días de prueba",
+    "billing_email": "Correo de facturación",
+    "collection_label": "Cobro",
+    "collection_checkout": "Tarjeta guardada (enlace de pago)",
+    "collection_invoice": "Transferencia (factura con plazo de pago)",
+    "terms_days": "Plazo de pago (días)",
+    "submit": "Crear",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "link_ready": "Enlace de pago",
+    "email_sent": "Enviado por correo a {email}.",
+    "email_not_sent": "El correo no se ha enviado ({reason}): comparte tú el enlace.",
+    "invoice_started": "Suscripción creada: Stripe envía cada factura por correo con el plazo de pago.",
+    "checkout_pending": "Checkout pendiente",
+    "expires": "caduca {date}",
+    "simulate_checkout": "Simular checkout pagado",
+    "simulate_renewal": "Simular renovación",
+    "simulate_failed": "Simular renovación rechazada",
+    "simulate_payment": "Simular pago",
+    "simulate_hint": "Modo mock: estos botones reproducen los webhooks de Stripe con el mismo procesamiento.",
+    "simulated": "{n} eventos procesados.",
+    "drift": "Los conceptos de la suscripción no coinciden con el plan y los complementos en Keel. Cambia el plan o un complemento para realinearlos, o resincroniza.",
+    "items": "Conceptos",
+    "period_end": "Fin del periodo",
+    "customer": "Cliente",
+    "status": "Estado",
+    "synced": "Sincronizado",
+    "none": "Aún no hay suscripción en el procesador.",
+    "catalog_missing": "Sincroniza primero el catálogo (Facturación → Suscripciones).",
+    "cancel_at_period_end": "termina al final del periodo"
   }
 }

@@ -180,6 +180,231 @@ Keel Labs S.r.l. · Via Example 1, 20100 Milano",
 }
 `;
 
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > billing_checkout.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Start your Keel subscription for Harbor Home</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Add a payment method to activate the Keel subscription.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Hello, here is the link to start the Keel subscription for Harbor Home.</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">You will enter the payment details on a secure Stripe page. The card on file is charged automatically each month and you can change it at any time from Settings → Billing.</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Growth plan, monthly: $599.00</li><li>Cash on delivery add-on, monthly: $199.00</li><li>One-off setup fee, on the first invoice: $1,500.00</li><li>Free trial: 14 days, then the first monthly charge</li></ul>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://checkout.stripe.com/c/pay/cs_test_a1" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Set up payment</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">If the button does not work, copy this link into your browser:<br><a class="k-link" href="https://checkout.stripe.com/c/pay/cs_test_a1" style="color:#2b59ff;word-break:break-all">https://checkout.stripe.com/c/pay/cs_test_a1</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">The link works until Oct 2, 2026, 11:30 AM. Prices exclude VAT where applicable.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+You receive this email because you use Keel.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Unsubscribe from these emails</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Start your Keel subscription for Harbor Home",
+  "text": "Hello, here is the link to start the Keel subscription for Harbor Home.
+
+You will enter the payment details on a secure Stripe page. The card on file is charged automatically each month and you can change it at any time from Settings → Billing.
+
+- Growth plan, monthly: $599.00
+- Cash on delivery add-on, monthly: $199.00
+- One-off setup fee, on the first invoice: $1,500.00
+- Free trial: 14 days, then the first monthly charge
+
+Set up payment: https://checkout.stripe.com/c/pay/cs_test_a1
+
+The link works until Oct 2, 2026, 11:30 AM. Prices exclude VAT where applicable.
+
+--
+
+You receive this email because you use Keel.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Unsubscribe from these emails: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > billing_checkout.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Activa tu suscripción a Keel para Harbor Home</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Añade un método de pago para activar la suscripción a Keel.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Hola, aquí tienes el enlace para activar la suscripción a Keel para Harbor Home.</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Introducirás los datos de pago en una página segura de Stripe. La tarjeta guardada se cobra automáticamente cada mes y puedes cambiarla cuando quieras desde Ajustes → Facturación.</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Plan Growth, mensual: 599,00 US$</li><li>Complemento Contra reembolso, mensual: 199,00 US$</li><li>Cuota de alta única, en la primera factura: 1500,00 US$</li><li>Prueba gratuita: 14 días, después el primer cargo mensual</li></ul>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://checkout.stripe.com/c/pay/cs_test_a1" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Configurar el pago</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Si el botón no funciona, copia este enlace en el navegador:<br><a class="k-link" href="https://checkout.stripe.com/c/pay/cs_test_a1" style="color:#2b59ff;word-break:break-all">https://checkout.stripe.com/c/pay/cs_test_a1</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">El enlace funciona hasta el 2 oct 2026, 11:30. Precios sin IVA cuando corresponda.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Recibes este correo porque usas Keel.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Dejar de recibir estos correos</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Activa tu suscripción a Keel para Harbor Home",
+  "text": "Hola, aquí tienes el enlace para activar la suscripción a Keel para Harbor Home.
+
+Introducirás los datos de pago en una página segura de Stripe. La tarjeta guardada se cobra automáticamente cada mes y puedes cambiarla cuando quieras desde Ajustes → Facturación.
+
+- Plan Growth, mensual: 599,00 US$
+- Complemento Contra reembolso, mensual: 199,00 US$
+- Cuota de alta única, en la primera factura: 1500,00 US$
+- Prueba gratuita: 14 días, después el primer cargo mensual
+
+Configurar el pago: https://checkout.stripe.com/c/pay/cs_test_a1
+
+El enlace funciona hasta el 2 oct 2026, 11:30. Precios sin IVA cuando corresponda.
+
+--
+
+Recibes este correo porque usas Keel.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Dejar de recibir estos correos: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > billing_checkout.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Attiva l&#39;abbonamento Keel per Harbor Home</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Aggiungi un metodo di pagamento per attivare l&#39;abbonamento Keel.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Buongiorno, ecco il link per attivare l&#39;abbonamento Keel per Harbor Home.</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Inserirai i dati di pagamento su una pagina sicura di Stripe. La carta salvata viene addebitata automaticamente ogni mese e puoi cambiarla in qualsiasi momento da Impostazioni → Fatturazione.</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Piano Growth, mensile: 599,00 USD</li><li>Add-on Contrassegno, mensile: 199,00 USD</li><li>Costo di attivazione una tantum, sulla prima fattura: 1500,00 USD</li><li>Prova gratuita: 14 giorni, poi il primo addebito mensile</li></ul>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:#2b59ff;border-radius:8px"><a class="k-btn" href="https://checkout.stripe.com/c/pay/cs_test_a1" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">Imposta il pagamento</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:#5b6170">Se il pulsante non funziona, copia questo link nel browser:<br><a class="k-link" href="https://checkout.stripe.com/c/pay/cs_test_a1" style="color:#2b59ff;word-break:break-all">https://checkout.stripe.com/c/pay/cs_test_a1</a></p>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Il link funziona fino al 2 ott 2026, 11:30. Prezzi IVA esclusa dove applicabile.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Ricevi questa email perché usi Keel.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Non ricevere più queste email</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Attiva l'abbonamento Keel per Harbor Home",
+  "text": "Buongiorno, ecco il link per attivare l'abbonamento Keel per Harbor Home.
+
+Inserirai i dati di pagamento su una pagina sicura di Stripe. La carta salvata viene addebitata automaticamente ogni mese e puoi cambiarla in qualsiasi momento da Impostazioni → Fatturazione.
+
+- Piano Growth, mensile: 599,00 USD
+- Add-on Contrassegno, mensile: 199,00 USD
+- Costo di attivazione una tantum, sulla prima fattura: 1500,00 USD
+- Prova gratuita: 14 giorni, poi il primo addebito mensile
+
+Imposta il pagamento: https://checkout.stripe.com/c/pay/cs_test_a1
+
+Il link funziona fino al 2 ott 2026, 11:30. Prezzi IVA esclusa dove applicabile.
+
+--
+
+Ricevi questa email perché usi Keel.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Non ricevere più queste email: https://app.keel.example/u/signed",
+}
+`;
+
 exports[`templates > every template renders in en, it and es (HTML and text snapshot) > carrier_instruction.en 1`] = `
 {
   "html": "<!doctype html>

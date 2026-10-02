@@ -112,11 +112,12 @@ export function TrialEndControl({ tenantId, value }: { tenantId: string; value: 
   );
 }
 
-export function InvoiceActions({ invoiceId, status }: { invoiceId: string; status: string }) {
+export function InvoiceActions({ invoiceId, status, provider }: { invoiceId: string; status: string; provider?: string }) {
   const t = useTranslations("admin.billing");
   const router = useRouter();
   const [pending, start] = useTransition();
-  if (status !== "open") return null;
+  // Stripe invoices are settled in Stripe and mirrored by webhooks (#53)
+  if (status !== "open" || provider === "stripe") return null;
   return (
     <span className="flex justify-end gap-1">
       <Button size="sm" variant="outline" disabled={pending} onClick={() => start(async () => { await markInvoicePaidAction(invoiceId); router.refresh(); })}>{t("mark_paid")}</Button>

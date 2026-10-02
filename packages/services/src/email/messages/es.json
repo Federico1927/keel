@@ -119,6 +119,23 @@
       "return": "Por favor, devolved el paquete al remitente.",
       "note": "Nota: {note}",
       "hint": "Por favor, confirmad respondiendo a este correo."
+    },
+    "billing_checkout": {
+      "subject": "Activa tu suscripción a {product} para {tenant}",
+      "preheader": "Añade un método de pago para activar la suscripción a {product}.",
+      "intro": "Hola, aquí tienes el enlace para activar la suscripción a {product} para {tenant}.",
+      "how": "Introducirás los datos de pago en una página segura de Stripe. La tarjeta guardada se cobra automáticamente cada mes y puedes cambiarla cuando quieras desde Ajustes → Facturación.",
+      "line_plan": "Plan {plan}, mensual: {amount}",
+      "line_addon": "Complemento {addon}, mensual: {amount}",
+      "line_setup": "Cuota de alta única, en la primera factura: {amount}",
+      "line_trial": "Prueba gratuita: {days} días, después el primer cargo mensual",
+      "cta": "Configurar el pago",
+      "hint": "El enlace funciona hasta el {date}. Precios sin IVA cuando corresponda.",
+      "hint_no_expiry": "Precios sin IVA cuando corresponda.",
+      "addons": {
+        "cod": "Contra reembolso",
+        "customer_campaigns": "Campañas a clientes"
+      }
     }
   },
   "system": {

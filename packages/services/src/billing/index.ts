@@ -1,13 +1,18 @@
-import { and, desc, eq, gte, inArray, recordAudit, schema, sql, withTenant, type Database } from "@keel/db";
-import { DEFAULT_SUSPEND_AFTER_DAYS, DEFAULT_TRIAL_DAYS, MODULES, OPERATIONAL_TENANT_STATUSES, PLANS, type PlanKey, isAddonModule } from "@keel/config";
+import { and, desc, eq, gte, inArray, isNull, recordAudit, schema, sql, withTenant, type Database } from "@keel/db";
+import { DEFAULT_SUSPEND_AFTER_DAYS, DEFAULT_TRIAL_DAYS, OPERATIONAL_TENANT_STATUSES, PLANS, type PlanKey } from "@keel/config";
 import { addMonths, defaultStateRules, displayName, normalizeEmail, monthlyInvoiceLines, mrr, paymentHealth, setupInvoiceLines, tenantHealth, type PaymentHealth, type TenantHealth } from "@keel/core";
 import { getBillingProvider, type BillingProvider } from "./provider";
+import { refreshTenantPaymentState, tenantPaymentStatus } from "./payment-state";
 import { createInvitation, pendingInvitationCount } from "../account/invitations";
 import { dataRetainedUntil, lifecycleHistory, recordLifecycleEvent, transitionTenant } from "./lifecycle";
 import type { TenantBranding } from "../branding";
 
 export * from "./provider";
 export * from "./lifecycle";
+export * from "./payment-state";
+export * from "./subscriptions";
+export * from "./plan";
+export * from "./mirror";
 
 /** Every call here runs on the admin connection: platform tables are not tenant data. */
 export type AdminDb = Database;
@@ -29,7 +34,7 @@ async function createInvoice(db: AdminDb, provider: BillingProvider, tenant: { i
   let externalId: string | null = null;
   let hostedUrl: string | null = null;
   if (amount > 0) {
-    const customerId = sub?.externalCustomerId ?? (await provider.ensureCustomer({ id: tenant.id, name: tenant.name }));
+    const customerId = sub?.externalCustomerId ?? (await provider.ensureCustomer({ tenantId: tenant.id, name: tenant.name }));
     const created = await provider.createInvoice({ customerId, number, currency: tenant.currency, lines: input.lines.map((l) => ({ key: l.key, label: `${l.kind}:${l.key}`, amountMinor: l.amountMinor })), dueAt: input.dueAt });
     externalId = created.externalId;
     hostedUrl = created.hostedUrl;
@@ -48,7 +53,7 @@ export async function ensureSubscription(db: AdminDb, tenantId: string, opts: { 
   const planKey = opts.planKey ?? (tenant.planKey as PlanKey);
   const provider = opts.provider ?? getBillingProvider();
   const trialDays = opts.trialDays ?? DEFAULT_TRIAL_DAYS;
-  const customerId = await provider.ensureCustomer({ id: tenant.id, name: tenant.name });
+  const customerId = await provider.ensureCustomer({ tenantId: tenant.id, name: tenant.name });
   const periodEnd = tenant.trialEndsAt && tenant.trialEndsAt > now ? tenant.trialEndsAt : new Date(now.getTime() + trialDays * 864e5);
   const [sub] = await db.insert(schema.subscriptions).values({ tenantId, planKey, status: "trialing", provider: provider.provider, externalCustomerId: customerId, currency: PLANS[planKey].currency, currentPeriodStart: now, currentPeriodEnd: periodEnd, trialEndsAt: periodEnd, setupFeeMinor: PLANS[planKey].setupFeeMinor }).returning();
   await createInvoice(db, provider, { id: tenant.id, name: tenant.name, currency: PLANS[planKey].currency }, sub!, { kind: "setup", lines: setupInvoiceLines(planKey), dueAt: new Date(now.getTime() + 7 * 864e5), now });
@@ -56,11 +61,11 @@ export async function ensureSubscription(db: AdminDb, tenantId: string, opts: { 
   return sub!;
 }
 
-/** Monthly run: every subscription whose period ended gets an invoice for the next period. Idempotent per period. */
+/** Monthly run of the Keel ledger: every subscription whose period ended gets an invoice for the next period. Idempotent per period. Subscriptions on a processor (Stripe, or the mock simulating it) are invoiced there and mirrored by webhooks. */
 export async function issueDueInvoices(db: AdminDb, opts: { now?: Date; provider?: BillingProvider; actorUserId?: string | null } = {}): Promise<{ issued: number }> {
   const now = opts.now ?? new Date();
   const provider = opts.provider ?? getBillingProvider();
-  const subs = await db.select({ sub: schema.subscriptions, tenant: schema.tenants }).from(schema.subscriptions).innerJoin(schema.tenants, eq(schema.tenants.id, schema.subscriptions.tenantId)).where(and(inArray(schema.subscriptions.status, ["trialing", "active", "past_due"]), sql`${schema.subscriptions.currentPeriodEnd} <= ${now}`));
+  const subs = await db.select({ sub: schema.subscriptions, tenant: schema.tenants }).from(schema.subscriptions).innerJoin(schema.tenants, eq(schema.tenants.id, schema.subscriptions.tenantId)).where(and(inArray(schema.subscriptions.status, ["trialing", "active", "past_due"]), isNull(schema.subscriptions.externalSubscriptionId), sql`${schema.subscriptions.currentPeriodEnd} <= ${now}`));
   let issued = 0;
   for (const { sub, tenant } of subs) {
     if (tenant.status === "churned") continue;
@@ -94,29 +99,6 @@ export async function voidInvoice(db: AdminDb, invoiceId: string, actorUserId: s
   await refreshTenantPaymentState(db, inv.tenantId, now, actorUserId);
 }
 
-export async function tenantPaymentStatus(db: AdminDb, tenantId: string, now = new Date()): Promise<{ health: PaymentHealth; daysOverdue: number; openMinor: number }> {
-  const [tenant] = await db.select({ suspendAfterDays: schema.tenants.suspendAfterDays }).from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
-  const invs = await db.select({ status: schema.invoices.status, dueAt: schema.invoices.dueAt, amountMinor: schema.invoices.amountMinor }).from(schema.invoices).where(eq(schema.invoices.tenantId, tenantId));
-  const h = paymentHealth(invs, now, tenant?.suspendAfterDays ?? DEFAULT_SUSPEND_AFTER_DAYS);
-  return { ...h, openMinor: invs.filter((i) => i.status === "open").reduce((s, i) => s + i.amountMinor, 0) };
-}
-
-/**
- * Lifecycle from the invoices: suspended after the grace period, past due before it, back to active
- * when nothing is overdue. Manual suspensions and churned tenants are left alone.
- */
-export async function refreshTenantPaymentState(db: AdminDb, tenantId: string, now: Date, actorUserId: string | null): Promise<PaymentHealth> {
-  const [tenant] = await db.select().from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
-  if (!tenant || tenant.status === "churned") return "none";
-  const { health } = await tenantPaymentStatus(db, tenantId, now);
-  const manual = (tenant.settings as { manualSuspension?: boolean } | null)?.manualSuspension === true;
-  const move = (to: "active" | "past_due" | "suspended", reason: "unpaid_invoice" | "payment_overdue" | "payment_recovered") => transitionTenant(db, tenantId, { to, reason, note: null, actorUserId, now });
-  if (health === "suspended" && tenant.status !== "suspended") await move("suspended", "unpaid_invoice");
-  else if (health === "past_due" && (tenant.status === "active" || tenant.status === "trial")) await move("past_due", "payment_overdue");
-  else if ((health === "ok" || health === "none") && (tenant.status === "past_due" || (tenant.status === "suspended" && !manual))) await move("active", "payment_recovered");
-  return health;
-}
-
 export async function applySuspensions(db: AdminDb, opts: { now?: Date; actorUserId?: string | null } = {}): Promise<{ checked: number; suspended: number }> {
   const now = opts.now ?? new Date();
   const tenants = await db.select({ id: schema.tenants.id }).from(schema.tenants).where(inArray(schema.tenants.status, [...OPERATIONAL_TENANT_STATUSES, "suspended"]));
@@ -128,29 +110,6 @@ export async function applySuspensions(db: AdminDb, opts: { now?: Date; actorUse
 /** Manual suspension from the console (kept for callers that only toggle); the lifecycle dialog uses `transitionTenant`. */
 export async function setTenantSuspension(db: AdminDb, tenantId: string, suspend: boolean, actorUserId: string, note?: string, now = new Date()): Promise<void> {
   await transitionTenant(db, tenantId, { to: suspend ? "suspended" : "active", reason: suspend ? "manual" : "payment_recovered", note: note ?? null, actorUserId, now, manual: suspend });
-}
-
-/* ---------- plans and add-ons ---------- */
-
-export async function setTenantPlan(db: AdminDb, tenantId: string, planKey: PlanKey, actorUserId: string, now = new Date()): Promise<void> {
-  const [tenant] = await db.select().from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
-  if (!tenant) throw new Error("tenant_not_found");
-  await db.update(schema.tenants).set({ planKey, updatedAt: now }).where(eq(schema.tenants.id, tenantId));
-  await db.update(schema.subscriptions).set({ planKey, updatedAt: now }).where(eq(schema.subscriptions.tenantId, tenantId));
-  await audit(db, actorUserId, tenantId, "tenant.plan_changed", { entityType: "tenant", entityId: tenantId, diff: { planKey: { from: tenant.planKey, to: planKey } } });
-  if (tenant.planKey !== planKey) await recordLifecycleEvent(db, tenantId, { from: tenant.status, to: tenant.status, reason: "plan_changed", actorUserId, now });
-}
-
-export async function setTenantAddon(db: AdminDb, tenantId: string, moduleKey: string, active: boolean, actorUserId: string, note?: string | null, now = new Date()): Promise<void> {
-  if (!isAddonModule(moduleKey) || MODULES[moduleKey].availability !== "implemented") throw new Error("addon_not_available");
-  const [existing] = await db.select().from(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, tenantId), eq(schema.tenantAddons.moduleKey, moduleKey))).limit(1);
-  if (existing) await db.update(schema.tenantAddons).set({ isActive: active, activatedAt: active ? now : existing.activatedAt, deactivatedAt: active ? null : now, note: note ?? existing.note, activatedBy: actorUserId, updatedAt: now }).where(eq(schema.tenantAddons.id, existing.id));
-  else if (active) await db.insert(schema.tenantAddons).values({ tenantId, moduleKey, isActive: true, activatedAt: now, note: note ?? null, activatedBy: actorUserId });
-  await audit(db, actorUserId, tenantId, active ? "tenant.addon_enabled" : "tenant.addon_disabled", { entityType: "tenant_addon", entityId: moduleKey, diff: { isActive: { from: existing?.isActive ?? false, to: active } }, metadata: { note: note ?? null } });
-  if ((existing?.isActive ?? false) !== active) {
-    const [tenant] = await db.select({ status: schema.tenants.status }).from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
-    if (tenant) await recordLifecycleEvent(db, tenantId, { from: tenant.status, to: tenant.status, reason: "addons_changed", note: note ?? null, actorUserId, now });
-  }
 }
 
 /* ---------- tenant creation and checklist ---------- */
@@ -264,7 +223,7 @@ export async function tenantsOverview(db: AdminDb, now = new Date()): Promise<Te
   const integrations = await db.select({ tenantId: schema.integrations.tenantId, provider: schema.integrations.provider, status: schema.integrations.status }).from(schema.integrations).where(and(inArray(schema.integrations.tenantId, ids), inArray(schema.integrations.provider, ["shopify", "meta", "google"])));
   const orders = await db.select({ tenantId: schema.orders.tenantId, n: sql<number>`count(*)::int` }).from(schema.orders).where(and(inArray(schema.orders.tenantId, ids), sql`${schema.orders.placedAt} > ${new Date(now.getTime() - 30 * 864e5)}`, sql`${schema.orders.status} <> 'cancelled'`)).groupBy(schema.orders.tenantId);
   const logins = await db.select({ tenantId: schema.tenantMemberships.tenantId, last: sql<Date | null>`max(${schema.users.lastLoginAt})` }).from(schema.tenantMemberships).innerJoin(schema.users, eq(schema.users.id, schema.tenantMemberships.userId)).where(inArray(schema.tenantMemberships.tenantId, ids)).groupBy(schema.tenantMemberships.tenantId);
-  const invs = await db.select({ tenantId: schema.invoices.tenantId, status: schema.invoices.status, dueAt: schema.invoices.dueAt, amountMinor: schema.invoices.amountMinor }).from(schema.invoices).where(inArray(schema.invoices.tenantId, ids));
+  const invs = await db.select({ tenantId: schema.invoices.tenantId, status: schema.invoices.status, dueAt: schema.invoices.dueAt, amountMinor: schema.invoices.amountMinor, paymentFailedAt: schema.invoices.paymentFailedAt }).from(schema.invoices).where(inArray(schema.invoices.tenantId, ids));
   const subs = await db.select({ tenantId: schema.subscriptions.tenantId, status: schema.subscriptions.status, planKey: schema.subscriptions.planKey }).from(schema.subscriptions).where(inArray(schema.subscriptions.tenantId, ids));
   const healthErrors = await db.select({ tenantId: schema.integrationHealth.tenantId, n: sql<number>`count(*)::int` }).from(schema.integrationHealth).where(and(inArray(schema.integrationHealth.tenantId, ids), inArray(schema.integrationHealth.status, ["error", "degraded"]))).groupBy(schema.integrationHealth.tenantId);
   // failed background work: runs of the last 7 days, webhooks and outbound writes still failed
