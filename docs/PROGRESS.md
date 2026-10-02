@@ -848,3 +848,13 @@ Fatto:
 - Test: unit (`addon-versions.test.ts`), servizi (`billing.test.ts`), e2e (`addon-versions.spec.ts`).
 
 Resta: il controllo per singolo negozio (es. campagne senza provider di messaggi collegato), da aggiungere accanto al registro.
+
+## Importazione dello storico ordini al collegamento di Shopify (issue #87)
+
+Fatto:
+- Collegare Shopify (token di app custom o OAuth) avvia l'importazione dello storico: tutti gli ordini creati nella finestra del negozio (`historyImportMonths`, 24 mesi di default, 0 = tutti, in Impostazioni → Operative), poi catalogo e resi degli stessi ordini. Prima un negozio nuovo riceveva solo gli ultimi 30 giorni.
+- Sul worker sono job riprendibili (il job ordini accoda i resi quando finisce); senza coda gira una tranche inline e "Risincronizza" la fa proseguire. Un'importazione fallita riprende dal cursore; una completata non riparte.
+- Stato visibile nella scheda Shopify di Integrazioni, nella checklist della console ("Storico ordini importato") e in un banner su home e Analisi finché non è completa.
+- Nessuna migrazione. Test: core `history-import.test.ts` (finestra in mesi), servizi `history-import.test.ts` (tranche, errore e ripresa, solo ordini nella finestra, passaggio al delta dal punto raggiunto, checklist, resi). Il mock Shopify ora rispetta `createdSince`.
+
+Resta: provarla su un negozio di sviluppo Shopify reale (#88).

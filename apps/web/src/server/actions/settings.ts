@@ -65,6 +65,7 @@ export async function updateOperationalSettings(slug: string, _prev: ActionResul
       roiMedium: num(formData.get("roiMedium")) ?? current.roiMedium,
       campaignStockThreshold: num(formData.get("campaignStockThreshold")) ?? current.campaignStockThreshold,
       duplicateOrderWindowDays: num(formData.get("duplicateOrderWindowDays")) ?? current.duplicateOrderWindowDays,
+      historyImportMonths: num(formData.get("historyImportMonths")) ?? current.historyImportMonths,
       shipmentStuckDays: num(formData.get("shipmentStuckDays")) ?? current.shipmentStuckDays,
       returnWindowDays: num(formData.get("returnWindowDays")) ?? current.returnWindowDays,
       returnShippingFallbackDays: num(formData.get("returnShippingFallbackDays")) ?? current.returnShippingFallbackDays,

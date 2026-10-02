@@ -13,10 +13,12 @@ import { applyInventoryLevels, refreshInventoryForVariants, zeroUnreportedLevels
 import { importPlatformReturn, type ReturnImportOutcome } from "./returns";
 import { notifyExchangeShipped } from "../returns/notify";
 import { linkPoolRedemptions } from "../discounts/redemptions";
+import { historyImportStatus } from "./history";
 
 export * from "./inventory";
 export * from "./returns";
 export * from "./housekeeping";
+export * from "./history";
 
 export type ImportSource = "webhook" | "sync" | "backfill" | "reconcile";
 export interface ImportOutcome {
@@ -446,7 +448,7 @@ export interface ReturnsSyncResult {
  * by their platform id, never duplicated. Resumable like the other runs: cursor in `sync_runs` after every
  * page, pause at the time budget, resume on the next call.
  */
-export async function runReturnsSync(ctx: ServiceContext, platform: CommercePlatform, opts: { kind?: "delta" | "reconcile"; country: string; budgetMs?: number; pageSize?: number; reconcileDays?: number }): Promise<ReturnsSyncResult> {
+export async function runReturnsSync(ctx: ServiceContext, platform: CommercePlatform, opts: { kind?: "initial" | "delta" | "reconcile"; country: string; budgetMs?: number; pageSize?: number; reconcileDays?: number; historySince?: Date | null }): Promise<ReturnsSyncResult> {
   const now = ctx.now ?? new Date();
   const started = Date.now();
   const kind = opts.kind ?? "reconcile";
@@ -461,7 +463,8 @@ export async function runReturnsSync(ctx: ServiceContext, platform: CommercePlat
     await ctx.tx.update(schema.syncRuns).set({ status: "running" }).where(eq(schema.syncRuns.id, run.id));
   } else {
     const [last] = kind === "delta" ? await ctx.tx.select({ startedAt: schema.syncRuns.startedAt }).from(schema.syncRuns).where(and(eq(schema.syncRuns.tenantId, ctx.tenantId), eq(schema.syncRuns.provider, provider), eq(schema.syncRuns.objectType, "returns"), eq(schema.syncRuns.status, "success"))).orderBy(desc(schema.syncRuns.startedAt)).limit(1) : [];
-    const since = last ? new Date(last.startedAt.getTime() - 5 * 60_000) : new Date(now.getTime() - (opts.reconcileDays ?? 35) * 864e5);
+    // initial (issue #87): the same history window as the first orders import, every return when it is null
+    const since = kind === "initial" ? opts.historySince ?? new Date(0) : last ? new Date(last.startedAt.getTime() - 5 * 60_000) : new Date(now.getTime() - (opts.reconcileDays ?? 35) * 864e5);
     cursor = { nextCursor: null, updatedSince: since.toISOString(), counts: { created: 0, updated: 0, linked: 0, skipped: 0 } };
     const [row] = await ctx.tx.insert(schema.syncRuns).values({ tenantId: ctx.tenantId, provider, objectType: "returns", kind, status: "running", cursor, startedAt: now }).returning({ id: schema.syncRuns.id });
     run = { id: row!.id, scanned: 0, changed: 0, durationMs: 0 };
@@ -515,14 +518,17 @@ interface OrdersCursor {
 /**
  * Resumable orders sync: one `sync_runs` row per pass, cursor persisted after every page,
  * stops at the time budget and resumes on the next call from the saved cursor.
- * Delta uses the previous high-water mark minus a 2-minute overlap; initial walks everything.
+ * Delta uses the previous high-water mark minus a 2-minute overlap; initial walks every order
+ * created since `historySince` (all of them when null) and resumes after a failure too.
  */
-export async function runOrdersSync(ctx: ServiceContext, platform: CommercePlatform, opts: { kind: SyncKind; country: string; budgetMs?: number; pageSize?: number; reconcileDays?: number }): Promise<{ runId: string; rowsWritten: number; finished: boolean; error: string | null }> {
+export async function runOrdersSync(ctx: ServiceContext, platform: CommercePlatform, opts: { kind: SyncKind; country: string; budgetMs?: number; pageSize?: number; reconcileDays?: number; historySince?: Date | null }): Promise<{ runId: string; rowsWritten: number; finished: boolean; error: string | null }> {
   const now = ctx.now ?? new Date();
   const budgetMs = opts.budgetMs ?? 20_000;
   const started = Date.now();
   const provider = platform.provider;
-  const [paused] = await ctx.tx.select().from(schema.syncRuns).where(and(eq(schema.syncRuns.tenantId, ctx.tenantId), eq(schema.syncRuns.provider, provider), eq(schema.syncRuns.objectType, "orders"), eq(schema.syncRuns.kind, opts.kind), eq(schema.syncRuns.status, "paused"))).orderBy(desc(schema.syncRuns.startedAt)).limit(1);
+  // the first import (issue #87) can be hours of pages: after a failure it resumes from its cursor instead of starting over
+  const resumable = opts.kind === "initial" ? ["paused", "error"] : ["paused"];
+  const [paused] = await ctx.tx.select().from(schema.syncRuns).where(and(eq(schema.syncRuns.tenantId, ctx.tenantId), eq(schema.syncRuns.provider, provider), eq(schema.syncRuns.objectType, "orders"), eq(schema.syncRuns.kind, opts.kind), inArray(schema.syncRuns.status, resumable))).orderBy(desc(schema.syncRuns.startedAt)).limit(1);
   let cursor: OrdersCursor;
   let runId: string;
   let rowsWritten = 0;
@@ -540,7 +546,7 @@ export async function runOrdersSync(ctx: ServiceContext, platform: CommercePlatf
   } else {
     const [last] = await ctx.tx.select({ cursor: schema.syncRuns.cursor }).from(schema.syncRuns).where(and(eq(schema.syncRuns.tenantId, ctx.tenantId), eq(schema.syncRuns.provider, provider), eq(schema.syncRuns.objectType, "orders"), eq(schema.syncRuns.status, "success"))).orderBy(desc(schema.syncRuns.finishedAt)).limit(1);
     const hwm = (last?.cursor as OrdersCursor | undefined)?.highWaterMark ?? null;
-    cursor = opts.kind === "delta" ? { nextCursor: null, updatedSince: hwm ? new Date(new Date(hwm).getTime() - 120_000).toISOString() : new Date(now.getTime() - 30 * 864e5).toISOString(), highWaterMark: hwm, pages: 0 } : opts.kind === "reconcile" ? { nextCursor: null, createdSince: new Date(now.getTime() - (opts.reconcileDays ?? 35) * 864e5).toISOString(), highWaterMark: hwm, pages: 0 } : { nextCursor: null, highWaterMark: null, pages: 0 };
+    cursor = opts.kind === "delta" ? { nextCursor: null, updatedSince: hwm ? new Date(new Date(hwm).getTime() - 120_000).toISOString() : new Date(now.getTime() - 30 * 864e5).toISOString(), highWaterMark: hwm, pages: 0 } : opts.kind === "reconcile" ? { nextCursor: null, createdSince: new Date(now.getTime() - (opts.reconcileDays ?? 35) * 864e5).toISOString(), highWaterMark: hwm, pages: 0 } : { nextCursor: null, createdSince: opts.historySince?.toISOString() ?? null, highWaterMark: null, pages: 0 };
     const [run] = await ctx.tx.insert(schema.syncRuns).values({ tenantId: ctx.tenantId, provider, objectType: "orders", kind: opts.kind, status: "running", cursor, startedAt: now }).returning({ id: schema.syncRuns.id });
     runId = run!.id;
   }
@@ -752,5 +758,5 @@ export async function integrationOverview(ctx: ServiceContext) {
   const runs = await ctx.tx.select().from(schema.syncRuns).where(eq(schema.syncRuns.tenantId, ctx.tenantId)).orderBy(desc(schema.syncRuns.startedAt)).limit(25);
   const webhooks = await ctx.tx.select({ id: schema.webhookEvents.id, source: schema.webhookEvents.source, topic: schema.webhookEvents.topic, externalId: schema.webhookEvents.externalId, status: schema.webhookEvents.status, attempts: schema.webhookEvents.attempts, lastError: schema.webhookEvents.lastError, receivedAt: schema.webhookEvents.receivedAt, processedAt: schema.webhookEvents.processedAt }).from(schema.webhookEvents).where(eq(schema.webhookEvents.tenantId, ctx.tenantId)).orderBy(desc(schema.webhookEvents.receivedAt)).limit(30);
   const [counts] = await ctx.tx.select({ failed: sql<number>`count(*) filter (where ${schema.webhookEvents.status} = 'failed')::int`, pending: sql<number>`count(*) filter (where ${schema.webhookEvents.status} = 'pending')::int`, processed24h: sql<number>`count(*) filter (where ${schema.webhookEvents.status} = 'processed' and ${schema.webhookEvents.processedAt} > now() - interval '24 hours')::int` }).from(schema.webhookEvents).where(eq(schema.webhookEvents.tenantId, ctx.tenantId));
-  return { integrations, health, runs, webhooks, webhookCounts: counts ?? { failed: 0, pending: 0, processed24h: 0 } };
+  return { integrations, health, runs, webhooks, webhookCounts: counts ?? { failed: 0, pending: 0, processed24h: 0 }, historyImport: await historyImportStatus(ctx) };
 }

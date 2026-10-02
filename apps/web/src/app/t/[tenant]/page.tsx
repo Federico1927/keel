@@ -8,6 +8,7 @@ import { analyticsTenant, pageNow, sharedMemo } from "@/server/dashboards";
 import { Greeting } from "@/components/greeting";
 import { DashboardGrid } from "@/components/dashboard/dashboard-grid";
 import { SourceHealthWidget } from "@/components/dashboard/source-health-widget";
+import { HistoryImportBanner } from "@/components/history-import-banner";
 import { CustomiseHomeButton, PeriodLinks, PreviewAsSelect, PreviewBanner } from "@/components/dashboard/controls";
 
 /**
@@ -51,6 +52,7 @@ export default async function DashboardPage({ params, searchParams }: { params: 
       />
       {(previewRole || showDraft) && <PreviewBanner base={base} role={previewRole} draft={showDraft} name={view.isTemplate ? null : view.name} />}
       {/* integration sources that aren't OK (#32), above every home layout; hidden without integrations or for roles that can't open them */}
+      <HistoryImportBanner ctx={ctx} />
       <div className="mb-6">
         <SourceHealthWidget ctx={ctx} />
       </div>

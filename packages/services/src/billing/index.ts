@@ -159,7 +159,7 @@ export async function createTenant(db: AdminDb, input: CreateTenantInput, actorU
 }
 
 export interface ChecklistItem {
-  key: "company" | "owner" | "users" | "shopify" | AdPlatform | "state_rules" | "costs" | "billing";
+  key: "company" | "owner" | "users" | "shopify" | "history_import" | AdPlatform | "state_rules" | "costs" | "billing";
   done: boolean;
   detail: string | null;
 }
@@ -168,7 +168,11 @@ export async function tenantChecklist(db: AdminDb, tenantId: string, now = new D
   const [tenant] = await db.select().from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
   if (!tenant) return [];
   const members = await db.select({ role: schema.tenantMemberships.role }).from(schema.tenantMemberships).where(and(eq(schema.tenantMemberships.tenantId, tenantId), eq(schema.tenantMemberships.isActive, true)));
-  const integrations = await db.select({ provider: schema.integrations.provider, status: schema.integrations.status }).from(schema.integrations).where(eq(schema.integrations.tenantId, tenantId));
+  const integrations = await db.select({ provider: schema.integrations.provider, status: schema.integrations.status, mode: schema.integrations.mode }).from(schema.integrations).where(eq(schema.integrations.tenantId, tenantId));
+  // the first import of the store's order history (issue #87); a simulated store gets its history from the seed
+  const [history] = await db.select({ status: schema.syncRuns.status, rows: schema.syncRuns.rowsWritten }).from(schema.syncRuns).where(and(eq(schema.syncRuns.tenantId, tenantId), eq(schema.syncRuns.provider, "shopify"), eq(schema.syncRuns.objectType, "orders"), eq(schema.syncRuns.kind, "initial"))).orderBy(desc(schema.syncRuns.startedAt)).limit(1);
+  const shopify = integrations.find((i) => i.provider === "shopify");
+  const simulatedStore = !!shopify && shopify.status !== "not_connected" && shopify.mode !== "live";
   const [rules] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.stateRules).where(and(eq(schema.stateRules.tenantId, tenantId), eq(schema.stateRules.isActive, true)));
   const [costs] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.costSettings).where(eq(schema.costSettings.tenantId, tenantId));
   const pay = await tenantPaymentStatus(db, tenantId, now);
@@ -178,6 +182,7 @@ export async function tenantChecklist(db: AdminDb, tenantId: string, now = new D
     { key: "owner", done: members.some((m) => m.role === "owner"), detail: !members.some((m) => m.role === "owner") && (await pendingInvitationCount(db, tenantId, "owner", now)) > 0 ? "invited" : null },
     { key: "users", done: members.length >= 2, detail: String(members.length) },
     { key: "shopify", done: status("shopify") === "connected", detail: status("shopify") },
+    { key: "history_import", done: history?.status === "success" || simulatedStore, detail: history ? `${history.status} · ${history.rows}` : simulatedStore ? "mock" : null },
     // one step per ad platform the plan includes (TikTok from Growth up)
     ...adPlatformsForPlan(tenant.planKey).map((p) => ({ key: p, done: status(p) === "connected", detail: status(p) })),
     { key: "state_rules", done: (rules?.n ?? 0) > 0, detail: String(rules?.n ?? 0) },
