@@ -1,10 +1,11 @@
-import { and, desc, eq, gte, inArray, recordAudit, schema, sql, withTenant, type Database } from "@keel/db";
-import { DEFAULT_SUSPEND_AFTER_DAYS, DEFAULT_TRIAL_DAYS, MODULES, OPERATIONAL_TENANT_STATUSES, PLANS, type PlanKey, isAddonModule } from "@keel/config";
+import { and, desc, eq, inArray, recordAudit, schema, sql, withTenant, type Database } from "@keel/db";
+import { DEFAULT_SUSPEND_AFTER_DAYS, DEFAULT_TRIAL_DAYS, MODULES, OPERATIONAL_TENANT_STATUSES, PLANS, SOURCE_ERROR_STATUSES, type PlanKey, isAddonModule } from "@keel/config";
 import { addMonths, defaultStateRules, displayName, normalizeEmail, monthlyInvoiceLines, mrr, paymentHealth, setupInvoiceLines, tenantHealth, type PaymentHealth, type TenantHealth } from "@keel/core";
 import { getBillingProvider, type BillingProvider } from "./provider";
 import { createInvitation, pendingInvitationCount } from "../account/invitations";
 import { dataRetainedUntil, lifecycleHistory, recordLifecycleEvent, transitionTenant } from "./lifecycle";
 import type { TenantBranding } from "../branding";
+import { failedJobsByTenant } from "../reliability/jobs";
 
 export * from "./provider";
 export * from "./lifecycle";
@@ -259,18 +260,15 @@ export async function tenantsOverview(db: AdminDb, now = new Date()): Promise<Te
   const tenants = await db.select().from(schema.tenants).orderBy(schema.tenants.name);
   if (!tenants.length) return [];
   const ids = tenants.map((t) => t.id);
-  const week = new Date(now.getTime() - 7 * 864e5);
   const addons = await db.select({ tenantId: schema.tenantAddons.tenantId, key: schema.tenantAddons.moduleKey }).from(schema.tenantAddons).where(and(inArray(schema.tenantAddons.tenantId, ids), eq(schema.tenantAddons.isActive, true)));
   const integrations = await db.select({ tenantId: schema.integrations.tenantId, provider: schema.integrations.provider, status: schema.integrations.status }).from(schema.integrations).where(and(inArray(schema.integrations.tenantId, ids), inArray(schema.integrations.provider, ["shopify", "meta", "google"])));
   const orders = await db.select({ tenantId: schema.orders.tenantId, n: sql<number>`count(*)::int` }).from(schema.orders).where(and(inArray(schema.orders.tenantId, ids), sql`${schema.orders.placedAt} > ${new Date(now.getTime() - 30 * 864e5)}`, sql`${schema.orders.status} <> 'cancelled'`)).groupBy(schema.orders.tenantId);
   const logins = await db.select({ tenantId: schema.tenantMemberships.tenantId, last: sql<Date | null>`max(${schema.users.lastLoginAt})` }).from(schema.tenantMemberships).innerJoin(schema.users, eq(schema.users.id, schema.tenantMemberships.userId)).where(inArray(schema.tenantMemberships.tenantId, ids)).groupBy(schema.tenantMemberships.tenantId);
   const invs = await db.select({ tenantId: schema.invoices.tenantId, status: schema.invoices.status, dueAt: schema.invoices.dueAt, amountMinor: schema.invoices.amountMinor }).from(schema.invoices).where(inArray(schema.invoices.tenantId, ids));
   const subs = await db.select({ tenantId: schema.subscriptions.tenantId, status: schema.subscriptions.status, planKey: schema.subscriptions.planKey }).from(schema.subscriptions).where(inArray(schema.subscriptions.tenantId, ids));
-  const healthErrors = await db.select({ tenantId: schema.integrationHealth.tenantId, n: sql<number>`count(*)::int` }).from(schema.integrationHealth).where(and(inArray(schema.integrationHealth.tenantId, ids), inArray(schema.integrationHealth.status, ["error", "degraded"]))).groupBy(schema.integrationHealth.tenantId);
-  // failed background work: runs of the last 7 days, webhooks and outbound writes still failed
-  const failedRuns = await db.select({ tenantId: schema.syncRuns.tenantId, n: sql<number>`count(*)::int` }).from(schema.syncRuns).where(and(inArray(schema.syncRuns.tenantId, ids), eq(schema.syncRuns.status, "failed"), gte(schema.syncRuns.startedAt, week))).groupBy(schema.syncRuns.tenantId);
-  const failedHooks = await db.select({ tenantId: schema.webhookEvents.tenantId, n: sql<number>`count(*)::int` }).from(schema.webhookEvents).where(and(inArray(schema.webhookEvents.tenantId, ids), eq(schema.webhookEvents.status, "failed"))).groupBy(schema.webhookEvents.tenantId);
-  const failedWrites = await db.select({ tenantId: schema.platformWrites.tenantId, n: sql<number>`count(*)::int` }).from(schema.platformWrites).where(and(inArray(schema.platformWrites.tenantId, ids), eq(schema.platformWrites.status, "failed"))).groupBy(schema.platformWrites.tenantId);
+  const healthErrors = await db.select({ tenantId: schema.integrationHealth.tenantId, n: sql<number>`count(*)::int` }).from(schema.integrationHealth).where(and(inArray(schema.integrationHealth.tenantId, ids), inArray(schema.integrationHealth.status, [...SOURCE_ERROR_STATUSES]))).groupBy(schema.integrationHealth.tenantId);
+  // failed background work: failed job runs of the last 7 days (job history, #32)
+  const failedRuns = await failedJobsByTenant(db, ids, 7, now);
   const countOf = (rows: { tenantId: string; n: number }[], id: string) => rows.find((r) => r.tenantId === id)?.n ?? 0;
   return tenants.map((t) => {
     const mine = invs.filter((i) => i.tenantId === t.id);
@@ -280,7 +278,7 @@ export async function tenantsOverview(db: AdminDb, now = new Date()): Promise<Te
     const tenantAddons = addons.filter((a) => a.tenantId === t.id).map((a) => a.key);
     const sub = subs.find((x) => x.tenantId === t.id);
     const integrationErrors = countOf(healthErrors, t.id);
-    const failedJobs = countOf(failedRuns, t.id) + countOf(failedHooks, t.id) + countOf(failedWrites, t.id);
+    const failedJobs = failedRuns.get(t.id) ?? 0;
     return {
       id: t.id,
       slug: t.slug,
@@ -312,7 +310,7 @@ export async function platformMetrics(db: AdminDb, now = new Date()) {
   const subs = await db.select({ status: schema.subscriptions.status, planKey: schema.subscriptions.planKey, tenantId: schema.subscriptions.tenantId }).from(schema.subscriptions);
   const addons = await db.select({ tenantId: schema.tenantAddons.tenantId, key: schema.tenantAddons.moduleKey }).from(schema.tenantAddons).where(eq(schema.tenantAddons.isActive, true));
   const tenants = await db.select({ status: schema.tenants.status }).from(schema.tenants);
-  const [errors] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.integrationHealth).where(inArray(schema.integrationHealth.status, ["error", "degraded"]));
+  const [errors] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.integrationHealth).where(inArray(schema.integrationHealth.status, [...SOURCE_ERROR_STATUSES]));
   const [openInv] = await db.select({ n: sql<number>`count(*)::int`, amount: sql<number>`coalesce(sum(${schema.invoices.amountMinor}),0)::int`, overdue: sql<number>`count(*) filter (where ${schema.invoices.dueAt} < ${now})::int` }).from(schema.invoices).where(eq(schema.invoices.status, "open"));
   const [paid30] = await db.select({ amount: sql<number>`coalesce(sum(${schema.invoices.amountMinor}),0)::int` }).from(schema.invoices).where(and(eq(schema.invoices.status, "paid"), sql`${schema.invoices.paidAt} > ${new Date(now.getTime() - 30 * 864e5)}`));
   const addonCounts = Object.entries(addons.reduce<Record<string, number>>((acc, a) => ((acc[a.key] = (acc[a.key] ?? 0) + 1), acc), {})).sort((a, b) => b[1] - a[1]).map(([key, count]) => ({ key, count }));

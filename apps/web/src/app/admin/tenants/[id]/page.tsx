@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { ADDON_MODULES, CHURN_RETENTION_DAYS, MODULES, PLATFORM_CURRENCY, isTenantStatus } from "@keel/config";
+import { ADDON_MODULES, CHURN_RETENTION_DAYS, MODULES, PLATFORM_CURRENCY, TENANT_EXPORT_TTL_DAYS, isTenantStatus } from "@keel/config";
 import { LIFECYCLE_TRANSITIONS, formatDate, formatDateTime, formatMoney, formatNumber } from "@keel/core";
-import { tenantAdminDetail } from "@keel/services";
+import { listTenantExports, tenantAdminDetail } from "@keel/services";
 import {
   Badge,
   Card,
@@ -21,6 +21,8 @@ import {
   TableRow,
 } from "@keel/ui";
 import { requireSuperAdmin } from "@/server/admin";
+import { DataExportTable } from "@/components/data-export/export-table";
+import { RequestDataExportButton } from "@/components/data-export/request-button";
 import { toBrand } from "@/server/branding";
 import { LifecycleBadge, PaymentBadge } from "../../_components/badges";
 import {
@@ -39,6 +41,7 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const d = await tenantAdminDetail(db, id);
   if (!d) notFound();
+  const exports = await listTenantExports(db, id, 10);
   const t = await getTranslations("admin");
   const tm = await getTranslations("modules");
   const locale = await getLocale();
@@ -136,6 +139,15 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
               ))}
             </ol>
           )}
+        </CardContent>
+      </Card>
+      <Card className="mb-6" id="data-export" data-testid="tenant-data-export">
+        <CardHeader>
+          <CardTitle className="flex flex-wrap items-center justify-between gap-2 text-base">{t("tenant.data_export")} <RequestDataExportButton mode="admin" target={d.tenant.id} disabled={exports.some((e) => e.status === "pending" || e.status === "running")} /></CardTitle>
+          <CardDescription>{t("tenant.data_export_description", { days: TENANT_EXPORT_TTL_DAYS })}</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <DataExportTable rows={exports} locale={locale} timezone="UTC" hrefFor={(eid) => `/admin/tenants/${d.tenant.id}/data-export/${eid}`} />
         </CardContent>
       </Card>
       <div className="grid gap-3 sm:grid-cols-3">

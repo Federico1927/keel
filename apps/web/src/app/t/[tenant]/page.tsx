@@ -8,6 +8,7 @@ import { requirePage } from "@/server/tenant";
 import { RevenueChart } from "@/components/charts/revenue-chart";
 import { StatusBadge } from "@/components/status-badge";
 import { Greeting } from "@/components/greeting";
+import { SourceHealthWidget } from "@/components/dashboard/source-health-widget";
 
 export default async function DashboardPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
@@ -65,6 +66,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ tena
               <p className="pt-1 text-xs text-muted-foreground">{t("forecast.hint", { elapsed: forecast.elapsedDays, days: forecast.daysInMonth })} <Link href={`${base}/analytics`} className="underline-offset-4 hover:underline">{t("forecast.more")}</Link></p>
             </CardContent>
           </Card>
+          <SourceHealthWidget ctx={ctx} />
           <Card>
             <CardHeader>
               <CardTitle className="text-base">{t("work_queue")}</CardTitle>

@@ -268,6 +268,20 @@
       "none_low": "No best seller is low on stock.",
       "cell": "{sold} sold · {available} left · +{incoming}",
       "waiting": "{n} waiting"
+    },
+    "source_health": {
+      "title": "Integrations",
+      "all_ok": "All {total} sources OK",
+      "not_ok": "{n} of {total} not OK",
+      "never": "never",
+      "statuses": {
+        "ok": "OK",
+        "degraded": "Degraded",
+        "error": "Error",
+        "stale": "Stale",
+        "idle": "Idle",
+        "unknown": "Unknown"
+      }
     }
   },
   "settings": {
@@ -331,7 +345,8 @@
     },
     "order_states_link": "Order state rules",
     "branding_link": "Branding",
-    "fulfilment_link": "Fulfilment"
+    "fulfilment_link": "Fulfilment",
+    "data_export_link": "Data export"
   },
   "users": {
     "title": "Users & roles",
@@ -391,7 +406,23 @@
     },
     "empty_title": "No audit entries yet",
     "empty_description": "Changes to settings, users, orders and integrations will appear here.",
-    "pagination": "Page {page} of {pages} · {total} entries"
+    "pagination": "Page {page} of {pages} · {total} entries",
+    "filters": {
+      "actor": "Actor",
+      "actor_type": "Actor type",
+      "entity": "Entity",
+      "record": "Record",
+      "record_placeholder": "Record id",
+      "action": "Action",
+      "from": "From",
+      "to": "To",
+      "apply": "Apply",
+      "reset": "Reset",
+      "all": "All",
+      "empty_title": "No entries match",
+      "empty_description": "Change or reset the filters.",
+      "record_history": "History of this record"
+    }
   },
   "order_status": {
     "new": "New",
@@ -514,14 +545,19 @@
       "cod_assigned": "COD order assigned",
       "digest": "Daily digest email",
       "export_ready": "CSV export ready",
-      "other": "Other"
+      "other": "Other",
+      "platform_failure": "Failing background jobs"
     },
     "rendered": {
       "stock_critical_no_po": "{title} selling variants at critical stock with nothing on order",
       "late_to_ship": "{title} orders still to ship after {body} working days",
       "sync_delay": "{title} sync is late ({body})",
       "export_ready": "Your {body} export is ready ({title} rows)",
-      "export_failed": "Your {body} export failed"
+      "export_failed": "Your {body} export failed",
+      "platform_failure": "Background job {title} keeps failing",
+      "source_idle": "{title} has synced nothing in its last runs",
+      "data_export_ready": "Your full data export is ready ({title} rows)",
+      "data_export_failed": "Your full data export failed"
     },
     "groups": {
       "collaboration": "Collaboration",
@@ -2610,7 +2646,9 @@
       "ok": "OK",
       "degraded": "Degraded",
       "error": "Error",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "stale": "Stale",
+      "idle": "Idle"
     },
     "no_account": "No account linked",
     "last_sync": "Last sync",
@@ -3129,7 +3167,9 @@
         "operations": "Operations",
         "support": "Support",
         "audit": "Audit"
-      }
+      },
+      "jobs": "Job runs",
+      "alerts": "Failure alerts"
     },
     "plans": {
       "starter": "Starter",
@@ -3166,7 +3206,7 @@
       "see_all": "See all",
       "why": "Why",
       "past_retention": "{n, plural, one {# churned tenant is} other {# churned tenants are}} past the data-retention window",
-      "past_retention_hint": "The data-export and delete flow (#32) will take over; nothing is deleted automatically yet."
+      "past_retention_hint": "Export their data from the tenant page (Data export). Nothing is deleted automatically."
     },
     "tenants": {
       "title": "Tenants",
@@ -3269,7 +3309,9 @@
       "logo_light": "Logo for light backgrounds",
       "logo_dark": "Logo for dark backgrounds",
       "no_logo": "No logo uploaded",
-      "brand_updated": "Updated {date}"
+      "brand_updated": "Updated {date}",
+      "data_export": "Data export",
+      "data_export_description": "Every table of this tenant as CSV files in a zip, built in the background; the link expires after {days} days. Requests and downloads are audited."
     },
     "billing": {
       "title": "Billing",
@@ -3314,7 +3356,11 @@
       "details": "Details",
       "platform": "Platform (no tenant)",
       "actor_type": "Actor type",
-      "summary": "{from}–{to} of {total}"
+      "summary": "{from}–{to} of {total}",
+      "entity": "Entity",
+      "record": "Record (id)",
+      "from": "From",
+      "to": "To"
     },
     "support": {
       "title": "Support",
@@ -3457,7 +3503,7 @@
       "reason": "Reason",
       "trial_end": "Trial end",
       "retained_until": "Data kept until",
-      "retention_hint": "({days} days after churn, then the export/delete flow)",
+      "retention_hint": "({days} days after churn; export the data from the Data export card)",
       "system": "billing run",
       "change": "Change state",
       "change_title": "Change lifecycle state",
@@ -3606,6 +3652,63 @@
       "failures": "{n} consecutive failures",
       "failed_runs": "Failed sync runs",
       "failed_runs_hint": "The latest 30, newest first."
+    },
+    "jobs": {
+      "title": "Job runs",
+      "description": "Every background job: status, duration, rows and error. The latest run per job type and tenant, with \"Run now\".",
+      "job_type": "Job type",
+      "status": "Status",
+      "statuses": {
+        "succeeded": "Succeeded",
+        "failed": "Failed",
+        "running": "Running"
+      },
+      "latest": "Latest run per job type and tenant",
+      "latest_description": "Failing ones first. \"Run now\" queues the job (or runs it here when no worker is deployed) and is recorded in the audit log.",
+      "last_run": "Last run",
+      "failed_24h": "Failed (24h)",
+      "run_now": "Run now",
+      "queued": "Queued for the worker",
+      "started_inline": "Started; refresh in a moment",
+      "not_runnable": "This job cannot be run by hand",
+      "history": "History",
+      "started": "Started",
+      "duration": "Duration",
+      "rows": "Rows",
+      "trigger": "Trigger",
+      "triggers": {
+        "schedule": "Schedule",
+        "queue": "Queue",
+        "manual": "Run now",
+        "inline": "Inline"
+      },
+      "empty_title": "No job runs yet",
+      "empty_description": "Runs appear here as soon as the worker (or an inline run) executes a job."
+    },
+    "alerts": {
+      "title": "Failure alerts",
+      "description": "A job failing {n} times in a row, or an integration with no success inside its freshness window. One alert per signature; super-admins and tenant owners are told at most once every {hours} hours.",
+      "open": "Open alerts",
+      "kinds": {
+        "job_failure": "Failing job",
+        "sync_stale": "Stale source"
+      },
+      "status": "Status",
+      "statuses": {
+        "open": "Open",
+        "resolved": "Resolved",
+        "all": "All"
+      },
+      "kind": "Kind",
+      "subject": "Job or source",
+      "last_seen": "Last seen",
+      "since": "since {date}",
+      "occurrences": "Occurrences",
+      "notified": "Notified",
+      "notified_at": "{n, plural, one {once} other {# times}}, last {date}",
+      "close": "Close",
+      "empty_title": "No alerts",
+      "empty_description": "Nothing is failing right now."
     }
   },
   "cod": {
@@ -6360,5 +6463,37 @@
         "manual": "manual"
       }
     }
+  },
+  "data_export": {
+    "title": "Data export",
+    "description": "Download everything Keel holds for this store.",
+    "what_title": "Full export of the store's data",
+    "what_description": "One CSV file per table (orders, customers, products, returns, campaigns, settings and more) in a zip archive, built in the background. You are notified when it is ready; the download link expires after {days} days. Secrets such as integration credentials are never included.",
+    "request": "Export all data",
+    "requesting": "Starting…",
+    "errors": {
+      "in_progress": "An export is already running.",
+      "generic": "The export could not be started."
+    },
+    "empty_title": "No exports yet",
+    "empty_description": "Exports you start appear here with their download link.",
+    "columns": {
+      "requested": "Requested",
+      "status": "Status",
+      "rows": "Rows",
+      "expires": "Link expires",
+      "file": "File"
+    },
+    "by_platform": "Keel support",
+    "statuses": {
+      "pending": "Queued",
+      "running": "Running",
+      "done": "Ready",
+      "failed": "Failed",
+      "expired": "Expired"
+    },
+    "tables_n": "{n} tables",
+    "download": "Download",
+    "downloads": "{n, plural, one {downloaded once} other {downloaded # times}}"
   }
 }

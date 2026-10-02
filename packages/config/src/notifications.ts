@@ -37,6 +37,7 @@ export const NOTIFICATION_TYPES = {
   po_supplier_confirmed: { channels: ALL, defaults: { in_app: true }, group: "operations" },
   po_supplier_problem: { channels: ALL, defaults: { in_app: true, email: true }, group: "operations" },
   integration_health: { channels: ALL, defaults: { in_app: true }, group: "system" },
+  platform_failure: { channels: ALL, defaults: { in_app: true, email: true }, group: "system" },
   cod_assigned: { channels: ["in_app", "email"], defaults: { in_app: true }, group: "operations", module: "addon.cod" },
   digest: { channels: ["email"], defaults: { email: false }, group: "system" },
   export_ready: { channels: ["in_app", "email"], defaults: { in_app: true }, group: "system" },

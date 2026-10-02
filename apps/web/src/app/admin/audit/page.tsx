@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { and, asc, desc, eq, inArray, or, schema, sql, type SQL } from "@keel/db";
+import { and, asc, desc, eq, inArray, isNotNull, schema, sql, type SQL } from "@keel/db";
+import { AUDIT_ACTOR_TYPES, auditFilterConditions, parseAuditFilters } from "@keel/services";
 import { formatDateTime } from "@keel/core";
 import { Badge, Button, Card, CardContent, Input, Label, PageHeader, Pagination, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { flatParams, queryHref } from "../_components/table-query";
 
 const PAGE_SIZE = 100;
-const ACTOR_TYPES = ["super_admin", "impersonation", "user", "system"] as const;
 
 export default async function AdminAuditPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { db } = await requireSuperAdmin();
@@ -17,21 +17,17 @@ export default async function AdminAuditPage({ searchParams }: { searchParams: P
   const a = schema.auditLogs;
   const isUuid = (v?: string) => Boolean(v && /^[0-9a-f-]{36}$/i.test(v));
   const page = Math.max(1, Number(query.page) || 1);
-  const conds: SQL[] = [];
-  if (query.action) conds.push(sql`${a.action} like ${query.action.replace(/[\\%_]/g, (m) => `\\${m}`) + "%"}`);
+  // actor (email), actor type, entity, record, action and dates: the same conditions as the owner's audit page (#32)
+  const filters = parseAuditFilters(query);
+  const conds: SQL[] = auditFilterConditions(filters);
   if (query.tenant === "platform") conds.push(sql`${a.tenantId} is null`);
   else if (isUuid(query.tenant)) conds.push(eq(a.tenantId, query.tenant!));
-  if ((ACTOR_TYPES as readonly string[]).includes(query.actor_type ?? "")) conds.push(eq(a.actorType, query.actor_type!));
-  if (isUuid(query.entity)) conds.push(eq(a.entityId, query.entity!));
-  if (query.actor?.trim()) {
-    const like = `%${query.actor.trim().replace(/[\\%_]/g, (m) => `\\${m}`)}%`;
-    conds.push(or(sql`${a.actorUserId} in (select id from users where email ilike ${like})`, sql`${a.impersonatedBy} in (select id from users where email ilike ${like})`)!);
-  }
   const where = conds.length ? and(...conds) : undefined;
-  const [rows, [count], tenants] = await Promise.all([
+  const [rows, [count], tenants, entityTypes] = await Promise.all([
     db.select({ log: a, tenantName: schema.tenants.name }).from(a).leftJoin(schema.tenants, eq(schema.tenants.id, a.tenantId)).where(where).orderBy(desc(a.createdAt)).limit(PAGE_SIZE).offset((page - 1) * PAGE_SIZE),
     db.select({ n: sql<number>`count(*)::int` }).from(a).where(where),
     db.select({ id: schema.tenants.id, name: schema.tenants.name }).from(schema.tenants).orderBy(asc(schema.tenants.name)),
+    db.selectDistinct({ type: a.entityType }).from(a).where(isNotNull(a.entityType)).orderBy(asc(a.entityType)),
   ]);
   const actorIds = [...new Set(rows.flatMap((r) => [r.log.actorUserId, r.log.impersonatedBy]).filter((x): x is string => Boolean(x)))];
   const actors = actorIds.length ? await db.select({ id: schema.users.id, email: schema.users.email }).from(schema.users).where(inArray(schema.users.id, actorIds)) : [];
@@ -40,8 +36,7 @@ export default async function AdminAuditPage({ searchParams }: { searchParams: P
   return (
     <>
       <PageHeader eyebrow={t("console")} title={t("audit.title")} description={t("audit.description")} />
-      <form className="mb-4 grid gap-3 rounded-lg border bg-card p-3 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto]" method="get" action="/admin/audit">
-        {query.entity && <input type="hidden" name="entity" value={query.entity} />}
+      <form className="mb-4 grid gap-3 rounded-lg border bg-card p-3 sm:grid-cols-2 lg:grid-cols-4" method="get" action="/admin/audit">
         <div className="space-y-1.5">
           <Label htmlFor="a-action">{t("audit.action")}</Label>
           <Input id="a-action" name="action" defaultValue={query.action ?? ""} placeholder="tenant." autoComplete="off" />
@@ -62,8 +57,27 @@ export default async function AdminAuditPage({ searchParams }: { searchParams: P
           <Label htmlFor="a-type">{t("audit.actor_type")}</Label>
           <Select id="a-type" name="actor_type" defaultValue={query.actor_type ?? ""}>
             <option value="">{t("filters.all")}</option>
-            {ACTOR_TYPES.map((x) => <option key={x} value={x}>{x}</option>)}
+            {AUDIT_ACTOR_TYPES.map((x) => <option key={x} value={x}>{x}</option>)}
           </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="a-entity-type">{t("audit.entity")}</Label>
+          <Select id="a-entity-type" name="entity_type" defaultValue={filters.entityType ?? ""}>
+            <option value="">{t("filters.all")}</option>
+            {entityTypes.map((x) => <option key={x.type} value={x.type!}>{x.type}</option>)}
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="a-record">{t("audit.record")}</Label>
+          <Input id="a-record" name="entity" defaultValue={filters.entityId ?? ""} autoComplete="off" />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="a-from">{t("audit.from")}</Label>
+          <Input id="a-from" type="date" name="from" defaultValue={filters.from ?? ""} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="a-to">{t("audit.to")}</Label>
+          <Input id="a-to" type="date" name="to" defaultValue={filters.to ?? ""} />
         </div>
         <div className="flex items-end gap-2">
           <Button type="submit">{t("filters.apply")}</Button>
@@ -89,7 +103,7 @@ export default async function AdminAuditPage({ searchParams }: { searchParams: P
                   <TableCell className="text-xs">{tenantName ?? "—"}</TableCell>
                   <TableCell className="text-xs">{who(x.actorUserId)} <Badge variant={x.actorType === "impersonation" || x.actorType === "super_admin" ? "platform" : "outline"}>{x.actorType}</Badge>{x.impersonatedBy && <span className="text-muted-foreground"> ← {who(x.impersonatedBy)}</span>}</TableCell>
                   <TableCell className="font-mono text-xs">{x.action}</TableCell>
-                  <TableCell className="max-w-[24rem] truncate text-xs text-muted-foreground" title={JSON.stringify({ ...(x.diff as object), ...(x.metadata as object) })}>{x.entityType ? `${x.entityType}:${x.entityId ?? ""} ` : ""}{JSON.stringify(x.diff)}</TableCell>
+                  <TableCell className="max-w-[24rem] truncate text-xs text-muted-foreground" title={JSON.stringify({ ...(x.diff as object), ...(x.metadata as object) })}>{x.entityType ? <Link href={queryHref("/admin/audit", {}, { entity_type: x.entityType, entity: x.entityId ?? undefined })} className="hover:underline">{`${x.entityType}:${x.entityId ?? ""}`}</Link> : null} {JSON.stringify(x.diff)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

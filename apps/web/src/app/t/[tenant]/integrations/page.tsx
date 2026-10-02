@@ -24,7 +24,7 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
   const canManage = canDo(ctx.role, "manage_integrations");
   const globalMock = integrationMode() === "mock";
   const dt = (d: Date | null | undefined) => (d ? formatDateTime(d, ctx.locale, ctx.tenant.timezone) : "—");
-  const statusVariant = (s: string) => (s === "connected" || s === "ok" ? "success" : s === "error" ? "destructive" : s === "degraded" || s === "syncing" ? "warning" : "muted") as "success" | "destructive" | "warning" | "muted";
+  const statusVariant = (s: string) => (s === "connected" || s === "ok" ? "success" : s === "error" || s === "stale" ? "destructive" : s === "degraded" || s === "idle" || s === "syncing" ? "warning" : "muted") as "success" | "destructive" | "warning" | "muted";
   const base = `/t/${tenant}/integrations`;
   return (
     <>

@@ -268,6 +268,20 @@
       "none_low": "Nessun prodotto più venduto è sotto la soglia.",
       "cell": "{sold} venduti · {available} rimasti · +{incoming}",
       "waiting": "{n} in attesa"
+    },
+    "source_health": {
+      "title": "Integrazioni",
+      "all_ok": "Tutte le {total} fonti OK",
+      "not_ok": "{n} su {total} non OK",
+      "never": "mai",
+      "statuses": {
+        "ok": "OK",
+        "degraded": "Instabile",
+        "error": "Errore",
+        "stale": "Non aggiornata",
+        "idle": "Inattiva",
+        "unknown": "Sconosciuto"
+      }
     }
   },
   "settings": {
@@ -331,7 +345,8 @@
     },
     "order_states_link": "Regole di stato ordine",
     "branding_link": "Branding",
-    "fulfilment_link": "Evasione"
+    "fulfilment_link": "Evasione",
+    "data_export_link": "Esportazione dati"
   },
   "users": {
     "title": "Utenti e ruoli",
@@ -391,7 +406,23 @@
     },
     "empty_title": "Nessuna voce nel registro",
     "empty_description": "Le modifiche a impostazioni, utenti, ordini e integrazioni compariranno qui.",
-    "pagination": "Pagina {page} di {pages} · {total} voci"
+    "pagination": "Pagina {page} di {pages} · {total} voci",
+    "filters": {
+      "actor": "Autore",
+      "actor_type": "Tipo di autore",
+      "entity": "Entità",
+      "record": "Record",
+      "record_placeholder": "Id del record",
+      "action": "Azione",
+      "from": "Dal",
+      "to": "Al",
+      "apply": "Applica",
+      "reset": "Azzera",
+      "all": "Tutti",
+      "empty_title": "Nessuna voce corrisponde",
+      "empty_description": "Cambia o azzera i filtri.",
+      "record_history": "Storico di questo record"
+    }
   },
   "order_status": {
     "new": "Nuovo",
@@ -514,14 +545,19 @@
       "cod_assigned": "Ordine in contrassegno assegnato",
       "digest": "Email di riepilogo giornaliero",
       "export_ready": "Esportazione CSV pronta",
-      "other": "Altro"
+      "other": "Altro",
+      "platform_failure": "Lavori in background che falliscono"
     },
     "rendered": {
       "stock_critical_no_po": "{title} varianti in vendita con stock critico e nessun ordine d'acquisto",
       "late_to_ship": "{title} ordini ancora da spedire dopo {body} giorni lavorativi",
       "sync_delay": "La sincronizzazione di {title} è in ritardo ({body})",
       "export_ready": "L'esportazione di {body} è pronta ({title} righe)",
-      "export_failed": "L'esportazione di {body} è fallita"
+      "export_failed": "L'esportazione di {body} è fallita",
+      "platform_failure": "Il lavoro in background {title} continua a fallire",
+      "source_idle": "{title} non ha sincronizzato nulla negli ultimi giri",
+      "data_export_ready": "L'esportazione completa dei dati è pronta ({title} righe)",
+      "data_export_failed": "L'esportazione completa dei dati non è riuscita"
     },
     "groups": {
       "collaboration": "Collaborazione",
@@ -2610,7 +2646,9 @@
       "ok": "OK",
       "degraded": "Degradata",
       "error": "Errore",
-      "unknown": "Sconosciuto"
+      "unknown": "Sconosciuto",
+      "stale": "Non aggiornata",
+      "idle": "Inattiva"
     },
     "no_account": "Nessun account collegato",
     "last_sync": "Ultimo sync",
@@ -3129,7 +3167,9 @@
         "operations": "Operazioni",
         "support": "Supporto",
         "audit": "Audit"
-      }
+      },
+      "jobs": "Esecuzioni dei job",
+      "alerts": "Avvisi di errore"
     },
     "plans": {
       "starter": "Starter",
@@ -3166,7 +3206,7 @@
       "see_all": "Vedi tutti",
       "why": "Perché",
       "past_retention": "{n, plural, one {# tenant chiuso ha} other {# tenant chiusi hanno}} superato il periodo di conservazione dei dati",
-      "past_retention_hint": "Se ne occuperà il flusso di esportazione e cancellazione (#32); per ora non si cancella nulla in automatico."
+      "past_retention_hint": "Esporta i loro dati dalla scheda del tenant (Esportazione dati). Non si cancella nulla in automatico."
     },
     "tenants": {
       "title": "Tenant",
@@ -3269,7 +3309,9 @@
       "logo_light": "Logo per sfondi chiari",
       "logo_dark": "Logo per sfondi scuri",
       "no_logo": "Nessun logo caricato",
-      "brand_updated": "Aggiornato il {date}"
+      "brand_updated": "Aggiornato il {date}",
+      "data_export": "Esportazione dati",
+      "data_export_description": "Tutte le tabelle del tenant in file CSV dentro uno zip, generato in background; il link scade dopo {days} giorni. Richieste e download finiscono nell'audit."
     },
     "billing": {
       "title": "Fatturazione",
@@ -3314,7 +3356,11 @@
       "details": "Dettagli",
       "platform": "Piattaforma (nessun tenant)",
       "actor_type": "Tipo di autore",
-      "summary": "{from}–{to} di {total}"
+      "summary": "{from}–{to} di {total}",
+      "entity": "Entità",
+      "record": "Record (id)",
+      "from": "Dal",
+      "to": "Al"
     },
     "support": {
       "title": "Supporto",
@@ -3457,7 +3503,7 @@
       "reason": "Motivo",
       "trial_end": "Fine prova",
       "retained_until": "Dati conservati fino al",
-      "retention_hint": "({days} giorni dalla chiusura, poi il flusso di esportazione/cancellazione)",
+      "retention_hint": "({days} giorni dalla chiusura; esporta i dati dalla sezione Esportazione dati)",
       "system": "job di fatturazione",
       "change": "Cambia stato",
       "change_title": "Cambia lo stato del ciclo di vita",
@@ -3606,6 +3652,63 @@
       "failures": "{n} errori consecutivi",
       "failed_runs": "Sync falliti",
       "failed_runs_hint": "Gli ultimi 30, dal più recente."
+    },
+    "jobs": {
+      "title": "Esecuzioni dei job",
+      "description": "Ogni lavoro in background: stato, durata, righe ed errore. L'ultima esecuzione per tipo di job e tenant, con \"Esegui ora\".",
+      "job_type": "Tipo di job",
+      "status": "Stato",
+      "statuses": {
+        "succeeded": "Riuscito",
+        "failed": "Fallito",
+        "running": "In corso"
+      },
+      "latest": "Ultima esecuzione per tipo di job e tenant",
+      "latest_description": "Prima quelli che falliscono. \"Esegui ora\" mette il job in coda (o lo esegue qui se non c'è un worker) e viene registrato nell'audit.",
+      "last_run": "Ultima esecuzione",
+      "failed_24h": "Falliti (24h)",
+      "run_now": "Esegui ora",
+      "queued": "In coda per il worker",
+      "started_inline": "Avviato; aggiorna tra poco",
+      "not_runnable": "Questo job non si può eseguire a mano",
+      "history": "Storico",
+      "started": "Avvio",
+      "duration": "Durata",
+      "rows": "Righe",
+      "trigger": "Origine",
+      "triggers": {
+        "schedule": "Pianificato",
+        "queue": "Coda",
+        "manual": "Esegui ora",
+        "inline": "In linea"
+      },
+      "empty_title": "Nessuna esecuzione",
+      "empty_description": "Le esecuzioni compaiono qui appena il worker (o un'esecuzione in linea) esegue un job."
+    },
+    "alerts": {
+      "title": "Avvisi di errore",
+      "description": "Un job che fallisce {n} volte di fila, o un'integrazione senza successi entro la sua finestra di aggiornamento. Un avviso per firma; super-admin e owner del tenant vengono avvisati al massimo una volta ogni {hours} ore.",
+      "open": "Avvisi aperti",
+      "kinds": {
+        "job_failure": "Job che fallisce",
+        "sync_stale": "Fonte non aggiornata"
+      },
+      "status": "Stato",
+      "statuses": {
+        "open": "Aperti",
+        "resolved": "Risolti",
+        "all": "Tutti"
+      },
+      "kind": "Tipo",
+      "subject": "Job o fonte",
+      "last_seen": "Ultima volta",
+      "since": "dal {date}",
+      "occurrences": "Occorrenze",
+      "notified": "Avvisati",
+      "notified_at": "{n, plural, one {una volta} other {# volte}}, l'ultima il {date}",
+      "close": "Chiudi",
+      "empty_title": "Nessun avviso",
+      "empty_description": "Al momento non fallisce nulla."
     }
   },
   "cod": {
@@ -6360,5 +6463,37 @@
         "manual": "manuale"
       }
     }
+  },
+  "data_export": {
+    "title": "Esportazione dati",
+    "description": "Scarica tutto ciò che Keel conserva per questo negozio.",
+    "what_title": "Esportazione completa dei dati del negozio",
+    "what_description": "Un file CSV per tabella (ordini, clienti, prodotti, resi, campagne, impostazioni e altro) in un archivio zip, generato in background. Ricevi una notifica quando è pronto; il link di download scade dopo {days} giorni. Le credenziali delle integrazioni e gli altri segreti non sono mai inclusi.",
+    "request": "Esporta tutti i dati",
+    "requesting": "Avvio…",
+    "errors": {
+      "in_progress": "C'è già un'esportazione in corso.",
+      "generic": "Non è stato possibile avviare l'esportazione."
+    },
+    "empty_title": "Nessuna esportazione",
+    "empty_description": "Le esportazioni che avvii compaiono qui con il link di download.",
+    "columns": {
+      "requested": "Richiesta",
+      "status": "Stato",
+      "rows": "Righe",
+      "expires": "Scadenza link",
+      "file": "File"
+    },
+    "by_platform": "Supporto Keel",
+    "statuses": {
+      "pending": "In coda",
+      "running": "In corso",
+      "done": "Pronta",
+      "failed": "Non riuscita",
+      "expired": "Scaduta"
+    },
+    "tables_n": "{n} tabelle",
+    "download": "Scarica",
+    "downloads": "{n, plural, one {scaricata una volta} other {scaricata # volte}}"
   }
 }

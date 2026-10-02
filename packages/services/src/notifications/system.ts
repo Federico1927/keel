@@ -1,5 +1,5 @@
 import { and, eq, inArray, isNull, schema, sql } from "@keel/db";
-import { digestSummary, isCriticalWithoutIncoming, isSyncDelayed, type TenantSettings } from "@keel/core";
+import { digestSummary, isCriticalWithoutIncoming, type TenantSettings } from "@keel/core";
 import { countLateToShip } from "../fulfilment";
 import type { TenantRole } from "@keel/config";
 import type { ServiceContext } from "../context";
@@ -15,26 +15,6 @@ export async function membersWithRoles(ctx: ServiceContext, roles: readonly Tena
 }
 
 const sys = (ctx: ServiceContext): ServiceContext => ({ ...ctx, actor: { type: "system", userId: null } });
-
-/** Integrations whose last successful sync is older than their freshness window plus the tenant's grace. */
-export async function checkSyncDelays(ctx: ServiceContext, settings: TenantSettings): Promise<{ source: string; minutesLate: number }[]> {
-  const now = ctx.now ?? new Date();
-  const integrations = await ctx.tx.select().from(schema.integrations).where(and(eq(schema.integrations.tenantId, ctx.tenantId), inArray(schema.integrations.status, ["connected", "error", "syncing"])));
-  if (!integrations.length) return [];
-  const health = await ctx.tx.select().from(schema.integrationHealth).where(eq(schema.integrationHealth.tenantId, ctx.tenantId));
-  const late: { source: string; minutesLate: number }[] = [];
-  for (const h of health) {
-    const integ = integrations.find((i) => i.provider === h.source.split(":")[0]);
-    if (!integ) continue;
-    const r = isSyncDelayed({ lastSuccessAt: h.lastSuccessAt, connectedAt: integ.createdAt, freshnessMinutes: h.freshnessMinutes, graceMinutes: settings.syncDelayGraceMinutes, now });
-    if (r.delayed) late.push({ source: h.source, minutesLate: r.minutesLate });
-  }
-  if (late.length) {
-    const users = await membersWithRoles(ctx, ["owner", "admin"]);
-    for (const l of late) await notifyUsers(sys(ctx), { userIds: users, type: "sync_delay", severity: "warning", title: l.source, body: `+${Math.round(l.minutesLate / 60)}h`, link: `/integrations#${l.source.split(":")[0]}`, metadata: { source: l.source, minutesLate: l.minutesLate }, antiSpamMinutes: 6 * 60 });
-  }
-  return late;
-}
 
 /** Selling variants at critical cover with nothing on order: one grouped notification a day. */
 export async function checkCriticalStock(ctx: ServiceContext, settings: TenantSettings): Promise<{ variantId: string; sku: string | null; title: string }[]> {

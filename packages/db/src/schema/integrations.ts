@@ -37,6 +37,11 @@ export const integrationHealth = pgTable(
     consecutiveFailures: integer("consecutive_failures").notNull().default(0),
     rowsWrittenLast: integer("rows_written_last").notNull().default(0),
     freshnessMinutes: integer("freshness_minutes").notNull().default(60),
+    /** Successful runs in a row that wrote no rows (idle after N, per provider; #32). */
+    zeroRowRuns: integer("zero_row_runs").notNull().default(0),
+    /** Watchdog (#32): last owner/admin notification and last automatic resync for this source. */
+    watchdogNotifiedAt: timestamp("watchdog_notified_at", { withTimezone: true }),
+    resyncRequestedAt: timestamp("resync_requested_at", { withTimezone: true }),
     lastError: text("last_error"),
     meta: jsonb("meta").notNull().default(sql`'{}'::jsonb`),
     createdAt: createdAt(),

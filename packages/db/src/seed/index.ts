@@ -15,6 +15,7 @@ import { seedPayments } from "./payments";
 import { seedFulfilment } from "./fulfilment";
 import { seedConsoleTenants, seedDemoLifecycle } from "./console";
 import { seedInventoryControl } from "./inventory-control";
+import { seedPlatformReliability, seedReliability } from "./reliability";
 import { createRng } from "@keel/integrations";
 import { SALE_STATUSES, allocateLandedCost, normalizePhone, runPredictionModel, type CustomerHistory } from "@keel/core";
 import { MODULES, PLANS, PLATFORM_CURRENCY } from "@keel/config";
@@ -143,7 +144,8 @@ export async function seedPlatform(db: ReturnType<typeof drizzle<typeof schema>>
   }
   await seedBilling(db, tenantIds);
   await seedInvitations(db, tenantIds, userIds);
-  await seedConsoleTenants(db);
+  const consoleIds = await seedConsoleTenants(db);
+  await seedPlatformReliability(db, consoleIds, new Date());
   return { tenantIds, userIds };
 }
 
@@ -265,6 +267,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("lists", () => seedLists(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("payments", () => seedPayments(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("inventory-control", () => seedInventoryControl(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
+    await step("reliability", () => seedReliability(db, cfg.key as "northwind" | "harbor", cfg.tenantId, ctx.userIds[cfg.key === "northwind" ? "owner@northwind.demo" : "owner@harborhome.demo"] ?? null, opts.now ?? new Date()));
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
   }
 }

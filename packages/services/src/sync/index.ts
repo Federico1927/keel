@@ -1,5 +1,5 @@
 import { and, desc, eq, inArray, isNull, schema, sql } from "@keel/db";
-import { DEFAULT_PRECEDENCE, addressKey, applyStatusMapping, type StatusMapping, deriveChannel, diffRecords, extractAttribution, hasChanges, matchCampaign, nameZipKey, normalizeEmail, normalizePhone, resolveShipmentStatus, shouldTakePlatformCost, type CampaignRef, type ShipmentStatus } from "@keel/core";
+import { DEFAULT_PRECEDENCE, addressKey, applyStatusMapping, type StatusMapping, deriveChannel, diffRecords, extractAttribution, hasChanges, matchCampaign, nameZipKey, nextZeroRowRuns, sourceStatus, normalizeEmail, normalizePhone, resolveShipmentStatus, shouldTakePlatformCost, type CampaignRef, type ShipmentStatus } from "@keel/core";
 import { IntegrationError, type AdsPlatform, type CommercePlatform, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 import { closeOrderBackorders, recomputeOrderStatus } from "../orders/state";
@@ -263,10 +263,16 @@ export async function recordHealth(ctx: ServiceContext, source: string, ok: bool
   const now = ctx.now ?? new Date();
   const [prev] = await ctx.tx.select().from(schema.integrationHealth).where(and(eq(schema.integrationHealth.tenantId, ctx.tenantId), eq(schema.integrationHealth.source, source))).limit(1);
   const consecutiveFailures = ok ? 0 : (prev?.consecutiveFailures ?? 0) + 1;
-  const values = { status: ok ? "ok" : consecutiveFailures >= 3 ? "error" : "degraded", lastAttemptAt: now, lastSuccessAt: ok ? now : prev?.lastSuccessAt ?? null, lastMetricDate: info.lastMetricDate ?? prev?.lastMetricDate ?? null, consecutiveFailures, rowsWrittenLast: info.rowsWritten ?? (ok ? 0 : prev?.rowsWrittenLast ?? 0), freshnessMinutes: info.freshnessMinutes ?? prev?.freshnessMinutes ?? 60, lastError: ok ? null : info.error ?? prev?.lastError ?? null, updatedAt: now };
+  const provider = source.split(":")[0]!;
+  const lastSuccessAt = ok ? now : prev?.lastSuccessAt ?? null;
+  const freshnessMinutes = info.freshnessMinutes ?? prev?.freshnessMinutes ?? 60;
+  const zeroRowRuns = nextZeroRowRuns(prev?.zeroRowRuns ?? 0, ok, info.rowsWritten);
+  // same status rule as the watchdog (#32): stale beats a failure, idle after N empty runs
+  const [integ] = lastSuccessAt ? [] : await ctx.tx.select({ createdAt: schema.integrations.createdAt }).from(schema.integrations).where(and(eq(schema.integrations.tenantId, ctx.tenantId), eq(schema.integrations.provider, provider))).limit(1);
+  const status = sourceStatus({ source, lastSuccessAt, connectedAt: integ?.createdAt ?? null, freshnessMinutes, consecutiveFailures, zeroRowRuns }, now);
+  const values = { status, lastAttemptAt: now, lastSuccessAt, lastMetricDate: info.lastMetricDate ?? prev?.lastMetricDate ?? null, consecutiveFailures, zeroRowRuns, rowsWrittenLast: info.rowsWritten ?? (ok ? 0 : prev?.rowsWrittenLast ?? 0), freshnessMinutes, lastError: ok ? null : info.error ?? prev?.lastError ?? null, updatedAt: now };
   await ctx.tx.insert(schema.integrationHealth).values({ tenantId: ctx.tenantId, source, ...values }).onConflictDoUpdate({ target: [schema.integrationHealth.tenantId, schema.integrationHealth.source], set: values });
   if (info.touchIntegration === false) return;
-  const provider = source.split(":")[0]!;
   await ctx.tx.update(schema.integrations).set(ok ? { lastSyncAt: now, lastSuccessAt: now, lastError: null, status: "connected", updatedAt: now } : { lastSyncAt: now, lastError: info.error ?? null, status: consecutiveFailures >= 3 ? "error" : "connected", updatedAt: now }).where(and(eq(schema.integrations.tenantId, ctx.tenantId), eq(schema.integrations.provider, provider), sql`${schema.integrations.status} <> 'not_connected'`));
 }
 

@@ -13,6 +13,8 @@ export interface PlanDefinition {
   maxOrdersPerMonth: number;
   /** null = unlimited users (every plan, by commercial decision). */
   maxUsers: number | null;
+  /** Days the tenant's audit log is kept; older rows are deleted in batches by the nightly retention job (#32). */
+  auditRetentionDays: number;
 }
 
 /**
@@ -29,6 +31,7 @@ export const PLANS: Record<PlanKey, PlanDefinition> = {
     currency: PLATFORM_CURRENCY,
     maxOrdersPerMonth: 1000,
     maxUsers: null,
+    auditRetentionDays: 180,
   },
   growth: {
     key: "growth",
@@ -38,6 +41,7 @@ export const PLANS: Record<PlanKey, PlanDefinition> = {
     currency: PLATFORM_CURRENCY,
     maxOrdersPerMonth: 5000,
     maxUsers: null,
+    auditRetentionDays: 365,
   },
   scale: {
     key: "scale",
@@ -47,6 +51,7 @@ export const PLANS: Record<PlanKey, PlanDefinition> = {
     currency: PLATFORM_CURRENCY,
     maxOrdersPerMonth: 20000,
     maxUsers: null,
+    auditRetentionDays: 730,
   },
 };
 
@@ -55,3 +60,11 @@ export const OVERAGE = { pricePerBlockMinor: 4900, blockOrders: 1000 } as const;
 
 /** Days of unpaid invoice after which a tenant is suspended (default, per-tenant override). */
 export const DEFAULT_SUSPEND_AFTER_DAYS = 14;
+
+/** Audit rows of the platform itself (tenant null: billing runs, tenant creation) are kept as long as the longest plan. */
+export const PLATFORM_AUDIT_RETENTION_DAYS = 730;
+
+/** Audit retention of a plan; an unknown plan key keeps rows as long as the longest plan (deleting less is the safe side). */
+export function auditRetentionDays(planKey: string | null | undefined): number {
+  return (PLANS as Record<string, PlanDefinition | undefined>)[planKey ?? ""]?.auditRetentionDays ?? PLATFORM_AUDIT_RETENTION_DAYS;
+}
