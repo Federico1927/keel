@@ -75,7 +75,6 @@ test.describe("inventory control", () => {
   });
 
   test("markdowns: suggestions above the floor, bulk apply with price history; loss report renders", async ({ page }) => {
-    page.on("dialog", (d) => void d.accept());
     await login(page, "owner@northwind.demo");
     await page.goto(`${T}/inventory`);
     await page.getByTestId("markdowns-link").click();
@@ -85,6 +84,7 @@ test.describe("inventory control", () => {
     const historyBefore = await page.getByTestId("price-change-row").count();
     await rows.first().getByTestId("markdown-select").click();
     await page.getByTestId("apply-markdowns").click();
+    await page.getByTestId("confirm-accept").click();
     // one transaction and one platform write per variant: give the batch time under a loaded machine
     await expect(page.getByTestId("markdown-summary")).toContainText(/^1 /, { timeout: 30_000 });
     await expect.poll(() => page.getByTestId("price-change-row").count()).toBeGreaterThan(Math.min(historyBefore, 14));

@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { PAYOUT_STATUSES, formatDate, formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
 import { listPayouts } from "@hullwise/services";
 import { canDo } from "@hullwise/config";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Button, Input, cn } from "@hullwise/ui";
+import { Badge, Card, CardContent, DataList, EmptyState, PageHeader, Pagination, Select, Stat, Button, Input, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { SyncPayoutsButton } from "./sync-button";
 import { PAYOUT_STATUS_VARIANT as STATUS_VARIANT } from "./status";
@@ -50,35 +50,23 @@ export default async function PayoutsPage({ params, searchParams }: { params: Pr
         <EmptyState title={filtered ? t("empty_filtered") : t("empty")} description={filtered ? undefined : t("empty_hint")} />
       ) : (
         <Card>
-          <CardContent className="overflow-x-auto p-0">
-            <Table data-testid="payouts-table">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("columns.date")}</TableHead>
-                  <TableHead>{t("columns.status")}</TableHead>
-                  <TableHead className="hidden text-right sm:table-cell">{t("columns.transactions")}</TableHead>
-                  <TableHead className="text-right">{t("columns.gross")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("columns.refunds")}</TableHead>
-                  <TableHead className="hidden text-right lg:table-cell">{t("columns.adjustments")}</TableHead>
-                  <TableHead className="text-right">{t("columns.fees")}</TableHead>
-                  <TableHead className="text-right">{t("columns.net")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.rows.map((p) => (
-                  <TableRow key={p.id} data-testid="payout-row">
-                    <TableCell><Link href={`${base}/${p.id}`} className="font-medium text-primary hover:underline">{formatDate(p.issuedAt, ctx.locale, ctx.tenant.timezone)}</Link></TableCell>
-                    <TableCell><Badge variant={STATUS_VARIANT[p.status] ?? "muted"}>{t(`status.${p.status}`)}</Badge></TableCell>
-                    <TableCell className="hidden text-right tabular sm:table-cell">{formatNumber(p.transactionCount, ctx.locale)}</TableCell>
-                    <TableCell className="text-right tabular">{money(p.grossMinor)}</TableCell>
-                    <TableCell className={cn("hidden text-right tabular md:table-cell", p.refundsMinor < 0 && "text-destructive")}>{money(p.refundsMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular lg:table-cell">{money(p.adjustmentsMinor)}</TableCell>
-                    <TableCell className="text-right tabular text-muted-foreground">{money(-p.feeMinor)}</TableCell>
-                    <TableCell className="text-right font-medium tabular">{money(p.netMinor)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <CardContent className="p-0">
+            <DataList
+              data-testid="payouts-table"
+              rows={data.rows}
+              rowKey={(p) => p.id}
+              rowProps={() => ({ "data-testid": "payout-row" })}
+              columns={[
+                { key: "date", header: t("columns.date"), mobile: "title", cell: (p) => <Link href={`${base}/${p.id}`} className="font-medium text-primary hover:underline">{formatDate(p.issuedAt, ctx.locale, ctx.tenant.timezone)}</Link> },
+                { key: "status", header: t("columns.status"), mobile: "badge", cell: (p) => <Badge variant={STATUS_VARIANT[p.status] ?? "muted"}>{t(`status.${p.status}`)}</Badge> },
+                { key: "net", header: t("columns.net"), mobile: "subtitle", align: "right", className: "font-medium tabular max-md:text-foreground", cell: (p) => money(p.netMinor) },
+                { key: "transactions", header: t("columns.transactions"), align: "right", className: "tabular", cell: (p) => formatNumber(p.transactionCount, ctx.locale) },
+                { key: "gross", header: t("columns.gross"), align: "right", className: "tabular", cell: (p) => money(p.grossMinor) },
+                { key: "refunds", header: t("columns.refunds"), align: "right", className: "tabular", cell: (p) => <span className={cn(p.refundsMinor < 0 && "text-destructive")}>{money(p.refundsMinor)}</span> },
+                { key: "adjustments", header: t("columns.adjustments"), align: "right", priority: 2, className: "tabular", cell: (p) => money(p.adjustmentsMinor) },
+                { key: "fees", header: t("columns.fees"), align: "right", className: "tabular text-muted-foreground", cell: (p) => money(-p.feeMinor) },
+              ]}
+            />
           </CardContent>
         </Card>
       )}

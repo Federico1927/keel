@@ -4,7 +4,8 @@ import { getTranslations } from "next-intl/server";
 import { Download } from "lucide-react";
 import { SALE_STATUSES, formatMoney, formatNumber, formatPercent } from "@hullwise/core";
 import { paymentMethodReport, pnlForPeriod, taxReportForPeriod, type PnlReport } from "@hullwise/services";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { WideTable } from "@/components/mobile/wide-table";
 import type { TenantContext } from "@/server/tenant";
 import { analyticsTenant, runAnalytics } from "@/server/analytics";
 
@@ -55,20 +56,20 @@ export async function PaymentMethodsTab({ ctx, tenant, period, keep }: { ctx: Te
         </div>
         <a href={exportHref(tenant, "payment_methods", keep)} className="inline-flex items-center gap-1 text-sm underline-offset-4 hover:underline" data-testid="export-csv"><Download className="h-4 w-4" /> {t("export")}</a>
       </CardHeader>
-      <CardContent className="overflow-x-auto p-0">
-        <Table>
+      <CardContent className="p-0">
+        <WideTable label={t("methods.title")} stickyFirst>
           <TableHeader>
             <TableRow>
               <TableHead>{t("methods.method")}</TableHead>
               <TableHead className="text-right">{t("methods.placed")}</TableHead>
               <TableHead className="text-right">{t("methods.orders")}</TableHead>
               <TableHead className="text-right">{t("methods.net_revenue")}</TableHead>
-              <TableHead className="hidden text-right md:table-cell">{t("methods.share")}</TableHead>
-              <TableHead className="hidden text-right md:table-cell">{t("methods.aov")}</TableHead>
+              <TableHead className="text-right">{t("methods.share")}</TableHead>
+              <TableHead className="text-right">{t("methods.aov")}</TableHead>
               <TableHead className="text-right">{t("methods.cancel_rate")}</TableHead>
               <TableHead className="text-right">{t("methods.return_rate")}</TableHead>
               <TableHead className="text-right">{t("methods.fees")}</TableHead>
-              <TableHead className="hidden text-right lg:table-cell">{t("methods.fee_rate")}</TableHead>
+              <TableHead className="text-right">{t("methods.fee_rate")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -78,8 +79,8 @@ export async function PaymentMethodsTab({ ctx, tenant, period, keep }: { ctx: Te
                 <TableCell className="text-right tabular"><Num href={x.placedOrders ? ordersHref(tenant, period, { payment: x.method }) : undefined}>{formatNumber(x.placedOrders, ctx.locale)}</Num></TableCell>
                 <TableCell className="text-right tabular"><Num href={x.orders ? ordersHref(tenant, period, { payment: x.method, status: SALE }) : undefined}>{formatNumber(x.orders, ctx.locale)}</Num></TableCell>
                 <TableCell className="text-right tabular">{money(x.netRevenueMinor)}</TableCell>
-                <TableCell className="hidden text-right tabular md:table-cell">{formatPercent(x.revenueShare, ctx.locale)}</TableCell>
-                <TableCell className="hidden text-right tabular md:table-cell">{x.aovMinor === null ? "—" : money(x.aovMinor)}</TableCell>
+                <TableCell className="text-right tabular">{formatPercent(x.revenueShare, ctx.locale)}</TableCell>
+                <TableCell className="text-right tabular">{x.aovMinor === null ? "—" : money(x.aovMinor)}</TableCell>
                 <TableCell className="text-right tabular"><Num href={x.cancelledOrders ? ordersHref(tenant, period, { payment: x.method, status: "cancelled" }) : undefined}>{formatPercent(x.cancelRate, ctx.locale)}</Num></TableCell>
                 <TableCell className="text-right tabular"><Num href={x.returnedOrders ? ordersHref(tenant, period, { payment: x.method, status: "returned,returned_partial,refunded" }) : undefined}>{formatPercent(x.returnRate, ctx.locale)}</Num></TableCell>
                 <TableCell className="text-right tabular">
@@ -89,11 +90,11 @@ export async function PaymentMethodsTab({ ctx, tenant, period, keep }: { ctx: Te
                   )}
                   {x.actualFeesMinor > 0 && x.estimatedFeeOrders === 0 && <span className="block text-[11px] text-muted-foreground">{t("methods.actual")}</span>}
                 </TableCell>
-                <TableCell className="hidden text-right tabular lg:table-cell">{formatPercent(x.feeRate, ctx.locale)}</TableCell>
+                <TableCell className="text-right tabular">{formatPercent(x.feeRate, ctx.locale)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
-        </Table>
+        </WideTable>
         <p className="border-t p-3 text-xs text-muted-foreground">{t("methods.footnote", { actual: money(r.fees.actualMinor), estimated: money(r.fees.estimatedMinor) })}</p>
       </CardContent>
     </Card>
@@ -116,18 +117,18 @@ export async function TaxTab({ ctx, tenant, period, keep }: { ctx: TenantContext
         </div>
         <a href={exportHref(tenant, "tax", keep)} className="inline-flex items-center gap-1 text-sm underline-offset-4 hover:underline" data-testid="export-csv"><Download className="h-4 w-4" /> {t("export")}</a>
       </CardHeader>
-      <CardContent className="overflow-x-auto p-0">
-        <Table>
+      <CardContent className="p-0">
+        <WideTable label={t("tax.title")} stickyFirst>
           <TableHeader>
             <TableRow>
               <TableHead>{t("tax.country")}</TableHead>
               <TableHead className="text-right">{t("tax.rate")}</TableHead>
               <TableHead className="text-right">{t("tax.orders")}</TableHead>
-              <TableHead className="hidden text-right md:table-cell">{t("tax.gross")}</TableHead>
+              <TableHead className="text-right">{t("tax.gross")}</TableHead>
               <TableHead className="text-right">{t("tax.taxable")}</TableHead>
               <TableHead className="text-right">{t("tax.tax")}</TableHead>
-              <TableHead className="hidden text-right md:table-cell">{t("tax.refunded_tax")}</TableHead>
-              <TableHead className="hidden text-right md:table-cell">{t("tax.net_tax")}</TableHead>
+              <TableHead className="text-right">{t("tax.refunded_tax")}</TableHead>
+              <TableHead className="text-right">{t("tax.net_tax")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -136,25 +137,25 @@ export async function TaxTab({ ctx, tenant, period, keep }: { ctx: TenantContext
                 <TableCell className="font-medium">{x.country ?? "—"}</TableCell>
                 <TableCell className="text-right tabular">{rate(x.rateBps)}</TableCell>
                 <TableCell className="text-right tabular"><Num href={x.country ? ordersHref(tenant, period, { status: SALE, country: x.country }) : undefined}>{formatNumber(x.orders, ctx.locale)}</Num></TableCell>
-                <TableCell className="hidden text-right tabular md:table-cell">{money(x.grossMinor)}</TableCell>
+                <TableCell className="text-right tabular">{money(x.grossMinor)}</TableCell>
                 <TableCell className="text-right tabular">{money(x.taxableMinor)}</TableCell>
                 <TableCell className="text-right tabular">{money(x.taxMinor)}</TableCell>
-                <TableCell className="hidden text-right tabular md:table-cell">{money(x.refundedTaxMinor)}</TableCell>
-                <TableCell className="hidden text-right tabular md:table-cell">{money(x.netTaxMinor)}</TableCell>
+                <TableCell className="text-right tabular">{money(x.refundedTaxMinor)}</TableCell>
+                <TableCell className="text-right tabular">{money(x.netTaxMinor)}</TableCell>
               </TableRow>
             ))}
             <TableRow className="bg-muted/40 font-medium">
               <TableCell>{t("tax.total")}</TableCell>
               <TableCell />
               <TableCell className="text-right tabular"><Num href={ordersHref(tenant, period, { status: SALE })}>{formatNumber(r.totals.orders, ctx.locale)}</Num></TableCell>
-              <TableCell className="hidden text-right tabular md:table-cell">{money(r.totals.grossMinor)}</TableCell>
+              <TableCell className="text-right tabular">{money(r.totals.grossMinor)}</TableCell>
               <TableCell className="text-right tabular">{money(r.totals.taxableMinor)}</TableCell>
               <TableCell className="text-right tabular" data-testid="tax-total">{money(r.totals.taxMinor)}</TableCell>
-              <TableCell className="hidden text-right tabular md:table-cell">{money(r.totals.refundedTaxMinor)}</TableCell>
-              <TableCell className="hidden text-right tabular md:table-cell">{money(r.totals.netTaxMinor)}</TableCell>
+              <TableCell className="text-right tabular">{money(r.totals.refundedTaxMinor)}</TableCell>
+              <TableCell className="text-right tabular">{money(r.totals.netTaxMinor)}</TableCell>
             </TableRow>
           </TableBody>
-        </Table>
+        </WideTable>
         <p className={cn("border-t p-3 text-xs", matches ? "text-muted-foreground" : "text-destructive")} data-testid="tax-pnl-check">{matches ? t("tax.matches", { amount: money(pnl.taxMinor) }) : t("tax.mismatch", { amount: money(pnl.taxMinor) })}</p>
         <p className="border-t p-3 text-xs text-muted-foreground">{t("tax.footnote")}</p>
       </CardContent>

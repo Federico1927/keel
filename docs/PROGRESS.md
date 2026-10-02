@@ -896,3 +896,21 @@ Fatto:
 - Test: unit (`addon-versions.test.ts`), servizi (`billing.test.ts`), e2e (`addon-versions.spec.ts`).
 
 Resta: il controllo per singolo negozio (es. campagne senza provider di messaggi collegato), da aggiungere accanto al registro.
+
+## Mobile first, ondata 3: pagine Tier 3 di analisi e configurazione (issue #49)
+
+Fatto:
+- **Liste come schede** (`DataList`) dove le righe sono record: P/L per ordine (con riga dei totali), payout, regole di alert, perdite, suggerimenti di markdown e storico prezzi, qualità catalogo, riordino e trasferimenti, analisi ABC/XYZ, obiettivo di ricavo, distinta base, registro giornaliero campagne, raccomandazioni e parole, destinatari a rischio e console team del contrassegno, soppressioni, audit, regole di stato e anteprima, mix opzioni e pianificatore PO, costi per variante, fornitori della variante, anteprima dell'import costi, analisi resi per motivo, prodotto e opzione.
+- **Tabelle di analisi larghe** (P/L per periodo e voci del P/L, prodotti con ads e stock, UTM, metodi di pagamento, imposte, attribuzione, LTV, coorti, anzianità dei resi, previsione per variante, cassa per mese, ore operatori e tag del contrassegno) restano tabelle dentro un'area di scorrimento marcata (`ScrollTable`/`WideTable`): regione con etichetta e focus da tastiera, ombre ai bordi, indicazione "Scorri →" solo quando la tabella non entra, prima colonna fissa. Tutte le colonne tornano visibili; la pagina non scorre mai di lato.
+- **Avviso "Meglio su uno schermo più grande"** sul telefono per editor dashboard, regole di stato e griglia di previsione; le azioni semplici restano possibili (regola in un foglio, frecce dei widget da 44 px, celle di previsione modificabili al tocco).
+- **Grafici** compatti sul telefono (P/L, trend canali, previsione, cassa) e **vista a schermo intero** con pulsante sotto `lg`: lo stesso grafico in un foglio che riempie lo schermo, da girare in orizzontale.
+- **Conferme in un foglio** al posto di `window.confirm`: applica markdown, reset e eliminazione dashboard, ripartenza dal modello nell'editor, eliminazione metrica personalizzata.
+- Righe di schede scorrevoli (analisi, pianificazione, filtri delle parole), griglie con `grid-cols-1` sul telefono.
+- **Allow-list**: tutte le pagine del tenant tolte da `HIDDEN_CELL_ALLOWLIST`; restano solo le pagine della console super-admin.
+- **Controlli**: `e2e/mobile-tier3.spec.ts` (7 test × 4 progetti mobili: nessuno scorrimento laterale su 45 stati di pagina Tier 3, tabelle che scorrono nella loro regione con prima colonna fissa, schede per le liste, avviso desktop, grafico a schermo intero, salva e ripristina un costo, applica un markdown con conferma, salva le impostazioni del contrassegno, aggiungi e rimuovi una soppressione); spec desktop delle aree toccate verdi; screenshot mobili Tier 3 in `docs/screenshots/mobile/{en,it}/` (`TIER=3 node scripts/screenshots-mobile.mjs`).
+- Nessuna migrazione, nessun SQL scritto a mano, seed invariato.
+
+Resta:
+- Console super-admin (`/admin`): ultime pagine nella allow-list, in carico a un'altra sessione.
+- Conferme native ancora nelle impostazioni sviluppatori (token API, endpoint webhook, #81).
+- Azioni a scorrimento sulle righe, pull-to-refresh, notifiche push web e misure Lighthouse restano come nelle ondate precedenti.

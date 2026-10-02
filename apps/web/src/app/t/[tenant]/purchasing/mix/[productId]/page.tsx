@@ -6,7 +6,7 @@ import { canDo } from "@hullwise/config";
 import { formatNumber, formatPercent, optionMixShares } from "@hullwise/core";
 import { asc, eq, schema } from "@hullwise/db";
 import { optionMix } from "@hullwise/services";
-import { Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Card, CardContent, CardHeader, CardTitle, DataList, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { MixPlanner } from "./planner";
 
@@ -73,28 +73,19 @@ export default async function OptionMixPage({ params, searchParams }: { params: 
           <CardTitle className="text-base">{t("combinations")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {optionNames.map((n) => <TableHead key={n}>{n}</TableHead>)}
-                <TableHead className="hidden sm:table-cell">{t("sku")}</TableHead>
-                <TableHead className="text-right">{t("sold")}</TableHead>
-                <TableHead className="text-right">{t("share")}</TableHead>
-                <TableHead className="text-right">{t("suggested")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {mix.variants.map((v) => (
-                <TableRow key={v.variantId} data-testid="mix-row">
-                  {optionNames.map((n) => <TableCell key={n}>{v.optionValues[n] ?? "—"}</TableCell>)}
-                  <TableCell className="hidden text-xs text-muted-foreground sm:table-cell">{v.sku}</TableCell>
-                  <TableCell className="text-right tabular">{v.unitsSold}</TableCell>
-                  <TableCell className="text-right tabular">{formatPercent(v.share, ctx.locale, 1)}</TableCell>
-                  <TableCell className="text-right tabular">{v.suggested || "—"}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataList
+            rows={mix.variants}
+            rowKey={(v) => v.variantId}
+            rowProps={() => ({ "data-testid": "mix-row" })}
+            columns={[
+              ...optionNames.map((n, i) => ({ key: `opt-${i}`, header: n, label: n, mobile: i === 0 ? ("title" as const) : ("meta" as const), cell: (v: (typeof mix.variants)[number]) => v.optionValues[n] ?? "—" })),
+              ...(optionNames.length === 0 ? [{ key: "variant", header: t("sku"), mobile: "title" as const, cell: (v: (typeof mix.variants)[number]) => v.title }] : []),
+              { key: "sku", header: t("sku"), className: "text-xs text-muted-foreground", cell: (v) => v.sku },
+              { key: "sold", header: t("sold"), align: "right", className: "tabular", cell: (v) => v.unitsSold },
+              { key: "share", header: t("share"), align: "right", className: "tabular", cell: (v) => formatPercent(v.share, ctx.locale, 1) },
+              { key: "suggested", header: t("suggested"), mobile: "badge", align: "right", className: "tabular", cell: (v) => v.suggested || "—" },
+            ]}
+          />
         </CardContent>
       </Card>
       {canDo(ctx.role, "receive_purchase_order") && suppliers.length > 0 && (

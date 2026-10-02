@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { adminDb, and, asc, desc, eq, inArray, isNotNull, schema, sql } from "@hullwise/db";
-import { Badge, Button, Card, CardContent, EmptyState, Input, Label, PageHeader, Pagination, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Button, Card, CardContent, DataList, EmptyState, Input, Label, PageHeader, Pagination, Select } from "@hullwise/ui";
 import { formatDateTime, displayName } from "@hullwise/core";
 import { PAGE_SIZE } from "@hullwise/config";
 import { AUDIT_ACTOR_TYPES, auditFilterConditions, parseAuditFilters } from "@hullwise/services";
@@ -89,53 +89,37 @@ export default async function AuditPage({ params, searchParams }: { params: Prom
       ) : (
         <Card>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("when")}</TableHead>
-                  <TableHead>{t("actor")}</TableHead>
-                  <TableHead>{t("action")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("entity")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("changes")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => {
-                  const diff = r.diff as Record<string, { from: unknown; to: unknown }>;
-                  const keys = Object.keys(diff);
-                  return (
-                    <TableRow key={r.id} data-testid="audit-row">
-                      <TableCell className="whitespace-nowrap text-sm text-muted-foreground">{formatDateTime(r.createdAt, ctx.locale, ctx.tenant.timezone)}</TableCell>
-                      <TableCell>
-                        <span className="text-sm">{actorName(r.actorUserId) ?? t("system")}</span>
-                        {r.actorType !== "user" && <Badge variant="outline" className="ml-2">{t(`actor_types.${r.actorType}`)}</Badge>}
-                        {r.impersonatedBy && <span className="block text-xs text-muted-foreground">{t("via", { name: actorName(r.impersonatedBy) ?? "" })}</span>}
-                      </TableCell>
-                      <TableCell><code className="rounded bg-muted px-1.5 py-0.5 text-xs">{r.action}</code></TableCell>
-                      <TableCell className="hidden text-sm text-muted-foreground md:table-cell">
-                        {r.entityType ? (
-                          <Link href={`${base}?entity_type=${encodeURIComponent(r.entityType)}${r.entityId ? `&entity=${encodeURIComponent(r.entityId)}` : ""}`} className="hover:underline" title={t("filters.record_history")}>{r.entityType} · {r.entityId ?? ""}</Link>
-                        ) : "—"}
-                      </TableCell>
-                      <TableCell className="hidden max-w-md text-xs md:table-cell">
-                        {keys.length === 0 ? (
-                          <span className="text-muted-foreground">—</span>
-                        ) : (
-                          <ul className="space-y-0.5">
-                            {keys.slice(0, 6).map((k) => (
-                              <li key={k} className="truncate">
-                                <span className="font-medium">{k}</span>: <span className="text-muted-foreground line-through">{String(diff[k]?.from ?? "∅")}</span> → {String(diff[k]?.to ?? "∅")}
-                              </li>
-                            ))}
-                            {keys.length > 6 && <li className="text-muted-foreground">+{keys.length - 6}</li>}
-                          </ul>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={rows}
+              rowKey={(r) => r.id}
+              rowProps={() => ({ "data-testid": "audit-row" })}
+              columns={[
+                { key: "when", header: t("when"), mobile: "subtitle", className: "whitespace-nowrap text-sm text-muted-foreground", cell: (r) => formatDateTime(r.createdAt, ctx.locale, ctx.tenant.timezone) },
+                { key: "actor", header: t("actor"), mobile: "title", cell: (r) => <><span className="text-sm">{actorName(r.actorUserId) ?? t("system")}</span>{r.actorType !== "user" && <Badge variant="outline" className="ml-2 font-normal">{t(`actor_types.${r.actorType}`)}</Badge>}{r.impersonatedBy && <span className="block text-xs font-normal text-muted-foreground">{t("via", { name: actorName(r.impersonatedBy) ?? "" })}</span>}</> },
+                { key: "action", header: t("action"), mobile: "badge", cell: (r) => <code className="break-all rounded bg-muted px-1.5 py-0.5 text-xs">{r.action}</code> },
+                { key: "entity", header: t("entity"), className: "text-sm text-muted-foreground max-md:break-all", cell: (r) => (r.entityType ? <Link href={`${base}?entity_type=${encodeURIComponent(r.entityType)}${r.entityId ? `&entity=${encodeURIComponent(r.entityId)}` : ""}`} className="hover:underline" title={t("filters.record_history")}>{r.entityType} · {r.entityId ?? ""}</Link> : "—") },
+                {
+                  key: "changes",
+                  header: t("changes"),
+                  label: "",
+                  className: "text-xs max-md:basis-full max-md:min-w-0 md:max-w-md",
+                  cell: (r) => {
+                    const diff = r.diff as Record<string, { from: unknown; to: unknown }>;
+                    const keys = Object.keys(diff);
+                    return keys.length === 0 ? <span className="text-muted-foreground">—</span> : (
+                      <ul className="space-y-0.5">
+                        {keys.slice(0, 6).map((k) => (
+                          <li key={k} className="truncate">
+                            <span className="font-medium">{k}</span>: <span className="text-muted-foreground line-through">{String(diff[k]?.from ?? "∅")}</span> → {String(diff[k]?.to ?? "∅")}
+                          </li>
+                        ))}
+                        {keys.length > 6 && <li className="text-muted-foreground">+{keys.length - 6}</li>}
+                      </ul>
+                    );
+                  },
+                },
+              ]}
+            />
           </CardContent>
         </Card>
       )}
