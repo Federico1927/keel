@@ -4,6 +4,7 @@ import { and, eq, schema, withTenant } from "@hullwise/db";
 import { SHOPIFY_WEBHOOK_TOPICS, ShopifyCommercePlatform, ShopifyGrantError, decryptJson, exchangeOAuthCode, verifyOAuthCallback, verifyState, type ShopifyCredentials } from "@hullwise/integrations";
 import { savedShopifyApp, saveShopifyConnection } from "@/server/shopify-connection";
 import { startHistoryImport } from "@/server/history-import";
+import { requireAction } from "@/server/tenant";
 
 interface ShopifyState extends Record<string, unknown> {
   t: string;
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
   if (!st || q.shop !== st.shop) return new NextResponse("invalid or expired oauth state", { status: 401 });
   const back = (query: string) => NextResponse.redirect(new URL(`/t/${st.s}/integrations?${query}`, appUrl()));
   const tenant = await withTenant(st.t, async (tx) => {
-    const [t] = await tx.select({ id: schema.tenants.id, slug: schema.tenants.slug, currency: schema.tenants.currency, country: schema.tenants.country, orderNumberPrefix: schema.tenants.orderNumberPrefix }).from(schema.tenants).where(eq(schema.tenants.id, st.t)).limit(1);
+    const [t] = await tx.select({ id: schema.tenants.id }).from(schema.tenants).where(eq(schema.tenants.id, st.t)).limit(1);
     const [row] = await tx.select({ config: schema.integrations.config }).from(schema.integrations).where(and(eq(schema.integrations.tenantId, st.t), eq(schema.integrations.provider, "shopify"))).limit(1);
     return t ? { ...t, app: savedShopifyApp(row?.config) } : null;
   });
@@ -55,6 +56,7 @@ export async function GET(req: NextRequest) {
   if (!test.ok) return back("shopify_error=unknown");
   const regs = await platform.registerWebhooks(apiEndpoint("/webhooks/shopify"), SHOPIFY_WEBHOOK_TOPICS).catch(() => []);
   await saveShopifyConnection(tenant.id, { actorUserId: st.u, actorType: "user" }, { mode: "live", shop: st.shop, name: test.accountName ?? st.shop, credentials, test, config: { installedVia: st.app === "tenant" ? "oauth_own_app" : "oauth_public_app", webhooks: regs } });
-  await startHistoryImport(tenant, { actorUserId: st.u });
+  // the store's order history (#87) needs the installer's session; without it the connection stays saved and "Resync" starts it
+  await requireAction(st.s, "manage_integrations", "integrations").then((ctx) => startHistoryImport(ctx)).catch((e: unknown) => console.error("[web] history import not started:", e instanceof Error ? e.message : e));
   return back(`connected=shopify${test.missingRequiredScopes?.length ? "&shopify_error=missing_scopes" : ""}`);
 }

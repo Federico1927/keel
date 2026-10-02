@@ -5,8 +5,8 @@ import { ATTRIBUTION_MODELS, BASE_METRICS, attributionReport, getSurveySettings,
 import { appUrl, canWritePage } from "@hullwise/config";
 import { CustomMetricForm, DashboardEditor, DeleteMetricButton } from "./advanced-controls";
 import { SurveySettings } from "./survey-settings";
-import { TenantHistoryImportBanner } from "@/components/integrations/history-import";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { HistoryImportBanner } from "@/components/history-import-banner";
 import { requirePage } from "@/server/tenant";
 import { RevenueChart } from "@/components/charts/revenue-chart";
 import { PeriodPicker } from "@/components/period-picker";
@@ -45,7 +45,7 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
   return (
     <>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} actions={<div className="flex flex-wrap items-center gap-2"><PeriodPicker basePath={base} keep={{ tab }} preset={period.preset} from={sp.from} to={sp.to} /><Link href={`${base}/alerts`} className="text-sm underline-offset-4 hover:underline" data-testid="alerts-link">{t("alerts_link")}</Link><Link href={`${base}/costs`} className="text-sm underline-offset-4 hover:underline">{t("costs_link")}</Link><Link href={`${base}/payouts`} className="text-sm underline-offset-4 hover:underline" data-testid="payouts-link">{tm("payouts_link")}</Link></div>} />
-      <TenantHistoryImportBanner ctx={ctx} />
+      <HistoryImportBanner ctx={ctx} />
       <div className="mb-4 flex flex-wrap gap-1 rounded-md bg-muted p-1 text-sm">
         {TABS.map((k) => (
           <Link key={k} href={query({ tab: k })} className={cn("flex-1 rounded-sm px-3 py-1.5 text-center", tab === k ? "bg-card shadow-sm" : "text-muted-foreground")}>

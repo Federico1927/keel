@@ -1,11 +1,11 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { IntegrationSetupDefinition } from "@hullwise/config";
 import { Alert, AlertDescription, Button, Input, Label } from "@hullwise/ui";
 import { CopyValue, IntegrationSetupSteps, SetupErrorMessage, SetupFields } from "@/components/integrations/integration-setup";
-import { connectShopifyApp, connectShopifyCustomApp, continueHistoryImport } from "@/server/actions/shopify";
+import { connectShopifyApp, connectShopifyCustomApp } from "@/server/actions/shopify";
 
 /** Errors after which "Install on your store" (authorization code grant with the saved app) is the way forward. */
 const INSTALL_ERRORS = new Set(["not_in_organization", "not_installed"]);
@@ -49,7 +49,7 @@ export function ShopifySetup({ slug, definition, values, guideHref, connected, m
               </form>
               {savedApp && !state?.ok && <p className="text-xs text-muted-foreground" data-testid="shopify-saved-app">{t("saved_app", { shop: savedApp.shop, clientId: savedApp.clientId })}</p>}
               {state?.ok && state.data && (
-                <Alert data-testid="shopify-connected"><AlertDescription>{t(state.data.history === "skip" ? "connected_no_import" : "connected", { shop: state.data.shop })}{state.data.missingOptional.length > 0 ? ` ${t("missing_optional", { scopes: state.data.missingOptional.join(", ") })}` : ""}</AlertDescription></Alert>
+                <Alert data-testid="shopify-connected"><AlertDescription>{t(state.data.history === "already_done" ? "connected_no_import" : "connected", { shop: state.data.shop })}{state.data.missingOptional.length > 0 ? ` ${t("missing_optional", { scopes: state.data.missingOptional.join(", ") })}` : ""}</AlertDescription></Alert>
               )}
               {error && <SetupErrorMessage provider="shopify" code={error} detail={detail} />}
               {(error && INSTALL_ERRORS.has(error)) || savedApp ? (
@@ -102,19 +102,5 @@ function LegacyTokenForm({ slug }: { slug: string }) {
       {state?.ok && <p className="text-xs text-success">{ti("connected_ok")}</p>}
       <Button type="submit" size="sm" variant="outline" disabled={pending}>{t("legacy_connect")}</Button>
     </form>
-  );
-}
-
-/** "Continue import": the next slice of a paused history import when no worker runs it. */
-export function ContinueImportButton({ slug }: { slug: string }) {
-  const t = useTranslations("history_import");
-  const router = useRouter();
-  const [pending, start] = useTransition();
-  const [msg, setMsg] = useState<string | null>(null);
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Button size="sm" variant="outline" disabled={pending} data-testid="history-continue" onClick={() => start(async () => { const r = await continueHistoryImport(slug); setMsg(r.ok ? (r.data?.queued ? t("continue_queued") : t("continue_done", { n: r.data?.orders ?? 0 })) : t("continue_failed")); router.refresh(); })}>{t("continue")}</Button>
-      {msg && <span className="text-xs text-muted-foreground">{msg}</span>}
-    </div>
   );
 }

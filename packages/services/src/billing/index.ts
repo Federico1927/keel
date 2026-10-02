@@ -7,7 +7,6 @@ import { createInvitation, pendingInvitationCount } from "../account/invitations
 import { dataRetainedUntil, lifecycleHistory, recordLifecycleEvent, transitionTenant } from "./lifecycle";
 import type { TenantBranding } from "../branding";
 import { failedJobsByTenant } from "../reliability/jobs";
-import { historyImportStatus, type HistoryImportStatus } from "../sync/history";
 
 export * from "./provider";
 export * from "./lifecycle";
@@ -169,19 +168,21 @@ export async function tenantChecklist(db: AdminDb, tenantId: string, now = new D
   const [tenant] = await db.select().from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
   if (!tenant) return [];
   const members = await db.select({ role: schema.tenantMemberships.role }).from(schema.tenantMemberships).where(and(eq(schema.tenantMemberships.tenantId, tenantId), eq(schema.tenantMemberships.isActive, true)));
-  const integrations = await db.select({ provider: schema.integrations.provider, status: schema.integrations.status }).from(schema.integrations).where(eq(schema.integrations.tenantId, tenantId));
+  const integrations = await db.select({ provider: schema.integrations.provider, status: schema.integrations.status, mode: schema.integrations.mode }).from(schema.integrations).where(eq(schema.integrations.tenantId, tenantId));
+  // the first import of the store's order history (issue #87); a simulated store gets its history from the seed
+  const [history] = await db.select({ status: schema.syncRuns.status, rows: schema.syncRuns.rowsWritten }).from(schema.syncRuns).where(and(eq(schema.syncRuns.tenantId, tenantId), eq(schema.syncRuns.provider, "shopify"), eq(schema.syncRuns.objectType, "orders"), eq(schema.syncRuns.kind, "initial"))).orderBy(desc(schema.syncRuns.startedAt)).limit(1);
+  const shopify = integrations.find((i) => i.provider === "shopify");
+  const simulatedStore = !!shopify && shopify.status !== "not_connected" && shopify.mode !== "live";
   const [rules] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.stateRules).where(and(eq(schema.stateRules.tenantId, tenantId), eq(schema.stateRules.isActive, true)));
   const [costs] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.costSettings).where(eq(schema.costSettings.tenantId, tenantId));
   const pay = await tenantPaymentStatus(db, tenantId, now);
-  const history = await tenantHistoryImport(db, tenantId);
   const status = (p: string) => integrations.find((i) => i.provider === p)?.status ?? "not_connected";
   return [
     { key: "company", done: Boolean(tenant.name && tenant.country && tenant.currency && tenant.timezone), detail: `${tenant.country} · ${tenant.currency} · ${tenant.timezone}` },
     { key: "owner", done: members.some((m) => m.role === "owner"), detail: !members.some((m) => m.role === "owner") && (await pendingInvitationCount(db, tenantId, "owner", now)) > 0 ? "invited" : null },
     { key: "users", done: members.length >= 2, detail: String(members.length) },
     { key: "shopify", done: status("shopify") === "connected", detail: status("shopify") },
-    // the history import of the store (#87): done once every order of the window is in
-    { key: "history_import", done: history.state === "done", detail: history.state },
+    { key: "history_import", done: history?.status === "success" || simulatedStore, detail: history ? `${history.status} · ${history.rows}` : simulatedStore ? "mock" : null },
     // one step per ad platform the plan includes (TikTok from Growth up)
     ...adPlatformsForPlan(tenant.planKey).map((p) => ({ key: p, done: status(p) === "connected", detail: status(p) })),
     { key: "state_rules", done: (rules?.n ?? 0) > 0, detail: String(rules?.n ?? 0) },
@@ -287,20 +288,6 @@ export async function platformMetrics(db: AdminDb, now = new Date()) {
   };
 }
 
-/** History import progress of a tenant, read in its own RLS transaction (console checklist, #87). */
-export function tenantHistoryImport(db: AdminDb, tenantId: string): Promise<HistoryImportStatus> {
-  return withTenant(tenantId, (tx) => historyImportStatus({ tenantId, tx, actor: { type: "system", userId: null } }), db);
-}
-
-/** Sets a tenant's history window (months; 0 = every order) from the setup checklist, audited. */
-export async function setHistoryImportMonths(db: AdminDb, tenantId: string, months: number, actorUserId: string): Promise<void> {
-  const [t] = await db.select({ settings: schema.tenants.settings }).from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
-  if (!t) throw new Error("not_found");
-  const from = (t.settings as { historyImportMonths?: number } | null)?.historyImportMonths ?? null;
-  await db.update(schema.tenants).set({ settings: sql`coalesce(${schema.tenants.settings}, '{}'::jsonb) || jsonb_build_object('historyImportMonths', ${months}::int)` }).where(eq(schema.tenants.id, tenantId));
-  await audit(db, actorUserId, tenantId, "tenant.history_window_set", { entityType: "tenant", entityId: tenantId, diff: { historyImportMonths: { from, to: months } } });
-}
-
 export async function tenantAdminDetail(db: AdminDb, tenantId: string, now = new Date()) {
   const [tenant] = await db.select().from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
   if (!tenant) return null;
@@ -311,14 +298,13 @@ export async function tenantAdminDetail(db: AdminDb, tenantId: string, now = new
   const integrations = await db.select().from(schema.integrations).where(eq(schema.integrations.tenantId, tenantId));
   const health = await db.select().from(schema.integrationHealth).where(eq(schema.integrationHealth.tenantId, tenantId));
   const checklist = await tenantChecklist(db, tenantId, now);
-  const historyImport = await tenantHistoryImport(db, tenantId);
   const payment = await tenantPaymentStatus(db, tenantId, now);
   const auditRows = await db.select().from(schema.auditLogs).where(eq(schema.auditLogs.tenantId, tenantId)).orderBy(desc(schema.auditLogs.createdAt)).limit(20);
   const [orders30] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.orders).where(and(eq(schema.orders.tenantId, tenantId), sql`${schema.orders.placedAt} > ${new Date(now.getTime() - 30 * 864e5)}`));
   const lifecycle = await lifecycleHistory(db, tenantId, 30);
   const [b] = await db.select({ brandColor: schema.tenantBranding.brandColor, light: schema.tenantBranding.logoLightType, dark: schema.tenantBranding.logoDarkType, updatedAt: schema.tenantBranding.updatedAt }).from(schema.tenantBranding).where(eq(schema.tenantBranding.tenantId, tenantId)).limit(1);
   const branding: TenantBranding = b ? { brandColor: b.brandColor, logoLight: b.light ? { version: b.updatedAt.getTime() } : null, logoDark: b.dark ? { version: b.updatedAt.getTime() } : null, updatedAt: b.updatedAt } : { brandColor: null, logoLight: null, logoDark: null, updatedAt: null };
-  return { tenant, subscription: subscription ?? null, invoices: invoiceRows, addons, members, integrations, health, checklist, historyImport, payment, audit: auditRows, ordersLast30: orders30?.n ?? 0, lifecycle, branding, retainedUntil: dataRetainedUntil(tenant) };
+  return { tenant, subscription: subscription ?? null, invoices: invoiceRows, addons, members, integrations, health, checklist, payment, audit: auditRows, ordersLast30: orders30?.n ?? 0, lifecycle, branding, retainedUntil: dataRetainedUntil(tenant) };
 }
 
 export async function listInvoices(db: AdminDb, opts: { status?: string; limit?: number } = {}) {

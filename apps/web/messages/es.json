@@ -373,7 +373,8 @@
         "markdownMinMarginBps": "Margen mínimo de las rebajas (puntos básicos, 2000 = 20 %)",
         "adsDailyRetentionDays": "Anuncios: detalle diario conservado (días)",
         "adsSearchTermMinImpressions": "Anuncios: términos agrupados por debajo de (impresiones)",
-        "adsMinSpendMinor": "Anuncios: gasto mínimo para sugerencias (céntimos)"
+        "adsMinSpendMinor": "Anuncios: gasto mínimo para sugerencias (céntimos)",
+        "historyImportMonths": "Historial de pedidos leído al conectar Shopify (meses, 0 = todos)"
       },
       "backorders_title": "Pedidos pendientes de stock",
       "backorders_description": "Qué pasa cuando un pedido necesita más que el stock disponible."
@@ -2937,6 +2938,20 @@
         "status": "Estado",
         "campaigns": "Campañas"
       }
+    },
+    "history_import": {
+      "title": "Importación del historial de pedidos",
+      "state": {
+        "running": "En curso",
+        "paused": "En curso",
+        "error": "Fallida",
+        "done": "Completada"
+      },
+      "detail": "{n} pedidos importados · pedidos desde {since} · pedido más antiguo en Hullwise {oldest}",
+      "all_orders": "el primero",
+      "incomplete_hint": "Hasta que termine, los análisis, el RFM, las cohortes y el historial de clientes solo cubren una parte del historial. Resincronizar la continúa.",
+      "banner": "El historial de pedidos de la tienda aún se está importando ({n} pedidos hasta ahora): los periodos pasados, las cohortes y el historial de clientes están incompletos hasta que termine.",
+      "banner_error": "La importación del historial de pedidos se detuvo tras {n} pedidos: los periodos pasados, las cohortes y el historial de clientes están incompletos. Un owner o admin puede continuarla con Resincronizar en Integraciones."
     }
   },
   "integration_guide": {
@@ -4072,7 +4087,8 @@
         "state_rules": "Reglas de estado",
         "costs": "Costes configurados",
         "billing": "Pagos al corriente",
-        "tiktok": "TikTok Ads conectado"
+        "tiktok": "TikTok Ads conectado",
+        "history_import": "Historial de pedidos importado"
       },
       "members": "Miembros",
       "open_balance": "Saldo pendiente",

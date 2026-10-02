@@ -72,11 +72,7 @@ export interface MockCommerceOptions {
    * them the catalog is built from `variants`. Writes change this state and bump `platformUpdatedAt`.
    */
   products?: NormalizedProduct[];
-  /** Order history the store already holds (issue #87): `orders` orders spread evenly over the last `months` months. */
-  history?: { orders: number; months: number; now?: Date };
-  /** Fresh orders the store takes between two syncs (the first page of every orders read); default 2–6, `[0, 0]` for none. */
-  freshOrders?: [number, number];
-  /** Scopes the simulated app installation holds (default: all of them); test connection reports the rest as missing. */
+  /** Scopes the simulated app installation holds (default: all of them); test connection reports the rest as missing (#89). */
   grantedScopes?: string[];
   /** Shop domain the simulator answers as (webhooks, test connection). */
   shopDomain?: string;
@@ -110,15 +106,6 @@ export class MockCommercePlatform implements CommercePlatform {
     this.nextNumber = opts.startOrderNumber;
     this.webhookSecret = opts.webhookSecret ?? "mock-webhook-secret";
     for (const l of opts.inventory ?? []) this.stock.set(`${l.inventoryItemExternalId}@${l.locationExternalId}`, l.available);
-    if (opts.history && opts.variants.length && opts.customers.length) {
-      // oldest first, evenly spread, deterministic: an initial import walks them in `updated_at` order
-      const now = (opts.history.now ?? new Date()).getTime();
-      const span = opts.history.months * 30.4 * 864e5;
-      for (let i = 0; i < opts.history.orders; i++) {
-        const at = new Date(now - span + Math.floor(((i + 0.5) * span) / opts.history.orders));
-        this.generateOrder(at, { keepStock: true });
-      }
-    }
     if (opts.products) for (const p of opts.products) this.catalog.set(p.externalId, structuredClone(p));
     else
       for (const v of opts.variants) {
@@ -189,13 +176,8 @@ export class MockCommercePlatform implements CommercePlatform {
     return { ok: true, accountName: "Mock Store", accountId: this.opts.shopDomain ?? "mock-shop.myshopify.com", scopes, missingScopes: [...missing.required, ...missing.optional], missingRequiredScopes: missing.required, missingScopesByModule: missing.byModule };
   }
 
-  /** Orders the simulated store holds (history + fresh ones). */
-  get orderCount(): number {
-    return this.orders.size;
-  }
-
-  /** Builds a plausible new order from the catalog (`keepStock`: a historical order, stock untouched). */
-  generateOrder(at = new Date(), opts: { keepStock?: boolean } = {}): NormalizedOrder {
+  /** Builds a plausible new order from the catalog. */
+  generateOrder(at = new Date()): NormalizedOrder {
     const rng = this.rng;
     const number = this.nextNumber++;
     const customer = rng.pick(this.opts.customers);
@@ -262,7 +244,7 @@ export class MockCommercePlatform implements CommercePlatform {
       fulfillments: [],
     };
     this.orders.set(order.externalId, order);
-    if (!opts.keepStock) this.moveStock(order.lines, -1);
+    this.moveStock(order.lines, -1);
     return order;
   }
 
@@ -271,12 +253,12 @@ export class MockCommercePlatform implements CommercePlatform {
     const page = Number(q.cursor ?? 0);
     const limit = Math.min(q.limit ?? 50, 250);
     // Simulate a store with new activity: up to 3 pages of fresh orders per sync.
+    // a store without catalog or customers (a tenant connected from scratch) takes no new orders
     if (page === 0 && this.opts.customers.length && this.opts.variants.length) {
-      const [min, max] = this.opts.freshOrders ?? [2, 6];
-      const count = this.rng.int(min, max);
+      const count = this.rng.int(2, 6);
       for (let i = 0; i < count; i++) this.generateOrder(new Date(Date.now() - this.rng.int(0, 3600) * 1000));
     }
-    const all = [...this.orders.values()].sort((a, b) => a.platformUpdatedAt.getTime() - b.platformUpdatedAt.getTime() || a.orderNumber - b.orderNumber);
+    const all = [...this.orders.values()].sort((a, b) => a.platformUpdatedAt.getTime() - b.platformUpdatedAt.getTime());
     const filtered = all.filter((o) => (!q.updatedSince || o.platformUpdatedAt >= q.updatedSince) && (!q.createdSince || o.placedAt >= q.createdSince));
     const items = filtered.slice(page * limit, (page + 1) * limit);
     const nextCursor = (page + 1) * limit < filtered.length ? String(page + 1) : null;

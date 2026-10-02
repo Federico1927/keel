@@ -3,10 +3,9 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { HISTORY_IMPORT_MONTH_OPTIONS, MANUAL_LIFECYCLE_REASONS, PLAN_KEYS, TENANT_STATUSES } from "@hullwise/config";
+import { MANUAL_LIFECYCLE_REASONS, PLAN_KEYS, TENANT_STATUSES } from "@hullwise/config";
 import { eq, recordAudit, schema } from "@hullwise/db";
-import { AccountError, AdminUserError, BillingError, LifecycleError, revokeUserSessions, setTrialEnd, setUserDisabled, transitionTenant, applySuspensions, createTenant, requestPasswordReset, emailSettings, issueDueInvoices, recordInvoicePayment, removeAddressSuppression, sendTestEmail, setTenantAddon, setTenantPlan, setTenantSuspension, voidInvoice, TenantExportError, closePlatformAlert, requestTenantExportAsAdmin, setHistoryImportMonths } from "@hullwise/services";
-import { startHistoryImport } from "@/server/history-import";
+import { AccountError, AdminUserError, BillingError, LifecycleError, revokeUserSessions, setTrialEnd, setUserDisabled, transitionTenant, applySuspensions, createTenant, requestPasswordReset, emailSettings, issueDueInvoices, recordInvoicePayment, removeAddressSuppression, sendTestEmail, setTenantAddon, setTenantPlan, setTenantSuspension, voidInvoice, TenantExportError, closePlatformAlert, requestTenantExportAsAdmin } from "@hullwise/services";
 import { runNowJob } from "@hullwise/jobs";
 import { requireSuperAdmin } from "@/server/admin";
 import { fail, ok, type ActionResult } from "@/server/action-result";
@@ -274,26 +273,4 @@ export async function requestTenantDataExportAction(tenantId: string): Promise<A
     if (e instanceof TenantExportError) return fail(e.code);
     throw e;
   }
-}
-
-/** History window of a tenant's first Shopify import (#87), from the setup checklist; audited by the service. */
-export async function setHistoryWindowAction(tenantId: string, months: number): Promise<ActionResult> {
-  const { user, db } = await requireSuperAdmin();
-  if (!uuid.safeParse(tenantId).success || !(HISTORY_IMPORT_MONTH_OPTIONS as readonly number[]).includes(months)) return fail("invalid_input");
-  await setHistoryImportMonths(db, tenantId, months, user.id);
-  revalidatePath(`/admin/tenants/${tenantId}`);
-  return ok();
-}
-
-/** Runs a tenant's history import again from the start (a finished import is never re-run by a reconnect). */
-export async function rerunHistoryImportAction(tenantId: string): Promise<ActionResult<{ queued: boolean }>> {
-  const { user, db } = await requireSuperAdmin();
-  if (!uuid.safeParse(tenantId).success) return fail("invalid_input");
-  const [t] = await db.select({ id: schema.tenants.id, currency: schema.tenants.currency, country: schema.tenants.country, orderNumberPrefix: schema.tenants.orderNumberPrefix }).from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
-  if (!t) return fail("not_found");
-  await recordAudit(db, { tenantId, actorUserId: user.id, actorType: "super_admin", action: "admin.history_import_rerun", entityType: "integration", entityId: "shopify" });
-  const r = await startHistoryImport(t, { force: true, actorUserId: null });
-  revalidatePath(`/admin/tenants/${tenantId}`);
-  if (r.error) return fail("connection_failed", { platform: r.error });
-  return ok({ queued: r.queued });
 }

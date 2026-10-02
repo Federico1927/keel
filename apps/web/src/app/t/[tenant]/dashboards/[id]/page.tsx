@@ -4,7 +4,6 @@ import { getTranslations } from "next-intl/server";
 import { DASHBOARD_PERIODS, WIDGETS, canDo, canEditDashboard, canSeeDashboard, isTenantRole, type DashboardPeriod } from "@hullwise/config";
 import { dashboardView, getDashboard } from "@hullwise/services";
 import { Badge, Button, PageHeader } from "@hullwise/ui";
-import { TenantHistoryImportBanner } from "@/components/integrations/history-import";
 import { requirePage } from "@/server/tenant";
 import { DashboardGrid } from "@/components/dashboard/dashboard-grid";
 import { DeleteDashboardButton, DuplicateButton, PeriodLinks, PreviewAsSelect, PreviewBanner } from "@/components/dashboard/controls";
@@ -45,7 +44,6 @@ export default async function DashboardViewPage({ params, searchParams }: { para
           </>
         }
       />
-      <TenantHistoryImportBanner ctx={ctx} />
       {(previewRole || showDraft) && <PreviewBanner base={base} path={path} role={previewRole} draft={showDraft} name={null} />}
       <DashboardGrid ctx={ctx} widgets={widgets} periodKey={periodKey} role={previewRole ?? ctx.role} />
     </>

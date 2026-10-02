@@ -17,7 +17,7 @@ import { queueConversionAdjustments } from "../tracking/conversions";
 import { adAccountHealthSource, recordAdAccountRun, type AdAccountScope } from "../ads/accounts";
 import { emitOrderWebhook, emitProductWebhook, emitShipmentWebhook, lowStockProbe } from "../webhooks/payloads";
 import { hasWebhookSubscribers } from "../webhooks/emit";
-import { HISTORY_IMPORT_FAILED_PREFIX, historyWindowStart, writeHistoryMarker } from "./history";
+import { historyImportStatus } from "./history";
 
 export * from "./inventory";
 export * from "./returns";
@@ -469,7 +469,7 @@ export interface ReturnsSyncResult {
  * by their platform id, never duplicated. Resumable like the other runs: cursor in `sync_runs` after every
  * page, pause at the time budget, resume on the next call.
  */
-export async function runReturnsSync(ctx: ServiceContext, platform: CommercePlatform, opts: { kind?: "delta" | "reconcile" | "initial"; country: string; budgetMs?: number; pageSize?: number; reconcileDays?: number }): Promise<ReturnsSyncResult> {
+export async function runReturnsSync(ctx: ServiceContext, platform: CommercePlatform, opts: { kind?: "initial" | "delta" | "reconcile"; country: string; budgetMs?: number; pageSize?: number; reconcileDays?: number; historySince?: Date | null }): Promise<ReturnsSyncResult> {
   const now = ctx.now ?? new Date();
   const started = Date.now();
   const kind = opts.kind ?? "reconcile";
@@ -484,8 +484,8 @@ export async function runReturnsSync(ctx: ServiceContext, platform: CommercePlat
     await ctx.tx.update(schema.syncRuns).set({ status: "running" }).where(eq(schema.syncRuns.id, run.id));
   } else {
     const [last] = kind === "delta" ? await ctx.tx.select({ startedAt: schema.syncRuns.startedAt }).from(schema.syncRuns).where(and(eq(schema.syncRuns.tenantId, ctx.tenantId), eq(schema.syncRuns.provider, provider), eq(schema.syncRuns.objectType, "returns"), eq(schema.syncRuns.status, "success"))).orderBy(desc(schema.syncRuns.startedAt)).limit(1) : [];
-    // initial (#87): every return of the history window (all orders: since the epoch)
-    const since = kind === "initial" ? new Date((await historyWindowStart(ctx, now)) ?? 0) : last ? new Date(last.startedAt.getTime() - 5 * 60_000) : new Date(now.getTime() - (opts.reconcileDays ?? 35) * 864e5);
+    // initial (issue #87): the same history window as the first orders import, every return when it is null
+    const since = kind === "initial" ? opts.historySince ?? new Date(0) : last ? new Date(last.startedAt.getTime() - 5 * 60_000) : new Date(now.getTime() - (opts.reconcileDays ?? 35) * 864e5);
     cursor = { nextCursor: null, updatedSince: since.toISOString(), counts: { created: 0, updated: 0, linked: 0, skipped: 0 } };
     const [row] = await ctx.tx.insert(schema.syncRuns).values({ tenantId: ctx.tenantId, provider, objectType: "returns", kind, status: "running", cursor, startedAt: now }).returning({ id: schema.syncRuns.id });
     run = { id: row!.id, scanned: 0, changed: 0, durationMs: 0 };
@@ -497,7 +497,7 @@ export async function runReturnsSync(ctx: ServiceContext, platform: CommercePlat
     for (;;) {
       const page = await platform.fetchReturns({ cursor: cursor.nextCursor, updatedSince: new Date(cursor.updatedSince), limit: opts.pageSize ?? 50 });
       for (const ret of page.items) {
-        const { outcome } = await importReturnWithOrder(ctx, platform, ret, { country: opts.country, source: kind === "reconcile" ? "reconcile" : kind === "initial" ? "backfill" : "sync" });
+        const { outcome } = await importReturnWithOrder(ctx, platform, ret, { country: opts.country, source: kind === "reconcile" ? "reconcile" : "sync" });
         run.scanned++;
         if (outcome.outcome === "created") c.created++;
         else if (outcome.outcome === "updated") c.updated++;
@@ -539,15 +539,16 @@ interface OrdersCursor {
 /**
  * Resumable orders sync: one `sync_runs` row per pass, cursor persisted after every page,
  * stops at the time budget and resumes on the next call from the saved cursor.
- * Delta uses the previous high-water mark minus a 2-minute overlap; initial walks everything.
+ * Delta uses the previous high-water mark minus a 2-minute overlap; initial walks every order
+ * created since `historySince` (all of them when null) and resumes after a failure too.
  */
-export async function runOrdersSync(ctx: ServiceContext, platform: CommercePlatform, opts: { kind: SyncKind; country: string; budgetMs?: number; pageSize?: number; reconcileDays?: number }): Promise<{ runId: string; rowsWritten: number; finished: boolean; error: string | null }> {
+export async function runOrdersSync(ctx: ServiceContext, platform: CommercePlatform, opts: { kind: SyncKind; country: string; budgetMs?: number; pageSize?: number; reconcileDays?: number; historySince?: Date | null }): Promise<{ runId: string; rowsWritten: number; finished: boolean; error: string | null }> {
   const now = ctx.now ?? new Date();
   const budgetMs = opts.budgetMs ?? 20_000;
   const started = Date.now();
   const provider = platform.provider;
-  // the history import (#87) also picks up a run left `running` by a process that died mid-slice
-  const resumable = opts.kind === "initial" ? ["paused", "running"] : ["paused"];
+  // the first import (issue #87) can be hours of pages: after a failure it resumes from its cursor instead of starting over
+  const resumable = opts.kind === "initial" ? ["paused", "error"] : ["paused"];
   const [paused] = await ctx.tx.select().from(schema.syncRuns).where(and(eq(schema.syncRuns.tenantId, ctx.tenantId), eq(schema.syncRuns.provider, provider), eq(schema.syncRuns.objectType, "orders"), eq(schema.syncRuns.kind, opts.kind), inArray(schema.syncRuns.status, resumable))).orderBy(desc(schema.syncRuns.startedAt)).limit(1);
   let cursor: OrdersCursor;
   let runId: string;
@@ -566,10 +567,9 @@ export async function runOrdersSync(ctx: ServiceContext, platform: CommercePlatf
   } else {
     const [last] = await ctx.tx.select({ cursor: schema.syncRuns.cursor }).from(schema.syncRuns).where(and(eq(schema.syncRuns.tenantId, ctx.tenantId), eq(schema.syncRuns.provider, provider), eq(schema.syncRuns.objectType, "orders"), eq(schema.syncRuns.status, "success"))).orderBy(desc(schema.syncRuns.finishedAt)).limit(1);
     const hwm = (last?.cursor as OrdersCursor | undefined)?.highWaterMark ?? null;
-    cursor = opts.kind === "delta" ? { nextCursor: null, updatedSince: hwm ? new Date(new Date(hwm).getTime() - 120_000).toISOString() : new Date(now.getTime() - 30 * 864e5).toISOString(), highWaterMark: hwm, pages: 0 } : opts.kind === "reconcile" ? { nextCursor: null, createdSince: new Date(now.getTime() - (opts.reconcileDays ?? 35) * 864e5).toISOString(), highWaterMark: hwm, pages: 0 } : { nextCursor: null, createdSince: await historyWindowStart(ctx, now), highWaterMark: null, pages: 0 };
+    cursor = opts.kind === "delta" ? { nextCursor: null, updatedSince: hwm ? new Date(new Date(hwm).getTime() - 120_000).toISOString() : new Date(now.getTime() - 30 * 864e5).toISOString(), highWaterMark: hwm, pages: 0 } : opts.kind === "reconcile" ? { nextCursor: null, createdSince: new Date(now.getTime() - (opts.reconcileDays ?? 35) * 864e5).toISOString(), highWaterMark: hwm, pages: 0 } : { nextCursor: null, createdSince: opts.historySince?.toISOString() ?? null, highWaterMark: null, pages: 0 };
     const [run] = await ctx.tx.insert(schema.syncRuns).values({ tenantId: ctx.tenantId, provider, objectType: "orders", kind: opts.kind, status: "running", cursor, startedAt: now }).returning({ id: schema.syncRuns.id });
     runId = run!.id;
-    if (opts.kind === "initial") await writeHistoryMarker(ctx, provider, { status: "running", runId, startedAt: now.toISOString(), finishedAt: null, error: null, since: cursor.createdSince ?? null });
   }
   const campaigns = await loadCampaignRefs(ctx);
   let maxUpdated = cursor.highWaterMark ? new Date(cursor.highWaterMark) : null;
@@ -589,13 +589,11 @@ export async function runOrdersSync(ctx: ServiceContext, platform: CommercePlatf
       if (!page.nextCursor) {
         await ctx.tx.update(schema.syncRuns).set({ status: "success", cursor: { ...cursor, nextCursor: null }, ...stats(), finishedAt: new Date() }).where(eq(schema.syncRuns.id, runId));
         await recordHealth(ctx, provider, true, { rowsWritten, freshnessMinutes: 30 });
-        if (opts.kind === "initial") await writeHistoryMarker(ctx, provider, { status: "done", runId, ordersImported: scanned, finishedAt: new Date().toISOString(), error: null });
         return { runId, rowsWritten, finished: true, error: null };
       }
       await ctx.tx.update(schema.syncRuns).set({ cursor, ...stats() }).where(eq(schema.syncRuns.id, runId));
       if (Date.now() - started > budgetMs) {
         await ctx.tx.update(schema.syncRuns).set({ status: "paused", cursor, ...stats() }).where(eq(schema.syncRuns.id, runId));
-        if (opts.kind === "initial") await writeHistoryMarker(ctx, provider, { status: "paused", runId, ordersImported: scanned });
         return { runId, rowsWritten, finished: false, error: null };
       }
     }
@@ -603,11 +601,6 @@ export async function runOrdersSync(ctx: ServiceContext, platform: CommercePlatf
     const error = errMessage(e);
     await ctx.tx.update(schema.syncRuns).set({ status: "error", error, cursor, ...stats(), errorCount: 1, finishedAt: new Date() }).where(eq(schema.syncRuns.id, runId));
     await recordHealth(ctx, provider, false, { error, rowsWritten });
-    if (opts.kind === "initial") {
-      // a failed history import puts the integration in error at once, with a message the health page and the console show
-      await writeHistoryMarker(ctx, provider, { status: "error", runId, ordersImported: scanned, error });
-      await ctx.tx.update(schema.integrations).set({ status: "error", lastError: `${HISTORY_IMPORT_FAILED_PREFIX}${error}`, updatedAt: new Date() }).where(and(eq(schema.integrations.tenantId, ctx.tenantId), eq(schema.integrations.provider, provider), sql`${schema.integrations.status} <> 'not_connected'`));
-    }
     return { runId, rowsWritten, finished: false, error };
   }
 }
@@ -795,18 +788,5 @@ export async function integrationOverview(ctx: ServiceContext) {
   const runs = await ctx.tx.select().from(schema.syncRuns).where(eq(schema.syncRuns.tenantId, ctx.tenantId)).orderBy(desc(schema.syncRuns.startedAt)).limit(25);
   const webhooks = await ctx.tx.select({ id: schema.webhookEvents.id, source: schema.webhookEvents.source, topic: schema.webhookEvents.topic, externalId: schema.webhookEvents.externalId, status: schema.webhookEvents.status, attempts: schema.webhookEvents.attempts, lastError: schema.webhookEvents.lastError, receivedAt: schema.webhookEvents.receivedAt, processedAt: schema.webhookEvents.processedAt }).from(schema.webhookEvents).where(eq(schema.webhookEvents.tenantId, ctx.tenantId)).orderBy(desc(schema.webhookEvents.receivedAt)).limit(30);
   const [counts] = await ctx.tx.select({ failed: sql<number>`count(*) filter (where ${schema.webhookEvents.status} = 'failed')::int`, pending: sql<number>`count(*) filter (where ${schema.webhookEvents.status} = 'pending')::int`, processed24h: sql<number>`count(*) filter (where ${schema.webhookEvents.status} = 'processed' and ${schema.webhookEvents.processedAt} > now() - interval '24 hours')::int` }).from(schema.webhookEvents).where(eq(schema.webhookEvents.tenantId, ctx.tenantId));
-  return { integrations, health, runs, webhooks, webhookCounts: counts ?? { failed: 0, pending: 0, processed24h: 0 } };
-}
-
-/**
- * One slice of the history import (#87) inside the request, when no worker runs (mock/demo): the full
- * catalog first (so order lines link to variants), then one page of the oldest orders, then the returns.
- * Whatever is left stays paused and resumes from its cursor on the next slice, resync or worker run.
- */
-export async function runHistoryImportSlice(ctx: ServiceContext, platform: CommercePlatform, opts: { country: string; budgetMs?: number }): Promise<{ catalogFinished: boolean; ordersFinished: boolean; returnsFinished: boolean; orders: number; error: string | null }> {
-  const budget = opts.budgetMs ?? 8_000;
-  const catalog = await runCatalogSync(ctx, platform, { kind: "initial", budgetMs: budget });
-  const orders = await runOrdersSync(ctx, platform, { kind: "initial", country: opts.country, budgetMs: 0 });
-  const returns = orders.error ? null : await runReturnsSync(ctx, platform, { kind: "initial", country: opts.country, budgetMs: Math.min(budget, 3_000) });
-  return { catalogFinished: catalog.finished, ordersFinished: orders.finished, returnsFinished: returns?.finished ?? false, orders: orders.rowsWritten, error: orders.error ?? catalog.error ?? returns?.error ?? null };
+  return { integrations, health, runs, webhooks, webhookCounts: counts ?? { failed: 0, pending: 0, processed24h: 0 }, historyImport: await historyImportStatus(ctx) };
 }

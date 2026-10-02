@@ -1,10 +1,10 @@
 import { AD_PLATFORMS, OPERATIONAL_TENANT_STATUSES, appUrl, isAdPlatform, isAdPlatformInPlan, isTenantOperational, platformRetentionDays } from "@hullwise/config";
-import { parseTenantSettings, summarizeAccountRuns } from "@hullwise/core";
+import { historyImportSince, parseTenantSettings, summarizeAccountRuns } from "@hullwise/core";
 import { adminDb, and, eq, inArray, lte, schema, withTenant, appDb } from "@hullwise/db";
 import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, recheckConversionAdjustments, runAdsSyncForAccounts, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, rollupAdEntityMetrics, campaignTick, processCampaignSend, getMessagingChannelFor, resolveAddressProvider, SUBSCRIPTIONS_ADDON, getSubscriptionProviderFor, runSubscriptionSync, refreshSubscriberRisk, deliverWebhook, dueWebhookDeliveries, purgeApiRows } from "@hullwise/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue, autoCancelReturnedToSender, getCodSettings, runScheduledConfirmations, applyCodReply, applyMessageStatus } from "@hullwise/addon-cod";
 import { SPOKI_MODULE, getSpokiApiFor, getSpokiState, processSpokiWebhookEvent, retrySpokiWebhooks, runOrderNotifications, spokiMessagingChannel, type SpokiHooks } from "@hullwise/addon-spoki";
-import { QUEUES, adsWindow, syncSingletonKey, type CampaignSendJob, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob, resyncJobsFor, type TenantExportJob, type WebhookDeliverJob } from "./queues";
+import { adsWindow, type CampaignSendJob, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob, resyncJobsFor, type TenantExportJob, type WebhookDeliverJob } from "./queues";
 
 export interface Enqueue {
   (queue: string, data: unknown, opts?: { singletonKey?: string; startAfterSeconds?: number }): Promise<void>;
@@ -65,15 +65,24 @@ export async function handleTenantExport(job: TenantExportJob): Promise<JobOutco
   return { rows: r.rows, summary: { tables: r.tables, status: r.status } };
 }
 
+/** The first import's window (issue #87): read when a run starts; a resumed run keeps the one in its cursor. */
+async function historySince(tenantId: string): Promise<Date | null> {
+  const [row] = await adminDb().select({ settings: schema.tenants.settings }).from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
+  return historyImportSince(new Date(), parseTenantSettings(row?.settings).historyImportMonths);
+}
+
 export async function handleSyncOrders(job: SyncOrdersJob, enqueue: Enqueue): Promise<JobOutcome> {
   const tenant = await tenantRow(job.tenantId);
+  const since = job.kind === "initial" ? await historySince(tenant.id) : null;
   const result = await withTenant(tenant.id, async (tx) => {
     const ctx = sys(tenant.id)(tx);
     const platform = await getCommercePlatformFor(ctx, tenant);
-    return runOrdersSync(ctx, platform, { kind: job.kind, country: tenant.country, budgetMs: 25_000 });
+    return runOrdersSync(ctx, platform, { kind: job.kind, country: tenant.country, budgetMs: 25_000, historySince: since });
   });
   // Resumable: a paused run re-enqueues itself with the saved cursor.
-  if (!result.finished && !result.error) await enqueue("sync.orders", job, { singletonKey: syncSingletonKey(QUEUES.syncOrders, job.tenantId, job.kind) });
+  if (!result.finished && !result.error) await enqueue("sync.orders", job, { singletonKey: `${job.tenantId}:${job.kind}` });
+  // the first returns import follows the orders it belongs to: a return of an order not imported yet would be skipped
+  if (result.finished && job.kind === "initial") await enqueue("sync.returns", { tenantId: job.tenantId, kind: "initial" } satisfies SyncReturnsJob, { singletonKey: `${job.tenantId}:returns` });
   if (result.error) throw new Error(result.error);
   return { rows: result.rowsWritten, summary: { finished: result.finished } };
 }
@@ -85,7 +94,7 @@ export async function handleSyncCatalog(job: SyncCatalogJob, enqueue?: Enqueue):
     return runCatalogSync(ctx, await getCommercePlatformFor(ctx, tenant), { kind: job.kind ?? "delta", scope: job.scope ?? "catalog", budgetMs: 25_000 });
   });
   // Resumable: a paused run re-enqueues itself and continues from the saved phase and cursor.
-  if (!r.finished && !r.error && enqueue) await enqueue("sync.catalog", job, { singletonKey: syncSingletonKey(QUEUES.syncCatalog, job.tenantId, job.kind, job.scope) });
+  if (!r.finished && !r.error && enqueue) await enqueue("sync.catalog", job, { singletonKey: `${job.tenantId}:catalog:${job.scope ?? "catalog"}` });
   if (r.error) throw new Error(r.error);
 }
 
@@ -103,11 +112,12 @@ export async function handleSyncPayouts(job: SyncPayoutsJob, enqueue?: Enqueue):
 /** Platform returns (webhooks catch them live; this is the nightly safety net); a paused run re-enqueues itself. */
 export async function handleSyncReturns(job: SyncReturnsJob, enqueue?: Enqueue): Promise<void> {
   const tenant = await tenantRow(job.tenantId);
+  const since = job.kind === "initial" ? await historySince(tenant.id) : null;
   const r = await withTenant(tenant.id, async (tx) => {
     const ctx = sys(tenant.id)(tx);
-    return runReturnsSync(ctx, await getCommercePlatformFor(ctx, tenant), { kind: job.kind ?? "reconcile", country: tenant.country, budgetMs: 25_000 });
+    return runReturnsSync(ctx, await getCommercePlatformFor(ctx, tenant), { kind: job.kind ?? "reconcile", country: tenant.country, budgetMs: 25_000, historySince: since });
   });
-  if (!r.finished && !r.error && enqueue) await enqueue("sync.returns", job, { singletonKey: syncSingletonKey(QUEUES.syncReturns, job.tenantId, job.kind) });
+  if (!r.finished && !r.error && enqueue) await enqueue("sync.returns", job, { singletonKey: `${job.tenantId}:returns` });
   if (r.error) throw new Error(r.error);
 }
 

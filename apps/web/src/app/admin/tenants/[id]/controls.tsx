@@ -2,9 +2,9 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { HISTORY_IMPORT_MONTH_OPTIONS, MANUAL_LIFECYCLE_REASONS, PLAN_KEYS } from "@hullwise/config";
+import { MANUAL_LIFECYCLE_REASONS, PLAN_KEYS } from "@hullwise/config";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Input, Label, Select, Switch, Textarea } from "@hullwise/ui";
-import { markInvoicePaidAction, openAsSupportAction, rerunHistoryImportAction, sendPasswordResetAction, setAddonAction, setHistoryWindowAction, setPlanAction, setTrialEndAction, transitionTenantAction, voidInvoiceAction } from "@/server/actions/admin";
+import { markInvoicePaidAction, openAsSupportAction, sendPasswordResetAction, setAddonAction, setPlanAction, setTrialEndAction, transitionTenantAction, voidInvoiceAction } from "@/server/actions/admin";
 
 export function OpenAsSupportButton({ tenantId }: { tenantId: string }) {
   const t = useTranslations("admin.tenant");
@@ -167,34 +167,5 @@ export function SendPasswordResetButton({ userId }: { userId: string }) {
         {t("send_password_reset")}
       </Button>
     </span>
-  );
-}
-
-/** History window of the store's first import (#87): months of orders, or all of them. */
-export function HistoryWindowControl({ tenantId, months }: { tenantId: string; months: number }) {
-  const t = useTranslations("history_import");
-  const router = useRouter();
-  const [pending, start] = useTransition();
-  return (
-    <div className="flex flex-wrap items-center gap-2 text-xs">
-      <Label htmlFor="history-window">{t("window")}</Label>
-      <Select id="history-window" className="h-8 w-auto text-xs" defaultValue={String(months)} disabled={pending} data-testid="history-window" onChange={(e) => { const v = Number(e.target.value); start(async () => { await setHistoryWindowAction(tenantId, v); router.refresh(); }); }}>
-        {HISTORY_IMPORT_MONTH_OPTIONS.map((m) => <option key={m} value={m}>{m ? t("window_months", { n: m }) : t("window_all")}</option>)}
-      </Select>
-    </div>
-  );
-}
-
-/** Runs the history import again from the start (only the console can: a reconnect never re-runs a finished import). */
-export function RerunHistoryImportButton({ tenantId }: { tenantId: string }) {
-  const t = useTranslations("history_import");
-  const router = useRouter();
-  const [pending, start] = useTransition();
-  const [msg, setMsg] = useState<string | null>(null);
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Button size="sm" variant="outline" disabled={pending} data-testid="history-rerun" onClick={() => start(async () => { const r = await rerunHistoryImportAction(tenantId); setMsg(r.ok ? (r.data?.queued ? t("continue_queued") : t("rerun_done")) : t("continue_failed")); router.refresh(); })}>{t("rerun")}</Button>
-      {msg && <span className="text-xs text-muted-foreground">{msg}</span>}
-    </div>
   );
 }

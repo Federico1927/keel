@@ -373,7 +373,8 @@
         "markdownMinMarginBps": "Margine minimo dei ribassi (punti base, 2000 = 20%)",
         "adsDailyRetentionDays": "Ads: dettaglio giornaliero conservato (giorni)",
         "adsSearchTermMinImpressions": "Ads: termini di ricerca raggruppati sotto (impression)",
-        "adsMinSpendMinor": "Ads: spesa minima per i suggerimenti (centesimi)"
+        "adsMinSpendMinor": "Ads: spesa minima per i suggerimenti (centesimi)",
+        "historyImportMonths": "Storico ordini letto al collegamento di Shopify (mesi, 0 = tutti)"
       },
       "backorders_title": "Backorder",
       "backorders_description": "Cosa succede quando un ordine richiede più dello stock disponibile."
@@ -2937,6 +2938,20 @@
         "status": "Stato",
         "campaigns": "Campagne"
       }
+    },
+    "history_import": {
+      "title": "Importazione dello storico ordini",
+      "state": {
+        "running": "In corso",
+        "paused": "In corso",
+        "error": "Non riuscita",
+        "done": "Completata"
+      },
+      "detail": "{n} ordini importati · ordini dal {since} · ordine più vecchio in Hullwise {oldest}",
+      "all_orders": "primo ordine",
+      "incomplete_hint": "Finché non è completa, analisi, RFM, coorti e storico clienti coprono solo una parte dello storico. Risincronizza la fa proseguire.",
+      "banner": "Lo storico ordini del negozio è ancora in importazione ({n} ordini finora): periodi passati, coorti e storico clienti sono incompleti finché non termina.",
+      "banner_error": "L'importazione dello storico ordini si è fermata dopo {n} ordini: periodi passati, coorti e storico clienti sono incompleti. Un owner o un admin può farla proseguire con Risincronizza in Integrazioni."
     }
   },
   "integration_guide": {
@@ -4072,7 +4087,8 @@
         "state_rules": "Regole di stato",
         "costs": "Costi configurati",
         "billing": "Pagamenti in regola",
-        "tiktok": "TikTok Ads collegato"
+        "tiktok": "TikTok Ads collegato",
+        "history_import": "Storico ordini importato"
       },
       "members": "Utenti",
       "open_balance": "Saldo aperto",

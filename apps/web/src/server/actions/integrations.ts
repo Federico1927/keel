@@ -5,7 +5,7 @@ import { z } from "zod";
 import { and, desc, eq, recordAudit, schema, sql } from "@hullwise/db";
 import { apiEndpoint, isAdPlatform, isAdPlatformInPlan } from "@hullwise/config";
 import { AnthropicLlmProvider, GoogleAddressProvider, GoogleAdsPlatform, MOCK_ACCOUNT_IDS, MetaAdsPlatform, TiktokAdsPlatform, encryptJson, exchangeTiktokAuthCode, integrationMode, type ConnectionTest } from "@hullwise/integrations";
-import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, resolveAddressProvider, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsBackfill, runAdsSync, runAdsSyncForAccounts, runCatalogSync, runOrdersSync, runReturnsSync } from "@hullwise/services";
+import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, resolveAddressProvider, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsBackfill, runAdsSync, runAdsSyncForAccounts, runCatalogSync, runOrdersSync, runReturnsSync, historyImportStatus } from "@hullwise/services";
 import { SPOKI_MODULE, retrySpokiWebhooks } from "@hullwise/addon-spoki";
 import { handleSpokiEvent, spokiHooksFor } from "@hullwise/jobs";
 import { enqueue } from "@/server/jobs";
@@ -29,10 +29,7 @@ async function saveConnection(slug: string, provider: Provider, test: Connection
   requireProviderInPlan(ctx, provider);
   if (!test.ok) return fail("connection_failed", { platform: test.error ?? "" });
   await ctx.run(async (tx) => {
-    // a reconnect keeps the history import progress (#87)
-    const [prev] = await tx.select({ config: schema.integrations.config }).from(schema.integrations).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, provider))).limit(1);
-    const history = (prev?.config as { historyImport?: unknown } | undefined)?.historyImport;
-    const values = { status: "connected", mode: "live", externalAccountId: accountId, externalAccountName: test.accountName ?? accountId, credentialsEncrypted: encryptJson(credentials), config: { ...(history ? { historyImport: history } : {}), ...config, scopes: test.scopes ?? [], missingScopes: test.missingScopes ?? [] }, lastError: null, lastSuccessAt: new Date(), updatedAt: new Date() };
+    const values = { status: "connected", mode: "live", externalAccountId: accountId, externalAccountName: test.accountName ?? accountId, credentialsEncrypted: encryptJson(credentials), config: { ...config, scopes: test.scopes ?? [], missingScopes: test.missingScopes ?? [] }, lastError: null, lastSuccessAt: new Date(), updatedAt: new Date() };
     await tx.insert(schema.integrations).values({ tenantId: ctx.tenant.id, provider, ...values }).onConflictDoUpdate({ target: [schema.integrations.tenantId, schema.integrations.provider], set: values });
     await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.connected", entityType: "integration", entityId: provider, diff: { status: { from: null, to: "connected" }, account: { from: null, to: accountId } } });
   });
@@ -233,8 +230,16 @@ export async function resyncIntegration(slug: string, provider: string): Promise
     const ctx = await requireAction(slug, "manage_integrations", "integrations");
     requireProviderInPlan(ctx, p.data);
     await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.resync_requested", entityType: "integration", entityId: p.data }));
-    // a paused history import (#87) continues with the resync
-    if (p.data === "shopify") await startHistoryImport(ctx.tenant, { resumeOnly: true, actorUserId: ctx.user.id });
+    if (p.data === "shopify") {
+      // an unfinished first import (issue #87) is continued, and a live store connected before it existed gets it now
+      const [history, row] = await ctx.run(async (tx) => [await historyImportStatus({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }), (await tx.select({ mode: schema.integrations.mode }).from(schema.integrations).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, "shopify"))).limit(1))[0]] as const);
+      if (history.state === "paused" || history.state === "error" || (history.state === "not_started" && row?.mode === "live" && integrationMode() === "live")) {
+        const started = await startHistoryImport(ctx);
+        revalidatePath(`/t/${slug}/integrations`);
+        revalidatePath(`/t/${slug}/orders`);
+        return ok({ queued: started === "queued", summary: `history_import:${started}` });
+      }
+    }
     const since = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
     const until = new Date().toISOString().slice(0, 10);
     const queued = p.data === "shopify" ? (await enqueue("sync.orders", { tenantId: ctx.tenant.id, kind: "delta" }, { singletonKey: `${ctx.tenant.id}:delta` })) && (await enqueue("sync.catalog", { tenantId: ctx.tenant.id }, { singletonKey: `${ctx.tenant.id}:catalog` })) && (await enqueue("sync.returns", { tenantId: ctx.tenant.id, kind: "delta" }, { singletonKey: `${ctx.tenant.id}:returns` })) : await enqueue("sync.ads", { tenantId: ctx.tenant.id, provider: p.data, since, until }, { singletonKey: `${ctx.tenant.id}:${p.data}:${until}` });

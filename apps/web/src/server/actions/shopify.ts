@@ -15,7 +15,7 @@ export interface ShopifyConnected {
   mock: boolean;
   shop: string;
   missingOptional: string[];
-  history: HistoryImportStart["action"];
+  history: HistoryImportStart;
 }
 
 /** Mock affordance: a Client ID containing this makes the simulated app version miss the order scopes (tests, demos of the error). */
@@ -65,9 +65,9 @@ export async function connectShopifyApp(slug: string, _prev: ActionResult<Shopif
     if (test.missingRequiredScopes?.length) return fail("missing_scopes", { scopes: test.missingRequiredScopes.join(", ") });
     const regs = await platform.registerWebhooks(apiEndpoint("/webhooks/shopify"), SHOPIFY_WEBHOOK_TOPICS).catch(() => []);
     await save(ctx, { mode: "live", shop, name: test.accountName ?? shop, credentials: platform.credentials as ShopifyCredentials, test, config: { installedVia: "client_credentials", webhooks: regs } });
-    const history = await startHistoryImport(ctx.tenant, { actorUserId: ctx.user.id });
+    const history = await importHistory(ctx);
     revalidate(slug);
-    return ok({ mock: false, shop, missingOptional: test.missingScopes ?? [], history: history.action });
+    return ok({ mock: false, shop, missingOptional: test.missingScopes ?? [], history });
   } catch (e) {
     if (e instanceof ForbiddenError) return fail("forbidden");
     throw e;
@@ -75,21 +75,16 @@ export async function connectShopifyApp(slug: string, _prev: ActionResult<Shopif
 }
 
 /**
- * Mock mode: the simulated store connects with whatever the form holds (nothing leaves the process). A
- * tenant without any catalog or order gets the deterministic demo store with its order history (#87).
+ * Mock mode: the simulated store connects with whatever the form holds (nothing leaves the process), then
+ * the history import starts like on a live store.
  */
 async function connectSimulated(ctx: TenantContext, shop: string, clientId: string): Promise<ActionResult<ShopifyConnected>> {
   if (clientId.includes(MOCK_MISSING_SCOPES_MARKER)) return fail("missing_scopes", { scopes: missingShopifyScopes([...SHOPIFY_SCOPES_BY_MODULE["core.catalog"]!, ...SHOPIFY_SCOPES_BY_MODULE["core.crm"]!]).required.join(", ") });
-  const empty = await ctx.run(async (tx) => {
-    const [o] = await tx.select({ n: sql<number>`count(*)::int` }).from(schema.orders).where(eq(schema.orders.tenantId, ctx.tenant.id));
-    const [p] = await tx.select({ n: sql<number>`count(*)::int` }).from(schema.products).where(eq(schema.products.tenantId, ctx.tenant.id));
-    return (o?.n ?? 0) === 0 && (p?.n ?? 0) === 0;
-  });
   const domain = `mock-${ctx.tenant.slug}.myshopify.com`;
-  await save(ctx, { mode: "mock", shop: domain, name: `${shop} (simulated)`, credentials: null, test: { ok: true }, config: { installedVia: "mock", ...(empty ? { mockStore: "demo" } : {}) } });
-  const history = await startHistoryImport(ctx.tenant, { actorUserId: ctx.user.id });
+  await save(ctx, { mode: "mock", shop: domain, name: `${shop} (simulated)`, credentials: null, test: { ok: true }, config: { installedVia: "mock" } });
+  const history = await importHistory(ctx);
   revalidate(ctx.tenant.slug);
-  return ok({ mock: true, shop: domain, missingOptional: [], history: history.action });
+  return ok({ mock: true, shop: domain, missingOptional: [], history });
 }
 
 const legacySchema = z.object({ shop: z.string().trim().toLowerCase(), accessToken: z.string().trim().min(10), apiSecret: z.string().trim().min(8) });
@@ -109,7 +104,7 @@ export async function connectShopifyCustomApp(slug: string, _prev: ActionResult 
     if (!test.ok) return fail(/401/.test(test.error ?? "") ? "wrong_credentials" : "connection_failed", { platform: test.error ?? "" });
     const regs = await platform.registerWebhooks(apiEndpoint("/webhooks/shopify"), SHOPIFY_WEBHOOK_TOPICS).catch(() => []);
     await save(ctx, { mode: "live", shop: parsed.data.shop, name: test.accountName ?? parsed.data.shop, credentials, test, config: { installedVia: "custom_app", webhooks: regs } });
-    await startHistoryImport(ctx.tenant, { actorUserId: ctx.user.id });
+    await importHistory(ctx);
     revalidate(slug);
     return ok();
   } catch (e) {
@@ -118,19 +113,12 @@ export async function connectShopifyCustomApp(slug: string, _prev: ActionResult 
   }
 }
 
-/** "Continue import": the next slice of a paused history import (inline without a worker, queued otherwise). */
-export async function continueHistoryImport(slug: string): Promise<ActionResult<{ queued: boolean; orders: number | null }>> {
-  try {
-    const ctx = await requireAction(slug, "manage_integrations", "integrations");
-    const r = await startHistoryImport(ctx.tenant, { resumeOnly: true, actorUserId: ctx.user.id });
-    await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.history_import_continued", entityType: "integration", entityId: "shopify", metadata: { action: r.action, queued: r.queued } }));
-    revalidate(slug);
-    if (r.error) return fail("connection_failed", { platform: r.error });
-    return ok({ queued: r.queued, orders: r.inlineOrders });
-  } catch (e) {
-    if (e instanceof ForbiddenError) return fail("forbidden");
-    throw e;
-  }
+/** The store's order history (#87), the same way on every connect path; the connection stays saved if starting it fails ("Resync" retries). */
+async function importHistory(ctx: TenantContext): Promise<HistoryImportStart> {
+  return startHistoryImport(ctx).catch((e: unknown) => {
+    console.error("[web] history import not started:", e instanceof Error ? e.message : e);
+    return "inline_error" as const;
+  });
 }
 
 function revalidate(slug: string) {

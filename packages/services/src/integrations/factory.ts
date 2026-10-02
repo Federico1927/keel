@@ -1,10 +1,9 @@
 import { isAdPlatformInPlan, isMultiAccountAdPlatform } from "@hullwise/config";
 import type { AdPlatform } from "@hullwise/core";
 import { and, eq, gte, inArray, isNotNull, schema, sql, withTenant } from "@hullwise/db";
-import { AnthropicLlmProvider, GoogleAddressProvider, type GoogleAddressCredentials, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, type MockAdsStructure, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, PROCESSOR_GATEWAYS, ShopifyCommercePlatform, type MockPaymentOrder, SlackWebhookSink, decryptJson, encryptJson, integrationMode, mockDemoStore, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type NormalizedProduct, type ShopifyCredentials, MockCarrierProvider, type CarrierProvider, TiktokAdsPlatform, mockDemoAdsAccount, type TiktokCredentials } from "@hullwise/integrations";
+import { AnthropicLlmProvider, GoogleAddressProvider, type GoogleAddressCredentials, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, type MockAdsStructure, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, PROCESSOR_GATEWAYS, ShopifyCommercePlatform, type MockPaymentOrder, SlackWebhookSink, decryptJson, encryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type NormalizedProduct, type ShopifyCredentials, MockCarrierProvider, type CarrierProvider, TiktokAdsPlatform, mockDemoAdsAccount, type TiktokCredentials } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { getAdAccount, primaryAdAccountId } from "../ads/accounts";
-import { historyImportMonths } from "../sync/history";
 
 export interface PlatformTenant {
   id: string;
@@ -44,9 +43,6 @@ function persistRefreshedShopify(tenantId: string, cacheEntry: { key: string }) 
   };
 }
 
-/** Orders the simulated demo store holds for a tenant connected in mock mode without data of its own (#87). */
-export const MOCK_DEMO_STORE_ORDERS = 480;
-
 export async function getCommercePlatformFor(ctx: ServiceContext, tenant: PlatformTenant): Promise<CommercePlatform> {
   const row = await integrationRow(ctx, "shopify");
   if (isLive(row)) {
@@ -60,14 +56,7 @@ export async function getCommercePlatformFor(ctx: ServiceContext, tenant: Platfo
   }
   const cached = commerceMocks.get(tenant.id);
   if (cached) return cached;
-  const mockCfg = (row?.config ?? {}) as { mockStore?: string; grantedScopes?: string[] };
-  if (mockCfg.mockStore === "demo") {
-    // a store connected in mock mode from scratch: a deterministic simulated store with its order history
-    const months = (await historyImportMonths(ctx)) || 36;
-    const demo = new MockCommercePlatform({ ...mockDemoStore({ key: tenant.id, currency: tenant.currency, country: tenant.country, orderNumberPrefix: tenant.orderNumberPrefix, months, orders: MOCK_DEMO_STORE_ORDERS }), webhookSecret: row?.externalAccountId ? `mock-secret-${row.externalAccountId}` : undefined, shopDomain: row?.externalAccountId ?? undefined, grantedScopes: mockCfg.grantedScopes });
-    commerceMocks.set(tenant.id, demo);
-    return demo;
-  }
+  const mockCfg = (row?.config ?? {}) as { grantedScopes?: string[] };
   const variants = await ctx.tx
     .select({ id: schema.productVariants.externalId, productId: schema.products.externalId, inv: schema.productVariants.inventoryItemExternalId, sku: schema.productVariants.sku, title: schema.productVariants.title, productTitle: schema.products.title, optionValues: schema.productVariants.optionValues, priceMinor: schema.productVariants.priceMinor, costMinor: schema.productVariants.costMinor, barcode: schema.productVariants.barcode, imageUrl: schema.products.imageUrl })
     .from(schema.productVariants)

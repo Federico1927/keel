@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { HISTORY_IMPORT_DEFAULT_MONTHS, MOBILE_NAV_SLOTS, TENANT_SETTING_DEFAULTS } from "@hullwise/config";
+import { MOBILE_NAV_SLOTS, TENANT_SETTING_DEFAULTS } from "@hullwise/config";
 
 export const PAYMENT_METHODS = ["card", "wallet", "bank_transfer", "cod", "bnpl", "other"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
@@ -107,8 +107,8 @@ export const tenantSettingsSchema = z.object({
   campaignMeasurementLock: z.boolean().default(true),
   /** Phone bottom navigation (#49): destinations per role (keys of MOBILE_NAV_DESTINATIONS); a role left out uses its default. */
   mobileNav: z.record(z.string().max(40), z.array(z.string().max(40)).max(MOBILE_NAV_SLOTS)).default({}),
-  /** Historical import (#87): months of orders read when the store connects (0 = every order); set from the console's setup checklist. */
-  historyImportMonths: z.number().int().min(0).max(240).default(HISTORY_IMPORT_DEFAULT_MONTHS),
+  /** First Shopify import (issue #87): months of order history read when the store is connected; 0 reads every order. */
+  historyImportMonths: z.number().int().min(0).max(120).default(24),
 });
 export type TenantSettings = z.infer<typeof tenantSettingsSchema>;
 export const RETURN_EMAIL_EVENTS = ["approved", "received", "refunded", "voucher_issued", "exchange_shipped"] as const;
@@ -167,4 +167,19 @@ export function normalizePaymentMethod(gateways: readonly string[], override: Re
     if (/card|stripe|adyen|visa|mastercard|checkout|payments/.test(key)) return "card";
   }
   return "other";
+}
+
+/**
+ * Oldest order date the first Shopify import reads (issue #87): `months` calendar months before
+ * `now`, clamped to the last day of a shorter month (31 March − 1 month = 28/29 February); null
+ * when `months` is 0, meaning every order.
+ */
+export function historyImportSince(now: Date, months: number): Date | null {
+  if (months <= 0) return null;
+  const target = new Date(now.getTime());
+  target.setUTCDate(1);
+  target.setUTCMonth(target.getUTCMonth() - months);
+  const lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+  target.setUTCDate(Math.min(now.getUTCDate(), lastDay));
+  return target;
 }

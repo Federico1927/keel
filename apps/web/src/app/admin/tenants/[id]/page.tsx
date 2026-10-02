@@ -25,11 +25,8 @@ import { DataExportTable } from "@/components/data-export/export-table";
 import { RequestDataExportButton } from "@/components/data-export/request-button";
 import { toBrand } from "@/server/branding";
 import { LifecycleBadge, PaymentBadge } from "../../_components/badges";
-import { HistoryImportProgress } from "@/components/integrations/history-import";
 import {
   AddonToggle,
-  HistoryWindowControl,
-  RerunHistoryImportButton,
   InvoiceActions,
   LifecycleControl,
   OpenAsSupportButton,
@@ -48,7 +45,6 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
   const exports = await listTenantExports(db, id, 10);
   const t = await getTranslations("admin");
   const tm = await getTranslations("modules");
-  const th = await getTranslations("history_import");
   const locale = await getLocale();
   const money = (m: number, c = d.tenant.currency) => formatMoney(m, c, locale);
   const done = d.checklist.filter((c) => c.done).length;
@@ -93,14 +89,10 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
                     <span className={c.done ? "" : "text-muted-foreground"}>
                       {c.done ? "✓" : "○"} {t(`tenant.checklist_items.${c.key}`)}
                     </span>
-                    {c.detail && <span className="text-xs text-muted-foreground">{c.key === "owner" && c.detail === "invited" ? t("tenant.owner_invited") : c.key === "history_import" ? th(`state.${c.detail}`) : c.detail}</span>}
+                    {c.detail && <span className="text-xs text-muted-foreground">{c.key === "owner" && c.detail === "invited" ? t("tenant.owner_invited") : c.detail}</span>}
                   </li>
                 ))}
               </ul>
-              <div className="mt-3 space-y-2 border-t pt-3" data-testid="admin-history-import">
-                <HistoryWindowControl tenantId={d.tenant.id} months={d.historyImport.months} />
-                <HistoryImportProgress status={d.historyImport} locale={locale} timezone="UTC" action={<RerunHistoryImportButton tenantId={d.tenant.id} />} />
-              </div>
             </CardContent>
           </Card>
           <Card>

@@ -31,8 +31,8 @@ export interface SyncOrdersJob {
 }
 export interface SyncCatalogJob {
   tenantId: string;
-  /** delta (resync) | reconcile (nightly) | manual (inventory "Sync now") | initial (history import on connect, #87); default delta. */
-  kind?: "delta" | "reconcile" | "manual" | "initial";
+  /** delta (resync) | reconcile (nightly) | manual (inventory "Sync now"); default delta. */
+  kind?: "delta" | "reconcile" | "manual";
   scope?: "catalog" | "inventory";
 }
 /** One outbox row of `platform_writes` to execute. */
@@ -47,8 +47,7 @@ export interface SyncPayoutsJob {
 /** Returns created or changed on the platform (nightly reconcile), resumable like the other syncs. */
 export interface SyncReturnsJob {
   tenantId: string;
-  /** initial: every return of the history window (history import on connect, #87). */
-  kind?: "delta" | "reconcile" | "initial";
+  kind?: "initial" | "delta" | "reconcile";
 }
 export interface SyncAdsJob {
   tenantId: string;
@@ -156,27 +155,6 @@ export function runNowJob(jobType: string, tenantId: string | null, now = new Da
   if (!tenantId) return null;
   const source = jobType === QUEUES.syncOrders ? "shopify" : jobType === QUEUES.syncCatalog ? "shopify:catalog" : jobType === QUEUES.syncReturns ? "shopify:returns" : jobType === QUEUES.syncPayouts ? "shopify:payouts" : jobType.startsWith(`${QUEUES.syncAds}:`) ? jobType.slice(QUEUES.syncAds.length + 1) : null;
   return source ? (resyncJobsFor(tenantId, source, now)[0] ?? null) : null;
-}
-
-/** Dedup keys of a tenant's sync jobs: one per tenant and lane, so an initial run is never swallowed by a delta. */
-export function syncSingletonKey(queue: QueueName, tenantId: string, kind?: string, scope?: string): string {
-  if (queue === QUEUES.syncOrders) return `${tenantId}:${kind ?? "delta"}`;
-  if (queue === QUEUES.syncCatalog) return kind === "initial" ? `${tenantId}:catalog:initial` : `${tenantId}:catalog:${scope ?? "catalog"}`;
-  if (queue === QUEUES.syncReturns) return kind === "initial" ? `${tenantId}:returns:initial` : `${tenantId}:returns`;
-  return `${tenantId}:${queue}`;
-}
-
-/**
- * The history import of a newly connected store (#87): orders of the history window (`sync.orders`
- * kind initial), the full catalog and the returns of the window, each resumable from its cursor and
- * deduplicated per tenant. `parts` limits a resume to what is not finished yet.
- */
-export function historyImportJobs(tenantId: string, parts: readonly ("orders" | "catalog" | "returns")[] = ["orders", "catalog", "returns"]): QueuedJob[] {
-  const jobs: QueuedJob[] = [];
-  if (parts.includes("catalog")) jobs.push({ queue: QUEUES.syncCatalog, data: { tenantId, kind: "initial", scope: "catalog" } satisfies SyncCatalogJob, singletonKey: syncSingletonKey(QUEUES.syncCatalog, tenantId, "initial") });
-  if (parts.includes("orders")) jobs.push({ queue: QUEUES.syncOrders, data: { tenantId, kind: "initial" } satisfies SyncOrdersJob, singletonKey: syncSingletonKey(QUEUES.syncOrders, tenantId, "initial") });
-  if (parts.includes("returns")) jobs.push({ queue: QUEUES.syncReturns, data: { tenantId, kind: "initial" } satisfies SyncReturnsJob, singletonKey: syncSingletonKey(QUEUES.syncReturns, tenantId, "initial") });
-  return jobs;
 }
 
 /** pg-boss keeps finished jobs for the same platform retention window as webhooks and writes. */

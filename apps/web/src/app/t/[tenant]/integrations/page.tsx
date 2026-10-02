@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { AD_ACCOUNT_LIMIT, SHOPIFY_SETUP, adPlatformMinPlan, canDo, isAdPlatform, isAdPlatformInPlan, isPageEnabled } from "@hullwise/config";
-import { formatDateTime, formatNumber } from "@hullwise/core";
+import { formatDate, formatDateTime, formatNumber } from "@hullwise/core";
 import { SUBSCRIPTION_PROVIDERS, integrationMode } from "@hullwise/integrations";
-import { adAccountsOverview, historyImportStatus, integrationOverview, platformWritesOverview } from "@hullwise/services";
+import { adAccountsOverview, integrationOverview, platformWritesOverview } from "@hullwise/services";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, DataList } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { PlatformWriteStatus } from "@/components/platform-write-status";
@@ -12,10 +12,9 @@ import { GoogleWriteAccessToggle } from "./write-access";
 import { MetaAdAccounts } from "./ad-accounts";
 import { ProviderControls as SubscriptionProviderControls } from "../subscriptions/controls";
 import { SpokiCard } from "@/components/spoki-card";
-import { HistoryImportProgress } from "@/components/integrations/history-import";
 import { resolveSetupValues } from "@/server/integration-setup";
 import { savedShopifyApp } from "@/server/shopify-connection";
-import { ContinueImportButton, ShopifySetup } from "./shopify-setup";
+import { ShopifySetup } from "./shopify-setup";
 
 const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic", "address"] as const;
 /** Per-account integrations activated by the Hullwise team: interface and mock in Hullwise, each with its activation guide. */
@@ -28,12 +27,11 @@ export default async function IntegrationsPage({ params, searchParams }: { param
   const t = await getTranslations("integrations");
   const tw = await getTranslations("platform_writes");
   const tp = await getTranslations("plans");
-  const { data, writes, metaAccounts, history } = await ctx.run(async (tx) => {
+  const { data, writes, metaAccounts } = await ctx.run(async (tx) => {
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
-    return { data: await integrationOverview(s), writes: await platformWritesOverview(s, { limit: 15 }), metaAccounts: await adAccountsOverview(s, "meta"), history: await historyImportStatus(s) };
+    return { data: await integrationOverview(s), writes: await platformWritesOverview(s, { limit: 15 }), metaAccounts: await adAccountsOverview(s, "meta") };
   });
   const setupValues = resolveSetupValues(SHOPIFY_SETUP);
-  const workerQueue = process.env.HULLWISE_JOBS_QUEUE === "1";
   const canManage = canDo(ctx.role, "manage_integrations");
   const globalMock = integrationMode() === "mock";
   const dt = (d: Date | null | undefined) => (d ? formatDateTime(d, ctx.locale, ctx.tenant.timezone) : "—");
@@ -94,9 +92,21 @@ export default async function IntegrationsPage({ params, searchParams }: { param
                     ))}
                   </ul>
                 )}
+                {p === "shopify" && data.historyImport.state !== "not_started" && (() => {
+                  // the first import of the store's order history (issue #87)
+                  const h = data.historyImport;
+                  const day = (d: Date | null) => (d ? formatDate(d, ctx.locale, ctx.tenant.timezone) : "—");
+                  return (
+                    <div className="space-y-1 rounded-md border p-2 text-xs" data-testid="history-import" data-state={h.state}>
+                      <p className="flex items-center justify-between gap-2"><span className="font-medium">{t("history_import.title")}</span><Badge variant={h.state === "done" ? "success" : h.state === "error" ? "destructive" : "warning"}>{t(`history_import.state.${h.state}`)}</Badge></p>
+                      <p className="text-muted-foreground">{t("history_import.detail", { n: formatNumber(h.ordersImported, ctx.locale), since: h.since ? day(h.since) : t("history_import.all_orders"), oldest: day(h.oldestOrderAt) })}</p>
+                      {h.state !== "done" && <p className="text-muted-foreground">{t("history_import.incomplete_hint")}</p>}
+                      {h.error && <p className="text-destructive">{h.error}</p>}
+                    </div>
+                  );
+                })()}
                 {p === "google" && connected && <GoogleWriteAccessToggle slug={tenant} enabled={(row?.config as { writeAccess?: boolean } | undefined)?.writeAccess === true} canManage={canManage} />}
                 <ProviderActions slug={tenant} provider={p} connected={connected} mock={mock} canManage={canManage} />
-                {p === "shopify" && (connected || history.state !== "not_started") && <HistoryImportProgress status={history} locale={ctx.locale} timezone={ctx.tenant.timezone} action={canManage && history.inProgress && !workerQueue ? <ContinueImportButton slug={tenant} /> : null} />}
                 {p === "shopify" && (() => {
                   const missingRequired = cfg.missingRequiredScopes ?? [];
                   const app = savedShopifyApp(row?.config);

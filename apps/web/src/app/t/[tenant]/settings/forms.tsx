@@ -86,6 +86,7 @@ const numericFields: (keyof TenantSettings)[] = [
   "roiMedium",
   "campaignStockThreshold",
   "duplicateOrderWindowDays",
+  "historyImportMonths",
   "shipmentStuckDays",
   "returnWindowDays",
   "returnShippingFallbackDays",

@@ -77,7 +77,3 @@ export function validateSetupFields(def: IntegrationSetupDefinition, input: Reco
   }
   return { ok: true, values };
 }
-
-/** Historical import (issue #87): months of orders imported when a store connects; 0 = all orders. */
-export const HISTORY_IMPORT_DEFAULT_MONTHS = 24;
-export const HISTORY_IMPORT_MONTH_OPTIONS = [6, 12, 24, 36, 0] as const;
