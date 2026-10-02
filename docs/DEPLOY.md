@@ -50,7 +50,8 @@ A static site (Next.js export) served by its own small Node server; a third serv
 | `HULLWISE_SEED_ON_DEPLOY` | `1` for the first deploy only | Loads (and on later deploys rewrites) the demo tenants |
 | `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` | the project DSN from sentry.io | Optional; errors only, no personal data. The public one is read at build time |
 | `SENTRY_ENVIRONMENT` | e.g. `demo`, `production` | Optional |
-| `STRIPE_SECRET_KEY`, `SHOPIFY_API_KEY`, `SHOPIFY_API_SECRET` | empty for the demo | |
+| `STRIPE_SECRET_KEY` | empty for the demo | |
+| `SHOPIFY_API_KEY`, `SHOPIFY_API_SECRET` | empty unless the platform has its own public Shopify app | Client ID and secret of the platform app (Advanced → "Install the platform app"). Merchants' own Dev Dashboard apps need no variable: their credentials are stored per tenant, encrypted with `APP_ENCRYPTION_KEY` |
 
 If the Railway Postgres URL requires TLS, append `?sslmode=require` to the three database URLs.
 
@@ -71,10 +72,10 @@ These live in third-party dashboards; nothing in the repository can change them.
 
 | Where | Setting | Value |
 | --- | --- | --- |
-| Shopify Partner dashboard → your app → Configuration | App URL | `https://my.hullwise.app` |
-| | Allowed redirection URL(s) | `https://api.hullwise.app/integrations/shopify/oauth/callback` |
-| | Compliance / app webhooks (if configured in the dashboard) | `https://api.hullwise.app/webhooks/shopify` |
-| Each connected store | Order, product, inventory, fulfillment, return, customer webhooks | Registered by Hullwise itself when a store is connected with a custom-app token, to `https://api.hullwise.app/webhooks/shopify`. A resync does not re-register them: after a domain change, **reconnect Shopify on every tenant** (Integrations → Shopify) so the subscriptions point at the new URL; deliveries to the old host fail and Shopify eventually removes those subscriptions |
+| Shopify Dev Dashboard → each app (the platform public app, and every merchant's own app) → version | App URL | `https://my.hullwise.app` |
+| | Allowed redirection URL(s) | `https://api.hullwise.app/integrations/shopify/oauth/callback` (only for "Install on your store" and the platform app; the client credentials path needs none) |
+| | Compliance (privacy) webhooks: `customers/data_request`, `customers/redact`, `shop/redact` | `https://api.hullwise.app/webhooks/shopify/compliance` |
+| Each connected store | Order, product, inventory, fulfillment, return, customer webhooks | Registered by Hullwise itself when a store is connected (any path: own app, OAuth, legacy token), to `https://api.hullwise.app/webhooks/shopify`. A resync does not re-register them: after a domain change, **reconnect Shopify on every tenant** (Integrations → Shopify) so the subscriptions point at the new URL; deliveries to the old host fail and Shopify eventually removes those subscriptions |
 | Meta (developers.facebook.com) | OAuth redirect | None today: Meta connects with a system-user token pasted in Integrations, there is no OAuth redirect to update. If Facebook Login is added later, the redirect will be `https://api.hullwise.app/integrations/meta/oauth/callback` |
 | Google Cloud console / Google Ads | OAuth redirect and authorized origins | None today: Google Ads connects with a developer token and refresh token pasted in Integrations. If an OAuth flow is added later: redirect `https://api.hullwise.app/integrations/google/oauth/callback`, authorized origin `https://my.hullwise.app` |
 | TikTok for Business → your app | Redirect URL | `https://api.hullwise.app/integrations/tiktok/oauth/callback` |

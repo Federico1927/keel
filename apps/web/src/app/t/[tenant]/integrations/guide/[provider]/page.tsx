@@ -53,7 +53,9 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
   // `{product}` keeps the product name out of the texts (one constant, PRODUCT_NAME)
   const product = { product: PRODUCT_NAME };
   // self-serve setup (#89): the same definition and copyable values as the integrations card
-  const setup = integrationSetup(p);
+  // only guides of a self-serve connect flow (credential fields); GA4's card resolves its own values
+  const found = integrationSetup(p);
+  const setup = found?.fields?.length ? found : null;
   const setupValues = setup ? resolveSetupValues(setup) : {};
   const fill = (body: string) => body.replaceAll("{product}", PRODUCT_NAME).replace("{redirectUrl}", apiEndpoint("/integrations/shopify/oauth/callback")).replace("{appUrl}", appUrl()).replace("{complianceUrl}", apiEndpoint("/webhooks/shopify/compliance")).replace("{webhookUrl}", webhookUrl).replace("{emailWebhookUrl}", emailWebhookUrl).replace("{callbackUrl}", tiktokCallbackUrl).replace("{subscriptionsWebhookUrl}", subscriptionsWebhookUrl).replace("{utmTemplate}", ADS_UTM_TEMPLATES.tiktok).replace("{apiVersion}", p === "tiktok" ? TIKTOK_API_VERSION : GOOGLE_ADS_API_VERSION);
   return (

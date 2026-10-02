@@ -29,7 +29,8 @@ test.describe("Shopify self-serve setup", () => {
     await expect(err).toContainText("read_orders");
     await expect(err).toContainText(/new version|nuova versione/);
 
-    // a complete app connects the simulated store and the history import shows on the card
+    // a complete app connects the simulated store and the history import shows on the card (the form was reset)
+    await form.getByLabel(/Store domain|Dominio del negozio/).fill("harbor-home.myshopify.com");
     await form.getByLabel("Client ID").fill("simulated-client-id");
     await form.getByLabel("Client secret").fill("simulated-secret");
     await form.getByTestId("shopify-connect").click();
