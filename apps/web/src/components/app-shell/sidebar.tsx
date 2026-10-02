@@ -15,10 +15,12 @@ export interface SidebarProps {
   /** Tenant logos from Settings → Branding; null shows the product mark and the tenant name. */
   logoLight?: string | null;
   logoDark?: string | null;
+  /** Counts shown next to nav entries, by href (an add-on's queue). */
+  badges?: Record<string, number>;
   onNavigate?: () => void;
 }
 
-export function SidebarNav({ tenantSlug, tenantName, allowedPages, logoLight, logoDark, onNavigate }: SidebarProps) {
+export function SidebarNav({ tenantSlug, tenantName, allowedPages, logoLight, logoDark, badges, onNavigate }: SidebarProps) {
   const pathname = usePathname();
   const t = useTranslations();
   const base = `/t/${tenantSlug}`;
@@ -70,6 +72,7 @@ export function SidebarNav({ tenantSlug, tenantName, allowedPages, logoLight, lo
                       >
                         <Icon className={cn("h-4 w-4", active && "text-primary")} />
                         <span>{t(item.labelKey)}</span>
+                        {badges?.[item.href] ? <span className="ml-auto rounded-full bg-primary/15 px-1.5 text-[11px] font-medium tabular text-primary" data-testid={`nav-badge-${item.page}`}>{badges[item.href]! > 99 ? "99+" : badges[item.href]}</span> : null}
                       </Link>
                     </li>
                   );

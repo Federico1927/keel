@@ -40,6 +40,15 @@ export const codQueueItems = pgTable(
     riskTier: text("risk_tier"),
     /** Platform tag that pulled the order into the queue (lower-cased), null when it entered by canonical status. */
     entryTag: text("entry_tag"),
+    /** Confirmation agreed for a later day (tenant-local ISO date): the daily job confirms it that morning. */
+    scheduledConfirmOn: text("scheduled_confirm_on"),
+    /** Local day the job last tried and failed (a failed platform call keeps the date for the next day's run). */
+    scheduledConfirmTriedOn: text("scheduled_confirm_tried_on"),
+    scheduledConfirmError: text("scheduled_confirm_error"),
+    /** Escalated to an admin by the operator; cleared when an admin reassigns or de-escalates. */
+    escalatedAt: timestamp("escalated_at", { withTimezone: true }),
+    escalatedBy: uuid("escalated_by").references(() => users.id, { onDelete: "set null" }),
+    escalationReason: text("escalation_reason"),
     enteredAt: timestamp("entered_at", { withTimezone: true }).notNull().defaultNow(),
     closedAt: timestamp("closed_at", { withTimezone: true }),
     createdAt: createdAt(),
@@ -147,4 +156,54 @@ export const codRecipientProfiles = pgTable(
     updatedAt: updatedAt(),
   },
   (t) => [uniqueIndex("cod_recipient_profiles_key_uq").on(t.tenantId, t.recipientKey), index("cod_recipient_profiles_tier_idx").on(t.tenantId, t.tier), tenantIsolation("cod_recipient_profiles")],
+).enableRLS();
+
+/**
+ * Confirmation messages sent from the COD card through the tenant's `MessagingChannel` (mock until a
+ * provider is sold per account). Each send is also a `cod_attempts` row; the status follows the
+ * provider's delivery webhooks.
+ */
+export const codMessages = pgTable(
+  "cod_messages",
+  {
+    ...tenantColumns(),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    queueItemId: uuid("queue_item_id").references(() => codQueueItems.id, { onDelete: "set null" }),
+    templateKey: text("template_key").notNull(),
+    provider: text("provider").notNull(),
+    recipient: text("recipient").notNull(),
+    body: text("body").notNull(),
+    providerMessageId: text("provider_message_id"),
+    /** sent | delivered | read | failed */
+    status: text("status").notNull().default("sent"),
+    statusAt: timestamp("status_at", { withTimezone: true }),
+    sentBy: uuid("sent_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("cod_messages_order_idx").on(t.tenantId, t.orderId, t.createdAt), index("cod_messages_provider_idx").on(t.tenantId, t.providerMessageId), tenantIsolation("cod_messages")],
+).enableRLS();
+
+/**
+ * Delivery outcomes imported from a carrier's billing or COD remittance file (generic CSV). They
+ * take precedence over the outcome read from the order when recipient risk is recomputed.
+ */
+export const codCarrierOutcomes = pgTable(
+  "cod_carrier_outcomes",
+  {
+    ...tenantColumns(),
+    orderId: uuid("order_id").references(() => orders.id, { onDelete: "cascade" }),
+    /** As found in the file: tracking number or order name. */
+    reference: text("reference").notNull(),
+    /** delivered | refused */
+    outcome: text("outcome").notNull(),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }),
+    /** What the carrier billed for the parcel (shipping and return), in the tenant currency. */
+    costMinor: integer("cost_minor"),
+    importBatch: text("import_batch").notNull(),
+    importedBy: uuid("imported_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("cod_carrier_outcomes_ref_uq").on(t.tenantId, t.reference), index("cod_carrier_outcomes_order_idx").on(t.tenantId, t.orderId), tenantIsolation("cod_carrier_outcomes")],
 ).enableRLS();

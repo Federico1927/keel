@@ -33,6 +33,9 @@ export async function seedDashboards(db: Db, userIds: Record<string, string>, ke
     w("nw-cpo", "kpi", { metric: "custom:contribution_per_order", compare: "previous", sparkline: true }, { period: "mtd" }),
     w("nw-target", "target", { metric: "net_revenue" }),
     w("nw-review", "queue_review", {}),
+    w("nw-cod-pending", "cod_pending", {}),
+    w("nw-cod-mine", "cod_mine", {}),
+    w("nw-cod-operators", "cod_operators", {}, { h: 2 }),
     w("nw-note", "note", { markdown: "## Routine del mattino\n- Prima gli ordini **in ritardo di spedizione**\n- Poi le eccezioni di consegna\n- Controlla la [coda in attesa di stock](/t/northwind-apparel/orders?stock=awaiting)", translations: { en: "## Morning routine\n- **Late to ship** orders first\n- Then delivery exceptions\n- Check the [awaiting stock queue](/t/northwind-apparel/orders?stock=awaiting)" } }),
   ];
   const marketing: DashboardWidget[] = [

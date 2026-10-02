@@ -58,7 +58,16 @@
       "not_paid": "Si possono rimborsare solo ordini pagati.",
       "exceeds_refundable": "Il rimborso supera quanto resta rimborsabile sull'ordine.",
       "line_invalid": "Controlla le unità da rimborsare: più di quante restano su una riga.",
-      "location_required": "Scegli dove rimettere a magazzino le unità."
+      "location_required": "Scegli dove rimettere a magazzino le unità.",
+      "cod_daily_limit": "Limite giornaliero di trasferimenti raggiunto: chiedi a un amministratore.",
+      "cod_already_called": "Dopo la prima chiamata solo un amministratore può trasferire l'ordine.",
+      "cod_not_yours": "Puoi trasferire solo gli ordini assegnati a te.",
+      "cod_same_operator": "L'ordine è già assegnato a quella persona.",
+      "cod_target": "Quella persona non è un membro attivo del team.",
+      "cod_template": "Modello di messaggio sconosciuto.",
+      "cod_phone": "L'ordine non ha un numero di telefono.",
+      "cod_reason": "Scrivi un motivo (almeno 3 caratteri).",
+      "cod_carrier_columns": "Il file deve avere una colonna riferimento (tracking o ordine) e una colonna esito."
     },
     "edit": "Modifica"
   },
@@ -359,8 +368,8 @@
     "order_states_link": "Regole di stato ordine",
     "branding_link": "Branding",
     "fulfilment_link": "Evasione",
-    "data_export_link": "Esportazione dati",
-    "ai_link": "AI e MCP"
+    "ai_link": "AI e MCP",
+    "data_export_link": "Esportazione dati"
   },
   "users": {
     "title": "Utenti e ruoli",
@@ -561,8 +570,8 @@
       "digest": "Email di riepilogo giornaliero",
       "export_ready": "Esportazione CSV pronta",
       "other": "Altro",
-      "platform_failure": "Lavori in background che falliscono",
-      "mcp_proposal": "Proposta da un client AI"
+      "mcp_proposal": "Proposta da un client AI",
+      "platform_failure": "Lavori in background che falliscono"
     },
     "rendered": {
       "stock_critical_no_po": "{title} varianti in vendita con stock critico e nessun ordine d'acquisto",
@@ -1029,7 +1038,10 @@
     "fulfilled": "Spedito da Keel",
     "packed": "Imballato",
     "unpacked": "Tornato da imballare",
-    "delivery_instruction_sent": "Istruzione di consegna inviata"
+    "delivery_instruction_sent": "Istruzione di consegna inviata",
+    "cod_escalated": "Segnalazione contrassegno",
+    "cod_message": "Messaggio di conferma inviato",
+    "payment_method_changed": "Metodo di pagamento cambiato"
   },
   "shipments": {
     "title": "Spedizioni",
@@ -1867,11 +1879,11 @@
     "declared": {
       "title_meta": "Meta: dichiarato vs reale",
       "title_google": "Google: dichiarato vs reale",
-      "title_tiktok": "TikTok: dichiarato vs reale",
       "platform_says": "La piattaforma dichiara (acquisti · valore · ROAS)",
       "real": "Ordini reali attribuiti (ordini · netto · ROAS)",
       "gap": "Scarto",
-      "help": "Le piattaforme contano le conversioni con le proprie finestre e modelli; gli ordini reali sono gli ordini di vendita attribuiti da Keel. Uno scarto molto negativo vuol dire che la piattaforma sovrastima."
+      "help": "Le piattaforme contano le conversioni con le proprie finestre e modelli; gli ordini reali sono gli ordini di vendita attribuiti da Keel. Uno scarto molto negativo vuol dire che la piattaforma sovrastima.",
+      "title_tiktok": "TikTok: dichiarato vs reale"
     },
     "creatives_link": "Creatività",
     "creatives": {
@@ -2646,11 +2658,11 @@
       "shopify": "Shopify",
       "meta": "Meta Ads",
       "google": "Google Ads",
-      "tiktok": "TikTok Ads",
       "tracking": "Pixel e conversioni",
       "survey": "Sondaggio post-acquisto",
       "anthropic": "AI (Anthropic)",
-      "email": "Email di piattaforma"
+      "email": "Email di piattaforma",
+      "tiktok": "TikTok Ads"
     },
     "status": {
       "not_connected": "Non collegata",
@@ -2699,15 +2711,15 @@
       "shopify": "App custom (token Admin API)",
       "meta": "Token utente di sistema",
       "google": "Credenziali Google Ads API",
-      "tiktok": "App TikTok for Business",
-      "anthropic": "Chiave API Anthropic"
+      "anthropic": "Chiave API Anthropic",
+      "tiktok": "App TikTok for Business"
     },
     "connect_description": {
       "shopify": "Crea un'app custom nell'admin del negozio, concedi gli scope elencati nella guida, incolla il token Admin API e la chiave segreta usata per firmare i webhook.",
       "meta": "Un token utente di sistema a lunga durata da Business Manager con ads_read e ads_management sull'account pubblicitario.",
       "google": "Developer token, client OAuth e un refresh token autorizzato per lo scope Google Ads; sola lettura in questa versione.",
-      "tiktok": "App id e secret dell'app TikTok for Business e l'auth code restituito dall'autorizzazione dell'inserzionista; Keel lo scambia con un token a lunga durata valido per tutti gli account inserzionista autorizzati.",
-      "anthropic": "La chiave del negozio da console.anthropic.com. Anthropic addebita il consumo dell'assistente a quell'account; Keel conserva la chiave cifrata."
+      "anthropic": "La chiave del negozio da console.anthropic.com. Anthropic addebita il consumo dell'assistente a quell'account; Keel conserva la chiave cifrata.",
+      "tiktok": "App id e secret dell'app TikTok for Business e l'auth code restituito dall'autorizzazione dell'inserzionista; Keel lo scambia con un token a lunga durata valido per tutti gli account inserzionista autorizzati."
     },
     "fields": {
       "shop": "Dominio del negozio",
@@ -2824,6 +2836,11 @@
         {
           "title": "Importazione iniziale",
           "body": "Clicca Risincronizza: vengono importati location, prodotti, stock e sconti, poi gli ordini pagina per pagina con cursore riprendibile. I negozi grandi proseguono su più esecuzioni del worker; l'avanzamento è visibile in “Esecuzioni recenti”."
+        },
+        {
+          "title": "Prodotti: cosa modifica Keel",
+          "body": "Keel rispecchia in lettura tutti i campi del prodotto (contenuti multimediali, descrizione, stato e canali, organizzazione, varianti, SEO, metacampi) e riscrive solo titolo, descrizione, vendor, tipo, tag, stato, SEO, categoria, prezzo e prezzo di confronto delle varianti, SKU, codice a barre, peso, comportamento senza stock e contenuti (aggiunta da URL, ordine, rimozione, testo alternativo). Scope: read_products e write_products; read_publications per mostrare i canali di vendita. Tutto il resto apre il prodotto nell'admin di Shopify. Una modifica aperta prima di un cambiamento fatto in Shopify viene rifiutata con “cambiato in Shopify, ricarica”.",
+          "verify": true
         },
         {
           "title": "Regole di stato",
@@ -2971,73 +2988,6 @@
         }
       ],
       "scopes": "Lettura: scope adwords con accesso in lettura e developer token Basic. Facoltativo, solo per pausa annunci e parole chiave negative: lo stesso scope con un utente che può modificare l'account."
-    },
-    "tiktok": {
-      "title": "Collegare TikTok Ads",
-      "intro": "Campagne, gruppi di annunci e annunci (testo, video, miniatura) con spesa giornaliera, impression, clic, conversioni, valore delle conversioni e visualizzazioni video, da tutti gli account inserzionista autorizzati. Pausa e riattivazione di campagne e annunci chiedono conferma e passano dalla coda di scrittura. Incluso dal piano Growth.",
-      "steps": [
-        {
-          "title": "Creare l’app TikTok for Business",
-          "body": "Sul portale sviluppatori TikTok API for Business crea un’app (oppure usa quella di Keel, se TIKTOK_APP_ID è configurato). Imposta come redirect URL dell’inserzionista:\n{callbackUrl}",
-          "verify": true
-        },
-        {
-          "title": "Permessi",
-          "body": "Richiedi i gruppi di permessi che servono ai moduli attivi (riquadro a destra): Ad Account Management, Ads Management e Reporting per campagne e metriche; Creative Management per le miniature dei video. TikTok revisiona l’app prima che possa essere usata su account diversi dal tuo.",
-          "verify": true
-        },
-        {
-          "title": "Autorizzare gli account inserzionista",
-          "body": "Il titolare del negozio (o un admin del suo Business Center) apre il link di autorizzazione, sceglie gli account inserzionista e conferma. TikTok reindirizza con un auth_code valido pochi minuti e utilizzabile una sola volta.",
-          "verify": true
-        },
-        {
-          "title": "Collegare in Keel",
-          "body": "Integrazioni → TikTok Ads → Collega: app id, app secret e l’auth code (oppure “Autorizza con TikTok” con l’app di Keel). Keel scambia il codice con un token a lunga durata, lo salva cifrato (AES-GCM) e importa tutti gli inserzionisti coperti."
-        },
-        {
-          "title": "Template UTM",
-          "body": "In ogni annuncio, nei parametri URL (o in coda all’URL della landing page):\n{utmTemplate}\nTikTok compila __CAMPAIGN_ID__, __AID__ (gruppo di annunci) e __CID__ (annuncio). Insieme al click id ttclid collegano gli ordini a campagne, gruppi e annunci; gli annunci senza vengono segnalati nella pagina Suggerimenti.",
-          "verify": true
-        },
-        {
-          "title": "Versione dell’API",
-          "body": "Keel chiama la TikTok API for Business {apiVersion} (reporting: report/integrated/get, righe giornaliere in finestre fino a 30 giorni). Controlla il changelog prima di ogni rilascio.",
-          "verify": true
-        },
-        {
-          "title": "Verificare",
-          "body": "Testa connessione legge gli account inserzionista; Risincronizza importa campagne e metriche giornaliere, poi gruppi di annunci e annunci in finestre di 7 giorni (riprendibile, rispetta i limiti di frequenza). Il primo import copre gli ultimi 90 giorni."
-        }
-      ],
-      "errors": [
-        {
-          "symptom": "40105 / 40102 token non valido o scaduto",
-          "fix": "L’inserzionista ha revocato l’autorizzazione o il token è stato rigenerato: autorizza di nuovo e ricollega."
-        },
-        {
-          "symptom": "40001 permesso negato",
-          "fix": "All’app manca un gruppo di permessi, oppure l’account inserzionista non è stato selezionato durante l’autorizzazione."
-        },
-        {
-          "symptom": "40100 troppe richieste",
-          "fix": "Limite di frequenza: Keel mette in pausa la sincronizzazione e riparte dalla stessa finestra dopo l’attesa."
-        },
-        {
-          "symptom": "Auth code scaduto o già usato",
-          "fix": "L’auth code dura pochi minuti e vale una volta sola: ripeti l’autorizzazione."
-        },
-        {
-          "symptom": "Gli ordini non mostrano l’annuncio TikTok",
-          "fix": "Nei parametri URL mancano utm_content=__CID__ / utm_term=__AID__, oppure il negozio perde ttclid dall’URL di arrivo."
-        }
-      ],
-      "scopes": "L’analisi in sola lettura richiede Ad Account Management e Reporting; pausa e riattivazione richiedono anche Ads Management. Senza Creative Management funziona tutto tranne le miniature.",
-      "modules": {
-        "campaigns": "Campagne, gruppi, annunci e metriche",
-        "creatives": "Miniature dei video",
-        "pause": "Pausa / riattivazione"
-      }
     },
     "anthropic": {
       "title": "Collega l'assistente AI (Anthropic)",
@@ -3276,6 +3226,73 @@
           "fix": "RESEND_WEBHOOK_SECRET manca o è diversa dal signing secret dell'endpoint: il webhook risponde 401 o 503."
         }
       ]
+    },
+    "tiktok": {
+      "title": "Collegare TikTok Ads",
+      "intro": "Campagne, gruppi di annunci e annunci (testo, video, miniatura) con spesa giornaliera, impression, clic, conversioni, valore delle conversioni e visualizzazioni video, da tutti gli account inserzionista autorizzati. Pausa e riattivazione di campagne e annunci chiedono conferma e passano dalla coda di scrittura. Incluso dal piano Growth.",
+      "steps": [
+        {
+          "title": "Creare l’app TikTok for Business",
+          "body": "Sul portale sviluppatori TikTok API for Business crea un’app (oppure usa quella di Keel, se TIKTOK_APP_ID è configurato). Imposta come redirect URL dell’inserzionista:\n{callbackUrl}",
+          "verify": true
+        },
+        {
+          "title": "Permessi",
+          "body": "Richiedi i gruppi di permessi che servono ai moduli attivi (riquadro a destra): Ad Account Management, Ads Management e Reporting per campagne e metriche; Creative Management per le miniature dei video. TikTok revisiona l’app prima che possa essere usata su account diversi dal tuo.",
+          "verify": true
+        },
+        {
+          "title": "Autorizzare gli account inserzionista",
+          "body": "Il titolare del negozio (o un admin del suo Business Center) apre il link di autorizzazione, sceglie gli account inserzionista e conferma. TikTok reindirizza con un auth_code valido pochi minuti e utilizzabile una sola volta.",
+          "verify": true
+        },
+        {
+          "title": "Collegare in Keel",
+          "body": "Integrazioni → TikTok Ads → Collega: app id, app secret e l’auth code (oppure “Autorizza con TikTok” con l’app di Keel). Keel scambia il codice con un token a lunga durata, lo salva cifrato (AES-GCM) e importa tutti gli inserzionisti coperti."
+        },
+        {
+          "title": "Template UTM",
+          "body": "In ogni annuncio, nei parametri URL (o in coda all’URL della landing page):\n{utmTemplate}\nTikTok compila __CAMPAIGN_ID__, __AID__ (gruppo di annunci) e __CID__ (annuncio). Insieme al click id ttclid collegano gli ordini a campagne, gruppi e annunci; gli annunci senza vengono segnalati nella pagina Suggerimenti.",
+          "verify": true
+        },
+        {
+          "title": "Versione dell’API",
+          "body": "Keel chiama la TikTok API for Business {apiVersion} (reporting: report/integrated/get, righe giornaliere in finestre fino a 30 giorni). Controlla il changelog prima di ogni rilascio.",
+          "verify": true
+        },
+        {
+          "title": "Verificare",
+          "body": "Testa connessione legge gli account inserzionista; Risincronizza importa campagne e metriche giornaliere, poi gruppi di annunci e annunci in finestre di 7 giorni (riprendibile, rispetta i limiti di frequenza). Il primo import copre gli ultimi 90 giorni."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "40105 / 40102 token non valido o scaduto",
+          "fix": "L’inserzionista ha revocato l’autorizzazione o il token è stato rigenerato: autorizza di nuovo e ricollega."
+        },
+        {
+          "symptom": "40001 permesso negato",
+          "fix": "All’app manca un gruppo di permessi, oppure l’account inserzionista non è stato selezionato durante l’autorizzazione."
+        },
+        {
+          "symptom": "40100 troppe richieste",
+          "fix": "Limite di frequenza: Keel mette in pausa la sincronizzazione e riparte dalla stessa finestra dopo l’attesa."
+        },
+        {
+          "symptom": "Auth code scaduto o già usato",
+          "fix": "L’auth code dura pochi minuti e vale una volta sola: ripeti l’autorizzazione."
+        },
+        {
+          "symptom": "Gli ordini non mostrano l’annuncio TikTok",
+          "fix": "Nei parametri URL mancano utm_content=__CID__ / utm_term=__AID__, oppure il negozio perde ttclid dall’URL di arrivo."
+        }
+      ],
+      "scopes": "L’analisi in sola lettura richiede Ad Account Management e Reporting; pausa e riattivazione richiedono anche Ads Management. Senza Creative Management funziona tutto tranne le miniature.",
+      "modules": {
+        "campaigns": "Campagne, gruppi, annunci e metriche",
+        "creatives": "Miniature dei video",
+        "pause": "Pausa / riattivazione"
+      }
     }
   },
   "admin": {
@@ -3303,10 +3320,10 @@
         "support": "Supporto",
         "audit": "Audit"
       },
-      "jobs": "Esecuzioni dei job",
-      "alerts": "Avvisi di errore",
       "mcp": "MCP",
-      "subscriptions": "Abbonamenti"
+      "subscriptions": "Abbonamenti",
+      "jobs": "Esecuzioni dei job",
+      "alerts": "Avvisi di errore"
     },
     "plans": {
       "starter": "Starter",
@@ -3412,10 +3429,10 @@
         "shopify": "Shopify collegato",
         "meta": "Meta Ads collegato",
         "google": "Google Ads collegato",
-        "tiktok": "TikTok Ads collegato",
         "state_rules": "Regole di stato",
         "costs": "Costi configurati",
-        "billing": "Pagamenti in regola"
+        "billing": "Pagamenti in regola",
+        "tiktok": "TikTok Ads collegato"
       },
       "members": "Utenti",
       "open_balance": "Saldo aperto",
@@ -3617,6 +3634,40 @@
       },
       "remove": "Rimuovi",
       "guide_title": "Guida alla configurazione"
+    },
+    "mcp": {
+      "title": "Uso MCP",
+      "description": "Chiamate dei client AI per tenant negli ultimi 30 giorni e kill switch. Ogni intervento è scritto nell'audit log del tenant.",
+      "platform_disabled": "KEEL_MCP_DISABLED=1: il server MCP rifiuta ogni chiamata su questa installazione.",
+      "stat_calls": "Chiamate (30 giorni)",
+      "stat_errors": "Errori",
+      "stat_rate_limited": "Limitate",
+      "stat_connections": "Connessioni attive",
+      "stat_unknown_tokens": "Token sconosciuti",
+      "tenants_title": "Tenant",
+      "tenants_description": "Piano, stato, uso e kill switch per tenant.",
+      "col_tenant": "Tenant",
+      "col_status": "Stato",
+      "col_calls": "Chiamate",
+      "col_errors": "Errori",
+      "col_users": "Persone",
+      "col_connections": "Connessioni",
+      "col_last_call": "Ultima chiamata",
+      "col_kill": "Kill switch",
+      "pending": "{count} da approvare",
+      "denied_rl": "{denied} rifiutate · {limited} limitate",
+      "kill": "Sospendi MCP",
+      "kill_confirm": "Sospendere MCP per questo tenant? Ogni chiamata viene rifiutata finché non lo ripristini.",
+      "restore": "Ripristina MCP",
+      "note_placeholder": "Motivo (in audit)",
+      "availability": {
+        "ok": "Attivo",
+        "plan": "Non nel piano",
+        "tenant_disabled": "Spento (tenant)",
+        "killed": "Sospeso",
+        "platform_disabled": "Piattaforma spenta",
+        "suspended": "Tenant sospeso"
+      }
     },
     "platform_label": "Piattaforma",
     "export_csv": "Esporta CSV",
@@ -3847,40 +3898,6 @@
       "close": "Chiudi",
       "empty_title": "Nessun avviso",
       "empty_description": "Al momento non fallisce nulla."
-    },
-    "mcp": {
-      "title": "Uso MCP",
-      "description": "Chiamate dei client AI per tenant negli ultimi 30 giorni e kill switch. Ogni intervento è scritto nell'audit log del tenant.",
-      "platform_disabled": "KEEL_MCP_DISABLED=1: il server MCP rifiuta ogni chiamata su questa installazione.",
-      "stat_calls": "Chiamate (30 giorni)",
-      "stat_errors": "Errori",
-      "stat_rate_limited": "Limitate",
-      "stat_connections": "Connessioni attive",
-      "stat_unknown_tokens": "Token sconosciuti",
-      "tenants_title": "Tenant",
-      "tenants_description": "Piano, stato, uso e kill switch per tenant.",
-      "col_tenant": "Tenant",
-      "col_status": "Stato",
-      "col_calls": "Chiamate",
-      "col_errors": "Errori",
-      "col_users": "Persone",
-      "col_connections": "Connessioni",
-      "col_last_call": "Ultima chiamata",
-      "col_kill": "Kill switch",
-      "pending": "{count} da approvare",
-      "denied_rl": "{denied} rifiutate · {limited} limitate",
-      "kill": "Sospendi MCP",
-      "kill_confirm": "Sospendere MCP per questo tenant? Ogni chiamata viene rifiutata finché non lo ripristini.",
-      "restore": "Ripristina MCP",
-      "note_placeholder": "Motivo (in audit)",
-      "availability": {
-        "ok": "Attivo",
-        "plan": "Non nel piano",
-        "tenant_disabled": "Spento (tenant)",
-        "killed": "Sospeso",
-        "platform_disabled": "Piattaforma spenta",
-        "suspended": "Tenant sospeso"
-      }
     }
   },
   "cod": {
@@ -3892,7 +3909,9 @@
       "mine": "Miei",
       "unassigned": "Non assegnati",
       "scheduled": "Da richiamare",
-      "unreachable": "Non raggiungibili"
+      "unreachable": "Non raggiungibili",
+      "planned": "Programmati",
+      "escalated": "Segnalati"
     },
     "empty_title": "Coda vuota",
     "empty_description": "I nuovi ordini in contrassegno entrano qui automaticamente.",
@@ -3919,14 +3938,17 @@
       "no_answer": "Non risponde",
       "call_back": "Da richiamare",
       "modified": "Modificato",
-      "cancelled": "Annullato"
+      "cancelled": "Annullato",
+      "confirm_scheduled": "Conferma programmata",
+      "message_sent": "Messaggio inviato"
     },
     "outcomes_hint": {
       "confirmed": "Il cliente ha confermato",
       "no_answer": "Conta verso non raggiungibile",
       "call_back": "Scegli data e ora",
       "modified": "Modifiche concordate, resta in coda",
-      "cancelled": "Il cliente rifiuta: l'ordine viene annullato sulla piattaforma"
+      "cancelled": "Il cliente rifiuta: l'ordine viene annullato sulla piattaforma",
+      "confirm_scheduled": "Il cliente accetta, ma da un giorno successivo"
     },
     "call_back_at": "Richiamare il",
     "note_optional": "Nota (facoltativa)",
@@ -3955,7 +3977,8 @@
       "unreachable": "Non raggiungibile",
       "confirmed": "Confermato al telefono",
       "cancelled": "Annullato",
-      "left": "Uscito dalla coda"
+      "left": "Uscito dalla coda",
+      "confirm_scheduled": "Conferma programmata"
     },
     "card_title": "Contrassegno",
     "weight_n": "peso {n}",
@@ -4102,10 +4125,204 @@
       "tags_clear_on_close": "Su confermato e annullato rimuovi anche tutti i tag di coda",
       "cancel_restock": "Rimetti a stock le righe quando un esito annulla l'ordine",
       "tags_placeholder": "Tag uno, Tag due",
-      "tags_event_replaced": "Sostituito da un nuovo ordine"
+      "tags_event_replaced": "Sostituito da un nuovo ordine",
+      "ops": {
+        "title": "Comportamento della coda",
+        "description": "Colori delle righe, conferme programmate, trasferimenti, segnalazione dei colli di bottiglia, righe del costo contrassegno e automazione dei resi al mittente.",
+        "fields": {
+          "agingWarnHours": "Giallo dopo ore",
+          "agingAlertHours": "Rosso dopo ore",
+          "scheduledConfirmHour": "Conferme programmate dalle (ora)",
+          "transferDailyLimit": "Trasferimenti per operatore al giorno",
+          "bottleneckFactor": "Collo di bottiglia a × media del team",
+          "feeLineMatch": "Righe costo contrassegno (SKU o titolo)",
+          "refusalCostMinor": "Costo di un pacco rifiutato (centesimi)"
+        },
+        "fee_help": "Tolte quando l'operatore passa una sostituzione a un metodo prepagato. Un * finale indica un prefisso.",
+        "refusal_help": "In unità minime ({decimals} decimali). 0 = il doppio della stima del costo di spedizione.",
+        "rts_label": "Annulla i pacchi contrassegno non pagati tornati al mittente",
+        "rts_help": "Quando si apre un caso di reso al mittente su un ordine in contrassegno non pagato, l'ordine viene annullato sul negozio senza rientro a stock e il pagamento in attesa viene annullato. Il caso resta aperto per il controllo fisico."
+      },
+      "templates": {
+        "title": "Messaggi di conferma",
+        "description": "Modelli che gli operatori copiano o inviano dalla scheda contrassegno (WhatsApp, SMS…) tramite il canale di messaggistica collegato all'account. Ogni invio conta come tentativo di contatto.",
+        "variables": "Variabili:",
+        "key": "Chiave",
+        "name": "Nome",
+        "body": "Testo",
+        "remove": "Rimuovi",
+        "add": "Aggiungi modello",
+        "webhook_title": "Ricevute di consegna",
+        "webhook_help": "Indica questo indirizzo al provider di messaggistica per le ricevute di consegna e lettura.",
+        "copy": "Copia"
+      },
+      "preview": {
+        "title": "Anteprima punteggio",
+        "description": "Punteggio di consegna di qualsiasi ordine con i pesi attuali, senza salvarlo.",
+        "order": "Numero ordine",
+        "run": "Calcola",
+        "base": "prima del rischio: {n}"
+      },
+      "carrier": {
+        "title": "Importazione esiti corriere",
+        "description": "CSV della fatturazione o delle rimesse contrassegno del corriere: consegnato o rifiutato per pacco. Abbinato per numero di tracking o d'ordine; alimenta il rischio destinatari e i costi sprecati.",
+        "file": "File CSV",
+        "paste": "Oppure incolla il CSV",
+        "format": "Colonne: riferimento (tracking o ordine), esito (consegnato / rifiutato), data e costo facoltativi. Separatore ; , o tab.",
+        "import": "Importa",
+        "result": "{imported} righe, {matched} abbinate, {unmatched} non abbinate, {errors} scartate.",
+        "batch_counts": "{rows} righe · {matched} abbinate · {refused} rifiutate"
+      }
     },
     "filter_by_tag": "Tag:",
-    "all_tags": "Tutti"
+    "all_tags": "Tutti",
+    "days_n": "{n} g",
+    "avg_age": "età media {age}",
+    "never_contacted": "Mai chiamato · {age}",
+    "planned_badge": "Conferma il {date}",
+    "planned_failed": "Conferma programmata non riuscita",
+    "planned_error": "La conferma programmata è stata rifiutata dal negozio ({error}); verrà ritentata al prossimo giro giornaliero.",
+    "escalated": "Segnalato",
+    "escalated_note": "Segnalato a un amministratore: {reason}",
+    "team_link": "Console del team",
+    "attempts_n": "{n} tentativi",
+    "warehouse_lines": "Articoli per il magazzino",
+    "copy": "Copia",
+    "confirm_on": "Conferma il",
+    "confirm_on_hint": "Un job giornaliero conferma l'ordine quella mattina (dall'ora impostata nelle impostazioni contrassegno). Se il negozio rifiuta, la data resta e si riprova il giorno dopo.",
+    "nav_position": "{position} di {total} · {view}",
+    "system": "sistema",
+    "channels": {
+      "scheduled": "programmato",
+      "bulk": "in blocco",
+      "messaging-mock": "messaggio"
+    },
+    "risk_panel": {
+      "refused": "Rifiutati",
+      "wasted": "Costo sprecato in rifiuti",
+      "expected": "Valore atteso",
+      "tier": "Fascia destinatario",
+      "linked": "Contatti collegati",
+      "hint": "Valore atteso = probabilità di consegna (punteggio) × margine − probabilità di rifiuto × {cost} per pacco rifiutato."
+    },
+    "messages": {
+      "timeline": "Messaggi ({n})",
+      "status": {
+        "sent": "Inviato",
+        "delivered": "Consegnato",
+        "read": "Letto",
+        "failed": "Non riuscito"
+      },
+      "copy": "Copia testo",
+      "send": "Invia",
+      "sent": "Inviato, registrato come tentativo n. {n}.",
+      "no_phone": "L'ordine non ha un numero di telefono",
+      "action_failed": "Impossibile inviare il messaggio."
+    },
+    "transfer": {
+      "menu": "Trasferisci",
+      "release": "Rilascia in coda",
+      "pass_to": "Passa a un collega",
+      "left_today": "ancora {n} oggi",
+      "no_transfer_after_call": "Dopo la prima chiamata solo un amministratore può trasferire l'ordine.",
+      "escalate": "Segnala a un amministratore",
+      "resolve": "Chiudi la segnalazione",
+      "escalate_title": "Segnala questo ordine",
+      "escalate_description": "Gli amministratori ricevono una notifica e l'ordine resta nella vista Segnalati finché uno di loro non la chiude.",
+      "reason": "Motivo",
+      "action_failed": "Operazione non riuscita."
+    },
+    "precheck": {
+      "open": "Verifica preliminare ({n})",
+      "title": "Prima di chiamare {order}",
+      "recomputed": "Il punteggio era vecchio ed è stato appena ricalcolato. Punti da verificare al telefono:",
+      "description": "Punti da verificare al telefono:",
+      "severity": {
+        "critical": "Critico",
+        "warning": "Attenzione"
+      },
+      "previous_addresses": "Altri indirizzi usati da questo cliente",
+      "close": "Ho capito"
+    },
+    "bulk": {
+      "select_all": "Seleziona tutti",
+      "selected": "{n} selezionati",
+      "assign": "Assegna",
+      "assign_to": "Assegna a",
+      "unassign": "Togli l'operatore",
+      "distribute": "Distribuisci in parti uguali",
+      "confirm": "Conferma",
+      "cancel": "Annulla ordini",
+      "confirm_question": "Confermare {n} ordini?",
+      "cancel_question": "Annullare {n} ordini sul negozio?",
+      "yes": "Sì",
+      "clear": "Deseleziona",
+      "result": "{done} eseguiti, {failed} rifiutati.",
+      "failed": "Azione in blocco non riuscita."
+    },
+    "team": {
+      "title": "Console customer care",
+      "description": "Chi ha cosa in carico adesso, l'efficienza di ogni operatore nel periodo e cosa ha gestito ciascuno.",
+      "tabs": {
+        "supervisor": "Supervisione",
+        "efficiency": "Efficienza",
+        "attribution": "Gestiti per operatore"
+      },
+      "supervisor_title": "Ordini aperti per operatore",
+      "supervisor_description": "Media del team {avg} da chiamare. Chi è molto sopra è segnalato come collo di bottiglia.",
+      "to_call": "Da chiamare",
+      "overdue": "Richiami scaduti",
+      "never_contacted": "Mai chiamati",
+      "oldest": "Più vecchio",
+      "bottleneck": "Collo di bottiglia",
+      "empty_title": "Nessuna chiamata nel periodo",
+      "empty_description": "Scegli un altro periodo.",
+      "efficiency_title": "Efficienza",
+      "efficiency_description": "Dai tentativi registrati: ordini gestiti, quota confermata, tentativi per conferma, tempo dall'ingresso in coda alla chiamata di chiusura, ordini chiusi per giorno attivo.",
+      "handled": "Gestiti",
+      "confirmed_pct": "% confermati",
+      "attempts_per_confirmation": "Tentativi / conferma",
+      "avg_handling": "Tempo medio di gestione",
+      "throughput": "Produttività",
+      "system": "Programmati (sistema)",
+      "messages_n": "{n} messaggi",
+      "minutes_n": "{n} min",
+      "per_day": "{n}/giorno",
+      "attribution_title": "Ordini gestiti",
+      "all_outcomes": "Tutti",
+      "pick_operator": "Scegli un operatore.",
+      "last_outcome": "Ultimo esito",
+      "last_at": "Ultima chiamata"
+    },
+    "widgets": {
+      "pending": {
+        "today": "oggi",
+        "yesterday": "ieri",
+        "week": "7 giorni",
+        "total": "{n} aperti in tutto"
+      },
+      "mine": {
+        "call_backs": "{n} richiami scaduti",
+        "never": "{n} mai chiamati",
+        "planned": "{n} programmati",
+        "unreachable": "{n} irraggiungibili"
+      },
+      "operators": {
+        "empty": "Nessun ordine in contrassegno aperto.",
+        "unassigned": "Non assegnati",
+        "overdue": "{n} scaduti"
+      }
+    },
+    "modify": {
+      "payment_method": "Metodo di pagamento del nuovo ordine",
+      "keep_cod": "Mantieni contrassegno",
+      "methods": {
+        "card": "Carta (link di pagamento inviato a parte)",
+        "bank_transfer": "Bonifico",
+        "other": "Altro metodo prepagato"
+      },
+      "payment_hint": "L'ordine viene ricreato con il nuovo metodo, pagamento in attesa: le righe del costo contrassegno vengono tolte ed esce dalla coda conferme."
+    }
   },
   "po_pdf": {
     "title": "Ordine d'acquisto",
@@ -5024,7 +5241,6 @@
       "roas": "ROAS",
       "meta": "Meta",
       "google": "Google",
-      "tiktok": "TikTok",
       "slipping": "clienti di valore a rischio",
       "due_soon": "prossimi al riacquisto",
       "top": "valore previsto più alto",
@@ -5034,7 +5250,8 @@
       "consider_pause": "Valuta la pausa",
       "consider_resume": "Valuta la riattivazione",
       "pause_stock": "Pausa: stock basso",
-      "consider_stock": "Controlla lo stock"
+      "consider_stock": "Controlla lo stock",
+      "tiktok": "TikTok"
     },
     "open_source": "Apri la pagina",
     "figures": {
@@ -5913,7 +6130,10 @@
       "discount_status": "Attivazione sconto",
       "discount_pool_status": "Attivazione pool di sconti",
       "ad_status": "Stato annuncio",
-      "keyword_negative": "Parola chiave negativa"
+      "keyword_negative": "Parola chiave negativa",
+      "product_update": "Dettagli prodotto",
+      "variant_details": "Dettagli variante",
+      "product_media": "Contenuti del prodotto"
     }
   },
   "dev_inbox": {
@@ -6641,670 +6861,6 @@
       }
     }
   },
-  "data_export": {
-    "title": "Esportazione dati",
-    "description": "Scarica tutto ciò che Keel conserva per questo negozio.",
-    "what_title": "Esportazione completa dei dati del negozio",
-    "what_description": "Un file CSV per tabella (ordini, clienti, prodotti, resi, campagne, impostazioni e altro) in un archivio zip, generato in background. Ricevi una notifica quando è pronto; il link di download scade dopo {days} giorni. Le credenziali delle integrazioni e gli altri segreti non sono mai inclusi.",
-    "request": "Esporta tutti i dati",
-    "requesting": "Avvio…",
-    "errors": {
-      "in_progress": "C'è già un'esportazione in corso.",
-      "generic": "Non è stato possibile avviare l'esportazione."
-    },
-    "empty_title": "Nessuna esportazione",
-    "empty_description": "Le esportazioni che avvii compaiono qui con il link di download.",
-    "columns": {
-      "requested": "Richiesta",
-      "status": "Stato",
-      "rows": "Righe",
-      "expires": "Scadenza link",
-      "file": "File"
-    },
-    "by_platform": "Supporto Keel",
-    "statuses": {
-      "pending": "In coda",
-      "running": "In corso",
-      "done": "Pronta",
-      "failed": "Non riuscita",
-      "expired": "Scaduta"
-    },
-    "tables_n": "{n} tabelle",
-    "download": "Scarica",
-    "downloads": "{n, plural, one {scaricata una volta} other {scaricata # volte}}"
-  },
-  "dashboards": {
-    "title": "Dashboard",
-    "description": "La home che vede il team, le varianti per ruolo, le dashboard aggiuntive e le copie personali.",
-    "home_description": "La dashboard del team, disegnata dai titolari del negozio.",
-    "edit": "Modifica dashboard",
-    "customise": "Personalizza",
-    "home_name": "Home",
-    "preview_as": "Anteprima come…",
-    "preview_banner": "Anteprima come {role}",
-    "draft_banner": "bozza non pubblicata",
-    "exit_preview": "Esci dall'anteprima",
-    "draft_badge": "Modifiche non pubblicate",
-    "template_badge": "Modello Keel",
-    "customised_badge": "Personalizzata",
-    "open": "Apri",
-    "home": "Home",
-    "home_template": "La home è il modello Keel: segue gli aggiornamenti di Keel finché non la personalizzi.",
-    "home_custom": "Home personalizzata: {name}.",
-    "reset_home": "Ripristina il modello Keel",
-    "reset_home_confirm": "La home torna al modello Keel. Le varianti per ruolo restano. Continuare?",
-    "reset_all": "Ripristina home e varianti",
-    "reset_all_confirm": "La home e tutte le varianti per ruolo tornano al modello Keel. Continuare?",
-    "personal_toggle": "Dashboard personali",
-    "personal_toggle_hint": "Se attive, chiunque può copiare una dashboard in una personale. Le dashboard del negozio restano il riferimento.",
-    "name": "Nome",
-    "kind": "Tipo",
-    "scope_new": {
-      "tenant": "Dashboard aggiuntiva",
-      "role": "Variante della home per ruoli",
-      "personal": "Copia personale della mia home"
-    },
-    "roles_variant": "Ruoli che vedono questa home",
-    "roles_visible": "Ruoli che possono aprirla",
-    "roles_all_hint": "Nessuno selezionato: tutto il team.",
-    "create": "Crea",
-    "copy_of": "Copia di {name}",
-    "duplicate": "Crea una copia personale",
-    "delete": "Elimina",
-    "delete_confirm": "Eliminare questa dashboard?",
-    "scope": {
-      "tenant": "Dashboard del negozio",
-      "role": "Variante della home",
-      "personal": "Dashboard personale"
-    },
-    "personal_description": "La vedi solo tu.",
-    "visible_to": "Visibile a: {roles}",
-    "visible_all": "Visibile a tutto il team",
-    "widgets_n": "{n, plural, one {# widget} other {# widget}}",
-    "variants": "Varianti della home per ruolo",
-    "variants_description": "Un ruolo con una variante vede quella al posto della home del negozio.",
-    "variants_empty": "Nessuna variante: tutti i ruoli vedono la home del negozio.",
-    "extras": "Altre dashboard",
-    "extras_description": "Dashboard con un nome, per esempio la revisione settimanale.",
-    "extras_empty": "Ancora nessuna altra dashboard.",
-    "personal": "Le mie dashboard",
-    "personal_hint": "Le tue copie: modificale come vuoi.",
-    "personal_empty": "Nessuna dashboard personale.",
-    "new_dashboard": "Nuova dashboard",
-    "settings": "Impostazioni",
-    "metrics_page": "Metriche e obiettivi",
-    "metrics_description": "Le metriche che le dashboard possono mostrare: il catalogo di Keel e le tue formule, con gli obiettivi mensili.",
-    "custom_metrics": "Metriche personalizzate",
-    "custom_metrics_hint": "Formule sulle metriche di base, anche su ordini filtrati. Ogni modifica finisce nel registro attività.",
-    "custom_metrics_empty": "Ancora nessuna metrica personalizzata.",
-    "this_month": "Questo mese",
-    "targets": "Obiettivi mensili",
-    "targets_hint": "Un mese senza obiettivo proprio usa l'ultimo precedente.",
-    "catalog": "Catalogo metriche",
-    "catalog_hint": "Metriche di base calcolate dai servizi di Keel: tornano con il P/L, le campagne e il magazzino.",
-    "catalog_group": "Gruppo",
-    "catalog_flags": "Uso",
-    "flag_snapshot": "adesso",
-    "flag_filterable": "filtri",
-    "flag_series": "serie",
-    "catalog_pending": "Sessioni e tasso di conversione arriveranno con il collegamento GA4; TikTok e termini di ricerca con le loro integrazioni.",
-    "periods": {
-      "today": "Oggi",
-      "7d": "7 giorni",
-      "30d": "30 giorni",
-      "90d": "90 giorni",
-      "mtd": "Mese in corso",
-      "last_month": "Mese scorso",
-      "ytd": "Anno in corso",
-      "follow": "Periodo della dashboard"
-    },
-    "widget": {
-      "error": "Questo widget non si è caricato. Il resto della dashboard funziona.",
-      "forbidden": "Non disponibile per il tuo ruolo.",
-      "unavailable": "Questo widget non è disponibile per il tuo piano.",
-      "days_unit": "giorni",
-      "open_list": "Apri",
-      "now": "adesso",
-      "vs_previous": "vs periodo precedente",
-      "filtered": "filtrata",
-      "unknown": "Sconosciuto",
-      "empty": "Niente in questo periodo.",
-      "breakdown_title": "{metric} per {by}",
-      "target_title": "{metric}: obiettivo del mese",
-      "no_target": "Nessun obiettivo per questo mese.",
-      "of_target": "su {target}",
-      "projected": "Proiezione a fine mese {value} (giorno {elapsed} di {days})",
-      "no_alerts": "Nessun avviso recente.",
-      "empty_note": "Nota vuota."
-    },
-    "widget_groups": {
-      "metrics": "Metriche",
-      "charts": "Grafici",
-      "lists": "Elenchi",
-      "queues": "Code di lavoro",
-      "content": "Contenuti",
-      "keel": "Riquadri della home Keel"
-    },
-    "widget_types": {
-      "kpi": {
-        "name": "Riquadro KPI",
-        "description": "Una metrica con confronto e andamento."
-      },
-      "timeseries": {
-        "name": "Serie temporale",
-        "description": "1–3 metriche per giorno, settimana o mese."
-      },
-      "breakdown": {
-        "name": "Ripartizione",
-        "description": "Una metrica per canale, paese, pagamento, prodotto, campagna o piattaforma."
-      },
-      "top_list": {
-        "name": "Classifica",
-        "description": "Migliori prodotti, campagne o clienti."
-      },
-      "target": {
-        "name": "Obiettivo",
-        "description": "Mese in corso rispetto all'obiettivo, con proiezione."
-      },
-      "alerts": {
-        "name": "Avvisi",
-        "description": "Gli ultimi avvisi scattati."
-      },
-      "note": {
-        "name": "Nota",
-        "description": "Testo per il team (markdown)."
-      },
-      "queue_review": {
-        "name": "Ordini da verificare",
-        "description": "Ordini in attesa di verifica."
-      },
-      "queue_late": {
-        "name": "In ritardo di spedizione",
-        "description": "Ordini pronti oltre la scadenza di spedizione."
-      },
-      "queue_awaiting_stock": {
-        "name": "In attesa di stock",
-        "description": "Ordini fermi per stock mancante."
-      },
-      "queue_exceptions": {
-        "name": "Eccezioni di consegna",
-        "description": "Casi di eccezione aperti."
-      },
-      "queue_integrations": {
-        "name": "Salute integrazioni",
-        "description": "Collegamenti o sync in errore e webhook falliti."
-      },
-      "today_kpis": {
-        "name": "KPI di oggi",
-        "description": "Vendite, ordini, valore medio e annullamenti di oggi."
-      },
-      "sales_30d": {
-        "name": "Vendite, ultimi 30 giorni",
-        "description": "Vendite e ordini al giorno."
-      },
-      "month_forecast": {
-        "name": "Previsione del mese",
-        "description": "Ricavi, ordini e spesa ads previsti."
-      },
-      "work_queue": {
-        "name": "Da gestire",
-        "description": "Tutto ciò che è aperto, con i conteggi."
-      },
-      "stock_backorders": {
-        "name": "Stock e backorder",
-        "description": "Ordini in attesa di stock, più venduti in esaurimento."
-      },
-      "today_by_status": {
-        "name": "Ordini di oggi per stato",
-        "description": "Gli ordini di oggi per stato."
-      },
-      "cod_queue": {
-        "name": "Contrassegni da confermare",
-        "description": "Ordini in contrassegno in attesa di chiamata."
-      }
-    },
-    "metrics": {
-      "net_revenue": "Ricavi netti",
-      "gross_revenue": "Vendite lorde",
-      "orders": "Ordini",
-      "aov": "Valore medio ordine",
-      "ad_spend": "Spesa ads",
-      "cogs": "Costo del venduto",
-      "gross_margin": "Margine lordo",
-      "shipping": "Costi di spedizione",
-      "fees": "Commissioni di pagamento",
-      "fixed_costs": "Costi fissi",
-      "contribution": "Margine di contribuzione",
-      "operating_profit": "Utile operativo",
-      "refunds": "Rimborsi",
-      "new_customers": "Nuovi clienti",
-      "mer": "MER",
-      "nc_roas": "nc-ROAS",
-      "cac": "CAC complessivo",
-      "poas": "POAS",
-      "cancel_rate": "Tasso di annullamento",
-      "returns_rate": "Tasso di reso",
-      "return_cost": "Costi dei resi",
-      "repeat_customer_rate": "Clienti ricorrenti",
-      "stock_value_cost": "Valore magazzino al costo",
-      "coverage_days": "Giorni di copertura",
-      "out_of_stock_variants": "Varianti esaurite",
-      "incoming_po_value": "Valore merce in arrivo",
-      "meta_spend": "Spesa Meta",
-      "meta_roas": "ROAS Meta",
-      "meta_cpa": "CPA Meta",
-      "meta_ctr": "CTR Meta",
-      "google_spend": "Spesa Google",
-      "google_roas": "ROAS Google",
-      "google_cpa": "CPA Google",
-      "google_ctr": "CTR Google",
-      "tiktok_spend": "Spesa TikTok",
-      "tiktok_roas": "ROAS TikTok",
-      "tiktok_cpa": "CPA TikTok",
-      "tiktok_ctr": "CTR TikTok"
-    },
-    "metric_groups": {
-      "finance": "Economia",
-      "orders": "Ordini e resi",
-      "customers": "Clienti",
-      "inventory": "Magazzino",
-      "ads": "Ads per piattaforma",
-      "custom": "Metriche personalizzate"
-    },
-    "breakdown_dims": {
-      "channel": "canale",
-      "country": "paese",
-      "payment_method": "metodo di pagamento",
-      "product": "prodotto",
-      "campaign": "campagna",
-      "platform": "piattaforma"
-    },
-    "top_entities": {
-      "products": "Prodotti migliori",
-      "campaigns": "Campagne migliori per profitto",
-      "customers": "Clienti migliori",
-      "ads": "Annunci migliori per profitto",
-      "keywords": "Parole chiave migliori per profitto",
-      "search_terms": "Termini di ricerca per spesa"
-    },
-    "top_secondary": {
-      "products": "{v} pezzi",
-      "campaigns": "ROAS {v}",
-      "customers": "{v} ordini",
-      "ads": "ROAS {v}",
-      "keywords": "ROAS {v}",
-      "search_terms": "{v} ordini"
-    },
-    "granularity": {
-      "day": "Giorno",
-      "week": "Settimana",
-      "month": "Mese"
-    },
-    "channels": {
-      "paid_social": "Social a pagamento",
-      "paid_search": "Ricerca a pagamento",
-      "organic_search": "Ricerca organica",
-      "email": "Email",
-      "social": "Social",
-      "direct": "Diretto",
-      "referral": "Referral",
-      "unknown": "Sconosciuto"
-    },
-    "queue_parts": {
-      "connections": "{n} collegamenti",
-      "sources": "{n} sync",
-      "webhooks": "{n} webhook",
-      "unassigned": "{n} non assegnati"
-    },
-    "editor": {
-      "title": "Modifica: {name}",
-      "description": "Le modifiche restano in bozza: guardale in anteprima come un ruolo, poi pubblica.",
-      "published": "Pubblicata.",
-      "saved": "Bozza salvata.",
-      "none": "— nessuna —",
-      "title_field": "Titolo (facoltativo)",
-      "title_placeholder": "Automatico",
-      "width": "Larghezza",
-      "height": "Altezza",
-      "columns": "{n, plural, one {# colonna} other {# colonne}}",
-      "rows": "{n, plural, one {# riga} other {# righe}}",
-      "period": "Periodo",
-      "metric": "Metrica",
-      "compare": "Confronta con",
-      "compare_previous": "Periodo precedente",
-      "compare_none": "Niente",
-      "sparkline": "Mostra l'andamento",
-      "series_n": "Metrica {n}",
-      "chart": "Grafico",
-      "chart_line": "Linee",
-      "chart_bar": "Barre",
-      "granularity": "Per",
-      "by": "Ripartisci per",
-      "limit": "Righe",
-      "entity": "Elenco",
-      "note_text": "Testo",
-      "note_hint": "Titoli (#), elenchi (-), **grassetto**, *corsivo*, [link](https://…). L'HTML viene mostrato come testo.",
-      "note_translation": "Testo in {locale} (facoltativo)",
-      "dashboard_period": "Periodo della dashboard",
-      "save_draft": "Salva bozza",
-      "publish": "Pubblica",
-      "preview_as": "Salva e guarda come…",
-      "discard": "Scarta bozza",
-      "reset_confirm": "Sostituire i widget con il modello Keel? Pubblica per applicare.",
-      "reset_template": "Ripristina modello Keel",
-      "count": "{n} di {max} widget",
-      "drag_hint": "Trascina i widget per riordinarli, o usa le frecce. Clicca un widget per configurarlo.",
-      "configure": "Configura",
-      "move_up": "Sposta su",
-      "move_down": "Sposta giù",
-      "remove": "Rimuovi",
-      "size": "{w}×{h}",
-      "empty": "Nessun widget: aggiungine uno dal catalogo.",
-      "settings": "Impostazioni widget",
-      "add_widget": "Aggiungi un widget",
-      "done": "Fatto"
-    },
-    "errors": {
-      "generic": "Qualcosa è andato storto.",
-      "forbidden": "Non puoi modificare questa dashboard.",
-      "not_found": "Dashboard non trovata.",
-      "invalid_layout": "Alcuni widget non sono validi.",
-      "too_many_widgets": "Troppi widget per una dashboard.",
-      "module_disabled": "Un widget richiede un modulo che il negozio non ha.",
-      "role_taken": "Un ruolo selezionato ha già una variante della home.",
-      "home_exists": "La home del negozio esiste già.",
-      "invalid_input": "Controlla i campi.",
-      "personal_off": "Le dashboard personali sono disattivate per questo negozio.",
-      "invalid_formula": "La formula non è valida.",
-      "invalid_filters": "I filtri non sono validi.",
-      "invalid_key": "Scegli un'altra chiave: è vuota o è una metrica di base.",
-      "not_filterable": "Con i filtri usa solo metriche calcolate dagli ordini (non costi fissi, utile operativo, nuovi clienti o magazzino)."
-    },
-    "builder": {
-      "saved": "Metrica salvata.",
-      "label": "Nome",
-      "label_placeholder": "Contribuzione per ordine",
-      "key": "Chiave",
-      "key_placeholder": "dal nome",
-      "formula": "Formula",
-      "formula_ok": "Formula valida.",
-      "formula_error": "Non valida",
-      "formula_help": "Combina le metriche di base con + − × ÷ e parentesi, es. contribution / orders.",
-      "available": "Metriche disponibili",
-      "filters": "Calcolata su",
-      "filters_hint": "Lascia vuoto per tutto il negozio. I filtri tengono solo gli ordini corrispondenti.",
-      "f_channel": "Canale",
-      "f_country": "Paese",
-      "f_payment": "Metodo di pagamento",
-      "f_platform": "Piattaforma ads",
-      "f_campaign": "Campagna",
-      "f_product": "Prodotto",
-      "f_product_type": "Tipo di prodotto",
-      "f_customer": "Clienti",
-      "f_customer_all": "Tutti",
-      "f_customer_new": "Nuovi (primo ordine)",
-      "f_customer_returning": "Ricorrenti",
-      "format": "Formato",
-      "formats": {
-        "money": "Valuta",
-        "percent": "Percentuale",
-        "ratio": "Rapporto (×)",
-        "number": "Numero"
-      },
-      "direction": "Andamento",
-      "higher_better": "Più alto è meglio",
-      "lower_better": "Più basso è meglio",
-      "translation": "Nome in {locale}",
-      "description_field": "Descrizione",
-      "preview": "Anteprima del mese",
-      "save": "Salva metrica",
-      "cancel": "Annulla",
-      "preview_value": "Questo mese: {value} (periodo precedente {previous})",
-      "delete": "Elimina",
-      "delete_confirm": "Eliminare la metrica? I widget che la usano mostreranno un trattino.",
-      "invalid_target": "Obiettivo non valido.",
-      "target_saved": "Obiettivo salvato.",
-      "target_metric": "Metrica",
-      "target_month": "Mese",
-      "target_value_money": "Obiettivo (valuta)",
-      "target_value_percent": "Obiettivo (%)",
-      "target_value_number": "Obiettivo",
-      "target_clear": "vuoto = rimuovi",
-      "target_save": "Imposta obiettivo",
-      "edit_title": "Modifica {name}",
-      "new_title": "Nuova metrica",
-      "hint": "Solo titolari e amministratori creano o modificano le metriche.",
-      "filter_names": {
-        "channel": "Canale",
-        "country": "Paese",
-        "paymentMethod": "Pagamento",
-        "productIds": "Prodotti",
-        "productType": "Tipo prodotto",
-        "campaignIds": "Campagne",
-        "platform": "Piattaforma",
-        "customerType": "Clienti"
-      }
-    },
-    "payment_methods": {
-      "card": "Carta",
-      "wallet": "Wallet",
-      "bank_transfer": "Bonifico",
-      "cod": "Contrassegno",
-      "bnpl": "Paga dopo (BNPL)",
-      "other": "Altro"
-    },
-    "platforms": {
-      "meta": "Meta",
-      "google": "Google",
-      "tiktok": "TikTok"
-    }
-  },
-  "ads": {
-    "nav": {
-      "label": "Analisi campagne",
-      "campaigns": "Campagne",
-      "creatives": "Creatività",
-      "keywords": "Parole chiave e ricerche",
-      "words": "Parole",
-      "recommendations": "Suggerimenti"
-    },
-    "cols": {
-      "name": "Nome",
-      "spend": "Spesa",
-      "impressions": "Impression",
-      "ctr": "CTR",
-      "platform_conv": "Conv. piattaforma",
-      "keel_orders": "Ordini Keel",
-      "revenue": "Ricavo netto",
-      "profit": "Profitto",
-      "roas": "ROAS",
-      "frequency": "Frequenza",
-      "match": "Corrispondenza",
-      "quality": "Qualità",
-      "campaign": "Campagna",
-      "action": "Azione",
-      "phrase": "Frase",
-      "items": "Usata in",
-      "margin": "Margine",
-      "cpa": "CPA",
-      "field": "Campo",
-      "asset": "Asset",
-      "keel_orders_allocated": "Ordini Keel (ripartiti)",
-      "date": "Data",
-      "search_term": "Termine di ricerca",
-      "clicks": "Clic",
-      "reason": "Perché",
-      "ad": "Annuncio"
-    },
-    "excluded_n": "+{n} annullati/resi",
-    "ad_sets_title": "Gruppi di inserzioni",
-    "ad_groups_title": "Gruppi di annunci",
-    "ad_sets_description": "I numeri della piattaforma accanto a quelli di Keel: ordini, ricavi e profitto contano solo gli ordini non annullati e non resi.",
-    "utm_missing": "{n} annunci su {total} non hanno {params}: i loro ordini arrivano a Keel senza annuncio. Aggiungi questo modello agli annunci:",
-    "no_ad_sets": "Ancora nessun gruppo",
-    "no_ad_sets_hint": "Arrivano con la prossima sincronizzazione delle ads.",
-    "keel_not_visible": "Keel non vede gli ordini di questa riga (il modello UTM non la nomina).",
-    "n_ads": "{n} annunci",
-    "n_keywords": "{n} parole chiave",
-    "unassigned_orders": "{n} ordini della campagna non sono legati a un gruppo",
-    "open_orders": "Apri gli ordini",
-    "reconciliation": "Spesa degli annunci {ads} su {campaign} · non allocata {unallocated}",
-    "ad_set": "Gruppo di inserzioni",
-    "ad_group": "Gruppo di annunci",
-    "status": {
-      "active": "Attivo",
-      "paused": "In pausa",
-      "archived": "Archiviato"
-    },
-    "ads_title": "Annunci",
-    "ads_description": "Affaticamento: la frequenza sale mentre il CTR scende. I suggerimenti sono in sola lettura: decide una persona.",
-    "no_ads": "Nessun annuncio in questo gruppo",
-    "keywords_title": "Parole chiave",
-    "no_keywords": "Nessuna parola chiave",
-    "search_terms_title": "Termini di ricerca",
-    "all_search_terms": "Tutti i termini della campagna",
-    "no_search_terms": "Nessun termine di ricerca",
-    "other_terms": "Altri termini (sotto le impression minime)",
-    "via_keyword": "da “{keyword}”",
-    "negative_reason": {
-      "only_cancelled": "Solo ordini annullati",
-      "no_orders": "Spesa senza ordini",
-      "unprofitable_orders": "Ordini in perdita",
-      "no_conversions": "Spesa senza conversioni"
-    },
-    "excluded": "Escluso",
-    "keel_footnote": "Keel lega gli ordini a gruppi, annunci e parole chiave tramite il modello UTM; dove la piattaforma non li lega compare un trattino.",
-    "match": {
-      "exact": "Esatta",
-      "phrase": "Frase",
-      "broad": "Generica"
-    },
-    "fatigue": {
-      "watch": "Attenzione: CTR in calo",
-      "fatigued": "Affaticato"
-    },
-    "utm_badge": "UTM mancanti",
-    "pause_reason": {
-      "losing": "In perdita",
-      "fatigued": "Affaticato e in perdita",
-      "low_label": "Valutato BASSO",
-      "low_ctr": "Metà del CTR degli altri"
-    },
-    "ctr_change": "CTR {change} dall'inizio",
-    "copy_title": "Testi e tracciamento",
-    "utm_missing_ad": "Questo annuncio non ha {params}: i suoi ordini arrivano a Keel senza annuncio. Modello:",
-    "assets_title": "Asset",
-    "no_assets": "Nessun dettaglio per asset",
-    "no_assets_meta": "Meta riporta gli asset solo per le inserzioni con creatività dinamica o Advantage+.",
-    "no_assets_google": "Google riporta gli asset per gli annunci adattabili.",
-    "no_assets_tiktok": "TikTok non riporta metriche per singolo asset: il video dell’annuncio è elencato con il suo id.",
-    "field": {
-      "headline": "Titolo",
-      "description": "Descrizione",
-      "body": "Testo principale",
-      "title": "Titolo breve",
-      "image": "Immagine",
-      "video": "Video",
-      "other": "Altro"
-    },
-    "assets_footnote": "Le piattaforme riportano gli asset, non gli ordini: Keel ripartisce gli ordini dell'annuncio sui suoi asset in base alla quota di spesa in ogni campo.",
-    "daily_title": "Per giorno",
-    "no_days": "Nessun dato giornaliero nel periodo",
-    "keywords_page_title": "Parole chiave e termini di ricerca",
-    "keywords_page_description": "Le parole chiave di Google Ads e le ricerche che hanno attivato gli annunci, con gli ordini di Keel dove il modello UTM le nomina.",
-    "tabs": {
-      "keywords": "Parole chiave",
-      "search_terms": "Termini di ricerca"
-    },
-    "search_placeholder": "Cerca testo",
-    "all_campaigns": "Tutte le campagne",
-    "sort_label": "Ordina",
-    "sort": {
-      "spend": "Spesa",
-      "profit": "Profitto",
-      "roas": "ROAS",
-      "conversions": "Conversioni"
-    },
-    "candidates_only": "Solo candidati a parola chiave negativa",
-    "apply": "Applica",
-    "google_only": "Parole chiave e termini di ricerca arrivano da Google Ads; Meta non li ha.",
-    "rows_total": "{n} righe",
-    "prev": "Precedente",
-    "next": "Successiva",
-    "page_of": "Pagina {page} di {pages}",
-    "keywords_footnote": "Gli ordini Keel arrivano da utm_term impostato sulla parola chiave dal modello di monitoraggio.",
-    "search_terms_footnote": "Keel vede gli ordini di un termine quando il termine è una parola chiave (corrispondenza esatta); per gli altri decidono le conversioni della piattaforma. I termini sotto le impression minime sono raggruppati in “Altri termini”.",
-    "words_title": "Parole",
-    "words_description": "Parole e frasi (1–3 parole) vincenti e perdenti nei testi degli annunci, nei termini di ricerca e nelle parole chiave, con il profitto degli ordini Keel.",
-    "word_source": {
-      "copy": "Testi degli annunci",
-      "search_terms": "Termini di ricerca",
-      "keywords": "Parole chiave"
-    },
-    "ngram": {
-      "all": "Tutte",
-      "n1": "1 parola",
-      "n2": "2 parole",
-      "n3": "3 parole"
-    },
-    "no_words": "Volume insufficiente",
-    "no_words_hint": "Una frase deve comparire in almeno due annunci o termini con un po' di spesa.",
-    "winners": "Parole vincenti",
-    "winners_description": "Frasi di elementi che hanno fatto profitto, le migliori prima.",
-    "no_winners": "Nessuna frase in profitto nel periodo",
-    "losers": "Parole perdenti",
-    "losers_description": "Frasi di elementi in perdita, le peggiori prima.",
-    "no_losers": "Nessuna frase in perdita nel periodo",
-    "words_footnote": "{items} elementi analizzati. Ogni frase somma i numeri completi di ogni elemento che la contiene, quindi le frasi si sovrappongono.",
-    "recommendations_title": "Suggerimenti ads",
-    "recommendations_description": "Suggerimenti in sola lettura: una persona li valuta e agisce; le scritture verso le piattaforme chiedono sempre conferma.",
-    "in_items": "in {n}",
-    "rec": {
-      "negatives_title": "Candidati a parola chiave negativa",
-      "negatives_description": "{n} termini di ricerca spendono senza ordini in profitto.",
-      "google_read_only": "Google è in sola lettura per questo negozio: concedi l'accesso in scrittura in Integrazioni per escludere i termini da qui.",
-      "none": "Niente da suggerire",
-      "all_candidates": "Tutti i candidati",
-      "ads_title": "Annunci da mettere in pausa",
-      "ads_description": "Annunci attivi in perdita nel periodo, oppure affaticati e in perdita.",
-      "words_title": "Parole vincenti da riusare nei testi",
-      "words_description": "Frasi degli annunci che hanno fatto più profitto.",
-      "open_words": "Apri Parole",
-      "assets_title": "Asset deboli",
-      "assets_description": "Asset valutati BASSO dalla piattaforma o con metà del CTR degli altri.",
-      "utm_title": "Modelli UTM",
-      "utm_description": "Senza questi parametri Keel non può legare gli ordini ad annunci, gruppi e parole chiave.",
-      "utm_ok": "Tutte le campagne attive hanno i modelli.",
-      "utm_row": "{missing} annunci su {ads} senza {params}",
-      "template_meta": "Meta: parametri URL dell'annuncio",
-      "template_google": "Google: modello di monitoraggio dell'account",
-      "template_tiktok": "TikTok: parametri URL dell’annuncio"
-    },
-    "actions": {
-      "read_only": "{platform} è in sola lettura per questo negozio.",
-      "read_only_short": "Sola lettura",
-      "pause_ad": "Metti in pausa l'annuncio",
-      "resume_ad": "Riattiva l'annuncio",
-      "pause_title": "Mettere in pausa questo annuncio su {platform}?",
-      "resume_title": "Riattivare questo annuncio su {platform}?",
-      "write_description": "Keel cambia lo stato qui e lo invia alla piattaforma; se non è raggiungibile la modifica viene ritentata e mostrata come in attesa.",
-      "confirm": "Conferma",
-      "exclude": "Escludi",
-      "negative_title": "Aggiungere “{text}” come parola chiave negativa?",
-      "negative_description": "Google smette di mostrare gli annunci per questa ricerca. La modifica passa dalla coda delle scritture.",
-      "match_type": "Corrispondenza",
-      "match": {
-        "exact": "Esatta",
-        "phrase": "Frase",
-        "broad": "Generica"
-      },
-      "level": "Livello",
-      "levels": {
-        "campaign": "Campagna",
-        "ad_group": "Gruppo di annunci"
-      }
-    }
-  },
   "mcp": {
     "copy": "Copia",
     "copied": "Copiato",
@@ -7549,6 +7105,444 @@
       }
     }
   },
+  "dashboards": {
+    "title": "Dashboard",
+    "description": "La home che vede il team, le varianti per ruolo, le dashboard aggiuntive e le copie personali.",
+    "home_description": "La dashboard del team, disegnata dai titolari del negozio.",
+    "edit": "Modifica dashboard",
+    "customise": "Personalizza",
+    "home_name": "Home",
+    "preview_as": "Anteprima come…",
+    "preview_banner": "Anteprima come {role}",
+    "draft_banner": "bozza non pubblicata",
+    "exit_preview": "Esci dall'anteprima",
+    "draft_badge": "Modifiche non pubblicate",
+    "template_badge": "Modello Keel",
+    "customised_badge": "Personalizzata",
+    "open": "Apri",
+    "home": "Home",
+    "home_template": "La home è il modello Keel: segue gli aggiornamenti di Keel finché non la personalizzi.",
+    "home_custom": "Home personalizzata: {name}.",
+    "reset_home": "Ripristina il modello Keel",
+    "reset_home_confirm": "La home torna al modello Keel. Le varianti per ruolo restano. Continuare?",
+    "reset_all": "Ripristina home e varianti",
+    "reset_all_confirm": "La home e tutte le varianti per ruolo tornano al modello Keel. Continuare?",
+    "personal_toggle": "Dashboard personali",
+    "personal_toggle_hint": "Se attive, chiunque può copiare una dashboard in una personale. Le dashboard del negozio restano il riferimento.",
+    "name": "Nome",
+    "kind": "Tipo",
+    "scope_new": {
+      "tenant": "Dashboard aggiuntiva",
+      "role": "Variante della home per ruoli",
+      "personal": "Copia personale della mia home"
+    },
+    "roles_variant": "Ruoli che vedono questa home",
+    "roles_visible": "Ruoli che possono aprirla",
+    "roles_all_hint": "Nessuno selezionato: tutto il team.",
+    "create": "Crea",
+    "copy_of": "Copia di {name}",
+    "duplicate": "Crea una copia personale",
+    "delete": "Elimina",
+    "delete_confirm": "Eliminare questa dashboard?",
+    "scope": {
+      "tenant": "Dashboard del negozio",
+      "role": "Variante della home",
+      "personal": "Dashboard personale"
+    },
+    "personal_description": "La vedi solo tu.",
+    "visible_to": "Visibile a: {roles}",
+    "visible_all": "Visibile a tutto il team",
+    "widgets_n": "{n, plural, one {# widget} other {# widget}}",
+    "variants": "Varianti della home per ruolo",
+    "variants_description": "Un ruolo con una variante vede quella al posto della home del negozio.",
+    "variants_empty": "Nessuna variante: tutti i ruoli vedono la home del negozio.",
+    "extras": "Altre dashboard",
+    "extras_description": "Dashboard con un nome, per esempio la revisione settimanale.",
+    "extras_empty": "Ancora nessuna altra dashboard.",
+    "personal": "Le mie dashboard",
+    "personal_hint": "Le tue copie: modificale come vuoi.",
+    "personal_empty": "Nessuna dashboard personale.",
+    "new_dashboard": "Nuova dashboard",
+    "settings": "Impostazioni",
+    "metrics_page": "Metriche e obiettivi",
+    "metrics_description": "Le metriche che le dashboard possono mostrare: il catalogo di Keel e le tue formule, con gli obiettivi mensili.",
+    "custom_metrics": "Metriche personalizzate",
+    "custom_metrics_hint": "Formule sulle metriche di base, anche su ordini filtrati. Ogni modifica finisce nel registro attività.",
+    "custom_metrics_empty": "Ancora nessuna metrica personalizzata.",
+    "this_month": "Questo mese",
+    "targets": "Obiettivi mensili",
+    "targets_hint": "Un mese senza obiettivo proprio usa l'ultimo precedente.",
+    "catalog": "Catalogo metriche",
+    "catalog_hint": "Metriche di base calcolate dai servizi di Keel: tornano con il P/L, le campagne e il magazzino.",
+    "catalog_group": "Gruppo",
+    "catalog_flags": "Uso",
+    "flag_snapshot": "adesso",
+    "flag_filterable": "filtri",
+    "flag_series": "serie",
+    "catalog_pending": "Sessioni e tasso di conversione arriveranno con il collegamento GA4; TikTok e termini di ricerca con le loro integrazioni.",
+    "periods": {
+      "today": "Oggi",
+      "7d": "7 giorni",
+      "30d": "30 giorni",
+      "90d": "90 giorni",
+      "mtd": "Mese in corso",
+      "last_month": "Mese scorso",
+      "ytd": "Anno in corso",
+      "follow": "Periodo della dashboard"
+    },
+    "widget": {
+      "error": "Questo widget non si è caricato. Il resto della dashboard funziona.",
+      "forbidden": "Non disponibile per il tuo ruolo.",
+      "unavailable": "Questo widget non è disponibile per il tuo piano.",
+      "days_unit": "giorni",
+      "open_list": "Apri",
+      "now": "adesso",
+      "vs_previous": "vs periodo precedente",
+      "filtered": "filtrata",
+      "unknown": "Sconosciuto",
+      "empty": "Niente in questo periodo.",
+      "breakdown_title": "{metric} per {by}",
+      "target_title": "{metric}: obiettivo del mese",
+      "no_target": "Nessun obiettivo per questo mese.",
+      "of_target": "su {target}",
+      "projected": "Proiezione a fine mese {value} (giorno {elapsed} di {days})",
+      "no_alerts": "Nessun avviso recente.",
+      "empty_note": "Nota vuota."
+    },
+    "widget_groups": {
+      "metrics": "Metriche",
+      "charts": "Grafici",
+      "lists": "Elenchi",
+      "queues": "Code di lavoro",
+      "content": "Contenuti",
+      "keel": "Riquadri della home Keel"
+    },
+    "widget_types": {
+      "kpi": {
+        "name": "Riquadro KPI",
+        "description": "Una metrica con confronto e andamento."
+      },
+      "timeseries": {
+        "name": "Serie temporale",
+        "description": "1–3 metriche per giorno, settimana o mese."
+      },
+      "breakdown": {
+        "name": "Ripartizione",
+        "description": "Una metrica per canale, paese, pagamento, prodotto, campagna o piattaforma."
+      },
+      "top_list": {
+        "name": "Classifica",
+        "description": "Migliori prodotti, campagne o clienti."
+      },
+      "target": {
+        "name": "Obiettivo",
+        "description": "Mese in corso rispetto all'obiettivo, con proiezione."
+      },
+      "alerts": {
+        "name": "Avvisi",
+        "description": "Gli ultimi avvisi scattati."
+      },
+      "note": {
+        "name": "Nota",
+        "description": "Testo per il team (markdown)."
+      },
+      "queue_review": {
+        "name": "Ordini da verificare",
+        "description": "Ordini in attesa di verifica."
+      },
+      "queue_late": {
+        "name": "In ritardo di spedizione",
+        "description": "Ordini pronti oltre la scadenza di spedizione."
+      },
+      "queue_awaiting_stock": {
+        "name": "In attesa di stock",
+        "description": "Ordini fermi per stock mancante."
+      },
+      "queue_exceptions": {
+        "name": "Eccezioni di consegna",
+        "description": "Casi di eccezione aperti."
+      },
+      "queue_integrations": {
+        "name": "Salute integrazioni",
+        "description": "Collegamenti o sync in errore e webhook falliti."
+      },
+      "today_kpis": {
+        "name": "KPI di oggi",
+        "description": "Vendite, ordini, valore medio e annullamenti di oggi."
+      },
+      "sales_30d": {
+        "name": "Vendite, ultimi 30 giorni",
+        "description": "Vendite e ordini al giorno."
+      },
+      "month_forecast": {
+        "name": "Previsione del mese",
+        "description": "Ricavi, ordini e spesa ads previsti."
+      },
+      "work_queue": {
+        "name": "Da gestire",
+        "description": "Tutto ciò che è aperto, con i conteggi."
+      },
+      "stock_backorders": {
+        "name": "Stock e backorder",
+        "description": "Ordini in attesa di stock, più venduti in esaurimento."
+      },
+      "today_by_status": {
+        "name": "Ordini di oggi per stato",
+        "description": "Gli ordini di oggi per stato."
+      },
+      "cod_queue": {
+        "name": "Contrassegni da confermare",
+        "description": "Ordini in contrassegno in attesa di chiamata."
+      },
+      "cod_pending": {
+        "name": "Contrassegni da confermare",
+        "description": "Ordini in contrassegno aperti di oggi, ieri e degli ultimi 7 giorni."
+      },
+      "cod_operators": {
+        "name": "Ticket contrassegno per operatore",
+        "description": "Ordini da chiamare e richiami scaduti per ogni operatore."
+      },
+      "cod_mine": {
+        "name": "La mia coda contrassegno",
+        "description": "I tuoi ordini assegnati: da chiamare, richiami scaduti, mai chiamati, programmati, irraggiungibili."
+      }
+    },
+    "metrics": {
+      "net_revenue": "Ricavi netti",
+      "gross_revenue": "Vendite lorde",
+      "orders": "Ordini",
+      "aov": "Valore medio ordine",
+      "ad_spend": "Spesa ads",
+      "cogs": "Costo del venduto",
+      "gross_margin": "Margine lordo",
+      "shipping": "Costi di spedizione",
+      "fees": "Commissioni di pagamento",
+      "fixed_costs": "Costi fissi",
+      "contribution": "Margine di contribuzione",
+      "operating_profit": "Utile operativo",
+      "refunds": "Rimborsi",
+      "new_customers": "Nuovi clienti",
+      "mer": "MER",
+      "nc_roas": "nc-ROAS",
+      "cac": "CAC complessivo",
+      "poas": "POAS",
+      "cancel_rate": "Tasso di annullamento",
+      "returns_rate": "Tasso di reso",
+      "return_cost": "Costi dei resi",
+      "repeat_customer_rate": "Clienti ricorrenti",
+      "stock_value_cost": "Valore magazzino al costo",
+      "coverage_days": "Giorni di copertura",
+      "out_of_stock_variants": "Varianti esaurite",
+      "incoming_po_value": "Valore merce in arrivo",
+      "meta_spend": "Spesa Meta",
+      "meta_roas": "ROAS Meta",
+      "meta_cpa": "CPA Meta",
+      "meta_ctr": "CTR Meta",
+      "google_spend": "Spesa Google",
+      "google_roas": "ROAS Google",
+      "google_cpa": "CPA Google",
+      "google_ctr": "CTR Google",
+      "tiktok_spend": "Spesa TikTok",
+      "tiktok_roas": "ROAS TikTok",
+      "tiktok_cpa": "CPA TikTok",
+      "tiktok_ctr": "CTR TikTok"
+    },
+    "metric_groups": {
+      "finance": "Economia",
+      "orders": "Ordini e resi",
+      "customers": "Clienti",
+      "inventory": "Magazzino",
+      "ads": "Ads per piattaforma",
+      "custom": "Metriche personalizzate"
+    },
+    "breakdown_dims": {
+      "channel": "canale",
+      "country": "paese",
+      "payment_method": "metodo di pagamento",
+      "product": "prodotto",
+      "campaign": "campagna",
+      "platform": "piattaforma"
+    },
+    "top_entities": {
+      "products": "Prodotti migliori",
+      "campaigns": "Campagne migliori per profitto",
+      "customers": "Clienti migliori",
+      "ads": "Annunci migliori per profitto",
+      "keywords": "Parole chiave migliori per profitto",
+      "search_terms": "Termini di ricerca per spesa"
+    },
+    "top_secondary": {
+      "products": "{v} pezzi",
+      "campaigns": "ROAS {v}",
+      "customers": "{v} ordini",
+      "ads": "ROAS {v}",
+      "keywords": "ROAS {v}",
+      "search_terms": "{v} ordini"
+    },
+    "granularity": {
+      "day": "Giorno",
+      "week": "Settimana",
+      "month": "Mese"
+    },
+    "channels": {
+      "paid_social": "Social a pagamento",
+      "paid_search": "Ricerca a pagamento",
+      "organic_search": "Ricerca organica",
+      "email": "Email",
+      "social": "Social",
+      "direct": "Diretto",
+      "referral": "Referral",
+      "unknown": "Sconosciuto"
+    },
+    "queue_parts": {
+      "connections": "{n} collegamenti",
+      "sources": "{n} sync",
+      "webhooks": "{n} webhook",
+      "unassigned": "{n} non assegnati"
+    },
+    "editor": {
+      "title": "Modifica: {name}",
+      "description": "Le modifiche restano in bozza: guardale in anteprima come un ruolo, poi pubblica.",
+      "published": "Pubblicata.",
+      "saved": "Bozza salvata.",
+      "none": "— nessuna —",
+      "title_field": "Titolo (facoltativo)",
+      "title_placeholder": "Automatico",
+      "width": "Larghezza",
+      "height": "Altezza",
+      "columns": "{n, plural, one {# colonna} other {# colonne}}",
+      "rows": "{n, plural, one {# riga} other {# righe}}",
+      "period": "Periodo",
+      "metric": "Metrica",
+      "compare": "Confronta con",
+      "compare_previous": "Periodo precedente",
+      "compare_none": "Niente",
+      "sparkline": "Mostra l'andamento",
+      "series_n": "Metrica {n}",
+      "chart": "Grafico",
+      "chart_line": "Linee",
+      "chart_bar": "Barre",
+      "granularity": "Per",
+      "by": "Ripartisci per",
+      "limit": "Righe",
+      "entity": "Elenco",
+      "note_text": "Testo",
+      "note_hint": "Titoli (#), elenchi (-), **grassetto**, *corsivo*, [link](https://…). L'HTML viene mostrato come testo.",
+      "note_translation": "Testo in {locale} (facoltativo)",
+      "dashboard_period": "Periodo della dashboard",
+      "save_draft": "Salva bozza",
+      "publish": "Pubblica",
+      "preview_as": "Salva e guarda come…",
+      "discard": "Scarta bozza",
+      "reset_confirm": "Sostituire i widget con il modello Keel? Pubblica per applicare.",
+      "reset_template": "Ripristina modello Keel",
+      "count": "{n} di {max} widget",
+      "drag_hint": "Trascina i widget per riordinarli, o usa le frecce. Clicca un widget per configurarlo.",
+      "configure": "Configura",
+      "move_up": "Sposta su",
+      "move_down": "Sposta giù",
+      "remove": "Rimuovi",
+      "size": "{w}×{h}",
+      "empty": "Nessun widget: aggiungine uno dal catalogo.",
+      "settings": "Impostazioni widget",
+      "add_widget": "Aggiungi un widget",
+      "done": "Fatto"
+    },
+    "errors": {
+      "generic": "Qualcosa è andato storto.",
+      "forbidden": "Non puoi modificare questa dashboard.",
+      "not_found": "Dashboard non trovata.",
+      "invalid_layout": "Alcuni widget non sono validi.",
+      "too_many_widgets": "Troppi widget per una dashboard.",
+      "module_disabled": "Un widget richiede un modulo che il negozio non ha.",
+      "role_taken": "Un ruolo selezionato ha già una variante della home.",
+      "home_exists": "La home del negozio esiste già.",
+      "invalid_input": "Controlla i campi.",
+      "personal_off": "Le dashboard personali sono disattivate per questo negozio.",
+      "invalid_formula": "La formula non è valida.",
+      "invalid_filters": "I filtri non sono validi.",
+      "invalid_key": "Scegli un'altra chiave: è vuota o è una metrica di base.",
+      "not_filterable": "Con i filtri usa solo metriche calcolate dagli ordini (non costi fissi, utile operativo, nuovi clienti o magazzino)."
+    },
+    "builder": {
+      "saved": "Metrica salvata.",
+      "label": "Nome",
+      "label_placeholder": "Contribuzione per ordine",
+      "key": "Chiave",
+      "key_placeholder": "dal nome",
+      "formula": "Formula",
+      "formula_ok": "Formula valida.",
+      "formula_error": "Non valida",
+      "formula_help": "Combina le metriche di base con + − × ÷ e parentesi, es. contribution / orders.",
+      "available": "Metriche disponibili",
+      "filters": "Calcolata su",
+      "filters_hint": "Lascia vuoto per tutto il negozio. I filtri tengono solo gli ordini corrispondenti.",
+      "f_channel": "Canale",
+      "f_country": "Paese",
+      "f_payment": "Metodo di pagamento",
+      "f_platform": "Piattaforma ads",
+      "f_campaign": "Campagna",
+      "f_product": "Prodotto",
+      "f_product_type": "Tipo di prodotto",
+      "f_customer": "Clienti",
+      "f_customer_all": "Tutti",
+      "f_customer_new": "Nuovi (primo ordine)",
+      "f_customer_returning": "Ricorrenti",
+      "format": "Formato",
+      "formats": {
+        "money": "Valuta",
+        "percent": "Percentuale",
+        "ratio": "Rapporto (×)",
+        "number": "Numero"
+      },
+      "direction": "Andamento",
+      "higher_better": "Più alto è meglio",
+      "lower_better": "Più basso è meglio",
+      "translation": "Nome in {locale}",
+      "description_field": "Descrizione",
+      "preview": "Anteprima del mese",
+      "save": "Salva metrica",
+      "cancel": "Annulla",
+      "preview_value": "Questo mese: {value} (periodo precedente {previous})",
+      "delete": "Elimina",
+      "delete_confirm": "Eliminare la metrica? I widget che la usano mostreranno un trattino.",
+      "invalid_target": "Obiettivo non valido.",
+      "target_saved": "Obiettivo salvato.",
+      "target_metric": "Metrica",
+      "target_month": "Mese",
+      "target_value_money": "Obiettivo (valuta)",
+      "target_value_percent": "Obiettivo (%)",
+      "target_value_number": "Obiettivo",
+      "target_clear": "vuoto = rimuovi",
+      "target_save": "Imposta obiettivo",
+      "edit_title": "Modifica {name}",
+      "new_title": "Nuova metrica",
+      "hint": "Solo titolari e amministratori creano o modificano le metriche.",
+      "filter_names": {
+        "channel": "Canale",
+        "country": "Paese",
+        "paymentMethod": "Pagamento",
+        "productIds": "Prodotti",
+        "productType": "Tipo prodotto",
+        "campaignIds": "Campagne",
+        "platform": "Piattaforma",
+        "customerType": "Clienti"
+      }
+    },
+    "payment_methods": {
+      "card": "Carta",
+      "wallet": "Wallet",
+      "bank_transfer": "Bonifico",
+      "cod": "Contrassegno",
+      "bnpl": "Paga dopo (BNPL)",
+      "other": "Altro"
+    },
+    "platforms": {
+      "meta": "Meta",
+      "google": "Google",
+      "tiktok": "TikTok"
+    }
+  },
   "billing": {
     "title": "Fatturazione",
     "description": "Il tuo piano, il metodo di pagamento e le fatture.",
@@ -7759,5 +7753,374 @@
     "none": "Ancora nessun abbonamento sul processore.",
     "catalog_missing": "Sincronizza prima il catalogo (Fatturazione → Abbonamenti).",
     "cancel_at_period_end": "termina a fine periodo"
+  },
+  "data_export": {
+    "title": "Esportazione dati",
+    "description": "Scarica tutto ciò che Keel conserva per questo negozio.",
+    "what_title": "Esportazione completa dei dati del negozio",
+    "what_description": "Un file CSV per tabella (ordini, clienti, prodotti, resi, campagne, impostazioni e altro) in un archivio zip, generato in background. Ricevi una notifica quando è pronto; il link di download scade dopo {days} giorni. Le credenziali delle integrazioni e gli altri segreti non sono mai inclusi.",
+    "request": "Esporta tutti i dati",
+    "requesting": "Avvio…",
+    "errors": {
+      "in_progress": "C'è già un'esportazione in corso.",
+      "generic": "Non è stato possibile avviare l'esportazione."
+    },
+    "empty_title": "Nessuna esportazione",
+    "empty_description": "Le esportazioni che avvii compaiono qui con il link di download.",
+    "columns": {
+      "requested": "Richiesta",
+      "status": "Stato",
+      "rows": "Righe",
+      "expires": "Scadenza link",
+      "file": "File"
+    },
+    "by_platform": "Supporto Keel",
+    "statuses": {
+      "pending": "In coda",
+      "running": "In corso",
+      "done": "Pronta",
+      "failed": "Non riuscita",
+      "expired": "Scaduta"
+    },
+    "tables_n": "{n} tabelle",
+    "download": "Scarica",
+    "downloads": "{n, plural, one {scaricata una volta} other {scaricata # volte}}"
+  },
+  "ads": {
+    "nav": {
+      "label": "Analisi campagne",
+      "campaigns": "Campagne",
+      "creatives": "Creatività",
+      "keywords": "Parole chiave e ricerche",
+      "words": "Parole",
+      "recommendations": "Suggerimenti"
+    },
+    "cols": {
+      "name": "Nome",
+      "spend": "Spesa",
+      "impressions": "Impression",
+      "ctr": "CTR",
+      "platform_conv": "Conv. piattaforma",
+      "keel_orders": "Ordini Keel",
+      "revenue": "Ricavo netto",
+      "profit": "Profitto",
+      "roas": "ROAS",
+      "frequency": "Frequenza",
+      "match": "Corrispondenza",
+      "quality": "Qualità",
+      "campaign": "Campagna",
+      "action": "Azione",
+      "phrase": "Frase",
+      "items": "Usata in",
+      "margin": "Margine",
+      "cpa": "CPA",
+      "field": "Campo",
+      "asset": "Asset",
+      "keel_orders_allocated": "Ordini Keel (ripartiti)",
+      "date": "Data",
+      "search_term": "Termine di ricerca",
+      "clicks": "Clic",
+      "reason": "Perché",
+      "ad": "Annuncio"
+    },
+    "excluded_n": "+{n} annullati/resi",
+    "ad_sets_title": "Gruppi di inserzioni",
+    "ad_groups_title": "Gruppi di annunci",
+    "ad_sets_description": "I numeri della piattaforma accanto a quelli di Keel: ordini, ricavi e profitto contano solo gli ordini non annullati e non resi.",
+    "utm_missing": "{n} annunci su {total} non hanno {params}: i loro ordini arrivano a Keel senza annuncio. Aggiungi questo modello agli annunci:",
+    "no_ad_sets": "Ancora nessun gruppo",
+    "no_ad_sets_hint": "Arrivano con la prossima sincronizzazione delle ads.",
+    "keel_not_visible": "Keel non vede gli ordini di questa riga (il modello UTM non la nomina).",
+    "n_ads": "{n} annunci",
+    "n_keywords": "{n} parole chiave",
+    "unassigned_orders": "{n} ordini della campagna non sono legati a un gruppo",
+    "open_orders": "Apri gli ordini",
+    "reconciliation": "Spesa degli annunci {ads} su {campaign} · non allocata {unallocated}",
+    "ad_set": "Gruppo di inserzioni",
+    "ad_group": "Gruppo di annunci",
+    "status": {
+      "active": "Attivo",
+      "paused": "In pausa",
+      "archived": "Archiviato"
+    },
+    "ads_title": "Annunci",
+    "ads_description": "Affaticamento: la frequenza sale mentre il CTR scende. I suggerimenti sono in sola lettura: decide una persona.",
+    "no_ads": "Nessun annuncio in questo gruppo",
+    "keywords_title": "Parole chiave",
+    "no_keywords": "Nessuna parola chiave",
+    "search_terms_title": "Termini di ricerca",
+    "all_search_terms": "Tutti i termini della campagna",
+    "no_search_terms": "Nessun termine di ricerca",
+    "other_terms": "Altri termini (sotto le impression minime)",
+    "via_keyword": "da “{keyword}”",
+    "negative_reason": {
+      "only_cancelled": "Solo ordini annullati",
+      "no_orders": "Spesa senza ordini",
+      "unprofitable_orders": "Ordini in perdita",
+      "no_conversions": "Spesa senza conversioni"
+    },
+    "excluded": "Escluso",
+    "keel_footnote": "Keel lega gli ordini a gruppi, annunci e parole chiave tramite il modello UTM; dove la piattaforma non li lega compare un trattino.",
+    "match": {
+      "exact": "Esatta",
+      "phrase": "Frase",
+      "broad": "Generica"
+    },
+    "fatigue": {
+      "watch": "Attenzione: CTR in calo",
+      "fatigued": "Affaticato"
+    },
+    "utm_badge": "UTM mancanti",
+    "pause_reason": {
+      "losing": "In perdita",
+      "fatigued": "Affaticato e in perdita",
+      "low_label": "Valutato BASSO",
+      "low_ctr": "Metà del CTR degli altri"
+    },
+    "ctr_change": "CTR {change} dall'inizio",
+    "copy_title": "Testi e tracciamento",
+    "utm_missing_ad": "Questo annuncio non ha {params}: i suoi ordini arrivano a Keel senza annuncio. Modello:",
+    "assets_title": "Asset",
+    "no_assets": "Nessun dettaglio per asset",
+    "no_assets_meta": "Meta riporta gli asset solo per le inserzioni con creatività dinamica o Advantage+.",
+    "no_assets_google": "Google riporta gli asset per gli annunci adattabili.",
+    "field": {
+      "headline": "Titolo",
+      "description": "Descrizione",
+      "body": "Testo principale",
+      "title": "Titolo breve",
+      "image": "Immagine",
+      "video": "Video",
+      "other": "Altro"
+    },
+    "assets_footnote": "Le piattaforme riportano gli asset, non gli ordini: Keel ripartisce gli ordini dell'annuncio sui suoi asset in base alla quota di spesa in ogni campo.",
+    "daily_title": "Per giorno",
+    "no_days": "Nessun dato giornaliero nel periodo",
+    "keywords_page_title": "Parole chiave e termini di ricerca",
+    "keywords_page_description": "Le parole chiave di Google Ads e le ricerche che hanno attivato gli annunci, con gli ordini di Keel dove il modello UTM le nomina.",
+    "tabs": {
+      "keywords": "Parole chiave",
+      "search_terms": "Termini di ricerca"
+    },
+    "search_placeholder": "Cerca testo",
+    "all_campaigns": "Tutte le campagne",
+    "sort_label": "Ordina",
+    "sort": {
+      "spend": "Spesa",
+      "profit": "Profitto",
+      "roas": "ROAS",
+      "conversions": "Conversioni"
+    },
+    "candidates_only": "Solo candidati a parola chiave negativa",
+    "apply": "Applica",
+    "google_only": "Parole chiave e termini di ricerca arrivano da Google Ads; Meta non li ha.",
+    "rows_total": "{n} righe",
+    "prev": "Precedente",
+    "next": "Successiva",
+    "page_of": "Pagina {page} di {pages}",
+    "keywords_footnote": "Gli ordini Keel arrivano da utm_term impostato sulla parola chiave dal modello di monitoraggio.",
+    "search_terms_footnote": "Keel vede gli ordini di un termine quando il termine è una parola chiave (corrispondenza esatta); per gli altri decidono le conversioni della piattaforma. I termini sotto le impression minime sono raggruppati in “Altri termini”.",
+    "words_title": "Parole",
+    "words_description": "Parole e frasi (1–3 parole) vincenti e perdenti nei testi degli annunci, nei termini di ricerca e nelle parole chiave, con il profitto degli ordini Keel.",
+    "word_source": {
+      "copy": "Testi degli annunci",
+      "search_terms": "Termini di ricerca",
+      "keywords": "Parole chiave"
+    },
+    "ngram": {
+      "all": "Tutte",
+      "n1": "1 parola",
+      "n2": "2 parole",
+      "n3": "3 parole"
+    },
+    "no_words": "Volume insufficiente",
+    "no_words_hint": "Una frase deve comparire in almeno due annunci o termini con un po' di spesa.",
+    "winners": "Parole vincenti",
+    "winners_description": "Frasi di elementi che hanno fatto profitto, le migliori prima.",
+    "no_winners": "Nessuna frase in profitto nel periodo",
+    "losers": "Parole perdenti",
+    "losers_description": "Frasi di elementi in perdita, le peggiori prima.",
+    "no_losers": "Nessuna frase in perdita nel periodo",
+    "words_footnote": "{items} elementi analizzati. Ogni frase somma i numeri completi di ogni elemento che la contiene, quindi le frasi si sovrappongono.",
+    "recommendations_title": "Suggerimenti ads",
+    "recommendations_description": "Suggerimenti in sola lettura: una persona li valuta e agisce; le scritture verso le piattaforme chiedono sempre conferma.",
+    "in_items": "in {n}",
+    "rec": {
+      "negatives_title": "Candidati a parola chiave negativa",
+      "negatives_description": "{n} termini di ricerca spendono senza ordini in profitto.",
+      "google_read_only": "Google è in sola lettura per questo negozio: concedi l'accesso in scrittura in Integrazioni per escludere i termini da qui.",
+      "none": "Niente da suggerire",
+      "all_candidates": "Tutti i candidati",
+      "ads_title": "Annunci da mettere in pausa",
+      "ads_description": "Annunci attivi in perdita nel periodo, oppure affaticati e in perdita.",
+      "words_title": "Parole vincenti da riusare nei testi",
+      "words_description": "Frasi degli annunci che hanno fatto più profitto.",
+      "open_words": "Apri Parole",
+      "assets_title": "Asset deboli",
+      "assets_description": "Asset valutati BASSO dalla piattaforma o con metà del CTR degli altri.",
+      "utm_title": "Modelli UTM",
+      "utm_description": "Senza questi parametri Keel non può legare gli ordini ad annunci, gruppi e parole chiave.",
+      "utm_ok": "Tutte le campagne attive hanno i modelli.",
+      "utm_row": "{missing} annunci su {ads} senza {params}",
+      "template_meta": "Meta: parametri URL dell'annuncio",
+      "template_google": "Google: modello di monitoraggio dell'account",
+      "template_tiktok": "TikTok: parametri URL dell’annuncio"
+    },
+    "actions": {
+      "read_only": "{platform} è in sola lettura per questo negozio.",
+      "read_only_short": "Sola lettura",
+      "pause_ad": "Metti in pausa l'annuncio",
+      "resume_ad": "Riattiva l'annuncio",
+      "pause_title": "Mettere in pausa questo annuncio su {platform}?",
+      "resume_title": "Riattivare questo annuncio su {platform}?",
+      "write_description": "Keel cambia lo stato qui e lo invia alla piattaforma; se non è raggiungibile la modifica viene ritentata e mostrata come in attesa.",
+      "confirm": "Conferma",
+      "exclude": "Escludi",
+      "negative_title": "Aggiungere “{text}” come parola chiave negativa?",
+      "negative_description": "Google smette di mostrare gli annunci per questa ricerca. La modifica passa dalla coda delle scritture.",
+      "match_type": "Corrispondenza",
+      "match": {
+        "exact": "Esatta",
+        "phrase": "Frase",
+        "broad": "Generica"
+      },
+      "level": "Livello",
+      "levels": {
+        "campaign": "Campagna",
+        "ad_group": "Gruppo di annunci"
+      }
+    },
+    "no_assets_tiktok": "TikTok non riporta metriche per singolo asset: il video dell’annuncio è elencato con il suo id."
+  },
+  "product_mirror": {
+    "edit": "Modifica",
+    "cancel": "Annulla",
+    "save": "Salva su Shopify",
+    "saving": "Salvataggio…",
+    "yes": "Sì",
+    "no": "No",
+    "last_synced": "Sincronizzato da Shopify {when}",
+    "never_synced": "Mai sincronizzato da Shopify",
+    "edit_in_shopify": "Modifica in Shopify",
+    "errors": {
+      "stale": "Il prodotto è cambiato in Shopify dopo che l'hai aperto. Ricarica per vedere la versione attuale e poi modifica di nuovo.",
+      "reload": "Ricarica",
+      "platform": "Shopify ha rifiutato la modifica: {message}",
+      "generic": "Impossibile salvare la modifica.",
+      "not_found": "Prodotto non trovato.",
+      "forbidden": "Non puoi modificare i prodotti.",
+      "invalid_input": "Controlla i valori inseriti.",
+      "invalid_variant": "Controlla prezzo, prezzo di confronto e peso di {variant}.",
+      "invalid": {
+        "title_required": "Il titolo è obbligatorio.",
+        "too_long": "Un campo supera la lunghezza consentita da Shopify.",
+        "invalid_price": "I prezzi devono essere zero o più.",
+        "invalid_weight": "Il peso deve essere un numero intero di grammi.",
+        "invalid_status": "Stato sconosciuto."
+      }
+    },
+    "details": {
+      "title": "Titolo e descrizione",
+      "no_description": "Nessuna descrizione in Shopify.",
+      "field_title": "Titolo",
+      "field_description": "Descrizione (HTML)",
+      "html_hint": "Shopify salva la descrizione in HTML; Keel la mostra solo con la formattazione (niente script o contenuti incorporati)."
+    },
+    "status": {
+      "title": "Stato e canali",
+      "channels": "Canali di vendita",
+      "no_channels": "Nessun canale letto finora.",
+      "published": "Pubblicato",
+      "not_published": "Non pubblicato",
+      "channels_hint": "La pubblicazione sui canali si gestisce in Shopify."
+    },
+    "organisation": {
+      "title": "Organizzazione",
+      "vendor": "Fornitore (vendor)",
+      "type": "Tipo di prodotto",
+      "category": "Categoria",
+      "collections": "Collezioni",
+      "tags": "Tag",
+      "category_id": "Id categoria (tassonomia Shopify)",
+      "tags_hint": "Separati da virgola. Le collezioni si gestiscono in Shopify."
+    },
+    "seo": {
+      "title": "Anteprima nei motori di ricerca",
+      "no_description": "Nessuna descrizione: i motori di ricerca useranno il testo della pagina.",
+      "field_title": "Titolo della pagina",
+      "field_description": "Meta descrizione"
+    },
+    "variants": {
+      "variant": "Variante",
+      "price": "Prezzo",
+      "compare_at": "Prezzo di confronto",
+      "sku": "SKU",
+      "barcode": "Codice a barre",
+      "weight": "Peso (g)",
+      "policy": "Se esaurito",
+      "policy_deny": "Interrompi la vendita",
+      "policy_continue": "Continua a vendere",
+      "edit": "Modifica varianti",
+      "inactive": "rimossa",
+      "more_fields": "Altri campi delle varianti (da Shopify)",
+      "tracked": "Inventario tracciato",
+      "requires_shipping": "Prodotto fisico",
+      "taxable": "Applica imposte",
+      "hs_code": "Codice HS",
+      "origin": "Paese di origine"
+    },
+    "sync": {
+      "product": "Sincronizza da Shopify",
+      "done": "{changed, plural, =0 {Già aggiornato} one {# campo aggiornato} other {# campi aggiornati}}",
+      "catalog": "Sincronizza catalogo da Shopify",
+      "queued": "Sincronizzazione del catalogo avviata in background.",
+      "failed": "Sincronizzazione non riuscita: {error}",
+      "catalog_done": "Catalogo sincronizzato: {products} prodotti.",
+      "catalog_progress": "Sincronizzazione… {products} prodotti finora",
+      "last": "Ultima sincronizzazione del catalogo {when}",
+      "never": "Catalogo mai sincronizzato",
+      "running": "Sincronizzazione: {products} di {total} prodotti"
+    },
+    "gallery": {
+      "title": "Contenuti multimediali",
+      "done": "Fatto",
+      "manage": "Gestisci",
+      "empty": "Nessun contenuto in Shopify.",
+      "open": "Apri immagine {n}",
+      "move_left": "Sposta a sinistra",
+      "move_right": "Sposta a destra",
+      "alt": "Testo alternativo",
+      "delete": "Rimuovi",
+      "delete_confirm": "Rimuovere questo contenuto dal prodotto in Shopify?",
+      "add_url": "URL dell'immagine",
+      "add": "Aggiungi da URL",
+      "save_alt": "Salva testo alternativo",
+      "cancel": "Annulla",
+      "hint": "Le modifiche vengono scritte subito su Shopify. Per caricare file dal computer usa Shopify.",
+      "previous": "Precedente",
+      "next": "Successiva",
+      "no_alt": "Nessun testo alternativo",
+      "type": {
+        "video": "Video",
+        "model": "Modello 3D"
+      }
+    },
+    "metafields": {
+      "title": "Metacampi",
+      "read_only": "Sola lettura",
+      "empty": "Nessun metacampo."
+    },
+    "pnl": {
+      "title": "P/L, ultimi 30 giorni",
+      "open": "Analisi",
+      "empty": "Nessuna vendita né spesa pubblicitaria negli ultimi 30 giorni.",
+      "units": "Unità vendute",
+      "net_revenue": "Ricavi netti",
+      "cogs": "Costo del venduto",
+      "gross_margin": "Margine lordo",
+      "ad_spend": "Spesa ads (campagne collegate)",
+      "profit": "Profitto",
+      "missing_cost": "{units} unità vendute senza costo: il margine è sovrastimato."
+    }
   }
 }

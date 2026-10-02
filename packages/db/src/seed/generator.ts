@@ -856,7 +856,7 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
  * Where each cost came from, and a few gaps for the catalog data-quality page and the P/L cost
  * warning. No rng draws, so the rest of the dataset is unchanged: a product never bought on a
  * purchase order (but sold) has no cost, nor do the lines it sold on; a few variants have no
- * barcode and a few products no image. The duplicate SKU is written after the planning extras
+ * barcode. Images come with the gallery (`ensureDemoProductCatalog`). The duplicate SKU is written after the planning extras
  * (`seedCatalogDuplicate`), which order variants by SKU.
  */
 function applyCatalogQualityGaps(ds: TenantDataset, now: Date): void {
@@ -881,7 +881,6 @@ function applyCatalogQualityGaps(ds: TenantDataset, now: Date): void {
   });
   const noCost = new Set((uncosted ? variantsOf.get(uncosted.id as string) ?? [] : []).map((v) => v.id as string));
   products.forEach((p, i) => {
-    p.imageUrl = i % 37 === 36 ? null : `https://cdn.keel.example/demo/${String(p.handle)}.jpg`;
     if (i % 29 === 7) {
       const last = (variantsOf.get(p.id as string) ?? []).at(-1);
       if (last) last.barcode = null;

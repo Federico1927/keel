@@ -154,6 +154,9 @@ export const WIDGET_SETTINGS = {
   stock_backorders: empty,
   today_by_status: empty,
   cod_queue: empty,
+  cod_pending: empty,
+  cod_operators: empty,
+  cod_mine: empty,
 } as const;
 export type WidgetType = keyof typeof WIDGET_SETTINGS;
 export type WidgetSettings<T extends WidgetType> = z.infer<(typeof WIDGET_SETTINGS)[T]>;
@@ -195,6 +198,9 @@ export const WIDGETS: Record<WidgetType, WidgetDefinition> = {
   stock_backorders: d("stock_backorders", "keel", "dashboard"),
   today_by_status: d("today_by_status", "keel", "dashboard"),
   cod_queue: d("cod_queue", "queues", "cod_queue", { module: "addon.cod" }),
+  cod_pending: d("cod_pending", "queues", "cod_queue", { module: "addon.cod" }),
+  cod_operators: d("cod_operators", "lists", "cod_queue", { module: "addon.cod", defaultHeight: 2 }),
+  cod_mine: d("cod_mine", "queues", "cod_queue", { module: "addon.cod" }),
 };
 export const WIDGET_TYPES = Object.keys(WIDGETS) as WidgetType[];
 

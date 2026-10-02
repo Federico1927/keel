@@ -8,7 +8,7 @@ import type { AttemptOutcome } from "./queue";
  */
 export type TagClass = "cancelled" | "confirmed" | "queue";
 export type TagWriteEvent = "entered" | AttemptOutcome | "unreachable" | "replaced";
-export const TAG_WRITE_EVENTS: readonly TagWriteEvent[] = ["entered", "confirmed", "no_answer", "call_back", "modified", "cancelled", "unreachable", "replaced"];
+export const TAG_WRITE_EVENTS: readonly TagWriteEvent[] = ["entered", "confirmed", "no_answer", "call_back", "modified", "confirm_scheduled", "cancelled", "unreachable", "replaced"];
 
 export interface TagOps {
   add: string[];
