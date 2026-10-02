@@ -39,6 +39,8 @@ export function DiffList({ diff }: { diff: Record<string, { from: unknown; to: u
   );
 }
 
+const BACKORDER_REASONS = ["stock_available", "wait_cancelled", "order_cancelled", "order_replaced", "order_fulfilled"];
+
 /** Order-edit details carried in the event metadata: platform write, lineage, money to settle. */
 function EditMeta({ e, money }: { e: TimelineEvent; money: (minor: number) => string }) {
   const t = useTranslations("order_detail.timeline_meta");
@@ -51,6 +53,9 @@ function EditMeta({ e, money }: { e: TimelineEvent; money: (minor: number) => st
   if (balance > 0) parts.push(t("balance_due", { amount: money(balance) }));
   if (balance < 0) parts.push(t("balance_refund", { amount: money(-balance) }));
   if (typeof m.platform === "string" && m.platform) parts.push(t("written_to", { platform: m.platform }));
+  // backorders: what waits for which PO, and why a wait ended
+  if (e.type === "backorder_created" && Array.isArray(m.lines)) for (const l of m.lines as { quantity: number; sku: string | null; title: string; poNumber: string | null; expectedAt: string | null }[]) parts.push(l.poNumber ? t("backorder_line_po", { qty: l.quantity, item: l.sku ?? l.title, po: l.poNumber, eta: l.expectedAt ?? "—" }) : t("backorder_line", { qty: l.quantity, item: l.sku ?? l.title }));
+  if ((e.type === "hold_released" || e.type === "backorder_closed") && typeof m.reason === "string" && BACKORDER_REASONS.includes(m.reason)) parts.push(t(`backorder_reason.${m.reason}`));
   if (!parts.length) return null;
   return <p className="mt-1 text-xs text-muted-foreground" data-testid="event-meta">{parts.join(" · ")}</p>;
 }
@@ -79,7 +84,7 @@ export function Timeline({ events, locale, timezone, currency }: { events: Timel
               <DiffList diff={e.diff} />
               <EditMeta e={e} money={money} />
               {typeof e.metadata.note === "string" && e.metadata.note && <p className="mt-1 text-xs italic text-muted-foreground">“{e.metadata.note}”</p>}
-              {typeof e.metadata.reason === "string" && e.type !== "status_changed" && <p className="text-xs text-muted-foreground">{e.metadata.reason}</p>}
+              {typeof e.metadata.reason === "string" && e.type !== "status_changed" && !BACKORDER_REASONS.includes(e.metadata.reason) && <p className="text-xs text-muted-foreground">{e.metadata.reason}</p>}
             </li>
           ))}
           {events.length === 0 && <li className="text-sm text-muted-foreground">{t("no_events")}</li>}

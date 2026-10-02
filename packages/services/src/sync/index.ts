@@ -2,7 +2,8 @@ import { and, desc, eq, inArray, isNull, schema, sql } from "@keel/db";
 import { DEFAULT_PRECEDENCE, addressKey, deriveChannel, diffRecords, extractAttribution, hasChanges, matchCampaign, nameZipKey, normalizeEmail, normalizePhone, resolveShipmentStatus, shouldTakePlatformCost, type CampaignRef, type ShipmentStatus } from "@keel/core";
 import { IntegrationError, type AdsPlatform, type CommercePlatform, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct } from "@keel/integrations";
 import type { ServiceContext } from "../context";
-import { recomputeOrderStatus } from "../orders/state";
+import { closeOrderBackorders, recomputeOrderStatus } from "../orders/state";
+import { checkOrderStock } from "../backorders";
 import { applyCostToOrderLines } from "../catalog/costs";
 import { unconfirmedWriteTargets } from "../writes";
 import { applyInventoryLevels, refreshInventoryForVariants, zeroUnreportedLevels } from "./inventory";
@@ -21,6 +22,8 @@ export interface ImportOptions {
   source: ImportSource;
   /** Campaign refs for attribution matching; loaded once per batch when omitted. */
   campaigns?: CampaignRef[];
+  /** Stock check of a new order (backorders); off when the caller runs it itself (order edits). */
+  stockCheck?: boolean;
 }
 
 const errMessage = (e: unknown) => (e instanceof Error ? `${e instanceof IntegrationError ? `[${e.code}] ` : ""}${e.message}` : String(e));
@@ -143,6 +146,9 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
   if (!lineage) await ctx.tx.insert(schema.orderAttribution).values({ tenantId: ctx.tenantId, orderId, ...attrValues }).onConflictDoUpdate({ target: [schema.orderAttribution.orderId], set: attrValues });
   // fulfillments → shipments with per-source state and resolver
   for (const f of o.fulfillments) await importFulfillment(ctx, orderId, f, now);
+  // backorders: a new order is checked against stock; one cancelled or shipped on the platform stops waiting
+  if (outcome === "created" && opts.stockCheck !== false) await checkOrderStock(ctx, orderId, { source: opts.source, skipRecompute: true });
+  if (existing && (o.cancelledAt || ["fulfilled", "partial"].includes(o.fulfillmentStatusRaw ?? ""))) await closeOrderBackorders(ctx, orderId, o.cancelledAt ? "cancelled" : "fulfilled", o.cancelledAt ? "order_cancelled" : "order_fulfilled");
   await recomputeOrderStatus(ctx, orderId, { eventMetadata: { source: opts.source } });
   // an exchange order paid through the invoice links back to its return
   const exchangeFor = o.noteAttributes?.find((a) => a.name === "keel_return_id")?.value;
