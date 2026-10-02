@@ -115,3 +115,25 @@ describe.each(tenantTables.map((t) => [getTableName(t), t] as const))("isolation
     expect(r.rows[0]?.n).toBe(0);
   });
 });
+
+/** TikTok rows (#41) live in the shared ads tables: only Northwind (Growth) has them, and Harbor cannot see or touch them. */
+describe("isolation: TikTok rows", () => {
+  it.each([["campaigns", "platform"], ["ad_sets", "platform"], ["ad_creatives", "platform"], ["ad_assets", "platform"], ["integrations", "provider"]] as const)("%s: tenant A's TikTok rows are invisible and untouchable for tenant B", async (table, col) => {
+    const admin = await pools.admin.execute<{ n: number }>(sql`select count(*)::int as n from ${sql.identifier(table)} where tenant_id = ${tenantA}::uuid and ${sql.identifier(col)} = 'tiktok'`);
+    expect(admin.rows[0]?.n).toBeGreaterThan(0);
+    const asA = await withTenant(tenantA, (tx) => tx.execute<{ n: number }>(sql`select count(*)::int as n from ${sql.identifier(table)} where ${sql.identifier(col)} = 'tiktok'`), pools.app);
+    expect(asA.rows[0]?.n).toBe(admin.rows[0]?.n);
+    const asB = await withTenant(tenantB, (tx) => tx.execute<{ n: number }>(sql`select count(*)::int as n from ${sql.identifier(table)} where ${sql.identifier(col)} = 'tiktok'`), pools.app);
+    expect(asB.rows[0]?.n).toBe(0);
+    const upd = await withTenant(tenantB, (tx) => tx.execute(sql`update ${sql.identifier(table)} set tenant_id = tenant_id where ${sql.identifier(col)} = 'tiktok'`), pools.app);
+    expect(upd.rowCount ?? 0).toBe(0);
+  });
+
+  it("TikTok daily metrics of tenant A are invisible for tenant B", async () => {
+    const q = sql`select count(*)::int as n from ad_metrics_daily m join campaigns c on c.id = m.campaign_id where c.platform = 'tiktok'`;
+    const admin = await pools.admin.execute<{ n: number }>(sql`select count(*)::int as n from ad_metrics_daily m join campaigns c on c.id = m.campaign_id where c.platform = 'tiktok' and m.tenant_id = ${tenantA}::uuid`);
+    expect(admin.rows[0]?.n).toBeGreaterThan(0);
+    expect((await withTenant(tenantB, (tx) => tx.execute<{ n: number }>(q), pools.app)).rows[0]?.n).toBe(0);
+    expect((await withTenant(tenantA, (tx) => tx.execute<{ n: number }>(q), pools.app)).rows[0]?.n).toBe(admin.rows[0]?.n);
+  });
+});

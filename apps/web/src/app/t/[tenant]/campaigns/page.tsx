@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canWritePage } from "@keel/config";
+import { adPlatformsForPlan, canWritePage } from "@keel/config";
 import { formatMoney, formatNumber, formatPercent } from "@keel/core";
 import { campaignLinkSuggestions, campaignsWithEconomics } from "@keel/services";
 import { Badge, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
@@ -18,12 +18,15 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
   const t = await getTranslations("campaigns");
   const ta = await getTranslations("ads");
   const period = resolvePeriod(sp, ctx.tenant.timezone);
-  const platform = ["meta", "google"].includes(sp.platform ?? "") ? sp.platform : undefined;
+  // ad platforms of the plan only (TikTok from Growth): a platform outside it is neither filterable nor listed
+  const platforms: readonly string[] = adPlatformsForPlan(ctx.tenant.planKey);
+  const platform = platforms.includes(sp.platform ?? "") ? sp.platform : undefined;
   const status = ["active", "paused", "archived"].includes(sp.status ?? "") ? sp.status : undefined;
   const at = { id: ctx.tenant.id, country: ctx.tenant.country, currency: ctx.tenant.currency, timezone: ctx.tenant.timezone, settings: ctx.settings };
   const [rows, suggestions] = await ctx.run(async (tx) => {
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
-    return Promise.all([campaignsWithEconomics(s, at, period, { platform, status }), campaignLinkSuggestions(s)]);
+    const [list, sugg] = await Promise.all([campaignsWithEconomics(s, at, period, { platform, status }), campaignLinkSuggestions(s)]);
+    return [list.filter((r) => platforms.includes(r.platform)), sugg.filter((r) => platforms.includes(r.platform))] as const;
   });
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   const ratio = (r: number | null) => (r === null ? "—" : `${r.toFixed(2)}×`);
@@ -50,15 +53,15 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
           </div>
         }
       />
-      <CampaignFilters basePath={base} keep={periodParams(period, sp)} platform={platform} status={status} />
+      <CampaignFilters basePath={base} keep={periodParams(period, sp)} platform={platform} status={status} platforms={platforms} />
       {rows.length > 0 && (() => {
-        const byPlatform = ["meta", "google"].map((p) => {
+        const byPlatform = platforms.map((p) => {
           const rs = rows.filter((r) => r.platform === p);
           return { platform: p, spend: rs.reduce((s, r) => s + r.metrics.spendMinor, 0), declared: rs.reduce((s, r) => s + r.declared.purchases, 0), declaredValue: rs.reduce((s, r) => s + r.declared.valueMinor, 0), real: rs.reduce((s, r) => s + r.metrics.attributedOrders, 0), realRevenue: rs.reduce((s, r) => s + r.metrics.netRevenueMinor, 0) };
         }).filter((x) => x.spend > 0 || x.declared > 0);
         return (
           <Card className="mt-4" data-testid="declared-vs-real">
-            <CardContent className="grid gap-3 p-4 sm:grid-cols-2">
+            <CardContent className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
               {byPlatform.map((x) => {
                 const gap = x.declared ? (x.real - x.declared) / x.declared : null;
                 return (
@@ -70,7 +73,7 @@ export default async function CampaignsPage({ params, searchParams }: { params: 
                   </div>
                 );
               })}
-              <p className="text-xs text-muted-foreground sm:col-span-2">{t("declared.help")}</p>
+              <p className="text-xs text-muted-foreground sm:col-span-2 lg:col-span-3">{t("declared.help")}</p>
             </CardContent>
           </Card>
         );

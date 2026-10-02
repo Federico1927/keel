@@ -1,3 +1,4 @@
+import { isAdPlatform, type AdPlatform } from "@keel/config";
 /** Queue names and payloads; the web app enqueues, the worker consumes. */
 export const QUEUES = {
   webhookProcess: "webhook.process",
@@ -45,11 +46,13 @@ export interface SyncReturnsJob {
 }
 export interface SyncAdsJob {
   tenantId: string;
-  provider: "meta" | "google";
+  provider: AdPlatform;
   since: string;
   until: string;
   /** "entities": the campaign pull is done, resume the levels below the campaign (issue #40). */
   phase?: "campaigns" | "entities";
+  /** "backfill": the first import after connecting (e.g. TikTok's 90 days), resumed as its own run. */
+  kind?: "delta" | "backfill";
 }
 /** A CSV export too large for a direct download (packages/services `requestListExport`). */
 export interface ListExportJob {
@@ -102,7 +105,7 @@ export function jobTenantOf(data: unknown): string | null {
  */
 export function resyncJobsFor(tenantId: string, source: string, now = new Date()): QueuedJob[] {
   const [provider, part] = source.split(":");
-  if (provider === "meta" || provider === "google") {
+  if (isAdPlatform(provider)) {
     const w = adsWindow(now);
     return [{ queue: QUEUES.syncAds, data: { tenantId, provider, ...w } satisfies SyncAdsJob, singletonKey: `${tenantId}:${provider}:${w.until}` }];
   }

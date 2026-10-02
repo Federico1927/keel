@@ -3,10 +3,10 @@ import { useRouter } from "next/navigation";
 import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, cn } from "@keel/ui";
-import { connectAnthropic, connectGoogle, connectMeta, connectShopifyCustomApp, disconnectIntegration, processWebhookNow, resyncIntegration, retryWebhooks, simulateReturnWebhook, simulateWebhook, testIntegration } from "@/server/actions/integrations";
+import { connectAnthropic, connectGoogle, connectMeta, connectShopifyCustomApp, connectTiktok, connectTiktokMock, disconnectIntegration, processWebhookNow, resyncIntegration, retryWebhooks, simulateReturnWebhook, simulateWebhook, testIntegration } from "@/server/actions/integrations";
 import type { ActionResult } from "@/server/action-result";
 
-type Provider = "shopify" | "meta" | "google" | "anthropic";
+type Provider = "shopify" | "meta" | "google" | "tiktok" | "anthropic";
 
 export function ProviderActions({ slug, provider, connected, mock, canManage }: { slug: string; provider: Provider; connected: boolean; mock: boolean; canManage: boolean }) {
   const t = useTranslations("integrations");
@@ -48,10 +48,16 @@ export function ProviderActions({ slug, provider, connected, mock, canManage }: 
             </Button>
           </>
         )}
-        <Button size="sm" variant={connected && !mock ? "ghost" : "default"} disabled={pending} onClick={() => setShowConnect((v) => !v)}>
+        {provider === "tiktok" && mock && !connected && (
+          <Button size="sm" disabled={pending} data-testid="tiktok-mock-connect" onClick={() => start(async () => { const r = await connectTiktokMock(slug); say(r, r.ok && r.data ? t(r.data.finished ? "tiktok_mock_connected" : "tiktok_mock_partial", { summary: r.data.summary }) : ""); })}>
+            {t("tiktok_mock_connect")}
+          </Button>
+        )}
+        <Button size="sm" variant={(connected && !mock) || provider === "tiktok" ? "ghost" : "default"} disabled={pending} onClick={() => setShowConnect((v) => !v)}>
           {connected && !mock ? t("reconnect") : t("connect")}
         </Button>
-        {connected && !mock && (
+        {/* the simulated TikTok account can be disconnected too, to show the connection flow again */}
+        {connected && (!mock || provider === "tiktok") && (
           <Button size="sm" variant="ghost" disabled={pending} onClick={() => start(async () => say(await disconnectIntegration(slug, provider), t("disconnected")))}>
             {t("disconnect")}
           </Button>
@@ -70,7 +76,7 @@ export function ProviderActions({ slug, provider, connected, mock, canManage }: 
 function ConnectForm({ slug, provider, mock, onDone }: { slug: string; provider: Provider; mock: boolean; onDone: () => void }) {
   const t = useTranslations("integrations");
   const tc = useTranslations("common");
-  const action = provider === "shopify" ? connectShopifyCustomApp : provider === "meta" ? connectMeta : provider === "anthropic" ? connectAnthropic : connectGoogle;
+  const action = provider === "shopify" ? connectShopifyCustomApp : provider === "meta" ? connectMeta : provider === "anthropic" ? connectAnthropic : provider === "tiktok" ? connectTiktok : connectGoogle;
   const [state, formAction, pending] = useActionState(action.bind(null, slug), null);
   const fields: { name: string; label: string; type?: string; placeholder?: string }[] = provider === "shopify"
     ? [{ name: "shop", label: t("fields.shop"), placeholder: "my-store.myshopify.com" }, { name: "accessToken", label: t("fields.access_token"), type: "password", placeholder: "shpat_…" }, { name: "apiSecret", label: t("fields.api_secret"), type: "password" }]
@@ -78,6 +84,8 @@ function ConnectForm({ slug, provider, mock, onDone }: { slug: string; provider:
       ? [{ name: "apiKey", label: t("fields.api_key"), type: "password", placeholder: "sk-ant-…" }]
       : provider === "meta"
         ? [{ name: "adAccountId", label: t("fields.ad_account"), placeholder: "act_123456789" }, { name: "accessToken", label: t("fields.access_token"), type: "password" }]
+        : provider === "tiktok"
+          ? [{ name: "appId", label: t("fields.app_id") }, { name: "appSecret", label: t("fields.app_secret"), type: "password" }, { name: "authCode", label: t("fields.auth_code"), type: "password" }]
         : [{ name: "customerId", label: t("fields.customer_id"), placeholder: "123-456-7890" }, { name: "loginCustomerId", label: t("fields.login_customer_id"), placeholder: "optional" }, { name: "developerToken", label: t("fields.developer_token"), type: "password" }, { name: "clientId", label: t("fields.client_id") }, { name: "clientSecret", label: t("fields.client_secret"), type: "password" }, { name: "refreshToken", label: t("fields.refresh_token"), type: "password" }];
   return (
     <Card className={cn("mt-2", state?.ok && "border-success")}>
@@ -93,6 +101,11 @@ function ConnectForm({ slug, provider, mock, onDone }: { slug: string; provider:
               <Input id={`${provider}-${f.name}`} name={f.name} type={f.type ?? "text"} placeholder={f.placeholder} autoComplete="off" required={f.name !== "loginCustomerId"} />
             </div>
           ))}
+          {provider === "tiktok" && (
+            <p className="text-xs text-muted-foreground sm:col-span-2">
+              {t("tiktok_app_hint")} <a className="underline" href={`/api/integrations/tiktok/oauth/start?tenant=${slug}`}>{t("tiktok_app_link")}</a>
+            </p>
+          )}
           {provider === "shopify" && (
             <p className="text-xs text-muted-foreground sm:col-span-2">
               {t("public_app_hint")} <a className="underline" href={`/api/integrations/shopify/oauth/start?tenant=${slug}&shop=`}>{t("public_app_link")}</a>

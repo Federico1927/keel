@@ -16,6 +16,7 @@ export const CORE_MODULES = [
   "core.purchasing",
   "core.platform",
   "core.mcp",
+  "core.ads.tiktok",
 ] as const;
 export type CoreModule = (typeof CORE_MODULES)[number];
 
@@ -58,6 +59,8 @@ export const MODULES: Record<ModuleKey, ModuleDefinition> = {
   "core.platform": { key: "core.platform", nameKey: "modules.core.platform.name", descriptionKey: "modules.core.platform.description", availability: "implemented", pages: ["integrations", "settings", "users", "audit", "notifications", "tasks", "support"], monthlyPriceMinor: null },
   /** Remote MCP server: AI clients (Claude, ChatGPT, Cursor…) read the tenant's data as the connected user (#21). */
   "core.mcp": { key: "core.mcp", nameKey: "modules.core.mcp.name", descriptionKey: "modules.core.mcp.description", availability: "implemented", pages: [], monthlyPriceMinor: null, minPlan: "growth" },
+  /** TikTok Ads as an ads platform (#41): campaigns, ad groups, ads, daily metrics, pause/resume. Adjust `minPlan` to move it between plans. */
+  "core.ads.tiktok": { key: "core.ads.tiktok", nameKey: "modules.core.ads.tiktok.name", descriptionKey: "modules.core.ads.tiktok.description", availability: "implemented", pages: [], monthlyPriceMinor: null, minPlan: "growth" },
   "addon.cod": { key: "addon.cod", nameKey: "modules.addon.cod.name", descriptionKey: "modules.addon.cod.description", availability: "implemented", pages: ["cod_queue", "cod_settings"], monthlyPriceMinor: 19900 },
   /** Messages to segments with a control group: holdout on segments, treated/control groups, uplift. WhatsApp providers (e.g. Spoki) plug in as its channel. */
   "addon.customer_campaigns": { key: "addon.customer_campaigns", nameKey: "modules.addon.customer_campaigns.name", descriptionKey: "modules.addon.customer_campaigns.description", availability: "implemented", pages: ["customer_campaigns"], monthlyPriceMinor: 9900 },

@@ -1,5 +1,5 @@
 import { and, desc, eq, inArray, recordAudit, schema, sql, withTenant, type Database } from "@keel/db";
-import { DEFAULT_SUSPEND_AFTER_DAYS, DEFAULT_TRIAL_DAYS, MODULES, OPERATIONAL_TENANT_STATUSES, PLANS, SOURCE_ERROR_STATUSES, type PlanKey, isAddonModule } from "@keel/config";
+import { AD_PLATFORMS, adPlatformsForPlan, DEFAULT_SUSPEND_AFTER_DAYS, DEFAULT_TRIAL_DAYS, MODULES, OPERATIONAL_TENANT_STATUSES, PLANS, SOURCE_ERROR_STATUSES, type AdPlatform, type PlanKey, isAddonModule } from "@keel/config";
 import { addMonths, defaultStateRules, displayName, normalizeEmail, monthlyInvoiceLines, mrr, paymentHealth, setupInvoiceLines, tenantHealth, type PaymentHealth, type TenantHealth } from "@keel/core";
 import { getBillingProvider, type BillingProvider } from "./provider";
 import { createInvitation, pendingInvitationCount } from "../account/invitations";
@@ -186,7 +186,7 @@ export async function createTenant(db: AdminDb, input: CreateTenantInput, actorU
   const tenantId = tenant!.id;
   await db.insert(schema.tenantTaxRates).values({ tenantId, country: input.country.toUpperCase(), rateBps: input.taxRateBps, pricesIncludeTax: input.country.toUpperCase() !== "US" }).onConflictDoNothing();
   for (const r of defaultStateRules()) await db.insert(schema.stateRules).values({ tenantId, name: r.name, priority: r.priority, conditions: r.conditions, resultStatus: r.resultStatus, isActive: r.isActive });
-  for (const provider of ["shopify", "meta", "google"]) await db.insert(schema.integrations).values({ tenantId, provider, status: "not_connected", mode: "mock" }).onConflictDoNothing();
+  for (const provider of ["shopify", ...adPlatformsForPlan(input.planKey)]) await db.insert(schema.integrations).values({ tenantId, provider, status: "not_connected", mode: "mock" }).onConflictDoNothing();
   await ensureSubscription(db, tenantId, { planKey: input.planKey, now, provider: opts.provider, actorUserId });
   await recordLifecycleEvent(db, tenantId, { from: null, to: "trial", reason: "tenant_created", actorUserId, now });
   await audit(db, actorUserId, tenantId, "tenant.created", { entityType: "tenant", entityId: tenantId, diff: { name: { from: null, to: input.name }, planKey: { from: null, to: input.planKey }, owner: { from: null, to: email } } });
@@ -200,7 +200,7 @@ export async function createTenant(db: AdminDb, input: CreateTenantInput, actorU
 }
 
 export interface ChecklistItem {
-  key: "company" | "owner" | "users" | "shopify" | "meta" | "google" | "state_rules" | "costs" | "billing";
+  key: "company" | "owner" | "users" | "shopify" | AdPlatform | "state_rules" | "costs" | "billing";
   done: boolean;
   detail: string | null;
 }
@@ -219,8 +219,8 @@ export async function tenantChecklist(db: AdminDb, tenantId: string, now = new D
     { key: "owner", done: members.some((m) => m.role === "owner"), detail: !members.some((m) => m.role === "owner") && (await pendingInvitationCount(db, tenantId, "owner", now)) > 0 ? "invited" : null },
     { key: "users", done: members.length >= 2, detail: String(members.length) },
     { key: "shopify", done: status("shopify") === "connected", detail: status("shopify") },
-    { key: "meta", done: status("meta") === "connected", detail: status("meta") },
-    { key: "google", done: status("google") === "connected", detail: status("google") },
+    // one step per ad platform the plan includes (TikTok from Growth up)
+    ...adPlatformsForPlan(tenant.planKey).map((p) => ({ key: p, done: status(p) === "connected", detail: status(p) })),
     { key: "state_rules", done: (rules?.n ?? 0) > 0, detail: String(rules?.n ?? 0) },
     { key: "costs", done: (costs?.n ?? 0) > 0, detail: String(costs?.n ?? 0) },
     { key: "billing", done: pay.health === "ok", detail: pay.health },
@@ -261,7 +261,7 @@ export async function tenantsOverview(db: AdminDb, now = new Date()): Promise<Te
   if (!tenants.length) return [];
   const ids = tenants.map((t) => t.id);
   const addons = await db.select({ tenantId: schema.tenantAddons.tenantId, key: schema.tenantAddons.moduleKey }).from(schema.tenantAddons).where(and(inArray(schema.tenantAddons.tenantId, ids), eq(schema.tenantAddons.isActive, true)));
-  const integrations = await db.select({ tenantId: schema.integrations.tenantId, provider: schema.integrations.provider, status: schema.integrations.status }).from(schema.integrations).where(and(inArray(schema.integrations.tenantId, ids), inArray(schema.integrations.provider, ["shopify", "meta", "google"])));
+  const integrations = await db.select({ tenantId: schema.integrations.tenantId, provider: schema.integrations.provider, status: schema.integrations.status }).from(schema.integrations).where(and(inArray(schema.integrations.tenantId, ids), inArray(schema.integrations.provider, ["shopify", ...AD_PLATFORMS])));
   const orders = await db.select({ tenantId: schema.orders.tenantId, n: sql<number>`count(*)::int` }).from(schema.orders).where(and(inArray(schema.orders.tenantId, ids), sql`${schema.orders.placedAt} > ${new Date(now.getTime() - 30 * 864e5)}`, sql`${schema.orders.status} <> 'cancelled'`)).groupBy(schema.orders.tenantId);
   const logins = await db.select({ tenantId: schema.tenantMemberships.tenantId, last: sql<Date | null>`max(${schema.users.lastLoginAt})` }).from(schema.tenantMemberships).innerJoin(schema.users, eq(schema.users.id, schema.tenantMemberships.userId)).where(inArray(schema.tenantMemberships.tenantId, ids)).groupBy(schema.tenantMemberships.tenantId);
   const invs = await db.select({ tenantId: schema.invoices.tenantId, status: schema.invoices.status, dueAt: schema.invoices.dueAt, amountMinor: schema.invoices.amountMinor }).from(schema.invoices).where(inArray(schema.invoices.tenantId, ids));

@@ -3,20 +3,27 @@ import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, desc, eq, recordAudit, schema, sql } from "@keel/db";
-import { AnthropicLlmProvider, GoogleAdsPlatform, MetaAdsPlatform, ShopifyCommercePlatform, SHOPIFY_WEBHOOK_TOPICS, encryptJson, integrationMode, isValidShopDomain, type ConnectionTest } from "@keel/integrations";
-import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runReturnsSync } from "@keel/services";
+import { isAdPlatform, isAdPlatformInPlan } from "@keel/config";
+import { AnthropicLlmProvider, GoogleAdsPlatform, MOCK_ACCOUNT_IDS, MetaAdsPlatform, ShopifyCommercePlatform, SHOPIFY_WEBHOOK_TOPICS, TiktokAdsPlatform, encryptJson, exchangeTiktokAuthCode, integrationMode, isValidShopDomain, type ConnectionTest } from "@keel/integrations";
+import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsBackfill, runAdsSync, runCatalogSync, runOrdersSync, runReturnsSync } from "@keel/services";
 import { enqueue } from "@/server/jobs";
-import { ForbiddenError, requireAction } from "@/server/tenant";
+import { ForbiddenError, requireAction, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 
-const PROVIDERS = ["shopify", "meta", "google", "anthropic"] as const;
+const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic"] as const;
 type Provider = (typeof PROVIDERS)[number];
 const providerSchema = z.enum(PROVIDERS);
 /** Providers whose data Keel imports; the AI key has nothing to resync. */
-const syncProviderSchema = z.enum(["shopify", "meta", "google"]);
+const syncProviderSchema = z.enum(["shopify", "meta", "google", "tiktok"]);
+
+/** Ad platforms sold by plan (TikTok from Growth): refused server side, whatever the client shows. */
+function requireProviderInPlan(ctx: TenantContext, provider: string): void {
+  if (isAdPlatform(provider) && !isAdPlatformInPlan(provider, ctx.tenant.planKey)) throw new ForbiddenError("module_disabled");
+}
 
 async function saveConnection(slug: string, provider: Provider, test: ConnectionTest, credentials: unknown, accountId: string, config: Record<string, unknown> = {}): Promise<ActionResult> {
   const ctx = await requireAction(slug, "manage_integrations", "integrations");
+  requireProviderInPlan(ctx, provider);
   if (!test.ok) return fail("connection_failed", { platform: test.error ?? "" });
   await ctx.run(async (tx) => {
     const values = { status: "connected", mode: "live", externalAccountId: accountId, externalAccountName: test.accountName ?? accountId, credentialsEncrypted: encryptJson(credentials), config: { ...config, scopes: test.scopes ?? [], missingScopes: test.missingScopes ?? [] }, lastError: null, lastSuccessAt: new Date(), updatedAt: new Date() };
@@ -77,6 +84,67 @@ export async function connectGoogle(slug: string, _prev: ActionResult | null, fo
   }
 }
 
+const tiktokSchema = z.object({ appId: z.string().trim().min(5), appSecret: z.string().trim().min(8), authCode: z.string().trim().min(8) });
+/**
+ * TikTok for Business with the store's own app: the auth code from the advertiser authorization is
+ * exchanged for a long-lived token covering one or more advertiser accounts; credentials are stored
+ * encrypted (AES-GCM) and the 90-day backfill is queued. Keel's own app goes through the OAuth routes.
+ */
+export async function connectTiktok(slug: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
+  try {
+    const ctx = await requireAction(slug, "manage_integrations", "integrations");
+    requireProviderInPlan(ctx, "tiktok");
+    const parsed = tiktokSchema.safeParse(Object.fromEntries(formData.entries()));
+    if (!parsed.success) return fail("invalid_input");
+    if (integrationMode() !== "live") return fail("mock_mode");
+    const token = await exchangeTiktokAuthCode(parsed.data).catch((e: unknown) => ({ error: e instanceof Error ? e.message : String(e) }));
+    if ("error" in token) return fail("connection_failed", { platform: token.error });
+    const creds = { appId: parsed.data.appId, appSecret: parsed.data.appSecret, accessToken: token.accessToken, advertiserIds: token.advertiserIds };
+    const test = await new TiktokAdsPlatform(creds).testConnection();
+    const saved = await saveConnection(slug, "tiktok", test, creds, creds.advertiserIds.join(","), { advertiserIds: creds.advertiserIds, installedVia: "own_app" });
+    if (saved.ok) await queueTiktokBackfill(ctx);
+    return saved;
+  } catch (e) {
+    if (e instanceof ForbiddenError) return fail("forbidden");
+    throw e;
+  }
+}
+
+/** The 90-day first import of a newly connected TikTok account, on the worker (it resumes itself in windows). */
+async function queueTiktokBackfill(ctx: TenantContext): Promise<boolean> {
+  const until = new Date().toISOString().slice(0, 10);
+  const since = new Date(Date.now() - 89 * 864e5).toISOString().slice(0, 10);
+  return enqueue("sync.ads", { tenantId: ctx.tenant.id, provider: "tiktok", since, until, kind: "backfill" }, { singletonKey: `${ctx.tenant.id}:tiktok:backfill:${until}` });
+}
+
+/**
+ * Mock mode: connects the simulated TikTok account (the tenant's own TikTok data, or a small demo
+ * account) and runs the first import inline: campaigns, ad groups, ads and 90 days of metrics.
+ */
+export async function connectTiktokMock(slug: string): Promise<ActionResult<{ summary: string; finished: boolean }>> {
+  try {
+    const ctx = await requireAction(slug, "manage_integrations", "integrations");
+    requireProviderInPlan(ctx, "tiktok");
+    const existing = await ctx.run((tx) => tx.select().from(schema.integrations).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, "tiktok"))).limit(1));
+    if (integrationMode() === "live" && existing[0]?.mode === "live" && existing[0].status !== "not_connected") return fail("live_mode");
+    const r = await ctx.run(async (tx) => {
+      const values = { status: "connected", mode: "mock", externalAccountId: MOCK_ACCOUNT_IDS.tiktok, externalAccountName: `${ctx.tenant.name} (TikTok demo)`, credentialsEncrypted: null, config: { advertiserIds: [MOCK_ACCOUNT_IDS.tiktok], installedVia: "mock" }, lastError: null, updatedAt: new Date() };
+      await tx.insert(schema.integrations).values({ tenantId: ctx.tenant.id, provider: "tiktok", ...values }).onConflictDoUpdate({ target: [schema.integrations.tenantId, schema.integrations.provider], set: values });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.connected", entityType: "integration", entityId: "tiktok", diff: { status: { from: existing[0]?.status ?? null, to: "connected" }, mode: { from: existing[0]?.mode ?? null, to: "mock" } } });
+      const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
+      return runAdsBackfill(s, await getAdsPlatformFor(s, ctx.tenant, "tiktok"), { days: 90, budgetMs: 20_000 });
+    });
+    if (!r.finished && !r.error) await queueTiktokBackfill(ctx);
+    revalidatePath(`/t/${slug}/integrations`);
+    revalidatePath(`/t/${slug}/campaigns`, "layout");
+    if (r.error) return fail("connection_failed", { platform: r.error });
+    return ok({ summary: `campaigns:${r.campaigns} ad_groups:${r.counts.adSets ?? 0} ads:${r.counts.ads ?? 0} metrics:${r.metrics + (r.counts.ad_set ?? 0) + (r.counts.ad ?? 0)}`, finished: r.finished });
+  } catch (e) {
+    if (e instanceof ForbiddenError) return fail("forbidden");
+    throw e;
+  }
+}
+
 const anthropicSchema = z.object({ apiKey: z.string().trim().min(20) });
 /** The store's own Anthropic key for the AI assistant; the store pays its usage to Anthropic directly. */
 export async function connectAnthropic(slug: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
@@ -97,6 +165,7 @@ export async function disconnectIntegration(slug: string, provider: string): Pro
     const p = providerSchema.safeParse(provider);
     if (!p.success) return fail("invalid_input");
     const ctx = await requireAction(slug, "manage_integrations", "integrations");
+    requireProviderInPlan(ctx, p.data);
     await ctx.run(async (tx) => {
       await tx.update(schema.integrations).set({ status: "not_connected", credentialsEncrypted: null, mode: "mock", lastError: null, updatedAt: new Date() }).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, p.data)));
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.disconnected", entityType: "integration", entityId: p.data, diff: { status: { from: "connected", to: "not_connected" } } });
@@ -114,6 +183,7 @@ export async function testIntegration(slug: string, provider: string): Promise<A
     const p = providerSchema.safeParse(provider);
     if (!p.success) return fail("invalid_input");
     const ctx = await requireAction(slug, "manage_integrations", "integrations");
+    requireProviderInPlan(ctx, p.data);
     const result = await ctx.run(async (tx) => {
       const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
       const platform = p.data === "shopify" ? await getCommercePlatformFor(s, ctx.tenant) : p.data === "anthropic" ? await getLlmProviderFor(s) : await getAdsPlatformFor(s, ctx.tenant, p.data);
@@ -137,6 +207,7 @@ export async function resyncIntegration(slug: string, provider: string): Promise
     const p = syncProviderSchema.safeParse(provider);
     if (!p.success) return fail("invalid_input");
     const ctx = await requireAction(slug, "manage_integrations", "integrations");
+    requireProviderInPlan(ctx, p.data);
     await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.resync_requested", entityType: "integration", entityId: p.data }));
     const since = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
     const until = new Date().toISOString().slice(0, 10);

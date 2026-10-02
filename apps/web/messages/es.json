@@ -132,6 +132,12 @@
       "mcp": {
         "name": "Clientes de IA (MCP)",
         "description": "Claude, ChatGPT, Cursor y otros clientes de IA leen los datos de la tienda como el usuario conectado"
+      },
+      "ads": {
+        "tiktok": {
+          "name": "TikTok Ads",
+          "description": "Campañas, grupos de anuncios y anuncios de TikTok con métricas diarias, beneficio sobre pedidos reales y pausa/reactivación"
+        }
       }
     },
     "addon": {
@@ -1855,11 +1861,13 @@
     "totals": "Total",
     "platform": {
       "meta": "Meta",
-      "google": "Google Ads"
+      "google": "Google Ads",
+      "tiktok": "TikTok Ads"
     },
     "declared": {
       "title_meta": "Meta: declarado vs real",
       "title_google": "Google: declarado vs real",
+      "title_tiktok": "TikTok: declarado vs real",
       "platform_says": "La plataforma declara (compras · valor · ROAS)",
       "real": "Pedidos reales atribuidos (pedidos · neto · ROAS)",
       "gap": "Diferencia",
@@ -2638,6 +2646,7 @@
       "shopify": "Shopify",
       "meta": "Meta Ads",
       "google": "Google Ads",
+      "tiktok": "TikTok Ads",
       "tracking": "Píxel y conversiones",
       "survey": "Encuesta poscompra",
       "anthropic": "IA (Anthropic)",
@@ -2690,12 +2699,14 @@
       "shopify": "App personalizada (token Admin API)",
       "meta": "Token de usuario del sistema",
       "google": "Credenciales de Google Ads API",
+      "tiktok": "App de TikTok for Business",
       "anthropic": "Clave API de Anthropic"
     },
     "connect_description": {
       "shopify": "Crea una app personalizada en el admin de la tienda, concede los permisos de la guía, pega el token de Admin API y la clave secreta usada para firmar webhooks.",
       "meta": "Un token de usuario del sistema de larga duración de Business Manager con ads_read y ads_management sobre la cuenta publicitaria.",
       "google": "Developer token, cliente OAuth y un refresh token autorizado para el ámbito de Google Ads; solo lectura en esta versión.",
+      "tiktok": "App id y secret de la app de TikTok for Business y el auth code que devuelve la autorización del anunciante; Keel lo canjea por un token de larga duración válido para todas las cuentas de anunciante autorizadas.",
       "anthropic": "La clave de la tienda desde console.anthropic.com. Anthropic factura el uso del asistente a esa cuenta; Keel guarda la clave cifrada."
     },
     "fields": {
@@ -2709,7 +2720,10 @@
       "client_id": "OAuth client id",
       "client_secret": "OAuth client secret",
       "refresh_token": "Refresh token",
-      "api_key": "Clave API"
+      "api_key": "Clave API",
+      "app_id": "App id",
+      "app_secret": "App secret",
+      "auth_code": "Auth code"
     },
     "slots_title": "Integraciones por cuenta",
     "slots_description": "Espacios para conectores a medida vendidos por cuenta. Existen interfaces y mocks; el proveedor concreto se implementa bajo pedido.",
@@ -2769,7 +2783,14 @@
     "simulate_return": "Simular devolución",
     "simulated_return": "Webhook de devolución aceptado (HTTP {status}) para {order}.",
     "google_write_access": "Acceso de escritura concedido",
-    "google_write_access_hint": "Permite a Keel pausar anuncios y añadir palabras clave negativas. Sin él, Google sigue en solo lectura."
+    "google_write_access_hint": "Permite a Keel pausar anuncios y añadir palabras clave negativas. Sin él, Google sigue en solo lectura.",
+    "tiktok_mock_connect": "Conectar cuenta demo",
+    "tiktok_mock_connected": "TikTok conectado (mock): {summary}",
+    "tiktok_mock_partial": "TikTok conectado (mock): {summary}. El resto de los 90 días se sigue importando en segundo plano.",
+    "tiktok_app_hint": "¿Usas la app de TikTok de Keel (TIKTOK_APP_ID configurado)?",
+    "tiktok_app_link": "Autorizar con TikTok",
+    "not_in_plan_badge": "No incluido",
+    "not_in_plan": "Incluido desde el plan {plan}: pide al gestor de la plataforma que cambie el plan."
   },
   "integration_guide": {
     "verify_legend": "Los pasos marcados “Por verificar” dependen de consolas de proveedores que cambian a menudo: compruébalos en la documentación del proveedor antes de la primera instalación.",
@@ -2950,6 +2971,73 @@
         }
       ],
       "scopes": "Lectura: ámbito adwords con acceso de lectura y developer token Básico. Opcional, solo para pausar anuncios y añadir palabras clave negativas: el mismo ámbito con un usuario que pueda editar la cuenta."
+    },
+    "tiktok": {
+      "title": "Conectar TikTok Ads",
+      "intro": "Campañas, grupos de anuncios y anuncios (texto, vídeo, miniatura) con gasto diario, impresiones, clics, conversiones, valor de conversión y reproducciones de vídeo, de todas las cuentas de anunciante autorizadas. Pausar y reactivar campañas y anuncios pide confirmación y pasa por la cola de escritura. Incluido desde el plan Growth.",
+      "steps": [
+        {
+          "title": "Crear la app de TikTok for Business",
+          "body": "En el portal de desarrolladores de TikTok API for Business crea una app (o usa la de Keel, si TIKTOK_APP_ID está configurado). Configura como redirect URL del anunciante:\n{callbackUrl}",
+          "verify": true
+        },
+        {
+          "title": "Permisos",
+          "body": "Solicita los grupos de permisos que necesitan los módulos activos (panel de la derecha): Ad Account Management, Ads Management y Reporting para campañas y métricas; Creative Management para las miniaturas de los vídeos. TikTok revisa la app antes de que pueda usarse en cuentas distintas de la tuya.",
+          "verify": true
+        },
+        {
+          "title": "Autorizar las cuentas de anunciante",
+          "body": "El titular de la tienda (o un admin de su Business Center) abre el enlace de autorización, elige las cuentas de anunciante y confirma. TikTok redirige con un auth_code válido unos minutos y de un solo uso.",
+          "verify": true
+        },
+        {
+          "title": "Conectar en Keel",
+          "body": "Integraciones → TikTok Ads → Conectar: app id, app secret y el auth code (o “Autorizar con TikTok” con la app de Keel). Keel canjea el código por un token de larga duración, lo guarda cifrado (AES-GCM) e importa todos los anunciantes que cubre."
+        },
+        {
+          "title": "Plantilla UTM",
+          "body": "En cada anuncio, en los parámetros de URL (o al final de la URL de la landing page):\n{utmTemplate}\nTikTok rellena __CAMPAIGN_ID__, __AID__ (grupo de anuncios) y __CID__ (anuncio). Junto con el click id ttclid vinculan los pedidos a campañas, grupos y anuncios; los anuncios sin ellos se señalan en la página Sugerencias.",
+          "verify": true
+        },
+        {
+          "title": "Versión de la API",
+          "body": "Keel llama a la TikTok API for Business {apiVersion} (reporting: report/integrated/get, filas diarias en ventanas de hasta 30 días). Revisa el changelog antes de cada versión.",
+          "verify": true
+        },
+        {
+          "title": "Verificar",
+          "body": "Probar conexión lee las cuentas de anunciante; Resincronizar importa campañas y métricas diarias, y luego grupos de anuncios y anuncios en ventanas de 7 días (reanudable, respeta los límites de frecuencia). La primera importación cubre los últimos 90 días."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "40105 / 40102 token no válido o caducado",
+          "fix": "El anunciante revocó la autorización o el token se regeneró: autoriza de nuevo y vuelve a conectar."
+        },
+        {
+          "symptom": "40001 sin permiso",
+          "fix": "A la app le falta un grupo de permisos, o la cuenta de anunciante no se seleccionó durante la autorización."
+        },
+        {
+          "symptom": "40100 demasiadas solicitudes",
+          "fix": "Límite de frecuencia: Keel pausa la sincronización y continúa desde la misma ventana tras la espera."
+        },
+        {
+          "symptom": "Auth code caducado o ya usado",
+          "fix": "El auth code dura unos minutos y sirve una sola vez: repite la autorización."
+        },
+        {
+          "symptom": "Los pedidos no muestran el anuncio de TikTok",
+          "fix": "En los parámetros de URL faltan utm_content=__CID__ / utm_term=__AID__, o la tienda pierde ttclid en la URL de llegada."
+        }
+      ],
+      "scopes": "El análisis de solo lectura necesita Ad Account Management y Reporting; pausar y reactivar necesita también Ads Management. Sin Creative Management funciona todo salvo las miniaturas.",
+      "modules": {
+        "campaigns": "Campañas, grupos, anuncios y métricas",
+        "creatives": "Miniaturas de vídeo",
+        "pause": "Pausa / reactivación"
+      }
     },
     "anthropic": {
       "title": "Conecta el asistente de IA (Anthropic)",
@@ -3323,6 +3411,7 @@
         "shopify": "Shopify conectado",
         "meta": "Meta Ads conectado",
         "google": "Google Ads conectado",
+        "tiktok": "TikTok Ads conectado",
         "state_rules": "Reglas de estado",
         "costs": "Costes configurados",
         "billing": "Pagos al corriente"
@@ -4934,6 +5023,7 @@
       "roas": "ROAS",
       "meta": "Meta",
       "google": "Google",
+      "tiktok": "TikTok",
       "slipping": "clientes valiosos en riesgo",
       "due_soon": "próximos a recomprar",
       "top": "mayor valor previsto",
@@ -6806,7 +6896,11 @@
       "google_spend": "Gasto en Google",
       "google_roas": "ROAS de Google",
       "google_cpa": "CPA de Google",
-      "google_ctr": "CTR de Google"
+      "google_ctr": "CTR de Google",
+      "tiktok_spend": "Gasto en TikTok",
+      "tiktok_roas": "ROAS de TikTok",
+      "tiktok_cpa": "CPA de TikTok",
+      "tiktok_ctr": "CTR de TikTok"
     },
     "metric_groups": {
       "finance": "Finanzas",
@@ -7000,7 +7094,8 @@
     },
     "platforms": {
       "meta": "Meta",
-      "google": "Google"
+      "google": "Google",
+      "tiktok": "TikTok"
     }
   },
   "ads": {
@@ -7101,6 +7196,7 @@
     "no_assets": "Sin desglose por recurso",
     "no_assets_meta": "Meta solo informa de recursos en anuncios con creatividad dinámica o Advantage+.",
     "no_assets_google": "Google informa de recursos en los anuncios adaptables.",
+    "no_assets_tiktok": "TikTok no informa de métricas por recurso: el vídeo del anuncio aparece con su id.",
     "field": {
       "headline": "Título",
       "description": "Descripción",
@@ -7180,7 +7276,8 @@
       "utm_ok": "Todas las campañas activas llevan las plantillas.",
       "utm_row": "{missing} de {ads} anuncios sin {params}",
       "template_meta": "Meta: parámetros de URL del anuncio",
-      "template_google": "Google: plantilla de seguimiento de la cuenta"
+      "template_google": "Google: plantilla de seguimiento de la cuenta",
+      "template_tiktok": "TikTok: parámetros de URL del anuncio"
     },
     "actions": {
       "read_only": "{platform} es de solo lectura para esta tienda.",

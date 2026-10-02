@@ -1,6 +1,7 @@
 export * from "./product";
 export * from "./roles";
 export * from "./modules";
+export * from "./ads";
 export * from "./plans";
 export * from "./defaults";
 export * from "./runtime";

@@ -1,6 +1,6 @@
 import { and, eq, gte, inArray, isNull, lt, recordAudit, schema, sql, type SQL } from "@keel/db";
 import { compileFormula, diffRecords, evaluateFormula, formulaIdentifiers, localMonthKey, orderPnl, periodBuckets, bucketIndex, sumOrderPnl, targetForMonth, type Granularity, type Period } from "@keel/core";
-import { CUSTOM_METRIC_PREFIX, FILTERABLE_METRIC_KEYS, METRIC_KEYS, SERIES_METRIC_KEYS, isCustomMetricRef, metricDefinition, metricFiltersSchema, normalizeMetricFilters, type MetricFilters, type MetricFormat } from "@keel/config";
+import { AD_PLATFORMS, CUSTOM_METRIC_PREFIX, FILTERABLE_METRIC_KEYS, METRIC_KEYS, SERIES_METRIC_KEYS, isCustomMetricRef, metricDefinition, metricFiltersSchema, normalizeMetricFilters, type MetricFilters, type MetricFormat } from "@keel/config";
 import type { ServiceContext } from "../context";
 import type { AuditIdentity } from "../catalog/costs";
 import { orderEconomicsForPeriod, pnlForPeriod, adSpendForPeriod, type AnalyticsTenant, type EconomicsRow } from "../analytics";
@@ -110,7 +110,7 @@ export async function baseMetricsFor(ctx: ServiceContext, tenant: AnalyticsTenan
   if (want.has("repeat_customer_rate")) out.repeat_customer_rate = await memo(`repeat|${pk}`, () => repeatCustomerRate(ctx, period));
   if (has(STOCK_KEYS)) Object.assign(out, await memo(`stock|${ctx.tenantId}`, () => stockSnapshot(ctx, tenant)));
   if (want.has("incoming_po_value")) out.incoming_po_value = await memo(`incoming|${ctx.tenantId}`, () => incomingPoValue(ctx));
-  for (const platform of ["meta", "google"]) if ([...want].some((k) => k.startsWith(`${platform}_`))) Object.assign(out, await memo(`ads|${platform}|${pk}`, () => platformAds(ctx, tenant, period, platform)));
+  for (const platform of AD_PLATFORMS) if ([...want].some((k) => k.startsWith(`${platform}_`))) Object.assign(out, await memo(`ads|${platform}|${pk}`, () => platformAds(ctx, tenant, period, platform)));
   return out;
 }
 

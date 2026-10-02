@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { canDo } from "@keel/config";
-import { ADS_UTM_TEMPLATES, formatDate, formatMoney, formatNumber, formatPercent } from "@keel/core";
+import { canDo, isAdPlatformInPlan } from "@keel/config";
+import { ADS_UTM_TEMPLATES, type AdPlatform, formatDate, formatMoney, formatNumber, formatPercent } from "@keel/core";
 import { adDetail, canWriteAds, latestPlatformWrites } from "@keel/services";
 import { Alert, AlertDescription, Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, EmptyState, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
@@ -27,7 +27,7 @@ export default async function AdPage({ params, searchParams }: { params: Promise
     const write = (await latestPlatformWrites(s, "ad", [adId], { kinds: ["ad.status"] })).get(adId);
     return { ...d, write, canWrite: await canWriteAds(s, d.ad.platform) };
   });
-  if (!data) notFound();
+  if (!data || !isAdPlatformInPlan(data.ad.platform, ctx.tenant.planKey)) notFound();
   const { ad, assets, days, write, canWrite } = data;
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   const qs = new URLSearchParams(Object.entries(periodParams(period, sp)).filter((e): e is [string, string] => Boolean(e[1]))).toString();
@@ -62,7 +62,7 @@ export default async function AdPage({ params, searchParams }: { params: Promise
           {ad.body && <p className="text-muted-foreground">{ad.body}</p>}
           {ad.finalUrl && <p className="break-all text-xs text-muted-foreground">{ad.finalUrl}</p>}
           {!ad.utm.ok && (
-            <Alert data-testid="utm-missing"><AlertDescription className="space-y-1"><p>{t("utm_missing_ad", { params: ad.utm.missing.join(", ") })}</p><code className="block break-all rounded bg-muted p-2 text-xs">{ADS_UTM_TEMPLATES[ad.platform as "meta" | "google"] ?? ""}</code></AlertDescription></Alert>
+            <Alert data-testid="utm-missing"><AlertDescription className="space-y-1"><p>{t("utm_missing_ad", { params: ad.utm.missing.join(", ") })}</p><code className="block break-all rounded bg-muted p-2 text-xs">{ADS_UTM_TEMPLATES[ad.platform as AdPlatform] ?? ""}</code></AlertDescription></Alert>
           )}
         </CardContent>
       </Card>
@@ -70,7 +70,7 @@ export default async function AdPage({ params, searchParams }: { params: Promise
       <Card className="mt-6">
         <CardHeader><CardTitle className="text-base">{t("assets_title")}</CardTitle></CardHeader>
         <CardContent className="p-0">
-          {assets.length === 0 ? <EmptyState title={t("no_assets")} description={t(ad.platform === "meta" ? "no_assets_meta" : "no_assets_google")} className="m-4" /> : (
+          {assets.length === 0 ? <EmptyState title={t("no_assets")} description={t(`no_assets_${ad.platform === "meta" || ad.platform === "tiktok" ? ad.platform : "google"}`)} className="m-4" /> : (
             <Table data-testid="assets-table">
               <TableHeader>
                 <TableRow>
@@ -89,7 +89,8 @@ export default async function AdPage({ params, searchParams }: { params: Promise
                   <TableRow key={a.id} data-testid="asset-row">
                     <TableCell><Badge variant="outline">{t(`field.${a.fieldType}`)}</Badge></TableCell>
                     <TableCell className="max-w-[18rem]">
-                      <div className="truncate">{a.text ?? a.url ?? "—"}</div>
+                      <div className="truncate">{a.text ?? a.url ?? a.assetExternalId}</div>
+                      {a.type === "video" && a.url && <div className="truncate font-mono text-xs text-muted-foreground">{a.assetExternalId}</div>}
                       <div className="flex flex-wrap gap-1">{a.performanceLabel && <Badge variant={a.performanceLabel === "LOW" ? "destructive" : a.performanceLabel === "BEST" ? "success" : "muted"}>{a.performanceLabel}</Badge>}{a.suggestion && <Badge variant="warning">{t(`pause_reason.${a.suggestion}`)}</Badge>}</div>
                     </TableCell>
                     <TableCell className="text-right tabular">{money(a.metrics.spendMinor)}</TableCell>

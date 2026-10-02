@@ -1,8 +1,9 @@
 import type { AdsPlatform, CommercePlatform, CreateOrderInput, FulfillmentHoldInput, ManualPaymentInput, NormalizedOrder, RefundOrderInput, OrderDetailsPatch, OrderDiscountPatch, PlatformReturnLineInput, VariantPatch, CreateFulfillmentInput, NormalizedFulfillment } from "@keel/integrations";
+import type { AdPlatform } from "@keel/core";
 import type { schema } from "@keel/db";
 import type { ServiceContext } from "../context";
 
-export type WriteProvider = "shopify" | "meta" | "google";
+export type WriteProvider = "shopify" | AdPlatform;
 export type PlatformWriteRow = typeof schema.platformWrites.$inferSelect;
 export type PlatformWriteStatus = "pending" | "running" | "succeeded" | "failed" | "superseded";
 
@@ -54,8 +55,8 @@ export interface PlatformWriteKinds {
   "return.refund": { payload: { orderExternalId: string; lines: { orderLineExternalId: string; quantity: number }[]; amountMinor: number; currency: string; note?: string | null; notify: boolean }; result: { externalId: string; amountMinor: number } };
   "return.close": { payload: { returnExternalId: string }; result: void };
   "fulfillment.create": { payload: { input: CreateFulfillmentInput }; result: NormalizedFulfillment };
-  "campaign.status": { payload: { provider: "meta" | "google"; campaignExternalId: string; status: "active" | "paused" }; result: void };
-  "ad.status": { payload: { provider: "meta" | "google"; adExternalId: string; adSetExternalId: string | null; status: "active" | "paused" }; result: void };
+  "campaign.status": { payload: { provider: AdPlatform; campaignExternalId: string; status: "active" | "paused" }; result: void };
+  "ad.status": { payload: { provider: AdPlatform; adExternalId: string; adSetExternalId: string | null; status: "active" | "paused" }; result: void };
   "keyword.negative": { payload: { provider: "google"; campaignExternalId: string; adSetExternalId: string | null; text: string; matchType: "exact" | "phrase" | "broad" }; result: { created: number } };
 }
 export type PlatformWriteKind = keyof PlatformWriteKinds;
