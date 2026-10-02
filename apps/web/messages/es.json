@@ -310,7 +310,8 @@
         "churnLowPct": "Riesgo de abandono bajo desde (% probabilidad activo)",
         "churnMediumPct": "Riesgo de abandono medio desde (% probabilidad activo)",
         "backorderHold": "Retener los pedidos que necesitan más que el stock disponible hasta que una orden de compra en camino los cubra",
-        "backorderPlatformHold": "Durante la espera, bloquear también la preparación en la tienda para que el almacén no los envíe"
+        "backorderPlatformHold": "Durante la espera, bloquear también la preparación en la tienda para que el almacén no los envíe",
+        "markdownMinMarginBps": "Margen mínimo de las rebajas (puntos básicos, 2000 = 20 %)"
       },
       "backorders_title": "Pedidos pendientes de stock",
       "backorders_description": "Qué pasa cuando un pedido necesita más que el stock disponible."
@@ -963,14 +964,14 @@
     "replaces": "Creado como sustitución",
     "replaced": "Sustituido por un pedido nuevo",
     "discount_applied": "Descuento aplicado",
-    "backorder_created": "En espera de stock",
-    "backorder_closed": "Espera de stock cerrada",
-    "payment_recorded": "Pago registrado",
-    "refund_issued": "Reembolso emitido",
     "fulfilled": "Enviado desde Keel",
     "packed": "Empaquetado",
     "unpacked": "Vuelto a pendiente",
-    "delivery_instruction_sent": "Instrucción de entrega enviada"
+    "delivery_instruction_sent": "Instrucción de entrega enviada",
+    "backorder_created": "En espera de stock",
+    "backorder_closed": "Espera de stock cerrada",
+    "payment_recorded": "Pago registrado",
+    "refund_issued": "Reembolso emitido"
   },
   "shipments": {
     "title": "Envíos",
@@ -1091,6 +1092,8 @@
       "adjustment": "Ajuste",
       "sync": "Sincronización",
       "sale": "Venta",
+      "transfer_in": "Transferencia de entrada",
+      "transfer_out": "Transferencia de salida",
       "refund_restock": "Reposición por reembolso"
     },
     "view_orders": "Ver pedidos",
@@ -1158,6 +1161,180 @@
     },
     "drift_all_locations": "Todas las ubicaciones",
     "drift_times": "×{n}"
+  },
+  "inventory_control": {
+    "back": "Inventario",
+    "links": {
+      "stock-takes": "Recuentos",
+      "markdowns": "Rebajas",
+      "losses": "Pérdidas sin explicar"
+    },
+    "reasons": {
+      "damaged": "Dañado",
+      "lost": "Perdido",
+      "found": "Encontrado",
+      "count_correction": "Corrección de recuento",
+      "other": "Otro"
+    },
+    "errors": {
+      "zero": "Introduce una cantidad distinta de cero.",
+      "sign": "El motivo no coincide con la dirección del cambio (dañado y perdido restan unidades, encontrado las suma).",
+      "negative_stock": "El stock de esta ubicación no puede bajar de cero.",
+      "note_required": "Añade una nota para \"Otro\".",
+      "not_open": "Este recuento ya no está abierto.",
+      "invalid_input": "Algunos campos no son válidos.",
+      "not_found": "No encontrado.",
+      "forbidden": "No tienes permiso para hacer esto."
+    },
+    "adjust": {
+      "button": "Ajustar stock",
+      "title": "Ajustar stock",
+      "description": "Cambia el stock de una variante en una ubicación, con un motivo.",
+      "variant": "Variante",
+      "location": "Ubicación",
+      "reason": "Motivo",
+      "direction": "Dirección",
+      "add": "Sumar unidades",
+      "remove": "Restar unidades",
+      "quantity": "Unidades",
+      "note": "Nota (opcional)",
+      "note_required": "Nota (obligatoria)",
+      "preview": "Disponible {current} → {next} ({delta}). El nuevo nivel se envía a la tienda.",
+      "submit": "Guardar ajuste"
+    },
+    "stock_takes": {
+      "title": "Recuentos",
+      "description": "Cuenta una ubicación, revisa las diferencias y aplícalas como correcciones en un solo lote. Las variantes que no cuentes no cambian.",
+      "back": "Recuentos",
+      "new": "Nuevo recuento",
+      "location": "Ubicación",
+      "note": "Nota",
+      "empty_title": "Aún no hay recuentos",
+      "empty_description": "Empieza uno para una ubicación y escanea o escribe lo que cuentes.",
+      "columns": {
+        "number": "Recuento",
+        "location": "Ubicación",
+        "status": "Estado",
+        "lines": "Líneas",
+        "movements": "Correcciones",
+        "updated": "Actualizado",
+        "variant": "Variante",
+        "expected": "Esperado",
+        "counted": "Contado",
+        "difference": "Diferencia"
+      },
+      "status": {
+        "open": "Abierto",
+        "applied": "Aplicado",
+        "cancelled": "Cancelado"
+      },
+      "open_description": "Escanea un código de barras o escribe un SKU y pulsa Intro: cada escaneo cuenta una unidad. Los recuentos parciales están bien.",
+      "applied_description": "Aplicado el {at}: {n} correcciones escritas.",
+      "cancelled_description": "Cancelado: no se escribió nada.",
+      "review": {
+        "missing": "Faltan",
+        "surplus": "Sobran",
+        "unknown": "SKU desconocido",
+        "match": "Coinciden"
+      },
+      "units": "{n} unidades",
+      "review_title": "Revisión",
+      "show_all": "Mostrar todo",
+      "no_lines": "Aún no se ha contado nada",
+      "no_lines_hint": "Escanea o escribe el primer código arriba.",
+      "unknown_code": "Código desconocido",
+      "scan_label": "Código de barras o SKU",
+      "scan_placeholder": "Escanea o escribe y pulsa Intro",
+      "quantity": "Unidades",
+      "mode": "Modo",
+      "mode_add": "Sumar al recuento",
+      "mode_set": "Sustituir recuento",
+      "count": "Contar",
+      "scan_matched": "{label}: contadas {n}",
+      "scan_unknown": "Código desconocido {code}: contadas {n} (no se aplica)",
+      "remove_line": "Quitar línea",
+      "apply_hint": "Al aplicar, cada variante contada toma su recuento y los niveles se envían a la tienda.",
+      "apply": "Aplicar {n, plural, one {# diferencia} other {# diferencias}}",
+      "apply_confirm": "¿Escribir {n, plural, one {# corrección} other {# correcciones}} y cerrar el recuento?",
+      "applied": "{n, plural, one {# corrección escrita} other {# correcciones escritas}}{released, plural, =0 {} one {, # pedido en espera liberado} other {, # pedidos en espera liberados}}.",
+      "cancel": "Cancelar recuento",
+      "cancel_confirm": "¿Cancelar el recuento? Los recuentos se conservan pero no se aplica nada."
+    },
+    "losses": {
+      "title": "Pérdidas sin explicar",
+      "description": "Variantes cuyo stock bajó sin una venta, cancelación, devolución, recepción o ajuste que lo explique, detectadas por las sincronizaciones.",
+      "location": "Ubicación",
+      "all_locations": "Todas las ubicaciones",
+      "apply": "Aplicar",
+      "kpi": {
+        "units": "Unidades perdidas",
+        "value": "Valor a coste",
+        "value_hint": "al último coste de la variante",
+        "without_cost": "{n, plural, one {# variante} other {# variantes}} sin coste no valoradas",
+        "variants": "Variantes"
+      },
+      "columns": {
+        "variant": "Variante",
+        "units": "Unidades",
+        "value": "Valor",
+        "events": "Eventos",
+        "locations": "Ubicaciones",
+        "last": "Última detección"
+      },
+      "no_cost": "Sin coste",
+      "empty_title": "Sin pérdidas sin explicar",
+      "empty_description": "En este periodo ningún stock bajó sin motivo.",
+      "footnote": "Cada discrepancia cuenta una vez aunque una sincronización la vuelva a ver. Registra las unidades dañadas o perdidas como ajustes para que no aparezcan aquí."
+    },
+    "markdowns": {
+      "title": "Rebajas",
+      "description": "Rebajas con precio tachado para stock sin ventas o con demasiada cobertura (más de {excess} días; rebaja fuerte desde {slow} días o sin ventas en {days} días). Los precios nunca bajan de un margen del {margin} sobre el precio neto.",
+      "reasons": {
+        "no_sales": "Sin ventas",
+        "slow": "Rotación lenta",
+        "excess": "Exceso de stock"
+      },
+      "skipped": {
+        "no_cost": "{n, plural, one {# variante} other {# variantes}} sin coste (sin umbral, sin sugerencia)",
+        "floor": "{n, plural, one {# variante} other {# variantes}} ya en el umbral de margen",
+        "already_marked_down": "{n, plural, one {# variante} other {# variantes}} ya rebajadas lo suficiente"
+      },
+      "columns": {
+        "variant": "Variante",
+        "reason": "Motivo",
+        "stock": "Stock",
+        "cover": "Cobertura",
+        "price": "Precio",
+        "new_price": "Rebaja",
+        "floor": "Umbral",
+        "margin": "Margen"
+      },
+      "at_floor": "en el umbral",
+      "select_all": "Seleccionar todo",
+      "apply": "Aplicar {n, plural, =0 {rebajas} one {# rebaja} other {# rebajas}}",
+      "apply_confirm": "¿Aplicar {n, plural, one {# rebaja} other {# rebajas}}? Los precios y precios tachados se envían a la tienda.",
+      "summary": "{done} aplicadas, {skipped} omitidas, {failed} fallidas.",
+      "empty_title": "No hay rebajas que sugerir",
+      "empty_description": "Ninguna variante activa tiene stock lento o en exceso por encima del umbral de margen."
+    },
+    "price_history": {
+      "title": "Historial de precios",
+      "markdown_description": "Rebajas aplicadas desde Keel, de la más reciente.",
+      "empty": "No hay cambios de precio registrados.",
+      "system": "Sistema",
+      "columns": {
+        "when": "Cuándo",
+        "variant": "Variante",
+        "price": "Precio",
+        "compare_at": "Precio tachado",
+        "by": "Por"
+      },
+      "source": {
+        "markdown": "rebaja",
+        "bulk": "edición en bloque",
+        "manual": "manual"
+      }
+    }
   },
   "purchasing": {
     "title": "Compras",
@@ -5377,12 +5554,255 @@
       "order_discount": "Descuento del pedido",
       "variant_prices": "Precios de variante",
       "product_tags": "Etiquetas de producto",
+      "fulfillment_create": "Preparación",
       "order_fulfillment_hold": "Bloqueo de preparación",
       "order_fulfillment_release": "Liberación del bloqueo",
       "order_mark_paid": "Marcar pedido pagado",
-      "order_refund": "Reembolso de pedido",
-      "fulfillment_create": "Preparación"
+      "order_refund": "Reembolso de pedido"
     }
+  },
+  "fulfilment": {
+    "title": "Preparación",
+    "description": "Pedidos listos para enviar, primero los más antiguos. Empaqueta, imprime el albarán y envía: la tienda crea el envío y Keel se actualiza solo cuando ella lo confirma. Retrasado significa más de {days} días laborables.",
+    "tabs": {
+      "label": "Áreas de preparación",
+      "board": "Por enviar",
+      "exceptions": "Incidencias de entrega",
+      "returned": "Devueltos al remitente"
+    },
+    "kpi": {
+      "late": "Retrasados (> {days} días laborables)",
+      "to_pack": "Por empaquetar",
+      "packed": "Empaquetados",
+      "shipped_today": "Enviados hoy"
+    },
+    "views": {
+      "label": "Vista",
+      "all": "Todos por enviar",
+      "late": "Solo retrasados"
+    },
+    "threshold": "Retrasado = listo para enviar desde hace más de {days} días laborables ({tz}).",
+    "search": "Buscar",
+    "search_placeholder": "Pedido, cliente, correo",
+    "columns": {
+      "pending": "Por empaquetar",
+      "packed": "Empaquetados",
+      "shipped": "Enviados hoy"
+    },
+    "showing": "{shown} de {total}",
+    "empty_pending": "Nada pendiente de empaquetar.",
+    "empty_late": "Ningún pedido retrasado: todo lo listo salió a tiempo.",
+    "empty_packed": "Ningún paquete empaquetado esperando al transportista.",
+    "empty_shipped": "Todavía no se ha enviado nada hoy.",
+    "card": {
+      "late": "Retrasado",
+      "units": "{units} unidades · {lines} líneas",
+      "age": "{days} días laborables",
+      "packed_at": "Empaquetado {time}"
+    },
+    "actions": {
+      "packing_slip": "Albarán",
+      "pack": "Marcar empaquetado",
+      "unpack": "Volver a pendiente",
+      "ship": "Enviar",
+      "packing_slips": "Albaranes ({count})",
+      "pack_selected": "Marcar empaquetados ({count})",
+      "unpack_selected": "Volver a pendiente ({count})",
+      "clear": "Quitar selección"
+    },
+    "selected": "{count} seleccionados",
+    "bulk_result": "{done} actualizados, {skipped} omitidos, {failed} fallidos",
+    "ship_dialog": {
+      "title": "Enviar {order}",
+      "description": "Crea el envío en la tienda con el transportista y el número de seguimiento. El pedido cambia en Keel solo cuando la tienda lo confirma.",
+      "carrier": "Transportista",
+      "carrier_placeholder": "p. ej. UPS, DHL, Correos",
+      "tracking": "Número de seguimiento",
+      "tracking_url": "Enlace de seguimiento (opcional)",
+      "notify": "Enviar el seguimiento al cliente por correo",
+      "cancel": "Cancelar",
+      "submit": "Enviar pedido"
+    },
+    "errors": {
+      "not_found": "Pedido no encontrado.",
+      "not_to_ship": "Este pedido ya no está pendiente de envío (enviado, cancelado o en espera).",
+      "invalid_input": "Algunos campos no son válidos.",
+      "no_platform_order": "Este pedido no está en la tienda: no se puede preparar desde Keel.",
+      "platform_error": "La tienda rechazó el envío; en Keel no cambió nada.",
+      "forbidden": "No tienes permiso para hacer esto.",
+      "unknown": "Algo salió mal.",
+      "field_required": "Obligatorio.",
+      "field_too_long": "Demasiado largo.",
+      "field_invalid": "No válido."
+    },
+    "packing_slip": {
+      "title": "Albarán",
+      "order": "Pedido",
+      "placed": "Fecha del pedido",
+      "ship_to": "Enviar a",
+      "sku": "SKU",
+      "item": "Artículo",
+      "variant": "Variante",
+      "quantity": "Cant.",
+      "units": "Unidades",
+      "note": "Nota"
+    }
+  },
+  "fulfilment_cases": {
+    "exceptions_title": "Incidencias de entrega",
+    "exceptions_description": "Paquetes que el transportista no pudo entregar. Entran solos en la cola, una persona se encarga del caso y envía al transportista una instrucción una sola vez; el caso se cierra solo cuando el paquete sigue su camino.",
+    "returned_title": "Devueltos al remitente",
+    "returned_description": "Paquetes en camino de vuelta o ya en el almacén. Revisa cada uno: devolver al stock, reembolsar lo pagado, contactar al cliente.",
+    "scopes": {
+      "open": "Abiertos",
+      "unclaimed": "Sin asignar",
+      "mine": "Míos",
+      "closed": "Cerrados"
+    },
+    "search": "Buscar",
+    "search_placeholder": "Pedido, cliente, seguimiento",
+    "empty_title": "Nada por aquí",
+    "empty_exceptions": "Ninguna incidencia de entrega en esta vista.",
+    "empty_returned": "Ningún paquete que revisar en esta vista.",
+    "columns": {
+      "order": "Pedido",
+      "shipment": "Envío",
+      "status": "Estado",
+      "opened": "Abierto",
+      "owner": "Responsable"
+    },
+    "you": "Tú",
+    "unclaimed": "Sin asignar",
+    "pagination": "{from}–{to} de {total} casos",
+    "resolutions": {
+      "redeliver": "Nuevo intento",
+      "new_address": "Nueva dirección",
+      "pickup_point": "Punto de recogida",
+      "return": "Devolver al remitente"
+    },
+    "close_reasons": {
+      "moved_on": "cerrado: el envío siguió su camino",
+      "resolved": "cerrado: hecho",
+      "dismissed": "cerrado sin acción"
+    },
+    "channels": {
+      "carrier": "Conector del transportista",
+      "email": "Correo al transportista"
+    },
+    "follow_ups": {
+      "restock": "Devolver al stock",
+      "refund": "Reembolsar",
+      "contact": "Contactar al cliente"
+    },
+    "follow_up_reasons": {
+      "units_back": "Las unidades vuelven: devuélvelas al stock cuando llegue el paquete.",
+      "money_captured": "Se cobró el pago y todavía no se ha reembolsado.",
+      "nothing_captured": "No se cobró nada: no hay nada que reembolsar.",
+      "already_refunded": "Ya reembolsado.",
+      "tell_customer": "Explica al cliente lo ocurrido y ofrece un nuevo envío.",
+      "no_contact": "El pedido no tiene correo ni teléfono."
+    },
+    "outcomes": {
+      "done": "Hecho",
+      "skipped": "Omitido"
+    },
+    "suggested": "Recomendado",
+    "not_needed": "No hace falta",
+    "mark_done": "Marcar hecho",
+    "skip": "Omitir",
+    "undo": "Deshacer",
+    "links": {
+      "restock": "Registrar la devolución",
+      "order": "Abrir el pedido"
+    },
+    "address": {
+      "name": "Nombre",
+      "address1": "Dirección",
+      "address2": "Dirección (línea 2)",
+      "zip": "Código postal",
+      "city": "Ciudad",
+      "province": "Provincia / estado",
+      "country": "País (ISO)"
+    },
+    "detail": {
+      "title_exception": "Incidencia de entrega · {order}",
+      "title_rts": "Devuelto al remitente · {order}",
+      "opened": "Abierto {time}",
+      "shipment": "Envío",
+      "shipped": "Enviado {time}",
+      "order": "Pedido y cliente",
+      "owner": "Responsable",
+      "closed": "{reason} · {time}",
+      "claimed_by_you": "Asignado a ti.",
+      "claimed_by_other": "Asignado a {name}: solo esa persona puede actuar.",
+      "claim": "Encargarme",
+      "release": "Liberar",
+      "follow_ups_title": "Acciones pendientes",
+      "follow_ups_hint": "Sugerencias según el pedido: Keel nunca reembolsa ni cancela por sí solo.",
+      "cod_note": "Los pagos que nunca se cobraron se quedan como están: qué hacer con ellos corresponde al flujo que gestiona ese método de pago.",
+      "close_review": "Cerrar la revisión",
+      "dismiss": "Cerrar sin acción",
+      "instruction_title": "Instrucción de entrega",
+      "sent": "Enviada {time} por {name} mediante {channel}.",
+      "waiting": "El caso se cierra solo cuando el transportista comunique el siguiente estado.",
+      "claim_first": "Encárgate del caso para enviar una instrucción.",
+      "resolution": "¿Qué debe hacer el transportista?",
+      "pickup_point": "Punto de recogida (nombre y dirección)",
+      "note": "Nota para el transportista",
+      "channel": "Enviar mediante",
+      "email_to": "Correo del transportista",
+      "send": "Enviar instrucción"
+    },
+    "errors": {
+      "not_found": "Caso no encontrado.",
+      "closed": "Este caso está cerrado.",
+      "claimed_by_other": "Otra persona ya se encarga de este caso.",
+      "not_claimed": "Primero encárgate del caso.",
+      "already_sent": "Ya se envió una instrucción para este caso: no se puede enviar dos veces.",
+      "invalid_input": "Revisa los campos: dirección, punto de recogida o correo.",
+      "no_channel": "No hay conector del transportista: envíala por correo.",
+      "send_failed": "No se pudo enviar la instrucción; no se registró nada.",
+      "wrong_kind": "Esta acción no se aplica a este caso.",
+      "forbidden": "No tienes permiso para hacer esto."
+    }
+  },
+  "settings_fulfilment": {
+    "back": "Ajustes",
+    "title": "Preparación",
+    "description": "Cuándo un pedido va retrasado, adónde van por correo las instrucciones de entrega y qué significa cada estado del transportista o de la plataforma.",
+    "clock_title": "Reloj de envíos",
+    "clock_description": "Los días laborables se cuentan en la zona horaria de la tienda ({tz}). Un pedido hecho en día laborable cuenta desde el siguiente.",
+    "threshold": "Retrasado después de (días laborables)",
+    "carrier_email": "Correo del transportista para instrucciones de entrega",
+    "carrier_email_hint": "Se usa cuando no hay conector del transportista.",
+    "workdays": "Días laborables",
+    "weekdays": {
+      "1": "Lun",
+      "2": "Mar",
+      "3": "Mié",
+      "4": "Jue",
+      "5": "Vie",
+      "6": "Sáb",
+      "7": "Dom"
+    },
+    "saved": "Guardado.",
+    "save": "Guardar",
+    "errors": {
+      "invalid_input": "Algunos valores no son válidos.",
+      "forbidden": "Solo propietarios y administradores pueden cambiarlo.",
+      "duplicate": "Esta fuente ya mapea este estado.",
+      "not_found": "No encontrado."
+    },
+    "mappings_title": "Mapeo de estados de envío",
+    "mappings_description": "Qué significa en Keel un estado comunicado por una fuente (la tienda, un transportista, un 3PL): estado canónico, incidencia (abre un caso) y final. El estado de cada envío se calcula con esta tabla.",
+    "source": "Fuente",
+    "external_status": "Estado externo",
+    "canonical": "Estado canónico",
+    "exception": "Incidencia",
+    "final": "Final",
+    "delete": "Eliminar",
+    "add": "Añadir",
+    "unmapped_title": "Vistos pero sin mapear (haz clic para rellenar el formulario):"
   },
   "dev_inbox": {
     "title": "Bandeja de desarrollo",
@@ -5633,248 +6053,5 @@
       "other": "Otro"
     },
     "total": "Total"
-  },
-  "fulfilment": {
-    "title": "Preparación",
-    "description": "Pedidos listos para enviar, primero los más antiguos. Empaqueta, imprime el albarán y envía: la tienda crea el envío y Keel se actualiza solo cuando ella lo confirma. Retrasado significa más de {days} días laborables.",
-    "tabs": {
-      "label": "Áreas de preparación",
-      "board": "Por enviar",
-      "exceptions": "Incidencias de entrega",
-      "returned": "Devueltos al remitente"
-    },
-    "kpi": {
-      "late": "Retrasados (> {days} días laborables)",
-      "to_pack": "Por empaquetar",
-      "packed": "Empaquetados",
-      "shipped_today": "Enviados hoy"
-    },
-    "views": {
-      "label": "Vista",
-      "all": "Todos por enviar",
-      "late": "Solo retrasados"
-    },
-    "threshold": "Retrasado = listo para enviar desde hace más de {days} días laborables ({tz}).",
-    "search": "Buscar",
-    "search_placeholder": "Pedido, cliente, correo",
-    "columns": {
-      "pending": "Por empaquetar",
-      "packed": "Empaquetados",
-      "shipped": "Enviados hoy"
-    },
-    "showing": "{shown} de {total}",
-    "empty_pending": "Nada pendiente de empaquetar.",
-    "empty_late": "Ningún pedido retrasado: todo lo listo salió a tiempo.",
-    "empty_packed": "Ningún paquete empaquetado esperando al transportista.",
-    "empty_shipped": "Todavía no se ha enviado nada hoy.",
-    "card": {
-      "late": "Retrasado",
-      "units": "{units} unidades · {lines} líneas",
-      "age": "{days} días laborables",
-      "packed_at": "Empaquetado {time}"
-    },
-    "actions": {
-      "packing_slip": "Albarán",
-      "pack": "Marcar empaquetado",
-      "unpack": "Volver a pendiente",
-      "ship": "Enviar",
-      "packing_slips": "Albaranes ({count})",
-      "pack_selected": "Marcar empaquetados ({count})",
-      "unpack_selected": "Volver a pendiente ({count})",
-      "clear": "Quitar selección"
-    },
-    "selected": "{count} seleccionados",
-    "bulk_result": "{done} actualizados, {skipped} omitidos, {failed} fallidos",
-    "ship_dialog": {
-      "title": "Enviar {order}",
-      "description": "Crea el envío en la tienda con el transportista y el número de seguimiento. El pedido cambia en Keel solo cuando la tienda lo confirma.",
-      "carrier": "Transportista",
-      "carrier_placeholder": "p. ej. UPS, DHL, Correos",
-      "tracking": "Número de seguimiento",
-      "tracking_url": "Enlace de seguimiento (opcional)",
-      "notify": "Enviar el seguimiento al cliente por correo",
-      "cancel": "Cancelar",
-      "submit": "Enviar pedido"
-    },
-    "errors": {
-      "not_found": "Pedido no encontrado.",
-      "not_to_ship": "Este pedido ya no está pendiente de envío (enviado, cancelado o en espera).",
-      "invalid_input": "Algunos campos no son válidos.",
-      "no_platform_order": "Este pedido no está en la tienda: no se puede preparar desde Keel.",
-      "platform_error": "La tienda rechazó el envío; en Keel no cambió nada.",
-      "forbidden": "No tienes permiso para hacer esto.",
-      "unknown": "Algo salió mal.",
-      "field_required": "Obligatorio.",
-      "field_too_long": "Demasiado largo.",
-      "field_invalid": "No válido."
-    },
-    "packing_slip": {
-      "title": "Albarán",
-      "order": "Pedido",
-      "placed": "Fecha del pedido",
-      "ship_to": "Enviar a",
-      "sku": "SKU",
-      "item": "Artículo",
-      "variant": "Variante",
-      "quantity": "Cant.",
-      "units": "Unidades",
-      "note": "Nota"
-    }
-  },
-  "fulfilment_cases": {
-    "exceptions_title": "Incidencias de entrega",
-    "exceptions_description": "Paquetes que el transportista no pudo entregar. Entran solos en la cola, una persona se encarga del caso y envía al transportista una instrucción una sola vez; el caso se cierra solo cuando el paquete sigue su camino.",
-    "returned_title": "Devueltos al remitente",
-    "returned_description": "Paquetes en camino de vuelta o ya en el almacén. Revisa cada uno: devolver al stock, reembolsar lo pagado, contactar al cliente.",
-    "scopes": {
-      "open": "Abiertos",
-      "unclaimed": "Sin asignar",
-      "mine": "Míos",
-      "closed": "Cerrados"
-    },
-    "search": "Buscar",
-    "search_placeholder": "Pedido, cliente, seguimiento",
-    "empty_title": "Nada por aquí",
-    "empty_exceptions": "Ninguna incidencia de entrega en esta vista.",
-    "empty_returned": "Ningún paquete que revisar en esta vista.",
-    "columns": {
-      "order": "Pedido",
-      "shipment": "Envío",
-      "status": "Estado",
-      "opened": "Abierto",
-      "owner": "Responsable"
-    },
-    "you": "Tú",
-    "unclaimed": "Sin asignar",
-    "pagination": "{from}–{to} de {total} casos",
-    "resolutions": {
-      "redeliver": "Nuevo intento",
-      "new_address": "Nueva dirección",
-      "pickup_point": "Punto de recogida",
-      "return": "Devolver al remitente"
-    },
-    "close_reasons": {
-      "moved_on": "cerrado: el envío siguió su camino",
-      "resolved": "cerrado: hecho",
-      "dismissed": "cerrado sin acción"
-    },
-    "channels": {
-      "carrier": "Conector del transportista",
-      "email": "Correo al transportista"
-    },
-    "follow_ups": {
-      "restock": "Devolver al stock",
-      "refund": "Reembolsar",
-      "contact": "Contactar al cliente"
-    },
-    "follow_up_reasons": {
-      "units_back": "Las unidades vuelven: devuélvelas al stock cuando llegue el paquete.",
-      "money_captured": "Se cobró el pago y todavía no se ha reembolsado.",
-      "nothing_captured": "No se cobró nada: no hay nada que reembolsar.",
-      "already_refunded": "Ya reembolsado.",
-      "tell_customer": "Explica al cliente lo ocurrido y ofrece un nuevo envío.",
-      "no_contact": "El pedido no tiene correo ni teléfono."
-    },
-    "outcomes": {
-      "done": "Hecho",
-      "skipped": "Omitido"
-    },
-    "suggested": "Recomendado",
-    "not_needed": "No hace falta",
-    "mark_done": "Marcar hecho",
-    "skip": "Omitir",
-    "undo": "Deshacer",
-    "links": {
-      "restock": "Registrar la devolución",
-      "order": "Abrir el pedido"
-    },
-    "address": {
-      "name": "Nombre",
-      "address1": "Dirección",
-      "address2": "Dirección (línea 2)",
-      "zip": "Código postal",
-      "city": "Ciudad",
-      "province": "Provincia / estado",
-      "country": "País (ISO)"
-    },
-    "detail": {
-      "title_exception": "Incidencia de entrega · {order}",
-      "title_rts": "Devuelto al remitente · {order}",
-      "opened": "Abierto {time}",
-      "shipment": "Envío",
-      "shipped": "Enviado {time}",
-      "order": "Pedido y cliente",
-      "owner": "Responsable",
-      "closed": "{reason} · {time}",
-      "claimed_by_you": "Asignado a ti.",
-      "claimed_by_other": "Asignado a {name}: solo esa persona puede actuar.",
-      "claim": "Encargarme",
-      "release": "Liberar",
-      "follow_ups_title": "Acciones pendientes",
-      "follow_ups_hint": "Sugerencias según el pedido: Keel nunca reembolsa ni cancela por sí solo.",
-      "cod_note": "Los pagos que nunca se cobraron se quedan como están: qué hacer con ellos corresponde al flujo que gestiona ese método de pago.",
-      "close_review": "Cerrar la revisión",
-      "dismiss": "Cerrar sin acción",
-      "instruction_title": "Instrucción de entrega",
-      "sent": "Enviada {time} por {name} mediante {channel}.",
-      "waiting": "El caso se cierra solo cuando el transportista comunique el siguiente estado.",
-      "claim_first": "Encárgate del caso para enviar una instrucción.",
-      "resolution": "¿Qué debe hacer el transportista?",
-      "pickup_point": "Punto de recogida (nombre y dirección)",
-      "note": "Nota para el transportista",
-      "channel": "Enviar mediante",
-      "email_to": "Correo del transportista",
-      "send": "Enviar instrucción"
-    },
-    "errors": {
-      "not_found": "Caso no encontrado.",
-      "closed": "Este caso está cerrado.",
-      "claimed_by_other": "Otra persona ya se encarga de este caso.",
-      "not_claimed": "Primero encárgate del caso.",
-      "already_sent": "Ya se envió una instrucción para este caso: no se puede enviar dos veces.",
-      "invalid_input": "Revisa los campos: dirección, punto de recogida o correo.",
-      "no_channel": "No hay conector del transportista: envíala por correo.",
-      "send_failed": "No se pudo enviar la instrucción; no se registró nada.",
-      "wrong_kind": "Esta acción no se aplica a este caso.",
-      "forbidden": "No tienes permiso para hacer esto."
-    }
-  },
-  "settings_fulfilment": {
-    "back": "Ajustes",
-    "title": "Preparación",
-    "description": "Cuándo un pedido va retrasado, adónde van por correo las instrucciones de entrega y qué significa cada estado del transportista o de la plataforma.",
-    "clock_title": "Reloj de envíos",
-    "clock_description": "Los días laborables se cuentan en la zona horaria de la tienda ({tz}). Un pedido hecho en día laborable cuenta desde el siguiente.",
-    "threshold": "Retrasado después de (días laborables)",
-    "carrier_email": "Correo del transportista para instrucciones de entrega",
-    "carrier_email_hint": "Se usa cuando no hay conector del transportista.",
-    "workdays": "Días laborables",
-    "weekdays": {
-      "1": "Lun",
-      "2": "Mar",
-      "3": "Mié",
-      "4": "Jue",
-      "5": "Vie",
-      "6": "Sáb",
-      "7": "Dom"
-    },
-    "saved": "Guardado.",
-    "save": "Guardar",
-    "errors": {
-      "invalid_input": "Algunos valores no son válidos.",
-      "forbidden": "Solo propietarios y administradores pueden cambiarlo.",
-      "duplicate": "Esta fuente ya mapea este estado.",
-      "not_found": "No encontrado."
-    },
-    "mappings_title": "Mapeo de estados de envío",
-    "mappings_description": "Qué significa en Keel un estado comunicado por una fuente (la tienda, un transportista, un 3PL): estado canónico, incidencia (abre un caso) y final. El estado de cada envío se calcula con esta tabla.",
-    "source": "Fuente",
-    "external_status": "Estado externo",
-    "canonical": "Estado canónico",
-    "exception": "Incidencia",
-    "final": "Final",
-    "delete": "Eliminar",
-    "add": "Añadir",
-    "unmapped_title": "Vistos pero sin mapear (haz clic para rellenar el formulario):"
   }
 }

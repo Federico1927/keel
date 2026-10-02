@@ -8,6 +8,7 @@ import { requirePage } from "@/server/tenant";
 import { SyncInventoryButton } from "./sync-now";
 import { listInventory, parseInventoryFilters } from "@/server/queries/catalog";
 import { RiskBadge } from "@/components/risk-badge";
+import { AdjustStockDialog } from "@/components/adjust-stock-dialog";
 
 export default async function InventoryPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { tenant } = await params;
@@ -15,6 +16,7 @@ export default async function InventoryPage({ params, searchParams }: { params: 
   const ctx = await requirePage(tenant, "inventory");
   const t = await getTranslations("inventory");
   const tr = await getTranslations("stock_risk");
+  const tc = await getTranslations("inventory_control");
   const f = parseInventoryFilters(sp);
   const { rows, total, page, pageSize, counts, locations, totalUnits, stockValue, suggestedReorderTotal } = await listInventory(ctx, f);
   const drift = await ctx.run((tx) => recentInventoryDrift({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { limit: 8 }));
@@ -28,7 +30,7 @@ export default async function InventoryPage({ params, searchParams }: { params: 
   const lookback = f.lookback ?? ctx.settings.salesVelocityLookbackDays;
   return (
     <>
-      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description", { days: lookback, target: ctx.settings.reorderTargetDays })} actions={<>{canSync && <SyncInventoryButton slug={tenant} />}<Link href={`/t/${tenant}/inventory/planning`} className="inline-flex h-9 items-center rounded-md border bg-card px-3 text-sm hover:bg-muted" data-testid="planning-link">{t("planning_link")}</Link></>} />
+      <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description", { days: lookback, target: ctx.settings.reorderTargetDays })} actions={<>{canSync && <SyncInventoryButton slug={tenant} />}<Link href={`/t/${tenant}/inventory/planning`} className="inline-flex h-9 items-center rounded-md border bg-card px-3 text-sm hover:bg-muted" data-testid="planning-link">{t("planning_link")}</Link>{(["stock-takes", "markdowns", "losses"] as const).map((k) => <Link key={k} href={`${base}/${k}`} className="inline-flex h-9 items-center rounded-md border bg-card px-3 text-sm hover:bg-muted" data-testid={`${k}-link`}>{tc(`links.${k}`)}</Link>)}</>} />
       <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Stat label={t("kpi.units")} value={formatNumber(totalUnits, ctx.locale)} />
         <Stat label={t("kpi.value")} value={formatMoney(stockValue, ctx.tenant.currency, ctx.locale)} hint={t("kpi.value_hint")} />
@@ -74,6 +76,7 @@ export default async function InventoryPage({ params, searchParams }: { params: 
                   <TableHead className="hidden text-right lg:table-cell">{t("columns.velocity")}</TableHead>
                   <TableHead>{t("columns.cover")}</TableHead>
                   <TableHead className="text-right">{t("columns.reorder")}</TableHead>
+                  {canSync && <TableHead className="w-10"><span className="sr-only">{tc("adjust.button")}</span></TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -91,6 +94,7 @@ export default async function InventoryPage({ params, searchParams }: { params: 
                     <TableCell className="hidden text-right tabular lg:table-cell">{r.velocityPerDay.toFixed(2)}</TableCell>
                     <TableCell><RiskBadge risk={r.risk} days={r.daysOfCover} /></TableCell>
                     <TableCell className="text-right tabular">{r.suggestedReorder || "—"}</TableCell>
+                    {canSync && <TableCell className="text-right"><AdjustStockDialog compact slug={tenant} variants={[{ id: r.variantId, label: `${r.productTitle} · ${r.variantTitle}${r.sku ? ` · ${r.sku}` : ""}`, levels: Object.fromEntries(r.byLocation.map((l) => [l.locationId, l.available])) }]} locations={locations.map((l) => ({ id: l.id, name: l.name }))} defaultLocationId={f.location ?? locations[0]?.id} /></TableCell>}
                   </TableRow>
                 ))}
               </TableBody>

@@ -15,6 +15,8 @@ export * from "./purchasing/packs";
 export * from "./purchasing/links";
 export * from "./purchasing/search";
 export * from "./inventory";
+export * from "./inventory/control";
+export * from "./catalog/price-history";
 export * from "./analytics";
 export * from "./analytics/depth";
 export * from "./analytics/ltv";

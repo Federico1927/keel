@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { adminDb, and, eq, recordAudit, schema } from "@keel/db";
 import { diffRecords, parseAmountToMinor, tenantSettingsSchema, type CostCsvFileError, type CostMatchRow, type CostMatchStatus } from "@keel/core";
-import { CostError, applyCostImport, enqueuePlatformWrite, previewCostImport, setVariantCosts, variantCostRows, type PlatformWriteRow, type ServiceContext } from "@keel/services";
+import { CostError, applyCostImport, enqueuePlatformWrite, recordPriceChanges, previewCostImport, setVariantCosts, variantCostRows, type PlatformWriteRow, type ServiceContext } from "@keel/services";
 import { dispatchPlatformWrites } from "@/server/platform-writes";
 import { ForbiddenError, requireAction, requireWrite, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
@@ -23,6 +23,7 @@ export async function updateVariantPrice(slug: string, _prev: ActionResult | nul
     const write = await ctx.run(async (tx) => {
       await tx.update(schema.productVariants).set({ priceMinor: parsed.data.priceMinor }).where(eq(schema.productVariants.id, variant.id));
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "variant.price_updated", entityType: "variant", entityId: variant.id, diff: { priceMinor: { from: variant.priceMinor, to: parsed.data.priceMinor } } });
+      await recordPriceChanges({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, [{ variantId: variant.id, priceBeforeMinor: variant.priceMinor, priceAfterMinor: parsed.data.priceMinor, compareAtBeforeMinor: variant.compareAtMinor, compareAtAfterMinor: variant.compareAtMinor }], { source: "manual" });
       return variant.externalId ? enqueuePlatformWrite({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, { kind: "variant.update", entityType: "variant", entityId: variant.id, payload: { variantExternalId: variant.externalId, priceMinor: parsed.data.priceMinor } }) : null;
     });
     await dispatchPlatformWrites(ctx, [write]);
