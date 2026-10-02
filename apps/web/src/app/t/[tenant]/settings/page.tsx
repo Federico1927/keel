@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { Button, PageHeader, Tabs, TabsContent, TabsList, TabsTrigger } from "@keel/ui";
 import { schema } from "@keel/db";
+import { canDo } from "@keel/config";
 import { requirePage } from "@/server/tenant";
 import { GeneralSettingsForm, OperationalSettingsForm, TaxRatesSection } from "./forms";
 
@@ -30,6 +31,11 @@ export default async function SettingsPage({ params }: { params: Promise<{ tenan
             <Button asChild variant="outline">
               <Link href={`/t/${tenant}/settings/ai`} data-testid="ai-settings-link">{t("ai_link")}</Link>
             </Button>
+            {canDo(ctx.role, "export_tenant_data") && (
+              <Button asChild variant="outline">
+                <Link href={`/t/${tenant}/settings/data-export`} data-testid="data-export-link">{t("data_export_link")}</Link>
+              </Button>
+            )}
           </>
         }
       />

@@ -12,7 +12,7 @@ export default async function AdminIntegrationsPage({ searchParams }: { searchPa
   const sp = await searchParams;
   const t = await getTranslations("admin");
   const locale = await getLocale();
-  const status = sp.status === "error" || sp.status === "degraded" || sp.status === "all" ? sp.status : undefined;
+  const status = sp.status === "error" || sp.status === "degraded" || sp.status === "stale" || sp.status === "idle" || sp.status === "all" ? sp.status : undefined;
   const source = sp.source && /^[a-z0-9_-]{1,40}$/.test(sp.source) ? sp.source : undefined;
   const [data, tenants] = await Promise.all([integrationIssues(db, { tenantId: sp.tenant, source, status }), db.select({ id: schema.tenants.id, name: schema.tenants.name }).from(schema.tenants).orderBy(asc(schema.tenants.name))]);
   return (
@@ -44,6 +44,8 @@ export default async function AdminIntegrationsPage({ searchParams }: { searchPa
             <option value="">{t("integrations.status_problems")}</option>
             <option value="error">error</option>
             <option value="degraded">degraded</option>
+            <option value="stale">stale</option>
+            <option value="idle">idle</option>
             <option value="all">{t("integrations.status_all")}</option>
           </Select>
         </div>
@@ -62,7 +64,7 @@ export default async function AdminIntegrationsPage({ searchParams }: { searchPa
                   <TableRow key={h.id} data-testid="integration-issue">
                     <TableCell><Link href={`/admin/tenants/${h.tenantId}`} className="font-medium hover:underline">{tenantName}</Link></TableCell>
                     <TableCell className="font-mono text-xs">{h.source}</TableCell>
-                    <TableCell><Badge variant={h.status === "error" ? "destructive" : h.status === "degraded" ? "warning" : "muted"}>{h.status}</Badge>{h.consecutiveFailures > 0 && <div className="text-xs text-muted-foreground">{t("integrations.failures", { n: h.consecutiveFailures })}</div>}</TableCell>
+                    <TableCell><Badge variant={h.status === "error" || h.status === "stale" ? "destructive" : h.status === "degraded" || h.status === "idle" ? "warning" : "muted"}>{h.status}</Badge>{h.consecutiveFailures > 0 && <div className="text-xs text-muted-foreground">{t("integrations.failures", { n: h.consecutiveFailures })}</div>}</TableCell>
                     <TableCell className="hidden text-xs md:table-cell">{h.lastSuccessAt ? formatDateTime(h.lastSuccessAt, locale, "UTC") : "—"}</TableCell>
                     <TableCell className="max-w-[28rem] text-xs text-destructive">{h.lastError ?? "—"}</TableCell>
                   </TableRow>

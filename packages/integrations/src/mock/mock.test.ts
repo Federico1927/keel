@@ -173,3 +173,43 @@ describe("MockCommercePlatform returns and discount lifecycle", () => {
     expect(p.discountCodeActive("UNKNOWN")).toBeUndefined();
   });
 });
+
+describe("MockAdsPlatform below the campaign", () => {
+  const campaign = { externalId: "900", accountExternalId: "act", name: "Search", status: "active" as const, objective: null, dailyBudgetMinor: 5000, currency: "EUR", platformCreatedAt: null };
+  const structure = {
+    adSets: [{ externalId: "g1", campaignExternalId: "900", name: "G1", status: "active" as const, optimizationGoal: null, dailyBudgetMinor: null }, { externalId: "g2", campaignExternalId: "900", name: "G2", status: "active" as const, optimizationGoal: null, dailyBudgetMinor: null }],
+    ads: [{ externalId: "a1", adSetExternalId: "g1", campaignExternalId: "900", name: "A1", status: "active" as const, format: "text", headline: "Linen", body: null, finalUrl: null, urlTags: null, thumbnailUrl: null }, { externalId: "a2", adSetExternalId: "g2", campaignExternalId: "900", name: "A2", status: "active" as const, format: "text", headline: "Oak", body: null, finalUrl: null, urlTags: null, thumbnailUrl: null }],
+    assets: [{ assetExternalId: "h1", adExternalId: "a1", adSetExternalId: "g1", campaignExternalId: "900", type: "text" as const, fieldType: "headline", text: "Linen", url: null, performanceLabel: "GOOD" }, { assetExternalId: "h2", adExternalId: "a1", adSetExternalId: "g1", campaignExternalId: "900", type: "text" as const, fieldType: "headline", text: "Free returns", url: null, performanceLabel: "LOW" }],
+    keywords: [{ externalId: "g1~1", adSetExternalId: "g1", campaignExternalId: "900", text: "linen shirt", matchType: "exact" as const, qualityScore: 7, status: "active" as const, negative: false }, { externalId: "g2~2", adSetExternalId: "g2", campaignExternalId: "900", text: "oak table", matchType: "broad" as const, qualityScore: 5, status: "active" as const, negative: false }],
+  };
+  const window = { since: "2026-09-27", until: "2026-09-28" };
+
+  it("every level adds up to the campaign day, whatever the call order", async () => {
+    const p = new MockAdsPlatform({ provider: "google", currency: "EUR", campaigns: [campaign], readOnly: true, structure });
+    const terms = await p.fetchEntityMetrics("search_term", window);
+    const campaignDays = await p.fetchDailyMetrics(window);
+    const sum = (rows: { date: string; spendMinor: number }[], d: string) => rows.filter((r) => r.date === d).reduce((s, r) => s + r.spendMinor, 0);
+    for (const level of ["ad_set", "ad", "keyword"] as const) {
+      const rows = await p.fetchEntityMetrics(level, window);
+      for (const c of campaignDays) expect(sum(rows, c.date)).toBe(c.spendMinor);
+    }
+    for (const c of campaignDays) expect(sum(terms, c.date)).toBe(c.spendMinor);
+    const assets = await p.fetchEntityMetrics("asset", window);
+    const adDay = (await p.fetchEntityMetrics("ad", window)).find((r) => r.entityExternalId === "a1" && r.date === "2026-09-28")!;
+    expect(sum(assets.filter((a) => a.fieldType === "headline"), "2026-09-28")).toBe(adDay.spendMinor);
+    expect(terms.some((t) => t.entityExternalId === "sale linen shirt" && t.keywordExternalId === "g1~1")).toBe(true);
+  });
+
+  it("google writes need the tenant's write scope; meta pauses ads", async () => {
+    const ro = new MockAdsPlatform({ provider: "google", currency: "EUR", campaigns: [campaign], structure });
+    await expect(ro.addNegativeKeywords([{ campaignExternalId: "900", text: "free", matchType: "exact" }])).rejects.toMatchObject({ code: "unsupported" });
+    const rw = new MockAdsPlatform({ provider: "google", currency: "EUR", campaigns: [campaign], structure, adWrites: true });
+    await rw.addNegativeKeywords([{ campaignExternalId: "900", text: "cheap linen shirt", matchType: "exact" }]);
+    const terms = await rw.fetchEntityMetrics("search_term", { since: "2026-09-28", until: "2026-09-28" });
+    expect(terms.find((t) => t.entityExternalId === "cheap linen shirt")!.termStatus).toBe("excluded");
+    const meta = new MockAdsPlatform({ provider: "meta", currency: "EUR", campaigns: [campaign], structure });
+    expect(await meta.fetchKeywords()).toEqual([]);
+    await meta.setAdStatus({ adExternalId: "a1", adSetExternalId: "g1" }, "paused");
+    expect((await meta.fetchAds()).find((a) => a.externalId === "a1")!.status).toBe("paused");
+  });
+});

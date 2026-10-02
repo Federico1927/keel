@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { META_REQUIRED_PERMISSIONS, SHOPIFY_SCOPES_BY_MODULE, SHOPIFY_WEBHOOK_TOPICS } from "@keel/integrations";
+import { GOOGLE_ADS_API_VERSION, META_REQUIRED_PERMISSIONS, SHOPIFY_SCOPES_BY_MODULE, SHOPIFY_WEBHOOK_TOPICS } from "@keel/integrations";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, cn } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
 
@@ -43,7 +43,7 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
                 <h3 className="font-medium">{s.title}</h3>
                 {s.verify && <Badge variant="warning">{t("verify_badge")}</Badge>}
               </div>
-              <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{s.body.replace("{webhookUrl}", webhookUrl).replace("{emailWebhookUrl}", emailWebhookUrl)}</p>
+              <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{s.body.replace("{webhookUrl}", webhookUrl).replace("{emailWebhookUrl}", emailWebhookUrl).replace("{apiVersion}", GOOGLE_ADS_API_VERSION)}</p>
             </li>
           ))}
         </ol>
@@ -58,7 +58,7 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
                 <div key={mod}><div className="font-medium">{mod}</div><div className="font-mono text-muted-foreground">{scopes.join(", ")}</div></div>
               ))}
               {p === "meta" && <div className="font-mono text-muted-foreground">{META_REQUIRED_PERMISSIONS.join(", ")}</div>}
-              {p === "google" && <div className="font-mono text-muted-foreground">https://www.googleapis.com/auth/adwords · developer token (Basic access) · OAuth client (Desktop/Web) · refresh token</div>}
+              {p === "google" && <div className="font-mono text-muted-foreground" data-testid="google-api-version">https://www.googleapis.com/auth/adwords · developer token (Basic access) · OAuth client (Desktop/Web) · refresh token · Google Ads API {GOOGLE_ADS_API_VERSION}</div>}
               {t.has(`${p}.scopes`) && <div className="whitespace-pre-line text-muted-foreground">{t(`${p}.scopes`)}</div>}
             </CardContent>
           </Card>

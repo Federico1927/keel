@@ -2,10 +2,11 @@ import * as Sentry from "@sentry/node";
 import { checkRuntimeConfig, platformRetentionDays, SENTRY_DATA_COLLECTION } from "@keel/config";
 import { setEmailDispatcher } from "@keel/services";
 import { createBoss } from "./boss";
-import { handleListExport, handlePlatformWrite, handleSyncAds, handleSyncCatalog, handleSyncOrders, handleSyncPayouts, handleSyncReturns, handleTick, handleWebhook, type Enqueue, handleEmailEvent, handleEmailSend } from "./handlers";
-import { QUEUES, queueRetentionOptions, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob } from "./queues";
+import { runTrackedJob } from "./dispatch";
+import type { Enqueue } from "./handlers";
+import { QUEUES, queueRetentionOptions, type QueueName, type TickJob } from "./queues";
 
-/** Nightly reconciliation at 03:00 and customer predictions and full live-segment refresh at 03:40, live segments every 10 min, pixel stitching and server-side conversions every 5 min, delta every 15 min, ads daily at 06:00, webhook retry every 10 min, platform-write retries every minute, retention daily at 04:10, backorder safety re-check and email housekeeping every 10 min, payouts daily at 05:20 (UTC). */
+/** Nightly reconciliation at 03:00 and customer predictions and full live-segment refresh at 03:40, live segments every 10 min, pixel stitching and server-side conversions every 5 min, delta every 15 min, ads daily at 06:00, webhook retry every 10 min, platform-write retries every minute, retention daily at 04:10, backorder safety re-check and email housekeeping every 10 min, payouts daily at 05:20, integration watchdog every 10 min (UTC). */
 const SCHEDULES: { cron: string; data: TickJob }[] = [
   { cron: "*/15 * * * *", data: { kind: "delta" } },
   { cron: "*/10 * * * *", data: { kind: "retry" } },
@@ -26,6 +27,7 @@ const SCHEDULES: { cron: string; data: TickJob }[] = [
   { cron: "7,17,27,37,47,57 * * * *", data: { kind: "backorders" } },
   { cron: "3,13,23,33,43,53 * * * *", data: { kind: "emails" } },
   { cron: "20 5 * * *", data: { kind: "payouts" } },
+  { cron: "1,11,21,31,41,51 * * * *", data: { kind: "watchdog" } },
 ];
 
 /** Same startup rules as the web process; Sentry (errors only, no PII) when `SENTRY_DSN` is set. */
@@ -65,28 +67,29 @@ async function main() {
   };
   // emails queued by ticks (digests, alerts, notifications) go through the same queue; a short delay lets their transaction commit
   setEmailDispatcher((job) => enqueue(QUEUES.emailSend, job, { startAfterSeconds: 2 }));
-  // A failing job is reported, then rethrown so pg-boss applies its retry policy.
-  const one = <T>(fn: (data: T) => Promise<void>) => async (jobs: { data: T }[] | { data: T }) => {
+  // Every job is recorded in job_runs (#32); a failing one is reported, then rethrown so pg-boss applies its retry policy.
+  const one = (queue: QueueName) => async (jobs: { data: unknown }[] | { data: unknown }) => {
     for (const j of Array.isArray(jobs) ? jobs : [jobs]) {
       try {
-        await fn(j.data);
+        await runTrackedJob(queue, j.data, enqueue);
       } catch (err) {
         Sentry.captureException(err, { extra: { job: j.data } });
         throw err;
       }
     }
   };
-  await boss.work<WebhookJob>(QUEUES.webhookProcess, { batchSize: 5 }, one((d: WebhookJob) => handleWebhook(d)));
-  await boss.work<SyncOrdersJob>(QUEUES.syncOrders, one((d: SyncOrdersJob) => handleSyncOrders(d, enqueue)));
-  await boss.work<SyncCatalogJob>(QUEUES.syncCatalog, one((d: SyncCatalogJob) => handleSyncCatalog(d, enqueue)));
-  await boss.work<PlatformWriteJob>(QUEUES.platformWrite, { batchSize: 5 }, one((d: PlatformWriteJob) => handlePlatformWrite(d)));
-  await boss.work<SyncAdsJob>(QUEUES.syncAds, one((d: SyncAdsJob) => handleSyncAds(d)));
-  await boss.work<SyncPayoutsJob>(QUEUES.syncPayouts, one((d: SyncPayoutsJob) => handleSyncPayouts(d, enqueue)));
-  await boss.work<SyncReturnsJob>(QUEUES.syncReturns, one((d: SyncReturnsJob) => handleSyncReturns(d, enqueue)));
-  await boss.work<TickJob>(QUEUES.tick, one((d: TickJob) => handleTick(d, enqueue)));
-  await boss.work<ListExportJob>(QUEUES.listExport, one((d: ListExportJob) => handleListExport(d)));
-  await boss.work<EmailSendJob>(QUEUES.emailSend, { batchSize: 5 }, one((d: EmailSendJob) => handleEmailSend(d, enqueue)));
-  await boss.work<EmailEventJob>(QUEUES.emailEvent, { batchSize: 10 }, one((d: EmailEventJob) => handleEmailEvent(d)));
+  await boss.work(QUEUES.webhookProcess, { batchSize: 5 }, one(QUEUES.webhookProcess));
+  await boss.work(QUEUES.syncOrders, one(QUEUES.syncOrders));
+  await boss.work(QUEUES.syncCatalog, one(QUEUES.syncCatalog));
+  await boss.work(QUEUES.platformWrite, { batchSize: 5 }, one(QUEUES.platformWrite));
+  await boss.work(QUEUES.syncAds, one(QUEUES.syncAds));
+  await boss.work(QUEUES.syncPayouts, one(QUEUES.syncPayouts));
+  await boss.work(QUEUES.syncReturns, one(QUEUES.syncReturns));
+  await boss.work(QUEUES.tick, one(QUEUES.tick));
+  await boss.work(QUEUES.listExport, one(QUEUES.listExport));
+  await boss.work(QUEUES.emailSend, { batchSize: 5 }, one(QUEUES.emailSend));
+  await boss.work(QUEUES.emailEvent, { batchSize: 10 }, one(QUEUES.emailEvent));
+  await boss.work(QUEUES.tenantExport, one(QUEUES.tenantExport));
   for (const s of SCHEDULES) await boss.schedule(QUEUES.tick, s.cron, s.data, { singletonKey: s.data.kind });
   console.info("[jobs] worker started: queues", Object.values(QUEUES).join(", "));
   const shutdown = async () => {

@@ -1,5 +1,5 @@
 import { and, asc, desc, eq, ilike, inArray, or, recordAudit, schema, sql, type DbExecutor, type SQL } from "@keel/db";
-import { ADDON_MODULES, MODULES, PLANS, PLAN_KEYS, TENANT_STATUSES, type PlanKey, type TenantStatus } from "@keel/config";
+import { ADDON_MODULES, MODULES, PLANS, PLAN_KEYS, SOURCE_ERROR_STATUSES, TENANT_STATUSES, type PlanKey, type TenantStatus } from "@keel/config";
 import { csvAmount, csvLine, lastMonths, platformSeries, type LifecycleSnapshot, type PlatformMonth, type QueryParams } from "@keel/core";
 import { tenantsOverview, type AdminDb, type TenantOverviewRow } from "../billing";
 
@@ -193,18 +193,19 @@ export function tenantsBehind(point: PlatformMonth, metric: string): string[] {
 export interface IntegrationIssueFilters {
   tenantId?: string;
   source?: string;
-  status?: "error" | "degraded" | "all";
+  status?: "error" | "degraded" | "stale" | "idle" | "all";
 }
 
 /** Health rows in error (or degraded) per tenant and source, worst first, with the latest failed runs. */
 export async function integrationIssues(db: DbExecutor, f: IntegrationIssueFilters = {}) {
   const h = schema.integrationHealth;
-  const conds: SQL[] = [f.status === "all" ? sql`true` : f.status === "degraded" ? eq(h.status, "degraded") : f.status === "error" ? eq(h.status, "error") : inArray(h.status, ["error", "degraded"])];
+  const conds: SQL[] = [f.status === "all" ? sql`true` : f.status ? eq(h.status, f.status) : inArray(h.status, [...SOURCE_ERROR_STATUSES])];
   if (isUuid(f.tenantId)) conds.push(eq(h.tenantId, f.tenantId));
   if (f.source) conds.push(sql`split_part(${h.source}, ':', 1) = ${f.source}`);
   const rows = await db.select({ health: h, tenantName: schema.tenants.name, tenantSlug: schema.tenants.slug }).from(h).innerJoin(schema.tenants, eq(schema.tenants.id, h.tenantId)).where(and(...conds)).orderBy(desc(h.consecutiveFailures), desc(h.lastAttemptAt)).limit(200);
   const sources = await db.selectDistinct({ source: sql<string>`split_part(${h.source}, ':', 1)` }).from(h).orderBy(sql`1`);
-  const runConds: SQL[] = [eq(schema.syncRuns.status, "failed")];
+  // sync runs end in `error` (older rows may say `failed`)
+  const runConds: SQL[] = [inArray(schema.syncRuns.status, ["error", "failed"])];
   if (isUuid(f.tenantId)) runConds.push(eq(schema.syncRuns.tenantId, f.tenantId));
   if (f.source) runConds.push(eq(schema.syncRuns.provider, f.source));
   const runs = await db.select({ run: schema.syncRuns, tenantName: schema.tenants.name }).from(schema.syncRuns).innerJoin(schema.tenants, eq(schema.tenants.id, schema.syncRuns.tenantId)).where(and(...runConds)).orderBy(desc(schema.syncRuns.startedAt)).limit(30);
