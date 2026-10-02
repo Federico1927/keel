@@ -1011,3 +1011,13 @@ Resta:
 - Registrare le app della piattaforma (Google Ads: developer token Basic, client OAuth, verifica dello scope sensibile; TikTok: app approvata) e provare ogni percorso su account reali; confermare i testi d'errore dei fornitori e i passi "Da verificare".
 - Meta "Continua con Facebook" (App Review, Business Verification) e accesso di Shopify ai contratti dell'app Shopify Subscriptions.
 - Contabilità, audience ed email: nessun fornitore live ancora.
+
+## Inventario delle piattaforme di riferimento ricontrollato sul codice (issue #36)
+
+Fatto:
+- `docs/reference/INVENTORY.md`: colonna rinominata "Hullwise status" (il documento usava ancora il nome Keel), ogni riga ricontrollata sul codice al commit `5ce9718`. Passate a fatto: ritiro delle conversioni e più account Meta (#82), GA4 (#86), API REST e webhook in uscita firmati (#81), invio in contabilità (#85), WhatsApp con Spoki (#9), mobile (#49), importazione dello storico (#87), webhook privacy (#89); gli add-on con il codice unito ma la versione non rilasciata sono segnati "v1 in development" (#77).
+- Tre righe nuove dagli studi (shell dell'app, guardia delle route, magazzini con successore) e una dal codice di sincronizzazione (consenso marketing). Totale: 206 righe, 144 fatte, 25 parziali, 15 mancanti, 22 scartate.
+- Correzioni: i nomi reali degli helper di mascheramento MCP (`maskPii`, `maskEmailAddress`, `maskPhoneNumber`, `maskPersonName`, `sanitizeSearch`), la route `/api/mcp`, nessuna tabella `outbound_jobs` / `write_idempotency` / `reconcile_runs` / `integration_events` (al loro posto `platform_writes`, `sync_runs` di tipo `reconcile` con `inventory_drift`, `webhook_deliveries`, `email_messages`, `job_runs`), `batchId` dell'audit in blocco nei metadati e non in una colonna.
+- Regola nell'intestazione: ogni PR unita aggiorna lo stato delle sue righe.
+
+Resta: il corpo della issue #36 non è stato riletto in questa sessione (nessun accesso a GitHub); le liste "P2", "Add-ons not yet filed" e "Discarded" sono quelle già riportate nel documento dal primo aggiornamento.
