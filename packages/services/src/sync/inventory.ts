@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, isNull, lt, or, schema, sql } from "@hullwise/d
 import type { CommercePlatform, NormalizedInventoryLevel } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { unconfirmedWriteTargets } from "../writes";
+import { lowStockProbe } from "../webhooks/payloads";
 
 export type StockReadSource = "sync" | "reconcile" | "webhook" | "manual";
 
@@ -63,6 +64,8 @@ export async function applyInventoryLevels(ctx: ServiceContext, levels: Normaliz
   const local = variantIds.length ? await ctx.tx.select().from(schema.inventoryLevels).where(and(eq(schema.inventoryLevels.tenantId, ctx.tenantId), inArray(schema.inventoryLevels.variantId, variantIds))) : [];
   const localBy = new Map(local.map((l) => [`${l.variantId}@${l.locationId}`, l]));
   const inFlight = await unconfirmedWriteTargets(ctx, "inventory.set", levels.map((l) => `inventory:${l.inventoryItemExternalId}@${l.locationExternalId}`));
+  // a full reconcile reads every level: only webhooks and deltas are changes worth an event
+  const lowStock = opts.source === "reconcile" ? null : await lowStockProbe(ctx, variantIds);
 
   // per variant: what Hullwise had, what the platform says, for the levels Hullwise had already read once
   const perVariant = new Map<string, { local: number; observed: number; since: Date; locations: { locationId: string; local: number; observed: number }[] }>();
@@ -105,6 +108,7 @@ export async function applyInventoryLevels(ctx: ServiceContext, levels: Normaliz
     out.drift++;
     await logDrift(ctx, { variantId, locationId: v.locations.length === 1 ? v.locations[0]!.locationId : null, kind: "unexplained", source: opts.source, runId, localBefore: v.local, expected, observed: v.observed, applied: v.observed, detail: { since: v.since.toISOString(), explained: explained.get(variantId) ?? 0, locations: v.locations }, dedupeKey: `unexplained:${variantId}:${v.local}>${v.observed}` });
   }
+  await lowStock?.();
   return out;
 }
 

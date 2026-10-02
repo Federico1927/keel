@@ -8,6 +8,7 @@ export * from "./runtime";
 export * from "./notifications";
 export * from "./lists";
 export * from "./mcp";
+export * from "./api";
 export * from "./dashboards";
 export * from "./lifecycle";
 export * from "./billing";

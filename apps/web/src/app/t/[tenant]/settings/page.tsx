@@ -33,6 +33,11 @@ export default async function SettingsPage({ params }: { params: Promise<{ tenan
             <Button asChild variant="outline">
               <Link href={`/t/${tenant}/settings/ai`} data-testid="ai-settings-link">{t("ai_link")}</Link>
             </Button>
+            {canDo(ctx.role, "manage_integrations") && (
+              <Button asChild variant="outline">
+                <Link href={`/t/${tenant}/settings/developers`} data-testid="developers-settings-link">{t("developers_link")}</Link>
+              </Button>
+            )}
             <Button asChild variant="outline">
               <Link href={`/t/${tenant}/settings/mobile`} data-testid="mobile-nav-settings-link">{tm("link")}</Link>
             </Button>

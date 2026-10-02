@@ -1,10 +1,10 @@
 import { AD_PLATFORMS, OPERATIONAL_TENANT_STATUSES, appUrl, isAdPlatform, isAdPlatformInPlan, isTenantOperational, platformRetentionDays } from "@hullwise/config";
 import { parseTenantSettings } from "@hullwise/core";
-import { adminDb, and, eq, inArray, lte, schema, withTenant } from "@hullwise/db";
-import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, runAdsEntitySync, rollupAdEntityMetrics, campaignTick, processCampaignSend, getMessagingChannelFor, resolveAddressProvider, SUBSCRIPTIONS_ADDON, getSubscriptionProviderFor, runSubscriptionSync, refreshSubscriberRisk } from "@hullwise/services";
+import { adminDb, and, appDb, eq, inArray, lte, schema, withTenant } from "@hullwise/db";
+import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, runAdsEntitySync, rollupAdEntityMetrics, campaignTick, processCampaignSend, getMessagingChannelFor, resolveAddressProvider, SUBSCRIPTIONS_ADDON, getSubscriptionProviderFor, runSubscriptionSync, refreshSubscriberRisk, deliverWebhook, dueWebhookDeliveries, purgeApiRows } from "@hullwise/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue, autoCancelReturnedToSender, getCodSettings, runScheduledConfirmations, applyCodReply, applyMessageStatus } from "@hullwise/addon-cod";
 import { SPOKI_MODULE, getSpokiApiFor, getSpokiState, processSpokiWebhookEvent, retrySpokiWebhooks, runOrderNotifications, spokiMessagingChannel, type SpokiHooks } from "@hullwise/addon-spoki";
-import { adsWindow, type CampaignSendJob, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob, resyncJobsFor, type TenantExportJob } from "./queues";
+import { adsWindow, type CampaignSendJob, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob, resyncJobsFor, type TenantExportJob, type WebhookDeliverJob } from "./queues";
 
 export interface Enqueue {
   (queue: string, data: unknown, opts?: { singletonKey?: string; startAfterSeconds?: number }): Promise<void>;
@@ -204,6 +204,18 @@ async function campaignChannelFor(tenantId: string, campaignId: string) {
   return spoki ? spokiMessagingChannel(run, spoki.api, spoki.state.settings, { purpose: "campaign", campaignId }, { templates: spoki.state.templates }) : getMessagingChannelFor(tenantId);
 }
 
+/**
+ * One outgoing webhook attempt (#81). A delivery not visible yet (its transaction has not committed)
+ * is thrown so pg-boss tries again shortly; a failed attempt is re-enqueued after its backoff (the
+ * delivery row holds the schedule, the `webhooks` tick catches anything lost).
+ */
+export async function handleWebhookDeliver(job: WebhookDeliverJob, enqueue: Enqueue): Promise<JobOutcome> {
+  const r = await deliverWebhook(appDb(), job);
+  if (r.status === "missing") throw new Error(`webhook delivery ${job.deliveryId} not visible yet`);
+  if (r.status === "retrying") await enqueue("webhook.deliver", job, { startAfterSeconds: r.retryInSeconds, singletonKey: `${job.deliveryId}:${r.retryInSeconds}` });
+  return { rows: r.status === "succeeded" ? 1 : 0, summary: { status: r.status } };
+}
+
 /** Fan-out: one job per connected tenant/provider, deduplicated by singleton key. */
 export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<JobOutcome | void> {
   if (job.kind === "campaigns") {
@@ -222,6 +234,12 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<JobOut
       }
     }
     return { rows: started + enrolled, summary: { started, enrolled, sendJobs: queued } };
+  }
+  if (job.kind === "webhooks") {
+    // outgoing webhooks (#81): due attempts whose job was lost (restart, dispatch failure) go back to the queue
+    const due = await dueWebhookDeliveries(adminDb());
+    for (const d of due) await enqueue("webhook.deliver", { tenantId: d.tenantId, deliveryId: d.deliveryId } satisfies WebhookDeliverJob, { singletonKey: `${d.deliveryId}:tick:${d.attempts}` });
+    return { rows: due.length, summary: { queued: due.length } };
   }
   if (job.kind === "watchdog") {
     // stale and idle integration sources (#32): status, automatic resync, owner/admin notice, platform alert
@@ -391,6 +409,8 @@ export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<JobOut
     const days = platformRetentionDays();
     for (const t of await adminDb().select({ id: schema.tenants.id, settings: schema.tenants.settings }).from(schema.tenants)) {
       await withTenant(t.id, (tx) => purgeExpiredPlatformRows(sys(t.id)(tx), { days }));
+      // API request log, finished webhook deliveries and expired idempotency answers (#81)
+      await withTenant(t.id, (tx) => purgeApiRows(sys(t.id)(tx), { days }));
       // ads volume control (issue #40): daily rows past the tenant's window become months, rare search terms "(other)"
       const settings = parseTenantSettings(t.settings);
       await withTenant(t.id, (tx) => rollupAdEntityMetrics(sys(t.id)(tx), { retentionDays: settings.adsDailyRetentionDays, minImpressions: settings.adsSearchTermMinImpressions }));

@@ -1,6 +1,7 @@
 import { and, eq, inArray, schema } from "@hullwise/db";
 import { OPEN_BACKORDER_STATUSES, ORDER_STATUSES, deriveOrderStatus, diffRecords, type OrderStatus, type PaymentMethod, type PaymentStatus, type ShipmentStatus, type StateInput, type StateRule } from "@hullwise/core";
 import type { ServiceContext } from "../context";
+import { emitOrderStatusWebhook } from "../webhooks/payloads";
 
 export async function loadStateRules(ctx: ServiceContext): Promise<StateRule[]> {
   const rows = await ctx.tx.select().from(schema.stateRules).where(eq(schema.stateRules.tenantId, ctx.tenantId));
@@ -85,6 +86,7 @@ export async function recomputeOrderStatus(ctx: ServiceContext, orderId: string,
       metadata: { reason: derived.reason, ...(opts.eventMetadata ?? {}) },
       createdAt: ctx.now ?? new Date(),
     });
+    await emitOrderStatusWebhook(ctx, order, { previous, status: derived.status, reason: derived.reason });
   }
   return { previous, next: derived.status, reason: derived.reason, changed };
 }

@@ -51,7 +51,7 @@ One Next.js service answers on three hosts; every absolute URL comes from the en
 | --- | --- | --- |
 | `APP_URL` | `https://my.hullwise.app` | Tenant app, sign-in, public portals (`/r`, `/s`, `/u`, `/supplier`), the console at `/admin` |
 | `ADMIN_URL` | `https://admin.hullwise.app` | Console at the root (`/tenants` → `/admin/tenants`); tenant pages redirect to `APP_URL` |
-| `API_URL` | `https://api.hullwise.app` | `/x` → `/api/x`: webhooks, OAuth callbacks, pixel, MCP |
+| `API_URL` | `https://api.hullwise.app` | `/x` → `/api/x`: REST API (`/v1`), webhooks, OAuth callbacks, pixel, MCP |
 | `NEXT_PUBLIC_SITE_URL` | `https://hullwise.app` | Landing (separate service) |
 
 `apps/web/src/middleware.ts` applies `routeForHost` (`apps/web/src/server/host-routing.ts`) before the Auth.js guard; console pages stay protected by `requireSuperAdmin` in the console layout. `COOKIE_DOMAIN` (e.g. `.hullwise.app`) shares the session and the OAuth state cookie across the hosts. Without `ADMIN_URL`/`API_URL` nothing is rewritten and `adminPage()`/`apiEndpoint()` fall back to `APP_URL/admin` and `APP_URL/api`.
@@ -90,6 +90,7 @@ One Next.js service answers on three hosts; every absolute URL comes from the en
 | Email | `email_messages`, `email_events`, `email_address_suppressions` | The platform sender's delivery log (nullable `tenant_id`, RLS read/append per tenant, advanced by the admin connection; recipient as keyed hash + masked form, never body or links), provider webhook events (unique on provider + event id) and platform-wide suppressions from hard bounces and complaints (hashed). |
 | Collaboration | `notifications`, `notification_preferences`, `email_suppressions`, `mentions`, `record_notes`, `tasks`, `task_rules`, `support_tickets`, `support_messages` | Notifications record every delivery (`in_app`, `delivered`); preferences override the type registry per user. Tasks link to a record (type + id) and remember the rule and episode that opened them. Support tickets are tenant data answered from the console through the admin connection. |
 | MCP | `oauth_clients`, `mcp_authorization_codes`, `mcp_tokens`, `mcp_request_log`, `mcp_rate_buckets`, `mcp_pending_actions` | OAuth clients are platform rows; codes, tokens (HMAC with pepper, one user + one tenant), the request log (null tenant for unknown tokens), rate windows and proposals are tenant tables, read by token hash only through the admin connection. `tenants.mcp_disabled_at` is the super-admin kill switch. |
+| API and webhooks | `webhook_endpoints`, `webhook_deliveries`, `api_idempotency_keys`, `api_request_log` | Tokens are the MCP ones (API scopes in `mcp_tokens.scopes`), rate windows reuse `mcp_rate_buckets` (`api:` buckets). Endpoints hold the AES-GCM secret (and the previous one during a rotation); a delivery is one event for one endpoint with its attempts; idempotency answers and the request log are per token. All tenant tables under RLS. |
 | Add-on subscriptions (#67) | `subscription_contracts`, `subscription_contract_lines`, `subscription_billing_attempts`, `subscription_events`, `subscription_cancellation_reasons` | The merchant's subscription contracts as their subscription app holds them (Hullwise is not the billing engine): status, price and normalized MRR, interval, next billing, pause/end, cancellation kind + normalized reason (raw text kept), failing-payment state, recovery assignee, churn risk; charges with the normalized decline reason and the cycle retries share; the contract timeline with author (customer, staff, system, provider) and diff; the tenant's editable reason list. Orders carry `subscription_contract_id` (no FK), `is_first_subscription_order` and `renewal_number` so P/L and attribution can split them. Populated for tenants with the add-on only. |
 | Add-on WhatsApp via Spoki (#9) | `spoki_settings`, `spoki_messages` | Only read and written by `@hullwise/addon-spoki`. Settings = zod config (sender, template language, template per event, notification switches, opt-out keywords), cached templates and the order-notification cursor. `spoki_messages` is the message log (outbound and inbound, purpose, provider id and idempotency key both unique per tenant, links to customer/order/campaign, forward-only status, error code). Inbound webhooks are `webhook_events` rows with source `spoki`. |
 | Add-on COD | `cod_settings`, `cod_queue_items`, `cod_attempts`, `cod_operator_capacity`, `cod_capacity_exceptions`, `cod_assignment_log`, `cod_recipient_profiles`, `cod_messages`, `cod_carrier_outcomes` | Only read and written by `@hullwise/addon-cod`. Queue items carry the scheduled confirmation day (`scheduled_confirm_on`, last failed run and error) and the escalation (`escalated_at/_by`, reason); `cod_messages` are confirmation messages sent through the `MessagingChannel` with their delivery status; `cod_carrier_outcomes` are delivered/refused outcomes imported from carrier files, preferred over the order's own outcome for recipient risk. |
@@ -369,6 +370,27 @@ sequenceDiagram
 2. In `run(rt, input)` use `rt.ctx` (tenant transaction, actor `mcp`), resolve references inside the tenant (`resolveOrderRef`), sanitise free text (`sanitizeSearch`, `sanitizeFreeText`), throw `ToolError("not_found" | "invalid_input" | "conflict", message)` for answers the model can act on, return amounts with `majorUnits` and dates with `localDateTime` (store time zone), links with `hullwiseLink(rt, path)`.
 3. Writes: call the existing service with `eventMetadata: mcpMeta(rt)` and record an audit entry with `actorType: "mcp"` and the diff. Anything not reversible must be a proposal: add a kind to `PROPOSAL_KINDS`, its permission to `PROPOSAL_ACTION`, its execution in `decideProposal` and its label under `mcp.approvals.kinds`.
 4. Register it in `MCP_READ_TOOLS` / `MCP_WRITE_TOOLS` (core) or export it from the add-on and append it in `apps/web/src/server/mcp.ts`. Add it to the isolation loop of `packages/services/test/mcp.test.ts` if it takes a reference.
+
+### REST API and webhooks
+
+Public REST API v1 (#81) at `apiEndpoint("/v1/…")` (`API_URL/v1/…`, locally `APP_URL/api/v1/…`), served by `app/api/v1/[...path]/route.ts`, which only calls `handleApiRequest` (`packages/services/src/api/http.ts`): route registry (`routes.ts`: method, path, scope, page/action, zod query and body, handler) → bearer token (`resolveApiBearer`: MCP tokens, API scopes, membership, plan `core.api`, kill switch) → rate limits (`api:` buckets, fail closed) → scope → role → input → `withTenant` as actor `api` (writes: `Idempotency-Key` under an advisory lock) → `maskPii` unless full PII → `api_request_log`. Platform writes a request enqueued are dispatched after the commit (`apps/web/src/server/api.ts`). Resource shapes in `api/serialize.ts` are shared with the webhook payloads. The docs page (`/t/[tenant]/settings/developers/docs`) renders `apiRouteCatalog()`; a web test fails on an undocumented route.
+
+```mermaid
+sequenceDiagram
+  participant S as service (status engine, import, stock…)
+  participant T as tenant transaction
+  participant Q as pg-boss webhook.deliver
+  participant D as deliverWebhook
+  participant R as receiver
+  S->>T: change + emitWebhookEvent → webhook_deliveries (pending), one per subscribed endpoint
+  S-->>Q: dispatch(delivery) (start after 2 s; web without worker: in process)
+  Q->>D: claim (for update, sending, lock 60 s)
+  D->>R: POST JSON · Webhook-Id/Event/Timestamp/Signature (guarded lookup, no redirects, 10 s)
+  D->>T: attempt recorded: succeeded | retrying (10 s … 2 h) | dead
+  Note over Q,D: tick "webhooks" (every minute) re-queues due or interrupted deliveries
+```
+
+To add an event type: add it to `WEBHOOK_EVENT_TYPES` (config), emit it with a helper in `packages/services/src/webhooks/payloads.ts` from the service that makes the change (inside its transaction, no personal data, check `hasWebhookSubscribers` before an expensive payload), add its text under `developers.events`. To add a route: add it to `API_ROUTES` with its scope, page/action and schemas, and its texts under `api_docs.routes.items` and `api_docs.params`.
 
 ## The COD add-on in depth (issue #8)
 

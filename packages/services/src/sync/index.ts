@@ -13,6 +13,8 @@ import { applyInventoryLevels, refreshInventoryForVariants, zeroUnreportedLevels
 import { importPlatformReturn, type ReturnImportOutcome } from "./returns";
 import { notifyExchangeShipped } from "../returns/notify";
 import { linkPoolRedemptions } from "../discounts/redemptions";
+import { emitOrderWebhook, emitProductWebhook, emitShipmentWebhook, lowStockProbe } from "../webhooks/payloads";
+import { hasWebhookSubscribers } from "../webhooks/emit";
 
 export * from "./inventory";
 export * from "./returns";
@@ -121,11 +123,13 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
   };
   let orderId: string;
   let outcome: ImportOutcome["outcome"];
+  let changedFields: string[] = [];
   if (existing) {
     orderId = existing.id;
     await ctx.tx.update(schema.orders).set(values).where(eq(schema.orders.id, orderId));
     const diff = diffRecords<Record<string, unknown>>(Object.fromEntries(ORDER_DIFF_FIELDS.map((f) => [f, existing[f]])), Object.fromEntries(ORDER_DIFF_FIELDS.map((f) => [f, values[f]])));
     outcome = hasChanges(diff) ? "updated" : "unchanged";
+    changedFields = Object.keys(diff);
     if (outcome === "updated") await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId, type: "platform_update", actorType: "integration", actorUserId: null, diff, metadata: { source: opts.source }, createdAt: now });
   } else {
     const [row] = await ctx.tx.insert(schema.orders).values({ tenantId: ctx.tenantId, externalId: o.externalId, status: "new", statusSource: "rule", ...values }).returning({ id: schema.orders.id });
@@ -159,7 +163,9 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
   if (!lineage) await ctx.tx.insert(schema.orderAttribution).values({ tenantId: ctx.tenantId, orderId, ...attrValues }).onConflictDoUpdate({ target: [schema.orderAttribution.orderId], set: attrValues });
   // fulfillments → shipments with per-source state and resolver
   const mappings = o.fulfillments.length ? await loadStatusMappings(ctx) : [];
-  for (const f of o.fulfillments) await importFulfillment(ctx, orderId, f, now, { mappings });
+  // the first import of a store's history sends no webhooks: those are changes, not the backlog
+  const silent = opts.source === "backfill";
+  for (const f of o.fulfillments) await importFulfillment(ctx, orderId, f, now, { mappings, silent });
   // backorders: a new order is checked against stock; one cancelled or shipped on the platform stops waiting
   if (outcome === "created" && opts.stockCheck !== false) await checkOrderStock(ctx, orderId, { source: opts.source, skipRecompute: true });
   if (existing && (o.cancelledAt || ["fulfilled", "partial"].includes(o.fulfillmentStatusRaw ?? ""))) await closeOrderBackorders(ctx, orderId, o.cancelledAt ? "cancelled" : "fulfilled", o.cancelledAt ? "order_cancelled" : "order_fulfilled");
@@ -167,6 +173,7 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
   // an exchange order paid through the invoice links back to its return
   const exchangeFor = o.noteAttributes?.find((a) => a.name === "hullwise_return_id")?.value;
   if (exchangeFor && /^[0-9a-f-]{36}$/i.test(exchangeFor)) await ctx.tx.update(schema.returnRequests).set({ exchangeOrderId: orderId }).where(and(eq(schema.returnRequests.tenantId, ctx.tenantId), eq(schema.returnRequests.id, exchangeFor), isNull(schema.returnRequests.exchangeOrderId)));
+  if (!silent && outcome !== "unchanged") await emitOrderWebhook(ctx, outcome === "created" ? "order.created" : "order.updated", orderId, { changes: outcome === "updated" ? changedFields : undefined, source: opts.source });
   return { id: orderId, outcome };
 }
 
@@ -175,7 +182,7 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
  * tenant's `shipment_status_mappings` decide what the external status means (canonical status,
  * exception, final) before the resolver runs; the work queues (exception / return to sender) follow.
  */
-export async function importFulfillment(ctx: ServiceContext, orderId: string, f: NormalizedOrder["fulfillments"][number], now: Date, opts: { mappings?: StatusMapping[]; source?: string } = {}): Promise<{ shipmentId: string; status: ShipmentStatus; created: boolean }> {
+export async function importFulfillment(ctx: ServiceContext, orderId: string, f: NormalizedOrder["fulfillments"][number], now: Date, opts: { mappings?: StatusMapping[]; source?: string; silent?: boolean } = {}): Promise<{ shipmentId: string; status: ShipmentStatus; created: boolean }> {
   const source = opts.source ?? "shopify";
   const mappings = opts.mappings ?? (await loadStatusMappings(ctx));
   const mapped = applyStatusMapping(mappings, source, f.externalStatus, f.status);
@@ -206,6 +213,7 @@ export async function importFulfillment(ctx: ServiceContext, orderId: string, f:
   });
   await ctx.tx.update(schema.shipments).set({ status: resolved.status, sourceOfTruth: resolved.sourceOfTruth, exceptionReason: resolved.exceptionReason, exceptionSince: resolved.exceptionSince, deliveredAt: resolved.status === "delivered" ? (f.deliveredAt ?? existing?.deliveredAt ?? f.updatedAt) : (existing?.deliveredAt ?? f.deliveredAt) }).where(eq(schema.shipments.id, shipmentId));
   if (resolved.status !== existing?.status) await syncShipmentCases(ctx, { shipmentIds: [shipmentId] });
+  if (!opts.silent && resolved.status !== existing?.status) await emitShipmentWebhook(ctx, shipmentId, existing?.status ?? null);
   // the first parcel of an exchange order: the customer who returned the goods hears the replacement is on its way
   if (!existing && resolved.status !== "failed" && resolved.status !== "returned") await notifyExchangeShipped(ctx, orderId, { carrier: f.carrier, trackingNumber: f.trackingNumber, trackingUrl: f.trackingUrl });
   return { shipmentId, status: resolved.status, created: !existing };
@@ -251,7 +259,11 @@ export async function importProduct(ctx: ServiceContext, p: NormalizedProduct): 
   // the cover is the first media when the payload carries the gallery
   const imageUrl = p.media !== undefined ? (p.media[0]?.url ?? null) : p.imageUrl;
   const values = { title: p.title, handle: p.handle, vendor: p.vendor, productType: p.productType, status: p.status, tags: p.tags, options: p.options, imageUrl, platformCreatedAt: p.platformCreatedAt, ...productMirrorValues(p), syncedAt: now, updatedAt: now };
-  const [existing] = await ctx.tx.select({ id: schema.products.id }).from(schema.products).where(and(eq(schema.products.tenantId, ctx.tenantId), eq(schema.products.externalId, p.externalId))).limit(1);
+  const [existing] = await ctx.tx.select({ id: schema.products.id, title: schema.products.title, handle: schema.products.handle, vendor: schema.products.vendor, productType: schema.products.productType, status: schema.products.status, tags: schema.products.tags }).from(schema.products).where(and(eq(schema.products.tenantId, ctx.tenantId), eq(schema.products.externalId, p.externalId))).limit(1);
+  // product.updated webhooks: only when what a receiver sees changed (a nightly reconcile rewrites every product)
+  const watch = await hasWebhookSubscribers(ctx, "product.updated");
+  const fingerprint = (x: { title: string; handle: string | null; vendor: string | null; productType: string | null; status: string; tags: string[] }, vs: { externalId: string | null; sku: string | null; title: string; priceMinor: number; compareAtMinor: number | null }[]) => JSON.stringify([x.title, x.handle, x.vendor, x.productType, x.status, [...x.tags].sort(), vs.map((v) => [v.externalId, v.sku, v.title, v.priceMinor, v.compareAtMinor ?? null]).sort()]);
+  const before = watch && existing ? fingerprint(existing, await ctx.tx.select({ externalId: schema.productVariants.externalId, sku: schema.productVariants.sku, title: schema.productVariants.title, priceMinor: schema.productVariants.priceMinor, compareAtMinor: schema.productVariants.compareAtMinor }).from(schema.productVariants).where(and(eq(schema.productVariants.productId, existing.id), eq(schema.productVariants.isActive, true)))) : null;
   const [row] = await ctx.tx.insert(schema.products).values({ tenantId: ctx.tenantId, externalId: p.externalId, ...values }).onConflictDoUpdate({ target: [schema.products.tenantId, schema.products.externalId], set: values }).returning({ id: schema.products.id });
   const productId = row!.id;
   const mediaIds = p.media !== undefined ? await syncProductMedia(ctx, productId, p.media, now) : null;
@@ -279,6 +291,7 @@ export async function importProduct(ctx: ServiceContext, p: NormalizedProduct): 
   if (keep.length) await ctx.tx.update(schema.productVariants).set({ isActive: false, updatedAt: now }).where(and(eq(schema.productVariants.productId, productId), sql`${schema.productVariants.id} <> all(${sql.param(keep)}::uuid[])`));
   // orders sold before the cost was known get it now
   await applyCostToOrderLines(ctx, costed, "missing");
+  if (watch && before !== fingerprint({ ...values, tags: p.tags }, p.variants.map((v) => ({ externalId: v.externalId, sku: v.sku, title: v.title, priceMinor: v.priceMinor, compareAtMinor: v.compareAtMinor })))) await emitProductWebhook(ctx, productId, { source: "platform" });
   return { id: productId, outcome: existing ? "updated" : "created" };
 }
 
@@ -289,7 +302,9 @@ export async function importInventoryLevel(ctx: ServiceContext, lvl: NormalizedI
   if (!variant || !location) return false;
   // synced_at is when Hullwise read the level: a complete run zeroes the levels it did not see
   const values = { available: lvl.available, onHand: lvl.onHand ?? lvl.available, committed: lvl.committed ?? 0, syncedAt: now, updatedAt: now };
+  const lowStock = await lowStockProbe(ctx, [variant.id]);
   await ctx.tx.insert(schema.inventoryLevels).values({ tenantId: ctx.tenantId, variantId: variant.id, locationId: location.id, ...values }).onConflictDoUpdate({ target: [schema.inventoryLevels.variantId, schema.inventoryLevels.locationId], set: values });
+  await lowStock?.();
   return true;
 }
 

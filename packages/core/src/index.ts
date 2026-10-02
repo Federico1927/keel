@@ -52,6 +52,7 @@ export * from "./product-profit";
 export * from "./utm-report";
 export * from "./account";
 export * from "./mcp";
+export * from "./api";
 export * from "./dashboards";
 export * from "./platform";
 export * from "./subscription-billing";

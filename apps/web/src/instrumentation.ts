@@ -14,6 +14,9 @@ export async function register() {
     // emails queued by this process go to pg-boss (worker deployed) or are delivered after the response
     const { installEmailDispatcher } = await import("./server/email");
     installEmailDispatcher();
+    // outgoing webhooks (#81) the same way: pg-boss with a worker, a deferred in-process delivery without
+    const { installWebhookDispatcher } = await import("./server/webhooks");
+    installWebhookDispatcher();
   }
   if (process.env.SENTRY_DSN) {
     const [Sentry, { SENTRY_DATA_COLLECTION }] = await Promise.all([import("@sentry/nextjs"), import("@hullwise/config")]);

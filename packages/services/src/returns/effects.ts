@@ -2,6 +2,7 @@ import { and, eq, inArray, schema, sql } from "@hullwise/db";
 import { RETURN_GOODS_BACK_STATUSES, returnedFractionBps } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { recomputeOrderStatus } from "../orders/state";
+import { emitReturnWebhook } from "../webhooks/payloads";
 
 /**
  * Carries a return's status change to its order: the returned fraction from goods that came back, the
@@ -26,4 +27,5 @@ export async function applyReturnToOrder(ctx: ServiceContext, orderId: string, c
   if (changed) await ctx.tx.update(schema.orders).set({ returnedFraction: fraction, refundedMinor, paymentStatus, updatedAt: now }).where(eq(schema.orders.id, order.id));
   await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: order.id, type: "return_updated", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: { returnStatus: { from: change.from, to: change.to }, ...(changed ? { returnedFraction: { from: order.returnedFraction, to: fraction }, refundedMinor: { from: order.refundedMinor, to: refundedMinor } } : {}) }, metadata: { returnId: change.returnId, number: change.number, ...metadata }, createdAt: now });
   if (changed) await recomputeOrderStatus(ctx, order.id, { eventMetadata: { source: "return", returnId: change.returnId } });
+  if (change.from !== change.to) await emitReturnWebhook(ctx, change.returnId, change.from);
 }

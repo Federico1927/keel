@@ -95,7 +95,8 @@ export function Timeline({ events, locale, timezone, currency }: { events: Timel
                 <span className="font-medium">{te.has(e.type) ? te(e.type) : e.type}</span>
                 <span className="text-xs text-muted-foreground">
                   {e.actorName ?? t(e.actorType === "integration" ? "integration" : "system")}
-                  {e.actorType === "mcp" && <> {t("via_mcp", { client: typeof e.metadata.mcpClient === "string" ? e.metadata.mcpClient : "AI" })}</>} · {formatDateTime(e.createdAt, locale, timezone)}
+                  {e.actorType === "mcp" && <> {t("via_mcp", { client: typeof e.metadata.mcpClient === "string" ? e.metadata.mcpClient : "AI" })}</>}
+                  {e.actorType === "api" && <> {t("via_api", { client: typeof e.metadata.apiClient === "string" ? e.metadata.apiClient : "API" })}</>} · {formatDateTime(e.createdAt, locale, timezone)}
                 </span>
               </div>
               <DiffList diff={e.diff} />

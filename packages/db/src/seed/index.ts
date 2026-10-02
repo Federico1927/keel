@@ -19,6 +19,7 @@ import { seedConsoleTenants, seedDemoLifecycle } from "./console";
 import { seedInventoryControl } from "./inventory-control";
 import { seedDashboards } from "./dashboards";
 import { seedMcp } from "./mcp";
+import { seedApi } from "./api";
 import { seedAdsDepth } from "./ads";
 import { seedTiktok } from "./tiktok";
 import { seedPlatformReliability, seedReliability } from "./reliability";
@@ -282,6 +283,8 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("inventory-control", () => seedInventoryControl(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("dashboards", () => seedDashboards(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("mcp", () => seedMcp(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
+    // after the MCP step, which rewrites the tenant's tokens
+    await step("api", () => seedApi(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("ads", () => seedAdsDepth(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("tiktok", () => seedTiktok(db, DEMO_TENANTS[cfg.key as keyof typeof DEMO_TENANTS].planKey, cfg.tenantId, opts.now ?? new Date()));
     await step("subscriptions", () => seedSubscriptions(db, { tenantId: cfg.tenantId, addons: cfg.addons, now: opts.now ?? new Date(), scale: opts.scale ?? 1, careUserId: ctx.userIds["care@harborhome.demo"] ?? null, ownerUserId: ctx.userIds["owner@harborhome.demo"] ?? null }));

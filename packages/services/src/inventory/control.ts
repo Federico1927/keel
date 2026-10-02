@@ -8,6 +8,7 @@ import { refreshBackorderCoverage, type RefreshResult } from "../backorders";
 import { SkipItem, newBatchId, runBatch, type BatchSummary } from "../lists/batch";
 import type { BulkRunner } from "../lists/bulk";
 import { variantStock } from "./index";
+import { lowStockProbe } from "../webhooks/payloads";
 
 /**
  * Inventory control (issue #30): manual adjustments with a reason code, stock-take sessions,
@@ -76,7 +77,9 @@ export async function adjustStock(ctx: ServiceContext, input: AdjustmentInput, o
   const check = validateAdjustment({ reason: input.reason, delta: input.delta, current: before, note });
   if (!check.ok) throw new InventoryControlError(check.error);
   const delta = check.next - before;
+  const lowStock = await lowStockProbe(ctx, [input.variantId]);
   await writeLevel(ctx, input.variantId, input.locationId, level, check.next);
+  await lowStock?.();
   const now = ctx.now ?? new Date();
   const [m] = await ctx.tx.insert(schema.inventoryMovements).values({ tenantId: ctx.tenantId, variantId: input.variantId, locationId: input.locationId, delta, reason: "adjustment", reasonCode: input.reason, referenceType: "adjustment", actorUserId: ctx.actor.userId, note, createdAt: now }).returning({ id: schema.inventoryMovements.id });
   const write = opts.pushToPlatform === false ? null : await pushLevel(ctx, input.variantId, variant.inv, location.ext, check.next);
