@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { CHURN_RISKS, formatDate, formatMoney, formatNumber } from "@hullwise/core";
 import { listCustomers, parseCustomerFilters } from "@hullwise/services";
-import { Card, CardContent, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Card, CardContent, DataList, EmptyState, PageHeader, Pagination } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { CustomerTabs } from "./customer-tabs";
 import { CustomerFiltersBar } from "./filters";
@@ -38,39 +38,22 @@ export default async function CustomersPage({ params, searchParams }: { params: 
       ) : (
         <Card className="mt-4">
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("columns.customer")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("columns.country")}</TableHead>
-                  <TableHead className="text-right">{t("columns.orders")}</TableHead>
-                  <TableHead className="text-right">{t("columns.total_spent")}</TableHead>
-                  <TableHead className="hidden text-right lg:table-cell">{t("columns.aov")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("columns.last_order")}</TableHead>
-                  <TableHead>{t("columns.tier")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("columns.churn")}</TableHead>
-                  <TableHead className="hidden lg:table-cell">{t("columns.marketing")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.customerId} data-testid="customer-row">
-                    <TableCell>
-                      <Link href={`${base}/${r.customerId}`} className="font-medium hover:underline">{[r.firstName, r.lastName].filter(Boolean).join(" ") || r.email || "—"}</Link>
-                      <div className="truncate text-xs text-muted-foreground">{r.email}</div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">{r.country ?? "—"}{r.city ? ` · ${r.city}` : ""}</TableCell>
-                    <TableCell className="text-right tabular">{formatNumber(r.ordersCount, ctx.locale)}</TableCell>
-                    <TableCell className="text-right tabular">{money(r.totalSpentMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular lg:table-cell">{r.aovMinor === null ? "—" : money(r.aovMinor)}</TableCell>
-                    <TableCell className="hidden md:table-cell">{r.lastOrderAt ? formatDate(r.lastOrderAt, ctx.locale, ctx.tenant.timezone) : "—"}</TableCell>
-                    <TableCell><TierBadge tier={r.tier} /></TableCell>
-                    <TableCell className="hidden md:table-cell"><ChurnBadge risk={r.churnRisk} /></TableCell>
-                    <TableCell className="hidden lg:table-cell">{r.acceptsMarketing ? t("yes") : t("no")}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={rows}
+              rowKey={(r) => r.customerId}
+              rowProps={() => ({ "data-testid": "customer-row" })}
+              columns={[
+                { key: "customer", header: t("columns.customer"), mobile: "title", cell: (r) => <><Link href={`${base}/${r.customerId}`} className="font-medium hover:underline">{[r.firstName, r.lastName].filter(Boolean).join(" ") || r.email || "—"}</Link><div className="truncate text-xs font-normal text-muted-foreground">{r.email}</div></> },
+                { key: "tier", header: t("columns.tier"), mobile: "badge", cell: (r) => <TierBadge tier={r.tier} /> },
+                { key: "country", header: t("columns.country"), cell: (r) => <>{r.country ?? "—"}{r.city ? ` · ${r.city}` : ""}</> },
+                { key: "orders", header: t("columns.orders"), align: "right", className: "tabular", cell: (r) => formatNumber(r.ordersCount, ctx.locale) },
+                { key: "total", header: t("columns.total_spent"), align: "right", className: "tabular", cell: (r) => money(r.totalSpentMinor) },
+                { key: "aov", header: t("columns.aov"), align: "right", priority: 2, className: "tabular", cell: (r) => (r.aovMinor === null ? "—" : money(r.aovMinor)) },
+                { key: "last", header: t("columns.last_order"), cell: (r) => (r.lastOrderAt ? formatDate(r.lastOrderAt, ctx.locale, ctx.tenant.timezone) : "—") },
+                { key: "churn", header: t("columns.churn"), label: "", cell: (r) => <ChurnBadge risk={r.churnRisk} /> },
+                { key: "marketing", header: t("columns.marketing"), priority: 2, cell: (r) => (r.acceptsMarketing ? t("yes") : t("no")) },
+              ]}
+            />
           </CardContent>
         </Card>
       )}

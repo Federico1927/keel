@@ -6,7 +6,7 @@ import { canDo, canWritePage, isAdPlatformInPlan } from "@hullwise/config";
 import { ADS_UTM_TEMPLATES, UTM_NONE, type AdPlatform, formatDate, formatMoney, formatNumber, formatPercent } from "@hullwise/core";
 import { and, eq, schema } from "@hullwise/db";
 import { adRows, campaignAdSets, catalogThumbnails, campaignDailyLedger, campaignLinkSuggestions, campaignsWithEconomics, latestPlatformWrites, summarizeByProduct, variantStock } from "@hullwise/services";
-import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DetailShell, EmptyState, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, DetailShell, EmptyState, Stat } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";
@@ -70,12 +70,9 @@ export default async function CampaignDetailPage({ params, searchParams }: { par
           <PlatformWriteStatus slug={tenant} write={platformWrite} canRetry={canDo(ctx.role, "pause_campaign")} showError />
         </>
       }
-      actions={
-        <div className="flex flex-col items-end gap-2">
-          <PeriodPicker basePath={`${base}/${id}`} preset={period.preset} from={sp.from} to={sp.to} />
-          <CampaignStatusButton slug={tenant} campaignId={row.id} platform={row.platform} status={row.status} canPause={canPause} readOnly={row.platform === "google"} />
-        </div>
-      }
+      actions={<><PeriodPicker basePath={`${base}/${id}`} preset={period.preset} from={sp.from} to={sp.to} />{row.platform === "google" && <CampaignStatusButton slug={tenant} campaignId={row.id} platform={row.platform} status={row.status} canPause={canPause} readOnly />}</>}
+      // pause / resume: docked at the bottom on phones (#49); only when there is a button to show
+      primaryActions={canPause && row.status !== "archived" && row.platform !== "google" ? <CampaignStatusButton slug={tenant} campaignId={row.id} platform={row.platform} status={row.status} canPause readOnly={false} /> : undefined}
       aside={
         <Card>
           <CardHeader>
@@ -124,7 +121,7 @@ export default async function CampaignDetailPage({ params, searchParams }: { par
         </Card>
       }
     >
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Stat label={t("kpi.spend")} value={money(m.spendMinor)} hint={row.dailyBudgetMinor ? `${money(row.dailyBudgetMinor)}/d` : undefined} />
         <Stat label={t("kpi.orders")} value={formatNumber(m.attributedOrders, ctx.locale)} href={`/t/${tenant}/orders?campaign=${row.id}&from=${period.from.toISOString().slice(0, 10)}&to=${new Date(period.to.getTime() - 1).toISOString().slice(0, 10)}`} />
         <Stat label={t("kpi.revenue")} value={money(m.netRevenueMinor)} />
@@ -178,41 +175,22 @@ export default async function CampaignDetailPage({ params, searchParams }: { par
           {ledger.length === 0 ? (
             <EmptyState title={tl("empty_title")} description={tl("reason.no_data")} className="m-4" />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("ledger.date")}</TableHead>
-                  <TableHead className="text-right">{t("ledger.spend")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("ledger.impressions")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("ledger.clicks")}</TableHead>
-                  <TableHead className="text-right">{t("ledger.orders")}</TableHead>
-                  <TableHead className="hidden text-right lg:table-cell">{t("ledger.revenue")}</TableHead>
-                  <TableHead className="hidden text-right lg:table-cell">{t("ledger.margin")}</TableHead>
-                  <TableHead className="text-right">{t("ledger.profit")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("ledger.roas")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {ledger.slice(0, 120).map((r) => (
-                  <TableRow key={r.date}>
-                    <TableCell>
-                      {formatDate(new Date(`${r.date}T12:00:00Z`), ctx.locale, ctx.tenant.timezone)}
-                      {r.flags.map((f) => (
-                        <Badge key={f} variant="muted" className="ml-1">{t(`ledger.flags.${f}`)}</Badge>
-                      ))}
-                    </TableCell>
-                    <TableCell className="text-right tabular">{money(r.spendMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{formatNumber(r.impressions, ctx.locale)}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{formatNumber(r.clicks, ctx.locale)}</TableCell>
-                    <TableCell className="text-right tabular">{formatNumber(r.orders, ctx.locale)}</TableCell>
-                    <TableCell className="hidden text-right tabular lg:table-cell">{money(r.netRevenueMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular lg:table-cell">{money(r.marginMinor)}</TableCell>
-                    <TableCell className={`text-right tabular ${r.profitMinor < 0 ? "text-destructive" : ""}`}>{money(r.profitMinor)}</TableCell>
-                    <TableCell className="hidden text-right tabular md:table-cell">{r.roas === null ? "—" : `${r.roas.toFixed(2)}×`}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={ledger.slice(0, 120)}
+              rowKey={(r) => r.date}
+              rowProps={() => ({ "data-testid": "ledger-row" })}
+              columns={[
+                { key: "date", header: t("ledger.date"), mobile: "title", className: "max-md:font-normal", cell: (r) => <>{formatDate(new Date(`${r.date}T12:00:00Z`), ctx.locale, ctx.tenant.timezone)}{r.flags.map((f) => <Badge key={f} variant="muted" className="ml-1">{t(`ledger.flags.${f}`)}</Badge>)}</> },
+                { key: "spend", header: t("ledger.spend"), align: "right", className: "tabular", cell: (r) => money(r.spendMinor) },
+                { key: "impressions", header: t("ledger.impressions"), align: "right", className: "tabular", cell: (r) => formatNumber(r.impressions, ctx.locale) },
+                { key: "clicks", header: t("ledger.clicks"), align: "right", className: "tabular", cell: (r) => formatNumber(r.clicks, ctx.locale) },
+                { key: "orders", header: t("ledger.orders"), align: "right", className: "tabular", cell: (r) => formatNumber(r.orders, ctx.locale) },
+                { key: "revenue", header: t("ledger.revenue"), align: "right", priority: 2, className: "tabular", cell: (r) => money(r.netRevenueMinor) },
+                { key: "margin", header: t("ledger.margin"), align: "right", priority: 2, className: "tabular", cell: (r) => money(r.marginMinor) },
+                { key: "profit", header: t("ledger.profit"), mobile: "badge", align: "right", className: "tabular max-md:font-semibold", cell: (r) => <span className={r.profitMinor < 0 ? "text-destructive" : ""}>{money(r.profitMinor)}</span> },
+                { key: "roas", header: t("ledger.roas"), align: "right", className: "tabular", cell: (r) => (r.roas === null ? "—" : `${r.roas.toFixed(2)}×`) },
+              ]}
+            />
           )}
         </CardContent>
       </Card>

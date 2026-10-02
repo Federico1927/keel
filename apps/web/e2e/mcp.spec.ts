@@ -70,8 +70,8 @@ test("a personal access token connects the SDK client: list, read, propose; the 
   await page.goto(`/t/${SLUG}/approvals`);
   const card = page.getByTestId("proposal-card").filter({ hasText: target.name }).filter({ hasText: reason });
   await expect(card).toBeVisible();
-  page.once("dialog", (d) => void d.accept());
   await card.getByTestId("proposal-approve").click();
+  await page.getByTestId("confirm-accept").click();
   await expect(page.getByTestId("proposals-history")).toContainText(target.name);
   await expect(page.getByTestId("proposals-history").getByRole("row").filter({ hasText: target.name }).first()).toContainText(/approved|approvata|aprobada/i);
 });

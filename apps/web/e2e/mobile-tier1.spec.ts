@@ -88,8 +88,9 @@ test("operations finds an order by phone, changes its status, adds a note and ed
     break;
   }
   expect(name).not.toBe("");
-  // search the list with the local number, as the customer would dictate it
-  await page.goto(`${HH}/orders`);
+  // search the list with the local number, as the customer would dictate it; from the same filtered list,
+  // because a subscriber's phone also matches every renewal order and this one may not be on the first page
+  await page.goto(`${HH}/orders?status=confirmed&payment=card&paymentStatus=paid`);
   const local = phone.replace(/^\+1/, "");
   await page.getByRole("searchbox").fill(`${local.slice(0, 3)} ${local.slice(3, 6)} ${local.slice(6)}`);
   await page.getByRole("button", { name: /^Search$|^Cerca$/ }).click();
@@ -124,6 +125,9 @@ test("operations finds an order by phone, changes its status, adds a note and ed
   const edit = page.getByRole("dialog");
   const apt = `Apt ${Date.now() % 1000}`;
   await edit.getByLabel(/^Address line 2$|^Indirizzo \(riga 2\)$/).fill(apt);
+  // some demo orders carry no state, which the US address check requires: fill it when it's empty
+  const province = edit.getByLabel(/^Province \/ state$|^Provincia \/ stato$/);
+  if ((await province.inputValue()) === "") await province.fill("NY");
   await edit.getByTestId("edit-save").click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.getByText(apt).first()).toBeVisible();
@@ -222,8 +226,8 @@ test("operations counts a location's stock by scanning", async ({ page }) => {
   await expect(page.getByTestId("scan-result")).toContainText(/2/);
   await expect(page.getByTestId("stock-take-line").first()).toBeVisible();
   // leave the demo stock as it was
-  page.once("dialog", (d) => d.accept());
   await page.getByTestId("cancel-stock-take").click();
+  await page.getByRole("dialog").getByTestId("confirm-accept").click();
   await expect(page.getByTestId("stock-take-status")).toHaveText(/Cancelled|Annullat/);
 });
 

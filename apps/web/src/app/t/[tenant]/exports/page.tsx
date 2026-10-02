@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatDateTime, formatNumber } from "@hullwise/core";
 import { listMyExports } from "@hullwise/services";
-import { Alert, AlertDescription, Badge, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, Badge, Card, CardContent, DataList, EmptyState, PageHeader } from "@hullwise/ui";
 import { getTenantContext } from "@/server/tenant";
 import { AutoRefresh } from "@/components/lists/auto-refresh";
 
@@ -28,34 +28,18 @@ export default async function ExportsPage({ params, searchParams }: { params: Pr
       ) : (
         <Card>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("exports.list")}</TableHead>
-                  <TableHead className="hidden sm:table-cell">{t("exports.requested")}</TableHead>
-                  <TableHead>{t("exports.status")}</TableHead>
-                  <TableHead className="text-right">{t("exports.rows")}</TableHead>
-                  <TableHead className="text-right">{t("exports.file")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.id} data-testid="export-row" data-status={r.status}>
-                    <TableCell>
-                      <Link href={`/t/${tenant}/${r.list}${r.query ? `?${r.query}` : ""}`} className="font-medium text-primary hover:underline">{t(`names.${r.list}`)}</Link>
-                      {r.query && <p className="max-w-[16rem] truncate text-xs text-muted-foreground">{r.query}</p>}
-                    </TableCell>
-                    <TableCell className="hidden whitespace-nowrap text-sm text-muted-foreground sm:table-cell">{formatDateTime(r.createdAt, ctx.locale, ctx.tenant.timezone)}</TableCell>
-                    <TableCell>
-                      <Badge variant={r.status === "done" ? "success" : r.status === "failed" ? "destructive" : "secondary"}>{t(`exports.statuses.${r.status}`)}</Badge>
-                      {r.error && <p className="text-xs text-destructive">{r.error}</p>}
-                    </TableCell>
-                    <TableCell className="text-right tabular">{r.rowCount === null ? "—" : formatNumber(r.rowCount, ctx.locale)}</TableCell>
-                    <TableCell className="text-right">{r.status === "done" ? <a href={`/t/${tenant}/exports/${r.id}`} className="text-sm text-primary hover:underline" data-testid="export-download">{t("exports.download")}</a> : "—"}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={rows}
+              rowKey={(r) => r.id}
+              rowProps={(r) => ({ "data-testid": "export-row", "data-status": r.status })}
+              columns={[
+                { key: "list", header: t("exports.list"), mobile: "title", cell: (r) => <><Link href={`/t/${tenant}/${r.list}${r.query ? `?${r.query}` : ""}`} className="font-medium text-primary hover:underline">{t(`names.${r.list}`)}</Link>{r.query && <p className="max-w-[16rem] truncate text-xs font-normal text-muted-foreground">{r.query}</p>}</> },
+                { key: "status", header: t("exports.status"), mobile: "badge", cell: (r) => <><Badge variant={r.status === "done" ? "success" : r.status === "failed" ? "destructive" : "secondary"}>{t(`exports.statuses.${r.status}`)}</Badge>{r.error && <p className="text-xs text-destructive">{r.error}</p>}</> },
+                { key: "requested", header: t("exports.requested"), mobile: "subtitle", className: "whitespace-nowrap text-sm text-muted-foreground", cell: (r) => formatDateTime(r.createdAt, ctx.locale, ctx.tenant.timezone) },
+                { key: "rows", header: t("exports.rows"), align: "right", className: "tabular", cell: (r) => (r.rowCount === null ? "—" : formatNumber(r.rowCount, ctx.locale)) },
+                { key: "file", header: t("exports.file"), mobile: "action", align: "right", cell: (r) => (r.status === "done" ? <a href={`/t/${tenant}/exports/${r.id}`} className="text-sm text-primary hover:underline max-md:inline-flex max-md:min-h-9 max-md:items-center" data-testid="export-download">{t("exports.download")}</a> : <span className="max-md:hidden">—</span>) },
+              ]}
+            />
           </CardContent>
         </Card>
       )}

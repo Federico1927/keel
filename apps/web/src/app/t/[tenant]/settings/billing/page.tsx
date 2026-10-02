@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { formatDate, formatMoney } from "@hullwise/core";
 import { tenantBillingOverview } from "@hullwise/services";
-import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, EmptyState, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { PortalButton } from "./portal-button";
 
@@ -80,33 +80,18 @@ export default async function BillingSettingsPage({ params, searchParams }: { pa
         <CardHeader><CardTitle>{t("invoices_title")}</CardTitle></CardHeader>
         <CardContent className="p-0">
           {v.invoices.length === 0 ? <EmptyState title={t("invoices_empty")} /> : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("columns.number")}</TableHead>
-                  <TableHead className="hidden sm:table-cell">{t("columns.date")}</TableHead>
-                  <TableHead className="text-right">{t("columns.amount")}</TableHead>
-                  <TableHead>{t("columns.status")}</TableHead>
-                  <TableHead className="text-right">{t("columns.document")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {v.invoices.map((i) => (
-                  <TableRow key={i.id} data-testid="billing-invoice-row">
-                    <TableCell className="font-mono text-xs">{i.number}<div className="font-sans text-xs text-muted-foreground sm:hidden">{date(i.issuedAt)}</div></TableCell>
-                    <TableCell className="hidden sm:table-cell">{date(i.issuedAt)}</TableCell>
-                    <TableCell className="text-right tabular">{money(i.amountMinor, i.currency)}</TableCell>
-                    <TableCell><Badge variant={STATUS_VARIANT[i.status] ?? "muted"}>{t(`status.${i.status}`)}</Badge></TableCell>
-                    <TableCell className="text-right">
-                      <span className="flex justify-end gap-2">
-                        {(i.status === "open" || i.status === "uncollectible") && i.hostedUrl && <a href={i.hostedUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">{t("pay_now")}</a>}
-                        <a href={`/t/${tenant}/settings/billing/invoices/${i.id}`} target="_blank" rel="noreferrer" className="text-primary hover:underline" data-testid="invoice-download">{t("download")}</a>
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={v.invoices}
+              rowKey={(i) => i.id}
+              rowProps={() => ({ "data-testid": "billing-invoice-row" })}
+              columns={[
+                { key: "number", header: t("columns.number"), mobile: "title", className: "font-mono text-xs", cell: (i) => i.number },
+                { key: "status", header: t("columns.status"), mobile: "badge", cell: (i) => <Badge variant={STATUS_VARIANT[i.status] ?? "muted"}>{t(`status.${i.status}`)}</Badge> },
+                { key: "date", header: t("columns.date"), label: "", cell: (i) => date(i.issuedAt) },
+                { key: "amount", header: t("columns.amount"), align: "right", className: "tabular max-md:font-semibold", label: "", cell: (i) => money(i.amountMinor, i.currency) },
+                { key: "document", header: t("columns.document"), mobile: "action", align: "right", cell: (i) => <span className="flex justify-end gap-2 max-md:justify-start max-md:gap-4">{(i.status === "open" || i.status === "uncollectible") && i.hostedUrl && <a href={i.hostedUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">{t("pay_now")}</a>}<a href={`/t/${tenant}/settings/billing/invoices/${i.id}`} target="_blank" rel="noreferrer" className="text-primary hover:underline" data-testid="invoice-download">{t("download")}</a></span> },
+              ]}
+            />
           )}
         </CardContent>
       </Card>

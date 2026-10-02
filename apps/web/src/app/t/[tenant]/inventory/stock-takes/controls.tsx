@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Plus, Trash2 } from "lucide-react";
 import { Alert, AlertDescription, Button, Input, Label, ScanButton, Select, Stepper } from "@hullwise/ui";
 import { scanLabels } from "@/components/scan-labels";
+import { ConfirmButton } from "@/components/confirm-button";
 import { applyStockTakeAction, cancelStockTakeAction, createStockTakeAction, scanStockTakeAction, setStockTakeCountAction } from "@/server/actions/inventory-control";
 
 /** New session: a location and an optional note; opens the session once created. */
@@ -128,35 +129,38 @@ export function StockTakeActions({ slug, stockTakeId, differences }: { slug: str
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Button
+      <ConfirmButton
         disabled={pending}
         data-testid="apply-stock-take"
-        onClick={() => {
-          if (!window.confirm(t("apply_confirm", { n: differences }))) return;
+        title={t("apply_confirm", { n: differences })}
+        confirmLabel={t("apply", { n: differences })}
+        onConfirm={() =>
           start(async () => {
             const r = await applyStockTakeAction(slug, stockTakeId);
             setResult(r.ok ? { ok: true, text: t("applied", { n: r.data?.movements ?? 0, released: r.data?.released ?? 0 }) } : { ok: false, text: te(r.fieldErrors?.reason ?? r.error) });
             router.refresh();
-          });
-        }}
+          })
+        }
       >
         {t("apply", { n: differences })}
-      </Button>
-      <Button
+      </ConfirmButton>
+      <ConfirmButton
         variant="outline"
         disabled={pending}
         data-testid="cancel-stock-take"
-        onClick={() => {
-          if (!window.confirm(t("cancel_confirm"))) return;
+        title={t("cancel_confirm")}
+        confirmLabel={t("cancel")}
+        destructive
+        onConfirm={() =>
           start(async () => {
             const r = await cancelStockTakeAction(slug, stockTakeId);
             if (!r.ok) setResult({ ok: false, text: te(r.fieldErrors?.reason ?? r.error) });
             router.refresh();
-          });
-        }}
+          })
+        }
       >
         {t("cancel")}
-      </Button>
+      </ConfirmButton>
       {result && (result.ok ? <span className="text-sm text-success" data-testid="stock-take-result">{result.text}</span> : <Alert variant="destructive"><AlertDescription>{result.text}</AlertDescription></Alert>)}
     </div>
   );

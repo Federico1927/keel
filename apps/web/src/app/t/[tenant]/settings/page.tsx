@@ -20,7 +20,8 @@ export default async function SettingsPage({ params }: { params: Promise<{ tenan
         title={t("title")}
         description={t("description")}
         actions={
-          <>
+          // one scrolling row of sub-pages on phones (#49)
+          <nav className="flex w-full gap-2 overflow-x-auto pb-1 sm:w-auto sm:flex-wrap sm:pb-0 [&>*]:shrink-0" aria-label={t("title")} data-testid="settings-subnav">
             <Button asChild variant="outline">
               <Link href={`/t/${tenant}/settings/branding`}>{t("branding_link")}</Link>
             </Button>
@@ -51,7 +52,7 @@ export default async function SettingsPage({ params }: { params: Promise<{ tenan
                 <Link href={`/t/${tenant}/settings/data-export`} data-testid="data-export-link">{t("data_export_link")}</Link>
               </Button>
             )}
-          </>
+          </nav>
         }
       />
       <Tabs defaultValue="general">

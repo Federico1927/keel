@@ -88,6 +88,8 @@ export async function importOrder(ctx: ServiceContext, o: NormalizedOrder, opts:
     email: o.email,
     emailNormalized: normalizeEmail(o.email),
     phone: normalizePhone(o.phone ?? ship?.phone ?? null, ship?.country ?? opts.country) ?? o.phone,
+    // the E.164 key that phone search, duplicates and customer history match on; a re-import fills it on older rows
+    phoneE164: normalizePhone(o.phone ?? ship?.phone ?? null, ship?.country ?? opts.country),
     paymentMethod: o.paymentMethod,
     paymentStatus: o.paymentStatus,
     paymentGateways: o.paymentGateways,
