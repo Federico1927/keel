@@ -17,6 +17,16 @@ describe("checkRuntimeConfig", () => {
     expect(r.warnings).toHaveLength(2);
   });
 
+  it("checks the previous encryption key of a rotation and reminds to remove it", () => {
+    const key = (n: number) => Buffer.alloc(32, n).toString("base64");
+    const base = { ...db, AUTH_SECRET: "a-real-secret", APP_ENCRYPTION_KEY: key(1) };
+    expect(checkRuntimeConfig({ ...base, APP_ENCRYPTION_KEY_PREVIOUS: "short" }, "web").errors).toEqual(["APP_ENCRYPTION_KEY_PREVIOUS must decode to 32 bytes (base64), like APP_ENCRYPTION_KEY."]);
+    const rotating = checkRuntimeConfig({ ...base, APP_ENCRYPTION_KEY_PREVIOUS: key(2) }, "web");
+    expect(rotating.errors).toEqual([]);
+    expect(rotating.warnings.some((w) => w.includes("db:rotate-key"))).toBe(true);
+    expect(checkRuntimeConfig({ ...base, APP_ENCRYPTION_KEY_PREVIOUS: key(1) }, "web").warnings.some((w) => w.includes("equals"))).toBe(true);
+  });
+
   it("rejects live mode without the job queue", () => {
     const r = checkRuntimeConfig({ ...db, ...secrets, HULLWISE_INTEGRATION_MODE: "live" }, "web");
     expect(r.errors.some((e) => e.includes("HULLWISE_JOBS_QUEUE=1"))).toBe(true);

@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { appUrl } from "@hullwise/config";
+import { encryptionKeyStrings } from "@hullwise/integrations";
 
 /** Origin of the tenant app for links in emails and notifications (APP_URL, see @hullwise/config urls). */
 export function appBaseUrl(): string {
@@ -14,12 +15,14 @@ export interface UnsubscribePayload {
   category: string;
 }
 
-function signingSecret(): string {
-  const s = process.env.APP_ENCRYPTION_KEY || process.env.AUTH_SECRET;
-  if (!s) throw new Error("APP_ENCRYPTION_KEY or AUTH_SECRET is required to sign unsubscribe links");
+/** Current signing secret first; APP_ENCRYPTION_KEY_PREVIOUS too during a key rotation, so links in emails already sent keep working. */
+function signingSecrets(): string[] {
+  const keys = encryptionKeyStrings();
+  const s = keys.length ? keys : process.env.AUTH_SECRET ? [process.env.AUTH_SECRET] : [];
+  if (!s.length) throw new Error("APP_ENCRYPTION_KEY or AUTH_SECRET is required to sign unsubscribe links");
   return s;
 }
-const mac = (body: string) => createHmac("sha256", `unsubscribe:${signingSecret()}`).update(body).digest("base64url").slice(0, 32);
+const mac = (body: string, secret = signingSecrets()[0]!) => createHmac("sha256", `unsubscribe:${secret}`).update(body).digest("base64url").slice(0, 32);
 
 /** `<base64url(json)>.<hmac>`: per recipient and category, no expiry (unsubscribe links must keep working). */
 export function signUnsubscribeToken(p: UnsubscribePayload): string {
@@ -30,9 +33,12 @@ export function signUnsubscribeToken(p: UnsubscribePayload): string {
 export function verifyUnsubscribeToken(token: string): UnsubscribePayload | null {
   const [body, sig] = token.split(".");
   if (!body || !sig || token.length > 2000) return null;
-  const expected = Buffer.from(mac(body));
   const given = Buffer.from(sig);
-  if (expected.length !== given.length || !timingSafeEqual(expected, given)) return null;
+  const valid = signingSecrets().some((secret) => {
+    const expected = Buffer.from(mac(body, secret));
+    return expected.length === given.length && timingSafeEqual(expected, given);
+  });
+  if (!valid) return null;
   try {
     const j = JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as { t?: unknown; e?: unknown; c?: unknown };
     if (typeof j.t !== "string" || !/^[0-9a-f-]{36}$/i.test(j.t) || typeof j.e !== "string" || typeof j.c !== "string") return null;

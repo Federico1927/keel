@@ -18,6 +18,7 @@
     "seed": "dotenv -e ../../.env -- tsx src/scripts/seed.ts",
     "seed:settings": "dotenv -e ../../.env -- tsx src/scripts/seed-settings.ts",
     "reset": "dotenv -e ../../.env -- tsx src/scripts/reset.ts",
+    "rotate-key": "dotenv -e ../../.env -- tsx src/scripts/rotate-key.ts",
     "studio": "dotenv -e ../../.env -- drizzle-kit studio",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",

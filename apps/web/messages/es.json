@@ -4224,6 +4224,7 @@
       "reactivate": "Reactivar",
       "checklist": "Lista de configuración",
       "checklist_progress": "{done} de {total} completados",
+      "runbook": "Guía de incorporación: cada paso y cómo comprobarlo",
       "checklist_items": {
         "company": "Datos de la empresa",
         "owner": "Cuenta del propietario",

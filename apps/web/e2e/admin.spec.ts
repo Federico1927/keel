@@ -12,6 +12,7 @@ test.describe("super-admin console", () => {
     await rows.filter({ hasText: "Northwind Apparel" }).getByRole("link", { name: "Northwind Apparel" }).click();
     await expect(page).toHaveURL(/\/admin\/tenants\/[0-9a-f-]{36}$/);
     await expect(page.getByTestId("checklist")).toContainText(/Shopify/);
+    await expect(page.getByTestId("onboarding-runbook")).toHaveAttribute("href", /\/docs\/ONBOARDING(\.it)?\.md$/);
 
     // disable the COD add-on → the owner loses the page even by URL; re-enable afterwards
     const toggle = page.getByTestId("addon-addon.cod");

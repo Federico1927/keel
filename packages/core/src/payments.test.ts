@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { orderEconomics, sumEconomics } from "./finance";
-import { effectiveTaxRateBps, outstandingMinor, paymentMethodBreakdown, paymentStatusAfterRefund, payoutTotals, refundAmountForLines, refundableMinor, resolvePaymentFee, taxReport, validateManualPayment, validateRefund } from "./payments";
+import { effectiveTaxRateBps, outstandingMinor, paymentMethodBreakdown, paymentStatusAfterRefund, payoutTotals, refundAmountForLines, refundableMinor, resolvePaymentFee, taxReport, validateManualPayment, validateRefund, manualPaymentInstant } from "./payments";
 
 const base = { status: "delivered", taxMinor: 0, refundedMinor: 0, taxRateBps: 0, pricesIncludeTax: false, lines: [{ quantity: 1, unitPriceMinor: 10000, unitCostMinor: 4000 }], paymentMethod: "card", paymentFeeBps: 180, paymentFeeFixedMinor: 25, shippingCostMinor: 0 };
 
@@ -128,5 +128,19 @@ describe("payment-method breakdown", () => {
     expect(rows[5]).toMatchObject({ orders: 1, estimatedFeesMinor: 30 });
     expect(rows[3]).toMatchObject({ placedOrders: 0, cancelRate: null, aovMinor: null });
     expect(rows.reduce((s, r) => s + (r.revenueShare ?? 0), 0)).toBeCloseTo(1);
+  });
+});
+
+describe("manualPaymentInstant", () => {
+  it("treats today in the tenant's time zone as now, even when UTC is still on the previous day", () => {
+    const now = new Date("2026-10-02T22:27:00Z"); // 00:27 on 3 October in Rome
+    expect(manualPaymentInstant("2026-10-03", "Europe/Rome", now)).toBe(now);
+    expect(manualPaymentInstant("2026-10-02", "Europe/Rome", now).toISOString()).toBe("2026-10-02T12:00:00.000Z");
+    expect(validateManualPayment({ paymentStatus: "pending", totalMinor: 1000, cancelledAt: null }, 0, { amountMinor: 1000, occurredAt: manualPaymentInstant("2026-10-03", "Europe/Rome", now) }, now).ok).toBe(true);
+  });
+  it("behind UTC: the local day is still today while UTC has moved on", () => {
+    const now = new Date("2026-10-03T02:00:00Z"); // 22:00 on 2 October in New York
+    expect(manualPaymentInstant("2026-10-02", "America/New_York", now)).toBe(now);
+    expect(manualPaymentInstant("2026-10-01", "America/New_York", now).getTime()).toBeLessThan(now.getTime());
   });
 });
