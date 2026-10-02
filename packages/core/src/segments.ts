@@ -7,7 +7,7 @@ import { CHURN_RISKS } from "./predictions";
  * The field catalog is the only place that knows what a field means; the SQL compiler in
  * services and the in-memory evaluator below both read it, so they cannot drift apart.
  */
-export type SegmentFieldType = "number" | "days" | "boolean" | "enum" | "text_array" | "uuid_array";
+export type SegmentFieldType = "number" | "days" | "boolean" | "enum" | "text_array" | "uuid_array" | "day_window";
 export type SegmentOp = "gte" | "lte" | "gt" | "lt" | "eq" | "between" | "is_null" | "not_null" | "in" | "not_in" | "any" | "none" | "all";
 
 export const OPS_BY_TYPE: Record<SegmentFieldType, readonly SegmentOp[]> = {
@@ -17,7 +17,12 @@ export const OPS_BY_TYPE: Record<SegmentFieldType, readonly SegmentOp[]> = {
   enum: ["in", "not_in"],
   text_array: ["any", "none", "all"],
   uuid_array: ["any", "none", "all"],
+  /** Value `[from, to]` in days ago (inclusive): `any` = at least one sale order in the window, `none` = no sale order in it. */
+  day_window: ["any", "none"],
 };
+
+/** Longest look-back a day window or a category window may use. */
+export const MAX_SEGMENT_WINDOW_DAYS = 3650;
 
 export interface SegmentFieldDef {
   type: SegmentFieldType;
@@ -26,6 +31,11 @@ export interface SegmentFieldDef {
   /** Money fields are entered in major units in the UI and stored in minor units. */
   money?: boolean;
   group: "orders" | "value" | "recency" | "profile" | "products" | "rfm" | "predictions" | "sampling";
+  /**
+   * Extra parameter on the condition: `option` (required) names a product option ("Size", "Taglia",
+   * any name the catalog uses); `days` (optional) limits the field to the last N days.
+   */
+  param?: "option" | "days";
 }
 
 export const RFM_RECENCY_BANDS = ["r0_90", "r91_180", "r181_365", "r366_730", "r730_plus"] as const;
@@ -58,6 +68,16 @@ export const SEGMENT_FIELDS: Record<string, SegmentFieldDef> = {
   predicted_value: { type: "number", money: true, group: "predictions" },
   days_to_next_order: { type: "days", group: "predictions" },
   random_pct: { type: "number", group: "sampling" },
+  /** At least one order still open (new, in review, confirmed, fulfilling, on hold). */
+  open_order: { type: "boolean", group: "orders" },
+  /** A sale order placed between `from` and `to` days ago. */
+  bought_in_window: { type: "day_window", group: "recency" },
+  /** Categories (product types) bought, optionally only within the last `days` days. */
+  bought_category: { type: "text_array", values: "dynamic", group: "products", param: "days" },
+  /** The value of a product option (named by `option`) the customer bought most units of; ties go to the first value in code-point order. */
+  dominant_option: { type: "enum", values: "dynamic", group: "products", param: "option" },
+  /** Days since the last campaign message delivered to the customer (null: never messaged). */
+  days_since_last_marketing: { type: "days", group: "recency" },
 };
 
 const extraFields: Record<string, SegmentFieldDef> = {};
@@ -73,6 +93,10 @@ export interface SegmentLeaf {
   field: string;
   op: SegmentOp;
   value?: unknown;
+  /** Option name for `param: "option"` fields. */
+  option?: string;
+  /** Look-back in days for `param: "days"` fields. */
+  days?: number;
 }
 export interface SegmentGroup {
   match: "all" | "any";
@@ -84,7 +108,7 @@ export function isGroup(n: SegmentNode): n is SegmentGroup {
   return typeof n === "object" && n !== null && "conditions" in n;
 }
 
-const leafSchema = z.object({ field: z.string().min(1).max(64), op: z.enum(["gte", "lte", "gt", "lt", "eq", "between", "is_null", "not_null", "in", "not_in", "any", "none", "all"]), value: z.unknown().optional() });
+const leafSchema = z.object({ field: z.string().min(1).max(64), op: z.enum(["gte", "lte", "gt", "lt", "eq", "between", "is_null", "not_null", "in", "not_in", "any", "none", "all"]), value: z.unknown().optional(), option: z.string().optional(), days: z.number().optional() });
 const groupSchema: z.ZodType<SegmentGroup> = z.lazy(() => z.object({ match: z.enum(["all", "any"]), conditions: z.array(z.union([leafSchema, groupSchema])) }));
 export const segmentRulesSchema = groupSchema;
 
@@ -117,17 +141,26 @@ export function validateSegmentRules(input: unknown): { rules: SegmentGroup | nu
       const def = catalog[c.field];
       if (!def) return errors.push({ path: p, code: "unknown_field" });
       if (!OPS_BY_TYPE[def.type].includes(c.op)) return errors.push({ path: p, code: "bad_op" });
-      if (!valueOk(def, c)) errors.push({ path: p, code: "bad_value" });
+      if (!valueOk(def, c) || !paramOk(def, c)) errors.push({ path: p, code: "bad_value" });
     });
   };
   walk(rules, "");
   return { rules: errors.length ? null : rules, errors };
 }
 
+/** `option` is required (1–100 chars) on option fields and absent elsewhere; `days` is optional (1–3650) on window fields. */
+function paramOk(def: SegmentFieldDef, leaf: SegmentLeaf): boolean {
+  if (def.param === "option") return typeof leaf.option === "string" && leaf.option.trim().length > 0 && leaf.option.length <= 100 && leaf.days === undefined;
+  if (leaf.option !== undefined) return false;
+  if (def.param === "days") return leaf.days === undefined || (Number.isInteger(leaf.days) && leaf.days >= 1 && leaf.days <= MAX_SEGMENT_WINDOW_DAYS);
+  return leaf.days === undefined;
+}
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function valueOk(def: SegmentFieldDef, leaf: SegmentLeaf): boolean {
   const v = leaf.value;
   if (leaf.op === "is_null" || leaf.op === "not_null") return true;
+  if (def.type === "day_window") return Array.isArray(v) && v.length === 2 && v.every((x) => Number.isInteger(x) && (x as number) >= 0 && (x as number) <= MAX_SEGMENT_WINDOW_DAYS) && (v[0] as number) <= (v[1] as number);
   if (leaf.op === "between") return Array.isArray(v) && v.length === 2 && v.every((x) => typeof x === "number" && Number.isFinite(x));
   switch (def.type) {
     case "number":
@@ -167,9 +200,18 @@ export interface CustomerProfile {
   predictedValueMinor?: number | null;
   /** Days until the expected next order; negative when overdue. */
   daysToNextOrder?: number | null;
+  /** Orders still open (any status in OPEN_STATUSES). */
+  openOrders?: number;
+  /** Age in whole days of every sale order. */
+  orderAges?: number[];
+  /** Category (product type) → age in whole days of the latest sale order with a line in it. */
+  categoryLastDays?: Record<string, number>;
+  /** Option name → the value bought most units of (see `dominantOptionValues`). */
+  dominantOptions?: Record<string, string>;
+  daysSinceLastMarketing?: number | null;
 }
 
-export function profileValue(p: CustomerProfile, field: string, now: Date): unknown {
+export function profileValue(p: CustomerProfile, field: string, now: Date, leaf?: Pick<SegmentLeaf, "option" | "days">): unknown {
   switch (field) {
     case "orders_count": return p.ordersCount;
     case "cancelled_count": return p.cancelledCount;
@@ -192,6 +234,11 @@ export function profileValue(p: CustomerProfile, field: string, now: Date): unkn
     case "predicted_value": return p.predictedValueMinor ?? null;
     case "days_to_next_order": return p.daysToNextOrder ?? null;
     case "random_pct": return p.randomPct;
+    case "open_order": return (p.openOrders ?? 0) > 0;
+    case "bought_in_window": return p.orderAges ?? [];
+    case "bought_category": return Object.entries(p.categoryLastDays ?? {}).filter(([, d]) => leaf?.days === undefined || d <= leaf.days).map(([c]) => c);
+    case "dominant_option": return (leaf?.option !== undefined ? p.dominantOptions?.[leaf.option] : undefined) ?? null;
+    case "days_since_last_marketing": return p.daysSinceLastMarketing ?? null;
     default: { void now; return undefined; }
   }
 }
@@ -203,13 +250,18 @@ export function evaluateRules(rules: SegmentGroup, p: CustomerProfile, now = new
       if (n.conditions.length === 0) return true;
       return n.match === "all" ? n.conditions.every(test) : n.conditions.some(test);
     }
-    return evalLeaf(n, profileValue(p, n.field, now));
+    return evalLeaf(n, profileValue(p, n.field, now, n));
   };
   return test(rules);
 }
 
 function evalLeaf(leaf: SegmentLeaf, actual: unknown): boolean {
   const v = leaf.value;
+  if (segmentFieldCatalog()[leaf.field]?.type === "day_window") {
+    const [from, to] = v as number[];
+    const hit = Array.isArray(actual) && (actual as number[]).some((a) => a >= from! && a <= to!);
+    return leaf.op === "none" ? !hit : hit;
+  }
   switch (leaf.op) {
     case "is_null": return actual === null || actual === undefined;
     case "not_null": return actual !== null && actual !== undefined;
@@ -225,6 +277,39 @@ function evalLeaf(leaf: SegmentLeaf, actual: unknown): boolean {
     case "none": return !Array.isArray(actual) || !(v as string[]).some((x) => actual.includes(x));
     case "all": return Array.isArray(actual) && (v as string[]).every((x) => actual.includes(x));
   }
+}
+
+/**
+ * Dominant value per option over bought lines: the value with the most units; ties go to the first
+ * value in code-point order (the SQL profile orders by `collate "C"`, the same order).
+ */
+export function dominantOptionValues(lines: readonly { optionValues: Record<string, string>; quantity: number }[]): Record<string, string> {
+  const units = new Map<string, Map<string, number>>();
+  for (const l of lines) {
+    for (const [name, value] of Object.entries(l.optionValues ?? {})) {
+      if (typeof value !== "string") continue;
+      const m = units.get(name) ?? new Map<string, number>();
+      m.set(value, (m.get(value) ?? 0) + l.quantity);
+      units.set(name, m);
+    }
+  }
+  const out: Record<string, string> = {};
+  for (const [name, m] of units) {
+    let best: string | null = null;
+    let bestUnits = -Infinity;
+    for (const [value, n] of m) if (n > bestUnits || (n === bestUnits && best !== null && codePointLess(value, best))) [best, bestUnits] = [value, n];
+    if (best !== null) out[name] = best;
+  }
+  return out;
+}
+
+function codePointLess(a: string, b: string): boolean {
+  const x = [...a], y = [...b];
+  for (let i = 0; i < Math.min(x.length, y.length); i++) {
+    const d = x[i]!.codePointAt(0)! - y[i]!.codePointAt(0)!;
+    if (d !== 0) return d < 0;
+  }
+  return x.length < y.length;
 }
 
 /* ---------- RFM ---------- */

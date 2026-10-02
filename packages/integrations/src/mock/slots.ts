@@ -4,13 +4,19 @@ import { FailureScript } from "./failures";
 /** Mock implementations of the per-account slots. Real connectors are sold as add-ons. */
 export class MockMessagingChannel implements MessagingChannel {
   readonly provider = "messaging-mock";
-  readonly sent: { to: string; template: string; variables: Record<string, string> }[] = [];
+  readonly sent: { to: string; template: string; variables: Record<string, string>; idempotencyKey?: string }[] = [];
+  /** Keys already delivered → message id: a repeated key is answered without sending again, like a provider with idempotency keys. */
+  private readonly byKey = new Map<string, string>();
   async testConnection(): Promise<ConnectionTest> {
     return { ok: true, accountName: "Mock messaging" };
   }
-  async sendMessage(input: { to: string; template: string; variables: Record<string, string> }) {
+  async sendMessage(input: { to: string; template: string; variables: Record<string, string>; idempotencyKey?: string }) {
+    const known = input.idempotencyKey ? this.byKey.get(input.idempotencyKey) : undefined;
+    if (known) return { messageId: known };
     this.sent.push(input);
-    return { messageId: `mock-msg-${this.sent.length}` };
+    const messageId = `mock-msg-${this.sent.length}`;
+    if (input.idempotencyKey) this.byKey.set(input.idempotencyKey, messageId);
+    return { messageId };
   }
   async verifyWebhook(_headers: Record<string, string | undefined>, rawBody: string) {
     const p = JSON.parse(rawBody) as { messageId: string; status: "sent" | "delivered" | "read" | "failed" };

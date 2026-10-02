@@ -62,6 +62,7 @@ export const ACTIONS = [
   "refund_order",
   "export_tenant_data",
   "manage_dashboard",
+  "approve_customer_campaign",
 ] as const;
 export type ActionKey = (typeof ACTIONS)[number];
 
@@ -200,6 +201,8 @@ const ACTION_PAGE: Record<ActionKey, PageKey> = {
   export_tenant_data: "settings",
   /** The tenant's dashboards (home, role variants, extra dashboards), custom metrics and targets: issue #43's `dashboard.manage`. */
   manage_dashboard: "dashboard",
+  /** Approve a customer campaign for sending (add-on, #34): write level on the campaigns page; the author approves their own only as owner (core `canApproveCampaign`). */
+  approve_customer_campaign: "customer_campaigns",
 };
 
 /** Actions restricted to owner/admin regardless of page level. */
