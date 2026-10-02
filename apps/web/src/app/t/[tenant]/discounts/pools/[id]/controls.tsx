@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select } from "@keel/ui";
+import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select } from "@hullwise/ui";
 import { assignPoolCodesAction, releasePoolCodeAction, setDiscountPoolActiveAction, topUpDiscountPoolAction } from "@/server/actions/discounts";
 import type { ActionResult } from "@/server/action-result";
 

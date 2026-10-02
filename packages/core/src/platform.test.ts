@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MODULES, PLANS, type PlanKey, type TenantStatus } from "@keel/config";
+import { MODULES, PLANS, type PlanKey, type TenantStatus } from "@hullwise/config";
 import { mrr } from "./billing";
 import { canTransition, lastMonths, monthlyChargeMinor, platformSeries, subscriptionStatusFor, tenantHealth, type LifecycleSnapshot } from "./platform";
 

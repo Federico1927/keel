@@ -1,8 +1,8 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { and, desc, eq, isNull, schema, sql } from "@keel/db";
-import { type RETURN_RESOLUTIONS, isValidIban, matchesOrderLookup, needsBankDetails, normalizeTrackingCode, parsePortalConfig, rateLimitDecision, returnPortalConfigSchema, validatePortalAnswers, type ReturnPortalConfig, type TenantSettings } from "@keel/core";
-import { encryptJson } from "@keel/integrations";
-import { canWritePage, isTenantRole } from "@keel/config";
+import { and, desc, eq, isNull, schema, sql } from "@hullwise/db";
+import { type RETURN_RESOLUTIONS, isValidIban, matchesOrderLookup, needsBankDetails, normalizeTrackingCode, parsePortalConfig, rateLimitDecision, returnPortalConfigSchema, validatePortalAnswers, type ReturnPortalConfig, type TenantSettings } from "@hullwise/core";
+import { encryptJson } from "@hullwise/integrations";
+import { canWritePage, isTenantRole } from "@hullwise/config";
 import type { ServiceContext } from "../context";
 import { notifyUsers } from "../notifications";
 import { ReturnError, createReturn, exchangeOptions, listReturnReasons, orderReturnContext } from "./index";

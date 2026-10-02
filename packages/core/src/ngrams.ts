@@ -1,6 +1,6 @@
 /**
  * Word-level ads analysis (issue #40): the platforms report nothing below the asset or the search
- * term, so Keel splits ad copy, search terms and keywords into 1–3 word phrases and sums the
+ * term, so Hullwise splits ad copy, search terms and keywords into 1–3 word phrases and sums the
  * metrics of every item that contains a phrase. Pure: no I/O, the services feed it rows.
  */
 
@@ -64,7 +64,7 @@ export interface NgramItem {
   clicks: number;
   /** Conversions the platform reports. */
   conversions: number;
-  /** Keel's own numbers: orders that count as a sale, their net revenue and margin. */
+  /** Hullwise's own numbers: orders that count as a sale, their net revenue and margin. */
   orders: number;
   netRevenueMinor: number;
   marginMinor: number;
@@ -82,9 +82,9 @@ export interface NgramRow {
   orders: number;
   netRevenueMinor: number;
   marginMinor: number;
-  /** Margin of Keel's orders minus spend: the same definition as campaign profit. */
+  /** Margin of Hullwise's orders minus spend: the same definition as campaign profit. */
   profitMinor: number;
-  /** Keel net revenue / spend (spend-weighted by construction). */
+  /** Hullwise net revenue / spend (spend-weighted by construction). */
   roas: number | null;
   ctr: number | null;
   /** Conversions per click (conversion-weighted by construction). */

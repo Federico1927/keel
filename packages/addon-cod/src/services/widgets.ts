@@ -1,6 +1,6 @@
-import { and, eq, inArray, schema, sql } from "@keel/db";
-import { localDateKey, zonedDayStart } from "@keel/core";
-import type { QueueData, WidgetLoader } from "@keel/services";
+import { and, eq, inArray, schema, sql } from "@hullwise/db";
+import { localDateKey, zonedDayStart } from "@hullwise/core";
+import type { QueueData, WidgetLoader } from "@hullwise/services";
 import { OPEN_QUEUE_STATUSES, TO_CALL_STATUSES } from "../queue";
 
 /**

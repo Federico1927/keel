@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { defaultGranularity, formatMoney, formatNumber, formatPercent, isGranularity, previousPeriod, type AttributionModel } from "@keel/core";
-import { ATTRIBUTION_MODELS, BASE_METRICS, attributionReport, getSurveySettings, surveyResults, blendedForPeriod, boughtTogether, dailySeries, entryProducts, kpisForPeriod, listCustomMetrics, ltvReport, metricValues, monthEndForecast, pnlBreakdown, repurchaseCohorts, secondPurchasePaths, userDashboard } from "@keel/services";
-import { canWritePage } from "@keel/config";
+import { defaultGranularity, formatMoney, formatNumber, formatPercent, isGranularity, previousPeriod, type AttributionModel } from "@hullwise/core";
+import { ATTRIBUTION_MODELS, BASE_METRICS, attributionReport, getSurveySettings, surveyResults, blendedForPeriod, boughtTogether, dailySeries, entryProducts, kpisForPeriod, listCustomMetrics, ltvReport, metricValues, monthEndForecast, pnlBreakdown, repurchaseCohorts, secondPurchasePaths, userDashboard } from "@hullwise/services";
+import { appUrl, canWritePage } from "@hullwise/config";
 import { CustomMetricForm, DashboardEditor, DeleteMetricButton } from "./advanced-controls";
 import { SurveySettings } from "./survey-settings";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { RevenueChart } from "@/components/charts/revenue-chart";
 import { PeriodPicker } from "@/components/period-picker";
@@ -476,7 +476,7 @@ export default async function AnalyticsPage({ params, searchParams }: { params: 
         const ts = await getTranslations("survey_admin");
         const { settings, results } = await ctx.run(async (tx) => ({ settings: await getSurveySettings(s(tx)), results: await surveyResults(s(tx), period, ctx.locale) }));
         const canWrite = canWritePage(ctx.role, "analytics");
-        const origin = process.env.NEXT_PUBLIC_APP_URL || "https://<keel-host>";
+        const origin = appUrl();
         const liquid = `<a href="${origin}/s/${tenant}?o={{ order.id }}&t={{ order.id | hmac_sha256: '${settings.secret}' }}&lang=${ctx.tenant.defaultLocale}">{{ 'How did you hear about us?' }}</a>`;
         const share = (n: number, d: number) => (d ? formatPercent(n / d, ctx.locale, 0) : "—");
         return (

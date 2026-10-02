@@ -5,10 +5,10 @@ import { login } from "./helpers";
 
 /**
  * Account flows (#52) against a production build: emails are read from the directory the server's
- * mock provider writes to (KEEL_EMAIL_OUTBOX_DIR, set by playwright.config.ts; with E2E_NO_SERVER
+ * mock provider writes to (HULLWISE_EMAIL_OUTBOX_DIR, set by playwright.config.ts; with E2E_NO_SERVER
  * start the server with the same variable). The dev inbox does not exist in production.
  */
-const OUTBOX = process.env.KEEL_EMAIL_OUTBOX_DIR!;
+const OUTBOX = process.env.HULLWISE_EMAIL_OUTBOX_DIR!;
 interface OutboxMail { to: string; subject: string; template: string | null; text: string; sentAt: string }
 
 function mails(to: string, template?: string): OutboxMail[] {
@@ -172,7 +172,7 @@ test.describe.serial("account emails and flows", () => {
 
   test("the super-admin sends a password reset with the same flow, never seeing the link", async ({ page }) => {
     const before = mails(invitee, "password_reset").length;
-    await login(page, "superadmin@keel.demo");
+    await login(page, "superadmin@hullwise.demo");
     await page.goto("/admin/tenants");
     await page.getByTestId("tenant-row").filter({ hasText: "Northwind Apparel" }).getByRole("link", { name: "Northwind Apparel" }).click();
     const member = page.getByTestId("admin-member").filter({ hasText: invitee });

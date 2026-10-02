@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { RefreshCw } from "lucide-react";
-import { Button, cn } from "@keel/ui";
+import { Button, cn } from "@hullwise/ui";
 import { syncCatalogAction } from "@/server/actions/product-edit";
 
 /**

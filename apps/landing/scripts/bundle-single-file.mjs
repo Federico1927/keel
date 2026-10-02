@@ -6,7 +6,7 @@
  * inlined, `srcset` is removed, and a small vanilla script re-implements the interactive parts
  * (carousel, pricing toggle, mobile menu, contact form, in-page links).
  *
- *   pnpm --filter @keel/landing build
+ *   pnpm --filter @hullwise/landing build
  *   node scripts/bundle-single-file.mjs en out/index.html    preview-en.html --other-locale-url=https://…
  *   node scripts/bundle-single-file.mjs it out/it/index.html preview-it.html --other-locale-url=https://…
  */
@@ -177,7 +177,7 @@ const script = `
     var v = function (id) { var el = form.querySelector("#" + id); return el ? el.value.trim() : ""; };
     if (!v("name") || !v("email") || !v("message")) { form.reportValidity(); return; }
     var body = [v("name"), v("email"), v("store"), v("orders"), "", v("message")].filter(function (x, i) { return x || i === 4; }).join("\\n");
-    window.open("mailto:${esc(process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "federico@automationslab.it")}" + "?subject=" + encodeURIComponent("Keel – " + v("name")) + "&body=" + encodeURIComponent(body), "_top");
+    window.open("mailto:${esc(process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "federico@automationslab.it")}" + "?subject=" + encodeURIComponent("Hullwise – " + v("name")) + "&body=" + encodeURIComponent(body), "_top");
   });
 })();
 </script>`;

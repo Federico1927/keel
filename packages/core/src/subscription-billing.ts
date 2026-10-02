@@ -1,7 +1,7 @@
-import { BILLING_PRODUCT_NAMES, MODULES, PLANS, PLAN_KEYS, PRODUCT_NAME, isAddonModule, type PlanKey } from "@keel/config";
+import { BILLING_PRODUCT_NAMES, MODULES, PLANS, PLAN_KEYS, PRODUCT_NAME, isAddonModule, type PlanKey } from "@hullwise/config";
 
 /**
- * Stripe billing (#53), pure part: the catalog Keel pushes to Stripe (one product and one price
+ * Stripe billing (#53), pure part: the catalog Hullwise pushes to Stripe (one product and one price
  * per plan, setup fee and add-on, matched by lookup key), the changes a sync needs, how a Stripe
  * subscription status maps onto the tenant lifecycle, subscription item changes for plan and
  * add-on edits, MRR from mirrored subscriptions, the key mode and the VAT treatment.
@@ -27,16 +27,16 @@ export interface CatalogItem {
 const slug = (key: string) => key.replace(/^addon\./, "").replace(/[^a-z0-9]+/gi, "_").toLowerCase();
 
 export function lookupKeyFor(kind: CatalogKind, key: string): string {
-  return kind === "setup" ? `keel_setup_${slug(key)}` : `keel_${kind}_${slug(key)}_monthly`;
+  return kind === "setup" ? `hullwise_setup_${slug(key)}` : `hullwise_${kind}_${slug(key)}_monthly`;
 }
 
 export function productIdFor(kind: CatalogKind, key: string): string {
-  return `keel_${kind}_${slug(key)}`;
+  return `hullwise_${kind}_${slug(key)}`;
 }
 
 const title = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-/** Everything sellable, from @keel/config: plans (monthly), their setup fees (one-off), priced and implemented add-ons (monthly). */
+/** Everything sellable, from @hullwise/config: plans (monthly), their setup fees (one-off), priced and implemented add-ons (monthly). */
 export function billingCatalog(): CatalogItem[] {
   const out: CatalogItem[] = [];
   for (const key of PLAN_KEYS) {
@@ -93,7 +93,7 @@ export function stripeKeyMode(key: string | null | undefined): "test" | "live" |
   return m ? (m[1] as "test" | "live") : null;
 }
 
-/** What a Stripe subscription status means for Keel. `pending` = checkout not finished yet; `inactive` = paused. */
+/** What a Stripe subscription status means for Hullwise. `pending` = checkout not finished yet; `inactive` = paused. */
 export type SubscriptionSignal = "trial" | "active" | "past_due" | "cancelled" | "pending" | "inactive";
 
 export function subscriptionSignal(externalStatus: string | null | undefined): SubscriptionSignal {
@@ -142,7 +142,7 @@ export interface SubscriptionItemChanges {
 export function subscriptionItemChanges(current: readonly SubscriptionItemRef[], desired: readonly string[]): SubscriptionItemChanges {
   const want = new Set(desired);
   const have = new Set(current.map((c) => c.lookupKey ?? ""));
-  const isPlan = (k: string | null) => Boolean(k && k.startsWith("keel_plan_"));
+  const isPlan = (k: string | null) => Boolean(k && k.startsWith("hullwise_plan_"));
   const desiredPlan = desired.find(isPlan) ?? null;
   const swap: SubscriptionItemChanges["swap"] = [];
   const remove: string[] = [];
@@ -175,7 +175,7 @@ const normCountry = (c: string | null | undefined) => (c ?? "").trim().toUpperCa
 export type VatTreatment = "domestic" | "reverse_charge" | "eu_b2c" | "export" | "unknown";
 
 /**
- * VAT on Keel's own invoices. Domestic customers pay the seller's VAT; EU business customers with
+ * VAT on Hullwise's own invoices. Domestic customers pay the seller's VAT; EU business customers with
  * a verified VAT id in another member state are invoiced without VAT (reverse charge); EU consumers
  * pay VAT of their country; customers outside the EU are out of scope. Unknown without the seller's
  * country (no default: CLAUDE.md §12) or the customer's.

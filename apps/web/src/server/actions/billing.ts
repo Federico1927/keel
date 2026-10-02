@@ -1,6 +1,6 @@
 "use server";
 import { redirect } from "next/navigation";
-import { BillingError, appBaseUrl, createBillingPortalSession } from "@keel/services";
+import { BillingError, appBaseUrl, createBillingPortalSession } from "@hullwise/services";
 import { auditActor } from "@/server/audit-actor";
 import { getTenantContext } from "@/server/tenant";
 import { fail, type ActionResult } from "@/server/action-result";

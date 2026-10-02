@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, desc, eq, schema } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedPlatform, type SeedContext } from "@keel/db/seed";
-import { mrr } from "@keel/core";
-import { PLANS, type PlanKey } from "@keel/config";
+import { and, desc, eq, schema } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { mrr } from "@hullwise/core";
+import { PLANS, type PlanKey } from "@hullwise/config";
 import {
   AdminUserError,
   LifecycleError,
@@ -38,7 +38,7 @@ const tenantBySlug = async (slug: string) => (await db().select().from(schema.te
 
 beforeAll(async () => {
   ctx = await seedPlatform(pools.admin);
-  admin = ctx.userIds["superadmin@keel.demo"]!;
+  admin = ctx.userIds["superadmin@hullwise.demo"]!;
 });
 afterAll(() => pools.close());
 
@@ -76,7 +76,7 @@ describe("users directory (#48)", () => {
     expect(await setUserDisabled(db(), { userId, disabled: true, actorUserId: admin })).toEqual({ changed: false });
     const detail = (await adminUserDetail(db(), userId))!;
     expect(detail.user.disabledReason).toBe("Left the team");
-    expect(detail.disabledByEmail).toBe("superadmin@keel.demo");
+    expect(detail.disabledByEmail).toBe("superadmin@hullwise.demo");
     await setUserDisabled(db(), { userId, disabled: false, actorUserId: admin });
     expect((await getAccountProfile(db(), userId))!.disabled).toBe(false);
     expect(await audit("user.enabled", userId)).toHaveLength(1);

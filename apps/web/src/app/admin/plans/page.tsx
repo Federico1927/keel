@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { OVERAGE, PLATFORM_CURRENCY } from "@keel/config";
-import { formatMoney, formatNumber } from "@keel/core";
-import { planUsage } from "@keel/services";
-import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { OVERAGE, PLATFORM_CURRENCY } from "@hullwise/config";
+import { formatMoney, formatNumber } from "@hullwise/core";
+import { planUsage } from "@hullwise/services";
+import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 
-/** Plans, limits and add-on prices from @keel/config, with how many tenants use each (#48). Read-only: editing stays in code. */
+/** Plans, limits and add-on prices from @hullwise/config, with how many tenants use each (#48). Read-only: editing stays in code. */
 export default async function AdminPlansPage() {
   const { db } = await requireSuperAdmin();
   const t = await getTranslations("admin");

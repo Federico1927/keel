@@ -1,7 +1,7 @@
 "use client";
 import { useActionState, useEffect, useRef, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Card, CardContent, Input, Textarea } from "@keel/ui";
+import { Alert, AlertDescription, Button, Card, CardContent, Input, Textarea } from "@hullwise/ui";
 import { closeTicketAction, replyTicketAction } from "@/server/actions/support";
 
 export function TenantReplyForm({ slug, ticketId }: { slug: string; ticketId: string }) {

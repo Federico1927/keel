@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, desc, eq, schema, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { MockAdsPlatform, MockCommercePlatform } from "@keel/integrations";
+import { and, desc, eq, schema, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { MockAdsPlatform, MockCommercePlatform } from "@hullwise/integrations";
 import { importOrder, processWebhookEvent, recordWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, type ServiceContext } from "../src";
 
 const pools = testPools();

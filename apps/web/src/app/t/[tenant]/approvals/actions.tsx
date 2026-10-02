@@ -2,7 +2,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, Textarea } from "@keel/ui";
+import { Button, Textarea } from "@hullwise/ui";
 import { decideProposalAction } from "@/server/actions/mcp";
 
 /** Approve (runs the action as you) or reject a proposal, with an optional note. */

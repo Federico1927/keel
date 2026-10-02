@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNotNull, ne, or, schema, sql } from "@keel/db";
+import { and, eq, inArray, isNotNull, ne, or, schema, sql } from "@hullwise/db";
 import type { ServiceContext } from "../context";
 
 export interface HistoryOrder {

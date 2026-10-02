@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, desc, eq, inArray, isNull, schema, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { MockCarrierProvider, MockCommercePlatform } from "@keel/integrations";
-import { parseTenantSettings } from "@keel/core";
+import { and, desc, eq, inArray, isNull, schema, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { MockCarrierProvider, MockCommercePlatform } from "@hullwise/integrations";
+import { parseTenantSettings } from "@hullwise/core";
 import {
   CaseError, FulfilmentError, MappingError, bulkSetPacked, drainEmailJobs, mockEmailOutbox, checkLateToShip, claimCase, closeCase, countLateToShip, fulfilmentBoard, importFulfillment, listShipmentCases, packingSlipsPdf, recomputeOrderStatus, recordFollowUp, releaseCase, saveStatusMapping, sendCaseInstruction, setOrderPacked, shipmentCaseDetail, shipOrder, syncShipmentCases,
   type ServiceContext,
@@ -65,7 +65,7 @@ describe("late-to-ship queue (working days, tenant time zone)", () => {
   });
 });
 
-describe("pick/pack and ship from Keel", () => {
+describe("pick/pack and ship from Hullwise", () => {
   it("cards show units and lines; an order with a shipment is not to ship whatever its status says", async () => {
     const [a, b] = await readyToShip(2, new Date(Date.now() - 4 * 864e5));
     const clock = { timezone: NY, settings: { lateToShipBusinessDays: 2, workdays: [1, 2, 3, 4, 5] } };
@@ -73,7 +73,7 @@ describe("pick/pack and ship from Keel", () => {
     const card = board.pending.find((c) => c.id === a)!;
     expect(card.units).toBeGreaterThan(0);
     expect(card.lines).toBeGreaterThan(0);
-    // a staff-set "confirmed" with a parcel already out (e.g. fulfilled outside Keel) leaves the queue
+    // a staff-set "confirmed" with a parcel already out (e.g. fulfilled outside Hullwise) leaves the queue
     await ops(async (s) => {
       await s.tx.update(schema.orders).set({ manualStatus: "confirmed" }).where(eq(schema.orders.id, b!));
       await recomputeOrderStatus(s, b!);
@@ -104,7 +104,7 @@ describe("pick/pack and ship from Keel", () => {
     expect(await ops((s) => setOrderPacked(s, id!, false))).toMatchObject({ kind: "not_to_ship" });
   });
 
-  it("a refused fulfilment changes nothing in Keel", async () => {
+  it("a refused fulfilment changes nothing in Hullwise", async () => {
     const [id] = await readyToShip(1, new Date(Date.now() - 6 * 864e5));
     const p = platform();
     p.failures.failNext("permission");

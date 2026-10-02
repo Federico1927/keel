@@ -1,8 +1,8 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { SUPPORT_ATTACHMENT_MAX_BYTES } from "@keel/config";
-import { SUPPORT_CATEGORIES, SUPPORT_STATUSES, SupportError, adminReplyToTicket, adminSetTicketStatus, closeTicket, openSupportTicket, replyToTicket, type SupportAttachment } from "@keel/services";
+import { SUPPORT_ATTACHMENT_MAX_BYTES } from "@hullwise/config";
+import { SUPPORT_CATEGORIES, SUPPORT_STATUSES, SupportError, adminReplyToTicket, adminSetTicketStatus, closeTicket, openSupportTicket, replyToTicket, type SupportAttachment } from "@hullwise/services";
 import { ForbiddenError, requireWrite } from "@/server/tenant";
 import { requireSuperAdmin } from "@/server/admin";
 import { fail, ok, type ActionResult } from "@/server/action-result";

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { CHURN_RISKS, formatDate, formatMoney, formatNumber } from "@keel/core";
-import { listCustomers, parseCustomerFilters } from "@keel/services";
-import { Card, CardContent, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { CHURN_RISKS, formatDate, formatMoney, formatNumber } from "@hullwise/core";
+import { listCustomers, parseCustomerFilters } from "@hullwise/services";
+import { Card, CardContent, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { CustomerTabs } from "./customer-tabs";
 import { CustomerFiltersBar } from "./filters";

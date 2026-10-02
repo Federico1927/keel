@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, schema, sql, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { parsePortalConfig, parseTenantSettings, type TenantSettings } from "@keel/core";
-import { MockCommercePlatform, decryptJson } from "@keel/integrations";
+import { and, eq, schema, sql, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { parsePortalConfig, parseTenantSettings, type TenantSettings } from "@hullwise/core";
+import { MockCommercePlatform, decryptJson } from "@hullwise/integrations";
 import { PortalError, getPortalConfig, saveReturnPolicy, portalLookup, portalSubmit, returnEvidenceList, returnsToSync, savePortalConfig, savePortalPhoto, syncReturnToPlatform, transitionReturn, verifyPortalSession, type ServiceContext } from "../src";
 
 process.env.AUTH_SECRET ??= "test-secret";

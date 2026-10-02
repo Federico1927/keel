@@ -1,5 +1,5 @@
 {
-  "name": "@keel/db",
+  "name": "@hullwise/db",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -24,15 +24,15 @@
     "test": "dotenv -e ../../.env -- vitest run"
   },
   "dependencies": {
-    "@keel/config": "workspace:*",
-    "@keel/core": "workspace:*",
+    "@hullwise/config": "workspace:*",
+    "@hullwise/core": "workspace:*",
     "bcryptjs": "^3.0.2",
     "drizzle-orm": "^0.45.0",
     "pg": "^8.16.0",
-    "@keel/integrations": "workspace:*"
+    "@hullwise/integrations": "workspace:*"
   },
   "devDependencies": {
-    "@keel/eslint-config": "workspace:*",
+    "@hullwise/eslint-config": "workspace:*",
     "@types/pg": "^8.15.0",
     "dotenv-cli": "^11.0.0",
     "drizzle-kit": "^0.31.0",

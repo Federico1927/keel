@@ -1,17 +1,17 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { adPlatformMinPlan, canDo, isAdPlatform, isAdPlatformInPlan } from "@keel/config";
-import { formatDateTime, formatNumber } from "@keel/core";
-import { integrationMode } from "@keel/integrations";
-import { integrationOverview, platformWritesOverview } from "@keel/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { adPlatformMinPlan, canDo, isAdPlatform, isAdPlatformInPlan } from "@hullwise/config";
+import { formatDateTime, formatNumber } from "@hullwise/core";
+import { integrationMode } from "@hullwise/integrations";
+import { integrationOverview, platformWritesOverview } from "@hullwise/services";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { ProviderActions, WebhookControls, WebhookRowAction } from "./controls";
 import { GoogleWriteAccessToggle } from "./write-access";
 
 const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic", "address"] as const;
-/** Per-account integrations activated by the Keel team: interface and mock in Keel, each with its activation guide. */
+/** Per-account integrations activated by the Hullwise team: interface and mock in Hullwise, each with its activation guide. */
 const SLOTS = ["messaging", "warehouse", "carrier", "payment_guarantee", "return_labels", "audiences"] as const;
 
 export default async function IntegrationsPage({ params }: { params: Promise<{ tenant: string }> }) {

@@ -1,7 +1,7 @@
-import { and, desc, eq, schema, sql } from "@keel/db";
-import { formatMoney } from "@keel/core";
-import type { MessagingChannel } from "@keel/integrations";
-import type { ServiceContext } from "@keel/services";
+import { and, desc, eq, schema, sql } from "@hullwise/db";
+import { formatMoney } from "@hullwise/core";
+import type { MessagingChannel } from "@hullwise/integrations";
+import type { ServiceContext } from "@hullwise/services";
 import { renderTemplate } from "../messages";
 import { OPEN_QUEUE_STATUSES, type QueueStatus } from "../queue";
 import type { CodSettings, TemplateVariable } from "../settings";

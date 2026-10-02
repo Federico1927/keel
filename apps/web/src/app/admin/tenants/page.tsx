@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { ADDON_MODULES, PLAN_KEYS, PLATFORM_CURRENCY, TENANT_STATUSES } from "@keel/config";
-import { formatDate, formatDateTime, formatMoney, formatNumber } from "@keel/core";
-import { adminTenantList } from "@keel/services";
-import { Badge, Button, Card, CardContent, EmptyState, Input, Label, PageHeader, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { ADDON_MODULES, PLAN_KEYS, PLATFORM_CURRENCY, TENANT_STATUSES } from "@hullwise/config";
+import { formatDate, formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
+import { adminTenantList } from "@hullwise/services";
+import { Badge, Button, Card, CardContent, EmptyState, Input, Label, PageHeader, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { OpenAsSupportButton } from "./[id]/controls";
 import { HealthBadge, LifecycleBadge, PaymentBadge } from "../_components/badges";

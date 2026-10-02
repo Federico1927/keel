@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/node";
-import { checkRuntimeConfig, platformRetentionDays, SENTRY_DATA_COLLECTION } from "@keel/config";
-import { setEmailDispatcher } from "@keel/services";
+import { checkRuntimeConfig, platformRetentionDays, SENTRY_DATA_COLLECTION } from "@hullwise/config";
+import { setEmailDispatcher } from "@hullwise/services";
 import { createBoss } from "./boss";
 import { runTrackedJob } from "./dispatch";
 import type { Enqueue } from "./handlers";

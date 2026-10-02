@@ -1,4 +1,4 @@
-import type { AdPlatform } from "@keel/config";
+import type { AdPlatform } from "@hullwise/config";
 
 /** UTM and click-id extraction from what the commerce platform stores on an order; no vendor-specific params. */
 export const CLICK_ID_KEYS = ["fbclid", "gclid", "gbraid", "wbraid", "ttclid", "msclkid", "epik", "li_fat_id"] as const;
@@ -82,7 +82,7 @@ export function deriveChannel(a: Attribution, referringSite: string | null, sour
   return "direct";
 }
 
-/** The ad platform a click id belongs to (only platforms Keel imports spend from). */
+/** The ad platform a click id belongs to (only platforms Hullwise imports spend from). */
 export const CLICK_ID_PLATFORM: Readonly<Partial<Record<ClickIdKey, AdPlatform>>> = { fbclid: "meta", gclid: "google", gbraid: "google", wbraid: "google", ttclid: "tiktok" };
 /** `utm_source` values each ad platform's templates write. */
 export const AD_PLATFORM_UTM_SOURCES: Readonly<Record<AdPlatform, readonly string[]>> = { meta: ["facebook", "instagram", "fb", "ig", "meta"], google: ["google"], tiktok: ["tiktok"] };

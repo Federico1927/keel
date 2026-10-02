@@ -3,7 +3,7 @@ import { boolean, index, integer, jsonb, pgTable, text, uniqueIndex } from "driz
 import { createdAt, tenantIsolation, updatedAt } from "./_common";
 import { tenantColumns } from "./_tenant";
 
-/** Per-tenant mapping rules (CLAUDE.md §4). Shape validated by @keel/core stateRuleSchema. */
+/** Per-tenant mapping rules (CLAUDE.md §4). Shape validated by @hullwise/core stateRuleSchema. */
 export const stateRules = pgTable(
   "state_rules",
   {

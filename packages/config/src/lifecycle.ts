@@ -1,6 +1,6 @@
 /**
  * Tenant lifecycle (#48). The state lives on the tenant and does not depend on the billing
- * provider: the mock and, later, Stripe subscriptions (#53) only report payments, Keel decides the
+ * provider: the mock and, later, Stripe subscriptions (#53) only report payments, Hullwise decides the
  * state. `suspended` and `churned` block the tenant's users (the console and impersonation stay open).
  */
 export const TENANT_STATUSES = ["trial", "active", "past_due", "suspended", "churned"] as const;

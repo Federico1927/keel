@@ -1,5 +1,5 @@
-import { and, eq, inArray, recordAudit, schema } from "@keel/db";
-import { NOTIFICATION_CHANNELS, NOTIFICATION_TYPES, isNotificationType, resolveNotificationChannels, type NotificationChannel, type NotificationType, type NotificationTypeDefinition } from "@keel/config";
+import { and, eq, inArray, recordAudit, schema } from "@hullwise/db";
+import { NOTIFICATION_CHANNELS, NOTIFICATION_TYPES, isNotificationType, resolveNotificationChannels, type NotificationChannel, type NotificationType, type NotificationTypeDefinition } from "@hullwise/config";
 import type { ServiceContext } from "../context";
 import { clearUnsubscribes } from "../email/suppressions";
 

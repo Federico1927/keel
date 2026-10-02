@@ -1,7 +1,7 @@
 "use client";
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Input, Label } from "@keel/ui";
+import { Alert, AlertDescription, Button, Input, Label } from "@hullwise/ui";
 import { completeProfileAction } from "@/server/actions/profile";
 
 export function CompleteProfileForm({ next }: { next: string }) {

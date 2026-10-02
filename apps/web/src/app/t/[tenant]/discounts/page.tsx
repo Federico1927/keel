@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canDo } from "@keel/config";
-import { formatDate, formatDiscountValue, formatMoney, formatNumber, type DiscountState, type DiscountType } from "@keel/core";
-import { latestPlatformWrites, listDiscountPools, listDiscounts } from "@keel/services";
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { canDo } from "@hullwise/config";
+import { formatDate, formatDiscountValue, formatMoney, formatNumber, type DiscountState, type DiscountType } from "@hullwise/core";
+import { latestPlatformWrites, listDiscountPools, listDiscounts } from "@hullwise/services";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { DiscountFiltersBar } from "./filters";
 import { DiscountStateBadge } from "./state-badge";
@@ -71,7 +71,7 @@ export default async function DiscountsPage({ params, searchParams }: { params: 
                   <TableRow key={d.id} data-testid="discount-row">
                     <TableCell>
                       <Link href={`${base}/${d.id}`} className="font-mono text-sm font-medium hover:underline">{d.code}</Link>
-                      <div className="truncate text-xs text-muted-foreground">{d.title ?? d.poolTitle ?? ""}{d.source === "keel" && <Badge variant="outline" className="ml-1">Keel</Badge>}</div>
+                      <div className="truncate text-xs text-muted-foreground">{d.title ?? d.poolTitle ?? ""}{d.source === "hullwise" && <Badge variant="outline" className="ml-1">Hullwise</Badge>}</div>
                     </TableCell>
                     <TableCell>{d.type === "free_shipping" ? t("free_shipping") : formatDiscountValue(d.type as DiscountType, d.value, money)}</TableCell>
                     <TableCell><DiscountStateBadge state={d.state} /></TableCell>

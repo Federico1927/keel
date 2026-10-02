@@ -1,5 +1,5 @@
 {
-  "name": "@keel/jobs",
+  "name": "@hullwise/jobs",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -17,17 +17,17 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@keel/addon-cod": "workspace:*",
-    "@keel/config": "workspace:*",
-    "@keel/core": "workspace:*",
-    "@keel/db": "workspace:*",
-    "@keel/integrations": "workspace:*",
-    "@keel/services": "workspace:*",
+    "@hullwise/addon-cod": "workspace:*",
+    "@hullwise/config": "workspace:*",
+    "@hullwise/core": "workspace:*",
+    "@hullwise/db": "workspace:*",
+    "@hullwise/integrations": "workspace:*",
+    "@hullwise/services": "workspace:*",
     "@sentry/node": "^11.2.0",
     "pg-boss": "^12.0.0"
   },
   "devDependencies": {
-    "@keel/eslint-config": "workspace:*",
+    "@hullwise/eslint-config": "workspace:*",
     "dotenv-cli": "^11.0.0",
     "eslint": "^9.39.0",
     "tsx": "^4.20.0",

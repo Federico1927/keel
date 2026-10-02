@@ -1,5 +1,5 @@
-import { isPageEnabled } from "@keel/config";
-import { campaignTick, type TenantRunner } from "@keel/services";
+import { isPageEnabled } from "@hullwise/config";
+import { campaignTick, type TenantRunner } from "@hullwise/services";
 import { enqueue, runJobInline } from "./jobs";
 import type { TenantContext } from "./tenant";
 

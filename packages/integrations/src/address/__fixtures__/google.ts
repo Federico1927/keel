@@ -1,6 +1,6 @@
 /**
  * Recorded shapes of Google Maps Platform answers (Address Validation API v1, Places API (New)),
- * trimmed to the fields Keel reads. Addresses are public landmarks or invented; no customer data.
+ * trimmed to the fields Hullwise reads. Addresses are public landmarks or invented; no customer data.
  */
 export const VALIDATE_OK = {
   result: {

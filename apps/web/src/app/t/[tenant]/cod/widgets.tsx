@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatNumber } from "@keel/core";
-import type { CodMineData, CodOperatorsData, CodPendingData } from "@keel/addon-cod";
-import { Card, CardContent, CardHeader, CardTitle, cn } from "@keel/ui";
+import { formatNumber } from "@hullwise/core";
+import type { CodMineData, CodOperatorsData, CodPendingData } from "@hullwise/addon-cod";
+import { Card, CardContent, CardHeader, CardTitle, cn } from "@hullwise/ui";
 
 /** Home widgets of the COD add-on (C.10); the data is refused server-side for tenants without it. */
 export async function CodWidget({ type, data, base, locale }: { type: "cod_pending" | "cod_operators" | "cod_mine"; data: unknown; base: string; locale: string }) {

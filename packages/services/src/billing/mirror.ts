@@ -1,10 +1,10 @@
-import { and, eq, recordAudit, schema, sql, type DbExecutor } from "@keel/db";
-import { PLATFORM_CURRENCY } from "@keel/config";
-import { catalogItemFor, mergeInvoiceStatus } from "@keel/core";
-import { parseMockPriceId, type InvoiceSnapshot, type SubscriptionSnapshot } from "@keel/integrations";
+import { and, eq, recordAudit, schema, sql, type DbExecutor } from "@hullwise/db";
+import { PLATFORM_CURRENCY } from "@hullwise/config";
+import { catalogItemFor, mergeInvoiceStatus } from "@hullwise/core";
+import { parseMockPriceId, type InvoiceSnapshot, type SubscriptionSnapshot } from "@hullwise/integrations";
 
 /**
- * The Keel side of Stripe billing (#53): the subscription and invoice rows mirror what Stripe
+ * The Hullwise side of Stripe billing (#53): the subscription and invoice rows mirror what Stripe
  * reports. Writers here run on the admin connection (platform billing is not tenant data).
  */
 export class BillingError extends Error {

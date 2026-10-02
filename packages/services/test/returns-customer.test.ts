@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { eq, schema, sql, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { parseTenantSettings } from "@keel/core";
-import { MockReturnLabelProvider } from "@keel/integrations";
+import { eq, schema, sql, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { parseTenantSettings } from "@hullwise/core";
+import { MockReturnLabelProvider } from "@hullwise/integrations";
 import { createReturnLabel, customerTracking, pnlForPeriod, returnLabelPdf, returnsAnalytics, signReturnLink, verifyReturnLink, type ServiceContext } from "../src";
 
 process.env.AUTH_SECRET ??= "test-secret";

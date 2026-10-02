@@ -1,6 +1,6 @@
-import { and, count, desc, eq, gte, gt, isNull, or, recordAudit, schema, withTenant, type Database } from "@keel/db";
-import { MCP_LIMITS, isModuleInPlan, isTenantRole, type McpScope, type TenantRole } from "@keel/config";
-import { mcpPiiMode, parseMcpScopes, parseTenantSettings, sanitizeFreeText, type TenantSettings } from "@keel/core";
+import { and, count, desc, eq, gte, gt, isNull, or, recordAudit, schema, withTenant, type Database } from "@hullwise/db";
+import { MCP_LIMITS, apiEndpoint, isModuleInPlan, isTenantRole, type McpScope, type TenantRole } from "@hullwise/config";
+import { mcpPiiMode, parseMcpScopes, parseTenantSettings, sanitizeFreeText, type TenantSettings } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { appBaseUrl } from "../email/unsubscribe";
 import { hashMcpSecret, isWellFormedMcpSecret, newMcpSecret, randomBase62, verifyPkceS256 } from "./crypto";
@@ -27,7 +27,7 @@ const nowOf = (deps: McpDeps) => deps.now?.() ?? new Date();
 
 /** The MCP endpoint, which is also the OAuth protected resource identifier. */
 export function mcpResourceUrl(): string {
-  return `${appBaseUrl()}/api/mcp`;
+  return apiEndpoint("/mcp");
 }
 
 /* ---------- availability ---------- */
@@ -48,9 +48,9 @@ export interface McpTenantInfo {
   mcpDisabledAt: Date | null;
 }
 
-/** Plan (`core.mcp` from Growth), super-admin kill switch, tenant switch, suspension, and the platform-wide `KEEL_MCP_DISABLED=1`. */
+/** Plan (`core.mcp` from Growth), super-admin kill switch, tenant switch, suspension, and the platform-wide `HULLWISE_MCP_DISABLED=1`. */
 export function mcpAvailabilityFor(t: Pick<McpTenantInfo, "planKey" | "status" | "settings" | "mcpDisabledAt">, env: Record<string, string | undefined> = process.env): McpAvailability {
-  if (env.KEEL_MCP_DISABLED === "1") return "platform_disabled";
+  if (env.HULLWISE_MCP_DISABLED === "1") return "platform_disabled";
   if (!isModuleInPlan("core.mcp", t.planKey)) return "plan";
   if (t.mcpDisabledAt) return "killed";
   if (t.status === "suspended" || t.status === "churned") return "suspended";
@@ -276,7 +276,7 @@ export function redirectUriMatches(registered: readonly string[], requested: str
 export function resourceMatches(resource: string | null | undefined): boolean {
   if (!resource) return true;
   const strip = (s: string) => s.replace(/\/+$/, "");
-  return [mcpResourceUrl(), appBaseUrl()].map(strip).includes(strip(resource));
+  return [mcpResourceUrl(), `${appBaseUrl()}/api/mcp`, appBaseUrl()].map(strip).includes(strip(resource));
 }
 
 export interface ClientRegistration {

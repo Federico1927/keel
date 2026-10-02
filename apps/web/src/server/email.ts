@@ -1,8 +1,8 @@
-import { adminDb } from "@keel/db";
-import { deliverEmailJob, setEmailDispatcher, type EmailJob } from "@keel/services";
+import { adminDb } from "@hullwise/db";
+import { deliverEmailJob, setEmailDispatcher, type EmailJob } from "@hullwise/services";
 import { enqueue } from "./jobs";
 
-const flag = globalThis as typeof globalThis & { __keelEmailDispatcherInstalled?: boolean };
+const flag = globalThis as typeof globalThis & { __hullwiseEmailDispatcherInstalled?: boolean };
 const MAX_MISSING_RETRIES = 5;
 
 /** Without a worker: delivered by this process shortly after the request, retried in process (the row may not be committed yet). */
@@ -19,12 +19,12 @@ function deliverLater(job: EmailJob, delayMs: number, missing = 0) {
 
 /**
  * Email dispatcher of the web process, installed once at startup (instrumentation) and on first
- * import: a pg-boss `email.send` job when the worker is deployed (`KEEL_JOBS_QUEUE=1`), otherwise a
+ * import: a pg-boss `email.send` job when the worker is deployed (`HULLWISE_JOBS_QUEUE=1`), otherwise a
  * delivery by this process after the response. Never inside the request.
  */
 export function installEmailDispatcher(): void {
-  if (flag.__keelEmailDispatcherInstalled) return;
-  flag.__keelEmailDispatcherInstalled = true;
+  if (flag.__hullwiseEmailDispatcherInstalled) return;
+  flag.__hullwiseEmailDispatcherInstalled = true;
   setEmailDispatcher(async (job) => {
     if (await enqueue("email.send", job, { startAfterSeconds: 2 })) return;
     deliverLater(job, 300);

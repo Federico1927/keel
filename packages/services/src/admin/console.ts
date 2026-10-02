@@ -1,6 +1,6 @@
-import { and, asc, desc, eq, ilike, inArray, or, recordAudit, schema, sql, type DbExecutor, type SQL } from "@keel/db";
-import { ADDON_MODULES, MODULES, PLANS, PLAN_KEYS, SOURCE_ERROR_STATUSES, TENANT_STATUSES, type PlanKey, type TenantStatus } from "@keel/config";
-import { csvAmount, csvLine, lastMonths, platformSeries, type LifecycleSnapshot, type PlatformMonth, type QueryParams } from "@keel/core";
+import { and, asc, desc, eq, ilike, inArray, or, recordAudit, schema, sql, type DbExecutor, type SQL } from "@hullwise/db";
+import { ADDON_MODULES, MODULES, PLANS, PLAN_KEYS, SOURCE_ERROR_STATUSES, TENANT_STATUSES, type PlanKey, type TenantStatus } from "@hullwise/config";
+import { csvAmount, csvLine, lastMonths, platformSeries, type LifecycleSnapshot, type PlatformMonth, type QueryParams } from "@hullwise/core";
 import { tenantsOverview, type AdminDb, type TenantOverviewRow } from "../billing";
 
 /**
@@ -214,7 +214,7 @@ export async function integrationIssues(db: DbExecutor, f: IntegrationIssueFilte
   return { rows, sources: sources.map((s) => s.source), runs, failedWebhooks: hooks?.n ?? 0, failedWrites: writes?.n ?? 0 };
 }
 
-/* ---------- plans and add-ons (read-only, from @keel/config) ---------- */
+/* ---------- plans and add-ons (read-only, from @hullwise/config) ---------- */
 
 export async function planUsage(db: DbExecutor) {
   const [byPlan, byAddon] = await Promise.all([

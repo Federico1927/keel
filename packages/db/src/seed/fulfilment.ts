@@ -1,6 +1,6 @@
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/node-postgres";
-import { deriveOrderStatus, type OrderStatus, type PaymentMethod, type PaymentStatus, type ShipmentStatus, type StateRule } from "@keel/core";
+import { deriveOrderStatus, type OrderStatus, type PaymentMethod, type PaymentStatus, type ShipmentStatus, type StateRule } from "@hullwise/core";
 import * as schema from "../schema";
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;

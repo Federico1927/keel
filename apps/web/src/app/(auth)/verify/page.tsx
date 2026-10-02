@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@keel/ui";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@hullwise/ui";
 
 export default async function VerifyPage() {
   const t = await getTranslations("auth");

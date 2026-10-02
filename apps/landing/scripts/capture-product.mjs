@@ -1,14 +1,14 @@
 /**
- * Captures the product screens used by the landing from a running Keel app loaded with the demo
+ * Captures the product screens used by the landing from a running Hullwise app loaded with the demo
  * seed, as the Harbor Home owner (a tenant without add-ons, so no add-on entry appears in the
  * navigation), in the light theme. Viewport-only captures at 2x, written as PNG to a staging
- * directory; run `pnpm --filter @keel/landing images` afterwards to produce the WebP files the
+ * directory; run `pnpm --filter @hullwise/landing images` afterwards to produce the WebP files the
  * landing uses.
  *
- * Usage (production build of @keel/web listening on :3000, demo seed loaded):
- *   pnpm --filter @keel/landing capture:product
- *   LOCALES=en,it ONLY=dashboard,orders pnpm --filter @keel/landing capture:product
- *   APP_BASE_URL=http://localhost:3125 pnpm --filter @keel/landing capture:product
+ * Usage (production build of @hullwise/web listening on :3000, demo seed loaded):
+ *   pnpm --filter @hullwise/landing capture:product
+ *   LOCALES=en,it ONLY=dashboard,orders pnpm --filter @hullwise/landing capture:product
+ *   APP_BASE_URL=http://localhost:3125 pnpm --filter @hullwise/landing capture:product
  */
 import { chromium } from "@playwright/test";
 import { existsSync, mkdirSync } from "node:fs";
@@ -17,7 +17,7 @@ import { resolve } from "node:path";
 const BASE = process.env.APP_BASE_URL ?? "http://localhost:3000";
 const OUT = resolve(process.env.CAPTURE_DIR ?? "./screenshots-src");
 const LOCALES = (process.env.LOCALES ?? "en,it,es").split(",");
-const PASSWORD = process.env.DEMO_PASSWORD ?? "keel-demo-2026";
+const PASSWORD = process.env.DEMO_PASSWORD ?? "hullwise-demo-2026";
 const TENANT = process.env.DEMO_TENANT ?? "harbor-home";
 const EMAIL = process.env.DEMO_EMAIL ?? "owner@harborhome.demo";
 const chromiumPath = process.env.PW_CHROMIUM_PATH ?? "/opt/pw-browsers/chromium";
@@ -120,7 +120,7 @@ async function main() {
       deviceScaleFactor: 2,
       colorScheme: "light",
     });
-    await context.addCookies([{ name: "keel_theme", value: "light", url: BASE }]);
+    await context.addCookies([{ name: "hullwise_theme", value: "light", url: BASE }]);
     await context.addCookies([{ name: "NEXT_LOCALE", value: locale, url: BASE }]);
     const page = await context.newPage();
     await login(page);

@@ -1,5 +1,5 @@
-import { adminDb } from "@keel/db";
-import { trackJobRun, type JobTrigger } from "@keel/services";
+import { adminDb } from "@hullwise/db";
+import { trackJobRun, type JobTrigger } from "@hullwise/services";
 import { handleCampaignSend, handleEmailEvent, handleEmailSend, handleListExport, handlePlatformWrite, handleSyncAds, handleSyncCatalog, handleSyncOrders, handleSyncPayouts, handleSyncReturns, handleTenantExport, handleTick, handleWebhook, type Enqueue } from "./handlers";
 import { QUEUES, jobTenantOf, jobTypeOf, type CampaignSendJob, type EmailEventJob, type EmailSendJob, type ListExportJob, type PlatformWriteJob, type QueueName, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TenantExportJob, type TickJob, type WebhookJob } from "./queues";
 

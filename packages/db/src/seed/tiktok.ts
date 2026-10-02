@@ -1,8 +1,8 @@
 import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/node-postgres";
-import { isAdPlatformInPlan } from "@keel/config";
-import { ADS_UTM_TEMPLATES, SALE_STATUSES, ZERO_METRICS, rollupMetricRows, splitExact, type MetricRow } from "@keel/core";
-import { createRng } from "@keel/integrations/rng";
+import { isAdPlatformInPlan } from "@hullwise/config";
+import { ADS_UTM_TEMPLATES, SALE_STATUSES, ZERO_METRICS, rollupMetricRows, splitExact, type MetricRow } from "@hullwise/core";
+import { createRng } from "@hullwise/integrations/rng";
 import * as schema from "../schema";
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;

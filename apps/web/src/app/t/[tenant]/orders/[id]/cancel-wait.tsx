@@ -2,7 +2,7 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label } from "@keel/ui";
+import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label } from "@hullwise/ui";
 import { cancelBackorderWaitAction } from "@/server/actions/orders";
 
 /** "Cancel wait": the order stops waiting for stock and is released (here and on the platform). */

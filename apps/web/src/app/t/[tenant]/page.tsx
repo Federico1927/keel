@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { DASHBOARD_PERIODS, WIDGETS, canDo, isTenantRole, type DashboardPeriod } from "@keel/config";
-import { dashboardSummary, resolveHomeDashboard } from "@keel/services";
-import { Button, PageHeader } from "@keel/ui";
+import { DASHBOARD_PERIODS, WIDGETS, canDo, isTenantRole, type DashboardPeriod } from "@hullwise/config";
+import { dashboardSummary, resolveHomeDashboard } from "@hullwise/services";
+import { Button, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { analyticsTenant, pageNow, sharedMemo } from "@/server/dashboards";
 import { Greeting } from "@/components/greeting";
@@ -11,7 +11,7 @@ import { SourceHealthWidget } from "@/components/dashboard/source-health-widget"
 import { CustomiseHomeButton, PeriodLinks, PreviewAsSelect, PreviewBanner } from "@/components/dashboard/controls";
 
 /**
- * The tenant home (issue #43): the role's home variant, else the tenant home, else Keel's template,
+ * The tenant home (issue #43): the role's home variant, else the tenant home, else Hullwise's template,
  * which is today's home tile for tile. Managers can preview it as another role and see the draft.
  */
 export default async function DashboardPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {

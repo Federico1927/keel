@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, schema, sql, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { MockConversionSink } from "@keel/integrations";
-import type { PixelEvent } from "@keel/core";
+import { and, eq, schema, sql, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { MockConversionSink } from "@hullwise/integrations";
+import type { PixelEvent } from "@hullwise/core";
 import { conversionStats, enqueueConversions, ensurePixelSettings, ingestPixelBatch, PixelError, pixelOverview, retryFailedConversions, saveConversionSettings, sendDueConversions, type ServiceContext } from "../src";
 
 const pools = testPools();

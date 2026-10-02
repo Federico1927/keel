@@ -1,5 +1,5 @@
-import { and, eq, gte, inArray, lt, schema, sql } from "@keel/db";
-import { campaignMetrics, recommendAction, suggestProductsForCampaign, trafficLight, worstRisk, type CampaignAction, type CampaignMetrics, type Period, type RestockAdvice, type StockRisk, type TrafficLight } from "@keel/core";
+import { and, eq, gte, inArray, lt, schema, sql } from "@hullwise/db";
+import { campaignMetrics, recommendAction, suggestProductsForCampaign, trafficLight, worstRisk, type CampaignAction, type CampaignMetrics, type Period, type RestockAdvice, type StockRisk, type TrafficLight } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { orderEconomicsForPeriod, type AnalyticsTenant } from "../analytics";
 import { variantStock } from "../inventory";

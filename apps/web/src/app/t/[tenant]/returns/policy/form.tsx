@@ -2,8 +2,8 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Plus, Trash2 } from "lucide-react";
-import type { ReturnAutomation, ReturnPolicy, ReturnWindowRule } from "@keel/core";
-import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select } from "@keel/ui";
+import type { ReturnAutomation, ReturnPolicy, ReturnWindowRule } from "@hullwise/core";
+import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select } from "@hullwise/ui";
 import { saveReturnPolicyAction } from "@/server/actions/returns";
 
 const csv = (v: string) => v.split(",").map((x) => x.trim()).filter(Boolean);

@@ -1,15 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { PRODUCT_NAME, isAdPlatformInPlan } from "@keel/config";
-import { ADS_UTM_TEMPLATES } from "@keel/core";
-import { GOOGLE_ADDRESS_APIS, GOOGLE_ADS_API_VERSION, META_REQUIRED_PERMISSIONS, SHOPIFY_SCOPES_BY_MODULE, SHOPIFY_WEBHOOK_TOPICS, TIKTOK_API_VERSION, TIKTOK_SCOPES_BY_MODULE } from "@keel/integrations";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, cn } from "@keel/ui";
+import { PRODUCT_NAME, apiEndpoint, isAdPlatformInPlan } from "@hullwise/config";
+import { ADS_UTM_TEMPLATES } from "@hullwise/core";
+import { GOOGLE_ADDRESS_APIS, GOOGLE_ADS_API_VERSION, META_REQUIRED_PERMISSIONS, SHOPIFY_SCOPES_BY_MODULE, SHOPIFY_WEBHOOK_TOPICS, TIKTOK_API_VERSION, TIKTOK_SCOPES_BY_MODULE } from "@hullwise/integrations";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 
 /** One guide per activation: the platforms (TikTok when the plan includes it), then the external providers and tracking; last, the platform email sender (super-admins only: tenants configure nothing). */
 const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic", "address", "tracking", "survey", "email"] as const;
-/** Ad hoc integrations sold per account: an interface and a mock in Keel, a live connector built and activated by the Keel team (issue #7). */
+/** Ad hoc integrations sold per account: an interface and a mock in Hullwise, a live connector built and activated by the Hullwise team (issue #7). */
 const AD_HOC = ["payment_guarantee", "return_labels", "audiences", "messaging", "carrier", "warehouse"] as const;
 type Provider = (typeof PROVIDERS)[number] | (typeof AD_HOC)[number];
 const isGuide = (p: string): p is Provider => (PROVIDERS as readonly string[]).includes(p) || (AD_HOC as readonly string[]).includes(p);
@@ -30,9 +30,9 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
   const steps = t.raw(`${p}.steps`) as Step[];
   const errors = t.raw(`${p}.errors`) as { symptom: string; fix: string }[];
   const base = `/t/${tenant}/integrations`;
-  const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/webhooks/shopify`;
-  const emailWebhookUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/webhooks/email`;
-  const tiktokCallbackUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/integrations/tiktok/oauth/callback`;
+  const webhookUrl = apiEndpoint("/webhooks/shopify");
+  const emailWebhookUrl = apiEndpoint("/webhooks/email");
+  const tiktokCallbackUrl = apiEndpoint("/integrations/tiktok/oauth/callback");
   // `{product}` keeps the product name out of the texts (one constant, PRODUCT_NAME)
   const product = { product: PRODUCT_NAME };
   const fill = (body: string) => body.replaceAll("{product}", PRODUCT_NAME).replace("{webhookUrl}", webhookUrl).replace("{emailWebhookUrl}", emailWebhookUrl).replace("{callbackUrl}", tiktokCallbackUrl).replace("{utmTemplate}", ADS_UTM_TEMPLATES.tiktok).replace("{apiVersion}", p === "tiktok" ? TIKTOK_API_VERSION : GOOGLE_ADS_API_VERSION);

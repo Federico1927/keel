@@ -1,7 +1,7 @@
-import { isAdPlatformInPlan } from "@keel/config";
-import type { AdPlatform } from "@keel/core";
-import { and, eq, gte, inArray, isNotNull, schema, sql } from "@keel/db";
-import { AnthropicLlmProvider, GoogleAddressProvider, type GoogleAddressCredentials, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, type MockAdsStructure, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, PROCESSOR_GATEWAYS, ShopifyCommercePlatform, type MockPaymentOrder, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type NormalizedProduct, type ShopifyCredentials, MockCarrierProvider, type CarrierProvider, TiktokAdsPlatform, mockDemoAdsAccount, type TiktokCredentials } from "@keel/integrations";
+import { isAdPlatformInPlan } from "@hullwise/config";
+import type { AdPlatform } from "@hullwise/core";
+import { and, eq, gte, inArray, isNotNull, schema, sql } from "@hullwise/db";
+import { AnthropicLlmProvider, GoogleAddressProvider, type GoogleAddressCredentials, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, type MockAdsStructure, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, PROCESSOR_GATEWAYS, ShopifyCommercePlatform, type MockPaymentOrder, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type NormalizedProduct, type ShopifyCredentials, MockCarrierProvider, type CarrierProvider, TiktokAdsPlatform, mockDemoAdsAccount, type TiktokCredentials } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 
 export interface PlatformTenant {
@@ -13,7 +13,7 @@ export interface PlatformTenant {
 
 /**
  * Adapter factory shared by the web app and the job runner. The integration row decides
- * the mode per tenant (`mock` | `live`); `KEEL_INTEGRATION_MODE=mock` forces mock everywhere
+ * the mode per tenant (`mock` | `live`); `HULLWISE_INTEGRATION_MODE=mock` forces mock everywhere
  * so no development or test process can ever reach a real API. Mocks are in-memory
  * simulators cached per process, so a webhook simulated now is visible to the next sync.
  */
@@ -72,9 +72,9 @@ export async function getCommercePlatformFor(ctx: ServiceContext, tenant: Platfo
 }
 
 /**
- * The simulated store's catalog, as complete as Shopify's (issue #19): every product Keel holds with
+ * The simulated store's catalog, as complete as Shopify's (issue #19): every product Hullwise holds with
  * a platform id, its gallery, SEO, category, channels, metafields and variant fields. A sync of the
- * untouched mock therefore changes nothing; writes change the store and Keel reads them back.
+ * untouched mock therefore changes nothing; writes change the store and Hullwise reads them back.
  */
 async function mockStoreProducts(ctx: ServiceContext, tenantId: string): Promise<NormalizedProduct[]> {
   const products = await ctx.tx.select().from(schema.products).where(and(eq(schema.products.tenantId, tenantId), isNotNull(schema.products.externalId))).orderBy(schema.products.title);
@@ -110,7 +110,7 @@ async function mockPaymentOrders(ctx: ServiceContext, tenantId: string): Promise
   return rows.map((o) => ({ externalId: o.externalId!, placedAt: o.placedAt, totalMinor: o.totalMinor, refundedMinor: o.paymentStatus === "refunded" ? o.totalMinor : o.refundedMinor, refundedAt: o.cancelledAt ?? (o.refundedAt ? new Date(o.refundedAt) : null), gateways: o.gateways }));
 }
 
-/** Whether Keel may write to the ads platform below the campaign: always on Meta and TikTok, on Google only once the tenant granted the write scope (`integrations.config.writeAccess`). */
+/** Whether Hullwise may write to the ads platform below the campaign: always on Meta and TikTok, on Google only once the tenant granted the write scope (`integrations.config.writeAccess`). */
 export function adsWriteAccess(provider: string, row: { config: unknown } | null): boolean {
   if (provider === "meta" || provider === "tiktok") return true;
   return provider === "google" && (row?.config as { writeAccess?: unknown } | null)?.writeAccess === true;
@@ -246,7 +246,7 @@ export function getAddressProviderFor(tenantId: string): AddressProvider {
 /**
  * Address autocomplete and validation (order-edit dialog, COD score): Google Address Validation +
  * Places when the `address` integration is connected live (credentials `{ apiKey }`, encrypted),
- * the mock otherwise, including whenever `KEEL_INTEGRATION_MODE=mock`.
+ * the mock otherwise, including whenever `HULLWISE_INTEGRATION_MODE=mock`.
  */
 export async function resolveAddressProvider(ctx: ServiceContext): Promise<AddressProvider> {
   const row = await integrationRow(ctx, "address");

@@ -1,5 +1,5 @@
 /**
- * Product editing rules (issue #19): Keel mirrors every platform field on read and edits a defined
+ * Product editing rules (issue #19): Hullwise mirrors every platform field on read and edits a defined
  * subset. Pure: what changed, whether the edit is still based on the platform's current version,
  * the SEO preview and the deep link for the fields edited on the platform.
  */
@@ -7,7 +7,7 @@
 export type ProductStatusValue = "active" | "draft" | "archived";
 export type InventoryPolicy = "deny" | "continue";
 
-/** The product fields Keel edits; everything else is "Edit in Shopify". */
+/** The product fields Hullwise edits; everything else is "Edit in Shopify". */
 export interface EditableProduct {
   title: string;
   descriptionHtml: string | null;
@@ -153,7 +153,7 @@ export function seoPreview(p: { title: string; handle: string | null; seoTitle: 
   return { title, description, url: `${host ? `https://${host}` : ""}/products/${p.handle ?? ""}` };
 }
 
-/** Where the merchant edits the fields Keel does not: the product page of the Shopify admin. */
+/** Where the merchant edits the fields Hullwise does not: the product page of the Shopify admin. */
 export function shopifyAdminProductUrl(shopDomain: string | null | undefined, productExternalId: string | null | undefined): string | null {
   if (!shopDomain || !productExternalId) return null;
   const store = shopDomain.replace(/^https?:\/\//, "").replace(/\.myshopify\.com\/?$/i, "").replace(/\/.*$/, "");
@@ -165,7 +165,7 @@ const SAFE_TAGS = new Set(["p", "br", "strong", "b", "em", "i", "u", "s", "ul", 
 const VOID_TAGS = new Set(["br", "hr"]);
 
 /**
- * A product description from the platform rendered inside Keel: only formatting tags survive, with
+ * A product description from the platform rendered inside Hullwise: only formatting tags survive, with
  * no attributes except an http(s) `href` on links (opened in a new tab). Scripts, styles, iframes,
  * event handlers, comments and every other tag are dropped.
  */

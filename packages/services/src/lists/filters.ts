@@ -1,5 +1,5 @@
-import { and, eq, gte, inArray, lte, schema, sql, type SQL } from "@keel/db";
-import { CHURN_RISKS, ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES, UTM_DIMENSIONS, UTM_NONE, type QueryParams, type UtmDimension } from "@keel/core";
+import { and, eq, gte, inArray, lte, schema, sql, type SQL } from "@hullwise/db";
+import { CHURN_RISKS, ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES, UTM_DIMENSIONS, UTM_NONE, type QueryParams, type UtmDimension } from "@hullwise/core";
 import type { CustomerFilters } from "../crm";
 import type { ReturnFilters } from "../returns";
 import { awaitingStockSql, readyToReleaseSql } from "../backorders";

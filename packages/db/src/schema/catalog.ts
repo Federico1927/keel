@@ -47,7 +47,7 @@ export const products = pgTable(
     publishedChannels: jsonb("published_channels"),
     /** [{ namespace, key, type, value }]: first metafields, read-only (definitions are out of scope). */
     metafields: jsonb("metafields"),
-    /** The platform's `updatedAt` of the version Keel holds: an edit opened on an older version is refused. */
+    /** The platform's `updatedAt` of the version Hullwise holds: an edit opened on an older version is refused. */
     platformUpdatedAt: timestamp("platform_updated_at", { withTimezone: true }),
     isAncillary: boolean("is_ancillary").notNull().default(false),
     isRepurchasable: boolean("is_repurchasable").notNull().default(true),
@@ -114,7 +114,7 @@ export const productVariants = pgTable(
 /**
  * Product gallery mirrored from the platform (issue #19): images, videos and 3D models in display
  * order. `url` is always an image (the preview for videos and models). `external_id` is the
- * platform's media gid (its type is part of it); null for media of a product Keel holds alone.
+ * platform's media gid (its type is part of it); null for media of a product Hullwise holds alone.
  */
 export const productMedia = pgTable(
   "product_media",
@@ -181,7 +181,7 @@ export const inventoryMovements = pgTable(
 ).enableRLS();
 
 /**
- * Stock drift: a platform read changed stock in a way Keel did not expect (no sale, return,
+ * Stock drift: a platform read changed stock in a way Hullwise did not expect (no sale, return,
  * receipt or adjustment explains it), a negative level was clamped, or a level was no longer
  * reported. Deduplicated on `dedupe_key`: the same discrepancy seen again bumps `occurrences`.
  */

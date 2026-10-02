@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getTranslations } from "next-intl/server";
-import { formatDate, formatMoney } from "@keel/core";
-import { purchaseOrderPdf } from "@keel/services";
+import { formatDate, formatMoney } from "@hullwise/core";
+import { purchaseOrderPdf } from "@hullwise/services";
 import { ForbiddenError, requirePage } from "@/server/tenant";
 
 /** The purchase order as a PDF for the supplier, in the user's language. */

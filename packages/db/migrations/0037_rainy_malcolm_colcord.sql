@@ -70,8 +70,8 @@ CREATE UNIQUE INDEX "platform_alerts_signature_uq" ON "platform_alerts" USING bt
 CREATE INDEX "platform_alerts_status_seen_idx" ON "platform_alerts" USING btree ("status","last_seen_at");--> statement-breakpoint
 CREATE INDEX "platform_alerts_tenant_idx" ON "platform_alerts" USING btree ("tenant_id","last_seen_at");--> statement-breakpoint
 CREATE INDEX "tenant_data_exports_tenant_created_idx" ON "tenant_data_exports" USING btree ("tenant_id","created_at");--> statement-breakpoint
-CREATE POLICY "job_runs_tenant_select" ON "job_runs" AS PERMISSIVE FOR SELECT TO "keel_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);--> statement-breakpoint
-CREATE POLICY "job_runs_tenant_insert" ON "job_runs" AS PERMISSIVE FOR INSERT TO "keel_app" WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);--> statement-breakpoint
-CREATE POLICY "platform_alerts_tenant_select" ON "platform_alerts" AS PERMISSIVE FOR SELECT TO "keel_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);--> statement-breakpoint
-CREATE POLICY "platform_alerts_tenant_insert" ON "platform_alerts" AS PERMISSIVE FOR INSERT TO "keel_app" WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);--> statement-breakpoint
-CREATE POLICY "tenant_data_exports_tenant_isolation" ON "tenant_data_exports" AS PERMISSIVE FOR ALL TO "keel_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid) WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);
+CREATE POLICY "job_runs_tenant_select" ON "job_runs" AS PERMISSIVE FOR SELECT TO "hullwise_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);--> statement-breakpoint
+CREATE POLICY "job_runs_tenant_insert" ON "job_runs" AS PERMISSIVE FOR INSERT TO "hullwise_app" WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);--> statement-breakpoint
+CREATE POLICY "platform_alerts_tenant_select" ON "platform_alerts" AS PERMISSIVE FOR SELECT TO "hullwise_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);--> statement-breakpoint
+CREATE POLICY "platform_alerts_tenant_insert" ON "platform_alerts" AS PERMISSIVE FOR INSERT TO "hullwise_app" WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);--> statement-breakpoint
+CREATE POLICY "tenant_data_exports_tenant_isolation" ON "tenant_data_exports" AS PERMISSIVE FOR ALL TO "hullwise_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid) WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);

@@ -2,9 +2,9 @@
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { canDo, canWritePage, isPageEnabled, type PageKey } from "@keel/config";
-import { recordAudit } from "@keel/db";
-import { getPlatformWrite, retryPlatformWrite, runCatalogSync, getCommercePlatformFor } from "@keel/services";
+import { canDo, canWritePage, isPageEnabled, type PageKey } from "@hullwise/config";
+import { recordAudit } from "@hullwise/db";
+import { getPlatformWrite, retryPlatformWrite, runCatalogSync, getCommercePlatformFor } from "@hullwise/services";
 import { enqueue } from "@/server/jobs";
 import { dispatchPlatformWrites } from "@/server/platform-writes";
 import { ForbiddenError, getTenantContext, requireWrite } from "@/server/tenant";

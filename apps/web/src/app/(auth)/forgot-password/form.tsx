@@ -2,7 +2,7 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Input, Label } from "@keel/ui";
+import { Alert, AlertDescription, Button, Input, Label } from "@hullwise/ui";
 import { requestPasswordResetAction } from "@/server/actions/account";
 
 export function ForgotPasswordForm() {

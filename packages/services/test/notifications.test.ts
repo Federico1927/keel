@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, schema, sql, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { parseTenantSettings } from "@keel/core";
+import { and, eq, schema, sql, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { parseTenantSettings } from "@hullwise/core";
 import {
   EMAIL_STRINGS, addEmailSuppression, addOrderNote, addRecordNote, adminListSupportTickets, adminReplyToTicket, adminSupportAttachment, checkLateToShip, createReturn, createTask, isEmailSuppressed, listMentions, listNotificationsPage, listSupportTickets, listTasks, drainEmailJobs, mockEmailOutbox, queueEmail,
   notifyUsers, openSupportTicket, orderReturnContext, preferenceMatrix, renderEmail, returnDetail, setMentionsRead, setNotificationPreference, setNotificationsRead, signUnsubscribeToken, supportAttachment, supportTicketThread, sweepTaskRules, tasksForRecord, transitionReturn, updateTask, verifyUnsubscribeToken,
@@ -85,7 +85,7 @@ describe("email", () => {
     expect(itMail.text).toContain("20 ott 2026");
     const ml = renderEmail("magic_link", "es", { url: "https://x/m?<b>", minutes: 15 });
     expect(ml.html).toContain("https://x/m?&lt;b&gt;");
-    expect(renderEmail("invite", "xx", { tenantName: "T", inviterName: "A", role: "operations", url: "https://x", days: 7 }).subject).toBe("A invited you to T on Keel as operations");
+    expect(renderEmail("invite", "xx", { tenantName: "T", inviterName: "A", role: "operations", url: "https://x", days: 7 }).subject).toBe("A invited you to T on Hullwise as operations");
     const digest = renderEmail("digest", "en", { tenantName: "T", groups: [{ type: "mention", count: 5, titles: ["a", "b"] }], url: "https://x" });
     expect(digest.text).toContain("Mentions (5): a · b and 3 more");
     expect(renderEmail("notification", "it", { title: "4", body: "SKU-1", url: null, type: "stock_critical_no_po" }).subject).toBe("4 varianti in vendita con stock critico e nessun ordine d'acquisto");
@@ -213,7 +213,7 @@ describe("support tickets", () => {
     expect((await run((s) => listSupportTickets(s), "owner@harborhome.demo", harborId)).some((t) => t.t.id === id)).toBe(false);
     expect(await run((s) => supportTicketThread(s, id), "owner@harborhome.demo", harborId)).toBeNull();
 
-    const admin = uid("superadmin@keel.demo");
+    const admin = uid("superadmin@hullwise.demo");
     const list = await adminListSupportTickets(pools.admin, { status: "open" });
     expect(list.rows.some((r) => r.t.id === id)).toBe(true);
     await adminReplyToTicket(pools.admin, id, admin, { body: "Fixed, please retry" }, { runInTenant: (tid, fn) => withTenant(tid, fn, pools.app) });

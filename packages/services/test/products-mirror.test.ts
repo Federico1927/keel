@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, asc, desc, eq, schema, sql, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import type { MockCommercePlatform } from "@keel/integrations";
+import { and, asc, desc, eq, schema, sql, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import type { MockCommercePlatform } from "@hullwise/integrations";
 import { catalogSyncStatus, editProductMedia, editProductWithPlatform, getCommercePlatformFor, mockCommerceFor, processWebhookEvent, productVersion, recordWebhookEvent, resetMockPlatforms, runCatalogSync, syncProductFromPlatform, variantStock, type PlatformTenant, type ServiceContext } from "../src";
-import { tenantSettingsSchema } from "@keel/core";
+import { tenantSettingsSchema } from "@hullwise/core";
 
 /** Issue #19: full Shopify mirror on read, two-way sync for a defined set of fields, gallery. */
 const pools = testPools();
@@ -121,15 +121,15 @@ describe("two-way product fields", () => {
     const opened = version(p);
     mock.simulateExternalEdit(p.externalId!, { title: "Renamed in Shopify" });
     const writes = mock.writeLog.length;
-    const out = await run(async (s) => editProductWithPlatform(s, await getCommercePlatformFor(s, tenant), p.id, { version: opened, product: { title: "My Keel title" } }, audit()));
+    const out = await run(async (s) => editProductWithPlatform(s, await getCommercePlatformFor(s, tenant), p.id, { version: opened, product: { title: "My Hullwise title" } }, audit()));
     expect(out.kind).toBe("stale");
     expect(mock.writeLog.length).toBe(writes);
     const after = await productById(p.id);
     expect(after.title).toBe("Renamed in Shopify");
     // reloaded: the edit goes through on the new version
-    const ok = await run(async (s) => editProductWithPlatform(s, await getCommercePlatformFor(s, tenant), p.id, { version: version(after), product: { title: "My Keel title" } }, audit()));
+    const ok = await run(async (s) => editProductWithPlatform(s, await getCommercePlatformFor(s, tenant), p.id, { version: version(after), product: { title: "My Hullwise title" } }, audit()));
     expect(ok.kind).toBe("updated");
-    expect((await productById(p.id)).title).toBe("My Keel title");
+    expect((await productById(p.id)).title).toBe("My Hullwise title");
   });
 
   it("rejects invalid input and products of another tenant", async () => {
@@ -141,7 +141,7 @@ describe("two-way product fields", () => {
     expect((await run((s) => editProductMedia(s, pf, p.id, { type: "delete", mediaIds: [], version: null }, audit()), otherTenantId)).kind).toBe("not_found");
   });
 
-  it("edits a product Keel holds alone (no platform id) locally, with the same audit", async () => {
+  it("edits a product Hullwise holds alone (no platform id) locally, with the same audit", async () => {
     const [local] = await run((s) => s.tx.insert(schema.products).values({ tenantId, title: "Local only", status: "active" }).returning());
     const out = await run(async (s) => editProductWithPlatform(s, await getCommercePlatformFor(s, tenant), local!.id, { version: null, product: { title: "Local renamed", tags: ["a"] } }, audit()));
     expect(out.kind).toBe("updated");

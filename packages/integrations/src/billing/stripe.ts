@@ -1,4 +1,4 @@
-import { catalogChange, stripeKeyMode, type CatalogItem } from "@keel/core";
+import { catalogChange, stripeKeyMode, type CatalogItem } from "@hullwise/core";
 import { HttpClient, type HttpOptions } from "../http";
 import { IntegrationError } from "../types";
 import { encodeForm, type FormValue } from "./form";
@@ -52,9 +52,9 @@ export class StripeBillingProvider implements BillingProvider {
   }
 
   async ensureCustomer(input: BillingCustomerInput): Promise<string> {
-    const found = await this.call<{ data: { id: string }[] }>("GET", `customers/search?query=${encodeURIComponent(`metadata['keel_tenant_id']:'${input.tenantId}'`)}`);
+    const found = await this.call<{ data: { id: string }[] }>("GET", `customers/search?query=${encodeURIComponent(`metadata['hullwise_tenant_id']:'${input.tenantId}'`)}`);
     if (found.data?.[0]) return found.data[0].id;
-    const created = await this.call<{ id: string }>("POST", "customers", { name: input.name, email: input.email ?? undefined, preferred_locales: input.locale ? [input.locale] : undefined, metadata: { keel_tenant_id: input.tenantId } }, `keel-customer-${input.tenantId}`);
+    const created = await this.call<{ id: string }>("POST", "customers", { name: input.name, email: input.email ?? undefined, preferred_locales: input.locale ? [input.locale] : undefined, metadata: { hullwise_tenant_id: input.tenantId } }, `hullwise-customer-${input.tenantId}`);
     return created.id;
   }
 
@@ -74,8 +74,8 @@ export class StripeBillingProvider implements BillingProvider {
         product: product ? { name: String(product.name ?? ""), active: product.active !== false } : null,
         price: p ? { id: String(p.id), productId: typeof p.product === "string" ? p.product : String((p.product as Obj | undefined)?.id ?? ""), amountMinor: Number(p.unit_amount ?? 0), currency: String(p.currency ?? ""), interval: recurring?.interval === "month" ? "month" : null } : null,
       });
-      const metadata = { keel_kind: item.kind, keel_key: item.key };
-      if (change.createProduct) await this.call("POST", "products", { id: item.productId, name: item.name, metadata }, `keel-product-${item.productId}`);
+      const metadata = { hullwise_kind: item.kind, hullwise_key: item.key };
+      if (change.createProduct) await this.call("POST", "products", { id: item.productId, name: item.name, metadata }, `hullwise-product-${item.productId}`);
       else if (change.updateProduct) await this.call("POST", `products/${encodeURIComponent(item.productId)}`, { name: item.name, active: true, metadata });
       let priceId = p ? String(p.id) : "";
       if (change.createPrice) {
@@ -83,7 +83,7 @@ export class StripeBillingProvider implements BillingProvider {
           "POST",
           "prices",
           { product: item.productId, currency: item.currency.toLowerCase(), unit_amount: item.amountMinor, lookup_key: item.lookupKey, transfer_lookup_key: true, recurring: item.interval ? { interval: item.interval } : undefined, tax_behavior: "exclusive", metadata },
-          `keel-price-${item.lookupKey}-${item.amountMinor}-${item.currency.toLowerCase()}-${item.interval ?? "once"}`,
+          `hullwise-price-${item.lookupKey}-${item.amountMinor}-${item.currency.toLowerCase()}-${item.interval ?? "once"}`,
         );
         priceId = created.id;
       }
@@ -102,8 +102,8 @@ export class StripeBillingProvider implements BillingProvider {
         customer: input.customerId,
         client_reference_id: input.tenantId,
         line_items: [...input.priceIds, ...input.oneOffPriceIds].map((price) => ({ price, quantity: 1 })),
-        subscription_data: { trial_period_days: input.trialDays || undefined, metadata: { keel_tenant_id: input.tenantId } },
-        metadata: { keel_tenant_id: input.tenantId },
+        subscription_data: { trial_period_days: input.trialDays || undefined, metadata: { hullwise_tenant_id: input.tenantId } },
+        metadata: { hullwise_tenant_id: input.tenantId },
         success_url: input.successUrl,
         cancel_url: input.cancelUrl,
         locale: input.locale ?? "auto",
@@ -131,7 +131,7 @@ export class StripeBillingProvider implements BillingProvider {
         days_until_due: input.daysUntilDue,
         trial_period_days: input.trialDays || undefined,
         automatic_tax: { enabled: input.automaticTax },
-        metadata: { keel_tenant_id: input.tenantId },
+        metadata: { hullwise_tenant_id: input.tenantId },
       },
       input.idempotencyKey,
     );
@@ -164,9 +164,9 @@ export class StripeBillingProvider implements BillingProvider {
   }
 
   async createInvoice(input: BillingInvoiceInput): Promise<{ externalId: string; hostedUrl: string | null }> {
-    for (const l of input.lines) await this.call("POST", "invoiceitems", { customer: input.customerId, amount: l.amountMinor, currency: input.currency.toLowerCase(), description: l.label, metadata: { key: l.key } }, `keel-ii-${input.number}-${l.key}`);
+    for (const l of input.lines) await this.call("POST", "invoiceitems", { customer: input.customerId, amount: l.amountMinor, currency: input.currency.toLowerCase(), description: l.label, metadata: { key: l.key } }, `hullwise-ii-${input.number}-${l.key}`);
     const days = Math.max(1, Math.ceil((input.dueAt.getTime() - Date.now()) / 864e5));
-    const inv = await this.call<{ id: string }>("POST", "invoices", { customer: input.customerId, collection_method: "send_invoice", days_until_due: days, pending_invoice_items_behavior: "include", metadata: { keel_number: input.number } }, `keel-invoice-${input.number}`);
+    const inv = await this.call<{ id: string }>("POST", "invoices", { customer: input.customerId, collection_method: "send_invoice", days_until_due: days, pending_invoice_items_behavior: "include", metadata: { hullwise_number: input.number } }, `hullwise-invoice-${input.number}`);
     const fin = await this.call<{ id: string; hosted_invoice_url?: string }>("POST", `invoices/${inv.id}/finalize`, {});
     return { externalId: fin.id, hostedUrl: fin.hosted_invoice_url ?? null };
   }

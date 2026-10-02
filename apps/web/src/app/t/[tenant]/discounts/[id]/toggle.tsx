@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@keel/ui";
+import { Button } from "@hullwise/ui";
 import { setDiscountActiveAction } from "@/server/actions/discounts";
 
 export function DiscountToggle({ slug, discountId, isActive }: { slug: string; discountId: string; isActive: boolean }) {

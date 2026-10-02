@@ -1,6 +1,6 @@
-import { and, eq, schema } from "@keel/db";
-import { brandColorsFor, isHexColor, parsePortalConfig, parseTenantSettings, pickLocalized, type ReturnEmailEvent } from "@keel/core";
-import { BRAND_SURFACES } from "@keel/ui/tokens";
+import { and, eq, schema } from "@hullwise/db";
+import { brandColorsFor, isHexColor, parsePortalConfig, parseTenantSettings, pickLocalized, type ReturnEmailEvent } from "@hullwise/core";
+import { BRAND_SURFACES } from "@hullwise/ui/tokens";
 import type { ServiceContext } from "../context";
 import { getTenantBranding } from "../branding";
 import { queueEmail, type QueueOutcome } from "../email/mailer";

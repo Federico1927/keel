@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, schema, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { parseTenantSettings, type Period } from "@keel/core";
-import { IntegrationError, type MockAdsPlatform, type MockCommercePlatform } from "@keel/integrations";
+import { and, eq, schema, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { parseTenantSettings, type Period } from "@hullwise/core";
+import { IntegrationError, type MockAdsPlatform, type MockCommercePlatform } from "@hullwise/integrations";
 import { AdPlatformNotInPlanError, adRows, adPlatformInPlan, campaignAdSets, campaignSpendReconciliation, campaignsWithEconomics, enqueuePlatformWrite, executePlatformWrite, getAdsPlatformFor, getCommercePlatformFor, importOrder, mockAdsFor, requestAdStatus, requestCampaignStatus, resetMockPlatforms, runAdsBackfill, type AnalyticsTenant, type ServiceContext } from "../src";
 
 const pools = testPools();

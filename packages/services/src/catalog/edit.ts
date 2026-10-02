@@ -1,6 +1,6 @@
-import { and, asc, desc, eq, inArray, recordAudit, schema, sql } from "@keel/db";
-import { diffRecords, isStaleEdit, planProductPatch, planVariantPatch, validateProductEdit, validateVariantEdit, type Diff, type EditableProduct, type EditableVariant, type ProductEditError } from "@keel/core";
-import type { CommercePlatform, NormalizedProduct, ProductMediaOperation } from "@keel/integrations";
+import { and, asc, desc, eq, inArray, recordAudit, schema, sql } from "@hullwise/db";
+import { diffRecords, isStaleEdit, planProductPatch, planVariantPatch, validateProductEdit, validateVariantEdit, type Diff, type EditableProduct, type EditableVariant, type ProductEditError } from "@hullwise/core";
+import type { CommercePlatform, NormalizedProduct, ProductMediaOperation } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { importProduct } from "../sync";
 import { runPlatformWriteNow } from "../writes";
@@ -8,7 +8,7 @@ import { recordPriceChanges } from "./price-history";
 import type { AuditIdentity } from "./costs";
 
 /**
- * Two-way product fields (issue #19). Keel mirrors every platform field on read and edits a defined
+ * Two-way product fields (issue #19). Hullwise mirrors every platform field on read and edits a defined
  * subset. A write goes to the platform first, through the outbox (`runPlatformWriteNow`, so every
  * call is recorded); the local rows are then rewritten from the platform's answer, never from the
  * form. An edit opened on a version older than the platform's `updatedAt` is refused ("changed in
@@ -43,10 +43,10 @@ const loadMedia = (ctx: ServiceContext, productId: string) => ctx.tx.select().fr
 
 const editable = (p: ProductRow): EditableProduct => ({ title: p.title, descriptionHtml: p.descriptionHtml, vendor: p.vendor, productType: p.productType, tags: p.tags, status: p.status as EditableProduct["status"], seoTitle: p.seoTitle, seoDescription: p.seoDescription, categoryId: p.categoryId });
 const editableVariant = (v: VariantRow): EditableVariant => ({ priceMinor: v.priceMinor, compareAtMinor: v.compareAtMinor, sku: v.sku, barcode: v.barcode, weightGrams: v.weightGrams, inventoryPolicy: (v.inventoryPolicy as EditableVariant["inventoryPolicy"]) ?? null });
-/** The version a form shows: the platform's `updatedAt` Keel holds, else when Keel last read the product. */
+/** The version a form shows: the platform's `updatedAt` Hullwise holds, else when Hullwise last read the product. */
 export const productVersion = (p: Pick<ProductRow, "platformUpdatedAt" | "syncedAt">): Date | null => p.platformUpdatedAt ?? p.syncedAt ?? null;
 
-/** Audit diff of what Keel holds before and after: product fields plus `<field>:<variant title>` per variant. */
+/** Audit diff of what Hullwise holds before and after: product fields plus `<field>:<variant title>` per variant. */
 function productDiff(before: ProductRow, after: ProductRow, vBefore: VariantRow[], vAfter: VariantRow[]): Diff {
   const pick = (p: ProductRow) => ({ ...editable(p), categoryName: p.categoryName });
   const diff = diffRecords(pick(before), pick(after));
@@ -115,7 +115,7 @@ export async function editProductWithPlatform(ctx: ServiceContext, platform: Com
     if (!answer) return { kind: "not_found" };
     await importProduct(ctx, answer);
   } else {
-    // a product Keel holds alone (no platform id): the local rows are the source
+    // a product Hullwise holds alone (no platform id): the local rows are the source
     const now = ctx.now ?? new Date();
     const local: Partial<ProductRow> = {};
     if (productPatch.title !== undefined) local.title = productPatch.title;

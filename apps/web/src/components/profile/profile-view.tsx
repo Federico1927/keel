@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { adminDb } from "@keel/db";
-import { describeUserAgent, displayName, formatDateTime, initials, isTimeZone } from "@keel/core";
-import { getAccountProfile, listRecentSignIns, pendingEmailChange } from "@keel/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { adminDb } from "@hullwise/db";
+import { describeUserAgent, displayName, formatDateTime, initials, isTimeZone } from "@hullwise/core";
+import { getAccountProfile, listRecentSignIns, pendingEmailChange } from "@hullwise/services";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import type { CurrentUser } from "@/server/session";
 import { getMemberships } from "@/server/session";
 import { avatarUrl } from "@/server/avatar";

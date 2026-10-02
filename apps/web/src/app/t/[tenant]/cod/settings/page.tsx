@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDate, formatDateTime, displayName } from "@keel/core";
-import { adminDb, eq, schema } from "@keel/db";
-import { SCORE_FACTORS, TAG_WRITE_EVENTS, TEMPLATE_VARIABLES, carrierImportSummary, getCodSettings, listCapacity, listRiskyRecipients } from "@keel/addon-cod";
+import { formatDate, formatDateTime, displayName } from "@hullwise/core";
+import { adminDb, eq, schema } from "@hullwise/db";
+import { SCORE_FACTORS, TAG_WRITE_EVENTS, TEMPLATE_VARIABLES, carrierImportSummary, getCodSettings, listCapacity, listRiskyRecipients } from "@hullwise/addon-cod";
 import { codMessagingWebhookUrl } from "@/server/cod-webhook";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { CapacityRow, DeleteExceptionButton, ExceptionForm, OverrideControls, RecomputeRiskButton, ScoringSettingsForm, TagSettingsForm } from "./controls";
 import { CarrierImportForm, OperationsForm, ScorePreview, TemplatesEditor } from "./extras";

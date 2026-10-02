@@ -1,7 +1,7 @@
-import { and, desc, eq, inArray, recordAudit, schema, sql } from "@keel/db";
-import { MCP_LIMITS, canDo, canWritePage, isTenantRole, type ActionKey, type TenantRole } from "@keel/config";
-import { sanitizeFreeText } from "@keel/core";
-import type { CommercePlatform } from "@keel/integrations";
+import { and, desc, eq, inArray, recordAudit, schema, sql } from "@hullwise/db";
+import { MCP_LIMITS, canDo, canWritePage, isTenantRole, type ActionKey, type TenantRole } from "@hullwise/config";
+import { sanitizeFreeText } from "@hullwise/core";
+import type { CommercePlatform } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { notifyUsers } from "../notifications";
 import { cancelOrderWithPlatform } from "../orders/writes";
@@ -12,7 +12,7 @@ import type { ToolRuntime } from "../tools";
 
 /**
  * Proposals (#21): risky actions an AI client asks for through MCP. Nothing changes until a person
- * whose role allows the action approves it in Keel; the approval runs the same services the pages
+ * whose role allows the action approves it in Hullwise; the approval runs the same services the pages
  * use, as that person, with the proposal in the event metadata. Every step is audited.
  */
 
@@ -164,7 +164,7 @@ export async function decideProposal(ctx: ServiceContext, input: DecideInput): P
       } else if (row.kind === "campaign.pause") {
         const [c] = await sp.select().from(schema.campaigns).where(and(eq(schema.campaigns.tenantId, ctx.tenantId), eq(schema.campaigns.id, String(payload.campaignId)))).limit(1);
         if (!c) throw new Error("Campaign not found");
-        if (c.platform !== "meta") throw new Error("Only Meta campaigns can be paused from Keel");
+        if (c.platform !== "meta") throw new Error("Only Meta campaigns can be paused from Hullwise");
         if (c.status === "paused") throw new Error("The campaign is already paused");
         await sp.update(schema.campaigns).set({ status: "paused" }).where(eq(schema.campaigns.id, c.id));
         await recordAudit(sp, { tenantId: ctx.tenantId, actorUserId: ctx.actor.userId, action: "campaign.paused", entityType: "campaign", entityId: c.id, diff: { status: { from: c.status, to: "paused" } }, metadata: meta });

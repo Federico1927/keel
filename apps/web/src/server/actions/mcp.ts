@@ -2,10 +2,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { adminDb, eq, recordAudit, schema } from "@keel/db";
-import { MCP_PAT_DAYS, MCP_SCOPES } from "@keel/config";
-import { diffRecords, narrowMcpScopes } from "@keel/core";
-import { McpTokenError, OAuthError, ProposalError, checkAuthorizeRequest, createAuthorizationCode, createPersonalAccessToken, decideProposal, getCommercePlatformFor, mcpAvailabilityFor, revokeMcpToken, rotatePersonalAccessToken, setMcpKillSwitch, type ServiceContext } from "@keel/services";
+import { adminDb, eq, recordAudit, schema } from "@hullwise/db";
+import { MCP_PAT_DAYS, MCP_SCOPES } from "@hullwise/config";
+import { diffRecords, narrowMcpScopes } from "@hullwise/core";
+import { McpTokenError, OAuthError, ProposalError, checkAuthorizeRequest, createAuthorizationCode, createPersonalAccessToken, decideProposal, getCommercePlatformFor, mcpAvailabilityFor, revokeMcpToken, rotatePersonalAccessToken, setMcpKillSwitch, type ServiceContext } from "@hullwise/services";
 import { auditActor } from "@/server/audit-actor";
 import { requireSuperAdmin } from "@/server/admin";
 import { mcpDeps, mcpOrigin } from "@/server/mcp";

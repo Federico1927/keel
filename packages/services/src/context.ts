@@ -1,4 +1,4 @@
-import type { Transaction } from "@keel/db";
+import type { Transaction } from "@hullwise/db";
 
 /** What every service needs: the tenant transaction and who is acting. */
 export interface ServiceContext {

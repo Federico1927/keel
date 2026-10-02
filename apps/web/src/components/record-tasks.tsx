@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canViewPage, canWritePage } from "@keel/config";
-import { formatDateTime, isTaskOverdue, type TaskEntityType } from "@keel/core";
-import { tasksForRecord } from "@keel/services";
-import { Badge, Card, CardContent, CardHeader, CardTitle } from "@keel/ui";
+import { canViewPage, canWritePage } from "@hullwise/config";
+import { formatDateTime, isTaskOverdue, type TaskEntityType } from "@hullwise/core";
+import { tasksForRecord } from "@hullwise/services";
+import { Badge, Card, CardContent, CardHeader, CardTitle } from "@hullwise/ui";
 import { getTenantContext } from "@/server/tenant";
 import { tenantPeople } from "@/server/people";
 import { NewTaskButton, TaskActions } from "./tasks/task-controls";

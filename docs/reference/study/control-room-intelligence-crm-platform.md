@@ -1,3 +1,5 @@
+> Historical document: the product was formerly called Keel.
+
 # Control Center (Lorena Milano) — Study: Intelligence, CRM, Platform
 
 Source: `/home/user/lorena-control-center` (read-only). React + TS + Supabase (Postgres, RLS, Edge Functions in Deno, pg_cron). All paths below are relative to that repo root unless absolute.

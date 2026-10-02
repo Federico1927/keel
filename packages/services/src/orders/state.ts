@@ -1,5 +1,5 @@
-import { and, eq, inArray, schema } from "@keel/db";
-import { OPEN_BACKORDER_STATUSES, ORDER_STATUSES, deriveOrderStatus, diffRecords, type OrderStatus, type PaymentMethod, type PaymentStatus, type ShipmentStatus, type StateInput, type StateRule } from "@keel/core";
+import { and, eq, inArray, schema } from "@hullwise/db";
+import { OPEN_BACKORDER_STATUSES, ORDER_STATUSES, deriveOrderStatus, diffRecords, type OrderStatus, type PaymentMethod, type PaymentStatus, type ShipmentStatus, type StateInput, type StateRule } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 
 export async function loadStateRules(ctx: ServiceContext): Promise<StateRule[]> {

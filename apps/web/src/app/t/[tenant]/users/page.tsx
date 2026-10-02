@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
-import { adminDb, eq, schema } from "@keel/db";
-import { PageHeader } from "@keel/ui";
-import { listInvitations } from "@keel/services";
+import { adminDb, eq, schema } from "@hullwise/db";
+import { PageHeader } from "@hullwise/ui";
+import { listInvitations } from "@hullwise/services";
 import { requirePage } from "@/server/tenant";
 import { InviteForm, InvitationsList, MembersTable } from "./members";
 

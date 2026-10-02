@@ -1,6 +1,6 @@
-import { and, eq, gte, inArray, isNull, lt, recordAudit, schema, sql, type SQL } from "@keel/db";
-import { compileFormula, diffRecords, evaluateFormula, formulaIdentifiers, localMonthKey, orderPnl, periodBuckets, bucketIndex, sumOrderPnl, targetForMonth, type Granularity, type Period } from "@keel/core";
-import { AD_PLATFORMS, CUSTOM_METRIC_PREFIX, FILTERABLE_METRIC_KEYS, METRIC_KEYS, SERIES_METRIC_KEYS, isCustomMetricRef, metricDefinition, metricFiltersSchema, normalizeMetricFilters, type MetricFilters, type MetricFormat } from "@keel/config";
+import { and, eq, gte, inArray, isNull, lt, recordAudit, schema, sql, type SQL } from "@hullwise/db";
+import { compileFormula, diffRecords, evaluateFormula, formulaIdentifiers, localMonthKey, orderPnl, periodBuckets, bucketIndex, sumOrderPnl, targetForMonth, type Granularity, type Period } from "@hullwise/core";
+import { AD_PLATFORMS, CUSTOM_METRIC_PREFIX, FILTERABLE_METRIC_KEYS, METRIC_KEYS, SERIES_METRIC_KEYS, isCustomMetricRef, metricDefinition, metricFiltersSchema, normalizeMetricFilters, type MetricFilters, type MetricFormat } from "@hullwise/config";
 import type { ServiceContext } from "../context";
 import type { AuditIdentity } from "../catalog/costs";
 import { orderEconomicsForPeriod, pnlForPeriod, adSpendForPeriod, type AnalyticsTenant, type EconomicsRow } from "../analytics";
@@ -66,7 +66,7 @@ async function incomingPoValue(ctx: ServiceContext): Promise<number> {
   return Number(r?.v ?? 0);
 }
 
-/** Spend, Keel-attributed ROAS, CPA and CTR of one ad platform, from the campaign economics the Campaigns page shows. */
+/** Spend, Hullwise-attributed ROAS, CPA and CTR of one ad platform, from the campaign economics the Campaigns page shows. */
 async function platformAds(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period, platform: string): Promise<MetricValues> {
   const rows = await campaignsWithEconomics(ctx, tenant, period, { platform });
   const t = rows.reduce((s, r) => ({ spend: s.spend + r.metrics.spendMinor, net: s.net + r.metrics.netRevenueMinor, orders: s.orders + r.metrics.attributedOrders, clicks: s.clicks + r.metrics.clicks, impressions: s.impressions + r.metrics.impressions }), { spend: 0, net: 0, orders: 0, clicks: 0, impressions: 0 });

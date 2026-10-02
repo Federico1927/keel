@@ -1,4 +1,4 @@
-import type { CatalogItem } from "@keel/core";
+import type { CatalogItem } from "@hullwise/core";
 
 /** mock = no processor (default); test / live = Stripe, from the key prefix. */
 export type BillingMode = "mock" | "test" | "live";
@@ -144,8 +144,8 @@ export interface BillingInvoiceInput {
 
 /**
  * Payment processor contract (#53). Stripe subscriptions own collection (card on file, retries,
- * dunning, proration); Keel mirrors them from webhooks. The mock (default) keeps everything inside
- * Keel: the console simulates the webhooks it would receive.
+ * dunning, proration); Hullwise mirrors them from webhooks. The mock (default) keeps everything inside
+ * Hullwise: the console simulates the webhooks it would receive.
  */
 export interface BillingProvider {
   readonly provider: "mock" | "stripe";
@@ -162,7 +162,7 @@ export interface BillingProvider {
   fetchSubscription(subscriptionId: string): Promise<SubscriptionSnapshot | null>;
   listInvoices(customerId: string, limit?: number): Promise<InvoiceSnapshot[]>;
   setCustomerTaxExempt(customerId: string, value: "none" | "exempt" | "reverse"): Promise<void>;
-  /** Keel-ledger invoices (the mock model's monthly run). */
+  /** Hullwise-ledger invoices (the mock model's monthly run). */
   createInvoice(input: BillingInvoiceInput): Promise<{ externalId: string; hostedUrl: string | null }>;
   fetchInvoiceStatus(externalId: string): Promise<"open" | "paid" | "void" | "uncollectible">;
 }

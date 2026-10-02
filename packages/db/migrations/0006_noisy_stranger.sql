@@ -15,4 +15,4 @@ ALTER TABLE "period_costs" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 ALTER TABLE "period_costs" ADD CONSTRAINT "period_costs_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE UNIQUE INDEX "period_costs_uq" ON "period_costs" USING btree ("tenant_id","period","kind","label");--> statement-breakpoint
 CREATE INDEX "period_costs_tenant_period_idx" ON "period_costs" USING btree ("tenant_id","period");--> statement-breakpoint
-CREATE POLICY "period_costs_tenant_isolation" ON "period_costs" AS PERMISSIVE FOR ALL TO "keel_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid) WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);
+CREATE POLICY "period_costs_tenant_isolation" ON "period_costs" AS PERMISSIVE FOR ALL TO "hullwise_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid) WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);

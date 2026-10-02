@@ -39,7 +39,7 @@ export function stripeSubscriptionObject(s: { id: string; customerId: string; te
     trial_end: sec(s.trialEnd),
     latest_invoice: s.latestInvoiceId ?? null,
     default_payment_method: s.paymentMethod ? { id: "pm_card", object: "payment_method", type: "card", card: { brand: s.paymentMethod.brand, last4: s.paymentMethod.last4 } } : null,
-    metadata: { keel_tenant_id: s.tenantId },
+    metadata: { hullwise_tenant_id: s.tenantId },
     items: { object: "list", data: s.items.map((i) => ({ id: i.itemId, object: "subscription_item", quantity: i.quantity ?? 1, current_period_start: sec(s.periodStart), current_period_end: sec(s.periodEnd), price: stripePriceObject(i) })) },
   };
 }
@@ -72,15 +72,15 @@ export function stripeInvoiceObject(i: { id: string; number: string | null; cust
     invoice_pdf: i.pdfUrl ?? null,
     status_transitions: { finalized_at: sec(i.finalizedAt ?? (i.status === "draft" ? null : i.created)), paid_at: sec(i.paidAt), voided_at: null, marked_uncollectible_at: null },
     metadata: {},
-    parent: i.subscriptionId ? { type: "subscription_details", subscription_details: { subscription: i.subscriptionId, metadata: { keel_tenant_id: i.tenantId } } } : null,
+    parent: i.subscriptionId ? { type: "subscription_details", subscription_details: { subscription: i.subscriptionId, metadata: { hullwise_tenant_id: i.tenantId } } } : null,
     lines: { object: "list", data: i.lines.map((l, n) => ({ id: `il_${i.id}_${n}`, object: "line_item", amount: l.amountMinor, currency: i.currency.toLowerCase(), description: l.description, pricing: { type: "price_details", price_details: { price: l.priceId, product: null } }, parent: { type: "subscription_item_details", subscription_item_details: { proration: l.proration ?? false } } })) },
   };
 }
 
 export function stripeCheckoutObject(c: { id: string; customerId: string; subscriptionId: string | null; tenantId: string; status: "open" | "complete" | "expired"; paymentStatus: "paid" | "unpaid" | "no_payment_required"; url?: string | null; expiresAt?: Date | null }): Obj {
-  return { id: c.id, object: "checkout.session", mode: "subscription", customer: c.customerId, subscription: c.subscriptionId, client_reference_id: c.tenantId, status: c.status, payment_status: c.paymentStatus, url: c.url ?? null, expires_at: sec(c.expiresAt), metadata: { keel_tenant_id: c.tenantId } };
+  return { id: c.id, object: "checkout.session", mode: "subscription", customer: c.customerId, subscription: c.subscriptionId, client_reference_id: c.tenantId, status: c.status, payment_status: c.paymentStatus, url: c.url ?? null, expires_at: sec(c.expiresAt), metadata: { hullwise_tenant_id: c.tenantId } };
 }
 
 export function stripeCustomerObject(c: { id: string; tenantId: string; name: string; email?: string | null; country?: string | null; taxExempt?: string; taxIds?: { type: string; value: string; verified: boolean }[] }): Obj {
-  return { id: c.id, object: "customer", name: c.name, email: c.email ?? null, address: c.country ? { country: c.country } : null, tax_exempt: c.taxExempt ?? "none", metadata: { keel_tenant_id: c.tenantId }, tax_ids: { object: "list", data: (c.taxIds ?? []).map((t, n) => ({ id: `txi_${n}`, object: "tax_id", type: t.type, value: t.value, verification: { status: t.verified ? "verified" : "unverified" } })) } };
+  return { id: c.id, object: "customer", name: c.name, email: c.email ?? null, address: c.country ? { country: c.country } : null, tax_exempt: c.taxExempt ?? "none", metadata: { hullwise_tenant_id: c.tenantId }, tax_ids: { object: "list", data: (c.taxIds ?? []).map((t, n) => ({ id: `txi_${n}`, object: "tax_id", type: t.type, value: t.value, verification: { status: t.verified ? "verified" : "unverified" } })) } };
 }

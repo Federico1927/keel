@@ -1,5 +1,5 @@
 import { ImageOff } from "lucide-react";
-import { cn } from "@keel/ui";
+import { cn } from "@hullwise/ui";
 
 /** Product or variant thumbnail for lists (issue #19); a neutral tile when there is no image. */
 export function ProductThumb({ src, alt, size = "sm", className }: { src: string | null | undefined; alt: string; size?: "xs" | "sm" | "md"; className?: string }) {

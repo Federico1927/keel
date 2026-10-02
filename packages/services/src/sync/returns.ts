@@ -1,27 +1,27 @@
-import { and, eq, isNull, ne, schema, sql } from "@keel/db";
-import { RETURN_CLOSED_STATUSES, RETURN_GOODS_BACK_STATUSES, matchReturnReason, nextReturnStatusFromPlatform, platformReturnTarget, returnableLines, type ReturnStatus } from "@keel/core";
-import type { NormalizedReturn } from "@keel/integrations";
+import { and, eq, isNull, ne, schema, sql } from "@hullwise/db";
+import { RETURN_CLOSED_STATUSES, RETURN_GOODS_BACK_STATUSES, matchReturnReason, nextReturnStatusFromPlatform, platformReturnTarget, returnableLines, type ReturnStatus } from "@hullwise/core";
+import type { NormalizedReturn } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { applyReturnToOrder } from "../returns/effects";
 import { syncRecordTasks } from "../tasks";
 
 export interface ReturnImportOutcome {
   id: string | null;
-  /** `linked`: a return Keel had pushed to the platform got its platform id from this import. */
+  /** `linked`: a return Hullwise had pushed to the platform got its platform id from this import. */
   outcome: "created" | "updated" | "linked" | "unchanged" | "skipped";
   reason?: "order_not_found" | "no_lines";
 }
 
 const goodsBack = (s: string) => (RETURN_GOODS_BACK_STATUSES as readonly string[]).includes(s);
 const closed = (s: string) => (RETURN_CLOSED_STATUSES as readonly string[]).includes(s);
-/** Marks a refund made on the platform: Keel's write-back never issues it again. */
+/** Marks a refund made on the platform: Hullwise's write-back never issues it again. */
 const PLATFORM_RANK: Record<string, number> = { requested: 0, approved: 1, declined: 2, closed: 2 };
 const platformRefundMarker = (externalId: string) => `platform:${externalId}`;
 
 /**
  * Idempotent upsert of a platform return (webhook or reconcile) into `return_requests` with `source =
- * platform`, linked to its order and lines. Matching, in order: the platform id; then a Keel return on the
- * same order with the same lines that has no platform id yet (Keel pushed it and the push is still
+ * platform`, linked to its order and lines. Matching, in order: the platform id; then a Hullwise return on the
+ * same order with the same lines that has no platform id yet (Hullwise pushed it and the push is still
  * committing, or its answer was lost), which is adopted instead of duplicated. Status changes only move a
  * return forward. Money is never taken from the platform return: refunds come with the order import, so the
  * P/L counts them once.
@@ -49,7 +49,7 @@ export async function importPlatformReturn(ctx: ServiceContext, r: NormalizedRet
     for (const c of candidates) {
       const lines = await ctx.tx.select({ orderLineId: schema.returnLines.orderLineId, quantity: schema.returnLines.quantity }).from(schema.returnLines).where(eq(schema.returnLines.returnId, c.id));
       if (key(lines) !== wantedKey) continue;
-      // conditional: when Keel's own push commits first (it holds the row), this matches nothing and the id is read back below
+      // conditional: when Hullwise's own push commits first (it holds the row), this matches nothing and the id is read back below
       const [adopted] = await ctx.tx.update(schema.returnRequests).set({ externalId: r.externalId, updatedAt: now }).where(and(eq(schema.returnRequests.id, c.id), isNull(schema.returnRequests.externalId))).returning();
       [existing] = adopted ? [adopted] : await ctx.tx.select().from(schema.returnRequests).where(and(eq(schema.returnRequests.tenantId, ctx.tenantId), eq(schema.returnRequests.externalId, r.externalId))).limit(1);
       linked = Boolean(adopted);
@@ -103,7 +103,7 @@ export async function importPlatformReturn(ctx: ServiceContext, r: NormalizedRet
   for (const l of wanted) if (l.externalId) await ctx.tx.update(schema.returnLines).set({ externalId: l.externalId }).where(and(eq(schema.returnLines.returnId, existing.id), eq(schema.returnLines.orderLineId, l.orderLineId), isNull(schema.returnLines.externalId)));
   const next = nextReturnStatusFromPlatform(existing.status, target.status);
   const patch: Partial<typeof schema.returnRequests.$inferInsert> = {};
-  // the platform state Keel remembers only moves forward too: a late webhook never makes the write-back repeat a step
+  // the platform state Hullwise remembers only moves forward too: a late webhook never makes the write-back repeat a step
   if ((PLATFORM_RANK[target.platformStatus] ?? 0) > (existing.platformStatus ? (PLATFORM_RANK[existing.platformStatus] ?? 0) : -1)) patch.platformStatus = target.platformStatus;
   if (next) {
     const endedAt = r.closedAt ?? now;

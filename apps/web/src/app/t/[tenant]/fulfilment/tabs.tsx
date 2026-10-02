@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { cn } from "@keel/ui";
+import { cn } from "@hullwise/ui";
 
 /** Sub-navigation of the fulfilment area: board, exception queue, return-to-sender review. */
 export async function FulfilmentTabs({ slug, active, counts }: { slug: string; active: "board" | "exceptions" | "returned"; counts: { toShip: number; exceptions: number; returned: number } }) {

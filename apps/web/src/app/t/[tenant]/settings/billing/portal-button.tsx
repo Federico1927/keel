@@ -1,7 +1,7 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@keel/ui";
+import { Button } from "@hullwise/ui";
 import { openBillingPortalAction } from "@/server/actions/billing";
 
 /** "Manage payment method" (#53): a Stripe Customer Portal session, opened in this tab. */

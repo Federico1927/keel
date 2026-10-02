@@ -5,7 +5,7 @@
  * Only marketing-specific tokens are declared below; a test fails if this file redefines a
  * shared one.
  */
-@import "@keel/ui/theme.css";
+@import "@hullwise/ui/theme.css";
 
 @theme inline {
   /* Soft wash behind the hero and the frame shadow of the product screenshots. */

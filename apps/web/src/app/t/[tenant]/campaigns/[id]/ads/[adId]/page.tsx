@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { canDo, isAdPlatformInPlan } from "@keel/config";
-import { ADS_UTM_TEMPLATES, type AdPlatform, formatDate, formatMoney, formatNumber, formatPercent } from "@keel/core";
-import { adDetail, canWriteAds, latestPlatformWrites } from "@keel/services";
-import { Alert, AlertDescription, Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, EmptyState, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { canDo, isAdPlatformInPlan } from "@hullwise/config";
+import { ADS_UTM_TEMPLATES, type AdPlatform, formatDate, formatMoney, formatNumber, formatPercent } from "@hullwise/core";
+import { adDetail, canWriteAds, latestPlatformWrites } from "@hullwise/services";
+import { Alert, AlertDescription, Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, EmptyState, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";
@@ -47,7 +47,7 @@ export default async function AdPage({ params, searchParams }: { params: Promise
         <Stat label={t("cols.ctr")} value={formatPercent(e.ctr, ctx.locale, 2)} hint={`${formatNumber(ad.metrics.impressions, ctx.locale)} · ${formatNumber(ad.metrics.clicks, ctx.locale)}`} />
         <Stat label={t("cols.frequency")} value={ad.frequency === null ? "—" : ad.frequency.toFixed(1)} hint={ad.fatigue?.ctrChange != null ? t("ctr_change", { change: formatPercent(ad.fatigue.ctrChange, ctx.locale, 0) }) : undefined} />
         <Stat label={t("cols.platform_conv")} value={`${formatNumber(Math.round(ad.metrics.conversions), ctx.locale)} · ${money(ad.metrics.conversionValueMinor)}`} />
-        <Stat label={t("cols.keel_orders")} value={formatNumber(e.attributedOrders, ctx.locale)} href={ordersHref(tenant, ad.orders, period, ctx.tenant.timezone) ?? undefined} hint={e.excludedOrders ? t("excluded_n", { n: e.excludedOrders }) : undefined} />
+        <Stat label={t("cols.hullwise_orders")} value={formatNumber(e.attributedOrders, ctx.locale)} href={ordersHref(tenant, ad.orders, period, ctx.tenant.timezone) ?? undefined} hint={e.excludedOrders ? t("excluded_n", { n: e.excludedOrders }) : undefined} />
         <Stat label={t("cols.revenue")} value={money(e.netRevenueMinor)} />
         <Stat label={t("cols.margin")} value={money(e.marginMinor)} />
         <Stat label={t("cols.profit")} value={money(e.profitMinor)} />
@@ -80,7 +80,7 @@ export default async function AdPage({ params, searchParams }: { params: Promise
                   <TableHead className="hidden text-right md:table-cell">{t("cols.impressions")}</TableHead>
                   <TableHead className="text-right">{t("cols.ctr")}</TableHead>
                   <TableHead className="hidden text-right lg:table-cell">{t("cols.platform_conv")}</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">{t("cols.keel_orders_allocated")}</TableHead>
+                  <TableHead className="hidden text-right md:table-cell">{t("cols.hullwise_orders_allocated")}</TableHead>
                   <TableHead className="text-right">{t("cols.profit")}</TableHead>
                 </TableRow>
               </TableHeader>

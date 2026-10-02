@@ -1,4 +1,4 @@
-import { PRODUCT_NAME } from "@keel/config";
+import { PRODUCT_NAME } from "@hullwise/config";
 
 export { PRODUCT_NAME };
 

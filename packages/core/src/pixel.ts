@@ -3,7 +3,7 @@ import { deriveChannel, extractAttribution, type Attribution, type AttributionCh
 
 /**
  * First-party pixel: event shape accepted by the collect endpoint and the touchpoint a session
- * produces. The browser script (served by Keel or pasted as a Shopify custom pixel) generates a
+ * produces. The browser script (served by Hullwise or pasted as a Shopify custom pixel) generates a
  * long-lived anonymous id and a 30-minute session id on the store's own domain.
  */
 export const PIXEL_EVENTS = ["page_view", "product_view", "add_to_cart", "checkout_started", "checkout_completed", "identify"] as const;

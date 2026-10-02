@@ -1,5 +1,5 @@
 import { HttpClient, type HttpOptions } from "../http";
-import type { BalanceTransactionType, PayoutStatus } from "@keel/core";
+import type { BalanceTransactionType, PayoutStatus } from "@hullwise/core";
 import { IntegrationError, type CommercePlatform, type ConnectionTest, type CreateOrderInput, type ManualPaymentInput, type NormalizedBalanceTransaction, type NormalizedPayout, type RefundOrderInput, type FulfillmentHoldInput, type NormalizedCustomer, type NormalizedDiscount, type NormalizedInventoryLevel, type NormalizedLocation, type NormalizedOrder, type NormalizedProduct, type NormalizedReturn, type OrderDetailsPatch, type OrderDiscountPatch, type Page, type VariantPatch, type ProductPatch, type ProductMediaOperation, type PlatformReturnLineInput, type SyncQuery, type VerifiedWebhook, type WebhookRegistration, type CreateFulfillmentInput, type NormalizedFulfillment } from "../types";
 import { ORDER_FIELDS, PRODUCT_FIELDS, PRODUCT_MEDIA_PAGE, gidToId, idToGid, mapGraphqlCustomer, mapGraphqlDiscount, mapGraphqlInventoryLevel, mapGraphqlLocation, mapGraphqlOrder, mapGraphqlProduct, mapRestCustomer, mapRestInventoryLevel, mapRestOrder, mapRestProduct, mapFulfillmentStatus, mapGraphqlReturn, mapRestReturn, RETURN_FIELDS } from "./mappers";
 import { SHOPIFY_ALL_SCOPES, SHOPIFY_API_VERSION, verifyWebhookHmac } from "./oauth";
@@ -15,8 +15,8 @@ export interface ShopifyOptions extends HttpOptions {
 }
 
 type Rec = Record<string, unknown>;
-/** Handle of the fulfillment holds Keel places: releasing touches only these. */
-export const KEEL_HOLD_HANDLE = "keel-awaiting-stock";
+/** Handle of the fulfillment holds Hullwise places: releasing touches only these. */
+export const HULLWISE_HOLD_HANDLE = "hullwise-awaiting-stock";
 interface GraphqlResponse<T> {
   data?: T;
   errors?: { message: string; extensions?: { code?: string } }[];
@@ -247,7 +247,7 @@ export class ShopifyCommercePlatform implements CommercePlatform {
       billingAddress: input.billingAddress ? address : null,
       customAttributes: [...input.noteAttributes, ...(input.replacesOrderName ? [{ key: "replaces_order", value: input.replacesOrderName }] : [])].map((x) => ("key" in x ? x : { key: x.name, value: x.value })),
       ...(input.shippingMinor > 0 ? { shippingLine: { title: "Shipping", price: (input.shippingMinor / 100).toFixed(2) } } : {}),
-      ...(input.discountMinor > 0 ? { appliedDiscount: { valueType: "FIXED_AMOUNT", value: input.discountMinor / 100, title: "Keel" } } : {}),
+      ...(input.discountMinor > 0 ? { appliedDiscount: { valueType: "FIXED_AMOUNT", value: input.discountMinor / 100, title: "Hullwise" } } : {}),
     };
   }
 
@@ -315,7 +315,7 @@ export class ShopifyCommercePlatform implements CommercePlatform {
    * Gallery writes (to verify on a live store: media mutations moved between API versions):
    * create = `productUpdate(media:)` from a public URL, reorder = `productReorderMedia` (a job,
    * awaited briefly), delete = `productDeleteMedia`, alt text = `fileUpdate`. Then the product is
-   * read back, so Keel stores what Shopify holds.
+   * read back, so Hullwise stores what Shopify holds.
    */
   async updateProductMedia(externalId: string, op: ProductMediaOperation): Promise<NormalizedProduct> {
     const id = idToGid("Product", externalId);
@@ -402,7 +402,7 @@ export class ShopifyCommercePlatform implements CommercePlatform {
   }
   /**
    * Standalone code: `discountCodeDeactivate` / `discountCodeActivate` on its discount (looked up by code
-   * when Keel has no id yet). Pool code: the redeem code is deleted from the pool's discount, or added back.
+   * when Hullwise has no id yet). Pool code: the redeem code is deleted from the pool's discount, or added back.
    * Mutation names and the redeem-code search syntax to verify.
    */
   async setDiscountActive(discount: { externalId: string | null; code: string; poolExternalId?: string | null }, active: boolean): Promise<void> {
@@ -439,20 +439,20 @@ export class ShopifyCommercePlatform implements CommercePlatform {
     return data.order.fulfillmentOrders.nodes.map((n) => ({ id: n.id, status: n.status, holds: n.fulfillmentHolds ?? [] }));
   }
 
-  /** Holds every open fulfillment order with Keel's handle; one already holding Keel's hold is left alone. */
+  /** Holds every open fulfillment order with Hullwise's handle; one already holding Hullwise's hold is left alone. */
   async holdFulfillment(externalId: string, hold: FulfillmentHoldInput): Promise<void> {
     const reason = hold.reason === "awaiting_stock" ? "INVENTORY_OUT_OF_STOCK" : "OTHER";
     for (const fo of await this.fulfillmentOrders(externalId)) {
-      if (fo.holds.some((h) => h.handle === KEEL_HOLD_HANDLE)) continue;
+      if (fo.holds.some((h) => h.handle === HULLWISE_HOLD_HANDLE)) continue;
       if (fo.status !== "OPEN" && fo.status !== "ON_HOLD") continue;
-      await this.mutate("fulfillmentOrderHold", `mutation($id: ID!, $fulfillmentHold: FulfillmentOrderHoldInput!) { fulfillmentOrderHold(id: $id, fulfillmentHold: $fulfillmentHold) { fulfillmentHold { id } userErrors { field message } } }`, { id: fo.id, fulfillmentHold: { reason, reasonNotes: hold.note ?? undefined, handle: KEEL_HOLD_HANDLE, notifyMerchant: false } });
+      await this.mutate("fulfillmentOrderHold", `mutation($id: ID!, $fulfillmentHold: FulfillmentOrderHoldInput!) { fulfillmentOrderHold(id: $id, fulfillmentHold: $fulfillmentHold) { fulfillmentHold { id } userErrors { field message } } }`, { id: fo.id, fulfillmentHold: { reason, reasonNotes: hold.note ?? undefined, handle: HULLWISE_HOLD_HANDLE, notifyMerchant: false } });
     }
   }
 
-  /** Releases only the holds carrying Keel's handle, so a merchant's own hold survives. */
+  /** Releases only the holds carrying Hullwise's handle, so a merchant's own hold survives. */
   async releaseFulfillment(externalId: string): Promise<void> {
     for (const fo of await this.fulfillmentOrders(externalId)) {
-      const ours = fo.holds.filter((h) => h.handle === KEEL_HOLD_HANDLE).map((h) => h.id);
+      const ours = fo.holds.filter((h) => h.handle === HULLWISE_HOLD_HANDLE).map((h) => h.id);
       if (!ours.length) continue;
       await this.mutate("fulfillmentOrderReleaseHold", `mutation($id: ID!, $holdIds: [ID!]) { fulfillmentOrderReleaseHold(id: $id, holdIds: $holdIds) { fulfillmentOrder { id status } userErrors { field message } } }`, { id: fo.id, holdIds: ours });
     }
@@ -558,7 +558,7 @@ export class ShopifyCommercePlatform implements CommercePlatform {
   }
 
   /**
-   * Fulfilment from Keel: the order's open fulfillment orders → one `fulfillmentCreate` with the
+   * Fulfilment from Hullwise: the order's open fulfillment orders → one `fulfillmentCreate` with the
    * tracking info. Lines omitted = every remaining unit. Scope `write_merchant_managed_fulfillment_orders`
    * (or the third-party / assigned variants, depending on who holds the location).
    */
@@ -605,7 +605,7 @@ function mapPayout(n: Rec): NormalizedPayout {
   return { externalId: String(n.legacyResourceId ?? gidToId(String(n.id))), status: PAYOUT_STATUS[String(n.status)] ?? "paid", issuedAt: new Date(String(n.issuedAt)), currency: net.currencyCode, grossMinor, refundsMinor, adjustmentsMinor, feeMinor, netMinor: money(net) };
 }
 
-/** Shopify's many transaction types folded into Keel's few. */
+/** Shopify's many transaction types folded into Hullwise's few. */
 function balanceType(t: string): BalanceTransactionType {
   if (t === "CHARGE") return "charge";
   if (t.startsWith("REFUND")) return "refund";

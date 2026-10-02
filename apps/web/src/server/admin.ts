@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
-import { adminDb, type Database } from "@keel/db";
+import { adminDb, type Database } from "@hullwise/db";
 import { getCurrentUser, type CurrentUser } from "./session";
 
 export interface AdminContext {

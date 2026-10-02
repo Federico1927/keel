@@ -1,6 +1,6 @@
-import { and, desc, eq, gte, inArray, lt, schema, sql } from "@keel/db";
-import { payoutTotals, type PayoutTotals } from "@keel/core";
-import type { CommercePlatform, NormalizedBalanceTransaction, NormalizedPayout } from "@keel/integrations";
+import { and, desc, eq, gte, inArray, lt, schema, sql } from "@hullwise/db";
+import { payoutTotals, type PayoutTotals } from "@hullwise/core";
+import type { CommercePlatform, NormalizedBalanceTransaction, NormalizedPayout } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { recordHealth } from "../sync";
 
@@ -26,7 +26,7 @@ async function upsertPayout(ctx: ServiceContext, provider: string, p: Normalized
   await ctx.tx.insert(schema.payouts).values({ tenantId: ctx.tenantId, provider, externalId: p.externalId, ...values }).onConflictDoUpdate({ target: [schema.payouts.tenantId, schema.payouts.provider, schema.payouts.externalId], set: values });
 }
 
-/** Stores a page of balance transactions, linked to their payout and (by external id) to Keel's orders. */
+/** Stores a page of balance transactions, linked to their payout and (by external id) to Hullwise's orders. */
 async function upsertTransactions(ctx: ServiceContext, provider: string, payoutExternalId: string, items: NormalizedBalanceTransaction[], now: Date): Promise<number> {
   if (!items.length) return 0;
   const [payout] = await ctx.tx.select({ id: schema.payouts.id }).from(schema.payouts).where(and(eq(schema.payouts.tenantId, ctx.tenantId), eq(schema.payouts.provider, provider), eq(schema.payouts.externalId, payoutExternalId))).limit(1);

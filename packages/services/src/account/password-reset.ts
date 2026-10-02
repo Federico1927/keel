@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
-import { and, eq, gt, gte, isNull, recordAudit, schema, sql, type Database, type DbExecutor } from "@keel/db";
-import { emailAddressHash } from "@keel/integrations";
-import { checkPassword, normalizeEmail } from "@keel/core";
+import { and, eq, gt, gte, isNull, recordAudit, schema, sql, type Database, type DbExecutor } from "@hullwise/db";
+import { emailAddressHash } from "@hullwise/integrations";
+import { checkPassword, normalizeEmail } from "@hullwise/core";
 import { queueEmail } from "../email/mailer";
 import { appBaseUrl } from "../email/unsubscribe";
 import { AccountError } from "./errors";

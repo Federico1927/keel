@@ -1,5 +1,5 @@
-import { and, desc, eq, inArray, isNull, lt, or, schema, sql } from "@keel/db";
-import type { CommercePlatform, NormalizedInventoryLevel } from "@keel/integrations";
+import { and, desc, eq, inArray, isNull, lt, or, schema, sql } from "@hullwise/db";
+import type { CommercePlatform, NormalizedInventoryLevel } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { unconfirmedWriteTargets } from "../writes";
 
@@ -8,11 +8,11 @@ export type StockReadSource = "sync" | "reconcile" | "webhook" | "manual";
 export interface ApplyLevelsResult {
   scanned: number;
   changed: number;
-  /** Levels left untouched because a Keel stock write is not yet confirmed by the platform. */
+  /** Levels left untouched because a Hullwise stock write is not yet confirmed by the platform. */
   conflicts: number;
   drift: number;
   clamped: number;
-  /** Platform pairs Keel does not know (unknown item or location). */
+  /** Platform pairs Hullwise does not know (unknown item or location). */
   skipped: number;
 }
 
@@ -26,7 +26,7 @@ async function logDrift(ctx: ServiceContext, row: { variantId: string; locationI
 }
 
 /**
- * Units Keel can explain for each variant since a moment: sales take stock away, cancellations of
+ * Units Hullwise can explain for each variant since a moment: sales take stock away, cancellations of
  * earlier orders bring it back. Sales carry no location, so the check runs per variant.
  */
 async function explainedMovement(ctx: ServiceContext, since: Map<string, Date>): Promise<Map<string, number>> {
@@ -45,7 +45,7 @@ async function explainedMovement(ctx: ServiceContext, since: Map<string, Date>):
 
 /**
  * Applies stock read from the platform. Negative values are clamped to zero (logged); levels with
- * a Keel write still in flight are not overwritten (counted as conflicts); a change no sale,
+ * a Hullwise write still in flight are not overwritten (counted as conflicts); a change no sale,
  * cancellation, receipt or adjustment explains is logged as drift. `synced_at` records the read,
  * so a complete run knows which levels the platform no longer reports.
  */
@@ -64,7 +64,7 @@ export async function applyInventoryLevels(ctx: ServiceContext, levels: Normaliz
   const localBy = new Map(local.map((l) => [`${l.variantId}@${l.locationId}`, l]));
   const inFlight = await unconfirmedWriteTargets(ctx, "inventory.set", levels.map((l) => `inventory:${l.inventoryItemExternalId}@${l.locationExternalId}`));
 
-  // per variant: what Keel had, what the platform says, for the levels Keel had already read once
+  // per variant: what Hullwise had, what the platform says, for the levels Hullwise had already read once
   const perVariant = new Map<string, { local: number; observed: number; since: Date; locations: { locationId: string; local: number; observed: number }[] }>();
   for (const lvl of levels) {
     const variantId = variantByItem.get(lvl.inventoryItemExternalId);
@@ -119,7 +119,7 @@ export async function refreshInventoryForVariants(ctx: ServiceContext, platform:
 
 /**
  * After a complete run, levels of synced variants the platform did not report (synced before the
- * run started) are stale: set to zero and logged. Levels with a Keel write in flight are kept.
+ * run started) are stale: set to zero and logged. Levels with a Hullwise write in flight are kept.
  */
 export async function zeroUnreportedLevels(ctx: ServiceContext, runStartedAt: Date, opts: { source: StockReadSource; runId: string | null }): Promise<{ zeroed: number; conflicts: number }> {
   const now = ctx.now ?? new Date();

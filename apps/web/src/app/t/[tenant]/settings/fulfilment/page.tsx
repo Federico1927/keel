@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
-import { canDo } from "@keel/config";
-import { listStatusMappings, unmappedExternalStatuses } from "@keel/services";
-import { Button, PageHeader } from "@keel/ui";
+import { canDo } from "@hullwise/config";
+import { listStatusMappings, unmappedExternalStatuses } from "@hullwise/services";
+import { Button, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { ClockForm, MappingEditor } from "./forms";
 

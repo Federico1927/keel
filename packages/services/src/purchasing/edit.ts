@@ -1,5 +1,5 @@
-import { and, eq, inArray, schema } from "@keel/db";
-import { canDeletePo, canEditPo, diffRecords, poLinesDiff, type Diff } from "@keel/core";
+import { and, eq, inArray, schema } from "@hullwise/db";
+import { canDeletePo, canEditPo, diffRecords, poLinesDiff, type Diff } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { recomputeLandedCost } from "../planning";
 import { PurchasingError, insertPoLines, nextPoNumber, normalizePoInput, recomputePoTotal, refreshBackorders, type PoLineInput } from "./index";

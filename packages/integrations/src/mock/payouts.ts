@@ -1,4 +1,4 @@
-import { payoutTotals } from "@keel/core";
+import { payoutTotals } from "@hullwise/core";
 import { createRng } from "../rng";
 import type { NormalizedBalanceTransaction, NormalizedPayout } from "../types";
 

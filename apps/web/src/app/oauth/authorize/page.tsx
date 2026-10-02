@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { adminDb } from "@keel/db";
-import { PRODUCT_NAME } from "@keel/config";
-import { checkAuthorizeRequest, mcpTenantChoices } from "@keel/services";
-import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@keel/ui";
+import { adminDb } from "@hullwise/db";
+import { PRODUCT_NAME } from "@hullwise/config";
+import { checkAuthorizeRequest, mcpTenantChoices } from "@hullwise/services";
+import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@hullwise/ui";
 import { BrandMark } from "@/components/brand-mark";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { getCurrentUser } from "@/server/session";

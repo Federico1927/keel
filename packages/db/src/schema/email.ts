@@ -1,10 +1,10 @@
 import { sql } from "drizzle-orm";
 import { index, integer, jsonb, pgPolicy, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import { createdAt, id, keelApp, tenantPredicate, updatedAt } from "./_common";
+import { createdAt, id, hullwiseApp, tenantPredicate, updatedAt } from "./_common";
 import { tenants } from "./tenants";
 
 /**
- * Delivery log of the platform email sender (issue #51): one row per email Keel queues, tenant
+ * Delivery log of the platform email sender (issue #51): one row per email Hullwise queues, tenant
  * emails and platform emails (tenant null: sign-in links, console test emails). The recipient is
  * stored as a keyed hash plus a masked form for the console; the body, the links and the props
  * are never stored here. The idempotency key (template, recipient, event) makes a second queue
@@ -48,8 +48,8 @@ export const emailMessages = pgTable(
     index("email_messages_tenant_created_idx").on(t.tenantId, t.createdAt),
     index("email_messages_provider_id_idx").on(t.providerMessageId),
     index("email_messages_recipient_idx").on(t.recipientHash),
-    pgPolicy("email_messages_tenant_select", { for: "select", to: keelApp, using: tenantPredicate }),
-    pgPolicy("email_messages_tenant_insert", { for: "insert", to: keelApp, withCheck: tenantPredicate }),
+    pgPolicy("email_messages_tenant_select", { for: "select", to: hullwiseApp, using: tenantPredicate }),
+    pgPolicy("email_messages_tenant_insert", { for: "insert", to: hullwiseApp, withCheck: tenantPredicate }),
   ],
 ).enableRLS();
 

@@ -53,7 +53,7 @@ describe("demo settings step (db:seed:settings)", () => {
     // a production seeded before #19: no gallery, an old CDN cover, no mirror; one product edited by hand
     const [first, second] = products;
     await pools.admin.delete(schema.productMedia).where(eq(schema.productMedia.tenantId, harbor));
-    await pools.admin.update(schema.products).set({ imageUrl: "https://cdn.keel.example/demo/x.jpg", descriptionHtml: null, platformUpdatedAt: null }).where(eq(schema.products.tenantId, harbor));
+    await pools.admin.update(schema.products).set({ imageUrl: "https://cdn.hullwise.example/demo/x.jpg", descriptionHtml: null, platformUpdatedAt: null }).where(eq(schema.products.tenantId, harbor));
     await pools.admin.update(schema.products).set({ descriptionHtml: "<p>Edited</p>" }).where(eq(schema.products.id, second!.id));
     const report = await ensureDemoSettings(pools.admin);
     expect(report.find((r) => r.tenant === "harbor-home")!.created).toEqual(expect.arrayContaining([`product_media:${media.length}`]));

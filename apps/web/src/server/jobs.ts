@@ -1,8 +1,8 @@
-import { platformRetentionDays } from "@keel/config";
-import { createBoss, QUEUES, queueRetentionOptions, runTrackedJob, type Enqueue, type QueueName } from "@keel/jobs";
+import { platformRetentionDays } from "@hullwise/config";
+import { createBoss, QUEUES, queueRetentionOptions, runTrackedJob, type Enqueue, type QueueName } from "@hullwise/jobs";
 
 /**
- * Enqueue helper for the web process. Queueing is opt-in (`KEEL_JOBS_QUEUE=1`, set when a
+ * Enqueue helper for the web process. Queueing is opt-in (`HULLWISE_JOBS_QUEUE=1`, set when a
  * worker is deployed); otherwise callers run the work inline right after responding, so a
  * single-process demo never leaves webhooks pending. pg-boss is started lazily on first use.
  */
@@ -28,7 +28,7 @@ async function boss() {
 
 /** Returns true when the job was queued, false when the caller should run it inline. */
 export async function enqueue(queue: QueueName, data: object, opts: { singletonKey?: string; startAfterSeconds?: number } = {}): Promise<boolean> {
-  if (process.env.KEEL_JOBS_QUEUE !== "1") return false;
+  if (process.env.HULLWISE_JOBS_QUEUE !== "1") return false;
   const b = await boss();
   if (!b) return false;
   try {

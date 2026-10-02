@@ -54,7 +54,7 @@ export const stockTakeCounts = pgTable(
 ).enableRLS();
 
 /**
- * Price history of variants for the changes Keel makes (markdowns, bulk and single price edits):
+ * Price history of variants for the changes Hullwise makes (markdowns, bulk and single price edits):
  * before and after for price and compare-at price, who, from where, and the batch.
  */
 export const priceChanges = pgTable(

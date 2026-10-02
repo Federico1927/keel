@@ -1,7 +1,7 @@
 "use client";
 import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Checkbox, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { Alert, AlertDescription, Button, Checkbox, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { addSupplierPayment, receivePo, transitionPo } from "@/server/actions/purchasing";
 
 export function PoActions({ slug, poId, status, transitions, supplierId, balanceMinor }: { slug: string; poId: string; status: string; transitions: readonly string[]; supplierId: string; balanceMinor: number }) {

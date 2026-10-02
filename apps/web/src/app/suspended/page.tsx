@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@keel/ui";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@hullwise/ui";
 
 const REASONS = ["payment", "platform", "churned"] as const;
 

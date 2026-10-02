@@ -1,5 +1,5 @@
 /**
- * Italian e-invoicing slot (#53). An invoice Keel's company issues to an Italian customer must
+ * Italian e-invoicing slot (#53). An invoice Hullwise's company issues to an Italian customer must
  * also reach the tax authority's exchange system (SDI) as a FatturaPA XML, through an accredited
  * intermediary. This is the interface such a connector implements, with a mock; no real service is
  * wired. Go-live prerequisite for Italian customers (docs/DECISIONS.md, "Da verificare").

@@ -1,9 +1,9 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { DEFAULT_SURVEY_CONFIG } from "@keel/core";
-import { recordAudit, withTenant } from "@keel/db";
-import { saveSurveySettings, submitSurveyAnswer, SurveyError, surveyTenantForSlug } from "@keel/services";
+import { DEFAULT_SURVEY_CONFIG } from "@hullwise/core";
+import { recordAudit, withTenant } from "@hullwise/db";
+import { saveSurveySettings, submitSurveyAnswer, SurveyError, surveyTenantForSlug } from "@hullwise/services";
 import { auditActor } from "@/server/audit-actor";
 import { ForbiddenError, requireWrite } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";

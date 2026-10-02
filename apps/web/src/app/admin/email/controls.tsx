@@ -2,7 +2,7 @@
 import { useActionState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Input, Label } from "@keel/ui";
+import { Alert, AlertDescription, Button, Input, Label } from "@hullwise/ui";
 import { removeAddressSuppressionAction, sendTestEmailAction } from "@/server/actions/admin";
 
 export function TestEmailForm({ defaultTo }: { defaultTo: string }) {

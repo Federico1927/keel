@@ -5,7 +5,7 @@ import { getTranslator } from "@/i18n/messages";
 export function FinalCta({ locale }: { locale: LandingLocale }) {
   const t = getTranslator(locale);
   return (
-    <section className="bg-primary py-16 text-primary-foreground sm:py-24">
+    <section id="get-started" className="bg-primary py-16 text-primary-foreground sm:py-24">
       <div className="container-x text-center">
         <h2 className="mx-auto max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
           {t("cta.title", { product: PRODUCT_NAME })}

@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { Badge, Tabs, TabsContent, TabsList, TabsTrigger } from "@keel/ui";
+import { Badge, Tabs, TabsContent, TabsList, TabsTrigger } from "@hullwise/ui";
 
 const CLIENTS = ["claude", "chatgpt", "cursor"] as const;
 interface Step { title: string; body: string; verify?: boolean }

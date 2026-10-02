@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { headers } from "next/headers";
 import { ArrowLeft } from "lucide-react";
-import { SUPPORTED_LOCALES, canDo, canWritePage } from "@keel/config";
-import { PAYMENT_METHODS, RETURN_EMAIL_EVENTS, RETURN_STATUSES } from "@keel/core";
-import { getPortalConfig, listReturnReasons } from "@keel/services";
+import { appUrl, SUPPORTED_LOCALES, canDo, canWritePage } from "@hullwise/config";
+import { PAYMENT_METHODS, RETURN_EMAIL_EVENTS, RETURN_STATUSES } from "@hullwise/core";
+import { getPortalConfig, listReturnReasons } from "@hullwise/services";
 import { notFound } from "next/navigation";
-import { Alert, AlertDescription, PageHeader } from "@keel/ui";
+import { Alert, AlertDescription, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { BehaviourForm, PortalConfigForm } from "./forms";
 
@@ -19,8 +18,7 @@ export default async function ReturnPortalSettingsPage({ params }: { params: Pro
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
     return { config: await getPortalConfig(s), reasons: await listReturnReasons(s, true) };
   });
-  const h = await headers();
-  const origin = process.env.NEXT_PUBLIC_APP_URL ?? `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host") ?? "localhost:3000"}`;
+  const origin = appUrl();
   return (
     <>
       <Link href={`/t/${tenant}/returns`} className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:underline">

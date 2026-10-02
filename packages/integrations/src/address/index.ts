@@ -1,4 +1,4 @@
-import { normalizeAddress, validateAddressFormat } from "@keel/core";
+import { normalizeAddress, validateAddressFormat } from "@hullwise/core";
 import { HttpClient, type HttpOptions } from "../http";
 import { IntegrationError, type Address, type AddressProvider, type AddressSuggestion, type AddressValidation, type ConnectionTest } from "../types";
 
@@ -26,7 +26,7 @@ export const GOOGLE_ADDRESS_APIS = ["addressvalidation.googleapis.com", "places.
 const NUMBER_FIRST = new Set(["US", "CA", "GB", "IE", "AU", "NZ", "FR", "ZA"]);
 /** Countries whose province is the second administrative level (Italian provinces, Spanish provinces). */
 const PROVINCE_LEVEL_2 = new Set(["IT", "ES"]);
-/** Below route level Google could not place the street: Keel reports the street as not found. */
+/** Below route level Google could not place the street: Hullwise reports the street as not found. */
 const COARSE_GRANULARITY = new Set(["GRANULARITY_UNSPECIFIED", "OTHER", "ADMINISTRATIVE_AREA", "LOCALITY", "SUB_LOCALITY"]);
 
 type Field = AddressValidation["issues"][number]["field"];
@@ -68,7 +68,7 @@ interface PlaceDetails {
   addressComponents?: { longText?: string; shortText?: string; types?: string[] }[];
 }
 
-/** Google's answer → Keel's validation shape: missing and suspicious components become issues on Keel's fields. */
+/** Google's answer → Hullwise's validation shape: missing and suspicious components become issues on Hullwise's fields. */
 export function mapGoogleValidation(input: Address, res: ValidateResponse): AddressValidation {
   const a = res.result?.address;
   const issues: AddressValidation["issues"] = [];
@@ -92,7 +92,7 @@ export function mapGoogleValidation(input: Address, res: ValidateResponse): Addr
   return { valid: issues.length === 0, issues, normalized };
 }
 
-/** Place Details components → Keel's address (street and number in the country's order). */
+/** Place Details components → Hullwise's address (street and number in the country's order). */
 export function mapGooglePlace(place: PlaceDetails, fallbackCountry: string | null): Address {
   const comp = (type: string, short = false) => {
     const c = place.addressComponents?.find((x) => x.types?.includes(type));
@@ -112,7 +112,7 @@ export function mapGooglePlace(place: PlaceDetails, fallbackCountry: string | nu
   });
 }
 
-/** Google's error bodies → Keel's codes; a rejected key reads as expired credentials. */
+/** Google's error bodies → Hullwise's codes; a rejected key reads as expired credentials. */
 function mapError(e: unknown): never {
   if (e instanceof IntegrationError) {
     if (/API_KEY_INVALID|API key not valid|API_KEY_.*_BLOCKED/i.test(e.message)) throw new IntegrationError("token_expired", "Google rejected the API key (invalid, deleted or restricted)");

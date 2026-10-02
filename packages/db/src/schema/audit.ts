@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { index, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { id, keelApp, tenantPredicate } from "./_common";
+import { id, hullwiseApp, tenantPredicate } from "./_common";
 import { pgPolicy } from "drizzle-orm/pg-core";
 import { users } from "./auth";
 import { tenants } from "./tenants";
@@ -32,7 +32,7 @@ export const auditLogs = pgTable(
     index("audit_logs_tenant_created_idx").on(t.tenantId, t.createdAt),
     index("audit_logs_entity_idx").on(t.entityType, t.entityId),
     // Tenant users read and append only their tenant's rows; never update or delete.
-    pgPolicy("audit_logs_tenant_select", { for: "select", to: keelApp, using: tenantPredicate }),
-    pgPolicy("audit_logs_tenant_insert", { for: "insert", to: keelApp, withCheck: tenantPredicate }),
+    pgPolicy("audit_logs_tenant_select", { for: "select", to: hullwiseApp, using: tenantPredicate }),
+    pgPolicy("audit_logs_tenant_insert", { for: "insert", to: hullwiseApp, withCheck: tenantPredicate }),
   ],
 ).enableRLS();

@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { adminSupportAttachment } from "@keel/services";
+import { adminSupportAttachment } from "@hullwise/services";
 import { requireSuperAdmin } from "@/server/admin";
 
 /** A tenant's support attachment opened from the console: audited by the service. */

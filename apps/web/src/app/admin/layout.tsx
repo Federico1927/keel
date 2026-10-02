@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { PRODUCT_NAME } from "@keel/config";
-import { displayName, initials } from "@keel/core";
-import { Badge } from "@keel/ui";
+import { PRODUCT_NAME } from "@hullwise/config";
+import { displayName, initials } from "@hullwise/core";
+import { Badge } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { avatarUrl } from "@/server/avatar";
 import { BrandMark } from "@/components/brand-mark";

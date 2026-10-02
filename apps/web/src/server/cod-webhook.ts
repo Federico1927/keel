@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { apiEndpoint } from "@hullwise/config";
 
 /**
  * Per-tenant token in the COD messaging webhook URL (C.17). The channel's own `verifyWebhook` checks
@@ -6,7 +7,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
  * (the mock channel has no signature at all).
  */
 export function codMessagingToken(tenantId: string): string {
-  return createHmac("sha256", process.env.APP_ENCRYPTION_KEY ?? "keel-dev").update(`cod-messaging:${tenantId}`).digest("hex").slice(0, 40);
+  return createHmac("sha256", process.env.APP_ENCRYPTION_KEY ?? "hullwise-dev").update(`cod-messaging:${tenantId}`).digest("hex").slice(0, 40);
 }
 
 export function verifyCodMessagingToken(tenantId: string, token: string): boolean {
@@ -16,6 +17,5 @@ export function verifyCodMessagingToken(tenantId: string, token: string): boolea
 }
 
 export function codMessagingWebhookUrl(tenantId: string): string {
-  const base = (process.env.NEXT_PUBLIC_APP_URL ?? process.env.AUTH_URL ?? "").replace(/\/$/, "");
-  return `${base}/api/webhooks/cod-messaging/${tenantId}/${codMessagingToken(tenantId)}`;
+  return apiEndpoint(`/webhooks/cod-messaging/${tenantId}/${codMessagingToken(tenantId)}`);
 }

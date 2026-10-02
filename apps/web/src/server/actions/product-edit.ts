@@ -2,9 +2,9 @@
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { recordAudit } from "@keel/db";
-import { IntegrationError } from "@keel/integrations";
-import { editProductMedia, editProductWithPlatform, getCommercePlatformFor, runCatalogSync, syncProductFromPlatform, type ServiceContext } from "@keel/services";
+import { recordAudit } from "@hullwise/db";
+import { IntegrationError } from "@hullwise/integrations";
+import { editProductMedia, editProductWithPlatform, getCommercePlatformFor, runCatalogSync, syncProductFromPlatform, type ServiceContext } from "@hullwise/services";
 import { enqueue } from "@/server/jobs";
 import { ForbiddenError, requireWrite, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";

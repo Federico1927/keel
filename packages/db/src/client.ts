@@ -35,12 +35,12 @@ function connect(name: string, url: string | undefined, max: number): Database {
   return drizzle(pool, { schema });
 }
 
-/** Application connection (role keel_app, RLS enforced). Use only through withTenant. */
+/** Application connection (role hullwise_app, RLS enforced). Use only through withTenant. */
 export function appDb(url = process.env.DATABASE_URL): Database {
   return connect("DATABASE_URL", url, 10);
 }
 
-/** Administrative connection (role keel_admin, BYPASSRLS). Platform tables, super-admin, jobs. */
+/** Administrative connection (role hullwise_admin, BYPASSRLS). Platform tables, super-admin, jobs. */
 export function adminDb(url = process.env.DATABASE_ADMIN_URL): Database {
   return connect("DATABASE_ADMIN_URL", url, 5);
 }

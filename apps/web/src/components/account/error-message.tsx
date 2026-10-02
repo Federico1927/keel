@@ -1,6 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription } from "@keel/ui";
+import { Alert, AlertDescription } from "@hullwise/ui";
 import type { ActionResult } from "@/server/action-result";
 
 const KNOWN = new Set(["invalid_input", "rate_limited", "weak_password", "password_mismatch", "invalid_token", "expired_token", "used_token", "revoked_token", "privacy_required", "account_exists", "email_mismatch", "not_found", "forbidden", "already_member", "not_pending"]);

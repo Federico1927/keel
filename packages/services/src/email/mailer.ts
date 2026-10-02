@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { and, eq, inArray, isNull, lt, lte, or, schema, sql, type DbExecutor } from "@keel/db";
-import { EmailSendError, decryptJson, emailAddressHash, encryptJson, maskEmail, normalizeEmailAddress, type EmailProvider } from "@keel/integrations";
+import { and, eq, inArray, isNull, lt, lte, or, schema, sql, type DbExecutor } from "@hullwise/db";
+import { EmailSendError, decryptJson, emailAddressHash, encryptJson, maskEmail, normalizeEmailAddress, type EmailProvider } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { emailSettings, getEmailProvider, type EmailSettings } from "./provider";
 import { SECURITY_EMAIL, TRANSACTIONAL_EMAIL, isAddressSuppressed, isEmailSuppressed } from "./suppressions";
@@ -91,8 +91,8 @@ export function sanitizeEmailError(message: string): string {
 /* ---------- dispatcher ---------- */
 
 export type EmailDispatcher = (job: EmailJob) => void | Promise<void>;
-const store = globalThis as typeof globalThis & { __keelEmailQueue?: { dispatcher: EmailDispatcher | null; pending: EmailJob[] } };
-const queue = () => (store.__keelEmailQueue ??= { dispatcher: null, pending: [] });
+const store = globalThis as typeof globalThis & { __hullwiseEmailQueue?: { dispatcher: EmailDispatcher | null; pending: EmailJob[] } };
+const queue = () => (store.__hullwiseEmailQueue ??= { dispatcher: null, pending: [] });
 
 /** Installed once per process: the web app (pg-boss or deferred inline delivery) and the worker (pg-boss). */
 export function setEmailDispatcher(dispatcher: EmailDispatcher | null): void {

@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, schema, sql, type SQL } from "@keel/db";
+import { and, desc, eq, inArray, isNull, schema, sql, type SQL } from "@hullwise/db";
 import type { ServiceContext } from "../context";
 
 export const MENTION_ENTITY_TYPES = ["order", "purchase_order", "return"] as const;

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canDo } from "@keel/config";
-import { and, eq, schema } from "@keel/db";
-import { ADS_TABLE_SORTS, canWriteAds, keywordRows, searchTermRows, type AdsTableSort } from "@keel/services";
-import { Badge, Button, Card, CardContent, EmptyState, Input, PageHeader, Select, cn } from "@keel/ui";
+import { canDo } from "@hullwise/config";
+import { and, eq, schema } from "@hullwise/db";
+import { ADS_TABLE_SORTS, canWriteAds, keywordRows, searchTermRows, type AdsTableSort } from "@hullwise/services";
+import { Badge, Button, Card, CardContent, EmptyState, Input, PageHeader, Select, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";
@@ -64,7 +64,7 @@ export default async function KeywordsPage({ params, searchParams }: { params: P
               <AdsTable testId="keywords-table" rowTestId="keyword-row" currency={ctx.tenant.currency} locale={ctx.locale} extraHeads={[t("cols.match"), t("cols.quality")]}
                 rows={result.rows.map((k) => ({ key: k.id, name: k.text, sub: <><Link href={`/t/${tenant}/campaigns/${k.campaignId}?${qs}`} className="hover:underline">{k.campaignName}</Link>{k.adSetName && k.adSetId && <> · <Link href={`/t/${tenant}/campaigns/${k.campaignId}/adsets/${k.adSetId}?${qs}`} className="hover:underline">{k.adSetName}</Link></>}</>, metrics: k.metrics, economics: k.economics, ordersHref: ordersHref(tenant, k.orders, period, ctx.tenant.timezone), extra: [<Badge key="m" variant="outline">{t(`match.${k.matchType}`)}</Badge>, <span key="q" className={cn("tabular", (k.qualityScore ?? 10) <= 4 && "text-destructive")}>{k.qualityScore ?? "—"}</span>] }))} />
             ) : (
-              <AdsTable testId="search-terms-table" rowTestId="search-term-row" currency={ctx.tenant.currency} locale={ctx.locale} emptyKeel={t("keel_not_visible")} extraHeads={[t("cols.action")]}
+              <AdsTable testId="search-terms-table" rowTestId="search-term-row" currency={ctx.tenant.currency} locale={ctx.locale} emptyHullwise={t("hullwise_not_visible")} extraHeads={[t("cols.action")]}
                 rows={result.rows.map((x) => ({ key: x.id, muted: x.isOther, name: x.isOther ? t("other_terms") : x.text, sub: <>{x.campaignName}{x.keywordText && <> · {t("via_keyword", { keyword: x.keywordText })}</>}{x.candidate && <Badge variant="warning" data-testid="negative-candidate">{t(`negative_reason.${x.candidate}`)}</Badge>}{x.termStatus === "excluded" && <Badge variant="muted">{t("excluded")}</Badge>}</>, metrics: x.metrics, economics: x.economics, ordersHref: ordersHref(tenant, x.orders, period, ctx.tenant.timezone), extra: [canPause && !x.isOther && x.termStatus !== "excluded" ? <NegativeKeywordButton key="n" slug={tenant} termId={x.id} text={x.text} canWrite={canWrite} hasAdGroup={Boolean(x.adSetId)} /> : null] }))} />
             )}
             <div className="flex items-center justify-between border-t p-3 text-xs text-muted-foreground">

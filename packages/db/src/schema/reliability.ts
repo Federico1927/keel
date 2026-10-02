@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { customType, index, integer, jsonb, pgPolicy, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import { createdAt, id, keelApp, tenantIsolation, tenantPredicate, updatedAt } from "./_common";
+import { createdAt, id, hullwiseApp, tenantIsolation, tenantPredicate, updatedAt } from "./_common";
 import { tenantColumns } from "./_tenant";
 import { users } from "./auth";
 import { tenants } from "./tenants";
@@ -40,8 +40,8 @@ export const jobRuns = pgTable(
     index("job_runs_type_started_idx").on(t.jobType, t.startedAt),
     index("job_runs_tenant_started_idx").on(t.tenantId, t.startedAt),
     index("job_runs_started_idx").on(t.startedAt),
-    pgPolicy("job_runs_tenant_select", { for: "select", to: keelApp, using: tenantPredicate }),
-    pgPolicy("job_runs_tenant_insert", { for: "insert", to: keelApp, withCheck: tenantPredicate }),
+    pgPolicy("job_runs_tenant_select", { for: "select", to: hullwiseApp, using: tenantPredicate }),
+    pgPolicy("job_runs_tenant_insert", { for: "insert", to: hullwiseApp, withCheck: tenantPredicate }),
   ],
 ).enableRLS();
 
@@ -77,8 +77,8 @@ export const platformAlerts = pgTable(
     uniqueIndex("platform_alerts_signature_uq").on(t.signature),
     index("platform_alerts_status_seen_idx").on(t.status, t.lastSeenAt),
     index("platform_alerts_tenant_idx").on(t.tenantId, t.lastSeenAt),
-    pgPolicy("platform_alerts_tenant_select", { for: "select", to: keelApp, using: tenantPredicate }),
-    pgPolicy("platform_alerts_tenant_insert", { for: "insert", to: keelApp, withCheck: tenantPredicate }),
+    pgPolicy("platform_alerts_tenant_select", { for: "select", to: hullwiseApp, using: tenantPredicate }),
+    pgPolicy("platform_alerts_tenant_insert", { for: "insert", to: hullwiseApp, withCheck: tenantPredicate }),
   ],
 ).enableRLS();
 

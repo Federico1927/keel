@@ -1,5 +1,5 @@
-import { and, asc, eq, gte, inArray, isNull, or, schema, sql } from "@keel/db";
-import { SALE_STATUSES, allocateByShare, allocationToPoLines, diffRecords, packAllocation, packFitsProduct, packGroups, packUnits, packsForDemand, type CasePackDef, type Diff } from "@keel/core";
+import { and, asc, eq, gte, inArray, isNull, or, schema, sql } from "@hullwise/db";
+import { SALE_STATUSES, allocateByShare, allocationToPoLines, diffRecords, packAllocation, packFitsProduct, packGroups, packUnits, packsForDemand, type CasePackDef, type Diff } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { replenishmentPlan, type PlanningTenant } from "../planning";
 import { PurchasingError, createPurchaseOrder } from "./index";

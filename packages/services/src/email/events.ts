@@ -1,5 +1,5 @@
-import { and, eq, inArray, lt, schema, type DbExecutor } from "@keel/db";
-import { emailAddressHash, type EmailDeliveryEvent } from "@keel/integrations";
+import { and, eq, inArray, lt, schema, type DbExecutor } from "@hullwise/db";
+import { emailAddressHash, type EmailDeliveryEvent } from "@hullwise/integrations";
 import { suppressAddress } from "./suppressions";
 
 /**

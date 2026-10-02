@@ -16,7 +16,7 @@ export async function register() {
     installEmailDispatcher();
   }
   if (process.env.SENTRY_DSN) {
-    const [Sentry, { SENTRY_DATA_COLLECTION }] = await Promise.all([import("@sentry/nextjs"), import("@keel/config")]);
+    const [Sentry, { SENTRY_DATA_COLLECTION }] = await Promise.all([import("@sentry/nextjs"), import("@hullwise/config")]);
     Sentry.init({
       dsn: process.env.SENTRY_DSN,
       environment: process.env.SENTRY_ENVIRONMENT || process.env.NODE_ENV,

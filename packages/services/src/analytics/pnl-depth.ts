@@ -1,5 +1,5 @@
-import { and, eq, gte, inArray, isNotNull, lt, schema, sql } from "@keel/db";
-import { allocateAdSpend, bucketPnl, keyTrend, orderPnl, periodBuckets, productProfit, productSales, productStockAction, reconcileOrderPnl, returnCostsOfPeriod, stockVelocity, sumOrderPnl, worstRisk, utmGroups, type BucketPnl, type Granularity, type OrderPnl, type OrderPnlReconciliation, type OrderPnlTotals, type Period, type ProductStockAction, type StockRisk, type TrafficLight, type TrendPoint, type UtmDimension, type UtmGroup } from "@keel/core";
+import { and, eq, gte, inArray, isNotNull, lt, schema, sql } from "@hullwise/db";
+import { allocateAdSpend, bucketPnl, keyTrend, orderPnl, periodBuckets, productProfit, productSales, productStockAction, reconcileOrderPnl, returnCostsOfPeriod, stockVelocity, sumOrderPnl, worstRisk, utmGroups, type BucketPnl, type Granularity, type OrderPnl, type OrderPnlReconciliation, type OrderPnlTotals, type Period, type ProductStockAction, type StockRisk, type TrafficLight, type TrendPoint, type UtmDimension, type UtmGroup } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { variantStock, summarizeByProduct } from "../inventory";
 import { orderEconomicsForPeriod, pnlFromRows, type AnalyticsTenant, type EconomicsRow, type PnlReport } from "./index";

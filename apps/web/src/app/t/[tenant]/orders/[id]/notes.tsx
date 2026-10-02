@@ -2,8 +2,8 @@
 import { useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
-import { Button, Card, CardContent, CardHeader, CardTitle, Textarea } from "@keel/ui";
-import { formatDateTime, mentionQueryAtCaret, tokenizeMentions } from "@keel/core";
+import { Button, Card, CardContent, CardHeader, CardTitle, Textarea } from "@hullwise/ui";
+import { formatDateTime, mentionQueryAtCaret, tokenizeMentions } from "@hullwise/core";
 import { addNote, removeNote } from "@/server/actions/orders";
 
 interface Note { id: string; authorId: string | null; authorName: string; body: string; createdAt: string }

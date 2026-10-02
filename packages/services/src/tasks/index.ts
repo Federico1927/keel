@@ -1,5 +1,5 @@
-import { and, asc, desc, eq, inArray, isNull, recordAudit, schema, sql, type SQL } from "@keel/db";
-import { DEFAULT_TASK_RULES, INCOMING_PO_STATUSES, TASK_OPEN_STATUSES, isTaskOpen, localizedDefault, pickAssignee, planTaskChanges, taskRuleSchema, type TaskEntityType, type TaskRecordState, type TaskRule, type TaskRuleEntityType, type TaskRuleInput, type TaskStatus } from "@keel/core";
+import { and, asc, desc, eq, inArray, isNull, recordAudit, schema, sql, type SQL } from "@hullwise/db";
+import { DEFAULT_TASK_RULES, INCOMING_PO_STATUSES, TASK_OPEN_STATUSES, isTaskOpen, localizedDefault, pickAssignee, planTaskChanges, taskRuleSchema, type TaskEntityType, type TaskRecordState, type TaskRule, type TaskRuleEntityType, type TaskRuleInput, type TaskStatus } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { notifyUsers } from "../notifications";
 

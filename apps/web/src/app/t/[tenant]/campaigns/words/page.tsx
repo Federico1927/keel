@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatMoney, formatNumber, formatPercent, type NgramRow } from "@keel/core";
-import { WORD_SOURCES, adsWords, type WordSource } from "@keel/services";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { formatMoney, formatNumber, formatPercent, type NgramRow } from "@hullwise/core";
+import { WORD_SOURCES, adsWords, type WordSource } from "@hullwise/services";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";
@@ -10,7 +10,7 @@ import { AdsNav } from "../ads-table";
 
 type SP = { preset?: string; from?: string; to?: string; source?: string; n?: string; sort?: string };
 
-/** Words tab: 1–3 word phrases of ad copy, search terms or keywords, with Keel profit; 90 days by default (words need volume). */
+/** Words tab: 1–3 word phrases of ad copy, search terms or keywords, with Hullwise profit; 90 days by default (words need volume). */
 export default async function WordsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<SP> }) {
   const { tenant } = await params;
   const sp = await searchParams;
@@ -41,7 +41,7 @@ export default async function WordsPage({ params, searchParams }: { params: Prom
           <TableHead className="text-right">{t("cols.spend")}</TableHead>
           <TableHead className="hidden text-right md:table-cell">{t("cols.ctr")}</TableHead>
           <TableHead className="hidden text-right lg:table-cell">{t("cols.platform_conv")}</TableHead>
-          <TableHead className="hidden text-right md:table-cell">{t("cols.keel_orders")}</TableHead>
+          <TableHead className="hidden text-right md:table-cell">{t("cols.hullwise_orders")}</TableHead>
           <TableHead className="text-right">{t("cols.profit")}</TableHead>
           <TableHead className="text-right">{t("cols.roas")}</TableHead>
         </TableRow>

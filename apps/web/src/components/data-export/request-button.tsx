@@ -2,7 +2,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button } from "@keel/ui";
+import { Button } from "@hullwise/ui";
 import { requestDataExportAction } from "@/server/actions/data-export";
 import { requestTenantDataExportAction } from "@/server/actions/admin";
 

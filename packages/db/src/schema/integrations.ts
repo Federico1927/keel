@@ -87,7 +87,7 @@ export const syncRuns = pgTable(
     rowsWritten: integer("rows_written").notNull().default(0),
     /** Objects read from the platform. */
     rowsScanned: integer("rows_scanned").notNull().default(0),
-    /** Platform values that disagreed with what Keel expected (drift, a Keel write not yet confirmed). */
+    /** Platform values that disagreed with what Hullwise expected (drift, a Hullwise write not yet confirmed). */
     conflicts: integer("conflicts").notNull().default(0),
     errorCount: integer("error_count").notNull().default(0),
     /** Working time summed over the resumed slices of the run. */
@@ -112,7 +112,7 @@ export const platformWrites = pgTable(
     provider: text("provider").notNull(),
     kind: text("kind").notNull(),
     mode: text("mode").notNull().default("async"),
-    /** Keel record the write belongs to (for the status badge). */
+    /** Hullwise record the write belongs to (for the status badge). */
     entityType: text("entity_type").notNull(),
     entityId: uuid("entity_id"),
     /** Platform object written (`variant:<id>`, `inventory:<item>@<location>`…): newer writes supersede older pending ones on the same target. */

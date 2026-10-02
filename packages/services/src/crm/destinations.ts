@@ -1,5 +1,5 @@
-import { and, eq, inArray, schema, sql } from "@keel/db";
-import { AUDIENCE_PROVIDERS, IntegrationError, audienceMatchKeys, type AudienceDestination, type AudienceMatchKeys, type AudienceMember, type AudienceProvider } from "@keel/integrations";
+import { and, eq, inArray, schema, sql } from "@hullwise/db";
+import { AUDIENCE_PROVIDERS, IntegrationError, audienceMatchKeys, type AudienceDestination, type AudienceMatchKeys, type AudienceMember, type AudienceProvider } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 
 export class DestinationError extends Error {
@@ -54,7 +54,7 @@ const toMember = (r: MemberRow): AudienceMember => ({ customerId: r.customer_id,
  * Brings the destination in line with the segment: only customers who accept marketing, and,
  * when control groups are in use (customer-campaigns add-on), only the treated group, so a
  * held-out customer never sees the audience's ads either. Diff-based and idempotent: the member
- * table records what Keel pushed, and is updated only after the destination accepted the change,
+ * table records what Hullwise pushed, and is updated only after the destination accepted the change,
  * so a failed run is simply repeated.
  */
 export async function syncSegmentDestination(ctx: ServiceContext, destinationId: string, destination: AudienceDestination, opts: { excludeHoldout: boolean }): Promise<DestinationSyncResult> {

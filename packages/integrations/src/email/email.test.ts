@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EmailSendError, MockEmailProvider, ResendEmailProvider, parseResendEvent, signSvixPayload, verifySvixSignature, type EmailFetch, type EmailMessage } from "./index";
 import { RESEND_ERRORS, RESEND_SENT, RESEND_WEBHOOKS, SVIX_SECRET } from "./__fixtures__/resend";
 
-const msg: EmailMessage = { from: "Keel <no-reply@keel.example>", to: "owner@northwind.demo", subject: "Hi", html: "<p>Hi</p>", text: "Hi", replyTo: "support@keel.example", tags: { template: "magic_link", tenant_id: "none" }, headers: { "List-Unsubscribe": "<https://x/u>" }, idempotencyKey: "k-1" };
+const msg: EmailMessage = { from: "Hullwise <no-reply@hullwise.example>", to: "owner@northwind.demo", subject: "Hi", html: "<p>Hi</p>", text: "Hi", replyTo: "support@hullwise.example", tags: { template: "magic_link", tenant_id: "none" }, headers: { "List-Unsubscribe": "<https://x/u>" }, idempotencyKey: "k-1" };
 
 /** Recorded-response fetch: captures the request, answers with one fixture. */
 function recorded(res: { status: number; headers?: Record<string, string>; body: unknown }) {
@@ -24,7 +24,7 @@ describe("ResendEmailProvider", () => {
     expect(call.url).toBe("https://api.resend.com/emails");
     expect(call.headers.authorization).toBe("Bearer re_test");
     expect(call.headers["idempotency-key"]).toBe("k-1");
-    expect(call.body).toMatchObject({ from: msg.from, to: ["owner@northwind.demo"], subject: "Hi", html: "<p>Hi</p>", text: "Hi", reply_to: "support@keel.example", headers: { "List-Unsubscribe": "<https://x/u>" } });
+    expect(call.body).toMatchObject({ from: msg.from, to: ["owner@northwind.demo"], subject: "Hi", html: "<p>Hi</p>", text: "Hi", reply_to: "support@hullwise.example", headers: { "List-Unsubscribe": "<https://x/u>" } });
     expect((call.body as { tags: unknown }).tags).toEqual([{ name: "template", value: "magic_link" }, { name: "tenant_id", value: "none" }]);
   });
 

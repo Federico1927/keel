@@ -1,4 +1,4 @@
-import type { AdPlatform } from "@keel/config";
+import type { AdPlatform } from "@hullwise/config";
 import { campaignMetrics, type CampaignMetrics } from "./campaigns";
 
 /**
@@ -40,7 +40,7 @@ export interface UtmCheck {
   missing: ("utm_content" | "utm_term")[];
 }
 
-/** Whether an ad's URL parameters / tracking template / final URL carry the dynamic UTMs Keel needs. */
+/** Whether an ad's URL parameters / tracking template / final URL carry the dynamic UTMs Hullwise needs. */
 export function checkUtmTemplate(platform: string, ...sources: (string | null | undefined)[]): UtmCheck {
   const required = REQUIRED_PARAMS[platform as AdPlatform] as (typeof REQUIRED_PARAMS)[AdPlatform] | undefined;
   if (!required) return { ok: true, missing: [] };
@@ -71,14 +71,14 @@ export function orderAdKeys(platform: string, utm: { utmContent: string | null; 
   return { adExternalId: content, adSetExternalId: null, termText: null };
 }
 
-export interface KeelOrderRow {
+export interface HullwiseOrderRow {
   key: string;
   inScope: boolean;
   netRevenueMinor: number;
   marginMinor: number;
 }
 
-export interface KeelNumbers {
+export interface HullwiseNumbers {
   /** Orders that count as a sale (not cancelled, not returned). */
   orders: number;
   netRevenueMinor: number;
@@ -87,13 +87,13 @@ export interface KeelNumbers {
   allOrders: number;
 }
 
-export const EMPTY_KEEL: KeelNumbers = { orders: 0, netRevenueMinor: 0, marginMinor: 0, allOrders: 0 };
+export const EMPTY_HULLWISE: HullwiseNumbers = { orders: 0, netRevenueMinor: 0, marginMinor: 0, allOrders: 0 };
 
-/** Keel's numbers per key: revenue and margin only from orders in the sale scope (CLAUDE.md §7.5). */
-export function keelByKey(rows: readonly KeelOrderRow[]): Map<string, KeelNumbers> {
-  const out = new Map<string, KeelNumbers>();
+/** Hullwise's numbers per key: revenue and margin only from orders in the sale scope (CLAUDE.md §7.5). */
+export function hullwiseByKey(rows: readonly HullwiseOrderRow[]): Map<string, HullwiseNumbers> {
+  const out = new Map<string, HullwiseNumbers>();
   for (const r of rows) {
-    const cur = out.get(r.key) ?? { ...EMPTY_KEEL };
+    const cur = out.get(r.key) ?? { ...EMPTY_HULLWISE };
     cur.allOrders++;
     if (r.inScope) {
       cur.orders++;
@@ -127,14 +127,14 @@ export interface AdEntityEconomics extends CampaignMetrics {
   platformConversions: number;
   platformValueMinor: number;
   ctr: number | null;
-  /** Keel orders tied to the entity that do not count (cancelled, returned). */
+  /** Hullwise orders tied to the entity that do not count (cancelled, returned). */
   excludedOrders: number;
 }
 
-/** Platform numbers next to Keel's: the same definitions as the campaign list (profit = margin − spend). */
-export function adEntityEconomics(m: Pick<AdMetricValues, "spendMinor" | "impressions" | "clicks" | "conversions" | "conversionValueMinor">, keel: KeelNumbers): AdEntityEconomics {
-  const base = campaignMetrics({ spendMinor: m.spendMinor, clicks: m.clicks, impressions: m.impressions, attributedOrders: keel.orders, netRevenueMinor: keel.netRevenueMinor, marginMinor: keel.marginMinor });
-  return { ...base, platformConversions: m.conversions, platformValueMinor: m.conversionValueMinor, ctr: m.impressions ? m.clicks / m.impressions : null, excludedOrders: keel.allOrders - keel.orders };
+/** Platform numbers next to Hullwise's: the same definitions as the campaign list (profit = margin − spend). */
+export function adEntityEconomics(m: Pick<AdMetricValues, "spendMinor" | "impressions" | "clicks" | "conversions" | "conversionValueMinor">, hullwise: HullwiseNumbers): AdEntityEconomics {
+  const base = campaignMetrics({ spendMinor: m.spendMinor, clicks: m.clicks, impressions: m.impressions, attributedOrders: hullwise.orders, netRevenueMinor: hullwise.netRevenueMinor, marginMinor: hullwise.marginMinor });
+  return { ...base, platformConversions: m.conversions, platformValueMinor: m.conversionValueMinor, ctr: m.impressions ? m.clicks / m.impressions : null, excludedOrders: hullwise.allOrders - hullwise.orders };
 }
 
 /** Splits an integer total by weights so the parts add up exactly (largest remainder). */
@@ -150,8 +150,8 @@ export function splitExact(total: number, weights: readonly number[]): number[] 
   return out;
 }
 
-/** Keel numbers of an ad spread over its assets by spend share (within one field type, so the parts add up to the ad). */
-export function allocateKeel(total: KeelNumbers, spendByAsset: ReadonlyMap<string, number>): Map<string, KeelNumbers> {
+/** Hullwise numbers of an ad spread over its assets by spend share (within one field type, so the parts add up to the ad). */
+export function allocateHullwise(total: HullwiseNumbers, spendByAsset: ReadonlyMap<string, number>): Map<string, HullwiseNumbers> {
   const ids = [...spendByAsset.keys()];
   const weights = ids.map((id) => spendByAsset.get(id) ?? 0);
   const orders = splitExact(total.orders, weights);
@@ -194,9 +194,9 @@ export interface SearchTermCandidateInput {
   spendMinor: number;
   clicks: number;
   conversions: number;
-  keel: KeelNumbers;
-  /** Keel can see this term's orders (the term equals a keyword, so `utm_term={keyword}` names it). */
-  keelMatchable: boolean;
+  hullwise: HullwiseNumbers;
+  /** Hullwise can see this term's orders (the term equals a keyword, so `utm_term={keyword}` names it). */
+  hullwiseMatchable: boolean;
 }
 
 export interface NegativeCandidate {
@@ -208,7 +208,7 @@ export interface NegativeCandidate {
 }
 
 /**
- * Search terms that spend without profitable orders. When Keel can see the term's orders it judges
+ * Search terms that spend without profitable orders. When Hullwise can see the term's orders it judges
  * on them (only cancelled/returned ones, none, or a negative margin); otherwise on the platform's
  * conversions. Terms already excluded and the "(other)" bucket are never proposed.
  */
@@ -217,9 +217,9 @@ export function negativeKeywordCandidates(terms: readonly SearchTermCandidateInp
   for (const t of terms) {
     if (t.isOther || t.status === "excluded" || t.spendMinor < opts.minSpendMinor || t.clicks < opts.minClicks) continue;
     let reason: NegativeReason | null = null;
-    if (t.keelMatchable) {
-      if (t.keel.orders === 0) reason = t.keel.allOrders > 0 ? "only_cancelled" : t.conversions > 0 ? null : "no_orders";
-      else if (t.keel.marginMinor <= 0) reason = "unprofitable_orders";
+    if (t.hullwiseMatchable) {
+      if (t.hullwise.orders === 0) reason = t.hullwise.allOrders > 0 ? "only_cancelled" : t.conversions > 0 ? null : "no_orders";
+      else if (t.hullwise.marginMinor <= 0) reason = "unprofitable_orders";
     } else if (t.conversions <= 0) reason = "no_conversions";
     if (reason) out.push({ id: t.id, text: t.text, reason, spendMinor: t.spendMinor, clicks: t.clicks });
   }

@@ -6,7 +6,7 @@ import { FailureScript } from "./mock/failures";
 
 /**
  * Server-side conversions (Meta Conversions API, Google Ads click conversions with user
- * identifiers). Personal fields are normalised and SHA-256 hashed before they leave Keel and
+ * identifiers). Personal fields are normalised and SHA-256 hashed before they leave Hullwise and
  * before they are stored in the delivery log; only click ids, cookie ids, IP and user agent
  * travel in clear, as both platforms require.
  */

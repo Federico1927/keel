@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Badge, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Textarea } from "@keel/ui";
+import { Alert, AlertDescription, Badge, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Textarea } from "@hullwise/ui";
 import { claimQueueItemAction, distributeAction, orderLinesAction, recordAttemptAction, releaseQueueItemAction, rescoreAction } from "@/server/actions/cod";
 import type { ActionResult } from "@/server/action-result";
 import { CopyButton } from "./queue-extras";

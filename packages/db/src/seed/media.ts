@@ -19,7 +19,7 @@ export type DemoCatalogKey = "northwind" | "harbor";
 /** The placeholder route of the web app (`apps/web/src/app/demo-media/[...path]`). */
 export const DEMO_MEDIA_PREFIX = "/demo-media";
 /** Image URLs written by earlier seeds, pointing at a CDN that never existed: replaced. */
-const LEGACY_IMAGE_PREFIX = "https://cdn.keel.example/";
+const LEGACY_IMAGE_PREFIX = "https://cdn.hullwise.example/";
 const MAX_VALUE_IMAGES = 6;
 
 const slug = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "x";
@@ -109,7 +109,7 @@ export async function ensureDemoProductCatalog(db: Db, tenantId: string, key: De
       if (cover) await db.update(schema.products).set({ imageUrl: cover.url }).where(eq(schema.products.id, p.id));
     }
 
-    // the rest of the Shopify mirror, only where Keel holds nothing yet
+    // the rest of the Shopify mirror, only where Hullwise holds nothing yet
     const category = CATEGORIES[p.productType ?? ""] ?? null;
     const fill: Partial<typeof schema.products.$inferInsert> = {};
     if (p.descriptionHtml === null) fill.descriptionHtml = describe(key, p, options);

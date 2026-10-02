@@ -1,5 +1,5 @@
 {
-  "name": "@keel/integrations",
+  "name": "@hullwise/integrations",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -16,12 +16,12 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
-    "@keel/config": "workspace:*",
-    "@keel/core": "workspace:*",
+    "@hullwise/config": "workspace:*",
+    "@hullwise/core": "workspace:*",
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@keel/eslint-config": "workspace:*",
+    "@hullwise/eslint-config": "workspace:*",
     "eslint": "^9.39.0",
     "typescript": "^5.9.3",
     "vitest": "^3.2.0"

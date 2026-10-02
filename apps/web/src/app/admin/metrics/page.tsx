@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { ADDON_MODULES, MODULES, PLATFORM_CURRENCY } from "@keel/config";
-import { formatMoney, formatNumber } from "@keel/core";
-import { platformSeriesReport, tenantsBehind } from "@keel/services";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { ADDON_MODULES, MODULES, PLATFORM_CURRENCY } from "@hullwise/config";
+import { formatMoney, formatNumber } from "@hullwise/core";
+import { platformSeriesReport, tenantsBehind } from "@hullwise/services";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { LifecycleBadge } from "../_components/badges";
 import { MrrChart } from "./chart";

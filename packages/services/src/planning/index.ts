@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, schema, sql } from "@keel/db";
+import { and, eq, gte, inArray, schema, sql } from "@hullwise/db";
 import {
   addMonthsKey,
   allocateLandedCost,
@@ -21,7 +21,7 @@ import {
   type ReorderPlan,
   type StockAnalysisRow,
   type TenantSettings,
-} from "@keel/core";
+} from "@hullwise/core";
 import { enqueuePlatformWrite, type PlatformWriteRow } from "../writes";
 import type { ServiceContext } from "../context";
 import { createPurchaseOrder, nextPoNumber } from "../purchasing";

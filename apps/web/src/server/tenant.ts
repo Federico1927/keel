@@ -1,9 +1,9 @@
 import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
-import { adminDb, and, eq, schema, withTenant, type Transaction } from "@keel/db";
-import { parseTenantSettings, type TenantSettings } from "@keel/core";
-import { canDo, canViewPage, canWritePage, isPageEnabled, isTenantBlocked, type ActionKey, type PageKey, type TenantRole } from "@keel/config";
+import { adminDb, and, eq, schema, withTenant, type Transaction } from "@hullwise/db";
+import { parseTenantSettings, type TenantSettings } from "@hullwise/core";
+import { canDo, canViewPage, canWritePage, isPageEnabled, isTenantBlocked, type ActionKey, type PageKey, type TenantRole } from "@hullwise/config";
 import { getCurrentUser, type CurrentUser } from "./session";
 
 export interface TenantContext {

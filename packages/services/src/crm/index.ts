@@ -1,5 +1,5 @@
-import { and, desc, eq, inArray, schema, sql, type SQL } from "@keel/db";
-import { OPEN_STATUSES, SALE_STATUSES, assignHoldout, isGroup, rfmTier, segmentFieldCatalog, validateSegmentRules, type CustomerProfile, type RfmTier, type SegmentGroup, type SegmentLeaf } from "@keel/core";
+import { and, desc, eq, inArray, schema, sql, type SQL } from "@hullwise/db";
+import { OPEN_STATUSES, SALE_STATUSES, assignHoldout, isGroup, rfmTier, segmentFieldCatalog, validateSegmentRules, type CustomerProfile, type RfmTier, type SegmentGroup, type SegmentLeaf } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { customerPrediction, type CustomerPredictionView } from "./predictions";
 
@@ -35,7 +35,7 @@ export function extrasForRules(rules: SegmentGroup | null): ProfileExtras {
 
 /**
  * Customer profile: one row per customer with everything the segment fields read, computed
- * from Keel's canonical orders (sale scope = same rule as the P/L) and the customer row.
+ * from Hullwise's canonical orders (sale scope = same rule as the P/L) and the customer row.
  * Returned as a CTE body so list, preview, evaluation and RFM all share one definition.
  */
 function profileCte(ctx: ServiceContext, now: Date, onlyCustomers?: string[], extras: ProfileExtras = {}): SQL {

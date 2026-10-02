@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDateTime, formatNumber, tokenizeMentions } from "@keel/core";
-import { MENTION_ENTITY_TYPES, listMentions } from "@keel/services";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination } from "@keel/ui";
+import { formatDateTime, formatNumber, tokenizeMentions } from "@hullwise/core";
+import { MENTION_ENTITY_TYPES, listMentions } from "@hullwise/services";
+import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { Chip, NotificationTabs } from "../tabs";
 import { MarkAllButton, ReadToggle } from "../controls";

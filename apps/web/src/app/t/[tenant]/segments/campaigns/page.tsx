@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { after } from "next/server";
-import { canDo, canWritePage } from "@keel/config";
-import { formatDate, formatDateTime, formatMoney, formatNumber } from "@keel/core";
-import { listRetentionCampaigns } from "@keel/services";
-import { Button, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { canDo, canWritePage } from "@hullwise/config";
+import { formatDate, formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
+import { listRetentionCampaigns } from "@hullwise/services";
+import { Button, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { kickCampaigns } from "@/server/campaigns";
 import { SegmentTabs } from "../segment-tabs";

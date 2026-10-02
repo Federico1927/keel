@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Copy } from "lucide-react";
-import { Button } from "@keel/ui";
+import { Button } from "@hullwise/ui";
 
 /** A value to copy (server URL, a token shown once): monospace, wraps on phones. */
 export function CopyField({ value, testId }: { value: string; testId?: string }) {

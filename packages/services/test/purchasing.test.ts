@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, inArray, schema, sql, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
+import { and, eq, inArray, schema, sql, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
 import { createPurchaseOrder, receivePurchaseOrder, supplierBalances, transitionPurchaseOrder, variantStock } from "../src";
 import type { ServiceContext } from "../src";
-import { parseTenantSettings } from "@keel/core";
+import { parseTenantSettings } from "@hullwise/core";
 
 const pools = testPools();
 let ctx: SeedContext;

@@ -61,5 +61,5 @@ CREATE INDEX "email_messages_created_idx" ON "email_messages" USING btree ("crea
 CREATE INDEX "email_messages_tenant_created_idx" ON "email_messages" USING btree ("tenant_id","created_at");--> statement-breakpoint
 CREATE INDEX "email_messages_provider_id_idx" ON "email_messages" USING btree ("provider_message_id");--> statement-breakpoint
 CREATE INDEX "email_messages_recipient_idx" ON "email_messages" USING btree ("recipient_hash");--> statement-breakpoint
-CREATE POLICY "email_messages_tenant_select" ON "email_messages" AS PERMISSIVE FOR SELECT TO "keel_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);--> statement-breakpoint
-CREATE POLICY "email_messages_tenant_insert" ON "email_messages" AS PERMISSIVE FOR INSERT TO "keel_app" WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);
+CREATE POLICY "email_messages_tenant_select" ON "email_messages" AS PERMISSIVE FOR SELECT TO "hullwise_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);--> statement-breakpoint
+CREATE POLICY "email_messages_tenant_insert" ON "email_messages" AS PERMISSIVE FOR INSERT TO "hullwise_app" WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);

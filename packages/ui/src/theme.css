@@ -1,5 +1,5 @@
 /*
- * Direction A theme shared by every Keel surface (the app and apps/landing, #47): the tokens, the
+ * Direction A theme shared by every Hullwise surface (the app and apps/landing, #47): the tokens, the
  * Tailwind colour/radius/font mapping, the class-based dark variant and the base layer. No
  * `@import "tailwindcss"` and no `@source` here, so a consumer decides what Tailwind scans; changing
  * a value in tokens.css changes the app and the landing together.

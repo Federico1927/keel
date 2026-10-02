@@ -1,5 +1,5 @@
-import { and, desc, eq, inArray, schema, sql } from "@keel/db";
-import type { ServiceContext } from "@keel/services";
+import { and, desc, eq, inArray, schema, sql } from "@hullwise/db";
+import type { ServiceContext } from "@hullwise/services";
 import { isBottleneck } from "../economics";
 import { OPEN_QUEUE_STATUSES, TO_CALL_STATUSES, type QueueStatus } from "../queue";
 import type { CodSettings } from "../settings";

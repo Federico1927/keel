@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
-import { TableHead, cn } from "@keel/ui";
+import { TableHead, cn } from "@hullwise/ui";
 
 /** Console tables keep filters, search, sort and page in the URL (#48): a link is the state. */
 export type Query = Record<string, string | undefined>;

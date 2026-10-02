@@ -3,8 +3,8 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { Search } from "lucide-react";
-import { CHURN_RISKS, RFM_TIERS } from "@keel/core";
-import { Input, Select, cn } from "@keel/ui";
+import { CHURN_RISKS, RFM_TIERS } from "@hullwise/core";
+import { Input, Select, cn } from "@hullwise/ui";
 
 export function CustomerFiltersBar({ basePath, filters, countries }: { basePath: string; filters: Record<string, string | undefined>; countries: string[] }) {
   const t = useTranslations("customers");

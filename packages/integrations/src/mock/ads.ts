@@ -1,4 +1,4 @@
-import { splitExact, type AdPlatform } from "@keel/core";
+import { splitExact, type AdPlatform } from "@hullwise/core";
 import { IntegrationError, type AdEntityMetricLevel, type AdsCapabilities, type AdsPlatform, type ConnectionTest, type NegativeKeywordInput, type NormalizedAd, type NormalizedAdAsset, type NormalizedAdMetric, type NormalizedAdSet, type NormalizedCampaign, type NormalizedEntityMetric, type NormalizedKeyword } from "../types";
 import { FailureScript } from "./failures";
 

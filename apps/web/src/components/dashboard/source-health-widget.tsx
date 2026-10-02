@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canViewPage } from "@keel/config";
-import { formatRelative } from "@keel/core";
-import { sourcesNeedingAttention } from "@keel/services";
-import { Badge, Card, CardContent, CardHeader, CardTitle } from "@keel/ui";
+import { canViewPage } from "@hullwise/config";
+import { formatRelative } from "@hullwise/core";
+import { sourcesNeedingAttention } from "@hullwise/services";
+import { Badge, Card, CardContent, CardHeader, CardTitle } from "@hullwise/ui";
 import type { TenantContext } from "@/server/tenant";
 
 /** Dashboard widget (#32): how many integration sources are not OK (stale, idle, failing), linking to the health page. */

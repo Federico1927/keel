@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { CatalogItem } from "@keel/core";
+import type { CatalogItem } from "@hullwise/core";
 import type { BillingCustomerInput, BillingInvoiceInput, BillingProvider, CatalogSyncResult, CheckoutInput, CheckoutSession, InvoiceSnapshot, SubscriptionItemSnapshot, SubscriptionSnapshot, SubscriptionStartInput } from "./types";
 
 const short = (s: string) => createHash("sha256").update(s).digest("hex").slice(0, 16);
@@ -20,8 +20,8 @@ function mockItem(priceId: string, currency: string, n: number, subscriptionId: 
 }
 
 /**
- * Default provider: no processor, no network. Ids are deterministic; Keel's mirror is the only
- * state. Keel-ledger invoices are marked paid by the super-admin; Stripe-style subscriptions are
+ * Default provider: no processor, no network. Ids are deterministic; Hullwise's mirror is the only
+ * state. Hullwise-ledger invoices are marked paid by the super-admin; Stripe-style subscriptions are
  * completed by the console's "simulate" actions, which feed Stripe-shaped events (./objects)
  * through the same webhook processing as Stripe.
  */
@@ -46,7 +46,7 @@ export class MockBillingProvider implements BillingProvider {
     const now = new Date();
     const end = new Date(now);
     end.setUTCMonth(end.getUTCMonth() + 1);
-    return { id, customerId: input.customerId, status: input.trialDays ? "trialing" : "active", collectionMethod: "send_invoice", currentPeriodStart: now, currentPeriodEnd: input.trialDays ? new Date(now.getTime() + input.trialDays * 864e5) : end, trialEnd: input.trialDays ? new Date(now.getTime() + input.trialDays * 864e5) : null, cancelAtPeriodEnd: false, canceledAt: null, cancellationReason: null, items: input.priceIds.map((p, n) => mockItem(p, this.currency, n, id)), metadata: { keel_tenant_id: input.tenantId }, paymentMethodSummary: null, latestInvoiceId: null };
+    return { id, customerId: input.customerId, status: input.trialDays ? "trialing" : "active", collectionMethod: "send_invoice", currentPeriodStart: now, currentPeriodEnd: input.trialDays ? new Date(now.getTime() + input.trialDays * 864e5) : end, trialEnd: input.trialDays ? new Date(now.getTime() + input.trialDays * 864e5) : null, cancelAtPeriodEnd: false, canceledAt: null, cancellationReason: null, items: input.priceIds.map((p, n) => mockItem(p, this.currency, n, id)), metadata: { hullwise_tenant_id: input.tenantId }, paymentMethodSummary: null, latestInvoiceId: null };
   }
   async updateSubscriptionItems(subscriptionId: string, changes: { add: string[]; remove: string[]; swap: { itemId: string; priceId: string }[]; currentItems?: SubscriptionItemSnapshot[] }): Promise<SubscriptionSnapshot> {
     const kept = (changes.currentItems ?? []).filter((i) => !changes.remove.includes(i.itemId)).map((i) => {

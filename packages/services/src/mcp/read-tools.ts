@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { and, asc, desc, eq, ilike, inArray, or, schema, sql } from "@keel/db";
-import { MCP_LIMITS } from "@keel/config";
-import { ORDER_STATUSES, PAYMENT_METHODS, PURCHASE_ORDER_STATUSES, RETURN_STATUSES, sanitizeFreeText, sanitizeSearch } from "@keel/core";
+import { and, asc, desc, eq, ilike, inArray, or, schema, sql } from "@hullwise/db";
+import { MCP_LIMITS } from "@hullwise/config";
+import { ORDER_STATUSES, PAYMENT_METHODS, PURCHASE_ORDER_STATUSES, RETURN_STATUSES, sanitizeFreeText, sanitizeSearch } from "@hullwise/core";
 import { orderListWhere } from "../lists/filters";
 import { customerOrderHistory } from "../orders/history";
 import { customerDetail, listCustomers, listSegments } from "../crm";
@@ -9,7 +9,7 @@ import { listRetentionCampaigns } from "../crm/campaigns";
 import { variantStock, summarizeByProduct } from "../inventory";
 import { listReturns } from "../returns";
 import { integrationOverview } from "../sync";
-import { ToolError, keelLink, localDate, localDateTime, majorUnits, roundTo, type KeelTool, type ToolRuntime } from "../tools";
+import { ToolError, hullwiseLink, localDate, localDateTime, majorUnits, roundTo, type HullwiseTool, type ToolRuntime } from "../tools";
 
 /**
  * Read tools of the MCP server (#21) beyond the assistant's analytics: orders, customers, products,
@@ -61,7 +61,7 @@ const searchOrdersInput = z.object({
   page,
   pageSize: pageSize(),
 });
-const searchOrders: KeelTool<typeof searchOrdersInput> = {
+const searchOrders: HullwiseTool<typeof searchOrdersInput> = {
   name: "search_orders",
   title: "Search orders",
   page: "orders",
@@ -82,14 +82,14 @@ const searchOrders: KeelTool<typeof searchOrdersInput> = {
         total,
         page: input.page,
         pageSize: input.pageSize,
-        orders: rows.map((r) => ({ id: r.id, name: r.name, placedAt: localDateTime(r.placedAt, tz), status: r.status, paymentMethod: r.paymentMethod, paymentStatus: r.paymentStatus, total: majorUnits(r.totalMinor, r.currency), currency: r.currency, customerName: r.customerName, email: r.email, phone: r.phone, shippingCountry: r.shippingCountry, channel: r.channel, tags: r.tags, assignedTo: r.assignedTo ? (names.get(r.assignedTo) ?? null) : null, link: keelLink(rt, `/orders/${r.id}`) })),
+        orders: rows.map((r) => ({ id: r.id, name: r.name, placedAt: localDateTime(r.placedAt, tz), status: r.status, paymentMethod: r.paymentMethod, paymentStatus: r.paymentStatus, total: majorUnits(r.totalMinor, r.currency), currency: r.currency, customerName: r.customerName, email: r.email, phone: r.phone, shippingCountry: r.shippingCountry, channel: r.channel, tags: r.tags, assignedTo: r.assignedTo ? (names.get(r.assignedTo) ?? null) : null, link: hullwiseLink(rt, `/orders/${r.id}`) })),
       },
     };
   },
 };
 
 const getOrderInput = z.object({ order: z.string().min(1).max(80).describe("Order id, name (e.g. NW-1042) or number") });
-const getOrder: KeelTool<typeof getOrderInput> = {
+const getOrder: HullwiseTool<typeof getOrderInput> = {
   name: "get_order",
   title: "Order detail and timeline",
   page: "orders",
@@ -115,7 +115,7 @@ const getOrder: KeelTool<typeof getOrderInput> = {
         timezone: tz,
         id: order.id,
         name: order.name,
-        link: keelLink(rt, `/orders/${order.id}`),
+        link: hullwiseLink(rt, `/orders/${order.id}`),
         placedAt: localDateTime(order.placedAt, tz),
         status: order.status,
         statusReason: order.statusReason,
@@ -136,7 +136,7 @@ const getOrder: KeelTool<typeof getOrderInput> = {
         assignedTo: order.assignedTo ? (names.get(order.assignedTo) ?? null) : null,
         lines: lines.map((l) => ({ title: l.title, variant: l.variantTitle, sku: l.sku, quantity: l.quantity, currentQuantity: l.currentQuantity, unitPrice: majorUnits(l.unitPriceMinor, cur), total: majorUnits(l.totalMinor, cur) })),
         shipments: shipments.map((s) => ({ status: s.status, carrier: s.carrier, trackingNumber: s.trackingNumber, trackingUrl: s.trackingUrl, shippedAt: localDateTime(s.shippedAt, tz), deliveredAt: localDateTime(s.deliveredAt, tz), exception: s.exceptionReason })),
-        returns: returns.map((r) => ({ number: `R-${r.number}`, status: r.status, reason: r.reasonCode, resolution: r.resolution, requestedAt: localDate(r.requestedAt, tz), link: keelLink(rt, `/returns/${r.id}`) })),
+        returns: returns.map((r) => ({ number: `R-${r.number}`, status: r.status, reason: r.reasonCode, resolution: r.resolution, requestedAt: localDate(r.requestedAt, tz), link: hullwiseLink(rt, `/returns/${r.id}`) })),
         notes: notes.map((n) => ({ author: n.authorId ? (names.get(n.authorId) ?? null) : null, at: localDateTime(n.createdAt, tz), body: n.body })),
         customerHistory: { identified: history.identified, ...history.stats, totalSpent: majorUnits(history.stats.totalSpentMinor, cur), totalSpentMinor: undefined, previousOrders: history.orders.slice(0, 5).map((h) => ({ name: h.name, placedAt: localDate(h.placedAt, tz), status: h.status, total: majorUnits(h.totalMinor, h.currency), matchedVia: h.matchedVia })) },
         timeline: events.map((e) => ({ at: localDateTime(e.createdAt, tz), type: e.type, by: actor(e), diff: e.diff, note: typeof (e.metadata as Record<string, unknown>).note === "string" ? (e.metadata as Record<string, unknown>).note : undefined })),
@@ -148,7 +148,7 @@ const getOrder: KeelTool<typeof getOrderInput> = {
 /* ---------- customers ---------- */
 
 const lookupCustomersInput = z.object({ query: search.describe("Name, email or phone"), country: z.string().length(2).optional().describe("ISO country code"), sort: z.enum(["last_order", "total_spent", "orders"]).default("last_order"), page, pageSize: pageSize() });
-const lookupCustomers: KeelTool<typeof lookupCustomersInput> = {
+const lookupCustomers: HullwiseTool<typeof lookupCustomersInput> = {
   name: "lookup_customers",
   title: "Look up customers",
   page: "customers",
@@ -159,12 +159,12 @@ const lookupCustomers: KeelTool<typeof lookupCustomersInput> = {
     const r = await listCustomers(rt.ctx, { q: sanitizeSearch(input.query) || undefined, country: input.country?.toUpperCase(), sort: input.sort, page: input.page, pageSize: input.pageSize });
     const cur = rt.tenant.currency;
     const tz = rt.tenant.timezone;
-    return { data: { currency: cur, total: r.total, page: r.page, pageSize: r.pageSize, customers: r.rows.map((c) => ({ id: c.customerId, customerName: [c.firstName, c.lastName].filter(Boolean).join(" ") || null, email: c.email, phone: c.phone, city: c.city, country: c.country, orders: c.ordersCount, cancelled: c.cancelledCount, returns: c.returnsCount, totalSpent: majorUnits(c.totalSpentMinor, cur), averageOrderValue: majorUnits(c.aovMinor, cur), lastOrderAt: localDate(c.lastOrderAt, tz), rfmTier: c.tier, churnRisk: c.churnRisk, link: keelLink(rt, `/customers/${c.customerId}`) })) } };
+    return { data: { currency: cur, total: r.total, page: r.page, pageSize: r.pageSize, customers: r.rows.map((c) => ({ id: c.customerId, customerName: [c.firstName, c.lastName].filter(Boolean).join(" ") || null, email: c.email, phone: c.phone, city: c.city, country: c.country, orders: c.ordersCount, cancelled: c.cancelledCount, returns: c.returnsCount, totalSpent: majorUnits(c.totalSpentMinor, cur), averageOrderValue: majorUnits(c.aovMinor, cur), lastOrderAt: localDate(c.lastOrderAt, tz), rfmTier: c.tier, churnRisk: c.churnRisk, link: hullwiseLink(rt, `/customers/${c.customerId}`) })) } };
   },
 };
 
 const getCustomerInput = z.object({ customerId: uuid.describe("Customer id from lookup_customers") });
-const getCustomer: KeelTool<typeof getCustomerInput> = {
+const getCustomer: HullwiseTool<typeof getCustomerInput> = {
   name: "get_customer",
   title: "Customer profile and history",
   page: "customers",
@@ -180,7 +180,7 @@ const getCustomer: KeelTool<typeof getCustomerInput> = {
     return {
       data: {
         id: c.customerId,
-        link: keelLink(rt, `/customers/${c.customerId}`),
+        link: hullwiseLink(rt, `/customers/${c.customerId}`),
         customerName: [c.firstName, c.lastName].filter(Boolean).join(" ") || null,
         email: c.email,
         phone: c.phone,
@@ -199,7 +199,7 @@ const getCustomer: KeelTool<typeof getCustomerInput> = {
         rfmTier: c.tier,
         prediction: d.prediction ? { churnRisk: c.churnRisk, probabilityActive: c.pAlivePct === null || c.pAlivePct === undefined ? null : roundTo(c.pAlivePct / 100, 3), daysToNextOrder: c.daysToNextOrder, predictedValue365: majorUnits(c.predictedValueMinor, cur) } : null,
         segments: d.segments.map((s) => s.name),
-        recentOrders: d.orders.slice(0, 20).map((o) => ({ name: o.name, placedAt: localDate(o.placedAt, tz), status: o.status, paymentMethod: o.paymentMethod, total: majorUnits(o.totalMinor, o.currency), link: keelLink(rt, `/orders/${o.id}`) })),
+        recentOrders: d.orders.slice(0, 20).map((o) => ({ name: o.name, placedAt: localDate(o.placedAt, tz), status: o.status, paymentMethod: o.paymentMethod, total: majorUnits(o.totalMinor, o.currency), link: hullwiseLink(rt, `/orders/${o.id}`) })),
       },
     };
   },
@@ -208,7 +208,7 @@ const getCustomer: KeelTool<typeof getCustomerInput> = {
 /* ---------- products and stock ---------- */
 
 const listProductsInput = z.object({ query: search.describe("Product title, SKU or product type"), risk: z.enum(["critical", "warning", "ok", "no_sales"]).optional().describe("Stock-out risk"), sort: z.enum(["days_of_cover", "velocity", "available"]).default("days_of_cover"), page, pageSize: pageSize() });
-const listProducts: KeelTool<typeof listProductsInput> = {
+const listProducts: HullwiseTool<typeof listProductsInput> = {
   name: "list_products",
   title: "Products with stock, velocity and cover",
   page: "products",
@@ -255,7 +255,7 @@ const listProducts: KeelTool<typeof listProductsInput> = {
             suggestedReorder: s?.suggestedReorder ?? 0,
             price: variants.length ? majorUnits(Math.min(...variants.map((v) => v.priceMinor)), cur) : null,
             variantsAtRisk: [...variants].sort((a, b) => (a.daysOfCover ?? Infinity) - (b.daysOfCover ?? Infinity)).slice(0, 5).map((v) => ({ variant: v.variantTitle, sku: v.sku, available: v.available, incoming: v.incoming, daysOfCover: v.daysOfCover === null ? null : Math.round(v.daysOfCover), risk: v.risk, suggestedReorder: v.suggestedReorder })),
-            link: keelLink(rt, `/products/${product.id}`),
+            link: hullwiseLink(rt, `/products/${product.id}`),
           };
         }),
       },
@@ -267,7 +267,7 @@ const listProducts: KeelTool<typeof listProductsInput> = {
 
 const INCOMING = ["sent", "confirmed", "in_transit", "partially_received"] as const;
 const incomingInput = z.object({ status: z.array(z.enum(PURCHASE_ORDER_STATUSES)).max(7).optional().describe(`Default: incoming ones (${INCOMING.join(", ")})`), query: search.describe("PO number, supplier, SKU or product"), pageSize: pageSize() });
-const listIncomingPurchaseOrders: KeelTool<typeof incomingInput> = {
+const listIncomingPurchaseOrders: HullwiseTool<typeof incomingInput> = {
   name: "list_incoming_purchase_orders",
   title: "Incoming purchase orders",
   page: "purchasing",
@@ -288,14 +288,14 @@ const listIncomingPurchaseOrders: KeelTool<typeof incomingInput> = {
       .limit(input.pageSize);
     const lines = rows.length ? await rt.ctx.tx.select({ poId: schema.purchaseOrderLines.purchaseOrderId, quantity: schema.purchaseOrderLines.quantity, received: schema.purchaseOrderLines.receivedQuantity, description: schema.purchaseOrderLines.description, sku: schema.productVariants.sku, variant: schema.productVariants.title, product: schema.products.title }).from(schema.purchaseOrderLines).leftJoin(schema.productVariants, eq(schema.productVariants.id, schema.purchaseOrderLines.variantId)).leftJoin(schema.products, eq(schema.products.id, schema.productVariants.productId)).where(inArray(schema.purchaseOrderLines.purchaseOrderId, rows.map((r) => r.id))) : [];
     const tz = rt.tenant.timezone;
-    return { data: { timezone: tz, count: rows.length, purchaseOrders: rows.map((r) => ({ number: r.number, status: r.status, supplier: r.supplier, orderedAt: localDate(r.orderedAt, tz), expectedAt: localDate(r.expectedAt, tz), total: majorUnits(r.totalMinor, r.currency), currency: r.currency, unitsOrdered: r.units, unitsReceived: r.receivedUnits, customerOrdersWaiting: r.waitingOrders, lines: lines.filter((l) => l.poId === r.id).sort((a, b) => b.quantity - a.quantity).slice(0, 8).map((l) => ({ item: l.product ? `${l.product}${l.variant ? ` · ${l.variant}` : ""}` : l.description, sku: l.sku, quantity: l.quantity, received: l.received })), link: keelLink(rt, `/purchasing/${r.id}`) })) } };
+    return { data: { timezone: tz, count: rows.length, purchaseOrders: rows.map((r) => ({ number: r.number, status: r.status, supplier: r.supplier, orderedAt: localDate(r.orderedAt, tz), expectedAt: localDate(r.expectedAt, tz), total: majorUnits(r.totalMinor, r.currency), currency: r.currency, unitsOrdered: r.units, unitsReceived: r.receivedUnits, customerOrdersWaiting: r.waitingOrders, lines: lines.filter((l) => l.poId === r.id).sort((a, b) => b.quantity - a.quantity).slice(0, 8).map((l) => ({ item: l.product ? `${l.product}${l.variant ? ` · ${l.variant}` : ""}` : l.description, sku: l.sku, quantity: l.quantity, received: l.received })), link: hullwiseLink(rt, `/purchasing/${r.id}`) })) } };
   },
 };
 
 /* ---------- returns ---------- */
 
 const listReturnsInput = z.object({ status: z.union([z.literal("open"), z.enum(RETURN_STATUSES)]).optional().describe("open = not closed yet, or one return status"), reason: z.string().max(60).optional().describe("Return reason code"), query: search.describe("Order name, customer name or email, or return number"), page, pageSize: pageSize() });
-const listReturnsTool: KeelTool<typeof listReturnsInput> = {
+const listReturnsTool: HullwiseTool<typeof listReturnsInput> = {
   name: "list_returns",
   title: "Return requests",
   page: "returns",
@@ -305,14 +305,14 @@ const listReturnsTool: KeelTool<typeof listReturnsInput> = {
   async run(rt, input) {
     const r = await listReturns(rt.ctx, { status: input.status, reason: input.reason ? sanitizeSearch(input.reason, 60) : undefined, q: sanitizeSearch(input.query) || undefined, page: input.page, pageSize: input.pageSize });
     const tz = rt.tenant.timezone;
-    return { data: { timezone: tz, total: r.total, page: r.page, pageSize: r.pageSize, countsByStatus: r.counts, returns: r.rows.map((x) => ({ number: `R-${x.number}`, status: x.status, reason: x.reasonCode, resolution: x.resolution, fault: x.fault, items: x.items, proposed: majorUnits(x.proposedAmountMinor, x.currency), refunded: majorUnits(x.refundedAmountMinor, x.currency), currency: x.currency, requestedAt: localDate(x.requestedAt, tz), closedAt: localDate(x.closedAt, tz), outOfWindow: x.outOfWindow, order: x.orderName, customerName: x.customerName, link: keelLink(rt, `/returns/${x.id}`) })) } };
+    return { data: { timezone: tz, total: r.total, page: r.page, pageSize: r.pageSize, countsByStatus: r.counts, returns: r.rows.map((x) => ({ number: `R-${x.number}`, status: x.status, reason: x.reasonCode, resolution: x.resolution, fault: x.fault, items: x.items, proposed: majorUnits(x.proposedAmountMinor, x.currency), refunded: majorUnits(x.refundedAmountMinor, x.currency), currency: x.currency, requestedAt: localDate(x.requestedAt, tz), closedAt: localDate(x.closedAt, tz), outOfWindow: x.outOfWindow, order: x.orderName, customerName: x.customerName, link: hullwiseLink(rt, `/returns/${x.id}`) })) } };
   },
 };
 
 /* ---------- segments ---------- */
 
 const listSegmentsInput = z.object({});
-const listSegmentsTool: KeelTool<typeof listSegmentsInput> = {
+const listSegmentsTool: HullwiseTool<typeof listSegmentsInput> = {
   name: "list_segments",
   title: "Customer segments and size",
   page: "segments",
@@ -325,14 +325,14 @@ const listSegmentsTool: KeelTool<typeof listSegmentsInput> = {
     const counts = segments.length ? await rt.ctx.tx.select({ segmentId: schema.segmentMemberships.segmentId, members: sql<number>`count(*)::int`, holdout: sql<number>`count(*) filter (where ${schema.segmentMemberships.groupName} = 'holdout')::int` }).from(schema.segmentMemberships).where(and(eq(schema.segmentMemberships.tenantId, rt.ctx.tenantId), inArray(schema.segmentMemberships.segmentId, segments.map((s) => s.id)))).groupBy(schema.segmentMemberships.segmentId) : [];
     const by = new Map(counts.map((c) => [c.segmentId, c]));
     const tz = rt.tenant.timezone;
-    return { data: { segments: segments.map((s) => ({ id: s.id, name: s.name, description: s.description, members: by.get(s.id)?.members ?? s.lastCount ?? 0, liveUpdates: s.liveUpdates, lastEvaluatedAt: localDateTime(s.lastEvaluatedAt, tz), ...(campaigns ? { controlGroupPercent: s.holdoutPercentage, controlGroupMembers: by.get(s.id)?.holdout ?? 0 } : {}), link: keelLink(rt, `/segments/${s.id}`) })) } };
+    return { data: { segments: segments.map((s) => ({ id: s.id, name: s.name, description: s.description, members: by.get(s.id)?.members ?? s.lastCount ?? 0, liveUpdates: s.liveUpdates, lastEvaluatedAt: localDateTime(s.lastEvaluatedAt, tz), ...(campaigns ? { controlGroupPercent: s.holdoutPercentage, controlGroupMembers: by.get(s.id)?.holdout ?? 0 } : {}), link: hullwiseLink(rt, `/segments/${s.id}`) })) } };
   },
 };
 
 /* ---------- customer campaigns (add-on) ---------- */
 
 const customerCampaignsInput = z.object({ limit: z.number().int().min(1).max(MCP_LIMITS.maxPageSize).default(10) });
-const listCustomerCampaigns: KeelTool<typeof customerCampaignsInput> = {
+const listCustomerCampaigns: HullwiseTool<typeof customerCampaignsInput> = {
   name: "list_customer_campaigns",
   title: "Customer campaigns and their measured effect",
   page: "customer_campaigns",
@@ -343,14 +343,14 @@ const listCustomerCampaigns: KeelTool<typeof customerCampaignsInput> = {
   async run(rt, input) {
     const rows = (await listRetentionCampaigns(rt.ctx, rt.tenant)).slice(0, input.limit);
     const tz = rt.tenant.timezone;
-    return { data: { currency: rt.tenant.currency, campaigns: rows.map((c) => ({ name: c.name, segment: c.segmentName, channel: c.channel, status: c.status, sentAt: localDate(c.sentAt, tz), treated: c.treatedCount, control: c.holdoutCount, results: c.results, link: keelLink(rt, `/segments/campaigns/${c.id}`) })) } };
+    return { data: { currency: rt.tenant.currency, campaigns: rows.map((c) => ({ name: c.name, segment: c.segmentName, channel: c.channel, status: c.status, sentAt: localDate(c.sentAt, tz), treated: c.treatedCount, control: c.holdoutCount, results: c.results, link: hullwiseLink(rt, `/segments/campaigns/${c.id}`) })) } };
   },
 };
 
 /* ---------- integrations ---------- */
 
 const healthInput = z.object({});
-const getIntegrationHealth: KeelTool<typeof healthInput> = {
+const getIntegrationHealth: HullwiseTool<typeof healthInput> = {
   name: "get_integration_health",
   title: "Integration health",
   page: "integrations",
@@ -360,10 +360,10 @@ const getIntegrationHealth: KeelTool<typeof healthInput> = {
   async run(rt) {
     const o = await integrationOverview(rt.ctx);
     const tz = rt.tenant.timezone;
-    return { data: { timezone: tz, integrations: o.integrations.map((i) => ({ provider: i.provider, status: i.status, mode: i.mode, account: i.externalAccountName, lastSuccessAt: localDateTime(i.lastSuccessAt, tz), lastError: i.lastError })), sources: o.health.map((h) => ({ source: h.source, status: h.status, lastSuccessAt: localDateTime(h.lastSuccessAt, tz), consecutiveFailures: h.consecutiveFailures, freshnessMinutes: h.freshnessMinutes, lastError: h.lastError })), webhooks: o.webhookCounts, link: keelLink(rt, "/integrations") } };
+    return { data: { timezone: tz, integrations: o.integrations.map((i) => ({ provider: i.provider, status: i.status, mode: i.mode, account: i.externalAccountName, lastSuccessAt: localDateTime(i.lastSuccessAt, tz), lastError: i.lastError })), sources: o.health.map((h) => ({ source: h.source, status: h.status, lastSuccessAt: localDateTime(h.lastSuccessAt, tz), consecutiveFailures: h.consecutiveFailures, freshnessMinutes: h.freshnessMinutes, lastError: h.lastError })), webhooks: o.webhookCounts, link: hullwiseLink(rt, "/integrations") } };
   },
 };
 
-export const MCP_READ_TOOLS: readonly KeelTool[] = [searchOrders, getOrder, lookupCustomers, getCustomer, listProducts, listIncomingPurchaseOrders, listReturnsTool, listSegmentsTool, listCustomerCampaigns, getIntegrationHealth] as unknown as KeelTool[];
+export const MCP_READ_TOOLS: readonly HullwiseTool[] = [searchOrders, getOrder, lookupCustomers, getCustomer, listProducts, listIncomingPurchaseOrders, listReturnsTool, listSegmentsTool, listCustomerCampaigns, getIntegrationHealth] as unknown as HullwiseTool[];
 
 

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { describeUserAgent, formatDateTime } from "@keel/core";
-import { adminUserDetail } from "@keel/services";
-import { Alert, AlertDescription, AlertTitle, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DetailShell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { describeUserAgent, formatDateTime } from "@hullwise/core";
+import { adminUserDetail } from "@hullwise/services";
+import { Alert, AlertDescription, AlertTitle, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DetailShell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { SendPasswordResetButton } from "../../tenants/[id]/controls";
 import { LifecycleBadge } from "../../_components/badges";

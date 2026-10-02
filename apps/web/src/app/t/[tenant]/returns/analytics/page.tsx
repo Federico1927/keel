@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatMoney, formatNumber, formatPercent } from "@keel/core";
-import { returnsAnalytics } from "@keel/services";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { formatMoney, formatNumber, formatPercent } from "@hullwise/core";
+import { returnsAnalytics } from "@hullwise/services";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";

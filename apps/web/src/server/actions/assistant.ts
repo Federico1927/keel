@@ -1,7 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { and, eq, schema } from "@keel/db";
-import { AssistantError, askAssistant, deleteAssistantThread, getLlmProviderFor, type AssistantOutcome, type TenantRunner } from "@keel/services";
+import { and, eq, schema } from "@hullwise/db";
+import { AssistantError, askAssistant, deleteAssistantThread, getLlmProviderFor, type AssistantOutcome, type TenantRunner } from "@hullwise/services";
 import { ForbiddenError, requireWrite } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 

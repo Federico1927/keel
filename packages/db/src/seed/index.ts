@@ -22,14 +22,14 @@ import { seedMcp } from "./mcp";
 import { seedAdsDepth } from "./ads";
 import { seedTiktok } from "./tiktok";
 import { seedPlatformReliability, seedReliability } from "./reliability";
-import { createRng } from "@keel/integrations";
-import { SALE_STATUSES, allocateLandedCost, assignHoldout, campaignMessageKey, normalizePhone, runPredictionModel, type CustomerHistory } from "@keel/core";
-import { MODULES, PLANS, PLATFORM_CURRENCY } from "@keel/config";
-import { encryptJson } from "@keel/integrations";
+import { createRng } from "@hullwise/integrations";
+import { SALE_STATUSES, allocateLandedCost, assignHoldout, campaignMessageKey, normalizePhone, runPredictionModel, type CustomerHistory } from "@hullwise/core";
+import { MODULES, PLANS, PLATFORM_CURRENCY } from "@hullwise/config";
+import { encryptJson } from "@hullwise/integrations";
 import { sql } from "drizzle-orm";
 
-/** Password of every demo user; override with KEEL_DEMO_PASSWORD on a hosted demo (an empty value keeps the default). */
-export const DEMO_PASSWORD = process.env.KEEL_DEMO_PASSWORD || "keel-demo-2026";
+/** Password of every demo user; override with HULLWISE_DEMO_PASSWORD on a hosted demo (an empty value keeps the default). */
+export const DEMO_PASSWORD = process.env.HULLWISE_DEMO_PASSWORD || "hullwise-demo-2026";
 
 export const DEMO_TENANTS = {
   northwind: {
@@ -64,7 +64,7 @@ export const DEMO_TENANTS = {
 } as const;
 
 export const DEMO_USERS = [
-  { email: "superadmin@keel.demo", name: "Platform Admin", superAdmin: true, memberships: [] as { tenant: keyof typeof DEMO_TENANTS; role: string }[] },
+  { email: "superadmin@hullwise.demo", name: "Platform Admin", superAdmin: true, memberships: [] as { tenant: keyof typeof DEMO_TENANTS; role: string }[] },
   { email: "owner@northwind.demo", name: "Giulia Ferri", memberships: [{ tenant: "northwind", role: "owner" }] },
   { email: "admin@northwind.demo", name: "Marco Bianchi", memberships: [{ tenant: "northwind", role: "admin" }] },
   { email: "ops@northwind.demo", name: "Sara Conti", memberships: [{ tenant: "northwind", role: "operations" }] },
@@ -75,7 +75,7 @@ export const DEMO_USERS = [
   { email: "owner@harborhome.demo", name: "Emily Carter", memberships: [{ tenant: "harbor", role: "owner" }] },
   { email: "ops@harborhome.demo", name: "James Walker", memberships: [{ tenant: "harbor", role: "operations" }] },
   { email: "marketing@harborhome.demo", name: "Olivia Brooks", memberships: [{ tenant: "harbor", role: "marketing" }] },
-  { email: "multi@keel.demo", name: "Alex Multi", memberships: [{ tenant: "northwind", role: "admin" }, { tenant: "harbor", role: "viewer" }] },
+  { email: "multi@hullwise.demo", name: "Alex Multi", memberships: [{ tenant: "northwind", role: "admin" }, { tenant: "harbor", role: "viewer" }] },
 ] as const;
 
 export interface SeedContext {
@@ -512,7 +512,7 @@ async function seedDestinations(db: ReturnType<typeof drizzle<typeof schema>>, k
   await db.update(schema.segments).set({ liveUpdates: true }).where(eq(schema.segments.id, segment.id));
   const provider = it ? "meta_custom_audience" : "email_tool";
   const excludeHoldout = DEMO_TENANTS[key].addons.includes("addon.customer_campaigns");
-  const [d] = await db.insert(schema.segmentDestinations).values({ tenantId, segmentId: segment.id, provider, audienceName: it ? "Keel · Clienti ricorrenti" : "Keel · Repeat customers", externalAudienceId: "mock-aud-1", autoSync: true, status: "ok", lastSyncAt: new Date(now.getTime() - 2 * 36e5), createdAt: new Date(now.getTime() - 20 * 864e5) }).returning({ id: schema.segmentDestinations.id });
+  const [d] = await db.insert(schema.segmentDestinations).values({ tenantId, segmentId: segment.id, provider, audienceName: it ? "Hullwise · Clienti ricorrenti" : "Hullwise · Repeat customers", externalAudienceId: "mock-aud-1", autoSync: true, status: "ok", lastSyncAt: new Date(now.getTime() - 2 * 36e5), createdAt: new Date(now.getTime() - 20 * 864e5) }).returning({ id: schema.segmentDestinations.id });
   const matchable = provider === "email_tool" ? sql`c.email is not null` : sql`(c.email is not null or c.phone_e164 is not null)`;
   await db.execute(sql`
     insert into segment_destination_members (tenant_id, destination_id, customer_id, synced_at)

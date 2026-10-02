@@ -1,7 +1,7 @@
-import { and, eq, inArray, isNull, schema, sql } from "@keel/db";
-import { digestSummary, isCriticalWithoutIncoming, type TenantSettings } from "@keel/core";
+import { and, eq, inArray, isNull, schema, sql } from "@hullwise/db";
+import { digestSummary, isCriticalWithoutIncoming, type TenantSettings } from "@hullwise/core";
 import { countLateToShip } from "../fulfilment";
-import type { TenantRole } from "@keel/config";
+import type { TenantRole } from "@hullwise/config";
 import type { ServiceContext } from "../context";
 import { variantStock } from "../inventory";
 import { notifyUsers, absoluteAppLink } from "./index";

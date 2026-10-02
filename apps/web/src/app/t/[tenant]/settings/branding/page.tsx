@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { canDo } from "@keel/config";
-import { Button, PageHeader } from "@keel/ui";
+import { canDo } from "@hullwise/config";
+import { Button, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { loadBrand } from "@/server/branding";
 import { BrandingForm } from "./forms";

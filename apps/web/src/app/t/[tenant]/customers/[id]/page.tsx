@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { isPageEnabled } from "@keel/config";
-import { formatDate, formatMoney, formatNumber, formatPercent } from "@keel/core";
-import { customerDetail } from "@keel/services";
-import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { isPageEnabled } from "@hullwise/config";
+import { formatDate, formatMoney, formatNumber, formatPercent } from "@hullwise/core";
+import { customerDetail } from "@hullwise/services";
+import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
 import { TierBadge } from "../tier-badge";

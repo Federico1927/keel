@@ -1,5 +1,5 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { MCP_TOKEN_PREFIX, MCP_TOKEN_RANDOM_CHARS } from "@keel/config";
+import { MCP_TOKEN_PREFIX, MCP_TOKEN_RANDOM_CHARS } from "@hullwise/config";
 
 /**
  * MCP secrets (#21): `prefix_` + 32 random base62 characters, shown once. Only HMAC-SHA256 with a
@@ -14,7 +14,7 @@ function pepper(): string {
   if (explicit) return explicit;
   const secret = process.env.AUTH_SECRET?.trim();
   if (!secret) throw new Error("MCP_TOKEN_PEPPER or AUTH_SECRET must be set to issue MCP tokens");
-  return `keel-mcp-token-pepper:${secret}`;
+  return `hullwise-mcp-token-pepper:${secret}`;
 }
 
 /** Uniform base62 string from rejection sampling (no modulo bias). */

@@ -1,6 +1,6 @@
 import { and, eq, gte, inArray, lt, sql } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/node-postgres";
-import { DASHBOARD_LAYOUT_VERSION, keelTemplate, type DashboardWidget } from "@keel/config";
+import { DASHBOARD_LAYOUT_VERSION, hullwiseTemplate, type DashboardWidget } from "@hullwise/config";
 import * as schema from "../schema";
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;
@@ -8,9 +8,9 @@ const monthKey = (d: Date) => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 
 const SALE = ["confirmed", "fulfilling", "shipped", "delivered", "returned_partial"];
 
 /**
- * Tenant dashboards (issue #43). Northwind customised its home: Keel's tiles plus "Contribution per
+ * Tenant dashboards (issue #43). Northwind customised its home: Hullwise's tiles plus "Contribution per
  * order" (a custom metric), the monthly revenue target and a note for the team, and a marketing home
- * variant with the ads widgets. Harbor Home keeps Keel's template (no home row), so both states show in
+ * variant with the ads widgets. Harbor Home keeps Hullwise's template (no home row), so both states show in
  * the demo; it only carries a revenue target, which its template home does not display.
  */
 export async function seedDashboards(db: Db, userIds: Record<string, string>, key: "northwind" | "harbor", tenantId: string, now: Date): Promise<void> {
@@ -29,7 +29,7 @@ export async function seedDashboards(db: Db, userIds: Record<string, string>, ke
   await db.insert(schema.customMetrics).values({ tenantId, key: "contribution_per_order", label: "Contribuzione per ordine", translations: { en: "Contribution per order", es: "Contribución por pedido" }, formula: "contribution / orders", format: "money", higherIsBetter: true, description: "Margine di contribuzione medio di un ordine di vendita.", createdBy: owner }).onConflictDoNothing();
   const w = (id: string, type: DashboardWidget["type"], settings: Record<string, unknown>, size: Partial<Pick<DashboardWidget, "w" | "h" | "period">> = {}): DashboardWidget => ({ id, type, w: size.w ?? 1, h: size.h ?? 1, period: size.period ?? null, settings });
   const home: DashboardWidget[] = [
-    ...keelTemplate(["addon.cod"]),
+    ...hullwiseTemplate(["addon.cod"]),
     w("nw-cpo", "kpi", { metric: "custom:contribution_per_order", compare: "previous", sparkline: true }, { period: "mtd" }),
     w("nw-target", "target", { metric: "net_revenue" }),
     w("nw-review", "queue_review", {}),

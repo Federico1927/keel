@@ -143,7 +143,7 @@
         },
         "tiktok": {
           "title": "TikTok Ads",
-          "body": "Campaigns, ad groups and ads with daily metrics, next to Meta and Google in the same profit view; pause and resume from Keel."
+          "body": "Campaigns, ad groups and ads with daily metrics, next to Meta and Google in the same profit view; pause and resume from Hullwise."
         }
       }
     }
@@ -186,16 +186,16 @@
     },
     "stack_price": "{min} to {max} per month",
     "stack_price_note": "before the hours spent reconciling",
-    "keel_label": "{product} {plan}",
-    "keel_items": {
+    "hullwise_label": "{product} {plan}",
+    "hullwise_items": {
       "model": "All modules on one data model",
       "users": "Unlimited users",
       "setup": "Setup done by our team",
       "contract": "No annual contract",
       "addons": "Add-ons and tailored integrations per account"
     },
-    "keel_price": "{price} per month",
-    "keel_price_note": "up to {orders} orders per month",
+    "hullwise_price": "{price} per month",
+    "hullwise_price_note": "up to {orders} orders per month",
     "note": "Typical list prices for mid-sized Shopify brands. Your current stack may cost less or more; the demo includes a comparison on your actual tools."
   },
   "pricing": {

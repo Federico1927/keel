@@ -1,4 +1,4 @@
-import { isAdPlatform, type AdPlatform } from "@keel/config";
+import { isAdPlatform, type AdPlatform } from "@hullwise/config";
 /** Queue names and payloads; the web app enqueues, the worker consumes. */
 export const QUEUES = {
   webhookProcess: "webhook.process",

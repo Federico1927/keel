@@ -2,7 +2,7 @@
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
-import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogHeader, DialogTitle, Input, Label, Select, Textarea } from "@keel/ui";
+import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogHeader, DialogTitle, Input, Label, Select, Textarea } from "@hullwise/ui";
 import { createTaskAction, updateTaskAction } from "@/server/actions/tasks";
 
 export interface PersonOption {

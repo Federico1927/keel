@@ -35,4 +35,4 @@ ALTER TABLE "product_media" ADD CONSTRAINT "product_media_product_id_products_id
 CREATE UNIQUE INDEX "product_media_product_external_uq" ON "product_media" USING btree ("product_id","external_id");--> statement-breakpoint
 CREATE INDEX "product_media_tenant_product_idx" ON "product_media" USING btree ("tenant_id","product_id","position");--> statement-breakpoint
 ALTER TABLE "product_variants" ADD CONSTRAINT "product_variants_image_media_id_product_media_id_fk" FOREIGN KEY ("image_media_id") REFERENCES "public"."product_media"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-CREATE POLICY "product_media_tenant_isolation" ON "product_media" AS PERMISSIVE FOR ALL TO "keel_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid) WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);
+CREATE POLICY "product_media_tenant_isolation" ON "product_media" AS PERMISSIVE FOR ALL TO "hullwise_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid) WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);

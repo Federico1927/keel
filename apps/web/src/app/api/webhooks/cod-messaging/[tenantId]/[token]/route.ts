@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { adminDb, and, eq, schema, withTenant } from "@keel/db";
-import { applyMessageStatus } from "@keel/addon-cod";
-import { getMessagingChannelFor } from "@keel/services";
+import { adminDb, and, eq, schema, withTenant } from "@hullwise/db";
+import { applyMessageStatus } from "@hullwise/addon-cod";
+import { getMessagingChannelFor } from "@hullwise/services";
 import { verifyCodMessagingToken } from "@/server/cod-webhook";
 
 /**

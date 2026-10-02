@@ -1,3 +1,5 @@
+> Historical document: the product was formerly called Keel.
+
 # Feature inventory of the reference platforms
 
 Read-only study of the two client codebases, performed before writing any Keel code (2026-10-01).

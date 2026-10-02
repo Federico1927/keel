@@ -1,5 +1,5 @@
-import { and, eq, gte, lt, lte, schema, sql } from "@keel/db";
-import { AD_PLATFORM_CHANNEL, blendedMetrics, forecastMonthEnd, monthKey, monthRange, monthsBetween, type BlendedMetrics, type Forecast, type Period } from "@keel/core";
+import { and, eq, gte, lt, lte, schema, sql } from "@hullwise/db";
+import { AD_PLATFORM_CHANNEL, blendedMetrics, forecastMonthEnd, monthKey, monthRange, monthsBetween, type BlendedMetrics, type Forecast, type Period } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { dailySeries, orderEconomicsForPeriod, pnlForPeriod, type AnalyticsTenant } from "./index";
 

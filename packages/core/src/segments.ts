@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MAX_SEGMENT_CONDITIONS, MAX_SEGMENT_DEPTH } from "@keel/config";
+import { MAX_SEGMENT_CONDITIONS, MAX_SEGMENT_DEPTH } from "@hullwise/config";
 import { CHURN_RISKS } from "./predictions";
 
 /**

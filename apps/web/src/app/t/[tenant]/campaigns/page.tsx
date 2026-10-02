@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { adPlatformsForPlan, canWritePage } from "@keel/config";
-import { formatMoney, formatNumber, formatPercent } from "@keel/core";
-import { campaignLinkSuggestions, campaignsWithEconomics } from "@keel/services";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { adPlatformsForPlan, canWritePage } from "@hullwise/config";
+import { formatMoney, formatNumber, formatPercent } from "@hullwise/core";
+import { campaignLinkSuggestions, campaignsWithEconomics } from "@hullwise/services";
+import { Badge, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";

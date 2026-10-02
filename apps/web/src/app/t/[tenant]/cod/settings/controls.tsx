@@ -2,8 +2,8 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Switch } from "@keel/ui";
-import type { CodSettings, ScoreFactorKey, TagWriteEvent } from "@keel/addon-cod";
+import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Switch } from "@hullwise/ui";
+import type { CodSettings, ScoreFactorKey, TagWriteEvent } from "@hullwise/addon-cod";
 import { deleteExceptionAction, recomputeRiskAction, saveCapacityAction, saveCodSettingsAction, saveCodTagSettingsAction, saveExceptionAction, setOverrideAction } from "@/server/actions/cod";
 
 export function ScoringSettingsForm({ slug, settings, factors }: { slug: string; settings: CodSettings; factors: readonly ScoreFactorKey[] }) {

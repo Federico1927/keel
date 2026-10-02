@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
-import { adminDb, and, eq, schema, sql } from "@keel/db";
-import { matchCampaign, pixelEventTime, sessionTouch, type CampaignRef, type PixelEvent } from "@keel/core";
+import { adminDb, and, eq, schema, sql } from "@hullwise/db";
+import { matchCampaign, pixelEventTime, sessionTouch, type CampaignRef, type PixelEvent } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { hashIp } from "../returns/portal";
 

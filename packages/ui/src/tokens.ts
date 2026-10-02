@@ -15,7 +15,7 @@ export const DENSITIES = ["comfortable", "compact"] as const;
 export type Density = (typeof DENSITIES)[number];
 
 /** Cookie mirroring the signed-in user's theme, used to render signed-out pages (login) without a flash. */
-export const THEME_COOKIE = "keel_theme";
+export const THEME_COOKIE = "hullwise_theme";
 
 export interface ThemeTokens {
   bg: string;

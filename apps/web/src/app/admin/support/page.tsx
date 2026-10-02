@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { formatDateTime, formatNumber } from "@keel/core";
-import { SUPPORT_STATUSES, adminListSupportTickets } from "@keel/services";
-import { Badge, Card, CardContent, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { formatDateTime, formatNumber } from "@hullwise/core";
+import { SUPPORT_STATUSES, adminListSupportTickets } from "@hullwise/services";
+import { Badge, Card, CardContent, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { STATUS_VARIANT } from "@/app/t/[tenant]/support/status";
 

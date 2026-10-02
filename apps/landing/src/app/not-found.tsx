@@ -1,5 +1,5 @@
-import { GeistSans } from "@keel/ui/font-sans";
-import { SYSTEM_THEME_SCRIPT } from "@keel/ui/tokens";
+import { GeistSans } from "@hullwise/ui/font-sans";
+import { SYSTEM_THEME_SCRIPT } from "@hullwise/ui/tokens";
 import { PRODUCT_NAME } from "@/config/site";
 import "./globals.css";
 

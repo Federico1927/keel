@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MODULES, OVERAGE as PRODUCT_OVERAGE, PLANS as PRODUCT_PLANS } from "@keel/config";
+import { MODULES, OVERAGE as PRODUCT_OVERAGE, PLANS as PRODUCT_PLANS } from "@hullwise/config";
 import {
   ADDONS,
   ANNUAL_MONTHS_CHARGED,
@@ -37,7 +37,7 @@ describe("pricing config", () => {
 });
 
 describe("landing pricing matches the product plan config", () => {
-  it("monthly price, setup fee and included orders agree with @keel/config", () => {
+  it("monthly price, setup fee and included orders agree with @hullwise/config", () => {
     for (const plan of PLANS) {
       if (plan.id === "enterprise") continue;
       const product = PRODUCT_PLANS[plan.id];
@@ -47,13 +47,13 @@ describe("landing pricing matches the product plan config", () => {
       expect(product.currency).toBe(PRICING_CURRENCY);
     }
   });
-  it("audit retention agrees with @keel/config", () => {
+  it("audit retention agrees with @hullwise/config", () => {
     for (const plan of PLANS) {
       if (plan.id === "enterprise") continue;
       expect(plan.auditRetentionDays).toBe(PRODUCT_PLANS[plan.id].auditRetentionDays);
     }
   });
-  it("overage and the priced add-ons agree with @keel/config", () => {
+  it("overage and the priced add-ons agree with @hullwise/config", () => {
     expect(PRODUCT_OVERAGE.pricePerBlockMinor).toBe(OVERAGE.pricePerBlock * 100);
     expect(PRODUCT_OVERAGE.blockOrders).toBe(OVERAGE.blockSize);
     const price = (id: string) => {

@@ -3,10 +3,10 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { MANUAL_LIFECYCLE_REASONS, PLAN_KEYS, TENANT_STATUSES } from "@keel/config";
-import { eq, recordAudit, schema } from "@keel/db";
-import { AccountError, AdminUserError, BillingError, LifecycleError, revokeUserSessions, setTrialEnd, setUserDisabled, transitionTenant, applySuspensions, createTenant, requestPasswordReset, emailSettings, issueDueInvoices, recordInvoicePayment, removeAddressSuppression, sendTestEmail, setTenantAddon, setTenantPlan, setTenantSuspension, voidInvoice, TenantExportError, closePlatformAlert, requestTenantExportAsAdmin } from "@keel/services";
-import { runNowJob } from "@keel/jobs";
+import { MANUAL_LIFECYCLE_REASONS, PLAN_KEYS, TENANT_STATUSES } from "@hullwise/config";
+import { eq, recordAudit, schema } from "@hullwise/db";
+import { AccountError, AdminUserError, BillingError, LifecycleError, revokeUserSessions, setTrialEnd, setUserDisabled, transitionTenant, applySuspensions, createTenant, requestPasswordReset, emailSettings, issueDueInvoices, recordInvoicePayment, removeAddressSuppression, sendTestEmail, setTenantAddon, setTenantPlan, setTenantSuspension, voidInvoice, TenantExportError, closePlatformAlert, requestTenantExportAsAdmin } from "@hullwise/services";
+import { runNowJob } from "@hullwise/jobs";
 import { requireSuperAdmin } from "@/server/admin";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 import { enqueue, runJobInline } from "@/server/jobs";
@@ -64,7 +64,7 @@ export async function setAddonAction(tenantId: string, moduleKey: string, active
   const { user, db } = await requireSuperAdmin();
   if (!uuid.safeParse(tenantId).success) return fail("invalid_input");
   try {
-    // with a Stripe subscription the items follow (prorated); a refused change leaves Keel untouched
+    // with a Stripe subscription the items follow (prorated); a refused change leaves Hullwise untouched
     await setTenantAddon(db, tenantId, moduleKey, active, user.id, note);
   } catch (e) {
     if (e instanceof Error && e.message === "addon_not_available") return fail("addon_not_available");

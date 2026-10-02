@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, cn } from "@keel/ui";
+import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, cn } from "@hullwise/ui";
 import { connectAddress, connectAddressMock, connectAnthropic, connectGoogle, connectMeta, connectShopifyCustomApp, connectTiktok, connectTiktokMock, disconnectIntegration, processWebhookNow, resyncIntegration, retryWebhooks, simulateReturnWebhook, simulateWebhook, testIntegration } from "@/server/actions/integrations";
 import type { ActionResult } from "@/server/action-result";
 

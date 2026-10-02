@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, inArray, schema, sql, withTenant } from "@keel/db";
-import { MockCommercePlatform, MockMessagingChannel } from "@keel/integrations";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { loadWidgetData, type ServiceContext } from "@keel/services";
-import { dashboardPeriod } from "@keel/core";
+import { and, eq, inArray, schema, sql, withTenant } from "@hullwise/db";
+import { MockCommercePlatform, MockMessagingChannel } from "@hullwise/integrations";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { loadWidgetData, type ServiceContext } from "@hullwise/services";
+import { dashboardPeriod } from "@hullwise/core";
 import { COD_WIDGET_LOADERS, CodError, applyMessageStatus, autoCancelReturnedToSender, bulkOutcome, distributeEqually, escalateQueueItem, importCarrierOutcomes, listOrderMessages, modifyCodOrder, operatorAttribution, operatorEfficiency, orderPrecheck, parseCarrierCsv, queueCounts, queueItems, queueNeighbours, queueTiles, recomputeRecipientProfiles, recordAttempt, renderOrderTemplates, resolveEscalation, riskPanel, runScheduledConfirmations, saveCapacity, saveCodSettings, scoreQueueItem, sendCodMessage, supervisorView, syncQueue, transferQueueItem } from "../src";
 
 const pools = testPools();

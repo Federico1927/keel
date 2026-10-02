@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { index, integer, jsonb, pgPolicy, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import { createdAt, id, keelApp, tenantIsolation, tenantPredicate, updatedAt } from "./_common";
+import { createdAt, id, hullwiseApp, tenantIsolation, tenantPredicate, updatedAt } from "./_common";
 import { tenantColumns } from "./_tenant";
 import { users } from "./auth";
 import { tenants } from "./tenants";
@@ -120,8 +120,8 @@ export const mcpRequestLog = pgTable(
   (t) => [
     index("mcp_request_log_tenant_idx").on(t.tenantId, t.createdAt),
     index("mcp_request_log_token_idx").on(t.tokenId, t.createdAt),
-    pgPolicy("mcp_request_log_tenant_select", { for: "select", to: keelApp, using: tenantPredicate }),
-    pgPolicy("mcp_request_log_tenant_insert", { for: "insert", to: keelApp, withCheck: tenantPredicate }),
+    pgPolicy("mcp_request_log_tenant_select", { for: "select", to: hullwiseApp, using: tenantPredicate }),
+    pgPolicy("mcp_request_log_tenant_insert", { for: "insert", to: hullwiseApp, withCheck: tenantPredicate }),
   ],
 ).enableRLS();
 
@@ -139,7 +139,7 @@ export const mcpRateBuckets = pgTable(
 
 /**
  * Risky actions an AI client asked for (cancel an order, refund, pause a campaign, create a purchase
- * order): nothing happens until a person with the permission approves it in Keel.
+ * order): nothing happens until a person with the permission approves it in Hullwise.
  * `status` = pending | approved | rejected | failed | expired.
  */
 export const mcpPendingActions = pgTable(

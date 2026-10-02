@@ -1,5 +1,5 @@
-import { formatMoney, formatNumber, formatPercent, type Period } from "@keel/core";
-import { isCustomMetricRef, metricDefinition, type MetricFilters, type MetricFormat, type MetricLink } from "@keel/config";
+import { formatMoney, formatNumber, formatPercent, type Period } from "@hullwise/core";
+import { isCustomMetricRef, metricDefinition, type MetricFilters, type MetricFormat, type MetricLink } from "@hullwise/config";
 
 /** A metric value in its unit: money from minor units, percent from a fraction, ratio as ×, days rounded. */
 export function formatMetric(value: number | null | undefined, format: MetricFormat, currency: string, locale: string, daysUnit = "d"): string {

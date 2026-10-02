@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Download, RefreshCw, Trash2 } from "lucide-react";
-import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@keel/ui";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@hullwise/ui";
 import { deleteSegmentAction, evaluateSegmentAction } from "@/server/actions/segments";
 
 export function SegmentRowActions({ slug, segmentId, canWrite, canExport, afterDelete }: { slug: string; segmentId: string; canWrite: boolean; canExport: boolean; afterDelete?: string }) {

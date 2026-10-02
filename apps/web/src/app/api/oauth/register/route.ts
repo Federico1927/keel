@@ -1,4 +1,4 @@
-import { OAuthError, registerOAuthClient } from "@keel/services";
+import { OAuthError, registerOAuthClient } from "@hullwise/services";
 import { clientIpHash, corsPreflight, mcpDeps, oauthJson } from "@/server/mcp";
 
 export const runtime = "nodejs";

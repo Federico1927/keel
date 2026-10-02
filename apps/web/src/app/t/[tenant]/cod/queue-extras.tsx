@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Check, Copy } from "lucide-react";
-import { Alert, AlertDescription, Button, Checkbox, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@keel/ui";
+import { Alert, AlertDescription, Button, Checkbox, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@hullwise/ui";
 import { bulkQueueAction } from "@/server/actions/cod";
 
 /** Refreshes the server-rendered queue every 30 s while visible, and when the tab regains focus (C.3). */

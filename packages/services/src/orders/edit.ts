@@ -1,6 +1,6 @@
-import { and, eq, inArray, isNull, ne, or, schema, sql } from "@keel/db";
-import { OPEN_STATUSES, addressKey, applyDiscountToAmounts, diffRecords, linesDiffer, mergeBlock, mergeLines, nameZipKey, normalizeAddress, normalizeEmail, normalizePhone, orderDiscountAmount, orderDiscountCode, orderEditBlock, replacementBalance, validateAddressFormat, type AddressIssue, type EditLine, type MergeBlock, type MergeFacts, type OrderDiscountKind, type OrderEditBlock } from "@keel/core";
-import type { Address, CommercePlatform, CreateOrderInput } from "@keel/integrations";
+import { and, eq, inArray, isNull, ne, or, schema, sql } from "@hullwise/db";
+import { OPEN_STATUSES, addressKey, applyDiscountToAmounts, diffRecords, linesDiffer, mergeBlock, mergeLines, nameZipKey, normalizeAddress, normalizeEmail, normalizePhone, orderDiscountAmount, orderDiscountCode, orderEditBlock, replacementBalance, validateAddressFormat, type AddressIssue, type EditLine, type MergeBlock, type MergeFacts, type OrderDiscountKind, type OrderEditBlock } from "@hullwise/core";
+import type { Address, CommercePlatform, CreateOrderInput } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { importOrder } from "../sync";
 import { applyCancellation, closeOrderBackorders, recomputeOrderStatus } from "./state";
@@ -167,7 +167,7 @@ export interface EditDetailsResult {
   writtenToPlatform: boolean;
 }
 
-/** Edits contact, address, email, phone and note of an order not yet fulfilled: platform first, then Keel. */
+/** Edits contact, address, email, phone and note of an order not yet fulfilled: platform first, then Hullwise. */
 export async function editOrderDetails(ctx: ServiceContext, platform: CommercePlatform | undefined, input: { orderId: string; contact: ContactPatch }, opts: EditOptions): Promise<EditDetailsResult> {
   const { order } = await requireEditable(ctx, input.orderId);
   const now = ctx.now ?? new Date();
@@ -203,7 +203,7 @@ export interface ReplaceResult {
   newOrderId: string;
   newOrderName: string;
   merged: number;
-  /** An old order the platform refused to cancel: it is linked and final in Keel, but must be cancelled by hand. */
+  /** An old order the platform refused to cancel: it is linked and final in Hullwise, but must be cancelled by hand. */
   warning: "old_order_not_cancelled" | null;
   /** Money to settle on a paid order: positive = customer owes, negative = refund due. 0 when unpaid. */
   balanceMinor: number;
@@ -329,7 +329,7 @@ export async function replaceOrder(ctx: ServiceContext, platform: CommercePlatfo
 
 /**
  * Units per variant the replaced orders give back when cancelled with restock: their open line units,
- * when Keel's level already took them out (read after the order was placed), less the units that were
+ * when Hullwise's level already took them out (read after the order was placed), less the units that were
  * waiting for stock (never taken from it).
  */
 async function replacedStockCredit(ctx: ServiceContext, orders: EditableOrder[]): Promise<Map<string, number>> {
@@ -404,7 +404,7 @@ export interface ApplyDiscountResult {
   refundDueMinor: number;
 }
 
-/** Applies a preset or custom discount (% or amount) to an open, unfulfilled order: platform first, then Keel. */
+/** Applies a preset or custom discount (% or amount) to an open, unfulfilled order: platform first, then Hullwise. */
 export async function applyOrderDiscount(ctx: ServiceContext, platform: CommercePlatform | undefined, input: { orderId: string; type: OrderDiscountKind; value: number; code?: string | null; reason?: string | null }, opts: { source?: string } = {}): Promise<ApplyDiscountResult> {
   if (!["percentage", "fixed_amount"].includes(input.type) || !Number.isFinite(input.value) || input.value <= 0 || (input.type === "percentage" && input.value > 10_000)) throw new OrderEditError("invalid_input", "discount", { field: "value" });
   const { order } = await requireEditable(ctx, input.orderId);

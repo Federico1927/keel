@@ -1,6 +1,6 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
-/** Minimum Admin API scopes per Keel module; the installer asks only for what the account needs. */
+/** Minimum Admin API scopes per Hullwise module; the installer asks only for what the account needs. */
 export const SHOPIFY_SCOPES_BY_MODULE: Record<string, string[]> = {
   "core.orders": ["read_orders", "write_orders", "read_customers", "read_fulfillments", "read_merchant_managed_fulfillment_orders", "write_merchant_managed_fulfillment_orders"],
   "core.shipments": ["read_fulfillments", "read_shipping", "write_merchant_managed_fulfillment_orders"],
@@ -62,5 +62,5 @@ export async function exchangeOAuthCode(shop: string, apiKey: string, apiSecret:
   return { accessToken: json.access_token, scopes: json.scope.split(",").map((s) => s.trim()).filter(Boolean) };
 }
 
-/** Values of Shopify's ReturnReason enum, chosen per return reason in Keel (empty = OTHER). */
+/** Values of Shopify's ReturnReason enum, chosen per return reason in Hullwise (empty = OTHER). */
 export const SHOPIFY_RETURN_REASONS = ["COLOR", "DEFECTIVE", "NOT_AS_DESCRIBED", "OTHER", "SIZE_TOO_LARGE", "SIZE_TOO_SMALL", "STYLE", "UNKNOWN", "UNWANTED", "WRONG_ITEM"] as const;

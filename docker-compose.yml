@@ -1,21 +1,21 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: keel-postgres
+    container_name: hullwise-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: keel
+      POSTGRES_DB: hullwise
     ports:
       - "5432:5432"
     volumes:
-      - keel_pgdata:/var/lib/postgresql/data
+      - hullwise_pgdata:/var/lib/postgresql/data
       - ./packages/db/docker/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d keel"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d hullwise"]
       interval: 5s
       timeout: 5s
       retries: 10
 volumes:
-  keel_pgdata:
+  hullwise_pgdata:

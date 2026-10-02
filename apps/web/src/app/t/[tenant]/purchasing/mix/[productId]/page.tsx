@@ -2,11 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
-import { canDo } from "@keel/config";
-import { formatNumber, formatPercent, optionMixShares } from "@keel/core";
-import { asc, eq, schema } from "@keel/db";
-import { optionMix } from "@keel/services";
-import { Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { canDo } from "@hullwise/config";
+import { formatNumber, formatPercent, optionMixShares } from "@hullwise/core";
+import { asc, eq, schema } from "@hullwise/db";
+import { optionMix } from "@hullwise/services";
+import { Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { MixPlanner } from "./planner";
 

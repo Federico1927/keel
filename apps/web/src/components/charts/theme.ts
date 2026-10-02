@@ -1,4 +1,4 @@
-import { CHART_AXIS, CHART_COLORS as COLORS, CHART_GRID as GRID } from "@keel/ui/tokens";
+import { CHART_AXIS, CHART_COLORS as COLORS, CHART_GRID as GRID } from "@hullwise/ui/tokens";
 
 /**
  * Recharts styling from the theme tokens: CSS variables in SVG attributes, so charts switch with

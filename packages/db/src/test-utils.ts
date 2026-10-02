@@ -3,9 +3,9 @@ import { Pool } from "pg";
 import * as schema from "./schema";
 
 export const TEST_ADMIN_URL =
-  process.env.TEST_DATABASE_ADMIN_URL ?? "postgres://keel_admin:keel_admin@127.0.0.1:5432/keel_test";
+  process.env.TEST_DATABASE_ADMIN_URL ?? "postgres://hullwise_admin:hullwise_admin@127.0.0.1:5432/hullwise_test";
 export const TEST_APP_URL =
-  process.env.TEST_DATABASE_URL ?? "postgres://keel_app:keel_app@127.0.0.1:5432/keel_test";
+  process.env.TEST_DATABASE_URL ?? "postgres://hullwise_app:hullwise_app@127.0.0.1:5432/hullwise_test";
 
 export function testPools() {
   const adminPool = new Pool({ connectionString: TEST_ADMIN_URL, max: 2 });

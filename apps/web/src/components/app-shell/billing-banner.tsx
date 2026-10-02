@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { AlertTriangle } from "lucide-react";
-import { PRODUCT_NAME } from "@keel/config";
-import type { BillingBanner as Banner } from "@keel/services";
+import { PRODUCT_NAME } from "@hullwise/config";
+import type { BillingBanner as Banner } from "@hullwise/services";
 
 /** Owners only (#53): a past-due balance or a payment to authenticate, with Stripe's payment link and the billing page. */
 export async function BillingBanner({ banner, slug }: { banner: Banner; slug: string }) {

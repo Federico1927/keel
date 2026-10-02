@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
-import { adminDb, and, desc, eq, isNull, recordAudit, schema, sql, type Database } from "@keel/db";
-import { SUPPLIER_LINK_TTL_DAYS } from "@keel/config";
-import { supplierLinkState, type SupplierLinkState } from "@keel/core";
+import { adminDb, and, desc, eq, isNull, recordAudit, schema, sql, type Database } from "@hullwise/db";
+import { SUPPLIER_LINK_TTL_DAYS } from "@hullwise/config";
+import { supplierLinkState, type SupplierLinkState } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 
 /**

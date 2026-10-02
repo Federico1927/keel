@@ -1,4 +1,4 @@
-import { idleAfterRuns, isEventDrivenSource, type SourceHealthStatus } from "@keel/config";
+import { idleAfterRuns, isEventDrivenSource, type SourceHealthStatus } from "@hullwise/config";
 import { isSyncDelayed } from "./notifications";
 
 /**

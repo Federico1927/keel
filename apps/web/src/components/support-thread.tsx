@@ -1,5 +1,5 @@
 import { Paperclip } from "lucide-react";
-import { cn } from "@keel/ui";
+import { cn } from "@hullwise/ui";
 
 export interface ThreadMessage {
   id: string;

@@ -1,5 +1,5 @@
 /**
- * Webhook payloads in the shape Stripe sends (trimmed to the fields Keel reads, ids anonymised).
+ * Webhook payloads in the shape Stripe sends (trimmed to the fields Hullwise reads, ids anonymised).
  * `legacy*` use the pre-2025 layout (periods on the subscription, `invoice.subscription`,
  * `line.price`); the others the 2025-03-31 "basil" layout. Test-mode values only, no secrets.
  */
@@ -25,8 +25,8 @@ export const LEGACY_SUBSCRIPTION_UPDATED = {
       cancellation_details: { reason: null },
       latest_invoice: "in_1QlegacyA",
       default_payment_method: "pm_1QlegacyA",
-      metadata: { keel_tenant_id: "00000000-0000-4000-8000-00000000000a" },
-      items: { object: "list", data: [{ id: "si_QlegacyA", object: "subscription_item", quantity: 1, price: { id: "price_1QlegacyPlan", object: "price", currency: "usd", lookup_key: "keel_plan_growth_monthly", unit_amount: 59900, recurring: { interval: "month", interval_count: 1 } } }] },
+      metadata: { hullwise_tenant_id: "00000000-0000-4000-8000-00000000000a" },
+      items: { object: "list", data: [{ id: "si_QlegacyA", object: "subscription_item", quantity: 1, price: { id: "price_1QlegacyPlan", object: "price", currency: "usd", lookup_key: "hullwise_plan_growth_monthly", unit_amount: 59900, recurring: { interval: "month", interval_count: 1 } } }] },
     },
   },
 };
@@ -45,7 +45,7 @@ export const LEGACY_INVOICE_PAYMENT_FAILED = {
       number: "ABCD1234-0002",
       customer: "cus_QlegacyA",
       subscription: "sub_1QlegacyA",
-      subscription_details: { metadata: { keel_tenant_id: "00000000-0000-4000-8000-00000000000a" } },
+      subscription_details: { metadata: { hullwise_tenant_id: "00000000-0000-4000-8000-00000000000a" } },
       status: "open",
       collection_method: "charge_automatically",
       billing_reason: "subscription_cycle",
@@ -63,7 +63,7 @@ export const LEGACY_INVOICE_PAYMENT_FAILED = {
       invoice_pdf: "https://pay.stripe.com/invoice/acct_test/test_legacy/pdf",
       status_transitions: { finalized_at: 1790000050, paid_at: null },
       metadata: {},
-      lines: { object: "list", data: [{ id: "il_1", amount: 59900, description: "1 × Keel Growth (at $599.00 / month)", proration: false, price: { id: "price_1QlegacyPlan", lookup_key: "keel_plan_growth_monthly" } }] },
+      lines: { object: "list", data: [{ id: "il_1", amount: 59900, description: "1 × Hullwise Growth (at $599.00 / month)", proration: false, price: { id: "price_1QlegacyPlan", lookup_key: "hullwise_plan_growth_monthly" } }] },
     },
   },
 };
@@ -75,7 +75,7 @@ export const CHECKOUT_COMPLETED = {
   created: 1790000200,
   livemode: false,
   type: "checkout.session.completed",
-  data: { object: { id: "cs_test_a1", object: "checkout.session", mode: "subscription", customer: "cus_QnewB", subscription: "sub_1QnewB", client_reference_id: "00000000-0000-4000-8000-00000000000b", status: "complete", payment_status: "paid", metadata: { keel_tenant_id: "00000000-0000-4000-8000-00000000000b" } } },
+  data: { object: { id: "cs_test_a1", object: "checkout.session", mode: "subscription", customer: "cus_QnewB", subscription: "sub_1QnewB", client_reference_id: "00000000-0000-4000-8000-00000000000b", status: "complete", payment_status: "paid", metadata: { hullwise_tenant_id: "00000000-0000-4000-8000-00000000000b" } } },
 };
 
 export const CUSTOMER_UPDATED = {
@@ -85,5 +85,5 @@ export const CUSTOMER_UPDATED = {
   created: 1790000300,
   livemode: false,
   type: "customer.updated",
-  data: { object: { id: "cus_QnewB", object: "customer", email: "billing@example.com", name: "Example GmbH", address: { country: "DE" }, tax_exempt: "none", metadata: { keel_tenant_id: "00000000-0000-4000-8000-00000000000b" }, tax_ids: { object: "list", data: [{ id: "txi_1", type: "eu_vat", value: "DE123456789", verification: { status: "verified" } }] } } },
+  data: { object: { id: "cus_QnewB", object: "customer", email: "billing@example.com", name: "Example GmbH", address: { country: "DE" }, tax_exempt: "none", metadata: { hullwise_tenant_id: "00000000-0000-4000-8000-00000000000b" }, tax_ids: { object: "list", data: [{ id: "txi_1", type: "eu_vat", value: "DE123456789", verification: { status: "verified" } }] } } },
 };

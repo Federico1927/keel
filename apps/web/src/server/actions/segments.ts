@@ -2,9 +2,9 @@
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { canWritePage, isPageEnabled } from "@keel/config";
-import { recordAudit } from "@keel/db";
-import { deleteSegment, evaluateSegment, previewSegment, saveSegment, SegmentRuleError, type SegmentPreview } from "@keel/services";
+import { canWritePage, isPageEnabled } from "@hullwise/config";
+import { recordAudit } from "@hullwise/db";
+import { deleteSegment, evaluateSegment, previewSegment, saveSegment, SegmentRuleError, type SegmentPreview } from "@hullwise/services";
 import { ForbiddenError, requirePage } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 

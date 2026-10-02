@@ -2,10 +2,10 @@
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { and, desc, eq, recordAudit, schema, sql } from "@keel/db";
-import { isAdPlatform, isAdPlatformInPlan } from "@keel/config";
-import { AnthropicLlmProvider, GoogleAddressProvider, GoogleAdsPlatform, MOCK_ACCOUNT_IDS, MetaAdsPlatform, ShopifyCommercePlatform, SHOPIFY_WEBHOOK_TOPICS, TiktokAdsPlatform, encryptJson, exchangeTiktokAuthCode, integrationMode, isValidShopDomain, type ConnectionTest } from "@keel/integrations";
-import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, resolveAddressProvider, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsBackfill, runAdsSync, runCatalogSync, runOrdersSync, runReturnsSync } from "@keel/services";
+import { and, desc, eq, recordAudit, schema, sql } from "@hullwise/db";
+import { apiEndpoint, isAdPlatform, isAdPlatformInPlan } from "@hullwise/config";
+import { AnthropicLlmProvider, GoogleAddressProvider, GoogleAdsPlatform, MOCK_ACCOUNT_IDS, MetaAdsPlatform, ShopifyCommercePlatform, SHOPIFY_WEBHOOK_TOPICS, TiktokAdsPlatform, encryptJson, exchangeTiktokAuthCode, integrationMode, isValidShopDomain, type ConnectionTest } from "@hullwise/integrations";
+import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, resolveAddressProvider, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsBackfill, runAdsSync, runCatalogSync, runOrdersSync, runReturnsSync } from "@hullwise/services";
 import { enqueue } from "@/server/jobs";
 import { ForbiddenError, requireAction, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
@@ -13,7 +13,7 @@ import { fail, ok, type ActionResult } from "@/server/action-result";
 const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic", "address"] as const;
 type Provider = (typeof PROVIDERS)[number];
 const providerSchema = z.enum(PROVIDERS);
-/** Providers whose data Keel imports; the AI key has nothing to resync. */
+/** Providers whose data Hullwise imports; the AI key has nothing to resync. */
 const syncProviderSchema = z.enum(["shopify", "meta", "google", "tiktok"]);
 
 /** Ad platforms sold by plan (TikTok from Growth): refused server side, whatever the client shows. */
@@ -44,7 +44,7 @@ export async function connectShopifyCustomApp(slug: string, _prev: ActionResult 
     const test = await platform.testConnection();
     const saved = await saveConnection(slug, "shopify", test, parsed.data, parsed.data.shop, { installedVia: "custom_app" });
     if (!saved.ok) return saved;
-    const callback = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/webhooks/shopify`;
+    const callback = apiEndpoint("/webhooks/shopify");
     const regs = await platform.registerWebhooks(callback, SHOPIFY_WEBHOOK_TOPICS).catch(() => []);
     const ctx = await requireAction(slug, "manage_integrations", "integrations");
     await ctx.run((tx) => tx.update(schema.integrations).set({ config: { installedVia: "custom_app", scopes: test.scopes ?? [], missingScopes: test.missingScopes ?? [], webhooks: regs } }).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, "shopify"))));
@@ -88,7 +88,7 @@ const tiktokSchema = z.object({ appId: z.string().trim().min(5), appSecret: z.st
 /**
  * TikTok for Business with the store's own app: the auth code from the advertiser authorization is
  * exchanged for a long-lived token covering one or more advertiser accounts; credentials are stored
- * encrypted (AES-GCM) and the 90-day backfill is queued. Keel's own app goes through the OAuth routes.
+ * encrypted (AES-GCM) and the 90-day backfill is queued. Hullwise's own app goes through the OAuth routes.
  */
 export async function connectTiktok(slug: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   try {
@@ -287,8 +287,7 @@ export async function simulateWebhook(slug: string, scenario: "order" | "cancel"
     const env = mock.buildWebhook(scenario === "cancel" ? "orders/cancelled" : "orders/create", (await mock.fetchOrder(order.externalId)) ?? order);
     const headers: Record<string, string> = { ...env.headers, "x-shopify-shop-domain": row[0]?.externalAccountId ?? env.headers["x-shopify-shop-domain"]!, "content-type": "application/json" };
     if (scenario === "bad_signature") headers["x-shopify-hmac-sha256"] = "invalid";
-    const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-    const res = await fetch(`${base}/api/webhooks/shopify`, { method: "POST", headers, body: env.rawBody });
+    const res = await fetch(apiEndpoint("/webhooks/shopify"), { method: "POST", headers, body: env.rawBody });
     await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.webhook_simulated", entityType: "integration", entityId: "shopify", diff: { scenario: { from: null, to: scenario }, status: { from: null, to: res.status } } }));
     revalidatePath(`/t/${slug}/integrations`);
     revalidatePath(`/t/${slug}/orders`);
@@ -325,8 +324,7 @@ export async function simulateReturnWebhook(slug: string): Promise<ActionResult<
     const ret = mock.openPlatformReturn({ orderExternalId: candidate.order.externalId!, lines: [{ orderLineExternalId: candidate.line.externalId!, quantity: 1, reason: "other" }], note: "Simulated return" });
     const env = mock.buildReturnWebhook("returns/request", ret.externalId);
     const headers: Record<string, string> = { ...env.headers, "x-shopify-shop-domain": row[0]?.externalAccountId ?? env.headers["x-shopify-shop-domain"]!, "content-type": "application/json" };
-    const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-    const res = await fetch(`${base}/api/webhooks/shopify`, { method: "POST", headers, body: env.rawBody });
+    const res = await fetch(apiEndpoint("/webhooks/shopify"), { method: "POST", headers, body: env.rawBody });
     await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.webhook_simulated", entityType: "integration", entityId: "shopify", diff: { scenario: { from: null, to: "return" }, status: { from: null, to: res.status } }, metadata: { returnExternalId: ret.externalId, orderId: candidate.order.id } }));
     revalidatePath(`/t/${slug}/integrations`);
     revalidatePath(`/t/${slug}/returns`);

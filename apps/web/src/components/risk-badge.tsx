@@ -1,6 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { Badge } from "@keel/ui";
+import { Badge } from "@hullwise/ui";
 
 export function RiskBadge({ risk, days }: { risk: string; days?: number | null }) {
   const t = useTranslations("stock_risk");

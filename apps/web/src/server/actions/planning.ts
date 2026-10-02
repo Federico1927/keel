@@ -1,10 +1,11 @@
 "use server";
 import { auditActor } from "@/server/audit-actor";
+import { appUrl } from "@hullwise/config";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { and, eq, recordAudit, schema, withTenant } from "@keel/db";
-import { addPoCharge, applyTransfer, deleteBundleComponent, deleteDemandEvent, deletePoCharge, generateDraftPurchaseOrders, issueSupplierLink, recordSupplierLinkAccess, saveBundleComponent, saveDemandEvent, sendSupplierPoEmail, setForecastOverride, SupplierAckError, supplierAcknowledge, tenantForSupplierToken, type ServiceContext } from "@keel/services";
+import { and, eq, recordAudit, schema, withTenant } from "@hullwise/db";
+import { addPoCharge, applyTransfer, deleteBundleComponent, deleteDemandEvent, deletePoCharge, generateDraftPurchaseOrders, issueSupplierLink, recordSupplierLinkAccess, saveBundleComponent, saveDemandEvent, sendSupplierPoEmail, setForecastOverride, SupplierAckError, supplierAcknowledge, tenantForSupplierToken, type ServiceContext } from "@hullwise/services";
 import { dispatchPlatformWrites } from "@/server/platform-writes";
 import { ForbiddenError, requireAction, requireWrite, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
@@ -132,8 +133,7 @@ export async function sendPoToSupplierAction(slug: string, poId: string, _prev: 
     const ctx = await requireAction(slug, "receive_purchase_order", "purchasing");
     const email = z.string().email().or(z.literal("")).safeParse(formData.get("email") ?? "");
     if (!email.success) return fail("invalid_input");
-    const h = await headers();
-    const origin = process.env.NEXT_PUBLIC_APP_URL ?? `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host") ?? "localhost:3000"}`;
+    const origin = appUrl();
     const token = await ctx.run(async (tx) => {
       const [po] = await tx.select({ status: schema.purchaseOrders.status }).from(schema.purchaseOrders).where(and(eq(schema.purchaseOrders.tenantId, ctx.tenant.id), eq(schema.purchaseOrders.id, poId))).limit(1);
       if (!po) throw new Error("not_found");

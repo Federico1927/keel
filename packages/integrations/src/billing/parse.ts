@@ -1,7 +1,7 @@
 import type { CheckoutSnapshot, CustomerSnapshot, InvoiceSnapshot, SubscriptionItemSnapshot, SubscriptionSnapshot } from "./types";
 
 /**
- * Stripe JSON → Keel snapshots. The same shapes come from API responses and webhook payloads.
+ * Stripe JSON → Hullwise snapshots. The same shapes come from API responses and webhook payloads.
  * Both the pre-2025 layout and the "basil" one (periods on subscription items, invoice parent,
  * line pricing) are read, so a change of account API version does not break the mirror.
  */
@@ -103,7 +103,7 @@ export function toInvoiceSnapshot(raw: unknown): InvoiceSnapshot {
     }),
     lastPaymentError: str(obj(i.last_finalization_error).message),
     metadata: meta(i.metadata),
-    subscriptionTenantId: str(obj(parentSub.metadata).keel_tenant_id) ?? str(obj(oldSub.metadata).keel_tenant_id),
+    subscriptionTenantId: str(obj(parentSub.metadata).hullwise_tenant_id) ?? str(obj(oldSub.metadata).hullwise_tenant_id),
   };
 }
 

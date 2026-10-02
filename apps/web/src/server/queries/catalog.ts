@@ -1,9 +1,9 @@
-import { and, asc, desc, eq, gte, inArray, schema, sql } from "@keel/db";
-import { PAGE_SIZE } from "@keel/config";
-import { productListWhere, summarizeByProduct, variantStock, type ProductFilters } from "@keel/services";
+import { and, asc, desc, eq, gte, inArray, schema, sql } from "@hullwise/db";
+import { PAGE_SIZE } from "@hullwise/config";
+import { productListWhere, summarizeByProduct, variantStock, type ProductFilters } from "@hullwise/services";
 import type { TenantContext } from "@/server/tenant";
 
-export { parseProductFilters, type ProductFilters } from "@keel/services";
+export { parseProductFilters, type ProductFilters } from "@hullwise/services";
 
 export async function listProducts(ctx: TenantContext, f: ProductFilters) {
   const where = productListWhere(ctx.tenant.id, f);

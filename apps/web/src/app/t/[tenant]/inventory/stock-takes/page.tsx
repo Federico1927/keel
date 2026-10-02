@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
-import { canWritePage } from "@keel/config";
-import { formatDateTime } from "@keel/core";
-import { listStockTakes } from "@keel/services";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { canWritePage } from "@hullwise/config";
+import { formatDateTime } from "@hullwise/core";
+import { listStockTakes } from "@hullwise/services";
+import { Badge, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { stockLocations, svcOf } from "@/server/queries/inventory-control";
 import { NewStockTakeForm } from "./controls";

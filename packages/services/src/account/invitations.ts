@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
-import { and, desc, eq, inArray, or, gte, recordAudit, schema, sql, type Database, type DbExecutor, type Transaction } from "@keel/db";
-import { canManageRole, isLocale, type TenantRole } from "@keel/config";
-import { checkPassword, normalizeEmail } from "@keel/core";
+import { and, desc, eq, inArray, or, gte, recordAudit, schema, sql, type Database, type DbExecutor, type Transaction } from "@hullwise/db";
+import { canManageRole, isLocale, type TenantRole } from "@hullwise/config";
+import { checkPassword, normalizeEmail } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { queueEmail, type QueueOutcome } from "../email/mailer";
 import { appBaseUrl } from "../email/unsubscribe";
@@ -18,7 +18,7 @@ import { hashAccountToken, isWellFormedToken, newAccountToken, sameTokenHash } f
  */
 export const INVITATION_TTL_DAYS = 7;
 const TTL_MS = INVITATION_TTL_DAYS * 24 * 3600_000;
-/** Invitations one tenant can send per hour (resends included): a stolen admin session cannot turn Keel into a spam relay. */
+/** Invitations one tenant can send per hour (resends included): a stolen admin session cannot turn Hullwise into a spam relay. */
 export const INVITATIONS_PER_HOUR = 30;
 
 export type InvitationState = "pending" | "expired" | "accepted" | "revoked";

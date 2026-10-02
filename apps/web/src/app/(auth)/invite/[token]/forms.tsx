@@ -1,7 +1,7 @@
 "use client";
 import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Button, Checkbox, Input, Label, cn } from "@keel/ui";
+import { Button, Checkbox, Input, Label, cn } from "@hullwise/ui";
 import type { ActionResult } from "@/server/action-result";
 import { NewPasswordFields } from "@/components/account/password-fields";
 import { AccountErrorMessage } from "@/components/account/error-message";

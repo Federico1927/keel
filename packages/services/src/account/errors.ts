@@ -1,4 +1,4 @@
-import type { PasswordIssue } from "@keel/core";
+import type { PasswordIssue } from "@hullwise/core";
 
 export type AccountErrorCode =
   | "not_found"

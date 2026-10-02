@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { PAYOUT_STATUSES, formatDate, formatDateTime, formatMoney, formatNumber } from "@keel/core";
-import { listPayouts } from "@keel/services";
-import { canDo } from "@keel/config";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Button, Input, cn } from "@keel/ui";
+import { PAYOUT_STATUSES, formatDate, formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
+import { listPayouts } from "@hullwise/services";
+import { canDo } from "@hullwise/config";
+import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Button, Input, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { SyncPayoutsButton } from "./sync-button";
 import { PAYOUT_STATUS_VARIANT as STATUS_VARIANT } from "./status";

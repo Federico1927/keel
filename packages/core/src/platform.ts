@@ -1,4 +1,4 @@
-import type { PlanKey, TenantStatus } from "@keel/config";
+import type { PlanKey, TenantStatus } from "@hullwise/config";
 import { monthlyInvoiceLines, sumLines } from "./billing";
 import { monthKey } from "./costs";
 

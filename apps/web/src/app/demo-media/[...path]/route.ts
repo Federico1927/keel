@@ -1,4 +1,4 @@
-import { parsePlaceholderPath, placeholderProductSvg } from "@keel/ui/placeholder-image";
+import { parsePlaceholderPath, placeholderProductSvg } from "@hullwise/ui/placeholder-image";
 
 /**
  * Demo product photos (issue #19): `/demo-media/<handle>/<n>-<label>.svg`, drawn on the fly and

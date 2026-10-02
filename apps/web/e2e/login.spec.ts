@@ -13,7 +13,7 @@ for (const [locale, title] of Object.entries(titles)) {
 test("password login reaches the tenant home", async ({ page }) => {
   await page.goto("/login");
   await page.getByLabel("Email").fill("owner@northwind.demo");
-  await page.getByLabel("Password").fill("keel-demo-2026");
+  await page.getByLabel("Password").fill("hullwise-demo-2026");
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).toHaveURL(/\/t\/northwind-apparel/);
 });

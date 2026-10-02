@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Checkbox, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select, Textarea } from "@keel/ui";
+import { Alert, AlertDescription, Button, Checkbox, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select, Textarea } from "@hullwise/ui";
 import { editOrderAction, suggestAddressesAction, validateAddressAction } from "@/server/actions/orders";
 import { modifyCodOrderAction } from "@/server/actions/cod";
 import type { ActionResult } from "@/server/action-result";

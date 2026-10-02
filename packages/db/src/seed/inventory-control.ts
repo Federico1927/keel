@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, isNotNull } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/node-postgres";
-import { marginFloorPrice } from "@keel/core";
+import { marginFloorPrice } from "@hullwise/core";
 import * as schema from "../schema";
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;

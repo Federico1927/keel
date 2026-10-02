@@ -1,9 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
-import { formatMoney, formatNumber, formatPercent, type AdEntityEconomics, type AdMetricValues, type Period } from "@keel/core";
-import { periodQuery, type OrdersFilter } from "@keel/services";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { formatMoney, formatNumber, formatPercent, type AdEntityEconomics, type AdMetricValues, type Period } from "@hullwise/core";
+import { periodQuery, type OrdersFilter } from "@hullwise/services";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 
 export interface AdsTableRow {
   key: string;
@@ -11,7 +11,7 @@ export interface AdsTableRow {
   sub?: ReactNode;
   metrics: AdMetricValues;
   economics: AdEntityEconomics;
-  /** Orders list behind the Keel numbers; null when Keel cannot tie orders to this row. */
+  /** Orders list behind the Hullwise numbers; null when Hullwise cannot tie orders to this row. */
   ordersHref: string | null;
   extra?: ReactNode[];
   muted?: boolean;
@@ -24,11 +24,11 @@ export function ordersHref(tenant: string, filter: OrdersFilter | null, period: 
 }
 
 /**
- * Platform numbers next to Keel's for one level (ad sets, ads, assets, keywords, search terms):
- * spend, impressions, CTR, the platform's conversions, Keel's sale orders (clickable), net revenue,
+ * Platform numbers next to Hullwise's for one level (ad sets, ads, assets, keywords, search terms):
+ * spend, impressions, CTR, the platform's conversions, Hullwise's sale orders (clickable), net revenue,
  * profit (margin − spend, sale orders only) and ROAS. Columns fold away on narrow screens.
  */
-export async function AdsTable({ rows, currency, locale, extraHeads = [], testId, rowTestId, emptyKeel }: { rows: AdsTableRow[]; currency: string; locale: string; extraHeads?: string[]; testId?: string; rowTestId?: string; emptyKeel?: string }) {
+export async function AdsTable({ rows, currency, locale, extraHeads = [], testId, rowTestId, emptyHullwise }: { rows: AdsTableRow[]; currency: string; locale: string; extraHeads?: string[]; testId?: string; rowTestId?: string; emptyHullwise?: string }) {
   const t = await getTranslations("ads");
   const money = (m: number) => formatMoney(m, currency, locale);
   return (
@@ -40,7 +40,7 @@ export async function AdsTable({ rows, currency, locale, extraHeads = [], testId
           <TableHead className="hidden text-right md:table-cell">{t("cols.impressions")}</TableHead>
           <TableHead className="hidden text-right lg:table-cell">{t("cols.ctr")}</TableHead>
           <TableHead className="hidden text-right lg:table-cell">{t("cols.platform_conv")}</TableHead>
-          <TableHead className="text-right">{t("cols.keel_orders")}</TableHead>
+          <TableHead className="text-right">{t("cols.hullwise_orders")}</TableHead>
           <TableHead className="hidden text-right xl:table-cell">{t("cols.revenue")}</TableHead>
           <TableHead className="text-right">{t("cols.profit")}</TableHead>
           <TableHead className="hidden text-right md:table-cell">{t("cols.roas")}</TableHead>
@@ -50,7 +50,7 @@ export async function AdsTable({ rows, currency, locale, extraHeads = [], testId
       <TableBody>
         {rows.map((r) => {
           const e = r.economics;
-          const keel = r.ordersHref !== null || e.attributedOrders > 0;
+          const hullwise = r.ordersHref !== null || e.attributedOrders > 0;
           return (
             <TableRow key={r.key} data-testid={rowTestId} className={cn(r.muted && "text-muted-foreground")}>
               <TableCell className="max-w-[20rem]">
@@ -62,10 +62,10 @@ export async function AdsTable({ rows, currency, locale, extraHeads = [], testId
               <TableCell className="hidden text-right tabular lg:table-cell">{formatPercent(e.ctr, locale, 2)}</TableCell>
               <TableCell className="hidden text-right tabular lg:table-cell">{formatNumber(Math.round(r.metrics.conversions * 10) / 10, locale)} · {money(r.metrics.conversionValueMinor)}</TableCell>
               <TableCell className="text-right tabular">
-                {!keel ? <span className="text-xs text-muted-foreground" title={emptyKeel}>—</span> : r.ordersHref ? <Link href={r.ordersHref} className="underline-offset-4 hover:underline" data-testid="keel-orders-link">{formatNumber(e.attributedOrders, locale)}</Link> : formatNumber(e.attributedOrders, locale)}
+                {!hullwise ? <span className="text-xs text-muted-foreground" title={emptyHullwise}>—</span> : r.ordersHref ? <Link href={r.ordersHref} className="underline-offset-4 hover:underline" data-testid="hullwise-orders-link">{formatNumber(e.attributedOrders, locale)}</Link> : formatNumber(e.attributedOrders, locale)}
                 {e.excludedOrders > 0 && <span className="ml-1 text-xs text-muted-foreground">{t("excluded_n", { n: e.excludedOrders })}</span>}
               </TableCell>
-              <TableCell className="hidden text-right tabular xl:table-cell">{keel ? money(e.netRevenueMinor) : "—"}</TableCell>
+              <TableCell className="hidden text-right tabular xl:table-cell">{hullwise ? money(e.netRevenueMinor) : "—"}</TableCell>
               <TableCell className={cn("text-right tabular font-medium", e.profitMinor < 0 && "text-destructive")}>{money(e.profitMinor)}</TableCell>
               <TableCell className="hidden text-right tabular md:table-cell">{e.roas === null ? "—" : `${e.roas.toFixed(2)}×`}</TableCell>
               {(r.extra ?? []).map((x, i) => <TableCell key={i}>{x}</TableCell>)}

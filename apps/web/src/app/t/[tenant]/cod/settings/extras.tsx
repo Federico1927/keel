@@ -2,8 +2,8 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Switch, Textarea } from "@keel/ui";
-import type { CodSettings, MessageTemplate, ScoreFactor } from "@keel/addon-cod";
+import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Switch, Textarea } from "@hullwise/ui";
+import type { CodSettings, MessageTemplate, ScoreFactor } from "@hullwise/addon-cod";
 import { importCarrierAction, previewScoreAction, saveCodOperationsAction, saveCodTemplatesAction } from "@/server/actions/cod";
 import { CopyButton } from "../queue-extras";
 

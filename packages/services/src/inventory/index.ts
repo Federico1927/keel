@@ -1,5 +1,5 @@
-import { and, eq, gte, inArray, schema, sql } from "@keel/db";
-import { reorderSuggestion, stockVelocity, worstRisk, type StockRisk, type TenantSettings } from "@keel/core";
+import { and, eq, gte, inArray, schema, sql } from "@hullwise/db";
+import { reorderSuggestion, stockVelocity, worstRisk, type StockRisk, type TenantSettings } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 
 export interface VariantStockRow {

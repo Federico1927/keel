@@ -1,7 +1,7 @@
-import { and, desc, eq, inArray, lte, or, schema, sql } from "@keel/db";
-import { normalizePhone } from "@keel/core";
-import type { AddressProvider } from "@keel/integrations";
-import { customerOrderHistory, type ServiceContext } from "@keel/services";
+import { and, desc, eq, inArray, lte, or, schema, sql } from "@hullwise/db";
+import { normalizePhone } from "@hullwise/core";
+import type { AddressProvider } from "@hullwise/integrations";
+import { customerOrderHistory, type ServiceContext } from "@hullwise/services";
 import { riskEconomics } from "../economics";
 import { recipientKey } from "../risk";
 import type { ScoreFactor } from "../scoring";

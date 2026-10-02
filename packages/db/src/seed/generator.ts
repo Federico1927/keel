@@ -1,4 +1,4 @@
-import { createRng, type Rng } from "@keel/integrations/rng";
+import { createRng, type Rng } from "@hullwise/integrations/rng";
 import {
   AWAITING_STOCK_REASON,
   addressKey,
@@ -13,7 +13,7 @@ import {
   type PaymentStatus,
   type ShipmentStatus,
   type StateRule,
-} from "@keel/core";
+} from "@hullwise/core";
 import {
   APPAREL_TEMPLATES,
   CAMPAIGN_ADJECTIVES,
@@ -683,7 +683,7 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
 
   /* ---------- discounts rows ---------- */
   for (const d of discountRows) ds.discounts.push({ id: d.id, tenantId, externalId: ext(), poolId: null, code: d.code, title: d.title, type: d.type, value: d.value, minimumAmountMinor: d.code === "FREESHIP" ? 5000 : null, usageLimit: d.code === "VIP25" ? 300 : null, usedCount: d.used, startsAt: d.startsAt, endsAt: d.endsAt, isActive: !d.endsAt || d.endsAt > now, source: "platform", syncedAt: now });
-  for (const c of poolCodes) ds.discounts.push({ id: c.id, tenantId, externalId: null, poolId, code: c.code, title: null, type: "percentage", value: 1500, minimumAmountMinor: null, usageLimit: 1, usedCount: c.used ? 1 : 0, startsAt: addDays(now, -40), endsAt: addDays(now, 50), isActive: !c.used, source: "keel", syncedAt: null, redeemedOrderId: c.orderId ?? null, redeemedAt: c.at ?? null });
+  for (const c of poolCodes) ds.discounts.push({ id: c.id, tenantId, externalId: null, poolId, code: c.code, title: null, type: "percentage", value: 1500, minimumAmountMinor: null, usageLimit: 1, usedCount: c.used ? 1 : 0, startsAt: addDays(now, -40), endsAt: addDays(now, 50), isActive: !c.used, source: "hullwise", syncedAt: null, redeemedOrderId: c.orderId ?? null, redeemedAt: c.at ?? null });
   // a later top-up of the pool (issue #35): codes handed to campaigns and customers, the rest ready. Own RNG, so the rest of the demo data does not move.
   {
     const prng = createRng(cfg.seed + 35);
@@ -696,7 +696,7 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
       taken.add(code);
       const toCampaign = i < 24 && campaignIds.length > 0;
       const toCustomer = !toCampaign && i < 40 && customers.length > 0;
-      ds.discounts.push({ id: prng.uuid(), tenantId, externalId: null, poolId, code, title: null, type: "percentage", value: 1500, minimumAmountMinor: null, usageLimit: 1, usedCount: 0, startsAt: addDays(now, -40), endsAt: addDays(now, 50), isActive: true, source: "keel", syncedAt: null, assignedCampaignId: toCampaign ? campaignIds[i % Math.min(4, campaignIds.length)]! : null, assignedCustomerId: toCustomer ? customers[(i * 37) % customers.length]!.id : null, assignedAt: toCampaign || toCustomer ? addDays(now, -prng.int(1, 20)) : null });
+      ds.discounts.push({ id: prng.uuid(), tenantId, externalId: null, poolId, code, title: null, type: "percentage", value: 1500, minimumAmountMinor: null, usageLimit: 1, usedCount: 0, startsAt: addDays(now, -40), endsAt: addDays(now, 50), isActive: true, source: "hullwise", syncedAt: null, assignedCampaignId: toCampaign ? campaignIds[i % Math.min(4, campaignIds.length)]! : null, assignedCustomerId: toCustomer ? customers[(i * 37) % customers.length]!.id : null, assignedAt: toCampaign || toCustomer ? addDays(now, -prng.int(1, 20)) : null });
     }
     const pool = ds.discountPools.find((p) => p.id === poolId)!;
     pool.targetSize = topUp - 40;

@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, cn } from "@keel/ui";
+import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, cn } from "@hullwise/ui";
 import { createDiscountCodeAction, createDiscountPoolAction } from "@/server/actions/discounts";
 
 export function DiscountForms({ slug, currency, defaultPrefix }: { slug: string; currency: string; defaultPrefix: string }) {

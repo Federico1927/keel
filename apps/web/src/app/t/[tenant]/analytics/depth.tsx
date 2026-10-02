@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { CheckCircle2, Download } from "lucide-react";
-import { GRANULARITIES, SALE_STATUSES, UTM_DIMENSIONS, UTM_NONE, formatDate, formatMoney, formatNumber, formatPercent, isUtmDimension, nextUtmDimension, type BucketPnl, type Granularity, type PeriodBucket, type UtmDimension } from "@keel/core";
-import { ORDER_PNL_SORTS, PRODUCT_PROFIT_SORTS, catalogQualityReport, orderPnlTable, productProfitTable, utmReport, type OrderPnlSort, type PnlReport, type ProductProfitSort } from "@keel/services";
-import { PAYMENT_METHODS } from "@keel/core";
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, Input, Pagination, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { GRANULARITIES, SALE_STATUSES, UTM_DIMENSIONS, UTM_NONE, formatDate, formatMoney, formatNumber, formatPercent, isUtmDimension, nextUtmDimension, type BucketPnl, type Granularity, type PeriodBucket, type UtmDimension } from "@hullwise/core";
+import { ORDER_PNL_SORTS, PRODUCT_PROFIT_SORTS, catalogQualityReport, orderPnlTable, productProfitTable, utmReport, type OrderPnlSort, type PnlReport, type ProductProfitSort } from "@hullwise/services";
+import { PAYMENT_METHODS } from "@hullwise/core";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, Input, Pagination, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import type { TenantContext } from "@/server/tenant";
 import { analyticsTenant, runAnalytics } from "@/server/analytics";
 import { utmParam } from "@/server/queries/orders";

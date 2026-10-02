@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, inArray, schema, sql, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import type { MockCommercePlatform } from "@keel/integrations";
+import { and, eq, inArray, schema, sql, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import type { MockCommercePlatform } from "@hullwise/integrations";
 import { enqueuePlatformWrite, executePlatformWrite, getCommercePlatformFor, latestPlatformWrites, mockCommerceFor, processDuePlatformWrites, processWebhookEvent, purgeExpiredPlatformRows, recordWebhookEvent, refreshInventoryForVariants, resetMockPlatforms, retryPlatformWrite, runCatalogSync, runPlatformWriteNow, type PlatformTenant, type ServiceContext } from "../src";
 
 const pools = testPools();
@@ -161,7 +161,7 @@ describe("stock refresh, drift and reconciliation", () => {
     const v = await aVariant(7);
     const [ghost] = await db((tx) => tx.insert(schema.locations).values({ tenantId, externalId: "ghost-location", name: "Closed shop", isActive: false, isDefault: false }).returning());
     await db((tx) => tx.insert(schema.inventoryLevels).values({ tenantId, variantId: v.id, locationId: ghost!.id, available: 9, onHand: 9, committed: 0, syncedAt: new Date(Date.now() - 864e5) }));
-    // a Keel stock write still waiting: the run must not overwrite that level
+    // a Hullwise stock write still waiting: the run must not overwrite that level
     const [held] = await levelsOf([(await aVariant(8)).id]);
     const pending = await run((s) => enqueuePlatformWrite(s, { kind: "inventory.set", entityType: "variant", entityId: held!.variantId, payload: { inventoryItemExternalId: held!.inv!, locationExternalId: held!.loc!, available: held!.available + 50 } }));
     await db((tx) => tx.update(schema.inventoryLevels).set({ available: held!.available + 50 }).where(and(eq(schema.inventoryLevels.variantId, held!.variantId), eq(schema.inventoryLevels.locationId, sql`(select id from locations where external_id = ${held!.loc} and tenant_id = ${tenantId})`))));
@@ -185,7 +185,7 @@ describe("stock refresh, drift and reconciliation", () => {
     expect(await db((tx) => tx.select().from(schema.inventoryDrift).where(and(eq(schema.inventoryDrift.variantId, v.id), eq(schema.inventoryDrift.kind, "not_reported"))))).toHaveLength(1);
     const [kept] = (await levelsOf([held!.variantId])).filter((l) => l.loc === held!.loc);
     expect(kept!.available).toBe(held!.available + 50);
-    // once the write lands, the next read agrees with Keel
+    // once the write lands, the next read agrees with Hullwise
     expect((await executePlatformWrite(run, tenant, pending.id)).status).toBe("succeeded");
     expect(mock.stockOf(held!.inv!, held!.loc!)).toBe(held!.available + 50);
   });

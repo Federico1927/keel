@@ -1,6 +1,6 @@
-import { and, eq, inArray, recordAudit, schema, sql } from "@keel/db";
-import { CAMPAIGN_SEND_MAX_ATTEMPTS, OPEN_STATUSES, campaignExclusion, campaignMessageKey, campaignRetryDelayMs, emptyExclusionCounts, isCampaignDelivering, isInSendWindow, minimumDetectableUplift, nextSendWindowStart, renderMessage, throttleAllowance, type CampaignExclusionReason, type ExclusionCounts, type RetentionCampaignKind, type SendWindow, type TenantSettings } from "@keel/core";
-import { IntegrationError, type MessagingChannel } from "@keel/integrations";
+import { and, eq, inArray, recordAudit, schema, sql } from "@hullwise/db";
+import { CAMPAIGN_SEND_MAX_ATTEMPTS, OPEN_STATUSES, campaignExclusion, campaignMessageKey, campaignRetryDelayMs, emptyExclusionCounts, isCampaignDelivering, isInSendWindow, minimumDetectableUplift, nextSendWindowStart, renderMessage, throttleAllowance, type CampaignExclusionReason, type ExclusionCounts, type RetentionCampaignKind, type SendWindow, type TenantSettings } from "@hullwise/core";
+import { IntegrationError, type MessagingChannel } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import type { TenantRunner } from "../assistant";
 import { suppressedContacts } from "../email/suppressions";

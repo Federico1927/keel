@@ -1,6 +1,6 @@
 "use client";
 import { useActionState } from "react";
-import { Button } from "@keel/ui";
+import { Button } from "@hullwise/ui";
 import { unsubscribeAction } from "@/server/actions/unsubscribe";
 
 export function UnsubscribeForm({ token, labels }: { token: string; labels: { confirmTitle: string; confirm: string; button: string; doneTitle: string; done: string; invalid: string } }) {

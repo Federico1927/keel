@@ -3,8 +3,8 @@ import { useRouter } from "next/navigation";
 import { createContext, useContext, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { ExternalLink, Pencil, RefreshCw } from "lucide-react";
-import { PRODUCT_EDIT_LIMITS, parseAmountToMinor, parseTagInput, seoPreview } from "@keel/core";
-import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select, Textarea, cn } from "@keel/ui";
+import { PRODUCT_EDIT_LIMITS, parseAmountToMinor, parseTagInput, seoPreview } from "@hullwise/core";
+import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select, Textarea, cn } from "@hullwise/ui";
 import { saveProductAction, syncProductAction } from "@/server/actions/product-edit";
 
 /**
@@ -281,7 +281,7 @@ export interface EditableVariantRow {
   inventoryPolicy: string;
 }
 
-/** Edit mode of the variants table: the fields Keel writes to Shopify, one row per variant; only changed rows are sent. */
+/** Edit mode of the variants table: the fields Hullwise writes to Shopify, one row per variant; only changed rows are sent. */
 export function VariantsEditor({ rows, close }: { rows: EditableVariantRow[]; close: () => void }) {
   const t = useTranslations("product_mirror");
   const [v, setV] = useState(rows);

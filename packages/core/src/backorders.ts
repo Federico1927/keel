@@ -3,7 +3,7 @@
  * order line. Pure rules only; the services read stock and write the rows.
  *
  * Stock model. `available` is the platform's number (units free for new orders, already net of
- * the units committed to orders the platform knows about), summed over locations as Keel last read
+ * the units committed to orders the platform knows about), summed over locations as Hullwise last read
  * it. A level read before an order was placed does not reflect that order yet ("unreflected"), so
  * the units of earlier unreflected orders are taken off first. A level read after the order was
  * placed already took the order's units out; the only trace of a shortfall left there is

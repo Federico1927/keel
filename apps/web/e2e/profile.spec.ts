@@ -107,10 +107,10 @@ test.describe("profile", () => {
   });
 
   test("a user can only open their own profile; the console has one too", async ({ page }) => {
-    await login(page, "superadmin@keel.demo");
+    await login(page, "superadmin@hullwise.demo");
     await page.goto("/admin/profile");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your profile");
-    await expect(page.getByTestId("profile-email")).toHaveText("superadmin@keel.demo");
+    await expect(page.getByTestId("profile-email")).toHaveText("superadmin@hullwise.demo");
     // avatars of people outside the viewer's workspaces are not served
     await page.context().clearCookies();
     const anon = await page.request.get("/avatar/00000000-0000-0000-0000-000000000000");

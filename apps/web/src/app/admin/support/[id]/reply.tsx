@@ -1,7 +1,7 @@
 "use client";
 import { useActionState, useEffect, useRef, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Card, CardContent, Checkbox, Input, Label, Textarea } from "@keel/ui";
+import { Alert, AlertDescription, Button, Card, CardContent, Checkbox, Input, Label, Textarea } from "@hullwise/ui";
 import { adminReplyAction, adminSetTicketStatusAction } from "@/server/actions/support";
 
 export function AdminReplyForm({ ticketId }: { ticketId: string }) {

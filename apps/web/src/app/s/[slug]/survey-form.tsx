@@ -1,7 +1,7 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Button, Card, CardContent, Input } from "@keel/ui";
+import { Button, Card, CardContent, Input } from "@hullwise/ui";
 import { submitSurveyAction } from "@/server/actions/survey";
 
 export interface SurveyFormProps {

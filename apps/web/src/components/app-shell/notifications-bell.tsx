@@ -11,8 +11,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@keel/ui";
-import { formatRelative } from "@keel/core";
+} from "@hullwise/ui";
+import { formatRelative } from "@hullwise/core";
 import { markNotificationsRead } from "@/server/actions/notifications";
 import { notificationText } from "@/components/notification-text";
 

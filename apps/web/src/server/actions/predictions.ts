@@ -1,8 +1,8 @@
 "use server";
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
-import { recordAudit } from "@keel/db";
-import { recomputePredictions, type PredictionRunResult } from "@keel/services";
+import { recordAudit } from "@hullwise/db";
+import { recomputePredictions, type PredictionRunResult } from "@hullwise/services";
 import { ForbiddenError, requireWrite } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 

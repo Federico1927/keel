@@ -1,6 +1,6 @@
 "use client";
 import { useLayoutEffect } from "react";
-import type { ThemePreference } from "@keel/ui/tokens";
+import type { ThemePreference } from "@hullwise/ui/tokens";
 
 /**
  * Keeps the `dark` class right for the "system" preference after client-side refreshes (the

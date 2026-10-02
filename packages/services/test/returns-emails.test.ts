@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, inArray, schema, sql, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { brandColorsFor, parseTenantSettings } from "@keel/core";
-import { BRAND_SURFACES } from "@keel/ui/tokens";
+import { and, eq, inArray, schema, sql, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { brandColorsFor, parseTenantSettings } from "@hullwise/core";
+import { BRAND_SURFACES } from "@hullwise/ui/tokens";
 import { addEmailSuppression, createReturn, drainEmailJobs, emailIdempotencyKey, importFulfillment, mockEmailOutbox, notifyReturnCustomer, portalLookup, portalSubmit, returnDetail, saveReturnPolicy, savePortalConfig, transitionReturn, verifyPortalSession, type ServiceContext } from "../src";
 
 /** Return status emails to the end customer (issue #7): one per return and event, store identity, opt-in per event, suppressions respected. */
@@ -92,7 +92,7 @@ describe("return status emails to the customer", () => {
     expect(refund.html).toContain(brandColorsFor("#7a1f5c", BRAND_SURFACES.light).primary);
     const approved = sent.find((m) => m.message.tags?.template === "return_approved")!.message;
     expect(approved.text).toContain("Spedisci a: Magazzino resi");
-    expect(approved.text).not.toContain("Keel");
+    expect(approved.text).not.toContain("Hullwise");
   });
 
   it("tells the customer the store-credit code", async () => {

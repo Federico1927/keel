@@ -1,5 +1,5 @@
-import { and, asc, eq, ilike, inArray, isNull, ne, schema, sql, type SQL } from "@keel/db";
-import { diffRecords, type Diff } from "@keel/core";
+import { and, asc, eq, ilike, inArray, isNull, ne, schema, sql, type SQL } from "@hullwise/db";
+import { diffRecords, type Diff } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { PurchasingError } from "./index";
 

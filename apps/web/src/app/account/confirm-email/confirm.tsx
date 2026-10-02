@@ -2,7 +2,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button } from "@keel/ui";
+import { Alert, AlertDescription, Button } from "@hullwise/ui";
 import { confirmEmailChangeAction } from "@/server/actions/profile";
 
 export function ConfirmEmailButton({ token }: { token: string }) {

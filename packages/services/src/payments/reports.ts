@@ -1,4 +1,4 @@
-import { paymentMethodBreakdown, taxReport, type MethodBreakdownRow, type Period, type TaxReportRow } from "@keel/core";
+import { paymentMethodBreakdown, taxReport, type MethodBreakdownRow, type Period, type TaxReportRow } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { orderEconomicsForPeriod, type AnalyticsTenant } from "../analytics";
 

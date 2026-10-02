@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { apiEndpoint } from "@hullwise/config";
 import { getLocale, getTranslations } from "next-intl/server";
-import { asc, schema } from "@keel/db";
-import { formatDateTime, formatNumber } from "@keel/core";
-import { EMAIL_TEMPLATE_NAMES, emailSettings, emailStats, listAddressSuppressions, listEmailLog } from "@keel/services";
-import { Alert, AlertDescription, AlertTitle, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, Input, Label, PageHeader, Pagination, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { asc, schema } from "@hullwise/db";
+import { formatDateTime, formatNumber } from "@hullwise/core";
+import { EMAIL_TEMPLATE_NAMES, emailSettings, emailStats, listAddressSuppressions, listEmailLog } from "@hullwise/services";
+import { Alert, AlertDescription, AlertTitle, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, Input, Label, PageHeader, Pagination, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { RemoveSuppressionButton, TestEmailForm } from "./controls";
 
@@ -27,7 +28,7 @@ export default async function AdminEmailPage({ searchParams }: { searchParams: P
     return `/admin/email${q.size ? `?${q}` : ""}`;
   };
   const steps = tg.raw("email.steps") as Step[];
-  const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/webhooks/email`;
+  const webhookUrl = apiEndpoint("/webhooks/email");
   const stateVariant = settings.state === "configured" ? "success" : settings.state === "not_configured" ? "destructive" : "warning";
   return (
     <>

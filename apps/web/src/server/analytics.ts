@@ -1,4 +1,4 @@
-import type { AnalyticsTenant, ServiceContext } from "@keel/services";
+import type { AnalyticsTenant, ServiceContext } from "@hullwise/services";
 import type { TenantContext } from "@/server/tenant";
 
 /** The tenant fields analytics services need. */

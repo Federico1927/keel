@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { displayName, formatDateTime, formatMoney, formatNumber } from "@keel/core";
-import { adminDb, eq, schema } from "@keel/db";
-import { operatorAttribution, operatorEfficiency, supervisorView } from "@keel/addon-cod";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { displayName, formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
+import { adminDb, eq, schema } from "@hullwise/db";
+import { operatorAttribution, operatorEfficiency, supervisorView } from "@hullwise/addon-cod";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { PeriodPicker } from "@/components/period-picker";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { requirePage } from "@/server/tenant";

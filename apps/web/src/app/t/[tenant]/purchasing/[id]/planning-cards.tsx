@@ -2,7 +2,7 @@
 import { useActionState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
-import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select } from "@keel/ui";
+import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select } from "@hullwise/ui";
 import { addPoChargeAction, deletePoChargeAction, sendPoToSupplierAction } from "@/server/actions/planning";
 
 export interface ChargeView {

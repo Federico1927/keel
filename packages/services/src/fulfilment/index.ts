@@ -1,6 +1,6 @@
-import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lt, recordAudit, schema, sql, type SQL } from "@keel/db";
-import { OPEN_STATUSES, TO_SHIP_STATUSES, businessDaysElapsed, diffRecords, isToShip, lateToShipCutoff, localDateKey, tablesPdf, validateShipInput, zonedDayStart, type ShipInput, type ShipInputIssue, type TableDocument, type TenantSettings } from "@keel/core";
-import { IntegrationError, type CommercePlatform } from "@keel/integrations";
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lt, recordAudit, schema, sql, type SQL } from "@hullwise/db";
+import { OPEN_STATUSES, TO_SHIP_STATUSES, businessDaysElapsed, diffRecords, isToShip, lateToShipCutoff, localDateKey, tablesPdf, validateShipInput, zonedDayStart, type ShipInput, type ShipInputIssue, type TableDocument, type TenantSettings } from "@hullwise/core";
+import { IntegrationError, type CommercePlatform } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { recomputeOrderStatus } from "../orders/state";
 import { importFulfillment } from "../sync";
@@ -12,9 +12,9 @@ export * from "./cases";
 export * from "./mappings";
 
 /**
- * Fulfilment from Keel (issue #28): the late-to-ship queue, the pick/pack board (pending → packed →
+ * Fulfilment from Hullwise (issue #28): the late-to-ship queue, the pick/pack board (pending → packed →
  * shipped) and packing slips. "Ship" goes through the platform-writes outbox synchronously: the
- * fulfilment is created on the commerce platform first and Keel changes only once it is acknowledged.
+ * fulfilment is created on the commerce platform first and Hullwise changes only once it is acknowledged.
  */
 
 export interface FulfilmentClock {
@@ -136,7 +136,7 @@ async function orderFacts(ctx: ServiceContext, orderId: string) {
 
 export type PackOutcome = { kind: "not_found" } | { kind: "not_to_ship"; name: string } | { kind: "unchanged"; name: string } | { kind: "done"; name: string };
 
-/** Marks an order packed (or back to pending). Local to Keel; timeline event with author and diff. */
+/** Marks an order packed (or back to pending). Local to Hullwise; timeline event with author and diff. */
 export async function setOrderPacked(ctx: ServiceContext, orderId: string, packed: boolean, opts: { eventMetadata?: Record<string, unknown> } = {}): Promise<PackOutcome> {
   const o = await orderFacts(ctx, orderId);
   if (!o) return { kind: "not_found" };
@@ -173,7 +173,7 @@ export interface ShipOrderInput extends ShipInput {
 }
 
 /**
- * Ships an order from Keel: `fulfillment.create` on the commerce platform through the outbox
+ * Ships an order from Hullwise: `fulfillment.create` on the commerce platform through the outbox
  * (synchronous, recorded), then — only once the platform answered — the shipment, the order's
  * fulfilment state, a `fulfilled` timeline event with author and diff, and the status recompute.
  * A refused or failed platform call changes nothing locally (the caller's transaction rolls back).
@@ -206,7 +206,7 @@ export async function shipOrder(ctx: ServiceContext, platform: CommercePlatform,
     actorType: ctx.actor.type,
     actorUserId: ctx.actor.userId,
     diff: diffRecords<Record<string, unknown>>({ fulfillmentStatusRaw: o.fulfillmentStatusRaw, carrier: null, trackingNumber: null, ...(clearManual ? { manualStatus: o.manualStatus } : {}) }, { fulfillmentStatusRaw: "fulfilled", carrier: f.carrier ?? carrier, trackingNumber: f.trackingNumber ?? trackingNumber, ...(clearManual ? { manualStatus: null } : {}) }),
-    metadata: { platform: platform.provider, fulfillmentExternalId: f.externalId, shipmentId: imported.shipmentId, notifyCustomer: input.notifyCustomer, source: "keel" },
+    metadata: { platform: platform.provider, fulfillmentExternalId: f.externalId, shipmentId: imported.shipmentId, notifyCustomer: input.notifyCustomer, source: "hullwise" },
     createdAt: now,
   });
   const r = await recomputeOrderStatus(ctx, orderId, { eventMetadata: { source: "fulfilment" } });

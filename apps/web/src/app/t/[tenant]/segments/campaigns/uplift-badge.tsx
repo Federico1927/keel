@@ -1,7 +1,7 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { Badge } from "@keel/ui";
-import type { CampaignResults } from "@keel/services";
+import { Badge } from "@hullwise/ui";
+import type { CampaignResults } from "@hullwise/services";
 
 /** One-word verdict on a campaign: measured uplift, no effect, still running, or not measurable. */
 export function UpliftBadge({ results, locale }: { results: CampaignResults | null; locale: string }) {

@@ -2,9 +2,9 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { adminDb } from "@keel/db";
-import { safeNextPath } from "@keel/core";
-import { AccountError, acceptInvitationAsNewUser, acceptInvitationAsUser, completePasswordReset, requestPasswordReset } from "@keel/services";
+import { adminDb } from "@hullwise/db";
+import { safeNextPath } from "@hullwise/core";
+import { AccountError, acceptInvitationAsNewUser, acceptInvitationAsUser, completePasswordReset, requestPasswordReset } from "@hullwise/services";
 import { signIn, signOut } from "@/auth";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 import { requireUser } from "@/server/session";

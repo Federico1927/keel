@@ -2,8 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
-import { canDo, canWritePage } from "@keel/config";
-import { Card, CardContent, PageHeader } from "@keel/ui";
+import { canDo, canWritePage } from "@hullwise/config";
+import { Card, CardContent, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { CostImportForm, CostWriteBackToggle } from "./import-form";
 

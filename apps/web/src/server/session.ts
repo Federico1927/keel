@@ -2,8 +2,8 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { decode } from "next-auth/jwt";
-import { adminDb, and, eq, schema } from "@keel/db";
-import { getAccountProfile } from "@keel/services";
+import { adminDb, and, eq, schema } from "@hullwise/db";
+import { getAccountProfile } from "@hullwise/services";
 import { auth } from "@/auth";
 
 export interface CurrentUser {

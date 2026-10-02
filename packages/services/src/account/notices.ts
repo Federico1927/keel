@@ -1,5 +1,5 @@
-import { and, asc, eq, schema, type DbExecutor } from "@keel/db";
-import { isTimeZone } from "@keel/core";
+import { and, asc, eq, schema, type DbExecutor } from "@hullwise/db";
+import { isTimeZone } from "@hullwise/core";
 import { queueEmail, type EmailTarget, type QueuedEmail } from "../email/mailer";
 import type { EmailTemplateData } from "../email/templates";
 import type { ServiceContext } from "../context";

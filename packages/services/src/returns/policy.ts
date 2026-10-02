@@ -1,5 +1,5 @@
-import { and, eq, schema, sql } from "@keel/db";
-import { customerReturnRisk, parseReturnPolicy, returnPolicySchema, selectAutomations, type CustomerReturnStats, type ReturnPolicy, type RiskLevel, type TenantSettings } from "@keel/core";
+import { and, eq, schema, sql } from "@hullwise/db";
+import { customerReturnRisk, parseReturnPolicy, returnPolicySchema, selectAutomations, type CustomerReturnStats, type ReturnPolicy, type RiskLevel, type TenantSettings } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { ReturnError } from "./errors";
 

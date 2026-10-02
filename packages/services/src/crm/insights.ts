@@ -1,5 +1,5 @@
-import { sql } from "@keel/db";
-import { SALE_STATUSES } from "@keel/core";
+import { sql } from "@hullwise/db";
+import { SALE_STATUSES } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 
 const SALE = SALE_STATUSES as readonly string[];

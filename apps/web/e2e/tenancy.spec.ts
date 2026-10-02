@@ -37,7 +37,7 @@ test.describe("tenancy and permissions", () => {
   });
 
   test("multi-tenant user can switch workspace", async ({ page }) => {
-    await login(page, "multi@keel.demo");
+    await login(page, "multi@hullwise.demo");
     await page.goto("/t/harbor-home");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await page.goto("/t/northwind-apparel");

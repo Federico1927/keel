@@ -1,5 +1,5 @@
-import { and, asc, eq, recordAudit, schema } from "@keel/db";
-import { SHIPMENT_STATUSES, diffRecords, normalizeExternalStatus, type ShipmentStatus, type StatusMapping } from "@keel/core";
+import { and, asc, eq, recordAudit, schema } from "@hullwise/db";
+import { SHIPMENT_STATUSES, diffRecords, normalizeExternalStatus, type ShipmentStatus, type StatusMapping } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 
 /**

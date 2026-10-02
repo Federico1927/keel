@@ -1,7 +1,7 @@
-import { and, desc, eq, inArray, isNull, not, recordAudit, schema, sql, withTenant, type Database, type DbExecutor, type SQL, type Transaction } from "@keel/db";
-import { FAILURE_ALERT_WINDOW_HOURS } from "@keel/config";
-import { failureAlertSignature, windowElapsed, type FailureAlertKind } from "@keel/core";
-import { MockNotificationSink } from "@keel/integrations";
+import { and, desc, eq, inArray, isNull, not, recordAudit, schema, sql, withTenant, type Database, type DbExecutor, type SQL, type Transaction } from "@hullwise/db";
+import { FAILURE_ALERT_WINDOW_HOURS } from "@hullwise/config";
+import { failureAlertSignature, windowElapsed, type FailureAlertKind } from "@hullwise/core";
+import { MockNotificationSink } from "@hullwise/integrations";
 import { queueEmail } from "../email/mailer";
 import { appBaseUrl } from "../email/unsubscribe";
 import { membersWithRoles, notifyUsers } from "../notifications";

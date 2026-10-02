@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { canDo } from "@keel/config";
-import { PageHeader } from "@keel/ui";
+import { canDo } from "@hullwise/config";
+import { PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { CampaignSettingsForm } from "./form";
 

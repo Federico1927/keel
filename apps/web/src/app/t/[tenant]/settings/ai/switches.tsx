@@ -2,7 +2,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Label, Switch } from "@keel/ui";
+import { Label, Switch } from "@hullwise/ui";
 import { updateMcpSettings } from "@/server/actions/mcp";
 
 /** Tenant switches of the MCP server: on/off and full PII exposure. */

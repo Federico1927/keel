@@ -1,6 +1,6 @@
-# CLAUDE.md — Brief di sviluppo autonomo: "Keel"
+# CLAUDE.md — Brief di sviluppo autonomo: "Hullwise"
 
-> Nome di lavoro del prodotto: **Keel** (la chiglia: la struttura invisibile che tiene stabile la nave).
+> Nome del prodotto: **Hullwise** (lo scafo gestito con saggezza: la struttura che tiene stabile un e-commerce). Rinominato il 2026-10-02 (vedi `docs/DECISIONS.md`).
 > Il nome deve stare in UNA costante (`PRODUCT_NAME` in `packages/config`) così si può cambiare in un minuto.
 > Alternative valutate: Backroom, Opsdeck, Quarterdeck.
 
@@ -8,7 +8,7 @@
 
 ## 0. Missione
 
-> **PRINCIPIO GUIDA, PRIMA DI OGNI ALTRA REGOLA: Keel deve essere utile a qualsiasi e-commerce, a prescindere dal metodo di pagamento.** Carta, wallet, PayPal, bonifico, BNPL e contrassegno sono tutti metodi equivalenti nel core. **Il contrassegno NON è l'elemento principale:** è un add-on (`addon.cod`) attivato solo su alcuni account. Nessun modulo del core, nessuna schermata principale, nessun KPI di default e nessuna scelta di modello dati deve presupporre il contrassegno. Se una funzione ha senso solo per chi incassa alla consegna, va nell'add-on.
+> **PRINCIPIO GUIDA, PRIMA DI OGNI ALTRA REGOLA: Hullwise deve essere utile a qualsiasi e-commerce, a prescindere dal metodo di pagamento.** Carta, wallet, PayPal, bonifico, BNPL e contrassegno sono tutti metodi equivalenti nel core. **Il contrassegno NON è l'elemento principale:** è un add-on (`addon.cod`) attivato solo su alcuni account. Nessun modulo del core, nessuna schermata principale, nessun KPI di default e nessuna scelta di modello dati deve presupporre il contrassegno. Se una funzione ha senso solo per chi incassa alla consegna, va nell'add-on.
 
 Costruisci da zero, in autonomia, l'MVP di una piattaforma SaaS **multi-tenant e multilingua** per la gestione operativa di e-commerce di medie dimensioni. Il prodotto è il nocciolo generico di una piattaforma esistente costruita per un solo brand (calzature, Italia, contrassegno). Deve andare bene per **la maggior parte degli e-commerce** che vendono su Shopify e fanno pubblicità su Meta e Google.
 
@@ -38,7 +38,7 @@ Hai accesso in sola lettura a due piattaforme che Federico ha costruito per sing
 
 **Cosa NON prendere nel core:** coda di conferma, assegnazione degli operatori, delivery score e rischio destinatario sono logica da contrassegno: servono **solo** per l'add-on `addon.cod` nella fase 11. Niente tag del cliente, Elogy, Qapla', GLS, Spoki, taglie di calzature, IVA fissa, Italia come default, dominio o prefissi dei clienti.
 
-**Regole sul codice sorgente dei clienti:** sola lettura; non copiare file `.env`, chiavi, token o dati personali; non collegarti ai loro database o alle loro API; riscrivi la logica per il modello canonico di Keel invece di copiare il codice, salvo utility pure e generiche. In caso di conflitto vale sempre questo file.
+**Regole sul codice sorgente dei clienti:** sola lettura; non copiare file `.env`, chiavi, token o dati personali; non collegarti ai loro database o alle loro API; riscrivi la logica per il modello canonico di Hullwise invece di copiare il codice, salvo utility pure e generiche. In caso di conflitto vale sempre questo file.
 
 ---
 

@@ -127,6 +127,6 @@ CREATE UNIQUE INDEX "tenant_tax_rates_uq" ON "tenant_tax_rates" USING btree ("te
 CREATE INDEX "tenants_status_idx" ON "tenants" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "audit_logs_tenant_created_idx" ON "audit_logs" USING btree ("tenant_id","created_at");--> statement-breakpoint
 CREATE INDEX "audit_logs_entity_idx" ON "audit_logs" USING btree ("entity_type","entity_id");--> statement-breakpoint
-CREATE POLICY "tenant_tax_rates_tenant_isolation" ON "tenant_tax_rates" AS PERMISSIVE FOR ALL TO "keel_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid) WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);--> statement-breakpoint
-CREATE POLICY "audit_logs_tenant_select" ON "audit_logs" AS PERMISSIVE FOR SELECT TO "keel_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);--> statement-breakpoint
-CREATE POLICY "audit_logs_tenant_insert" ON "audit_logs" AS PERMISSIVE FOR INSERT TO "keel_app" WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);
+CREATE POLICY "tenant_tax_rates_tenant_isolation" ON "tenant_tax_rates" AS PERMISSIVE FOR ALL TO "hullwise_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid) WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);--> statement-breakpoint
+CREATE POLICY "audit_logs_tenant_select" ON "audit_logs" AS PERMISSIVE FOR SELECT TO "hullwise_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);--> statement-breakpoint
+CREATE POLICY "audit_logs_tenant_insert" ON "audit_logs" AS PERMISSIVE FOR INSERT TO "hullwise_app" WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);

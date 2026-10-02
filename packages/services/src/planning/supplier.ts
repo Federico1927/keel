@@ -1,5 +1,5 @@
-import { and, eq, recordAudit, schema, type Database } from "@keel/db";
-import { tablePdf } from "@keel/core";
+import { and, eq, recordAudit, schema, type Database } from "@hullwise/db";
+import { tablePdf } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { notifyUsers } from "../notifications";
 import { transitionPurchaseOrder } from "../purchasing";

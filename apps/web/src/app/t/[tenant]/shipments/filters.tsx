@@ -3,8 +3,8 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { Search, X } from "lucide-react";
-import { Button, Input, Select, cn } from "@keel/ui";
-import { SHIPMENT_STATUSES } from "@keel/core";
+import { Button, Input, Select, cn } from "@hullwise/ui";
+import { SHIPMENT_STATUSES } from "@hullwise/core";
 import type { ShipmentFilters } from "@/server/queries/shipments";
 
 export function ShipmentFiltersBar({ basePath, filters, carriers }: { basePath: string; filters: ShipmentFilters; carriers: string[] }) {

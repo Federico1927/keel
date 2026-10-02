@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDateTime } from "@keel/core";
-import { listMcpConnections, mcpAvailabilityFor, type McpConnectionRow } from "@keel/services";
-import { Alert, AlertDescription, Badge, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { formatDateTime } from "@hullwise/core";
+import { listMcpConnections, mcpAvailabilityFor, type McpConnectionRow } from "@hullwise/services";
+import { Alert, AlertDescription, Badge, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { mcpServerUrl } from "@/server/mcp";
 import { getTenantContext, type TenantContext } from "@/server/tenant";
 import { CopyField } from "./copy-field";

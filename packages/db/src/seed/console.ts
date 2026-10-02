@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/node-postgres";
-import { MODULES, PLANS, PLATFORM_CURRENCY, adPlatformsForPlan, type PlanKey, type TenantStatus } from "@keel/config";
-import { monthlyChargeMinor, subscriptionStatusFor } from "@keel/core";
+import { MODULES, PLANS, PLATFORM_CURRENCY, adPlatformsForPlan, type PlanKey, type TenantStatus } from "@hullwise/config";
+import { monthlyChargeMinor, subscriptionStatusFor } from "@hullwise/core";
 import * as schema from "../schema";
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;

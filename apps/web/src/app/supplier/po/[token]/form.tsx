@@ -1,7 +1,7 @@
 "use client";
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Input, Label, Textarea } from "@keel/ui";
+import { Alert, AlertDescription, Button, Input, Label, Textarea } from "@hullwise/ui";
 import { supplierAckAction } from "@/server/actions/planning";
 
 export function SupplierAckForm({ token, defaultDate, previousNote }: { token: string; defaultDate: string; previousNote: string | null }) {

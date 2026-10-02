@@ -1,4 +1,4 @@
-import { Badge } from "@keel/ui";
+import { Badge } from "@hullwise/ui";
 
 const VARIANT: Record<string, "outline" | "muted" | "success" | "warning" | "info"> = { draft: "outline", pending_approval: "warning", approved: "info", scheduled: "info", sending: "warning", sent: "success", active: "success", paused: "muted" };
 

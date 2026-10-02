@@ -1,21 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { MODULES, PLANS } from "@keel/config";
+import { MODULES, PLANS } from "@hullwise/config";
 import { paymentHealth } from "./billing";
 import { billingCatalog, catalogChange, mergeInvoiceStatus, catalogItemFor, desiredSubscriptionKeys, isCatalogUnchanged, lookupKeyFor, mirroredMrr, stripeKeyMode, subscriptionItemChanges, subscriptionSignal, vatTreatment } from "./subscription-billing";
 
 describe("billing catalog", () => {
   it("lists every plan (monthly), its setup fee (one-off) and the priced, implemented add-ons", () => {
     const c = billingCatalog();
-    expect(c.filter((i) => i.kind === "plan").map((i) => i.lookupKey)).toEqual(["keel_plan_starter_monthly", "keel_plan_growth_monthly", "keel_plan_scale_monthly"]);
-    expect(catalogItemFor("keel_setup_growth", c)).toMatchObject({ kind: "setup", amountMinor: PLANS.growth.setupFeeMinor, interval: null, productId: "keel_setup_growth" });
-    expect(catalogItemFor("keel_addon_cod_monthly", c)).toMatchObject({ kind: "addon", key: "addon.cod", amountMinor: MODULES["addon.cod"].monthlyPriceMinor, interval: "month", name: "Keel add-on: Cash on delivery" });
+    expect(c.filter((i) => i.kind === "plan").map((i) => i.lookupKey)).toEqual(["hullwise_plan_starter_monthly", "hullwise_plan_growth_monthly", "hullwise_plan_scale_monthly"]);
+    expect(catalogItemFor("hullwise_setup_growth", c)).toMatchObject({ kind: "setup", amountMinor: PLANS.growth.setupFeeMinor, interval: null, productId: "hullwise_setup_growth" });
+    expect(catalogItemFor("hullwise_addon_cod_monthly", c)).toMatchObject({ kind: "addon", key: "addon.cod", amountMinor: MODULES["addon.cod"].monthlyPriceMinor, interval: "month", name: "Hullwise add-on: Cash on delivery" });
     // on-request add-ons have no price: not in the catalog
     expect(c.some((i) => i.key === "addon.whatsapp")).toBe(false);
     expect(new Set(c.map((i) => i.lookupKey)).size).toBe(c.length);
   });
 
   it("creates what is missing, a new price when the amount changes, nothing when in step", () => {
-    const item = catalogItemFor("keel_plan_growth_monthly")!;
+    const item = catalogItemFor("hullwise_plan_growth_monthly")!;
     expect(catalogChange(item, { product: null, price: null })).toEqual({ createProduct: true, updateProduct: false, createPrice: true, archivePriceId: null });
     const current = { product: { name: item.name, active: true }, price: { id: "price_1", productId: item.productId, amountMinor: item.amountMinor, currency: "usd", interval: "month" as const } };
     expect(isCatalogUnchanged(catalogChange(item, current))).toBe(true);
@@ -38,10 +38,10 @@ describe("subscriptions", () => {
   });
 
   it("computes item changes: plan swap keeps the item, add-ons are added and removed", () => {
-    expect(desiredSubscriptionKeys("growth", ["addon.whatsapp", "addon.cod"])).toEqual(["keel_plan_growth_monthly", "keel_addon_cod_monthly"]);
-    const current = [{ itemId: "si_plan", lookupKey: lookupKeyFor("plan", "starter") }, { itemId: "si_cod", lookupKey: "keel_addon_cod_monthly" }];
-    expect(subscriptionItemChanges(current, ["keel_plan_growth_monthly", "keel_addon_customer_campaigns_monthly"])).toEqual({ add: ["keel_addon_customer_campaigns_monthly"], remove: ["si_cod"], swap: [{ itemId: "si_plan", lookupKey: "keel_plan_growth_monthly" }] });
-    expect(subscriptionItemChanges(current, ["keel_plan_starter_monthly", "keel_addon_cod_monthly"])).toEqual({ add: [], remove: [], swap: [] });
+    expect(desiredSubscriptionKeys("growth", ["addon.whatsapp", "addon.cod"])).toEqual(["hullwise_plan_growth_monthly", "hullwise_addon_cod_monthly"]);
+    const current = [{ itemId: "si_plan", lookupKey: lookupKeyFor("plan", "starter") }, { itemId: "si_cod", lookupKey: "hullwise_addon_cod_monthly" }];
+    expect(subscriptionItemChanges(current, ["hullwise_plan_growth_monthly", "hullwise_addon_customer_campaigns_monthly"])).toEqual({ add: ["hullwise_addon_customer_campaigns_monthly"], remove: ["si_cod"], swap: [{ itemId: "si_plan", lookupKey: "hullwise_plan_growth_monthly" }] });
+    expect(subscriptionItemChanges(current, ["hullwise_plan_starter_monthly", "hullwise_addon_cod_monthly"])).toEqual({ add: [], remove: [], swap: [] });
   });
 
   it("MRR counts recurring items of active and past-due subscriptions only", () => {

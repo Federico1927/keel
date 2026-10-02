@@ -1,6 +1,6 @@
 import { randomInt } from "node:crypto";
-import { and, desc, eq, inArray, schema, sql, type SQL } from "@keel/db";
-import { SALE_STATUSES, discountState, generateUniqueCodes, poolCodeStatus, type DiscountState, type DiscountType } from "@keel/core";
+import { and, desc, eq, inArray, schema, sql, type SQL } from "@hullwise/db";
+import { SALE_STATUSES, discountState, generateUniqueCodes, poolCodeStatus, type DiscountState, type DiscountType } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { orderEconomicsForPeriod, type AnalyticsTenant } from "../analytics";
 import { enqueuePlatformWrite, type PlatformWriteRow } from "../writes";
@@ -118,7 +118,7 @@ export async function createDiscountCode(ctx: ServiceContext, input: CreateCodeI
       throw new DiscountError("platform_error");
     }
   }
-  const [row] = await ctx.tx.insert(schema.discounts).values({ tenantId: ctx.tenantId, externalId, code, title: input.title.trim(), type: input.type, value: Math.round(input.value), minimumAmountMinor: input.minimumAmountMinor ?? null, usageLimit: input.usageLimit ?? null, startsAt: input.startsAt ?? null, endsAt: input.endsAt ?? null, isActive: true, source: "keel", syncedAt: push ? (ctx.now ?? new Date()) : null }).returning({ id: schema.discounts.id });
+  const [row] = await ctx.tx.insert(schema.discounts).values({ tenantId: ctx.tenantId, externalId, code, title: input.title.trim(), type: input.type, value: Math.round(input.value), minimumAmountMinor: input.minimumAmountMinor ?? null, usageLimit: input.usageLimit ?? null, startsAt: input.startsAt ?? null, endsAt: input.endsAt ?? null, isActive: true, source: "hullwise", syncedAt: push ? (ctx.now ?? new Date()) : null }).returning({ id: schema.discounts.id });
   if (!push) await enqueuePlatformWrite(ctx, { kind: "discount.create", entityType: "discount", entityId: row!.id, payload: { code, title: input.title.trim(), type: input.type, value: Math.round(input.value), startsAt: input.startsAt?.toISOString() ?? null, endsAt: input.endsAt?.toISOString() ?? null, usageLimit: input.usageLimit ?? null, minimumAmountMinor: input.minimumAmountMinor ?? null } });
   return row!.id;
 }
@@ -149,7 +149,7 @@ export async function createDiscountPool(ctx: ServiceContext, input: CreatePoolI
   const [pool] = await ctx.tx.insert(schema.discountPools).values({ tenantId: ctx.tenantId, title: input.title.trim(), prefix: input.prefix.toUpperCase(), type: input.type, value: Math.round(input.value), targetSize: size, status: result.failed.length ? "partial" : "ready", externalId: result.externalId, startsAt: input.startsAt ?? null, endsAt: input.endsAt ?? null, createdBy: ctx.actor.userId }).returning({ id: schema.discountPools.id });
   const now = ctx.now ?? new Date();
   for (let i = 0; i < codes.length; i += 500) {
-    await ctx.tx.insert(schema.discounts).values(codes.slice(i, i + 500).map((code) => ({ tenantId: ctx.tenantId, externalId: imported.has(code) ? `${result.externalId}:${code}` : null, poolId: pool!.id, code, title: null, type: input.type, value: Math.round(input.value), usageLimit: 1, usedCount: 0, startsAt: input.startsAt ?? null, endsAt: input.endsAt ?? null, isActive: imported.has(code), source: "keel", syncedAt: now })));
+    await ctx.tx.insert(schema.discounts).values(codes.slice(i, i + 500).map((code) => ({ tenantId: ctx.tenantId, externalId: imported.has(code) ? `${result.externalId}:${code}` : null, poolId: pool!.id, code, title: null, type: input.type, value: Math.round(input.value), usageLimit: 1, usedCount: 0, startsAt: input.startsAt ?? null, endsAt: input.endsAt ?? null, isActive: imported.has(code), source: "hullwise", syncedAt: now })));
   }
   return { poolId: pool!.id, imported: imported.size, failed: result.failed.length };
 }

@@ -1,7 +1,7 @@
-import { and, asc, desc, eq, gte, schema, sql } from "@keel/db";
-import type { TenantRole } from "@keel/config";
-import { ASSISTANT_MAX_QUESTION_CHARS, ASSISTANT_MAX_STEPS, AssistantInputError, threadTitle, type AssistantCitation } from "@keel/core";
-import { LlmError, type LlmBlock, type LlmMessage, type LlmProvider, type LlmStopReason } from "@keel/integrations";
+import { and, asc, desc, eq, gte, schema, sql } from "@hullwise/db";
+import type { TenantRole } from "@hullwise/config";
+import { ASSISTANT_MAX_QUESTION_CHARS, ASSISTANT_MAX_STEPS, AssistantInputError, threadTitle, type AssistantCitation } from "@hullwise/core";
+import { LlmError, type LlmBlock, type LlmMessage, type LlmProvider, type LlmStopReason } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import type { AnalyticsTenant } from "../analytics";
 import { ToolError } from "../tools";
@@ -43,7 +43,7 @@ const LANGUAGE_NAMES: Record<string, string> = { en: "English", it: "Italian", e
 export function assistantSystemPrompt(scope: AssistantScope, tools: readonly AssistantTool[], today: Date): string {
   const t = scope.tenant;
   return [
-    `You are the analyst inside Keel, the operations platform of the online store "${t.name}". You answer questions from the store's team about their own data.`,
+    `You are the analyst inside Hullwise, the operations platform of the online store "${t.name}". You answer questions from the store's team about their own data.`,
     `Today is ${today.toISOString().slice(0, 10)}. The store's currency is ${t.currency}, its country ${t.country}, its timezone ${t.timezone}.`,
     `Answer in the language of the question; when unsure, in ${LANGUAGE_NAMES[scope.locale] ?? "English"}.`,
     "",
@@ -54,7 +54,7 @@ export function assistantSystemPrompt(scope: AssistantScope, tools: readonly Ass
     "- State the period and any filter behind each figure. Amounts from the tools are already in the store currency, in major units: write them as money.",
     "- Be brief: the answer first, in two to five sentences or a short list, then what it means for the business or what to look at next. The figures you used appear under your answer with links to their pages, so do not paste tables.",
     "- Profit and margin count only orders that were not cancelled or returned. Say so when it matters.",
-    "- You can only read data. If asked to change something (pause a campaign, edit an order), explain where in Keel to do it.",
+    "- You can only read data. If asked to change something (pause a campaign, edit an order), explain where in Hullwise to do it.",
     tools.length < 7 ? `- This user's role gives access to: ${tools.map((x) => x.name).join(", ")}. For other topics, say their role does not include that data.` : "",
   ]
     .filter((l) => l !== "")

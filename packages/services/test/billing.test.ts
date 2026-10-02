@@ -1,8 +1,8 @@
-import { MODULES, PLANS } from "@keel/config";
+import { MODULES, PLANS } from "@hullwise/config";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, schema } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedPlatform, type SeedContext } from "@keel/db/seed";
+import { and, eq, schema } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedPlatform, type SeedContext } from "@hullwise/db/seed";
 import {
   MockBillingProvider,
   applySuspensions,
@@ -23,7 +23,7 @@ let ctx: SeedContext;
 let admin = "";
 beforeAll(async () => {
   ctx = await seedPlatform(pools.admin);
-  admin = ctx.userIds["superadmin@keel.demo"]!;
+  admin = ctx.userIds["superadmin@hullwise.demo"]!;
 });
 afterAll(() => pools.close());
 

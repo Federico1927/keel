@@ -528,7 +528,7 @@
     "title": "Notificaciones",
     "empty": "Sin notificaciones",
     "view_all": "Ver todas",
-    "description": "Todo lo que Keel te ha avisado, con filtros. Elige por tipo dónde recibir los avisos en Preferencias.",
+    "description": "Todo lo que Hullwise te ha avisado, con filtros. Elige por tipo dónde recibir los avisos en Preferencias.",
     "tabs": {
       "all": "Todas",
       "mentions": "Mis menciones",
@@ -725,7 +725,7 @@
   },
   "task_rules": {
     "title": "Reglas de tareas",
-    "description": "Cuando un registro permanece en uno de los estados elegidos (durante un tiempo, o después de su fecha límite), Keel abre una tarea y la asigna; la tarea se cierra sola cuando el registro avanza.",
+    "description": "Cuando un registro permanece en uno de los estados elegidos (durante un tiempo, o después de su fecha límite), Hullwise abre una tarea y la asigna; la tarea se cierra sola cuando el registro avanza.",
     "new": "Nueva regla",
     "edit": "Editar",
     "entity": "Registro",
@@ -759,7 +759,7 @@
   "support": {
     "button": "Ayuda",
     "title": "Soporte",
-    "description": "Solicitudes al equipo de Keel. Recibes una notificación cuando respondemos.",
+    "description": "Solicitudes al equipo de Hullwise. Recibes una notificación cuando respondemos.",
     "new": "Contactar con soporte",
     "new_description": "Describe el problema; una captura o un archivo ayudan.",
     "subject": "Asunto",
@@ -777,7 +777,7 @@
     "sent": "Solicitud enviada.",
     "view": "Ver la solicitud",
     "statuses": {
-      "open": "Esperando a Keel",
+      "open": "Esperando a Hullwise",
       "answered": "Respondida",
       "closed": "Cerrada"
     },
@@ -788,13 +788,13 @@
       "author": "Abierta por"
     },
     "empty_title": "Sin solicitudes",
-    "empty_description": "Usa el botón Ayuda de la cabecera para escribir al equipo de Keel.",
+    "empty_description": "Usa el botón Ayuda de la cabecera para escribir al equipo de Hullwise.",
     "reply": "Responder",
     "reply_placeholder": "Escribe una respuesta…",
     "close": "Cerrar la solicitud",
     "closed_hint": "Esta solicitud está cerrada: una respuesta la reabre.",
     "you": "Tú",
-    "platform": "Soporte de Keel",
+    "platform": "Soporte de Hullwise",
     "download": "Descargar",
     "messages_n": "{n} mensajes",
     "all": "Todas las solicitudes"
@@ -1044,7 +1044,7 @@
     "backorder_closed": "Espera de stock cerrada",
     "payment_recorded": "Pago registrado",
     "refund_issued": "Reembolso emitido",
-    "fulfilled": "Enviado desde Keel",
+    "fulfilled": "Enviado desde Hullwise",
     "packed": "Empaquetado",
     "unpacked": "Vuelto a pendiente",
     "delivery_instruction_sent": "Instrucción de entrega enviada",
@@ -1892,7 +1892,7 @@
       "platform_says": "La plataforma declara (compras · valor · ROAS)",
       "real": "Pedidos reales atribuidos (pedidos · neto · ROAS)",
       "gap": "Diferencia",
-      "help": "Las plataformas cuentan conversiones con sus propias ventanas y modelos; los pedidos reales son los pedidos de venta atribuidos por Keel. Una diferencia muy negativa indica que la plataforma sobrestima.",
+      "help": "Las plataformas cuentan conversiones con sus propias ventanas y modelos; los pedidos reales son los pedidos de venta atribuidos por Hullwise. Una diferencia muy negativa indica que la plataforma sobrestima.",
       "title_tiktok": "TikTok: declarado vs real"
     },
     "creatives_link": "Creatividades",
@@ -1986,7 +1986,7 @@
   },
   "customers": {
     "title": "Clientes",
-    "description": "Perfiles calculados a partir de los pedidos canónicos de Keel: valor, frecuencia, recencia y nivel RFM.",
+    "description": "Perfiles calculados a partir de los pedidos canónicos de Hullwise: valor, frecuencia, recencia y nivel RFM.",
     "tabs": {
       "list": "Clientes",
       "rfm": "Matriz RFM",
@@ -2697,7 +2697,7 @@
     "description": "Conexiones con las plataformas de comercio y anuncios: estado, última sincronización, errores, ejecuciones y registro de webhooks.",
     "guides": "Guías de conexión",
     "open_guide": "Cómo conectarla",
-    "global_mock_banner": "Este entorno funciona en modo mock (KEEL_INTEGRATION_MODE=mock): cada adaptador es un simulador en memoria y ninguna petición sale del proceso. Usa “Simular webhook de pedido” para ver toda la canalización.",
+    "global_mock_banner": "Este entorno funciona en modo mock (HULLWISE_INTEGRATION_MODE=mock): cada adaptador es un simulador en memoria y ninguna petición sale del proceso. Usa “Simular webhook de pedido” para ver toda la canalización.",
     "providers": {
       "shopify": "Shopify",
       "meta": "Meta Ads",
@@ -2764,8 +2764,8 @@
       "shopify": "Crea una app personalizada en el admin de la tienda, concede los permisos de la guía, pega el token de Admin API y la clave secreta usada para firmar webhooks.",
       "meta": "Un token de usuario del sistema de larga duración de Business Manager con ads_read y ads_management sobre la cuenta publicitaria.",
       "google": "Developer token, cliente OAuth y un refresh token autorizado para el ámbito de Google Ads; solo lectura en esta versión.",
-      "anthropic": "La clave de la tienda desde console.anthropic.com. Anthropic factura el uso del asistente a esa cuenta; Keel guarda la clave cifrada.",
-      "tiktok": "App id y secret de la app de TikTok for Business y el auth code que devuelve la autorización del anunciante; Keel lo canjea por un token de larga duración válido para todas las cuentas de anunciante autorizadas.",
+      "anthropic": "La clave de la tienda desde console.anthropic.com. Anthropic factura el uso del asistente a esa cuenta; Hullwise guarda la clave cifrada.",
+      "tiktok": "App id y secret de la app de TikTok for Business y el auth code que devuelve la autorización del anunciante; Hullwise lo canjea por un token de larga duración válido para todas las cuentas de anunciante autorizadas.",
       "address": "La clave de la propia tienda con Address Validation API y Places API (New) activadas. Google factura las solicitudes a la tienda; la clave se guarda cifrada."
     },
     "fields": {
@@ -2835,7 +2835,7 @@
     },
     "errors": {
       "connection_failed": "La plataforma rechazó las credenciales.",
-      "mock_mode": "Este entorno está en modo mock: configura KEEL_INTEGRATION_MODE=live para conectar una cuenta real.",
+      "mock_mode": "Este entorno está en modo mock: configura HULLWISE_INTEGRATION_MODE=live para conectar una cuenta real.",
       "live_mode": "La simulación solo está disponible para integraciones mock."
     },
     "tracking": "Píxel y conversiones",
@@ -2849,11 +2849,11 @@
     "simulate_return": "Simular devolución",
     "simulated_return": "Webhook de devolución aceptado (HTTP {status}) para {order}.",
     "google_write_access": "Acceso de escritura concedido",
-    "google_write_access_hint": "Permite a Keel pausar anuncios y añadir palabras clave negativas. Sin él, Google sigue en solo lectura.",
+    "google_write_access_hint": "Permite a Hullwise pausar anuncios y añadir palabras clave negativas. Sin él, Google sigue en solo lectura.",
     "tiktok_mock_connect": "Conectar cuenta demo",
     "tiktok_mock_connected": "TikTok conectado (mock): {summary}",
     "tiktok_mock_partial": "TikTok conectado (mock): {summary}. El resto de los 90 días se sigue importando en segundo plano.",
-    "tiktok_app_hint": "¿Usas la app de TikTok de Keel (TIKTOK_APP_ID configurado)?",
+    "tiktok_app_hint": "¿Usas la app de TikTok de Hullwise (TIKTOK_APP_ID configurado)?",
     "tiktok_app_link": "Autorizar con TikTok",
     "not_in_plan_badge": "No incluido",
     "not_in_plan": "Incluido desde el plan {plan}: pide al gestor de la plataforma que cambie el plan.",
@@ -2873,7 +2873,7 @@
       "steps": [
         {
           "title": "Crea la app personalizada",
-          "body": "En el admin de la tienda abre Configuración → Apps y canales de venta → Desarrollar apps → Crear una app. Llámala “Keel”.",
+          "body": "En el admin de la tienda abre Configuración → Apps y canales de venta → Desarrollar apps → Crear una app. Llámala “Hullwise”.",
           "verify": true
         },
         {
@@ -2882,25 +2882,25 @@
         },
         {
           "title": "Instala y copia el token",
-          "body": "Instala la app, luego muestra una sola vez el token de Admin API (shpat_…) y la clave secreta de la API. Pégalos en Keel → Integraciones → Shopify → Conectar. Keel los guarda cifrados (AES-GCM).",
+          "body": "Instala la app, luego muestra una sola vez el token de Admin API (shpat_…) y la clave secreta de la API. Pégalos en Hullwise → Integraciones → Shopify → Conectar. Hullwise los guarda cifrados (AES-GCM).",
           "verify": true
         },
         {
           "title": "Webhooks",
-          "body": "Keel registra sus suscripciones de webhooks por API al conectar hacia {webhookUrl}. Para una app personalizada el secreto de firma es la clave secreta de la API. El endpoint responde 200 en milisegundos, guarda el evento y lo procesa en segundo plano; los duplicados se ignoran por (topic, id, updated_at)."
+          "body": "Hullwise registra sus suscripciones de webhooks por API al conectar hacia {webhookUrl}. Para una app personalizada el secreto de firma es la clave secreta de la API. El endpoint responde 200 en milisegundos, guarda el evento y lo procesa en segundo plano; los duplicados se ignoran por (topic, id, updated_at)."
         },
         {
           "title": "Importación inicial",
           "body": "Haz clic en Resincronizar: se importan ubicaciones, productos, inventario y descuentos, luego los pedidos página a página con cursor reanudable. Las tiendas grandes continúan en varias ejecuciones; el progreso se ve en “Ejecuciones recientes”."
         },
         {
-          "title": "Productos: qué edita Keel",
-          "body": "Keel refleja en lectura todos los campos del producto (multimedia, descripción, estado y canales, organización, variantes, SEO, metacampos) y solo escribe título, descripción, vendor, tipo, etiquetas, estado, SEO, categoría, precio y precio de comparación de las variantes, SKU, código de barras, peso, política sin stock y multimedia (añadir desde URL, ordenar, quitar, texto alternativo). Scopes: read_products y write_products; read_publications para mostrar los canales de venta. Todo lo demás abre el producto en el admin de Shopify. Una edición abierta antes de un cambio hecho en Shopify se rechaza con “cambiado en Shopify, recarga”.",
+          "title": "Productos: qué edita Hullwise",
+          "body": "Hullwise refleja en lectura todos los campos del producto (multimedia, descripción, estado y canales, organización, variantes, SEO, metacampos) y solo escribe título, descripción, vendor, tipo, etiquetas, estado, SEO, categoría, precio y precio de comparación de las variantes, SKU, código de barras, peso, política sin stock y multimedia (añadir desde URL, ordenar, quitar, texto alternativo). Scopes: read_products y write_products; read_publications para mostrar los canales de venta. Todo lo demás abre el producto en el admin de Shopify. Una edición abierta antes de un cambio hecho en Shopify se rechaza con “cambiado en Shopify, recarga”.",
           "verify": true
         },
         {
           "title": "Reglas de estado",
-          "body": "Keel nunca deriva el estado del pedido de etiquetas fijas. Abre Ajustes → Estados de pedido y asigna etiquetas, métodos de pago y estados financieros/de preparación a los estados canónicos; previsualiza sobre los últimos 50 pedidos."
+          "body": "Hullwise nunca deriva el estado del pedido de etiquetas fijas. Abre Ajustes → Estados de pedido y asigna etiquetas, métodos de pago y estados financieros/de preparación a los estados canónicos; previsualiza sobre los últimos 50 pedidos."
         },
         {
           "title": "Verifica",
@@ -2923,21 +2923,21 @@
         },
         {
           "symptom": "Webhooks rechazados con 401",
-          "fix": "El secreto de firma difiere del guardado en Keel. Reconecta con la clave secreta actual."
+          "fix": "El secreto de firma difiere del guardado en Hullwise. Reconecta con la clave secreta actual."
         },
         {
           "symptom": "Throttled / 429",
-          "fix": "Normal durante sincronizaciones pesadas: Keel espera y reintenta solo; la ejecución continúa desde el cursor."
+          "fix": "Normal durante sincronizaciones pesadas: Hullwise espera y reintenta solo; la ejecución continúa desde el cursor."
         }
       ]
     },
     "meta": {
       "title": "Conectar Meta Ads",
-      "intro": "Keel lee campañas, conjuntos de anuncios, anuncios y desgloses por recurso con insights diarios, y puede pausar o reanudar campañas y anuncios con confirmación explícita. Un token de usuario del sistema mantiene la conexión sin inicios de sesión personales.",
+      "intro": "Hullwise lee campañas, conjuntos de anuncios, anuncios y desgloses por recurso con insights diarios, y puede pausar o reanudar campañas y anuncios con confirmación explícita. Un token de usuario del sistema mantiene la conexión sin inicios de sesión personales.",
       "steps": [
         {
           "title": "Crea un usuario del sistema",
-          "body": "En Configuración del negocio → Usuarios → Usuarios del sistema crea un usuario del sistema Admin llamado “Keel”.",
+          "body": "En Configuración del negocio → Usuarios → Usuarios del sistema crea un usuario del sistema Admin llamado “Hullwise”.",
           "verify": true
         },
         {
@@ -2946,12 +2946,12 @@
         },
         {
           "title": "Genera el token",
-          "body": "Generar nuevo token → elige la app → permisos ads_read y business_management, más ads_management solo para pausar desde Keel → sin caducidad. Cópialo una vez.",
+          "body": "Generar nuevo token → elige la app → permisos ads_read y business_management, más ads_management solo para pausar desde Hullwise → sin caducidad. Cópialo una vez.",
           "verify": true
         },
         {
           "title": "Parámetros de URL",
-          "body": "En cada anuncio (Destino → Parámetros de URL) indica:\nutm_source=facebook&utm_medium=paid&utm_campaign={{campaign.id}}&utm_content={{ad.id}}&utm_term={{adset.id}}\nAsí Keel liga los pedidos al anuncio y al conjunto; los anuncios sin ellos se señalan.",
+          "body": "En cada anuncio (Destino → Parámetros de URL) indica:\nutm_source=facebook&utm_medium=paid&utm_campaign={{campaign.id}}&utm_content={{ad.id}}&utm_term={{adset.id}}\nAsí Hullwise liga los pedidos al anuncio y al conjunto; los anuncios sin ellos se señalan.",
           "verify": true
         },
         {
@@ -2960,7 +2960,7 @@
           "verify": true
         },
         {
-          "title": "Conecta en Keel",
+          "title": "Conecta en Hullwise",
           "body": "Integraciones → Meta Ads → Conectar: pega el id de la cuenta (act_…) y el token. Probar conexión muestra el nombre y los permisos."
         },
         {
@@ -2975,14 +2975,14 @@
         },
         {
           "symptom": "Código 17 / 32 / 613",
-          "fix": "Límite de uso en la cuenta: Keel pausa el backfill y lo reanuda más tarde desde la misma ventana."
+          "fix": "Límite de uso en la cuenta: Hullwise pausa el backfill y lo reanuda más tarde desde la misma ventana."
         },
         {
           "symptom": "Error de permiso (10/200)",
           "fix": "Al usuario del sistema le falta el activo o el permiso; corrígelo en la Configuración del negocio."
         }
       ],
-      "scopes": "Lectura: ads_read y business_management. Opcional, solo para pausar campañas y anuncios desde Keel: ads_management."
+      "scopes": "Lectura: ads_read y business_management. Opcional, solo para pausar campañas y anuncios desde Hullwise: ads_management."
     },
     "google": {
       "title": "Conectar Google Ads",
@@ -3000,25 +3000,25 @@
         },
         {
           "title": "Refresh token",
-          "body": "Autoriza el ámbito https://www.googleapis.com/auth/adwords con un usuario con acceso a la cuenta y guarda el refresh token. Usa un usuario con acceso estándar (edición) solo si la tienda quiere que Keel pause anuncios y añada palabras clave negativas."
+          "body": "Autoriza el ámbito https://www.googleapis.com/auth/adwords con un usuario con acceso a la cuenta y guarda el refresh token. Usa un usuario con acceso estándar (edición) solo si la tienda quiere que Hullwise pause anuncios y añada palabras clave negativas."
         },
         {
           "title": "Versión de la API",
-          "body": "Keel llama a Google Ads API {apiVersion}. Google retira cada versión aproximadamente un año después de publicarla: revisa la página de fechas de retirada y planifica la actualización antes.",
+          "body": "Hullwise llama a Google Ads API {apiVersion}. Google retira cada versión aproximadamente un año después de publicarla: revisa la página de fechas de retirada y planifica la actualización antes.",
           "verify": true
         },
         {
           "title": "Plantilla de seguimiento",
-          "body": "Configuración de la cuenta → Seguimiento → plantilla de seguimiento:\n{lpurl}?utm_source=google&utm_medium=cpc&utm_campaign={campaignid}&utm_content={creative}&utm_term={keyword}\nKeel liga los pedidos a los anuncios ({creative}) y a las palabras clave ({keyword}); las campañas sin plantilla se señalan en Sugerencias.",
+          "body": "Configuración de la cuenta → Seguimiento → plantilla de seguimiento:\n{lpurl}?utm_source=google&utm_medium=cpc&utm_campaign={campaignid}&utm_content={creative}&utm_term={keyword}\nHullwise liga los pedidos a los anuncios ({creative}) y a las palabras clave ({keyword}); las campañas sin plantilla se señalan en Sugerencias.",
           "verify": true
         },
         {
-          "title": "Conecta en Keel",
+          "title": "Conecta en Hullwise",
           "body": "Integraciones → Google Ads → Conectar: customer id (dígitos), id de administrador si se accede vía MCC, developer token, client id/secret, refresh token."
         },
         {
           "title": "Acceso de escritura (opcional)",
-          "body": "Si la tienda quiere palabras clave negativas y pausas de anuncios desde Keel, marca “Acceso de escritura concedido” en la tarjeta de Google Ads. Cada escritura pide confirmación y pasa por la cola de escrituras."
+          "body": "Si la tienda quiere palabras clave negativas y pausas de anuncios desde Hullwise, marca “Acceso de escritura concedido” en la tarjeta de Google Ads. Cada escritura pide confirmación y pasa por la cola de escrituras."
         },
         {
           "title": "Verifica",
@@ -3036,10 +3036,10 @@
         },
         {
           "symptom": "UNSUPPORTED_VERSION o 404 en cada llamada",
-          "fix": "La versión de la API se retiró: Keel necesita actualizar la constante de versión."
+          "fix": "La versión de la API se retiró: Hullwise necesita actualizar la constante de versión."
         },
         {
-          "symptom": "Pedidos Keel con guion en las palabras clave",
+          "symptom": "Pedidos Hullwise con guion en las palabras clave",
           "fix": "Falta la plantilla de seguimiento o no tiene utm_term con el parámetro de la palabra clave."
         }
       ],
@@ -3047,7 +3047,7 @@
     },
     "anthropic": {
       "title": "Conecta el asistente de IA (Anthropic)",
-      "intro": "El asistente usa tu propia clave API de Anthropic: Anthropic factura el uso a tu cuenta y Keel solo guarda la clave, cifrada. Sin clave, la página Asistente pide conectar una.",
+      "intro": "El asistente usa tu propia clave API de Anthropic: Anthropic factura el uso a tu cuenta y Hullwise solo guarda la clave, cifrada. Sin clave, la página Asistente pide conectar una.",
       "scopes": "Ningún permiso que conceder: una clave API de la cuenta Anthropic de la tienda.\nQué se envía al modelo: la pregunta y las cifras de los informes que el asistente lee para responder (totales, nombres de productos y campañas; en las predicciones de clientes, nombres e importes de clientes). El asistente nunca puede modificar datos.",
       "steps": [
         {
@@ -3061,18 +3061,18 @@
           "verify": true
         },
         {
-          "title": "Opcional: un espacio de trabajo para Keel",
-          "body": "Settings → Workspaces → Create workspace \"Keel\". El uso se ve aparte en la consola y el espacio puede tener su propio límite de gasto.",
+          "title": "Opcional: un espacio de trabajo para Hullwise",
+          "body": "Settings → Workspaces → Create workspace \"Hullwise\". El uso se ve aparte en la consola y el espacio puede tener su propio límite de gasto.",
           "verify": true
         },
         {
           "title": "Crea la clave API",
-          "body": "Settings → API keys → Create key, en el espacio Keel si lo creaste, con nombre \"Keel\". Cópiala ahora: la consola la muestra una sola vez.",
+          "body": "Settings → API keys → Create key, en el espacio Hullwise si lo creaste, con nombre \"Hullwise\". Cópiala ahora: la consola la muestra una sola vez.",
           "verify": true
         },
         {
-          "title": "Pégala en Keel",
-          "body": "Integraciones → IA (Anthropic) → Conectar, pega la clave, Conectar. Keel verifica la clave leyendo los datos del modelo (sin gastar tokens) y la guarda cifrada. \"Probar conexión\" repite la verificación cuando quieras."
+          "title": "Pégala en Hullwise",
+          "body": "Integraciones → IA (Anthropic) → Conectar, pega la clave, Conectar. Hullwise verifica la clave leyendo los datos del modelo (sin gastar tokens) y la guarda cifrada. \"Probar conexión\" repite la verificación cuando quieras."
         },
         {
           "title": "Pruébala",
@@ -3113,7 +3113,7 @@
         },
         {
           "title": "Añádelo en Shopify",
-          "body": "Shopify admin → Configuración → Eventos de clientes → Agregar píxel personalizado → nombre \"Keel\" → pega el código → Guardar → Conectar.",
+          "body": "Shopify admin → Configuración → Eventos de clientes → Agregar píxel personalizado → nombre \"Hullwise\" → pega el código → Guardar → Conectar.",
           "verify": true
         },
         {
@@ -3123,16 +3123,16 @@
         },
         {
           "title": "Comprueba que llegan eventos",
-          "body": "Navega por la tienda en una ventana privada y recarga Píxel y conversiones: crecen eventos y sesiones, y un pedido hecho desde esa ventana muestra su recorrido. \"Enviar evento de prueba\" comprueba solo el lado de Keel."
+          "body": "Navega por la tienda en una ventana privada y recarga Píxel y conversiones: crecen eventos y sesiones, y un pedido hecho desde esa ventana muestra su recorrido. \"Enviar evento de prueba\" comprueba solo el lado de Hullwise."
         },
         {
           "title": "Meta: dataset y acceso del token",
-          "body": "Administrador de eventos → Orígenes de datos → tu dataset (píxel) → copia el id. En Configuración del negocio → Usuarios del sistema → Keel → Agregar activos → Datasets, da acceso de administración. Opcional: copia un código de prueba en Administrador de eventos → Probar eventos.",
+          "body": "Administrador de eventos → Orígenes de datos → tu dataset (píxel) → copia el id. En Configuración del negocio → Usuarios del sistema → Hullwise → Agregar activos → Datasets, da acceso de administración. Opcional: copia un código de prueba en Administrador de eventos → Probar eventos.",
           "verify": true
         },
         {
           "title": "Evita el doble recuento con Meta",
-          "body": "Si la app Facebook e Instagram de Shopify ya envía eventos de la Conversions API (uso compartido de datos \"Máximo\"), deja una sola fuente desde el servidor: desactiva esa o mantén apagado el envío a Meta de Keel.",
+          "body": "Si la app Facebook e Instagram de Shopify ya envía eventos de la Conversions API (uso compartido de datos \"Máximo\"), deja una sola fuente desde el servidor: desactiva esa o mantén apagado el envío a Meta de Hullwise.",
           "verify": true
         },
         {
@@ -3213,7 +3213,7 @@
     },
     "email": {
       "title": "Email de plataforma (Resend)",
-      "intro": "Keel envía enlaces de acceso, invitaciones, notificaciones y resúmenes desde un único remitente de plataforma. Esta guía es para el administrador de la plataforma: los tenants no necesitan nada.",
+      "intro": "Hullwise envía enlaces de acceso, invitaciones, notificaciones y resúmenes desde un único remitente de plataforma. Esta guía es para el administrador de la plataforma: los tenants no necesitan nada.",
       "steps": [
         {
           "title": "Crea la cuenta de Resend",
@@ -3247,7 +3247,7 @@
         },
         {
           "title": "Define las variables en Railway",
-          "body": "En los servicios web y worker define RESEND_API_KEY, EMAIL_FROM (p. ej. Keel <no-reply@mail.tudominio.com>, en el dominio verificado), EMAIL_REPLY_TO (el buzón de soporte) y KEEL_INTEGRATION_MODE=live; opcionalmente EMAIL_LEGAL_NAME, EMAIL_LEGAL_ADDRESS y EMAIL_SUPPORT_ADDRESS para el pie. Vuelve a desplegar. Nunca hagas commit de la clave."
+          "body": "En los servicios web y worker define RESEND_API_KEY, EMAIL_FROM (p. ej. Hullwise <no-reply@mail.tudominio.com>, en el dominio verificado), EMAIL_REPLY_TO (el buzón de soporte) y HULLWISE_INTEGRATION_MODE=live; opcionalmente EMAIL_LEGAL_NAME, EMAIL_LEGAL_ADDRESS y EMAIL_SUPPORT_ADDRESS para el pie. Vuelve a desplegar. Nunca hagas commit de la clave."
         },
         {
           "title": "Webhook de entrega",
@@ -3263,7 +3263,7 @@
       "errors": [
         {
           "symptom": "La consola muestra “Email no configurado”",
-          "fix": "Falta RESEND_API_KEY en el servicio o KEEL_INTEGRATION_MODE no es live: define ambas y vuelve a desplegar."
+          "fix": "Falta RESEND_API_KEY en el servicio o HULLWISE_INTEGRATION_MODE no es live: define ambas y vuelve a desplegar."
         },
         {
           "symptom": "domain_not_verified en el registro",
@@ -3289,7 +3289,7 @@
       "steps": [
         {
           "title": "Crear la app de TikTok for Business",
-          "body": "En el portal de desarrolladores de TikTok API for Business crea una app (o usa la de Keel, si TIKTOK_APP_ID está configurado). Configura como redirect URL del anunciante:\n{callbackUrl}",
+          "body": "En el portal de desarrolladores de TikTok API for Business crea una app (o usa la de Hullwise, si TIKTOK_APP_ID está configurado). Configura como redirect URL del anunciante:\n{callbackUrl}",
           "verify": true
         },
         {
@@ -3303,8 +3303,8 @@
           "verify": true
         },
         {
-          "title": "Conectar en Keel",
-          "body": "Integraciones → TikTok Ads → Conectar: app id, app secret y el auth code (o “Autorizar con TikTok” con la app de Keel). Keel canjea el código por un token de larga duración, lo guarda cifrado (AES-GCM) e importa todos los anunciantes que cubre."
+          "title": "Conectar en Hullwise",
+          "body": "Integraciones → TikTok Ads → Conectar: app id, app secret y el auth code (o “Autorizar con TikTok” con la app de Hullwise). Hullwise canjea el código por un token de larga duración, lo guarda cifrado (AES-GCM) e importa todos los anunciantes que cubre."
         },
         {
           "title": "Plantilla UTM",
@@ -3313,7 +3313,7 @@
         },
         {
           "title": "Versión de la API",
-          "body": "Keel llama a la TikTok API for Business {apiVersion} (reporting: report/integrated/get, filas diarias en ventanas de hasta 30 días). Revisa el changelog antes de cada versión.",
+          "body": "Hullwise llama a la TikTok API for Business {apiVersion} (reporting: report/integrated/get, filas diarias en ventanas de hasta 30 días). Revisa el changelog antes de cada versión.",
           "verify": true
         },
         {
@@ -3332,7 +3332,7 @@
         },
         {
           "symptom": "40100 demasiadas solicitudes",
-          "fix": "Límite de frecuencia: Keel pausa la sincronización y continúa desde la misma ventana tras la espera."
+          "fix": "Límite de frecuencia: Hullwise pausa la sincronización y continúa desde la misma ventana tras la espera."
         },
         {
           "symptom": "Auth code caducado o ya usado",
@@ -3963,8 +3963,8 @@
       },
       "state_hint": {
         "configured": "Los correos salen por Resend desde {from}.",
-        "not_configured": "RESEND_API_KEY no está definida (o KEEL_INTEGRATION_MODE no es live): el mock captura los correos y nadie los recibe. Define las variables en Railway, consulta la guía.",
-        "mock_mode": "Hay una clave de Resend pero KEEL_INTEGRATION_MODE es mock: el mock captura los correos y nadie los recibe."
+        "not_configured": "RESEND_API_KEY no está definida (o HULLWISE_INTEGRATION_MODE no es live): el mock captura los correos y nadie los recibe. Define las variables en Railway, consulta la guía.",
+        "mock_mode": "Hay una clave de Resend pero HULLWISE_INTEGRATION_MODE es mock: el mock captura los correos y nadie los recibe."
       },
       "from": "Remitente",
       "reply_to": "Responder a",
@@ -4059,7 +4059,7 @@
     "mcp": {
       "title": "Uso de MCP",
       "description": "Llamadas de clientes de IA por tenant en los últimos 30 días y el interruptor de emergencia. Cada cambio se registra en el log de auditoría del tenant.",
-      "platform_disabled": "KEEL_MCP_DISABLED=1: el servidor MCP rechaza toda llamada en este despliegue.",
+      "platform_disabled": "HULLWISE_MCP_DISABLED=1: el servidor MCP rechaza toda llamada en este despliegue.",
       "stat_calls": "Llamadas (30 días)",
       "stat_errors": "Errores",
       "stat_rate_limited": "Limitadas",
@@ -4231,7 +4231,7 @@
     "plans_page": {
       "title": "Planes y complementos",
       "description": "Precios, límites y adopción de los planes y complementos definidos en el código.",
-      "read_only": "Solo lectura: los planes y precios están en @keel/config (packages/config/src/plans.ts y modules.ts). De momento editarlos sigue siendo un cambio de código, para que facturación, landing y tests cambien a la vez.",
+      "read_only": "Solo lectura: los planes y precios están en @hullwise/config (packages/config/src/plans.ts y modules.ts). De momento editarlos sigue siendo un cambio de código, para que facturación, landing y tests cambien a la vez.",
       "tenants_n": "{n, plural, one {# tenant} other {# tenants}}",
       "monthly": "Mensual",
       "setup": "Cuota de alta",
@@ -4538,7 +4538,7 @@
         "cancelled": "Cierra el elemento como cancelado. Precedencia: cancelado, luego confirmado, luego cola."
       },
       "tags_write_title": "Etiquetas escritas por evento",
-      "tags_write_help": "Primero la plataforma, luego Keel: si la tienda rechaza la escritura no se registra nada. Las etiquetas ya presentes no se añaden dos veces.",
+      "tags_write_help": "Primero la plataforma, luego Hullwise: si la tienda rechaza la escritura no se registra nada. Las etiquetas ya presentes no se añaden dos veces.",
       "tags_event": "Evento",
       "tags_add": "Añadir",
       "tags_remove": "Quitar",
@@ -5388,7 +5388,7 @@
       "email": "Enviada por el canal de mensajería a clientes con email.",
       "sms": "Enviada a clientes con teléfono.",
       "whatsapp": "Enviada a clientes con teléfono.",
-      "manual": "Keel registra quién está en cada grupo; envía el mensaje desde tu herramienta de email a los clientes tratados (exportación del segmento)."
+      "manual": "Hullwise registra quién está en cada grupo; envía el mensaje desde tu herramienta de email a los clientes tratados (exportación del segmento)."
     },
     "status": {
       "draft": "Borrador",
@@ -5619,7 +5619,7 @@
       "audience_name": "Nombre del público",
       "auto_sync": "Sincronización automática"
     },
-    "privacy_note": "Hasta que la cuenta esté conectada (Integraciones), los destinos funcionan en modo mock: Keel calcula y registra exactamente lo que se enviaría.",
+    "privacy_note": "Hasta que la cuenta esté conectada (Integraciones), los destinos funcionan en modo mock: Hullwise calcula y registra exactamente lo que se enviaría.",
     "errors": {
       "not_found": "Destino no encontrado.",
       "invalid_input": "Revisa los campos."
@@ -5641,7 +5641,7 @@
       "shopify_title": "Shopify: píxel personalizado",
       "shopify_help": "Pégalo en Shopify admin → Configuración → Eventos de clientes → Agregar píxel personalizado y luego Conectar.",
       "script_title": "Otras tiendas: etiqueta script",
-      "script_help": "Ponla en el <head> de cada página. Llama a keel.identify(email) tras el inicio de sesión o la suscripción.",
+      "script_help": "Ponla en el <head> de cada página. Llama a hullwise.identify(email) tras el inicio de sesión o la suscripción.",
       "enabled": "Recoger eventos",
       "origins": "Orígenes de tienda permitidos (uno por línea, vacío = todos)",
       "origins_help": "Los eventos de otros orígenes se rechazan. La clave pública por sí sola no es un secreto.",
@@ -5659,7 +5659,7 @@
     },
     "conversions": {
       "title": "Conversiones desde el servidor",
-      "description": "Los pedidos confirmados se envían una vez a cada plataforma con el mismo id de evento, así se descarta el duplicado del píxel del navegador. Email, teléfono, nombre y dirección salen de Keel solo como hash SHA-256.",
+      "description": "Los pedidos confirmados se envían una vez a cada plataforma con el mismo id de evento, así se descarta el duplicado del píxel del navegador. Email, teléfono, nombre y dirección salen de Hullwise solo como hash SHA-256.",
       "name_meta": "Meta Conversions API",
       "name_google": "Conversiones de Google Ads",
       "enable_meta": "Enviar compras a Meta",
@@ -5746,7 +5746,7 @@
   },
   "assistant": {
     "title": "Asistente",
-    "description": "Haz preguntas sobre los datos de tu tienda. Cada cifra viene de los informes de Keel, con su periodo y un enlace a la página.",
+    "description": "Haz preguntas sobre los datos de tu tienda. Cada cifra viene de los informes de Hullwise, con su periodo y un enlace a la página.",
     "new_thread": "Nueva conversación",
     "threads": "Conversaciones",
     "no_threads": "Todavía no hay conversaciones.",
@@ -5859,7 +5859,7 @@
     },
     "days": "{n, plural, one {# día} other {# días}}",
     "empty_title": "Pregunta sobre tu tienda",
-    "empty_description": "El asistente lee los mismos informes que ves en Keel y responde con cifras, el periodo que cubren y enlaces a sus páginas. Solo puede leer datos, nunca modificarlos.",
+    "empty_description": "El asistente lee los mismos informes que ves en Hullwise y responde con cifras, el periodo que cubren y enlaces a sus páginas. Solo puede leer datos, nunca modificarlos.",
     "scope": "Con tu rol puede leer: {tools}.",
     "read_only": "Tu rol puede leer las conversaciones pero no hacer preguntas.",
     "suggestions": {
@@ -6650,7 +6650,7 @@
     "retry": "Reintentar",
     "retry_failed": "No se pudo reintentar",
     "title": "Escrituras a las plataformas",
-    "description": "Cambios que Keel envía a Shopify, Meta y Google: {pending} en espera, {failed} con error, {succeeded} sincronizados en las últimas 24 horas.",
+    "description": "Cambios que Hullwise envía a Shopify, Meta y Google: {pending} en espera, {failed} con error, {succeeded} sincronizados en las últimas 24 horas.",
     "empty": "Aún no hay escrituras a las plataformas.",
     "immediate": "inmediata",
     "attempts": "{n, plural, one {# intento} other {# intentos}}",
@@ -6934,7 +6934,7 @@
     "orders_charged": "{n} pedidos cobrados",
     "orders_refunded": "{n} pedidos reembolsados",
     "mismatch": "Los {n} movimientos importados suman {net}, no el neto del pago: aún faltan algunos. Sincroniza de nuevo.",
-    "unmatched": "{n} movimientos se refieren a pedidos que Keel aún no ha importado.",
+    "unmatched": "{n} movimientos se refieren a pedidos que Hullwise aún no ha importado.",
     "transactions_title": "Movimientos ({n})",
     "type": {
       "charge": "Cargo",
@@ -6948,7 +6948,7 @@
   },
   "fulfilment": {
     "title": "Preparación",
-    "description": "Pedidos listos para enviar, primero los más antiguos. Empaqueta, imprime el albarán y envía: la tienda crea el envío y Keel se actualiza solo cuando ella lo confirma. Retrasado significa más de {days} días laborables.",
+    "description": "Pedidos listos para enviar, primero los más antiguos. Empaqueta, imprime el albarán y envía: la tienda crea el envío y Hullwise se actualiza solo cuando ella lo confirma. Retrasado significa más de {days} días laborables.",
     "tabs": {
       "label": "Áreas de preparación",
       "board": "Por enviar",
@@ -6999,7 +6999,7 @@
     "bulk_result": "{done} actualizados, {skipped} omitidos, {failed} fallidos",
     "ship_dialog": {
       "title": "Enviar {order}",
-      "description": "Crea el envío en la tienda con el transportista y el número de seguimiento. El pedido cambia en Keel solo cuando la tienda lo confirma.",
+      "description": "Crea el envío en la tienda con el transportista y el número de seguimiento. El pedido cambia en Hullwise solo cuando la tienda lo confirma.",
       "carrier": "Transportista",
       "carrier_placeholder": "p. ej. UPS, DHL, Correos",
       "tracking": "Número de seguimiento",
@@ -7012,8 +7012,8 @@
       "not_found": "Pedido no encontrado.",
       "not_to_ship": "Este pedido ya no está pendiente de envío (enviado, cancelado o en espera).",
       "invalid_input": "Algunos campos no son válidos.",
-      "no_platform_order": "Este pedido no está en la tienda: no se puede preparar desde Keel.",
-      "platform_error": "La tienda rechazó el envío; en Keel no cambió nada.",
+      "no_platform_order": "Este pedido no está en la tienda: no se puede preparar desde Hullwise.",
+      "platform_error": "La tienda rechazó el envío; en Hullwise no cambió nada.",
       "forbidden": "No tienes permiso para hacer esto.",
       "unknown": "Algo salió mal.",
       "field_required": "Obligatorio.",
@@ -7123,7 +7123,7 @@
       "claim": "Encargarme",
       "release": "Liberar",
       "follow_ups_title": "Acciones pendientes",
-      "follow_ups_hint": "Sugerencias según el pedido: Keel nunca reembolsa ni cancela por sí solo.",
+      "follow_ups_hint": "Sugerencias según el pedido: Hullwise nunca reembolsa ni cancela por sí solo.",
       "cod_note": "Los pagos que nunca se cobraron se quedan como están: qué hacer con ellos corresponde al flujo que gestiona ese método de pago.",
       "close_review": "Cerrar la revisión",
       "dismiss": "Cerrar sin acción",
@@ -7179,7 +7179,7 @@
       "not_found": "No encontrado."
     },
     "mappings_title": "Mapeo de estados de envío",
-    "mappings_description": "Qué significa en Keel un estado comunicado por una fuente (la tienda, un transportista, un 3PL): estado canónico, incidencia (abre un caso) y final. El estado de cada envío se calcula con esta tabla.",
+    "mappings_description": "Qué significa en Hullwise un estado comunicado por una fuente (la tienda, un transportista, un 3PL): estado canónico, incidencia (abre un caso) y final. El estado de cada envío se calcula con esta tabla.",
     "source": "Fuente",
     "external_status": "Estado externo",
     "canonical": "Estado canónico",
@@ -7198,9 +7198,9 @@
     "deactivate": "Desactivar lote",
     "activate": "Reactivar lote",
     "deactivate_title": "¿Desactivar este lote?",
-    "deactivate_description": "Todos los códigos del lote dejan de funcionar en Keel ahora y en la tienda en cuanto se sincroniza el cambio. Los códigos ya usados siguen vinculados a sus pedidos.",
+    "deactivate_description": "Todos los códigos del lote dejan de funcionar en Hullwise ahora y en la tienda en cuanto se sincroniza el cambio. Los códigos ya usados siguen vinculados a sus pedidos.",
     "activate_title": "¿Reactivar este lote?",
-    "activate_description": "Los códigos que nadie ha usado vuelven a funcionar, en Keel y en la tienda.",
+    "activate_description": "Los códigos que nadie ha usado vuelven a funcionar, en Hullwise y en la tienda.",
     "top_up_title": "Recargar",
     "top_up_description": "Genera nuevos códigos únicos hasta que el lote tenga este número listos para repartir. Se añaden al mismo descuento en la tienda.",
     "top_up_target": "Códigos listos tras la recarga",
@@ -7404,7 +7404,7 @@
     },
     "price_history": {
       "title": "Historial de precios",
-      "markdown_description": "Rebajas aplicadas desde Keel, de la más reciente.",
+      "markdown_description": "Rebajas aplicadas desde Hullwise, de la más reciente.",
       "empty": "No hay cambios de precio registrados.",
       "system": "Sistema",
       "columns": {
@@ -7450,15 +7450,15 @@
     },
     "consent": {
       "title": "Conectar un cliente de IA",
-      "heading": "{client} quiere acceder a Keel",
+      "heading": "{client} quiere acceder a Hullwise",
       "description": "Sesión iniciada como {user}. El cliente actuará como tú, con tu rol, en el espacio de trabajo que elijas.",
       "workspace": "Espacio de trabajo",
       "no_workspace": "No eres miembro de ningún espacio de trabajo.",
       "scopes": "Permisos",
       "scopes_hint": "Desmarca lo que no quieras permitir. La lectura siempre está incluida.",
-      "note_role": "Solo ve lo que tu rol ve en Keel; los módulos desactivados no exponen nada.",
+      "note_role": "Solo ve lo que tu rol ve en Hullwise; los módulos desactivados no exponen nada.",
       "note_pii": "Los correos, teléfonos y direcciones de los clientes se enmascaran, salvo que tu espacio de trabajo haya activado los datos personales completos para clientes de IA.",
-      "note_proposals": "Cancelaciones, reembolsos, pausas de campañas y pedidos de compra son solo propuestas: las aprueba una persona en Keel.",
+      "note_proposals": "Cancelaciones, reembolsos, pausas de campañas y pedidos de compra son solo propuestas: las aprueba una persona en Hullwise.",
       "note_redirect": "Tras autorizar vuelves a {host}. Puedes revocar el acceso cuando quieras desde tu perfil → Conexiones.",
       "approve": "Permitir el acceso",
       "deny": "Cancelar",
@@ -7496,7 +7496,7 @@
       "expires_in": "Caduca en",
       "days": "{days} días",
       "create": "Crear token",
-      "shown_once": "Copia el token ahora: se muestra una sola vez y Keel solo guarda una huella.",
+      "shown_once": "Copia el token ahora: se muestra una sola vez y Hullwise solo guarda una huella.",
       "rotate": "Regenerar",
       "rotate_confirm": "¿Crear un nuevo secreto para este token? El actual deja de funcionar de inmediato.",
       "revoke": "Revocar",
@@ -7514,7 +7514,7 @@
       "full_pii": "Mostrar datos personales de clientes",
       "full_pii_hint": "Nombres, correos, teléfonos y direcciones completos, solo a los roles que pueden verlos (nunca marketing ni lector). Desactivado: siempre enmascarados.",
       "rule_auth": "OAuth 2.1 con PKCE, o tokens de acceso personales; los secretos se guardan solo como hash con clave.",
-      "rule_permissions": "Cada herramienta usa el rol de la persona y los módulos del espacio de trabajo; no se expone nada que el rol no vea en Keel.",
+      "rule_permissions": "Cada herramienta usa el rol de la persona y los módulos del espacio de trabajo; no se expone nada que el rol no vea en Hullwise.",
       "rule_writes": "Las escrituras directas son reversibles (notas, asignación, revisión o espera); las acciones arriesgadas esperan aprobación.",
       "rule_limits": "Límites: {perToken} llamadas por minuto por conexión, {perTenant} por espacio de trabajo.",
       "guides_title": "Conectar un cliente",
@@ -7602,16 +7602,16 @@
           },
           {
             "title": "Pega la URL del servidor",
-            "body": "Ponle un nombre (p. ej. Keel) y pega:\n{serverUrl}\nDeja vacíos los campos OAuth avanzados: Claude se registra solo en Keel.",
+            "body": "Ponle un nombre (p. ej. Hullwise) y pega:\n{serverUrl}\nDeja vacíos los campos OAuth avanzados: Claude se registra solo en Hullwise.",
             "verify": true
           },
           {
             "title": "Inicia sesión y autoriza",
-            "body": "Claude abre Keel: inicia sesión, elige el espacio de trabajo, mantén o quita permisos y autoriza. Vuelves a Claude ya conectado."
+            "body": "Claude abre Hullwise: inicia sesión, elige el espacio de trabajo, mantén o quita permisos y autoriza. Vuelves a Claude ya conectado."
           },
           {
             "title": "Pruébalo",
-            "body": "En un chat activa el conector desde el menú de herramientas y pregunta: «¿Cómo fueron las ventas la semana pasada frente a la anterior?» Claude cita las cifras con el enlace a Keel.",
+            "body": "En un chat activa el conector desde el menú de herramientas y pregunta: «¿Cómo fueron las ventas la semana pasada frente a la anterior?» Claude cita las cifras con el enlace a Hullwise.",
             "verify": true
           }
         ]
@@ -7631,11 +7631,11 @@
           },
           {
             "title": "Inicia sesión y autoriza",
-            "body": "ChatGPT abre Keel: inicia sesión, elige el espacio de trabajo y los permisos, autoriza."
+            "body": "ChatGPT abre Hullwise: inicia sesión, elige el espacio de trabajo y los permisos, autoriza."
           },
           {
             "title": "Pruébalo",
-            "body": "Abre un chat, añade el conector desde el menú de herramientas y pregunta por ejemplo: «¿Qué campañas perdieron dinero este mes y qué sugiere Keel?»",
+            "body": "Abre un chat, añade el conector desde el menú de herramientas y pregunta por ejemplo: «¿Qué campañas perdieron dinero este mes y qué sugiere Hullwise?»",
             "verify": true
           }
         ]
@@ -7649,13 +7649,13 @@
             "verify": true
           },
           {
-            "title": "Añade Keel",
-            "body": "Añade este servidor y guarda:\n{ \"mcpServers\": { \"keel\": { \"url\": \"{serverUrl}\" } } }",
+            "title": "Añade Hullwise",
+            "body": "Añade este servidor y guarda:\n{ \"mcpServers\": { \"hullwise\": { \"url\": \"{serverUrl}\" } } }",
             "verify": true
           },
           {
             "title": "Inicia sesión",
-            "body": "Cursor indica que el servidor necesita inicio de sesión: haz clic, entra en Keel y autoriza. Sin OAuth, crea un token de acceso personal y añade \"headers\": { \"Authorization\": \"Bearer kpat_…\" } al servidor."
+            "body": "Cursor indica que el servidor necesita inicio de sesión: haz clic, entra en Hullwise y autoriza. Sin OAuth, crea un token de acceso personal y añade \"headers\": { \"Authorization\": \"Bearer kpat_…\" } al servidor."
           },
           {
             "title": "Pruébalo",
@@ -7677,16 +7677,16 @@
     "draft_banner": "borrador sin publicar",
     "exit_preview": "Salir de la vista previa",
     "draft_badge": "Cambios sin publicar",
-    "template_badge": "Plantilla de Keel",
+    "template_badge": "Plantilla de Hullwise",
     "customised_badge": "Personalizada",
     "open": "Abrir",
     "home": "Inicio",
-    "home_template": "Tu inicio es la plantilla de Keel: sigue las actualizaciones de Keel hasta que lo personalices.",
+    "home_template": "Tu inicio es la plantilla de Hullwise: sigue las actualizaciones de Hullwise hasta que lo personalices.",
     "home_custom": "Inicio personalizado: {name}.",
-    "reset_home": "Restablecer la plantilla de Keel",
-    "reset_home_confirm": "El inicio vuelve a la plantilla de Keel. Las variantes por rol se mantienen. ¿Continuar?",
+    "reset_home": "Restablecer la plantilla de Hullwise",
+    "reset_home_confirm": "El inicio vuelve a la plantilla de Hullwise. Las variantes por rol se mantienen. ¿Continuar?",
     "reset_all": "Restablecer inicio y variantes",
-    "reset_all_confirm": "El inicio y todas las variantes por rol vuelven a la plantilla de Keel. ¿Continuar?",
+    "reset_all_confirm": "El inicio y todas las variantes por rol vuelven a la plantilla de Hullwise. ¿Continuar?",
     "personal_toggle": "Paneles personales",
     "personal_toggle_hint": "Si está activo, cualquiera puede copiar un panel en uno personal. Los paneles de la tienda siguen siendo la referencia.",
     "name": "Nombre",
@@ -7725,7 +7725,7 @@
     "new_dashboard": "Nuevo panel",
     "settings": "Ajustes",
     "metrics_page": "Métricas y objetivos",
-    "metrics_description": "Las métricas que tus paneles pueden mostrar: el catálogo de Keel y tus fórmulas, con objetivos mensuales.",
+    "metrics_description": "Las métricas que tus paneles pueden mostrar: el catálogo de Hullwise y tus fórmulas, con objetivos mensuales.",
     "custom_metrics": "Métricas personalizadas",
     "custom_metrics_hint": "Fórmulas sobre las métricas base, opcionalmente sobre pedidos filtrados. Cada cambio queda en el registro de actividad.",
     "custom_metrics_empty": "Todavía no hay métricas personalizadas.",
@@ -7733,7 +7733,7 @@
     "targets": "Objetivos mensuales",
     "targets_hint": "Un mes sin objetivo propio usa el último anterior.",
     "catalog": "Catálogo de métricas",
-    "catalog_hint": "Métricas base calculadas por los servicios de Keel: coinciden con el P/L, las campañas y el inventario.",
+    "catalog_hint": "Métricas base calculadas por los servicios de Hullwise: coinciden con el P/L, las campañas y el inventario.",
     "catalog_group": "Grupo",
     "catalog_flags": "Uso",
     "flag_snapshot": "ahora",
@@ -7775,7 +7775,7 @@
       "lists": "Listas",
       "queues": "Colas de trabajo",
       "content": "Contenido",
-      "keel": "Bloques del inicio de Keel"
+      "hullwise": "Bloques del inicio de Hullwise"
     },
     "widget_types": {
       "kpi": {
@@ -7994,8 +7994,8 @@
       "publish": "Publicar",
       "preview_as": "Guardar y ver como…",
       "discard": "Descartar borrador",
-      "reset_confirm": "¿Sustituir los widgets por la plantilla de Keel? Publica para aplicar.",
-      "reset_template": "Restablecer plantilla de Keel",
+      "reset_confirm": "¿Sustituir los widgets por la plantilla de Hullwise? Publica para aplicar.",
+      "reset_template": "Restablecer plantilla de Hullwise",
       "count": "{n} de {max} widgets",
       "drag_hint": "Arrastra los widgets para reordenarlos o usa las flechas. Haz clic en un widget para configurarlo.",
       "configure": "Configurar",
@@ -8219,7 +8219,7 @@
     "days_overdue": "{n} días de retraso · suspendido tras {limit}",
     "tax_title": "IVA",
     "tax_automatic": "Stripe Tax calcula el IVA; el NIF-IVA se recoge en el Checkout y las empresas UE extranjeras verificadas se facturan con inversión del sujeto pasivo.",
-    "tax_manual": "Stripe Tax está desactivado: Keel aplica la inversión del sujeto pasivo a los clientes con NIF-IVA UE verificado. País del vendedor: {country}.",
+    "tax_manual": "Stripe Tax está desactivado: Hullwise aplica la inversión del sujeto pasivo a los clientes con NIF-IVA UE verificado. País del vendedor: {country}.",
     "einvoicing_title": "Facturación electrónica italiana (SDI)",
     "einvoicing_body": "Las facturas a clientes italianos también deben llegar al SDI a través de un intermediario acreditado. El hueco del conector existe (InvoicingProvider) pero no hay ningún servicio conectado: es un requisito previo para facturar a clientes italianos.",
     "einvoicing_state": {
@@ -8276,7 +8276,7 @@
     "resync": "Resincronizar desde Stripe",
     "resync_done": "{invoices} facturas leídas.",
     "card_title": "Suscripción en el procesador",
-    "card_description": "Stripe cobra (tarjeta, reintentos, avisos); Keel refleja la suscripción y las facturas desde sus webhooks.",
+    "card_description": "Stripe cobra (tarjeta, reintentos, avisos); Hullwise refleja la suscripción y las facturas desde sus webhooks.",
     "start": "Iniciar suscripción",
     "start_title": "Iniciar suscripción",
     "start_description": "Aplica el plan y los complementos al tenant, crea el enlace de pago (Stripe Checkout) y lo envía por correo al contacto de facturación en el idioma del tenant.",
@@ -8304,7 +8304,7 @@
     "simulate_payment": "Simular pago",
     "simulate_hint": "Modo mock: estos botones reproducen los webhooks de Stripe con el mismo procesamiento.",
     "simulated": "{n} eventos procesados.",
-    "drift": "Los conceptos de la suscripción no coinciden con el plan y los complementos en Keel. Cambia el plan o un complemento para realinearlos, o resincroniza.",
+    "drift": "Los conceptos de la suscripción no coinciden con el plan y los complementos en Hullwise. Cambia el plan o un complemento para realinearlos, o resincroniza.",
     "items": "Conceptos",
     "period_end": "Fin del periodo",
     "customer": "Cliente",
@@ -8316,7 +8316,7 @@
   },
   "data_export": {
     "title": "Exportación de datos",
-    "description": "Descarga todo lo que Keel guarda de esta tienda.",
+    "description": "Descarga todo lo que Hullwise guarda de esta tienda.",
     "what_title": "Exportación completa de los datos de la tienda",
     "what_description": "Un archivo CSV por tabla (pedidos, clientes, productos, devoluciones, campañas, ajustes y más) en un archivo zip, generado en segundo plano. Recibes un aviso cuando está listo; el enlace de descarga caduca a los {days} días. Las credenciales de las integraciones y otros secretos nunca se incluyen.",
     "request": "Exportar todos los datos",
@@ -8334,7 +8334,7 @@
       "expires": "Caducidad del enlace",
       "file": "Archivo"
     },
-    "by_platform": "Soporte de Keel",
+    "by_platform": "Soporte de Hullwise",
     "statuses": {
       "pending": "En cola",
       "running": "En curso",
@@ -8361,7 +8361,7 @@
       "impressions": "Impresiones",
       "ctr": "CTR",
       "platform_conv": "Conv. plataforma",
-      "keel_orders": "Pedidos Keel",
+      "hullwise_orders": "Pedidos Hullwise",
       "revenue": "Ingreso neto",
       "profit": "Beneficio",
       "roas": "ROAS",
@@ -8376,7 +8376,7 @@
       "cpa": "CPA",
       "field": "Campo",
       "asset": "Recurso",
-      "keel_orders_allocated": "Pedidos Keel (repartidos)",
+      "hullwise_orders_allocated": "Pedidos Hullwise (repartidos)",
       "date": "Fecha",
       "search_term": "Término de búsqueda",
       "clicks": "Clics",
@@ -8386,11 +8386,11 @@
     "excluded_n": "+{n} cancelados/devueltos",
     "ad_sets_title": "Conjuntos de anuncios",
     "ad_groups_title": "Grupos de anuncios",
-    "ad_sets_description": "Las cifras de la plataforma junto a las de Keel: pedidos, ingresos y beneficio cuentan solo los pedidos no cancelados ni devueltos.",
-    "utm_missing": "{n} de {total} anuncios no llevan {params}: sus pedidos llegan a Keel sin anuncio. Añade esta plantilla a los anuncios:",
+    "ad_sets_description": "Las cifras de la plataforma junto a las de Hullwise: pedidos, ingresos y beneficio cuentan solo los pedidos no cancelados ni devueltos.",
+    "utm_missing": "{n} de {total} anuncios no llevan {params}: sus pedidos llegan a Hullwise sin anuncio. Añade esta plantilla a los anuncios:",
     "no_ad_sets": "Aún no hay conjuntos",
     "no_ad_sets_hint": "Llegan con la próxima sincronización de anuncios.",
-    "keel_not_visible": "Keel no ve los pedidos de esta fila (la plantilla UTM no la nombra).",
+    "hullwise_not_visible": "Hullwise no ve los pedidos de esta fila (la plantilla UTM no la nombra).",
     "n_ads": "{n} anuncios",
     "n_keywords": "{n} palabras clave",
     "unassigned_orders": "{n} pedidos de la campaña no están ligados a un conjunto",
@@ -8420,7 +8420,7 @@
       "no_conversions": "Gasto sin conversiones"
     },
     "excluded": "Excluido",
-    "keel_footnote": "Keel liga los pedidos a conjuntos, anuncios y palabras clave mediante la plantilla UTM; donde la plataforma no los liga aparece un guion.",
+    "hullwise_footnote": "Hullwise liga los pedidos a conjuntos, anuncios y palabras clave mediante la plantilla UTM; donde la plataforma no los liga aparece un guion.",
     "match": {
       "exact": "Exacta",
       "phrase": "Frase",
@@ -8439,7 +8439,7 @@
     },
     "ctr_change": "CTR {change} desde el inicio",
     "copy_title": "Textos y seguimiento",
-    "utm_missing_ad": "Este anuncio no lleva {params}: sus pedidos llegan a Keel sin el anuncio. Plantilla:",
+    "utm_missing_ad": "Este anuncio no lleva {params}: sus pedidos llegan a Hullwise sin el anuncio. Plantilla:",
     "assets_title": "Recursos",
     "no_assets": "Sin desglose por recurso",
     "no_assets_meta": "Meta solo informa de recursos en anuncios con creatividad dinámica o Advantage+.",
@@ -8453,11 +8453,11 @@
       "video": "Vídeo",
       "other": "Otro"
     },
-    "assets_footnote": "Las plataformas informan de recursos, no de pedidos: Keel reparte los pedidos del anuncio entre sus recursos según la cuota de gasto en cada campo.",
+    "assets_footnote": "Las plataformas informan de recursos, no de pedidos: Hullwise reparte los pedidos del anuncio entre sus recursos según la cuota de gasto en cada campo.",
     "daily_title": "Por día",
     "no_days": "Sin datos diarios en el periodo",
     "keywords_page_title": "Palabras clave y términos de búsqueda",
-    "keywords_page_description": "Las palabras clave de Google Ads y las búsquedas que activaron los anuncios, con los pedidos de Keel donde la plantilla UTM las nombra.",
+    "keywords_page_description": "Las palabras clave de Google Ads y las búsquedas que activaron los anuncios, con los pedidos de Hullwise donde la plantilla UTM las nombra.",
     "tabs": {
       "keywords": "Palabras clave",
       "search_terms": "Términos de búsqueda"
@@ -8478,10 +8478,10 @@
     "prev": "Anterior",
     "next": "Siguiente",
     "page_of": "Página {page} de {pages}",
-    "keywords_footnote": "Los pedidos Keel vienen de utm_term con la palabra clave que pone la plantilla de seguimiento.",
-    "search_terms_footnote": "Keel ve los pedidos de un término cuando el término es una palabra clave (concordancia exacta); para los demás deciden las conversiones de la plataforma. Los términos bajo las impresiones mínimas se agrupan en “Otros términos”.",
+    "keywords_footnote": "Los pedidos Hullwise vienen de utm_term con la palabra clave que pone la plantilla de seguimiento.",
+    "search_terms_footnote": "Hullwise ve los pedidos de un término cuando el término es una palabra clave (concordancia exacta); para los demás deciden las conversiones de la plataforma. Los términos bajo las impresiones mínimas se agrupan en “Otros términos”.",
     "words_title": "Palabras",
-    "words_description": "Palabras y frases (1–3 palabras) ganadoras y perdedoras en los textos de los anuncios, los términos de búsqueda y las palabras clave, con el beneficio de los pedidos Keel.",
+    "words_description": "Palabras y frases (1–3 palabras) ganadoras y perdedoras en los textos de los anuncios, los términos de búsqueda y las palabras clave, con el beneficio de los pedidos Hullwise.",
     "word_source": {
       "copy": "Textos de anuncios",
       "search_terms": "Términos de búsqueda",
@@ -8519,7 +8519,7 @@
       "assets_title": "Recursos débiles",
       "assets_description": "Recursos calificados BAJO por la plataforma o con la mitad del CTR de los demás.",
       "utm_title": "Plantillas UTM",
-      "utm_description": "Sin estos parámetros Keel no puede ligar los pedidos a anuncios, conjuntos y palabras clave.",
+      "utm_description": "Sin estos parámetros Hullwise no puede ligar los pedidos a anuncios, conjuntos y palabras clave.",
       "utm_ok": "Todas las campañas activas llevan las plantillas.",
       "utm_row": "{missing} de {ads} anuncios sin {params}",
       "template_meta": "Meta: parámetros de URL del anuncio",
@@ -8533,7 +8533,7 @@
       "resume_ad": "Reanudar anuncio",
       "pause_title": "¿Pausar este anuncio en {platform}?",
       "resume_title": "¿Reanudar este anuncio en {platform}?",
-      "write_description": "Keel cambia el estado aquí y lo envía a la plataforma; si no responde, el cambio se reintenta y se muestra como pendiente.",
+      "write_description": "Hullwise cambia el estado aquí y lo envía a la plataforma; si no responde, el cambio se reintenta y se muestra como pendiente.",
       "confirm": "Confirmar",
       "exclude": "Excluir",
       "negative_title": "¿Añadir “{text}” como palabra clave negativa?",
@@ -8584,7 +8584,7 @@
       "no_description": "Sin descripción en Shopify.",
       "field_title": "Título",
       "field_description": "Descripción (HTML)",
-      "html_hint": "Shopify guarda la descripción en HTML; Keel la muestra solo con formato (sin scripts ni contenido incrustado)."
+      "html_hint": "Shopify guarda la descripción en HTML; Hullwise la muestra solo con formato (sin scripts ni contenido incrustado)."
     },
     "status": {
       "title": "Estado y canales",

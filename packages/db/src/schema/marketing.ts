@@ -386,7 +386,7 @@ export const alertEvents = pgTable(
   (t) => [index("alert_events_tenant_time_idx").on(t.tenantId, t.firedAt), tenantIsolation("alert_events")],
 ).enableRLS();
 
-/** Tenant-defined metrics: a formula over base metrics (see @keel/core formula). */
+/** Tenant-defined metrics: a formula over base metrics (see @hullwise/core formula). */
 export const customMetrics = pgTable(
   "custom_metrics",
   {
@@ -397,7 +397,7 @@ export const customMetrics = pgTable(
     /** money | ratio | percent | number */
     format: text("format").notNull().default("number"),
     description: text("description"),
-    /** Order filters the bases are computed over (channel, country, payment method, product, campaign, platform, new/returning): `MetricFilters` in @keel/config. */
+    /** Order filters the bases are computed over (channel, country, payment method, product, campaign, platform, new/returning): `MetricFilters` in @hullwise/config. */
     filters: jsonb("filters").notNull().default(sql`'{}'::jsonb`),
     /** Drives the colour of the trend. */
     higherIsBetter: boolean("higher_is_better").notNull().default(true),
@@ -431,7 +431,7 @@ export const metricTargets = pgTable(
  * Dashboards (issue #43). `scope`: `tenant` (the home or an extra dashboard everyone, or the roles
  * listed, can open), `role` (a home variant for the roles listed), `personal` (one user's copy;
  * `user_id` set). `layout_version` 1 rows are the old per-user `[{ metric }]` lists; version 2 stores
- * widgets (`DashboardWidget` in @keel/config). `draft_widgets` holds unpublished edits.
+ * widgets (`DashboardWidget` in @hullwise/config). `draft_widgets` holds unpublished edits.
  */
 export const dashboards = pgTable(
   "dashboards",
@@ -466,7 +466,7 @@ export const retentionCampaigns = pgTable(
     ...tenantColumns(),
     name: text("name").notNull(),
     segmentId: uuid("segment_id").references(() => segments.id, { onDelete: "set null" }),
-    /** email | sms | whatsapp | manual (sent outside Keel, measured here) */
+    /** email | sms | whatsapp | manual (sent outside Hullwise, measured here) */
     channel: text("channel").notNull(),
     message: text("message").notNull().default(""),
     discountCode: text("discount_code"),
@@ -570,7 +570,7 @@ export const segmentDestinations = pgTable(
   (t) => [index("segment_destinations_segment_idx").on(t.tenantId, t.segmentId), tenantIsolation("segment_destinations")],
 ).enableRLS();
 
-/** Who the destination currently holds, as far as Keel pushed it: the base for add/remove diffs. */
+/** Who the destination currently holds, as far as Hullwise pushed it: the base for add/remove diffs. */
 export const segmentDestinationMembers = pgTable(
   "segment_destination_members",
   {

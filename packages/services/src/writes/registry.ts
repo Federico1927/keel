@@ -1,6 +1,6 @@
-import type { AdsPlatform, CommercePlatform, NormalizedProduct, ProductMediaOperation, ProductPatch, CreateOrderInput, FulfillmentHoldInput, ManualPaymentInput, NormalizedOrder, RefundOrderInput, OrderDetailsPatch, OrderDiscountPatch, PlatformReturnLineInput, VariantPatch, CreateFulfillmentInput, NormalizedFulfillment } from "@keel/integrations";
-import type { AdPlatform } from "@keel/core";
-import type { schema } from "@keel/db";
+import type { AdsPlatform, CommercePlatform, NormalizedProduct, ProductMediaOperation, ProductPatch, CreateOrderInput, FulfillmentHoldInput, ManualPaymentInput, NormalizedOrder, RefundOrderInput, OrderDetailsPatch, OrderDiscountPatch, PlatformReturnLineInput, VariantPatch, CreateFulfillmentInput, NormalizedFulfillment } from "@hullwise/integrations";
+import type { AdPlatform } from "@hullwise/core";
+import type { schema } from "@hullwise/db";
 import type { ServiceContext } from "../context";
 
 export type WriteProvider = "shopify" | AdPlatform;
@@ -20,9 +20,9 @@ export interface DiscountCodePayload {
 }
 
 /**
- * Every write Keel makes to a platform, by kind: payload in, result out. Adding a write type is
+ * Every write Hullwise makes to a platform, by kind: payload in, result out. Adding a write type is
  * one entry here plus one `defineCommerceWrite` / `defineAdsWrite` call in `kinds.ts` (an add-on
- * package can augment this interface through `declare module "@keel/services/writes/registry"`).
+ * package can augment this interface through `declare module "@hullwise/services/writes/registry"`).
  */
 export interface PlatformWriteKinds {
   "variant.update": { payload: { variantExternalId: string; priceMinor: number }; result: void };

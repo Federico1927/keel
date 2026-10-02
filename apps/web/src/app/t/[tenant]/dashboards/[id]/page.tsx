@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { DASHBOARD_PERIODS, WIDGETS, canDo, canEditDashboard, canSeeDashboard, isTenantRole, type DashboardPeriod } from "@keel/config";
-import { dashboardView, getDashboard } from "@keel/services";
-import { Badge, Button, PageHeader } from "@keel/ui";
+import { DASHBOARD_PERIODS, WIDGETS, canDo, canEditDashboard, canSeeDashboard, isTenantRole, type DashboardPeriod } from "@hullwise/config";
+import { dashboardView, getDashboard } from "@hullwise/services";
+import { Badge, Button, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { DashboardGrid } from "@/components/dashboard/dashboard-grid";
 import { DeleteDashboardButton, DuplicateButton, PeriodLinks, PreviewAsSelect, PreviewBanner } from "@/components/dashboard/controls";

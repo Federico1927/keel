@@ -3,8 +3,8 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Plus, Trash2 } from "lucide-react";
-import { SHIPMENT_STATUSES } from "@keel/core";
-import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Checkbox, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { SHIPMENT_STATUSES } from "@hullwise/core";
+import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Checkbox, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { deleteMappingAction, saveFulfilmentSettingsAction, saveMappingAction } from "@/server/actions/fulfilment";
 import type { ActionResult } from "@/server/action-result";
 

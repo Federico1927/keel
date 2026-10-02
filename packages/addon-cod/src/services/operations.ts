@@ -1,7 +1,7 @@
-import { and, eq, inArray, recordAudit, schema, sql } from "@keel/db";
-import { localDateKey, zonedDayStart } from "@keel/core";
-import type { CommercePlatform } from "@keel/integrations";
-import { notifyUsers, type ServiceContext } from "@keel/services";
+import { and, eq, inArray, recordAudit, schema, sql } from "@hullwise/db";
+import { localDateKey, zonedDayStart } from "@hullwise/core";
+import type { CommercePlatform } from "@hullwise/integrations";
+import { notifyUsers, type ServiceContext } from "@hullwise/services";
 import { localDay, hoursFor } from "../assignment";
 import { OPEN_QUEUE_STATUSES, TO_CALL_STATUSES, bucketStats, splitEvenly, type QueueStatus } from "../queue";
 import type { CodSettings } from "../settings";

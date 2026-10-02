@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, ImagePlus, Pencil, PlayCircle, Box, Trash2 } from "lucide-react";
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Dialog, DialogContent, DialogDescription, DialogTitle, Input, cn } from "@keel/ui";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Dialog, DialogContent, DialogDescription, DialogTitle, Input, cn } from "@hullwise/ui";
 import { productMediaAction } from "@/server/actions/product-edit";
 import { SaveError } from "./product-edit";
 

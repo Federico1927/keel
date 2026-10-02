@@ -1,7 +1,7 @@
 import { Suspense } from "react";
-import { isWidgetVisible, type DashboardPeriod, type DashboardWidget, type TenantRole } from "@keel/config";
-import { basesLookup, type WidgetEnv } from "@keel/services";
-import { cn } from "@keel/ui";
+import { isWidgetVisible, type DashboardPeriod, type DashboardWidget, type TenantRole } from "@hullwise/config";
+import { basesLookup, type WidgetEnv } from "@hullwise/services";
+import { cn } from "@hullwise/ui";
 import type { TenantContext } from "@/server/tenant";
 import { loadWidget, pageNow, widgetEnv, widgetPeriod } from "@/server/dashboards";
 import { WidgetSkeleton, WidgetView, type WidgetViewEnv } from "./widget-view";

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
-import { eq, schema } from "@keel/db";
-import { poVariantOptions } from "@keel/services";
+import { eq, schema } from "@hullwise/db";
+import { poVariantOptions } from "@hullwise/services";
 import { requirePage } from "@/server/tenant";
 import { reorderCandidates } from "@/server/queries/purchasing";
 import { PoEditor } from "../po-editor";

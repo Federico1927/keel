@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, inArray, schema, sql, withTenant } from "@keel/db";
-import { MockCommercePlatform } from "@keel/integrations";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import type { ServiceContext } from "@keel/services";
+import { and, eq, inArray, schema, sql, withTenant } from "@hullwise/db";
+import { MockCommercePlatform } from "@hullwise/integrations";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import type { ServiceContext } from "@hullwise/services";
 import { assignQueueItem, distributeUnassigned, getCodSettings, listRiskyRecipients, mergeCandidates, modifyCodOrder, queueItems, recomputeRecipientProfiles, recordAttempt, saveCapacity, saveCodSettings, scoreQueueItem, syncQueue } from "../src";
 
 const pools = testPools();

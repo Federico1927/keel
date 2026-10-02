@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatMoney, formatNumber, formatPercent } from "@keel/core";
-import type { SegmentInsights } from "@keel/services";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Stat } from "@keel/ui";
+import { formatMoney, formatNumber, formatPercent } from "@hullwise/core";
+import type { SegmentInsights } from "@hullwise/services";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Stat } from "@hullwise/ui";
 
 /** What the segment's members buy (core CRM): spend, top products, categories, option values, sales channels, reachability. */
 export async function SegmentInsightsCard({ tenant, insights: x, currency, locale }: { tenant: string; insights: SegmentInsights; currency: string; locale: string }) {

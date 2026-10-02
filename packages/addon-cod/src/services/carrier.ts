@@ -1,6 +1,6 @@
-import { and, desc, eq, inArray, recordAudit, schema, sql } from "@keel/db";
-import type { CommercePlatform } from "@keel/integrations";
-import { applyCancellation, runPlatformWriteNow, type ServiceContext } from "@keel/services";
+import { and, desc, eq, inArray, recordAudit, schema, sql } from "@hullwise/db";
+import type { CommercePlatform } from "@hullwise/integrations";
+import { applyCancellation, runPlatformWriteNow, type ServiceContext } from "@hullwise/services";
 import type { CarrierRow } from "../carrier-import";
 import type { CodSettings } from "../settings";
 import { getCodSettings } from "./index";
@@ -51,7 +51,7 @@ export async function carrierImportSummary(ctx: ServiceContext) {
 /**
  * Behind `rtsAutoCancel`: a COD order whose parcel is back at the sender (core return-to-sender
  * review case, #28) and was never paid is cancelled on the platform without restock, which voids the
- * pending payment there; Keel records the cancellation (payment `voided`) and closes its queue item.
+ * pending payment there; Hullwise records the cancellation (payment `voided`) and closes its queue item.
  * The review case stays open for a person (restock is a physical check). A refused platform call
  * leaves the order untouched for the next run.
  */

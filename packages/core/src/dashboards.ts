@@ -1,4 +1,4 @@
-import type { DashboardPeriod } from "@keel/config";
+import type { DashboardPeriod } from "@hullwise/config";
 import type { Period } from "./finance";
 
 /** Midnight of the tenant's local day containing `at`, as an instant. */

@@ -3,9 +3,9 @@
  * super-admin, into docs/screenshots/<locale>/<name>.png.
  *
  * Usage (production server on :3000 with the demo seed loaded):
- *   pnpm --filter @keel/web screenshots            # en + it
- *   LOCALES=en,it,es pnpm --filter @keel/web screenshots
- *   THEMES=light,dark pnpm --filter @keel/web screenshots   # dark goes to docs/screenshots/<locale>/dark/
+ *   pnpm --filter @hullwise/web screenshots            # en + it
+ *   LOCALES=en,it,es pnpm --filter @hullwise/web screenshots
+ *   THEMES=light,dark pnpm --filter @hullwise/web screenshots   # dark goes to docs/screenshots/<locale>/dark/
  *
  * The demo users keep the "system" theme, so the browser's colour scheme picks light or dark.
  */
@@ -17,7 +17,7 @@ const BASE = process.env.E2E_BASE_URL ?? "http://localhost:3000";
 const OUT = resolve(process.env.SCREENSHOT_DIR ?? "../../docs/screenshots");
 const LOCALES = (process.env.LOCALES ?? "en,it").split(",");
 const THEMES = (process.env.THEMES ?? "light").split(",");
-const PASSWORD = process.env.DEMO_PASSWORD ?? "keel-demo-2026";
+const PASSWORD = process.env.DEMO_PASSWORD ?? "hullwise-demo-2026";
 const TENANT = "northwind-apparel";
 const chromiumPath = process.env.PW_CHROMIUM_PATH ?? "/opt/pw-browsers/chromium";
 /** Comma-separated page names to (re)capture; empty means all. */
@@ -133,7 +133,7 @@ async function main() {
     const admin = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1, colorScheme: theme });
     const apage = await admin.newPage();
     await setLocale(admin, locale);
-    await login(apage, "superadmin@keel.demo");
+    await login(apage, "superadmin@hullwise.demo");
     await setLocale(admin, locale);
     for (const spec of ADMIN_PAGES) await shoot(apage, dir, spec, "");
     await admin.close();

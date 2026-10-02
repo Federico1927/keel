@@ -1,7 +1,7 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@keel/ui";
+import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@hullwise/ui";
 import { autoLink, linkProduct } from "@/server/actions/campaigns";
 import type { ActionResult } from "@/server/action-result";
 

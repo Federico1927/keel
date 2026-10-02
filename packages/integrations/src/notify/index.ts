@@ -3,14 +3,14 @@ import { IntegrationError } from "../types";
 
 /**
  * Outbound alert delivery to chat tools. Slack uses an incoming webhook URL configured per
- * tenant, with a mock that records messages whenever `KEEL_INTEGRATION_MODE=mock` or the tenant
+ * tenant, with a mock that records messages whenever `HULLWISE_INTEGRATION_MODE=mock` or the tenant
  * has no credentials. Email is not a sink: every email goes through the platform `EmailProvider`
  * (../email) behind the queue, the delivery log and the suppression list in packages/services.
  */
 export interface OutboundMessage {
   subject: string;
   text: string;
-  /** Deep link back into Keel. */
+  /** Deep link back into Hullwise. */
   url?: string;
 }
 
@@ -37,7 +37,7 @@ export class SlackWebhookSink implements NotificationSink {
     this.http = new HttpClient(opts);
   }
   async send(_to: string[], message: OutboundMessage) {
-    const text = `*${message.subject}*\n${message.text}${message.url ? `\n<${message.url}|Open in Keel>` : ""}`;
+    const text = `*${message.subject}*\n${message.text}${message.url ? `\n<${message.url}|Open in Hullwise>` : ""}`;
     const res = await this.http.request<unknown>(this.webhookUrl, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }), textOk: true });
     if (res.status >= 300) throw new IntegrationError("invalid_request", `Slack responded ${res.status}`);
     return { id: null };

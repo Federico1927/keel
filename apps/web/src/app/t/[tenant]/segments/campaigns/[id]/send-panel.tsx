@@ -3,9 +3,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { CalendarClock, Check, FlaskConical, Pause, Play, Send, Trash2, Undo2, X } from "lucide-react";
-import { CAMPAIGN_EXCLUSION_REASONS } from "@keel/core";
-import type { SendPreview } from "@keel/services";
-import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Textarea } from "@keel/ui";
+import { CAMPAIGN_EXCLUSION_REASONS } from "@hullwise/core";
+import type { SendPreview } from "@hullwise/services";
+import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Textarea } from "@hullwise/ui";
 import type { ActionResult } from "@/server/action-result";
 import { activateSequenceAction, approveRetentionCampaignAction, deleteRetentionCampaignAction, pauseSequenceAction, previewRetentionSendAction, recordManualCampaignAction, rejectRetentionCampaignAction, reopenRetentionCampaignAction, scheduleRetentionCampaignAction, sendCampaignTestAction, submitRetentionCampaignAction, unscheduleRetentionCampaignAction } from "@/server/actions/retention";
 

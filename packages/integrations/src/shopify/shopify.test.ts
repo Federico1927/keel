@@ -104,8 +104,8 @@ describe("shopify adapter", () => {
       { match: (_u, i) => bodyOf(i).query.includes("webhookSubscriptions(first"), body: graphqlWebhooks },
       { match: (_u, i) => bodyOf(i).query.includes("webhookSubscriptionCreate"), body: graphqlWebhookCreate },
     ]);
-    const res = await p.registerWebhooks("https://keel.example/api/webhooks/shopify", ["orders/create", "orders/updated"]);
-    expect(res).toEqual([{ topic: "orders/create", address: "https://keel.example/api/webhooks/shopify", status: "existing" }, { topic: "orders/updated", address: "https://keel.example/api/webhooks/shopify", status: "registered" }]);
+    const res = await p.registerWebhooks("https://hullwise.example/api/webhooks/shopify", ["orders/create", "orders/updated"]);
+    expect(res).toEqual([{ topic: "orders/create", address: "https://hullwise.example/api/webhooks/shopify", status: "existing" }, { topic: "orders/updated", address: "https://hullwise.example/api/webhooks/shopify", status: "registered" }]);
     const raw = JSON.stringify(restOrderWebhook);
     const sig = createHmac("sha256", creds.apiSecret).update(raw, "utf8").digest("base64");
     const v = await p.verifyWebhook({ "X-Shopify-Topic": "orders/updated", "X-Shopify-Hmac-Sha256": sig }, raw);
@@ -134,12 +134,12 @@ describe("shopify adapter", () => {
       { match: (_u: string, i?: { body?: string }) => bodyOf(i).query.includes("orderEditCommit"), body: { data: { orderEditCommit: { order: { id: "gid://shopify/Order/5678901234567" }, userErrors: [] } } } },
     ];
     const pct = platform(routes);
-    await pct.applyOrderDiscount("5678901234567", { type: "percentage", value: 1000, amountMinor: 800, currency: "USD", code: "KEEL-10%" });
+    await pct.applyOrderDiscount("5678901234567", { type: "percentage", value: 1000, amountMinor: 800, currency: "USD", code: "HULLWISE-10%" });
     const pctCalls = pct.http.calls.map((c) => bodyOf({ body: c.body! }));
     expect(pctCalls.filter((c) => c.query.includes("orderEditAddLineItemDiscount"))).toHaveLength(2);
-    expect(pctCalls[1]!.variables).toMatchObject({ discount: { percentValue: 10, description: "KEEL-10%" } });
+    expect(pctCalls[1]!.variables).toMatchObject({ discount: { percentValue: 10, description: "HULLWISE-10%" } });
     const fixed = platform(routes);
-    await fixed.applyOrderDiscount("5678901234567", { type: "fixed_amount", value: 500, amountMinor: 500, currency: "USD", code: "KEEL-5.00" });
+    await fixed.applyOrderDiscount("5678901234567", { type: "fixed_amount", value: 500, amountMinor: 500, currency: "USD", code: "HULLWISE-5.00" });
     const fixedCalls = fixed.http.calls.map((c) => bodyOf({ body: c.body! }));
     const adds = fixedCalls.filter((c) => c.query.includes("orderEditAddLineItemDiscount"));
     expect(adds).toHaveLength(1);
@@ -256,7 +256,7 @@ describe("shopify product bulk writes", () => {
 });
 
 describe("shopify fulfillment holds (backorders)", () => {
-  it("holds only open fulfillment orders without Keel's hold, and releases only Keel's holds", async () => {
+  it("holds only open fulfillment orders without Hullwise's hold, and releases only Hullwise's holds", async () => {
     const p = platform([
       { match: (_u, i) => bodyOf(i).query.includes("fulfillmentOrders(first"), body: graphqlFulfillmentOrders },
       { match: (_u, i) => bodyOf(i).query.includes("fulfillmentOrderHold("), body: graphqlFulfillmentOrderHold },
@@ -265,7 +265,7 @@ describe("shopify fulfillment holds (backorders)", () => {
     await p.holdFulfillment("5678901234567", { reason: "awaiting_stock", note: "PO-202609-004" });
     expect(p.http.calls).toHaveLength(2);
     expect(bodyOf({ body: p.http.calls[0]!.body! }).variables).toEqual({ id: "gid://shopify/Order/5678901234567" });
-    expect(bodyOf({ body: p.http.calls[1]!.body! }).variables).toEqual({ id: "gid://shopify/FulfillmentOrder/701", fulfillmentHold: { reason: "INVENTORY_OUT_OF_STOCK", reasonNotes: "PO-202609-004", handle: "keel-awaiting-stock", notifyMerchant: false } });
+    expect(bodyOf({ body: p.http.calls[1]!.body! }).variables).toEqual({ id: "gid://shopify/FulfillmentOrder/701", fulfillmentHold: { reason: "INVENTORY_OUT_OF_STOCK", reasonNotes: "PO-202609-004", handle: "hullwise-awaiting-stock", notifyMerchant: false } });
     await p.releaseFulfillment("5678901234567");
     expect(p.http.calls).toHaveLength(4);
     expect(bodyOf({ body: p.http.calls[3]!.body! }).variables).toEqual({ id: "gid://shopify/FulfillmentOrder/702", holdIds: ["gid://shopify/FulfillmentHold/81"] });
@@ -373,7 +373,7 @@ describe("shopify payments: refunds, manual payments, payouts", () => {
   });
 });
 
-describe("shopify fulfilment from Keel", () => {
+describe("shopify fulfilment from Hullwise", () => {
   const fulfillmentOrders = { data: { order: { fulfillmentOrders: { nodes: [
     { id: "gid://shopify/FulfillmentOrder/71", status: "OPEN", lineItems: { nodes: [{ id: "gid://shopify/FulfillmentOrderLineItem/81", remainingQuantity: 1, lineItem: { id: "gid://shopify/LineItem/11" } }, { id: "gid://shopify/FulfillmentOrderLineItem/82", remainingQuantity: 2, lineItem: { id: "gid://shopify/LineItem/12" } }] } },
     { id: "gid://shopify/FulfillmentOrder/72", status: "CLOSED", lineItems: { nodes: [{ id: "gid://shopify/FulfillmentOrderLineItem/83", remainingQuantity: 0, lineItem: { id: "gid://shopify/LineItem/13" } }] } },
@@ -407,17 +407,17 @@ describe("shopify exchange invoice", () => {
       { match: (_u, i) => bodyOf(i).query.includes("draftOrderCreate"), body: { data: { draftOrderCreate: { draftOrder: { id: "gid://shopify/DraftOrder/900", invoiceUrl: "https://shop/invoices/abc" }, userErrors: [] } } } },
       { match: (_u, i) => bodyOf(i).query.includes("draftOrderInvoiceSend"), body: { data: { draftOrderInvoiceSend: { draftOrder: { id: "gid://shopify/DraftOrder/900", invoiceUrl: "https://shop/invoices/abc" }, userErrors: [] } } } },
     ]);
-    const r = await p.createInvoiceOrder({ lines: [{ variantExternalId: "4100002", sku: null, title: "Shirt M", quantity: 1, unitPriceMinor: 5500 }], currency: "EUR", email: "a@example.com", phone: null, customerExternalId: null, shippingAddress: null, billingAddress: null, shippingMinor: 0, discountMinor: 4000, note: "Exchange R-12", tags: ["exchange"], noteAttributes: [{ name: "keel_return_id", value: "r1" }], replacesOrderName: null });
+    const r = await p.createInvoiceOrder({ lines: [{ variantExternalId: "4100002", sku: null, title: "Shirt M", quantity: 1, unitPriceMinor: 5500 }], currency: "EUR", email: "a@example.com", phone: null, customerExternalId: null, shippingAddress: null, billingAddress: null, shippingMinor: 0, discountMinor: 4000, note: "Exchange R-12", tags: ["exchange"], noteAttributes: [{ name: "hullwise_return_id", value: "r1" }], replacesOrderName: null });
     expect(r).toEqual({ draftExternalId: "900", invoiceUrl: "https://shop/invoices/abc" });
     const sent = bodyOf({ body: p.http.calls[0]!.body! }).variables as { input: { appliedDiscount: { value: number }; customAttributes: { key: string }[] } };
     expect(sent.input.appliedDiscount.value).toBe(40);
-    expect(sent.input.customAttributes[0]!.key).toBe("keel_return_id");
+    expect(sent.input.customAttributes[0]!.key).toBe("hullwise_return_id");
   });
 });
 
 describe("shopify oauth", () => {
   it("builds the install url and verifies the callback hmac", () => {
-    const url = buildInstallUrl("northwind-demo.myshopify.com", "key", ["read_orders"], "https://keel.example/cb", "st");
+    const url = buildInstallUrl("northwind-demo.myshopify.com", "key", ["read_orders"], "https://hullwise.example/cb", "st");
     expect(url).toContain("https://northwind-demo.myshopify.com/admin/oauth/authorize?client_id=key&scope=read_orders");
     const query: Record<string, string> = { code: "abc", shop: "northwind-demo.myshopify.com", state: "st", timestamp: "1700000000" };
     const message = Object.keys(query).sort().map((k) => `${k}=${query[k]}`).join("&");

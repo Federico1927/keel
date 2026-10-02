@@ -2,9 +2,9 @@
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { recordAudit } from "@keel/db";
-import { CONVERSION_PROVIDERS } from "@keel/integrations";
-import { enqueueConversions, getConversionSinkFor, ingestPixelBatch, retryFailedConversions, saveConversionSettings, savePixelSettings, sendDueConversions, type SendSummary } from "@keel/services";
+import { recordAudit } from "@hullwise/db";
+import { CONVERSION_PROVIDERS } from "@hullwise/integrations";
+import { enqueueConversions, getConversionSinkFor, ingestPixelBatch, retryFailedConversions, saveConversionSettings, savePixelSettings, sendDueConversions, type SendSummary } from "@hullwise/services";
 import { ForbiddenError, requireAction } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 
@@ -38,7 +38,7 @@ export async function sendTestPixelEventAction(slug: string): Promise<ActionResu
   try {
     const ctx = await guard(slug);
     const id = `test${Date.now().toString(36)}`;
-    await ctx.run((tx) => ingestPixelBatch({ tenantId: ctx.tenant.id, tx, actor: actor(ctx) }, [{ event: "page_view", anonymousId: `${id}-a`, sessionId: `${id}-s`, url: "https://keel.test/?utm_source=keel&utm_medium=test", referrer: null, props: {} }], { ip: "keel-test", userAgent: "Keel test event" }));
+    await ctx.run((tx) => ingestPixelBatch({ tenantId: ctx.tenant.id, tx, actor: actor(ctx) }, [{ event: "page_view", anonymousId: `${id}-a`, sessionId: `${id}-s`, url: "https://hullwise.test/?utm_source=hullwise&utm_medium=test", referrer: null, props: {} }], { ip: "hullwise-test", userAgent: "Hullwise test event" }));
     revalidatePath(`/t/${slug}/integrations/tracking`);
     return ok();
   } catch (e) {

@@ -3,15 +3,15 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
-import { canViewPage, canWritePage } from "@keel/config";
-import { formatDate, formatDateTime, formatMoney, formatNumber, sanitizeProductHtml, shopifyAdminProductUrl } from "@keel/core";
-import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Skeleton, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { canViewPage, canWritePage } from "@hullwise/config";
+import { formatDate, formatDateTime, formatMoney, formatNumber, sanitizeProductHtml, shopifyAdminProductUrl } from "@hullwise/core";
+import { Badge, Card, CardContent, CardHeader, CardTitle, DetailShell, Skeleton, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { getProductDetail } from "@/server/queries/catalog";
 import { RiskBadge } from "@/components/risk-badge";
 import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { ProductThumb } from "@/components/product-thumb";
-import { latestPlatformWrites, priceHistory, productVersion } from "@keel/services";
+import { latestPlatformWrites, priceHistory, productVersion } from "@hullwise/services";
 import { AdjustStockDialog } from "@/components/adjust-stock-dialog";
 import { SalesChart } from "@/components/charts/sales-chart";
 import { ProductActions } from "./actions";
@@ -26,7 +26,7 @@ import { DetailsCard, EditInShopifyLink, OrganisationCard, ProductEditProvider, 
 /**
  * Product page (issue #19), laid out like Shopify's: gallery, description, status and channels,
  * organisation, variants, SEO, metafields; every field mirrors the store, a defined subset is
- * edited here (platform first) and the rest links to the Shopify admin. Keel's own panels stay:
+ * edited here (platform first) and the rest links to the Shopify admin. Hullwise's own panels stay:
  * stock by location, velocity and cover, incoming POs, P/L, linked campaigns, the option grid,
  * price history, stock adjustment, costs and the default supplier.
  */

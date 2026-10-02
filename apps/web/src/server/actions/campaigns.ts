@@ -2,9 +2,9 @@
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { canWritePage } from "@keel/config";
-import { and, eq, recordAudit, schema } from "@keel/db";
-import { autoLinkCampaigns, linkCampaignProduct, requestCampaignStatus, unlinkCampaignProduct } from "@keel/services";
+import { canWritePage } from "@hullwise/config";
+import { and, eq, recordAudit, schema } from "@hullwise/db";
+import { autoLinkCampaigns, linkCampaignProduct, requestCampaignStatus, unlinkCampaignProduct } from "@hullwise/services";
 import { dispatchPlatformWrites } from "@/server/platform-writes";
 import { ForbiddenError, requireAction, requirePage } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";

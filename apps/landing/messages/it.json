@@ -143,7 +143,7 @@
         },
         "tiktok": {
           "title": "TikTok Ads",
-          "body": "Campagne, gruppi di annunci e annunci con metriche giornaliere, accanto a Meta e Google nella stessa vista del profitto; pausa e riattivazione da Keel."
+          "body": "Campagne, gruppi di annunci e annunci con metriche giornaliere, accanto a Meta e Google nella stessa vista del profitto; pausa e riattivazione da Hullwise."
         }
       }
     }
@@ -186,16 +186,16 @@
     },
     "stack_price": "Da {min} a {max} al mese",
     "stack_price_note": "senza contare le ore di riconciliazione",
-    "keel_label": "{product} {plan}",
-    "keel_items": {
+    "hullwise_label": "{product} {plan}",
+    "hullwise_items": {
       "model": "Tutti i moduli su un modello dati",
       "users": "Utenti illimitati",
       "setup": "Configurazione fatta dal nostro team",
       "contract": "Nessun contratto annuale",
       "addons": "Add-on e integrazioni su misura per account"
     },
-    "keel_price": "{price} al mese",
-    "keel_price_note": "fino a {orders} ordini al mese",
+    "hullwise_price": "{price} al mese",
+    "hullwise_price_note": "fino a {orders} ordini al mese",
     "note": "Prezzi di listino tipici per brand Shopify di medie dimensioni. Il tuo stack attuale può costare meno o di più; la demo include un confronto sui tuoi strumenti reali."
   },
   "pricing": {

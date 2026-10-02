@@ -1,9 +1,9 @@
-import { and, asc, desc, eq, isNotNull, lt, recordAudit, schema, type DbExecutor } from "@keel/db";
-import { CHURN_RETENTION_DAYS, isTenantStatus, type LifecycleReason, type PlanKey, type TenantStatus } from "@keel/config";
-import { canTransition, monthlyChargeMinor, retentionEndsAt, subscriptionStatusFor } from "@keel/core";
+import { and, asc, desc, eq, isNotNull, lt, recordAudit, schema, type DbExecutor } from "@hullwise/db";
+import { CHURN_RETENTION_DAYS, isTenantStatus, type LifecycleReason, type PlanKey, type TenantStatus } from "@hullwise/config";
+import { canTransition, monthlyChargeMinor, retentionEndsAt, subscriptionStatusFor } from "@hullwise/core";
 
 /**
- * Tenant lifecycle (#48): trial → active → past_due → suspended → churned. The state is Keel's, on
+ * Tenant lifecycle (#48): trial → active → past_due → suspended → churned. The state is Hullwise's, on
  * the tenant row; the subscription mirrors it whatever the billing provider (mock today, Stripe
  * subscriptions with #53). Every change stores a reason and a note, writes a history row with the
  * plan/add-on snapshot (for the metrics over time) and an audit row with the field diff.

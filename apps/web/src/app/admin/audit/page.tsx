@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { and, asc, desc, eq, inArray, isNotNull, schema, sql, type SQL } from "@keel/db";
-import { AUDIT_ACTOR_TYPES, auditFilterConditions, parseAuditFilters } from "@keel/services";
-import { formatDateTime } from "@keel/core";
-import { Badge, Button, Card, CardContent, Input, Label, PageHeader, Pagination, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { and, asc, desc, eq, inArray, isNotNull, schema, sql, type SQL } from "@hullwise/db";
+import { AUDIT_ACTOR_TYPES, auditFilterConditions, parseAuditFilters } from "@hullwise/services";
+import { formatDateTime } from "@hullwise/core";
+import { Badge, Button, Card, CardContent, Input, Label, PageHeader, Pagination, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { flatParams, queryHref } from "../_components/table-query";
 

@@ -1,7 +1,7 @@
 "use server";
 import { cookies } from "next/headers";
-import { adminDb, eq, schema } from "@keel/db";
-import { isLocale } from "@keel/config";
+import { adminDb, eq, schema } from "@hullwise/db";
+import { isLocale } from "@hullwise/config";
 import { getCurrentUser } from "@/server/session";
 import { LOCALE_COOKIE } from "./request";
 

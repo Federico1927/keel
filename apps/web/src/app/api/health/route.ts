@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb, sql } from "@keel/db";
+import { adminDb, sql } from "@hullwise/db";
 
 /** Liveness + database check for hosting platforms. */
 export async function GET() {

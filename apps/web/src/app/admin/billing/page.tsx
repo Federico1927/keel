@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { PLATFORM_CURRENCY } from "@keel/config";
-import { formatDate, formatMoney } from "@keel/core";
-import { adminInvoiceList } from "@keel/services";
-import { asc, schema } from "@keel/db";
-import { Badge, Button, Card, CardContent, EmptyState, Input, Label, PageHeader, Pagination, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { PLATFORM_CURRENCY } from "@hullwise/config";
+import { formatDate, formatMoney } from "@hullwise/core";
+import { adminInvoiceList } from "@hullwise/services";
+import { asc, schema } from "@hullwise/db";
+import { Badge, Button, Card, CardContent, EmptyState, Input, Label, PageHeader, Pagination, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { BillingRunButton } from "./controls";
 import { InvoiceActions } from "../tenants/[id]/controls";

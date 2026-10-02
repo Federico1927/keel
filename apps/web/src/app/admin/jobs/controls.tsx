@@ -2,7 +2,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button } from "@keel/ui";
+import { Button } from "@hullwise/ui";
 import { runJobNowAction } from "@/server/actions/admin";
 
 /** "Run now" on a job type (and tenant): queued or run inline, audited (#32). */

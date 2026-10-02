@@ -2,8 +2,8 @@
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { allocateByShare, formatMoney, packAllocation, packGroups, type CasePackDef } from "@keel/core";
-import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { allocateByShare, formatMoney, packAllocation, packGroups, type CasePackDef } from "@hullwise/core";
+import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { createPoFromMixAction } from "@/server/actions/purchasing-terms";
 
 interface MixVariant {

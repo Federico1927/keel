@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { KEEL_TEMPLATE, WIDGETS, availableWidgetTypes, canEditDashboard, canSeeDashboard, isWidgetVisible, keelTemplate, metricPages, normalizeLayout, normalizeMetricFilters, parseWidget } from "./dashboards";
+import { HULLWISE_TEMPLATE, WIDGETS, availableWidgetTypes, canEditDashboard, canSeeDashboard, isWidgetVisible, hullwiseTemplate, metricPages, normalizeLayout, normalizeMetricFilters, parseWidget } from "./dashboards";
 
 const noCustom = () => null;
 
@@ -31,9 +31,9 @@ describe("widget catalog", () => {
     expect(w.map((x) => [x.type, x.settings.metric])).toEqual([["kpi", "net_revenue"], ["kpi", "custom:profit_per_order"]]);
     expect(normalizeLayout(2, [{ id: "k", type: "kpi", settings: { metric: "orders" } }, { id: "z", type: "gone" }])).toHaveLength(1);
   });
-  it("the Keel template is today's home and only holds core widgets", () => {
-    expect(KEEL_TEMPLATE.map((w) => w.type)).toEqual(["today_kpis", "sales_30d", "month_forecast", "work_queue", "stock_backorders", "today_by_status"]);
-    expect(keelTemplate([])).toHaveLength(KEEL_TEMPLATE.length);
+  it("the Hullwise template is today's home and only holds core widgets", () => {
+    expect(HULLWISE_TEMPLATE.map((w) => w.type)).toEqual(["today_kpis", "sales_30d", "month_forecast", "work_queue", "stock_backorders", "today_by_status"]);
+    expect(hullwiseTemplate([])).toHaveLength(HULLWISE_TEMPLATE.length);
   });
 });
 

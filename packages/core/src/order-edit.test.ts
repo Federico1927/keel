@@ -39,8 +39,8 @@ describe("order discount", () => {
   });
   it("updates totals and builds a readable code", () => {
     expect(applyDiscountToAmounts(order, 900)).toEqual({ subtotalMinor: 10_000, discountMinor: 1_900, shippingMinor: 500, totalMinor: 8_600 });
-    expect(orderDiscountCode({ type: "percentage", value: 1000 })).toBe("KEEL-10%");
-    expect(orderDiscountCode({ type: "fixed_amount", value: 550 })).toBe("KEEL-5.50");
+    expect(orderDiscountCode({ type: "percentage", value: 1000 })).toBe("HULLWISE-10%");
+    expect(orderDiscountCode({ type: "fixed_amount", value: 550 })).toBe("HULLWISE-5.50");
     expect(orderDiscountCode({ type: "fixed_amount", value: 550 }, " SORRY5 ")).toBe("SORRY5");
   });
 });

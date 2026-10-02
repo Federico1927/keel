@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select, Textarea } from "@keel/ui";
+import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select, Textarea } from "@hullwise/ui";
 import { portalDeletePhotoAction, portalLookupAction, portalPhotoAction, portalSubmitAction, type PortalView } from "@/server/actions/portal";
 
 export interface PortalProps {

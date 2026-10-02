@@ -1,8 +1,8 @@
-import type { ModuleKey } from "@keel/config";
+import type { ModuleKey } from "@hullwise/config";
 
 /**
  * Claim registry (#47): every product feature the landing names maps to the module keys of
- * @keel/config that deliver it. `claims.test.ts` checks the keys exist and are built, that plan cards
+ * @hullwise/config that deliver it. `claims.test.ts` checks the keys exist and are built, that plan cards
  * follow `isModuleInPlan`, that add-ons match the add-on modules and their prices, and that features
  * still being built appear only under "Coming soon". Adding a claim to the page means adding it here.
  *
@@ -87,7 +87,7 @@ export const HOW_CLAIMS = {
   operate: mod("core.platform"),
 } as const satisfies Record<string, Claim>;
 
-/** The Keel column of the comparison (`comparison.keel_items.<key>`). */
+/** The Hullwise column of the comparison (`comparison.hullwise_items.<key>`). */
 export const COMPARISON_CLAIMS = {
   model: mod("core.orders", "core.analytics"),
   users: mod("core.platform"),

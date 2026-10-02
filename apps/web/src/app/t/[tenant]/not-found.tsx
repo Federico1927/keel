@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { EmptyState } from "@keel/ui";
+import { EmptyState } from "@hullwise/ui";
 
 export default async function TenantNotFound() {
   const t = await getTranslations("shell");

@@ -2,8 +2,8 @@
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { recordAudit } from "@keel/db";
-import { PurchasingError, createPoFromMix, deleteCasePack, saveCasePack, setDefaultSupplier, variantsForBulkSupplier, type ServiceContext } from "@keel/services";
+import { recordAudit } from "@hullwise/db";
+import { PurchasingError, createPoFromMix, deleteCasePack, saveCasePack, setDefaultSupplier, variantsForBulkSupplier, type ServiceContext } from "@hullwise/services";
 import { ForbiddenError, requireAction, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 

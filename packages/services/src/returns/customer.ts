@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { and, asc, desc, eq, inArray, schema } from "@keel/db";
-import { A4, renderPdf, type PdfItem } from "@keel/core";
-import type { Address, ReturnLabelProvider } from "@keel/integrations";
+import { and, asc, desc, eq, inArray, schema } from "@hullwise/db";
+import { A4, renderPdf, type PdfItem } from "@hullwise/core";
+import type { Address, ReturnLabelProvider } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 
 /* ---------- order tracking for the end customer ---------- */

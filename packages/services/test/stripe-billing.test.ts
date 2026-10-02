@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { MODULES, PLANS } from "@keel/config";
-import { and, eq, schema, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedPlatform, type SeedContext } from "@keel/db/seed";
-import { MockBillingProvider, MockInvoicingProvider, StripeBillingProvider, signStripePayload } from "@keel/integrations";
-import { FakeStripe } from "@keel/integrations/billing/fake-stripe";
+import { MODULES, PLANS } from "@hullwise/config";
+import { and, eq, schema, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { MockBillingProvider, MockInvoicingProvider, StripeBillingProvider, signStripePayload } from "@hullwise/integrations";
+import { FakeStripe } from "@hullwise/integrations/billing/fake-stripe";
 import {
   applySuspensions,
   billingSettings,
@@ -48,7 +48,7 @@ let northwind = "";
 
 beforeAll(async () => {
   ctx = await seedPlatform(pools.admin);
-  admin = ctx.userIds["superadmin@keel.demo"]!;
+  admin = ctx.userIds["superadmin@hullwise.demo"]!;
   harbor = ctx.tenantIds.harbor;
   northwind = ctx.tenantIds.northwind;
   setBillingProvider(provider);
@@ -81,7 +81,7 @@ describe("Stripe billing (test double)", () => {
     expect(first).toMatchObject({ created: 8, updated: 0, unchanged: 0 });
     expect(fake.products.size).toBe(8);
     const prices = await pools.admin.select().from(schema.billingPrices).where(eq(schema.billingPrices.provider, "stripe"));
-    expect(prices.map((p) => p.lookupKey).sort()).toContain("keel_setup_starter");
+    expect(prices.map((p) => p.lookupKey).sort()).toContain("hullwise_setup_starter");
     const posts = fake.calls.filter((c) => c.method === "POST").length;
     const second = await syncBillingCatalog(pools.admin, { provider, actorUserId: admin, now: t0 });
     expect(second).toEqual({ created: 0, updated: 0, unchanged: 8, archived: 0 });
@@ -90,7 +90,7 @@ describe("Stripe billing (test double)", () => {
   });
 
   it("starts Harbor Home's subscription: Checkout link, email in the customer's language, then the webhooks make it active with the first invoice paid", async () => {
-    const r = await startSubscription(pools.admin, harbor, { planKey: "starter", addons: [], chargeSetupFee: true, trialDays: 0, billingEmail: "billing@harborhome.demo", collection: "checkout" }, { provider, actorUserId: admin, appUrl: "https://app.keel.test", now: t0, settings });
+    const r = await startSubscription(pools.admin, harbor, { planKey: "starter", addons: [], chargeSetupFee: true, trialDays: 0, billingEmail: "billing@harborhome.demo", collection: "checkout" }, { provider, actorUserId: admin, appUrl: "https://app.hullwise.test", now: t0, settings });
     expect(r.kind).toBe("checkout");
     if (r.kind !== "checkout") return;
     expect(r.url).toMatch(/^https:\/\/checkout\.stripe\.com\//);
@@ -107,7 +107,7 @@ describe("Stripe billing (test double)", () => {
     const active = await sub(harbor);
     expect(active).toMatchObject({ externalStatus: "active", checkoutSessionId: null, paymentMethodSummary: "visa •••• 4242", planKey: "starter" });
     expect(active.externalSubscriptionId).toMatch(/^sub_/);
-    expect(active.items.map((i) => i.lookupKey)).toEqual(["keel_plan_starter_monthly"]);
+    expect(active.items.map((i) => i.lookupKey)).toEqual(["hullwise_plan_starter_monthly"]);
     const [first] = await stripeInvoices(harbor);
     expect(first).toMatchObject({ status: "paid", amountMinor: PLANS.starter.monthlyPriceMinor + PLANS.starter.setupFeeMinor, kind: "subscription" });
     expect(first!.pdfUrl).toMatch(/\/pdf$/);
@@ -141,7 +141,7 @@ describe("Stripe billing (test double)", () => {
   });
 
   it("a declined renewal makes the tenant past due at once (owner banner with the payment link), suspended after the grace period, active again once paid", async () => {
-    // the seeded Keel-ledger invoice Harbor still owes is settled out of band, so only Stripe drives the state
+    // the seeded Hullwise-ledger invoice Harbor still owes is settled out of band, so only Stripe drives the state
     for (const inv of await pools.admin.select().from(schema.invoices).where(and(eq(schema.invoices.tenantId, harbor), eq(schema.invoices.status, "open")))) await voidInvoice(pools.admin, inv.id, admin, t0);
     expect((await tenant(harbor)).status).toBe("active");
     fake.now = new Date(t0.getTime() + 31 * 864e5);
@@ -184,9 +184,9 @@ describe("Stripe billing (test double)", () => {
     await setTenantPlan(pools.admin, harbor, "growth", admin, fake.now, { provider });
     await setTenantAddon(pools.admin, harbor, "addon.cod", true, admin, "pilot", fake.now, { provider });
     const s = await sub(harbor);
-    expect(s.items.map((i) => i.lookupKey)).toEqual(["keel_plan_growth_monthly", "keel_addon_cod_monthly"]);
+    expect(s.items.map((i) => i.lookupKey)).toEqual(["hullwise_plan_growth_monthly", "hullwise_addon_cod_monthly"]);
     const stripeSub = fake.subscriptions.get(s.externalSubscriptionId!)!;
-    expect(stripeSub.items.map((i) => i.lookupKey)).toEqual(["keel_plan_growth_monthly", "keel_addon_cod_monthly"]);
+    expect(stripeSub.items.map((i) => i.lookupKey)).toEqual(["hullwise_plan_growth_monthly", "hullwise_addon_cod_monthly"]);
     expect(fake.calls.filter((c) => c.path === `subscriptions/${stripeSub.id}` && c.method === "POST").every((c) => c.body.proration_behavior === "create_prorations")).toBe(true);
     expect((await tenantSubscriptionDetail(pools.admin, harbor, settings)).drift).toBe(false);
     // a stale snapshot (older than the last applied event) does not roll the items back
@@ -207,7 +207,7 @@ describe("Stripe billing (test double)", () => {
     const view = await asOwner(harbor, (s) => tenantBillingOverview(s, { planKey: t.planKey, status: t.status, suspendAfterDays: t.suspendAfterDays, activeAddons: ["addon.cod"] }, fake.now));
     expect(view).toMatchObject({ managed: true, planKey: "growth", monthlyMinor: PLANS.growth.monthlyPriceMinor + MODULES["addon.cod"].monthlyPriceMinor!, banner: null });
     expect(view.invoices.some((i) => i.pdfUrl)).toBe(true);
-    const portal = await asOwner(harbor, (s) => createBillingPortalSession(s, { returnUrl: "https://app.keel.test/t/harbor-home/settings/billing", locale: "en", provider }));
+    const portal = await asOwner(harbor, (s) => createBillingPortalSession(s, { returnUrl: "https://app.hullwise.test/t/harbor-home/settings/billing", locale: "en", provider }));
     expect(portal.url).toMatch(/^https:\/\/billing\.stripe\.com\//);
     expect(await auditCount("billing.portal_opened", harbor)).toBe(1);
   });

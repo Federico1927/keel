@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Badge, Button, Input, Label, Select } from "@keel/ui";
+import { Badge, Button, Input, Label, Select } from "@hullwise/ui";
 import { deleteAlertRuleAction, deleteCustomMetricAction, runAlertsNowAction, saveAlertRuleAction, saveCustomMetricAction, saveDashboardAction, saveSlackWebhookAction, toggleAlertRuleAction } from "@/server/actions/analytics";
 
 /** Pick and order the metrics of my dashboard. */

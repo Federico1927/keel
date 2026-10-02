@@ -1,7 +1,7 @@
 "use client";
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, Checkbox, Input, Label, Select } from "@keel/ui";
+import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, Checkbox, Input, Label, Select } from "@hullwise/ui";
 import { bulkSupplierAction } from "@/server/actions/purchasing-terms";
 
 /** Default supplier in bulk: variants by product type, vendor or SKU prefix, optionally only those without one. */

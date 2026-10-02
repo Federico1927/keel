@@ -1,9 +1,9 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { AD_PLATFORM_LABELS } from "@keel/config";
+import { AD_PLATFORM_LABELS } from "@hullwise/config";
 import { Ban, Pause, Play } from "lucide-react";
-import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Label, Select } from "@keel/ui";
+import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Label, Select } from "@hullwise/ui";
 import { addNegativeKeywordAction, setAdStatusAction } from "@/server/actions/ads";
 import type { ActionResult } from "@/server/action-result";
 

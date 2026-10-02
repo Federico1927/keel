@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { TENANT_SETTING_DEFAULTS } from "@keel/config";
+import { TENANT_SETTING_DEFAULTS } from "@hullwise/config";
 
 export const PAYMENT_METHODS = ["card", "wallet", "bank_transfer", "cod", "bnpl", "other"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
@@ -41,7 +41,7 @@ export const tenantSettingsSchema = z.object({
   churnMediumPct: z.number().int().min(0).max(100).default(40),
   /** Write returns to the commerce platform (return request, approval, restock, refund, close). */
   returnsWriteBack: z.boolean().default(true),
-  /** Write product costs edited or imported in Keel to the commerce platform (Shopify `inventoryItem.unitCost`). */
+  /** Write product costs edited or imported in Hullwise to the commerce platform (Shopify `inventoryItem.unitCost`). */
   costWriteBack: z.boolean().default(false),
   /** Backorders: an order line stock cannot serve waits for an incoming purchase order and holds the order (`on_hold`, awaiting stock). */
   backorderHold: z.boolean().default(true),
@@ -93,7 +93,7 @@ export const tenantSettingsSchema = z.object({
   adsDailyRetentionDays: z.number().int().min(30).max(730).default(90),
   /** Search terms under this many impressions (per day without spend, per month at roll-up) are grouped under "(other)". */
   adsSearchTermMinImpressions: z.number().int().min(0).max(100_000).default(10),
-  /** Spend an ad, asset or search term must reach in the period before Keel suggests pausing it or excluding it. */
+  /** Spend an ad, asset or search term must reach in the period before Hullwise suggests pausing it or excluding it. */
   adsMinSpendMinor: z.number().int().min(0).default(2000),
   /** Customer campaigns (add-on, #34): nobody gets more than `campaignFrequencyCap` campaign messages in `campaignFrequencyDays` days. */
   campaignFrequencyCap: z.number().int().min(1).max(100).default(3),

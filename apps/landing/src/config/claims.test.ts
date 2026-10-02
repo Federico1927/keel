@@ -8,7 +8,7 @@ import {
   isModuleInPlan,
   type ModuleKey,
   type PlanKey,
-} from "@keel/config";
+} from "@hullwise/config";
 import en from "../../messages/en.json";
 import {
   ADDON_CLAIMS,
@@ -29,7 +29,7 @@ const planKey = (id: string): PlanKey => (id === "enterprise" ? "scale" : (id as
 const get = (path: string): unknown =>
   path.split(".").reduce<unknown>((o, p) => (o as Record<string, unknown> | undefined)?.[p], en);
 
-describe("every claim on the landing maps to a built module of @keel/config", () => {
+describe("every claim on the landing maps to a built module of @hullwise/config", () => {
   const textClaims: Claim[] = [
     ...Object.values(FAQ_CLAIMS),
     ...Object.values(HOW_CLAIMS),
@@ -75,12 +75,12 @@ describe("every claim on the landing maps to a built module of @keel/config", ()
     for (const k of Object.keys(HOW_CLAIMS))
       expect(get(`how.steps.${k}.title`), k).toBeTypeOf("string");
     for (const k of Object.keys(COMPARISON_CLAIMS))
-      expect(get(`comparison.keel_items.${k}`), k).toBeTypeOf("string");
+      expect(get(`comparison.hullwise_items.${k}`), k).toBeTypeOf("string");
   });
   it("every FAQ answer and comparison line on the page is registered", () => {
     expect(Object.keys(FAQ_CLAIMS).sort()).toEqual(Object.keys(en.faq.items).sort());
     expect(Object.keys(COMPARISON_CLAIMS).sort()).toEqual(
-      Object.keys(en.comparison.keel_items).sort(),
+      Object.keys(en.comparison.hullwise_items).sort(),
     );
     expect(Object.keys(HOW_CLAIMS).sort()).toEqual(Object.keys(en.how.steps).sort());
   });

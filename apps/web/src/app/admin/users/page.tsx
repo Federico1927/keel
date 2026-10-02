@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { formatDateTime } from "@keel/core";
-import { USER_SORTS, userDirectory, type UserSort } from "@keel/services";
-import { asc, schema } from "@keel/db";
-import { Badge, Button, Card, CardContent, EmptyState, Input, Label, PageHeader, Pagination, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { formatDateTime } from "@hullwise/core";
+import { USER_SORTS, userDirectory, type UserSort } from "@hullwise/services";
+import { asc, schema } from "@hullwise/db";
+import { Badge, Button, Card, CardContent, EmptyState, Input, Label, PageHeader, Pagination, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { SortHead, flatParams, queryHref } from "../_components/table-query";
 

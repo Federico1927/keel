@@ -1,7 +1,7 @@
 "use client";
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from "@keel/ui";
+import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from "@hullwise/ui";
 import { saveCampaignSettingsAction } from "@/server/actions/retention";
 
 interface Values {

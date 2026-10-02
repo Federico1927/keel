@@ -1,11 +1,11 @@
-import { and, eq, inArray, or, recordAudit, schema } from "@keel/db";
-import { DASHBOARD_LAYOUT_VERSION, DASHBOARD_WIDGET_CAP, canSeeDashboard, isWidgetAvailable, keelTemplate, normalizeLayout, parseDashboardSettings, parseWidget, type DashboardScope, type DashboardSettings, type DashboardWidget, type TenantRole } from "@keel/config";
+import { and, eq, inArray, or, recordAudit, schema } from "@hullwise/db";
+import { DASHBOARD_LAYOUT_VERSION, DASHBOARD_WIDGET_CAP, canSeeDashboard, isWidgetAvailable, hullwiseTemplate, normalizeLayout, parseDashboardSettings, parseWidget, type DashboardScope, type DashboardSettings, type DashboardWidget, type TenantRole } from "@hullwise/config";
 import type { ServiceContext } from "../context";
 import type { AuditIdentity } from "../catalog/costs";
 
 /**
  * Tenant dashboards (issue #43): the tenant home, home variants per role, extra named dashboards and
- * personal copies, all in `dashboards`. A tenant without a home row renders Keel's template, so template
+ * personal copies, all in `dashboards`. A tenant without a home row renders Hullwise's template, so template
  * updates reach every tenant that never customised and "reset to template" is deleting the rows.
  */
 
@@ -20,7 +20,7 @@ export class DashboardError extends Error {
 }
 
 export interface DashboardView {
-  /** null: Keel's template (nothing stored). */
+  /** null: Hullwise's template (nothing stored). */
   id: string | null;
   name: string;
   scope: DashboardScope;
@@ -54,7 +54,7 @@ export function dashboardView(row: DashboardRow): DashboardView {
 }
 
 export function templateView(activeAddons: readonly string[]): DashboardView {
-  return { id: null, name: "", scope: "tenant", roles: [], isHome: true, userId: null, widgets: keelTemplate(activeAddons), draft: null, settings: parseDashboardSettings({}), isTemplate: true, publishedAt: null, updatedAt: null };
+  return { id: null, name: "", scope: "tenant", roles: [], isHome: true, userId: null, widgets: hullwiseTemplate(activeAddons), draft: null, settings: parseDashboardSettings({}), isTemplate: true, publishedAt: null, updatedAt: null };
 }
 
 const identityOf = (ctx: ServiceContext, a?: AuditIdentity): AuditIdentity => a ?? { actorUserId: ctx.actor.userId, actorType: ctx.actor.userId ? "user" : "system", impersonatedBy: null };
@@ -88,7 +88,7 @@ async function homeRows(ctx: ServiceContext): Promise<DashboardRow[]> {
   return ctx.tx.select().from(schema.dashboards).where(and(eq(schema.dashboards.tenantId, ctx.tenantId), eq(schema.dashboards.isHome, true), inArray(schema.dashboards.scope, ["tenant", "role"])));
 }
 
-/** The home a role sees: its role variant, else the tenant home, else Keel's template. */
+/** The home a role sees: its role variant, else the tenant home, else Hullwise's template. */
 export async function resolveHomeDashboard(ctx: ServiceContext, role: TenantRole, activeAddons: readonly string[]): Promise<DashboardView> {
   const rows = await homeRows(ctx);
   const variant = rows.find((r) => r.scope === "role" && r.roles.includes(role));
@@ -97,7 +97,7 @@ export async function resolveHomeDashboard(ctx: ServiceContext, role: TenantRole
   return row ? dashboardView(row) : templateView(activeAddons);
 }
 
-/** The tenant-wide home (what roles without a variant see): its row or Keel's template. */
+/** The tenant-wide home (what roles without a variant see): its row or Hullwise's template. */
 export async function tenantHomeView(ctx: ServiceContext, activeAddons: readonly string[]): Promise<DashboardView> {
   const row = (await homeRows(ctx)).find((r) => r.scope === "tenant");
   return row ? dashboardView(row) : templateView(activeAddons);
@@ -141,11 +141,11 @@ export async function createDashboard(ctx: ServiceContext, input: CreateDashboar
   return row!;
 }
 
-/** Creates the tenant home from Keel's template (or returns the existing one), ready to edit. */
+/** Creates the tenant home from Hullwise's template (or returns the existing one), ready to edit. */
 export async function customiseHome(ctx: ServiceContext, opts: { activeAddons: readonly string[]; name: string; audit?: AuditIdentity }): Promise<DashboardRow> {
   const existing = (await homeRows(ctx)).find((r) => r.scope === "tenant");
   if (existing) return existing;
-  return createDashboard(ctx, { name: opts.name, scope: "tenant", isHome: true, widgets: keelTemplate(opts.activeAddons) }, opts);
+  return createDashboard(ctx, { name: opts.name, scope: "tenant", isHome: true, widgets: hullwiseTemplate(opts.activeAddons) }, opts);
 }
 
 export interface SaveDashboardInput {
@@ -219,7 +219,7 @@ export async function duplicateToPersonal(ctx: ServiceContext, source: Dashboard
 }
 
 /**
- * Back to Keel's template: deletes the tenant home (`tenant`) or the home and every role variant
+ * Back to Hullwise's template: deletes the tenant home (`tenant`) or the home and every role variant
  * (`all`, the super-admin support reset). Extra and personal dashboards are kept.
  */
 export async function resetHomeToTemplate(ctx: ServiceContext, scope: "tenant" | "all", opts: { audit?: AuditIdentity } = {}): Promise<number> {
@@ -227,6 +227,6 @@ export async function resetHomeToTemplate(ctx: ServiceContext, scope: "tenant" |
     .delete(schema.dashboards)
     .where(and(eq(schema.dashboards.tenantId, ctx.tenantId), eq(schema.dashboards.isHome, true), inArray(schema.dashboards.scope, scope === "all" ? ["tenant", "role"] : ["tenant"])))
     .returning({ id: schema.dashboards.id, scope: schema.dashboards.scope, roles: schema.dashboards.roles, name: schema.dashboards.name });
-  await audit(ctx, "dashboard.reset_to_template", null, { home: { from: gone.map((g) => `${g.scope}:${g.name}`), to: "keel_template" } }, opts.audit, { scope });
+  await audit(ctx, "dashboard.reset_to_template", null, { home: { from: gone.map((g) => `${g.scope}:${g.name}`), to: "hullwise_template" } }, opts.audit, { scope });
   return gone.length;
 }

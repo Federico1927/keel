@@ -2,7 +2,7 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Button, Input, Label } from "@keel/ui";
+import { Alert, AlertDescription, Button, Input, Label } from "@hullwise/ui";
 import { sendMagicLink, signInWithPassword, type LoginState } from "./actions";
 
 export function LoginForm({ initialError, next, email }: { initialError?: string; next?: string; email?: string }) {

@@ -1,4 +1,4 @@
-import { normalizeAddress, validateAddressFormat } from "@keel/core";
+import { normalizeAddress, validateAddressFormat } from "@hullwise/core";
 import type { Address, AddressProvider, AddressSuggestion, AddressValidation, ConnectionTest } from "../types";
 
 /** A few real-looking places per country so suggestions read naturally in the demo tenants. */

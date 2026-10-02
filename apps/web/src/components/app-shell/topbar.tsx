@@ -14,9 +14,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@keel/ui";
+} from "@hullwise/ui";
 import { LocaleSwitcher } from "@/components/locale-switcher";
-import type { ThemePreference } from "@keel/ui/tokens";
+import type { ThemePreference } from "@hullwise/ui/tokens";
 import { SidebarNav, type SidebarProps } from "./sidebar";
 import { UserMenu, type MenuUser } from "./user-menu";
 import { NotificationsBell, type BellItem } from "./notifications-bell";

@@ -2,12 +2,12 @@
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { adminDb, and, eq, recordAudit, schema } from "@keel/db";
-import { TENANT_ROLES, canManageRole, isTenantRole } from "@keel/config";
-import { AccountError, createInvitation, resendInvitation, revokeInvitation, sendAccessDisabledNotice } from "@keel/services";
+import { adminDb, and, eq, recordAudit, schema } from "@hullwise/db";
+import { TENANT_ROLES, canManageRole, isTenantRole } from "@hullwise/config";
+import { AccountError, createInvitation, resendInvitation, revokeInvitation, sendAccessDisabledNotice } from "@hullwise/services";
 import { requireAction, ForbiddenError } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
-import { displayName } from "@keel/core";
+import { displayName } from "@hullwise/core";
 import "@/server/email";
 
 const inviteSchema = z.object({ email: z.string().trim().email().max(254), name: z.string().trim().max(120).optional(), role: z.enum(TENANT_ROLES) });

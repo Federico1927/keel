@@ -3,8 +3,8 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Banknote, Undo2 } from "lucide-react";
-import { PAYMENT_METHODS, refundAmountForLines, type PaymentMethod } from "@keel/core";
-import { Alert, AlertDescription, Button, Checkbox, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select, Textarea } from "@keel/ui";
+import { PAYMENT_METHODS, refundAmountForLines, type PaymentMethod } from "@hullwise/core";
+import { Alert, AlertDescription, Button, Checkbox, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select, Textarea } from "@hullwise/ui";
 import { recordPaymentAction, refundOrderAction } from "@/server/actions/payments";
 import type { ActionResult } from "@/server/action-result";
 

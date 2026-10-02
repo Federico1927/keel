@@ -39,4 +39,4 @@ CREATE UNIQUE INDEX "shipment_cases_open_uq" ON "shipment_cases" USING btree ("s
 CREATE INDEX "shipment_cases_tenant_queue_idx" ON "shipment_cases" USING btree ("tenant_id","kind","closed_at","opened_at");--> statement-breakpoint
 CREATE INDEX "shipment_cases_order_idx" ON "shipment_cases" USING btree ("order_id");--> statement-breakpoint
 ALTER TABLE "orders" ADD CONSTRAINT "orders_packed_by_users_id_fk" FOREIGN KEY ("packed_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-CREATE POLICY "shipment_cases_tenant_isolation" ON "shipment_cases" AS PERMISSIVE FOR ALL TO "keel_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid) WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);
+CREATE POLICY "shipment_cases_tenant_isolation" ON "shipment_cases" AS PERMISSIVE FOR ALL TO "hullwise_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid) WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);

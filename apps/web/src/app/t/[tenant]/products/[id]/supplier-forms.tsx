@@ -2,7 +2,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Pencil } from "lucide-react";
-import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select } from "@keel/ui";
+import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select } from "@hullwise/ui";
 import { bulkSupplierAction, saveVariantSupplierAction } from "@/server/actions/purchasing-terms";
 
 interface VariantTerms {

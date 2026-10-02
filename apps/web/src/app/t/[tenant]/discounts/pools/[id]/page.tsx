@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { canDo, canExportList } from "@keel/config";
-import { formatDate, formatDiscountValue, formatMoney, formatNumber, POOL_CODE_STATUSES, type DiscountType, type PoolCodeStatus } from "@keel/core";
-import { latestPlatformWrites, listPoolCodes, poolSummaries } from "@keel/services";
-import { and, asc, eq, schema } from "@keel/db";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DetailShell, EmptyState, Pagination, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { canDo, canExportList } from "@hullwise/config";
+import { formatDate, formatDiscountValue, formatMoney, formatNumber, POOL_CODE_STATUSES, type DiscountType, type PoolCodeStatus } from "@hullwise/core";
+import { latestPlatformWrites, listPoolCodes, poolSummaries } from "@hullwise/services";
+import { and, asc, eq, schema } from "@hullwise/db";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DetailShell, EmptyState, Pagination, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { AssignForm, PoolActiveToggle, ReleaseButton, TopUpForm } from "./controls";

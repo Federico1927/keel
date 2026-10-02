@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { canDo, canWritePage, isPageEnabled } from "@keel/config";
-import { formatDate, formatDateTime, formatMoney, formatNumber, type SegmentGroup } from "@keel/core";
-import { and, eq, schema } from "@keel/db";
-import { listSegmentDestinations, segmentInsights, segmentMembers } from "@keel/services";
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { canDo, canWritePage, isPageEnabled } from "@hullwise/config";
+import { formatDate, formatDateTime, formatMoney, formatNumber, type SegmentGroup } from "@hullwise/core";
+import { and, eq, schema } from "@hullwise/db";
+import { listSegmentDestinations, segmentInsights, segmentMembers } from "@hullwise/services";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { segmentBuilderOptions } from "@/server/queries/crm";
 import { SegmentBuilder } from "../builder";

@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Input, Label, cn } from "@keel/ui";
-import { PASSWORD_ISSUES, checkPassword } from "@keel/core";
+import { Input, Label, cn } from "@hullwise/ui";
+import { PASSWORD_ISSUES, checkPassword } from "@hullwise/core";
 
 /** New password + confirmation with a live strength check (the server checks again with the same rules). */
 export function NewPasswordFields({ email, name, required = true }: { email?: string | null; name?: string | null; required?: boolean }) {

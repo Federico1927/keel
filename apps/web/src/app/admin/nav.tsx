@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { BellRing, Bot, Building2, ChartLine, CreditCard, LayoutDashboard, LifeBuoy, ListChecks, Mail, Package, Palette, Plug, Repeat, ScrollText, Users } from "lucide-react";
-import { cn } from "@keel/ui";
+import { cn } from "@hullwise/ui";
 import { ADMIN_NAV, type AdminNavKey } from "./nav-items";
 
 const ICONS: Record<AdminNavKey, typeof LayoutDashboard> = { dashboard: LayoutDashboard, metrics: ChartLine, tenants: Building2, plans: Package, users: Users, billing: CreditCard, subscriptions: Repeat, integrations: Plug, mcp: Bot, email: Mail, jobs: ListChecks, alerts: BellRing, support: LifeBuoy, audit: ScrollText, styleguide: Palette };

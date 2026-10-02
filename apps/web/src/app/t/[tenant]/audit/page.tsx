@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { adminDb, and, asc, desc, eq, inArray, isNotNull, schema, sql } from "@keel/db";
-import { Badge, Button, Card, CardContent, EmptyState, Input, Label, PageHeader, Pagination, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
-import { formatDateTime, displayName } from "@keel/core";
-import { PAGE_SIZE } from "@keel/config";
-import { AUDIT_ACTOR_TYPES, auditFilterConditions, parseAuditFilters } from "@keel/services";
+import { adminDb, and, asc, desc, eq, inArray, isNotNull, schema, sql } from "@hullwise/db";
+import { Badge, Button, Card, CardContent, EmptyState, Input, Label, PageHeader, Pagination, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { formatDateTime, displayName } from "@hullwise/core";
+import { PAGE_SIZE } from "@hullwise/config";
+import { AUDIT_ACTOR_TYPES, auditFilterConditions, parseAuditFilters } from "@hullwise/services";
 import { requirePage } from "@/server/tenant";
 
 type Search = Record<string, string | string[] | undefined>;

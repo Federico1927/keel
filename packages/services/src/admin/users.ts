@@ -1,5 +1,5 @@
-import { and, asc, desc, eq, ilike, inArray, isNotNull, isNull, or, recordAudit, schema, sql, type DbExecutor, type SQL } from "@keel/db";
-import { PRODUCT_NAME } from "@keel/config";
+import { and, asc, desc, eq, ilike, inArray, isNotNull, isNull, or, recordAudit, schema, sql, type DbExecutor, type SQL } from "@hullwise/db";
+import { PRODUCT_NAME } from "@hullwise/config";
 import { queueAccountNotice } from "../account/notices";
 
 /**

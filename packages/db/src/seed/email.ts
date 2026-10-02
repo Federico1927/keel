@@ -1,6 +1,6 @@
 import { and, eq, isNull, like } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/node-postgres";
-import { emailAddressHash, maskEmail } from "@keel/integrations";
+import { emailAddressHash, maskEmail } from "@hullwise/integrations";
 import * as schema from "../schema";
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;
@@ -41,7 +41,7 @@ export async function seedEmailLog(db: Db, key: "northwind" | "harbor", tenantId
   if (key !== "northwind") return;
   // platform emails (no tenant): sign-in links of the demo users
   await db.delete(schema.emailMessages).where(and(isNull(schema.emailMessages.tenantId), like(schema.emailMessages.idempotencyKey, "seed:platform:%")));
-  const platform = [`owner@northwind.demo`, `owner@harborhome.demo`, `superadmin@keel.demo`];
+  const platform = [`owner@northwind.demo`, `owner@harborhome.demo`, `superadmin@hullwise.demo`];
   await db.insert(schema.emailMessages).values(
     platform.map((to, i) => {
       const at = h(5 + i * 17);

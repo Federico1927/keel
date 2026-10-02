@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { ProductThumb } from "@/components/product-thumb";
 import { getTranslations } from "next-intl/server";
-import { canWritePage } from "@keel/config";
-import { formatDateTime, formatMoney, formatNumber } from "@keel/core";
-import { recentInventoryDrift } from "@keel/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Pagination, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { canWritePage } from "@hullwise/config";
+import { formatDateTime, formatMoney, formatNumber } from "@hullwise/core";
+import { recentInventoryDrift } from "@hullwise/services";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, PageHeader, Pagination, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { SyncInventoryButton } from "./sync-now";
 import { listInventory, parseInventoryFilters } from "@/server/queries/catalog";

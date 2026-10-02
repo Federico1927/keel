@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
-import { PAGE_SIZE, canWritePage } from "@keel/config";
-import { CATALOG_ISSUES, formatMoney, formatNumber, type CatalogIssue } from "@keel/core";
-import { catalogQualityReport } from "@keel/services";
-import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
+import { PAGE_SIZE, canWritePage } from "@hullwise/config";
+import { CATALOG_ISSUES, formatMoney, formatNumber, type CatalogIssue } from "@hullwise/core";
+import { catalogQualityReport } from "@hullwise/services";
+import { Badge, Card, CardContent, EmptyState, PageHeader, Pagination, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 
 /** Catalog data quality: variants with missing cost, SKU, barcode or image, and duplicate SKUs. */

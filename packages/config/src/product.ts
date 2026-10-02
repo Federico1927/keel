@@ -1,5 +1,5 @@
 /** The product name lives here and nowhere else (CLAUDE.md §0). */
-export const PRODUCT_NAME = "Keel";
+export const PRODUCT_NAME = "Hullwise";
 export const PRODUCT_TAGLINE_KEY = "product.tagline";
 export const DEFAULT_LOCALE = "en" as const;
 export const SUPPORTED_LOCALES = ["en", "it", "es"] as const;

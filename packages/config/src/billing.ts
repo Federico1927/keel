@@ -1,6 +1,6 @@
 /**
  * Stripe billing (#53). Stripe subscriptions collect the money (card on file, automatic charges,
- * Smart Retries, dunning, proration); Keel keeps the plan and add-on catalog here and in `plans.ts`
+ * Smart Retries, dunning, proration); Hullwise keeps the plan and add-on catalog here and in `plans.ts`
  * / `modules.ts`, and a ledger mirrored from Stripe webhooks. Product names travel to Stripe
  * (Checkout, invoices, the customer portal), which shows one name per product: English.
  */

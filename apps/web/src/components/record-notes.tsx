@@ -1,5 +1,5 @@
-import { canWritePage } from "@keel/config";
-import { listRecordNotes, type RecordNoteType } from "@keel/services";
+import { canWritePage } from "@hullwise/config";
+import { listRecordNotes, type RecordNoteType } from "@hullwise/services";
 import { getTenantContext } from "@/server/tenant";
 import { tenantPeople } from "@/server/people";
 import { RecordNotesPanel } from "./record-notes-panel";

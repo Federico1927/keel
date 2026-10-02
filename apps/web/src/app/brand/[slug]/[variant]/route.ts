@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { adminDb, eq, schema, withTenant } from "@keel/db";
-import { getBrandLogo } from "@keel/services";
+import { adminDb, eq, schema, withTenant } from "@hullwise/db";
+import { getBrandLogo } from "@hullwise/services";
 
 export const dynamic = "force-dynamic";
 

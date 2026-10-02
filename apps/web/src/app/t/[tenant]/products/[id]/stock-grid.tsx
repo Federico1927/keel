@@ -1,8 +1,8 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { optionStockGrid, type GridCell, type GridVariant } from "@keel/core";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Label, Select, cn } from "@keel/ui";
+import { optionStockGrid, type GridCell, type GridVariant } from "@hullwise/core";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Label, Select, cn } from "@hullwise/ui";
 
 /** Option × option stock grid: available, +incoming, −committed per cell, for whatever options the product has. */
 export function StockGrid({ options, variants, locale }: { options: { name: string; values: string[] }[]; variants: GridVariant[]; locale: string }) {

@@ -3,7 +3,7 @@ import { useActionState, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { LifeBuoy } from "lucide-react";
-import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, Label, Select, Textarea } from "@keel/ui";
+import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, Label, Select, Textarea } from "@hullwise/ui";
 import { openTicketAction } from "@/server/actions/support";
 
 /** Header entry to the platform owner's support: subject, category, message and one optional attachment. */

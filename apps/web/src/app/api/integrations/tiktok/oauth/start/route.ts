@@ -1,10 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { cookies } from "next/headers";
-import { isAdPlatformInPlan } from "@keel/config";
-import { integrationMode, newOAuthState, tiktokAuthorizeUrl } from "@keel/integrations";
+import { apiEndpoint, cookieDomain, isAdPlatformInPlan } from "@hullwise/config";
+import { integrationMode, newOAuthState, tiktokAuthorizeUrl } from "@hullwise/integrations";
 import { requireAction } from "@/server/tenant";
 
-/** Advertiser authorization with Keel's own TikTok for Business app: GET /api/integrations/tiktok/oauth/start?tenant=<slug> */
+/** Advertiser authorization with Hullwise's own TikTok for Business app: GET /api/integrations/tiktok/oauth/start?tenant=<slug> */
 export async function GET(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get("tenant") ?? "";
   const appId = process.env.TIKTOK_APP_ID;
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   if (!isAdPlatformInPlan("tiktok", ctx.tenant.planKey)) return new NextResponse("not found", { status: 404 });
   const state = newOAuthState();
   const jar = await cookies();
-  jar.set("keel_tiktok_oauth", JSON.stringify({ state, slug }), { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: 600, path: "/" });
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL ?? req.nextUrl.origin}/api/integrations/tiktok/oauth/callback`;
+  jar.set("hullwise_tiktok_oauth", JSON.stringify({ state, slug }), { domain: cookieDomain(), httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: 600, path: "/" });
+  const redirectUri = apiEndpoint("/integrations/tiktok/oauth/callback");
   return NextResponse.redirect(tiktokAuthorizeUrl(appId, redirectUri, state));
 }

@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { eq, schema, sql, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { parseTenantSettings, type TenantSettings } from "@keel/core";
-import { MockCommercePlatform, MockPaymentGuarantee } from "@keel/integrations";
+import { eq, schema, sql, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { parseTenantSettings, type TenantSettings } from "@hullwise/core";
+import { MockCommercePlatform, MockPaymentGuarantee } from "@hullwise/integrations";
 import { captureOverdueGuarantees, createReturn, exchangeOptions, orderReturnContext, saveReturnPolicy, syncReturnToPlatform, transitionReturn, type ServiceContext } from "../src";
 
 const pools = testPools();

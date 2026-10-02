@@ -7,7 +7,7 @@ import { getTranslator } from "@/i18n/messages";
 import { formatNumber, formatPrice } from "@/lib/format";
 
 const STACK_ITEMS = ["analytics", "inventory", "returns", "spreadsheets", "seats"] as const;
-const KEEL_ITEMS = Object.keys(COMPARISON_CLAIMS) as (keyof typeof COMPARISON_CLAIMS)[];
+const HULLWISE_ITEMS = Object.keys(COMPARISON_CLAIMS) as (keyof typeof COMPARISON_CLAIMS)[];
 
 export function Comparison({ locale }: { locale: LandingLocale }) {
   const t = getTranslator(locale);
@@ -43,24 +43,24 @@ export function Comparison({ locale }: { locale: LandingLocale }) {
         </div>
         <div className="rounded-lg border border-primary/40 bg-primary/5 p-6 sm:p-8">
           <p className="text-sm font-medium text-primary">
-            {t("comparison.keel_label", {
+            {t("comparison.hullwise_label", {
               product: PRODUCT_NAME,
               plan: t(`pricing.plans.${growth.id}.name`),
             })}
           </p>
           <p className="mt-3 text-3xl font-semibold tracking-tight tabular sm:text-4xl">
-            {t("comparison.keel_price", { price })}
+            {t("comparison.hullwise_price", { price })}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {t("comparison.keel_price_note", {
+            {t("comparison.hullwise_price_note", {
               orders: formatNumber(locale, growth.includedOrdersPerMonth ?? 0),
             })}
           </p>
           <ul className="mt-6 space-y-3">
-            {KEEL_ITEMS.map((k) => (
+            {HULLWISE_ITEMS.map((k) => (
               <li key={k} className="flex items-start gap-3">
                 <Check className="mt-1 size-4 shrink-0 text-success" aria-hidden="true" />
-                {t(`comparison.keel_items.${k}`)}
+                {t(`comparison.hullwise_items.${k}`)}
               </li>
             ))}
           </ul>

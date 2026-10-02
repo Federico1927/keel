@@ -1,9 +1,9 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { BULK_CONCURRENCY, BULK_MAX_ITEMS, canWritePage } from "@keel/config";
-import { ADJUSTMENT_REASONS } from "@keel/core";
-import { InventoryControlError, adjustStock, applyMarkdowns, applyStockTake, cancelStockTake, createStockTake, recordStockTakeCount, setStockTakeCount, type BatchSummary, type BulkRunner, type ScanOutcome, type ServiceContext } from "@keel/services";
+import { BULK_CONCURRENCY, BULK_MAX_ITEMS, canWritePage } from "@hullwise/config";
+import { ADJUSTMENT_REASONS } from "@hullwise/core";
+import { InventoryControlError, adjustStock, applyMarkdowns, applyStockTake, cancelStockTake, createStockTake, recordStockTakeCount, setStockTakeCount, type BatchSummary, type BulkRunner, type ScanOutcome, type ServiceContext } from "@hullwise/services";
 import { auditActor } from "@/server/audit-actor";
 import { dispatchPlatformWrites } from "@/server/platform-writes";
 import { ForbiddenError, requireWrite, type TenantContext } from "@/server/tenant";

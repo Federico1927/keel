@@ -1,10 +1,10 @@
 "use client";
 import { useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Switch } from "@keel/ui";
+import { Switch } from "@hullwise/ui";
 import { toggleRepurchasable } from "@/server/actions/catalog";
 
-/** Keel-only product flag (not a platform field): whether the product is bought again from suppliers. */
+/** Hullwise-only product flag (not a platform field): whether the product is bought again from suppliers. */
 export function ProductActions({ slug, productId, isRepurchasable }: { slug: string; productId: string; isRepurchasable: boolean }) {
   const t = useTranslations("product_detail");
   const [pending, start] = useTransition();

@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, desc, eq, schema, sql, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import type { MockCommercePlatform } from "@keel/integrations";
-import { parseTenantSettings, type TenantSettings } from "@keel/core";
+import { and, desc, eq, schema, sql, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import type { MockCommercePlatform } from "@hullwise/integrations";
+import { parseTenantSettings, type TenantSettings } from "@hullwise/core";
 import { InventoryControlError, adjustStock, applyMarkdowns, applyStockTake, createStockTake, executePlatformWrite, getCommercePlatformFor, importOrder, markdownSuggestions, mockCommerceFor, priceHistory, purgeExpiredPlatformRows, recordStockTakeCount, resetMockPlatforms, setStockTakeCount, stockTakeDetail, unexplainedLosses, type BulkRunner, type PlatformTenant, type ServiceContext } from "../src";
 
 const pools = testPools();
@@ -52,7 +52,7 @@ describe("stock adjustments", () => {
   it("−2 damaged lowers stock locally and on the platform, with a movement and an audit entry", async () => {
     const [l] = await stockedLevels(5, 1);
     const before = l!.available;
-    // the platform starts where Keel is
+    // the platform starts where Hullwise is
     mock.adjustStock(l!.inv!, l!.loc!, before - (mock.stockOf(l!.inv!, l!.loc!) ?? before));
     const r = await run((s) => adjustStock(s, { variantId: l!.variantId, locationId: l!.locationId, delta: -2, reason: "damaged", note: "crushed box" }));
     expect(r).toMatchObject({ before, after: before - 2 });

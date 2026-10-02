@@ -33,7 +33,7 @@ test.describe("products: images, Shopify mirror, two-way sync", () => {
     await expect(page.locator("table tbody tr").first().locator("img").first()).toHaveAttribute("src", /^\/demo-media\//);
   });
 
-  test("the product page shows every mirrored field, the gallery with lightbox and the Keel panels", async ({ page }) => {
+  test("the product page shows every mirrored field, the gallery with lightbox and the Hullwise panels", async ({ page }) => {
     await login(page, "owner@northwind.demo");
     await openProduct(page, 0);
     const gallery = page.getByTestId("product-gallery");
@@ -55,7 +55,7 @@ test.describe("products: images, Shopify mirror, two-way sync", () => {
     await page.getByTestId("variant-fields").locator("summary").click();
     await expect(page.getByTestId("variant-fields")).toContainText(/Stop selling|Interrompi la vendita|Continue selling|Continua a vendere/);
     await expect(page.getByTestId("edit-in-shopify")).toHaveAttribute("href", /^https:\/\/admin\.shopify\.com\/store\/northwind-demo\/products\/\d+$/);
-    // Keel's own panels stay
+    // Hullwise's own panels stay
     await expect(page.getByText(/Variants and stock|Varianti e giacenze/)).toBeVisible();
     await expect(page.getByTestId("price-history")).toBeVisible();
     await expect(page.getByTestId("product-pnl")).toBeVisible();
@@ -128,7 +128,7 @@ test.describe("products: images, Shopify mirror, two-way sync", () => {
     await login(pb, "admin@northwind.demo");
     const url = await openProduct(pa, 2);
     await pb.goto(url);
-    // B changes the product (in Shopify, through Keel): A's page still holds the old version
+    // B changes the product (in Shopify, through Hullwise): A's page still holds the old version
     await pb.getByTestId("product-details-edit").click();
     await pb.getByTestId("edit-title").fill(`Changed by B ${stamp()}`);
     await pb.getByTestId("product-details").getByTestId("save-product").click();

@@ -25,7 +25,7 @@ describe("GoogleAddressProvider.validate", () => {
     expect(JSON.parse(calls[0]!.body!)).toEqual({ address: { regionCode: "US", postalCode: "94043", administrativeArea: "CA", locality: "Mountain View", addressLines: ["1600 amphitheatre pkwy"] } });
   });
 
-  it("maps a suspicious postal code and a missing house number to Keel's issues", async () => {
+  it("maps a suspicious postal code and a missing house number to Hullwise's issues", async () => {
     const r = await provider(validateWith(VALIDATE_SUSPICIOUS)).validate({ name: "Mario Rossi", address1: "Via Torino", city: "Roma", zip: "20121", country: "IT" });
     expect(r.valid).toBe(false);
     expect(r.issues).toEqual(expect.arrayContaining([{ field: "zip", code: "invalid_zip" }, { field: "address1", code: "required" }]));

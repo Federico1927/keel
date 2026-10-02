@@ -25,4 +25,4 @@ ALTER TABLE "tenants" ADD COLUMN "status_changed_at" timestamp with time zone;--
 ALTER TABLE "tenant_lifecycle_events" ADD CONSTRAINT "tenant_lifecycle_events_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "tenant_lifecycle_events_tenant_idx" ON "tenant_lifecycle_events" USING btree ("tenant_id","created_at");--> statement-breakpoint
 CREATE INDEX "tenant_lifecycle_events_created_idx" ON "tenant_lifecycle_events" USING btree ("created_at");--> statement-breakpoint
-CREATE POLICY "tenant_lifecycle_events_tenant_isolation" ON "tenant_lifecycle_events" AS PERMISSIVE FOR ALL TO "keel_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid) WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);
+CREATE POLICY "tenant_lifecycle_events_tenant_isolation" ON "tenant_lifecycle_events" AS PERMISSIVE FOR ALL TO "hullwise_app" USING (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid) WITH CHECK (tenant_id = nullif(current_setting('app.tenant_id', true), '')::uuid);

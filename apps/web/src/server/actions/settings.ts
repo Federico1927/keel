@@ -2,9 +2,9 @@
 import { auditActor } from "@/server/audit-actor";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { adminDb, and, eq, recordAudit, schema } from "@keel/db";
-import { diffRecords, tenantSettingsSchema } from "@keel/core";
-import { SUPPORTED_LOCALES } from "@keel/config";
+import { adminDb, and, eq, recordAudit, schema } from "@hullwise/db";
+import { diffRecords, tenantSettingsSchema } from "@hullwise/core";
+import { SUPPORTED_LOCALES } from "@hullwise/config";
 import { requireAction, ForbiddenError } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 

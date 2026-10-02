@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   output: "export",
   trailingSlash: true,
   reactStrictMode: true,
-  transpilePackages: ["@keel/config", "@keel/ui"],
+  transpilePackages: ["@hullwise/config", "@hullwise/ui"],
   images: { unoptimized: true },
   typescript: { ignoreBuildErrors: false },
   eslint: { ignoreDuringBuilds: true },

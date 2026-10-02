@@ -1,9 +1,9 @@
 "use client";
 import { useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { NOTIFICATION_CHANNELS } from "@keel/config";
-import { Button, Card, CardContent, Switch, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@keel/ui";
-import type { PreferenceRow } from "@keel/services";
+import { NOTIFICATION_CHANNELS } from "@hullwise/config";
+import { Button, Card, CardContent, Switch, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import type { PreferenceRow } from "@hullwise/services";
 import { resetPreferencesAction, setPreferenceAction } from "@/server/actions/notifications";
 
 const GROUPS = ["collaboration", "operations", "system"] as const;

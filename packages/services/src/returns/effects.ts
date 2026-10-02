@@ -1,13 +1,13 @@
-import { and, eq, inArray, schema, sql } from "@keel/db";
-import { RETURN_GOODS_BACK_STATUSES, returnedFractionBps } from "@keel/core";
+import { and, eq, inArray, schema, sql } from "@hullwise/db";
+import { RETURN_GOODS_BACK_STATUSES, returnedFractionBps } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { recomputeOrderStatus } from "../orders/state";
 
 /**
  * Carries a return's status change to its order: the returned fraction from goods that came back, the
- * refund total (returns refunded in Keel plus money refunds from the order page, never below what the
+ * refund total (returns refunded in Hullwise plus money refunds from the order page, never below what the
  * platform already reported), the payment status and the canonical status, with a `return_updated`
- * timeline event. Used by Keel's own transitions and by returns imported from the platform.
+ * timeline event. Used by Hullwise's own transitions and by returns imported from the platform.
  */
 export async function applyReturnToOrder(ctx: ServiceContext, orderId: string, change: { returnId: string; number: number; from: string | null; to: string }, metadata: Record<string, unknown> = {}): Promise<void> {
   const now = ctx.now ?? new Date();

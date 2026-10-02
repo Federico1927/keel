@@ -1,5 +1,21 @@
 import type { NextAuthConfig } from "next-auth";
+import { cookieDomain } from "@hullwise/config";
+import { routeForHost } from "./server/host-routing";
 import { verifySessionVersion } from "./server/session-proof";
+
+/**
+ * With COOKIE_DOMAIN (e.g. `.hullwise.app`) the session cookie is shared by the app, console and API
+ * hosts, so a sign-in on one host is valid on the others and OAuth callbacks on the API host see it.
+ */
+const sharedDomain = cookieDomain();
+const sessionCookie = sharedDomain
+  ? {
+      sessionToken: {
+        name: process.env.NODE_ENV === "production" ? "__Secure-authjs.session-token" : "authjs.session-token",
+        options: { httpOnly: true, sameSite: "lax" as const, path: "/", secure: process.env.NODE_ENV === "production", domain: sharedDomain },
+      },
+    }
+  : undefined;
 
 /**
  * Edge-safe part of the Auth.js configuration (no database, no Node-only
@@ -9,9 +25,13 @@ export const authConfig = {
   pages: { signIn: "/login", verifyRequest: "/verify", error: "/login" },
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 14 },
   trustHost: true,
+  ...(sessionCookie ? { cookies: sessionCookie } : {}),
   callbacks: {
     authorized({ auth, request }) {
-      const { pathname } = request.nextUrl;
+      const route = routeForHost(request.headers.get("host"), request.nextUrl.pathname);
+      // a page that belongs to another host is redirected there first; that host applies its own rules
+      if (route.kind === "redirect") return true;
+      const pathname = route.path;
       const isProtected = pathname.startsWith("/t/") || pathname.startsWith("/admin") || pathname === "/" || pathname === "/welcome";
       if (!isProtected) return true;
       return Boolean(auth?.user);

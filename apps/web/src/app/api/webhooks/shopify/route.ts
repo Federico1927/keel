@@ -1,7 +1,7 @@
 import { NextResponse, after, type NextRequest } from "next/server";
-import { adminDb, and, eq, schema, withTenant } from "@keel/db";
-import { IntegrationError } from "@keel/integrations";
-import { getCommercePlatformFor, processWebhookEvent, recordWebhookEvent } from "@keel/services";
+import { adminDb, and, eq, schema, withTenant } from "@hullwise/db";
+import { IntegrationError } from "@hullwise/integrations";
+import { getCommercePlatformFor, processWebhookEvent, recordWebhookEvent } from "@hullwise/services";
 import { enqueue } from "@/server/jobs";
 
 /**

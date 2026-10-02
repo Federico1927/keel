@@ -87,7 +87,7 @@ export const metricFiltersSchema = z
     country: z.array(z.string().trim().length(2).toUpperCase()).max(40).optional(),
     paymentMethod: z.array(z.string().trim().min(1).max(30)).max(10).optional(),
     productIds: z.array(z.string().uuid()).max(50).optional(),
-    /** The product type stands in for a collection: Keel stores no collections. */
+    /** The product type stands in for a collection: Hullwise stores no collections. */
     productType: z.array(z.string().trim().min(1).max(80)).max(20).optional(),
     campaignIds: z.array(z.string().uuid()).max(50).optional(),
     platform: z.array(z.string().trim().min(1).max(20)).max(6).optional(),
@@ -163,7 +163,7 @@ export type WidgetSettings<T extends WidgetType> = z.infer<(typeof WIDGET_SETTIN
 
 export interface WidgetDefinition {
   type: WidgetType;
-  group: "metrics" | "charts" | "lists" | "queues" | "content" | "keel";
+  group: "metrics" | "charts" | "lists" | "queues" | "content" | "hullwise";
   widths: readonly WidgetWidth[];
   defaultWidth: WidgetWidth;
   defaultHeight: WidgetHeight;
@@ -190,13 +190,13 @@ export const WIDGETS: Record<WidgetType, WidgetDefinition> = {
   queue_awaiting_stock: d("queue_awaiting_stock", "queues", "orders", { module: "core.orders" }),
   queue_exceptions: d("queue_exceptions", "queues", "shipments", { module: "core.shipments" }),
   queue_integrations: d("queue_integrations", "queues", "integrations", { module: "core.platform" }),
-  // Keel's home tiles: the template is made of these, so a tenant that never customises sees the same home
-  today_kpis: d("today_kpis", "keel", "dashboard", { widths: [4], defaultWidth: 4 }),
-  sales_30d: d("sales_30d", "keel", "dashboard", { widths: [2, 3, 4], defaultWidth: 3, defaultHeight: 4 }),
-  month_forecast: d("month_forecast", "keel", "dashboard"),
-  work_queue: d("work_queue", "keel", "dashboard"),
-  stock_backorders: d("stock_backorders", "keel", "dashboard"),
-  today_by_status: d("today_by_status", "keel", "dashboard"),
+  // Hullwise's home tiles: the template is made of these, so a tenant that never customises sees the same home
+  today_kpis: d("today_kpis", "hullwise", "dashboard", { widths: [4], defaultWidth: 4 }),
+  sales_30d: d("sales_30d", "hullwise", "dashboard", { widths: [2, 3, 4], defaultWidth: 3, defaultHeight: 4 }),
+  month_forecast: d("month_forecast", "hullwise", "dashboard"),
+  work_queue: d("work_queue", "hullwise", "dashboard"),
+  stock_backorders: d("stock_backorders", "hullwise", "dashboard"),
+  today_by_status: d("today_by_status", "hullwise", "dashboard"),
   cod_queue: d("cod_queue", "queues", "cod_queue", { module: "addon.cod" }),
   cod_pending: d("cod_pending", "queues", "cod_queue", { module: "addon.cod" }),
   cod_operators: d("cod_operators", "lists", "cod_queue", { module: "addon.cod", defaultHeight: 2 }),
@@ -323,20 +323,20 @@ export function canSeeDashboard(role: TenantRole, userId: string, d: { scope: st
 }
 
 /**
- * Keel's template: today's home, tile for tile. A tenant without a home dashboard of its own renders
+ * Hullwise's template: today's home, tile for tile. A tenant without a home dashboard of its own renders
  * it, so template updates reach every tenant that never customised; widgets of modules the tenant
  * lacks are left out.
  */
-export const KEEL_TEMPLATE: readonly DashboardWidget[] = [
-  { id: "keel-today", type: "today_kpis", w: 4, h: 1, period: null, settings: {} },
-  { id: "keel-sales", type: "sales_30d", w: 3, h: 4, period: null, settings: {} },
-  { id: "keel-forecast", type: "month_forecast", w: 1, h: 1, period: null, settings: {} },
-  { id: "keel-queue", type: "work_queue", w: 1, h: 1, period: null, settings: {} },
-  { id: "keel-stock", type: "stock_backorders", w: 1, h: 1, period: null, settings: {} },
-  { id: "keel-status", type: "today_by_status", w: 1, h: 1, period: null, settings: {} },
+export const HULLWISE_TEMPLATE: readonly DashboardWidget[] = [
+  { id: "hullwise-today", type: "today_kpis", w: 4, h: 1, period: null, settings: {} },
+  { id: "hullwise-sales", type: "sales_30d", w: 3, h: 4, period: null, settings: {} },
+  { id: "hullwise-forecast", type: "month_forecast", w: 1, h: 1, period: null, settings: {} },
+  { id: "hullwise-queue", type: "work_queue", w: 1, h: 1, period: null, settings: {} },
+  { id: "hullwise-stock", type: "stock_backorders", w: 1, h: 1, period: null, settings: {} },
+  { id: "hullwise-status", type: "today_by_status", w: 1, h: 1, period: null, settings: {} },
 ];
-export function keelTemplate(activeAddons: readonly string[]): DashboardWidget[] {
-  return KEEL_TEMPLATE.filter((w) => isWidgetAvailable(w.type, activeAddons)).map((w) => ({ ...w, settings: { ...w.settings } }));
+export function hullwiseTemplate(activeAddons: readonly string[]): DashboardWidget[] {
+  return HULLWISE_TEMPLATE.filter((w) => isWidgetAvailable(w.type, activeAddons)).map((w) => ({ ...w, settings: { ...w.settings } }));
 }
 
 /** A fresh widget of a type with default settings and size. */

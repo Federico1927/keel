@@ -2,8 +2,8 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Ban, ChevronDown, RotateCcw, UserPlus } from "lucide-react";
-import { Alert, AlertDescription, Button, Checkbox, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Label, Select } from "@keel/ui";
-import { ORDER_STATUSES } from "@keel/core";
+import { Alert, AlertDescription, Button, Checkbox, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Label, Select } from "@hullwise/ui";
+import { ORDER_STATUSES } from "@hullwise/core";
 import { assignOrder, cancelOrder, changeOrderStatus, resetOrderStatus } from "@/server/actions/orders";
 import type { ActionResult } from "@/server/action-result";
 

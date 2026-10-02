@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { headers } from "next/headers";
 import { getTranslations } from "next-intl/server";
-import { canDo } from "@keel/config";
-import { formatDateTime, formatNumber, formatPercent } from "@keel/core";
-import { integrationMode } from "@keel/integrations";
-import { conversionLog, conversionStats, getConversionSettings, integrationOverview, pixelOverview } from "@keel/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
+import { canDo } from "@hullwise/config";
+import { formatDateTime, formatNumber, formatPercent } from "@hullwise/core";
+import { integrationMode } from "@hullwise/integrations";
+import { conversionLog, conversionStats, getConversionSettings, integrationOverview, pixelOverview } from "@hullwise/services";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { collectUrlFor, shopifyCustomPixel } from "@/server/pixel-snippets";
 import { ConversionForm, CopyBlock, PixelControls, RunConversions } from "./controls";
@@ -23,9 +22,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ tenan
     integrations: (await integrationOverview({ ...s, tx })).integrations,
   }));
   const canManage = canDo(ctx.role, "manage_integrations");
-  const h = await headers();
-  const origin = process.env.NEXT_PUBLIC_APP_URL || `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`;
-  const collect = collectUrlFor(origin, pixel.settings.publicKey);
+  const collect = collectUrlFor(pixel.settings.publicKey);
   const scriptTag = `<script async src="${collect}/script.js"></script>`;
   const num = (n: number) => formatNumber(n, ctx.locale);
   const dt = (d: Date | null) => (d ? formatDateTime(d, ctx.locale, ctx.tenant.timezone) : "—");

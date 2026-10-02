@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { isAdPlatformInPlan } from "@keel/config";
-import { formatMoney, formatNumber } from "@keel/core";
-import { and, eq, schema } from "@keel/db";
-import { adRows, campaignAdSets, keywordRows, searchTermRows } from "@keel/services";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DetailShell, EmptyState, Stat } from "@keel/ui";
+import { isAdPlatformInPlan } from "@hullwise/config";
+import { formatMoney, formatNumber } from "@hullwise/core";
+import { and, eq, schema } from "@hullwise/db";
+import { adRows, campaignAdSets, keywordRows, searchTermRows } from "@hullwise/services";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DetailShell, EmptyState, Stat } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";
@@ -44,7 +44,7 @@ export default async function AdSetPage({ params, searchParams }: { params: Prom
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Stat label={t("cols.spend")} value={money(row.metrics.spendMinor)} />
         <Stat label={t("cols.platform_conv")} value={`${formatNumber(Math.round(row.metrics.conversions), ctx.locale)} · ${money(row.metrics.conversionValueMinor)}`} />
-        <Stat label={t("cols.keel_orders")} value={formatNumber(e.attributedOrders, ctx.locale)} href={ordersHref(tenant, row.orders, period, ctx.tenant.timezone) ?? undefined} />
+        <Stat label={t("cols.hullwise_orders")} value={formatNumber(e.attributedOrders, ctx.locale)} href={ordersHref(tenant, row.orders, period, ctx.tenant.timezone) ?? undefined} />
         <Stat label={t("cols.profit")} value={money(e.profitMinor)} />
         <Stat label={t("cols.roas")} value={e.roas === null ? "—" : `${e.roas.toFixed(2)}×`} />
       </div>
@@ -77,14 +77,14 @@ export default async function AdSetPage({ params, searchParams }: { params: Prom
             </CardHeader>
             <CardContent className="p-0">
               {terms.rows.length === 0 ? <EmptyState title={t("no_search_terms")} className="m-4" /> : (
-                <AdsTable testId="search-terms-table" rowTestId="search-term-row" currency={ctx.tenant.currency} locale={ctx.locale} emptyKeel={t("keel_not_visible")}
+                <AdsTable testId="search-terms-table" rowTestId="search-term-row" currency={ctx.tenant.currency} locale={ctx.locale} emptyHullwise={t("hullwise_not_visible")}
                   rows={terms.rows.slice(0, 20).map((x) => ({ key: x.id, name: x.isOther ? t("other_terms") : x.text, muted: x.isOther, sub: <>{x.keywordText && <span>{t("via_keyword", { keyword: x.keywordText })}</span>}{x.candidate && <Badge variant="warning">{t(`negative_reason.${x.candidate}`)}</Badge>}{x.termStatus === "excluded" && <Badge variant="muted">{t("excluded")}</Badge>}</>, metrics: x.metrics, economics: x.economics, ordersHref: ordersHref(tenant, x.orders, period, ctx.tenant.timezone) }))} />
               )}
             </CardContent>
           </Card>
         </>
       )}
-      <p className="mt-3 text-xs text-muted-foreground">{t("keel_footnote")}</p>
+      <p className="mt-3 text-xs text-muted-foreground">{t("hullwise_footnote")}</p>
     </DetailShell>
   );
 }

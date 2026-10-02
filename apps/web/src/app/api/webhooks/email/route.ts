@@ -1,7 +1,7 @@
 import { NextResponse, after, type NextRequest } from "next/server";
-import { adminDb } from "@keel/db";
-import { parseResendEvent, verifySvixSignature } from "@keel/integrations";
-import { processEmailEvent, recordEmailEvent } from "@keel/services";
+import { adminDb } from "@hullwise/db";
+import { parseResendEvent, verifySvixSignature } from "@hullwise/integrations";
+import { processEmailEvent, recordEmailEvent } from "@hullwise/services";
 import { enqueue } from "@/server/jobs";
 
 /**

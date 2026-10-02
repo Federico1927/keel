@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { canDo } from "@keel/config";
-import { TenantExportError, takeTenantExportFile } from "@keel/services";
+import { canDo } from "@hullwise/config";
+import { TenantExportError, takeTenantExportFile } from "@hullwise/services";
 import { auditActor } from "@/server/audit-actor";
 import { getTenantContext } from "@/server/tenant";
 

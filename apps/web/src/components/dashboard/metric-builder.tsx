@@ -2,9 +2,9 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { compileFormula } from "@keel/core";
-import { SUPPORTED_LOCALES, type MetricFilters } from "@keel/config";
-import { Button, Input, Label, Select, Textarea, cn } from "@keel/ui";
+import { compileFormula } from "@hullwise/core";
+import { SUPPORTED_LOCALES, type MetricFilters } from "@hullwise/config";
+import { Button, Input, Label, Select, Textarea, cn } from "@hullwise/ui";
 import { deleteTenantMetricAction, previewMetricAction, saveTenantMetricAction, setMetricTargetAction } from "@/server/actions/dashboards";
 
 export interface BaseOption {

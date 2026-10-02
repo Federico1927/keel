@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { eq, schema, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { GRANULARITIES, UTM_DIMENSIONS, UTM_NONE, monthRange, parseTenantSettings } from "@keel/core";
+import { eq, schema, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { GRANULARITIES, UTM_DIMENSIONS, UTM_NONE, monthRange, parseTenantSettings } from "@hullwise/core";
 import { adSpendForPeriod, orderEconomicsForPeriod, orderPnlDetail, orderPnlTable, pnlBreakdown, pnlForPeriod, productProfitTable, utmReport, type AnalyticsTenant } from "../src";
 import type { ServiceContext } from "../src";
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { adminDb, and, eq, inArray, schema } from "@keel/db";
-import { getAvatar } from "@keel/services";
+import { adminDb, and, eq, inArray, schema } from "@hullwise/db";
+import { getAvatar } from "@hullwise/services";
 import { getCurrentUser } from "@/server/session";
 
 export const dynamic = "force-dynamic";

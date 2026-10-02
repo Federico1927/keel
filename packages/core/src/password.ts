@@ -9,7 +9,7 @@ export const PASSWORD_ISSUES = ["too_short", "too_long", "too_common", "personal
 export type PasswordIssue = (typeof PASSWORD_ISSUES)[number];
 
 const COMMON = new Set([
-  "password", "password1", "password123", "passw0rd", "123456789", "1234567890", "12345678910", "qwertyuiop", "qwerty123", "iloveyou", "letmein123", "welcome123", "admin12345", "abc1234567", "1q2w3e4r5t", "zaq12wsx", "football123", "monkey1234", "dragon1234", "sunshine12", "princess12", "baseball12", "superman12", "trustno1", "changeme123", "keel-demo-2026",
+  "password", "password1", "password123", "passw0rd", "123456789", "1234567890", "12345678910", "qwertyuiop", "qwerty123", "iloveyou", "letmein123", "welcome123", "admin12345", "abc1234567", "1q2w3e4r5t", "zaq12wsx", "football123", "monkey1234", "dragon1234", "sunshine12", "princess12", "baseball12", "superman12", "trustno1", "changeme123", "hullwise-demo-2026",
 ]);
 
 export function checkPassword(password: string, person: { email?: string | null; name?: string | null } = {}): { ok: boolean; issues: PasswordIssue[] } {

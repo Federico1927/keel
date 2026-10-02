@@ -2,10 +2,10 @@
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { formatMoney } from "@keel/core";
+import { formatMoney } from "@hullwise/core";
 import { Plus, Search, Trash2 } from "lucide-react";
-import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Textarea } from "@keel/ui";
-import type { PoVariantOption } from "@keel/services";
+import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Textarea } from "@hullwise/ui";
+import type { PoVariantOption } from "@hullwise/services";
 import { createPo, searchPoVariantsAction, updatePo } from "@/server/actions/purchasing";
 import { RiskBadge } from "@/components/risk-badge";
 import { lineFromOption, newLineKey, type EditorInitial, type EditorLine } from "./po-lines";

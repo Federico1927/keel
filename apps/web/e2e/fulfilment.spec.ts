@@ -34,7 +34,7 @@ test.describe("fulfilment (issue #28, Harbor Home: no add-on, prepaid orders)", 
 
     // the order timeline records the fulfilment with its author, the tracking and the platform write
     await page.goto(orderHref);
-    const event = page.locator("li", { hasText: "Shipped from Keel" }).first();
+    const event = page.locator("li", { hasText: "Shipped from Hullwise" }).first();
     await expect(event).toBeVisible();
     await expect(event).toContainText("James Walker");
     await expect(event).toContainText(tracking);

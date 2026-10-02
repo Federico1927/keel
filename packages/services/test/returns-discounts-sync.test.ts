@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq, schema, sql, withTenant } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import { parseTenantSettings } from "@keel/core";
-import type { MockCommercePlatform } from "@keel/integrations";
+import { and, eq, schema, sql, withTenant } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import { parseTenantSettings } from "@hullwise/core";
+import type { MockCommercePlatform } from "@hullwise/integrations";
 import { runCatalogSync, assignPoolCodes, createDiscountPool, createReturn, discountDetail, executePlatformWrite, getCommercePlatformFor, importOrder, latestPlatformWrites, listPoolCodes, mockCommerceFor, poolCodesCsv, poolCodesForExport, poolSummaries, processWebhookEvent, recordWebhookEvent, resetMockPlatforms, returnsAnalytics, runPlatformWriteNow, runReturnsSync, setDiscountActive, setDiscountPoolActive, syncReturnToPlatform, topUpDiscountPool, type AnalyticsTenant, type PlatformTenant, type ServiceContext } from "../src";
 
 const pools = testPools();
@@ -60,7 +60,7 @@ describe("platform returns (issue #35)", () => {
   let platformReturnId = "";
   let order: Awaited<ReturnType<typeof deliveredOrder>>;
 
-  it("a mock returns/create webhook creates the Keel return once; replaying it does not duplicate it", async () => {
+  it("a mock returns/create webhook creates the Hullwise return once; replaying it does not duplicate it", async () => {
     order = await deliveredOrder();
     const line = order.lines[0]!;
     const ret = mock.openPlatformReturn({ orderExternalId: order.externalId, lines: [{ orderLineExternalId: line.externalId!, quantity: 1, reason: "size_too_small" }], note: "Too small" });
@@ -108,7 +108,7 @@ describe("platform returns (issue #35)", () => {
     expect((await returnsOf(order.id))[0]!.status).toBe("refunded");
   });
 
-  it("a return created in Keel and pushed to the platform is not duplicated when it comes back by webhook or reconcile", async () => {
+  it("a return created in Hullwise and pushed to the platform is not duplicated when it comes back by webhook or reconcile", async () => {
     const o = await deliveredOrder();
     const reasons = await db((tx) => tx.select().from(schema.returnReasons).where(eq(schema.returnReasons.tenantId, tenantId)));
     const created = await asUser((s) => createReturn(s, settings, { orderId: o.id, reasonCode: reasons[0]!.code, resolution: "refund", lines: [{ orderLineId: o.lines[0]!.id, quantity: 1 }], overrideWindow: true, staffNote: "test" }));
@@ -121,7 +121,7 @@ describe("platform returns (issue #35)", () => {
     expect(after).toHaveLength(1);
     expect(after[0]).toMatchObject({ id: created.id, source: "staff" });
 
-    // the push reached the platform but Keel never stored the id (lost answer, or still committing): adopted, not duplicated
+    // the push reached the platform but Hullwise never stored the id (lost answer, or still committing): adopted, not duplicated
     const o2 = await deliveredOrder();
     const created2 = await asUser((s) => createReturn(s, settings, { orderId: o2.id, reasonCode: reasons[0]!.code, resolution: "refund", lines: [{ orderLineId: o2.lines[0]!.id, quantity: 1 }], overrideWindow: true, staffNote: "test" }));
     const answer = await mock.requestReturn(o2.externalId, { lines: [{ orderLineExternalId: o2.lines[0]!.externalId!, quantity: 1, reason: null }] });

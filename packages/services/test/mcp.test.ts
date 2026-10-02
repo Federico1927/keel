@@ -3,11 +3,11 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { and, desc, eq, inArray, isNull, schema, sql, withTenant, type Database } from "@keel/db";
-import { testPools } from "@keel/db/test-utils";
-import * as dbSchema from "@keel/db/schema";
-import { seedDomain, seedPlatform, type SeedContext } from "@keel/db/seed";
-import type { McpScope, TenantRole } from "@keel/config";
+import { and, desc, eq, inArray, isNull, schema, sql, withTenant, type Database } from "@hullwise/db";
+import { testPools } from "@hullwise/db/test-utils";
+import * as dbSchema from "@hullwise/db/schema";
+import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
+import type { McpScope, TenantRole } from "@hullwise/config";
 import {
   MCP_CORE_TOOLS,
   ProposalError,
@@ -55,7 +55,7 @@ async function pat(tenantId: string, email: string, scopes: McpScope[] = ["read"
 async function connect(token: string, tools = MCP_CORE_TOOLS): Promise<Client> {
   const auth = await resolveMcpBearer(deps, token);
   if (!auth.ok) throw new Error(`auth failed: ${auth.code}`);
-  const server = createMcpServer({ deps, principal: auth.principal, tools, linkBase: "https://keel.test" });
+  const server = createMcpServer({ deps, principal: auth.principal, tools, linkBase: "https://hullwise.test" });
   const [ct, st] = InMemoryTransport.createLinkedPair();
   await server.connect(st);
   const client = new Client({ name: "vitest", version: "1.0.0" });
@@ -238,11 +238,11 @@ describe("MCP authorization", () => {
     await setTenant(A, { settings: { mcpEnabled: false } });
     expect(await resolveMcpBearer(deps, rotated.token)).toMatchObject({ ok: false, status: 403, code: "tenant_disabled" });
     await setTenant(A, { settings: { mcpEnabled: true } });
-    await setMcpKillSwitch(deps.admin, { tenantId: A, disabled: true, note: "abuse", actorUserId: uid("superadmin@keel.demo") });
+    await setMcpKillSwitch(deps.admin, { tenantId: A, disabled: true, note: "abuse", actorUserId: uid("superadmin@hullwise.demo") });
     expect(await resolveMcpBearer(deps, rotated.token)).toMatchObject({ ok: false, status: 403, code: "killed" });
     const [audit] = await pools.admin.select().from(schema.auditLogs).where(and(eq(schema.auditLogs.tenantId, A), eq(schema.auditLogs.action, "mcp.kill_switch_on"))).limit(1);
     expect(audit).toMatchObject({ actorType: "super_admin" });
-    await setMcpKillSwitch(deps.admin, { tenantId: A, disabled: false, actorUserId: uid("superadmin@keel.demo") });
+    await setMcpKillSwitch(deps.admin, { tenantId: A, disabled: false, actorUserId: uid("superadmin@hullwise.demo") });
     await setTenant(B, { planKey: "starter" });
     expect(await resolveMcpBearer(deps, await pat(B, "owner@harborhome.demo"))).toMatchObject({ ok: false, status: 403, code: "plan" });
     await setTenant(B, { planKey: "growth" });
@@ -368,8 +368,8 @@ describe("MCP writes and proposals", () => {
 
 describe("assistant on the shared tool layer", () => {
   it("still answers through the same tools (smoke)", async () => {
-    const { MockLlmProvider } = await import("@keel/integrations");
-    const { parseTenantSettings } = await import("@keel/core");
+    const { MockLlmProvider } = await import("@hullwise/integrations");
+    const { parseTenantSettings } = await import("@hullwise/core");
     const userId = uid("owner@northwind.demo");
     const r = await askAssistant((fn) => withTenant(A, (tx) => fn({ tenantId: A, tx, actor: { type: "user", userId } }), pools.app), { tenant: { id: A, name: "Northwind Apparel", slug: "northwind-apparel", country: "IT", currency: "EUR", timezone: "Europe/Rome", settings: parseTenantSettings({}) }, userId, role: "owner", activeAddons: [], locale: "en" }, new MockLlmProvider({ today: new Date() }), { question: "How did revenue go last week?" });
     expect(r.outcome).toBe("answered");

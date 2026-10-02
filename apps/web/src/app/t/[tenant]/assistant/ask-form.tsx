@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, Send, Trash2 } from "lucide-react";
-import { Button, Textarea } from "@keel/ui";
+import { Button, Textarea } from "@hullwise/ui";
 import { askAssistantAction, deleteAssistantThreadAction } from "@/server/actions/assistant";
 
 const MAX_CHARS = 2000;

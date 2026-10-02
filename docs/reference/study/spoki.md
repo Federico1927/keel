@@ -1,3 +1,5 @@
+> Historical document: the product was formerly called Keel.
+
 # Spoki (WhatsApp) integration in the Control Room — study notes
 
 Read-only study, 2026-10-01, of `lorena-control-center`. No secrets, phone numbers or customer data copied. Purpose: rebuild it as the optional add-on `addon.whatsapp_spoki` in Keel (requested by Federico, overriding CLAUDE.md §12 for this connector).

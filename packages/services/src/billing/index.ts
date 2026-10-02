@@ -1,6 +1,6 @@
-import { and, desc, eq, inArray, isNull, recordAudit, schema, sql, withTenant, type Database } from "@keel/db";
-import { AD_PLATFORMS, adPlatformsForPlan, DEFAULT_SUSPEND_AFTER_DAYS, DEFAULT_TRIAL_DAYS, OPERATIONAL_TENANT_STATUSES, PLANS, SOURCE_ERROR_STATUSES, type AdPlatform, type PlanKey } from "@keel/config";
-import { addMonths, defaultStateRules, displayName, normalizeEmail, monthlyInvoiceLines, mrr, paymentHealth, setupInvoiceLines, tenantHealth, type PaymentHealth, type TenantHealth } from "@keel/core";
+import { and, desc, eq, inArray, isNull, recordAudit, schema, sql, withTenant, type Database } from "@hullwise/db";
+import { AD_PLATFORMS, adPlatformsForPlan, DEFAULT_SUSPEND_AFTER_DAYS, DEFAULT_TRIAL_DAYS, OPERATIONAL_TENANT_STATUSES, PLANS, SOURCE_ERROR_STATUSES, type AdPlatform, type PlanKey } from "@hullwise/config";
+import { addMonths, defaultStateRules, displayName, normalizeEmail, monthlyInvoiceLines, mrr, paymentHealth, setupInvoiceLines, tenantHealth, type PaymentHealth, type TenantHealth } from "@hullwise/core";
 import { getBillingProvider, type BillingProvider } from "./provider";
 import { refreshTenantPaymentState, tenantPaymentStatus } from "./payment-state";
 import { createInvitation, pendingInvitationCount } from "../account/invitations";
@@ -62,7 +62,7 @@ export async function ensureSubscription(db: AdminDb, tenantId: string, opts: { 
   return sub!;
 }
 
-/** Monthly run of the Keel ledger: every subscription whose period ended gets an invoice for the next period. Idempotent per period. Subscriptions on a processor (Stripe, or the mock simulating it) are invoiced there and mirrored by webhooks. */
+/** Monthly run of the Hullwise ledger: every subscription whose period ended gets an invoice for the next period. Idempotent per period. Subscriptions on a processor (Stripe, or the mock simulating it) are invoiced there and mirrored by webhooks. */
 export async function issueDueInvoices(db: AdminDb, opts: { now?: Date; provider?: BillingProvider; actorUserId?: string | null } = {}): Promise<{ issued: number }> {
   const now = opts.now ?? new Date();
   const provider = opts.provider ?? getBillingProvider();

@@ -2,8 +2,8 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { MANUAL_LIFECYCLE_REASONS, PLAN_KEYS } from "@keel/config";
-import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Input, Label, Select, Switch, Textarea } from "@keel/ui";
+import { MANUAL_LIFECYCLE_REASONS, PLAN_KEYS } from "@hullwise/config";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Input, Label, Select, Switch, Textarea } from "@hullwise/ui";
 import { markInvoicePaidAction, openAsSupportAction, sendPasswordResetAction, setAddonAction, setPlanAction, setTrialEndAction, transitionTenantAction, voidInvoiceAction } from "@/server/actions/admin";
 
 export function OpenAsSupportButton({ tenantId }: { tenantId: string }) {

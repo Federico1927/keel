@@ -1,6 +1,6 @@
-import { and, desc, eq, inArray, schema, sql } from "@keel/db";
-import { TENANT_ROLES, canDo, type TenantRole } from "@keel/config";
-import { RETENTION_CAMPAIGN_KINDS, RETENTION_CHANNELS, campaignUplift, canApproveCampaign, isCampaignEditable, nextCampaignStatus, type RetentionCampaignAction, type CustomerOutcome, type RetentionCampaignKind, type RetentionCampaignStatus, type RetentionChannel, type UpliftReport } from "@keel/core";
+import { and, desc, eq, inArray, schema, sql } from "@hullwise/db";
+import { TENANT_ROLES, canDo, type TenantRole } from "@hullwise/config";
+import { RETENTION_CAMPAIGN_KINDS, RETENTION_CHANNELS, campaignUplift, canApproveCampaign, isCampaignEditable, nextCampaignStatus, type RetentionCampaignAction, type CustomerOutcome, type RetentionCampaignKind, type RetentionCampaignStatus, type RetentionChannel, type UpliftReport } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { orderEconomicsForPeriod, type AnalyticsTenant } from "../analytics";
 import { membersWithRoles } from "../notifications/system";
@@ -33,7 +33,7 @@ export type RetentionCampaign = typeof schema.retentionCampaigns.$inferSelect;
 export async function saveRetentionCampaign(ctx: ServiceContext, input: RetentionCampaignInput, campaignId?: string): Promise<string> {
   const kind = input.kind ?? "one_off";
   if (!RETENTION_CHANNELS.includes(input.channel) || !RETENTION_CAMPAIGN_KINDS.includes(kind) || input.attributionDays < 1 || input.attributionDays > 90 || input.costPerMessageMinor < 0) throw new RetentionCampaignError("invalid_input");
-  // a sequence sends by itself: Keel must deliver it, and its control group must exist to be permanent
+  // a sequence sends by itself: Hullwise must deliver it, and its control group must exist to be permanent
   if (kind === "sequence" && input.channel === "manual") throw new RetentionCampaignError("invalid_input");
   const [segment] = await ctx.tx.select({ id: schema.segments.id, holdout: schema.segments.holdoutPercentage }).from(schema.segments).where(and(eq(schema.segments.tenantId, ctx.tenantId), eq(schema.segments.id, input.segmentId))).limit(1);
   if (!segment) throw new RetentionCampaignError("no_segment");
