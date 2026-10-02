@@ -322,6 +322,9 @@ export interface ConnectionTest {
   accountId?: string;
   scopes?: string[];
   missingScopes?: string[];
+  /** The missing scopes a core module cannot work without (Shopify), and every missing scope per module. */
+  missingRequiredScopes?: string[];
+  missingScopesByModule?: Record<string, string[]>;
   error?: string;
   /** The `IntegrationError` code behind `error`, when the adapter knows it (GA4's setup checklist explains it in plain words). */
   errorCode?: IntegrationError["code"];

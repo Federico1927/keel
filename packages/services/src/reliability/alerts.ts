@@ -117,14 +117,14 @@ export async function listPlatformAlerts(db: DbExecutor, f: AlertFilters = {}) {
   const a = schema.platformAlerts;
   const conds: SQL[] = [];
   if (f.status === "open" || f.status === "resolved") conds.push(eq(a.status, f.status));
-  if (f.kind === "job_failure" || f.kind === "sync_stale") conds.push(eq(a.kind, f.kind));
+  if (f.kind === "job_failure" || f.kind === "sync_stale" || f.kind === "compliance_request") conds.push(eq(a.kind, f.kind));
   if (f.tenantId === "platform") conds.push(isNull(a.tenantId));
   else if (f.tenantId && /^[0-9a-f-]{36}$/i.test(f.tenantId)) conds.push(eq(a.tenantId, f.tenantId));
   const [rows, [counts]] = await Promise.all([
     db.select({ alert: a, tenantName: schema.tenants.name, tenantSlug: schema.tenants.slug }).from(a).leftJoin(schema.tenants, eq(schema.tenants.id, a.tenantId)).where(conds.length ? and(...conds) : undefined).orderBy(sql`case when ${a.status} = 'open' then 0 else 1 end`, desc(a.lastSeenAt)).limit(200),
-    db.select({ open: sql<number>`count(*) filter (where ${a.status} = 'open')::int`, jobs: sql<number>`count(*) filter (where ${a.status} = 'open' and ${a.kind} = 'job_failure')::int`, stale: sql<number>`count(*) filter (where ${a.status} = 'open' and ${a.kind} = 'sync_stale')::int` }).from(a),
+    db.select({ open: sql<number>`count(*) filter (where ${a.status} = 'open')::int`, jobs: sql<number>`count(*) filter (where ${a.status} = 'open' and ${a.kind} = 'job_failure')::int`, stale: sql<number>`count(*) filter (where ${a.status} = 'open' and ${a.kind} = 'sync_stale')::int`, compliance: sql<number>`count(*) filter (where ${a.status} = 'open' and ${a.kind} = 'compliance_request')::int` }).from(a),
   ]);
-  return { rows, counts: counts ?? { open: 0, jobs: 0, stale: 0 } };
+  return { rows, counts: counts ?? { open: 0, jobs: 0, stale: 0, compliance: 0 } };
 }
 
 /** A super-admin closes an alert by hand (audited on the tenant, or on the platform). */

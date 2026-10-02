@@ -105,10 +105,10 @@ export const tenantSettingsSchema = z.object({
   campaignThrottlePerMinute: z.object({ email: z.number().int().min(1).max(100_000), sms: z.number().int().min(1).max(100_000), whatsapp: z.number().int().min(1).max(100_000) }).default({ email: 600, sms: 60, whatsapp: 60 }),
   /** While a campaign's measurement window is open, its treated and control customers stay out of other campaigns. */
   campaignMeasurementLock: z.boolean().default(true),
-  /** First Shopify import (issue #87): months of order history read when the store is connected; 0 reads every order. */
-  historyImportMonths: z.number().int().min(0).max(120).default(24),
   /** Phone bottom navigation (#49): destinations per role (keys of MOBILE_NAV_DESTINATIONS); a role left out uses its default. */
   mobileNav: z.record(z.string().max(40), z.array(z.string().max(40)).max(MOBILE_NAV_SLOTS)).default({}),
+  /** First Shopify import (issue #87): months of order history read when the store is connected; 0 reads every order. */
+  historyImportMonths: z.number().int().min(0).max(120).default(24),
 });
 export type TenantSettings = z.infer<typeof tenantSettingsSchema>;
 export const RETURN_EMAIL_EVENTS = ["approved", "received", "refunded", "voucher_issued", "exchange_shipped"] as const;

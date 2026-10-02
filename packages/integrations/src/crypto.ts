@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, createHmac, randomBytes } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
 /** AES-256-GCM with the key from APP_ENCRYPTION_KEY (base64, 32 bytes). Output: base64(iv|tag|ciphertext). */
 function key(): Buffer {
@@ -59,4 +59,31 @@ export function maskEmail(email: string): string {
   const host = dot > 0 ? domain.slice(0, dot) : domain;
   const tld = dot > 0 ? domain.slice(dot) : "";
   return `${local.slice(0, Math.min(2, local.length - 1) || 1)}•••@${host.slice(0, 2)}•••${tld}`;
+}
+
+const stateKey = () => Buffer.concat([Buffer.from("signed-state:"), key()]);
+
+/**
+ * A tamper-proof, expiring token carrying a small payload (OAuth `state`): base64url(JSON) + "." +
+ * HMAC-SHA256 with APP_ENCRYPTION_KEY. Not encrypted: never put a secret in it. Works across hosts
+ * (no cookie), so the API host can resolve the tenant of a callback on its own.
+ */
+export function signState(payload: Record<string, unknown>, ttlSeconds: number, now = Date.now()): string {
+  const body = Buffer.from(JSON.stringify({ ...payload, exp: Math.floor(now / 1000) + ttlSeconds, n: randomBytes(8).toString("hex") }), "utf8").toString("base64url");
+  return `${body}.${createHmac("sha256", stateKey()).update(body).digest("base64url")}`;
+}
+
+/** The payload of a token made by `signState`, or null when it is malformed, forged or expired. */
+export function verifyState<T extends Record<string, unknown>>(token: string | null | undefined, now = Date.now()): (T & { exp: number; n: string }) | null {
+  if (!token) return null;
+  const [body, sig] = token.split(".");
+  if (!body || !sig) return null;
+  const expected = createHmac("sha256", stateKey()).update(body).digest("base64url");
+  if (expected.length !== sig.length || !timingSafeEqual(Buffer.from(expected), Buffer.from(sig))) return null;
+  try {
+    const payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as T & { exp: number; n: string };
+    return typeof payload.exp === "number" && payload.exp * 1000 >= now ? payload : null;
+  } catch {
+    return null;
+  }
 }

@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { fixtureFetch } from "./http";
 import { GOOGLE_ADS_API_BASE } from "./google";
+import { META_API_VERSION } from "./meta";
 import { CONVERSION_ADJUSTMENT_SUPPORT, GoogleConversionsSink, MetaConversionsSink, MockConversionSink, fbcFromClickId, googleAdjustmentPayload, googleConversionPayload, hashUserData, metaEventPayload, type ConversionAdjustment, type ConversionEvent, type ConversionSink } from "./conversions";
 import { adjustmentPartialFailure, adjustmentRequest } from "./google/__fixtures__/conversion-adjustments";
 
@@ -34,12 +35,12 @@ describe("Meta Conversions API", () => {
     expect(JSON.stringify(p)).not.toContain("example.com");
   });
   it("posts the batch to the dataset with the test code, and maps errors", async () => {
-    const ok = new MetaConversionsSink({ accessToken: "tok", adAccountId: "act_1" }, "999", { testEventCode: "TEST123", fetchImpl: at("POST https://graph.facebook.com/v21.0/999/events", { events_received: 1 }) });
+    const ok = new MetaConversionsSink({ accessToken: "tok", adAccountId: "act_1" }, "999", { testEventCode: "TEST123", fetchImpl: at(`POST https://graph.facebook.com/${META_API_VERSION}/999/events`, { events_received: 1 }) });
     expect(await ok.send([event])).toEqual([{ eventId: "hullwise-order-5001", ok: true }]);
     const body = JSON.parse(ok.http.calls[0]!.body!);
     expect(body.test_event_code).toBe("TEST123");
     expect(body.data).toHaveLength(1);
-    const bad = new MetaConversionsSink({ accessToken: "tok", adAccountId: "act_1" }, "999", { fetchImpl: at("POST https://graph.facebook.com/v21.0/999/events", { error: { message: "Invalid OAuth access token", code: 190 } }) });
+    const bad = new MetaConversionsSink({ accessToken: "tok", adAccountId: "act_1" }, "999", { fetchImpl: at(`POST https://graph.facebook.com/${META_API_VERSION}/999/events`, { error: { message: "Invalid OAuth access token", code: 190 } }) });
     await expect(bad.send([event])).rejects.toMatchObject({ code: "token_expired" });
   });
 });

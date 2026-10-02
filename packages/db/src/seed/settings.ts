@@ -145,6 +145,22 @@ export interface SettingsReport {
  * merges only missing keys into the tenant settings, fills reason labels only where empty.
  * Tenants that do not exist (a production without the demo) are skipped.
  */
+/** Platform demo users created before the product rename (#76) keep their sign-in under the new domain. */
+export const RENAMED_DEMO_USERS: readonly (readonly [string, string])[] = [
+  ["superadmin@keel.demo", "superadmin@hullwise.demo"],
+  ["multi@keel.demo", "multi@hullwise.demo"],
+];
+
+/** Renames the old demo emails, never onto an address already in use. Idempotent. */
+export async function renameDemoUsers(db: Db): Promise<string[]> {
+  const renamed: string[] = [];
+  for (const [from, to] of RENAMED_DEMO_USERS) {
+    const r = await db.execute<{ id: string }>(sql`update users set email = ${to} where email = ${from} and not exists (select 1 from users u where u.email = ${to}) returning id`);
+    if (r.rows.length) renamed.push(`user_email:${to}`);
+  }
+  return renamed;
+}
+
 export async function ensureDemoSettings(db: Db, now = new Date()): Promise<SettingsReport[]> {
   const tenants = await db.select({ id: schema.tenants.id, slug: schema.tenants.slug }).from(schema.tenants).where(inArray(schema.tenants.slug, Object.values(DEMO_SLUGS)));
   const addons = await db.select({ tenantId: schema.tenantAddons.tenantId, key: schema.tenantAddons.moduleKey }).from(schema.tenantAddons).where(eq(schema.tenantAddons.isActive, true));
@@ -228,5 +244,7 @@ export async function ensureDemoSettings(db: Db, now = new Date()): Promise<Sett
     }
     out.push({ tenant: DEMO_SLUGS[key], created });
   }
+  const users = await renameDemoUsers(db);
+  if (users.length) out.push({ tenant: "platform", created: users });
   return out;
 }

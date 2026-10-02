@@ -55,6 +55,7 @@ test.describe("Meta ad accounts", () => {
     await expect(google).toHaveAttribute("data-status", "pending");
     await expect(page.locator('[data-testid="conversion-row"][data-kind="retraction"][data-provider="meta"]').filter({ hasText: orderName })).toHaveAttribute("data-status", "skipped");
     await page.getByTestId("conversions-run").click();
-    await expect(google).toHaveAttribute("data-status", "sent");
+    // when this spec is the first to run after a seed, the click also enqueues and sends the seed's backlog of purchases
+    await expect(google).toHaveAttribute("data-status", "sent", { timeout: 30_000 });
   });
 });

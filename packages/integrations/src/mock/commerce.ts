@@ -22,6 +22,7 @@ import {
  type CreateOrderInput, type FulfillmentHoldInput, type ManualPaymentInput, type NormalizedBalanceTransaction, type NormalizedPayout, type OrderDetailsPatch, type OrderDiscountPatch, type RefundOrderInput, type VariantPatch, type CreateFulfillmentInput, type NormalizedFulfillment } from "../types";
 import { FailureScript } from "./failures";
 import { buildMockPayouts, isProcessorGateway, type MockPaymentOrder, type MockPayoutRefund } from "./payouts";
+import { SHOPIFY_ALL_SCOPES, missingShopifyScopes } from "../shopify/oauth";
 
 export interface MockCatalogVariant {
   externalId: string;
@@ -62,7 +63,7 @@ export interface MockCommerceOptions {
   customers: NormalizedCustomer[];
   startOrderNumber: number;
   webhookSecret?: string;
-  /** Starting stock per inventory item and location (the tenant's levels); unknown pairs get a random level on first read. */
+  /** Starting stock per inventory item and location (the tenant's levels); an item it lists reads 0 at its other locations; items it does not list get a random level on first read. */
   inventory?: { inventoryItemExternalId: string; locationExternalId: string; available: number }[];
   /** The tenant's recent orders paid through the processor: payouts and fees are built from them (plus orders the mock creates). */
   paymentOrders?: MockPaymentOrder[];
@@ -71,6 +72,10 @@ export interface MockCommerceOptions {
    * them the catalog is built from `variants`. Writes change this state and bump `platformUpdatedAt`.
    */
   products?: NormalizedProduct[];
+  /** Scopes the simulated app installation holds (default: all of them); test connection reports the rest as missing (#89). */
+  grantedScopes?: string[];
+  /** Shop domain the simulator answers as (webhooks, test connection). */
+  shopDomain?: string;
 }
 
 /** Category names the simulated store resolves when a category id is written. */
@@ -94,13 +99,18 @@ export class MockCommercePlatform implements CommercePlatform {
 
   /** The store's products, by external id (issue #19). */
   private catalog = new Map<string, NormalizedProduct>();
+  /** Inventory items the tenant's starting stock mentions. */
+  private readonly knownItems = new Set<string>();
   private mediaSeq = 9_000_000;
 
   constructor(private readonly opts: MockCommerceOptions) {
     this.rng = createRng(opts.seed ?? 42);
     this.nextNumber = opts.startOrderNumber;
     this.webhookSecret = opts.webhookSecret ?? "mock-webhook-secret";
-    for (const l of opts.inventory ?? []) this.stock.set(`${l.inventoryItemExternalId}@${l.locationExternalId}`, l.available);
+    for (const l of opts.inventory ?? []) {
+      this.stock.set(`${l.inventoryItemExternalId}@${l.locationExternalId}`, l.available);
+      this.knownItems.add(l.inventoryItemExternalId);
+    }
     if (opts.products) for (const p of opts.products) this.catalog.set(p.externalId, structuredClone(p));
     else
       for (const v of opts.variants) {
@@ -166,7 +176,9 @@ export class MockCommercePlatform implements CommercePlatform {
 
   async testConnection(): Promise<ConnectionTest> {
     this.failures.check();
-    return { ok: true, accountName: "Mock Store", accountId: "mock-shop.myshopify.com", scopes: ["read_orders", "write_orders", "read_products", "write_products", "read_inventory", "write_inventory", "read_customers", "read_discounts", "write_discounts", "read_returns", "read_fulfillments", "read_publications"] };
+    const scopes = this.opts.grantedScopes ?? SHOPIFY_ALL_SCOPES;
+    const missing = missingShopifyScopes(scopes);
+    return { ok: true, accountName: "Mock Store", accountId: this.opts.shopDomain ?? "mock-shop.myshopify.com", scopes, missingScopes: [...missing.required, ...missing.optional], missingRequiredScopes: missing.required, missingScopesByModule: missing.byModule };
   }
 
   /** Builds a plausible new order from the catalog. */
@@ -246,7 +258,8 @@ export class MockCommercePlatform implements CommercePlatform {
     const page = Number(q.cursor ?? 0);
     const limit = Math.min(q.limit ?? 50, 250);
     // Simulate a store with new activity: up to 3 pages of fresh orders per sync.
-    if (page === 0) {
+    // a store without catalog or customers (a tenant connected from scratch) takes no new orders
+    if (page === 0 && this.opts.customers.length && this.opts.variants.length) {
       const count = this.rng.int(2, 6);
       for (let i = 0; i < count; i++) this.generateOrder(new Date(Date.now() - this.rng.int(0, 3600) * 1000));
     }
@@ -324,7 +337,8 @@ export class MockCommercePlatform implements CommercePlatform {
       for (const loc of this.opts.locations) {
         if (!loc.isActive) continue;
         const key = `${id}@${loc.externalId}`;
-        if (!this.stock.has(key)) this.stock.set(key, this.rng.int(0, 60));
+        // an item the tenant already stocks somewhere is simply not held at a new location; only unknown items get a random level
+        if (!this.stock.has(key)) this.stock.set(key, this.knownItems.has(id) ? 0 : this.rng.int(0, 60));
         out.push({ inventoryItemExternalId: id, locationExternalId: loc.externalId, available: this.stock.get(key)!, onHand: null, committed: null, updatedAt: new Date() });
       }
     return out;
@@ -375,7 +389,7 @@ export class MockCommercePlatform implements CommercePlatform {
     const r = this.returns.get(returnExternalId);
     if (!r) throw new IntegrationError("not_found", `Mock: return ${returnExternalId} not found`);
     const rawBody = JSON.stringify({ id: r.externalId, updated_at: r.updatedAt.toISOString(), __normalized: this.returnOf(r) });
-    return { headers: { "x-shopify-topic": topic, "x-shopify-hmac-sha256": this.sign(rawBody), "x-shopify-shop-domain": "mock-shop.myshopify.com" }, rawBody };
+    return { headers: { "x-shopify-topic": topic, "x-shopify-hmac-sha256": this.sign(rawBody), "x-shopify-shop-domain": this.opts.shopDomain ?? "mock-shop.myshopify.com" }, rawBody };
   }
 
   /** Refunds made through this simulator since it started (they show up in the next payouts). */
@@ -412,7 +426,7 @@ export class MockCommercePlatform implements CommercePlatform {
   /** Builds a signed webhook envelope for the given order, exactly like the platform would. */
   buildWebhook(topic: string, order: NormalizedOrder): { headers: Record<string, string>; rawBody: string } {
     const rawBody = JSON.stringify({ id: Number(order.externalId), updated_at: order.platformUpdatedAt.toISOString(), __normalized: order });
-    return { headers: { "x-shopify-topic": topic, "x-shopify-hmac-sha256": this.sign(rawBody), "x-shopify-shop-domain": "mock-shop.myshopify.com" }, rawBody };
+    return { headers: { "x-shopify-topic": topic, "x-shopify-hmac-sha256": this.sign(rawBody), "x-shopify-shop-domain": this.opts.shopDomain ?? "mock-shop.myshopify.com" }, rawBody };
   }
 
   async verifyWebhook(headers: Record<string, string | undefined>, rawBody: string): Promise<VerifiedWebhook> {
@@ -436,7 +450,7 @@ export class MockCommercePlatform implements CommercePlatform {
   buildProductWebhook(topic: string, productExternalId: string): { headers: Record<string, string>; rawBody: string } {
     const p = this.productOrThrow(productExternalId);
     const rawBody = JSON.stringify({ id: Number(p.externalId) || p.externalId, updated_at: (p.platformUpdatedAt ?? new Date()).toISOString(), __normalized: p });
-    return { headers: { "x-shopify-topic": topic, "x-shopify-hmac-sha256": this.sign(rawBody), "x-shopify-shop-domain": "mock-shop.myshopify.com" }, rawBody };
+    return { headers: { "x-shopify-topic": topic, "x-shopify-hmac-sha256": this.sign(rawBody), "x-shopify-shop-domain": this.opts.shopDomain ?? "mock-shop.myshopify.com" }, rawBody };
   }
   parseWebhookCustomer(payload: unknown): NormalizedCustomer | null {
     return (payload as { __normalized?: NormalizedCustomer }).__normalized ?? null;
