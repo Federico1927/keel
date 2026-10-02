@@ -11,7 +11,8 @@ import { STATUS_VARIANT } from "../status";
 import { SupportThread } from "@/components/support-thread";
 import { CloseTicketButton, TenantReplyForm } from "./reply";
 
-export default async function SupportTicketPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function SupportTicketPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const ctx = await requirePage(tenant, "support");
@@ -37,3 +38,5 @@ export default async function SupportTicketPage({ params }: { params: Promise<{ 
     </DetailShell>
   );
 }
+
+export default withIntl(SupportTicketPage, "app/t/[tenant]/support/[id]/page.tsx");

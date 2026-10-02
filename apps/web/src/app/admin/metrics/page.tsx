@@ -3,18 +3,20 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { ADDON_MODULES, MODULES, PLATFORM_CURRENCY } from "@hullwise/config";
 import { formatMoney, formatNumber } from "@hullwise/core";
 import { platformSeriesReport, tenantsBehind } from "@hullwise/services";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
+import { WideTable } from "@/components/mobile/wide-table";
 import { LifecycleBadge } from "../_components/badges";
 import { MrrChart } from "./chart";
 
+import { withIntl } from "@/i18n/intl-scope";
 const SERIES = ["mrr", "active", "trial", "new", "churned"] as const;
 
 /**
  * Platform metrics over time (#48): MRR and paying tenants by month, new vs churned, add-on adoption,
  * rebuilt from the lifecycle history. Every number links to the tenants behind it.
  */
-export default async function AdminMetricsPage({ searchParams }: { searchParams: Promise<{ month?: string; metric?: string }> }) {
+async function AdminMetricsPage({ searchParams }: { searchParams: Promise<{ month?: string; metric?: string }> }) {
   const { db } = await requireSuperAdmin();
   const sp = await searchParams;
   const t = await getTranslations("admin");
@@ -58,12 +60,12 @@ export default async function AdminMetricsPage({ searchParams }: { searchParams:
           <CardDescription>{t("metrics.table_description")}</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <WideTable label={t("metrics.table_title")} stickyFirst>
             <TableHeader>
               <TableRow>
                 <TableHead>{t("metrics.month")}</TableHead>
                 {SERIES.map((s) => <TableHead key={s} className="text-right">{t(`metrics.series.${s}`)}</TableHead>)}
-                {addons.map((a) => <TableHead key={a} className="hidden text-right md:table-cell">{tm(`addon.${a.replace("addon.", "")}.name`)}</TableHead>)}
+                {addons.map((a) => <TableHead key={a} className="text-right">{tm(`addon.${a.replace("addon.", "")}.name`)}</TableHead>)}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -75,11 +77,11 @@ export default async function AdminMetricsPage({ searchParams }: { searchParams:
                   <TableCell className="text-right">{cell(m.month, "trial", formatNumber(m.trial.length, locale))}</TableCell>
                   <TableCell className="text-right">{cell(m.month, "new", formatNumber(m.new.length, locale))}</TableCell>
                   <TableCell className="text-right">{cell(m.month, "churned", formatNumber(m.churned.length, locale))}</TableCell>
-                  {addons.map((a) => <TableCell key={a} className="hidden text-right md:table-cell">{cell(m.month, a, formatNumber(m.addons[a]?.length ?? 0, locale))}</TableCell>)}
+                  {addons.map((a) => <TableCell key={a} className="text-right">{cell(m.month, a, formatNumber(m.addons[a]?.length ?? 0, locale))}</TableCell>)}
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+          </WideTable>
         </CardContent>
       </Card>
       {selected && (
@@ -108,3 +110,5 @@ export default async function AdminMetricsPage({ searchParams }: { searchParams:
     </>
   );
 }
+
+export default withIntl(AdminMetricsPage, "app/admin/metrics/page.tsx");

@@ -4497,7 +4497,8 @@
       "search": "Buscar",
       "all": "Todos",
       "apply": "Filtrar",
-      "reset": "Restablecer"
+      "reset": "Restablecer",
+      "sort": "Ordenar por"
     },
     "health": {
       "integrations": "Errores de integración",
@@ -6679,7 +6680,8 @@
     "sign_in_alerts": "Avisarme por correo de nuevos accesos",
     "sign_in_alerts_hint": "Un correo de seguridad cuando tu cuenta inicia sesión desde un dispositivo o navegador que no había usado antes.",
     "connections": "Conexiones",
-    "connections_description": "Clientes de IA y tokens de acceso personales que actúan como tú en este espacio de trabajo a través del servidor MCP."
+    "connections_description": "Clientes de IA y tokens de acceso personales que actúan como tú en este espacio de trabajo a través del servidor MCP.",
+    "menu_label": "Menú de la cuenta: {name}"
   },
   "welcome": {
     "title": "Completa tu perfil",

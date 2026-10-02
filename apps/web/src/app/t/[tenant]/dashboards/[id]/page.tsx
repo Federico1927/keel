@@ -8,7 +8,8 @@ import { requirePage } from "@/server/tenant";
 import { DashboardGrid } from "@/components/dashboard/dashboard-grid";
 import { DeleteDashboardButton, DuplicateButton, PeriodLinks, PreviewAsSelect, PreviewBanner } from "@/components/dashboard/controls";
 
-export default async function DashboardViewPage({ params, searchParams }: { params: Promise<{ tenant: string; id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function DashboardViewPage({ params, searchParams }: { params: Promise<{ tenant: string; id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant, id } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "dashboard");
@@ -49,3 +50,5 @@ export default async function DashboardViewPage({ params, searchParams }: { para
     </>
   );
 }
+
+export default withIntl(DashboardViewPage, "app/t/[tenant]/dashboards/[id]/page.tsx");

@@ -9,13 +9,15 @@ import { Button } from "./button";
  * bottom sheet. The controls are rendered once (no duplicate ids) and only their container changes.
  * `chips` (active filters, removable) stay visible on every width.
  */
-export function FilterPanel({ label, title, doneLabel, closeLabel, activeCount = 0, chips, aside, children, className }: {
+export function FilterPanel({ label, title, doneLabel, doneForm, closeLabel, activeCount = 0, chips, aside, children, className }: {
   /** Text of the phone button ("Filters"). */
   label: string;
   /** Sheet heading; defaults to `label`. */
   title?: string;
   /** Button that closes the sheet ("Show results"). */
   doneLabel: string;
+  /** Id of a form inside the panel that "Show results" submits (a server-side GET form: the page reloads); otherwise it closes the sheet. */
+  doneForm?: string;
   closeLabel: string;
   activeCount?: number;
   chips?: React.ReactNode;
@@ -60,7 +62,7 @@ export function FilterPanel({ label, title, doneLabel, closeLabel, activeCount =
         )}
         {children}
         {open && (
-          <Button type="button" className="mt-4 w-full md:hidden" onClick={() => setOpen(false)} data-testid="filters-done">{doneLabel}</Button>
+          <Button type={doneForm ? "submit" : "button"} form={doneForm} className="mt-4 w-full md:hidden" onClick={doneForm ? undefined : () => setOpen(false)} data-testid="filters-done">{doneLabel}</Button>
         )}
       </div>
     </div>

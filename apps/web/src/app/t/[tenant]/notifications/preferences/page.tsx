@@ -6,7 +6,8 @@ import { requirePage } from "@/server/tenant";
 import { NotificationTabs } from "../tabs";
 import { PreferencesMatrix } from "./matrix";
 
-export default async function NotificationPreferencesPage({ params }: { params: Promise<{ tenant: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function NotificationPreferencesPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "notifications");
   const t = await getTranslations("notifications");
@@ -19,3 +20,5 @@ export default async function NotificationPreferencesPage({ params }: { params: 
     </>
   );
 }
+
+export default withIntl(NotificationPreferencesPage, "app/t/[tenant]/notifications/preferences/page.tsx");

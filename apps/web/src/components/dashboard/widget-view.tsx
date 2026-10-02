@@ -4,8 +4,8 @@ import { formatDate, formatMoney, formatNumber, formatRelative, parseNoteMarkdow
 import { canViewPage, isCustomMetricRef, type DashboardWidget, type TenantRole } from "@hullwise/config";
 import { customMetricBases, type AlertsData, type BackorderSummary, type BreakdownData, type CustomMetricRow, type DashboardSummary, type KpiData, type MetricSeries, type MonthForecast, type QueueData, type TargetData, type TopListData, type WidgetResult, type WorkQueueData } from "@hullwise/services";
 import { Card, CardContent, CardHeader, CardTitle, Stat, cn } from "@hullwise/ui";
-import { RevenueChart } from "@/components/charts/revenue-chart";
-import { MetricChart, Sparkline } from "@/components/charts/metric-chart";
+import { LazyMetricChart, LazyRevenueChart } from "@/components/charts/lazy";
+import { Sparkline } from "@/components/charts/sparkline";
 import { StatusBadge } from "@/components/status-badge";
 import { formatMetric, metricHref, periodParams, trendOf } from "./format";
 import { CodWidget } from "@/app/t/[tenant]/cod/widgets";
@@ -108,7 +108,7 @@ export async function WidgetView({ widget, result, period, env }: { widget: Dash
       const title = s.title || d.series.map((x) => metricLabel(t, x.ref, x.label)).join(" · ");
       return (
         <Frame title={title} href={`${base}/analytics?tab=pnl&${periodParams(period, tz)}&granularity=${g}`} linkLabel={open} testId="widget-timeseries">
-          <MetricChart labels={labels} series={d.series.map((x) => ({ key: x.ref.replace(/[^a-z0-9_]/gi, "_"), label: metricLabel(t, x.ref, x.label), format: x.format, values: x.values }))} chart={s.chart === "bar" ? "bar" : "line"} locale={locale} currency={currency} height={widget.h >= 2 ? 240 : 140} />
+          <LazyMetricChart labels={labels} series={d.series.map((x) => ({ key: x.ref.replace(/[^a-z0-9_]/gi, "_"), label: metricLabel(t, x.ref, x.label), format: x.format, values: x.values }))} chart={s.chart === "bar" ? "bar" : "line"} locale={locale} currency={currency} height={widget.h >= 2 ? 240 : 140} />
         </Frame>
       );
     }
@@ -254,7 +254,7 @@ export async function WidgetView({ widget, result, period, env }: { widget: Dash
             <CardTitle className="text-base"><Link href={`${base}/orders?from=${summary.series30d[0]?.day ?? ""}`} className="hover:underline">{td("revenue_30d")}</Link></CardTitle>
           </CardHeader>
           <CardContent>
-            <RevenueChart data={summary.series30d} locale={locale} currency={currency} ordersLabel={td("kpi.orders").toLowerCase()} />
+            <LazyRevenueChart data={summary.series30d} locale={locale} currency={currency} ordersLabel={td("kpi.orders").toLowerCase()} />
           </CardContent>
         </Card>
       );

@@ -7,6 +7,7 @@ import { Button } from "@hullwise/ui";
 import { AuthShell } from "@/components/account/auth-shell";
 import { ResetPasswordForm } from "./form";
 
+import { withIntl } from "@/i18n/intl-scope";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -14,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /** Landing page of the reset link: the form only for a live token, otherwise "ask for a new link". Opening it changes nothing. */
-export default async function ResetPasswordPage({ params }: { params: Promise<{ token: string }> }) {
+async function ResetPasswordPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const t = await getTranslations("account");
   const { state, email } = await inspectPasswordReset(adminDb(), token.slice(0, 200));
@@ -32,3 +33,5 @@ export default async function ResetPasswordPage({ params }: { params: Promise<{ 
     </AuthShell>
   );
 }
+
+export default withIntl(ResetPasswordPage, "app/(auth)/reset-password/[token]/page.tsx");

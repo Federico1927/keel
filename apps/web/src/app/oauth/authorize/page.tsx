@@ -11,6 +11,7 @@ import { getCurrentUser } from "@/server/session";
 import { mcpOrigin } from "@/server/mcp";
 import { approveMcpAuthorization, denyMcpAuthorization } from "@/server/actions/mcp";
 
+import { withIntl } from "@/i18n/intl-scope";
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("mcp.consent"))("title") };
 }
@@ -23,7 +24,7 @@ const KEYS = ["client_id", "redirect_uri", "response_type", "code_challenge", "c
  * OAuth 2.1 consent screen of the MCP server (#21): the signed-in person picks one workspace (MCP
  * must be available there), sees what the client asks for and can narrow the scopes.
  */
-export default async function AuthorizePage({ searchParams }: { searchParams: Promise<Params> }) {
+async function AuthorizePage({ searchParams }: { searchParams: Promise<Params> }) {
   const sp = await searchParams;
   const params = Object.fromEntries(KEYS.map((k) => [k, one(sp[k])])) as Record<(typeof KEYS)[number], string | undefined>;
   const t = await getTranslations("mcp.consent");
@@ -131,3 +132,5 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
     </Card>,
   );
 }
+
+export default withIntl(AuthorizePage, "app/oauth/authorize/page.tsx");

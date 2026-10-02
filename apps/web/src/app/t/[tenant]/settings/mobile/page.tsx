@@ -7,8 +7,9 @@ import { requirePage } from "@/server/tenant";
 import { MOBILE_NAV_ITEMS } from "@/components/app-shell/nav";
 import { MobileNavForm } from "./form";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** Settings → Mobile navigation (#49): the bottom-bar destinations of each role. */
-export default async function MobileNavSettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
+async function MobileNavSettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "settings");
   const t = await getTranslations("mobile.settings");
@@ -30,3 +31,5 @@ export default async function MobileNavSettingsPage({ params }: { params: Promis
     </>
   );
 }
+
+export default withIntl(MobileNavSettingsPage, "app/t/[tenant]/settings/mobile/page.tsx");

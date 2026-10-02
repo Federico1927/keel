@@ -7,7 +7,8 @@ import { listShipments, parseShipmentFilters } from "@/server/queries/shipments"
 import { StatusBadge } from "@/components/status-badge";
 import { ShipmentFiltersBar } from "./filters";
 
-export default async function ShipmentsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function ShipmentsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "shipments");
@@ -59,3 +60,5 @@ export default async function ShipmentsPage({ params, searchParams }: { params: 
     </>
   );
 }
+
+export default withIntl(ShipmentsPage, "app/t/[tenant]/shipments/page.tsx");

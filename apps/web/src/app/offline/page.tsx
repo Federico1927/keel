@@ -4,12 +4,13 @@ import { WifiOff } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { RetryButton } from "./retry";
 
+import { withIntl } from "@/i18n/intl-scope";
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("mobile.pwa"))("offline_title") };
 }
 
 /** Offline screen (#49): precached by the service worker and shown when a page cannot load. No tenant data. */
-export default async function OfflinePage() {
+async function OfflinePage() {
   const t = await getTranslations("mobile.pwa");
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-4 px-6 text-center">
@@ -21,3 +22,5 @@ export default async function OfflinePage() {
     </main>
   );
 }
+
+export default withIntl(OfflinePage, "app/offline/page.tsx");

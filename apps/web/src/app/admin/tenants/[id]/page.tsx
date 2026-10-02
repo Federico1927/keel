@@ -12,13 +12,8 @@ import {
   CardHeader,
   CardTitle,
   DetailShell,
+  DataList,
   Stat,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
 } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { DataExportTable } from "@/components/data-export/export-table";
@@ -36,7 +31,8 @@ import {
 } from "./controls";
 import { SubscriptionCard } from "./subscription-card";
 
-export default async function AdminTenantPage({ params }: { params: Promise<{ id: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function AdminTenantPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { db } = await requireSuperAdmin();
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
@@ -318,48 +314,19 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("billing.columns.number")}</TableHead>
-                <TableHead>{t("billing.columns.kind")}</TableHead>
-                <TableHead className="text-right">{t("billing.columns.amount")}</TableHead>
-                <TableHead>{t("billing.columns.due")}</TableHead>
-                <TableHead>{t("billing.columns.status")}</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {d.invoices.map((i) => (
-                <TableRow key={i.id} data-testid="invoice-row">
-                  <TableCell className="font-mono text-xs">{i.number}</TableCell>
-                  <TableCell>{t(`billing.kind.${i.kind}`)}</TableCell>
-                  <TableCell className="text-right tabular">
-                    {money(i.amountMinor, i.currency)}
-                  </TableCell>
-                  <TableCell>{formatDate(i.dueAt, locale, "UTC")}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        i.status === "paid"
-                          ? "success"
-                          : i.status === "open"
-                            ? i.dueAt < new Date()
-                              ? "destructive"
-                              : "warning"
-                            : "muted"
-                      }
-                    >
-                      {t(`billing.status.${i.status}`)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <InvoiceActions invoiceId={i.id} status={i.status} provider={i.provider} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataList
+            rows={d.invoices}
+            rowKey={(i) => i.id}
+            rowProps={() => ({ "data-testid": "invoice-row" })}
+            columns={[
+              { key: "number", header: t("billing.columns.number"), mobile: "title", className: "font-mono text-xs", cell: (i) => i.number },
+              { key: "kind", header: t("billing.columns.kind"), mobile: "subtitle", cell: (i) => t(`billing.kind.${i.kind}`) },
+              { key: "amount", header: t("billing.columns.amount"), align: "right", className: "tabular", cell: (i) => money(i.amountMinor, i.currency) },
+              { key: "due", header: t("billing.columns.due"), cell: (i) => formatDate(i.dueAt, locale, "UTC") },
+              { key: "status", header: t("billing.columns.status"), mobile: "badge", cell: (i) => <Badge variant={i.status === "paid" ? "success" : i.status === "open" ? (i.dueAt < new Date() ? "destructive" : "warning") : "muted"}>{t(`billing.status.${i.status}`)}</Badge> },
+              { key: "actions", header: null, mobile: "action", cell: (i) => <InvoiceActions invoiceId={i.id} status={i.status} provider={i.provider} /> },
+            ]}
+          />
         </CardContent>
       </Card>
       <Card className="mt-6">
@@ -383,3 +350,5 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
     </DetailShell>
   );
 }
+
+export default withIntl(AdminTenantPage, "app/admin/tenants/[id]/page.tsx");

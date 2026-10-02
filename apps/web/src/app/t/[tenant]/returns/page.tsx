@@ -12,7 +12,8 @@ import { ListToolbar } from "@/components/lists/list-toolbar";
 import { BulkBar } from "@/components/lists/bulk-bar";
 import { ListSelection, RowCheckbox, SelectAllCheckbox } from "@/components/lists/selection";
 
-export default async function ReturnsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function ReturnsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "returns");
@@ -54,10 +55,10 @@ export default async function ReturnsPage({ params, searchParams }: { params: Pr
       />
       <ReturnFiltersBar basePath={base} filters={filters} counts={counts} reasons={reasons.map((r) => ({ code: r.code, label: r.label }))} />
       <div className="mt-2 flex flex-wrap gap-2 text-xs">
-        <Link href={filters.source === "portal" ? base : `${base}?source=portal`} className={`rounded-full border px-3 py-1 ${filters.source === "portal" ? "bg-primary text-primary-foreground" : "bg-card"}`} data-testid="filter-portal">{t("from_portal")} <span className="tabular opacity-70">{portalCount}</span></Link>
-        {platformCount > 0 && <Link href={filters.source === "platform" ? base : `${base}?source=platform`} className={`rounded-full border px-3 py-1 ${filters.source === "platform" ? "bg-primary text-primary-foreground" : "bg-card"}`} data-testid="filter-platform">{t("from_store")} <span className="tabular opacity-70">{platformCount}</span></Link>}
-        {reviewCount > 0 && <Link href={filters.review === "1" ? base : `${base}?review=1`} className={`rounded-full border px-3 py-1 ${filters.review === "1" ? "bg-warning text-warning-foreground" : "border-warning/50 bg-card"}`} data-testid="filter-review">{t("needs_review")} <span className="tabular opacity-70">{reviewCount}</span></Link>}
-        {syncErrors > 0 && <Link href={filters.sync === "error" ? base : `${base}?sync=error`} className={`rounded-full border px-3 py-1 ${filters.sync === "error" ? "bg-destructive text-destructive-foreground" : "border-destructive/50 bg-card text-destructive"}`} data-testid="filter-sync-error">{t("sync_errors")} <span className="tabular opacity-70">{syncErrors}</span></Link>}
+        <Link href={filters.source === "portal" ? base : `${base}?source=portal`} className={`rounded-full border px-3 py-1 ${filters.source === "portal" ? "bg-primary text-primary-foreground" : "bg-card"}`} data-testid="filter-portal">{t("from_portal")} <span className="tabular font-normal">{portalCount}</span></Link>
+        {platformCount > 0 && <Link href={filters.source === "platform" ? base : `${base}?source=platform`} className={`rounded-full border px-3 py-1 ${filters.source === "platform" ? "bg-primary text-primary-foreground" : "bg-card"}`} data-testid="filter-platform">{t("from_store")} <span className="tabular font-normal">{platformCount}</span></Link>}
+        {reviewCount > 0 && <Link href={filters.review === "1" ? base : `${base}?review=1`} className={`rounded-full border px-3 py-1 ${filters.review === "1" ? "bg-warning text-warning-foreground" : "border-warning/50 bg-card"}`} data-testid="filter-review">{t("needs_review")} <span className="tabular font-normal">{reviewCount}</span></Link>}
+        {syncErrors > 0 && <Link href={filters.sync === "error" ? base : `${base}?sync=error`} className={`rounded-full border px-3 py-1 ${filters.sync === "error" ? "bg-destructive text-destructive-foreground" : "border-destructive/50 bg-card text-destructive"}`} data-testid="filter-sync-error">{t("sync_errors")} <span className="tabular font-normal">{syncErrors}</span></Link>}
       </div>
       {rows.length === 0 ? (
         <EmptyState title={t("empty_title")} description={t("empty_description")} className="mt-4" />
@@ -105,3 +106,5 @@ export default async function ReturnsPage({ params, searchParams }: { params: Pr
     </>
   );
 }
+
+export default withIntl(ReturnsPage, "app/t/[tenant]/returns/page.tsx");

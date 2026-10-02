@@ -7,7 +7,8 @@ import { requirePage } from "@/server/tenant";
 import { previewStateRules } from "@/server/actions/state-rules";
 import { StateRulesEditor } from "./editor";
 
-export default async function OrderStatesPage({ params }: { params: Promise<{ tenant: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function OrderStatesPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "settings");
   const t = await getTranslations("state_rules");
@@ -34,3 +35,5 @@ export default async function OrderStatesPage({ params }: { params: Promise<{ te
     </>
   );
 }
+
+export default withIntl(OrderStatesPage, "app/t/[tenant]/settings/order-states/page.tsx");

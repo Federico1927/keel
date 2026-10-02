@@ -11,7 +11,8 @@ import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { DiscountStateBadge } from "../state-badge";
 import { DiscountToggle } from "./toggle";
 
-export default async function DiscountDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function DiscountDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
   const ctx = await requirePage(tenant, "discounts");
   const t = await getTranslations("discount_detail");
@@ -86,3 +87,5 @@ export default async function DiscountDetailPage({ params }: { params: Promise<{
     </DetailShell>
   );
 }
+
+export default withIntl(DiscountDetailPage, "app/t/[tenant]/discounts/[id]/page.tsx");

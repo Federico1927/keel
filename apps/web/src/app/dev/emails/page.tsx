@@ -6,10 +6,11 @@ import { mockEmailOutbox } from "@hullwise/services";
 import { Badge, Card, CardContent, EmptyState, PageHeader, cn } from "@hullwise/ui";
 import { isDevInboxEnabled } from "@/server/dev-inbox";
 
+import { withIntl } from "@/i18n/intl-scope";
 export const dynamic = "force-dynamic";
 
 /** Dev inbox (issue #51): the emails the mock provider captured in this process, with an HTML preview. Development only. */
-export default async function DevEmailsPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
+async function DevEmailsPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
   if (!isDevInboxEnabled()) notFound();
   const { id } = await searchParams;
   const t = await getTranslations("dev_inbox");
@@ -55,3 +56,5 @@ export default async function DevEmailsPage({ searchParams }: { searchParams: Pr
     </main>
   );
 }
+
+export default withIntl(DevEmailsPage, "app/dev/emails/page.tsx");

@@ -12,7 +12,8 @@ import { TierBadge } from "../tier-badge";
 import { ChurnBadge } from "../churn-badge";
 import { CustomerSubscriptionsCard, showsSubscriptions } from "../../subscriptions/subscription-card";
 
-export default async function CustomerDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function CustomerDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
   const ctx = await requirePage(tenant, "customers");
   const t = await getTranslations("customer_detail");
@@ -115,3 +116,5 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
     </DetailShell>
   );
 }
+
+export default withIntl(CustomerDetailPage, "app/t/[tenant]/customers/[id]/page.tsx");

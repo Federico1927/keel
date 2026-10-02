@@ -1,4 +1,5 @@
 "use client";
+// i18n-client-namespaces: integration_setup, integration_guide (guide.namespace is integration_setup.<provider>)
 import Link from "next/link";
 import { startTransition, type FormEvent, type ReactNode } from "react";
 import { useTranslations } from "next-intl";

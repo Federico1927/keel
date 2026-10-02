@@ -10,7 +10,8 @@ import { STATUS_VARIANT } from "@/app/t/[tenant]/support/status";
 import { SupportThread } from "@/components/support-thread";
 import { AdminReplyForm, AdminStatusButton } from "./reply";
 
-export default async function AdminSupportTicketPage({ params }: { params: Promise<{ id: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function AdminSupportTicketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const { db } = await requireSuperAdmin();
@@ -37,3 +38,5 @@ export default async function AdminSupportTicketPage({ params }: { params: Promi
     </DetailShell>
   );
 }
+
+export default withIntl(AdminSupportTicketPage, "app/admin/support/[id]/page.tsx");

@@ -165,7 +165,7 @@ test("integrations: one card structure on a phone, Manage opens a bottom sheet (
   const card = page.getByTestId("provider-shopify");
   await expect(card.getByTestId("shopify-status")).toBeVisible();
   // the header stays on one line: the title truncates instead of wrapping
-  const title = await card.locator("h3").first().evaluate((el) => getComputedStyle(el).whiteSpace);
+  const title = await card.getByRole("heading").first().evaluate((el) => getComputedStyle(el).whiteSpace);
   expect(title).toBe("nowrap");
   await noSideScroll(page, "integrations");
   await card.getByTestId("shopify-manage").click();

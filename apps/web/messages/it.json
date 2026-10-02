@@ -4497,7 +4497,8 @@
       "search": "Cerca",
       "all": "Tutti",
       "apply": "Filtra",
-      "reset": "Azzera"
+      "reset": "Azzera",
+      "sort": "Ordina per"
     },
     "health": {
       "integrations": "Errori di integrazione",
@@ -6679,7 +6680,8 @@
     "sign_in_alerts": "Avvisami via email dei nuovi accessi",
     "sign_in_alerts_hint": "Un'email di sicurezza quando il tuo account accede da un dispositivo o browser mai usato prima.",
     "connections": "Connessioni",
-    "connections_description": "Client AI e token di accesso personali che agiscono come te in questo workspace tramite il server MCP."
+    "connections_description": "Client AI e token di accesso personali che agiscono come te in questo workspace tramite il server MCP.",
+    "menu_label": "Menu account: {name}"
   },
   "welcome": {
     "title": "Completa il tuo profilo",

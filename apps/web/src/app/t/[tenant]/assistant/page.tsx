@@ -8,10 +8,11 @@ import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, Car
 import { requirePage } from "@/server/tenant";
 import { AskForm, DeleteThreadButton } from "./ask-form";
 
+import { withIntl } from "@/i18n/intl-scope";
 const SUGGESTIONS = ["revenue", "profit", "campaigns", "products", "returns", "churn", "stock"] as const;
 const TOOL_FOR_SUGGESTION: Record<(typeof SUGGESTIONS)[number], string> = { revenue: "get_kpis", profit: "get_profit_and_loss", campaigns: "get_campaigns", products: "get_top_products", returns: "get_returns_summary", churn: "get_customer_predictions", stock: "get_stock_risk" };
 
-export default async function AssistantPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ thread?: string }> }) {
+async function AssistantPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ thread?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "assistant");
@@ -184,3 +185,5 @@ export default async function AssistantPage({ params, searchParams }: { params: 
     </>
   );
 }
+
+export default withIntl(AssistantPage, "app/t/[tenant]/assistant/page.tsx");

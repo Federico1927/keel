@@ -10,9 +10,10 @@ import { PeriodPicker } from "@/components/period-picker";
 import { AdsNav, AdsTable, ordersHref } from "../ads-table";
 import { NegativeKeywordButton } from "../ads-actions";
 
+import { withIntl } from "@/i18n/intl-scope";
 type SP = { preset?: string; from?: string; to?: string; tab?: string; q?: string; campaign?: string; sort?: string; candidates?: string; page?: string };
 
-export default async function KeywordsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<SP> }) {
+async function KeywordsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<SP> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "campaigns");
@@ -82,3 +83,5 @@ export default async function KeywordsPage({ params, searchParams }: { params: P
     </>
   );
 }
+
+export default withIntl(KeywordsPage, "app/t/[tenant]/campaigns/keywords/page.tsx");

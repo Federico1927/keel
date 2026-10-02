@@ -1011,3 +1011,31 @@ Resta:
 - Registrare le app della piattaforma (Google Ads: developer token Basic, client OAuth, verifica dello scope sensibile; TikTok: app approvata) e provare ogni percorso su account reali; confermare i testi d'errore dei fornitori e i passi "Da verificare".
 - Meta "Continua con Facebook" (App Review, Business Verification) e accesso di Shopify ai contratti dell'app Shopify Subscriptions.
 - Contabilità, audience ed email: nessun fornitore live ancora.
+
+## Mobile first, ondata finale: console super-admin sul telefono e controlli di qualità (issue #49)
+
+Fatto:
+- **Console super-admin a 393 px** (Tier 2, #48): tutte le liste (tenant, utenti, fatture, abbonamenti e catalogo Stripe, integrazioni, MCP, job, alert, supporto, audit, log email, catalogo add-on, tenant da seguire in dashboard, membri e fatture nella scheda tenant) passano a `DataList`; i filtri restano form GET lato server ma sul telefono stanno in un foglio (`AdminFilters`: chip rimovibili, opzioni di ordinamento della riga d'intestazione nascosta, "Mostra risultati" applica il form); la matrice delle metriche è una `WideTable` con prima colonna fissa; il pulsante "Crea tenant" è fisso in basso. Nessuno scorrimento laterale su 21 pagine della console e sui dettagli (tenant, utente, ticket).
+- **Guardia `hidden *:table-cell`**: senza allow-list, legge le classi riga per riga (qualsiasi ordine, `sm:`…`2xl:`, `min-[…]:`, argomenti di `cn()`), su tutto `apps/web/src` e `packages/ui` tranne `DataList`, con un test sul rilevatore stesso (`src/test/ui-guards.test.ts`).
+- **Lighthouse mobile** (`pnpm --filter @hullwise/web lighthouse`, profilo mobile di Lighthouse 13.5, sessione dell'owner Northwind, mediana di 3 corse su build di produzione, macchina condivisa con altri lavori):
+
+  | Pagina | Prima | Dopo (carico basso) | Dopo (ultima corsa) | Accessibilità prima → dopo |
+  | --- | --- | --- | --- | --- |
+  | Dashboard | 66 | 89 | 93 | 93 → 100 |
+  | Lista ordini | 76 | 90 | 89 | 91 → 100 |
+  | Dettaglio ordine | 77 | 88 | 93 | 91 → 100 |
+
+  Con la macchina carica (load 8–10) le singole corse scendono fino a 64–80: lo script ripete le corse e tiene la mediana.
+- **Prestazioni**: ogni pagina manda al browser solo i namespace di traduzione usati dai suoi componenti client (`withIntl` su ogni pagina, `IntlScope` nei layout, manifest generato e verificato da `src/test/client-namespaces.test.ts`): l’HTML della dashboard passa da ~545 KB a ~140 KB, del dettaglio ordine da ~550 KB a ~175 KB, della lista ordini da ~1 MB a ~350 KB (con le classi di `DataList` spostate in `data-list.css`); grafici della dashboard caricati su richiesta e sparkline in SVG (First Load JS della home da 340 a 180 kB); zod fuori dal JS di dashboard e ordini (`sideEffects: false` su core e config, costanti in moduli senza zod); Geist Mono senza preload; `StatusBadge` non più solo client.
+- **Accessibilità**: titoli delle card e degli stati vuoti `h2` (prima h1 → h3), nome accessibile del menu avatar, contrasto dei contatori nei chip attivi, invito all'installazione PWA che non copre più la barra delle azioni (e non è più il "largest paint" del dettaglio ordine).
+- **Screenshot mobili** della console (16 pagine, foglio dei filtri compreso) e del login in `docs/screenshots/mobile/{en,it}/admin-*.png` e `login.png` (`TIER=admin` / `ONLY=login` in `scripts/screenshots-mobile.mjs`, anche `pnpm --filter @hullwise/web screenshots:mobile`).
+- **Controlli**: `e2e/mobile-console.spec.ts` (3 test × progetti mobili: nessuno scorrimento laterale, liste come schede, filtri e ordinamento nel foglio, azioni raggiungibili); suite mobili Tier 1–3 e spec desktop delle aree toccate verdi; test web 92, ui 6, core 466, config 34.
+- Nessuna migrazione, nessun SQL scritto a mano, seed invariato.
+
+Stato della checklist #49: ondate 1–3 e console fatte; controlli di qualità §4 fatti (nessuno scorrimento laterale nelle e2e mobili, guardia `table-cell`, Lighthouse ≥ 85 / ≥ 100 sulle tre pagine, screenshot mobili en/it).
+
+Resta:
+- Azioni a scorrimento sulle righe, pull-to-refresh e notifiche push web (facoltative) non fatte.
+- Gli screenshot mobili Tier 1–3 delle ondate precedenti non sono stati rigenerati (cambiano solo dettagli: peso dei contatori nei chip).
+- Nella dashboard un `layout-shift` di 0,10 compare in alcune corse (widget vendite 30 giorni, durante lo streaming della pagina): da indagare.
+- Lighthouse va lanciato a mano (non è nel gate CI): richiede build, server e seed.

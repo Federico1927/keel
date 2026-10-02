@@ -10,8 +10,9 @@ import { StatusBadge } from "@/components/status-badge";
 import { requirePage } from "@/server/tenant";
 import { CaseActions } from "./case-actions";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** One delivery exception or return to sender: shipment history, order and contact, and the actions of whoever claimed it. */
-export default async function CasePage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
+async function CasePage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
   const ctx = await requirePage(tenant, "shipments");
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
@@ -84,3 +85,5 @@ export default async function CasePage({ params }: { params: Promise<{ tenant: s
     </>
   );
 }
+
+export default withIntl(CasePage, "app/t/[tenant]/fulfilment/cases/[id]/page.tsx");

@@ -8,7 +8,8 @@ import { getCurrentUser } from "@/server/session";
 import { LoginForm } from "./login-form";
 import { BrandMark } from "@/components/brand-mark";
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string; email?: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string; email?: string }> }) {
   const user = await getCurrentUser();
   const { error, next: rawNext, email } = await searchParams;
   const next = safeNextPath(rawNext, "");
@@ -43,3 +44,5 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     </main>
   );
 }
+
+export default withIntl(LoginPage, "app/(auth)/login/page.tsx");

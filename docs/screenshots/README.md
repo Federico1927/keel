@@ -372,3 +372,12 @@ Open Graph cards (`docs/landing/og-{en,it,es}.png`, 1200x630) are the `opengraph
 | `docs/landing/og-es.png` | 2026-10-02 | `808ee23` |
 | `docs/landing/favicon.png` | 2026-10-02 | `808ee23` |
 | `docs/screenshots/app-icon.png` | 2026-10-02 | `808ee23` |
+
+## Phone (#49), iPhone 15 viewport (393×852, 2×), en and it
+
+`docs/screenshots/mobile/<locale>/<name>.png`: Tier 1–3 tenant pages (waves 1–3), the super-admin console (`admin-*.png`, 2026-10-02) and the sign-in page. Regenerate with a production server and the demo seed:
+
+```bash
+E2E_BASE_URL=http://localhost:3000 pnpm --filter @hullwise/web screenshots:mobile   # all pages, en + it
+TIER=admin pnpm --filter @hullwise/web screenshots:mobile                           # only the console
+```

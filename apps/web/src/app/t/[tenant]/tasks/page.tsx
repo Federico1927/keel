@@ -9,10 +9,11 @@ import { tenantPeople } from "@/server/people";
 import { NewTaskButton, TaskActions } from "@/components/tasks/task-controls";
 import { Chip } from "../notifications/tabs";
 
+import { withIntl } from "@/i18n/intl-scope";
 const RECORD_PATH: Record<string, string> = { order: "orders", return: "returns", purchase_order: "purchasing", product: "products" };
 const STATUS_VARIANT: Record<string, "info" | "warning" | "success" | "muted"> = { open: "info", in_progress: "warning", done: "success", cancelled: "muted" };
 
-export default async function TasksPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
+async function TasksPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "tasks");
@@ -52,9 +53,9 @@ export default async function TasksPage({ params, searchParams }: { params: Prom
       </div>
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-2">
-          <Chip href={href({ status: undefined, page: undefined })} active={status === "open"}>{t("status_filter.open")} <span className="tabular opacity-70">{formatNumber(data.counts.open, ctx.locale)}</span></Chip>
-          <Chip href={href({ status: "overdue", page: undefined })} active={status === "overdue"} testId="status-overdue">{t("status_filter.overdue")} <span className="tabular opacity-70">{formatNumber(data.counts.overdue, ctx.locale)}</span></Chip>
-          <Chip href={href({ status: "closed", page: undefined })} active={status === "closed"}>{t("status_filter.closed")} <span className="tabular opacity-70">{formatNumber(data.counts.closed, ctx.locale)}</span></Chip>
+          <Chip href={href({ status: undefined, page: undefined })} active={status === "open"}>{t("status_filter.open")} <span className="tabular font-normal">{formatNumber(data.counts.open, ctx.locale)}</span></Chip>
+          <Chip href={href({ status: "overdue", page: undefined })} active={status === "overdue"} testId="status-overdue">{t("status_filter.overdue")} <span className="tabular font-normal">{formatNumber(data.counts.overdue, ctx.locale)}</span></Chip>
+          <Chip href={href({ status: "closed", page: undefined })} active={status === "closed"}>{t("status_filter.closed")} <span className="tabular font-normal">{formatNumber(data.counts.closed, ctx.locale)}</span></Chip>
           <Chip href={href({ status: "all", page: undefined })} active={status === "all"}>{t("status_filter.all")}</Chip>
         </div>
         <form action={base} className="flex gap-2">
@@ -103,3 +104,5 @@ export default async function TasksPage({ params, searchParams }: { params: Prom
     </>
   );
 }
+
+export default withIntl(TasksPage, "app/t/[tenant]/tasks/page.tsx");

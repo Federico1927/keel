@@ -25,7 +25,7 @@ export function ProductFiltersBar({ basePath, filters, types, riskCounts }: { ba
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:px-0">
         {(["critical", "warning", "ok", "no_sales"] as const).map((r) => (
           <button key={r} type="button" onClick={() => apply({ risk: filters.risk === r ? undefined : r })} className={cn("shrink-0 rounded-full border px-3 py-1 text-xs pointer-coarse:min-h-9", filters.risk === r ? "bg-primary text-primary-foreground" : "bg-card")}>
-            {tr(r)} <span className="tabular opacity-70">{riskCounts[r] ?? 0}</span>
+            {tr(r)} <span className="tabular font-normal">{riskCounts[r] ?? 0}</span>
           </button>
         ))}
       </div>

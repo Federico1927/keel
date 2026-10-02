@@ -24,7 +24,7 @@ export function DiscountFiltersBar({ basePath, filters, counts }: { basePath: st
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:px-0" data-testid="state-chips">
         {STATES.map((s) => (
           <button key={s} type="button" onClick={() => apply({ state: s === "all" ? undefined : s })} aria-pressed={(filters.state ?? "all") === s} data-testid={`state-${s}`} className={cn("shrink-0 rounded-full border px-3 py-1 text-xs pointer-coarse:min-h-9", (filters.state ?? "all") === s ? "bg-primary text-primary-foreground" : "bg-card")}>
-            {t(`state.${s}`)} <span className="tabular opacity-70">{s === "all" ? total : counts[s] ?? 0}</span>
+            {t(`state.${s}`)} <span className="tabular font-normal">{s === "all" ? total : counts[s] ?? 0}</span>
           </button>
         ))}
       </div>

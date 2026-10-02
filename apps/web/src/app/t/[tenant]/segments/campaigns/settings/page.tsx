@@ -6,8 +6,9 @@ import { PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { CampaignSettingsForm } from "./form";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** Add-on settings of customer campaigns: frequency cap, send window, throttle per channel, measurement lock. */
-export default async function CampaignSettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
+async function CampaignSettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "customer_campaigns");
   if (!canDo(ctx.role, "manage_settings")) notFound();
@@ -21,3 +22,5 @@ export default async function CampaignSettingsPage({ params }: { params: Promise
     </>
   );
 }
+
+export default withIntl(CampaignSettingsPage, "app/t/[tenant]/segments/campaigns/settings/page.tsx");

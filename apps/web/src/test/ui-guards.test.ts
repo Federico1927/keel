@@ -4,32 +4,28 @@ import { describe, expect, it } from "vitest";
 
 const SRC = path.resolve(__dirname, "..");
 
-function files(dir: string): string[] {
+function files(dir: string, ext = /\.tsx$/): string[] {
   return readdirSync(dir).flatMap((name) => {
     const p = path.join(dir, name);
-    return statSync(p).isDirectory() ? files(p) : p.endsWith(".tsx") ? [p] : [];
+    return statSync(p).isDirectory() ? files(p, ext) : ext.test(p) ? [p] : [];
   });
 }
 
 /**
- * Pages (#49) still hiding table columns on phones, to move to <DataList>: since wave 3 only the
- * super-admin console, migrated separately.
- * Shrink this list, never grow it: a new list renders through DataList, which shows every column on
- * the phone card instead of hiding it.
+ * A column hidden on phones (`hidden md:table-cell` and its variants) is a fact a phone user never
+ * sees (#49): lists render through `DataList`, which turns every column into a line of the phone card.
+ * The check reads each source line as class tokens, so the order of the classes, other classes in
+ * between, `cn()` arguments on one line and variant prefixes (`sm:`…`2xl:`, `min-[…]:`, `group-…:`)
+ * are all caught. Only DataList itself (packages/ui) may lay out cells per breakpoint.
  */
-const HIDDEN_CELL_ALLOWLIST = new Set([
-  "app/admin/alerts/page.tsx",
-  "app/admin/billing/page.tsx",
-  "app/admin/billing/subscriptions/page.tsx",
-  "app/admin/integrations/page.tsx",
-  "app/admin/jobs/page.tsx",
-  "app/admin/mcp/page.tsx",
-  "app/admin/metrics/page.tsx",
-  "app/admin/support/page.tsx",
-  "app/admin/tenants/page.tsx",
-  "app/admin/users/[id]/page.tsx",
-  "app/admin/users/page.tsx",
-]);
+const BREAKPOINT_CELL = /^(?:[\w-]+:)*(?:sm|md|lg|xl|2xl|min-\[[^\]]+\]|@[\w-]+):table-cell$/;
+function hidesCellOnPhones(source: string): boolean {
+  return source.split("\n").some((line) => {
+    const tokens = line.split(/[\s"'`,{}()]+/);
+    return tokens.includes("hidden") && tokens.some((tok) => BREAKPOINT_CELL.test(tok));
+  });
+}
+const UI_SRC = path.resolve(SRC, "../../../packages/ui/src");
 
 describe("UI guards", () => {
   it("every dropdown uses the shared Select (no raw <select> in apps/web)", () => {
@@ -46,13 +42,15 @@ describe("UI guards", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("no column is hidden on phones with `hidden *:table-cell` outside the allow-list: use DataList (#49)", () => {
-    const offenders = files(SRC).map((f) => path.relative(SRC, f).split(path.sep).join("/")).filter((f) => /\bhidden\s+(?:[\w-]+\s+)*(sm|md|lg|xl|2xl):table-cell/.test(readFileSync(path.join(SRC, f), "utf8")) && !HIDDEN_CELL_ALLOWLIST.has(f));
-    expect(offenders).toEqual([]);
+  it("the hidden-column check catches every breakpoint and class order", () => {
+    for (const bad of ['className="hidden md:table-cell"', 'className="text-right hidden sm:table-cell"', 'className="hidden text-xs hover:underline lg:table-cell"', 'className="xl:table-cell hidden"', 'cn("hidden", "2xl:table-cell")', "className={`hidden ${x} md:table-cell`}", 'className="hidden min-[900px]:table-cell"']) expect(hidesCellOnPhones(bad), bad).toBe(true);
+    for (const ok of ['className="max-md:hidden"', 'className="md:table-cell"', 'className="hidden md:block"', 'className="md:hidden"']) expect(hidesCellOnPhones(ok), ok).toBe(false);
   });
 
-  it("the allow-list only names files that still need it", () => {
-    const stale = [...HIDDEN_CELL_ALLOWLIST].filter((f) => { try { return !/(sm|md|lg|xl|2xl):table-cell/.test(readFileSync(path.join(SRC, f), "utf8")); } catch { return true; } });
-    expect(stale).toEqual([]);
+  it("no column is hidden on phones with `hidden *:table-cell`, in apps/web or the shared UI outside DataList: use DataList (#49)", () => {
+    const web = files(SRC, /\.tsx?$/).filter((f) => !/\.test\.tsx?$/.test(f)).map((f) => path.relative(SRC, f));
+    const ui = files(UI_SRC, /\.tsx?$/).filter((f) => !/data-list(\.test)?\.tsx$/.test(f)).map((f) => `packages/ui/${path.relative(UI_SRC, f)}`);
+    const offenders = [...web.filter((f) => hidesCellOnPhones(readFileSync(path.join(SRC, f), "utf8"))), ...ui.filter((f) => hidesCellOnPhones(readFileSync(path.join(UI_SRC, f.slice("packages/ui/".length)), "utf8")))];
+    expect(offenders).toEqual([]);
   });
 });

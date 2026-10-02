@@ -14,7 +14,8 @@ import { UpliftBadge } from "../uplift-badge";
 import { CampaignStatusBadge } from "../status-badge";
 import { LiveRefresh, SendPanel } from "./send-panel";
 
-export default async function RetentionCampaignPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function RetentionCampaignPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
   const ctx = await requirePage(tenant, "customer_campaigns");
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
@@ -190,3 +191,5 @@ export default async function RetentionCampaignPage({ params }: { params: Promis
     </DetailShell>
   );
 }
+
+export default withIntl(RetentionCampaignPage, "app/t/[tenant]/segments/campaigns/[id]/page.tsx");

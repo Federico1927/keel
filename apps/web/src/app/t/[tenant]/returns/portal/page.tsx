@@ -9,7 +9,8 @@ import { Alert, AlertDescription, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { BehaviourForm, PortalConfigForm } from "./forms";
 
-export default async function ReturnPortalSettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function ReturnPortalSettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "returns");
   if (!canWritePage(ctx.role, "returns")) notFound();
@@ -37,3 +38,5 @@ export default async function ReturnPortalSettingsPage({ params }: { params: Pro
     </>
   );
 }
+
+export default withIntl(ReturnPortalSettingsPage, "app/t/[tenant]/returns/portal/page.tsx");

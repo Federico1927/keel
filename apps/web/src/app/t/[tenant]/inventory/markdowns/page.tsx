@@ -9,7 +9,8 @@ import { requirePage } from "@/server/tenant";
 import { svcOf } from "@/server/queries/inventory-control";
 import { MarkdownTable, type MarkdownView } from "./controls";
 
-export default async function MarkdownsPage({ params }: { params: Promise<{ tenant: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function MarkdownsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "inventory");
   const t = await getTranslations("inventory_control");
@@ -73,3 +74,5 @@ export default async function MarkdownsPage({ params }: { params: Promise<{ tena
     </>
   );
 }
+
+export default withIntl(MarkdownsPage, "app/t/[tenant]/inventory/markdowns/page.tsx");

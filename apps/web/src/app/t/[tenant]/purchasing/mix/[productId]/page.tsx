@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, DataList, cn } from "@hullwis
 import { requirePage } from "@/server/tenant";
 import { MixPlanner } from "./planner";
 
+import { withIntl } from "@/i18n/intl-scope";
 const WINDOWS = [90, 180, 365] as const;
 
 /**
@@ -17,7 +18,7 @@ const WINDOWS = [90, 180, 365] as const;
  * option value, and a planner that turns a total (split by share) or N case packs per option group
  * into a draft purchase order.
  */
-export default async function OptionMixPage({ params, searchParams }: { params: Promise<{ tenant: string; productId: string }>; searchParams: Promise<{ days?: string }> }) {
+async function OptionMixPage({ params, searchParams }: { params: Promise<{ tenant: string; productId: string }>; searchParams: Promise<{ days?: string }> }) {
   const { tenant, productId } = await params;
   const { days } = await searchParams;
   const ctx = await requirePage(tenant, "purchasing");
@@ -105,3 +106,5 @@ export default async function OptionMixPage({ params, searchParams }: { params: 
     </>
   );
 }
+
+export default withIntl(OptionMixPage, "app/t/[tenant]/purchasing/mix/[productId]/page.tsx");

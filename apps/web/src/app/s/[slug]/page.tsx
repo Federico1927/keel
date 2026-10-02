@@ -9,6 +9,7 @@ import { loadMessages } from "@/i18n/messages";
 import { SurveyForm } from "./survey-form";
 import { brandStyle, loadBrand, publicBrand } from "@/server/branding";
 
+import { withIntl } from "@/i18n/intl-scope";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
@@ -16,7 +17,7 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
  * Public post-purchase survey: /s/<store>?o=<order id>&t=<signature>&lang=<it|en|es>. The link
  * comes from the store's order confirmation email, signed with the store's survey secret.
  */
-export default async function SurveyPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ o?: string; t?: string; lang?: string }> }) {
+async function SurveyPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ o?: string; t?: string; lang?: string }> }) {
   const { slug } = await params;
   const sp = await searchParams;
   const tenant = await surveyTenantForSlug(slug);
@@ -52,3 +53,5 @@ export default async function SurveyPage({ params, searchParams }: { params: Pro
     </div>
   );
 }
+
+export default withIntl(SurveyPage, "app/s/[slug]/page.tsx");

@@ -12,6 +12,7 @@ import { loadMessages } from "@/i18n/messages";
 import { SupplierAckForm } from "./form";
 import { brandStyle, loadBrand, publicBrand } from "@/server/branding";
 
+import { withIntl } from "@/i18n/intl-scope";
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ export const dynamic = "force-dynamic";
  * Public page the supplier opens from the purchase order email: the order (agreed prices only),
  * a confirm button with an optional new delivery date, or a problem report. No account needed.
  */
-export default async function SupplierPoPage({ params, searchParams }: { params: Promise<{ token: string }>; searchParams: Promise<{ lang?: string }> }) {
+async function SupplierPoPage({ params, searchParams }: { params: Promise<{ token: string }>; searchParams: Promise<{ lang?: string }> }) {
   const { token } = await params;
   const { lang } = await searchParams;
   const found = await tenantForSupplierToken(token);
@@ -122,3 +123,5 @@ export default async function SupplierPoPage({ params, searchParams }: { params:
     </div>
   );
 }
+
+export default withIntl(SupplierPoPage, "app/supplier/po/[token]/page.tsx");

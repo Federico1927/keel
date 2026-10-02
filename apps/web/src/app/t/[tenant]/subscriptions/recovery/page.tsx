@@ -9,8 +9,9 @@ import { requirePage } from "@/server/tenant";
 import { RecoveryActions } from "../controls";
 import { RiskBadge, SubscriptionTabs, svcOf } from "../shared";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** Failed-payment recovery queue (addon.subscriptions): value at risk, the app's retry schedule, last contact, assignee; actions through the app. */
-export default async function RecoveryPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ assigned?: string }> }) {
+async function RecoveryPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ assigned?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "subscriptions");
@@ -59,3 +60,5 @@ export default async function RecoveryPage({ params, searchParams }: { params: P
     </>
   );
 }
+
+export default withIntl(RecoveryPage, "app/t/[tenant]/subscriptions/recovery/page.tsx");

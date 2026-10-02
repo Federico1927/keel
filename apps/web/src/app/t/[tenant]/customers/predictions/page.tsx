@@ -10,11 +10,12 @@ import { CustomerTabs } from "../customer-tabs";
 import { ChurnBadge } from "../churn-badge";
 import { RecomputeButton } from "./recompute-button";
 
+import { withIntl } from "@/i18n/intl-scope";
 const riskRules = (risk: ChurnRisk): SegmentGroup => ({ match: "all", conditions: [{ field: "churn_risk", op: "in", value: [risk] }] });
 /** Valuable customers drifting away: the win-back segment the "slipping" list previews. */
 const slippingRules: SegmentGroup = { match: "all", conditions: [{ field: "churn_risk", op: "in", value: ["medium", "high"] }, { field: "orders_count", op: "gte", value: 2 }] };
 
-export default async function PredictionsPage({ params }: { params: Promise<{ tenant: string }> }) {
+async function PredictionsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "customers");
   const t = await getTranslations("predictions");
@@ -153,3 +154,5 @@ export default async function PredictionsPage({ params }: { params: Promise<{ te
     </>
   );
 }
+
+export default withIntl(PredictionsPage, "app/t/[tenant]/customers/predictions/page.tsx");

@@ -1,0 +1,681 @@
+{
+  "app/(auth)/forgot-password/page.tsx": [
+    "account",
+    "common"
+  ],
+  "app/(auth)/invite/[token]/page.tsx": [
+    "account",
+    "common",
+    "profile"
+  ],
+  "app/(auth)/login/page.tsx": [
+    "auth",
+    "common"
+  ],
+  "app/(auth)/reset-password/[token]/page.tsx": [
+    "account",
+    "common",
+    "profile"
+  ],
+  "app/(auth)/verify/page.tsx": [],
+  "app/account/confirm-email/page.tsx": [
+    "email_change"
+  ],
+  "app/admin/alerts/page.tsx": [
+    "admin"
+  ],
+  "app/admin/audit/page.tsx": [],
+  "app/admin/billing/page.tsx": [
+    "admin",
+    "common"
+  ],
+  "app/admin/billing/subscriptions/page.tsx": [
+    "admin_billing"
+  ],
+  "app/admin/email/page.tsx": [
+    "admin"
+  ],
+  "app/admin/integrations/page.tsx": [],
+  "app/admin/jobs/page.tsx": [
+    "admin"
+  ],
+  "app/admin/layout.tsx": [
+    "admin",
+    "common",
+    "profile",
+    "roles",
+    "theme"
+  ],
+  "app/admin/mcp/page.tsx": [
+    "admin"
+  ],
+  "app/admin/metrics/page.tsx": [
+    "mobile"
+  ],
+  "app/admin/page.tsx": [
+    "admin"
+  ],
+  "app/admin/plans/page.tsx": [],
+  "app/admin/profile/page.tsx": [
+    "common",
+    "mcp",
+    "profile",
+    "theme"
+  ],
+  "app/admin/styleguide/page.tsx": [],
+  "app/admin/support/[id]/page.tsx": [
+    "admin",
+    "common",
+    "support"
+  ],
+  "app/admin/support/page.tsx": [],
+  "app/admin/tenants/[id]/page.tsx": [
+    "admin",
+    "admin_billing",
+    "common",
+    "data_export",
+    "mcp"
+  ],
+  "app/admin/tenants/new/page.tsx": [
+    "admin",
+    "common"
+  ],
+  "app/admin/tenants/page.tsx": [
+    "admin",
+    "common"
+  ],
+  "app/admin/users/[id]/page.tsx": [
+    "admin",
+    "common"
+  ],
+  "app/admin/users/page.tsx": [],
+  "app/dev/emails/page.tsx": [],
+  "app/layout.tsx": [],
+  "app/oauth/authorize/page.tsx": [
+    "common"
+  ],
+  "app/offline/page.tsx": [],
+  "app/page.tsx": [],
+  "app/r/[slug]/page.tsx": [
+    "return_portal"
+  ],
+  "app/r/[slug]/track/page.tsx": [
+    "order_status",
+    "return_portal",
+    "shipment_status"
+  ],
+  "app/s/[slug]/page.tsx": [
+    "survey_public"
+  ],
+  "app/supplier/po/[token]/page.tsx": [
+    "common",
+    "supplier_portal"
+  ],
+  "app/suspended/page.tsx": [],
+  "app/t/[tenant]/accounting/[day]/page.tsx": [
+    "accounting",
+    "common"
+  ],
+  "app/t/[tenant]/accounting/page.tsx": [
+    "accounting",
+    "common"
+  ],
+  "app/t/[tenant]/accounting/settings/page.tsx": [
+    "accounting",
+    "cod",
+    "common",
+    "ga4",
+    "integration_guide",
+    "integration_setup",
+    "integrations",
+    "subscriptions",
+    "whatsapp"
+  ],
+  "app/t/[tenant]/analytics/alerts/page.tsx": [
+    "analytics",
+    "common"
+  ],
+  "app/t/[tenant]/analytics/costs/page.tsx": [
+    "analytics",
+    "common"
+  ],
+  "app/t/[tenant]/analytics/daily-sales/[day]/page.tsx": [],
+  "app/t/[tenant]/analytics/daily-sales/page.tsx": [
+    "analytics"
+  ],
+  "app/t/[tenant]/analytics/page.tsx": [
+    "analytics",
+    "campaigns",
+    "common",
+    "mobile",
+    "survey_admin"
+  ],
+  "app/t/[tenant]/analytics/payouts/[id]/page.tsx": [],
+  "app/t/[tenant]/analytics/payouts/page.tsx": [
+    "common",
+    "payouts"
+  ],
+  "app/t/[tenant]/analytics/traffic/page.tsx": [
+    "analytics"
+  ],
+  "app/t/[tenant]/approvals/page.tsx": [
+    "common",
+    "mcp"
+  ],
+  "app/t/[tenant]/assistant/page.tsx": [
+    "assistant",
+    "common"
+  ],
+  "app/t/[tenant]/audit/page.tsx": [],
+  "app/t/[tenant]/campaigns/[id]/ads/[adId]/page.tsx": [
+    "ads",
+    "analytics",
+    "common",
+    "platform_writes"
+  ],
+  "app/t/[tenant]/campaigns/[id]/adsets/[adSetId]/page.tsx": [
+    "analytics"
+  ],
+  "app/t/[tenant]/campaigns/[id]/page.tsx": [
+    "analytics",
+    "campaign_detail",
+    "campaigns",
+    "common",
+    "platform_writes",
+    "stock_risk"
+  ],
+  "app/t/[tenant]/campaigns/creatives/page.tsx": [
+    "analytics"
+  ],
+  "app/t/[tenant]/campaigns/keywords/page.tsx": [
+    "ads",
+    "analytics",
+    "common"
+  ],
+  "app/t/[tenant]/campaigns/ledger/page.tsx": [
+    "analytics"
+  ],
+  "app/t/[tenant]/campaigns/page.tsx": [
+    "analytics",
+    "campaign_detail",
+    "campaigns",
+    "common"
+  ],
+  "app/t/[tenant]/campaigns/recommendations/page.tsx": [
+    "ads",
+    "analytics",
+    "common"
+  ],
+  "app/t/[tenant]/campaigns/words/page.tsx": [
+    "analytics"
+  ],
+  "app/t/[tenant]/cod/page.tsx": [
+    "cod",
+    "common"
+  ],
+  "app/t/[tenant]/cod/settings/page.tsx": [
+    "cod",
+    "common",
+    "mobile"
+  ],
+  "app/t/[tenant]/cod/team/page.tsx": [
+    "analytics"
+  ],
+  "app/t/[tenant]/customers/[id]/page.tsx": [
+    "predictions",
+    "rfm",
+    "whatsapp"
+  ],
+  "app/t/[tenant]/customers/page.tsx": [
+    "common",
+    "customers",
+    "lists",
+    "mobile",
+    "predictions",
+    "rfm"
+  ],
+  "app/t/[tenant]/customers/predictions/page.tsx": [
+    "common",
+    "predictions"
+  ],
+  "app/t/[tenant]/customers/rfm/page.tsx": [
+    "rfm"
+  ],
+  "app/t/[tenant]/dashboards/[id]/edit/page.tsx": [
+    "common",
+    "dashboards",
+    "mobile",
+    "roles"
+  ],
+  "app/t/[tenant]/dashboards/[id]/page.tsx": [
+    "common",
+    "dashboards",
+    "roles"
+  ],
+  "app/t/[tenant]/dashboards/metrics/page.tsx": [
+    "common",
+    "dashboards"
+  ],
+  "app/t/[tenant]/dashboards/page.tsx": [
+    "common",
+    "dashboards",
+    "roles"
+  ],
+  "app/t/[tenant]/discounts/[id]/page.tsx": [
+    "discount_detail",
+    "discounts",
+    "platform_writes"
+  ],
+  "app/t/[tenant]/discounts/new/page.tsx": [
+    "common",
+    "discount_new"
+  ],
+  "app/t/[tenant]/discounts/page.tsx": [
+    "discounts",
+    "platform_writes"
+  ],
+  "app/t/[tenant]/discounts/pools/[id]/page.tsx": [
+    "common",
+    "discount_pool",
+    "platform_writes"
+  ],
+  "app/t/[tenant]/exports/page.tsx": [],
+  "app/t/[tenant]/fulfilment/cases/[id]/page.tsx": [
+    "fulfilment_cases"
+  ],
+  "app/t/[tenant]/fulfilment/exceptions/page.tsx": [],
+  "app/t/[tenant]/fulfilment/page.tsx": [
+    "fulfilment",
+    "lists",
+    "order_status",
+    "payment_status",
+    "po_status",
+    "return_status",
+    "shipment_status"
+  ],
+  "app/t/[tenant]/fulfilment/returned/page.tsx": [],
+  "app/t/[tenant]/integrations/guide/[provider]/page.tsx": [
+    "cod",
+    "common",
+    "integration_guide",
+    "integration_setup"
+  ],
+  "app/t/[tenant]/integrations/page.tsx": [
+    "accounting",
+    "cod",
+    "common",
+    "ga4",
+    "integration_guide",
+    "integration_setup",
+    "integrations",
+    "platform_writes",
+    "subscriptions",
+    "whatsapp"
+  ],
+  "app/t/[tenant]/integrations/tracking/page.tsx": [
+    "common",
+    "tracking"
+  ],
+  "app/t/[tenant]/inventory/losses/page.tsx": [
+    "analytics"
+  ],
+  "app/t/[tenant]/inventory/markdowns/page.tsx": [
+    "common",
+    "inventory_control"
+  ],
+  "app/t/[tenant]/inventory/page.tsx": [
+    "common",
+    "inventory",
+    "inventory_control",
+    "mobile",
+    "stock_risk"
+  ],
+  "app/t/[tenant]/inventory/planning/page.tsx": [
+    "common",
+    "mobile",
+    "planning"
+  ],
+  "app/t/[tenant]/inventory/stock-takes/[id]/page.tsx": [
+    "common",
+    "inventory_control",
+    "mobile"
+  ],
+  "app/t/[tenant]/inventory/stock-takes/page.tsx": [
+    "common",
+    "inventory_control",
+    "mobile"
+  ],
+  "app/t/[tenant]/layout.tsx": [
+    "common",
+    "lists",
+    "mobile",
+    "nav",
+    "notifications",
+    "order_status",
+    "profile",
+    "roles",
+    "shell",
+    "support",
+    "theme"
+  ],
+  "app/t/[tenant]/notifications/mentions/page.tsx": [],
+  "app/t/[tenant]/notifications/page.tsx": [],
+  "app/t/[tenant]/notifications/preferences/page.tsx": [
+    "notifications"
+  ],
+  "app/t/[tenant]/notifications/suppressions/page.tsx": [
+    "common",
+    "notifications"
+  ],
+  "app/t/[tenant]/orders/[id]/page.tsx": [
+    "cod",
+    "common",
+    "order_detail",
+    "order_discount",
+    "order_edit",
+    "order_events",
+    "order_payments",
+    "order_status",
+    "payment_methods",
+    "platform_writes",
+    "tasks",
+    "whatsapp"
+  ],
+  "app/t/[tenant]/orders/page.tsx": [
+    "analytics_depth",
+    "common",
+    "lists",
+    "mobile",
+    "order_detail",
+    "order_status",
+    "orders",
+    "payment_methods",
+    "payment_status",
+    "products"
+  ],
+  "app/t/[tenant]/page.tsx": [
+    "common",
+    "dashboards",
+    "roles"
+  ],
+  "app/t/[tenant]/products/[id]/page.tsx": [
+    "common",
+    "inventory_control",
+    "mobile",
+    "platform_writes",
+    "product_costs",
+    "product_detail",
+    "product_mirror",
+    "products",
+    "stock_risk",
+    "supplier_terms",
+    "tasks"
+  ],
+  "app/t/[tenant]/products/import-costs/page.tsx": [
+    "common",
+    "cost_import"
+  ],
+  "app/t/[tenant]/products/page.tsx": [
+    "common",
+    "lists",
+    "mobile",
+    "order_detail",
+    "order_status",
+    "product_mirror",
+    "products",
+    "stock_risk"
+  ],
+  "app/t/[tenant]/products/quality/page.tsx": [],
+  "app/t/[tenant]/profile/page.tsx": [
+    "common",
+    "mcp",
+    "profile",
+    "theme"
+  ],
+  "app/t/[tenant]/purchasing/[id]/edit/page.tsx": [
+    "common",
+    "po_editor",
+    "po_new",
+    "stock_risk"
+  ],
+  "app/t/[tenant]/purchasing/[id]/page.tsx": [
+    "common",
+    "mobile",
+    "po_detail",
+    "po_status",
+    "record_notes",
+    "tasks"
+  ],
+  "app/t/[tenant]/purchasing/mix/[productId]/page.tsx": [
+    "common",
+    "option_mix"
+  ],
+  "app/t/[tenant]/purchasing/new/page.tsx": [
+    "common",
+    "po_editor",
+    "po_new",
+    "stock_risk"
+  ],
+  "app/t/[tenant]/purchasing/packs/page.tsx": [
+    "case_packs",
+    "common"
+  ],
+  "app/t/[tenant]/purchasing/page.tsx": [
+    "common",
+    "lists",
+    "mobile",
+    "purchasing"
+  ],
+  "app/t/[tenant]/purchasing/suppliers/page.tsx": [
+    "common",
+    "supplier_terms",
+    "suppliers"
+  ],
+  "app/t/[tenant]/returns/[id]/page.tsx": [
+    "common",
+    "mobile",
+    "record_notes",
+    "return_detail",
+    "return_status",
+    "tasks"
+  ],
+  "app/t/[tenant]/returns/analytics/page.tsx": [
+    "analytics",
+    "mobile"
+  ],
+  "app/t/[tenant]/returns/new/page.tsx": [
+    "common",
+    "return_new",
+    "returns"
+  ],
+  "app/t/[tenant]/returns/page.tsx": [
+    "common",
+    "lists",
+    "mobile",
+    "order_detail",
+    "order_status",
+    "products",
+    "return_status",
+    "returns"
+  ],
+  "app/t/[tenant]/returns/policy/page.tsx": [
+    "common",
+    "return_policy",
+    "returns"
+  ],
+  "app/t/[tenant]/returns/portal/page.tsx": [
+    "common",
+    "return_portal_settings",
+    "return_status",
+    "returns"
+  ],
+  "app/t/[tenant]/returns/reasons/page.tsx": [
+    "common",
+    "return_detail",
+    "return_reasons"
+  ],
+  "app/t/[tenant]/segments/[id]/page.tsx": [
+    "common",
+    "destinations",
+    "payment_methods",
+    "predictions",
+    "rfm",
+    "segment_builder",
+    "segments"
+  ],
+  "app/t/[tenant]/segments/campaigns/[id]/page.tsx": [
+    "common",
+    "retention"
+  ],
+  "app/t/[tenant]/segments/campaigns/new/page.tsx": [
+    "common",
+    "retention"
+  ],
+  "app/t/[tenant]/segments/campaigns/page.tsx": [
+    "retention"
+  ],
+  "app/t/[tenant]/segments/campaigns/settings/page.tsx": [
+    "common",
+    "retention"
+  ],
+  "app/t/[tenant]/segments/new/page.tsx": [
+    "common",
+    "payment_methods",
+    "predictions",
+    "rfm",
+    "segment_builder"
+  ],
+  "app/t/[tenant]/segments/page.tsx": [
+    "common",
+    "segments"
+  ],
+  "app/t/[tenant]/settings/ai/page.tsx": [
+    "common",
+    "mcp"
+  ],
+  "app/t/[tenant]/settings/billing/page.tsx": [
+    "billing"
+  ],
+  "app/t/[tenant]/settings/branding/page.tsx": [
+    "branding",
+    "profile",
+    "theme"
+  ],
+  "app/t/[tenant]/settings/data-export/page.tsx": [
+    "data_export"
+  ],
+  "app/t/[tenant]/settings/developers/deliveries/[id]/page.tsx": [
+    "developers",
+    "mcp"
+  ],
+  "app/t/[tenant]/settings/developers/deliveries/page.tsx": [
+    "developers",
+    "mcp"
+  ],
+  "app/t/[tenant]/settings/developers/docs/page.tsx": [],
+  "app/t/[tenant]/settings/developers/page.tsx": [
+    "developers",
+    "mcp"
+  ],
+  "app/t/[tenant]/settings/fulfilment/page.tsx": [
+    "settings_fulfilment",
+    "shipment_status"
+  ],
+  "app/t/[tenant]/settings/mobile/page.tsx": [
+    "common",
+    "mobile"
+  ],
+  "app/t/[tenant]/settings/order-states/page.tsx": [
+    "common",
+    "mobile",
+    "order_status",
+    "payment_methods",
+    "payment_status",
+    "po_status",
+    "return_status",
+    "shipment_status",
+    "state_rules"
+  ],
+  "app/t/[tenant]/settings/page.tsx": [
+    "common",
+    "payment_methods",
+    "settings"
+  ],
+  "app/t/[tenant]/shipments/page.tsx": [
+    "shipment_status",
+    "shipments"
+  ],
+  "app/t/[tenant]/subscriptions/cancellations/page.tsx": [
+    "cod",
+    "common",
+    "integration_guide",
+    "integration_setup",
+    "integrations",
+    "subscriptions"
+  ],
+  "app/t/[tenant]/subscriptions/page.tsx": [
+    "cod",
+    "common",
+    "integration_guide",
+    "integration_setup",
+    "integrations",
+    "subscriptions"
+  ],
+  "app/t/[tenant]/subscriptions/recovery/page.tsx": [
+    "cod",
+    "common",
+    "integration_guide",
+    "integration_setup",
+    "integrations",
+    "subscriptions"
+  ],
+  "app/t/[tenant]/subscriptions/stock/page.tsx": [],
+  "app/t/[tenant]/subscriptions/subscribers/[id]/page.tsx": [
+    "cod",
+    "common",
+    "integration_guide",
+    "integration_setup",
+    "integrations",
+    "subscriptions"
+  ],
+  "app/t/[tenant]/subscriptions/subscribers/page.tsx": [],
+  "app/t/[tenant]/support/[id]/page.tsx": [
+    "common",
+    "support"
+  ],
+  "app/t/[tenant]/support/page.tsx": [],
+  "app/t/[tenant]/tasks/page.tsx": [
+    "common",
+    "tasks"
+  ],
+  "app/t/[tenant]/tasks/rules/page.tsx": [
+    "common",
+    "order_status",
+    "po_status",
+    "return_status",
+    "roles",
+    "task_rules",
+    "tasks"
+  ],
+  "app/t/[tenant]/users/page.tsx": [
+    "common",
+    "roles",
+    "users"
+  ],
+  "app/t/[tenant]/whatsapp/settings/page.tsx": [
+    "accounting",
+    "cod",
+    "common",
+    "ga4",
+    "integration_guide",
+    "integration_setup",
+    "integrations",
+    "subscriptions",
+    "whatsapp"
+  ],
+  "app/u/[token]/page.tsx": [],
+  "app/welcome/page.tsx": [
+    "profile",
+    "welcome"
+  ]
+}

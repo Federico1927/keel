@@ -8,10 +8,11 @@ import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";
 import { AdsNav } from "../ads-table";
 
+import { withIntl } from "@/i18n/intl-scope";
 type SP = { preset?: string; from?: string; to?: string; source?: string; n?: string; sort?: string };
 
 /** Words tab: 1–3 word phrases of ad copy, search terms or keywords, with Hullwise profit; 90 days by default (words need volume). */
-export default async function WordsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<SP> }) {
+async function WordsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<SP> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "campaigns");
@@ -75,3 +76,5 @@ export default async function WordsPage({ params, searchParams }: { params: Prom
     </>
   );
 }
+
+export default withIntl(WordsPage, "app/t/[tenant]/campaigns/words/page.tsx");

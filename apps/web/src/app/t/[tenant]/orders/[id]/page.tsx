@@ -26,7 +26,8 @@ import { BackorderCard, StockCheckCard } from "./backorder-cards";
 import { RecordPaymentDialog, RefundDialog } from "./payment-dialogs";
 import { PaymentsCard } from "./payments-card";
 
-export default async function OrderDetailPage({ params, searchParams }: { params: Promise<{ tenant: string; id: string }>; searchParams: Promise<{ queue?: string; tag?: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function OrderDetailPage({ params, searchParams }: { params: Promise<{ tenant: string; id: string }>; searchParams: Promise<{ queue?: string; tag?: string }> }) {
   const { tenant, id } = await params;
   // queue context of the COD add-on's navigator (prev / next in the same view)
   const sp = await searchParams;
@@ -418,3 +419,5 @@ export default async function OrderDetailPage({ params, searchParams }: { params
     </DetailShell>
   );
 }
+
+export default withIntl(OrderDetailPage, "app/t/[tenant]/orders/[id]/page.tsx");

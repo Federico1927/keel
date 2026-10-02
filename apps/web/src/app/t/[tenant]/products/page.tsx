@@ -15,7 +15,8 @@ import { ListToolbar } from "@/components/lists/list-toolbar";
 import { BulkBar } from "@/components/lists/bulk-bar";
 import { ListSelection, RowCheckbox, SelectAllCheckbox } from "@/components/lists/selection";
 
-export default async function ProductsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function ProductsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "products");
@@ -102,3 +103,5 @@ export default async function ProductsPage({ params, searchParams }: { params: P
     </>
   );
 }
+
+export default withIntl(ProductsPage, "app/t/[tenant]/products/page.tsx");

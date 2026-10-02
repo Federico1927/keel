@@ -9,12 +9,13 @@ import { dayLabel } from "../analytics/daily-sales/shared";
 import { DayActions, RunNowButton } from "./controls";
 import { STATUS_VARIANT, reasonText } from "./shared";
 
+import { withIntl } from "@/i18n/intl-scope";
 /**
  * Push log of addon.accounting (#85): one row per day and journal version, newest first, with the
  * reasons a day waits, the error of a failed push and its next attempt, retry and re-push.
  * `requirePage` answers 404 when the add-on is off or the role cannot open it.
  */
-export default async function AccountingLogPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
+async function AccountingLogPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "accounting");
@@ -87,3 +88,5 @@ export default async function AccountingLogPage({ params, searchParams }: { para
     </>
   );
 }
+
+export default withIntl(AccountingLogPage, "app/t/[tenant]/accounting/page.tsx");

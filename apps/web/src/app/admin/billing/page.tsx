@@ -4,13 +4,17 @@ import { PLATFORM_CURRENCY } from "@hullwise/config";
 import { formatDate, formatMoney } from "@hullwise/core";
 import { adminInvoiceList } from "@hullwise/services";
 import { asc, schema } from "@hullwise/db";
-import { Badge, Button, Card, CardContent, EmptyState, Input, Label, PageHeader, Pagination, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Badge, Button, Card, CardContent, EmptyState, Input, Label, PageHeader, Pagination, Select, DataList, cn } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { BillingRunButton } from "./controls";
 import { InvoiceActions } from "../tenants/[id]/controls";
-import { SortHead, flatParams, queryHref } from "../_components/table-query";
+import { flatParams, queryHref, sortColumn, type SortOption } from "../_components/table-query";
+import { ADMIN_FILTER_FORM, AdminFilters, type AdminFilterChip } from "../_components/admin-filters";
 
-export default async function AdminBillingPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+import { withIntl } from "@/i18n/intl-scope";
+const KINDS = ["setup", "subscription", "adjustment"] as const;
+
+async function AdminBillingPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { db } = await requireSuperAdmin();
   const query = flatParams(await searchParams);
   const t = await getTranslations("admin");
@@ -21,6 +25,20 @@ export default async function AdminBillingPage({ searchParams }: { searchParams:
   const base = "/admin/billing";
   const sortProps = { sort: f.sort, dir: f.dir, base, query };
   const filtered = Boolean(f.q || f.kind || f.tenantId || f.overdue);
+  const sorts: SortOption[] = [
+    { label: t("billing.columns.number"), column: "number" },
+    { label: t("tenants.columns.tenant"), column: "tenant" },
+    { label: t("billing.columns.amount"), column: "amount", defaultDir: "desc" },
+    { label: t("billing.columns.issued"), column: "issued", defaultDir: "desc" },
+    { label: t("billing.columns.due"), column: "due", defaultDir: "desc" },
+  ];
+  const drop = (k: string) => queryHref(base, query, { [k]: undefined, page: undefined });
+  const chips: AdminFilterChip[] = [
+    ...(f.q ? [{ key: "q", label: `“${f.q}”`, href: drop("q") }] : []),
+    ...(f.kind ? [{ key: "kind", label: t(`billing.kind.${f.kind}`), href: drop("kind") }] : []),
+    ...(f.tenantId ? [{ key: "tenant", label: tenants.find((x) => x.id === f.tenantId)?.name ?? t("tenants.columns.tenant"), href: drop("tenant") }] : []),
+    ...(f.overdue ? [{ key: "overdue", label: t("billing.overdue_only"), href: drop("overdue") }] : []),
+  ];
   return (
     <>
       <PageHeader eyebrow={t("console")} title={t("billing.title")} description={t("billing.description")} actions={<><Button variant="outline" asChild><a href={queryHref(`${base}/export`, query, { page: undefined })} data-testid="export-invoices">{t("export_csv")}</a></Button><BillingRunButton /></>} />
@@ -29,73 +47,62 @@ export default async function AdminBillingPage({ searchParams }: { searchParams:
           <Link key={s} href={queryHref(base, query, { status: s === "all" ? undefined : s, page: undefined })} className={cn("flex-1 rounded-sm px-3 py-1.5 text-center", (f.status ?? "all") === s ? "bg-card shadow-sm" : "text-muted-foreground")}>{s === "all" ? t("billing.all") : t(`billing.status.${s}`)}</Link>
         ))}
       </div>
-      <form className="mb-4 grid gap-3 rounded-lg border bg-card p-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))_auto]" method="get" action={base}>
-        {f.status && <input type="hidden" name="status" value={f.status} />}
-        <input type="hidden" name="sort" value={f.sort} />
-        <input type="hidden" name="dir" value={f.dir} />
-        <div className="space-y-1.5">
-          <Label htmlFor="b-q">{t("filters.search")}</Label>
-          <Input id="b-q" name="q" defaultValue={f.q ?? ""} placeholder={t("billing.search_placeholder")} autoComplete="off" />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="b-kind">{t("billing.columns.kind")}</Label>
-          <Select id="b-kind" name="kind" defaultValue={f.kind ?? ""}>
-            <option value="">{t("filters.all")}</option>
-            {(["setup", "subscription", "adjustment"] as const).map((k) => <option key={k} value={k}>{t(`billing.kind.${k}`)}</option>)}
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="b-tenant">{t("tenants.columns.tenant")}</Label>
-          <Select id="b-tenant" name="tenant" defaultValue={f.tenantId ?? ""}>
-            <option value="">{t("filters.all")}</option>
-            {tenants.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="b-overdue">{t("billing.due_filter")}</Label>
-          <Select id="b-overdue" name="overdue" defaultValue={f.overdue ? "1" : ""}>
-            <option value="">{t("filters.all")}</option>
-            <option value="1">{t("billing.overdue_only")}</option>
-          </Select>
-        </div>
-        <div className="flex items-end gap-2">
-          <Button type="submit">{t("filters.apply")}</Button>
-          {filtered && <Button variant="outline" asChild><Link href={queryHref(base, { status: f.status })}>{t("filters.reset")}</Link></Button>}
-        </div>
-      </form>
+      <AdminFilters chips={chips} sorts={{ props: sortProps, options: sorts, defaultSort: "issued" }}>
+        <form id={ADMIN_FILTER_FORM} className="grid gap-3 rounded-lg border bg-card p-3 max-md:border-0 max-md:p-0 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))_auto]" method="get" action={base}>
+          {f.status && <input type="hidden" name="status" value={f.status} />}
+          <input type="hidden" name="sort" value={f.sort} />
+          <input type="hidden" name="dir" value={f.dir} />
+          <div className="space-y-1.5">
+            <Label htmlFor="b-q">{t("filters.search")}</Label>
+            <Input id="b-q" name="q" type="search" defaultValue={f.q ?? ""} placeholder={t("billing.search_placeholder")} autoComplete="off" />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="b-kind">{t("billing.columns.kind")}</Label>
+            <Select id="b-kind" name="kind" defaultValue={f.kind ?? ""}>
+              <option value="">{t("filters.all")}</option>
+              {KINDS.map((k) => <option key={k} value={k}>{t(`billing.kind.${k}`)}</option>)}
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="b-tenant">{t("tenants.columns.tenant")}</Label>
+            <Select id="b-tenant" name="tenant" defaultValue={f.tenantId ?? ""}>
+              <option value="">{t("filters.all")}</option>
+              {tenants.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="b-overdue">{t("billing.due_filter")}</Label>
+            <Select id="b-overdue" name="overdue" defaultValue={f.overdue ? "1" : ""}>
+              <option value="">{t("filters.all")}</option>
+              <option value="1">{t("billing.overdue_only")}</option>
+            </Select>
+          </div>
+          <div className="flex items-end gap-2">
+            <Button type="submit" className="max-md:hidden">{t("filters.apply")}</Button>
+            {filtered && <Button variant="outline" asChild><Link href={queryHref(base, { status: f.status })}>{t("filters.reset")}</Link></Button>}
+          </div>
+        </form>
+      </AdminFilters>
       <Card>
         <CardContent className="p-0">
           {list.rows.length === 0 ? (
             <EmptyState title={t("billing.empty")} />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <SortHead label={t("billing.columns.number")} column="number" {...sortProps} />
-                  <SortHead label={t("tenants.columns.tenant")} column="tenant" {...sortProps} />
-                  <TableHead className="hidden md:table-cell">{t("billing.columns.kind")}</TableHead>
-                  <SortHead label={t("billing.columns.amount")} column="amount" {...sortProps} defaultDir="desc" className="text-right" />
-                  <SortHead label={t("billing.columns.issued")} column="issued" {...sortProps} defaultDir="desc" className="hidden md:table-cell" />
-                  <SortHead label={t("billing.columns.due")} column="due" {...sortProps} defaultDir="desc" />
-                  <TableHead>{t("billing.columns.status")}</TableHead>
-                  <TableHead />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {list.rows.map(({ invoice: i, tenantName, tenantSlug }) => (
-                  <TableRow key={i.id} data-testid="invoice-row">
-                    <TableCell className="font-mono text-xs">{i.number}</TableCell>
-                    <TableCell><Link href={`/admin/tenants/${i.tenantId}`} className="hover:underline">{tenantName}</Link><div className="text-xs text-muted-foreground">{tenantSlug}</div></TableCell>
-                    <TableCell className="hidden md:table-cell">{t(`billing.kind.${i.kind}`)}</TableCell>
-                    <TableCell className="text-right tabular">{formatMoney(i.amountMinor, i.currency, locale)}</TableCell>
-                    <TableCell className="hidden md:table-cell">{formatDate(i.issuedAt, locale, "UTC")}</TableCell>
-                    <TableCell>{formatDate(i.dueAt, locale, "UTC")}</TableCell>
-                    <TableCell><Badge variant={i.status === "paid" ? "success" : i.status === "open" ? (i.dueAt < now ? "destructive" : "warning") : "muted"}>{t(`billing.status.${i.status}`)}</Badge></TableCell>
-                    <TableCell><InvoiceActions invoiceId={i.id} status={i.status} provider={i.provider} /></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={list.rows}
+              rowKey={(r) => r.invoice.id}
+              rowProps={() => ({ "data-testid": "invoice-row" })}
+              columns={[
+                { key: "number", ...sortColumn(sortProps, sorts[0]!), mobile: "subtitle", className: "font-mono text-xs", cell: ({ invoice: i }) => i.number },
+                { key: "tenant", ...sortColumn(sortProps, sorts[1]!), mobile: "title", cell: ({ invoice: i, tenantName, tenantSlug }) => <><Link href={`/admin/tenants/${i.tenantId}`} className="hover:underline">{tenantName}</Link><div className="text-xs font-normal text-muted-foreground">{tenantSlug}</div></> },
+                { key: "kind", header: t("billing.columns.kind"), priority: 2, cell: ({ invoice: i }) => t(`billing.kind.${i.kind}`) },
+                { key: "amount", ...sortColumn(sortProps, sorts[2]!), align: "right", className: "tabular", cell: ({ invoice: i }) => formatMoney(i.amountMinor, i.currency, locale) },
+                { key: "issued", ...sortColumn(sortProps, sorts[3]!), priority: 2, cell: ({ invoice: i }) => formatDate(i.issuedAt, locale, "UTC") },
+                { key: "due", ...sortColumn(sortProps, sorts[4]!), cell: ({ invoice: i }) => formatDate(i.dueAt, locale, "UTC") },
+                { key: "status", header: t("billing.columns.status"), mobile: "badge", cell: ({ invoice: i }) => <Badge variant={i.status === "paid" ? "success" : i.status === "open" ? (i.dueAt < now ? "destructive" : "warning") : "muted"}>{t(`billing.status.${i.status}`)}</Badge> },
+                { key: "actions", header: <span className="sr-only">{t("billing.columns.status")}</span>, mobile: "action", cell: ({ invoice: i }) => <InvoiceActions invoiceId={i.id} status={i.status} provider={i.provider} /> },
+              ]}
+            />
           )}
         </CardContent>
       </Card>
@@ -103,3 +110,5 @@ export default async function AdminBillingPage({ searchParams }: { searchParams:
     </>
   );
 }
+
+export default withIntl(AdminBillingPage, "app/admin/billing/page.tsx");

@@ -7,9 +7,10 @@ import { PAGE_SIZE } from "@hullwise/config";
 import { AUDIT_ACTOR_TYPES, auditFilterConditions, parseAuditFilters } from "@hullwise/services";
 import { requirePage } from "@/server/tenant";
 
+import { withIntl } from "@/i18n/intl-scope";
 type Search = Record<string, string | string[] | undefined>;
 
-export default async function AuditPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Search> }) {
+async function AuditPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Search> }) {
   const { tenant } = await params;
   const query = Object.fromEntries(Object.entries(await searchParams).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v])) as Record<string, string | undefined>;
   const ctx = await requirePage(tenant, "audit");
@@ -127,3 +128,5 @@ export default async function AuditPage({ params, searchParams }: { params: Prom
     </>
   );
 }
+
+export default withIntl(AuditPage, "app/t/[tenant]/audit/page.tsx");

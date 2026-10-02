@@ -16,7 +16,8 @@ import { RecordTasks } from "@/components/record-tasks";
 import { RecordNotes } from "@/components/record-notes";
 import { PoManageActions, SupplierLinks } from "./po-manage";
 
-export default async function PurchaseOrderPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function PurchaseOrderPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
   const ctx = await requirePage(tenant, "purchasing");
   const detail = await getPurchaseOrder(ctx, id);
@@ -157,3 +158,5 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
     </DetailShell>
   );
 }
+
+export default withIntl(PurchaseOrderPage, "app/t/[tenant]/purchasing/[id]/page.tsx");

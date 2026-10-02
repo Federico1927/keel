@@ -6,11 +6,12 @@ import { verifyUnsubscribeToken } from "@hullwise/services";
 import { loadMessages } from "@/i18n/messages";
 import { UnsubscribeForm } from "./form";
 
+import { withIntl } from "@/i18n/intl-scope";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 /** Public page behind the unsubscribe link of every optional email; confirming is a POST, so link scanners do not unsubscribe anyone. */
-export default async function UnsubscribePage({ params }: { params: Promise<{ token: string }> }) {
+async function UnsubscribePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const p = verifyUnsubscribeToken(decodeURIComponent(token));
   const tenant = p ? await withTenant(p.tenantId, async (tx) => (await tx.select({ name: schema.tenants.name, defaultLocale: schema.tenants.defaultLocale }).from(schema.tenants).where(eq(schema.tenants.id, p.tenantId)).limit(1))[0] ?? null) : null;
@@ -37,3 +38,5 @@ export default async function UnsubscribePage({ params }: { params: Promise<{ to
     </main>
   );
 }
+
+export default withIntl(UnsubscribePage, "app/u/[token]/page.tsx");

@@ -7,7 +7,8 @@ import { requirePage } from "@/server/tenant";
 import { Chip, NotificationTabs } from "../tabs";
 import { MarkAllButton, ReadToggle } from "../controls";
 
-export default async function MentionsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function MentionsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "notifications");
@@ -28,7 +29,7 @@ export default async function MentionsPage({ params, searchParams }: { params: P
       <NotificationTabs ctx={ctx} active="mentions" />
       <div className="-mx-4 mb-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:px-0">
         <Chip href={href({ status: undefined, page: undefined })} active={!status}>{t("filters.all")}</Chip>
-        <Chip href={href({ status: "unread", page: undefined })} active={status === "unread"}>{t("filters.unread")} <span className="tabular opacity-70">{formatNumber(data.unread, ctx.locale)}</span></Chip>
+        <Chip href={href({ status: "unread", page: undefined })} active={status === "unread"}>{t("filters.unread")} <span className="tabular font-normal">{formatNumber(data.unread, ctx.locale)}</span></Chip>
         <Chip href={href({ status: "read", page: undefined })} active={status === "read"}>{t("filters.read")}</Chip>
         <span className="mx-1 hidden h-4 border-l sm:inline-block" />
         <Chip href={href({ entity: undefined, page: undefined })} active={!entityType}>{t("mentions.entity.all")}</Chip>
@@ -65,3 +66,5 @@ export default async function MentionsPage({ params, searchParams }: { params: P
     </>
   );
 }
+
+export default withIntl(MentionsPage, "app/t/[tenant]/notifications/mentions/page.tsx");

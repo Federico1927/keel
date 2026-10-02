@@ -12,10 +12,11 @@ import { DesktopNotice } from "@/components/mobile/desktop-notice";
 import { WideTable } from "@/components/mobile/wide-table";
 import { BundleForm, CashChart, DeleteComponentButton, DeleteEventButton, DemandEventForm, ForecastChart, OverrideCell, ReplenishmentTable, TransferButton } from "./controls";
 
+import { withIntl } from "@/i18n/intl-scope";
 const TABS = ["replenishment", "forecast", "analysis", "transfers", "cashflow", "target", "bundles"] as const;
 type Tab = (typeof TABS)[number];
 
-export default async function PlanningPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ tab?: string; all?: string; product?: string; cell?: string; target?: string; months?: string }> }) {
+async function PlanningPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ tab?: string; all?: string; product?: string; cell?: string; target?: string; months?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "inventory");
@@ -488,3 +489,5 @@ export default async function PlanningPage({ params, searchParams }: { params: P
     </>
   );
 }
+
+export default withIntl(PlanningPage, "app/t/[tenant]/inventory/planning/page.tsx");

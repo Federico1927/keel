@@ -9,13 +9,15 @@ import { BrandMark } from "@/components/brand-mark";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { UserMenu } from "@/components/app-shell/user-menu";
 import { AdminNav } from "./nav";
+import { IntlScope } from "@/i18n/intl-scope";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user } = await requireSuperAdmin();
   if (!user.name?.trim()) redirect("/welcome?next=/admin");
   const t = await getTranslations("admin");
   return (
-    // platform mode (#48): a violet stripe, accent and "Platform" label that never appear inside a tenant
+    <IntlScope route="app/admin/layout.tsx">
+    {/* platform mode (#48): a violet stripe, accent and "Platform" label that never appear inside a tenant */}
     <div className="min-h-screen border-t-4 border-t-platform bg-background lg:grid lg:grid-cols-[15rem_minmax(0,1fr)]" data-testid="platform-mode">
       <aside className="border-b bg-sidebar text-sidebar-foreground lg:border-b-0 lg:border-r">
         <div className="flex flex-col lg:sticky lg:top-0 lg:h-[calc(100vh-4px)]">
@@ -40,5 +42,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       </aside>
       <main className="px-4 py-6 lg:px-8">{children}</main>
     </div>
+    </IntlScope>
   );
 }

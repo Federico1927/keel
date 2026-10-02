@@ -23,6 +23,7 @@ import { ProductGallery } from "./gallery";
 import { ProductPnlCard } from "./pnl-card";
 import { DetailsCard, EditInShopifyLink, OrganisationCard, ProductEditProvider, SeoCard, StatusCard, SyncProductButton, VariantsCard } from "./product-edit";
 
+import { withIntl } from "@/i18n/intl-scope";
 /**
  * Product page (issue #19), laid out like Shopify's: gallery, description, status and channels,
  * organisation, variants, SEO, metafields; every field mirrors the store, a defined subset is
@@ -30,7 +31,7 @@ import { DetailsCard, EditInShopifyLink, OrganisationCard, ProductEditProvider, 
  * stock by location, velocity and cover, incoming POs, P/L, linked campaigns, the option grid,
  * price history, stock adjustment, costs and the default supplier.
  */
-export default async function ProductDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
+async function ProductDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
   const ctx = await requirePage(tenant, "products");
   const detail = await getProductDetail(ctx, id);
@@ -275,3 +276,5 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     </ProductEditProvider>
   );
 }
+
+export default withIntl(ProductDetailPage, "app/t/[tenant]/products/[id]/page.tsx");

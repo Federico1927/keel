@@ -8,7 +8,8 @@ import { PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { NewReturnForm } from "./form";
 
-export default async function NewReturnPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ order?: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function NewReturnPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ order?: string }> }) {
   const { tenant } = await params;
   const { order } = await searchParams;
   const ctx = await requirePage(tenant, "returns");
@@ -35,3 +36,5 @@ export default async function NewReturnPage({ params, searchParams }: { params: 
     </>
   );
 }
+
+export default withIntl(NewReturnPage, "app/t/[tenant]/returns/new/page.tsx");

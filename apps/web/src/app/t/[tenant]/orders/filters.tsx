@@ -64,16 +64,16 @@ export function OrderFiltersBar({ basePath, filters, counts, stockViews, members
       {/* status views: one scrolling row on phones, wrapped from md up */}
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:px-0" data-testid="status-chips">
         <button type="button" onClick={() => apply({ status: [] })} className={cn(chip, !filters.status?.length ? "bg-primary text-primary-foreground" : "bg-card")}>
-          {t("all")} <span className="tabular opacity-70">{total}</span>
+          {t("all")} <span className="tabular font-normal">{total}</span>
         </button>
         {ORDER_STATUSES.filter((s) => counts[s]).map((s) => (
           <button key={s} type="button" onClick={() => toggleStatus(s)} className={cn(chip, filters.status?.includes(s) ? "bg-primary text-primary-foreground" : "bg-card")}>
-            {ts(s)} <span className="tabular opacity-70">{counts[s]}</span>
+            {ts(s)} <span className="tabular font-normal">{counts[s]}</span>
           </button>
         ))}
         {stockViews && (stockViews.awaiting > 0 || stockViews.ready > 0 || filters.stock) && (["awaiting", "ready"] as const).map((v) => (
           <button key={v} type="button" onClick={() => apply({ stock: filters.stock === v ? undefined : v })} className={cn(chip, "inline-flex items-center gap-1 border-warning/60", filters.stock === v ? "bg-warning text-warning-foreground" : "bg-warning/10")} data-testid={`view-stock-${v}`} aria-pressed={filters.stock === v}>
-            {t(`views.${v}`)} <span className="tabular opacity-70">{stockViews[v]}</span>
+            {t(`views.${v}`)} <span className="tabular font-normal">{stockViews[v]}</span>
             {filters.stock === v && <X className="h-3 w-3" />}
           </button>
         ))}

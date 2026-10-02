@@ -1,6 +1,7 @@
 /* The app stylesheet: Tailwind, the shared direction A theme and a scan of the UI components. */
 @import "tailwindcss";
 @import "./theme.css";
+@import "./data-list.css";
 @source "../../ui/src";
 
 /*

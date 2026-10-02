@@ -10,8 +10,9 @@ import { PeriodPicker } from "@/components/period-picker";
 import { AdsNav } from "../ads-table";
 import { NegativeKeywordButton } from "../ads-actions";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** Read-only suggestions a person acts on: negative keywords, ads and assets to pause, winning words, missing UTM templates. */
-export default async function AdsRecommendationsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ preset?: string; from?: string; to?: string }> }) {
+async function AdsRecommendationsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ preset?: string; from?: string; to?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "campaigns");
@@ -120,3 +121,5 @@ export default async function AdsRecommendationsPage({ params, searchParams }: {
     </>
   );
 }
+
+export default withIntl(AdsRecommendationsPage, "app/t/[tenant]/campaigns/recommendations/page.tsx");

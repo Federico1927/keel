@@ -9,8 +9,9 @@ import { AutoRefresh } from "@/components/lists/auto-refresh";
 import { DataExportTable } from "@/components/data-export/export-table";
 import { RequestDataExportButton } from "@/components/data-export/request-button";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** Full data export of the tenant (#32): owner only. One CSV per table in a zip, link valid for a few days. */
-export default async function DataExportPage({ params }: { params: Promise<{ tenant: string }> }) {
+async function DataExportPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "settings");
   if (!canDo(ctx.role, "export_tenant_data")) notFound();
@@ -39,3 +40,5 @@ export default async function DataExportPage({ params }: { params: Promise<{ ten
     </>
   );
 }
+
+export default withIntl(DataExportPage, "app/t/[tenant]/settings/data-export/page.tsx");

@@ -2,11 +2,12 @@ import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatDateTime, formatNumber } from "@hullwise/core";
 import { SUPPORT_STATUSES, adminListSupportTickets } from "@hullwise/services";
-import { Badge, Card, CardContent, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from "@hullwise/ui";
+import { Badge, Card, CardContent, PageHeader, DataList, cn } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { STATUS_VARIANT } from "@/app/t/[tenant]/support/status";
 
-export default async function AdminSupportPage({ searchParams }: { searchParams: Promise<{ status?: string; tenant?: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function AdminSupportPage({ searchParams }: { searchParams: Promise<{ status?: string; tenant?: string }> }) {
   const { db } = await requireSuperAdmin();
   const sp = await searchParams;
   const t = await getTranslations("admin");
@@ -23,40 +24,30 @@ export default async function AdminSupportPage({ searchParams }: { searchParams:
       <PageHeader eyebrow={t("console")} title={t("support.title")} description={t("support.description")} />
       <div className="mb-4 flex flex-wrap gap-2">
         {chip("/admin/support", !status, t("support.all"))}
-        {SUPPORT_STATUSES.map((s) => chip(`/admin/support?status=${s}`, status === s, <>{ts(`statuses.${s}`)} <span className="tabular opacity-70">{formatNumber(counts[s], locale)}</span></>))}
+        {SUPPORT_STATUSES.map((s) => chip(`/admin/support?status=${s}`, status === s, <>{ts(`statuses.${s}`)} <span className="tabular font-normal">{formatNumber(counts[s], locale)}</span></>))}
       </div>
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{ts("columns.ticket")}</TableHead>
-                <TableHead>{t("support.tenant")}</TableHead>
-                <TableHead>{ts("columns.status")}</TableHead>
-                <TableHead className="hidden md:table-cell">{ts("columns.updated")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((r) => (
-                <TableRow key={r.t.id} data-testid="admin-ticket-row">
-                  <TableCell>
-                    <Link href={`/admin/support/${r.t.id}`} className="font-medium hover:underline">#{r.t.number} · {r.t.subject}</Link>
-                    <p className="text-xs text-muted-foreground">{ts(`categories.${r.t.category}`)} · {r.authorEmail ?? "—"} · {ts("messages_n", { n: formatNumber(r.messages, locale) })}</p>
-                  </TableCell>
-                  <TableCell className="text-sm"><Link href={`/admin/support?tenant=${r.t.tenantId}`} className="hover:underline">{r.tenantName}</Link></TableCell>
-                  <TableCell><Badge variant={STATUS_VARIANT[r.t.status] ?? "muted"}>{ts(`statuses.${r.t.status}`)}</Badge></TableCell>
-                  <TableCell className="hidden whitespace-nowrap text-xs md:table-cell">{formatDateTime(r.t.lastMessageAt, locale, "UTC")}</TableCell>
-                </TableRow>
-              ))}
-              {rows.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-sm text-muted-foreground">{t("support.empty")}</TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+          {rows.length === 0 ? <p className="p-4 text-sm text-muted-foreground">{t("support.empty")}</p> : (
+            <DataList
+              rows={rows}
+              rowKey={(r) => r.t.id}
+              rowProps={() => ({ "data-testid": "admin-ticket-row" })}
+              columns={[
+                { key: "ticket", header: ts("columns.ticket"), mobile: "title", cell: (r) => <>
+                  <Link href={`/admin/support/${r.t.id}`} className="font-medium hover:underline">#{r.t.number} · {r.t.subject}</Link>
+                  <p className="text-xs font-normal text-muted-foreground">{ts(`categories.${r.t.category}`)} · <span className="break-all">{r.authorEmail ?? "—"}</span> · {ts("messages_n", { n: formatNumber(r.messages, locale) })}</p>
+                </> },
+                { key: "tenant", header: t("support.tenant"), className: "text-sm", cell: (r) => <Link href={`/admin/support?tenant=${r.t.tenantId}`} className="hover:underline">{r.tenantName}</Link> },
+                { key: "status", header: ts("columns.status"), mobile: "badge", cell: (r) => <Badge variant={STATUS_VARIANT[r.t.status] ?? "muted"}>{ts(`statuses.${r.t.status}`)}</Badge> },
+                { key: "updated", header: ts("columns.updated"), priority: 2, className: "whitespace-nowrap text-xs", cell: (r) => formatDateTime(r.t.lastMessageAt, locale, "UTC") },
+              ]}
+            />
+          )}
         </CardContent>
       </Card>
     </>
   );
 }
+
+export default withIntl(AdminSupportPage, "app/admin/support/page.tsx");

@@ -10,7 +10,8 @@ import { StatusBadge } from "@/components/status-badge";
 import { ListToolbar } from "@/components/lists/list-toolbar";
 import { PoFiltersBar } from "./filters";
 
-export default async function PurchasingPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function PurchasingPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "purchasing");
@@ -64,11 +65,11 @@ export default async function PurchasingPage({ params, searchParams }: { params:
       {/* status views: one scrolling row on phones (#49) */}
       <div className="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:px-0" data-testid="status-chips">
         <Link href={link({ status: undefined })} className={cn("shrink-0 rounded-full border px-3 py-1 text-xs pointer-coarse:min-h-9 pointer-coarse:py-2", !sp.status ? "bg-primary text-primary-foreground" : "bg-card")}>
-          {t("all")} <span className="tabular opacity-70">{Object.values(counts).reduce((a, b) => a + b, 0)}</span>
+          {t("all")} <span className="tabular font-normal">{Object.values(counts).reduce((a, b) => a + b, 0)}</span>
         </Link>
         {["draft", "sent", "confirmed", "in_transit", "partially_received", "received", "cancelled"].filter((s) => counts[s]).map((s) => (
           <Link key={s} href={link({ status: sp.status === s ? undefined : s })} className={cn("shrink-0 rounded-full border px-3 py-1 text-xs pointer-coarse:min-h-9 pointer-coarse:py-2", sp.status === s ? "bg-primary text-primary-foreground" : "bg-card")}>
-            {tps(s)} <span className="tabular opacity-70">{counts[s]}</span>
+            {tps(s)} <span className="tabular font-normal">{counts[s]}</span>
           </Link>
         ))}
       </div>
@@ -100,3 +101,5 @@ export default async function PurchasingPage({ params, searchParams }: { params:
     </>
   );
 }
+
+export default withIntl(PurchasingPage, "app/t/[tenant]/purchasing/page.tsx");
