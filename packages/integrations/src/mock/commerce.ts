@@ -63,7 +63,7 @@ export interface MockCommerceOptions {
   customers: NormalizedCustomer[];
   startOrderNumber: number;
   webhookSecret?: string;
-  /** Starting stock per inventory item and location (the tenant's levels); unknown pairs get a random level on first read. */
+  /** Starting stock per inventory item and location (the tenant's levels); an item it lists reads 0 at its other locations; items it does not list get a random level on first read. */
   inventory?: { inventoryItemExternalId: string; locationExternalId: string; available: number }[];
   /** The tenant's recent orders paid through the processor: payouts and fees are built from them (plus orders the mock creates). */
   paymentOrders?: MockPaymentOrder[];
@@ -99,13 +99,18 @@ export class MockCommercePlatform implements CommercePlatform {
 
   /** The store's products, by external id (issue #19). */
   private catalog = new Map<string, NormalizedProduct>();
+  /** Inventory items the tenant's starting stock mentions. */
+  private readonly knownItems = new Set<string>();
   private mediaSeq = 9_000_000;
 
   constructor(private readonly opts: MockCommerceOptions) {
     this.rng = createRng(opts.seed ?? 42);
     this.nextNumber = opts.startOrderNumber;
     this.webhookSecret = opts.webhookSecret ?? "mock-webhook-secret";
-    for (const l of opts.inventory ?? []) this.stock.set(`${l.inventoryItemExternalId}@${l.locationExternalId}`, l.available);
+    for (const l of opts.inventory ?? []) {
+      this.stock.set(`${l.inventoryItemExternalId}@${l.locationExternalId}`, l.available);
+      this.knownItems.add(l.inventoryItemExternalId);
+    }
     if (opts.products) for (const p of opts.products) this.catalog.set(p.externalId, structuredClone(p));
     else
       for (const v of opts.variants) {
@@ -332,7 +337,8 @@ export class MockCommercePlatform implements CommercePlatform {
       for (const loc of this.opts.locations) {
         if (!loc.isActive) continue;
         const key = `${id}@${loc.externalId}`;
-        if (!this.stock.has(key)) this.stock.set(key, this.rng.int(0, 60));
+        // an item the tenant already stocks somewhere is simply not held at a new location; only unknown items get a random level
+        if (!this.stock.has(key)) this.stock.set(key, this.knownItems.has(id) ? 0 : this.rng.int(0, 60));
         out.push({ inventoryItemExternalId: id, locationExternalId: loc.externalId, available: this.stock.get(key)!, onHand: null, committed: null, updatedAt: new Date() });
       }
     return out;

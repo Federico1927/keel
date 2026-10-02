@@ -274,3 +274,16 @@ describe("MockAdsPlatform as TikTok", () => {
   });
 });
 
+
+describe("MockCommercePlatform starting stock", () => {
+  it("keeps the tenant's levels, reads 0 where a known item is not stocked, and invents stock only for unknown items", async () => {
+    const locations = [{ externalId: "loc-1", name: "Main", country: "US", isDefault: true, isActive: true }, { externalId: "loc-2", name: "Showroom", country: "US", isDefault: false, isActive: true }];
+    const p = new MockCommercePlatform({ currency: "USD", country: "US", orderNumberPrefix: "T-", startOrderNumber: 1, locations, customers: [], variants: [], inventory: [{ inventoryItemExternalId: "inv-known", locationExternalId: "loc-1", available: 3 }] });
+    const levels = await p.fetchInventoryLevels(["inv-known", "inv-new"]);
+    const of = (id: string, loc: string) => levels.find((l) => l.inventoryItemExternalId === id && l.locationExternalId === loc)?.available;
+    expect(of("inv-known", "loc-1")).toBe(3);
+    expect(of("inv-known", "loc-2")).toBe(0);
+    expect(of("inv-new", "loc-1")).toBeGreaterThanOrEqual(0);
+    expect(levels).toHaveLength(4);
+  });
+});
