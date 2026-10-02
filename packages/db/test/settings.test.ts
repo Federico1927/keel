@@ -42,6 +42,15 @@ describe("demo settings step (db:seed:settings)", () => {
     expect(again.every((r) => r.created.length === 0)).toBe(true);
   });
 
+  it("renames the platform demo users created before the product rename, once, never onto a taken address", async () => {
+    await pools.admin.execute(sql`update users set email = 'superadmin@keel.demo' where email = 'superadmin@hullwise.demo'`);
+    const report = await ensureDemoSettings(pools.admin);
+    expect(report.find((r) => r.tenant === "platform")?.created).toEqual(["user_email:superadmin@hullwise.demo"]);
+    const rows = await pools.admin.select({ email: schema.users.email }).from(schema.users).where(sql`${schema.users.email} in ('superadmin@keel.demo', 'superadmin@hullwise.demo')`);
+    expect(rows.map((r) => r.email)).toEqual(["superadmin@hullwise.demo"]);
+    expect((await ensureDemoSettings(pools.admin)).find((r) => r.tenant === "platform")).toBeUndefined();
+  });
+
   it("gives every demo product a gallery served by the app and the Shopify mirror, without touching edited ones (issue #19)", async () => {
     const harbor = ctx.tenantIds.harbor;
     const products = await pools.admin.select().from(schema.products).where(eq(schema.products.tenantId, harbor));
