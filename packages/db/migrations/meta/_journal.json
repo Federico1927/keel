@@ -239,13 +239,6 @@
       "when": 1790907561925,
       "tag": "0033_exotic_molten_man",
       "breakpoints": true
-    },
-    {
-      "idx": 34,
-      "version": "7",
-      "when": 1790908103295,
-      "tag": "0034_real_agent_zero",
-      "breakpoints": true
     }
   ]
 }
