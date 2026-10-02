@@ -31,6 +31,7 @@ export * from "./return-portal";
 export * from "./returns-policy";
 export * from "./predictions";
 export * from "./retention";
+export * from "./customer-campaigns";
 export * from "./pixel";
 export * from "./survey";
 export * from "./assistant";

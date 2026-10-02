@@ -1,18 +1,46 @@
 import { and, desc, eq, inArray, schema, sql, type SQL } from "@keel/db";
-import { SALE_STATUSES, assignHoldout, isGroup, rfmTier, segmentFieldCatalog, validateSegmentRules, type CustomerProfile, type RfmTier, type SegmentGroup, type SegmentLeaf } from "@keel/core";
+import { OPEN_STATUSES, SALE_STATUSES, assignHoldout, isGroup, rfmTier, segmentFieldCatalog, validateSegmentRules, type CustomerProfile, type RfmTier, type SegmentGroup, type SegmentLeaf } from "@keel/core";
 import type { ServiceContext } from "../context";
 import { customerPrediction, type CustomerPredictionView } from "./predictions";
 
 const SALE = SALE_STATUSES as readonly string[];
+const OPEN = OPEN_STATUSES as readonly string[];
 const RETURNED = ["returned", "returned_partial", "refunded"];
+
+/**
+ * Profile columns that need their own scan of order lines or exposures (#34): computed only when
+ * a rule reads them (or a caller asks for the full profile), so lists and RFM stay as fast as before.
+ */
+export interface ProfileExtras {
+  categories?: boolean;
+  options?: boolean;
+  marketing?: boolean;
+}
+const ALL_EXTRAS: ProfileExtras = { categories: true, options: true, marketing: true };
+
+/** The extras a rule tree reads. */
+export function extrasForRules(rules: SegmentGroup | null): ProfileExtras {
+  const out: ProfileExtras = {};
+  const walk = (g: SegmentGroup) => {
+    for (const c of g.conditions) {
+      if (isGroup(c)) walk(c);
+      else if (c.field === "bought_category") out.categories = true;
+      else if (c.field === "dominant_option") out.options = true;
+      else if (c.field === "days_since_last_marketing") out.marketing = true;
+    }
+  };
+  if (rules) walk(rules);
+  return out;
+}
 
 /**
  * Customer profile: one row per customer with everything the segment fields read, computed
  * from Keel's canonical orders (sale scope = same rule as the P/L) and the customer row.
  * Returned as a CTE body so list, preview, evaluation and RFM all share one definition.
  */
-function profileCte(ctx: ServiceContext, now: Date, onlyCustomers?: string[]): SQL {
+function profileCte(ctx: ServiceContext, now: Date, onlyCustomers?: string[], extras: ProfileExtras = {}): SQL {
   const t = ctx.tenantId;
+  const days = (col: SQL) => sql`floor(extract(epoch from (${now}::timestamptz - ${col})) / 86400)::int`;
   // restricting every branch (not just the outer select) keeps incremental evaluation cheap
   const only = (col: SQL) => (onlyCustomers ? sql` and ${col} = any(${sql.param(onlyCustomers)}::uuid[])` : sql``);
   return sql`
@@ -32,7 +60,12 @@ function profileCte(ctx: ServiceContext, now: Date, onlyCustomers?: string[]): S
       cp.churn_risk,
       (cp.p_alive * 100)::float8 as p_alive_pct,
       cp.predicted_value_365_minor as predicted_value,
-      case when cp.next_order_at is null then null else floor(extract(epoch from (cp.next_order_at - ${now}::timestamptz)) / 86400)::int end as days_to_next_order
+      case when cp.next_order_at is null then null else floor(extract(epoch from (cp.next_order_at - ${now}::timestamptz)) / 86400)::int end as days_to_next_order,
+      coalesce(a.open_orders, 0)::int as open_orders,
+      coalesce(a.order_ages, '{}'::int[]) as order_ages,
+      ${extras.categories ? sql`coalesce(cat.category_last_days, '{}'::jsonb)` : sql`'{}'::jsonb`} as category_last_days,
+      ${extras.options ? sql`coalesce(dom.dominant_options, '{}'::jsonb)` : sql`'{}'::jsonb`} as dominant_options,
+      ${extras.marketing ? sql`case when mk.last_at is null then null else ${days(sql`mk.last_at`)} end` : sql`null::int`} as days_since_last_marketing
     from customers c
     left join customer_predictions cp on cp.customer_id = c.id and cp.tenant_id = ${t}
     left join (
@@ -43,7 +76,9 @@ function profileCte(ctx: ServiceContext, now: Date, onlyCustomers?: string[]): S
         coalesce(sum(o.total_minor) filter (where o.status in ${SALE}), 0) as total_spent,
         max(o.placed_at) filter (where o.status in ${SALE}) as last_order_at,
         min(o.placed_at) filter (where o.status in ${SALE}) as first_order_at,
-        array_agg(distinct o.payment_method) filter (where o.status in ${SALE}) as payment_methods
+        array_agg(distinct o.payment_method) filter (where o.status in ${SALE}) as payment_methods,
+        count(*) filter (where o.status in ${OPEN}) as open_orders,
+        array_agg(${days(sql`o.placed_at`)} order by o.placed_at) filter (where o.status in ${SALE}) as order_ages
       from orders o where o.tenant_id = ${t} and o.customer_id is not null and o.replaced_by_order_id is null${only(sql`o.customer_id`)} group by o.customer_id
     ) a on a.customer_id = c.id
     left join (
@@ -53,6 +88,27 @@ function profileCte(ctx: ServiceContext, now: Date, onlyCustomers?: string[]): S
       from orders o join order_lines l on l.order_id = o.id left join products p on p.id = l.product_id
       where o.tenant_id = ${t} and o.customer_id is not null and o.status in ${SALE}${only(sql`o.customer_id`)} group by o.customer_id
     ) pr on pr.customer_id = c.id
+    ${extras.categories ? sql`left join (
+      select x.customer_id, jsonb_object_agg(x.product_type, x.d) as category_last_days from (
+        select o.customer_id, p.product_type, min(${days(sql`o.placed_at`)}) as d
+        from orders o join order_lines l on l.order_id = o.id join products p on p.id = l.product_id
+        where o.tenant_id = ${t} and o.customer_id is not null and o.status in ${SALE} and p.product_type is not null${only(sql`o.customer_id`)} group by 1, 2
+      ) x group by x.customer_id
+    ) cat on cat.customer_id = c.id` : sql``}
+    ${extras.options ? sql`left join (
+      select y.customer_id, jsonb_object_agg(y.k, y.v) as dominant_options from (
+        select distinct on (x.customer_id, x.k) x.customer_id, x.k, x.v from (
+          select o.customer_id, e.key as k, e.value as v, sum(l.quantity) as q
+          from orders o join order_lines l on l.order_id = o.id join product_variants pv on pv.id = l.variant_id
+          cross join lateral jsonb_each_text(case when jsonb_typeof(pv.option_values) = 'object' then pv.option_values else '{}'::jsonb end) e
+          where o.tenant_id = ${t} and o.customer_id is not null and o.status in ${SALE}${only(sql`o.customer_id`)} group by 1, 2, 3
+        ) x order by x.customer_id, x.k, x.q desc, x.v collate "C"
+      ) y group by y.customer_id
+    ) dom on dom.customer_id = c.id` : sql``}
+    ${extras.marketing ? sql`left join (
+      select e.customer_id, max(coalesce(e.sent_at, e.exposed_at)) as last_at from retention_exposures e
+      where e.tenant_id = ${t} and e.status = 'sent'${only(sql`e.customer_id`)} group by 1
+    ) mk on mk.customer_id = c.id` : sql``}
     where c.tenant_id = ${t}${only(sql`c.id`)}`;
 }
 
@@ -93,7 +149,16 @@ const FIELD_SQL: Record<string, SQL> = {
   predicted_value: sql`p.predicted_value`,
   days_to_next_order: sql`p.days_to_next_order`,
   random_pct: sql`p.random_pct`,
+  open_order: sql`(p.open_orders > 0)`,
+  days_since_last_marketing: sql`p.days_since_last_marketing`,
 };
+
+/** Expression for a leaf: the static column, or one built from the leaf's parameter (option name, look-back days). */
+function fieldExpr(leaf: SegmentLeaf): SQL | undefined {
+  if (leaf.field === "bought_category") return sql`array(select e.key from jsonb_each_text(p.category_last_days) e${leaf.days === undefined ? sql`` : sql` where e.value::int <= ${leaf.days}`})`;
+  if (leaf.field === "dominant_option") return sql`(p.dominant_options ->> ${leaf.option ?? ""})`;
+  return FIELD_SQL[leaf.field];
+}
 
 export class SegmentRuleError extends Error {
   constructor(public readonly errors: { path: string; code: string }[]) {
@@ -124,7 +189,12 @@ function uuidArray(v: unknown): SQL {
 
 function compileLeaf(leaf: SegmentLeaf): SQL {
   const def = segmentFieldCatalog()[leaf.field];
-  const expr = FIELD_SQL[leaf.field];
+  if (def?.type === "day_window") {
+    const [from, to] = leaf.value as number[];
+    const hit = sql`exists (select 1 from unnest(p.order_ages) a where a between ${from} and ${to})`;
+    return leaf.op === "none" ? sql`not ${hit}` : hit;
+  }
+  const expr = fieldExpr(leaf);
   if (!def || !expr) throw new SegmentRuleError([{ path: leaf.field, code: "unknown_field" }]);
   const v = leaf.value;
   switch (leaf.op) {
@@ -172,6 +242,11 @@ type ProfileRow = {
   p_alive_pct: number | null;
   predicted_value: number | null;
   days_to_next_order: number | null;
+  open_orders: number;
+  order_ages: number[] | null;
+  category_last_days: Record<string, number> | null;
+  dominant_options: Record<string, string> | null;
+  days_since_last_marketing: number | null;
 };
 
 export interface CustomerRow extends CustomerProfile {
@@ -199,6 +274,7 @@ function toRow(r: ProfileRow): CustomerRow {
     platformCreatedAt: toDate(r.platform_created_at), acceptsMarketing: r.accepts_marketing, tags: r.tags ?? [], paymentMethods: r.payment_methods ?? [],
     productIds: r.product_ids ?? [], productTypes: r.product_types ?? [], randomPct: r.random_pct, tier: rfmTier(r.orders_count, r.days_since_last_order),
     churnRisk: r.churn_risk, pAlivePct: r.p_alive_pct === null ? null : Number(r.p_alive_pct), predictedValueMinor: r.predicted_value, daysToNextOrder: r.days_to_next_order,
+    openOrders: Number(r.open_orders ?? 0), orderAges: (r.order_ages ?? []).map(Number), categoryLastDays: r.category_last_days ?? {}, dominantOptions: r.dominant_options ?? {}, daysSinceLastMarketing: r.days_since_last_marketing,
   };
 }
 
@@ -241,10 +317,10 @@ export async function listCustomers(ctx: ServiceContext, f: CustomerFilters = {}
 }
 
 /** All profiles (or a subset) as the pure core type; used for RFM and for parity tests. */
-export async function customerProfiles(ctx: ServiceContext, customerIds?: string[]): Promise<CustomerRow[]> {
+export async function customerProfiles(ctx: ServiceContext, customerIds?: string[], opts: { extended?: boolean } = {}): Promise<CustomerRow[]> {
   const now = ctx.now ?? new Date();
   const filter = customerIds ? sql`where p.customer_id = any(${sql.param(customerIds)}::uuid[])` : sql``;
-  const rows = await ctx.tx.execute<ProfileRow>(sql`with p as materialized (${profileCte(ctx, now)}) select p.* from p ${filter}`);
+  const rows = await ctx.tx.execute<ProfileRow>(sql`with p as materialized (${profileCte(ctx, now, undefined, opts.extended ? ALL_EXTRAS : {})}) select p.* from p ${filter}`);
   return rows.rows.map(toRow);
 }
 
@@ -258,8 +334,9 @@ export interface SegmentPreview {
 export async function previewSegment(ctx: ServiceContext, rules: unknown, sampleSize = 20): Promise<SegmentPreview> {
   const now = ctx.now ?? new Date();
   const where = compileSegmentRules(rules);
-  const agg = await ctx.tx.execute<{ n: number; c: number }>(sql`with p as materialized (${profileCte(ctx, now)}) select count(*)::int as n, count(*) filter (where p.accepts_marketing)::int as c from p where ${where}`);
-  const sample = await ctx.tx.execute<ProfileRow>(sql`with p as materialized (${profileCte(ctx, now)}) select p.* from p where ${where} order by hashtext(p.customer_id::text) limit ${sampleSize}`);
+  const extras = extrasForRules(validateSegmentRules(rules).rules);
+  const agg = await ctx.tx.execute<{ n: number; c: number }>(sql`with p as materialized (${profileCte(ctx, now, undefined, extras)}) select count(*)::int as n, count(*) filter (where p.accepts_marketing)::int as c from p where ${where}`);
+  const sample = await ctx.tx.execute<ProfileRow>(sql`with p as materialized (${profileCte(ctx, now, undefined, extras)}) select p.* from p where ${where} order by hashtext(p.customer_id::text) limit ${sampleSize}`);
   return {
     count: agg.rows[0]?.n ?? 0,
     contactable: agg.rows[0]?.c ?? 0,
@@ -300,7 +377,7 @@ export async function evaluateSegment(ctx: ServiceContext, segmentId: string): P
   const [segment] = await ctx.tx.select().from(schema.segments).where(and(eq(schema.segments.tenantId, ctx.tenantId), eq(schema.segments.id, segmentId))).limit(1);
   if (!segment) throw new Error("segment_not_found");
   const where = compileSegmentRules(segment.rules);
-  const matches = await ctx.tx.execute<{ customer_id: string }>(sql`with p as materialized (${profileCte(ctx, now)}) select p.customer_id from p where ${where}`);
+  const matches = await ctx.tx.execute<{ customer_id: string }>(sql`with p as materialized (${profileCte(ctx, now, undefined, extrasForRules(validateSegmentRules(segment.rules).rules))}) select p.customer_id from p where ${where}`);
   const ids = matches.rows.map((r) => r.customer_id);
   const idSet = new Set(ids);
   const existing = await ctx.tx.select({ customerId: schema.segmentMemberships.customerId, groupName: schema.segmentMemberships.groupName }).from(schema.segmentMemberships).where(eq(schema.segmentMemberships.segmentId, segmentId));
@@ -372,7 +449,7 @@ export async function evaluateSegmentForCustomers(ctx: ServiceContext, segmentId
   let removed = 0;
   if (customerIds.length) {
     const where = compileSegmentRules(segment.rules);
-    const matches = await ctx.tx.execute<{ customer_id: string }>(sql`with p as materialized (${profileCte(ctx, now, customerIds)}) select p.customer_id from p where ${where}`);
+    const matches = await ctx.tx.execute<{ customer_id: string }>(sql`with p as materialized (${profileCte(ctx, now, customerIds, extrasForRules(validateSegmentRules(segment.rules).rules))}) select p.customer_id from p where ${where}`);
     const matching = new Set(matches.rows.map((r) => r.customer_id));
     const existing = await ctx.tx.select({ customerId: schema.segmentMemberships.customerId }).from(schema.segmentMemberships).where(and(eq(schema.segmentMemberships.segmentId, segmentId), inArray(schema.segmentMemberships.customerId, customerIds)));
     const present = new Set(existing.map((e) => e.customerId));

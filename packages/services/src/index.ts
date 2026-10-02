@@ -33,6 +33,8 @@ export * from "./billing";
 export * from "./planning";
 export * from "./crm/predictions";
 export * from "./crm/campaigns";
+export * from "./crm/campaign-send";
+export * from "./crm/insights";
 export * from "./crm/destinations";
 export * from "./tracking/pixel";
 export * from "./tracking/conversions";

@@ -14,6 +14,7 @@ export const QUEUES = {
   emailEvent: "email.event",
   billingEvent: "billing.event",
   tenantExport: "tenant.export",
+  campaignSend: "campaign.send",
 } as const;
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];
 
@@ -78,9 +79,14 @@ export interface TenantExportJob {
   tenantId: string;
   exportId: string;
 }
-export const TICK_KINDS = ["delta", "ads", "reconcile", "retry", "billing", "cod", "alerts", "returns", "crm", "segments", "tracking", "tasks", "notify", "digest", "writes", "retention", "backorders", "emails", "payouts", "watchdog"] as const;
+/** One customer campaign's send queue (#34): a batch run within the window and the throttle, resumed by the next tick. */
+export interface CampaignSendJob {
+  tenantId: string;
+  campaignId: string;
+}
+export const TICK_KINDS = ["delta", "ads", "reconcile", "retry", "billing", "cod", "alerts", "returns", "crm", "segments", "tracking", "tasks", "notify", "digest", "writes", "retention", "backorders", "emails", "payouts", "watchdog", "campaigns"] as const;
 export interface TickJob {
-  /** delta (every 15 min) | ads (daily) | reconcile (nightly) | retry (every 10 min) | billing (daily) | writes (every minute: outbox retries) | retention (daily: platform rows, audit retention, expired exports, job history) | backorders (every 10 min: safety re-check) | emails (every 10 min: provider events left behind, lost queued emails) | payouts (daily: processor payouts and actual fees) | watchdog (every 10 min: stale and idle integration sources) */
+  /** delta (every 15 min) | ads (daily) | reconcile (nightly) | retry (every 10 min) | billing (daily) | writes (every minute: outbox retries) | retention (daily: platform rows, audit retention, expired exports, job history) | backorders (every 10 min: safety re-check) | emails (every 10 min: provider events left behind, lost queued emails) | payouts (daily: processor payouts and actual fees) | watchdog (every 10 min: stale and idle integration sources) | campaigns (every minute: scheduled customer campaigns start, sequences enrol, send queues resume) */
   kind: (typeof TICK_KINDS)[number];
 }
 

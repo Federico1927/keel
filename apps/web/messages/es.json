@@ -562,7 +562,8 @@
       "export_ready": "Exportación CSV lista",
       "other": "Otros",
       "platform_failure": "Trabajos en segundo plano que fallan",
-      "mcp_proposal": "Propuesta de un cliente de IA"
+      "mcp_proposal": "Propuesta de un cliente de IA",
+      "customer_campaign": "Campañas a clientes: aprobaciones y envíos"
     },
     "rendered": {
       "stock_critical_no_po": "{title} variantes en venta con stock crítico y ninguna orden de compra",
@@ -573,7 +574,11 @@
       "platform_failure": "El trabajo en segundo plano {title} sigue fallando",
       "source_idle": "{title} no ha sincronizado nada en sus últimas ejecuciones",
       "data_export_ready": "Tu exportación completa de datos está lista ({title} filas)",
-      "data_export_failed": "Tu exportación completa de datos ha fallado"
+      "data_export_failed": "Tu exportación completa de datos ha fallado",
+      "customer_campaign_approval_requested": "Campaña por aprobar: {title}",
+      "customer_campaign_approved": "Campaña aprobada: {title}",
+      "customer_campaign_rejected": "Campaña devuelta: {title}",
+      "customer_campaign_sent": "Campaña enviada: {title}"
     },
     "groups": {
       "collaboration": "Colaboración",
@@ -610,9 +615,9 @@
       }
     },
     "suppressions": {
-      "title": "Correos bloqueados",
-      "description": "Direcciones que no reciben correos de esta tienda: rebotes y quejas bloquean todos los correos, las bajas bloquean su categoría.",
-      "email": "Correo",
+      "title": "Lista de exclusión",
+      "description": "Direcciones y teléfonos que esta tienda nunca contacta: rebotes y quejas bloquean todo email, las bajas su categoría; las campañas a clientes omiten a cualquiera de la lista en cualquier canal.",
+      "email": "Email o teléfono",
       "category": "Categoría",
       "reason": "Motivo",
       "when": "Cuándo",
@@ -627,7 +632,10 @@
         "unsubscribe": "Dado de baja",
         "manual": "Añadido a mano"
       },
-      "supplier_po": "Órdenes de compra a proveedores"
+      "supplier_po": "Órdenes de compra a proveedores",
+      "marketing": "Campañas a clientes (marketing)",
+      "phone": "teléfono",
+      "identity_placeholder": "nombre@ejemplo.com o +34…"
     },
     "export_lists": {
       "orders": "pedidos",
@@ -2104,6 +2112,27 @@
       "members": "Miembros",
       "holdout": "Grupo de control",
       "evaluated": "Última evaluación"
+    },
+    "insights": {
+      "title": "Qué compran los miembros",
+      "description": "Pedidos confirmados y no cancelados de todos los miembros (ambos grupos).",
+      "avg_spent": "Gasto medio por miembro",
+      "buyers": "{n} de {of} han comprado",
+      "aov": "Valor medio del pedido",
+      "avg_orders": "Pedidos por miembro",
+      "reachable": "Contactables: email / teléfono",
+      "reachable_hint": "Con consentimiento de marketing",
+      "top_products": "Productos más comprados",
+      "top_categories": "Categorías más compradas",
+      "top_options": "Valores de opción más comprados",
+      "channels_title": "Canales de venta",
+      "units": "{n} unidades",
+      "customers_n": "{n} clientes",
+      "channels": {
+        "web": "Tienda online",
+        "pos": "Punto de venta",
+        "draft": "Pedidos manuales"
+      }
     }
   },
   "segment_builder": {
@@ -2171,7 +2200,12 @@
       "churn_risk": "Riesgo de abandono",
       "p_alive": "Probabilidad de seguir activo (%)",
       "predicted_value": "Valor previsto, próximos 12 meses",
-      "days_to_next_order": "Días hasta el próximo pedido esperado"
+      "days_to_next_order": "Días hasta el próximo pedido esperado",
+      "open_order": "Tiene un pedido abierto",
+      "bought_in_window": "Pidió en un periodo",
+      "bought_category": "Categoría comprada",
+      "dominant_option": "Valor de opción más comprado",
+      "days_since_last_marketing": "Días desde el último mensaje de campaña"
     },
     "ops": {
       "gte": "es al menos",
@@ -2198,6 +2232,14 @@
       "invalid_shape": "Reglas mal formadas.",
       "invalid_rules": "Reglas no válidas.",
       "forbidden": "No tienes permiso."
+    },
+    "option": "Opción",
+    "within_days": "en los últimos",
+    "ever": "siempre",
+    "days_ago": "días atrás",
+    "ops_window": {
+      "any": "tiene un pedido",
+      "none": "no tiene pedidos"
     }
   },
   "return_status": {
@@ -4712,7 +4754,7 @@
     "description": "Mensajes a un segmento, medidos contra el grupo de control del segmento: cuánto aportó cada campaña frente a no hacer nada.",
     "new": "Nueva campaña",
     "new_for_segment": "Nueva campaña",
-    "new_description": "Elige un segmento con grupo de control, escribe el mensaje y envía desde el borrador.",
+    "new_description": "Elige un segmento con grupo de control y escribe el mensaje; el borrador se prueba, se aprueba y luego se programa.",
     "empty_title": "Sin campañas",
     "empty_description": "Crea una desde un segmento con grupo de control para medir su efecto real.",
     "no_segments_title": "Sin segmentos",
@@ -4745,7 +4787,13 @@
     },
     "status": {
       "draft": "Borrador",
-      "sent": "Enviada"
+      "sent": "Enviada",
+      "pending_approval": "Pendiente de aprobación",
+      "approved": "Aprobada",
+      "scheduled": "Programada",
+      "sending": "Enviando",
+      "active": "Activa",
+      "paused": "En pausa"
     },
     "verdict": {
       "no_control": "Sin control",
@@ -4760,30 +4808,31 @@
       "message": "Mensaje",
       "discount_code": "Código de descuento (opcional)",
       "cost": "Coste por mensaje ({currency})",
-      "attribution_days": "Ventana de atribución (días)"
+      "attribution_days": "Ventana de atribución (días)",
+      "kind": "Tipo",
+      "exclude_open_orders": "Excluir a clientes con un pedido abierto"
     },
     "holdout_hint": "El {pct}% del segmento es el grupo de control y no se contactará.",
     "no_holdout_warning": "Este segmento no tiene grupo de control: la campaña se puede enviar pero su efecto no se puede medir. Configura primero un control en el segmento.",
     "message_hint": "{first_name} y {code} se sustituyen para cada cliente.",
     "create": "Crear borrador",
     "save_draft": "Guardar borrador",
-    "send": "Enviar…",
-    "confirm_title": "¿Enviar esta campaña?",
-    "confirm_description": "{treated} clientes la reciben, {holdout} quedan como grupo de control. Solo se incluyen clientes que aceptan marketing.",
+    "confirm_title": "¿Enviar la campaña a aprobación?",
+    "confirm_description": "Hoy la recibirían {treated} clientes y {holdout} quedarían como grupo de control.",
     "mde": "En una ventana pasada comparable compró el {baseline} de estos clientes. Con estos grupos la prueba puede detectar un efecto de aproximadamente {mde} o más.",
-    "confirm_send": "Enviar ahora",
-    "draft_title": "Borrador",
-    "draft_description": "Editable hasta el envío. Enviar reevalúa el segmento y fija los grupos.",
     "delivery_title": "Entrega",
     "sent_on": "Enviada el {at}",
     "exposure": {
       "sent": "Entregados (tratados)",
       "failed": "Fallidos (tratados)",
       "skipped": "Sin dirección (tratados)",
-      "held_out": "Grupo de control"
+      "held_out": "Grupo de control",
+      "queued": "En cola (tratados)",
+      "sending": "Enviándose (tratados)",
+      "suppressed": "Bloqueados en el envío (tratados)"
     },
     "method_title": "Cómo se mide",
-    "method_note": "Cada cliente del segmento que acepta marketing es tratado o de control, fijado antes del envío. Los resultados comparan pedidos confirmados y no cancelados en los {days} días posteriores al envío, contando a todo cliente tratado aunque el mensaje fallara, para que la comparación sea justa. Incremental = diferencia por cliente × clientes tratados.",
+    "method_note": "Cada cliente elegible del segmento es tratado o de control, fijado al iniciar el envío; los excluidos (sin consentimiento, en la lista de exclusión, por encima del límite, con pedido abierto, en otra medición) no están en ningún grupo. Los resultados comparan pedidos confirmados y no cancelados en los {days} días tras la exposición, contando a cada tratado aunque el mensaje fallara, para que la comparación sea justa. Incremental = diferencia por cliente × clientes tratados.",
     "window_open": "Ventana de atribución abierta hasta el {at}: los resultados aún pueden cambiar.",
     "window_closed": "Definitivo: ventana cerrada el {at}.",
     "no_holdout_result": "Sin grupo de control: los números muestran lo que hicieron los clientes tratados, no lo que causó la campaña.",
@@ -4805,10 +4854,133 @@
     "code_redemptions": "{n} pedidos usaron el código {code}.",
     "errors": {
       "not_found": "Campaña no encontrada.",
-      "already_sent": "La campaña ya se envió.",
       "no_segment": "Elige un segmento.",
       "empty_segment": "Ningún cliente del segmento acepta marketing.",
-      "invalid_input": "Revisa los campos."
+      "invalid_input": "Revisa los campos.",
+      "not_editable": "Solo se puede cambiar un borrador: vuelve primero a borrador.",
+      "invalid_transition": "Este paso no es posible en el estado actual de la campaña.",
+      "not_allowed": "Tu rol no puede aprobar campañas.",
+      "own_campaign": "No puedes aprobar una campaña que creaste o enviaste a aprobación.",
+      "sequence_needs_holdout": "Una secuencia necesita un segmento con grupo de control (holdout mayor que 0%).",
+      "manual_channel": "Una campaña enviada desde otra herramienta se registra, no se aprueba ni se prueba.",
+      "no_recipients": "Elige al menos un destinatario (máximo 10).",
+      "note_required": "Escribe una nota para el autor."
+    },
+    "kinds": {
+      "one_off": "Envío único",
+      "sequence": "Secuencia automática"
+    },
+    "kind_hint": {
+      "one_off": "Se envía una vez al segmento, a la hora que programes tras la aprobación.",
+      "sequence": "Funciona sola: cada cliente que entra en el segmento (por ejemplo 120 días después de su último pedido) recibe el mensaje una vez. El grupo de control del segmento es permanente."
+    },
+    "exclude_open_orders_hint": "Quien tiene un pedido aún en curso no recibe la invitación; queda fuera de ambos grupos.",
+    "confirm_record_title": "¿Registrar la campaña como enviada?",
+    "exclusions": {
+      "title": "{members} miembros hoy, excluidos por motivo:",
+      "no_consent": "Sin consentimiento de marketing",
+      "suppressed": "En la lista de exclusión",
+      "over_cap": "Por encima del límite de frecuencia",
+      "open_order": "Pedido abierto",
+      "in_measurement": "En la medición de otra campaña",
+      "holdout": "Grupo de control (no contactados)",
+      "no_address": "Tratados sin dirección para el canal",
+      "waiting_title": "Esperando para entrar",
+      "left_out_title": "Excluidos en el envío"
+    },
+    "workflow": {
+      "test": "Envío de prueba…",
+      "submit": "Vista previa y enviar a aprobación…",
+      "record": "Registrar como enviada…",
+      "approve": "Aprobar",
+      "reject": "Devolver…",
+      "schedule": "Programar…",
+      "activate": "Activar",
+      "pause": "Pausar",
+      "unschedule": "Cancelar programación",
+      "reopen": "Volver a borrador",
+      "submit_hint": "La aprueba un owner, un admin u otro usuario de marketing; luego se programa y la cola la envía dentro de la franja horaria y del límite por minuto.",
+      "record_confirm": "Registrar ahora",
+      "submit_confirm": "Enviar a aprobación",
+      "test_title": "Envío de prueba",
+      "test_description": "Solo a personas de la tienda, nunca a clientes. El mensaje usa su nombre y el código.",
+      "test_phone": "Tu número de teléfono",
+      "test_sent": "{n} mensajes de prueba enviados.",
+      "test_send": "Enviar prueba",
+      "close": "Cerrar",
+      "reject_title": "Devolver al autor",
+      "reject_description": "La campaña vuelve a borrador con tu nota.",
+      "note": "Nota",
+      "reject_confirm": "Devolver",
+      "schedule_title": "Programar el envío",
+      "schedule_description": "Los mensajes salen solo entre {window}; una hora fuera de la franja empieza en la siguiente apertura.",
+      "schedule_at": "Enviar a las (hora de la tienda)",
+      "schedule_hint": "Déjalo vacío para empezar en cuanto la franja lo permita.",
+      "schedule_confirm": "Programar",
+      "schedule_now": "Enviar lo antes posible",
+      "title": "Flujo",
+      "approval_you": "Puedes aprobarla o devolverla.",
+      "approval_waiting": "Esperando aprobación: no puedes aprobar tu propia campaña.",
+      "approval_others": "Esperando que un owner, admin o usuario de marketing la apruebe.",
+      "starts_at": "Empieza {at} (franja de envío {window}).",
+      "review_note": "Revisión: {note}",
+      "sent_back": "Devuelta para cambios: {note}",
+      "steps": {
+        "created": "Creada",
+        "tested": "Prueba enviada",
+        "submitted": "Enviada a aprobación",
+        "approved": "Aprobada",
+        "scheduled": "Programada para",
+        "started": "Envío iniciado",
+        "activated": "Activada",
+        "completed": "Último mensaje enviado"
+      }
+    },
+    "stage": {
+      "draft": {
+        "title": "Borrador",
+        "description": "Editable hasta enviarla a aprobación. Pruébala, mira quién la recibiría y envíala a aprobación."
+      },
+      "pending_approval": {
+        "title": "Pendiente de aprobación",
+        "description": "Bloqueada durante la revisión. Vuelve a borrador para cambiarla."
+      },
+      "approved": {
+        "title": "Aprobada",
+        "description": "Lista para programar (envío único) o activar (secuencia)."
+      },
+      "scheduled": {
+        "title": "Programada",
+        "description": "A la hora programada el job reevalúa el segmento, fija los grupos y envía dentro de la franja horaria y el límite por minuto."
+      }
+    },
+    "activated_on": "Activa desde {at}",
+    "progress": {
+      "sending": "Enviando",
+      "done": "Completado",
+      "throttle": "Hasta {n} mensajes por minuto, entre {window}."
+    },
+    "settings": {
+      "link": "Ajustes de campañas",
+      "title": "Ajustes de campañas",
+      "description": "Reglas que siguen todas las campañas de la tienda. Las horas están en la zona horaria de la tienda ({timezone}).",
+      "cap_title": "Límite de frecuencia",
+      "cap_description": "Nadie recibe más de estos mensajes de campaña en estos días; quien lo supera queda excluido y se cuenta.",
+      "window_title": "Franja de envío",
+      "window_description": "Los mensajes salen solo entre estas horas; un envío que llega al final sigue a la mañana siguiente.",
+      "throttle_title": "Mensajes por minuto",
+      "throttle_description": "Por canal, para todas las campañas juntas: el límite del proveedor o menos.",
+      "lock_hint": "Mientras la ventana de atribución de una campaña está abierta, sus clientes tratados y de control quedan fuera de otras campañas, para no mezclar su efecto.",
+      "fields": {
+        "campaignFrequencyCap": "Mensajes como máximo",
+        "campaignFrequencyDays": "En días",
+        "campaignSendStartHour": "Desde la hora (0–23)",
+        "campaignSendEndHour": "Hasta la hora (1–24)",
+        "throttleEmail": "Email",
+        "throttleSms": "SMS",
+        "throttleWhatsapp": "WhatsApp",
+        "campaignMeasurementLock": "Bloquear a los clientes en medición"
+      }
     }
   },
   "destinations": {

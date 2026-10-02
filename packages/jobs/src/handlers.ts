@@ -1,9 +1,9 @@
 import { AD_PLATFORMS, OPERATIONAL_TENANT_STATUSES, isAdPlatform, isAdPlatformInPlan, isTenantOperational, platformRetentionDays } from "@keel/config";
 import { parseTenantSettings } from "@keel/core";
 import { adminDb, and, eq, inArray, lte, schema, withTenant } from "@keel/db";
-import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, runAdsEntitySync, rollupAdEntityMetrics } from "@keel/services";
+import { recheckOpenBackorders, checkCriticalStock, checkLateToShip, remindOverdueTasks, sendDigests, sweepTaskRules, enqueueConversions, getConversionSinkFor, sendDueConversions, stitchPixelSessions, getAudienceDestinationFor, recomputePredictions, refreshLiveSegments, syncAutoDestinations, applySuspensions, captureOverdueGuarantees, runListExport, evaluateAlertRules, purgeOrphanEvidence, returnsToSync, syncReturnToPlatform, executePlatformWrite, processDuePlatformWrites, purgeExpiredPlatformRows, getAdsPlatformFor, getCommercePlatformFor, issueDueInvoices, processWebhookEvent, retryFailedWebhooks, runAdsSync, runCatalogSync, runOrdersSync, runPayoutsSync, runReturnsSync, type ServiceContext, syncShipmentCases, deliverEmailJob, processEmailEvent, purgeEmailRows, retryEmailEvents, sweepLostEmails, processBillingEvent, retryBillingEvents, purgeBillingEvents, runWatchdog, raisePlatformAlert, resolveRecoveredSourceAlerts, runTenantExport, purgeExpiredAudit, purgeExpiredTenantExports, purgeJobRuns, type JobOutcome, runAdsEntitySync, rollupAdEntityMetrics, campaignTick, processCampaignSend, getMessagingChannelFor } from "@keel/services";
 import { distributeUnassigned, recomputeRecipientProfiles, scorePendingItems, syncQueue } from "@keel/addon-cod";
-import { adsWindow, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob, resyncJobsFor, type TenantExportJob } from "./queues";
+import { adsWindow, type CampaignSendJob, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob, resyncJobsFor, type TenantExportJob } from "./queues";
 
 export interface Enqueue {
   (queue: string, data: unknown, opts?: { singletonKey?: string; startAfterSeconds?: number }): Promise<void>;
@@ -143,8 +143,44 @@ export async function handleSyncAds(job: SyncAdsJob, enqueue?: Enqueue): Promise
   return { rows: campaigns + metrics, summary: { campaigns, metrics, phase: job.phase ?? "campaigns", entitiesFinished: e.finished } };
 }
 
+async function campaignTenant(tenantId: string) {
+  const [t] = await adminDb().select({ id: schema.tenants.id, timezone: schema.tenants.timezone, settings: schema.tenants.settings, status: schema.tenants.status }).from(schema.tenants).where(eq(schema.tenants.id, tenantId)).limit(1);
+  return t ? { id: t.id, timezone: t.timezone, settings: parseTenantSettings(t.settings), status: t.status } : null;
+}
+
+const hasCampaignsAddon = async (tenantId: string) => (await adminDb().select({ id: schema.tenantAddons.id }).from(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, tenantId), eq(schema.tenantAddons.moduleKey, "addon.customer_campaigns"), eq(schema.tenantAddons.isActive, true))).limit(1)).length > 0;
+
+/**
+ * One campaign's send queue (#34): batches within the send window and the channel throttle for up
+ * to 25 s. Provider errors are the queue's own retries (backoff per message), never pg-boss's; what
+ * is left goes on with the next minute's tick. Add-on switched off or tenant blocked: nothing is sent.
+ */
+export async function handleCampaignSend(job: CampaignSendJob): Promise<JobOutcome> {
+  const tenant = await campaignTenant(job.tenantId);
+  if (!tenant || !isTenantOperational(tenant.status) || !(await hasCampaignsAddon(tenant.id))) return { rows: 0, summary: { skipped: "not_enabled" } };
+  const r = await processCampaignSend(runner(tenant.id), tenant, job.campaignId, getMessagingChannelFor(tenant.id));
+  return { rows: r.sent, summary: { status: r.status, sent: r.sent, failed: r.failed, suppressed: r.suppressed, remaining: r.remaining } };
+}
+
 /** Fan-out: one job per connected tenant/provider, deduplicated by singleton key. */
 export async function handleTick(job: TickJob, enqueue: Enqueue): Promise<JobOutcome | void> {
+  if (job.kind === "campaigns") {
+    // customer campaigns (add-on): due one-offs start, sequences enrol, every delivering campaign gets its send job
+    const addons = await adminDb().select({ tenantId: schema.tenantAddons.tenantId }).from(schema.tenantAddons).where(and(eq(schema.tenantAddons.moduleKey, "addon.customer_campaigns"), eq(schema.tenantAddons.isActive, true)));
+    let started = 0, enrolled = 0, queued = 0;
+    for (const a of addons) {
+      const tenant = await campaignTenant(a.tenantId);
+      if (!tenant || !isTenantOperational(tenant.status)) continue;
+      const r = await campaignTick(runner(tenant.id), tenant);
+      started += r.started.length;
+      enrolled += r.enrolled;
+      for (const campaignId of r.delivering) {
+        await enqueue("campaign.send", { tenantId: tenant.id, campaignId } satisfies CampaignSendJob, { singletonKey: `campaign:${campaignId}` });
+        queued++;
+      }
+    }
+    return { rows: started + enrolled, summary: { started, enrolled, sendJobs: queued } };
+  }
   if (job.kind === "watchdog") {
     // stale and idle integration sources (#32): status, automatic resync, owner/admin notice, platform alert
     const tenants = await adminDb().select({ id: schema.tenants.id, status: schema.tenants.status, settings: schema.tenants.settings }).from(schema.tenants);

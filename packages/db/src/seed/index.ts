@@ -21,7 +21,7 @@ import { seedAdsDepth } from "./ads";
 import { seedTiktok } from "./tiktok";
 import { seedPlatformReliability, seedReliability } from "./reliability";
 import { createRng } from "@keel/integrations";
-import { SALE_STATUSES, allocateLandedCost, normalizePhone, runPredictionModel, type CustomerHistory } from "@keel/core";
+import { SALE_STATUSES, allocateLandedCost, assignHoldout, campaignMessageKey, normalizePhone, runPredictionModel, type CustomerHistory } from "@keel/core";
 import { MODULES, PLANS, PLATFORM_CURRENCY } from "@keel/config";
 import { encryptJson } from "@keel/integrations";
 import { sql } from "drizzle-orm";
@@ -347,7 +347,59 @@ async function seedRetentionCampaigns(db: ReturnType<typeof drizzle<typeof schem
     if (segId) await db.insert(schema.retentionCampaigns).values({ tenantId, name: "Benvenuto, secondo acquisto", segmentId: segId, channel: "email", message: "Ciao {first_name}, grazie per il primo ordine! Il codice {code} vale per il secondo.", discountCode: "SECONDO15", costPerMessageMinor: 2, attributionDays: 21, status: "draft", createdBy: sender });
     // an earlier newsletter sent from the email tool, with no measurable effect: the control group shows that too
     await send("Newsletter di primavera (inviata dallo strumento email)", "Clienti ricorrenti", "manual", "", null, 0, 75);
+    await seedCampaignWorkflow(db, ctx, tenantId, now, sender);
   }
+}
+
+/**
+ * Approval, scheduling and sequences (#34) on Northwind: an SMS reactivation waiting for the
+ * owner's approval (test already sent), an approved newsletter scheduled for tomorrow at 10:00, and
+ * an always-on win-back sequence active for 30 days on a live "inactive 120–150 days" segment with
+ * a permanent 15% control group, whose entrants were messaged as they arrived.
+ */
+async function seedCampaignWorkflow(db: ReturnType<typeof drizzle<typeof schema>>, ctx: SeedContext, tenantId: string, now: Date, sender: string | null) {
+  const owner = ctx.userIds["owner@northwind.demo"] ?? null;
+  const admin = ctx.userIds["admin@northwind.demo"] ?? null;
+  const segmentId = async (name: string) => (await db.select({ id: schema.segments.id }).from(schema.segments).where(and(eq(schema.segments.tenantId, tenantId), eq(schema.segments.name, name))).limit(1))[0]?.id ?? null;
+  const day = 864e5;
+  const highValue = await segmentId("Alto valore, inattivi 90gg");
+  if (highValue) {
+    const [c] = await db.insert(schema.retentionCampaigns).values({ tenantId, name: "Riattivazione alto valore -15%", segmentId: highValue, channel: "sms", message: "{first_name}, ti aspettiamo: -15% con il codice {code} fino a domenica.", discountCode: "TORNA15", costPerMessageMinor: 6, attributionDays: 14, status: "pending_approval", submittedAt: new Date(now.getTime() - 20 * 3600e3), submittedBy: sender, testSentAt: new Date(now.getTime() - 21 * 3600e3), testSentBy: sender, createdBy: sender, createdAt: new Date(now.getTime() - 26 * 3600e3) }).returning({ id: schema.retentionCampaigns.id });
+    const recipients = [owner, admin].filter((x): x is string => Boolean(x));
+    if (recipients.length) await db.insert(schema.notifications).values(recipients.map((userId) => ({ tenantId, userId, type: "customer_campaign", title: "Riattivazione alto valore -15%", body: "approval_requested", link: `/segments/campaigns/${c!.id}`, metadata: { event: "approval_requested", campaignId: c!.id }, createdAt: new Date(now.getTime() - 20 * 3600e3) })));
+  }
+  const repeat = await segmentId("Clienti ricorrenti");
+  if (repeat) {
+    // tomorrow at 10:00 in Rome (09:00 UTC in winter, 08:00 in summer: close enough for a demo, the window still applies)
+    const tomorrow = new Date(now.getTime() + day);
+    const at = new Date(Date.UTC(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth(), tomorrow.getUTCDate(), 8, 0));
+    await db.insert(schema.retentionCampaigns).values({ tenantId, name: "Nuova collezione autunno", segmentId: repeat, channel: "email", message: "Ciao {first_name}, è arrivata la nuova collezione: la vedi per primo.", costPerMessageMinor: 1, attributionDays: 14, status: "scheduled", submittedAt: new Date(now.getTime() - 3 * day), submittedBy: sender, approvedAt: new Date(now.getTime() - 2 * day), approvedBy: owner, scheduledAt: at, scheduledBy: sender, testSentAt: new Date(now.getTime() - 3 * day), testSentBy: sender, createdBy: sender, createdAt: new Date(now.getTime() - 4 * day) });
+  }
+  // the sequence's segment: inactive 120–150 days, live, 15% permanent control group
+  const rules = { match: "all", conditions: [{ field: "orders_count", op: "gte", value: 1 }, { field: "days_since_last_order", op: "between", value: [120, 150] }] };
+  const [seg] = await db.insert(schema.segments).values({ tenantId, name: "Inattivi da 120 giorni", description: "Ingresso nella sequenza di win-back automatica", rules, holdoutPercentage: 15, liveUpdates: true, lastEvaluatedAt: now, createdBy: sender }).returning({ id: schema.segments.id, salt: schema.segments.holdoutSalt });
+  const members = (await db.execute<{ customer_id: string; last_at: string; accepts_marketing: boolean; phone: string | null }>(sql`
+    select o.customer_id, max(o.placed_at) as last_at, bool_or(c.accepts_marketing) as accepts_marketing, max(c.phone_e164) as phone
+    from orders o join customers c on c.id = o.customer_id
+    where o.tenant_id = ${tenantId} and o.customer_id is not null and o.replaced_by_order_id is null and o.status in ${SALE_STATUSES as readonly string[]}
+    group by o.customer_id
+    having floor(extract(epoch from (${now}::timestamptz - max(o.placed_at))) / 86400) between 120 and 150
+    order by o.customer_id`)).rows;
+  const groups = members.map((m) => ({ ...m, group: assignHoldout(seg!.id, m.customer_id, 15, seg!.salt) }));
+  for (let i = 0; i < groups.length; i += 1000) await db.insert(schema.segmentMemberships).values(groups.slice(i, i + 1000).map((m) => ({ tenantId, segmentId: seg!.id, customerId: m.customer_id, groupName: m.group, evaluatedAt: now })));
+  await db.update(schema.segments).set({ lastCount: groups.length }).where(eq(schema.segments.id, seg!.id));
+  const activatedAt = new Date(now.getTime() - 30 * day);
+  const [sq] = await db.insert(schema.retentionCampaigns).values({ tenantId, name: "Win-back automatico a 120 giorni", segmentId: seg!.id, channel: "whatsapp", kind: "sequence", message: "Ciao {first_name}, è un po' che non ci vediamo: per te il 10% con {code}.", discountCode: "CIAO10", costPerMessageMinor: 4, attributionDays: 21, status: "active", submittedAt: new Date(activatedAt.getTime() - 2 * day), submittedBy: sender, approvedAt: new Date(activatedAt.getTime() - day), approvedBy: owner, sentAt: activatedAt, sentBy: sender, createdBy: sender, createdAt: new Date(activatedAt.getTime() - 3 * day) }).returning({ id: schema.retentionCampaigns.id });
+  // entrants: the day they reached 120 days without an order, with consent; no phone → skipped
+  const rows = groups.filter((m) => m.accepts_marketing).map((m) => {
+    const exposedAt = new Date(Math.max(activatedAt.getTime(), new Date(m.last_at).getTime() + 120 * day) + 9 * 3600e3);
+    const treated = m.group === "treated";
+    const status = !treated ? "held_out" : m.phone ? "sent" : "skipped";
+    return { tenantId, campaignId: sq!.id, customerId: m.customer_id, groupName: m.group, status, exposedAt: exposedAt.getTime() > now.getTime() ? now : exposedAt, sentAt: status === "sent" ? (exposedAt.getTime() > now.getTime() ? now : exposedAt) : null, messageId: status === "sent" ? `mock-msg-seed-${m.customer_id.slice(0, 8)}` : null, idempotencyKey: treated && m.phone ? campaignMessageKey(sq!.id, m.customer_id, "whatsapp") : null, attempts: status === "sent" ? 1 : 0 };
+  });
+  for (let i = 0; i < rows.length; i += 1000) await db.insert(schema.retentionExposures).values(rows.slice(i, i + 1000));
+  const count = (f: (r: (typeof rows)[number]) => boolean) => rows.filter(f).length;
+  await db.update(schema.retentionCampaigns).set({ treatedCount: count((r) => r.groupName === "treated"), holdoutCount: count((r) => r.groupName === "holdout"), deliveredCount: count((r) => r.status === "sent"), skippedCount: count((r) => r.status === "skipped"), exclusionCounts: { no_consent: groups.length - rows.length } }).where(eq(schema.retentionCampaigns.id, sq!.id));
 }
 
 /**
