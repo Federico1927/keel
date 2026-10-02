@@ -1,5 +1,7 @@
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { PRODUCT_NAME } from "@keel/config";
-import { MockEmailProvider, ResendEmailProvider, type EmailProvider } from "@keel/integrations";
+import { MockEmailProvider, ResendEmailProvider, type CapturedEmail, type EmailProvider } from "@keel/integrations";
 
 /**
  * The platform sender (issue #51): one Resend account owned by Keel, configured with environment
@@ -36,9 +38,25 @@ export function emailSettings(env: Env = process.env): EmailSettings {
 
 const store = globalThis as typeof globalThis & { __keelEmailMock?: MockEmailProvider };
 
+/**
+ * E2E outbox (#52): with `KEEL_EMAIL_OUTBOX_DIR` set, every email the mock captures is also written
+ * there as one JSON file, so browser tests against a production build (where the dev inbox does
+ * not exist) can read invitation and reset links from disk. No HTTP surface; never set in a deployment.
+ */
+function writeToOutboxDir(dir: string, captured: CapturedEmail) {
+  try {
+    mkdirSync(dir, { recursive: true });
+    const m = captured.message;
+    writeFileSync(join(dir, `${captured.sentAt.getTime()}-${captured.id}.json`), JSON.stringify({ id: captured.id, sentAt: captured.sentAt.toISOString(), to: m.to, subject: m.subject, template: m.tags?.template ?? null, text: m.text }));
+  } catch (e) {
+    console.warn("[email] outbox dir write failed:", e instanceof Error ? e.message : e);
+  }
+}
+
 /** The process-wide recording mock: the dev inbox reads it, tests inspect it. */
 export function mockEmailOutbox(): MockEmailProvider {
-  store.__keelEmailMock ??= new MockEmailProvider({ capacity: 200 });
+  const dir = process.env.KEEL_EMAIL_OUTBOX_DIR?.trim();
+  store.__keelEmailMock ??= new MockEmailProvider({ capacity: 200, ...(dir ? { onCapture: (c: CapturedEmail) => writeToOutboxDir(dir, c) } : {}) });
   return store.__keelEmailMock;
 }
 

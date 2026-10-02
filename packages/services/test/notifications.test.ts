@@ -85,7 +85,7 @@ describe("email", () => {
     expect(itMail.text).toContain("20 ott 2026");
     const ml = renderEmail("magic_link", "es", { url: "https://x/m?<b>", minutes: 15 });
     expect(ml.html).toContain("https://x/m?&lt;b&gt;");
-    expect(renderEmail("invite", "xx", { tenantName: "T", inviterName: "A", role: "operations", url: "https://x" }).subject).toBe("A invited you to T on Keel");
+    expect(renderEmail("invite", "xx", { tenantName: "T", inviterName: "A", role: "operations", url: "https://x", days: 7 }).subject).toBe("A invited you to T on Keel as operations");
     const digest = renderEmail("digest", "en", { tenantName: "T", groups: [{ type: "mention", count: 5, titles: ["a", "b"] }], url: "https://x" });
     expect(digest.text).toContain("Mentions (5): a · b and 3 more");
     expect(renderEmail("notification", "it", { title: "4", body: "SKU-1", url: null, type: "stock_critical_no_po" }).subject).toBe("4 varianti in vendita con stock critico e nessun ordine d'acquisto");
@@ -102,7 +102,7 @@ describe("email", () => {
     expect(await run((s) => isEmailSuppressed(s, "someone@example.com", "digest"))).toBe(false);
     expect(await run((s) => isEmailSuppressed(s, "someone@example.com", "transactional"))).toBe(false);
     await run((s) => addEmailSuppression(s, { email: "gone@example.com", reason: "bounce" }));
-    const r = await run((s) => queueEmail(s, { to: "gone@example.com", template: "invite", data: { tenantName: "N", inviterName: "G", role: "viewer", url: "https://x" }, locale: "it", event: "t1" }));
+    const r = await run((s) => queueEmail(s, { to: "gone@example.com", template: "invite", data: { tenantName: "N", inviterName: "G", role: "viewer", url: "https://x", days: 7 }, locale: "it", event: "t1" }));
     expect(r.outcome).toBe("suppressed");
     // the list is per tenant
     expect(await run((s) => isEmailSuppressed(s, "gone@example.com", "mention"), "owner@harborhome.demo", harborId)).toBe(false);

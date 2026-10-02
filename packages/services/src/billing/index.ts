@@ -1,9 +1,8 @@
-import { randomBytes } from "node:crypto";
-import bcrypt from "bcryptjs";
-import { and, desc, eq, inArray, recordAudit, schema, sql, type Database } from "@keel/db";
+import { and, desc, eq, inArray, recordAudit, schema, sql, withTenant, type Database } from "@keel/db";
 import { DEFAULT_SUSPEND_AFTER_DAYS, MODULES, PLANS, type PlanKey, isAddonModule } from "@keel/config";
-import { addMonths, defaultStateRules, monthlyInvoiceLines, mrr, paymentHealth, setupInvoiceLines, type PaymentHealth } from "@keel/core";
+import { addMonths, defaultStateRules, displayName, normalizeEmail, monthlyInvoiceLines, mrr, paymentHealth, setupInvoiceLines, type PaymentHealth } from "@keel/core";
 import { getBillingProvider, type BillingProvider } from "./provider";
+import { createInvitation, pendingInvitationCount } from "../account/invitations";
 
 export * from "./provider";
 
@@ -170,32 +169,32 @@ export interface CreateTenantInput {
   ownerName: string;
 }
 
-export async function createTenant(db: AdminDb, input: CreateTenantInput, actorUserId: string, opts: { now?: Date; provider?: BillingProvider } = {}): Promise<{ tenantId: string; ownerUserId: string; temporaryPassword: string | null }> {
+/**
+ * Creates a tenant with its defaults and a trial subscription. The owner gets an invitation, the
+ * same flow as any other member (#52): the super-admin never sees or sets a password.
+ */
+export async function createTenant(db: AdminDb, input: CreateTenantInput, actorUserId: string, opts: { now?: Date; provider?: BillingProvider } = {}): Promise<{ tenantId: string; invitationId: string; ownerEmail: string; delivery: string }> {
   const now = opts.now ?? new Date();
   const slug = input.slug.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-|-$/g, "");
   if (!slug) throw new Error("invalid_slug");
   const [dup] = await db.select({ id: schema.tenants.id }).from(schema.tenants).where(eq(schema.tenants.slug, slug)).limit(1);
   if (dup) throw new Error("slug_taken");
+  const email = normalizeEmail(input.ownerEmail);
+  if (!email) throw new Error("invalid_owner_email");
   const [tenant] = await db.insert(schema.tenants).values({ slug, name: input.name.trim(), country: input.country.toUpperCase(), currency: input.currency.toUpperCase(), timezone: input.timezone, defaultLocale: input.defaultLocale, orderNumberPrefix: input.orderNumberPrefix, planKey: input.planKey, status: "trial", suspendAfterDays: DEFAULT_SUSPEND_AFTER_DAYS }).returning({ id: schema.tenants.id });
   const tenantId = tenant!.id;
   await db.insert(schema.tenantTaxRates).values({ tenantId, country: input.country.toUpperCase(), rateBps: input.taxRateBps, pricesIncludeTax: input.country.toUpperCase() !== "US" }).onConflictDoNothing();
   for (const r of defaultStateRules()) await db.insert(schema.stateRules).values({ tenantId, name: r.name, priority: r.priority, conditions: r.conditions, resultStatus: r.resultStatus, isActive: r.isActive });
   for (const provider of ["shopify", "meta", "google"]) await db.insert(schema.integrations).values({ tenantId, provider, status: "not_connected", mode: "mock" }).onConflictDoNothing();
-  // owner: reuse an existing account or create one with a temporary password
-  const email = input.ownerEmail.trim().toLowerCase();
-  const [existingUser] = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, email)).limit(1);
-  let ownerUserId: string;
-  let temporaryPassword: string | null = null;
-  if (existingUser) ownerUserId = existingUser.id;
-  else {
-    temporaryPassword = randomBytes(9).toString("base64url");
-    const [u] = await db.insert(schema.users).values({ email, name: input.ownerName.trim() || email, passwordHash: await bcrypt.hash(temporaryPassword, 10), emailVerified: now }).returning({ id: schema.users.id });
-    ownerUserId = u!.id;
-  }
-  await db.insert(schema.tenantMemberships).values({ tenantId, userId: ownerUserId, role: "owner" }).onConflictDoNothing();
   await ensureSubscription(db, tenantId, { planKey: input.planKey, now, provider: opts.provider, actorUserId });
   await audit(db, actorUserId, tenantId, "tenant.created", { entityType: "tenant", entityId: tenantId, diff: { name: { from: null, to: input.name }, planKey: { from: null, to: input.planKey }, owner: { from: null, to: email } } });
-  return { tenantId, ownerUserId, temporaryPassword };
+  const [admin] = await db.select({ name: schema.users.name, preferredName: schema.users.preferredName, email: schema.users.email }).from(schema.users).where(eq(schema.users.id, actorUserId)).limit(1);
+  const invite = await withTenant(
+    tenantId,
+    (tx) => createInvitation({ tenantId, tx, actor: { type: "user", userId: actorUserId }, now }, { email, role: "owner", name: input.ownerName, inviterName: displayName(admin ?? null), tenantName: input.name.trim(), tenantLocale: input.defaultLocale }, { auditAs: { actorUserId, actorType: "super_admin" } }),
+    db,
+  );
+  return { tenantId, invitationId: invite.id, ownerEmail: email, delivery: invite.delivery };
 }
 
 export interface ChecklistItem {
@@ -215,7 +214,7 @@ export async function tenantChecklist(db: AdminDb, tenantId: string, now = new D
   const status = (p: string) => integrations.find((i) => i.provider === p)?.status ?? "not_connected";
   return [
     { key: "company", done: Boolean(tenant.name && tenant.country && tenant.currency && tenant.timezone), detail: `${tenant.country} · ${tenant.currency} · ${tenant.timezone}` },
-    { key: "owner", done: members.some((m) => m.role === "owner"), detail: null },
+    { key: "owner", done: members.some((m) => m.role === "owner"), detail: !members.some((m) => m.role === "owner") && (await pendingInvitationCount(db, tenantId, "owner", now)) > 0 ? "invited" : null },
     { key: "users", done: members.length >= 2, detail: String(members.length) },
     { key: "shopify", done: status("shopify") === "connected", detail: status("shopify") },
     { key: "meta", done: status("meta") === "connected", detail: status("meta") },

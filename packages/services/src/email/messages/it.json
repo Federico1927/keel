@@ -29,11 +29,11 @@
       "hint": "Se non sei stato tu, accedi e cambia la password, poi annulla la richiesta dal tuo profilo."
     },
     "invite": {
-      "subject": "{inviter} ti ha invitato in {tenant} su {product}",
+      "subject": "{inviter} ti ha invitato in {tenant} su {product} come {role}",
       "preheader": "Entra in {tenant} con il ruolo {role}.",
-      "intro": "{inviter} ti ha aggiunto a {tenant} con il ruolo {role}.",
-      "cta": "Accedi",
-      "hint": "Accedi con questo indirizzo email: ti mandiamo un link, senza password."
+      "intro": "{inviter} ti ha invitato a entrare in {tenant} su {product} con il ruolo {role}.",
+      "cta": "Accetta l'invito",
+      "hint": "L'invito scade tra {days} giorni e funziona una volta sola. Se non te lo aspettavi, ignora questa email."
     },
     "mention": {
       "subject": "{author} ti ha menzionato su {record}",
@@ -65,6 +65,49 @@
       "preheader": "L'invio delle email funziona.",
       "intro": "Questa è un'email di prova inviata dalla console di {product}. Se la stai leggendo, mittente, dominio e provider funzionano.",
       "detail": "Provider: {provider} · inviata alle {time} (UTC)"
+    },
+    "welcome": {
+      "subject": "Benvenuto in {product}, {name}",
+      "preheader": "Il tuo spazio {tenant} è pronto.",
+      "intro": "Ora hai accesso a {tenant} su {product}. Qualche cosa per cominciare:",
+      "profile": "Completa il tuo profilo: foto, lingua, fuso orario e avvisi di sicurezza.",
+      "guide": "Collega il negozio e gli account pubblicitari con la guida alle integrazioni.",
+      "cta": "Apri {tenant}"
+    },
+    "password_reset": {
+      "subject": "Reimposta la password di {product}",
+      "preheader": "Il link scade tra {minutes} minuti.",
+      "intro": "È stato chiesto di reimpostare la password del tuo account {product}. Scegli una nuova password con questo link: scade tra {minutes} minuti e funziona una volta sola.",
+      "cta": "Scegli una nuova password",
+      "hint": "Se non sei stato tu, ignora questa email: la password non cambia."
+    },
+    "password_changed": {
+      "subject": "La password di {product} è stata cambiata",
+      "preheader": "Cambiata il {time}.",
+      "intro": "La password del tuo account {product} è stata cambiata il {time}. Tutte le altre sessioni sono state chiuse.",
+      "hint": "Se non sei stato tu, reimposta subito la password dalla pagina di accesso e contatta l'assistenza."
+    },
+    "email_changed": {
+      "subject": "L'indirizzo di accesso a {product} è cambiato",
+      "preheader": "Il nuovo indirizzo è {email}.",
+      "intro": "L'indirizzo di accesso del tuo account {product} ora è {email}. Questo indirizzo non riceverà più le email dell'account.",
+      "hint": "Se non sei stato tu, contatta subito l'assistenza."
+    },
+    "new_sign_in": {
+      "subject": "Nuovo accesso al tuo account {product}",
+      "preheader": "{device} il {time}.",
+      "intro": "Il tuo account {product} è appena stato usato per accedere da un dispositivo o browser mai visto prima:",
+      "device": "Dispositivo: {device}",
+      "ip": "Indirizzo IP: {ip}",
+      "time": "Quando: {time}",
+      "cta": "Controlla le sessioni",
+      "hint": "Se sei stato tu, non devi fare nulla. Altrimenti cambia la password e chiudi le altre sessioni dal tuo profilo. Puoi disattivare queste email dal profilo."
+    },
+    "account_disabled": {
+      "subject": "Il tuo accesso a {tenant} è stato disattivato",
+      "preheader": "Un amministratore ha disattivato il tuo accesso.",
+      "intro": "Un amministratore di {tenant} ha disattivato il tuo accesso su {product}. Non puoi più aprire quello spazio di lavoro.",
+      "hint": "Se pensi che sia un errore, contatta un amministratore di {tenant}."
     },
     "carrier_instruction": {
       "subject": "Istruzione di consegna per la spedizione {tracking} ({company})",

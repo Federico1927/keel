@@ -26,6 +26,7 @@ import {
   InvoiceActions,
   OpenAsSupportButton,
   PlanSelect,
+  SendPasswordResetButton,
   SuspensionButton,
 } from "./controls";
 
@@ -100,7 +101,7 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
                     <span className={c.done ? "" : "text-muted-foreground"}>
                       {c.done ? "✓" : "○"} {t(`tenant.checklist_items.${c.key}`)}
                     </span>
-                    {c.detail && <span className="text-xs text-muted-foreground">{c.detail}</span>}
+                    {c.detail && <span className="text-xs text-muted-foreground">{c.key === "owner" && c.detail === "invited" ? t("tenant.owner_invited") : c.detail}</span>}
                   </li>
                 ))}
               </ul>
@@ -113,9 +114,10 @@ export default async function AdminTenantPage({ params }: { params: Promise<{ id
             <CardContent>
               <ul className="space-y-1 text-sm">
                 {d.members.map((m) => (
-                  <li key={m.id} className="flex items-center justify-between gap-2">
-                    <span className="truncate">{m.email}</span>
+                  <li key={m.id} className="flex flex-wrap items-center justify-between gap-2" data-testid="admin-member">
+                    <span className="min-w-0 flex-1 truncate">{m.email}</span>
                     <Badge variant="outline">{m.role}</Badge>
+                    <SendPasswordResetButton userId={m.id} />
                   </li>
                 ))}
               </ul>

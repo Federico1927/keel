@@ -1,16 +1,18 @@
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { PRODUCT_NAME } from "@keel/config";
+import { safeNextPath } from "@keel/core";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@keel/ui";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { getCurrentUser } from "@/server/session";
 import { LoginForm } from "./login-form";
 import { BrandMark } from "@/components/brand-mark";
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string; email?: string }> }) {
   const user = await getCurrentUser();
-  const { error } = await searchParams;
-  if (user && error !== "no_tenant") redirect("/");
+  const { error, next: rawNext, email } = await searchParams;
+  const next = safeNextPath(rawNext, "");
+  if (user && error !== "no_tenant") redirect(next || "/");
   const t = await getTranslations("auth");
   const knownErrors = new Set(["no_tenant", "invalid_credentials", "unknown", "invalid_input", "Verification", "Configuration"]);
   const initialError = error && knownErrors.has(error) ? (error === "Verification" || error === "Configuration" ? "unknown" : error) : undefined;
@@ -33,7 +35,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             <CardDescription>{t("card_description")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <LoginForm initialError={initialError} />
+            <LoginForm initialError={initialError} next={next || undefined} email={typeof email === "string" ? email.slice(0, 254) : undefined} />
           </CardContent>
         </Card>
         <p className="text-center text-xs text-muted-foreground">{t("demo_hint")}</p>

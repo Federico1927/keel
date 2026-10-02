@@ -1,5 +1,5 @@
 import { and, eq, gte, inArray, isNull, lt, lte, schema, sql } from "@keel/db";
-import { change, costCoverage, monthKey, orderEconomics, returnCostsOfPeriod, previousPeriod, resolveFixedCosts, resolveShippingCosts, runningWindows, sumEconomics, type CostCoverage, type CostSource, type MonthCostUse, type OrderEconomics, type Period, type PeriodCostEntry, type PnlTotals, type TenantSettings } from "@keel/core";
+import { change, costCoverage, effectiveTaxRateBps, monthKey, orderEconomics, returnCostsOfPeriod, previousPeriod, resolveFixedCosts, resolveShippingCosts, runningWindows, sumEconomics, type CostCoverage, type CostSource, type MonthCostUse, type OrderEconomics, type Period, type PeriodCostEntry, type PnlTotals, type TenantSettings } from "@keel/core";
 import type { ServiceContext } from "../context";
 
 export interface AnalyticsTenant {
@@ -34,9 +34,12 @@ export interface EconomicsRow extends OrderEconomics {
   customerId: string | null;
   paymentMethod: string;
   shippingCountry: string | null;
+  /** Country and effective rate of the tax line (tax report). */
+  taxCountry: string;
+  taxRateBps: number;
 }
 
-/** Economics for every order placed in the period (in-scope flag included). */
+/** Economics for every order placed in the period (in-scope flag included). Payment fees are the payout's actual fees when imported, the tenant's estimate otherwise. */
 export async function orderEconomicsForPeriod(ctx: ServiceContext, tenant: AnalyticsTenant, period: Period, opts: { orderIds?: string[] } = {}): Promise<EconomicsRow[]> {
   // replaced orders (cancelled and recreated by an edit) are lineage, not demand: they never count
   const conds = [eq(schema.orders.tenantId, ctx.tenantId), gte(schema.orders.placedAt, period.from), lt(schema.orders.placedAt, period.to), isNull(schema.orders.replacedByOrderId)];
@@ -50,6 +53,14 @@ export async function orderEconomicsForPeriod(ctx: ServiceContext, tenant: Analy
     arr.push(l);
     byOrder.set(l.orderId, arr);
   }
+  // actual fees: the balance transactions of the order (charge fee, plus any refund or dispute fee) once a charge was imported
+  const feeRows = await ctx.tx
+    .select({ orderId: schema.balanceTransactions.orderId, fee: sql<number>`coalesce(sum(${schema.balanceTransactions.feeMinor}), 0)::int`, charges: sql<number>`count(*) filter (where ${schema.balanceTransactions.type} = 'charge')::int` })
+    .from(schema.balanceTransactions)
+    .innerJoin(schema.orders, eq(schema.orders.id, schema.balanceTransactions.orderId))
+    .where(and(eq(schema.balanceTransactions.tenantId, ctx.tenantId), ...conds))
+    .groupBy(schema.balanceTransactions.orderId);
+  const actualFee = new Map(feeRows.filter((r) => r.charges > 0).map((r) => [r.orderId!, r.fee]));
   const rates = await loadTaxRates(ctx);
   const shipping = await shippingCostFor(ctx, tenant.settings, period);
   const rateFor = (country: string | null) => rates.find((r) => r.country === country) ?? rates.find((r) => r.country === tenant.country) ?? { country: tenant.country, rateBps: 0, pricesIncludeTax: true };
@@ -68,9 +79,11 @@ export async function orderEconomicsForPeriod(ctx: ServiceContext, tenant: Analy
       paymentMethod: o.paymentMethod,
       paymentFeeBps: tenant.settings.paymentFeeBps[method] ?? 0,
       paymentFeeFixedMinor: tenant.settings.paymentFeeFixedMinor[method] ?? 0,
+      actualPaymentFeeMinor: actualFee.get(o.id) ?? null,
       shippingCostMinor: shipping(o.placedAt),
     });
-    return { ...eco, orderId: o.id, name: o.name, placedAt: o.placedAt, status: o.status, customerId: o.customerId, paymentMethod: o.paymentMethod, shippingCountry: o.shippingCountry };
+    const taxRateBps = effectiveTaxRateBps({ taxMinor: eco.taxMinor, subtotalMinor: o.subtotalMinor, discountMinor: o.discountMinor, pricesIncludeTax: rate.pricesIncludeTax, platformTaxMinor: o.taxMinor, fallbackRateBps: rate.rateBps });
+    return { ...eco, orderId: o.id, name: o.name, placedAt: o.placedAt, status: o.status, customerId: o.customerId, paymentMethod: o.paymentMethod, shippingCountry: o.shippingCountry, taxCountry: o.shippingCountry ?? tenant.country, taxRateBps };
   });
 }
 

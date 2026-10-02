@@ -1,4 +1,4 @@
-import type { PaymentMethod, PaymentStatus, ShipmentStatus } from "@keel/core";
+import type { BalanceTransactionType, PaymentMethod, PaymentStatus, PayoutStatus, ShipmentStatus } from "@keel/core";
 
 /** Normalized shapes every commerce adapter returns. Platform-specific fields never leak past the adapter. */
 export interface Address {
@@ -257,6 +257,57 @@ export interface VariantPatch {
   compareAtMinor?: number | null;
 }
 
+/** A deposit of the platform's payment processor (Shopify Payments) to the merchant's bank. */
+export interface NormalizedPayout {
+  externalId: string;
+  status: PayoutStatus;
+  issuedAt: Date;
+  currency: string;
+  /** Charges in the deposit, before fees. */
+  grossMinor: number;
+  /** Refunds (negative). */
+  refundsMinor: number;
+  /** Adjustments, disputes, reserves (signed). */
+  adjustmentsMinor: number;
+  feeMinor: number;
+  netMinor: number;
+}
+
+/** One movement of the processor balance: a charge, a refund, an adjustment; its fee is the actual one. */
+export interface NormalizedBalanceTransaction {
+  externalId: string;
+  payoutExternalId: string | null;
+  type: BalanceTransactionType;
+  orderExternalId: string | null;
+  /** Signed: charges positive, refunds negative. */
+  amountMinor: number;
+  /** Fee the processor took (positive = cost). */
+  feeMinor: number;
+  netMinor: number;
+  currency: string;
+  occurredAt: Date;
+}
+
+/** Money-only or per-line refund; restocked lines go back to `locationExternalId` (default location when null). */
+export interface RefundOrderInput {
+  lines: { orderLineExternalId: string; quantity: number; restock: boolean }[];
+  locationExternalId?: string | null;
+  amountMinor: number;
+  currency: string;
+  note?: string | null;
+  notify: boolean;
+}
+
+/** Payment received outside the platform's checkout (bank transfer, cash, cheque…). */
+export interface ManualPaymentInput {
+  amountMinor: number;
+  currency: string;
+  method: PaymentMethod;
+  /** The amount settles the whole balance (Shopify `orderMarkAsPaid`); otherwise a partial manual payment. */
+  fullBalance: boolean;
+  note?: string | null;
+}
+
 /** Commerce platform contract (Shopify today, anything tomorrow). */
 export interface CommercePlatform {
   readonly provider: string;
@@ -269,6 +320,10 @@ export interface CommercePlatform {
   fetchInventoryLevels(inventoryItemExternalIds: string[]): Promise<NormalizedInventoryLevel[]>;
   fetchDiscounts(q: SyncQuery): Promise<Page<NormalizedDiscount>>;
   fetchReturns(q: SyncQuery): Promise<Page<NormalizedReturn>>;
+  /** Payouts of the platform's payment processor issued since `createdSince`, newest first. */
+  fetchPayouts(q: SyncQuery): Promise<Page<NormalizedPayout>>;
+  /** Balance transactions (charges, refunds, adjustments with their actual fees) of one payout. */
+  fetchBalanceTransactions(q: { payoutExternalId: string; cursor?: string | null; limit?: number }): Promise<Page<NormalizedBalanceTransaction>>;
   registerWebhooks(callbackUrl: string, topics: string[]): Promise<WebhookRegistration[]>;
   /** Verifies the signature and normalizes the envelope; throws on invalid signature. */
   verifyWebhook(headers: Record<string, string | undefined>, rawBody: string): Promise<VerifiedWebhook>;
@@ -311,6 +366,14 @@ export interface CommercePlatform {
   /** Refunds returned lines; the amount is capped by what was actually captured. Unpaid orders get a refund without money movement. */
   refundReturn(orderExternalId: string, input: { lines: { orderLineExternalId: string; quantity: number }[]; amountMinor: number; currency: string; note?: string | null; notify: boolean }): Promise<{ externalId: string; amountMinor: number }>;
   closeReturn(returnExternalId: string): Promise<void>;
+  /** Records a payment received outside checkout on an order whose payment is pending. */
+  markOrderPaid(externalId: string, input: ManualPaymentInput): Promise<void>;
+  /**
+   * Refunds money on an order, optionally on lines (with restock). The amount is capped by what was
+   * captured and not yet refunded; the answer carries the amount the platform accepted.
+   * `refundReturn` is this call without restock.
+   */
+  refundOrder(externalId: string, input: RefundOrderInput): Promise<{ externalId: string; amountMinor: number }>;
   /** Creates a fulfilment with carrier and tracking and returns it normalized, as a sync would read it. */
   createFulfillment(input: CreateFulfillmentInput): Promise<NormalizedFulfillment>;
 }

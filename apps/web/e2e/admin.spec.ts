@@ -65,10 +65,10 @@ test.describe("super-admin console", () => {
     await page.getByLabel(/Owner email|Email owner/).fill(`owner-${stamp}@e2e.test`);
     await page.getByLabel(/Owner name|Nome owner/).fill("E2E Owner");
     await page.getByRole("button", { name: /Create tenant|Crea tenant/ }).click();
-    await expect(page.getByTestId("temp-password")).toBeVisible();
+    await expect(page.getByTestId("owner-invited")).toBeVisible();
     await page.getByRole("button", { name: /Open setup checklist|Apri la checklist/ }).click();
     await expect(page).toHaveURL(/\/admin\/tenants\/[0-9a-f-]{36}$/);
-    await expect(page.getByTestId("checklist")).toContainText(/3 of 9|3 su 9|4 of 9|4 su 9/);
+    await expect(page.getByTestId("checklist")).toContainText(/[234] of 9|[234] su 9/);
     await expect(page.getByTestId("invoice-row").first()).toContainText(/Setup fee|Fee di attivazione/);
   });
 

@@ -21,7 +21,7 @@ export function OrderFiltersBar({ basePath, filters, counts, stockViews, members
 
   const apply = (patch: Partial<Record<string, string | string[] | undefined>>) => {
     const u = new URLSearchParams();
-    const current: Record<string, string | string[] | undefined> = { q: filters.q, status: filters.status, payment: filters.payment, paymentStatus: filters.paymentStatus, channel: filters.channel, tag: filters.tag, from: filters.from, to: filters.to, assigned: filters.assigned, missingCost: filters.missingCost ? "1" : undefined, product: filters.product, variant: filters.variant, campaign: filters.campaign, customer: filters.customer, attrChannel: filters.attrChannel, stock: filters.stock, ...Object.fromEntries(Object.entries(filters.utm ?? {}).map(([d, v]) => [utmKey(d), v])), sort: filters.sort };
+    const current: Record<string, string | string[] | undefined> = { q: filters.q, status: filters.status, payment: filters.payment, paymentStatus: filters.paymentStatus, channel: filters.channel, tag: filters.tag, from: filters.from, to: filters.to, assigned: filters.assigned, missingCost: filters.missingCost ? "1" : undefined, product: filters.product, variant: filters.variant, campaign: filters.campaign, customer: filters.customer, attrChannel: filters.attrChannel, stock: filters.stock, country: filters.country, feeSource: filters.feeSource, payout: filters.payout, ...Object.fromEntries(Object.entries(filters.utm ?? {}).map(([d, v]) => [utmKey(d), v])), sort: filters.sort };
     const merged = { ...current, ...patch };
     for (const [k, v] of Object.entries(merged)) {
       if (!v || (Array.isArray(v) && v.length === 0)) continue;
@@ -35,11 +35,15 @@ export function OrderFiltersBar({ basePath, filters, counts, stockViews, members
     apply({ status: cur.includes(s) ? cur.filter((x) => x !== s) : [...cur, s] });
   };
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
-  const hasFilters = Boolean(filters.q || filters.status?.length || filters.payment?.length || filters.paymentStatus?.length || filters.channel?.length || filters.tag || filters.from || filters.to || filters.assigned || filters.missingCost || filters.product || filters.variant || filters.attrChannel || filters.stock || Object.keys(filters.utm ?? {}).length);
+  const hasFilters = Boolean(filters.q || filters.status?.length || filters.payment?.length || filters.paymentStatus?.length || filters.channel?.length || filters.tag || filters.from || filters.to || filters.assigned || filters.missingCost || filters.product || filters.variant || filters.attrChannel || filters.stock || filters.country || filters.feeSource || filters.payout || Object.keys(filters.utm ?? {}).length);
   // attribution drill-down filters set by analytics links: one removable chip each
   const attribution: { key: string; label: string; patch: Record<string, undefined> }[] = [
     ...(filters.attrChannel ? [{ key: "attrChannel", label: ta("channel", { value: filters.attrChannel }), patch: { attrChannel: undefined } }] : []),
     ...Object.entries(filters.utm ?? {}).map(([d, v]) => ({ key: utmKey(d), label: ta("utm", { dim: d, value: v ?? "" }), patch: { [utmKey(d)]: undefined } })),
+    // money drill-downs (tax report, fees, payouts)
+    ...(filters.country ? [{ key: "country", label: t("filters.country", { country: filters.country }), patch: { country: undefined } }] : []),
+    ...(filters.feeSource ? [{ key: "feeSource", label: t(`filters.fee_${filters.feeSource}`), patch: { feeSource: undefined } }] : []),
+    ...(filters.payout ? [{ key: "payout", label: t("filters.payout"), patch: { payout: undefined } }] : []),
   ];
 
   return (

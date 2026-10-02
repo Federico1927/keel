@@ -48,7 +48,17 @@
       "not_editable": "Este pedido ya no se puede editar: está preparado, cancelado o sustituido.",
       "invalid_address": "La dirección no es válida: revisa los campos marcados.",
       "merge_invalid": "Estos pedidos no se pueden fusionar: cliente o pago distintos, o ya preparados.",
-      "nothing_to_change": "Nada que cambiar."
+      "nothing_to_change": "Nada que cambiar.",
+      "not_pending": "El pago de este pedido no está pendiente.",
+      "cancelled": "El pedido está cancelado.",
+      "amount_invalid": "Introduce un importe mayor que cero.",
+      "exceeds_outstanding": "El importe supera lo pendiente de cobro.",
+      "date_invalid": "La fecha no puede estar en el futuro.",
+      "replaced": "El pedido fue sustituido por una edición: usa el pedido nuevo.",
+      "not_paid": "Solo se pueden reembolsar pedidos pagados.",
+      "exceeds_refundable": "El reembolso supera lo que queda reembolsable en el pedido.",
+      "line_invalid": "Revisa las unidades a reembolsar: más de las que quedan en una línea.",
+      "location_required": "Elige dónde reponer las unidades."
     },
     "edit": "Editar"
   },
@@ -74,7 +84,8 @@
       "invalid_input": "Introduce un correo y una contraseña válidos.",
       "unknown": "Algo salió mal. Inténtalo de nuevo.",
       "no_tenant": "Tu cuenta aún no está vinculada a ningún espacio de trabajo."
-    }
+    },
+    "forgot_password": "¿Olvidaste la contraseña?"
   },
   "modules": {
     "core": {
@@ -329,11 +340,33 @@
     "deactivate": "Desactivar",
     "reactivate": "Reactivar",
     "invite_title": "Invitar a un miembro",
-    "invite_description": "La persona accede con el enlace por correo; no se envía ninguna contraseña.",
+    "invite_description": "La persona recibe un correo con un enlace para unirse: caduca en 7 días y funciona una sola vez.",
     "name": "Nombre",
     "email": "Correo",
     "invite": "Invitar",
-    "invited": "Invitación creada. En desarrollo el enlace de acceso se imprime en la consola del servidor."
+    "invited": "Invitación enviada.",
+    "name_optional": "Nombre (opcional)",
+    "invitations_title": "Invitaciones",
+    "invitations_description": "Invitaciones pendientes y su caducidad. Una invitación reenviada tiene un enlace nuevo; el anterior deja de funcionar.",
+    "invitations_empty": "No hay invitaciones pendientes.",
+    "invitation_states": {
+      "pending": "Pendiente",
+      "expired": "Caducada",
+      "accepted": "Aceptada",
+      "revoked": "Revocada"
+    },
+    "invitation_expires": "caduca el {date}",
+    "invitation_expired_on": "caducó el {date}",
+    "invitation_by": "por {name}",
+    "invitation_resend": "Reenviar",
+    "invitation_revoke": "Revocar",
+    "errors": {
+      "already_member": "Esta persona ya es miembro de este espacio de trabajo.",
+      "rate_limited": "Demasiadas invitaciones en la última hora. Inténtalo más tarde.",
+      "not_pending": "Esta invitación ya no está pendiente.",
+      "forbidden": "No puedes invitar ni gestionar este rol.",
+      "invalid_input": "Escribe una dirección de correo y un rol válidos."
+    }
   },
   "audit": {
     "title": "Registro de auditoría",
@@ -742,7 +775,11 @@
       "tag": "Etiqueta",
       "missing_cost": "Productos sin coste",
       "product": "Producto: {name}",
-      "variant": "Variante: {name}"
+      "variant": "Variante: {name}",
+      "country": "País: {country}",
+      "fee_actual": "Comisión real (de los pagos)",
+      "fee_estimated": "Comisión estimada",
+      "payout": "En un pago"
     },
     "sort": {
       "placed_desc": "Más recientes",
@@ -864,7 +901,13 @@
         "order_cancelled": "Pedido cancelado",
         "order_replaced": "Pedido sustituido",
         "order_fulfilled": "Preparado en la tienda"
-      }
+      },
+      "payment": "{amount} con {method}",
+      "payment_outstanding": "pendiente {amount}",
+      "refund": "{amount} devueltos al cliente",
+      "refund_capped": "{amount} solicitados, limitados por la tienda",
+      "restocked": "{n} unidades repuestas",
+      "queued_platform": "En cola para la tienda"
     },
     "backorders": {
       "title_open": "En espera de stock",
@@ -926,7 +969,9 @@
     "unpacked": "Vuelto a pendiente",
     "delivery_instruction_sent": "Instrucción de entrega enviada",
     "backorder_created": "En espera de stock",
-    "backorder_closed": "Espera de stock cerrada"
+    "backorder_closed": "Espera de stock cerrada",
+    "payment_recorded": "Pago registrado",
+    "refund_issued": "Reembolso emitido"
   },
   "shipments": {
     "title": "Envíos",
@@ -1048,7 +1093,8 @@
       "sync": "Sincronización",
       "sale": "Venta",
       "transfer_in": "Transferencia de entrada",
-      "transfer_out": "Transferencia de salida"
+      "transfer_out": "Transferencia de salida",
+      "refund_restock": "Reposición por reembolso"
     },
     "view_orders": "Ver pedidos",
     "grid": {
@@ -3286,12 +3332,12 @@
       },
       "submit": "Crear tenant",
       "created": "Tenant creado. Comparte la contraseña temporal con el propietario una sola vez; no se volverá a mostrar.",
-      "temp_password": "Contraseña temporal:",
       "open_checklist": "Abrir la lista de configuración",
       "errors": {
         "slug_taken": "Este slug ya está en uso.",
         "invalid_slug": "Slug no válido."
-      }
+      },
+      "owner_invited": "La invitación para el propietario se envió a {email}. Elegirá su propia contraseña al aceptarla."
     },
     "tenant": {
       "open_as_support": "Abrir como soporte",
@@ -3325,7 +3371,13 @@
       "billing": "Suscripción y facturas",
       "subscription_line": "Estado {status} · proveedor {provider} · periodo actual hasta {end}",
       "no_subscription": "Sin suscripción.",
-      "recent_audit": "Actividad reciente en este tenant"
+      "recent_audit": "Actividad reciente en este tenant",
+      "send_password_reset": "Enviar restablecimiento de contraseña",
+      "reset_sent": "Correo de restablecimiento enviado",
+      "reset_not_active": "No enviado: la cuenta no está activa",
+      "reset_rate_limited": "Demasiadas solicitudes para esta dirección",
+      "reset_failed": "No se pudo enviar",
+      "owner_invited": "invitación pendiente"
     },
     "billing": {
       "title": "Facturación",
@@ -5052,7 +5104,8 @@
     "sign_in_methods": {
       "credentials": "Contraseña",
       "email": "Enlace por email",
-      "other": "Otro"
+      "other": "Otro",
+      "one_time": "Enlace de invitación o de restablecimiento"
     },
     "sessions_sign_out_others": "Cerrar todas las demás sesiones",
     "sessions_signed_out": "Se han cerrado todas las demás sesiones.",
@@ -5081,7 +5134,9 @@
       "too_common": "no una contraseña común o repetitiva",
       "personal": "no basada en tu nombre o tu email",
       "low_variety": "mezcla mayúsculas, minúsculas, números y símbolos (o usa 16+ caracteres)"
-    }
+    },
+    "sign_in_alerts": "Avisarme por correo de nuevos accesos",
+    "sign_in_alerts_hint": "Un correo de seguridad cuando tu cuenta inicia sesión desde un dispositivo o navegador que no había usado antes."
   },
   "welcome": {
     "title": "Completa tu perfil",
@@ -5317,7 +5372,8 @@
       "incomplete": "incompleto",
       "estimated": "estimado",
       "fee_source": {
-        "estimated": "estimada"
+        "estimated": "estimada",
+        "actual": "real"
       },
       "lines": {
         "gross": "Ventas brutas",
@@ -5500,7 +5556,9 @@
       "product_tags": "Etiquetas de producto",
       "fulfillment_create": "Preparación",
       "order_fulfillment_hold": "Bloqueo de preparación",
-      "order_fulfillment_release": "Liberación del bloqueo"
+      "order_fulfillment_release": "Liberación del bloqueo",
+      "order_mark_paid": "Marcar pedido pagado",
+      "order_refund": "Reembolso de pedido"
     }
   },
   "fulfilment": {
@@ -5756,5 +5814,244 @@
     "html": "HTML",
     "text": "Texto plano",
     "count": "{count, plural, one {# correo} other {# correos}}"
+  },
+  "account": {
+    "email": "Correo electrónico",
+    "sending": "Enviando…",
+    "back_to_login": "Volver al inicio de sesión",
+    "forgot_title": "¿Olvidaste tu contraseña?",
+    "forgot_description": "Escribe la dirección de correo de tu cuenta: te enviaremos un enlace para elegir una nueva contraseña.",
+    "forgot_submit": "Enviar el enlace",
+    "forgot_sent": "Si una cuenta activa usa esta dirección, va de camino un enlace para elegir una nueva contraseña. Caduca en 60 minutos.",
+    "new_password": "Nueva contraseña",
+    "confirm_password": "Confirma la contraseña",
+    "reset_title": "Elige una nueva contraseña",
+    "reset_description": "Para la cuenta {email}.",
+    "reset_submit": "Guardar la contraseña e iniciar sesión",
+    "reset_sessions_hint": "Se cerrarán todas las demás sesiones de esta cuenta.",
+    "reset_request_new": "Pedir un nuevo enlace",
+    "reset_expired_title": "Este enlace ha caducado",
+    "reset_expired_description": "Los enlaces de contraseña valen 60 minutos. Pide uno nuevo.",
+    "reset_used_title": "Este enlace ya se usó",
+    "reset_used_description": "Un enlace de contraseña funciona una sola vez, y una solicitud más reciente lo sustituye. Pide uno nuevo si todavía lo necesitas.",
+    "reset_invalid_title": "Este enlace no es válido",
+    "reset_invalid_description": "Comprueba que abriste el enlace completo del correo, o pide uno nuevo.",
+    "invite_title": "Únete al espacio de trabajo",
+    "invite_description": "{inviter} te invitó a {tenant} con el rol {role}.",
+    "invite_someone": "Alguien",
+    "invite_email": "Te unes con",
+    "invite_method": "¿Cómo quieres iniciar sesión?",
+    "invite_method_password": "Con una contraseña",
+    "invite_method_password_hint": "La eliges ahora.",
+    "invite_method_email_link": "Con un enlace por correo",
+    "invite_method_email_link_hint": "Sin contraseña: te enviamos un enlace cada vez.",
+    "invite_privacy": "Acepto la política de privacidad.",
+    "invite_privacy_link": "Acepto la <link>política de privacidad</link>.",
+    "invite_accept": "Aceptar y abrir el espacio de trabajo",
+    "invite_join": "Unirme a {tenant}",
+    "invite_switch_account": "Cerrar sesión y continuar",
+    "invite_other_account": "Iniciaste sesión como {email}, pero esta invitación es para {invited}. Cierra sesión para continuar con la dirección invitada.",
+    "invite_sign_in": "{email} ya tiene una cuenta. Inicia sesión con ella para aceptar la invitación.",
+    "invite_sign_in_cta": "Iniciar sesión para aceptar",
+    "invite_ask_new": "Pide a quien te invitó una nueva invitación.",
+    "invite_expired_title": "Esta invitación ha caducado",
+    "invite_expired_description": "Las invitaciones a {tenant} duran 7 días.",
+    "invite_accepted_title": "Esta invitación ya se usó",
+    "invite_accepted_description": "Ya fue aceptada. Si fuiste tú, inicia sesión.",
+    "invite_revoked_title": "Esta invitación fue retirada",
+    "invite_revoked_description": "Un administrador de {tenant} la revocó o envió una más reciente.",
+    "invite_invalid_title": "Esta invitación no es válida",
+    "invite_invalid_description": "Comprueba que abriste el enlace completo del correo.",
+    "errors": {
+      "invalid_input": "Faltan campos o no son válidos.",
+      "invalid_email": "Escribe una dirección de correo válida.",
+      "rate_limited": "Demasiadas solicitudes. Inténtalo de nuevo en una hora.",
+      "weak_password": "La contraseña es demasiado débil:",
+      "password_mismatch": "Las dos contraseñas no coinciden.",
+      "invalid_token": "Este enlace no es válido.",
+      "expired_token": "Este enlace ha caducado.",
+      "used_token": "Este enlace ya se usó.",
+      "revoked_token": "Esta invitación fue retirada.",
+      "privacy_required": "Acepta la política de privacidad para continuar.",
+      "account_exists": "Esta dirección ya tiene una cuenta: inicia sesión para aceptar.",
+      "email_mismatch": "Esta invitación es para otra dirección de correo.",
+      "not_found": "Cuenta no encontrada.",
+      "forbidden": "No tienes permiso para hacer esto.",
+      "already_member": "Esta persona ya es miembro.",
+      "not_pending": "Esta invitación ya no está pendiente.",
+      "unknown": "Algo salió mal. Inténtalo de nuevo."
+    }
+  },
+  "order_payments": {
+    "mark_paid": "Marcar como pagado",
+    "payment_title": "Registrar un pago en {order}",
+    "payment_description": "Dinero recibido fuera del checkout (transferencia, efectivo, cheque…). Pendiente de cobro: {amount}. También se actualiza la tienda.",
+    "amount": "Importe ({currency})",
+    "date": "Fecha de cobro",
+    "method": "Método",
+    "note": "Nota",
+    "note_placeholder": "Referencia bancaria, número de recibo…",
+    "preview_paid": "El pedido quedará marcado como pagado.",
+    "preview_partial": "Pago parcial: quedarán pendientes {rest} y el pedido sigue pendiente de pago.",
+    "save_payment": "Registrar pago",
+    "refund": "Reembolsar",
+    "refund_title": "Reembolso en {order}",
+    "refund_description": "Dinero devuelto al cliente en el pago original, escrito primero en la tienda. Aún reembolsable: {amount}.",
+    "lines": "Artículos (opcional)",
+    "line_qty": "Unidades de {item} a reembolsar",
+    "lines_hint": "Al elegir unidades se rellena su precio menos el descuento del pedido; el importe sigue siendo editable.",
+    "restock": "Reponer las unidades en stock",
+    "location": "Ubicación",
+    "reason": "Motivo",
+    "reason_placeholder": "Gesto comercial, ajuste de precio, artículo dañado…",
+    "notify": "Avisar al cliente por email",
+    "too_much": "Más de lo que queda por reembolsar ({amount}).",
+    "refund_preview": "{amount} devueltos al cliente; quedarán {left} reembolsables.",
+    "refund_save": "Reembolsar",
+    "card_title": "Pagos y reembolsos",
+    "kind": {
+      "manual_payment": "Pago manual",
+      "refund": "Reembolso"
+    },
+    "system": "Sistema",
+    "accepted_of": "aceptado por la tienda de {amount} solicitados",
+    "processor": "Procesador de pagos",
+    "balance_type": {
+      "charge": "Cargo",
+      "refund": "Reembolso",
+      "adjustment": "Ajuste",
+      "dispute": "Disputa",
+      "reserve": "Reserva",
+      "other": "Otro"
+    },
+    "fee": "comisión {amount}",
+    "payout_of": "Pago del {date}",
+    "payout_status": {
+      "scheduled": "programado",
+      "in_transit": "en tránsito",
+      "paid": "pagado",
+      "failed": "fallido",
+      "canceled": "cancelado"
+    },
+    "not_paid_out": "aún no pagado"
+  },
+  "analytics_money": {
+    "payouts_link": "Pagos recibidos",
+    "tabs": {
+      "payments": "Métodos de pago",
+      "tax": "Impuestos"
+    },
+    "export": "Exportar CSV",
+    "fees": {
+      "actual": "Comisiones de los pagos: {amount} en {n} pedidos",
+      "estimated": "estimadas con tus tarifas: {amount} en {n} pedidos",
+      "payouts": "Ver pagos recibidos"
+    },
+    "methods": {
+      "empty": "No hay pedidos en este periodo.",
+      "title": "Métodos de pago",
+      "description": "Pedidos, ingresos, cancelaciones, devoluciones y comisiones de cada método de pago, comparados.",
+      "method": "Método",
+      "placed": "Recibidos",
+      "orders": "Ventas",
+      "net_revenue": "Ingresos netos",
+      "share": "Cuota",
+      "aov": "Ticket medio",
+      "cancel_rate": "Cancelados",
+      "return_rate": "Devueltos",
+      "fees": "Comisiones",
+      "fee_rate": "Incidencia",
+      "partly_estimated": "{n} estimadas",
+      "estimated": "estimadas",
+      "actual": "de los pagos",
+      "footnote": "Comisiones de los pagos: {actual}. Estimadas con tus tarifas (Ajustes → comisiones): {estimated}. Tasa de cancelación = cancelados / recibidos; tasa de devolución = devueltos / (ventas + devueltos), como en el panel."
+    },
+    "tax": {
+      "empty": "No hay ventas en este periodo.",
+      "title": "Informe de impuestos",
+      "description": "Impuestos de las ventas del periodo por país y tipo. El total es la línea de impuestos de la cuenta de resultados.",
+      "country": "País",
+      "rate": "Tipo",
+      "orders": "Pedidos",
+      "gross": "Ventas brutas",
+      "taxable": "Base imponible",
+      "tax": "Impuesto",
+      "refunded_tax": "Impuesto de reembolsos",
+      "net_tax": "Neto de reembolsos",
+      "total": "Total",
+      "matches": "Coincide con la línea de impuestos de la cuenta de resultados: {amount}.",
+      "mismatch": "No coincide con la línea de impuestos de la cuenta de resultados ({amount}): los datos cambiaron al cargar, recarga la página.",
+      "footnote": "Tipo = tipo efectivo del pedido (impuesto informado por la tienda sobre la mercancía con descuento, redondeado al 0,1%), o tu tipo para el país si la tienda no lo informó. País de envío; tu país si no se conoce."
+    }
+  },
+  "payouts": {
+    "sync": "Sincronizar pagos",
+    "synced": "Leídos {payouts} pagos y {transactions} movimientos.",
+    "sync_paused": "Leídos {payouts} pagos y {transactions} movimientos; el resto sigue en segundo plano.",
+    "back": "Análisis",
+    "back_list": "Pagos recibidos",
+    "title": "Pagos recibidos",
+    "description": "Pagos del procesador de pagos a tu banco: cada uno con cargos, reembolsos, ajustes, comisiones y neto. La cuenta de resultados toma de aquí la comisión real de un pedido.",
+    "totals": {
+      "gross": "Cargos",
+      "refunds": "Reembolsos",
+      "adjustments": "Ajustes",
+      "fees": "Comisiones",
+      "net": "Neto pagado",
+      "count": "{n} pagos"
+    },
+    "filters": {
+      "status": "Estado",
+      "all_statuses": "Todos los estados",
+      "from": "Desde",
+      "to": "Hasta",
+      "apply": "Filtrar",
+      "clear": "Limpiar"
+    },
+    "status": {
+      "scheduled": "Programado",
+      "in_transit": "En tránsito",
+      "paid": "Pagado",
+      "failed": "Fallido",
+      "canceled": "Cancelado"
+    },
+    "empty": "Aún no hay pagos",
+    "empty_filtered": "Ningún pago coincide con los filtros",
+    "empty_hint": "Los pagos llegan con la sincronización diaria si la tienda usa el procesador de pagos de la plataforma (Shopify Payments). Si no, las comisiones siguen siendo estimadas.",
+    "columns": {
+      "date": "Fecha",
+      "status": "Estado",
+      "transactions": "Movimientos",
+      "gross": "Cargos",
+      "refunds": "Reembolsos",
+      "adjustments": "Ajustes",
+      "fees": "Comisiones",
+      "net": "Neto",
+      "when": "Cuándo",
+      "type": "Tipo",
+      "order": "Pedido",
+      "amount": "Importe",
+      "fee": "Comisión"
+    },
+    "summary": "{n} pagos",
+    "last_sync": "Última sincronización: {at}",
+    "last_sync_error": "La última sincronización falló: {error}",
+    "detail_eyebrow": "Pago",
+    "detail_title": "Pago del {date}",
+    "detail_description": "Referencia del procesador {id}. Cada cargo, reembolso y comisión del pago, enlazado a su pedido.",
+    "orders_charged": "{n} pedidos cobrados",
+    "orders_refunded": "{n} pedidos reembolsados",
+    "mismatch": "Los {n} movimientos importados suman {net}, no el neto del pago: aún faltan algunos. Sincroniza de nuevo.",
+    "unmatched": "{n} movimientos se refieren a pedidos que Keel aún no ha importado.",
+    "transactions_title": "Movimientos ({n})",
+    "type": {
+      "charge": "Cargo",
+      "refund": "Reembolso",
+      "adjustment": "Ajuste",
+      "dispute": "Disputa",
+      "reserve": "Reserva",
+      "other": "Otro"
+    },
+    "total": "Total"
   }
 }

@@ -4,6 +4,7 @@ export * from "./orders/history";
 export * from "./orders/duplicates";
 export * from "./orders/notes";
 export * from "./orders/edit";
+export * from "./payments";
 export * from "./email";
 export * from "./notifications";
 export * from "./purchasing";

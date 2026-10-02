@@ -2,9 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
-import { adminDb, eq, inArray, schema } from "@keel/db";
+import { adminDb, and, eq, inArray, schema } from "@keel/db";
 import { formatDateTime, formatMoney, daysInTransit, orderEditBlock, displayName } from "@keel/core";
-import { customerOrderHistory, duplicateSiblings, latestPlatformWrites } from "@keel/services";
+import { customerOrderHistory, duplicateSiblings, latestPlatformWrites, orderMoney } from "@keel/services";
 import { ORDER_DISCOUNT_PRESETS_BPS, canDo, canViewPage, canWritePage, isPageEnabled } from "@keel/config";
 import { Alert, AlertDescription, AlertTitle, Badge, Button, Card, CardContent, CardHeader, CardTitle, DetailShell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@keel/ui";
 import { requirePage } from "@/server/tenant";
@@ -20,6 +20,8 @@ import { DiscountOrderDialog } from "./discount-order";
 import { RecordTasks } from "@/components/record-tasks";
 import { EconomicsCard } from "./economics-card";
 import { BackorderCard, StockCheckCard } from "./backorder-cards";
+import { RecordPaymentDialog, RefundDialog } from "./payment-dialogs";
+import { PaymentsCard } from "./payments-card";
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
@@ -30,12 +32,19 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
   const canRequestReturn = canWritePage(ctx.role, "returns") && isPageEnabled("returns", ctx.activeAddons) && ["shipped", "delivered", "returned_partial"].includes(order.status);
   const t = await getTranslations("order_detail");
   const tp = await getTranslations("payment_methods");
-  const [history, duplicates, adjacent, platformWrite] = await Promise.all([
+  const sctx = (tx: Parameters<Parameters<typeof ctx.run>[0]>[0]) => ({ tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } });
+  const [history, duplicates, adjacent, platformWrite, money] = await Promise.all([
     ctx.run((tx) => customerOrderHistory({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, id)),
     ctx.run((tx) => duplicateSiblings({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, id, ctx.settings.duplicateOrderWindowDays)),
     adjacentOrders(ctx, order.placedAt, order.id),
     ctx.run(async (tx) => (await latestPlatformWrites({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, "order", [id])).get(id)),
+    ctx.run((tx) => orderMoney(sctx(tx), id)),
   ]);
+  // money after checkout (issue #27): every payment method alike
+  const canRecordPayment = Boolean(money?.canRecordPayment) && canDo(ctx.role, "record_payment");
+  const canRefund = Boolean(money?.canRefund) && canDo(ctx.role, "refund_order");
+  const locations = canRefund ? await ctx.run((tx) => tx.select({ id: schema.locations.id, name: schema.locations.name, isDefault: schema.locations.isDefault }).from(schema.locations).where(and(eq(schema.locations.tenantId, ctx.tenant.id), eq(schema.locations.isActive, true))).orderBy(schema.locations.name)) : [];
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: ctx.tenant.timezone }).format(new Date());
   const members = await adminDb().select({ id: schema.users.id, name: schema.users.name, email: schema.users.email }).from(schema.tenantMemberships).innerJoin(schema.users, eq(schema.users.id, schema.tenantMemberships.userId)).where(eq(schema.tenantMemberships.tenantId, ctx.tenant.id));
   const actorIds = [...new Set([...events.map((e) => e.actorUserId), ...notes.map((n) => n.authorId), order.assignedTo].filter((x): x is string => Boolean(x)))];
   const extra = actorIds.filter((a) => !members.some((m) => m.id === a));
@@ -117,8 +126,10 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
         </>
       }
       actions={
-        canChange || canEdit ? (
+        canChange || canEdit || canRecordPayment || canRefund ? (
           <>
+            {canRecordPayment && money && <RecordPaymentDialog slug={tenant} orderId={order.id} orderName={order.name} outstandingMinor={money.outstandingMinor} defaultMethod={order.paymentMethod} today={today} currency={order.currency} locale={ctx.locale} />}
+            {canRefund && money && <RefundDialog slug={tenant} orderId={order.id} orderName={order.name} refundableMinor={money.refundableMinor} order={{ paymentStatus: order.paymentStatus, totalMinor: order.totalMinor, refundedMinor: order.refundedMinor, subtotalMinor: order.subtotalMinor, discountMinor: order.discountMinor }} lines={money.lines} locations={locations} currency={order.currency} locale={ctx.locale} />}
             {showEdit && <EditOrderDialog {...editProps} />}
             {canEdit && <DiscountOrderDialog slug={tenant} orderId={order.id} orderName={order.name} amounts={order} presetsBps={ORDER_DISCOUNT_PRESETS_BPS} paid={paid} currency={order.currency} locale={ctx.locale} />}
             {canChange && <OrderActions slug={tenant} orderId={order.id} currentStatus={order.status} statusSource={order.statusSource} cancelled={Boolean(order.cancelledAt) || Boolean(order.replacedByOrderId)} members={people} assignedTo={order.assignedTo} canCancel={canDo(ctx.role, "cancel_order")} canAssign={canDo(ctx.role, "assign")} />}
@@ -134,7 +145,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <p className="font-medium">{order.customerName ?? "—"}</p>
-              <p className="text-muted-foreground">{order.email}</p>
+              <p className="text-muted-foreground" data-testid="order-email">{order.email}</p>
               <p className="text-muted-foreground">{order.phone}</p>
               {addr && (
                 <address className="not-italic text-muted-foreground">
@@ -329,6 +340,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ te
           </dl>
         </CardContent>
       </Card>
+
+      {money && <PaymentsCard ctx={ctx} orderId={order.id} currency={order.currency} money={money} nameOf={nameOf} />}
 
       <StockCheckCard ctx={ctx} orderId={order.id} status={order.status} lines={lines} />
 

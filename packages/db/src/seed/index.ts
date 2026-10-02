@@ -11,6 +11,7 @@ export { ensureDemoSettings } from "./settings";
 import { seedCollab } from "./collab";
 import { seedEmailLog } from "./email";
 import { seedLists } from "./lists";
+import { seedPayments } from "./payments";
 import { seedFulfilment } from "./fulfilment";
 import { seedInventoryControl } from "./inventory-control";
 import { createRng } from "@keel/integrations";
@@ -140,7 +141,29 @@ export async function seedPlatform(db: ReturnType<typeof drizzle<typeof schema>>
     await db.insert(schema.tenantBranding).values({ tenantId: id, brandColor: DEMO_BRAND_COLORS[key] }).onConflictDoNothing();
   }
   await seedBilling(db, tenantIds);
+  await seedInvitations(db, tenantIds, userIds);
   return { tenantIds, userIds };
+}
+
+/**
+ * Demo invitations (#52): one pending and one expired for Northwind, one pending for Harbor Home, so
+ * the Users page shows the list. The stored hashes are of strings that are not valid tokens: nobody
+ * can accept these from a link.
+ */
+const DEMO_INVITATIONS = [
+  { tenant: "northwind", email: "marta.esposito@northwind.demo", name: "Marta Esposito", role: "operations", inviter: "owner@northwind.demo", sentDaysAgo: 2 },
+  { tenant: "northwind", email: "stagista@northwind.demo", name: null, role: "viewer", inviter: "admin@northwind.demo", sentDaysAgo: 9 },
+  { tenant: "harbor", email: "new.hire@harborhome.demo", name: "Noah Bennett", role: "customer_care", inviter: "owner@harborhome.demo", sentDaysAgo: 1 },
+] as const;
+
+async function seedInvitations(db: ReturnType<typeof drizzle<typeof schema>>, tenantIds: SeedContext["tenantIds"], userIds: Record<string, string>) {
+  const now = Date.now();
+  for (const inv of DEMO_INVITATIONS) {
+    const sent = new Date(now - inv.sentDaysAgo * 86_400_000);
+    const expiresAt = new Date(sent.getTime() + 7 * 86_400_000);
+    const values = { tenantId: tenantIds[inv.tenant], email: inv.email, name: inv.name, role: inv.role, invitedBy: userIds[inv.inviter] ?? null, tokenHash: createHash("sha256").update(`seed-invite:${inv.tenant}:${inv.email}`).digest("hex"), expiresAt, status: "pending" as const, lastSentAt: sent, createdAt: sent };
+    await db.insert(schema.invitations).values(values).onConflictDoUpdate({ target: schema.invitations.tokenHash, set: { expiresAt, lastSentAt: sent, status: "pending" } });
+  }
 }
 
 /** Demo branding: Northwind keeps the product blue, Harbor Home shows a brand colour of its own. */
@@ -234,6 +257,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("collab", () => seedCollab(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, cfg.locale, opts.now ?? new Date()));
     await step("email", () => seedEmailLog(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, cfg.locale, opts.now ?? new Date()));
     await step("lists", () => seedLists(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
+    await step("payments", () => seedPayments(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("inventory-control", () => seedInventoryControl(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     log(`[db:seed] ${cfg.key}: generated in ${genMs}ms, wrote ${Object.values(counts).reduce((a, b) => a + b, 0)} rows in ${Date.now() - started - genMs}ms (orders ${counts.orders}, lines ${counts.orderLines}, events ${counts.orderEvents})`);
   }
@@ -849,7 +873,7 @@ async function seedCod(db: ReturnType<typeof drizzle<typeof schema>>, ctx: SeedC
   for (const [i, userId] of operators.entries()) await db.insert(schema.codOperatorCapacity).values({ tenantId, userId, dailyHours: hours[i]!, isActive: 1, allowedTags: i === 2 ? ["Richiesta modifica", "Da chiamare"] : [] }).onConflictDoNothing();
   if (operators[1]) await db.insert(schema.codCapacityExceptions).values({ tenantId, userId: operators[1], date: new Date(now.getTime() + 2 * 864e5).toISOString().slice(0, 10), kind: "off", note: "Day off" }).onConflictDoNothing();
   await db.insert(schema.codSettings).values({ tenantId, config: DEMO_COD_SETTINGS }).onConflictDoNothing();
-  const open = await db.execute<{ id: string; placed_at: Date }>(sql`select o.id, o.placed_at from orders o where o.tenant_id = ${tenantId} and o.payment_method = 'cod' and o.status in ('new','pending_review') and o.cancelled_at is null and not exists (select 1 from shipments s where s.order_id = o.id) and o.placed_at > ${new Date(now.getTime() - 60 * 864e5)} order by o.placed_at`);
+  const open = await db.execute<{ id: string; placed_at: Date }>(sql`select o.id, o.placed_at from orders o where o.tenant_id = ${tenantId} and o.payment_method = 'cod' and o.status in ('new','pending_review') and o.cancelled_at is null and o.fulfillment_status_raw is null and not exists (select 1 from shipments s where s.order_id = o.id) and o.placed_at > ${new Date(now.getTime() - 60 * 864e5)} order by o.placed_at`);
   // small test seeds may have no open COD order: fall back to recent COD orders as closed items so every table has rows
   const isOpen = open.rows.length > 0;
   const candidates = isOpen ? open.rows : (await db.execute<{ id: string; placed_at: Date }>(sql`select o.id, o.placed_at from orders o where o.tenant_id = ${tenantId} and o.payment_method = 'cod' order by o.placed_at desc limit 10`)).rows;

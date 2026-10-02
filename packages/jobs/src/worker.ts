@@ -2,10 +2,10 @@ import * as Sentry from "@sentry/node";
 import { checkRuntimeConfig, platformRetentionDays, SENTRY_DATA_COLLECTION } from "@keel/config";
 import { setEmailDispatcher } from "@keel/services";
 import { createBoss } from "./boss";
-import { handleEmailEvent, handleEmailSend, handleListExport, handlePlatformWrite, handleSyncAds, handleSyncCatalog, handleSyncOrders, handleTick, handleWebhook, type Enqueue } from "./handlers";
-import { QUEUES, queueRetentionOptions, type EmailEventJob, type EmailSendJob, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type TickJob, type WebhookJob } from "./queues";
+import { handleListExport, handlePlatformWrite, handleSyncAds, handleSyncCatalog, handleSyncOrders, handleSyncPayouts, handleTick, handleWebhook, type Enqueue, handleEmailEvent, handleEmailSend } from "./handlers";
+import { QUEUES, queueRetentionOptions, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob } from "./queues";
 
-/** Nightly reconciliation at 03:00 and customer predictions and full live-segment refresh at 03:40, live segments every 10 min, pixel stitching and server-side conversions every 5 min, delta every 15 min, ads daily at 06:00, webhook retry every 10 min, platform-write retries every minute, retention daily at 04:10, backorder safety re-check and email housekeeping every 10 min (UTC). */
+/** Nightly reconciliation at 03:00 and customer predictions and full live-segment refresh at 03:40, live segments every 10 min, pixel stitching and server-side conversions every 5 min, delta every 15 min, ads daily at 06:00, webhook retry every 10 min, platform-write retries every minute, retention daily at 04:10, backorder safety re-check and email housekeeping every 10 min, payouts daily at 05:20 (UTC). */
 const SCHEDULES: { cron: string; data: TickJob }[] = [
   { cron: "*/15 * * * *", data: { kind: "delta" } },
   { cron: "*/10 * * * *", data: { kind: "retry" } },
@@ -25,6 +25,7 @@ const SCHEDULES: { cron: string; data: TickJob }[] = [
   { cron: "5 7 * * *", data: { kind: "digest" } },
   { cron: "7,17,27,37,47,57 * * * *", data: { kind: "backorders" } },
   { cron: "3,13,23,33,43,53 * * * *", data: { kind: "emails" } },
+  { cron: "20 5 * * *", data: { kind: "payouts" } },
 ];
 
 /** Same startup rules as the web process; Sentry (errors only, no PII) when `SENTRY_DSN` is set. */
@@ -80,6 +81,7 @@ async function main() {
   await boss.work<SyncCatalogJob>(QUEUES.syncCatalog, one((d: SyncCatalogJob) => handleSyncCatalog(d, enqueue)));
   await boss.work<PlatformWriteJob>(QUEUES.platformWrite, { batchSize: 5 }, one((d: PlatformWriteJob) => handlePlatformWrite(d)));
   await boss.work<SyncAdsJob>(QUEUES.syncAds, one((d: SyncAdsJob) => handleSyncAds(d)));
+  await boss.work<SyncPayoutsJob>(QUEUES.syncPayouts, one((d: SyncPayoutsJob) => handleSyncPayouts(d, enqueue)));
   await boss.work<TickJob>(QUEUES.tick, one((d: TickJob) => handleTick(d, enqueue)));
   await boss.work<ListExportJob>(QUEUES.listExport, one((d: ListExportJob) => handleListExport(d)));
   await boss.work<EmailSendJob>(QUEUES.emailSend, { batchSize: 5 }, one((d: EmailSendJob) => handleEmailSend(d, enqueue)));

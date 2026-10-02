@@ -17,8 +17,9 @@ import {
   type SyncQuery,
   type VerifiedWebhook,
   type WebhookRegistration,
- type CreateFulfillmentInput, type NormalizedFulfillment, type CreateOrderInput, type OrderDetailsPatch, type OrderDiscountPatch, type VariantPatch, type FulfillmentHoldInput } from "../types";
+ type CreateOrderInput, type FulfillmentHoldInput, type ManualPaymentInput, type NormalizedBalanceTransaction, type NormalizedPayout, type OrderDetailsPatch, type OrderDiscountPatch, type RefundOrderInput, type VariantPatch, type CreateFulfillmentInput, type NormalizedFulfillment } from "../types";
 import { FailureScript } from "./failures";
+import { buildMockPayouts, isProcessorGateway, type MockPaymentOrder, type MockPayoutRefund } from "./payouts";
 
 export interface MockCatalogVariant {
   externalId: string;
@@ -48,6 +49,8 @@ export interface MockCommerceOptions {
   webhookSecret?: string;
   /** Starting stock per inventory item and location (the tenant's levels); unknown pairs get a random level on first read. */
   inventory?: { inventoryItemExternalId: string; locationExternalId: string; available: number }[];
+  /** The tenant's recent orders paid through the processor: payouts and fees are built from them (plus orders the mock creates). */
+  paymentOrders?: MockPaymentOrder[];
 }
 
 /**
@@ -246,6 +249,28 @@ export class MockCommercePlatform implements CommercePlatform {
   async fetchReturns(): Promise<Page<NormalizedReturn>> {
     this.failures.check();
     return { items: [], nextCursor: null };
+  }
+
+  /** Refunds made through this simulator since it started (they show up in the next payouts). */
+  private payoutRefunds: MockPayoutRefund[] = [];
+  private payoutData(since?: Date | null) {
+    const known = new Set((this.opts.paymentOrders ?? []).map((o) => o.externalId));
+    const own: MockPaymentOrder[] = [...this.orders.values()].filter((o) => !known.has(o.externalId) && o.paymentStatus !== "pending" && o.paymentStatus !== "voided").map((o) => ({ externalId: o.externalId, placedAt: o.placedAt, totalMinor: o.totalMinor, refundedMinor: 0, gateways: o.paymentGateways }));
+    return buildMockPayouts({ orders: [...(this.opts.paymentOrders ?? []), ...own], refunds: this.payoutRefunds, currency: this.opts.currency, now: new Date(), since });
+  }
+  async fetchPayouts(q: SyncQuery): Promise<Page<NormalizedPayout>> {
+    this.failures.check();
+    const all = this.payoutData(q.createdSince ?? null).payouts;
+    const page = Number(q.cursor ?? 0);
+    const limit = Math.min(q.limit ?? 50, 250);
+    return { items: all.slice(page * limit, (page + 1) * limit), nextCursor: (page + 1) * limit < all.length ? String(page + 1) : null };
+  }
+  async fetchBalanceTransactions(q: { payoutExternalId: string; cursor?: string | null; limit?: number }): Promise<Page<NormalizedBalanceTransaction>> {
+    this.failures.check();
+    const all = this.payoutData().transactions.filter((t) => t.payoutExternalId === q.payoutExternalId);
+    const page = Number(q.cursor ?? 0);
+    const limit = Math.min(q.limit ?? 100, 250);
+    return { items: all.slice(page * limit, (page + 1) * limit), nextCursor: (page + 1) * limit < all.length ? String(page + 1) : null };
   }
 
   async registerWebhooks(callbackUrl: string, topics: string[]): Promise<WebhookRegistration[]> {
@@ -465,7 +490,42 @@ export class MockCommercePlatform implements CommercePlatform {
   }
   async refundReturn(orderExternalId: string, input: { lines: { orderLineExternalId: string; quantity: number }[]; amountMinor: number; currency: string; note?: string | null; notify: boolean }) {
     this.record("refundReturn", { orderExternalId, ...input });
-    return { externalId: `mock-refund-${++this.returnSeq}`, amountMinor: input.amountMinor };
+    return this.applyRefund(orderExternalId, { ...input, lines: input.lines.map((l) => ({ ...l, restock: false })) });
+  }
+  async refundOrder(orderExternalId: string, input: RefundOrderInput) {
+    this.record("refundOrder", { orderExternalId, ...input });
+    return this.applyRefund(orderExternalId, input);
+  }
+  /** Shared by both refund calls: capped by what is left on orders the simulator knows, restock to the location, money in the next payout. */
+  private applyRefund(orderExternalId: string, input: RefundOrderInput): { externalId: string; amountMinor: number } {
+    const o = this.orders.get(orderExternalId);
+    const captured = o ? (o.paymentStatus === "pending" || o.paymentStatus === "voided" ? 0 : o.totalMinor - o.refundedMinor) : input.amountMinor;
+    const amount = Math.max(0, Math.min(input.amountMinor, captured));
+    const loc = input.locationExternalId ?? this.defaultLocation();
+    for (const l of input.lines) {
+      if (!l.restock || !loc) continue;
+      const line = o?.lines.find((x) => x.externalId === l.orderLineExternalId);
+      const inv = line ? this.opts.variants.find((v) => v.externalId === line.variantExternalId)?.inventoryItemExternalId : undefined;
+      if (inv) this.adjustStock(inv, loc, l.quantity);
+    }
+    if (o && amount > 0) {
+      o.refundedMinor += amount;
+      o.paymentStatus = o.refundedMinor >= o.totalMinor ? "refunded" : "partially_refunded";
+      o.financialStatusRaw = o.paymentStatus;
+      o.platformUpdatedAt = new Date();
+    }
+    const knownToProcessor = o ? isProcessorGateway(o.paymentGateways) : (this.opts.paymentOrders ?? []).some((p) => p.externalId === orderExternalId);
+    if (amount > 0 && knownToProcessor) this.payoutRefunds.push({ orderExternalId, amountMinor: amount, at: new Date() });
+    return { externalId: `mock-refund-${++this.returnSeq}`, amountMinor: amount };
+  }
+  async markOrderPaid(externalId: string, input: ManualPaymentInput) {
+    this.record("markOrderPaid", { externalId, ...input });
+    const o = this.orders.get(externalId);
+    if (o && input.fullBalance) {
+      o.paymentStatus = "paid";
+      o.financialStatusRaw = "paid";
+      o.platformUpdatedAt = new Date();
+    }
   }
   async closeReturn(returnExternalId: string) {
     this.record("closeReturn", { returnExternalId });

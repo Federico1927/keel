@@ -22,7 +22,13 @@ export interface EmailTemplateData {
   magic_link: { url: string; minutes: number };
   email_change_confirm: { url: string; hours: number };
   email_change_notice: { newEmail: string };
-  invite: { tenantName: string; inviterName: string; role: string; url: string };
+  invite: { tenantName: string; inviterName: string; role: string; url: string; days: number };
+  welcome: { name: string; tenantName: string; dashboardUrl: string; profileUrl: string; /** Owners only. */ guideUrl: string | null };
+  password_reset: { url: string; minutes: number };
+  password_changed: { at: Date | string; timezone: string };
+  email_changed: { newEmail: string };
+  new_sign_in: { device: string; ip: string | null; at: Date | string; timezone: string; profileUrl: string };
+  account_disabled: { tenantName: string };
   mention: { authorName: string; recordLabel: string; excerpt: string; url: string };
   supplier_po: { companyName: string; supplierName: string; poNumber: string; url: string; expectedAt: Date | string | null; timezone: string };
   digest: { tenantName: string; groups: { type: string; count: number; titles: string[] }[]; url: string };
@@ -39,6 +45,12 @@ export const EMAIL_TEMPLATES: { [K in EmailTemplate]: { kind: EmailKind; categor
   email_change_confirm: { kind: "security", category: "security" },
   email_change_notice: { kind: "security", category: "security" },
   invite: { kind: "transactional", category: "transactional" },
+  welcome: { kind: "transactional", category: "transactional" },
+  password_reset: { kind: "security", category: "security" },
+  password_changed: { kind: "security", category: "security" },
+  email_changed: { kind: "security", category: "security" },
+  new_sign_in: { kind: "security", category: "security" },
+  account_disabled: { kind: "security", category: "security" },
   test: { kind: "transactional", category: "transactional" },
   supplier_po: { kind: "transactional", category: "supplier_po" },
   carrier_instruction: { kind: "transactional", category: "transactional" },
@@ -193,7 +205,39 @@ export function renderEmail<K extends EmailTemplate>(template: K, rawLocale: str
     case "invite": {
       const d = data as EmailTemplateData["invite"];
       const vars = { product, inviter: d.inviterName, tenant: d.tenantName, role: (s.roles as Record<string, string>)[d.role] ?? d.role };
-      return out(fill(tpl.invite.subject, vars), { preheader: fill(tpl.invite.preheader, vars), paragraphs: [fill(tpl.invite.intro, vars)], cta: { label: tpl.invite.cta, url: d.url }, hint: tpl.invite.hint });
+      return out(fill(tpl.invite.subject, vars), { preheader: fill(tpl.invite.preheader, vars), paragraphs: [fill(tpl.invite.intro, vars)], cta: { label: tpl.invite.cta, url: d.url }, hint: fill(tpl.invite.hint, { days: formatNumber(d.days, locale) }) });
+    }
+    case "welcome": {
+      const d = data as EmailTemplateData["welcome"];
+      const vars = { product, name: d.name, tenant: d.tenantName };
+      const list = [`${tpl.welcome.profile} ${d.profileUrl}`, ...(d.guideUrl ? [`${tpl.welcome.guide} ${d.guideUrl}`] : [])];
+      return out(fill(tpl.welcome.subject, vars), { preheader: fill(tpl.welcome.preheader, vars), paragraphs: [fill(tpl.welcome.intro, vars)], list, cta: { label: fill(tpl.welcome.cta, vars), url: d.dashboardUrl } });
+    }
+    case "password_reset": {
+      const d = data as EmailTemplateData["password_reset"];
+      const vars = { product, minutes: formatNumber(d.minutes, locale) };
+      return out(fill(tpl.password_reset.subject, vars), { preheader: fill(tpl.password_reset.preheader, vars), paragraphs: [fill(tpl.password_reset.intro, vars)], cta: { label: tpl.password_reset.cta, url: d.url }, hint: tpl.password_reset.hint });
+    }
+    case "password_changed": {
+      const d = data as EmailTemplateData["password_changed"];
+      const vars = { product, time: formatDateTime(new Date(d.at), locale, d.timezone) };
+      return out(fill(tpl.password_changed.subject, vars), { preheader: fill(tpl.password_changed.preheader, vars), paragraphs: [fill(tpl.password_changed.intro, vars)], hint: tpl.password_changed.hint });
+    }
+    case "email_changed": {
+      const d = data as EmailTemplateData["email_changed"];
+      const vars = { product, email: d.newEmail };
+      return out(fill(tpl.email_changed.subject, vars), { preheader: fill(tpl.email_changed.preheader, vars), paragraphs: [fill(tpl.email_changed.intro, vars)], hint: tpl.email_changed.hint });
+    }
+    case "new_sign_in": {
+      const d = data as EmailTemplateData["new_sign_in"];
+      const vars = { product, device: d.device, ip: d.ip ?? "—", time: formatDateTime(new Date(d.at), locale, d.timezone) };
+      const list = [fill(tpl.new_sign_in.device, vars), ...(d.ip ? [fill(tpl.new_sign_in.ip, vars)] : []), fill(tpl.new_sign_in.time, vars)];
+      return out(fill(tpl.new_sign_in.subject, vars), { preheader: fill(tpl.new_sign_in.preheader, vars), paragraphs: [fill(tpl.new_sign_in.intro, vars)], list, cta: { label: tpl.new_sign_in.cta, url: d.profileUrl }, hint: tpl.new_sign_in.hint });
+    }
+    case "account_disabled": {
+      const d = data as EmailTemplateData["account_disabled"];
+      const vars = { product, tenant: d.tenantName };
+      return out(fill(tpl.account_disabled.subject, vars), { preheader: fill(tpl.account_disabled.preheader, vars), paragraphs: [fill(tpl.account_disabled.intro, vars)], hint: fill(tpl.account_disabled.hint, vars) });
     }
     case "mention": {
       const d = data as EmailTemplateData["mention"];

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { PLAN_KEYS } from "@keel/config";
 import { eq, recordAudit, schema } from "@keel/db";
-import { applySuspensions, createTenant, emailSettings, issueDueInvoices, recordInvoicePayment, removeAddressSuppression, sendTestEmail, setTenantAddon, setTenantPlan, setTenantSuspension, voidInvoice } from "@keel/services";
+import { AccountError, applySuspensions, createTenant, requestPasswordReset, emailSettings, issueDueInvoices, recordInvoicePayment, removeAddressSuppression, sendTestEmail, setTenantAddon, setTenantPlan, setTenantSuspension, voidInvoice } from "@keel/services";
 import { requireSuperAdmin } from "@/server/admin";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 import "@/server/email";
@@ -25,16 +25,34 @@ const createSchema = z.object({
   ownerName: z.string().trim().min(1).max(80),
 });
 
-export async function createTenantAction(_prev: ActionResult<{ tenantId: string; temporaryPassword: string | null }> | null, formData: FormData): Promise<ActionResult<{ tenantId: string; temporaryPassword: string | null }>> {
+export async function createTenantAction(_prev: ActionResult<{ tenantId: string; ownerEmail: string }> | null, formData: FormData): Promise<ActionResult<{ tenantId: string; ownerEmail: string }>> {
   const { user, db } = await requireSuperAdmin();
   const parsed = createSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return fail("invalid_input", Object.fromEntries(parsed.error.issues.map((i) => [i.path.join("."), i.message])));
   try {
+    // the owner receives an invitation (#52): the console never sees or sets a password
     const r = await createTenant(db, parsed.data, user.id);
     revalidatePath("/admin");
-    return ok({ tenantId: r.tenantId, temporaryPassword: r.temporaryPassword });
+    return ok({ tenantId: r.tenantId, ownerEmail: r.ownerEmail });
   } catch (e) {
-    if (e instanceof Error && (e.message === "slug_taken" || e.message === "invalid_slug")) return fail(e.message);
+    if (e instanceof Error && (e.message === "slug_taken" || e.message === "invalid_slug" || e.message === "invalid_owner_email")) return fail(e.message);
+    throw e;
+  }
+}
+
+/**
+ * "Send password reset" from the console (#52): the same flow as "Forgot password?", the email goes
+ * to the person; the super-admin never sees the link nor sets a password. Audited by the service.
+ */
+export async function sendPasswordResetAction(userId: string): Promise<ActionResult<{ sent: boolean }>> {
+  const { user, db } = await requireSuperAdmin();
+  if (!uuid.safeParse(userId).success) return fail("invalid_input");
+  const [target] = await db.select({ email: schema.users.email }).from(schema.users).where(eq(schema.users.id, userId)).limit(1);
+  if (!target) return fail("not_found");
+  try {
+    return ok(await requestPasswordReset(db, { email: target.email, requestedBy: user.id }));
+  } catch (e) {
+    if (e instanceof AccountError) return fail(e.code);
     throw e;
   }
 }

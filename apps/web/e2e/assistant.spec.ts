@@ -83,7 +83,7 @@ test.describe("AI assistant (core, on the store's own Anthropic key)", () => {
     await page.getByLabel(/Owner email|Email owner/).fill(`owner-ai-${stamp}@e2e.test`);
     await page.getByLabel(/Owner name|Nome owner/).fill("AI Owner");
     await page.getByRole("button", { name: /Create tenant|Crea tenant/ }).click();
-    await expect(page.getByTestId("temp-password")).toBeVisible();
+    await expect(page.getByTestId("owner-invited")).toBeVisible();
     // the super-admin opens the new store (impersonation, owner rights)
     await page.goto(`/t/ai-shop-${stamp}/assistant`);
     await expect(page.getByTestId("assistant-not-connected")).toBeVisible();
