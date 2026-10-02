@@ -789,6 +789,10 @@ Fatto:
 
 Resta: comodità d'uso sul telefono (dimensione dei controlli, liste pensate per il telefono, PWA) in #49. Le pagine degli abbonamenti si controlleranno quando un tenant demo avrà l'add-on.
 
+Problemi aperti trovati strada facendo, fuori da questo lavoro:
+- **Durata del seed oltre i 2 minuti di §10**: nell'ambiente cloud, nella stessa giornata, è passata da 82 s a 304 s man mano che su `main` arrivavano nuove funzioni. Non è il gonfiamento del database (tuple morte trascurabili, autovacuum attivo), e la nuova query di #84 dura circa 1 s. Va misurato per tenant e per passo.
+- **Testi mancanti nella console**: la pagina email della console chiede chiavi `admin.email.templates.<modello>` che non esistono (`password_reset`, `billing_checkout`, `new_sign_in`, `password_changed`, `welcome`, `return_*` e altre); il server registra `MISSING_MESSAGE` a ogni visita. Il test di parità tra lingue non le vede perché mancano in tutte e tre le lingue.
+
 ## Rinomina del prodotto in Hullwise (2026-10-02)
 
 Fatto, sul branch `claude/modest-mendel-t7bo1a` (non unito a `main`: l'unione cambia nomi di variabili, ruoli e domini in produzione, vedi `docs/DEPLOY.md` → "Rename cutover").
