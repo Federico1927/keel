@@ -38,7 +38,24 @@ export interface EmailTemplateData {
   /** Link to start the Hullwise subscription (Stripe Checkout), to the customer's billing contact (issue #53). */
   billing_checkout: { tenantName: string; planName: string; lines: { kind: "plan" | "addon" | "setup"; key: string; amountMinor: number }[]; currency: string; trialDays: number; url: string; expiresAt: Date | string | null; timezone: string };
   carrier_instruction: { companyName: string; carrier: string | null; trackingNumber: string; orderName: string; resolution: "redeliver" | "new_address" | "pickup_point" | "return"; address: { name?: string | null; address1?: string | null; address2?: string | null; zip?: string | null; city?: string | null; province?: string | null; country?: string | null; phone?: string | null } | null; pickupPoint: string | null; note: string | null };
+  /** Return status emails to the store's end customer (issue #7), sent with the store's identity. */
+  return_approved: ReturnEmailBase & { /** Signed link to the prepaid label, when one was issued. */ labelUrl: string | null; /** The portal's shipping instructions in the customer's language. */ instructions: string | null };
+  return_received: ReturnEmailBase;
+  return_refunded: ReturnEmailBase & { amountMinor: number; currency: string };
+  return_voucher_issued: ReturnEmailBase & { amountMinor: number; currency: string; code: string };
+  return_exchange_shipped: ReturnEmailBase & { exchangeOrderName: string | null; carrier: string | null; trackingNumber: string | null; trackingUrl: string | null };
 }
+/** What every return email says: who, which return, which items. */
+export interface ReturnEmailBase {
+  storeName: string;
+  customerName: string | null;
+  returnNumber: string;
+  orderName: string;
+  items: { title: string; quantity: number }[];
+}
+export const RETURN_EMAIL_TEMPLATES = ["return_approved", "return_received", "return_refunded", "return_voucher_issued", "return_exchange_shipped"] as const satisfies readonly (keyof EmailTemplateData)[];
+/** Suppression category of the return emails: a customer can unsubscribe from them, a store can suppress an address by hand. */
+export const RETURN_EMAIL_CATEGORY = "return_updates";
 export type EmailTemplate = keyof EmailTemplateData;
 
 /** Kind and default suppression category of every template. */
@@ -57,6 +74,11 @@ export const EMAIL_TEMPLATES: { [K in EmailTemplate]: { kind: EmailKind; categor
   supplier_po: { kind: "transactional", category: "supplier_po" },
   carrier_instruction: { kind: "transactional", category: "transactional" },
   billing_checkout: { kind: "transactional", category: "transactional" },
+  return_approved: { kind: "transactional", category: RETURN_EMAIL_CATEGORY },
+  return_received: { kind: "transactional", category: RETURN_EMAIL_CATEGORY },
+  return_refunded: { kind: "transactional", category: RETURN_EMAIL_CATEGORY },
+  return_voucher_issued: { kind: "transactional", category: RETURN_EMAIL_CATEGORY },
+  return_exchange_shipped: { kind: "transactional", category: RETURN_EMAIL_CATEGORY },
   mention: { kind: "notification", category: "mention" },
   digest: { kind: "notification", category: "digest" },
   notification: { kind: "notification", category: "notification" },
@@ -80,6 +102,17 @@ export interface EmailSender {
   legalName: string;
   legalAddress: string | null;
   supportEmail: string | null;
+  /** A store writing to its own customers (return emails): its colours (AA-adjusted per scheme) and logo instead of the product's. */
+  brand?: EmailBrand | null;
+}
+/** Colours are optional one by one: a store with a logo and no colour keeps the product's. */
+export interface EmailBrand {
+  primary?: string | null;
+  onPrimary?: string | null;
+  primaryDark?: string | null;
+  onPrimaryDark?: string | null;
+  /** Absolute URL of the logo; the initial and the name are shown without one. */
+  logoUrl: string | null;
 }
 
 export function emailSender(env: Record<string, string | undefined> = process.env): EmailSender {
@@ -112,11 +145,13 @@ interface Parts {
   cta?: { label: string; url: string };
   hint?: string;
   detail?: string;
+  /** Footer line for a store's customer instead of the product user's. */
+  customerFooter?: string;
 }
 
 function layout(locale: EmailLocale, subject: string, p: Parts, sender: EmailSender, unsubscribeUrl?: string): { text: string; html: string } {
   const s = STRINGS[locale].common;
-  const reason = fill(p.kind === "security" ? s.security_footer : s.footer, { product: sender.product });
+  const reason = p.customerFooter ?? fill(p.kind === "security" ? s.security_footer : s.footer, { product: sender.product });
   const legal = [sender.legalName, sender.legalAddress].filter(Boolean).join(" · ");
   const support = sender.supportEmail ? fill(s.support, { email: sender.supportEmail }) : null;
   const text = [
@@ -131,6 +166,15 @@ function layout(locale: EmailLocale, subject: string, p: Parts, sender: EmailSen
     ...(unsubscribeUrl ? [`${s.unsubscribe}: ${unsubscribeUrl}`] : []),
   ].join("\n\n");
   const e = escapeHtml;
+  const b = sender.brand ?? null;
+  const LP = b?.primary ?? L.primary;
+  const LOP = b?.onPrimary ?? L["on-primary"];
+  const DP = b?.primaryDark ?? D.primary;
+  const DOP = b?.onPrimaryDark ?? D["on-primary"];
+  const mark = b?.logoUrl
+    ? `<td><img src="${e(b.logoUrl)}" alt="${e(sender.product)}" height="32" style="display:block;height:32px;max-width:200px;border:0"></td>`
+    : `<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:${LP};color:${LOP};border-radius:8px;font-size:15px;font-weight:700;line-height:28px">${e(sender.product.slice(0, 1).toUpperCase())}</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:${L.fg}">${e(sender.product)}</td>`;
   const para = (t: string) => `<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:${L.fg}">${e(t)}</p>`;
   const html = `<!doctype html>
 <html lang="${locale}">
@@ -147,9 +191,9 @@ function layout(locale: EmailLocale, subject: string, p: Parts, sender: EmailSen
 .k-card{background:${D.surface}!important;border-color:${D.line}!important}
 .k-fg{color:${D.fg}!important}
 .k-muted{color:${D.muted}!important}
-.k-link{color:${D.primary}!important}
-.k-btn{background:${D.primary}!important;color:${D["on-primary"]}!important}
-.k-mark{background:${D.primary}!important;color:${D["on-primary"]}!important}
+.k-link{color:${DP}!important}
+.k-btn{background:${DP}!important;color:${DOP}!important}
+.k-mark{background:${DP}!important;color:${DOP}!important}
 .k-quote{border-color:${D["line-strong"]}!important;color:${D.fg}!important}
 }
 </style>
@@ -160,14 +204,13 @@ ${p.preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
 <tr><td style="padding:0 0 16px">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:${L.primary};color:${L["on-primary"]};border-radius:8px;font-size:15px;font-weight:700;line-height:28px">${e(sender.product.slice(0, 1).toUpperCase())}</td>
-<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:${L.fg}">${e(sender.product)}</td>
+${mark}
 </tr></table>
 </td></tr>
 <tr><td class="k-card" style="background:${L.surface};border:1px solid ${L.line};border-radius:8px;padding:24px">
 ${p.paragraphs.map(para).join("\n")}
-${p.quote ? `<blockquote class="k-quote" style="margin:0 0 16px;padding:8px 12px;border-left:3px solid ${L["line-strong"]};color:${L.fg};white-space:pre-wrap;font-size:14px;line-height:1.5">${e(p.quote)}</blockquote>\n` : ""}${p.list?.length ? `<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:${L.fg}">${p.list.map((l) => `<li>${e(l)}</li>`).join("")}</ul>\n` : ""}${p.cta ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:${L.primary};border-radius:8px"><a class="k-btn" href="${e(p.cta.url)}" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:${L["on-primary"]};text-decoration:none;border-radius:8px">${e(p.cta.label)}</a></td></tr></table>
-<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:${L.muted}">${e(s.button_fallback)}<br><a class="k-link" href="${e(p.cta.url)}" style="color:${L.primary};word-break:break-all">${e(p.cta.url)}</a></p>\n` : ""}${p.hint ? `<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:${L.muted}">${e(p.hint)}</p>\n` : ""}${p.detail ? `<p class="k-muted" style="margin:12px 0 0;font-size:12px;color:${L.muted}">${e(p.detail)}</p>\n` : ""}</td></tr>
+${p.quote ? `<blockquote class="k-quote" style="margin:0 0 16px;padding:8px 12px;border-left:3px solid ${L["line-strong"]};color:${L.fg};white-space:pre-wrap;font-size:14px;line-height:1.5">${e(p.quote)}</blockquote>\n` : ""}${p.list?.length ? `<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:${L.fg}">${p.list.map((l) => `<li>${e(l)}</li>`).join("")}</ul>\n` : ""}${p.cta ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0"><tr><td class="k-btn" style="background:${LP};border-radius:8px"><a class="k-btn" href="${e(p.cta.url)}" style="display:inline-block;padding:11px 18px;font-size:15px;font-weight:600;color:${LOP};text-decoration:none;border-radius:8px">${e(p.cta.label)}</a></td></tr></table>
+<p class="k-muted" style="margin:0 0 12px;font-size:12px;line-height:1.5;color:${L.muted}">${e(s.button_fallback)}<br><a class="k-link" href="${e(p.cta.url)}" style="color:${LP};word-break:break-all">${e(p.cta.url)}</a></p>\n` : ""}${p.hint ? `<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:${L.muted}">${e(p.hint)}</p>\n` : ""}${p.detail ? `<p class="k-muted" style="margin:12px 0 0;font-size:12px;color:${L.muted}">${e(p.detail)}</p>\n` : ""}</td></tr>
 <tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:${L.muted}">
 ${e(reason)}${support ? `<br>${e(support)}` : ""}${legal ? `<br>${e(legal)}` : ""}${unsubscribeUrl ? `<br><a class="k-link" href="${e(unsubscribeUrl)}" style="color:${L.muted}">${e(s.unsubscribe)}</a>` : ""}
 </td></tr>
@@ -276,6 +319,12 @@ export function renderEmail<K extends EmailTemplate>(template: K, rawLocale: str
       const list = [...d.lines.map((l) => (l.kind === "plan" ? fill(t.line_plan, { plan: d.planName, amount: money(l.amountMinor) }) : l.kind === "addon" ? fill(t.line_addon, { addon: names[l.key.replace(/^addon\./, "")] ?? l.key, amount: money(l.amountMinor) }) : fill(t.line_setup, { amount: money(l.amountMinor) }))), ...(d.trialDays > 0 ? [fill(t.line_trial, { days: formatNumber(d.trialDays, locale) })] : [])];
       return out(fill(t.subject, vars), { preheader: fill(t.preheader, vars), paragraphs: [fill(t.intro, vars), t.how], list, cta: { label: t.cta, url: d.url }, hint: d.expiresAt ? fill(t.hint, { date: formatDateTime(new Date(d.expiresAt), locale, d.timezone) }) : t.hint_no_expiry });
     }
+    case "return_approved":
+    case "return_received":
+    case "return_refunded":
+    case "return_voucher_issued":
+    case "return_exchange_shipped":
+      return renderReturnEmail(template, locale, data as ReturnEmailBase, out);
     case "test": {
       const d = data as EmailTemplateData["test"];
       const vars = { product, provider: d.provider, time: formatDateTime(new Date(d.sentAt), locale, "UTC") };
@@ -290,6 +339,43 @@ export function renderEmail<K extends EmailTemplate>(template: K, rawLocale: str
       // a failing job keeps its last error under the phrase (#32)
       const detail = d.body && (!system || d.type === "platform_failure") ? [d.body] : [];
       return out(fill(tpl.notification.subject, { title }), { paragraphs: [title, ...detail], ...(d.url ? { cta: { label: fill(tpl.notification.cta, { product }), url: d.url } } : {}) });
+    }
+  }
+}
+
+type ReturnTemplate = (typeof RETURN_EMAIL_TEMPLATES)[number];
+type Out = (subject: string, parts: Omit<Parts, "kind">) => RenderedEmail;
+
+/** The five return emails share greeting, item list and footer; each adds its own line and call to action. */
+function renderReturnEmail(template: ReturnTemplate, locale: EmailLocale, base: ReturnEmailBase, out: Out): RenderedEmail {
+  const r = STRINGS[locale].templates.return_status;
+  const vars: Record<string, string> = { store: base.storeName, return: base.returnNumber, order: base.orderName };
+  const greeting = base.customerName?.trim() ? fill(r.greeting, { name: base.customerName.trim() }) : r.greeting_anonymous;
+  const list = base.items.map((i) => fill(r.item, { title: i.title, quantity: formatNumber(i.quantity, locale) }));
+  const common = { list: list.length ? list : undefined, customerFooter: fill(r.footer, vars) };
+  switch (template) {
+    case "return_approved": {
+      const d = base as EmailTemplateData["return_approved"];
+      const paragraphs = [greeting, fill(r.approved.intro, vars), d.labelUrl ? r.approved.label : r.approved.no_label];
+      return out(fill(r.approved.subject, vars), { preheader: fill(r.approved.preheader, vars), paragraphs, ...common, ...(d.instructions?.trim() ? { quote: d.instructions.trim() } : {}), ...(d.labelUrl ? { cta: { label: r.approved.cta, url: d.labelUrl } } : {}) });
+    }
+    case "return_received":
+      return out(fill(r.received.subject, vars), { preheader: fill(r.received.preheader, vars), paragraphs: [greeting, fill(r.received.intro, vars)], ...common });
+    case "return_refunded": {
+      const d = base as EmailTemplateData["return_refunded"];
+      const v = { ...vars, amount: formatMoney(d.amountMinor, d.currency, locale) };
+      return out(fill(r.refunded.subject, v), { preheader: fill(r.refunded.preheader, v), paragraphs: [greeting, fill(r.refunded.intro, v)], ...common, hint: r.refunded.hint });
+    }
+    case "return_voucher_issued": {
+      const d = base as EmailTemplateData["return_voucher_issued"];
+      const v = { ...vars, amount: formatMoney(d.amountMinor, d.currency, locale), code: d.code };
+      return out(fill(r.voucher_issued.subject, v), { preheader: fill(r.voucher_issued.preheader, v), paragraphs: [greeting, fill(r.voucher_issued.intro, v), fill(r.voucher_issued.code, v)], ...common, hint: fill(r.voucher_issued.hint, v) });
+    }
+    default: {
+      const d = base as EmailTemplateData["return_exchange_shipped"];
+      const v = { ...vars, exchange: d.exchangeOrderName ?? "—", carrier: d.carrier ?? "—", tracking: d.trackingNumber ?? "—" };
+      const paragraphs = [greeting, fill(d.exchangeOrderName ? r.exchange_shipped.intro : r.exchange_shipped.intro_no_order, v), ...(d.trackingNumber ? [fill(r.exchange_shipped.tracking, v)] : [])];
+      return out(fill(r.exchange_shipped.subject, v), { preheader: fill(r.exchange_shipped.preheader, v), paragraphs, ...common, ...(d.trackingUrl ? { cta: { label: r.exchange_shipped.cta, url: d.trackingUrl } } : {}) });
     }
   }
 }

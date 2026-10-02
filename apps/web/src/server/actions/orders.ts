@@ -4,11 +4,11 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { adminDb, and, eq, recordAudit, schema } from "@hullwise/db";
 import { ORDER_STATUSES, type OrderStatus, displayName } from "@hullwise/core";
-import { OrderEditError, addOrderNote, applyCancellation, cancelBackorderWait, applyOrderDiscount, clearManualStatus, deleteOrderNote, editOrder, enqueuePlatformWrite, getAddressProviderFor, setManualStatus } from "@hullwise/services";
+import { OrderEditError, addOrderNote, applyCancellation, cancelBackorderWait, applyOrderDiscount, clearManualStatus, deleteOrderNote, editOrder, enqueuePlatformWrite, resolveAddressProvider, setManualStatus } from "@hullwise/services";
 import type { AddressSuggestion, AddressValidation } from "@hullwise/integrations";
 import { getCommercePlatform } from "@/server/integrations";
 import { dispatchPlatformWrites } from "@/server/platform-writes";
-import { ForbiddenError, requireAction } from "@/server/tenant";
+import { ForbiddenError, requireAction, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 
 const idSchema = z.string().uuid();
@@ -210,13 +210,16 @@ export async function applyOrderDiscountAction(slug: string, input: unknown): Pr
   }
 }
 
-/** Address autocomplete for the edit dialog, through the tenant's address provider (mock until #7). */
+/** The tenant's address provider (live Google when connected, the mock otherwise); the call itself runs outside the transaction. */
+const addressProvider = (ctx: TenantContext) => ctx.run((tx) => resolveAddressProvider({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }));
+
+/** Address autocomplete for the edit dialog, through the tenant's address provider. */
 export async function suggestAddressesAction(slug: string, query: string, country: string | null): Promise<ActionResult<AddressSuggestion[]>> {
   try {
     const ctx = await requireAction(slug, "edit_order", "orders");
     const q = String(query ?? "").slice(0, 120);
     const c = country && /^[A-Za-z]{2}$/.test(country) ? country.toUpperCase() : ctx.tenant.country;
-    return ok(await getAddressProviderFor(ctx.tenant.id).autocomplete(q, { country: c, limit: 3 }));
+    return ok(await (await addressProvider(ctx)).autocomplete(q, { country: c, limit: 3 }));
   } catch (e) {
     return editFailure(e);
   }
@@ -227,7 +230,7 @@ export async function validateAddressAction(slug: string, address: unknown): Pro
     const ctx = await requireAction(slug, "edit_order", "orders");
     const parsed = addressSchema.safeParse(address);
     if (!parsed.success) return fail("invalid_input");
-    return ok(await getAddressProviderFor(ctx.tenant.id).validate(parsed.data));
+    return ok(await (await addressProvider(ctx)).validate(parsed.data));
   } catch (e) {
     return editFailure(e);
   }

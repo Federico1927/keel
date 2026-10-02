@@ -315,7 +315,7 @@ Fatto:
 - Integrazioni: quarta scheda "AI (Anthropic)" accanto a Shopify, Meta e Google, con collega, testa connessione e guida.
 - Migrazione 0018 (2 tabelle con RLS); test core 153, integrazioni 45, servizi 87, db 510, e2e 70.
 
-Resta per la issue #7: email di stato ai clienti, validazione indirizzi, pagine guida mancanti.
+Resta per la issue #7: email di stato ai clienti, validazione indirizzi, pagine guida mancanti (fatti nell'ultimo blocco, in fondo al file).
 
 ## Scritture verso le piattaforme e sync affidabili (issue #24)
 
@@ -716,6 +716,35 @@ Fatto:
 
 Resta: verificare su un negozio reale i nomi dei campi e delle mutation segnati "da verificare" (categoria, `resourcePublications`, media della variante, mutation dei media); caricamento di file dal computer e modifica dell'immagine della variante si fanno in Shopify; creazione prodotti, gift card, bundle, piani di vendita, definizioni dei metacampi e traduzioni fuori perimetro.
 
+## Esterni (issue #7), ultimo blocco: email di stato ai clienti, validazione indirizzi reale, guide di attivazione delle integrazioni ad hoc
+
+Fatto:
+- **Email di stato dei resi al cliente finale**: reso approvato (con il link all'etichetta prepagata se c'è, altrimenti le istruzioni di spedizione del portale nella lingua del cliente), reso ricevuto, rimborso effettuato, buono emesso (con il codice), cambio spedito (con corriere, tracking e link). Passano dal mailer di #51 (coda, idempotenza, soppressioni, registro): un'email per reso ed evento, un replay non ne manda una seconda; gli indirizzi soppressi (rimbalzi, reclami, disiscrizione dalla categoria "Aggiornamenti sui resi ai clienti" o soppressione manuale) vengono saltati. Mittente: nome del negozio sull'indirizzo della piattaforma, risposta all'indirizzo di assistenza del portale; colore e logo del portale o del branding; il nome del prodotto non compare. Lingua: quella usata dal cliente sul portale, altrimenti quella del negozio. Ogni invio (o soppressione) lascia un evento "Email al cliente" nella timeline dell'ordine.
+- Interruttori per evento in Resi → Portale clienti → Rimborsi e negozio (owner e admin), **spenti di default** per un negozio vero, tutti accesi nei due negozi demo. Con l'email di rimborso attiva, il rimborso scritto su Shopify non chiede a Shopify di avvisare il cliente (una sola email). I resi portale approvati da un'automazione ricevono l'email dopo l'emissione dell'etichetta, così l'approvazione la contiene. Il cambio è annunciato al primo pacco dell'ordine di cambio.
+- **Validazione indirizzi reale con Google Maps Platform**: adapter `GoogleAddressProvider` (Address Validation API per la validazione, Places API (New) Autocomplete + Place Details per i suggerimenti), mappato sulla forma esistente (problemi per campo, indirizzo normalizzato), errori tradotti (chiave rifiutata, API non abilitata, fatturazione, quota), chiave nell'header e mai nell'URL, test su risposte registrate senza rete. Chiave del negozio cifrata come le altre integrazioni. Nuova scheda "Validazione indirizzi" in Integrazioni: in modalità mock "Usa il fornitore simulato", in modalità reale "Collega" con la chiave; testa connessione, scollega, guida. Usata dalla finestra di modifica dell'ordine, dal punteggio di consegna del contrassegno (job, scheda e anteprima); se Google non risponde si ripiega sul controllo di formato senza bloccare il team. Scelta e alternative (Loqate, Smarty, poste nazionali, geocoder) in DECISIONS.
+- **Guide di attivazione** in en/it/es con badge "Da verificare" sui passi che dipendono dalle interfacce dei fornitori e scope minimi nel riquadro laterale: validazione indirizzi (self-service) e, in una seconda riga "Integrazioni ad hoc", blocco su carta per i cambi immediati, etichette di reso prepagate, segmenti verso i pubblici pubblicitari (Meta, Google Customer Match, strumento email), canali di messaggistica (email, SMS, WhatsApp), tracking del corriere e istruzioni di consegna, magazzino esterno / 3PL. Ogni pagina: cosa fa nel prodotto, cosa serve al negozio, dove vanno le credenziali, come verificare, errori comuni; le ad hoc dicono che il connettore reale lo realizza e attiva il team per l'account. La scheda "Disponibile su richiesta" della pagina Integrazioni elenca i sei slot con il link alla guida. Testi con il segnaposto `{product}` (riempito da `PRODUCT_NAME`).
+- Nessuna migrazione (impostazioni nel jsonb del tenant, riga `integrations` esistente), nessun SQL scritto a mano. Seed: riga `address` (fornitore simulato collegato) e `returnCustomerEmails` accesi nei due negozi demo, aggiunti anche dal passo `db:seed:settings` ai database già popolati.
+- Test: core 373, integrazioni 124 (+8: adapter Google su risposte registrate), servizi 301 (+7: nuovo `returns-emails.test.ts` con un'email per transizione, replay senza duplicati, mittente e risposta del negozio, buono, soppressione, cambio spedito una volta, portale con etichetta in spagnolo; modelli in tre lingue a snapshot e resa con il marchio del negozio), db 776 (passo impostazioni esteso), web 61 (parità delle chiavi); e2e nuovo `integrations-external.spec.ts` (4) verde sulla build di produzione insieme a integrations, returns-portal, order-edit, cod, notifications.
+
+Stato delle integrazioni esterne a fine issue #7 (cosa è reale, cosa è simulato, cosa manca a ogni adapter reale):
+
+| Integrazione | Stato | Cosa serve per andare in produzione |
+| --- | --- | --- |
+| Shopify, Meta Ads, Google Ads, TikTok Ads | Adapter reali + mock | Credenziali del negozio, verifica su un account vero dei passi "Da verificare" (versioni API, nomi dei campi). |
+| Conversioni lato server (Meta CAPI, Google click conversions) | Adapter reali + mock | Dataset / azione di conversione del negozio; prova con il codice evento di test. |
+| Assistente AI (Anthropic) | Adapter reale + mock | Chiave del negozio. |
+| Email della piattaforma (Resend) | Adapter reale + mock | `RESEND_API_KEY`, dominio verificato, `EMAIL_FROM`, webhook firmato. Le email di stato dei resi usano lo stesso mittente. |
+| Validazione indirizzi (Google) | Adapter reale + mock | Chiave del negozio con le due API abilitate; verificare prezzi e mappatura delle province per paese su indirizzi veri; in modalità reale il job del contrassegno chiama Google dentro la transazione (da spostare fuori se i volumi crescono). |
+| Blocco su carta (`PaymentGuarantee`) | Solo mock | Adapter Stripe a incasso manuale (o flusso Shopify Payments), webhook, testo di consenso nel portale. |
+| Etichette di reso (`ReturnLabelProvider`) | Solo mock | Adapter per l'aggregatore o il corriere scelto dal negozio, URL o PDF dell'etichetta del fornitore. |
+| Pubblici pubblicitari (`AudienceDestination`) | Solo mock | Adapter Meta Custom Audiences e Google Customer Match (riusano le connessioni esistenti), adapter dello strumento email. |
+| Messaggistica (`MessagingChannel`) | Solo mock | Un adapter per fornitore (email, SMS, WhatsApp; Spoki è la #9, non realizzata), webhook di consegna. |
+| Corriere (`CarrierProvider`) | Solo mock (in reale: istruzioni per email) | Adapter del corriere o dell'aggregatore di tracking, mappature degli stati. |
+| Magazzino / 3PL (`WarehouseProvider`) | Solo mock | Adapter del 3PL, location dedicata, SKU allineati. |
+
+Resta: verificare su account veri i passi segnati "Da verificare" delle nuove guide e i prezzi di Google; i connettori reali delle integrazioni ad hoc si realizzano per account quando vengono venduti.
+
+- 2026-10-02 · `docs/reference/INVENTORY.md` aggiornato (issue #36): colonna di stato su ogni tabella verificata sul codice al commit `64771f5`, 43 funzionalità aggiunte dagli studi, corrette le affermazioni errate su MCP, outbox delle scritture e riconciliazione.
 ## Nessuno scorrimento orizzontale a larghezza telefono (issue #72)
 
 Fatto:

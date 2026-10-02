@@ -10,8 +10,9 @@ import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { ProviderActions, WebhookControls, WebhookRowAction } from "./controls";
 import { GoogleWriteAccessToggle } from "./write-access";
 
-const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic"] as const;
-const SLOTS = ["messaging", "warehouse", "carrier"] as const;
+const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic", "address"] as const;
+/** Per-account integrations activated by the Hullwise team: interface and mock in Hullwise, each with its activation guide. */
+const SLOTS = ["messaging", "warehouse", "carrier", "payment_guarantee", "return_labels", "audiences"] as const;
 
 export default async function IntegrationsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
@@ -95,11 +96,12 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
           <CardTitle className="text-base">{t("slots_title")}</CardTitle>
           <CardDescription>{t("slots_description")}</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-3 text-sm">
+        <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
           {SLOTS.map((s) => (
-            <div key={s} className="rounded-md border p-3">
-              <div className="flex items-center justify-between"><span className="font-medium">{t(`slots.${s}`)}</span><Badge variant="muted">{t("on_request")}</Badge></div>
+            <div key={s} className="rounded-md border p-3" data-testid={`slot-${s}`}>
+              <div className="flex items-center justify-between gap-2"><span className="font-medium">{t(`slots.${s}`)}</span><Badge variant="muted">{t("on_request")}</Badge></div>
               <p className="mt-1 text-xs text-muted-foreground">{t(`slots_hint.${s}`)}</p>
+              <p className="mt-2 text-xs"><Link href={`${base}/guide/${s}`} className="underline-offset-4 hover:underline">{t("open_guide")}</Link></p>
             </div>
           ))}
         </CardContent>

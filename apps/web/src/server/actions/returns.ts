@@ -143,16 +143,16 @@ export async function savePortalConfigAction(slug: string, config: unknown): Pro
   }
 }
 
-const behaviourSchema = z.object({ returnShippingCostMinor: z.number().int().min(0).max(100_000), returnLabelCostMinor: z.number().int().min(0).max(100_000).default(0), returnHandlingCostMinor: z.number().int().min(0).max(100_000).default(0), returnsWriteBack: z.boolean(), returnPlatformTags: z.record(z.string(), z.array(z.string().trim().min(1).max(40)).max(5)) });
+const behaviourSchema = z.object({ returnShippingCostMinor: z.number().int().min(0).max(100_000), returnLabelCostMinor: z.number().int().min(0).max(100_000).default(0), returnHandlingCostMinor: z.number().int().min(0).max(100_000).default(0), returnsWriteBack: z.boolean(), returnPlatformTags: z.record(z.string(), z.array(z.string().trim().min(1).max(40)).max(5)), returnCustomerEmails: z.object({ approved: z.boolean(), received: z.boolean(), refunded: z.boolean(), voucher_issued: z.boolean(), exchange_shipped: z.boolean() }).optional() });
 
-/** Return shipping deduction, write-back switch and order tags per status (owner and admin). */
+/** Return shipping deduction, write-back switch, order tags per status and the customer status emails (owner and admin). */
 export async function saveReturnBehaviourAction(slug: string, input: unknown): Promise<ActionResult> {
   try {
     const ctx = await requireAction(slug, "manage_settings", "settings");
     const parsed = behaviourSchema.safeParse(input);
     if (!parsed.success) return fail("invalid_input");
     const tags = Object.fromEntries(Object.entries(parsed.data.returnPlatformTags).filter(([k, v]) => (RETURN_STATUSES as readonly string[]).includes(k) && v.length));
-    const next = tenantSettingsSchema.parse({ ...ctx.settings, ...parsed.data, returnPlatformTags: tags });
+    const next = tenantSettingsSchema.parse({ ...ctx.settings, ...parsed.data, returnPlatformTags: tags, returnCustomerEmails: parsed.data.returnCustomerEmails ?? ctx.settings.returnCustomerEmails });
     await adminDb().update(schema.tenants).set({ settings: next }).where(eq(schema.tenants.id, ctx.tenant.id));
     await ctx.run((tx) => recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "tenant.settings.returns_updated", entityType: "tenant", entityId: ctx.tenant.id, diff: diffRecords(ctx.settings as unknown as Record<string, unknown>, next as unknown as Record<string, unknown>) }));
     revalidatePath(`/t/${slug}/returns/portal`);

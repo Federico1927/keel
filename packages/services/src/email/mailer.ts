@@ -4,7 +4,7 @@ import { EmailSendError, decryptJson, emailAddressHash, encryptJson, maskEmail, 
 import type { ServiceContext } from "../context";
 import { emailSettings, getEmailProvider, type EmailSettings } from "./provider";
 import { SECURITY_EMAIL, TRANSACTIONAL_EMAIL, isAddressSuppressed, isEmailSuppressed } from "./suppressions";
-import { EMAIL_TEMPLATES, emailLocale, renderEmail, type EmailKind, type EmailTemplate, type EmailTemplateData } from "./templates";
+import { EMAIL_TEMPLATES, emailLocale, renderEmail, type EmailKind, type EmailSender, type EmailTemplate, type EmailTemplateData } from "./templates";
 import { oneClickUnsubscribeUrl, unsubscribeUrl } from "./unsubscribe";
 
 /**
@@ -28,6 +28,9 @@ interface EmailPayload {
   html: string;
   text: string;
   headers?: Record<string, string>;
+  /** A store writing to its customers: its name on the platform address, its support address as reply-to. */
+  fromName?: string;
+  replyTo?: string;
 }
 
 export type EmailTarget = ServiceContext | { db: DbExecutor; tenantId?: null; now?: Date };
@@ -43,6 +46,12 @@ export interface QueueEmailInput<K extends EmailTemplate> {
   category?: string;
   /** Required for security emails: the instant their link stops working. */
   expiresAt?: Date | null;
+  /** Emails a store sends to its own customers (return updates): layout identity (name, colours, logo, support address)... */
+  sender?: EmailSender;
+  /** ...the display name on the platform sender address (the address itself never changes: one verified domain)... */
+  fromName?: string | null;
+  /** ...and where replies go (the store's support address) instead of the platform's. */
+  replyTo?: string | null;
 }
 
 export type QueueOutcome = "queued" | "suppressed" | "duplicate" | "invalid";
@@ -58,6 +67,13 @@ export const MAX_EMAIL_ATTEMPTS = 5;
 const BACKOFF_MS = [30_000, 120_000, 600_000, 1_800_000];
 /** A `sending` claim older than this is considered abandoned (process died mid-send) and can be taken again. */
 const STALE_CLAIM_MS = 2 * 60_000;
+
+/** `"Store name" <no-reply@platform>`: the platform address with another display name (quotes, brackets and line breaks removed). */
+export function senderWithName(from: string, name: string): string {
+  const address = /<([^>]+)>/.exec(from)?.[1]?.trim() ?? from.trim();
+  const clean = name.replace(/["<>\r\n\\]/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
+  return clean ? `"${clean}" <${address}>` : from;
+}
 
 export function emailIdempotencyKey(tenantId: string | null, template: string, to: string, event: string): string {
   return createHash("sha256").update(`${tenantId ?? "platform"}|${template}|${normalizeEmailAddress(to)}|${event}`).digest("hex");
@@ -124,7 +140,7 @@ export async function queueEmail<K extends EmailTemplate>(target: EmailTarget, i
   const suppressed = valid && ((await isAddressSuppressed(db, recipientHash, def.kind)) || (isTenant && (await isEmailSuppressed(target, to, def.kind === "security" ? SECURITY_EMAIL : category))));
   const status = !valid ? "failed" : suppressed ? "suppressed" : "queued";
   const unsub = isTenant && def.kind !== "security" && category !== TRANSACTIONAL_EMAIL ? { tenantId: target.tenantId, email: to, category } : null;
-  const rendered = status === "queued" ? renderEmail(input.template, input.locale, input.data, { unsubscribeUrl: unsub ? unsubscribeUrl(unsub) : undefined }) : null;
+  const rendered = status === "queued" ? renderEmail(input.template, input.locale, input.data, { unsubscribeUrl: unsub ? unsubscribeUrl(unsub) : undefined, ...(input.sender ? { sender: input.sender } : {}) }) : null;
   const idempotencyKey = emailIdempotencyKey(tenantId, input.template, to, input.event);
   const [row] = await db
     .insert(schema.emailMessages)
@@ -137,7 +153,8 @@ export async function queueEmail<K extends EmailTemplate>(target: EmailTarget, i
   }
   if (!rendered) return { id: row.id, status, outcome: valid ? "suppressed" : "invalid" };
   const headers = unsub ? { "List-Unsubscribe": `<${oneClickUnsubscribeUrl(unsub)}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } : undefined;
-  const payload: EmailPayload = { to, subject: rendered.subject, html: rendered.html, text: rendered.text, ...(headers ? { headers } : {}) };
+  const replyTo = input.replyTo ? normalizeEmailAddress(input.replyTo) : null;
+  const payload: EmailPayload = { to, subject: rendered.subject, html: rendered.html, text: rendered.text, ...(headers ? { headers } : {}), ...(input.fromName?.trim() ? { fromName: input.fromName.trim() } : {}), ...(replyTo && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(replyTo) ? { replyTo } : {}) };
   await dispatch({ messageId: row.id, payload: encryptJson(payload) });
   return { id: row.id, status, outcome: "queued" };
 }
@@ -188,7 +205,7 @@ export async function deliverEmailJob(db: DbExecutor, job: EmailJob, opts: Deliv
   const provider = opts.provider ?? getEmailProvider();
   const payload = decryptJson<EmailPayload>(job.payload);
   try {
-    const { id } = await provider.send({ from: settings.from, replyTo: settings.replyTo, to: payload.to, subject: payload.subject, html: payload.html, text: payload.text, headers: payload.headers, tags: { template: claimed.template, message_id: claimed.id, ...(claimed.tenantId ? { tenant_id: claimed.tenantId } : {}) }, idempotencyKey: claimed.idempotencyKey });
+    const { id } = await provider.send({ from: payload.fromName ? senderWithName(settings.from, payload.fromName) : settings.from, replyTo: payload.replyTo ?? settings.replyTo, to: payload.to, subject: payload.subject, html: payload.html, text: payload.text, headers: payload.headers, tags: { template: claimed.template, message_id: claimed.id, ...(claimed.tenantId ? { tenant_id: claimed.tenantId } : {}) }, idempotencyKey: claimed.idempotencyKey });
     await set({ status: "sent", provider: provider.name, providerMessageId: id, sentAt: now, claimedAt: null, nextAttemptAt: null, lastErrorCode: null, lastError: null });
     return { ...base, status: "sent" };
   } catch (e) {

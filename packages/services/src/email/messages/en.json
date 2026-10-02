@@ -136,6 +136,46 @@
         "cod": "Cash on delivery",
         "customer_campaigns": "Customer campaigns"
       }
+    },
+    "return_status": {
+      "greeting": "Hello {name},",
+      "greeting_anonymous": "Hello,",
+      "item": "{title} × {quantity}",
+      "footer": "You receive this email about a return you requested from {store}.",
+      "approved": {
+        "subject": "Your return {return} is approved",
+        "preheader": "{store} approved your return for order {order}.",
+        "intro": "{store} approved your return {return} for order {order}.",
+        "label": "Your prepaid return label is ready: print it and stick it on the parcel.",
+        "no_label": "Pack the items below and send them back as described here:",
+        "cta": "Download the return label"
+      },
+      "received": {
+        "subject": "We received your return {return}",
+        "preheader": "Your parcel reached {store}.",
+        "intro": "Your return {return} for order {order} reached {store}. We are checking the items and will write to you with the outcome."
+      },
+      "refunded": {
+        "subject": "Refund issued for your return {return}",
+        "preheader": "{store} refunded {amount}.",
+        "intro": "{store} refunded {amount} for your return {return} (order {order}).",
+        "hint": "Depending on your bank or payment method, the refund can take a few business days to appear."
+      },
+      "voucher_issued": {
+        "subject": "Your store credit for return {return}",
+        "preheader": "Store credit of {amount} from {store}.",
+        "intro": "For your return {return} (order {order}), {store} issued store credit of {amount}.",
+        "code": "Your code: {code}",
+        "hint": "Enter the code at checkout on the {store} online store."
+      },
+      "exchange_shipped": {
+        "subject": "Your replacement for return {return} is on its way",
+        "preheader": "{store} shipped your replacement.",
+        "intro": "The replacement for your return {return} has shipped (order {exchange}).",
+        "intro_no_order": "The replacement for your return {return} has shipped.",
+        "tracking": "Carrier: {carrier} · Tracking number: {tracking}",
+        "cta": "Track the parcel"
+      }
     }
   },
   "system": {

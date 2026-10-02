@@ -1,7 +1,7 @@
 import { isAdPlatformInPlan } from "@hullwise/config";
 import type { AdPlatform } from "@hullwise/core";
 import { and, eq, gte, inArray, isNotNull, schema, sql } from "@hullwise/db";
-import { AnthropicLlmProvider, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, type MockAdsStructure, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, PROCESSOR_GATEWAYS, ShopifyCommercePlatform, type MockPaymentOrder, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type NormalizedProduct, type ShopifyCredentials, MockCarrierProvider, type CarrierProvider, TiktokAdsPlatform, mockDemoAdsAccount, type TiktokCredentials } from "@hullwise/integrations";
+import { AnthropicLlmProvider, GoogleAddressProvider, type GoogleAddressCredentials, MockLlmProvider, type AnthropicCredentials, type LlmProvider, GoogleAdsPlatform, MetaAdsPlatform, MockAdsPlatform, type MockAdsStructure, GoogleConversionsSink, MetaConversionsSink, MockAddressProvider, MockAudienceDestination, MockCommercePlatform, MockConversionSink, MockMessagingChannel, MockNotificationSink, MockPaymentGuarantee, MockReturnLabelProvider, PROCESSOR_GATEWAYS, ShopifyCommercePlatform, type MockPaymentOrder, SlackWebhookSink, decryptJson, integrationMode, type AddressProvider, type AudienceDestination, type AudienceProvider, type ConversionProvider, type ConversionSink, type MessagingChannel, type NotificationSink, type PaymentGuarantee, type ReturnLabelProvider, type AdsPlatform, type CommercePlatform, type GoogleAdsCredentials, type MetaCredentials, type NormalizedProduct, type ShopifyCredentials, MockCarrierProvider, type CarrierProvider, TiktokAdsPlatform, mockDemoAdsAccount, type TiktokCredentials } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 
 export interface PlatformTenant {
@@ -229,9 +229,10 @@ export function getPaymentGuaranteeFor(tenantId: string): PaymentGuarantee {
 }
 
 const addressMocks = new Map<string, MockAddressProvider>();
+const liveAddress = new Map<string, { key: string; provider: AddressProvider }>();
 /**
- * Address autocomplete and validation for the order-edit dialog. Only the mock exists: a live
- * provider (integration key `address`) and its guide page come with the external block (issue #7).
+ * The simulated address provider of a tenant (deterministic, no network). Code that has a tenant
+ * transaction resolves the configured one with `resolveAddressProvider`.
  */
 export function getAddressProviderFor(tenantId: string): AddressProvider {
   let a = addressMocks.get(tenantId);
@@ -240,6 +241,43 @@ export function getAddressProviderFor(tenantId: string): AddressProvider {
     addressMocks.set(tenantId, a);
   }
   return a;
+}
+
+/**
+ * Address autocomplete and validation (order-edit dialog, COD score): Google Address Validation +
+ * Places when the `address` integration is connected live (credentials `{ apiKey }`, encrypted),
+ * the mock otherwise, including whenever `HULLWISE_INTEGRATION_MODE=mock`.
+ */
+export async function resolveAddressProvider(ctx: ServiceContext): Promise<AddressProvider> {
+  const row = await integrationRow(ctx, "address");
+  if (!isLive(row)) return getAddressProviderFor(ctx.tenantId);
+  const key = row!.credentialsEncrypted!;
+  const cached = liveAddress.get(ctx.tenantId);
+  if (cached && cached.key === key) return cached.provider;
+  const provider = withAddressFallback(new GoogleAddressProvider(decryptJson<GoogleAddressCredentials>(key)), getAddressProviderFor(ctx.tenantId));
+  liveAddress.set(ctx.tenantId, { key, provider });
+  return provider;
+}
+
+/**
+ * A provider outage never blocks an order edit or a score: the call falls back to the format check
+ * of the mock and the error is logged ("Test connection" on the card shows the live error).
+ */
+function withAddressFallback(live: AddressProvider, fallback: AddressProvider): AddressProvider {
+  const guard = async <T>(op: string, call: () => Promise<T>, backup: () => Promise<T>): Promise<T> => {
+    try {
+      return await call();
+    } catch (e) {
+      console.warn(`[address] ${live.provider} ${op} failed, using the format check:`, e instanceof Error ? e.message : e);
+      return backup();
+    }
+  };
+  return {
+    provider: live.provider,
+    testConnection: () => live.testConnection(),
+    autocomplete: (q, opts) => guard("autocomplete", () => live.autocomplete(q, opts), async () => []),
+    validate: (a) => guard("validate", () => live.validate(a), () => fallback.validate(a)),
+  };
 }
 
 /** Return label provider: the mock, until a carrier or EasyPost/Shippo account is connected (external block). */

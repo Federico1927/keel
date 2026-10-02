@@ -3,10 +3,10 @@ import { useRouter } from "next/navigation";
 import { useActionState, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, cn } from "@hullwise/ui";
-import { connectAnthropic, connectGoogle, connectMeta, connectShopifyCustomApp, connectTiktok, connectTiktokMock, disconnectIntegration, processWebhookNow, resyncIntegration, retryWebhooks, simulateReturnWebhook, simulateWebhook, testIntegration } from "@/server/actions/integrations";
+import { connectAddress, connectAddressMock, connectAnthropic, connectGoogle, connectMeta, connectShopifyCustomApp, connectTiktok, connectTiktokMock, disconnectIntegration, processWebhookNow, resyncIntegration, retryWebhooks, simulateReturnWebhook, simulateWebhook, testIntegration } from "@/server/actions/integrations";
 import type { ActionResult } from "@/server/action-result";
 
-type Provider = "shopify" | "meta" | "google" | "tiktok" | "anthropic";
+type Provider = "shopify" | "meta" | "google" | "tiktok" | "anthropic" | "address";
 
 export function ProviderActions({ slug, provider, connected, mock, canManage }: { slug: string; provider: Provider; connected: boolean; mock: boolean; canManage: boolean }) {
   const t = useTranslations("integrations");
@@ -27,7 +27,7 @@ export function ProviderActions({ slug, provider, connected, mock, canManage }: 
         <Button size="sm" variant="outline" disabled={pending} onClick={() => start(async () => { const r = await testIntegration(slug, provider); say(r, r.ok && r.data ? (r.data.ok ? t("test_ok", { account: r.data.accountName ?? "" }) : t("test_failed", { error: r.data.error ?? "" })) : ""); })}>
           {t("test_connection")}
         </Button>
-        {connected && provider !== "anthropic" && (
+        {connected && provider !== "anthropic" && provider !== "address" && (
           <Button size="sm" variant="outline" disabled={pending} onClick={() => start(async () => { const r = await resyncIntegration(slug, provider); say(r, r.ok && r.data ? (r.data.queued ? t("resync_queued") : t("resync_done", { summary: r.data.summary })) : ""); })}>
             {t("resync")}
           </Button>
@@ -53,11 +53,16 @@ export function ProviderActions({ slug, provider, connected, mock, canManage }: 
             {t("tiktok_mock_connect")}
           </Button>
         )}
-        <Button size="sm" variant={(connected && !mock) || provider === "tiktok" ? "ghost" : "default"} disabled={pending} onClick={() => setShowConnect((v) => !v)}>
+        {provider === "address" && mock && !connected && (
+          <Button size="sm" disabled={pending} data-testid="address-mock-connect" onClick={() => start(async () => say(await connectAddressMock(slug), t("address_mock_connected")))}>
+            {t("address_mock_connect")}
+          </Button>
+        )}
+        <Button size="sm" variant={(connected && !mock) || provider === "tiktok" || provider === "address" ? "ghost" : "default"} disabled={pending} onClick={() => setShowConnect((v) => !v)}>
           {connected && !mock ? t("reconnect") : t("connect")}
         </Button>
         {/* the simulated TikTok account can be disconnected too, to show the connection flow again */}
-        {connected && (!mock || provider === "tiktok") && (
+        {connected && (!mock || provider === "tiktok" || provider === "address") && (
           <Button size="sm" variant="ghost" disabled={pending} onClick={() => start(async () => say(await disconnectIntegration(slug, provider), t("disconnected")))}>
             {t("disconnect")}
           </Button>
@@ -76,12 +81,14 @@ export function ProviderActions({ slug, provider, connected, mock, canManage }: 
 function ConnectForm({ slug, provider, mock, onDone }: { slug: string; provider: Provider; mock: boolean; onDone: () => void }) {
   const t = useTranslations("integrations");
   const tc = useTranslations("common");
-  const action = provider === "shopify" ? connectShopifyCustomApp : provider === "meta" ? connectMeta : provider === "anthropic" ? connectAnthropic : provider === "tiktok" ? connectTiktok : connectGoogle;
+  const action = provider === "shopify" ? connectShopifyCustomApp : provider === "meta" ? connectMeta : provider === "anthropic" ? connectAnthropic : provider === "address" ? connectAddress : provider === "tiktok" ? connectTiktok : connectGoogle;
   const [state, formAction, pending] = useActionState(action.bind(null, slug), null);
   const fields: { name: string; label: string; type?: string; placeholder?: string }[] = provider === "shopify"
     ? [{ name: "shop", label: t("fields.shop"), placeholder: "my-store.myshopify.com" }, { name: "accessToken", label: t("fields.access_token"), type: "password", placeholder: "shpat_…" }, { name: "apiSecret", label: t("fields.api_secret"), type: "password" }]
     : provider === "anthropic"
       ? [{ name: "apiKey", label: t("fields.api_key"), type: "password", placeholder: "sk-ant-…" }]
+      : provider === "address"
+        ? [{ name: "apiKey", label: t("fields.google_api_key"), type: "password", placeholder: "AIza…" }]
       : provider === "meta"
         ? [{ name: "adAccountId", label: t("fields.ad_account"), placeholder: "act_123456789" }, { name: "accessToken", label: t("fields.access_token"), type: "password" }]
         : provider === "tiktok"

@@ -10,6 +10,7 @@ import { loadStatusMappings } from "../fulfilment/mappings";
 import { syncShipmentCases } from "../fulfilment/cases";
 import { applyInventoryLevels, refreshInventoryForVariants, zeroUnreportedLevels } from "./inventory";
 import { importPlatformReturn, type ReturnImportOutcome } from "./returns";
+import { notifyExchangeShipped } from "../returns/notify";
 import { linkPoolRedemptions } from "../discounts/redemptions";
 
 export * from "./inventory";
@@ -202,6 +203,8 @@ export async function importFulfillment(ctx: ServiceContext, orderId: string, f:
   });
   await ctx.tx.update(schema.shipments).set({ status: resolved.status, sourceOfTruth: resolved.sourceOfTruth, exceptionReason: resolved.exceptionReason, exceptionSince: resolved.exceptionSince, deliveredAt: resolved.status === "delivered" ? (f.deliveredAt ?? existing?.deliveredAt ?? f.updatedAt) : (existing?.deliveredAt ?? f.deliveredAt) }).where(eq(schema.shipments.id, shipmentId));
   if (resolved.status !== existing?.status) await syncShipmentCases(ctx, { shipmentIds: [shipmentId] });
+  // the first parcel of an exchange order: the customer who returned the goods hears the replacement is on its way
+  if (!existing && resolved.status !== "failed" && resolved.status !== "returned") await notifyExchangeShipped(ctx, orderId, { carrier: f.carrier, trackingNumber: f.trackingNumber, trackingUrl: f.trackingUrl });
   return { shipmentId, status: resolved.status, created: !existing };
 }
 

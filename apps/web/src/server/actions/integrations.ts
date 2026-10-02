@@ -4,13 +4,13 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, desc, eq, recordAudit, schema, sql } from "@hullwise/db";
 import { apiEndpoint, isAdPlatform, isAdPlatformInPlan } from "@hullwise/config";
-import { AnthropicLlmProvider, GoogleAdsPlatform, MOCK_ACCOUNT_IDS, MetaAdsPlatform, ShopifyCommercePlatform, SHOPIFY_WEBHOOK_TOPICS, TiktokAdsPlatform, encryptJson, exchangeTiktokAuthCode, integrationMode, isValidShopDomain, type ConnectionTest } from "@hullwise/integrations";
-import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsBackfill, runAdsSync, runCatalogSync, runOrdersSync, runReturnsSync } from "@hullwise/services";
+import { AnthropicLlmProvider, GoogleAddressProvider, GoogleAdsPlatform, MOCK_ACCOUNT_IDS, MetaAdsPlatform, ShopifyCommercePlatform, SHOPIFY_WEBHOOK_TOPICS, TiktokAdsPlatform, encryptJson, exchangeTiktokAuthCode, integrationMode, isValidShopDomain, type ConnectionTest } from "@hullwise/integrations";
+import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, resolveAddressProvider, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsBackfill, runAdsSync, runCatalogSync, runOrdersSync, runReturnsSync } from "@hullwise/services";
 import { enqueue } from "@/server/jobs";
 import { ForbiddenError, requireAction, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 
-const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic"] as const;
+const PROVIDERS = ["shopify", "meta", "google", "tiktok", "anthropic", "address"] as const;
 type Provider = (typeof PROVIDERS)[number];
 const providerSchema = z.enum(PROVIDERS);
 /** Providers whose data Hullwise imports; the AI key has nothing to resync. */
@@ -160,6 +160,43 @@ export async function connectAnthropic(slug: string, _prev: ActionResult | null,
   }
 }
 
+const addressSchema = z.object({ apiKey: z.string().trim().min(20).max(200) });
+/**
+ * Address validation with the store's own Google Maps Platform key (Address Validation API +
+ * Places API (New)); the key is checked with one validation and stored encrypted (AES-GCM).
+ */
+export async function connectAddress(slug: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
+  try {
+    const parsed = addressSchema.safeParse(Object.fromEntries(formData.entries()));
+    if (!parsed.success) return fail("invalid_input");
+    if (integrationMode() !== "live") return fail("mock_mode");
+    const test = await new GoogleAddressProvider({ apiKey: parsed.data.apiKey }).testConnection();
+    return saveConnection(slug, "address", test, { apiKey: parsed.data.apiKey }, "google-address", { vendor: "google" });
+  } catch (e) {
+    if (e instanceof ForbiddenError) return fail("forbidden");
+    throw e;
+  }
+}
+
+/** Mock mode: connects the simulated address provider (format checks, suggestions in a few cities). */
+export async function connectAddressMock(slug: string): Promise<ActionResult> {
+  try {
+    const ctx = await requireAction(slug, "manage_integrations", "integrations");
+    const existing = await ctx.run((tx) => tx.select().from(schema.integrations).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, "address"))).limit(1));
+    if (integrationMode() === "live" && existing[0]?.mode === "live" && existing[0].status !== "not_connected") return fail("live_mode");
+    await ctx.run(async (tx) => {
+      const values = { status: "connected", mode: "mock", externalAccountId: "address-mock", externalAccountName: "Simulated address provider", credentialsEncrypted: null, config: {}, lastError: null, lastSuccessAt: new Date(), updatedAt: new Date() };
+      await tx.insert(schema.integrations).values({ tenantId: ctx.tenant.id, provider: "address", ...values }).onConflictDoUpdate({ target: [schema.integrations.tenantId, schema.integrations.provider], set: values });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.connected", entityType: "integration", entityId: "address", diff: { status: { from: existing[0]?.status ?? null, to: "connected" }, mode: { from: existing[0]?.mode ?? null, to: "mock" } } });
+    });
+    revalidatePath(`/t/${slug}/integrations`);
+    return ok();
+  } catch (e) {
+    if (e instanceof ForbiddenError) return fail("forbidden");
+    throw e;
+  }
+}
+
 export async function disconnectIntegration(slug: string, provider: string): Promise<ActionResult> {
   try {
     const p = providerSchema.safeParse(provider);
@@ -186,7 +223,7 @@ export async function testIntegration(slug: string, provider: string): Promise<A
     requireProviderInPlan(ctx, p.data);
     const result = await ctx.run(async (tx) => {
       const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
-      const platform = p.data === "shopify" ? await getCommercePlatformFor(s, ctx.tenant) : p.data === "anthropic" ? await getLlmProviderFor(s) : await getAdsPlatformFor(s, ctx.tenant, p.data);
+      const platform = p.data === "shopify" ? await getCommercePlatformFor(s, ctx.tenant) : p.data === "anthropic" ? await getLlmProviderFor(s) : p.data === "address" ? await resolveAddressProvider(s) : await getAdsPlatformFor(s, ctx.tenant, p.data);
       if (!platform) return { ok: false, error: "not connected" } satisfies ConnectionTest;
       const test = await platform.testConnection().catch((e: unknown) => ({ ok: false, error: e instanceof Error ? e.message : String(e) }) as ConnectionTest);
       await tx.update(schema.integrations).set(test.ok ? { lastSuccessAt: new Date(), lastError: null, status: "connected", externalAccountName: test.accountName ?? undefined, updatedAt: new Date() } : { lastError: test.error ?? "connection failed", status: "error", updatedAt: new Date() }).where(and(eq(schema.integrations.tenantId, ctx.tenant.id), eq(schema.integrations.provider, p.data)));

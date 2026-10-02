@@ -368,8 +368,8 @@
     "order_states_link": "Regole di stato ordine",
     "branding_link": "Branding",
     "fulfilment_link": "Evasione",
-    "data_export_link": "Esportazione dati",
-    "ai_link": "AI e MCP"
+    "ai_link": "AI e MCP",
+    "data_export_link": "Esportazione dati"
   },
   "users": {
     "title": "Utenti e ruoli",
@@ -570,8 +570,8 @@
       "digest": "Email di riepilogo giornaliero",
       "export_ready": "Esportazione CSV pronta",
       "other": "Altro",
-      "platform_failure": "Lavori in background che falliscono",
       "mcp_proposal": "Proposta da un client AI",
+      "platform_failure": "Lavori in background che falliscono",
       "customer_campaign": "Campagne clienti: approvazioni e invii"
     },
     "rendered": {
@@ -642,6 +642,7 @@
         "manual": "Aggiunto a mano"
       },
       "supplier_po": "Ordini d'acquisto ai fornitori",
+      "return_updates": "Aggiornamenti sui resi ai clienti",
       "marketing": "Campagne clienti (marketing)",
       "phone": "telefono",
       "identity_placeholder": "nome@esempio.it o +39…"
@@ -1049,7 +1050,8 @@
     "delivery_instruction_sent": "Istruzione di consegna inviata",
     "cod_escalated": "Segnalazione contrassegno",
     "cod_message": "Messaggio di conferma inviato",
-    "payment_method_changed": "Metodo di pagamento cambiato"
+    "payment_method_changed": "Metodo di pagamento cambiato",
+    "customer_email": "Email al cliente"
   },
   "shipments": {
     "title": "Spedizioni",
@@ -1887,11 +1889,11 @@
     "declared": {
       "title_meta": "Meta: dichiarato vs reale",
       "title_google": "Google: dichiarato vs reale",
-      "title_tiktok": "TikTok: dichiarato vs reale",
       "platform_says": "La piattaforma dichiara (acquisti · valore · ROAS)",
       "real": "Ordini reali attribuiti (ordini · netto · ROAS)",
       "gap": "Scarto",
-      "help": "Le piattaforme contano le conversioni con le proprie finestre e modelli; gli ordini reali sono gli ordini di vendita attribuiti da Hullwise. Uno scarto molto negativo vuol dire che la piattaforma sovrastima."
+      "help": "Le piattaforme contano le conversioni con le proprie finestre e modelli; gli ordini reali sono gli ordini di vendita attribuiti da Hullwise. Uno scarto molto negativo vuol dire che la piattaforma sovrastima.",
+      "title_tiktok": "TikTok: dichiarato vs reale"
     },
     "creatives_link": "Creatività",
     "creatives": {
@@ -2700,11 +2702,12 @@
       "shopify": "Shopify",
       "meta": "Meta Ads",
       "google": "Google Ads",
-      "tiktok": "TikTok Ads",
       "tracking": "Pixel e conversioni",
       "survey": "Sondaggio post-acquisto",
       "anthropic": "AI (Anthropic)",
-      "email": "Email di piattaforma"
+      "email": "Email di piattaforma",
+      "tiktok": "TikTok Ads",
+      "address": "Validazione indirizzi"
     },
     "status": {
       "not_connected": "Non collegata",
@@ -2753,15 +2756,17 @@
       "shopify": "App custom (token Admin API)",
       "meta": "Token utente di sistema",
       "google": "Credenziali Google Ads API",
+      "anthropic": "Chiave API Anthropic",
       "tiktok": "App TikTok for Business",
-      "anthropic": "Chiave API Anthropic"
+      "address": "Chiave API Google Maps Platform"
     },
     "connect_description": {
       "shopify": "Crea un'app custom nell'admin del negozio, concedi gli scope elencati nella guida, incolla il token Admin API e la chiave segreta usata per firmare i webhook.",
       "meta": "Un token utente di sistema a lunga durata da Business Manager con ads_read e ads_management sull'account pubblicitario.",
       "google": "Developer token, client OAuth e un refresh token autorizzato per lo scope Google Ads; sola lettura in questa versione.",
+      "anthropic": "La chiave del negozio da console.anthropic.com. Anthropic addebita il consumo dell'assistente a quell'account; Hullwise conserva la chiave cifrata.",
       "tiktok": "App id e secret dell'app TikTok for Business e l'auth code restituito dall'autorizzazione dell'inserzionista; Hullwise lo scambia con un token a lunga durata valido per tutti gli account inserzionista autorizzati.",
-      "anthropic": "La chiave del negozio da console.anthropic.com. Anthropic addebita il consumo dell'assistente a quell'account; Hullwise conserva la chiave cifrata."
+      "address": "La chiave del negozio con Address Validation API e Places API (New) attive. Google addebita le richieste al negozio; la chiave viene conservata cifrata."
     },
     "fields": {
       "shop": "Dominio del negozio",
@@ -2777,19 +2782,26 @@
       "api_key": "Chiave API",
       "app_id": "App id",
       "app_secret": "App secret",
-      "auth_code": "Auth code"
+      "auth_code": "Auth code",
+      "google_api_key": "Chiave API Google"
     },
     "slots_title": "Integrazioni per account",
     "slots_description": "Slot per connettori ad hoc venduti per account. Esistono interfacce e mock; il provider specifico si implementa su richiesta.",
     "slots": {
       "messaging": "Canale di messaggistica",
       "warehouse": "Magazzino / 3PL",
-      "carrier": "Tracking corriere"
+      "carrier": "Tracking corriere",
+      "payment_guarantee": "Blocco su carta (cambio immediato)",
+      "return_labels": "Etichette di reso",
+      "audiences": "Pubblici pubblicitari"
     },
     "slots_hint": {
       "messaging": "Provider WhatsApp o SMS per le campagne CRM.",
       "warehouse": "Invio ordini e lettura stock da un operatore logistico esterno.",
-      "carrier": "Una seconda fonte per il resolver dello stato spedizione."
+      "carrier": "Una seconda fonte per il resolver dello stato spedizione.",
+      "payment_guarantee": "Un blocco sulla carta del cliente finché l'articolo cambiato non torna.",
+      "return_labels": "Etichette prepagate o codici QR dal corriere o servizio etichette del negozio.",
+      "audiences": "Segmenti sincronizzati con i pubblici personalizzati Meta, Customer Match di Google o uno strumento email."
     },
     "on_request": "Disponibile su richiesta",
     "runs_title": "Esecuzioni recenti",
@@ -2844,7 +2856,9 @@
     "tiktok_app_hint": "Usi l'app TikTok di Hullwise (TIKTOK_APP_ID configurato)?",
     "tiktok_app_link": "Autorizza con TikTok",
     "not_in_plan_badge": "Non incluso",
-    "not_in_plan": "Incluso dal piano {plan}: chiedi al gestore della piattaforma di cambiare piano."
+    "not_in_plan": "Incluso dal piano {plan}: chiedi al gestore della piattaforma di cambiare piano.",
+    "address_mock_connect": "Usa il fornitore simulato",
+    "address_mock_connected": "Validazione indirizzi collegata (fornitore simulato)."
   },
   "integration_guide": {
     "verify_legend": "I passi segnati “Da verificare” dipendono da console dei fornitori che cambiano spesso: controllali sulla documentazione del fornitore prima della prima installazione.",
@@ -3030,73 +3044,6 @@
         }
       ],
       "scopes": "Lettura: scope adwords con accesso in lettura e developer token Basic. Facoltativo, solo per pausa annunci e parole chiave negative: lo stesso scope con un utente che può modificare l'account."
-    },
-    "tiktok": {
-      "title": "Collegare TikTok Ads",
-      "intro": "Campagne, gruppi di annunci e annunci (testo, video, miniatura) con spesa giornaliera, impression, clic, conversioni, valore delle conversioni e visualizzazioni video, da tutti gli account inserzionista autorizzati. Pausa e riattivazione di campagne e annunci chiedono conferma e passano dalla coda di scrittura. Incluso dal piano Growth.",
-      "steps": [
-        {
-          "title": "Creare l’app TikTok for Business",
-          "body": "Sul portale sviluppatori TikTok API for Business crea un’app (oppure usa quella di Hullwise, se TIKTOK_APP_ID è configurato). Imposta come redirect URL dell’inserzionista:\n{callbackUrl}",
-          "verify": true
-        },
-        {
-          "title": "Permessi",
-          "body": "Richiedi i gruppi di permessi che servono ai moduli attivi (riquadro a destra): Ad Account Management, Ads Management e Reporting per campagne e metriche; Creative Management per le miniature dei video. TikTok revisiona l’app prima che possa essere usata su account diversi dal tuo.",
-          "verify": true
-        },
-        {
-          "title": "Autorizzare gli account inserzionista",
-          "body": "Il titolare del negozio (o un admin del suo Business Center) apre il link di autorizzazione, sceglie gli account inserzionista e conferma. TikTok reindirizza con un auth_code valido pochi minuti e utilizzabile una sola volta.",
-          "verify": true
-        },
-        {
-          "title": "Collegare in Hullwise",
-          "body": "Integrazioni → TikTok Ads → Collega: app id, app secret e l’auth code (oppure “Autorizza con TikTok” con l’app di Hullwise). Hullwise scambia il codice con un token a lunga durata, lo salva cifrato (AES-GCM) e importa tutti gli inserzionisti coperti."
-        },
-        {
-          "title": "Template UTM",
-          "body": "In ogni annuncio, nei parametri URL (o in coda all’URL della landing page):\n{utmTemplate}\nTikTok compila __CAMPAIGN_ID__, __AID__ (gruppo di annunci) e __CID__ (annuncio). Insieme al click id ttclid collegano gli ordini a campagne, gruppi e annunci; gli annunci senza vengono segnalati nella pagina Suggerimenti.",
-          "verify": true
-        },
-        {
-          "title": "Versione dell’API",
-          "body": "Hullwise chiama la TikTok API for Business {apiVersion} (reporting: report/integrated/get, righe giornaliere in finestre fino a 30 giorni). Controlla il changelog prima di ogni rilascio.",
-          "verify": true
-        },
-        {
-          "title": "Verificare",
-          "body": "Testa connessione legge gli account inserzionista; Risincronizza importa campagne e metriche giornaliere, poi gruppi di annunci e annunci in finestre di 7 giorni (riprendibile, rispetta i limiti di frequenza). Il primo import copre gli ultimi 90 giorni."
-        }
-      ],
-      "errors": [
-        {
-          "symptom": "40105 / 40102 token non valido o scaduto",
-          "fix": "L’inserzionista ha revocato l’autorizzazione o il token è stato rigenerato: autorizza di nuovo e ricollega."
-        },
-        {
-          "symptom": "40001 permesso negato",
-          "fix": "All’app manca un gruppo di permessi, oppure l’account inserzionista non è stato selezionato durante l’autorizzazione."
-        },
-        {
-          "symptom": "40100 troppe richieste",
-          "fix": "Limite di frequenza: Hullwise mette in pausa la sincronizzazione e riparte dalla stessa finestra dopo l’attesa."
-        },
-        {
-          "symptom": "Auth code scaduto o già usato",
-          "fix": "L’auth code dura pochi minuti e vale una volta sola: ripeti l’autorizzazione."
-        },
-        {
-          "symptom": "Gli ordini non mostrano l’annuncio TikTok",
-          "fix": "Nei parametri URL mancano utm_content=__CID__ / utm_term=__AID__, oppure il negozio perde ttclid dall’URL di arrivo."
-        }
-      ],
-      "scopes": "L’analisi in sola lettura richiede Ad Account Management e Reporting; pausa e riattivazione richiedono anche Ads Management. Senza Creative Management funziona tutto tranne le miniature.",
-      "modules": {
-        "campaigns": "Campagne, gruppi, annunci e metriche",
-        "creatives": "Miniature dei video",
-        "pause": "Pausa / riattivazione"
-      }
     },
     "anthropic": {
       "title": "Collega l'assistente AI (Anthropic)",
@@ -3335,6 +3282,438 @@
           "fix": "RESEND_WEBHOOK_SECRET manca o è diversa dal signing secret dell'endpoint: il webhook risponde 401 o 503."
         }
       ]
+    },
+    "tiktok": {
+      "title": "Collegare TikTok Ads",
+      "intro": "Campagne, gruppi di annunci e annunci (testo, video, miniatura) con spesa giornaliera, impression, clic, conversioni, valore delle conversioni e visualizzazioni video, da tutti gli account inserzionista autorizzati. Pausa e riattivazione di campagne e annunci chiedono conferma e passano dalla coda di scrittura. Incluso dal piano Growth.",
+      "steps": [
+        {
+          "title": "Creare l’app TikTok for Business",
+          "body": "Sul portale sviluppatori TikTok API for Business crea un’app (oppure usa quella di Hullwise, se TIKTOK_APP_ID è configurato). Imposta come redirect URL dell’inserzionista:\n{callbackUrl}",
+          "verify": true
+        },
+        {
+          "title": "Permessi",
+          "body": "Richiedi i gruppi di permessi che servono ai moduli attivi (riquadro a destra): Ad Account Management, Ads Management e Reporting per campagne e metriche; Creative Management per le miniature dei video. TikTok revisiona l’app prima che possa essere usata su account diversi dal tuo.",
+          "verify": true
+        },
+        {
+          "title": "Autorizzare gli account inserzionista",
+          "body": "Il titolare del negozio (o un admin del suo Business Center) apre il link di autorizzazione, sceglie gli account inserzionista e conferma. TikTok reindirizza con un auth_code valido pochi minuti e utilizzabile una sola volta.",
+          "verify": true
+        },
+        {
+          "title": "Collegare in Hullwise",
+          "body": "Integrazioni → TikTok Ads → Collega: app id, app secret e l’auth code (oppure “Autorizza con TikTok” con l’app di Hullwise). Hullwise scambia il codice con un token a lunga durata, lo salva cifrato (AES-GCM) e importa tutti gli inserzionisti coperti."
+        },
+        {
+          "title": "Template UTM",
+          "body": "In ogni annuncio, nei parametri URL (o in coda all’URL della landing page):\n{utmTemplate}\nTikTok compila __CAMPAIGN_ID__, __AID__ (gruppo di annunci) e __CID__ (annuncio). Insieme al click id ttclid collegano gli ordini a campagne, gruppi e annunci; gli annunci senza vengono segnalati nella pagina Suggerimenti.",
+          "verify": true
+        },
+        {
+          "title": "Versione dell’API",
+          "body": "Hullwise chiama la TikTok API for Business {apiVersion} (reporting: report/integrated/get, righe giornaliere in finestre fino a 30 giorni). Controlla il changelog prima di ogni rilascio.",
+          "verify": true
+        },
+        {
+          "title": "Verificare",
+          "body": "Testa connessione legge gli account inserzionista; Risincronizza importa campagne e metriche giornaliere, poi gruppi di annunci e annunci in finestre di 7 giorni (riprendibile, rispetta i limiti di frequenza). Il primo import copre gli ultimi 90 giorni."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "40105 / 40102 token non valido o scaduto",
+          "fix": "L’inserzionista ha revocato l’autorizzazione o il token è stato rigenerato: autorizza di nuovo e ricollega."
+        },
+        {
+          "symptom": "40001 permesso negato",
+          "fix": "All’app manca un gruppo di permessi, oppure l’account inserzionista non è stato selezionato durante l’autorizzazione."
+        },
+        {
+          "symptom": "40100 troppe richieste",
+          "fix": "Limite di frequenza: Hullwise mette in pausa la sincronizzazione e riparte dalla stessa finestra dopo l’attesa."
+        },
+        {
+          "symptom": "Auth code scaduto o già usato",
+          "fix": "L’auth code dura pochi minuti e vale una volta sola: ripeti l’autorizzazione."
+        },
+        {
+          "symptom": "Gli ordini non mostrano l’annuncio TikTok",
+          "fix": "Nei parametri URL mancano utm_content=__CID__ / utm_term=__AID__, oppure il negozio perde ttclid dall’URL di arrivo."
+        }
+      ],
+      "scopes": "L’analisi in sola lettura richiede Ad Account Management e Reporting; pausa e riattivazione richiedono anche Ads Management. Senza Creative Management funziona tutto tranne le miniature.",
+      "modules": {
+        "campaigns": "Campagne, gruppi, annunci e metriche",
+        "creatives": "Miniature dei video",
+        "pause": "Pausa / riattivazione"
+      }
+    },
+    "ad_hoc_title": "Integrazioni ad hoc",
+    "ad_hoc_notice": "Integrazione ad hoc: {product} ha già l'interfaccia e un fornitore simulato, quindi ogni schermata funziona nella demo. Il connettore reale per il fornitore del negozio viene realizzato e attivato dal team {product} su questo account (preventivo a parte). Il negozio fornisce solo l'account e le credenziali elencate qui sotto.",
+    "address": {
+      "title": "Validazione indirizzi (Google)",
+      "intro": "Controlla gli indirizzi di spedizione e suggerisce quelli completi mentre il team modifica un ordine; l'add-on contrassegno usa lo stesso controllo nel punteggio di consegna. {product} usa la chiave Google Maps Platform del negozio: Google addebita le richieste all'account Google Cloud del negozio. Senza chiave resta il controllo di formato (campi obbligatori, formato del CAP per paese).",
+      "scopes": "Nessuno scope OAuth: una chiave API del progetto Google Cloud del negozio, con due API attive. Limita la chiave a queste due API.\nCosa viene inviato a Google: righe dell'indirizzo, città, CAP, provincia e paese dell'indirizzo da controllare, oppure il testo digitato nella ricerca. Mai nome, email o telefono del cliente.",
+      "steps": [
+        {
+          "title": "Cosa fa in {product}",
+          "body": "Scheda ordine → Modifica → indirizzo di spedizione: mentre scrivi, fino a 3 suggerimenti con l'indirizzo completo; al salvataggio l'indirizzo viene validato e i problemi compaiono campo per campo (numero civico mancante, CAP che non corrisponde alla città, via non trovata). Il team può comunque salvare dopo aver letto l'avviso. Con l'add-on contrassegno il fattore \"qualità dell'indirizzo\" del punteggio di consegna usa la stessa risposta."
+        },
+        {
+          "title": "Crea o scegli un progetto Google Cloud",
+          "body": "console.cloud.google.com → selettore progetti → Nuovo progetto, con il nome del negozio (es. \"Negozio – {product}\"). Usa l'account Google del negozio, così le fatture vanno al negozio.",
+          "verify": true
+        },
+        {
+          "title": "Attiva la fatturazione",
+          "body": "Fatturazione → Collega un account di fatturazione al progetto. Google Maps Platform richiede la fatturazione anche entro l'uso gratuito mensile. Imposta un avviso di budget (Fatturazione → Budget e avvisi), per esempio sul costo mensile previsto.",
+          "verify": true
+        },
+        {
+          "title": "Abilita le due API",
+          "body": "API e servizi → Libreria: abilita \"Address Validation API\" e \"Places API (New)\". La vecchia \"Places API\" è un altro prodotto: {product} chiama Places API (New).",
+          "verify": true
+        },
+        {
+          "title": "Crea e limita la chiave API",
+          "body": "API e servizi → Credenziali → Crea credenziali → Chiave API. Poi Modifica chiave API → Restrizioni API → Limita chiave → seleziona Address Validation API e Places API (New). Restrizioni delle applicazioni: \"Nessuna\" ({product} chiama Google dai suoi server, non da un browser); non usare restrizioni per referrer HTTP, bloccano le chiamate dai server.",
+          "verify": true
+        },
+        {
+          "title": "Incollala in {product}",
+          "body": "Integrazioni → Validazione indirizzi → Collega, incolla la chiave (inizia con AIza), Collega. {product} valida un indirizzo noto per verificare chiave e API, poi conserva la chiave cifrata. Solo owner e admin."
+        },
+        {
+          "title": "Verifica",
+          "body": "Apri un ordine → Modifica → indirizzo di spedizione e scrivi una via della tua città: i suggerimenti compaiono in un secondo. Cambia il CAP con uno sbagliato e salva: la finestra mostra l'avviso sul CAP. \"Testa connessione\" sulla scheda ripete la verifica quando vuoi."
+        },
+        {
+          "title": "Costi da prevedere",
+          "body": "Ogni validazione è una richiesta Address Validation; ogni ricerca mostra fino a 3 suggerimenti = una richiesta Autocomplete più una Place Details per suggerimento. Controlla prezzi e uso gratuito mensile aggiornati nella pagina prezzi di Google Maps Platform prima di andare in produzione.",
+          "verify": true
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Testa connessione: \"Google rejected the API key\"",
+          "fix": "La chiave è stata copiata a metà, cancellata o limitata ad altre API. Controlla le restrizioni API della chiave o creane una nuova."
+        },
+        {
+          "symptom": "\"API is not enabled on the Google Cloud project\"",
+          "fix": "Abilita Address Validation API e Places API (New) nello stesso progetto della chiave; possono servire alcuni minuti."
+        },
+        {
+          "symptom": "Fatturazione non attiva",
+          "fix": "Collega un account di fatturazione al progetto (Fatturazione → Collega un account di fatturazione)."
+        },
+        {
+          "symptom": "Nessun suggerimento, ma la validazione funziona",
+          "fix": "Places API (New) non è abilitata o non è consentita dalle restrizioni API della chiave."
+        },
+        {
+          "symptom": "La finestra di modifica mostra solo avvisi di formato",
+          "fix": "Google non ha risposto (quota, disservizio): {product} ripiega sul controllo di formato per non bloccare il team. Guarda la pagina delle quote in Google Cloud e l'ultimo errore sulla scheda."
+        }
+      ]
+    },
+    "payment_guarantee": {
+      "title": "Blocco su carta per i cambi immediati",
+      "intro": "Con il cambio immediato attivo (Resi → Politica e automazioni), il cambio parte appena il reso è approvato. Per coprire il rischio {product} blocca sulla carta del cliente il valore degli articoli ancora da restituire: il blocco viene rilasciato quando arrivano e addebitato se non arrivano entro i giorni impostati. Oggi il blocco è simulato; quello reale passa dal fornitore di pagamento del negozio.",
+      "scopes": "Stripe (incasso manuale): una chiave limitata con scrittura su PaymentIntents e lettura su Customers e PaymentMethods; eventi webhook payment_intent.amount_capturable_updated, payment_intent.canceled, payment_intent.succeeded.\nShopify Payments: la carta salvata si può addebitare solo con i flussi di Shopify; verifica con il team {product} quali valgono per il piano del negozio prima di venderlo.\nIn ogni caso il consenso del cliente al blocco deve comparire nel testo del portale resi.",
+      "steps": [
+        {
+          "title": "Cosa fa in {product}",
+          "body": "Su un cambio immediato approvato {product} chiede al fornitore di autorizzare il valore degli articoli resi, mostra il blocco sul reso (autorizzato, rilasciato, addebitato), lo rilascia quando la merce arriva e lo addebita dal job dei resi dopo i giorni impostati, segnalando il reso per la revisione. Se il blocco non riesce non parte nulla in anticipo e il reso viene segnalato."
+        },
+        {
+          "title": "Cosa serve al negozio",
+          "body": "Un fornitore di pagamento che supporti blocchi su carta salvata: tipicamente Stripe con incasso manuale (carte autorizzate al checkout o salvate per uso futuro). I blocchi scadono secondo le regole dei circuiti (spesso 7 giorni per i pagamenti online): la finestra del cambio immediato non deve superare quanto consente il fornitore.",
+          "verify": true
+        },
+        {
+          "title": "Crea le credenziali",
+          "body": "Dashboard Stripe → Sviluppatori → Chiavi API → Crea chiave limitata, chiamata \"{product} blocchi\", con i permessi elencati a destra. Copiala subito: Stripe la mostra solo alla creazione.",
+          "verify": true
+        },
+        {
+          "title": "Inviale al team {product}",
+          "body": "Invia la chiave tramite il canale sicuro concordato con il team {product} (mai per email in chiaro). {product} la conserva cifrata (AES-GCM) nell'integrazione e collega l'account del negozio; il negozio non deve incollare nulla in {product}."
+        },
+        {
+          "title": "Policy e testo del portale",
+          "body": "Resi → Politica e automazioni → Cambio immediato: imposta i giorni entro cui la merce deve tornare. Resi → Portale: aggiungi al testo di conferma che il negozio bloccherà temporaneamente sulla carta il valore degli articoli."
+        },
+        {
+          "title": "Verifica",
+          "body": "Con il team {product}, esegui un cambio immediato su un ordine di prova nella modalità test del fornitore: il reso mostra \"blocco autorizzato\", il fornitore mostra un pagamento non incassato dello stesso importo; segna il reso come ricevuto e il blocco viene rilasciato."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "\"Blocco non riuscito\" sul reso",
+          "fix": "La carta ha rifiutato l'autorizzazione o richiede la conferma del cliente (3-D Secure). Il cambio non parte in anticipo; contatta il cliente o approva un cambio normale."
+        },
+        {
+          "symptom": "Blocco addebitato anche se la merce è arrivata",
+          "fix": "Il reso è stato segnato come ricevuto dopo la data di addebito. Rimborsa l'importo dal fornitore e accorcia i tempi di ricevimento, oppure allunga i giorni del cambio immediato."
+        },
+        {
+          "symptom": "Blocco scaduto prima dell'arrivo della merce",
+          "fix": "Il circuito lo ha rilasciato prima dei giorni impostati: riduci i giorni del cambio immediato a quanto consente il fornitore."
+        }
+      ]
+    },
+    "return_labels": {
+      "title": "Etichette di reso prepagate",
+      "intro": "Dà al cliente un'etichetta prepagata (o un codice QR per la consegna in punto di raccolta) quando invia il reso dal portale. Oggi {product} emette un'etichetta simulata e stampa il PDF da solo; il connettore reale chiede l'etichetta al corriere o al servizio etichette del negozio e salva il tracking sul reso.",
+      "scopes": "Aggregatori di etichette (EasyPost, Shippo e simili): una chiave API dell'account del negozio, con le etichette di reso attive e un metodo di pagamento.\nAPI di un corriere: codice cliente del negozio, credenziali API e servizio resi attivo sul contratto (\"etichetta di reso\" / \"pagamento a utilizzo\").\nA {product} servono: l'indirizzo di destinazione dei resi (Resi → Portale → Etichetta di reso prepagata) e il peso predefinito del pacco.",
+      "steps": [
+        {
+          "title": "Cosa fa in {product}",
+          "body": "Resi → Portale → \"Dai al cliente un'etichetta di reso prepagata\". Quando arriva un reso {product} chiede al fornitore un'etichetta dall'indirizzo del cliente alla destinazione impostata, salva corriere e tracking sul reso, mostra il link all'etichetta nella pagina di conferma e nell'email di approvazione, e usa il tracking per seguire il pacco di ritorno."
+        },
+        {
+          "title": "Cosa serve al negozio",
+          "body": "Un contratto con un corriere che offra etichette di reso, o un account presso un aggregatore di etichette, se possibile con pagamento a utilizzo (paghi solo le etichette effettivamente scansionate).",
+          "verify": true
+        },
+        {
+          "title": "Crea le credenziali",
+          "body": "Nella dashboard del fornitore crea una chiave API di produzione (e una di test) per {product}. Con l'API di un corriere chiedi al commerciale di attivare le etichette di reso sul codice cliente.",
+          "verify": true
+        },
+        {
+          "title": "Inviale al team {product}",
+          "body": "Invia le chiavi e, per un corriere, il codice cliente tramite il canale sicuro concordato con il team {product}. {product} le conserva cifrate e attiva il connettore sull'account del negozio."
+        },
+        {
+          "title": "Imposta la destinazione",
+          "body": "Resi → Portale: attiva l'etichetta prepagata e scrivi l'indirizzo di destinazione (una riga per campo). Il costo dell'etichetta per reso (Resi → Portale → Rimborsi e negozio) alimenta il conto economico."
+        },
+        {
+          "title": "Verifica",
+          "body": "Invia un reso di prova dal portale (/r/<negozio>): la conferma mostra \"Scarica l'etichetta\" e il reso mostra corriere e tracking. Nella dashboard del fornitore l'etichetta compare sotto la chiave di test."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Nessuna etichetta nella pagina di conferma",
+          "fix": "L'etichetta prepagata è spenta nelle impostazioni del portale o l'indirizzo di destinazione è vuoto."
+        },
+        {
+          "symptom": "Il fornitore rifiuta l'indirizzo del cliente",
+          "fix": "L'indirizzo è incompleto o in un paese non coperto dal servizio resi; il reso viene creato comunque e il team può mandare le istruzioni per email."
+        },
+        {
+          "symptom": "Etichette addebitate ma mai usate",
+          "fix": "Scegli etichette di reso con pagamento a utilizzo, dove il fornitore le offre."
+        }
+      ]
+    },
+    "audiences": {
+      "title": "Segmenti verso i pubblici pubblicitari",
+      "intro": "Invia un segmento del CRM a Meta come pubblico personalizzato, a Google Ads come lista Customer Match o a uno strumento email come lista, e lo tiene allineato: chi entra nel segmento viene aggiunto, chi esce viene tolto. Oggi le destinazioni sono simulate; i connettori reali usano gli account pubblicitari del negozio.",
+      "scopes": "Pubblici personalizzati Meta: token di un utente di sistema con ads_management sull'account pubblicitario e i termini dei pubblici personalizzati accettati su quell'account.\nCustomer Match Google: lo scope OAuth del collegamento Google Ads (https://www.googleapis.com/auth/adwords) su un account che rispetta la policy Customer Match di Google (storico e spesa), con i termini sui dati dei clienti accettati.\nStrumento email: una chiave API che possa gestire liste o audience.\nVengono inviati solo i clienti con consenso marketing; le piattaforme pubblicitarie ricevono solo hash SHA-256 di email e telefono normalizzati.",
+      "steps": [
+        {
+          "title": "Cosa fa in {product}",
+          "body": "Segmenti → un segmento → Aggiornamento continuo e destinazioni → Aggiungi destinazione: scegli Meta, Google o lo strumento email. {product} crea il pubblico la prima volta, poi sincronizza le differenze dopo ogni cambiamento del segmento (o su richiesta), con stato ed errore leggibile per destinazione."
+        },
+        {
+          "title": "Meta: accetta i termini",
+          "body": "Impostazioni del business → l'account pubblicitario → termini dei pubblici personalizzati, oppure Gestione inserzioni → Pubblico → Crea pubblico → Pubblico personalizzato → Elenco clienti, e accetta i termini una volta.",
+          "verify": true
+        },
+        {
+          "title": "Meta: dai il permesso al token",
+          "body": "Impostazioni del business → Utenti → Utenti di sistema → l'utente di sistema di {product} → Assegna risorse → l'account pubblicitario con \"Gestisci campagne\" (ads_management). Si può riusare lo stesso token di Meta Ads.",
+          "verify": true
+        },
+        {
+          "title": "Google: verifica l'idoneità",
+          "body": "Google Ads → Strumenti → Raccolta condivisa → Gestione segmenti di pubblico → I tuoi segmenti di dati: se Customer Match è disponibile, l'account è idoneo. Accetta i termini sui dati dei clienti quando richiesto.",
+          "verify": true
+        },
+        {
+          "title": "Strumento email",
+          "body": "Crea una chiave API che possa gestire liste (audience, contatti) e annota l'id della lista o audience se esiste già.",
+          "verify": true
+        },
+        {
+          "title": "Inviale al team {product}",
+          "body": "Meta e Google riusano i collegamenti già presenti in Integrazioni quando il team {product} attiva la destinazione; la chiave dello strumento email passa dal canale sicuro concordato con il team {product} e viene conservata cifrata."
+        },
+        {
+          "title": "Verifica",
+          "body": "Invia un segmento piccolo: dopo la sincronizzazione la destinazione mostra il numero inviato; in Pubblico di Meta o in Gestione segmenti di Google la lista compare \"in compilazione\" e dopo qualche ora con la percentuale di corrispondenza.",
+          "verify": true
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Meta: \"termini non accettati\"",
+          "fix": "Accetta i termini dei pubblici personalizzati sullo stesso account pubblicitario usato dal token."
+        },
+        {
+          "symptom": "Google: Customer Match non disponibile",
+          "fix": "L'account non rispetta ancora la policy di Google (storico, spesa, conformità); chiedi al supporto Google o usa un altro account."
+        },
+        {
+          "symptom": "Pubblico troppo piccolo per essere usato",
+          "fix": "Le piattaforme richiedono un numero minimo di persone abbinate: allarga il segmento o aspetta che cresca."
+        },
+        {
+          "symptom": "Meno membri del segmento",
+          "fix": "Vengono inviati solo i clienti con consenso marketing e con email o telefono."
+        }
+      ]
+    },
+    "messaging": {
+      "title": "Canali di messaggistica (email, SMS, WhatsApp)",
+      "intro": "Il canale che invia le campagne CRM ai segmenti (add-on campagne ai clienti) e, se il negozio lo vuole, i messaggi sugli ordini. {product} ha l'interfaccia e un canale simulato che registra ogni messaggio; il connettore reale per il fornitore del negozio viene realizzato dal team {product}. Le email di stato sui resi non ne hanno bisogno: passano dal mittente della piattaforma {product}.",
+      "scopes": "Fornitore di email marketing: una chiave API abilitata all'invio (e alla gestione delle liste, se le campagne usano le sue liste), un dominio di invio verificato (SPF, DKIM, DMARC).\nFornitore SMS: una chiave API, un mittente o numero registrato e le registrazioni per paese richieste dal fornitore.\nWhatsApp Business: un account presso un WhatsApp Business Solution Provider o la Cloud API, un'azienda verificata, un numero di telefono e i modelli di messaggio approvati per ogni messaggio di campagna.\nWebhook per lo stato di consegna: {product} fornisce l'URL da incollare nel fornitore quando attiva il connettore.",
+      "steps": [
+        {
+          "title": "Cosa fa in {product}",
+          "body": "Con l'add-on campagne ai clienti: una campagna sceglie un segmento, un canale e un modello, invia al gruppo trattato e lascia fuori il gruppo di controllo, poi misura la differenza. Ogni messaggio ha uno stato (inviato, consegnato, letto, non riuscito) dal webhook del fornitore."
+        },
+        {
+          "title": "Scegli il fornitore",
+          "body": "Se possibile usa il fornitore che il negozio già paga: il team {product} realizza un connettore per fornitore. Indica al team il nome del fornitore e i canali che vuoi (email, SMS, WhatsApp)."
+        },
+        {
+          "title": "Prepara l'account",
+          "body": "Email: verifica il dominio di invio. SMS: registra il mittente. WhatsApp: verifica l'azienda in Meta Business Manager, collega il numero e fai approvare i modelli di messaggio (i modelli marketing richiedono il consenso).",
+          "verify": true
+        },
+        {
+          "title": "Crea le credenziali",
+          "body": "Crea nella dashboard del fornitore una chiave API dedicata a {product}, con il solo permesso di invio dove possibile.",
+          "verify": true
+        },
+        {
+          "title": "Inviale al team {product}",
+          "body": "Invia chiave, mittente (dominio, mittente SMS o numero) e nomi dei modelli tramite il canale sicuro concordato con il team {product}. {product} li conserva cifrati e registra il webhook di consegna."
+        },
+        {
+          "title": "Verifica",
+          "body": "Con il team {product} invia una campagna di prova a un segmento con il solo tuo contatto: il messaggio arriva e la campagna lo mostra come consegnato (e letto, per WhatsApp)."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Messaggi WhatsApp rifiutati",
+          "fix": "Il modello non è approvato, o il cliente non ha dato il consenso ai messaggi marketing."
+        },
+        {
+          "symptom": "SMS non consegnati in un paese",
+          "fix": "Il mittente non è registrato in quel paese; controlla le regole per paese del fornitore."
+        },
+        {
+          "symptom": "Le email finiscono in spam",
+          "fix": "Completa SPF, DKIM e DMARC sul dominio di invio e scaldalo con volumi piccoli."
+        },
+        {
+          "symptom": "Stati fermi a \"inviato\"",
+          "fix": "Il webhook di consegna del fornitore non è configurato o punta a un URL vecchio."
+        }
+      ]
+    },
+    "carrier": {
+      "title": "Tracking del corriere e istruzioni di consegna",
+      "intro": "Una seconda fonte per lo stato delle spedizioni, accanto agli eventi di evasione di Shopify: gli eventi di tracking del corriere (in viaggio, in consegna, tentativo fallito, eccezione) e il canale per inviare istruzioni di consegna per un pacco in eccezione (riconsegna, nuovo indirizzo, punto di ritiro, reso). Oggi il corriere è simulato; in modalità reale, finché un connettore non è attivo, le istruzioni partono per email all'indirizzo del corriere impostato in Impostazioni → Evasione.",
+      "scopes": "API del corriere: codice cliente del negozio e credenziali API con accesso al tracking (e, per le istruzioni, il servizio di gestione o modifica consegna attivo sul contratto).\nAggregatore di tracking: una chiave API dell'account del negozio che copra i corrieri usati.\nA {product} serve: l'elenco dei corrieri e dei servizi con cui il negozio spedisce.",
+      "steps": [
+        {
+          "title": "Cosa fa in {product}",
+          "body": "Spedizioni: lo stato di ogni pacco viene calcolato da tutte le fonti con precedenze (l'evento del corriere vince su uno stato Shopify più vecchio). Eccezioni e pacchi fermi aprono attività; da un pacco in eccezione il team invia un'istruzione al corriere e la risposta finisce nella timeline dell'ordine."
+        },
+        {
+          "title": "Cosa serve al negozio",
+          "body": "Accesso API sul contratto del corriere: molti corrieri lo danno su richiesta ai clienti business, a volte come opzione a pagamento. Con più corrieri, un aggregatore di tracking li copre tutti con una sola chiave.",
+          "verify": true
+        },
+        {
+          "title": "Crea le credenziali",
+          "body": "Chiedi al commerciale del corriere le credenziali API per il tracking (e le istruzioni di consegna), oppure crea la chiave nella dashboard dell'aggregatore.",
+          "verify": true
+        },
+        {
+          "title": "Inviale al team {product}",
+          "body": "Invia credenziali e codice cliente tramite il canale sicuro concordato con il team {product}. {product} le conserva cifrate e attiva il connettore; nel frattempo le istruzioni da Evasione → Eccezioni continuano a partire per email."
+        },
+        {
+          "title": "Mappature degli stati",
+          "body": "Impostazioni → Evasione → mappature degli stati: controlla come gli stati del corriere corrispondono a quelli di {product} (in viaggio, eccezione, consegnato). Il team {product} le precompila per il corriere."
+        },
+        {
+          "title": "Verifica",
+          "body": "Apri un pacco recente: la timeline mostra eventi con fonte = corriere. Invia un'istruzione su un pacco di prova in eccezione: la timeline dell'ordine mostra \"Istruzione di consegna inviata\" con il riferimento del corriere."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Nessun evento del corriere sui pacchi",
+          "fix": "I tracking che arrivano da Shopify sono di un altro corriere o servizio rispetto a quello collegato; controlla il nome del corriere sulle evasioni."
+        },
+        {
+          "symptom": "Istruzione rifiutata",
+          "fix": "Il pacco è già consegnato o reso, oppure il servizio di modifica consegna non è nel contratto."
+        },
+        {
+          "symptom": "Lo stato va avanti e indietro",
+          "fix": "Due fonti non concordano: rivedi le mappature degli stati in Impostazioni → Evasione."
+        }
+      ]
+    },
+    "warehouse": {
+      "title": "Magazzino esterno / 3PL",
+      "intro": "Collega un operatore logistico esterno: {product} gli invia gli ordini da spedire, legge il suo stock e lo stato delle spedizioni che comunica. Oggi il magazzino è simulato; il connettore reale per il 3PL del negozio viene realizzato dal team {product}.",
+      "scopes": "API del 3PL: credenziali dell'account del negozio con permesso di creare ordini in uscita, leggere lo stock per SKU e leggere lo stato delle spedizioni; il codice o i codici di magazzino da usare.\nGli SKU devono coincidere tra Shopify e il 3PL: {product} abbina stock e righe d'ordine per SKU.\nSe il 3PL è già collegato direttamente a Shopify, decidi con il team {product} quale sistema invia gli ordini, così non partono due volte.",
+      "steps": [
+        {
+          "title": "Cosa fa in {product}",
+          "body": "Gli ordini pronti da spedire vengono inviati al 3PL; il suo stock per SKU aggiorna le giacenze di una location dedicata in {product}; lo stato di spedizione che comunica diventa una fonte del calcolo dello stato. Le differenze di stock si vedono in Magazzino."
+        },
+        {
+          "title": "Cosa serve al negozio",
+          "body": "Un 3PL con API, e lo SKU di ogni variante Shopify uguale al codice articolo del 3PL.",
+          "verify": true
+        },
+        {
+          "title": "Crea le credenziali",
+          "body": "Chiedi al 3PL le credenziali API per {product} (test e produzione) e il codice di magazzino.",
+          "verify": true
+        },
+        {
+          "title": "Inviale al team {product}",
+          "body": "Invia credenziali e codice di magazzino tramite il canale sicuro concordato con il team {product}. {product} le conserva cifrate, crea la location del 3PL e attiva il connettore."
+        },
+        {
+          "title": "Controlla gli SKU",
+          "body": "Prodotti → Qualità dati del catalogo → \"SKU mancante\": ogni variante spedita dal 3PL ne deve avere uno; i duplicati vengono rifiutati."
+        },
+        {
+          "title": "Verifica",
+          "body": "Con il team {product}: un ordine creato nel negozio di prova arriva all'ambiente di test del 3PL; una variazione di stock presso il 3PL compare in Magazzino per la location del 3PL dopo la sincronizzazione successiva."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "Ordine non accettato dal 3PL",
+          "fix": "Una riga non ha SKU, o lo SKU è sconosciuto al 3PL."
+        },
+        {
+          "symptom": "Lo stock non torna",
+          "fix": "Il 3PL conta in modo diverso le unità riservate; confronta con Magazzino e concorda quale numero mostra {product}."
+        },
+        {
+          "symptom": "Ordini spediti due volte",
+          "fix": "Inviano gli ordini sia l'app 3PL di Shopify sia {product}: tieni un solo mittente."
+        }
+      ]
     }
   },
   "admin": {
@@ -3362,10 +3741,10 @@
         "support": "Supporto",
         "audit": "Audit"
       },
-      "jobs": "Esecuzioni dei job",
-      "alerts": "Avvisi di errore",
       "mcp": "MCP",
-      "subscriptions": "Abbonamenti"
+      "subscriptions": "Abbonamenti",
+      "jobs": "Esecuzioni dei job",
+      "alerts": "Avvisi di errore"
     },
     "plans": {
       "starter": "Starter",
@@ -3471,10 +3850,10 @@
         "shopify": "Shopify collegato",
         "meta": "Meta Ads collegato",
         "google": "Google Ads collegato",
-        "tiktok": "TikTok Ads collegato",
         "state_rules": "Regole di stato",
         "costs": "Costi configurati",
-        "billing": "Pagamenti in regola"
+        "billing": "Pagamenti in regola",
+        "tiktok": "TikTok Ads collegato"
       },
       "members": "Utenti",
       "open_balance": "Saldo aperto",
@@ -3676,6 +4055,40 @@
       },
       "remove": "Rimuovi",
       "guide_title": "Guida alla configurazione"
+    },
+    "mcp": {
+      "title": "Uso MCP",
+      "description": "Chiamate dei client AI per tenant negli ultimi 30 giorni e kill switch. Ogni intervento è scritto nell'audit log del tenant.",
+      "platform_disabled": "HULLWISE_MCP_DISABLED=1: il server MCP rifiuta ogni chiamata su questa installazione.",
+      "stat_calls": "Chiamate (30 giorni)",
+      "stat_errors": "Errori",
+      "stat_rate_limited": "Limitate",
+      "stat_connections": "Connessioni attive",
+      "stat_unknown_tokens": "Token sconosciuti",
+      "tenants_title": "Tenant",
+      "tenants_description": "Piano, stato, uso e kill switch per tenant.",
+      "col_tenant": "Tenant",
+      "col_status": "Stato",
+      "col_calls": "Chiamate",
+      "col_errors": "Errori",
+      "col_users": "Persone",
+      "col_connections": "Connessioni",
+      "col_last_call": "Ultima chiamata",
+      "col_kill": "Kill switch",
+      "pending": "{count} da approvare",
+      "denied_rl": "{denied} rifiutate · {limited} limitate",
+      "kill": "Sospendi MCP",
+      "kill_confirm": "Sospendere MCP per questo tenant? Ogni chiamata viene rifiutata finché non lo ripristini.",
+      "restore": "Ripristina MCP",
+      "note_placeholder": "Motivo (in audit)",
+      "availability": {
+        "ok": "Attivo",
+        "plan": "Non nel piano",
+        "tenant_disabled": "Spento (tenant)",
+        "killed": "Sospeso",
+        "platform_disabled": "Piattaforma spenta",
+        "suspended": "Tenant sospeso"
+      }
     },
     "platform_label": "Piattaforma",
     "export_csv": "Esporta CSV",
@@ -3906,40 +4319,6 @@
       "close": "Chiudi",
       "empty_title": "Nessun avviso",
       "empty_description": "Al momento non fallisce nulla."
-    },
-    "mcp": {
-      "title": "Uso MCP",
-      "description": "Chiamate dei client AI per tenant negli ultimi 30 giorni e kill switch. Ogni intervento è scritto nell'audit log del tenant.",
-      "platform_disabled": "HULLWISE_MCP_DISABLED=1: il server MCP rifiuta ogni chiamata su questa installazione.",
-      "stat_calls": "Chiamate (30 giorni)",
-      "stat_errors": "Errori",
-      "stat_rate_limited": "Limitate",
-      "stat_connections": "Connessioni attive",
-      "stat_unknown_tokens": "Token sconosciuti",
-      "tenants_title": "Tenant",
-      "tenants_description": "Piano, stato, uso e kill switch per tenant.",
-      "col_tenant": "Tenant",
-      "col_status": "Stato",
-      "col_calls": "Chiamate",
-      "col_errors": "Errori",
-      "col_users": "Persone",
-      "col_connections": "Connessioni",
-      "col_last_call": "Ultima chiamata",
-      "col_kill": "Kill switch",
-      "pending": "{count} da approvare",
-      "denied_rl": "{denied} rifiutate · {limited} limitate",
-      "kill": "Sospendi MCP",
-      "kill_confirm": "Sospendere MCP per questo tenant? Ogni chiamata viene rifiutata finché non lo ripristini.",
-      "restore": "Ripristina MCP",
-      "note_placeholder": "Motivo (in audit)",
-      "availability": {
-        "ok": "Attivo",
-        "plan": "Non nel piano",
-        "tenant_disabled": "Spento (tenant)",
-        "killed": "Sospeso",
-        "platform_disabled": "Piattaforma spenta",
-        "suspended": "Tenant sospeso"
-      }
     }
   },
   "cod": {
@@ -4689,7 +5068,16 @@
       "tags_hint": "Tag aggiunti all'ordine sul negozio quando il reso raggiunge quello stato (separati da virgola).",
       "label_cost": "Costo etichetta di reso ({currency})",
       "handling_cost": "Costo di gestione per reso ({currency})",
-      "costs_hint": "Ogni reso con merce rientrata costa un'etichetta e la gestione; il P/L lo mostra come costi dei resi, al netto della spedizione addebitata ai clienti."
+      "costs_hint": "Ogni reso con merce rientrata costa un'etichetta e la gestione; il P/L lo mostra come costi dei resi, al netto della spedizione addebitata ai clienti.",
+      "customer_emails": "Email di stato al cliente",
+      "customer_emails_hint": "Inviate nella lingua del cliente con il nome del negozio come mittente e l'indirizzo di assistenza del portale per le risposte. Con l'email di rimborso attiva, a Shopify non viene chiesto di inviare la sua notifica di rimborso.",
+      "customer_email_events": {
+        "approved": "Reso approvato (con l'etichetta prepagata, se presente)",
+        "received": "Reso arrivato in magazzino",
+        "refunded": "Rimborso effettuato",
+        "voucher_issued": "Buono emesso",
+        "exchange_shipped": "Cambio spedito"
+      }
     },
     "tracking_page": "Pagina pubblica di tracking degli ordini",
     "label_enabled": "Fornisci al cliente un'etichetta di reso prepagata",
@@ -5413,7 +5801,6 @@
       "roas": "ROAS",
       "meta": "Meta",
       "google": "Google",
-      "tiktok": "TikTok",
       "slipping": "clienti di valore a rischio",
       "due_soon": "prossimi al riacquisto",
       "top": "valore previsto più alto",
@@ -5423,7 +5810,8 @@
       "consider_pause": "Valuta la pausa",
       "consider_resume": "Valuta la riattivazione",
       "pause_stock": "Pausa: stock basso",
-      "consider_stock": "Controlla lo stock"
+      "consider_stock": "Controlla lo stock",
+      "tiktok": "TikTok"
     },
     "open_source": "Apri la pagina",
     "figures": {
@@ -7033,37 +7421,249 @@
       }
     }
   },
-  "data_export": {
-    "title": "Esportazione dati",
-    "description": "Scarica tutto ciò che Hullwise conserva per questo negozio.",
-    "what_title": "Esportazione completa dei dati del negozio",
-    "what_description": "Un file CSV per tabella (ordini, clienti, prodotti, resi, campagne, impostazioni e altro) in un archivio zip, generato in background. Ricevi una notifica quando è pronto; il link di download scade dopo {days} giorni. Le credenziali delle integrazioni e gli altri segreti non sono mai inclusi.",
-    "request": "Esporta tutti i dati",
-    "requesting": "Avvio…",
+  "mcp": {
+    "copy": "Copia",
+    "copied": "Copiato",
+    "scopes": {
+      "read": "Leggere ordini, clienti, analisi, prodotti, acquisti, resi, segmenti e stato delle integrazioni che il tuo ruolo può vedere",
+      "write_notes": "Aggiungere note interne agli ordini",
+      "write_orders": "Assegnare ordini, metterli in revisione o in attesa, proporre annullamenti e rimborsi",
+      "write_campaigns": "Proporre la pausa delle campagne pubblicitarie",
+      "write_purchasing": "Proporre bozze di ordini d'acquisto"
+    },
+    "unavailable": {
+      "plan": "I client AI (MCP) sono inclusi dal piano Growth.",
+      "tenant_disabled": "MCP è spento per questo workspace: un owner o un admin può accenderlo in Impostazioni → AI e MCP.",
+      "killed": "L'accesso MCP a questo workspace è stato sospeso dalla piattaforma.",
+      "platform_disabled": "MCP è temporaneamente non disponibile sulla piattaforma.",
+      "suspended": "Questo workspace è sospeso."
+    },
     "errors": {
-      "in_progress": "C'è già un'esportazione in corso.",
-      "generic": "Non è stato possibile avviare l'esportazione."
+      "generic": "Qualcosa è andato storto. Riprova.",
+      "invalid_input": "Controlla i campi e riprova.",
+      "limit_reached": "Hai raggiunto il numero massimo di token attivi: revocane uno prima.",
+      "not_found": "Non trovato: potrebbe essere stato rimosso.",
+      "forbidden": "Non puoi farlo.",
+      "mcp_unavailable": "MCP non è disponibile per questo workspace.",
+      "not_pending": "Questa proposta è già stata decisa.",
+      "expired": "Questa proposta è scaduta."
     },
-    "empty_title": "Nessuna esportazione",
-    "empty_description": "Le esportazioni che avvii compaiono qui con il link di download.",
-    "columns": {
-      "requested": "Richiesta",
-      "status": "Stato",
-      "rows": "Righe",
-      "expires": "Scadenza link",
-      "file": "File"
+    "consent": {
+      "title": "Collega un client AI",
+      "heading": "{client} chiede di accedere a Hullwise",
+      "description": "Accesso come {user}. Il client agirà come te, con il tuo ruolo, nel workspace che scegli.",
+      "workspace": "Workspace",
+      "no_workspace": "Non sei membro di alcun workspace.",
+      "scopes": "Permessi",
+      "scopes_hint": "Togli la spunta a ciò che non vuoi consentire. La lettura è sempre inclusa.",
+      "note_role": "Vede solo ciò che il tuo ruolo vede in Hullwise; i moduli spenti non espongono nulla.",
+      "note_pii": "Email, telefoni e indirizzi dei clienti sono mascherati, salvo che il tuo workspace abbia attivato i dati personali completi per i client AI.",
+      "note_proposals": "Annullamenti, rimborsi, pause delle campagne e ordini d'acquisto sono solo proposte: le approva una persona in Hullwise.",
+      "note_redirect": "Dopo l'autorizzazione torni su {host}. Puoi revocare l'accesso in qualsiasi momento dal profilo → Connessioni.",
+      "approve": "Consenti l'accesso",
+      "deny": "Annulla",
+      "invalid_request": "Questa richiesta di collegamento non è valida.",
+      "unavailable": {
+        "plan": "Non incluso nel piano",
+        "tenant_disabled": "MCP spento da un owner o admin",
+        "killed": "Sospeso dalla piattaforma",
+        "platform_disabled": "Temporaneamente non disponibile",
+        "suspended": "Workspace sospeso"
+      }
     },
-    "by_platform": "Supporto Hullwise",
-    "statuses": {
-      "pending": "In coda",
-      "running": "In corso",
-      "done": "Pronta",
-      "failed": "Non riuscita",
-      "expired": "Scaduta"
+    "connections": {
+      "server_url": "URL del server MCP",
+      "server_url_hint": "Incollalo in Claude, ChatGPT, Cursor o qualsiasi client MCP: si collegano con OAuth, tu accedi e autorizzi.",
+      "connection": "Connessione",
+      "user": "Utente",
+      "scopes": "Permessi",
+      "last_used": "Ultimo uso",
+      "expires": "Scade",
+      "never": "Mai",
+      "empty": "Nessun client AI collegato.",
+      "kind": {
+        "oauth": "OAuth",
+        "pat": "Token"
+      },
+      "state": {
+        "active": "Attiva",
+        "expired": "Scaduta",
+        "revoked": "Revocata"
+      },
+      "create_title": "Nuovo token di accesso personale",
+      "token_name": "Nome",
+      "token_name_placeholder": "es. Cursor sul mio portatile",
+      "expires_in": "Scade tra",
+      "days": "{days} giorni",
+      "create": "Crea token",
+      "shown_once": "Copia il token ora: viene mostrato una sola volta e Hullwise ne conserva solo un'impronta.",
+      "rotate": "Rigenera",
+      "rotate_confirm": "Creare un nuovo segreto per questo token? Quello attuale smette subito di funzionare.",
+      "revoke": "Revoca",
+      "revoke_confirm": "Revocare questa connessione? Il client perde subito l'accesso.",
+      "how_to": "Come collegare Claude, ChatGPT o Cursor",
+      "open_settings": "Apri le impostazioni AI e MCP"
     },
-    "tables_n": "{n} tabelle",
-    "download": "Scarica",
-    "downloads": "{n, plural, one {scaricata una volta} other {scaricata # volte}}"
+    "settings": {
+      "title": "AI e MCP",
+      "description": "Consenti al team di usare Claude, ChatGPT, Cursor e altri client AI sui dati di questo workspace, con i propri permessi.",
+      "server_title": "Server MCP",
+      "server_description": "Un solo URL per tutti i client. Ogni persona si collega con il proprio account; i token sono legati a una persona e a un workspace.",
+      "enabled": "Consenti i client AI (MCP)",
+      "enabled_hint": "Se spento, ogni chiamata MCP a questo workspace viene rifiutata; le connessioni restano.",
+      "full_pii": "Mostra i dati personali dei clienti",
+      "full_pii_hint": "Nomi, email, telefoni e indirizzi completi, solo ai ruoli che possono vederli (mai marketing o viewer). Spento: sempre mascherati.",
+      "rule_auth": "OAuth 2.1 con PKCE, oppure token di accesso personali; i segreti sono salvati solo come hash con chiave.",
+      "rule_permissions": "Ogni strumento usa il ruolo della persona e i moduli del workspace; nulla che il ruolo non veda in Hullwise viene esposto.",
+      "rule_writes": "Le scritture dirette sono reversibili (note, assegnatario, revisione o attesa); le azioni rischiose attendono l'approvazione.",
+      "rule_limits": "Limiti: {perToken} chiamate al minuto per connessione, {perTenant} per workspace.",
+      "guides_title": "Collega un client",
+      "guides_description": "I passi per i client più usati.",
+      "connections_title": "Client collegati",
+      "connections_description": "Tutte le connessioni attive del workspace, con l'ultimo uso. Owner e admin possono revocarle.",
+      "activity_title": "Attività recente",
+      "activity_description": "Le ultime chiamate degli ultimi 7 giorni (strumento, persona, client, esito). Argomenti e risultati non vengono mai salvati.",
+      "activity_empty": "Ancora nessuna chiamata.",
+      "stat_calls": "Chiamate (7 giorni)",
+      "stat_errors": "Errori",
+      "stat_denied": "Rifiutate",
+      "stat_rate_limited": "Limitate",
+      "col_when": "Quando",
+      "col_tool": "Strumento",
+      "col_who": "Chi",
+      "col_outcome": "Esito",
+      "col_duration": "Durata",
+      "outcome": {
+        "ok": "OK",
+        "error": "Errore",
+        "denied": "Rifiutata",
+        "invalid_input": "Input non valido",
+        "not_found": "Non trovato",
+        "rate_limited": "Limitata",
+        "auth_failed": "Autenticazione fallita",
+        "disabled": "Disattivato"
+      },
+      "approvals_link": "Approvazioni ({count})",
+      "approvals_link_empty": "Approvazioni",
+      "own_tokens_link": "I tuoi token di accesso personali sono nel profilo → Connessioni."
+    },
+    "approvals": {
+      "title": "Approvazioni",
+      "description": "Azioni proposte dai client AI tramite MCP. Non succede nulla finché qualcuno che può farlo non approva; approvando, l'azione viene eseguita a tuo nome.",
+      "empty_title": "Niente da approvare",
+      "empty_description": "Qui compaiono le proposte dei client AI (annullamenti, rimborsi, pause delle campagne, ordini d'acquisto).",
+      "requested_by": "{client} per {user} · {when}",
+      "order_total": "Totale ordine",
+      "restock": "Rimetti a stock",
+      "refund": "Rimborsa il pagamento",
+      "amount": "Importo",
+      "refundable": "Ancora rimborsabile",
+      "lines": "Righe",
+      "expires": "Scade",
+      "yes": "Sì",
+      "no": "No",
+      "cannot_approve": "Il tuo ruolo non può approvarla: chi può la vedrà qui.",
+      "note_placeholder": "Nota (facoltativa)",
+      "approve": "Approva ed esegui",
+      "approve_confirm": "Approvare ed eseguire ora questa azione a tuo nome?",
+      "reject": "Rifiuta",
+      "failed": "L'azione non è riuscita: {error}",
+      "history": "Storico",
+      "history_empty": "Ancora nessuna proposta decisa.",
+      "col_proposal": "Proposta",
+      "col_requested": "Richiesta",
+      "col_status": "Stato",
+      "col_decided": "Decisa da",
+      "kinds": {
+        "order_cancel": "Annulla ordine",
+        "order_refund": "Rimborso",
+        "campaign_pause": "Pausa campagna",
+        "purchase_order_create": "Bozza ordine d'acquisto"
+      },
+      "status": {
+        "pending": "In attesa",
+        "approved": "Approvata",
+        "rejected": "Rifiutata",
+        "failed": "Fallita",
+        "expired": "Scaduta"
+      }
+    },
+    "guides": {
+      "verify_legend": "I passi segnati “Da verificare” dipendono dall'interfaccia del fornitore AI, che cambia spesso: controllali sulla sua documentazione prima della prima installazione.",
+      "verify_badge": "Da verificare",
+      "pat_note": "Client senza OAuth: crea un token di accesso personale nel tuo profilo → Connessioni e invialo nell'header Authorization: Bearer kpat_…",
+      "claude": {
+        "name": "Claude",
+        "steps": [
+          {
+            "title": "Apri i connettori",
+            "body": "In Claude (web o app desktop) apri Impostazioni → Connettori e scegli “Aggiungi connettore personalizzato”. Nei piani team un owner potrebbe doverli prima consentire.",
+            "verify": true
+          },
+          {
+            "title": "Incolla l'URL del server",
+            "body": "Dagli un nome (es. Hullwise) e incolla:\n{serverUrl}\nLascia vuoti i campi OAuth avanzati: Claude si registra da solo su Hullwise.",
+            "verify": true
+          },
+          {
+            "title": "Accedi e autorizza",
+            "body": "Claude apre Hullwise: accedi, scegli il workspace, tieni o togli i permessi e autorizza. Torni su Claude già collegato."
+          },
+          {
+            "title": "Provalo",
+            "body": "In una chat attiva il connettore dal menu degli strumenti e chiedi: “Come sono andate le vendite la settimana scorsa rispetto a quella prima?” Claude cita i numeri con il link a Hullwise.",
+            "verify": true
+          }
+        ]
+      },
+      "chatgpt": {
+        "name": "ChatGPT",
+        "steps": [
+          {
+            "title": "Consenti i connettori personalizzati",
+            "body": "In ChatGPT apri Impostazioni → Connettori (App). A seconda del piano, i connettori MCP personalizzati richiedono la modalità sviluppatore nelle impostazioni avanzate, o un amministratore del workspace.",
+            "verify": true
+          },
+          {
+            "title": "Crea il connettore",
+            "body": "Scegli Crea, dagli un nome, incolla {serverUrl} e scegli OAuth come autenticazione.",
+            "verify": true
+          },
+          {
+            "title": "Accedi e autorizza",
+            "body": "ChatGPT apre Hullwise: accedi, scegli il workspace e i permessi, autorizza."
+          },
+          {
+            "title": "Provalo",
+            "body": "Apri una chat, aggiungi il connettore dal menu degli strumenti e chiedi per esempio: “Quali campagne hanno perso soldi questo mese e cosa suggerisce Hullwise?”",
+            "verify": true
+          }
+        ]
+      },
+      "cursor": {
+        "name": "Cursor",
+        "steps": [
+          {
+            "title": "Apri le impostazioni MCP",
+            "body": "In Cursor apri Settings → MCP (Tools & Integrations) → “Add custom MCP server”: si apre ~/.cursor/mcp.json.",
+            "verify": true
+          },
+          {
+            "title": "Aggiungi Hullwise",
+            "body": "Aggiungi questo server e salva:\n{ \"mcpServers\": { \"hullwise\": { \"url\": \"{serverUrl}\" } } }",
+            "verify": true
+          },
+          {
+            "title": "Accedi",
+            "body": "Cursor mostra che il server richiede l'accesso: cliccalo, accedi a Hullwise e autorizza. Senza OAuth, crea un token di accesso personale e aggiungi \"headers\": { \"Authorization\": \"Bearer kpat_…\" } al server."
+          },
+          {
+            "title": "Provalo",
+            "body": "Nella chat dell'agente chiedi: “Elenca i prodotti a rischio esaurimento con il riordino suggerito.”"
+          }
+        ]
+      }
+    }
   },
   "dashboards": {
     "title": "Dashboard",
@@ -7503,456 +8103,6 @@
       "tiktok": "TikTok"
     }
   },
-  "ads": {
-    "nav": {
-      "label": "Analisi campagne",
-      "campaigns": "Campagne",
-      "creatives": "Creatività",
-      "keywords": "Parole chiave e ricerche",
-      "words": "Parole",
-      "recommendations": "Suggerimenti"
-    },
-    "cols": {
-      "name": "Nome",
-      "spend": "Spesa",
-      "impressions": "Impression",
-      "ctr": "CTR",
-      "platform_conv": "Conv. piattaforma",
-      "hullwise_orders": "Ordini Hullwise",
-      "revenue": "Ricavo netto",
-      "profit": "Profitto",
-      "roas": "ROAS",
-      "frequency": "Frequenza",
-      "match": "Corrispondenza",
-      "quality": "Qualità",
-      "campaign": "Campagna",
-      "action": "Azione",
-      "phrase": "Frase",
-      "items": "Usata in",
-      "margin": "Margine",
-      "cpa": "CPA",
-      "field": "Campo",
-      "asset": "Asset",
-      "hullwise_orders_allocated": "Ordini Hullwise (ripartiti)",
-      "date": "Data",
-      "search_term": "Termine di ricerca",
-      "clicks": "Clic",
-      "reason": "Perché",
-      "ad": "Annuncio"
-    },
-    "excluded_n": "+{n} annullati/resi",
-    "ad_sets_title": "Gruppi di inserzioni",
-    "ad_groups_title": "Gruppi di annunci",
-    "ad_sets_description": "I numeri della piattaforma accanto a quelli di Hullwise: ordini, ricavi e profitto contano solo gli ordini non annullati e non resi.",
-    "utm_missing": "{n} annunci su {total} non hanno {params}: i loro ordini arrivano a Hullwise senza annuncio. Aggiungi questo modello agli annunci:",
-    "no_ad_sets": "Ancora nessun gruppo",
-    "no_ad_sets_hint": "Arrivano con la prossima sincronizzazione delle ads.",
-    "hullwise_not_visible": "Hullwise non vede gli ordini di questa riga (il modello UTM non la nomina).",
-    "n_ads": "{n} annunci",
-    "n_keywords": "{n} parole chiave",
-    "unassigned_orders": "{n} ordini della campagna non sono legati a un gruppo",
-    "open_orders": "Apri gli ordini",
-    "reconciliation": "Spesa degli annunci {ads} su {campaign} · non allocata {unallocated}",
-    "ad_set": "Gruppo di inserzioni",
-    "ad_group": "Gruppo di annunci",
-    "status": {
-      "active": "Attivo",
-      "paused": "In pausa",
-      "archived": "Archiviato"
-    },
-    "ads_title": "Annunci",
-    "ads_description": "Affaticamento: la frequenza sale mentre il CTR scende. I suggerimenti sono in sola lettura: decide una persona.",
-    "no_ads": "Nessun annuncio in questo gruppo",
-    "keywords_title": "Parole chiave",
-    "no_keywords": "Nessuna parola chiave",
-    "search_terms_title": "Termini di ricerca",
-    "all_search_terms": "Tutti i termini della campagna",
-    "no_search_terms": "Nessun termine di ricerca",
-    "other_terms": "Altri termini (sotto le impression minime)",
-    "via_keyword": "da “{keyword}”",
-    "negative_reason": {
-      "only_cancelled": "Solo ordini annullati",
-      "no_orders": "Spesa senza ordini",
-      "unprofitable_orders": "Ordini in perdita",
-      "no_conversions": "Spesa senza conversioni"
-    },
-    "excluded": "Escluso",
-    "hullwise_footnote": "Hullwise lega gli ordini a gruppi, annunci e parole chiave tramite il modello UTM; dove la piattaforma non li lega compare un trattino.",
-    "match": {
-      "exact": "Esatta",
-      "phrase": "Frase",
-      "broad": "Generica"
-    },
-    "fatigue": {
-      "watch": "Attenzione: CTR in calo",
-      "fatigued": "Affaticato"
-    },
-    "utm_badge": "UTM mancanti",
-    "pause_reason": {
-      "losing": "In perdita",
-      "fatigued": "Affaticato e in perdita",
-      "low_label": "Valutato BASSO",
-      "low_ctr": "Metà del CTR degli altri"
-    },
-    "ctr_change": "CTR {change} dall'inizio",
-    "copy_title": "Testi e tracciamento",
-    "utm_missing_ad": "Questo annuncio non ha {params}: i suoi ordini arrivano a Hullwise senza annuncio. Modello:",
-    "assets_title": "Asset",
-    "no_assets": "Nessun dettaglio per asset",
-    "no_assets_meta": "Meta riporta gli asset solo per le inserzioni con creatività dinamica o Advantage+.",
-    "no_assets_google": "Google riporta gli asset per gli annunci adattabili.",
-    "no_assets_tiktok": "TikTok non riporta metriche per singolo asset: il video dell’annuncio è elencato con il suo id.",
-    "field": {
-      "headline": "Titolo",
-      "description": "Descrizione",
-      "body": "Testo principale",
-      "title": "Titolo breve",
-      "image": "Immagine",
-      "video": "Video",
-      "other": "Altro"
-    },
-    "assets_footnote": "Le piattaforme riportano gli asset, non gli ordini: Hullwise ripartisce gli ordini dell'annuncio sui suoi asset in base alla quota di spesa in ogni campo.",
-    "daily_title": "Per giorno",
-    "no_days": "Nessun dato giornaliero nel periodo",
-    "keywords_page_title": "Parole chiave e termini di ricerca",
-    "keywords_page_description": "Le parole chiave di Google Ads e le ricerche che hanno attivato gli annunci, con gli ordini di Hullwise dove il modello UTM le nomina.",
-    "tabs": {
-      "keywords": "Parole chiave",
-      "search_terms": "Termini di ricerca"
-    },
-    "search_placeholder": "Cerca testo",
-    "all_campaigns": "Tutte le campagne",
-    "sort_label": "Ordina",
-    "sort": {
-      "spend": "Spesa",
-      "profit": "Profitto",
-      "roas": "ROAS",
-      "conversions": "Conversioni"
-    },
-    "candidates_only": "Solo candidati a parola chiave negativa",
-    "apply": "Applica",
-    "google_only": "Parole chiave e termini di ricerca arrivano da Google Ads; Meta non li ha.",
-    "rows_total": "{n} righe",
-    "prev": "Precedente",
-    "next": "Successiva",
-    "page_of": "Pagina {page} di {pages}",
-    "keywords_footnote": "Gli ordini Hullwise arrivano da utm_term impostato sulla parola chiave dal modello di monitoraggio.",
-    "search_terms_footnote": "Hullwise vede gli ordini di un termine quando il termine è una parola chiave (corrispondenza esatta); per gli altri decidono le conversioni della piattaforma. I termini sotto le impression minime sono raggruppati in “Altri termini”.",
-    "words_title": "Parole",
-    "words_description": "Parole e frasi (1–3 parole) vincenti e perdenti nei testi degli annunci, nei termini di ricerca e nelle parole chiave, con il profitto degli ordini Hullwise.",
-    "word_source": {
-      "copy": "Testi degli annunci",
-      "search_terms": "Termini di ricerca",
-      "keywords": "Parole chiave"
-    },
-    "ngram": {
-      "all": "Tutte",
-      "n1": "1 parola",
-      "n2": "2 parole",
-      "n3": "3 parole"
-    },
-    "no_words": "Volume insufficiente",
-    "no_words_hint": "Una frase deve comparire in almeno due annunci o termini con un po' di spesa.",
-    "winners": "Parole vincenti",
-    "winners_description": "Frasi di elementi che hanno fatto profitto, le migliori prima.",
-    "no_winners": "Nessuna frase in profitto nel periodo",
-    "losers": "Parole perdenti",
-    "losers_description": "Frasi di elementi in perdita, le peggiori prima.",
-    "no_losers": "Nessuna frase in perdita nel periodo",
-    "words_footnote": "{items} elementi analizzati. Ogni frase somma i numeri completi di ogni elemento che la contiene, quindi le frasi si sovrappongono.",
-    "recommendations_title": "Suggerimenti ads",
-    "recommendations_description": "Suggerimenti in sola lettura: una persona li valuta e agisce; le scritture verso le piattaforme chiedono sempre conferma.",
-    "in_items": "in {n}",
-    "rec": {
-      "negatives_title": "Candidati a parola chiave negativa",
-      "negatives_description": "{n} termini di ricerca spendono senza ordini in profitto.",
-      "google_read_only": "Google è in sola lettura per questo negozio: concedi l'accesso in scrittura in Integrazioni per escludere i termini da qui.",
-      "none": "Niente da suggerire",
-      "all_candidates": "Tutti i candidati",
-      "ads_title": "Annunci da mettere in pausa",
-      "ads_description": "Annunci attivi in perdita nel periodo, oppure affaticati e in perdita.",
-      "words_title": "Parole vincenti da riusare nei testi",
-      "words_description": "Frasi degli annunci che hanno fatto più profitto.",
-      "open_words": "Apri Parole",
-      "assets_title": "Asset deboli",
-      "assets_description": "Asset valutati BASSO dalla piattaforma o con metà del CTR degli altri.",
-      "utm_title": "Modelli UTM",
-      "utm_description": "Senza questi parametri Hullwise non può legare gli ordini ad annunci, gruppi e parole chiave.",
-      "utm_ok": "Tutte le campagne attive hanno i modelli.",
-      "utm_row": "{missing} annunci su {ads} senza {params}",
-      "template_meta": "Meta: parametri URL dell'annuncio",
-      "template_google": "Google: modello di monitoraggio dell'account",
-      "template_tiktok": "TikTok: parametri URL dell’annuncio"
-    },
-    "actions": {
-      "read_only": "{platform} è in sola lettura per questo negozio.",
-      "read_only_short": "Sola lettura",
-      "pause_ad": "Metti in pausa l'annuncio",
-      "resume_ad": "Riattiva l'annuncio",
-      "pause_title": "Mettere in pausa questo annuncio su {platform}?",
-      "resume_title": "Riattivare questo annuncio su {platform}?",
-      "write_description": "Hullwise cambia lo stato qui e lo invia alla piattaforma; se non è raggiungibile la modifica viene ritentata e mostrata come in attesa.",
-      "confirm": "Conferma",
-      "exclude": "Escludi",
-      "negative_title": "Aggiungere “{text}” come parola chiave negativa?",
-      "negative_description": "Google smette di mostrare gli annunci per questa ricerca. La modifica passa dalla coda delle scritture.",
-      "match_type": "Corrispondenza",
-      "match": {
-        "exact": "Esatta",
-        "phrase": "Frase",
-        "broad": "Generica"
-      },
-      "level": "Livello",
-      "levels": {
-        "campaign": "Campagna",
-        "ad_group": "Gruppo di annunci"
-      }
-    }
-  },
-  "mcp": {
-    "copy": "Copia",
-    "copied": "Copiato",
-    "scopes": {
-      "read": "Leggere ordini, clienti, analisi, prodotti, acquisti, resi, segmenti e stato delle integrazioni che il tuo ruolo può vedere",
-      "write_notes": "Aggiungere note interne agli ordini",
-      "write_orders": "Assegnare ordini, metterli in revisione o in attesa, proporre annullamenti e rimborsi",
-      "write_campaigns": "Proporre la pausa delle campagne pubblicitarie",
-      "write_purchasing": "Proporre bozze di ordini d'acquisto"
-    },
-    "unavailable": {
-      "plan": "I client AI (MCP) sono inclusi dal piano Growth.",
-      "tenant_disabled": "MCP è spento per questo workspace: un owner o un admin può accenderlo in Impostazioni → AI e MCP.",
-      "killed": "L'accesso MCP a questo workspace è stato sospeso dalla piattaforma.",
-      "platform_disabled": "MCP è temporaneamente non disponibile sulla piattaforma.",
-      "suspended": "Questo workspace è sospeso."
-    },
-    "errors": {
-      "generic": "Qualcosa è andato storto. Riprova.",
-      "invalid_input": "Controlla i campi e riprova.",
-      "limit_reached": "Hai raggiunto il numero massimo di token attivi: revocane uno prima.",
-      "not_found": "Non trovato: potrebbe essere stato rimosso.",
-      "forbidden": "Non puoi farlo.",
-      "mcp_unavailable": "MCP non è disponibile per questo workspace.",
-      "not_pending": "Questa proposta è già stata decisa.",
-      "expired": "Questa proposta è scaduta."
-    },
-    "consent": {
-      "title": "Collega un client AI",
-      "heading": "{client} chiede di accedere a Hullwise",
-      "description": "Accesso come {user}. Il client agirà come te, con il tuo ruolo, nel workspace che scegli.",
-      "workspace": "Workspace",
-      "no_workspace": "Non sei membro di alcun workspace.",
-      "scopes": "Permessi",
-      "scopes_hint": "Togli la spunta a ciò che non vuoi consentire. La lettura è sempre inclusa.",
-      "note_role": "Vede solo ciò che il tuo ruolo vede in Hullwise; i moduli spenti non espongono nulla.",
-      "note_pii": "Email, telefoni e indirizzi dei clienti sono mascherati, salvo che il tuo workspace abbia attivato i dati personali completi per i client AI.",
-      "note_proposals": "Annullamenti, rimborsi, pause delle campagne e ordini d'acquisto sono solo proposte: le approva una persona in Hullwise.",
-      "note_redirect": "Dopo l'autorizzazione torni su {host}. Puoi revocare l'accesso in qualsiasi momento dal profilo → Connessioni.",
-      "approve": "Consenti l'accesso",
-      "deny": "Annulla",
-      "invalid_request": "Questa richiesta di collegamento non è valida.",
-      "unavailable": {
-        "plan": "Non incluso nel piano",
-        "tenant_disabled": "MCP spento da un owner o admin",
-        "killed": "Sospeso dalla piattaforma",
-        "platform_disabled": "Temporaneamente non disponibile",
-        "suspended": "Workspace sospeso"
-      }
-    },
-    "connections": {
-      "server_url": "URL del server MCP",
-      "server_url_hint": "Incollalo in Claude, ChatGPT, Cursor o qualsiasi client MCP: si collegano con OAuth, tu accedi e autorizzi.",
-      "connection": "Connessione",
-      "user": "Utente",
-      "scopes": "Permessi",
-      "last_used": "Ultimo uso",
-      "expires": "Scade",
-      "never": "Mai",
-      "empty": "Nessun client AI collegato.",
-      "kind": {
-        "oauth": "OAuth",
-        "pat": "Token"
-      },
-      "state": {
-        "active": "Attiva",
-        "expired": "Scaduta",
-        "revoked": "Revocata"
-      },
-      "create_title": "Nuovo token di accesso personale",
-      "token_name": "Nome",
-      "token_name_placeholder": "es. Cursor sul mio portatile",
-      "expires_in": "Scade tra",
-      "days": "{days} giorni",
-      "create": "Crea token",
-      "shown_once": "Copia il token ora: viene mostrato una sola volta e Hullwise ne conserva solo un'impronta.",
-      "rotate": "Rigenera",
-      "rotate_confirm": "Creare un nuovo segreto per questo token? Quello attuale smette subito di funzionare.",
-      "revoke": "Revoca",
-      "revoke_confirm": "Revocare questa connessione? Il client perde subito l'accesso.",
-      "how_to": "Come collegare Claude, ChatGPT o Cursor",
-      "open_settings": "Apri le impostazioni AI e MCP"
-    },
-    "settings": {
-      "title": "AI e MCP",
-      "description": "Consenti al team di usare Claude, ChatGPT, Cursor e altri client AI sui dati di questo workspace, con i propri permessi.",
-      "server_title": "Server MCP",
-      "server_description": "Un solo URL per tutti i client. Ogni persona si collega con il proprio account; i token sono legati a una persona e a un workspace.",
-      "enabled": "Consenti i client AI (MCP)",
-      "enabled_hint": "Se spento, ogni chiamata MCP a questo workspace viene rifiutata; le connessioni restano.",
-      "full_pii": "Mostra i dati personali dei clienti",
-      "full_pii_hint": "Nomi, email, telefoni e indirizzi completi, solo ai ruoli che possono vederli (mai marketing o viewer). Spento: sempre mascherati.",
-      "rule_auth": "OAuth 2.1 con PKCE, oppure token di accesso personali; i segreti sono salvati solo come hash con chiave.",
-      "rule_permissions": "Ogni strumento usa il ruolo della persona e i moduli del workspace; nulla che il ruolo non veda in Hullwise viene esposto.",
-      "rule_writes": "Le scritture dirette sono reversibili (note, assegnatario, revisione o attesa); le azioni rischiose attendono l'approvazione.",
-      "rule_limits": "Limiti: {perToken} chiamate al minuto per connessione, {perTenant} per workspace.",
-      "guides_title": "Collega un client",
-      "guides_description": "I passi per i client più usati.",
-      "connections_title": "Client collegati",
-      "connections_description": "Tutte le connessioni attive del workspace, con l'ultimo uso. Owner e admin possono revocarle.",
-      "activity_title": "Attività recente",
-      "activity_description": "Le ultime chiamate degli ultimi 7 giorni (strumento, persona, client, esito). Argomenti e risultati non vengono mai salvati.",
-      "activity_empty": "Ancora nessuna chiamata.",
-      "stat_calls": "Chiamate (7 giorni)",
-      "stat_errors": "Errori",
-      "stat_denied": "Rifiutate",
-      "stat_rate_limited": "Limitate",
-      "col_when": "Quando",
-      "col_tool": "Strumento",
-      "col_who": "Chi",
-      "col_outcome": "Esito",
-      "col_duration": "Durata",
-      "outcome": {
-        "ok": "OK",
-        "error": "Errore",
-        "denied": "Rifiutata",
-        "invalid_input": "Input non valido",
-        "not_found": "Non trovato",
-        "rate_limited": "Limitata",
-        "auth_failed": "Autenticazione fallita",
-        "disabled": "Disattivato"
-      },
-      "approvals_link": "Approvazioni ({count})",
-      "approvals_link_empty": "Approvazioni",
-      "own_tokens_link": "I tuoi token di accesso personali sono nel profilo → Connessioni."
-    },
-    "approvals": {
-      "title": "Approvazioni",
-      "description": "Azioni proposte dai client AI tramite MCP. Non succede nulla finché qualcuno che può farlo non approva; approvando, l'azione viene eseguita a tuo nome.",
-      "empty_title": "Niente da approvare",
-      "empty_description": "Qui compaiono le proposte dei client AI (annullamenti, rimborsi, pause delle campagne, ordini d'acquisto).",
-      "requested_by": "{client} per {user} · {when}",
-      "order_total": "Totale ordine",
-      "restock": "Rimetti a stock",
-      "refund": "Rimborsa il pagamento",
-      "amount": "Importo",
-      "refundable": "Ancora rimborsabile",
-      "lines": "Righe",
-      "expires": "Scade",
-      "yes": "Sì",
-      "no": "No",
-      "cannot_approve": "Il tuo ruolo non può approvarla: chi può la vedrà qui.",
-      "note_placeholder": "Nota (facoltativa)",
-      "approve": "Approva ed esegui",
-      "approve_confirm": "Approvare ed eseguire ora questa azione a tuo nome?",
-      "reject": "Rifiuta",
-      "failed": "L'azione non è riuscita: {error}",
-      "history": "Storico",
-      "history_empty": "Ancora nessuna proposta decisa.",
-      "col_proposal": "Proposta",
-      "col_requested": "Richiesta",
-      "col_status": "Stato",
-      "col_decided": "Decisa da",
-      "kinds": {
-        "order_cancel": "Annulla ordine",
-        "order_refund": "Rimborso",
-        "campaign_pause": "Pausa campagna",
-        "purchase_order_create": "Bozza ordine d'acquisto"
-      },
-      "status": {
-        "pending": "In attesa",
-        "approved": "Approvata",
-        "rejected": "Rifiutata",
-        "failed": "Fallita",
-        "expired": "Scaduta"
-      }
-    },
-    "guides": {
-      "verify_legend": "I passi segnati “Da verificare” dipendono dall'interfaccia del fornitore AI, che cambia spesso: controllali sulla sua documentazione prima della prima installazione.",
-      "verify_badge": "Da verificare",
-      "pat_note": "Client senza OAuth: crea un token di accesso personale nel tuo profilo → Connessioni e invialo nell'header Authorization: Bearer kpat_…",
-      "claude": {
-        "name": "Claude",
-        "steps": [
-          {
-            "title": "Apri i connettori",
-            "body": "In Claude (web o app desktop) apri Impostazioni → Connettori e scegli “Aggiungi connettore personalizzato”. Nei piani team un owner potrebbe doverli prima consentire.",
-            "verify": true
-          },
-          {
-            "title": "Incolla l'URL del server",
-            "body": "Dagli un nome (es. Hullwise) e incolla:\n{serverUrl}\nLascia vuoti i campi OAuth avanzati: Claude si registra da solo su Hullwise.",
-            "verify": true
-          },
-          {
-            "title": "Accedi e autorizza",
-            "body": "Claude apre Hullwise: accedi, scegli il workspace, tieni o togli i permessi e autorizza. Torni su Claude già collegato."
-          },
-          {
-            "title": "Provalo",
-            "body": "In una chat attiva il connettore dal menu degli strumenti e chiedi: “Come sono andate le vendite la settimana scorsa rispetto a quella prima?” Claude cita i numeri con il link a Hullwise.",
-            "verify": true
-          }
-        ]
-      },
-      "chatgpt": {
-        "name": "ChatGPT",
-        "steps": [
-          {
-            "title": "Consenti i connettori personalizzati",
-            "body": "In ChatGPT apri Impostazioni → Connettori (App). A seconda del piano, i connettori MCP personalizzati richiedono la modalità sviluppatore nelle impostazioni avanzate, o un amministratore del workspace.",
-            "verify": true
-          },
-          {
-            "title": "Crea il connettore",
-            "body": "Scegli Crea, dagli un nome, incolla {serverUrl} e scegli OAuth come autenticazione.",
-            "verify": true
-          },
-          {
-            "title": "Accedi e autorizza",
-            "body": "ChatGPT apre Hullwise: accedi, scegli il workspace e i permessi, autorizza."
-          },
-          {
-            "title": "Provalo",
-            "body": "Apri una chat, aggiungi il connettore dal menu degli strumenti e chiedi per esempio: “Quali campagne hanno perso soldi questo mese e cosa suggerisce Hullwise?”",
-            "verify": true
-          }
-        ]
-      },
-      "cursor": {
-        "name": "Cursor",
-        "steps": [
-          {
-            "title": "Apri le impostazioni MCP",
-            "body": "In Cursor apri Settings → MCP (Tools & Integrations) → “Add custom MCP server”: si apre ~/.cursor/mcp.json.",
-            "verify": true
-          },
-          {
-            "title": "Aggiungi Hullwise",
-            "body": "Aggiungi questo server e salva:\n{ \"mcpServers\": { \"hullwise\": { \"url\": \"{serverUrl}\" } } }",
-            "verify": true
-          },
-          {
-            "title": "Accedi",
-            "body": "Cursor mostra che il server richiede l'accesso: cliccalo, accedi a Hullwise e autorizza. Senza OAuth, crea un token di accesso personale e aggiungi \"headers\": { \"Authorization\": \"Bearer kpat_…\" } al server."
-          },
-          {
-            "title": "Provalo",
-            "body": "Nella chat dell'agente chiedi: “Elenca i prodotti a rischio esaurimento con il riordino suggerito.”"
-          }
-        ]
-      }
-    }
-  },
   "billing": {
     "title": "Fatturazione",
     "description": "Il tuo piano, il metodo di pagamento e le fatture.",
@@ -8163,6 +8313,244 @@
     "none": "Ancora nessun abbonamento sul processore.",
     "catalog_missing": "Sincronizza prima il catalogo (Fatturazione → Abbonamenti).",
     "cancel_at_period_end": "termina a fine periodo"
+  },
+  "data_export": {
+    "title": "Esportazione dati",
+    "description": "Scarica tutto ciò che Hullwise conserva per questo negozio.",
+    "what_title": "Esportazione completa dei dati del negozio",
+    "what_description": "Un file CSV per tabella (ordini, clienti, prodotti, resi, campagne, impostazioni e altro) in un archivio zip, generato in background. Ricevi una notifica quando è pronto; il link di download scade dopo {days} giorni. Le credenziali delle integrazioni e gli altri segreti non sono mai inclusi.",
+    "request": "Esporta tutti i dati",
+    "requesting": "Avvio…",
+    "errors": {
+      "in_progress": "C'è già un'esportazione in corso.",
+      "generic": "Non è stato possibile avviare l'esportazione."
+    },
+    "empty_title": "Nessuna esportazione",
+    "empty_description": "Le esportazioni che avvii compaiono qui con il link di download.",
+    "columns": {
+      "requested": "Richiesta",
+      "status": "Stato",
+      "rows": "Righe",
+      "expires": "Scadenza link",
+      "file": "File"
+    },
+    "by_platform": "Supporto Hullwise",
+    "statuses": {
+      "pending": "In coda",
+      "running": "In corso",
+      "done": "Pronta",
+      "failed": "Non riuscita",
+      "expired": "Scaduta"
+    },
+    "tables_n": "{n} tabelle",
+    "download": "Scarica",
+    "downloads": "{n, plural, one {scaricata una volta} other {scaricata # volte}}"
+  },
+  "ads": {
+    "nav": {
+      "label": "Analisi campagne",
+      "campaigns": "Campagne",
+      "creatives": "Creatività",
+      "keywords": "Parole chiave e ricerche",
+      "words": "Parole",
+      "recommendations": "Suggerimenti"
+    },
+    "cols": {
+      "name": "Nome",
+      "spend": "Spesa",
+      "impressions": "Impression",
+      "ctr": "CTR",
+      "platform_conv": "Conv. piattaforma",
+      "hullwise_orders": "Ordini Hullwise",
+      "revenue": "Ricavo netto",
+      "profit": "Profitto",
+      "roas": "ROAS",
+      "frequency": "Frequenza",
+      "match": "Corrispondenza",
+      "quality": "Qualità",
+      "campaign": "Campagna",
+      "action": "Azione",
+      "phrase": "Frase",
+      "items": "Usata in",
+      "margin": "Margine",
+      "cpa": "CPA",
+      "field": "Campo",
+      "asset": "Asset",
+      "hullwise_orders_allocated": "Ordini Hullwise (ripartiti)",
+      "date": "Data",
+      "search_term": "Termine di ricerca",
+      "clicks": "Clic",
+      "reason": "Perché",
+      "ad": "Annuncio"
+    },
+    "excluded_n": "+{n} annullati/resi",
+    "ad_sets_title": "Gruppi di inserzioni",
+    "ad_groups_title": "Gruppi di annunci",
+    "ad_sets_description": "I numeri della piattaforma accanto a quelli di Hullwise: ordini, ricavi e profitto contano solo gli ordini non annullati e non resi.",
+    "utm_missing": "{n} annunci su {total} non hanno {params}: i loro ordini arrivano a Hullwise senza annuncio. Aggiungi questo modello agli annunci:",
+    "no_ad_sets": "Ancora nessun gruppo",
+    "no_ad_sets_hint": "Arrivano con la prossima sincronizzazione delle ads.",
+    "hullwise_not_visible": "Hullwise non vede gli ordini di questa riga (il modello UTM non la nomina).",
+    "n_ads": "{n} annunci",
+    "n_keywords": "{n} parole chiave",
+    "unassigned_orders": "{n} ordini della campagna non sono legati a un gruppo",
+    "open_orders": "Apri gli ordini",
+    "reconciliation": "Spesa degli annunci {ads} su {campaign} · non allocata {unallocated}",
+    "ad_set": "Gruppo di inserzioni",
+    "ad_group": "Gruppo di annunci",
+    "status": {
+      "active": "Attivo",
+      "paused": "In pausa",
+      "archived": "Archiviato"
+    },
+    "ads_title": "Annunci",
+    "ads_description": "Affaticamento: la frequenza sale mentre il CTR scende. I suggerimenti sono in sola lettura: decide una persona.",
+    "no_ads": "Nessun annuncio in questo gruppo",
+    "keywords_title": "Parole chiave",
+    "no_keywords": "Nessuna parola chiave",
+    "search_terms_title": "Termini di ricerca",
+    "all_search_terms": "Tutti i termini della campagna",
+    "no_search_terms": "Nessun termine di ricerca",
+    "other_terms": "Altri termini (sotto le impression minime)",
+    "via_keyword": "da “{keyword}”",
+    "negative_reason": {
+      "only_cancelled": "Solo ordini annullati",
+      "no_orders": "Spesa senza ordini",
+      "unprofitable_orders": "Ordini in perdita",
+      "no_conversions": "Spesa senza conversioni"
+    },
+    "excluded": "Escluso",
+    "hullwise_footnote": "Hullwise lega gli ordini a gruppi, annunci e parole chiave tramite il modello UTM; dove la piattaforma non li lega compare un trattino.",
+    "match": {
+      "exact": "Esatta",
+      "phrase": "Frase",
+      "broad": "Generica"
+    },
+    "fatigue": {
+      "watch": "Attenzione: CTR in calo",
+      "fatigued": "Affaticato"
+    },
+    "utm_badge": "UTM mancanti",
+    "pause_reason": {
+      "losing": "In perdita",
+      "fatigued": "Affaticato e in perdita",
+      "low_label": "Valutato BASSO",
+      "low_ctr": "Metà del CTR degli altri"
+    },
+    "ctr_change": "CTR {change} dall'inizio",
+    "copy_title": "Testi e tracciamento",
+    "utm_missing_ad": "Questo annuncio non ha {params}: i suoi ordini arrivano a Hullwise senza annuncio. Modello:",
+    "assets_title": "Asset",
+    "no_assets": "Nessun dettaglio per asset",
+    "no_assets_meta": "Meta riporta gli asset solo per le inserzioni con creatività dinamica o Advantage+.",
+    "no_assets_google": "Google riporta gli asset per gli annunci adattabili.",
+    "field": {
+      "headline": "Titolo",
+      "description": "Descrizione",
+      "body": "Testo principale",
+      "title": "Titolo breve",
+      "image": "Immagine",
+      "video": "Video",
+      "other": "Altro"
+    },
+    "assets_footnote": "Le piattaforme riportano gli asset, non gli ordini: Hullwise ripartisce gli ordini dell'annuncio sui suoi asset in base alla quota di spesa in ogni campo.",
+    "daily_title": "Per giorno",
+    "no_days": "Nessun dato giornaliero nel periodo",
+    "keywords_page_title": "Parole chiave e termini di ricerca",
+    "keywords_page_description": "Le parole chiave di Google Ads e le ricerche che hanno attivato gli annunci, con gli ordini di Hullwise dove il modello UTM le nomina.",
+    "tabs": {
+      "keywords": "Parole chiave",
+      "search_terms": "Termini di ricerca"
+    },
+    "search_placeholder": "Cerca testo",
+    "all_campaigns": "Tutte le campagne",
+    "sort_label": "Ordina",
+    "sort": {
+      "spend": "Spesa",
+      "profit": "Profitto",
+      "roas": "ROAS",
+      "conversions": "Conversioni"
+    },
+    "candidates_only": "Solo candidati a parola chiave negativa",
+    "apply": "Applica",
+    "google_only": "Parole chiave e termini di ricerca arrivano da Google Ads; Meta non li ha.",
+    "rows_total": "{n} righe",
+    "prev": "Precedente",
+    "next": "Successiva",
+    "page_of": "Pagina {page} di {pages}",
+    "keywords_footnote": "Gli ordini Hullwise arrivano da utm_term impostato sulla parola chiave dal modello di monitoraggio.",
+    "search_terms_footnote": "Hullwise vede gli ordini di un termine quando il termine è una parola chiave (corrispondenza esatta); per gli altri decidono le conversioni della piattaforma. I termini sotto le impression minime sono raggruppati in “Altri termini”.",
+    "words_title": "Parole",
+    "words_description": "Parole e frasi (1–3 parole) vincenti e perdenti nei testi degli annunci, nei termini di ricerca e nelle parole chiave, con il profitto degli ordini Hullwise.",
+    "word_source": {
+      "copy": "Testi degli annunci",
+      "search_terms": "Termini di ricerca",
+      "keywords": "Parole chiave"
+    },
+    "ngram": {
+      "all": "Tutte",
+      "n1": "1 parola",
+      "n2": "2 parole",
+      "n3": "3 parole"
+    },
+    "no_words": "Volume insufficiente",
+    "no_words_hint": "Una frase deve comparire in almeno due annunci o termini con un po' di spesa.",
+    "winners": "Parole vincenti",
+    "winners_description": "Frasi di elementi che hanno fatto profitto, le migliori prima.",
+    "no_winners": "Nessuna frase in profitto nel periodo",
+    "losers": "Parole perdenti",
+    "losers_description": "Frasi di elementi in perdita, le peggiori prima.",
+    "no_losers": "Nessuna frase in perdita nel periodo",
+    "words_footnote": "{items} elementi analizzati. Ogni frase somma i numeri completi di ogni elemento che la contiene, quindi le frasi si sovrappongono.",
+    "recommendations_title": "Suggerimenti ads",
+    "recommendations_description": "Suggerimenti in sola lettura: una persona li valuta e agisce; le scritture verso le piattaforme chiedono sempre conferma.",
+    "in_items": "in {n}",
+    "rec": {
+      "negatives_title": "Candidati a parola chiave negativa",
+      "negatives_description": "{n} termini di ricerca spendono senza ordini in profitto.",
+      "google_read_only": "Google è in sola lettura per questo negozio: concedi l'accesso in scrittura in Integrazioni per escludere i termini da qui.",
+      "none": "Niente da suggerire",
+      "all_candidates": "Tutti i candidati",
+      "ads_title": "Annunci da mettere in pausa",
+      "ads_description": "Annunci attivi in perdita nel periodo, oppure affaticati e in perdita.",
+      "words_title": "Parole vincenti da riusare nei testi",
+      "words_description": "Frasi degli annunci che hanno fatto più profitto.",
+      "open_words": "Apri Parole",
+      "assets_title": "Asset deboli",
+      "assets_description": "Asset valutati BASSO dalla piattaforma o con metà del CTR degli altri.",
+      "utm_title": "Modelli UTM",
+      "utm_description": "Senza questi parametri Hullwise non può legare gli ordini ad annunci, gruppi e parole chiave.",
+      "utm_ok": "Tutte le campagne attive hanno i modelli.",
+      "utm_row": "{missing} annunci su {ads} senza {params}",
+      "template_meta": "Meta: parametri URL dell'annuncio",
+      "template_google": "Google: modello di monitoraggio dell'account",
+      "template_tiktok": "TikTok: parametri URL dell’annuncio"
+    },
+    "actions": {
+      "read_only": "{platform} è in sola lettura per questo negozio.",
+      "read_only_short": "Sola lettura",
+      "pause_ad": "Metti in pausa l'annuncio",
+      "resume_ad": "Riattiva l'annuncio",
+      "pause_title": "Mettere in pausa questo annuncio su {platform}?",
+      "resume_title": "Riattivare questo annuncio su {platform}?",
+      "write_description": "Hullwise cambia lo stato qui e lo invia alla piattaforma; se non è raggiungibile la modifica viene ritentata e mostrata come in attesa.",
+      "confirm": "Conferma",
+      "exclude": "Escludi",
+      "negative_title": "Aggiungere “{text}” come parola chiave negativa?",
+      "negative_description": "Google smette di mostrare gli annunci per questa ricerca. La modifica passa dalla coda delle scritture.",
+      "match_type": "Corrispondenza",
+      "match": {
+        "exact": "Esatta",
+        "phrase": "Frase",
+        "broad": "Generica"
+      },
+      "level": "Livello",
+      "levels": {
+        "campaign": "Campagna",
+        "ad_group": "Gruppo di annunci"
+      }
+    },
+    "no_assets_tiktok": "TikTok non riporta metriche per singolo asset: il video dell’annuncio è elencato con il suo id."
   },
   "product_mirror": {
     "edit": "Modifica",
