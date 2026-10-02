@@ -110,7 +110,7 @@ async function main() {
             const nested = await el.evaluate((node) => Boolean(node.parentElement?.closest("section")));
             if (nested || !(await el.isVisible())) continue;
             const id = await el.evaluate((node) => node.id || node.getAttribute("aria-labelledby") || node.tagName.toLowerCase());
-            const name = n === 1 && id === "section" ? "hero" : id;
+            const name = id === "top" ? "hero" : id;
             n += 1;
             const file = `${OUT}/sections/${locale}-${device}-${String(n).padStart(2, "0")}-${name}.png`;
             await sharp(await el.screenshot()).png({ palette: true, quality: 90, effort: 7 }).toFile(file);

@@ -15,7 +15,7 @@ export function Hero({ locale }: { locale: LandingLocale }) {
   const { src, srcSet } = screenshotSrcSet(locale, "dashboard", "hero");
   preload(src, { as: "image", imageSrcSet: srcSet, imageSizes: HERO_SIZES, fetchPriority: "high" });
   return (
-    <section className="relative overflow-hidden pb-12 pt-14 sm:pt-20">
+    <section id="top" className="relative overflow-hidden pb-12 pt-14 sm:pt-20">
       <div
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[36rem] bg-[radial-gradient(60%_60%_at_50%_0%,var(--color-hero-glow),transparent)]"
         aria-hidden="true"
