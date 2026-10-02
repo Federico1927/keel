@@ -7,6 +7,7 @@ import { monthEndForecast, type MonthForecast } from "../analytics/depth";
 import { recentAlertEvents } from "../analytics/advanced";
 import { returnCostsByOrder } from "../analytics/pnl-depth";
 import { campaignsWithEconomics } from "../campaigns";
+import { adRows, keywordRows, topSearchTerms } from "../ads/analysis";
 import { countLateToShip } from "../fulfilment";
 import { shipmentCaseCounts } from "../fulfilment/cases";
 import { backorderSummary, type BackorderSummary } from "../backorders";
@@ -114,6 +115,20 @@ const topList: WidgetLoader = async (ctx, env, { settings, period }) => {
   if (s.entity === "products") {
     const perf = await productPerformance(ctx, period, s.limit);
     return { rows: perf.map((p) => ({ id: p.productId, label: p.title, value: p.grossRevenueMinor, secondary: p.units, path: `products/${p.productId}` })), format: "money", secondaryFormat: "number" } satisfies TopListData;
+  }
+  // ads below the campaign (issue #40): search terms by spend with Keel orders, ads and keywords by Keel profit
+  if (s.entity === "search_terms") {
+    const terms = await topSearchTerms(ctx, env.tenant, period, s.limit);
+    return { rows: terms.map((t) => ({ id: t.id, label: t.text, value: t.metrics.spendMinor, secondary: t.keelMatchable ? t.economics.attributedOrders : null, path: `campaigns/keywords?tab=search_terms&q=${encodeURIComponent(t.text)}` })), format: "money", secondaryFormat: "number" } satisfies TopListData;
+  }
+  if (s.entity === "ads") {
+    const { rows } = await adRows(ctx, env.tenant, period, {});
+    const top = rows.filter((r) => r.metrics.spendMinor > 0 || r.economics.attributedOrders > 0).sort((a, b) => b.economics.profitMinor - a.economics.profitMinor).slice(0, s.limit);
+    return { rows: top.map((r) => ({ id: r.id, label: r.name, value: r.economics.profitMinor, secondary: r.economics.roas, path: `campaigns/${r.campaignId}/ads/${r.id}` })), format: "money", secondaryFormat: "ratio" } satisfies TopListData;
+  }
+  if (s.entity === "keywords") {
+    const { rows } = await keywordRows(ctx, env.tenant, period, { sort: "profit" });
+    return { rows: rows.slice(0, s.limit).map((k) => ({ id: k.id, label: k.text, value: k.economics.profitMinor, secondary: k.economics.roas, path: `campaigns/keywords?q=${encodeURIComponent(k.text)}` })), format: "money", secondaryFormat: "ratio" } satisfies TopListData;
   }
   if (s.entity === "campaigns") {
     const camps = await memoOf(env)(`campaigns|${ctx.tenantId}|${period.from.toISOString()}|${period.to.toISOString()}`, () => campaignsWithEconomics(ctx, env.tenant, period));

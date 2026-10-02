@@ -8,6 +8,7 @@ import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageH
 import { requirePage } from "@/server/tenant";
 import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { ProviderActions, WebhookControls, WebhookRowAction } from "./controls";
+import { GoogleWriteAccessToggle } from "./write-access";
 
 const PROVIDERS = ["shopify", "meta", "google", "anthropic"] as const;
 const SLOTS = ["messaging", "warehouse", "carrier"] as const;
@@ -24,7 +25,7 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
   const canManage = canDo(ctx.role, "manage_integrations");
   const globalMock = integrationMode() === "mock";
   const dt = (d: Date | null | undefined) => (d ? formatDateTime(d, ctx.locale, ctx.tenant.timezone) : "—");
-  const statusVariant = (s: string) => (s === "connected" || s === "ok" ? "success" : s === "error" ? "destructive" : s === "degraded" || s === "syncing" ? "warning" : "muted") as "success" | "destructive" | "warning" | "muted";
+  const statusVariant = (s: string) => (s === "connected" || s === "ok" ? "success" : s === "error" || s === "stale" ? "destructive" : s === "degraded" || s === "idle" || s === "syncing" ? "warning" : "muted") as "success" | "destructive" | "warning" | "muted";
   const base = `/t/${tenant}/integrations`;
   return (
     <>
@@ -68,6 +69,7 @@ export default async function IntegrationsPage({ params }: { params: Promise<{ t
                     ))}
                   </ul>
                 )}
+                {p === "google" && connected && <GoogleWriteAccessToggle slug={tenant} enabled={(row?.config as { writeAccess?: boolean } | undefined)?.writeAccess === true} canManage={canManage} />}
                 <ProviderActions slug={tenant} provider={p} connected={connected} mock={mock} canManage={canManage} />
                 <p className="text-xs"><Link href={`${base}/guide/${p}`} className="underline-offset-4 hover:underline">{t("open_guide")}</Link></p>
               </CardContent>

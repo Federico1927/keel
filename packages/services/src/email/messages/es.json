@@ -125,7 +125,8 @@
     "stock_critical_no_po": "{title} variantes en venta con stock crítico y ninguna orden de compra",
     "late_to_ship": "{title} pedidos aún sin enviar después de {body} días laborables",
     "sync_delay": "La sincronización de {title} va con retraso ({body})",
-    "export_ready": "Tu exportación CSV está lista: {title} filas ({body})"
+    "export_ready": "Tu exportación CSV está lista: {title} filas ({body})",
+    "platform_failure": "El trabajo en segundo plano {title} sigue fallando"
   },
   "roles": {
     "owner": "propietario",
@@ -151,6 +152,7 @@
     "po_supplier_problem": "Problemas de proveedores",
     "integration_health": "Integraciones",
     "cod_assigned": "Asignaciones contra reembolso",
-    "other": "Otros"
+    "other": "Otros",
+    "platform_failure": "Fallos de la plataforma"
   }
 }

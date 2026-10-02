@@ -2,11 +2,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Bot, Building2, ChartLine, CreditCard, LayoutDashboard, LifeBuoy, Mail, Package, Palette, Plug, ScrollText, Users } from "lucide-react";
+import { BellRing, Bot, Building2, ChartLine, CreditCard, LayoutDashboard, LifeBuoy, ListChecks, Mail, Package, Palette, Plug, ScrollText, Users } from "lucide-react";
 import { cn } from "@keel/ui";
 import { ADMIN_NAV, type AdminNavKey } from "./nav-items";
 
-const ICONS: Record<AdminNavKey, typeof LayoutDashboard> = { dashboard: LayoutDashboard, metrics: ChartLine, tenants: Building2, plans: Package, users: Users, billing: CreditCard, integrations: Plug, mcp: Bot, email: Mail, support: LifeBuoy, audit: ScrollText, styleguide: Palette };
+const ICONS: Record<AdminNavKey, typeof LayoutDashboard> = { dashboard: LayoutDashboard, metrics: ChartLine, tenants: Building2, plans: Package, users: Users, billing: CreditCard, integrations: Plug, mcp: Bot, email: Mail, jobs: ListChecks, alerts: BellRing, support: LifeBuoy, audit: ScrollText, styleguide: Palette };
 
 export function AdminNav() {
   const t = useTranslations("admin.nav");

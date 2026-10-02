@@ -272,6 +272,20 @@
       "none_low": "Nessun prodotto più venduto è sotto la soglia.",
       "cell": "{sold} venduti · {available} rimasti · +{incoming}",
       "waiting": "{n} in attesa"
+    },
+    "source_health": {
+      "title": "Integrazioni",
+      "all_ok": "Tutte le {total} fonti OK",
+      "not_ok": "{n} su {total} non OK",
+      "never": "mai",
+      "statuses": {
+        "ok": "OK",
+        "degraded": "Instabile",
+        "error": "Errore",
+        "stale": "Non aggiornata",
+        "idle": "Inattiva",
+        "unknown": "Sconosciuto"
+      }
     }
   },
   "settings": {
@@ -320,7 +334,10 @@
         "churnMediumPct": "Rischio abbandono medio da (% probabilità attivo)",
         "backorderHold": "Metti in sospeso gli ordini che richiedono più dello stock disponibile finché un ordine d'acquisto in arrivo non li copre",
         "backorderPlatformHold": "Durante l'attesa blocca anche l'evasione sul negozio, così il magazzino non li spedisce",
-        "markdownMinMarginBps": "Margine minimo dei ribassi (punti base, 2000 = 20%)"
+        "markdownMinMarginBps": "Margine minimo dei ribassi (punti base, 2000 = 20%)",
+        "adsDailyRetentionDays": "Ads: dettaglio giornaliero conservato (giorni)",
+        "adsSearchTermMinImpressions": "Ads: termini di ricerca raggruppati sotto (impression)",
+        "adsMinSpendMinor": "Ads: spesa minima per i suggerimenti (centesimi)"
       },
       "backorders_title": "Backorder",
       "backorders_description": "Cosa succede quando un ordine richiede più dello stock disponibile."
@@ -336,6 +353,7 @@
     "order_states_link": "Regole di stato ordine",
     "branding_link": "Branding",
     "fulfilment_link": "Evasione",
+    "data_export_link": "Esportazione dati",
     "ai_link": "AI e MCP"
   },
   "users": {
@@ -397,7 +415,23 @@
     },
     "empty_title": "Nessuna voce nel registro",
     "empty_description": "Le modifiche a impostazioni, utenti, ordini e integrazioni compariranno qui.",
-    "pagination": "Pagina {page} di {pages} · {total} voci"
+    "pagination": "Pagina {page} di {pages} · {total} voci",
+    "filters": {
+      "actor": "Autore",
+      "actor_type": "Tipo di autore",
+      "entity": "Entità",
+      "record": "Record",
+      "record_placeholder": "Id del record",
+      "action": "Azione",
+      "from": "Dal",
+      "to": "Al",
+      "apply": "Applica",
+      "reset": "Azzera",
+      "all": "Tutti",
+      "empty_title": "Nessuna voce corrisponde",
+      "empty_description": "Cambia o azzera i filtri.",
+      "record_history": "Storico di questo record"
+    }
   },
   "order_status": {
     "new": "Nuovo",
@@ -521,6 +555,7 @@
       "digest": "Email di riepilogo giornaliero",
       "export_ready": "Esportazione CSV pronta",
       "other": "Altro",
+      "platform_failure": "Lavori in background che falliscono",
       "mcp_proposal": "Proposta da un client AI"
     },
     "rendered": {
@@ -528,7 +563,11 @@
       "late_to_ship": "{title} ordini ancora da spedire dopo {body} giorni lavorativi",
       "sync_delay": "La sincronizzazione di {title} è in ritardo ({body})",
       "export_ready": "L'esportazione di {body} è pronta ({title} righe)",
-      "export_failed": "L'esportazione di {body} è fallita"
+      "export_failed": "L'esportazione di {body} è fallita",
+      "platform_failure": "Il lavoro in background {title} continua a fallire",
+      "source_idle": "{title} non ha sincronizzato nulla negli ultimi giri",
+      "data_export_ready": "L'esportazione completa dei dati è pronta ({title} righe)",
+      "data_export_failed": "L'esportazione completa dei dati non è riuscita"
     },
     "groups": {
       "collaboration": "Collaborazione",
@@ -2618,7 +2657,9 @@
       "ok": "OK",
       "degraded": "Degradata",
       "error": "Errore",
-      "unknown": "Sconosciuto"
+      "unknown": "Sconosciuto",
+      "stale": "Non aggiornata",
+      "idle": "Inattiva"
     },
     "no_account": "Nessun account collegato",
     "last_sync": "Ultimo sync",
@@ -2726,7 +2767,9 @@
       "manual": "manuale"
     },
     "simulate_return": "Simula reso",
-    "simulated_return": "Webhook del reso accettato (HTTP {status}) per {order}."
+    "simulated_return": "Webhook del reso accettato (HTTP {status}) per {order}.",
+    "google_write_access": "Accesso in scrittura concesso",
+    "google_write_access_hint": "Permette a Keel di mettere in pausa annunci e aggiungere parole chiave negative. Senza, Google resta in sola lettura."
   },
   "integration_guide": {
     "verify_legend": "I passi segnati “Da verificare” dipendono da console dei fornitori che cambiano spesso: controllali sulla documentazione del fornitore prima della prima installazione.",
@@ -2796,7 +2839,7 @@
     },
     "meta": {
       "title": "Collegare Meta Ads",
-      "intro": "Keel legge campagne e insight giornalieri e può mettere in pausa o riattivare campagne con conferma esplicita. Un token utente di sistema mantiene il collegamento senza login personali.",
+      "intro": "Keel legge campagne, gruppi di inserzioni, annunci e dettagli per asset con gli insight giornalieri, e può mettere in pausa o riattivare campagne e annunci con conferma esplicita. Un token utente di sistema mantiene il collegamento senza login personali.",
       "steps": [
         {
           "title": "Crea un utente di sistema",
@@ -2809,7 +2852,17 @@
         },
         {
           "title": "Genera il token",
-          "body": "Genera nuovo token → scegli l'app → permessi ads_read, ads_management, business_management → senza scadenza. Copialo una sola volta.",
+          "body": "Genera nuovo token → scegli l'app → permessi ads_read e business_management, più ads_management solo per mettere in pausa da Keel → senza scadenza. Copialo una sola volta.",
+          "verify": true
+        },
+        {
+          "title": "Parametri URL",
+          "body": "In ogni annuncio (Destinazione → Parametri URL) imposta:\nutm_source=facebook&utm_medium=paid&utm_campaign={{campaign.id}}&utm_content={{ad.id}}&utm_term={{adset.id}}\nKeel lega così gli ordini all'annuncio e al gruppo; gli annunci senza parametri sono segnalati.",
+          "verify": true
+        },
+        {
+          "title": "Dettaglio per asset",
+          "body": "I dettagli per titolo, testo, immagine e video esistono solo per le inserzioni con creatività dinamica o Advantage+; gli altri annunci non mostrano asset.",
           "verify": true
         },
         {
@@ -2818,7 +2871,7 @@
         },
         {
           "title": "Backfill",
-          "body": "Risincronizza scarica gli ultimi 30 giorni a finestre di 7; il job notturno riaggiorna gli ultimi 3 giorni perché Meta corregge gli insight recenti."
+          "body": "Risincronizza scarica gli ultimi 30 giorni a finestre di 7 per campagne, gruppi, annunci e asset; il job notturno riaggiorna gli ultimi 3 giorni perché Meta corregge gli insight recenti."
         }
       ],
       "errors": [
@@ -2828,17 +2881,18 @@
         },
         {
           "symptom": "Codice 17 / 32 / 613",
-          "fix": "Rate limit sull'account: Keel attende e riprova; riduci le finestre di backfill se persiste."
+          "fix": "Rate limit sull'account: Keel mette in pausa il backfill e lo riprende più tardi dalla stessa finestra."
         },
         {
           "symptom": "Errore di permesso (10/200)",
           "fix": "All'utente di sistema manca l'asset account o il permesso; sistemalo nelle Impostazioni Business."
         }
-      ]
+      ],
+      "scopes": "Lettura: ads_read e business_management. Facoltativo, solo per mettere in pausa campagne e annunci da Keel: ads_management."
     },
     "google": {
       "title": "Collegare Google Ads",
-      "intro": "Sola lettura in questa versione: campagne e, per giorno, costo, impression, clic e conversioni tramite Google Ads API.",
+      "intro": "Sola lettura di base: campagne, gruppi di annunci, annunci, asset degli annunci adattabili, parole chiave e termini di ricerca con costo, clic e conversioni giornalieri. Pausa degli annunci e parole chiave negative richiedono l'accesso in scrittura concesso dal negozio.",
       "steps": [
         {
           "title": "Developer token",
@@ -2852,15 +2906,29 @@
         },
         {
           "title": "Refresh token",
-          "body": "Autorizza lo scope https://www.googleapis.com/auth/adwords con un utente che accede all'account cliente e conserva il refresh token."
+          "body": "Autorizza lo scope https://www.googleapis.com/auth/adwords con un utente che accede all'account cliente e conserva il refresh token. Usa un utente con accesso standard (modifica) solo se il negozio vuole che Keel metta in pausa annunci e aggiunga parole chiave negative."
+        },
+        {
+          "title": "Versione API",
+          "body": "Keel chiama Google Ads API {apiVersion}. Google ritira ogni versione circa un anno dopo l'uscita: controlla la pagina delle date di dismissione e pianifica l'aggiornamento prima di quella data.",
+          "verify": true
+        },
+        {
+          "title": "Modello di monitoraggio",
+          "body": "Impostazioni account → Monitoraggio → modello di monitoraggio:\n{lpurl}?utm_source=google&utm_medium=cpc&utm_campaign={campaignid}&utm_content={creative}&utm_term={keyword}\nKeel lega gli ordini agli annunci ({creative}) e alle parole chiave ({keyword}); le campagne senza modello sono segnalate nei Suggerimenti.",
+          "verify": true
         },
         {
           "title": "Collega in Keel",
           "body": "Integrazioni → Google Ads → Collega: customer id (cifre), id manager se si passa da un MCC, developer token, client id/secret, refresh token."
         },
         {
+          "title": "Accesso in scrittura (facoltativo)",
+          "body": "Se il negozio vuole parole chiave negative e pause degli annunci da Keel, spunta “Accesso in scrittura concesso” sulla scheda Google Ads. Ogni scrittura chiede conferma e passa dalla coda delle scritture."
+        },
+        {
           "title": "Verifica",
-          "body": "Testa connessione esegue una query GAQL di una riga; Risincronizza importa campagne e gli ultimi 30 giorni di metriche."
+          "body": "Testa connessione esegue una query GAQL di una riga; Risincronizza importa le campagne, poi gruppi, annunci, asset, parole chiave e termini di ricerca a finestre di 7 giorni (riprendibile, nel rispetto dei limiti)."
         }
       ],
       "errors": [
@@ -2871,8 +2939,17 @@
         {
           "symptom": "invalid_grant al refresh del token",
           "fix": "Il refresh token è stato revocato; autorizza di nuovo e ricollega."
+        },
+        {
+          "symptom": "UNSUPPORTED_VERSION o 404 su ogni chiamata",
+          "fix": "La versione API è stata ritirata: Keel va aggiornato nella costante della versione."
+        },
+        {
+          "symptom": "Ordini Keel con trattino sulle parole chiave",
+          "fix": "Manca il modello di monitoraggio oppure non ha utm_term con il parametro della parola chiave."
         }
-      ]
+      ],
+      "scopes": "Lettura: scope adwords con accesso in lettura e developer token Basic. Facoltativo, solo per pausa annunci e parole chiave negative: lo stesso scope con un utente che può modificare l'account."
     },
     "anthropic": {
       "title": "Collega l'assistente AI (Anthropic)",
@@ -3138,6 +3215,8 @@
         "support": "Supporto",
         "audit": "Audit"
       },
+      "jobs": "Esecuzioni dei job",
+      "alerts": "Avvisi di errore",
       "mcp": "MCP"
     },
     "plans": {
@@ -3175,7 +3254,7 @@
       "see_all": "Vedi tutti",
       "why": "Perché",
       "past_retention": "{n, plural, one {# tenant chiuso ha} other {# tenant chiusi hanno}} superato il periodo di conservazione dei dati",
-      "past_retention_hint": "Se ne occuperà il flusso di esportazione e cancellazione (#32); per ora non si cancella nulla in automatico."
+      "past_retention_hint": "Esporta i loro dati dalla scheda del tenant (Esportazione dati). Non si cancella nulla in automatico."
     },
     "tenants": {
       "title": "Tenant",
@@ -3278,7 +3357,9 @@
       "logo_light": "Logo per sfondi chiari",
       "logo_dark": "Logo per sfondi scuri",
       "no_logo": "Nessun logo caricato",
-      "brand_updated": "Aggiornato il {date}"
+      "brand_updated": "Aggiornato il {date}",
+      "data_export": "Esportazione dati",
+      "data_export_description": "Tutte le tabelle del tenant in file CSV dentro uno zip, generato in background; il link scade dopo {days} giorni. Richieste e download finiscono nell'audit."
     },
     "billing": {
       "title": "Fatturazione",
@@ -3323,7 +3404,11 @@
       "details": "Dettagli",
       "platform": "Piattaforma (nessun tenant)",
       "actor_type": "Tipo di autore",
-      "summary": "{from}–{to} di {total}"
+      "summary": "{from}–{to} di {total}",
+      "entity": "Entità",
+      "record": "Record (id)",
+      "from": "Dal",
+      "to": "Al"
     },
     "support": {
       "title": "Supporto",
@@ -3443,40 +3528,6 @@
       "remove": "Rimuovi",
       "guide_title": "Guida alla configurazione"
     },
-    "mcp": {
-      "title": "Uso MCP",
-      "description": "Chiamate dei client AI per tenant negli ultimi 30 giorni e kill switch. Ogni intervento è scritto nell'audit log del tenant.",
-      "platform_disabled": "KEEL_MCP_DISABLED=1: il server MCP rifiuta ogni chiamata su questa installazione.",
-      "stat_calls": "Chiamate (30 giorni)",
-      "stat_errors": "Errori",
-      "stat_rate_limited": "Limitate",
-      "stat_connections": "Connessioni attive",
-      "stat_unknown_tokens": "Token sconosciuti",
-      "tenants_title": "Tenant",
-      "tenants_description": "Piano, stato, uso e kill switch per tenant.",
-      "col_tenant": "Tenant",
-      "col_status": "Stato",
-      "col_calls": "Chiamate",
-      "col_errors": "Errori",
-      "col_users": "Persone",
-      "col_connections": "Connessioni",
-      "col_last_call": "Ultima chiamata",
-      "col_kill": "Kill switch",
-      "pending": "{count} da approvare",
-      "denied_rl": "{denied} rifiutate · {limited} limitate",
-      "kill": "Sospendi MCP",
-      "kill_confirm": "Sospendere MCP per questo tenant? Ogni chiamata viene rifiutata finché non lo ripristini.",
-      "restore": "Ripristina MCP",
-      "note_placeholder": "Motivo (in audit)",
-      "availability": {
-        "ok": "Attivo",
-        "plan": "Non nel piano",
-        "tenant_disabled": "Spento (tenant)",
-        "killed": "Sospeso",
-        "platform_disabled": "Piattaforma spenta",
-        "suspended": "Tenant sospeso"
-      }
-    },
     "platform_label": "Piattaforma",
     "export_csv": "Esporta CSV",
     "filters": {
@@ -3500,7 +3551,7 @@
       "reason": "Motivo",
       "trial_end": "Fine prova",
       "retained_until": "Dati conservati fino al",
-      "retention_hint": "({days} giorni dalla chiusura, poi il flusso di esportazione/cancellazione)",
+      "retention_hint": "({days} giorni dalla chiusura; esporta i dati dalla sezione Esportazione dati)",
       "system": "job di fatturazione",
       "change": "Cambia stato",
       "change_title": "Cambia lo stato del ciclo di vita",
@@ -3649,6 +3700,97 @@
       "failures": "{n} errori consecutivi",
       "failed_runs": "Sync falliti",
       "failed_runs_hint": "Gli ultimi 30, dal più recente."
+    },
+    "jobs": {
+      "title": "Esecuzioni dei job",
+      "description": "Ogni lavoro in background: stato, durata, righe ed errore. L'ultima esecuzione per tipo di job e tenant, con \"Esegui ora\".",
+      "job_type": "Tipo di job",
+      "status": "Stato",
+      "statuses": {
+        "succeeded": "Riuscito",
+        "failed": "Fallito",
+        "running": "In corso"
+      },
+      "latest": "Ultima esecuzione per tipo di job e tenant",
+      "latest_description": "Prima quelli che falliscono. \"Esegui ora\" mette il job in coda (o lo esegue qui se non c'è un worker) e viene registrato nell'audit.",
+      "last_run": "Ultima esecuzione",
+      "failed_24h": "Falliti (24h)",
+      "run_now": "Esegui ora",
+      "queued": "In coda per il worker",
+      "started_inline": "Avviato; aggiorna tra poco",
+      "not_runnable": "Questo job non si può eseguire a mano",
+      "history": "Storico",
+      "started": "Avvio",
+      "duration": "Durata",
+      "rows": "Righe",
+      "trigger": "Origine",
+      "triggers": {
+        "schedule": "Pianificato",
+        "queue": "Coda",
+        "manual": "Esegui ora",
+        "inline": "In linea"
+      },
+      "empty_title": "Nessuna esecuzione",
+      "empty_description": "Le esecuzioni compaiono qui appena il worker (o un'esecuzione in linea) esegue un job."
+    },
+    "alerts": {
+      "title": "Avvisi di errore",
+      "description": "Un job che fallisce {n} volte di fila, o un'integrazione senza successi entro la sua finestra di aggiornamento. Un avviso per firma; super-admin e owner del tenant vengono avvisati al massimo una volta ogni {hours} ore.",
+      "open": "Avvisi aperti",
+      "kinds": {
+        "job_failure": "Job che fallisce",
+        "sync_stale": "Fonte non aggiornata"
+      },
+      "status": "Stato",
+      "statuses": {
+        "open": "Aperti",
+        "resolved": "Risolti",
+        "all": "Tutti"
+      },
+      "kind": "Tipo",
+      "subject": "Job o fonte",
+      "last_seen": "Ultima volta",
+      "since": "dal {date}",
+      "occurrences": "Occorrenze",
+      "notified": "Avvisati",
+      "notified_at": "{n, plural, one {una volta} other {# volte}}, l'ultima il {date}",
+      "close": "Chiudi",
+      "empty_title": "Nessun avviso",
+      "empty_description": "Al momento non fallisce nulla."
+    },
+    "mcp": {
+      "title": "Uso MCP",
+      "description": "Chiamate dei client AI per tenant negli ultimi 30 giorni e kill switch. Ogni intervento è scritto nell'audit log del tenant.",
+      "platform_disabled": "KEEL_MCP_DISABLED=1: il server MCP rifiuta ogni chiamata su questa installazione.",
+      "stat_calls": "Chiamate (30 giorni)",
+      "stat_errors": "Errori",
+      "stat_rate_limited": "Limitate",
+      "stat_connections": "Connessioni attive",
+      "stat_unknown_tokens": "Token sconosciuti",
+      "tenants_title": "Tenant",
+      "tenants_description": "Piano, stato, uso e kill switch per tenant.",
+      "col_tenant": "Tenant",
+      "col_status": "Stato",
+      "col_calls": "Chiamate",
+      "col_errors": "Errori",
+      "col_users": "Persone",
+      "col_connections": "Connessioni",
+      "col_last_call": "Ultima chiamata",
+      "col_kill": "Kill switch",
+      "pending": "{count} da approvare",
+      "denied_rl": "{denied} rifiutate · {limited} limitate",
+      "kill": "Sospendi MCP",
+      "kill_confirm": "Sospendere MCP per questo tenant? Ogni chiamata viene rifiutata finché non lo ripristini.",
+      "restore": "Ripristina MCP",
+      "note_placeholder": "Motivo (in audit)",
+      "availability": {
+        "ok": "Attivo",
+        "plan": "Non nel piano",
+        "tenant_disabled": "Spento (tenant)",
+        "killed": "Sospeso",
+        "platform_disabled": "Piattaforma spenta",
+        "suspended": "Tenant sospeso"
+      }
     }
   },
   "cod": {
@@ -5678,7 +5820,9 @@
       "order_refund": "Rimborso ordine",
       "fulfillment_create": "Evasione",
       "discount_status": "Attivazione sconto",
-      "discount_pool_status": "Attivazione pool di sconti"
+      "discount_pool_status": "Attivazione pool di sconti",
+      "ad_status": "Stato annuncio",
+      "keyword_negative": "Parola chiave negativa"
     }
   },
   "dev_inbox": {
@@ -6406,249 +6550,37 @@
       }
     }
   },
-  "mcp": {
-    "copy": "Copia",
-    "copied": "Copiato",
-    "scopes": {
-      "read": "Leggere ordini, clienti, analisi, prodotti, acquisti, resi, segmenti e stato delle integrazioni che il tuo ruolo può vedere",
-      "write_notes": "Aggiungere note interne agli ordini",
-      "write_orders": "Assegnare ordini, metterli in revisione o in attesa, proporre annullamenti e rimborsi",
-      "write_campaigns": "Proporre la pausa delle campagne pubblicitarie",
-      "write_purchasing": "Proporre bozze di ordini d'acquisto"
-    },
-    "unavailable": {
-      "plan": "I client AI (MCP) sono inclusi dal piano Growth.",
-      "tenant_disabled": "MCP è spento per questo workspace: un owner o un admin può accenderlo in Impostazioni → AI e MCP.",
-      "killed": "L'accesso MCP a questo workspace è stato sospeso dalla piattaforma.",
-      "platform_disabled": "MCP è temporaneamente non disponibile sulla piattaforma.",
-      "suspended": "Questo workspace è sospeso."
-    },
+  "data_export": {
+    "title": "Esportazione dati",
+    "description": "Scarica tutto ciò che Keel conserva per questo negozio.",
+    "what_title": "Esportazione completa dei dati del negozio",
+    "what_description": "Un file CSV per tabella (ordini, clienti, prodotti, resi, campagne, impostazioni e altro) in un archivio zip, generato in background. Ricevi una notifica quando è pronto; il link di download scade dopo {days} giorni. Le credenziali delle integrazioni e gli altri segreti non sono mai inclusi.",
+    "request": "Esporta tutti i dati",
+    "requesting": "Avvio…",
     "errors": {
-      "generic": "Qualcosa è andato storto. Riprova.",
-      "invalid_input": "Controlla i campi e riprova.",
-      "limit_reached": "Hai raggiunto il numero massimo di token attivi: revocane uno prima.",
-      "not_found": "Non trovato: potrebbe essere stato rimosso.",
-      "forbidden": "Non puoi farlo.",
-      "mcp_unavailable": "MCP non è disponibile per questo workspace.",
-      "not_pending": "Questa proposta è già stata decisa.",
-      "expired": "Questa proposta è scaduta."
+      "in_progress": "C'è già un'esportazione in corso.",
+      "generic": "Non è stato possibile avviare l'esportazione."
     },
-    "consent": {
-      "title": "Collega un client AI",
-      "heading": "{client} chiede di accedere a Keel",
-      "description": "Accesso come {user}. Il client agirà come te, con il tuo ruolo, nel workspace che scegli.",
-      "workspace": "Workspace",
-      "no_workspace": "Non sei membro di alcun workspace.",
-      "scopes": "Permessi",
-      "scopes_hint": "Togli la spunta a ciò che non vuoi consentire. La lettura è sempre inclusa.",
-      "note_role": "Vede solo ciò che il tuo ruolo vede in Keel; i moduli spenti non espongono nulla.",
-      "note_pii": "Email, telefoni e indirizzi dei clienti sono mascherati, salvo che il tuo workspace abbia attivato i dati personali completi per i client AI.",
-      "note_proposals": "Annullamenti, rimborsi, pause delle campagne e ordini d'acquisto sono solo proposte: le approva una persona in Keel.",
-      "note_redirect": "Dopo l'autorizzazione torni su {host}. Puoi revocare l'accesso in qualsiasi momento dal profilo → Connessioni.",
-      "approve": "Consenti l'accesso",
-      "deny": "Annulla",
-      "invalid_request": "Questa richiesta di collegamento non è valida.",
-      "unavailable": {
-        "plan": "Non incluso nel piano",
-        "tenant_disabled": "MCP spento da un owner o admin",
-        "killed": "Sospeso dalla piattaforma",
-        "platform_disabled": "Temporaneamente non disponibile",
-        "suspended": "Workspace sospeso"
-      }
+    "empty_title": "Nessuna esportazione",
+    "empty_description": "Le esportazioni che avvii compaiono qui con il link di download.",
+    "columns": {
+      "requested": "Richiesta",
+      "status": "Stato",
+      "rows": "Righe",
+      "expires": "Scadenza link",
+      "file": "File"
     },
-    "connections": {
-      "server_url": "URL del server MCP",
-      "server_url_hint": "Incollalo in Claude, ChatGPT, Cursor o qualsiasi client MCP: si collegano con OAuth, tu accedi e autorizzi.",
-      "connection": "Connessione",
-      "user": "Utente",
-      "scopes": "Permessi",
-      "last_used": "Ultimo uso",
-      "expires": "Scade",
-      "never": "Mai",
-      "empty": "Nessun client AI collegato.",
-      "kind": {
-        "oauth": "OAuth",
-        "pat": "Token"
-      },
-      "state": {
-        "active": "Attiva",
-        "expired": "Scaduta",
-        "revoked": "Revocata"
-      },
-      "create_title": "Nuovo token di accesso personale",
-      "token_name": "Nome",
-      "token_name_placeholder": "es. Cursor sul mio portatile",
-      "expires_in": "Scade tra",
-      "days": "{days} giorni",
-      "create": "Crea token",
-      "shown_once": "Copia il token ora: viene mostrato una sola volta e Keel ne conserva solo un'impronta.",
-      "rotate": "Rigenera",
-      "rotate_confirm": "Creare un nuovo segreto per questo token? Quello attuale smette subito di funzionare.",
-      "revoke": "Revoca",
-      "revoke_confirm": "Revocare questa connessione? Il client perde subito l'accesso.",
-      "how_to": "Come collegare Claude, ChatGPT o Cursor",
-      "open_settings": "Apri le impostazioni AI e MCP"
+    "by_platform": "Supporto Keel",
+    "statuses": {
+      "pending": "In coda",
+      "running": "In corso",
+      "done": "Pronta",
+      "failed": "Non riuscita",
+      "expired": "Scaduta"
     },
-    "settings": {
-      "title": "AI e MCP",
-      "description": "Consenti al team di usare Claude, ChatGPT, Cursor e altri client AI sui dati di questo workspace, con i propri permessi.",
-      "server_title": "Server MCP",
-      "server_description": "Un solo URL per tutti i client. Ogni persona si collega con il proprio account; i token sono legati a una persona e a un workspace.",
-      "enabled": "Consenti i client AI (MCP)",
-      "enabled_hint": "Se spento, ogni chiamata MCP a questo workspace viene rifiutata; le connessioni restano.",
-      "full_pii": "Mostra i dati personali dei clienti",
-      "full_pii_hint": "Nomi, email, telefoni e indirizzi completi, solo ai ruoli che possono vederli (mai marketing o viewer). Spento: sempre mascherati.",
-      "rule_auth": "OAuth 2.1 con PKCE, oppure token di accesso personali; i segreti sono salvati solo come hash con chiave.",
-      "rule_permissions": "Ogni strumento usa il ruolo della persona e i moduli del workspace; nulla che il ruolo non veda in Keel viene esposto.",
-      "rule_writes": "Le scritture dirette sono reversibili (note, assegnatario, revisione o attesa); le azioni rischiose attendono l'approvazione.",
-      "rule_limits": "Limiti: {perToken} chiamate al minuto per connessione, {perTenant} per workspace.",
-      "guides_title": "Collega un client",
-      "guides_description": "I passi per i client più usati.",
-      "connections_title": "Client collegati",
-      "connections_description": "Tutte le connessioni attive del workspace, con l'ultimo uso. Owner e admin possono revocarle.",
-      "activity_title": "Attività recente",
-      "activity_description": "Le ultime chiamate degli ultimi 7 giorni (strumento, persona, client, esito). Argomenti e risultati non vengono mai salvati.",
-      "activity_empty": "Ancora nessuna chiamata.",
-      "stat_calls": "Chiamate (7 giorni)",
-      "stat_errors": "Errori",
-      "stat_denied": "Rifiutate",
-      "stat_rate_limited": "Limitate",
-      "col_when": "Quando",
-      "col_tool": "Strumento",
-      "col_who": "Chi",
-      "col_outcome": "Esito",
-      "col_duration": "Durata",
-      "outcome": {
-        "ok": "OK",
-        "error": "Errore",
-        "denied": "Rifiutata",
-        "invalid_input": "Input non valido",
-        "not_found": "Non trovato",
-        "rate_limited": "Limitata",
-        "auth_failed": "Autenticazione fallita",
-        "disabled": "Disattivato"
-      },
-      "approvals_link": "Approvazioni ({count})",
-      "approvals_link_empty": "Approvazioni",
-      "own_tokens_link": "I tuoi token di accesso personali sono nel profilo → Connessioni."
-    },
-    "approvals": {
-      "title": "Approvazioni",
-      "description": "Azioni proposte dai client AI tramite MCP. Non succede nulla finché qualcuno che può farlo non approva; approvando, l'azione viene eseguita a tuo nome.",
-      "empty_title": "Niente da approvare",
-      "empty_description": "Qui compaiono le proposte dei client AI (annullamenti, rimborsi, pause delle campagne, ordini d'acquisto).",
-      "requested_by": "{client} per {user} · {when}",
-      "order_total": "Totale ordine",
-      "restock": "Rimetti a stock",
-      "refund": "Rimborsa il pagamento",
-      "amount": "Importo",
-      "refundable": "Ancora rimborsabile",
-      "lines": "Righe",
-      "expires": "Scade",
-      "yes": "Sì",
-      "no": "No",
-      "cannot_approve": "Il tuo ruolo non può approvarla: chi può la vedrà qui.",
-      "note_placeholder": "Nota (facoltativa)",
-      "approve": "Approva ed esegui",
-      "approve_confirm": "Approvare ed eseguire ora questa azione a tuo nome?",
-      "reject": "Rifiuta",
-      "failed": "L'azione non è riuscita: {error}",
-      "history": "Storico",
-      "history_empty": "Ancora nessuna proposta decisa.",
-      "col_proposal": "Proposta",
-      "col_requested": "Richiesta",
-      "col_status": "Stato",
-      "col_decided": "Decisa da",
-      "kinds": {
-        "order_cancel": "Annulla ordine",
-        "order_refund": "Rimborso",
-        "campaign_pause": "Pausa campagna",
-        "purchase_order_create": "Bozza ordine d'acquisto"
-      },
-      "status": {
-        "pending": "In attesa",
-        "approved": "Approvata",
-        "rejected": "Rifiutata",
-        "failed": "Fallita",
-        "expired": "Scaduta"
-      }
-    },
-    "guides": {
-      "verify_legend": "I passi segnati “Da verificare” dipendono dall'interfaccia del fornitore AI, che cambia spesso: controllali sulla sua documentazione prima della prima installazione.",
-      "verify_badge": "Da verificare",
-      "pat_note": "Client senza OAuth: crea un token di accesso personale nel tuo profilo → Connessioni e invialo nell'header Authorization: Bearer kpat_…",
-      "claude": {
-        "name": "Claude",
-        "steps": [
-          {
-            "title": "Apri i connettori",
-            "body": "In Claude (web o app desktop) apri Impostazioni → Connettori e scegli “Aggiungi connettore personalizzato”. Nei piani team un owner potrebbe doverli prima consentire.",
-            "verify": true
-          },
-          {
-            "title": "Incolla l'URL del server",
-            "body": "Dagli un nome (es. Keel) e incolla:\n{serverUrl}\nLascia vuoti i campi OAuth avanzati: Claude si registra da solo su Keel.",
-            "verify": true
-          },
-          {
-            "title": "Accedi e autorizza",
-            "body": "Claude apre Keel: accedi, scegli il workspace, tieni o togli i permessi e autorizza. Torni su Claude già collegato."
-          },
-          {
-            "title": "Provalo",
-            "body": "In una chat attiva il connettore dal menu degli strumenti e chiedi: “Come sono andate le vendite la settimana scorsa rispetto a quella prima?” Claude cita i numeri con il link a Keel.",
-            "verify": true
-          }
-        ]
-      },
-      "chatgpt": {
-        "name": "ChatGPT",
-        "steps": [
-          {
-            "title": "Consenti i connettori personalizzati",
-            "body": "In ChatGPT apri Impostazioni → Connettori (App). A seconda del piano, i connettori MCP personalizzati richiedono la modalità sviluppatore nelle impostazioni avanzate, o un amministratore del workspace.",
-            "verify": true
-          },
-          {
-            "title": "Crea il connettore",
-            "body": "Scegli Crea, dagli un nome, incolla {serverUrl} e scegli OAuth come autenticazione.",
-            "verify": true
-          },
-          {
-            "title": "Accedi e autorizza",
-            "body": "ChatGPT apre Keel: accedi, scegli il workspace e i permessi, autorizza."
-          },
-          {
-            "title": "Provalo",
-            "body": "Apri una chat, aggiungi il connettore dal menu degli strumenti e chiedi per esempio: “Quali campagne hanno perso soldi questo mese e cosa suggerisce Keel?”",
-            "verify": true
-          }
-        ]
-      },
-      "cursor": {
-        "name": "Cursor",
-        "steps": [
-          {
-            "title": "Apri le impostazioni MCP",
-            "body": "In Cursor apri Settings → MCP (Tools & Integrations) → “Add custom MCP server”: si apre ~/.cursor/mcp.json.",
-            "verify": true
-          },
-          {
-            "title": "Aggiungi Keel",
-            "body": "Aggiungi questo server e salva:\n{ \"mcpServers\": { \"keel\": { \"url\": \"{serverUrl}\" } } }",
-            "verify": true
-          },
-          {
-            "title": "Accedi",
-            "body": "Cursor mostra che il server richiede l'accesso: cliccalo, accedi a Keel e autorizza. Senza OAuth, crea un token di accesso personale e aggiungi \"headers\": { \"Authorization\": \"Bearer kpat_…\" } al server."
-          },
-          {
-            "title": "Provalo",
-            "body": "Nella chat dell'agente chiedi: “Elenca i prodotti a rischio esaurimento con il riordino suggerito.”"
-          }
-        ]
-      }
-    }
+    "tables_n": "{n} tabelle",
+    "download": "Scarica",
+    "downloads": "{n, plural, one {scaricata una volta} other {scaricata # volte}}"
   },
   "dashboards": {
     "title": "Dashboard",
@@ -6895,12 +6827,18 @@
     "top_entities": {
       "products": "Prodotti migliori",
       "campaigns": "Campagne migliori per profitto",
-      "customers": "Clienti migliori"
+      "customers": "Clienti migliori",
+      "ads": "Annunci migliori per profitto",
+      "keywords": "Parole chiave migliori per profitto",
+      "search_terms": "Termini di ricerca per spesa"
     },
     "top_secondary": {
       "products": "{v} pezzi",
       "campaigns": "ROAS {v}",
-      "customers": "{v} ordini"
+      "customers": "{v} ordini",
+      "ads": "ROAS {v}",
+      "keywords": "ROAS {v}",
+      "search_terms": "{v} ordini"
     },
     "granularity": {
       "day": "Giorno",
@@ -7063,6 +7001,454 @@
     "platforms": {
       "meta": "Meta",
       "google": "Google"
+    }
+  },
+  "ads": {
+    "nav": {
+      "label": "Analisi campagne",
+      "campaigns": "Campagne",
+      "creatives": "Creatività",
+      "keywords": "Parole chiave e ricerche",
+      "words": "Parole",
+      "recommendations": "Suggerimenti"
+    },
+    "cols": {
+      "name": "Nome",
+      "spend": "Spesa",
+      "impressions": "Impression",
+      "ctr": "CTR",
+      "platform_conv": "Conv. piattaforma",
+      "keel_orders": "Ordini Keel",
+      "revenue": "Ricavo netto",
+      "profit": "Profitto",
+      "roas": "ROAS",
+      "frequency": "Frequenza",
+      "match": "Corrispondenza",
+      "quality": "Qualità",
+      "campaign": "Campagna",
+      "action": "Azione",
+      "phrase": "Frase",
+      "items": "Usata in",
+      "margin": "Margine",
+      "cpa": "CPA",
+      "field": "Campo",
+      "asset": "Asset",
+      "keel_orders_allocated": "Ordini Keel (ripartiti)",
+      "date": "Data",
+      "search_term": "Termine di ricerca",
+      "clicks": "Clic",
+      "reason": "Perché",
+      "ad": "Annuncio"
+    },
+    "excluded_n": "+{n} annullati/resi",
+    "ad_sets_title": "Gruppi di inserzioni",
+    "ad_groups_title": "Gruppi di annunci",
+    "ad_sets_description": "I numeri della piattaforma accanto a quelli di Keel: ordini, ricavi e profitto contano solo gli ordini non annullati e non resi.",
+    "utm_missing": "{n} annunci su {total} non hanno {params}: i loro ordini arrivano a Keel senza annuncio. Aggiungi questo modello agli annunci:",
+    "no_ad_sets": "Ancora nessun gruppo",
+    "no_ad_sets_hint": "Arrivano con la prossima sincronizzazione delle ads.",
+    "keel_not_visible": "Keel non vede gli ordini di questa riga (il modello UTM non la nomina).",
+    "n_ads": "{n} annunci",
+    "n_keywords": "{n} parole chiave",
+    "unassigned_orders": "{n} ordini della campagna non sono legati a un gruppo",
+    "open_orders": "Apri gli ordini",
+    "reconciliation": "Spesa degli annunci {ads} su {campaign} · non allocata {unallocated}",
+    "ad_set": "Gruppo di inserzioni",
+    "ad_group": "Gruppo di annunci",
+    "status": {
+      "active": "Attivo",
+      "paused": "In pausa",
+      "archived": "Archiviato"
+    },
+    "ads_title": "Annunci",
+    "ads_description": "Affaticamento: la frequenza sale mentre il CTR scende. I suggerimenti sono in sola lettura: decide una persona.",
+    "no_ads": "Nessun annuncio in questo gruppo",
+    "keywords_title": "Parole chiave",
+    "no_keywords": "Nessuna parola chiave",
+    "search_terms_title": "Termini di ricerca",
+    "all_search_terms": "Tutti i termini della campagna",
+    "no_search_terms": "Nessun termine di ricerca",
+    "other_terms": "Altri termini (sotto le impression minime)",
+    "via_keyword": "da “{keyword}”",
+    "negative_reason": {
+      "only_cancelled": "Solo ordini annullati",
+      "no_orders": "Spesa senza ordini",
+      "unprofitable_orders": "Ordini in perdita",
+      "no_conversions": "Spesa senza conversioni"
+    },
+    "excluded": "Escluso",
+    "keel_footnote": "Keel lega gli ordini a gruppi, annunci e parole chiave tramite il modello UTM; dove la piattaforma non li lega compare un trattino.",
+    "match": {
+      "exact": "Esatta",
+      "phrase": "Frase",
+      "broad": "Generica"
+    },
+    "fatigue": {
+      "watch": "Attenzione: CTR in calo",
+      "fatigued": "Affaticato"
+    },
+    "utm_badge": "UTM mancanti",
+    "pause_reason": {
+      "losing": "In perdita",
+      "fatigued": "Affaticato e in perdita",
+      "low_label": "Valutato BASSO",
+      "low_ctr": "Metà del CTR degli altri"
+    },
+    "ctr_change": "CTR {change} dall'inizio",
+    "copy_title": "Testi e tracciamento",
+    "utm_missing_ad": "Questo annuncio non ha {params}: i suoi ordini arrivano a Keel senza annuncio. Modello:",
+    "assets_title": "Asset",
+    "no_assets": "Nessun dettaglio per asset",
+    "no_assets_meta": "Meta riporta gli asset solo per le inserzioni con creatività dinamica o Advantage+.",
+    "no_assets_google": "Google riporta gli asset per gli annunci adattabili.",
+    "field": {
+      "headline": "Titolo",
+      "description": "Descrizione",
+      "body": "Testo principale",
+      "title": "Titolo breve",
+      "image": "Immagine",
+      "video": "Video",
+      "other": "Altro"
+    },
+    "assets_footnote": "Le piattaforme riportano gli asset, non gli ordini: Keel ripartisce gli ordini dell'annuncio sui suoi asset in base alla quota di spesa in ogni campo.",
+    "daily_title": "Per giorno",
+    "no_days": "Nessun dato giornaliero nel periodo",
+    "keywords_page_title": "Parole chiave e termini di ricerca",
+    "keywords_page_description": "Le parole chiave di Google Ads e le ricerche che hanno attivato gli annunci, con gli ordini di Keel dove il modello UTM le nomina.",
+    "tabs": {
+      "keywords": "Parole chiave",
+      "search_terms": "Termini di ricerca"
+    },
+    "search_placeholder": "Cerca testo",
+    "all_campaigns": "Tutte le campagne",
+    "sort_label": "Ordina",
+    "sort": {
+      "spend": "Spesa",
+      "profit": "Profitto",
+      "roas": "ROAS",
+      "conversions": "Conversioni"
+    },
+    "candidates_only": "Solo candidati a parola chiave negativa",
+    "apply": "Applica",
+    "google_only": "Parole chiave e termini di ricerca arrivano da Google Ads; Meta non li ha.",
+    "rows_total": "{n} righe",
+    "prev": "Precedente",
+    "next": "Successiva",
+    "page_of": "Pagina {page} di {pages}",
+    "keywords_footnote": "Gli ordini Keel arrivano da utm_term impostato sulla parola chiave dal modello di monitoraggio.",
+    "search_terms_footnote": "Keel vede gli ordini di un termine quando il termine è una parola chiave (corrispondenza esatta); per gli altri decidono le conversioni della piattaforma. I termini sotto le impression minime sono raggruppati in “Altri termini”.",
+    "words_title": "Parole",
+    "words_description": "Parole e frasi (1–3 parole) vincenti e perdenti nei testi degli annunci, nei termini di ricerca e nelle parole chiave, con il profitto degli ordini Keel.",
+    "word_source": {
+      "copy": "Testi degli annunci",
+      "search_terms": "Termini di ricerca",
+      "keywords": "Parole chiave"
+    },
+    "ngram": {
+      "all": "Tutte",
+      "n1": "1 parola",
+      "n2": "2 parole",
+      "n3": "3 parole"
+    },
+    "no_words": "Volume insufficiente",
+    "no_words_hint": "Una frase deve comparire in almeno due annunci o termini con un po' di spesa.",
+    "winners": "Parole vincenti",
+    "winners_description": "Frasi di elementi che hanno fatto profitto, le migliori prima.",
+    "no_winners": "Nessuna frase in profitto nel periodo",
+    "losers": "Parole perdenti",
+    "losers_description": "Frasi di elementi in perdita, le peggiori prima.",
+    "no_losers": "Nessuna frase in perdita nel periodo",
+    "words_footnote": "{items} elementi analizzati. Ogni frase somma i numeri completi di ogni elemento che la contiene, quindi le frasi si sovrappongono.",
+    "recommendations_title": "Suggerimenti ads",
+    "recommendations_description": "Suggerimenti in sola lettura: una persona li valuta e agisce; le scritture verso le piattaforme chiedono sempre conferma.",
+    "in_items": "in {n}",
+    "rec": {
+      "negatives_title": "Candidati a parola chiave negativa",
+      "negatives_description": "{n} termini di ricerca spendono senza ordini in profitto.",
+      "google_read_only": "Google è in sola lettura per questo negozio: concedi l'accesso in scrittura in Integrazioni per escludere i termini da qui.",
+      "none": "Niente da suggerire",
+      "all_candidates": "Tutti i candidati",
+      "ads_title": "Annunci da mettere in pausa",
+      "ads_description": "Annunci attivi in perdita nel periodo, oppure affaticati e in perdita.",
+      "words_title": "Parole vincenti da riusare nei testi",
+      "words_description": "Frasi degli annunci che hanno fatto più profitto.",
+      "open_words": "Apri Parole",
+      "assets_title": "Asset deboli",
+      "assets_description": "Asset valutati BASSO dalla piattaforma o con metà del CTR degli altri.",
+      "utm_title": "Modelli UTM",
+      "utm_description": "Senza questi parametri Keel non può legare gli ordini ad annunci, gruppi e parole chiave.",
+      "utm_ok": "Tutte le campagne attive hanno i modelli.",
+      "utm_row": "{missing} annunci su {ads} senza {params}",
+      "template_meta": "Meta: parametri URL dell'annuncio",
+      "template_google": "Google: modello di monitoraggio dell'account"
+    },
+    "actions": {
+      "read_only": "{platform} è in sola lettura per questo negozio.",
+      "read_only_short": "Sola lettura",
+      "pause_ad": "Metti in pausa l'annuncio",
+      "resume_ad": "Riattiva l'annuncio",
+      "pause_title": "Mettere in pausa questo annuncio su {platform}?",
+      "resume_title": "Riattivare questo annuncio su {platform}?",
+      "write_description": "Keel cambia lo stato qui e lo invia alla piattaforma; se non è raggiungibile la modifica viene ritentata e mostrata come in attesa.",
+      "confirm": "Conferma",
+      "exclude": "Escludi",
+      "negative_title": "Aggiungere “{text}” come parola chiave negativa?",
+      "negative_description": "Google smette di mostrare gli annunci per questa ricerca. La modifica passa dalla coda delle scritture.",
+      "match_type": "Corrispondenza",
+      "match": {
+        "exact": "Esatta",
+        "phrase": "Frase",
+        "broad": "Generica"
+      },
+      "level": "Livello",
+      "levels": {
+        "campaign": "Campagna",
+        "ad_group": "Gruppo di annunci"
+      }
+    }
+  },
+  "mcp": {
+    "copy": "Copia",
+    "copied": "Copiato",
+    "scopes": {
+      "read": "Leggere ordini, clienti, analisi, prodotti, acquisti, resi, segmenti e stato delle integrazioni che il tuo ruolo può vedere",
+      "write_notes": "Aggiungere note interne agli ordini",
+      "write_orders": "Assegnare ordini, metterli in revisione o in attesa, proporre annullamenti e rimborsi",
+      "write_campaigns": "Proporre la pausa delle campagne pubblicitarie",
+      "write_purchasing": "Proporre bozze di ordini d'acquisto"
+    },
+    "unavailable": {
+      "plan": "I client AI (MCP) sono inclusi dal piano Growth.",
+      "tenant_disabled": "MCP è spento per questo workspace: un owner o un admin può accenderlo in Impostazioni → AI e MCP.",
+      "killed": "L'accesso MCP a questo workspace è stato sospeso dalla piattaforma.",
+      "platform_disabled": "MCP è temporaneamente non disponibile sulla piattaforma.",
+      "suspended": "Questo workspace è sospeso."
+    },
+    "errors": {
+      "generic": "Qualcosa è andato storto. Riprova.",
+      "invalid_input": "Controlla i campi e riprova.",
+      "limit_reached": "Hai raggiunto il numero massimo di token attivi: revocane uno prima.",
+      "not_found": "Non trovato: potrebbe essere stato rimosso.",
+      "forbidden": "Non puoi farlo.",
+      "mcp_unavailable": "MCP non è disponibile per questo workspace.",
+      "not_pending": "Questa proposta è già stata decisa.",
+      "expired": "Questa proposta è scaduta."
+    },
+    "consent": {
+      "title": "Collega un client AI",
+      "heading": "{client} chiede di accedere a Keel",
+      "description": "Accesso come {user}. Il client agirà come te, con il tuo ruolo, nel workspace che scegli.",
+      "workspace": "Workspace",
+      "no_workspace": "Non sei membro di alcun workspace.",
+      "scopes": "Permessi",
+      "scopes_hint": "Togli la spunta a ciò che non vuoi consentire. La lettura è sempre inclusa.",
+      "note_role": "Vede solo ciò che il tuo ruolo vede in Keel; i moduli spenti non espongono nulla.",
+      "note_pii": "Email, telefoni e indirizzi dei clienti sono mascherati, salvo che il tuo workspace abbia attivato i dati personali completi per i client AI.",
+      "note_proposals": "Annullamenti, rimborsi, pause delle campagne e ordini d'acquisto sono solo proposte: le approva una persona in Keel.",
+      "note_redirect": "Dopo l'autorizzazione torni su {host}. Puoi revocare l'accesso in qualsiasi momento dal profilo → Connessioni.",
+      "approve": "Consenti l'accesso",
+      "deny": "Annulla",
+      "invalid_request": "Questa richiesta di collegamento non è valida.",
+      "unavailable": {
+        "plan": "Non incluso nel piano",
+        "tenant_disabled": "MCP spento da un owner o admin",
+        "killed": "Sospeso dalla piattaforma",
+        "platform_disabled": "Temporaneamente non disponibile",
+        "suspended": "Workspace sospeso"
+      }
+    },
+    "connections": {
+      "server_url": "URL del server MCP",
+      "server_url_hint": "Incollalo in Claude, ChatGPT, Cursor o qualsiasi client MCP: si collegano con OAuth, tu accedi e autorizzi.",
+      "connection": "Connessione",
+      "user": "Utente",
+      "scopes": "Permessi",
+      "last_used": "Ultimo uso",
+      "expires": "Scade",
+      "never": "Mai",
+      "empty": "Nessun client AI collegato.",
+      "kind": {
+        "oauth": "OAuth",
+        "pat": "Token"
+      },
+      "state": {
+        "active": "Attiva",
+        "expired": "Scaduta",
+        "revoked": "Revocata"
+      },
+      "create_title": "Nuovo token di accesso personale",
+      "token_name": "Nome",
+      "token_name_placeholder": "es. Cursor sul mio portatile",
+      "expires_in": "Scade tra",
+      "days": "{days} giorni",
+      "create": "Crea token",
+      "shown_once": "Copia il token ora: viene mostrato una sola volta e Keel ne conserva solo un'impronta.",
+      "rotate": "Rigenera",
+      "rotate_confirm": "Creare un nuovo segreto per questo token? Quello attuale smette subito di funzionare.",
+      "revoke": "Revoca",
+      "revoke_confirm": "Revocare questa connessione? Il client perde subito l'accesso.",
+      "how_to": "Come collegare Claude, ChatGPT o Cursor",
+      "open_settings": "Apri le impostazioni AI e MCP"
+    },
+    "settings": {
+      "title": "AI e MCP",
+      "description": "Consenti al team di usare Claude, ChatGPT, Cursor e altri client AI sui dati di questo workspace, con i propri permessi.",
+      "server_title": "Server MCP",
+      "server_description": "Un solo URL per tutti i client. Ogni persona si collega con il proprio account; i token sono legati a una persona e a un workspace.",
+      "enabled": "Consenti i client AI (MCP)",
+      "enabled_hint": "Se spento, ogni chiamata MCP a questo workspace viene rifiutata; le connessioni restano.",
+      "full_pii": "Mostra i dati personali dei clienti",
+      "full_pii_hint": "Nomi, email, telefoni e indirizzi completi, solo ai ruoli che possono vederli (mai marketing o viewer). Spento: sempre mascherati.",
+      "rule_auth": "OAuth 2.1 con PKCE, oppure token di accesso personali; i segreti sono salvati solo come hash con chiave.",
+      "rule_permissions": "Ogni strumento usa il ruolo della persona e i moduli del workspace; nulla che il ruolo non veda in Keel viene esposto.",
+      "rule_writes": "Le scritture dirette sono reversibili (note, assegnatario, revisione o attesa); le azioni rischiose attendono l'approvazione.",
+      "rule_limits": "Limiti: {perToken} chiamate al minuto per connessione, {perTenant} per workspace.",
+      "guides_title": "Collega un client",
+      "guides_description": "I passi per i client più usati.",
+      "connections_title": "Client collegati",
+      "connections_description": "Tutte le connessioni attive del workspace, con l'ultimo uso. Owner e admin possono revocarle.",
+      "activity_title": "Attività recente",
+      "activity_description": "Le ultime chiamate degli ultimi 7 giorni (strumento, persona, client, esito). Argomenti e risultati non vengono mai salvati.",
+      "activity_empty": "Ancora nessuna chiamata.",
+      "stat_calls": "Chiamate (7 giorni)",
+      "stat_errors": "Errori",
+      "stat_denied": "Rifiutate",
+      "stat_rate_limited": "Limitate",
+      "col_when": "Quando",
+      "col_tool": "Strumento",
+      "col_who": "Chi",
+      "col_outcome": "Esito",
+      "col_duration": "Durata",
+      "outcome": {
+        "ok": "OK",
+        "error": "Errore",
+        "denied": "Rifiutata",
+        "invalid_input": "Input non valido",
+        "not_found": "Non trovato",
+        "rate_limited": "Limitata",
+        "auth_failed": "Autenticazione fallita",
+        "disabled": "Disattivato"
+      },
+      "approvals_link": "Approvazioni ({count})",
+      "approvals_link_empty": "Approvazioni",
+      "own_tokens_link": "I tuoi token di accesso personali sono nel profilo → Connessioni."
+    },
+    "approvals": {
+      "title": "Approvazioni",
+      "description": "Azioni proposte dai client AI tramite MCP. Non succede nulla finché qualcuno che può farlo non approva; approvando, l'azione viene eseguita a tuo nome.",
+      "empty_title": "Niente da approvare",
+      "empty_description": "Qui compaiono le proposte dei client AI (annullamenti, rimborsi, pause delle campagne, ordini d'acquisto).",
+      "requested_by": "{client} per {user} · {when}",
+      "order_total": "Totale ordine",
+      "restock": "Rimetti a stock",
+      "refund": "Rimborsa il pagamento",
+      "amount": "Importo",
+      "refundable": "Ancora rimborsabile",
+      "lines": "Righe",
+      "expires": "Scade",
+      "yes": "Sì",
+      "no": "No",
+      "cannot_approve": "Il tuo ruolo non può approvarla: chi può la vedrà qui.",
+      "note_placeholder": "Nota (facoltativa)",
+      "approve": "Approva ed esegui",
+      "approve_confirm": "Approvare ed eseguire ora questa azione a tuo nome?",
+      "reject": "Rifiuta",
+      "failed": "L'azione non è riuscita: {error}",
+      "history": "Storico",
+      "history_empty": "Ancora nessuna proposta decisa.",
+      "col_proposal": "Proposta",
+      "col_requested": "Richiesta",
+      "col_status": "Stato",
+      "col_decided": "Decisa da",
+      "kinds": {
+        "order_cancel": "Annulla ordine",
+        "order_refund": "Rimborso",
+        "campaign_pause": "Pausa campagna",
+        "purchase_order_create": "Bozza ordine d'acquisto"
+      },
+      "status": {
+        "pending": "In attesa",
+        "approved": "Approvata",
+        "rejected": "Rifiutata",
+        "failed": "Fallita",
+        "expired": "Scaduta"
+      }
+    },
+    "guides": {
+      "verify_legend": "I passi segnati “Da verificare” dipendono dall'interfaccia del fornitore AI, che cambia spesso: controllali sulla sua documentazione prima della prima installazione.",
+      "verify_badge": "Da verificare",
+      "pat_note": "Client senza OAuth: crea un token di accesso personale nel tuo profilo → Connessioni e invialo nell'header Authorization: Bearer kpat_…",
+      "claude": {
+        "name": "Claude",
+        "steps": [
+          {
+            "title": "Apri i connettori",
+            "body": "In Claude (web o app desktop) apri Impostazioni → Connettori e scegli “Aggiungi connettore personalizzato”. Nei piani team un owner potrebbe doverli prima consentire.",
+            "verify": true
+          },
+          {
+            "title": "Incolla l'URL del server",
+            "body": "Dagli un nome (es. Keel) e incolla:\n{serverUrl}\nLascia vuoti i campi OAuth avanzati: Claude si registra da solo su Keel.",
+            "verify": true
+          },
+          {
+            "title": "Accedi e autorizza",
+            "body": "Claude apre Keel: accedi, scegli il workspace, tieni o togli i permessi e autorizza. Torni su Claude già collegato."
+          },
+          {
+            "title": "Provalo",
+            "body": "In una chat attiva il connettore dal menu degli strumenti e chiedi: “Come sono andate le vendite la settimana scorsa rispetto a quella prima?” Claude cita i numeri con il link a Keel.",
+            "verify": true
+          }
+        ]
+      },
+      "chatgpt": {
+        "name": "ChatGPT",
+        "steps": [
+          {
+            "title": "Consenti i connettori personalizzati",
+            "body": "In ChatGPT apri Impostazioni → Connettori (App). A seconda del piano, i connettori MCP personalizzati richiedono la modalità sviluppatore nelle impostazioni avanzate, o un amministratore del workspace.",
+            "verify": true
+          },
+          {
+            "title": "Crea il connettore",
+            "body": "Scegli Crea, dagli un nome, incolla {serverUrl} e scegli OAuth come autenticazione.",
+            "verify": true
+          },
+          {
+            "title": "Accedi e autorizza",
+            "body": "ChatGPT apre Keel: accedi, scegli il workspace e i permessi, autorizza."
+          },
+          {
+            "title": "Provalo",
+            "body": "Apri una chat, aggiungi il connettore dal menu degli strumenti e chiedi per esempio: “Quali campagne hanno perso soldi questo mese e cosa suggerisce Keel?”",
+            "verify": true
+          }
+        ]
+      },
+      "cursor": {
+        "name": "Cursor",
+        "steps": [
+          {
+            "title": "Apri le impostazioni MCP",
+            "body": "In Cursor apri Settings → MCP (Tools & Integrations) → “Add custom MCP server”: si apre ~/.cursor/mcp.json.",
+            "verify": true
+          },
+          {
+            "title": "Aggiungi Keel",
+            "body": "Aggiungi questo server e salva:\n{ \"mcpServers\": { \"keel\": { \"url\": \"{serverUrl}\" } } }",
+            "verify": true
+          },
+          {
+            "title": "Accedi",
+            "body": "Cursor mostra che il server richiede l'accesso: cliccalo, accedi a Keel e autorizza. Senza OAuth, crea un token di accesso personale e aggiungi \"headers\": { \"Authorization\": \"Bearer kpat_…\" } al server."
+          },
+          {
+            "title": "Provalo",
+            "body": "Nella chat dell'agente chiedi: “Elenca i prodotti a rischio esaurimento con il riordino suggerito.”"
+          }
+        ]
+      }
     }
   }
 }

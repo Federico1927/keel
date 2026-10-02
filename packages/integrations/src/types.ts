@@ -434,13 +434,129 @@ export interface NormalizedAdMetric {
   purchaseValueMinor: number;
 }
 
+/* ---------- below the campaign (issue #40) ---------- */
+
+export type AdEntityStatus = "active" | "paused" | "archived";
+
+/** Meta ad set or Google ad group. */
+export interface NormalizedAdSet {
+  externalId: string;
+  campaignExternalId: string;
+  name: string;
+  status: AdEntityStatus;
+  /** Optimization goal (Meta) or ad group type (Google). */
+  optimizationGoal: string | null;
+  dailyBudgetMinor: number | null;
+}
+
+export interface NormalizedAd {
+  externalId: string;
+  adSetExternalId: string | null;
+  campaignExternalId: string;
+  name: string;
+  status: AdEntityStatus;
+  /** image | video | carousel | collection | text | other */
+  format: string;
+  headline: string | null;
+  body: string | null;
+  finalUrl: string | null;
+  /** Meta URL parameters or Google tracking template + final URL suffix: where the UTM template lives. */
+  urlTags: string | null;
+  thumbnailUrl: string | null;
+}
+
+/** A text, image or video piece of an ad the platform reports on (RSA headline, dynamic-creative body…). */
+export interface NormalizedAdAsset {
+  /** Platform asset id (Meta asset breakdown id, Google asset id). */
+  assetExternalId: string;
+  adExternalId: string | null;
+  adSetExternalId: string | null;
+  campaignExternalId: string;
+  type: "text" | "image" | "video";
+  /** headline | description | body | title | image | video | other */
+  fieldType: string;
+  text: string | null;
+  url: string | null;
+  /** Google's BEST / GOOD / LOW / LEARNING; null elsewhere. */
+  performanceLabel: string | null;
+}
+
+export interface NormalizedKeyword {
+  /** `adGroupId~criterionId` on Google. */
+  externalId: string;
+  adSetExternalId: string | null;
+  campaignExternalId: string;
+  text: string;
+  matchType: "exact" | "phrase" | "broad";
+  qualityScore: number | null;
+  status: AdEntityStatus;
+  negative: boolean;
+}
+
+export type AdEntityMetricLevel = "ad_set" | "ad" | "asset" | "keyword" | "search_term";
+
+/**
+ * One entity-day. `entityExternalId` is the ad set / ad / keyword id, the asset id (with `adExternalId`
+ * and `fieldType`), or the search term text (with the ad group and the keyword that triggered it).
+ */
+export interface NormalizedEntityMetric {
+  level: AdEntityMetricLevel;
+  entityExternalId: string;
+  campaignExternalId: string;
+  adSetExternalId: string | null;
+  adExternalId?: string | null;
+  fieldType?: string | null;
+  /** Search terms: the keyword that matched (`adGroupId~criterionId` when known), the term's own match type and status. */
+  keywordExternalId?: string | null;
+  keywordText?: string | null;
+  matchType?: string | null;
+  termStatus?: "added" | "excluded" | "none" | null;
+  date: string;
+  spendMinor: number;
+  impressions: number;
+  clicks: number;
+  reach: number;
+  conversions: number;
+  conversionValueMinor: number;
+  videoViews3s: number;
+  videoCompletions: number;
+}
+
+/** What a platform can report below the campaign; Keel hides the tabs a platform cannot fill. */
+export interface AdsCapabilities {
+  supportsKeywords: boolean;
+  supportsSearchTerms: boolean;
+  supportsAssetBreakdown: boolean;
+  /** Pause an ad / add negative keywords (Google only with the write scope granted by the tenant). */
+  supportsAdWrites: boolean;
+}
+
+export const NO_ADS_CAPABILITIES: AdsCapabilities = { supportsKeywords: false, supportsSearchTerms: false, supportsAssetBreakdown: false, supportsAdWrites: false };
+
+export interface NegativeKeywordInput {
+  campaignExternalId: string;
+  /** Ad group level when set, campaign level otherwise. */
+  adSetExternalId?: string | null;
+  text: string;
+  matchType: "exact" | "phrase" | "broad";
+}
+
 export interface AdsPlatform {
   readonly provider: string;
+  /** Optional for adapters that only report campaigns (all deeper methods are optional too). */
+  readonly capabilities?: AdsCapabilities;
   testConnection(): Promise<ConnectionTest>;
   fetchCampaigns(): Promise<NormalizedCampaign[]>;
   fetchDailyMetrics(window: { since: string; until: string }): Promise<NormalizedAdMetric[]>;
   /** Google is read-only in the MVP; its adapter throws `unsupported`. */
   setCampaignStatus(externalId: string, status: "active" | "paused"): Promise<void>;
+  fetchAdSets?(): Promise<NormalizedAdSet[]>;
+  fetchAds?(): Promise<NormalizedAd[]>;
+  fetchAssets?(): Promise<NormalizedAdAsset[]>;
+  fetchKeywords?(): Promise<NormalizedKeyword[]>;
+  fetchEntityMetrics?(level: AdEntityMetricLevel, window: { since: string; until: string }): Promise<NormalizedEntityMetric[]>;
+  setAdStatus?(ad: { adExternalId: string; adSetExternalId: string | null }, status: "active" | "paused"): Promise<void>;
+  addNegativeKeywords?(input: NegativeKeywordInput[]): Promise<{ created: number }>;
 }
 
 export interface AnalyticsPlatform {
