@@ -23,6 +23,7 @@ import { seedAdsDepth } from "./ads";
 import { seedTiktok } from "./tiktok";
 import { seedPlatformReliability, seedReliability } from "./reliability";
 import { seedSubscriptions } from "./subscriptions";
+import { seedSpoki } from "./spoki";
 import { createRng } from "@hullwise/integrations";
 import { SALE_STATUSES, allocateLandedCost, assignHoldout, campaignMessageKey, normalizePhone, runPredictionModel, type CustomerHistory } from "@hullwise/core";
 import { MODULES, PLANS, PLATFORM_CURRENCY } from "@hullwise/config";
@@ -42,7 +43,7 @@ export const DEMO_TENANTS = {
     defaultLocale: "it",
     orderNumberPrefix: "NW-",
     planKey: "growth",
-    addons: ["addon.cod", "addon.customer_campaigns"],
+    addons: ["addon.cod", "addon.customer_campaigns", "addon.whatsapp_spoki"],
     taxRates: [
       { country: "IT", rateBps: 2200 },
       { country: "DE", rateBps: 1900 },
@@ -192,7 +193,7 @@ async function seedBilling(db: ReturnType<typeof drizzle<typeof schema>>, tenant
   const now = new Date();
   const month = (n: number) => new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - n, 1));
   const plans: Record<keyof typeof DEMO_TENANTS, { planKey: string; monthly: number; setup: number; currency: string; months: number; lastPaid: boolean }> = {
-    northwind: { planKey: "growth", monthly: PLANS.growth.monthlyPriceMinor + MODULES["addon.cod"].monthlyPriceMinor! + MODULES["addon.customer_campaigns"].monthlyPriceMinor!, setup: PLANS.growth.setupFeeMinor, currency: PLATFORM_CURRENCY, months: 6, lastPaid: true },
+    northwind: { planKey: "growth", monthly: PLANS.growth.monthlyPriceMinor + MODULES["addon.cod"].monthlyPriceMinor! + MODULES["addon.customer_campaigns"].monthlyPriceMinor! + MODULES["addon.whatsapp_spoki"].monthlyPriceMinor!, setup: PLANS.growth.setupFeeMinor, currency: PLATFORM_CURRENCY, months: 6, lastPaid: true },
     harbor: { planKey: "starter", monthly: PLANS.starter.monthlyPriceMinor + MODULES["addon.subscriptions"].monthlyPriceMinor!, setup: PLANS.starter.setupFeeMinor, currency: PLATFORM_CURRENCY, months: 3, lastPaid: false },
   };
   for (const key of Object.keys(plans) as (keyof typeof DEMO_TENANTS)[]) {
@@ -250,7 +251,7 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
   const log = opts.log ?? (() => {});
   for (const cfg of tenantSeedConfigs(ctx, opts)) {
     // Wipe previous domain rows of this tenant (cascade from the parent tables).
-    for (const table of [schema.casePacks, schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.metricTargets, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.platformWrites, schema.inventoryDrift, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.codCarrierOutcomes, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels, schema.segmentDestinations, schema.pixelSettings, schema.pixelEvents, schema.pixelIdentities, schema.conversionSettings, schema.surveySettings, schema.assistantThreads, schema.subscriptionContracts, schema.subscriptionCancellationReasons]) {
+    for (const table of [schema.casePacks, schema.backorders, schema.orders, schema.supplierPayments, schema.purchaseOrders, schema.suppliers, schema.segments, schema.customers, schema.inventoryMovements, schema.products, schema.locations, schema.campaigns, schema.discounts, schema.discountPools, schema.stateRules, schema.shipmentStatusMappings, schema.costSettings, schema.periodCosts, schema.touchpoints, schema.alertEvents, schema.alertRules, schema.customMetrics, schema.metricTargets, schema.dashboards, schema.returnReasons, schema.notifications, schema.integrations, schema.integrationHealth, schema.webhookEvents, schema.syncRuns, schema.platformWrites, schema.inventoryDrift, schema.auditLogs, schema.codOperatorCapacity, schema.codCapacityExceptions, schema.codSettings, schema.codRecipientProfiles, schema.codCarrierOutcomes, schema.demandEvents, schema.returnPortalSettings, schema.publicRateLimits, schema.returnPolicies, schema.retentionCampaigns, schema.customerPredictionModels, schema.segmentDestinations, schema.pixelSettings, schema.pixelEvents, schema.pixelIdentities, schema.conversionSettings, schema.surveySettings, schema.assistantThreads, schema.subscriptionContracts, schema.subscriptionCancellationReasons, schema.spokiMessages, schema.spokiSettings]) {
       await db.delete(table).where(eq(table.tenantId, cfg.tenantId));
     }
     const started = Date.now();
@@ -273,6 +274,8 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("assistant", () => seedAssistant(db, ctx, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("catalog", () => seedCatalogDuplicate(db, cfg.tenantId));
     await step("collab", () => seedCollab(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, cfg.locale, opts.now ?? new Date()));
+    // after the campaigns (its sequence messages) and the collaboration rows (they reset the suppression list)
+    if ((DEMO_TENANTS[cfg.key as keyof typeof DEMO_TENANTS].addons as readonly string[]).includes("addon.whatsapp_spoki")) await step("whatsapp", () => seedSpoki(db, cfg.tenantId, opts.now ?? new Date()));
     await step("email", () => seedEmailLog(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, cfg.locale, opts.now ?? new Date()));
     await step("lists", () => seedLists(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("payments", () => seedPayments(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));

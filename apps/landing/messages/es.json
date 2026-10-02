@@ -284,6 +284,10 @@
       "custom_development": {
         "title": "Desarrollo a medida",
         "body": "Un módulo que necesita tu operación y nadie más. Analizado y presupuestado."
+      },
+      "whatsapp_spoki": {
+        "title": "WhatsApp con Spoki",
+        "body": "Tu cuenta Spoki como canal de WhatsApp: avisos de pedido por evento, confirmaciones contra reembolso con una respuesta, campañas de WhatsApp, bajas respetadas en todas partes y cada mensaje en el pedido."
       }
     }
   },

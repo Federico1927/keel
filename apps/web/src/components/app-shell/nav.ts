@@ -5,6 +5,7 @@ import {
   Bell,
   LifeBuoy,
   ListChecks,
+  MessageCircle,
   Boxes,
   CalendarRange,
   ClipboardList,
@@ -80,6 +81,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { page: "settings", href: "/settings", labelKey: "nav.settings", icon: Settings },
       // add-on settings sit with the store settings, not with the daily work (issue #69)
       { page: "cod_settings", href: "/cod/settings", labelKey: "nav.cod_settings", icon: PhoneCall },
+      { page: "whatsapp_settings", href: "/whatsapp/settings", labelKey: "nav.whatsapp_settings", icon: MessageCircle },
       { page: "audit", href: "/audit", labelKey: "nav.audit", icon: ScrollText },
       { page: "notifications", href: "/notifications", labelKey: "nav.notifications", icon: Bell },
       { page: "support", href: "/support", labelKey: "nav.support", icon: LifeBuoy },

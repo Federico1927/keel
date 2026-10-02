@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@hullwise/addon-cod": "workspace:*",
+    "@hullwise/addon-spoki": "workspace:*",
     "@hullwise/config": "workspace:*",
     "@hullwise/core": "workspace:*",
     "@hullwise/db": "workspace:*",

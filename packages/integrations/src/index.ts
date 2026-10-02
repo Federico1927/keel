@@ -21,3 +21,4 @@ export * from "./llm";
 export * from "./billing";
 export * from "./subscriptions";
 export * from "./address";
+export * from "./spoki";

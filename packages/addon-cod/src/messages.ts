@@ -1,4 +1,5 @@
-import type { TemplateVariable } from "./settings";
+import { replyMatches } from "@hullwise/core";
+import type { CodSettings, TemplateVariable } from "./settings";
 
 /** Fills `{{variable}}` placeholders; unknown or empty variables become an empty string, whitespace is tidied. */
 export function renderTemplate(body: string, vars: Partial<Record<TemplateVariable, string | null | undefined>>): string {
@@ -20,4 +21,11 @@ export function warehouseLines(lines: readonly { sku: string | null; title: stri
     .filter((l) => l.quantity > 0 && !l.isAncillary)
     .map((l) => `${l.sku?.trim() || `${l.title}${l.variantTitle ? ` ${l.variantTitle}` : ""}`} × ${l.quantity}`)
     .join("\n");
+}
+
+/** What a customer's reply to a confirmation message means for the queue: cancel wins when both match. */
+export function classifyCodReply(text: string | null | undefined, replies: CodSettings["messagingReplies"]): "confirm" | "cancel" | null {
+  if (replyMatches(text, replies.cancel)) return "cancel";
+  if (replyMatches(text, replies.confirm)) return "confirm";
+  return null;
 }

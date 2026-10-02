@@ -69,6 +69,9 @@ function EditMeta({ e, money }: { e: TimelineEvent; money: (minor: number) => st
   // backorders: what waits for which PO, and why a wait ended
   if (e.type === "backorder_created" && Array.isArray(m.lines)) for (const l of m.lines as { quantity: number; sku: string | null; title: string; poNumber: string | null; expectedAt: string | null }[]) parts.push(l.poNumber ? t("backorder_line_po", { qty: l.quantity, item: l.sku ?? l.title, po: l.poNumber, eta: l.expectedAt ?? "—" }) : t("backorder_line", { qty: l.quantity, item: l.sku ?? l.title }));
   if ((e.type === "hold_released" || e.type === "backorder_closed") && typeof m.reason === "string" && BACKORDER_REASONS.includes(m.reason)) parts.push(t(`backorder_reason.${m.reason}`));
+  // WhatsApp add-on (#9): what was sent, what the customer answered
+  if (e.type === "whatsapp_message" && typeof m.template === "string") parts.push(m.template);
+  if (e.type === "whatsapp_reply" && typeof m.text === "string") parts.push(`“${m.text}”${m.optOut === true ? ` · ${t("whatsapp_opt_out")}` : ""}`);
   if (!parts.length) return null;
   return <p className="mt-1 text-xs text-muted-foreground" data-testid="event-meta">{parts.join(" · ")}</p>;
 }

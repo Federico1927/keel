@@ -70,6 +70,17 @@ export const codSettingsSchema = z.object({
   bottleneckFactor: z.number().min(1).max(10).default(1.5),
   /** Confirmation message templates (WhatsApp, SMS…) sent through the tenant's messaging channel. */
   messageTemplates: z.array(messageTemplateSchema).max(20).default([]),
+  /**
+   * Customer replies to a confirmation message (WhatsApp channel add-on): a reply equal to a confirm
+   * keyword records a `confirmed` attempt; a cancel keyword escalates the item to a person (never an
+   * automatic cancellation). Keywords are the tenant's own language; matching ignores case and accents.
+   */
+  messagingReplies: z
+    .object({
+      confirm: z.array(z.string().trim().min(1).max(40)).max(20).default(["yes", "confirm"]),
+      cancel: z.array(z.string().trim().min(1).max(40)).max(20).default(["no", "cancel"]),
+    })
+    .prefault({}),
   /** Return to sender of a COD order still unpaid: cancel it on the platform without restock, which voids the pending payment. Off by default. */
   rtsAutoCancel: z.boolean().default(false),
   /** Lines dropped when a replacement changes the payment method away from COD (the COD fee line): SKU or title, `*` = prefix. */
