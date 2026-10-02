@@ -119,6 +119,23 @@ export function OperationalSettingsForm({ slug, settings, currency }: { slug: st
           </div>
         </CardContent>
       </Card>
+      <Card data-testid="backorder-settings">
+        <CardHeader>
+          <CardTitle>{t("backorders_title")}</CardTitle>
+          <CardDescription>{t("backorders_description")}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          <input type="hidden" name="backorderSettings" value="1" />
+          <label className="flex items-start gap-2">
+            <input type="checkbox" name="backorderHold" defaultChecked={settings.backorderHold} className="mt-0.5" />
+            <span>{t("fields.backorderHold")}</span>
+          </label>
+          <label className="flex items-start gap-2">
+            <input type="checkbox" name="backorderPlatformHold" defaultChecked={settings.backorderPlatformHold} className="mt-0.5" />
+            <span>{t("fields.backorderPlatformHold")}</span>
+          </label>
+        </CardContent>
+      </Card>
       <Card>
         <CardHeader>
           <CardTitle>{t("fees_title")}</CardTitle>

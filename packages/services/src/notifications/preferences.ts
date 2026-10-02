@@ -1,7 +1,7 @@
 import { and, eq, inArray, recordAudit, schema } from "@keel/db";
 import { NOTIFICATION_CHANNELS, NOTIFICATION_TYPES, isNotificationType, resolveNotificationChannels, type NotificationChannel, type NotificationType, type NotificationTypeDefinition } from "@keel/config";
 import type { ServiceContext } from "../context";
-import { clearUnsubscribes } from "./mailer";
+import { clearUnsubscribes } from "../email/suppressions";
 
 type Overrides = Partial<Record<NotificationChannel, boolean>>;
 const COLUMN = { in_app: "inApp", email: "email", slack: "slack" } as const;

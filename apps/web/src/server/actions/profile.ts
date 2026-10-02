@@ -2,11 +2,10 @@
 import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { adminDb, eq, schema } from "@keel/db";
 import { DEFAULT_LOCALE, isLocale } from "@keel/config";
-import { AccountError, cancelEmailChange, changePassword, confirmEmailChange, getPlatformEmailSink, requestEmailChange, setAvatar, signOutOtherSessions, updatePreferences, updateProfile, type AccountContext } from "@keel/services";
+import { AccountError, cancelEmailChange, changePassword, confirmEmailChange, requestEmailChange, setAvatar, signOutOtherSessions, updatePreferences, updateProfile, type AccountContext } from "@keel/services";
 import { THEME_COOKIE, isThemePreference } from "@keel/ui/tokens";
 import { unstable_update } from "@/auth";
 import { LOCALE_COOKIE } from "@/i18n/request";
@@ -147,14 +146,9 @@ function appUrl(h: Headers): string {
 export async function requestEmailChangeAction(_prev: ActionResult | null, fd: FormData): Promise<ActionResult> {
   const email = z.string().trim().email().max(200).safeParse(text(fd, "email"));
   if (!email.success) return fail("invalid_input");
-  const t = await getTranslations("email_change");
   const base = appUrl(await headers());
   try {
-    await requestEmailChange(await account(), email.data, getPlatformEmailSink(), {
-      confirmUrl: (token) => `${base}/account/confirm-email?token=${encodeURIComponent(token)}`,
-      toNew: (url) => ({ subject: t("mail_new_subject"), text: t("mail_new_body", { url }) }),
-      toOld: (newEmail) => ({ subject: t("mail_old_subject"), text: t("mail_old_body", { email: newEmail }) }),
-    });
+    await requestEmailChange(await account(), email.data, (token) => `${base}/account/confirm-email?token=${encodeURIComponent(token)}`);
   } catch (e) {
     return failFrom(e);
   }

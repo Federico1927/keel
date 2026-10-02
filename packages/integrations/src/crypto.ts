@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHmac, randomBytes } from "node:crypto";
 
 /** AES-256-GCM with the key from APP_ENCRYPTION_KEY (base64, 32 bytes). Output: base64(iv|tag|ciphertext). */
 function key(): Buffer {
@@ -32,4 +32,31 @@ export function encryptJson(value: unknown): string {
 }
 export function decryptJson<T>(payload: string): T {
   return JSON.parse(decryptSecret(payload)) as T;
+}
+
+/** Lower-cased, trimmed address: the form every email lookup uses. */
+export function normalizeEmailAddress(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+/**
+ * Keyed hash (HMAC-SHA256 with APP_ENCRYPTION_KEY) of a normalized address: the delivery log and
+ * the platform suppression list match recipients without storing them. Rotating the key makes
+ * existing hashes unmatchable (documented in DECISIONS, 2026-10-01 email).
+ */
+export function emailAddressHash(email: string): string {
+  return createHmac("sha256", Buffer.concat([Buffer.from("email-address:"), key()])).update(normalizeEmailAddress(email)).digest("hex");
+}
+
+/** `owner@northwind.demo` → `ow•••@no•••.demo`: enough for support to recognise an address, not to read it. */
+export function maskEmail(email: string): string {
+  const e = normalizeEmailAddress(email);
+  const at = e.lastIndexOf("@");
+  if (at < 1) return "•••";
+  const local = e.slice(0, at);
+  const domain = e.slice(at + 1);
+  const dot = domain.lastIndexOf(".");
+  const host = dot > 0 ? domain.slice(0, dot) : domain;
+  const tld = dot > 0 ? domain.slice(dot) : "";
+  return `${local.slice(0, Math.min(2, local.length - 1) || 1)}•••@${host.slice(0, 2)}•••${tld}`;
 }

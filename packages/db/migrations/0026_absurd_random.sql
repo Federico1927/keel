@@ -1,0 +1,2 @@
+CREATE INDEX "backorders_order_idx" ON "backorders" USING btree ("order_id","status");--> statement-breakpoint
+CREATE INDEX "backorders_po_line_idx" ON "backorders" USING btree ("purchase_order_line_id");

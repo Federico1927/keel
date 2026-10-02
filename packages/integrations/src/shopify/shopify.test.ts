@@ -5,7 +5,7 @@ import { IntegrationError } from "../types";
 import { ShopifyCommercePlatform } from "./adapter";
 import { mapRestOrder } from "./mappers";
 import { buildInstallUrl, verifyOAuthCallback, verifyWebhookHmac } from "./oauth";
-import { graphqlCancel, graphqlDiscounts, graphqlInventory, graphqlInventoryItemUpdate, graphqlOrdersPage, graphqlProductsPage, graphqlShop, graphqlThrottled, graphqlVariantInventoryItem, graphqlWebhookCreate, graphqlWebhooks, restOrderWebhook } from "./__fixtures__";
+import { graphqlCancel, graphqlDiscounts, graphqlFulfillmentOrderHold, graphqlFulfillmentOrderReleaseHold, graphqlFulfillmentOrders, graphqlInventory, graphqlInventoryItemUpdate, graphqlOrdersPage, graphqlProductsPage, graphqlShop, graphqlThrottled, graphqlVariantInventoryItem, graphqlWebhookCreate, graphqlWebhooks, restOrderWebhook } from "./__fixtures__";
 
 const creds = { shop: "northwind-demo.myshopify.com", accessToken: "shpat_test", apiSecret: "shhh" };
 const bodyOf = (init?: { body?: string }) => (init?.body ? (JSON.parse(init.body) as { query: string; variables: Record<string, unknown> }) : { query: "", variables: {} });
@@ -175,6 +175,32 @@ describe("shopify product bulk writes", () => {
     expect(bodyOf({ body: p.http.calls[3]!.body! }).variables).toEqual({ productId: "gid://shopify/Product/77", variants: [{ id: "gid://shopify/ProductVariant/4100001", compareAtPrice: null }] });
     await p.updateProductTags("77", ["sale"], ["new"]);
     expect(p.http.calls.slice(4).map((c) => bodyOf({ body: c.body! }).variables)).toEqual([{ id: "gid://shopify/Product/77", tags: ["sale"] }, { id: "gid://shopify/Product/77", tags: ["new"] }]);
+  });
+});
+
+describe("shopify fulfillment holds (backorders)", () => {
+  it("holds only open fulfillment orders without Keel's hold, and releases only Keel's holds", async () => {
+    const p = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("fulfillmentOrders(first"), body: graphqlFulfillmentOrders },
+      { match: (_u, i) => bodyOf(i).query.includes("fulfillmentOrderHold("), body: graphqlFulfillmentOrderHold },
+      { match: (_u, i) => bodyOf(i).query.includes("fulfillmentOrderReleaseHold("), body: graphqlFulfillmentOrderReleaseHold },
+    ]);
+    await p.holdFulfillment("5678901234567", { reason: "awaiting_stock", note: "PO-202609-004" });
+    expect(p.http.calls).toHaveLength(2);
+    expect(bodyOf({ body: p.http.calls[0]!.body! }).variables).toEqual({ id: "gid://shopify/Order/5678901234567" });
+    expect(bodyOf({ body: p.http.calls[1]!.body! }).variables).toEqual({ id: "gid://shopify/FulfillmentOrder/701", fulfillmentHold: { reason: "INVENTORY_OUT_OF_STOCK", reasonNotes: "PO-202609-004", handle: "keel-awaiting-stock", notifyMerchant: false } });
+    await p.releaseFulfillment("5678901234567");
+    expect(p.http.calls).toHaveLength(4);
+    expect(bodyOf({ body: p.http.calls[3]!.body! }).variables).toEqual({ id: "gid://shopify/FulfillmentOrder/702", holdIds: ["gid://shopify/FulfillmentHold/81"] });
+  });
+  it("surfaces user errors and unknown orders", async () => {
+    const missing = platform([{ match: () => true, body: { data: { order: null } } }]);
+    await expect(missing.holdFulfillment("1", { reason: "other" })).rejects.toMatchObject({ code: "not_found" });
+    const refused = platform([
+      { match: (_u, i) => bodyOf(i).query.includes("fulfillmentOrders(first"), body: graphqlFulfillmentOrders },
+      { match: (_u, i) => bodyOf(i).query.includes("fulfillmentOrderHold("), body: { data: { fulfillmentOrderHold: { fulfillmentHold: null, userErrors: [{ field: ["id"], message: "Fulfillment order is not open" }] } } } },
+    ]);
+    await expect(refused.holdFulfillment("5678901234567", { reason: "awaiting_stock" })).rejects.toMatchObject({ code: "invalid_request" });
   });
 });
 

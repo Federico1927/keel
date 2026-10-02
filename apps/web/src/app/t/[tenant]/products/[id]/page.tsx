@@ -15,6 +15,7 @@ import { ProductActions, VariantPriceForm } from "./actions";
 import { VariantCostsForm } from "./costs-form";
 import { RecordTasks } from "@/components/record-tasks";
 import { SupplierPacksSection } from "./supplier-section";
+import { StockGrid } from "./stock-grid";
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
@@ -180,6 +181,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </Table>
         </CardContent>
       </Card>
+      <StockGrid options={options} locale={ctx.locale} variants={variants.map((v) => { const s = stock.find((r) => r.variantId === v.id); return { id: v.id, optionValues: (v.optionValues ?? {}) as Record<string, string>, available: s?.available ?? 0, incoming: s?.incoming ?? 0, committed: s?.committed ?? 0 }; })} />
       <VariantCostsForm slug={tenant} productId={product.id} canEdit={canWritePage(ctx.role, "products")} writeBack={ctx.settings.costWriteBack} variants={variants.map((v) => ({ id: v.id, title: v.title, sku: v.sku, cost: v.costMinor !== null ? (v.costMinor / 100).toFixed(2) : "", source: v.costSource, updated: v.costUpdatedAt ? formatDate(v.costUpdatedAt, ctx.locale, ctx.tenant.timezone) : null }))} />
       <SupplierPacksSection ctx={ctx} slug={tenant} productId={product.id} />
     </DetailShell>

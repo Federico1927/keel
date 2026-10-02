@@ -3,7 +3,8 @@ import { OPEN_STATUSES, addressKey, applyDiscountToAmounts, diffRecords, linesDi
 import type { Address, CommercePlatform, CreateOrderInput } from "@keel/integrations";
 import type { ServiceContext } from "../context";
 import { importOrder } from "../sync";
-import { applyCancellation, recomputeOrderStatus } from "./state";
+import { applyCancellation, closeOrderBackorders, recomputeOrderStatus } from "./state";
+import { checkOrderStock, type StockCheckResult } from "../backorders";
 import { runPlatformWriteNow } from "../writes";
 
 /**
@@ -202,6 +203,10 @@ export interface ReplaceResult {
   warning: "old_order_not_cancelled" | null;
   /** Money to settle on a paid order: positive = customer owes, negative = refund due. 0 when unpaid. */
   balanceMinor: number;
+  /** Lines of the replacement stock could not serve (backorders created, order held). */
+  backorders?: number;
+  /** Platform fulfillment hold enqueued for the replacement (dispatch after the commit). */
+  holdWrite?: StockCheckResult["write"];
 }
 export type EditOrderResult = ({ kind: "updated" } & EditDetailsResult) | ReplaceResult;
 
@@ -276,8 +281,10 @@ export async function replaceOrder(ctx: ServiceContext, platform: CommercePlatfo
   };
   // synchronous: the replacement's number and lines are needed right away; keyed so a repeated request reuses the order already created
   const created = await platformCall(() => runPlatformWriteNow(ctx, platform, { kind: "order.create", entityType: "order", entityId: order.id, payload: { input: createInput }, idempotencyKey: `order:replace:${[order.id, ...sources.map((x) => x.order.id).sort()].join(",")}` }));
-  const imported = await importOrder(ctx, created, { country: opts.country, source: "sync" });
+  const imported = await importOrder(ctx, created, { country: opts.country, source: "sync", stockCheck: false });
   const allOld = [target, ...sources];
+  // stock the replaced orders give back (restock on cancel): their open units, less what was waiting for stock anyway
+  const credit = await replacedStockCredit(ctx, allOld);
   const rootId = order.lineageRootOrderId ?? order.id;
   // inherit creation day, channel and assignee; attribution is copied below
   await ctx.tx.update(schema.orders).set({ replacesOrderId: order.id, lineageRootOrderId: rootId, placedAt: order.placedAt, assignedTo: order.assignedTo, sourceChannel: order.sourceChannel, landingSite: order.landingSite, referringSite: order.referringSite, customerName: merged.customerName ?? undefined, updatedAt: now }).where(eq(schema.orders.id, imported.id));
@@ -307,8 +314,33 @@ export async function replaceOrder(ctx: ServiceContext, platform: CommercePlatfo
     else await recomputeOrderStatus(ctx, o.order.id, { eventMetadata: { source } });
     await opts.hooks?.afterReplaced?.(ctx, { order: o.order, newOrderId: imported.id, cancelledOnPlatform });
     await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: o.order.id, type: "replaced", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: { replacedByOrderId: { from: null, to: imported.id } }, metadata: { replacedBy: created.name, replacedById: imported.id, cancelledOnPlatform, source }, createdAt: now });
+    // a replaced order never waits for stock, even when the platform cancel failed
+    if (await closeOrderBackorders(ctx, o.order.id, "cancelled", "order_replaced")) await recomputeOrderStatus(ctx, o.order.id, { eventMetadata: { source } });
   }
-  return { kind: "replaced", orderId: order.id, newOrderId: imported.id, newOrderName: created.name, merged: sources.length, warning, balanceMinor };
+  // the new lines go through the stock check (backorders, hold) once the old orders gave their stock back
+  const stock = await checkOrderStock(ctx, imported.id, { credit, assumeUnreflected: true, source });
+  return { kind: "replaced", orderId: order.id, newOrderId: imported.id, newOrderName: created.name, merged: sources.length, warning, balanceMinor, backorders: stock.created.length, holdWrite: stock.write };
+}
+
+/**
+ * Units per variant the replaced orders give back when cancelled with restock: their open line units,
+ * when Keel's level already took them out (read after the order was placed), less the units that were
+ * waiting for stock (never taken from it).
+ */
+async function replacedStockCredit(ctx: ServiceContext, orders: EditableOrder[]): Promise<Map<string, number>> {
+  const credit = new Map<string, number>();
+  const lines = orders.flatMap((o) => openLines(o.lines).filter((l) => l.variantId).map((l) => ({ l, placedAt: o.order.placedAt })));
+  if (!lines.length) return credit;
+  const variantIds = [...new Set(lines.map((x) => x.l.variantId!))];
+  const synced = await ctx.tx.select({ variantId: schema.inventoryLevels.variantId, at: sql<Date | null>`max(${schema.inventoryLevels.syncedAt})` }).from(schema.inventoryLevels).where(and(eq(schema.inventoryLevels.tenantId, ctx.tenantId), inArray(schema.inventoryLevels.variantId, variantIds))).groupBy(schema.inventoryLevels.variantId);
+  const waiting = await ctx.tx.select({ lineId: schema.backorders.orderLineId, n: sql<number>`sum(${schema.backorders.quantity})::int` }).from(schema.backorders).where(and(eq(schema.backorders.tenantId, ctx.tenantId), inArray(schema.backorders.orderLineId, lines.map((x) => x.l.id)), inArray(schema.backorders.status, ["pending", "covered"]))).groupBy(schema.backorders.orderLineId);
+  for (const { l, placedAt } of lines) {
+    const at = synced.find((s) => s.variantId === l.variantId)?.at;
+    if (!at || new Date(at).getTime() < placedAt.getTime()) continue;
+    const units = l.currentQuantity - (waiting.find((w) => w.lineId === l.id)?.n ?? 0);
+    if (units > 0) credit.set(l.variantId!, (credit.get(l.variantId!) ?? 0) + units);
+  }
+  return credit;
 }
 
 /**

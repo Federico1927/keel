@@ -51,7 +51,7 @@ export default async function NotificationsPage({ params, searchParams }: { para
             {data.rows.map((n) => {
               const text = notificationText(t, n);
               const link = n.link ? (n.link.startsWith("/t/") ? n.link : `/t/${tenant}${n.link}`) : null;
-              const delivered = Object.entries(n.delivered ?? {}).filter(([, v]) => v === "sent" || v === "mock").map(([k]) => t(`channels.${k}`));
+              const delivered = Object.entries(n.delivered ?? {}).filter(([, v]) => v === "sent" || v === "mock" || v === "queued" || v === "duplicate").map(([k]) => t(`channels.${k}`));
               return (
                 <div key={n.id} className={`flex flex-col gap-2 p-4 sm:flex-row sm:items-start ${n.readAt ? "opacity-70" : ""}`} data-testid="notification-row">
                   <span className={`mt-1.5 hidden h-2 w-2 shrink-0 rounded-full sm:block ${n.readAt ? "bg-transparent" : "bg-primary"}`} />

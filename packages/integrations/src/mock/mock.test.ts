@@ -61,6 +61,19 @@ describe("MockCommercePlatform", () => {
   });
 });
 
+describe("mock fulfillment holds", () => {
+  it("holds and releases an order, and fails on demand", async () => {
+    const m = platform();
+    await m.holdFulfillment("o1", { reason: "awaiting_stock", note: "PO-1" });
+    expect(m.fulfillmentHoldOf("o1")).toEqual({ reason: "awaiting_stock", note: "PO-1" });
+    await m.releaseFulfillment("o1");
+    expect(m.fulfillmentHoldOf("o1")).toBeUndefined();
+    m.failures.failNext("rate_limited");
+    await expect(m.holdFulfillment("o1", { reason: "awaiting_stock" })).rejects.toMatchObject({ code: "rate_limited" });
+    expect(m.writeLog.map((w) => w.op)).toEqual(["holdFulfillment", "releaseFulfillment"]);
+  });
+});
+
 describe("MockAdsPlatform", () => {
   it("returns daily metrics for active campaigns and respects read-only", async () => {
     const meta = new MockAdsPlatform({ provider: "meta", currency: "EUR", campaigns: [{ externalId: "c1", accountExternalId: "act", name: "Summer", status: "active", objective: null, dailyBudgetMinor: 5000, currency: "EUR", platformCreatedAt: null }] });

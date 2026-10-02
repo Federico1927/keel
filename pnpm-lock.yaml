@@ -429,6 +429,9 @@ importers:
       '@keel/integrations':
         specifier: workspace:*
         version: link:../integrations
+      '@keel/ui':
+        specifier: workspace:*
+        version: link:../ui
       bcryptjs:
         specifier: ^3.0.2
         version: 3.0.3

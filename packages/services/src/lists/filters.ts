@@ -2,6 +2,7 @@ import { and, eq, gte, inArray, lte, schema, sql, type SQL } from "@keel/db";
 import { CHURN_RISKS, ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES, UTM_DIMENSIONS, UTM_NONE, type QueryParams, type UtmDimension } from "@keel/core";
 import type { CustomerFilters } from "../crm";
 import type { ReturnFilters } from "../returns";
+import { awaitingStockSql, readyToReleaseSql } from "../backorders";
 
 /**
  * List filters parsed from the URL query, shared by the list pages, the CSV export (direct and in
@@ -33,9 +34,14 @@ export interface OrderFilters {
   /** Attribution channel and UTM values (analytics drill-down); "(none)" matches orders without the value. */
   attrChannel?: string;
   utm?: Partial<Record<UtmDimension, string>>;
+  /** Backorder views: orders waiting for stock, or ready to release (stock covers them / released, not shipped yet). */
+  stock?: OrderStockView;
   sort?: "placed_desc" | "placed_asc" | "total_desc";
   page?: number;
 }
+
+export const ORDER_STOCK_VIEWS = ["awaiting", "ready"] as const;
+export type OrderStockView = (typeof ORDER_STOCK_VIEWS)[number];
 
 export function parseOrderFilters(sp: QueryParams): OrderFilters {
   const sort = one(sp.sort);
@@ -56,6 +62,7 @@ export function parseOrderFilters(sp: QueryParams): OrderFilters {
     missingCost: one(sp.missingCost) === "1" || undefined,
     attrChannel: one(sp.attrChannel)?.trim() || undefined,
     utm: Object.fromEntries(UTM_DIMENSIONS.map((d) => [d, one(sp[utmParam(d)])?.trim() || undefined]).filter(([, v]) => v)),
+    stock: ORDER_STOCK_VIEWS.find((v) => v === one(sp.stock)),
     sort: sort === "placed_asc" || sort === "total_desc" ? sort : "placed_desc",
     page: Math.max(1, Number(one(sp.page) ?? 1) || 1),
   };
@@ -93,6 +100,8 @@ export function orderListWhere(scope: OrderFilterScope, f: OrderFilters): SQL {
   if (f.campaign) conds.push(sql`exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.campaign_id = ${f.campaign})`);
   if (f.product) conds.push(sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.tenant_id = ${scope.tenantId} and l.product_id = ${f.product} and l.current_quantity > 0)`);
   if (f.variant) conds.push(sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.tenant_id = ${scope.tenantId} and l.variant_id = ${f.variant} and l.current_quantity > 0)`);
+  if (f.stock === "awaiting") conds.push(awaitingStockSql(schema.orders.id));
+  if (f.stock === "ready") conds.push(readyToReleaseSql(schema.orders.id, schema.orders.status));
   if (f.missingCost) conds.push(sql`exists (select 1 from order_lines l where l.order_id = ${schema.orders.id} and l.unit_cost_minor is null and not l.is_ancillary)`);
   if (f.attrChannel) conds.push(f.attrChannel === "unknown" ? sql`not exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.channel <> 'unknown')` : sql`exists (select 1 from order_attribution a where a.order_id = ${schema.orders.id} and a.channel = ${f.attrChannel})`);
   const utm = Object.entries(f.utm ?? {}) as [UtmDimension, string][];

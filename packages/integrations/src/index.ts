@@ -13,6 +13,7 @@ export function integrationMode(): IntegrationMode {
   return process.env.KEEL_INTEGRATION_MODE === "live" ? "live" : "mock";
 }
 export * from "./notify";
+export * from "./email";
 export * from "./audience";
 export * from "./conversions";
 export * from "./llm";

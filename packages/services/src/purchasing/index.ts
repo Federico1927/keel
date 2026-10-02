@@ -1,7 +1,7 @@
 import { and, eq, inArray, schema, sql } from "@keel/db";
-import { backorderStatus, canTransitionPo, inspectReceipt, movingAverageCost, type PurchaseOrderStatus } from "@keel/core";
+import { canTransitionPo, inspectReceipt, movingAverageCost, type PurchaseOrderStatus } from "@keel/core";
 import type { ServiceContext } from "../context";
-import { notifyUsers } from "../notifications";
+import { refreshBackorderCoverage, type RefreshResult } from "../backorders";
 import { applyCostToOrderLines } from "../catalog/costs";
 import { syncRecordTasks } from "../tasks";
 
@@ -108,6 +108,8 @@ export interface ReceiveResult {
   /** Every inspected line, free-text ones included. */
   inspected: { lineId: string; variantId: string | null; description: string | null; received: number; damaged: number; rejected: number; good: number }[];
   releasedOrders: string[];
+  /** Platform holds lifted for the released orders (outbox rows to dispatch after the commit). */
+  platformWrites: RefreshResult["writes"];
 }
 
 /**
@@ -163,39 +165,18 @@ export async function receivePurchaseOrder(ctx: ServiceContext, input: ReceiveIn
   const complete = refreshed.every((l) => l.receivedQuantity >= l.quantity);
   const status: PurchaseOrderStatus = complete ? "received" : "partially_received";
   await ctx.tx.update(schema.purchaseOrders).set({ status, receivedAt: complete ? now : po.receivedAt }).where(eq(schema.purchaseOrders.id, po.id));
-  const releasedOrders = await refreshBackorders(ctx, received.map((r) => r.variantId));
+  // backorders: stock arrived for these variants; covered orders are released (event, notification, platform hold lifted)
+  const coverage = await refreshBackorderCoverage(ctx, received.map((r) => r.variantId));
   await syncRecordTasks(ctx, "purchase_order", [po.id]);
-  return { status, received, inspected, releasedOrders };
+  return { status, received, inspected, releasedOrders: coverage.releasedOrders, platformWrites: coverage.writes };
 }
 
-/** Recomputes backorder statuses for the given variants; returns ids of orders fully covered by stock. */
+/**
+ * Recomputes backorder coverage for the given variants (stock, incoming POs) and releases the orders
+ * stock now covers; returns their ids. The platform holds lifted are dispatched by the tick or the action.
+ */
 export async function refreshBackorders(ctx: ServiceContext, variantIds: string[]): Promise<string[]> {
-  if (!variantIds.length) return [];
-  const open = await ctx.tx.select().from(schema.backorders).where(and(eq(schema.backorders.tenantId, ctx.tenantId), inArray(schema.backorders.variantId, variantIds), inArray(schema.backorders.status, ["pending", "covered"])));
-  if (!open.length) return [];
-  const released = new Set<string>();
-  for (const b of open) {
-    const [stock] = await ctx.tx.select({ available: sql<number>`coalesce(sum(${schema.inventoryLevels.available}), 0)::int` }).from(schema.inventoryLevels).where(eq(schema.inventoryLevels.variantId, b.variantId));
-    const [incoming] = await ctx.tx
-      .select({ n: sql<number>`coalesce(sum(${schema.purchaseOrderLines.quantity} - ${schema.purchaseOrderLines.receivedQuantity}), 0)::int` })
-      .from(schema.purchaseOrderLines)
-      .innerJoin(schema.purchaseOrders, eq(schema.purchaseOrders.id, schema.purchaseOrderLines.purchaseOrderId))
-      .where(and(eq(schema.purchaseOrderLines.variantId, b.variantId), inArray(schema.purchaseOrders.status, ["confirmed", "in_transit", "partially_received"])));
-    const next = backorderStatus(b.quantity, stock?.available ?? 0, incoming?.n ?? 0);
-    if (next !== b.status) await ctx.tx.update(schema.backorders).set({ status: next, resolvedAt: next === "fulfilled" ? (ctx.now ?? new Date()) : null }).where(eq(schema.backorders.id, b.id));
-    if (next === "fulfilled") released.add(b.orderId);
-  }
-  for (const orderId of released) {
-    const stillOpen = await ctx.tx.select({ id: schema.backorders.id }).from(schema.backorders).where(and(eq(schema.backorders.orderId, orderId), inArray(schema.backorders.status, ["pending", "covered"]))).limit(1);
-    if (stillOpen.length) {
-      released.delete(orderId);
-      continue;
-    }
-    await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId, type: "hold_released", actorType: "system", actorUserId: null, diff: {}, metadata: { reason: "stock_available" }, createdAt: ctx.now ?? new Date() });
-    const [o] = await ctx.tx.select({ name: schema.orders.name, assignedTo: schema.orders.assignedTo }).from(schema.orders).where(eq(schema.orders.id, orderId)).limit(1);
-    if (o?.assignedTo) await notifyUsers(ctx, { userIds: [o.assignedTo], type: "stock_available", title: o.name, body: "stock_available", link: `/orders/${orderId}`, antiSpamMinutes: 60 });
-  }
-  return [...released];
+  return (await refreshBackorderCoverage(ctx, variantIds)).releasedOrders;
 }
 
 export async function recordSupplierPayment(ctx: ServiceContext, input: { supplierId: string; purchaseOrderId?: string | null; amountMinor: number; paidAt: Date; method?: string | null; note?: string | null }): Promise<string> {

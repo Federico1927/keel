@@ -135,3 +135,8 @@ export const graphqlCancel = { data: { orderCancel: { job: { id: "gid://shopify/
 /** inventoryItemUpdate with a cost (Admin GraphQL 2025-01). */
 export const graphqlInventoryItemUpdate = { data: { inventoryItemUpdate: { inventoryItem: { id: "gid://shopify/InventoryItem/4500001", unitCost: { amount: "52.0" } }, userErrors: [] } } };
 export const graphqlVariantInventoryItem = { data: { productVariant: { inventoryItem: { id: "gid://shopify/InventoryItem/4500004" } } } };
+
+/** `order.fulfillmentOrders` with holds (recorded shape, Admin API 2025-07): one open, one already held by Keel, one closed. */
+export const graphqlFulfillmentOrders = { data: { order: { fulfillmentOrders: { nodes: [{ id: "gid://shopify/FulfillmentOrder/701", status: "OPEN", fulfillmentHolds: [] }, { id: "gid://shopify/FulfillmentOrder/702", status: "ON_HOLD", fulfillmentHolds: [{ id: "gid://shopify/FulfillmentHold/81", handle: "keel-awaiting-stock" }, { id: "gid://shopify/FulfillmentHold/82", handle: null }] }, { id: "gid://shopify/FulfillmentOrder/703", status: "CLOSED", fulfillmentHolds: [] }] } } } };
+export const graphqlFulfillmentOrderHold = { data: { fulfillmentOrderHold: { fulfillmentHold: { id: "gid://shopify/FulfillmentHold/83" }, userErrors: [] } } };
+export const graphqlFulfillmentOrderReleaseHold = { data: { fulfillmentOrderReleaseHold: { fulfillmentOrder: { id: "gid://shopify/FulfillmentOrder/702", status: "ON_HOLD" }, userErrors: [] } } };
