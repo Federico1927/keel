@@ -1,5 +1,227 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > carrier_instruction.en 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Delivery instruction for parcel TRK123 (Northwind Apparel)</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Instruction for parcel TRK123.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Hello, Northwind Apparel sends an instruction for parcel TRK123 (order #NW-1042, carrier Carrier).</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Please deliver to this new address:</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Note: Ring twice</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Giulia Rossi</li><li>Via Roma 1</li><li>20121 Milano</li><li>IT</li></ul>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Please reply to this email to confirm.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+You receive this email because you use Keel.<br>Questions? Write to support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Unsubscribe from these emails</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Delivery instruction for parcel TRK123 (Northwind Apparel)",
+  "text": "Hello, Northwind Apparel sends an instruction for parcel TRK123 (order #NW-1042, carrier Carrier).
+
+Please deliver to this new address:
+
+Note: Ring twice
+
+- Giulia Rossi
+- Via Roma 1
+- 20121 Milano
+- IT
+
+Please reply to this email to confirm.
+
+--
+
+You receive this email because you use Keel.
+Questions? Write to support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Unsubscribe from these emails: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > carrier_instruction.es 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Instrucción de entrega para el envío TRK123 (Northwind Apparel)</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Instrucción para el envío TRK123.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Hola, Northwind Apparel envía una instrucción para el envío TRK123 (pedido #NW-1042, transportista Carrier).</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Por favor, entregad en esta nueva dirección:</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Nota: Ring twice</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Giulia Rossi</li><li>Via Roma 1</li><li>20121 Milano</li><li>IT</li></ul>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Por favor, confirmad respondiendo a este correo.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Recibes este correo porque usas Keel.<br>¿Preguntas? Escribe a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Dejar de recibir estos correos</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Instrucción de entrega para el envío TRK123 (Northwind Apparel)",
+  "text": "Hola, Northwind Apparel envía una instrucción para el envío TRK123 (pedido #NW-1042, transportista Carrier).
+
+Por favor, entregad en esta nueva dirección:
+
+Nota: Ring twice
+
+- Giulia Rossi
+- Via Roma 1
+- 20121 Milano
+- IT
+
+Por favor, confirmad respondiendo a este correo.
+
+--
+
+Recibes este correo porque usas Keel.
+¿Preguntas? Escribe a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Dejar de recibir estos correos: https://app.keel.example/u/signed",
+}
+`;
+
+exports[`templates > every template renders in en, it and es (HTML and text snapshot) > carrier_instruction.it 1`] = `
+{
+  "html": "<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Istruzione di consegna per la spedizione TRK123 (Northwind Apparel)</title>
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+@media (prefers-color-scheme:dark){
+.k-bg{background:#0b0d12!important}
+.k-card{background:#12151c!important;border-color:#232836!important}
+.k-fg{color:#eef0f5!important}
+.k-muted{color:#9aa1b2!important}
+.k-link{color:#5b7cff!important}
+.k-btn{background:#5b7cff!important;color:#0b0d12!important}
+.k-mark{background:#5b7cff!important;color:#0b0d12!important}
+.k-quote{border-color:#566285!important;color:#eef0f5!important}
+}
+</style>
+</head>
+<body class="k-bg" style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Istruzione per la spedizione TRK123.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="k-bg" style="background:#f7f8fa">
+<tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="padding:0 0 16px">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="k-mark" width="28" height="28" align="center" style="width:28px;height:28px;background:#2b59ff;color:#ffffff;border-radius:8px;font-size:15px;font-weight:700;line-height:28px">K</td>
+<td class="k-fg" style="padding-left:10px;font-size:15px;font-weight:600;color:#0b0d12">Keel</td>
+</tr></table>
+</td></tr>
+<tr><td class="k-card" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:8px;padding:24px">
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Buongiorno, Northwind Apparel invia un&#39;istruzione per la spedizione TRK123 (ordine #NW-1042, corriere Carrier).</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Vi chiediamo di consegnare a questo nuovo indirizzo:</p>
+<p class="k-fg" style="margin:0 0 12px;font-size:15px;line-height:1.55;color:#0b0d12">Nota: Ring twice</p>
+<ul class="k-fg" style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#0b0d12"><li>Giulia Rossi</li><li>Via Roma 1</li><li>20121 Milano</li><li>IT</li></ul>
+<p class="k-muted" style="margin:0;font-size:13px;line-height:1.5;color:#5b6170">Vi preghiamo di confermare rispondendo a questa email.</p>
+</td></tr>
+<tr><td class="k-muted" style="padding:16px 4px 0;font-size:12px;line-height:1.6;color:#5b6170">
+Ricevi questa email perché usi Keel.<br>Domande? Scrivi a support@keel.example.<br>Keel Labs S.r.l. · Via Example 1, 20100 Milano<br><a class="k-link" href="https://app.keel.example/u/signed" style="color:#5b6170">Non ricevere più queste email</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>",
+  "subject": "Istruzione di consegna per la spedizione TRK123 (Northwind Apparel)",
+  "text": "Buongiorno, Northwind Apparel invia un'istruzione per la spedizione TRK123 (ordine #NW-1042, corriere Carrier).
+
+Vi chiediamo di consegnare a questo nuovo indirizzo:
+
+Nota: Ring twice
+
+- Giulia Rossi
+- Via Roma 1
+- 20121 Milano
+- IT
+
+Vi preghiamo di confermare rispondendo a questa email.
+
+--
+
+Ricevi questa email perché usi Keel.
+Domande? Scrivi a support@keel.example.
+Keel Labs S.r.l. · Via Example 1, 20100 Milano
+
+Non ricevere più queste email: https://app.keel.example/u/signed",
+}
+`;
+
 exports[`templates > every template renders in en, it and es (HTML and text snapshot) > digest.en 1`] = `
 {
   "html": "<!doctype html>
