@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assignHoldout, buildRfmMatrix, evaluateRules, normCdf, rfmTier, stableBucket, twoProportionTest, validateSegmentRules, type CustomerProfile, type SegmentGroup } from "./segments";
+import { assignHoldout, buildRfmMatrix, dominantOptionValues, evaluateRules, normCdf, rfmTier, stableBucket, twoProportionTest, validateSegmentRules, type CustomerProfile, type SegmentGroup } from "./segments";
 
 const base: CustomerProfile = { customerId: "c1", ordersCount: 3, cancelledCount: 0, returnsCount: 1, totalSpentMinor: 30000, aovMinor: 10000, daysSinceLastOrder: 20, daysSinceFirstOrder: 400, acceptsMarketing: true, country: "IT", tags: ["vip"], paymentMethods: ["card"], productIds: ["11111111-1111-4111-8111-111111111111"], productTypes: ["Shoes"], randomPct: 42 };
 
@@ -30,6 +30,44 @@ describe("segment rules", () => {
     expect(evaluateRules({ match: "all", conditions: [{ field: "bought_product_type", op: "none", value: ["Shoes"] }] }, base)).toBe(false);
     expect(evaluateRules({ match: "all", conditions: [{ field: "rfm_tier", op: "in", value: ["loyal"] }] }, base)).toBe(true);
     expect(evaluateRules({ match: "all", conditions: [{ field: "random_pct", op: "lt", value: 50 }] }, base)).toBe(true);
+  });
+});
+
+describe("segment fields for campaigns (#34)", () => {
+  const p: CustomerProfile = { ...base, openOrders: 1, orderAges: [3, 45, 400], categoryLastDays: { Shoes: 45, Bags: 400 }, dominantOptions: { Size: "M", Color: "Navy" }, daysSinceLastMarketing: 10 };
+  const one = (leaf: object) => ({ match: "all" as const, conditions: [leaf as never] });
+  it("validates the extra parameters", () => {
+    expect(validateSegmentRules(one({ field: "dominant_option", op: "in", value: ["M"], option: "Size" })).errors).toEqual([]);
+    expect(validateSegmentRules(one({ field: "dominant_option", op: "in", value: ["M"] })).errors[0]?.code).toBe("bad_value");
+    expect(validateSegmentRules(one({ field: "bought_category", op: "any", value: ["Shoes"], days: 90 })).errors).toEqual([]);
+    expect(validateSegmentRules(one({ field: "bought_category", op: "any", value: ["Shoes"], days: 0 })).errors[0]?.code).toBe("bad_value");
+    expect(validateSegmentRules(one({ field: "orders_count", op: "gte", value: 1, days: 30 })).errors[0]?.code).toBe("bad_value");
+    expect(validateSegmentRules(one({ field: "bought_in_window", op: "any", value: [30, 60] })).errors).toEqual([]);
+    expect(validateSegmentRules(one({ field: "bought_in_window", op: "any", value: [60, 30] })).errors[0]?.code).toBe("bad_value");
+    expect(validateSegmentRules(one({ field: "bought_in_window", op: "gte", value: 3 })).errors[0]?.code).toBe("bad_op");
+  });
+  it("evaluates open orders, windows, categories, dominant options and marketing recency", () => {
+    expect(evaluateRules(one({ field: "open_order", op: "eq", value: true }), p)).toBe(true);
+    expect(evaluateRules(one({ field: "open_order", op: "eq", value: true }), { ...p, openOrders: 0 })).toBe(false);
+    expect(evaluateRules(one({ field: "open_order", op: "eq", value: false }), base)).toBe(true);
+    expect(evaluateRules(one({ field: "bought_in_window", op: "any", value: [30, 60] }), p)).toBe(true);
+    expect(evaluateRules(one({ field: "bought_in_window", op: "any", value: [5, 30] }), p)).toBe(false);
+    expect(evaluateRules(one({ field: "bought_in_window", op: "none", value: [5, 30] }), p)).toBe(true);
+    expect(evaluateRules(one({ field: "bought_in_window", op: "none", value: [0, 1] }), base)).toBe(true);
+    expect(evaluateRules(one({ field: "bought_category", op: "any", value: ["Bags"] }), p)).toBe(true);
+    expect(evaluateRules(one({ field: "bought_category", op: "any", value: ["Bags"], days: 90 }), p)).toBe(false);
+    expect(evaluateRules(one({ field: "bought_category", op: "all", value: ["Shoes"], days: 45 }), p)).toBe(true);
+    expect(evaluateRules(one({ field: "bought_category", op: "none", value: ["Shoes"], days: 30 }), p)).toBe(true);
+    expect(evaluateRules(one({ field: "dominant_option", op: "in", value: ["M", "L"], option: "Size" }), p)).toBe(true);
+    expect(evaluateRules(one({ field: "dominant_option", op: "in", value: ["M"], option: "Taglia" }), p)).toBe(false);
+    expect(evaluateRules(one({ field: "dominant_option", op: "not_in", value: ["M"], option: "Taglia" }), p)).toBe(true);
+    expect(evaluateRules(one({ field: "days_since_last_marketing", op: "lte", value: 14 }), p)).toBe(true);
+    expect(evaluateRules(one({ field: "days_since_last_marketing", op: "is_null" }), base)).toBe(true);
+  });
+  it("dominant option: most units, ties by code point", () => {
+    expect(dominantOptionValues([{ optionValues: { Size: "M", Color: "Red" }, quantity: 1 }, { optionValues: { Size: "L", Color: "Blue" }, quantity: 2 }, { optionValues: { Size: "M" }, quantity: 2 }])).toEqual({ Size: "M", Color: "Blue" });
+    expect(dominantOptionValues([{ optionValues: { Size: "b" }, quantity: 1 }, { optionValues: { Size: "B" }, quantity: 1 }, { optionValues: { Size: "É" }, quantity: 1 }])).toEqual({ Size: "B" });
+    expect(dominantOptionValues([])).toEqual({});
   });
 });
 

@@ -472,8 +472,28 @@ export const retentionCampaigns = pgTable(
     discountCode: text("discount_code"),
     costPerMessageMinor: integer("cost_per_message_minor").notNull().default(0),
     attributionDays: integer("attribution_days").notNull().default(14),
-    /** draft | sent */
+    /** one-off: draft | pending_approval | approved | scheduled | sending | sent; sequence: draft | pending_approval | approved | active | paused (core `RETENTION_CAMPAIGN_STATUSES`). */
     status: text("status").notNull().default("draft"),
+    /** one_off | sequence (always-on: segment entrants are messaged as they arrive, the segment's control group is permanent). */
+    kind: text("kind").notNull().default("one_off"),
+    /** Members with an open order are left out of the send (both groups). */
+    excludeOpenOrders: boolean("exclude_open_orders").notNull().default(true),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }),
+    submittedBy: uuid("submitted_by").references(() => users.id, { onDelete: "set null" }),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    approvedBy: uuid("approved_by").references(() => users.id, { onDelete: "set null" }),
+    /** Last reviewer note: why it was sent back, or what the approver added. */
+    reviewNote: text("review_note"),
+    /** Requested send time (one-off); the job starts at this instant or at the next opening of the send window. */
+    scheduledAt: timestamp("scheduled_at", { withTimezone: true }),
+    scheduledBy: uuid("scheduled_by").references(() => users.id, { onDelete: "set null" }),
+    /** When the last message went out (one-off): sending → sent. */
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    /** Members left out at send start (sequences: running totals), by reason (core `CAMPAIGN_EXCLUSION_REASONS`). */
+    exclusionCounts: jsonb("exclusion_counts").$type<Record<string, number>>().notNull().default(sql`'{}'::jsonb`),
+    testSentAt: timestamp("test_sent_at", { withTimezone: true }),
+    testSentBy: uuid("test_sent_by").references(() => users.id, { onDelete: "set null" }),
+    /** Exposure time of a one-off campaign: the send start (the measurement window opens here). */
     sentAt: timestamp("sent_at", { withTimezone: true }),
     sentBy: uuid("sent_by").references(() => users.id, { onDelete: "set null" }),
     treatedCount: integer("treated_count").notNull().default(0),
@@ -485,7 +505,7 @@ export const retentionCampaigns = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index("retention_campaigns_tenant_idx").on(t.tenantId, t.createdAt), tenantIsolation("retention_campaigns")],
+  (t) => [index("retention_campaigns_tenant_idx").on(t.tenantId, t.createdAt), index("retention_campaigns_status_idx").on(t.tenantId, t.status), tenantIsolation("retention_campaigns")],
 ).enableRLS();
 
 /** One row per customer of a sent campaign: their group, what happened to the message, when. */
@@ -501,13 +521,26 @@ export const retentionExposures = pgTable(
       .references(() => customers.id, { onDelete: "cascade" }),
     /** treated | holdout */
     groupName: text("group_name").notNull(),
-    /** sent | failed | skipped (no address) | held_out */
+    /** queued | sending (claimed by a worker) | sent | failed | skipped (no address) | suppressed (blocked at send time) | held_out */
     status: text("status").notNull(),
     messageId: text("message_id"),
     error: text("error"),
     exposedAt: timestamp("exposed_at", { withTimezone: true }).notNull(),
+    /** Send queue (#34): one message per campaign × customer × channel, handed to the provider with this key so a resent batch is not delivered twice. */
+    idempotencyKey: text("idempotency_key"),
+    attempts: integer("attempts").notNull().default(0),
+    nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true }),
+    claimedAt: timestamp("claimed_at", { withTimezone: true }),
+    /** When the provider accepted the message (frequency cap and throttle read it; null on rows from before the queue: `exposed_at`). */
+    sentAt: timestamp("sent_at", { withTimezone: true }),
   },
-  (t) => [uniqueIndex("retention_exposures_uq").on(t.campaignId, t.customerId), index("retention_exposures_customer_idx").on(t.tenantId, t.customerId), tenantIsolation("retention_exposures")],
+  (t) => [
+    uniqueIndex("retention_exposures_uq").on(t.campaignId, t.customerId),
+    index("retention_exposures_customer_idx").on(t.tenantId, t.customerId),
+    uniqueIndex("retention_exposures_idempotency_uq").on(t.tenantId, t.idempotencyKey),
+    index("retention_exposures_queue_idx").on(t.campaignId, t.status),
+    tenantIsolation("retention_exposures"),
+  ],
 ).enableRLS();
 
 /** A segment pushed to an external audience (ad platform or email tool). Only the treated group is pushed. */

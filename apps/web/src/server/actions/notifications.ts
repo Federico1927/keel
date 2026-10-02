@@ -2,7 +2,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { NOTIFICATION_CHANNELS, isNotificationType } from "@hullwise/config";
-import { addEmailSuppression, markAllRead, removeEmailSuppression, resetNotificationPreferences, setMentionsRead, setNotificationPreference, setNotificationsRead, type ServiceContext } from "@hullwise/services";
+import { normalizePhone } from "@hullwise/core";
+import { addEmailSuppression, addPhoneSuppression, markAllRead, removeEmailSuppression, resetNotificationPreferences, setMentionsRead, setNotificationPreference, setNotificationsRead, type ServiceContext } from "@hullwise/services";
 import type { Transaction } from "@hullwise/db";
 import { ForbiddenError, getTenantContext, requireAction, requirePage, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
@@ -54,14 +55,23 @@ export async function resetPreferencesAction(slug: string): Promise<ActionResult
   return ok();
 }
 
-const suppressionSchema = z.object({ email: z.string().trim().email().toLowerCase(), category: z.string().trim().min(1).max(40).default("all"), note: z.string().trim().max(200).optional() });
+/** An email address, or a phone number (SMS and WhatsApp campaigns share the list, #34). */
+const suppressionSchema = z.object({ email: z.string().trim().min(3).max(254), category: z.string().trim().min(1).max(40).default("all"), note: z.string().trim().max(200).optional() });
 
 export async function addSuppressionAction(slug: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   try {
     const ctx = await requireAction(slug, "manage_settings", "notifications");
     const parsed = suppressionSchema.safeParse(Object.fromEntries(formData));
     if (!parsed.success) return fail("invalid_input");
-    await ctx.run((tx) => addEmailSuppression(svc(ctx, tx), { email: parsed.data.email, reason: "manual", category: parsed.data.category, source: "app", note: parsed.data.note ?? null }));
+    const identity = parsed.data.email;
+    if (identity.includes("@")) {
+      if (!z.string().email().safeParse(identity).success) return fail("invalid_input");
+      await ctx.run((tx) => addEmailSuppression(svc(ctx, tx), { email: identity.toLowerCase(), reason: "manual", category: parsed.data.category, source: "app", note: parsed.data.note ?? null }));
+    } else {
+      const phone = normalizePhone(identity, ctx.tenant.country);
+      if (!phone) return fail("invalid_input");
+      await ctx.run((tx) => addPhoneSuppression(svc(ctx, tx), { phone, reason: "manual", category: parsed.data.category, source: "app", note: parsed.data.note ?? null }));
+    }
     revalidatePath(`/t/${slug}/notifications/suppressions`);
     return ok();
   } catch (e) {

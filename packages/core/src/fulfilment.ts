@@ -58,6 +58,14 @@ export function zonedDayStart(dateKey: string, timeZone: string): Date {
   return new Date(at);
 }
 
+/** The instant a local wall-clock time occurs on a local date in a time zone (offset re-read at the result, as above). */
+export function zonedWallTime(dateKey: string, hour: number, minute: number, timeZone: string): Date {
+  const guess = new Date(`${dateKey}T00:00:00Z`).getTime() + (hour * 60 + minute) * 60000;
+  let at = guess - offsetMinutes(new Date(guess), timeZone) * 60000;
+  at = guess - offsetMinutes(new Date(at), timeZone) * 60000;
+  return new Date(at);
+}
+
 export const DEFAULT_WORKDAYS: readonly number[] = [1, 2, 3, 4, 5];
 
 /**

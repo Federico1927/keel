@@ -25,7 +25,7 @@ export default async function NewRetentionCampaignPage({ params, searchParams }:
       ) : (
         <Card>
           <CardContent className="pt-6">
-            <CampaignForm slug={tenant} segments={options} currency={ctx.tenant.currency} values={{ name: "", segmentId: preselected, channel: "email", message: "", discountCode: null, costPerMessageMinor: 0, attributionDays: 14 }} />
+            <CampaignForm slug={tenant} segments={options} currency={ctx.tenant.currency} values={{ name: "", segmentId: preselected, channel: "email", kind: "one_off", message: "", discountCode: null, costPerMessageMinor: 0, attributionDays: 14, excludeOpenOrders: true }} />
           </CardContent>
         </Card>
       )}

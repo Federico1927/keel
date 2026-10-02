@@ -32,7 +32,10 @@ export const emailSuppressions = pgTable(
   "email_suppressions",
   {
     ...tenantColumns(),
+    /** The suppressed identity: a normalized email, or an E.164 phone number when `identity_type` is `phone` (#34: SMS and WhatsApp share the list). */
     email: text("email").notNull(),
+    /** email | phone */
+    identityType: text("identity_type").notNull().default("email"),
     /** bounce | complaint | unsubscribe | manual */
     reason: text("reason").notNull(),
     category: text("category").notNull().default("all"),

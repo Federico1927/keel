@@ -368,8 +368,8 @@
     "order_states_link": "Order state rules",
     "branding_link": "Branding",
     "fulfilment_link": "Fulfilment",
-    "ai_link": "AI & MCP",
-    "data_export_link": "Data export"
+    "data_export_link": "Data export",
+    "ai_link": "AI & MCP"
   },
   "users": {
     "title": "Users & roles",
@@ -570,8 +570,9 @@
       "digest": "Daily digest email",
       "export_ready": "CSV export ready",
       "other": "Other",
+      "platform_failure": "Failing background jobs",
       "mcp_proposal": "Proposal from an AI client",
-      "platform_failure": "Failing background jobs"
+      "customer_campaign": "Customer campaigns: approvals and sends"
     },
     "rendered": {
       "stock_critical_no_po": "{title} selling variants at critical stock with nothing on order",
@@ -582,7 +583,11 @@
       "platform_failure": "Background job {title} keeps failing",
       "source_idle": "{title} has synced nothing in its last runs",
       "data_export_ready": "Your full data export is ready ({title} rows)",
-      "data_export_failed": "Your full data export failed"
+      "data_export_failed": "Your full data export failed",
+      "customer_campaign_approval_requested": "Campaign to approve: {title}",
+      "customer_campaign_approved": "Campaign approved: {title}",
+      "customer_campaign_rejected": "Campaign sent back: {title}",
+      "customer_campaign_sent": "Campaign sent: {title}"
     },
     "groups": {
       "collaboration": "Collaboration",
@@ -619,9 +624,9 @@
       }
     },
     "suppressions": {
-      "title": "Email suppressions",
-      "description": "Addresses that do not receive email from this store: bounces and complaints block every email, unsubscribes block their category.",
-      "email": "Email",
+      "title": "Suppression list",
+      "description": "Addresses and phone numbers this store never contacts: bounces and complaints block every email, unsubscribes block their category; customer campaigns skip anyone listed on any channel.",
+      "email": "Email or phone",
       "category": "Category",
       "reason": "Reason",
       "when": "When",
@@ -636,7 +641,10 @@
         "unsubscribe": "Unsubscribed",
         "manual": "Added by hand"
       },
-      "supplier_po": "Purchase orders to suppliers"
+      "supplier_po": "Purchase orders to suppliers",
+      "marketing": "Customer campaigns (marketing)",
+      "phone": "phone",
+      "identity_placeholder": "name@example.com or +39…"
     },
     "export_lists": {
       "orders": "orders",
@@ -1879,11 +1887,11 @@
     "declared": {
       "title_meta": "Meta: declared vs real",
       "title_google": "Google: declared vs real",
+      "title_tiktok": "TikTok: declared vs real",
       "platform_says": "Platform declares (purchases · value · ROAS)",
       "real": "Real attributed orders (orders · net · ROAS)",
       "gap": "Gap",
-      "help": "Platforms count conversions with their own windows and modelling; real orders are Hullwise's attributed sale orders. A large negative gap means the platform over-reports.",
-      "title_tiktok": "TikTok: declared vs real"
+      "help": "Platforms count conversions with their own windows and modelling; real orders are Hullwise's attributed sale orders. A large negative gap means the platform over-reports."
     },
     "creatives_link": "Creatives",
     "creatives": {
@@ -2116,6 +2124,27 @@
       "members": "Members",
       "holdout": "Holdout",
       "evaluated": "Last evaluated"
+    },
+    "insights": {
+      "title": "What members buy",
+      "description": "Confirmed, non-cancelled orders of every member (both groups).",
+      "avg_spent": "Average spend per member",
+      "buyers": "{n} of {of} have bought",
+      "aov": "Average order value",
+      "avg_orders": "Orders per member",
+      "reachable": "Reachable: email / phone",
+      "reachable_hint": "With marketing consent",
+      "top_products": "Top products",
+      "top_categories": "Top categories",
+      "top_options": "Top option values",
+      "channels_title": "Sales channels",
+      "units": "{n} units",
+      "customers_n": "{n} customers",
+      "channels": {
+        "web": "Online store",
+        "pos": "Point of sale",
+        "draft": "Manual orders"
+      }
     }
   },
   "segment_builder": {
@@ -2183,7 +2212,12 @@
       "churn_risk": "Churn risk",
       "p_alive": "Probability still active (%)",
       "predicted_value": "Predicted value, next 12 months",
-      "days_to_next_order": "Days to expected next order"
+      "days_to_next_order": "Days to expected next order",
+      "open_order": "Has an open order",
+      "bought_in_window": "Ordered in a period",
+      "bought_category": "Bought category",
+      "dominant_option": "Most bought option value",
+      "days_since_last_marketing": "Days since last campaign message"
     },
     "ops": {
       "gte": "is at least",
@@ -2210,6 +2244,14 @@
       "invalid_shape": "Rules are malformed.",
       "invalid_rules": "Rules are not valid.",
       "forbidden": "You are not allowed to do this."
+    },
+    "option": "Option",
+    "within_days": "in the last",
+    "ever": "ever",
+    "days_ago": "days ago",
+    "ops_window": {
+      "any": "has an order",
+      "none": "has no order"
     }
   },
   "return_status": {
@@ -2658,11 +2700,11 @@
       "shopify": "Shopify",
       "meta": "Meta Ads",
       "google": "Google Ads",
+      "tiktok": "TikTok Ads",
       "tracking": "Pixel & conversions",
       "survey": "Post-purchase survey",
       "anthropic": "AI (Anthropic)",
-      "email": "Platform email",
-      "tiktok": "TikTok Ads"
+      "email": "Platform email"
     },
     "status": {
       "not_connected": "Not connected",
@@ -2711,15 +2753,15 @@
       "shopify": "Custom app (Admin API token)",
       "meta": "System user token",
       "google": "Google Ads API credentials",
-      "anthropic": "Anthropic API key",
-      "tiktok": "TikTok for Business app"
+      "tiktok": "TikTok for Business app",
+      "anthropic": "Anthropic API key"
     },
     "connect_description": {
       "shopify": "Create a custom app in the store admin, grant the scopes listed in the guide, paste the Admin API access token and the API secret key used to sign webhooks.",
       "meta": "A long-lived system user token from Business Manager with ads_read and ads_management on the ad account.",
       "google": "Developer token, OAuth client and a refresh token authorised for the Google Ads scope; read-only in this version.",
-      "anthropic": "The store's own key from console.anthropic.com. Anthropic bills the assistant's usage to that account; Hullwise stores the key encrypted.",
-      "tiktok": "App id and secret of the TikTok for Business app and the auth code returned by the advertiser authorization; Hullwise exchanges it for a long-lived token covering every authorized advertiser account."
+      "tiktok": "App id and secret of the TikTok for Business app and the auth code returned by the advertiser authorization; Hullwise exchanges it for a long-lived token covering every authorized advertiser account.",
+      "anthropic": "The store's own key from console.anthropic.com. Anthropic bills the assistant's usage to that account; Hullwise stores the key encrypted."
     },
     "fields": {
       "shop": "Shop domain",
@@ -2989,6 +3031,73 @@
       ],
       "scopes": "Reading: the adwords scope with read access and a Basic developer token. Optional, only to pause ads and add negative keywords: the same scope with a user who can edit the account."
     },
+    "tiktok": {
+      "title": "Connect TikTok Ads",
+      "intro": "Campaigns, ad groups and ads (copy, video, thumbnail) with daily spend, impressions, clicks, conversions, conversion value and video views, from every authorized advertiser account. Pausing and resuming campaigns and ads asks for confirmation and goes through the write queue. Included from the Growth plan.",
+      "steps": [
+        {
+          "title": "Create the TikTok for Business app",
+          "body": "On the TikTok API for Business developer portal create an app (or use Hullwise’s, when TIKTOK_APP_ID is configured). Set the advertiser redirect URL to:\n{callbackUrl}",
+          "verify": true
+        },
+        {
+          "title": "Permissions",
+          "body": "Request the permission groups the activated modules need (panel on the right): Ad Account Management, Ads Management and Reporting for campaigns and metrics; Creative Management for video thumbnails. TikTok reviews the app before it can be used on accounts other than yours.",
+          "verify": true
+        },
+        {
+          "title": "Authorize the advertiser accounts",
+          "body": "The store owner (or an admin of its Business Center) opens the authorization link, picks the advertiser accounts and confirms. TikTok redirects back with an auth_code valid for a few minutes and usable once.",
+          "verify": true
+        },
+        {
+          "title": "Connect in Hullwise",
+          "body": "Integrations → TikTok Ads → Connect: app id, app secret and the auth code (or “Authorize with TikTok” with Hullwise’s app). Hullwise exchanges the code for a long-lived access token, stores it encrypted (AES-GCM) and imports every advertiser it covers."
+        },
+        {
+          "title": "UTM template",
+          "body": "In every ad set the URL parameters (or append them to the landing page URL):\n{utmTemplate}\nTikTok fills __CAMPAIGN_ID__, __AID__ (ad group) and __CID__ (ad). Together with the ttclid click id they tie orders to campaigns, ad groups and ads; ads without them are flagged on the Suggestions page.",
+          "verify": true
+        },
+        {
+          "title": "API version",
+          "body": "Hullwise calls the TikTok API for Business {apiVersion} (reporting: report/integrated/get, daily rows in windows of up to 30 days). Check the changelog before each release.",
+          "verify": true
+        },
+        {
+          "title": "Verify",
+          "body": "Test connection reads the advertiser accounts; Resync imports campaigns and daily metrics, then ad groups and ads in 7-day windows (resumable, rate limits respected). The first import covers the last 90 days."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "40105 / 40102 access token invalid or expired",
+          "fix": "The advertiser revoked the authorization or the token was rotated: authorize again and reconnect."
+        },
+        {
+          "symptom": "40001 no permission",
+          "fix": "The app lacks a permission group, or the advertiser account was not selected during the authorization."
+        },
+        {
+          "symptom": "40100 too many requests",
+          "fix": "Rate limit: Hullwise pauses the sync and resumes from the same window after the wait."
+        },
+        {
+          "symptom": "Auth code expired or used",
+          "fix": "The auth code lasts a few minutes and works once: run the authorization again."
+        },
+        {
+          "symptom": "Orders show no TikTok ad",
+          "fix": "The URL parameters miss utm_content=__CID__ / utm_term=__AID__, or the store drops ttclid from the landing URL."
+        }
+      ],
+      "scopes": "Read-only analysis needs Ad Account Management and Reporting; pause/resume needs Ads Management too. Without Creative Management everything works except thumbnails.",
+      "modules": {
+        "campaigns": "Campaigns, ad groups, ads and metrics",
+        "creatives": "Video thumbnails",
+        "pause": "Pause / resume"
+      }
+    },
     "anthropic": {
       "title": "Connect the AI assistant (Anthropic)",
       "intro": "The assistant runs on your own Anthropic API key: Anthropic bills the usage to your account, and Hullwise only stores the key, encrypted. Without a key the Assistant page asks to connect one.",
@@ -3226,73 +3335,6 @@
           "fix": "RESEND_WEBHOOK_SECRET is missing or differs from the endpoint signing secret: the webhook answers 401 or 503."
         }
       ]
-    },
-    "tiktok": {
-      "title": "Connect TikTok Ads",
-      "intro": "Campaigns, ad groups and ads (copy, video, thumbnail) with daily spend, impressions, clicks, conversions, conversion value and video views, from every authorized advertiser account. Pausing and resuming campaigns and ads asks for confirmation and goes through the write queue. Included from the Growth plan.",
-      "steps": [
-        {
-          "title": "Create the TikTok for Business app",
-          "body": "On the TikTok API for Business developer portal create an app (or use Hullwise’s, when TIKTOK_APP_ID is configured). Set the advertiser redirect URL to:\n{callbackUrl}",
-          "verify": true
-        },
-        {
-          "title": "Permissions",
-          "body": "Request the permission groups the activated modules need (panel on the right): Ad Account Management, Ads Management and Reporting for campaigns and metrics; Creative Management for video thumbnails. TikTok reviews the app before it can be used on accounts other than yours.",
-          "verify": true
-        },
-        {
-          "title": "Authorize the advertiser accounts",
-          "body": "The store owner (or an admin of its Business Center) opens the authorization link, picks the advertiser accounts and confirms. TikTok redirects back with an auth_code valid for a few minutes and usable once.",
-          "verify": true
-        },
-        {
-          "title": "Connect in Hullwise",
-          "body": "Integrations → TikTok Ads → Connect: app id, app secret and the auth code (or “Authorize with TikTok” with Hullwise’s app). Hullwise exchanges the code for a long-lived access token, stores it encrypted (AES-GCM) and imports every advertiser it covers."
-        },
-        {
-          "title": "UTM template",
-          "body": "In every ad set the URL parameters (or append them to the landing page URL):\n{utmTemplate}\nTikTok fills __CAMPAIGN_ID__, __AID__ (ad group) and __CID__ (ad). Together with the ttclid click id they tie orders to campaigns, ad groups and ads; ads without them are flagged on the Suggestions page.",
-          "verify": true
-        },
-        {
-          "title": "API version",
-          "body": "Hullwise calls the TikTok API for Business {apiVersion} (reporting: report/integrated/get, daily rows in windows of up to 30 days). Check the changelog before each release.",
-          "verify": true
-        },
-        {
-          "title": "Verify",
-          "body": "Test connection reads the advertiser accounts; Resync imports campaigns and daily metrics, then ad groups and ads in 7-day windows (resumable, rate limits respected). The first import covers the last 90 days."
-        }
-      ],
-      "errors": [
-        {
-          "symptom": "40105 / 40102 access token invalid or expired",
-          "fix": "The advertiser revoked the authorization or the token was rotated: authorize again and reconnect."
-        },
-        {
-          "symptom": "40001 no permission",
-          "fix": "The app lacks a permission group, or the advertiser account was not selected during the authorization."
-        },
-        {
-          "symptom": "40100 too many requests",
-          "fix": "Rate limit: Hullwise pauses the sync and resumes from the same window after the wait."
-        },
-        {
-          "symptom": "Auth code expired or used",
-          "fix": "The auth code lasts a few minutes and works once: run the authorization again."
-        },
-        {
-          "symptom": "Orders show no TikTok ad",
-          "fix": "The URL parameters miss utm_content=__CID__ / utm_term=__AID__, or the store drops ttclid from the landing URL."
-        }
-      ],
-      "scopes": "Read-only analysis needs Ad Account Management and Reporting; pause/resume needs Ads Management too. Without Creative Management everything works except thumbnails.",
-      "modules": {
-        "campaigns": "Campaigns, ad groups, ads and metrics",
-        "creatives": "Video thumbnails",
-        "pause": "Pause / resume"
-      }
     }
   },
   "admin": {
@@ -3320,10 +3362,10 @@
         "support": "Support",
         "audit": "Audit"
       },
-      "mcp": "MCP",
-      "subscriptions": "Subscriptions",
       "jobs": "Job runs",
-      "alerts": "Failure alerts"
+      "alerts": "Failure alerts",
+      "mcp": "MCP",
+      "subscriptions": "Subscriptions"
     },
     "plans": {
       "starter": "Starter",
@@ -3429,10 +3471,10 @@
         "shopify": "Shopify connected",
         "meta": "Meta Ads connected",
         "google": "Google Ads connected",
+        "tiktok": "TikTok Ads connected",
         "state_rules": "Order state rules",
         "costs": "Cost settings",
-        "billing": "Billing in good standing",
-        "tiktok": "TikTok Ads connected"
+        "billing": "Billing in good standing"
       },
       "members": "Members",
       "open_balance": "Open balance",
@@ -3634,40 +3676,6 @@
       },
       "remove": "Remove",
       "guide_title": "Setup guide"
-    },
-    "mcp": {
-      "title": "MCP usage",
-      "description": "Calls of AI clients per tenant over the last 30 days, and the kill switch. Every switch is written to the tenant's audit log.",
-      "platform_disabled": "HULLWISE_MCP_DISABLED=1: the MCP server refuses every call on this deployment.",
-      "stat_calls": "Calls (30 days)",
-      "stat_errors": "Errors",
-      "stat_rate_limited": "Rate limited",
-      "stat_connections": "Active connections",
-      "stat_unknown_tokens": "Unknown tokens",
-      "tenants_title": "Tenants",
-      "tenants_description": "Plan, state, usage and the kill switch per tenant.",
-      "col_tenant": "Tenant",
-      "col_status": "State",
-      "col_calls": "Calls",
-      "col_errors": "Errors",
-      "col_users": "People",
-      "col_connections": "Connections",
-      "col_last_call": "Last call",
-      "col_kill": "Kill switch",
-      "pending": "{count} to approve",
-      "denied_rl": "{denied} refused · {limited} limited",
-      "kill": "Suspend MCP",
-      "kill_confirm": "Suspend MCP for this tenant? Every call is refused until you restore it.",
-      "restore": "Restore MCP",
-      "note_placeholder": "Reason (audited)",
-      "availability": {
-        "ok": "Active",
-        "plan": "Not in plan",
-        "tenant_disabled": "Off (tenant)",
-        "killed": "Suspended",
-        "platform_disabled": "Platform off",
-        "suspended": "Tenant suspended"
-      }
     },
     "platform_label": "Platform",
     "export_csv": "Export CSV",
@@ -3898,6 +3906,40 @@
       "close": "Close",
       "empty_title": "No alerts",
       "empty_description": "Nothing is failing right now."
+    },
+    "mcp": {
+      "title": "MCP usage",
+      "description": "Calls of AI clients per tenant over the last 30 days, and the kill switch. Every switch is written to the tenant's audit log.",
+      "platform_disabled": "HULLWISE_MCP_DISABLED=1: the MCP server refuses every call on this deployment.",
+      "stat_calls": "Calls (30 days)",
+      "stat_errors": "Errors",
+      "stat_rate_limited": "Rate limited",
+      "stat_connections": "Active connections",
+      "stat_unknown_tokens": "Unknown tokens",
+      "tenants_title": "Tenants",
+      "tenants_description": "Plan, state, usage and the kill switch per tenant.",
+      "col_tenant": "Tenant",
+      "col_status": "State",
+      "col_calls": "Calls",
+      "col_errors": "Errors",
+      "col_users": "People",
+      "col_connections": "Connections",
+      "col_last_call": "Last call",
+      "col_kill": "Kill switch",
+      "pending": "{count} to approve",
+      "denied_rl": "{denied} refused · {limited} limited",
+      "kill": "Suspend MCP",
+      "kill_confirm": "Suspend MCP for this tenant? Every call is refused until you restore it.",
+      "restore": "Restore MCP",
+      "note_placeholder": "Reason (audited)",
+      "availability": {
+        "ok": "Active",
+        "plan": "Not in plan",
+        "tenant_disabled": "Off (tenant)",
+        "killed": "Suspended",
+        "platform_disabled": "Platform off",
+        "suspended": "Tenant suspended"
+      }
     }
   },
   "cod": {
@@ -4929,7 +4971,7 @@
     "description": "Messages to a segment, measured against the segment's control group: what each campaign added over doing nothing.",
     "new": "New campaign",
     "new_for_segment": "New campaign",
-    "new_description": "Pick a segment with a control group, write the message, then send from the draft.",
+    "new_description": "Pick a segment with a control group and write the message; the draft is tested, approved and then scheduled.",
     "empty_title": "No campaigns yet",
     "empty_description": "Create one from a segment with a holdout to measure its real effect.",
     "no_segments_title": "No segments",
@@ -4962,7 +5004,13 @@
     },
     "status": {
       "draft": "Draft",
-      "sent": "Sent"
+      "sent": "Sent",
+      "pending_approval": "Waiting for approval",
+      "approved": "Approved",
+      "scheduled": "Scheduled",
+      "sending": "Sending",
+      "active": "Active",
+      "paused": "Paused"
     },
     "verdict": {
       "no_control": "No control group",
@@ -4977,30 +5025,31 @@
       "message": "Message",
       "discount_code": "Discount code (optional)",
       "cost": "Cost per message ({currency})",
-      "attribution_days": "Attribution window (days)"
+      "attribution_days": "Attribution window (days)",
+      "kind": "Type",
+      "exclude_open_orders": "Leave out customers with an open order"
     },
     "holdout_hint": "{pct}% of the segment is the control group and will not be contacted.",
     "no_holdout_warning": "This segment has no control group: the campaign can be sent but its effect cannot be measured. Set a holdout on the segment first.",
     "message_hint": "{first_name} and {code} are replaced for each customer.",
     "create": "Create draft",
     "save_draft": "Save draft",
-    "send": "Send…",
-    "confirm_title": "Send this campaign?",
-    "confirm_description": "{treated} customers receive it, {holdout} are kept as control group. Only customers who accept marketing are included.",
+    "confirm_title": "Submit this campaign for approval?",
+    "confirm_description": "Now {treated} customers would receive it and {holdout} would be kept as control group.",
     "mde": "Over a comparable past window {baseline} of these customers bought. With these group sizes the test can detect an effect of about {mde} or more.",
-    "confirm_send": "Send now",
-    "draft_title": "Draft",
-    "draft_description": "Editable until sent. Sending re-evaluates the segment and fixes the groups.",
     "delivery_title": "Delivery",
     "sent_on": "Sent {at}",
     "exposure": {
       "sent": "Delivered (treated)",
       "failed": "Failed (treated)",
       "skipped": "No address (treated)",
-      "held_out": "Control group"
+      "held_out": "Control group",
+      "queued": "In the queue (treated)",
+      "sending": "Being sent (treated)",
+      "suppressed": "Blocked at send (treated)"
     },
     "method_title": "How it is measured",
-    "method_note": "Every customer in the segment who accepts marketing is either treated or control, fixed before sending. Results compare confirmed, non-cancelled orders in the {days} days after sending, counting every treated customer even when the message failed, so the comparison stays fair. Incremental = difference per customer × treated customers.",
+    "method_note": "Every eligible customer in the segment is either treated or control, fixed when the send starts; members left out (no consent, suppressed, over the cap, open order, in another measurement) are in neither group. Results compare confirmed, non-cancelled orders in the {days} days after exposure, counting every treated customer even when the message failed, so the comparison stays fair. Incremental = difference per customer × treated customers.",
     "window_open": "Attribution window open until {at}: results are still moving.",
     "window_closed": "Final: window closed on {at}.",
     "no_holdout_result": "No control group: the numbers below show what the treated customers did, not what the campaign caused.",
@@ -5022,10 +5071,133 @@
     "code_redemptions": "{n} orders used the code {code}.",
     "errors": {
       "not_found": "Campaign not found.",
-      "already_sent": "The campaign was already sent.",
       "no_segment": "Choose a segment.",
       "empty_segment": "Nobody in the segment accepts marketing.",
-      "invalid_input": "Check the fields."
+      "invalid_input": "Check the fields.",
+      "not_editable": "Only a draft can be changed: move it back to draft first.",
+      "invalid_transition": "This step is not possible in the campaign's current state.",
+      "not_allowed": "Your role cannot approve campaigns.",
+      "own_campaign": "You cannot approve a campaign you created or submitted.",
+      "sequence_needs_holdout": "A sequence needs a segment with a control group (holdout above 0%).",
+      "manual_channel": "A campaign sent from another tool is recorded, not approved or tested.",
+      "no_recipients": "Choose at least one recipient (at most 10).",
+      "note_required": "Write a note for the author."
+    },
+    "kinds": {
+      "one_off": "One-off",
+      "sequence": "Always-on sequence"
+    },
+    "kind_hint": {
+      "one_off": "Sent once to the segment, at the time you schedule after approval.",
+      "sequence": "Runs by itself: each customer who enters the segment (for example 120 days after their last order) gets the message once. The segment's control group is permanent."
+    },
+    "exclude_open_orders_hint": "Customers whose order is still being processed are not invited to buy again; they are left out of both groups.",
+    "confirm_record_title": "Record this campaign as sent?",
+    "exclusions": {
+      "title": "{members} members now, left out by reason:",
+      "no_consent": "No marketing consent",
+      "suppressed": "On the suppression list",
+      "over_cap": "Over the frequency cap",
+      "open_order": "Open order",
+      "in_measurement": "In another campaign's measurement",
+      "holdout": "Control group (not contacted)",
+      "no_address": "Treated without an address for the channel",
+      "waiting_title": "Waiting to enter",
+      "left_out_title": "Left out at send"
+    },
+    "workflow": {
+      "test": "Test send…",
+      "submit": "Preview and submit…",
+      "record": "Record as sent…",
+      "approve": "Approve",
+      "reject": "Send back…",
+      "schedule": "Schedule…",
+      "activate": "Activate",
+      "pause": "Pause",
+      "unschedule": "Unschedule",
+      "reopen": "Back to draft",
+      "submit_hint": "An owner, an admin or another marketing user approves it; then it is scheduled and the queue sends it within the send window and the per-minute limit.",
+      "record_confirm": "Record now",
+      "submit_confirm": "Submit for approval",
+      "test_title": "Test send",
+      "test_description": "Only to people of the store, never to customers. The message is rendered with their first name and the code.",
+      "test_phone": "Your phone number",
+      "test_sent": "{n} test messages sent.",
+      "test_send": "Send test",
+      "close": "Close",
+      "reject_title": "Send back to the author",
+      "reject_description": "The campaign goes back to draft with your note.",
+      "note": "Note",
+      "reject_confirm": "Send back",
+      "schedule_title": "Schedule the send",
+      "schedule_description": "Messages go out only between {window}; a time outside it starts at the next opening.",
+      "schedule_at": "Send at (store time)",
+      "schedule_hint": "Leave empty to start as soon as the send window allows.",
+      "schedule_confirm": "Schedule",
+      "schedule_now": "Send as soon as possible",
+      "title": "Workflow",
+      "approval_you": "You can approve it or send it back.",
+      "approval_waiting": "Waiting for an approver: you cannot approve your own campaign.",
+      "approval_others": "Waiting for an owner, admin or marketing user to approve it.",
+      "starts_at": "Starts {at} (send window {window}).",
+      "review_note": "Reviewer: {note}",
+      "sent_back": "Sent back for changes: {note}",
+      "steps": {
+        "created": "Created",
+        "tested": "Test sent",
+        "submitted": "Submitted for approval",
+        "approved": "Approved",
+        "scheduled": "Scheduled for",
+        "started": "Send started",
+        "activated": "Activated",
+        "completed": "Last message sent"
+      }
+    },
+    "stage": {
+      "draft": {
+        "title": "Draft",
+        "description": "Editable until submitted. Test it, preview who would receive it, then submit it for approval."
+      },
+      "pending_approval": {
+        "title": "Waiting for approval",
+        "description": "Locked while it is reviewed. Back to draft to change it."
+      },
+      "approved": {
+        "title": "Approved",
+        "description": "Ready to schedule (one-off) or to activate (sequence)."
+      },
+      "scheduled": {
+        "title": "Scheduled",
+        "description": "At the scheduled time the job re-evaluates the segment, fixes the groups and sends within the send window and the per-minute limit."
+      }
+    },
+    "activated_on": "Active since {at}",
+    "progress": {
+      "sending": "Sending",
+      "done": "Done",
+      "throttle": "Up to {n} messages a minute, between {window}."
+    },
+    "settings": {
+      "link": "Campaign settings",
+      "title": "Campaign settings",
+      "description": "Rules every campaign of the store follows. Hours are in the store's time zone ({timezone}).",
+      "cap_title": "Frequency cap",
+      "cap_description": "Nobody receives more than this many campaign messages in this many days; who is over it is left out and counted.",
+      "window_title": "Send window",
+      "window_description": "Messages go out only between these hours; a send that reaches the end waits for the next morning.",
+      "throttle_title": "Messages per minute",
+      "throttle_description": "Per channel, for all campaigns together: the provider's limit or less.",
+      "lock_hint": "While a campaign's attribution window is open, its treated and control customers are kept out of other campaigns, so its effect is not mixed with theirs.",
+      "fields": {
+        "campaignFrequencyCap": "Messages at most",
+        "campaignFrequencyDays": "In days",
+        "campaignSendStartHour": "From hour (0–23)",
+        "campaignSendEndHour": "To hour (1–24)",
+        "throttleEmail": "Email",
+        "throttleSms": "SMS",
+        "throttleWhatsapp": "WhatsApp",
+        "campaignMeasurementLock": "Lock customers being measured"
+      }
     }
   },
   "destinations": {
@@ -5241,6 +5413,7 @@
       "roas": "ROAS",
       "meta": "Meta",
       "google": "Google",
+      "tiktok": "TikTok",
       "slipping": "valuable customers at risk",
       "due_soon": "due to order soon",
       "top": "highest predicted value",
@@ -5250,8 +5423,7 @@
       "consider_pause": "Consider pausing",
       "consider_resume": "Consider resuming",
       "pause_stock": "Pause: low stock",
-      "consider_stock": "Check stock",
-      "tiktok": "TikTok"
+      "consider_stock": "Check stock"
     },
     "open_source": "Open page",
     "figures": {
@@ -6861,249 +7033,37 @@
       }
     }
   },
-  "mcp": {
-    "copy": "Copy",
-    "copied": "Copied",
-    "scopes": {
-      "read": "Read orders, customers, analytics, products, purchasing, returns, segments and integration health your role can see",
-      "write_notes": "Add internal notes to orders",
-      "write_orders": "Assign orders, move them through review or hold, propose cancellations and refunds",
-      "write_campaigns": "Propose pausing ad campaigns",
-      "write_purchasing": "Propose draft purchase orders"
-    },
-    "unavailable": {
-      "plan": "AI clients (MCP) are included from the Growth plan.",
-      "tenant_disabled": "MCP is switched off for this workspace: an owner or admin can switch it on in Settings → AI & MCP.",
-      "killed": "MCP access to this workspace was suspended by the platform.",
-      "platform_disabled": "MCP is temporarily unavailable on the platform.",
-      "suspended": "This workspace is suspended."
-    },
+  "data_export": {
+    "title": "Data export",
+    "description": "Download everything Hullwise holds for this store.",
+    "what_title": "Full export of the store's data",
+    "what_description": "One CSV file per table (orders, customers, products, returns, campaigns, settings and more) in a zip archive, built in the background. You are notified when it is ready; the download link expires after {days} days. Secrets such as integration credentials are never included.",
+    "request": "Export all data",
+    "requesting": "Starting…",
     "errors": {
-      "generic": "Something went wrong. Try again.",
-      "invalid_input": "Check the fields and try again.",
-      "limit_reached": "You reached the maximum number of active tokens: revoke one first.",
-      "not_found": "Not found: it may have been removed.",
-      "forbidden": "You cannot do this.",
-      "mcp_unavailable": "MCP is not available for this workspace.",
-      "not_pending": "This proposal was already decided.",
-      "expired": "This proposal expired."
+      "in_progress": "An export is already running.",
+      "generic": "The export could not be started."
     },
-    "consent": {
-      "title": "Connect an AI client",
-      "heading": "{client} wants to access Hullwise",
-      "description": "Signed in as {user}. The client will act as you, with your role, in the workspace you choose.",
-      "workspace": "Workspace",
-      "no_workspace": "You are not a member of any workspace.",
-      "scopes": "Permissions",
-      "scopes_hint": "Untick what you do not want to allow. Reading is always included.",
-      "note_role": "It sees only what your role can see in Hullwise; disabled modules expose nothing.",
-      "note_pii": "Customer emails, phones and addresses are masked unless your workspace enabled full personal data for AI clients.",
-      "note_proposals": "Cancellations, refunds, campaign pauses and purchase orders are only proposals: a person approves them in Hullwise.",
-      "note_redirect": "After approval you go back to {host}. You can revoke the access any time from your profile → Connections.",
-      "approve": "Allow access",
-      "deny": "Cancel",
-      "invalid_request": "This connection request is not valid.",
-      "unavailable": {
-        "plan": "Not included in the plan",
-        "tenant_disabled": "MCP switched off by an owner or admin",
-        "killed": "Suspended by the platform",
-        "platform_disabled": "Temporarily unavailable",
-        "suspended": "Workspace suspended"
-      }
+    "empty_title": "No exports yet",
+    "empty_description": "Exports you start appear here with their download link.",
+    "columns": {
+      "requested": "Requested",
+      "status": "Status",
+      "rows": "Rows",
+      "expires": "Link expires",
+      "file": "File"
     },
-    "connections": {
-      "server_url": "MCP server URL",
-      "server_url_hint": "Paste it in Claude, ChatGPT, Cursor or any MCP client: they connect with OAuth, you sign in and approve.",
-      "connection": "Connection",
-      "user": "User",
-      "scopes": "Permissions",
-      "last_used": "Last used",
-      "expires": "Expires",
-      "never": "Never",
-      "empty": "No AI client connected yet.",
-      "kind": {
-        "oauth": "OAuth",
-        "pat": "Token"
-      },
-      "state": {
-        "active": "Active",
-        "expired": "Expired",
-        "revoked": "Revoked"
-      },
-      "create_title": "New personal access token",
-      "token_name": "Name",
-      "token_name_placeholder": "e.g. Cursor on my laptop",
-      "expires_in": "Expires in",
-      "days": "{days} days",
-      "create": "Create token",
-      "shown_once": "Copy the token now: it is shown only once and Hullwise keeps only a fingerprint of it.",
-      "rotate": "Rotate",
-      "rotate_confirm": "Create a new secret for this token? The current one stops working at once.",
-      "revoke": "Revoke",
-      "revoke_confirm": "Revoke this connection? The client loses access at once.",
-      "how_to": "How to connect Claude, ChatGPT or Cursor",
-      "open_settings": "Open AI & MCP settings"
+    "by_platform": "Hullwise support",
+    "statuses": {
+      "pending": "Queued",
+      "running": "Running",
+      "done": "Ready",
+      "failed": "Failed",
+      "expired": "Expired"
     },
-    "settings": {
-      "title": "AI & MCP",
-      "description": "Let your team use Claude, ChatGPT, Cursor and other AI clients on this workspace's data, with their own permissions.",
-      "server_title": "MCP server",
-      "server_description": "One URL for every client. Each person connects with their own account; tokens are bound to one person and one workspace.",
-      "enabled": "Allow AI clients (MCP)",
-      "enabled_hint": "When off, every MCP call to this workspace is refused; connections are kept.",
-      "full_pii": "Show customer personal data",
-      "full_pii_hint": "Names, emails, phones and addresses in full, only to roles that may see them (never marketing or viewer). Off: always masked.",
-      "rule_auth": "OAuth 2.1 with PKCE, or personal access tokens; secrets are stored only as keyed hashes.",
-      "rule_permissions": "Every tool runs with the person's role and the workspace's modules; nothing a role cannot see in Hullwise is exposed.",
-      "rule_writes": "Direct writes are reversible (notes, assignee, review or hold); risky actions wait for approval.",
-      "rule_limits": "Limits: {perToken} calls per minute per connection, {perTenant} per workspace.",
-      "guides_title": "Connect a client",
-      "guides_description": "Steps for the most common clients.",
-      "connections_title": "Connected clients",
-      "connections_description": "Every active connection of the workspace, with its last use. Owners and admins can revoke any of them.",
-      "activity_title": "Recent activity",
-      "activity_description": "The last calls of the past 7 days (tool, person, client, outcome). Arguments and results are never stored.",
-      "activity_empty": "No calls yet.",
-      "stat_calls": "Calls (7 days)",
-      "stat_errors": "Errors",
-      "stat_denied": "Refused",
-      "stat_rate_limited": "Rate limited",
-      "col_when": "When",
-      "col_tool": "Tool",
-      "col_who": "Who",
-      "col_outcome": "Outcome",
-      "col_duration": "Duration",
-      "outcome": {
-        "ok": "OK",
-        "error": "Error",
-        "denied": "Refused",
-        "invalid_input": "Invalid input",
-        "not_found": "Not found",
-        "rate_limited": "Rate limited",
-        "auth_failed": "Auth failed",
-        "disabled": "Disabled"
-      },
-      "approvals_link": "Approvals ({count})",
-      "approvals_link_empty": "Approvals",
-      "own_tokens_link": "Your own personal access tokens are in your profile → Connections."
-    },
-    "approvals": {
-      "title": "Approvals",
-      "description": "Actions AI clients proposed through MCP. Nothing happens until someone who may do it approves; approving runs it as you.",
-      "empty_title": "Nothing to approve",
-      "empty_description": "Proposals from AI clients (cancellations, refunds, campaign pauses, purchase orders) appear here.",
-      "requested_by": "{client} for {user} · {when}",
-      "order_total": "Order total",
-      "restock": "Restock",
-      "refund": "Refund the payment",
-      "amount": "Amount",
-      "refundable": "Still refundable",
-      "lines": "Lines",
-      "expires": "Expires",
-      "yes": "Yes",
-      "no": "No",
-      "cannot_approve": "Your role cannot approve this: someone who can will see it here.",
-      "note_placeholder": "Note (optional)",
-      "approve": "Approve and run",
-      "approve_confirm": "Approve and run this action now, as you?",
-      "reject": "Reject",
-      "failed": "The action failed: {error}",
-      "history": "History",
-      "history_empty": "No decided proposals yet.",
-      "col_proposal": "Proposal",
-      "col_requested": "Requested",
-      "col_status": "Status",
-      "col_decided": "Decided by",
-      "kinds": {
-        "order_cancel": "Cancel order",
-        "order_refund": "Refund",
-        "campaign_pause": "Pause campaign",
-        "purchase_order_create": "Draft purchase order"
-      },
-      "status": {
-        "pending": "Pending",
-        "approved": "Approved",
-        "rejected": "Rejected",
-        "failed": "Failed",
-        "expired": "Expired"
-      }
-    },
-    "guides": {
-      "verify_legend": "Steps marked “To verify” depend on the AI vendor's interface, which changes often: check the vendor's documentation before the first installation.",
-      "verify_badge": "To verify",
-      "pat_note": "Clients without OAuth: create a personal access token in your profile → Connections and send it as the header Authorization: Bearer kpat_…",
-      "claude": {
-        "name": "Claude",
-        "steps": [
-          {
-            "title": "Open the connectors",
-            "body": "In Claude (web or desktop app) open Settings → Connectors and choose “Add custom connector”. On team plans an owner may have to allow custom connectors first.",
-            "verify": true
-          },
-          {
-            "title": "Paste the server URL",
-            "body": "Give it a name (e.g. Hullwise) and paste:\n{serverUrl}\nLeave the advanced OAuth fields empty: Claude registers itself with Hullwise.",
-            "verify": true
-          },
-          {
-            "title": "Sign in and approve",
-            "body": "Claude opens Hullwise: sign in, pick the workspace, keep or remove the permissions and approve. You return to Claude connected."
-          },
-          {
-            "title": "Try it",
-            "body": "In a chat, enable the connector from the tools menu and ask: “How did sales go last week compared with the week before?” Claude cites the figures with a link to Hullwise.",
-            "verify": true
-          }
-        ]
-      },
-      "chatgpt": {
-        "name": "ChatGPT",
-        "steps": [
-          {
-            "title": "Allow custom connectors",
-            "body": "In ChatGPT open Settings → Connectors (Apps). Depending on the plan, custom MCP connectors need developer mode under Advanced settings, or an admin of the workspace.",
-            "verify": true
-          },
-          {
-            "title": "Create the connector",
-            "body": "Choose Create, give it a name, paste {serverUrl} and pick OAuth as the authentication.",
-            "verify": true
-          },
-          {
-            "title": "Sign in and approve",
-            "body": "ChatGPT opens Hullwise: sign in, pick the workspace and the permissions, approve."
-          },
-          {
-            "title": "Try it",
-            "body": "Start a chat, add the connector from the tools menu and ask for example: “Which campaigns lost money this month and what does Hullwise suggest?”",
-            "verify": true
-          }
-        ]
-      },
-      "cursor": {
-        "name": "Cursor",
-        "steps": [
-          {
-            "title": "Open the MCP settings",
-            "body": "In Cursor open Settings → MCP (Tools & Integrations) → “Add custom MCP server”: it opens ~/.cursor/mcp.json.",
-            "verify": true
-          },
-          {
-            "title": "Add Hullwise",
-            "body": "Add this server and save:\n{ \"mcpServers\": { \"hullwise\": { \"url\": \"{serverUrl}\" } } }",
-            "verify": true
-          },
-          {
-            "title": "Sign in",
-            "body": "Cursor shows the server as needing login: click it, sign in to Hullwise and approve. Without OAuth, create a personal access token and add \"headers\": { \"Authorization\": \"Bearer kpat_…\" } to the server entry."
-          },
-          {
-            "title": "Try it",
-            "body": "In the agent chat ask: “List the products at risk of stock-out with their suggested reorder.”"
-          }
-        ]
-      }
-    }
+    "tables_n": "{n} tables",
+    "download": "Download",
+    "downloads": "{n, plural, one {downloaded once} other {downloaded # times}}"
   },
   "dashboards": {
     "title": "Dashboards",
@@ -7543,6 +7503,456 @@
       "tiktok": "TikTok"
     }
   },
+  "ads": {
+    "nav": {
+      "label": "Campaign analysis",
+      "campaigns": "Campaigns",
+      "creatives": "Creatives",
+      "keywords": "Keywords & search terms",
+      "words": "Words",
+      "recommendations": "Suggestions"
+    },
+    "cols": {
+      "name": "Name",
+      "spend": "Spend",
+      "impressions": "Impressions",
+      "ctr": "CTR",
+      "platform_conv": "Platform conv.",
+      "hullwise_orders": "Hullwise orders",
+      "revenue": "Net revenue",
+      "profit": "Profit",
+      "roas": "ROAS",
+      "frequency": "Frequency",
+      "match": "Match",
+      "quality": "Quality",
+      "campaign": "Campaign",
+      "action": "Action",
+      "phrase": "Phrase",
+      "items": "Used in",
+      "margin": "Margin",
+      "cpa": "CPA",
+      "field": "Field",
+      "asset": "Asset",
+      "hullwise_orders_allocated": "Hullwise orders (allocated)",
+      "date": "Date",
+      "search_term": "Search term",
+      "clicks": "Clicks",
+      "reason": "Why",
+      "ad": "Ad"
+    },
+    "excluded_n": "+{n} cancelled/returned",
+    "ad_sets_title": "Ad sets",
+    "ad_groups_title": "Ad groups",
+    "ad_sets_description": "Platform numbers next to Hullwise's: orders, revenue and profit count only orders that were not cancelled or returned.",
+    "utm_missing": "{n} of {total} ads do not carry {params}: their orders reach Hullwise without an ad. Add this template to the ads:",
+    "no_ad_sets": "No ad sets yet",
+    "no_ad_sets_hint": "They arrive with the next ads sync.",
+    "hullwise_not_visible": "Hullwise cannot see this row's orders (the UTM template does not name it).",
+    "n_ads": "{n} ads",
+    "n_keywords": "{n} keywords",
+    "unassigned_orders": "{n} campaign orders are not tied to an ad set",
+    "open_orders": "Open orders",
+    "reconciliation": "Spend by ads {ads} of {campaign} · unallocated {unallocated}",
+    "ad_set": "Ad set",
+    "ad_group": "Ad group",
+    "status": {
+      "active": "Active",
+      "paused": "Paused",
+      "archived": "Archived"
+    },
+    "ads_title": "Ads",
+    "ads_description": "Fatigue means frequency is rising while CTR falls. Suggestions are read-only: a person decides.",
+    "no_ads": "No ads in this ad set",
+    "keywords_title": "Keywords",
+    "no_keywords": "No keywords",
+    "search_terms_title": "Search terms",
+    "all_search_terms": "All search terms of the campaign",
+    "no_search_terms": "No search terms",
+    "other_terms": "Other terms (under the minimum impressions)",
+    "via_keyword": "via “{keyword}”",
+    "negative_reason": {
+      "only_cancelled": "Only cancelled orders",
+      "no_orders": "Spend, no orders",
+      "unprofitable_orders": "Orders at a loss",
+      "no_conversions": "Spend, no conversions"
+    },
+    "excluded": "Excluded",
+    "hullwise_footnote": "Hullwise ties orders to ad sets, ads and keywords through the UTM template; numbers the platform cannot tie show a dash.",
+    "match": {
+      "exact": "Exact",
+      "phrase": "Phrase",
+      "broad": "Broad"
+    },
+    "fatigue": {
+      "watch": "Watch: CTR falling",
+      "fatigued": "Fatigued"
+    },
+    "utm_badge": "UTM missing",
+    "pause_reason": {
+      "losing": "Losing money",
+      "fatigued": "Fatigued and losing",
+      "low_label": "Rated LOW",
+      "low_ctr": "Half the CTR of its siblings"
+    },
+    "ctr_change": "CTR {change} since the start",
+    "copy_title": "Copy and tracking",
+    "utm_missing_ad": "This ad does not carry {params}: its orders reach Hullwise without the ad. Template:",
+    "assets_title": "Assets",
+    "no_assets": "No asset breakdown",
+    "no_assets_meta": "Meta reports assets only for dynamic creative and Advantage+ creative ads.",
+    "no_assets_google": "Google reports assets for responsive ads.",
+    "no_assets_tiktok": "TikTok reports no metrics per asset: the ad’s video is listed with its id.",
+    "field": {
+      "headline": "Headline",
+      "description": "Description",
+      "body": "Primary text",
+      "title": "Title",
+      "image": "Image",
+      "video": "Video",
+      "other": "Other"
+    },
+    "assets_footnote": "Platforms report assets, not orders: Hullwise spreads the ad's orders over its assets by spend share within each field.",
+    "daily_title": "By day",
+    "no_days": "No daily data in the period",
+    "keywords_page_title": "Keywords and search terms",
+    "keywords_page_description": "Google Ads keywords and the queries that triggered the ads, with Hullwise's own orders where the UTM template names them.",
+    "tabs": {
+      "keywords": "Keywords",
+      "search_terms": "Search terms"
+    },
+    "search_placeholder": "Search text",
+    "all_campaigns": "All campaigns",
+    "sort_label": "Sort",
+    "sort": {
+      "spend": "Spend",
+      "profit": "Profit",
+      "roas": "ROAS",
+      "conversions": "Conversions"
+    },
+    "candidates_only": "Negative-keyword candidates only",
+    "apply": "Apply",
+    "google_only": "Keywords and search terms come from Google Ads; Meta has none.",
+    "rows_total": "{n} rows",
+    "prev": "Previous",
+    "next": "Next",
+    "page_of": "Page {page} of {pages}",
+    "keywords_footnote": "Hullwise orders come from utm_term set to the keyword by the tracking template.",
+    "search_terms_footnote": "Hullwise sees a search term's orders when the term is a keyword (exact match); for the others the platform's conversions decide. Terms under the minimum impressions are grouped under “Other terms”.",
+    "words_title": "Words",
+    "words_description": "Winning and losing words and phrases (1–3 words) in ad copy, search terms and keywords, with the profit of Hullwise's orders.",
+    "word_source": {
+      "copy": "Ad copy",
+      "search_terms": "Search terms",
+      "keywords": "Keywords"
+    },
+    "ngram": {
+      "all": "All",
+      "n1": "1 word",
+      "n2": "2 words",
+      "n3": "3 words"
+    },
+    "no_words": "Not enough volume",
+    "no_words_hint": "A phrase needs at least two ads or terms and some spend.",
+    "winners": "Winning words",
+    "winners_description": "Phrases in items that made a profit, best first.",
+    "no_winners": "No profitable phrase in the period",
+    "losers": "Losing words",
+    "losers_description": "Phrases in items that lost money, worst first.",
+    "no_losers": "No losing phrase in the period",
+    "words_footnote": "{items} items analysed. Each phrase sums the full numbers of every item that contains it, so phrases overlap.",
+    "recommendations_title": "Ads suggestions",
+    "recommendations_description": "Read-only suggestions: a person reviews them and acts; writes to the platforms always ask for confirmation.",
+    "in_items": "in {n}",
+    "rec": {
+      "negatives_title": "Negative keyword candidates",
+      "negatives_description": "{n} search terms spend without profitable orders.",
+      "google_read_only": "Google is read-only for this store: grant write access in Integrations to exclude terms from here.",
+      "none": "Nothing to suggest",
+      "all_candidates": "All candidates",
+      "ads_title": "Ads to pause",
+      "ads_description": "Active ads losing money in the period, or fatigued and losing.",
+      "words_title": "Winning words to reuse in copy",
+      "words_description": "Phrases of the ads that made the most profit.",
+      "open_words": "Open Words",
+      "assets_title": "Weak assets",
+      "assets_description": "Assets rated LOW by the platform or with half the CTR of their siblings.",
+      "utm_title": "UTM templates",
+      "utm_description": "Without these parameters Hullwise cannot tie orders to ads, ad sets and keywords.",
+      "utm_ok": "Every active campaign carries the templates.",
+      "utm_row": "{missing} of {ads} ads miss {params}",
+      "template_meta": "Meta: URL parameters of the ad",
+      "template_google": "Google: account tracking template",
+      "template_tiktok": "TikTok: URL parameters of the ad"
+    },
+    "actions": {
+      "read_only": "{platform} is read-only for this store.",
+      "read_only_short": "Read-only",
+      "pause_ad": "Pause ad",
+      "resume_ad": "Resume ad",
+      "pause_title": "Pause this ad on {platform}?",
+      "resume_title": "Resume this ad on {platform}?",
+      "write_description": "Hullwise changes the status here and sends it to the platform; if the platform is unreachable the change is retried and shown as pending.",
+      "confirm": "Confirm",
+      "exclude": "Exclude",
+      "negative_title": "Add “{text}” as a negative keyword?",
+      "negative_description": "Google stops showing the ads for this query. The change is sent through the write queue.",
+      "match_type": "Match type",
+      "match": {
+        "exact": "Exact",
+        "phrase": "Phrase",
+        "broad": "Broad"
+      },
+      "level": "Level",
+      "levels": {
+        "campaign": "Campaign",
+        "ad_group": "Ad group"
+      }
+    }
+  },
+  "mcp": {
+    "copy": "Copy",
+    "copied": "Copied",
+    "scopes": {
+      "read": "Read orders, customers, analytics, products, purchasing, returns, segments and integration health your role can see",
+      "write_notes": "Add internal notes to orders",
+      "write_orders": "Assign orders, move them through review or hold, propose cancellations and refunds",
+      "write_campaigns": "Propose pausing ad campaigns",
+      "write_purchasing": "Propose draft purchase orders"
+    },
+    "unavailable": {
+      "plan": "AI clients (MCP) are included from the Growth plan.",
+      "tenant_disabled": "MCP is switched off for this workspace: an owner or admin can switch it on in Settings → AI & MCP.",
+      "killed": "MCP access to this workspace was suspended by the platform.",
+      "platform_disabled": "MCP is temporarily unavailable on the platform.",
+      "suspended": "This workspace is suspended."
+    },
+    "errors": {
+      "generic": "Something went wrong. Try again.",
+      "invalid_input": "Check the fields and try again.",
+      "limit_reached": "You reached the maximum number of active tokens: revoke one first.",
+      "not_found": "Not found: it may have been removed.",
+      "forbidden": "You cannot do this.",
+      "mcp_unavailable": "MCP is not available for this workspace.",
+      "not_pending": "This proposal was already decided.",
+      "expired": "This proposal expired."
+    },
+    "consent": {
+      "title": "Connect an AI client",
+      "heading": "{client} wants to access Hullwise",
+      "description": "Signed in as {user}. The client will act as you, with your role, in the workspace you choose.",
+      "workspace": "Workspace",
+      "no_workspace": "You are not a member of any workspace.",
+      "scopes": "Permissions",
+      "scopes_hint": "Untick what you do not want to allow. Reading is always included.",
+      "note_role": "It sees only what your role can see in Hullwise; disabled modules expose nothing.",
+      "note_pii": "Customer emails, phones and addresses are masked unless your workspace enabled full personal data for AI clients.",
+      "note_proposals": "Cancellations, refunds, campaign pauses and purchase orders are only proposals: a person approves them in Hullwise.",
+      "note_redirect": "After approval you go back to {host}. You can revoke the access any time from your profile → Connections.",
+      "approve": "Allow access",
+      "deny": "Cancel",
+      "invalid_request": "This connection request is not valid.",
+      "unavailable": {
+        "plan": "Not included in the plan",
+        "tenant_disabled": "MCP switched off by an owner or admin",
+        "killed": "Suspended by the platform",
+        "platform_disabled": "Temporarily unavailable",
+        "suspended": "Workspace suspended"
+      }
+    },
+    "connections": {
+      "server_url": "MCP server URL",
+      "server_url_hint": "Paste it in Claude, ChatGPT, Cursor or any MCP client: they connect with OAuth, you sign in and approve.",
+      "connection": "Connection",
+      "user": "User",
+      "scopes": "Permissions",
+      "last_used": "Last used",
+      "expires": "Expires",
+      "never": "Never",
+      "empty": "No AI client connected yet.",
+      "kind": {
+        "oauth": "OAuth",
+        "pat": "Token"
+      },
+      "state": {
+        "active": "Active",
+        "expired": "Expired",
+        "revoked": "Revoked"
+      },
+      "create_title": "New personal access token",
+      "token_name": "Name",
+      "token_name_placeholder": "e.g. Cursor on my laptop",
+      "expires_in": "Expires in",
+      "days": "{days} days",
+      "create": "Create token",
+      "shown_once": "Copy the token now: it is shown only once and Hullwise keeps only a fingerprint of it.",
+      "rotate": "Rotate",
+      "rotate_confirm": "Create a new secret for this token? The current one stops working at once.",
+      "revoke": "Revoke",
+      "revoke_confirm": "Revoke this connection? The client loses access at once.",
+      "how_to": "How to connect Claude, ChatGPT or Cursor",
+      "open_settings": "Open AI & MCP settings"
+    },
+    "settings": {
+      "title": "AI & MCP",
+      "description": "Let your team use Claude, ChatGPT, Cursor and other AI clients on this workspace's data, with their own permissions.",
+      "server_title": "MCP server",
+      "server_description": "One URL for every client. Each person connects with their own account; tokens are bound to one person and one workspace.",
+      "enabled": "Allow AI clients (MCP)",
+      "enabled_hint": "When off, every MCP call to this workspace is refused; connections are kept.",
+      "full_pii": "Show customer personal data",
+      "full_pii_hint": "Names, emails, phones and addresses in full, only to roles that may see them (never marketing or viewer). Off: always masked.",
+      "rule_auth": "OAuth 2.1 with PKCE, or personal access tokens; secrets are stored only as keyed hashes.",
+      "rule_permissions": "Every tool runs with the person's role and the workspace's modules; nothing a role cannot see in Hullwise is exposed.",
+      "rule_writes": "Direct writes are reversible (notes, assignee, review or hold); risky actions wait for approval.",
+      "rule_limits": "Limits: {perToken} calls per minute per connection, {perTenant} per workspace.",
+      "guides_title": "Connect a client",
+      "guides_description": "Steps for the most common clients.",
+      "connections_title": "Connected clients",
+      "connections_description": "Every active connection of the workspace, with its last use. Owners and admins can revoke any of them.",
+      "activity_title": "Recent activity",
+      "activity_description": "The last calls of the past 7 days (tool, person, client, outcome). Arguments and results are never stored.",
+      "activity_empty": "No calls yet.",
+      "stat_calls": "Calls (7 days)",
+      "stat_errors": "Errors",
+      "stat_denied": "Refused",
+      "stat_rate_limited": "Rate limited",
+      "col_when": "When",
+      "col_tool": "Tool",
+      "col_who": "Who",
+      "col_outcome": "Outcome",
+      "col_duration": "Duration",
+      "outcome": {
+        "ok": "OK",
+        "error": "Error",
+        "denied": "Refused",
+        "invalid_input": "Invalid input",
+        "not_found": "Not found",
+        "rate_limited": "Rate limited",
+        "auth_failed": "Auth failed",
+        "disabled": "Disabled"
+      },
+      "approvals_link": "Approvals ({count})",
+      "approvals_link_empty": "Approvals",
+      "own_tokens_link": "Your own personal access tokens are in your profile → Connections."
+    },
+    "approvals": {
+      "title": "Approvals",
+      "description": "Actions AI clients proposed through MCP. Nothing happens until someone who may do it approves; approving runs it as you.",
+      "empty_title": "Nothing to approve",
+      "empty_description": "Proposals from AI clients (cancellations, refunds, campaign pauses, purchase orders) appear here.",
+      "requested_by": "{client} for {user} · {when}",
+      "order_total": "Order total",
+      "restock": "Restock",
+      "refund": "Refund the payment",
+      "amount": "Amount",
+      "refundable": "Still refundable",
+      "lines": "Lines",
+      "expires": "Expires",
+      "yes": "Yes",
+      "no": "No",
+      "cannot_approve": "Your role cannot approve this: someone who can will see it here.",
+      "note_placeholder": "Note (optional)",
+      "approve": "Approve and run",
+      "approve_confirm": "Approve and run this action now, as you?",
+      "reject": "Reject",
+      "failed": "The action failed: {error}",
+      "history": "History",
+      "history_empty": "No decided proposals yet.",
+      "col_proposal": "Proposal",
+      "col_requested": "Requested",
+      "col_status": "Status",
+      "col_decided": "Decided by",
+      "kinds": {
+        "order_cancel": "Cancel order",
+        "order_refund": "Refund",
+        "campaign_pause": "Pause campaign",
+        "purchase_order_create": "Draft purchase order"
+      },
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "failed": "Failed",
+        "expired": "Expired"
+      }
+    },
+    "guides": {
+      "verify_legend": "Steps marked “To verify” depend on the AI vendor's interface, which changes often: check the vendor's documentation before the first installation.",
+      "verify_badge": "To verify",
+      "pat_note": "Clients without OAuth: create a personal access token in your profile → Connections and send it as the header Authorization: Bearer kpat_…",
+      "claude": {
+        "name": "Claude",
+        "steps": [
+          {
+            "title": "Open the connectors",
+            "body": "In Claude (web or desktop app) open Settings → Connectors and choose “Add custom connector”. On team plans an owner may have to allow custom connectors first.",
+            "verify": true
+          },
+          {
+            "title": "Paste the server URL",
+            "body": "Give it a name (e.g. Hullwise) and paste:\n{serverUrl}\nLeave the advanced OAuth fields empty: Claude registers itself with Hullwise.",
+            "verify": true
+          },
+          {
+            "title": "Sign in and approve",
+            "body": "Claude opens Hullwise: sign in, pick the workspace, keep or remove the permissions and approve. You return to Claude connected."
+          },
+          {
+            "title": "Try it",
+            "body": "In a chat, enable the connector from the tools menu and ask: “How did sales go last week compared with the week before?” Claude cites the figures with a link to Hullwise.",
+            "verify": true
+          }
+        ]
+      },
+      "chatgpt": {
+        "name": "ChatGPT",
+        "steps": [
+          {
+            "title": "Allow custom connectors",
+            "body": "In ChatGPT open Settings → Connectors (Apps). Depending on the plan, custom MCP connectors need developer mode under Advanced settings, or an admin of the workspace.",
+            "verify": true
+          },
+          {
+            "title": "Create the connector",
+            "body": "Choose Create, give it a name, paste {serverUrl} and pick OAuth as the authentication.",
+            "verify": true
+          },
+          {
+            "title": "Sign in and approve",
+            "body": "ChatGPT opens Hullwise: sign in, pick the workspace and the permissions, approve."
+          },
+          {
+            "title": "Try it",
+            "body": "Start a chat, add the connector from the tools menu and ask for example: “Which campaigns lost money this month and what does Hullwise suggest?”",
+            "verify": true
+          }
+        ]
+      },
+      "cursor": {
+        "name": "Cursor",
+        "steps": [
+          {
+            "title": "Open the MCP settings",
+            "body": "In Cursor open Settings → MCP (Tools & Integrations) → “Add custom MCP server”: it opens ~/.cursor/mcp.json.",
+            "verify": true
+          },
+          {
+            "title": "Add Hullwise",
+            "body": "Add this server and save:\n{ \"mcpServers\": { \"hullwise\": { \"url\": \"{serverUrl}\" } } }",
+            "verify": true
+          },
+          {
+            "title": "Sign in",
+            "body": "Cursor shows the server as needing login: click it, sign in to Hullwise and approve. Without OAuth, create a personal access token and add \"headers\": { \"Authorization\": \"Bearer kpat_…\" } to the server entry."
+          },
+          {
+            "title": "Try it",
+            "body": "In the agent chat ask: “List the products at risk of stock-out with their suggested reorder.”"
+          }
+        ]
+      }
+    }
+  },
   "billing": {
     "title": "Billing",
     "description": "Your plan, payment method and invoices.",
@@ -7753,244 +8163,6 @@
     "none": "No subscription at the processor yet.",
     "catalog_missing": "Sync the catalog first (Billing → Subscriptions).",
     "cancel_at_period_end": "ends at period end"
-  },
-  "data_export": {
-    "title": "Data export",
-    "description": "Download everything Hullwise holds for this store.",
-    "what_title": "Full export of the store's data",
-    "what_description": "One CSV file per table (orders, customers, products, returns, campaigns, settings and more) in a zip archive, built in the background. You are notified when it is ready; the download link expires after {days} days. Secrets such as integration credentials are never included.",
-    "request": "Export all data",
-    "requesting": "Starting…",
-    "errors": {
-      "in_progress": "An export is already running.",
-      "generic": "The export could not be started."
-    },
-    "empty_title": "No exports yet",
-    "empty_description": "Exports you start appear here with their download link.",
-    "columns": {
-      "requested": "Requested",
-      "status": "Status",
-      "rows": "Rows",
-      "expires": "Link expires",
-      "file": "File"
-    },
-    "by_platform": "Hullwise support",
-    "statuses": {
-      "pending": "Queued",
-      "running": "Running",
-      "done": "Ready",
-      "failed": "Failed",
-      "expired": "Expired"
-    },
-    "tables_n": "{n} tables",
-    "download": "Download",
-    "downloads": "{n, plural, one {downloaded once} other {downloaded # times}}"
-  },
-  "ads": {
-    "nav": {
-      "label": "Campaign analysis",
-      "campaigns": "Campaigns",
-      "creatives": "Creatives",
-      "keywords": "Keywords & search terms",
-      "words": "Words",
-      "recommendations": "Suggestions"
-    },
-    "cols": {
-      "name": "Name",
-      "spend": "Spend",
-      "impressions": "Impressions",
-      "ctr": "CTR",
-      "platform_conv": "Platform conv.",
-      "hullwise_orders": "Hullwise orders",
-      "revenue": "Net revenue",
-      "profit": "Profit",
-      "roas": "ROAS",
-      "frequency": "Frequency",
-      "match": "Match",
-      "quality": "Quality",
-      "campaign": "Campaign",
-      "action": "Action",
-      "phrase": "Phrase",
-      "items": "Used in",
-      "margin": "Margin",
-      "cpa": "CPA",
-      "field": "Field",
-      "asset": "Asset",
-      "hullwise_orders_allocated": "Hullwise orders (allocated)",
-      "date": "Date",
-      "search_term": "Search term",
-      "clicks": "Clicks",
-      "reason": "Why",
-      "ad": "Ad"
-    },
-    "excluded_n": "+{n} cancelled/returned",
-    "ad_sets_title": "Ad sets",
-    "ad_groups_title": "Ad groups",
-    "ad_sets_description": "Platform numbers next to Hullwise's: orders, revenue and profit count only orders that were not cancelled or returned.",
-    "utm_missing": "{n} of {total} ads do not carry {params}: their orders reach Hullwise without an ad. Add this template to the ads:",
-    "no_ad_sets": "No ad sets yet",
-    "no_ad_sets_hint": "They arrive with the next ads sync.",
-    "hullwise_not_visible": "Hullwise cannot see this row's orders (the UTM template does not name it).",
-    "n_ads": "{n} ads",
-    "n_keywords": "{n} keywords",
-    "unassigned_orders": "{n} campaign orders are not tied to an ad set",
-    "open_orders": "Open orders",
-    "reconciliation": "Spend by ads {ads} of {campaign} · unallocated {unallocated}",
-    "ad_set": "Ad set",
-    "ad_group": "Ad group",
-    "status": {
-      "active": "Active",
-      "paused": "Paused",
-      "archived": "Archived"
-    },
-    "ads_title": "Ads",
-    "ads_description": "Fatigue means frequency is rising while CTR falls. Suggestions are read-only: a person decides.",
-    "no_ads": "No ads in this ad set",
-    "keywords_title": "Keywords",
-    "no_keywords": "No keywords",
-    "search_terms_title": "Search terms",
-    "all_search_terms": "All search terms of the campaign",
-    "no_search_terms": "No search terms",
-    "other_terms": "Other terms (under the minimum impressions)",
-    "via_keyword": "via “{keyword}”",
-    "negative_reason": {
-      "only_cancelled": "Only cancelled orders",
-      "no_orders": "Spend, no orders",
-      "unprofitable_orders": "Orders at a loss",
-      "no_conversions": "Spend, no conversions"
-    },
-    "excluded": "Excluded",
-    "hullwise_footnote": "Hullwise ties orders to ad sets, ads and keywords through the UTM template; numbers the platform cannot tie show a dash.",
-    "match": {
-      "exact": "Exact",
-      "phrase": "Phrase",
-      "broad": "Broad"
-    },
-    "fatigue": {
-      "watch": "Watch: CTR falling",
-      "fatigued": "Fatigued"
-    },
-    "utm_badge": "UTM missing",
-    "pause_reason": {
-      "losing": "Losing money",
-      "fatigued": "Fatigued and losing",
-      "low_label": "Rated LOW",
-      "low_ctr": "Half the CTR of its siblings"
-    },
-    "ctr_change": "CTR {change} since the start",
-    "copy_title": "Copy and tracking",
-    "utm_missing_ad": "This ad does not carry {params}: its orders reach Hullwise without the ad. Template:",
-    "assets_title": "Assets",
-    "no_assets": "No asset breakdown",
-    "no_assets_meta": "Meta reports assets only for dynamic creative and Advantage+ creative ads.",
-    "no_assets_google": "Google reports assets for responsive ads.",
-    "field": {
-      "headline": "Headline",
-      "description": "Description",
-      "body": "Primary text",
-      "title": "Title",
-      "image": "Image",
-      "video": "Video",
-      "other": "Other"
-    },
-    "assets_footnote": "Platforms report assets, not orders: Hullwise spreads the ad's orders over its assets by spend share within each field.",
-    "daily_title": "By day",
-    "no_days": "No daily data in the period",
-    "keywords_page_title": "Keywords and search terms",
-    "keywords_page_description": "Google Ads keywords and the queries that triggered the ads, with Hullwise's own orders where the UTM template names them.",
-    "tabs": {
-      "keywords": "Keywords",
-      "search_terms": "Search terms"
-    },
-    "search_placeholder": "Search text",
-    "all_campaigns": "All campaigns",
-    "sort_label": "Sort",
-    "sort": {
-      "spend": "Spend",
-      "profit": "Profit",
-      "roas": "ROAS",
-      "conversions": "Conversions"
-    },
-    "candidates_only": "Negative-keyword candidates only",
-    "apply": "Apply",
-    "google_only": "Keywords and search terms come from Google Ads; Meta has none.",
-    "rows_total": "{n} rows",
-    "prev": "Previous",
-    "next": "Next",
-    "page_of": "Page {page} of {pages}",
-    "keywords_footnote": "Hullwise orders come from utm_term set to the keyword by the tracking template.",
-    "search_terms_footnote": "Hullwise sees a search term's orders when the term is a keyword (exact match); for the others the platform's conversions decide. Terms under the minimum impressions are grouped under “Other terms”.",
-    "words_title": "Words",
-    "words_description": "Winning and losing words and phrases (1–3 words) in ad copy, search terms and keywords, with the profit of Hullwise's orders.",
-    "word_source": {
-      "copy": "Ad copy",
-      "search_terms": "Search terms",
-      "keywords": "Keywords"
-    },
-    "ngram": {
-      "all": "All",
-      "n1": "1 word",
-      "n2": "2 words",
-      "n3": "3 words"
-    },
-    "no_words": "Not enough volume",
-    "no_words_hint": "A phrase needs at least two ads or terms and some spend.",
-    "winners": "Winning words",
-    "winners_description": "Phrases in items that made a profit, best first.",
-    "no_winners": "No profitable phrase in the period",
-    "losers": "Losing words",
-    "losers_description": "Phrases in items that lost money, worst first.",
-    "no_losers": "No losing phrase in the period",
-    "words_footnote": "{items} items analysed. Each phrase sums the full numbers of every item that contains it, so phrases overlap.",
-    "recommendations_title": "Ads suggestions",
-    "recommendations_description": "Read-only suggestions: a person reviews them and acts; writes to the platforms always ask for confirmation.",
-    "in_items": "in {n}",
-    "rec": {
-      "negatives_title": "Negative keyword candidates",
-      "negatives_description": "{n} search terms spend without profitable orders.",
-      "google_read_only": "Google is read-only for this store: grant write access in Integrations to exclude terms from here.",
-      "none": "Nothing to suggest",
-      "all_candidates": "All candidates",
-      "ads_title": "Ads to pause",
-      "ads_description": "Active ads losing money in the period, or fatigued and losing.",
-      "words_title": "Winning words to reuse in copy",
-      "words_description": "Phrases of the ads that made the most profit.",
-      "open_words": "Open Words",
-      "assets_title": "Weak assets",
-      "assets_description": "Assets rated LOW by the platform or with half the CTR of their siblings.",
-      "utm_title": "UTM templates",
-      "utm_description": "Without these parameters Hullwise cannot tie orders to ads, ad sets and keywords.",
-      "utm_ok": "Every active campaign carries the templates.",
-      "utm_row": "{missing} of {ads} ads miss {params}",
-      "template_meta": "Meta: URL parameters of the ad",
-      "template_google": "Google: account tracking template",
-      "template_tiktok": "TikTok: URL parameters of the ad"
-    },
-    "actions": {
-      "read_only": "{platform} is read-only for this store.",
-      "read_only_short": "Read-only",
-      "pause_ad": "Pause ad",
-      "resume_ad": "Resume ad",
-      "pause_title": "Pause this ad on {platform}?",
-      "resume_title": "Resume this ad on {platform}?",
-      "write_description": "Hullwise changes the status here and sends it to the platform; if the platform is unreachable the change is retried and shown as pending.",
-      "confirm": "Confirm",
-      "exclude": "Exclude",
-      "negative_title": "Add “{text}” as a negative keyword?",
-      "negative_description": "Google stops showing the ads for this query. The change is sent through the write queue.",
-      "match_type": "Match type",
-      "match": {
-        "exact": "Exact",
-        "phrase": "Phrase",
-        "broad": "Broad"
-      },
-      "level": "Level",
-      "levels": {
-        "campaign": "Campaign",
-        "ad_group": "Ad group"
-      }
-    },
-    "no_assets_tiktok": "TikTok reports no metrics per asset: the ad’s video is listed with its id."
   },
   "product_mirror": {
     "edit": "Edit",

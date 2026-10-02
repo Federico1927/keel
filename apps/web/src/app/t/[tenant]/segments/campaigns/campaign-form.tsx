@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { RETENTION_CHANNELS } from "@hullwise/core";
+import { RETENTION_CAMPAIGN_KINDS, RETENTION_CHANNELS } from "@hullwise/core";
 import { Alert, AlertDescription, Button, Input, Label, Select, Textarea } from "@hullwise/ui";
 import { saveRetentionCampaignAction } from "@/server/actions/retention";
 
@@ -11,10 +11,12 @@ export interface CampaignFormValues {
   name: string;
   segmentId: string;
   channel: string;
+  kind: string;
   message: string;
   discountCode: string | null;
   costPerMessageMinor: number;
   attributionDays: number;
+  excludeOpenOrders: boolean;
 }
 
 export function CampaignForm({ slug, values, segments, currency }: { slug: string; values: CampaignFormValues; segments: { id: string; name: string; holdoutPercentage: number; lastCount: number | null }[]; currency: string }) {
@@ -24,6 +26,7 @@ export function CampaignForm({ slug, values, segments, currency }: { slug: strin
   const [state, action, pending] = useActionState(saveRetentionCampaignAction.bind(null, slug, values.id ?? null), null);
   const [segmentId, setSegmentId] = useState(values.segmentId || segments[0]?.id || "");
   const [channel, setChannel] = useState(values.channel);
+  const [kind, setKind] = useState(values.kind);
   const segment = segments.find((s) => s.id === segmentId);
   useEffect(() => {
     if (state?.ok && state.data) {
@@ -52,9 +55,18 @@ export function CampaignForm({ slug, values, segments, currency }: { slug: strin
         )}
       </div>
       <div className="space-y-1">
+        <Label htmlFor="rc-kind">{t("fields.kind")}</Label>
+        <Select id="rc-kind" name="kind" value={kind} onChange={(e) => { setKind(e.target.value); if (e.target.value === "sequence" && channel === "manual") setChannel("email"); }}>
+          {RETENTION_CAMPAIGN_KINDS.map((k) => (
+            <option key={k} value={k}>{t(`kinds.${k}`)}</option>
+          ))}
+        </Select>
+        <p className="text-xs text-muted-foreground">{t(`kind_hint.${kind}`)}</p>
+      </div>
+      <div className="space-y-1">
         <Label htmlFor="rc-channel">{t("fields.channel")}</Label>
         <Select id="rc-channel" name="channel" value={channel} onChange={(e) => setChannel(e.target.value)}>
-          {RETENTION_CHANNELS.map((c) => (
+          {RETENTION_CHANNELS.filter((c) => kind !== "sequence" || c !== "manual").map((c) => (
             <option key={c} value={c}>{t(`channels.${c}`)}</option>
           ))}
         </Select>
@@ -79,6 +91,10 @@ export function CampaignForm({ slug, values, segments, currency }: { slug: strin
         <Label htmlFor="rc-days">{t("fields.attribution_days")}</Label>
         <Input id="rc-days" name="attributionDays" type="number" min={1} max={90} required defaultValue={values.attributionDays} />
       </div>
+      <label className="flex items-start gap-2 text-sm sm:col-span-2">
+        <input type="checkbox" name="excludeOpenOrders" defaultChecked={values.excludeOpenOrders} className="mt-0.5" />
+        <span>{t("fields.exclude_open_orders")}<span className="block text-xs text-muted-foreground">{t("exclude_open_orders_hint")}</span></span>
+      </label>
       {error && (
         <Alert variant="destructive" className="sm:col-span-2">
           <AlertDescription>{error}</AlertDescription>

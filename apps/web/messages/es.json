@@ -368,8 +368,8 @@
     "order_states_link": "Reglas de estado de pedido",
     "branding_link": "Marca",
     "fulfilment_link": "Preparación",
-    "ai_link": "IA y MCP",
-    "data_export_link": "Exportación de datos"
+    "data_export_link": "Exportación de datos",
+    "ai_link": "IA y MCP"
   },
   "users": {
     "title": "Usuarios y roles",
@@ -570,8 +570,9 @@
       "digest": "Correo de resumen diario",
       "export_ready": "Exportación CSV lista",
       "other": "Otros",
+      "platform_failure": "Trabajos en segundo plano que fallan",
       "mcp_proposal": "Propuesta de un cliente de IA",
-      "platform_failure": "Trabajos en segundo plano que fallan"
+      "customer_campaign": "Campañas a clientes: aprobaciones y envíos"
     },
     "rendered": {
       "stock_critical_no_po": "{title} variantes en venta con stock crítico y ninguna orden de compra",
@@ -582,7 +583,11 @@
       "platform_failure": "El trabajo en segundo plano {title} sigue fallando",
       "source_idle": "{title} no ha sincronizado nada en sus últimas ejecuciones",
       "data_export_ready": "Tu exportación completa de datos está lista ({title} filas)",
-      "data_export_failed": "Tu exportación completa de datos ha fallado"
+      "data_export_failed": "Tu exportación completa de datos ha fallado",
+      "customer_campaign_approval_requested": "Campaña por aprobar: {title}",
+      "customer_campaign_approved": "Campaña aprobada: {title}",
+      "customer_campaign_rejected": "Campaña devuelta: {title}",
+      "customer_campaign_sent": "Campaña enviada: {title}"
     },
     "groups": {
       "collaboration": "Colaboración",
@@ -619,9 +624,9 @@
       }
     },
     "suppressions": {
-      "title": "Correos bloqueados",
-      "description": "Direcciones que no reciben correos de esta tienda: rebotes y quejas bloquean todos los correos, las bajas bloquean su categoría.",
-      "email": "Correo",
+      "title": "Lista de exclusión",
+      "description": "Direcciones y teléfonos que esta tienda nunca contacta: rebotes y quejas bloquean todo email, las bajas su categoría; las campañas a clientes omiten a cualquiera de la lista en cualquier canal.",
+      "email": "Email o teléfono",
       "category": "Categoría",
       "reason": "Motivo",
       "when": "Cuándo",
@@ -636,7 +641,10 @@
         "unsubscribe": "Dado de baja",
         "manual": "Añadido a mano"
       },
-      "supplier_po": "Órdenes de compra a proveedores"
+      "supplier_po": "Órdenes de compra a proveedores",
+      "marketing": "Campañas a clientes (marketing)",
+      "phone": "teléfono",
+      "identity_placeholder": "nombre@ejemplo.com o +34…"
     },
     "export_lists": {
       "orders": "pedidos",
@@ -1879,11 +1887,11 @@
     "declared": {
       "title_meta": "Meta: declarado vs real",
       "title_google": "Google: declarado vs real",
+      "title_tiktok": "TikTok: declarado vs real",
       "platform_says": "La plataforma declara (compras · valor · ROAS)",
       "real": "Pedidos reales atribuidos (pedidos · neto · ROAS)",
       "gap": "Diferencia",
-      "help": "Las plataformas cuentan conversiones con sus propias ventanas y modelos; los pedidos reales son los pedidos de venta atribuidos por Hullwise. Una diferencia muy negativa indica que la plataforma sobrestima.",
-      "title_tiktok": "TikTok: declarado vs real"
+      "help": "Las plataformas cuentan conversiones con sus propias ventanas y modelos; los pedidos reales son los pedidos de venta atribuidos por Hullwise. Una diferencia muy negativa indica que la plataforma sobrestima."
     },
     "creatives_link": "Creatividades",
     "creatives": {
@@ -2116,6 +2124,27 @@
       "members": "Miembros",
       "holdout": "Grupo de control",
       "evaluated": "Última evaluación"
+    },
+    "insights": {
+      "title": "Qué compran los miembros",
+      "description": "Pedidos confirmados y no cancelados de todos los miembros (ambos grupos).",
+      "avg_spent": "Gasto medio por miembro",
+      "buyers": "{n} de {of} han comprado",
+      "aov": "Valor medio del pedido",
+      "avg_orders": "Pedidos por miembro",
+      "reachable": "Contactables: email / teléfono",
+      "reachable_hint": "Con consentimiento de marketing",
+      "top_products": "Productos más comprados",
+      "top_categories": "Categorías más compradas",
+      "top_options": "Valores de opción más comprados",
+      "channels_title": "Canales de venta",
+      "units": "{n} unidades",
+      "customers_n": "{n} clientes",
+      "channels": {
+        "web": "Tienda online",
+        "pos": "Punto de venta",
+        "draft": "Pedidos manuales"
+      }
     }
   },
   "segment_builder": {
@@ -2183,7 +2212,12 @@
       "churn_risk": "Riesgo de abandono",
       "p_alive": "Probabilidad de seguir activo (%)",
       "predicted_value": "Valor previsto, próximos 12 meses",
-      "days_to_next_order": "Días hasta el próximo pedido esperado"
+      "days_to_next_order": "Días hasta el próximo pedido esperado",
+      "open_order": "Tiene un pedido abierto",
+      "bought_in_window": "Pidió en un periodo",
+      "bought_category": "Categoría comprada",
+      "dominant_option": "Valor de opción más comprado",
+      "days_since_last_marketing": "Días desde el último mensaje de campaña"
     },
     "ops": {
       "gte": "es al menos",
@@ -2210,6 +2244,14 @@
       "invalid_shape": "Reglas mal formadas.",
       "invalid_rules": "Reglas no válidas.",
       "forbidden": "No tienes permiso."
+    },
+    "option": "Opción",
+    "within_days": "en los últimos",
+    "ever": "siempre",
+    "days_ago": "días atrás",
+    "ops_window": {
+      "any": "tiene un pedido",
+      "none": "no tiene pedidos"
     }
   },
   "return_status": {
@@ -2658,11 +2700,11 @@
       "shopify": "Shopify",
       "meta": "Meta Ads",
       "google": "Google Ads",
+      "tiktok": "TikTok Ads",
       "tracking": "Píxel y conversiones",
       "survey": "Encuesta poscompra",
       "anthropic": "IA (Anthropic)",
-      "email": "Email de plataforma",
-      "tiktok": "TikTok Ads"
+      "email": "Email de plataforma"
     },
     "status": {
       "not_connected": "No conectada",
@@ -2711,15 +2753,15 @@
       "shopify": "App personalizada (token Admin API)",
       "meta": "Token de usuario del sistema",
       "google": "Credenciales de Google Ads API",
-      "anthropic": "Clave API de Anthropic",
-      "tiktok": "App de TikTok for Business"
+      "tiktok": "App de TikTok for Business",
+      "anthropic": "Clave API de Anthropic"
     },
     "connect_description": {
       "shopify": "Crea una app personalizada en el admin de la tienda, concede los permisos de la guía, pega el token de Admin API y la clave secreta usada para firmar webhooks.",
       "meta": "Un token de usuario del sistema de larga duración de Business Manager con ads_read y ads_management sobre la cuenta publicitaria.",
       "google": "Developer token, cliente OAuth y un refresh token autorizado para el ámbito de Google Ads; solo lectura en esta versión.",
-      "anthropic": "La clave de la tienda desde console.anthropic.com. Anthropic factura el uso del asistente a esa cuenta; Hullwise guarda la clave cifrada.",
-      "tiktok": "App id y secret de la app de TikTok for Business y el auth code que devuelve la autorización del anunciante; Hullwise lo canjea por un token de larga duración válido para todas las cuentas de anunciante autorizadas."
+      "tiktok": "App id y secret de la app de TikTok for Business y el auth code que devuelve la autorización del anunciante; Hullwise lo canjea por un token de larga duración válido para todas las cuentas de anunciante autorizadas.",
+      "anthropic": "La clave de la tienda desde console.anthropic.com. Anthropic factura el uso del asistente a esa cuenta; Hullwise guarda la clave cifrada."
     },
     "fields": {
       "shop": "Dominio de la tienda",
@@ -2989,6 +3031,73 @@
       ],
       "scopes": "Lectura: ámbito adwords con acceso de lectura y developer token Básico. Opcional, solo para pausar anuncios y añadir palabras clave negativas: el mismo ámbito con un usuario que pueda editar la cuenta."
     },
+    "tiktok": {
+      "title": "Conectar TikTok Ads",
+      "intro": "Campañas, grupos de anuncios y anuncios (texto, vídeo, miniatura) con gasto diario, impresiones, clics, conversiones, valor de conversión y reproducciones de vídeo, de todas las cuentas de anunciante autorizadas. Pausar y reactivar campañas y anuncios pide confirmación y pasa por la cola de escritura. Incluido desde el plan Growth.",
+      "steps": [
+        {
+          "title": "Crear la app de TikTok for Business",
+          "body": "En el portal de desarrolladores de TikTok API for Business crea una app (o usa la de Hullwise, si TIKTOK_APP_ID está configurado). Configura como redirect URL del anunciante:\n{callbackUrl}",
+          "verify": true
+        },
+        {
+          "title": "Permisos",
+          "body": "Solicita los grupos de permisos que necesitan los módulos activos (panel de la derecha): Ad Account Management, Ads Management y Reporting para campañas y métricas; Creative Management para las miniaturas de los vídeos. TikTok revisa la app antes de que pueda usarse en cuentas distintas de la tuya.",
+          "verify": true
+        },
+        {
+          "title": "Autorizar las cuentas de anunciante",
+          "body": "El titular de la tienda (o un admin de su Business Center) abre el enlace de autorización, elige las cuentas de anunciante y confirma. TikTok redirige con un auth_code válido unos minutos y de un solo uso.",
+          "verify": true
+        },
+        {
+          "title": "Conectar en Hullwise",
+          "body": "Integraciones → TikTok Ads → Conectar: app id, app secret y el auth code (o “Autorizar con TikTok” con la app de Hullwise). Hullwise canjea el código por un token de larga duración, lo guarda cifrado (AES-GCM) e importa todos los anunciantes que cubre."
+        },
+        {
+          "title": "Plantilla UTM",
+          "body": "En cada anuncio, en los parámetros de URL (o al final de la URL de la landing page):\n{utmTemplate}\nTikTok rellena __CAMPAIGN_ID__, __AID__ (grupo de anuncios) y __CID__ (anuncio). Junto con el click id ttclid vinculan los pedidos a campañas, grupos y anuncios; los anuncios sin ellos se señalan en la página Sugerencias.",
+          "verify": true
+        },
+        {
+          "title": "Versión de la API",
+          "body": "Hullwise llama a la TikTok API for Business {apiVersion} (reporting: report/integrated/get, filas diarias en ventanas de hasta 30 días). Revisa el changelog antes de cada versión.",
+          "verify": true
+        },
+        {
+          "title": "Verificar",
+          "body": "Probar conexión lee las cuentas de anunciante; Resincronizar importa campañas y métricas diarias, y luego grupos de anuncios y anuncios en ventanas de 7 días (reanudable, respeta los límites de frecuencia). La primera importación cubre los últimos 90 días."
+        }
+      ],
+      "errors": [
+        {
+          "symptom": "40105 / 40102 token no válido o caducado",
+          "fix": "El anunciante revocó la autorización o el token se regeneró: autoriza de nuevo y vuelve a conectar."
+        },
+        {
+          "symptom": "40001 sin permiso",
+          "fix": "A la app le falta un grupo de permisos, o la cuenta de anunciante no se seleccionó durante la autorización."
+        },
+        {
+          "symptom": "40100 demasiadas solicitudes",
+          "fix": "Límite de frecuencia: Hullwise pausa la sincronización y continúa desde la misma ventana tras la espera."
+        },
+        {
+          "symptom": "Auth code caducado o ya usado",
+          "fix": "El auth code dura unos minutos y sirve una sola vez: repite la autorización."
+        },
+        {
+          "symptom": "Los pedidos no muestran el anuncio de TikTok",
+          "fix": "En los parámetros de URL faltan utm_content=__CID__ / utm_term=__AID__, o la tienda pierde ttclid en la URL de llegada."
+        }
+      ],
+      "scopes": "El análisis de solo lectura necesita Ad Account Management y Reporting; pausar y reactivar necesita también Ads Management. Sin Creative Management funciona todo salvo las miniaturas.",
+      "modules": {
+        "campaigns": "Campañas, grupos, anuncios y métricas",
+        "creatives": "Miniaturas de vídeo",
+        "pause": "Pausa / reactivación"
+      }
+    },
     "anthropic": {
       "title": "Conecta el asistente de IA (Anthropic)",
       "intro": "El asistente usa tu propia clave API de Anthropic: Anthropic factura el uso a tu cuenta y Hullwise solo guarda la clave, cifrada. Sin clave, la página Asistente pide conectar una.",
@@ -3226,73 +3335,6 @@
           "fix": "Falta RESEND_WEBHOOK_SECRET o no coincide con el signing secret del endpoint: el webhook responde 401 o 503."
         }
       ]
-    },
-    "tiktok": {
-      "title": "Conectar TikTok Ads",
-      "intro": "Campañas, grupos de anuncios y anuncios (texto, vídeo, miniatura) con gasto diario, impresiones, clics, conversiones, valor de conversión y reproducciones de vídeo, de todas las cuentas de anunciante autorizadas. Pausar y reactivar campañas y anuncios pide confirmación y pasa por la cola de escritura. Incluido desde el plan Growth.",
-      "steps": [
-        {
-          "title": "Crear la app de TikTok for Business",
-          "body": "En el portal de desarrolladores de TikTok API for Business crea una app (o usa la de Hullwise, si TIKTOK_APP_ID está configurado). Configura como redirect URL del anunciante:\n{callbackUrl}",
-          "verify": true
-        },
-        {
-          "title": "Permisos",
-          "body": "Solicita los grupos de permisos que necesitan los módulos activos (panel de la derecha): Ad Account Management, Ads Management y Reporting para campañas y métricas; Creative Management para las miniaturas de los vídeos. TikTok revisa la app antes de que pueda usarse en cuentas distintas de la tuya.",
-          "verify": true
-        },
-        {
-          "title": "Autorizar las cuentas de anunciante",
-          "body": "El titular de la tienda (o un admin de su Business Center) abre el enlace de autorización, elige las cuentas de anunciante y confirma. TikTok redirige con un auth_code válido unos minutos y de un solo uso.",
-          "verify": true
-        },
-        {
-          "title": "Conectar en Hullwise",
-          "body": "Integraciones → TikTok Ads → Conectar: app id, app secret y el auth code (o “Autorizar con TikTok” con la app de Hullwise). Hullwise canjea el código por un token de larga duración, lo guarda cifrado (AES-GCM) e importa todos los anunciantes que cubre."
-        },
-        {
-          "title": "Plantilla UTM",
-          "body": "En cada anuncio, en los parámetros de URL (o al final de la URL de la landing page):\n{utmTemplate}\nTikTok rellena __CAMPAIGN_ID__, __AID__ (grupo de anuncios) y __CID__ (anuncio). Junto con el click id ttclid vinculan los pedidos a campañas, grupos y anuncios; los anuncios sin ellos se señalan en la página Sugerencias.",
-          "verify": true
-        },
-        {
-          "title": "Versión de la API",
-          "body": "Hullwise llama a la TikTok API for Business {apiVersion} (reporting: report/integrated/get, filas diarias en ventanas de hasta 30 días). Revisa el changelog antes de cada versión.",
-          "verify": true
-        },
-        {
-          "title": "Verificar",
-          "body": "Probar conexión lee las cuentas de anunciante; Resincronizar importa campañas y métricas diarias, y luego grupos de anuncios y anuncios en ventanas de 7 días (reanudable, respeta los límites de frecuencia). La primera importación cubre los últimos 90 días."
-        }
-      ],
-      "errors": [
-        {
-          "symptom": "40105 / 40102 token no válido o caducado",
-          "fix": "El anunciante revocó la autorización o el token se regeneró: autoriza de nuevo y vuelve a conectar."
-        },
-        {
-          "symptom": "40001 sin permiso",
-          "fix": "A la app le falta un grupo de permisos, o la cuenta de anunciante no se seleccionó durante la autorización."
-        },
-        {
-          "symptom": "40100 demasiadas solicitudes",
-          "fix": "Límite de frecuencia: Hullwise pausa la sincronización y continúa desde la misma ventana tras la espera."
-        },
-        {
-          "symptom": "Auth code caducado o ya usado",
-          "fix": "El auth code dura unos minutos y sirve una sola vez: repite la autorización."
-        },
-        {
-          "symptom": "Los pedidos no muestran el anuncio de TikTok",
-          "fix": "En los parámetros de URL faltan utm_content=__CID__ / utm_term=__AID__, o la tienda pierde ttclid en la URL de llegada."
-        }
-      ],
-      "scopes": "El análisis de solo lectura necesita Ad Account Management y Reporting; pausar y reactivar necesita también Ads Management. Sin Creative Management funciona todo salvo las miniaturas.",
-      "modules": {
-        "campaigns": "Campañas, grupos, anuncios y métricas",
-        "creatives": "Miniaturas de vídeo",
-        "pause": "Pausa / reactivación"
-      }
     }
   },
   "admin": {
@@ -3320,10 +3362,10 @@
         "support": "Soporte",
         "audit": "Auditoría"
       },
-      "mcp": "MCP",
-      "subscriptions": "Suscripciones",
       "jobs": "Ejecuciones de trabajos",
-      "alerts": "Alertas de fallos"
+      "alerts": "Alertas de fallos",
+      "mcp": "MCP",
+      "subscriptions": "Suscripciones"
     },
     "plans": {
       "starter": "Starter",
@@ -3429,10 +3471,10 @@
         "shopify": "Shopify conectado",
         "meta": "Meta Ads conectado",
         "google": "Google Ads conectado",
+        "tiktok": "TikTok Ads conectado",
         "state_rules": "Reglas de estado",
         "costs": "Costes configurados",
-        "billing": "Pagos al corriente",
-        "tiktok": "TikTok Ads conectado"
+        "billing": "Pagos al corriente"
       },
       "members": "Miembros",
       "open_balance": "Saldo pendiente",
@@ -3634,40 +3676,6 @@
       },
       "remove": "Quitar",
       "guide_title": "Guía de configuración"
-    },
-    "mcp": {
-      "title": "Uso de MCP",
-      "description": "Llamadas de clientes de IA por tenant en los últimos 30 días y el interruptor de emergencia. Cada cambio se registra en el log de auditoría del tenant.",
-      "platform_disabled": "HULLWISE_MCP_DISABLED=1: el servidor MCP rechaza toda llamada en este despliegue.",
-      "stat_calls": "Llamadas (30 días)",
-      "stat_errors": "Errores",
-      "stat_rate_limited": "Limitadas",
-      "stat_connections": "Conexiones activas",
-      "stat_unknown_tokens": "Tokens desconocidos",
-      "tenants_title": "Tenants",
-      "tenants_description": "Plan, estado, uso e interruptor por tenant.",
-      "col_tenant": "Tenant",
-      "col_status": "Estado",
-      "col_calls": "Llamadas",
-      "col_errors": "Errores",
-      "col_users": "Personas",
-      "col_connections": "Conexiones",
-      "col_last_call": "Última llamada",
-      "col_kill": "Interruptor",
-      "pending": "{count} por aprobar",
-      "denied_rl": "{denied} rechazadas · {limited} limitadas",
-      "kill": "Suspender MCP",
-      "kill_confirm": "¿Suspender MCP para este tenant? Toda llamada se rechaza hasta que lo restablezcas.",
-      "restore": "Restablecer MCP",
-      "note_placeholder": "Motivo (auditado)",
-      "availability": {
-        "ok": "Activo",
-        "plan": "No incluido",
-        "tenant_disabled": "Desactivado (tenant)",
-        "killed": "Suspendido",
-        "platform_disabled": "Plataforma desactivada",
-        "suspended": "Tenant suspendido"
-      }
     },
     "platform_label": "Plataforma",
     "export_csv": "Exportar CSV",
@@ -3898,6 +3906,40 @@
       "close": "Cerrar",
       "empty_title": "Sin alertas",
       "empty_description": "Ahora mismo no falla nada."
+    },
+    "mcp": {
+      "title": "Uso de MCP",
+      "description": "Llamadas de clientes de IA por tenant en los últimos 30 días y el interruptor de emergencia. Cada cambio se registra en el log de auditoría del tenant.",
+      "platform_disabled": "HULLWISE_MCP_DISABLED=1: el servidor MCP rechaza toda llamada en este despliegue.",
+      "stat_calls": "Llamadas (30 días)",
+      "stat_errors": "Errores",
+      "stat_rate_limited": "Limitadas",
+      "stat_connections": "Conexiones activas",
+      "stat_unknown_tokens": "Tokens desconocidos",
+      "tenants_title": "Tenants",
+      "tenants_description": "Plan, estado, uso e interruptor por tenant.",
+      "col_tenant": "Tenant",
+      "col_status": "Estado",
+      "col_calls": "Llamadas",
+      "col_errors": "Errores",
+      "col_users": "Personas",
+      "col_connections": "Conexiones",
+      "col_last_call": "Última llamada",
+      "col_kill": "Interruptor",
+      "pending": "{count} por aprobar",
+      "denied_rl": "{denied} rechazadas · {limited} limitadas",
+      "kill": "Suspender MCP",
+      "kill_confirm": "¿Suspender MCP para este tenant? Toda llamada se rechaza hasta que lo restablezcas.",
+      "restore": "Restablecer MCP",
+      "note_placeholder": "Motivo (auditado)",
+      "availability": {
+        "ok": "Activo",
+        "plan": "No incluido",
+        "tenant_disabled": "Desactivado (tenant)",
+        "killed": "Suspendido",
+        "platform_disabled": "Plataforma desactivada",
+        "suspended": "Tenant suspendido"
+      }
     }
   },
   "cod": {
@@ -4929,7 +4971,7 @@
     "description": "Mensajes a un segmento, medidos contra el grupo de control del segmento: cuánto aportó cada campaña frente a no hacer nada.",
     "new": "Nueva campaña",
     "new_for_segment": "Nueva campaña",
-    "new_description": "Elige un segmento con grupo de control, escribe el mensaje y envía desde el borrador.",
+    "new_description": "Elige un segmento con grupo de control y escribe el mensaje; el borrador se prueba, se aprueba y luego se programa.",
     "empty_title": "Sin campañas",
     "empty_description": "Crea una desde un segmento con grupo de control para medir su efecto real.",
     "no_segments_title": "Sin segmentos",
@@ -4962,7 +5004,13 @@
     },
     "status": {
       "draft": "Borrador",
-      "sent": "Enviada"
+      "sent": "Enviada",
+      "pending_approval": "Pendiente de aprobación",
+      "approved": "Aprobada",
+      "scheduled": "Programada",
+      "sending": "Enviando",
+      "active": "Activa",
+      "paused": "En pausa"
     },
     "verdict": {
       "no_control": "Sin control",
@@ -4977,30 +5025,31 @@
       "message": "Mensaje",
       "discount_code": "Código de descuento (opcional)",
       "cost": "Coste por mensaje ({currency})",
-      "attribution_days": "Ventana de atribución (días)"
+      "attribution_days": "Ventana de atribución (días)",
+      "kind": "Tipo",
+      "exclude_open_orders": "Excluir a clientes con un pedido abierto"
     },
     "holdout_hint": "El {pct}% del segmento es el grupo de control y no se contactará.",
     "no_holdout_warning": "Este segmento no tiene grupo de control: la campaña se puede enviar pero su efecto no se puede medir. Configura primero un control en el segmento.",
     "message_hint": "{first_name} y {code} se sustituyen para cada cliente.",
     "create": "Crear borrador",
     "save_draft": "Guardar borrador",
-    "send": "Enviar…",
-    "confirm_title": "¿Enviar esta campaña?",
-    "confirm_description": "{treated} clientes la reciben, {holdout} quedan como grupo de control. Solo se incluyen clientes que aceptan marketing.",
+    "confirm_title": "¿Enviar la campaña a aprobación?",
+    "confirm_description": "Hoy la recibirían {treated} clientes y {holdout} quedarían como grupo de control.",
     "mde": "En una ventana pasada comparable compró el {baseline} de estos clientes. Con estos grupos la prueba puede detectar un efecto de aproximadamente {mde} o más.",
-    "confirm_send": "Enviar ahora",
-    "draft_title": "Borrador",
-    "draft_description": "Editable hasta el envío. Enviar reevalúa el segmento y fija los grupos.",
     "delivery_title": "Entrega",
     "sent_on": "Enviada el {at}",
     "exposure": {
       "sent": "Entregados (tratados)",
       "failed": "Fallidos (tratados)",
       "skipped": "Sin dirección (tratados)",
-      "held_out": "Grupo de control"
+      "held_out": "Grupo de control",
+      "queued": "En cola (tratados)",
+      "sending": "Enviándose (tratados)",
+      "suppressed": "Bloqueados en el envío (tratados)"
     },
     "method_title": "Cómo se mide",
-    "method_note": "Cada cliente del segmento que acepta marketing es tratado o de control, fijado antes del envío. Los resultados comparan pedidos confirmados y no cancelados en los {days} días posteriores al envío, contando a todo cliente tratado aunque el mensaje fallara, para que la comparación sea justa. Incremental = diferencia por cliente × clientes tratados.",
+    "method_note": "Cada cliente elegible del segmento es tratado o de control, fijado al iniciar el envío; los excluidos (sin consentimiento, en la lista de exclusión, por encima del límite, con pedido abierto, en otra medición) no están en ningún grupo. Los resultados comparan pedidos confirmados y no cancelados en los {days} días tras la exposición, contando a cada tratado aunque el mensaje fallara, para que la comparación sea justa. Incremental = diferencia por cliente × clientes tratados.",
     "window_open": "Ventana de atribución abierta hasta el {at}: los resultados aún pueden cambiar.",
     "window_closed": "Definitivo: ventana cerrada el {at}.",
     "no_holdout_result": "Sin grupo de control: los números muestran lo que hicieron los clientes tratados, no lo que causó la campaña.",
@@ -5022,10 +5071,133 @@
     "code_redemptions": "{n} pedidos usaron el código {code}.",
     "errors": {
       "not_found": "Campaña no encontrada.",
-      "already_sent": "La campaña ya se envió.",
       "no_segment": "Elige un segmento.",
       "empty_segment": "Ningún cliente del segmento acepta marketing.",
-      "invalid_input": "Revisa los campos."
+      "invalid_input": "Revisa los campos.",
+      "not_editable": "Solo se puede cambiar un borrador: vuelve primero a borrador.",
+      "invalid_transition": "Este paso no es posible en el estado actual de la campaña.",
+      "not_allowed": "Tu rol no puede aprobar campañas.",
+      "own_campaign": "No puedes aprobar una campaña que creaste o enviaste a aprobación.",
+      "sequence_needs_holdout": "Una secuencia necesita un segmento con grupo de control (holdout mayor que 0%).",
+      "manual_channel": "Una campaña enviada desde otra herramienta se registra, no se aprueba ni se prueba.",
+      "no_recipients": "Elige al menos un destinatario (máximo 10).",
+      "note_required": "Escribe una nota para el autor."
+    },
+    "kinds": {
+      "one_off": "Envío único",
+      "sequence": "Secuencia automática"
+    },
+    "kind_hint": {
+      "one_off": "Se envía una vez al segmento, a la hora que programes tras la aprobación.",
+      "sequence": "Funciona sola: cada cliente que entra en el segmento (por ejemplo 120 días después de su último pedido) recibe el mensaje una vez. El grupo de control del segmento es permanente."
+    },
+    "exclude_open_orders_hint": "Quien tiene un pedido aún en curso no recibe la invitación; queda fuera de ambos grupos.",
+    "confirm_record_title": "¿Registrar la campaña como enviada?",
+    "exclusions": {
+      "title": "{members} miembros hoy, excluidos por motivo:",
+      "no_consent": "Sin consentimiento de marketing",
+      "suppressed": "En la lista de exclusión",
+      "over_cap": "Por encima del límite de frecuencia",
+      "open_order": "Pedido abierto",
+      "in_measurement": "En la medición de otra campaña",
+      "holdout": "Grupo de control (no contactados)",
+      "no_address": "Tratados sin dirección para el canal",
+      "waiting_title": "Esperando para entrar",
+      "left_out_title": "Excluidos en el envío"
+    },
+    "workflow": {
+      "test": "Envío de prueba…",
+      "submit": "Vista previa y enviar a aprobación…",
+      "record": "Registrar como enviada…",
+      "approve": "Aprobar",
+      "reject": "Devolver…",
+      "schedule": "Programar…",
+      "activate": "Activar",
+      "pause": "Pausar",
+      "unschedule": "Cancelar programación",
+      "reopen": "Volver a borrador",
+      "submit_hint": "La aprueba un owner, un admin u otro usuario de marketing; luego se programa y la cola la envía dentro de la franja horaria y del límite por minuto.",
+      "record_confirm": "Registrar ahora",
+      "submit_confirm": "Enviar a aprobación",
+      "test_title": "Envío de prueba",
+      "test_description": "Solo a personas de la tienda, nunca a clientes. El mensaje usa su nombre y el código.",
+      "test_phone": "Tu número de teléfono",
+      "test_sent": "{n} mensajes de prueba enviados.",
+      "test_send": "Enviar prueba",
+      "close": "Cerrar",
+      "reject_title": "Devolver al autor",
+      "reject_description": "La campaña vuelve a borrador con tu nota.",
+      "note": "Nota",
+      "reject_confirm": "Devolver",
+      "schedule_title": "Programar el envío",
+      "schedule_description": "Los mensajes salen solo entre {window}; una hora fuera de la franja empieza en la siguiente apertura.",
+      "schedule_at": "Enviar a las (hora de la tienda)",
+      "schedule_hint": "Déjalo vacío para empezar en cuanto la franja lo permita.",
+      "schedule_confirm": "Programar",
+      "schedule_now": "Enviar lo antes posible",
+      "title": "Flujo",
+      "approval_you": "Puedes aprobarla o devolverla.",
+      "approval_waiting": "Esperando aprobación: no puedes aprobar tu propia campaña.",
+      "approval_others": "Esperando que un owner, admin o usuario de marketing la apruebe.",
+      "starts_at": "Empieza {at} (franja de envío {window}).",
+      "review_note": "Revisión: {note}",
+      "sent_back": "Devuelta para cambios: {note}",
+      "steps": {
+        "created": "Creada",
+        "tested": "Prueba enviada",
+        "submitted": "Enviada a aprobación",
+        "approved": "Aprobada",
+        "scheduled": "Programada para",
+        "started": "Envío iniciado",
+        "activated": "Activada",
+        "completed": "Último mensaje enviado"
+      }
+    },
+    "stage": {
+      "draft": {
+        "title": "Borrador",
+        "description": "Editable hasta enviarla a aprobación. Pruébala, mira quién la recibiría y envíala a aprobación."
+      },
+      "pending_approval": {
+        "title": "Pendiente de aprobación",
+        "description": "Bloqueada durante la revisión. Vuelve a borrador para cambiarla."
+      },
+      "approved": {
+        "title": "Aprobada",
+        "description": "Lista para programar (envío único) o activar (secuencia)."
+      },
+      "scheduled": {
+        "title": "Programada",
+        "description": "A la hora programada el job reevalúa el segmento, fija los grupos y envía dentro de la franja horaria y el límite por minuto."
+      }
+    },
+    "activated_on": "Activa desde {at}",
+    "progress": {
+      "sending": "Enviando",
+      "done": "Completado",
+      "throttle": "Hasta {n} mensajes por minuto, entre {window}."
+    },
+    "settings": {
+      "link": "Ajustes de campañas",
+      "title": "Ajustes de campañas",
+      "description": "Reglas que siguen todas las campañas de la tienda. Las horas están en la zona horaria de la tienda ({timezone}).",
+      "cap_title": "Límite de frecuencia",
+      "cap_description": "Nadie recibe más de estos mensajes de campaña en estos días; quien lo supera queda excluido y se cuenta.",
+      "window_title": "Franja de envío",
+      "window_description": "Los mensajes salen solo entre estas horas; un envío que llega al final sigue a la mañana siguiente.",
+      "throttle_title": "Mensajes por minuto",
+      "throttle_description": "Por canal, para todas las campañas juntas: el límite del proveedor o menos.",
+      "lock_hint": "Mientras la ventana de atribución de una campaña está abierta, sus clientes tratados y de control quedan fuera de otras campañas, para no mezclar su efecto.",
+      "fields": {
+        "campaignFrequencyCap": "Mensajes como máximo",
+        "campaignFrequencyDays": "En días",
+        "campaignSendStartHour": "Desde la hora (0–23)",
+        "campaignSendEndHour": "Hasta la hora (1–24)",
+        "throttleEmail": "Email",
+        "throttleSms": "SMS",
+        "throttleWhatsapp": "WhatsApp",
+        "campaignMeasurementLock": "Bloquear a los clientes en medición"
+      }
     }
   },
   "destinations": {
@@ -5241,6 +5413,7 @@
       "roas": "ROAS",
       "meta": "Meta",
       "google": "Google",
+      "tiktok": "TikTok",
       "slipping": "clientes valiosos en riesgo",
       "due_soon": "próximos a recomprar",
       "top": "mayor valor previsto",
@@ -5250,8 +5423,7 @@
       "consider_pause": "Valorar pausa",
       "consider_resume": "Valorar reactivación",
       "pause_stock": "Pausar: stock bajo",
-      "consider_stock": "Revisar stock",
-      "tiktok": "TikTok"
+      "consider_stock": "Revisar stock"
     },
     "open_source": "Abrir la página",
     "figures": {
@@ -6861,249 +7033,37 @@
       }
     }
   },
-  "mcp": {
-    "copy": "Copiar",
-    "copied": "Copiado",
-    "scopes": {
-      "read": "Leer pedidos, clientes, análisis, productos, compras, devoluciones, segmentos y estado de las integraciones que tu rol puede ver",
-      "write_notes": "Añadir notas internas a los pedidos",
-      "write_orders": "Asignar pedidos, pasarlos a revisión o espera, proponer cancelaciones y reembolsos",
-      "write_campaigns": "Proponer pausar campañas publicitarias",
-      "write_purchasing": "Proponer borradores de pedidos de compra"
-    },
-    "unavailable": {
-      "plan": "Los clientes de IA (MCP) se incluyen desde el plan Growth.",
-      "tenant_disabled": "MCP está desactivado en este espacio de trabajo: un propietario o administrador puede activarlo en Ajustes → IA y MCP.",
-      "killed": "La plataforma ha suspendido el acceso MCP a este espacio de trabajo.",
-      "platform_disabled": "MCP no está disponible temporalmente en la plataforma.",
-      "suspended": "Este espacio de trabajo está suspendido."
-    },
+  "data_export": {
+    "title": "Exportación de datos",
+    "description": "Descarga todo lo que Hullwise guarda de esta tienda.",
+    "what_title": "Exportación completa de los datos de la tienda",
+    "what_description": "Un archivo CSV por tabla (pedidos, clientes, productos, devoluciones, campañas, ajustes y más) en un archivo zip, generado en segundo plano. Recibes un aviso cuando está listo; el enlace de descarga caduca a los {days} días. Las credenciales de las integraciones y otros secretos nunca se incluyen.",
+    "request": "Exportar todos los datos",
+    "requesting": "Iniciando…",
     "errors": {
-      "generic": "Algo salió mal. Inténtalo de nuevo.",
-      "invalid_input": "Revisa los campos e inténtalo de nuevo.",
-      "limit_reached": "Has alcanzado el número máximo de tokens activos: revoca uno antes.",
-      "not_found": "No encontrado: puede que se haya eliminado.",
-      "forbidden": "No puedes hacer esto.",
-      "mcp_unavailable": "MCP no está disponible para este espacio de trabajo.",
-      "not_pending": "Esta propuesta ya se decidió.",
-      "expired": "Esta propuesta ha caducado."
+      "in_progress": "Ya hay una exportación en curso.",
+      "generic": "No se pudo iniciar la exportación."
     },
-    "consent": {
-      "title": "Conectar un cliente de IA",
-      "heading": "{client} quiere acceder a Hullwise",
-      "description": "Sesión iniciada como {user}. El cliente actuará como tú, con tu rol, en el espacio de trabajo que elijas.",
-      "workspace": "Espacio de trabajo",
-      "no_workspace": "No eres miembro de ningún espacio de trabajo.",
-      "scopes": "Permisos",
-      "scopes_hint": "Desmarca lo que no quieras permitir. La lectura siempre está incluida.",
-      "note_role": "Solo ve lo que tu rol ve en Hullwise; los módulos desactivados no exponen nada.",
-      "note_pii": "Los correos, teléfonos y direcciones de los clientes se enmascaran, salvo que tu espacio de trabajo haya activado los datos personales completos para clientes de IA.",
-      "note_proposals": "Cancelaciones, reembolsos, pausas de campañas y pedidos de compra son solo propuestas: las aprueba una persona en Hullwise.",
-      "note_redirect": "Tras autorizar vuelves a {host}. Puedes revocar el acceso cuando quieras desde tu perfil → Conexiones.",
-      "approve": "Permitir el acceso",
-      "deny": "Cancelar",
-      "invalid_request": "Esta solicitud de conexión no es válida.",
-      "unavailable": {
-        "plan": "No incluido en el plan",
-        "tenant_disabled": "MCP desactivado por un propietario o administrador",
-        "killed": "Suspendido por la plataforma",
-        "platform_disabled": "No disponible temporalmente",
-        "suspended": "Espacio de trabajo suspendido"
-      }
+    "empty_title": "Aún no hay exportaciones",
+    "empty_description": "Las exportaciones que inicies aparecen aquí con su enlace de descarga.",
+    "columns": {
+      "requested": "Solicitada",
+      "status": "Estado",
+      "rows": "Filas",
+      "expires": "Caducidad del enlace",
+      "file": "Archivo"
     },
-    "connections": {
-      "server_url": "URL del servidor MCP",
-      "server_url_hint": "Pégala en Claude, ChatGPT, Cursor o cualquier cliente MCP: se conectan con OAuth, tú inicias sesión y autorizas.",
-      "connection": "Conexión",
-      "user": "Usuario",
-      "scopes": "Permisos",
-      "last_used": "Último uso",
-      "expires": "Caduca",
-      "never": "Nunca",
-      "empty": "Aún no hay clientes de IA conectados.",
-      "kind": {
-        "oauth": "OAuth",
-        "pat": "Token"
-      },
-      "state": {
-        "active": "Activa",
-        "expired": "Caducada",
-        "revoked": "Revocada"
-      },
-      "create_title": "Nuevo token de acceso personal",
-      "token_name": "Nombre",
-      "token_name_placeholder": "p. ej. Cursor en mi portátil",
-      "expires_in": "Caduca en",
-      "days": "{days} días",
-      "create": "Crear token",
-      "shown_once": "Copia el token ahora: se muestra una sola vez y Hullwise solo guarda una huella.",
-      "rotate": "Regenerar",
-      "rotate_confirm": "¿Crear un nuevo secreto para este token? El actual deja de funcionar de inmediato.",
-      "revoke": "Revocar",
-      "revoke_confirm": "¿Revocar esta conexión? El cliente pierde el acceso de inmediato.",
-      "how_to": "Cómo conectar Claude, ChatGPT o Cursor",
-      "open_settings": "Abrir los ajustes de IA y MCP"
+    "by_platform": "Soporte de Hullwise",
+    "statuses": {
+      "pending": "En cola",
+      "running": "En curso",
+      "done": "Lista",
+      "failed": "Fallida",
+      "expired": "Caducada"
     },
-    "settings": {
-      "title": "IA y MCP",
-      "description": "Permite que tu equipo use Claude, ChatGPT, Cursor y otros clientes de IA sobre los datos de este espacio de trabajo, con sus propios permisos.",
-      "server_title": "Servidor MCP",
-      "server_description": "Una sola URL para todos los clientes. Cada persona se conecta con su cuenta; los tokens están ligados a una persona y a un espacio de trabajo.",
-      "enabled": "Permitir clientes de IA (MCP)",
-      "enabled_hint": "Si está desactivado, se rechaza toda llamada MCP a este espacio de trabajo; las conexiones se conservan.",
-      "full_pii": "Mostrar datos personales de clientes",
-      "full_pii_hint": "Nombres, correos, teléfonos y direcciones completos, solo a los roles que pueden verlos (nunca marketing ni lector). Desactivado: siempre enmascarados.",
-      "rule_auth": "OAuth 2.1 con PKCE, o tokens de acceso personales; los secretos se guardan solo como hash con clave.",
-      "rule_permissions": "Cada herramienta usa el rol de la persona y los módulos del espacio de trabajo; no se expone nada que el rol no vea en Hullwise.",
-      "rule_writes": "Las escrituras directas son reversibles (notas, asignación, revisión o espera); las acciones arriesgadas esperan aprobación.",
-      "rule_limits": "Límites: {perToken} llamadas por minuto por conexión, {perTenant} por espacio de trabajo.",
-      "guides_title": "Conectar un cliente",
-      "guides_description": "Los pasos para los clientes más usados.",
-      "connections_title": "Clientes conectados",
-      "connections_description": "Todas las conexiones activas del espacio de trabajo, con su último uso. Propietarios y administradores pueden revocarlas.",
-      "activity_title": "Actividad reciente",
-      "activity_description": "Las últimas llamadas de los últimos 7 días (herramienta, persona, cliente, resultado). Nunca se guardan argumentos ni resultados.",
-      "activity_empty": "Aún no hay llamadas.",
-      "stat_calls": "Llamadas (7 días)",
-      "stat_errors": "Errores",
-      "stat_denied": "Rechazadas",
-      "stat_rate_limited": "Limitadas",
-      "col_when": "Cuándo",
-      "col_tool": "Herramienta",
-      "col_who": "Quién",
-      "col_outcome": "Resultado",
-      "col_duration": "Duración",
-      "outcome": {
-        "ok": "OK",
-        "error": "Error",
-        "denied": "Rechazada",
-        "invalid_input": "Entrada no válida",
-        "not_found": "No encontrado",
-        "rate_limited": "Limitada",
-        "auth_failed": "Autenticación fallida",
-        "disabled": "Desactivado"
-      },
-      "approvals_link": "Aprobaciones ({count})",
-      "approvals_link_empty": "Aprobaciones",
-      "own_tokens_link": "Tus tokens de acceso personales están en tu perfil → Conexiones."
-    },
-    "approvals": {
-      "title": "Aprobaciones",
-      "description": "Acciones que los clientes de IA propusieron por MCP. No ocurre nada hasta que alguien que puede hacerlo las aprueba; al aprobar se ejecutan en tu nombre.",
-      "empty_title": "Nada que aprobar",
-      "empty_description": "Aquí aparecen las propuestas de los clientes de IA (cancelaciones, reembolsos, pausas de campañas, pedidos de compra).",
-      "requested_by": "{client} para {user} · {when}",
-      "order_total": "Total del pedido",
-      "restock": "Reponer stock",
-      "refund": "Reembolsar el pago",
-      "amount": "Importe",
-      "refundable": "Aún reembolsable",
-      "lines": "Líneas",
-      "expires": "Caduca",
-      "yes": "Sí",
-      "no": "No",
-      "cannot_approve": "Tu rol no puede aprobarla: quien pueda la verá aquí.",
-      "note_placeholder": "Nota (opcional)",
-      "approve": "Aprobar y ejecutar",
-      "approve_confirm": "¿Aprobar y ejecutar ahora esta acción en tu nombre?",
-      "reject": "Rechazar",
-      "failed": "La acción falló: {error}",
-      "history": "Historial",
-      "history_empty": "Aún no hay propuestas decididas.",
-      "col_proposal": "Propuesta",
-      "col_requested": "Solicitada",
-      "col_status": "Estado",
-      "col_decided": "Decidida por",
-      "kinds": {
-        "order_cancel": "Cancelar pedido",
-        "order_refund": "Reembolso",
-        "campaign_pause": "Pausar campaña",
-        "purchase_order_create": "Borrador de pedido de compra"
-      },
-      "status": {
-        "pending": "Pendiente",
-        "approved": "Aprobada",
-        "rejected": "Rechazada",
-        "failed": "Fallida",
-        "expired": "Caducada"
-      }
-    },
-    "guides": {
-      "verify_legend": "Los pasos marcados «Por verificar» dependen de la interfaz del proveedor de IA, que cambia a menudo: compruébalos en su documentación antes de la primera instalación.",
-      "verify_badge": "Por verificar",
-      "pat_note": "Clientes sin OAuth: crea un token de acceso personal en tu perfil → Conexiones y envíalo en la cabecera Authorization: Bearer kpat_…",
-      "claude": {
-        "name": "Claude",
-        "steps": [
-          {
-            "title": "Abre los conectores",
-            "body": "En Claude (web o app de escritorio) abre Ajustes → Conectores y elige «Añadir conector personalizado». En planes de equipo puede que un propietario deba permitirlos antes.",
-            "verify": true
-          },
-          {
-            "title": "Pega la URL del servidor",
-            "body": "Ponle un nombre (p. ej. Hullwise) y pega:\n{serverUrl}\nDeja vacíos los campos OAuth avanzados: Claude se registra solo en Hullwise.",
-            "verify": true
-          },
-          {
-            "title": "Inicia sesión y autoriza",
-            "body": "Claude abre Hullwise: inicia sesión, elige el espacio de trabajo, mantén o quita permisos y autoriza. Vuelves a Claude ya conectado."
-          },
-          {
-            "title": "Pruébalo",
-            "body": "En un chat activa el conector desde el menú de herramientas y pregunta: «¿Cómo fueron las ventas la semana pasada frente a la anterior?» Claude cita las cifras con el enlace a Hullwise.",
-            "verify": true
-          }
-        ]
-      },
-      "chatgpt": {
-        "name": "ChatGPT",
-        "steps": [
-          {
-            "title": "Permite conectores personalizados",
-            "body": "En ChatGPT abre Ajustes → Conectores (Apps). Según el plan, los conectores MCP personalizados requieren el modo desarrollador en los ajustes avanzados, o un administrador del espacio de trabajo.",
-            "verify": true
-          },
-          {
-            "title": "Crea el conector",
-            "body": "Elige Crear, ponle un nombre, pega {serverUrl} y elige OAuth como autenticación.",
-            "verify": true
-          },
-          {
-            "title": "Inicia sesión y autoriza",
-            "body": "ChatGPT abre Hullwise: inicia sesión, elige el espacio de trabajo y los permisos, autoriza."
-          },
-          {
-            "title": "Pruébalo",
-            "body": "Abre un chat, añade el conector desde el menú de herramientas y pregunta por ejemplo: «¿Qué campañas perdieron dinero este mes y qué sugiere Hullwise?»",
-            "verify": true
-          }
-        ]
-      },
-      "cursor": {
-        "name": "Cursor",
-        "steps": [
-          {
-            "title": "Abre los ajustes MCP",
-            "body": "En Cursor abre Settings → MCP (Tools & Integrations) → «Add custom MCP server»: se abre ~/.cursor/mcp.json.",
-            "verify": true
-          },
-          {
-            "title": "Añade Hullwise",
-            "body": "Añade este servidor y guarda:\n{ \"mcpServers\": { \"hullwise\": { \"url\": \"{serverUrl}\" } } }",
-            "verify": true
-          },
-          {
-            "title": "Inicia sesión",
-            "body": "Cursor indica que el servidor necesita inicio de sesión: haz clic, entra en Hullwise y autoriza. Sin OAuth, crea un token de acceso personal y añade \"headers\": { \"Authorization\": \"Bearer kpat_…\" } al servidor."
-          },
-          {
-            "title": "Pruébalo",
-            "body": "En el chat del agente pregunta: «Lista los productos con riesgo de rotura de stock y el pedido sugerido.»"
-          }
-        ]
-      }
-    }
+    "tables_n": "{n} tablas",
+    "download": "Descargar",
+    "downloads": "{n, plural, one {descargada una vez} other {descargada # veces}}"
   },
   "dashboards": {
     "title": "Paneles",
@@ -7543,6 +7503,456 @@
       "tiktok": "TikTok"
     }
   },
+  "ads": {
+    "nav": {
+      "label": "Análisis de campañas",
+      "campaigns": "Campañas",
+      "creatives": "Creatividades",
+      "keywords": "Palabras clave y búsquedas",
+      "words": "Palabras",
+      "recommendations": "Sugerencias"
+    },
+    "cols": {
+      "name": "Nombre",
+      "spend": "Gasto",
+      "impressions": "Impresiones",
+      "ctr": "CTR",
+      "platform_conv": "Conv. plataforma",
+      "hullwise_orders": "Pedidos Hullwise",
+      "revenue": "Ingreso neto",
+      "profit": "Beneficio",
+      "roas": "ROAS",
+      "frequency": "Frecuencia",
+      "match": "Concordancia",
+      "quality": "Calidad",
+      "campaign": "Campaña",
+      "action": "Acción",
+      "phrase": "Frase",
+      "items": "Usada en",
+      "margin": "Margen",
+      "cpa": "CPA",
+      "field": "Campo",
+      "asset": "Recurso",
+      "hullwise_orders_allocated": "Pedidos Hullwise (repartidos)",
+      "date": "Fecha",
+      "search_term": "Término de búsqueda",
+      "clicks": "Clics",
+      "reason": "Por qué",
+      "ad": "Anuncio"
+    },
+    "excluded_n": "+{n} cancelados/devueltos",
+    "ad_sets_title": "Conjuntos de anuncios",
+    "ad_groups_title": "Grupos de anuncios",
+    "ad_sets_description": "Las cifras de la plataforma junto a las de Hullwise: pedidos, ingresos y beneficio cuentan solo los pedidos no cancelados ni devueltos.",
+    "utm_missing": "{n} de {total} anuncios no llevan {params}: sus pedidos llegan a Hullwise sin anuncio. Añade esta plantilla a los anuncios:",
+    "no_ad_sets": "Aún no hay conjuntos",
+    "no_ad_sets_hint": "Llegan con la próxima sincronización de anuncios.",
+    "hullwise_not_visible": "Hullwise no ve los pedidos de esta fila (la plantilla UTM no la nombra).",
+    "n_ads": "{n} anuncios",
+    "n_keywords": "{n} palabras clave",
+    "unassigned_orders": "{n} pedidos de la campaña no están ligados a un conjunto",
+    "open_orders": "Abrir pedidos",
+    "reconciliation": "Gasto de los anuncios {ads} de {campaign} · sin asignar {unallocated}",
+    "ad_set": "Conjunto de anuncios",
+    "ad_group": "Grupo de anuncios",
+    "status": {
+      "active": "Activo",
+      "paused": "En pausa",
+      "archived": "Archivado"
+    },
+    "ads_title": "Anuncios",
+    "ads_description": "Fatiga: la frecuencia sube mientras el CTR baja. Las sugerencias son de solo lectura: decide una persona.",
+    "no_ads": "No hay anuncios en este conjunto",
+    "keywords_title": "Palabras clave",
+    "no_keywords": "No hay palabras clave",
+    "search_terms_title": "Términos de búsqueda",
+    "all_search_terms": "Todos los términos de la campaña",
+    "no_search_terms": "No hay términos de búsqueda",
+    "other_terms": "Otros términos (bajo las impresiones mínimas)",
+    "via_keyword": "por “{keyword}”",
+    "negative_reason": {
+      "only_cancelled": "Solo pedidos cancelados",
+      "no_orders": "Gasto sin pedidos",
+      "unprofitable_orders": "Pedidos con pérdida",
+      "no_conversions": "Gasto sin conversiones"
+    },
+    "excluded": "Excluido",
+    "hullwise_footnote": "Hullwise liga los pedidos a conjuntos, anuncios y palabras clave mediante la plantilla UTM; donde la plataforma no los liga aparece un guion.",
+    "match": {
+      "exact": "Exacta",
+      "phrase": "Frase",
+      "broad": "Amplia"
+    },
+    "fatigue": {
+      "watch": "Atención: CTR en descenso",
+      "fatigued": "Fatigado"
+    },
+    "utm_badge": "Faltan UTM",
+    "pause_reason": {
+      "losing": "Con pérdidas",
+      "fatigued": "Fatigado y con pérdidas",
+      "low_label": "Calificado BAJO",
+      "low_ctr": "Mitad del CTR de los demás"
+    },
+    "ctr_change": "CTR {change} desde el inicio",
+    "copy_title": "Textos y seguimiento",
+    "utm_missing_ad": "Este anuncio no lleva {params}: sus pedidos llegan a Hullwise sin el anuncio. Plantilla:",
+    "assets_title": "Recursos",
+    "no_assets": "Sin desglose por recurso",
+    "no_assets_meta": "Meta solo informa de recursos en anuncios con creatividad dinámica o Advantage+.",
+    "no_assets_google": "Google informa de recursos en los anuncios adaptables.",
+    "no_assets_tiktok": "TikTok no informa de métricas por recurso: el vídeo del anuncio aparece con su id.",
+    "field": {
+      "headline": "Título",
+      "description": "Descripción",
+      "body": "Texto principal",
+      "title": "Título corto",
+      "image": "Imagen",
+      "video": "Vídeo",
+      "other": "Otro"
+    },
+    "assets_footnote": "Las plataformas informan de recursos, no de pedidos: Hullwise reparte los pedidos del anuncio entre sus recursos según la cuota de gasto en cada campo.",
+    "daily_title": "Por día",
+    "no_days": "Sin datos diarios en el periodo",
+    "keywords_page_title": "Palabras clave y términos de búsqueda",
+    "keywords_page_description": "Las palabras clave de Google Ads y las búsquedas que activaron los anuncios, con los pedidos de Hullwise donde la plantilla UTM las nombra.",
+    "tabs": {
+      "keywords": "Palabras clave",
+      "search_terms": "Términos de búsqueda"
+    },
+    "search_placeholder": "Buscar texto",
+    "all_campaigns": "Todas las campañas",
+    "sort_label": "Ordenar",
+    "sort": {
+      "spend": "Gasto",
+      "profit": "Beneficio",
+      "roas": "ROAS",
+      "conversions": "Conversiones"
+    },
+    "candidates_only": "Solo candidatos a palabra clave negativa",
+    "apply": "Aplicar",
+    "google_only": "Las palabras clave y los términos de búsqueda vienen de Google Ads; Meta no los tiene.",
+    "rows_total": "{n} filas",
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "page_of": "Página {page} de {pages}",
+    "keywords_footnote": "Los pedidos Hullwise vienen de utm_term con la palabra clave que pone la plantilla de seguimiento.",
+    "search_terms_footnote": "Hullwise ve los pedidos de un término cuando el término es una palabra clave (concordancia exacta); para los demás deciden las conversiones de la plataforma. Los términos bajo las impresiones mínimas se agrupan en “Otros términos”.",
+    "words_title": "Palabras",
+    "words_description": "Palabras y frases (1–3 palabras) ganadoras y perdedoras en los textos de los anuncios, los términos de búsqueda y las palabras clave, con el beneficio de los pedidos Hullwise.",
+    "word_source": {
+      "copy": "Textos de anuncios",
+      "search_terms": "Términos de búsqueda",
+      "keywords": "Palabras clave"
+    },
+    "ngram": {
+      "all": "Todas",
+      "n1": "1 palabra",
+      "n2": "2 palabras",
+      "n3": "3 palabras"
+    },
+    "no_words": "Volumen insuficiente",
+    "no_words_hint": "Una frase necesita al menos dos anuncios o términos y algo de gasto.",
+    "winners": "Palabras ganadoras",
+    "winners_description": "Frases de elementos con beneficio, las mejores primero.",
+    "no_winners": "Ninguna frase con beneficio en el periodo",
+    "losers": "Palabras perdedoras",
+    "losers_description": "Frases de elementos con pérdidas, las peores primero.",
+    "no_losers": "Ninguna frase con pérdidas en el periodo",
+    "words_footnote": "{items} elementos analizados. Cada frase suma las cifras completas de cada elemento que la contiene, así que las frases se solapan.",
+    "recommendations_title": "Sugerencias de anuncios",
+    "recommendations_description": "Sugerencias de solo lectura: una persona las revisa y actúa; las escrituras en las plataformas siempre piden confirmación.",
+    "in_items": "en {n}",
+    "rec": {
+      "negatives_title": "Candidatos a palabra clave negativa",
+      "negatives_description": "{n} términos de búsqueda gastan sin pedidos con beneficio.",
+      "google_read_only": "Google es de solo lectura para esta tienda: concede acceso de escritura en Integraciones para excluir términos desde aquí.",
+      "none": "Nada que sugerir",
+      "all_candidates": "Todos los candidatos",
+      "ads_title": "Anuncios para pausar",
+      "ads_description": "Anuncios activos con pérdidas en el periodo, o fatigados y con pérdidas.",
+      "words_title": "Palabras ganadoras para reutilizar",
+      "words_description": "Frases de los anuncios con más beneficio.",
+      "open_words": "Abrir Palabras",
+      "assets_title": "Recursos débiles",
+      "assets_description": "Recursos calificados BAJO por la plataforma o con la mitad del CTR de los demás.",
+      "utm_title": "Plantillas UTM",
+      "utm_description": "Sin estos parámetros Hullwise no puede ligar los pedidos a anuncios, conjuntos y palabras clave.",
+      "utm_ok": "Todas las campañas activas llevan las plantillas.",
+      "utm_row": "{missing} de {ads} anuncios sin {params}",
+      "template_meta": "Meta: parámetros de URL del anuncio",
+      "template_google": "Google: plantilla de seguimiento de la cuenta",
+      "template_tiktok": "TikTok: parámetros de URL del anuncio"
+    },
+    "actions": {
+      "read_only": "{platform} es de solo lectura para esta tienda.",
+      "read_only_short": "Solo lectura",
+      "pause_ad": "Pausar anuncio",
+      "resume_ad": "Reanudar anuncio",
+      "pause_title": "¿Pausar este anuncio en {platform}?",
+      "resume_title": "¿Reanudar este anuncio en {platform}?",
+      "write_description": "Hullwise cambia el estado aquí y lo envía a la plataforma; si no responde, el cambio se reintenta y se muestra como pendiente.",
+      "confirm": "Confirmar",
+      "exclude": "Excluir",
+      "negative_title": "¿Añadir “{text}” como palabra clave negativa?",
+      "negative_description": "Google deja de mostrar los anuncios para esta búsqueda. El cambio pasa por la cola de escrituras.",
+      "match_type": "Concordancia",
+      "match": {
+        "exact": "Exacta",
+        "phrase": "Frase",
+        "broad": "Amplia"
+      },
+      "level": "Nivel",
+      "levels": {
+        "campaign": "Campaña",
+        "ad_group": "Grupo de anuncios"
+      }
+    }
+  },
+  "mcp": {
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "scopes": {
+      "read": "Leer pedidos, clientes, análisis, productos, compras, devoluciones, segmentos y estado de las integraciones que tu rol puede ver",
+      "write_notes": "Añadir notas internas a los pedidos",
+      "write_orders": "Asignar pedidos, pasarlos a revisión o espera, proponer cancelaciones y reembolsos",
+      "write_campaigns": "Proponer pausar campañas publicitarias",
+      "write_purchasing": "Proponer borradores de pedidos de compra"
+    },
+    "unavailable": {
+      "plan": "Los clientes de IA (MCP) se incluyen desde el plan Growth.",
+      "tenant_disabled": "MCP está desactivado en este espacio de trabajo: un propietario o administrador puede activarlo en Ajustes → IA y MCP.",
+      "killed": "La plataforma ha suspendido el acceso MCP a este espacio de trabajo.",
+      "platform_disabled": "MCP no está disponible temporalmente en la plataforma.",
+      "suspended": "Este espacio de trabajo está suspendido."
+    },
+    "errors": {
+      "generic": "Algo salió mal. Inténtalo de nuevo.",
+      "invalid_input": "Revisa los campos e inténtalo de nuevo.",
+      "limit_reached": "Has alcanzado el número máximo de tokens activos: revoca uno antes.",
+      "not_found": "No encontrado: puede que se haya eliminado.",
+      "forbidden": "No puedes hacer esto.",
+      "mcp_unavailable": "MCP no está disponible para este espacio de trabajo.",
+      "not_pending": "Esta propuesta ya se decidió.",
+      "expired": "Esta propuesta ha caducado."
+    },
+    "consent": {
+      "title": "Conectar un cliente de IA",
+      "heading": "{client} quiere acceder a Hullwise",
+      "description": "Sesión iniciada como {user}. El cliente actuará como tú, con tu rol, en el espacio de trabajo que elijas.",
+      "workspace": "Espacio de trabajo",
+      "no_workspace": "No eres miembro de ningún espacio de trabajo.",
+      "scopes": "Permisos",
+      "scopes_hint": "Desmarca lo que no quieras permitir. La lectura siempre está incluida.",
+      "note_role": "Solo ve lo que tu rol ve en Hullwise; los módulos desactivados no exponen nada.",
+      "note_pii": "Los correos, teléfonos y direcciones de los clientes se enmascaran, salvo que tu espacio de trabajo haya activado los datos personales completos para clientes de IA.",
+      "note_proposals": "Cancelaciones, reembolsos, pausas de campañas y pedidos de compra son solo propuestas: las aprueba una persona en Hullwise.",
+      "note_redirect": "Tras autorizar vuelves a {host}. Puedes revocar el acceso cuando quieras desde tu perfil → Conexiones.",
+      "approve": "Permitir el acceso",
+      "deny": "Cancelar",
+      "invalid_request": "Esta solicitud de conexión no es válida.",
+      "unavailable": {
+        "plan": "No incluido en el plan",
+        "tenant_disabled": "MCP desactivado por un propietario o administrador",
+        "killed": "Suspendido por la plataforma",
+        "platform_disabled": "No disponible temporalmente",
+        "suspended": "Espacio de trabajo suspendido"
+      }
+    },
+    "connections": {
+      "server_url": "URL del servidor MCP",
+      "server_url_hint": "Pégala en Claude, ChatGPT, Cursor o cualquier cliente MCP: se conectan con OAuth, tú inicias sesión y autorizas.",
+      "connection": "Conexión",
+      "user": "Usuario",
+      "scopes": "Permisos",
+      "last_used": "Último uso",
+      "expires": "Caduca",
+      "never": "Nunca",
+      "empty": "Aún no hay clientes de IA conectados.",
+      "kind": {
+        "oauth": "OAuth",
+        "pat": "Token"
+      },
+      "state": {
+        "active": "Activa",
+        "expired": "Caducada",
+        "revoked": "Revocada"
+      },
+      "create_title": "Nuevo token de acceso personal",
+      "token_name": "Nombre",
+      "token_name_placeholder": "p. ej. Cursor en mi portátil",
+      "expires_in": "Caduca en",
+      "days": "{days} días",
+      "create": "Crear token",
+      "shown_once": "Copia el token ahora: se muestra una sola vez y Hullwise solo guarda una huella.",
+      "rotate": "Regenerar",
+      "rotate_confirm": "¿Crear un nuevo secreto para este token? El actual deja de funcionar de inmediato.",
+      "revoke": "Revocar",
+      "revoke_confirm": "¿Revocar esta conexión? El cliente pierde el acceso de inmediato.",
+      "how_to": "Cómo conectar Claude, ChatGPT o Cursor",
+      "open_settings": "Abrir los ajustes de IA y MCP"
+    },
+    "settings": {
+      "title": "IA y MCP",
+      "description": "Permite que tu equipo use Claude, ChatGPT, Cursor y otros clientes de IA sobre los datos de este espacio de trabajo, con sus propios permisos.",
+      "server_title": "Servidor MCP",
+      "server_description": "Una sola URL para todos los clientes. Cada persona se conecta con su cuenta; los tokens están ligados a una persona y a un espacio de trabajo.",
+      "enabled": "Permitir clientes de IA (MCP)",
+      "enabled_hint": "Si está desactivado, se rechaza toda llamada MCP a este espacio de trabajo; las conexiones se conservan.",
+      "full_pii": "Mostrar datos personales de clientes",
+      "full_pii_hint": "Nombres, correos, teléfonos y direcciones completos, solo a los roles que pueden verlos (nunca marketing ni lector). Desactivado: siempre enmascarados.",
+      "rule_auth": "OAuth 2.1 con PKCE, o tokens de acceso personales; los secretos se guardan solo como hash con clave.",
+      "rule_permissions": "Cada herramienta usa el rol de la persona y los módulos del espacio de trabajo; no se expone nada que el rol no vea en Hullwise.",
+      "rule_writes": "Las escrituras directas son reversibles (notas, asignación, revisión o espera); las acciones arriesgadas esperan aprobación.",
+      "rule_limits": "Límites: {perToken} llamadas por minuto por conexión, {perTenant} por espacio de trabajo.",
+      "guides_title": "Conectar un cliente",
+      "guides_description": "Los pasos para los clientes más usados.",
+      "connections_title": "Clientes conectados",
+      "connections_description": "Todas las conexiones activas del espacio de trabajo, con su último uso. Propietarios y administradores pueden revocarlas.",
+      "activity_title": "Actividad reciente",
+      "activity_description": "Las últimas llamadas de los últimos 7 días (herramienta, persona, cliente, resultado). Nunca se guardan argumentos ni resultados.",
+      "activity_empty": "Aún no hay llamadas.",
+      "stat_calls": "Llamadas (7 días)",
+      "stat_errors": "Errores",
+      "stat_denied": "Rechazadas",
+      "stat_rate_limited": "Limitadas",
+      "col_when": "Cuándo",
+      "col_tool": "Herramienta",
+      "col_who": "Quién",
+      "col_outcome": "Resultado",
+      "col_duration": "Duración",
+      "outcome": {
+        "ok": "OK",
+        "error": "Error",
+        "denied": "Rechazada",
+        "invalid_input": "Entrada no válida",
+        "not_found": "No encontrado",
+        "rate_limited": "Limitada",
+        "auth_failed": "Autenticación fallida",
+        "disabled": "Desactivado"
+      },
+      "approvals_link": "Aprobaciones ({count})",
+      "approvals_link_empty": "Aprobaciones",
+      "own_tokens_link": "Tus tokens de acceso personales están en tu perfil → Conexiones."
+    },
+    "approvals": {
+      "title": "Aprobaciones",
+      "description": "Acciones que los clientes de IA propusieron por MCP. No ocurre nada hasta que alguien que puede hacerlo las aprueba; al aprobar se ejecutan en tu nombre.",
+      "empty_title": "Nada que aprobar",
+      "empty_description": "Aquí aparecen las propuestas de los clientes de IA (cancelaciones, reembolsos, pausas de campañas, pedidos de compra).",
+      "requested_by": "{client} para {user} · {when}",
+      "order_total": "Total del pedido",
+      "restock": "Reponer stock",
+      "refund": "Reembolsar el pago",
+      "amount": "Importe",
+      "refundable": "Aún reembolsable",
+      "lines": "Líneas",
+      "expires": "Caduca",
+      "yes": "Sí",
+      "no": "No",
+      "cannot_approve": "Tu rol no puede aprobarla: quien pueda la verá aquí.",
+      "note_placeholder": "Nota (opcional)",
+      "approve": "Aprobar y ejecutar",
+      "approve_confirm": "¿Aprobar y ejecutar ahora esta acción en tu nombre?",
+      "reject": "Rechazar",
+      "failed": "La acción falló: {error}",
+      "history": "Historial",
+      "history_empty": "Aún no hay propuestas decididas.",
+      "col_proposal": "Propuesta",
+      "col_requested": "Solicitada",
+      "col_status": "Estado",
+      "col_decided": "Decidida por",
+      "kinds": {
+        "order_cancel": "Cancelar pedido",
+        "order_refund": "Reembolso",
+        "campaign_pause": "Pausar campaña",
+        "purchase_order_create": "Borrador de pedido de compra"
+      },
+      "status": {
+        "pending": "Pendiente",
+        "approved": "Aprobada",
+        "rejected": "Rechazada",
+        "failed": "Fallida",
+        "expired": "Caducada"
+      }
+    },
+    "guides": {
+      "verify_legend": "Los pasos marcados «Por verificar» dependen de la interfaz del proveedor de IA, que cambia a menudo: compruébalos en su documentación antes de la primera instalación.",
+      "verify_badge": "Por verificar",
+      "pat_note": "Clientes sin OAuth: crea un token de acceso personal en tu perfil → Conexiones y envíalo en la cabecera Authorization: Bearer kpat_…",
+      "claude": {
+        "name": "Claude",
+        "steps": [
+          {
+            "title": "Abre los conectores",
+            "body": "En Claude (web o app de escritorio) abre Ajustes → Conectores y elige «Añadir conector personalizado». En planes de equipo puede que un propietario deba permitirlos antes.",
+            "verify": true
+          },
+          {
+            "title": "Pega la URL del servidor",
+            "body": "Ponle un nombre (p. ej. Hullwise) y pega:\n{serverUrl}\nDeja vacíos los campos OAuth avanzados: Claude se registra solo en Hullwise.",
+            "verify": true
+          },
+          {
+            "title": "Inicia sesión y autoriza",
+            "body": "Claude abre Hullwise: inicia sesión, elige el espacio de trabajo, mantén o quita permisos y autoriza. Vuelves a Claude ya conectado."
+          },
+          {
+            "title": "Pruébalo",
+            "body": "En un chat activa el conector desde el menú de herramientas y pregunta: «¿Cómo fueron las ventas la semana pasada frente a la anterior?» Claude cita las cifras con el enlace a Hullwise.",
+            "verify": true
+          }
+        ]
+      },
+      "chatgpt": {
+        "name": "ChatGPT",
+        "steps": [
+          {
+            "title": "Permite conectores personalizados",
+            "body": "En ChatGPT abre Ajustes → Conectores (Apps). Según el plan, los conectores MCP personalizados requieren el modo desarrollador en los ajustes avanzados, o un administrador del espacio de trabajo.",
+            "verify": true
+          },
+          {
+            "title": "Crea el conector",
+            "body": "Elige Crear, ponle un nombre, pega {serverUrl} y elige OAuth como autenticación.",
+            "verify": true
+          },
+          {
+            "title": "Inicia sesión y autoriza",
+            "body": "ChatGPT abre Hullwise: inicia sesión, elige el espacio de trabajo y los permisos, autoriza."
+          },
+          {
+            "title": "Pruébalo",
+            "body": "Abre un chat, añade el conector desde el menú de herramientas y pregunta por ejemplo: «¿Qué campañas perdieron dinero este mes y qué sugiere Hullwise?»",
+            "verify": true
+          }
+        ]
+      },
+      "cursor": {
+        "name": "Cursor",
+        "steps": [
+          {
+            "title": "Abre los ajustes MCP",
+            "body": "En Cursor abre Settings → MCP (Tools & Integrations) → «Add custom MCP server»: se abre ~/.cursor/mcp.json.",
+            "verify": true
+          },
+          {
+            "title": "Añade Hullwise",
+            "body": "Añade este servidor y guarda:\n{ \"mcpServers\": { \"hullwise\": { \"url\": \"{serverUrl}\" } } }",
+            "verify": true
+          },
+          {
+            "title": "Inicia sesión",
+            "body": "Cursor indica que el servidor necesita inicio de sesión: haz clic, entra en Hullwise y autoriza. Sin OAuth, crea un token de acceso personal y añade \"headers\": { \"Authorization\": \"Bearer kpat_…\" } al servidor."
+          },
+          {
+            "title": "Pruébalo",
+            "body": "En el chat del agente pregunta: «Lista los productos con riesgo de rotura de stock y el pedido sugerido.»"
+          }
+        ]
+      }
+    }
+  },
   "billing": {
     "title": "Facturación",
     "description": "Tu plan, el método de pago y las facturas.",
@@ -7753,244 +8163,6 @@
     "none": "Aún no hay suscripción en el procesador.",
     "catalog_missing": "Sincroniza primero el catálogo (Facturación → Suscripciones).",
     "cancel_at_period_end": "termina al final del periodo"
-  },
-  "data_export": {
-    "title": "Exportación de datos",
-    "description": "Descarga todo lo que Hullwise guarda de esta tienda.",
-    "what_title": "Exportación completa de los datos de la tienda",
-    "what_description": "Un archivo CSV por tabla (pedidos, clientes, productos, devoluciones, campañas, ajustes y más) en un archivo zip, generado en segundo plano. Recibes un aviso cuando está listo; el enlace de descarga caduca a los {days} días. Las credenciales de las integraciones y otros secretos nunca se incluyen.",
-    "request": "Exportar todos los datos",
-    "requesting": "Iniciando…",
-    "errors": {
-      "in_progress": "Ya hay una exportación en curso.",
-      "generic": "No se pudo iniciar la exportación."
-    },
-    "empty_title": "Aún no hay exportaciones",
-    "empty_description": "Las exportaciones que inicies aparecen aquí con su enlace de descarga.",
-    "columns": {
-      "requested": "Solicitada",
-      "status": "Estado",
-      "rows": "Filas",
-      "expires": "Caducidad del enlace",
-      "file": "Archivo"
-    },
-    "by_platform": "Soporte de Hullwise",
-    "statuses": {
-      "pending": "En cola",
-      "running": "En curso",
-      "done": "Lista",
-      "failed": "Fallida",
-      "expired": "Caducada"
-    },
-    "tables_n": "{n} tablas",
-    "download": "Descargar",
-    "downloads": "{n, plural, one {descargada una vez} other {descargada # veces}}"
-  },
-  "ads": {
-    "nav": {
-      "label": "Análisis de campañas",
-      "campaigns": "Campañas",
-      "creatives": "Creatividades",
-      "keywords": "Palabras clave y búsquedas",
-      "words": "Palabras",
-      "recommendations": "Sugerencias"
-    },
-    "cols": {
-      "name": "Nombre",
-      "spend": "Gasto",
-      "impressions": "Impresiones",
-      "ctr": "CTR",
-      "platform_conv": "Conv. plataforma",
-      "hullwise_orders": "Pedidos Hullwise",
-      "revenue": "Ingreso neto",
-      "profit": "Beneficio",
-      "roas": "ROAS",
-      "frequency": "Frecuencia",
-      "match": "Concordancia",
-      "quality": "Calidad",
-      "campaign": "Campaña",
-      "action": "Acción",
-      "phrase": "Frase",
-      "items": "Usada en",
-      "margin": "Margen",
-      "cpa": "CPA",
-      "field": "Campo",
-      "asset": "Recurso",
-      "hullwise_orders_allocated": "Pedidos Hullwise (repartidos)",
-      "date": "Fecha",
-      "search_term": "Término de búsqueda",
-      "clicks": "Clics",
-      "reason": "Por qué",
-      "ad": "Anuncio"
-    },
-    "excluded_n": "+{n} cancelados/devueltos",
-    "ad_sets_title": "Conjuntos de anuncios",
-    "ad_groups_title": "Grupos de anuncios",
-    "ad_sets_description": "Las cifras de la plataforma junto a las de Hullwise: pedidos, ingresos y beneficio cuentan solo los pedidos no cancelados ni devueltos.",
-    "utm_missing": "{n} de {total} anuncios no llevan {params}: sus pedidos llegan a Hullwise sin anuncio. Añade esta plantilla a los anuncios:",
-    "no_ad_sets": "Aún no hay conjuntos",
-    "no_ad_sets_hint": "Llegan con la próxima sincronización de anuncios.",
-    "hullwise_not_visible": "Hullwise no ve los pedidos de esta fila (la plantilla UTM no la nombra).",
-    "n_ads": "{n} anuncios",
-    "n_keywords": "{n} palabras clave",
-    "unassigned_orders": "{n} pedidos de la campaña no están ligados a un conjunto",
-    "open_orders": "Abrir pedidos",
-    "reconciliation": "Gasto de los anuncios {ads} de {campaign} · sin asignar {unallocated}",
-    "ad_set": "Conjunto de anuncios",
-    "ad_group": "Grupo de anuncios",
-    "status": {
-      "active": "Activo",
-      "paused": "En pausa",
-      "archived": "Archivado"
-    },
-    "ads_title": "Anuncios",
-    "ads_description": "Fatiga: la frecuencia sube mientras el CTR baja. Las sugerencias son de solo lectura: decide una persona.",
-    "no_ads": "No hay anuncios en este conjunto",
-    "keywords_title": "Palabras clave",
-    "no_keywords": "No hay palabras clave",
-    "search_terms_title": "Términos de búsqueda",
-    "all_search_terms": "Todos los términos de la campaña",
-    "no_search_terms": "No hay términos de búsqueda",
-    "other_terms": "Otros términos (bajo las impresiones mínimas)",
-    "via_keyword": "por “{keyword}”",
-    "negative_reason": {
-      "only_cancelled": "Solo pedidos cancelados",
-      "no_orders": "Gasto sin pedidos",
-      "unprofitable_orders": "Pedidos con pérdida",
-      "no_conversions": "Gasto sin conversiones"
-    },
-    "excluded": "Excluido",
-    "hullwise_footnote": "Hullwise liga los pedidos a conjuntos, anuncios y palabras clave mediante la plantilla UTM; donde la plataforma no los liga aparece un guion.",
-    "match": {
-      "exact": "Exacta",
-      "phrase": "Frase",
-      "broad": "Amplia"
-    },
-    "fatigue": {
-      "watch": "Atención: CTR en descenso",
-      "fatigued": "Fatigado"
-    },
-    "utm_badge": "Faltan UTM",
-    "pause_reason": {
-      "losing": "Con pérdidas",
-      "fatigued": "Fatigado y con pérdidas",
-      "low_label": "Calificado BAJO",
-      "low_ctr": "Mitad del CTR de los demás"
-    },
-    "ctr_change": "CTR {change} desde el inicio",
-    "copy_title": "Textos y seguimiento",
-    "utm_missing_ad": "Este anuncio no lleva {params}: sus pedidos llegan a Hullwise sin el anuncio. Plantilla:",
-    "assets_title": "Recursos",
-    "no_assets": "Sin desglose por recurso",
-    "no_assets_meta": "Meta solo informa de recursos en anuncios con creatividad dinámica o Advantage+.",
-    "no_assets_google": "Google informa de recursos en los anuncios adaptables.",
-    "field": {
-      "headline": "Título",
-      "description": "Descripción",
-      "body": "Texto principal",
-      "title": "Título corto",
-      "image": "Imagen",
-      "video": "Vídeo",
-      "other": "Otro"
-    },
-    "assets_footnote": "Las plataformas informan de recursos, no de pedidos: Hullwise reparte los pedidos del anuncio entre sus recursos según la cuota de gasto en cada campo.",
-    "daily_title": "Por día",
-    "no_days": "Sin datos diarios en el periodo",
-    "keywords_page_title": "Palabras clave y términos de búsqueda",
-    "keywords_page_description": "Las palabras clave de Google Ads y las búsquedas que activaron los anuncios, con los pedidos de Hullwise donde la plantilla UTM las nombra.",
-    "tabs": {
-      "keywords": "Palabras clave",
-      "search_terms": "Términos de búsqueda"
-    },
-    "search_placeholder": "Buscar texto",
-    "all_campaigns": "Todas las campañas",
-    "sort_label": "Ordenar",
-    "sort": {
-      "spend": "Gasto",
-      "profit": "Beneficio",
-      "roas": "ROAS",
-      "conversions": "Conversiones"
-    },
-    "candidates_only": "Solo candidatos a palabra clave negativa",
-    "apply": "Aplicar",
-    "google_only": "Las palabras clave y los términos de búsqueda vienen de Google Ads; Meta no los tiene.",
-    "rows_total": "{n} filas",
-    "prev": "Anterior",
-    "next": "Siguiente",
-    "page_of": "Página {page} de {pages}",
-    "keywords_footnote": "Los pedidos Hullwise vienen de utm_term con la palabra clave que pone la plantilla de seguimiento.",
-    "search_terms_footnote": "Hullwise ve los pedidos de un término cuando el término es una palabra clave (concordancia exacta); para los demás deciden las conversiones de la plataforma. Los términos bajo las impresiones mínimas se agrupan en “Otros términos”.",
-    "words_title": "Palabras",
-    "words_description": "Palabras y frases (1–3 palabras) ganadoras y perdedoras en los textos de los anuncios, los términos de búsqueda y las palabras clave, con el beneficio de los pedidos Hullwise.",
-    "word_source": {
-      "copy": "Textos de anuncios",
-      "search_terms": "Términos de búsqueda",
-      "keywords": "Palabras clave"
-    },
-    "ngram": {
-      "all": "Todas",
-      "n1": "1 palabra",
-      "n2": "2 palabras",
-      "n3": "3 palabras"
-    },
-    "no_words": "Volumen insuficiente",
-    "no_words_hint": "Una frase necesita al menos dos anuncios o términos y algo de gasto.",
-    "winners": "Palabras ganadoras",
-    "winners_description": "Frases de elementos con beneficio, las mejores primero.",
-    "no_winners": "Ninguna frase con beneficio en el periodo",
-    "losers": "Palabras perdedoras",
-    "losers_description": "Frases de elementos con pérdidas, las peores primero.",
-    "no_losers": "Ninguna frase con pérdidas en el periodo",
-    "words_footnote": "{items} elementos analizados. Cada frase suma las cifras completas de cada elemento que la contiene, así que las frases se solapan.",
-    "recommendations_title": "Sugerencias de anuncios",
-    "recommendations_description": "Sugerencias de solo lectura: una persona las revisa y actúa; las escrituras en las plataformas siempre piden confirmación.",
-    "in_items": "en {n}",
-    "rec": {
-      "negatives_title": "Candidatos a palabra clave negativa",
-      "negatives_description": "{n} términos de búsqueda gastan sin pedidos con beneficio.",
-      "google_read_only": "Google es de solo lectura para esta tienda: concede acceso de escritura en Integraciones para excluir términos desde aquí.",
-      "none": "Nada que sugerir",
-      "all_candidates": "Todos los candidatos",
-      "ads_title": "Anuncios para pausar",
-      "ads_description": "Anuncios activos con pérdidas en el periodo, o fatigados y con pérdidas.",
-      "words_title": "Palabras ganadoras para reutilizar",
-      "words_description": "Frases de los anuncios con más beneficio.",
-      "open_words": "Abrir Palabras",
-      "assets_title": "Recursos débiles",
-      "assets_description": "Recursos calificados BAJO por la plataforma o con la mitad del CTR de los demás.",
-      "utm_title": "Plantillas UTM",
-      "utm_description": "Sin estos parámetros Hullwise no puede ligar los pedidos a anuncios, conjuntos y palabras clave.",
-      "utm_ok": "Todas las campañas activas llevan las plantillas.",
-      "utm_row": "{missing} de {ads} anuncios sin {params}",
-      "template_meta": "Meta: parámetros de URL del anuncio",
-      "template_google": "Google: plantilla de seguimiento de la cuenta",
-      "template_tiktok": "TikTok: parámetros de URL del anuncio"
-    },
-    "actions": {
-      "read_only": "{platform} es de solo lectura para esta tienda.",
-      "read_only_short": "Solo lectura",
-      "pause_ad": "Pausar anuncio",
-      "resume_ad": "Reanudar anuncio",
-      "pause_title": "¿Pausar este anuncio en {platform}?",
-      "resume_title": "¿Reanudar este anuncio en {platform}?",
-      "write_description": "Hullwise cambia el estado aquí y lo envía a la plataforma; si no responde, el cambio se reintenta y se muestra como pendiente.",
-      "confirm": "Confirmar",
-      "exclude": "Excluir",
-      "negative_title": "¿Añadir “{text}” como palabra clave negativa?",
-      "negative_description": "Google deja de mostrar los anuncios para esta búsqueda. El cambio pasa por la cola de escrituras.",
-      "match_type": "Concordancia",
-      "match": {
-        "exact": "Exacta",
-        "phrase": "Frase",
-        "broad": "Amplia"
-      },
-      "level": "Nivel",
-      "levels": {
-        "campaign": "Campaña",
-        "ad_group": "Grupo de anuncios"
-      }
-    },
-    "no_assets_tiktok": "TikTok no informa de métricas por recurso: el vídeo del anuncio aparece con su id."
   },
   "product_mirror": {
     "edit": "Editar",

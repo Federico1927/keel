@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { canDo, canWritePage, isPageEnabled } from "@hullwise/config";
 import { formatDate, formatDateTime, formatMoney, formatNumber, type SegmentGroup } from "@hullwise/core";
 import { and, eq, schema } from "@hullwise/db";
-import { listSegmentDestinations, segmentMembers } from "@hullwise/services";
+import { listSegmentDestinations, segmentInsights, segmentMembers } from "@hullwise/services";
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { segmentBuilderOptions } from "@/server/queries/crm";
@@ -12,6 +12,7 @@ import { SegmentBuilder } from "../builder";
 import { SegmentRowActions } from "../row-actions";
 import { TierBadge } from "../../customers/tier-badge";
 import { SegmentSyncCard } from "./destinations";
+import { SegmentInsightsCard } from "./insights";
 
 export default async function SegmentDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
@@ -26,10 +27,11 @@ export default async function SegmentDetailPage({ params }: { params: Promise<{ 
     const s = { tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } };
     const members = await segmentMembers(s, id, { limit: 50 });
     const destinations = await listSegmentDestinations(s, id);
-    return { segment, members, destinations };
+    const insights = await segmentInsights(s, id);
+    return { segment, members, destinations, insights };
   });
   if (!data) notFound();
-  const { segment, members, destinations } = data;
+  const { segment, members, destinations, insights } = data;
   const options = await segmentBuilderOptions(ctx);
   const canWrite = canWritePage(ctx.role, "segments");
   const canExport = canDo(ctx.role, "export");
@@ -47,6 +49,7 @@ export default async function SegmentDetailPage({ params }: { params: Promise<{ 
         {groups && <Stat label={t("treated")} value={segment.lastCount !== null && holdoutCount !== null ? formatNumber(segment.lastCount - holdoutCount, ctx.locale) : "—"} />}
       </div>
       <SegmentBuilder slug={tenant} segment={{ id: segment.id, name: segment.name, description: segment.description, rules: segment.rules as SegmentGroup, holdoutPercentage: segment.holdoutPercentage }} options={options} currency={ctx.tenant.currency} locale={ctx.locale} canWrite={canWrite} holdoutEnabled={groups} />
+      {insights.members > 0 && <SegmentInsightsCard tenant={tenant} insights={insights} currency={ctx.tenant.currency} locale={ctx.locale} />}
       <SegmentSyncCard
         slug={tenant}
         segmentId={segment.id}

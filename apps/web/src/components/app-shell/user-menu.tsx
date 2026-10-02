@@ -2,12 +2,14 @@
 import { useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { Check, LogOut, Monitor, Moon, Sun, UserRound } from "lucide-react";
-import { Avatar, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@hullwise/ui";
+import { useLocale, useTranslations } from "next-intl";
+import { Check, Languages, LogOut, Monitor, Moon, Sun, UserRound } from "lucide-react";
+import { SUPPORTED_LOCALES } from "@hullwise/config";
+import { Avatar, Button, DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@hullwise/ui";
 import type { ThemePreference } from "@hullwise/ui/tokens";
 import { signOutAction } from "@/server/actions/auth";
 import { setThemeAction } from "@/server/actions/profile";
+import { setLocaleAction } from "@/i18n/locale-actions";
 
 export interface MenuUser {
   /** displayName(): preferred name → full name → email local part. */
@@ -19,9 +21,17 @@ export interface MenuUser {
 
 const THEME_ICONS = { light: Sun, dark: Moon, system: Monitor } as const;
 
-/** Avatar menu: profile, theme (saved on the profile, applied by the server on the next render), sign out. */
-export function UserMenu({ user, role, theme, profileHref }: { user: MenuUser; role?: string; theme: ThemePreference; profileHref: string }) {
+/** Breakpoint from which the page shows its own language picker, so the menu stops repeating it. */
+const LANGUAGE_HIDDEN_FROM = { sm: "sm:hidden", lg: "lg:hidden" } as const;
+
+/**
+ * Avatar menu: profile, theme (saved on the profile, applied by the server on the next render), sign out.
+ * With `languageHiddenFrom` it also carries the language choice on narrow screens, where the header
+ * has no room for the picker.
+ */
+export function UserMenu({ user, role, theme, profileHref, languageHiddenFrom }: { user: MenuUser; role?: string; theme: ThemePreference; profileHref: string; languageHiddenFrom?: keyof typeof LANGUAGE_HIDDEN_FROM }) {
   const t = useTranslations();
+  const locale = useLocale();
   const router = useRouter();
   const [pending, start] = useTransition();
   return (
@@ -66,6 +76,29 @@ export function UserMenu({ user, role, theme, profileHref }: { user: MenuUser; r
             </DropdownMenuItem>
           );
         })}
+        {languageHiddenFrom && (
+          <DropdownMenuGroup className={LANGUAGE_HIDDEN_FROM[languageHiddenFrom]} data-testid="user-menu-language">
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">{t("common.language")}</DropdownMenuLabel>
+            {SUPPORTED_LOCALES.map((l) => (
+              <DropdownMenuItem
+                key={l}
+                disabled={pending}
+                data-testid={`locale-${l}`}
+                onSelect={(e) => {
+                  e.preventDefault();
+                  start(async () => {
+                    await setLocaleAction(l);
+                    router.refresh();
+                  });
+                }}
+              >
+                <Languages /> <span className="flex-1">{t(`common.locales.${l}`)}</span>
+                {locale === l && <Check className="text-primary" />}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuGroup>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => signOutAction()}>
           <LogOut /> {t("common.sign_out")}

@@ -23,7 +23,7 @@ export function PeriodPicker({ basePath, keep = {}, preset, from, to }: { basePa
         </button>
       ))}
       <form
-        className="flex items-center gap-1"
+        className="flex flex-wrap items-center gap-1"
         onSubmit={(e) => {
           e.preventDefault();
           go({ from: f, to: tt });

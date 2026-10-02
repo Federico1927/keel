@@ -26,7 +26,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <span className="block text-[11px] leading-tight text-sidebar-muted">{t("console")}</span>
           </span>
           <div className="ml-auto lg:hidden">
-            <UserMenu user={{ name: displayName(user), email: user.email, initials: initials(user), avatarUrl: avatarUrl(user) }} theme={user.theme} profileHref="/admin/profile" />
+            <UserMenu user={{ name: displayName(user), email: user.email, initials: initials(user), avatarUrl: avatarUrl(user) }} theme={user.theme} profileHref="/admin/profile" languageHiddenFrom="lg" />
           </div>
         </div>
         <div className="lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:py-3">

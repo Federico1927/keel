@@ -655,7 +655,12 @@ export interface AnalyticsPlatform {
 export interface MessagingChannel {
   readonly provider: string;
   testConnection(): Promise<ConnectionTest>;
-  sendMessage(input: { to: string; template: string; variables: Record<string, string> }): Promise<{ messageId: string }>;
+  /**
+   * `idempotencyKey`: Hullwise's key for the message (campaign × customer × channel). Providers that
+   * accept one must deliver a repeated key once and answer with the first message id; a send queue
+   * resumed after a crash resends its unconfirmed messages with the same key.
+   */
+  sendMessage(input: { to: string; template: string; variables: Record<string, string>; idempotencyKey?: string }): Promise<{ messageId: string }>;
   verifyWebhook(headers: Record<string, string | undefined>, rawBody: string): Promise<{ messageId: string; status: "sent" | "delivered" | "read" | "failed"; raw: unknown }>;
 }
 

@@ -48,7 +48,6 @@ export const NAV_SECTIONS: NavSection[] = [
       { page: "returns", href: "/returns", labelKey: "nav.returns", icon: RotateCcw },
       { page: "tasks", href: "/tasks", labelKey: "nav.tasks", icon: ListChecks },
       { page: "cod_queue", href: "/cod", labelKey: "nav.cod_queue", icon: PhoneCall },
-      { page: "cod_settings", href: "/cod/settings", labelKey: "nav.cod_settings", icon: PhoneCall },
     ],
   },
   {
@@ -77,6 +76,8 @@ export const NAV_SECTIONS: NavSection[] = [
       { page: "integrations", href: "/integrations", labelKey: "nav.integrations", icon: Plug },
       { page: "users", href: "/users", labelKey: "nav.users", icon: Users },
       { page: "settings", href: "/settings", labelKey: "nav.settings", icon: Settings },
+      // add-on settings sit with the store settings, not with the daily work (issue #69)
+      { page: "cod_settings", href: "/cod/settings", labelKey: "nav.cod_settings", icon: PhoneCall },
       { page: "audit", href: "/audit", labelKey: "nav.audit", icon: ScrollText },
       { page: "notifications", href: "/notifications", labelKey: "nav.notifications", icon: Bell },
       { page: "support", href: "/support", labelKey: "nav.support", icon: LifeBuoy },

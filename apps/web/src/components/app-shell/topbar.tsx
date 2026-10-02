@@ -41,14 +41,15 @@ export function Topbar({ sidebar, user, theme, role, memberships, isSuperAdmin, 
   const [open, setOpen] = useState(false);
   return (
     <>
-      <header className="flex h-14 items-center gap-3 border-b bg-card px-4">
-        <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setOpen(true)} aria-label={t("shell.open_menu")}>
+      {/* At phone width (360–390px) the tenant name truncates and the language picker moves into the user menu. */}
+      <header className="flex h-14 items-center gap-2 border-b bg-card px-4 sm:gap-3">
+        <Button variant="ghost" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)} aria-label={t("shell.open_menu")}>
           <Menu />
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
-              <span className="max-w-[12rem] truncate">{sidebar.tenantName}</span>
+            <Button variant="outline" size="sm" className="min-w-0 gap-2" data-testid="tenant-switcher">
+              <span className="min-w-0 max-w-[12rem] truncate">{sidebar.tenantName}</span>
               <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground" />
             </Button>
           </DropdownMenuTrigger>
@@ -67,12 +68,12 @@ export function Topbar({ sidebar, user, theme, role, memberships, isSuperAdmin, 
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
           <CommandSearch slug={sidebar.tenantSlug} />
           {support && <SupportButton slug={sidebar.tenantSlug} categories={support.categories} />}
           <NotificationsBell slug={sidebar.tenantSlug} unread={notifications.unread} items={notifications.items} locale={notifications.locale} />
-          <LocaleSwitcher />
-          <UserMenu user={user} role={role} theme={theme} profileHref={`/t/${sidebar.tenantSlug}/profile`} />
+          <LocaleSwitcher className="hidden sm:block" />
+          <UserMenu user={user} role={role} theme={theme} profileHref={`/t/${sidebar.tenantSlug}/profile`} languageHiddenFrom="sm" />
         </div>
       </header>
       <Dialog open={open} onOpenChange={setOpen}>

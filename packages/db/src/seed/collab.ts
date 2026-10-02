@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, lt, sql } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/node-postgres";
 import { DEFAULT_TASK_RULES, localizedDefault } from "@hullwise/core";
 import * as schema from "../schema";
@@ -128,4 +128,12 @@ export async function seedCollab(db: Db, userIds: Record<string, string>, key: "
     { tenantId, email: `old-supplier@${dom}.example`, reason: "bounce", category: "all", source: "provider", createdAt: h(24 * 12) },
     { tenantId, email: `viewer@${dom}.demo`, reason: "unsubscribe", category: "digest", source: "link", createdAt: h(24 * 3) },
   ]);
+  // customers who asked not to be contacted: an unsubscribe from campaign emails and a phone blocked by hand (SMS, WhatsApp) (#34)
+  const contacts = await db.select({ email: schema.customers.email, phone: schema.customers.phoneE164 }).from(schema.customers).where(and(eq(schema.customers.tenantId, tenantId), eq(schema.customers.acceptsMarketing, true), isNotNull(schema.customers.email), isNotNull(schema.customers.phoneE164))).orderBy(schema.customers.id).limit(2);
+  if (contacts.length === 2) {
+    await db.insert(schema.emailSuppressions).values([
+      { tenantId, email: contacts[0]!.email!.toLowerCase(), reason: "unsubscribe", category: "marketing", source: "link", createdAt: h(24 * 6) },
+      { tenantId, email: contacts[1]!.phone!, identityType: "phone", reason: "manual", category: "all", source: "app", note: L("Asked on the phone not to receive messages", "Ha chiesto al telefono di non ricevere messaggi"), createdBy: owner, createdAt: h(24 * 9) },
+    ]);
+  }
 }
