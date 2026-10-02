@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { canDo, canWritePage, isPageEnabled } from "@hullwise/config";
 import { countLeaves, formatDateTime, formatNumber, type SegmentGroup } from "@hullwise/core";
 import { listSegments } from "@hullwise/services";
-import { Button, Card, CardContent, EmptyState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Button, Card, CardContent, DataList, EmptyState, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { SegmentRowActions } from "./row-actions";
 import { SegmentTabs } from "./segment-tabs";
@@ -26,33 +26,19 @@ export default async function SegmentsPage({ params }: { params: Promise<{ tenan
       ) : (
         <Card>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("columns.name")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("columns.rules")}</TableHead>
-                  <TableHead className="text-right">{t("columns.members")}</TableHead>
-                  {groups && <TableHead className="hidden text-right md:table-cell">{t("columns.holdout")}</TableHead>}
-                  <TableHead className="hidden lg:table-cell">{t("columns.evaluated")}</TableHead>
-                  <TableHead />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {segments.map((s) => (
-                  <TableRow key={s.id} data-testid="segment-row">
-                    <TableCell>
-                      <Link href={`${base}/${s.id}`} className="font-medium hover:underline">{s.name}</Link>
-                      {s.description && <div className="truncate text-xs text-muted-foreground">{s.description}</div>}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">{t("conditions_n", { n: countLeaves(s.rules as SegmentGroup) })}</TableCell>
-                    <TableCell className="text-right tabular">{s.lastCount === null ? "—" : <Link href={`/t/${tenant}/customers?segment=${s.id}`} className="hover:underline">{formatNumber(s.lastCount, ctx.locale)}</Link>}</TableCell>
-                    {groups && <TableCell className="hidden text-right tabular md:table-cell">{s.holdoutPercentage ? `${s.holdoutPercentage}%` : "—"}</TableCell>}
-                    <TableCell className="hidden lg:table-cell">{s.lastEvaluatedAt ? formatDateTime(s.lastEvaluatedAt, ctx.locale, ctx.tenant.timezone) : "—"}</TableCell>
-                    <TableCell><SegmentRowActions slug={tenant} segmentId={s.id} canWrite={canWrite} canExport={canExport} /></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={segments}
+              rowKey={(s) => s.id}
+              rowProps={() => ({ "data-testid": "segment-row" })}
+              columns={[
+                { key: "name", header: t("columns.name"), mobile: "title", cell: (s) => <><Link href={`${base}/${s.id}`} className="font-medium hover:underline">{s.name}</Link>{s.description && <div className="truncate text-xs font-normal text-muted-foreground">{s.description}</div>}</> },
+                { key: "members", header: t("columns.members"), mobile: "badge", align: "right", className: "tabular max-md:font-semibold", cell: (s) => (s.lastCount === null ? "—" : <Link href={`/t/${tenant}/customers?segment=${s.id}`} className="hover:underline">{formatNumber(s.lastCount, ctx.locale)}</Link>) },
+                { key: "rules", header: t("columns.rules"), label: "", cell: (s) => t("conditions_n", { n: countLeaves(s.rules as SegmentGroup) }) },
+                ...(groups ? [{ key: "holdout", header: t("columns.holdout"), align: "right" as const, className: "tabular", cell: (s: (typeof segments)[number]) => (s.holdoutPercentage ? `${s.holdoutPercentage}%` : "—") }] : []),
+                { key: "evaluated", header: t("columns.evaluated"), priority: 2, cell: (s) => (s.lastEvaluatedAt ? formatDateTime(s.lastEvaluatedAt, ctx.locale, ctx.tenant.timezone) : "—") },
+                { key: "actions", header: <span className="sr-only">{t("columns.name")}</span>, mobile: "action", cell: (s) => <SegmentRowActions slug={tenant} segmentId={s.id} canWrite={canWrite} canExport={canExport} /> },
+              ]}
+            />
           </CardContent>
         </Card>
       )}

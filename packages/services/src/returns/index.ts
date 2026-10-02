@@ -2,6 +2,7 @@ import { and, desc, eq, gte, inArray, lt, schema, sql, type SQL } from "@hullwis
 import { SALE_STATUSES, canTransitionReturn, isReturnStatus, creditWithBonus, customerLimitReached, exchangeQuote, lineBlock, optionReturnRates, returnCostsOfPeriod, lineWindowDays, proposedReturnAmount, returnEligibility, returnableLines, type LineBlock, type Eligibility, type Period, type ReturnStatus, type ReturnableLine, type TenantSettings, returnsAgeing, type ReturnsAgeing } from "@hullwise/core";
 import { syncRecordTasks } from "../tasks";
 import type { ServiceContext } from "../context";
+import { emitReturnWebhook } from "../webhooks/payloads";
 import { applyReturnToOrder } from "./effects";
 import { notifyReturnCustomer, returnEmailEventFor } from "./notify";
 
@@ -225,6 +226,7 @@ export async function createReturn(ctx: ServiceContext, settings: TenantSettings
     if (bonusMinor) await ctx.tx.update(schema.returnRequests).set({ creditBonusMinor: bonusMinor }).where(eq(schema.returnRequests.id, row!.id));
   }
   await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: input.orderId, type: "return_requested", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: {}, metadata: { returnId: row!.id, number, reason: reason.code, resolution: input.resolution, outOfWindow: outOfPolicy, source: input.source ?? "staff" }, createdAt: now });
+  await emitReturnWebhook(ctx, row!.id, null);
   // portal returns email the customer after the label is issued (`notifyReturnStatus` in portalSubmit), so the approval carries it
   if (input.source !== "platform") await applyReturnAutomations(ctx, settings, row!.id, (to, note) => transitionReturn({ ...ctx, actor: { type: "system", userId: null } }, { returnId: row!.id, to, note: `auto: ${note}`, notifyCustomer: input.source !== "portal" }));
   await syncRecordTasks(ctx, "return", [row!.id]);

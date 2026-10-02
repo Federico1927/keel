@@ -52,22 +52,22 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
       <p className="mb-2 text-sm text-muted-foreground"><Link href={base} className="hover:underline">← {ti("title")}</Link></p>
       <PageHeader eyebrow={ctx.tenant.name} title={t(`${p}.title`, product)} description={t(`${p}.intro`, product)} />
       <nav className="mb-4 space-y-2" aria-label={ti("guides")}>
-        <div className="flex flex-wrap gap-1 rounded-md bg-muted p-1 text-sm">
+        <div className="flex gap-1 overflow-x-auto rounded-md bg-muted p-1 text-sm md:flex-wrap" data-testid="guide-nav">
           {[...PROVIDERS.filter((k) => (k !== "email" || platformAdmin) && (k !== "tiktok" || tiktok) && (k !== "subscriptions" || subscriptions)), ...addonGuides].map((k) => (
-            <Link key={k} href={`${base}/guide/${k}`} aria-current={k === p ? "page" : undefined} className={cn("flex-1 whitespace-nowrap rounded-sm px-3 py-1.5 text-center", k === p ? "bg-card shadow-sm" : "text-muted-foreground")}>{ti(`providers.${k}`)}</Link>
+            <Link key={k} href={`${base}/guide/${k}`} aria-current={k === p ? "page" : undefined} className={cn("shrink-0 whitespace-nowrap rounded-sm px-3 py-1.5 text-center pointer-coarse:py-2.5 md:flex-1", k === p ? "bg-card shadow-sm" : "text-muted-foreground")}>{ti(`providers.${k}`)}</Link>
           ))}
         </div>
-        <div className="flex flex-wrap items-center gap-1 rounded-md border border-dashed p-1 text-sm" data-testid="guide-ad-hoc-nav">
-          <span className="px-2 text-xs font-medium text-muted-foreground">{t("ad_hoc_title")}</span>
+        <div className="flex items-center gap-1 overflow-x-auto rounded-md border border-dashed p-1 text-sm md:flex-wrap" data-testid="guide-ad-hoc-nav">
+          <span className="shrink-0 px-2 text-xs font-medium text-muted-foreground">{t("ad_hoc_title")}</span>
           {AD_HOC.map((k) => (
-            <Link key={k} href={`${base}/guide/${k}`} aria-current={k === p ? "page" : undefined} className={cn("whitespace-nowrap rounded-sm px-3 py-1.5 text-center", k === p ? "bg-card shadow-sm" : "text-muted-foreground")}>{ti(`slots.${k}`)}</Link>
+            <Link key={k} href={`${base}/guide/${k}`} aria-current={k === p ? "page" : undefined} className={cn("shrink-0 whitespace-nowrap rounded-sm px-3 py-1.5 text-center pointer-coarse:py-2.5", k === p ? "bg-card shadow-sm" : "text-muted-foreground")}>{ti(`slots.${k}`)}</Link>
           ))}
         </div>
       </nav>
       {adHoc && <p className="mb-4 rounded-md border bg-muted/40 p-3 text-sm" data-testid="ad-hoc-notice">{t("ad_hoc_notice", product)}</p>}
       <p className="mb-4 text-xs text-muted-foreground">{t("verify_legend")}</p>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <ol className="space-y-3">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <ol className="min-w-0 space-y-3 [overflow-wrap:anywhere]">
           {steps.map((s, i) => (
             <li key={i} className="rounded-lg border bg-card p-4" data-testid="guide-step">
               <div className="flex flex-wrap items-center gap-2">
@@ -79,13 +79,13 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
             </li>
           ))}
         </ol>
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4 [overflow-wrap:anywhere]">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">{t("scopes_title")}</CardTitle>
               <CardDescription>{t("scopes_description")}</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2 text-xs">
+            <CardContent className="space-y-2 text-xs [overflow-wrap:anywhere]">
               {p === "shopify" && Object.entries(SHOPIFY_SCOPES_BY_MODULE).map(([mod, scopes]) => (
                 <div key={mod}><div className="font-medium">{mod}</div><div className="font-mono text-muted-foreground">{scopes.join(", ")}</div></div>
               ))}

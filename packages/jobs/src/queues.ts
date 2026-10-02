@@ -15,6 +15,7 @@ export const QUEUES = {
   billingEvent: "billing.event",
   tenantExport: "tenant.export",
   campaignSend: "campaign.send",
+  webhookDeliver: "webhook.deliver",
 } as const;
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];
 
@@ -88,9 +89,14 @@ export interface CampaignSendJob {
   tenantId: string;
   campaignId: string;
 }
-export const TICK_KINDS = ["delta", "ads", "reconcile", "retry", "billing", "cod", "alerts", "returns", "crm", "segments", "tracking", "tasks", "notify", "digest", "writes", "retention", "backorders", "emails", "payouts", "watchdog", "campaigns", "subscriptions", "whatsapp"] as const;
+/** One outgoing webhook delivery (#81): an attempt now, its retry scheduled by the handler. */
+export interface WebhookDeliverJob {
+  tenantId: string;
+  deliveryId: string;
+}
+export const TICK_KINDS = ["delta", "ads", "reconcile", "retry", "billing", "cod", "alerts", "returns", "crm", "segments", "tracking", "tasks", "notify", "digest", "writes", "retention", "backorders", "emails", "payouts", "watchdog", "campaigns", "subscriptions", "whatsapp", "webhooks"] as const;
 export interface TickJob {
-  /** delta (every 15 min) | ads (daily) | reconcile (nightly) | retry (every 10 min) | billing (daily) | writes (every minute: outbox retries) | retention (daily: platform rows, audit retention, expired exports, job history) | backorders (every 10 min: safety re-check) | emails (every 10 min: provider events left behind, lost queued emails) | payouts (daily: processor payouts and actual fees) | watchdog (every 10 min: stale and idle integration sources) | campaigns (every minute: scheduled customer campaigns start, sequences enrol, send queues resume) | whatsapp (every 5 min: Spoki webhook retries and order notifications, add-on tenants only) | subscriptions (every 15 min: addon.subscriptions sync and churn risk) */
+  /** delta (every 15 min) | ads (daily) | reconcile (nightly) | retry (every 10 min) | billing (daily) | writes (every minute: outbox retries) | retention (daily: platform rows, audit retention, expired exports, job history) | backorders (every 10 min: safety re-check) | emails (every 10 min: provider events left behind, lost queued emails) | payouts (daily: processor payouts and actual fees) | watchdog (every 10 min: stale and idle integration sources) | campaigns (every minute: scheduled customer campaigns start, sequences enrol, send queues resume) | whatsapp (every 5 min: Spoki webhook retries and order notifications, add-on tenants only) | subscriptions (every 15 min: addon.subscriptions sync and churn risk) | webhooks (every minute: outgoing webhook deliveries whose attempt is due and was not picked up) */
   kind: (typeof TICK_KINDS)[number];
 }
 

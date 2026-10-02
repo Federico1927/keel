@@ -1,12 +1,12 @@
 import * as Sentry from "@sentry/node";
 import { checkRuntimeConfig, platformRetentionDays, SENTRY_DATA_COLLECTION } from "@hullwise/config";
-import { setEmailDispatcher } from "@hullwise/services";
+import { setEmailDispatcher, setWebhookDispatcher } from "@hullwise/services";
 import { createBoss } from "./boss";
 import { runTrackedJob } from "./dispatch";
 import type { Enqueue } from "./handlers";
 import { QUEUES, queueRetentionOptions, type QueueName, type TickJob } from "./queues";
 
-/** Nightly reconciliation at 03:00 and customer predictions and full live-segment refresh at 03:40, live segments every 10 min, pixel stitching and server-side conversions every 5 min, delta every 15 min, ads daily at 06:00, webhook retry every 10 min, platform-write retries every minute, retention daily at 04:10, backorder safety re-check and email housekeeping every 10 min, payouts daily at 05:20, integration watchdog every 10 min, customer campaigns every minute, WhatsApp (Spoki add-on) every 5 min, merchant subscriptions every 15 min (UTC). */
+/** Nightly reconciliation at 03:00 and customer predictions and full live-segment refresh at 03:40, live segments every 10 min, pixel stitching and server-side conversions every 5 min, delta every 15 min, ads daily at 06:00, webhook retry every 10 min, platform-write retries every minute, retention daily at 04:10, backorder safety re-check and email housekeeping every 10 min, payouts daily at 05:20, integration watchdog every 10 min, customer campaigns every minute, WhatsApp (Spoki add-on) every 5 min, merchant subscriptions every 15 min, outgoing webhook catch-up every minute (UTC). */
 const SCHEDULES: { cron: string; data: TickJob }[] = [
   { cron: "*/15 * * * *", data: { kind: "delta" } },
   { cron: "*/10 * * * *", data: { kind: "retry" } },
@@ -31,6 +31,7 @@ const SCHEDULES: { cron: string; data: TickJob }[] = [
   { cron: "* * * * *", data: { kind: "campaigns" } },
   { cron: "8,23,38,53 * * * *", data: { kind: "subscriptions" } },
   { cron: "*/5 * * * *", data: { kind: "whatsapp" } },
+  { cron: "* * * * *", data: { kind: "webhooks" } },
 ];
 
 /** Same startup rules as the web process; Sentry (errors only, no PII) when `SENTRY_DSN` is set. */
@@ -70,6 +71,8 @@ async function main() {
   };
   // emails queued by ticks (digests, alerts, notifications) go through the same queue; a short delay lets their transaction commit
   setEmailDispatcher((job) => enqueue(QUEUES.emailSend, job, { startAfterSeconds: 2 }));
+  // outgoing webhooks emitted by jobs (order imports, stock syncs): same short delay for the emitting transaction to commit
+  setWebhookDispatcher((job) => enqueue(QUEUES.webhookDeliver, job, { startAfterSeconds: 2, singletonKey: `${job.deliveryId}:0` }));
   // Every job is recorded in job_runs (#32); a failing one is reported, then rethrown so pg-boss applies its retry policy.
   const one = (queue: QueueName) => async (jobs: { data: unknown }[] | { data: unknown }) => {
     for (const j of Array.isArray(jobs) ? jobs : [jobs]) {
@@ -95,6 +98,7 @@ async function main() {
   await boss.work(QUEUES.tenantExport, one(QUEUES.tenantExport));
   await boss.work(QUEUES.billingEvent, one(QUEUES.billingEvent));
   await boss.work(QUEUES.campaignSend, { batchSize: 2 }, one(QUEUES.campaignSend));
+  await boss.work(QUEUES.webhookDeliver, { batchSize: 5 }, one(QUEUES.webhookDeliver));
   for (const s of SCHEDULES) await boss.schedule(QUEUES.tick, s.cron, s.data, { singletonKey: s.data.kind });
   console.info("[jobs] worker started: queues", Object.values(QUEUES).join(", "));
   const shutdown = async () => {

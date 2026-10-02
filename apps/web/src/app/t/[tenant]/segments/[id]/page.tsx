@@ -5,7 +5,7 @@ import { canDo, canWritePage, isPageEnabled } from "@hullwise/config";
 import { formatDate, formatDateTime, formatMoney, formatNumber, type SegmentGroup } from "@hullwise/core";
 import { and, eq, schema } from "@hullwise/db";
 import { listSegmentDestinations, segmentInsights, segmentMembers } from "@hullwise/services";
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, PageHeader, Stat } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { segmentBuilderOptions } from "@/server/queries/crm";
 import { SegmentBuilder } from "../builder";
@@ -43,7 +43,7 @@ export default async function SegmentDetailPage({ params }: { params: Promise<{ 
     <>
       <p className="mb-2 text-sm text-muted-foreground"><Link href={`/t/${tenant}/segments`} className="hover:underline">← {t("title")}</Link></p>
       <PageHeader eyebrow={ctx.tenant.name} title={segment.name} description={segment.description ?? undefined} actions={<>{canCampaign && <Button asChild variant="outline" size="sm"><Link href={`/t/${tenant}/segments/campaigns/new?segment=${segment.id}`}>{tr("new_for_segment")}</Link></Button>}<SegmentRowActions slug={tenant} segmentId={segment.id} canWrite={canWrite} canExport={canExport} afterDelete={`/t/${tenant}/segments`} /></>} />
-      <div className="mb-6 grid gap-3 sm:grid-cols-3">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Stat label={t("columns.members")} value={segment.lastCount === null ? "—" : formatNumber(segment.lastCount, ctx.locale)} href={`/t/${tenant}/customers?segment=${segment.id}`} hint={segment.lastEvaluatedAt ? t("evaluated_at", { at: formatDateTime(segment.lastEvaluatedAt, ctx.locale, ctx.tenant.timezone) }) : t("never_evaluated")} />
         {groups && <Stat label={t("columns.holdout")} value={segment.holdoutPercentage ? `${segment.holdoutPercentage}%` : "—"} hint={holdoutCount !== null && segment.holdoutPercentage ? t("holdout_n", { n: formatNumber(holdoutCount, ctx.locale) }) : undefined} />}
         {groups && <Stat label={t("treated")} value={segment.lastCount !== null && holdoutCount !== null ? formatNumber(segment.lastCount - holdoutCount, ctx.locale) : "—"} />}
@@ -66,30 +66,19 @@ export default async function SegmentDetailPage({ params }: { params: Promise<{ 
           <CardDescription>{t("members_description")}</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{tc("columns.customer")}</TableHead>
-                {groups && <TableHead>{t("group")}</TableHead>}
-                <TableHead className="text-right">{tc("columns.orders")}</TableHead>
-                <TableHead className="text-right">{tc("columns.total_spent")}</TableHead>
-                <TableHead className="hidden md:table-cell">{tc("columns.last_order")}</TableHead>
-                <TableHead>{tc("columns.tier")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {members.map((m) => (
-                <TableRow key={m.customerId} data-testid="member-row">
-                  <TableCell><Link href={`/t/${tenant}/customers/${m.customerId}`} className="hover:underline">{[m.firstName, m.lastName].filter(Boolean).join(" ") || m.email || "—"}</Link></TableCell>
-                  {groups && <TableCell><Badge variant={m.groupName === "holdout" ? "warning" : "muted"}>{t(`groups.${m.groupName}`)}</Badge></TableCell>}
-                  <TableCell className="text-right tabular">{m.ordersCount}</TableCell>
-                  <TableCell className="text-right tabular">{money(m.totalSpentMinor)}</TableCell>
-                  <TableCell className="hidden md:table-cell">{m.lastOrderAt ? formatDate(m.lastOrderAt, ctx.locale, ctx.tenant.timezone) : "—"}</TableCell>
-                  <TableCell><TierBadge tier={m.tier} /></TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataList
+            rows={members}
+            rowKey={(m) => m.customerId}
+            rowProps={() => ({ "data-testid": "member-row" })}
+            columns={[
+              { key: "customer", header: tc("columns.customer"), mobile: "title", cell: (m) => <Link href={`/t/${tenant}/customers/${m.customerId}`} className="hover:underline">{[m.firstName, m.lastName].filter(Boolean).join(" ") || m.email || "—"}</Link> },
+              { key: "tier", header: tc("columns.tier"), mobile: "badge", cell: (m) => <TierBadge tier={m.tier} /> },
+              ...(groups ? [{ key: "group", header: t("group"), label: "", cell: (m: (typeof members)[number]) => <Badge variant={m.groupName === "holdout" ? "warning" : "muted"}>{t(`groups.${m.groupName}`)}</Badge> }] : []),
+              { key: "orders", header: tc("columns.orders"), align: "right", className: "tabular", cell: (m) => m.ordersCount },
+              { key: "total", header: tc("columns.total_spent"), align: "right", className: "tabular", cell: (m) => money(m.totalSpentMinor) },
+              { key: "last", header: tc("columns.last_order"), cell: (m) => (m.lastOrderAt ? formatDate(m.lastOrderAt, ctx.locale, ctx.tenant.timezone) : "—") },
+            ]}
+          />
         </CardContent>
       </Card>
     </>

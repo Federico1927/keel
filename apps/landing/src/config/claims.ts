@@ -31,7 +31,7 @@ export const MODULE_SLIDES = [
 /** "Also included" grid under the carousel. `fromPlan` renders a "From <plan>" badge. */
 export const EXTRA_FEATURES = [
   { key: "dashboards", claim: mod("core.analytics") },
-  { key: "mcp", claim: mod("core.mcp"), fromPlan: "growth" },
+  { key: "mcp", claim: mod("core.mcp", "core.api"), fromPlan: "growth" },
   { key: "tiktok", claim: mod("core.ads.tiktok"), fromPlan: "growth" },
   { key: "money", claim: mod("core.analytics") },
   { key: "lists", claim: mod("core.platform") },
@@ -48,7 +48,8 @@ export const PLAN_FEATURE_CLAIMS: Record<string, Claim> = {
   campaigns_stock: mod("core.campaigns"),
   crm_segments_rfm: mod("core.crm"),
   ai_assistant: mod("core.analytics"),
-  mcp: mod("core.mcp"),
+  /** MCP, the REST API and webhooks share tokens and plan (#81). */
+  mcp: mod("core.mcp", "core.api"),
   tiktok_ads: mod("core.ads.tiktok"),
   /** Audit log and unlimited users: users, roles and audit live in the platform module. */
   audit_retention: mod("core.platform"),
@@ -77,7 +78,7 @@ export const FAQ_CLAIMS = {
   security: mod("core.platform"),
   export: mod("core.platform"),
   ai: mod("core.analytics"),
-  mcp: mod("core.mcp"),
+  mcp: mod("core.mcp", "core.api"),
   overage: { kind: "commercial" },
   languages: mod("core.platform"),
 } as const satisfies Record<string, Claim>;

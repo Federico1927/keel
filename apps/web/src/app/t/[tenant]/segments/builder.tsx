@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Plus, Trash2, X } from "lucide-react";
 import { MAX_SEGMENT_CONDITIONS, MAX_SEGMENT_DEPTH } from "@hullwise/config";
 import { OPS_BY_TYPE, SEGMENT_FIELDS, countLeaves, depthOf, formatMoney, formatNumber, isGroup, validateSegmentRules, type SegmentGroup, type SegmentLeaf, type SegmentNode, type SegmentOp } from "@hullwise/core";
-import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Textarea, cn } from "@hullwise/ui";
+import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, StickyActionBar, StickyActionSpacer, Textarea, cn } from "@hullwise/ui";
 import type { SegmentPreview } from "@hullwise/services";
 import { previewSegmentAction, saveSegmentAction } from "@/server/actions/segments";
 
@@ -92,9 +92,9 @@ export function SegmentBuilder({ slug, segment, options, currency, locale, canWr
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-      <div className="space-y-4">
+      <div className="min-w-0 space-y-4">
         <Card>
-          <CardContent className={cn("grid gap-3 pt-6", holdoutEnabled && "sm:grid-cols-[1fr_8rem]")}>
+          <CardContent className={cn("grid grid-cols-[minmax(0,1fr)] gap-3 pt-6", holdoutEnabled && "sm:grid-cols-[minmax(0,1fr)_8rem]")}>
             <div className="space-y-1">
               <Label htmlFor="seg-name">{t("name")}</Label>
               <Input id="seg-name" value={name} onChange={(e) => setName(e.target.value)} disabled={!canWrite} maxLength={120} />
@@ -129,10 +129,15 @@ export function SegmentBuilder({ slug, segment, options, currency, locale, canWr
           </CardContent>
         </Card>
         {canWrite && (
-          <div className="flex items-center gap-3">
-            <Button onClick={save} disabled={saving || !name.trim() || !validation.rules}>{segment.id ? tc("save") : t("create")}</Button>
-            {saveError && <span className="text-sm text-destructive">{tc.has(`errors.${saveError}`) ? tc(`errors.${saveError}`) : t(`errors.${saveError}`)}</span>}
-          </div>
+          <>
+            {/* docked on phones, with the live count, since the preview card sits below the rules (#49) */}
+            <StickyActionBar className="gap-3">
+              <Button onClick={save} disabled={saving || !name.trim() || !validation.rules} className="max-md:order-last max-md:ml-auto">{segment.id ? tc("save") : t("create")}</Button>
+              {preview && <span className="text-sm tabular md:hidden"><span className="font-semibold">{formatNumber(preview.count, locale)}</span> <span className="text-muted-foreground">{t("matching")}</span></span>}
+              {saveError && <span className="text-sm text-destructive">{tc.has(`errors.${saveError}`) ? tc(`errors.${saveError}`) : t(`errors.${saveError}`)}</span>}
+            </StickyActionBar>
+            <StickyActionSpacer />
+          </>
         )}
       </div>
       <Card className="h-fit lg:sticky lg:top-4" data-testid="segment-preview">
@@ -177,7 +182,7 @@ function GroupEditor({ node, depth, options, currency, disabled, onChange, onRem
   const update = (i: number, child: SegmentNode) => onChange({ ...node, conditions: node.conditions.map((c, j) => (j === i ? child : c)) });
   const remove = (i: number) => onChange({ ...node, conditions: node.conditions.filter((_, j) => j !== i) });
   return (
-    <div className={cn("rounded-lg border p-3", depth > 1 && "bg-muted/30")} data-testid="rule-group">
+    <div className={cn("rounded-lg border p-3 max-sm:p-2", depth > 1 && "bg-muted/30")} data-testid="rule-group">
       <div className="mb-2 flex flex-wrap items-center gap-2 text-sm">
         <span>{t("match_prefix")}</span>
         <Select size="sm" value={node.match} onChange={(e) => onChange({ ...node, match: e.target.value as "all" | "any" })} disabled={disabled} className="w-28" aria-label={t("match_label")}>
@@ -185,7 +190,7 @@ function GroupEditor({ node, depth, options, currency, disabled, onChange, onRem
           <option value="any">{t("match.any")}</option>
         </Select>
         <span>{t("match_suffix")}</span>
-        <span className="ml-auto flex gap-1">
+        <span className="ml-auto flex flex-wrap gap-1">
           <Button type="button" size="sm" variant="outline" disabled={disabled} onClick={() => onChange({ ...node, conditions: [...node.conditions, defaultLeaf()] })}>
             <Plus /> {t("add_condition")}
           </Button>
@@ -229,7 +234,7 @@ function LeafEditor({ leaf, options, currency, disabled, onChange, onRemove }: {
   const grouped = FIELD_ORDER.filter((f) => !hidden.has(SEGMENT_FIELDS[f]!.group)).reduce<Record<string, string[]>>((acc, f) => ((acc[SEGMENT_FIELDS[f]!.group] ??= []).push(f), acc), {});
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-md border bg-card p-2" data-testid="rule-leaf">
-      <Select size="sm" value={leaf.field} onChange={(e) => setField(e.target.value)} disabled={disabled} className="w-52" aria-label={t("field")}>
+      <Select size="sm" value={leaf.field} onChange={(e) => setField(e.target.value)} disabled={disabled} className="w-52 max-sm:w-full" aria-label={t("field")}>
         {Object.entries(grouped).map(([g, fields]) => (
           <optgroup key={g} label={t(`groups.${g}`)}>
             {fields.map((f) => (
@@ -238,7 +243,7 @@ function LeafEditor({ leaf, options, currency, disabled, onChange, onRemove }: {
           </optgroup>
         ))}
       </Select>
-      <Select size="sm" value={leaf.op} onChange={(e) => setOp(e.target.value as SegmentOp)} disabled={disabled} className="w-40" aria-label={t("operator")}>
+      <Select size="sm" value={leaf.op} onChange={(e) => setOp(e.target.value as SegmentOp)} disabled={disabled} className="w-40 max-sm:min-w-0 max-sm:flex-1" aria-label={t("operator")}>
         {ops.map((o) => (
           <option key={o} value={o}>{t(def.type === "day_window" ? `ops_window.${o}` : `ops.${o}`)}</option>
         ))}

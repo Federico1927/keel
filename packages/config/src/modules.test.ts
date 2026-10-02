@@ -8,6 +8,8 @@ describe("modules by plan", () => {
     expect(isModuleInPlan("core.mcp", "growth")).toBe(true);
     expect(isModuleInPlan("core.mcp", "scale")).toBe(true);
     expect(isModuleInPlan("core.mcp", "unknown")).toBe(false);
+    expect(isModuleInPlan("core.api", "starter")).toBe(false);
+    expect(isModuleInPlan("core.api", "growth")).toBe(true);
     expect(isModuleInPlan("core.orders", "starter")).toBe(true);
     expect(isModuleInPlan("addon.cod", "scale")).toBe(false);
   });

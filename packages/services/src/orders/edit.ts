@@ -2,6 +2,7 @@ import { and, eq, inArray, isNull, ne, or, schema, sql } from "@hullwise/db";
 import { OPEN_STATUSES, addressKey, applyDiscountToAmounts, diffRecords, linesDiffer, mergeBlock, mergeLines, nameZipKey, normalizeAddress, normalizeEmail, normalizePhone, orderDiscountAmount, orderDiscountCode, orderEditBlock, replacementBalance, validateAddressFormat, type AddressIssue, type EditLine, type MergeBlock, type MergeFacts, type OrderDiscountKind, type OrderEditBlock } from "@hullwise/core";
 import type { Address, CommercePlatform, CreateOrderInput } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
+import { emitOrderWebhook } from "../webhooks/payloads";
 import { importOrder } from "../sync";
 import { applyCancellation, closeOrderBackorders, recomputeOrderStatus } from "./state";
 import { checkOrderStock, type StockCheckResult } from "../backorders";
@@ -179,6 +180,7 @@ export async function editOrderDetails(ctx: ServiceContext, platform: CommercePl
   await ctx.tx.update(schema.orders).set({ ...c.patch, updatedAt: now }).where(eq(schema.orders.id, order.id));
   const diff = Object.fromEntries(c.changed.map((k) => [k, { from: (order as Record<string, unknown>)[k] ?? null, to: (c.patch as Record<string, unknown>)[k] ?? null }]));
   await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: order.id, type: "modified", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff, metadata: { source: opts.source ?? "core", platform: writes ? platform!.provider : null }, createdAt: now });
+  await emitOrderWebhook(ctx, "order.updated", order.id, { changes: Object.keys(diff), source: opts.source ?? "core" });
   return { orderId: order.id, changed: c.changed, writtenToPlatform: writes };
 }
 

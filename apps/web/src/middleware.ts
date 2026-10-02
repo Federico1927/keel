@@ -21,5 +21,5 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 }
 
 export const config = {
-  matcher: ["/((?!api/auth|api/mcp|api/oauth|\\.well-known|_next/static|_next/image|favicon.ico|screenshots|.*\\.(?:png|svg|jpg|webp|ico|css)).*)"],
+  matcher: ["/((?!api/auth|api/mcp|api/oauth|api/v1|\\.well-known|_next/static|_next/image|favicon.ico|screenshots|.*\\.(?:png|svg|jpg|webp|ico|css)).*)"],
 };

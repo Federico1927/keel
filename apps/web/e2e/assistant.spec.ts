@@ -39,8 +39,8 @@ test.describe("AI assistant (core, on the store's own Anthropic key)", () => {
     await expect(page.getByTestId("assistant-answer").last().locator('[data-tool="get_campaigns"]')).toBeVisible();
     await expect(page.getByTestId("assistant-usage")).toContainText(/Domande|Questions/);
 
-    page.once("dialog", (d) => void d.accept());
     await page.getByTestId("assistant-delete").click();
+    await page.getByTestId("confirm-accept").click();
     await expect(page).toHaveURL(new RegExp(`${T}/assistant$`));
     await expect(page.getByTestId("assistant-threads").getByText("Come sono andati i ricavi negli ultimi 7 giorni?")).toHaveCount(0);
   });

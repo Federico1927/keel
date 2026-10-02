@@ -49,7 +49,8 @@ export default defineConfig({
         command: "pnpm start",
         url: "http://localhost:3000/login",
         reuseExistingServer: true,
-        env: { HULLWISE_EMAIL_OUTBOX_DIR: process.env.HULLWISE_EMAIL_OUTBOX_DIR },
+        // loopback webhook receivers (api.spec.ts, #81) are allowed in this test server only
+        env: { HULLWISE_EMAIL_OUTBOX_DIR: process.env.HULLWISE_EMAIL_OUTBOX_DIR, HULLWISE_WEBHOOKS_ALLOW_LOOPBACK: "1" },
         timeout: 120_000,
       },
 });

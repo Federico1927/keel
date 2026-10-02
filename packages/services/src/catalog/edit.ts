@@ -6,6 +6,7 @@ import { importProduct } from "../sync";
 import { runPlatformWriteNow } from "../writes";
 import { recordPriceChanges } from "./price-history";
 import type { AuditIdentity } from "./costs";
+import { emitProductWebhook } from "../webhooks/payloads";
 
 /**
  * Two-way product fields (issue #19). Hullwise mirrors every platform field on read and edits a defined
@@ -135,6 +136,8 @@ export async function editProductWithPlatform(ctx: ServiceContext, platform: Com
   await recordVariantPriceChanges(ctx, vBefore, vAfter);
   const diff = productDiff(before, after, vBefore, vAfter);
   await recordAudit(ctx.tx, { tenantId: ctx.tenantId, ...audit, action: "product.updated", entityType: "product", entityId: productId, diff, metadata: { platform: Boolean(platform && before.externalId), fields: [...Object.keys(productPatch), ...variantPatches.flatMap((v) => Object.keys(v.patch))] } });
+  // with a platform the import above emitted it (when a receiver-visible field changed)
+  if (!(platform && before.externalId) && Object.keys(diff).length) await emitProductWebhook(ctx, productId, { source: "core" });
   return Object.keys(diff).length ? { kind: "updated", title: after.title, diff } : { kind: "unchanged", title: after.title };
 }
 

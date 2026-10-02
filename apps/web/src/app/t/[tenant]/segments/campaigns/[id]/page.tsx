@@ -6,7 +6,7 @@ import { canDo, canWritePage } from "@hullwise/config";
 import { CAMPAIGN_EXCLUSION_REASONS, canApproveCampaign, effectiveSendStart, formatDate, formatDateTime, formatMoney, formatNumber, formatPercent, type CampaignExclusionReason } from "@hullwise/core";
 import { adminDb, and, eq, schema } from "@hullwise/db";
 import { listSegments, retentionCampaignDetail, sendWindowOf } from "@hullwise/services";
-import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, DetailShell, Stat } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { kickCampaigns } from "@/server/campaigns";
 import { CampaignForm } from "../campaign-form";
@@ -78,7 +78,7 @@ export default async function RetentionCampaignPage({ params }: { params: Promis
     const editable = c.status === "draft" && canWrite;
     const segments = editable ? (await ctx.run((tx) => listSegments({ ...s, tx }))).map((x) => ({ id: x.id, name: x.name, holdoutPercentage: x.holdoutPercentage, lastCount: x.lastCount })) : [];
     return (
-      <DetailShell back={back} eyebrow={ctx.tenant.name} title={c.name} chips={chips} actions={actions} aside={workflow}>
+      <DetailShell back={back} eyebrow={ctx.tenant.name} title={c.name} chips={chips} primaryActions={actions} aside={workflow}>
         {c.status === "draft" && c.reviewNote && <Alert className="mb-4" data-testid="sent-back"><AlertDescription>{t("workflow.sent_back", { note: c.reviewNote })}</AlertDescription></Alert>}
         <Card>
           <CardHeader>
@@ -110,7 +110,7 @@ export default async function RetentionCampaignPage({ params }: { params: Promis
       eyebrow={segment ? segment.name : t("segment_deleted")}
       title={c.name}
       chips={chips}
-      actions={canWrite && (c.status === "active" || c.status === "paused") ? actions : undefined}
+      primaryActions={canWrite && (c.status === "active" || c.status === "paused") ? actions : undefined}
       aside={
         <div className="space-y-4">
           <LiveRefresh active={delivering} />
@@ -158,7 +158,7 @@ export default async function RetentionCampaignPage({ params }: { params: Promis
             <span className="text-sm text-muted-foreground">{results.windowOpen ? t("window_open", { at: formatDate(results.windowEndsAt, ctx.locale, ctx.tenant.timezone) }) : t("window_closed", { at: formatDate(results.windowEndsAt, ctx.locale, ctx.tenant.timezone) })}</span>
           </div>
           {!r.measurable && <Alert className="mb-4"><AlertDescription>{t("no_holdout_result")}</AlertDescription></Alert>}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <Stat label={t("kpi.uplift")} value={r.conversion ? `${r.conversion.diff >= 0 ? "+" : ""}${formatNumber(r.conversion.diff * 100, ctx.locale, { maximumFractionDigits: 1 })} pt` : "—"} hint={r.conversion?.pValue != null ? t("kpi.p_value", { p: formatNumber(r.conversion.pValue, ctx.locale, { maximumFractionDigits: 3 }) }) : undefined} />
             <Stat label={t("kpi.incremental_orders")} value={r.incrementalOrders === null ? "—" : formatNumber(r.incrementalOrders, ctx.locale, { maximumFractionDigits: 0 })} />
             <Stat label={t("kpi.incremental_margin")} value={money(r.incrementalMarginMinor)} hint={r.incrementalMarginCi95 ? t("kpi.ci", { lo: money(r.incrementalMarginCi95[0]), hi: money(r.incrementalMarginCi95[1]) }) : undefined} />
@@ -170,30 +170,18 @@ export default async function RetentionCampaignPage({ params }: { params: Promis
               <CardDescription>{t("groups_description", { days: c.attributionDays })}</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead />
-                    <TableHead className="text-right">{t("columns.customers")}</TableHead>
-                    <TableHead className="text-right">{t("columns.converted")}</TableHead>
-                    <TableHead className="text-right">{t("columns.rate")}</TableHead>
-                    <TableHead className="hidden text-right md:table-cell">{t("columns.revenue_pc")}</TableHead>
-                    <TableHead className="text-right">{t("columns.margin_pc")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(["treated", "holdout"] as const).map((g) => (
-                    <TableRow key={g}>
-                      <TableCell className="font-medium">{t(`group.${g}`)}</TableCell>
-                      <TableCell className="text-right tabular">{formatNumber(r[g].customers, ctx.locale)}</TableCell>
-                      <TableCell className="text-right tabular">{formatNumber(r[g].converters, ctx.locale)}</TableCell>
-                      <TableCell className="text-right tabular">{pct(r[g].conversionRate)}</TableCell>
-                      <TableCell className="hidden text-right tabular md:table-cell">{money(r[g].revenuePerCustomerMinor)}</TableCell>
-                      <TableCell className="text-right tabular">{money(r[g].marginPerCustomerMinor)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <DataList
+                rows={["treated", "holdout"] as const}
+                rowKey={(g) => g}
+                columns={[
+                  { key: "group", header: <span className="sr-only">{t("groups_title")}</span>, mobile: "title", className: "font-medium", cell: (g) => t(`group.${g}`) },
+                  { key: "customers", header: t("columns.customers"), align: "right", className: "tabular", cell: (g) => formatNumber(r[g].customers, ctx.locale) },
+                  { key: "converted", header: t("columns.converted"), align: "right", className: "tabular", cell: (g) => formatNumber(r[g].converters, ctx.locale) },
+                  { key: "rate", header: t("columns.rate"), mobile: "badge", align: "right", className: "tabular", cell: (g) => pct(r[g].conversionRate) },
+                  { key: "revenue", header: t("columns.revenue_pc"), align: "right", className: "tabular", cell: (g) => money(r[g].revenuePerCustomerMinor) },
+                  { key: "margin", header: t("columns.margin_pc"), align: "right", className: "tabular", cell: (g) => money(r[g].marginPerCustomerMinor) },
+                ]}
+              />
             </CardContent>
           </Card>
           {c.discountCode && <p className="mt-3 text-sm text-muted-foreground">{t("code_redemptions", { n: results.codeRedemptions, code: c.discountCode })}</p>}

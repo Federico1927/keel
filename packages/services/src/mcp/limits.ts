@@ -25,7 +25,9 @@ export interface RateLimits {
 
 const DEFAULT_LIMITS: RateLimits = { perToken: MCP_LIMITS.perTokenPerMinute, perTenant: MCP_LIMITS.perTenantPerMinute };
 
-export async function checkMcpRateLimit(deps: McpDeps, input: { tenantId: string; tokenId: string }, limits: RateLimits = DEFAULT_LIMITS): Promise<RateDecision> {
+/** `bucketPrefix` keeps other users of the windows apart (the REST API counts under `api:`). */
+export async function checkMcpRateLimit(deps: McpDeps, input: { tenantId: string; tokenId: string; bucketPrefix?: string }, limits: RateLimits = DEFAULT_LIMITS): Promise<RateDecision> {
+  const prefix = input.bucketPrefix ?? "";
   const now = deps.now?.() ?? new Date();
   const windowStart = new Date(Math.floor(now.getTime() / 60_000) * 60_000);
   const retryAfter = Math.max(1, Math.ceil((windowStart.getTime() + 60_000 - now.getTime()) / 1000));
@@ -42,8 +44,8 @@ export async function checkMcpRateLimit(deps: McpDeps, input: { tenantId: string
           if (n === 1) await tx.delete(schema.mcpRateBuckets).where(and(eq(schema.mcpRateBuckets.tenantId, input.tenantId), eq(schema.mcpRateBuckets.bucket, bucket), lt(schema.mcpRateBuckets.windowStart, windowStart)));
           return n;
         };
-        const tenantCount = await bump("tenant");
-        const tokenCount = await bump(`token:${input.tokenId}`);
+        const tenantCount = await bump(`${prefix}tenant`);
+        const tokenCount = await bump(`${prefix}token:${input.tokenId}`);
         if (tokenCount > limits.perToken) return { ok: false, retryAfter, reason: "token" as const };
         if (tenantCount > limits.perTenant) return { ok: false, retryAfter, reason: "tenant" as const };
         return { ok: true, retryAfter };

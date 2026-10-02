@@ -20,7 +20,8 @@ export default async function SettingsPage({ params }: { params: Promise<{ tenan
         title={t("title")}
         description={t("description")}
         actions={
-          <>
+          // one scrolling row of sub-pages on phones (#49)
+          <nav className="flex w-full gap-2 overflow-x-auto pb-1 sm:w-auto sm:flex-wrap sm:pb-0 [&>*]:shrink-0" aria-label={t("title")} data-testid="settings-subnav">
             <Button asChild variant="outline">
               <Link href={`/t/${tenant}/settings/branding`}>{t("branding_link")}</Link>
             </Button>
@@ -33,6 +34,11 @@ export default async function SettingsPage({ params }: { params: Promise<{ tenan
             <Button asChild variant="outline">
               <Link href={`/t/${tenant}/settings/ai`} data-testid="ai-settings-link">{t("ai_link")}</Link>
             </Button>
+            {canDo(ctx.role, "manage_integrations") && (
+              <Button asChild variant="outline">
+                <Link href={`/t/${tenant}/settings/developers`} data-testid="developers-settings-link">{t("developers_link")}</Link>
+              </Button>
+            )}
             <Button asChild variant="outline">
               <Link href={`/t/${tenant}/settings/mobile`} data-testid="mobile-nav-settings-link">{tm("link")}</Link>
             </Button>
@@ -46,7 +52,7 @@ export default async function SettingsPage({ params }: { params: Promise<{ tenan
                 <Link href={`/t/${tenant}/settings/data-export`} data-testid="data-export-link">{t("data_export_link")}</Link>
               </Button>
             )}
-          </>
+          </nav>
         }
       />
       <Tabs defaultValue="general">

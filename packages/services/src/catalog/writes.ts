@@ -4,6 +4,7 @@ import type { CommercePlatform } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import { runPlatformWriteNow } from "../writes";
 import { recordPriceChanges, type PriceChangeSource } from "./price-history";
+import { emitProductWebhook } from "../webhooks/payloads";
 
 /**
  * Product writes that reach the commerce platform: platform first (through the outbox, so every
@@ -25,6 +26,7 @@ export async function setProductStatusWithPlatform(ctx: ServiceContext, platform
   if (p.status === status) return { kind: "unchanged", title: p.title };
   if (platform && p.externalId) await runPlatformWriteNow(ctx, platform, { kind: "product.status", entityType: "product", entityId: productId, payload: { productExternalId: p.externalId, status } });
   await ctx.tx.update(schema.products).set({ status }).where(and(eq(schema.products.tenantId, ctx.tenantId), eq(schema.products.id, productId)));
+  await emitProductWebhook(ctx, productId, { source: "core" });
   return { kind: "updated", title: p.title, diff: { status: { from: p.status, to: status } } };
 }
 
@@ -35,6 +37,7 @@ export async function updateProductTagsWithPlatform(ctx: ServiceContext, platfor
   if (!plan.add.length && !plan.remove.length) return { kind: "unchanged", title: p.title };
   if (platform && p.externalId) await runPlatformWriteNow(ctx, platform, { kind: "product.tags", entityType: "product", entityId: productId, payload: { productExternalId: p.externalId, add: plan.add, remove: plan.remove } });
   await ctx.tx.update(schema.products).set({ tags: plan.next }).where(and(eq(schema.products.tenantId, ctx.tenantId), eq(schema.products.id, productId)));
+  await emitProductWebhook(ctx, productId, { source: "core" });
   return { kind: "updated", title: p.title, diff: { tags: { from: p.tags, to: plan.next } } };
 }
 
@@ -62,5 +65,6 @@ export async function updateProductPricesWithPlatform(ctx: ServiceContext, platf
     if (patch.compareAtMinor !== undefined) diff[`compareAt:${v.title}`] = { from: v.compareAtMinor, to: patch.compareAtMinor };
   }
   if (!Object.keys(diff).length) return { kind: "unchanged", title: p.title };
+  await emitProductWebhook(ctx, productId, { source: "core" });
   return { kind: "updated", title: p.title, diff };
 }

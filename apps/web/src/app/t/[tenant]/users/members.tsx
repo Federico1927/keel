@@ -1,7 +1,7 @@
 "use client";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, Input, Label, Select } from "@hullwise/ui";
 import { TENANT_ROLES, canManageRole, type TenantRole } from "@hullwise/config";
 import { formatDateTime } from "@hullwise/core";
 import { changeMemberRole, inviteMember, resendInvitationAction, revokeInvitationAction, setMemberActive } from "@/server/actions/users";
@@ -15,71 +15,40 @@ export function MembersTable({ slug, currentUserId, actorRole, locale, timezone,
   const tc = useTranslations("common");
   const [pending, start] = useTransition();
   const canManage = canManageRole(actorRole, "viewer");
+  const editable = (m: Member) => canManage && m.userId !== currentUserId && canManageRole(actorRole, m.role);
   return (
     <Card>
       <CardContent className="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("member")}</TableHead>
-              <TableHead>{t("role")}</TableHead>
-              <TableHead>{t("status")}</TableHead>
-              <TableHead>{t("last_login")}</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {members.map((m) => {
-              const editable = canManage && m.userId !== currentUserId && canManageRole(actorRole, m.role);
-              return (
-                <TableRow key={m.userId} className={m.isActive ? "" : "opacity-60"}>
-                  <TableCell>
-                    <p className="font-medium">{m.name ?? "—"}</p>
-                    <p className="text-xs text-muted-foreground">{m.email}</p>
-                  </TableCell>
-                  <TableCell>
-                    {editable ? (
-                      <Select
-                        size="sm"
-                        aria-label={t("role")}
-                        defaultValue={m.role}
-                        disabled={pending}
-                        className="w-40"
-                        onChange={(e) => start(() => void changeMemberRole(slug, m.userId, e.target.value))}
-                      >
-                        {TENANT_ROLES.filter((r) => canManageRole(actorRole, r)).map((r) => (
-                          <option key={r} value={r}>
-                            {tr(r)}
-                          </option>
-                        ))}
-                      </Select>
-                    ) : (
-                      <Badge variant="secondary">{tr(m.role)}</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={m.isActive ? "success" : "muted"}>{m.isActive ? t("active") : t("inactive")}</Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{formatDateTime(m.lastLoginAt, locale, timezone)}</TableCell>
-                  <TableCell className="text-right">
-                    {editable && (
-                      <Button variant="ghost" size="sm" disabled={pending} onClick={() => start(() => void setMemberActive(slug, m.userId, !m.isActive))}>
-                        {m.isActive ? t("deactivate") : t("reactivate")}
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-            {members.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={5} className="text-muted-foreground">
-                  {tc("empty")}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+        {members.length === 0 ? (
+          <p className="p-4 text-sm text-muted-foreground">{tc("empty")}</p>
+        ) : (
+          <DataList
+            rows={members}
+            rowKey={(m) => m.userId}
+            rowProps={(m) => ({ className: m.isActive ? "" : "opacity-60", "data-testid": "member-row" })}
+            columns={[
+              { key: "member", header: t("member"), mobile: "title", cell: (m) => <><p className="font-medium">{m.name ?? "—"}</p><p className="truncate text-xs font-normal text-muted-foreground">{m.email}</p></> },
+              { key: "status", header: t("status"), mobile: "badge", cell: (m) => <Badge variant={m.isActive ? "success" : "muted"}>{m.isActive ? t("active") : t("inactive")}</Badge> },
+              {
+                key: "role",
+                header: t("role"),
+                label: "",
+                cell: (m) =>
+                  editable(m) ? (
+                    <Select size="sm" aria-label={t("role")} defaultValue={m.role} disabled={pending} className="w-40" onChange={(e) => start(() => void changeMemberRole(slug, m.userId, e.target.value))}>
+                      {TENANT_ROLES.filter((r) => canManageRole(actorRole, r)).map((r) => (
+                        <option key={r} value={r}>{tr(r)}</option>
+                      ))}
+                    </Select>
+                  ) : (
+                    <Badge variant="secondary">{tr(m.role)}</Badge>
+                  ),
+              },
+              { key: "last", header: t("last_login"), className: "text-sm text-muted-foreground max-md:text-xs", cell: (m) => formatDateTime(m.lastLoginAt, locale, timezone) },
+              { key: "actions", header: <span className="sr-only">{tc("actions")}</span>, mobile: "action", align: "right", cell: (m) => editable(m) && <Button variant="ghost" size="sm" disabled={pending} onClick={() => start(() => void setMemberActive(slug, m.userId, !m.isActive))}>{m.isActive ? t("deactivate") : t("reactivate")}</Button> },
+            ]}
+          />
+        )}
       </CardContent>
     </Card>
   );
@@ -95,7 +64,7 @@ export function InviteForm({ slug, actorRole }: { slug: string; actorRole: Tenan
   }, [state]);
   if (!canManageRole(actorRole, "viewer")) return null;
   return (
-    <Card>
+    <Card id="invite" className="scroll-mt-20">
       <CardHeader>
         <CardTitle>{t("invite_title")}</CardTitle>
         <CardDescription>{t("invite_description")}</CardDescription>

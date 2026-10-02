@@ -2,6 +2,7 @@ import { and, eq, isNull, ne, schema, sql } from "@hullwise/db";
 import { RETURN_CLOSED_STATUSES, RETURN_GOODS_BACK_STATUSES, matchReturnReason, nextReturnStatusFromPlatform, platformReturnTarget, returnableLines, type ReturnStatus } from "@hullwise/core";
 import type { NormalizedReturn } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
+import { emitReturnWebhook } from "../webhooks/payloads";
 import { applyReturnToOrder } from "../returns/effects";
 import { syncRecordTasks } from "../tasks";
 
@@ -95,6 +96,7 @@ export async function importPlatformReturn(ctx: ServiceContext, r: NormalizedRet
     await ctx.tx.insert(schema.returnLines).values(wanted.map((l) => ({ tenantId: ctx.tenantId, returnId: row!.id, orderLineId: l.orderLineId, quantity: l.quantity, unitAmountMinor: unitNet.get(l.orderLineId) ?? 0, externalId: l.externalId ?? null })));
     await ctx.tx.insert(schema.orderEvents).values({ tenantId: ctx.tenantId, orderId: order.id, type: "return_requested", actorType: ctx.actor.type, actorUserId: ctx.actor.userId, diff: {}, metadata: { returnId: row!.id, number, reason: reasonCode, resolution: "refund", source: "platform", externalId: r.externalId, via: opts.source }, createdAt: now });
     if (status !== "requested") await applyReturnToOrder(ctx, order.id, { returnId: row!.id, number, from: null, to: status }, { source: "platform", via: opts.source });
+    else await emitReturnWebhook(ctx, row!.id, null);
     await syncRecordTasks(ctx, "return", [row!.id]);
     return { id: row!.id, outcome: "created" };
   }
