@@ -18,16 +18,20 @@ Assets rendered by `render.mjs` (Playwright + Geist, brand blue `#2b59ff`, the m
 
 ---
 
+## Personal profile
+
+Your headline and current experience stay **Automationslab**; the banner (`profile-banner-en.png`) promotes Hullwise with the "by Automationslab" line. Add Hullwise under Featured (the landing link) rather than as a separate job.
+
 ## Company page fields
 
 **Name:** Hullwise
 **Public URL:** linkedin.com/company/hullwise *(check it is free)*
 **Website:** the production URL of the landing page (`NEXT_PUBLIC_SITE_URL`)
 **Industry:** Software Development
-**Company size:** 2–10 employees
-**Type:** Privately held *(or "Self-employed" until a company exists)*
+**Type:** Showcase page of the Automationslab company page (Hullwise is an Automationslab product). Create it from the Automationslab page: *Admin tools → Create a Showcase Page*. Employees cannot list a showcase page as their employer, so your experience stays "Automationslab".
 **Location:** the city you actually operate from. Do not list an office that does not exist.
 **Founded:** 2026
+**Parent:** Automationslab
 **Specialties (max 20):** E-commerce, Shopify, Order management, Inventory management, Campaign profitability, Meta Ads, Google Ads, P&L, Returns management, CRM, SaaS
 
 **Positioning (internal, not for publishing as is):**
@@ -51,6 +55,8 @@ For mid-sized Shopify brands that advertise on Meta and Google and keep their nu
 > Works with any payment method. Add-on modules, such as cash-on-delivery management, are switched on per account.
 >
 > Setup done by our team, no annual contract, unlimited users, interface in English, Italian and Spanish.
+>
+> Hullwise is built and run by Automationslab.
 
 ### Launch post — with `post-square-en.png`
 
@@ -58,9 +64,9 @@ For mid-sized Shopify brands that advertise on Meta and Google and keep their nu
 >
 > Most dashboards add up orders placed. Weeks later the cancellations and returns come in, and the margin you saw is gone.
 >
-> I built Hullwise from a platform I've been running for an e-commerce brand: orders, inventory, purchasing, returns and Meta and Google campaigns on one data model, with profit counted net of cancellations and returns and every campaign tied to the stock of the products it promotes.
+> At Automationslab we built Hullwise from a platform we've been running for an e-commerce brand: orders, inventory, purchasing, returns and Meta and Google campaigns on one data model, with profit counted net of cancellations and returns and every campaign tied to the stock of the products it promotes.
 >
-> I'm looking for the first Shopify stores to work with. If you run one and want to see the demo, message me or book through the link in the comments.
+> We're looking for the first Shopify stores to work with. If you run one and want to see the demo, message me or book through the link in the comments.
 >
 > #ecommerce #shopify #metaads #googleads
 

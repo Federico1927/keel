@@ -17,6 +17,7 @@ const chip = (t, s) => `<span style="display:inline-flex;align-items:center;gap:
 const blueBg = `background:radial-gradient(120% 140% at 85% 0%,#4a74ff 0%,${C.blue} 45%,#1d3fd1 100%)`;
 const wordmark = (size, color, markColor) => `<div style="display:flex;align-items:center;gap:${size * .4}px;color:${color};font-size:${size}px;font-weight:600;letter-spacing:-.02em"><div style="width:${size * 1.25}px;height:${size * 1.25}px">${mark(markColor, 2.4)}</div>Hullwise</div>`;
 
+const by = (size, color) => `<div style="color:${color};font-size:${size}px;font-weight:500;letter-spacing:.01em">by Automationslab</div>`;
 const jobs = [];
 // Logos
 for (const s of [400, 1200]) {
@@ -35,18 +36,18 @@ for (const [l, t] of Object.entries(T)) {
       <div style="color:#fff;font-size:116px;font-weight:700;letter-spacing:-.03em;line-height:1.02;text-wrap:balance">${t.title}</div>
       <div style="display:flex;gap:28px;flex-wrap:nowrap">${t.chips.map((c) => chip(c, 36)).join("")}</div>
     </div>
-    <div style="position:absolute;right:120px;top:90px;opacity:.9">${wordmark(64, "#fff", "#fff")}</div></div>`]);
+    <div style="position:absolute;right:120px;top:90px;opacity:.9;display:flex;flex-direction:column;align-items:flex-end;gap:14px">${wordmark(64, "#fff", "#fff")}${by(36, "rgba(255,255,255,.8)")}</div></div>`]);
   // Personal profile banner 1584x396: photo overlaps bottom-left ~ 0-420px.
   jobs.push([`profile-banner-${l}.png`, 1584, 396, `<div style="position:relative;width:1584px;height:396px;${blueBg};overflow:hidden">${waves(1)}
     <div style="position:absolute;left:470px;right:70px;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;gap:18px">
-      ${wordmark(34, "#fff", "#fff")}
+      <div style="display:flex;align-items:baseline;gap:18px">${wordmark(34, "#fff", "#fff")}${by(20, "rgba(255,255,255,.8)")}</div>
       <div style="color:#fff;font-size:50px;font-weight:700;letter-spacing:-.03em;line-height:1.05;text-wrap:balance">${t.title}</div>
       <div style="color:rgba(255,255,255,.85);font-size:22px;font-weight:500">${t.eyebrow}</div>
     </div></div>`]);
   // Feed post images
   for (const [name, w, h, ts, ss, pad] of [["post-landscape", 1200, 627, 66, 26, 72], ["post-square", 1080, 1080, 84, 30, 88]]) {
     jobs.push([`${name}-${l}.png`, w, h, `<div style="position:relative;width:${w}px;height:${h}px;background:#fff;border-top:14px solid ${C.blue};display:flex;flex-direction:column;justify-content:space-between;padding:${pad}px">
-      ${wordmark(ss * 1.4, C.ink, C.blue)}
+      <div style="display:flex;align-items:baseline;gap:${ss * .7}px">${wordmark(ss * 1.4, C.ink, C.blue)}${by(ss * .8, C.muted)}</div>
       <div style="display:flex;flex-direction:column;gap:${ss}px">
         <div style="font-size:${ts}px;font-weight:700;letter-spacing:-.03em;line-height:1.05;color:${C.ink};text-wrap:balance">${t.post}</div>
         <div style="font-size:${ss * 1.1}px;color:${C.muted};line-height:1.35;max-width:92%">${t.postSub}</div>
