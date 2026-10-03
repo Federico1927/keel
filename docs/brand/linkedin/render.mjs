@@ -11,7 +11,7 @@ const page = (w, h, body, bg = "transparent") => `<!doctype html><html><head><st
 
 const T = {
   en: { eyebrow: "Operations platform for Shopify stores", title: "Run the whole store on one set of numbers.", chips: ["Orders & shipments", "Inventory & purchasing", "Returns", "CRM", "Real P/L per campaign"], post: "Campaign profit, net of cancellations and returns.", postSub: "Orders, stock, returns and Meta & Google ads on one data model.", cta: "Book a demo" },
-  it: { eyebrow: "Piattaforma operativa per e-commerce Shopify", title: "Gestisci tutto il negozio su un solo insieme di numeri.", chips: ["Ordini e spedizioni", "Magazzino e acquisti", "Resi", "CRM", "P/L reale per campagna"], post: "Il profitto delle campagne, al netto di annullamenti e resi.", postSub: "Ordini, stock, resi e ads Meta e Google su un solo modello dati.", cta: "Prenota una demo" },
+
 };
 const chip = (t, s) => `<span style="display:inline-flex;align-items:center;gap:${s * .5}px;padding:${s * .55}px ${s * 1.1}px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);color:#fff;font-size:${s * 1.25}px;font-weight:500;white-space:nowrap"><i style="width:${s * .55}px;height:${s * .55}px;border-radius:9px;background:#7ee2b0;display:block"></i>${t}</span>`;
 const blueBg = `background:radial-gradient(120% 140% at 85% 0%,#4a74ff 0%,${C.blue} 45%,#1d3fd1 100%)`;

@@ -1,4 +1,4 @@
-# Hullwise — LinkedIn kit
+# Hullwise — LinkedIn kit (English)
 
 Assets rendered by `render.mjs` (Playwright + Geist, brand blue `#2b59ff`, the mark from `apps/landing/src/components/logo.tsx`). To re-render: `npm i playwright-core geist` in a scratch folder, copy the script there, `node render.mjs`.
 
@@ -11,65 +11,27 @@ Assets rendered by `render.mjs` (Playwright + Geist, brand blue `#2b59ff`, the m
 | `logo-white-400.png` | 400×400 | Alternative logo on white |
 | `mark-transparent-1024.png` | 1024×1024 | Mark only, transparent background |
 | `wordmark-transparent.png` / `wordmark-white-transparent.png` | 1600×400 | Mark + name, for light / dark backgrounds |
-| `company-cover-{it,en}.png` | 4200×700 | Company page cover. The left 25% is left empty because the logo covers it |
-| `profile-banner-{it,en}.png` | 1584×396 | Founder's personal profile banner. The left ~450px is left empty for the profile photo |
-| `post-landscape-{it,en}.png` | 1200×627 | Launch post / link preview |
-| `post-square-{it,en}.png` | 1080×1080 | Launch post (takes more space in the mobile feed) |
+| `company-cover-en.png` | 4200×700 | Company page cover. The left 25% is left empty because the logo covers it |
+| `profile-banner-en.png` | 1584×396 | Founder's personal profile banner. The left ~450px is left empty for the profile photo |
+| `post-landscape-en.png` | 1200×627 | Launch post / link preview |
+| `post-square-en.png` | 1080×1080 | Launch post (takes more space in the mobile feed) |
 
 ---
 
-## Campi della pagina aziendale (IT)
+## Company page fields
 
-**Nome:** Hullwise
-**URL pubblico:** linkedin.com/company/hullwise *(verifica che sia libero)*
-**Sito web:** l'URL di produzione della landing (`NEXT_PUBLIC_SITE_URL`)
-**Settore:** Software Development
-**Dimensioni azienda:** 2–10 dipendenti
-**Tipo:** Società privata *(oppure "Lavoratore autonomo" finché non c'è una società)*
-**Sede:** la città reale da cui operi. Non mettere una sede che non esiste.
-**Anno di fondazione:** 2026
+**Name:** Hullwise
+**Public URL:** linkedin.com/company/hullwise *(check it is free)*
+**Website:** the production URL of the landing page (`NEXT_PUBLIC_SITE_URL`)
+**Industry:** Software Development
+**Company size:** 2–10 employees
+**Type:** Privately held *(or "Self-employed" until a company exists)*
+**Location:** the city you actually operate from. Do not list an office that does not exist.
+**Founded:** 2026
+**Specialties (max 20):** E-commerce, Shopify, Order management, Inventory management, Campaign profitability, Meta Ads, Google Ads, P&L, Returns management, CRM, SaaS
 
-**Tagline (max 120 caratteri):**
-> Piattaforma operativa per e-commerce Shopify: ordini, magazzino, resi e il profitto reale di ogni campagna.
-
-**Posizionamento (uso interno, non da pubblicare così):**
-Per i brand Shopify di medie dimensioni che fanno ads su Meta e Google e oggi tengono i numeri in quattro strumenti diversi, Hullwise è la piattaforma operativa che mette ordini, spedizioni, magazzino, acquisti, resi, CRM e campagne su un solo modello dati. A differenza delle dashboard di attribuzione, calcola il profitto al netto di annullamenti e resi, e collega ogni campagna allo stock dei prodotti che promuove.
-
-**Panoramica (max 2.000 caratteri):**
-> Hullwise è la piattaforma operativa per e-commerce Shopify che fanno pubblicità su Meta e Google.
->
-> Un brand tipico tiene gli ordini in Shopify, i costi in un foglio di calcolo, i resi nell'helpdesk e la spesa ads in due gestori di campagne. Ognuno mostra una parte e la presenta come il totale. Hullwise li mette su un solo modello dati:
->
-> • Ordini e spedizioni: ricerca veloce, timeline con autore e modifiche, note interne, stato della spedizione da più fonti.
-> • Prodotti, magazzino e acquisti: stock per location, velocità di vendita, giorni di copertura, riordini suggeriti, merce in arrivo.
-> • Campagne e inventario: spesa, ricavi, margine e profitto di ogni campagna, contando solo gli ordini non annullati e non resi. Se un prodotto è sotto la soglia di stock, la campagna che lo spinge viene segnalata.
-> • P/L per ordine e per periodo: tasse, costo prodotto, spedizione, commissioni di pagamento, resi e ads.
-> • Resi configurabili, sconti e pool di codici, CRM con segmenti e RFM.
-> • Assistente AI in sola lettura, che cita numeri, periodo e filtri di ogni risposta.
->
-> Funziona con qualsiasi metodo di pagamento. Moduli aggiuntivi, come la gestione del contrassegno, si attivano per singolo account.
->
-> Configurazione fatta dal nostro team, nessun contratto annuale, utenti illimitati, interfaccia in italiano, inglese e spagnolo.
-
-**Specializzazioni (max 20):** E-commerce, Shopify, Gestione ordini, Gestione magazzino, Profittabilità campagne, Meta Ads, Google Ads, P/L, Resi, CRM, SaaS
-
-### Post di lancio (IT) — con `post-square-it.png`
-
-> Quanto guadagna davvero una campagna Meta?
->
-> La maggior parte delle dashboard somma gli ordini piazzati. Poi, settimane dopo, arrivano annullamenti e resi e il margine che avevi visto sparisce.
->
-> Ho costruito Hullwise partendo da una piattaforma che uso da tempo per un brand e-commerce: ordini, magazzino, acquisti, resi e campagne Meta e Google su un solo modello dati, con il profitto calcolato al netto di annullamenti e resi e ogni campagna collegata allo stock dei prodotti che promuove.
->
-> Sto cercando i primi negozi Shopify con cui lavorare. Se gestisci un e-commerce e vuoi vedere la demo, scrivimi o prenota dal link nei commenti.
->
-> #ecommerce #shopify #metaads #googleads
-
-*(Link nei commenti, non nel post: LinkedIn riduce la portata dei post con link esterni.)*
-
----
-
-## Company page fields (EN)
+**Positioning (internal, not for publishing as is):**
+For mid-sized Shopify brands that advertise on Meta and Google and keep their numbers in four different tools, Hullwise is the operations platform that puts orders, shipments, inventory, purchasing, returns, CRM and campaigns on one data model. Unlike attribution dashboards, it counts profit net of cancellations and returns, and ties every campaign to the stock of the products it promotes.
 
 **Tagline (max 120 characters):**
 > Operations platform for Shopify stores: orders, inventory, returns and the real profit of every campaign.
@@ -90,7 +52,7 @@ Per i brand Shopify di medie dimensioni che fanno ads su Meta e Google e oggi te
 >
 > Setup done by our team, no annual contract, unlimited users, interface in English, Italian and Spanish.
 
-### Launch post (EN) — with `post-square-en.png`
+### Launch post — with `post-square-en.png`
 
 > How much does a Meta campaign really make?
 >
@@ -101,3 +63,5 @@ Per i brand Shopify di medie dimensioni che fanno ads su Meta e Google e oggi te
 > I'm looking for the first Shopify stores to work with. If you run one and want to see the demo, message me or book through the link in the comments.
 >
 > #ecommerce #shopify #metaads #googleads
+
+*(Put the link in the first comment, not in the post: LinkedIn shows posts with external links to fewer people.)*
