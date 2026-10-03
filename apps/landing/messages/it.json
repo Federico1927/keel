@@ -297,6 +297,7 @@
     "coming_soon": "In arrivo"
   },
   "studio": {
+    "eyebrow": "Su misura",
     "title": "Ti serve un sistema costruito su misura, non un prodotto?",
     "body": "{studio}, lo studio dietro {product}, progetta e costruisce da zero automazioni e sistemi interni su misura, per qualsiasi azienda, non solo e-commerce.",
     "link": "Scopri {studio}"
