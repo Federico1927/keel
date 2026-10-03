@@ -296,6 +296,11 @@
     },
     "coming_soon": "Coming soon"
   },
+  "studio": {
+    "title": "Need a system built around you, not a product?",
+    "body": "{studio}, the studio behind {product}, designs and builds custom automations and internal systems from scratch, for any business, not only e-commerce.",
+    "link": "Visit {studio}"
+  },
   "faq": {
     "title": "Questions we get asked",
     "items": {
@@ -377,7 +382,8 @@
     "contact": "Contact",
     "sign_in": "Sign in to {product}",
     "language": "Language",
-    "rights": "© {year} {product}. All rights reserved."
+    "rights": "© {year} {product}. All rights reserved.",
+    "studio": "Custom systems: {studio}"
   },
   "coming_soon": {
     "badge": "Coming soon",

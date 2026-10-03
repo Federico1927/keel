@@ -49,6 +49,7 @@ public (`NEXT_PUBLIC_*`) because the site is static and the browser needs them.
 | `NEXT_PUBLIC_CONTACT_EMAIL`       | Address used by the `mailto:` fallbacks.                                                     | `federico@automationslab.it`             |
 | `NEXT_PUBLIC_CONTACT_WEBHOOK_URL` | Endpoint that receives the contact form as a JSON `POST`. Must accept cross-origin requests. | empty → the form opens a prefilled email |
 | `NEXT_PUBLIC_APP_URL`             | URL of the Hullwise app, for "Sign in" and the links to the integration guides.                  | `http://localhost:3000`                  |
+| `NEXT_PUBLIC_STUDIO_URL`          | Automations Lab site, linked (with UTM tags) from the add-ons section and the footer for custom builds. | `https://automationslab.it`              |
 
 Contact form payload: `{ name, email, store, orders, message, locale, source: "landing", submittedAt }`.
 A hidden honeypot field and a minimum fill time (3 s) drop bot submissions client-side; the webhook
