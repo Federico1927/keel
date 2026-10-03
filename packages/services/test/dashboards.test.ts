@@ -133,7 +133,7 @@ describe("dashboards", () => {
     expect(ops.widgets.some((w) => w.settings.metric === "custom:contribution_per_order")).toBe(true);
     const harbor = await runB((s) => resolveHomeDashboard(s, "owner", []));
     expect(harbor.isTemplate).toBe(true);
-    expect(harbor.widgets.map((w) => w.type)).toEqual(["today_kpis", "sales_30d", "month_forecast", "work_queue", "stock_backorders", "today_by_status"]);
+    expect(harbor.widgets.map((w) => w.type)).toEqual(["today_kpis", "sales_30d", "month_forecast", "work_queue", "stock_backorders", "today_by_status", "setup_health"]);
     const opsList = await runA((s) => listDashboards(s, { role: "operations", userId: ctx.userIds["ops@northwind.demo"]!, personalAllowed: true }));
     expect(opsList.some((d) => d.scope === "role")).toBe(false);
   });

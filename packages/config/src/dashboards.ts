@@ -2,7 +2,7 @@ import { z } from "zod";
 import { DASHBOARD_PERIODS, DEFAULT_DASHBOARD_PERIOD, type DashboardPeriod } from "./dashboard-periods";
 import { AD_PLATFORMS, type AdPlatform } from "./ads";
 import { isAddonModule, type ModuleKey } from "./modules";
-import { canDo, canViewPage, type PageKey, type TenantRole } from "./roles";
+import { canDo, canViewPage, canWritePage, type PageKey, type TenantRole } from "./roles";
 
 /**
  * Tenant dashboards (issue #43): a typed widget catalog and a metric catalog. Every widget type is
@@ -161,6 +161,8 @@ export const WIDGET_SETTINGS = {
   subs_active: empty,
   subs_churn: empty,
   subs_at_risk: empty,
+  // data completeness (#99): rows from packages/core/src/data-health.ts
+  setup_health: empty,
 } as const;
 export type WidgetType = keyof typeof WIDGET_SETTINGS;
 export type WidgetSettings<T extends WidgetType> = z.infer<(typeof WIDGET_SETTINGS)[T]>;
@@ -177,6 +179,8 @@ export interface WidgetDefinition {
   module: ModuleKey | null;
   /** Reads the dashboard (or its own) period. */
   usesPeriod: boolean;
+  /** Shown only to roles that can write at least one of these pages (rows they cannot act on are dropped by the loader). */
+  actPages?: readonly PageKey[];
 }
 
 const d = (type: WidgetType, group: WidgetDefinition["group"], page: PageKey, o: Partial<Omit<WidgetDefinition, "type" | "group" | "page">> = {}): WidgetDefinition => ({ type, group, page, widths: [1, 2], defaultWidth: 1, defaultHeight: 1, module: null, usesPeriod: false, ...o });
@@ -210,6 +214,8 @@ export const WIDGETS: Record<WidgetType, WidgetDefinition> = {
   subs_active: d("subs_active", "metrics", "subscriptions", { module: "addon.subscriptions" }),
   subs_churn: d("subs_churn", "metrics", "subscriptions", { module: "addon.subscriptions", usesPeriod: true }),
   subs_at_risk: d("subs_at_risk", "queues", "subscriptions", { module: "addon.subscriptions" }),
+  // data completeness (#99): the fix pages of DATA_HEALTH_DEFINITIONS (core); a core test keeps the two lists equal
+  setup_health: d("setup_health", "lists", "dashboard", { widths: [2, 3, 4], defaultWidth: 2, defaultHeight: 2, actPages: ["integrations", "products", "settings", "campaigns", "purchasing"] }),
 };
 export const WIDGET_TYPES = Object.keys(WIDGETS) as WidgetType[];
 
@@ -297,6 +303,7 @@ export function isWidgetVisible(w: Pick<DashboardWidget, "type" | "settings">, r
   const def = WIDGETS[w.type];
   if (!def || !isWidgetAvailable(w.type, activeAddons)) return false;
   if (!canViewPage(role, def.page)) return false;
+  if (def.actPages && !def.actPages.some((p) => canWritePage(role, p))) return false;
   // a breakdown by campaign or platform shows campaign rows
   if (w.type === "breakdown" && ["campaign", "platform"].includes(String((w.settings as { by?: unknown }).by)) && !canViewPage(role, "campaigns")) return false;
   if (w.type === "top_list") {
@@ -343,6 +350,7 @@ export const HULLWISE_TEMPLATE: readonly DashboardWidget[] = [
   { id: "hullwise-queue", type: "work_queue", w: 1, h: 1, period: null, settings: {} },
   { id: "hullwise-stock", type: "stock_backorders", w: 1, h: 1, period: null, settings: {} },
   { id: "hullwise-status", type: "today_by_status", w: 1, h: 1, period: null, settings: {} },
+  { id: "hullwise-setup", type: "setup_health", w: 2, h: 2, period: null, settings: {} },
 ];
 export function hullwiseTemplate(activeAddons: readonly string[]): DashboardWidget[] {
   return HULLWISE_TEMPLATE.filter((w) => isWidgetAvailable(w.type, activeAddons)).map((w) => ({ ...w, settings: { ...w.settings } }));

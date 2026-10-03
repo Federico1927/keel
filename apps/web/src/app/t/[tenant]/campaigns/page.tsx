@@ -13,7 +13,7 @@ import { LightBadge, ActionBadge } from "./badges";
 import { CampaignStatusButton } from "./[id]/campaign-actions";
 
 import { withIntl } from "@/i18n/intl-scope";
-async function CampaignsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string; platform?: string; status?: string; account?: string }> }) {
+async function CampaignsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string; platform?: string; status?: string; account?: string; links?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "campaigns");
@@ -25,6 +25,8 @@ async function CampaignsPage({ params, searchParams }: { params: Promise<{ tenan
   const platforms: readonly string[] = adPlatformsForPlan(ctx.tenant.planKey);
   const platform = platforms.includes(sp.platform ?? "") ? sp.platform : undefined;
   const status = ["active", "paused", "archived"].includes(sp.status ?? "") ? sp.status : undefined;
+  // campaigns with no linked product (the data-completeness widget sends here, #99)
+  const links = sp.links === "none" ? "none" : undefined;
   const at = { id: ctx.tenant.id, country: ctx.tenant.country, currency: ctx.tenant.currency, timezone: ctx.tenant.timezone, settings: ctx.settings };
   // ad accounts (#82): named on every row, filterable once a platform has more than one
   const accounts = await ctx.run((tx) => adAccountNames({ tenantId: ctx.tenant.id, tx, actor: { type: "user" as const, userId: ctx.user.id } }));
@@ -35,7 +37,7 @@ async function CampaignsPage({ params, searchParams }: { params: Promise<{ tenan
     const [list, sugg] = await Promise.all([campaignsWithEconomics(s, at, period, { platform, status, ...(accountFilter ? { account: { provider: accountFilter.provider, externalId: accountFilter.externalId, primary: accountFilter.primary } } : {}) }), campaignLinkSuggestions(s)]);
     // GA4 sessions per campaign (#86), matched on the UTM campaign; null when GA4 is not connected (no column)
     const sessions = isAnalyticsPlatformInPlan(ctx.tenant.planKey) ? await trafficByCampaign(s, { timezone: ctx.tenant.timezone }, period) : null;
-    return [list.filter((r) => platforms.includes(r.platform)), sugg.filter((r) => platforms.includes(r.platform)), sessions] as const;
+    return [list.filter((r) => platforms.includes(r.platform) && (!links || r.products.length === 0)), sugg.filter((r) => platforms.includes(r.platform)), sessions] as const;
   });
   const primaryOf = new Map(accounts.filter((a) => a.primary).map((a) => [a.provider, a.externalId]));
   const accountName = (r: { platform: string; accountExternalId: string | null }) => {
@@ -46,7 +48,7 @@ async function CampaignsPage({ params, searchParams }: { params: Promise<{ tenan
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   const ratio = (r: number | null) => (r === null ? "—" : `${r.toFixed(2)}×`);
   const base = `/t/${tenant}/campaigns`;
-  const keep = { ...periodParams(period, sp), platform, status, account };
+  const keep = { ...periodParams(period, sp), platform, status, account, links };
   const qs = new URLSearchParams(Object.entries(keep).filter((e): e is [string, string] => Boolean(e[1]))).toString();
   const totals = rows.reduce((a, r) => ({ spend: a.spend + r.metrics.spendMinor, orders: a.orders + r.metrics.attributedOrders, revenue: a.revenue + r.metrics.netRevenueMinor, profit: a.profit + r.metrics.profitMinor }), { spend: 0, orders: 0, revenue: 0, profit: 0 });
   const canEdit = canWritePage(ctx.role, "campaigns");
@@ -60,7 +62,7 @@ async function CampaignsPage({ params, searchParams }: { params: Promise<{ tenan
         description={t("description")}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <PeriodPicker basePath={base} keep={{ platform, status, account }} preset={period.preset} from={sp.from} to={sp.to} />
+            <PeriodPicker basePath={base} keep={{ platform, status, account, links }} preset={period.preset} from={sp.from} to={sp.to} />
             <Link href={`${base}/ledger?${qs}`} className="text-sm underline-offset-4 hover:underline">{t("ledger")}</Link>
             <Link href={`${base}/creatives?${qs}`} className="text-sm underline-offset-4 hover:underline" data-testid="creatives-link">{t("creatives_link")}</Link>
             <Link href={`${base}/keywords?${qs}`} className="text-sm underline-offset-4 hover:underline" data-testid="keywords-link">{ta("nav.keywords")}</Link>
@@ -69,7 +71,13 @@ async function CampaignsPage({ params, searchParams }: { params: Promise<{ tenan
           </div>
         }
       />
-      <CampaignFilters basePath={base} keep={periodParams(period, sp)} platform={platform} status={status} platforms={platforms} account={account} accounts={multiAccount ? accounts.filter((a) => platforms.includes(a.provider) && (a.connected || rows.some((r) => r.accountExternalId === a.externalId))).map((a) => ({ value: a.externalId, label: a.name })) : []} />
+      {links && (
+        <p className="mt-3 flex flex-wrap items-center gap-2 text-sm" data-testid="campaigns-unlinked-filter">
+          <Badge variant="info">{t("filter_unlinked")}</Badge>
+          <Link href={`${base}?${new URLSearchParams(Object.entries({ ...keep, links: undefined }).filter((e): e is [string, string] => Boolean(e[1])))}`} className="text-xs text-muted-foreground underline-offset-4 hover:underline">{t("filter_unlinked_clear")}</Link>
+        </p>
+      )}
+      <CampaignFilters basePath={base} keep={{ ...periodParams(period, sp), links }} platform={platform} status={status} platforms={platforms} account={account} accounts={multiAccount ? accounts.filter((a) => platforms.includes(a.provider) && (a.connected || rows.some((r) => r.accountExternalId === a.externalId))).map((a) => ({ value: a.externalId, label: a.name })) : []} />
       {rows.length > 0 && (() => {
         const byPlatform = platforms.map((p) => {
           const rs = rows.filter((r) => r.platform === p);

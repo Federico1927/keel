@@ -7,8 +7,13 @@ import { requirePage } from "@/server/tenant";
 import { GeneralSettingsForm, OperationalSettingsForm, TaxRatesSection } from "./forms";
 
 import { withIntl } from "@/i18n/intl-scope";
-async function SettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
+const TABS = ["general", "operational", "taxes"] as const;
+
+async function SettingsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ tab?: string }> }) {
   const { tenant } = await params;
+  // `?tab=` opens a tab directly (the data-completeness widget links to fees and tax rates, #99)
+  const { tab } = await searchParams;
+  const initialTab = TABS.find((x) => x === tab) ?? "general";
   const ctx = await requirePage(tenant, "settings");
   const t = await getTranslations("settings");
   const tb = await getTranslations("billing");
@@ -56,7 +61,7 @@ async function SettingsPage({ params }: { params: Promise<{ tenant: string }> })
           </nav>
         }
       />
-      <Tabs defaultValue="general">
+      <Tabs defaultValue={initialTab}>
         <TabsList>
           <TabsTrigger value="general">{t("tabs.general")}</TabsTrigger>
           <TabsTrigger value="operational">{t("tabs.operational")}</TabsTrigger>

@@ -46,7 +46,7 @@ test.describe("tenant dashboards (issue #43)", () => {
     homeEditUrl = new URL(page.url()).pathname;
     await page.getByTestId("editor-reset-template").click();
     await page.getByTestId("confirm-accept").click();
-    await expect(page.getByTestId("editor-widget")).toHaveCount(6);
+    await expect(page.getByTestId("editor-widget")).toHaveCount(7);
     // COD is active on Northwind: its widget is in the catalog
     await expect(page.getByTestId("add-widget-cod_queue")).toBeVisible();
 
@@ -63,7 +63,7 @@ test.describe("tenant dashboards (issue #43)", () => {
     await settings.locator("select[id$='-metric']").selectOption(`custom:${KEY}`);
     await settings.locator("select[id$='-period']").selectOption("mtd");
     await page.getByTestId("editor-done").click();
-    await expect(page.getByTestId("editor-widget")).toHaveCount(8);
+    await expect(page.getByTestId("editor-widget")).toHaveCount(9);
 
     // a draft is not visible to the team until published; preview as operations shows it
     await page.getByTestId("editor-save-draft").click();
@@ -127,7 +127,8 @@ test.describe("tenant dashboards (issue #43)", () => {
     await login(page, "owner@harborhome.demo");
     await page.goto(HB);
     const grid = page.getByTestId("dashboard-grid");
-    await expect(grid.locator("[data-widget]")).toHaveCount(6);
+    // Hullwise's template: six tiles plus data completeness (#99)
+    await expect(grid.locator("[data-widget]")).toHaveCount(7);
     await expect(page.getByTestId("stock-tile")).toBeVisible();
     await expect(page.getByTestId("forecast-card")).toBeVisible();
     await expect(page.getByTestId("customise-home")).toBeVisible();
@@ -141,6 +142,6 @@ test.describe("tenant dashboards (issue #43)", () => {
     await expect(page.getByTestId("add-widget-queue_review")).toBeVisible();
     await expect(page.getByTestId("add-widget-cod_queue")).toHaveCount(0);
     await page.goto(HB);
-    await expect(page.getByTestId("dashboard-grid").locator("[data-widget]")).toHaveCount(6);
+    await expect(page.getByTestId("dashboard-grid").locator("[data-widget]")).toHaveCount(7);
   });
 });
