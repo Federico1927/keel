@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { apiEndpoint, appUrl } from "@hullwise/config";
 import { and, eq, schema, withTenant } from "@hullwise/db";
 import { SHOPIFY_WEBHOOK_TOPICS, ShopifyCommercePlatform, ShopifyGrantError, decryptJson, exchangeOAuthCode, verifyOAuthCallback, verifyState, type ShopifyCredentials } from "@hullwise/integrations";
-import { savedShopifyApp, saveShopifyConnection } from "@/server/shopify-connection";
+import { recordShopifyWebhooks, savedShopifyApp, saveShopifyConnection } from "@/server/shopify-connection";
 import { startHistoryImport } from "@/server/history-import";
 import { requireAction } from "@/server/tenant";
 
@@ -54,8 +54,8 @@ export async function GET(req: NextRequest) {
   const platform = new ShopifyCommercePlatform(credentials);
   const test = await platform.testConnection();
   if (!test.ok) return back("shopify_error=unknown");
-  const regs = await platform.registerWebhooks(apiEndpoint("/webhooks/shopify"), SHOPIFY_WEBHOOK_TOPICS).catch(() => []);
-  await saveShopifyConnection(tenant.id, { actorUserId: st.u, actorType: "user" }, { mode: "live", shop: st.shop, name: test.accountName ?? st.shop, credentials, test, config: { installedVia: st.app === "tenant" ? "oauth_own_app" : "oauth_public_app", webhooks: regs } });
+  await saveShopifyConnection(tenant.id, { actorUserId: st.u, actorType: "user" }, { mode: "live", shop: st.shop, name: test.accountName ?? st.shop, credentials, test, config: { installedVia: st.app === "tenant" ? "oauth_own_app" : "oauth_public_app", webhooks: [] } });
+  await recordShopifyWebhooks(tenant.id, await platform.registerWebhooks(apiEndpoint("/webhooks/shopify"), SHOPIFY_WEBHOOK_TOPICS).catch(() => []));
   // the store's order history (#87) needs the installer's session; without it the connection stays saved and "Resync" starts it
   await requireAction(st.s, "manage_integrations", "integrations").then((ctx) => startHistoryImport(ctx)).catch((e: unknown) => console.error("[web] history import not started:", e instanceof Error ? e.message : e));
   return back(`connected=shopify${test.missingRequiredScopes?.length ? "&shopify_error=missing_scopes" : ""}`);

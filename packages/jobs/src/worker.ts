@@ -3,6 +3,7 @@ import { checkRuntimeConfig, platformRetentionDays, SENTRY_DATA_COLLECTION } fro
 import { setEmailDispatcher, setWebhookDispatcher } from "@hullwise/services";
 import { createBoss } from "./boss";
 import { runTrackedJob } from "./dispatch";
+import { LOGGED_QUEUES, jobLogLine, summarize } from "./job-log";
 import type { Enqueue } from "./handlers";
 import { QUEUES, queueRetentionOptions, type QueueName, type TickJob } from "./queues";
 
@@ -77,9 +78,13 @@ async function main() {
   // Every job is recorded in job_runs (#32); a failing one is reported, then rethrown so pg-boss applies its retry policy.
   const one = (queue: QueueName) => async (jobs: { data: unknown }[] | { data: unknown }) => {
     for (const j of Array.isArray(jobs) ? jobs : [jobs]) {
+      const started = Date.now();
       try {
-        await runTrackedJob(queue, j.data, enqueue);
+        const result = await runTrackedJob(queue, j.data, enqueue);
+        if (LOGGED_QUEUES.has(queue)) console.info(jobLogLine("done", queue, j.data, started, summarize(result)));
       } catch (err) {
+        // without SENTRY_DSN this line is the only trace of a failure (pg-boss retries silently)
+        console.error(jobLogLine("failed", queue, j.data, started, err instanceof Error ? err.message : String(err)));
         Sentry.captureException(err, { extra: { job: j.data } });
         throw err;
       }
