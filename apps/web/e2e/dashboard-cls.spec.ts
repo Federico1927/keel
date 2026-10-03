@@ -34,7 +34,7 @@ async function measureHome(page: Page, slug: string): Promise<{ total: number; s
 }
 
 test.describe("dashboard layout stability", () => {
-  for (const viewport of [{ width: 1440, height: 900 }, { width: 1280, height: 720 }]) {
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 1280, height: 720 }, { width: 1024, height: 768 }, { width: 393, height: 852 }]) {
     test(`the home does not shift while widgets stream in (${viewport.width}×${viewport.height})`, async ({ page }) => {
       await page.setViewportSize(viewport);
       await login(page, "owner@northwind.demo");

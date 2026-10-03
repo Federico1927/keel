@@ -4,7 +4,7 @@ import { basesLookup, type WidgetEnv } from "@hullwise/services";
 import { cn } from "@hullwise/ui";
 import type { TenantContext } from "@/server/tenant";
 import { loadWidget, pageNow, widgetEnv, widgetPeriod } from "@/server/dashboards";
-import { WidgetSkeleton, WidgetView, type WidgetViewEnv } from "./widget-view";
+import { WIDGET_RESERVED_HEIGHT, WidgetSkeleton, WidgetView, type WidgetViewEnv } from "./widget-view";
 
 const WIDTH: Record<number, string> = { 1: "", 2: "sm:col-span-2 lg:col-span-2", 3: "sm:col-span-2 lg:col-span-3", 4: "sm:col-span-2 lg:col-span-4" };
 const HEIGHT: Record<number, string> = { 1: "", 2: "lg:row-span-2", 3: "lg:row-span-3", 4: "lg:row-span-4" };
@@ -27,7 +27,7 @@ export async function DashboardGrid({ ctx, widgets, periodKey, role = ctx.role }
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-flow-row-dense lg:grid-cols-4" data-testid="dashboard-grid">
       {visible.map((w) => (
-        <div key={w.id} className={cn("min-w-0", WIDTH[w.w], HEIGHT[w.h], w.type === "sales_30d" && "lg:self-start")} data-widget={w.type} data-widget-id={w.id}>
+        <div key={w.id} className={cn("min-w-0", WIDTH[w.w], HEIGHT[w.h], w.type === "sales_30d" && "lg:self-start", WIDGET_RESERVED_HEIGHT[w.type])} data-widget={w.type} data-widget-id={w.id}>
           <Suspense fallback={<WidgetSkeleton widget={w} />}>
             <Slot ctx={ctx} env={env} view={view} widget={w} periodKey={periodKey} />
           </Suspense>

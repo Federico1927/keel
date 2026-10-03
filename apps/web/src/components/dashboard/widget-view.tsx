@@ -50,16 +50,34 @@ export async function WidgetError({ reason }: { reason: string }) {
 }
 
 /**
- * The Suspense fallback of a widget. Chart widgets get the shell of their final card (same header, a box of
- * the chart's height), so nothing below moves when the data streams in (CLS); the others a plain box.
+ * Height reserved on the grid cell of the fixed-layout home widgets, while they stream and after: their
+ * final height (the least they need: at the widest layout of each breakpoint), measured on the demo; the
+ * four today tiles stack in 1, 2 or 4 columns. Without it every widget grew from the 112px fallback to its
+ * content and pushed what was below (CLS 0.08 at 1440×900, 0.15 at 1024, 0.10 on a phone, before; ≤0.005
+ * after, `e2e/dashboard-cls.spec.ts`). Literal class names: Tailwind only generates what it finds in the source.
+ */
+export const WIDGET_RESERVED_HEIGHT: Partial<Record<string, string>> = {
+  today_kpis: "min-h-[452px] sm:min-h-[228px] lg:min-h-[106px]",
+  sales_30d: "min-h-[342px]",
+  month_forecast: "min-h-[198px]",
+  work_queue: "min-h-[442px]",
+  stock_backorders: "min-h-[326px]",
+  today_by_status: "min-h-[138px]",
+};
+
+/**
+ * The Suspense fallback of a widget: it fills the cell (whose height is reserved for the home widgets,
+ * above). Chart widgets get the shell of their final card (same header, a box of the chart's height), so a
+ * custom chart does not move either when its data streams in; the others a plain box.
  */
 export function WidgetSkeleton({ widget }: { widget?: Pick<DashboardWidget, "type" | "h"> }) {
+  const reserved = widget ? WIDGET_RESERVED_HEIGHT[widget.type] !== undefined : false;
   const chart = widget?.type === "sales_30d" ? 256 : widget?.type === "timeseries" ? (widget.h >= 2 ? 240 : 140) : null;
-  if (chart === null) return <div className="h-full min-h-28 animate-pulse rounded-lg border bg-muted/40" data-testid="widget-loading" />;
+  if (chart === null) return <div className={cn("h-full min-h-28 animate-pulse rounded-lg border bg-muted/40", reserved && "min-h-0")} data-testid="widget-loading" />;
   const pulse = <div className="w-full animate-pulse rounded-md bg-muted/40" style={{ height: chart }} />;
   // the same header as the final card (one line of text-base), then the chart's box
   return widget?.type === "sales_30d" ? (
-    <Card data-testid="widget-loading" aria-busy="true">
+    <Card className="h-full" data-testid="widget-loading" aria-busy="true">
       <CardHeader><CardTitle className="text-base">{"\u00a0"}</CardTitle></CardHeader>
       <CardContent>{pulse}</CardContent>
     </Card>

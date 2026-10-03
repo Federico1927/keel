@@ -7,14 +7,16 @@ import { login } from "./helpers";
  * console's danger zone (on a tenant created for the test, never a demo one).
  */
 
-/** Opens the n-th customer of the list and returns its email (the list is sorted by the server, stable on the seed). */
+/** Opens the first customer from the n-th row of the list that still has an email (reruns skip those already erased), returns the email. */
 async function openCustomer(page: Page, slug: string, n: number): Promise<string> {
-  await page.goto(`/t/${slug}/customers`);
-  await page.getByTestId("customer-row").nth(n).locator("a").first().click();
-  await expect(page).toHaveURL(new RegExp(`/t/${slug}/customers/[0-9a-f-]{36}$`));
-  const mail = page.locator('a[href^="mailto:"]').first();
-  await expect(mail).toBeVisible();
-  return (await mail.textContent())!.trim();
+  for (let i = n; i < n + 15; i++) {
+    await page.goto(`/t/${slug}/customers`);
+    await page.getByTestId("customer-row").nth(i).locator("a").first().click();
+    await expect(page).toHaveURL(new RegExp(`/t/${slug}/customers/[0-9a-f-]{36}$`));
+    const mail = page.locator('a[href^="mailto:"]').first();
+    if (await mail.count()) return (await mail.textContent())!.trim();
+  }
+  throw new Error("no customer with an email left in the rows tried");
 }
 
 test.describe("privacy requests", () => {
@@ -100,6 +102,7 @@ test.describe("privacy requests", () => {
 
     await page.goto(`/admin/tenants?q=leaving-shop-${stamp}`);
     await page.locator('[data-testid="tenant-row"] a[href^="/admin/tenants/"]').first().click();
+    await expect(page).toHaveURL(/\/admin\/tenants\/[0-9a-f-]{36}$/);
     const tenantUrl = page.url();
     await page.getByTestId("delete-tenant-link").click();
     await expect(page).toHaveURL(/\/delete$/);
@@ -118,7 +121,7 @@ test.describe("privacy requests", () => {
     expect(gone?.status()).toBe(404);
     // the platform audit log keeps the record
     await page.goto("/admin/audit?action=tenant.deleted&tenant=platform");
-    await expect(page.getByText("tenant.deleted").first()).toBeVisible();
+    await expect(page.getByRole("cell", { name: "tenant.deleted" }).first()).toBeVisible();
   });
 
   test("a demo tenant's deletion page asks for the extra confirmation", async ({ page }) => {
