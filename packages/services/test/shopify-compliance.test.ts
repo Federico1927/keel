@@ -39,9 +39,11 @@ describe("Shopify compliance webhooks", () => {
     expect(await call("orders/create", northwindShop, { shop_id: 1 }, PLATFORM_SECRET)).toMatchObject({ status: 400, action: "unknown_topic" });
   });
 
-  it("logs a data request once, with an audit entry and a console task, storing no email", async () => {
+  it("logs a data request once, with an audit entry, a queued data package and a console task, storing no email", async () => {
     const payload = { shop_id: 954889, shop_domain: northwindShop, orders_requested: [299938, 280263], customer: { id: 191167, email: "john@example.com", phone: "555-625-1199" }, data_request: { id: 9999 } };
-    expect(await call("customers/data_request", northwindShop, payload, PLATFORM_SECRET)).toMatchObject({ status: 200, tenantId: ctx.tenantIds.northwind, action: "logged" });
+    const first = await call("customers/data_request", northwindShop, payload, PLATFORM_SECRET);
+    expect(first).toMatchObject({ status: 200, tenantId: ctx.tenantIds.northwind, action: "logged" });
+    expect(first.exportId).toBeTruthy();
     expect(await call("customers/data_request", northwindShop, payload, PLATFORM_SECRET)).toMatchObject({ status: 200, action: "duplicate" });
     const tenantId = ctx.tenantIds.northwind;
     const { events, audit } = await withTenant(tenantId, async (tx) => ({
@@ -55,6 +57,10 @@ describe("Shopify compliance webhooks", () => {
     const alerts = await pools.admin.select().from(schema.platformAlerts).where(and(eq(schema.platformAlerts.kind, "compliance_request"), eq(schema.platformAlerts.tenantId, tenantId)));
     expect(alerts.map((a) => a.subject)).toEqual(["shopify:customers/data_request:9999"]);
     expect(alerts[0]!.status).toBe("open");
+    expect(alerts[0]!.meta).toMatchObject({ exportId: first.exportId });
+    const [pkg] = await pools.admin.select().from(schema.tenantDataExports).where(eq(schema.tenantDataExports.id, first.exportId!));
+    expect(pkg).toMatchObject({ scope: "customer", status: "pending", requestedByType: "system" });
+    expect(pkg!.subject).toMatchObject({ customerExternalId: "191167", orderExternalIds: ["299938", "280263"] });
   });
 
   it("customers/redact erases the customer's personal data across tables, keeps the numbers, and needs no task", async () => {

@@ -64,6 +64,7 @@ export const ACTIONS = [
   "record_payment",
   "refund_order",
   "export_tenant_data",
+  "erase_customer",
   "manage_dashboard",
   "approve_customer_campaign",
 ] as const;
@@ -214,6 +215,8 @@ const ACTION_PAGE: Record<ActionKey, PageKey> = {
   refund_order: "orders",
   /** Full data export of the tenant (GDPR, leaving the platform): owner only. */
   export_tenant_data: "settings",
+  /** Erase a customer's personal data on request (GDPR art. 17, outside the store platform's own erasure): owner and admin. */
+  erase_customer: "customers",
   /** The tenant's dashboards (home, role variants, extra dashboards), custom metrics and targets: issue #43's `dashboard.manage`. */
   manage_dashboard: "dashboard",
   /** Approve a customer campaign for sending (add-on, #34): write level on the campaigns page; the author approves their own only as owner (core `canApproveCampaign`). */
@@ -226,6 +229,7 @@ const ADMIN_ONLY_ACTIONS: ReadonlySet<ActionKey> = new Set([
   "manage_users",
   "manage_settings",
   "manage_dashboard",
+  "erase_customer",
 ]);
 
 /** Actions only the owner may take (an impersonating super-admin acts as owner). */

@@ -618,7 +618,9 @@
       "customer_campaign_approval_requested": "Campagna da approvare: {title}",
       "customer_campaign_approved": "Campagna approvata: {title}",
       "customer_campaign_rejected": "Campagna rimandata indietro: {title}",
-      "customer_campaign_sent": "Campagna inviata: {title}"
+      "customer_campaign_sent": "Campagna inviata: {title}",
+      "customer_export_ready": "Il pacchetto dati del cliente è pronto ({title} record)",
+      "customer_export_failed": "Il pacchetto dati del cliente non è riuscito"
     },
     "groups": {
       "collaboration": "Collaborazione",
@@ -4709,7 +4711,8 @@
       "open": "Avvisi aperti",
       "kinds": {
         "job_failure": "Job che fallisce",
-        "sync_stale": "Fonte non aggiornata"
+        "sync_stale": "Fonte non aggiornata",
+        "compliance_request": "Richiesta privacy"
       },
       "status": "Stato",
       "statuses": {
@@ -11096,6 +11099,111 @@
       "line": "{line} {account}: {from} → {to}",
       "day_title": "Diverso da quanto inviato",
       "day_description": "Il riepilogo vendite di questo giorno è cambiato dopo l'invio della versione {version} ({difference}). Reinvia il giorno per annullarla e inviare la scrittura corretta."
+    }
+  },
+  "privacy": {
+    "cancel": "Annulla",
+    "card": {
+      "title": "Privacy",
+      "export_description": "Il pacchetto dati del cliente: profilo, indirizzi, ordini, resi, messaggi e consensi, in JSON più un CSV degli ordini. Conservato {days} giorni.",
+      "download": "Scarica il pacchetto dati",
+      "statuses": {
+        "pending": "In preparazione…",
+        "running": "In preparazione…",
+        "failed": "Non riuscito",
+        "expired": "Scaduto"
+      },
+      "erase_description": "Cancella i dati personali di questo cliente su sua richiesta. Ordini, importi e date restano per la contabilità.",
+      "erased": "Dati personali cancellati"
+    },
+    "export": {
+      "request": "Esporta i dati del cliente",
+      "requesting": "Avvio…",
+      "error": "Non è stato possibile avviare il pacchetto dati."
+    },
+    "erase": {
+      "button": "Cancella i dati personali",
+      "title": "Cancellare i dati personali di questo cliente?",
+      "description": "Nome, email, telefono, indirizzi, note scritte dal cliente, destinatari dei messaggi e collegamenti del browser vengono cancellati dal cliente e dai suoi ordini. Ordini, importi, date e stati restano. L'operazione non si può annullare.",
+      "type": "Scrivi {value} per confermare",
+      "confirm": "Cancella",
+      "running": "Cancellazione…",
+      "mismatch": "Il testo non corrisponde.",
+      "forbidden": "Non hai il permesso di cancellare clienti.",
+      "error": "La cancellazione non è riuscita.",
+      "done": "Dati personali cancellati: {orders} ordini, {returns} resi, {messages} messaggi, {links} collegamenti e payload. Il registro attività lo riporta."
+    },
+    "console": {
+      "title": "Richieste privacy dei clienti",
+      "description": "Cancella un cliente di questo negozio che ha scritto alla piattaforma: cercalo per email, poi conferma. Registrato come azione del super-admin sul tenant.",
+      "email": "Email del cliente",
+      "find": "Cerca",
+      "invalid": "Inserisci un'email valida.",
+      "none": "Nessun cliente con questa email in questo negozio.",
+      "candidate": "{orders} ordini · id {id}"
+    },
+    "task": {
+      "download": "Scarica il pacchetto dati (fino al {date})",
+      "preparing": "Pacchetto dati in preparazione…",
+      "expired": "Pacchetto dati scaduto.",
+      "failed": "Pacchetto dati non riuscito.",
+      "rebuild": "Ricrealo"
+    },
+    "delete": {
+      "zone_title": "Zona pericolosa",
+      "zone_description": "Elimina il tenant e tutti i suoi dati: per un negozio che se ne va (shop/redact di Shopify o richiesta del merchant).",
+      "open": "Elimina il tenant…",
+      "title": "Elimina {name}",
+      "description": "Tutte le righe del tenant vengono eliminate, le integrazioni scollegate e l'abbonamento annullato. Nel registro attività della piattaforma resta traccia dell'eliminazione.",
+      "back_tenants": "Tenant",
+      "what_title": "Cosa verrà eliminato: {n} righe",
+      "what_description": "Righe per tabella. {users} utenti appartengono solo a questo tenant: mantengono un account senza spazi di lavoro.",
+      "table": "Tabella",
+      "rows": "Righe",
+      "more_tables": "e altre {n} tabelle",
+      "before_title": "Prima di eliminare",
+      "export_downloaded": "È stata scaricata un'esportazione finale dei dati.",
+      "export_not_downloaded": "Un'esportazione dei dati è pronta ma nessuno l'ha scaricata.",
+      "export_none": "Nessuna esportazione finale dei dati.",
+      "export_link": "Esportazione dati",
+      "integrations": "Scollegate: {list}. I webhook Shopify registrati per questo negozio vengono rimossi.",
+      "no_integrations": "Nessuna integrazione collegata.",
+      "subscription": "L'abbonamento {provider} ({status}) viene annullato subito, senza fattura finale.",
+      "no_subscription": "Nessun abbonamento da annullare.",
+      "demo_warning": "È un tenant demo: la demo pubblica non funziona finché il prossimo reseed non lo ricrea.",
+      "confirm_title": "Conferma l'eliminazione",
+      "confirm_description": "Gli utenti del tenant vengono bloccati subito; l'eliminazione prosegue in background.",
+      "type_slug": "Scrivi lo slug del tenant ({slug}) per confermare",
+      "without_export": "Elimina senza un'esportazione finale scaricata (il merchant non la vuole)",
+      "confirm_demo": "Sì, elimina il tenant demo",
+      "reason": "Motivo (facoltativo)",
+      "submit": "Elimina il tenant",
+      "running": "Avvio…",
+      "errors": {
+        "confirmation_mismatch": "Lo slug non corrisponde.",
+        "demo_confirmation_required": "Conferma che vuoi eliminare un tenant demo.",
+        "export_required": "Scarica prima l'esportazione finale dei dati, o conferma che il merchant non la vuole.",
+        "in_progress": "Un'eliminazione è già in corso.",
+        "not_found": "Tenant non trovato.",
+        "generic": "Non è stato possibile avviare l'eliminazione."
+      },
+      "progress": "Eliminazione",
+      "statuses": {
+        "pending": "In coda",
+        "running": "In corso",
+        "done": "Eliminato",
+        "failed": "Non riuscita"
+      },
+      "requested_at": "Richiesta il {date}",
+      "completed_at": "terminata il {date}",
+      "steps_done": "{done} di {total} passi",
+      "step": {
+        "disconnect": "Integrazioni scollegate",
+        "billing": "Abbonamento",
+        "tenant": "Tenant rimosso"
+      },
+      "retry": "Riprova",
+      "done_note": "Il tenant è eliminato. Il registro attività della piattaforma ne conserva la traccia (azione tenant.deleted)."
     }
   }
 }

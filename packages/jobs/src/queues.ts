@@ -15,6 +15,7 @@ export const QUEUES = {
   emailEvent: "email.event",
   billingEvent: "billing.event",
   tenantExport: "tenant.export",
+  tenantDelete: "tenant.delete",
   campaignSend: "campaign.send",
   webhookDeliver: "webhook.deliver",
 } as const;
@@ -92,6 +93,10 @@ export interface BillingEventJob {
 export interface TenantExportJob {
   tenantId: string;
   exportId: string;
+}
+/** Deletion of a whole tenant from the console (packages/services `requestTenantDeletion`); no `tenantId` key: the tenant disappears during the run. */
+export interface TenantDeleteJob {
+  deletionId: string;
 }
 /** One customer campaign's send queue (#34): a batch run within the window and the throttle, resumed by the next tick. */
 export interface CampaignSendJob {

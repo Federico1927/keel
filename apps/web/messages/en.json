@@ -618,7 +618,9 @@
       "customer_campaign_approval_requested": "Campaign to approve: {title}",
       "customer_campaign_approved": "Campaign approved: {title}",
       "customer_campaign_rejected": "Campaign sent back: {title}",
-      "customer_campaign_sent": "Campaign sent: {title}"
+      "customer_campaign_sent": "Campaign sent: {title}",
+      "customer_export_ready": "The customer data package is ready ({title} records)",
+      "customer_export_failed": "The customer data package failed"
     },
     "groups": {
       "collaboration": "Collaboration",
@@ -4709,7 +4711,8 @@
       "open": "Open alerts",
       "kinds": {
         "job_failure": "Failing job",
-        "sync_stale": "Stale source"
+        "sync_stale": "Stale source",
+        "compliance_request": "Privacy request"
       },
       "status": "Status",
       "statuses": {
@@ -11096,6 +11099,111 @@
       "line": "{line} {account}: {from} → {to}",
       "day_title": "Differs from what was pushed",
       "day_description": "The sales summary of this day changed after version {version} was pushed ({difference}). Re-push the day to void it and push the corrected journal."
+    }
+  },
+  "privacy": {
+    "cancel": "Cancel",
+    "card": {
+      "title": "Privacy",
+      "export_description": "The customer's data package: profile, addresses, orders, returns, messages and consents, as JSON plus a CSV of the orders. Kept {days} days.",
+      "download": "Download data package",
+      "statuses": {
+        "pending": "Preparing…",
+        "running": "Preparing…",
+        "failed": "Failed",
+        "expired": "Expired"
+      },
+      "erase_description": "Erase this customer's personal data on their request. Orders, amounts and dates stay for your accounts.",
+      "erased": "Personal data erased"
+    },
+    "export": {
+      "request": "Export customer data",
+      "requesting": "Starting…",
+      "error": "The data package could not be started."
+    },
+    "erase": {
+      "button": "Erase personal data",
+      "title": "Erase this customer's personal data?",
+      "description": "Name, email, phone, addresses, notes written by the customer, message recipients and browser links are erased from the customer and their orders. Orders, amounts, dates and statuses stay. This cannot be undone.",
+      "type": "Type {value} to confirm",
+      "confirm": "Erase",
+      "running": "Erasing…",
+      "mismatch": "What you typed does not match.",
+      "forbidden": "You are not allowed to erase customers.",
+      "error": "The erasure failed.",
+      "done": "Personal data erased: {orders} orders, {returns} returns, {messages} messages, {links} links and payloads. The audit log records it."
+    },
+    "console": {
+      "title": "Customer privacy requests",
+      "description": "Erase a customer of this store who wrote to the platform: find them by email, then confirm. Audited as a super-admin action on the tenant.",
+      "email": "Customer email",
+      "find": "Find",
+      "invalid": "Enter a valid email.",
+      "none": "No customer with this email in this store.",
+      "candidate": "{orders} orders · id {id}"
+    },
+    "task": {
+      "download": "Download the data package (until {date})",
+      "preparing": "Data package being prepared…",
+      "expired": "Data package expired.",
+      "failed": "Data package failed.",
+      "rebuild": "Build it again"
+    },
+    "delete": {
+      "zone_title": "Danger zone",
+      "zone_description": "Delete the tenant and all its data: for a store that leaves (Shopify shop/redact, or the merchant's request).",
+      "open": "Delete tenant…",
+      "title": "Delete {name}",
+      "description": "Every row of the tenant is deleted, its integrations are disconnected and its subscription cancelled. A record of the deletion stays in the platform audit log.",
+      "back_tenants": "Tenants",
+      "what_title": "What will be deleted: {n} rows",
+      "what_description": "Rows per table. {users} users belong to this tenant only: they keep an account without workspaces.",
+      "table": "Table",
+      "rows": "Rows",
+      "more_tables": "and {n} more tables",
+      "before_title": "Before deleting",
+      "export_downloaded": "A final data export was downloaded.",
+      "export_not_downloaded": "A data export is ready but nobody downloaded it.",
+      "export_none": "No final data export yet.",
+      "export_link": "Data export",
+      "integrations": "Disconnected: {list}. The Shopify webhooks registered for this store are removed.",
+      "no_integrations": "No integration connected.",
+      "subscription": "The {provider} subscription ({status}) is cancelled now, without a final invoice.",
+      "no_subscription": "No subscription to cancel.",
+      "demo_warning": "This is a demo tenant: the public demo breaks until the next reseed recreates it.",
+      "confirm_title": "Confirm the deletion",
+      "confirm_description": "The tenant's users are locked out at once; the deletion runs in the background.",
+      "type_slug": "Type the tenant's slug ({slug}) to confirm",
+      "without_export": "Delete without a downloaded final export (the merchant does not want one)",
+      "confirm_demo": "Yes, delete the demo tenant",
+      "reason": "Reason (optional)",
+      "submit": "Delete the tenant",
+      "running": "Starting…",
+      "errors": {
+        "confirmation_mismatch": "The slug does not match.",
+        "demo_confirmation_required": "Confirm that you want to delete a demo tenant.",
+        "export_required": "Download the final data export first, or confirm that the merchant does not want one.",
+        "in_progress": "A deletion is already running.",
+        "not_found": "Tenant not found.",
+        "generic": "The deletion could not be started."
+      },
+      "progress": "Deletion",
+      "statuses": {
+        "pending": "Queued",
+        "running": "Running",
+        "done": "Deleted",
+        "failed": "Failed"
+      },
+      "requested_at": "Asked on {date}",
+      "completed_at": "finished on {date}",
+      "steps_done": "{done} of {total} steps",
+      "step": {
+        "disconnect": "Integrations disconnected",
+        "billing": "Subscription",
+        "tenant": "Tenant removed"
+      },
+      "retry": "Retry",
+      "done_note": "The tenant is deleted. The platform audit log keeps the record (action tenant.deleted)."
     }
   }
 }

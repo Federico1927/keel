@@ -3,15 +3,16 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { asc, schema } from "@hullwise/db";
 import { FAILURE_ALERT_WINDOW_HOURS, JOB_FAILURES_BEFORE_ALERT } from "@hullwise/config";
 import { formatDateTime, formatNumber } from "@hullwise/core";
-import { listPlatformAlerts } from "@hullwise/services";
+import { exportStates, listPlatformAlerts } from "@hullwise/services";
 import { Badge, Button, Card, CardContent, EmptyState, Label, PageHeader, Select, Stat, DataList } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { flatParams, queryHref } from "../_components/table-query";
 import { ADMIN_FILTER_FORM, AdminFilters, type AdminFilterChip } from "../_components/admin-filters";
 
 import { withIntl } from "@/i18n/intl-scope";
-const KINDS = ["job_failure", "sync_stale"] as const;
+const KINDS = ["job_failure", "sync_stale", "compliance_request"] as const;
 import { CloseAlertButton } from "./controls";
+import { RebuildCustomerExportButton } from "@/components/privacy/controls";
 
 /** Platform failure alerts (#32): jobs failing N times in a row and sources without a success in their window. */
 async function AdminAlertsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -21,6 +22,22 @@ async function AdminAlertsPage({ searchParams }: { searchParams: Promise<Record<
   const locale = await getLocale();
   const status = query.status === "resolved" || query.status === "all" ? query.status : "open";
   const [data, tenants] = await Promise.all([listPlatformAlerts(db, { status: status === "all" ? undefined : status, kind: query.kind, tenantId: query.tenant }), db.select({ id: schema.tenants.id, name: schema.tenants.name }).from(schema.tenants).orderBy(asc(schema.tenants.name))]);
+  const tpv = await getTranslations("privacy");
+  const exportIdOf = (meta: unknown) => (typeof (meta as { exportId?: unknown } | null)?.exportId === "string" ? ((meta as { exportId: string }).exportId) : null);
+  const exports = await exportStates(db, data.rows.flatMap(({ alert: a }) => (a.kind === "compliance_request" && exportIdOf(a.meta) ? [exportIdOf(a.meta)!] : [])));
+  const now = new Date();
+  /** The data package a customers/data_request task points at: download while valid, rebuild once expired or failed. */
+  const packageCell = (a: (typeof data.rows)[number]["alert"]) => {
+    if (a.kind !== "compliance_request" || !a.subject.includes("customers/data_request") || !a.tenantId) return null;
+    const exportId = exportIdOf(a.meta);
+    const state = exportId ? exports.get(exportId) : undefined;
+    const valid = state?.status === "done" && (!state.expiresAt || state.expiresAt > now);
+    return (
+      <span className="mt-1 flex flex-wrap items-center gap-2 text-xs font-normal" data-testid="compliance-package">
+        {valid ? <a href={`/admin/tenants/${a.tenantId}/data-export/${exportId}`} className="text-primary hover:underline" data-testid="compliance-package-download">{tpv("task.download", { date: formatDateTime(state.expiresAt!, locale, "UTC") })}</a> : state && (state.status === "pending" || state.status === "running") ? <span className="text-muted-foreground">{tpv("task.preparing")}</span> : <>{state && <span className="text-muted-foreground">{tpv(state.status === "failed" ? "task.failed" : "task.expired")}</span>}<RebuildCustomerExportButton alertId={a.id} /></>}
+      </span>
+    );
+  };
   const drop = (k: string) => queryHref("/admin/alerts", query, { [k]: undefined });
   const chips: AdminFilterChip[] = [
     ...(status !== "open" ? [{ key: "status", label: t(`alerts.statuses.${status}`), href: drop("status") }] : []),
@@ -74,8 +91,9 @@ async function AdminAlertsPage({ searchParams }: { searchParams: Promise<Record<
               columns={[
                 { key: "subject", header: t("alerts.subject"), mobile: "title", cell: ({ alert: a }) => <>
                   <Badge variant={a.status === "open" ? (a.kind === "job_failure" ? "destructive" : "warning") : "muted"} className="max-md:hidden">{t(`alerts.kinds.${a.kind as "job_failure"}`)}</Badge>
-                  <Link href={a.kind === "job_failure" ? queryHref("/admin/jobs", {}, { type: a.subject, tenant: a.tenantId ?? "platform" }) : queryHref("/admin/integrations", {}, { tenant: a.tenantId ?? undefined, source: a.subject.split(":")[0], status: "all" })} className="break-all font-mono text-xs hover:underline md:ml-2">{a.subject}</Link>
+                  {a.kind === "compliance_request" ? <span className="break-all font-mono text-xs md:ml-2">{a.subject}</span> : <Link href={a.kind === "job_failure" ? queryHref("/admin/jobs", {}, { type: a.subject, tenant: a.tenantId ?? "platform" }) : queryHref("/admin/integrations", {}, { tenant: a.tenantId ?? undefined, source: a.subject.split(":")[0], status: "all" })} className="break-all font-mono text-xs hover:underline md:ml-2">{a.subject}</Link>}
                   {a.lastError && <p className="truncate text-xs font-normal text-destructive md:max-w-[28rem]" title={a.lastError}>{a.lastError}</p>}
+                  {packageCell(a)}
                 </> },
                 { key: "kind", header: null, mobile: "badge", className: "md:hidden", headClassName: "md:hidden", cell: ({ alert: a }) => <Badge variant={a.status === "open" ? (a.kind === "job_failure" ? "destructive" : "warning") : "muted"}>{t(`alerts.kinds.${a.kind as "job_failure"}`)}</Badge> },
                 { key: "tenant", header: t("tenants.columns.tenant"), className: "text-sm", cell: ({ alert: a, tenantName }) => (a.tenantId ? <Link href={`/admin/tenants/${a.tenantId}`} className="hover:underline">{tenantName}</Link> : <span className="text-muted-foreground">{t("audit.platform")}</span>) },

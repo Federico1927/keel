@@ -3,11 +3,13 @@ import { SHOPIFY_COMPLIANCE_TOPICS, decryptJson, verifyWebhookHmac, type Shopify
 import { recordWebhookEvent } from "../sync";
 import { raisePlatformAlert } from "../reliability/alerts";
 import { redactCustomer, type CustomerRedactionReport } from "../crm/redact";
+import { requestCustomerExport } from "../crm/data-request";
 
 /**
  * Shopify's mandatory privacy webhooks (issue #89), one endpoint for the three topics:
- * - `customers/data_request`: logged, audited and turned into a console task (compliance alert) with the
- *   Hullwise customer it concerns; the platform owner sends the customer's data to the merchant.
+ * - `customers/data_request`: logged, audited, and the customer's data package is queued at once (a `customer`
+ *   export: profile, orders, returns, messages, … see `buildCustomerDataPackage`); the console task links to
+ *   the download, and the platform owner sends it to the merchant. The caller runs the `tenant.export` job.
  * - `customers/redact`: the customer's personal data and that of the listed orders is erased at once
  *   (`redactCustomer`: names, contacts, addresses, raw payloads; amounts and dates stay), audited; no task.
  * - `shop/redact` (48 h after uninstall): the Shopify connection is cleared (no credentials kept) and a task
@@ -31,6 +33,8 @@ export interface ComplianceResult {
   status: 200 | 400 | 401;
   tenantId: string | null;
   action: "logged" | "redacted" | "duplicate" | "unknown_shop" | "invalid_signature" | "invalid_payload" | "unknown_topic";
+  /** `customers/data_request`: the queued customer export the caller must run (job `tenant.export`). */
+  exportId?: string;
 }
 
 interface AppConfig {
@@ -95,18 +99,20 @@ export async function handleShopifyCompliance(db: Database, input: ComplianceInp
   const outcome = await withTenant(tenantId, async (tx) => {
     const ctx = { tenantId, tx, actor: { type: "integration" as const, userId: null }, now };
     const recorded = await recordWebhookEvent(ctx, { source: "shopify_compliance", topic, externalId: ref, sourceUpdatedAt: "", payload: minimal });
-    if (recorded.duplicate || !recorded.id) return { duplicate: true, customerId: null as string | null, redaction: null as CustomerRedactionReport | null };
+    if (recorded.duplicate || !recorded.id) return { duplicate: true, customerId: null as string | null, redaction: null as CustomerRedactionReport | null, exportId: null as string | null };
     const [customer] = customerExternalId ? await tx.select({ id: schema.customers.id }).from(schema.customers).where(and(eq(schema.customers.tenantId, tenantId), eq(schema.customers.externalId, String(customerExternalId)))).limit(1) : [];
     if (topic === "shop/redact") await tx.update(schema.integrations).set({ status: "not_connected", credentialsEncrypted: null, mode: "mock", lastError: "The store asked Shopify to erase its data (shop/redact)", updatedAt: now }).where(and(eq(schema.integrations.tenantId, tenantId), eq(schema.integrations.provider, "shopify")));
     const ordersToRedact = Array.isArray(payload.orders_to_redact) ? (payload.orders_to_redact as unknown[]).filter((v): v is string | number => typeof v === "string" || typeof v === "number") : [];
     const redaction = topic === "customers/redact" ? await redactCustomer(ctx, { customerId: customer?.id ?? null, orderExternalIds: ordersToRedact }) : null;
-    await recordAudit(tx, { tenantId, actorType: "system", action: `integration.compliance.${topic.replace("/", ".")}`, entityType: customer ? "customer" : "integration", entityId: customer?.id ?? "shopify", metadata: { ...minimal, customerFound: !!customer, ...(redaction ? { redaction } : {}) } });
+    const ordersRequested = Array.isArray(payload.orders_requested) ? (payload.orders_requested as unknown[]).filter((v): v is string | number => typeof v === "string" || typeof v === "number") : [];
+    const exportId = topic === "customers/data_request" ? await requestCustomerExport(ctx, { userId: null, customerId: customer?.id ?? null, customerExternalId: customerExternalId == null ? null : String(customerExternalId), orderExternalIds: ordersRequested, requestRef: `shopify:${topic}:${ref}` }) : null;
+    await recordAudit(tx, { tenantId, actorType: "system", action: `integration.compliance.${topic.replace("/", ".")}`, entityType: customer ? "customer" : "integration", entityId: customer?.id ?? "shopify", metadata: { ...minimal, customerFound: !!customer, ...(redaction ? { redaction } : {}), ...(exportId ? { exportId } : {}) } });
     await tx.update(schema.webhookEvents).set({ status: "processed", processedAt: now, attempts: 1 }).where(eq(schema.webhookEvents.id, recorded.id));
-    return { duplicate: false, customerId: customer?.id ?? null, redaction };
+    return { duplicate: false, customerId: customer?.id ?? null, redaction, exportId };
   }, input.tenantDb);
   if (outcome.duplicate) return { status: 200, tenantId, action: "duplicate" };
   // the erasure is done and audited: nothing left for the platform owner to do
   if (topic === "customers/redact") return { status: 200, tenantId, action: "redacted" };
-  await raisePlatformAlert(db, { kind: "compliance_request", tenantId, subject: `shopify:${topic}:${ref}`, error: topic === "shop/redact" ? "Delete the tenant's data (lifecycle: churn, then retention purge) within 30 days." : "Send this customer's data to the merchant within 30 days.", now, meta: { ...minimal, customerId: outcome.customerId } }, { notifyTenant: false });
-  return { status: 200, tenantId, action: "logged" };
+  await raisePlatformAlert(db, { kind: "compliance_request", tenantId, subject: `shopify:${topic}:${ref}`, error: topic === "shop/redact" ? "Delete the tenant (console: tenant page, Delete tenant) within 30 days." : "Send the customer's data package (download from this task) to the merchant within 30 days.", now, meta: { ...minimal, customerId: outcome.customerId, ...(outcome.exportId ? { exportId: outcome.exportId } : {}) } }, { notifyTenant: false });
+  return { status: 200, tenantId, action: "logged", ...(outcome.exportId ? { exportId: outcome.exportId } : {}) };
 }
