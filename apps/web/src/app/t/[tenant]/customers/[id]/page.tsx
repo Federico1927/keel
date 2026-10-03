@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { isPageEnabled } from "@hullwise/config";
-import { formatDate, formatMoney, formatNumber, formatPercent } from "@hullwise/core";
-import { customerDetail } from "@hullwise/services";
+import { TENANT_EXPORT_TTL_DAYS, canDo, isPageEnabled } from "@hullwise/config";
+import { formatDate, formatDateTime, formatMoney, formatNumber, formatPercent } from "@hullwise/core";
+import { customerDetail, erasureConfirmationFor, listCustomerExports } from "@hullwise/services";
 import { Badge, Card, CardContent, CardHeader, CardTitle, DataList, DetailShell, Stat } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
@@ -11,6 +11,7 @@ import { WhatsappLog } from "@/components/whatsapp-log";
 import { TierBadge } from "../tier-badge";
 import { ChurnBadge } from "../churn-badge";
 import { CustomerSubscriptionsCard, showsSubscriptions } from "../../subscriptions/subscription-card";
+import { CustomerExportButton, EraseCustomerButton } from "@/components/privacy/controls";
 
 import { withIntl } from "@/i18n/intl-scope";
 async function CustomerDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
@@ -24,6 +25,12 @@ async function CustomerDetailPage({ params }: { params: Promise<{ tenant: string
   const detail = await ctx.run((tx) => customerDetail({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, id));
   if (!detail) notFound();
   const { customer: c, orders, segments, prediction: p } = detail;
+  const tpv = await getTranslations("privacy");
+  const canExport = canDo(ctx.role, "export_tenant_data");
+  const canErase = canDo(ctx.role, "erase_customer");
+  const exports = canExport ? await ctx.run((tx) => listCustomerExports(tx, ctx.tenant.id, c.customerId)) : [];
+  const erased = !c.email && !c.phone && !c.firstName && !c.lastName;
+  const now = new Date();
   const groups = isPageEnabled("customer_campaigns", ctx.activeAddons);
   const money = (m: number) => formatMoney(m, ctx.tenant.currency, ctx.locale);
   const name = [c.firstName, c.lastName].filter(Boolean).join(" ") || c.email || "—";
@@ -70,6 +77,37 @@ async function CustomerDetailPage({ params }: { params: Promise<{ tenant: string
               )}
             </CardContent>
           </Card>
+          {(canExport || canErase) && (
+            <Card data-testid="customer-privacy">
+              <CardHeader><CardTitle className="text-base">{tpv("card.title")}</CardTitle></CardHeader>
+              <CardContent className="space-y-4 text-sm">
+                {canExport && (
+                  <div className="space-y-2">
+                    <p className="text-muted-foreground">{tpv("card.export_description", { days: TENANT_EXPORT_TTL_DAYS })}</p>
+                    <CustomerExportButton slug={tenant} customerId={c.customerId} disabled={exports.some((e) => e.status === "pending" || e.status === "running")} />
+                    {exports.length > 0 && (
+                      <ul className="space-y-1" data-testid="customer-exports">
+                        {exports.map((e) => {
+                          const status = e.status === "done" && e.expiresAt && e.expiresAt <= now ? "expired" : e.status;
+                          return (
+                            <li key={e.id} className="flex flex-wrap items-center justify-between gap-2" data-testid="customer-export-row" data-status={status}>
+                              <span className="text-xs text-muted-foreground">{formatDateTime(e.createdAt, ctx.locale, ctx.tenant.timezone)}</span>
+                              {status === "done" ? <a href={`/t/${tenant}/settings/data-export/${e.id}`} className="text-primary hover:underline" data-testid="customer-export-download">{tpv("card.download")}</a> : <Badge variant={status === "failed" ? "destructive" : "muted"}>{tpv(`card.statuses.${status as "pending"}`)}</Badge>}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </div>
+                )}
+                {canErase && (
+                  <div className="space-y-2 border-t pt-3">
+                    {erased ? <Badge variant="muted" data-testid="customer-erased">{tpv("card.erased")}</Badge> : <><p className="text-muted-foreground">{tpv("card.erase_description")}</p><EraseCustomerButton mode="tenant" target={tenant} customerId={c.customerId} expected={erasureConfirmationFor({ id: c.customerId, email: c.email, phone: c.phone })} /></>}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
           <Card>
             <CardHeader><CardTitle className="text-base">{t("segments")}</CardTitle></CardHeader>
             <CardContent>

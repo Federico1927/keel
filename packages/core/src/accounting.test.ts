@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { accountingRetryDelayMs, accountingWindow, buildDailyJournal, dayClosesAt, dayReadiness, journalIsBalanced, parseAccountingSettings, type AccountingMapping } from "./accounting";
+import { accountingRetryDelayMs, accountingWindow, buildDailyJournal, dayClosesAt, dayReadiness, journalDrift, journalIsBalanced, parseAccountingSettings, type AccountingMapping } from "./accounting";
 import { dailySalesSummary, type SalesSummaryOrder } from "./daily-sales";
 
 const TZ = "Europe/Rome";
@@ -84,5 +84,24 @@ describe("readiness", () => {
 
   it("settings fall back to safe defaults", () => {
     expect(parseAccountingSettings({ lookbackDays: 500 })).toMatchObject({ lookbackDays: 35, closeDelayHours: 2, journalStatus: "draft", mapping: { sales: null, byRate: {} } });
+  });
+
+  it("reconciliation: a pushed day that still matches has no drift; a late order shows on sales, tax and clearing", () => {
+    const day = (orders: SalesSummaryOrder[]) => dailySalesSummary(orders, { timeZone: TZ, fromDay: "2026-03-10", toDay: "2026-03-10" }).days[0]!;
+    const a = order({ id: "A", placedAt: new Date("2026-03-10T09:00:00Z"), totalMinor: 12200, taxMinor: 2200 });
+    const late = order({ id: "B", placedAt: new Date("2026-03-10T15:00:00Z"), totalMinor: 6100, taxMinor: 1100 });
+    const pushed = buildDailyJournal(day([a]), MAPPING, { currency: "EUR", version: 1 }).journal;
+    expect(journalDrift(pushed, buildDailyJournal(day([a]), MAPPING, { currency: "EUR", version: 1 }).journal)).toEqual({ differenceMinor: 0, lines: [] });
+    const drift = journalDrift(pushed, buildDailyJournal(day([a, late]), MAPPING, { currency: "EUR", version: 2 }).journal);
+    expect(drift.differenceMinor).toBe(6100);
+    // by hand: sales 10000 → 15000 (credit), tax 2200 → 3300 (credit), clearing 12200 → 18300 (debit)
+    expect(drift.lines).toEqual([
+      { line: "sales", rateKey: "IT|2200", accountCode: "4000", pushedMinor: -10000, currentMinor: -15000 },
+      { line: "tax", rateKey: "IT|2200", accountCode: "2200", pushedMinor: -2200, currentMinor: -3300 },
+      { line: "clearing", rateKey: null, accountCode: "1100", pushedMinor: 12200, currentMinor: 18300 },
+    ]);
+    // a mapping change moves the amount to another account: both accounts are listed
+    const remapped = journalDrift(pushed, buildDailyJournal(day([a]), { ...MAPPING, shipping: "4090", clearing: "1200" }, { currency: "EUR", version: 2 }).journal);
+    expect(remapped.lines.map((l) => [l.accountCode, l.pushedMinor, l.currentMinor])).toEqual([["1100", 12200, 0], ["1200", 0, 12200]]);
   });
 });

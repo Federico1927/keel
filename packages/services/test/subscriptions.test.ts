@@ -10,6 +10,9 @@ import {
   SUBSCRIPTION_WIDGET_LOADERS,
   addSubscriptionNote,
   assignSubscription,
+  chargeDueSimulatedRenewals,
+  nextSimulatedRenewal,
+  simulateContractCharge,
   cancellationAnalysis,
   customerSubscriptions,
   getSubscriptionProviderFor,
@@ -234,6 +237,61 @@ describe("gating with the add-on off (Northwind)", () => {
  *  G since May (2200), cancelled Oct 25 after failed payments (involuntary)
  * October: start 12700, new 3500, expansion 500, reactivated 1000, contraction 1500, churned 6200, end 10000.
  */
+describe("the simulated app on the demo (mock mode)", () => {
+  const T = { country: "US", orderNumberPrefix: "HH-" };
+  const contract = async (id: string) => (await pools.admin.select().from(schema.subscriptionContracts).where(eq(schema.subscriptionContracts.id, id)))[0]!;
+
+  it("a paid renewal creates the store's order, linked as the next renewal, and moves the next billing date", async () => {
+    const id = (await harborOwner((s) => nextSimulatedRenewal(s)))!;
+    const before = await contract(id);
+    const r = (await harborOwner((s) => simulateContractCharge(s, T, id, "success")))!;
+    expect(r).toMatchObject({ contractId: id, outcome: "success", amountMinor: before.priceMinor });
+    expect(r.orderName).toMatch(/^#HH-\d+$/);
+    const [o] = await pools.admin.select().from(schema.orders).where(eq(schema.orders.id, r.orderId!));
+    expect(o).toMatchObject({ subscriptionContractId: id, renewalNumber: before.renewalsCount + 1, totalMinor: before.priceMinor, customerId: before.customerId, paymentStatus: "paid" });
+    const lines = await pools.admin.select().from(schema.orderLines).where(eq(schema.orderLines.orderId, o!.id));
+    expect(lines.length).toBeGreaterThan(0);
+    expect(lines.every((l) => l.variantId)).toBe(true);
+    const after = await contract(id);
+    expect(after.renewalsCount).toBe(before.renewalsCount + 1);
+    expect(after.nextBillingAt!.getTime()).toBeGreaterThan(before.nextBillingAt!.getTime());
+    const [audit] = await pools.admin.select().from(schema.auditLogs).where(and(eq(schema.auditLogs.tenantId, harbor), eq(schema.auditLogs.action, "subscriptions.renewal_simulated"), eq(schema.auditLogs.entityId, id)));
+    expect(audit!.actorUserId).toBe(ctx.userIds["owner@harborhome.demo"]);
+  });
+
+  it("a declined renewal opens the recovery episode; the app's retries recover it, or end the contract for non-payment after the last one", async () => {
+    const id = (await harborOwner((s) => nextSimulatedRenewal(s)))!;
+    expect((await harborOwner((s) => simulateContractCharge(s, T, id, "card_expired")))!.nextRetryAt).not.toBeNull();
+    expect((await contract(id)).paymentFailingSince).not.toBeNull();
+    expect((await harborCare((s) => recoveryQueue(s))).rows.some((r) => r.contractId === id)).toBe(true);
+    const recovered = (await harborOwner((s) => simulateContractCharge(s, T, id, "success")))!;
+    expect(recovered.orderId).not.toBeNull();
+    expect((await contract(id)).paymentFailingSince).toBeNull();
+    const events = await pools.admin.select({ type: schema.subscriptionEvents.type }).from(schema.subscriptionEvents).where(eq(schema.subscriptionEvents.contractId, id));
+    expect(events.map((e) => e.type)).toEqual(expect.arrayContaining(["payment_failed", "payment_recovered"]));
+    // another one declines three times: retry in 3 days, in 4 days, then the app gives up
+    const lost = (await harborOwner((s) => nextSimulatedRenewal(s)))!;
+    expect((await harborOwner((s) => simulateContractCharge(s, T, lost, "insufficient_funds")))!.outcome).toBe("insufficient_funds");
+    expect((await harborOwner((s) => simulateContractCharge(s, T, lost, "insufficient_funds")))!.outcome).toBe("insufficient_funds");
+    expect((await harborOwner((s) => simulateContractCharge(s, T, lost, "insufficient_funds")))!.outcome).toBe("gave_up");
+    expect(await contract(lost)).toMatchObject({ status: "cancelled", cancellationKind: "involuntary", cancellationReasonCode: "payment_failed", paymentFailingSince: null });
+    expect(await harborOwner((s) => simulateContractCharge(s, T, lost, "success"))).toBeNull();
+  });
+
+  it("the tick charges the renewals that came due (deterministic outcomes) and charges nothing twice", async () => {
+    const later = new Date(Date.now() + 4 * 864e5);
+    const dueBefore = (await pools.admin.execute<{ n: number }>(sql`select count(*)::int as n from subscription_contracts where tenant_id = ${harbor} and status = 'active' and payment_failing_since is null and next_billing_at <= ${later}`)).rows[0]!.n;
+    expect(dueBefore).toBeGreaterThan(0);
+    const run = await as(harbor, "owner@harborhome.demo", later)((s) => chargeDueSimulatedRenewals(s, T, { limit: 500 }));
+    expect(run.charged + run.declined).toBeGreaterThanOrEqual(dueBefore);
+    expect(run.charged).toBeGreaterThan(run.declined);
+    const again = await as(harbor, "owner@harborhome.demo", later)((s) => chargeDueSimulatedRenewals(s, T, { limit: 500 }));
+    expect(again.charged + again.declined).toBe(0);
+    // Northwind has no subscription app: nothing to charge
+    expect(await as(northwind, "owner@northwind.demo")((s) => chargeDueSimulatedRenewals(s, T))).toEqual({ charged: 0, declined: 0, recovered: 0, gaveUp: 0 });
+  });
+});
+
 describe("hand calculation on a fixture (Harbor)", () => {
   const asOf = new Date("2026-10-31T12:00:00Z");
   const d = (s: string) => new Date(`${s}T12:00:00Z`);

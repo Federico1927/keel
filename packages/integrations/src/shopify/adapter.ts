@@ -242,6 +242,23 @@ export class ShopifyCommercePlatform implements CommercePlatform {
     return out;
   }
 
+  /** Deletes only Hullwise's subscriptions (same callback URL); other apps' and the merchant's stay. */
+  async unregisterWebhooks(callbackUrl: string): Promise<{ removed: number; failed: number }> {
+    const existing = await this.graphql<{ webhookSubscriptions: { nodes: { id: string; uri?: string | null }[] } }>(`{ webhookSubscriptions(first: 100) { nodes { id uri } } }`);
+    let removed = 0;
+    let failed = 0;
+    for (const n of existing.webhookSubscriptions.nodes.filter((x) => x.uri === callbackUrl)) {
+      try {
+        const res = await this.graphql<{ webhookSubscriptionDelete: { userErrors: { message: string }[] } }>(`mutation($id: ID!) { webhookSubscriptionDelete(id: $id) { deletedWebhookSubscriptionId userErrors { message } } }`, { id: n.id });
+        if (res.webhookSubscriptionDelete.userErrors.length) failed++;
+        else removed++;
+      } catch {
+        failed++;
+      }
+    }
+    return { removed, failed };
+  }
+
   async verifyWebhook(headers: Record<string, string | undefined>, rawBody: string): Promise<VerifiedWebhook> {
     const h = Object.fromEntries(Object.entries(headers).map(([k, v]) => [k.toLowerCase(), v]));
     if (!verifyWebhookHmac(rawBody, h["x-shopify-hmac-sha256"], this.creds.apiSecret)) throw new IntegrationError("permission", "Invalid webhook signature");

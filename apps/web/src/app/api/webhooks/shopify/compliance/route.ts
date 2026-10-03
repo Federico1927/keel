@@ -1,6 +1,7 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, after, type NextRequest } from "next/server";
 import { adminDb } from "@hullwise/db";
 import { handleShopifyCompliance } from "@hullwise/services";
+import { enqueue, runJobInline } from "@/server/jobs";
 
 function shopOf(rawBody: string): string {
   try {
@@ -22,5 +23,10 @@ export async function POST(req: NextRequest) {
   const shop = headers["x-shopify-shop-domain"] || shopOf(rawBody);
   if (!shop) return new NextResponse("missing shop domain", { status: 400 });
   const r = await handleShopifyCompliance(adminDb(), { topic: headers["x-shopify-topic"] ?? "", shop, rawBody, hmac: headers["x-shopify-hmac-sha256"], platformSecret: process.env.SHOPIFY_API_SECRET ?? null });
+  // customers/data_request: the customer's data package is built in the background (the task links to it)
+  if (r.exportId && r.tenantId) {
+    const job = { tenantId: r.tenantId, exportId: r.exportId };
+    if (!(await enqueue("tenant.export", job))) after(() => runJobInline("tenant.export", job, null));
+  }
   return NextResponse.json({ ok: r.status === 200, action: r.action }, { status: r.status });
 }

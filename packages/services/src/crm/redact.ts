@@ -17,6 +17,8 @@ export interface CustomerRedactionInput {
   customerExternalId?: string | null;
   /** Platform order ids to redact as well (Shopify `orders_to_redact`), also guest orders with no customer. */
   orderExternalIds?: readonly (string | number)[];
+  /** Who asked, for the audit entry (default: the context's user, or the system for a platform webhook). */
+  audit?: { actorType: "user" | "impersonation" | "super_admin"; impersonatedBy?: string | null; source?: string };
 }
 
 export interface CustomerRedactionReport {
@@ -109,6 +111,39 @@ export async function redactCustomer(ctx: ServiceContext, input: CustomerRedacti
     ).length;
   }
 
-  await recordAudit(ctx.tx, { tenantId: t, actorUserId: ctx.actor.userId, actorType: ctx.actor.userId ? "user" : "system", action: "customer.redacted", entityType: "customer", entityId: customer?.id ?? "guest", diff: { personalData: { from: "present", to: "erased" } }, metadata: { ...report, customerExternalId: customer?.externalId ?? input.customerExternalId ?? null, orderExternalIds: orderExt } });
+  await recordAudit(ctx.tx, { tenantId: t, actorUserId: ctx.actor.userId, actorType: input.audit?.actorType ?? (ctx.actor.userId ? "user" : "system"), impersonatedBy: input.audit?.impersonatedBy ?? null, action: "customer.redacted", entityType: "customer", entityId: customer?.id ?? "guest", diff: { personalData: { from: "present", to: "erased" } }, metadata: { ...report, customerExternalId: customer?.externalId ?? input.customerExternalId ?? null, orderExternalIds: orderExt, source: input.audit?.source ?? (ctx.actor.userId ? "manual" : "platform") } });
   return report;
+}
+
+export class CustomerErasureError extends Error {
+  constructor(readonly code: "not_found" | "confirmation_mismatch") {
+    super(code);
+    this.name = "CustomerErasureError";
+  }
+}
+
+/** What the person erasing must type: the customer's email, else the phone, else the first 8 characters of the id. */
+export function erasureConfirmationFor(c: { id: string; email: string | null; phone: string | null }): string {
+  return c.email ?? c.phone ?? c.id.slice(0, 8);
+}
+
+/**
+ * Erasure asked outside the store platform (the customer wrote to the merchant, or to the platform owner):
+ * the same erasure as `customers/redact`, after a typed confirmation of the customer's email. Audited as the
+ * person who did it (user, impersonating super-admin, or super-admin from the console).
+ */
+export async function eraseCustomerOnRequest(ctx: ServiceContext, input: { customerId: string; confirmation: string; audit: { actorType: "user" | "impersonation" | "super_admin"; impersonatedBy?: string | null } }): Promise<CustomerRedactionReport> {
+  const c = schema.customers;
+  const [customer] = await ctx.tx.select({ id: c.id, email: c.email, phone: c.phone }).from(c).where(and(eq(c.tenantId, ctx.tenantId), eq(c.id, input.customerId))).limit(1);
+  if (!customer) throw new CustomerErasureError("not_found");
+  if (input.confirmation.trim().toLowerCase() !== erasureConfirmationFor(customer).trim().toLowerCase()) throw new CustomerErasureError("confirmation_mismatch");
+  return redactCustomer(ctx, { customerId: customer.id, audit: { ...input.audit, source: "request" } });
+}
+
+/** The console's lookup for an erasure: customers of the tenant whose email matches exactly (normalized). */
+export async function findCustomersByEmail(ctx: ServiceContext, email: string) {
+  const c = schema.customers;
+  const e = email.trim().toLowerCase();
+  if (!e) return [];
+  return ctx.tx.select({ id: c.id, email: c.email, phone: c.phone, firstName: c.firstName, lastName: c.lastName, ordersCount: c.ordersCount, externalId: c.externalId }).from(c).where(and(eq(c.tenantId, ctx.tenantId), or(eq(c.emailNormalized, e), eq(sql`lower(${c.email})`, e)))).limit(5);
 }

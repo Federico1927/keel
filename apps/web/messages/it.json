@@ -187,7 +187,7 @@
       "whatsapp_spoki": {
         "name": "WhatsApp con Spoki",
         "description": "Conferme e risposte del contrassegno, notifiche ordine, campagne WhatsApp e disiscrizioni tramite l'account Spoki del negozio",
-        "v1": "WhatsApp tramite Spoki: conferme in contrassegno, avvisi sugli ordini e invii delle campagne, verificati solo su dati registrati: nessun account Spoki reale collegato."
+        "v1": "WhatsApp tramite Spoki: conferme in contrassegno, avvisi sugli ordini, conversazioni con le risposte del team e invii delle campagne, verificati solo su dati registrati e sull'account simulato: nessun account Spoki reale collegato."
       },
       "accounting": {
         "name": "Invio in contabilità",
@@ -618,7 +618,9 @@
       "customer_campaign_approval_requested": "Campagna da approvare: {title}",
       "customer_campaign_approved": "Campagna approvata: {title}",
       "customer_campaign_rejected": "Campagna rimandata indietro: {title}",
-      "customer_campaign_sent": "Campagna inviata: {title}"
+      "customer_campaign_sent": "Campagna inviata: {title}",
+      "customer_export_ready": "Il pacchetto dati del cliente è pronto ({title} record)",
+      "customer_export_failed": "Il pacchetto dati del cliente non è riuscito"
     },
     "groups": {
       "collaboration": "Collaborazione",
@@ -4709,7 +4711,8 @@
       "open": "Avvisi aperti",
       "kinds": {
         "job_failure": "Job che fallisce",
-        "sync_stale": "Fonte non aggiornata"
+        "sync_stale": "Fonte non aggiornata",
+        "compliance_request": "Richiesta privacy"
       },
       "status": "Stato",
       "statuses": {
@@ -4804,7 +4807,7 @@
       "pending": "In coda",
       "scheduled": "Richiamo programmato",
       "unreachable": "Non raggiungibile",
-      "confirmed": "Confermato al telefono",
+      "confirmed": "Confermato",
       "cancelled": "Annullato",
       "left": "Uscito dalla coda",
       "confirm_scheduled": "Conferma programmata"
@@ -5024,7 +5027,9 @@
     "channels": {
       "scheduled": "programmato",
       "bulk": "in blocco",
-      "messaging-mock": "messaggio"
+      "messaging-mock": "messaggio",
+      "whatsapp": "WhatsApp",
+      "spoki": "WhatsApp (Spoki)"
     },
     "risk_panel": {
       "refused": "Rifiutati",
@@ -5918,7 +5923,7 @@
       "test_title": "Invio di prova",
       "test_description": "Solo a persone del negozio, mai ai clienti. Il messaggio usa il loro nome e il codice.",
       "test_phone": "Il tuo numero di telefono",
-      "test_sent": "{n} messaggi di prova inviati.",
+      "test_sent": "{n, plural, one {# messaggio di prova inviato.} other {# messaggi di prova inviati.}}",
       "test_send": "Invia prova",
       "close": "Chiudi",
       "reject_title": "Rimanda all'autore",
@@ -5994,6 +5999,28 @@
         "throttleWhatsapp": "WhatsApp",
         "campaignMeasurementLock": "Blocca i clienti in misurazione"
       }
+    },
+    "delivery": {
+      "spoki_mock": "Tramite Spoki (account simulato)",
+      "spoki_live": "Tramite Spoki",
+      "simulated": "Canale simulato"
+    },
+    "delivery_hint": {
+      "spoki_mock": "Inviata tramite l'account simulato di Spoki: i messaggi compaiono nel registro WhatsApp, ai clienti non arriva nulla.",
+      "spoki_live": "Inviata tramite l'account Spoki del negozio.",
+      "simulated": "Per questo canale non è ancora collegato un fornitore: il canale simulato registra i messaggi e ai clienti non arriva nulla."
+    },
+    "recipients": {
+      "title": "Destinatari",
+      "description": "Ogni cliente della campagna con il suo gruppo, lo stato del messaggio e gli ordini fatti entro {days} giorni dall'esposizione.",
+      "all": "Tutti",
+      "customer": "Cliente",
+      "group": "Gruppo",
+      "status": "Messaggio",
+      "exposed": "Esposto il",
+      "orders": "Ordini nella finestra",
+      "empty": "Nessun destinatario in questo gruppo.",
+      "summary": "{n} clienti"
     }
   },
   "destinations": {
@@ -9484,7 +9511,9 @@
       "assignee": "Follow-up",
       "unassigned": "Non assegnato",
       "assigned": "Follow-up assegnato.",
-      "back": "Indietro"
+      "back": "Indietro",
+      "simulate_retry": "Simula il nuovo tentativo dell'app",
+      "open_order": "Apri l'ordine"
     },
     "stock": {
       "title": "Stock per i rinnovi",
@@ -9552,6 +9581,12 @@
       "active_hint": "{paused} in pausa · {new} nuovi in 30 giorni",
       "churn_hint": "{voluntary} volontari · {involuntary} involontari",
       "at_risk_hint": "{n} a rischio · {failing} pagamenti in errore · {high} ad alto rischio di churn"
+    },
+    "simulation": {
+      "success": "Rinnovo addebitato a {customer}: creato l'ordine {order}.",
+      "declined": "Rinnovo rifiutato per {customer}: ora è nella coda di recupero e l'app ritenta tra qualche giorno.",
+      "gave_up": "Ultimo tentativo rifiutato per {customer}: l'app ha cancellato l'abbonamento per mancato pagamento.",
+      "recovered": "Il nuovo tentativo dell'app è andato a buon fine per {customer}: creato l'ordine {order}, pagamento recuperato."
     }
   },
   "whatsapp": {
@@ -9562,7 +9597,8 @@
       "spoki_no_phone": "L'ordine non ha un numero di telefono",
       "spoki_no_template": "Nessun template associato a questo evento",
       "spoki_not_found": "Non trovato",
-      "module_disabled": "L'add-on WhatsApp non è attivo"
+      "module_disabled": "L'add-on WhatsApp non è attivo",
+      "spoki_window_closed": "La finestra di 24 ore è chiusa: ora WhatsApp accetta solo template approvati."
     },
     "log": {
       "title": "Messaggi WhatsApp",
@@ -9576,7 +9612,8 @@
         "campaign": "Campagna",
         "test": "Messaggio di prova",
         "reply": "Risposta del cliente",
-        "external": "Inviato fuori da {product}"
+        "external": "Inviato fuori da {product}",
+        "manual": "Risposta del team"
       },
       "status": {
         "queued": "In coda",
@@ -9593,9 +9630,9 @@
       "simulate_failed_receipt": "Invio non riuscito",
       "simulate_reply": "Il cliente risponde “{text}”",
       "simulate_stop": "Il cliente risponde STOP",
-      "sample_reply": "Sì",
       "simulated": "Webhook inviato",
-      "simulate_failed": "Simulazione non riuscita"
+      "simulate_failed": "Simulazione non riuscita",
+      "sample_question": "Quando arriva il mio ordine?"
     },
     "connection": {
       "webhook": "URL del webhook da incollare in Spoki (contiene il token segreto del negozio)",
@@ -9649,7 +9686,44 @@
         "confirm": "Parole di conferma",
         "cancel": "Parole di annullamento",
         "help": "Una risposta di conferma registra l'esito confermato (scritto prima sul negozio, come quello di un operatore). Una risposta di annullamento segnala l'ordine a un admin: nulla viene annullato in automatico."
-      }
+      },
+      "recent_hint": "Tutto tranne gli invii delle campagne, che trovi in Conversazioni e nella pagina di ogni campagna."
+    },
+    "tabs": {
+      "conversations": "Conversazioni",
+      "settings": "Impostazioni"
+    },
+    "conversations": {
+      "title": "Conversazioni WhatsApp",
+      "description": "Ogni conversazione con i clienti tramite Spoki: risposte a conferme del contrassegno, notifiche e campagne, e le risposte del team.",
+      "list_title": "Conversazioni",
+      "filter_all": "Tutte",
+      "filter_awaiting": "Da rispondere ({n})",
+      "columns": {
+        "customer": "Cliente",
+        "state": "Stato",
+        "last": "Ultimo messaggio"
+      },
+      "awaiting": "Da rispondere",
+      "empty_title": "Ancora nessuna conversazione",
+      "empty_description": "Qui compaiono i messaggi inviati e ricevuti tramite Spoki, raggruppati per cliente.",
+      "empty_awaiting_title": "Nessuno in attesa",
+      "empty_awaiting_description": "Ogni cliente che ha scritto ha ricevuto una risposta.",
+      "summary": "{n} conversazioni",
+      "back": "Conversazioni",
+      "window_open": "Risposte libere fino al {at}",
+      "window_closed": "Finestra di 24 ore chiusa",
+      "pick_title": "Scegli una conversazione",
+      "pick_description": "Apri una conversazione per leggerla e rispondere al cliente.",
+      "simulate_hint": "Account simulato: scrivi cosa manderebbe il cliente. Passa dalla vera rotta del webhook e riapre la finestra di 24 ore.",
+      "simulate_placeholder": "Posso cambiare l'indirizzo di consegna?",
+      "simulate_inbound": "Simula messaggio del cliente",
+      "simulate_failed": "Simulazione non riuscita",
+      "reply_closed": "Il cliente non ha scritto nelle ultime 24 ore: ora WhatsApp accetta solo template approvati (conferme del contrassegno, notifiche ordine, campagne). Le risposte libere si riaprono quando il cliente scrive.",
+      "reply_label": "Risposta",
+      "reply_placeholder": "Scrivi una risposta…",
+      "reply_hint": "Testo libero dal numero Spoki del negozio, collegato all'ordine della conversazione.",
+      "reply_send": "Invia risposta"
     }
   },
   "mobile": {
@@ -10993,7 +11067,8 @@
         "net": "Netto (transitorio)",
         "debit": "Dare",
         "action": "Azioni"
-      }
+      },
+      "repush_not_pushed": "La versione precedente è stata annullata; la versione {version} non è ancora inviata (vedi stato ed errore): viene ritentata in automatico."
     },
     "day": {
       "title": "Scrittura del {day}",
@@ -11072,6 +11147,126 @@
       },
       "save": "Salva",
       "saved": "Impostazioni salvate."
+    },
+    "reconcile": {
+      "title": "Riconciliazione",
+      "description": "Ogni giorno inviato negli ultimi {days} giorni confrontato con il riepilogo vendite di adesso.",
+      "all_match": "Tutti i {n} giorni inviati corrispondono ancora al riepilogo vendite.",
+      "nothing_pushed": "Ancora nessun giorno inviato da controllare.",
+      "columns": {
+        "lines": "Cosa è cambiato",
+        "pushed": "Inviato",
+        "now": "Adesso",
+        "difference": "Differenza"
+      },
+      "line": "{line} {account}: {from} → {to}",
+      "day_title": "Diverso da quanto inviato",
+      "day_description": "Il riepilogo vendite di questo giorno è cambiato dopo l'invio della versione {version} ({difference}). Reinvia il giorno per annullarla e inviare la scrittura corretta."
+    }
+  },
+  "privacy": {
+    "cancel": "Annulla",
+    "card": {
+      "title": "Privacy",
+      "export_description": "Il pacchetto dati del cliente: profilo, indirizzi, ordini, resi, messaggi e consensi, in JSON più un CSV degli ordini. Conservato {days} giorni.",
+      "download": "Scarica il pacchetto dati",
+      "statuses": {
+        "pending": "In preparazione…",
+        "running": "In preparazione…",
+        "failed": "Non riuscito",
+        "expired": "Scaduto"
+      },
+      "erase_description": "Cancella i dati personali di questo cliente su sua richiesta. Ordini, importi e date restano per la contabilità.",
+      "erased": "Dati personali cancellati"
+    },
+    "export": {
+      "request": "Esporta i dati del cliente",
+      "requesting": "Avvio…",
+      "error": "Non è stato possibile avviare il pacchetto dati."
+    },
+    "erase": {
+      "button": "Cancella i dati personali",
+      "title": "Cancellare i dati personali di questo cliente?",
+      "description": "Nome, email, telefono, indirizzi, note scritte dal cliente, destinatari dei messaggi e collegamenti del browser vengono cancellati dal cliente e dai suoi ordini. Ordini, importi, date e stati restano. L'operazione non si può annullare.",
+      "type": "Scrivi {value} per confermare",
+      "confirm": "Cancella",
+      "running": "Cancellazione…",
+      "mismatch": "Il testo non corrisponde.",
+      "forbidden": "Non hai il permesso di cancellare clienti.",
+      "error": "La cancellazione non è riuscita.",
+      "done": "Dati personali cancellati: {orders} ordini, {returns} resi, {messages} messaggi, {links} collegamenti e payload. Il registro attività lo riporta."
+    },
+    "console": {
+      "title": "Richieste privacy dei clienti",
+      "description": "Cancella un cliente di questo negozio che ha scritto alla piattaforma: cercalo per email, poi conferma. Registrato come azione del super-admin sul tenant.",
+      "email": "Email del cliente",
+      "find": "Cerca",
+      "invalid": "Inserisci un'email valida.",
+      "none": "Nessun cliente con questa email in questo negozio.",
+      "candidate": "{orders} ordini · id {id}"
+    },
+    "task": {
+      "download": "Scarica il pacchetto dati (fino al {date})",
+      "preparing": "Pacchetto dati in preparazione…",
+      "expired": "Pacchetto dati scaduto.",
+      "failed": "Pacchetto dati non riuscito.",
+      "rebuild": "Ricrealo"
+    },
+    "delete": {
+      "zone_title": "Zona pericolosa",
+      "zone_description": "Elimina il tenant e tutti i suoi dati: per un negozio che se ne va (shop/redact di Shopify o richiesta del merchant).",
+      "open": "Elimina il tenant…",
+      "title": "Elimina {name}",
+      "description": "Tutte le righe del tenant vengono eliminate, le integrazioni scollegate e l'abbonamento annullato. Nel registro attività della piattaforma resta traccia dell'eliminazione.",
+      "back_tenants": "Tenant",
+      "what_title": "Cosa verrà eliminato: {n} righe",
+      "what_description": "Righe per tabella. {users} utenti appartengono solo a questo tenant: mantengono un account senza spazi di lavoro.",
+      "table": "Tabella",
+      "rows": "Righe",
+      "more_tables": "e altre {n} tabelle",
+      "before_title": "Prima di eliminare",
+      "export_downloaded": "È stata scaricata un'esportazione finale dei dati.",
+      "export_not_downloaded": "Un'esportazione dei dati è pronta ma nessuno l'ha scaricata.",
+      "export_none": "Nessuna esportazione finale dei dati.",
+      "export_link": "Esportazione dati",
+      "integrations": "Scollegate: {list}. I webhook Shopify registrati per questo negozio vengono rimossi.",
+      "no_integrations": "Nessuna integrazione collegata.",
+      "subscription": "L'abbonamento {provider} ({status}) viene annullato subito, senza fattura finale.",
+      "no_subscription": "Nessun abbonamento da annullare.",
+      "demo_warning": "È un tenant demo: la demo pubblica non funziona finché il prossimo reseed non lo ricrea.",
+      "confirm_title": "Conferma l'eliminazione",
+      "confirm_description": "Gli utenti del tenant vengono bloccati subito; l'eliminazione prosegue in background.",
+      "type_slug": "Scrivi lo slug del tenant ({slug}) per confermare",
+      "without_export": "Elimina senza un'esportazione finale scaricata (il merchant non la vuole)",
+      "confirm_demo": "Sì, elimina il tenant demo",
+      "reason": "Motivo (facoltativo)",
+      "submit": "Elimina il tenant",
+      "running": "Avvio…",
+      "errors": {
+        "confirmation_mismatch": "Lo slug non corrisponde.",
+        "demo_confirmation_required": "Conferma che vuoi eliminare un tenant demo.",
+        "export_required": "Scarica prima l'esportazione finale dei dati, o conferma che il merchant non la vuole.",
+        "in_progress": "Un'eliminazione è già in corso.",
+        "not_found": "Tenant non trovato.",
+        "generic": "Non è stato possibile avviare l'eliminazione."
+      },
+      "progress": "Eliminazione",
+      "statuses": {
+        "pending": "In coda",
+        "running": "In corso",
+        "done": "Eliminato",
+        "failed": "Non riuscita"
+      },
+      "requested_at": "Richiesta il {date}",
+      "completed_at": "terminata il {date}",
+      "steps_done": "{done} di {total} passi",
+      "step": {
+        "disconnect": "Integrazioni scollegate",
+        "billing": "Abbonamento",
+        "tenant": "Tenant rimosso"
+      },
+      "retry": "Riprova",
+      "done_note": "Il tenant è eliminato. Il registro attività della piattaforma ne conserva la traccia (azione tenant.deleted)."
     }
   }
 }

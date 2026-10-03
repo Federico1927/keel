@@ -1,5 +1,5 @@
 "use client";
-// i18n-client-namespaces: integration_setup, integration_guide (guide.namespace is integration_setup.<provider>)
+// i18n-client-namespaces: integration_setup, integration_guide, ga4 (guide.namespace is integration_setup.<provider>, or ga4.setup)
 import Link from "next/link";
 import { startTransition, type FormEvent, type ReactNode } from "react";
 import { useTranslations } from "next-intl";

@@ -1,7 +1,7 @@
 import { adminDb } from "@hullwise/db";
 import { trackJobRun, type JobTrigger } from "@hullwise/services";
-import { handleCampaignSend, handleEmailEvent, handleEmailSend, handleListExport, handlePlatformWrite, handleSyncAds, handleSyncAnalytics, handleSyncCatalog, handleSyncOrders, handleSyncPayouts, handleSyncReturns, handleTenantExport, handleTick, handleWebhook, handleWebhookDeliver, type Enqueue } from "./handlers";
-import { QUEUES, jobTenantOf, jobTypeOf, type CampaignSendJob, type EmailEventJob, type EmailSendJob, type ListExportJob, type PlatformWriteJob, type QueueName, type SyncAdsJob, type SyncAnalyticsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TenantExportJob, type TickJob, type WebhookDeliverJob, type WebhookJob } from "./queues";
+import { handleCampaignSend, handleEmailEvent, handleEmailSend, handleListExport, handlePlatformWrite, handleSyncAds, handleSyncAnalytics, handleSyncCatalog, handleSyncOrders, handleSyncPayouts, handleSyncReturns, handleTenantDelete, handleTenantExport, handleTick, handleWebhook, handleWebhookDeliver, type Enqueue } from "./handlers";
+import { QUEUES, jobTenantOf, jobTypeOf, type CampaignSendJob, type EmailEventJob, type EmailSendJob, type ListExportJob, type PlatformWriteJob, type QueueName, type SyncAdsJob, type SyncAnalyticsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type TenantDeleteJob, type TenantExportJob, type TickJob, type WebhookDeliverJob, type WebhookJob } from "./queues";
 
 /** Queue → handler: the single routing table of the worker and of inline runs from the web ("run now" without a worker). */
 export async function runJob(queue: QueueName, data: unknown, enqueue: Enqueue): Promise<unknown> {
@@ -19,6 +19,7 @@ export async function runJob(queue: QueueName, data: unknown, enqueue: Enqueue):
     case QUEUES.emailSend: return handleEmailSend(data as EmailSendJob, enqueue);
     case QUEUES.emailEvent: return handleEmailEvent(data as EmailEventJob);
     case QUEUES.tenantExport: return handleTenantExport(data as TenantExportJob);
+    case QUEUES.tenantDelete: return handleTenantDelete(data as TenantDeleteJob);
     case QUEUES.campaignSend: return handleCampaignSend(data as CampaignSendJob);
     case QUEUES.webhookDeliver: return handleWebhookDeliver(data as WebhookDeliverJob, enqueue);
   }

@@ -1,7 +1,7 @@
 import { QUEUES, jobTenantOf, jobTypeOf, type QueueName } from "./queues";
 
 /** Queues whose successful runs are worth a log line: imports, syncs and writes to the store. */
-export const LOGGED_QUEUES = new Set<QueueName>([QUEUES.syncOrders, QUEUES.syncCatalog, QUEUES.syncAds, QUEUES.syncPayouts, QUEUES.syncReturns, QUEUES.syncAnalytics, QUEUES.platformWrite, QUEUES.tenantExport]);
+export const LOGGED_QUEUES = new Set<QueueName>([QUEUES.syncOrders, QUEUES.syncCatalog, QUEUES.syncAds, QUEUES.syncPayouts, QUEUES.syncReturns, QUEUES.syncAnalytics, QUEUES.platformWrite, QUEUES.tenantExport, QUEUES.tenantDelete]);
 
 /** One line per job: queue, type, tenant, duration and a short outcome (counts or the error message; never the payload). */
 export function jobLogLine(outcome: "done" | "failed", queue: QueueName, data: unknown, started: number, detail: string): string {

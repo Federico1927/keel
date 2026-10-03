@@ -117,7 +117,9 @@ async function simulate(slug: string, provider: string, kind: string): Promise<C
   }
   if (provider === "subscriptions") {
     const r = await simulateRenewalAction(slug, kind === "renewal" ? "success" : "card_expired");
-    return r.ok ? done({ key: "subscriptions.provider.simulated", values: { summary: r.data!.summary } }) : failed(r);
+    if (!r.ok) return failed(r);
+    const c = r.data!.charge;
+    return done({ key: `subscriptions.simulation.${c.outcome === "success" || c.outcome === "gave_up" ? c.outcome : "declined"}`, values: { customer: c.customerName ?? "—", order: c.orderName ?? "" } });
   }
   const r = await simulateAccountingFailureAction(slug);
   return r.ok ? done({ key: "accounting.connection.simulated" }) : failed(r);

@@ -47,3 +47,9 @@ export const FAILURE_ALERT_WINDOW_HOURS = 6;
 
 /** Days a tenant data export can be downloaded; then the file is deleted and the link answers "expired". */
 export const TENANT_EXPORT_TTL_DAYS = 7;
+
+/**
+ * The public demo's tenants (seeded by `pnpm db:seed`): the console deletes them only with an extra
+ * confirmation, since the demo breaks until the next reseed recreates them.
+ */
+export const DEMO_TENANT_SLUGS = ["northwind-apparel", "harbor-home"] as const;

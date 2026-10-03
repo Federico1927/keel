@@ -79,7 +79,8 @@ export async function simulateAccountingFailureAction(slug: string): Promise<Act
     const ctx = await requireManage(slug);
     const mock = mockAccountingFor(ctx.tenant.id) ?? (await ctx.run(async (tx) => { await testAccountingConnection(svc(ctx, tx)); return mockAccountingFor(ctx.tenant.id); }));
     if (!mock) return fail("accounting_not_connected");
-    mock.failures.failNext("rate_limited");
+    // the next journal push is refused (a void or a test still answers), so a retry or a re-push shows the failed state
+    mock.pushFailures.failNext("rate_limited");
     return ok();
   } catch (e) {
     return handle(e);

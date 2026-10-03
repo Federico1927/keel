@@ -29,7 +29,7 @@ export class StripeBillingProvider implements BillingProvider {
     this.http = new HttpClient(opts);
   }
 
-  private async call<T = Obj>(method: "GET" | "POST", path: string, body?: Record<string, FormValue>, idempotencyKey?: string): Promise<T> {
+  private async call<T = Obj>(method: "GET" | "POST" | "DELETE", path: string, body?: Record<string, FormValue>, idempotencyKey?: string): Promise<T> {
     const headers: Record<string, string> = { authorization: `Bearer ${this.secretKey}`, "stripe-version": STRIPE_API_VERSION };
     if (method === "POST") headers["content-type"] = "application/x-www-form-urlencoded";
     if (idempotencyKey) headers["idempotency-key"] = idempotencyKey;
@@ -152,6 +152,16 @@ export class StripeBillingProvider implements BillingProvider {
   async fetchSubscription(subscriptionId: string): Promise<SubscriptionSnapshot | null> {
     const s = await this.getOrNull<Obj>(`subscriptions/${encodeURIComponent(subscriptionId)}?expand[]=default_payment_method`);
     return s ? toSubscriptionSnapshot(s) : null;
+  }
+
+  async cancelSubscription(subscriptionId: string, idempotencyKey: string): Promise<SubscriptionSnapshot | null> {
+    try {
+      // DELETE cancels at once; Stripe's defaults issue no final invoice and no proration
+      return toSubscriptionSnapshot(await this.call<Obj>("DELETE", `subscriptions/${encodeURIComponent(subscriptionId)}`, undefined, idempotencyKey));
+    } catch (e) {
+      if (e instanceof BillingProviderError && e.code === "not_found") return null;
+      throw e;
+    }
   }
 
   async listInvoices(customerId: string, limit = 24): Promise<InvoiceSnapshot[]> {

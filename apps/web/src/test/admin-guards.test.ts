@@ -10,7 +10,7 @@ import { ADMIN_NAV } from "@/app/admin/nav-items";
  * `admin-routes.spec.ts` checks the same routes over HTTP as a tenant owner.
  */
 const ADMIN = path.resolve(__dirname, "../app/admin");
-const ACTIONS = [path.resolve(__dirname, "../server/actions/admin.ts"), path.resolve(__dirname, "../server/actions/admin-billing.ts")];
+const ACTIONS = [path.resolve(__dirname, "../server/actions/admin.ts"), path.resolve(__dirname, "../server/actions/admin-billing.ts"), path.resolve(__dirname, "../server/actions/admin-privacy.ts")];
 
 function files(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {

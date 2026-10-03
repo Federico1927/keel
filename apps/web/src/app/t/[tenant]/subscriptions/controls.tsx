@@ -35,6 +35,7 @@ type SubscriptionSetupKey = keyof typeof SUBSCRIPTION_SETUPS;
 
 export function ProviderControls({ slug, connected, mock, provider, canManage, setups }: { slug: string; connected: boolean; mock: boolean; provider: string | null; canManage: boolean; setups: SubscriptionSetups }) {
   const t = useTranslations("subscriptions.provider");
+  const ts = useTranslations("subscriptions");
   const router = useRouter();
   const [pending, start] = useTransition();
   const { say, view, clear } = useMessage();
@@ -63,8 +64,8 @@ export function ProviderControls({ slug, connected, mock, provider, canManage, s
         {connected && <Button size="sm" variant="outline" disabled={pending} data-testid="subs-resync" onClick={() => run(async () => { const r = await resyncSubscriptionsAction(slug); say(r, r.ok && r.data ? t("resync_done", { summary: r.data.summary }) : ""); })}>{t("resync")}</Button>}
         {connected && mock && (
           <>
-            <Button size="sm" variant="secondary" disabled={pending} onClick={() => run(async () => { const r = await simulateRenewalAction(slug, "success"); say(r, r.ok && r.data ? t("simulated", { summary: r.data.summary }) : ""); })}>{t("simulate_success")}</Button>
-            <Button size="sm" variant="secondary" disabled={pending} data-testid="subs-simulate-failure" onClick={() => run(async () => { const r = await simulateRenewalAction(slug, "card_expired"); say(r, r.ok && r.data ? t("simulated", { summary: r.data.summary }) : ""); })}>{t("simulate_failure")}</Button>
+            <Button size="sm" variant="secondary" disabled={pending} data-testid="subs-simulate-success" onClick={() => run(async () => { const r = await simulateRenewalAction(slug, "success"); say(r, r.ok && r.data ? ts(`simulation.${r.data.charge.outcome === "success" || r.data.charge.outcome === "gave_up" ? r.data.charge.outcome : "declined"}`, { customer: r.data.charge.customerName ?? "—", order: r.data.charge.orderName ?? "" }) : ""); })}>{t("simulate_success")}</Button>
+            <Button size="sm" variant="secondary" disabled={pending} data-testid="subs-simulate-failure" onClick={() => run(async () => { const r = await simulateRenewalAction(slug, "card_expired"); say(r, r.ok && r.data ? ts(`simulation.${r.data.charge.outcome === "success" || r.data.charge.outcome === "gave_up" ? r.data.charge.outcome : "declined"}`, { customer: r.data.charge.customerName ?? "—", order: r.data.charge.orderName ?? "" }) : ""); })}>{t("simulate_failure")}</Button>
           </>
         )}
         <Button size="sm" variant={connected ? "ghost" : "default"} onClick={() => setConnect((v) => !v)} aria-expanded={connect} data-testid="subs-setup-toggle">{connected ? t("reconnect") : t("connect")}</Button>
@@ -184,7 +185,7 @@ export function ContractActions({ slug, contractId, status, capabilities, lines,
 
 /* ---------- recovery: note, assign, payment link ---------- */
 
-export function RecoveryActions({ slug, contractId, canWrite, members, assignedTo, canSendLink }: { slug: string; contractId: string; canWrite: boolean; members: { id: string; name: string }[]; assignedTo: string | null; canSendLink: boolean }) {
+export function RecoveryActions({ slug, contractId, canWrite, members, assignedTo, canSendLink, mock = false }: { slug: string; contractId: string; canWrite: boolean; members: { id: string; name: string }[]; assignedTo: string | null; canSendLink: boolean; mock?: boolean }) {
   const t = useTranslations("subscriptions.recovery");
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -199,6 +200,12 @@ export function RecoveryActions({ slug, contractId, canWrite, members, assignedT
     <div className="flex flex-wrap items-center gap-2">
       {canSendLink && <Button size="sm" variant="outline" disabled={pending} data-testid="recovery-link" onClick={() => { setKey(newKey()); setLinkOpen(true); }}>{t("send_link")}</Button>}
       <Button size="sm" variant="ghost" disabled={pending} onClick={() => setNoteOpen(true)} data-testid="recovery-note">{t("add_note")}</Button>
+      {mock && <Button size="sm" variant="secondary" disabled={pending} data-testid="recovery-simulate-retry" onClick={() => start(async () => {
+        const r = await simulateRenewalAction(slug, "success", contractId);
+        // a recovered payment leaves the queue with its row: the page says what happened
+        if (r.ok) router.push(`/t/${slug}/subscriptions/recovery?recovered=${contractId}`);
+        else say(r, "");
+      })}>{t("simulate_retry")}</Button>}
       <Select size="sm" className="w-40" aria-label={t("assignee")} value={assignedTo ?? ""} disabled={pending} onChange={(e) => start(async () => { const r = await assignSubscriptionAction(slug, contractId, e.target.value || null); say(r, t("assigned")); router.refresh(); })}>
         <option value="">{t("unassigned")}</option>
         {members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}

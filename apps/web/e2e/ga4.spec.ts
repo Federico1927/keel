@@ -81,6 +81,8 @@ test.describe("GA4", () => {
     await expect(card.getByTestId("ga4-status")).toHaveText(/^Not connected$/);
     await page.goto("/t/harbor-home/integrations/guide/ga4");
     await expect(page.getByTestId("guide-step")).toHaveCount(9);
+    // the steps are words, not message keys (the guide page sends the ga4 namespace)
+    await expect(page.getByTestId("guide-step").first()).not.toContainText("ga4.setup");
     await expect(page.getByTestId("ga4-apis")).toContainText("analytics.readonly");
   });
 

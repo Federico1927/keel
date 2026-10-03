@@ -226,34 +226,24 @@ Drop the copy afterwards (`dropdb hullwise_restore`).
 
 ### Privacy requests (GDPR) and tenant deletion
 
-The merchant is the controller of its customers' data, Hullwise the processor; the platform owner answers the merchant. What works today:
+The merchant is the controller of its customers' data, Hullwise the processor; the platform owner answers the merchant. Every request below is handled in the app, audited, and needs no SQL:
 
 | Request | How it reaches us | What happens | Where to check |
 | --- | --- | --- | --- |
-| A customer's data (access) | Shopify `customers/data_request` at `API_URL/webhooks/shopify/compliance`, or the merchant asks | Logged, audited (`integration.compliance.customers.data_request`) and turned into a console task (**Alerts**, kind `compliance_request`) with the Hullwise customer id; no per-customer export exists yet (see gaps): open the customer in the tenant (**Customers → the customer**: profile, orders, returns) and, for a full copy, take the tenant export and keep the rows with that `customer_id` / its orders' ids | `/admin/alerts`; the tenant's **Audit log** |
-| Erase a customer | Shopify `customers/redact` (sent by Shopify 10 days after the merchant's erasure request) | **Automatic** since go-live (#88): the customer and the orders listed by Shopify (`orders_to_redact`, guest orders included) keep ids, amounts, dates, statuses, country and lines, and lose name, email, phone, addresses, order note and attributes, IBAN and customer note on returns, custom portal answers, free-text survey answers, raw webhook payloads, Meta/Google conversion payloads, storefront-pixel links and checkout IPs, WhatsApp/COD message recipients and bodies, COD risk profiles. One audit entry `customer.redacted` with counts, no personal data; no console task | The tenant's **Audit log**; the customer page shows an anonymous customer |
-| The store leaves (erase the shop) | Shopify `shop/redact` (48 h after uninstall), or the merchant asks | The Shopify connection is cleared at once (no credentials kept) and a console task asks for the tenant's deletion within 30 days | `/admin/alerts` |
+| A customer's data (access) | Shopify `customers/data_request` at `API_URL/webhooks/shopify/compliance`, or the merchant asks | **Automatic** for the webhook: the request is logged and audited (`integration.compliance.customers.data_request`), the customer's **data package** is built in the background (job `tenant.export`, a `customer` export) and the console task (**Alerts**, kind `compliance_request`) links to the download. The package is a zip: `customer-data.json` (profile, every order with addresses and lines, returns, shipments, payments, timeline and staff notes about the orders, messages and campaign deliveries, segment memberships, survey answers, storefront-pixel links, email opt-outs, emails sent to them with the recipient masked, COD/WhatsApp records when the add-ons hold any; found from the schema, so new tables are included), `orders.csv`, `order_lines.csv`. Secrets and encrypted blobs never leave. Kept 7 days; an expired or failed package is rebuilt from the task (**Build it again**). Asked outside Shopify: the owner opens **Customers → the customer → Privacy → Export customer data**. Review the package before forwarding it to the merchant (staff notes may name other people) | `/admin/alerts` (download link on the task); the tenant's **Audit log** (`customer.data_export_*`, downloads as `tenant.data_export_downloaded` with the customer id) |
+| Erase a customer | Shopify `customers/redact` (sent by Shopify 10 days after the merchant's erasure request), or the customer writes to the merchant or to us | **Automatic** for the webhook (#88). Asked outside Shopify: the owner or an admin opens **Customers → the customer → Privacy → Erase personal data** and types the customer's email to confirm; the platform owner can do the same from the console (tenant page, **Customer privacy requests**: find by email, then confirm). Same erasure in all cases: the customer and their orders keep ids, amounts, dates, statuses, country and lines, and lose name, email, phone, addresses, order note and attributes, IBAN and customer note on returns, custom portal answers, free-text survey answers, raw webhook payloads, Meta/Google conversion payloads, storefront-pixel links and checkout IPs, WhatsApp/COD message recipients and bodies, COD risk profiles. One audit entry `customer.redacted` with counts and who did it (user, impersonation or super-admin), no personal data | The tenant's **Audit log**; the customer page shows "Personal data erased" |
+| The store leaves (erase the shop) | Shopify `shop/redact` (48 h after uninstall), or the merchant asks | The Shopify connection is cleared at once (no credentials kept) and a console task asks for the tenant's deletion within 30 days: delete it from the console (below) | `/admin/alerts` |
 | A full copy of the store's data | The owner, or the platform owner for them | **Data export**: every tenant table, one CSV each, in a zip, read inside the tenant's RLS transaction; secrets, tokens and binary files excluded; background job `tenant.export`; kept 7 days; audited | Owner: **Settings → Data export** (`/t/<store>/settings/data-export`); console: the tenant's page, **Data export** card |
 
 Kept on purpose after a customer erasure: the store's suppression entries for that address (an opt-out must keep being honoured), staff notes and timeline diffs written by the team, audit entries, and backups until their retention expires. If the merchant asks for those too, edit them by hand.
 
-**Deleting a tenant** (no console button yet). Every tenant table references `tenants` with `ON DELETE CASCADE`, so one statement removes everything; rehearse it on a restored copy first.
+**Deleting a tenant** (console, tenant page → **Danger zone → Delete tenant…**, `/admin/tenants/<id>/delete`):
 
-1. If the merchant wants their data, run the **Data export** and send it.
-2. Cancel the subscription (console tenant page, **Subscription and invoices**; in Stripe too when billing is live) and move the tenant to **churned** (lifecycle control): its users are locked out. The console dashboard lists churned tenants past the 90-day retention.
-3. Take a manual backup (above).
-4. As `hullwise_admin`:
-
-   ```sql
-   begin;
-   select id, slug, name, status from tenants where id = '<tenant id>';   -- the right one, churned
-   insert into audit_logs (tenant_id, actor_type, action, entity_type, entity_id, metadata)
-     values (null, 'super_admin', 'tenant.deleted', 'tenant', '<tenant id>', '{"slug": "<slug>", "reason": "<shop/redact or request>"}');
-   delete from tenants where id = '<tenant id>';
-   commit;
-   ```
-
-5. Users who belonged only to that tenant keep an account without workspaces: disable or delete them in **Console → Users** if the request covers them. Resolve the console task. Backups keep the tenant until their retention expires.
+1. If the merchant wants their data, run the **Data export** on the tenant page and download it: the deletion page shows whether a final export was downloaded, and without one it asks for an explicit "the merchant does not want one".
+2. The page lists what will be deleted (rows per table, users left without a workspace, connected integrations, the subscription). Type the tenant's slug; for the two demo tenants (`northwind-apparel`, `harbor-home`) tick the extra confirmation too: the public demo breaks until the next reseed recreates them.
+3. On **Delete the tenant** the tenant moves to **churned** at once (its users are locked out) and the job `tenant.delete` runs (worker, or right after the response without one). It unregisters Hullwise's Shopify webhook subscriptions through the adapter (live stores; the simulator for mock ones) and drops every stored credential, cancels the subscription through the billing provider (Stripe: cancelled now, no final invoice; a subscription of a provider not configured on this deployment is reported "cancel it by hand"), deletes the rows table by table inside the tenant's RLS transaction, then the tenant row (which cascades its audit entries, job history, alerts and memberships). The page shows the progress; a failed run can be retried and resumes where it stopped.
+4. A platform audit entry `tenant.deleted` (`tenant_id` empty, so it survives) records who, when, the reason, row counts, the disconnect and billing outcome and the tenant's invoice list for the platform's own accounts; `tenant_deletions` keeps the same record (Console → **Audit log**, filter "platform", action `tenant.deleted`).
+5. Users who belonged only to that tenant keep an account without workspaces: disable or delete them in **Console → Users** if the request covers them. Resolve the console task. Backups keep the tenant until their retention expires. If the store had installed the public app, the merchant should also uninstall it in the Shopify admin (the token is already forgotten on our side).
 
 ### Shared demo + live deployment
 
@@ -278,7 +268,7 @@ Splitting later (when the first stores pay, or before showing the demo widely):
 
 1. Create a second Railway project (or environment) **demo**: Postgres, web, worker, same repository and branch, `HULLWISE_INTEGRATION_MODE=mock`, its own secrets (new `AUTH_SECRET`, `APP_ENCRYPTION_KEY`, role passwords), `HULLWISE_SEED_ON_DEPLOY=1` for its first deploy, its own domain (e.g. `demo.hullwise.app`), no `RESEND_API_KEY`, no Stripe live keys, no vendor apps.
 2. Point every public demo link (README, landing copy, sales emails) at the demo project's domain.
-3. In production, remove the demo: take a backup, then delete the demo and sample tenants with the tenant deletion statement above (one per slug) and the `.demo` users (`delete from users where email like '%.demo' and is_super_admin = false;`, after checking the list), and keep `HULLWISE_SEED_ON_DEPLOY` unset.
+3. In production, remove the demo: take a backup, then delete the demo and sample tenants from the console (tenant page → Danger zone, one per slug) and the `.demo` users (`delete from users where email like '%.demo' and is_super_admin = false;`, after checking the list), and keep `HULLWISE_SEED_ON_DEPLOY` unset.
 4. From then on production never runs the seed: `db:deploy` still runs `db:seed:settings`, which does nothing without demo tenants.
 
 ## Rename cutover

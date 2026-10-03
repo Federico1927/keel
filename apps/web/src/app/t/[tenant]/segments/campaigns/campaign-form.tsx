@@ -19,7 +19,7 @@ export interface CampaignFormValues {
   excludeOpenOrders: boolean;
 }
 
-export function CampaignForm({ slug, values, segments, currency }: { slug: string; values: CampaignFormValues; segments: { id: string; name: string; holdoutPercentage: number; lastCount: number | null }[]; currency: string }) {
+export function CampaignForm({ slug, values, segments, currency, delivery = {} }: { slug: string; values: CampaignFormValues; segments: { id: string; name: string; holdoutPercentage: number; lastCount: number | null }[]; currency: string; /** How each channel delivers today (server `campaignDeliveryFor`). */ delivery?: Record<string, string> }) {
   const t = useTranslations("retention");
   const tc = useTranslations("common");
   const router = useRouter();
@@ -71,6 +71,7 @@ export function CampaignForm({ slug, values, segments, currency }: { slug: strin
           ))}
         </Select>
         <p className="text-xs text-muted-foreground">{t(`channel_hint.${channel}`)}</p>
+        {delivery[channel] && delivery[channel] !== "external" && <p className="text-xs text-warning" data-testid="channel-delivery">{t(`delivery_hint.${delivery[channel]}`)}</p>}
       </div>
       {channel !== "manual" && (
         <div className="space-y-1 sm:col-span-2">

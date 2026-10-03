@@ -22,7 +22,8 @@
     "email_change"
   ],
   "app/admin/alerts/page.tsx": [
-    "admin"
+    "admin",
+    "privacy"
   ],
   "app/admin/audit/page.tsx": [],
   "app/admin/billing/page.tsx": [
@@ -69,12 +70,16 @@
     "support"
   ],
   "app/admin/support/page.tsx": [],
+  "app/admin/tenants/[id]/delete/page.tsx": [
+    "privacy"
+  ],
   "app/admin/tenants/[id]/page.tsx": [
     "admin",
     "admin_billing",
     "common",
     "data_export",
-    "mcp"
+    "mcp",
+    "privacy"
   ],
   "app/admin/tenants/new/page.tsx": [
     "admin",
@@ -223,6 +228,7 @@
   ],
   "app/t/[tenant]/customers/[id]/page.tsx": [
     "predictions",
+    "privacy",
     "rfm",
     "whatsapp"
   ],
@@ -297,6 +303,7 @@
   "app/t/[tenant]/integrations/guide/[provider]/page.tsx": [
     "cod",
     "common",
+    "ga4",
     "integration_guide",
     "integration_setup"
   ],
@@ -608,6 +615,7 @@
   "app/t/[tenant]/subscriptions/cancellations/page.tsx": [
     "cod",
     "common",
+    "ga4",
     "integration_guide",
     "integration_setup",
     "integrations",
@@ -616,6 +624,7 @@
   "app/t/[tenant]/subscriptions/page.tsx": [
     "cod",
     "common",
+    "ga4",
     "integration_guide",
     "integration_setup",
     "integrations",
@@ -624,6 +633,7 @@
   "app/t/[tenant]/subscriptions/recovery/page.tsx": [
     "cod",
     "common",
+    "ga4",
     "integration_guide",
     "integration_setup",
     "integrations",
@@ -633,6 +643,7 @@
   "app/t/[tenant]/subscriptions/subscribers/[id]/page.tsx": [
     "cod",
     "common",
+    "ga4",
     "integration_guide",
     "integration_setup",
     "integrations",
@@ -661,6 +672,10 @@
     "common",
     "roles",
     "users"
+  ],
+  "app/t/[tenant]/whatsapp/page.tsx": [
+    "common",
+    "whatsapp"
   ],
   "app/t/[tenant]/whatsapp/settings/page.tsx": [
     "accounting",

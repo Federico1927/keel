@@ -4,6 +4,7 @@ import * as schema from "../src/schema";
 import { testPools } from "../src/test-utils";
 import { ensureDemoSettings, ensurePlatformOwner, seedPlatform, type SeedContext } from "../src/seed";
 import { seedDomainForTests } from "./seed-for-tests";
+import { SCHEDULED_SHOWCASE_CAMPAIGN, WHATSAPP_SHOWCASE_CAMPAIGN } from "../src/seed/addon-showcase";
 
 const pools = testPools();
 let ctx: SeedContext;
@@ -79,6 +80,42 @@ describe("demo settings step (db:seed:settings)", () => {
   });
 });
 
+describe("add-on showcase on a deployed demo (#9, #34)", () => {
+  it("adds the WhatsApp campaign, its messages, the customer threads and the scheduled campaign once, and re-enables nothing switched off", async () => {
+    const northwind = ctx.tenantIds.northwind;
+    const showcase = async () => (await pools.admin.select().from(schema.retentionCampaigns).where(and(eq(schema.retentionCampaigns.tenantId, northwind), eq(schema.retentionCampaigns.name, WHATSAPP_SHOWCASE_CAMPAIGN))))[0];
+    // the full seed already has them: a measured WhatsApp campaign with its Spoki log, the threads with one awaiting reply
+    const seeded = await showcase();
+    expect(seeded).toMatchObject({ channel: "whatsapp", status: "sent" });
+    expect(seeded!.deliveredCount).toBeGreaterThan(0);
+    const logged = await pools.admin.select().from(schema.spokiMessages).where(eq(schema.spokiMessages.campaignId, seeded!.id));
+    expect(logged.filter((m) => m.direction === "outbound")).toHaveLength(seeded!.deliveredCount);
+    expect(logged.some((m) => m.direction === "inbound")).toBe(true);
+    const conv = await pools.admin.select().from(schema.spokiMessages).where(and(eq(schema.spokiMessages.tenantId, northwind), sql`${schema.spokiMessages.providerMessageId} like 'seed-spk-conv-%'`));
+    expect(conv.some((m) => m.purpose === "manual" && m.sentBy === ctx.userIds["care@northwind.demo"])).toBe(true);
+    // a demo deployed before the showcase: no showcase rows, the WhatsApp add-on row missing, campaigns switched off in the console
+    await pools.admin.delete(schema.spokiMessages).where(sql`${schema.spokiMessages.campaignId} = ${seeded!.id} or ${schema.spokiMessages.providerMessageId} like 'seed-spk-conv-%'`);
+    await pools.admin.delete(schema.retentionCampaigns).where(and(eq(schema.retentionCampaigns.tenantId, northwind), sql`${schema.retentionCampaigns.name} in (${WHATSAPP_SHOWCASE_CAMPAIGN}, ${SCHEDULED_SHOWCASE_CAMPAIGN})`));
+    await pools.admin.delete(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, northwind), eq(schema.tenantAddons.moduleKey, "addon.whatsapp_spoki")));
+    await pools.admin.update(schema.tenantAddons).set({ isActive: false }).where(and(eq(schema.tenantAddons.tenantId, northwind), eq(schema.tenantAddons.moduleKey, "addon.customer_campaigns")));
+    const off = (await ensureDemoSettings(pools.admin)).find((r) => r.tenant === "northwind-apparel")!;
+    expect(off.created).toEqual(expect.arrayContaining(["tenant_addons:addon.whatsapp_spoki", "spoki_messages:conversations"]));
+    expect(off.created.some((c) => c.startsWith("retention_campaigns:"))).toBe(false);
+    const [campaigns] = await pools.admin.select().from(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, northwind), eq(schema.tenantAddons.moduleKey, "addon.customer_campaigns")));
+    expect(campaigns!.isActive).toBe(false);
+    // switched back on: the campaigns and the campaign messages arrive on the next deploy, then nothing more
+    await pools.admin.update(schema.tenantAddons).set({ isActive: true }).where(and(eq(schema.tenantAddons.tenantId, northwind), eq(schema.tenantAddons.moduleKey, "addon.customer_campaigns")));
+    const on = (await ensureDemoSettings(pools.admin)).find((r) => r.tenant === "northwind-apparel")!;
+    expect(on.created).toEqual(expect.arrayContaining(["retention_campaigns:whatsapp_showcase", "retention_campaigns:scheduled_showcase", "spoki_messages:campaign"]));
+    const again = await showcase();
+    expect(again!.deliveredCount).toBeGreaterThan(0);
+    const [scheduled] = await pools.admin.select().from(schema.retentionCampaigns).where(and(eq(schema.retentionCampaigns.tenantId, northwind), eq(schema.retentionCampaigns.name, SCHEDULED_SHOWCASE_CAMPAIGN)));
+    expect(scheduled).toMatchObject({ status: "scheduled" });
+    expect(scheduled!.scheduledAt!.getTime()).toBeGreaterThan(Date.now());
+    expect((await ensureDemoSettings(pools.admin)).every((r) => r.created.length === 0)).toBe(true);
+  });
+});
+
 describe("platform owner step (db:seed:settings)", () => {
   it("creates the owner once, keeps its password afterwards, and takes the console away from the demo super-admin", async () => {
     const email = "owner-test@example.com";
@@ -102,5 +139,38 @@ describe("platform owner step (db:seed:settings)", () => {
       await pools.admin.delete(schema.users).where(eq(schema.users.email, email));
       await pools.admin.update(schema.users).set({ isSuperAdmin: true }).where(eq(schema.users.email, demo));
     }
+  });
+
+  it("previews the add-ons in development on the demo: their row, the care user and their demo data, never re-enabling one switched off (#67, #85)", async () => {
+    const harbor = ctx.tenantIds.harbor;
+    const northwind = ctx.tenantIds.northwind;
+    // a production seeded before the add-ons: no add-on rows, no care user, no accounting push log
+    await pools.admin.delete(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, harbor), eq(schema.tenantAddons.moduleKey, "addon.subscriptions")));
+    await pools.admin.delete(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, northwind), eq(schema.tenantAddons.moduleKey, "addon.accounting")));
+    await pools.admin.delete(schema.accountingJournals).where(eq(schema.accountingJournals.tenantId, northwind));
+    await pools.admin.execute(sql`update users set email = 'care-before@harborhome.demo' where email = 'care@harborhome.demo'`);
+    const report = await ensureDemoSettings(pools.admin);
+    expect(report.find((r) => r.tenant === "harbor-home")!.created).toEqual(expect.arrayContaining(["tenant_addons:addon.subscriptions", "user:care@harborhome.demo"]));
+    // the subscribers are still there: not seeded twice
+    expect(report.find((r) => r.tenant === "harbor-home")!.created).not.toContain("subscription_demo_data");
+    expect(report.find((r) => r.tenant === "northwind-apparel")!.created).toEqual(expect.arrayContaining(["tenant_addons:addon.accounting", "accounting_journals"]));
+    const [row] = await pools.admin.select().from(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, harbor), eq(schema.tenantAddons.moduleKey, "addon.subscriptions")));
+    expect(row).toMatchObject({ isActive: true, version: null });
+    const journals = await pools.admin.select({ status: schema.accountingJournals.status }).from(schema.accountingJournals).where(eq(schema.accountingJournals.tenantId, northwind));
+    expect(new Set(journals.map((j) => j.status))).toEqual(new Set(["pushed", "waiting", "failed", "voided", ...(journals.some((j) => j.status === "empty") ? ["empty"] : [])]));
+    const [care] = await pools.admin.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, "care@harborhome.demo"));
+    const [m] = await pools.admin.select({ role: schema.tenantMemberships.role }).from(schema.tenantMemberships).where(and(eq(schema.tenantMemberships.userId, care!.id), eq(schema.tenantMemberships.tenantId, harbor)));
+    expect(m!.role).toBe("customer_care");
+    // switched off from the console: stays off
+    await pools.admin.update(schema.tenantAddons).set({ isActive: false }).where(eq(schema.tenantAddons.id, row!.id));
+    const again = await ensureDemoSettings(pools.admin);
+    expect(again.every((r) => r.created.length === 0)).toBe(true);
+    const [after] = await pools.admin.select({ isActive: schema.tenantAddons.isActive }).from(schema.tenantAddons).where(eq(schema.tenantAddons.id, row!.id));
+    expect(after!.isActive).toBe(false);
+    await pools.admin.update(schema.tenantAddons).set({ isActive: true }).where(eq(schema.tenantAddons.id, row!.id));
+    // put the seeded care user back for the other suites
+    await pools.admin.delete(schema.tenantMemberships).where(eq(schema.tenantMemberships.userId, care!.id));
+    await pools.admin.delete(schema.users).where(eq(schema.users.id, care!.id));
+    await pools.admin.execute(sql`update users set email = 'care@harborhome.demo' where email = 'care-before@harborhome.demo'`);
   });
 });

@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, schema, sql } from "@hullwise/db";
 import { TENANT_ROLES, canDo, type TenantRole } from "@hullwise/config";
-import { RETENTION_CAMPAIGN_KINDS, RETENTION_CHANNELS, campaignUplift, canApproveCampaign, isCampaignEditable, nextCampaignStatus, type RetentionCampaignAction, type CustomerOutcome, type RetentionCampaignKind, type RetentionCampaignStatus, type RetentionChannel, type UpliftReport } from "@hullwise/core";
+import { SALE_STATUSES, RETENTION_CAMPAIGN_KINDS, RETENTION_CHANNELS, campaignUplift, canApproveCampaign, isCampaignEditable, nextCampaignStatus, type RetentionCampaignAction, type CustomerOutcome, type RetentionCampaignKind, type RetentionCampaignStatus, type RetentionChannel, type UpliftReport } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { orderEconomicsForPeriod, type AnalyticsTenant } from "../analytics";
 import { membersWithRoles } from "../notifications/system";
@@ -252,4 +252,43 @@ export async function retentionCampaignDetail(ctx: ServiceContext, tenant: Analy
   const names = new Map(ids.length ? (await ctx.tx.select({ id: schema.users.id, name: schema.users.name, email: schema.users.email }).from(schema.users).where(inArray(schema.users.id, ids))).map((u) => [u.id, u.name ?? u.email]) : []);
   const who = (id: string | null) => (id ? (names.get(id) ?? null) : null);
   return { campaign: c, segment: segment ?? null, results: await retentionCampaignResults(ctx, tenant, campaignId), exposureStatus, progress, people: { createdBy: who(c.createdBy), submittedBy: who(c.submittedBy), approvedBy: who(c.approvedBy), scheduledBy: who(c.scheduledBy), testSentBy: who(c.testSentBy) } };
+}
+
+export interface CampaignRecipient {
+  customerId: string;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  group: string;
+  status: string;
+  exposedAt: Date;
+  sentAt: Date | null;
+  error: string | null;
+  /** Sale-scope orders placed within the attribution window after exposure (what the results count). */
+  orders: number;
+}
+
+/**
+ * Who a campaign reached, page by page: each exposed customer with their group (treated or control),
+ * the message status and whether they ordered within the attribution window, so the control group
+ * is something one can look at, not only a number. Filter by group; treated first, then by name.
+ */
+export async function campaignRecipients(ctx: ServiceContext, campaignId: string, f: { group?: "treated" | "holdout" | null; limit?: number; offset?: number } = {}): Promise<{ rows: CampaignRecipient[]; total: number; byGroup: Record<string, number> }> {
+  const c = await loadCampaign(ctx, campaignId);
+  const limit = Math.min(f.limit ?? 25, 100);
+  const group = f.group ? sql`and e.group_name = ${f.group}` : sql``;
+  const counts = (await ctx.tx.execute<{ group_name: string; n: number }>(sql`select group_name, count(*)::int as n from retention_exposures where tenant_id = ${ctx.tenantId} and campaign_id = ${c.id} group by 1`)).rows;
+  const byGroup = Object.fromEntries(counts.map((r) => [r.group_name, Number(r.n)]));
+  const rows = (await ctx.tx.execute<{ customer_id: string; first_name: string | null; last_name: string | null; email: string | null; phone_e164: string | null; group_name: string; status: string; exposed_at: Date | string; sent_at: Date | string | null; error: string | null; orders: number }>(sql`
+    select e.customer_id, cu.first_name, cu.last_name, cu.email, cu.phone_e164, e.group_name, e.status, e.exposed_at, e.sent_at, e.error,
+      (select count(*)::int from orders o where o.tenant_id = e.tenant_id and o.customer_id = e.customer_id and o.placed_at > e.exposed_at and o.placed_at <= e.exposed_at + make_interval(days => ${c.attributionDays}) and o.status = any(${sql.param([...SALE_STATUSES])}::text[])) as orders
+    from retention_exposures e join customers cu on cu.id = e.customer_id
+    where e.tenant_id = ${ctx.tenantId} and e.campaign_id = ${c.id} ${group}
+    order by e.group_name = 'holdout', orders desc, cu.last_name nulls last, cu.first_name nulls last, e.customer_id
+    limit ${limit} offset ${Math.max(0, f.offset ?? 0)}`)).rows;
+  return {
+    byGroup,
+    total: f.group ? (byGroup[f.group] ?? 0) : counts.reduce((a, r) => a + Number(r.n), 0),
+    rows: rows.map((r) => ({ customerId: r.customer_id, name: [r.first_name, r.last_name].filter(Boolean).join(" ") || null, email: r.email, phone: r.phone_e164, group: r.group_name, status: r.status, exposedAt: new Date(r.exposed_at), sentAt: r.sent_at ? new Date(r.sent_at) : null, error: r.error, orders: Number(r.orders) })),
+  };
 }

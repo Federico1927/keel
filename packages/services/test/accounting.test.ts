@@ -4,7 +4,7 @@ import { testPools } from "@hullwise/db/test-utils";
 import { DEMO_TENANTS, seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
 import { isPageEnabled } from "@hullwise/config";
 import { addDaysToKey, localDateKey, parseTenantSettings, pct, type TenantSettings } from "@hullwise/core";
-import { ACCOUNTING_MCP_TOOLS, AccountingError, accountingPushLog, dailySalesSummaryFor, getAccountingProviderFor, mockAccountingFor, repushAccountingDay, resetMockAccounting, retryAccountingDay, runAccountingPush, salesDayOrders, saveAccountingSettings, getAccountingState, toolDenial, type AnalyticsTenant, type ServiceContext } from "../src";
+import { ACCOUNTING_MCP_TOOLS, AccountingError, accountingPushLog, accountingReconciliation, dailySalesSummaryFor, getAccountingProviderFor, mockAccountingFor, repushAccountingDay, resetMockAccounting, retryAccountingDay, runAccountingPush, salesDayOrders, saveAccountingSettings, getAccountingState, toolDenial, type AnalyticsTenant, type ServiceContext } from "../src";
 
 const pools = testPools();
 let ctx: SeedContext;
@@ -108,6 +108,14 @@ describe("seeded push log", () => {
     const [h] = (await pools.admin.execute<{ n: number }>(sql`select count(*)::int as n from accounting_journals where tenant_id = ${harbor}`)).rows;
     expect(h!.n).toBe(0);
   });
+
+  it("the reconciliation finds the one seeded day pushed before an order synced; every other pushed day matches the summary", async () => {
+    const r = await nwOwner()((svc) => accountingReconciliation(svc, nw));
+    expect(r.checked).toBeGreaterThan(5);
+    expect(r.drifts).toHaveLength(1);
+    expect(r.drifts[0]!.differenceMinor).toBeGreaterThan(0);
+    expect(r.drifts[0]!.lines.map((l) => l.line)).toEqual(expect.arrayContaining(["sales", "clearing"]));
+  });
 });
 
 describe("push", () => {
@@ -203,6 +211,19 @@ describe("push", () => {
     expect(row).toMatchObject({ status: "pushed", attempts: 2, lastError: null });
     const [health] = await pools.admin.select().from(schema.integrationHealth).where(and(eq(schema.integrationHealth.tenantId, northwind), eq(schema.integrationHealth.source, "accounting:writes")));
     expect(health!.status).toBe("ok");
+  });
+  it("reconciliation: an order synced after the push makes the day differ line by line; re-pushing it reconciles", async () => {
+    expect((await nwOwner(NOW)((svc) => accountingReconciliation(svc, nw, { days: [DAY] }))).drifts).toEqual([]);
+    await pools.admin.insert(schema.orders).values({ tenantId: northwind, orderNumber: 990_020, name: "#NW-T20", externalId: "acct-test-20", currency: "EUR", shippingCountry: "IT", placedAt: new Date("2024-06-15T10:00:00Z"), status: "delivered", paymentMethod: "card", paymentStatus: "paid", totalMinor: 6100, taxMinor: 1100, subtotalMinor: 6100 });
+    const r = await nwOwner(NOW)((svc) => accountingReconciliation(svc, nw, { days: [DAY] }));
+    expect(r.checked).toBe(1);
+    expect(r.drifts).toHaveLength(1);
+    const sales = r.drifts[0]!.lines.find((l) => l.line === "sales")!;
+    // by hand: 6100 gross with 22% tax inside → 5000 more sales (a credit, negative in debit − credit)
+    expect(sales.currentMinor - sales.pushedMinor).toBe(-5000);
+    expect(r.drifts[0]!.lines.find((l) => l.line === "tax")!.currentMinor - r.drifts[0]!.lines.find((l) => l.line === "tax")!.pushedMinor).toBe(-1100);
+    await nwOwner(NOW)((svc) => repushAccountingDay(svc, nw, DAY, { note: "late order" }));
+    expect((await nwOwner(NOW)((svc) => accountingReconciliation(svc, nw, { days: [DAY] }))).drifts).toEqual([]);
   });
 });
 

@@ -7,3 +7,4 @@ export * from "./risk";
 export * from "./segments";
 export * from "./widgets";
 export * from "./mcp";
+export * from "./simulate";
