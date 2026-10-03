@@ -27,7 +27,8 @@ test.describe("accounting tour · desktop", () => {
     for (const status of ["waiting", "failed", "voided", "pushed"]) {
       await page.getByTestId("accounting-filters").getByRole("link", { name: { waiting: "Waiting", failed: "Failed", voided: "Voided", pushed: "Pushed" }[status]! }).click();
       await page.waitForURL(new RegExp(`status=${status}`));
-      await expect(page.getByTestId("accounting-row").first()).toHaveAttribute("data-status", status);
+      // only rows of that status (the retry test in this file may already have pushed the seeded failed day)
+      await expect(page.locator(`[data-testid=accounting-row]:not([data-status=${status}])`)).toHaveCount(0);
     }
     await page.getByTestId("accounting-row").first().getByRole("link").first().click();
     await page.waitForURL(/\/accounting\/\d{4}-\d{2}-\d{2}$/);

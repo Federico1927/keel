@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import * as config from "@hullwise/config";
 
 /**
  * Keeps src/i18n/client-namespaces.json in step with the code (#49 performance): for every page and
@@ -148,6 +149,13 @@ describe("client message namespaces (#49 performance)", () => {
       if (r.endsWith("/layout.tsx") && !src.includes(`route="${key}"`)) offenders.push(`${key}: <IntlScope route="${key}">`);
     }
     expect(offenders).toEqual([]);
+  });
+
+  it("the setup checklist declares the namespace of every integration guide (guide pages render it)", () => {
+    const declared = namespacesOf(readFileSync(path.join(SRC, "components/integration-setup.tsx"), "utf8")).namespaces;
+    const guides = Object.values(config).filter((v): v is { namespace: string } => typeof v === "object" && v !== null && "namespace" in v && "steps" in v);
+    expect(guides.length).toBeGreaterThan(5);
+    expect(guides.map((g) => g.namespace.split(".")[0]!).filter((ns) => !declared.has(ns))).toEqual([]);
   });
 
   it("the analysis reads literal, root and declared namespaces", () => {

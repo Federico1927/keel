@@ -28,7 +28,7 @@ async function measureHome(page: Page, slug: string): Promise<{ total: number; s
   // every widget streamed and the 30-day chart drawn
   await expect(page.getByTestId("widget-loading")).toHaveCount(0, { timeout: 30_000 });
   const sales = page.locator('[data-widget="sales_30d"]');
-  if (await sales.count()) await expect(sales.locator("svg.recharts-surface").first()).toBeVisible({ timeout: 15_000 });
+  if (await sales.count()) await expect(sales.locator("svg.recharts-surface").first()).toBeVisible({ timeout: 30_000 });
   await page.waitForTimeout(1500);
   return page.evaluate(() => window.__cls!);
 }

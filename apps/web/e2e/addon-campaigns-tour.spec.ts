@@ -128,7 +128,8 @@ test.describe("addon.customer_campaigns tour", () => {
       await expect(owner.getByTestId("campaign-recipients").getByTestId("recipient-row").first()).toBeVisible();
       // the messages are in the WhatsApp conversations, newest first
       await owner.goto(`${NW}/whatsapp`);
-      await expect(owner.getByTestId("conversation-row").first()).toContainText(/TOUR10/);
+      // other specs message Northwind customers at the same time: look for the campaign's row, not the first one
+      await expect(owner.getByTestId("conversation-row").filter({ hasText: /TOUR10/ }).first()).toBeVisible();
     } finally {
       await campaignSettings(owner, "9", "20", "3", true, "60");
     }

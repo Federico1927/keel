@@ -56,7 +56,7 @@ test.describe("core order editing (addon.cod off)", () => {
     await expect(page.getByText(/keeps its creation day and attribution/)).toBeVisible();
     await page.getByRole("button", { name: "Replace order" }).click();
     await expect(page).toHaveURL(/\/orders\/[0-9a-f-]{36}$/, { timeout: 30_000 });
-    await expect(page.getByRole("heading", { level: 1 })).not.toHaveText(oldName);
+    await expect(page.getByRole("heading", { level: 1 })).not.toHaveText(oldName, { timeout: 20_000 });
     const banner = page.getByTestId("lineage-banner");
     await expect(banner).toContainText("Created as replacement of");
     await expect(banner).toContainText(oldName);

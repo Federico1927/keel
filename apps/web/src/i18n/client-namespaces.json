@@ -303,6 +303,7 @@
   "app/t/[tenant]/integrations/guide/[provider]/page.tsx": [
     "cod",
     "common",
+    "ga4",
     "integration_guide",
     "integration_setup"
   ],
@@ -614,6 +615,7 @@
   "app/t/[tenant]/subscriptions/cancellations/page.tsx": [
     "cod",
     "common",
+    "ga4",
     "integration_guide",
     "integration_setup",
     "integrations",
@@ -622,6 +624,7 @@
   "app/t/[tenant]/subscriptions/page.tsx": [
     "cod",
     "common",
+    "ga4",
     "integration_guide",
     "integration_setup",
     "integrations",
@@ -630,6 +633,7 @@
   "app/t/[tenant]/subscriptions/recovery/page.tsx": [
     "cod",
     "common",
+    "ga4",
     "integration_guide",
     "integration_setup",
     "integrations",
@@ -639,6 +643,7 @@
   "app/t/[tenant]/subscriptions/subscribers/[id]/page.tsx": [
     "cod",
     "common",
+    "ga4",
     "integration_guide",
     "integration_setup",
     "integrations",
