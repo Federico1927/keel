@@ -297,6 +297,7 @@
     "coming_soon": "Próximamente"
   },
   "studio": {
+    "eyebrow": "A medida",
     "title": "¿Necesitas un sistema hecho a tu medida, no un producto?",
     "body": "{studio}, el estudio detrás de {product}, diseña y construye desde cero automatizaciones y sistemas internos a medida, para cualquier empresa, no solo e-commerce.",
     "link": "Visita {studio}"

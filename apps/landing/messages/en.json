@@ -297,6 +297,7 @@
     "coming_soon": "Coming soon"
   },
   "studio": {
+    "eyebrow": "Custom build",
     "title": "Need a system built around you, not a product?",
     "body": "{studio}, the studio behind {product}, designs and builds custom automations and internal systems from scratch, for any business, not only e-commerce.",
     "link": "Visit {studio}"

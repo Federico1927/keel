@@ -1,5 +1,5 @@
 import { ArrowUpRight, BookOpenCheck, Code2, Megaphone, MessageCircle, PhoneCall, Puzzle, Repeat } from "lucide-react";
-import { Section } from "@/components/ui";
+import { ButtonLink, Section } from "@/components/ui";
 import { ADDONS, addonOnSale } from "@/config/pricing";
 import { PRODUCT_NAME, STUDIO_NAME, studioHref, type LandingLocale } from "@/config/site";
 import { getTranslator } from "@/i18n/messages";
@@ -46,20 +46,27 @@ export function Addons({ locale }: { locale: LandingLocale }) {
           );
         })}
       </ul>
-      <aside className="mt-8 flex flex-col gap-4 rounded-lg border border-dashed border-border bg-background p-6 sm:flex-row sm:items-center sm:justify-between">
+      <aside className="mt-10 flex flex-col gap-6 rounded-xl border border-primary/40 bg-primary/5 p-6 sm:p-8 md:flex-row md:items-center md:justify-between">
         <div>
-          <h3 className="text-lg font-semibold">{t("studio.title")}</h3>
-          <p className="mt-2 max-w-2xl leading-relaxed text-muted-foreground">
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+            {t("studio.eyebrow")}
+          </p>
+          <h3 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">
+            {t("studio.title")}
+          </h3>
+          <p className="mt-3 max-w-2xl leading-relaxed text-muted-foreground">
             {t("studio.body", { studio: STUDIO_NAME, product: PRODUCT_NAME })}
           </p>
         </div>
-        <a
+        <ButtonLink
           href={studioHref(locale, "addons")}
-          className="inline-flex shrink-0 items-center gap-1 font-medium text-primary hover:underline"
+          variant="outline"
+          size="lg"
+          className="shrink-0 self-start md:self-center"
         >
           {t("studio.link", { studio: STUDIO_NAME })}
           <ArrowUpRight className="size-4" aria-hidden="true" />
-        </a>
+        </ButtonLink>
       </aside>
     </Section>
   );
