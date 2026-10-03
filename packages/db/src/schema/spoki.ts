@@ -39,7 +39,7 @@ export const spokiMessages = pgTable(
     ...tenantColumns(),
     /** outbound | inbound */
     direction: text("direction").notNull(),
-    /** cod | order_confirmed | order_shipped | order_delivered | campaign | test | reply | external */
+    /** cod | order_confirmed | order_shipped | order_delivered | campaign | test | manual (a team reply) | reply | external */
     purpose: text("purpose").notNull(),
     providerMessageId: text("provider_message_id"),
     idempotencyKey: text("idempotency_key"),

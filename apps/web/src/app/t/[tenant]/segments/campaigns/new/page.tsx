@@ -6,6 +6,7 @@ import { listSegments } from "@hullwise/services";
 import { Card, CardContent, EmptyState, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { CampaignForm } from "../campaign-form";
+import { campaignDeliveryFor } from "@/server/campaigns";
 
 import { withIntl } from "@/i18n/intl-scope";
 async function NewRetentionCampaignPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ segment?: string }> }) {
@@ -26,7 +27,7 @@ async function NewRetentionCampaignPage({ params, searchParams }: { params: Prom
       ) : (
         <Card>
           <CardContent className="pt-6">
-            <CampaignForm slug={tenant} segments={options} currency={ctx.tenant.currency} values={{ name: "", segmentId: preselected, channel: "email", kind: "one_off", message: "", discountCode: null, costPerMessageMinor: 0, attributionDays: 14, excludeOpenOrders: true }} />
+            <CampaignForm slug={tenant} segments={options} currency={ctx.tenant.currency} delivery={await campaignDeliveryFor(ctx)} values={{ name: "", segmentId: preselected, channel: "email", kind: "one_off", message: "", discountCode: null, costPerMessageMinor: 0, attributionDays: 14, excludeOpenOrders: true }} />
           </CardContent>
         </Card>
       )}

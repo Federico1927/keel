@@ -668,6 +668,10 @@
     "roles",
     "users"
   ],
+  "app/t/[tenant]/whatsapp/page.tsx": [
+    "common",
+    "whatsapp"
+  ],
   "app/t/[tenant]/whatsapp/settings/page.tsx": [
     "accounting",
     "cod",

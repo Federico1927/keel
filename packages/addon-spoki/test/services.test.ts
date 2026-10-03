@@ -5,7 +5,7 @@ import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
 import { MockSpokiChannel } from "@hullwise/integrations";
 import { suppressedContacts, toolDenial, type ServiceContext } from "@hullwise/services";
 import { applyCodReply, applyMessageStatus, sendCodMessage, syncQueue } from "@hullwise/addon-cod";
-import { SPOKI_MCP_TOOLS, getSpokiApiFor, getSpokiSettings, mockSpokiFor, processSpokiWebhookEvent, recordSpokiWebhook, retrySpokiWebhooks, runOrderNotifications, saveSpokiSettings, spokiChannelInTx, spokiMessagingChannel, type SpokiHooks, type TenantRun } from "../src";
+import { SPOKI_MCP_TOOLS, getSpokiApiFor, getSpokiSettings, listSpokiConversations, mockSpokiFor, sendSpokiReply, spokiConversation, processSpokiWebhookEvent, recordSpokiWebhook, retrySpokiWebhooks, runOrderNotifications, saveSpokiSettings, spokiChannelInTx, spokiMessagingChannel, type SpokiHooks, type TenantRun } from "../src";
 
 const pools = testPools();
 let ctx: SeedContext;
@@ -202,6 +202,48 @@ describe("webhook retries and order notifications", () => {
     await expect(owner((s) => saveSpokiSettings(s, { senderNumber: "12" }))).rejects.toMatchObject({ code: "invalid_input" });
     const [a] = await system((s) => s.tx.select().from(schema.auditLogs).where(and(eq(schema.auditLogs.tenantId, tenantId), eq(schema.auditLogs.action, "spoki.settings_updated"))).orderBy(desc(schema.auditLogs.createdAt)).limit(1));
     expect(a!.diff).toHaveProperty("senderNumber");
+  });
+});
+
+describe("conversations and team replies", () => {
+  it("groups the log by number, flags the threads awaiting a reply, and answers within the 24-hour window only", async () => {
+    // a customer answers a shipping notice: their thread is awaiting a reply, the window is open
+    const [o] = await system((s) => s.tx.select().from(schema.orders).where(and(eq(schema.orders.tenantId, tenantId), sql`${schema.orders.phoneE164} is not null`, sql`not exists (select 1 from spoki_messages m where m.phone = ${schema.orders.phoneE164})`)).limit(1));
+    const { messageId } = await owner(async (s) => (await spokiChannelInTx(s, { purpose: "order_shipped", orderId: o!.id, country: "IT" })).sendMessage({ to: o!.phoneE164!, template: "order_shipped", variables: { order_name: o!.name }, idempotencyKey: `conv-test:${o!.id}` }));
+    await deliver(MockSpokiChannel.inboundBody(o!.phoneE164!, "Posso cambiare indirizzo?", { replyTo: messageId, messageId: "in-conv-1" }), {});
+    const list = await owner((s) => listSpokiConversations(s, { awaitingOnly: true, limit: 100 }));
+    const row = list.rows.find((r) => r.phone === o!.phoneE164);
+    expect(row).toMatchObject({ awaitingReply: true, windowOpen: true, lastDirection: "inbound", lastBody: "Posso cambiare indirizzo?" });
+    expect(list.awaiting).toBeGreaterThanOrEqual(1);
+    const thread = await owner((s) => spokiConversation(s, row!.lastMessageId));
+    expect(thread!.messages.map((m) => m.m.direction).slice(-2)).toEqual(["outbound", "inbound"]);
+    expect(thread!.windowOpen).toBe(true);
+    // the team answers in free text: logged as a manual message on the thread's order, the thread is no longer awaiting
+    const before = mockSpokiFor(tenantId).sent.length;
+    const r = await as("care@northwind.demo")((s) => sendSpokiReply(s, { messageId: row!.lastMessageId, text: "Certo, mandaci il nuovo indirizzo.", country: "IT" }));
+    expect(r.orderId).toBe(o!.id);
+    expect(mockSpokiFor(tenantId).sent.at(-1)).toMatchObject({ to: o!.phoneE164, templateId: null, text: "Certo, mandaci il nuovo indirizzo." });
+    expect(mockSpokiFor(tenantId).sent.length).toBe(before + 1);
+    expect(await message(r.messageId)).toMatchObject({ direction: "outbound", purpose: "manual", orderId: o!.id, sentBy: ctx.userIds["care@northwind.demo"] });
+    const all = await owner((s) => listSpokiConversations(s, { limit: 100 }));
+    expect(all.rows.find((x) => x.phone === o!.phoneE164)).toMatchObject({ awaitingReply: false, lastPurpose: "manual" });
+    // more than 24 hours after the customer's last message: refused, nothing sent
+    const later = { now: new Date(Date.now() + 25 * 3600e3) };
+    await expect(withTenant(tenantId, (tx) => sendSpokiReply({ tenantId, tx, actor: { type: "user", userId: ctx.userIds["owner@northwind.demo"]! }, ...later }, { messageId: row!.lastMessageId, text: "Ci sei?" }), pools.app)).rejects.toMatchObject({ code: "window_closed" });
+    expect(mockSpokiFor(tenantId).sent.length).toBe(before + 1);
+    await expect(owner((s) => sendSpokiReply(s, { messageId: row!.lastMessageId, text: "   " }))).rejects.toMatchObject({ code: "invalid_input" });
+  });
+
+  it("an opt-out, or a COD keyword the queue acted on, does not wait for an answer", async () => {
+    const stop = await message("in-stop-1");
+    const confirm = await message("in-confirm-1");
+    const plain = await owner((s) => listSpokiConversations(s, { limit: 100, awaitingOnly: true }));
+    expect(plain.rows.map((r) => r.phone)).not.toContain(stop.phone);
+    // without the COD keywords (addon.cod off) the "Sì!" is just a customer message waiting for someone
+    expect(plain.rows.map((r) => r.phone)).toContain(confirm.phone);
+    const withCod = await owner((s) => listSpokiConversations(s, { limit: 100, awaitingOnly: true, autoReplies: ["sì", "no"] }));
+    expect(withCod.rows.map((r) => r.phone)).not.toContain(confirm.phone);
+    expect(withCod.awaiting).toBeLessThan(plain.awaiting);
   });
 });
 

@@ -10,6 +10,7 @@ import type { Transaction } from "@hullwise/db";
 import { ForbiddenError, requireAction, requireWrite, type TenantContext } from "@/server/tenant";
 import { fail, ok, type ActionResult } from "@/server/action-result";
 import { kickCampaigns } from "@/server/campaigns";
+import { SPOKI_MODULE, getSpokiApiFor, spokiChannelInTx } from "@hullwise/addon-spoki";
 
 const schemaInput = z.object({
   name: z.string().trim().min(1).max(120),
@@ -156,8 +157,8 @@ export async function recordManualCampaignAction(slug: string, campaignId: strin
 
 /**
  * Test message to internal users: members of the store chosen by id (email channel) or phone
- * numbers typed by the author (SMS, WhatsApp). Through the tenant's messaging channel (mock until a
- * provider is connected).
+ * numbers typed by the author (SMS, WhatsApp). WhatsApp goes through Spoki when that add-on is
+ * connected; everything else through the tenant's messaging channel (mock until a provider exists).
  */
 export async function sendCampaignTestAction(slug: string, campaignId: string, input: { userIds: string[]; phones: string[] }): Promise<ActionResult<{ sent: number }>> {
   try {
@@ -170,7 +171,10 @@ export async function sendCampaignTestAction(slug: string, campaignId: string, i
       const c = await tx.select({ channel: schema.retentionCampaigns.channel }).from(schema.retentionCampaigns).where(and(eq(schema.retentionCampaigns.tenantId, ctx.tenant.id), eq(schema.retentionCampaigns.id, campaignId))).limit(1);
       const email = c[0]?.channel === "email";
       const recipients = email ? members.map((m) => ({ to: m.email, firstName: (m.preferred ?? m.name ?? "").split(" ")[0] ?? "" })) : phones.map((p) => ({ to: p, firstName: (ctx.user.name ?? "").split(" ")[0] ?? "" }));
-      const r = await sendCampaignTest(svc(ctx, tx), campaignId, getMessagingChannelFor(ctx.tenant.id), recipients);
+      // a WhatsApp test goes through Spoki when its add-on is on and connected (message log, the template mapped to campaigns)
+      const s = svc(ctx, tx);
+      const channel = c[0]?.channel === "whatsapp" && ctx.activeAddons.includes(SPOKI_MODULE) && (await getSpokiApiFor(s)) ? await spokiChannelInTx(s, { purpose: "test", campaignId, sentBy: ctx.user.id, country: ctx.tenant.country }) : getMessagingChannelFor(ctx.tenant.id);
+      const r = await sendCampaignTest(s, campaignId, channel, recipients);
       await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "retention_campaign.test_sent", entityType: "retention_campaign", entityId: campaignId, diff: {}, metadata: { recipients: recipients.length, sent: r.sent } });
       return r;
     });

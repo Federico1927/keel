@@ -82,11 +82,11 @@ export async function seedSpoki(db: Db, tenantId: string, now: Date): Promise<vo
     }
   }
 
-  // the WhatsApp win-back sequence (customer campaigns add-on): its sent exposures, one opt-out
+  // the WhatsApp win-back sequence (customer campaigns add-on): its sent exposures, one opt-out (the one-off WhatsApp campaign's messages: addon-showcase.ts)
   const exposures = await db.execute<{ customer_id: string; campaign_id: string; message_id: string; idempotency_key: string | null; sent_at: Date; phone: string; message: string; first_name: string | null; code: string | null }>(sql`
     select e.customer_id, e.campaign_id, e.message_id, e.idempotency_key, e.sent_at, c.phone_e164 as phone, rc.message, c.first_name, rc.discount_code as code
     from retention_exposures e join retention_campaigns rc on rc.id = e.campaign_id join customers c on c.id = e.customer_id
-    where e.tenant_id = ${tenantId} and rc.channel = 'whatsapp' and e.status = 'sent' and e.message_id is not null and c.phone_e164 is not null
+    where e.tenant_id = ${tenantId} and rc.channel = 'whatsapp' and rc.kind = 'sequence' and e.status = 'sent' and e.message_id is not null and c.phone_e164 is not null
     order by e.sent_at desc limit 40`);
   for (const [i, e] of exposures.rows.entries()) {
     const sentAt = new Date(e.sent_at);

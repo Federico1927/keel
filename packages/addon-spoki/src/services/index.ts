@@ -1,5 +1,5 @@
 import { and, desc, eq, gte, inArray, isNotNull, recordAudit, schema, sql } from "@hullwise/db";
-import { customFieldsFor, renderMessageTemplate, diffRecords, formatMoney, isOptOutErrorCode, nextMessageStatus, normalizePhone, orderMessageEventFor, replyMatches, type MessageStatus, type OrderMessageEvent } from "@hullwise/core";
+import { customFieldsFor, renderMessageTemplate, diffRecords, formatMoney, isInServiceWindow, isOptOutErrorCode, nextMessageStatus, normalizePhone, orderMessageEventFor, replyMatches, type MessageStatus, type OrderMessageEvent } from "@hullwise/core";
 import { IntegrationError, MockSpokiChannel, SpokiChannel, decryptJson, parseSpokiWebhook, spokiErrorCode, spokiEventKey, type MessageSendInput, type MessagingChannel, type SpokiApi, type SpokiCredentials, type SpokiTemplate } from "@hullwise/integrations";
 import { addPhoneSuppression, integrationRow, isLive, recordHealth, recordWebhookEvent, type ServiceContext, type WebhookResult } from "@hullwise/services";
 import { MARKETING_CATEGORY } from "@hullwise/services";
@@ -15,7 +15,7 @@ import { parseSpokiSettings, spokiSettingsSchema, templateFor, type SpokiSetting
 
 export class SpokiError extends Error {
   constructor(
-    public readonly code: "not_found" | "invalid_input" | "not_connected" | "no_phone" | "no_template" | "provider_error",
+    public readonly code: "not_found" | "invalid_input" | "not_connected" | "no_phone" | "no_template" | "provider_error" | "window_closed",
     public readonly detail: string | null = null,
   ) {
     super(detail ? `${code}: ${detail}` : code);
@@ -373,10 +373,11 @@ export async function retrySpokiWebhooks(ctx: ServiceContext, hooks: SpokiHooks 
 
 /* ---------- reads ---------- */
 
-/** Message log of an order, a customer (their id or their phone) or the whole tenant, newest first. */
-export async function listSpokiMessages(ctx: ServiceContext, f: { orderId?: string; customerId?: string; limit?: number } = {}) {
+/** Message log of an order, a customer (their id or their phone) or the whole tenant, newest first; `excludePurposes` leaves out e.g. campaign sends. */
+export async function listSpokiMessages(ctx: ServiceContext, f: { orderId?: string; customerId?: string; limit?: number; excludePurposes?: readonly string[] } = {}) {
   const where = [eq(schema.spokiMessages.tenantId, ctx.tenantId)];
   if (f.orderId) where.push(eq(schema.spokiMessages.orderId, f.orderId));
+  if (f.excludePurposes?.length) where.push(sql`${schema.spokiMessages.purpose} <> all(${sql.param([...f.excludePurposes])}::text[])`);
   if (f.customerId) {
     const [c] = await ctx.tx.select({ phone: schema.customers.phoneE164 }).from(schema.customers).where(and(eq(schema.customers.tenantId, ctx.tenantId), eq(schema.customers.id, f.customerId))).limit(1);
     where.push(c?.phone ? sql`(${schema.spokiMessages.customerId} = ${f.customerId} or ${schema.spokiMessages.phone} = ${c.phone})` : eq(schema.spokiMessages.customerId, f.customerId));
@@ -399,4 +400,114 @@ export async function spokiStats(ctx: ServiceContext, days = 7) {
   const sum = (pred: (s: string) => boolean) => outbound.filter((r) => pred(r.status)).reduce((a, r) => a + r.n, 0);
   const [suppressed] = await ctx.tx.select({ n: sql<number>`count(*)::int` }).from(schema.emailSuppressions).where(and(eq(schema.emailSuppressions.tenantId, ctx.tenantId), eq(schema.emailSuppressions.identityType, "phone"), eq(schema.emailSuppressions.source, "spoki")));
   return { sent: sum(() => true), delivered: sum((s) => ["delivered", "read", "replied"].includes(s)), read: sum((s) => ["read", "replied"].includes(s)), replied: sum((s) => s === "replied"), failed: sum((s) => s === "failed"), received: rows.filter((r) => r.direction === "inbound").reduce((a, r) => a + r.n, 0), optOuts: suppressed?.n ?? 0 };
+}
+
+/* ---------- conversations ---------- */
+
+export interface SpokiConversation {
+  /** The thread's latest message (its id opens the thread: no phone number in URLs). */
+  lastMessageId: string;
+  phone: string;
+  customerId: string | null;
+  customerName: string | null;
+  messages: number;
+  lastAt: Date;
+  lastInboundAt: Date | null;
+  lastDirection: string;
+  lastPurpose: string;
+  lastStatus: string;
+  lastBody: string | null;
+  /** The customer wrote last and nothing answered automatically (opt-out, a keyword another add-on acted on): someone should answer. */
+  awaitingReply: boolean;
+  /** Free-form replies allowed (24 hours from the customer's last message). */
+  windowOpen: boolean;
+}
+
+/**
+ * The message log grouped by phone number, latest activity first: one row per customer thread with
+ * its last message, and whether the customer is waiting for an answer and the 24-hour service window
+ * is open. A thread awaits a reply when the customer wrote last, unless that message was handled
+ * automatically: an opt-out keyword, or one of `autoReplies` (the keywords another add-on acts on,
+ * e.g. COD confirm/cancel) answering a COD confirmation.
+ */
+export async function listSpokiConversations(ctx: ServiceContext, f: { awaitingOnly?: boolean; limit?: number; offset?: number; autoReplies?: readonly string[] } = {}): Promise<{ rows: SpokiConversation[]; total: number; awaiting: number }> {
+  const now = ctx.now ?? new Date();
+  const limit = Math.min(f.limit ?? 30, 100);
+  const offset = Math.max(0, f.offset ?? 0);
+  const settings = await getSpokiSettings(ctx);
+  const base = sql`
+    with t as (
+      select phone, count(*)::int as n, max(occurred_at) as last_at, max(occurred_at) filter (where direction = 'inbound') as last_inbound_at,
+        (array_agg(customer_id order by occurred_at desc) filter (where customer_id is not null))[1] as customer_id
+      from spoki_messages where tenant_id = ${ctx.tenantId} group by phone
+    ),
+    l as (select distinct on (phone) phone, id, direction, purpose, status, body, reply_to_message_id from spoki_messages where tenant_id = ${ctx.tenantId} order by phone, occurred_at desc, id)
+    select t.phone, t.n, t.last_at, t.last_inbound_at, t.customer_id, l.id, l.direction, l.purpose, l.status, l.body,
+      (select r.purpose from spoki_messages r where r.tenant_id = ${ctx.tenantId} and r.provider_message_id = l.reply_to_message_id limit 1) as reply_purpose,
+      nullif(trim(concat_ws(' ', c.first_name, c.last_name)), '') as customer_name
+    from t join l on l.phone = t.phone left join customers c on c.id = t.customer_id and c.tenant_id = ${ctx.tenantId}`;
+  type Row = { phone: string; n: number; last_at: Date | string; last_inbound_at: Date | string | null; customer_id: string | null; id: string; direction: string; purpose: string; status: string; body: string | null; reply_purpose: string | null; customer_name: string | null };
+  // threads where the customer wrote last, minus the messages handled automatically
+  const inboundLast = (await ctx.tx.execute<Row>(sql`select * from (${base}) x where direction = 'inbound' order by last_at desc, id limit 2000`)).rows;
+  const handled = (r: Row) => replyMatches(r.body, settings.optOutKeywords) || (r.reply_purpose === "cod" && !!f.autoReplies?.length && replyMatches(r.body, f.autoReplies));
+  const awaiting = inboundLast.filter((r) => !handled(r));
+  const awaitingPhones = new Set(awaiting.map((r) => r.phone));
+  let rows: Row[];
+  let total: number;
+  if (f.awaitingOnly) {
+    rows = awaiting.slice(offset, offset + limit);
+    total = awaiting.length;
+  } else {
+    const [counts] = (await ctx.tx.execute<{ total: number }>(sql`select count(distinct phone)::int as total from spoki_messages where tenant_id = ${ctx.tenantId}`)).rows;
+    rows = (await ctx.tx.execute<Row>(sql`select * from (${base}) x order by last_at desc, id limit ${limit} offset ${offset}`)).rows;
+    total = counts?.total ?? 0;
+  }
+  return {
+    total,
+    awaiting: awaiting.length,
+    rows: rows.map((r) => {
+      const lastInboundAt = r.last_inbound_at ? new Date(r.last_inbound_at) : null;
+      return { lastMessageId: r.id, phone: r.phone, customerId: r.customer_id, customerName: r.customer_name, messages: r.n, lastAt: new Date(r.last_at), lastInboundAt, lastDirection: r.direction, lastPurpose: r.purpose, lastStatus: r.status, lastBody: r.body, awaitingReply: awaitingPhones.has(r.phone), windowOpen: isInServiceWindow(lastInboundAt, now) };
+    }),
+  };
+}
+
+/** One thread, oldest first: every message to and from the number of the given message, with the order each one is linked to. */
+export async function spokiConversation(ctx: ServiceContext, messageId: string, opts: { limit?: number } = {}) {
+  const [anchor] = await ctx.tx.select({ phone: schema.spokiMessages.phone }).from(schema.spokiMessages).where(and(eq(schema.spokiMessages.tenantId, ctx.tenantId), eq(schema.spokiMessages.id, messageId))).limit(1);
+  if (!anchor) return null;
+  const rows = await ctx.tx
+    .select({ m: schema.spokiMessages, orderName: schema.orders.name, sender: sql<string | null>`coalesce(${schema.users.preferredName}, ${schema.users.name}, ${schema.users.email})` })
+    .from(schema.spokiMessages)
+    .leftJoin(schema.orders, eq(schema.orders.id, schema.spokiMessages.orderId))
+    .leftJoin(schema.users, eq(schema.users.id, schema.spokiMessages.sentBy))
+    .where(and(eq(schema.spokiMessages.tenantId, ctx.tenantId), eq(schema.spokiMessages.phone, anchor.phone)))
+    .orderBy(desc(schema.spokiMessages.occurredAt), desc(schema.spokiMessages.id))
+    .limit(Math.min(opts.limit ?? 100, 300));
+  const messages = rows.reverse();
+  const customerId = [...messages].reverse().find((r) => r.m.customerId)?.m.customerId ?? (await customerByPhone(ctx, anchor.phone));
+  const [customer] = customerId ? await ctx.tx.select({ id: schema.customers.id, firstName: schema.customers.firstName, lastName: schema.customers.lastName, email: schema.customers.email }).from(schema.customers).where(and(eq(schema.customers.tenantId, ctx.tenantId), eq(schema.customers.id, customerId))).limit(1) : [];
+  const lastInbound = [...messages].reverse().find((r) => r.m.direction === "inbound")?.m.occurredAt ?? null;
+  return { phone: anchor.phone, customer: customer ?? null, messages, lastInboundAt: lastInbound, windowOpen: isInServiceWindow(lastInbound, ctx.now ?? new Date()) };
+}
+
+/**
+ * A free-text answer from the team to a customer thread, through the tenant's Spoki account
+ * (purpose `manual`). WhatsApp accepts free text only within 24 hours of the customer's last
+ * message, so a closed window is refused here rather than by the provider. The answer is linked to
+ * the order of the thread's last non-campaign message within the link window (its timeline gets
+ * the message). The caller audits it (with the impersonating admin, when there is one).
+ */
+export async function sendSpokiReply(ctx: ServiceContext, input: { messageId: string; text: string; country?: string }): Promise<{ messageId: string; orderId: string | null }> {
+  const text = input.text.trim();
+  if (!text || text.length > 1000) throw new SpokiError("invalid_input", "text");
+  const thread = await spokiConversation(ctx, input.messageId, { limit: 50 });
+  if (!thread) throw new SpokiError("not_found");
+  if (!thread.windowOpen) throw new SpokiError("window_closed");
+  const settings = await getSpokiSettings(ctx);
+  const since = (ctx.now ?? new Date()).getTime() - settings.linkOrderDays * 864e5;
+  const linked = [...thread.messages].reverse().find((r) => r.m.orderId && r.m.purpose !== "campaign" && r.m.occurredAt.getTime() >= since)?.m.orderId ?? null;
+  const channel = await spokiChannelInTx(ctx, { purpose: "manual", orderId: linked, customerId: thread.customer?.id ?? null, country: input.country });
+  const r = await channel.sendMessage({ to: thread.phone, template: text, variables: { body: text } });
+  return { ...r, orderId: linked };
 }

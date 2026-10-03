@@ -8,7 +8,7 @@ import {
   suppressedContacts,
   STALE_CLAIM_MS, activateSequence, evaluateSegment, addEmailSuppression, addPhoneSuppression, approveRetentionCampaign, campaignTick, deleteRetentionCampaign, listRetentionCampaigns, pauseSequence, previewRetentionSend, processCampaignSend, recordManualCampaign,
   rejectRetentionCampaign, reopenRetentionCampaign, RetentionCampaignError, retentionCampaignDetail, retentionCampaignResults, saveRetentionCampaign, saveSegment, scheduleRetentionCampaign, sendCampaignTest, submitRetentionCampaign, suppressAddress,
-  type AnalyticsTenant, type CampaignTenant, type ServiceContext, type TenantRunner,
+  campaignRecipients, type AnalyticsTenant, type CampaignTenant, type ServiceContext, type TenantRunner,
 } from "../src";
 
 const pools = testPools();
@@ -59,6 +59,24 @@ describe("customer campaigns: results", () => {
     expect(sequence.status).toBe("active");
     expect(sequence.results!.windowOpen).toBe(true);
     expect(sequence.results!.report.treated.customers).toBe(sequence.treatedCount);
+  });
+
+  it("lists the recipients of a campaign by group, with their message status and the orders in the window", async () => {
+    const list = await run((s) => listRetentionCampaigns(s, tenant));
+    const wa = list.find((c) => c.channel === "whatsapp" && c.kind === "one_off" && c.status === "sent")!;
+    expect(wa.results!.report.measurable).toBe(true);
+    const all = await run((s) => campaignRecipients(s, wa.id, { limit: 100 }));
+    expect(all.total).toBe(wa.treatedCount + wa.holdoutCount);
+    expect(all.byGroup).toEqual({ treated: wa.treatedCount, holdout: wa.holdoutCount });
+    // treated first; control customers are held out, never messaged
+    expect(all.rows[0]!.group).toBe("treated");
+    const control = await run((s) => campaignRecipients(s, wa.id, { group: "holdout", limit: 100 }));
+    expect(control.total).toBe(wa.holdoutCount);
+    expect(control.rows.every((r) => r.group === "holdout" && r.status === "held_out" && r.sentAt === null)).toBe(true);
+    // the orders column counts what the results count: treated buyers in the window
+    const treated = await run((s) => campaignRecipients(s, wa.id, { group: "treated", limit: 100 }));
+    expect(treated.rows.filter((r) => r.orders > 0).length).toBe(Math.min(100, wa.results!.report.treated.converters));
+    expect(await withTenant(ctx.tenantIds.harbor, (tx) => campaignRecipients({ tenantId: ctx.tenantIds.harbor, tx, actor: { type: "user", userId: as("owner@harborhome.demo") } }, wa.id), pools.app).catch((e: unknown) => (e as { code?: string }).code)).toBe("not_found");
   });
 });
 

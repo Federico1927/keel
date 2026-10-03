@@ -28,6 +28,7 @@ import { seedMetaAccounts } from "./meta-accounts";
 import { seedPlatformReliability, seedReliability } from "./reliability";
 import { seedSubscriptions } from "./subscriptions";
 import { seedSpoki } from "./spoki";
+import { ensureDemoConversations, ensureScheduledShowcaseCampaign, ensureWhatsappShowcaseCampaign, ensureWhatsappShowcaseMessages, insertCampaignResponses } from "./addon-showcase";
 import { seedAccounting } from "./accounting";
 import { createRng } from "@hullwise/integrations";
 import { SALE_STATUSES, allocateLandedCost, assignHoldout, campaignMessageKey, normalizePhone, runPredictionModel, type CustomerHistory } from "@hullwise/core";
@@ -280,7 +281,14 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     await step("catalog", () => seedCatalogDuplicate(db, cfg.tenantId));
     await step("collab", () => seedCollab(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, cfg.locale, opts.now ?? new Date()));
     // after the campaigns (its sequence messages) and the collaboration rows (they reset the suppression list)
-    if ((DEMO_TENANTS[cfg.key as keyof typeof DEMO_TENANTS].addons as readonly string[]).includes("addon.whatsapp_spoki")) await step("whatsapp", () => seedSpoki(db, cfg.tenantId, opts.now ?? new Date()));
+    if ((DEMO_TENANTS[cfg.key as keyof typeof DEMO_TENANTS].addons as readonly string[]).includes("addon.whatsapp_spoki")) {
+      await step("whatsapp", () => seedSpoki(db, cfg.tenantId, opts.now ?? new Date()));
+      // the showcase campaign's messages and the customer threads (also delivered by ensureDemoSettings)
+      await step("whatsapp-showcase", async () => {
+        await ensureWhatsappShowcaseMessages(db, cfg.tenantId);
+        await ensureDemoConversations(db, cfg.tenantId, opts.now ?? new Date(), { owner: ctx.userIds["owner@northwind.demo"] ?? null, marketing: ctx.userIds["marketing@northwind.demo"] ?? null, care: ctx.userIds["care@northwind.demo"] ?? null });
+      });
+    }
     await step("email", () => seedEmailLog(db, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, cfg.locale, opts.now ?? new Date()));
     await step("lists", () => seedLists(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
     await step("payments", () => seedPayments(db, ctx.userIds, cfg.key as keyof typeof DEMO_TENANTS, cfg.tenantId, opts.now ?? new Date()));
@@ -337,65 +345,18 @@ async function seedRetentionCampaigns(db: ReturnType<typeof drizzle<typeof schem
   if (it) {
     const sent = await send("Win-back clienti ricorrenti -10%", "Clienti ricorrenti", "email", "Ciao {first_name}, ci manchi! Per te il 10% di sconto con il codice {code}.", "BACK10", 2, 35);
     if (sent) {
-      // response orders, reusing each responder's last basket. The demo promises a measurable effect, so
-      // the count is set structurally, not by chance (a reseed at another hour once left p = 0.09):
-      // responders are treated customers who did not already buy in the window, enough of them for the
-      // treated conversion to beat the control group's by RESPONSE_UPLIFT.
-      const RESPONSE_UPLIFT = 0.08;
-      const [tenant] = await db.select({ prefix: schema.tenants.orderNumberPrefix }).from(schema.tenants).where(eq(schema.tenants.id, tenantId));
-      // copy every stored column (generated ones such as the search blob are recomputed)
-      const cols = async (table: string) => (await db.execute<{ c: string }>(sql`select quote_ident(column_name) as c from information_schema.columns where table_schema = 'public' and table_name = ${table} and is_generated = 'NEVER' order by ordinal_position`)).rows.map((r) => r.c).join(", ");
-      const orderCols = sql.raw(await cols("orders"));
-      const lineCols = sql.raw(await cols("order_lines"));
-      await db.execute(sql`
-        with window_buyers as (
-          select e.customer_id, e.group_name, exists (
-            select 1 from orders o where o.customer_id = e.customer_id and o.placed_at > e.exposed_at and o.placed_at <= e.exposed_at + interval '14 days' and o.status not in ('cancelled', 'returned')
-          ) as bought
-          from retention_exposures e where e.campaign_id = ${sent.id}
-        ),
-        needed as (
-          -- at least a few responders even when chance already favours the treated group (small test seeds)
-          select greatest(ceil(0.05 * count(*) filter (where group_name = 'treated')),
-            ceil((coalesce(avg(bought::int) filter (where group_name = 'holdout'), 0) + ${RESPONSE_UPLIFT}) * count(*) filter (where group_name = 'treated'))
-            - count(*) filter (where group_name = 'treated' and bought))::int as n
-          from window_buyers
-        ),
-        responders as (
-          select e.customer_id, e.exposed_at from retention_exposures e join window_buyers w on w.customer_id = e.customer_id
-          where e.campaign_id = ${sent.id} and e.group_name = 'treated' and not w.bought
-            and exists (select 1 from orders o where o.customer_id = e.customer_id and o.placed_at < e.exposed_at and o.status in ('delivered', 'shipped'))
-          order by abs(hashtext(e.customer_id::text || 'resp')), e.customer_id
-          limit (select n from needed)
-        ),
-        picks as (
-          select distinct on (r.customer_id) o.id as old_id, gen_random_uuid() as new_id,
-            r.exposed_at + make_interval(days => 1 + abs(hashtext(r.customer_id::text || 'day')) % 12, hours => abs(hashtext(r.customer_id::text)) % 10) as at
-          from responders r join orders o on o.customer_id = r.customer_id and o.placed_at < r.exposed_at and o.status in ('delivered', 'shipped')
-          order by r.customer_id, o.placed_at desc
-        ),
-        numbered as (select p.*, (select max(order_number) from orders where tenant_id = ${tenantId}) + row_number() over (order by p.at) as num from picks p),
-        ins as (
-          insert into orders (${orderCols}) select ${orderCols} from (select (jsonb_populate_record(null::orders, to_jsonb(o) || jsonb_build_object(
-            'id', n.new_id, 'external_id', 'crm-' || n.new_id, 'order_number', n.num, 'name', '#' || ${tenant!.prefix} || n.num,
-            'status', 'delivered', 'status_changed_at', n.at + interval '4 days', 'cancelled_at', null, 'cancel_reason', null, 'refunded_minor', 0, 'returned_fraction_bps', 0,
-            'placed_at', n.at, 'closed_at', n.at + interval '4 days', 'platform_updated_at', n.at + interval '4 days', 'created_at', n.at, 'updated_at', n.at + interval '4 days'))).*
-            from orders o join numbered n on n.old_id = o.id) r
-          returning id, total_minor
-        ),
-        lines as (
-          insert into order_lines (${lineCols}) select ${lineCols} from (select (jsonb_populate_record(null::order_lines, to_jsonb(l) || jsonb_build_object('id', gen_random_uuid(), 'order_id', n.new_id, 'external_id', 'crm-' || gen_random_uuid(), 'created_at', n.at))).*
-            from order_lines l join numbered n on n.old_id = l.order_id) r
-          returning id
-        )
-        insert into order_discounts (tenant_id, order_id, code, type, amount_minor)
-        select ${tenantId}, ins.id, 'BACK10', 'percentage', round(ins.total_minor * 0.1)::int from ins`);
+      // response orders, reusing each responder's last basket, so the results show a real, significant uplift
+      await insertCampaignResponses(db, { tenantId, campaignId: sent.id, code: "BACK10", discountRate: 0.1, uplift: 0.08, windowDays: 14 });
     }
     const segId = await segmentId("Nuovi con consenso marketing");
     if (segId) await db.insert(schema.retentionCampaigns).values({ tenantId, name: "Benvenuto, secondo acquisto", segmentId: segId, channel: "email", message: "Ciao {first_name}, grazie per il primo ordine! Il codice {code} vale per il secondo.", discountCode: "SECONDO15", costPerMessageMinor: 2, attributionDays: 21, status: "draft", createdBy: sender });
     // an earlier newsletter sent from the email tool, with no measurable effect: the control group shows that too
     await send("Newsletter di primavera (inviata dallo strumento email)", "Clienti ricorrenti", "manual", "", null, 0, 75);
     await seedCampaignWorkflow(db, ctx, tenantId, now, sender);
+    // the add-on showcase (#9, #34): a measured WhatsApp campaign and a campaign scheduled well ahead (also delivered by ensureDemoSettings)
+    const users = { owner: ctx.userIds["owner@northwind.demo"] ?? null, marketing: sender, care: ctx.userIds["care@northwind.demo"] ?? null };
+    await ensureWhatsappShowcaseCampaign(db, tenantId, now, users);
+    await ensureScheduledShowcaseCampaign(db, tenantId, now, users);
   }
 }
 

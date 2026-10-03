@@ -4,6 +4,7 @@ import * as schema from "../src/schema";
 import { testPools } from "../src/test-utils";
 import { ensureDemoSettings, ensurePlatformOwner, seedPlatform, type SeedContext } from "../src/seed";
 import { seedDomainForTests } from "./seed-for-tests";
+import { SCHEDULED_SHOWCASE_CAMPAIGN, WHATSAPP_SHOWCASE_CAMPAIGN } from "../src/seed/addon-showcase";
 
 const pools = testPools();
 let ctx: SeedContext;
@@ -76,6 +77,42 @@ describe("demo settings step (db:seed:settings)", () => {
     expect(p2!.descriptionHtml).toBe("<p>Edited</p>");
     const again = await ensureDemoSettings(pools.admin);
     expect(again.every((r) => r.created.length === 0)).toBe(true);
+  });
+});
+
+describe("add-on showcase on a deployed demo (#9, #34)", () => {
+  it("adds the WhatsApp campaign, its messages, the customer threads and the scheduled campaign once, and re-enables nothing switched off", async () => {
+    const northwind = ctx.tenantIds.northwind;
+    const showcase = async () => (await pools.admin.select().from(schema.retentionCampaigns).where(and(eq(schema.retentionCampaigns.tenantId, northwind), eq(schema.retentionCampaigns.name, WHATSAPP_SHOWCASE_CAMPAIGN))))[0];
+    // the full seed already has them: a measured WhatsApp campaign with its Spoki log, the threads with one awaiting reply
+    const seeded = await showcase();
+    expect(seeded).toMatchObject({ channel: "whatsapp", status: "sent" });
+    expect(seeded!.deliveredCount).toBeGreaterThan(0);
+    const logged = await pools.admin.select().from(schema.spokiMessages).where(eq(schema.spokiMessages.campaignId, seeded!.id));
+    expect(logged.filter((m) => m.direction === "outbound")).toHaveLength(seeded!.deliveredCount);
+    expect(logged.some((m) => m.direction === "inbound")).toBe(true);
+    const conv = await pools.admin.select().from(schema.spokiMessages).where(and(eq(schema.spokiMessages.tenantId, northwind), sql`${schema.spokiMessages.providerMessageId} like 'seed-spk-conv-%'`));
+    expect(conv.some((m) => m.purpose === "manual" && m.sentBy === ctx.userIds["care@northwind.demo"])).toBe(true);
+    // a demo deployed before the showcase: no showcase rows, the WhatsApp add-on row missing, campaigns switched off in the console
+    await pools.admin.delete(schema.spokiMessages).where(sql`${schema.spokiMessages.campaignId} = ${seeded!.id} or ${schema.spokiMessages.providerMessageId} like 'seed-spk-conv-%'`);
+    await pools.admin.delete(schema.retentionCampaigns).where(and(eq(schema.retentionCampaigns.tenantId, northwind), sql`${schema.retentionCampaigns.name} in (${WHATSAPP_SHOWCASE_CAMPAIGN}, ${SCHEDULED_SHOWCASE_CAMPAIGN})`));
+    await pools.admin.delete(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, northwind), eq(schema.tenantAddons.moduleKey, "addon.whatsapp_spoki")));
+    await pools.admin.update(schema.tenantAddons).set({ isActive: false }).where(and(eq(schema.tenantAddons.tenantId, northwind), eq(schema.tenantAddons.moduleKey, "addon.customer_campaigns")));
+    const off = (await ensureDemoSettings(pools.admin)).find((r) => r.tenant === "northwind-apparel")!;
+    expect(off.created).toEqual(expect.arrayContaining(["tenant_addons:addon.whatsapp_spoki", "spoki_messages:conversations"]));
+    expect(off.created.some((c) => c.startsWith("retention_campaigns:"))).toBe(false);
+    const [campaigns] = await pools.admin.select().from(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, northwind), eq(schema.tenantAddons.moduleKey, "addon.customer_campaigns")));
+    expect(campaigns!.isActive).toBe(false);
+    // switched back on: the campaigns and the campaign messages arrive on the next deploy, then nothing more
+    await pools.admin.update(schema.tenantAddons).set({ isActive: true }).where(and(eq(schema.tenantAddons.tenantId, northwind), eq(schema.tenantAddons.moduleKey, "addon.customer_campaigns")));
+    const on = (await ensureDemoSettings(pools.admin)).find((r) => r.tenant === "northwind-apparel")!;
+    expect(on.created).toEqual(expect.arrayContaining(["retention_campaigns:whatsapp_showcase", "retention_campaigns:scheduled_showcase", "spoki_messages:campaign"]));
+    const again = await showcase();
+    expect(again!.deliveredCount).toBeGreaterThan(0);
+    const [scheduled] = await pools.admin.select().from(schema.retentionCampaigns).where(and(eq(schema.retentionCampaigns.tenantId, northwind), eq(schema.retentionCampaigns.name, SCHEDULED_SHOWCASE_CAMPAIGN)));
+    expect(scheduled).toMatchObject({ status: "scheduled" });
+    expect(scheduled!.scheduledAt!.getTime()).toBeGreaterThan(Date.now());
+    expect((await ensureDemoSettings(pools.admin)).every((r) => r.created.length === 0)).toBe(true);
   });
 });
 

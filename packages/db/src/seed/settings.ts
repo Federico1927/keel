@@ -4,7 +4,8 @@ import { DEFAULT_SURVEY_CONFIG } from "@hullwise/core";
 import * as schema from "../schema";
 import { enableDemoMcp } from "./mcp";
 import { ensureDemoProductCatalog } from "./media";
-import { DEMO_SPOKI_SETTINGS, demoSpokiIntegration } from "./spoki";
+import { DEMO_SPOKI_SETTINGS, demoSpokiIntegration, seedSpoki } from "./spoki";
+import { ensureDemoConversations, ensureScheduledShowcaseCampaign, ensureWhatsappShowcaseCampaign, ensureWhatsappShowcaseMessages, showcaseUsers } from "./addon-showcase";
 import { demoAccountingIntegration, demoAccountingSettings, seedAccounting } from "./accounting";
 import { seedSubscriptions } from "./subscriptions";
 import bcrypt from "bcryptjs";
@@ -137,6 +138,12 @@ export function demoAddressIntegration(tenantId: string, now: Date) {
   return { tenantId, provider: "address", status: "connected", mode: "mock", externalAccountId: "address-mock", externalAccountName: "Simulated address provider", credentialsEncrypted: null, config: {}, lastSuccessAt: new Date(now.getTime() - 2 * 3600e3) };
 }
 
+/**
+ * In-development add-ons the demo shows (the product owner wants to see how they work): switched on
+ * for the demo tenant when it has no row for them at all. Never re-enabled once switched off.
+ */
+export const DEMO_SHOWCASE_ADDONS: Record<DemoKey, readonly string[]> = { northwind: ["addon.customer_campaigns", "addon.whatsapp_spoki", "addon.accounting"], harbor: ["addon.subscriptions"] };
+
 export interface SettingsReport {
   tenant: string;
   created: string[];
@@ -170,7 +177,7 @@ export async function renameDemoUsers(db: Db): Promise<string[]> {
  * until released). A demo tenant gets the row when it has none at all; one switched off on purpose
  * (an inactive row) stays off.
  */
-export const DEMO_PREVIEW_ADDONS: Record<DemoKey, readonly string[]> = { northwind: ["addon.accounting"], harbor: ["addon.subscriptions"] };
+export const DEMO_PREVIEW_ADDONS = DEMO_SHOWCASE_ADDONS;
 
 /** The demo password (same rule as `DEMO_PASSWORD` in ./index, not imported to keep this step free of the full seed). */
 const demoPassword = () => process.env.HULLWISE_DEMO_PASSWORD || "hullwise-demo-2026";
@@ -180,13 +187,14 @@ const LATER_DEMO_USERS: readonly { key: DemoKey; email: string; name: string; pr
 
 export async function ensureDemoSettings(db: Db, now = new Date()): Promise<SettingsReport[]> {
   const tenants = await db.select({ id: schema.tenants.id, slug: schema.tenants.slug }).from(schema.tenants).where(inArray(schema.tenants.slug, Object.values(DEMO_SLUGS)));
-  const previews: string[] = [];
-  for (const key of Object.keys(DEMO_SLUGS) as DemoKey[]) {
+  // the showcased add-ons on a demo seeded before they existed; a row switched off in the console stays off
+  const enabled: Record<string, string[]> = {};
+  for (const key of Object.keys(DEMO_SHOWCASE_ADDONS) as DemoKey[]) {
     const tenant = tenants.find((t) => t.slug === DEMO_SLUGS[key]);
     if (!tenant) continue;
-    for (const moduleKey of DEMO_PREVIEW_ADDONS[key]) {
-      const r = await db.insert(schema.tenantAddons).values({ tenantId: tenant.id, moduleKey, note: "Demo preview (in development)", version: null }).onConflictDoNothing().returning({ id: schema.tenantAddons.id });
-      if (r.length) previews.push(`${key}:${moduleKey}`);
+    for (const moduleKey of DEMO_SHOWCASE_ADDONS[key] ?? []) {
+      const r = await db.insert(schema.tenantAddons).values({ tenantId: tenant.id, moduleKey, note: "Enabled by the demo settings step", version: null }).onConflictDoNothing().returning({ id: schema.tenantAddons.id });
+      if (r.length) (enabled[tenant.id] ??= []).push(`tenant_addons:${moduleKey}`);
     }
   }
   const addons = await db.select({ tenantId: schema.tenantAddons.tenantId, key: schema.tenantAddons.moduleKey }).from(schema.tenantAddons).where(eq(schema.tenantAddons.isActive, true));
@@ -195,7 +203,7 @@ export async function ensureDemoSettings(db: Db, now = new Date()): Promise<Sett
     const tenant = tenants.find((t) => t.slug === DEMO_SLUGS[key]);
     if (!tenant) continue;
     const tenantId = tenant.id;
-    const created: string[] = [];
+    const created: string[] = [...(enabled[tenantId] ?? [])];
     const missing = async (table: string, extra = sql`true`) => {
       const r = await db.execute<{ n: number }>(sql`select count(*)::int as n from ${sql.identifier(table)} where tenant_id = ${tenantId} and ${extra}`);
       return Number(r.rows[0]?.n ?? 0) === 0;
@@ -244,7 +252,6 @@ export async function ensureDemoSettings(db: Db, now = new Date()): Promise<Sett
         created.push("integrations:spoki");
       }
     }
-    if (previews.some((p) => p.startsWith(`${key}:`))) created.push(...previews.filter((p) => p.startsWith(`${key}:`)).map((p) => `tenant_addons:${p.slice(key.length + 1)}`));
     for (const u of LATER_DEMO_USERS.filter((x) => x.key === key)) {
       const [exists] = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, u.email)).limit(1);
       if (exists) continue;
@@ -264,6 +271,23 @@ export async function ensureDemoSettings(db: Db, now = new Date()): Promise<Sett
       await seedAccounting(db, tenantId, now);
       created.push("accounting_journals");
       if (!hadSettings) created.push("accounting_settings");
+    }
+    // the in-development messaging add-ons, demonstrable (#9, #34): message log, a measured WhatsApp campaign, threads, a scheduled campaign
+    const has = (k: string) => addons.some((a) => a.tenantId === tenantId && a.key === k);
+    if (key === "northwind") {
+      const users = await showcaseUsers(db);
+      if (has("addon.whatsapp_spoki") && (await missing("spoki_messages"))) {
+        await seedSpoki(db, tenantId, now);
+        created.push("spoki_messages");
+      }
+      if (has("addon.customer_campaigns")) {
+        if (await ensureWhatsappShowcaseCampaign(db, tenantId, now, users)) created.push("retention_campaigns:whatsapp_showcase");
+        if (await ensureScheduledShowcaseCampaign(db, tenantId, now, users)) created.push("retention_campaigns:scheduled_showcase");
+      }
+      if (has("addon.whatsapp_spoki")) {
+        if (await ensureWhatsappShowcaseMessages(db, tenantId)) created.push("spoki_messages:campaign");
+        if (await ensureDemoConversations(db, tenantId, now, users)) created.push("spoki_messages:conversations");
+      }
     }
     if (addons.some((a) => a.tenantId === tenantId && a.key === "addon.accounting") && (await missing("accounting_settings"))) {
       await db.insert(schema.accountingSettings).values({ tenantId, config: demoAccountingSettings(null), accounts: [...MOCK_CHART_OF_ACCOUNTS], accountsSyncedAt: now }).onConflictDoNothing();

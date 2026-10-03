@@ -485,7 +485,7 @@ flowchart LR
 - **Simulated app** (`services/subscriptions/simulate.ts`, mock mode only): `simulateContractCharge` charges one contract on the `MockSubscriptionProvider` (a paid charge builds the store's renewal order from the contract lines and imports it through the core `importOrder`; a decline schedules the app's retry after 3 then 4 days, then `simulateDunningExhausted` ends the contract for non-payment), then imports the contract and the attempt like a sync. The `subscriptions` tick calls `chargeDueSimulatedRenewals` first (renewals due and retries due, outcome deterministic per contract and cycle), so a hosted demo keeps renewing without a reseed; the "Simulate" buttons use the same function. Live apps never reach it (`simulatedSubscriptionApp` returns null).
 ## The WhatsApp add-on via Spoki (issue #9)
 
-An approved exception to the no-specific-provider rule, activated per account (`addon.whatsapp_spoki`). Everything lives in `packages/addon-spoki`, the adapter in `packages/integrations/src/spoki`, pages under `/t/[tenant]/whatsapp/settings`, the route `/api/webhooks/spoki/[tenantId]/[token]`.
+An approved exception to the no-specific-provider rule, activated per account (`addon.whatsapp_spoki`). Everything lives in `packages/addon-spoki`, the adapter in `packages/integrations/src/spoki`, pages `/t/[tenant]/whatsapp` (conversations) and `/t/[tenant]/whatsapp/settings`, the route `/api/webhooks/spoki/[tenantId]/[token]`.
 
 ```mermaid
 sequenceDiagram
@@ -509,6 +509,8 @@ sequenceDiagram
 - **Receipts and replies.** `recordSpokiWebhook` (parse → `webhook_events`) and `processSpokiWebhookEvent(ctx, id, hooks)` (savepoint, failures recorded and retried by the `whatsapp` tick; `retrySpokiWebhooks`). `handleSpokiEvent` in `packages/jobs` builds the hooks with `spokiHooksFor` (COD's `applyMessageStatus` and `applyCodReply` when `addon.cod` is active) and is what the route, the queue and the Integrations replay call.
 - **Order notifications.** `runOrderNotifications` reads `status_changed` events after `spoki_settings.notified_until`, sends the switched-on events once per order (`order:<id>:<event>`).
 - **Rules in core** (`messaging.ts`): status precedence, template rendering (`{{var}}`, `%%FIELD%%`), custom fields, reply keyword matching, 24-hour window, which status change notifies.
+- **Conversations.** `listSpokiConversations` groups the log by number (awaiting reply = the customer wrote last), `spokiConversation` reads one thread (opened by a message id, never a phone in the URL), `sendSpokiReply` sends the team's free text (purpose `manual`) only inside the 24-hour window, linked to the thread's order.
+- **Demo showcase.** `packages/db/src/seed/addon-showcase.ts` holds the insert-only, idempotent demo rows of this add-on and of customer campaigns (a measured WhatsApp campaign and its log, customer threads, a long-lived scheduled campaign); the full seed and `ensureDemoSettings` (every deploy) both call it. Tour: `docs/addons/whatsapp-spoki.md`, `docs/addons/customer-campaigns.md`.
 
 ## The accounting add-on (issue #85)
 
