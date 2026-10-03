@@ -1126,3 +1126,19 @@ Fatto:
 - Nessuna migrazione.
 
 Resta: mappa dei gateway di pagamento modificabile dall'app (poi un controllo sui gateway non riconosciuti); eventuale notifica quando compare una lacuna critica.
+
+## Sottoquery correlate nelle colonne delle query su una sola tabella
+
+Problema: Drizzle toglie il nome della tabella dalle colonne della select quando la query legge una sola tabella senza join. Una sottoquery correlata scritta lì (`... where v.product_id = ${schema.products.id}`) diventava `v.product_id = "id"`, che Postgres risolve sulla tabella interna: la sottoquery confrontava la tabella con sé stessa e non restituiva nulla, senza errori.
+
+Fatto:
+- **Helper `qualified(column)`** in `@hullwise/db`: scrive `"tabella"."colonna"` dai metadati di Drizzle (alias compresi). Test unitario sul SQL generato.
+- **Revisione** di tutte le sottoquery ed `exists` con colonna esterna in services, add-on, jobs, seed e server dell'app. Tre erano nella select di una query su una sola tabella, ora corrette:
+  - **ricerca globale**: il codice SKU sotto un prodotto trovato non compariva mai (sempre vuoto);
+  - **schede abbonamento** nella scheda cliente e nel dettaglio ordine: al posto dei prodotti del contratto mostravano sempre la dicitura generica "Abbonamento";
+  - **processore di pagamento simulato** (solo modalità mock): dopo una risincronizzazione dei versamenti i rimborsi parziali finivano in una data calcolata a caso invece che nel giorno del rimborso, quindi nel versamento sbagliato rispetto ai dati demo.
+- **Test sul database**: ricerca con lo SKU della variante giusta, scheda abbonamento con i titoli delle righe del contratto, rimborso del processore simulato datato come nel seed. Tutti e tre falliscono senza la correzione.
+- Nessuna migrazione, nessun cambio ai dati demo.
+
+Non fatto: un test che scansiona il codice alla ricerca del problema, perché non può essere preciso (motivo in `DECISIONS.md`).
+

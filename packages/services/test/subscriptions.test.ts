@@ -187,6 +187,11 @@ describe("customer care through the mock provider", () => {
     expect(cards.map((x) => x.id)).toContain(c!.id);
     const card = await harborOwner((s) => orderSubscription(s, c!.originOrderId!));
     expect(card).toMatchObject({ id: c!.id, isFirst: true, renewalNumber: 0 });
+    // the card is titled with the contract's own lines (the query reads only contracts: the subquery must compare with the outer contract)
+    const lines = await pools.admin.select({ title: schema.subscriptionContractLines.title }).from(schema.subscriptionContractLines).where(eq(schema.subscriptionContractLines.contractId, c!.id));
+    expect(lines.length).toBeGreaterThan(0);
+    for (const l of lines) expect(card!.products).toContain(l.title);
+    expect(cards.find((x) => x.id === c!.id)!.products).toBe(card!.products);
   });
 });
 
