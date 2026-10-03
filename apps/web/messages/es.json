@@ -9479,7 +9479,9 @@
       "assignee": "Seguimiento",
       "unassigned": "Sin asignar",
       "assigned": "Seguimiento asignado.",
-      "back": "Volver"
+      "back": "Volver",
+      "simulate_retry": "Simular el reintento de la app",
+      "open_order": "Abrir el pedido"
     },
     "stock": {
       "title": "Stock para renovaciones",
@@ -9547,6 +9549,12 @@
       "active_hint": "{paused} en pausa · {new} nuevos en 30 días",
       "churn_hint": "{voluntary} voluntarios · {involuntary} involuntarios",
       "at_risk_hint": "{n} en riesgo · {failing} pagos con error · {high} con alto riesgo de churn"
+    },
+    "simulation": {
+      "success": "Renovación cobrada a {customer}: pedido {order} creado.",
+      "declined": "Renovación rechazada para {customer}: ahora está en la cola de recuperación y la app reintentará en unos días.",
+      "gave_up": "Último reintento rechazado para {customer}: la app canceló la suscripción por impago.",
+      "recovered": "El reintento de la app se completó para {customer}: pedido {order} creado, pago recuperado."
     }
   },
   "whatsapp": {
@@ -10988,7 +10996,8 @@
         "net": "Neto (cuenta puente)",
         "debit": "Debe",
         "action": "Acciones"
-      }
+      },
+      "repush_not_pushed": "La versión anterior se anuló; la versión {version} aún no está enviada (mira su estado y el error): se reintenta automáticamente."
     },
     "day": {
       "title": "Asiento del {day}",
@@ -11067,6 +11076,21 @@
       },
       "save": "Guardar",
       "saved": "Ajustes guardados."
+    },
+    "reconcile": {
+      "title": "Conciliación",
+      "description": "Cada día enviado en los últimos {days} días comparado con el resumen de ventas actual.",
+      "all_match": "Los {n} días enviados siguen coincidiendo con el resumen de ventas.",
+      "nothing_pushed": "Aún no hay días enviados que comprobar.",
+      "columns": {
+        "lines": "Qué cambió",
+        "pushed": "Enviado",
+        "now": "Ahora",
+        "difference": "Diferencia"
+      },
+      "line": "{line} {account}: {from} → {to}",
+      "day_title": "Distinto de lo enviado",
+      "day_description": "El resumen de ventas de este día cambió después de enviar la versión {version} ({difference}). Reenvía el día para anularla y enviar el asiento corregido."
     }
   }
 }

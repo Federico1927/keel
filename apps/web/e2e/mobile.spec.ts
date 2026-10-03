@@ -30,7 +30,7 @@ const ENTRY_POINTS = ["/t/[tenant]/orders?status=delivered", "/t/[tenant]/purcha
  * route under it. Keep this list short: each entry is a page whose phone layout nobody checks.
  */
 const UNREACHED: Record<string, string> = {
-  "/t/[tenant]/subscriptions": "addon.subscriptions is not active on any demo tenant, so its pages are a 404",
+  "/t/[tenant]/subscriptions": "addon.subscriptions is on Harbor Home only (this crawl runs on Northwind): its pages are checked at phone width by addon-subscriptions-tour.spec.ts",
 };
 
 interface Route { pattern: string; kind: "page" | "route" }

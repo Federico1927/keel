@@ -57,7 +57,7 @@ export function DayActions({ slug, day, dayLabel, status, version }: { slug: str
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)}>{t("cancel")}</Button>
-            <Button disabled={pending} data-testid="accounting-repush-confirm" onClick={() => start(async () => { const r = await repushAccountingDayAction(slug, day, note || null); say(r, r.ok && r.data ? t("repush_done", { version: r.data.version }) : ""); if (r.ok) setOpen(false); router.refresh(); })}>{t("repush_confirm")}</Button>
+            <Button disabled={pending} data-testid="accounting-repush-confirm" onClick={() => start(async () => { const r = await repushAccountingDayAction(slug, day, note || null); say(r, r.ok && r.data ? (r.data.status === "pushed" ? t("repush_done", { version: r.data.version }) : t("repush_not_pushed", { version: r.data.version })) : ""); if (r.ok) setOpen(false); router.refresh(); })}>{t("repush_confirm")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

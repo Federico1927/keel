@@ -37,4 +37,14 @@ describe("MockAccountingProvider", () => {
     expect((err as IntegrationError).retryAfterMs).toBeGreaterThan(0);
     expect((await p.pushJournal(balanced, { idempotencyKey: "c" })).replayed).toBe(false);
   });
+
+  it("a refused push (the demo's simulated refusal) leaves voids and reads working", async () => {
+    const p = new MockAccountingProvider();
+    const a = await p.pushJournal(balanced, { idempotencyKey: "v1" });
+    p.pushFailures.failNext("rate_limited");
+    await p.voidJournal(a.externalId);
+    expect((await p.getJournalStatus(a.externalId)).status).toBe("voided");
+    await expect(p.pushJournal(balanced, { idempotencyKey: "v2" })).rejects.toMatchObject({ code: "rate_limited" });
+    expect((await p.pushJournal(balanced, { idempotencyKey: "v2" })).replayed).toBe(false);
+  });
 });

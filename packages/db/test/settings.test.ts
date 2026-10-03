@@ -103,4 +103,37 @@ describe("platform owner step (db:seed:settings)", () => {
       await pools.admin.update(schema.users).set({ isSuperAdmin: true }).where(eq(schema.users.email, demo));
     }
   });
+
+  it("previews the add-ons in development on the demo: their row, the care user and their demo data, never re-enabling one switched off (#67, #85)", async () => {
+    const harbor = ctx.tenantIds.harbor;
+    const northwind = ctx.tenantIds.northwind;
+    // a production seeded before the add-ons: no add-on rows, no care user, no accounting push log
+    await pools.admin.delete(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, harbor), eq(schema.tenantAddons.moduleKey, "addon.subscriptions")));
+    await pools.admin.delete(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, northwind), eq(schema.tenantAddons.moduleKey, "addon.accounting")));
+    await pools.admin.delete(schema.accountingJournals).where(eq(schema.accountingJournals.tenantId, northwind));
+    await pools.admin.execute(sql`update users set email = 'care-before@harborhome.demo' where email = 'care@harborhome.demo'`);
+    const report = await ensureDemoSettings(pools.admin);
+    expect(report.find((r) => r.tenant === "harbor-home")!.created).toEqual(expect.arrayContaining(["tenant_addons:addon.subscriptions", "user:care@harborhome.demo"]));
+    // the subscribers are still there: not seeded twice
+    expect(report.find((r) => r.tenant === "harbor-home")!.created).not.toContain("subscription_demo_data");
+    expect(report.find((r) => r.tenant === "northwind-apparel")!.created).toEqual(expect.arrayContaining(["tenant_addons:addon.accounting", "accounting_journals"]));
+    const [row] = await pools.admin.select().from(schema.tenantAddons).where(and(eq(schema.tenantAddons.tenantId, harbor), eq(schema.tenantAddons.moduleKey, "addon.subscriptions")));
+    expect(row).toMatchObject({ isActive: true, version: null });
+    const journals = await pools.admin.select({ status: schema.accountingJournals.status }).from(schema.accountingJournals).where(eq(schema.accountingJournals.tenantId, northwind));
+    expect(new Set(journals.map((j) => j.status))).toEqual(new Set(["pushed", "waiting", "failed", "voided", ...(journals.some((j) => j.status === "empty") ? ["empty"] : [])]));
+    const [care] = await pools.admin.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, "care@harborhome.demo"));
+    const [m] = await pools.admin.select({ role: schema.tenantMemberships.role }).from(schema.tenantMemberships).where(and(eq(schema.tenantMemberships.userId, care!.id), eq(schema.tenantMemberships.tenantId, harbor)));
+    expect(m!.role).toBe("customer_care");
+    // switched off from the console: stays off
+    await pools.admin.update(schema.tenantAddons).set({ isActive: false }).where(eq(schema.tenantAddons.id, row!.id));
+    const again = await ensureDemoSettings(pools.admin);
+    expect(again.every((r) => r.created.length === 0)).toBe(true);
+    const [after] = await pools.admin.select({ isActive: schema.tenantAddons.isActive }).from(schema.tenantAddons).where(eq(schema.tenantAddons.id, row!.id));
+    expect(after!.isActive).toBe(false);
+    await pools.admin.update(schema.tenantAddons).set({ isActive: true }).where(eq(schema.tenantAddons.id, row!.id));
+    // put the seeded care user back for the other suites
+    await pools.admin.delete(schema.tenantMemberships).where(eq(schema.tenantMemberships.userId, care!.id));
+    await pools.admin.delete(schema.users).where(eq(schema.users.id, care!.id));
+    await pools.admin.execute(sql`update users set email = 'care@harborhome.demo' where email = 'care-before@harborhome.demo'`);
+  });
 });

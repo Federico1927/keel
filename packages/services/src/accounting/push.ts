@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { and, desc, eq, inArray, like, or, recordAudit, schema } from "@hullwise/db";
-import { accountingRetryDelayMs, addDaysToKey, accountingSettingsSchema, accountingWindow, buildDailyJournal, dayReadiness, diffRecords, localDateKey, parseAccountingSettings, type AccountingSettings, type AccountingWaitReason, type DailyJournal, type SalesSummaryDay } from "@hullwise/core";
+import { accountingRetryDelayMs, addDaysToKey, accountingSettingsSchema, accountingWindow, buildDailyJournal, dayReadiness, diffRecords, journalDrift, localDateKey, parseAccountingSettings, type AccountingSettings, type AccountingWaitReason, type DailyJournal, type JournalDriftLine, type SalesSummaryDay } from "@hullwise/core";
 import { ACCOUNTING_INTEGRATION, IntegrationError, MockAccountingProvider, integrationMode, type AccountingAccount, type AccountingProvider, type ConnectionTest } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
 import type { AnalyticsTenant } from "../analytics";
@@ -333,6 +333,42 @@ export async function repushAccountingDay(ctx: ServiceContext, tenant: Analytics
   const [next] = (await currentRows(ctx, [day])).values();
   await recordAudit(ctx.tx, { tenantId: ctx.tenantId, ...auditOf(ctx, opts.by), action: "accounting.journal_repushed", entityType: "accounting_journal", entityId: next?.id ?? row.id, diff: { version: { from: row.version, to: version }, externalId: { from: row.externalId, to: next?.externalId ?? null }, debitMinor: { from: row.debitMinor, to: next?.debitMinor ?? null }, status: { from: "pushed", to: next?.status ?? "voided" } }, metadata: { day, note: opts.note ?? null, pushed: r.pushed } });
   return { version, status: next?.status ?? "voided" };
+}
+
+/* ---------- reconciliation ---------- */
+
+export interface AccountingDrift {
+  day: string;
+  version: number;
+  externalId: string | null;
+  pushedAt: Date | null;
+  pushedDebitMinor: number;
+  currentDebitMinor: number;
+  differenceMinor: number;
+  lines: JournalDriftLine[];
+}
+
+/**
+ * Reconciliation of the pushed days (the window of the daily tick, or the given days): each pushed
+ * journal against the journal today's summary gives for the same day. A day that no longer matches
+ * (an order synced after the push, actual fees replacing the estimate, a changed mapping) is listed
+ * with the lines that moved, so the team re-pushes it (void and replace). Read only.
+ */
+export async function accountingReconciliation(ctx: ServiceContext, tenant: AnalyticsTenant, opts: { days?: string[] } = {}): Promise<{ checked: number; drifts: AccountingDrift[] }> {
+  const state = await getAccountingState(ctx);
+  const now = ctx.now ?? new Date();
+  const days = opts.days ?? accountingWindow(now, tenant.timezone, state.settings, localDateKey(now, tenant.timezone));
+  const pushed = [...(await currentRows(ctx, days)).values()].filter((r) => r.status === "pushed");
+  if (!pushed.length) return { checked: 0, drifts: [] };
+  const evals = await evaluateAccountingDays(ctx, tenant, state.settings, pushed.map((r) => ({ day: r.day, version: r.version })), now);
+  const drifts: AccountingDrift[] = [];
+  for (const r of pushed) {
+    const ev = evals.find((e) => e.day === r.day);
+    if (!ev) continue;
+    const d = journalDrift(r.journal as DailyJournal, ev.journal);
+    if (d.lines.length) drifts.push({ day: r.day, version: r.version, externalId: r.externalId, pushedAt: r.pushedAt, pushedDebitMinor: r.debitMinor, currentDebitMinor: ev.journal.debitMinor, differenceMinor: d.differenceMinor, lines: d.lines });
+  }
+  return { checked: pushed.length, drifts: drifts.sort((a, b) => b.day.localeCompare(a.day)) };
 }
 
 /* ---------- reads ---------- */

@@ -9479,7 +9479,9 @@
       "assignee": "Follow-up",
       "unassigned": "Non assegnato",
       "assigned": "Follow-up assegnato.",
-      "back": "Indietro"
+      "back": "Indietro",
+      "simulate_retry": "Simula il nuovo tentativo dell'app",
+      "open_order": "Apri l'ordine"
     },
     "stock": {
       "title": "Stock per i rinnovi",
@@ -9547,6 +9549,12 @@
       "active_hint": "{paused} in pausa · {new} nuovi in 30 giorni",
       "churn_hint": "{voluntary} volontari · {involuntary} involontari",
       "at_risk_hint": "{n} a rischio · {failing} pagamenti in errore · {high} ad alto rischio di churn"
+    },
+    "simulation": {
+      "success": "Rinnovo addebitato a {customer}: creato l'ordine {order}.",
+      "declined": "Rinnovo rifiutato per {customer}: ora è nella coda di recupero e l'app ritenta tra qualche giorno.",
+      "gave_up": "Ultimo tentativo rifiutato per {customer}: l'app ha cancellato l'abbonamento per mancato pagamento.",
+      "recovered": "Il nuovo tentativo dell'app è andato a buon fine per {customer}: creato l'ordine {order}, pagamento recuperato."
     }
   },
   "whatsapp": {
@@ -10988,7 +10996,8 @@
         "net": "Netto (transitorio)",
         "debit": "Dare",
         "action": "Azioni"
-      }
+      },
+      "repush_not_pushed": "La versione precedente è stata annullata; la versione {version} non è ancora inviata (vedi stato ed errore): viene ritentata in automatico."
     },
     "day": {
       "title": "Scrittura del {day}",
@@ -11067,6 +11076,21 @@
       },
       "save": "Salva",
       "saved": "Impostazioni salvate."
+    },
+    "reconcile": {
+      "title": "Riconciliazione",
+      "description": "Ogni giorno inviato negli ultimi {days} giorni confrontato con il riepilogo vendite di adesso.",
+      "all_match": "Tutti i {n} giorni inviati corrispondono ancora al riepilogo vendite.",
+      "nothing_pushed": "Ancora nessun giorno inviato da controllare.",
+      "columns": {
+        "lines": "Cosa è cambiato",
+        "pushed": "Inviato",
+        "now": "Adesso",
+        "difference": "Differenza"
+      },
+      "line": "{line} {account}: {from} → {to}",
+      "day_title": "Diverso da quanto inviato",
+      "day_description": "Il riepilogo vendite di questo giorno è cambiato dopo l'invio della versione {version} ({difference}). Reinvia il giorno per annullarla e inviare la scrittura corretta."
     }
   }
 }

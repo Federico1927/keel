@@ -296,6 +296,8 @@ export async function seedDomain(db: ReturnType<typeof drizzle<typeof schema>>, 
     // after every step that touches attribution: GA4 traffic is built from the final orders (#86)
     await step("ga4", () => seedGa4(db, cfg.key as "northwind" | "harbor", cfg.tenantId, { now: opts.now ?? new Date(), timeZone: cfg.timezone, storeName: DEMO_TENANTS[cfg.key as keyof typeof DEMO_TENANTS].name }));
     await step("subscriptions", () => seedSubscriptions(db, { tenantId: cfg.tenantId, addons: cfg.addons, now: opts.now ?? new Date(), scale: opts.scale ?? 1, careUserId: ctx.userIds["care@harborhome.demo"] ?? null, ownerUserId: ctx.userIds["owner@harborhome.demo"] ?? null }));
+    // the refill products the subscriptions step adds get their gallery and Shopify mirror like the rest of the catalog
+    if ((cfg.addons as readonly string[]).includes("addon.subscriptions")) await step("subscription-media", () => ensureDemoProductCatalog(db, cfg.tenantId, cfg.key as DemoCatalogKey, opts.now ?? new Date()));
     await step("reliability", () => seedReliability(db, cfg.key as "northwind" | "harbor", cfg.tenantId, ctx.userIds[cfg.key === "northwind" ? "owner@northwind.demo" : "owner@harborhome.demo"] ?? null, opts.now ?? new Date()));
     // last: the push log is built from the finished orders, refunds and processor fees
     if ((DEMO_TENANTS[cfg.key as keyof typeof DEMO_TENANTS].addons as readonly string[]).includes("addon.accounting")) await step("accounting", () => seedAccounting(db, cfg.tenantId, opts.now ?? new Date()));

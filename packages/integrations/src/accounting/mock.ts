@@ -33,6 +33,8 @@ interface MockJournal {
 export class MockAccountingProvider implements AccountingProvider {
   readonly provider = "accounting_mock";
   readonly failures = new FailureScript();
+  /** Failures of the next journal pushes only (the "Simulate a refusal" of the demo): tests, voids and reads still answer. */
+  readonly pushFailures = new FailureScript();
   readonly journals = new Map<string, MockJournal>();
   readonly voided: string[] = [];
   private readonly byKey = new Map<string, string>();
@@ -51,6 +53,7 @@ export class MockAccountingProvider implements AccountingProvider {
 
   async pushJournal(journal: AccountingJournalInput, opts: { idempotencyKey: string }): Promise<AccountingPushResult> {
     this.failures.check();
+    this.pushFailures.check();
     const known = this.byKey.get(opts.idempotencyKey);
     if (known) return { externalId: known, status: this.journals.get(known)!.status, replayed: true };
     const accounts = new Map((this.opts.accounts ?? MOCK_CHART_OF_ACCOUNTS).map((a) => [a.code, a]));
