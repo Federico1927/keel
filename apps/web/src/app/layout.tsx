@@ -16,7 +16,15 @@ export const metadata: Metadata = {
   description: "Operations platform for e-commerce teams",
   // installable app (#49): manifest from app/manifest.ts, home-screen icon and standalone status bar on iOS
   appleWebApp: { capable: true, title: PRODUCT_NAME, statusBarStyle: "default" },
-  icons: { apple: "/icons/apple-touch-icon.png" },
+  // an explicit `icons` replaces the file-based app/icon.svg link, so list the tab icons here too:
+  // SVG for current browsers, PNG for Safari, app/favicon.ico for clients that only ask /favicon.ico
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-32.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: "/icons/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {
