@@ -1426,3 +1426,16 @@ Before, about 12% of treated customers were picked by hash, overlapping with cus
 **Decision.** `packages/jobs/src/schedules.ts` holds the schedule list and `installSchedules()`, which passes `key: <kind>` (the per-kind `singletonKey` stays) and removes rows of kinds no longer listed, including the old keyless row. The worker logs the removed rows at start.
 
 **Alternatives.** One queue per tick kind (rejected: 25 more queues and workers for the same handler). Leaving stale rows (rejected: the keyless row would fire accounting twice an hour).
+
+## 2026-10-03 — Orders sync: one savepoint per page, the database's reason in the error
+
+**Problem.** After the worker schedules came back (PR #110), Harbor Home's delta failed every 15 minutes in production with `Failed query: update "sync_runs" set "status" = …`. The sync runs in one tenant transaction. When a page hit a database error, the transaction was aborted, so the catch block could not write the error row either. The job failed with that second error, which hid the real reason, and retried forever.
+
+**Decision.**
+- `runOrdersSync` opens a savepoint per page. On an error it rolls back to that savepoint, so only the failing page is undone, and restores the cursor and counters from before the page. It then records the run as `error` and logs `[sync] orders <kind> failed for tenant …`.
+- Error texts lead with the database's own message, which Drizzle keeps in `cause`, followed by the start of the query.
+- The worker's failure line does the same, and job lines show the pass kind (`kind=delta`).
+
+**Alternatives.**
+- One transaction per page (rejected: the run row, health and cursor would need their own transactions, which is a larger change to every sync).
+- Catching inside `importOrder` per order (rejected: it would hide data errors as skipped orders).
