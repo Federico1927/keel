@@ -1,6 +1,6 @@
 import { and, eq, gte, isNull, lt, schema, sql } from "@hullwise/db";
-import { dashboardPeriod, orderPnl, previousPeriod, projectMonthEnd, type Granularity, type Period } from "@hullwise/core";
-import { AD_PLATFORMS, WIDGETS, WIDGET_SETTINGS, isCustomMetricRef, isWidgetAvailable, isWidgetVisible, metricDefinition, type DashboardWidget, type MetricFormat, type TenantRole, type WidgetSettings, type WidgetType } from "@hullwise/config";
+import { dashboardPeriod, dataHealthForRole, orderPnl, previousPeriod, projectMonthEnd, type DataHealthReport, type Granularity, type Period } from "@hullwise/core";
+import { AD_PLATFORMS, WIDGETS, WIDGET_SETTINGS, canWritePage, isCustomMetricRef, isWidgetAvailable, isWidgetVisible, metricDefinition, type DashboardWidget, type MetricFormat, type TenantRole, type WidgetSettings, type WidgetType } from "@hullwise/config";
 import type { ServiceContext } from "../context";
 import { dashboardSummary, productPerformance, orderEconomicsForPeriod, type AnalyticsTenant, type DashboardSummary } from "../analytics";
 import { monthEndForecast, type MonthForecast } from "../analytics/depth";
@@ -12,6 +12,7 @@ import { countLateToShip } from "../fulfilment";
 import { shipmentCaseCounts } from "../fulfilment/cases";
 import { backorderSummary, type BackorderSummary } from "../backorders";
 import { catalogQualityReport } from "../catalog/costs";
+import { dataHealthReport } from "./data-health";
 import { currentTarget, customMetricBases, isSeriesRef, tenantMetricSeries, tenantMetricValues, type CustomMetricRow, type Memo, type MetricSeries, type TenantMetricValue } from "./metrics";
 
 /**
@@ -191,6 +192,12 @@ const workQueue: WidgetLoader = async (ctx, env) => {
   return { open: summary.open, lateToShip: late, catalogIssues: quality.rows.filter((r) => r.issues.some((x) => x === "missing_cost" || x === "missing_sku" || x === "duplicate_sku")).length, catalogMissingCost: quality.counts.missing_cost } satisfies WorkQueueData;
 };
 
+/** Data completeness (#99): the tenant's gaps, only those the viewer's role can fix. */
+const setupHealth: WidgetLoader = async (ctx, env) => {
+  const report = await memoOf(env)(`data-health|${ctx.tenantId}|${minuteKey(env)}`, () => dataHealthReport(ctx, env.tenant, env.now));
+  return dataHealthForRole(report, (page) => canWritePage(env.role, page)) satisfies DataHealthReport;
+};
+
 export const CORE_WIDGET_LOADERS: Partial<Record<WidgetType, WidgetLoader>> = {
   kpi,
   timeseries,
@@ -210,6 +217,7 @@ export const CORE_WIDGET_LOADERS: Partial<Record<WidgetType, WidgetLoader>> = {
   month_forecast: (ctx, env) => forecastOf(ctx, env),
   work_queue: workQueue,
   stock_backorders: (ctx, env): Promise<BackorderSummary> => backordersOf(ctx, env),
+  setup_health: setupHealth,
 };
 
 export type WidgetResult = { ok: true; data: unknown } | { ok: false; reason: "unknown" | "module_disabled" | "forbidden" | "invalid_settings" | "failed"; message?: string };

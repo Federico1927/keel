@@ -1967,7 +1967,9 @@
       "n_creatives": "{n} creatività",
       "footnote": "I tag vengono dalla convenzione di nome FORMATO | HOOK | ANGOLO, modificabile sulla piattaforma. Le miniature sono segnaposto locali finché non si sincronizzano le anteprime dell'account."
     },
-    "all_accounts": "Tutti gli account"
+    "all_accounts": "Tutti gli account",
+    "filter_unlinked": "Solo campagne senza prodotto collegato",
+    "filter_unlinked_clear": "Mostra tutte le campagne"
   },
   "campaign_detail": {
     "back": "Campagne",
@@ -8341,6 +8343,10 @@
       "subs_at_risk": {
         "name": "Abbonamenti a rischio",
         "description": "Valore di rinnovo degli abbonati con un pagamento in errore o un alto rischio di churn."
+      },
+      "setup_health": {
+        "name": "Dati mancanti",
+        "description": "Costi, aliquote, collegamenti e connessioni che mancano, con cosa falsa ogni lacuna e dove sistemarla."
       }
     },
     "metrics": {
@@ -11267,6 +11273,98 @@
       },
       "retry": "Riprova",
       "done_note": "Il tenant è eliminato. Il registro attività della piattaforma ne conserva la traccia (azione tenant.deleted)."
+    }
+  },
+  "data_health": {
+    "title": "Dati mancanti",
+    "see_all": "Vedi tutto",
+    "all_set": "Tutto a posto",
+    "all_set_hint": "Costi, aliquote, collegamenti e connessioni sono completi: i numeri usano i tuoi dati.",
+    "score": "Completezza {score}/100",
+    "summary": {
+      "critical": "{n} {n, plural, one {critico} other {critici}}",
+      "warning": "{n} da controllare",
+      "info": "{n} {n, plural, one {suggerimento} other {suggerimenti}}"
+    },
+    "severity": {
+      "critical": "Critico",
+      "warning": "Da controllare",
+      "info": "Suggerimento"
+    },
+    "page": {
+      "back": "Home",
+      "description": "Cosa manca perché i numeri siano giusti. I controlli sugli ordini guardano le vendite degli ultimi {days} giorni; spesa ads e stati degli ordini gli ultimi {recent} giorni.",
+      "gaps_title": "Da sistemare",
+      "passed_title": "Completi",
+      "skipped_title": "Non applicabili",
+      "not_applicable": "non ancora usato da questo negozio",
+      "found": "Trovati: {count} su {sample}",
+      "orders": "Ordini coinvolti: {n}",
+      "revenue": "Vendite coinvolte: {amount}",
+      "spend": "Spesa ads coinvolta: {amount}",
+      "share": "Quota: {share}"
+    },
+    "checks": {
+      "commerce_connection": {
+        "name": "Connessione del negozio",
+        "title": "Negozio non collegato",
+        "impact": "Collega {providers}: senza non ci sono ordini, prodotti o stock su cui lavorare."
+      },
+      "product_costs": {
+        "name": "Costi dei prodotti",
+        "title": "Prodotti venduti senza costo",
+        "impact": "{count, plural, one {# variante venduta} other {# varianti vendute}} senza costo: il margine è sovrastimato su {orders} ordini ({revenue} di vendite)."
+      },
+      "tax_rates": {
+        "name": "Aliquote",
+        "title": "Aliquote mancanti",
+        "impact": "Nessuna aliquota per {countries}: il ricavo netto di {orders} ordini ({revenue}) usa un'aliquota di ripiego."
+      },
+      "shipping_costs": {
+        "name": "Costi di spedizione",
+        "title": "Costo di spedizione non impostato",
+        "impact": "{orders} ordini usano la stima di spedizione generica di {product} invece della tua."
+      },
+      "fixed_costs": {
+        "name": "Costi fissi",
+        "title": "Nessun costo fisso per {month}",
+        "impact": "L'utile operativo di {month} non comprende affitto, personale e strumenti."
+      },
+      "campaign_links": {
+        "name": "Campagne collegate ai prodotti",
+        "title": "Campagne senza prodotto",
+        "impact": "{count, plural, one {# campagna} other {# campagne}} con {revenue} di spesa negli ultimi 30 giorni: profitto per prodotto e consigli sullo stock non la considerano."
+      },
+      "integration_errors": {
+        "name": "Integrazioni",
+        "title": "Integrazioni in errore",
+        "impact": "{providers}: i loro dati potrebbero mancare o essere vecchi."
+      },
+      "payment_fees": {
+        "name": "Commissioni di pagamento",
+        "title": "Commissioni a zero",
+        "impact": "Le commissioni valgono zero su {orders} ordini pagati con {methods}: verifica che siano davvero gratuiti."
+      },
+      "state_rules": {
+        "name": "Regole di stato degli ordini",
+        "title": "Ordini fuori dalle tue regole di stato",
+        "impact": "{orders} ordini degli ultimi 30 giorni hanno preso lo stato predefinito della piattaforma, non dalle tue regole."
+      },
+      "cost_actuals": {
+        "name": "Costi effettivi del mese scorso",
+        "title": "Costi di {month} ancora stimati",
+        "impact": "Inserisci le fatture perché il P/L di {month} usi i valori effettivi."
+      },
+      "return_costs": {
+        "name": "Costi dei resi",
+        "title": "Costi dei resi non impostati",
+        "impact": "{count, plural, one {# reso ricevuto} other {# resi ricevuti}} in 90 giorni non costano nulla nel P/L: imposta etichetta e gestione."
+      },
+      "suppliers": {
+        "name": "Fornitori",
+        "title": "Prodotti senza fornitore",
+        "impact": "{count, plural, one {# variante venduta} other {# varianti vendute}} senza fornitore predefinito: non si possono preparare i riordini."
+      }
     }
   }
 }

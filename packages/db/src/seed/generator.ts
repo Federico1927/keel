@@ -785,7 +785,9 @@ export function generateTenantDataset(cfg: TenantSeedConfig): TenantDataset {
     const closed = m >= 1;
     for (const [label, estimate] of fixedLines) ds.periodCosts.push(t({ period, kind: "fixed", label, estimateMinor: estimate, actualMinor: closed ? Math.round(estimate * (0.92 + rng.next() * 0.16)) : null, note: null }));
     const shippingEstimate = Math.round((isApparel ? 1250 : 500) * (0.8 + rng.next() * 0.4) * (isApparel ? 620 : 890));
-    ds.periodCosts.push(t({ period, kind: "shipping", label: "", estimateMinor: shippingEstimate, actualMinor: closed ? Math.round(shippingEstimate * (0.9 + rng.next() * 0.2)) : null, note: null }));
+    const shippingActual = closed ? Math.round(shippingEstimate * (0.9 + rng.next() * 0.2)) : null;
+    // Northwind's carrier invoice for the last closed month is not in yet (data completeness, #99); drawn anyway so the random sequence stays the same
+    ds.periodCosts.push(t({ period, kind: "shipping", label: "", estimateMinor: shippingEstimate, actualMinor: isApparel && m === 1 ? null : shippingActual, note: null }));
   }
 
   /* ---------- segments ---------- */

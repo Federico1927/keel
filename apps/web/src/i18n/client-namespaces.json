@@ -267,6 +267,7 @@
     "dashboards",
     "roles"
   ],
+  "app/t/[tenant]/data-health/page.tsx": [],
   "app/t/[tenant]/discounts/[id]/page.tsx": [
     "discount_detail",
     "discounts",

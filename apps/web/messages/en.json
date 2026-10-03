@@ -1967,7 +1967,9 @@
       "n_creatives": "{n} creatives",
       "footnote": "Tags come from the naming convention FORMAT | HOOK | ANGLE, editable on the platform. Thumbnails are local placeholders until the ad account's previews are synced."
     },
-    "all_accounts": "All ad accounts"
+    "all_accounts": "All ad accounts",
+    "filter_unlinked": "Only campaigns without a linked product",
+    "filter_unlinked_clear": "Show all campaigns"
   },
   "campaign_detail": {
     "back": "Campaigns",
@@ -8341,6 +8343,10 @@
       "subs_at_risk": {
         "name": "Subscriptions at risk",
         "description": "Renewal value of subscribers with a failing payment or a high churn risk."
+      },
+      "setup_health": {
+        "name": "Missing data",
+        "description": "Costs, taxes, links and connections still missing, with what each gap skews and where to fix it."
       }
     },
     "metrics": {
@@ -11267,6 +11273,98 @@
       },
       "retry": "Retry",
       "done_note": "The tenant is deleted. The platform audit log keeps the record (action tenant.deleted)."
+    }
+  },
+  "data_health": {
+    "title": "Missing data",
+    "see_all": "See all",
+    "all_set": "All set",
+    "all_set_hint": "Costs, taxes, links and connections are complete: your numbers use your own data.",
+    "score": "Completeness {score}/100",
+    "summary": {
+      "critical": "{n} critical",
+      "warning": "{n} to review",
+      "info": "{n} {n, plural, one {tip} other {tips}}"
+    },
+    "severity": {
+      "critical": "Critical",
+      "warning": "Review",
+      "info": "Tip"
+    },
+    "page": {
+      "back": "Home",
+      "description": "What is missing for your numbers to be right. Order checks look at the sales of the last {days} days; ad spend and order states at the last {recent} days.",
+      "gaps_title": "To fix",
+      "passed_title": "Complete",
+      "skipped_title": "Not applicable",
+      "not_applicable": "not used by this store yet",
+      "found": "Found: {count} of {sample}",
+      "orders": "Orders affected: {n}",
+      "revenue": "Sales affected: {amount}",
+      "spend": "Ad spend affected: {amount}",
+      "share": "Share: {share}"
+    },
+    "checks": {
+      "commerce_connection": {
+        "name": "Store connection",
+        "title": "Store not connected",
+        "impact": "Connect {providers}: without it there are no orders, products or stock to work on."
+      },
+      "product_costs": {
+        "name": "Product costs",
+        "title": "Products sold without a cost",
+        "impact": "{count, plural, one {# variant} other {# variants}} sold without a cost: margin is overstated on {orders} orders ({revenue} of sales)."
+      },
+      "tax_rates": {
+        "name": "Tax rates",
+        "title": "Missing tax rates",
+        "impact": "No rate for {countries}: net revenue of {orders} orders ({revenue}) uses a fallback rate."
+      },
+      "shipping_costs": {
+        "name": "Shipping costs",
+        "title": "Shipping cost not set",
+        "impact": "{orders} orders use {product}'s generic shipping estimate instead of yours."
+      },
+      "fixed_costs": {
+        "name": "Fixed costs",
+        "title": "No fixed costs for {month}",
+        "impact": "Operating profit for {month} leaves out rent, payroll and tools."
+      },
+      "campaign_links": {
+        "name": "Campaigns linked to products",
+        "title": "Campaigns without a product",
+        "impact": "{count, plural, one {# campaign} other {# campaigns}} with {revenue} of spend in the last 30 days: product profit and stock-aware advice miss it."
+      },
+      "integration_errors": {
+        "name": "Integrations",
+        "title": "Integrations in error",
+        "impact": "{providers}: their data may be missing or stale."
+      },
+      "payment_fees": {
+        "name": "Payment fees",
+        "title": "Payment fees at zero",
+        "impact": "Fees count as zero on {orders} orders paid by {methods}: check they are really free."
+      },
+      "state_rules": {
+        "name": "Order state rules",
+        "title": "Orders outside your state rules",
+        "impact": "{orders} orders in the last 30 days took their status from the platform default, not from your rules."
+      },
+      "cost_actuals": {
+        "name": "Actual costs of last month",
+        "title": "{month} costs still estimated",
+        "impact": "Enter the invoices so the P/L for {month} uses actual figures."
+      },
+      "return_costs": {
+        "name": "Return costs",
+        "title": "Return costs not set",
+        "impact": "{count, plural, one {# return} other {# returns}} received in 90 days cost nothing in the P/L: set label and handling costs."
+      },
+      "suppliers": {
+        "name": "Suppliers",
+        "title": "Products without a supplier",
+        "impact": "{count, plural, one {# variant} other {# variants}} sold without a default supplier: reorders can't be drafted for them."
+      }
     }
   }
 }

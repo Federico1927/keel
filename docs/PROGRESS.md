@@ -1110,3 +1110,19 @@ Fatto (dopo un giro completo da utente su entrambi gli add-on):
 Resta (checklist di rilascio nei due documenti):
 - Spoki: prova su un account reale (passi "Da verificare", formato del webhook, codici d'errore), chi può leggere e rispondere alle conversazioni (oggi solo owner e admin: serve una chiave di pagina per l'assistenza), notifica per le domande dei clienti.
 - Campagne: decisioni di #73, almeno un fornitore email o SMS reale (oggi simulati), disiscrizione per canale, prova di carico della coda.
+
+## Widget "Dati mancanti" sulla dashboard (issue #99)
+
+Richiesta del committente: un widget che mostri all'amministratore del negozio tutti i dati che mancano (costi dei prodotti, costi di spedizione, campagne collegate…).
+
+Fatto:
+- **Regole pure** in `packages/core/src/data-health.ts`: 12 controlli con gravità (critico, da controllare, suggerimento), conteggio, campione, ordini e ricavi coinvolti, link alla pagina o al filtro che sistema la lacuna; punteggio di completezza su 100.
+- **Servizio** `dataHealthReport`: query aggregate con finestre (90 giorni di vendite, 30 di spesa ads e stati), circa 100 ms sulla demo.
+- **Controlli**: connessione del negozio, varianti vendute senza costo, paesi senza aliquota, spedizione sulla stima generica, costi fissi mancanti e costi del mese scorso ancora stimati, campagne con spesa senza prodotto, integrazioni in errore, commissioni a zero, ordini fuori dalle regole di stato, costi dei resi, varianti senza fornitore. Nessun controllo dipende dal metodo di pagamento.
+- **Widget** nel modello della home (ultima tessera, 2×2, altezza fissa con scorrimento interno: nessuno spostamento della pagina) e pagina "Vedi tutto" `/data-health`. Owner e admin vedono tutto; gli altri ruoli solo le righe che possono sistemare (operations: costi e fornitori; marketing: campagne); viewer e assistenza non vedono il widget.
+- **Link ai filtri**: `campagne?links=none` (campagne senza prodotto) e `impostazioni?tab=` (commissioni, aliquote).
+- **Dati demo**: su Northwind manca la fattura del corriere del mese scorso; Harbor ha l'aliquota 0% per il Canada. Northwind mostra 6 lacune, Harbor 5 più leggere.
+- **Test**: core +8 (`data-health.test.ts`), config (visibilità, modello), services +10 (`data-health.test.ts` sul database: lacune aperte una per una, ruoli, negozio vuoto), e2e nuovo `data-health.spec.ts` (desktop, 393px, ruoli); aggiornati i conteggi del modello in `dashboards.spec.ts` e `dashboards.test.ts`.
+- Nessuna migrazione.
+
+Resta: mappa dei gateway di pagamento modificabile dall'app (poi un controllo sui gateway non riconosciuti); eventuale notifica quando compare una lacuna critica.
