@@ -4,7 +4,9 @@ import {
   APP_URL,
   CONTACT_EMAIL,
   PRODUCT_NAME,
+  STUDIO_NAME,
   localePath,
+  studioHref,
   type LandingLocale,
 } from "@/config/site";
 import { getTranslator } from "@/i18n/messages";
@@ -40,6 +42,9 @@ export function Footer({ locale }: { locale: LandingLocale }) {
           </a>
           <a href={`${APP_URL}/login`} className="hover:underline">
             {t("footer.sign_in", { product: PRODUCT_NAME })}
+          </a>
+          <a href={studioHref(locale, "footer")} className="hover:underline">
+            {t("footer.studio", { studio: STUDIO_NAME })}
           </a>
         </nav>
         <LocaleSwitch current={locale} label={t("footer.language")} className="self-start" />

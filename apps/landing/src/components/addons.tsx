@@ -1,7 +1,7 @@
-import { BookOpenCheck, Code2, Megaphone, MessageCircle, PhoneCall, Puzzle, Repeat } from "lucide-react";
+import { ArrowUpRight, BookOpenCheck, Code2, Megaphone, MessageCircle, PhoneCall, Puzzle, Repeat } from "lucide-react";
 import { Section } from "@/components/ui";
 import { ADDONS, addonOnSale } from "@/config/pricing";
-import type { LandingLocale } from "@/config/site";
+import { PRODUCT_NAME, STUDIO_NAME, studioHref, type LandingLocale } from "@/config/site";
 import { getTranslator } from "@/i18n/messages";
 import { formatPrice } from "@/lib/format";
 
@@ -46,6 +46,21 @@ export function Addons({ locale }: { locale: LandingLocale }) {
           );
         })}
       </ul>
+      <aside className="mt-8 flex flex-col gap-4 rounded-lg border border-dashed border-border bg-background p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">{t("studio.title")}</h3>
+          <p className="mt-2 max-w-2xl leading-relaxed text-muted-foreground">
+            {t("studio.body", { studio: STUDIO_NAME, product: PRODUCT_NAME })}
+          </p>
+        </div>
+        <a
+          href={studioHref(locale, "addons")}
+          className="inline-flex shrink-0 items-center gap-1 font-medium text-primary hover:underline"
+        >
+          {t("studio.link", { studio: STUDIO_NAME })}
+          <ArrowUpRight className="size-4" aria-hidden="true" />
+        </a>
+      </aside>
     </Section>
   );
 }
