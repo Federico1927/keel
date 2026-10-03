@@ -39,11 +39,12 @@ export function guideHref(provider: "shopify" | "meta" | "google" | "anthropic")
 /**
  * Automations Lab, the studio that builds custom systems. The landing sends visitors who need a
  * bespoke build there; automationslab.it links back here for those who want the product.
- * Italian lives at the root, English at /en/; there is no Spanish site, so Spanish goes to English.
+ * Italian lives at /it/, English at /en/ (the root only redirects by browser language); there is
+ * no Spanish site, so Spanish goes to English.
  */
 export const STUDIO_NAME = "Automations Lab";
 const STUDIO_URL = trimSlash(process.env.NEXT_PUBLIC_STUDIO_URL ?? "https://automationslab.it");
-const STUDIO_PATHS: Record<LandingLocale, string> = { en: "/en/", it: "/", es: "/en/" };
+const STUDIO_PATHS: Record<LandingLocale, string> = { en: "/en/", it: "/it/", es: "/en/" };
 
 /** Link to the studio site, tagged so its analytics can attribute the visit to this landing. */
 export function studioHref(locale: LandingLocale, placement: "addons" | "footer"): string {
