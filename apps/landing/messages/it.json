@@ -296,6 +296,12 @@
     },
     "coming_soon": "In arrivo"
   },
+  "studio": {
+    "eyebrow": "Su misura",
+    "title": "Ti serve un sistema costruito su misura, non un prodotto?",
+    "body": "{studio}, lo studio dietro {product}, progetta e costruisce da zero automazioni e sistemi interni su misura, per qualsiasi azienda, non solo e-commerce.",
+    "link": "Scopri {studio}"
+  },
   "faq": {
     "title": "Le domande che ci fanno",
     "items": {
@@ -377,7 +383,8 @@
     "contact": "Contatti",
     "sign_in": "Accedi a {product}",
     "language": "Lingua",
-    "rights": "© {year} {product}. Tutti i diritti riservati."
+    "rights": "© {year} {product}. Tutti i diritti riservati.",
+    "studio": "Sistemi su misura: {studio}"
   },
   "coming_soon": {
     "badge": "In arrivo",

@@ -296,6 +296,12 @@
     },
     "coming_soon": "Próximamente"
   },
+  "studio": {
+    "eyebrow": "A medida",
+    "title": "¿Necesitas un sistema hecho a tu medida, no un producto?",
+    "body": "{studio}, el estudio detrás de {product}, diseña y construye desde cero automatizaciones y sistemas internos a medida, para cualquier empresa, no solo e-commerce.",
+    "link": "Visita {studio}"
+  },
   "faq": {
     "title": "Las preguntas que nos hacen",
     "items": {
@@ -377,7 +383,8 @@
     "contact": "Contacto",
     "sign_in": "Iniciar sesión en {product}",
     "language": "Idioma",
-    "rights": "© {year} {product}. Todos los derechos reservados."
+    "rights": "© {year} {product}. Todos los derechos reservados.",
+    "studio": "Sistemas a medida: {studio}"
   },
   "coming_soon": {
     "badge": "Próximamente",

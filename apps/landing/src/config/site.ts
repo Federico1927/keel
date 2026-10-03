@@ -35,3 +35,24 @@ export function demoHref(subject: string): string {
 export function guideHref(provider: "shopify" | "meta" | "google" | "anthropic"): string {
   return `${APP_URL}/login?next=${encodeURIComponent(`/integrations/guide/${provider}`)}`;
 }
+
+/**
+ * Automations Lab, the studio that builds custom systems. The landing sends visitors who need a
+ * bespoke build there; automationslab.it links back here for those who want the product.
+ * Italian lives at /it/, English at /en/ (the root only redirects by browser language); there is
+ * no Spanish site, so Spanish goes to English.
+ */
+export const STUDIO_NAME = "Automations Lab";
+const STUDIO_URL = trimSlash(process.env.NEXT_PUBLIC_STUDIO_URL ?? "https://automationslab.it");
+const STUDIO_PATHS: Record<LandingLocale, string> = { en: "/en/", it: "/it/", es: "/en/" };
+
+/** Link to the studio site, tagged so its analytics can attribute the visit to this landing. */
+export function studioHref(locale: LandingLocale, placement: "addons" | "footer"): string {
+  const params = new URLSearchParams({
+    utm_source: "hullwise",
+    utm_medium: "referral",
+    utm_campaign: "cross_site",
+    utm_content: placement,
+  });
+  return `${STUDIO_URL}${STUDIO_PATHS[locale]}?${params.toString()}`;
+}
