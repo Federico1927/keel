@@ -40,8 +40,13 @@ async function openCardOrders(n: number, placedAt = new Date()) {
     picked.push(r.id);
   }
   await ops(async (s) => {
-    await s.tx.update(schema.orders).set({ status: "confirmed", statusSource: "rules", manualStatus: null, cancelledAt: null, cancelReason: null, placedAt, paymentStatus: "paid", financialStatusRaw: "paid", fulfillmentStatusRaw: null, replacedByOrderId: null, replacesOrderId: null, lineageRootOrderId: null, returnedFraction: 0, refundedMinor: 0, holdReason: null }).where(inArray(schema.orders.id, picked));
+    // no platform tags: the demo state rules hold some tags (e.g. wholesale), and which orders carry them moves with the seed date
+    await s.tx.update(schema.orders).set({ platformTags: [], status: "confirmed", statusSource: "rules", manualStatus: null, cancelledAt: null, cancelReason: null, placedAt, paymentStatus: "paid", financialStatusRaw: "paid", fulfillmentStatusRaw: null, replacedByOrderId: null, replacesOrderId: null, lineageRootOrderId: null, returnedFraction: 0, refundedMinor: 0, holdReason: null }).where(inArray(schema.orders.id, picked));
     await s.tx.delete(schema.shipments).where(inArray(schema.shipments.orderId, picked));
+    // the demo stock also moves with the seed date: give the picked orders' variants stock, so an edit that
+    // adds a unit is never held for stock (these tests are about editing, not backorders)
+    const variantIds = (await s.tx.select({ v: schema.orderLines.variantId }).from(schema.orderLines).where(inArray(schema.orderLines.orderId, picked))).map((r) => r.v).filter((v): v is string => Boolean(v));
+    if (variantIds.length) await s.tx.update(schema.inventoryLevels).set({ available: 500, onHand: 500 }).where(inArray(schema.inventoryLevels.variantId, variantIds));
     for (const id of picked) await recomputeOrderStatus(s, id);
   });
   return picked;
