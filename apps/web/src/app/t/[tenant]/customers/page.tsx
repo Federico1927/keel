@@ -10,7 +10,8 @@ import { TierBadge } from "./tier-badge";
 import { ChurnBadge } from "./churn-badge";
 import { ListToolbar } from "@/components/lists/list-toolbar";
 
-export default async function CustomersPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function CustomersPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "customers");
@@ -61,3 +62,5 @@ export default async function CustomersPage({ params, searchParams }: { params: 
     </>
   );
 }
+
+export default withIntl(CustomersPage, "app/t/[tenant]/customers/page.tsx");

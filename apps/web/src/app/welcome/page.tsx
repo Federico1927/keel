@@ -6,8 +6,9 @@ import { requireUser } from "@/server/session";
 import { BrandMark } from "@/components/brand-mark";
 import { CompleteProfileForm } from "./form";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** "Complete your profile": a person without a name (invited by email) gives it before the app opens. */
-export default async function WelcomePage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+async function WelcomePage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const user = await requireUser();
   const { next } = await searchParams;
   const target = next && (next.startsWith("/t/") || next.startsWith("/admin")) ? next : "/";
@@ -33,3 +34,5 @@ export default async function WelcomePage({ searchParams }: { searchParams: Prom
     </main>
   );
 }
+
+export default withIntl(WelcomePage, "app/welcome/page.tsx");

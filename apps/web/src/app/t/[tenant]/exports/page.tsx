@@ -6,8 +6,9 @@ import { Alert, AlertDescription, Badge, Card, CardContent, DataList, EmptyState
 import { getTenantContext } from "@/server/tenant";
 import { AutoRefresh } from "@/components/lists/auto-refresh";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** The signed-in user's CSV exports that ran in the background; files are only ever shown to their owner. */
-export default async function ExportsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ queued?: string }> }) {
+async function ExportsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ queued?: string }> }) {
   const { tenant } = await params;
   const { queued } = await searchParams;
   const ctx = await getTenantContext(tenant);
@@ -46,3 +47,5 @@ export default async function ExportsPage({ params, searchParams }: { params: Pr
     </>
   );
 }
+
+export default withIntl(ExportsPage, "app/t/[tenant]/exports/page.tsx");

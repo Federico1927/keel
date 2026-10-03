@@ -24,11 +24,11 @@ export function ReturnFiltersBar({ basePath, filters, counts, reasons }: { baseP
     <div className={cn("space-y-3", pending && "opacity-70")}>
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:px-0">
         <button type="button" onClick={() => apply({ status: filters.status === "open" ? undefined : "open" })} className={cn("shrink-0 rounded-full border px-3 py-1 text-xs pointer-coarse:min-h-9", filters.status === "open" ? "bg-primary text-primary-foreground" : "bg-card")}>
-          {t("open")} <span className="tabular opacity-70">{open}</span>
+          {t("open")} <span className="tabular font-normal">{open}</span>
         </button>
         {RETURN_STATUSES.map((s) => (
           <button key={s} type="button" onClick={() => apply({ status: filters.status === s ? undefined : s })} className={cn("shrink-0 rounded-full border px-3 py-1 text-xs pointer-coarse:min-h-9", filters.status === s ? "bg-primary text-primary-foreground" : "bg-card")}>
-            {ts(s)} <span className="tabular opacity-70">{counts[s] ?? 0}</span>
+            {ts(s)} <span className="tabular font-normal">{counts[s] ?? 0}</span>
           </button>
         ))}
       </div>

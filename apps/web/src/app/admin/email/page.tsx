@@ -4,16 +4,18 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { asc, schema } from "@hullwise/db";
 import { formatDateTime, formatNumber } from "@hullwise/core";
 import { EMAIL_TEMPLATE_NAMES, emailSettings, emailStats, listAddressSuppressions, listEmailLog } from "@hullwise/services";
-import { Alert, AlertDescription, AlertTitle, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, Input, Label, PageHeader, Pagination, Select, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, AlertTitle, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, Input, Label, PageHeader, Pagination, Select, Stat, DataList } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { RemoveSuppressionButton, TestEmailForm } from "./controls";
+import { ADMIN_FILTER_FORM, AdminFilters, type AdminFilterChip } from "../_components/admin-filters";
 
+import { withIntl } from "@/i18n/intl-scope";
 const STATUSES = ["queued", "sending", "sent", "delivered", "delivery_delayed", "bounced", "complained", "failed", "suppressed", "expired"] as const;
 type Status = (typeof STATUSES)[number];
 const STATUS_VARIANT: Record<Status, "success" | "warning" | "destructive" | "muted" | "info"> = { queued: "info", sending: "info", sent: "info", delivered: "success", delivery_delayed: "warning", bounced: "destructive", complained: "destructive", failed: "destructive", suppressed: "muted", expired: "muted" };
 interface Step { title: string; body: string; verify?: boolean }
 
-export default async function AdminEmailPage({ searchParams }: { searchParams: Promise<{ status?: string; template?: string; tenant?: string; recipient?: string; page?: string }> }) {
+async function AdminEmailPage({ searchParams }: { searchParams: Promise<{ status?: string; template?: string; tenant?: string; recipient?: string; page?: string }> }) {
   const { db, user } = await requireSuperAdmin();
   const sp = await searchParams;
   const t = await getTranslations("admin.email");
@@ -27,6 +29,12 @@ export default async function AdminEmailPage({ searchParams }: { searchParams: P
     const q = new URLSearchParams(Object.entries({ status: filters.status, template: filters.template, tenant: filters.tenant, recipient: filters.recipient, ...over }).filter((e): e is [string, string] => Boolean(e[1])));
     return `/admin/email${q.size ? `?${q}` : ""}`;
   };
+  const chips: AdminFilterChip[] = [
+    ...(filters.status ? [{ key: "status", label: t(`status.${filters.status as Status}`), href: href({ status: undefined }) }] : []),
+    ...(filters.template ? [{ key: "template", label: t(`templates.${filters.template as "test"}`), href: href({ template: undefined }) }] : []),
+    ...(filters.tenant ? [{ key: "tenant", label: filters.tenant === "platform" ? t("filters.platform") : (tenants.find((x) => x.id === filters.tenant)?.name ?? t("filters.tenant")), href: href({ tenant: undefined }) }] : []),
+    ...(filters.recipient ? [{ key: "recipient", label: filters.recipient, href: href({ recipient: undefined }) }] : []),
+  ];
   const steps = tg.raw("email.steps") as Step[];
   const webhookUrl = apiEndpoint("/webhooks/email");
   const stateVariant = settings.state === "configured" ? "success" : settings.state === "not_configured" ? "destructive" : "warning";
@@ -80,70 +88,59 @@ export default async function AdminEmailPage({ searchParams }: { searchParams: P
           <CardDescription>{t("privacy")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <form method="get" action="/admin/email" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto] lg:items-end">
-            <div className="space-y-1.5">
-              <Label htmlFor="f-status">{t("filters.status")}</Label>
-              <Select id="f-status" name="status" defaultValue={filters.status ?? ""}>
-                <option value="">{t("filters.all")}</option>
-                {STATUSES.map((s) => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="f-template">{t("filters.template")}</Label>
-              <Select id="f-template" name="template" defaultValue={filters.template ?? ""}>
-                <option value="">{t("filters.all")}</option>
-                {EMAIL_TEMPLATE_NAMES.map((n) => <option key={n} value={n}>{t(`templates.${n}`)}</option>)}
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="f-tenant">{t("filters.tenant")}</Label>
-              <Select id="f-tenant" name="tenant" defaultValue={filters.tenant ?? ""}>
-                <option value="">{t("filters.all")}</option>
-                <option value="platform">{t("filters.platform")}</option>
-                {tenants.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="f-recipient">{t("filters.recipient")}</Label>
-              <Input id="f-recipient" name="recipient" type="email" defaultValue={filters.recipient ?? ""} autoComplete="off" />
-            </div>
-            <div className="flex gap-2">
-              <Button type="submit">{t("filters.apply")}</Button>
-              <Link href="/admin/email" className="flex h-9 items-center rounded-md border px-3 text-sm">{t("filters.reset")}</Link>
-            </div>
-          </form>
+          <AdminFilters chips={chips} className="">
+            <form id={ADMIN_FILTER_FORM} method="get" action="/admin/email" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto] lg:items-end">
+              <div className="space-y-1.5">
+                <Label htmlFor="f-status">{t("filters.status")}</Label>
+                <Select id="f-status" name="status" defaultValue={filters.status ?? ""}>
+                  <option value="">{t("filters.all")}</option>
+                  {STATUSES.map((s) => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="f-template">{t("filters.template")}</Label>
+                <Select id="f-template" name="template" defaultValue={filters.template ?? ""}>
+                  <option value="">{t("filters.all")}</option>
+                  {EMAIL_TEMPLATE_NAMES.map((n) => <option key={n} value={n}>{t(`templates.${n}`)}</option>)}
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="f-tenant">{t("filters.tenant")}</Label>
+                <Select id="f-tenant" name="tenant" defaultValue={filters.tenant ?? ""}>
+                  <option value="">{t("filters.all")}</option>
+                  <option value="platform">{t("filters.platform")}</option>
+                  {tenants.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="f-recipient">{t("filters.recipient")}</Label>
+                <Input id="f-recipient" name="recipient" type="email" defaultValue={filters.recipient ?? ""} autoComplete="off" />
+              </div>
+              <div className="flex gap-2">
+                <Button type="submit" className="max-md:hidden">{t("filters.apply")}</Button>
+                <Button variant="outline" asChild><Link href="/admin/email">{t("filters.reset")}</Link></Button>
+              </div>
+            </form>
+          </AdminFilters>
           {log.rows.length === 0 ? (
             <EmptyState title={t("empty")} />
           ) : (
-            <div className="-mx-6 overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("columns.when")}</TableHead>
-                    <TableHead>{t("columns.tenant")}</TableHead>
-                    <TableHead>{t("columns.template")}</TableHead>
-                    <TableHead>{t("columns.recipient")}</TableHead>
-                    <TableHead>{t("columns.status")}</TableHead>
-                    <TableHead className="text-right">{t("columns.attempts")}</TableHead>
-                    <TableHead>{t("columns.provider")}</TableHead>
-                    <TableHead>{t("columns.error")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {log.rows.map((r) => (
-                    <TableRow key={r.id} data-testid="email-row">
-                      <TableCell className="whitespace-nowrap text-xs">{formatDateTime(r.createdAt, locale, "UTC")}</TableCell>
-                      <TableCell className="text-xs">{r.tenantName ?? <span className="text-muted-foreground">{t("platform")}</span>}</TableCell>
-                      <TableCell className="text-xs">{t(`templates.${r.template as "test"}`)}<span className="block text-muted-foreground">{r.category} · {r.locale}</span></TableCell>
-                      <TableCell className="font-mono text-xs">{r.recipientMasked}</TableCell>
-                      <TableCell><Badge variant={STATUS_VARIANT[r.status as Status] ?? "muted"}>{t(`status.${r.status as Status}`)}</Badge></TableCell>
-                      <TableCell className="text-right tabular text-xs">{r.attempts}</TableCell>
-                      <TableCell className="max-w-[10rem] truncate font-mono text-xs text-muted-foreground" title={r.providerMessageId ?? ""}>{r.provider ? `${r.provider}${r.providerMessageId ? ` · ${r.providerMessageId}` : ""}` : t("none")}</TableCell>
-                      <TableCell className="max-w-[16rem] truncate text-xs text-muted-foreground" title={r.lastError ?? ""}>{r.lastErrorCode ? <span className="font-mono">{r.lastErrorCode}</span> : null}{r.lastError ? ` ${r.lastError}` : ""}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <div className="-mx-6 max-md:border-y">
+              <DataList
+                rows={log.rows}
+                rowKey={(r) => r.id}
+                rowProps={() => ({ "data-testid": "email-row" })}
+                columns={[
+                  { key: "when", header: t("columns.when"), mobile: "subtitle", className: "whitespace-nowrap text-xs", cell: (r) => formatDateTime(r.createdAt, locale, "UTC") },
+                  { key: "tenant", header: t("columns.tenant"), className: "text-xs", cell: (r) => r.tenantName ?? <span className="text-muted-foreground">{t("platform")}</span> },
+                  { key: "template", header: t("columns.template"), mobile: "title", className: "text-xs", cell: (r) => <>{t(`templates.${r.template as "test"}`)}<span className="block font-normal text-muted-foreground">{r.category} · {r.locale}</span></> },
+                  { key: "recipient", header: t("columns.recipient"), className: "break-all font-mono text-xs", cell: (r) => r.recipientMasked },
+                  { key: "status", header: t("columns.status"), mobile: "badge", cell: (r) => <Badge variant={STATUS_VARIANT[r.status as Status] ?? "muted"}>{t(`status.${r.status as Status}`)}</Badge> },
+                  { key: "attempts", header: t("columns.attempts"), align: "right", className: "tabular text-xs", cell: (r) => r.attempts },
+                  { key: "provider", header: t("columns.provider"), priority: 2, className: "truncate font-mono text-xs text-muted-foreground md:max-w-[10rem] max-md:max-w-full", cell: (r) => <span title={r.providerMessageId ?? ""}>{r.provider ? `${r.provider}${r.providerMessageId ? ` · ${r.providerMessageId}` : ""}` : t("none")}</span> },
+                  { key: "error", header: t("columns.error"), mobile: "subtitle", className: "truncate text-xs text-muted-foreground md:max-w-[16rem]", cell: (r) => (r.lastErrorCode || r.lastError ? <span title={r.lastError ?? ""}>{r.lastErrorCode ? <span className="font-mono">{r.lastErrorCode}</span> : null}{r.lastError ? ` ${r.lastError}` : ""}</span> : null) },
+                ]}
+              />
             </div>
           )}
           <Pagination page={log.page} pageSize={log.pageSize} total={log.total} hrefFor={(p) => href({ page: String(p) })} summary={t("pagination", { from: log.total === 0 ? 0 : (log.page - 1) * log.pageSize + 1, to: Math.min(log.page * log.pageSize, log.total), total: log.total })} />
@@ -196,3 +193,5 @@ export default async function AdminEmailPage({ searchParams }: { searchParams: P
     </>
   );
 }
+
+export default withIntl(AdminEmailPage, "app/admin/email/page.tsx");

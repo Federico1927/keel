@@ -9,12 +9,13 @@ import { analyticsTenant, runAnalytics } from "@/server/analytics";
 import { PeriodPicker } from "@/components/period-picker";
 import { Num, dayHref, dayLabel, rateText } from "./shared";
 
+import { withIntl } from "@/i18n/intl-scope";
 /**
  * Daily sales summary (issue #85, core: every tenant). Per local day and tax rate: gross sales,
  * discounts, refunds, net sales, shipping, tax and total, then payment fees by method and the net.
  * Each number opens the orders behind it; the per-rate grid scrolls inside its own container.
  */
-export default async function DailySalesPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
+async function DailySalesPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "analytics");
@@ -147,3 +148,5 @@ export default async function DailySalesPage({ params, searchParams }: { params:
     </>
   );
 }
+
+export default withIntl(DailySalesPage, "app/t/[tenant]/analytics/daily-sales/page.tsx");

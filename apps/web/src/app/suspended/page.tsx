@@ -1,10 +1,11 @@
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@hullwise/ui";
 
+import { withIntl } from "@/i18n/intl-scope";
 const REASONS = ["payment", "platform", "churned"] as const;
 
 /** Where a suspended or churned tenant's users land (#48); the reason only picks the message. */
-export default async function SuspendedPage({ searchParams }: { searchParams: Promise<{ reason?: string }> }) {
+async function SuspendedPage({ searchParams }: { searchParams: Promise<{ reason?: string }> }) {
   const t = await getTranslations("shell");
   const { reason } = await searchParams;
   const r = (REASONS as readonly string[]).includes(reason ?? "") ? (reason as (typeof REASONS)[number]) : "payment";
@@ -20,3 +21,5 @@ export default async function SuspendedPage({ searchParams }: { searchParams: Pr
     </main>
   );
 }
+
+export default withIntl(SuspendedPage, "app/suspended/page.tsx");

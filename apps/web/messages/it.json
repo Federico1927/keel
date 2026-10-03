@@ -4224,7 +4224,6 @@
       "reactivate": "Riattiva",
       "checklist": "Checklist di setup",
       "checklist_progress": "{done} su {total} completati",
-      "runbook": "Runbook di onboarding: ogni passo e come verificarlo",
       "checklist_items": {
         "company": "Dati azienda",
         "owner": "Account owner",
@@ -4276,7 +4275,8 @@
       "active_version": "attiva: v{version}",
       "active_unreleased": "attivato prima del rilascio: si può spegnere, non riattivare",
       "not_released": "Non si può attivare finché non c'è una versione rilasciata.",
-      "in_development": "in sviluppo"
+      "in_development": "in sviluppo",
+      "runbook": "Runbook di onboarding: ogni passo e come verificarlo"
     },
     "billing": {
       "title": "Fatturazione",
@@ -4498,7 +4498,8 @@
       "search": "Cerca",
       "all": "Tutti",
       "apply": "Filtra",
-      "reset": "Azzera"
+      "reset": "Azzera",
+      "sort": "Ordina per"
     },
     "health": {
       "integrations": "Errori di integrazione",
@@ -6043,7 +6044,7 @@
       "shopify_title": "Shopify: pixel personalizzato",
       "shopify_help": "Incolla in Shopify admin → Impostazioni → Eventi dei clienti → Aggiungi pixel personalizzato, poi Collega.",
       "script_title": "Altri negozi: tag script",
-      "script_help": "Inseriscilo nell'<head> di ogni pagina. Chiama hullwise.identify(email) dopo login o iscrizione alla newsletter.",
+      "script_help": "Inseriscilo nel tag '<head>' di ogni pagina. Chiama hullwise.identify(email) dopo login o iscrizione alla newsletter.",
       "enabled": "Raccogli eventi",
       "origins": "Origini del negozio consentite (una per riga, vuoto = tutte)",
       "origins_help": "Gli eventi da altre origini vengono rifiutati. La chiave pubblica da sola non è un segreto.",
@@ -6680,7 +6681,8 @@
     "sign_in_alerts": "Avvisami via email dei nuovi accessi",
     "sign_in_alerts_hint": "Un'email di sicurezza quando il tuo account accede da un dispositivo o browser mai usato prima.",
     "connections": "Connessioni",
-    "connections_description": "Client AI e token di accesso personali che agiscono come te in questo workspace tramite il server MCP."
+    "connections_description": "Client AI e token di accesso personali che agiscono come te in questo workspace tramite il server MCP.",
+    "menu_label": "Menu account: {name}"
   },
   "welcome": {
     "title": "Completa il tuo profilo",
@@ -9879,7 +9881,7 @@
       "title": "Per iniziare",
       "description": "Un'API JSON su HTTPS per ordini, clienti, catalogo, stock, spedizioni, resi, sconti e acquisti.",
       "base": "URL base: {base}",
-      "auth": "Crea un token in Impostazioni → Sviluppatori e invialo come Authorization: Bearer <token>. Gli stessi token personali valgono per il server MCP; l'API legge solo i loro scope API.",
+      "auth": "Crea un token in Impostazioni → Sviluppatori e invialo come Authorization: Bearer '<token>'. Gli stessi token personali valgono per il server MCP; l'API legge solo i loro scope API.",
       "versioning": "La versione è nel percorso (/v1). Dentro la v1 possono aggiungersi campi alle risposte; nulla viene tolto o rinominato."
     },
     "scopes": {
@@ -9996,7 +9998,7 @@
       "col_what": "Quando",
       "payload": "Il corpo contiene id (l'evento, uguale tra ritentativi e reinvii), type, apiVersion, createdAt e data con il record nel formato dell'API, senza dati personali: leggi il record tramite l'API con un token che possa vederli.",
       "headers": "Intestazioni: {id} (la consegna), {event} (il tipo), {timestamp} (secondi Unix) e {signature}.",
-      "signing": "La firma è l'HMAC-SHA256 del timestamp, un punto e il corpo grezzo, con il segreto dell'endpoint come chiave, in esadecimale: t=<timestamp>,v1=<firma>. Rifiuta i timestamp più vecchi di {tolerance} secondi. Dopo una rigenerazione del segreto firma anche il precedente (un secondo v1) per {grace} ore.",
+      "signing": "La firma è l'HMAC-SHA256 del timestamp, un punto e il corpo grezzo, con il segreto dell'endpoint come chiave, in esadecimale: t='<timestamp>',v1='<firma>'. Rifiuta i timestamp più vecchi di {tolerance} secondi. Dopo una rigenerazione del segreto firma anche il precedente (un secondo v1) per {grace} ore.",
       "retries": "Una consegna riesce con qualsiasi risposta 2xx entro {timeout} secondi. Altrimenti viene ritentata dopo {schedule}; poi la consegna è fallita e si può rinviare a mano dal registro. I redirect non vengono seguiti.",
       "security": "Gli endpoint devono essere https su un host pubblico. Gli indirizzi privati, di loopback, link-local o di metadati cloud vengono rifiutati al salvataggio dell'endpoint e di nuovo a ogni consegna, dopo la risoluzione DNS."
     }

@@ -10,7 +10,8 @@ import { requirePage } from "@/server/tenant";
 import { tenantPeople } from "@/server/people";
 import { RulesEditor } from "./editor";
 
-export default async function TaskRulesPage({ params }: { params: Promise<{ tenant: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function TaskRulesPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "tasks");
   if (!canDo(ctx.role, "manage_settings")) notFound();
@@ -31,3 +32,5 @@ export default async function TaskRulesPage({ params }: { params: Promise<{ tena
     </>
   );
 }
+
+export default withIntl(TaskRulesPage, "app/t/[tenant]/tasks/rules/page.tsx");

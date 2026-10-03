@@ -4224,7 +4224,6 @@
       "reactivate": "Reactivar",
       "checklist": "Lista de configuración",
       "checklist_progress": "{done} de {total} completados",
-      "runbook": "Guía de incorporación: cada paso y cómo comprobarlo",
       "checklist_items": {
         "company": "Datos de la empresa",
         "owner": "Cuenta del propietario",
@@ -4276,7 +4275,8 @@
       "active_version": "activa: v{version}",
       "active_unreleased": "activado antes de publicarse: se puede desactivar, no volver a activar",
       "not_released": "No se puede activar hasta que haya una versión publicada.",
-      "in_development": "en desarrollo"
+      "in_development": "en desarrollo",
+      "runbook": "Guía de incorporación: cada paso y cómo comprobarlo"
     },
     "billing": {
       "title": "Facturación",
@@ -4498,7 +4498,8 @@
       "search": "Buscar",
       "all": "Todos",
       "apply": "Filtrar",
-      "reset": "Restablecer"
+      "reset": "Restablecer",
+      "sort": "Ordenar por"
     },
     "health": {
       "integrations": "Errores de integración",
@@ -6043,7 +6044,7 @@
       "shopify_title": "Shopify: píxel personalizado",
       "shopify_help": "Pégalo en Shopify admin → Configuración → Eventos de clientes → Agregar píxel personalizado y luego Conectar.",
       "script_title": "Otras tiendas: etiqueta script",
-      "script_help": "Ponla en el <head> de cada página. Llama a hullwise.identify(email) tras el inicio de sesión o la suscripción.",
+      "script_help": "Ponla en el '<head>' de cada página. Llama a hullwise.identify(email) tras el inicio de sesión o la suscripción.",
       "enabled": "Recoger eventos",
       "origins": "Orígenes de tienda permitidos (uno por línea, vacío = todos)",
       "origins_help": "Los eventos de otros orígenes se rechazan. La clave pública por sí sola no es un secreto.",
@@ -6680,7 +6681,8 @@
     "sign_in_alerts": "Avisarme por correo de nuevos accesos",
     "sign_in_alerts_hint": "Un correo de seguridad cuando tu cuenta inicia sesión desde un dispositivo o navegador que no había usado antes.",
     "connections": "Conexiones",
-    "connections_description": "Clientes de IA y tokens de acceso personales que actúan como tú en este espacio de trabajo a través del servidor MCP."
+    "connections_description": "Clientes de IA y tokens de acceso personales que actúan como tú en este espacio de trabajo a través del servidor MCP.",
+    "menu_label": "Menú de la cuenta: {name}"
   },
   "welcome": {
     "title": "Completa tu perfil",
@@ -9879,7 +9881,7 @@
       "title": "Primeros pasos",
       "description": "Una API JSON sobre HTTPS para pedidos, clientes, catálogo, stock, envíos, devoluciones, descuentos y compras.",
       "base": "URL base: {base}",
-      "auth": "Crea un token en Ajustes → Desarrolladores y envíalo como Authorization: Bearer <token>. Los mismos tokens personales sirven para el servidor MCP; la API solo lee sus scopes de API.",
+      "auth": "Crea un token en Ajustes → Desarrolladores y envíalo como Authorization: Bearer '<token>'. Los mismos tokens personales sirven para el servidor MCP; la API solo lee sus scopes de API.",
       "versioning": "La versión va en la ruta (/v1). Dentro de la v1 pueden añadirse campos a las respuestas; nada se elimina ni se renombra."
     },
     "scopes": {
@@ -9996,7 +9998,7 @@
       "col_what": "Cuándo",
       "payload": "El cuerpo lleva id (el evento, igual en reintentos y reenvíos), type, apiVersion, createdAt y data con el registro en el formato de la API, sin datos personales: lee el registro mediante la API con un token que pueda verlos.",
       "headers": "Cabeceras: {id} (la entrega), {event} (el tipo), {timestamp} (segundos Unix) y {signature}.",
-      "signing": "La firma es el HMAC-SHA256 del timestamp, un punto y el cuerpo sin procesar, con el secreto del endpoint como clave, en hexadecimal: t=<timestamp>,v1=<firma>. Rechaza los timestamps de más de {tolerance} segundos. Tras regenerar el secreto también firma el anterior (un segundo v1) durante {grace} horas.",
+      "signing": "La firma es el HMAC-SHA256 del timestamp, un punto y el cuerpo sin procesar, con el secreto del endpoint como clave, en hexadecimal: t='<timestamp>',v1='<firma>'. Rechaza los timestamps de más de {tolerance} segundos. Tras regenerar el secreto también firma el anterior (un segundo v1) durante {grace} horas.",
       "retries": "Una entrega tiene éxito con cualquier respuesta 2xx en {timeout} segundos. Si no, se reintenta tras {schedule}; después la entrega falla y se puede reenviar a mano desde el registro. Las redirecciones no se siguen.",
       "security": "Los endpoints deben ser https en un host público. Las direcciones privadas, de loopback, link-local o de metadatos de la nube se rechazan al guardar el endpoint y otra vez en cada entrega, tras la resolución DNS."
     }

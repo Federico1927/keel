@@ -6,7 +6,8 @@ import { listInvitations } from "@hullwise/services";
 import { requirePage } from "@/server/tenant";
 import { InviteForm, InvitationsList, MembersTable } from "./members";
 
-export default async function UsersPage({ params }: { params: Promise<{ tenant: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function UsersPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "users");
   const t = await getTranslations("users");
@@ -44,3 +45,5 @@ export default async function UsersPage({ params }: { params: Promise<{ tenant: 
     </>
   );
 }
+
+export default withIntl(UsersPage, "app/t/[tenant]/users/page.tsx");

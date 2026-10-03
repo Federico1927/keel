@@ -7,7 +7,8 @@ import { Card, CardContent, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { CostImportForm, CostWriteBackToggle } from "./import-form";
 
-export default async function ImportCostsPage({ params }: { params: Promise<{ tenant: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function ImportCostsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "products");
   if (!canWritePage(ctx.role, "products")) notFound();
@@ -29,3 +30,5 @@ export default async function ImportCostsPage({ params }: { params: Promise<{ te
     </>
   );
 }
+
+export default withIntl(ImportCostsPage, "app/t/[tenant]/products/import-costs/page.tsx");

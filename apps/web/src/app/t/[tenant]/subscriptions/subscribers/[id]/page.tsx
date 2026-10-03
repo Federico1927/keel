@@ -10,10 +10,11 @@ import { StatusBadge } from "@/components/status-badge";
 import { ContractActions } from "../../controls";
 import { RiskBadge, SubscriptionStatusBadge, intervalFormatter, svcOf } from "../../shared";
 
+import { withIntl } from "@/i18n/intl-scope";
 const fmt = (v: unknown) => (v === null || v === undefined || v === "" ? "—" : typeof v === "object" ? JSON.stringify(v) : String(v));
 
 /** One subscription contract: lines, care actions the app supports, charges, timeline with author and diff, orders. */
-export default async function SubscriberDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
+async function SubscriberDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const ctx = await requirePage(tenant, "subscriptions");
@@ -121,3 +122,5 @@ export default async function SubscriberDetailPage({ params }: { params: Promise
     </DetailShell>
   );
 }
+
+export default withIntl(SubscriberDetailPage, "app/t/[tenant]/subscriptions/subscribers/[id]/page.tsx");

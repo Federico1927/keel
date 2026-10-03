@@ -7,12 +7,13 @@ import { requirePage } from "@/server/tenant";
 import { loadBrand } from "@/server/branding";
 import { BrandingForm } from "./forms";
 
+import { withIntl } from "@/i18n/intl-scope";
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("branding"))("title") };
 }
 
 /** Settings → Branding (#44): brand colour and logos, the default for every tenant-branded page. */
-export default async function BrandingPage({ params }: { params: Promise<{ tenant: string }> }) {
+async function BrandingPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "settings");
   const t = await getTranslations("branding");
@@ -33,3 +34,5 @@ export default async function BrandingPage({ params }: { params: Promise<{ tenan
     </>
   );
 }
+
+export default withIntl(BrandingPage, "app/t/[tenant]/settings/branding/page.tsx");

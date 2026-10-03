@@ -1,5 +1,5 @@
 "use client";
-import { Bar, CartesianGrid, ComposedChart, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { MetricFormat } from "@hullwise/config";
 import { AXIS_TICK, CHART_COLORS, CHART_GRID, TOOLTIP_PROPS } from "./theme";
 import { compactAxis, useCompactChart } from "./use-compact";
@@ -56,15 +56,3 @@ export function MetricChart({ labels, series, chart, locale, currency, height = 
 }
 
 /** Tiny trend line under a KPI value. */
-export function Sparkline({ values }: { values: (number | null)[] }) {
-  const rows = values.map((v, i) => ({ i, v }));
-  return (
-    <div className="h-8 w-full" aria-hidden>
-      <ResponsiveContainer>
-        <LineChart data={rows} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
-          <Line type="monotone" dataKey="v" stroke={CHART_COLORS[0]} strokeWidth={1.5} dot={false} connectNulls isAnimationActive={false} />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}

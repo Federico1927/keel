@@ -10,6 +10,7 @@ import { requirePage } from "@/server/tenant";
 import { RedeliverButton } from "@/components/developers/forms";
 import { DELIVERY_STATUS_VARIANT } from "@/components/developers/status";
 
+import { withIntl } from "@/i18n/intl-scope";
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("developers.deliveries"))("title") };
 }
@@ -17,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) || undefined;
 
 /** Webhook delivery log (#81): filters by endpoint, status and event, newest first, cursor pages, redelivery. */
-export default async function DeliveriesPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+async function DeliveriesPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "settings");
@@ -99,3 +100,5 @@ export default async function DeliveriesPage({ params, searchParams }: { params:
     </>
   );
 }
+
+export default withIntl(DeliveriesPage, "app/t/[tenant]/settings/developers/deliveries/page.tsx");

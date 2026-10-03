@@ -9,13 +9,14 @@ import { SpokiCard } from "@/components/spoki-card";
 import { WhatsappLog } from "@/components/whatsapp-log";
 import { CodRepliesForm, SpokiSettingsForm, type TemplateRow } from "./controls";
 
+import { withIntl } from "@/i18n/intl-scope";
 /**
  * Settings of the Spoki WhatsApp add-on (issue #9): connection and webhook, the template of each
  * event (order notifications, the campaign message with customer campaigns, each COD confirmation
  * template with the COD add-on), opt-out keywords, COD reply keywords, last 7 days and the log.
  * `requirePage` answers 404 when the add-on is off or the role cannot open it.
  */
-export default async function WhatsappSettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
+async function WhatsappSettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "whatsapp_settings");
   const t = await getTranslations("whatsapp.settings");
@@ -55,3 +56,5 @@ export default async function WhatsappSettingsPage({ params }: { params: Promise
     </>
   );
 }
+
+export default withIntl(WhatsappSettingsPage, "app/t/[tenant]/whatsapp/settings/page.tsx");

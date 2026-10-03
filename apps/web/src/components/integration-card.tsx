@@ -1,4 +1,5 @@
 "use client";
+// i18n-client-namespaces: integrations, integration_setup, ga4, subscriptions, accounting, whatsapp, common (operation outcomes carry their message keys)
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useState, useTransition, type ReactNode } from "react";

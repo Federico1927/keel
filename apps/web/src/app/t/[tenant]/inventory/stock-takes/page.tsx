@@ -9,7 +9,8 @@ import { requirePage } from "@/server/tenant";
 import { stockLocations, svcOf } from "@/server/queries/inventory-control";
 import { NewStockTakeForm } from "./controls";
 
-export default async function StockTakesPage({ params }: { params: Promise<{ tenant: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function StockTakesPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "inventory");
   const t = await getTranslations("inventory_control");
@@ -46,3 +47,5 @@ export default async function StockTakesPage({ params }: { params: Promise<{ ten
     </>
   );
 }
+
+export default withIntl(StockTakesPage, "app/t/[tenant]/inventory/stock-takes/page.tsx");

@@ -4,13 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@hull
 import { BrandMark } from "@/components/brand-mark";
 import { ConfirmEmailButton } from "./confirm";
 
+import { withIntl } from "@/i18n/intl-scope";
 export const dynamic = "force-dynamic";
 
 /**
  * Landing page of the link sent to a new email address. The change happens on the button (a POST),
  * not on opening the link, so mail scanners that prefetch links cannot confirm it.
  */
-export default async function ConfirmEmailPage({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
+async function ConfirmEmailPage({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
   const { token } = await searchParams;
   const t = await getTranslations("email_change");
   return (
@@ -31,3 +32,5 @@ export default async function ConfirmEmailPage({ searchParams }: { searchParams:
     </main>
   );
 }
+
+export default withIntl(ConfirmEmailPage, "app/account/confirm-email/page.tsx");

@@ -37,7 +37,7 @@ export function UserMenu({ user, role, theme, profileHref, languageHiddenFrom }:
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2 px-1.5 sm:px-2" data-testid="user-menu">
+        <Button variant="ghost" size="sm" className="gap-2 px-1.5 sm:px-2" aria-label={t("profile.menu_label", { name: user.name })} data-testid="user-menu">
           <Avatar src={user.avatarUrl} initials={user.initials} />
           <span className="hidden max-w-[10rem] truncate sm:inline" data-testid="user-menu-name">{user.name}</span>
           {role && <span className="hidden rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground md:inline">{t(`roles.${role}`)}</span>}

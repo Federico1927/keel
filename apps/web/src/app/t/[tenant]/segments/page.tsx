@@ -8,7 +8,8 @@ import { requirePage } from "@/server/tenant";
 import { SegmentRowActions } from "./row-actions";
 import { SegmentTabs } from "./segment-tabs";
 
-export default async function SegmentsPage({ params }: { params: Promise<{ tenant: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function SegmentsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "segments");
   const t = await getTranslations("segments");
@@ -45,3 +46,5 @@ export default async function SegmentsPage({ params }: { params: Promise<{ tenan
     </>
   );
 }
+
+export default withIntl(SegmentsPage, "app/t/[tenant]/segments/page.tsx");

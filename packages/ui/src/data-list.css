@@ -1,0 +1,23 @@
+/*
+ * DataList layout (#49): a table from `md` up, a card per row on phones. The classes live here, not
+ * as utilities on every cell, because a 50-row list repeated ~0.4 KB of classes per cell in the HTML
+ * and again in the page's RSC payload. Utilities passed as `className` still win (utilities layer).
+ */
+@layer components {
+  .dl-head { @apply h-(--density-head-h) px-3 text-left align-middle text-xs font-medium uppercase tracking-wide text-muted-foreground [&:has([role=checkbox])]:pr-0; }
+  .dl-row { @apply border-b transition-colors hover:bg-muted/50 max-md:relative max-md:flex max-md:min-h-14 max-md:flex-wrap max-md:items-center max-md:gap-x-3 max-md:gap-y-1 max-md:px-4 max-md:py-3 max-md:after:order-2 max-md:after:h-0 max-md:after:basis-full; }
+  .dl-foot-row { @apply max-md:flex max-md:flex-wrap max-md:items-center max-md:gap-x-3 max-md:gap-y-1 max-md:px-4 max-md:py-3; }
+  .dl-cell { @apply px-3 py-(--density-cell-y) align-middle max-md:block max-md:p-0 max-md:empty:hidden [&:has([role=checkbox])]:pr-0; }
+  /* links and buttons outside the title stay tappable above the card's stretched link */
+  .dl-touch { @apply max-md:[&_a]:relative max-md:[&_a]:z-10 max-md:[&_button]:relative max-md:[&_button]:z-10 max-md:[&_input]:relative max-md:[&_input]:z-10; }
+  .dl-select { @apply max-md:order-0 max-md:relative max-md:z-10; }
+  .dl-title { @apply max-md:order-1 max-md:min-w-0 max-md:flex-1 max-md:font-medium max-md:[&>a:first-child]:after:absolute max-md:[&>a:first-child]:after:inset-0; }
+  .dl-badge { @apply max-md:order-2 max-md:shrink-0; }
+  .dl-subtitle { @apply max-md:order-3 max-md:basis-full max-md:min-w-0 max-md:text-muted-foreground; }
+  .dl-meta { @apply max-md:order-4 max-md:text-xs max-md:before:mr-1 max-md:before:text-muted-foreground max-md:before:content-[attr(data-label)]; }
+  .dl-action { @apply max-md:order-5 max-md:basis-full max-md:pt-1; }
+  .dl-detail { @apply max-md:hidden; }
+  .dl-p2 { @apply md:max-lg:hidden; }
+  .dl-p3 { @apply md:max-xl:hidden; }
+  .dl-right { @apply md:text-right; }
+}

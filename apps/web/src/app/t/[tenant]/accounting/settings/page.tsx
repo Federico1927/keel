@@ -10,12 +10,13 @@ import { AccountingCard } from "@/components/accounting-card";
 import { rateText } from "../../analytics/daily-sales/shared";
 import { MappingForm } from "../controls";
 
+import { withIntl } from "@/i18n/intl-scope";
 /**
  * Settings of addon.accounting (#85), under the Platform section next to the other add-on settings:
  * the accounting system connection, its chart of accounts, and the account each summary line goes
  * to (sales and tax per tax rate, shipping, discounts, refunds, fees, clearing) plus the push rules.
  */
-export default async function AccountingSettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
+async function AccountingSettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "accounting");
   const t = await getTranslations("accounting");
@@ -75,3 +76,5 @@ export default async function AccountingSettingsPage({ params }: { params: Promi
     </>
   );
 }
+
+export default withIntl(AccountingSettingsPage, "app/t/[tenant]/accounting/settings/page.tsx");

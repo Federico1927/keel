@@ -10,9 +10,10 @@ import { requirePage } from "@/server/tenant";
 import { PlatformWriteStatus } from "@/components/platform-write-status";
 import { AssignForm, PoolActiveToggle, ReleaseButton, TopUpForm } from "./controls";
 
+import { withIntl } from "@/i18n/intl-scope";
 const STATUS_VARIANT: Record<PoolCodeStatus, "success" | "info" | "muted"> = { available: "success", assigned: "info", redeemed: "muted" };
 
-export default async function DiscountPoolPage({ params, searchParams }: { params: Promise<{ tenant: string; id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
+async function DiscountPoolPage({ params, searchParams }: { params: Promise<{ tenant: string; id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant, id } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "discounts");
@@ -95,7 +96,7 @@ export default async function DiscountPoolPage({ params, searchParams }: { param
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 text-xs sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:px-0 md:pb-0">
           {chips.map((c) => (
             <Link key={c.key ?? "all"} href={`${base}${qs({ status: c.key, page: undefined })}`} className={cn("shrink-0 rounded-full border px-3 py-1 pointer-coarse:py-2", status === c.key ? "bg-primary text-primary-foreground" : "bg-card")} data-testid={`pool-filter-${c.key ?? "all"}`}>
-              {c.label} <span className="tabular opacity-70">{formatNumber(c.n, ctx.locale)}</span>
+              {c.label} <span className="tabular font-normal">{formatNumber(c.n, ctx.locale)}</span>
             </Link>
           ))}
         </div>
@@ -129,3 +130,5 @@ export default async function DiscountPoolPage({ params, searchParams }: { param
     </DetailShell>
   );
 }
+
+export default withIntl(DiscountPoolPage, "app/t/[tenant]/discounts/pools/[id]/page.tsx");

@@ -1,4 +1,5 @@
 "use client";
+// i18n-client-namespaces: integration_setup, integrations, common (guide.namespace is integration_setup.<provider>)
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState, useTransition, type ReactNode } from "react";
 import { useTranslations } from "next-intl";

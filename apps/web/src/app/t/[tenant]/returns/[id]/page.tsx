@@ -13,9 +13,10 @@ import { BankDetails, PlatformSyncCard, ReviewToggle } from "./platform-card";
 import { RecordTasks } from "@/components/record-tasks";
 import { RecordNotes } from "@/components/record-notes";
 
+import { withIntl } from "@/i18n/intl-scope";
 const STEPS = ["requested", "approved", "received", "inspected"] as const;
 
-export default async function ReturnDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
+async function ReturnDetailPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
   const ctx = await requirePage(tenant, "returns");
   const t = await getTranslations("return_detail");
@@ -183,3 +184,5 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ t
     </DetailShell>
   );
 }
+
+export default withIntl(ReturnDetailPage, "app/t/[tenant]/returns/[id]/page.tsx");

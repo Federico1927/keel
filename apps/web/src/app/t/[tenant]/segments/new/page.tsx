@@ -8,7 +8,8 @@ import { requirePage } from "@/server/tenant";
 import { decodeRulesParam, segmentBuilderOptions } from "@/server/queries/crm";
 import { SegmentBuilder } from "../builder";
 
-export default async function NewSegmentPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ rules?: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function NewSegmentPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ rules?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "segments");
@@ -25,3 +26,5 @@ export default async function NewSegmentPage({ params, searchParams }: { params:
     </>
   );
 }
+
+export default withIntl(NewSegmentPage, "app/t/[tenant]/segments/new/page.tsx");

@@ -10,6 +10,7 @@ import { PeriodPicker } from "@/components/period-picker";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { AdsNav } from "../ads-table";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** Local placeholder thumbnail: platform previews need the ad account's CDN; this keeps the demo offline. */
 function CreativeThumb({ format, label }: { format: string | null; label: string }) {
   let h = 0;
@@ -26,7 +27,7 @@ function CreativeThumb({ format, label }: { format: string | null; label: string
   );
 }
 
-export default async function CreativesPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ preset?: string; from?: string; to?: string; by?: string; platform?: string }> }) {
+async function CreativesPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ preset?: string; from?: string; to?: string; by?: string; platform?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "campaigns");
@@ -74,3 +75,5 @@ export default async function CreativesPage({ params, searchParams }: { params: 
     </>
   );
 }
+
+export default withIntl(CreativesPage, "app/t/[tenant]/campaigns/creatives/page.tsx");

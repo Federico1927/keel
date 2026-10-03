@@ -8,9 +8,10 @@ import { notificationText } from "@/components/notification-text";
 import { Chip, NotificationTabs } from "./tabs";
 import { MarkAllButton, ReadToggle } from "./controls";
 
+import { withIntl } from "@/i18n/intl-scope";
 const SEVERITY: Record<string, "info" | "warning" | "destructive" | "success"> = { info: "info", warning: "warning", critical: "destructive", success: "success" };
 
-export default async function NotificationsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
+async function NotificationsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "notifications");
@@ -32,14 +33,14 @@ export default async function NotificationsPage({ params, searchParams }: { para
       <NotificationTabs ctx={ctx} active="all" />
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <Chip href={href({ status: undefined, page: undefined })} active={!status}>{t("filters.all")}</Chip>
-        <Chip href={href({ status: "unread", page: undefined })} active={status === "unread"} testId="filter-unread">{t("filters.unread")} <span className="tabular opacity-70">{formatNumber(data.unread, ctx.locale)}</span></Chip>
+        <Chip href={href({ status: "unread", page: undefined })} active={status === "unread"} testId="filter-unread">{t("filters.unread")} <span className="tabular font-normal">{formatNumber(data.unread, ctx.locale)}</span></Chip>
         <Chip href={href({ status: "read", page: undefined })} active={status === "read"}>{t("filters.read")}</Chip>
       </div>
       <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:px-0">
         <Chip href={href({ type: undefined, page: undefined })} active={!type}>{t("filters.all_types")}</Chip>
         {data.types.map((ty) => (
           <Chip key={ty.type} href={href({ type: ty.type, page: undefined })} active={type === ty.type} testId={`type-${ty.type}`}>
-            {typeLabel(ty.type)} <span className="tabular opacity-70">{formatNumber(ty.n, ctx.locale)}</span>
+            {typeLabel(ty.type)} <span className="tabular font-normal">{formatNumber(ty.n, ctx.locale)}</span>
           </Chip>
         ))}
       </div>
@@ -75,3 +76,5 @@ export default async function NotificationsPage({ params, searchParams }: { para
     </>
   );
 }
+
+export default withIntl(NotificationsPage, "app/t/[tenant]/notifications/page.tsx");

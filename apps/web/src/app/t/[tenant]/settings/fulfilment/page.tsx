@@ -7,8 +7,9 @@ import { Button, PageHeader } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { ClockForm, MappingEditor } from "./forms";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** Settings → Fulfilment: the shipping clock (working days, threshold), the carrier email and the shipment status mappings. */
-export default async function FulfilmentSettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
+async function FulfilmentSettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "settings");
   const t = await getTranslations("settings_fulfilment");
@@ -30,3 +31,5 @@ export default async function FulfilmentSettingsPage({ params }: { params: Promi
     </>
   );
 }
+
+export default withIntl(FulfilmentSettingsPage, "app/t/[tenant]/settings/fulfilment/page.tsx");

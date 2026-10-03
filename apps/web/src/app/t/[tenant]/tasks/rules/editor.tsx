@@ -1,4 +1,5 @@
 "use client";
+// i18n-client-namespaces: order_status, return_status, po_status, roles (status labels per entity, assignee roles)
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Alert, AlertDescription, Badge, Button, Card, CardContent, Checkbox, Input, Label, Select, Textarea } from "@hullwise/ui";

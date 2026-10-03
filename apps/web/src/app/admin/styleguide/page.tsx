@@ -8,6 +8,7 @@ import { RevenueChart } from "@/components/charts/revenue-chart";
 import { StatusBadge } from "@/components/status-badge";
 import { brandStyle } from "@/server/branding";
 
+import { withIntl } from "@/i18n/intl-scope";
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("styleguide"))("title") };
 }
@@ -22,7 +23,7 @@ const DEMO_SERIES = Array.from({ length: 30 }, (_, i) => ({ day: new Date(Date.U
  * Direction A, decided by the committente on 2026-10-01 (#44): the tokens, real components in both
  * themes, the tenant brand-colour variants (AA-adjusted) and the two densities. Super-admin only.
  */
-export default async function StyleguidePage() {
+async function StyleguidePage() {
   await requireSuperAdmin();
   const t = await getTranslations("styleguide");
   const td = await getTranslations("dashboard");
@@ -173,3 +174,5 @@ export default async function StyleguidePage() {
     </>
   );
 }
+
+export default withIntl(StyleguidePage, "app/admin/styleguide/page.tsx");

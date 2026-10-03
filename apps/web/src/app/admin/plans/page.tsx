@@ -3,11 +3,12 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { OVERAGE, PLATFORM_CURRENCY, displayedVersions, isAddonModule } from "@hullwise/config";
 import { formatMoney, formatNumber } from "@hullwise/core";
 import { planUsage } from "@hullwise/services";
-import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, PageHeader } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** Plans, limits and add-on prices from @hullwise/config, with how many tenants use each (#48). Read-only: editing stays in code. */
-export default async function AdminPlansPage() {
+async function AdminPlansPage() {
   const { db } = await requireSuperAdmin();
   const t = await getTranslations("admin");
   const tm = await getTranslations("modules");
@@ -41,29 +42,27 @@ export default async function AdminPlansPage() {
       <Card className="mt-6">
         <CardHeader><CardTitle className="text-base">{t("plans_page.addons")}</CardTitle></CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader><TableRow><TableHead>{t("plans_page.addon")}</TableHead><TableHead className="text-right">{t("plans_page.monthly")}</TableHead><TableHead>{t("plans_page.availability")}</TableHead><TableHead className="text-right">{t("plans_page.tenants")}</TableHead></TableRow></TableHeader>
-            <TableBody>
-              {usage.addons.map(({ module: m, tenants }) => (
-                <TableRow key={m.key} data-testid="addon-row">
-                  <TableCell><span className="font-medium">{tm(`addon.${m.key.replace("addon.", "")}.name`)}</span> <span className="font-mono text-xs text-muted-foreground">{m.key}</span></TableCell>
-                  <TableCell className="text-right tabular">{money(m.monthlyPriceMinor)}</TableCell>
-                  <TableCell>
-                    {m.availability === "implemented" && isAddonModule(m.key) ? (
-                      <span className="flex flex-wrap gap-1">
-                        {displayedVersions(m.key).map((v) => <Badge key={v.version} variant={v.status === "released" ? "success" : "warning"}>{t(`tenant.version_${v.status}`, { version: v.version })}</Badge>)}
-                      </span>
-                    ) : (
-                      <Badge variant="muted">{t(`plans_page.availability_${m.availability}`)}</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">{m.availability === "implemented" ? <Link href={`/admin/tenants?addon=${m.key}`} className="tabular hover:underline">{formatNumber(tenants, locale)}</Link> : "—"}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataList
+            rows={usage.addons}
+            rowKey={({ module: m }) => m.key}
+            rowProps={() => ({ "data-testid": "addon-row" })}
+            columns={[
+              { key: "addon", header: t("plans_page.addon"), mobile: "title", cell: ({ module: m }) => <><span className="font-medium">{tm(`addon.${m.key.replace("addon.", "")}.name`)}</span> <span className="break-all font-mono text-xs font-normal text-muted-foreground">{m.key}</span></> },
+              { key: "monthly", header: t("plans_page.monthly"), align: "right", className: "tabular", cell: ({ module: m }) => money(m.monthlyPriceMinor) },
+              { key: "availability", header: t("plans_page.availability"), mobile: "subtitle", cell: ({ module: m }) => (m.availability === "implemented" && isAddonModule(m.key) ? (
+                <span className="flex flex-wrap gap-1">
+                  {displayedVersions(m.key).map((v) => <Badge key={v.version} variant={v.status === "released" ? "success" : "warning"}>{t(`tenant.version_${v.status}`, { version: v.version })}</Badge>)}
+                </span>
+              ) : (
+                <Badge variant="muted">{t(`plans_page.availability_${m.availability}`)}</Badge>
+              )) },
+              { key: "tenants", header: t("plans_page.tenants"), align: "right", cell: ({ module: m, tenants }) => (m.availability === "implemented" ? <Link href={`/admin/tenants?addon=${m.key}`} className="tabular hover:underline">{formatNumber(tenants, locale)}</Link> : "—") },
+            ]}
+          />
         </CardContent>
       </Card>
     </>
   );
 }
+
+export default withIntl(AdminPlansPage, "app/admin/plans/page.tsx");

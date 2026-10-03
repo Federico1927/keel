@@ -10,8 +10,9 @@ import { analyticsTenant, pageNow, sharedMemo, tenantCustoms } from "@/server/da
 import { formatMetric } from "@/components/dashboard/format";
 import { DeleteMetricButton, MetricBuilder, TargetForm, type MetricDraft } from "@/components/dashboard/metric-builder";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** Metric catalog, custom metric builder and monthly targets: only `manage_dashboard` (owner, admin). */
-export default async function MetricsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ edit?: string }> }) {
+async function MetricsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ edit?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "dashboard");
@@ -103,3 +104,5 @@ export default async function MetricsPage({ params, searchParams }: { params: Pr
     </>
   );
 }
+
+export default withIntl(MetricsPage, "app/t/[tenant]/dashboards/metrics/page.tsx");

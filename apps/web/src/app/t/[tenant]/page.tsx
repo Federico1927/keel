@@ -11,11 +11,12 @@ import { SourceHealthWidget } from "@/components/dashboard/source-health-widget"
 import { HistoryImportBanner } from "@/components/history-import-banner";
 import { CustomiseHomeButton, PeriodLinks, PreviewAsSelect, PreviewBanner } from "@/components/dashboard/controls";
 
+import { withIntl } from "@/i18n/intl-scope";
 /**
  * The tenant home (issue #43): the role's home variant, else the tenant home, else Hullwise's template,
  * which is today's home tile for tile. Managers can preview it as another role and see the draft.
  */
-export default async function DashboardPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
+async function DashboardPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "dashboard");
@@ -60,3 +61,5 @@ export default async function DashboardPage({ params, searchParams }: { params: 
     </>
   );
 }
+
+export default withIntl(DashboardPage, "app/t/[tenant]/page.tsx");

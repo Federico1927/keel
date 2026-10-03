@@ -12,7 +12,8 @@ import { ListSelection, RowCheckbox, SelectAllCheckbox } from "@/components/list
 import { StatusBadge } from "@/components/status-badge";
 import { OrderFiltersBar } from "./filters";
 
-export default async function OrdersPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function OrdersPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "orders");
@@ -113,3 +114,5 @@ export default async function OrdersPage({ params, searchParams }: { params: Pro
     </>
   );
 }
+
+export default withIntl(OrdersPage, "app/t/[tenant]/orders/page.tsx");

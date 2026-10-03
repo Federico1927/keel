@@ -1,7 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@hullwise/ui";
 
-export default async function VerifyPage() {
+import { withIntl } from "@/i18n/intl-scope";
+async function VerifyPage() {
   const t = await getTranslations("auth");
   return (
     <main className="flex min-h-screen items-center justify-center px-4">
@@ -15,3 +16,5 @@ export default async function VerifyPage() {
     </main>
   );
 }
+
+export default withIntl(VerifyPage, "app/(auth)/verify/page.tsx");

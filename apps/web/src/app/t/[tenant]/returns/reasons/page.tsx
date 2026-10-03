@@ -8,7 +8,8 @@ import { Badge, Card, CardContent, PageHeader, Table, TableBody, TableCell, Tabl
 import { requirePage } from "@/server/tenant";
 import { ReasonForm, ReasonToggle } from "./reason-form";
 
-export default async function ReturnReasonsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ edit?: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function ReturnReasonsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ edit?: string }> }) {
   const { tenant } = await params;
   const { edit } = await searchParams;
   const ctx = await requirePage(tenant, "returns");
@@ -52,3 +53,5 @@ export default async function ReturnReasonsPage({ params, searchParams }: { para
     </>
   );
 }
+
+export default withIntl(ReturnReasonsPage, "app/t/[tenant]/returns/reasons/page.tsx");

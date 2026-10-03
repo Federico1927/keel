@@ -7,8 +7,9 @@ import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, PageH
 import { requirePage } from "@/server/tenant";
 import { CostLineForm, DeleteCostButton } from "./costs-form";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** Fixed and shipping costs per month: estimate first, actual when the invoice arrives. The P/L uses actual ?? estimate. */
-export default async function PeriodCostsPage({ params }: { params: Promise<{ tenant: string }> }) {
+async function PeriodCostsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "analytics");
   const t = await getTranslations("analytics.costs");
@@ -93,3 +94,5 @@ export default async function PeriodCostsPage({ params }: { params: Promise<{ te
     </>
   );
 }
+
+export default withIntl(PeriodCostsPage, "app/t/[tenant]/analytics/costs/page.tsx");

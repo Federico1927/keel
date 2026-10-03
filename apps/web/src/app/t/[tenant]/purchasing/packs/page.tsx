@@ -8,8 +8,9 @@ import { Badge, Card, CardContent, CardHeader, CardTitle, EmptyState } from "@hu
 import { requirePage } from "@/server/tenant";
 import { CasePackForm, DeletePackButton } from "./form";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** Tenant-defined case packs: units per value of one option (any option name), for all products or one. */
-export default async function CasePacksPage({ params }: { params: Promise<{ tenant: string }> }) {
+async function CasePacksPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "purchasing");
   const t = await getTranslations("case_packs");
@@ -78,3 +79,5 @@ export default async function CasePacksPage({ params }: { params: Promise<{ tena
     </>
   );
 }
+
+export default withIntl(CasePacksPage, "app/t/[tenant]/purchasing/packs/page.tsx");

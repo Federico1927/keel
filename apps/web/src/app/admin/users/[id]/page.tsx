@@ -3,14 +3,15 @@ import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { describeUserAgent, formatDateTime } from "@hullwise/core";
 import { adminUserDetail } from "@hullwise/services";
-import { Alert, AlertDescription, AlertTitle, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DetailShell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Alert, AlertDescription, AlertTitle, Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, DataList, DetailShell } from "@hullwise/ui";
 import { requireSuperAdmin } from "@/server/admin";
 import { SendPasswordResetButton } from "../../tenants/[id]/controls";
 import { LifecycleBadge } from "../../_components/badges";
 import { DisableUserButton, RevokeSessionsButton } from "./controls";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** One person across tenants (#48): memberships, sign-ins, audited actions. Never a password. */
-export default async function AdminUserPage({ params }: { params: Promise<{ id: string }> }) {
+async function AdminUserPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { db, user: me } = await requireSuperAdmin();
   const d = await adminUserDetail(db, id);
@@ -59,18 +60,17 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
         <CardHeader><CardTitle className="text-base">{t("users.columns.tenants")}</CardTitle></CardHeader>
         <CardContent className="p-0">
           {d.memberships.length === 0 ? <p className="px-4 pb-4 text-sm text-muted-foreground">{t("user.no_tenants")}</p> : (
-            <Table>
-              <TableHeader><TableRow><TableHead>{t("tenants.columns.tenant")}</TableHead><TableHead>{t("user.role")}</TableHead><TableHead className="hidden sm:table-cell">{t("user.since")}</TableHead></TableRow></TableHeader>
-              <TableBody>
-                {d.memberships.map((m) => (
-                  <TableRow key={m.tenantId} data-testid="user-membership">
-                    <TableCell><Link href={`/admin/tenants/${m.tenantId}`} className="font-medium hover:underline">{m.tenantName}</Link> <LifecycleBadge status={m.tenantStatus} label={t(`tenants.status.${m.tenantStatus}`)} /></TableCell>
-                    <TableCell>{tr(m.role)}{!m.isActive && <Badge variant="muted" className="ml-2">{t("user.membership_inactive")}</Badge>}</TableCell>
-                    <TableCell className="hidden text-xs sm:table-cell">{when(m.since)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataList
+              rows={d.memberships}
+              rowKey={(m) => m.tenantId}
+              rowProps={() => ({ "data-testid": "user-membership" })}
+              columns={[
+                { key: "tenant", header: t("tenants.columns.tenant"), mobile: "title", cell: (m) => <Link href={`/admin/tenants/${m.tenantId}`} className="font-medium hover:underline">{m.tenantName}</Link> },
+                { key: "status", header: <span className="sr-only">{t("tenants.columns.status")}</span>, mobile: "badge", cell: (m) => <LifecycleBadge status={m.tenantStatus} label={t(`tenants.status.${m.tenantStatus}`)} /> },
+                { key: "role", header: t("user.role"), cell: (m) => <>{tr(m.role)}{!m.isActive && <Badge variant="muted" className="ml-2">{t("user.membership_inactive")}</Badge>}</> },
+                { key: "since", header: t("user.since"), className: "text-xs", cell: (m) => when(m.since) },
+              ]}
+            />
           )}
         </CardContent>
       </Card>
@@ -93,3 +93,5 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
     </DetailShell>
   );
 }
+
+export default withIntl(AdminUserPage, "app/admin/users/[id]/page.tsx");

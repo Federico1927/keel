@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DASHBOARD_PERIODS, DEFAULT_DASHBOARD_PERIOD, type DashboardPeriod } from "./dashboard-periods";
 import { AD_PLATFORMS, type AdPlatform } from "./ads";
 import { isAddonModule, type ModuleKey } from "./modules";
 import { canDo, canViewPage, type PageKey, type TenantRole } from "./roles";
@@ -109,9 +110,7 @@ export function normalizeMetricFilters(raw: unknown): MetricFilters | null {
 
 /* ---------- periods ---------- */
 
-export const DASHBOARD_PERIODS = ["today", "7d", "30d", "90d", "mtd", "last_month", "ytd"] as const;
-export type DashboardPeriod = (typeof DASHBOARD_PERIODS)[number];
-export const DEFAULT_DASHBOARD_PERIOD: DashboardPeriod = "30d";
+export { DASHBOARD_PERIODS, DEFAULT_DASHBOARD_PERIOD, type DashboardPeriod } from "./dashboard-periods";
 
 /* ---------- widget catalog ---------- */
 

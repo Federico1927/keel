@@ -12,6 +12,7 @@ import { spokiWebhookUrl } from "@/server/spoki-webhook";
 import { resolveSetupValues } from "@/server/integration-setup";
 import { IntegrationSetupChecklist, IntegrationSetupNotes } from "@/components/integration-setup";
 
+import { withIntl } from "@/i18n/intl-scope";
 /** One guide per activation: the platforms (TikTok when the plan includes it), then the external providers and tracking; last, the platform email sender (super-admins only: tenants configure nothing). */
 const PROVIDERS = ["shopify", "meta", "google", "tiktok", "ga4", "anthropic", "address", "subscriptions", "tracking", "survey", "email"] as const;
 /** Ad hoc integrations sold per account: an interface and a mock in Hullwise, a live connector built and activated by the Hullwise team (issue #7). */
@@ -22,7 +23,7 @@ type Provider = (typeof PROVIDERS)[number] | (typeof AD_HOC)[number] | keyof typ
 const isGuide = (p: string): p is Provider => (PROVIDERS as readonly string[]).includes(p) || (AD_HOC as readonly string[]).includes(p) || p in ADDON_GUIDES;
 interface Step { title: string; body: string; verify?: boolean }
 
-export default async function IntegrationGuidePage({ params }: { params: Promise<{ tenant: string; provider: string }> }) {
+async function IntegrationGuidePage({ params }: { params: Promise<{ tenant: string; provider: string }> }) {
   const { tenant, provider } = await params;
   const ctx = await requirePage(tenant, "integrations");
   if (!isGuide(provider)) notFound();
@@ -155,3 +156,5 @@ export default async function IntegrationGuidePage({ params }: { params: Promise
     </>
   );
 }
+
+export default withIntl(IntegrationGuidePage, "app/t/[tenant]/integrations/guide/[provider]/page.tsx");

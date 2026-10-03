@@ -6,7 +6,8 @@ import { canDo } from "@hullwise/config";
 import { requirePage } from "@/server/tenant";
 import { GeneralSettingsForm, OperationalSettingsForm, TaxRatesSection } from "./forms";
 
-export default async function SettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function SettingsPage({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
   const ctx = await requirePage(tenant, "settings");
   const t = await getTranslations("settings");
@@ -84,3 +85,5 @@ export default async function SettingsPage({ params }: { params: Promise<{ tenan
     </>
   );
 }
+
+export default withIntl(SettingsPage, "app/t/[tenant]/settings/page.tsx");

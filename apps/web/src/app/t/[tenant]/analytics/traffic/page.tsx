@@ -9,13 +9,14 @@ import { requirePage } from "@/server/tenant";
 import { periodParams, resolvePeriod } from "@/server/period";
 import { PeriodPicker } from "@/components/period-picker";
 
+import { withIntl } from "@/i18n/intl-scope";
 const FILTER_KEYS = ["channel", "source", "medium", "campaign", "campaignId", "landing"] as const;
 
 /**
  * The GA4 rows behind a number (#86): the stored daily rows of the connected property, filtered by
  * channel, source / medium, campaign (by name or by the Hullwise campaign it matches) and landing path.
  */
-export default async function TrafficRowsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
+async function TrafficRowsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "analytics");
@@ -86,3 +87,5 @@ export default async function TrafficRowsPage({ params, searchParams }: { params
     </>
   );
 }
+
+export default withIntl(TrafficRowsPage, "app/t/[tenant]/analytics/traffic/page.tsx");

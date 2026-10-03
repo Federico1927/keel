@@ -10,6 +10,7 @@ import { loadMessages } from "@/i18n/messages";
 import { brandStyle, loadBrand, publicBrand } from "@/server/branding";
 import { PortalApp, type PortalProps } from "./portal";
 
+import { withIntl } from "@/i18n/intl-scope";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
@@ -17,7 +18,7 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
  * Public return portal of one store: /r/<store slug>. Everything the customer reads comes from
  * the store's portal configuration in the chosen language (?lang=), else the store's language.
  */
-export default async function ReturnPortalPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ lang?: string; order?: string }> }) {
+async function ReturnPortalPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ lang?: string; order?: string }> }) {
   const { slug } = await params;
   const sp = await searchParams;
   const [tenant] = await adminDb().select({ id: schema.tenants.id, name: schema.tenants.name, status: schema.tenants.status, defaultLocale: schema.tenants.defaultLocale }).from(schema.tenants).where(eq(schema.tenants.slug, slug)).limit(1);
@@ -82,3 +83,5 @@ export default async function ReturnPortalPage({ params, searchParams }: { param
     </main>
   );
 }
+
+export default withIntl(ReturnPortalPage, "app/r/[slug]/page.tsx");

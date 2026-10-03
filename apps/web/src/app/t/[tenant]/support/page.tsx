@@ -7,7 +7,8 @@ import { requirePage } from "@/server/tenant";
 import { Chip } from "../notifications/tabs";
 import { STATUS_VARIANT } from "./status";
 
-export default async function SupportPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ status?: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function SupportPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ status?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "support");
@@ -46,3 +47,5 @@ export default async function SupportPage({ params, searchParams }: { params: Pr
     </>
   );
 }
+
+export default withIntl(SupportPage, "app/t/[tenant]/support/page.tsx");

@@ -7,7 +7,8 @@ import { requirePage } from "@/server/tenant";
 import { tenantCustoms } from "@/server/dashboards";
 import { DashboardEditor, type MetricOption } from "@/components/dashboard/editor";
 
-export default async function EditDashboardPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function EditDashboardPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
   const ctx = await requirePage(tenant, "dashboard");
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
@@ -47,3 +48,5 @@ export default async function EditDashboardPage({ params }: { params: Promise<{ 
     </>
   );
 }
+
+export default withIntl(EditDashboardPage, "app/t/[tenant]/dashboards/[id]/edit/page.tsx");

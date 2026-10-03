@@ -17,7 +17,8 @@ import { CampaignStatusButton, LinkProductForm, LinkedProductControls } from "./
 import { SuggestionLinkButtons } from "./suggestion-buttons";
 import { AdsTable, ordersHref } from "../ads-table";
 
-export default async function CampaignDetailPage({ params, searchParams }: { params: Promise<{ tenant: string; id: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function CampaignDetailPage({ params, searchParams }: { params: Promise<{ tenant: string; id: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string }> }) {
   const { tenant, id } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "campaigns");
@@ -197,3 +198,5 @@ export default async function CampaignDetailPage({ params, searchParams }: { par
     </DetailShell>
   );
 }
+
+export default withIntl(CampaignDetailPage, "app/t/[tenant]/campaigns/[id]/page.tsx");

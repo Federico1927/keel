@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
-import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages } from "next-intl/server";
+import { getLocale } from "next-intl/server";
 import { PRODUCT_NAME } from "@hullwise/config";
-import { GeistMono, GeistSans } from "@hullwise/ui/fonts";
+import { GeistSans } from "@hullwise/ui/font-sans";
+import { GeistMono } from "./font-mono";
 import { SYSTEM_THEME_SCRIPT, THEME_COOKIE, TOKENS, isThemePreference, type Density, type ThemePreference } from "@hullwise/ui/tokens";
 import { getCurrentUser } from "@/server/session";
 import { ThemeSync } from "@/components/theme-sync";
 import { RegisterServiceWorker } from "@/components/pwa/register-sw";
+import { IntlScope } from "@/i18n/intl-scope";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -45,7 +46,6 @@ async function appearance(): Promise<{ theme: ThemePreference; density: Density 
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
-  const messages = await getMessages();
   const { theme, density } = await appearance();
   const classes = [GeistSans.variable, GeistMono.variable, theme === "dark" ? "dark" : ""].filter(Boolean).join(" ");
   return (
@@ -54,9 +54,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="min-h-screen antialiased">
         <ThemeSync theme={theme} />
         <RegisterServiceWorker />
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          {children}
-        </NextIntlClientProvider>
+        <IntlScope route="app/layout.tsx">{children}</IntlScope>
       </body>
     </html>
   );

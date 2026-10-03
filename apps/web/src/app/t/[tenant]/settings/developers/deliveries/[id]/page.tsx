@@ -10,12 +10,13 @@ import { requirePage } from "@/server/tenant";
 import { RedeliverButton } from "@/components/developers/forms";
 import { DELIVERY_STATUS_VARIANT } from "@/components/developers/status";
 
+import { withIntl } from "@/i18n/intl-scope";
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("developers.deliveries"))("detail_title") };
 }
 
 /** One webhook delivery (#81): the payload as sent, the headers it carried, every attempt and a redelivery button. */
-export default async function DeliveryPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
+async function DeliveryPage({ params }: { params: Promise<{ tenant: string; id: string }> }) {
   const { tenant, id } = await params;
   const ctx = await requirePage(tenant, "settings");
   if (!canDo(ctx.role, "manage_integrations") || !isModuleInPlan("core.api", ctx.tenant.planKey)) notFound();
@@ -77,3 +78,5 @@ export default async function DeliveryPage({ params }: { params: Promise<{ tenan
     </>
   );
 }
+
+export default withIntl(DeliveryPage, "app/t/[tenant]/settings/developers/deliveries/[id]/page.tsx");

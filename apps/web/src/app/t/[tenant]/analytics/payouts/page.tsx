@@ -9,8 +9,9 @@ import { SyncPayoutsButton } from "./sync-button";
 import { PAYOUT_STATUS_VARIANT as STATUS_VARIANT } from "./status";
 
 
+import { withIntl } from "@/i18n/intl-scope";
 /** Payouts of the payment processor: each deposit with its gross, refunds, adjustments, fees and net. */
-export default async function PayoutsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
+async function PayoutsPage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "analytics");
@@ -75,3 +76,5 @@ export default async function PayoutsPage({ params, searchParams }: { params: Pr
     </>
   );
 }
+
+export default withIntl(PayoutsPage, "app/t/[tenant]/analytics/payouts/page.tsx");

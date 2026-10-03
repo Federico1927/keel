@@ -27,30 +27,17 @@ export interface DataListColumn<R> {
   /** Classes of the cell (table and card). */
   className?: string;
   headClassName?: string;
+  /** `aria-sort` of the header when the list is sorted by this column. */
+  ariaSort?: "ascending" | "descending";
 }
 
-const MOBILE: Record<DataListMobile, string> = {
-  select: "max-md:order-0 max-md:relative max-md:z-10",
-  title: "max-md:order-1 max-md:min-w-0 max-md:flex-1 max-md:font-medium max-md:[&>a:first-child]:after:absolute max-md:[&>a:first-child]:after:inset-0",
-  badge: "max-md:order-2 max-md:shrink-0",
-  subtitle: "max-md:order-3 max-md:basis-full max-md:min-w-0 max-md:text-muted-foreground",
-  meta: "max-md:order-4 max-md:text-xs max-md:before:mr-1 max-md:before:text-muted-foreground max-md:before:content-[attr(data-label)]",
-  action: "max-md:order-5 max-md:basis-full max-md:pt-1",
-  detail: "max-md:hidden",
-};
-const PRIORITY = { 1: "", 2: "md:max-lg:hidden", 3: "md:max-xl:hidden" } as const;
+/** Card roles and table priorities: component classes in ../data-list.css (short, so long lists stay light). */
+const MOBILE: Record<DataListMobile, string> = { select: "dl-select", title: "dl-title", badge: "dl-badge", subtitle: "dl-subtitle", meta: "dl-meta", action: "dl-action", detail: "dl-detail" };
+const PRIORITY = { 1: "", 2: "dl-p2", 3: "dl-p3" } as const;
 
 function cellClass<R>(c: DataListColumn<R>) {
   const role = c.mobile ?? "meta";
-  return cn(
-    "px-3 py-(--density-cell-y) align-middle max-md:block max-md:p-0 max-md:empty:hidden [&:has([role=checkbox])]:pr-0",
-    // links and buttons outside the title stay tappable above the card's stretched link
-    role !== "title" && "max-md:[&_a]:relative max-md:[&_a]:z-10 max-md:[&_button]:relative max-md:[&_button]:z-10 max-md:[&_input]:relative max-md:[&_input]:z-10",
-    MOBILE[role],
-    PRIORITY[c.priority ?? 1],
-    c.align === "right" && "md:text-right",
-    c.className,
-  );
+  return cn("dl-cell", role !== "title" && "dl-touch", MOBILE[role], PRIORITY[c.priority ?? 1], c.align === "right" && "dl-right", c.className);
 }
 
 /**
@@ -76,7 +63,7 @@ export function DataList<R>({ columns, rows, rowKey, rowProps, footer, className
         <thead className="max-md:hidden [&_tr]:border-b">
           <tr>
             {columns.map((c) => (
-              <th key={c.key} className={cn("h-(--density-head-h) px-3 text-left align-middle text-xs font-medium uppercase tracking-wide text-muted-foreground [&:has([role=checkbox])]:pr-0", PRIORITY[c.priority ?? 1], c.align === "right" && "text-right", c.headClassName)}>
+              <th key={c.key} aria-sort={c.ariaSort} className={cn("dl-head", PRIORITY[c.priority ?? 1], c.align === "right" && "text-right", c.headClassName)}>
                 {c.header}
               </th>
             ))}
@@ -86,7 +73,7 @@ export function DataList<R>({ columns, rows, rowKey, rowProps, footer, className
           {rows.map((row, i) => {
             const extra = rowProps?.(row, i) ?? {};
             return (
-              <tr key={rowKey(row, i)} {...extra} className={cn("border-b transition-colors hover:bg-muted/50 max-md:relative max-md:flex max-md:min-h-14 max-md:flex-wrap max-md:items-center max-md:gap-x-3 max-md:gap-y-1 max-md:px-4 max-md:py-3 max-md:after:order-2 max-md:after:h-0 max-md:after:basis-full", extra.className)}>
+              <tr key={rowKey(row, i)} {...extra} className={cn("dl-row", extra.className)}>
                 {columns.map((c) => (
                   <td key={c.key} className={cellClass(c)} data-label={(c.mobile ?? "meta") === "meta" ? (c.label ?? (typeof c.header === "string" ? c.header : undefined)) : undefined}>
                     {c.cell(row, i)}
@@ -98,7 +85,7 @@ export function DataList<R>({ columns, rows, rowKey, rowProps, footer, className
         </tbody>
         {footer && (
           <tfoot className="border-t bg-muted/40 font-medium max-md:block">
-            <tr className="max-md:flex max-md:flex-wrap max-md:items-center max-md:gap-x-3 max-md:gap-y-1 max-md:px-4 max-md:py-3">
+            <tr className="dl-foot-row">
               {columns.map((c) => (
                 <td key={c.key} className={cn(cellClass(c), footer[c.key] === undefined && "max-md:hidden")} data-label={(c.mobile ?? "meta") === "meta" ? (c.label ?? (typeof c.header === "string" ? c.header : undefined)) : undefined}>
                   {footer[c.key]}

@@ -10,9 +10,10 @@ import { requirePage } from "@/server/tenant";
 import { ClaimButton, OutcomeDialog, QueueToolbar, ScoreBadge } from "./queue-controls";
 import { AutoRefresh, BulkBar, QueueSelection, SelectAll, SelectBox } from "./queue-extras";
 
+import { withIntl } from "@/i18n/intl-scope";
 const AGING_ROW = { fresh: undefined, warn: "bg-warning/10", alert: "bg-destructive/10" } as const;
 
-export default async function CodQueuePage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ view?: string; q?: string; tag?: string }> }) {
+async function CodQueuePage({ params, searchParams }: { params: Promise<{ tenant: string }>; searchParams: Promise<{ view?: string; q?: string; tag?: string }> }) {
   const { tenant } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "cod_queue");
@@ -168,3 +169,5 @@ export default async function CodQueuePage({ params, searchParams }: { params: P
     </>
   );
 }
+
+export default withIntl(CodQueuePage, "app/t/[tenant]/cod/page.tsx");

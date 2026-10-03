@@ -13,7 +13,8 @@ import { AdStatusButton } from "../../../ads-actions";
 import { AdBadges } from "../../../ads-badges";
 import { ordersHref } from "../../../ads-table";
 
-export default async function AdPage({ params, searchParams }: { params: Promise<{ tenant: string; id: string; adId: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function AdPage({ params, searchParams }: { params: Promise<{ tenant: string; id: string; adId: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string }> }) {
   const { tenant, id, adId } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "campaigns");
@@ -116,3 +117,5 @@ export default async function AdPage({ params, searchParams }: { params: Promise
     </DetailShell>
   );
 }
+
+export default withIntl(AdPage, "app/t/[tenant]/campaigns/[id]/ads/[adId]/page.tsx");

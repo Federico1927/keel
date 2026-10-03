@@ -12,7 +12,8 @@ import { PeriodPicker } from "@/components/period-picker";
 import { AdsTable, ordersHref } from "../../../ads-table";
 import { AdBadges } from "../../../ads-badges";
 
-export default async function AdSetPage({ params, searchParams }: { params: Promise<{ tenant: string; id: string; adSetId: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string }> }) {
+import { withIntl } from "@/i18n/intl-scope";
+async function AdSetPage({ params, searchParams }: { params: Promise<{ tenant: string; id: string; adSetId: string }>; searchParams: Promise<{ from?: string; to?: string; preset?: string }> }) {
   const { tenant, id, adSetId } = await params;
   const sp = await searchParams;
   const ctx = await requirePage(tenant, "campaigns");
@@ -88,3 +89,5 @@ export default async function AdSetPage({ params, searchParams }: { params: Prom
     </DetailShell>
   );
 }
+
+export default withIntl(AdSetPage, "app/t/[tenant]/campaigns/[id]/adsets/[adSetId]/page.tsx");
