@@ -2947,7 +2947,12 @@
       "all_orders": "el primero",
       "incomplete_hint": "Hasta que termine, los análisis, el RFM, las cohortes y el historial de clientes solo cubren una parte del historial. Resincronizar la continúa.",
       "banner": "El historial de pedidos de la tienda aún se está importando ({n} pedidos hasta ahora): los periodos pasados, las cohortes y el historial de clientes están incompletos hasta que termine.",
-      "banner_error": "La importación del historial de pedidos se detuvo tras {n} pedidos: los periodos pasados, las cohortes y el historial de clientes están incompletos. Un owner o admin puede continuarla con Resincronizar en Integraciones."
+      "banner_error": "La importación del historial de pedidos se detuvo tras {n} pedidos: los periodos pasados, las cohortes y el historial de clientes están incompletos. Un owner o admin puede continuarla con Resincronizar en Integraciones.",
+      "restart": "Reiniciar importación",
+      "restart_title": "¿Reiniciar la importación del historial de pedidos?",
+      "restart_description": "La importación vuelve a empezar desde hace {months, plural, one {# mes} other {# meses}} (Ajustes → Operativos). Los pedidos ya importados se mantienen.",
+      "restart_description_all": "La importación vuelve a empezar desde el primer pedido de la tienda (Ajustes → Operativos: 0 meses = todos los pedidos). Los pedidos ya importados se mantienen.",
+      "restarted": "Importación reiniciada con la nueva ventana."
     },
     "card": {
       "manage": "Gestionar",

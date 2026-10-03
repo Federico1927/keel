@@ -69,7 +69,9 @@ async function main() {
     await boss.updateQueue(q, retention).catch(() => undefined);
   }
   const enqueue: Enqueue = async (queue, data, opts) => {
-    await boss.send(queue, data as object, { retryLimit: 3, retryDelay: 30, retryBackoff: true, ...(opts?.singletonKey ? { singletonKey: opts.singletonKey, singletonSeconds: 60 } : {}), ...(opts?.startAfterSeconds ? { startAfter: opts.startAfterSeconds } : {}) });
+    const id = await boss.send(queue, data as object, { retryLimit: 3, retryDelay: 30, retryBackoff: true, ...(opts?.singletonKey ? { singletonKey: opts.singletonKey, singletonSeconds: opts.continuation ? 1 : 60 } : {}), ...(opts?.startAfterSeconds ? { startAfter: opts.startAfterSeconds } : {}) });
+    // pg-boss answers null when the dedupe slot already holds a job: say so, a dropped continuation stops an import
+    if (!id && opts?.singletonKey) console.warn(`[jobs] not queued (same key in its slot): ${queue} ${opts.singletonKey}${opts.continuation ? " (continuation)" : ""}`);
   };
   // emails queued by ticks (digests, alerts, notifications) go through the same queue; a short delay lets their transaction commit
   setEmailDispatcher((job) => enqueue(QUEUES.emailSend, job, { startAfterSeconds: 2 }));
