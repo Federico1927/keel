@@ -63,6 +63,12 @@ export class MockBillingProvider implements BillingProvider {
   async fetchSubscription(): Promise<SubscriptionSnapshot | null> {
     return null;
   }
+  readonly cancelled = new Set<string>();
+  async cancelSubscription(subscriptionId: string): Promise<SubscriptionSnapshot | null> {
+    this.cancelled.add(subscriptionId);
+    const now = new Date();
+    return { id: subscriptionId, customerId: "", status: "canceled", collectionMethod: "charge_automatically", currentPeriodStart: null, currentPeriodEnd: null, trialEnd: null, cancelAtPeriodEnd: false, canceledAt: now, cancellationReason: "cancellation_requested", items: [], metadata: {}, paymentMethodSummary: null, latestInvoiceId: null };
+  }
   async listInvoices(): Promise<InvoiceSnapshot[]> {
     return [];
   }

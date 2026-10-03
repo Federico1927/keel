@@ -18,6 +18,7 @@ import {
 import { requireSuperAdmin } from "@/server/admin";
 import { DataExportTable } from "@/components/data-export/export-table";
 import { RequestDataExportButton } from "@/components/data-export/request-button";
+import { AdminEraseCustomer } from "@/components/privacy/controls";
 import { toBrand } from "@/server/branding";
 import { LifecycleBadge, PaymentBadge } from "../../_components/badges";
 import {
@@ -40,6 +41,7 @@ async function AdminTenantPage({ params }: { params: Promise<{ id: string }> }) 
   if (!d) notFound();
   const exports = await listTenantExports(db, id, 10);
   const t = await getTranslations("admin");
+  const tpv = await getTranslations("privacy");
   const tm = await getTranslations("modules");
   const locale = await getLocale();
   const money = (m: number, c = d.tenant.currency) => formatMoney(m, c, locale);
@@ -147,6 +149,13 @@ async function AdminTenantPage({ params }: { params: Promise<{ id: string }> }) 
         <CardContent className="p-0">
           <DataExportTable rows={exports} locale={locale} timezone="UTC" hrefFor={(eid) => `/admin/tenants/${d.tenant.id}/data-export/${eid}`} />
         </CardContent>
+      </Card>
+      <Card className="mb-6" data-testid="tenant-privacy">
+        <CardHeader>
+          <CardTitle className="text-base">{tpv("console.title")}</CardTitle>
+          <CardDescription>{tpv("console.description")}</CardDescription>
+        </CardHeader>
+        <CardContent><AdminEraseCustomer tenantId={d.tenant.id} /></CardContent>
       </Card>
       <div className="grid gap-3 sm:grid-cols-3">
         <Stat label={t("tenants.columns.orders30")} value={formatNumber(d.ordersLast30, locale)} />
@@ -328,6 +337,15 @@ async function AdminTenantPage({ params }: { params: Promise<{ id: string }> }) 
               { key: "actions", header: null, mobile: "action", cell: (i) => <InvoiceActions invoiceId={i.id} status={i.status} provider={i.provider} /> },
             ]}
           />
+        </CardContent>
+      </Card>
+      <Card className="mt-6 border-destructive/50" data-testid="danger-zone">
+        <CardHeader>
+          <CardTitle className="text-base text-destructive">{tpv("delete.zone_title")}</CardTitle>
+          <CardDescription>{tpv("delete.zone_description")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Link href={`/admin/tenants/${d.tenant.id}/delete`} className="inline-flex min-h-9 items-center rounded-md border border-destructive px-3 text-sm font-medium text-destructive hover:bg-destructive/10" data-testid="delete-tenant-link">{tpv("delete.open")}</Link>
         </CardContent>
       </Card>
       <Card className="mt-6">

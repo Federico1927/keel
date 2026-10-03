@@ -103,6 +103,7 @@ async function main() {
   await boss.work(QUEUES.emailSend, { batchSize: 5 }, one(QUEUES.emailSend));
   await boss.work(QUEUES.emailEvent, { batchSize: 10 }, one(QUEUES.emailEvent));
   await boss.work(QUEUES.tenantExport, one(QUEUES.tenantExport));
+  await boss.work(QUEUES.tenantDelete, one(QUEUES.tenantDelete));
   await boss.work(QUEUES.billingEvent, one(QUEUES.billingEvent));
   await boss.work(QUEUES.campaignSend, { batchSize: 2 }, one(QUEUES.campaignSend));
   await boss.work(QUEUES.webhookDeliver, { batchSize: 5 }, one(QUEUES.webhookDeliver));

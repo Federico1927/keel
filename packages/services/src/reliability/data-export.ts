@@ -5,6 +5,7 @@ import { TENANT_EXPORT_TTL_DAYS } from "@hullwise/config";
 import { csvLine } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 import { notifyUsers } from "../notifications";
+import { runCustomerExport } from "../crm/data-request";
 import { zipFiles } from "./zip";
 
 /**
@@ -33,6 +34,11 @@ export interface ExportableTable {
   columns: { key: string; name: string; column: Column }[];
 }
 
+/** Whether a column may leave Hullwise in an export: no binary blob, no secret, no earlier export file. */
+export function isExportableColumn(table: string, c: Column): boolean {
+  return c.getSQLType() !== "bytea" && !SECRET_COLUMN.test(c.name) && !EXCLUDED_COLUMNS.has(`${table}.${c.name}`);
+}
+
 /** Tenant tables and the columns that go into the archive (derived from the schema: a new table is exported without code changes). */
 export function exportableTables(): ExportableTable[] {
   const out: ExportableTable[] = [];
@@ -43,7 +49,7 @@ export function exportableTables(): ExportableTable[] {
     const cols = getTableColumns(table);
     if (!("tenantId" in cols) || !("id" in cols) || EXCLUDED_TABLES.has(name)) continue;
     const columns = Object.entries(cols)
-      .filter(([, c]) => c.getSQLType() !== "bytea" && !SECRET_COLUMN.test(c.name) && !EXCLUDED_COLUMNS.has(`${name}.${c.name}`))
+      .filter(([, c]) => isExportableColumn(name, c))
       .map(([key, column]) => ({ key, name: column.name, column }));
     out.push({ name, table, columns });
   }
@@ -84,7 +90,7 @@ async function tableCsv(ctx: ServiceContext, t: ExportableTable): Promise<{ csv:
 /** Queues an export asked by an owner (tenant transaction, audited); the caller enqueues `tenant.export` or runs it inline. */
 export async function requestTenantExport(ctx: ServiceContext, input: { userId: string; audit?: { actorType: "user" | "impersonation"; impersonatedBy: string | null } }): Promise<string> {
   const now = ctx.now ?? new Date();
-  const [running] = await ctx.tx.select({ id: schema.tenantDataExports.id }).from(schema.tenantDataExports).where(and(eq(schema.tenantDataExports.tenantId, ctx.tenantId), sql`${schema.tenantDataExports.status} in ('pending', 'running')`)).limit(1);
+  const [running] = await ctx.tx.select({ id: schema.tenantDataExports.id }).from(schema.tenantDataExports).where(and(eq(schema.tenantDataExports.tenantId, ctx.tenantId), eq(schema.tenantDataExports.scope, "tenant"), sql`${schema.tenantDataExports.status} in ('pending', 'running')`)).limit(1);
   if (running) throw new TenantExportError("in_progress");
   const [row] = await ctx.tx.insert(schema.tenantDataExports).values({ tenantId: ctx.tenantId, requestedBy: input.userId, requestedByType: "owner", status: "pending", createdAt: now, updatedAt: now }).returning({ id: schema.tenantDataExports.id });
   await recordAudit(ctx.tx, { tenantId: ctx.tenantId, actorUserId: input.userId, actorType: input.audit?.actorType ?? "user", impersonatedBy: input.audit?.impersonatedBy ?? null, action: "tenant.data_export_requested", entityType: "tenant_data_export", entityId: row!.id });
@@ -93,7 +99,7 @@ export async function requestTenantExport(ctx: ServiceContext, input: { userId: 
 
 /** The super-admin asks for a tenant's export from the console (admin connection, audited on the tenant). */
 export async function requestTenantExportAsAdmin(db: Database, tenantId: string, actorUserId: string, now = new Date()): Promise<string> {
-  const [running] = await db.select({ id: schema.tenantDataExports.id }).from(schema.tenantDataExports).where(and(eq(schema.tenantDataExports.tenantId, tenantId), sql`${schema.tenantDataExports.status} in ('pending', 'running')`)).limit(1);
+  const [running] = await db.select({ id: schema.tenantDataExports.id }).from(schema.tenantDataExports).where(and(eq(schema.tenantDataExports.tenantId, tenantId), eq(schema.tenantDataExports.scope, "tenant"), sql`${schema.tenantDataExports.status} in ('pending', 'running')`)).limit(1);
   if (running) throw new TenantExportError("in_progress");
   const [row] = await db.insert(schema.tenantDataExports).values({ tenantId, requestedBy: actorUserId, requestedByType: "super_admin", status: "pending", createdAt: now, updatedAt: now }).returning({ id: schema.tenantDataExports.id });
   await recordAudit(db, { tenantId, actorUserId, actorType: "super_admin", action: "tenant.data_export_requested", entityType: "tenant_data_export", entityId: row!.id });
@@ -106,10 +112,12 @@ export async function requestTenantExportAsAdmin(db: Database, tenantId: string,
  */
 export async function runTenantExport(ctx: ServiceContext, exportId: string): Promise<{ status: "done" | "failed" | "skipped"; rows: number; tables: number }> {
   const e = schema.tenantDataExports;
-  const [job] = await ctx.tx.select({ id: e.id, status: e.status, requestedBy: e.requestedBy, requestedByType: e.requestedByType }).from(e).where(and(eq(e.tenantId, ctx.tenantId), eq(e.id, exportId))).limit(1);
+  const [job] = await ctx.tx.select({ id: e.id, status: e.status, requestedBy: e.requestedBy, requestedByType: e.requestedByType, scope: e.scope, subjectCustomerId: e.subjectCustomerId, subject: e.subject }).from(e).where(and(eq(e.tenantId, ctx.tenantId), eq(e.id, exportId))).limit(1);
   if (!job || job.status === "done" || job.status === "expired") return { status: "skipped", rows: 0, tables: 0 };
   const startedAt = ctx.now ?? new Date();
   await ctx.tx.update(e).set({ status: "running", updatedAt: startedAt }).where(eq(e.id, exportId));
+  // one customer's data (GDPR access request): same row, download and expiry, its own content
+  if (job.scope === "customer") return runCustomerExport(ctx, job);
   try {
     const [tenant] = await ctx.tx.select({ slug: schema.tenants.slug, name: schema.tenants.name, country: schema.tenants.country, currency: schema.tenants.currency, timezone: schema.tenants.timezone, defaultLocale: schema.tenants.defaultLocale, planKey: schema.tenants.planKey, createdAt: schema.tenants.createdAt }).from(schema.tenants).where(eq(schema.tenants.id, ctx.tenantId)).limit(1);
     const files: { name: string; data: Buffer }[] = [];
@@ -145,9 +153,9 @@ export async function runTenantExport(ctx: ServiceContext, exportId: string): Pr
 
 const listColumns = { id: schema.tenantDataExports.id, status: schema.tenantDataExports.status, requestedByType: schema.tenantDataExports.requestedByType, requestedByEmail: schema.users.email, rowCount: schema.tenantDataExports.rowCount, tables: schema.tenantDataExports.tables, sizeBytes: schema.tenantDataExports.sizeBytes, fileName: schema.tenantDataExports.fileName, error: schema.tenantDataExports.error, createdAt: schema.tenantDataExports.createdAt, completedAt: schema.tenantDataExports.completedAt, expiresAt: schema.tenantDataExports.expiresAt, downloadedAt: schema.tenantDataExports.downloadedAt, downloadCount: schema.tenantDataExports.downloadCount };
 
-/** Exports of the tenant (newest first), without the files. Works on the tenant transaction or the admin connection. */
+/** Full exports of the tenant (newest first), without the files; customer exports are listed on the customer. Works on the tenant transaction or the admin connection. */
 export async function listTenantExports(db: DbExecutor, tenantId: string, limit = 20) {
-  return db.select(listColumns).from(schema.tenantDataExports).leftJoin(schema.users, eq(schema.users.id, schema.tenantDataExports.requestedBy)).where(eq(schema.tenantDataExports.tenantId, tenantId)).orderBy(desc(schema.tenantDataExports.createdAt)).limit(limit);
+  return db.select(listColumns).from(schema.tenantDataExports).leftJoin(schema.users, eq(schema.users.id, schema.tenantDataExports.requestedBy)).where(and(eq(schema.tenantDataExports.tenantId, tenantId), eq(schema.tenantDataExports.scope, "tenant"))).orderBy(desc(schema.tenantDataExports.createdAt)).limit(limit);
 }
 
 /**
@@ -156,12 +164,12 @@ export async function listTenantExports(db: DbExecutor, tenantId: string, limit 
  */
 export async function takeTenantExportFile(db: DbExecutor, tenantId: string, exportId: string, actor: { userId: string; actorType: "user" | "impersonation" | "super_admin"; impersonatedBy?: string | null }, now = new Date()): Promise<{ fileName: string; file: Buffer }> {
   const e = schema.tenantDataExports;
-  const [row] = await db.select({ status: e.status, file: e.file, fileName: e.fileName, expiresAt: e.expiresAt }).from(e).where(and(eq(e.tenantId, tenantId), eq(e.id, exportId))).limit(1);
+  const [row] = await db.select({ status: e.status, file: e.file, fileName: e.fileName, expiresAt: e.expiresAt, scope: e.scope, subjectCustomerId: e.subjectCustomerId }).from(e).where(and(eq(e.tenantId, tenantId), eq(e.id, exportId))).limit(1);
   if (!row) throw new TenantExportError("not_found");
   if (row.status === "expired" || (row.expiresAt && row.expiresAt <= now)) throw new TenantExportError("expired");
   if (row.status !== "done" || !row.file) throw new TenantExportError("not_ready");
   await db.update(e).set({ downloadedAt: now, downloadCount: sql`${e.downloadCount} + 1`, updatedAt: now }).where(eq(e.id, exportId));
-  await recordAudit(db, { tenantId, actorUserId: actor.userId, actorType: actor.actorType, impersonatedBy: actor.impersonatedBy ?? null, action: "tenant.data_export_downloaded", entityType: "tenant_data_export", entityId: exportId });
+  await recordAudit(db, { tenantId, actorUserId: actor.userId, actorType: actor.actorType, impersonatedBy: actor.impersonatedBy ?? null, action: "tenant.data_export_downloaded", entityType: "tenant_data_export", entityId: exportId, metadata: { scope: row.scope, ...(row.subjectCustomerId ? { customerId: row.subjectCustomerId } : {}) } });
   return { fileName: row.fileName ?? `export-${exportId}.zip`, file: row.file };
 }
 

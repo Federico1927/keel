@@ -419,6 +419,13 @@ export class MockCommercePlatform implements CommercePlatform {
     return topics.map((topic) => ({ topic, address: callbackUrl, status: "registered" as const }));
   }
 
+  readonly unregistered: string[] = [];
+  async unregisterWebhooks(callbackUrl: string): Promise<{ removed: number; failed: number }> {
+    this.failures.check();
+    this.unregistered.push(callbackUrl);
+    return { removed: 1, failed: 0 };
+  }
+
   sign(rawBody: string): string {
     return createHmac("sha256", this.webhookSecret).update(rawBody, "utf8").digest("base64");
   }

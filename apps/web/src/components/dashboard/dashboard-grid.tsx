@@ -28,7 +28,7 @@ export async function DashboardGrid({ ctx, widgets, periodKey, role = ctx.role }
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-flow-row-dense lg:grid-cols-4" data-testid="dashboard-grid">
       {visible.map((w) => (
         <div key={w.id} className={cn("min-w-0", WIDTH[w.w], HEIGHT[w.h], w.type === "sales_30d" && "lg:self-start")} data-widget={w.type} data-widget-id={w.id}>
-          <Suspense fallback={<WidgetSkeleton />}>
+          <Suspense fallback={<WidgetSkeleton widget={w} />}>
             <Slot ctx={ctx} env={env} view={view} widget={w} periodKey={periodKey} />
           </Suspense>
         </div>

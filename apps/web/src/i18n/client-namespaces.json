@@ -22,7 +22,8 @@
     "email_change"
   ],
   "app/admin/alerts/page.tsx": [
-    "admin"
+    "admin",
+    "privacy"
   ],
   "app/admin/audit/page.tsx": [],
   "app/admin/billing/page.tsx": [
@@ -69,12 +70,16 @@
     "support"
   ],
   "app/admin/support/page.tsx": [],
+  "app/admin/tenants/[id]/delete/page.tsx": [
+    "privacy"
+  ],
   "app/admin/tenants/[id]/page.tsx": [
     "admin",
     "admin_billing",
     "common",
     "data_export",
-    "mcp"
+    "mcp",
+    "privacy"
   ],
   "app/admin/tenants/new/page.tsx": [
     "admin",
@@ -223,6 +228,7 @@
   ],
   "app/t/[tenant]/customers/[id]/page.tsx": [
     "predictions",
+    "privacy",
     "rfm",
     "whatsapp"
   ],

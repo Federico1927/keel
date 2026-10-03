@@ -92,8 +92,14 @@ export const tenantDataExports = pgTable(
   {
     ...tenantColumns(),
     requestedBy: uuid("requested_by").references(() => users.id, { onDelete: "set null" }),
-    /** owner | super_admin */
+    /** owner | super_admin | system (a privacy request received from the platform) */
     requestedByType: text("requested_by_type").notNull().default("owner"),
+    /** tenant (every table, #32) | customer (one customer's data: a GDPR access request) */
+    scope: text("scope").notNull().default("tenant"),
+    /** The customer a `customer` export is about (no FK: the record outlives an erased or deleted customer). */
+    subjectCustomerId: uuid("subject_customer_id"),
+    /** What a `customer` export covers when the customer is unknown or a guest: platform ids, the request reference. */
+    subject: jsonb("subject").$type<{ customerExternalId?: string | null; orderExternalIds?: string[]; requestRef?: string | null }>(),
     /** pending | running | done | failed | expired */
     status: text("status").notNull().default("pending"),
     /** Rows per exported table. */
@@ -112,3 +118,35 @@ export const tenantDataExports = pgTable(
   },
   (t) => [index("tenant_data_exports_tenant_created_idx").on(t.tenantId, t.createdAt), tenantIsolation("tenant_data_exports")],
 ).enableRLS();
+
+/**
+ * Deletion of a whole tenant from the console: a platform row with no foreign key to `tenants`, so the
+ * record (who, when, what was deleted, row counts) survives the tenant. The background job
+ * `tenant.delete` disconnects the integrations, cancels the subscription, deletes the rows table by
+ * table (progress in `steps`) and finally the tenant itself. Admin connection only.
+ */
+export const tenantDeletions = pgTable(
+  "tenant_deletions",
+  {
+    id: id(),
+    /** The deleted tenant's id (kept as a plain value). */
+    tenantRef: uuid("tenant_ref").notNull(),
+    slug: text("slug").notNull(),
+    name: text("name").notNull(),
+    requestedBy: uuid("requested_by").references(() => users.id, { onDelete: "set null" }),
+    reason: text("reason"),
+    /** pending | running | done | failed */
+    status: text("status").notNull().default("pending"),
+    /** Rows per table counted when asked. */
+    counts: jsonb("counts").$type<Record<string, number>>().notNull().default(sql`'{}'::jsonb`),
+    /** Done steps: `disconnect:<provider>`, `billing`, `table:<name>` with the rows deleted, `tenant`. */
+    steps: jsonb("steps").$type<{ step: string; rows?: number; note?: string; at: string }[]>().notNull().default(sql`'[]'::jsonb`),
+    totalSteps: integer("total_steps").notNull().default(0),
+    error: text("error"),
+    createdAt: createdAt(),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("tenant_deletions_tenant_idx").on(t.tenantRef, t.createdAt), index("tenant_deletions_created_idx").on(t.createdAt)],
+).enableRLS(); // no policy: the application role sees nothing

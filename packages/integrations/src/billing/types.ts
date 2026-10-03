@@ -160,6 +160,8 @@ export interface BillingProvider {
   updateSubscriptionItems(subscriptionId: string, changes: { add: string[]; remove: string[]; swap: { itemId: string; priceId: string }[]; currentItems?: SubscriptionItemSnapshot[] }, idempotencyKey: string): Promise<SubscriptionSnapshot>;
   createPortalSession(customerId: string, returnUrl: string, locale: string | null): Promise<{ url: string }>;
   fetchSubscription(subscriptionId: string): Promise<SubscriptionSnapshot | null>;
+  /** Ends the subscription now, without proration or a final invoice (the tenant is deleted); null when it no longer exists. */
+  cancelSubscription(subscriptionId: string, idempotencyKey: string): Promise<SubscriptionSnapshot | null>;
   listInvoices(customerId: string, limit?: number): Promise<InvoiceSnapshot[]>;
   setCustomerTaxExempt(customerId: string, value: "none" | "exempt" | "reverse"): Promise<void>;
   /** Hullwise-ledger invoices (the mock model's monthly run). */

@@ -49,8 +49,26 @@ export async function WidgetError({ reason }: { reason: string }) {
   );
 }
 
-export function WidgetSkeleton() {
-  return <div className="h-full min-h-28 animate-pulse rounded-lg border bg-muted/40" data-testid="widget-loading" />;
+/**
+ * The Suspense fallback of a widget. Chart widgets get the shell of their final card (same header, a box of
+ * the chart's height), so nothing below moves when the data streams in (CLS); the others a plain box.
+ */
+export function WidgetSkeleton({ widget }: { widget?: Pick<DashboardWidget, "type" | "h"> }) {
+  const chart = widget?.type === "sales_30d" ? 256 : widget?.type === "timeseries" ? (widget.h >= 2 ? 240 : 140) : null;
+  if (chart === null) return <div className="h-full min-h-28 animate-pulse rounded-lg border bg-muted/40" data-testid="widget-loading" />;
+  const pulse = <div className="w-full animate-pulse rounded-md bg-muted/40" style={{ height: chart }} />;
+  // the same header as the final card (one line of text-base), then the chart's box
+  return widget?.type === "sales_30d" ? (
+    <Card data-testid="widget-loading" aria-busy="true">
+      <CardHeader><CardTitle className="text-base">{"\u00a0"}</CardTitle></CardHeader>
+      <CardContent>{pulse}</CardContent>
+    </Card>
+  ) : (
+    <Card className="flex h-full flex-col" data-testid="widget-loading" aria-busy="true">
+      <CardHeader className="flex-row items-center justify-between gap-2 space-y-0 pb-2"><CardTitle className="truncate text-base">{"\u00a0"}</CardTitle></CardHeader>
+      <CardContent className="flex-1">{pulse}</CardContent>
+    </Card>
+  );
 }
 
 function bucketLabel(b: { from: Date; key: string }, granularity: string, locale: string, tz: string): string {

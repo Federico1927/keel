@@ -21,6 +21,8 @@ export function notificationText(t: (key: string, values?: Record<string, string
   }
   // full tenant data export (#32): title = row count (or "failed")
   if (n.type === "export_ready" && n.body === "tenant_data") return { title: /^\d+$/.test(n.title) ? t("rendered.data_export_ready", { title: n.title }) : t("rendered.data_export_failed"), body: null };
+  // one customer's data package (GDPR access request): title = record count (or "failed")
+  if (n.type === "export_ready" && n.body === "customer_data") return { title: /^\d+$/.test(n.title) ? t("rendered.customer_export_ready", { title: n.title }) : t("rendered.customer_export_failed"), body: null };
   // a background job of the store keeps failing (#32): title = job type, body = last error
   if (n.type === "platform_failure") return { title: t("rendered.platform_failure", { title: n.title }), body: n.body };
   if (n.type === "customer_campaign" && CAMPAIGN_EVENTS.has(n.body ?? "")) return { title: t(`rendered.customer_campaign_${n.body}`, { title: n.title }), body: null };

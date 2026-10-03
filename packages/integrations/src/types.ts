@@ -417,6 +417,8 @@ export interface CommercePlatform {
   /** Balance transactions (charges, refunds, adjustments with their actual fees) of one payout. */
   fetchBalanceTransactions(q: { payoutExternalId: string; cursor?: string | null; limit?: number }): Promise<Page<NormalizedBalanceTransaction>>;
   registerWebhooks(callbackUrl: string, topics: string[]): Promise<WebhookRegistration[]>;
+  /** Removes the webhook subscriptions pointing at `callbackUrl` (the store leaves Hullwise); the others stay. */
+  unregisterWebhooks(callbackUrl: string): Promise<{ removed: number; failed: number }>;
   /** Verifies the signature and normalizes the envelope; throws on invalid signature. */
   verifyWebhook(headers: Record<string, string | undefined>, rawBody: string): Promise<VerifiedWebhook>;
   parseWebhookOrder(payload: unknown): NormalizedOrder;
