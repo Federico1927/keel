@@ -182,6 +182,18 @@ describe("actual payment fees from payouts", () => {
     const after = await sys((s) => s.tx.select({ n: sql<number>`count(*)::int`, fee: sql<number>`coalesce(sum(fee_minor), 0)::int` }).from(schema.balanceTransactions).where(eq(schema.balanceTransactions.tenantId, northwind)).then((r) => r[0]!));
     expect(after).toEqual(before);
   });
+  it("the mock processor dates a partial refund on the day it was issued, as the seed does", async () => {
+    const refunds = await sys((s) => s.tx.execute<{ external_id: string; at: Date }>(sql`select o.external_id, min(t.occurred_at) as at from orders o join order_transactions t on t.order_id = o.id and t.kind = 'refund'
+      where o.tenant_id = ${northwind} and o.external_id is not null and o.cancelled_at is null and o.payment_status = 'partially_refunded' and o.payment_gateways && array['shopify_payments']::text[] and o.placed_at >= now() - interval '90 days' group by 1`).then((r) => r.rows));
+    expect(refunds.length).toBeGreaterThan(0);
+    resetMockPlatforms();
+    const txns = await sys(async (s) => {
+      const platform = await getCommercePlatformFor(s, { id: northwind, currency: "EUR", country: "IT", orderNumberPrefix: "NW-" });
+      const payouts = await platform.fetchPayouts({ createdSince: new Date(Date.now() - 120 * 864e5), limit: 250 });
+      return (await Promise.all(payouts.items.map((p) => platform.fetchBalanceTransactions({ payoutExternalId: p.externalId, limit: 1000 })))).flatMap((x) => x.items);
+    });
+    for (const r of refunds) expect(txns.find((t) => t.type === "refund" && t.orderExternalId === r.external_id)?.occurredAt.toISOString(), r.external_id).toBe(new Date(r.at).toISOString());
+  });
   it("the payouts sync is resumable: it pauses at the time budget and continues from its cursor", async () => {
     const hhSys = as(() => harbor, null);
     await hhSys(async (s) => {

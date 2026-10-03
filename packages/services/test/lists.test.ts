@@ -182,6 +182,19 @@ describe("global search", () => {
     expect((await run((s) => globalSearch(s, po, { ...opts, areas: ["orders"] }))).purchaseOrders).toEqual([]);
   });
 
+  it("shows on a product hit the SKU of its own matching variant", async () => {
+    // the select list reads only products: the subquery must compare with the outer product, not the variant's own id
+    const [v] = await run((s) => s.tx.select({ productId: schema.productVariants.productId, sku: schema.productVariants.sku }).from(schema.productVariants).where(and(eq(schema.productVariants.tenantId, tenantId), sql`${schema.productVariants.sku} is not null`)).orderBy(schema.productVariants.sku).limit(1));
+    const q = v!.sku!.toLowerCase();
+    const r = await run((s) => globalSearch(s, q, { country: "IT", orderNumberPrefix: "NW-", areas: ["products"], limit: 50 }));
+    expect(r.products.length).toBeGreaterThan(0);
+    for (const p of r.products) {
+      const [own] = await run((s) => s.tx.select({ sku: sql<string | null>`min(${schema.productVariants.sku})` }).from(schema.productVariants).where(and(eq(schema.productVariants.productId, p.id), sql`lower(${schema.productVariants.sku}) like ${`%${q}%`}`)));
+      expect(p.sku, p.title).toBe(own!.sku ?? null);
+    }
+    expect(r.products.find((p) => p.id === v!.productId)?.sku).toBe(v!.sku);
+  });
+
   it("never returns another tenant's rows (isolation)", async () => {
     const [b] = await run((s) => s.tx.select({ phone: schema.orders.phoneE164, email: schema.orders.emailNormalized, name: schema.orders.customerName }).from(schema.orders).where(and(eq(schema.orders.tenantId, harborId), sql`${schema.orders.phoneE164} is not null`, sql`${schema.orders.emailNormalized} is not null`)).limit(1), harborId);
     expect(b).toBeTruthy();

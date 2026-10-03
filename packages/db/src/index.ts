@@ -6,3 +6,4 @@ export type { SQL } from "drizzle-orm";
 export { eq, and, or, sql, desc, asc, inArray, isNull, isNotNull, gte, lte, gt, lt, ne, like, ilike, count, sum, avg, min, max, between, not, exists } from "drizzle-orm";
 export * from "./audit";
 export * from "./traffic";
+export * from "./qualified";

@@ -68,7 +68,8 @@ export const DEMO_TENANTS = {
     planKey: "starter",
     // merchant subscriptions (#67): Harbor sells refills on subscription through Shopify Subscriptions
     addons: ["addon.subscriptions"] as string[],
-    taxRates: [{ country: "US", rateBps: 0, pricesIncludeTax: false }],
+    // Canada is zero-rated export for Harbor; without the row the data-completeness check (#99) flags it
+    taxRates: [{ country: "US", rateBps: 0, pricesIncludeTax: false }, { country: "CA", rateBps: 0, pricesIncludeTax: false }],
   },
 } as const;
 

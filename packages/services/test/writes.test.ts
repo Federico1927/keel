@@ -133,7 +133,12 @@ describe("stock refresh, drift and reconciliation", () => {
     expect(levels.length).toBeGreaterThan(0);
     for (const l of levels) expect(l.available).toBe(Math.max(0, mock.stockOf(l.inv!, l.loc!) ?? -1));
     const driftAfter = await db((tx) => tx.select().from(schema.inventoryDrift).where(and(eq(schema.inventoryDrift.tenantId, tenantId), inArray(schema.inventoryDrift.variantId, variants.map((v) => v.id)))));
-    expect(driftAfter.length).toBe(driftBefore.filter((d) => variants.some((v) => v.id === d.variantId)).length);
+    // the sale explains the movement: no unexplained drift. The mock picks variants in whatever order the database returns them,
+    // and a few demo variants hold less than the quantity sold: those oversell, and only they may log a "negative" row
+    const unexplained = (rows: typeof driftAfter) => rows.filter((d) => d.kind === "unexplained" && variants.some((v) => v.id === d.variantId)).length;
+    expect(unexplained(driftAfter)).toBe(unexplained(driftBefore));
+    const oversold = new Set(levels.filter((l) => (mock.stockOf(l.inv!, l.loc!) ?? 0) < 0).map((l) => l.variantId));
+    for (const d of driftAfter.filter((d) => d.kind === "negative" && !driftBefore.some((b) => b.id === d.id))) expect(oversold.has(d.variantId)).toBe(true);
   });
 
   it("logs unexplained changes and clamps negative stock, deduplicated", async () => {

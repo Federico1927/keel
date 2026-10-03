@@ -78,6 +78,8 @@ describe("order phone", () => {
   it("an imported order gets the E.164 key that phone search, duplicates and history match on", async () => {
     const o = platform.generateOrder(new Date());
     o.phone = "333 123 4567";
+    // the generator picks any seeded customer, some outside Italy: the number is Italian, so is the address
+    if (o.shippingAddress) o.shippingAddress = { ...o.shippingAddress, country: "IT" };
     const r = await run((s) => importOrder(s, o, { ...opts, source: "webhook" }));
     const [row] = await withTenant(tenantId, (tx) => tx.select({ phone: schema.orders.phone, phoneE164: schema.orders.phoneE164 }).from(schema.orders).where(eq(schema.orders.id, r.id)), pools.app);
     expect(row).toEqual({ phone: "+393331234567", phoneE164: "+393331234567" });
@@ -139,6 +141,27 @@ describe("sync runs", () => {
     const [h2] = await withTenant(tenantId, (tx) => tx.select().from(schema.integrationHealth).where(and(eq(schema.integrationHealth.tenantId, tenantId), eq(schema.integrationHealth.source, "shopify"))), pools.app);
     expect(h2!.status).toBe("ok");
     expect(h2!.consecutiveFailures).toBe(0);
+  });
+
+  it("a database error on one page is recorded with its reason; the pages before it stay and the run resumes from the failing page", async () => {
+    for (let i = 0; i < 6; i++) platform.generateOrder(new Date());
+    let calls = 0;
+    // the second page carries an order the database refuses (a total that is not a number): it aborts the transaction
+    const broken = Object.create(platform, { fetchOrders: { value: async (q: Parameters<typeof platform.fetchOrders>[0]) => {
+      const page = await platform.fetchOrders(q);
+      return ++calls === 2 && page.items[0] ? { ...page, items: [{ ...page.items[0], totalMinor: "not-a-number" as never }, ...page.items.slice(1)] } : page;
+    } } }) as typeof platform;
+    const bad = await run((s) => runOrdersSync(s, broken, { kind: "initial", country: "IT", pageSize: 2, historySince: new Date(Date.now() - 864e5) }));
+    expect(bad.error).toMatch(/invalid input syntax/);
+    const [row] = await withTenant(tenantId, (tx) => tx.select().from(schema.syncRuns).where(eq(schema.syncRuns.id, bad.runId)), pools.app);
+    expect(row!.status).toBe("error");
+    expect(row!.error).toMatch(/^invalid input syntax/);
+    expect((row!.cursor as { pages: number }).pages).toBe(1);
+    expect(row!.rowsScanned).toBe(2);
+    // the next initial pass resumes this run from page 2 and finishes it
+    const again = await run((s) => runOrdersSync(s, platform, { kind: "initial", country: "IT", pageSize: 50 }));
+    expect(again.runId).toBe(bad.runId);
+    expect(again.error).toBeNull();
   });
 
   it("pauses at the time budget and resumes from the saved cursor", async () => {

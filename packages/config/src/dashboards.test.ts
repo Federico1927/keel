@@ -16,6 +16,11 @@ describe("widget catalog", () => {
     expect(isWidgetVisible({ type: "queue_review", settings: {} }, "marketing", [], noCustom)).toBe(true);
     expect(isWidgetVisible({ type: "queue_integrations", settings: {} }, "customer_care", [], noCustom)).toBe(false);
     expect(isWidgetVisible({ type: "cod_queue", settings: {} }, "owner", [], noCustom)).toBe(false);
+    // data completeness (#99): only roles that can fix something see it
+    expect(isWidgetVisible({ type: "setup_health", settings: {} }, "admin", [], noCustom)).toBe(true);
+    expect(isWidgetVisible({ type: "setup_health", settings: {} }, "operations", [], noCustom)).toBe(true);
+    expect(isWidgetVisible({ type: "setup_health", settings: {} }, "viewer", [], noCustom)).toBe(false);
+    expect(isWidgetVisible({ type: "setup_health", settings: {} }, "customer_care", [], noCustom)).toBe(false);
     // a custom metric needs every page its bases need
     expect(metricPages("custom:x", () => ["net_revenue", "stock_value_cost"]).sort()).toEqual(["analytics", "inventory"]);
     expect(isWidgetVisible({ type: "kpi", settings: { metric: "custom:x" } }, "customer_care", [], () => ["orders"])).toBe(false);
@@ -32,7 +37,7 @@ describe("widget catalog", () => {
     expect(normalizeLayout(2, [{ id: "k", type: "kpi", settings: { metric: "orders" } }, { id: "z", type: "gone" }])).toHaveLength(1);
   });
   it("the Hullwise template is today's home and only holds core widgets", () => {
-    expect(HULLWISE_TEMPLATE.map((w) => w.type)).toEqual(["today_kpis", "sales_30d", "month_forecast", "work_queue", "stock_backorders", "today_by_status"]);
+    expect(HULLWISE_TEMPLATE.map((w) => w.type)).toEqual(["today_kpis", "sales_30d", "month_forecast", "work_queue", "stock_backorders", "today_by_status", "setup_health"]);
     expect(hullwiseTemplate([])).toHaveLength(HULLWISE_TEMPLATE.length);
   });
 });

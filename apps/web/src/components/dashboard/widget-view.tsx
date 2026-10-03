@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDate, formatMoney, formatNumber, formatRelative, parseNoteMarkdown, type MdInline, type Period } from "@hullwise/core";
+import { formatDate, formatMoney, formatNumber, formatRelative, parseNoteMarkdown, type DataHealthReport, type MdInline, type Period } from "@hullwise/core";
 import { canViewPage, isCustomMetricRef, type DashboardWidget, type TenantRole } from "@hullwise/config";
 import { customMetricBases, type AlertsData, type BackorderSummary, type BreakdownData, type CustomMetricRow, type DashboardSummary, type KpiData, type MetricSeries, type MonthForecast, type QueueData, type TargetData, type TopListData, type WidgetResult, type WorkQueueData } from "@hullwise/services";
 import { Card, CardContent, CardHeader, CardTitle, Stat, cn } from "@hullwise/ui";
@@ -10,6 +10,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { formatMetric, metricHref, periodParams, trendOf } from "./format";
 import { CodWidget } from "@/app/t/[tenant]/cod/widgets";
 import { SubscriptionWidget } from "@/app/t/[tenant]/subscriptions/widgets";
+import { DataHealthWidget } from "./data-health";
 
 export interface WidgetViewEnv {
   base: string;
@@ -63,6 +64,8 @@ export const WIDGET_RESERVED_HEIGHT: Partial<Record<string, string>> = {
   work_queue: "min-h-[442px]",
   stock_backorders: "min-h-[326px]",
   today_by_status: "min-h-[138px]",
+  // fixed-height card (its list scrolls inside), so the reserve is exact on every breakpoint
+  setup_health: "min-h-[26rem]",
 };
 
 /**
@@ -267,6 +270,10 @@ export async function WidgetView({ widget, result, period, env }: { widget: Dash
     case "subs_churn":
     case "subs_at_risk":
       return <SubscriptionWidget type={widget.type} data={data} base={base} locale={locale} />;
+
+    // data completeness (#99): the gaps the viewer's role can fix
+    case "setup_health":
+      return <DataHealthWidget report={data as DataHealthReport} env={{ base, locale, currency, timezone: tz }} />;
 
     /* ---------- Hullwise's template tiles ---------- */
     case "today_kpis": {

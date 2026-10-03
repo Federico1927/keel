@@ -1426,3 +1426,76 @@ Before, about 12% of treated customers were picked by hash, overlapping with cus
 **Decision.** `packages/jobs/src/schedules.ts` holds the schedule list and `installSchedules()`, which passes `key: <kind>` (the per-kind `singletonKey` stays) and removes rows of kinds no longer listed, including the old keyless row. The worker logs the removed rows at start.
 
 **Alternatives.** One queue per tick kind (rejected: 25 more queues and workers for the same handler). Leaving stale rows (rejected: the keyless row would fire accounting twice an hour).
+
+## 2026-10-03 — Orders sync: one savepoint per page, the database's reason in the error
+
+**Problem.** After the worker schedules came back (PR #110), Harbor Home's delta failed every 15 minutes in production with `Failed query: update "sync_runs" set "status" = …`. The sync runs in one tenant transaction. When a page hit a database error, the transaction was aborted, so the catch block could not write the error row either. The job failed with that second error, which hid the real reason, and retried forever.
+
+**Decision.**
+- `runOrdersSync` opens a savepoint per page. On an error it rolls back to that savepoint, so only the failing page is undone, and restores the cursor and counters from before the page. It then records the run as `error` and logs `[sync] orders <kind> failed for tenant …`.
+- Error texts lead with the database's own message, which Drizzle keeps in `cause`, followed by the start of the query.
+- The worker's failure line does the same, and job lines show the pass kind (`kind=delta`).
+
+**Alternatives.**
+- One transaction per page (rejected: the run row, health and cursor would need their own transactions, which is a larger change to every sync).
+- Catching inside `importOrder` per order (rejected: it would hide data errors as skipped orders).
+## 2026-10-03 — Data completeness widget ("Missing data", issue #99)
+
+**Decision.** A core home widget `setup_health` lists what is missing for the numbers to be right, each gap with a count, a one-line impact, a severity and a link to the page or filter that fixes it.
+- **Pure rules** in `packages/core/src/data-health.ts`: `DATA_HEALTH_DEFINITIONS` (id, fix page, path and query, severity function), `evaluateDataHealth` (gaps, passed, not applicable, sorted by severity then catalog order), score = 100 − 30 per critical − 10 per warning − 3 per tip, `dataHealthForRole`.
+- **Service** `dataHealthReport` (`packages/services/src/dashboards/data-health.ts`): about a dozen aggregate queries, each bounded by a window (90 days of sale orders, 30 days of ad spend and order states) or by small config tables. About 100 ms on the Northwind demo.
+- **Checks kept** (the data exists):
+  - store connection (critical);
+  - sold variants without a cost: critical when ≥ 5 % of line revenue (the P/L uses the cost snapshotted on the order line);
+  - destinations without a tax rate: critical when the home country is missing;
+  - orders on Hullwise's generic shipping figure: no per-order cost setting that day, no carrier invoice that month and no default saved by the shop;
+  - no fixed cost at all for the last closed month;
+  - campaigns with spend in the last 30 days and no product: warning from 20 % of spend;
+  - other integrations or sync sources in error;
+  - methods on the fee estimate with no fee configured;
+  - recent orders whose status came from the platform default (`status_reason = 'default'`), not a rule: warning from 10 %;
+  - last month's costs still estimated (a fixed line or a carrier-invoice row without its actual);
+  - received returns while label and handling costs are both zero;
+  - sold variants without a supplier, only once the shop has a supplier.
+- **Checks dropped.**
+  - Unmapped payment gateways: no page edits the gateway map yet.
+  - Catalog SKU and barcode issues: the work queue already counts them, and they do not skew any number.
+  - "Fees never configured" without a zero rate: it would flag every new tenant on reasonable defaults.
+- **Permissions.**
+  - Each check names the page whose write access fixes it.
+  - The widget definition carries `actPages` (config). A role sees the widget only if it can write at least one of those pages, and the loader drops the rows it cannot act on.
+  - Result: owner and admin see everything; operations sees costs and suppliers; marketing sees campaign links; viewer and customer care see nothing.
+  - A core test keeps `actPages` equal to the definitions' pages.
+- **Placement.**
+  - The widget is the last tile of Hullwise's template (2×2), so a tenant on the template and Northwind's seeded home show it.
+  - The card has a fixed height (26rem) with an inner scroll, and `WIDGET_RESERVED_HEIGHT` reserves the same height, so the home stays CLS-safe.
+  - "See all" opens `/t/[tenant]/data-health` (page `dashboard`, same role rule; 404 otherwise).
+- **Fix links needed two small additions.**
+  - `campaigns?links=none` lists the campaigns without a product. The suggestions panel below the list links them.
+  - `settings?tab=` opens a settings tab (fees, tax rates).
+- **Seed.**
+  - Northwind's carrier invoice for the last closed month is left out. The random value is still drawn, so the rest of the data does not move.
+  - Harbor gets a 0 % Canada rate (it ships there; same P/L as before, since the fallback was the US 0 %).
+  - Result: Northwind 2 warnings + 4 tips, Harbor 2 warnings + 3 tips.
+
+**Alternatives.**
+- A separate page key for data health (rejected: it touches the shared role matrix; visibility follows the fix pages instead).
+- Severity fixed per check (rejected: 3 variants without cost on 0.4 % of revenue is not the same as half the catalog).
+- A banner above the grid like the source-health card (rejected: the owner asked for a widget, which tenants can move or remove).
+
+## 2026-10-03 — Correlated subqueries in a single-table select list: `qualified(column)`
+
+**Problem.** Drizzle drops the table prefix from select-list columns when a query reads one table without joins (it does the same in insert, update and delete `returning`). A correlated subquery written in a `sql` fragment there, such as `(select v.sku from product_variants v where v.product_id = ${schema.products.id})`, renders `v.product_id = "id"`. Postgres resolves `"id"` to the inner `v.id`, so the subquery compares the inner table with itself and silently returns nothing. WHERE, ORDER BY, GROUP BY, HAVING, update SET and delete WHERE keep the prefix (checked with `.toSQL()`), and so do columns inside a nested `sql` fragment.
+
+**Decision.**
+- `qualified(column)` in `packages/db/src/qualified.ts` (exported from `@hullwise/db`) writes `"table"."column"` from Drizzle's metadata (`getTableName`, aliases included) with quoted identifiers. Use it for the outer reference of any correlated subquery in a select list.
+- Every subquery or `exists` with an interpolated outer column in `packages/services`, `packages/addon-*`, `packages/jobs`, `packages/db/src` and `apps/web/src/server` was reviewed. Three were in a single-table select list and are fixed:
+  - global search (`lists/search.ts`): the SKU of a product hit;
+  - subscription cards (`subscriptions/operations.ts`, `cardRows`): the contract's product names;
+  - mock payment processor (`integrations/factory.ts`, `mockPaymentOrders`): the date of a partial refund.
+- The safe ones (joined queries, filters, update SET, raw SQL with explicit aliases, literal `"orders"."id"`) are left as they are, to keep the change focused.
+
+**Alternatives.**
+- `sql.raw('"table"."column"')` at each call site (rejected: the table name is repeated by hand and drifts on a rename or an alias).
+- Restructuring each query with a join or a lateral subquery (rejected: larger diffs for the same result).
+- A source-scanning guard test (rejected: it cannot be precise. An alias column such as `${c.id}`, with `c = schema.subscriptionContracts`, looks the same as a JS value such as a campaign row's `${c.id}`, and whether a fragment sits in the select list of a single-table query is only known at runtime. The `cardRows` bug used an alias, so a `${schema.`-only guard would have missed it, while a broader one flags about 30 safe filters.)

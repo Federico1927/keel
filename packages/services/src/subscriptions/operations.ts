@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, ilike, inArray, isNotNull, isNull, or, recordAudit, schema, sql, type SQL } from "@hullwise/db";
+import { and, asc, desc, eq, gte, ilike, inArray, isNotNull, isNull, or, qualified, recordAudit, schema, sql, type SQL } from "@hullwise/db";
 import { NO_SUBSCRIPTION_CAPABILITIES, diffRecords, projectRenewalDates, recoveryEpisodes, renewalStockForecast, subscriptionActionAllowed, type RenewalDemand, type RenewalStockRow, type SubscriptionAction, type SubscriptionCapabilities, type SubscriptionInterval } from "@hullwise/core";
 import type { NormalizedSubscriptionContract } from "@hullwise/integrations";
 import type { ServiceContext } from "../context";
@@ -375,7 +375,7 @@ export interface SubscriptionCardRow {
 
 async function cardRows(ctx: ServiceContext, where: SQL): Promise<SubscriptionCardRow[]> {
   const c = schema.subscriptionContracts;
-  const rows = await ctx.tx.select({ c, products: sql<string>`coalesce((select string_agg(l.title || coalesce(' · ' || l.variant_title, ''), ', ') from subscription_contract_lines l where l.contract_id = ${c.id}), '')` }).from(c).where(and(eq(c.tenantId, ctx.tenantId), where)).orderBy(sql`${c.status} in ('active', 'paused') desc`, desc(c.activatedAt)).limit(10);
+  const rows = await ctx.tx.select({ c, products: sql<string>`coalesce((select string_agg(l.title || coalesce(' · ' || l.variant_title, ''), ', ') from subscription_contract_lines l where l.contract_id = ${qualified(c.id)}), '')` }).from(c).where(and(eq(c.tenantId, ctx.tenantId), where)).orderBy(sql`${c.status} in ('active', 'paused') desc`, desc(c.activatedAt)).limit(10);
   return rows.map(({ c: r, products }) => ({ id: r.id, status: r.status, priceMinor: r.priceMinor, mrrMinor: r.mrrMinor, currency: r.currency, intervalUnit: r.intervalUnit, intervalCount: r.intervalCount, nextBillingAt: r.nextBillingAt, activatedAt: r.activatedAt, renewals: r.renewalsCount, churnRisk: r.churnRisk, paymentFailingSince: r.paymentFailingSince, products }));
 }
 

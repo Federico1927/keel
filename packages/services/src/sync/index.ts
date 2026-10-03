@@ -39,7 +39,12 @@ export interface ImportOptions {
   stockCheck?: boolean;
 }
 
-const errMessage = (e: unknown) => (e instanceof Error ? `${e instanceof IntegrationError ? `[${e.code}] ` : ""}${e.message}` : String(e));
+/** The error for sync_runs and health: a failed query leads with the database's reason (Drizzle keeps it in `cause`), not the SQL text. */
+const errMessage = (e: unknown) => {
+  if (!(e instanceof Error)) return String(e);
+  const cause = e.cause instanceof Error ? e.cause.message : null;
+  return `${e instanceof IntegrationError ? `[${e.code}] ` : ""}${cause ? `${cause} (${e.message.slice(0, 120)})` : e.message}`;
+};
 
 /* ---------- customers ---------- */
 
@@ -574,8 +579,12 @@ export async function runOrdersSync(ctx: ServiceContext, platform: CommercePlatf
   const campaigns = await loadCampaignRefs(ctx);
   let maxUpdated = cursor.highWaterMark ? new Date(cursor.highWaterMark) : null;
   const stats = () => ({ rowsWritten, rowsScanned: scanned, conflicts, durationMs: durationBefore + (Date.now() - started) });
+  // each page under a savepoint: a database error aborts the transaction, and without one the error row below could not be written
+  let pageStart = { cursor, rowsWritten, scanned, conflicts };
   try {
     for (;;) {
+      pageStart = { cursor, rowsWritten, scanned, conflicts };
+      await ctx.tx.execute(sql`savepoint orders_sync_page`);
       const page = await platform.fetchOrders({ cursor: cursor.nextCursor ?? null, updatedSince: cursor.updatedSince ? new Date(cursor.updatedSince) : null, createdSince: cursor.createdSince ? new Date(cursor.createdSince) : null, limit: opts.pageSize ?? 50 });
       scanned += page.items.length;
       // a Hullwise change to these orders the platform has not confirmed yet: the platform's answer disagrees with Hullwise
@@ -592,6 +601,8 @@ export async function runOrdersSync(ctx: ServiceContext, platform: CommercePlatf
         return { runId, rowsWritten, finished: true, error: null };
       }
       await ctx.tx.update(schema.syncRuns).set({ cursor, ...stats() }).where(eq(schema.syncRuns.id, runId));
+      await ctx.tx.execute(sql`release savepoint orders_sync_page`);
+      pageStart = { cursor, rowsWritten, scanned, conflicts };
       if (Date.now() - started > budgetMs) {
         await ctx.tx.update(schema.syncRuns).set({ status: "paused", cursor, ...stats() }).where(eq(schema.syncRuns.id, runId));
         return { runId, rowsWritten, finished: false, error: null };
@@ -599,6 +610,10 @@ export async function runOrdersSync(ctx: ServiceContext, platform: CommercePlatf
     }
   } catch (e) {
     const error = errMessage(e);
+    // undo the failing page only: the pages before it stay, the run resumes from the cursor before it
+    const undone = await ctx.tx.execute(sql`rollback to savepoint orders_sync_page`).then(() => true, () => false);
+    if (undone) ({ cursor, rowsWritten, scanned, conflicts } = pageStart);
+    console.error(`[sync] orders ${opts.kind} failed for tenant ${ctx.tenantId}: ${error}`);
     await ctx.tx.update(schema.syncRuns).set({ status: "error", error, cursor, ...stats(), errorCount: 1, finishedAt: new Date() }).where(eq(schema.syncRuns.id, runId));
     await recordHealth(ctx, provider, false, { error, rowsWritten });
     return { runId, rowsWritten, finished: false, error };

@@ -1110,3 +1110,35 @@ Fatto (dopo un giro completo da utente su entrambi gli add-on):
 Resta (checklist di rilascio nei due documenti):
 - Spoki: prova su un account reale (passi "Da verificare", formato del webhook, codici d'errore), chi può leggere e rispondere alle conversazioni (oggi solo owner e admin: serve una chiave di pagina per l'assistenza), notifica per le domande dei clienti.
 - Campagne: decisioni di #73, almeno un fornitore email o SMS reale (oggi simulati), disiscrizione per canale, prova di carico della coda.
+
+## Widget "Dati mancanti" sulla dashboard (issue #99)
+
+Richiesta del committente: un widget che mostri all'amministratore del negozio tutti i dati che mancano (costi dei prodotti, costi di spedizione, campagne collegate…).
+
+Fatto:
+- **Regole pure** in `packages/core/src/data-health.ts`: 12 controlli con gravità (critico, da controllare, suggerimento), conteggio, campione, ordini e ricavi coinvolti, link alla pagina o al filtro che sistema la lacuna; punteggio di completezza su 100.
+- **Servizio** `dataHealthReport`: query aggregate con finestre (90 giorni di vendite, 30 di spesa ads e stati), circa 100 ms sulla demo.
+- **Controlli**: connessione del negozio, varianti vendute senza costo, paesi senza aliquota, spedizione sulla stima generica, costi fissi mancanti e costi del mese scorso ancora stimati, campagne con spesa senza prodotto, integrazioni in errore, commissioni a zero, ordini fuori dalle regole di stato, costi dei resi, varianti senza fornitore. Nessun controllo dipende dal metodo di pagamento.
+- **Widget** nel modello della home (ultima tessera, 2×2, altezza fissa con scorrimento interno: nessuno spostamento della pagina) e pagina "Vedi tutto" `/data-health`. Owner e admin vedono tutto; gli altri ruoli solo le righe che possono sistemare (operations: costi e fornitori; marketing: campagne); viewer e assistenza non vedono il widget.
+- **Link ai filtri**: `campagne?links=none` (campagne senza prodotto) e `impostazioni?tab=` (commissioni, aliquote).
+- **Dati demo**: su Northwind manca la fattura del corriere del mese scorso; Harbor ha l'aliquota 0% per il Canada. Northwind mostra 6 lacune, Harbor 5 più leggere.
+- **Test**: core +8 (`data-health.test.ts`), config (visibilità, modello), services +10 (`data-health.test.ts` sul database: lacune aperte una per una, ruoli, negozio vuoto), e2e nuovo `data-health.spec.ts` (desktop, 393px, ruoli); aggiornati i conteggi del modello in `dashboards.spec.ts` e `dashboards.test.ts`.
+- Nessuna migrazione.
+
+Resta: mappa dei gateway di pagamento modificabile dall'app (poi un controllo sui gateway non riconosciuti); eventuale notifica quando compare una lacuna critica.
+
+## Sottoquery correlate nelle colonne delle query su una sola tabella
+
+Problema: Drizzle toglie il nome della tabella dalle colonne della select quando la query legge una sola tabella senza join. Una sottoquery correlata scritta lì (`... where v.product_id = ${schema.products.id}`) diventava `v.product_id = "id"`, che Postgres risolve sulla tabella interna: la sottoquery confrontava la tabella con sé stessa e non restituiva nulla, senza errori.
+
+Fatto:
+- **Helper `qualified(column)`** in `@hullwise/db`: scrive `"tabella"."colonna"` dai metadati di Drizzle (alias compresi). Test unitario sul SQL generato.
+- **Revisione** di tutte le sottoquery ed `exists` con colonna esterna in services, add-on, jobs, seed e server dell'app. Tre erano nella select di una query su una sola tabella, ora corrette:
+  - **ricerca globale**: il codice SKU sotto un prodotto trovato non compariva mai (sempre vuoto);
+  - **schede abbonamento** nella scheda cliente e nel dettaglio ordine: al posto dei prodotti del contratto mostravano sempre la dicitura generica "Abbonamento";
+  - **processore di pagamento simulato** (solo modalità mock): dopo una risincronizzazione dei versamenti i rimborsi parziali finivano in una data calcolata a caso invece che nel giorno del rimborso, quindi nel versamento sbagliato rispetto ai dati demo.
+- **Test sul database**: ricerca con lo SKU della variante giusta, scheda abbonamento con i titoli delle righe del contratto, rimborso del processore simulato datato come nel seed. Tutti e tre falliscono senza la correzione.
+- Nessuna migrazione, nessun cambio ai dati demo.
+
+Non fatto: un test che scansiona il codice alla ricerca del problema, perché non può essere preciso (motivo in `DECISIONS.md`).
+
