@@ -6,7 +6,8 @@ import { ensurePlatformOwner } from "../seed/platform-owner";
 
 /**
  * Fills in the demo tenants' missing configuration rows (`pnpm db:seed:settings`). Run by
- * `db:deploy` on every deploy: never touches orders or any row that already exists.
+ * `db:deploy` on every deploy: never changes a row that already exists. Insert-only demo history
+ * of the showcased add-ons is added once (the measured WhatsApp campaign adds its response orders).
  */
 async function main() {
   const url = process.env.DATABASE_ADMIN_URL;

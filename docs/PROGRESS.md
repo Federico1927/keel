@@ -1063,3 +1063,19 @@ Resta (lacune grandi, non costruite):
 - Pulsante per cancellare un cliente su richiesta che non arriva da Shopify (il servizio `redactCustomer` c'è, manca l'azione nella pagina cliente per l'owner).
 - Cancellazione di un tenant dalla console (oggi un'istruzione SQL documentata) e pulizia automatica dei tenant churned oltre la conservazione.
 - Separare la demo dalla produzione in un progetto Railway proprio (passi in DEPLOY).
+## Add-on in sviluppo resi dimostrabili: WhatsApp con Spoki e campagne clienti (#9, #34, #38)
+
+Richiesta del committente: "molti add-on sono solo in sviluppo, ma vorrei vedere come funzionano". Stato di rilascio invariato (v1 `in_development`); il ridisegno delle campagne della issue #73 resta in attesa delle decisioni e non è stato costruito.
+
+Fatto (dopo un giro completo da utente su entrambi gli add-on):
+- **WhatsApp, Conversazioni** (`/whatsapp`, scheda accanto a Impostazioni): messaggi raggruppati per cliente, filtro "Da rispondere", conversazione con stato di consegna, ordine collegato e finestra di 24 ore; risposta libera del team solo a finestra aperta (rifiutata prima di chiamare Spoki), collegata all'ordine e registrata nell'audit; in mock "Simula messaggio del cliente" passa dal vero webhook e riapre la finestra.
+- **Simulazioni che muovono i flussi veri**: sulla conferma del contrassegno il menu propone le parole di conferma e annullamento del negozio ("sì"/"no"), non la lingua di chi guarda: prima un owner in inglese simulava "Yes" e l'ordine italiano non si confermava. La scheda contrassegno ora dice "Confermato" (diceva "al telefono" anche dopo una risposta WhatsApp).
+- **Campagne**: l'invio di prova WhatsApp passa da Spoki (prima saltava al canale simulato); pagina e modulo dicono come parte il canale ("Tramite Spoki (account simulato)", "Canale simulato"); elenco **destinatari** per gruppo (tutti / trattati / controllo) con stato del messaggio e ordini nella finestra; plurale corretto nel messaggio dell'invio di prova.
+- **Dati demo** (`seed/addon-showcase.ts`, solo inserimenti, idempotenti): campagna WhatsApp inviata 20 giorni fa tramite Spoki con effetto misurato (ESTATE20, controllo 20%), i suoi ~1.350 messaggi con ricevute e risposte, tre conversazioni (due risposte dall'assistenza, una in attesa), una seconda campagna programmata a dieci giorni. `ensureDemoSettings` le porta anche sulla demo pubblicata, insieme alle righe degli add-on su Northwind se mancano del tutto (mai riattivati se spenti dalla console) e allo storico Spoki se il registro è vuoto.
+- **Documenti** `docs/addons/whatsapp-spoki.md` e `docs/addons/customer-campaigns.md` (inglese): cosa fa, giro sulla demo con utenti e clic, mock e pronto per il live, checklist di rilascio (per le campagne rimanda a #73).
+- **Test**: addon-spoki 13 (+2: conversazioni e risposte con finestra chiusa; disiscrizioni e parole del contrassegno non restano "da rispondere"), services 401 (`retention.test.ts` +1, destinatari), db 873 (`settings.test.ts` +1: showcase su una demo già pubblicata, una sola volta, add-on spento non riattivato), web 97; e2e nuovi `addon-spoki-tour.spec.ts` e `addon-campaigns-tour.spec.ts` (desktop e iPhone 15 chiaro).
+- Nessuna migrazione, nessun SQL scritto a mano nelle migrazioni.
+
+Resta (checklist di rilascio nei due documenti):
+- Spoki: prova su un account reale (passi "Da verificare", formato del webhook, codici d'errore), chi può leggere e rispondere alle conversazioni (oggi solo owner e admin: serve una chiave di pagina per l'assistenza), notifica per le domande dei clienti.
+- Campagne: decisioni di #73, almeno un fornitore email o SMS reale (oggi simulati), disiscrizione per canale, prova di carico della coda.

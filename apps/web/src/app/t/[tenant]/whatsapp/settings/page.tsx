@@ -8,6 +8,7 @@ import { requirePage } from "@/server/tenant";
 import { SpokiCard } from "@/components/spoki-card";
 import { WhatsappLog } from "@/components/whatsapp-log";
 import { CodRepliesForm, SpokiSettingsForm, type TemplateRow } from "./controls";
+import { WhatsappTabs } from "../tabs";
 
 import { withIntl } from "@/i18n/intl-scope";
 /**
@@ -35,6 +36,7 @@ async function WhatsappSettingsPage({ params }: { params: Promise<{ tenant: stri
   return (
     <>
       <PageHeader eyebrow={ctx.tenant.name} title={t("title")} description={t("description")} />
+      <WhatsappTabs tenant={tenant} active="settings" />
       <div className="space-y-6">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <SpokiCard ctx={ctx} />
@@ -51,7 +53,8 @@ async function WhatsappSettingsPage({ params }: { params: Promise<{ tenant: stri
         </div>
         {canWritePage(ctx.role, "whatsapp_settings") && <SpokiSettingsForm slug={tenant} settings={state.settings} templates={state.templates} rows={rows} />}
         {codSettings && canWritePage(ctx.role, "whatsapp_settings") && <CodRepliesForm slug={tenant} confirm={codSettings.messagingReplies.confirm} cancel={codSettings.messagingReplies.cancel} />}
-        <WhatsappLog ctx={ctx} limit={25} title={t("recent")} showEmpty />
+        {/* a campaign would fill the list: its messages are in Conversations and on the campaign page */}
+        <WhatsappLog ctx={ctx} limit={25} title={t("recent")} description={t("recent_hint")} excludePurposes={["campaign"]} showEmpty />
       </div>
     </>
   );

@@ -187,7 +187,7 @@
       "whatsapp_spoki": {
         "name": "WhatsApp con Spoki",
         "description": "Conferme e risposte del contrassegno, notifiche ordine, campagne WhatsApp e disiscrizioni tramite l'account Spoki del negozio",
-        "v1": "WhatsApp tramite Spoki: conferme in contrassegno, avvisi sugli ordini e invii delle campagne, verificati solo su dati registrati: nessun account Spoki reale collegato."
+        "v1": "WhatsApp tramite Spoki: conferme in contrassegno, avvisi sugli ordini, conversazioni con le risposte del team e invii delle campagne, verificati solo su dati registrati e sull'account simulato: nessun account Spoki reale collegato."
       },
       "accounting": {
         "name": "Invio in contabilità",
@@ -4799,7 +4799,7 @@
       "pending": "In coda",
       "scheduled": "Richiamo programmato",
       "unreachable": "Non raggiungibile",
-      "confirmed": "Confermato al telefono",
+      "confirmed": "Confermato",
       "cancelled": "Annullato",
       "left": "Uscito dalla coda",
       "confirm_scheduled": "Conferma programmata"
@@ -5019,7 +5019,9 @@
     "channels": {
       "scheduled": "programmato",
       "bulk": "in blocco",
-      "messaging-mock": "messaggio"
+      "messaging-mock": "messaggio",
+      "whatsapp": "WhatsApp",
+      "spoki": "WhatsApp (Spoki)"
     },
     "risk_panel": {
       "refused": "Rifiutati",
@@ -5913,7 +5915,7 @@
       "test_title": "Invio di prova",
       "test_description": "Solo a persone del negozio, mai ai clienti. Il messaggio usa il loro nome e il codice.",
       "test_phone": "Il tuo numero di telefono",
-      "test_sent": "{n} messaggi di prova inviati.",
+      "test_sent": "{n, plural, one {# messaggio di prova inviato.} other {# messaggi di prova inviati.}}",
       "test_send": "Invia prova",
       "close": "Chiudi",
       "reject_title": "Rimanda all'autore",
@@ -5989,6 +5991,28 @@
         "throttleWhatsapp": "WhatsApp",
         "campaignMeasurementLock": "Blocca i clienti in misurazione"
       }
+    },
+    "delivery": {
+      "spoki_mock": "Tramite Spoki (account simulato)",
+      "spoki_live": "Tramite Spoki",
+      "simulated": "Canale simulato"
+    },
+    "delivery_hint": {
+      "spoki_mock": "Inviata tramite l'account simulato di Spoki: i messaggi compaiono nel registro WhatsApp, ai clienti non arriva nulla.",
+      "spoki_live": "Inviata tramite l'account Spoki del negozio.",
+      "simulated": "Per questo canale non è ancora collegato un fornitore: il canale simulato registra i messaggi e ai clienti non arriva nulla."
+    },
+    "recipients": {
+      "title": "Destinatari",
+      "description": "Ogni cliente della campagna con il suo gruppo, lo stato del messaggio e gli ordini fatti entro {days} giorni dall'esposizione.",
+      "all": "Tutti",
+      "customer": "Cliente",
+      "group": "Gruppo",
+      "status": "Messaggio",
+      "exposed": "Esposto il",
+      "orders": "Ordini nella finestra",
+      "empty": "Nessun destinatario in questo gruppo.",
+      "summary": "{n} clienti"
     }
   },
   "destinations": {
@@ -9557,7 +9581,8 @@
       "spoki_no_phone": "L'ordine non ha un numero di telefono",
       "spoki_no_template": "Nessun template associato a questo evento",
       "spoki_not_found": "Non trovato",
-      "module_disabled": "L'add-on WhatsApp non è attivo"
+      "module_disabled": "L'add-on WhatsApp non è attivo",
+      "spoki_window_closed": "La finestra di 24 ore è chiusa: ora WhatsApp accetta solo template approvati."
     },
     "log": {
       "title": "Messaggi WhatsApp",
@@ -9571,7 +9596,8 @@
         "campaign": "Campagna",
         "test": "Messaggio di prova",
         "reply": "Risposta del cliente",
-        "external": "Inviato fuori da {product}"
+        "external": "Inviato fuori da {product}",
+        "manual": "Risposta del team"
       },
       "status": {
         "queued": "In coda",
@@ -9588,9 +9614,9 @@
       "simulate_failed_receipt": "Invio non riuscito",
       "simulate_reply": "Il cliente risponde “{text}”",
       "simulate_stop": "Il cliente risponde STOP",
-      "sample_reply": "Sì",
       "simulated": "Webhook inviato",
-      "simulate_failed": "Simulazione non riuscita"
+      "simulate_failed": "Simulazione non riuscita",
+      "sample_question": "Quando arriva il mio ordine?"
     },
     "connection": {
       "webhook": "URL del webhook da incollare in Spoki (contiene il token segreto del negozio)",
@@ -9644,7 +9670,44 @@
         "confirm": "Parole di conferma",
         "cancel": "Parole di annullamento",
         "help": "Una risposta di conferma registra l'esito confermato (scritto prima sul negozio, come quello di un operatore). Una risposta di annullamento segnala l'ordine a un admin: nulla viene annullato in automatico."
-      }
+      },
+      "recent_hint": "Tutto tranne gli invii delle campagne, che trovi in Conversazioni e nella pagina di ogni campagna."
+    },
+    "tabs": {
+      "conversations": "Conversazioni",
+      "settings": "Impostazioni"
+    },
+    "conversations": {
+      "title": "Conversazioni WhatsApp",
+      "description": "Ogni conversazione con i clienti tramite Spoki: risposte a conferme del contrassegno, notifiche e campagne, e le risposte del team.",
+      "list_title": "Conversazioni",
+      "filter_all": "Tutte",
+      "filter_awaiting": "Da rispondere ({n})",
+      "columns": {
+        "customer": "Cliente",
+        "state": "Stato",
+        "last": "Ultimo messaggio"
+      },
+      "awaiting": "Da rispondere",
+      "empty_title": "Ancora nessuna conversazione",
+      "empty_description": "Qui compaiono i messaggi inviati e ricevuti tramite Spoki, raggruppati per cliente.",
+      "empty_awaiting_title": "Nessuno in attesa",
+      "empty_awaiting_description": "Ogni cliente che ha scritto ha ricevuto una risposta.",
+      "summary": "{n} conversazioni",
+      "back": "Conversazioni",
+      "window_open": "Risposte libere fino al {at}",
+      "window_closed": "Finestra di 24 ore chiusa",
+      "pick_title": "Scegli una conversazione",
+      "pick_description": "Apri una conversazione per leggerla e rispondere al cliente.",
+      "simulate_hint": "Account simulato: scrivi cosa manderebbe il cliente. Passa dalla vera rotta del webhook e riapre la finestra di 24 ore.",
+      "simulate_placeholder": "Posso cambiare l'indirizzo di consegna?",
+      "simulate_inbound": "Simula messaggio del cliente",
+      "simulate_failed": "Simulazione non riuscita",
+      "reply_closed": "Il cliente non ha scritto nelle ultime 24 ore: ora WhatsApp accetta solo template approvati (conferme del contrassegno, notifiche ordine, campagne). Le risposte libere si riaprono quando il cliente scrive.",
+      "reply_label": "Risposta",
+      "reply_placeholder": "Scrivi una risposta…",
+      "reply_hint": "Testo libero dal numero Spoki del negozio, collegato all'ordine della conversazione.",
+      "reply_send": "Invia risposta"
     }
   },
   "mobile": {

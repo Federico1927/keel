@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, eq, recordAudit, schema } from "@hullwise/db";
 import { MockSpokiChannel, failedConnection, integrationMode, setupErrorOfTest, type ConnectionTest, type SpokiDeliveryStatus } from "@hullwise/integrations";
-import { SpokiError, getSpokiApiFor, saveSpokiSettings, syncSpokiTemplates } from "@hullwise/addon-spoki";
+import { SpokiError, getSpokiApiFor, saveSpokiSettings, sendSpokiReply, syncSpokiTemplates } from "@hullwise/addon-spoki";
 import { getCodSettings, saveCodSettings, parseTagList } from "@hullwise/addon-cod";
 import { handleSpokiEvent } from "@hullwise/jobs";
 import { ORDER_MESSAGE_EVENTS } from "@hullwise/core";
@@ -26,6 +26,7 @@ const handle = (e: unknown): ActionResult => {
 };
 const requireManage = (slug: string) => requireAction(slug, "manage_integrations", "whatsapp_settings");
 const paths = (slug: string) => {
+  revalidatePath(`/t/${slug}/whatsapp`);
   revalidatePath(`/t/${slug}/whatsapp/settings`);
   revalidatePath(`/t/${slug}/integrations`);
 };
@@ -169,5 +170,27 @@ export async function replaySpokiEventAction(slug: string, eventId: string): Pro
     return ok();
   } catch (e) {
     return handle(e);
+  }
+}
+
+/**
+ * The team's free-text answer in a conversation (write on the add-on's page). Within the 24-hour
+ * window only; through the tenant's Spoki account (the simulated one in mock mode); audited.
+ */
+export async function sendWhatsappReplyAction(slug: string, messageId: string, text: string): Promise<ActionResult<{ messageId: string }>> {
+  try {
+    const ctx = await requireWrite(slug, "whatsapp_settings");
+    const parsed = z.object({ messageId: z.string().uuid(), text: z.string().trim().min(1).max(1000) }).safeParse({ messageId, text });
+    if (!parsed.success) return fail("invalid_input");
+    const r = await ctx.run(async (tx) => {
+      const r = await sendSpokiReply(svc(ctx, tx), { messageId: parsed.data.messageId, text: parsed.data.text, country: ctx.tenant.country });
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "spoki.reply_sent", entityType: "spoki_message", entityId: r.messageId, metadata: { orderId: r.orderId, length: parsed.data.text.length } });
+      return r;
+    });
+    paths(slug);
+    if (r.orderId) revalidatePath(`/t/${slug}/orders/${r.orderId}`);
+    return ok({ messageId: r.messageId });
+  } catch (e) {
+    return handle(e) as ActionResult<{ messageId: string }>;
   }
 }

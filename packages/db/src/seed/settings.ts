@@ -4,7 +4,8 @@ import { DEFAULT_SURVEY_CONFIG } from "@hullwise/core";
 import * as schema from "../schema";
 import { enableDemoMcp } from "./mcp";
 import { ensureDemoProductCatalog } from "./media";
-import { DEMO_SPOKI_SETTINGS, demoSpokiIntegration } from "./spoki";
+import { DEMO_SPOKI_SETTINGS, demoSpokiIntegration, seedSpoki } from "./spoki";
+import { ensureDemoConversations, ensureScheduledShowcaseCampaign, ensureWhatsappShowcaseCampaign, ensureWhatsappShowcaseMessages, showcaseUsers } from "./addon-showcase";
 import { demoAccountingIntegration, demoAccountingSettings } from "./accounting";
 import { MOCK_CHART_OF_ACCOUNTS, MOCK_SPOKI_TEMPLATES } from "@hullwise/integrations";
 
@@ -135,6 +136,12 @@ export function demoAddressIntegration(tenantId: string, now: Date) {
   return { tenantId, provider: "address", status: "connected", mode: "mock", externalAccountId: "address-mock", externalAccountName: "Simulated address provider", credentialsEncrypted: null, config: {}, lastSuccessAt: new Date(now.getTime() - 2 * 3600e3) };
 }
 
+/**
+ * In-development add-ons the demo shows (the product owner wants to see how they work): switched on
+ * for the demo tenant when it has no row for them at all. Never re-enabled once switched off.
+ */
+export const DEMO_SHOWCASE_ADDONS: Partial<Record<DemoKey, readonly string[]>> = { northwind: ["addon.customer_campaigns", "addon.whatsapp_spoki"] };
+
 export interface SettingsReport {
   tenant: string;
   created: string[];
@@ -163,13 +170,23 @@ export async function renameDemoUsers(db: Db): Promise<string[]> {
 
 export async function ensureDemoSettings(db: Db, now = new Date()): Promise<SettingsReport[]> {
   const tenants = await db.select({ id: schema.tenants.id, slug: schema.tenants.slug }).from(schema.tenants).where(inArray(schema.tenants.slug, Object.values(DEMO_SLUGS)));
+  // the showcased add-ons on a demo seeded before they existed; a row switched off in the console stays off
+  const enabled: Record<string, string[]> = {};
+  for (const key of Object.keys(DEMO_SHOWCASE_ADDONS) as DemoKey[]) {
+    const tenant = tenants.find((t) => t.slug === DEMO_SLUGS[key]);
+    if (!tenant) continue;
+    for (const moduleKey of DEMO_SHOWCASE_ADDONS[key] ?? []) {
+      const r = await db.insert(schema.tenantAddons).values({ tenantId: tenant.id, moduleKey, note: "Enabled by the demo settings step", version: null }).onConflictDoNothing().returning({ id: schema.tenantAddons.id });
+      if (r.length) (enabled[tenant.id] ??= []).push(`tenant_addons:${moduleKey}`);
+    }
+  }
   const addons = await db.select({ tenantId: schema.tenantAddons.tenantId, key: schema.tenantAddons.moduleKey }).from(schema.tenantAddons).where(eq(schema.tenantAddons.isActive, true));
   const out: SettingsReport[] = [];
   for (const key of Object.keys(DEMO_SLUGS) as DemoKey[]) {
     const tenant = tenants.find((t) => t.slug === DEMO_SLUGS[key]);
     if (!tenant) continue;
     const tenantId = tenant.id;
-    const created: string[] = [];
+    const created: string[] = [...(enabled[tenantId] ?? [])];
     const missing = async (table: string, extra = sql`true`) => {
       const r = await db.execute<{ n: number }>(sql`select count(*)::int as n from ${sql.identifier(table)} where tenant_id = ${tenantId} and ${extra}`);
       return Number(r.rows[0]?.n ?? 0) === 0;
@@ -216,6 +233,23 @@ export async function ensureDemoSettings(db: Db, now = new Date()): Promise<Sett
       if (await missing("integrations", sql`provider = 'spoki'`)) {
         await db.insert(schema.integrations).values(demoSpokiIntegration(tenantId, now)).onConflictDoNothing();
         created.push("integrations:spoki");
+      }
+    }
+    // the in-development messaging add-ons, demonstrable (#9, #34): message log, a measured WhatsApp campaign, threads, a scheduled campaign
+    const has = (k: string) => addons.some((a) => a.tenantId === tenantId && a.key === k);
+    if (key === "northwind") {
+      const users = await showcaseUsers(db);
+      if (has("addon.whatsapp_spoki") && (await missing("spoki_messages"))) {
+        await seedSpoki(db, tenantId, now);
+        created.push("spoki_messages");
+      }
+      if (has("addon.customer_campaigns")) {
+        if (await ensureWhatsappShowcaseCampaign(db, tenantId, now, users)) created.push("retention_campaigns:whatsapp_showcase");
+        if (await ensureScheduledShowcaseCampaign(db, tenantId, now, users)) created.push("retention_campaigns:scheduled_showcase");
+      }
+      if (has("addon.whatsapp_spoki")) {
+        if (await ensureWhatsappShowcaseMessages(db, tenantId)) created.push("spoki_messages:campaign");
+        if (await ensureDemoConversations(db, tenantId, now, users)) created.push("spoki_messages:conversations");
       }
     }
     if (addons.some((a) => a.tenantId === tenantId && a.key === "addon.accounting") && (await missing("accounting_settings"))) {
