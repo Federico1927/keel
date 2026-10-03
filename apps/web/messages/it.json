@@ -2947,7 +2947,12 @@
       "all_orders": "primo ordine",
       "incomplete_hint": "Finché non è completa, analisi, RFM, coorti e storico clienti coprono solo una parte dello storico. Risincronizza la fa proseguire.",
       "banner": "Lo storico ordini del negozio è ancora in importazione ({n} ordini finora): periodi passati, coorti e storico clienti sono incompleti finché non termina.",
-      "banner_error": "L'importazione dello storico ordini si è fermata dopo {n} ordini: periodi passati, coorti e storico clienti sono incompleti. Un owner o un admin può farla proseguire con Risincronizza in Integrazioni."
+      "banner_error": "L'importazione dello storico ordini si è fermata dopo {n} ordini: periodi passati, coorti e storico clienti sono incompleti. Un owner o un admin può farla proseguire con Risincronizza in Integrazioni.",
+      "restart": "Ricomincia import",
+      "restart_title": "Ricominciare l'import dello storico ordini?",
+      "restart_description": "L'import riparte da {months, plural, one {# mese} other {# mesi}} fa (Impostazioni → Operative). Gli ordini già importati restano.",
+      "restart_description_all": "L'import riparte dal primo ordine del negozio (Impostazioni → Operative: 0 mesi = tutti gli ordini). Gli ordini già importati restano.",
+      "restarted": "Import ripartito con la nuova finestra."
     },
     "card": {
       "manage": "Gestisci",

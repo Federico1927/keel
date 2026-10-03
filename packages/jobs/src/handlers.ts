@@ -7,7 +7,12 @@ import { SPOKI_MODULE, getSpokiApiFor, getSpokiState, processSpokiWebhookEvent, 
 import { adsWindow, type CampaignSendJob, type ListExportJob, type PlatformWriteJob, type SyncAdsJob, type SyncCatalogJob, type SyncOrdersJob, type SyncPayoutsJob, type SyncReturnsJob, type SyncAnalyticsJob, type TickJob, type WebhookJob, type EmailEventJob, type EmailSendJob, type BillingEventJob, resyncJobsFor, type TenantExportJob, type WebhookDeliverJob } from "./queues";
 
 export interface Enqueue {
-  (queue: string, data: unknown, opts?: { singletonKey?: string; startAfterSeconds?: number }): Promise<void>;
+  /**
+   * `continuation`: a paused run queueing its own next step. Its dedupe slot is one second instead of a
+   * minute: the running step holds the minute it was created in, so a 60-second slot silently dropped
+   * the next step whenever a step finished within that minute and the import stopped halfway.
+   */
+  (queue: string, data: unknown, opts?: { singletonKey?: string; startAfterSeconds?: number; continuation?: boolean }): Promise<void>;
 }
 
 async function tenantRow(tenantId: string) {
@@ -80,7 +85,7 @@ export async function handleSyncOrders(job: SyncOrdersJob, enqueue: Enqueue): Pr
     return runOrdersSync(ctx, platform, { kind: job.kind, country: tenant.country, budgetMs: 25_000, historySince: since });
   });
   // Resumable: a paused run re-enqueues itself with the saved cursor.
-  if (!result.finished && !result.error) await enqueue("sync.orders", job, { singletonKey: `${job.tenantId}:${job.kind}` });
+  if (!result.finished && !result.error) await enqueue("sync.orders", job, { singletonKey: `${job.tenantId}:${job.kind}`, continuation: true });
   // the first returns import follows the orders it belongs to: a return of an order not imported yet would be skipped
   if (result.finished && job.kind === "initial") await enqueue("sync.returns", { tenantId: job.tenantId, kind: "initial" } satisfies SyncReturnsJob, { singletonKey: `${job.tenantId}:returns` });
   if (result.error) throw new Error(result.error);
@@ -94,7 +99,7 @@ export async function handleSyncCatalog(job: SyncCatalogJob, enqueue?: Enqueue):
     return runCatalogSync(ctx, await getCommercePlatformFor(ctx, tenant), { kind: job.kind ?? "delta", scope: job.scope ?? "catalog", budgetMs: 25_000 });
   });
   // Resumable: a paused run re-enqueues itself and continues from the saved phase and cursor.
-  if (!r.finished && !r.error && enqueue) await enqueue("sync.catalog", job, { singletonKey: `${job.tenantId}:catalog:${job.scope ?? "catalog"}` });
+  if (!r.finished && !r.error && enqueue) await enqueue("sync.catalog", job, { singletonKey: `${job.tenantId}:catalog:${job.scope ?? "catalog"}`, continuation: true });
   if (r.error) throw new Error(r.error);
 }
 
@@ -105,7 +110,7 @@ export async function handleSyncPayouts(job: SyncPayoutsJob, enqueue?: Enqueue):
     const ctx = sys(tenant.id)(tx);
     return runPayoutsSync(ctx, await getCommercePlatformFor(ctx, tenant), { budgetMs: 25_000 });
   });
-  if (!r.finished && !r.error && enqueue) await enqueue("sync.payouts", job, { singletonKey: `${job.tenantId}:payouts` });
+  if (!r.finished && !r.error && enqueue) await enqueue("sync.payouts", job, { singletonKey: `${job.tenantId}:payouts`, continuation: true });
   if (r.error) throw new Error(r.error);
 }
 
@@ -117,7 +122,7 @@ export async function handleSyncReturns(job: SyncReturnsJob, enqueue?: Enqueue):
     const ctx = sys(tenant.id)(tx);
     return runReturnsSync(ctx, await getCommercePlatformFor(ctx, tenant), { kind: job.kind ?? "reconcile", country: tenant.country, budgetMs: 25_000, historySince: since });
   });
-  if (!r.finished && !r.error && enqueue) await enqueue("sync.returns", job, { singletonKey: `${job.tenantId}:returns` });
+  if (!r.finished && !r.error && enqueue) await enqueue("sync.returns", job, { singletonKey: `${job.tenantId}:returns`, continuation: true });
   if (r.error) throw new Error(r.error);
 }
 
@@ -144,7 +149,7 @@ export async function handleSyncAds(job: SyncAdsJob, enqueue?: Enqueue): Promise
   // a paused entity run resumes alone, after the platform's wait
   for (const p of r.paused) {
     const acc = p.account?.externalId;
-    if (enqueue) await enqueue("sync.ads", { ...job, phase: "entities", ...(acc ? { accountExternalId: acc } : {}) } satisfies SyncAdsJob, { singletonKey: `${job.tenantId}:${job.provider}:entities${job.kind === "backfill" ? ":backfill" : ""}${acc && !p.account?.primary ? `:${acc}` : ""}`, ...(p.rateLimited ? { startAfterSeconds: Math.ceil((p.retryAfterMs ?? 60_000) / 1000) } : {}) });
+    if (enqueue) await enqueue("sync.ads", { ...job, phase: "entities", ...(acc ? { accountExternalId: acc } : {}) } satisfies SyncAdsJob, { singletonKey: `${job.tenantId}:${job.provider}:entities${job.kind === "backfill" ? ":backfill" : ""}${acc && !p.account?.primary ? `:${acc}` : ""}`, continuation: true, ...(p.rateLimited ? { startAfterSeconds: Math.ceil((p.retryAfterMs ?? 60_000) / 1000) } : {}) });
   }
   const s = summarizeAccountRuns(r.results);
   if (s.allFailed) throw new Error(s.failed.map((f) => (r.results.length > 1 ? `${f.account}: ${f.error}` : f.error)).join("; "));
@@ -165,7 +170,7 @@ export async function handleSyncAnalytics(job: SyncAnalyticsJob, enqueue?: Enque
     return p ? runTrafficSync(ctx, p.platform, { propertyId: p.propertyId, kind: job.kind, timeZone: tz?.timezone ?? "UTC", budgetMs: 25_000 }) : null;
   });
   if (!r) return { rows: 0, summary: { skipped: "not_connected" } };
-  if (!r.finished && !r.error && enqueue) await enqueue("sync.analytics", job, { singletonKey: `${job.tenantId}:ga4:${job.kind}`, ...(r.rateLimited ? { startAfterSeconds: Math.ceil((r.retryAfterMs ?? 60_000) / 1000) } : {}) });
+  if (!r.finished && !r.error && enqueue) await enqueue("sync.analytics", job, { singletonKey: `${job.tenantId}:ga4:${job.kind}`, continuation: true, ...(r.rateLimited ? { startAfterSeconds: Math.ceil((r.retryAfterMs ?? 60_000) / 1000) } : {}) });
   if (r.error) throw new Error(r.error);
   return { rows: r.rows, summary: { kind: job.kind, finished: r.finished, rateLimited: r.rateLimited } };
 }

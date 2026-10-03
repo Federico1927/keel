@@ -4,7 +4,7 @@ import { testPools } from "@hullwise/db/test-utils";
 import { seedDomain, seedPlatform, type SeedContext } from "@hullwise/db/seed";
 import { historyImportSince } from "@hullwise/core";
 import { MockCommercePlatform } from "@hullwise/integrations";
-import { historyImportStatus, runOrdersSync, runReturnsSync, tenantChecklist, type ServiceContext } from "../src";
+import { historyImportStatus, restartHistoryImport, runOrdersSync, runReturnsSync, tenantChecklist, type ServiceContext } from "../src";
 
 /**
  * Issue #87: the first import of a store's order history. A Shopify store connected for the first
@@ -105,5 +105,32 @@ describe("first import of the order history (issue #87)", () => {
     const [row] = await withTenant(tenantId, (tx) => tx.select().from(schema.syncRuns).where(eq(schema.syncRuns.id, r.runId)), pools.app);
     expect(row!.kind).toBe("initial");
     expect((row!.cursor as { updatedSince: string }).updatedSince).toBe(since.toISOString());
+  });
+
+  it("restarts the import with another window: an unfinished run is rewound in place, a finished one gets a new run", async () => {
+    const svc = <T>(fn: (c: ServiceContext) => Promise<T>) => withTenant(tenantId, (tx) => fn({ tenantId, tx, actor: { type: "system", userId: null } }), pools.app);
+    // the earlier tests finished the import: a restart opens a new paused run with the new window
+    const twoMonths = new Date(now.getTime() - 60 * DAY);
+    const fresh = await svc((c) => restartHistoryImport(c, twoMonths));
+    let status = await svc((c) => historyImportStatus(c));
+    expect(status.runId).toBe(fresh.runId);
+    expect(status.state).toBe("paused");
+    expect(status.since?.toISOString()).toBe(twoMonths.toISOString());
+    // one short step leaves it paused, then a restart with a shorter window rewinds the same run
+    await svc((c) => runOrdersSync(c, platform, { kind: "initial", country: "US", budgetMs: 0, pageSize: 5, historySince: twoMonths }));
+    const oneMonth = new Date(now.getTime() - 30 * DAY);
+    const rewound = await svc((c) => restartHistoryImport(c, oneMonth));
+    expect(rewound.runId).toBe(fresh.runId);
+    expect(rewound.previousSince).toBe(twoMonths.toISOString());
+    status = await svc((c) => historyImportStatus(c));
+    expect(status).toMatchObject({ runId: fresh.runId, state: "paused", ordersImported: 0 });
+    expect(status.since?.toISOString()).toBe(oneMonth.toISOString());
+    // the next steps resume the rewound run and finish it with the new window
+    for (let i = 0; i < 50; i++) {
+      const r = await svc((c) => runOrdersSync(c, platform, { kind: "initial", country: "US", historySince: oneMonth }));
+      if (r.finished) break;
+    }
+    status = await svc((c) => historyImportStatus(c));
+    expect(status).toMatchObject({ runId: fresh.runId, state: "done" });
   });
 });

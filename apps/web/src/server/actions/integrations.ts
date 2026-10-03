@@ -4,9 +4,10 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, desc, eq, recordAudit, schema, sql } from "@hullwise/db";
 import { apiEndpoint, isAdPlatform, isAdPlatformInPlan } from "@hullwise/config";
+import { historyImportSince } from "@hullwise/core";
 import { GoogleAdsPlatform, MOCK_ACCOUNT_IDS, TiktokAdsPlatform, encryptJson, exchangeTiktokAuthCode, failedConnection, integrationMode, setupErrorOfTest, type ConnectionTest } from "@hullwise/integrations";
 import { verifySetup, type SetupFacts } from "@/server/integration-verify";
-import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, resolveAddressProvider, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsBackfill, runAdsSync, runAdsSyncForAccounts, runCatalogSync, runOrdersSync, runReturnsSync, historyImportStatus } from "@hullwise/services";
+import { getAdsPlatformFor, getCommercePlatformFor, getLlmProviderFor, resolveAddressProvider, mockCommerceFor, processWebhookEvent, retryFailedWebhooks, runAdsBackfill, runAdsSync, runAdsSyncForAccounts, runCatalogSync, runOrdersSync, runReturnsSync, historyImportStatus, restartHistoryImport } from "@hullwise/services";
 import { SPOKI_MODULE, retrySpokiWebhooks } from "@hullwise/addon-spoki";
 import { handleSpokiEvent, spokiHooksFor } from "@hullwise/jobs";
 import { enqueue } from "@/server/jobs";
@@ -153,6 +154,30 @@ export async function testIntegration(slug: string, provider: string): Promise<A
     });
     revalidatePath(`/t/${slug}/integrations`);
     return ok(result);
+  } catch (e) {
+    if (e instanceof ForbiddenError) return fail("forbidden");
+    throw e;
+  }
+}
+
+/**
+ * Restarts the store's order history import with the window now in Settings → Operational (e.g. 2 months
+ * while testing a big store): the running import is rewound to the new start and continued, orders already
+ * imported stay. Audited with the previous and the new window.
+ */
+export async function restartHistoryImportAction(slug: string): Promise<ActionResult<{ queued: boolean; months: number }>> {
+  try {
+    const ctx = await requireAction(slug, "manage_integrations", "integrations");
+    const months = ctx.settings.historyImportMonths;
+    const since = historyImportSince(new Date(), months);
+    await ctx.run(async (tx) => {
+      const r = await restartHistoryImport({ tenantId: ctx.tenant.id, tx, actor: { type: "user", userId: ctx.user.id } }, since);
+      await recordAudit(tx, { tenantId: ctx.tenant.id, ...auditActor(ctx), action: "integration.history_import_restarted", entityType: "integration", entityId: "shopify", diff: { since: { from: r.previousSince, to: since?.toISOString() ?? null } }, metadata: { historyImportMonths: months, runId: r.runId } });
+    });
+    const started = await startHistoryImport(ctx);
+    revalidatePath(`/t/${slug}/integrations`);
+    revalidatePath(`/t/${slug}/orders`);
+    return ok({ queued: started === "queued", months });
   } catch (e) {
     if (e instanceof ForbiddenError) return fail("forbidden");
     throw e;

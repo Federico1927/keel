@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HistoryImportRestart } from "./history-import-restart";
 import { getTranslations } from "next-intl/server";
 import { AD_ACCOUNT_LIMIT, INTEGRATION_SETUP, SHOPIFY_SETUP, adPlatformMinPlan, canDo, isAdPlatform, isAdPlatformInPlan, isPageEnabled } from "@hullwise/config";
 import { formatDate, formatDateTime, formatNumber } from "@hullwise/core";
@@ -92,6 +93,7 @@ async function IntegrationsPage({ params, searchParams }: { params: Promise<{ te
                         <p className="text-muted-foreground">{t("history_import.detail", { n: formatNumber(h.ordersImported, ctx.locale), since: h.since ? day(h.since) : t("history_import.all_orders"), oldest: day(h.oldestOrderAt) })}</p>
                         {h.state !== "done" && <p className="text-muted-foreground">{t("history_import.incomplete_hint")}</p>}
                         {h.error && <p className="text-destructive">{h.error}</p>}
+                        {canManage && <HistoryImportRestart slug={tenant} months={ctx.settings.historyImportMonths} />}
                       </div>
                     );
                   })()}

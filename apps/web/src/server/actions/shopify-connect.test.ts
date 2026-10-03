@@ -12,7 +12,10 @@ process.env.APP_ENCRYPTION_KEY = Buffer.alloc(32, 3).toString("base64");
 
 const h = vi.hoisted(() => ({
   startHistoryImport: vi.fn(async (..._args: unknown[]) => "queued"),
-  saveShopifyConnection: vi.fn(async (..._args: unknown[]) => undefined),
+  /** Calls in order: the connection must be saved before Shopify starts delivering webhooks. */
+  order: [] as string[],
+  saveShopifyConnection: vi.fn(async (..._args: unknown[]) => { h.order.push("save"); }),
+  recordShopifyWebhooks: vi.fn(async (..._args: unknown[]) => { h.order.push("record"); }),
   grant: vi.fn(),
   exchange: vi.fn(),
   test: vi.fn(),
@@ -28,14 +31,14 @@ const ctx = { tenant: { id: "00000000-0000-4000-8000-000000000001", slug: "acme"
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/server/tenant", () => ({ ForbiddenError: class ForbiddenError extends Error {}, requireAction: vi.fn(async () => ctx) }));
 vi.mock("@/server/history-import", () => ({ startHistoryImport: h.startHistoryImport }));
-vi.mock("@/server/shopify-connection", () => ({ saveShopifyConnection: h.saveShopifyConnection, savedShopifyApp: () => h.app }));
+vi.mock("@/server/shopify-connection", () => ({ saveShopifyConnection: h.saveShopifyConnection, recordShopifyWebhooks: h.recordShopifyWebhooks, savedShopifyApp: () => h.app }));
 vi.mock("@hullwise/db", async (orig) => ({ ...(await orig<object>()), recordAudit: vi.fn(async () => undefined), withTenant: vi.fn(async (_id: string, fn: (tx: unknown) => unknown) => h.tenantRead ?? fn(chain)) }));
 vi.mock("@hullwise/integrations", async (orig) => {
   const real = await orig<typeof Integrations>();
   class FakeShopify {
     constructor(public credentials: unknown) {}
     testConnection = () => h.test();
-    registerWebhooks = async () => [];
+    registerWebhooks = async () => { h.order.push("register"); return []; };
   }
   return { ...real, ShopifyCommercePlatform: FakeShopify, requestClientCredentialsToken: (...a: unknown[]) => h.grant(...a), exchangeOAuthCode: (...a: unknown[]) => h.exchange(...a) };
 });
@@ -54,6 +57,7 @@ const fullTest = { ok: true, accountName: "Acme", scopes: SHOPIFY_ALL_SCOPES, mi
 
 beforeEach(() => {
   vi.clearAllMocks();
+  h.order.length = 0;
   process.env.HULLWISE_INTEGRATION_MODE = "live";
   h.test.mockResolvedValue(fullTest);
   h.tenantRead = null;
@@ -66,6 +70,7 @@ describe("each Shopify connect path starts the history import once", () => {
     expect(r).toMatchObject({ ok: true, data: { mock: false, shop: "acme.myshopify.com", history: "queued" } });
     expect(h.saveShopifyConnection).toHaveBeenCalledTimes(1);
     expect(h.saveShopifyConnection.mock.calls[0]![2]).toMatchObject({ mode: "live", config: { installedVia: "client_credentials" }, credentials: { grant: "client_credentials", clientId: "client-id-123", apiSecret: "client-secret-456", accessToken: "tok" } });
+    expect(h.order).toEqual(["save", "register", "record"]);
     expect(h.startHistoryImport).toHaveBeenCalledTimes(1);
     expect(h.startHistoryImport).toHaveBeenCalledWith(ctx);
   });
@@ -97,6 +102,7 @@ describe("each Shopify connect path starts the history import once", () => {
   it("legacy pasted token (custom app created before 2026)", async () => {
     expect(await connectShopifyCustomApp("acme", null, form({ shop: "acme.myshopify.com", accessToken: "shpat_0123456789", apiSecret: "secret-123" }))).toMatchObject({ ok: true });
     expect(h.saveShopifyConnection.mock.calls[0]![2]).toMatchObject({ config: { installedVia: "custom_app" }, credentials: { grant: "static" } });
+    expect(h.order).toEqual(["save", "register", "record"]);
     expect(h.startHistoryImport).toHaveBeenCalledTimes(1);
   });
 
@@ -116,6 +122,7 @@ describe("each Shopify connect path starts the history import once", () => {
     expect(good.headers.get("location")).toContain("/t/acme/integrations?connected=shopify");
     expect(h.exchange).toHaveBeenCalledWith(app.shop, app.clientId, app.clientSecret, "abc");
     expect(h.saveShopifyConnection.mock.calls[0]![2]).toMatchObject({ config: { installedVia: "oauth_own_app" }, credentials: { grant: "authorization_code", accessToken: "offline", apiSecret: app.clientSecret } });
+    expect(h.order).toEqual(["save", "register", "record"]);
     expect(h.startHistoryImport).toHaveBeenCalledTimes(1);
     // a forged or expired state never reaches a tenant
     const forged = await callback.GET(req(new URL(`https://api.example/x?${new URLSearchParams({ ...q, state: "x.y", hmac: "z" })}`)));

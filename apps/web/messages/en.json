@@ -2947,7 +2947,12 @@
       "all_orders": "the first one",
       "incomplete_hint": "Until it completes, analytics, RFM, cohorts and customer history only cover part of the history. Resync continues it.",
       "banner": "The store's order history is still being imported ({n} orders so far): past periods, cohorts and customer history are incomplete until it finishes.",
-      "banner_error": "The import of the store's order history stopped after {n} orders: past periods, cohorts and customer history are incomplete. An owner or admin can continue it with Resync in Integrations."
+      "banner_error": "The import of the store's order history stopped after {n} orders: past periods, cohorts and customer history are incomplete. An owner or admin can continue it with Resync in Integrations.",
+      "restart": "Restart import",
+      "restart_title": "Restart the order history import?",
+      "restart_description": "The import starts again from {months, plural, one {# month} other {# months}} ago (Settings → Operational). Orders already imported stay.",
+      "restart_description_all": "The import starts again from the store's first order (Settings → Operational: 0 months = every order). Orders already imported stay.",
+      "restarted": "Import restarted with the new window."
     },
     "card": {
       "manage": "Manage",

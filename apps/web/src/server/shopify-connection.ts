@@ -1,4 +1,4 @@
-import { and, eq, recordAudit, schema, withTenant } from "@hullwise/db";
+import { and, eq, recordAudit, schema, sql, withTenant } from "@hullwise/db";
 import { encryptJson, type ConnectionTest, type ShopifyCredentials } from "@hullwise/integrations";
 import { forgetCommercePlatform } from "@hullwise/services";
 
@@ -23,6 +23,14 @@ export async function saveShopifyConnection(tenantId: string, who: AuditWho, val
     await recordAudit(tx, { tenantId, actorUserId: who.actorUserId, actorType: who.actorType, impersonatedBy: who.impersonatedBy ?? null, action: "integration.connected", entityType: "integration", entityId: "shopify", diff: { status: { from: prev?.status ?? null, to: "connected" }, shop: { from: null, to: values.shop }, mode: { from: null, to: values.mode } }, metadata: { installedVia: values.config.installedVia ?? null } });
   });
   forgetCommercePlatform(tenantId);
+}
+
+/**
+ * Records the webhook subscriptions after the connection is saved: Shopify starts delivering as soon as a
+ * subscription exists, and a delivery for a shop not saved yet is refused as "unknown shop".
+ */
+export async function recordShopifyWebhooks(tenantId: string, webhooks: unknown[]): Promise<void> {
+  await withTenant(tenantId, (tx) => tx.update(schema.integrations).set({ config: sql`${schema.integrations.config} || ${JSON.stringify({ webhooks })}::jsonb`, updatedAt: new Date() }).where(and(eq(schema.integrations.tenantId, tenantId), eq(schema.integrations.provider, "shopify"))));
 }
 
 /** The tenant's saved app (Client ID, shop, encrypted secret), for the OAuth fallback. */
