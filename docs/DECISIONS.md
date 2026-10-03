@@ -1418,3 +1418,11 @@ Before, about 12% of treated customers were picked by hash, overlapping with cus
 - Not inserting response orders on a deployed demo (rejected: the WhatsApp campaign's effect would depend on chance, sometimes negative). The settings step now states that its only order inserts are the showcase campaign's responses, once.
 
 **Docs.** `docs/addons/whatsapp-spoki.md`, `docs/addons/customer-campaigns.md` (what each add-on does, the demo tour with logins and clicks, mock vs live-ready, release checklist). Tours: `apps/web/e2e/addon-spoki-tour.spec.ts`, `apps/web/e2e/addon-campaigns-tour.spec.ts`.
+
+## 2026-10-03 — Worker schedules: one pg-boss row per tick kind
+
+**Problem.** In production the worker ran no delta sync, no write retries, no watchdog: only the hourly accounting tick fired. pg-boss keys schedules by (queue, `key`); the worker called `schedule()` 25 times on `scheduler.tick` with no `key`, so each call replaced the previous row and only the last one (accounting, `35 * * * *`) survived. Verified against pg-boss 12.35.1 on a scratch schema: 1 row before, 25 after.
+
+**Decision.** `packages/jobs/src/schedules.ts` holds the schedule list and `installSchedules()`, which passes `key: <kind>` (the per-kind `singletonKey` stays) and removes rows of kinds no longer listed, including the old keyless row. The worker logs the removed rows at start.
+
+**Alternatives.** One queue per tick kind (rejected: 25 more queues and workers for the same handler). Leaving stale rows (rejected: the keyless row would fire accounting twice an hour).
