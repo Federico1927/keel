@@ -1482,3 +1482,20 @@ Before, about 12% of treated customers were picked by hash, overlapping with cus
 - A separate page key for data health (rejected: it touches the shared role matrix; visibility follows the fix pages instead).
 - Severity fixed per check (rejected: 3 variants without cost on 0.4 % of revenue is not the same as half the catalog).
 - A banner above the grid like the source-health card (rejected: the owner asked for a widget, which tenants can move or remove).
+
+## 2026-10-03 — Correlated subqueries in a single-table select list: `qualified(column)`
+
+**Problem.** Drizzle drops the table prefix from select-list columns when a query reads one table without joins (it does the same in insert, update and delete `returning`). A correlated subquery written in a `sql` fragment there, such as `(select v.sku from product_variants v where v.product_id = ${schema.products.id})`, renders `v.product_id = "id"`. Postgres resolves `"id"` to the inner `v.id`, so the subquery compares the inner table with itself and silently returns nothing. WHERE, ORDER BY, GROUP BY, HAVING, update SET and delete WHERE keep the prefix (checked with `.toSQL()`), and so do columns inside a nested `sql` fragment.
+
+**Decision.**
+- `qualified(column)` in `packages/db/src/qualified.ts` (exported from `@hullwise/db`) writes `"table"."column"` from Drizzle's metadata (`getTableName`, aliases included) with quoted identifiers. Use it for the outer reference of any correlated subquery in a select list.
+- Every subquery or `exists` with an interpolated outer column in `packages/services`, `packages/addon-*`, `packages/jobs`, `packages/db/src` and `apps/web/src/server` was reviewed. Three were in a single-table select list and are fixed:
+  - global search (`lists/search.ts`): the SKU of a product hit;
+  - subscription cards (`subscriptions/operations.ts`, `cardRows`): the contract's product names;
+  - mock payment processor (`integrations/factory.ts`, `mockPaymentOrders`): the date of a partial refund.
+- The safe ones (joined queries, filters, update SET, raw SQL with explicit aliases, literal `"orders"."id"`) are left as they are, to keep the change focused.
+
+**Alternatives.**
+- `sql.raw('"table"."column"')` at each call site (rejected: the table name is repeated by hand and drifts on a rename or an alias).
+- Restructuring each query with a join or a lateral subquery (rejected: larger diffs for the same result).
+- A source-scanning guard test (rejected: it cannot be precise. An alias column such as `${c.id}`, with `c = schema.subscriptionContracts`, looks the same as a JS value such as a campaign row's `${c.id}`, and whether a fragment sits in the select list of a single-table query is only known at runtime. The `cardRows` bug used an alias, so a `${schema.`-only guard would have missed it, while a broader one flags about 30 safe filters.)

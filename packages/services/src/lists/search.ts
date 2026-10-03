@@ -1,4 +1,4 @@
-import { and, desc, eq, or, schema, sql, type SQL } from "@hullwise/db";
+import { and, desc, eq, or, qualified, schema, sql, type SQL } from "@hullwise/db";
 import { parseSearchTerms } from "@hullwise/core";
 import type { ServiceContext } from "../context";
 
@@ -56,7 +56,7 @@ export async function globalSearch(ctx: ServiceContext, query: string, opts: { c
   }
   if (has("products")) {
     out.products = await ctx.tx
-      .select({ id: schema.products.id, title: schema.products.title, status: schema.products.status, sku: sql<string | null>`(select v.sku from product_variants v where v.product_id = ${schema.products.id} and lower(v.sku) like ${text} order by v.sku limit 1)` })
+      .select({ id: schema.products.id, title: schema.products.title, status: schema.products.status, sku: sql<string | null>`(select v.sku from product_variants v where v.product_id = ${qualified(schema.products.id)} and lower(v.sku) like ${text} order by v.sku limit 1)` })
       .from(schema.products)
       .where(and(eq(schema.products.tenantId, ctx.tenantId), or(sql`lower(${schema.products.title}) like ${text}`, sql`exists (select 1 from product_variants v where v.tenant_id = ${ctx.tenantId} and v.product_id = ${schema.products.id} and lower(v.sku) like ${text})`)))
       .orderBy(schema.products.title)
