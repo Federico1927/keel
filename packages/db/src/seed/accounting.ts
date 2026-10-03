@@ -48,7 +48,8 @@ async function summaryOrders(db: Db, tenantId: string, tenant: { country: string
  * system connected with its chart, the mapping, and a push log of the last 32 closed days. Every day
  * with sales is pushed except two: the latest is a failed push (rate limited, retried at the next
  * tick) and the one before waits because one of its orders has a write to the platform still
- * pending (seeded with it). One older day shows a re-push: version 1 voided, version 2 pushed.
+ * pending (seeded with it). One older day shows a re-push: version 1 voided, version 2 pushed; another
+ * was pushed before one of its orders synced, so the reconciliation shows it no longer matches.
  */
 export async function seedAccounting(db: Db, tenantId: string, now: Date): Promise<void> {
   const [t] = await db.select().from(schema.tenants).where(eq(schema.tenants.id, tenantId));
@@ -61,17 +62,23 @@ export async function seedAccounting(db: Db, tenantId: string, now: Date): Promi
   const settings = demoAccountingSettings(firstDay);
   await db.insert(schema.integrations).values(demoAccountingIntegration(tenantId, now)).onConflictDoNothing();
   await db.insert(schema.accountingSettings).values({ tenantId, config: settings, accounts: [...MOCK_CHART_OF_ACCOUNTS], accountsSyncedAt: new Date(now.getTime() - 2 * 3600e3) }).onConflictDoNothing();
-  const summary = dailySalesSummary(await summaryOrders(db, tenantId, tenant, firstDay, lastClosed), { timeZone: t.timezone, fromDay: firstDay, toDay: lastClosed });
+  const facts = await summaryOrders(db, tenantId, tenant, firstDay, lastClosed);
+  const summary = dailySalesSummary(facts, { timeZone: t.timezone, fromDay: firstDay, toDay: lastClosed });
   const withSales = summary.days.filter((d) => d.saleOrders > 0).map((d) => d.day).sort().reverse();
   const failedDay = withSales[0];
   const waitingDay = withSales[1];
   const repushedDay = withSales[6];
+  const driftDay = withSales.slice(3).find((day) => day !== repushedDay && (summary.days.find((x) => x.day === day)?.saleOrders ?? 0) > 1);
+  // the reconciliation's example: one order of this day reached Hullwise after the day was pushed
+  const lateOrderId = driftDay ? summary.entries.find((e) => e.day === driftDay && e.kind === "sale")?.orderId : undefined;
+  const pushedAsWas = driftDay && lateOrderId ? dailySalesSummary(facts.filter((o) => o.id !== lateOrderId), { timeZone: t.timezone, fromDay: driftDay, toDay: driftDay }).days[0] : undefined;
   const rows: (typeof schema.accountingJournals.$inferInsert)[] = [];
   let seq = 0;
   const snapshot = (s: SalesSummaryDay) => ({ totalMinor: s.totalMinor, feesMinor: s.feesMinor, netMinor: s.netMinor, taxMinor: s.taxMinor, saleOrders: s.saleOrders, refundOrders: s.refundOrders });
   // a day is pushed in the first hours after it closed
   const pushedAt = (day: string, extraHours = 0) => new Date(Math.min(now.getTime() - 60e3, zonedDayStart(addDaysToKey(day, 1), t.timezone).getTime() + (2.6 + extraHours) * 3600e3));
-  for (const d of summary.days) {
+  for (const current of summary.days) {
+    const d = current.day === driftDay && pushedAsWas ? pushedAsWas : current;
     const version = d.day === repushedDay ? 2 : 1;
     const { journal } = buildDailyJournal(d, settings.mapping, { currency: t.currency, version });
     const base = { tenantId, day: d.day, version, provider: "accounting_mock", currency: t.currency, journal, debitMinor: journal.debitMinor, creditMinor: journal.creditMinor, summary: snapshot(d), createdAt: pushedAt(d.day), updatedAt: pushedAt(d.day) };

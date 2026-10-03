@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { canViewPage, canWritePage } from "@hullwise/config";
 import { formatDate, formatDateTime, formatMoney, formatPercent } from "@hullwise/core";
 import { subscriptionDetail } from "@hullwise/services";
-import { Card, CardContent, CardHeader, CardTitle, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
+import { Card, CardContent, CardHeader, CardTitle, DataList, DetailShell, Stat, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@hullwise/ui";
 import { requirePage } from "@/server/tenant";
 import { StatusBadge } from "@/components/status-badge";
 import { ContractActions } from "../../controls";
@@ -73,10 +73,16 @@ async function SubscriberDetailPage({ params }: { params: Promise<{ tenant: stri
       <Card className="mt-6">
         <CardHeader><CardTitle className="text-base">{t("detail.lines")}</CardTitle></CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader><TableRow><TableHead>{t("detail.product")}</TableHead><TableHead className="text-right">{t("detail.quantity")}</TableHead><TableHead className="text-right">{t("detail.unit_price")}</TableHead></TableRow></TableHeader>
-            <TableBody>{d.lines.map((l) => <TableRow key={l.id}><TableCell>{l.productId && canViewPage(ctx.role, "products") ? <Link href={`/t/${tenant}/products/${l.productId}`} className="hover:underline">{l.title}</Link> : l.title}{l.variantTitle && <span className="text-muted-foreground"> · {l.variantTitle}</span>}</TableCell><TableCell className="text-right tabular">{l.quantity}</TableCell><TableCell className="text-right tabular">{money(l.unitPriceMinor)}</TableCell></TableRow>)}</TableBody>
-          </Table>
+          <DataList
+            data-testid="subscription-lines"
+            rows={d.lines}
+            rowKey={(l) => l.id}
+            columns={[
+              { key: "product", header: t("detail.product"), mobile: "title", cell: (l) => <>{l.productId && canViewPage(ctx.role, "products") ? <Link href={`/t/${tenant}/products/${l.productId}`} className="hover:underline">{l.title}</Link> : l.title}{l.variantTitle && <span className="text-muted-foreground"> · {l.variantTitle}</span>}</> },
+              { key: "quantity", header: t("detail.quantity"), align: "right", className: "tabular", cell: (l) => l.quantity },
+              { key: "price", header: t("detail.unit_price"), align: "right", className: "tabular", cell: (l) => money(l.unitPriceMinor) },
+            ]}
+          />
         </CardContent>
       </Card>
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
@@ -90,7 +96,7 @@ async function SubscriberDetailPage({ params }: { params: Promise<{ tenant: stri
                 return (
                   <li key={e.id} className="border-l-2 pl-3" data-testid="timeline-event" data-type={e.type}>
                     <p><span className="font-medium">{t.has(`events.${e.type}`) ? t(`events.${e.type}`) : e.type}</span> <span className="text-xs text-muted-foreground">· {e.actorName ?? t(`authors.${e.authorType}`)} · {formatDateTime(e.occurredAt, ctx.locale, ctx.tenant.timezone)}</span></p>
-                    {diff.length > 0 && <ul className="text-xs text-muted-foreground">{diff.map(([k, v]) => <li key={k}><span className="font-mono">{k}</span>: {fmt(v?.from)} → {fmt(v?.to)}</li>)}</ul>}
+                    {diff.length > 0 && <ul className="text-xs text-muted-foreground">{diff.map(([k, v]) => <li key={k}><span className="font-mono">{k}</span>: {k === "assignedTo" ? (d.people[String(v?.from)] ?? fmt(v?.from)) : fmt(v?.from)} → {k === "assignedTo" ? (d.people[String(v?.to)] ?? fmt(v?.to)) : fmt(v?.to)}</li>)}</ul>}
                     {meta.body && <p className="text-xs">{meta.body}</p>}
                     {meta.errorCode && <p className="text-xs text-destructive">{t.has(`payment_errors.${meta.errorCode}`) ? t(`payment_errors.${meta.errorCode}`) : meta.errorCode}</p>}
                   </li>
@@ -112,9 +118,17 @@ async function SubscriberDetailPage({ params }: { params: Promise<{ tenant: stri
           <Card>
             <CardHeader><CardTitle className="text-base">{t("detail.orders")}</CardTitle></CardHeader>
             <CardContent className="p-0">
-              <Table>
-                <TableBody>{d.orders.map((o) => <TableRow key={o.id}><TableCell>{showOrders ? <Link href={`/t/${tenant}/orders/${o.id}`} className="hover:underline">{o.name}</Link> : o.name}<span className="ml-2 text-xs text-muted-foreground">{o.renewalNumber ? t("profit.renewal_n", { n: o.renewalNumber }) : t("profit.first_order")}</span></TableCell><TableCell className="text-xs">{date(o.placedAt)}</TableCell><TableCell><StatusBadge status={o.status} /></TableCell><TableCell className="text-right tabular">{money(o.totalMinor)}</TableCell></TableRow>)}</TableBody>
-              </Table>
+              <DataList
+                data-testid="subscription-orders"
+                rows={d.orders}
+                rowKey={(o) => o.id}
+                columns={[
+                  { key: "order", header: t("detail.orders"), mobile: "title", cell: (o) => (showOrders ? <Link href={`/t/${tenant}/orders/${o.id}`} className="font-medium hover:underline">{o.name}</Link> : o.name) },
+                  { key: "kind", header: t("profit.order_n"), mobile: "subtitle", className: "text-xs text-muted-foreground", cell: (o) => `${o.renewalNumber ? t("profit.renewal_n", { n: o.renewalNumber }) : t("profit.first_order")} · ${date(o.placedAt)}` },
+                  { key: "status", header: t("subscribers.status"), mobile: "badge", cell: (o) => <StatusBadge status={o.status} /> },
+                  { key: "total", header: t("detail.amount"), align: "right", className: "tabular", cell: (o) => money(o.totalMinor) },
+                ]}
+              />
             </CardContent>
           </Card>
         </div>

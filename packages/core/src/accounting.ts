@@ -171,3 +171,31 @@ export function accountingRetryDelayMs(attempts: number, retryAfterMs?: number):
   const base = Math.min(12 * 3600e3, 15 * 60e3 * 2 ** Math.max(0, attempts - 1));
   return Math.max(base, retryAfterMs ?? 0);
 }
+
+export interface JournalDriftLine {
+  line: AccountingLine;
+  rateKey: string | null;
+  accountCode: string;
+  /** Signed amount (debit − credit) as pushed and as the summary gives it now. */
+  pushedMinor: number;
+  currentMinor: number;
+}
+
+/**
+ * Reconciliation of a pushed day: the journal as pushed against the journal the summary gives now
+ * (late orders, actual fees replacing estimates, a changed mapping). Lines are matched on summary
+ * line, tax rate and account; only the ones that differ are returned. Empty = the day still matches.
+ */
+export function journalDrift(pushed: Pick<DailyJournal, "lines" | "debitMinor">, current: Pick<DailyJournal, "lines" | "debitMinor">): { differenceMinor: number; lines: JournalDriftLine[] } {
+  const key = (l: JournalLine) => `${l.line}|${l.rateKey ?? ""}|${l.accountCode}`;
+  const rows = new Map<string, JournalDriftLine>();
+  const add = (l: JournalLine, side: "pushedMinor" | "currentMinor") => {
+    const row = rows.get(key(l)) ?? { line: l.line, rateKey: l.rateKey, accountCode: l.accountCode, pushedMinor: 0, currentMinor: 0 };
+    row[side] += l.debitMinor - l.creditMinor;
+    rows.set(key(l), row);
+  };
+  for (const l of pushed.lines ?? []) add(l, "pushedMinor");
+  for (const l of current.lines) add(l, "currentMinor");
+  const lines = [...rows.values()].filter((r) => r.pushedMinor !== r.currentMinor).sort((a, b) => ACCOUNTING_LINES.indexOf(a.line) - ACCOUNTING_LINES.indexOf(b.line) || (a.rateKey ?? "").localeCompare(b.rateKey ?? ""));
+  return { differenceMinor: current.debitMinor - (pushed.debitMinor ?? 0), lines };
+}

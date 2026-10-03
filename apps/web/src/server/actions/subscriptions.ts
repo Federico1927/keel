@@ -5,7 +5,7 @@ import { canDo, canWritePage } from "@hullwise/config";
 import { and, eq, recordAudit, schema } from "@hullwise/db";
 import { SUBSCRIPTION_ACTIONS, SUBSCRIPTION_INTERVALS } from "@hullwise/core";
 import { IntegrationError, failedConnection, setupErrorOfTest, type ConnectionTest } from "@hullwise/integrations";
-import { SubscriptionActionError, addSubscriptionNote, assignSubscription, getSubscriptionProviderFor, mockSubscriptionsFor, refreshSubscriberRisk, runSubscriptionSync, saveCancellationReason, subscriptionAction } from "@hullwise/services";
+import { SubscriptionActionError, addSubscriptionNote, assignSubscription, getSubscriptionProviderFor, nextSimulatedRenewal, refreshSubscriberRisk, runSubscriptionSync, saveCancellationReason, simulateContractCharge, simulatedSubscriptionApp, subscriptionAction, type SimulatedCharge } from "@hullwise/services";
 import { auditActor } from "@/server/audit-actor";
 import { verifySetup, type SetupFacts } from "@/server/integration-verify";
 import { ForbiddenError, requirePage, requireWrite, type TenantContext } from "@/server/tenant";
@@ -145,24 +145,26 @@ export async function resyncSubscriptionsAction(slug: string): Promise<ActionRes
   }
 }
 
-/** Mock mode only: the simulated app charges one active contract now, with a decline when asked. */
-export async function simulateRenewalAction(slug: string, outcome: "success" | "card_expired" | "insufficient_funds"): Promise<ActionResult<{ summary: string }>> {
+/**
+ * Mock mode only: the simulated app charges a renewal now. Without a contract, the next healthy
+ * renewal (a paid charge creates its order; a decline opens the recovery episode); with one, that
+ * contract (the recovery queue's "simulate the app's retry"). Answers who was charged and the order.
+ */
+export async function simulateRenewalAction(slug: string, outcome: "success" | "card_expired" | "insufficient_funds", contractId?: string): Promise<ActionResult<{ summary: string; charge: SimulatedCharge }>> {
   try {
-    const ctx = await requireManage(slug);
+    if (contractId !== undefined && !z.string().uuid().safeParse(contractId).success) return fail("invalid_input");
+    const ctx = contractId ? await requireWrite(slug, "subscriptions") : await requireManage(slug);
     if (!canWritePage(ctx.role, "subscriptions")) return fail("forbidden");
     const r = await ctx.run(async (tx) => {
       const s = svc(ctx, tx);
-      const provider = await getSubscriptionProviderFor(s);
-      const mock = mockSubscriptionsFor(ctx.tenant.id);
-      if (!provider || !mock || provider !== mock) return null;
-      const [c] = await tx.select({ externalId: schema.subscriptionContracts.externalId }).from(schema.subscriptionContracts).where(and(eq(schema.subscriptionContracts.tenantId, ctx.tenant.id), eq(schema.subscriptionContracts.status, "active"))).orderBy(schema.subscriptionContracts.nextBillingAt).limit(1);
-      if (!c) return null;
-      mock.simulateRenewal(c.externalId, outcome);
-      return runSubscriptionSync(s, mock, { kind: "delta", budgetMs: 10_000 });
+      if (!(await simulatedSubscriptionApp(s))) return null;
+      const id = contractId ?? (await nextSimulatedRenewal(s));
+      return id ? simulateContractCharge(s, { country: ctx.tenant.country, orderNumberPrefix: ctx.tenant.orderNumberPrefix }, id, outcome) : null;
     });
     if (!r) return fail("subscription_no_provider");
-    revalidate(slug);
-    return ok({ summary: r.error ?? `changed:${r.changed}` });
+    revalidate(slug, r.contractId);
+    revalidatePath(`/t/${slug}/orders`);
+    return ok({ summary: [r.customerName, r.orderName].filter(Boolean).join(" · "), charge: r });
   } catch (e) {
     return handle(e);
   }

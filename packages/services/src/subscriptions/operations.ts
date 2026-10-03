@@ -140,7 +140,10 @@ export async function subscriptionDetail(ctx: ServiceContext, contractId: string
   const [assignee] = row.assignedTo ? await ctx.tx.select({ name: sql<string>`coalesce(${schema.users.preferredName}, ${schema.users.name}, ${schema.users.email})` }).from(schema.users).where(eq(schema.users.id, row.assignedTo)).limit(1) : [];
   const caps = await subscriptionCapabilities(ctx);
   const integration = await subscriptionIntegration(ctx);
-  return { contract: row, customer: customer ?? null, lines, swapOptions, attempts, events: events.map((x) => ({ ...x.e, actorName: x.actorName })), orders, capabilities: caps, provider: integration?.provider ?? null, assigneeName: assignee?.name ?? null, reasons: await cancellationReasons(ctx) };
+  // team members named in assignment diffs, so the timeline shows names instead of ids
+  const named = [...new Set(events.flatMap((x) => Object.values(((x.e.diff ?? {}) as Record<string, { from?: unknown; to?: unknown }>).assignedTo ?? {})).filter((v): v is string => typeof v === "string" && /^[0-9a-f-]{36}$/i.test(v)))];
+  const people = named.length ? Object.fromEntries((await ctx.tx.select({ id: schema.users.id, name: sql<string>`coalesce(${schema.users.preferredName}, ${schema.users.name}, ${schema.users.email})` }).from(schema.users).where(inArray(schema.users.id, named))).map((u) => [u.id, u.name])) : {};
+  return { contract: row, customer: customer ?? null, lines, swapOptions, attempts, events: events.map((x) => ({ ...x.e, actorName: x.actorName })), people: people as Record<string, string>, orders, capabilities: caps, provider: integration?.provider ?? null, assigneeName: assignee?.name ?? null, reasons: await cancellationReasons(ctx) };
 }
 
 /* ---------- customer-care actions ---------- */

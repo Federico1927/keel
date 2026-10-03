@@ -9484,7 +9484,9 @@
       "assignee": "Follow-up",
       "unassigned": "Unassigned",
       "assigned": "Follow-up assigned.",
-      "back": "Back"
+      "back": "Back",
+      "simulate_retry": "Simulate the app's retry",
+      "open_order": "Open the order"
     },
     "stock": {
       "title": "Stock for renewals",
@@ -9552,6 +9554,12 @@
       "active_hint": "{paused} paused · {new} new in 30 days",
       "churn_hint": "{voluntary} voluntary · {involuntary} involuntary",
       "at_risk_hint": "{n} at risk · {failing} failing payments · {high} high churn risk"
+    },
+    "simulation": {
+      "success": "Renewal charged for {customer}: order {order} created.",
+      "declined": "Renewal declined for {customer}: it is now in the recovery queue and the app retries in a few days.",
+      "gave_up": "Last retry declined for {customer}: the app cancelled the subscription for non-payment.",
+      "recovered": "The app's retry went through for {customer}: order {order} created, payment recovered."
     }
   },
   "whatsapp": {
@@ -10993,7 +11001,8 @@
         "net": "Net (clearing)",
         "debit": "Debits",
         "action": "Actions"
-      }
+      },
+      "repush_not_pushed": "The old version was voided; version {version} is not pushed yet (see its status and error): it is retried automatically."
     },
     "day": {
       "title": "Journal of {day}",
@@ -11072,6 +11081,21 @@
       },
       "save": "Save",
       "saved": "Settings saved."
+    },
+    "reconcile": {
+      "title": "Reconciliation",
+      "description": "Every pushed day of the last {days} days compared with the sales summary as it is now.",
+      "all_match": "All {n} pushed days still match the sales summary.",
+      "nothing_pushed": "No pushed day to check yet.",
+      "columns": {
+        "lines": "What changed",
+        "pushed": "Pushed",
+        "now": "Now",
+        "difference": "Difference"
+      },
+      "line": "{line} {account}: {from} → {to}",
+      "day_title": "Differs from what was pushed",
+      "day_description": "The sales summary of this day changed after version {version} was pushed ({difference}). Re-push the day to void it and push the corrected journal."
     }
   }
 }

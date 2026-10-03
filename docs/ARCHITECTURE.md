@@ -481,6 +481,7 @@ flowchart LR
 - **Planning**: `renewalStock` projects scheduled renewals per variant against stock and incoming POs; `replenishmentPlan` merges the shortfall (`mergeRenewalDemand`) when the add-on is on.
 - **Segments**: `SUBSCRIPTION_SEGMENT_FIELDS` (core) and `SUBSCRIPTION_FIELD_SQL` (services) are spread into the core catalogs; the builder hides the `subscriptions` group without the add-on.
 - **Gating**: page key `subscriptions` in `modules.ts`/`roles.ts`; widgets `subs_*` carry the module; MCP tools carry `module: "addon.subscriptions"`; services refuse writes without the add-on.
+- **Simulated app** (`services/subscriptions/simulate.ts`, mock mode only): `simulateContractCharge` charges one contract on the `MockSubscriptionProvider` (a paid charge builds the store's renewal order from the contract lines and imports it through the core `importOrder`; a decline schedules the app's retry after 3 then 4 days, then `simulateDunningExhausted` ends the contract for non-payment), then imports the contract and the attempt like a sync. The `subscriptions` tick calls `chargeDueSimulatedRenewals` first (renewals due and retries due, outcome deterministic per contract and cycle), so a hosted demo keeps renewing without a reseed; the "Simulate" buttons use the same function. Live apps never reach it (`simulatedSubscriptionApp` returns null).
 ## The WhatsApp add-on via Spoki (issue #9)
 
 An approved exception to the no-specific-provider rule, activated per account (`addon.whatsapp_spoki`). Everything lives in `packages/addon-spoki`, the adapter in `packages/integrations/src/spoki`, pages under `/t/[tenant]/whatsapp/settings`, the route `/api/webhooks/spoki/[tenantId]/[token]`.
@@ -526,6 +527,7 @@ flowchart LR
 
 - **Tick** `accounting` hourly at :35 for tenants with the add-on: the window is the closed days of the look-back (or from the start day); pushed and empty days are final, failed ones wait for their next attempt; manual "Retry now" and "Push now" force it. Health source `accounting:writes`.
 - **Gating**: page key `accounting` in `modules.ts`/`roles.ts` (404 without the add-on, owners/admins write, viewers read), actions `requireWrite("accounting")` (+ `manage_integrations` for the connection), services refuse without the add-on (`AccountingError("disabled")`), MCP tool `get_accounting_push_status` carries `module: "addon.accounting"`.
+- **Reconciliation** (`accountingReconciliation`, read only): the pushed days of the window (or given days) rebuilt with `evaluateAccountingDays` and compared with the stored journal by `journalDrift` (core: lines matched on summary line, tax rate and account). A drift (late order, actual fees replacing the estimate, mapping changed) is shown on the push log and the day page with Re-push.
 - **A live connector** (Xero Manual Journals, QuickBooks JournalEntry, Fatture in Cloud) implements `AccountingProvider`, is returned by `getAccountingProviderFor` for live integration rows, and should push outside the tenant transaction (the mock is in memory).
 
 ## Adding an add-on

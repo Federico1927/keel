@@ -80,6 +80,13 @@ export class MockSubscriptionProvider implements SubscriptionProvider {
     return attempt;
   }
 
+  /** The app gives up after its last retry: the contract ends for non-payment (involuntary churn). */
+  simulateDunningExhausted(externalId: string): NormalizedSubscriptionContract {
+    const c = this.contracts.get(externalId);
+    if (!c) throw new IntegrationError("not_found", `Mock: contract ${externalId} not found`);
+    return this.update(c, { status: "cancelled", endedAt: this.now(), nextBillingAt: null, cancelledForNonPayment: true, cancellationReasonRaw: "Payment failed after the maximum number of retries" });
+  }
+
   private update(c: NormalizedSubscriptionContract, patch: Partial<NormalizedSubscriptionContract>): NormalizedSubscriptionContract {
     const next = { ...c, ...patch, updatedAt: new Date(Math.max(this.now().getTime(), c.updatedAt.getTime() + 1)) };
     this.contracts.set(c.externalId, next);

@@ -5,7 +5,9 @@ import * as schema from "../schema";
 import { enableDemoMcp } from "./mcp";
 import { ensureDemoProductCatalog } from "./media";
 import { DEMO_SPOKI_SETTINGS, demoSpokiIntegration } from "./spoki";
-import { demoAccountingIntegration, demoAccountingSettings } from "./accounting";
+import { demoAccountingIntegration, demoAccountingSettings, seedAccounting } from "./accounting";
+import { seedSubscriptions } from "./subscriptions";
+import bcrypt from "bcryptjs";
 import { MOCK_CHART_OF_ACCOUNTS, MOCK_SPOKI_TEMPLATES } from "@hullwise/integrations";
 
 /**
@@ -142,7 +144,9 @@ export interface SettingsReport {
 
 /**
  * Fills in the demo tenants' missing configuration rows. Idempotent: inserts only what is missing,
- * merges only missing keys into the tenant settings, fills reason labels only where empty.
+ * merges only missing keys into the tenant settings, fills reason labels only where empty. The
+ * add-ons previewed on the demo get their row and, when their tables are empty, their demo data
+ * (deterministic, the same generator as the full seed).
  * Tenants that do not exist (a production without the demo) are skipped.
  */
 /** Platform demo users created before the product rename (#76) keep their sign-in under the new domain. */
@@ -161,8 +165,30 @@ export async function renameDemoUsers(db: Db): Promise<string[]> {
   return renamed;
 }
 
+/**
+ * Add-ons in development the demo shows end to end (#77: they cannot be switched on from the console
+ * until released). A demo tenant gets the row when it has none at all; one switched off on purpose
+ * (an inactive row) stays off.
+ */
+export const DEMO_PREVIEW_ADDONS: Record<DemoKey, readonly string[]> = { northwind: ["addon.accounting"], harbor: ["addon.subscriptions"] };
+
+/** The demo password (same rule as `DEMO_PASSWORD` in ./index, not imported to keep this step free of the full seed). */
+const demoPassword = () => process.env.HULLWISE_DEMO_PASSWORD || "hullwise-demo-2026";
+
+/** Demo users added after a hosted demo was seeded (they sign in with the demo password). */
+const LATER_DEMO_USERS: readonly { key: DemoKey; email: string; name: string; preferredName: string; role: "customer_care" }[] = [{ key: "harbor", email: "care@harborhome.demo", name: "Ava Mitchell", preferredName: "Ava", role: "customer_care" }];
+
 export async function ensureDemoSettings(db: Db, now = new Date()): Promise<SettingsReport[]> {
   const tenants = await db.select({ id: schema.tenants.id, slug: schema.tenants.slug }).from(schema.tenants).where(inArray(schema.tenants.slug, Object.values(DEMO_SLUGS)));
+  const previews: string[] = [];
+  for (const key of Object.keys(DEMO_SLUGS) as DemoKey[]) {
+    const tenant = tenants.find((t) => t.slug === DEMO_SLUGS[key]);
+    if (!tenant) continue;
+    for (const moduleKey of DEMO_PREVIEW_ADDONS[key]) {
+      const r = await db.insert(schema.tenantAddons).values({ tenantId: tenant.id, moduleKey, note: "Demo preview (in development)", version: null }).onConflictDoNothing().returning({ id: schema.tenantAddons.id });
+      if (r.length) previews.push(`${key}:${moduleKey}`);
+    }
+  }
   const addons = await db.select({ tenantId: schema.tenantAddons.tenantId, key: schema.tenantAddons.moduleKey }).from(schema.tenantAddons).where(eq(schema.tenantAddons.isActive, true));
   const out: SettingsReport[] = [];
   for (const key of Object.keys(DEMO_SLUGS) as DemoKey[]) {
@@ -217,6 +243,27 @@ export async function ensureDemoSettings(db: Db, now = new Date()): Promise<Sett
         await db.insert(schema.integrations).values(demoSpokiIntegration(tenantId, now)).onConflictDoNothing();
         created.push("integrations:spoki");
       }
+    }
+    if (previews.some((p) => p.startsWith(`${key}:`))) created.push(...previews.filter((p) => p.startsWith(`${key}:`)).map((p) => `tenant_addons:${p.slice(key.length + 1)}`));
+    for (const u of LATER_DEMO_USERS.filter((x) => x.key === key)) {
+      const [exists] = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, u.email)).limit(1);
+      if (exists) continue;
+      const [row] = await db.insert(schema.users).values({ email: u.email, name: u.name, preferredName: u.preferredName, passwordHash: await bcrypt.hash(demoPassword(), 10), emailVerified: now, locale: "en" }).onConflictDoNothing().returning({ id: schema.users.id });
+      if (!row) continue;
+      await db.insert(schema.tenantMemberships).values({ tenantId, userId: row.id, role: u.role }).onConflictDoNothing();
+      created.push(`user:${u.email}`);
+    }
+    // the add-ons' demo data (#67, #85): subscribers, renewals and recovery; the accounting push log with its reconciliation
+    if (addons.some((a) => a.tenantId === tenantId && a.key === "addon.subscriptions") && (await missing("subscription_contracts"))) {
+      const ids = await db.select({ id: schema.users.id, email: schema.users.email }).from(schema.users).where(inArray(schema.users.email, ["care@harborhome.demo", "owner@harborhome.demo"]));
+      await seedSubscriptions(db, { tenantId, addons: ["addon.subscriptions"], now, scale: 1, careUserId: ids.find((u) => u.email.startsWith("care@"))?.id ?? null, ownerUserId: ids.find((u) => u.email.startsWith("owner@"))?.id ?? null });
+      created.push("subscription_demo_data");
+    }
+    if (addons.some((a) => a.tenantId === tenantId && a.key === "addon.accounting") && (await missing("accounting_journals"))) {
+      const hadSettings = !(await missing("accounting_settings"));
+      await seedAccounting(db, tenantId, now);
+      created.push("accounting_journals");
+      if (!hadSettings) created.push("accounting_settings");
     }
     if (addons.some((a) => a.tenantId === tenantId && a.key === "addon.accounting") && (await missing("accounting_settings"))) {
       await db.insert(schema.accountingSettings).values({ tenantId, config: demoAccountingSettings(null), accounts: [...MOCK_CHART_OF_ACCOUNTS], accountsSyncedAt: now }).onConflictDoNothing();
